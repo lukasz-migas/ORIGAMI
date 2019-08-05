@@ -125,7 +125,6 @@ from ids import ID_interactivePanel_table_title
 from ids import ID_interactivePanel_table_type
 from ids import ID_ionPanel_table_label
 from ids import ID_ionPanel_table_method
-from ids import ID_saveConfig
 from natsort import natsorted
 from panelCustomiseInteractive import panelCustomiseInteractive
 from processing.spectra import crop_1D_data
@@ -1601,143 +1600,6 @@ class panelInteractiveOutput(wx.MiniFrame):
         main_sizer.Add(grid, 0, wx.EXPAND | wx.ALL, 2)
         return main_sizer
 
-    #     def makeImageSubPanel(self):
-    #         imageBox = makeStaticBox(panel, "Image properties", (230,-1), wx.BLACK)
-    #         figSizer = wx.StaticBoxSizer(imageBox, wx.HORIZONTAL)
-    #
-    #         figHeight1D_label = makeStaticText(panel, u"Height (1D)")
-    #         self.figHeight1D_value = wx.TextCtrl(panel, -1, "", size=(50, -1))
-    #         self.figHeight1D_value.SetValue(str(self.config.figHeight1D))
-    #         self.figHeight1D_value.SetToolTip(wx.ToolTip("Set figure height (pixels)"))
-    #
-    #         figWidth1D_label = makeStaticText(panel, u"Width (1D)")
-    #         self.figWidth1D_value = wx.TextCtrl(panel, -1, "", size=(50, -1))
-    #         self.figWidth1D_value.SetValue(str(self.config.figWidth1D))
-    #         self.figWidth1D_value.SetToolTip(wx.ToolTip("Set figure width (pixels)"))
-    #
-    #         figHeight_label = makeStaticText(panel, u"Height (2D)")
-    #         self.figHeight_value = wx.TextCtrl(panel, -1, "", size=(50, -1))
-    #         self.figHeight_value.SetValue(str(self.config.figHeight))
-    #         self.figHeight_value.SetToolTip(wx.ToolTip("Set figure height (pixels)"))
-    #
-    #         figWidth_label = makeStaticText(panel, u"Width (2D)")
-    #         self.figWidth_value = wx.TextCtrl(panel, -1, "", size=(50, -1))
-    #         self.figWidth_value.SetValue(str(self.config.figWidth))
-    #         self.figWidth_value.SetToolTip(wx.ToolTip("Set figure width (pixels)"))
-    #
-    #         # bind
-    #         self.figHeight_value.Bind(wx.EVT_TEXT, self.on_apply)
-    #         self.figWidth_value.Bind(wx.EVT_TEXT, self.on_apply)
-    #         self.figHeight1D_value.Bind(wx.EVT_TEXT, self.on_apply)
-    #         self.figWidth1D_value.Bind(wx.EVT_TEXT, self.on_apply)
-    #
-    #         gridFigure = wx.GridBagSizer(2,2)
-    #         n = 0
-    #         gridFigure.Add(figHeight1D_label, (n,0))
-    #         gridFigure.Add(self.figHeight1D_value, (n,1))
-    #         gridFigure.Add(figWidth1D_label, (n,2))
-    #         gridFigure.Add(self.figWidth1D_value, (n,3))
-    #         n = n+1
-    #         gridFigure.Add(figHeight_label, (n,0))
-    #         gridFigure.Add(self.figHeight_value, (n,1))
-    #         gridFigure.Add(figWidth_label, (n,2))
-    #         gridFigure.Add(self.figWidth_value, (n,3))
-    #         figSizer.Add(gridFigure, 0, wx.EXPAND|wx.ALL, 2)
-    #         return figSizer
-
-    #     def makePlotSettingsSubPanel(self):
-    #         imageBox = makeStaticBox(panel, "Frame properties", (210,-1), wx.BLACK)
-    #         figSizer = wx.StaticBoxSizer(imageBox, wx.HORIZONTAL)
-    #
-    #         borderRight_label = makeStaticText(panel, u"Border\nright")
-    #         self.interactive_border_min_right = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-    #                                                    value=str(self.config.interactive_border_min_right),min=0, max=100,
-    #                                                    initial=int(self.config.interactive_border_min_right),
-    #                                                    inc=5, size=(50,-1))
-    #         self.interactive_border_min_right.SetToolTip(wx.ToolTip("Set minimum border size (pixels)"))
-    #
-    #         borderLeft_label = makeStaticText(panel, u"Border\nleft")
-    #         self.interactive_border_min_left = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-    #                                                    value=str(self.config.interactive_border_min_left),min=0, max=100,
-    #                                                    initial=int(self.config.interactive_border_min_left), inc=5, size=(50,-1))
-    #         self.interactive_border_min_left.SetToolTip(wx.ToolTip("Set minimum border size (pixels)"))
-    #
-    #         borderTop_label = makeStaticText(panel, u"Border\ntop")
-    #         self.interactive_border_min_top = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-    #                                                    value=str(self.config.interactive_border_min_top),min=0, max=100,
-    #                                                    initial=int(self.config.interactive_border_min_top), inc=5, size=(50,-1))
-    #         self.interactive_border_min_top.SetToolTip(wx.ToolTip("Set minimum border size (pixels)"))
-    #
-    #         borderBottom_label = makeStaticText(panel, u"Border\nbottom")
-    #         self.interactive_border_min_bottom = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-    #                                                    value=str(self.config.interactive_border_min_bottom),min=0, max=100,
-    #                                                    initial=int(self.config.interactive_border_min_bottom), inc=5, size=(50,-1))
-    #         self.interactive_border_min_bottom.SetToolTip(wx.ToolTip("Set minimum border size (pixels)"))
-    #
-    #         outlineWidth_label = makeStaticText(panel, u"Outline\nwidth")
-    #         self.interactive_outline_width = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-    #                                                    value=str(self.config.interactive_outline_width),min=0, max=5,
-    #                                                    initial=self.config.interactive_outline_width, inc=0.5, size=(50,-1))
-    #         self.interactive_outline_width.SetToolTip(wx.ToolTip("Plot outline line thickness"))
-    #
-    #         outlineTransparency_label = makeStaticText(panel, u"Outline\nalpha")
-    #         self.interactive_outline_alpha = wx.SpinCtrlDouble(panel, wx.ID_ANY,
-    #                                                    value=str(self.config.interactive_outline_alpha),min=0, max=1,
-    #                                                    initial=self.config.interactive_outline_alpha, inc=0.05, size=(50,-1))
-    #         self.interactive_outline_alpha.SetToolTip(wx.ToolTip("Plot outline line transparency value"))
-    #
-    #         background_color_label= makeStaticText(panel, u"Background\ncolor")
-    #         self.interactive_background_colorBtn = wx.Button( self.propertiesView, ID_changeColorBackgroundInteractive,
-    #                                            u"", wx.DefaultPosition, wx.Size( 26, 26 ), 0 )
-    #         self.interactive_background_colorBtn.SetBackgroundColour(convertRGB1to255(self.config.interactive_background_color))
-    #
-    #         self.interactive_grid_line = wx.CheckBox(panel, -1 ,'Add', (15, 30))
-    #         self.interactive_grid_line.SetValue(self.config.interactive_grid_line)
-    #
-    #         grid_line_color_label= makeStaticText(panel, u"Grid lines")
-    #         self.interactive_grid_line_colorBtn = wx.Button( self.propertiesView, ID_changeColorGridLineInteractive,
-    #                                            u"", wx.DefaultPosition, wx.Size( 26, 26 ), 0 )
-    #         self.interactive_grid_line_colorBtn.SetBackgroundColour(convertRGB1to255(self.config.interactive_grid_line_color))
-    #
-    #         # bind
-    #         self.interactive_border_min_right.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-    #         self.interactive_border_min_left.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-    #         self.interactive_border_min_top.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-    #         self.interactive_border_min_bottom.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-    #         self.interactive_outline_width.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-    #         self.interactive_outline_alpha.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-    #         self.interactive_grid_line.Bind(wx.EVT_CHECKBOX, self.on_apply)
-    #         self.interactive_background_colorBtn.Bind(wx.EVT_BUTTON, self.on_change_color, id=ID_changeColorBackgroundInteractive)
-    #         self.interactive_grid_line_colorBtn.Bind(wx.EVT_BUTTON, self.on_change_color, id=ID_changeColorGridLineInteractive)
-    #
-    #         gridFigure = wx.GridBagSizer(5,2)
-    #         n = 0
-    #         gridFigure.Add(borderRight_label, (n,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
-    #         gridFigure.Add(borderLeft_label, (n,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
-    #         gridFigure.Add(borderTop_label, (n,2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
-    #         gridFigure.Add(borderBottom_label, (n,3), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
-    #         n = n+1
-    #         gridFigure.Add(self.interactive_border_min_right, (n,0))
-    #         gridFigure.Add(self.interactive_border_min_left, (n,1))
-    #         gridFigure.Add(self.interactive_border_min_top, (n,2))
-    #         gridFigure.Add(self.interactive_border_min_bottom, (n,3))
-    #         n = n+1
-    #         gridFigure.Add(outlineWidth_label, (n,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
-    #         gridFigure.Add(outlineTransparency_label, (n,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
-    #         gridFigure.Add(background_color_label, (n,2), (1, 2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
-    #         n = n+1
-    #         gridFigure.Add(self.interactive_outline_width, (n,0))
-    #         gridFigure.Add(self.interactive_outline_alpha, (n,1))
-    #         gridFigure.Add(self.interactive_background_colorBtn, (n,2), (1, 2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
-    #         n = n+1
-    #         gridFigure.Add(grid_line_color_label, (n,0), (1, 2), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
-    #         n = n+1
-    #         gridFigure.Add(self.interactive_grid_line, (n,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
-    #         gridFigure.Add(self.interactive_grid_line_colorBtn, (n,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_LEFT)
-    #
-    #         figSizer.Add(gridFigure, 0, wx.EXPAND|wx.ALL, 2)
-    #         return figSizer
-
     def make_rmsd_panel(self, panel):
         rmsdBox = makeStaticBox(panel, "RMSD label properties", (200, -1), wx.BLACK)
         rmsdSizer = wx.StaticBoxSizer(rmsdBox, wx.HORIZONTAL)
@@ -2101,7 +1963,8 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.custom_js_events = wx.CheckBox(panel, -1, "Add custom JS events when available", (15, 30))
         self.custom_js_events.SetToolTip(
             wx.ToolTip(
-                "When checked, custom JavaScripts will be added to the plot to enable better operation (i.e. double-tap in plot area will restore original state of the plot)"
+                "When checked, custom JavaScripts will be added to the plot to enable better operation"
+                + " (i.e. double-tap in plot area will restore original state of the plot)"
             )
         )
         self.custom_js_events.SetValue(self.config.interactive_custom_events)
@@ -2110,7 +1973,8 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.custom_js_scripts = wx.CheckBox(panel, -1, "Add custom JS scripts when available", (15, 30))
         self.custom_js_scripts.SetToolTip(
             wx.ToolTip(
-                "When checked, custom JavaScript code snippets will be execute when triggered (i.e. toggle button to show/hide legend)"
+                "When checked, custom JavaScript code snippets will be execute when triggered "
+                + "(i.e. toggle button to show/hide legend)"
             )
         )
         self.custom_js_scripts.SetValue(self.config.interactive_custom_scripts)
@@ -4970,73 +4834,6 @@ class panelInteractiveOutput(wx.MiniFrame):
             bokehPlot = self.add_custom_js_events(bokehPlot, js_type=["double_tap_unzoom"], **kwargs)
         #             except Exception: pass
         return bokehPlot
-
-    #     def _prepare_centroid_annotations(self, data, yvals, y_offset=0):
-    #
-    #         __, ylimits = find_limits_all(yvals, yvals)
-    #         text_annot_xpos, text_annot_ypos, text_annot_label = [], [], []
-    #         arrow_xpos_start, arrow_xpos_end, arrow_ypos_start, arrow_ypos_end = [], [], [], []
-    #         text_annot_xpos_start, text_annot_ypos_start = [], []
-    #
-    # #         # add annotations iteratively
-    # #         for i, annotKey in enumerate(data['annotations']):
-    # #
-    # #             # add labels
-    # #             if user_kwargs["annotation_properties"].get(
-    # #                 "show_labels", self.config.interactive_ms_annotations_labels):
-    # #                 # determine position of the ion/peak
-    # #                 if 'isotopic_x' in data['annotations'][annotKey]:
-    # #                     xpos = data['annotations'][annotKey]['isotopic_x']
-    # #                 else:
-    # #                     xpos = data['annotations'][annotKey]["max"] - (data['annotations'][annotKey]["max"] - data['annotations'][annotKey]["min"]) / 2.
-    # #                 text_annot_xpos.append(xpos)
-    # #
-    # #                 if 'isotopic_y' in data['annotations'][annotKey]:
-    # #                     ypos = data['annotations'][annotKey]['isotopic_y']
-    # #                 else:
-    # #                     ypos = data['annotations'][annotKey]["intensity"]
-    # #                 text_annot_ypos.append(ypos + y_offset)
-    # #
-    # #                 # determine position of arrow (if any)
-    # #                 if data['annotations'][annotKey].get('add_arrow', False):
-    # #                     xpos_start = data['annotations'][annotKey].get('position_label_x', xpos)
-    # #                     ypos_start = data['annotations'][annotKey].get('position_label_y', ypos)
-    # #                 else: xpos_start, ypos_start = xpos, ypos
-    # #
-    # #                 # if either xpos or ypos not equal position of the peak then we are not
-    # #                 # adding arrow
-    # #                 if xpos_start != xpos or ypos_start != ypos:
-    # #                      arrow_xpos_start.append(xpos_start)
-    # #                      arrow_xpos_end.append(xpos)
-    # #                      arrow_ypos_start.append(ypos_start)
-    # #                      arrow_ypos_end.append(ypos)
-    # #                      # replace x/ypos of the label
-    # #                      text_annot_xpos[-1] = xpos_start
-    # #                      text_annot_ypos[-1] = ypos_start
-    # #
-    # #                 # label
-    # #                 if data['annotations'][annotKey]["label"] not in ["", None]:
-    # #                     label = u"{}".format(_replace_labels(data['annotations'][annotKey]["label"]))
-    # #                 else:
-    # #                     label = u"{}".format(data['annotations'][annotKey]["charge"])
-    # #                 text_annot_label.append(label)
-    # #
-    # #                 # check if need to add arrow
-    # #                 if data['annotations'][annotKey].get('add_arrow', False):
-    # #                     xpos_start = data['annotations'][annotKey].get('position_label_x', xpos)
-    # #                     ypos_start = data['annotations'][annotKey].get('position_label_y', ypos)
-    # #                     if xpos_start == xpos and ypos_start == ypos: continue
-    # #                     text_annot_xpos_start.append(xpos_start)
-    # #                     text_annot_ypos_start.append(ypos_start)
-    #
-    #         if user_kwargs["annotation_properties"].get(
-    #             "show_labels", self.config.interactive_ms_annotations_labels):
-    #             ylimits[1] = max(text_annot_ypos) * 2
-    #             label_source = ColumnDataSource(data=dict(xpos=text_annot_xpos,
-    #                                                       ypos=text_annot_ypos,
-    #                                                       label=text_annot_label))
-    #
-    #         return label_source
 
     def _prepare_centroid_data(self, xvals_raw, xvals_lab, data, color_labelled, color_unlabelled):
         """
@@ -9363,8 +9160,6 @@ class panelInteractiveOutput(wx.MiniFrame):
 
     def _updateTable(self):
         title = self.peaklist.GetItem(self.peaklist.item_id, self.config.interactiveColNames["title"]).GetText()
-        #         header = self.peaklist.GetItem(self.peaklist.item_id,self.config.interactiveColNames['header']).GetText()
-        #         footnote = self.peaklist.GetItem(self.peaklist.item_id,self.config.interactiveColNames['footnote']).GetText()
         order = self.peaklist.GetItem(self.peaklist.item_id, self.config.interactiveColNames["order"]).GetText()
 
         self.itemName_value.SetValue(title)

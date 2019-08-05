@@ -155,7 +155,9 @@ def text_heatmap_open(path=None, normalize=None):
     if len(xvals) == (zvals.shape[1] + 1) and xvals[0] == 0:
         xvals = xvals[1::]
 
-    print("Labels size: {} x {} Array size: {} x {}".format(len(xvals), len(yvals), len(zvals[0, :]), len(zvals[:, 0])))
+    logger.info(
+        "Labels size: {} x {} Array size: {} x {}".format(len(xvals), len(yvals), len(zvals[0, :]), len(zvals[:, 0]))
+    )
 
     if normalize:
         zvals_norm = normalize(zvals, axis=0, norm="max")  # Norm to 1
@@ -167,7 +169,7 @@ def text_heatmap_open(path=None, normalize=None):
 def text_spectrum_open(path=None):
 
     # get extension
-    fname, extension = os.path.splitext(path)
+    __, extension = os.path.splitext(path)
     dirname = os.path.dirname(path)
 
     # read data
@@ -178,7 +180,7 @@ def text_spectrum_open(path=None):
 
     # check if first row is numerical
     if ms.loc[0, :].dtype != "float64":
-        print(
+        logger.info(
             "Detected non-numerical values in the first row. Attempting to reopen the file and skipping the first row."
         )
         if extension == ".csv":
@@ -191,8 +193,9 @@ def text_spectrum_open(path=None):
     # convert to numpy array
     ms = np.array(ms)
     if n_rows > 1:
-        print(
-            "MS file has more than two columns. In future each row will be combined into one MS and additional container will be created for multiple MS"
+        logger.info(
+            "MS file has more than two columns. In future each row will be combined into one MS and"
+            + " additional container will be created for multiple MS"
         )
         xvals, yvals = ms[:, 0], ms[:, 1]
     else:

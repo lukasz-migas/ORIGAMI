@@ -813,13 +813,6 @@ class panelParametersEdit(wx.Panel):
         axes_grid.Add(self.general_bottom_value, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
         axes_grid.Add(self.general_width_value, (y, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
         axes_grid.Add(self.general_height_value, (y, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
-        #         y = y + 1
-        #         axes_grid.Add(width_window_inch_label, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
-        #         axes_grid.Add(height_window_inch_label, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
-        #         y = y + 1
-        #         axes_grid.Add(plotSize_window_inch_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        #         axes_grid.Add(self.general_width_window_inch_value, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
-        #         axes_grid.Add(self.general_height_window_inch_value, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
         axes_box_sizer.Add(axes_grid, 0, wx.EXPAND, 10)
 
         export_grid = wx.GridBagSizer(2, 2)
@@ -2510,9 +2503,6 @@ class panelParametersEdit(wx.Panel):
 
         plotSizes = [self.general_width_inch_value.GetValue(), self.general_height_inch_value.GetValue()]
         self.config._plotSettings[plotName]["resize_size"] = plotSizes
-        #
-        #         plotSizes = [self.general_width_window_inch_value.GetValue(), self.general_height_window_inch_value.GetValue()]
-        #         self.config._plotSettings[plotName]["gui_size"] = plotSizes
 
         # fire events
         self.panel_plot.plot_update_axes(plotName=plotName)
@@ -3175,10 +3165,6 @@ class panelParametersEdit(wx.Panel):
         plotSizes = plotValues["resize_size"]
         for i, item in enumerate([self.general_width_inch_value, self.general_height_inch_value]):
             item.SetValue(plotSizes[i])
-
-        #         plotSizes = plotValues["gui_size"]
-        #         for i, item in enumerate([self.general_width_window_inch_value, self.general_height_window_inch_value]):
-        #             item.SetValue(plotSizes[i])
 
         if evt is not None:
             evt.Skip()

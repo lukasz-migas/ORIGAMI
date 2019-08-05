@@ -1056,9 +1056,13 @@ class data_processing:
         )
 
         # generate fragment lists
-        fragment_mass_list, fragment_name_list, fragment_charge_list, fragment_peptide_list, frag_full_name_list = self.frag_generator.get_fragment_mass_list(
-            fragments
-        )
+        (
+            fragment_mass_list,
+            fragment_name_list,
+            fragment_charge_list,
+            fragment_peptide_list,
+            frag_full_name_list,
+        ) = self.frag_generator.get_fragment_mass_list(fragments)
         xvals, yvals = spectrum_dict["xvals"], spectrum_dict["yvals"]
 
         # match fragments to peaks in the spectrum
@@ -1877,61 +1881,62 @@ class data_processing:
     #             verbose=self.config.peak_find_verbose)
     #
     #
-    #                         # detect charges
-    #                         if self.config.fit_highRes:
-    #                             # Iterate over the peaklist
-    #                             isotope_peaks_x, isotope_peaks_y = [], []
+    #             # detect charges
+    #             if self.config.fit_highRes:
+    #                 # Iterate over the peaklist
+    #                 isotope_peaks_x, isotope_peaks_y = [], []
     #
-    #                                     highResPeaks = pr_utils.detect_peaks_spectrum(data=mzNarrow,
-    #                                                                                    window=self.config.fit_highRes_window,
-    #                                                                                    threshold=self.config.fit_highRes_threshold)
+    #                         highResPeaks = pr_utils.detect_peaks_spectrum(data=mzNarrow,
+    #                                                                        window=self.config.fit_highRes_window,
+    #                                                                        threshold=self.config.fit_highRes_threshold)
     #
-    #                                 peakDiffs = np.diff(highResPeaks[:, 0])
-    #                                 if len(peakDiffs) > 0:
-    #                                     charge = int(np.round(1 / np.round(np.average(peakDiffs), 4), 0))
+    #                     peakDiffs = np.diff(highResPeaks[:, 0])
+    #                     if len(peakDiffs) > 0:
+    #                         charge = int(np.round(1 / np.round(np.average(peakDiffs), 4), 0))
     #
-    #                                 try:
-    #                                     max_index = np.where(highResPeaks[:, 1] == np.max(highResPeaks[:, 1]))
-    #                                     isotopic_max_val_x, isotopic_max_val_y = highResPeaks[max_index, :][0][0][0], highResPeaks[max_index, :][0][0][1]
-    #                                 except Exception:
-    #                                     isotopic_max_val_x, isotopic_max_val_y = None, None
+    #                     try:
+    #                         max_index = np.where(highResPeaks[:, 1] == np.max(highResPeaks[:, 1]))
+    #                         isotopic_max_val_x = highResPeaks[max_index, :][0][0][0],
+    #                         isotopic_max_val_y = highResPeaks[max_index, :][0][0][1]
+    #                     except Exception:
+    #                         isotopic_max_val_x, isotopic_max_val_y = None, None
     #
-    #                                 # Assumes positive mode
-    #                                 peakList[i, 2] = charge
-    #                                 if isotopic_max_val_x is not None:
-    #                                     peakList[i, 3] = isotopic_max_val_x
-    #                                     peakList[i, 4] = isotopic_max_val_y
+    #                     # Assumes positive mode
+    #                     peakList[i, 2] = charge
+    #                     if isotopic_max_val_x is not None:
+    #                         peakList[i, 3] = isotopic_max_val_x
+    #                         peakList[i, 4] = isotopic_max_val_y
     #
-    #                                 if self.config.fit_highRes_isotopicFit:
-    #                                     isotope_peaks_x.append(highResPeaks[:, 0].tolist())
-    #                                     isotope_peaks_y.append(highResPeaks[:, 1].tolist())
+    #                     if self.config.fit_highRes_isotopicFit:
+    #                         isotope_peaks_x.append(highResPeaks[:, 0].tolist())
+    #                         isotope_peaks_y.append(highResPeaks[:, 1].tolist())
     #
-    #                         # generate label
-    #                         if self.config.fit_show_labels and peak_count <= self.config.fit_show_labels_max_count:
-    #                             if self.config.fit_show_labels_mz and self.config.fit_show_labels_int:
-    #                                 if charge != 0:
-    #                                     label = "{:.2f}, {:.2f}\nz={}".format(peak[0], label_height, charge)
-    #                                 else:
-    #                                     label = "{:.2f}, {:.2f}".format(peak[0], label_height)
-    #                             elif self.config.fit_show_labels_mz and not self.config.fit_show_labels_int:
-    #                                 if charge != 0:
-    #                                     label = "{:.2f}\nz={}".format(peak[0], charge)
-    #                                 else:
-    #                                     label = "{:.2f}".format(peak[0])
-    #                             elif not self.config.fit_show_labels_mz and self.config.fit_show_labels_int:
-    #                                 if charge != 0:
-    #                                     label = "{:.2f}\nz={}".format(label_height, charge)
-    #                                 else:
-    #                                     label = "{:.2f}".format(label_height)
+    #             # generate label
+    #             if self.config.fit_show_labels and peak_count <= self.config.fit_show_labels_max_count:
+    #                 if self.config.fit_show_labels_mz and self.config.fit_show_labels_int:
+    #                     if charge != 0:
+    #                         label = "{:.2f}, {:.2f}\nz={}".format(peak[0], label_height, charge)
+    #                     else:
+    #                         label = "{:.2f}, {:.2f}".format(peak[0], label_height)
+    #                 elif self.config.fit_show_labels_mz and not self.config.fit_show_labels_int:
+    #                     if charge != 0:
+    #                         label = "{:.2f}\nz={}".format(peak[0], charge)
+    #                     else:
+    #                         label = "{:.2f}".format(peak[0])
+    #                 elif not self.config.fit_show_labels_mz and self.config.fit_show_labels_int:
+    #                     if charge != 0:
+    #                         label = "{:.2f}\nz={}".format(label_height, charge)
+    #                     else:
+    #                         label = "{:.2f}".format(label_height)
     #
-    #                         # add isotopic markers
-    #                         if self.config.fit_highRes_isotopicFit:
-    #                             flat_x = [item for sublist in isotope_peaks_x for item in sublist]
-    #                             flat_y = [item for sublist in isotope_peaks_y for item in sublist]
-    #                             self.presenter.view.panelPlots.on_plot_markers(xvals=flat_x, yvals=flat_y,
-    #                                                                            color=(1, 0, 0), marker='o',
-    #                                                                            size=15, plot=markerPlot,
-    #                                                                            repaint=repaint)
+    #             # add isotopic markers
+    #             if self.config.fit_highRes_isotopicFit:
+    #                 flat_x = [item for sublist in isotope_peaks_x for item in sublist]
+    #                 flat_y = [item for sublist in isotope_peaks_y for item in sublist]
+    #                 self.presenter.view.panelPlots.on_plot_markers(xvals=flat_x, yvals=flat_y,
+    #                                                                color=(1, 0, 0), marker='o',
+    #                                                                size=15, plot=markerPlot,
+    #                                                                repaint=repaint)
 
     def smooth_spectrum(self, mz_y, method="gaussian"):
         if method == "gaussian":

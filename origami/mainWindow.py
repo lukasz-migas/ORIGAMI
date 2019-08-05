@@ -1331,27 +1331,22 @@ class MyFrame(wx.Frame):
             kwargs = htmlPages.page_UniDec_info
 
         elif evtID == ID_help_page_dataLoading:
-            link = os.path.join(os.getcwd(), "docs\\user-guide\\loading-data.html")
-            # kwargs = htmlPages.page_data_loading_info
+            link = r"https://origami.lukasz-migas.com/user-guide/loading-data"
 
         elif evtID == ID_help_page_gettingStarted:
-            link = os.path.join(os.getcwd(), "docs\\user-guide\\example-files.html")
-            # kwargs = htmlPages.page_data_getting_started
+            link = r"https://origami.lukasz-migas.com/user-guide/example-files"
 
         elif evtID == ID_help_page_UniDec:
-            link = os.path.join(os.getcwd(), "docs\\user-guide\\deconvolution\\unidec-deconvolution.html")
-            # kwargs = htmlPages.page_deconvolution_info
+            link = r"https://origami.lukasz-migas.com/user-guide/deconvolution/unidec-deconvolution"
 
         elif evtID == ID_help_page_ORIGAMI:
-            link = os.path.join(os.getcwd(), "docs\\user-guide\\data-handling\automated-ciu.html")
-            # kwargs = htmlPages.page_origami_info
+            link = r"https://origami.lukasz-migas.com/user-guide/data-handling/automated-ciu"
 
         elif evtID == ID_help_page_overlay:
             kwargs = htmlPages.page_overlay_info
 
         elif evtID == ID_help_page_multipleFiles:
-            link = os.path.join(os.getcwd(), "docs\\user-guide\\data-handling\\manual-ciu.html")
-            # kwargs = htmlPages.page_multiple_files_info
+            link = r"https://origami.lukasz-migas.com/user-guide/data-handling/manual-ciu"
 
         elif evtID == ID_help_page_linearDT:
             kwargs = htmlPages.page_linear_dt_info
@@ -1360,18 +1355,16 @@ class MyFrame(wx.Frame):
             kwargs = htmlPages.page_ccs_calibration_info
 
         elif evtID == ID_help_page_dataExtraction:
-            link = os.path.join(os.getcwd(), "docs\\user-guide\\data-handling\\ms-and-imms-files.html")
-            # kwargs = htmlPages.page_data_extraction_info
+            link = r"https://origami.lukasz-migas.com/user-guide/data-handling/ms-and-imms-files"
 
         elif evtID == ID_help_page_Interactive:
-            link = os.path.join(os.getcwd(), "docs\\user-guide\\interactive-output\\simple-output.html")
-            # kwargs = htmlPages.page_interactive_output_info
+            link = r"https://origami.lukasz-migas.com/user-guide/interactive-output/simple-output"
 
         elif evtID == ID_help_page_OtherData:
             kwargs = htmlPages.page_other_data_info
 
         elif evtID == ID_help_page_annotatingMassSpectra:
-            kwargs = htmlPages.page_annotating_mass_spectra
+            link = r"https://origami.lukasz-migas.com/user-guide/processing/mass-spectra-annotation"
 
         if link is None:
             htmlViewer = panelHTMLViewer(self, self.config, **kwargs)

@@ -90,9 +90,9 @@ def ridge_detection(local_max, row_best, col, n_rows, n_cols, minus=True, plus=T
                 rows.append(row_plus)
                 cols.append(col_plus)
         if (
-            (minus and False == plus and col_minus == -1)
-            or (False == minus and True == plus and col_plus == -1)
-            or (True == minus and True == plus and col_plus == -1 and col_minus == -1)
+            (minus and plus is None and col_minus == -1)
+            or (minus is False and plus is True and col_plus == -1)
+            or (minus is True and plus is True and col_plus == -1 and col_minus == -1)
         ):
             break
     return rows, cols

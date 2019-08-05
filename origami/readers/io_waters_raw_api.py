@@ -6,6 +6,7 @@ import readers.waters.MassLynxRawInfoReader as MassLynxRawInfoReader
 import readers.waters.MassLynxRawReader as MassLynxRawReader
 import readers.waters.MassLynxRawScanReader as MassLynxRawScanReader
 from scipy.interpolate import interpolate
+from utils.ranges import get_min_max
 
 
 class WatersRawReader:

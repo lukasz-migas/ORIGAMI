@@ -833,8 +833,9 @@ class data_handling:
                     msg = (
                         "It would appear ORIGAMI cannot find the file on your disk. You can try to fix this issue\n"
                         + "by updating the document path by right-clicking on the document and selecting\n"
-                        + "'Notes, Information, Labels...' and updating the path to where the dataset is found.\n"
-                        + "After that, try again and ORIGAMI will try to stitch the new document path with the file name.\n"
+                        + "'Notes, Information, Labels...' and updating the path to where the dataset is foundd.\n"
+                        + "After that, try again and ORIGAMI will try to stitch the new"
+                        + " document path with the file name.\n"
                     )
                     raise MessageError("Error", msg)
 

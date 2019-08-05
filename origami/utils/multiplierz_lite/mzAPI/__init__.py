@@ -31,8 +31,6 @@ __all__ = ["mzFile"]
 
 import pickle
 import os
-import re
-import sys
 
 from utils.multiplierz_lite import logger_message
 

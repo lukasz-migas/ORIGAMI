@@ -13,7 +13,6 @@ from sys import platform
 
 import mainWindow as mainWindow
 import numpy as np
-import pandas as pd
 import processing.activation as pr_activation
 import processing.heatmap as pr_heatmap
 import processing.UniDec.unidec as unidec
@@ -41,10 +40,8 @@ from ids import ID_helpYoutube
 from ids import ID_processAllIons
 from ids import ID_processSelectedIons
 from ids import ID_textPanel_process_all
-from ids import ID_window_ionList
 from ids import ID_window_textList
 from numpy.ma import masked_array
-from toolbox import checkExtension
 from toolbox import find_nearest
 from toolbox import removeDuplicates
 from utils.color import combine_rgb

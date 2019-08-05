@@ -186,9 +186,6 @@ class DialogCustomiseUserAnnotations(Dialog):
             size=(-1, -1),
         )
         self.highlight_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        #
-        #         self.applyBtn = wx.Button(panel, wx.ID_ANY, "Apply", size=(-1, 22))
-        #         self.closeBtn = wx.Button(panel, wx.ID_OK, "Close", size=(-1, 22))
 
         # pack elements
         grid = wx.GridBagSizer(5, 5)
@@ -245,9 +242,6 @@ class DialogCustomiseUserAnnotations(Dialog):
         y = y + 1
         grid.Add(highlight_width, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.highlight_width_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        #         y = y+1
-        #         grid.Add(self.applyBtn, (y,0), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
-        #         grid.Add(self.closeBtn, (y,1), wx.GBSpan(1,1), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_CENTER_HORIZONTAL)
         main_sizer.Add(grid, 0, wx.EXPAND, 10)
 
         # fit layout
