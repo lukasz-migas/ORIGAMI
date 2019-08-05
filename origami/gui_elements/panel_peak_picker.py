@@ -444,36 +444,38 @@ class panel_peak_picker(wx.MiniFrame):
         self.fit_sigma_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
         self.fit_sigma_value.SetValue(str(self.config.fit_smooth_sigma))
         self.fit_sigma_value.Bind(wx.EVT_TEXT, self.on_apply)
-        #
-        #         self.fit_show_smoothed = makeCheckbox(panel, "Show")
-        #         self.fit_show_smoothed.SetValue(self.show_smoothed_spectrum)
-        #         self.fit_show_smoothed.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        #         fit_isotopic_check = wx.StaticText(panel, wx.ID_ANY, "Enable charge state prediction:")
-        #         self.fit_isotopic_check = makeCheckbox(panel, "")
-        #         self.fit_isotopic_check.SetValue(self.config.fit_highRes)
-        #         self.fit_isotopic_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        #         self.fit_isotopic_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
+        # fmt: off
+        # self.fit_show_smoothed = makeCheckbox(panel, "Show")
+        # self.fit_show_smoothed.SetValue(self.show_smoothed_spectrum)
+        # self.fit_show_smoothed.Bind(wx.EVT_CHECKBOX, self.on_apply)
         #
-        #         fit_isotopic_threshold = wx.StaticText(panel, wx.ID_ANY, "Threshold:")
-        #         self.fit_isotopic_threshold = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator('floatPos'))
-        #         self.fit_isotopic_threshold.SetValue(str(self.config.fit_highRes_threshold))
-        #         self.fit_isotopic_threshold.Bind(wx.EVT_TEXT, self.on_apply)
+        # fit_isotopic_check = wx.StaticText(panel, wx.ID_ANY, "Enable charge state prediction:")
+        # self.fit_isotopic_check = makeCheckbox(panel, "")
+        # self.fit_isotopic_check.SetValue(self.config.fit_highRes)
+        # self.fit_isotopic_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
+        # self.fit_isotopic_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
         #
-        #         fit_isotopic_window = wx.StaticText(panel, wx.ID_ANY, "Window size (points):")
-        #         self.fit_isotopic_window = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator('floatPos'))
-        #         self.fit_isotopic_window.SetValue(str(self.config.fit_highRes_window))
-        #         self.fit_isotopic_window.Bind(wx.EVT_TEXT, self.on_apply)
+        # fit_isotopic_threshold = wx.StaticText(panel, wx.ID_ANY, "Threshold:")
+        # self.fit_isotopic_threshold = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator('floatPos'))
+        # self.fit_isotopic_threshold.SetValue(str(self.config.fit_highRes_threshold))
+        # self.fit_isotopic_threshold.Bind(wx.EVT_TEXT, self.on_apply)
         #
-        #         fit_isotopic_width = wx.StaticText(panel, wx.ID_ANY, "Peak width:")
-        #         self.fit_isotopic_width = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator('floatPos'))
-        #         self.fit_isotopic_width.SetValue(str(self.config.fit_highRes_width))
-        #         self.fit_isotopic_width.Bind(wx.EVT_TEXT, self.on_apply)
+        # fit_isotopic_window = wx.StaticText(panel, wx.ID_ANY, "Window size (points):")
+        # self.fit_isotopic_window = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator('floatPos'))
+        # self.fit_isotopic_window.SetValue(str(self.config.fit_highRes_window))
+        # self.fit_isotopic_window.Bind(wx.EVT_TEXT, self.on_apply)
         #
-        #         fit_isotopic_show_envelope = wx.StaticText(panel, wx.ID_ANY, "Show isotopic envelope:")
-        #         self.fit_isotopic_show_envelope = makeCheckbox(panel, "")
-        #         self.fit_isotopic_show_envelope.SetValue(self.config.fit_highRes_isotopicFit)
-        #         self.fit_isotopic_show_envelope.Bind(wx.EVT_CHECKBOX, self.on_apply)
+        # fit_isotopic_width = wx.StaticText(panel, wx.ID_ANY, "Peak width:")
+        # self.fit_isotopic_width = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator('floatPos'))
+        # self.fit_isotopic_width.SetValue(str(self.config.fit_highRes_width))
+        # self.fit_isotopic_width.Bind(wx.EVT_TEXT, self.on_apply)
+        #
+        # fit_isotopic_show_envelope = wx.StaticText(panel, wx.ID_ANY, "Show isotopic envelope:")
+        # self.fit_isotopic_show_envelope = makeCheckbox(panel, "")
+        # self.fit_isotopic_show_envelope.SetValue(self.config.fit_highRes_isotopicFit)
+        # self.fit_isotopic_show_envelope.Bind(wx.EVT_CHECKBOX, self.on_apply)
+        # fmt: on
 
         horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
@@ -504,23 +506,25 @@ class panel_peak_picker(wx.MiniFrame):
         #         grid.Add(self.fit_show_smoothed, (n, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
         n += 1
         grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
-        #         n += 1
-        #         grid.Add(fit_isotopic_check, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        #         grid.Add(self.fit_isotopic_check, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        #         n += 1
-        #         grid.Add(fit_isotopic_threshold, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        #         grid.Add(self.fit_isotopic_threshold, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        #         n += 1
-        #         grid.Add(fit_isotopic_window, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        #         grid.Add(self.fit_isotopic_window, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        #         n += 1
-        #         grid.Add(fit_isotopic_width, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        #         grid.Add(self.fit_isotopic_width, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        #         n += 1
-        #         grid.Add(fit_isotopic_show_envelope, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        #         grid.Add(self.fit_isotopic_show_envelope, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        #         n += 1
-        #         grid.Add(horizontal_line_3, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        # fmt: off
+        # n += 1
+        # grid.Add(fit_isotopic_check, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        # grid.Add(self.fit_isotopic_check, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        # n += 1
+        # grid.Add(fit_isotopic_threshold, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        # grid.Add(self.fit_isotopic_threshold, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        # n += 1
+        # grid.Add(fit_isotopic_window, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        # grid.Add(self.fit_isotopic_window, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        # n += 1
+        # grid.Add(fit_isotopic_width, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        # grid.Add(self.fit_isotopic_width, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        # n += 1
+        # grid.Add(fit_isotopic_show_envelope, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        # grid.Add(self.fit_isotopic_show_envelope, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        # n += 1
+        # grid.Add(horizontal_line_3, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        # fmt: on
 
         # fit layout
         main_sizer = wx.BoxSizer(wx.VERTICAL)

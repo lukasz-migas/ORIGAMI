@@ -403,9 +403,9 @@ def multipoisson(array, datatop, oarray, background=False):
 
 
 def mpinit(datatop, oarray, background=False):
-    l = len(oarray)
+    n_pts = len(oarray)
     array = []
-    for i in range(0, l):
+    for i in range(0, n_pts):
         oligomer = oarray[i]
         bool1 = datatop[:, 0] % oligomer == 0
         data = datatop[bool1]

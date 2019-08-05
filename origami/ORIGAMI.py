@@ -1737,6 +1737,7 @@ class ORIGAMI(object):
 
         return saveFileName
 
+    # fmt: off
     # TODOO: move to another panel
     #     def onSelectProtein(self, evt):
     #         if evt.GetId() == ID_selectCalibrant:
@@ -2043,7 +2044,8 @@ class ORIGAMI(object):
     #                     return
     #                 elif charge == 0:
     #                     msg = "
-    # %s (%s) is missing charge value. Please add charge information before trying to apply CCS calibration" % (
+    # %s (%s) is missing charge value.
+    # Please add charge information before trying to apply CCS calibration" % (
     #                         rangeName, filename)
     #                     DialogBox(exceptionTitle='Missing charge information',
     #                            exceptionMsg=msg,
@@ -2068,7 +2070,8 @@ class ORIGAMI(object):
     #
     #                 if (pusherFreq == 1 or not isnumber(pusherFreq)) and ylabel != 'Drift time (ms)':
     #                     msg = \
-    #     "%s (%s) ion is missing pusher frequency value. Please modify it in the Notes, Information and Labels panel" % (
+    #     "%s (%s) ion is missing pusher frequency value. Please modify it in the Notes,
+    # Information and Labels panel" % (
     #                         filename, rangeName)
     #                     DialogBox(exceptionTitle='Missing data',
     #                            exceptionMsg=msg,
@@ -2279,6 +2282,7 @@ class ORIGAMI(object):
     #             self.config.ccsDB = io_text.text_ccs_database_open(
     #                 filename=os.path.join(self.config.cwd, "example_files", "calibrantDB.csv"))
     #             print('Loaded CCS database')
+    # fmt: on
 
     def onProcessMultipleTextFiles(self, evt):
 

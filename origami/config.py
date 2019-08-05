@@ -33,6 +33,7 @@ class OrigamiConfig:
 
         self.document_version = "19-10-2018"
         self.unidec_engine = None
+        # fmt: off
         self.links = {
             "home": "https://www.click2go.umip.com/i/s_w/ORIGAMI.html",
             "github": "https://github.com/lukasz-migas/ORIGAMI",
@@ -41,13 +42,16 @@ class OrigamiConfig:
             "guide": "https://origami.lukasz-migas.com/",
             "youtube": "https://www.youtube.com/playlist?list=PLrPB7zfH4WXMYa5CN9qDtl-G-Ax_L6AK8",
             "htmlEditor": "https://html-online.com/editor/",
-            "newFeatures": "https://docs.google.com/forms/d/e/1FAIpQLSduN15jzq06QCaacliBg8GkOajDNjWn4cEu_1J-kBhXSKqMHQ/viewform",
-            "reportBugs": "https://docs.google.com/forms/d/e/1FAIpQLSf7Ahgvt-YFRrA61Pv1S4i8nBK6wfhOpD2O9lGt_E3IA0lhfQ/viewform",
+            "newFeatures":
+            "https://docs.google.com/forms/d/e/1FAIpQLSduN15jzq06QCaacliBg8GkOajDNjWn4cEu_1J-kBhXSKqMHQ/viewform",
+            "reportBugs":
+                "https://docs.google.com/forms/d/e/1FAIpQLSf7Ahgvt-YFRrA61Pv1S4i8nBK6wfhOpD2O9lGt_E3IA0lhfQ/viewform",
             "unidec_cite_1": "https://pubs.acs.org/doi/abs/10.1021/acs.analchem.5b00140",
             "unidec_cite_2": "https://link.springer.com/article/10.1007/s13361-018-1951-9",
             "unidec_github": "https://github.com/michaelmarty/UniDec/releases",
             "about-author": "https://lukasz-migas.com/",
         }
+        # fmt: on
         self.logging = False
         self.threading = True
         self.autoSaveSettings = True

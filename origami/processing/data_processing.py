@@ -1029,7 +1029,7 @@ class data_processing:
             label_format = {"fragment_name": True, "peptide_seq": False, "charge": True, "delta_mz": False}
 
         self.frag_generator.set_label_format(label_format)
-        #         self.frag_generator = pr_frag.PeptideAnnotation(**{"label_format":label_format}) # refresh, temprorary!
+        # self.frag_generator = pr_frag.PeptideAnnotation(**{"label_format":label_format}) # refresh, temprorary!
 
         # get parameters
         peptide = None
@@ -1088,9 +1088,12 @@ class data_processing:
 
         # return data
         if get_lists:
-            frag_mass_list, frag_int_list, frag_label_list, frag_full_label_list = self.frag_generator.get_fragment_lists(
-                found_peaks, get_calculated_mz=kwargs.get("get_calculated_mz", False)
-            )
+            # fmt: off
+            frag_mass_list, frag_int_list, frag_label_list, frag_full_label_list = \
+                self.frag_generator.get_fragment_lists(
+                    found_peaks, get_calculated_mz=kwargs.get("get_calculated_mz", False)
+                )
+            # fmt: on
 
             return found_peaks, frag_mass_list, frag_int_list, frag_label_list, frag_full_label_list
 

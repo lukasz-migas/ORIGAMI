@@ -4355,13 +4355,14 @@ class panelInteractiveOutput(wx.MiniFrame):
             if not isinstance(js_type, list):
                 js_type = [js_type]
 
-            #             hover = kwargs['hover']
-            #             js_code = """\
-            #             console.log 'PanStart';
-            #             hover.active = false;
-            #             """
-            #             bokehPlot.js_on_event(events.PanStart, CustomJS.from_coffeescript(code=js_code, args={"figure":bokehPlot,
-            #                                                                                                   "hover":hover}))
+            #                 hover = kwargs['hover']
+            #                 js_code = """\
+            #                 console.log 'PanStart';
+            #                 hover.active = false;
+            #                 """
+            #                 bokehPlot.js_on_event(events.PanStart, CustomJS.from_coffeescript(code=js_code,
+            #                                                                                   args={"figure":bokehPlot,
+            #                                                                                         "hover":hover}))
 
             if "double_tap_unzoom" in js_type:
                 # TODO: add support to programatically disable hover tool
@@ -4384,7 +4385,8 @@ class panelInteractiveOutput(wx.MiniFrame):
             self.presenter.onThreading(None, (msg, 4), action="updateStatusbar")
         except RuntimeError:
             msg = (
-                "ORIGAMI encountered an error when compiling custom JavaScript widgets. There are a few things you can do to fix this.\n"
+                "ORIGAMI encountered an error when compiling custom JavaScript widgets."
+                + " There are a few things you can do to fix this.\n"
                 + "1) Disable JavaScript widgets/events in the Annotations tab. OR\n"
                 + "2) Go to ORIGAMI's working directory and use attached JavaScript installer \n"
                 + "   (node-v10.14.1-x64.msi).\n"
@@ -6342,10 +6344,13 @@ class panelInteractiveOutput(wx.MiniFrame):
         plt_kwargs = self._buildPlotParameters(data)
         user_kwargs = deepcopy(data["interactive_params"])
 
+        # fmt: off
         # get plot data
-        zvals, yvalsRMSF, xvals, yvals, xlabelRMSD, ylabelRMSD, ylabelRMSF, color, cmap, rmsdLabel = self.presenter.get2DdataFromDictionary(
-            dictionary=data, plotType="RMSF", compact=True
-        )
+        zvals, yvalsRMSF, xvals, yvals, xlabelRMSD, ylabelRMSD, ylabelRMSF, color, cmap, rmsdLabel = \
+            self.presenter.get2DdataFromDictionary(
+                dictionary=data, plotType="RMSF", compact=True
+            )
+        # fmt: on
 
         ylabelRMSF = "".join([ylabelRMSF])
 
