@@ -703,6 +703,7 @@ class PanelPeaklist(wx.Panel):
         menu = wx.Menu()
         menu_action_process_heatmap = makeMenuItem(parent=menu, text="Process heatmap data (selected)")
         menu.AppendItem(menu_action_process_heatmap)
+
         menu.AppendSeparator()
         menu_action_setup_origami_parameters = makeMenuItem(parent=menu, text="ORIGAMI-MS: Setup parameters..")
         menu.AppendItem(menu_action_setup_origami_parameters)

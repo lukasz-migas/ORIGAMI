@@ -86,6 +86,9 @@ def convert_values_to_header(vals):
 
 def prepare_signal_data_for_saving(xvals, yvals, xlabel, ylabel, guess_dtype=False):
     # check whether shape of the input data matches
+    xvals = np.asarray(xvals)
+    yvals = np.asarray(yvals)
+
     if xvals.shape != yvals.shape:
         raise ValueError("Incorrect shape of input data")
 

@@ -20,14 +20,11 @@ from ids import ID_overlayTextFromList
 from ids import ID_overlayTextfromList1D
 from ids import ID_overlayTextfromListRT
 from ids import ID_overlayTextfromListWaterfall
-from ids import ID_textPanel_about_info
-from ids import ID_textPanel_add_menu
 from ids import ID_textPanel_addToDocument
 from ids import ID_textPanel_annotate_alpha
 from ids import ID_textPanel_annotate_charge_state
 from ids import ID_textPanel_annotate_mask
 from ids import ID_textPanel_annotate_max_threshold
-from ids import ID_textPanel_annotate_menu
 from ids import ID_textPanel_annotate_min_threshold
 from ids import ID_textPanel_assignColor
 from ids import ID_textPanel_automaticOverlay
@@ -45,11 +42,6 @@ from ids import ID_textPanel_delete_selected
 from ids import ID_textPanel_edit_selected
 from ids import ID_textPanel_editItem
 from ids import ID_textPanel_normalize1D
-from ids import ID_textPanel_overlay_menu
-from ids import ID_textPanel_process_all
-from ids import ID_textPanel_process_menu
-from ids import ID_textPanel_process_selected
-from ids import ID_textPanel_remove_menu
 from ids import ID_textPanel_show_chromatogram
 from ids import ID_textPanel_show_heatmap
 from ids import ID_textPanel_show_mobiligram
@@ -155,6 +147,7 @@ class PanelTextlist(wx.Panel):
     def _setup_handling_and_processing(self):
         self.data_processing = self.view.data_processing
         self.data_handling = self.view.data_handling
+        self.document_tree = self.presenter.view.panelDocuments.documents
 
     def make_panel_gui(self):
         """ Make panel GUI """
@@ -199,57 +192,33 @@ class PanelTextlist(wx.Panel):
     def on_add_blank_document_overlay(self, evt):
         self.presenter.onAddBlankDocument(evt=None, document_type="overlay")
 
+    def on_open_info_panel(self, evt):
+        logger.error("This function is not implemented yet")
+
     def make_toolbar(self):
 
-        # Make bindings
-        self.Bind(wx.EVT_BUTTON, self.menu_add_tools, id=ID_textPanel_add_menu)
-        self.Bind(wx.EVT_BUTTON, self.menu_annotate_tools, id=ID_textPanel_annotate_menu)
-        self.Bind(wx.EVT_BUTTON, self.menu_remove_tools, id=ID_textPanel_remove_menu)
-        self.Bind(wx.EVT_BUTTON, self.menu_process_tools, id=ID_textPanel_process_menu)
-        self.Bind(wx.EVT_BUTTON, self.menu_overlay_tools, id=ID_textPanel_overlay_menu)
-
         self.add_btn = wx.BitmapButton(
-            self,
-            ID_textPanel_add_menu,
-            self.icons.iconsLib["add16"],
-            size=(18, 18),
-            style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+            self, -1, self.icons.iconsLib["add16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
         self.add_btn.SetToolTip(makeTooltip("Add..."))
 
         self.remove_btn = wx.BitmapButton(
-            self,
-            ID_textPanel_remove_menu,
-            self.icons.iconsLib["remove16"],
-            size=(18, 18),
-            style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+            self, -1, self.icons.iconsLib["remove16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
         self.remove_btn.SetToolTip(makeTooltip("Remove..."))
 
         self.annotate_btn = wx.BitmapButton(
-            self,
-            ID_textPanel_annotate_menu,
-            self.icons.iconsLib["annotate16"],
-            size=(18, 18),
-            style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+            self, -1, self.icons.iconsLib["annotate16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
         self.annotate_btn.SetToolTip(makeTooltip("Annotate..."))
 
         self.process_btn = wx.BitmapButton(
-            self,
-            ID_textPanel_process_menu,
-            self.icons.iconsLib["process16"],
-            size=(18, 18),
-            style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+            self, -1, self.icons.iconsLib["process16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
         self.process_btn.SetToolTip(makeTooltip("Process..."))
 
         self.overlay_btn = wx.BitmapButton(
-            self,
-            ID_textPanel_overlay_menu,
-            self.icons.iconsLib["overlay16"],
-            size=(18, 18),
-            style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+            self, -1, self.icons.iconsLib["overlay16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
         self.overlay_btn.SetToolTip(makeTooltip("Overlay selected ions..."))
 
@@ -257,41 +226,63 @@ class PanelTextlist(wx.Panel):
             self, ID_textSelectOverlayMethod, size=(105, -1), choices=self.config.overlayChoices, style=wx.CB_READONLY
         )
 
+        self.save_btn = wx.BitmapButton(
+            self, -1, self.icons.iconsLib["save16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
+        )
+        self.save_btn.SetToolTip(makeTooltip("Save..."))
+
         vertical_line_1 = wx.StaticLine(self, -1, style=wx.LI_VERTICAL)
 
         self.info_btn = wx.BitmapButton(
-            self,
-            ID_textPanel_about_info,
-            self.icons.iconsLib["info16"],
-            size=(18, 18),
-            style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+            self, -1, self.icons.iconsLib["info16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
         self.info_btn.SetToolTip(makeTooltip("Information..."))
+
+        # bind events
+        self.Bind(wx.EVT_BUTTON, self.menu_add_tools, self.add_btn)
+        self.Bind(wx.EVT_BUTTON, self.menu_remove_tools, self.remove_btn)
+        self.Bind(wx.EVT_BUTTON, self.menu_process_tools, self.process_btn)
+        self.Bind(wx.EVT_BUTTON, self.menu_save_tools, self.save_btn)
+        self.Bind(wx.EVT_BUTTON, self.menu_annotate_tools, self.annotate_btn)
+        self.Bind(wx.EVT_BUTTON, self.menu_overlay_tools, self.overlay_btn)
+        self.Bind(wx.EVT_BUTTON, self.on_open_info_panel, self.info_btn)
 
         # button grid
         btn_grid_vert = wx.GridBagSizer(2, 2)
         x = 0
+        n = 0
         btn_grid_vert.Add(
-            self.add_btn, (x, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
+            self.add_btn, (x, n), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
+        n += 1
         btn_grid_vert.Add(
-            self.remove_btn, (x, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
+            self.remove_btn, (x, n), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
+        n += 1
         btn_grid_vert.Add(
-            self.annotate_btn, (x, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
+            self.annotate_btn, (x, n), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
+        n += 1
         btn_grid_vert.Add(
-            self.process_btn, (x, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
+            self.process_btn, (x, n), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
+        n += 1
         btn_grid_vert.Add(
-            self.overlay_btn, (x, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
+            self.overlay_btn, (x, n), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
+        n += 1
         btn_grid_vert.Add(
-            self.combo, (x, 5), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
+            self.combo, (x, n), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
-        btn_grid_vert.Add(vertical_line_1, (x, 6), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        n += 1
         btn_grid_vert.Add(
-            self.info_btn, (x, 7), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
+            self.save_btn, (x, n), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
+        )
+        n += 1
+        btn_grid_vert.Add(vertical_line_1, (x, n), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        n += 1
+        btn_grid_vert.Add(
+            self.info_btn, (x, n), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
 
         return btn_grid_vert
@@ -380,7 +371,7 @@ class PanelTextlist(wx.Panel):
             makeMenuItem(
                 parent=menu,
                 id=ID_textPanel_annotate_charge_state,
-                text="Assign charge state to selected items",
+                text="Assign charge state (selected)",
                 bitmap=self.icons.iconsLib["assign_charge_16"],
             )
         )
@@ -388,7 +379,7 @@ class PanelTextlist(wx.Panel):
             makeMenuItem(
                 parent=menu,
                 id=ID_textPanel_annotate_alpha,
-                text="Assign transparency value to selected ions",
+                text="Assign transparency value (selected)",
                 bitmap=self.icons.iconsLib["transparency_16"],
             )
         )
@@ -396,7 +387,7 @@ class PanelTextlist(wx.Panel):
             makeMenuItem(
                 parent=menu,
                 id=ID_textPanel_annotate_mask,
-                text="Assign mask value to selected items",
+                text="Assign mask value (selected)",
                 bitmap=self.icons.iconsLib["mask_16"],
             )
         )
@@ -404,7 +395,7 @@ class PanelTextlist(wx.Panel):
             makeMenuItem(
                 parent=menu,
                 id=ID_textPanel_annotate_min_threshold,
-                text="Assign minimum threshold to selected items",
+                text="Assign minimum threshold (selected)",
                 bitmap=self.icons.iconsLib["min_threshold_16"],
             )
         )
@@ -412,7 +403,7 @@ class PanelTextlist(wx.Panel):
             makeMenuItem(
                 parent=menu,
                 id=ID_textPanel_annotate_max_threshold,
-                text="Assign maximum threshold to selected items",
+                text="Assign maximum threshold (selected)",
                 bitmap=self.icons.iconsLib["max_threshold_16"],
             )
         )
@@ -429,7 +420,7 @@ class PanelTextlist(wx.Panel):
             makeMenuItem(
                 parent=menu,
                 id=ID_textPanel_changeColorBatch_palette,
-                text="Color selected items using color palette",
+                text="Assign new color using color palette (selected)",
                 bitmap=self.icons.iconsLib["blank_16"],
             )
         )
@@ -437,7 +428,7 @@ class PanelTextlist(wx.Panel):
             makeMenuItem(
                 parent=menu,
                 id=ID_textPanel_changeColorBatch_colormap,
-                text="Color selected items using colormap",
+                text="Assign new color using colormap (selected)",
                 bitmap=self.icons.iconsLib["blank_16"],
             )
         )
@@ -445,7 +436,7 @@ class PanelTextlist(wx.Panel):
             makeMenuItem(
                 parent=menu,
                 id=ID_textPanel_changeColormapBatch,
-                text="Randomize colormap for selected items",
+                text="Assign new colormap (selected)",
                 bitmap=self.icons.iconsLib["randomize_16"],
             )
         )
@@ -491,25 +482,53 @@ class PanelTextlist(wx.Panel):
         menu = wx.Menu()
         menu.AppendItem(
             makeMenuItem(
-                parent=menu, id=ID_textPanel_clear_all, text="Clear table", bitmap=self.icons.iconsLib["clear_16"]
+                parent=menu,
+                id=ID_textPanel_clear_selected,
+                text="Remove from list (selected)",
+                bitmap=self.icons.iconsLib["clear_16"],
             )
         )
-        menu.Append(ID_textPanel_clear_selected, "Clear selected")
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu,
+                id=ID_textPanel_clear_all,
+                text="Remove from list (all)",
+                bitmap=self.icons.iconsLib["clear_16"],
+            )
+        )
+
         menu.AppendSeparator()
-        menu.Append(ID_textPanel_delete_selected, "Delete selected files")
-        menu.Append(ID_textPanel_delete_all, "Delete all files")
+        menu.AppendSeparator()
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu,
+                id=ID_textPanel_delete_selected,
+                text="Delete documents (selected)",
+                bitmap=self.icons.iconsLib["bin16"],
+            )
+        )
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu,
+                id=ID_textPanel_delete_all,
+                text="Delete documents (all)",
+                bitmap=self.icons.iconsLib["bin16"],
+            )
+        )
+
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
 
     def menu_process_tools(self, evt):
 
-        self.Bind(wx.EVT_TOOL, self.presenter.onProcessMultipleTextFiles, id=ID_textPanel_process_selected)
-        self.Bind(wx.EVT_TOOL, self.presenter.onProcessMultipleTextFiles, id=ID_textPanel_process_all)
-
         menu = wx.Menu()
-        menu.Append(ID_textPanel_process_selected, "Process selected files")
-        menu.Append(ID_textPanel_process_all, "Process all files")
+        menu_action_process_heatmap = makeMenuItem(parent=menu, text="Process heatmap data (selected)")
+        menu.AppendItem(menu_action_process_heatmap)
+
+        # bind events
+        self.Bind(wx.EVT_MENU, self.on_process_heatmap_selected, menu_action_process_heatmap)
+
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -562,6 +581,45 @@ class PanelTextlist(wx.Panel):
                 bitmap=self.icons.iconsLib["heatmap_grid_16"],
             )
         )
+        self.PopupMenu(menu)
+        menu.Destroy()
+        self.SetFocus()
+
+    def menu_save_tools(self, evt):
+
+        menu = wx.Menu()
+        menu_action_save_chromatogram = makeMenuItem(parent=menu, text="Save figure(s) as chromatogram (selected)")
+        menu.AppendItem(menu_action_save_chromatogram)
+
+        menu_action_save_mobilogram = makeMenuItem(parent=menu, text="Save figure(s) as mobilogram (selected)")
+        menu.AppendItem(menu_action_save_mobilogram)
+
+        menu_action_save_heatmap = makeMenuItem(parent=menu, text="Save figure(s) as heatmap (selected)")
+        menu.AppendItem(menu_action_save_heatmap)
+
+        menu_action_save_waterfall = makeMenuItem(parent=menu, text="Save figure(s) as waterfall (selected)")
+        menu.AppendItem(menu_action_save_waterfall)
+
+        menu.AppendSeparator()
+        menu_action_save_data_chromatogram = makeMenuItem(parent=menu, text="Save chromatographic data (selected)")
+        menu.AppendItem(menu_action_save_data_chromatogram)
+
+        menu_action_save_data_mobilogram = makeMenuItem(parent=menu, text="Save mobilogram data (selected)")
+        menu.AppendItem(menu_action_save_data_mobilogram)
+
+        menu_action_save_data_heatmap = makeMenuItem(parent=menu, text="Save heatmap data (selected)")
+        menu.AppendItem(menu_action_save_data_heatmap)
+
+        # bind events
+        self.Bind(wx.EVT_MENU, self.on_save_figures_chromatogram, menu_action_save_chromatogram)
+        self.Bind(wx.EVT_MENU, self.on_save_figures_mobilogram, menu_action_save_mobilogram)
+        self.Bind(wx.EVT_MENU, self.on_save_figures_heatmap, menu_action_save_heatmap)
+        self.Bind(wx.EVT_MENU, self.on_save_figures_waterfall, menu_action_save_waterfall)
+
+        self.Bind(wx.EVT_MENU, self.on_save_data_chromatogram, menu_action_save_data_chromatogram)
+        self.Bind(wx.EVT_MENU, self.on_save_data_mobilogram, menu_action_save_data_mobilogram)
+        self.Bind(wx.EVT_MENU, self.on_save_data_heatmap, menu_action_save_data_heatmap)
+
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -632,6 +690,79 @@ class PanelTextlist(wx.Panel):
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
+
+    def get_selected_items(self):
+        all_eic_datasets = ["Drift time (2D)"]
+
+        item_count = self.peaklist.GetItemCount()
+
+        # generate list of document_title and dataset_name
+        process_list = []
+        for item_id in range(item_count):
+            information = self.OnGetItemInformation(item_id)
+            if information["select"]:
+                for dataset_type in all_eic_datasets:
+                    document_title = information["document"]
+                    if document_title not in ["", None]:
+                        # append raw
+                        process_item = [document_title, dataset_type, None]
+                        process_list.append(process_item)
+
+        return process_list
+
+    def on_process_heatmap_selected(self, evt):
+        """Collect list of titles and dataset names and open processing panel"""
+        process_list = self.get_selected_items()
+
+        n_items = len(process_list)
+        if n_items > 0:
+            # open-up panel
+            self.document_tree.on_open_process_2D_settings(
+                process_all=True, process_list=True, data=process_list, disable_plot=True, disable_process=False
+            )
+
+    def on_save_figures(self, plot_type):
+        """Save figure(s) for selected item(s)
+
+        Parameters
+        ----------
+        plot_type : str
+            type of plot to be plotted
+        """
+        process_list = self.get_selected_items()
+        self.data_handling.on_save_heatmap_figures(plot_type, process_list)
+
+    def on_save_figures_chromatogram(self, evt):
+        self.on_save_figures("chromatogram")
+
+    def on_save_figures_mobilogram(self, evt):
+        self.on_save_figures("mobilogram")
+
+    def on_save_figures_heatmap(self, evt):
+        self.on_save_figures("heatmap")
+
+    def on_save_figures_waterfall(self, evt):
+        self.on_save_figures("waterfall")
+
+    def on_save_data(self, data_type):
+        """Save figure(s) for selected item(s)
+
+        Parameters
+        ----------
+        data_type : str
+            type of data to be saved
+        """
+        process_list = self.get_selected_items()
+        self.data_handling.on_save_heatmap_data(data_type, process_list)
+
+    def on_save_data_chromatogram(self, evt):
+        self.on_save_data("chromatogram")
+
+    def on_save_data_mobilogram(self, evt):
+        self.on_save_data("mobilogram")
+
+    def on_save_data_heatmap(self, evt):
+        self.on_save_data("heatmap")
 
     def on_change_item_colormap(self, evt):
         # get number of checked items

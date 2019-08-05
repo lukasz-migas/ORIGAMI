@@ -18,11 +18,8 @@ import readers.io_mzml as io_mzml
 import utils.labels as ut_labels
 import wx
 from gui_elements.dialog_ask_override import DialogAskOverride
-from gui_elements.dialog_rename import DialogRenameObject
-from gui_elements.dialog_select_dataset import DialogSelectDataset
 from gui_elements.misc_dialogs import DialogBox
 from gui_elements.misc_dialogs import DialogSimpleAsk
-from ids import ID_assignChargeState
 from ids import ID_docTree_action_open_extract
 from ids import ID_docTree_action_open_extractDTMS
 from ids import ID_docTree_action_open_origami_ms
@@ -46,10 +43,6 @@ from ids import ID_docTree_compareMS
 from ids import ID_docTree_duplicate_annotations
 from ids import ID_docTree_duplicate_document
 from ids import ID_docTree_plugin_UVPD
-from ids import ID_docTree_process2D
-from ids import ID_docTree_process2D_all
-from ids import ID_docTree_processMS
-from ids import ID_docTree_processMS_all
 from ids import ID_docTree_save_unidec
 from ids import ID_docTree_show_annotations
 from ids import ID_docTree_show_refresh_document
@@ -1829,6 +1822,7 @@ class DocumentTree(wx.TreeCtrl):
         evt : wxPython event
             unused
         """
+        from gui_elements.dialog_select_dataset import DialogSelectDataset
 
         # get document and annotations
         document = self.presenter.documentsDict[self._document_data.title]
@@ -2267,7 +2261,6 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_show_plot, id=ID_showPlotRTDocument)
         self.Bind(wx.EVT_MENU, self.on_show_plot, id=ID_showPlotMSDocument)
         self.Bind(wx.EVT_MENU, self.onProcess, id=ID_process2DDocument)
-        self.Bind(wx.EVT_MENU, self.on_change_charge_state, id=ID_assignChargeState)
         self.Bind(wx.EVT_MENU, self.onGoToDirectory, id=ID_goToDirectory)
         self.Bind(wx.EVT_MENU, self.onSaveCSV, id=ID_saveDataCSVDocument)
         self.Bind(wx.EVT_MENU, self.onSaveCSV, id=ID_saveDataCSVDocument1D)
@@ -2281,10 +2274,6 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.presenter.restoreComparisonToList, id=ID_restoreComparisonData)
         self.Bind(wx.EVT_MENU, self.onCompareMS, id=ID_docTree_compareMS)
         self.Bind(wx.EVT_MENU, self.onShowMassSpectra, id=ID_docTree_showMassSpectra)
-        self.Bind(wx.EVT_MENU, self.on_process_MS, id=ID_docTree_processMS)
-        self.Bind(wx.EVT_MENU, self.on_process_MS_all, id=ID_docTree_processMS_all)
-        self.Bind(wx.EVT_MENU, self.on_process_2D, id=ID_docTree_process2D)
-        self.Bind(wx.EVT_MENU, self.on_process_all_2D, id=ID_docTree_process2D_all)
         self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addToMMLTable)
         self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addOneToMMLTable)
         self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addToTextTable)
@@ -2437,27 +2426,22 @@ class DocumentTree(wx.TreeCtrl):
         )
 
         menu_action_process_ms = makeMenuItem(
-            parent=menu, id=ID_docTree_processMS, text="Process...\tP", bitmap=self.icons.iconsLib["process_ms_16"]
+            parent=menu, text="Process...\tP", bitmap=self.icons.iconsLib["process_ms_16"]
         )
         menu_action_process_ms_all = makeMenuItem(
-            parent=menu, id=ID_docTree_processMS_all, text="Process all...", bitmap=self.icons.iconsLib["process_ms_16"]
+            parent=menu, text="Process all...", bitmap=self.icons.iconsLib["process_ms_16"]
         )
         menu_action_process_2D = makeMenuItem(
-            parent=menu, id=ID_docTree_process2D, text="Process...\tP", bitmap=self.icons.iconsLib["process_2d_16"]
+            parent=menu, text="Process...\tP", bitmap=self.icons.iconsLib["process_2d_16"]
         )
         menu_action_process_2D_all = makeMenuItem(
-            parent=menu,
-            id=ID_docTree_process2D_all,
-            text="Process all...\tP",
-            bitmap=self.icons.iconsLib["process_2d_16"],
+            parent=menu, text="Process all...\tP", bitmap=self.icons.iconsLib["process_2d_16"]
         )
 
         menu_action_assign_charge = makeMenuItem(
-            parent=menu,
-            id=ID_assignChargeState,
-            text="Assign charge state...\tAlt+Z",
-            bitmap=self.icons.iconsLib["assign_charge_16"],
+            parent=menu, text="Assign charge state...\tAlt+Z", bitmap=self.icons.iconsLib["assign_charge_16"]
         )
+
         menu_show_unidec_panel = makeMenuItem(
             parent=menu,
             id=ID_docTree_UniDec,
@@ -2514,6 +2498,11 @@ class DocumentTree(wx.TreeCtrl):
 
         # bind events
         self.Bind(wx.EVT_MENU, self.on_save_document_as, menu_action_save_document_as)
+        self.Bind(wx.EVT_MENU, self.on_change_charge_state, menu_action_assign_charge)
+        self.Bind(wx.EVT_MENU, self.on_process_MS, menu_action_process_ms)
+        self.Bind(wx.EVT_MENU, self.on_process_MS_all, menu_action_process_ms_all)
+        self.Bind(wx.EVT_MENU, self.on_process_2D, menu_action_process_2D)
+        self.Bind(wx.EVT_MENU, self.on_process_all_2D, menu_action_process_2D_all)
 
         # INTERACTIVE DATASET ONLY
         if self._document_data.dataType == "Type: Interactive":
@@ -3839,6 +3828,7 @@ class DocumentTree(wx.TreeCtrl):
     # TODO: should restore items to various side panels
 
     def onRenameItem(self, evt):
+        from gui_elements.dialog_rename import DialogRenameObject
 
         if self._document_data is None:
             return

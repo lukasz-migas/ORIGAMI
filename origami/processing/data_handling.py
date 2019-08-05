@@ -3086,6 +3086,8 @@ class data_handling:
         from gui_elements.dialog_batch_figure_exporter import DialogExportFigures
 
         fname_alias = {
+            "Drift time (2D)": "raw",
+            "Drift time (2D, processed)": "processed",
             "Drift time (2D, EIC)": "raw",
             "Drift time (2D, processed, EIC)": "processed",
             "Drift time (2D, combined voltages, EIC)": "combined_cv",
@@ -3163,6 +3165,8 @@ class data_handling:
             raise MessageError("Incorrect data type", "This function cannot save this data type")
 
         fname_alias = {
+            "Drift time (2D)": "raw",
+            "Drift time (2D, processed)": "processed",
             "Drift time (2D, EIC)": "raw",
             "Drift time (2D, processed, EIC)": "processed",
             "Drift time (2D, combined voltages, EIC)": "combined_cv",
