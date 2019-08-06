@@ -51,8 +51,6 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.Show(True)
         self.SetFocus()
 
-        self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
-
     def on_key_event(self, evt):
         """Trigger event based on keyboard input"""
         key_code = evt.GetKeyCode()

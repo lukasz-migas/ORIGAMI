@@ -147,6 +147,7 @@ class PanelTextlist(wx.Panel):
     def _setup_handling_and_processing(self):
         self.data_processing = self.view.data_processing
         self.data_handling = self.view.data_handling
+        self.data_visualisation = self.view.data_visualisation
         self.document_tree = self.presenter.view.panelDocuments.documents
 
     def make_panel_gui(self):
@@ -692,7 +693,7 @@ class PanelTextlist(wx.Panel):
         self.SetFocus()
 
     def get_selected_items(self):
-        all_eic_datasets = ["Drift time (2D)"]
+        all_eic_datasets = ["Drift time (2D)", "Drift time(2D, processed)"]
 
         item_count = self.peaklist.GetItemCount()
 

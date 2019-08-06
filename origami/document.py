@@ -4,14 +4,12 @@ from collections import OrderedDict
 
 
 class document:
-    """
-    Document object
-    """
+    """Document object"""
 
     def __init__(self):
 
         # File info
-        self.docVersion = "19-10-2018"  # to keep track of new features: add as date: DD-MM-YYYY
+        self.docVersion = "06-08-2019"  # to keep track of new features: add as date: DD-MM-YYYY
 
         self.last_saved = None  # added in 19-10-2018 / v1.2.1
         self.title = ""
@@ -55,7 +53,7 @@ class document:
         self.IMS2D = {}
         # processed mobiligram (2D) data = global
         self.got2Dprocess = False
-        self.IMS2Dprocess = []  # 2D processed data
+        self.IMS2Dprocess = {}  # 2D processed data
         # mobiligram (2D) data = extracted ion
         self.gotExtractedIons = False
         self.IMS2Dions = {}
@@ -125,3 +123,6 @@ class document:
         self.colormap = "inferno"
         self.plot2Dtype = "contour"  # contour/imshow
         self.visible = True
+
+    def __repr__(self):
+        return f"Title: {document.title}\n" + f"{document.fileType}\n" + f"{document.fileformat}"

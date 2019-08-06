@@ -12,6 +12,8 @@ from utils.color import randomColorGenerator
 
 logger = logging.getLogger("origami")
 
+dtype_dict = {np.int32: "%d", np.float16: "%.3f", np.float32: "%.6f", np.float64: "%.8f"}
+
 
 def check_column_names(col_names):
     col_names_out = list()
@@ -65,16 +67,47 @@ def check_file_type(path=None, fileName=None):
     return "2D"
 
 
-def prepare_heatmap_data_for_saving(zvals, xvals, yvals, guess_dtype=False):
-    if yvals.shape[0] == zvals.shape[0]:
-        data = np.vstack([yvals, zvals.T]).T
-    elif yvals.shape[0] == zvals.shape[1]:
-        data = np.vstack([yvals, zvals]).T
+def _get_dtype_type(arr_or_dtype):
+    """Get the type (NOT dtype) instance associated with an array or dtype object.
 
-    # labels
-    header = convert_values_to_header(xvals)
+    Parameters
+    ----------
+    arr_or_dtype : array-like
+        The array-like or dtype object whose type we want to extract.
 
-    return data, header
+    Returns
+    -------
+    obj_type : The extract type instance from the
+               passed in array or dtype object.
+    """
+
+    if isinstance(arr_or_dtype, np.dtype):
+        return arr_or_dtype.type
+    elif isinstance(arr_or_dtype, type):
+        return np.dtype(arr_or_dtype).type
+
+    try:
+        return arr_or_dtype.dtype.type
+    except AttributeError:
+        return type(None)
+
+
+def _get_n_columns(data):
+    shape = data.shape
+    if len(shape) == 1:
+        return 1
+    else:
+        return shape[1]
+
+
+def get_column_dtypes(data):
+    if not isinstance(data, np.ndarray):
+        data = np.asarray(data)
+
+    dtype = _get_dtype_type(data)
+    n_columns = _get_n_columns(data)
+
+    return [dtype_dict.get(dtype, "%.4f")] * n_columns
 
 
 def convert_values_to_header(vals):
@@ -84,7 +117,29 @@ def convert_values_to_header(vals):
     return header
 
 
+def prepare_heatmap_data_for_saving(zvals, xvals, yvals, guess_dtype=False):
+    # get dtype
+    fmt = []
+    fmt.extend(get_column_dtypes(yvals))
+    fmt.extend(get_column_dtypes(zvals))
+
+    if yvals.shape[0] == zvals.shape[0]:
+        data = np.vstack([yvals, zvals.T]).T
+    elif yvals.shape[0] == zvals.shape[1]:
+        data = np.vstack([yvals, zvals]).T
+
+    # labels
+    header = convert_values_to_header(xvals)
+
+    return data, header, fmt
+
+
 def prepare_signal_data_for_saving(xvals, yvals, xlabel, ylabel, guess_dtype=False):
+    # get dtype
+    fmt = []
+    fmt.extend(get_column_dtypes(xvals))
+    fmt.extend(get_column_dtypes(yvals))
+
     # check whether shape of the input data matches
     xvals = np.asarray(xvals)
     yvals = np.asarray(yvals)
@@ -101,7 +156,7 @@ def prepare_signal_data_for_saving(xvals, yvals, xlabel, ylabel, guess_dtype=Fal
     # generate header
     header = [xlabel, ylabel]
 
-    return data, header
+    return data, header, fmt
 
 
 def text_infrared_open(path=None, normalize=None):
@@ -220,15 +275,38 @@ def text_ccs_database_open(filename):
 
 def save_data(filename, data, header=None, fmt="%.4f", delimiter=",", **kwargs):
     """Save data using numpy's savetxt
+
+    Parameters
+    ----------
+    filename : str
+        path to where file should be saved
+    data : list, np.array
+        data to be saved
+    header : str
+
     """
+    # transpose data
     if kwargs.pop("transpose", False):
         data = np.transpose(data)
 
+    # force object dtype
     if kwargs.pop("as_object", False):
         data = np.array(data, dtype=object)
 
+    # check whether data is array
+    if not isinstance(data, np.ndarray):
+        data = np.asarray(data)
+
+    # check whether fmt and data are of same size
+    if isinstance(fmt, list):
+        if data.shape[1] != len(fmt):
+            logger.warning(
+                "Number of columns does not match number of items in the `fmt` keyword." + " Using default instead"
+            )
+            fmt = "%.4f"
+
     try:
-        np.savetxt(filename, data, fmt=fmt, delimiter=delimiter, header=header, comments="")
+        np.savetxt(filename, data, fmt=fmt, delimiter=delimiter, header=header)
     except IOError:
         logger.error(f"Failed to save file {filename} as it is currently in use.")
 

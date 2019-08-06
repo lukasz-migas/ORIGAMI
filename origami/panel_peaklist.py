@@ -148,6 +148,7 @@ class PanelPeaklist(wx.Panel):
     def _setup_handling_and_processing(self):
         self.data_processing = self.view.data_processing
         self.data_handling = self.view.data_handling
+        self.data_visualisation = self.view.data_visualisation
         self.document_tree = self.presenter.view.panelDocuments.documents
 
     def on_open_info_panel(self, evt):
@@ -1468,13 +1469,13 @@ class PanelPeaklist(wx.Panel):
         self.data_handling.on_extract_2D_from_mass_range_fcn(None, extract_type="new")
 
     def on_overlay_mobiligram(self, evt):
-        self.data_handling.on_overlay_1D(source="ion", plot_type="mobiligram")
+        self.data_visualisation.on_overlay_1D(source="ion", plot_type="mobiligram")
 
     def on_overlay_chromatogram(self, evt):
-        self.data_handling.on_overlay_1D(source="ion", plot_type="chromatogram")
+        self.data_visualisation.on_overlay_1D(source="ion", plot_type="chromatogram")
 
     def on_overlay_heatmap(self, evt):
-        self.presenter.on_overlay_2D(source="ion")
+        self.data_visualisation.on_overlay_2D(source="ion")
 
     def on_add_to_table(self, add_dict, check_color=True):
 

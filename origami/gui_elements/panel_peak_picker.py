@@ -5,6 +5,7 @@ import logging
 import wx
 from styles import makeCheckbox
 from styles import makeMenuItem
+from styles import MiniFrame
 from styles import validator
 from utils.converters import str2int
 from utils.converters import str2num
@@ -20,18 +21,13 @@ logger = logging.getLogger("origami")
 # TODO: Improve peak picker
 
 
-class panel_peak_picker(wx.MiniFrame):
+class panel_peak_picker(MiniFrame):
     """Peak picking panel"""
 
     def __init__(self, parent, presenter, config, icons, **kwargs):
         """Initlize panel"""
-        wx.MiniFrame.__init__(
-            self,
-            parent,
-            -1,
-            "Peak picker...",
-            size=(-1, -1),
-            style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX),
+        MiniFrame.__init__(
+            self, parent, title="Peak picker...", style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX)
         )
         self.view = parent
         self.presenter = presenter
@@ -106,10 +102,6 @@ class panel_peak_picker(wx.MiniFrame):
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
-
-    def on_close(self, evt):
-        """Destroy this frame."""
-        self.Destroy()
 
     def make_gui(self):
         """Make miniframe"""

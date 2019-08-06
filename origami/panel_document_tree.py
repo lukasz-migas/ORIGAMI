@@ -1996,8 +1996,21 @@ class DocumentTree(wx.TreeCtrl):
     def on_action_ORIGAMI_MS(self, evt, document_title=None):
         from gui_elements.dialog_customise_origami import DialogCustomiseORIGAMI
 
+        # get document
+        document = self.data_handling._on_get_document(document_title)
+        if document.dataType != "Type: ORIGAMI":
+            raise MessageError(
+                "Incorrect document type", f"Cannot setup ORIGAMI-MS parameters for {document.dataType} document."
+            )
+
         dlg = DialogCustomiseORIGAMI(self, self.presenter, self.config, document_title=document_title)
         dlg.ShowModal()
+
+    def on_open_overlay_viewer(self, evt):
+        from widgets.panel_overlay_viewer import PanelOverlayViewer
+
+        dlg = PanelOverlayViewer(self, self.presenter, self.config, self.icons)
+        dlg.Show()
 
     def _bind_change_label_events(self):
         for xID in [

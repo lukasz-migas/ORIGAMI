@@ -3,17 +3,15 @@
 import wx
 from icons.icons import IconContainer
 from styles import makeCheckbox
+from styles import MiniFrame
 from utils.check import check_value
 
 
-class panelModifyManualFiles(wx.MiniFrame):
-    """
-    """
+class panelModifyManualFiles(MiniFrame):
+    """Modify parameters in panel_multi_file"""
 
     def __init__(self, parent, presenter, config, **kwargs):
-        wx.MiniFrame.__init__(
-            self, parent, -1, "Modify settings...", size=(-1, -1), style=wx.DEFAULT_FRAME_STYLE & ~wx.RESIZE_BORDER
-        )
+        MiniFrame.__init__(self, parent, title="Modify settings...", style=wx.DEFAULT_FRAME_STYLE & ~wx.RESIZE_BORDER)
 
         self.parent = parent
         self.presenter = presenter
@@ -37,40 +35,12 @@ class panelModifyManualFiles(wx.MiniFrame):
         self.Layout()
         self.SetFocus()
 
-        # bind
-        wx.EVT_CLOSE(self, self.on_close)
-        self.Bind(wx.EVT_CHAR_HOOK, self.on_keyboard_event)
-
         # fire-up events
         self.on_setup_gui()
 
     def __generate_title(self):
         title = "{}: {}".format(self.itemInfo["document"], self.itemInfo["filename"])
         return title
-
-    def on_keyboard_event(self, evt):
-        key_code = evt.GetKeyCode()
-        if key_code == wx.WXK_ESCAPE:
-            self.on_close(evt=None)
-
-        evt.Skip()
-
-    def on_close(self, evt):
-        """Destroy this frame."""
-        self.Destroy()
-
-    def make_gui(self):
-
-        # make panel
-        panel = self.make_panel()
-
-        # pack element
-        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.main_sizer.Add(panel, 1, wx.EXPAND, 0)
-
-        # fit layout
-        self.main_sizer.Fit(self)
-        self.SetSizer(self.main_sizer)
 
     def make_panel(self):
 

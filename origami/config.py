@@ -1585,6 +1585,8 @@ class OrigamiConfig:
         self.image_size_px = []
         self.image_axes_size = [0.12, 0.12, 0.8, 0.8]
 
+        self.data_folder_path = None  # New v1.3.0.0
+
         # Events
         self.extraParamsWindow_on_off = False
 

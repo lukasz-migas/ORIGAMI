@@ -146,6 +146,7 @@ from panelExtraParameters import panelParametersEdit
 from panelInteractiveOutput import panelInteractiveOutput as panelInteractive
 from processing.data_handling import data_handling
 from processing.data_processing import data_processing
+from processing.data_visualisation import data_visualisation
 from pubsub import pub
 from readers.io_text_files import check_file_type
 from styles import makeMenuItem
@@ -212,10 +213,12 @@ class MyFrame(wx.Frame):
         kwargs = {"window": None}
         self.panelParametersEdit = panelParametersEdit(self, self.presenter, self.config, self.icons, **kwargs)
 
-        # add data processing
+        # add handling, processing and visualisation pipelines
         self.data_processing = data_processing(self.presenter, self, self.config)
         self.data_handling = data_handling(self.presenter, self, self.config)
+        self.data_visualisation = data_visualisation(self.presenter, self, self.config)
 
+        # make toolbar
         self.make_toolbar()
 
         # Panel to store document information
@@ -750,6 +753,10 @@ class MyFrame(wx.Frame):
         menuWidgets.AppendItem(
             makeMenuItem(parent=menuWidgets, id=ID_docTree_plugin_MSMS, text="Open MS/MS window...", bitmap=None)
         )
+        menu_widget_overlay_viewer = makeMenuItem(
+            parent=menuWidgets, text="Open overlay window...\tShift+O", bitmap=None
+        )
+        menuWidgets.AppendItem(menu_widget_overlay_viewer)
 
         self.mainMenubar.Append(menuWidgets, "&Widgets")
 
@@ -1066,13 +1073,9 @@ class MyFrame(wx.Frame):
             wx.EVT_MENU, self.data_handling.on_open_multiple_MassLynx_raw_fcn, id=ID_load_multiple_origami_masslynx_raw
         )
 
-        # self.Bind(wx.EVT_MENU, self.presenter.onCalibrantRawDirectory, id=ID_addCCScalibrantFile)
-        # self.Bind(wx.EVT_MENU, self.presenter.onLinearDTirectory, id=ID_openLinearDTRawFile)
-
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_document_fcn, id=ID_openDocument)
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_save_document, id=ID_saveDocument)
         self.Bind(wx.EVT_MENU, self.data_handling.on_save_all_documents_fcn, id=ID_saveAllDocuments)
-        # self.Bind(wx.EVT_MENU, self.presenter.onIRTextFile, id=ID_openIRTextile)
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_MassLynx_raw_MS_only_fcn, id=ID_load_masslynx_raw_ms_only)
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_single_text_MS_fcn, id=ID_load_text_MS)
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_single_clipboard_MS, id=ID_load_clipboard_spectrum)
@@ -1096,7 +1099,6 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onPlotParameters, id=ID_extraSettings_waterfall)
         self.Bind(wx.EVT_MENU, self.onPlotParameters, id=ID_extraSettings_violin)
         self.Bind(wx.EVT_MENU, self.onPlotParameters, id=ID_extraSettings_general)
-        # self.Bind(wx.EVT_MENU, self.presenter.onRebootZoom, id=ID_plots_resetZoom)
         self.Bind(wx.EVT_MENU, self.updatePlots, id=ID_plots_showCursorGrid)
 
         self.Bind(wx.EVT_MENU, self.on_customise_annotation_plot_parameters, id=ID_annotPanel_otherSettings)
@@ -1119,6 +1121,7 @@ class MyFrame(wx.Frame):
         # UTILITIES
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_process_UVPD, id=ID_docTree_plugin_UVPD)
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_MSMS_viewer, id=ID_docTree_plugin_MSMS)
+        self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_overlay_viewer, menu_widget_overlay_viewer)
 
         # CONFIG MENU
         self.Bind(wx.EVT_MENU, self.data_handling.on_export_config_fcn, id=ID_saveConfig)
@@ -1127,8 +1130,6 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.data_handling.on_import_config_as_fcn, id=ID_openAsConfig)
         self.Bind(wx.EVT_MENU, self.on_setup_driftscope, id=ID_setDriftScopeDir)
         self.Bind(wx.EVT_MENU, self.on_check_driftscope_path, id=ID_check_Driftscope)
-        #         self.Bind(wx.EVT_MENU, self.presenter.onSelectProtein, id=ID_selectCalibrant)
-        #         self.Bind(wx.EVT_MENU, self.presenter.onImportCCSDatabase, id=ID_openCCScalibrationDatabse)
         self.Bind(wx.EVT_MENU, self.onExportParameters, id=ID_importExportSettings_peaklist)
         self.Bind(wx.EVT_MENU, self.onExportParameters, id=ID_importExportSettings_image)
         self.Bind(wx.EVT_MENU, self.onExportParameters, id=ID_importExportSettings_file)
@@ -1349,13 +1350,9 @@ class MyFrame(wx.Frame):
         """Maximize app."""
         self.Maximize()
 
-    # ----
-
     def onWindowIconize(self, evt):
         """Iconize app."""
         self.Iconize()
-
-    # ----
 
     def onWindowFullscreen(self, evt):
         """Fullscreen app."""
@@ -1371,7 +1368,7 @@ class MyFrame(wx.Frame):
         # Setup shortcuts. Format: 'KEY', 'FUNCTION', 'MODIFIER'
         ctrlkeys = [
             ["I", self.panelDocuments.documents.onOpenDocInfo, wx.ACCEL_CTRL],
-            ["W", self.data_handling.on_open_multiple_text_2D, wx.ACCEL_CTRL],
+            ["W", self.data_handling.on_open_multiple_text_2D_fcn, wx.ACCEL_CTRL],
             ["Z", self.openSaveAsDlg, wx.ACCEL_SHIFT],
             ["G", self.presenter.on_open_directory, wx.ACCEL_CTRL],
         ]

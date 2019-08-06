@@ -30,6 +30,7 @@ from processing.utils import get_maximum_value_in_range
 from pubsub import pub
 from readers import io_document
 from readers import io_text_files
+from toolbox import merge_two_dicts
 from utils.check import check_axes_spacing
 from utils.check import check_value_order
 from utils.check import isempty
@@ -371,6 +372,18 @@ class data_handling:
         """
 
         document_types = document_type
+
+        if document_type == "all":
+            document_types = [
+                "Type: ORIGAMI",
+                "Type: MANUAL",
+                "Type: Infrared",
+                "Type: 2D IM-MS",
+                "Type: Multifield Linear DT",
+                "Type: Interactive",
+                "Type: Calibrant",
+            ]
+
         if not isinstance(document_types, list):
             document_types = [document_type]
 
@@ -1056,7 +1069,9 @@ class data_handling:
             "max_threshold": 1,
             "color": color,
         }
-        self.documentTree.on_update_data(data, "", document, data_type="main.heatmap")
+        document.got2DIMS = True
+        document.IMS2D = data
+        self.on_update_document(document, "document")
 
         # Update document
         self.view.updateRecentFiles(path={"file_type": "Text", "file_path": path})
@@ -1153,7 +1168,6 @@ class data_handling:
         document = self._on_get_document()
         document_title = document.title
 
-        print(self.plot_page)
         # Extraction of data when the Interactive document is enabled is not possible
         if (
             self.plot_page in ["Chromatogram", "Mass spectrum", "Mobilogram", "Heatmap"]
@@ -1421,8 +1435,10 @@ class data_handling:
             self.on_threading(action="load.text.heatmap", args=())
 
     def on_open_single_text_2D(self):
+        wildcard = "Text files with axis labels (*.txt, *.csv)| *.txt;*.csv"
+
         dlg = wx.FileDialog(
-            self.view, "Choose a text file:", wildcard="*.txt; *.csv", style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR
+            self.view, "Choose a text file:", wildcard=wildcard, style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR
         )
         if dlg.ShowModal() == wx.ID_OK:
             filepath = dlg.GetPath()
@@ -3161,6 +3177,8 @@ class data_handling:
         item_list : list
             list of items to be saved. Must be constructed to have [document_title, dataset_type, dataset_name]
         """
+        from gui_elements.dialog_batch_data_exporter import DialogExportData
+
         if data_type not in ["heatmap", "chromatogram", "mobilogram", "waterfall"]:
             raise MessageError("Incorrect data type", "This function cannot save this data type")
 
@@ -3172,14 +3190,24 @@ class data_handling:
             "Drift time (2D, combined voltages, EIC)": "combined_cv",
             "Input data": "input_data",
         }
-        #
-        #         dlg = wx.DirDialog(self.view, "Choose a folder where to save images",
-        #                            style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
-        #         if dlg.ShowModal() == wx.ID_OK:
-        #             path = dlg.GetPath()
 
-        delimiter = ","
-        extension = "csv"
+        if len(item_list) == 0:
+            raise MessageError("No items in the list", "Please select at least one item in the panel to export")
+
+        # setup output parameters
+        dlg = DialogExportData(self.presenter.view, self.presenter, self.config, self.presenter.icons)
+
+        if dlg.ShowModal() == wx.ID_NO:
+            logger.error("Action was cancelled")
+            return
+
+        path = self.config.data_folder_path
+        if not check_path_exists(path):
+            logger.error("Action was cancelled because the path does not exist")
+            return
+
+        delimiter = self.config.saveDelimiter
+        extension = self.config.saveExtension
         path = r"D:\Data\ORIGAMI\origami_ms\images"
         for document_title, dataset_type, dataset_name in item_list:
             tstart = ttime()
@@ -3188,8 +3216,8 @@ class data_handling:
             filename = clean_filename(filename)
             filename = os.path.join(path, filename)
 
-            if not filename.endswith(f".{extension}"):
-                filename += f".{extension}"
+            if not filename.endswith(f"{extension}"):
+                filename += f"{extension}"
 
             # get data
             try:
@@ -3205,16 +3233,21 @@ class data_handling:
             xlabel = data["xlabels"]
             ylabel = data["ylabels"]
 
-            data_format = "%.4f"
             # plot data
             if data_type == "heatmap":
-                save_data, header = io_text_files.prepare_heatmap_data_for_saving(zvals, xvals, yvals, guess_dtype=True)
+                save_data, header, data_format = io_text_files.prepare_heatmap_data_for_saving(
+                    zvals, xvals, yvals, guess_dtype=True
+                )
             elif data_type == "chromatogram":
                 yvals_RT = data.get("yvalsRT", zvals.sum(axis=0))
-                save_data, header = io_text_files.prepare_signal_data_for_saving(xvals, yvals_RT, xlabel, "Intensity")
+                save_data, header, data_format = io_text_files.prepare_signal_data_for_saving(
+                    xvals, yvals_RT, xlabel, "Intensity"
+                )
             elif data_type == "mobilogram":
                 yvals_DT = data.get("yvals1D", zvals.sum(axis=1))
-                save_data, header = io_text_files.prepare_signal_data_for_saving(yvals, yvals_DT, ylabel, "Intensity")
+                save_data, header, data_format = io_text_files.prepare_signal_data_for_saving(
+                    yvals, yvals_DT, ylabel, "Intensity"
+                )
 
             header = delimiter.join(header)
 
@@ -3405,6 +3438,64 @@ class data_handling:
 
         return document
 
+    def generate_item_list(self, data_type="heatmap"):
+
+        all_datasets = [
+            "Drift time (2D)",
+            "Drift time (2D, processed)",
+            "Drift time (2D, EIC)",
+            "Drift time (2D, processed, EIC)",
+            "Drift time (2D, combined voltages, EIC)",
+            "Input data",
+        ]
+        singlular_datasets = ["Drift time (2D)", "Drift time (2D, processed)"]
+        all_documents = self.__get_document_list_of_type("all")
+
+        item_list = []
+        for document_title in all_documents:
+            for dataset_type in all_datasets:
+                __, data = self.get_mobility_chromatographic_data([document_title, dataset_type, dataset_type])
+                if dataset_type in singlular_datasets and isinstance(data, dict):
+                    item_dict = {
+                        "dataset_name": dataset_type,
+                        "dataset_type": dataset_type,
+                        "document_title": document_title,
+                        "shape": data["zvals"].shape,
+                        "cmap": data.get("cmap", self.config.currentCmap),
+                        "label": data.get("label", ""),
+                        "mask": data.get("mask", self.config.overlay_defaultMask),
+                        "alpha": data.get("alpha", self.config.overlay_defaultAlpha),
+                        "min_threshold": data.get("min_threshold", 0.0),
+                        "max_threshold": data.get("max_threshold", 1.0),
+                        "color": data.get("color", randomColorGenerator(True)),
+                        "overlay_order": data.get("overlay_order", ""),
+                        "processed": True if "processed" in dataset_type else False,
+                    }
+                    # add to list
+                    item_list.append(item_dict)
+                else:
+                    for key in data:
+                        data_subset = data[key]
+                        item_dict = {
+                            "dataset_name": key,
+                            "dataset_type": dataset_type,
+                            "document_title": document_title,
+                            "shape": data_subset["zvals"].shape,
+                            "cmap": data_subset.get("cmap", self.config.currentCmap),
+                            "label": data_subset.get("label", ""),
+                            "mask": data_subset.get("mask", self.config.overlay_defaultMask),
+                            "alpha": data_subset.get("alpha", self.config.overlay_defaultAlpha),
+                            "min_threshold": data_subset.get("min_threshold", 0.0),
+                            "max_threshold": data_subset.get("max_threshold", 1.0),
+                            "color": data_subset.get("color", randomColorGenerator(True)),
+                            "overlay_order": data_subset.get("overlay_order", ""),
+                            "processed": True if "(processed)" in key else False,
+                        }
+                        # add to list
+                        item_list.append(item_dict)
+
+        return item_list
+
     def on_load_user_list_fcn(self, **kwargs):
         wildcard = (
             "CSV (Comma delimited) (*.csv)|*.csv|"
@@ -3424,5 +3515,7 @@ class data_handling:
     def on_load_user_list(self, file_path, data_type="peaklist"):
         if data_type == "peaklist":
             peaklist = io_text_files.text_peaklist_open(file_path)
+        elif data_type == "annotations":
+            raise MessageError("Not implemented yet", "Method is not implemented yet")
 
         return peaklist

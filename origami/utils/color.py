@@ -20,6 +20,14 @@ def check_color_type(color):
         return convertHEXtoRGB255(color)
 
 
+def check_color_format(color):
+
+    if np.sum(color) < 4:
+        return convertRGB1to255(color)
+
+    return color
+
+
 def randomColorGenerator(return_as_255=False):
 
     color = (random_int_0_to_255(), random_int_0_to_255(), random_int_0_to_255())
@@ -30,13 +38,16 @@ def randomColorGenerator(return_as_255=False):
     return color
 
 
-def convertRGB255to1(rgbList, decimals=3):
+def convertRGB255to1(rgbList, decimals=3, check_color_range=False):
 
     # Make sure color is an rgb format and not string format
     try:
         rgbList = literal_eval(rgbList)
     except Exception:
         rgbList = rgbList
+
+    if check_color_range:
+        rgbList = check_color_format(rgbList)
 
     rgbList = list(
         [

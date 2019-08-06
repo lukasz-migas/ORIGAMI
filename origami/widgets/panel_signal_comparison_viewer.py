@@ -18,6 +18,7 @@ from natsort import natsorted
 from styles import makeCheckbox
 from styles import makeMenuItem
 from styles import makeStaticBox
+from styles import MiniFrame
 from utils.color import convertRGB1to255
 from utils.converters import str2num
 from utils.screen import calculate_window_size
@@ -27,20 +28,17 @@ from visuals import mpl_plots
 logger = logging.getLogger("origami")
 
 # TODO: FIXME: Changing label does not update the legend as you write
+# TODO: Add key_events for N, P, I, S (except when editing  labels)
 
 
-class PanelSignalComparisonViewer(wx.MiniFrame):
-    """
-    Simple GUI to select mass spectra to compare
-    """
+class PanelSignalComparisonViewer(MiniFrame):
+    """Signal comparison viewer"""
 
     def __init__(self, parent, presenter, config, icons, **kwargs):
-        wx.MiniFrame.__init__(
+        MiniFrame.__init__(
             self,
             parent,
-            -1,
-            "Compare mass spectra...",
-            size=(-1, -1),
+            title="Compare mass spectra...",
             style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX),
         )
 
@@ -70,11 +68,9 @@ class PanelSignalComparisonViewer(wx.MiniFrame):
         try:
             self.on_plot(None)
         except IndexError as err:
-            print(err)
+            logger.error(err)
 
         # bind
-        wx.EVT_CLOSE(self, self.on_close)
-        self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
         self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
 
     @staticmethod
@@ -125,20 +121,8 @@ class PanelSignalComparisonViewer(wx.MiniFrame):
         menu.Destroy()
         self.SetFocus()
 
-    def on_key_event(self, evt):
-        key_code = evt.GetKeyCode()
-        # exit window
-        if key_code == wx.WXK_ESCAPE:
-            self.on_close(evt=None)
-        #         # refresh document/spectrum views
-        #         elif key_code == wx.WXK_F5:
-        #             pass
-
-        evt.Skip()
-
     def on_close(self, evt):
         """Destroy this frame."""
-
         self.update_spectrum(evt=None)
         self.Destroy()
 

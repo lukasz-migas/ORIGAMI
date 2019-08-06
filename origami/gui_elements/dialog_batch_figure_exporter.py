@@ -11,8 +11,6 @@ from utils.path import check_path_exists
 
 logger = logging.getLogger("origami")
 
-# TODO: speed up plotting
-
 
 class DialogExportFigures(Dialog):
     """Batch export images"""
@@ -44,15 +42,6 @@ class DialogExportFigures(Dialog):
         self.CentreOnScreen()
         self.Show(True)
         self.SetFocus()
-
-        self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
-
-    def on_key_event(self, evt):
-        """Trigger event based on keyboard input"""
-        #         key_code = evt.GetKeyCode()
-
-        if evt is not None:
-            evt.Skip()
 
     def on_close(self, evt):
         """Destroy this frame"""
@@ -268,6 +257,9 @@ class DialogExportFigures(Dialog):
         ]
 
         self.config.image_axes_size = plot_axes_size
+
+        if evt is not None:
+            evt.Skip()
 
     def on_apply_size_inch(self, evt):
         plot_inch_size = [self.width_inch_value.GetValue(), self.height_inch_value.GetValue()]

@@ -3,6 +3,7 @@
 import wx
 from icons.icons import IconContainer
 from styles import makeCheckbox
+from styles import MiniFrame
 from styles import validator
 from utils.converters import num2str
 from utils.converters import str2int
@@ -11,15 +12,13 @@ from utils.converters import str2num
 # TODO: Add possibility to visualise heatmap as false-color image
 
 
-class PanelModifyIonSettings(wx.MiniFrame):
+class PanelModifyIonSettings(MiniFrame):
     """
     Small panel to modify settings in the Ion peaklist panel
     """
 
     def __init__(self, parent, presenter, config, **kwargs):
-        wx.MiniFrame.__init__(
-            self, parent, -1, "Modify settings...", size=(-1, -1), style=wx.DEFAULT_FRAME_STYLE & ~wx.RESIZE_BORDER
-        )
+        MiniFrame.__init__(self, parent, title="Modify settings...", style=wx.DEFAULT_FRAME_STYLE & ~wx.RESIZE_BORDER)
 
         self.parent = parent
         self.presenter = presenter
@@ -53,41 +52,13 @@ class PanelModifyIonSettings(wx.MiniFrame):
         self.Layout()
         self.SetFocus()
 
-        # bind
-        wx.EVT_CLOSE(self, self.on_close)
-        self.Bind(wx.EVT_CHAR_HOOK, self.on_keyboard_event)
-
         # fire-up events
         self.on_setup_gui(evt=None)
-
-    def on_keyboard_event(self, evt):
-        key_code = evt.GetKeyCode()
-        if key_code == wx.WXK_ESCAPE:
-            self.on_close(evt=None)
-
-        evt.Skip()
-
-    def on_close(self, evt):
-        """Destroy this frame."""
-        self.Destroy()
 
     def on_select(self, evt):
         self.on_assign_color(evt=None)
         self.parent.onUpdateDocument(itemInfo=self.itemInfo, evt=None)
         self.Destroy()
-
-    def make_gui(self):
-
-        # make panel
-        panel = self.make_panel()
-
-        # pack element
-        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.main_sizer.Add(panel, 1, wx.EXPAND, 0)
-
-        # fit layout
-        self.main_sizer.Fit(self)
-        self.SetSizer(self.main_sizer)
 
     def make_panel(self):
 
@@ -346,22 +317,18 @@ class PanelModifyIonSettings(wx.MiniFrame):
         The cmap list will be restricted to more limited selection
         """
         currentCmap = self.origami_colormap_value.GetStringSelection()
-        narrowList = self.config.narrowCmapList
-        narrowList.append(currentCmap)
+        if self.origami_restrictColormap_value.GetValue():
+            cmap_list = self.config.narrowCmapList
+            cmap_list.append(currentCmap)
+        else:
+            cmap_list = self.config.cmaps2
 
         # remove duplicates
-        narrowList = sorted(list(set(narrowList)))
+        cmap_list = sorted(list(set(cmap_list)))
 
-        if self.origami_restrictColormap_value.GetValue():
-            self.origami_colormap_value.Clear()
-            for item in narrowList:
-                self.origami_colormap_value.Append(item)
-            self.origami_colormap_value.SetStringSelection(currentCmap)
-        else:
-            self.origami_colormap_value.Clear()
-            for item in self.config.cmaps2:
-                self.origami_colormap_value.Append(item)
-            self.origami_colormap_value.SetStringSelection(currentCmap)
+        self.origami_colormap_value.Clear()
+        self.origami_colormap_value.SetItems(cmap_list)
+        self.origami_colormap_value.SetStringSelection(currentCmap)
 
     def on_get_next(self, evt):
         self.on_check_id()

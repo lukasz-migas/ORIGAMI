@@ -12,7 +12,6 @@ from utils.converters import str2num
 
 logger = logging.getLogger("origami")
 
-# TODO: speed up plotting
 # TODO: remove self.data and self.document and rather always get new instance of the document which accounts for
 # changes
 
@@ -52,8 +51,6 @@ class PanelProcessHeatmap(MiniFrame):
         self.CentreOnScreen()
         self.Show(True)
         self.SetFocus()
-
-        self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
 
     def on_key_event(self, evt):
         """Trigger event based on keyboard input"""
