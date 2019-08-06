@@ -1470,13 +1470,13 @@ class PanelTextlist(wx.Panel):
             row -= 1
 
     def on_overlay_mobiligram(self, evt):
-        self.data_handling.on_overlay_1D(source="text", plot_type="mobiligram")
+        self.data_visualisation.on_overlay_1D(source="text", plot_type="mobiligram")
 
     def on_overlay_chromatogram(self, evt):
-        self.data_handling.on_overlay_1D(source="text", plot_type="chromatogram")
+        self.data_visualisation.on_overlay_1D(source="text", plot_type="chromatogram")
 
     def on_overlay_heatmap(self, evt):
-        self.presenter.on_overlay_2D(source="text")
+        self.data_visualisation.on_overlay_2D(source="text")
 
     def on_check_duplicate_colors(self, new_color):
         """

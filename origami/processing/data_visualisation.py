@@ -9,6 +9,7 @@ import processing.activation as pr_activation
 import processing.heatmap as pr_heatmap
 import processing.spectra as pr_spectra
 import wx
+from document import document
 from document import document as documents
 from gui_elements.dialog_select_document import DialogSelectDocument
 from gui_elements.misc_dialogs import DialogBox
@@ -18,6 +19,7 @@ from utils.color import combine_rgb
 from utils.color import convertRGB255to1
 from utils.color import make_rgb
 from utils.converters import str2num
+from utils.exceptions import MessageError
 from utils.time import getTime
 
 logger = logging.getLogger("origami")
@@ -55,12 +57,105 @@ class data_visualisation:
         self.data_handling = self.view.data_handling
         self.data_processing = self.view.data_processing
 
-    def on_overlay_mobilogram(self, item_list, **kwargs):
-        # TODO: Add checks for size and shape
+    def _check_overlay_shape(self, item_list, dimension=None):
+        """Check whether input dataset has identical shape
+
+        Parameters
+        ----------
+        item_list : list
+            list of dictionaries with necessary metadata
+        dimension : None or int
+            dimension to be checked. If set to None, check entire shape, otherwise check either row or column
+
+        Raises
+        ------
+        raises MessageError if more than one item found in the final shape list
+        """
+        # collect all shapes
+        shape_list = []
+        for item_info in item_list:
+            shape = item_info["shape"]
+            if dimension is not None:
+                shape_split = shape.replace("(", "").replace(")", "").split(",")
+                if len(shape_split) - 1 >= dimension:
+                    shape = shape_split[dimension]
+            shape_list.append(shape)
+
+        # reduce to only include unique values
+        shape = list(set(shape_list))
+
+        # raise an error if incorrect shape
+        if len(shape) > 1:
+            raise MessageError(
+                "Incorrect shape",
+                "Your current selection has datasets that mismatch in shape. Please only select items"
+                + f" that have identical size. Your selection sizes: {shape}",
+            )
+
+    def _generate_overlay_name(self, dataset_info):
+        """Generate name for overlay object based on dataset info (eg. document_title, dataset_type and dataset_name
+
+        Parameters
+        ----------
+        dataset_info : list
+            list of lists containing document_title, dataset_type and dataset_name
+
+        Returns
+        -------
+        dataset_name : str
+            overlay item name
+        """
+        dataset_name = ""
+
+        # first check whether it comes from the same document
+        add_document_title = True
+        document_list = []
+        for item_info in dataset_info:
+            document_list.append(item_info[0])
+
+        document_list = list(set(document_list))
+        if len(document_list) == 1:
+            add_document_title = False
+
+        for i, item_info in enumerate(dataset_info):
+            item_name = f"{item_info[2]}"
+
+            # add individual document title
+            if add_document_title:
+                item_name += f", {item_info[0]}"
+
+            # add seperator
+            if i > 0:
+                dataset_name += "; "
+
+            # append to name
+            dataset_name += item_name
+
+        # if document name was not incldued in each iteration, add it at the end
+        if not add_document_title:
+            dataset_name += f" :: {document_list[0]}"
+
+        # check length
+        if len(dataset_name) > 511:
+            logger.warning("Filename was too long. Reducing...")
+            # replace unnecessary extensions
+            dataset_name = dataset_name.replace(".csv", "").replace(".txt", "").replace(".raw", "").replace(".d", "")
+
+            # check again, this time simply capping the name
+            if len(dataset_name) > 511:
+                dataset_name = dataset_name[:500]
+
+        return dataset_name
+
+    def on_overlay_mobilogram_overlay(self, item_list, **kwargs):
+        # TODO: Add checks for same labels
         # TODO: Add possibility to add to document
 
-        # Empty lists
-        xlist, ylist, colorlist, legend = [], [], [], []
+        # ensure shape is correct
+        self._check_overlay_shape(item_list, 0)
+
+        # pre-generate empty lists
+        xlist, ylist, colorlist, legend, dataset_info = [], [], [], [], []
         for item_info in item_list:
             # get data
             try:
@@ -69,13 +164,17 @@ class data_visualisation:
             except KeyError:
                 continue
 
+            dataset_info.append(query_info)
+
             # get data
             xvals = data["yvals"]
             yvals = data.get("yvals1D", data["zvals"].sum(axis=1))
 
+            # normalize data
             if kwargs.get("normalize_dataset", False):
                 yvals = pr_spectra.smooth_gaussian_1D(data=yvals, sigma=self.config.overlay_smooth1DRT)
                 yvals = pr_spectra.normalize_1D(yvals)
+
             xlabels = data["xlabels"]
 
             # Append data to list
@@ -93,20 +192,30 @@ class data_visualisation:
             xvals=xlist, yvals=ylist, xlabel=xlabels, colors=colorlist, xlimits=xlimits, labels=legend, **kwargs
         )
 
+        # generate item name
+        dataset_name = self._generate_overlay_name(dataset_info)
+
         # generate dataset holder
         dataset_holder = {
-            "xvals": xlist,
-            "yvals": ylist,
-            "xlabel": xlabels,
-            "colors": colorlist,
-            "xlimits": xlimits,
-            "labels": legend,
+            "name": dataset_name,
+            "data": {
+                "xvals": xlist,
+                "yvals": ylist,
+                "xlabel": xlabels,
+                "colors": colorlist,
+                "xlimits": xlimits,
+                "labels": legend,
+                "dataset_info": dataset_info,
+            },
         }
         return dataset_holder
 
-    def on_overlay_chromatogram(self, item_list, **kwargs):
+    def on_overlay_chromatogram_overlay(self, item_list, **kwargs):
 
-        # Empty lists
+        # ensure shape is correct
+        self._check_overlay_shape(item_list, 1)
+
+        # pre-generate empty lists
         xlist, ylist, colorlist, legend, dataset_info = [], [], [], [], []
         for item_info in item_list:
             # get data
@@ -142,9 +251,12 @@ class data_visualisation:
             xvals=xlist, yvals=ylist, xlabel=xlabels, colors=colorlist, xlimits=xlimits, labels=legend, **kwargs
         )
 
+        # generate item name
+        dataset_name = self._generate_overlay_name(dataset_info)
+
         # generate dataset holder
         dataset_holder = {
-            "name": "",
+            "name": dataset_name,
             "data": {
                 "xvals": xlist,
                 "yvals": ylist,
@@ -156,6 +268,96 @@ class data_visualisation:
             },
         }
         return dataset_holder
+
+    def on_overlay_heatmap_mask(self, item_list, **kwargs):
+        pass
+
+    #         # In this case, the values are not transparency but a threshold cutoff! Values between 0-1
+    #         cutoffIon1 = maskIon1
+    #         cutoffIon2 = maskIon2
+    #         # Based on the value in alpha/cutoff, data will be cleared up
+    #         zvalsIon1plotMask = masked_array(zvalsIon1plot, zvalsIon1plot < cutoffIon1)
+    #         zvalsIon1plot = zvalsIon1plotMask
+    #         zvalsIon2plotMask = masked_array(zvalsIon2plot, zvalsIon2plot < cutoffIon2)
+    #         zvalsIon2plot = zvalsIon2plotMask
+    #         self.view.panelPlots.mainBook.SetSelection(self.config.panelNames["Overlay"])
+    #         self.view.panelPlots.on_plot_overlay_2D(
+    #             zvalsIon1=zvalsIon1plotMask,
+    #             cmapIon1=cmapIon1,
+    #             alphaIon1=1,
+    #             zvalsIon2=zvalsIon2plotMask,
+    #             cmapIon2=cmapIon2,
+    #             alphaIon2=1,
+    #             xvals=xaxisLabels,
+    #             yvals=yaxisLabels,
+    #             xlabel=xlabel,
+    #             ylabel=ylabel,
+    #             flag="Text",
+    #             plotName="Mask",
+    #         )
+    #                     self.docs.IMS2DoverlayData[idName] = {
+    #                         "zvals1": zvalsIon1plot,
+    #                         "zvals2": zvalsIon2plot,
+    #                         "cmap1": cmapIon1,
+    #                         "cmap2": cmapIon2,
+    #                         "alpha1": alphaIon1,
+    #                         "alpha2": alphaIon2,
+    #                         "mask1": maskIon1,
+    #                         "mask2": maskIon2,
+    #                         "xvals": xaxisLabels,
+    #                         "xlabels": xlabel,
+    #                         "yvals": yaxisLabels,
+    #                         "ylabels": ylabel,
+    #                         "file1": compList[0],
+    #                         "file2": compList[1],
+    #                         "label1": compDict[compList[0]]["label"],
+    #                         "label2": compDict[compList[1]]["label"],
+    #                         "title": title,
+    #                         "header": header,
+    #                         "footnote": footnote,
+    #                     }
+
+    def on_overlay_heatmap_transparent(self, item_list, **kwargs):
+        pass
+
+    #         self.view.panelPlots.mainBook.SetSelection(self.config.panelNames["Overlay"])
+    #         # Overlay plot of two species to see whether there is a difference between
+    #
+    #         self.view.panelPlots.on_plot_overlay_2D(
+    #             zvalsIon1=zvalsIon1plot,
+    #             cmapIon1=cmapIon1,
+    #             alphaIon1=alphaIon1,
+    #             zvalsIon2=zvalsIon2plot,
+    #             cmapIon2=cmapIon2,
+    #             alphaIon2=alphaIon2,
+    #             xvals=xaxisLabels,
+    #             yvals=yaxisLabels,
+    #             xlabel=xlabel,
+    #             ylabel=ylabel,
+    #             flag="Text",
+    #             plotName="Transparent",
+    #         )
+    #                     self.docs.IMS2DoverlayData[idName] = {
+    #                         "zvals1": zvalsIon1plot,
+    #                         "zvals2": zvalsIon2plot,
+    #                         "cmap1": cmapIon1,
+    #                         "cmap2": cmapIon2,
+    #                         "alpha1": alphaIon1,
+    #                         "alpha2": alphaIon2,
+    #                         "mask1": maskIon1,
+    #                         "mask2": maskIon2,
+    #                         "xvals": xaxisLabels,
+    #                         "xlabels": xlabel,
+    #                         "yvals": yaxisLabels,
+    #                         "ylabels": ylabel,
+    #                         "file1": compList[0],
+    #                         "file2": compList[1],
+    #                         "label1": compDict[compList[0]]["label"],
+    #                         "label2": compDict[compList[1]]["label"],
+    #                         "title": title,
+    #                         "header": header,
+    #                         "footnote": footnote,
+    #                     }
 
     def on_overlay_1D(self, source, plot_type):
         """
@@ -887,51 +1089,7 @@ class data_visualisation:
                 DialogBox(exceptionTitle="Warning", exceptionMsg=msg, type="Warning")
                 print(msg)
 
-            if self.config.overlayMethod == "Transparent":
-                self.view.panelPlots.mainBook.SetSelection(self.config.panelNames["Overlay"])
-                # Overlay plot of two species to see whether there is a difference between
-
-                self.view.panelPlots.on_plot_overlay_2D(
-                    zvalsIon1=zvalsIon1plot,
-                    cmapIon1=cmapIon1,
-                    alphaIon1=alphaIon1,
-                    zvalsIon2=zvalsIon2plot,
-                    cmapIon2=cmapIon2,
-                    alphaIon2=alphaIon2,
-                    xvals=xaxisLabels,
-                    yvals=yaxisLabels,
-                    xlabel=xlabel,
-                    ylabel=ylabel,
-                    flag="Text",
-                    plotName="Transparent",
-                )
-
-            elif self.config.overlayMethod == "Mask":
-                # In this case, the values are not transparency but a threshold cutoff! Values between 0-1
-                cutoffIon1 = maskIon1
-                cutoffIon2 = maskIon2
-                # Based on the value in alpha/cutoff, data will be cleared up
-                zvalsIon1plotMask = masked_array(zvalsIon1plot, zvalsIon1plot < cutoffIon1)
-                zvalsIon1plot = zvalsIon1plotMask
-                zvalsIon2plotMask = masked_array(zvalsIon2plot, zvalsIon2plot < cutoffIon2)
-                zvalsIon2plot = zvalsIon2plotMask
-                self.view.panelPlots.mainBook.SetSelection(self.config.panelNames["Overlay"])
-                self.view.panelPlots.on_plot_overlay_2D(
-                    zvalsIon1=zvalsIon1plotMask,
-                    cmapIon1=cmapIon1,
-                    alphaIon1=1,
-                    zvalsIon2=zvalsIon2plotMask,
-                    cmapIon2=cmapIon2,
-                    alphaIon2=1,
-                    xvals=xaxisLabels,
-                    yvals=yaxisLabels,
-                    xlabel=xlabel,
-                    ylabel=ylabel,
-                    flag="Text",
-                    plotName="Mask",
-                )
-
-            elif self.config.overlayMethod == "RMSD":
+            if self.config.overlayMethod == "RMSD":
                 """ Compute RMSD of two selected files """
                 # Check whether we should be restricting the RMSD range
                 if self.config.restrictXYrangeRMSD:
@@ -1043,27 +1201,8 @@ class data_visualisation:
                     title, header, footnote = "", "", ""
                 # Add data to dictionary
                 if self.config.overlayMethod in ["Mask", "Transparent"]:
-                    self.docs.IMS2DoverlayData[idName] = {
-                        "zvals1": zvalsIon1plot,
-                        "zvals2": zvalsIon2plot,
-                        "cmap1": cmapIon1,
-                        "cmap2": cmapIon2,
-                        "alpha1": alphaIon1,
-                        "alpha2": alphaIon2,
-                        "mask1": maskIon1,
-                        "mask2": maskIon2,
-                        "xvals": xaxisLabels,
-                        "xlabels": xlabel,
-                        "yvals": yaxisLabels,
-                        "ylabels": ylabel,
-                        "file1": compList[0],
-                        "file2": compList[1],
-                        "label1": compDict[compList[0]]["label"],
-                        "label2": compDict[compList[1]]["label"],
-                        "title": title,
-                        "header": header,
-                        "footnote": footnote,
-                    }
+                    pass
+
                 elif self.config.overlayMethod == "RMSF":
                     self.docs.IMS2DoverlayData[idName] = {
                         "yvalsRMSF": pRMSFlist,

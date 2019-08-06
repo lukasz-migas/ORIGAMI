@@ -51,6 +51,14 @@ def makeMenuItem(parent, text, id=-1, bitmap=None, help_text=None, kind=wx.ITEM_
     return menuItem
 
 
+def setItemFont(parent, size=10, color=wx.BLACK):
+    font = wx.Font(size, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+    parent.SetForegroundColour(color)
+    parent.SetFont(font)
+
+    return parent
+
+
 def makeStaticBox(parent, title, size, color, id=-1):
     staticBox = wx.StaticBox(parent, id, title, size=size, style=wx.SB_FLAT)
     font = wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)

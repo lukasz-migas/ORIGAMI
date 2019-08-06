@@ -3455,7 +3455,7 @@ class data_handling:
         for document_title in all_documents:
             for dataset_type in all_datasets:
                 __, data = self.get_mobility_chromatographic_data([document_title, dataset_type, dataset_type])
-                if dataset_type in singlular_datasets and isinstance(data, dict):
+                if dataset_type in singlular_datasets and isinstance(data, dict) and len(data) > 0:
                     item_dict = {
                         "dataset_name": dataset_type,
                         "dataset_type": dataset_type,

@@ -126,53 +126,91 @@ class PanelOverlayViewer(MiniFrame):
 
     def on_save_figure(self, evt):
         plot_title = "overlay"
-
         self.panel_plot.save_images(None, None, plot_obj=self.plot_window, image_name=plot_title)
 
     def make_gui(self):
 
         # make panel
-        panel = wx.Panel(self, -1, size=(-1, -1), name="main")
-
-        settings_panel = self.make_settings_panel(panel)
+        settings_panel = self.make_settings_panel(self)
         self._settings_panel_size = settings_panel.GetSize()
 
-        plot_panel = self.make_plot_panel(panel)
+        plot_panel = self.make_plot_panel(self)
 
         # pack elements
         self.main_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.main_sizer.Add(settings_panel, 0, wx.EXPAND, 0)
-        self.main_sizer.Add(plot_panel, 0, wx.EXPAND, 0)
+        self.main_sizer.Add(plot_panel, 1, wx.EXPAND, 0)
 
         # fit layout
-        self.main_sizer.Fit(panel)
-        self.SetSize(self._window_size)
+        self.main_sizer.Fit(self)
         self.SetSizer(self.main_sizer)
+        self.SetSize(self._window_size)
         self.Layout()
+        self.Show(True)
+
         self.CentreOnScreen()
         self.SetFocus()
 
+    def on_toggle_controls(self, evt):
+        editor_type = self.dataset_type_choice.GetStringSelection()
+        heatmap, spectra = False, True
+        if editor_type == "Heatmaps":
+            heatmap, spectra = True, False
+
+        obj_list = [self.overlay_heatmap_method_choice, self.use_processed_data_check]
+        for item in obj_list:
+            item.Enable(enable=heatmap)
+        obj_list = [self.overlay_spectrum_method_choice, self.normalize_1D_check]
+        for item in obj_list:
+            item.Enable(enable=spectra)
+
+        if evt is not None:
+            evt.Skip()
+
+    def on_apply(self, evt):
+
+        if evt is not None:
+            evt.Skip()
+
     def make_settings_panel(self, split_panel):
+        from styles import setItemFont
+
         panel = wx.Panel(split_panel, -1, size=(-1, -1), name="settings")
 
-        dataset_type_choice = wx.StaticText(panel, -1, "Editor type:")
+        dataset_type_choice = wx.StaticText(panel, -1, "Dataset type:")
         self.dataset_type_choice = wx.ComboBox(
             panel, choices=["Mass spectra", "Chromatograms", "Mobilograms", "Heatmaps"], style=wx.CB_READONLY
         )
         self.dataset_type_choice.SetStringSelection("Heatmaps")
+        self.dataset_type_choice.Bind(wx.EVT_COMBOBOX, self.on_apply)
+        self.dataset_type_choice.Bind(wx.EVT_COMBOBOX, self.on_toggle_controls)
 
-        overlay_method_choice = wx.StaticText(panel, -1, "Overlay method:")
-        self.overlay_method_choice = wx.ComboBox(panel, choices=self.config.overlayChoices, style=wx.CB_READONLY)
-        self.overlay_method_choice.SetStringSelection(self.config.overlayMethod)
+        # RT and DT methods
+        overlay_methods_1D = sorted(["Overlay", "Waterfall", "Subtract (n=2)", "Butterfly (n=2)", "Stacked"])
 
-        self.use_processed_data_check = makeCheckbox(panel, "Use processed data (if available)")
-        self.use_processed_data_check.SetValue(False)
+        dataset_type_spectrum = setItemFont(wx.StaticText(panel, -1, "Mass spectra / Chromatogram / Mobilogram"))
+        overlay_spectrum_method_choice = wx.StaticText(panel, -1, "Overlay method:")
+        self.overlay_spectrum_method_choice = wx.ComboBox(panel, choices=overlay_methods_1D, style=wx.CB_READONLY)
+        self.overlay_spectrum_method_choice.SetStringSelection("Overlay")
 
         self.normalize_1D_check = makeCheckbox(panel, "Normalize before plotting")
         self.normalize_1D_check.SetValue(self.config.compare_massSpectrumParams["normalize"])
 
+        # Heatmap methods
+        dataset_type_heatmap = setItemFont(wx.StaticText(panel, -1, "Heatmap"))
+        overlay_heatmap_method_choice = wx.StaticText(panel, -1, "Overlay method:")
+        self.overlay_heatmap_method_choice = wx.ComboBox(
+            panel, choices=self.config.overlayChoices, style=wx.CB_READONLY
+        )
+        self.overlay_heatmap_method_choice.SetStringSelection(self.config.overlayMethod)
+
+        self.use_processed_data_check = makeCheckbox(panel, "Use processed data (if available)")
+        self.use_processed_data_check.SetValue(False)
+
         self.make_listctrl_panel(panel)
 
+        horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+        horizontal_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         horizontal_line_99 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
         self.plot_btn = wx.Button(panel, wx.ID_OK, "Plot", size=(-1, 22))
@@ -183,6 +221,7 @@ class PanelOverlayViewer(MiniFrame):
         self.add_to_document_btn.Bind(wx.EVT_BUTTON, self.on_overlay)
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
+        # pack buttons
         btn_grid = wx.GridBagSizer(2, 2)
         n = 0
         btn_grid.Add(self.plot_btn, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
@@ -196,36 +235,35 @@ class PanelOverlayViewer(MiniFrame):
             self.cancel_btn, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
 
+        # pack heatmap items
         grid = wx.GridBagSizer(2, 2)
         n = 0
         grid.Add(dataset_type_choice, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.EXPAND)
-        grid.Add(
-            self.dataset_type_choice,
-            (n, 1),
-            wx.GBSpan(1, 1),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND,
-        )
+        grid.Add(self.dataset_type_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER | wx.EXPAND)
         n += 1
-        grid.Add(overlay_method_choice, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.EXPAND)
-        grid.Add(
-            self.overlay_method_choice,
-            (n, 1),
-            wx.GBSpan(1, 1),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND,
-        )
+        grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n += 1
-        #         grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
+        grid.Add(dataset_type_spectrum, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n += 1
-        grid.Add(self.use_processed_data_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.EXPAND)
+        grid.Add(overlay_spectrum_method_choice, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.EXPAND)
+        grid.Add(self.overlay_spectrum_method_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER | wx.EXPAND)
         n += 1
         grid.Add(self.normalize_1D_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.EXPAND)
         n += 1
-        #         grid.Add(horizontal_line_99, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
-        #         n += 1
-        #         grid.Add(btn_grid, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
+        grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
+        n += 1
+        grid.Add(dataset_type_heatmap, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
+        n += 1
+        grid.Add(overlay_heatmap_method_choice, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.EXPAND)
+        grid.Add(self.overlay_heatmap_method_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER | wx.EXPAND)
+        n += 1
+        grid.Add(self.use_processed_data_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.EXPAND)
+
+        # setup growable column
+        grid.AddGrowableCol(2)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(grid, 0, wx.EXPAND, 10)
+        main_sizer.Add(grid, 0, wx.ALL | wx.EXPAND, 5)
         main_sizer.Add(horizontal_line_99, 0, wx.EXPAND, 10)
         main_sizer.Add(btn_grid, 0, wx.ALIGN_CENTRE_HORIZONTAL, 10)
         main_sizer.Add(self.peaklist, 1, wx.EXPAND, 10)
@@ -238,9 +276,7 @@ class PanelOverlayViewer(MiniFrame):
 
     def make_listctrl_panel(self, panel):
 
-        self.peaklist = ListCtrl(
-            panel, style=wx.LC_REPORT | wx.LC_VRULES, column_info=self._peaklist_peaklist, use_simple_sorter=True
-        )
+        self.peaklist = ListCtrl(panel, style=wx.LC_REPORT | wx.LC_VRULES, column_info=self._peaklist_peaklist)
         for col in range(len(self._peaklist_peaklist)):
             item = self._peaklist_peaklist[col]
             order = col
@@ -251,7 +287,7 @@ class PanelOverlayViewer(MiniFrame):
             self.peaklist.InsertColumn(order, name, width=width, format=wx.LIST_FORMAT_CENTER)
             self.peaklist.SetFont(wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
         max_peaklist_size = (int(self._window_size[0] * 0.3), -1)
-        self.peaklist.SetSize(max_peaklist_size)
+        #         self.peaklist.SetSize(max_peaklist_size)
         self.peaklist.SetMaxClientSize(max_peaklist_size)
 
     def make_plot_panel(self, split_panel):
@@ -267,7 +303,6 @@ class PanelOverlayViewer(MiniFrame):
         box = wx.BoxSizer(wx.VERTICAL)
         box.Add(self.plot_window, 1, wx.EXPAND)
         box.Fit(self.plot_panel)
-
         #         self.plot_window.SetSize(pixel_size)
         self.plot_panel.SetSizer(box)
         self.plot_panel.Layout()
@@ -335,15 +370,15 @@ class PanelOverlayViewer(MiniFrame):
         item_list = self.get_selected_items()
 
         editor_type = self.dataset_type_choice.GetStringSelection()
-        #         overlay_method = self.overlay_method_choice.GetStringSelection()
+        #         overlay_method = self..GetStringSelection()
 
         print(editor_type)
 
         if editor_type == "Chromatograms":
-            self.data_visualisation.on_overlay_chromatogram(
+            self.data_visualisation.on_overlay_chromatogram_overlay(
                 item_list, plot=None, plot_obj=self.plot_window, normalize_dataset=self.normalize_1D_check.GetValue()
             )
         elif editor_type == "Mobilograms":
-            self.data_visualisation.on_overlay_mobilogram(
+            self.data_visualisation.on_overlay_mobilogram_overlay(
                 item_list, plot=None, plot_obj=self.plot_window, normalize_dataset=self.normalize_1D_check.GetValue()
             )
