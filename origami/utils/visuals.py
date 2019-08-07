@@ -2,7 +2,8 @@
 # __author__ lukasz.g.migas
 import numpy as np
 from utils.check import isbool
-from utils.converters import str2num, str2int
+from utils.converters import str2int
+from utils.converters import str2num
 
 
 def calculate_label_position(xlist, ylist, xy_loc_multiplier=None):
