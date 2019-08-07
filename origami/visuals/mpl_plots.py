@@ -9,6 +9,7 @@ import matplotlib
 import matplotlib.cm as cm
 import matplotlib.patches as patches
 import numpy as np
+import utils.visuals as ut_visuals
 from gui_elements.misc_dialogs import DialogBox
 from matplotlib import gridspec
 from matplotlib.collections import LineCollection
@@ -94,7 +95,7 @@ class plots(mpl_plotter):
     def _check_and_update_plot_settings(self, **kwargs):
 
         # check kwargs
-        kwargs = self._check_plot_settings(**kwargs)
+        kwargs = ut_visuals.check_plot_settings(**kwargs)
 
         # extract plot name
         if "plot_name" in kwargs:
@@ -117,82 +118,11 @@ class plots(mpl_plotter):
             kwargs = merge_two_dicts(kwargs, self.plot_parameters)
             self.plot_parameters = kwargs
 
-    @staticmethod
-    def _check_plot_settings(**kwargs):
-
-        # convert weights
-        if "title" in kwargs:
-            if kwargs["title_weight"] and isbool(kwargs["title_weight"]):
-                kwargs["title_weight"] = "heavy"
-            else:
-                kwargs["title_weight"] = "normal"
-
-        if "label_weight" in kwargs:
-            if kwargs["label_weight"] and isbool(kwargs["label_weight"]):
-                kwargs["label_weight"] = "heavy"
-            else:
-                kwargs["label_weight"] = "normal"
-        return kwargs
-
     def _plot_settings_(self, **kwargs):
         """
         Setup all plot parameters for easy retrieval
         """
         self.plot_kwargs = kwargs
-
-    @staticmethod
-    def _convert_label(label, label_format):
-        if label_format == "String":
-            try:
-                new_label = str(label)
-            except UnicodeEncodeError:
-                new_label = str(label)
-        elif label_format == "Float":
-            new_label = str2num(label)
-            if new_label in [None, "None"]:
-                try:
-                    new_label = str(label)
-                except UnicodeEncodeError:
-                    new_label = str(label)
-        elif label_format == "Integer":
-            new_label = str2int(label)
-            if new_label in [None, "None"]:
-                new_label = str2num(label)
-                new_label = str2int(new_label)
-                if new_label in [None, "None"]:
-                    try:
-                        new_label = str(label)
-                    except UnicodeEncodeError:
-                        new_label = str(label)
-
-        return new_label
-
-    @staticmethod
-    def _convert_to_vertical_line_input(xvals, yvals):
-        lines = []
-        for i in range(len(xvals)):
-            pair = [(xvals[i], 0), (xvals[i], yvals[i])]
-            lines.append(pair)
-
-        return lines
-
-    @staticmethod
-    def _add_exponent_to_label(label, divider):
-        expo = len(str(divider)) - len(str(divider).rstrip("0"))
-
-        # remove previous exponent label
-        label = label.split(" [")[0]
-
-        if expo > 1:
-            offset_text = r"x$\mathregular{10^{%d}}$" % expo
-            label = "".join([label, " [", offset_text, "]"])
-
-        return label
-
-    @staticmethod
-    def extents(f):
-        delta = f[1] - f[0]
-        return [f[0] - delta / 2, f[-1] + delta / 2]
 
     def copy_to_clipboard(self):
         self.canvas.Copy_to_Clipboard()
@@ -243,6 +173,10 @@ class plots(mpl_plotter):
         except (AttributeError, KeyError):
             pass
 
+        tick_labels = ["0", "%", "100"]
+        if self.plot_name in ["RMSD", "RMSF"]:
+            tick_labels = ["-100", "%", "100"]
+
         if kwargs["colorbar"]:
             cbarDivider = make_axes_locatable(self.plotMS)
             # pad controls how close colorbar is to the axes
@@ -251,8 +185,8 @@ class plots(mpl_plotter):
                 size="".join([str(kwargs["colorbar_width"]), "%"]),
                 pad=kwargs["colorbar_pad"],
             )
+            ticks = [np.min(zvals), (np.max(zvals) - np.abs(np.min(zvals))) / 2, np.max(zvals)]
 
-            ticks = [np.min(zvals), (np.max(zvals) - np.min(zvals)) / 2, np.max(zvals)]
             if ticks[1] in [ticks[0], ticks[2]]:
                 ticks[1] = 0
 
@@ -262,17 +196,17 @@ class plots(mpl_plotter):
             if kwargs["colorbar_position"] in ["left", "right"]:
                 self.figure.colorbar(self.cax, cax=self.cbar, ticks=ticks, orientation="vertical")
                 self.cbar.yaxis.set_ticks_position(kwargs["colorbar_position"])
-                self.cbar.set_yticklabels(["0", "%", "100"])
+                self.cbar.set_yticklabels(tick_labels)
             else:
                 self.figure.colorbar(self.cax, cax=self.cbar, ticks=ticks, orientation="horizontal")
                 self.cbar.xaxis.set_ticks_position(kwargs["colorbar_position"])
-                self.cbar.set_xticklabels(["0", "%", "100"])
+                self.cbar.set_xticklabels(tick_labels)
 
             # setup other parameters
             self.cbar.tick_params(labelsize=kwargs["colorbar_label_size"])
 
     def set_plot_xlabel(self, xlabel, **kwargs):
-        kwargs = self._check_plot_settings(**kwargs)
+        kwargs = ut_visuals.check_plot_settings(**kwargs)
 
         if xlabel is None:
             xlabel = self.plotMS.get_xlabel()
@@ -281,7 +215,7 @@ class plots(mpl_plotter):
         )
 
     def set_plot_ylabel(self, ylabel, **kwargs):
-        kwargs = self._check_plot_settings(**kwargs)
+        kwargs = ut_visuals.check_plot_settings(**kwargs)
         if ylabel is None:
             ylabel = self.plotMS.get_ylabel()
         self.plotMS.set_ylabel(
@@ -289,7 +223,7 @@ class plots(mpl_plotter):
         )
 
     def set_plot_zlabel(self, zlabel, **kwargs):
-        kwargs = self._check_plot_settings(**kwargs)
+        kwargs = ut_visuals.check_plot_settings(**kwargs)
 
         if zlabel is None:
             zlabel = self.plotMS.get_ylabel()
@@ -298,7 +232,7 @@ class plots(mpl_plotter):
         )
 
     def set_plot_title(self, title, **kwargs):
-        kwargs = self._check_plot_settings(**kwargs)
+        kwargs = ut_visuals.check_plot_settings(**kwargs)
 
         if title is None:
             title = self.plotMS.get_title()
@@ -362,7 +296,7 @@ class plots(mpl_plotter):
         if expo == 1:
             divider = 1
 
-        label = self._add_exponent_to_label(label, divider)
+        label = ut_visuals.add_exponent_to_label(label, divider)
         if expo > 1:
             if convert_values:
                 values = np.divide(values, float(divider))
@@ -408,30 +342,9 @@ class plots(mpl_plotter):
         for i in range(len(values)):
             values[i] = np.divide(values[i], float(divider))
 
-        label = self._add_exponent_to_label(label, self.y_divider)
+        label = ut_visuals.add_exponent_to_label(label, self.y_divider)
 
         return values, label
-
-    def _check_n_grid_dimensions(self, n_grid):
-
-        if n_grid in [2]:
-            n_rows, n_cols, y_label_pos, x_label_pos = 1, 2, 1, 1
-        elif n_grid in [3, 4]:
-            n_rows, n_cols, y_label_pos, x_label_pos = 2, 2, 1, 1
-        elif n_grid in [5, 6]:
-            n_rows, n_cols, y_label_pos, x_label_pos = 2, 3, 1, 2
-        elif n_grid in [7, 8, 9]:
-            n_rows, n_cols, y_label_pos, x_label_pos = 3, 3, 2, 2
-        elif n_grid in [10, 11, 12]:
-            n_rows, n_cols, y_label_pos, x_label_pos = 3, 4, 2, 1
-        elif n_grid in [13, 14, 15, 16]:
-            n_rows, n_cols, y_label_pos, x_label_pos = 4, 4, 1, 1
-        elif n_grid in list(range(17, 26)):
-            n_rows, n_cols, y_label_pos, x_label_pos = 5, 5, 3, 3
-        elif n_grid in list(range(26, 37)):
-            n_rows, n_cols, y_label_pos, x_label_pos = 6, 6, 1, 1
-
-        return n_rows, n_cols
 
     def _check_colormap(self, cmap=None, **kwargs):
         if cmap is None:
@@ -963,7 +876,7 @@ class plots(mpl_plotter):
         #         divider = np.max([divider, self.y_divider])
 
         # convert ylabel based on the divider
-        ylabel = self._add_exponent_to_label(self.plotMS.get_ylabel(), divider)
+        ylabel = ut_visuals.add_exponent_to_label(self.plotMS.get_ylabel(), divider)
         self.set_plot_ylabel(ylabel, **self.plot_parameters)
 
         # determine the plot limits and if necessary, update the plot data
@@ -1025,7 +938,7 @@ class plots(mpl_plotter):
         self.y_divider = divider
         yvals_1 = np.divide(yvals_1, float(divider))
         yvals_2 = np.divide(yvals_2, float(divider))
-        ylabel = self._add_exponent_to_label(ylabel, divider)
+        ylabel = ut_visuals.add_exponent_to_label(ylabel, divider)
 
         return yvals_1, yvals_2, ylabel
 
@@ -1150,7 +1063,7 @@ class plots(mpl_plotter):
                 yposition = self.text[i]._yposition + kwargs["labels_y_offset"]
                 position = [label_xposition, yposition]
                 self.text[i].set_position(position)
-                text = self._convert_label(self.text[i].get_text(), label_format=kwargs["labels_format"])
+                text = ut_visuals.convert_label(self.text[i].get_text(), label_format=kwargs["labels_format"])
                 self.text[i].set_text(text)
 
         elif which == "data":
@@ -1197,7 +1110,7 @@ class plots(mpl_plotter):
             matplotlib.rc("xtick", labelsize=kwargs["tick_size"])
             matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
 
-            kwargs = self._check_plot_settings(**kwargs)
+            kwargs = ut_visuals.check_plot_settings(**kwargs)
 
             # update labels
             self.set_plot_xlabel(None, **kwargs)
@@ -1605,7 +1518,7 @@ class plots(mpl_plotter):
         self._check_and_update_plot_settings(**kwargs)
 
         # update limits and extents
-        extent = self.extents(xvals) + self.extents(yvals)
+        extent = ut_visuals.extents(xvals) + ut_visuals.extents(yvals)
         self.cax.set_data(zvals)
         #         vmax = np.quantile(zvals, 0.95)
         #         self.cax.set_clim(vmax=vmax)
@@ -1777,7 +1690,7 @@ class plots(mpl_plotter):
             yvals = np.divide(yvals, float(self.y_divider))
 
         if xyvals is None:
-            xyvals = self._convert_to_vertical_line_input(xvals, yvals)
+            xyvals = ut_visuals.convert_to_vertical_line_input(xvals, yvals)
 
         # Simple hack to reduce size is to use different subplot size
         if not adding_on_top:
@@ -2135,7 +2048,7 @@ class plots(mpl_plotter):
         #
         #             yvals1 = np.divide(yvals1, float(divider))
         #             yvals2 = np.divide(yvals2, float(divider))
-        #             ylabel = self._add_exponent_to_label(ylabel, divider)
+        #             ylabel = ut_visuals.add_exponent_to_label(ylabel, divider)
 
         if xvals2 is None:
             xvals2 = xvals1
@@ -2406,7 +2319,7 @@ class plots(mpl_plotter):
                     self.plotMS.fill_between(xvals, np.min(y + yOffset), (y + yOffset), **shade_kws)
 
                 if kwargs.get("add_labels", True) and kwargs["labels_frequency"] != 0:
-                    label = self._convert_label(yvals[int(i)], label_format=kwargs["labels_format"])
+                    label = ut_visuals.convert_label(yvals[int(i)], label_format=kwargs["labels_format"])
                     if int(i) % kwargs["labels_frequency"] == 0:
                         label_kws = dict(fontsize=kwargs["labels_font_size"], fontweight=kwargs["labels_font_weight"])
                         self.plot_add_text(
@@ -2653,7 +2566,7 @@ class plots(mpl_plotter):
                     self.plotMS.fill_between(xval, np.min(y), y, **shade_kws)
 
                 if kwargs.get("add_labels", True) and kwargs["labels_frequency"] != 0 and item == 0:
-                    x_label = self._convert_label(yval[irow], label_format=kwargs["labels_format"])
+                    x_label = ut_visuals.convert_label(yval[irow], label_format=kwargs["labels_format"])
                     if irow % kwargs["labels_frequency"] == 0:
                         label_kws = dict(fontsize=kwargs["labels_font_size"], fontweight=kwargs["labels_font_weight"])
                         self.plot_add_text(
@@ -2809,7 +2722,7 @@ class plots(mpl_plotter):
             if kwargs["labels_frequency"] != 0:
                 if i % kwargs["labels_frequency"] == 0:
                     tick_position.append(offset)
-                    tick_labels.append(self._convert_label(yvals[int(i)], label_format=kwargs["labels_format"]))
+                    tick_labels.append(ut_visuals.convert_label(yvals[int(i)], label_format=kwargs["labels_format"]))
 
         xlimits = [np.amin(xvals), np.amax(xvals)]
 
@@ -2867,7 +2780,7 @@ class plots(mpl_plotter):
         n_xvals = len(xvals)
         n_yvals = len(yvals)
         n_grid = np.max([n_xvals, n_yvals])
-        n_rows, n_cols = self._check_n_grid_dimensions(n_grid)
+        n_rows, n_cols, __, __ = ut_visuals.check_n_grid_dimensions(n_grid)
 
         # set tick size
         matplotlib.rc("xtick", labelsize=kwargs["tick_size"])
@@ -3016,7 +2929,7 @@ class plots(mpl_plotter):
         n_xvals = len(xvals)
         n_yvals = len(yvals)
         n_grid = np.max([n_xvals, n_yvals])
-        n_rows, n_cols = self._check_n_grid_dimensions(n_grid)
+        n_rows, n_cols, __, __ = ut_visuals.check_n_grid_dimensions(n_grid)
 
         # convert weights
         if kwargs["title_weight"]:
@@ -3190,7 +3103,7 @@ class plots(mpl_plotter):
         self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
 
         n_grid = len(n_zvals)
-        n_rows, n_cols = self._check_n_grid_dimensions(n_grid)
+        n_rows, n_cols, __, __ = ut_visuals.check_n_grid_dimensions(n_grid)
 
         # convert weights
         if kwargs["title_weight"]:
@@ -3210,7 +3123,7 @@ class plots(mpl_plotter):
         gs = gridspec.GridSpec(nrows=n_rows, ncols=n_cols)
         gs.update(hspace=kwargs.get("grid_hspace", 1), wspace=kwargs.get("grid_hspace", 1))
 
-        #         extent = self.extents(xvals)+self.extents(yvals)
+        #         extent = ut_visuals.extents(xvals)+ut_visuals.extents(yvals)
         plt_list, extent_list = [], []
         for i in range(n_grid):
             row = int(i // n_cols)
@@ -3218,11 +3131,11 @@ class plots(mpl_plotter):
             ax = self.figure.add_subplot(gs[row, col], aspect="auto")
 
             if len(xvals) == n_grid:
-                extent = self.extents(xvals[i]) + self.extents(yvals[i])
+                extent = ut_visuals.extents(xvals[i]) + ut_visuals.extents(yvals[i])
                 xmin, xmax = np.min(xvals[i]), np.max(xvals[i])
                 ymin, ymax = np.min(yvals[i]), np.max(yvals[i])
             else:
-                extent = self.extents(xvals) + self.extents(yvals)
+                extent = ut_visuals.extents(xvals) + ut_visuals.extents(yvals)
                 xmin, xmax = np.min(xvals), np.max(xvals)
                 ymin, ymax = np.min(yvals), np.max(yvals)
             extent_list.append([xmin, ymin, xmax, ymax])
@@ -3337,7 +3250,7 @@ class plots(mpl_plotter):
         self.plot2D_side = self.figure.add_subplot(gs[:, 1], aspect="auto")
 
         # Calculate extents
-        extent = self.extents(xvals) + self.extents(yvals)
+        extent = ut_visuals.extents(xvals) + ut_visuals.extents(yvals)
         self.plot2D_upper.imshow(
             zvals_1,
             extent=extent,
@@ -3505,7 +3418,7 @@ class plots(mpl_plotter):
             ylabelRMSF, labelpad=kwargs["label_pad"], fontsize=kwargs["label_size"], weight=kwargs["label_weight"]
         )
 
-        extent = self.extents(labelsX) + self.extents(labelsY)
+        extent = ut_visuals.extents(labelsX) + ut_visuals.extents(labelsY)
         self.plotMS = self.figure.add_subplot(gs[1], aspect="auto")
 
         self.cax = self.plotMS.imshow(
@@ -3715,7 +3628,7 @@ class plots(mpl_plotter):
 
         # Plot
         self.plotMS = self.figure.add_axes(self._axes)
-        extent = self.extents(xvals) + self.extents(yvals)
+        extent = ut_visuals.extents(xvals) + ut_visuals.extents(yvals)
 
         # Add imshow
         self.cax = self.plotMS.imshow(
@@ -3774,7 +3687,7 @@ class plots(mpl_plotter):
         # Plot
         self.plotMS = self.figure.add_axes(self._axes)
 
-        extent = self.extents(xvals) + self.extents(yvals)
+        extent = ut_visuals.extents(xvals) + ut_visuals.extents(yvals)
 
         # Add imshow
         self.cax = self.plotMS.contourf(
@@ -3855,7 +3768,7 @@ class plots(mpl_plotter):
         if testX:
             xvals, xlabel, __ = self.kda_test(xvals)
 
-        extent = self.extents(xvals) + self.extents(yvals)
+        extent = ut_visuals.extents(xvals) + ut_visuals.extents(yvals)
 
         if not speedy:
             self.cax = self.plotMS.contourf(
@@ -3960,7 +3873,7 @@ class plots(mpl_plotter):
                     )
                 )
 
-        extent = self.extents(xvals) + self.extents(yvals)
+        extent = ut_visuals.extents(xvals) + ut_visuals.extents(yvals)
 
         # Add imshow
         self.cax = self.plotMS.imshow(
@@ -4113,7 +4026,7 @@ class plots(mpl_plotter):
         # Plot
         self.plotMS = self.figure.add_axes(self._axes)
 
-        extent = self.extents(labelsX) + self.extents(labelsY)
+        extent = ut_visuals.extents(labelsX) + ut_visuals.extents(labelsY)
 
         # Add imshow
         self.cax = self.plotMS.imshow(

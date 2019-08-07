@@ -467,11 +467,27 @@ class mpl_plotter(wx.Panel):
 
         if plot is None:
             self.text = self.plotMS.text(
-                x=xval, y=yval, s=text, fontsize=fontsize, rotation=rotation, weight=weight, fontdict=None, color=color
+                x=xval,
+                y=yval,
+                s=text,
+                fontsize=fontsize,
+                rotation=rotation,
+                weight=weight,
+                fontdict=None,
+                color=color,
+                clip_on=True,
             )
         elif plot == "Grid":
             self.text = self.plot2D_side.text(
-                x=xval, y=yval, s=text, fontsize=fontsize, rotation=rotation, weight=weight, fontdict=None, color=color
+                x=xval,
+                y=yval,
+                s=text,
+                fontsize=fontsize,
+                rotation=rotation,
+                weight=weight,
+                fontdict=None,
+                color=color,
+                clip_on=True,
             )
 
     def addRectangle(self, x, y, width, height, color="green", alpha=0.5, linewidth=0):

@@ -125,4 +125,4 @@ class document:
         self.visible = True
 
     def __repr__(self):
-        return f"Title: {document.title}\n" + f"{document.fileType}\n" + f"{document.fileformat}"
+        return f"Title: {self.title}\n" + f"{self.dataType}\n" + f"{self.fileFormat}"

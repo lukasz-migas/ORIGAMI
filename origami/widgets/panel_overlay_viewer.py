@@ -21,9 +21,32 @@ from visuals import mpl_plots
 
 logger = logging.getLogger("origami")
 
+# TODO: add various UI controls, allowing easier adjustment of values
+# TODO: add percentiel/quantile setter
+# TODO: add check for when closing the window - should ask user if they want to save data to document
+# TODO: add option to add data to document
+
 
 class PanelOverlayViewer(MiniFrame):
     """Overlay viewer and editor"""
+
+    # peaklist list
+    _peaklist_peaklist = {
+        0: {"name": "", "tag": "check", "type": "bool", "width": 20, "show": True},
+        1: {"name": "name", "tag": "dataset_name", "type": "str", "width": 130, "show": True},
+        2: {"name": "type", "tag": "dataset_type", "type": "str", "width": 100, "show": True},
+        3: {"name": "document", "tag": "document", "type": "str", "width": 100, "show": True},
+        4: {"name": "shape", "tag": "shape", "type": "str", "width": 65, "show": True},
+        5: {"name": "color", "tag": "color", "type": "color", "width": 65, "show": True},
+        6: {"name": "colormap", "tag": "colormap", "type": "str", "width": 60, "show": True},
+        7: {"name": "\N{GREEK SMALL LETTER ALPHA}", "tag": "alpha", "type": "float", "width": 35, "show": True},
+        8: {"name": "mask", "tag": "mask", "type": "float", "width": 40, "show": True},
+        9: {"name": "label", "tag": "label", "type": "str", "width": 50, "show": True},
+        10: {"name": "min", "tag": "min_threshold", "type": "float", "width": 50, "show": True},
+        11: {"name": "max", "tag": "max_threshold", "type": "float", "width": 50, "show": True},
+        12: {"name": "processed", "tag": "processed", "type": "str", "width": 65, "show": True},
+        13: {"name": "#", "tag": "order", "type": "int", "width": 25, "show": True},
+    }
 
     def __init__(self, parent, presenter, config, icons, **kwargs):
         MiniFrame.__init__(
@@ -49,35 +72,21 @@ class PanelOverlayViewer(MiniFrame):
         self._display_resolution = wx.ScreenDC().GetPPI()
         self._window_size = calculate_window_size(self._display_size, 0.9)
 
-        self.generate_peaklist_config()
-
         # make gui items
         self.make_gui()
+        self.on_toggle_controls(None)
+        self.on_populate_item_list(None)
+
+        self.overlay_data = dict()
 
         # bind
         self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
 
-    def generate_peaklist_config(self):
-
-        # peaklist list
-        self._peaklist_peaklist = {
-            0: {"name": "", "tag": "check", "type": "bool", "width": 25, "show": True},
-            1: {"name": "name", "tag": "dataset_name", "type": "str", "width": 130, "show": True},
-            2: {"name": "type", "tag": "dataset_type", "type": "str", "width": 100, "show": True},
-            3: {"name": "document", "tag": "document", "type": "str", "width": 100, "show": True},
-            4: {"name": "shape", "tag": "shape", "type": "str", "width": 65, "show": True},
-            5: {"name": "color", "tag": "color", "type": "color", "width": 65, "show": True},
-            6: {"name": "colormap", "tag": "colormap", "type": "str", "width": 60, "show": True},
-            7: {"name": "\N{GREEK SMALL LETTER ALPHA}", "tag": "alpha", "type": "float", "width": 35, "show": True},
-            8: {"name": "mask", "tag": "mask", "type": "float", "width": 40, "show": True},
-            9: {"name": "label", "tag": "label", "type": "str", "width": 50, "show": True},
-            10: {"name": "min", "tag": "min_threshold", "type": "float", "width": 50, "show": True},
-            11: {"name": "max", "tag": "max_threshold", "type": "float", "width": 50, "show": True},
-            12: {"name": "processed", "tag": "processed", "type": "str", "width": 65, "show": True},
-            13: {"name": "#", "tag": "order", "type": "int", "width": 25, "show": True},
-        }
-
     def on_right_click(self, evt):
+
+        # ensure that user clicked inside the plot area
+        if not hasattr(evt.EventObject, "figure"):
+            return
 
         menu = wx.Menu()
         menu_action_customise_plot = makeMenuItem(
@@ -111,6 +120,24 @@ class PanelOverlayViewer(MiniFrame):
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
+
+    def on_close(self, evt):
+        """Destroy this frame"""
+
+        n_overlay_items = len(self.overlay_data)
+        if n_overlay_items > 0:
+            from gui_elements.misc_dialogs import DialogBox
+
+            msg = (
+                f"Found {n_overlay_items} overlay item(s) in the clipboard. Closing this window will lose"
+                + " your overlay plots. Would you like to continue?"
+            )
+            dlg = DialogBox(exceptionTitle="Clipboard is not empty", exceptionMsg=msg, type="Question")
+            if dlg == wx.ID_NO:
+                msg = "Action was cancelled"
+                return
+
+        self.Destroy()
 
     def on_clear_plot(self, evt):
         self.plot_window.clearPlot()
@@ -185,6 +212,15 @@ class PanelOverlayViewer(MiniFrame):
         self.dataset_type_choice.Bind(wx.EVT_COMBOBOX, self.on_apply)
         self.dataset_type_choice.Bind(wx.EVT_COMBOBOX, self.on_toggle_controls)
 
+        self.refresh_btn = wx.BitmapButton(
+            panel,
+            -1,
+            self.icons.iconsLib["refresh16"],
+            size=(22, 22),
+            style=wx.BORDER_DEFAULT | wx.ALIGN_CENTER_VERTICAL,
+        )
+        self.refresh_btn.Bind(wx.EVT_BUTTON, self.on_populate_item_list)
+
         # RT and DT methods
         overlay_methods_1D = sorted(["Overlay", "Waterfall", "Subtract (n=2)", "Butterfly (n=2)", "Stacked"])
 
@@ -213,46 +249,54 @@ class PanelOverlayViewer(MiniFrame):
         horizontal_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         horizontal_line_99 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
-        self.plot_btn = wx.Button(panel, wx.ID_OK, "Plot", size=(-1, 22))
-        self.add_to_document_btn = wx.Button(panel, wx.ID_OK, "Add to document", size=(-1, 22))
-        self.cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, 22))
+        self.action_btn = wx.Button(panel, wx.ID_OK, "Action ▼", size=(-1, 22))
+        self.action_btn.Bind(wx.EVT_BUTTON, self.on_action_tools)
 
-        self.plot_btn.Bind(wx.EVT_BUTTON, self.on_populate_item_list)
-        self.add_to_document_btn.Bind(wx.EVT_BUTTON, self.on_overlay)
+        self.plot_btn = wx.Button(panel, wx.ID_OK, "Plot", size=(-1, 22))
+        self.plot_btn.Bind(wx.EVT_BUTTON, self.on_overlay)
+
+        self.add_to_document_btn = wx.Button(panel, wx.ID_OK, "Add to document", size=(-1, 22))
+        self.add_to_document_btn.Bind(wx.EVT_BUTTON, self.on_add_to_document)
+
+        self.cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, 22))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
+
+        self.hot_plot_check = makeCheckbox(panel, "Hot plot")
+        self.hot_plot_check.SetValue(False)
+        self.hot_plot_check.Disable()
 
         # pack buttons
         btn_grid = wx.GridBagSizer(2, 2)
         n = 0
-        btn_grid.Add(self.plot_btn, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
         btn_grid.Add(
-            self.add_to_document_btn,
-            (n, 1),
-            wx.GBSpan(1, 1),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
+            self.action_btn, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
+        btn_grid.Add(self.plot_btn, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        btn_grid.Add(self.add_to_document_btn, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
         btn_grid.Add(
-            self.cancel_btn, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
+            self.cancel_btn, (n, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
         )
+        btn_grid.Add(self.hot_plot_check, (n, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER)
 
         # pack heatmap items
         grid = wx.GridBagSizer(2, 2)
         n = 0
         grid.Add(dataset_type_choice, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.EXPAND)
         grid.Add(self.dataset_type_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER | wx.EXPAND)
+        grid.Add(self.refresh_btn, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
         n += 1
-        grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
+        grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
         n += 1
-        grid.Add(dataset_type_spectrum, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
+        grid.Add(dataset_type_spectrum, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
         n += 1
         grid.Add(overlay_spectrum_method_choice, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.EXPAND)
         grid.Add(self.overlay_spectrum_method_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER | wx.EXPAND)
         n += 1
         grid.Add(self.normalize_1D_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.EXPAND)
         n += 1
-        grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
+        grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
         n += 1
-        grid.Add(dataset_type_heatmap, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
+        grid.Add(dataset_type_heatmap, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
         n += 1
         grid.Add(overlay_heatmap_method_choice, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.EXPAND)
         grid.Add(self.overlay_heatmap_method_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER | wx.EXPAND)
@@ -260,7 +304,7 @@ class PanelOverlayViewer(MiniFrame):
         grid.Add(self.use_processed_data_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.EXPAND)
 
         # setup growable column
-        grid.AddGrowableCol(2)
+        grid.AddGrowableCol(3)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(grid, 0, wx.ALL | wx.EXPAND, 5)
@@ -273,22 +317,6 @@ class PanelOverlayViewer(MiniFrame):
         panel.SetSizerAndFit(main_sizer)
 
         return panel
-
-    def make_listctrl_panel(self, panel):
-
-        self.peaklist = ListCtrl(panel, style=wx.LC_REPORT | wx.LC_VRULES, column_info=self._peaklist_peaklist)
-        for col in range(len(self._peaklist_peaklist)):
-            item = self._peaklist_peaklist[col]
-            order = col
-            name = item["name"]
-            width = 0
-            if item["show"]:
-                width = item["width"]
-            self.peaklist.InsertColumn(order, name, width=width, format=wx.LIST_FORMAT_CENTER)
-            self.peaklist.SetFont(wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
-        max_peaklist_size = (int(self._window_size[0] * 0.3), -1)
-        #         self.peaklist.SetSize(max_peaklist_size)
-        self.peaklist.SetMaxClientSize(max_peaklist_size)
 
     def make_plot_panel(self, split_panel):
 
@@ -314,6 +342,141 @@ class PanelOverlayViewer(MiniFrame):
         main_sizer.Fit(panel)
 
         return panel
+
+    def make_listctrl_panel(self, panel):
+
+        self.peaklist = ListCtrl(panel, style=wx.LC_REPORT | wx.LC_VRULES, column_info=self._peaklist_peaklist)
+        for col in range(len(self._peaklist_peaklist)):
+            item = self._peaklist_peaklist[col]
+            order = col
+            name = item["name"]
+            width = 0
+            if item["show"]:
+                width = item["width"]
+            self.peaklist.InsertColumn(order, name, width=width, format=wx.LIST_FORMAT_CENTER)
+            self.peaklist.SetFont(wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
+        max_peaklist_size = (int(self._window_size[0] * 0.3), -1)
+        self.peaklist.SetMaxClientSize(max_peaklist_size)
+
+        self.peaklist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.menu_right_click)
+        self.peaklist.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.menu_column_right_click)
+        self.peaklist.Bind(wx.EVT_LEFT_DCLICK, self.on_double_click_on_item)
+
+    def on_action_tools(self, evt):
+
+        menu = wx.Menu()
+
+        menu_action_create_blank_document = makeMenuItem(
+            parent=menu,
+            text="Create blank COMPARISON document",
+            bitmap=self.icons.iconsLib["new_document_16"],
+            help_text="",
+        )
+
+        menu.AppendItem(menu_action_create_blank_document)
+
+        # bind events
+        self.Bind(wx.EVT_MENU, self.on_create_blank_document, menu_action_create_blank_document)
+
+        self.PopupMenu(menu)
+        menu.Destroy()
+        self.SetFocus()
+
+    def on_create_blank_document(self, evt):
+        logger.error("Method not implemented yet")
+
+    def on_add_to_document(self, evt):
+        logger.error("Method not implemented yet")
+
+    def on_double_click_on_item(self, evt):
+        logger.error("Method not implemented yet")
+
+    def menu_right_click(self, evt):
+        logger.error("Method not implemented yet")
+
+    def menu_column_right_click(self, evt):
+        logger.error("Method not implemented yet")
+
+    def on_overlay(self, evt):
+        item_list = self.get_selected_items()
+
+        editor_type = self.dataset_type_choice.GetStringSelection()
+        method_2D = self.overlay_heatmap_method_choice.GetStringSelection()
+        method_1D = self.overlay_spectrum_method_choice.GetStringSelection()
+
+        if editor_type == "Chromatograms":
+            self.on_overlay_chromatogram(item_list, method_1D)
+        elif editor_type == "Mobilograms":
+            self.on_overlay_mobilogram(item_list, method_1D)
+        elif editor_type == "Heatmaps":
+            self.on_overlay_heatmap(item_list, method_2D)
+        else:
+            logger.error("Method not implemented yet")
+
+    def on_overlay_heatmap(self, item_list, method):
+        if method == "Transparent":
+            overlay_data = self.data_visualisation.on_overlay_heatmap_transparent(
+                item_list, plot=None, plot_obj=self.plot_window
+            )
+        elif method == "Mask":
+            overlay_data = self.data_visualisation.on_overlay_heatmap_mask(
+                item_list, plot=None, plot_obj=self.plot_window
+            )
+        elif method in ["Mean", "Standard Deviation", "Variance"]:
+            overlay_data = self.data_visualisation.on_overlay_heatmap_statistical(
+                item_list, method, plot=None, plot_obj=self.plot_window
+            )
+        elif method == "RGB":
+            overlay_data = self.data_visualisation.on_overlay_heatmap_rgb(
+                item_list, plot=None, plot_obj=self.plot_window
+            )
+        elif method == "Grid (n x n)":
+            overlay_data = self.data_visualisation.on_overlay_heatmap_grid_nxn(
+                item_list, plot=None, plot_obj=self.plot_window
+            )
+        elif method == "RMSD Matrix":
+            overlay_data = self.data_visualisation.on_overlay_heatmap_rmsd_matrix(
+                item_list, plot=None, plot_obj=self.plot_window
+            )
+        elif method == "RMSD":
+            overlay_data = self.data_visualisation.on_overlay_heatmap_rmsd(
+                item_list, plot=None, plot_obj=self.plot_window
+            )
+        elif method == "RMSF":
+            overlay_data = self.data_visualisation.on_overlay_heatmap_rmsf(
+                item_list, plot=None, plot_obj=self.plot_window
+            )
+        elif method == "Grid (2->1)":
+            overlay_data = self.data_visualisation.on_overlay_heatmap_2to1(
+                item_list, plot=None, plot_obj=self.plot_window
+            )
+        else:
+            logger.error("Method not implemented yet")
+            return
+
+        self.overlay_data[overlay_data.pop("name")] = overlay_data.pop("data")
+
+    def on_overlay_mobilogram(self, item_list, method):
+        if method == "Overlay":
+            overlay_data = self.data_visualisation.on_overlay_mobilogram_overlay(
+                item_list, plot=None, plot_obj=self.plot_window, normalize_dataset=self.normalize_1D_check.GetValue()
+            )
+        else:
+            logger.error("Method not implemented yet")
+            return
+
+        self.overlay_data[overlay_data.pop("name")] = overlay_data.pop("data")
+
+    def on_overlay_chromatogram(self, item_list, method):
+        if method == "Overlay":
+            overlay_data = self.data_visualisation.on_overlay_chromatogram_overlay(
+                item_list, plot=None, plot_obj=self.plot_window, normalize_dataset=self.normalize_1D_check.GetValue()
+            )
+        else:
+            logger.error("Method not implemented yet")
+            return
+
+        self.overlay_data[overlay_data.pop("name")] = overlay_data.pop("data")
 
     def on_populate_item_list(self, evt):
         self.peaklist.DeleteAllItems()
@@ -365,20 +528,3 @@ class PanelOverlayViewer(MiniFrame):
         information["color_255to1"] = convertRGB255to1(information["color"], decimals=3)
 
         return information
-
-    def on_overlay(self, evt):
-        item_list = self.get_selected_items()
-
-        editor_type = self.dataset_type_choice.GetStringSelection()
-        #         overlay_method = self..GetStringSelection()
-
-        print(editor_type)
-
-        if editor_type == "Chromatograms":
-            self.data_visualisation.on_overlay_chromatogram_overlay(
-                item_list, plot=None, plot_obj=self.plot_window, normalize_dataset=self.normalize_1D_check.GetValue()
-            )
-        elif editor_type == "Mobilograms":
-            self.data_visualisation.on_overlay_mobilogram_overlay(
-                item_list, plot=None, plot_obj=self.plot_window, normalize_dataset=self.normalize_1D_check.GetValue()
-            )

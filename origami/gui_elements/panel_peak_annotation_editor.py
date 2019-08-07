@@ -455,7 +455,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             makeMenuItem(
                 parent=menu,
                 id=ID_annotPanel_savePeakList_selected,
-                text="Save peaks to file (all))",
+                text="Save peaks to file (all)",
                 bitmap=self.icons.iconsLib["file_csv_16"],
             )
         )

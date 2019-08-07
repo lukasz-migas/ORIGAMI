@@ -6,7 +6,7 @@ from processing.spectra import normalize_1D
 from utils.check import isempty
 
 
-def compute_RMSD(inputData1=None, inputData2=None):  # computeRMSD
+def compute_RMSD(inputData1, inputData2, normalize=True):  # computeRMSD
     """
     Compute the RMSD for a part of arrays
     """
@@ -16,17 +16,21 @@ def compute_RMSD(inputData1=None, inputData2=None):  # computeRMSD
     elif inputData1.shape != inputData2.shape:
         print("The two arrays are of different size! Cannot compare.")
         return
-    else:
-        # Before computing RMSD, we need to normalize to 1
-        tempArray = normalize_2D(inputData1) - normalize_2D(inputData2)
-        tempArray2 = tempArray ** 2
-        RMSD = (np.average(tempArray2)) ** 0.5
-        pRMSD = RMSD * 100
+
+    if normalize:
+        inputData1 = normalize_2D(inputData1.copy())
+        inputData2 = normalize_2D(inputData2.copy())
+
+    # Before computing RMSD, we need to normalize to 1
+    tempArray = inputData1 - inputData2
+    tempArray2 = tempArray ** 2
+    RMSD = (np.average(tempArray2)) ** 0.5
+    pRMSD = RMSD * 100
 
     return pRMSD, tempArray
 
 
-def compute_RMSF(inputData1=None, inputData2=None):  # computeRMSF
+def compute_RMSF(inputData1, inputData2):  # computeRMSF
     """
     Compute the pairwise RMSF for a pair of arrays. RMSF is computed by comparing
     each individual voltage separately
@@ -37,23 +41,23 @@ def compute_RMSF(inputData1=None, inputData2=None):  # computeRMSF
     elif inputData1.shape != inputData2.shape:
         print("The two arrays are of different size! Cannot compare.")
         return
-    else:
-        pRMSFlist = []
-        size = len(inputData1[1, :])
-        for row in range(0, size, 1):
-            # Before computing the value of RMSF, we have to normalize to 1
-            # to convert to percentage
-            inputData1norm = normalize_1D(inputData1[:, row])
-            np.nan_to_num(inputData1norm, copy=False)
-            inputData2norm = normalize_1D(inputData2[:, row])
-            np.nan_to_num(inputData2norm, copy=False)
-            # Compute difference
-            tempArray = inputData1norm - inputData2norm
-            tempArray2 = tempArray ** 2
-            # Calculate RMSF/D value
-            RMSF = (np.average(tempArray2)) ** 0.5
-            pRMSF = RMSF * 100
-            pRMSFlist.append(pRMSF)
+
+    pRMSFlist = []
+    size = len(inputData1[1, :])
+    for row in range(0, size, 1):
+        # Before computing the value of RMSF, we have to normalize to 1
+        # to convert to percentage
+        inputData1norm = normalize_1D(inputData1[:, row])
+        np.nan_to_num(inputData1norm, copy=False)
+        inputData2norm = normalize_1D(inputData2[:, row])
+        np.nan_to_num(inputData2norm, copy=False)
+        # Compute difference
+        tempArray = inputData1norm - inputData2norm
+        tempArray2 = tempArray ** 2
+        # Calculate RMSF/D value
+        RMSF = (np.average(tempArray2)) ** 0.5
+        pRMSF = RMSF * 100
+        pRMSFlist.append(pRMSF)
     return pRMSFlist
 
 

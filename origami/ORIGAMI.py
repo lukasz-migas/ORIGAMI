@@ -166,6 +166,15 @@ class ORIGAMI(object):
         if self.config.testing:
             self._test_()
 
+    def initilize_state(self):
+        """Pre-set variables"""
+        self.docsText = {}
+        self.documents = []
+        self.documentsDict = {}
+        self.currentDoc = None
+        self.currentCalibrationParams = []
+        self.currentPath = None
+
     def _test_(self):
         # load text MS file
         path = os.path.join(self.config.cwd, "example_files", "text_files", "MS_p27-FL-K31.csv")
@@ -201,7 +210,13 @@ class ORIGAMI(object):
         # exit
         self.view.on_close(None, clean_exit=True, ignore_warning=True)
 
+    def on_import_configuration_on_startup(self):
+        """This function imports configuration file"""
+
+        self.config.loadConfigXML(path="configOut.xml")
+
     def on_start_logging(self):
+        """Setup logger"""
 
         log_directory = os.path.join(self.config.cwd, "logs")
         if not os.path.exists(log_directory):
@@ -219,17 +234,6 @@ class ORIGAMI(object):
         set_logger_level(verbose="DEBUG")
 
         logger.info("Logs can be found in {}".format(self.config.loggingFile_path))
-
-    def initilize_state(self):
-        """
-        Pre-set variables
-        """
-        self.docsText = {}
-        self.documents = []
-        self.documentsDict = {}
-        self.currentDoc = None
-        self.currentCalibrationParams = []
-        self.currentPath = None
 
     def on_create_document(self, name, path, **kwargs):
         """
@@ -1768,7 +1772,7 @@ class ORIGAMI(object):
     #             except AttributeError:
     #                 pass
 
-    def addTextRMSD(self, x, y, text, rotation, color="k", plot="RMSD"):
+    def on_add_label(self, x, y, text, rotation, color="k", plot="RMSD"):
 
         if plot == "RMSD":
             self.view.panelPlots.plot_RMSF.addText(
@@ -1811,22 +1815,6 @@ class ORIGAMI(object):
         ymin, ymax = yvals[0], yvals[-1]
         self.config.xyLimitsRMSD = [xmin, xmax, ymin, ymax]
 
-    # TODO: move this function to panelplots
-    def OnChangedRMSF(self, xmin, xmax):
-        """
-        Receives a message about change in RMSF plot
-        """
-
-        self.view.panelPlots.plot_RMSF.onZoomRMSF(xmin, xmax)
-
-    def on_import_configuration_on_startup(self):
-        """
-        This function imports configuration file
-        """
-
-        self.config.loadConfigXML(path="configOut.xml")
-
-    #
     def on_open_directory(self, path=None, evt=None):
 
         if path is None:

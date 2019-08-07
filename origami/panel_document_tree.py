@@ -4590,7 +4590,7 @@ class DocumentTree(wx.TreeCtrl):
                 # Add RMSD label
                 rmsdXpos, rmsdYpos = self.presenter.onCalculateRMSDposition(xlist=data["xvals"], ylist=data["yvals"])
                 if rmsdXpos is not None and rmsdYpos is not None:
-                    self.presenter.addTextRMSD(rmsdXpos, rmsdYpos, data["rmsdLabel"], 0, plot="Grid")
+                    self.presenter.on_add_label(rmsdXpos, rmsdYpos, data["rmsdLabel"], 0, plot="Grid")
 
                 if save_image:
                     save_kwargs = {"image_name": defaultValue}
@@ -4677,7 +4677,7 @@ class DocumentTree(wx.TreeCtrl):
                 # Add RMSD label
                 rmsdXpos, rmsdYpos = self.presenter.onCalculateRMSDposition(xlist=xvals, ylist=yvals)
                 if rmsdXpos is not None and rmsdYpos is not None:
-                    self.presenter.addTextRMSD(rmsdXpos, rmsdYpos, rmsdLabel, 0, plot="RMSF")
+                    self.presenter.on_add_label(rmsdXpos, rmsdYpos, rmsdLabel, 0, plot="RMSF")
 
                 if save_image:
                     save_kwargs = {"image_name": defaultValue}
@@ -4723,7 +4723,7 @@ class DocumentTree(wx.TreeCtrl):
                 # Add RMSD label
                 rmsdXpos, rmsdYpos = self.presenter.onCalculateRMSDposition(xlist=xaxisLabels, ylist=yaxisLabels)
                 if rmsdXpos is not None and rmsdYpos is not None:
-                    self.presenter.addTextRMSD(rmsdXpos, rmsdYpos, rmsdLabel, 0, plot="RMSD")
+                    self.presenter.on_add_label(rmsdXpos, rmsdYpos, rmsdLabel, 0, plot="RMSD")
 
                 if save_image:
                     save_kwargs = {"image_name": defaultValue}

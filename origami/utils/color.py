@@ -143,21 +143,22 @@ def determineFontColor(rgb, rgb_mode=2, return_rgb=False, convert1to255=False):
             return "white"
 
 
-def make_rgb(x, color):
+def make_rgb(x, color, add_alpha=False):
     """
     Convert array to specific color
     """
     # Get size of the input array
     y_size, x_size = x.shape
 
-    # Create an empty 3D array
-    rgb = np.zeros([y_size, x_size, 3], dtype="d")
-
     # Make sure color is an rgb format and not string format
     try:
         color = literal_eval(color)
     except Exception:
         color = color
+
+    # remove alpha channel
+    if len(color) == 4:
+        color = color[0:3]
 
     # Check color range is 0-1
     if np.max(color) > 1.0:
@@ -185,9 +186,19 @@ def make_rgb(x, color):
         b_rgb = np.zeros_like(x)
 
     # Add to 3D array
+    rgb_channels = 3
+    if add_alpha:
+        rgb_channels = 4
+    rgb = np.zeros([y_size, x_size, rgb_channels], dtype="d")
     rgb[:, :, 0] = r_rgb
     rgb[:, :, 1] = g_rgb
     rgb[:, :, 2] = b_rgb
+
+    if add_alpha:
+        alpha_mask = np.copy(x)
+        alpha_mask[~np.isnan(alpha_mask)] = 1
+        alpha_mask[np.isnan(alpha_mask)] = 0
+        rgb[:, :, 3] = alpha_mask
 
     return rgb
 
@@ -243,8 +254,17 @@ def remap_values(x, nMin, nMax, oMin=None, oMax=None, type_format="int"):
         return result
 
 
+def rgb_normalize_channel(im, channel, vmin, vmax):
+    c = (im[:, :, channel] - vmin) / (vmax - vmin)
+    c = np.clip(c, 0.0, 1.0)
+    im[:, :, channel] = c
+    return im
+
+
 def combine_rgb(data_list):
-    return np.sum(data_list, axis=0)
+    combined_rgb = np.sum(data_list, axis=0)
+
+    return np.clip(combined_rgb, 0.0, 1.0)
 
 
 def roundRGB(rgbList, decimals=3):

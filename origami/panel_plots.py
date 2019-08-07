@@ -126,6 +126,7 @@ class PanelPlots(wx.Panel):
         self.window_plot3D = "3D"
         self.make_notebook()
         self.current_plot = self.plot1
+        self.plot_objs = dict()
 
         # bind events
         self.mainBook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.on_page_changed)
@@ -1021,14 +1022,12 @@ class PanelPlots(wx.Panel):
         #             plot, title = self.plotOther, "Custom data..."
 
         if not open_window:
-            args = ("Cannot customise parameters for this plot. Try replotting instead", 4)
-            self.presenter.onThreading(None, args, action="updateStatusbar")
-            return
+            raise MessageError("Error", "Cannot customise parameters for this plot. Try replotting instead.")
 
         if not hasattr(plot, "plotMS"):
-            args = ("Cannot customise plot parameters, either because it does nto exist or is not supported yet.", 4)
-            self.presenter.onThreading(None, args, action="updateStatusbar")
-            return
+            raise MessageError(
+                "Error", "Cannot customise plot parameters, either because it does not exist or is not supported yet."
+            )
 
         if hasattr(plot, "plot_limits") and len(plot.plot_limits) == 4:
             xmin, xmax = plot.plot_limits[0], plot.plot_limits[1]
@@ -1037,10 +1036,8 @@ class PanelPlots(wx.Panel):
             try:
                 xmin, xmax = plot.plotMS.get_xlim()
                 ymin, ymax = plot.plotMS.get_ylim()
-            except AttributeError:
-                args = ("Cannot customise plot parameters if the plot does not exist", 4)
-                self.presenter.onThreading(None, args, action="updateStatusbar")
-                return
+            except AttributeError as err:
+                raise MessageError("Error", "Cannot customise plot parameters if the plot does not exist." + f"\n{err}")
 
         dpi = wx.ScreenDC().GetPPI()
         if hasattr(plot, "plot_parameters"):
@@ -1080,10 +1077,8 @@ class PanelPlots(wx.Panel):
                 "plot": plot,
                 "window_title": title,
             }
-        except AttributeError:
-            args = ("Cannot customise plot parameters if the plot does not exist", 4)
-            self.presenter.onThreading(None, args, action="updateStatusbar")
-            return
+        except AttributeError as err:
+            raise MessageError("Error", "Cannot customise plot parameters if the plot does not exist." + f"\n{err}")
 
         dlg = panel_customise_plot(self, self.presenter, self.config, **kwargs)
         dlg.ShowModal()
@@ -1093,6 +1088,13 @@ class PanelPlots(wx.Panel):
 
         plot.on_rotate_90()
         plot.repaint()
+
+    def on_change_rmsf_zoom(self, xmin, xmax):
+        """Receives a message about change in RMSF plot"""
+        try:
+            self.plot_objs["RMSF"].onZoomRMSF(xmin, xmax)
+        except (AttributeError, KeyError) as err:
+            logger.error(f"Could not zoom-in on RMSF. {err}")
 
     def plot_update_axes(self, plotName):
 
@@ -2687,7 +2689,7 @@ class PanelPlots(wx.Panel):
         )
 
         # Plot data
-        self.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, cmapNorm=cmapNorm)
+        self.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, cmapNorm=cmapNorm, **kwargs)
 
     #
     #         if self.config.waterfall:
@@ -2776,11 +2778,16 @@ class PanelPlots(wx.Panel):
         override=True,
         replot=False,
         set_page=False,
+        plot="2D",
+        **kwargs,
     ):
 
-        # change page
-        if set_page:
-            self._set_page(self.config.panelNames["2D"])
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            if set_page:
+                self._set_page(self.config.panelNames["2D"])
 
         # If the user would like to replot data, you can directly unpack it
         if replot:
@@ -2807,8 +2814,8 @@ class PanelPlots(wx.Panel):
         plt_kwargs["colormap_norm"] = cmapNorm
 
         try:
-            self.plot2D.plot_2D_update_data(xvals, yvals, xlabel, ylabel, zvals, **plt_kwargs)
-            self.plot2D.repaint()
+            plot_obj.plot_2D_update_data(xvals, yvals, xlabel, ylabel, zvals, **plt_kwargs)
+            plot_obj.repaint()
             if override:
                 self.config.replotData["2D"] = {
                     "zvals": zvals,
@@ -2824,9 +2831,9 @@ class PanelPlots(wx.Panel):
             pass
 
         # Plot 2D dataset
-        self.plot2D.clearPlot()
+        plot_obj.clearPlot()
         if self.config.plotType == "Image":
-            self.plot2D.plot_2D_surface(
+            plot_obj.plot_2D_surface(
                 zvals,
                 xvals,
                 yvals,
@@ -2838,7 +2845,7 @@ class PanelPlots(wx.Panel):
             )
 
         elif self.config.plotType == "Contour":
-            self.plot2D.plot_2D_contour(
+            plot_obj.plot_2D_contour(
                 zvals,
                 xvals,
                 yvals,
@@ -2849,7 +2856,7 @@ class PanelPlots(wx.Panel):
                 **plt_kwargs,
             )
 
-        self.plot2D.repaint()
+        plot_obj.repaint()
         if override:
             self.config.replotData["2D"] = {
                 "zvals": zvals,
@@ -3290,14 +3297,19 @@ class PanelPlots(wx.Panel):
         override=True,
         replot=False,
         set_page=False,
+        plot="RMSF",
+        **kwargs,
     ):
         """
         Plot RMSD and RMSF plots together in panel RMSD
         """
 
-        # change page
-        if set_page:
-            self._set_page(self.config.panelNames["RMSF"])
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            if set_page:
+                self._set_page(self.config.panelNames["RMSF"])
 
         plt_kwargs = self._buildPlotParameters(plotType="2D")
         rmsd_kwargs = self._buildPlotParameters(plotType="RMSF")
@@ -3322,8 +3334,8 @@ class PanelPlots(wx.Panel):
         plt_kwargs["colormap"] = cmap
         plt_kwargs["colormap_norm"] = cmapNorm
 
-        self.plot_RMSF.clearPlot()
-        self.plot_RMSF.plot_1D_2D(
+        plot_obj.clearPlot()
+        plot_obj.plot_1D_2D(
             yvalsRMSF=yvalsRMSF,
             zvals=zvals,
             labelsX=xvals,
@@ -3336,7 +3348,7 @@ class PanelPlots(wx.Panel):
             plotName="RMSF",
             **plt_kwargs,
         )
-        self.plot_RMSF.repaint()
+        plot_obj.repaint()
         self.rmsdfFlag = False
 
         if override:
@@ -3352,6 +3364,9 @@ class PanelPlots(wx.Panel):
 
         self.presenter.view._onUpdatePlotData(plot_type="RMSF")
 
+        # setup plot object
+        self.plot_objs["RMSF"] = plot_obj
+
     def on_plot_RMSD(
         self,
         zvals=None,
@@ -3365,13 +3380,18 @@ class PanelPlots(wx.Panel):
         override=True,
         replot=False,
         set_page=False,
+        plot="RMSF",
+        **kwargs,
     ):
 
-        # change page
-        if set_page:
-            self._set_page(self.config.panelNames["RMSF"])
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            if set_page:
+                self._set_page(self.config.panelNames["RMSF"])
 
-        self.plot_RMSF.clearPlot()
+        plot_obj.clearPlot()
 
         # If the user would like to replot data, you can directly unpack it
         if replot:
@@ -3397,7 +3417,7 @@ class PanelPlots(wx.Panel):
 
         # Plot 2D dataset
         if self.config.plotType == "Image":
-            self.plot_RMSF.plot_2D_surface(
+            plot_obj.plot_2D_surface(
                 zvals,
                 xvals,
                 yvals,
@@ -3408,7 +3428,7 @@ class PanelPlots(wx.Panel):
                 **plt_kwargs,
             )
         elif self.config.plotType == "Contour":
-            self.plot_RMSF.plot_2D_contour(
+            plot_obj.plot_2D_contour(
                 zvals,
                 xvals,
                 yvals,
@@ -3420,7 +3440,7 @@ class PanelPlots(wx.Panel):
             )
 
         # Show the mass spectrum
-        self.plot_RMSF.repaint()
+        plot_obj.repaint()
 
         if override:
             self.config.replotData["2D"] = {
@@ -3947,42 +3967,24 @@ class PanelPlots(wx.Panel):
             if repaint:
                 self.plot1.repaint()
 
-    def addTextRMSD(self, x, y, text, rotation, color="k", plot="RMSD"):  # addTextRMSD
+    def on_add_label(self, x, y, text, rotation, color="k", plot="RMSD", **kwargs):
 
-        if plot == "RMSD":
-            self.plot_RMSF.addText(
-                x,
-                y,
-                text,
-                rotation,
-                color=self.config.rmsd_color,
-                fontsize=self.config.rmsd_fontSize,
-                weight=self.config.rmsd_fontWeight,
-            )
-            self.plot_RMSF.repaint()
-        elif plot == "RMSF":
-            self.plot_RMSF.addText(
-                x,
-                y,
-                text,
-                rotation,
-                color=self.config.rmsd_color,
-                fontsize=self.config.rmsd_fontSize,
-                weight=self.config.rmsd_fontWeight,
-            )
-            self.plot_RMSF.repaint()
-        elif plot == "Grid":
-            self.plot_overlay.addText(
-                x,
-                y,
-                text,
-                rotation,
-                color=self.config.rmsd_color,
-                fontsize=self.config.rmsd_fontSize,
-                weight=self.config.rmsd_fontWeight,
-                plot=plot,
-            )
-            self.plot_overlay.repaint()
+        if "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+
+        plot_obj.addText(
+            x,
+            y,
+            text,
+            rotation,
+            color=self.config.rmsd_color,
+            fontsize=self.config.rmsd_fontSize,
+            weight=self.config.rmsd_fontWeight,
+            plot=plot,
+        )
+        plot_obj.repaint()
 
     def _buildPlotParameters(self, plotType=None, evt=None):
         add_frame_width = True

@@ -315,7 +315,7 @@ class MyFrame(wx.Frame):
         pub.subscribe(self.on_motion, "motion_xy")
         pub.subscribe(self.motion_range, "motion_range")
         pub.subscribe(self.on_distance, "change_x_axis_start")
-        pub.subscribe(self.presenter.OnChangedRMSF, "change_zoom_rmsd")
+        pub.subscribe(self.panelPlots.on_change_rmsf_zoom, "change_zoom_rmsd")
         pub.subscribe(self.on_event_mode, "motion_mode")
         pub.subscribe(self.data_handling.on_update_DTMS_zoom, "change_zoom_dtms")
 
