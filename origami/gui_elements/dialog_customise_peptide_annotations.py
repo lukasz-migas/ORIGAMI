@@ -172,78 +172,60 @@ class DialogCustomisePeptideAnnotations(Dialog):
 
         label_grid = wx.GridBagSizer(5, 5)
         y = 0
-        label_grid.Add(
-            self.label_show_fragment_check, (y, 0), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL
-        )
-        label_grid.Add(self.label_show_charge_check, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        label_grid.Add(
-            self.label_show_peptide_check, (y, 2), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL
-        )
-        label_grid.Add(self.label_show_error_check, (y, 3), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        label_grid.Add(self.label_show_fragment_check, (y, 0), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        label_grid.Add(self.label_show_charge_check, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        label_grid.Add(self.label_show_peptide_check, (y, 2), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        label_grid.Add(self.label_show_error_check, (y, 3), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
 
         # pack elements
         grid = wx.GridBagSizer(5, 5)
         y = 0
-        grid.Add(add_arrows_check, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.add_arrows_check, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(add_arrows_check, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.add_arrows_check, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
-        grid.Add(arrow_line_width, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.arrow_line_width_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(arrow_line_width, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.arrow_line_width_value, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
-        grid.Add(arrow_line_style, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.arrow_line_style_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(arrow_line_style, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.arrow_line_style_value, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
         grid.Add(hz_line_1, (y, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         y = y + 1
-        grid.Add(label_yaxis_offset_value, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.label_yaxis_offset_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(label_yaxis_offset_value, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.label_yaxis_offset_value, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
-        grid.Add(label_fontOrientation_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.label_fontOrientation_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(label_fontOrientation_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.label_fontOrientation_value, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
-        grid.Add(label_fontSize_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.label_fontSize_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(label_fontSize_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.label_fontSize_value, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
-        grid.Add(label_fontWeight_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.label_fontWeight_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(label_fontWeight_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.label_fontWeight_value, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
-        grid.Add(label_horz_alignment, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.label_horz_alignment_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(label_horz_alignment, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.label_horz_alignment_value, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
-        grid.Add(label_vert_alignment, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.label_vert_alignment_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(label_vert_alignment, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.label_vert_alignment_value, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
         grid.Add(hz_line_2, (y, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         y = y + 1
-        grid.Add(
-            plot_tandem_line_unlabelled_colorBtn,
-            (y, 0),
-            wx.GBSpan(1, 1),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT,
-        )
-        grid.Add(
-            self.plot_tandem_line_unlabelled_colorBtn,
-            (y, 1),
-            wx.GBSpan(1, 1),
-            flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL,
-        )
+        grid.Add(plot_tandem_line_unlabelled_colorBtn, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot_tandem_line_unlabelled_colorBtn, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
-        grid.Add(
-            plot_tandem_line_labelled_colorBtn, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT
-        )
-        grid.Add(
-            self.plot_tandem_line_labelled_colorBtn, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL
-        )
+        grid.Add(plot_tandem_line_labelled_colorBtn, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot_tandem_line_labelled_colorBtn, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
-        grid.Add(label_show_neutral_loss, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.label_show_neutral_loss_check, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(label_show_neutral_loss, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.label_show_neutral_loss_check, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
-        grid.Add(label_show_full_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.label_show_full_label_check, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(label_show_full_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.label_show_full_label_check, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
         grid.Add(hz_line_3, (y, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         y = y + 1
-        grid.Add(label_show_name, (y, 0), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        grid.Add(label_show_name, (y, 0), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER)
         y = y + 1
         grid.Add(label_grid, (y, 0), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         main_sizer.Add(grid, 0, wx.EXPAND, 10)

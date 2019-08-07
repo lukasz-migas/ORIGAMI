@@ -232,43 +232,25 @@ class PanelPeaklist(wx.Panel):
         btn_grid_vert = wx.GridBagSizer(2, 2)
         x = 0
         n = 0
-        btn_grid_vert.Add(
-            self.add_btn, (x, n), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
+        btn_grid_vert.Add(self.add_btn, (x, n), flag=wx.ALIGN_CENTER)
         n += 1
-        btn_grid_vert.Add(
-            self.remove_btn, (x, n), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
+        btn_grid_vert.Add(self.remove_btn, (x, n), flag=wx.ALIGN_CENTER)
         n += 1
-        btn_grid_vert.Add(
-            self.annotate_btn, (x, n), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
+        btn_grid_vert.Add(self.annotate_btn, (x, n), flag=wx.ALIGN_CENTER)
         n += 1
-        btn_grid_vert.Add(
-            self.extract_btn, (x, n), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
+        btn_grid_vert.Add(self.extract_btn, (x, n), flag=wx.ALIGN_CENTER)
         n += 1
-        btn_grid_vert.Add(
-            self.process_btn, (x, n), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
+        btn_grid_vert.Add(self.process_btn, (x, n), flag=wx.ALIGN_CENTER)
         n += 1
-        btn_grid_vert.Add(
-            self.overlay_btn, (x, n), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
+        btn_grid_vert.Add(self.overlay_btn, (x, n), flag=wx.ALIGN_CENTER)
         n += 1
-        btn_grid_vert.Add(
-            self.combo, (x, n), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
+        btn_grid_vert.Add(self.combo, (x, n), flag=wx.ALIGN_CENTER)
         n += 1
-        btn_grid_vert.Add(
-            self.save_btn, (x, n), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
+        btn_grid_vert.Add(self.save_btn, (x, n), flag=wx.ALIGN_CENTER)
         n += 1
-        btn_grid_vert.Add(vertical_line_1, (x, n), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        btn_grid_vert.Add(vertical_line_1, (x, n), flag=wx.EXPAND)
         n += 1
-        btn_grid_vert.Add(
-            self.info_btn, (x, n), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
+        btn_grid_vert.Add(self.info_btn, (x, n), flag=wx.ALIGN_CENTER)
 
         return btn_grid_vert
 

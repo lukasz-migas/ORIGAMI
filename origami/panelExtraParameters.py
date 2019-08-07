@@ -430,7 +430,7 @@ class panelParametersEdit(wx.Panel):
         axis_grid = wx.GridBagSizer(2, 2)
         y = 0
         axis_grid.Add(plot1D_axisOnOff_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        axis_grid.Add(self.plot1D_axisOnOff_check, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        axis_grid.Add(self.plot1D_axisOnOff_check, (y, 1), flag=wx.EXPAND)
         y = y + 1
         axis_grid.Add(plot1D_spines_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         axis_grid.Add(self.plot1D_leftSpines_check, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
@@ -462,19 +462,19 @@ class panelParametersEdit(wx.Panel):
         y = y + 1
         font_grid.Add(plot1D_titleFontSize_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         font_grid.Add(self.plot1D_titleFontSize_value, (y, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        font_grid.Add(self.plot1D_titleFontWeight_check, (y, 3), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        font_grid.Add(self.plot1D_titleFontWeight_check, (y, 3), flag=wx.EXPAND)
         y = y + 1
         font_grid.Add(plot1D_labelFontSize_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         font_grid.Add(self.plot1D_labelFontSize_value, (y, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        font_grid.Add(self.plot1D_labelFontWeight_check, (y, 3), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        font_grid.Add(self.plot1D_labelFontWeight_check, (y, 3), flag=wx.EXPAND)
         y = y + 1
         font_grid.Add(plot1D_tickFontSize_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         font_grid.Add(self.plot1D_tickFontSize_value, (y, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        font_grid.Add(self.plot1D_tickFontWeight_check, (y, 3), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        font_grid.Add(self.plot1D_tickFontWeight_check, (y, 3), flag=wx.EXPAND)
         y = y + 1
         font_grid.Add(plot1D_annotationFontSize_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         font_grid.Add(self.plot1D_annotationFontSize_value, (y, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        font_grid.Add(self.plot1D_annotationFontWeight_check, (y, 3), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        font_grid.Add(self.plot1D_annotationFontWeight_check, (y, 3), flag=wx.EXPAND)
         font_box_sizer.Add(font_grid, 0, wx.EXPAND, 10)
 
         grid = wx.GridBagSizer(2, 2)
@@ -850,31 +850,31 @@ class panelParametersEdit(wx.Panel):
         plot_grid.Add(self.zoom_grid_check, (y, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
         y = y + 1
         plot_grid.Add(zoom_cursor_width_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        plot_grid.Add(self.zoom_cursor_lineWidth_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        plot_grid.Add(self.zoom_cursor_lineWidth_value, (y, 1), flag=wx.EXPAND)
         plot_grid.Add(zoom_cursor_color_label, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        plot_grid.Add(self.zoom_cursor_colorBtn, (y, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
+        plot_grid.Add(self.zoom_cursor_colorBtn, (y, 3), flag=wx.ALIGN_LEFT)
         y = y + 1
         plot_grid.Add(zoom_extract_width_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        plot_grid.Add(self.zoom_extract_lineWidth_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        plot_grid.Add(self.zoom_extract_lineWidth_value, (y, 1), flag=wx.EXPAND)
         plot_grid.Add(zoom_extract_color_label, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        plot_grid.Add(self.zoom_extract_colorBtn, (y, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
+        plot_grid.Add(self.zoom_extract_colorBtn, (y, 3), flag=wx.ALIGN_LEFT)
         y = y + 1
         plot_grid.Add(zoom_extract_crossover_1D_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        plot_grid.Add(self.zoom_extract_crossover1D_value, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
+        plot_grid.Add(self.zoom_extract_crossover1D_value, (y, 1), flag=wx.ALIGN_LEFT)
         plot_grid.Add(zoom_extract_crossover_2D_label, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         plot_grid.Add(self.zoom_extract_crossover2D_value, (y, 3), wx.GBSpan(1, 2), flag=wx.ALIGN_LEFT)
         y = y + 1
         plot_grid.Add(zoom_zoom_width_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        plot_grid.Add(self.zoom_zoom_lineWidth_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        plot_grid.Add(self.zoom_zoom_lineWidth_value, (y, 1), flag=wx.EXPAND)
         plot_grid.Add(zoom_zoom_vertical_color_label, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        plot_grid.Add(self.zoom_zoom_vertical_colorBtn, (y, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
+        plot_grid.Add(self.zoom_zoom_vertical_colorBtn, (y, 3), flag=wx.ALIGN_LEFT)
         plot_grid.Add(zoom_zoom_horizontal_color_label, (y, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        plot_grid.Add(self.zoom_zoom_horizontal_colorBtn, (y, 5), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
+        plot_grid.Add(self.zoom_zoom_horizontal_colorBtn, (y, 5), flag=wx.ALIGN_LEFT)
         plot_grid.Add(zoom_zoom_box_color_label, (y, 6), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        plot_grid.Add(self.zoom_zoom_box_colorBtn, (y, 7), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
+        plot_grid.Add(self.zoom_zoom_box_colorBtn, (y, 7), flag=wx.ALIGN_LEFT)
         y = y + 1
         plot_grid.Add(zoom_sensitivity_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        plot_grid.Add(self.zoom_sensitivity_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        plot_grid.Add(self.zoom_sensitivity_value, (y, 1), flag=wx.EXPAND)
         plot_box_sizer.Add(plot_grid, 0, wx.EXPAND, 10)
 
         gui_grid = wx.GridBagSizer(2, 2)
@@ -1077,7 +1077,7 @@ class panelParametersEdit(wx.Panel):
         y = y + 1
         rmsd_grid.Add(rmsd_fontSize_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         rmsd_grid.Add(self.rmsd_fontSize_value, (y, 1), flag=wx.EXPAND)
-        rmsd_grid.Add(self.rmsd_fontWeight_check, (y, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        rmsd_grid.Add(self.rmsd_fontWeight_check, (y, 2), flag=wx.EXPAND)
         y = y + 1
         rmsd_grid.Add(rmsd_color_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         rmsd_grid.Add(self.rmsd_colorBtn, (y, 1), flag=wx.EXPAND)
@@ -1086,25 +1086,25 @@ class panelParametersEdit(wx.Panel):
         rmsf_grid = wx.GridBagSizer(2, 2)
         y = 0
         rmsf_grid.Add(rmsd_lineWidth_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        rmsf_grid.Add(self.rmsd_lineWidth_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        rmsf_grid.Add(self.rmsd_lineWidth_value, (y, 1), flag=wx.EXPAND)
         y = y + 1
         rmsf_grid.Add(rmsd_lineColor_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        rmsf_grid.Add(self.rmsd_colorLineBtn, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        rmsf_grid.Add(self.rmsd_colorLineBtn, (y, 1), flag=wx.EXPAND)
         y = y + 1
         rmsf_grid.Add(rmsd_lineStyle_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        rmsf_grid.Add(self.rmsd_lineStyle_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        rmsf_grid.Add(self.rmsd_lineStyle_value, (y, 1), flag=wx.EXPAND)
         y = y + 1
         rmsf_grid.Add(rmsd_lineHatch_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        rmsf_grid.Add(self.rmsd_lineHatch_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        rmsf_grid.Add(self.rmsd_lineHatch_value, (y, 1), flag=wx.EXPAND)
         y = y + 1
         rmsf_grid.Add(rmsd_underlineColor_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        rmsf_grid.Add(self.rmsd_undercolorLineBtn, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        rmsf_grid.Add(self.rmsd_undercolorLineBtn, (y, 1), flag=wx.EXPAND)
         y = y + 1
         rmsf_grid.Add(rmsd_alpha_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        rmsf_grid.Add(self.rmsd_alpha_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        rmsf_grid.Add(self.rmsd_alpha_value, (y, 1), flag=wx.EXPAND)
         y = y + 1
         rmsf_grid.Add(rmsd_hspace_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        rmsf_grid.Add(self.rmsd_hspace_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        rmsf_grid.Add(self.rmsd_hspace_value, (y, 1), flag=wx.EXPAND)
         rmsf_box_sizer.Add(rmsf_grid, 0, wx.EXPAND, 10)
 
         rmsd_matrix_grid = wx.GridBagSizer(2, 2)
@@ -2361,16 +2361,16 @@ class panelParametersEdit(wx.Panel):
         axis_grid = wx.GridBagSizer(2, 2)
         y = 0
         axis_grid.Add(plot3D_shadeOnOff_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        axis_grid.Add(self.plot3D_shadeOnOff_check, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        axis_grid.Add(self.plot3D_shadeOnOff_check, (y, 1), flag=wx.EXPAND)
         axis_grid.Add(plot3D_gridsOnOff_label, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        axis_grid.Add(self.plot3D_gridsOnOff_check, (y, 3), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        axis_grid.Add(self.plot3D_gridsOnOff_check, (y, 3), flag=wx.EXPAND)
         axis_grid.Add(plot3D_ticksOnOff_label, (y, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        axis_grid.Add(self.plot3D_ticksOnOff_check, (y, 5), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        axis_grid.Add(self.plot3D_ticksOnOff_check, (y, 5), flag=wx.EXPAND)
         y = y + 1
         axis_grid.Add(plot3D_spinesOnOff_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        axis_grid.Add(self.plot3D_spinesOnOff_check, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        axis_grid.Add(self.plot3D_spinesOnOff_check, (y, 1), flag=wx.EXPAND)
         axis_grid.Add(plot3D_labelsOnOff_label, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        axis_grid.Add(self.plot3D_labelsOnOff_check, (y, 3), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        axis_grid.Add(self.plot3D_labelsOnOff_check, (y, 3), flag=wx.EXPAND)
         axis_box_sizer.Add(axis_grid, 0, wx.EXPAND, 10)
 
         grid = wx.GridBagSizer(2, 2)

@@ -70,25 +70,25 @@ class DialogExportData(Dialog):
 
         btn_grid = wx.GridBagSizer(2, 2)
         n = 0
-        btn_grid.Add(self.save_btn, (n, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        btn_grid.Add(self.cancel_btn, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        btn_grid.Add(self.save_btn, (n, 0), flag=wx.EXPAND)
+        btn_grid.Add(self.cancel_btn, (n, 1), flag=wx.EXPAND)
 
         # pack elements
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(folder_path, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(folder_path, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.folder_path, (n, 1), wx.GBSpan(1, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        grid.Add(self.folder_path_btn, (n, 5), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.folder_path_btn, (n, 5), flag=wx.ALIGN_CENTER_VERTICAL)
         n += 1
-        grid.Add(file_delimiter_choice, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.file_delimiter_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(file_delimiter_choice, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.file_delimiter_choice, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
-        grid.Add(file_extension_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.file_extension_label, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(file_extension_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.file_extension_label, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
         grid.Add(horizontal_line_0, (n, 0), wx.GBSpan(1, 6), flag=wx.EXPAND)
         n = n + 1
-        grid.Add(btn_grid, (n, 0), wx.GBSpan(1, 6), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        grid.Add(btn_grid, (n, 0), wx.GBSpan(1, 6), flag=wx.ALIGN_CENTER)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)

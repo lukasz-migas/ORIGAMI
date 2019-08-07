@@ -145,36 +145,36 @@ class DialogExportFigures(Dialog):
 
         btn_grid = wx.GridBagSizer(2, 2)
         n = 0
-        btn_grid.Add(self.save_btn, (n, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        btn_grid.Add(self.cancel_btn, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        btn_grid.Add(self.save_btn, (n, 0), flag=wx.EXPAND)
+        btn_grid.Add(self.cancel_btn, (n, 1), flag=wx.EXPAND)
 
         # pack elements
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(folder_path, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(folder_path, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.folder_path, (n, 1), wx.GBSpan(1, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        grid.Add(self.folder_path_btn, (n, 5), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.folder_path_btn, (n, 5), flag=wx.ALIGN_CENTER_VERTICAL)
         n += 1
-        grid.Add(file_format_choice, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.file_format_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(file_format_choice, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.file_format_choice, (n, 1), flag=wx.EXPAND)
         n += 1
-        grid.Add(resolution_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.image_resolution, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        grid.Add(resolution_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.image_resolution, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         n += 1
-        grid.Add(transparency_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.image_transparency_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        grid.Add(transparency_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.image_transparency_check, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         n += 1
-        grid.Add(tight_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.image_tight_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        grid.Add(tight_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.image_tight_check, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         n += 1
-        grid.Add(resize_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.image_resize_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        grid.Add(resize_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.image_resize_check, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
 
         n += 1
-        grid.Add(left_export_label, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        grid.Add(bottom_export_label, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        grid.Add(width_export_label, (n, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        grid.Add(height_export_label, (n, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        grid.Add(left_export_label, (n, 1), flag=wx.ALIGN_CENTER)
+        grid.Add(bottom_export_label, (n, 2), flag=wx.ALIGN_CENTER)
+        grid.Add(width_export_label, (n, 3), flag=wx.ALIGN_CENTER)
+        grid.Add(height_export_label, (n, 4), flag=wx.ALIGN_CENTER)
         n += 1
         grid.Add(plotSize_export_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         grid.Add(self.left_export_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
@@ -182,8 +182,8 @@ class DialogExportFigures(Dialog):
         grid.Add(self.width_export_value, (n, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         grid.Add(self.height_export_value, (n, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
-        grid.Add(width_inch_label, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        grid.Add(height_inch_label, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        grid.Add(width_inch_label, (n, 1), flag=wx.ALIGN_CENTER)
+        grid.Add(height_inch_label, (n, 2), flag=wx.ALIGN_CENTER)
         n += 1
         grid.Add(plotSize_inch_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         grid.Add(self.width_inch_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
@@ -195,7 +195,7 @@ class DialogExportFigures(Dialog):
         n += 1
         grid.Add(horizontal_line_0, (n, 0), wx.GBSpan(1, 6), flag=wx.EXPAND)
         n = n + 1
-        grid.Add(btn_grid, (n, 0), wx.GBSpan(1, 6), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        grid.Add(btn_grid, (n, 0), wx.GBSpan(1, 6), flag=wx.ALIGN_CENTER)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)

@@ -190,35 +190,35 @@ class DialogCustomiseORIGAMI(Dialog):
         # pack elements
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(acquisition_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.origami_method_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(acquisition_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.origami_method_choice, (n, 1), flag=wx.EXPAND)
         n += 1
-        grid.Add(spv_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.origami_scansPerVoltage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(spv_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.origami_scansPerVoltage_value, (n, 1), flag=wx.EXPAND)
         n += 1
-        grid.Add(scan_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.origami_startScan_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(scan_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.origami_startScan_value, (n, 1), flag=wx.EXPAND)
         n += 1
-        grid.Add(startVoltage_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.origami_startVoltage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(startVoltage_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.origami_startVoltage_value, (n, 1), flag=wx.EXPAND)
         n += 1
-        grid.Add(endVoltage_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.origami_endVoltage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(endVoltage_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.origami_endVoltage_value, (n, 1), flag=wx.EXPAND)
         n += 1
-        grid.Add(stepVoltage_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.origami_stepVoltage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(stepVoltage_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.origami_stepVoltage_value, (n, 1), flag=wx.EXPAND)
         n += 1
-        grid.Add(boltzmann_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.origami_boltzmannOffset_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(boltzmann_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.origami_boltzmannOffset_value, (n, 1), flag=wx.EXPAND)
         n += 1
-        grid.Add(exponentialPercentage_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.origami_exponentialPercentage_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(exponentialPercentage_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.origami_exponentialPercentage_value, (n, 1), flag=wx.EXPAND)
         n += 1
-        grid.Add(exponentialIncrement_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.origami_exponentialIncrement_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(exponentialIncrement_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.origami_exponentialIncrement_value, (n, 1), flag=wx.EXPAND)
         n += 1
-        grid.Add(import_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.origami_loadListBtn, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(import_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.origami_loadListBtn, (n, 1), flag=wx.EXPAND)
         n += 1
         grid.Add(horizontal_line, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
 
@@ -244,12 +244,8 @@ class DialogCustomiseORIGAMI(Dialog):
         self.origami_cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
 
         n += 1
-        grid.Add(
-            self.origami_applyBtn, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL
-        )
-        grid.Add(
-            self.origami_cancelBtn, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL
-        )
+        grid.Add(self.origami_applyBtn, (n, 0), flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.origami_cancelBtn, (n, 1), flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
@@ -286,12 +282,12 @@ class DialogCustomiseORIGAMI(Dialog):
         # pack elements
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(info_label, (n, 0), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        grid.Add(info_label, (n, 0), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER)
         n += 1
         grid.Add(self.info_value, (n, 0), wx.GBSpan(6, 2), flag=wx.EXPAND)
         n += 6
-        grid.Add(self.preprocess_check, (n, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        grid.Add(self.process_btn, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.preprocess_check, (n, 0), flag=wx.EXPAND)
+        grid.Add(self.process_btn, (n, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         n += 1
         grid.Add(self.origami_extractBtn, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         n += 1

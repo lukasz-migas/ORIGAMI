@@ -199,36 +199,28 @@ class panel_peak_picker(MiniFrame):
         # visualize grid
         annot_grid = wx.GridBagSizer(5, 5)
         n = 0
-        annot_grid.Add(verbose_check, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        annot_grid.Add(self.verbose_check, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        annot_grid.Add(verbose_check, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        annot_grid.Add(self.verbose_check, (n, 1), flag=wx.EXPAND)
         n += 1
-        annot_grid.Add(
-            visualize_highlight_check, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT
-        )
-        annot_grid.Add(self.visualize_highlight_check, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        annot_grid.Add(visualize_highlight_check, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        annot_grid.Add(self.visualize_highlight_check, (n, 1), flag=wx.EXPAND)
         n += 1
-        annot_grid.Add(
-            visualize_show_labels_check, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT
-        )
-        annot_grid.Add(self.visualize_show_labels_check, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        annot_grid.Add(visualize_show_labels_check, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        annot_grid.Add(self.visualize_show_labels_check, (n, 1), flag=wx.EXPAND)
         n += 1
-        annot_grid.Add(visualize_max_labels, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        annot_grid.Add(self.visualize_max_labels, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        annot_grid.Add(self.visualize_show_labels_mz_check, (n, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        annot_grid.Add(self.visualize_show_labels_int_check, (n, 3), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        annot_grid.Add(visualize_max_labels, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        annot_grid.Add(self.visualize_max_labels, (n, 1), flag=wx.EXPAND)
+        annot_grid.Add(self.visualize_show_labels_mz_check, (n, 2), flag=wx.EXPAND)
+        annot_grid.Add(self.visualize_show_labels_int_check, (n, 3), flag=wx.EXPAND)
 
         # data grid
         data_grid = wx.GridBagSizer(5, 5)
         n = 0
-        data_grid.Add(
-            data_add_peaks_to_peaklist, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT
-        )
-        data_grid.Add(self.data_add_peaks_to_peaklist, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        data_grid.Add(data_add_peaks_to_peaklist, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        data_grid.Add(self.data_add_peaks_to_peaklist, (n, 1), flag=wx.EXPAND)
         n += 1
-        data_grid.Add(
-            data_add_peaks_to_annotations, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT
-        )
-        data_grid.Add(self.data_add_peaks_to_annotations, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        data_grid.Add(data_add_peaks_to_annotations, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        data_grid.Add(self.data_add_peaks_to_annotations, (n, 1), flag=wx.EXPAND)
 
         # pack elements
         grid = wx.GridBagSizer(5, 5)
@@ -241,10 +233,8 @@ class panel_peak_picker(MiniFrame):
         n += 1
         grid.Add(horizontal_line_3, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
         n += 1
-        grid.Add(
-            self.find_peaks_btn, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
-        grid.Add(self.close_btn, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        grid.Add(self.find_peaks_btn, (n, 0), flag=wx.ALIGN_CENTER)
+        grid.Add(self.close_btn, (n, 1), flag=wx.ALIGN_CENTER)
 
         # fit layout
         main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -276,14 +266,14 @@ class panel_peak_picker(MiniFrame):
 
         grid = wx.GridBagSizer(5, 5)
         n = 0
-        grid.Add(mz_limit_check, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.mz_limit_check, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(mz_limit_check, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.mz_limit_check, (n, 1), flag=wx.EXPAND)
         n += 1
-        grid.Add(mz_min_value, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.mz_min_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(mz_min_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.mz_min_value, (n, 1), flag=wx.EXPAND)
         n += 1
-        grid.Add(mz_max_value, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.mz_max_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(mz_max_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.mz_max_value, (n, 1), flag=wx.EXPAND)
 
         # fit layout
         main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -311,18 +301,8 @@ class panel_peak_picker(MiniFrame):
 
         choice_grid = wx.GridBagSizer(2, 2)
         n = 0
-        choice_grid.Add(
-            self.method_small_molecule,
-            (n, 0),
-            wx.GBSpan(1, 1),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND,
-        )
-        choice_grid.Add(
-            self.method_native_ms,
-            (n, 1),
-            wx.GBSpan(1, 1),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND,
-        )
+        choice_grid.Add(self.method_small_molecule, (n, 0), flag=wx.ALIGN_CENTER | wx.EXPAND)
+        choice_grid.Add(self.method_native_ms, (n, 1), flag=wx.ALIGN_CENTER | wx.EXPAND)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(panel_info_txt, 0, wx.EXPAND, 2)
@@ -378,23 +358,23 @@ class panel_peak_picker(MiniFrame):
         n = 0
         grid.Add(horizontal_line_0, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
         n += 1
-        grid.Add(threshold_value, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.threshold_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(threshold_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.threshold_value, (n, 1), flag=wx.EXPAND)
         n += 1
-        grid.Add(width_value, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.width_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(width_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.width_value, (n, 1), flag=wx.EXPAND)
         n += 1
-        grid.Add(relative_height_value, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.relative_height_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(relative_height_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.relative_height_value, (n, 1), flag=wx.EXPAND)
         n += 1
-        grid.Add(min_intensity_value, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.min_intensity_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(min_intensity_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.min_intensity_value, (n, 1), flag=wx.EXPAND)
         n += 1
-        grid.Add(min_distance_value, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.min_distance_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(min_distance_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.min_distance_value, (n, 1), flag=wx.EXPAND)
         n += 1
-        grid.Add(peak_width_modifier_value, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.peak_width_modifier_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(peak_width_modifier_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.peak_width_modifier_value, (n, 1), flag=wx.EXPAND)
         n += 1
         grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
 
@@ -479,41 +459,41 @@ class panel_peak_picker(MiniFrame):
         n = 0
         grid.Add(horizontal_line_0, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
         n += 1
-        grid.Add(threshold_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.fit_threshold_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(threshold_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.fit_threshold_value, (n, 1), flag=wx.EXPAND)
         n += 1
-        grid.Add(window_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.fit_window_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(window_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.fit_window_value, (n, 1), flag=wx.EXPAND)
         n += 1
-        grid.Add(fit_relative_height, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.fit_relative_height, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(fit_relative_height, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.fit_relative_height, (n, 1), flag=wx.EXPAND)
         n += 1
         grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
         n += 1
-        grid.Add(smooth_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.fit_smooth_check, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(smooth_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.fit_smooth_check, (n, 1), flag=wx.EXPAND)
         n += 1
-        grid.Add(sigma_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.fit_sigma_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        #         grid.Add(self.fit_show_smoothed, (n, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(sigma_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.fit_sigma_value, (n, 1), flag=wx.EXPAND)
+        #         grid.Add(self.fit_show_smoothed, (n, 2),  flag=wx.EXPAND)
         n += 1
         grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
         # fmt: off
         # n += 1
-        # grid.Add(fit_isotopic_check, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        # grid.Add(self.fit_isotopic_check, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        # grid.Add(fit_isotopic_check, (n, 0),  flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        # grid.Add(self.fit_isotopic_check, (n, 1),  flag=wx.EXPAND)
         # n += 1
-        # grid.Add(fit_isotopic_threshold, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        # grid.Add(self.fit_isotopic_threshold, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        # grid.Add(fit_isotopic_threshold, (n, 0),  flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        # grid.Add(self.fit_isotopic_threshold, (n, 1),  flag=wx.EXPAND)
         # n += 1
-        # grid.Add(fit_isotopic_window, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        # grid.Add(self.fit_isotopic_window, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        # grid.Add(fit_isotopic_window, (n, 0),  flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        # grid.Add(self.fit_isotopic_window, (n, 1),  flag=wx.EXPAND)
         # n += 1
-        # grid.Add(fit_isotopic_width, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        # grid.Add(self.fit_isotopic_width, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        # grid.Add(fit_isotopic_width, (n, 0),  flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        # grid.Add(self.fit_isotopic_width, (n, 1),  flag=wx.EXPAND)
         # n += 1
-        # grid.Add(fit_isotopic_show_envelope, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        # grid.Add(self.fit_isotopic_show_envelope, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        # grid.Add(fit_isotopic_show_envelope, (n, 0),  flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        # grid.Add(self.fit_isotopic_show_envelope, (n, 1),  flag=wx.EXPAND)
         # n += 1
         # grid.Add(horizontal_line_3, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
         # fmt: on

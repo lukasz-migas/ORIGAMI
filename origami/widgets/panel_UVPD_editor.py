@@ -468,17 +468,17 @@ class PanelUVPDEditor(wx.MiniFrame):
         # pack elements
         grid = wx.GridBagSizer(5, 5)
         n = 0
-        grid.Add(threshold_value, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.threshold_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        grid.Add(buffer_size_value, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.buffer_size_value, (n, 3), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        grid.Add(first_index_value, (n, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.first_index_value, (n, 5), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(threshold_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.threshold_value, (n, 1), flag=wx.EXPAND)
+        grid.Add(buffer_size_value, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.buffer_size_value, (n, 3), flag=wx.EXPAND)
+        grid.Add(first_index_value, (n, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.first_index_value, (n, 5), flag=wx.EXPAND)
         n = n + 1
-        grid.Add(show_markers, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.show_labels, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        grid.Add(self.show_markers, (n, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        grid.Add(self.show_patches, (n, 3), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(show_markers, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.show_labels, (n, 1), flag=wx.EXPAND)
+        grid.Add(self.show_markers, (n, 2), flag=wx.EXPAND)
+        grid.Add(self.show_patches, (n, 3), flag=wx.EXPAND)
         n = n + 1
         grid.Add(self.find_peaks_btn, (n, 0), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.extract_MS_btn, (n, 2), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
@@ -502,7 +502,7 @@ class PanelUVPDEditor(wx.MiniFrame):
         # pack elements
         grid = wx.GridBagSizer(5, 5)
         n = 0
-        grid.Add(self.extract_features, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.extract_features, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
 
         return grid
 
@@ -518,8 +518,8 @@ class PanelUVPDEditor(wx.MiniFrame):
         # pack elements
         grid = wx.GridBagSizer(5, 5)
         n = 0
-        grid.Add(self.monitor_features, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.about_button, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.monitor_features, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.about_button, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
 
         return grid
 
@@ -545,11 +545,11 @@ class PanelUVPDEditor(wx.MiniFrame):
         frag_add.Bind(wx.EVT_BUTTON, self.on_add_fragment_ion)
 
         frag_toolbar_grid = wx.GridBagSizer(1, 1)
-        frag_toolbar_grid.Add(min_mz_value, (0, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
-        frag_toolbar_grid.Add(self.min_mz_value, (0, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
-        frag_toolbar_grid.Add(max_mz_value, (0, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
-        frag_toolbar_grid.Add(self.max_mz_value, (0, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
-        frag_toolbar_grid.Add(frag_add, (0, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        frag_toolbar_grid.Add(min_mz_value, (0, 0), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        frag_toolbar_grid.Add(self.min_mz_value, (0, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        frag_toolbar_grid.Add(max_mz_value, (0, 2), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        frag_toolbar_grid.Add(self.max_mz_value, (0, 3), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        frag_toolbar_grid.Add(frag_add, (0, 4), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
 
         self.peaklist = EditableListCtrl(panel, style=wx.LC_REPORT | wx.LC_VRULES)
         self.peaklist.SetFont(wx.SMALL_FONT)
@@ -579,15 +579,11 @@ class PanelUVPDEditor(wx.MiniFrame):
         monitor_add.Bind(wx.EVT_BUTTON, self.on_add_mobility_peak)
 
         monitor_toolbar_grid = wx.GridBagSizer(1, 1)
-        monitor_toolbar_grid.Add(min_dt_value, (0, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
-        monitor_toolbar_grid.Add(
-            self.min_dt_value, (0, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL
-        )
-        monitor_toolbar_grid.Add(max_dt_value, (0, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
-        monitor_toolbar_grid.Add(
-            self.max_dt_value, (0, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL
-        )
-        monitor_toolbar_grid.Add(monitor_add, (0, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        monitor_toolbar_grid.Add(min_dt_value, (0, 0), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        monitor_toolbar_grid.Add(self.min_dt_value, (0, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        monitor_toolbar_grid.Add(max_dt_value, (0, 2), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        monitor_toolbar_grid.Add(self.max_dt_value, (0, 3), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        monitor_toolbar_grid.Add(monitor_add, (0, 4), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
 
         self.monitorlist = EditableListCtrl(panel, style=wx.LC_REPORT | wx.LC_VRULES)
         self.monitorlist.SetFont(wx.SMALL_FONT)

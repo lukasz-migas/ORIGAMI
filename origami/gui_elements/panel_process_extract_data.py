@@ -208,27 +208,27 @@ class PanelProcessExtractData(MiniFrame):
         btn_grid = wx.GridBagSizer(2, 2)
         n = 0
         if not self.disable_plot:
-            btn_grid.Add(self.extract_btn, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+            btn_grid.Add(self.extract_btn, (n, 1), flag=wx.EXPAND)
         if not self.disable_process:
-            btn_grid.Add(self.add_to_document_btn, (n, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        btn_grid.Add(self.cancel_btn, (n, 3), wx.GBSpan(1, 1), flag=wx.EXPAND)
+            btn_grid.Add(self.add_to_document_btn, (n, 2), flag=wx.EXPAND)
+        btn_grid.Add(self.cancel_btn, (n, 3), flag=wx.EXPAND)
 
         ms_grid = wx.GridBagSizer(2, 2)
-        ms_grid.Add(self.extract_extractMS_ms_check, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
-        ms_grid.Add(self.extract_extractMS_rt_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
-        ms_grid.Add(self.extract_extractMS_dt_check, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
+        ms_grid.Add(self.extract_extractMS_ms_check, (n, 0), flag=wx.ALIGN_LEFT)
+        ms_grid.Add(self.extract_extractMS_rt_check, (n, 1), flag=wx.ALIGN_LEFT)
+        ms_grid.Add(self.extract_extractMS_dt_check, (n, 2), flag=wx.ALIGN_LEFT)
 
         rt_grid = wx.GridBagSizer(2, 2)
-        rt_grid.Add(self.extract_extractRT_ms_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
-        rt_grid.Add(self.extract_extractRT_dt_check, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
+        rt_grid.Add(self.extract_extractRT_ms_check, (n, 1), flag=wx.ALIGN_LEFT)
+        rt_grid.Add(self.extract_extractRT_dt_check, (n, 2), flag=wx.ALIGN_LEFT)
 
         dt_grid = wx.GridBagSizer(2, 2)
-        dt_grid.Add(self.extract_extractDT_ms_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
-        dt_grid.Add(self.extract_extractDT_rt_check, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
+        dt_grid.Add(self.extract_extractDT_ms_check, (n, 1), flag=wx.ALIGN_LEFT)
+        dt_grid.Add(self.extract_extractDT_rt_check, (n, 2), flag=wx.ALIGN_LEFT)
 
         heatmap_grid = wx.GridBagSizer(2, 2)
-        heatmap_grid.Add(self.extract_extract2D_ms_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
-        heatmap_grid.Add(self.extract_extract2D_rt_check, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
+        heatmap_grid.Add(self.extract_extract2D_ms_check, (n, 1), flag=wx.ALIGN_LEFT)
+        heatmap_grid.Add(self.extract_extract2D_rt_check, (n, 2), flag=wx.ALIGN_LEFT)
 
         horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
@@ -239,62 +239,60 @@ class PanelProcessExtractData(MiniFrame):
 
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(
-            document_info_text, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.EXPAND
-        )
+        grid.Add(document_info_text, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.EXPAND)
         grid.Add(self.document_info_text, (n, 1), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
-        grid.Add(extraction_info_text, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        grid.Add(extraction_info_text, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.extraction_info_text, (n, 1), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
         grid.Add(horizontal_line_0, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n += 1
-        grid.Add(start_label, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
-        grid.Add(end_label, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
+        grid.Add(start_label, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
+        grid.Add(end_label, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
         n = n + 1
-        grid.Add(self.mz_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.EXPAND)
-        grid.Add(self.extract_mzStart_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        grid.Add(self.extract_mzEnd_value, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(self.mz_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.EXPAND)
+        grid.Add(self.extract_mzStart_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(self.extract_mzEnd_value, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n = n + 1
-        grid.Add(self.rt_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.EXPAND)
-        grid.Add(self.extract_rtStart_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        grid.Add(self.extract_rtEnd_value, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(self.rt_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.EXPAND)
+        grid.Add(self.extract_rtStart_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(self.extract_rtEnd_value, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n = n + 1
-        grid.Add(scanTime_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.EXPAND)
-        grid.Add(self.extract_scanTime_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        grid.Add(self.extract_rt_scans_check, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(scanTime_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.EXPAND)
+        grid.Add(self.extract_scanTime_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(self.extract_rt_scans_check, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n = n + 1
-        grid.Add(self.dt_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.EXPAND)
-        grid.Add(self.extract_dtStart_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        grid.Add(self.extract_dtEnd_value, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(self.dt_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.EXPAND)
+        grid.Add(self.extract_dtStart_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(self.extract_dtEnd_value, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n = n + 1
-        grid.Add(pusherFreq_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.EXPAND)
-        grid.Add(self.extract_pusherFreq_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        grid.Add(self.extract_dt_ms_check, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(pusherFreq_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.EXPAND)
+        grid.Add(self.extract_pusherFreq_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(self.extract_dt_ms_check, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n = n + 1
         grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n = n + 1
-        grid.Add(self.extract_extractMS_check, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.EXPAND)
-        grid.Add(ms_grid, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
+        grid.Add(self.extract_extractMS_check, (n, 0), flag=wx.ALIGN_LEFT | wx.EXPAND)
+        grid.Add(ms_grid, (n, 1), flag=wx.ALIGN_LEFT)
         n = n + 1
         grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n = n + 1
-        grid.Add(self.extract_extractRT_check, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.EXPAND)
-        grid.Add(rt_grid, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
+        grid.Add(self.extract_extractRT_check, (n, 0), flag=wx.ALIGN_LEFT | wx.EXPAND)
+        grid.Add(rt_grid, (n, 1), flag=wx.ALIGN_LEFT)
         n = n + 1
         grid.Add(horizontal_line_3, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n = n + 1
-        grid.Add(self.extract_extractDT_check, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.EXPAND)
-        grid.Add(dt_grid, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.EXPAND)
+        grid.Add(self.extract_extractDT_check, (n, 0), flag=wx.ALIGN_LEFT | wx.EXPAND)
+        grid.Add(dt_grid, (n, 1), flag=wx.ALIGN_LEFT | wx.EXPAND)
         n = n + 1
         grid.Add(horizontal_line_4, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n = n + 1
-        grid.Add(self.extract_extract2D_check, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.EXPAND)
-        grid.Add(heatmap_grid, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.EXPAND)
+        grid.Add(self.extract_extract2D_check, (n, 0), flag=wx.ALIGN_LEFT | wx.EXPAND)
+        grid.Add(heatmap_grid, (n, 1), flag=wx.ALIGN_LEFT | wx.EXPAND)
         n = n + 1
         grid.Add(horizontal_line_5, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n = n + 1
-        grid.Add(btn_grid, (n, 0), wx.GBSpan(1, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        grid.Add(btn_grid, (n, 0), wx.GBSpan(1, 3), flag=wx.ALIGN_CENTER)
 
         # fit layout
         main_sizer = wx.BoxSizer(wx.VERTICAL)

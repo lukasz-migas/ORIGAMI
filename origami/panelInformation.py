@@ -609,8 +609,8 @@ class panelDocumentInfo(wx.MiniFrame):
 
         grid.Add(labelsY_label, (4, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.labelsY_value, (4, 1), wx.GBSpan(1, 2))
-        grid.Add(self.labelsY_check, (5, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        grid.Add(self.restoreDefaultY_check, (5, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        grid.Add(self.labelsY_check, (5, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        grid.Add(self.restoreDefaultY_check, (5, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
 
         grid.Add(shape_label, (6, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.shape_value, (6, 1), wx.GBSpan(1, 2))
@@ -694,7 +694,7 @@ class panelDocumentInfo(wx.MiniFrame):
         grid = wx.GridBagSizer(2, 2)
         grid.Add(calibrationType_label, (0, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.calibrationType_value, (0, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        grid.Add(self.calibrationType_check, (0, 3), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(self.calibrationType_check, (0, 3), flag=wx.EXPAND)
 
         grid.Add(calibrants_label, (1, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.calibrants_value, (1, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
@@ -709,16 +709,16 @@ class panelDocumentInfo(wx.MiniFrame):
         grid.Add(power_label, (4, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
 
         grid.Add(slope_label, (5, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.slopeLinear_value, (5, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        grid.Add(self.slopePower_value, (5, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(self.slopeLinear_value, (5, 1), flag=wx.EXPAND)
+        grid.Add(self.slopePower_value, (5, 2), flag=wx.EXPAND)
 
         grid.Add(intercept_label, (6, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.interceptLinear_value, (6, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        grid.Add(self.interceptPower_value, (6, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(self.interceptLinear_value, (6, 1), flag=wx.EXPAND)
+        grid.Add(self.interceptPower_value, (6, 2), flag=wx.EXPAND)
 
         grid.Add(r2_label, (7, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.r2Linear_value, (7, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        grid.Add(self.r2Power_value, (7, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(self.r2Linear_value, (7, 1), flag=wx.EXPAND)
+        grid.Add(self.r2Power_value, (7, 2), flag=wx.EXPAND)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL | wx.EXPAND, PANEL_SPACE_MAIN)

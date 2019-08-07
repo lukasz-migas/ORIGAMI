@@ -62,24 +62,19 @@ class DialogNewVersion(Dialog):
         self.cancelBtn = wx.Button(panel, -1, "Cancel", size=(-1, 22))
 
         btn_grid = wx.GridBagSizer(1, 1)
-        btn_grid.Add(self.goToDownload, (0, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT)
-        btn_grid.Add(self.cancelBtn, (0, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT)
+        btn_grid.Add(self.goToDownload, (0, 1), flag=wx.ALIGN_RIGHT)
+        btn_grid.Add(self.cancelBtn, (0, 2), flag=wx.ALIGN_RIGHT)
 
         horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         horizontal_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
         # pack elements
         grid = wx.GridBagSizer(5, 5)
-        grid.Add(image, (0, 0), wx.GBSpan(1, 3), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        grid.Add(image, (0, 0), wx.GBSpan(1, 3), flag=wx.EXPAND | wx.ALIGN_CENTER)
         grid.Add(horizontal_line_1, (1, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
-        grid.Add(
-            self.label_header,
-            (2, 0),
-            wx.GBSpan(2, 3),
-            flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
-        )
+        grid.Add(self.label_header, (2, 0), wx.GBSpan(2, 3), flag=wx.EXPAND | wx.ALIGN_CENTER)
         grid.Add(horizontal_line_2, (4, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
-        grid.Add(btn_grid, (5, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT)
+        grid.Add(btn_grid, (5, 1), flag=wx.ALIGN_RIGHT)
 
         main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, 10)
 

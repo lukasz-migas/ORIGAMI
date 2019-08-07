@@ -89,8 +89,8 @@ class panelAbout(wx.MiniFrame):
 
         btn2_grid = wx.GridBagSizer(2, 2)
         y = 0
-        btn2_grid.Add(newFeaturesBtn, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn2_grid.Add(reportBugBtn, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        btn2_grid.Add(newFeaturesBtn, (y, 0), flag=wx.ALIGN_CENTER)
+        btn2_grid.Add(reportBugBtn, (y, 1), flag=wx.ALIGN_CENTER)
 
         btn3_grid = wx.GridBagSizer(2, 2)
         y = 0

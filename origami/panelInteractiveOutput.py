@@ -1021,31 +1021,26 @@ class panelInteractiveOutput(wx.MiniFrame):
         vertical_line_5 = wx.StaticLine(panel, -1, style=wx.LI_VERTICAL)
 
         grid = wx.GridBagSizer(1, 1)
-        grid.Add(document_label, (0, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(document_label, (0, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
         grid.Add(vertical_line_1, (0, 2), wx.GBSpan(2, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        grid.Add(type_label, (0, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(type_label, (0, 3), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
         grid.Add(vertical_line_2, (0, 4), wx.GBSpan(2, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         grid.Add(output_label, (0, 5), wx.GBSpan(1, 3), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
         grid.Add(vertical_line_3, (0, 8), wx.GBSpan(2, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         grid.Add(colormap_label, (0, 9), wx.GBSpan(1, 2), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
         grid.Add(vertical_line_4, (0, 11), wx.GBSpan(2, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         grid.Add(vertical_line_5, (0, 13), wx.GBSpan(2, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        grid.Add(sort_label, (0, 14), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(sort_label, (0, 14), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
 
-        grid.Add(checkAll, (1, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.docSelection_combo, (1, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.dataSelection_combo, (1, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.pageLayoutSelect_toolbar, (1, 5), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(page_applyBtn, (1, 6), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.colormapSelect_toolbar, (1, 9), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(colormap_applyBtn, (1, 10), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.apply_style_btn, (1, 12), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(
-            self.sort_before_saving,
-            (1, 14),
-            wx.GBSpan(1, 1),
-            flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL,
-        )
+        grid.Add(checkAll, (1, 0), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.docSelection_combo, (1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.dataSelection_combo, (1, 3), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.pageLayoutSelect_toolbar, (1, 5), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(page_applyBtn, (1, 6), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.colormapSelect_toolbar, (1, 9), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(colormap_applyBtn, (1, 10), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.apply_style_btn, (1, 12), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.sort_before_saving, (1, 14), flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(grid, 0, wx.ALL, 2)
@@ -1266,37 +1261,35 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         html_grid = wx.GridBagSizer(2, 5)
         n = 0
-        html_grid.Add(pageSelect_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        html_grid.Add(
-            self.pageLayoutSelect_propView, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL
-        )
-        html_grid.Add(self.addPage, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        html_grid.Add(self.removePage, (n, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        html_grid.Add(self.clearAllPages, (n, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        html_grid.Add(pageSelect_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        html_grid.Add(self.pageLayoutSelect_propView, (n, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
+        html_grid.Add(self.addPage, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL)
+        html_grid.Add(self.removePage, (n, 3), flag=wx.ALIGN_CENTER_VERTICAL)
+        html_grid.Add(self.clearAllPages, (n, 4), flag=wx.ALIGN_CENTER_VERTICAL)
         n = n + 1
-        html_grid.Add(layoutDoc_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
-        html_grid.Add(self.layoutDoc_combo, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
+        html_grid.Add(layoutDoc_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
+        html_grid.Add(self.layoutDoc_combo, (n, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
         html_grid.Add(self.grid_add_custom_js_widgets, (n, 2), wx.GBSpan(1, 3), flag=wx.ALIGN_CENTER_VERTICAL)
         n = n + 1
-        html_grid.Add(columns_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        html_grid.Add(self.columns_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        html_grid.Add(columns_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        html_grid.Add(self.columns_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         html_grid.Add(self.grid_shared_tools, (n, 2), wx.GBSpan(1, 3), flag=wx.ALIGN_CENTER_VERTICAL)
         n = n + 1
-        html_grid.Add(height_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        html_grid.Add(self.grid_height_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        html_grid.Add(height_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        html_grid.Add(self.grid_height_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n = n + 1
-        html_grid.Add(width_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        html_grid.Add(self.grid_width_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        html_grid.Add(width_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        html_grid.Add(self.grid_width_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n = n + 1
-        html_grid.Add(itemName_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
+        html_grid.Add(itemName_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
         html_grid.Add(self.pageTitle_value, (n, 1), wx.GBSpan(1, 5), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
         n = n + 1
-        html_grid.Add(itemHeader_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
+        html_grid.Add(itemHeader_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
         html_grid.Add(
             self.pageHeader_value, (n, 1), wx.GBSpan(1, 5), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL
         )
         n = n + 1
-        html_grid.Add(itemFootnote_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
+        html_grid.Add(itemFootnote_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
         html_grid.Add(
             self.pageFootnote_value, (n, 1), wx.GBSpan(1, 5), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL
         )
@@ -1354,32 +1347,26 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         html_grid = wx.GridBagSizer(2, 5)
         n = 0
-        html_grid.Add(editing_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        html_grid.Add(self.document_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
+        html_grid.Add(editing_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        html_grid.Add(self.document_value, (n, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
         n = n + 1
-        html_grid.Add(type_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        html_grid.Add(self.type_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
+        html_grid.Add(type_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        html_grid.Add(self.type_value, (n, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
         n = n + 1
-        html_grid.Add(details_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        html_grid.Add(self.details_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
+        html_grid.Add(details_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        html_grid.Add(self.details_value, (n, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
         n = n + 1
-        html_grid.Add(itemInformation_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
-        html_grid.Add(
-            self.itemInformation_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL
-        )
+        html_grid.Add(itemInformation_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
+        html_grid.Add(self.itemInformation_value, (n, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
         n = n + 1
-        html_grid.Add(itemName_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        html_grid.Add(self.itemName_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
+        html_grid.Add(itemName_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        html_grid.Add(self.itemName_value, (n, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
         n = n + 1
-        html_grid.Add(itemHeader_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
-        html_grid.Add(
-            self.itemHeader_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL
-        )
+        html_grid.Add(itemHeader_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
+        html_grid.Add(self.itemHeader_value, (n, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
         n = n + 1
-        html_grid.Add(itemFootnote_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
-        html_grid.Add(
-            self.itemFootnote_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL
-        )
+        html_grid.Add(itemFootnote_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
+        html_grid.Add(self.itemFootnote_value, (n, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
         html_box_sizer.Add(html_grid, 0, wx.EXPAND, 0)
 
         # general subpanel
@@ -1400,10 +1387,10 @@ class panelInteractiveOutput(wx.MiniFrame):
         general_grid = wx.GridBagSizer(2, 2)
         y = 0
         general_grid.Add(page_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        general_grid.Add(self.pageLayoutSelect_htmlView, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
+        general_grid.Add(self.pageLayoutSelect_htmlView, (y, 1), flag=wx.ALIGN_LEFT)
         y = y + 1
         general_grid.Add(order_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        general_grid.Add(self.order_value, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT)
+        general_grid.Add(self.order_value, (y, 1), flag=wx.ALIGN_LEFT)
         general_box_sizer.Add(general_grid, 0, wx.EXPAND, 10)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -1564,38 +1551,20 @@ class panelInteractiveOutput(wx.MiniFrame):
         # Add to grid sizer
         grid = wx.GridBagSizer(2, 2)
         grid.Add(titleFontSize, wx.GBPosition(0, 0), wx.GBSpan(1, 2), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
-        grid.Add(
-            self.titleSlider, wx.GBPosition(1, 0), wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2
-        )
-        grid.Add(
-            self.titleBoldCheck, wx.GBPosition(1, 1), wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2
-        )
+        grid.Add(self.titleSlider, wx.GBPosition(1, 0), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
+        grid.Add(self.titleBoldCheck, wx.GBPosition(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
 
         grid.Add(labelFontSize, wx.GBPosition(0, 2), wx.GBSpan(1, 2), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
-        grid.Add(
-            self.labelSlider, wx.GBPosition(1, 2), wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2
-        )
-        grid.Add(
-            self.labelBoldCheck, wx.GBPosition(1, 3), wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2
-        )
+        grid.Add(self.labelSlider, wx.GBPosition(1, 2), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
+        grid.Add(self.labelBoldCheck, wx.GBPosition(1, 3), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
 
         grid.Add(tickFontSize, wx.GBPosition(2, 0), wx.GBSpan(1, 2), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
-        grid.Add(
-            self.tickSlider, wx.GBPosition(3, 0), wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2
-        )
+        grid.Add(self.tickSlider, wx.GBPosition(3, 0), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
         grid.Add(
             precision_label, wx.GBPosition(2, 2), wx.GBSpan(1, 2), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2
         )
-        grid.Add(
-            self.tickPrecision, wx.GBPosition(3, 2), wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2
-        )
-        grid.Add(
-            self.tickUseScientific,
-            wx.GBPosition(3, 3),
-            wx.GBSpan(1, 1),
-            wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT,
-            2,
-        )
+        grid.Add(self.tickPrecision, wx.GBPosition(3, 2), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
+        grid.Add(self.tickUseScientific, wx.GBPosition(3, 3), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
 
         main_sizer.Add(grid, 0, wx.EXPAND | wx.ALL, 2)
         return main_sizer
@@ -1668,58 +1637,28 @@ class panelInteractiveOutput(wx.MiniFrame):
             notationFontSize, wx.GBPosition(n, 0), wx.GBSpan(1, 2), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2
         )
         grid.Add(
-            interactive_annotation_color_label,
-            wx.GBPosition(n, 2),
-            wx.GBSpan(1, 1),
-            wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT,
-            2,
+            interactive_annotation_color_label, wx.GBPosition(n, 2), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2
         )
         grid.Add(
             interactive_annotation_background_color_label,
             wx.GBPosition(n, 3),
-            wx.GBSpan(1, 1),
             wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT,
             2,
         )
-        grid.Add(
-            interactive_transparency_label,
-            wx.GBPosition(n, 4),
-            wx.GBSpan(1, 1),
-            wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT,
-            2,
-        )
+        grid.Add(interactive_transparency_label, wx.GBPosition(n, 4), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
         n = n + 1
+        grid.Add(self.notationSlider, wx.GBPosition(n, 0), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
+        grid.Add(self.notationBoldCheck, wx.GBPosition(n, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
         grid.Add(
-            self.notationSlider, wx.GBPosition(n, 0), wx.GBSpan(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2
-        )
-        grid.Add(
-            self.notationBoldCheck,
-            wx.GBPosition(n, 1),
-            wx.GBSpan(1, 1),
-            wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT,
-            2,
-        )
-        grid.Add(
-            self.interactive_annotation_colorBtn,
-            wx.GBPosition(n, 2),
-            wx.GBSpan(1, 1),
-            wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT,
-            2,
+            self.interactive_annotation_colorBtn, wx.GBPosition(n, 2), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2
         )
         grid.Add(
             self.interactive_annotation_colorBackgroundBtn,
             wx.GBPosition(n, 3),
-            wx.GBSpan(1, 1),
             wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT,
             2,
         )
-        grid.Add(
-            self.rmsd_label_transparency,
-            wx.GBPosition(n, 4),
-            wx.GBSpan(1, 1),
-            wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT,
-            2,
-        )
+        grid.Add(self.rmsd_label_transparency, wx.GBPosition(n, 4), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
 
         rmsdSizer.Add(grid, 0, wx.EXPAND | wx.ALL, 2)
         return rmsdSizer
@@ -1768,13 +1707,13 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         gridFigure = wx.GridBagSizer(2, 2)
         n = 0
-        gridFigure.Add(lineWidth_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        gridFigure.Add(self.line_width, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        gridFigure.Add(lineAlpha_label, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        gridFigure.Add(self.line_transparency, (n, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        gridFigure.Add(lineWidth_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL)
+        gridFigure.Add(self.line_width, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        gridFigure.Add(lineAlpha_label, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL)
+        gridFigure.Add(self.line_transparency, (n, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n = n + 1
-        gridFigure.Add(lineStyle_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        gridFigure.Add(self.line_style, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        gridFigure.Add(lineStyle_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL)
+        gridFigure.Add(self.line_style, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         gridFigure.Add(self.hoverVlineCheck, (n, 2), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL)
 
         figSizer.Add(gridFigure, 0, wx.ALIGN_CENTER | wx.ALL, 5)
@@ -1996,8 +1935,8 @@ class panelInteractiveOutput(wx.MiniFrame):
         y = y + 1
         gridAnnot.Add(self.custom_js_scripts, (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
-        gridAnnot.Add(position_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        gridAnnot.Add(self.custom_js_position, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        gridAnnot.Add(position_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL)
+        gridAnnot.Add(self.custom_js_position, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL)
 
         figSizer.Add(gridAnnot, 0, wx.ALIGN_CENTER | wx.ALL, 5)
 
@@ -2085,18 +2024,18 @@ class panelInteractiveOutput(wx.MiniFrame):
         gridAnnot.Add(self.annot_peakLabel, (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         gridAnnot.Add(self.annot_peakHighlight, (y, 2), wx.GBSpan(1, 2), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
-        gridAnnot.Add(annot_xpos_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        gridAnnot.Add(annot_ypos_label, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        gridAnnot.Add(annot_rotation_label, (y, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        gridAnnot.Add(annot_fontSize_label, (y, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        gridAnnot.Add(annot_fontColor_label, (y, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        gridAnnot.Add(annot_xpos_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        gridAnnot.Add(annot_ypos_label, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        gridAnnot.Add(annot_rotation_label, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        gridAnnot.Add(annot_fontSize_label, (y, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        gridAnnot.Add(annot_fontColor_label, (y, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         y = y + 1
-        gridAnnot.Add(self.annot_xpos_value, (y, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        gridAnnot.Add(self.annot_ypos_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        gridAnnot.Add(self.annot_rotation_value, (y, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        gridAnnot.Add(self.annot_fontSize_value, (y, 3), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        gridAnnot.Add(self.annot_fontWeight_value, (y, 4), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        gridAnnot.Add(self.annot_fontColor_colorBtn, (y, 5), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        gridAnnot.Add(self.annot_xpos_value, (y, 0), flag=wx.EXPAND)
+        gridAnnot.Add(self.annot_ypos_value, (y, 1), flag=wx.EXPAND)
+        gridAnnot.Add(self.annot_rotation_value, (y, 2), flag=wx.EXPAND)
+        gridAnnot.Add(self.annot_fontSize_value, (y, 3), flag=wx.EXPAND)
+        gridAnnot.Add(self.annot_fontWeight_value, (y, 4), flag=wx.EXPAND)
+        gridAnnot.Add(self.annot_fontColor_colorBtn, (y, 5), flag=wx.EXPAND)
 
         figSizer.Add(gridAnnot, 0, wx.ALIGN_CENTER | wx.ALL, 5)
 

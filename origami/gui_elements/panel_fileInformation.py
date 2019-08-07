@@ -77,13 +77,13 @@ class panelInformation(wx.MiniFrame):
 
         btn_grid = wx.GridBagSizer(5, 5)
         y = 0
-        btn_grid.Add(self.okBtn, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        btn_grid.Add(self.okBtn, (y, 0), flag=wx.ALIGN_CENTER)
 
         # pack elements
         grid = wx.GridBagSizer(5, 5)
         y = 0
         grid.Add(self.information, (0, 0), wx.GBSpan(4, 8), flag=wx.ALIGN_TOP | wx.ALIGN_CENTER_HORIZONTAL)
-        grid.Add(btn_grid, (4, 0), wx.GBSpan(1, 8), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        grid.Add(btn_grid, (4, 0), wx.GBSpan(1, 8), flag=wx.ALIGN_CENTER)
         main_sizer.Add(grid, 0, wx.EXPAND, 10)
 
         # fit layout

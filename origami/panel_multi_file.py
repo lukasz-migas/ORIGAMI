@@ -209,25 +209,13 @@ class PanelMultiFile(wx.Panel):
         # button grid
         btn_grid_vert = wx.GridBagSizer(2, 2)
         x = 0
-        btn_grid_vert.Add(
-            self.add_btn, (x, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
-        btn_grid_vert.Add(
-            self.remove_btn, (x, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
-        btn_grid_vert.Add(
-            self.annotate_btn, (x, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
-        btn_grid_vert.Add(
-            self.process_btn, (x, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
-        btn_grid_vert.Add(
-            self.overlay_btn, (x, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
-        btn_grid_vert.Add(vertical_line_1, (x, 5), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        btn_grid_vert.Add(
-            self.info_btn, (x, 6), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
+        btn_grid_vert.Add(self.add_btn, (x, 0), flag=wx.ALIGN_CENTER)
+        btn_grid_vert.Add(self.remove_btn, (x, 1), flag=wx.ALIGN_CENTER)
+        btn_grid_vert.Add(self.annotate_btn, (x, 2), flag=wx.ALIGN_CENTER)
+        btn_grid_vert.Add(self.process_btn, (x, 3), flag=wx.ALIGN_CENTER)
+        btn_grid_vert.Add(self.overlay_btn, (x, 4), flag=wx.ALIGN_CENTER)
+        btn_grid_vert.Add(vertical_line_1, (x, 5), flag=wx.EXPAND)
+        btn_grid_vert.Add(self.info_btn, (x, 6), flag=wx.ALIGN_CENTER)
 
         return btn_grid_vert
 

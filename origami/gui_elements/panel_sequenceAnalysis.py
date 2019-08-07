@@ -138,51 +138,41 @@ class panelSequenceAnalysis(wx.MiniFrame):
 
         btn_grid = wx.GridBagSizer(5, 5)
         y = 0
-        btn_grid.Add(
-            self.calculateBtn, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
-        btn_grid.Add(self.plotBtn, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid.Add(
-            self.cancelBtn, (y, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
+        btn_grid.Add(self.calculateBtn, (y, 0), flag=wx.ALIGN_CENTER)
+        btn_grid.Add(self.plotBtn, (y, 1), flag=wx.ALIGN_CENTER)
+        btn_grid.Add(self.cancelBtn, (y, 2), flag=wx.ALIGN_CENTER)
 
         info_grid = wx.GridBagSizer(5, 5)
         y = 0
-        info_grid.Add(length_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        info_grid.Add(self.length_value, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        info_grid.Add(vertical_line_1, (y, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        info_grid.Add(mw_label, (y, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        info_grid.Add(self.mw_value, (y, 4), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        info_grid.Add(
-            vertical_line_2, (y, 5), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND | wx.ALIGN_LEFT
-        )
-        info_grid.Add(pI_label, (y, 6), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        info_grid.Add(self.pI_value, (y, 7), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        info_grid.Add(length_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        info_grid.Add(self.length_value, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        info_grid.Add(vertical_line_1, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        info_grid.Add(mw_label, (y, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        info_grid.Add(self.mw_value, (y, 4), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        info_grid.Add(vertical_line_2, (y, 5), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND | wx.ALIGN_LEFT)
+        info_grid.Add(pI_label, (y, 6), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        info_grid.Add(self.pI_value, (y, 7), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         y = y + 1
-        info_grid.Add(minCCS_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        info_grid.Add(
-            self.minCCS_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT
-        )
-        info_grid.Add(vertical_line_3, (y, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        info_grid.Add(maxCCS_label, (y, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        info_grid.Add(
-            self.maxCCS_value, (y, 4), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT
-        )
-        info_grid.Add(vertical_line_4, (y, 5), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        info_grid.Add(kappa_label, (y, 6), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        info_grid.Add(self.kappa_value, (y, 7), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        info_grid.Add(minCCS_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        info_grid.Add(self.minCCS_value, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        info_grid.Add(vertical_line_3, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        info_grid.Add(maxCCS_label, (y, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        info_grid.Add(self.maxCCS_value, (y, 4), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        info_grid.Add(vertical_line_4, (y, 5), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        info_grid.Add(kappa_label, (y, 6), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        info_grid.Add(self.kappa_value, (y, 7), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
 
         # pack elements
         grid = wx.GridBagSizer(5, 5)
         y = 0
-        grid.Add(title_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
+        grid.Add(title_label, (y, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
         grid.Add(self.title_value, (y, 1), wx.GBSpan(1, 6), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
-        grid.Add(sequence_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
+        grid.Add(sequence_label, (y, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
         grid.Add(self.sequence_value, (y, 1), wx.GBSpan(2, 6), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.sequence_loadBtn, (y, 7), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_TOP)
+        grid.Add(self.sequence_loadBtn, (y, 7), flag=wx.ALIGN_LEFT | wx.ALIGN_TOP)
         y = y + 1
-        grid.Add(self.sequence_converter, (y, 7), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_TOP)
+        grid.Add(self.sequence_converter, (y, 7), flag=wx.ALIGN_LEFT | wx.ALIGN_TOP)
         y = y + 1
         grid.Add(horizontal_line, (y, 0), wx.GBSpan(1, 8), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         y = y + 1

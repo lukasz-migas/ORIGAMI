@@ -280,22 +280,22 @@ class DialogCustomiseUniDecVisuals(Dialog):
         bar_grid = wx.GridBagSizer(2, 2)
         y = 0
         bar_grid.Add(bar_markerSize_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        bar_grid.Add(self.bar_markerSize_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        bar_grid.Add(self.bar_markerSize_value, (y, 1), flag=wx.EXPAND)
         y += 1
         bar_grid.Add(bar_width_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        bar_grid.Add(self.bar_width_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        bar_grid.Add(self.bar_width_value, (y, 1), flag=wx.EXPAND)
         y += 1
         bar_grid.Add(bar_alpha_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        bar_grid.Add(self.bar_alpha_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        bar_grid.Add(self.bar_alpha_value, (y, 1), flag=wx.EXPAND)
         y += 1
         bar_grid.Add(bar_lineWidth_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        bar_grid.Add(self.bar_lineWidth_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        bar_grid.Add(self.bar_lineWidth_value, (y, 1), flag=wx.EXPAND)
         y += 1
         bar_grid.Add(bar_edgeColor_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        bar_grid.Add(self.bar_edgeColor_Btn, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        bar_grid.Add(self.bar_edgeColor_Btn, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         y += 1
         bar_grid.Add(bar_colorEdge_check_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        bar_grid.Add(self.bar_colorEdge_check, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        bar_grid.Add(self.bar_colorEdge_check, (y, 1), flag=wx.EXPAND)
         bar_box_sizer.Add(bar_grid, 0, wx.EXPAND, 10)
 
         # Color

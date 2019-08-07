@@ -76,9 +76,9 @@ class DialogSelectDocument(Dialog):
         grid.Add(documentList_label, (0, 0))
         grid.Add(self.document_list_choice, (0, 1), wx.GBSpan(1, 3))
 
-        grid.Add(self.ok_btn, (1, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        grid.Add(self.add_btn, (1, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        grid.Add(self.cancel_btn, (1, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(self.ok_btn, (1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(self.add_btn, (1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(self.cancel_btn, (1, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
 
         main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
 

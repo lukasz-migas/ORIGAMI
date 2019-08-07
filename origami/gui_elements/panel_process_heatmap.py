@@ -200,10 +200,10 @@ class PanelProcessHeatmap(MiniFrame):
         btn_grid = wx.GridBagSizer(2, 2)
         n = 0
         if not self.disable_plot:
-            btn_grid.Add(self.plot_btn, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+            btn_grid.Add(self.plot_btn, (n, 1), flag=wx.EXPAND)
         if not self.disable_process:
-            btn_grid.Add(self.add_to_document_btn, (n, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        btn_grid.Add(self.cancel_btn, (n, 3), wx.GBSpan(1, 1), flag=wx.EXPAND)
+            btn_grid.Add(self.add_to_document_btn, (n, 2), flag=wx.EXPAND)
+        btn_grid.Add(self.cancel_btn, (n, 3), flag=wx.EXPAND)
 
         horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
@@ -214,89 +214,85 @@ class PanelProcessHeatmap(MiniFrame):
 
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(document_info_text, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(document_info_text, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.document_info_text, (n, 1), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
-        grid.Add(dataset_type_info_text, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(dataset_type_info_text, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.dataset_type_info_text, (n, 1), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
-        grid.Add(dataset_info_text, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(dataset_info_text, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.dataset_info_text, (n, 1), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
         grid.Add(horizontal_line_0, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n += 1
-        grid.Add(plot2D_process_crop, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot2D_process_crop, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        grid.Add(plot2D_process_crop, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot2D_process_crop, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         n += 1
-        grid.Add(plot2D_crop_xmin, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot2D_crop_xmin, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(plot2D_crop_xmin, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot2D_crop_xmin, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
-        grid.Add(plot2D_crop_xmax, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot2D_crop_xmax, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(plot2D_crop_xmax, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot2D_crop_xmax, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
-        grid.Add(plot2D_crop_ymin, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot2D_crop_ymin, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(plot2D_crop_ymin, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot2D_crop_ymin, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
-        grid.Add(plot2D_crop_ymax, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot2D_crop_ymax, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(plot2D_crop_ymax, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot2D_crop_ymax, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
         grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n += 1
-        grid.Add(plot2D_process_interpolate, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(
-            self.plot2D_process_interpolate, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT
-        )
+        grid.Add(plot2D_process_interpolate, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot2D_process_interpolate, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         n += 1
-        grid.Add(plot2D_interpolate_mode, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot2D_interpolate_mode, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(plot2D_interpolate_mode, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot2D_interpolate_mode, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
-        grid.Add(plot2D_interpolate_fold, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot2D_interpolate_fold, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(plot2D_interpolate_fold, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot2D_interpolate_fold, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
-        grid.Add(plot2D_interpolate_xaxis, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot2D_interpolate_xaxis, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(plot2D_interpolate_xaxis, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot2D_interpolate_xaxis, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
-        grid.Add(plot2D_interpolate_yaxis, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot2D_interpolate_yaxis, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(plot2D_interpolate_yaxis, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot2D_interpolate_yaxis, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
         grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n += 1
-        grid.Add(plot2D_process_smooth, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot2D_process_smooth, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        grid.Add(plot2D_process_smooth, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot2D_process_smooth, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         n += 1
-        grid.Add(smoothFcn_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot2D_smoothFcn_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(smoothFcn_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot2D_smoothFcn_choice, (n, 1), flag=wx.EXPAND)
         n = n + 1
-        grid.Add(polynomial_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot2D_polynomial_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(polynomial_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot2D_polynomial_value, (n, 1), flag=wx.EXPAND)
         n = n + 1
-        grid.Add(window_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot2D_window_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(window_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot2D_window_value, (n, 1), flag=wx.EXPAND)
         n = n + 1
-        grid.Add(sigma_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot2D_sigma_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(sigma_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot2D_sigma_value, (n, 1), flag=wx.EXPAND)
         n += 1
         grid.Add(horizontal_line_3, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n += 1
-        grid.Add(plot2D_process_threshold, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot2D_process_threshold, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        grid.Add(plot2D_process_threshold, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot2D_process_threshold, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         n += 1
-        grid.Add(threshold_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot2D_threshold_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(threshold_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot2D_threshold_value, (n, 1), flag=wx.EXPAND)
         n += 1
         grid.Add(horizontal_line_4, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n += 1
-        grid.Add(plot2D_process_normalize, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot2D_process_normalize, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        grid.Add(plot2D_process_normalize, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot2D_process_normalize, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         n += 1
-        grid.Add(normalize_mode, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(
-            self.plot2D_normalizeFcn_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT
-        )
+        grid.Add(normalize_mode, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot2D_normalizeFcn_choice, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         n += 1
         grid.Add(horizontal_line_5, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n = n + 1
-        grid.Add(btn_grid, (n, 0), wx.GBSpan(1, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        grid.Add(btn_grid, (n, 0), wx.GBSpan(1, 3), flag=wx.ALIGN_CENTER)
 
         # fit layout
         main_sizer = wx.BoxSizer(wx.VERTICAL)

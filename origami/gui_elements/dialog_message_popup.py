@@ -49,11 +49,9 @@ class DialogMessagePopup(Dialog):
         y = 0
         grid.Add(self.msg, (y, 0), wx.GBSpan(1, 4))
         y = y + 1
-        grid.Add(self.yes_btn, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        grid.Add(self.no_btn, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        grid.Add(
-            self.ask_again_check, (y, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
+        grid.Add(self.yes_btn, (y, 0), flag=wx.ALIGN_CENTER)
+        grid.Add(self.no_btn, (y, 1), flag=wx.ALIGN_CENTER)
+        grid.Add(self.ask_again_check, (y, 3), flag=wx.ALIGN_CENTER)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(grid, 0, wx.EXPAND, 10)

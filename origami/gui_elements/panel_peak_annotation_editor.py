@@ -280,58 +280,50 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         # button grid
         btn_grid = wx.GridBagSizer(5, 5)
         y = 0
-        btn_grid.Add(self.actionBtn, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        btn_grid.Add(self.markTgl, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid.Add(self.addBtn, (y, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid.Add(self.showBtn, (y, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid.Add(
-            self.removeBtn, (y, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
-        btn_grid.Add(
-            self.cancelBtn, (y, 5), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
+        btn_grid.Add(self.actionBtn, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        btn_grid.Add(self.markTgl, (y, 1), flag=wx.ALIGN_CENTER)
+        btn_grid.Add(self.addBtn, (y, 2), flag=wx.ALIGN_CENTER)
+        btn_grid.Add(self.showBtn, (y, 3), flag=wx.ALIGN_CENTER)
+        btn_grid.Add(self.removeBtn, (y, 4), flag=wx.ALIGN_CENTER)
+        btn_grid.Add(self.cancelBtn, (y, 5), flag=wx.ALIGN_CENTER)
         y = y + 1
-        btn_grid.Add(
-            self.highlight_on_selection, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT
-        )
-        btn_grid.Add(self.zoom_on_selection, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        btn_grid.Add(window_size, (y, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid.Add(
-            self.zoom_window_size, (y, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
+        btn_grid.Add(self.highlight_on_selection, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        btn_grid.Add(self.zoom_on_selection, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        btn_grid.Add(window_size, (y, 2), flag=wx.ALIGN_CENTER)
+        btn_grid.Add(self.zoom_window_size, (y, 3), flag=wx.ALIGN_CENTER)
 
         # pack elements
         grid = wx.GridBagSizer(5, 5)
         y = 0
-        grid.Add(min_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.min_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(max_label, (y, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.max_value, (y, 3), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(position_label, (y, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.position_value, (y, 5), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(min_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.min_value, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(max_label, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.max_value, (y, 3), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(position_label, (y, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.position_value, (y, 5), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
-        grid.Add(charge_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.charge_value, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(intensity_label, (y, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.intensity_value, (y, 3), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(color_label, (y, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.colorBtn, (y, 5), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(charge_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.charge_value, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(intensity_label, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.intensity_value, (y, 3), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(color_label, (y, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.colorBtn, (y, 5), flag=wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
-        grid.Add(label_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(label_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.label_value, (y, 1), wx.GBSpan(1, 3), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(label_format, (y, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.label_format, (y, 5), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(label_format, (y, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.label_format, (y, 5), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
-        grid.Add(position_x_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.position_x_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(position_y_label, (y, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.position_y_value, (y, 3), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(add_arrow_to_peak, (y, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.add_arrow_to_peak, (y, 5), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(position_x_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.position_x_value, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(position_y_label, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.position_y_value, (y, 3), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(add_arrow_to_peak, (y, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.add_arrow_to_peak, (y, 5), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
         grid.Add(horizontal_line, (y, 0), wx.GBSpan(1, 8), flag=wx.EXPAND)
         y = y + 1
-        grid.Add(btn_grid, (y, 0), wx.GBSpan(1, 8), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        grid.Add(btn_grid, (y, 0), wx.GBSpan(1, 8), flag=wx.ALIGN_CENTER)
 
         main_sizer.Add(grid, 0, wx.EXPAND, 10)
         main_sizer.Add(self.peaklist, 1, wx.EXPAND | wx.ALL, 2)

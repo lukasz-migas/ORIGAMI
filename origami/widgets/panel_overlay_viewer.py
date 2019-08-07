@@ -265,43 +265,39 @@ class PanelOverlayViewer(MiniFrame):
         self.hot_plot_check.SetValue(False)
         self.hot_plot_check.Disable()
 
-        # pack buttons
+        # pack buttonswx.ALIGN_CENTER
         btn_grid = wx.GridBagSizer(2, 2)
         n = 0
-        btn_grid.Add(
-            self.action_btn, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
-        btn_grid.Add(self.plot_btn, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid.Add(self.add_to_document_btn, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        btn_grid.Add(
-            self.cancel_btn, (n, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
-        btn_grid.Add(self.hot_plot_check, (n, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER)
+        btn_grid.Add(self.action_btn, (n, 0), flag=wx.ALIGN_CENTER)
+        btn_grid.Add(self.plot_btn, (n, 1), flag=wx.ALIGN_CENTER)
+        btn_grid.Add(self.add_to_document_btn, (n, 2), flag=wx.ALIGN_CENTER)
+        btn_grid.Add(self.cancel_btn, (n, 3), flag=wx.ALIGN_CENTER)
+        btn_grid.Add(self.hot_plot_check, (n, 4), flag=wx.ALIGN_CENTER)
 
         # pack heatmap items
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(dataset_type_choice, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.EXPAND)
-        grid.Add(self.dataset_type_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER | wx.EXPAND)
-        grid.Add(self.refresh_btn, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        grid.Add(dataset_type_choice, (n, 0), flag=wx.ALIGN_RIGHT | wx.EXPAND)
+        grid.Add(self.dataset_type_choice, (n, 1), flag=wx.ALIGN_CENTER | wx.EXPAND)
+        grid.Add(self.refresh_btn, (n, 2), flag=wx.ALIGN_CENTER)
         n += 1
         grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
         n += 1
         grid.Add(dataset_type_spectrum, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
         n += 1
-        grid.Add(overlay_spectrum_method_choice, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.EXPAND)
-        grid.Add(self.overlay_spectrum_method_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER | wx.EXPAND)
+        grid.Add(overlay_spectrum_method_choice, (n, 0), flag=wx.ALIGN_RIGHT | wx.EXPAND)
+        grid.Add(self.overlay_spectrum_method_choice, (n, 1), flag=wx.ALIGN_CENTER | wx.EXPAND)
         n += 1
-        grid.Add(self.normalize_1D_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.EXPAND)
+        grid.Add(self.normalize_1D_check, (n, 1), flag=wx.ALIGN_RIGHT | wx.EXPAND)
         n += 1
         grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
         n += 1
         grid.Add(dataset_type_heatmap, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
         n += 1
-        grid.Add(overlay_heatmap_method_choice, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.EXPAND)
-        grid.Add(self.overlay_heatmap_method_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER | wx.EXPAND)
+        grid.Add(overlay_heatmap_method_choice, (n, 0), flag=wx.ALIGN_RIGHT | wx.EXPAND)
+        grid.Add(self.overlay_heatmap_method_choice, (n, 1), flag=wx.ALIGN_CENTER | wx.EXPAND)
         n += 1
-        grid.Add(self.use_processed_data_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_RIGHT | wx.EXPAND)
+        grid.Add(self.use_processed_data_check, (n, 1), flag=wx.ALIGN_RIGHT | wx.EXPAND)
 
         # setup growable column
         grid.AddGrowableCol(3)

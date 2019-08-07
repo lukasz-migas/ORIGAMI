@@ -293,28 +293,26 @@ class PanelProcessUniDec(wx.MiniFrame):
 
         btn_grid = wx.GridBagSizer(2, 2)
         n = 0
-        btn_grid.Add(self.unidec_preprocess, (n, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        btn_grid.Add(self.unidec_preprocess, (n, 0), flag=wx.EXPAND)
 
         # pack elements
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(unidec_ms_min_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.unidec_mzStart_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(unidec_ms_max_label, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.unidec_mzEnd_value, (n, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(unidec_ms_min_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_mzStart_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(unidec_ms_max_label, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_mzEnd_value, (n, 3), flag=wx.ALIGN_CENTER_VERTICAL)
         n += 1
-        grid.Add(unidec_ms_binsize_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.unidec_mzBinSize_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(unidec_ms_binsize_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_mzBinSize_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         n += 1
-        grid.Add(
-            unidec_ms_gaussianFilter_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT
-        )
-        grid.Add(self.unidec_gaussianFilter_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(unidec_ms_gaussianFilter_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_gaussianFilter_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         n += 1
-        grid.Add(unidec_ms_accelerationV_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.unidec_accelerationV_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(unidec_ms_accelerationV_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_accelerationV_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         n += 1
-        grid.Add(unidec_linearization_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(unidec_linearization_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.unidec_linearization_choice, (n, 1), wx.GBSpan(1, 4), flag=wx.ALIGN_CENTER_VERTICAL)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -390,35 +388,31 @@ class PanelProcessUniDec(wx.MiniFrame):
 
         btn_grid = wx.GridBagSizer(2, 2)
         n = 0
-        btn_grid.Add(self.unidec_runUnidec, (n, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        btn_grid.Add(self.unidec_runUnidec, (n, 0), flag=wx.EXPAND)
 
         # pack elements
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(unidec_charge_min_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.unidec_zStart_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        grid.Add(unidec_charge_max_label, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.unidec_zEnd_value, (n, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(unidec_charge_min_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_zStart_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(unidec_charge_max_label, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_zEnd_value, (n, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
-        grid.Add(unidec_mw_min_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.unidec_mwStart_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        grid.Add(unidec_mw_max_label, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.unidec_mwEnd_value, (n, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(unidec_mw_min_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_mwStart_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(unidec_mw_max_label, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_mwEnd_value, (n, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
-        grid.Add(
-            unidec_mw_sampleFrequency_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT
-        )
-        grid.Add(
-            self.unidec_mw_sampleFrequency_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND
-        )
+        grid.Add(unidec_mw_sampleFrequency_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_mw_sampleFrequency_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
-        grid.Add(unidec_peakWidth_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.unidec_fit_peakWidth_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        grid.Add(self.unidec_peak_width_btn, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.unidec_fit_peakWidth_check, (n, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(unidec_peakWidth_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_fit_peakWidth_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(self.unidec_peak_width_btn, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.unidec_fit_peakWidth_check, (n, 3), flag=wx.ALIGN_CENTER_VERTICAL)
         n += 1
-        grid.Add(unidec_peakShape_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.unidec_peakFcn_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(unidec_peakShape_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_peakFcn_choice, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(grid, 1, wx.ALIGN_CENTER_HORIZONTAL, 2)
@@ -480,33 +474,31 @@ class PanelProcessUniDec(wx.MiniFrame):
 
         btn_grid = wx.GridBagSizer(2, 2)
         n = 0
-        btn_grid.Add(self.unidec_detectPeaks, (n, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        btn_grid.Add(self.unidec_showPeaks, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        btn_grid.Add(self.unidec_detectPeaks, (n, 0), flag=wx.EXPAND)
+        btn_grid.Add(self.unidec_showPeaks, (n, 1), flag=wx.EXPAND)
 
         horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
         # pack elements
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(unidec_peak_width_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.unidec_peakWidth_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(unidec_peak_width_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_peakWidth_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         n += 1
-        grid.Add(unidec_peak_threshold_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.unidec_peakThreshold_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(unidec_peak_threshold_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_peakThreshold_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         n += 1
-        grid.Add(
-            unidec_peak_normalization_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT
-        )
-        grid.Add(self.unidec_peakNormalization_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(unidec_peak_normalization_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_peakNormalization_choice, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         n += 1
-        grid.Add(unidec_peak_separation_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.unidec_lineSeparation_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(unidec_peak_separation_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_lineSeparation_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         n += 1
-        grid.Add(markers_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.unidec_markers_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(markers_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_markers_check, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         n += 1
-        grid.Add(individualComponents_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.unidec_individualComponents_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(individualComponents_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_individualComponents_check, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(grid, 1, wx.ALIGN_CENTER_HORIZONTAL, 2)
@@ -598,34 +590,28 @@ class PanelProcessUniDec(wx.MiniFrame):
 
         btn_grid = wx.GridBagSizer(2, 2)
         n = 0
-        btn_grid.Add(self.unidec_restoreAll_Btn, (n, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        btn_grid.Add(self.unidec_isolateCharges_Btn, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        btn_grid.Add(self.unidec_chargeStates_Btn, (n, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        btn_grid.Add(self.unidec_restoreAll_Btn, (n, 0), flag=wx.EXPAND)
+        btn_grid.Add(self.unidec_isolateCharges_Btn, (n, 1), flag=wx.EXPAND)
+        btn_grid.Add(self.unidec_chargeStates_Btn, (n, 2), flag=wx.EXPAND)
 
         # pack elements
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(unidec_plotting_weights_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(unidec_plotting_weights_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.unidec_weightList_choice, (n, 1), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        grid.Add(self.unidec_weightList_sort, (n, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(self.unidec_weightList_sort, (n, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
-        grid.Add(charges_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.unidec_charges_check, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(charges_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_charges_check, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
-        grid.Add(unidec_plotting_adduct_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.unidec_adductMW_choice, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(unidec_plotting_adduct_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_adductMW_choice, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
-        grid.Add(
-            unidec_charges_threshold_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT
-        )
-        grid.Add(
-            self.unidec_charges_threshold_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT
-        )
+        grid.Add(unidec_charges_threshold_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_charges_threshold_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         n += 1
-        grid.Add(unidec_charges_offset_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(
-            self.unidec_charges_offset_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT
-        )
+        grid.Add(unidec_charges_offset_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_charges_offset_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(grid, 1, wx.ALIGN_CENTER_HORIZONTAL, 2)
@@ -683,13 +669,13 @@ class PanelProcessUniDec(wx.MiniFrame):
 
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(self.unidec_auto_btn, (n, 0), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTRE_HORIZONTAL)
-        grid.Add(self.unidec_init_btn, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTRE_HORIZONTAL)
-        grid.Add(self.unidec_unidec_btn, (n, 2), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTRE_HORIZONTAL)
-        grid.Add(self.unidec_peak_btn, (n, 3), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTRE_HORIZONTAL)
-        grid.Add(self.unidec_all_btn, (n, 4), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTRE_HORIZONTAL)
-        grid.Add(self.unidec_cancel_btn, (n, 5), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        grid.Add(self.unidec_customise_btn, (n, 6), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTRE_HORIZONTAL)
+        grid.Add(self.unidec_auto_btn, (n, 0), flag=wx.EXPAND | wx.ALIGN_CENTRE_HORIZONTAL)
+        grid.Add(self.unidec_init_btn, (n, 1), flag=wx.EXPAND | wx.ALIGN_CENTRE_HORIZONTAL)
+        grid.Add(self.unidec_unidec_btn, (n, 2), flag=wx.EXPAND | wx.ALIGN_CENTRE_HORIZONTAL)
+        grid.Add(self.unidec_peak_btn, (n, 3), flag=wx.EXPAND | wx.ALIGN_CENTRE_HORIZONTAL)
+        grid.Add(self.unidec_all_btn, (n, 4), flag=wx.EXPAND | wx.ALIGN_CENTRE_HORIZONTAL)
+        grid.Add(self.unidec_cancel_btn, (n, 5), flag=wx.EXPAND)
+        grid.Add(self.unidec_customise_btn, (n, 6), flag=wx.EXPAND | wx.ALIGN_CENTRE_HORIZONTAL)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(grid, 1, wx.ALIGN_CENTER_HORIZONTAL, 2)

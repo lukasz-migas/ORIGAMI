@@ -455,14 +455,12 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
         # pack elements
         tolerance_grid = wx.GridBagSizer(5, 5)
         n = 0
-        tolerance_grid.Add(tolerance_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        tolerance_grid.Add(self.tolerance_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        tolerance_grid.Add(
-            tolerance_units_label, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT
-        )
-        tolerance_grid.Add(self.tolerance_choice, (n, 3), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        tolerance_grid.Add(max_labels_label, (n, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        tolerance_grid.Add(self.max_labels_value, (n, 5), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        tolerance_grid.Add(tolerance_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        tolerance_grid.Add(self.tolerance_value, (n, 1), flag=wx.EXPAND)
+        tolerance_grid.Add(tolerance_units_label, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        tolerance_grid.Add(self.tolerance_choice, (n, 3), flag=wx.EXPAND)
+        tolerance_grid.Add(max_labels_label, (n, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        tolerance_grid.Add(self.max_labels_value, (n, 5), flag=wx.EXPAND)
 
         # M-ions
         self.peptide_M_all = makeCheckbox(panel, "P-all")
@@ -486,10 +484,10 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
         M_ions_box_sizer = wx.StaticBoxSizer(M_ions_staticBox, wx.HORIZONTAL)
 
         M_ions_grid = wx.GridBagSizer(2, 2)
-        M_ions_grid.Add(self.peptide_M_all, (0, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        M_ions_grid.Add(self.peptide_M, (1, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        M_ions_grid.Add(self.peptide_M_nH2O, (2, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        M_ions_grid.Add(self.peptide_M_nNH3, (3, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        M_ions_grid.Add(self.peptide_M_all, (0, 0), flag=wx.EXPAND)
+        M_ions_grid.Add(self.peptide_M, (1, 0), flag=wx.EXPAND)
+        M_ions_grid.Add(self.peptide_M_nH2O, (2, 0), flag=wx.EXPAND)
+        M_ions_grid.Add(self.peptide_M_nNH3, (3, 0), flag=wx.EXPAND)
         M_ions_box_sizer.Add(M_ions_grid, 0, wx.EXPAND, 10)
 
         # a-ions
@@ -514,10 +512,10 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
         a_ions_box_sizer = wx.StaticBoxSizer(a_ions_staticBox, wx.HORIZONTAL)
 
         a_ions_grid = wx.GridBagSizer(2, 2)
-        a_ions_grid.Add(self.peptide_a_all, (0, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        a_ions_grid.Add(self.peptide_a, (1, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        a_ions_grid.Add(self.peptide_a_nH2O, (2, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        a_ions_grid.Add(self.peptide_a_nNH3, (3, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        a_ions_grid.Add(self.peptide_a_all, (0, 0), flag=wx.EXPAND)
+        a_ions_grid.Add(self.peptide_a, (1, 0), flag=wx.EXPAND)
+        a_ions_grid.Add(self.peptide_a_nH2O, (2, 0), flag=wx.EXPAND)
+        a_ions_grid.Add(self.peptide_a_nNH3, (3, 0), flag=wx.EXPAND)
         a_ions_box_sizer.Add(a_ions_grid, 0, wx.EXPAND, 10)
 
         self.peptide_b_all = makeCheckbox(panel, "b-all")
@@ -542,10 +540,10 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
         b_ions_box_sizer = wx.StaticBoxSizer(b_ions_staticBox, wx.HORIZONTAL)
 
         b_ions_grid = wx.GridBagSizer(2, 2)
-        b_ions_grid.Add(self.peptide_b_all, (0, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        b_ions_grid.Add(self.peptide_b, (1, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        b_ions_grid.Add(self.peptide_b_nH2O, (2, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        b_ions_grid.Add(self.peptide_b_nNH3, (3, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        b_ions_grid.Add(self.peptide_b_all, (0, 0), flag=wx.EXPAND)
+        b_ions_grid.Add(self.peptide_b, (1, 0), flag=wx.EXPAND)
+        b_ions_grid.Add(self.peptide_b_nH2O, (2, 0), flag=wx.EXPAND)
+        b_ions_grid.Add(self.peptide_b_nNH3, (3, 0), flag=wx.EXPAND)
         b_ions_box_sizer.Add(b_ions_grid, 0, wx.EXPAND, 10)
 
         self.peptide_c_all = makeCheckbox(panel, "c-all")
@@ -578,12 +576,12 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
         c_ions_box_sizer = wx.StaticBoxSizer(c_ions_staticBox, wx.HORIZONTAL)
 
         c_ions_grid = wx.GridBagSizer(2, 2)
-        c_ions_grid.Add(self.peptide_c_all, (0, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        c_ions_grid.Add(self.peptide_c, (1, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        c_ions_grid.Add(self.peptide_c_nH2O, (2, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        c_ions_grid.Add(self.peptide_c_nNH3, (3, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        c_ions_grid.Add(self.peptide_c_dot, (4, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        c_ions_grid.Add(self.peptide_c_add_1_2, (5, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        c_ions_grid.Add(self.peptide_c_all, (0, 0), flag=wx.EXPAND)
+        c_ions_grid.Add(self.peptide_c, (1, 0), flag=wx.EXPAND)
+        c_ions_grid.Add(self.peptide_c_nH2O, (2, 0), flag=wx.EXPAND)
+        c_ions_grid.Add(self.peptide_c_nNH3, (3, 0), flag=wx.EXPAND)
+        c_ions_grid.Add(self.peptide_c_dot, (4, 0), flag=wx.EXPAND)
+        c_ions_grid.Add(self.peptide_c_add_1_2, (5, 0), flag=wx.EXPAND)
         c_ions_box_sizer.Add(c_ions_grid, 0, wx.EXPAND, 10)
 
         self.peptide_x_all = makeCheckbox(panel, "x-all")
@@ -608,10 +606,10 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
         x_ions_box_sizer = wx.StaticBoxSizer(x_ions_staticBox, wx.HORIZONTAL)
 
         x_ions_grid = wx.GridBagSizer(2, 2)
-        x_ions_grid.Add(self.peptide_x_all, (0, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        x_ions_grid.Add(self.peptide_x, (1, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        x_ions_grid.Add(self.peptide_x_nH2O, (2, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        x_ions_grid.Add(self.peptide_x_nNH3, (3, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        x_ions_grid.Add(self.peptide_x_all, (0, 0), flag=wx.EXPAND)
+        x_ions_grid.Add(self.peptide_x, (1, 0), flag=wx.EXPAND)
+        x_ions_grid.Add(self.peptide_x_nH2O, (2, 0), flag=wx.EXPAND)
+        x_ions_grid.Add(self.peptide_x_nNH3, (3, 0), flag=wx.EXPAND)
         x_ions_box_sizer.Add(x_ions_grid, 0, wx.EXPAND, 10)
 
         self.peptide_y_all = makeCheckbox(panel, "y-all")
@@ -636,10 +634,10 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
         y_ions_box_sizer = wx.StaticBoxSizer(y_ions_staticBox, wx.HORIZONTAL)
 
         y_ions_grid = wx.GridBagSizer(2, 2)
-        y_ions_grid.Add(self.peptide_y_all, (0, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        y_ions_grid.Add(self.peptide_y, (1, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        y_ions_grid.Add(self.peptide_y_nH2O, (2, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        y_ions_grid.Add(self.peptide_y_nNH3, (3, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        y_ions_grid.Add(self.peptide_y_all, (0, 0), flag=wx.EXPAND)
+        y_ions_grid.Add(self.peptide_y, (1, 0), flag=wx.EXPAND)
+        y_ions_grid.Add(self.peptide_y_nH2O, (2, 0), flag=wx.EXPAND)
+        y_ions_grid.Add(self.peptide_y_nNH3, (3, 0), flag=wx.EXPAND)
         y_ions_box_sizer.Add(y_ions_grid, 0, wx.EXPAND, 10)
 
         self.peptide_z_all = makeCheckbox(panel, "z-all")
@@ -672,25 +670,25 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
         z_ions_box_sizer = wx.StaticBoxSizer(z_ions_staticBox, wx.HORIZONTAL)
 
         z_ions_grid = wx.GridBagSizer(2, 2)
-        z_ions_grid.Add(self.peptide_z_all, (0, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        z_ions_grid.Add(self.peptide_z, (1, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        z_ions_grid.Add(self.peptide_z_nH2O, (2, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        z_ions_grid.Add(self.peptide_z_nNH3, (3, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        z_ions_grid.Add(self.peptide_z_dot, (4, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        z_ions_grid.Add(self.peptide_z_add_1_2, (5, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        z_ions_grid.Add(self.peptide_z_all, (0, 0), flag=wx.EXPAND)
+        z_ions_grid.Add(self.peptide_z, (1, 0), flag=wx.EXPAND)
+        z_ions_grid.Add(self.peptide_z_nH2O, (2, 0), flag=wx.EXPAND)
+        z_ions_grid.Add(self.peptide_z_nNH3, (3, 0), flag=wx.EXPAND)
+        z_ions_grid.Add(self.peptide_z_dot, (4, 0), flag=wx.EXPAND)
+        z_ions_grid.Add(self.peptide_z_add_1_2, (5, 0), flag=wx.EXPAND)
         z_ions_box_sizer.Add(z_ions_grid, 0, wx.EXPAND, 10)
 
         grid = wx.GridBagSizer(5, 5)
         n = 0
         grid.Add(tolerance_grid, (n, 0), wx.GBSpan(1, 7), flag=wx.EXPAND)
         n = n + 1
-        grid.Add(M_ions_box_sizer, (n, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        grid.Add(a_ions_box_sizer, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        grid.Add(b_ions_box_sizer, (n, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        grid.Add(c_ions_box_sizer, (n, 3), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        grid.Add(x_ions_box_sizer, (n, 4), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        grid.Add(y_ions_box_sizer, (n, 5), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        grid.Add(z_ions_box_sizer, (n, 6), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(M_ions_box_sizer, (n, 0), flag=wx.EXPAND)
+        grid.Add(a_ions_box_sizer, (n, 1), flag=wx.EXPAND)
+        grid.Add(b_ions_box_sizer, (n, 2), flag=wx.EXPAND)
+        grid.Add(c_ions_box_sizer, (n, 3), flag=wx.EXPAND)
+        grid.Add(x_ions_box_sizer, (n, 4), flag=wx.EXPAND)
+        grid.Add(y_ions_box_sizer, (n, 5), flag=wx.EXPAND)
+        grid.Add(z_ions_box_sizer, (n, 6), flag=wx.EXPAND)
 
         fragment_staticBox = makeStaticBox(panel, "Fragment assignment", size=(-1, -1), color=wx.BLACK)
         fragment_staticBox.SetSize((-1, -1))
@@ -926,7 +924,7 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
         btn_grid.Add(self.show_all_Btn, (n, 2), flag=wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND)
         btn_grid.Add(self.verbose_check, (n, 3), flag=wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND)
         btn_grid.Add(self.butterfly_check, (n, 4), flag=wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND)
-        btn_grid.Add(self.actionBtn, (n, 5), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        btn_grid.Add(self.actionBtn, (n, 5), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(btn_grid, 0, wx.EXPAND, 5)

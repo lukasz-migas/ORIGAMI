@@ -132,37 +132,33 @@ class dialog_customise_smart_zoom(Dialog):
         # pack elements
         grid = wx.GridBagSizer(5, 5)
         y = 0
-        grid.Add(visualisation_mode, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.visualisation_mode, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(visualisation_mode, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.visualisation_mode, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
         grid.Add(hz_line_1, (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
         y = y + 1
-        grid.Add(smart_zoom_check, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.smart_zoom_check, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(smart_zoom_check, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.smart_zoom_check, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
         grid.Add(hz_line_2, (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
         y = y + 1
-        grid.Add(
-            smart_zoom_downsampling_method, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT
-        )
-        grid.Add(
-            self.smart_zoom_downsampling_method, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL
-        )
+        grid.Add(smart_zoom_downsampling_method, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.smart_zoom_downsampling_method, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
-        grid.Add(smart_zoom_soft_max, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.smart_zoom_soft_max, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(smart_zoom_soft_max, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.smart_zoom_soft_max, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
-        grid.Add(smart_zoom_hard_max, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.smart_zoom_hard_max, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(smart_zoom_hard_max, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.smart_zoom_hard_max, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
-        grid.Add(smart_zoom_min_search, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.smart_zoom_min_search, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(smart_zoom_min_search, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.smart_zoom_min_search, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
-        grid.Add(smart_zoom_max_search, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.smart_zoom_max_search, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(smart_zoom_max_search, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.smart_zoom_max_search, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         y = y + 1
-        grid.Add(smart_zoom_subsample_default, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.smart_zoom_subsample_default, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(smart_zoom_subsample_default, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.smart_zoom_subsample_default, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         main_sizer.Add(grid, 0, wx.EXPAND, 10)
 
         # fit layout

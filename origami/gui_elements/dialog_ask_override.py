@@ -53,12 +53,10 @@ class DialogAskOverride(Dialog):
         y = 0
         grid.Add(self.msg, (y, 0), wx.GBSpan(1, 4))
         y = y + 1
-        grid.Add(self.overrideBtn, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        grid.Add(self.mergeBtn, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        grid.Add(self.copyBtn, (y, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        grid.Add(
-            self.askAgain_check, (y, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
+        grid.Add(self.overrideBtn, (y, 0), flag=wx.ALIGN_CENTER)
+        grid.Add(self.mergeBtn, (y, 1), flag=wx.ALIGN_CENTER)
+        grid.Add(self.copyBtn, (y, 2), flag=wx.ALIGN_CENTER)
+        grid.Add(self.askAgain_check, (y, 3), flag=wx.ALIGN_CENTER)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(grid, 0, wx.EXPAND, 10)

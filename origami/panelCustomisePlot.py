@@ -117,36 +117,28 @@ class panel_customise_plot(wx.Dialog):
 
         scales_grid = wx.GridBagSizer(2, 2)
         y = 0
-        scales_grid.Add(min_label, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        scales_grid.Add(max_label, (y, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        scales_grid.Add(minor_tickFreq_label, (y, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        scales_grid.Add(
-            major_tickFreq_label, (y, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
-        scales_grid.Add(
-            tick_division_label, (y, 5), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
+        scales_grid.Add(min_label, (y, 1), flag=wx.ALIGN_CENTER)
+        scales_grid.Add(max_label, (y, 2), flag=wx.ALIGN_CENTER)
+        scales_grid.Add(minor_tickFreq_label, (y, 3), flag=wx.ALIGN_CENTER)
+        scales_grid.Add(major_tickFreq_label, (y, 4), flag=wx.ALIGN_CENTER)
+        scales_grid.Add(tick_division_label, (y, 5), flag=wx.ALIGN_CENTER)
         y = y + 1
         scales_grid.Add(xaxis_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         scales_grid.Add(self.xaxis_min_value, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        scales_grid.Add(self.xaxis_max_value, (y, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        scales_grid.Add(self.xaxis_max_value, (y, 2), flag=wx.EXPAND)
         scales_grid.Add(self.xaxis_minor_tickreq_value, (y, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        scales_grid.Add(self.xaxis_major_tickreq_value, (y, 4), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        scales_grid.Add(self.xaxis_tick_division_value, (y, 5), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        scales_grid.Add(self.xaxis_major_tickreq_value, (y, 4), flag=wx.EXPAND)
+        scales_grid.Add(self.xaxis_tick_division_value, (y, 5), flag=wx.EXPAND)
         y = y + 1
         scales_grid.Add(yaxis_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         scales_grid.Add(self.yaxis_min_value, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        scales_grid.Add(self.yaxis_max_value, (y, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        scales_grid.Add(self.yaxis_max_value, (y, 2), flag=wx.EXPAND)
         scales_grid.Add(self.yaxis_minor_tickreq_value, (y, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        scales_grid.Add(self.yaxis_major_tickreq_value, (y, 4), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        scales_grid.Add(self.yaxis_tick_division_value, (y, 5), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        scales_grid.Add(self.yaxis_major_tickreq_value, (y, 4), flag=wx.EXPAND)
+        scales_grid.Add(self.yaxis_tick_division_value, (y, 5), flag=wx.EXPAND)
         y = y + 1
-        scales_grid.Add(
-            self.override_defaults, (y, 0), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
-        scales_grid.Add(
-            self.applyBtn, (y, 5), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
+        scales_grid.Add(self.override_defaults, (y, 0), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER)
+        scales_grid.Add(self.applyBtn, (y, 5), flag=wx.ALIGN_CENTER)
 
         lineWidth_label = wx.StaticText(panel, -1, "Line width:")
         self.line_width_value = wx.SpinCtrlDouble(
@@ -167,12 +159,12 @@ class panel_customise_plot(wx.Dialog):
         line_grid = wx.GridBagSizer(2, 2)
         y = 0
         line_grid.Add(lineWidth_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        line_grid.Add(self.line_width_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        line_grid.Add(self.line_width_value, (y, 1), flag=wx.EXPAND)
         line_grid.Add(lineStyle_label, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        line_grid.Add(self.line_style_value, (y, 3), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        line_grid.Add(self.line_style_value, (y, 3), flag=wx.EXPAND)
         y = y + 1
         line_grid.Add(shade_alpha_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        line_grid.Add(self.shade_alpha_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        line_grid.Add(self.shade_alpha_value, (y, 1), flag=wx.EXPAND)
 
         legend_fontSize_label = wx.StaticText(panel, -1, "Legend font size:")
         self.legend_fontSize_value = wx.Choice(panel, -1, choices=self.config.legendFontChoice, size=(-1, -1))
@@ -190,10 +182,10 @@ class panel_customise_plot(wx.Dialog):
         legend_grid = wx.GridBagSizer(2, 2)
         y = 0
         legend_grid.Add(legend_fontSize_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        legend_grid.Add(self.legend_fontSize_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        legend_grid.Add(self.legend_fontSize_value, (y, 1), flag=wx.EXPAND)
         legend_grid.Add(legend_patch_alpha_label, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        legend_grid.Add(self.legend_patch_alpha_value, (y, 3), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        legend_grid.Add(self.legend_frame_check, (y, 4), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        legend_grid.Add(self.legend_patch_alpha_value, (y, 3), flag=wx.EXPAND)
+        legend_grid.Add(self.legend_frame_check, (y, 4), flag=wx.EXPAND)
 
         colormap_label = wx.StaticText(panel, -1, "Colormap:")
         self.colormap_value = wx.Choice(panel, -1, choices=self.config.cmaps2, size=(-1, -1), name="color")
@@ -220,13 +212,13 @@ class panel_customise_plot(wx.Dialog):
         colormap_grid = wx.GridBagSizer(2, 2)
         y = 0
         colormap_grid.Add(colormap_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        colormap_grid.Add(self.colormap_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        colormap_grid.Add(self.colormap_value, (y, 1), flag=wx.EXPAND)
         colormap_grid.Add(colormap_min_label, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        colormap_grid.Add(self.cmap_min_value, (y, 3), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        colormap_grid.Add(self.cmap_min_value, (y, 3), flag=wx.EXPAND)
         colormap_grid.Add(colormap_mid_label, (y, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        colormap_grid.Add(self.cmap_mid_value, (y, 5), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        colormap_grid.Add(self.cmap_mid_value, (y, 5), flag=wx.EXPAND)
         colormap_grid.Add(colormap_max_label, (y, 6), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        colormap_grid.Add(self.cmap_max_value, (y, 7), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        colormap_grid.Add(self.cmap_max_value, (y, 7), flag=wx.EXPAND)
 
         spines_label = wx.StaticText(panel, -1, "Line:")
         self.leftSpines_check = makeCheckbox(panel, "Left")
@@ -349,17 +341,17 @@ class panel_customise_plot(wx.Dialog):
         font_grid.Add(self.ylabel_value, (y, 1), wx.GBSpan(1, 5), flag=wx.EXPAND)
         y = y + 1
         font_grid.Add(padding_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        font_grid.Add(self.padding_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        font_grid.Add(self.padding_value, (y, 1), flag=wx.EXPAND)
         font_grid.Add(titleFontSize_label, (y, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        font_grid.Add(self.titleFontSize_value, (y, 4), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        font_grid.Add(self.titleFontWeight_check, (y, 5), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        font_grid.Add(self.titleFontSize_value, (y, 4), flag=wx.EXPAND)
+        font_grid.Add(self.titleFontWeight_check, (y, 5), flag=wx.EXPAND)
         y = y + 1
         font_grid.Add(labelFontSize_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        font_grid.Add(self.labelFontSize_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        font_grid.Add(self.labelFontWeight_check, (y, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        font_grid.Add(self.labelFontSize_value, (y, 1), flag=wx.EXPAND)
+        font_grid.Add(self.labelFontWeight_check, (y, 2), flag=wx.EXPAND)
         font_grid.Add(tickFontSize_label, (y, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        font_grid.Add(self.tickFontSize_value, (y, 4), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        font_grid.Add(self.tickFontWeight_check, (y, 5), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        font_grid.Add(self.tickFontSize_value, (y, 4), flag=wx.EXPAND)
+        font_grid.Add(self.tickFontWeight_check, (y, 5), flag=wx.EXPAND)
 
         plotSize_label = wx.StaticText(panel, -1, "Plot size (proportion)")
 
@@ -471,12 +463,12 @@ class panel_customise_plot(wx.Dialog):
         n = n + 1
         grid.Add(horizontal_line_6, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
         n = n + 1
-        grid.Add(self.resetBtn, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_HORIZONTAL)
-        grid.Add(self.saveImageBtn, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_HORIZONTAL)
-        grid.Add(self.cancelBtn, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_HORIZONTAL)
+        grid.Add(self.resetBtn, (n, 0), flag=wx.ALIGN_CENTER_HORIZONTAL)
+        grid.Add(self.saveImageBtn, (n, 1), flag=wx.ALIGN_CENTER_HORIZONTAL)
+        grid.Add(self.cancelBtn, (n, 2), flag=wx.ALIGN_CENTER_HORIZONTAL)
 
         n = n + 1
-        grid.Add(self.lock_plot, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_HORIZONTAL)
+        grid.Add(self.lock_plot, (n, 0), flag=wx.ALIGN_CENTER_HORIZONTAL)
 
         main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, 10)
 

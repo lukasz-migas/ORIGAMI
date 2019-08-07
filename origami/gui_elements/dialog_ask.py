@@ -118,7 +118,7 @@ class DialogAsk(Dialog):
 
         grid.Add(self.input_label, (0, 0), wx.GBSpan(2, 3), flag=wx.ALIGN_RIGHT | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
 
-        grid.Add(self.input_value, (0, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.input_value, (0, 3), flag=wx.ALIGN_CENTER_VERTICAL)
 
         grid.Add(self.okBtn, (2, 2), wx.GBSpan(1, 1))
         grid.Add(self.cancelBtn, (2, 3), wx.GBSpan(1, 1))

@@ -347,82 +347,56 @@ class PanelSignalComparisonViewer(MiniFrame):
         # button grid
         btn_grid = wx.GridBagSizer(GRIDBAG_VSPACE, GRIDBAG_HSPACE)
         y = 0
-        btn_grid.Add(
-            self.settings_btn, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
-        btn_grid.Add(
-            self.legend_btn, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
-        btn_grid.Add(
-            self.process_btn, (y, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
+        btn_grid.Add(self.settings_btn, (y, 0), flag=wx.ALIGN_CENTER)
+        btn_grid.Add(self.legend_btn, (y, 1), flag=wx.ALIGN_CENTER)
+        btn_grid.Add(self.process_btn, (y, 2), flag=wx.ALIGN_CENTER)
 
         # pack elements
         ms1_grid = wx.GridBagSizer(2, 2)
         y = 0
-        ms1_grid.Add(spectrum_1_document_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        ms1_grid.Add(spectrum_1_document_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         ms1_grid.Add(self.spectrum_1_document_value, (y, 1), wx.GBSpan(1, 6), flag=wx.EXPAND)
         y = y + 1
-        ms1_grid.Add(spectrum_1_spectrum_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        ms1_grid.Add(spectrum_1_spectrum_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         ms1_grid.Add(self.spectrum_1_spectrum_value, (y, 1), wx.GBSpan(1, 6), flag=wx.EXPAND)
         y = y + 1
-        ms1_grid.Add(spectrum_1_label_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        ms1_grid.Add(spectrum_1_label_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         ms1_grid.Add(self.spectrum_1_label_value, (y, 1), wx.GBSpan(1, 6), flag=wx.EXPAND)
         y = y + 1
-        ms1_grid.Add(spectrum_1_color_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        ms1_grid.Add(self.spectrum_1_colorBtn, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        ms1_grid.Add(
-            spectrum_1_transparency_label, (y, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT
-        )
-        ms1_grid.Add(
-            self.spectrum_1_transparency, (y, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT
-        )
-        ms1_grid.Add(
-            spectrum_1_lineStyle_label, (y, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT
-        )
-        ms1_grid.Add(
-            self.spectrum_1_lineStyle_value, (y, 5), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT
-        )
+        ms1_grid.Add(spectrum_1_color_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        ms1_grid.Add(self.spectrum_1_colorBtn, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        ms1_grid.Add(spectrum_1_transparency_label, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        ms1_grid.Add(self.spectrum_1_transparency, (y, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        ms1_grid.Add(spectrum_1_lineStyle_label, (y, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        ms1_grid.Add(self.spectrum_1_lineStyle_value, (y, 5), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
 
         ms1_box_sizer.Add(ms1_grid, 0, wx.EXPAND, 10)
 
         ms2_grid = wx.GridBagSizer(2, 2)
         y = 0
-        ms2_grid.Add(document2_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        ms2_grid.Add(document2_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         ms2_grid.Add(self.spectrum_2_document_value, (y, 1), wx.GBSpan(1, 6), flag=wx.EXPAND)
         y = y + 1
-        ms2_grid.Add(spectrum_2_spectrum_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        ms2_grid.Add(spectrum_2_spectrum_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         ms2_grid.Add(self.spectrum_2_spectrum_value, (y, 1), wx.GBSpan(1, 6), flag=wx.EXPAND)
         y = y + 1
-        ms2_grid.Add(spectrum_2_label_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        ms2_grid.Add(spectrum_2_label_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         ms2_grid.Add(self.spectrum_2_label_value, (y, 1), wx.GBSpan(1, 6), flag=wx.EXPAND)
         y = y + 1
-        ms2_grid.Add(spectrum_2_color_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        ms2_grid.Add(self.spectrum_2_colorBtn, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        ms2_grid.Add(
-            spectrum_2_transparency_label, (y, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT
-        )
-        ms2_grid.Add(
-            self.spectrum_2_transparency, (y, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT
-        )
-        ms2_grid.Add(
-            spectrum_2_lineStyle_label, (y, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT
-        )
-        ms2_grid.Add(
-            self.spectrum_2_lineStyle_value, (y, 5), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT
-        )
+        ms2_grid.Add(spectrum_2_color_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        ms2_grid.Add(self.spectrum_2_colorBtn, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        ms2_grid.Add(spectrum_2_transparency_label, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        ms2_grid.Add(self.spectrum_2_transparency, (y, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        ms2_grid.Add(spectrum_2_lineStyle_label, (y, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        ms2_grid.Add(self.spectrum_2_lineStyle_value, (y, 5), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         ms2_box_sizer.Add(ms2_grid, 0, wx.EXPAND, 10)
 
         processing_grid = wx.GridBagSizer(2, 2)
         y = 0
-        processing_grid.Add(
-            self.preprocess_check, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT
-        )
-        processing_grid.Add(
-            self.normalize_check, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT
-        )
-        processing_grid.Add(self.inverse_check, (y, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        processing_grid.Add(self.subtract_check, (y, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        processing_grid.Add(self.preprocess_check, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        processing_grid.Add(self.normalize_check, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        processing_grid.Add(self.inverse_check, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        processing_grid.Add(self.subtract_check, (y, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         processing_box_sizer.Add(processing_grid, 0, wx.EXPAND, 10)
 
         grid = wx.GridBagSizer(GRIDBAG_VSPACE, GRIDBAG_HSPACE)
@@ -435,13 +409,13 @@ class PanelSignalComparisonViewer(MiniFrame):
         y = y + 1
         grid.Add(horizontal_line_1, (y, 0), wx.GBSpan(1, 6), flag=wx.EXPAND)
         y = y + 1
-        grid.Add(settings_label, (y, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(btn_grid, (y, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        grid.Add(settings_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(btn_grid, (y, 1), flag=wx.ALIGN_CENTER)
         y = y + 1
         grid.Add(horizontal_line_2, (y, 0), wx.GBSpan(1, 6), flag=wx.EXPAND)
         y = y + 1
-        grid.Add(self.plot_btn, (y, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        grid.Add(self.cancel_btn, (y, 4), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        grid.Add(self.plot_btn, (y, 3), flag=wx.ALIGN_CENTER)
+        grid.Add(self.cancel_btn, (y, 4), flag=wx.ALIGN_CENTER)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(grid, 0, wx.EXPAND, 10)

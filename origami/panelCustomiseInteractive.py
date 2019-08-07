@@ -2604,9 +2604,9 @@ class panelCustomiseInteractive(wx.MiniFrame):
 
         grid_1 = wx.GridBagSizer(2, 2)
         y = 0
-        grid_1.Add(self.widgets_add_widgets, (y, 0), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
+        grid_1.Add(self.widgets_add_widgets, (y, 0), flag=wx.EXPAND | wx.ALIGN_LEFT)
         y = y + 1
-        grid_1.Add(self.widgets_check_all_widgets, (y, 0), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
+        grid_1.Add(self.widgets_check_all_widgets, (y, 0), flag=wx.EXPAND | wx.ALIGN_LEFT)
 
         # Add to grid sizer
         sizer_left = wx.BoxSizer(wx.VERTICAL)
@@ -2724,23 +2724,23 @@ class panelCustomiseInteractive(wx.MiniFrame):
 
         grid = wx.GridBagSizer(2, 2)
         y = 0
-        grid.Add(self.tools_save_check, (y, 0), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
+        grid.Add(self.tools_save_check, (y, 0), flag=wx.EXPAND | wx.ALIGN_LEFT)
         y = y + 1
-        grid.Add(self.tools_reset_check, (y, 0), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
+        grid.Add(self.tools_reset_check, (y, 0), flag=wx.EXPAND | wx.ALIGN_LEFT)
         y = y + 1
-        grid.Add(self.tools_hover_check, (y, 0), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
-        grid.Add(self.tools_crosshair_check, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
+        grid.Add(self.tools_hover_check, (y, 0), flag=wx.EXPAND | wx.ALIGN_LEFT)
+        grid.Add(self.tools_crosshair_check, (y, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
         y = y + 1
-        grid.Add(self.tools_pan_xy_check, (y, 0), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
-        grid.Add(self.tools_pan_x_check, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
-        grid.Add(self.tools_pan_y_check, (y, 2), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
+        grid.Add(self.tools_pan_xy_check, (y, 0), flag=wx.EXPAND | wx.ALIGN_LEFT)
+        grid.Add(self.tools_pan_x_check, (y, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
+        grid.Add(self.tools_pan_y_check, (y, 2), flag=wx.EXPAND | wx.ALIGN_LEFT)
         y = y + 1
-        grid.Add(self.tools_boxzoom_xy_check, (y, 0), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
-        grid.Add(self.tools_boxzoom_x_check, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
-        grid.Add(self.tools_boxzoom_y_check, (y, 2), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
+        grid.Add(self.tools_boxzoom_xy_check, (y, 0), flag=wx.EXPAND | wx.ALIGN_LEFT)
+        grid.Add(self.tools_boxzoom_x_check, (y, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
+        grid.Add(self.tools_boxzoom_y_check, (y, 2), flag=wx.EXPAND | wx.ALIGN_LEFT)
         y = y + 1
-        grid.Add(self.tools_wheel_check, (y, 0), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
-        grid.Add(self.tools_wheel_choice, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
+        grid.Add(self.tools_wheel_check, (y, 0), flag=wx.EXPAND | wx.ALIGN_LEFT)
+        grid.Add(self.tools_wheel_choice, (y, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
         tools_box_sizer.Add(grid, 0, wx.EXPAND, 10)
 
         wheel_choices = ["Wheel zoom (both)", "Wheel zoom (horizontal)", "Wheel zoom (vertical)", "auto", "None"]
@@ -2787,14 +2787,14 @@ class panelCustomiseInteractive(wx.MiniFrame):
 
         grid = wx.GridBagSizer(2, 2)
         y = 0
-        grid.Add(active_wheel, (y, 0), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
-        grid.Add(self.tools_active_wheel_choice, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
+        grid.Add(active_wheel, (y, 0), flag=wx.EXPAND | wx.ALIGN_LEFT)
+        grid.Add(self.tools_active_wheel_choice, (y, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
         y = y + 1
-        grid.Add(active_drag, (y, 0), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
-        grid.Add(self.tools_active_drag_choice, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
+        grid.Add(active_drag, (y, 0), flag=wx.EXPAND | wx.ALIGN_LEFT)
+        grid.Add(self.tools_active_drag_choice, (y, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
         y = y + 1
-        grid.Add(active_inspect, (y, 0), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
-        grid.Add(self.tools_active_inspect_choice, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
+        grid.Add(active_inspect, (y, 0), flag=wx.EXPAND | wx.ALIGN_LEFT)
+        grid.Add(self.tools_active_inspect_choice, (y, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
         active_box_sizer.Add(grid, 0, wx.EXPAND, 10)
 
         grid_main = wx.GridBagSizer(2, 2)

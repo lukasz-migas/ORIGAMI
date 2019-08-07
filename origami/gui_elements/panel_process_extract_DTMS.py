@@ -88,14 +88,14 @@ class PanelProcessExtractDTMS(MiniFrame):
         n = n + 1
         grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
         n = n + 1
-        grid.Add(mz_min_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.mz_min_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(mz_min_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.mz_min_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         n = n + 1
-        grid.Add(mz_max_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.mz_max_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(mz_max_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.mz_max_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         n = n + 1
-        grid.Add(mz_bin_label, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.mz_bin_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(mz_bin_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.mz_bin_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         n = n + 1
         grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
         n = n + 1
@@ -103,17 +103,10 @@ class PanelProcessExtractDTMS(MiniFrame):
         n = n + 1
         grid.Add(horizontal_line_3, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
         n = n + 1
-        grid.Add(self.extract_btn, (n, 0), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
-        grid.Add(
-            self.add_to_document_btn,
-            (n, 1),
-            wx.GBSpan(1, 1),
-            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL,
-        )
-        grid.Add(
-            self.save_to_file_btn, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL
-        )
-        grid.Add(self.cancel_btn, (n, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER_HORIZONTAL)
+        grid.Add(self.extract_btn, (n, 0), flag=wx.ALIGN_CENTER)
+        grid.Add(self.add_to_document_btn, (n, 1), flag=wx.ALIGN_CENTER)
+        grid.Add(self.save_to_file_btn, (n, 2), flag=wx.ALIGN_CENTER)
+        grid.Add(self.cancel_btn, (n, 3), flag=wx.ALIGN_CENTER)
 
         main_sizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
 
