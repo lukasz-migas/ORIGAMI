@@ -3795,24 +3795,40 @@ class PanelPlots(wx.Panel):
         # Show the mass spectrum
         plot_obj.repaint()
 
-    def plot_compare_spectra(self, xvals_1, xvals_2, yvals_1, yvals_2, xlimits=None, plot="MS", **kwargs):
+    def plot_compare_spectra(
+        self,
+        xvals_1,
+        xvals_2,
+        yvals_1,
+        yvals_2,
+        xlimits=None,
+        xlabel="m/z",
+        ylabel="Intensity",
+        legend=None,
+        plot="MS",
+        **kwargs,
+    ):
 
         if plot is None and "plot_obj" in kwargs:
-            plot_obj = kwargs.get("plot_obj")
+            plot_obj = kwargs.pop("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
 
-        legend = self.config.compare_massSpectrumParams["legend"]
-
+        print(kwargs)
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType="1D")
+        plt_kwargs = merge_two_dicts(plt_kwargs, kwargs)
 
-        plt_kwargs["label_1"] = self.config.compare_massSpectrumParams["legend"][0]
-        plt_kwargs["label_2"] = self.config.compare_massSpectrumParams["legend"][1]
+        if legend is None:
+            legend = self.config.compare_massSpectrumParams["legend"]
+
+        # setup labels
+        plt_kwargs["label_1"] = legend[0]
+        plt_kwargs["label_2"] = legend[1]
 
         try:
             plot_obj.plot_1D_compare_update_data(xvals_1, xvals_2, yvals_1, yvals_2, **plt_kwargs)
-        except AttributeError:
+        except (AttributeError, ValueError):
             plot_obj.clearPlot()
             plot_obj.plot_1D_compare(
                 xvals1=xvals_1,
@@ -3820,10 +3836,9 @@ class PanelPlots(wx.Panel):
                 yvals1=yvals_1,
                 yvals2=yvals_2,
                 xlimits=xlimits,
-                zoom="box",
                 title="",
-                xlabel="m/z",
-                ylabel="Intensity",
+                xlabel=xlabel,
+                ylabel=ylabel,
                 label=legend,
                 lineWidth=self.config.lineWidth_1D,
                 plotType="compare_MS",

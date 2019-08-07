@@ -3,7 +3,6 @@
 import logging
 import re
 from ast import literal_eval
-from copy import deepcopy
 from os.path import split
 
 import wx
@@ -16,18 +15,12 @@ from gui_elements.panel_modifyTextSettings import panelModifyTextSettings
 from ids import ID_addNewOverlayDoc
 from ids import ID_ionPanel_edit_all
 from ids import ID_load_multiple_text_2D
-from ids import ID_overlayTextFromList
-from ids import ID_overlayTextfromList1D
-from ids import ID_overlayTextfromListRT
-from ids import ID_overlayTextfromListWaterfall
-from ids import ID_textPanel_addToDocument
 from ids import ID_textPanel_annotate_alpha
 from ids import ID_textPanel_annotate_charge_state
 from ids import ID_textPanel_annotate_mask
 from ids import ID_textPanel_annotate_max_threshold
 from ids import ID_textPanel_annotate_min_threshold
 from ids import ID_textPanel_assignColor
-from ids import ID_textPanel_automaticOverlay
 from ids import ID_textPanel_changeColorBatch_color
 from ids import ID_textPanel_changeColorBatch_colormap
 from ids import ID_textPanel_changeColorBatch_palette
@@ -41,7 +34,6 @@ from ids import ID_textPanel_delete_rightClick
 from ids import ID_textPanel_delete_selected
 from ids import ID_textPanel_edit_selected
 from ids import ID_textPanel_editItem
-from ids import ID_textPanel_normalize1D
 from ids import ID_textPanel_show_chromatogram
 from ids import ID_textPanel_show_heatmap
 from ids import ID_textPanel_show_mobiligram
@@ -58,13 +50,10 @@ from ids import ID_textPanel_table_mask
 from ids import ID_textPanel_table_restoreAll
 from ids import ID_textPanel_table_shape
 from ids import ID_textPanel_table_startCE
-from ids import ID_textSelectOverlayMethod
-from ids import ID_useProcessedCombinedMenu
 from numpy import arange
 from styles import ListCtrl
 from styles import makeMenuItem
 from styles import makeTooltip
-from toolbox import merge_two_dicts
 from toolbox import removeListDuplicates
 from utils.check import isempty
 from utils.color import convertRGB1to255
@@ -111,19 +100,12 @@ class PanelTextlist(wx.Panel):
 
         self.make_panel_gui()
 
-        if self.plotAutomatically:
-            self.combo.Bind(wx.EVT_COMBOBOX, self.on_overlay_heatmap)
-
         # add a couple of accelerators
         accelerators = [
-            (wx.ACCEL_NORMAL, ord("A"), ID_textPanel_addToDocument),
             (wx.ACCEL_NORMAL, ord("C"), ID_textPanel_assignColor),
             (wx.ACCEL_NORMAL, ord("E"), ID_textPanel_editItem),
             (wx.ACCEL_NORMAL, ord("H"), ID_textPanel_show_heatmap),
             (wx.ACCEL_NORMAL, ord("M"), ID_textPanel_show_mobiligram),
-            (wx.ACCEL_NORMAL, ord("N"), ID_textPanel_normalize1D),
-            (wx.ACCEL_NORMAL, ord("P"), ID_useProcessedCombinedMenu),
-            (wx.ACCEL_NORMAL, ord("O"), ID_textPanel_automaticOverlay),
             (wx.ACCEL_NORMAL, ord("S"), ID_textPanel_check_selected),
             (wx.ACCEL_NORMAL, ord("X"), ID_textPanel_check_all),
             (wx.ACCEL_NORMAL, wx.WXK_DELETE, ID_textPanel_delete_rightClick),
@@ -132,10 +114,6 @@ class PanelTextlist(wx.Panel):
 
         wx.EVT_MENU(self, ID_textPanel_editItem, self.on_open_editor)
         wx.EVT_MENU(self, ID_textPanel_assignColor, self.on_assign_color)
-        wx.EVT_MENU(self, ID_useProcessedCombinedMenu, self.on_enable_disable_tools)
-        wx.EVT_MENU(self, ID_textPanel_automaticOverlay, self.on_enable_disable_tools)
-        wx.EVT_MENU(self, ID_textPanel_addToDocument, self.on_enable_disable_tools)
-        wx.EVT_MENU(self, ID_textPanel_normalize1D, self.on_enable_disable_tools)
         wx.EVT_MENU(self, ID_textPanel_show_heatmap, self.on_plot)
         wx.EVT_MENU(self, ID_textPanel_show_mobiligram, self.on_plot)
         wx.EVT_MENU(self, ID_textPanel_check_selected, self.on_check_selected)
@@ -218,15 +196,6 @@ class PanelTextlist(wx.Panel):
         )
         self.process_btn.SetToolTip(makeTooltip("Process..."))
 
-        self.overlay_btn = wx.BitmapButton(
-            self, -1, self.icons.iconsLib["overlay16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
-        )
-        self.overlay_btn.SetToolTip(makeTooltip("Overlay selected ions..."))
-
-        self.combo = wx.ComboBox(
-            self, ID_textSelectOverlayMethod, size=(105, -1), choices=self.config.overlayChoices, style=wx.CB_READONLY
-        )
-
         self.save_btn = wx.BitmapButton(
             self, -1, self.icons.iconsLib["save16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
@@ -245,7 +214,6 @@ class PanelTextlist(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.menu_process_tools, self.process_btn)
         self.Bind(wx.EVT_BUTTON, self.menu_save_tools, self.save_btn)
         self.Bind(wx.EVT_BUTTON, self.menu_annotate_tools, self.annotate_btn)
-        self.Bind(wx.EVT_BUTTON, self.menu_overlay_tools, self.overlay_btn)
         self.Bind(wx.EVT_BUTTON, self.on_open_info_panel, self.info_btn)
 
         # button grid
@@ -259,10 +227,6 @@ class PanelTextlist(wx.Panel):
         btn_grid_vert.Add(self.annotate_btn, (x, n), flag=wx.ALIGN_CENTER)
         n += 1
         btn_grid_vert.Add(self.process_btn, (x, n), flag=wx.ALIGN_CENTER)
-        n += 1
-        btn_grid_vert.Add(self.overlay_btn, (x, n), flag=wx.ALIGN_CENTER)
-        n += 1
-        btn_grid_vert.Add(self.combo, (x, n), flag=wx.ALIGN_CENTER)
         n += 1
         btn_grid_vert.Add(self.save_btn, (x, n), flag=wx.ALIGN_CENTER)
         n += 1
@@ -514,58 +478,6 @@ class PanelTextlist(wx.Panel):
         # bind events
         self.Bind(wx.EVT_MENU, self.on_process_heatmap_selected, menu_action_process_heatmap)
 
-        self.PopupMenu(menu)
-        menu.Destroy()
-        self.SetFocus()
-
-    def menu_overlay_tools(self, evt):
-
-        self.Bind(wx.EVT_TOOL, self.on_overlay_mobiligram, id=ID_overlayTextfromList1D)
-        self.Bind(wx.EVT_TOOL, self.on_overlay_chromatogram, id=ID_overlayTextfromListRT)
-        self.Bind(wx.EVT_TOOL, self.on_overlay_heatmap, id=ID_overlayTextFromList)
-        self.Bind(wx.EVT_TOOL, self.onOverlayWaterfall, id=ID_overlayTextfromListWaterfall)
-        self.Bind(wx.EVT_MENU, self.on_enable_disable_tools, id=ID_useProcessedCombinedMenu)
-        self.Bind(wx.EVT_TOOL, self.on_enable_disable_tools, id=ID_textPanel_addToDocument)
-        self.Bind(wx.EVT_TOOL, self.on_enable_disable_tools, id=ID_textPanel_normalize1D)
-        self.Bind(wx.EVT_TOOL, self.on_enable_disable_tools, id=ID_textPanel_automaticOverlay)
-
-        menu = wx.Menu()
-        self.addToDocument_check = menu.AppendCheckItem(
-            ID_textPanel_addToDocument,
-            "Add overlay plots to document\tA",
-            help="Add overlay results to comparison document",
-        )
-        self.addToDocument_check.Check(self.addToDocument)
-        menu.AppendSeparator()
-        self.normalize1D_check = menu.AppendCheckItem(
-            ID_textPanel_normalize1D,
-            "Normalize mobiligram/chromatogram dataset\tN",
-            help="Normalize mobiligram/chromatogram before overlaying",
-        )
-        self.normalize1D_check.Check(self.normalize1D)
-        menu.Append(ID_overlayTextfromList1D, "Overlay mobiligrams (selected)")
-        menu.Append(ID_overlayTextfromListRT, "Overlay chromatograms (selected)")
-        menu.AppendSeparator()
-        self.useProcessed_check = menu.AppendCheckItem(
-            ID_useProcessedCombinedMenu,
-            "Use processed data (when available)\tP",
-            help="When checked, processed data is used in the overlay (2D) plots.",
-        )
-        self.useProcessed_check.Check(self.config.overlay_usedProcessed)
-        menu.AppendSeparator()
-        self.automaticPlot_check = menu.AppendCheckItem(
-            ID_textPanel_automaticOverlay, "Overlay automatically\tO", help="Ions will be extracted automatically"
-        )
-        self.automaticPlot_check.Check(self.plotAutomatically)
-        menu.Append(ID_overlayTextfromListWaterfall, "Overlay as waterfall (selected)")
-        menu.AppendItem(
-            makeMenuItem(
-                parent=menu,
-                id=ID_overlayTextFromList,
-                text="Overlay heatmaps (selected)\tAlt+W",
-                bitmap=self.icons.iconsLib["heatmap_grid_16"],
-            )
-        )
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -913,38 +825,11 @@ class PanelTextlist(wx.Panel):
                 # update document
                 self.presenter.documentsDict[document.title] = document
 
-    def on_enable_disable_tools(self, evt):
-        """ Check/uncheck menu item """
-        evtID = evt.GetId()
-
-        if evtID == ID_useProcessedCombinedMenu:
-            self.config.overlay_usedProcessed = not self.config.overlay_usedProcessed
-            msg = "Peak list panel: Using processing data was switched to {}".format(self.config.overlay_usedProcessed)
-
-        elif evtID == ID_textPanel_addToDocument:
-            self.addToDocument = not self.addToDocument
-            msg = "Adding data to comparison document was set to: {}".format(self.addToDocument)
-
-        if evtID == ID_textPanel_normalize1D:
-            self.normalize1D = not self.normalize1D
-            msg = "Normalization of mobiligrams/chromatograms was set to: {}".format(self.normalize1D)
-
-        if evtID == ID_textPanel_automaticOverlay:
-            self.plotAutomatically = not self.plotAutomatically
-            msg = "Automatic 2D overlaying was set to: {}".format(self.plotAutomatically)
-
-            if self.plotAutomatically:
-                self.combo.Bind(wx.EVT_COMBOBOX, self.on_overlay_heatmap)
-            else:
-                self.combo.Unbind(wx.EVT_COMBOBOX)
-
-        self.presenter.onThreading(evt, args=(msg, 4), action="updateStatusbar")
-        wx.Bell()
-
     def on_check_selected(self, evt):
-        """
-        Check current item when letter S is pressed on the keyboard
-        """
+        """Check current item when letter S is pressed on the keyboard"""
+        if self.peaklist.item_id is None:
+            return
+
         check = not self.peaklist.IsChecked(index=self.peaklist.item_id)
         self.peaklist.CheckItem(self.peaklist.item_id, check=check)
 
@@ -955,6 +840,9 @@ class PanelTextlist(wx.Panel):
 
         if itemID is not None:
             self.peaklist.item_id = itemID
+
+        if self.peaklist.item_id is None:
+            return
 
         itemInfo = self.OnGetItemInformation(self.peaklist.item_id)
 
@@ -1014,135 +902,6 @@ class PanelTextlist(wx.Panel):
             self.presenter.view.panelPlots.on_plot_2D(
                 zvals, xvals, yvals, xlabel, ylabel, cmap, override=True, set_page=True
             )
-
-    def onOverlayWaterfall(self, evt):
-        rows = self.peaklist.GetItemCount()
-
-        # Iterate over row and columns to get data
-        xvals, yvals, zvals, colors, labels = [], [], [], [], []
-        item_name = "Waterfall overlay:"
-        for row in range(rows):
-            if not self.peaklist.IsChecked(index=row):
-                continue
-
-            itemInfo = self.OnGetItemInformation(row)
-            try:
-                ion_title = itemInfo["document"]
-                document = self.presenter.documentsDict[ion_title]
-
-                # get data
-                data = document.IMS2D
-            except Exception:
-                document_title, ion_title = re.split(": ", itemInfo["document"])
-                document = self.presenter.documentsDict[document_title]
-                try:
-                    data = document.IMS2DcompData[ion_title]
-                except KeyError:
-                    try:
-                        data = document.IMS2Dions[ion_title]
-                    except Exception:
-                        data = None
-
-            if data is None:
-                continue
-
-            xvals.append(deepcopy(data["yvals"]))
-            yvals.append(deepcopy(data["xvals"]))
-            zvals.append(deepcopy(data["zvals"]))
-            colors.append(convertRGB255to1(itemInfo["color"]))
-            labels.append(itemInfo["label"])
-
-            if self.addToDocument:
-                if itemInfo["label"] != "":
-                    item_label = itemInfo["label"]
-                else:
-                    item_label = ion_title
-
-                if len(xvals) == 1:
-                    item_name = "{} {}".format(item_name, item_label)
-                else:
-                    item_name = "{}, {}".format(item_name, item_label)
-
-        if len(xvals) > 0:
-            xlabel = data["xlabels"]
-            ylabel = data["ylabels"]
-            self.presenter.view.panelPlots.on_plot_waterfall_overlay(
-                xvals, yvals, zvals, colors, xlabel, ylabel, labels
-            )
-            self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames["Waterfall"])
-
-        # add data to document
-        if self.addToDocument:
-            _document = self.onGetOverlayDocument()
-            checkExist = _document.IMS2DoverlayData.get(item_name, None)
-            data = {
-                "xvals": xvals,
-                "yvals": yvals,
-                "zvals": zvals,
-                "colors": colors,
-                "xlabel": xlabel,
-                "ylabel": ylabel,
-                "labels": labels,
-            }
-            if checkExist is not None:
-                # retrieve and merge
-                old_data = document.IMS2DoverlayData.get(item_name, {})
-                data = merge_two_dicts(old_data, data)
-            else:
-                data.update(title="", header="", footnote="")
-
-            _document.gotOverlay = True
-            _document.IMS2DoverlayData[item_name] = data
-
-            self.data_handling.on_update_document(_document, "document")
-
-    def onGetOverlayDocument(self):
-
-        if self.presenter.documentsDict[self.presenter.currentDoc].dataType == "Type: Comparison":
-            document = self.presenter.documentsDict[self.presenter.currentDoc]
-        else:
-            docList = self.presenter.checkIfAnyDocumentsAreOfType(type="Type: Comparison")
-            if len(docList) == 0:
-                dlg = wx.FileDialog(
-                    self.presenter.view,
-                    "Please select a name for the comparison document",
-                    "",
-                    "",
-                    "",
-                    wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
-                )
-                if dlg.ShowModal() == wx.ID_OK:
-                    path, idName = split(dlg.GetPath())
-                else:
-                    return
-                # Create document
-                document = documents()
-                document.title = idName
-                document.path = path
-                document.userParameters = self.config.userParameters
-                document.userParameters["date"] = getTime()
-                document.dataType = "Type: Comparison"
-                document.fileFormat = "Format: ORIGAMI"
-            else:
-                selectDlg = DialogSelectDocument(self.presenter.view, presenter=self.presenter, document_list=docList)
-                if selectDlg.ShowModal() == wx.ID_OK:
-                    pass
-
-                # Check that document exists
-                if self.presenter.currentDoc is None:
-                    self.presenter.onThreading(None, ("Please select comparison document", 4), action="updateStatusbar")
-                    return
-                document = self.presenter.documentsDict[self.presenter.currentDoc]
-
-        if document.dataType != "Type: Comparison":
-            print("This is not a comparison document")
-            docList = self.presenter.checkIfAnyDocumentsAreOfType(type="Type: Comparison")
-            if len(docList) == 1:
-                document = self.presenter.documentsDict[docList[0]]
-
-        args = ("Using document: {}".format(document.title), 4)
-        self.presenter.onThreading(None, args, action="updateStatusbar")
-        return document
 
     def onCheckDuplicates(self, fileName):
         currentItems = self.peaklist.GetItemCount() - 1
@@ -1302,6 +1061,9 @@ class PanelTextlist(wx.Panel):
         if itemID is not None:
             self.peaklist.item_id = itemID
 
+        if self.peaklist.item_id is None:
+            return
+
         # Restore custom colors
         custom = wx.ColourData()
         for key in self.config.customColors:
@@ -1389,7 +1151,7 @@ class PanelTextlist(wx.Panel):
 
         rows = self.peaklist.GetItemCount() - 1
         if evtID == ID_textPanel_editItem:
-            if self.peaklist.item_id < 0:
+            if self.peaklist.item_id is None or self.peaklist.item_id < 0:
                 print("Please select item in the table first.")
                 return
 
@@ -1452,15 +1214,6 @@ class PanelTextlist(wx.Panel):
                     self.peaklist.DeleteItem(row)
                     del document_list[document_list.index(document_title)]
             row -= 1
-
-    def on_overlay_mobiligram(self, evt):
-        self.data_visualisation.on_overlay_1D(source="text", plot_type="mobiligram")
-
-    def on_overlay_chromatogram(self, evt):
-        self.data_visualisation.on_overlay_1D(source="text", plot_type="chromatogram")
-
-    def on_overlay_heatmap(self, evt):
-        self.data_visualisation.on_overlay_2D(source="text")
 
     def on_check_duplicate_colors(self, new_color):
         """

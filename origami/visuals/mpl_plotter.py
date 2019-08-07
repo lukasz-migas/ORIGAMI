@@ -6,7 +6,6 @@ import matplotlib
 import matplotlib.patches as patches
 import wx
 from gui_elements.misc_dialogs import DialogBox
-from matplotlib import interactive
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 from matplotlib.figure import Figure
 from mpl_toolkits.mplot3d import Axes3D  # NOQA
@@ -19,7 +18,7 @@ from ZoomBox import ZoomBox
 
 matplotlib.use("WXAgg")
 
-interactive(True)
+print(matplotlib.is_interactive())
 
 
 class mpl_plotter(wx.Panel):

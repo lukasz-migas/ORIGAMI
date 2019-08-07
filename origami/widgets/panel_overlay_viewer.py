@@ -8,6 +8,7 @@ from styles import ListCtrl
 from styles import makeCheckbox
 from styles import makeMenuItem
 from styles import MiniFrame
+from styles import setItemFont
 from utils import color
 from utils.color import check_color_format
 from utils.color import convertRGB255to1
@@ -23,8 +24,8 @@ logger = logging.getLogger("origami")
 
 # TODO: add various UI controls, allowing easier adjustment of values
 # TODO: add percentiel/quantile setter
-# TODO: add check for when closing the window - should ask user if they want to save data to document
 # TODO: add option to add data to document
+# TODO: add review panel to decide what is added to document
 
 
 class PanelOverlayViewer(MiniFrame):
@@ -72,18 +73,19 @@ class PanelOverlayViewer(MiniFrame):
         self._display_resolution = wx.ScreenDC().GetPPI()
         self._window_size = calculate_window_size(self._display_size, 0.9)
 
+        # preset
+        self.dataset_type = None
+        self.overlay_data = dict()
+
         # make gui items
         self.make_gui()
         self.on_toggle_controls(None)
         self.on_populate_item_list(None)
 
-        self.overlay_data = dict()
-
         # bind
         self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
 
     def on_right_click(self, evt):
-
         # ensure that user clicked inside the plot area
         if not hasattr(evt.EventObject, "figure"):
             return
@@ -184,7 +186,7 @@ class PanelOverlayViewer(MiniFrame):
         if editor_type == "Heatmaps":
             heatmap, spectra = True, False
 
-        obj_list = [self.overlay_heatmap_method_choice, self.use_processed_data_check]
+        obj_list = [self.overlay_heatmap_method_choice]
         for item in obj_list:
             item.Enable(enable=heatmap)
         obj_list = [self.overlay_spectrum_method_choice, self.normalize_1D_check]
@@ -200,7 +202,6 @@ class PanelOverlayViewer(MiniFrame):
             evt.Skip()
 
     def make_settings_panel(self, split_panel):
-        from styles import setItemFont
 
         panel = wx.Panel(split_panel, -1, size=(-1, -1), name="settings")
 
@@ -211,6 +212,7 @@ class PanelOverlayViewer(MiniFrame):
         self.dataset_type_choice.SetStringSelection("Heatmaps")
         self.dataset_type_choice.Bind(wx.EVT_COMBOBOX, self.on_apply)
         self.dataset_type_choice.Bind(wx.EVT_COMBOBOX, self.on_toggle_controls)
+        self.dataset_type_choice.Bind(wx.EVT_COMBOBOX, self.on_populate_item_list)
 
         self.refresh_btn = wx.BitmapButton(
             panel,
@@ -221,8 +223,8 @@ class PanelOverlayViewer(MiniFrame):
         )
         self.refresh_btn.Bind(wx.EVT_BUTTON, self.on_populate_item_list)
 
-        # RT and DT methods
-        overlay_methods_1D = sorted(["Overlay", "Waterfall", "Subtract (n=2)", "Butterfly (n=2)", "Stacked"])
+        # RT and DT methods : "Stacked"
+        overlay_methods_1D = sorted(["Overlay", "Waterfall", "Subtract (n=2)", "Butterfly (n=2)"])
 
         dataset_type_spectrum = setItemFont(wx.StaticText(panel, -1, "Mass spectra / Chromatogram / Mobilogram"))
         overlay_spectrum_method_choice = wx.StaticText(panel, -1, "Overlay method:")
@@ -239,9 +241,6 @@ class PanelOverlayViewer(MiniFrame):
             panel, choices=self.config.overlayChoices, style=wx.CB_READONLY
         )
         self.overlay_heatmap_method_choice.SetStringSelection(self.config.overlayMethod)
-
-        self.use_processed_data_check = makeCheckbox(panel, "Use processed data (if available)")
-        self.use_processed_data_check.SetValue(False)
 
         self.make_listctrl_panel(panel)
 
@@ -296,8 +295,6 @@ class PanelOverlayViewer(MiniFrame):
         n += 1
         grid.Add(overlay_heatmap_method_choice, (n, 0), flag=wx.ALIGN_RIGHT | wx.EXPAND)
         grid.Add(self.overlay_heatmap_method_choice, (n, 1), flag=wx.ALIGN_CENTER | wx.EXPAND)
-        n += 1
-        grid.Add(self.use_processed_data_check, (n, 1), flag=wx.ALIGN_RIGHT | wx.EXPAND)
 
         # setup growable column
         grid.AddGrowableCol(3)
@@ -379,10 +376,13 @@ class PanelOverlayViewer(MiniFrame):
         self.SetFocus()
 
     def on_create_blank_document(self, evt):
-        logger.error("Method not implemented yet")
+        self.data_handling.create_new_document_of_type(document_type="overlay")
 
     def on_add_to_document(self, evt):
-        logger.error("Method not implemented yet")
+        if self.overlay_data:
+            for key in self.overlay_data:
+                print(key)
+        document = self.data_handling._get_document_of_type("Type: Comparison")
 
     def on_double_click_on_item(self, evt):
         logger.error("Method not implemented yet")
@@ -406,6 +406,8 @@ class PanelOverlayViewer(MiniFrame):
             self.on_overlay_mobilogram(item_list, method_1D)
         elif editor_type == "Heatmaps":
             self.on_overlay_heatmap(item_list, method_2D)
+        elif editor_type == "Mass spectra":
+            self.on_overlay_mass_spectra(item_list, method_1D)
         else:
             logger.error("Method not implemented yet")
 
@@ -452,10 +454,77 @@ class PanelOverlayViewer(MiniFrame):
 
         self.overlay_data[overlay_data.pop("name")] = overlay_data.pop("data")
 
+    def on_overlay_mass_spectra(self, item_list, method):
+        if method == "Overlay":
+            overlay_data = self.data_visualisation.on_overlay_spectrum_overlay(
+                item_list,
+                "mass_spectra",
+                plot=None,
+                plot_obj=self.plot_window,
+                normalize_dataset=self.normalize_1D_check.GetValue(),
+            )
+        elif method == "Butterfly (n=2)":
+            overlay_data = self.data_visualisation.on_overlay_spectrum_butterfly(
+                item_list,
+                "mass_spectra",
+                plot=None,
+                plot_obj=self.plot_window,
+                normalize_dataset=self.normalize_1D_check.GetValue(),
+            )
+        elif method == "Subtract (n=2)":
+            overlay_data = self.data_visualisation.on_overlay_spectrum_subtract(
+                item_list,
+                "mass_spectra",
+                plot=None,
+                plot_obj=self.plot_window,
+                normalize_dataset=self.normalize_1D_check.GetValue(),
+            )
+        elif method == "Waterfall":
+            overlay_data = self.data_visualisation.on_overlay_spectrum_waterfall(
+                item_list,
+                "mass_spectra",
+                plot=None,
+                plot_obj=self.plot_window,
+                normalize_dataset=self.normalize_1D_check.GetValue(),
+            )
+        else:
+            logger.error("Method not implemented yet")
+            return
+
+        self.overlay_data[overlay_data.pop("name")] = overlay_data.pop("data")
+
     def on_overlay_mobilogram(self, item_list, method):
         if method == "Overlay":
-            overlay_data = self.data_visualisation.on_overlay_mobilogram_overlay(
-                item_list, plot=None, plot_obj=self.plot_window, normalize_dataset=self.normalize_1D_check.GetValue()
+            overlay_data = self.data_visualisation.on_overlay_spectrum_overlay(
+                item_list,
+                "mobilogram",
+                plot=None,
+                plot_obj=self.plot_window,
+                normalize_dataset=self.normalize_1D_check.GetValue(),
+            )
+        elif method == "Butterfly (n=2)":
+            overlay_data = self.data_visualisation.on_overlay_spectrum_butterfly(
+                item_list,
+                "mobilogram",
+                plot=None,
+                plot_obj=self.plot_window,
+                normalize_dataset=self.normalize_1D_check.GetValue(),
+            )
+        elif method == "Subtract (n=2)":
+            overlay_data = self.data_visualisation.on_overlay_spectrum_subtract(
+                item_list,
+                "mobilogram",
+                plot=None,
+                plot_obj=self.plot_window,
+                normalize_dataset=self.normalize_1D_check.GetValue(),
+            )
+        elif method == "Waterfall":
+            overlay_data = self.data_visualisation.on_overlay_spectrum_waterfall(
+                item_list,
+                "mobilogram",
+                plot=None,
+                plot_obj=self.plot_window,
+                normalize_dataset=self.normalize_1D_check.GetValue(),
             )
         else:
             logger.error("Method not implemented yet")
@@ -465,8 +534,36 @@ class PanelOverlayViewer(MiniFrame):
 
     def on_overlay_chromatogram(self, item_list, method):
         if method == "Overlay":
-            overlay_data = self.data_visualisation.on_overlay_chromatogram_overlay(
-                item_list, plot=None, plot_obj=self.plot_window, normalize_dataset=self.normalize_1D_check.GetValue()
+            overlay_data = self.data_visualisation.on_overlay_spectrum_overlay(
+                item_list,
+                "chromatogram",
+                plot=None,
+                plot_obj=self.plot_window,
+                normalize_dataset=self.normalize_1D_check.GetValue(),
+            )
+        elif method == "Butterfly (n=2)":
+            overlay_data = self.data_visualisation.on_overlay_spectrum_butterfly(
+                item_list,
+                "chromatogram",
+                plot=None,
+                plot_obj=self.plot_window,
+                normalize_dataset=self.normalize_1D_check.GetValue(),
+            )
+        elif method == "Subtract (n=2)":
+            overlay_data = self.data_visualisation.on_overlay_spectrum_subtract(
+                item_list,
+                "chromatogram",
+                plot=None,
+                plot_obj=self.plot_window,
+                normalize_dataset=self.normalize_1D_check.GetValue(),
+            )
+        elif method == "Waterfall":
+            overlay_data = self.data_visualisation.on_overlay_spectrum_waterfall(
+                item_list,
+                "chromatogram",
+                plot=None,
+                plot_obj=self.plot_window,
+                normalize_dataset=self.normalize_1D_check.GetValue(),
             )
         else:
             logger.error("Method not implemented yet")
@@ -475,10 +572,26 @@ class PanelOverlayViewer(MiniFrame):
         self.overlay_data[overlay_data.pop("name")] = overlay_data.pop("data")
 
     def on_populate_item_list(self, evt):
+        """Populate table based on the dataset selection"""
+        editor_dict = {
+            "Heatmaps": "heatmap",
+            "Chromatograms": "chromatogram",
+            "Mobilograms": "mobilogram",
+            "Mass spectra": "mass_spectra",
+        }
+        dataset_type = editor_dict[self.dataset_type_choice.GetStringSelection()]
+
+        #         # check what was changed
+        #         if dataset_type == self.dataset_type:
+        #             return
+        #
+        #         if dataset_type == self.dataset_type and dataset_type in ["heatmap", "chromatogram", "mobilogram"]:
+        #             return
+        #         self.dataset_type = dataset_type
+
+        item_list = self.data_handling.generate_item_list(dataset_type)
+
         self.peaklist.DeleteAllItems()
-
-        item_list = self.data_handling.generate_item_list("heatmap")
-
         for add_dict in item_list:
             color = add_dict.get("color", self.config.customColors[get_random_int(0, 15)])
             color = check_color_format(color)
@@ -504,6 +617,49 @@ class PanelOverlayViewer(MiniFrame):
             item_count = self.peaklist.GetItemCount() - 1
             self.peaklist.SetItemBackgroundColour(item_count, color)
             self.peaklist.SetItemTextColour(item_count, determineFontColor(color, return_rgb=True))
+
+        self.on_toggle_table_columns(dataset_type)
+
+        if evt is not None:
+            evt.Skip()
+
+    def on_toggle_table_columns(self, data_type):
+        """Toggle table columns based on the dataset type"""
+
+        show_columns = [
+            "check",
+            "dataset_name",
+            "dataset_type",
+            "document",
+            "shape",
+            "color",
+            "colormap",
+            "alpha",
+            "mask",
+            "label",
+            "min_threshold",
+            "max_threshold",
+            "processed",
+            "order",
+        ]
+        if data_type in ["mass_spectra", "chromatogram", "mobilogram"]:
+            show_columns = [
+                "check",
+                "dataset_name",
+                "dataset_type",
+                "document",
+                "shape",
+                "color",
+                "label",
+                "processed",
+                "order",
+            ]
+
+        for column_id in self._peaklist_peaklist:
+            width = self._peaklist_peaklist[column_id]["width"]
+            if self._peaklist_peaklist[column_id]["tag"] not in show_columns:
+                width = 0
+            self.peaklist.SetColumnWidth(column_id, width)
 
     def get_selected_items(self):
         item_count = self.peaklist.GetItemCount()

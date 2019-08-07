@@ -97,7 +97,7 @@ class DialogCustomiseORIGAMI(Dialog):
         self.Destroy()
 
     def on_ok(self, evt):
-        self.on_apply_to_document()
+        self.on_apply_to_document(None)
 
     def make_gui(self):
 

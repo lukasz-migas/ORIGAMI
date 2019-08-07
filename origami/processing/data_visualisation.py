@@ -185,32 +185,57 @@ class data_visualisation:
 
         return dataset_name
 
-    def on_overlay_mobilogram_overlay(self, item_list, **kwargs):
+    def on_overlay_spectrum_overlay(self, item_list, data_type, **kwargs):
         # TODO: Add checks for same labels
-        # TODO: Add possibility to add to document
+
+        if data_type not in ["mobilogram", "chromatogram", "mass_spectra"]:
+            raise MessageError(
+                "Incorrect data type",
+                f"Incorrect data type of `{data_type}` was specified. Accepted values include"
+                + "['mobilogram', 'chromatogram']",
+            )
 
         # ensure shape is correct
-        self._check_overlay_shape(item_list, 0)
+        if data_type == "mobilogram":
+            self._check_overlay_shape(item_list, 0)
+        elif data_type == "chromatogram":
+            self._check_overlay_shape(item_list, 1)
+        elif data_type == "mass_spectra":
+            self._check_overlay_shape(item_list, None)
+
+        # ensure correct number of items is present
+        self._check_overlay_count(item_list, n_min=2, n_max=-1)
+
+        normalize_dataset = kwargs.get("normalize_dataset", False)
 
         # pre-generate empty lists
         xlist, ylist, colorlist, legend, dataset_info = [], [], [], [], []
         for item_info in item_list:
             # get data
             try:
-                query_info = [item_info["document"], item_info["dataset_type"], item_info["dataset_name"]]
-                __, data = self.data_handling.get_mobility_chromatographic_data(query_info)
+                if data_type in ["mobilogram", "chromatogram"]:
+                    query_info = [item_info["document"], item_info["dataset_type"], item_info["dataset_name"]]
+                    __, data = self.data_handling.get_mobility_chromatographic_data(query_info)
+                elif data_type == "mass_spectra":
+                    query_info = [item_info["document"], item_info["dataset_name"]]
+                    __, data = self.data_handling.get_spectrum_data(query_info)
             except KeyError:
                 continue
-
-            dataset_info.append(query_info)
+            dataset_info.append([item_info["document"], item_info["dataset_type"], item_info["dataset_name"]])
 
             # get data
-            xvals = data["yvals"]
-            yvals = data.get("yvals1D", data["zvals"].sum(axis=1))
+            if data_type == "mobilogram":
+                xvals = data["yvals"]
+                yvals = data.get("yvals1D", data["zvals"].sum(axis=1))
+            elif data_type == "chromatogram":
+                xvals = data["xvals"]
+                yvals = data.get("yvalsRT", data["zvals"].sum(axis=0))
+            elif data_type == "mass_spectra":
+                xvals = data["xvals"]
+                yvals = data["yvals"]
 
             # normalize data
-            if kwargs.get("normalize_dataset", False):
-                yvals = pr_spectra.smooth_gaussian_1D(data=yvals, sigma=self.config.overlay_smooth1DRT)
+            if normalize_dataset:
                 yvals = pr_spectra.normalize_1D(yvals)
 
             # Append data to list
@@ -222,22 +247,33 @@ class data_visualisation:
                 label = item_info["dataset_name"]
             legend.append(label)
 
-        # get label
-        xlabel = data["xlabels"]
+        xlimits = [min(xvals), max(xvals)]
 
         # plot
-        xlimits = [min(xvals), max(xvals)]
-        self.panelPlots.on_plot_overlay_RT(
-            xvals=xlist, yvals=ylist, xlabel=xlabel, colors=colorlist, xlimits=xlimits, labels=legend, **kwargs
-        )
-
-        # generate item name
-        dataset_name = self._generate_overlay_name(dataset_info, "1D: ")
+        if data_type == "mobilogram":
+            xlabel = data["ylabels"]
+            self.panelPlots.on_plot_overlay_DT(
+                xvals=xlist, yvals=ylist, xlabel=xlabel, colors=colorlist, xlimits=xlimits, labels=legend, **kwargs
+            )
+            dataset_name = self._generate_overlay_name(dataset_info, "Overlay (DT): ")
+        elif data_type == "chromatogram":
+            xlabel = data["xlabels"]
+            self.panelPlots.on_plot_overlay_RT(
+                xvals=xlist, yvals=ylist, xlabel=xlabel, colors=colorlist, xlimits=xlimits, labels=legend, **kwargs
+            )
+            dataset_name = self._generate_overlay_name(dataset_info, "Overlay (RT): ")
+        elif data_type == "mass_spectra":
+            xlabel = data["xlabels"]
+            self.panelPlots.on_plot_overlay_RT(
+                xvals=xlist, yvals=ylist, xlabel=xlabel, colors=colorlist, xlimits=xlimits, labels=legend, **kwargs
+            )
+            dataset_name = self._generate_overlay_name(dataset_info, "Overlay (MS): ")
 
         # generate dataset holder
         dataset_holder = {
             "name": dataset_name,
             "data": {
+                "method": "Overlay",
                 "xvals": xlist,
                 "yvals": ylist,
                 "xlabel": xlabel,
@@ -249,29 +285,148 @@ class data_visualisation:
         }
         return dataset_holder
 
-    def on_overlay_chromatogram_overlay(self, item_list, **kwargs):
+    def on_overlay_spectrum_butterfly(self, item_list, data_type, **kwargs):
+
+        if data_type not in ["mobilogram", "chromatogram", "mass_spectra"]:
+            raise MessageError(
+                "Incorrect data type",
+                f"Incorrect data type of `{data_type}` was specified. Accepted values include"
+                + "['mobilogram', 'chromatogram']",
+            )
 
         # ensure shape is correct
-        self._check_overlay_shape(item_list, 1)
+        if data_type == "mobilogram":
+            self._check_overlay_shape(item_list, 0)
+        elif data_type == "chromatogram":
+            self._check_overlay_shape(item_list, 1)
+        elif data_type == "mass_spectra":
+            self._check_overlay_shape(item_list, None)
+
+        # ensure correct number of items is present
+        self._check_overlay_count(item_list, n_min=2, n_max=2)
+
+        normalize_dataset = kwargs.get("normalize_dataset", False)
+
+        # pre-generate empty lists
+        xlist, ylist, colorlist, legend, dataset_info = [], [], [], [], []
+        for item_info in item_list:
+            try:
+                if data_type in ["mobilogram", "chromatogram"]:
+                    query_info = [item_info["document"], item_info["dataset_type"], item_info["dataset_name"]]
+                    __, data = self.data_handling.get_mobility_chromatographic_data(query_info)
+                elif data_type == "mass_spectra":
+                    query_info = [item_info["document"], item_info["dataset_name"]]
+                    __, data = self.data_handling.get_spectrum_data(query_info)
+            except KeyError:
+                continue
+            dataset_info.append([item_info["document"], item_info["dataset_type"], item_info["dataset_name"]])
+
+            # get data
+            if data_type == "mobilogram":
+                xvals = data["yvals"]
+                yvals = data.get("yvals1D", data["zvals"].sum(axis=1))
+            elif data_type == "chromatogram":
+                xvals = data["xvals"]
+                yvals = data.get("yvalsRT", data["zvals"].sum(axis=0))
+            elif data_type == "mass_spectra":
+                xvals = data["xvals"]
+                yvals = data["yvals"]
+
+            if normalize_dataset:
+                yvals = pr_spectra.normalize_1D(yvals)
+
+            # Append data to list
+            xlist.append(xvals)
+            ylist.append(yvals)
+            colorlist.append(item_info["color_255to1"])
+            label = item_info["label"]
+            if label == "":
+                label = item_info["dataset_name"]
+            legend.append(label)
+
+        # negate second item
+        ylist[1] = -ylist[1]
+
+        # plot
+        if data_type == "mobilogram":
+            xlabel = data["ylabels"]
+            dataset_name = self._generate_overlay_name(dataset_info, "Butterfly (DT): ")
+        elif data_type == "chromatogram":
+            xlabel = data["xlabels"]
+            dataset_name = self._generate_overlay_name(dataset_info, "Butterfly (RT): ")
+        elif data_type == "mass_spectra":
+            xlabel = data["xlabels"]
+            dataset_name = self._generate_overlay_name(dataset_info, "Butterfly (MS): ")
+
+        # plot
+        self.panelPlots.plot_compare_spectra(
+            xlist[0], xlist[1], ylist[0], ylist[1], xlabel=xlabel, legend=legend, **kwargs
+        )
+
+        # generate dataset holder
+        dataset_holder = {
+            "name": dataset_name,
+            "data": {
+                "method": "Butterfly",
+                "xvals": xlist,
+                "yvals": ylist,
+                "xlabel": xlabel,
+                "colors": colorlist,
+                "labels": legend,
+                "dataset_info": dataset_info,
+            },
+        }
+        return dataset_holder
+
+    def on_overlay_spectrum_subtract(self, item_list, data_type, **kwargs):
+
+        if data_type not in ["mobilogram", "chromatogram", "mass_spectra"]:
+            raise MessageError(
+                "Incorrect data type",
+                f"Incorrect data type of `{data_type}` was specified. Accepted values include"
+                + "['mobilogram', 'chromatogram']",
+            )
+
+        # ensure shape is correct
+        if data_type == "mobilogram":
+            self._check_overlay_shape(item_list, 0)
+        elif data_type == "chromatogram":
+            self._check_overlay_shape(item_list, 1)
+        elif data_type == "mass_spectra":
+            self._check_overlay_shape(item_list, None)
+
+        # ensure correct number of items is present
+        self._check_overlay_count(item_list, n_min=2, n_max=2)
+
+        normalize_dataset = kwargs.get("normalize_dataset", False)
 
         # pre-generate empty lists
         xlist, ylist, colorlist, legend, dataset_info = [], [], [], [], []
         for item_info in item_list:
             # get data
             try:
-                query_info = [item_info["document"], item_info["dataset_type"], item_info["dataset_name"]]
-                __, data = self.data_handling.get_mobility_chromatographic_data(query_info)
+                if data_type in ["mobilogram", "chromatogram"]:
+                    query_info = [item_info["document"], item_info["dataset_type"], item_info["dataset_name"]]
+                    __, data = self.data_handling.get_mobility_chromatographic_data(query_info)
+                elif data_type == "mass_spectra":
+                    query_info = [item_info["document"], item_info["dataset_name"]]
+                    __, data = self.data_handling.get_spectrum_data(query_info)
             except KeyError:
                 continue
-
-            dataset_info.append(query_info)
+            dataset_info.append([item_info["document"], item_info["dataset_type"], item_info["dataset_name"]])
 
             # get data
-            xvals = data["xvals"]
-            yvals = data.get("yvalsRT", data["zvals"].sum(axis=0))
+            if data_type == "mobilogram":
+                xvals = data["yvals"]
+                yvals = data.get("yvals1D", data["zvals"].sum(axis=1))
+            elif data_type == "chromatogram":
+                xvals = data["xvals"]
+                yvals = data.get("yvalsRT", data["zvals"].sum(axis=0))
+            elif data_type == "mass_spectra":
+                xvals = data["xvals"]
+                yvals = data["yvals"]
 
-            if kwargs.get("normalize_dataset", False):
-                yvals = pr_spectra.smooth_gaussian_1D(data=yvals, sigma=self.config.overlay_smooth1DRT)
+            if normalize_dataset:
                 yvals = pr_spectra.normalize_1D(yvals)
 
             # Append data to list
@@ -283,32 +438,223 @@ class data_visualisation:
                 label = item_info["dataset_name"]
             legend.append(label)
 
-        # get label
-        xlabel = data["xlabels"]
+        # unpack and process
+        xvals_1, yvals_1, xvals_2, yvals_2 = xlist[0], ylist[0], xlist[1], ylist[1]
+        xvals_1, yvals_1, xvals_2, yvals_2 = self.data_processing.subtract_spectra(xvals_1, yvals_1, xvals_2, yvals_2)
 
         # plot
-        xlimits = [min(xvals), max(xvals)]
-        self.panelPlots.on_plot_overlay_RT(
-            xvals=xlist, yvals=ylist, xlabel=xlabel, colors=colorlist, xlimits=xlimits, labels=legend, **kwargs
-        )
+        if data_type == "mobilogram":
+            xlabel = data["ylabels"]
+            dataset_name = self._generate_overlay_name(dataset_info, "Butterfly (DT): ")
+        elif data_type == "chromatogram":
+            xlabel = data["xlabels"]
+            dataset_name = self._generate_overlay_name(dataset_info, "Butterfly (RT): ")
+        elif data_type == "mass_spectra":
+            xlabel = data["xlabels"]
+            dataset_name = self._generate_overlay_name(dataset_info, "Butterfly (MS): ")
 
-        # generate item name
-        dataset_name = self._generate_overlay_name(dataset_info, "RT: ")
+        # plot
+        self.panelPlots.plot_compare_spectra(
+            xvals_1,
+            xvals_2,
+            yvals_1,
+            yvals_2,
+            xlabel=xlabel,
+            legend=legend,
+            line_color_1=colorlist[0],
+            line_color_2=colorlist[1],
+            **kwargs,
+        )
 
         # generate dataset holder
         dataset_holder = {
             "name": dataset_name,
             "data": {
+                "method": "Butterfly",
                 "xvals": xlist,
                 "yvals": ylist,
                 "xlabel": xlabel,
                 "colors": colorlist,
-                "xlimits": xlimits,
                 "labels": legend,
                 "dataset_info": dataset_info,
             },
         }
         return dataset_holder
+
+    def on_overlay_spectrum_waterfall(self, item_list, data_type, **kwargs):
+
+        if data_type not in ["mobilogram", "chromatogram", "mass_spectra"]:
+            raise MessageError(
+                "Incorrect data type",
+                f"Incorrect data type of `{data_type}` was specified. Accepted values include"
+                + "['mobilogram', 'chromatogram']",
+            )
+
+        # ensure shape is correct
+        if data_type == "mobilogram":
+            self._check_overlay_shape(item_list, 0)
+        elif data_type == "chromatogram":
+            self._check_overlay_shape(item_list, 1)
+        elif data_type == "mass_spectra":
+            self._check_overlay_shape(item_list, None)
+
+        # ensure correct number of items is present
+        self._check_overlay_count(item_list, n_min=2, n_max=-1)
+
+        normalize_dataset = kwargs.pop("normalize_dataset", False)
+
+        # pre-generate empty lists
+        xlist, ylist, colorlist, legend, dataset_info = [], [], [], [], []
+        for item_info in item_list:
+            # get data
+            try:
+                if data_type in ["mobilogram", "chromatogram"]:
+                    query_info = [item_info["document"], item_info["dataset_type"], item_info["dataset_name"]]
+                    __, data = self.data_handling.get_mobility_chromatographic_data(query_info)
+                elif data_type == "mass_spectra":
+                    query_info = [item_info["document"], item_info["dataset_name"]]
+                    __, data = self.data_handling.get_spectrum_data(query_info)
+            except KeyError:
+                continue
+            dataset_info.append([item_info["document"], item_info["dataset_type"], item_info["dataset_name"]])
+
+            # get data
+            if data_type == "mobilogram":
+                xvals = data["yvals"]
+                yvals = data.get("yvals1D", data["zvals"].sum(axis=1))
+            elif data_type == "chromatogram":
+                xvals = data["xvals"]
+                yvals = data.get("yvalsRT", data["zvals"].sum(axis=0))
+            elif data_type == "mass_spectra":
+                xvals = data["xvals"]
+                yvals = data["yvals"]
+
+            if normalize_dataset:
+                yvals = pr_spectra.normalize_1D(yvals)
+
+            # Append data to list
+            xlist.append(xvals)
+            ylist.append(yvals)
+            colorlist.append(item_info["color_255to1"])
+            label = item_info["label"]
+            if label == "":
+                label = item_info["dataset_name"]
+            legend.append(label)
+
+        # plot
+        if data_type == "mobilogram":
+            xlabel = data["ylabels"]
+            dataset_name = self._generate_overlay_name(dataset_info, "Waterfall (DT): ")
+        elif data_type == "chromatogram":
+            xlabel = data["xlabels"]
+            dataset_name = self._generate_overlay_name(dataset_info, "Waterfall (RT): ")
+        elif data_type == "mass_spectra":
+            xlabel = data["xlabels"]
+            dataset_name = self._generate_overlay_name(dataset_info, "Waterfall (MS): ")
+
+        # plot
+        kwargs.update(show_y_labels=True, labels=legend, add_legend=True)
+        self.panelPlots.on_plot_waterfall(
+            xlist, ylist, None, colors=colorlist, xlabel=xlabel, ylabel="Intensity", **kwargs
+        )
+
+        # generate dataset holder
+        dataset_holder = {
+            "name": dataset_name,
+            "data": {
+                "method": "Butterfly",
+                "xvals": xlist,
+                "yvals": ylist,
+                "xlabel": xlabel,
+                "colors": colorlist,
+                "labels": legend,
+                "dataset_info": dataset_info,
+            },
+        }
+        return dataset_holder
+
+    def on_overlay_heatmap_waterfall(self, item_list, **kwargs):
+        pass
+
+    #         rows = self.peaklist.GetItemCount()
+    #
+    #         # Iterate over row and columns to get data
+    #         xvals, yvals, zvals, colors, labels = [], [], [], [], []
+    #         item_name = "Waterfall overlay:"
+    #         for row in range(rows):
+    #             if not self.peaklist.IsChecked(index=row):
+    #                 continue
+    #
+    #             itemInfo = self.OnGetItemInformation(row)
+    #             try:
+    #                 ion_title = itemInfo["document"]
+    #                 document = self.presenter.documentsDict[ion_title]
+    #
+    #                 # get data
+    #                 data = document.IMS2D
+    #             except Exception:
+    #                 document_title, ion_title = re.split(": ", itemInfo["document"])
+    #                 document = self.presenter.documentsDict[document_title]
+    #                 try:
+    #                     data = document.IMS2DcompData[ion_title]
+    #                 except KeyError:
+    #                     try:
+    #                         data = document.IMS2Dions[ion_title]
+    #                     except Exception:
+    #                         data = None
+    #
+    #             if data is None:
+    #                 continue
+    #
+    #             xvals.append(deepcopy(data["yvals"]))
+    #             yvals.append(deepcopy(data["xvals"]))
+    #             zvals.append(deepcopy(data["zvals"]))
+    #             colors.append(convertRGB255to1(itemInfo["color"]))
+    #             labels.append(itemInfo["label"])
+    #
+    #             if self.addToDocument:
+    #                 if itemInfo["label"] != "":
+    #                     item_label = itemInfo["label"]
+    #                 else:
+    #                     item_label = ion_title
+    #
+    #                 if len(xvals) == 1:
+    #                     item_name = "{} {}".format(item_name, item_label)
+    #                 else:
+    #                     item_name = "{}, {}".format(item_name, item_label)
+    #
+    #         if len(xvals) > 0:
+    #             xlabel = data["xlabels"]
+    #             ylabel = data["ylabels"]
+    #             self.presenter.view.panelPlots.on_plot_waterfall_overlay(
+    #                 xvals, yvals, zvals, colors, xlabel, ylabel, labels
+    #             )
+    #             self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames["Waterfall"])
+    #
+    #         # add data to document
+    #         if self.addToDocument:
+    #             _document = self.onGetOverlayDocument()
+    #             checkExist = _document.IMS2DoverlayData.get(item_name, None)
+    #             data = {
+    #                 "xvals": xvals,
+    #                 "yvals": yvals,
+    #                 "zvals": zvals,
+    #                 "colors": colors,
+    #                 "xlabel": xlabel,
+    #                 "ylabel": ylabel,
+    #                 "labels": labels,
+    #             }
+    #             if checkExist is not None:
+    #                 # retrieve and merge
+    #                 old_data = document.IMS2DoverlayData.get(item_name, {})
+    #                 data = merge_two_dicts(old_data, data)
+    #             else:
+    #                 data.update(title="", header="", footnote="")
+    #
+    #             _document.gotOverlay = True
+    #             _document.IMS2DoverlayData[item_name] = data
+    #
+    #             self.data_handling.on_update_document(_document, "document")
 
     def on_overlay_heatmap_mask(self, item_list, **kwargs):
 

@@ -30,7 +30,6 @@ from processing.utils import get_maximum_value_in_range
 from pubsub import pub
 from readers import io_document
 from readers import io_text_files
-from toolbox import merge_two_dicts
 from utils.check import check_axes_spacing
 from utils.check import check_value_order
 from utils.check import isempty
@@ -382,6 +381,7 @@ class data_handling:
                 "Type: Multifield Linear DT",
                 "Type: Interactive",
                 "Type: Calibrant",
+                "Type: Comparison",
             ]
 
         if not isinstance(document_types, list):
@@ -407,7 +407,7 @@ class data_handling:
         if len(document_list) == 0:
             self.update_statusbar("Did not find appropriate document. Creating a new one...", 4)
             if allow_creation:
-                document = self.__create_new_document()
+                document = self.create_new_document_of_type(document_type)
         elif len(document_list) == 1:
             document = self._on_get_document(document_list[0])
         else:
@@ -427,7 +427,7 @@ class data_handling:
 
         return document
 
-    def __create_new_document(self):
+    def create_new_document(self):
         dlg = wx.FileDialog(
             self.view, "Please select a name for the document", "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
         )
@@ -445,6 +445,30 @@ class data_handling:
         document.userParameters["date"] = getTime()
 
         return document
+
+    def create_new_document_of_type(self, document_type=None):
+        """Adds blank document of specific type"""
+
+        document = self.create_new_document()
+
+        # Add method specific parameters
+        if document_type in ["overlay", "compare", "Type: Comparison"]:
+            document.dataType = "Type: Comparison"
+            document.fileFormat = "Format: ORIGAMI"
+
+        elif document_type in ["calibration", "Type: CALIBRANT"]:
+            document.dataType = "Type: CALIBRANT"
+            document.fileFormat = "Format: DataFrame"
+
+        elif document_type in ["interactive", "Type: Interactive"]:
+            document.dataType = "Type: Interactive"
+            document.fileFormat = "Format: ORIGAMI"
+
+        elif document_type in ["manual", "Type: MANUAL"]:
+            document.dataType = "Type: MANUAL"
+            document.fileFormat = "Format: MassLynx (.raw)"
+
+        self.on_update_document(document, "document")
 
     def _get_waters_extraction_ranges(self, document):
         """Retrieve extraction ranges for specified file
@@ -1381,16 +1405,13 @@ class data_handling:
             else:
                 self.on_extract_MS_from_chromatogram(startScan=xvalsMin, endScan=xvalsMax, units=rt_label)
 
-        else:
-            return
-
     def extract_from_plot_2D(self, dataOut):
         self.plot_page = self.plotsPanel._get_page_text()
 
         if self.plot_page == "DT/MS":
             xlabel = self.plotsPanel.plot_DT_vs_MS.plot_labels.get("xlabel", "m/z")
             ylabel = self.plotsPanel.plot_DT_vs_MS.plot_labels.get("ylabel", "Drift time (bins)")
-        elif self.plot_page == "2D":
+        elif self.plot_page == "Heatmap":
             xlabel = self.plotsPanel.plot2D.plot_labels.get("xlabel", "Scans")
             ylabel = self.plotsPanel.plot2D.plot_labels.get("ylabel", "Drift time (bins)")
 
@@ -1912,7 +1933,7 @@ class data_handling:
         if open_type == "multiple_files_add":
             document = self._get_document_of_type("Type: MANUAL")
         elif open_type == "multiple_files_new_document":
-            document = self.__create_new_document()
+            document = self.create_new_document()
 
         if document is None:
             logger.warning("Document was not selected.")
@@ -3440,6 +3461,53 @@ class data_handling:
 
     def generate_item_list(self, data_type="heatmap"):
 
+        if data_type in ["heatmap", "chromatogram", "mobilogram"]:
+            item_list = self.generate_item_list_heatmap()
+        elif data_type == "mass_spectra":
+            item_list = self.generate_item_list_mass_spectra()
+
+        return item_list
+
+    def generate_item_list_mass_spectra(self):
+        all_datasets = ["Mass Spectrum", "Mass Spectrum (processed)", "Mass Spectra"]
+        singlular_datasets = ["Mass Spectrum", "Mass Spectrum (processed)"]
+        all_documents = self.__get_document_list_of_type("all")
+
+        item_list = []
+        for document_title in all_documents:
+            for dataset_type in all_datasets:
+                __, data = self.get_spectrum_data([document_title, dataset_type])
+                if dataset_type in singlular_datasets and isinstance(data, dict) and len(data) > 0:
+                    item_dict = {
+                        "dataset_name": dataset_type,
+                        "dataset_type": dataset_type,
+                        "document_title": document_title,
+                        "shape": data["xvals"].shape,
+                        "label": data.get("label", ""),
+                        "color": data.get("color", randomColorGenerator(True)),
+                        "overlay_order": data.get("overlay_order", ""),
+                        "processed": True if "processed" in dataset_type else False,
+                    }
+                    # add to list
+                    item_list.append(item_dict)
+                else:
+                    for key in data:
+                        data_subset = data[key]
+                        item_dict = {
+                            "dataset_name": key,
+                            "dataset_type": dataset_type,
+                            "document_title": document_title,
+                            "shape": data_subset["xvals"].shape,
+                            "label": data_subset.get("label", ""),
+                            "color": data_subset.get("color", randomColorGenerator(True)),
+                            "overlay_order": data_subset.get("overlay_order", ""),
+                            "processed": True if "(processed)" in key else False,
+                        }
+                        # add to list
+                        item_list.append(item_dict)
+        return item_list
+
+    def generate_item_list_heatmap(self):
         all_datasets = [
             "Drift time (2D)",
             "Drift time (2D, processed)",
@@ -3493,7 +3561,6 @@ class data_handling:
                         }
                         # add to list
                         item_list.append(item_dict)
-
         return item_list
 
     def on_load_user_list_fcn(self, **kwargs):

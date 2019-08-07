@@ -7,12 +7,10 @@ import wx
 from gui_elements.dialog_ask import DialogAsk
 from gui_elements.dialog_color_picker import DialogColorPicker
 from gui_elements.misc_dialogs import DialogBox
-from ids import ID_addNewOverlayDoc
 from ids import ID_extractAllIons
 from ids import ID_extractNewIon
 from ids import ID_extractSelectedIon
 from ids import ID_highlightRectAllIons
-from ids import ID_ionPanel_addToDocument
 from ids import ID_ionPanel_annotate_alpha
 from ids import ID_ionPanel_annotate_charge_state
 from ids import ID_ionPanel_annotate_mask
@@ -20,7 +18,6 @@ from ids import ID_ionPanel_annotate_max_threshold
 from ids import ID_ionPanel_annotate_min_threshold
 from ids import ID_ionPanel_assignColor
 from ids import ID_ionPanel_automaticExtract
-from ids import ID_ionPanel_automaticOverlay
 from ids import ID_ionPanel_changeColorBatch_color
 from ids import ID_ionPanel_changeColorBatch_colormap
 from ids import ID_ionPanel_changeColorBatch_palette
@@ -33,7 +30,6 @@ from ids import ID_ionPanel_delete_all
 from ids import ID_ionPanel_delete_rightClick
 from ids import ID_ionPanel_delete_selected
 from ids import ID_ionPanel_editItem
-from ids import ID_ionPanel_normalize1D
 from ids import ID_ionPanel_show_chromatogram
 from ids import ID_ionPanel_show_heatmap
 from ids import ID_ionPanel_show_mobiligram
@@ -51,11 +47,6 @@ from ids import ID_ionPanel_table_mask
 from ids import ID_ionPanel_table_method
 from ids import ID_ionPanel_table_restoreAll
 from ids import ID_ionPanel_table_startMS
-from ids import ID_overlayMZfromList
-from ids import ID_overlayMZfromList1D
-from ids import ID_overlayMZfromListRT
-from ids import ID_selectOverlayMethod
-from ids import ID_useProcessedCombinedMenu
 from ids import ID_window_ionList
 from styles import ListCtrl
 from styles import makeMenuItem
@@ -116,18 +107,12 @@ class PanelPeaklist(wx.Panel):
 
         self.make_gui()
 
-        if self.plotAutomatically:
-            self.combo.Bind(wx.EVT_COMBOBOX, self.on_overlay_heatmap)
-
         # add a couple of accelerators
         accelerators = [
-            (wx.ACCEL_NORMAL, ord("A"), ID_ionPanel_addToDocument),
             (wx.ACCEL_NORMAL, ord("C"), ID_ionPanel_assignColor),
             (wx.ACCEL_NORMAL, ord("E"), ID_ionPanel_editItem),
             (wx.ACCEL_NORMAL, ord("H"), ID_highlightRectAllIons),
             (wx.ACCEL_NORMAL, ord("M"), ID_ionPanel_show_mobiligram),
-            (wx.ACCEL_NORMAL, ord("N"), ID_ionPanel_normalize1D),
-            (wx.ACCEL_NORMAL, ord("P"), ID_useProcessedCombinedMenu),
             (wx.ACCEL_NORMAL, ord("S"), ID_ionPanel_check_selected),
             (wx.ACCEL_NORMAL, ord("X"), ID_ionPanel_check_all),
             (wx.ACCEL_NORMAL, ord("Z"), ID_ionPanel_show_zoom_in_MS),
@@ -136,9 +121,6 @@ class PanelPeaklist(wx.Panel):
         self.SetAcceleratorTable(wx.AcceleratorTable(accelerators))
 
         wx.EVT_MENU(self, ID_ionPanel_editItem, self.on_open_editor)
-        wx.EVT_MENU(self, ID_ionPanel_addToDocument, self.on_check_tool)
-        wx.EVT_MENU(self, ID_useProcessedCombinedMenu, self.on_check_tool)
-        wx.EVT_MENU(self, ID_ionPanel_normalize1D, self.on_check_tool)
         wx.EVT_MENU(self, ID_ionPanel_assignColor, self.on_assign_color)
         wx.EVT_MENU(self, ID_ionPanel_show_zoom_in_MS, self.on_plot)
         wx.EVT_MENU(self, ID_ionPanel_show_mobiligram, self.on_plot)
@@ -196,16 +178,6 @@ class PanelPeaklist(wx.Panel):
         )
         self.process_btn.SetToolTip(makeTooltip("Process..."))
 
-        self.overlay_btn = wx.BitmapButton(
-            self, -1, self.icons.iconsLib["overlay16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
-        )
-        self.overlay_btn.SetToolTip(makeTooltip("Overlay selected ions..."))
-
-        self.combo = wx.ComboBox(
-            self, ID_selectOverlayMethod, size=(105, -1), choices=self.config.overlayChoices, style=wx.CB_READONLY
-        )
-        self.combo.SetStringSelection(self.config.overlayMethod)
-
         self.save_btn = wx.BitmapButton(
             self, -1, self.icons.iconsLib["save16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
@@ -225,7 +197,6 @@ class PanelPeaklist(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.menu_process_tools, self.process_btn)
         self.Bind(wx.EVT_BUTTON, self.menu_save_tools, self.save_btn)
         self.Bind(wx.EVT_BUTTON, self.menu_annotate_tools, self.annotate_btn)
-        self.Bind(wx.EVT_BUTTON, self.menu_overlay_tools, self.overlay_btn)
         self.Bind(wx.EVT_BUTTON, self.on_open_info_panel, self.info_btn)
 
         # button grid
@@ -241,10 +212,6 @@ class PanelPeaklist(wx.Panel):
         btn_grid_vert.Add(self.extract_btn, (x, n), flag=wx.ALIGN_CENTER)
         n += 1
         btn_grid_vert.Add(self.process_btn, (x, n), flag=wx.ALIGN_CENTER)
-        n += 1
-        btn_grid_vert.Add(self.overlay_btn, (x, n), flag=wx.ALIGN_CENTER)
-        n += 1
-        btn_grid_vert.Add(self.combo, (x, n), flag=wx.ALIGN_CENTER)
         n += 1
         btn_grid_vert.Add(self.save_btn, (x, n), flag=wx.ALIGN_CENTER)
         n += 1
@@ -576,66 +543,6 @@ class PanelPeaklist(wx.Panel):
         menu.Destroy()
         self.SetFocus()
 
-    def menu_overlay_tools(self, evt):
-
-        self.Bind(wx.EVT_TOOL, self.on_overlay_heatmap, id=ID_overlayMZfromList)
-        self.Bind(wx.EVT_TOOL, self.on_overlay_mobiligram, id=ID_overlayMZfromList1D)
-        self.Bind(wx.EVT_TOOL, self.on_overlay_chromatogram, id=ID_overlayMZfromListRT)
-        self.Bind(wx.EVT_MENU, self.on_check_tool, id=ID_useProcessedCombinedMenu)
-        self.Bind(wx.EVT_TOOL, self.on_check_tool, id=ID_ionPanel_addToDocument)
-        self.Bind(wx.EVT_TOOL, self.on_check_tool, id=ID_ionPanel_normalize1D)
-        self.Bind(wx.EVT_TOOL, self.on_check_tool, id=ID_ionPanel_automaticOverlay)
-        self.Bind(wx.EVT_MENU, self.on_add_blank_document_overlay, id=ID_addNewOverlayDoc)
-
-        menu = wx.Menu()
-        menu.AppendItem(
-            makeMenuItem(
-                parent=menu,
-                id=ID_addNewOverlayDoc,
-                text="Create blank COMPARISON document\tAlt+D",
-                bitmap=self.icons.iconsLib["new_document_16"],
-            )
-        )
-        menu.AppendSeparator()
-        self.addToDocument_check = menu.AppendCheckItem(
-            ID_ionPanel_addToDocument,
-            "Add overlay plots to document\tA",
-            help="Add overlay results to comparison document",
-        )
-        self.addToDocument_check.Check(self.addToDocument)
-        menu.AppendSeparator()
-        self.normalize1D_check = menu.AppendCheckItem(
-            ID_ionPanel_normalize1D,
-            "Normalize mobiligram/chromatogram dataset\tN",
-            help="Normalize mobiligram/chromatogram before overlaying",
-        )
-        self.normalize1D_check.Check(self.normalize1D)
-        menu.Append(ID_overlayMZfromList1D, "Overlay mobiligrams (selected)")
-        menu.Append(ID_overlayMZfromListRT, "Overlay chromatograms (selected)")
-        menu.AppendSeparator()
-        self.useProcessed_check = menu.AppendCheckItem(
-            ID_useProcessedCombinedMenu,
-            "Use processed data (when available)\tP",
-            help="When checked, processed data is used in the overlay (2D) plots.",
-        )
-        self.useProcessed_check.Check(self.config.overlay_usedProcessed)
-        menu.AppendSeparator()
-        self.automaticPlot_check = menu.AppendCheckItem(
-            ID_ionPanel_automaticOverlay, "Overlay automatically", help="Ions will be extracted automatically"
-        )
-        self.automaticPlot_check.Check(self.plotAutomatically)
-        menu.AppendItem(
-            makeMenuItem(
-                parent=menu,
-                id=ID_overlayMZfromList,
-                text="Overlay heatmaps (selected)\tAlt+Q",
-                bitmap=self.icons.iconsLib["heatmap_grid_16"],
-            )
-        )
-        self.PopupMenu(menu)
-        menu.Destroy()
-        self.SetFocus()
-
     def menu_remove_tools(self, evt):
         # Make bindings
         self.Bind(wx.EVT_MENU, self.on_delete_selected, id=ID_ionPanel_delete_selected)
@@ -761,35 +668,10 @@ class PanelPeaklist(wx.Panel):
 
         evtID = evt.GetId()
 
-        if evtID == ID_useProcessedCombinedMenu:
-            self.config.overlay_usedProcessed = not self.config.overlay_usedProcessed
-            args = ("Peak list panel: Using processing data was switched to %s" % self.config.overlay_usedProcessed, 4)
-            self.presenter.onThreading(evt, args, action="updateStatusbar")
-
-        if evtID == ID_ionPanel_addToDocument:
-            self.addToDocument = not self.addToDocument
-            args = ("Adding data to comparison document was set to: %s" % self.addToDocument, 4)
-            self.presenter.onThreading(evt, args, action="updateStatusbar")
-
-        if evtID == ID_ionPanel_normalize1D:
-            self.normalize1D = not self.normalize1D
-            args = ("Normalization of mobiligrams/chromatograms was set to: %s" % self.normalize1D, 4)
-            self.presenter.onThreading(evt, args, action="updateStatusbar")
-
         if evtID == ID_ionPanel_automaticExtract:
             self.extractAutomatically = not self.extractAutomatically
             args = ("Automatic extraction was set to: {}".format(self.extractAutomatically), 4)
             self.presenter.onThreading(evt, args, action="updateStatusbar")
-
-        if evtID == ID_ionPanel_automaticOverlay:
-            self.plotAutomatically = not self.plotAutomatically
-            args = ("Automatic 2D overlaying was set to: {}".format(self.plotAutomatically), 4)
-            self.presenter.onThreading(evt, args, action="updateStatusbar")
-
-            if self.plotAutomatically:
-                self.combo.Bind(wx.EVT_COMBOBOX, self.on_overlay_heatmap)
-            else:
-                self.combo.Unbind(wx.EVT_COMBOBOX)
 
     def on_update_peaklist_table(self, evt):
         evtID = evt.GetId()
@@ -964,6 +846,9 @@ class PanelPeaklist(wx.Panel):
         """
         This function extracts 2D array and plots it in 2D/3D
         """
+        if self.peaklist.item_id is None:
+            return
+
         itemInfo = self.OnGetItemInformation(self.peaklist.item_id)
         document_title = itemInfo["document"]
         rangeName = itemInfo["ionName"]
@@ -1252,6 +1137,9 @@ class PanelPeaklist(wx.Panel):
         if itemID is None:
             itemID = self.peaklist.item_id
 
+        if itemID is None:
+            return
+
         dlg = DialogColorPicker(self, self.config.customColors)
         if dlg.ShowModal() == "ok":
             color_255, color_1, font_color = dlg.GetChosenColour()
@@ -1435,11 +1323,11 @@ class PanelPeaklist(wx.Panel):
 
     def on_check_selected(self, evt):
         """Check current item when letter S is pressed on the keyboard"""
+        if self.peaklist.item_id is None:
+            return
+
         check = not self.peaklist.IsChecked(index=self.peaklist.item_id)
         self.peaklist.CheckItem(self.peaklist.item_id, check=check)
-
-    def on_add_blank_document_overlay(self, evt):
-        self.presenter.onAddBlankDocument(evt=None, document_type="overlay")
 
     def on_extract_all(self, evt):
         self.data_handling.on_extract_2D_from_mass_range_fcn(None, extract_type="all")
@@ -1449,15 +1337,6 @@ class PanelPeaklist(wx.Panel):
 
     def on_extract_new(self, evt):
         self.data_handling.on_extract_2D_from_mass_range_fcn(None, extract_type="new")
-
-    def on_overlay_mobiligram(self, evt):
-        self.data_visualisation.on_overlay_1D(source="ion", plot_type="mobiligram")
-
-    def on_overlay_chromatogram(self, evt):
-        self.data_visualisation.on_overlay_1D(source="ion", plot_type="chromatogram")
-
-    def on_overlay_heatmap(self, evt):
-        self.data_visualisation.on_overlay_2D(source="ion")
 
     def on_add_to_table(self, add_dict, check_color=True):
 

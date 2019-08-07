@@ -23,12 +23,9 @@ from toolbox import find_limits_list
 from toolbox import merge_two_dicts
 from toolbox import remove_nan_from_list
 from utils.adjustText import adjust_text
-from utils.check import isbool
 from utils.color import convertRGB1to255
 from utils.color import determineFontColor
 from utils.color import randomColorGenerator
-from utils.converters import str2int
-from utils.converters import str2num
 from utils.exceptions import MessageError
 from utils.labels import _replace_labels
 from utils.ranges import get_min_max
@@ -958,11 +955,13 @@ class plots(mpl_plotter):
                 line.set_xdata(xvals_1)
                 line.set_ydata(yvals_1)
                 line.set_label(kwargs.pop("label_1", line.get_label()))
+                line.set_color(kwargs.get("line_color_1", line.get_color()))
                 ylimits += get_min_max(yvals_1)
             elif plot_gid == 1:
                 line.set_xdata(xvals_2)
                 line.set_ydata(yvals_2)
                 line.set_label(kwargs.pop("label_2", line.get_label()))
+                line.set_color(kwargs.get("line_color_2", line.get_color()))
                 ylimits += get_min_max(yvals_2)
 
         # update legend
@@ -2022,7 +2021,6 @@ class plots(mpl_plotter):
         xvals2,
         yvals1,
         yvals2,
-        title="",
         xlabel="",
         ylabel="",
         label="",
@@ -2039,16 +2037,6 @@ class plots(mpl_plotter):
 
         if testMax == "yvals":
             yvals1, yvals2, ylabel = self._plot_1D_compare_prepare_data(yvals1, yvals2, ylabel)
-
-        #             yvals1, __, divider_1 = self._convert_intensities(yvals1, ylabel, convert_values=False)
-        #             yvals2, __, divider_2 = self._convert_intensities(yvals2, ylabel, convert_values=False)
-        #             divider = np.max([divider_1, divider_2])
-        #
-        #             self.y_divider = divider
-        #
-        #             yvals1 = np.divide(yvals1, float(divider))
-        #             yvals2 = np.divide(yvals2, float(divider))
-        #             ylabel = ut_visuals.add_exponent_to_label(ylabel, divider)
 
         if xvals2 is None:
             xvals2 = xvals1

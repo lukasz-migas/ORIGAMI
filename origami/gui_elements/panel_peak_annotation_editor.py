@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+import copy
 from ast import literal_eval
 from re import split as re_split
 from time import time as ttime
 
+import numpy as np
 import processing.utils as pr_utils
 import wx
 from gui_elements.dialog_ask import DialogAsk
@@ -26,10 +28,6 @@ from ids import ID_annotPanel_show_charge
 from ids import ID_annotPanel_show_label
 from ids import ID_annotPanel_show_labelsAtIntensity
 from ids import ID_annotPanel_show_mzAndIntensity
-from numpy import amax
-from numpy import average
-from numpy import round
-from numpy import where
 from pandas import read_csv
 from pubsub import pub
 from styles import ListCtrl
@@ -348,8 +346,6 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             evt.Skip()
 
     def on_multiple_annotations(self, evt):
-        import copy
-
         rows = self.peaklist.GetItemCount()
         checked = []
 
@@ -530,8 +526,8 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
 
                 mz_narrow = pr_utils.get_narrow_data_range(data=self.kwargs["data"], mzRange=[min_value, max_value])
                 intensity = pr_utils.find_peak_maximum(mz_narrow)
-                max_index = where(mz_narrow[:, 1] == intensity)[0]
-                intensity = round(intensity, 2)
+                max_index = np.where(mz_narrow[:, 1] == intensity)[0]
+                intensity = np.round(intensity, 2)
 
                 if position in ["", "None", None, False]:
                     try:
@@ -651,7 +647,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
                 if intensity_name is not None:
                     intensity = peaklist[intensity_name][peak]
                 else:
-                    intensity = round(
+                    intensity = np.round(
                         pr_utils.find_peak_maximum(
                             pr_utils.get_narrow_data_range(data=self.kwargs["data"], mzRange=[min_value, max_value]),
                             fail_value=0.0,
@@ -881,17 +877,17 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             ymin, ymax = ymax, ymin
 
         # set intensity
-        intensity = round(average([ymin, ymax]), 4)
+        intensity = np.round(np.average([ymin, ymax]), 4)
 
         # set to 4 decimal places
-        min_value = round(xmin, 4)
-        max_value = round(xmax, 4)
+        min_value = np.round(xmin, 4)
+        max_value = np.round(xmax, 4)
 
         try:
             mz_narrow = pr_utils.get_narrow_data_range(data=self.kwargs["data"], mzRange=[min_value, max_value])
             intensity = pr_utils.find_peak_maximum(mz_narrow)
-            max_index = where(mz_narrow[:, 1] == intensity)[0]
-            intensity = round(intensity, 2)
+            max_index = np.where(mz_narrow[:, 1] == intensity)[0]
+            intensity = np.round(intensity, 2)
         except TypeError:
             pass
         try:
@@ -1032,8 +1028,8 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         if intensity in ["", "None", None, False] and self.kwargs["data"] and not self.manual_add_only:
             mz_narrow = pr_utils.get_narrow_data_range(data=self.kwargs["data"], mzRange=[min_value, max_value])
             intensity = pr_utils.find_peak_maximum(mz_narrow)
-            max_index = where(mz_narrow[:, 1] == intensity)[0]
-            intensity = round(intensity, 2)
+            max_index = np.where(mz_narrow[:, 1] == intensity)[0]
+            intensity = np.round(intensity, 2)
 
         if position in ["", "None", None, False]:
             try:
@@ -1181,7 +1177,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         # update intensity
         if self.config.annotation_zoom_y:
             try:
-                self.plot.on_zoom_y_axis(endY=amax(_ymax) * self.config.annotation_zoom_y_multiplier)
+                self.plot.on_zoom_y_axis(endY=np.amax(_ymax) * self.config.annotation_zoom_y_multiplier)
             except TypeError:
                 pass
 
