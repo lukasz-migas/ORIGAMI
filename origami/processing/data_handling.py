@@ -470,6 +470,8 @@ class data_handling:
 
         self.on_update_document(document, "document")
 
+        return document
+
     def _get_waters_extraction_ranges(self, document):
         """Retrieve extraction ranges for specified file
 
@@ -2130,7 +2132,7 @@ class data_handling:
 
         # Plot MS
         name_kwargs = {"document": document.title, "dataset": ion_name}
-        self.plotsPanel.on_plot_MS(msX, msY, xlimits=xlimits, show_in_window="1D", **name_kwargs)
+        self.plotsPanel.on_plot_MS(msX, msY, xlimits=xlimits, show_in_window="MS_DT", **name_kwargs)
         # Update document
         self.documentTree.on_update_data(ion_data, ion_name, document, data_type="extracted.spectrum")
 
@@ -2182,7 +2184,7 @@ class data_handling:
         self.documentTree.on_update_data(spectrum_data, spectrum_name, document, data_type="extracted.spectrum")
         # Plot MS
         name_kwargs = {"document": document.title, "dataset": spectrum_name}
-        self.plotsPanel.on_plot_MS(mz_x, mz_y, xlimits=xlimits, show_in_window="RT", **name_kwargs)
+        self.plotsPanel.on_plot_MS(mz_x, mz_y, xlimits=xlimits, show_in_window="MS_RT", **name_kwargs)
         # Set status
         msg = f"Extracted MS data for rt: {startScan}-{endScan}"
         self.update_statusbar(msg, 3)
@@ -2377,6 +2379,105 @@ class data_handling:
         else:
             self.on_open_document(file_path)
 
+    def _upgrade_document_version(self, document):
+        """Fix old-style documents to comply with current version
+
+        Since the original release, a couple of things have changed. I've tried to keep things as backward-compatible
+        as possible, but some things need to changed. Whatever changes were made, old-documents can be re-processed
+        into the new format, hopefully permitting continuous usage. New documents are not backward compatible so will
+        not work on ORIGAMI version < 2.
+
+        Parameters
+        ----------
+        document : document object
+            document object
+
+        Returns
+        -------
+        document
+        """
+        logger.info("Upgrading document to latest version...")
+
+        # update document with new attributes
+        if not hasattr(document, "other_data"):
+            setattr(document, "other_data", {})
+            logger.info("Added missing attributute ('other_data') to document")
+
+        if not hasattr(document, "tandem_spectra"):
+            setattr(document, "tandem_spectra", {})
+            logger.info("Added missing attributute ('tandem_spectra') to document")
+
+        if not hasattr(document, "file_reader"):
+            setattr(document, "file_reader", {})
+            logger.info("Added missing attributute ('file_reader') to document")
+
+        if not hasattr(document, "app_data"):
+            setattr(document, "app_data", {})
+            logger.info("Added missing attributute ('app_data') to document")
+
+        if not hasattr(document, "last_saved"):
+            setattr(document, "last_saved", {})
+            logger.info("Added missing attributute ('last_saved') to document")
+
+        if not hasattr(document, "metadata"):
+            setattr(document, "metadata", {})
+            logger.info("Added missing attributute ('metadata') to document")
+
+        # OVERLAY DATA
+        for key in list(document.IMS2DoverlayData):
+            data = document.IMS2DoverlayData.pop(key)
+            # change data structure
+            if key.startswith("Grid (2->1): "):
+                data["zlist"] = [data.pop("zvals_1"), data.pop("zvals_2")]
+                data["cmaps"] = [data.pop("cmap_1"), data.pop("cmap_2")]
+                data["zvals"] = data.pop("zvals_cum")
+            if key.startswith("Grid (n x n): "):
+                data["xlist"] = data.pop("xvals")
+                data["ylist"] = data.pop("yvals")
+                data["zlist"] = data.pop("zvals_list")
+                data["cmaps"] = data.pop("cmap_list")
+                data["legend_text"] = data.pop("title_list")
+            if key.startswith("Mask: "):
+                data["zlist"] = [data.pop("zvals1"), data.pop("zvals2")]
+                data["cmaps"] = [data.pop("cmap1"), data.pop("cmap2")]
+                data["masks"] = [data.pop("mask1"), data.pop("mask2")]
+                [data.pop(key) for key in ["alpha1", "alpha2"]]
+            if key.startswith("Transparent: "):
+                data["zlist"] = [data.pop("zvals1"), data.pop("zvals2")]
+                data["cmaps"] = [data.pop("cmap1"), data.pop("cmap2")]
+                data["alphas"] = [data.pop("alpha1"), data.pop("alpha2")]
+                [data.pop(key) for key in ["mask1", "mask2"]]
+            if key.startswith("1D: ") or key.startswith("RT: "):
+                data["xlabels"] = data.pop("xlabel")
+            document.IMS2DoverlayData[key] = data
+
+            # rename
+            if key.startswith("1D: "):
+                document.IMS2DoverlayData[key.replace("1D: ", "Overlay (DT): ")] = document.IMS2DoverlayData.pop(key)
+            if key.startswith("RT: "):
+                document.IMS2DoverlayData[key.replace("RT: ", "Overlay (RT): ")] = document.IMS2DoverlayData.pop(key)
+
+            # move to new location
+            if key.startswith("RMSD: ") or key.startswith("RMSF: "):
+                document.gotStatsData = True
+                document.IMS2DstatsData[key] = document.IMS2DoverlayData.pop(key)
+
+        # STATISTICAL DATA
+        for key in list(document.IMS2DstatsData):
+            data = document.IMS2DstatsData.pop(key)
+            if key.startswith("RMSD: "):
+                data["xlabels"] = data.pop("xlabel")
+                data["ylabels"] = data.pop("ylabel")
+            if key.startswith("RMSF: "):
+                data["xlabels"] = data.pop("xlabelRMSD")
+                data["ylabels"] = data.pop("ylabelRMSD")
+            if key.startswith("RMSD Matrix"):
+                data["labels"] = data.pop("matrixLabels")
+            document.IMS2DstatsData[key] = data
+
+        logger.info("Finished upgrading document to the latest version")
+        return document
+
     def on_open_document(self, file_paths):
 
         if file_paths is None:
@@ -2387,7 +2488,13 @@ class data_handling:
 
         for file_path in file_paths:
             try:
-                self._load_document_data(document=io_document.open_py_object(filename=file_path))
+                document_obj, document_version = io_document.open_py_object(filename=file_path)
+                # check version
+                if document_version < 2:
+                    document_obj = self._upgrade_document_version(document_obj)
+
+                # add document data to document tree
+                self._load_document_data(document=document_obj)
             except (ValueError, AttributeError, TypeError, IOError) as e:
                 raise MessageError("Failed to load document on load.", str(e))
 
@@ -3333,11 +3440,25 @@ class data_handling:
         return document
 
     def get_mobility_chromatographic_data(self, query_info, **kwargs):
+        """Retrieve data for specified query items.
 
+        Parameters
+        ----------
+        query_info: list
+             query should be formed as a list containing two elements [document title, dataset type, dataset title]
+
+        Returns
+        -------
+        document: document object
+        data: dictionary
+            dictionary with all data associated with the [document title, dataset type, dataset title] combo
+        """
         document_title, dataset_type, dataset_name = query_info
         document = self._on_get_document(document_title)
 
-        if dataset_type == "Drift time (2D)":
+        if dataset_type == "Drift time (1D)":
+            data = copy.deepcopy(document.DT)
+        elif dataset_type == "Drift time (2D)":
             data = copy.deepcopy(document.IMS2D)
         elif dataset_type == "Drift time (2D, processed)":
             data = copy.deepcopy(document.IMS2Dprocess)
@@ -3367,6 +3488,8 @@ class data_handling:
         elif dataset_type == "Input data" and dataset_name is not None:
             data = copy.deepcopy(document.IMS2DcompData[dataset_name])
         # RT - combined voltages
+        elif dataset_type == "Chromatogram":
+            data = copy.deepcopy(document.RT)
         elif (
             dataset_type == "Chromatograms (combined voltages, EIC)"
             and dataset_name == "Chromatograms (combined voltages, EIC)"
@@ -3374,6 +3497,11 @@ class data_handling:
             data = copy.deepcopy(document.IMSRTCombIons)
         elif dataset_type == "Chromatograms (combined voltages, EIC)" and dataset_name is not None:
             data = copy.deepcopy(document.IMSRTCombIons[dataset_name])
+        # RT - EIC
+        elif dataset_type == "Chromatograms (EIC)" and dataset_name == "Chromatograms (EIC)":
+            data = copy.deepcopy(document.multipleRT)
+        elif dataset_type == "Chromatograms (EIC)" and dataset_name is not None:
+            data = copy.deepcopy(document.multipleRT[dataset_name])
         # 1D - EIC
         elif dataset_type == "Drift time (1D, EIC)" and dataset_name == "Drift time (1D, EIC)":
             data = copy.deepcopy(document.multipleDT)
@@ -3393,6 +3521,7 @@ class data_handling:
         return document, data
 
     def set_mobility_chromatographic_data(self, query_info, data, **kwargs):
+        # TODO: add all other data types
 
         document_title, dataset_type, dataset_name = query_info
         document = self._on_get_document(document_title)
@@ -3459,16 +3588,34 @@ class data_handling:
 
         return document
 
+    def set_overlay_data(self, query_info, data, **kwargs):
+        document_title, dataset_type, dataset_name = query_info
+        document = self._on_get_document(document_title)
+
+        if data is not None:
+            if dataset_type == "Statistical" and dataset_name is not None:
+                self.documentTree.on_update_data(data, dataset_name, document, data_type="overlay.statistical")
+            elif dataset_type == "Overlay" and dataset_name is not None:
+                self.documentTree.on_update_data(data, dataset_name, document, data_type="overlay.overlay")
+
+        return document
+
     def generate_item_list(self, data_type="heatmap"):
+        """Generate list of items with the corrent data type(s)"""
 
         if data_type in ["heatmap", "chromatogram", "mobilogram"]:
             item_list = self.generate_item_list_heatmap()
+            if data_type == "chromatogram":
+                item_list.extend(self.generate_item_list_chromatogram())
+            elif data_type == "mobilogram":
+                item_list.extend(self.generate_item_list_mobilogram())
         elif data_type == "mass_spectra":
             item_list = self.generate_item_list_mass_spectra()
 
         return item_list
 
     def generate_item_list_mass_spectra(self):
+        """Generate list of items with the correct data type"""
         all_datasets = ["Mass Spectrum", "Mass Spectrum (processed)", "Mass Spectra"]
         singlular_datasets = ["Mass Spectrum", "Mass Spectrum (processed)"]
         all_documents = self.__get_document_list_of_type("all")
@@ -3508,6 +3655,7 @@ class data_handling:
         return item_list
 
     def generate_item_list_heatmap(self):
+        """Generate list of items with the correct data type"""
         all_datasets = [
             "Drift time (2D)",
             "Drift time (2D, processed)",
@@ -3538,6 +3686,9 @@ class data_handling:
                         "color": data.get("color", randomColorGenerator(True)),
                         "overlay_order": data.get("overlay_order", ""),
                         "processed": True if "processed" in dataset_type else False,
+                        "title": data.get("title", ""),
+                        "header": data.get("header", ""),
+                        "footnote": data.get("footnote", ""),
                     }
                     # add to list
                     item_list.append(item_dict)
@@ -3558,6 +3709,101 @@ class data_handling:
                             "color": data_subset.get("color", randomColorGenerator(True)),
                             "overlay_order": data_subset.get("overlay_order", ""),
                             "processed": True if "(processed)" in key else False,
+                            "title": data_subset.get("title", ""),
+                            "header": data_subset.get("header", ""),
+                            "footnote": data_subset.get("footnote", ""),
+                        }
+                        # add to list
+                        item_list.append(item_dict)
+        return item_list
+
+    def generate_item_list_chromatogram(self):
+        """Generate list of items with the correct data type"""
+        all_datasets = ["Chromatograms (EIC)", "Chromatograms (combined voltages, EIC)", "Chromatogram"]
+        singlular_datasets = ["Chromatogram"]
+        all_documents = self.__get_document_list_of_type("all")
+
+        item_list = []
+        for document_title in all_documents:
+            for dataset_type in all_datasets:
+                __, data = self.get_mobility_chromatographic_data([document_title, dataset_type, dataset_type])
+                if dataset_type in singlular_datasets and isinstance(data, dict) and len(data) > 0:
+                    item_dict = {
+                        "dataset_name": dataset_type,
+                        "dataset_type": dataset_type,
+                        "document_title": document_title,
+                        "shape": data["xvals"].shape,
+                        "label": data.get("label", ""),
+                        "color": data.get("color", randomColorGenerator(True)),
+                        "overlay_order": data.get("overlay_order", ""),
+                        "processed": True if "processed" in dataset_type else False,
+                        "title": data.get("title", ""),
+                        "header": data.get("header", ""),
+                        "footnote": data.get("footnote", ""),
+                    }
+                    # add to list
+                    item_list.append(item_dict)
+                else:
+                    for key in data:
+                        data_subset = data[key]
+                        item_dict = {
+                            "dataset_name": key,
+                            "dataset_type": dataset_type,
+                            "document_title": document_title,
+                            "shape": data_subset["xvals"].shape,
+                            "label": data_subset.get("label", ""),
+                            "color": data_subset.get("color", randomColorGenerator(True)),
+                            "overlay_order": data_subset.get("overlay_order", ""),
+                            "processed": True if "(processed)" in key else False,
+                            "title": data_subset.get("title", ""),
+                            "header": data_subset.get("header", ""),
+                            "footnote": data_subset.get("footnote", ""),
+                        }
+                        # add to list
+                        item_list.append(item_dict)
+        return item_list
+
+    def generate_item_list_mobilogram(self):
+        """Generate list of items with the correct data type"""
+        all_datasets = ["Drift time (1D, EIC)", "Drift time (1D, EIC, DT-IMS)", "Drift time (1D)"]
+        singlular_datasets = ["Drift time (1D)"]
+        all_documents = self.__get_document_list_of_type("all")
+
+        item_list = []
+        for document_title in all_documents:
+            for dataset_type in all_datasets:
+                __, data = self.get_mobility_chromatographic_data([document_title, dataset_type, dataset_type])
+                if dataset_type in singlular_datasets and isinstance(data, dict) and len(data) > 0:
+                    item_dict = {
+                        "dataset_name": dataset_type,
+                        "dataset_type": dataset_type,
+                        "document_title": document_title,
+                        "shape": data["xvals"].shape,
+                        "label": data.get("label", ""),
+                        "color": data.get("color", randomColorGenerator(True)),
+                        "overlay_order": data.get("overlay_order", ""),
+                        "processed": True if "processed" in dataset_type else False,
+                        "title": data.get("title", ""),
+                        "header": data.get("header", ""),
+                        "footnote": data.get("footnote", ""),
+                    }
+                    # add to list
+                    item_list.append(item_dict)
+                else:
+                    for key in data:
+                        data_subset = data[key]
+                        item_dict = {
+                            "dataset_name": key,
+                            "dataset_type": dataset_type,
+                            "document_title": document_title,
+                            "shape": data_subset["xvals"].shape,
+                            "label": data_subset.get("label", ""),
+                            "color": data_subset.get("color", randomColorGenerator(True)),
+                            "overlay_order": data_subset.get("overlay_order", ""),
+                            "processed": True if "(processed)" in key else False,
+                            "title": data_subset.get("title", ""),
+                            "header": data_subset.get("header", ""),
+                            "footnote": data_subset.get("footnote", ""),
                         }
                         # add to list
                         item_list.append(item_dict)

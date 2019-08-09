@@ -242,6 +242,7 @@ class DocumentTree(wx.TreeCtrl):
     def _setup_handling_and_processing(self):
         self.data_processing = self.view.data_processing
         self.data_handling = self.view.data_handling
+        self.data_visualisation = self.view.data_visualisation
 
         self.panel_plot = self.view.panelPlots
 
@@ -4542,211 +4543,113 @@ class DocumentTree(wx.TreeCtrl):
             if save_image:
                 save_kwargs = {"image_name": defaultValue}
                 self.panel_plot.save_images(evt=ID_save2DImageDoc, **save_kwargs)
-        # =======================================================================
-        #  OVERLAY PLOTS
-        # =======================================================================
-        elif self._document_type == "Overlay":
-            if self._item_leaf == "Overlay":
+
+        # OVERLAY PLOTS
+        elif self._document_type in ["Overlay", "Statistical"]:
+            if self._item_leaf == self._document_type:
                 return
-            # Determine type
-            out = re.split("-|,|__|:", self._item_leaf)
-            data = self._document_data.IMS2DoverlayData.get(self._item_leaf, {})
-            if len(data) == 0:
-                keys = list(self._document_data.IMS2DoverlayData.keys())
-                for key in keys:
-                    if self._item_leaf in key:
-                        self._item_leaf = key
-                        data = self._document_data.IMS2DoverlayData.get(self._item_leaf, {})
-            if out[0] == "Grid (n x n)":
-                defaultValue = "Overlay_Grid_NxN_{}".format(basename)
-                self.panel_plot.on_plot_n_grid(
-                    data["zvals_list"],
-                    data["cmap_list"],
-                    data["title_list"],
-                    data["xvals"],
-                    data["yvals"],
-                    data["xlabels"],
-                    data["ylabels"],
-                    set_page=True,
-                )
+
+            # determine plot type
+            method = re.split("-|,|__|:", self._item_leaf)[0]
+
+            # get filename
+            fname_dict = {
+                "Grid (n x n)": "Overlay_Grid_2to1_{}".format(basename),
+                "Grid (2": "Overlay_Grid_2to1_{}".format(basename),
+                "Mask": "Overlay_mask_{}".format(basename),
+                "Transparent": "Overlay_transparent_{}".format(basename),
+                "RMSF": "Overlay_RMSF_{}".format(basename),
+                "RGB": "Overlay_RGB_{}".format(basename),
+                "RMSD": "Overlay_RMSD_{}".format(basename),
+                "Variance": "Overlay_variance_{}".format(basename),
+                "Mean": "Overlay_mean_{}".format(basename),
+                "Standard Deviation": "Overlay_std_{}".format(basename),
+                "RMSD Matrix": "Overlay_matrix_{}".format(basename),
+                "Waterfall (Raw)": "MS_Waterfall_raw_{}".format(basename),
+                "Waterfall (Processed)": "MS_Waterfall_processed_{}".format(basename),
+                "Waterfall (Fitted)": "MS_Waterfall_fitted_{}".format(basename),
+                "Waterfall (Deconvoluted MW)": "MS_Waterfall_deconvolutedMW_{}".format(basename),
+                "Waterfall (Charge states)": "MS_Waterfall_charges_{}".format(basename),
+                "Waterfall overlay": "Waterfall_overlay_{}".format(basename),
+                "1D": "Overlay_DT_1D_{}".format(basename),
+                "Overlay (DT)": "Overlay_DT_1D_{}".format(basename),
+                "RT": "Overlay_RT_{}".format(basename),
+                "Overlay (RT)": "Overlay_RT_{}".format(basename),
+            }
+            default_filename = fname_dict.get(method, f"overlay_{basename}")
+
+            # get data
+            data = self.GetPyData(self._item_id)
+            if data is None:
+                raise MessageError("Data buffer was empty...")
+
+            # plot
+            if method == "Grid (n x n)":
+                self.data_visualisation.on_show_overlay_heatmap_grid_nxn(data)
                 if save_image:
-                    save_kwargs = {"image_name": defaultValue}
-                    self.panel_plot.save_images(evt=ID_saveOverlayImageDoc, **save_kwargs)
-            elif out[0] == "Grid (2":
-                defaultValue = "Overlay_Grid_2to1_{}".format(basename)
-                self.panel_plot.on_plot_grid(
-                    data["zvals_1"],
-                    data["zvals_2"],
-                    data["zvals_cum"],
-                    data["xvals"],
-                    data["yvals"],
-                    data["xlabels"],
-                    data["ylabels"],
-                    data["cmap_1"],
-                    data["cmap_2"],
-                    set_page=True,
-                )
-
-                # Add RMSD label
-                rmsdXpos, rmsdYpos = self.presenter.onCalculateRMSDposition(xlist=data["xvals"], ylist=data["yvals"])
-                if rmsdXpos is not None and rmsdYpos is not None:
-                    self.presenter.on_add_label(rmsdXpos, rmsdYpos, data["rmsdLabel"], 0, plot="Grid")
-
+                    self.panel_plot.save_images(evt=ID_saveOverlayImageDoc, image_name=default_filename)
+            elif method == "Grid (2":
+                self.data_visualisation.on_show_overlay_heatmap_grid_2to1(data)
                 if save_image:
-                    save_kwargs = {"image_name": defaultValue}
-                    self.panel_plot.save_images(evt=ID_saveOverlayImageDoc, **save_kwargs)
-            elif out[0] == "Mask" or out[0] == "Transparent":
-                (
-                    zvals1,
-                    zvals2,
-                    cmap1,
-                    cmap2,
-                    alpha1,
-                    alpha2,
-                    __,
-                    __,
-                    xvals,
-                    yvals,
-                    xlabels,
-                    ylabels,
-                ) = self.presenter.getOverlayDataFromDictionary(dictionary=data, dataType="plot", compact=False)
-                if out[0] == "Mask":
-                    defaultValue = "Overlay_mask_{}".format(basename)
-                    self.panel_plot.on_plot_overlay_2D(
-                        zvalsIon1=zvals1,
-                        cmapIon1=cmap1,
-                        alphaIon1=1,
-                        zvalsIon2=zvals2,
-                        cmapIon2=cmap2,
-                        alphaIon2=1,
-                        xvals=xvals,
-                        yvals=yvals,
-                        xlabel=xlabels,
-                        ylabel=ylabels,
-                        flag="Text",
-                        set_page=True,
-                    )
-                elif out[0] == "Transparent":
-                    defaultValue = "Overlay_transparent_{}".format(basename)
-                    self.panel_plot.on_plot_overlay_2D(
-                        zvalsIon1=zvals1,
-                        cmapIon1=cmap1,
-                        alphaIon1=alpha1,
-                        zvalsIon2=zvals2,
-                        cmapIon2=cmap2,
-                        alphaIon2=alpha2,
-                        xvals=xvals,
-                        yvals=yvals,
-                        xlabel=xlabels,
-                        ylabel=ylabels,
-                        flag="Text",
-                        set_page=True,
-                    )
-                # Change window view
+                    self.panel_plot.save_images(evt=ID_saveOverlayImageDoc, image_name=default_filename)
+            elif method == "Mask" or method == "Transparent":
+                if method == "Mask":
+                    self.data_visualisation.on_show_overlay_heatmap_mask(data)
+                elif method == "Transparent":
+                    self.data_visualisation.on_show_overlay_heatmap_transparent(data)
                 if save_image:
-                    save_kwargs = {"image_name": defaultValue}
-                    self.panel_plot.save_images(evt=ID_saveOverlayImageDoc, **save_kwargs)
+                    self.panel_plot.save_images(evt=ID_saveOverlayImageDoc, image_name=default_filename)
 
-            elif out[0] == "RMSF":
-                (
-                    zvals,
-                    yvalsRMSF,
-                    xvals,
-                    yvals,
-                    xlabelRMSD,
-                    ylabelRMSD,
-                    ylabelRMSF,
-                    color,
-                    cmap,
-                    rmsdLabel,
-                ) = self.presenter.get2DdataFromDictionary(dictionary=data, plotType="RMSF", compact=True)
-                defaultValue = "Overlay_RMSF_{}".format(basename)
-                self.panel_plot.on_plot_RMSDF(
-                    yvalsRMSF=yvalsRMSF,
-                    zvals=zvals,
-                    xvals=xvals,
-                    yvals=yvals,
-                    xlabelRMSD=xlabelRMSD,
-                    ylabelRMSD=ylabelRMSD,
-                    ylabelRMSF=ylabelRMSF,
-                    color=color,
-                    cmap=cmap,
-                    plotType="RMSD",
-                    set_page=True,
-                )
-                # Add RMSD label
-                rmsdXpos, rmsdYpos = self.presenter.onCalculateRMSDposition(xlist=xvals, ylist=yvals)
-                if rmsdXpos is not None and rmsdYpos is not None:
-                    self.presenter.on_add_label(rmsdXpos, rmsdYpos, rmsdLabel, 0, plot="RMSF")
-
+            elif method == "RMSF":
+                self.data_visualisation.on_show_overlay_heatmap_rmsf(data)
                 if save_image:
-                    save_kwargs = {"image_name": defaultValue}
-                    self.panel_plot.save_images(evt=ID_saveRMSFImageDoc, **save_kwargs)
+                    self.panel_plot.save_images(evt=ID_saveRMSFImageDoc, image_name=default_filename)
 
-            elif out[0] == "RGB":
-                defaultValue = "Overlay_RGB_{}".format(basename)
-                data = self.GetPyData(self._item_id)
-                rgb_plot, xAxisLabels, xlabel, yAxisLabels, ylabel, __ = self.presenter.get2DdataFromDictionary(
-                    dictionary=data, plotType="2D", compact=False
-                )
-                legend_text = data["legend_text"]
-                self.panel_plot.on_plot_rgb(
-                    rgb_plot, xAxisLabels, yAxisLabels, xlabel, ylabel, legend_text, set_page=True
-                )
+            elif method == "RGB":
+                self.data_visualisation.on_show_overlay_heatmap_rgb(data)
                 if save_image:
-                    save_kwargs = {"image_name": defaultValue}
-                    self.panel_plot.save_images(evt=ID_save2DImageDoc, **save_kwargs)
+                    self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=default_filename)
 
-            elif out[0] == "RMSD":
-                defaultValue = "Overlay_RMSD_{}".format(basename)
-                (
-                    zvals,
-                    xaxisLabels,
-                    xlabel,
-                    yaxisLabels,
-                    ylabel,
-                    rmsdLabel,
-                    cmap,
-                ) = self.presenter.get2DdataFromDictionary(dictionary=data, plotType="RMSD", compact=True)
-                self.panel_plot.on_plot_RMSD(
-                    zvals, xaxisLabels, yaxisLabels, xlabel, ylabel, cmap, plotType="RMSD", set_page=True
-                )
-                self.panel_plot.on_plot_3D(
-                    zvals=zvals,
-                    labelsX=xaxisLabels,
-                    labelsY=yaxisLabels,
-                    xlabel=xlabel,
-                    ylabel=ylabel,
-                    zlabel="Intensity",
-                    cmap=cmap,
-                )
-                # Add RMSD label
-                rmsdXpos, rmsdYpos = self.presenter.onCalculateRMSDposition(xlist=xaxisLabels, ylist=yaxisLabels)
-                if rmsdXpos is not None and rmsdYpos is not None:
-                    self.presenter.on_add_label(rmsdXpos, rmsdYpos, rmsdLabel, 0, plot="RMSD")
-
+            elif method == "RMSD":
+                self.data_visualisation.on_show_overlay_heatmap_rmsd(data)
                 if save_image:
-                    save_kwargs = {"image_name": defaultValue}
-                    self.panel_plot.save_images(evt=ID_saveRMSDImageDoc, **save_kwargs)
+                    self.panel_plot.save_images(evt=ID_saveRMSDImageDoc, image_name=default_filename)
 
-            elif out[0] in [
+            if method in ["Variance", "Mean", "Standard Deviation"]:
+                self.data_visualisation.on_show_overlay_heatmap_statistical(data)
+                if save_image:
+                    self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=default_filename)
+
+            elif method == "RMSD Matrix":
+                self.data_visualisation.on_show_overlay_heatmap_rmsd_matrix(data)
+                if save_image:
+                    self.panel_plot.save_images(evt=ID_saveRMSDmatrixImageDoc, image_name=default_filename)
+
+            # Overlayed 1D data
+            elif method in ["1D", "Overlay (DT)"]:
+                self.data_visualisation.on_show_overlay_spectrumoverlay(data, "mobilogram")
+                if save_image:
+                    self.panel_plot.save_images(evt=ID_save1DImageDoc, image_name=default_filename)
+            elif method in ["RT", "Overlay (RT)"]:
+                self.data_visualisation.on_show_overlay_spectrumoverlay(data, "chromatogram")
+                if save_image:
+                    self.panel_plot.save_images(evt=ID_saveRTImageDoc, image_name=default_filename)
+            elif method in ["Overlay (MS)"]:
+                self.data_visualisation.on_show_overlay_spectrumoverlay(data, "mass_spectra")
+            elif method in ["Butterfly (MS)", "Butterfly (RT)", "Butterfly (DT)"]:
+                self.data_visualisation.on_show_overlay_spectrumbutterfly(data)
+            elif method in ["Subtract (MS)", "Subtract (RT)", "Subtract (DT)"]:
+                self.data_visualisation.on_show_overlay_spectrumbutterfly(data)
+            elif method in ["Waterfall (MS)", "Waterfall (RT)", "Waterfall (DT)"]:
+                self.data_visualisation.on_show_overlay_spectrumwaterfall(data)
+
+            elif method in [
                 "Waterfall (Raw)",
                 "Waterfall (Processed)",
                 "Waterfall (Fitted)",
                 "Waterfall (Deconvoluted MW)",
                 "Waterfall (Charge states)",
             ]:
-                if out[0] == "Waterfall (Raw)":
-                    defaultValue = "MS_Waterfall_raw_{}".format(basename)
-                elif out[0] == "Waterfall (Processed)":
-                    defaultValue = "MS_Waterfall_processed_{}".format(basename)
-                elif out[0] == "Waterfall (Fitted)":
-                    defaultValue = "MS_Waterfall_fitted_{}".format(basename)
-                elif out[0] == "Waterfall (Deconvoluted MW)":
-                    defaultValue = "MS_Waterfall_deconvolutedMW_{}".format(basename)
-                elif out[0] == "Waterfall (Charge states)":
-                    defaultValue = "MS_Waterfall_charges_{}".format(basename)
-
                 self.panel_plot.on_plot_waterfall(
                     data["xvals"],
                     data["yvals"],
@@ -4758,10 +4661,9 @@ class DocumentTree(wx.TreeCtrl):
                     **data["waterfall_kwargs"],
                 )
                 if save_image:
-                    save_kwargs = {"image_name": defaultValue}
-                    self.panel_plot.save_images(evt=ID_saveWaterfallImageDoc, **save_kwargs)
+                    self.panel_plot.save_images(evt=ID_saveWaterfallImageDoc, image_name=default_filename)
 
-            elif out[0] == "Waterfall overlay":
+            elif method == "Waterfall overlay":
                 self.panel_plot.on_plot_waterfall_overlay(
                     data["xvals"],
                     data["yvals"],
@@ -4773,77 +4675,8 @@ class DocumentTree(wx.TreeCtrl):
                     set_page=True,
                 )
                 if save_image:
-                    defaultValue = "Waterfall_overlay_{}".format(basename)
-                    save_kwargs = {"image_name": defaultValue}
-                    self.panel_plot.save_images(evt=ID_saveWaterfallImageDoc, **save_kwargs)
+                    self.panel_plot.save_images(evt=ID_saveWaterfallImageDoc, image_name=default_filename)
 
-            # Overlayed 1D data
-            elif out[0] == "1D" or out[0] == "RT":
-                xvals, yvals, xlabels, colors, labels, xlimits = self.presenter.get2DdataFromDictionary(
-                    dictionary=data, plotType="Overlay1D", compact=True
-                )
-                if out[0] == "1D":
-                    defaultValue = "Overlay_DT_1D_{}".format(basename)
-                    self.panel_plot.on_plot_overlay_DT(
-                        xvals=xvals,
-                        yvals=yvals,
-                        xlabel=xlabels,
-                        colors=colors,
-                        xlimits=xlimits,
-                        labels=labels,
-                        set_page=True,
-                    )
-                    if save_image:
-                        save_kwargs = {"image_name": defaultValue}
-                        self.panel_plot.save_images(evt=ID_save1DImageDoc, **save_kwargs)
-                elif out[0] == "RT":
-                    defaultValue = "Overlay_RT_{}".format(basename)
-                    self.panel_plot.on_plot_overlay_RT(
-                        xvals=xvals,
-                        yvals=yvals,
-                        xlabel=xlabels,
-                        colors=colors,
-                        xlimits=xlimits,
-                        labels=labels,
-                        set_page=True,
-                    )
-                    if save_image:
-                        save_kwargs = {"image_name": defaultValue}
-                        self.panel_plot.save_images(evt=ID_saveRTImageDoc, **save_kwargs)
-
-        elif self._document_type == "Statistical":
-            if self._item_leaf == "Statistical":
-                return
-
-            out = self._item_leaf.split(":")
-            data = self._document_data.IMS2DstatsData[self._item_leaf]
-            # Variance, Mean, Std Dev are of the same format
-            if out[0] in ["Variance", "Mean", "Standard Deviation"]:
-                if out[0] == "Variance":
-                    defaultValue = "Overlay_variance_{}".format(basename)
-                elif out[0] == "Mean":
-                    defaultValue = "Overlay_mean_{}".format(basename)
-                elif out[0] == "Standard Deviation":
-                    defaultValue = "Overlay_std_{}".format(basename)
-
-                # Unpack data
-                dataOut = self.presenter.get2DdataFromDictionary(dictionary=data, dataType="plot", compact=True)
-                # Change panel and plot data
-                self.panel_plot.on_plot_2D_data(data=dataOut)
-                self.panel_plot._set_page(self.config.panelNames["2D"])
-                if save_image:
-                    save_kwargs = {"image_name": defaultValue}
-                    self.panel_plot.save_images(evt=ID_save2DImageDoc, **save_kwargs)
-
-            elif out[0] == "RMSD Matrix":
-                defaultValue = "Overlay_matrix_{}".format(basename)
-                zvals, yxlabels, cmap = self.presenter.get2DdataFromDictionary(
-                    dictionary=data, plotType="Matrix", compact=False
-                )
-                self.panel_plot.on_plot_matrix(zvals=zvals, xylabels=yxlabels, cmap=cmap, set_page=True)
-                if save_image:
-                    save_kwargs = {"image_name": defaultValue}
-                    self.panel_plot.save_images(evt=ID_saveRMSDmatrixImageDoc, **save_kwargs)
         elif self._document_type == "DT/MS" or evtID in [
             ID_ylabel_DTMS_bins,
             ID_ylabel_DTMS_ms,
@@ -4864,7 +4697,7 @@ class DocumentTree(wx.TreeCtrl):
                 full_data=dict(zvals=data["zvals"], xvals=data["xvals"]),
             )
             if save_image:
-                self.panel_plot.save_images(evt=ID_saveMZDTImageDoc, **save_kwargs)
+                self.panel_plot.save_images(evt=ID_saveMZDTImageDoc)
         else:
             return
 
@@ -5516,27 +5349,27 @@ class DocumentTree(wx.TreeCtrl):
         # update document with new attributes
         if not hasattr(docData, "other_data"):
             setattr(docData, "other_data", {})
-            print("Added missing attributute ('other_data') to document")
+            logger.info("Added missing attributute ('other_data') to document")
 
         if not hasattr(docData, "tandem_spectra"):
             setattr(docData, "tandem_spectra", {})
-            print("Added missing attributute ('tandem_spectra') to document")
+            logger.info("Added missing attributute ('tandem_spectra') to document")
 
         if not hasattr(docData, "file_reader"):
             setattr(docData, "file_reader", {})
-            print("Added missing attributute ('file_reader') to document")
+            logger.info("Added missing attributute ('file_reader') to document")
 
         if not hasattr(docData, "app_data"):
             setattr(docData, "app_data", {})
-            print("Added missing attributute ('app_data') to document")
+            logger.info("Added missing attributute ('app_data') to document")
 
         if not hasattr(docData, "last_saved"):
             setattr(docData, "last_saved", {})
-            print("Added missing attributute ('last_saved') to document")
+            logger.info("Added missing attributute ('last_saved') to document")
 
         if not hasattr(docData, "metadata"):
             setattr(docData, "metadata", {})
-            print("Added missing attributute ('app_data') to document")
+            logger.info("Added missing attributute ('metadata') to document")
 
         # update document to latest version
 
@@ -7162,6 +6995,17 @@ class DocumentTree(wx.TreeCtrl):
             document.gotComparisonData = True
             document.IMS2DcompData[item_name] = item_data
 
+        # overlay
+        elif data_type == "overlay.statistical":
+            item = self.getItemByData(document.IMS2DstatsData)
+            document.gotStatsData = True
+            document.IMS2DstatsData[item_name] = item_data
+
+        elif data_type == "overlay.overlay":
+            item = self.getItemByData(document.IMS2DoverlayData)
+            document.gotOverlay = True
+            document.IMS2DoverlayData[item_name] = item_data
+
         if item is not False and not set_data_only:
             # add main spectrum
             if data_type == "main.spectrum":
@@ -7198,6 +7042,11 @@ class DocumentTree(wx.TreeCtrl):
                 self.add_one_to_group(item, document.IMS2DionsProcess[item_name], item_name, image=data_type)
             elif data_type == "ion.heatmap.comparison":
                 self.add_one_to_group(item, document.IMS2DcompData[item_name], item_name, image=data_type)
+            # add overlay data
+            elif data_type == "overlay.statistical":
+                self.add_one_to_group(item, document.IMS2DstatsData[item_name], item_name, image=data_type)
+            elif data_type == "overlay.overlay":
+                self.add_one_to_group(item, document.IMS2DoverlayData[item_name], item_name, image=data_type)
             # add data to document without updating it
             self.data_handling.on_update_document(document, "no_refresh")
         else:

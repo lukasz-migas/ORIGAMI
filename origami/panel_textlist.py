@@ -361,7 +361,7 @@ class PanelTextlist(wx.Panel):
             makeMenuItem(
                 parent=menu,
                 id=ID_textPanel_changeColorBatch_color,
-                text="Assign color for selected items",
+                text="Assign new color using color picker (selected)",
                 bitmap=self.icons.iconsLib["color_panel_16"],
             )
         )

@@ -1,47 +1,17 @@
 # TODO:
 
-- move to py3
-- move to wxPython 4+
-
-- add new document viewer which allows reviewing what data is included
-    in selected dataset i.e. size, shape, labels, processign steps etc
-
 - UniDec support
     = add new 2D plot which colours charge states of various components as with RGB plot
     = add adduct in the Pre-processing or deconvolution part
     = add isotopic resolution in deconvolution
 
-- Peak list
-    = when double-clicking on an item it incorrectly selects method (Linear/Manual)
-    = add option to visualise global ATD as a waterfall
-
-- Support loading other data formats
-    = when loading 2D dataset, check column names to see if they are float, if not
-        add them as separate 1D items
-    = custom tooltips?
-        This could be quite simple. A user would have an option to select type of annotation
-        which could be integer, float or string and for which item(s) in the plot. These would be
-        then rendered as tooltip features
-        -- add 2D from clipboard/file(s)
-
 - add new sub-document item: Saved images
 	= should allow saving already generated images to the document (no re-plotting required!)
-
-- complete revamp of Linear DT files panel
-    = remove the DT panel and add it as a plugin instead
-	= add features like highlighting on RT and MS panels
-	= load lists
-	= fix feature detection
-
-- complete revamp of CCS panel
-    = remove the CCS panel and add it as a plugin instead
 
 - add support for Agilent files
 
 - retention time:
     = combine multiple areas
-
-- move the MS extraction to Waters official API and stop using Driftscope for this
 
 Interactive:
     - add pie chart
@@ -53,15 +23,36 @@ autopep8 --in-place --aggressive --aggressive --max-line-length=120 ORIGAMI.py
 ################################################################################
 ################################################################################
 ################################################################################
+
+# TODO BEFORE NEXT RELASE
+- [IMPORTANT] add CCS calibration panel
+- [IMPORTANT] completely revamp interactive output panel
+- completely revamp how plots are customized
+- re-implement visualisation of overlay items
+- [IMPORTANT] add possibility to migrate to new document structure (e.g. overlay documents)
+- add overlay possibilities for UniDec results
+- add interactive plot to annotations
+- [IMPORTANT] revamp annotations object
+- [IMPORTANT] revamp customization of overlay objects
+- [IMPORTANT] check if current implementation of Boltzmann method gives the same results as whats acquired!
+- add possibility to batch assign charge
+-
+
+
 # v1.3.0.0 / 2.0.0
 Code:
 - migrated ORIGAMI to Python3
 - migrated ORIGAMI GUI to wxPython 4
 - cleaned up a lot of poorly designed code
+
 - removed a lot of old, not used code
 
 GUI:
 - [changed] renamed the Menu item "Plugins" to "Widgets"
+- [changed] reorganised the main window by removing a lot of plot areas and instead replacing them with their own
+    widgets
+- [changed] renamed plots to something more meaningful
+- [changed] removed a couple of things from the toolbar and instead migrated all processing to their own widgets (see below)
 
 Document object:
 - [new] added new keyword "metadata" which will store parameters for verious processes

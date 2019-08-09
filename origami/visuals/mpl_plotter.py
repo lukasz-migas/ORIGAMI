@@ -47,7 +47,7 @@ class mpl_plotter(wx.Panel):
 
         # RESIZE
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.canvas, 1, wx.LEFT | wx.TOP | wx.GROW)
+        sizer.Add(self.canvas, 1, wx.LEFT | wx.TOP | wx.GROW, 0)
         self.SetSizer(sizer)
         self.Fit()
         self.Show()
@@ -64,6 +64,9 @@ class mpl_plotter(wx.Panel):
 
         # plot data
         self.data_limits = []
+
+    def __repr__(self):
+        return f"Plot: {self.plotName} | Window name: {self.window_name} | Axes size: {self._axes}"
 
     def get_xlimits(self):
         return [self.data_limits[0], self.data_limits[2]]
@@ -464,7 +467,7 @@ class mpl_plotter(wx.Panel):
         else:
             weight = "regular"
 
-        if plot is None:
+        if plot in [None, "RMSD", "RMSF"]:
             self.text = self.plotMS.text(
                 x=xval,
                 y=yval,
@@ -476,6 +479,7 @@ class mpl_plotter(wx.Panel):
                 color=color,
                 clip_on=True,
             )
+
         elif plot == "Grid":
             self.text = self.plot2D_side.text(
                 x=xval,

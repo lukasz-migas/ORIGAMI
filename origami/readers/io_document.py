@@ -28,11 +28,25 @@ def open_py_object(filename=None):
     """
     if filename.rstrip("/")[-7:] == ".pickle":
         with open(filename, "rb") as f:
+            # try loading as python 3
             try:
-                return pickle.load(f)
-            except Exception as e:
-                print(e)
-                return None
+                return pickle.load(f), 2
+            except Exception as err:
+                # try loading as python 2
+                try:
+                    return pickle.load(f, encoding="latin1"), 1
+                except Exception as err:
+                    # try loading as python 2 with wxpython2 support
+                    try:
+                        logger.info("This is an old-version of ORIGAMI document")
+                        import sys
+                        from wx import _core
+
+                        sys.modules["wx._gdi"] = _core
+                        return pickle.load(f, encoding="latin1"), 1
+                    except Exception as err:
+                        logger.error(err)
+                    return None
     else:
         with open(filename + ".pickle", "rb") as f:
             return pickle.load(f)

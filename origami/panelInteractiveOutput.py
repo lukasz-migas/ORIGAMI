@@ -1550,22 +1550,19 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         # Add to grid sizer
         grid = wx.GridBagSizer(2, 2)
-        grid.Add(titleFontSize, wx.GBPosition(0, 0), wx.GBSpan(1, 2), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
-        grid.Add(self.titleSlider, wx.GBPosition(1, 0), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
-        grid.Add(self.titleBoldCheck, wx.GBPosition(1, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
+        grid.Add(titleFontSize, (0, 0), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
+        grid.Add(self.titleSlider, (1, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
+        grid.Add(self.titleBoldCheck, (1, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
 
-        grid.Add(labelFontSize, wx.GBPosition(0, 2), wx.GBSpan(1, 2), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
-        grid.Add(self.labelSlider, wx.GBPosition(1, 2), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
-        grid.Add(self.labelBoldCheck, wx.GBPosition(1, 3), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
+        grid.Add(labelFontSize, (0, 2), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
+        grid.Add(self.labelSlider, (1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
+        grid.Add(self.labelBoldCheck, (1, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
 
-        grid.Add(tickFontSize, wx.GBPosition(2, 0), wx.GBSpan(1, 2), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
-        grid.Add(self.tickSlider, wx.GBPosition(3, 0), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
-        grid.Add(
-            precision_label, wx.GBPosition(2, 2), wx.GBSpan(1, 2), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2
-        )
-        grid.Add(self.tickPrecision, wx.GBPosition(3, 2), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
-        grid.Add(self.tickUseScientific, wx.GBPosition(3, 3), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
-
+        grid.Add(tickFontSize, (2, 0), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
+        grid.Add(self.tickSlider, (3, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
+        grid.Add(precision_label, (2, 2), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
+        grid.Add(self.tickPrecision, (3, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
+        grid.Add(self.tickUseScientific, (3, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
         main_sizer.Add(grid, 0, wx.EXPAND | wx.ALL, 2)
         return main_sizer
 
@@ -1633,32 +1630,20 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         grid = wx.GridBagSizer(2, 2)
         n = 0
+        grid.Add(notationFontSize, (n, 0), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
+        grid.Add(interactive_annotation_color_label, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
         grid.Add(
-            notationFontSize, wx.GBPosition(n, 0), wx.GBSpan(1, 2), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2
+            interactive_annotation_background_color_label, (n, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT
         )
-        grid.Add(
-            interactive_annotation_color_label, wx.GBPosition(n, 2), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2
-        )
-        grid.Add(
-            interactive_annotation_background_color_label,
-            wx.GBPosition(n, 3),
-            wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT,
-            2,
-        )
-        grid.Add(interactive_transparency_label, wx.GBPosition(n, 4), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
+        grid.Add(interactive_transparency_label, (n, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
         n = n + 1
-        grid.Add(self.notationSlider, wx.GBPosition(n, 0), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
-        grid.Add(self.notationBoldCheck, wx.GBPosition(n, 1), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
+        grid.Add(self.notationSlider, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
+        grid.Add(self.notationBoldCheck, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
+        grid.Add(self.interactive_annotation_colorBtn, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
         grid.Add(
-            self.interactive_annotation_colorBtn, wx.GBPosition(n, 2), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2
+            self.interactive_annotation_colorBackgroundBtn, (n, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT
         )
-        grid.Add(
-            self.interactive_annotation_colorBackgroundBtn,
-            wx.GBPosition(n, 3),
-            wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT,
-            2,
-        )
-        grid.Add(self.rmsd_label_transparency, wx.GBPosition(n, 4), wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT, 2)
+        grid.Add(self.rmsd_label_transparency, (n, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
 
         rmsdSizer.Add(grid, 0, wx.EXPAND | wx.ALL, 2)
         return rmsdSizer

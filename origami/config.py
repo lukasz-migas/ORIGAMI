@@ -21,9 +21,7 @@ logger = logging.getLogger("origami")
 
 class OrigamiConfig:
     def __init__(self):
-        """
-        Initilize config
-        """
+        """Initilize config"""
 
         self._processID = None
         self.loggingFile_path = None

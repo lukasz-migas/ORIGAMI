@@ -93,7 +93,10 @@ class data_visualisation:
                 shape_split = shape.replace("(", "").replace(")", "").split(",")
                 if len(shape_split) - 1 >= dimension:
                     shape = shape_split[dimension]
-            shape_list.append(shape)
+                    if shape == "":
+                        alternative_dimension = 0 if dimension == 1 else 1
+                        shape = shape_split[alternative_dimension]
+            shape_list.append(shape.strip())
 
         # reduce to only include unique values
         shape = list(set(shape_list))
@@ -125,6 +128,11 @@ class data_visualisation:
     #                 footnote = self.docs.IMS2DoverlayData[idName].get("footnote", "")
     #             else:
     #                 title, header, footnote = "", "", ""
+
+    def _check_array_shape(self, xvals, yvals):
+        xvals = np.asarray(xvals)
+        yvals = np.asarray(yvals)
+        return xvals.shape == yvals.shape
 
     def _generate_overlay_name(self, dataset_info, prepend=None):
         """Generate name for overlay object based on dataset info (eg. document_title, dataset_type and dataset_name
@@ -225,11 +233,18 @@ class data_visualisation:
 
             # get data
             if data_type == "mobilogram":
-                xvals = data["yvals"]
-                yvals = data.get("yvals1D", data["zvals"].sum(axis=1))
+                try:
+                    xvals = data["yvals"]
+                    yvals = data.get("yvals1D", data["zvals"].sum(axis=1))
+                except KeyError:
+                    xvals = data["xvals"]
+                    yvals = data["yvals"]
             elif data_type == "chromatogram":
                 xvals = data["xvals"]
-                yvals = data.get("yvalsRT", data["zvals"].sum(axis=0))
+                try:
+                    yvals = data.get("yvalsRT", data["zvals"].sum(axis=0))
+                except KeyError:
+                    yvals = data["yvals"]
             elif data_type == "mass_spectra":
                 xvals = data["xvals"]
                 yvals = data["yvals"]
@@ -247,26 +262,15 @@ class data_visualisation:
                 label = item_info["dataset_name"]
             legend.append(label)
 
-        xlimits = [min(xvals), max(xvals)]
-
         # plot
         if data_type == "mobilogram":
             xlabel = data["ylabels"]
-            self.panelPlots.on_plot_overlay_DT(
-                xvals=xlist, yvals=ylist, xlabel=xlabel, colors=colorlist, xlimits=xlimits, labels=legend, **kwargs
-            )
             dataset_name = self._generate_overlay_name(dataset_info, "Overlay (DT): ")
         elif data_type == "chromatogram":
             xlabel = data["xlabels"]
-            self.panelPlots.on_plot_overlay_RT(
-                xvals=xlist, yvals=ylist, xlabel=xlabel, colors=colorlist, xlimits=xlimits, labels=legend, **kwargs
-            )
             dataset_name = self._generate_overlay_name(dataset_info, "Overlay (RT): ")
         elif data_type == "mass_spectra":
             xlabel = data["xlabels"]
-            self.panelPlots.on_plot_overlay_RT(
-                xvals=xlist, yvals=ylist, xlabel=xlabel, colors=colorlist, xlimits=xlimits, labels=legend, **kwargs
-            )
             dataset_name = self._generate_overlay_name(dataset_info, "Overlay (MS): ")
 
         # generate dataset holder
@@ -276,13 +280,17 @@ class data_visualisation:
                 "method": "Overlay",
                 "xvals": xlist,
                 "yvals": ylist,
-                "xlabel": xlabel,
+                "xlabels": xlabel,
                 "colors": colorlist,
-                "xlimits": xlimits,
+                "xlimits": [min(xvals), max(xvals)],
                 "labels": legend,
                 "dataset_info": dataset_info,
             },
         }
+
+        # plot
+        self.on_show_overlay_spectrumoverlay(dataset_holder["data"], data_type, **kwargs)
+
         return dataset_holder
 
     def on_overlay_spectrum_butterfly(self, item_list, data_type, **kwargs):
@@ -324,10 +332,16 @@ class data_visualisation:
             # get data
             if data_type == "mobilogram":
                 xvals = data["yvals"]
-                yvals = data.get("yvals1D", data["zvals"].sum(axis=1))
+                try:
+                    yvals = data.get("yvals1D", data["zvals"].sum(axis=1))
+                except KeyError:
+                    yvals = data["yvals"]
             elif data_type == "chromatogram":
                 xvals = data["xvals"]
-                yvals = data.get("yvalsRT", data["zvals"].sum(axis=0))
+                try:
+                    yvals = data.get("yvalsRT", data["zvals"].sum(axis=0))
+                except KeyError:
+                    yvals = data["yvals"]
             elif data_type == "mass_spectra":
                 xvals = data["xvals"]
                 yvals = data["yvals"]
@@ -358,11 +372,6 @@ class data_visualisation:
             xlabel = data["xlabels"]
             dataset_name = self._generate_overlay_name(dataset_info, "Butterfly (MS): ")
 
-        # plot
-        self.panelPlots.plot_compare_spectra(
-            xlist[0], xlist[1], ylist[0], ylist[1], xlabel=xlabel, legend=legend, **kwargs
-        )
-
         # generate dataset holder
         dataset_holder = {
             "name": dataset_name,
@@ -370,12 +379,16 @@ class data_visualisation:
                 "method": "Butterfly",
                 "xvals": xlist,
                 "yvals": ylist,
-                "xlabel": xlabel,
+                "xlabels": xlabel,
                 "colors": colorlist,
                 "labels": legend,
                 "dataset_info": dataset_info,
             },
         }
+
+        # plot
+        self.on_show_overlay_spectrumbutterfly(dataset_holder["data"], **kwargs)
+
         return dataset_holder
 
     def on_overlay_spectrum_subtract(self, item_list, data_type, **kwargs):
@@ -418,10 +431,16 @@ class data_visualisation:
             # get data
             if data_type == "mobilogram":
                 xvals = data["yvals"]
-                yvals = data.get("yvals1D", data["zvals"].sum(axis=1))
+                try:
+                    yvals = data.get("yvals1D", data["zvals"].sum(axis=1))
+                except KeyError:
+                    yvals = data["yvals"]
             elif data_type == "chromatogram":
                 xvals = data["xvals"]
-                yvals = data.get("yvalsRT", data["zvals"].sum(axis=0))
+                try:
+                    yvals = data.get("yvalsRT", data["zvals"].sum(axis=0))
+                except KeyError:
+                    yvals = data["yvals"]
             elif data_type == "mass_spectra":
                 xvals = data["xvals"]
                 yvals = data["yvals"]
@@ -439,46 +458,38 @@ class data_visualisation:
             legend.append(label)
 
         # unpack and process
-        xvals_1, yvals_1, xvals_2, yvals_2 = xlist[0], ylist[0], xlist[1], ylist[1]
-        xvals_1, yvals_1, xvals_2, yvals_2 = self.data_processing.subtract_spectra(xvals_1, yvals_1, xvals_2, yvals_2)
+        xlist[0], ylist[0], xlist[0], ylist[1] = self.data_processing.subtract_spectra(
+            xlist[0], ylist[0], xlist[1], ylist[1]
+        )
 
         # plot
         if data_type == "mobilogram":
             xlabel = data["ylabels"]
-            dataset_name = self._generate_overlay_name(dataset_info, "Butterfly (DT): ")
+            dataset_name = self._generate_overlay_name(dataset_info, "Subtract (DT): ")
         elif data_type == "chromatogram":
             xlabel = data["xlabels"]
-            dataset_name = self._generate_overlay_name(dataset_info, "Butterfly (RT): ")
+            dataset_name = self._generate_overlay_name(dataset_info, "Subtract (RT): ")
         elif data_type == "mass_spectra":
             xlabel = data["xlabels"]
-            dataset_name = self._generate_overlay_name(dataset_info, "Butterfly (MS): ")
-
-        # plot
-        self.panelPlots.plot_compare_spectra(
-            xvals_1,
-            xvals_2,
-            yvals_1,
-            yvals_2,
-            xlabel=xlabel,
-            legend=legend,
-            line_color_1=colorlist[0],
-            line_color_2=colorlist[1],
-            **kwargs,
-        )
+            dataset_name = self._generate_overlay_name(dataset_info, "Subtract (MS): ")
 
         # generate dataset holder
         dataset_holder = {
             "name": dataset_name,
             "data": {
-                "method": "Butterfly",
+                "method": "Subtract",
                 "xvals": xlist,
                 "yvals": ylist,
-                "xlabel": xlabel,
+                "xlabels": xlabel,
                 "colors": colorlist,
                 "labels": legend,
                 "dataset_info": dataset_info,
             },
         }
+
+        # plot
+        self.on_show_overlay_spectrumbutterfly(dataset_holder["data"], **kwargs)
+
         return dataset_holder
 
     def on_overlay_spectrum_waterfall(self, item_list, data_type, **kwargs):
@@ -520,11 +531,19 @@ class data_visualisation:
 
             # get data
             if data_type == "mobilogram":
-                xvals = data["yvals"]
-                yvals = data.get("yvals1D", data["zvals"].sum(axis=1))
+                try:
+                    yvals = data.get("yvals1D", data["zvals"].sum(axis=1))
+                except KeyError:
+                    yvals = data["yvals"]
+                xvals = data["xvals"]
+                if not self._check_array_shape(xvals, yvals):
+                    xvals = data["yvals"]
             elif data_type == "chromatogram":
                 xvals = data["xvals"]
-                yvals = data.get("yvalsRT", data["zvals"].sum(axis=0))
+                try:
+                    yvals = data.get("yvalsRT", data["zvals"].sum(axis=0))
+                except KeyError:
+                    yvals = data["yvals"]
             elif data_type == "mass_spectra":
                 xvals = data["xvals"]
                 yvals = data["yvals"]
@@ -565,7 +584,7 @@ class data_visualisation:
                 "method": "Butterfly",
                 "xvals": xlist,
                 "yvals": ylist,
-                "xlabel": xlabel,
+                "xlabels": xlabel,
                 "colors": colorlist,
                 "labels": legend,
                 "dataset_info": dataset_info,
@@ -640,8 +659,8 @@ class data_visualisation:
     #                 "yvals": yvals,
     #                 "zvals": zvals,
     #                 "colors": colors,
-    #                 "xlabel": xlabel,
-    #                 "ylabel": ylabel,
+    #                 "xlabels": xlabel,
+    #                 "ylabels": ylabel,
     #                 "labels": labels,
     #             }
     #             if checkExist is not None:
@@ -685,31 +704,6 @@ class data_visualisation:
                 label = item_info["dataset_name"]
             legend.append(label)
 
-        # get labels
-        xlabel = data["xlabels"]
-        ylabel = data["ylabels"]
-        xvals = data["xvals"]
-        yvals = data["yvals"]
-
-        # generate masked arrays
-        zvals_1 = masked_array(zlist[0], zlist[0] < masklist[0])
-        zvals_2 = masked_array(zlist[1], zlist[1] < masklist[1])
-
-        self.panelPlots.on_plot_overlay_2D(
-            zvalsIon1=zvals_1,
-            cmapIon1=cmaplist[0],
-            alphaIon1=1,
-            zvalsIon2=zvals_2,
-            cmapIon2=cmaplist[1],
-            alphaIon2=1,
-            xvals=xvals,
-            yvals=yvals,
-            xlabel=xlabel,
-            ylabel=ylabel,
-            plotName="Mask",
-            **kwargs,
-        )
-
         # generate item name
         dataset_name = self._generate_overlay_name(dataset_info, "Mask: ")
 
@@ -721,16 +715,20 @@ class data_visualisation:
                 "xlist": xlist,
                 "ylist": ylist,
                 "zlist": zlist,
-                "xvals": xvals,
-                "yvals": yvals,
-                "xlabel": xlabel,
-                "ylabel": ylabel,
+                "xvals": data["xvals"],
+                "yvals": data["yvals"],
+                "xlabels": data["xlabels"],
+                "ylabels": data["ylabels"],
                 "cmaps": cmaplist,
                 "masks": masklist,
                 "labels": legend,
                 "dataset_info": dataset_info,
             },
         }
+
+        # plot
+        self.on_show_overlay_heatmap_mask(dataset_holder["data"], **kwargs)
+
         return dataset_holder
 
     def on_overlay_heatmap_transparent(self, item_list, **kwargs):
@@ -762,31 +760,6 @@ class data_visualisation:
                 label = item_info["dataset_name"]
             legend.append(label)
 
-        # get labels
-        xlabel = data["xlabels"]
-        ylabel = data["ylabels"]
-        xvals = data["xvals"]
-        yvals = data["yvals"]
-
-        # generate masked arrays
-        zvals_1 = zlist[0]
-        zvals_2 = zlist[1]
-
-        self.panelPlots.on_plot_overlay_2D(
-            zvalsIon1=zvals_1,
-            cmapIon1=cmaplist[0],
-            alphaIon1=alphalist[0],
-            zvalsIon2=zvals_2,
-            cmapIon2=cmaplist[1],
-            alphaIon2=alphalist[1],
-            xvals=xvals,
-            yvals=yvals,
-            xlabel=xlabel,
-            ylabel=ylabel,
-            plotName="Mask",
-            **kwargs,
-        )
-
         # generate item name
         dataset_name = self._generate_overlay_name(dataset_info, "Transparent: ")
 
@@ -798,236 +771,21 @@ class data_visualisation:
                 "xlist": xlist,
                 "ylist": ylist,
                 "zlist": zlist,
-                "xvals": xvals,
-                "yvals": yvals,
-                "xlabel": xlabel,
-                "ylabel": ylabel,
+                "xvals": data["xvals"],
+                "yvals": data["yvals"],
+                "xlabels": data["xlabels"],
+                "ylabels": data["ylabels"],
                 "cmaps": cmaplist,
                 "alphas": alphalist,
                 "labels": legend,
                 "dataset_info": dataset_info,
             },
         }
-        return dataset_holder
 
-    #     def on_overlay_1D(self, source, plot_type):
-    #         """
-    #         This function enables overlaying of multiple ions together - 1D and RT
-    #         """
-    #         # Check what is the ID
-    #         if source == "ion":
-    #             tempList = self.ionList
-    #             add_data_to_document = self.view.panelMultipleIons.addToDocument
-    #             normalize_dataset = self.view.panelMultipleIons.normalize1D
-    #         elif source == "text":
-    #             tempList = self.textList
-    #             add_data_to_document = self.view.panelMultipleText.addToDocument
-    #             normalize_dataset = self.view.panelMultipleText.normalize1D
-    #
-    #         if add_data_to_document:
-    #             document = self._get_document_of_type("Type: Comparison")
-    #             document_title = document.title
-    #
-    #         # Empty lists
-    #         xlist, ylist, colorlist, legend = [], [], [], []
-    #         idName = ""
-    #         # Get data for the dataset
-    #         for row in range(tempList.GetItemCount()):
-    #             if tempList.IsChecked(index=row):
-    #                 if source == "ion":
-    #                     # Get current document
-    #                     itemInfo = self.ionPanel.OnGetItemInformation(itemID=row)
-    #                     document_title = itemInfo["document"]
-    #                     # Check that data was extracted first
-    #                     if document_title == "":
-    #                         continue
-    #
-    #                     document = self.data_handling._on_get_document(document_title)
-    #                     dataType = document.dataType
-    #                     selectedItem = itemInfo["ionName"]
-    #                     label = itemInfo["label"]
-    #                     color = convertRGB255to1(itemInfo["color"])
-    #                     itemName = "ion={} ({})".format(selectedItem, document_title)
-    #
-    #                     # ORIGAMI dataset
-    #                     if dataType == "Type: ORIGAMI" and document.gotCombinedExtractedIons:
-    #                         try:
-    #                             data = document.IMS2DCombIons[selectedItem]
-    #                         except KeyError:
-    #                             try:
-    #                                 data = document.IMS2Dions[selectedItem]
-    #                             except KeyError:
-    #                                 continue
-    #                     elif dataType == "Type: ORIGAMI" and not document.gotCombinedExtractedIons:
-    #                         try:
-    #                             data = document.IMS2Dions[selectedItem]
-    #                         except KeyError:
-    #                             continue
-    #
-    #                     # MANUAL dataset
-    #                     if dataType == "Type: MANUAL" and document.gotCombinedExtractedIons:
-    #                         try:
-    #                             data = document.IMS2DCombIons[selectedItem]
-    #                         except KeyError:
-    #                             try:
-    #                                 data = document.IMS2Dions[selectedItem]
-    #                             except KeyError:
-    #                                 continue
-    #
-    #                     # Add new label
-    #                     if idName == "":
-    #                         idName = itemName
-    #                     else:
-    #                         idName = "{}, {}".format(idName, itemName)
-    #
-    #                     # Add depending which event was triggered
-    #                     if plot_type == "mobiligram":
-    #                         xvals = data["yvals"]  # normally this would be the y-axis
-    #                         yvals = data["yvals1D"]
-    #                         if normalize_dataset:
-    #                             yvals = pr_spectra.smooth_gaussian_1D(data=yvals, sigma=self.config.overlay_smooth1DRT)
-    #                             yvals = pr_spectra.normalize_1D(yvals)
-    #                         xlabels = data["ylabels"]  # data was rotated so using ylabel for xlabel
-    #
-    #                     elif plot_type == "chromatogram":
-    #                         xvals = data["xvals"]
-    #                         yvals = data["yvalsRT"]
-    #                         if normalize_dataset:
-    #                             yvals = pr_spectra.smooth_gaussian_1D(data=yvals, sigma=self.config.overlay_smooth1DRT)
-    #                             yvals = pr_spectra.normalize_1D(yvals)
-    #                         xlabels = data["xlabels"]
-    #
-    #                     # Append data to list
-    #                     xlist.append(xvals)
-    #                     ylist.append(yvals)
-    #                     colorlist.append(color)
-    #                     if label == "":
-    #                         label = selectedItem
-    #                     legend.append(label)
-    #                 elif source == "text":
-    #                     itemInfo = self.textPanel.OnGetItemInformation(itemID=row)
-    #                     document_title = itemInfo["document"]
-    #                     label = itemInfo["label"]
-    #                     color = itemInfo["color"]
-    #                     color = convertRGB255to1(itemInfo["color"])
-    #                     # get document
-    #                     try:
-    #                         document = self.data_handling._on_get_document(document_title)
-    #                         comparison_flag = False
-    #                         selectedItem = document_title
-    #                         itemName = "file={}".format(document_title)
-    #                     except Exception as __:
-    #                         comparison_flag = True
-    #                         document_title, ion_name = re.split(": ", document_title)
-    #                         document = self.data_handling._on_get_document(document_title)
-    #                         selectedItem = ion_name
-    #                         itemName = "file={}".format(ion_name)
-    #
-    #                     # Text dataset
-    #                     if comparison_flag:
-    #                         try:
-    #                             data = document.IMS2DcompData[ion_name]
-    #                         except Exception:
-    #                             data = document.IMS2Dions[ion_name]
-    #                     else:
-    #                         try:
-    #                             data = document.IMS2D
-    #                         except Exception:
-    #                             logger.error("No data for selected file")
-    #                             continue
-    #
-    #                     # Add new label
-    #                     if idName == "":
-    #                         idName = itemName
-    #                     else:
-    #                         idName = "{}, {}".format(idName, itemName)
-    #
-    #                     # Add depending which event was triggered
-    #                     if plot_type == "mobiligram":
-    #                         xvals = data["yvals"]  # normally this would be the y-axis
-    #                         try:
-    #                             yvals = data["yvals1D"]
-    #                         except KeyError:
-    #                             yvals = np.sum(data["zvals"], axis=1).T
-    #                         if normalize_dataset:
-    #                             yvals = pr_spectra.smooth_gaussian_1D(data=yvals, sigma=self.config.overlay_smooth1DRT)
-    #                             yvals = pr_spectra.normalize_1D(yvals)
-    #                         xlabels = data["ylabels"]  # data was rotated so using ylabel for xlabel
-    #
-    #                     elif plot_type == "chromatogram":
-    #                         xvals = data["xvals"][:-1]  # TEMPORARY FIX
-    #                         try:
-    #                             yvals = data["yvalsRT"]
-    #                         except KeyError:
-    #                             yvals = np.sum(data["zvals"], axis=0)
-    #                         if normalize_dataset:
-    #                             yvals = pr_spectra.smooth_gaussian_1D(data=yvals, sigma=self.config.overlay_smooth1DRT)
-    #                             yvals = pr_spectra.normalize_1D(yvals)
-    #                         xlabels = data["xlabels"]
-    #
-    #                     # Append data to list
-    #                     xlist.append(xvals)
-    #                     ylist.append(yvals)
-    #                     colorlist.append(color)
-    #                     if label == "":
-    #                         label = selectedItem
-    #                     legend.append(label)
-    #
-    #         # Modify the name to include ion tags
-    #         if plot_type == "mobiligram":
-    #             idName = "1D: %s" % idName
-    #         elif plot_type == "chromatogram":
-    #             idName = "RT: %s" % idName
-    #
-    #         # remove unnecessary file extensions from filename
-    #         if len(idName) > 511:
-    #             logger.warning("Filename was too long. Reducing...")
-    #             idName = idName.replace(".csv", "").replace(".txt", "").replace(".raw", "").replace(".d", "")
-    #             idName = idName[:500]
-    #
-    #         # Determine x-axis limits for the zoom function
-    #         try:
-    #             xlimits = [min(xvals), max(xvals)]
-    #         except UnboundLocalError:
-    #             logger.error("Please select at least one item in the table")
-    #             return
-    #
-    #         # Add data to dictionary
-    #         if add_data_to_document:
-    #             document = self._get_document_of_type("Type: Comparison")
-    #             document.gotOverlay = True
-    #             document.IMS2DoverlayData[idName] = {
-    #                 "xvals": xlist,
-    #                 "yvals": ylist,
-    #                 "xlabel": xlabels,
-    #                 "colors": colorlist,
-    #                 "xlimits": xlimits,
-    #                 "labels": legend,
-    #             }
-    #             document_title = document.title
-    #             self.data_handling.on_update_document(document, "comparison_data")
-    #
-    #         # Plot
-    #         if plot_type == "mobiligram":
-    #             self.panelPlots.on_plot_overlay_DT(
-    #                 xvals=xlist,
-    #                 yvals=ylist,
-    #                 xlabel=xlabels,
-    #                 colors=colorlist,
-    #                 xlimits=xlimits,
-    #                 labels=legend,
-    #                 set_page=True,
-    #             )
-    #         elif plot_type == "chromatogram":
-    #             self.panelPlots.on_plot_overlay_RT(
-    #                 xvals=xlist,
-    #                 yvals=ylist,
-    #                 xlabel=xlabels,
-    #                 colors=colorlist,
-    #                 xlimits=xlimits,
-    #                 labels=legend,
-    #                 set_page=True,
-    #             )
+        # plot
+        self.on_show_overlay_heatmap_transparent(dataset_holder["data"], **kwargs)
+
+        return dataset_holder
 
     def on_overlay_heatmap_rmsd(self, item_list, **kwargs):
         # TODO: Add ability to select subset of the dataset to calculate smaller ROI
@@ -1059,8 +817,6 @@ class data_visualisation:
             legend.append(label)
 
         # get labels
-        xlabel = data["xlabels"]
-        ylabel = data["ylabels"]
         xvals = data["xvals"]
         yvals = data["yvals"]
 
@@ -1077,18 +833,13 @@ class data_visualisation:
         #
         # calculate RMSD
         pRMSD, zvals = pr_activation.compute_RMSD(zlist[0], zlist[1])
-        rmsd_label = f"RMSD: {pRMSD:.2f}"
         #
         #         self.setXYlimitsRMSD2D(xaxisLabels, yaxisLabels)
         #
         # plot
-        cmap = self.config.currentCmap
-        self.panelPlots.on_plot_RMSD(zvals, xvals, yvals, xlabel, ylabel, cmap, plotType="RMSD", **kwargs)
 
         # add label
         label_x_pos, label_y_pos = calculate_label_position(xvals, yvals, self.config.rmsd_location)
-        if None not in [label_x_pos, label_y_pos]:
-            self.panelPlots.on_add_label(label_x_pos, label_y_pos, rmsd_label, 0, **kwargs)
 
         # generate item name
         dataset_name = self._generate_overlay_name(dataset_info, "RMSD: ")
@@ -1104,15 +855,19 @@ class data_visualisation:
                 "xvals": xvals,
                 "yvals": yvals,
                 "zvals": zvals,
-                "xlabel": xlabel,
-                "ylabel": ylabel,
-                "rmsdLabel": rmsd_label,
+                "xlabels": data["xlabels"],
+                "ylabels": data["ylabels"],
+                "rmsdLabel": f"RMSD: {pRMSD:.2f}",
                 "rmsd_location": [label_x_pos, label_y_pos],
-                "cmap": cmap,
+                "cmap": self.config.currentCmap,
                 "labels": legend,
                 "dataset_info": dataset_info,
             },
         }
+
+        # plot
+        self.on_show_overlay_heatmap_rmsd(dataset_holder["data"], **kwargs)
+
         return dataset_holder
 
     def on_overlay_heatmap_rmsf(self, item_list, **kwargs):
@@ -1142,41 +897,21 @@ class data_visualisation:
             legend.append(label)
 
         # get labels
-        xlabel = data["xlabels"]
-        ylabel = data["ylabels"]
         xvals = data["xvals"]
         yvals = data["yvals"]
 
         # calculate RMSD
         pRMSD, zvals = pr_activation.compute_RMSD(zlist[0], zlist[1])
-        rmsd_label = f"RMSD: {pRMSD:.2f}"
 
         # calculate RMSF
         pRMSF_list = pr_activation.compute_RMSF(zlist[0], zlist[1])
         pRMSF_list = pr_heatmap.smooth_gaussian_2D(pRMSF_list, sigma=1)
 
-        # plot
-        cmap = self.config.currentCmap
-        self.panelPlots.on_plot_RMSDF(
-            yvalsRMSF=pRMSF_list,
-            zvals=zvals,
-            xvals=xvals,
-            yvals=yvals,
-            xlabelRMSD=xlabel,
-            ylabelRMSD=ylabel,
-            ylabelRMSF="RMSD (%)",
-            color=self.config.lineColour_1D,
-            cmap=cmap,
-            **kwargs,
-        )
-
         # add label
         label_x_pos, label_y_pos = calculate_label_position(xvals, yvals, self.config.rmsd_location)
-        if None not in [label_x_pos, label_y_pos]:
-            self.panelPlots.on_add_label(label_x_pos, label_y_pos, rmsd_label, 0, **kwargs)
 
         # generate item name
-        dataset_name = self._generate_overlay_name(dataset_info, "RMSD: ")
+        dataset_name = self._generate_overlay_name(dataset_info, "RMSF: ")
 
         # generate dataset holder
         dataset_holder = {
@@ -1190,18 +925,22 @@ class data_visualisation:
                 "yvals": yvals,
                 "zvals": zvals,
                 "yvalsRMSF": pRMSF_list,
-                "xlabel": xlabel,
-                "xlabelRMSD": xlabel,
-                "ylabelRMSD": ylabel,
+                "xlabels": data["xlabels"],
+                "xlabelRMSD": data["xlabels"],
+                "ylabelRMSD": data["ylabels"],
                 "ylabelRMSF": "RMSD (%)",
-                "ylabel": ylabel,
-                "rmsdLabel": rmsd_label,
+                "ylabels": data["ylabels"],
+                "rmsdLabel": f"RMSD: {pRMSD:.2f}",
                 "rmsd_location": [label_x_pos, label_y_pos],
-                "cmap": cmap,
+                "cmap": self.config.currentCmap,
                 "labels": legend,
                 "dataset_info": dataset_info,
             },
         }
+
+        # plot
+        self.on_show_overlay_heatmap_rmsf(dataset_holder["data"], **kwargs)
+
         return dataset_holder
 
     def on_overlay_heatmap_2to1(self, item_list, **kwargs):
@@ -1232,25 +971,12 @@ class data_visualisation:
             legend.append(label)
 
         # get labels
-        xlabel = data["xlabels"]
-        ylabel = data["ylabels"]
         xvals = data["xvals"]
         yvals = data["yvals"]
 
         # calculate RMSD
         pRMSD, zvals = pr_activation.compute_RMSD(zlist[0], zlist[1])
-        rmsd_label = f"RMSD: {pRMSD:.2f}"
-
-        self.panelPlots.on_plot_grid(
-            zlist[0], zlist[1], zvals, xvals, yvals, xlabel, ylabel, cmaplist[0], cmaplist[1], **kwargs
-        )
-
-        # add label
         label_x_pos, label_y_pos = calculate_label_position(xvals, yvals, self.config.rmsd_location)
-        if None not in [label_x_pos, label_y_pos]:
-            self.panelPlots.on_add_label(
-                label_x_pos, label_y_pos, rmsd_label, 0, plot="Grid", plot_obj=kwargs.pop("plot_obj")
-            )
 
         # generate item name
         dataset_name = self._generate_overlay_name(dataset_info, "Grid (2->1): ")
@@ -1266,15 +992,20 @@ class data_visualisation:
                 "xvals": xvals,
                 "yvals": yvals,
                 "zvals": zvals,
-                "xlabel": xlabel,
-                "ylabel": ylabel,
-                "rmsdLabel": rmsd_label,
+                "xlabels": data["xlabels"],
+                "ylabels": data["ylabels"],
+                "cmaps": cmaplist,
+                "rmsdLabel": f"RMSD: {pRMSD:.2f}",
                 "rmsd_location": [label_x_pos, label_y_pos],
                 "cmap": self.config.currentCmap,
                 "labels": legend,
                 "dataset_info": dataset_info,
             },
         }
+
+        # plot
+        self.on_show_overlay_heatmap_grid_2to1(dataset_holder["data"], **kwargs)
+
         return dataset_holder
 
     def on_overlay_heatmap_grid_nxn(self, item_list, **kwargs):
@@ -1304,12 +1035,6 @@ class data_visualisation:
                 label = item_info["dataset_name"]
             legend.append(label)
 
-        # get labels
-        xlabel = data["xlabels"]
-        ylabel = data["ylabels"]
-
-        self.panelPlots.on_plot_n_grid(zlist, cmaplist, legend, xlist, ylist, xlabel, ylabel, **kwargs)
-
         # generate item name
         dataset_name = self._generate_overlay_name(dataset_info, prepend="Grid (n x n): ")
 
@@ -1317,17 +1042,21 @@ class data_visualisation:
         dataset_holder = {
             "name": dataset_name,
             "data": {
-                "method": "RGB",
+                "method": "Grid (n x n)",
                 "xlist": xlist,
                 "ylist": ylist,
                 "zlist": zlist,
-                "xlabel": xlabel,
-                "ylabel": ylabel,
+                "xlabels": data["xlabels"],
+                "ylabels": data["ylabels"],
                 "cmaps": cmaplist,
                 "legend_text": legend,
                 "dataset_info": dataset_info,
             },
         }
+
+        # plot
+        self.on_show_overlay_heatmap_grid_nxn(dataset_holder["data"], **kwargs)
+
         return dataset_holder
 
     def on_overlay_heatmap_rgb(self, item_list, **kwargs):
@@ -1369,15 +1098,8 @@ class data_visualisation:
                 label = item_info["dataset_name"]
             legend.append([color, label])
 
-        # get labels
-        xlabel = data["xlabels"]
-        ylabel = data["ylabels"]
-        xvals = data["xvals"]
-        yvals = data["yvals"]
-
+        # combine channels
         rgb_plot = combine_rgb(zlist)
-
-        self.panelPlots.on_plot_rgb(rgb_plot, xvals, yvals, xlabel, ylabel, legend, **kwargs)
 
         # generate item name
         dataset_name = self._generate_overlay_name(dataset_info, prepend="RGB: ")
@@ -1390,16 +1112,20 @@ class data_visualisation:
                 "xlist": xlist,
                 "ylist": ylist,
                 "zlist": zlist,
-                "xvals": xvals,
-                "yvals": yvals,
                 "zvals": rgb_plot,
-                "xlabel": xlabel,
-                "ylabel": ylabel,
+                "xvals": data["xvals"],
+                "yvals": data["yvals"],
+                "xlabels": data["xlabels"],
+                "ylabels": data["ylabels"],
                 "colors": colorlist,
                 "legend_text": legend,
                 "dataset_info": dataset_info,
             },
         }
+
+        # plot
+        self.on_show_overlay_heatmap_rgb(dataset_holder["data"], **kwargs)
+
         return dataset_holder
 
     def on_overlay_heatmap_rmsd_matrix(self, item_list, **kwargs):
@@ -1440,10 +1166,6 @@ class data_visualisation:
                 pRMSD, __ = pr_activation.compute_RMSD(zlist[i], zlist[j])
                 zvals[i, j] = np.round(pRMSD, 2)
 
-        # plot
-        cmap = self.config.currentCmap
-        self.panelPlots.on_plot_matrix(zvals=zvals, xylabels=legend, cmap=cmap, **kwargs)
-
         # generate item name
         dataset_name = self._generate_overlay_name(dataset_info, prepend="RMSD Matrix: ")
 
@@ -1456,11 +1178,15 @@ class data_visualisation:
                 "ylist": ylist,
                 "zlist": zlist,
                 "zvals": zvals,
-                "cmap": cmap,
+                "cmap": self.config.currentCmap,
                 "labels": legend,
                 "dataset_info": dataset_info,
             },
         }
+
+        # plot
+        self.on_show_overlay_heatmap_rmsd_matrix(dataset_holder["data"], **kwargs)
+
         return dataset_holder
 
     def on_overlay_heatmap_statistical(self, item_list, method, **kwargs):
@@ -1499,17 +1225,8 @@ class data_visualisation:
         elif method == "Variance":
             zvals = pr_activation.compute_variance(zlist)
 
-        # get labels
-        xlabel = data["xlabels"]
-        ylabel = data["ylabels"]
-        xvals = data["xvals"]
-        yvals = data["yvals"]
-        cmap = self.config.currentCmap
-
-        self.panelPlots.on_plot_2D_data(data=[zvals, xvals, xlabel, yvals, ylabel, cmap], **kwargs)
-
         # generate item name
-        dataset_name = self._generate_overlay_name(dataset_info)
+        dataset_name = self._generate_overlay_name(dataset_info, f"{method}: ")
 
         # generate dataset holder
         dataset_holder = {
@@ -1519,426 +1236,275 @@ class data_visualisation:
                 "xlist": xlist,
                 "ylist": ylist,
                 "zlist": zlist,
-                "xvals": xvals,
-                "yvals": yvals,
                 "zvals": zvals,
-                "xlabel": xlabel,
-                "ylabel": ylabel,
-                "cmap": cmap,
+                "xvals": data["xvals"],
+                "yvals": data["yvals"],
+                "xlabels": data["xlabels"],
+                "ylabels": data["ylabels"],
+                "cmap": self.config.currentCmap,
                 "labels": legend,
                 "dataset_info": dataset_info,
             },
         }
+
+        # plot
+        self.on_show_overlay_heatmap_statistical(dataset_holder["data"], **kwargs)
+
         return dataset_holder
 
+    def on_show_overlay_spectrumoverlay(self, data, data_type, **kwargs):
 
-#     def on_overlay_2D(self, source):
-#         """
-#         This function enables overlaying multiple ions from the same CIU datasets together
-#         """
-#         # Check what is the ID
-#         if source == "ion":
-#             tempList = self.view.panelMultipleIons.peaklist
-#             col_order = self.config.peaklistColNames
-#             add_data_to_document = self.view.panelMultipleIons.addToDocument
-#             self.config.overlayMethod = self.view.panelMultipleIons.combo.GetStringSelection()
-#         elif source == "text":
-#             tempList = self.view.panelMultipleText.peaklist
-#             col_order = self.config.textlistColNames
-#             add_data_to_document = self.view.panelMultipleText.addToDocument
-#             self.config.overlayMethod = self.view.panelMultipleText.combo.GetStringSelection()
-#
-#         tempAccumulator = 0  # Keeps count of how many items are ticked
-#         try:
-#             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
-#         except Exception:
-#             return
-#         if self.currentDoc == "Documents":
-#             return
-#
-#         # Check if current document is a comparison document
-#         # If so, it will be used
-#         if add_data_to_document:
-#             if self.documentsDict[self.currentDoc].dataType == "Type: Comparison":
-#                 self.docs = self.documentsDict[self.currentDoc]
-#                 self.onThreading(
-#                     None, ("Using document: " + self.docs.title.encode("ascii", "replace"), 4), action="updateStatusbar"
-#                 )
-#                 if self.docs.gotComparisonData:
-#                     compDict = self.docs.IMS2DcompData
-#                     compList = []
-#                     for key in self.docs.IMS2DcompData:
-#                         compList.append(key)
-#                 else:
-#                     compDict, compList = {}, []
-#             else:
-#                 self.onThreading(None, ("Checking if there is a comparison document", 4), action="updateStatusbar")
-#                 docList = self.checkIfAnyDocumentsAreOfType(type="Type: Comparison")
-#                 if len(docList) == 0:
-#                     self.onThreading(
-#                         None, ("Did not find appropriate document. Creating a new one", 4), action="updateStatusbar"
-#                     )
-#                     dlg = wx.FileDialog(
-#                         self.view,
-#                         "Please select a name for the comparison document",
-#                         "",
-#                         "",
-#                         "",
-#                         wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
-#                     )
-#                     if dlg.ShowModal() == wx.ID_OK:
-#                         path, idName = os.path.split(dlg.GetPath())
-#                     else:
-#                         return
-#
-#                     # Create document
-#                     self.docs = documents()
-#                     self.docs.title = idName
-#                     self.docs.path = path
-#                     self.docs.userParameters = self.config.userParameters
-#                     self.docs.userParameters["date"] = getTime()
-#                     self.docs.dataType = "Type: Comparison"
-#                     self.docs.fileFormat = "Format: ORIGAMI"
-#                     # Initiate empty list and dictionary
-#                     compDict, compList = {}, []
-#                 else:
-#                     self.selectDocDlg = DialogSelectDocument(self.view, presenter=self, document_list=docList)
-#                     if self.selectDocDlg.ShowModal() == wx.ID_OK:
-#                         pass
-#
-#                     # Check that document exists
-#                     if self.currentDoc is None:
-#                         msg = "Please select comparison document"
-#                         self.onThreading(None, (msg, 4), action="updateStatusbar")
-#                         return
-#
-#                     self.docs = self.documentsDict[self.currentDoc]
-#                     self.onThreading(
-#                         None,
-#                         ("Using document: " + self.docs.title.encode("ascii", "replace"), 4),
-#                         action="updateStatusbar",
-#                     )
-#                     if self.docs.gotComparisonData:
-#                         compDict = self.docs.IMS2DcompData
-#                         compList = []
-#                         for key in self.docs.IMS2DcompData:
-#                             compList.append(key)
-#                     else:
-#                         compDict, compList = {}, []
-#         else:
-#             compDict, compList = {}, []
-#
-#         comparisonFlag = False
-#         # Get data for the dataset
-#         for row in range(tempList.GetItemCount()):
-#             if tempList.IsChecked(index=row):
-#                 if source == "ion":
-#                     # Get data for each ion
-#                     (
-#                         __,
-#                         __,
-#                         charge,
-#                         color,
-#                         colormap,
-#                         alpha,
-#                         mask,
-#                         label,
-#                         self.currentDoc,
-#                         ionName,
-#                         min_threshold,
-#                         max_threshold,
-#                     ) = self.view.panelMultipleIons.OnGetItemInformation(itemID=row, return_list=True)
-#
-#                     # processed name
-#                     ionNameProcessed = "%s (processed)" % ionName
-#
-#                     # Check that data was extracted first
-#                     if self.currentDoc == "":
-#                         msg = "Please extract data first"
-#                         self.onThreading(None, (msg, 4), action="updateStatusbar")
-#                         continue
-#                     document = self.documentsDict[self.currentDoc]
-#                     dataType = document.dataType
-#
-#                     # ORIGAMI dataset
-#                     if dataType in ["Type: ORIGAMI", "Type: MANUAL"] and document.gotCombinedExtractedIons:
-#                         if self.config.overlay_usedProcessed:
-#                             try:
-#                                 dataIn = document.IMS2DCombIons[ionNameProcessed]
-#                             except KeyError:
-#                                 try:
-#                                     dataIn = document.IMS2DCombIons[ionName]
-#                                 except KeyError:
-#                                     try:
-#                                         dataIn = document.IMS2Dions[ionNameProcessed]
-#                                     except KeyError:
-#                                         try:
-#                                             dataIn = document.IMS2Dions[ionName]
-#                                         except KeyError:
-#                                             continue
-#                         else:
-#                             try:
-#                                 dataIn = document.IMS2DCombIons[ionName]
-#                             except KeyError:
-#                                 try:
-#                                     dataIn = document.IMS2Dions[ionName]
-#                                 except KeyError:
-#                                     continue
-#                     elif dataType in ["Type: ORIGAMI", "Type: MANUAL"] and not document.gotCombinedExtractedIons:
-#                         if self.config.overlay_usedProcessed:
-#                             try:
-#                                 dataIn = document.IMS2Dions[ionNameProcessed]
-#                             except KeyError:
-#                                 try:
-#                                     dataIn = document.IMS2Dions[ionName]
-#                                 except KeyError:
-#                                     continue
-#                         else:
-#                             try:
-#                                 dataIn = document.IMS2Dions[ionName]
-#                             except KeyError:
-#                                 continue
-#
-#                     #                     # MANUAL dataset
-#                     #                     if dataType == 'Type: MANUAL' and document.gotCombinedExtractedIons:
-#                     #                         try: tempData = document.IMS2DCombIons
-#                     #                         except KeyError:
-#                     #                             try: tempData = document.IMS2Dions
-#                     #                             except KeyError: continue
-#
-#                     # INFRARED dataset
-#                     if dataType == "Type: Infrared" and document.gotCombinedExtractedIons:
-#                         try:
-#                             dataIn = document.IMS2DCombIons
-#                         except KeyError:
-#                             try:
-#                                 dataIn = document.IMS2Dions
-#                             except KeyError:
-#                                 continue
-#                     tempAccumulator = tempAccumulator + 1
-#
-#                     selectedItemUnique = "ion={} ({})".format(ionName, self.currentDoc)
-#                     zvals, xaxisLabels, xlabel, yaxisLabels, ylabel, __ = self.get2DdataFromDictionary(
-#                         dictionary=dataIn, dataType="plot", compact=False
-#                     )
-#
-#                 elif source == "text":
-#                     tempAccumulator += 1
-#                     comparisonFlag = False  # used only in case the user reloaded comparison document
-#                     # Get data for each ion
-#                     itemInfo = self.view.panelMultipleText.OnGetItemInformation(itemID=row)
-#                     charge = itemInfo["charge"]
-#                     color = itemInfo["color"]
-#                     colormap = itemInfo["colormap"]
-#                     alpha = itemInfo["alpha"]
-#                     mask = itemInfo["mask"]
-#                     label = itemInfo["label"]
-#                     filename = itemInfo["document"]
-#                     min_threshold = itemInfo["min_threshold"]
-#                     max_threshold = itemInfo["max_threshold"]
-#                     # get document
-#                     try:
-#                         document = self.documentsDict[filename]
-#
-#                         if self.config.overlay_usedProcessed:
-#                             if document.got2Dprocess:
-#                                 try:
-#                                     tempData = document.IMS2Dprocess
-#                                 except Exception:
-#                                     tempData = document.IMS2D
-#                             else:
-#                                 tempData = document.IMS2D
-#                         else:
-#                             try:
-#                                 tempData = document.IMS2D
-#                             except Exception:
-#                                 self.onThreading(None, ("No data for selected file", 4), action="updateStatusbar")
-#                                 continue
-#
-#                         zvals = tempData["zvals"]
-#                         xaxisLabels = tempData["xvals"]
-#                         xlabel = tempData["xlabels"]
-#                         yaxisLabels = tempData["yvals"]
-#                         ylabel = tempData["ylabels"]
-#                         ionName = filename
-#                         # Populate x-axis labels
-#                         if isinstance(xaxisLabels, list):
-#                             pass
-#                         elif xaxisLabels == "":
-#                             startX = tempList.GetItem(itemId=row, col=self.config.textlistColNames["startX"]).GetText()
-#                             endX = tempList.GetItem(itemId=row, col=self.config.textlistColNames["endX"]).GetText()
-#                             stepsX = len(zvals[0])
-#                             if startX == "" or endX == "":
-#                                 pass
-#                             else:
-#                                 xaxisLabels = self.onPopulateXaxisTextLabels(
-#                                     startVal=str2num(startX), endVal=str2num(endX), shapeVal=stepsX
-#                                 )
-#                                 document.IMS2D["xvals"] = xaxisLabels
-#
-#                         if not comparisonFlag:
-#                             selectedItemUnique = "file:%s" % filename
-#                     # only triggered when using data from comparison document
-#                     except Exception:
-#                         try:
-#                             comparisonFlag = True
-#                             dpcument_filename, selectedItemUnique = re.split(": ", filename)
-#                             document = self.documentsDict[dpcument_filename]
-#                             tempData = document.IMS2DcompData[selectedItemUnique]
-#                             # unpack data
-#                             zvals = tempData["zvals"]
-#                             ionName = tempData["ion_name"]
-#                             xaxisLabels = tempData["xvals"]
-#                             yaxisLabels = tempData["yvals"]
-#                             ylabel = tempData["ylabels"]
-#                             xlabel = tempData["xlabels"]
-#                         # triggered when using data from interactive document
-#                         except Exception:
-#                             comparisonFlag = False
-#                             dpcument_filename, selectedItemUnique = re.split(": ", filename)
-#                             document = self.documentsDict[dpcument_filename]
-#                             tempData = document.IMS2Dions[selectedItemUnique]
-#                             # unpack data
-#                             zvals = tempData["zvals"]
-#                             ionName = filename
-#                             xaxisLabels = tempData["xvals"]
-#                             yaxisLabels = tempData["yvals"]
-#                             ylabel = tempData["ylabels"]
-#                             xlabel = tempData["xlabels"]
-#
-#                 if not comparisonFlag:
-#                     if label == "" or label is None:
-#                         label = ""
-#                     compList.insert(0, selectedItemUnique)
-#                     # Check if exists. We need to extract labels (header...)
-#                     checkExist = compDict.get(selectedItemUnique, None)
-#                     if checkExist is not None:
-#                         title = compDict[selectedItemUnique].get("header", "")
-#                         header = compDict[selectedItemUnique].get("header", "")
-#                         footnote = compDict[selectedItemUnique].get("footnote", "")
-#                     else:
-#                         title, header, footnote = "", "", ""
-#                     compDict[selectedItemUnique] = {
-#                         "zvals": zvals,
-#                         "ion_name": ionName,
-#                         "cmap": colormap,
-#                         "color": color,
-#                         "alpha": str2num(alpha),
-#                         "mask": str2num(mask),
-#                         "xvals": xaxisLabels,
-#                         "xlabels": xlabel,
-#                         "yvals": yaxisLabels,
-#                         "charge": charge,
-#                         "min_threshold": min_threshold,
-#                         "max_threshold": max_threshold,
-#                         "ylabels": ylabel,
-#                         "index": row,
-#                         "shape": zvals.shape,
-#                         "label": label,
-#                         "title": title,
-#                         "header": header,
-#                         "footnote": footnote,
-#                     }
-#                 else:
-#                     compDict[selectedItemUnique] = tempData
-#
-#         # Check whether the user selected at least two files (and no more than 2 for certain functions)
-#         if tempAccumulator < 2:
-#             msg = "Please select at least two files"
-#             DialogBox(exceptionTitle="Error", exceptionMsg=msg, type="Error")
-#             return
-#
-#         # Remove duplicates from list
-#         compList = removeDuplicates(compList)
-#
-#         zvalsIon1plot = compDict[compList[0]]["zvals"]
-#         zvalsIon2plot = compDict[compList[1]]["zvals"]
-#         name1 = compList[0]
-#         name2 = compList[1]
-#         # Check if text files are of identical size
-#         if (zvalsIon1plot.shape != zvalsIon2plot.shape) and self.config.overlayMethod not in ["Grid (n x n)"]:
-#             msg = "Comparing ions: {} and {}. These files are NOT of identical shape!".format(name1, name2)
-#             DialogBox(exceptionTitle="Error", exceptionMsg=msg, type="Error")
-#             return
-#
-#         defaultVals = ["Reds", "Greens"]
-#
-#         # Check if the table has information about colormap
-#         if compDict[compList[0]]["cmap"] == "":
-#             cmapIon1 = defaultVals[0]  # change here
-#             compDict[compList[0]]["cmap"] = cmapIon1
-#             tempList.SetStringItem(index=compDict[compList[0]]["index"], col=3, label=cmapIon1)
-#         else:
-#             cmapIon1 = compDict[compList[0]]["cmap"]
-#
-#         if compDict[compList[1]]["cmap"] == "":
-#             cmapIon2 = defaultVals[1]
-#             compDict[compList[1]]["cmap"] = cmapIon1
-#             tempList.SetStringItem(index=compDict[compList[1]]["index"], col=3, label=cmapIon2)
-#         else:
-#             cmapIon2 = compDict[compList[1]]["cmap"]
-#
-#         # Defaults for alpha and mask
-#         defaultVals_alpha = [1, 0.5]
-#         defaultVals_mask = [0.25, 0.25]
-#
-#         # Check if the user set value of transparency (alpha)
-#         if compDict[compList[0]]["alpha"] == "" or compDict[compList[0]]["alpha"] is None:
-#             alphaIon1 = defaultVals_alpha[0]
-#             compDict[compList[0]]["alpha"] = alphaIon1
-#             tempList.SetStringItem(index=compDict[compList[0]]["index"], col=col_order["alpha"], label=str(alphaIon1))
-#         else:
-#             alphaIon1 = str2num(compDict[compList[0]]["alpha"])
-#
-#         if compDict[compList[1]]["alpha"] == "" or compDict[compList[1]]["alpha"] is None:
-#             alphaIon2 = defaultVals_alpha[1]
-#             compDict[compList[1]]["alpha"] = alphaIon2
-#             tempList.SetStringItem(index=compDict[compList[1]]["index"], col=col_order["alpha"], label=str(alphaIon2))
-#         else:
-#             alphaIon2 = str2num(compDict[compList[1]]["alpha"])
-#
-#         # Check if the user set value of transparency (mask)
-#         if compDict[compList[0]]["mask"] == "" or compDict[compList[0]]["mask"] is None:
-#             maskIon1 = defaultVals_mask[0]
-#             compDict[compList[0]]["mask"] = maskIon1
-#             tempList.SetStringItem(index=compDict[compList[0]]["index"], col=col_order["mask"], label=str(maskIon1))
-#         else:
-#             maskIon1 = str2num(compDict[compList[0]]["mask"])
-#
-#         if compDict[compList[1]]["mask"] == "" or compDict[compList[1]]["mask"] is None:
-#             maskIon2 = defaultVals_mask[1]
-#             compDict[compList[1]]["mask"] = maskIon2
-#             tempList.SetStringItem(index=compDict[compList[1]]["index"], col=col_order["mask"], label=str(maskIon2))
-#         else:
-#             maskIon2 = str2num(compDict[compList[1]]["mask"])
-#
-#             # Check how many items were selected
-#             if tempAccumulator > 2:
-#                 msg = "Currently only supporting an overlay of two ions.\n" + "Comparing: {} and {}.".format(
-#                     compList[0], compList[1]
-#                 )
-#                 DialogBox(exceptionTitle="Warning", exceptionMsg=msg, type="Warning")
-#                 print(msg)
-#
-#             if self.config.overlayMethod == "RMSD":
-#                 """ Compute RMSD of two selected files """
-#
-#             elif self.config.overlayMethod == "RMSF":
-#                 """ Compute RMSF of two selected files """
-#                 self.rmsdfFlag = True
-#
-#
-#
-#
-#
-#
-#
-#
-#         # Add data to document
-#         if add_data_to_document:
-#             self.docs.gotComparisonData = True
-#             self.docs.IMS2DcompData = compDict
-#             self.currentDoc = self.docs.title
-#
-#             # Update file list
-#             self.OnUpdateDocument(self.docs, "comparison_data")
+        colorlist = data["colors"]
+        xlimits = data["xlimits"]
+        legend = data["labels"]
+        xlist = data["xvals"]
+        ylist = data["yvals"]
+        xlabel = data["xlabels"]
+
+        # ensure plot is shown in right window
+        if "plot_obj" not in kwargs:
+            kwargs["plot"] = "Overlay"
+
+        # plot
+        if data_type == "mobilogram":
+            self.panelPlots.on_plot_overlay_DT(
+                xvals=xlist, yvals=ylist, xlabel=xlabel, colors=colorlist, xlimits=xlimits, labels=legend, **kwargs
+            )
+        elif data_type == "chromatogram":
+            self.panelPlots.on_plot_overlay_RT(
+                xvals=xlist, yvals=ylist, xlabel=xlabel, colors=colorlist, xlimits=xlimits, labels=legend, **kwargs
+            )
+        elif data_type == "mass_spectra":
+            self.panelPlots.on_plot_overlay_RT(
+                xvals=xlist, yvals=ylist, xlabel=xlabel, colors=colorlist, xlimits=xlimits, labels=legend, **kwargs
+            )
+
+    def on_show_overlay_spectrumbutterfly(self, data, **kwargs):
+
+        colorlist = data["colors"]
+        legend = data["labels"]
+        xlist = data["xvals"]
+        ylist = data["yvals"]
+        xlabel = data["xlabels"]
+
+        # ensure plot is shown in right window
+        if "plot_obj" not in kwargs:
+            kwargs["plot"] = "Overlay"
+
+        # plot
+        self.panelPlots.plot_compare_spectra(
+            xlist[0],
+            xlist[1],
+            ylist[0],
+            ylist[1],
+            xlabel=xlabel,
+            legend=legend,
+            line_color_1=colorlist[0],
+            line_color_2=colorlist[1],
+            **kwargs,
+        )
+
+    def on_show_overlay_spectrumwaterfall(self, data, **kwargs):
+
+        colorlist = data["colors"]
+        legend = data["labels"]
+        xlist = data["xvals"]
+        ylist = data["yvals"]
+        xlabel = data["xlabels"]
+
+        # ensure plot is shown in right window
+        if "plot_obj" not in kwargs:
+            kwargs["plot"] = "Overlay"
+
+        # plot
+        kwargs.update(show_y_labels=True, labels=legend, add_legend=True)
+        self.panelPlots.on_plot_waterfall(
+            xlist, ylist, None, colors=colorlist, xlabel=xlabel, ylabel="Intensity", **kwargs
+        )
+
+    def on_show_overlay_heatmap_statistical(self, data, **kwargs):
+
+        # get labels
+        xlabel = data["xlabels"]
+        ylabel = data["ylabels"]
+        xvals = data["xvals"]
+        yvals = data["yvals"]
+        zvals = data["zvals"]
+        cmap = self.config.currentCmap
+
+        # ensure plot is shown in right window
+        if "plot_obj" not in kwargs:
+            kwargs["plot"] = "Overlay"
+
+        self.panelPlots.on_plot_2D_data(data=[zvals, xvals, xlabel, yvals, ylabel, cmap], **kwargs)
+
+    def on_show_overlay_heatmap_rmsd(self, data, **kwargs):
+
+        # get labels
+        xlabel = data["xlabels"]
+        ylabel = data["ylabels"]
+        xvals = data["xvals"]
+        yvals = data["yvals"]
+        zvals = data["zvals"]
+        rmsd_label = data["rmsdLabel"]
+
+        # plot
+        cmap = self.config.currentCmap
+        self.panelPlots.on_plot_RMSD(zvals, xvals, yvals, xlabel, ylabel, cmap, plotType="RMSD", **kwargs)
+
+        # add label
+        label_x_pos, label_y_pos = calculate_label_position(xvals, yvals, self.config.rmsd_location)
+        if None not in [label_x_pos, label_y_pos]:
+            self.panelPlots.on_add_label(label_x_pos, label_y_pos, rmsd_label, 0, **kwargs)
+
+    def on_show_overlay_heatmap_rmsf(self, data, **kwargs):
+
+        # get labels
+        xlabel = data["xlabels"]
+        ylabel = data["ylabels"]
+        xvals = data["xvals"]
+        yvals = data["yvals"]
+        pRMSF_list = data["yvalsRMSF"]
+        zvals = data["zvals"]
+        rmsd_label = data["rmsdLabel"]
+
+        # plot
+        cmap = self.config.currentCmap
+        self.panelPlots.on_plot_RMSDF(
+            yvalsRMSF=pRMSF_list,
+            zvals=zvals,
+            xvals=xvals,
+            yvals=yvals,
+            xlabelRMSD=xlabel,
+            ylabelRMSD=ylabel,
+            ylabelRMSF="RMSD (%)",
+            color=self.config.lineColour_1D,
+            cmap=cmap,
+            **kwargs,
+        )
+
+        # add label
+        label_x_pos, label_y_pos = calculate_label_position(xvals, yvals, self.config.rmsd_location)
+        if None not in [label_x_pos, label_y_pos]:
+            self.panelPlots.on_add_label(label_x_pos, label_y_pos, rmsd_label, 0, **kwargs)
+
+    def on_show_overlay_heatmap_rmsd_matrix(self, data, **kwargs):
+
+        zvals = data["zvals"]
+        legend = data["labels"]
+
+        # plot
+        cmap = self.config.currentCmap
+        self.panelPlots.on_plot_matrix(zvals=zvals, xylabels=legend, cmap=cmap, **kwargs)
+
+    def on_show_overlay_heatmap_rgb(self, data, **kwargs):
+
+        # get labels
+        xlabel = data["xlabels"]
+        ylabel = data["ylabels"]
+        xvals = data["xvals"]
+        yvals = data["yvals"]
+        legend = data["legend_text"]
+        rgb_plot = data["zvals"]
+
+        # ensure plot is shown in right window
+        if "plot_obj" not in kwargs:
+            kwargs["plot"] = "Overlay"
+
+        self.panelPlots.on_plot_rgb(rgb_plot, xvals, yvals, xlabel, ylabel, legend, **kwargs)
+
+    def on_show_overlay_heatmap_transparent(self, data, **kwargs):
+
+        # get labels
+        xlabel = data["xlabels"]
+        ylabel = data["ylabels"]
+        xvals = data["xvals"]
+        yvals = data["yvals"]
+        zlist = data["zlist"]
+        alphalist = data["alphas"]
+        cmaplist = data["cmaps"]
+
+        # generate masked arrays
+        zvals_1 = zlist[0]
+        zvals_2 = zlist[1]
+
+        self.panelPlots.on_plot_overlay_2D(
+            zvalsIon1=zvals_1,
+            cmapIon1=cmaplist[0],
+            alphaIon1=alphalist[0],
+            zvalsIon2=zvals_2,
+            cmapIon2=cmaplist[1],
+            alphaIon2=alphalist[1],
+            xvals=xvals,
+            yvals=yvals,
+            xlabel=xlabel,
+            ylabel=ylabel,
+            plotName="Mask",
+            **kwargs,
+        )
+
+    def on_show_overlay_heatmap_mask(self, data, **kwargs):
+
+        # get labels
+        xlabel = data["xlabels"]
+        ylabel = data["ylabels"]
+        xvals = data["xvals"]
+        yvals = data["yvals"]
+        zlist = data["zlist"]
+        masklist = data["masks"]
+        cmaplist = data["cmaps"]
+
+        # generate masked arrays
+        zvals_1 = masked_array(zlist[0], zlist[0] < masklist[0])
+        zvals_2 = masked_array(zlist[1], zlist[1] < masklist[1])
+
+        self.panelPlots.on_plot_overlay_2D(
+            zvalsIon1=zvals_1,
+            cmapIon1=cmaplist[0],
+            alphaIon1=1,
+            zvalsIon2=zvals_2,
+            cmapIon2=cmaplist[1],
+            alphaIon2=1,
+            xvals=xvals,
+            yvals=yvals,
+            xlabel=xlabel,
+            ylabel=ylabel,
+            plotName="Mask",
+            **kwargs,
+        )
+
+    def on_show_overlay_heatmap_grid_2to1(self, data, **kwargs):
+
+        # get labels
+        zlist = data["zlist"]
+        zvals = data["zvals"]
+        xlabel = data["xlabels"]
+        ylabel = data["ylabels"]
+        xvals = data["xvals"]
+        yvals = data["yvals"]
+        cmaplist = data.get("cmaps", ["Reds", "Greens"])
+        rmsd_label = data["rmsdLabel"]
+
+        self.panelPlots.on_plot_grid(
+            zlist[0], zlist[1], zvals, xvals, yvals, xlabel, ylabel, cmaplist[0], cmaplist[1], **kwargs
+        )
+
+        # add label
+        label_x_pos, label_y_pos = calculate_label_position(xvals, yvals, self.config.rmsd_location)
+        if None not in [label_x_pos, label_y_pos]:
+            self.panelPlots.on_add_label(
+                label_x_pos, label_y_pos, rmsd_label, 0, plot="Grid", plot_obj=kwargs.pop("plot_obj", None)
+            )
+
+    def on_show_overlay_heatmap_grid_nxn(self, data, **kwargs):
+
+        # get labels
+        zlist = data["zlist"]
+        legend = data["legend_text"]
+        xlabel = data["xlabels"]
+        ylabel = data["ylabels"]
+        xlist = data["xlist"]
+        ylist = data["ylist"]
+        cmaplist = data.get("cmaps", ["Reds", "Greens"])
+
+        self.panelPlots.on_plot_n_grid(zlist, cmaplist, legend, xlist, ylist, xlabel, ylabel, **kwargs)

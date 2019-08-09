@@ -295,10 +295,10 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
         if item_id is None:
             return dict()
 
+        is_checked = self.IsChecked(item_id)
         information = {}
         information["id"] = item_id
-        information["select"] = self.IsChecked(item_id)
-        information["check"] = self.IsChecked(item_id)
+        information["select"] = is_checked
 
         for column in self.column_info:
             item_tag = self.column_info[column]["tag"]
@@ -309,6 +309,7 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
             else:
                 item_value = self._convert_type(self.GetItem(item_id, column).GetText(), item_type)
             information[item_tag] = item_value
+        information["check"] = is_checked
 
         return information
 

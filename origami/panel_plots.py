@@ -190,29 +190,29 @@ class PanelPlots(wx.Panel):
         self.currentPage = self.mainBook.GetPageText(self.mainBook.GetSelection())
 
         # keep track of previous pages
-        if self.currentPage in ["MS", "RT", "1D"]:
+        if self.currentPage in ["Mass spectrum", "Chromatogram", "Mobilogram"]:
             self.window_plot1D = self.currentPage
-        elif self.currentPage in ["2D", "DT/MS", "Waterfall", "RMSF", "Comparison", "Overlay", "UniDec", "Other"]:
+        elif self.currentPage in ["Heatmap", "DT/MS", "Waterfall"]:
             self.window_plot2D = self.currentPage
-        elif self.currentPage in ["3D"]:
+        elif self.currentPage in ["Heatmap (3D)"]:
             self.window_plot3D = self.currentPage
 
         if self.currentPage == "Waterfall":
             self.current_plot = self.plot_waterfall
-        elif self.currentPage == "MS":
+        elif self.currentPage == "Mass spectrum":
             self.current_plot = self.plot1
-        elif self.currentPage == "1D":
+        elif self.currentPage == "Mobilogram":
             self.current_plot = self.plot1D
-        elif self.currentPage == "RT":
+        elif self.currentPage == "Chromatogram":
             self.current_plot = self.plotRT
-        elif self.currentPage == "2D":
+        elif self.currentPage == "Heatmap":
             self.current_plot = self.plot2D
         elif self.currentPage == "DT/MS":
             self.current_plot = self.plot_DT_vs_MS
-        elif self.currentPage == "Overlay":
-            self.current_plot = self.plot_overlay
-        elif self.currentPage == "Other":
+        elif self.currentPage == "Annotated":
             self.current_plot = self.plotOther
+        elif self.currentPage == "Heatmap (3D)":
+            self.current_plot = self.plot3D
 
     def make_notebook(self):
         # Setup notebook
@@ -819,19 +819,19 @@ class PanelPlots(wx.Panel):
                 resizeName = "Waterfall"
 
         elif evtID in [ID_saveRMSDImage, ID_saveRMSDImageDoc, ID_saveRMSFImage, ID_saveRMSFImageDoc]:
-            plotWindow = self.plot_RMSF
+            plotWindow = self.plot2D
             image_name = self.config._plotSettings["RMSD"]["default_name"]
             resizeName = plotWindow.get_plot_name()
 
         elif evtID in [ID_saveOverlayImage, ID_saveOverlayImageDoc]:
-            plotWindow = self.plot_overlay
+            plotWindow = self.plot2D
             image_name = plotWindow.get_plot_name()
             resizeName = "Overlay"
 
         elif evtID in [ID_saveRMSDmatrixImage, ID_saveRMSDmatrixImageDoc]:
             image_name = self.config._plotSettings["Matrix"]["default_name"]
             resizeName = "Matrix"
-            plotWindow = self.plotCompare
+            plotWindow = self.plot2D
 
         elif evtID in [ID_saveMZDTImage, ID_saveMZDTImageDoc]:
             image_name = self.config._plotSettings["DT/MS"]["default_name"]
@@ -947,14 +947,17 @@ class PanelPlots(wx.Panel):
             "2D": self.plot2D,
             "Heatmap": self.plot2D,
             "DT/MS": self.plot_DT_vs_MS,
-            "Overlay": self.plot2D,
-            "RMSF": self.plot2D,
-            "Compare": self.plot2D,
+            "Overlay": self.plotOther,
+            "RMSF": self.plotOther,
+            "RMSD": self.plotOther,
+            "Grid": self.plotOther,
+            "Compare": self.plotOther,
+            "Comparison": self.plotOther,
             "Waterfall": self.plot_waterfall,
             "Other": self.plotOther,
             "3D": self.plot3D,
             "Heatmap (3D)": self.plot3D,
-            "Matrix": self.plot2D,
+            "Matrix": self.plotOther,
             "Annotated": self.plotOther,
             "MS_RT": self.plot_RT_MS,
             "MS_DT": self.plot_DT_MS,
@@ -1009,15 +1012,15 @@ class PanelPlots(wx.Panel):
             plot = self.get_plot_from_name(self.currentPage)
             title = f"{self.currentPage}..."
         #         elif self.currentPage == "Overlay":
-        #             plot, title = self.plot_overlay, "Overlay"
+        #             plot, title = self.plot2D, "Overlay"
         #             if plot.plot_name not in ["Mask", "Transparent"]:
         #                 open_window = False
         #         elif self.currentPage == "RMSF":
-        #             plot, title = self.plot_RMSF, "RMSF"
+        #             plot, title = self.plot2D, "RMSF"
         #             if plot.plot_name not in ["RMSD"]:
         #                 open_window = False
         #         elif self.currentPage == "Comparison":
-        #             plot, title = self.plotCompare, "Comparison..."
+        #             plot, title = self.plot2D, "Comparison..."
         #         elif self.currentPage == "Other":
         #             plot, title = self.plotOther, "Custom data..."
 
@@ -1109,11 +1112,11 @@ class PanelPlots(wx.Panel):
         #         if plotName == "MS":
         #             resize_plot = [self.plot1, self.plot_RT_MS, self.plot_DT_MS]
         #         elif plotName == "RMSD":
-        #             resize_plot = self.plot_RMSF
+        #             resize_plot = self.plot2D
         #         elif plotName in ["Comparison", "Matrix"]:
-        #             resize_plot = self.plotCompare
+        #             resize_plot = self.plot2D
         #         elif plotName in ["Overlay", "Overlay (Grid)"]:
-        #             resize_plot = self.plot_overlay
+        #             resize_plot = self.plot2D
         #         elif plotName == "Calibration (MS)":
         #             resize_plot = self.topPlotMS
         #         elif plotName == "Calibration (DT)":
@@ -1985,8 +1988,8 @@ class PanelPlots(wx.Panel):
             rmsd_kwargs = self._buildPlotParameters(plotType="RMSF")
             plt_kwargs = merge_two_dicts(plt_kwargs, rmsd_kwargs)
             try:
-                self.plot_RMSF.plot_1D_update_rmsf(**plt_kwargs)
-                self.plot_RMSF.repaint()
+                self.plot2D.plot_1D_update_rmsf(**plt_kwargs)
+                self.plot2D.repaint()
             except AttributeError:
                 pass
 
@@ -2465,11 +2468,11 @@ class PanelPlots(wx.Panel):
         if show_in_window == "MS":
             window = self.config.panelNames["MS"]
             plot_size_key = "MS"
-        elif show_in_window == "RT":
+        elif show_in_window == "MS_RT":
             window = self.config.panelNames["RT"]
             plt_kwargs["prevent_extraction"] = True
             plot_size_key = "MS (DT/RT)"
-        elif show_in_window == "1D":
+        elif show_in_window == "MS_DT":
             window = self.config.panelNames["1D"]
             plt_kwargs["prevent_extraction"] = True
             plot_size_key = "MS (DT/RT)"
@@ -3539,9 +3542,9 @@ class PanelPlots(wx.Panel):
     def plot_2D_update_label(self):
 
         try:
-            if self.plot_RMSF.plot_name == "RMSD":
+            if self.plot2D.plot_name == "RMSD":
                 __, xvals, yvals, __, __ = self.presenter._get_replot_data("2D")
-            elif self.plot_RMSF.plot_name == "RMSF":
+            elif self.plot2D.plot_name == "RMSF":
                 __, xvals, yvals, __, __, __ = self.presenter._get_replot_data("RMSF")
             else:
                 return
@@ -3552,8 +3555,8 @@ class PanelPlots(wx.Panel):
             plt_kwargs["rmsd_label_coordinates"] = [rmsdXpos, rmsdYpos]
             plt_kwargs["rmsd_label_color"] = self.config.rmsd_color
 
-            self.plot_RMSF.plot_2D_update_label(**plt_kwargs)
-            self.plot_RMSF.repaint()
+            self.plot2D.plot_2D_update_label(**plt_kwargs)
+            self.plot2D.repaint()
         except Exception:
             pass
 
@@ -3984,7 +3987,7 @@ class PanelPlots(wx.Panel):
 
     def on_add_label(self, x, y, text, rotation, color="k", plot="RMSD", **kwargs):
 
-        if "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)

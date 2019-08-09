@@ -17,14 +17,13 @@ from utils.color import roundRGB
 from utils.random import get_random_int
 from utils.screen import calculate_window_size
 from visuals import mpl_plots
+from widgets.dialog_overlay_review import DialogOverlayReview
 
 # from gui_elements.dialog_color_picker import DialogColorPicker
-
 logger = logging.getLogger("origami")
 
 # TODO: add various UI controls, allowing easier adjustment of values
 # TODO: add percentiel/quantile setter
-# TODO: add option to add data to document
 # TODO: add review panel to decide what is added to document
 
 
@@ -351,9 +350,9 @@ class PanelOverlayViewer(MiniFrame):
         max_peaklist_size = (int(self._window_size[0] * 0.3), -1)
         self.peaklist.SetMaxClientSize(max_peaklist_size)
 
-        self.peaklist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.menu_right_click)
-        self.peaklist.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.menu_column_right_click)
-        self.peaklist.Bind(wx.EVT_LEFT_DCLICK, self.on_double_click_on_item)
+    #         self.peaklist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.menu_right_click)
+    #         self.peaklist.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.menu_column_right_click)
+    #         self.peaklist.Bind(wx.EVT_LEFT_DCLICK, self.on_double_click_on_item)
 
     def on_action_tools(self, evt):
 
@@ -378,22 +377,82 @@ class PanelOverlayViewer(MiniFrame):
     def on_create_blank_document(self, evt):
         self.data_handling.create_new_document_of_type(document_type="overlay")
 
+    def generate_overlay_plot_list(self):
+
+        item_list = []
+        for key in self.overlay_data:
+            method = key.split(": ")[0]
+            item_list.append([method, key])
+
+        return item_list
+
     def on_add_to_document(self, evt):
-        if self.overlay_data:
-            for key in self.overlay_data:
-                print(key)
+        """Add data to document"""
+
+        # data classifiers
+        stats_list = ["Mean", "Standard Deviation", "Variance", "RMSD", "RMSF", "RMSD Matrix"]
+        overlay_list = [
+            "Overlay (DT)",
+            "Overlay (MS)",
+            "Overlay (RT)",
+            "Butterfly (DT)",
+            "Butterfly (MS)",
+            "Butterfly (RT)",
+            "Subtract (DT)",
+            "Subtract (MS)",
+            "Subtract (RT)",
+            "Waterfall (DT)",
+            "Waterfall (MS)",
+            "Waterfall (RT)",
+            "Mask",
+            "Transparent",
+            "Grid (2->1)",
+            "Grid (n x n)",
+            "RGB",
+        ]
+
+        # if the list is empty, notify the user
+        if not self.overlay_data:
+            from utils.exceptions import MessageError
+
+            raise MessageError(
+                "Clipboard is empty",
+                "There are no items in the clipboard."
+                + " Please plot something first before adding it to the document",
+            )
+        # get document
         document = self.data_handling._get_document_of_type("Type: Comparison")
+        document_title = document.title
 
-    def on_double_click_on_item(self, evt):
-        logger.error("Method not implemented yet")
+        # collect list of items in the clipboard
+        item_list = self.generate_overlay_plot_list()
+        dlg = DialogOverlayReview(self, self.presenter, self.config, item_list)
+        dlg.ShowModal()
+        add_to_document_list = dlg.output_list
 
-    def menu_right_click(self, evt):
-        logger.error("Method not implemented yet")
+        # add items to document
+        for key in add_to_document_list:
+            data = self.overlay_data.pop(key)
+            for method in stats_list:
+                if key.startswith(method):
+                    self.data_handling.set_overlay_data([document_title, "Statistical", key], data)
+                    break
+            for method in overlay_list:
+                if key.startswith(method):
+                    self.data_handling.set_overlay_data([document_title, "Overlay", key], data)
+                    break
 
-    def menu_column_right_click(self, evt):
-        logger.error("Method not implemented yet")
+    #     def on_double_click_on_item(self, evt):
+    #         logger.error("Method not implemented yet")
+    #
+    #     def menu_right_click(self, evt):
+    #         logger.error("Method not implemented yet")
+    #
+    #     def menu_column_right_click(self, evt):
+    #         logger.error("Method not implemented yet")
 
     def on_overlay(self, evt):
+        """Dispatch function"""
         item_list = self.get_selected_items()
 
         editor_type = self.dataset_type_choice.GetStringSelection()
@@ -673,7 +732,7 @@ class PanelOverlayViewer(MiniFrame):
 
         return item_list
 
-    def on_get_item_information(self, itemID, return_list=False):
+    def on_get_item_information(self, itemID):
         information = self.peaklist.on_get_item_information(itemID)
 
         # add additional data
