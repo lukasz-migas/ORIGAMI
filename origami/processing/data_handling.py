@@ -450,6 +450,9 @@ class data_handling:
         """Adds blank document of specific type"""
 
         document = self.create_new_document()
+        if document is None:
+            logger.error("Document was `None`")
+            return
 
         # Add method specific parameters
         if document_type in ["overlay", "compare", "Type: Comparison"]:
@@ -672,6 +675,8 @@ class data_handling:
 
         # check if data should be added to document
         add_to_document = kwargs.pop("add_to_document", False)
+        return_data = kwargs.pop("return_data", False)
+        data_storage = {}
 
         # get m/z limits
         mz_start = self.config.extract_mzStart
@@ -727,11 +732,18 @@ class data_handling:
                 spectrum_name += f" dt={int(dt_start)}-{int(dt_end)}"
             spectrum_name = spectrum_name.lstrip()
             if mz_kwargs:
+                logger.info(f"Extracting mass spectrum: {mz_kwargs}")
                 mz_x, mz_y = self._get_driftscope_spectrum_data(document.path, **mz_kwargs)
                 self.plotsPanel.on_plot_MS(mz_x, mz_y)
+                data = {"xvals": mz_x, "yvals": mz_y, "xlabels": "m/z (Da)", "xlimits": get_min_max(mz_x)}
                 if add_to_document:
-                    data = {"xvals": mz_x, "yvals": mz_y, "xlabels": "m/z (Da)", "xlimits": get_min_max(mz_x)}
                     self.documentTree.on_update_data(data, spectrum_name, document, data_type="extracted.spectrum")
+                if return_data:
+                    data_storage[spectrum_name] = {
+                        "name": spectrum_name,
+                        "data_type": "extracted.spectrum",
+                        "data": data,
+                    }
 
         # extract chromatogram
         if self.config.extract_chromatograms:
@@ -744,17 +756,20 @@ class data_handling:
                 rt_kwargs.update(dt_start=dt_start, dt_end=dt_end)
                 chrom_name += f" rt={rt_start:.2f}-{rt_end:.2f}"
             if rt_kwargs:
+                logger.info(f"Extracting chromatogram: {rt_kwargs}")
                 xvals_RT, yvals_RT, __ = self._get_driftscope_chromatography_data(document.path, **rt_kwargs)
                 self.plotsPanel.on_plot_RT(xvals_RT, yvals_RT, "Scans")
+                data = {
+                    "xvals": xvals_RT,
+                    "yvals": yvals_RT,
+                    "xlabels": "Scans",
+                    "ylabels": "Intensity",
+                    "xlimits": get_min_max(xvals_RT),
+                }
                 if add_to_document:
-                    data = {
-                        "xvals": xvals_RT,
-                        "yvals": yvals_RT,
-                        "xlabels": "Scans",
-                        "ylabels": "Intensity",
-                        "xlimits": get_min_max(xvals_RT),
-                    }
                     self.documentTree.on_update_data(data, chrom_name, document, data_type="extracted.chromatogram")
+                if return_data:
+                    data_storage[chrom_name] = {"name": chrom_name, "data_type": "extracted.chromatogram", "data": data}
 
         # extract mobilogram
         if self.config.extract_driftTime1D:
@@ -768,17 +783,20 @@ class data_handling:
                 dt_name += f" rt={rt_start:.2f}-{rt_end:.2f}"
 
             if dt_kwargs:
+                logger.info(f"Extracting mobilogram: {dt_kwargs}")
                 xvals_DT, yvals_DT = self._get_driftscope_mobiligram_data(document.path, **dt_kwargs)
                 self.plotsPanel.on_plot_1D(xvals_DT, yvals_DT, "Drift time (bins)")
+                data = {
+                    "xvals": xvals_DT,
+                    "yvals": yvals_DT,
+                    "xlabels": "Drift time (bins)",
+                    "ylabels": "Intensity",
+                    "xlimits": get_min_max(xvals_DT),
+                }
                 if add_to_document:
-                    data = {
-                        "xvals": xvals_DT,
-                        "yvals": yvals_DT,
-                        "xlabels": "Drift time (bins)",
-                        "ylabels": "Intensity",
-                        "xlimits": get_min_max(xvals_DT),
-                    }
                     self.documentTree.on_update_data(data, dt_name, document, data_type="ion.mobiligram.raw")
+                if return_data:
+                    data_storage[dt_name] = {"name": dt_name, "data_type": "ion.mobiligram.raw", "data": data}
 
         # extract heatmap
         if self.config.extract_driftTime2D:
@@ -792,31 +810,37 @@ class data_handling:
                 dt_name += f" rt={rt_start:.2f}-{rt_end:.2f}"
 
             if heatmap_kwargs:
+                logger.info(f"Extracting heatmap: {heatmap_kwargs}")
                 xvals, yvals, zvals = self._get_driftscope_mobility_data(document.path, **heatmap_kwargs)
                 self.plotsPanel.on_plot_2D_data(data=[zvals, xvals, "Scans", yvals, "Drift time (bins)"])
+                __, yvals_RT, __ = self._get_driftscope_chromatography_data(document.path, **kwargs)
+                __, yvals_DT = self._get_driftscope_mobiligram_data(document.path, **kwargs)
+                data = {
+                    "zvals": zvals,
+                    "xvals": xvals,
+                    "xlabels": "Scans",
+                    "yvals": yvals,
+                    "ylabels": "Drift time (bins)",
+                    "cmap": self.config.currentCmap,
+                    "yvals1D": yvals_DT,
+                    "yvalsRT": yvals_RT,
+                    "title": "",
+                    "label": "",
+                    "charge": 1,
+                    "alpha": self.config.overlay_defaultAlpha,
+                    "mask": self.config.overlay_defaultMask,
+                    "color": randomColorGenerator(),
+                    "min_threshold": 0,
+                    "max_threshold": 1,
+                    "xylimits": [mz_start, mz_end, 1],
+                }
                 if add_to_document:
-                    __, yvals_RT, __ = self._get_driftscope_chromatography_data(document.path, **kwargs)
-                    __, yvals_DT = self._get_driftscope_mobiligram_data(document.path, **kwargs)
-                    data = {
-                        "zvals": zvals,
-                        "xvals": xvals,
-                        "xlabels": "Scans",
-                        "yvals": yvals,
-                        "ylabels": "Drift time (bins)",
-                        "cmap": self.config.currentCmap,
-                        "yvals1D": yvals_DT,
-                        "yvalsRT": yvals_RT,
-                        "title": "",
-                        "label": "",
-                        "charge": 1,
-                        "alpha": self.config.overlay_defaultAlpha,
-                        "mask": self.config.overlay_defaultMask,
-                        "color": randomColorGenerator(),
-                        "min_threshold": 0,
-                        "max_threshold": 1,
-                        "xylimits": [mz_start, mz_end, 1],
-                    }
                     self.documentTree.on_update_data(data, dt_name, document, data_type="ion.heatmap.raw")
+                if return_data:
+                    data_storage[dt_name] = {"name": dt_name, "data_type": "ion.heatmap.raw", "data": data}
+        # return data
+        if return_data and len(data_storage) > 0:
+            return data_storage
 
     def on_add_ion_ORIGAMI(self, item_information, document, path, mz_start, mz_end, mz_y_max, ion_name, label, charge):
         kwargs = dict(mz_start=mz_start, mz_end=mz_end)
@@ -3538,6 +3562,7 @@ class data_handling:
         document = self._on_get_document(document_title)
 
         if data is not None:
+            # Drift time (2D) data
             if dataset_type == "Drift time (2D)":
                 self.documentTree.on_update_data(data, "", document, data_type="main.heatmap")
             elif dataset_type == "Drift time (2D, processed)":
@@ -3548,10 +3573,15 @@ class data_handling:
                 self.documentTree.on_update_data(data, dataset_name, document, data_type="ion.heatmap.combined")
             elif dataset_type == "Drift time (2D, processed, EIC)" and dataset_name is not None:
                 self.documentTree.on_update_data(data, dataset_name, document, data_type="ion.heatmap.processed")
+            # overlay input data
             elif dataset_type == "Input data" and dataset_name is not None:
                 self.documentTree.on_update_data(data, dataset_name, document, data_type="ion.heatmap.comparison")
+            # chromatogram data
             elif dataset_type == "Chromatograms (combined voltages, EIC)" and dataset_name is not None:
                 self.documentTree.on_update_data(data, dataset_name, document, data_type="ion.chromatogram.combined")
+            elif dataset_type == "Chromatograms (EIC)" and dataset_name is not None:
+                self.documentTree.on_update_data(data, dataset_name, document, data_type=" extracted.chromatogram")
+            # mobilogram data
             elif dataset_type == "Drift time (1D, EIC)" and dataset_name is not None:
                 self.documentTree.on_update_data(data, dataset_name, document, data_type="ion.mobiligram.raw")
             elif dataset_type == "Drift time (1D, EIC, DT-IMS)" and dataset_name is not None:
@@ -3578,6 +3608,7 @@ class data_handling:
         document = self._on_get_document(document_title)
 
         for keyword in kwargs:
+            # Drift time (2D) data
             if dataset_type == "Drift time (2D)":
                 document.IMS2D[keyword] = kwargs[keyword]
             elif dataset_type == "Drift time (2D, processed)":
@@ -3588,10 +3619,19 @@ class data_handling:
                 document.IMS2DCombIons[dataset_name][keyword] = kwargs[keyword]
             elif dataset_type == "Drift time (2D, processed, EIC)" and dataset_name is not None:
                 document.IMS2DionsProcess[dataset_name][keyword] = kwargs[keyword]
+            # overlay input data
             elif dataset_type == "Input data" and dataset_name is not None:
                 document.IMS2DcompData[dataset_name][keyword] = kwargs[keyword]
+            # chromatogram data
+            elif dataset_type == "Chromatogram":
+                document.RT[keyword] = kwargs[keyword]
             elif dataset_type == "Chromatograms (combined voltages, EIC)" and dataset_name is not None:
                 document.IMSRTCombIons[dataset_name][keyword] = kwargs[keyword]
+            elif dataset_type == "Chromatograms (EIC)" and dataset_name is not None:
+                document.multipleRT[dataset_name][keyword] = kwargs[keyword]
+            # mobilogram data
+            elif dataset_type == "Drift time (1D)":
+                document.DT[keyword] = kwargs[keyword]
             elif dataset_type == "Drift time (1D, EIC)" and dataset_name is not None:
                 document.multipleDT[dataset_name][keyword] = kwargs[keyword]
             elif dataset_type == "Drift time (1D, EIC, DT-IMS)" and dataset_name is not None:

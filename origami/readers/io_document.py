@@ -5,13 +5,13 @@ import logging
 import pickle
 import time
 
+from utils.path import check_file_exists
+
 logger = logging.getLogger("origami")
 
 
 def save_py_object(filename=None, saveFile=None):
-    """
-    Simple tool to save objects/dictionaries
-    """
+    """Save document / object(s) as pickled file"""
     tstart = time.time()
     logger.info("Saving document...")
     with open(filename, "wb") as handle:
@@ -22,11 +22,19 @@ def save_py_object(filename=None, saveFile=None):
     logger.info(f"Saved document in: {filename}. It took {time.time()-tstart:.4f} seconds.")
 
 
-def open_py_object(filename=None):
+def open_py_object(filename):
+    """Load pickled document
+
+    Parameters
+    ----------
+    filename : str
+        path to the pickled object
+
+    Returns
+    -------
+    document : document object
     """
-    Simple tool to open pickled objects/dictionaries
-    """
-    if filename.rstrip("/")[-7:] == ".pickle":
+    if check_file_exists(filename):
         with open(filename, "rb") as f:
             # try loading as python 3
             try:
@@ -36,20 +44,23 @@ def open_py_object(filename=None):
                 try:
                     return pickle.load(f, encoding="latin1"), 1
                 except Exception as err:
-                    # try loading as python 2 with wxpython2 support
+                    # try loading as python 2 with wxPython2 support
                     try:
-                        logger.info("This is an old-version of ORIGAMI document")
                         import sys
                         from wx import _core
 
                         sys.modules["wx._gdi"] = _core
                         return pickle.load(f, encoding="latin1"), 1
+                    # try loading as python 2 with wxPython2 support and correct MARK location
                     except Exception as err:
                         logger.error(err)
-                    return None
-    else:
-        with open(filename + ".pickle", "rb") as f:
-            return pickle.load(f)
+                        try:
+                            f.seek(0)
+                            return pickle.load(f, encoding="latin1"), 1
+                        # give up...
+                        except Exception as err:
+                            logger.error(err)
+                            return None
 
 
 def cleanup_document(document):

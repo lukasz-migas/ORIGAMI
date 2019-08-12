@@ -11,7 +11,7 @@ from utils.converters import str2num
 
 logger = logging.getLogger("origami")
 
-# TODO: speed up plotting
+# TODO: Should have a temporary data storage and check whether data was previously extracted
 
 
 class PanelProcessExtractData(MiniFrame):
@@ -35,6 +35,7 @@ class PanelProcessExtractData(MiniFrame):
         self.document_title = kwargs.pop("document_title", None)
         self.parameters = dict()
         self.extraction_ranges = dict()
+        self.extraction_data = dict()
 
         if self.document is not None:
             self.parameters = self.document.parameters
@@ -45,7 +46,7 @@ class PanelProcessExtractData(MiniFrame):
 
         self.disable_plot = kwargs.get("disable_plot", False)
         self.disable_process = kwargs.get("disable_process", False)
-        self.process_all = kwargs.get("process_all", False)
+        #         self.process_all = kwargs.get("process_all", False)
 
         # make gui
         self.make_gui()

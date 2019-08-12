@@ -1114,7 +1114,7 @@ class PanelPeaklist(wx.Panel):
             self.peaklist.SetStringItem(item_id, self.config.peaklistColNames["filename"], str(value))
 
     def on_open_editor(self, evt):
-        from gui_elements.panel_modify_ion_settings import PanelModifyIonSettings
+        from gui_elements.panel_modify_item_settings import PanelModifyItemSettings
 
         if self.peaklist.item_id is None:
             logger.warning("Please select an item")
@@ -1126,7 +1126,7 @@ class PanelPeaklist(wx.Panel):
 
         information = self.on_get_item_information(self.peaklist.item_id)
 
-        self.item_editor = PanelModifyIonSettings(self, self.presenter, self.config, **information)
+        self.item_editor = PanelModifyItemSettings(self, self.presenter, self.config, **information)
         self.item_editor.Centre()
         self.item_editor.Show()
 

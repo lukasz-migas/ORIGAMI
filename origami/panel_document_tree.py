@@ -2008,7 +2008,7 @@ class DocumentTree(wx.TreeCtrl):
         dlg.ShowModal()
 
     def on_open_overlay_viewer(self, evt):
-        from widgets.panel_overlay_viewer import PanelOverlayViewer
+        from widgets.overlay.panel_overlay_viewer import PanelOverlayViewer
 
         dlg = PanelOverlayViewer(self, self.presenter, self.config, self.icons)
         dlg.Show()

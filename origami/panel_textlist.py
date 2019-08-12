@@ -1129,7 +1129,7 @@ class PanelTextlist(wx.Panel):
         self.data_handling.on_update_document(document, "no_refresh")
 
     def on_open_editor(self, evt):
-        from gui_elements.panel_modify_ion_settings import PanelModifyIonSettings
+        from gui_elements.panel_modify_item_settings import PanelModifyItemSettings
 
         if evt is None:
             evtID = ID_textPanel_editItem
@@ -1144,7 +1144,7 @@ class PanelTextlist(wx.Panel):
 
             dlg_kwargs = self.on_get_item_information(self.peaklist.item_id)
 
-            self.item_editor = PanelModifyIonSettings(self, self.presenter, self.config, **dlg_kwargs)
+            self.item_editor = PanelModifyItemSettings(self, self.presenter, self.config, **dlg_kwargs)
             self.item_editor.Centre()
             self.item_editor.Show()
         elif evtID == ID_textPanel_edit_selected:
@@ -1162,7 +1162,7 @@ class PanelTextlist(wx.Panel):
                         "id": rows,
                     }
 
-                    self.item_editor = PanelModifyIonSettings(self, self.presenter, self.config, **dlg_kwargs)
+                    self.item_editor = PanelModifyItemSettings(self, self.presenter, self.config, **dlg_kwargs)
                     self.item_editor.Show()
                 rows -= 1
         elif evtID == ID_ionPanel_edit_all:
@@ -1179,7 +1179,7 @@ class PanelTextlist(wx.Panel):
                     "id": row,
                 }
 
-                self.item_editor = PanelModifyIonSettings(self, self.presenter, self.config, **dlg_kwargs)
+                self.item_editor = PanelModifyItemSettings(self, self.presenter, self.config, **dlg_kwargs)
                 self.item_editor.Show()
 
     def on_remove_deleted_item(self, document):

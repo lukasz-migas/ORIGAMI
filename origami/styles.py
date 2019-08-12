@@ -4,16 +4,17 @@
 import itertools
 from operator import itemgetter
 
-import numpy as np
-import wx
-import wx.lib.mixins.listctrl as listmix
-from gui_elements.misc_dialogs import DialogBox
 from natsort.natsort import natsorted
+import wx
+from wx.lib.agw import supertooltip as superTip
+
+from gui_elements.misc_dialogs import DialogBox
+import numpy as np
 from utils.color import convertRGB255to1
 from utils.converters import byte2str
 from utils.converters import str2int
 from utils.converters import str2num
-from wx.lib.agw import supertooltip as superTip
+import wx.lib.mixins.listctrl as listmix
 
 # Sizes
 COMBO_SIZE = 120
@@ -215,10 +216,13 @@ class MiniFrame(wx.MiniFrame):
     def __init__(
         self, parent, style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX | wx.STAY_ON_TOP, **kwargs
     ):
+        bind_key_events = kwargs.pop("bind_key_events", True)
         wx.MiniFrame.__init__(self, parent, -1, size=(-1, -1), style=style, **kwargs)
 
         self.Bind(wx.EVT_CLOSE, self.on_close)
-        self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
+
+        if bind_key_events:
+            self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
 
     def on_key_event(self, evt):
         key_code = evt.GetKeyCode()

@@ -2,14 +2,14 @@
 # __author__ lukasz.g.migas
 # Load libraries
 import logging
+from copy import deepcopy
 
 import wx
-
 from styles import ListCtrl
-from styles import MiniFrame
 from styles import makeCheckbox
 from styles import makeMenuItem
 from styles import makeTooltip
+from styles import MiniFrame
 from utils.color import check_color_format
 from utils.color import convertRGB255to1
 from utils.color import determineFontColor
@@ -18,7 +18,7 @@ from utils.exceptions import MessageError
 from utils.random import get_random_int
 from utils.screen import calculate_window_size
 from visuals import mpl_plots
-from widgets.dialog_overlay_review import DialogOverlayReview
+from widgets.overlay.dialog_overlay_review import DialogOverlayReview
 
 # from gui_elements.dialog_color_picker import DialogColorPicker
 logger = logging.getLogger("origami")
@@ -73,10 +73,12 @@ class PanelOverlayViewer(MiniFrame):
             parent,
             title="Overlay viewer & editor...",
             style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX,
+            bind_key_events=False,
         )
 
         self.parent = parent
         self.presenter = presenter
+        self.view = presenter.view
         self.config = config
         self.icons = icons
 
@@ -142,16 +144,34 @@ class PanelOverlayViewer(MiniFrame):
         menu.Destroy()
         self.SetFocus()
 
+    def _get_accepted_keywords_from_dict(self, itemInfo):
+        keywords = ["color", "colormap", "alpha", "mask", "label", "min_threshold", "max_threshold", "charge", "cmap"]
+        keys = list(itemInfo.keys())
+        for key in keys:
+            if key not in keywords:
+                itemInfo.pop(key)
+
+        for bad_key, good_key in self.keyword_alias.items():
+            itemInfo[good_key] = itemInfo[bad_key]
+
+        return itemInfo
+
     def on_update_document(self, evt, itemInfo=None):
 
         # get item info
         if itemInfo is None:
             itemInfo = self.on_get_item_information(self.peaklist.item_id)
 
-#         keywords = ["color", "colormap", "alpha", "mask", "label", "min_threshold", "max_threshold", "charge", "cmap"]
+        editor_type = self.dataset_type_choice.GetStringSelection()
+        if editor_type in ["Heatmaps", "Chromatograms", "Mobilograms"]:
+            query = [itemInfo["document"], itemInfo["dataset_type"], itemInfo["dataset_name"]]
+            itemInfo = self._get_accepted_keywords_from_dict(deepcopy(itemInfo))
+            document = self.data_handling.set_mobility_chromatographic_keyword_data(query, **itemInfo)
+        elif editor_type == "Mass Spectra":
+            pass
 
-    #         # Update file list
-    #         self.data_handling.on_update_document(document, "no_refresh")
+            # Update file list
+            self.data_handling.on_update_document(document, "no_refresh")
 
     def on_close(self, evt):
         """Destroy this frame"""
@@ -162,7 +182,7 @@ class PanelOverlayViewer(MiniFrame):
 
             msg = (
                 f"Found {n_overlay_items} overlay item(s) in the clipboard. Closing this window will lose"
-                +" your overlay plots. Would you like to continue?"
+                + " your overlay plots. Would you like to continue?"
             )
             dlg = DialogBox(exceptionTitle="Clipboard is not empty", exceptionMsg=msg, type="Question")
             if dlg == wx.ID_NO:
@@ -387,14 +407,21 @@ class PanelOverlayViewer(MiniFrame):
                 self.item_editor.on_update_gui(self.on_get_item_information(self.peaklist.item_id))
 
     def on_open_editor(self, evt):
-        from gui_elements.panel_modify_ion_settings import PanelModifyIonSettings
+        from gui_elements.panel_modify_item_settings import PanelModifyItemSettings
 
         if self.peaklist.item_id is None or self.peaklist.item_id < 0:
             raise MessageError("Error", "Please select an item in the table")
 
         information = self.on_get_item_information(self.peaklist.item_id)
+        editor_type = self.dataset_type_choice.GetStringSelection()
+        if editor_type in ["Heatmaps", "Chromatograms", "Mobilograms"]:
+            overlay_type = "overlay.full"
+        else:
+            overlay_type = "overlay.simple"
 
-        self.item_editor = PanelModifyIonSettings(self, self.presenter, self.config, **information)
+        self.item_editor = PanelModifyItemSettings(
+            self, self.presenter, self.config, alt_parent=self.view, overlay_type=overlay_type, **information
+        )
         self.item_editor.Centre()
         self.item_editor.Show()
 
@@ -457,12 +484,10 @@ class PanelOverlayViewer(MiniFrame):
 
         # if the list is empty, notify the user
         if not self.overlay_data:
-            from utils.exceptions import MessageError
-
             raise MessageError(
                 "Clipboard is empty",
                 "There are no items in the clipboard."
-                +" Please plot something first before adding it to the document",
+                + " Please plot something first before adding it to the document",
             )
         # get document
         document = self.data_handling._get_document_of_type("Type: Comparison")
@@ -494,6 +519,54 @@ class PanelOverlayViewer(MiniFrame):
     #
     #     def menu_column_right_click(self, evt):
     #         logger.error("Method not implemented yet")
+
+    def on_assign_color(self, evt, itemID=None, give_value=False):
+        """Assign new color
+
+        Parameters
+        ----------
+        evt : wxPython event
+            unused
+        itemID : int
+            value for item in table
+        give_value : bool
+            should/not return color
+        """
+        from gui_elements.dialog_color_picker import DialogColorPicker
+
+        if itemID is not None:
+            self.peaklist.item_id = itemID
+
+        if itemID is None:
+            itemID = self.peaklist.item_id
+
+        if itemID is None:
+            return
+
+        dlg = DialogColorPicker(self, self.config.customColors)
+        if dlg.ShowModal() == "ok":
+            color_255, color_1, font_color = dlg.GetChosenColour()
+            self.config.customColors = dlg.GetCustomColours()
+            self.on_update_value_in_peaklist(itemID, "color", [color_255, color_1, font_color])
+
+            # update document
+            self.on_update_document(evt=None)
+
+            if give_value:
+                return color_255
+
+    def on_update_value_in_peaklist(self, item_id, value_type, value):
+        if value_type == "color":
+            color_255, color_1, font_color = value
+            self.peaklist.SetItemBackgroundColour(item_id, color_255)
+            self.peaklist.SetStringItem(item_id, self.config.overlay_list_col_names["color"], str(color_1))
+            self.peaklist.SetItemTextColour(item_id, font_color)
+        elif value_type == "color_text":
+            self.peaklist.SetItemBackgroundColour(item_id, value)
+            self.peaklist.SetStringItem(
+                item_id, self.config.overlay_list_col_names["color"], str(convertRGB255to1(value))
+            )
+            self.peaklist.SetItemTextColour(item_id, determineFontColor(value, return_rgb=True))
 
     def on_overlay(self, evt):
         """Dispatch function"""
@@ -795,6 +868,7 @@ class PanelOverlayViewer(MiniFrame):
 
         # add additional data
         information["color_255to1"] = convertRGB255to1(information["color"], decimals=3)
+        information["color"] = list(information["color"])[0:3]
         information["item_name"] = "{}::{}::{}".format(
             information["dataset_name"], information["dataset_type"], information["document"]
         )
