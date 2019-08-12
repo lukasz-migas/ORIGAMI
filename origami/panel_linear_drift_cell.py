@@ -332,7 +332,7 @@ class topPanel(wx.Panel):
         else:
             evt.Skip()
 
-    def OnGetItemInformation(self, itemID, return_list=False):
+    def on_get_item_information(self, itemID, return_list=False):
         # get item information
         information = {
             "start": str2int(self.peaklist.GetItem(itemID, self.config.driftTopColNames["start"]).GetText()),
@@ -360,7 +360,7 @@ class topPanel(wx.Panel):
         """
         row = self.peaklist.GetItemCount() - 1
         while row >= 0:
-            info = self.OnGetItemInformation(itemID=row)
+            info = self.on_get_item_information(itemID=row)
             print(info)
             if info["document"] == document:
                 self.peaklist.DeleteItem(row)
@@ -729,7 +729,7 @@ class bottomPanel(wx.Panel):
             #         repaint=False,
             #     )
 
-    def OnGetItemInformation(self, itemID, return_list=False):
+    def on_get_item_information(self, itemID, return_list=False):
         # get item information
         information = {
             "start": str2num(self.peaklist.GetItem(itemID, self.config.driftBottomColNames["start"]).GetText()),
@@ -755,7 +755,7 @@ class bottomPanel(wx.Panel):
         """
         row = self.peaklist.GetItemCount() - 1
         while row >= 0:
-            info = self.OnGetItemInformation(itemID=row)
+            info = self.on_get_item_information(itemID=row)
             print(info)
             if info["document"] == document:
                 self.peaklist.DeleteItem(row)

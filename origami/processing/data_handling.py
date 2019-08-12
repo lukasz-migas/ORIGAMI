@@ -1829,7 +1829,7 @@ class data_handling:
         n_extracted = 0
         for ion_id in range(self.ionList.GetItemCount()):
             # Extract ion name
-            item_information = self.ionPanel.OnGetItemInformation(itemID=ion_id)
+            item_information = self.ionPanel.on_get_item_information(itemID=ion_id)
             document_title = item_information["document"]
 
             # Check if the ion has been assigned a filename
@@ -2401,27 +2401,27 @@ class data_handling:
         # update document with new attributes
         if not hasattr(document, "other_data"):
             setattr(document, "other_data", {})
-            logger.info("Added missing attributute ('other_data') to document")
+            logger.info(f"FIXED [Missing attribute]: other_data")
 
         if not hasattr(document, "tandem_spectra"):
             setattr(document, "tandem_spectra", {})
-            logger.info("Added missing attributute ('tandem_spectra') to document")
+            logger.info(f"FIXED [Missing attribute]: tandem_spectra")
 
         if not hasattr(document, "file_reader"):
             setattr(document, "file_reader", {})
-            logger.info("Added missing attributute ('file_reader') to document")
+            logger.info(f"FIXED [Missing attribute]: file_reader")
 
         if not hasattr(document, "app_data"):
             setattr(document, "app_data", {})
-            logger.info("Added missing attributute ('app_data') to document")
+            logger.info(f"FIXED [Missing attribute]: app_data")
 
         if not hasattr(document, "last_saved"):
             setattr(document, "last_saved", {})
-            logger.info("Added missing attributute ('last_saved') to document")
+            logger.info(f"FIXED [Missing attribute]: last_saved")
 
         if not hasattr(document, "metadata"):
             setattr(document, "metadata", {})
-            logger.info("Added missing attributute ('metadata') to document")
+            logger.info(f"FIXED [Missing attribute]: metadata")
 
         # OVERLAY DATA
         for key in list(document.IMS2DoverlayData):
@@ -2431,36 +2431,44 @@ class data_handling:
                 data["zlist"] = [data.pop("zvals_1"), data.pop("zvals_2")]
                 data["cmaps"] = [data.pop("cmap_1"), data.pop("cmap_2")]
                 data["zvals"] = data.pop("zvals_cum")
+                logger.info(f"FIXED [Keywords]: {key}")
             if key.startswith("Grid (n x n): "):
                 data["xlist"] = data.pop("xvals")
                 data["ylist"] = data.pop("yvals")
                 data["zlist"] = data.pop("zvals_list")
                 data["cmaps"] = data.pop("cmap_list")
                 data["legend_text"] = data.pop("title_list")
+                logger.info(f"FIXED [Keywords]: {key}")
             if key.startswith("Mask: "):
                 data["zlist"] = [data.pop("zvals1"), data.pop("zvals2")]
                 data["cmaps"] = [data.pop("cmap1"), data.pop("cmap2")]
                 data["masks"] = [data.pop("mask1"), data.pop("mask2")]
                 [data.pop(key) for key in ["alpha1", "alpha2"]]
+                logger.info(f"FIXED [Keywords]: {key}")
             if key.startswith("Transparent: "):
                 data["zlist"] = [data.pop("zvals1"), data.pop("zvals2")]
                 data["cmaps"] = [data.pop("cmap1"), data.pop("cmap2")]
                 data["alphas"] = [data.pop("alpha1"), data.pop("alpha2")]
                 [data.pop(key) for key in ["mask1", "mask2"]]
+                logger.info(f"FIXED [Keywords]: {key}")
             if key.startswith("1D: ") or key.startswith("RT: "):
                 data["xlabels"] = data.pop("xlabel")
+                logger.info(f"FIXED [Keywords]: {key}")
             document.IMS2DoverlayData[key] = data
 
             # rename
             if key.startswith("1D: "):
                 document.IMS2DoverlayData[key.replace("1D: ", "Overlay (DT): ")] = document.IMS2DoverlayData.pop(key)
+                logger.info(f"FIXED [Renamed]: {key}")
             if key.startswith("RT: "):
                 document.IMS2DoverlayData[key.replace("RT: ", "Overlay (RT): ")] = document.IMS2DoverlayData.pop(key)
+                logger.info(f"FIXED [Renamed]: {key}")
 
             # move to new location
             if key.startswith("RMSD: ") or key.startswith("RMSF: "):
                 document.gotStatsData = True
                 document.IMS2DstatsData[key] = document.IMS2DoverlayData.pop(key)
+                logger.info(f"FIXED [Moved]: {key}")
 
         # STATISTICAL DATA
         for key in list(document.IMS2DstatsData):
@@ -2468,11 +2476,14 @@ class data_handling:
             if key.startswith("RMSD: "):
                 data["xlabels"] = data.pop("xlabel")
                 data["ylabels"] = data.pop("ylabel")
+                logger.info(f"FIXED [Keywords]: {key}")
             if key.startswith("RMSF: "):
                 data["xlabels"] = data.pop("xlabelRMSD")
                 data["ylabels"] = data.pop("ylabelRMSD")
+                logger.info(f"FIXED [Keywords]: {key}")
             if key.startswith("RMSD Matrix"):
                 data["labels"] = data.pop("matrixLabels")
+                logger.info(f"FIXED [Keywords]: {key}")
             document.IMS2DstatsData[key] = data
 
         logger.info("Finished upgrading document to the latest version")
@@ -2782,7 +2793,7 @@ class data_handling:
             if tempList.IsChecked(index=row):
                 if source == "ion":
                     # Get current document
-                    itemInfo = self.ionPanel.OnGetItemInformation(itemID=row)
+                    itemInfo = self.ionPanel.on_get_item_information(itemID=row)
                     document_title = itemInfo["document"]
                     # Check that data was extracted first
                     if document_title == "":
@@ -2851,7 +2862,7 @@ class data_handling:
                         label = selectedItem
                     legend.append(label)
                 elif source == "text":
-                    itemInfo = self.textPanel.OnGetItemInformation(itemID=row)
+                    itemInfo = self.textPanel.on_get_item_information(itemID=row)
                     document_title = itemInfo["document"]
                     label = itemInfo["label"]
                     color = itemInfo["color"]
@@ -3133,7 +3144,7 @@ class data_handling:
         height = 100000000000
         repaint = False
         for item in range(peaklist.GetItemCount()):
-            itemInfo = self.view.panelMultipleIons.OnGetItemInformation(itemID=item)
+            itemInfo = self.view.panelMultipleIons.on_get_item_information(itemID=item)
             filename = itemInfo["document"]
             if filename != document_title:
                 continue

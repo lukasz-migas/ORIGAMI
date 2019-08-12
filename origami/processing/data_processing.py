@@ -1622,7 +1622,7 @@ class data_processing:
 
         # Make a list of Documents
         for ion_id in range(self.ionList.GetItemCount()):
-            itemInfo = self.ionPanel.OnGetItemInformation(itemID=ion_id)
+            itemInfo = self.ionPanel.on_get_item_information(itemID=ion_id)
             if not itemInfo["select"]:
                 continue
 

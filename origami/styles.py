@@ -130,9 +130,6 @@ def layout(parent, sizer, size=None):
     parent.SetMinSize(size)
 
 
-# ----
-
-
 def makeSuperTip(
     parent, title="Title", text="Insert message", delay=5, headerLine=False, footerLine=False, headerImg=None, **kwargs
 ):

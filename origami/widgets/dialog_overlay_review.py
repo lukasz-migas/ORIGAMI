@@ -50,8 +50,10 @@ class DialogOverlayReview(Dialog):
     def make_panel(self):
         panel = wx.Panel(self, -1, size=(-1, -1))
 
-        msg = "Please review the list of items shown below and select items" + \
-              " which you would \nlike to add to the document.\n"
+        msg = (
+            "Please review the list of items shown below and select items"
+            + " which you would \nlike to add to the document.\n"
+        )
 
         info_label = wx.StaticText(panel, -1, msg)
         setItemFont(info_label)

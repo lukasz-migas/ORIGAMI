@@ -4,16 +4,17 @@
 import logging
 
 import wx
+
 from styles import ListCtrl
+from styles import MiniFrame
 from styles import makeCheckbox
 from styles import makeMenuItem
-from styles import MiniFrame
-from styles import setItemFont
-from utils import color
+from styles import makeTooltip
 from utils.color import check_color_format
 from utils.color import convertRGB255to1
 from utils.color import determineFontColor
 from utils.color import roundRGB
+from utils.exceptions import MessageError
 from utils.random import get_random_int
 from utils.screen import calculate_window_size
 from visuals import mpl_plots
@@ -47,6 +48,24 @@ class PanelOverlayViewer(MiniFrame):
         12: {"name": "processed", "tag": "processed", "type": "str", "width": 65, "show": True},
         13: {"name": "#", "tag": "order", "type": "int", "width": 25, "show": True},
     }
+    keyword_alias = {"colormap": "cmap"}
+
+    overlay_methods_1D = sorted(["Overlay", "Waterfall", "Subtract (n=2)", "Butterfly (n=2)"])
+    overlay_methods_2D = sorted(
+        [
+            "Mask",
+            "Transparent",
+            "RGB",
+            "Mean",
+            "Variance",
+            "Standard Deviation",
+            "RMSD",
+            "RMSF",
+            "RMSD Matrix",
+            "Grid (2->1)",
+            "Grid (n x n)",
+        ]
+    )
 
     def __init__(self, parent, presenter, config, icons, **kwargs):
         MiniFrame.__init__(
@@ -73,6 +92,7 @@ class PanelOverlayViewer(MiniFrame):
         self._window_size = calculate_window_size(self._display_size, 0.9)
 
         # preset
+        self.item_editor = None
         self.dataset_type = None
         self.overlay_data = dict()
 
@@ -122,6 +142,17 @@ class PanelOverlayViewer(MiniFrame):
         menu.Destroy()
         self.SetFocus()
 
+    def on_update_document(self, evt, itemInfo=None):
+
+        # get item info
+        if itemInfo is None:
+            itemInfo = self.on_get_item_information(self.peaklist.item_id)
+
+#         keywords = ["color", "colormap", "alpha", "mask", "label", "min_threshold", "max_threshold", "charge", "cmap"]
+
+    #         # Update file list
+    #         self.data_handling.on_update_document(document, "no_refresh")
+
     def on_close(self, evt):
         """Destroy this frame"""
 
@@ -131,7 +162,7 @@ class PanelOverlayViewer(MiniFrame):
 
             msg = (
                 f"Found {n_overlay_items} overlay item(s) in the clipboard. Closing this window will lose"
-                + " your overlay plots. Would you like to continue?"
+                +" your overlay plots. Would you like to continue?"
             )
             dlg = DialogBox(exceptionTitle="Clipboard is not empty", exceptionMsg=msg, type="Question")
             if dlg == wx.ID_NO:
@@ -185,10 +216,10 @@ class PanelOverlayViewer(MiniFrame):
         if editor_type == "Heatmaps":
             heatmap, spectra = True, False
 
-        obj_list = [self.overlay_heatmap_method_choice]
+        obj_list = []
         for item in obj_list:
             item.Enable(enable=heatmap)
-        obj_list = [self.overlay_spectrum_method_choice, self.normalize_1D_check]
+        obj_list = [self.normalize_1D_check]
         for item in obj_list:
             item.Enable(enable=spectra)
 
@@ -206,7 +237,17 @@ class PanelOverlayViewer(MiniFrame):
 
         dataset_type_choice = wx.StaticText(panel, -1, "Dataset type:")
         self.dataset_type_choice = wx.ComboBox(
-            panel, choices=["Mass spectra", "Chromatograms", "Mobilograms", "Heatmaps"], style=wx.CB_READONLY
+            panel,
+            choices=sorted(
+                [
+                    "Mass spectra",
+                    "Chromatograms",
+                    "Mobilograms",
+                    "Heatmaps",
+                    #                                     "UniDec"
+                ]
+            ),
+            style=wx.CB_READONLY,
         )
         self.dataset_type_choice.SetStringSelection("Heatmaps")
         self.dataset_type_choice.Bind(wx.EVT_COMBOBOX, self.on_apply)
@@ -221,29 +262,21 @@ class PanelOverlayViewer(MiniFrame):
             style=wx.BORDER_DEFAULT | wx.ALIGN_CENTER_VERTICAL,
         )
         self.refresh_btn.Bind(wx.EVT_BUTTON, self.on_populate_item_list)
+        self.refresh_btn.SetToolTip(
+            makeTooltip("Re-populate table for specified dataset. All checkboxes will be erased")
+        )
 
-        # RT and DT methods : "Stacked"
-        overlay_methods_1D = sorted(["Overlay", "Waterfall", "Subtract (n=2)", "Butterfly (n=2)"])
-
-        dataset_type_spectrum = setItemFont(wx.StaticText(panel, -1, "Mass spectra / Chromatogram / Mobilogram"))
-        overlay_spectrum_method_choice = wx.StaticText(panel, -1, "Overlay method:")
-        self.overlay_spectrum_method_choice = wx.ComboBox(panel, choices=overlay_methods_1D, style=wx.CB_READONLY)
-        self.overlay_spectrum_method_choice.SetStringSelection("Overlay")
+        overlay_method_choice = wx.StaticText(panel, -1, "Overlay method:")
+        self.overlay_method_choice = wx.ComboBox(panel, choices=self.overlay_methods_2D, style=wx.CB_READONLY)
+        self.overlay_method_choice.SetStringSelection(self.config.overlayMethod)
 
         self.normalize_1D_check = makeCheckbox(panel, "Normalize before plotting")
         self.normalize_1D_check.SetValue(self.config.compare_massSpectrumParams["normalize"])
-
-        # Heatmap methods
-        dataset_type_heatmap = setItemFont(wx.StaticText(panel, -1, "Heatmap"))
-        overlay_heatmap_method_choice = wx.StaticText(panel, -1, "Overlay method:")
-        self.overlay_heatmap_method_choice = wx.ComboBox(
-            panel, choices=self.config.overlayChoices, style=wx.CB_READONLY
-        )
-        self.overlay_heatmap_method_choice.SetStringSelection(self.config.overlayMethod)
-
+        #
+        # make listctrl
         self.make_listctrl_panel(panel)
 
-        horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+        #         horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         horizontal_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         horizontal_line_99 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
@@ -279,21 +312,12 @@ class PanelOverlayViewer(MiniFrame):
         grid.Add(self.dataset_type_choice, (n, 1), flag=wx.ALIGN_CENTER | wx.EXPAND)
         grid.Add(self.refresh_btn, (n, 2), flag=wx.ALIGN_CENTER)
         n += 1
-        grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
-        n += 1
-        grid.Add(dataset_type_spectrum, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
-        n += 1
-        grid.Add(overlay_spectrum_method_choice, (n, 0), flag=wx.ALIGN_RIGHT | wx.EXPAND)
-        grid.Add(self.overlay_spectrum_method_choice, (n, 1), flag=wx.ALIGN_CENTER | wx.EXPAND)
-        n += 1
-        grid.Add(self.normalize_1D_check, (n, 1), flag=wx.ALIGN_RIGHT | wx.EXPAND)
+        grid.Add(overlay_method_choice, (n, 0), flag=wx.ALIGN_RIGHT | wx.EXPAND)
+        grid.Add(self.overlay_method_choice, (n, 1), flag=wx.ALIGN_CENTER | wx.EXPAND)
         n += 1
         grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
         n += 1
-        grid.Add(dataset_type_heatmap, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
-        n += 1
-        grid.Add(overlay_heatmap_method_choice, (n, 0), flag=wx.ALIGN_RIGHT | wx.EXPAND)
-        grid.Add(self.overlay_heatmap_method_choice, (n, 1), flag=wx.ALIGN_CENTER | wx.EXPAND)
+        grid.Add(self.normalize_1D_check, (n, 1), flag=wx.ALIGN_RIGHT | wx.EXPAND)
 
         # setup growable column
         grid.AddGrowableCol(3)
@@ -323,7 +347,6 @@ class PanelOverlayViewer(MiniFrame):
         box = wx.BoxSizer(wx.VERTICAL)
         box.Add(self.plot_window, 1, wx.EXPAND)
         box.Fit(self.plot_panel)
-        #         self.plot_window.SetSize(pixel_size)
         self.plot_panel.SetSizer(box)
         self.plot_panel.Layout()
 
@@ -350,9 +373,30 @@ class PanelOverlayViewer(MiniFrame):
         max_peaklist_size = (int(self._window_size[0] * 0.3), -1)
         self.peaklist.SetMaxClientSize(max_peaklist_size)
 
-    #         self.peaklist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.menu_right_click)
-    #         self.peaklist.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.menu_column_right_click)
-    #         self.peaklist.Bind(wx.EVT_LEFT_DCLICK, self.on_double_click_on_item)
+        #         self.peaklist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.menu_right_click)
+        #         self.peaklist.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.menu_column_right_click)
+        self.peaklist.Bind(wx.EVT_LEFT_DCLICK, self.on_double_click_on_item)
+
+    def on_double_click_on_item(self, evt):
+        """Create annotation for activated peak."""
+
+        if self.peaklist.item_id != -1:
+            if not self.item_editor:
+                self.on_open_editor(evt=None)
+            else:
+                self.item_editor.on_update_gui(self.on_get_item_information(self.peaklist.item_id))
+
+    def on_open_editor(self, evt):
+        from gui_elements.panel_modify_ion_settings import PanelModifyIonSettings
+
+        if self.peaklist.item_id is None or self.peaklist.item_id < 0:
+            raise MessageError("Error", "Please select an item in the table")
+
+        information = self.on_get_item_information(self.peaklist.item_id)
+
+        self.item_editor = PanelModifyIonSettings(self, self.presenter, self.config, **information)
+        self.item_editor.Centre()
+        self.item_editor.Show()
 
     def on_action_tools(self, evt):
 
@@ -418,7 +462,7 @@ class PanelOverlayViewer(MiniFrame):
             raise MessageError(
                 "Clipboard is empty",
                 "There are no items in the clipboard."
-                + " Please plot something first before adding it to the document",
+                +" Please plot something first before adding it to the document",
             )
         # get document
         document = self.data_handling._get_document_of_type("Type: Comparison")
@@ -456,17 +500,16 @@ class PanelOverlayViewer(MiniFrame):
         item_list = self.get_selected_items()
 
         editor_type = self.dataset_type_choice.GetStringSelection()
-        method_2D = self.overlay_heatmap_method_choice.GetStringSelection()
-        method_1D = self.overlay_spectrum_method_choice.GetStringSelection()
+        method = self.overlay_method_choice.GetStringSelection()
 
         if editor_type == "Chromatograms":
-            self.on_overlay_chromatogram(item_list, method_1D)
+            self.on_overlay_chromatogram(item_list, method)
         elif editor_type == "Mobilograms":
-            self.on_overlay_mobilogram(item_list, method_1D)
+            self.on_overlay_mobilogram(item_list, method)
         elif editor_type == "Heatmaps":
-            self.on_overlay_heatmap(item_list, method_2D)
+            self.on_overlay_heatmap(item_list, method)
         elif editor_type == "Mass spectra":
-            self.on_overlay_mass_spectra(item_list, method_1D)
+            self.on_overlay_mass_spectra(item_list, method)
         else:
             logger.error("Method not implemented yet")
 
@@ -640,14 +683,6 @@ class PanelOverlayViewer(MiniFrame):
         }
         dataset_type = editor_dict[self.dataset_type_choice.GetStringSelection()]
 
-        #         # check what was changed
-        #         if dataset_type == self.dataset_type:
-        #             return
-        #
-        #         if dataset_type == self.dataset_type and dataset_type in ["heatmap", "chromatogram", "mobilogram"]:
-        #             return
-        #         self.dataset_type = dataset_type
-
         item_list = self.data_handling.generate_item_list(dataset_type)
 
         self.peaklist.DeleteAllItems()
@@ -678,6 +713,7 @@ class PanelOverlayViewer(MiniFrame):
             self.peaklist.SetItemTextColour(item_count, determineFontColor(color, return_rgb=True))
 
         self.on_toggle_table_columns(dataset_type)
+        self.on_populate_overlay_methods(dataset_type)
 
         if evt is not None:
             evt.Skip()
@@ -720,6 +756,28 @@ class PanelOverlayViewer(MiniFrame):
                 width = 0
             self.peaklist.SetColumnWidth(column_id, width)
 
+    def on_populate_overlay_methods(self, data_type):
+        """Re-populate method selection"""
+        # get current choice
+        current_choice = self.overlay_method_choice.GetStringSelection()
+
+        # clear choices
+        self.overlay_method_choice.Clear()
+
+        choices = self.overlay_methods_2D
+        choice = self.config.overlayMethod
+        if data_type in ["mass_spectra", "chromatogram", "mobilogram"]:
+            choices = self.overlay_methods_1D
+            choice = "Overlay"
+
+        # in case current method is in list of choices
+        if current_choice in choices:
+            choice = current_choice
+
+        # repopulate and set selection
+        self.overlay_method_choice.SetItems(choices)
+        self.overlay_method_choice.SetStringSelection(choice)
+
     def get_selected_items(self):
         item_count = self.peaklist.GetItemCount()
 
@@ -737,5 +795,8 @@ class PanelOverlayViewer(MiniFrame):
 
         # add additional data
         information["color_255to1"] = convertRGB255to1(information["color"], decimals=3)
+        information["item_name"] = "{}::{}::{}".format(
+            information["dataset_name"], information["dataset_type"], information["document"]
+        )
 
         return information

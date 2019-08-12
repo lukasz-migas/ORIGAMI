@@ -6,7 +6,6 @@ import numpy as np
 import processing.activation as pr_activation
 import processing.heatmap as pr_heatmap
 import processing.spectra as pr_spectra
-import wx
 from numpy.ma.core import masked_array
 from utils.color import combine_rgb
 from utils.color import convertRGB255to1
@@ -604,7 +603,7 @@ class data_visualisation:
     #             if not self.peaklist.IsChecked(index=row):
     #                 continue
     #
-    #             itemInfo = self.OnGetItemInformation(row)
+    #             itemInfo = self.on_get_item_information(row)
     #             try:
     #                 ion_title = itemInfo["document"]
     #                 document = self.presenter.documentsDict[ion_title]

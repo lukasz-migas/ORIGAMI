@@ -3,15 +3,11 @@
 import logging
 import re
 from ast import literal_eval
-from os.path import split
 
 import wx
-from document import document as documents
 from gui_elements.dialog_ask import DialogAsk
 from gui_elements.dialog_color_picker import DialogColorPicker
-from gui_elements.dialog_select_document import DialogSelectDocument
 from gui_elements.misc_dialogs import DialogBox
-from gui_elements.panel_modifyTextSettings import panelModifyTextSettings
 from ids import ID_addNewOverlayDoc
 from ids import ID_ionPanel_edit_all
 from ids import ID_load_multiple_text_2D
@@ -62,12 +58,13 @@ from utils.color import determineFontColor
 from utils.color import randomColorGenerator
 from utils.color import roundRGB
 from utils.random import get_random_int
-from utils.time import getTime
 
 logger = logging.getLogger("origami")
 
 
 class PanelTextlist(wx.Panel):
+    keyword_alias = {"cmap": "colormap"}
+
     def __init__(self, parent, config, icons, presenter):
         wx.Panel.__init__(
             self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(300, -1), style=wx.TAB_TRAVERSAL
@@ -84,8 +81,8 @@ class PanelTextlist(wx.Panel):
 
         self._textPanel_peaklist = {
             0: {"name": "", "tag": "check", "type": "bool"},
-            1: {"name": "min CE", "tag": "start", "type": "float"},
-            2: {"name": "max CE", "tag": "end", "type": "float"},
+            1: {"name": "min (x)", "tag": "start", "type": "float"},
+            2: {"name": "max (x)", "tag": "end", "type": "float"},
             3: {"name": "z", "tag": "charge", "type": "int"},
             4: {"name": "color", "tag": "color", "type": "color"},
             5: {"name": "colormap", "tag": "colormap", "type": "str"},
@@ -93,7 +90,7 @@ class PanelTextlist(wx.Panel):
             7: {"name": "mask", "tag": "mask", "type": "float"},
             8: {"name": "label", "tag": "label", "type": "str"},
             9: {"name": "shape", "tag": "shape", "type": "str"},
-            10: {"name": "file", "tag": "document", "type": "str"},
+            10: {"name": "document", "tag": "document", "type": "str"},
         }
 
         self.item_editor = None
@@ -166,7 +163,7 @@ class PanelTextlist(wx.Panel):
             if not self.item_editor:
                 self.on_open_editor(evt=None)
             else:
-                self.item_editor.onUpdateGUI(self.OnGetItemInformation(self.peaklist.item_id))
+                self.item_editor.onUpdateGUI(self.on_get_item_information(self.peaklist.item_id))
 
     def on_add_blank_document_overlay(self, evt):
         self.presenter.onAddBlankDocument(evt=None, document_type="overlay")
@@ -596,7 +593,7 @@ class PanelTextlist(wx.Panel):
         # generate list of document_title and dataset_name
         process_list = []
         for item_id in range(item_count):
-            information = self.OnGetItemInformation(item_id)
+            information = self.on_get_item_information(item_id)
             if information["select"]:
                 for dataset_type in all_eic_datasets:
                     document_title = information["document"]
@@ -681,7 +678,7 @@ class PanelTextlist(wx.Panel):
 
                 # update document
                 try:
-                    self.onUpdateDocument(evt=None)
+                    self.on_update_document(evt=None)
                 except TypeError:
                     print("Please select item")
 
@@ -711,7 +708,7 @@ class PanelTextlist(wx.Panel):
                 self.peaklist.SetItemTextColour(row, determineFontColor(convertRGB1to255(color), return_rgb=True))
                 check_count += 1
 
-            self.onUpdateDocument(evt=None)
+            self.on_update_document(evt=None)
 
     def on_update_peaklist_table(self, evt):
         evtID = evt.GetId()
@@ -809,7 +806,7 @@ class PanelTextlist(wx.Panel):
 
         for row in range(rows):
             if self.peaklist.IsChecked(index=row):
-                itemInfo = self.OnGetItemInformation(row)
+                itemInfo = self.on_get_item_information(row)
                 document = self.data_handling._on_get_document(itemInfo["document"])
 
                 if not ask_kwargs["keyword"] in ["min_threshold", "max_threshold"]:
@@ -834,9 +831,7 @@ class PanelTextlist(wx.Panel):
         self.peaklist.CheckItem(self.peaklist.item_id, check=check)
 
     def on_plot(self, evt, itemID=None):
-        """
-        This function extracts 2D array and plots it in 2D/3D
-        """
+        """Plot data"""
 
         if itemID is not None:
             self.peaklist.item_id = itemID
@@ -844,7 +839,7 @@ class PanelTextlist(wx.Panel):
         if self.peaklist.item_id is None:
             return
 
-        itemInfo = self.OnGetItemInformation(self.peaklist.item_id)
+        itemInfo = self.on_get_item_information(self.peaklist.item_id)
 
         try:
             selectedItem = itemInfo["document"]
@@ -906,7 +901,7 @@ class PanelTextlist(wx.Panel):
     def onCheckDuplicates(self, fileName):
         currentItems = self.peaklist.GetItemCount() - 1
         while currentItems >= 0:
-            itemInfo = self.OnGetItemInformation(currentItems)
+            itemInfo = self.on_get_item_information(currentItems)
             if itemInfo["document"] == fileName:
                 logger.info("File {} already in the table - skipping".format(itemInfo["document"]))
                 currentItems = 0
@@ -987,7 +982,7 @@ class PanelTextlist(wx.Panel):
         if evt is not None:
             evt.Skip()
 
-    def OnGetItemInformation(self, itemID, return_list=False):
+    def on_get_item_information(self, itemID, return_list=False):
 
         information = self.peaklist.on_get_item_information(itemID)
 
@@ -1020,7 +1015,7 @@ class PanelTextlist(wx.Panel):
         return information
 
     def on_get_value(self, value_type="color"):
-        information = self.OnGetItemInformation(self.peaklist.item_id)
+        information = self.on_get_item_information(self.peaklist.item_id)
 
         if value_type == "minCE":
             return information["minCE"]
@@ -1043,6 +1038,17 @@ class PanelTextlist(wx.Panel):
         elif value_type == "document":
             return information["document"]
 
+    def on_update_value_in_peaklist(self, item_id, value_type, value):
+        if value_type == "color":
+            color_255, color_1, font_color = value
+            self.peaklist.SetItemBackgroundColour(item_id, color_255)
+            self.peaklist.SetStringItem(item_id, self.config.textlistColNames["color"], str(color_1))
+            self.peaklist.SetItemTextColour(item_id, font_color)
+        elif value_type == "color_text":
+            self.peaklist.SetItemBackgroundColour(item_id, value)
+            self.peaklist.SetStringItem(item_id, self.config.textlistColNames["color"], str(convertRGB255to1(value)))
+            self.peaklist.SetItemTextColour(item_id, determineFontColor(value, return_rgb=True))
+
     def on_get_color(self, evt):
 
         dlg = DialogColorPicker(self, self.config.customColors)
@@ -1053,9 +1059,16 @@ class PanelTextlist(wx.Panel):
             return color_1
 
     def on_assign_color(self, evt, itemID=None, give_value=False):
-        """
-        @param itemID (int): value for item in table
-        @param give_value (bool): should/not return color
+        """Assign new color
+
+        Parameters
+        ----------
+        evt : wxPython event
+            unused
+        itemID : int
+            value for item in table
+        give_value : bool
+            should/not return color
         """
 
         if itemID is not None:
@@ -1064,53 +1077,31 @@ class PanelTextlist(wx.Panel):
         if self.peaklist.item_id is None:
             return
 
-        # Restore custom colors
-        custom = wx.ColourData()
-        for key in self.config.customColors:
-            custom.SetCustomColour(key, self.config.customColors[key])
-        dlg = wx.ColourDialog(self, custom)
-        dlg.Centre()
-        dlg.GetColourData().SetChooseFull(True)
-
-        # Show dialog and get new colour
-        if dlg.ShowModal() == wx.ID_OK:
-            data = dlg.GetColourData()
-            newColour = list(data.GetColour().Get())
-            dlg.Destroy()
-            # Assign color
-            self.peaklist.SetItem(
-                self.peaklist.item_id, self.config.textlistColNames["color"], str(convertRGB255to1(newColour))
-            )
-            self.peaklist.SetItemBackgroundColour(self.peaklist.item_id, newColour)
-            self.peaklist.SetItemTextColour(self.peaklist.item_id, determineFontColor(newColour, return_rgb=True))
-            # Retrieve custom colors
-            for i in range(len(self.config.customColors)):
-                self.config.customColors[i] = data.GetCustomColour(i)
+        dlg = DialogColorPicker(self, self.config.customColors)
+        if dlg.ShowModal() == "ok":
+            color_255, color_1, font_color = dlg.GetChosenColour()
+            self.config.customColors = dlg.GetCustomColours()
+            self.on_update_value_in_peaklist(itemID, "color", [color_255, color_1, font_color])
 
             # update document
-            self.onUpdateDocument(evt=None)
+            self.on_update_document(evt=None)
 
             if give_value:
-                return newColour
+                return color_255
         else:
             try:
-                newColour = convertRGB1to255(literal_eval(self.on_get_value(value_type="color")), 3)
+                color_255 = convertRGB1to255(literal_eval(self.on_get_value(value_type="color")), 3)
             except Exception:
-                newColour = self.config.customColors[get_random_int(0, 15)]
-            # Assign color
-            self.peaklist.SetItem(
-                self.peaklist.item_id, self.config.textlistColNames["color"], str(convertRGB255to1(newColour))
-            )
-            self.peaklist.SetItemBackgroundColour(self.peaklist.item_id, newColour)
-            self.peaklist.SetItemTextColour(self.peaklist.item_id, determineFontColor(newColour, return_rgb=True))
+                color_255 = self.config.customColors[get_random_int(0, 15)]
+            self.on_update_value_in_peaklist(self.peaklist.item_id, "color", [color_255, color_1, font_color])
             if give_value:
-                return newColour
+                return color_255
 
-    def onUpdateDocument(self, evt, itemInfo=None):
+    def on_update_document(self, evt, itemInfo=None):
 
         # get item info
         if itemInfo is None:
-            itemInfo = self.OnGetItemInformation(self.peaklist.item_id)
+            itemInfo = self.on_get_item_information(self.peaklist.item_id)
 
         keywords = ["color", "colormap", "alpha", "mask", "label", "min_threshold", "max_threshold", "charge", "cmap"]
 
@@ -1118,22 +1109,17 @@ class PanelTextlist(wx.Panel):
         try:
             document = self.presenter.documentsDict[itemInfo["document"]]
             for keyword in keywords:
-                if keyword == "cmap":
-                    keyword_name = "colormap"
-                else:
-                    keyword_name = keyword
+                keyword_name = self.keyword_alias.get(keyword, keyword)
                 if document.got2DIMS:
                     document.IMS2D[keyword] = itemInfo[keyword_name]
                 if document.got2Dprocess:
                     document.IMS2Dprocess[keyword] = itemInfo[keyword_name]
-        except Exception:
+        except Exception as err:
+            logger.error(err)
             document_title, ion_title = re.split(": ", itemInfo["document"])
             document = self.presenter.documentsDict[document_title]
             for keyword in keywords:
-                if keyword == "cmap":
-                    keyword_name = "colormap"
-                else:
-                    keyword_name = keyword
+                keyword_name = self.keyword_alias.get(keyword, keyword)
                 if ion_title in document.IMS2DcompData:
                     document.IMS2DcompData[ion_title][keyword] = itemInfo[keyword_name]
                 else:
@@ -1143,6 +1129,7 @@ class PanelTextlist(wx.Panel):
         self.data_handling.on_update_document(document, "no_refresh")
 
     def on_open_editor(self, evt):
+        from gui_elements.panel_modify_ion_settings import PanelModifyIonSettings
 
         if evt is None:
             evtID = ID_textPanel_editItem
@@ -1155,15 +1142,15 @@ class PanelTextlist(wx.Panel):
                 print("Please select item in the table first.")
                 return
 
-            dlg_kwargs = self.OnGetItemInformation(self.peaklist.item_id)
+            dlg_kwargs = self.on_get_item_information(self.peaklist.item_id)
 
-            self.item_editor = panelModifyTextSettings(self, self.presenter, self.config, **dlg_kwargs)
+            self.item_editor = PanelModifyIonSettings(self, self.presenter, self.config, **dlg_kwargs)
             self.item_editor.Centre()
             self.item_editor.Show()
         elif evtID == ID_textPanel_edit_selected:
             while rows >= 0:
                 if self.peaklist.IsChecked(rows):
-                    information = self.OnGetItemInformation(rows)
+                    information = self.on_get_item_information(rows)
 
                     dlg_kwargs = {
                         "select": self.peaklist.IsChecked(rows),
@@ -1175,12 +1162,12 @@ class PanelTextlist(wx.Panel):
                         "id": rows,
                     }
 
-                    self.item_editor = panelModifyTextSettings(self, self.presenter, self.config, **dlg_kwargs)
+                    self.item_editor = PanelModifyIonSettings(self, self.presenter, self.config, **dlg_kwargs)
                     self.item_editor.Show()
                 rows -= 1
         elif evtID == ID_ionPanel_edit_all:
             for row in range(rows):
-                information = self.OnGetItemInformation(row)
+                information = self.on_get_item_information(row)
 
                 dlg_kwargs = {
                     "select": self.peaklist.IsChecked(row),
@@ -1192,7 +1179,7 @@ class PanelTextlist(wx.Panel):
                     "id": row,
                 }
 
-                self.item_editor = panelModifyTextSettings(self, self.presenter, self.config, **dlg_kwargs)
+                self.item_editor = PanelModifyIonSettings(self, self.presenter, self.config, **dlg_kwargs)
                 self.item_editor.Show()
 
     def on_remove_deleted_item(self, document):
@@ -1208,7 +1195,7 @@ class PanelTextlist(wx.Panel):
         document_list = document
 
         while row >= 0:
-            info = self.OnGetItemInformation(itemID=row)
+            info = self.on_get_item_information(itemID=row)
             for document_title in document_list:
                 if info["document"] == document_title or document_title in info["document"]:
                     self.peaklist.DeleteItem(row)
@@ -1271,7 +1258,7 @@ class PanelTextlist(wx.Panel):
 
     def on_delete_item(self, evt):
 
-        itemInfo = self.OnGetItemInformation(itemID=self.peaklist.item_id)
+        itemInfo = self.on_get_item_information(itemID=self.peaklist.item_id)
         msg = "Are you sure you would like to delete {}?\nThis action cannot be undone.".format(itemInfo["document"])
         dlg = DialogBox(type="Question", exceptionMsg=msg)
         if dlg == wx.ID_NO:
@@ -1286,7 +1273,7 @@ class PanelTextlist(wx.Panel):
 
         while itemID >= 0:
             if self.peaklist.IsChecked(index=itemID):
-                itemInfo = self.OnGetItemInformation(itemID=itemID)
+                itemInfo = self.on_get_item_information(itemID=itemID)
                 msg = "Are you sure you would like to delete {}?\nThis action cannot be undone.".format(
                     itemInfo["document"]
                 )
@@ -1317,6 +1304,6 @@ class PanelTextlist(wx.Panel):
 
         itemID = self.peaklist.GetItemCount() - 1
         while itemID >= 0:
-            itemInfo = self.OnGetItemInformation(itemID=itemID)
+            itemInfo = self.on_get_item_information(itemID=itemID)
             self.view.panelDocuments.documents.on_delete_data__document(itemInfo["document"], ask_permission=False)
             itemID -= 1

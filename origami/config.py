@@ -592,6 +592,23 @@ class OrigamiConfig:
             "filename": 10,
         }
 
+        self.overlay_list_col_names = {
+            "check": 0,
+            "dataset_name": 1,
+            "dataset_type": 2,
+            "document": 3,
+            "shape": 4,
+            "color": 5,
+            "colormap": 6,
+            "alpha": 7,
+            "mask": 8,
+            "label": 9,
+            "min_threshold": 10,
+            "max_threshold": 11,
+            "processed": 12,
+            "order": 13,
+        }
+
         self._textlistSettings = [
             {"name": "", "order": 0, "width": 25, "show": True},
             {"name": "min CE", "order": 1, "width": 65, "show": True},

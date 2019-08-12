@@ -178,7 +178,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
 
         return allowed_window
 
-    def onUpdateDocument(self):
+    def on_update_document(self):
         self.parent.onUpdateItemParameters(self.document_title, self.item_type, self.item_title, self.kwargs)
 
     def make_gui(self):
@@ -2902,7 +2902,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         # join together
         self.kwargs["tools"]["on_tools"] = ",".join(on_tools)
 
-        self.onUpdateDocument()
+        self.on_update_document()
 
     def onCheck_tools(self, evt):
         itemList = [
@@ -2957,7 +2957,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         self.kwargs["widgets"]["scatter_transparency"] = self.widgets_scatter_transparency.GetValue()
         self.kwargs["widgets"]["processing_normalization"] = self.widgets_processing_normalization.GetValue()
 
-        self.onUpdateDocument()
+        self.on_update_document()
 
     def onCheck_widgets(self, evt):
         itemList = [
@@ -3017,7 +3017,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
             self.kwargs["colorbar_properties"]["width"] = "auto"
             self.kwargs["colorbar_properties"]["label_align"] = "center"
 
-        self.onUpdateDocument()
+        self.on_update_document()
 
     def on_apply_legend(self, evt):
         if self._loading_:
@@ -3031,7 +3031,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         self.kwargs["legend_properties"]["legend_background_alpha"] = self.legend_transparency.GetValue()
         self.kwargs["legend_properties"]["legend_mute_alpha"] = self.legend_mute_transparency.GetValue()
 
-        self.onUpdateDocument()
+        self.on_update_document()
 
     def on_apply_annotation(self, evt):
         if self._loading_:
@@ -3047,7 +3047,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         self.kwargs["annotation_properties"]["label_fontweight"] = self.annotation_fontWeight_value.GetValue()
         self.kwargs["annotation_properties"]["patch_transparency"] = self.annotation_patch_transparency_value.GetValue()
 
-        self.onUpdateDocument()
+        self.on_update_document()
 
     def on_apply_general(self, evt):
         if self._loading_:
@@ -3121,7 +3121,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
 
         self.kwargs["frame_properties"]["gridline"] = self.frame_gridline_check.GetValue()
 
-        self.onUpdateDocument()
+        self.on_update_document()
 
     def on_apply_color(self, evt):
         source = evt.GetEventObject().GetName()
@@ -3175,7 +3175,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
                 self.kwargs["plot_properties"]["tandem_line_color_unlabelled"] = color_1
 
             # update document
-            self.onUpdateDocument()
+            self.on_update_document()
         else:
             return
 
@@ -3226,7 +3226,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         self.kwargs["overlay_properties"]["rmsf_line_shade_under"] = self.rmsf_line_shade_under.GetValue()
         self.kwargs["overlay_properties"]["rmsf_shade_transparency"] = self.rmsf_shade_transparency_value.GetValue()
 
-        self.onUpdateDocument()
+        self.on_update_document()
 
     def on_apply_plots(self, evt):
         if self._loading_:
@@ -3272,7 +3272,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         # tandem
         self.kwargs["plot_properties"]["tandem_line_width"] = self.plot_tandem_line_width_value.GetValue()
 
-        self.onUpdateDocument()
+        self.on_update_document()
 
     def on_apply_preprocess(self, evt):
         if self._loading_:
@@ -3291,7 +3291,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         ] = self.preprocess_subsample_frequency_value.GetValue()
         self.kwargs["preprocessing_properties"]["subsample_limit"] = self.preprocess_subsample_limit_value.GetValue()
 
-        self.onUpdateDocument()
+        self.on_update_document()
 
     def onEnableDisable_widgets(self, evt):
         itemList = [

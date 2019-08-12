@@ -540,7 +540,7 @@ class PanelMultiFile(wx.Panel):
             self.addToDocument_check.Check(self.addToDocument)
 
     def _updateTable(self):
-        self.onUpdateDocument(itemID=self.editingItem)
+        self.on_update_document(itemID=self.editingItem)
 
     def on_change_item_color_batch(self, evt):
         # get number of checked items
@@ -570,7 +570,7 @@ class PanelMultiFile(wx.Panel):
         for row in range(self.peaklist.GetItemCount()):
             if not self.peaklist.IsChecked(index=row):
                 continue
-            itemInfo = self.OnGetItemInformation(itemID=row)
+            itemInfo = self.on_get_item_information(itemID=row)
 
             # get mass spectrum information
             document = self.presenter.documentsDict[itemInfo["document"]]
@@ -585,7 +585,7 @@ class PanelMultiFile(wx.Panel):
 
     def onRenameItem(self, old_name, new_name, item_type="Document"):
         for row in range(self.peaklist.GetItemCount()):
-            itemInfo = self.OnGetItemInformation(itemID=row)
+            itemInfo = self.on_get_item_information(itemID=row)
             if item_type == "document":
                 if itemInfo["document"] == old_name:
                     self.peaklist.SetStringItem(
@@ -640,7 +640,7 @@ class PanelMultiFile(wx.Panel):
         Function to plot selected MS in the mainWindow
         """
 
-        itemInfo = self.OnGetItemInformation(itemID=self.peaklist.item_id)
+        itemInfo = self.on_get_item_information(itemID=self.peaklist.item_id)
         document = self.presenter.documentsDict[itemInfo["document"]]
         if document is None:
             return
@@ -679,7 +679,7 @@ class PanelMultiFile(wx.Panel):
         """
         Function to plot selected 1DT in the mainWindow
         """
-        itemInfo = self.OnGetItemInformation(itemID=self.peaklist.item_id)
+        itemInfo = self.on_get_item_information(itemID=self.peaklist.item_id)
         document = self.presenter.documentsDict[itemInfo["document"]]
 
         if document is None:
@@ -695,7 +695,7 @@ class PanelMultiFile(wx.Panel):
             DialogBox(exceptionTitle="Error", exceptionMsg="No mobility data present for selected item", type="Error")
             return
 
-    def OnGetItemInformation(self, itemID, return_list=False):
+    def on_get_item_information(self, itemID, return_list=False):
         information = self.peaklist.on_get_item_information(itemID)
         return information
 
@@ -720,7 +720,7 @@ class PanelMultiFile(wx.Panel):
 
             return convertRGB255to1(newColour)
 
-    def onUpdateDocument(self, itemInfo=None, itemID=None):
+    def on_update_document(self, itemInfo=None, itemID=None):
         """
         evt : wxPython event
             unused
@@ -733,9 +733,9 @@ class PanelMultiFile(wx.Panel):
         # get item info
         if itemInfo is None:
             if itemID is None:
-                itemInfo = self.OnGetItemInformation(self.peaklist.item_id)
+                itemInfo = self.on_get_item_information(self.peaklist.item_id)
             else:
-                itemInfo = self.OnGetItemInformation(itemID)
+                itemInfo = self.on_get_item_information(itemID)
 
         # get item
         document = self.data_handling._on_get_document(itemInfo["document"])
@@ -756,7 +756,7 @@ class PanelMultiFile(wx.Panel):
         for row in range(self.peaklist.GetItemCount()):
             if not self.peaklist.IsChecked(index=row):
                 continue
-            itemInfo = self.OnGetItemInformation(itemID=row)
+            itemInfo = self.on_get_item_information(itemID=row)
             names.append(itemInfo["label"])
             # get mass spectrum information
             document = self.presenter.documentsDict[itemInfo["document"]]
@@ -895,7 +895,7 @@ class PanelMultiFile(wx.Panel):
         count = self.peaklist.GetItemCount()
         color_list = []
         for row in range(count):
-            itemInfo = self.OnGetItemInformation(itemID=row)
+            itemInfo = self.on_get_item_information(itemID=row)
             if itemInfo["document"] == document_name:
                 color_list.append(self.peaklist.GetItemBackgroundColour(item=row))
 
@@ -953,7 +953,7 @@ class PanelMultiFile(wx.Panel):
     def _check_item_in_table(self, add_dict):
         count = self.peaklist.GetItemCount()
         for row in range(count):
-            item_info = self.OnGetItemInformation(itemID=row)
+            item_info = self.on_get_item_information(itemID=row)
             if add_dict["filename"] == item_info["filename"] and add_dict["document"] == item_info["document"]:
                 return True
 
@@ -963,7 +963,7 @@ class PanelMultiFile(wx.Panel):
 
         rows = self.peaklist.GetItemCount() - 1
         while rows >= 0:
-            itemInfo = self.OnGetItemInformation(rows)
+            itemInfo = self.on_get_item_information(rows)
 
             if itemInfo["filename"] == delete_item_name and itemInfo["document"] == delete_document_title:
                 self.peaklist.DeleteItem(rows)
@@ -975,7 +975,7 @@ class PanelMultiFile(wx.Panel):
 
     def on_delete_item(self, evt):
 
-        itemInfo = self.OnGetItemInformation(itemID=self.peaklist.item_id)
+        itemInfo = self.on_get_item_information(itemID=self.peaklist.item_id)
         dlg = DialogBox(
             type="Question",
             exceptionMsg="Are you sure you would like to delete {} from {}?\nThis action cannot be undone.".format(
@@ -997,7 +997,7 @@ class PanelMultiFile(wx.Panel):
         itemID = self.peaklist.GetItemCount() - 1
         while itemID >= 0:
             if self.peaklist.IsChecked(index=itemID):
-                itemInfo = self.OnGetItemInformation(itemID=itemID)
+                itemInfo = self.on_get_item_information(itemID=itemID)
                 msg = "Are you sure you would like to delete {} from {}?\nThis action cannot be undone.".format(
                     itemInfo["filename"], itemInfo["document"]
                 )
@@ -1022,7 +1022,7 @@ class PanelMultiFile(wx.Panel):
 
         item_count = self.peaklist.GetItemCount() - 1
         while item_count >= 0:
-            itemInfo = self.OnGetItemInformation(itemID=item_count)
+            itemInfo = self.on_get_item_information(itemID=item_count)
             document = self.data_handling._on_get_document(itemInfo["document"])
             __, __ = self.view.panelDocuments.documents.on_delete_data__mass_spectra(
                 document, itemInfo["document"], delete_type="spectrum.one", spectrum_name=itemInfo["filename"]
@@ -1032,7 +1032,7 @@ class PanelMultiFile(wx.Panel):
     def on_remove_deleted_item(self, document):
         row = self.peaklist.GetItemCount() - 1
         while row >= 0:
-            info = self.OnGetItemInformation(itemID=row)
+            info = self.on_get_item_information(itemID=row)
             if info["document"] == document:
                 self.peaklist.DeleteItem(row)
                 row -= 1
@@ -1040,7 +1040,7 @@ class PanelMultiFile(wx.Panel):
                 row -= 1
 
     def on_open_editor(self, evt):
-        information = self.OnGetItemInformation(self.peaklist.item_id)
+        information = self.on_get_item_information(self.peaklist.item_id)
 
         dlg = panelModifyManualFiles(self, self.presenter, self.config, **information)
         dlg.Show()

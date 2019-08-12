@@ -136,7 +136,7 @@ class panelModifyManualFiles(MiniFrame):
         self.itemInfo["energy"] = energy_value
         self.itemInfo["label"] = label_value
 
-        self.parent.onUpdateDocument(itemInfo=self.itemInfo)
+        self.parent.on_update_document(itemInfo=self.itemInfo)
 
     def on_get_next(self, evt):
         self.on_check_id()
@@ -147,7 +147,7 @@ class panelModifyManualFiles(MiniFrame):
             new_id = self.itemInfo["id"] + 1
 
         # get new information
-        self.itemInfo = self.parent.OnGetItemInformation(new_id)
+        self.itemInfo = self.parent.on_get_item_information(new_id)
         # update table
         self.on_setup_gui()
         # update title
@@ -162,7 +162,7 @@ class panelModifyManualFiles(MiniFrame):
             new_id = self.itemInfo["id"] - 1
 
         # get new information
-        self.itemInfo = self.parent.OnGetItemInformation(new_id)
+        self.itemInfo = self.parent.on_get_item_information(new_id)
         # update table
         self.on_setup_gui()
         # update title
@@ -192,14 +192,14 @@ class panelModifyManualFiles(MiniFrame):
             self.parent.on_update_value_in_peaklist(self.itemInfo["id"], "color_text", color)
 
     def on_check_id(self):
-        information = self.parent.OnGetItemInformation(self.itemInfo["id"])
+        information = self.parent.on_get_item_information(self.itemInfo["id"])
 
         if information["document"] == self.itemInfo["document"]:
             return
         else:
             count = self.parent.peaklist.GetItemCount()
             for row in range(count):
-                information = self.parent.OnGetItemInformation(row)
+                information = self.parent.on_get_item_information(row)
                 if information["document"] == self.itemInfo["document"]:
                     if information["id"] == self.itemInfo["id"]:
                         return

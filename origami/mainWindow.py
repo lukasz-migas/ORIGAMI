@@ -97,8 +97,6 @@ from ids import ID_openConfig
 from ids import ID_openDocument
 from ids import ID_openIRRawFile
 from ids import ID_openLinearDTRawFile
-from ids import ID_overlayMZfromList
-from ids import ID_overlayTextFromList
 from ids import ID_plots_showCursorGrid
 from ids import ID_process2DDocument
 from ids import ID_quit

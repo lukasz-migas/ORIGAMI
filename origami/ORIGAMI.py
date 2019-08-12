@@ -4,7 +4,6 @@
 import gc
 import logging
 import os
-import re
 import sys
 import threading
 import warnings
@@ -1409,7 +1408,7 @@ class ORIGAMI(object):
         tempList = self.view.panelMultipleText.peaklist
         try:
             for row in range(tempList.GetItemCount()):
-                itemInfo = self.view.panelMultipleText.OnGetItemInformation(itemID=row)
+                itemInfo = self.view.panelMultipleText.on_get_item_information(itemID=row)
                 if itemInfo["select"]:
                     self.docs = self.documentsDict[itemInfo["document"]]
                     imsData2D = self.data_processing.on_process_2D(

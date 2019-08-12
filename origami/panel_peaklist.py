@@ -243,11 +243,11 @@ class PanelPeaklist(wx.Panel):
             if not self.item_editor:
                 self.on_open_editor(evt=None)
             else:
-                self.item_editor.on_update_gui(self.OnGetItemInformation(self.peaklist.item_id))
+                self.item_editor.on_update_gui(self.on_get_item_information(self.peaklist.item_id))
 
     def onRenameItem(self, old_name, new_name, item_type="Document"):
         for row in range(self.peaklist.GetItemCount()):
-            itemInfo = self.OnGetItemInformation(itemID=row)
+            itemInfo = self.on_get_item_information(itemID=row)
             if item_type == "document":
                 if itemInfo["document"] == old_name:
                     self.peaklist.SetStringItem(row, self.config.peaklistColNames["filename"], new_name)
@@ -770,7 +770,7 @@ class PanelPeaklist(wx.Panel):
 
         for row in range(rows):
             if self.peaklist.IsChecked(index=row):
-                itemInfo = self.OnGetItemInformation(row)
+                itemInfo = self.on_get_item_information(row)
                 filename = itemInfo["document"]
                 selectedText = itemInfo["ionName"]
                 document = self.presenter.documentsDict[filename]
@@ -815,7 +815,7 @@ class PanelPeaklist(wx.Panel):
         # generate list of document_title and dataset_name
         process_list = []
         for item_id in range(item_count):
-            information = self.OnGetItemInformation(item_id)
+            information = self.on_get_item_information(item_id)
             if information["select"]:
                 for dataset_type in all_eic_datasets:
                     document_title = information["document"]
@@ -842,14 +842,14 @@ class PanelPeaklist(wx.Panel):
                 process_all=True, process_list=True, data=process_list, disable_plot=True, disable_process=False
             )
 
-    def on_plot(self, evt):
-        """
-        This function extracts 2D array and plots it in 2D/3D
-        """
+    def on_plot(self, evt, itemID=None):
+        """Plot data"""
+        if itemID is not None:
+            self.peaklist.item_id = itemID
         if self.peaklist.item_id is None:
             return
 
-        itemInfo = self.OnGetItemInformation(self.peaklist.item_id)
+        itemInfo = self.on_get_item_information(self.peaklist.item_id)
         document_title = itemInfo["document"]
         rangeName = itemInfo["ionName"]
 
@@ -874,19 +874,27 @@ class PanelPeaklist(wx.Panel):
         else:
             return
 
-        if evt.GetId() == ID_ionPanel_show_mobiligram:
+        if data is None:
+            raise MessageError("No data", "Could not find data for this ion")
+
+        if evt is not None:
+            evtID = evt.GetId()
+        else:
+            evtID = evt
+
+        if evtID == ID_ionPanel_show_mobiligram:
             xvals = data[rangeName]["yvals"]  # normally this would be the y-axis
             yvals = data[rangeName]["yvals1D"]
             xlabels = data[rangeName]["ylabels"]  # normally this would be x-axis label
             self.view.panelPlots.on_plot_1D(xvals, yvals, xlabels, set_page=True)
 
-        elif evt.GetId() == ID_ionPanel_show_chromatogram:
+        elif evtID == ID_ionPanel_show_chromatogram:
             xvals = data[rangeName]["xvals"]
             yvals = data[rangeName]["yvalsRT"]
             xlabels = data[rangeName]["xlabels"]  # normally this would be x-axis label
             self.view.panelPlots.on_plot_RT(xvals, yvals, xlabels, set_page=True)
 
-        elif evt.GetId() == ID_ionPanel_show_zoom_in_MS:
+        elif evtID == ID_ionPanel_show_zoom_in_MS:
             mz_start, mz_end = get_ion_name_from_label(rangeName, as_num=True)
             mz_start = mz_start - self.config.zoomWindowX
             mz_end = mz_end + self.config.zoomWindowX
@@ -909,7 +917,7 @@ class PanelPeaklist(wx.Panel):
                 DialogBox(exceptionTitle="Missing data", exceptionMsg=msg, type="Error")
                 return
             # Process data
-            if evt.GetId() == ID_ionPanel_show_process_heatmap:
+            if evtID == ID_ionPanel_show_process_heatmap:
                 xvals, yvals, zvals = self.data_processing.on_process_2D(xvals, yvals, zvals, return_data=True)
             # Plot data
             self.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, cmap, override=True, set_page=True)
@@ -968,7 +976,7 @@ class PanelPeaklist(wx.Panel):
         data = []
         # Iterate over row and columns to get data
         for row in range(rows):
-            information = self.OnGetItemInformation(row)
+            information = self.on_get_item_information(row)
             ion_name = information["ion_name"]
             mz_start, mz_end = get_ion_name_from_label(ion_name, as_num=True)
             charge = information["charge"]
@@ -1006,11 +1014,11 @@ class PanelPeaklist(wx.Panel):
         item_count = self.peaklist.GetItemCount()
 
         for item_id in range(item_count):
-            information = self.OnGetItemInformation(item_id)
+            information = self.on_get_item_information(item_id)
             if ion_name == information["ionName"] and filename == information["document"]:
                 return item_id
 
-    def OnGetItemInformation(self, itemID, return_list=False):
+    def on_get_item_information(self, itemID, return_list=False):
         information = self.peaklist.on_get_item_information(itemID)
 
         # add additional data
@@ -1043,7 +1051,7 @@ class PanelPeaklist(wx.Panel):
         return information
 
     def on_get_value(self, value_type="color"):
-        information = self.OnGetItemInformation(self.peaklist.item_id)
+        information = self.on_get_item_information(self.peaklist.item_id)
 
         if value_type == "ion_name":
             return information["ion_name"]
@@ -1070,7 +1078,7 @@ class PanelPeaklist(wx.Panel):
         item_count = self.peaklist.GetItemCount()
 
         for item_id in range(item_count):
-            information = self.OnGetItemInformation(item_id)
+            information = self.on_get_item_information(item_id)
             if ion_name == information["ionName"]:
                 for keyword in kwargs:
                     self.on_update_value_in_peaklist(item_id, keyword, kwargs[keyword])
@@ -1116,19 +1124,22 @@ class PanelPeaklist(wx.Panel):
             print("Please select item in the table first.")
             return
 
-        information = self.OnGetItemInformation(self.peaklist.item_id)
+        information = self.on_get_item_information(self.peaklist.item_id)
 
         self.item_editor = PanelModifyIonSettings(self, self.presenter, self.config, **information)
         self.item_editor.Centre()
         self.item_editor.Show()
 
     def on_assign_color(self, evt, itemID=None, give_value=False):
-        """
-        evt: wxPython event
+        """Assign new color
+
+        Parameters
+        ----------
+        evt : wxPython event
             unused
-        itemID: int
+        itemID : int
             value for item in table
-        give_value: bool
+        give_value : bool
             should/not return color
         """
         if itemID is not None:
@@ -1147,7 +1158,7 @@ class PanelPeaklist(wx.Panel):
             self.on_update_value_in_peaklist(itemID, "color", [color_255, color_1, font_color])
 
             # update document
-            self.onUpdateDocument(evt=None)
+            self.on_update_document(evt=None)
 
             if give_value:
                 return color_255
@@ -1191,7 +1202,7 @@ class PanelPeaklist(wx.Panel):
 
                 # update document
                 try:
-                    self.onUpdateDocument(evt=None)
+                    self.on_update_document(evt=None)
                 except TypeError:
                     print("Please select item")
 
@@ -1222,16 +1233,16 @@ class PanelPeaklist(wx.Panel):
 
             # update document
             try:
-                self.onUpdateDocument(evt=None)
+                self.on_update_document(evt=None)
             except TypeError:
                 print("Please select an item")
 
-    def onUpdateDocument(self, evt, itemInfo=None):
+    def on_update_document(self, evt, itemInfo=None):
         """Update document data"""
 
         # get item info
         if itemInfo is None:
-            itemInfo = self.OnGetItemInformation(self.peaklist.item_id)
+            itemInfo = self.on_get_item_information(self.peaklist.item_id)
 
         # get item
         document = self.data_handling._on_get_document(itemInfo["document"])
@@ -1284,7 +1295,7 @@ class PanelPeaklist(wx.Panel):
         """
         row = self.peaklist.GetItemCount() - 1
         while row >= 0:
-            info = self.OnGetItemInformation(itemID=row)
+            info = self.on_get_item_information(itemID=row)
             if info["document"] == document:
                 self.peaklist.DeleteItem(row)
             row -= 1
@@ -1387,7 +1398,7 @@ class PanelPeaklist(wx.Panel):
     def on_delete_item(self, evt):
         """Delete one item from the file"""
 
-        itemInfo = self.OnGetItemInformation(itemID=self.peaklist.item_id)
+        itemInfo = self.on_get_item_information(itemID=self.peaklist.item_id)
         dlg = DialogBox(
             "Delete item from document",
             "Are you sure you would like to delete {} from {}?\nThis action cannot be undone.".format(
@@ -1411,7 +1422,7 @@ class PanelPeaklist(wx.Panel):
         itemID = self.peaklist.GetItemCount() - 1
         while itemID >= 0:
             if self.peaklist.IsChecked(index=itemID):
-                itemInfo = self.OnGetItemInformation(itemID=itemID)
+                itemInfo = self.on_get_item_information(itemID=itemID)
                 msg = "Are you sure you would like to delete {} from {}?\nThis action cannot be undone.".format(
                     itemInfo["ionName"], itemInfo["document"]
                 )
@@ -1437,7 +1448,7 @@ class PanelPeaklist(wx.Panel):
 
         itemID = self.peaklist.GetItemCount() - 1
         while itemID >= 0:
-            itemInfo = self.OnGetItemInformation(itemID=itemID)
+            itemInfo = self.on_get_item_information(itemID=itemID)
             document = self.data_handling._on_get_document(itemInfo["document"])
             __, __ = self.view.panelDocuments.documents.on_delete_data__heatmap(
                 document, itemInfo["document"], delete_type="heatmap.all.one", ion_name=itemInfo["ionName"]
@@ -1447,7 +1458,7 @@ class PanelPeaklist(wx.Panel):
     def delete_row_from_table(self, delete_item_name=None, delete_document_title=None):
         rows = self.peaklist.GetItemCount() - 1
         while rows >= 0:
-            itemInfo = self.OnGetItemInformation(rows)
+            itemInfo = self.on_get_item_information(rows)
 
             if itemInfo["ionName"] == delete_item_name and itemInfo["document"] == delete_document_title:
                 self.peaklist.DeleteItem(rows)
