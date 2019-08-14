@@ -6,6 +6,7 @@ import math
 import os
 import re
 import threading
+from multiprocessing.pool import ThreadPool
 from sys import platform
 
 import numpy as np
@@ -85,6 +86,9 @@ class data_handling:
         # add application defaults
         self.plot_page = None
 
+        self.thread_pool = ThreadPool(processes=1)
+        self.pool_data = None
+
         # Setup listeners
         pub.subscribe(self.extract_from_plot_1D, "extract_from_plot_1D")
         pub.subscribe(self.extract_from_plot_2D, "extract_from_plot_2D")
@@ -122,6 +126,8 @@ class data_handling:
             th = threading.Thread(target=self.on_open_document, args=args)
         elif action == "extract.data.user":
             th = threading.Thread(target=self.on_extract_data_from_user_input, args=args, **kwargs)
+        #             self.pool_data = self.thread_pool.apply_async(
+        #                 self.on_extract_data_from_user_input, args=args, kwds=kwargs)
         elif action == "export.config":
             th = threading.Thread(target=self.on_export_config, args=args)
         elif action == "import.config":
@@ -171,7 +177,11 @@ class data_handling:
             return None
 
         document_title = byte2str(document_title)
-        document = self.presenter.documentsDict[document_title]
+        try:
+            document = self.presenter.documentsDict[document_title]
+        except KeyError:
+            logger.error(f"Document {document_title} does not exist")
+            return None
 
         return document
 
@@ -659,6 +669,7 @@ class data_handling:
         dlg.Destroy()
 
     def on_extract_data_from_user_input_fcn(self, document_title=None, **kwargs):
+
         if not self.config.threading:
             self.on_extract_data_from_user_input(document_title, **kwargs)
         else:
@@ -667,6 +678,7 @@ class data_handling:
     def on_extract_data_from_user_input(self, document_title=None, **kwargs):
         """Extract MS/RT/DT/2DT data based on user input"""
         # TODO: This function should check against xvals_mins / xvals_ms to get accurate times
+
         document = self._on_get_document(document_title)
         try:
             reader = self._get_waters_api_reader(document)
@@ -675,7 +687,7 @@ class data_handling:
 
         # check if data should be added to document
         add_to_document = kwargs.pop("add_to_document", False)
-        return_data = kwargs.pop("return_data", False)
+        return_data = kwargs.pop("return_data", True)
         data_storage = {}
 
         # get m/z limits
@@ -743,6 +755,7 @@ class data_handling:
                         "name": spectrum_name,
                         "data_type": "extracted.spectrum",
                         "data": data,
+                        "type": "mass spectrum",
                     }
 
         # extract chromatogram
@@ -769,7 +782,12 @@ class data_handling:
                 if add_to_document:
                     self.documentTree.on_update_data(data, chrom_name, document, data_type="extracted.chromatogram")
                 if return_data:
-                    data_storage[chrom_name] = {"name": chrom_name, "data_type": "extracted.chromatogram", "data": data}
+                    data_storage[chrom_name] = {
+                        "name": chrom_name,
+                        "data_type": "extracted.chromatogram",
+                        "data": data,
+                        "type": "chromatogram",
+                    }
 
         # extract mobilogram
         if self.config.extract_driftTime1D:
@@ -796,7 +814,12 @@ class data_handling:
                 if add_to_document:
                     self.documentTree.on_update_data(data, dt_name, document, data_type="ion.mobiligram.raw")
                 if return_data:
-                    data_storage[dt_name] = {"name": dt_name, "data_type": "ion.mobiligram.raw", "data": data}
+                    data_storage[dt_name + " [1D]"] = {
+                        "name": dt_name,
+                        "data_type": "ion.mobiligram.raw",
+                        "data": data,
+                        "type": "mobilogram",
+                    }
 
         # extract heatmap
         if self.config.extract_driftTime2D:
@@ -837,9 +860,16 @@ class data_handling:
                 if add_to_document:
                     self.documentTree.on_update_data(data, dt_name, document, data_type="ion.heatmap.raw")
                 if return_data:
-                    data_storage[dt_name] = {"name": dt_name, "data_type": "ion.heatmap.raw", "data": data}
+                    data_storage[dt_name + " [2D]"] = {
+                        "name": dt_name,
+                        "data_type": "ion.heatmap.raw",
+                        "data": data,
+                        "type": "heatmap",
+                    }
+
         # return data
         if return_data and len(data_storage) > 0:
+            pub.sendMessage("extract.data.user", data=data_storage)
             return data_storage
 
     def on_add_ion_ORIGAMI(self, item_information, document, path, mz_start, mz_end, mz_y_max, ion_name, label, charge):
@@ -2321,6 +2351,9 @@ class data_handling:
             as is
         """
         document = self._on_get_document(document_title)
+        if document is None:
+            return
+
         document_path = document.path
         document_title = document.title
 

@@ -342,6 +342,7 @@ def origami_combine_userDefined(data=None, start_scan=None, inputList=None):  # 
 
 def generate_extraction_windows(start_end_cv_list):
     start_end_cv_list = np.asarray(start_end_cv_list)
+    print(start_end_cv_list)
 
     start_scan = start_end_cv_list[:, 0]
     end_scan = start_end_cv_list[:, 1]

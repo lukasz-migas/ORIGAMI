@@ -10,13 +10,19 @@ from styles import setItemFont
 logger = logging.getLogger("origami")
 
 
-class DialogOverlayReview(Dialog):
+class DialogReviewEditor(Dialog):
     """Review dialog"""
 
     # peaklist list
-    _peaklist_peaklist = {
+    _overlay_peaklist = {
         0: {"name": "", "tag": "check", "type": "bool", "width": 20, "show": True},
         1: {"name": "visualisation", "tag": "visualisation", "type": "str", "width": 150, "show": True},
+        2: {"name": "name", "tag": "name", "type": "str", "width": 600, "show": True},
+    }
+
+    _extraction_peaklist = {
+        0: {"name": "", "tag": "check", "type": "bool", "width": 20, "show": True},
+        1: {"name": "type", "tag": "type", "type": "str", "width": 150, "show": True},
         2: {"name": "name", "tag": "name", "type": "str", "width": 600, "show": True},
     }
 
@@ -27,6 +33,12 @@ class DialogOverlayReview(Dialog):
         self.config = config
 
         self.output_list = []
+
+        self.review_type = kwargs["review_type"]
+        if self.review_type == "overlay":
+            self._peaklist_peaklist = self._overlay_peaklist
+        elif self.review_type == "extraction":
+            self._peaklist_peaklist = self._extraction_peaklist
 
         self.make_gui()
         self.populate_list(item_list)

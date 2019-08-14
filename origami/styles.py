@@ -4,17 +4,16 @@
 import itertools
 from operator import itemgetter
 
-from natsort.natsort import natsorted
-import wx
-from wx.lib.agw import supertooltip as superTip
-
-from gui_elements.misc_dialogs import DialogBox
 import numpy as np
+import wx
+import wx.lib.mixins.listctrl as listmix
+from gui_elements.misc_dialogs import DialogBox
+from natsort.natsort import natsorted
 from utils.color import convertRGB255to1
 from utils.converters import byte2str
 from utils.converters import str2int
 from utils.converters import str2num
-import wx.lib.mixins.listctrl as listmix
+from wx.lib.agw import supertooltip as superTip
 
 # Sizes
 COMBO_SIZE = 120

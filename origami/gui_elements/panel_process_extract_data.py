@@ -3,11 +3,13 @@
 import logging
 
 import wx
+from pubsub import pub
 from styles import make_spin_ctrl
 from styles import makeCheckbox
 from styles import MiniFrame
 from styles import validator
 from utils.converters import str2num
+from utils.exceptions import MessageError
 
 logger = logging.getLogger("origami")
 
@@ -60,6 +62,29 @@ class PanelProcessExtractData(MiniFrame):
         self.CentreOnScreen()
         self.Show(True)
         self.SetFocus()
+
+        # subscribe to event
+        pub.subscribe(self.on_add_data_to_storage, "extract.data.user")
+
+    def on_close(self, evt):
+
+        n_extracted_items = len(self.extraction_data)
+        if n_extracted_items > 0:
+            from gui_elements.misc_dialogs import DialogBox
+
+            msg = (
+                f"Found {n_extracted_items} extracted item(s) in the clipboard. Closing this window will lose"
+                + " this data. Would you like to continue?"
+            )
+            dlg = DialogBox(exceptionTitle="Clipboard is not empty", exceptionMsg=msg, type="Question")
+            if dlg == wx.ID_NO:
+                msg = "Action was cancelled"
+                return
+
+        # unsubscribe from events
+        pub.unsubscribe(self.on_add_data_to_storage, "extract.data.user")
+
+        self.Destroy()
 
     def on_key_event(self, evt):
         """Trigger event based on keyboard input"""
@@ -337,6 +362,12 @@ class PanelProcessExtractData(MiniFrame):
         self.extraction_info_text.SetLabel(info)
         self.Layout()
 
+    def on_add_data_to_storage(self, data):
+        """Add data to document"""
+        for title, dataset in data.items():
+            self.extraction_data[title] = dataset
+        logger.info("Updated clipboard")
+
     def on_extract(self, evt, **kwargs):
         """Extract data without adding it to the document"""
         self.on_check_user_input()
@@ -344,11 +375,45 @@ class PanelProcessExtractData(MiniFrame):
             self.document_title,
             scan_time=str2num(self.extract_scanTime_value.GetValue()),
             pusher_frequency=str2num(self.extract_pusherFreq_value.GetValue()),
+            return_data=True,
             **kwargs,
         )
 
+    def generate_extraction_list(self):
+
+        item_list = []
+        for key, dataset in self.extraction_data.items():
+            item_list.append([dataset["type"], key])
+
+        return item_list
+
     def on_add_to_document(self, evt):
-        self.on_extract(None, add_to_document=True)
+        """Add data to document. Ask users what data should be added"""
+        from gui_elements.dialog_review_editor import DialogReviewEditor
+
+        # if the list is empty, notify the user
+        if not self.extraction_data:
+            raise MessageError(
+                "Clipboard is empty",
+                "There are no items in the clipboard." + " Please extract data before adding it to the document",
+            )
+
+        # get document
+        document = self.data_handling._on_get_document(self.document_title)
+        if document is None:
+            raise MessageError("Missing document", f"Could not find {self.document_title}. Was it deleted?")
+
+        # collect list of items in the clipboard
+        item_list = self.generate_extraction_list()
+        dlg = DialogReviewEditor(self, self.presenter, self.config, item_list, review_type="extraction")
+        dlg.ShowModal()
+        add_to_document_list = dlg.output_list
+
+        # add data to document while also removing it from the clipboard object
+        for key in add_to_document_list:
+            dataset = self.extraction_data.pop(key)
+            self.documentTree.on_update_data(dataset["data"], dataset["name"], document, data_type=dataset["data_type"])
+            logger.info(f"Added {dataset['name']} to {self.document_title}")
 
     def on_toggle_controls(self, evt):
         self.config.extract_massSpectra = self.extract_extractMS_check.GetValue()

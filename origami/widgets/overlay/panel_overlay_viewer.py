@@ -18,7 +18,6 @@ from utils.exceptions import MessageError
 from utils.random import get_random_int
 from utils.screen import calculate_window_size
 from visuals import mpl_plots
-from widgets.overlay.dialog_overlay_review import DialogOverlayReview
 
 # from gui_elements.dialog_color_picker import DialogColorPicker
 logger = logging.getLogger("origami")
@@ -167,8 +166,8 @@ class PanelOverlayViewer(MiniFrame):
             query = [itemInfo["document"], itemInfo["dataset_type"], itemInfo["dataset_name"]]
             itemInfo = self._get_accepted_keywords_from_dict(deepcopy(itemInfo))
             document = self.data_handling.set_mobility_chromatographic_keyword_data(query, **itemInfo)
-        elif editor_type == "Mass Spectra":
-            pass
+            #         elif editor_type == "Mass Spectra":
+            #             pass
 
             # Update file list
             self.data_handling.on_update_document(document, "no_refresh")
@@ -459,6 +458,7 @@ class PanelOverlayViewer(MiniFrame):
 
     def on_add_to_document(self, evt):
         """Add data to document"""
+        from gui_elements.dialog_review_editor import DialogReviewEditor
 
         # data classifiers
         stats_list = ["Mean", "Standard Deviation", "Variance", "RMSD", "RMSF", "RMSD Matrix"]
@@ -495,11 +495,11 @@ class PanelOverlayViewer(MiniFrame):
 
         # collect list of items in the clipboard
         item_list = self.generate_overlay_plot_list()
-        dlg = DialogOverlayReview(self, self.presenter, self.config, item_list)
+        dlg = DialogReviewEditor(self, self.presenter, self.config, item_list, review_type="overlay")
         dlg.ShowModal()
         add_to_document_list = dlg.output_list
 
-        # add items to document
+        # add data to document while also removing it from the clipboard object
         for key in add_to_document_list:
             data = self.overlay_data.pop(key)
             for method in stats_list:

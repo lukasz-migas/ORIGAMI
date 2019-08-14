@@ -18,8 +18,6 @@ from ZoomBox import ZoomBox
 
 matplotlib.use("WXAgg")
 
-print(matplotlib.is_interactive())
-
 
 class mpl_plotter(wx.Panel):
     def __init__(self, *args, **kwargs):

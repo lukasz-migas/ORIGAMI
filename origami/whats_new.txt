@@ -95,38 +95,47 @@ Plotting:
 - [new] Added option to copy plot to clipboard. Simply right-click in any of the plots and select 'Copy plot to clipboard'
 
 Processing:
+Processing: ORIGAMI-MS
 - [changed] moved ORIGAMI-MS settings away from the processing window. Now, in order to setup FILE specific settings,
     you must right-click on the document in the Document tree and select "Action -> Setup ORIGAMI-MS settings..." which
     will open a new window with the settings. Settings for each file are now stored within the file metadata, so it is less
     likely to get things mixed up.
     - as a consequence, the ORIGAMI-MS panel in Processing was removed
     - as a consequence, the ORIGAMI-MS settings section in Ion settings was removed
-// TODO: It also features a small plot area which will show you the settings profile that was used
+- [new] added small plot to the ORIGAMI-MS window which shows the acquisition profile
+Processing: DT/MS
 - [changed] removed the settings "DT/MS binning parameters" in Process -> Mass spectrum as it was not intuitive. From
     now on in order to change DT/MS settings, you must navigate to the Document Tree view, right-click on the DT/MS
     item in the Document and select Open DT/MS extraction panel... where you can adjust the m/z range and bin size. You
     can also select whether data should be extracted (to visualise), saved to file or added to the document. This menu
     can also be accessed by going to Document -> Action -> Open DT/MS extraction panel...
+Processing: Peak picking
 - [new] added new peak picking module that can be activated when you right-click in the document view on any
     MS dataset and select `Open peak picker...` which will open a new window where youc an select between two different
     peak picking algorithms:
         - one that is pretty good for small molecules which is based on the principle of peak properties
         - one that is pretty good for native MS and is based on local maxima search - data should be smoothed first
+Processing: MS
 - [changed] moved the processing MS module away from the multi-page window into its own, individual frame which can be
     accessed by right-clicking on a MS item in the Document Tree and selecting 'Process...'
 - [new] added new normalization methods in the MS module
 - [new] added new smoothing method (moving average) in the MS module
 - [new] added new baseline subtraction methods (polynomial and curved) in the MS module
+Processing: Heatmap
 - [changed] moved the processing 2D module away from the multi-page window into its own, individual frame which can be
     accessed by right-clicking on a 2D/heatmap item in the Document tree and selecting 'Process...'
 - [new] added cropping to the 2D module
 - [new] added interpolation to the 2D module
+Processing: data extraction
 - [changed] moved the processing `Extract data` module away from the multi-page window into its own, individual frame
     which can be accessed by right-clicking anywhere on the document and selecting
     `Action -> Open data extraction panel...`
 - [improved] Extracting arbirary data from Waters files (using Driftscope) is a lot improved as I've removed whacky
     controls that were causing all sorts of UI issues. Data extraction is also done in a multi-threaded manner, which
     should speed things up
+Processing: UniDec
+- [new] all extracted data will be stored in a clipboard object which will prompt you to decide what data you want to add
+    to your document
 - [changed] Moved UniDec deconvolution to its own, separate panel which will allow for easier to navigate experience.
     The panel has its plotting window, meaning you can simply process and view data in one place rather than having
     two separate windows.
@@ -140,8 +149,8 @@ Processing:
 - [improved] error messages will be clearer from now on
 
 Ion panel:
+- [new] checkbox has its own column now (nicer UI)
 - [fix] when assigning single color to multiple items and the action was cancelled, an error would occur
-- [improved] renamed a couple of menu items to make them clearer
 - [improved] when double-clicking on an item, a smaller editor will be opened which will exclude all ORIGAMI-MS settings
 - [improved] item editor now has correct order of items which can be explored with Tab and Shift+Tab keys
 - [changed] moved the option "Create blank COMPARISON ..." from the Add... menu to "Overlay..." menu
@@ -153,14 +162,23 @@ Ion panel:
 - [new] you can setup ORIGAMI-MS parameters from the Process -> ORIGAMI-MS: Setup parameters
 - [fixed] exporting peaklist works now - simply select items in the peaklist and select output path
 - [fixed] loading peaklist works now
+- [removed] removed the overlay-menu and overlay combo box. In order to overlay items, click on Menu -> Widgets ->
+    Open overlay window...
 
 Text panel:
+- [new] checkbox has its own column now (nicer UI)
+- [new] you can now export all data (heatmap, chromatographic, mobilogram) as .csv/.txt/.tab files in batch mode
+- [new] you can now export multiple plot types (heatmap, chromatogram, mobilogram, waterfall) as one of many image
+    formats in batch mode
+- [improved] cleaned-up menus so they are a lot easier to follow
 - [improved] item editor now has correct order of items which can be explored with Tab and Shift+Tab keys
+- [removed] removed the overlay-menu and overlay combo box. In order to overlay items, click on Menu -> Widgets ->
+    Open overlay window...
 
 Annotations panel:
 - [changed] changed the label "Multiple annotations" to "Multiply annotations (selected)" (found in Action...)
 
-Data extraction:
+IO: Data extraction:
 - [improved] Extraction of MS data moved away from Driftscope to Waters SDK which allows extraction of profile data
     that is properly scaled (e.g. not normalized). Waters SDK does not provide `full` m/z/intensity map (only values that
     are not 0s) so data is needs to be interpolated to a common m/z axis. Data is interpolated using `linear`

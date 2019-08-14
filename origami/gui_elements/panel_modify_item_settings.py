@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 import wx
-
 from icons.icons import IconContainer
-from styles import MiniFrame
 from styles import makeCheckbox
+from styles import MiniFrame
 from styles import validator
 from utils.converters import num2str
 from utils.converters import str2int
@@ -16,8 +15,12 @@ class PanelModifyItemSettings(MiniFrame):
     """Universal widget to modify common settings in a number of places"""
 
     def __init__(self, parent, presenter, config, **kwargs):
-        MiniFrame.__init__(self, kwargs.pop("alt_parent", parent),
-                           title="Modify parameters...", style=wx.DEFAULT_FRAME_STYLE & ~wx.RESIZE_BORDER)
+        MiniFrame.__init__(
+            self,
+            kwargs.pop("alt_parent", parent),
+            title="Modify parameters...",
+            style=wx.DEFAULT_FRAME_STYLE & ~wx.RESIZE_BORDER,
+        )
 
         self.parent = kwargs.pop("alt_parent", parent)
         self.presenter = presenter
@@ -253,8 +256,9 @@ class PanelModifyItemSettings(MiniFrame):
 
         if not self.show_simple:
             self.itemInfo["colormap"] = self.colormap_value.GetStringSelection()
-            self.parent.peaklist.SetStringItem(self.itemInfo["id"],
-                                               self.column_dict["colormap"], self.itemInfo["colormap"])
+            self.parent.peaklist.SetStringItem(
+                self.itemInfo["id"], self.column_dict["colormap"], self.itemInfo["colormap"]
+            )
 
             self.itemInfo["mask"] = self.mask_value.GetValue()
             self.parent.peaklist.SetStringItem(
