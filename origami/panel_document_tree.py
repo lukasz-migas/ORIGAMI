@@ -1621,13 +1621,14 @@ class DocumentTree(wx.TreeCtrl):
             evt.Skip()
 
     def on_add_annotation(self, evt):
+        """Open annotations panel"""
         from gui_elements.panel_peak_annotation_editor import PanelPeakAnnotationEditor
-
-        data = self.GetPyData(self._item_id)
 
         document = self._document_data.title
         dataset = self._item_leaf
 
+        # get data
+        data = self.GetPyData(self._item_id)
         if data is None:
             if self._document_type == "Mass Spectrum":
                 data = self._document_data.massSpectrum
@@ -1642,43 +1643,44 @@ class DocumentTree(wx.TreeCtrl):
                 data = self._document_data.other_data[self._item_branch]
                 dataset = self._item_branch
 
+        # check if previous annotations exist
+        annotations = {}
         if "annotations" in data:
             annotations = data["annotations"]
-        else:
-            annotations = {}
 
         if self.annotateDlg is not None:
-            msg = "An instance of annotation window is already open. Please close it first."
-            args = (msg, 4, 5)
-            self.presenter.onThreading(None, args, action="updateStatusbar")
-            DialogBox(exceptionTitle="Window already open", exceptionMsg=msg, type="Error")
-            return
+            raise MessageError(
+                "Window already open",
+                "An instance of annotation window is already open. Please close it first before"
+                + " opening another one.",
+            )
 
-        # waterfall plot
-        if "Waterfall (Raw):" in self._item_leaf:
-            data = None
-            plot = self.panel_plot.plot_waterfall
-        # Annotated data
-        elif (
-            "Multi-line: " in self._item_leaf
-            or "Multi-line: " in self._item_branch
-            or "V-bar: " in self._item_leaf
-            or "V-bar: " in self._item_branch
-            or "H-bar: " in self._item_leaf
-            or "H-bar: " in self._item_branch
-            or "Scatter: " in self._item_leaf
-            or "Scatter: " in self._item_branch
-            or "Waterfall: " in self._item_leaf
-            or "Waterfall: " in self._item_branch
-            or "Line: " in self._item_leaf
-            or "Line: " in self._item_branch
-        ):
-            data = None
-            plot = self.panel_plot.plotOther
-        # mass spectra
-        else:
-            data = np.transpose([data["xvals"], data["yvals"]])
-            plot = self.panel_plot.plot1
+        #         # waterfall plot
+        #         if "Waterfall (Raw):" in self._item_leaf:
+        #             data = None
+        #             plot = self.panel_plot.plot_waterfall
+        #         # Annotated data
+        #         elif (
+        #             "Multi-line: " in self._item_leaf
+        #             or "Multi-line: " in self._item_branch
+        #             or "V-bar: " in self._item_leaf
+        #             or "V-bar: " in self._item_branch
+        #             or "H-bar: " in self._item_leaf
+        #             or "H-bar: " in self._item_branch
+        #             or "Scatter: " in self._item_leaf
+        #             or "Scatter: " in self._item_branch
+        #             or "Waterfall: " in self._item_leaf
+        #             or "Waterfall: " in self._item_branch
+        #             or "Line: " in self._item_leaf
+        #             or "Line: " in self._item_branch
+        #         ):
+        #             data = None
+        #             plot = self.panel_plot.plotOther
+        #         # mass spectra
+        #         else:
+        data = np.transpose([data["xvals"], data["yvals"]])
+        plot_type = "mass_spectrum"
+        #         plot = self.panel_plot.plot1
 
         _plot_types = {
             "multi-line": "Multi-line",
@@ -1691,7 +1693,13 @@ class DocumentTree(wx.TreeCtrl):
             "horizontal-bar": "H-bar",
         }
 
-        kwargs = {"document": document, "dataset": dataset, "data": data, "plot": plot, "annotations": annotations}
+        kwargs = {
+            "document": document,
+            "dataset": dataset,
+            "data": data,
+            "plot_type": plot_type,
+            "annotations": annotations,
+        }
 
         self.annotateDlg = PanelPeakAnnotationEditor(self.parent, self, self.config, self.icons, **kwargs)
         self.annotateDlg.Show()
@@ -2060,13 +2068,33 @@ class DocumentTree(wx.TreeCtrl):
         for yID in [ID_ylabel_DTMS_bins, ID_ylabel_DTMS_ms, ID_ylabel_DTMS_ms_arrival, ID_ylabel_DTMS_restore]:
             self.Bind(wx.EVT_MENU, self.on_change_xy_values_and_labels, id=yID)
 
-    def on_right_click(self, evt):
-        """ Create and show up popup menu"""
+    def on_right_click_short(self):
+        """Right-click menu when clicked on the `Documents` item in the documents tree"""
 
-        # Make some bindings
-        #         self.Bind(wx.EVT_MENU, self.on_save_all_documents, id=ID_saveAllDocuments)
+        # bind few events first
         self.Bind(wx.EVT_MENU, self.data_handling.on_save_all_documents_fcn, id=ID_saveAllDocuments)
         self.Bind(wx.EVT_MENU, self.on_delete_all_documents, id=ID_removeAllDocuments)
+
+        menu = wx.Menu()
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu,
+                id=ID_saveAllDocuments,
+                text="Save all documents",
+                bitmap=self.icons.iconsLib["save_multiple_16"],
+            )
+        )
+        menu.AppendItem(
+            makeMenuItem(
+                parent=menu, id=ID_removeAllDocuments, text="Delete all documents", bitmap=self.icons.iconsLib["bin16"]
+            )
+        )
+        self.PopupMenu(menu)
+        menu.Destroy()
+        self.SetFocus()
+
+    def on_right_click(self, evt):
+        """ Create and show up popup menu"""
 
         # Get selected item
         item = self.GetSelection()
@@ -2074,26 +2102,7 @@ class DocumentTree(wx.TreeCtrl):
         # Get the current text value for selected item
         itemType = self.GetItemText(item)
         if itemType == "Documents":
-            menu = wx.Menu()
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu,
-                    id=ID_saveAllDocuments,
-                    text="Save all documents",
-                    bitmap=self.icons.iconsLib["save_multiple_16"],
-                )
-            )
-            menu.AppendItem(
-                makeMenuItem(
-                    parent=menu,
-                    id=ID_removeAllDocuments,
-                    text="Delete all documents",
-                    bitmap=self.icons.iconsLib["bin16"],
-                )
-            )
-            self.PopupMenu(menu)
-            menu.Destroy()
-            self.SetFocus()
+            self.on_right_click_short()
             return
 
         # Get indent level for selected item
@@ -2142,10 +2151,10 @@ class DocumentTree(wx.TreeCtrl):
 
         if self.config.debug:
             msg = (
-                f"DEBUG: _document_type: {self._document_type} | _item_leaf: {self._item_leaf} | "
-                + f"_item_branch: {self._item_branch} | _item_root: {self._item_root} | _indent: {self._indent}"
+                f"\n_document_type: {self._document_type}\n_item_leaf: {self._item_leaf}"
+                + f"\n_item_branch: {self._item_branch}\n_item_root: {self._item_root}\n_indent: {self._indent}"
             )
-            print(msg)
+            logger.debug(msg)
 
         # load data
         load_data_menu = wx.Menu()
@@ -2476,9 +2485,9 @@ class DocumentTree(wx.TreeCtrl):
             parent=menu, id=ID_save2DImageDoc, text="Save image as...", bitmap=self.icons.iconsLib["file_png_16"]
         )
 
-        menu_action_save_other_image_as = makeMenuItem(
-            parent=menu, id=ID_saveOtherImageDoc, text="Save image as...", bitmap=self.icons.iconsLib["file_png_16"]
-        )
+        #         menu_action_save_other_image_as = makeMenuItem(
+        #             parent=menu, id=ID_saveOtherImageDoc, text="Save image as...", bitmap=self.icons.iconsLib["file_png_16"]
+        #         )
 
         menu_action_save_spectrum_image_as = makeMenuItem(
             parent=menu, id=ID_saveMSImageDoc, text="Save image as...", bitmap=self.icons.iconsLib["file_csv_16"]
@@ -2518,221 +2527,232 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_process_2D, menu_action_process_2D)
         self.Bind(wx.EVT_MENU, self.on_process_all_2D, menu_action_process_2D_all)
 
-        # INTERACTIVE DATASET ONLY
-        if self._document_data.dataType == "Type: Interactive":
-            if self._document_type == "Annotated data" and self._item_leaf != self._document_type:
-                if self._item_leaf == "Annotations":
-                    menu.AppendItem(menu_show_annotations_panel)
-                    menu.AppendItem(menu_action_show_annotations)
-                else:
-                    menu.AppendItem(menu_action_show_plot)
+        #         # INTERACTIVE DATASET ONLY
+        #         if self._document_data.dataType == "Type: Interactive":
+        #             if self._document_type == "Annotated data" and self._item_leaf != self._document_type:
+        #                 if self._item_leaf == "Annotations":
+        #                     menu.AppendItem(menu_show_annotations_panel)
+        #                     menu.AppendItem(menu_action_show_annotations)
+        #                 else:
+        #                     menu.AppendItem(menu_action_show_plot)
+        #
+        #                 if (
+        #                     "Multi-line: " in self._item_leaf
+        #                     or "V-bar: " in self._item_leaf
+        #                     or "H-bar: " in self._item_leaf
+        #                     or "Scatter: " in self._item_leaf
+        #                     or "Waterfall: " in self._item_leaf
+        #                     or "Line: " in self._item_leaf
+        #                 ):
+        #                     menu.AppendItem(menu_show_annotations_panel)
+        #                 menu.AppendSeparator()
+        #                 menu.AppendItem(menu_action_save_other_image_as)
+        #                 menu.AppendItem(menu_action_delete_item)
+        #             if self._document_type in ["Drift time (2D)", "Drift time (2D, processed)"] or (
+        #                 self._document_type == "Drift time (2D, EIC)" and self._item_leaf != self._document_type
+        #             ):
+        #                 menu.AppendItem(menu_action_show_plot_2D)
+        #                 menu.AppendItem(menu_action_show_plot_violin)
+        #                 menu.AppendItem(menu_action_show_plot_waterfall)
+        #                 menu.AppendItem(menu_action_process_2D)
+        #                 menu.AppendSeparator()
+        #                 menu.AppendItem(menu_action_rename_item)
+        #                 menu.AppendItem(menu_action_assign_charge)
+        #                 menu.AppendMenu(wx.ID_ANY, "Set X-axis label as...", xlabel_2D_menu)
+        #                 menu.AppendMenu(wx.ID_ANY, "Set Y-axis label as...", ylabel_2D_menu)
+        #                 menu.AppendSeparator()
+        #                 menu.AppendItem(menu_action_save_heatmap_image_as)
+        #                 menu.AppendItem(menu_action_save_1D_data_as)
+        #                 menu.AppendItem(menu_action_save_2D_data_as)
+        #                 menu.AppendItem(menu_action_delete_item)
+        #                 if itemType not in ["Drift time (2D)", "Drift time (2D, processed)"]:
+        #                     menu.PrependItem(menu_action_show_plot_as_mobiligram)
+        #                     menu.PrependItem(menu_action_show_plot_as_chromatogram)
+        #             elif self._document_type == "Drift time (2D, EIC)" and self._item_leaf == self._document_type:
+        #                 menu.AppendItem(
+        #                     makeMenuItem(parent=menu, id=ID_docTree_addInteractiveToTextTable, text="Add to text file table")
+        #                 )
+        #             elif self._document_type in ["Mass Spectra"]:
+        #                 if self._item_leaf == "Annotations":
+        #                     menu.AppendItem(menu_show_annotations_panel)
+        #                     menu.AppendItem(menu_action_show_annotations)
+        #                     menu.AppendItem(menu_action_delete_item)
+        #                 elif (self._document_type in ["Mass Spectra"]) and self._item_leaf == "UniDec":
+        #                     menu.AppendItem(menu_action_show_unidec_results)
+        #                     menu.AppendItem(
+        #                         makeMenuItem(
+        #                             parent=menu,
+        #                             id=ID_docTree_save_unidec,
+        #                             text="Save UniDec results ({})".format(self.config.saveExtension),
+        #                         )
+        #                     )
+        #                     menu.AppendItem(menu_action_delete_item)
+        #                 elif (self._document_type in ["Mass Spectra"]) and self._item_branch == "UniDec":
+        #                     menu.AppendItem(
+        #                         makeMenuItem(
+        #                             parent=menu, id=ID_docTree_show_unidec, text="Show plot - {}".format(self._item_leaf)
+        #                         )
+        #                     )
+        #                     menu.AppendItem(
+        #                         makeMenuItem(
+        #                             parent=menu,
+        #                             id=ID_docTree_save_unidec,
+        #                             text=f"Save results - {self._item_leaf} ({self.config.saveExtension})",
+        #                         )
+        #                     )
+        #                     menu.AppendItem(menu_action_delete_item)
+        #                 elif self._document_type in ["Mass Spectrum" "Mass Spectrum (processed)"]:
+        #                     menu.AppendItem(menu_action_show_plot_spectrum)
+        #                     menu.AppendItem(menu_show_annotations_panel)
+        #                     menu.AppendItem(menu_action_duplicate_annotations)
+        #                     # check if deconvolution results exist
+        #                     if "unidec" in self.currentData:
+        #                         menu.AppendItem(menu_action_show_unidec_results)
+        #                         menu.AppendItem(
+        #                             makeMenuItem(
+        #                                 parent=menu,
+        #                                 id=ID_docTree_save_unidec,
+        #                                 text=f"Save UniDec results ({self.config.saveExtension})",
+        #                                 bitmap=None,
+        #                             )
+        #                         )
+        #                     menu.AppendItem(menu_action_process_ms)
+        #                     menu.AppendItem(menu_show_unidec_panel)
+        #                     menu.AppendSeparator()
+        #                     menu.AppendItem(menu_action_save_spectrum_image_as)
+        #                     menu.AppendItem(menu_action_save_data_as)
+        #                     menu.AppendItem(menu_action_delete_item)
+        #                 else:
+        #                     if self._item_leaf == "Mass Spectra":
+        #                         menu.AppendItem(menu_show_comparison_panel)
+        #                         menu.AppendItem(menu_action_show_plot_spectrum_waterfall)
+        #                         menu.AppendItem(
+        #                             makeMenuItem(
+        #                                 parent=menu,
+        #                                 id=ID_docTree_addToMMLTable,
+        #                                 text="Add spectra to multiple files panel",
+        #                                 bitmap=None,
+        #                             )
+        #                         )
+        #                         menu.AppendSeparator()
+        #                         menu.AppendItem(menu_action_save_data_as)
+        #                         menu.AppendMenu(wx.ID_ANY, "Save to file...", save_data_submenu)
+        #                     elif self._item_leaf != "Mass Spectra" and "UniDec (" not in self._item_leaf and self._indent < 4:
+        #                         menu.AppendItem(menu_action_show_plot_spectrum)
+        #                         menu.AppendItem(menu_show_annotations_panel)
+        #                         menu.AppendItem(menu_action_duplicate_annotations)
+        #                         menu.AppendItem(menu_action_process_ms)
+        #                         menu.AppendItem(menu_show_unidec_panel)
+        #                         menu.AppendSeparator()
+        #                         menu.AppendItem(menu_action_add_spectrum_to_panel)
+        #                         menu.Append(ID_duplicateItem, "Duplicate item")
+        #                         menu.AppendItem(menu_action_rename_item)
+        #                         menu.AppendSeparator()
+        #                         menu.AppendItem(menu_action_save_spectrum_image_as)
+        #                         menu.AppendItem(menu_action_save_data_as)
+        #                     elif self._item_leaf != "Mass Spectra" and "UniDec (" in self._item_leaf:
+        #                         menu.AppendItem(menu_action_show_unidec_results)
+        #                         menu.AppendItem(
+        #                             makeMenuItem(
+        #                                 parent=menu,
+        #                                 id=ID_docTree_save_unidec,
+        #                                 text="Save UniDec results ({})".format(self.config.saveExtension),
+        #                                 bitmap=None,
+        #                             )
+        #                         )
+        #                     elif self._item_leaf != "Mass Spectra" and "UniDec (" in self._item_branch:
+        #                         menu.AppendItem(
+        #                             makeMenuItem(
+        #                                 parent=menu,
+        #                                 id=ID_docTree_save_unidec,
+        #                                 text="Save UniDec results ({})".format(self.config.saveExtension),
+        #                                 bitmap=None,
+        #                             )
+        #                         )
+        #                     menu.AppendItem(menu_action_delete_item)
+        #             elif itemType == "UniDec" or itemType == "UniDec (processed)":
+        #                 menu.AppendItem(menu_action_show_unidec_results)
+        #                 menu.AppendItem(
+        #                     makeMenuItem(
+        #                         parent=menu,
+        #                         id=ID_docTree_save_unidec,
+        #                         text="Save UniDec results ({})".format(self.config.saveExtension),
+        #                         bitmap=None,
+        #                     )
+        #                 )
+        #                 menu.AppendSeparator()
+        #                 menu.AppendItem(menu_action_delete_item)
+        #             elif itemType in ["Chromatogram", "Chromatograms (EIC)"]:
+        #                 menu.AppendItem(menu_action_show_plot_chromatogram)
+        #                 menu.AppendSeparator()
+        #                 menu.AppendMenu(wx.ID_ANY, "Set X-axis label as...", xlabel_RT_menu)
+        #                 menu.AppendSeparator()
+        #                 menu.AppendItem(menu_action_save_chromatogram_image_as)
+        #                 menu.AppendItem(menu_action_save_data_as)
+        #                 menu.AppendItem(menu_action_delete_item)
+        #             elif itemType in ["Drift time (1D)", "Drift time (1D, EIC)"]:
+        #                 menu.AppendItem(menu_action_show_plot_mobilogram)
+        #                 menu.AppendSeparator()
+        #                 menu.AppendMenu(wx.ID_ANY, "Change x-axis to...", xlabel_1D_menu)
+        #                 menu.AppendItem(menu_action_save_mobilogram_image_as)
+        #                 menu.AppendItem(menu_action_save_data_as)
+        #                 menu.AppendItem(menu_action_delete_item)
+        #             if menu.MenuItemCount > 0:
+        #                 menu.AppendSeparator()
+        #             menu.AppendMenu(wx.ID_ANY, "Import data...", load_data_menu)
+        #
+        #         # ALL OTHER DATASETS
+        #         el
 
-                if (
-                    "Multi-line: " in self._item_leaf
-                    or "V-bar: " in self._item_leaf
-                    or "H-bar: " in self._item_leaf
-                    or "Scatter: " in self._item_leaf
-                    or "Waterfall: " in self._item_leaf
-                    or "Line: " in self._item_leaf
-                ):
-                    menu.AppendItem(menu_show_annotations_panel)
-                menu.AppendSeparator()
-                menu.AppendItem(menu_action_save_other_image_as)
-                menu.AppendItem(menu_action_delete_item)
-            if self._document_type in ["Drift time (2D)", "Drift time (2D, processed)"] or (
-                self._document_type == "Drift time (2D, EIC)" and self._item_leaf != self._document_type
-            ):
-                menu.AppendItem(menu_action_show_plot_2D)
-                menu.AppendItem(menu_action_show_plot_violin)
-                menu.AppendItem(menu_action_show_plot_waterfall)
-                menu.AppendItem(menu_action_process_2D)
-                menu.AppendSeparator()
-                menu.AppendItem(menu_action_rename_item)
-                menu.AppendItem(menu_action_assign_charge)
-                menu.AppendMenu(wx.ID_ANY, "Set X-axis label as...", xlabel_2D_menu)
-                menu.AppendMenu(wx.ID_ANY, "Set Y-axis label as...", ylabel_2D_menu)
-                menu.AppendSeparator()
-                menu.AppendItem(menu_action_save_heatmap_image_as)
-                menu.AppendItem(menu_action_save_1D_data_as)
-                menu.AppendItem(menu_action_save_2D_data_as)
-                menu.AppendItem(menu_action_delete_item)
-                if itemType not in ["Drift time (2D)", "Drift time (2D, processed)"]:
-                    menu.PrependItem(menu_action_show_plot_as_mobiligram)
-                    menu.PrependItem(menu_action_show_plot_as_chromatogram)
-            elif self._document_type == "Drift time (2D, EIC)" and self._item_leaf == self._document_type:
-                menu.AppendItem(
-                    makeMenuItem(parent=menu, id=ID_docTree_addInteractiveToTextTable, text="Add to text file table")
-                )
-            elif self._document_type in ["Mass Spectra"]:
-                if self._item_leaf == "Annotations":
-                    menu.AppendItem(menu_show_annotations_panel)
-                    menu.AppendItem(menu_action_show_annotations)
-                    menu.AppendItem(menu_action_delete_item)
-                elif (self._document_type in ["Mass Spectra"]) and self._item_leaf == "UniDec":
-                    menu.AppendItem(menu_action_show_unidec_results)
-                    menu.AppendItem(
-                        makeMenuItem(
-                            parent=menu,
-                            id=ID_docTree_save_unidec,
-                            text="Save UniDec results ({})".format(self.config.saveExtension),
-                        )
-                    )
-                    menu.AppendItem(menu_action_delete_item)
-                elif (self._document_type in ["Mass Spectra"]) and self._item_branch == "UniDec":
-                    menu.AppendItem(
-                        makeMenuItem(
-                            parent=menu, id=ID_docTree_show_unidec, text="Show plot - {}".format(self._item_leaf)
-                        )
-                    )
-                    menu.AppendItem(
-                        makeMenuItem(
-                            parent=menu,
-                            id=ID_docTree_save_unidec,
-                            text=f"Save results - {self._item_leaf} ({self.config.saveExtension})",
-                        )
-                    )
-                    menu.AppendItem(menu_action_delete_item)
-                elif self._document_type in ["Mass Spectrum" "Mass Spectrum (processed)"]:
-                    menu.AppendItem(menu_action_show_plot_spectrum)
-                    menu.AppendItem(menu_show_annotations_panel)
-                    menu.AppendItem(menu_action_duplicate_annotations)
-                    # check if deconvolution results exist
-                    if "unidec" in self.currentData:
-                        menu.AppendItem(menu_action_show_unidec_results)
-                        menu.AppendItem(
-                            makeMenuItem(
-                                parent=menu,
-                                id=ID_docTree_save_unidec,
-                                text=f"Save UniDec results ({self.config.saveExtension})",
-                                bitmap=None,
-                            )
-                        )
-                    menu.AppendItem(menu_action_process_ms)
-                    menu.AppendItem(menu_show_unidec_panel)
-                    menu.AppendSeparator()
-                    menu.AppendItem(menu_action_save_spectrum_image_as)
-                    menu.AppendItem(menu_action_save_data_as)
-                    menu.AppendItem(menu_action_delete_item)
-                else:
-                    if self._item_leaf == "Mass Spectra":
-                        menu.AppendItem(menu_show_comparison_panel)
-                        menu.AppendItem(menu_action_show_plot_spectrum_waterfall)
-                        menu.AppendItem(
-                            makeMenuItem(
-                                parent=menu,
-                                id=ID_docTree_addToMMLTable,
-                                text="Add spectra to multiple files panel",
-                                bitmap=None,
-                            )
-                        )
-                        menu.AppendSeparator()
-                        menu.AppendItem(menu_action_save_data_as)
-                        menu.AppendMenu(wx.ID_ANY, "Save to file...", save_data_submenu)
-                    elif self._item_leaf != "Mass Spectra" and "UniDec (" not in self._item_leaf and self._indent < 4:
-                        menu.AppendItem(menu_action_show_plot_spectrum)
-                        menu.AppendItem(menu_show_annotations_panel)
-                        menu.AppendItem(menu_action_duplicate_annotations)
-                        menu.AppendItem(menu_action_process_ms)
-                        menu.AppendItem(menu_show_unidec_panel)
-                        menu.AppendSeparator()
-                        menu.AppendItem(menu_action_add_spectrum_to_panel)
-                        menu.Append(ID_duplicateItem, "Duplicate item")
-                        menu.AppendItem(menu_action_rename_item)
-                        menu.AppendSeparator()
-                        menu.AppendItem(menu_action_save_spectrum_image_as)
-                        menu.AppendItem(menu_action_save_data_as)
-                    elif self._item_leaf != "Mass Spectra" and "UniDec (" in self._item_leaf:
-                        menu.AppendItem(menu_action_show_unidec_results)
-                        menu.AppendItem(
-                            makeMenuItem(
-                                parent=menu,
-                                id=ID_docTree_save_unidec,
-                                text="Save UniDec results ({})".format(self.config.saveExtension),
-                                bitmap=None,
-                            )
-                        )
-                    elif self._item_leaf != "Mass Spectra" and "UniDec (" in self._item_branch:
-                        menu.AppendItem(
-                            makeMenuItem(
-                                parent=menu,
-                                id=ID_docTree_save_unidec,
-                                text="Save UniDec results ({})".format(self.config.saveExtension),
-                                bitmap=None,
-                            )
-                        )
-                    menu.AppendItem(menu_action_delete_item)
-            elif itemType == "UniDec" or itemType == "UniDec (processed)":
-                menu.AppendItem(menu_action_show_unidec_results)
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu,
-                        id=ID_docTree_save_unidec,
-                        text="Save UniDec results ({})".format(self.config.saveExtension),
-                        bitmap=None,
-                    )
-                )
-                menu.AppendSeparator()
-                menu.AppendItem(menu_action_delete_item)
-            elif itemType in ["Chromatogram", "Chromatograms (EIC)"]:
-                menu.AppendItem(menu_action_show_plot_chromatogram)
-                menu.AppendSeparator()
-                menu.AppendMenu(wx.ID_ANY, "Set X-axis label as...", xlabel_RT_menu)
-                menu.AppendSeparator()
-                menu.AppendItem(menu_action_save_chromatogram_image_as)
-                menu.AppendItem(menu_action_save_data_as)
-                menu.AppendItem(menu_action_delete_item)
-            elif itemType in ["Drift time (1D)", "Drift time (1D, EIC)"]:
-                menu.AppendItem(menu_action_show_plot_mobilogram)
-                menu.AppendSeparator()
-                menu.AppendMenu(wx.ID_ANY, "Change x-axis to...", xlabel_1D_menu)
-                menu.AppendItem(menu_action_save_mobilogram_image_as)
-                menu.AppendItem(menu_action_save_data_as)
-                menu.AppendItem(menu_action_delete_item)
-            if menu.MenuItemCount > 0:
-                menu.AppendSeparator()
-            menu.AppendMenu(wx.ID_ANY, "Import data...", load_data_menu)
+        all_mass_spectra = ["Mass Spectrum", "Mass Spectrum (processed)", "Mass Spectra"]
+        all_heatmaps = [
+            "Drift time (2D)",
+            "Drift time (2D, processed)",
+            "Drift time (2D, EIC)",
+            "Drift time (2D, combined voltages, EIC)",
+            "Drift time (2D, processed, EIC)",
+        ]
+        heatmap_multi = [
+            "Drift time (2D, EIC)",
+            "Drift time (2D, combined voltages, EIC)",
+            "Drift time (2D, processed, EIC)",
+        ]
 
-        # ALL OTHER DATASETS
-        elif self._document_type in ["Mass Spectrum", "Mass Spectrum (processed)", "Mass Spectra"]:
-            if (
-                self._document_type in ["Mass Spectrum", "Mass Spectrum (processed)", "Mass Spectra"]
-            ) and self._item_leaf == "Annotations":
+        # mass spectra
+        if self._document_type in all_mass_spectra:
+            # annotations - all
+            if (self._document_type in all_mass_spectra) and self._item_leaf == "Annotations":
                 menu.AppendItem(menu_show_annotations_panel)
                 menu.AppendItem(menu_action_show_annotations)
                 menu.AppendItem(menu_action_delete_item)
-            elif (
-                self._document_type in ["Mass Spectrum", "Mass Spectrum (processed)", "Mass Spectra"]
-            ) and self._item_leaf == "UniDec":
-                menu.AppendItem(menu_action_show_unidec_results)
-                menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu,
-                        id=ID_docTree_save_unidec,
-                        text="Save UniDec results ({})".format(self.config.saveExtension),
-                        bitmap=None,
-                    )
-                )
+            # annotations - single
+            elif self._item_branch == "Annotations" and self._indent in [4, 5]:
                 menu.AppendItem(menu_action_delete_item)
-            elif (
-                self._document_type in ["Mass Spectrum", "Mass Spectrum (processed)", "Mass Spectra"]
-            ) and self._item_branch == "UniDec":
+            # unidec -all
+            elif (self._document_type in all_mass_spectra) and self._item_branch == "UniDec":
                 menu.AppendItem(
-                    makeMenuItem(
-                        parent=menu,
-                        id=ID_docTree_show_unidec,
-                        text="Show plot - {}".format(self._item_leaf),
-                        bitmap=None,
-                    )
+                    makeMenuItem(parent=menu, id=ID_docTree_show_unidec, text="Show plot - {}".format(self._item_leaf))
                 )
                 menu.AppendItem(
                     makeMenuItem(
                         parent=menu,
                         id=ID_docTree_save_unidec,
                         text="Save results - {} ({})".format(self._item_leaf, self.config.saveExtension),
-                        bitmap=None,
                     )
                 )
                 menu.AppendItem(menu_action_delete_item)
+            # unidec - single
+            elif (self._document_type in all_mass_spectra) and self._item_leaf == "UniDec":
+                menu.AppendItem(menu_action_show_unidec_results)
+                menu.AppendItem(
+                    makeMenuItem(
+                        parent=menu,
+                        id=ID_docTree_save_unidec,
+                        text="Save UniDec results ({})".format(self.config.saveExtension),
+                    )
+                )
+                menu.AppendItem(menu_action_delete_item)
+            # mass spectrum - single
             elif self._document_type in ["Mass Spectrum", "Mass Spectrum (processed)"] and self._indent == 2:
                 menu.AppendItem(menu_action_show_plot_spectrum)
                 menu.AppendItem(menu_show_annotations_panel)
@@ -2741,29 +2761,26 @@ class DocumentTree(wx.TreeCtrl):
                 menu.AppendItem(menu_action_process_ms)
 
                 # check if deconvolution results are present
-                try:
-                    if "unidec" in self.currentData:
-                        menu.AppendSeparator()
-                        menu.AppendItem(menu_action_show_unidec_results)
+                if hasattr(self.currentData, "unidec"):
+                    menu.AppendSeparator()
+                    menu.AppendItem(menu_action_show_unidec_results)
 
-                        menu.AppendItem(
-                            makeMenuItem(
-                                parent=menu,
-                                id=ID_docTree_save_unidec,
-                                text="Save UniDec results ({})".format(self.config.saveExtension),
-                                bitmap=None,
-                            )
+                    menu.AppendItem(
+                        makeMenuItem(
+                            parent=menu,
+                            id=ID_docTree_save_unidec,
+                            text="Save UniDec results ({})".format(self.config.saveExtension),
+                            bitmap=None,
                         )
-                except Exception:
-                    pass
+                    )
                 menu.AppendItem(menu_show_unidec_panel)
                 menu.AppendSeparator()
                 menu.AppendItem(menu_action_save_spectrum_image_as)
                 menu.AppendItem(menu_action_save_data_as)
                 menu.AppendItem(menu_action_delete_item)
-            elif self._item_branch == "Annotations" and self._indent in [4, 5]:
-                menu.AppendItem(menu_action_delete_item)
+            # mass spectra
             else:
+                # mass spectra - all
                 if self._item_leaf == "Mass Spectra":
                     menu.AppendItem(menu_show_comparison_panel)
                     menu.AppendItem(menu_action_show_plot_spectrum_waterfall)
@@ -2779,6 +2796,7 @@ class DocumentTree(wx.TreeCtrl):
                     menu.AppendSeparator()
                     menu.AppendItem(menu_action_save_data_as)
                     menu.AppendMenu(wx.ID_ANY, "Save to file...", save_data_submenu)
+                # mass spectra - single
                 elif self._item_leaf != "Mass Spectra" and "UniDec (" not in self._item_leaf and self._indent != 4:
                     menu.AppendItem(menu_action_show_plot_spectrum)
                     menu.AppendItem(menu_show_annotations_panel)
@@ -2808,8 +2826,9 @@ class DocumentTree(wx.TreeCtrl):
         # Sample information
         elif itemType == "Sample information":
             menu.Append(ID_showSampleInfo, "Show sample information")
-        # Chromatogram
-        elif itemType in ["Chromatogram", "Chromatograms (EIC)"]:
+
+        # chromatograms - all
+        elif itemType == "Chromatogram":
             menu.AppendItem(menu_action_show_plot_chromatogram)
             menu.AppendSeparator()
             menu.AppendMenu(wx.ID_ANY, "Change x-axis to...", xlabel_RT_menu)
@@ -2817,7 +2836,19 @@ class DocumentTree(wx.TreeCtrl):
             menu.AppendItem(menu_action_save_chromatogram_image_as)
             menu.AppendItem(menu_action_save_data_as)
             menu.AppendItem(menu_action_delete_item)
-        # Drift time (1D)
+        # chromatograms - eic
+        elif itemType in ["Chromatograms (combined voltages, EIC)", "Chromatograms (EIC)"]:
+            # Only if clicked on an item and not header
+            if not self._item_leaf in ["Chromatograms (combined voltages, EIC)", "Chromatograms (EIC)"]:
+                menu.AppendItem(menu_action_show_plot_chromatogram)
+                menu.AppendSeparator()
+                menu.AppendItem(menu_action_assign_charge)
+                menu.AppendSeparator()
+                menu.Append(ID_saveRTImageDoc, "Save image as...")
+            menu.AppendItem(menu_action_save_data_as)
+            menu.AppendItem(menu_action_delete_item)
+
+        # drift time 1D - single
         elif itemType == "Drift time (1D)":
             menu.AppendItem(menu_action_show_plot_mobilogram)
             menu.AppendSeparator()
@@ -2826,23 +2857,27 @@ class DocumentTree(wx.TreeCtrl):
             menu.AppendItem(menu_action_save_mobilogram_image_as)
             menu.AppendItem(menu_action_save_data_as)
             menu.AppendItem(menu_action_delete_item)
-        # Drift time (2D)
-        elif itemType in [
-            "Drift time (2D)",
-            "Drift time (2D, processed)",
-            "Drift time (2D, EIC)",
-            "Drift time (2D, combined voltages, EIC)",
-            "Drift time (2D, processed, EIC)",
-        ]:
+        # drift time 1D - eic
+        elif itemType in ["Drift time (1D, EIC, DT-IMS)", "Drift time (1D, EIC)"]:
             # Only if clicked on an item and not header
-            if (
-                self._document_type in ["Drift time (2D)", "Drift time (2D, processed)"]
-                or (self._document_type == "Drift time (2D, EIC)" and self._item_leaf != self._document_type)
-                or (
-                    self._document_type == "Drift time (2D, combined voltages, EIC)"
-                    and self._item_leaf != self._document_type
-                )
-                or (self._document_type == "Drift time (2D, processed, EIC)" and self._item_leaf != self._document_type)
+            if self._item_leaf != "Drift time (1D, EIC, DT-IMS)" and itemType != "Drift time (1D, EIC)":
+                menu.AppendItem(menu_action_show_highlights)
+
+            if self._item_leaf not in ["Drift time (1D, EIC)", "Drift time (1D, EIC, DT-IMS)"]:
+                menu.AppendItem(menu_action_show_plot_mobilogram)
+                menu.AppendSeparator()
+                menu.AppendMenu(wx.ID_ANY, "Change x-axis to...", xlabel_1D_menu)
+                menu.AppendItem(menu_action_assign_charge)
+                menu.AppendSeparator()
+                menu.AppendItem(menu_action_save_mobilogram_image_as)
+            menu.AppendItem(menu_action_save_data_as)
+            menu.AppendItem(menu_action_delete_item)
+
+        # heatmap - 2D
+        elif itemType in all_heatmaps:
+            # heatmap - single
+            if self._document_type in ["Drift time (2D)", "Drift time (2D, processed)"] or (
+                self._document_type in heatmap_multi and self._item_leaf != self._document_type
             ):
                 menu.AppendItem(menu_action_show_plot_2D)
                 menu.AppendItem(menu_action_show_plot_violin)
@@ -2861,15 +2896,16 @@ class DocumentTree(wx.TreeCtrl):
                     menu.PrependItem(menu_action_show_plot_as_mobiligram)
                     menu.PrependItem(menu_action_show_plot_as_chromatogram)
                     menu.PrependItem(menu_action_show_highlights)
-            # Only if clicked on a header
+            # heatmap - all
             else:
                 menu.AppendItem(menu_action_process_2D_all)
                 menu.AppendSeparator()
                 menu.AppendItem(menu_action_save_1D_data_as)
                 menu.AppendItem(menu_action_save_2D_data_as)
                 menu.AppendItem(menu_action_delete_item)
-        # Input data
+        # input data
         elif self._document_type == "Input data":
+            # input data - all
             if self._document_type == "Input data" and self._item_leaf != self._document_type:
                 menu.AppendItem(menu_action_show_plot_2D)
                 menu.AppendItem(menu_action_process_2D)
@@ -2877,16 +2913,11 @@ class DocumentTree(wx.TreeCtrl):
                 menu.AppendMenu(wx.ID_ANY, "Set X-axis label as...", xlabel_2D_menu)
                 menu.AppendMenu(wx.ID_ANY, "Set Y-axis label as...", ylabel_2D_menu)
                 menu.AppendItem(menu_action_save_heatmap_image_as)
-                menu.AppendItem(menu_action_save_data_as)
-                menu.AppendItem(menu_action_delete_item)
-            # Only if clicked on a header
-            else:
-                menu.AppendItem(
-                    makeMenuItem(parent=menu, id=ID_docTree_addToTextTable, text="Add to text file table", bitmap=None)
-                )
-                menu.AppendItem(menu_action_save_data_as)
-                menu.AppendItem(menu_action_delete_item)
-        # Statistical method
+            # single and all
+            menu.AppendItem(menu_action_save_data_as)
+            menu.AppendItem(menu_action_delete_item)
+
+        # statistical method
         elif self._document_type == "Statistical":
             # Only if clicked on an item and not header
             if self._item_leaf != self._document_type:
@@ -2907,47 +2938,7 @@ class DocumentTree(wx.TreeCtrl):
                 menu.AppendItem(menu_action_save_data_as)
                 menu.AppendItem(menu_action_delete_item)
 
-        # Drift time (1D) (batch)
-        elif itemType in ["Drift time (1D, EIC, DT-IMS)", "Drift time (1D, EIC)"]:
-            # Only if clicked on an item and not header
-            if self._item_leaf != "Drift time (1D, EIC, DT-IMS)" and itemType != "Drift time (1D, EIC)":
-                menu.AppendItem(menu_action_show_highlights)
-
-            if self._item_leaf not in ["Drift time (1D, EIC)", "Drift time (1D, EIC, DT-IMS)"]:
-                menu.AppendItem(menu_action_show_plot_mobilogram)
-                menu.AppendSeparator()
-                menu.AppendMenu(wx.ID_ANY, "Change x-axis to...", xlabel_1D_menu)
-                menu.AppendItem(menu_action_assign_charge)
-                menu.AppendSeparator()
-                menu.AppendItem(menu_action_save_mobilogram_image_as)
-                menu.AppendItem(menu_action_save_data_as)
-                menu.AppendItem(menu_action_delete_item)
-            # Only if on a header
-            else:
-                menu.AppendItem(menu_action_save_data_as)
-                menu.AppendItem(menu_action_delete_item)
-        elif itemType == "Chromatograms (combined voltages, EIC)":
-            # Only if clicked on an item and not header
-            if not self._item_leaf == "Chromatograms (combined voltages, EIC)":
-                menu.AppendItem(menu_action_show_plot_chromatogram)
-                menu.AppendSeparator()
-                menu.AppendItem(menu_action_assign_charge)
-                menu.AppendSeparator()
-                menu.Append(ID_saveRTImageDoc, "Save image as...")
-                menu.AppendItem(menu_action_save_data_as)
-                menu.AppendItem(menu_action_delete_item)
-            # Only if on a header
-            else:
-                menu.AppendItem(menu_action_save_data_as)
-                menu.AppendItem(menu_action_delete_item)
-        elif itemType == "Calibration Parameters":
-            menu.AppendItem(menu_action_save_data_as)
-            menu.AppendItem(menu_action_delete_item)
-        elif itemType == "Calibration peaks" or itemType == "Calibrants":
-            if self._document_type != self._item_leaf:
-                menu.Append(menu_action_show_plot)
-                menu.AppendSeparator()
-                menu.AppendItem(menu_action_delete_item)
+        # overlay
         elif itemType == "Overlay":
             if self._document_type != self._item_leaf:
                 if self.splitText[0] in [
@@ -2990,6 +2981,7 @@ class DocumentTree(wx.TreeCtrl):
             else:
                 menu.AppendSeparator()
                 menu.AppendItem(menu_action_delete_item)
+        # dt-ms
         elif itemType == "DT/MS":
             menu.AppendItem(menu_action_show_plot_2D)
             menu.AppendItem(menu_action_process_2D)
@@ -3068,9 +3060,7 @@ class DocumentTree(wx.TreeCtrl):
 
     # TODO: FIXME
     def on_change_xy_values_and_labels(self, evt):
-        """
-        Change xy-axis labels
-        """
+        """Change xy-axis labels"""
 
         # Get current document info
         document_title, selectedItem, selectedText = self.on_enable_document(getSelected=True)

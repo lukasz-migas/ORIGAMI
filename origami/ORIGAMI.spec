@@ -6,7 +6,6 @@ import sys
 import zipfile
 from distutils.core import setup
 from distutils.dir_util import copy_tree
-import py2exe
 import matplotlib
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
@@ -34,7 +33,6 @@ import pymzml
 tstart_build = time.clock()
 
 block_cipher = None
-
 # run command
 # pyinstaller ORIGAMI.spec -y --clean
 
@@ -135,7 +133,7 @@ coll = COLLECT(exe,
 
 # Give information about build time
 tend_build = time.clock()
-print("Build ORIGAMI in {} seconds\n".format(tend_build-tstart_build))
+print("Build ORIGAMI in {} seconds\n".format(tend_build - tstart_build))
 
 # Copy additional files
 filelist = ['icon.ico',
@@ -165,10 +163,9 @@ for directory in dirlist:
         tstart_copying = time.clock()
         saveDir = path.path(''.join([dist_dir, '\\', directory]))
         copy_tree(directory, saveDir)
-        print("Copied directory: {}. It took {:.4f} seconds.".format(directory, time.clock()-tstart_copying))
+        print("Copied directory: {}. It took {:.4f} seconds.".format(directory, time.clock() - tstart_copying))
     except Exception:
         print('Skipped directory: {}'.format(directory))
-        pass
 
-print("Copied files in {} seconds.\n".format(time.clock()-tstart_copy))
-print("ORIGAMI was compiled in {:.4f} seconds.\n".format(time.clock()-tstart_build))
+print("Copied files in {} seconds.\n".format(time.clock() - tstart_copy))
+print("ORIGAMI was compiled in {:.4f} seconds.\n".format(time.clock() - tstart_build))

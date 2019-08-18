@@ -416,10 +416,11 @@ class ZoomBox:
         self.data_lims[3] = y_max
 
     def update_mark_state(self, state):
+        """Update the state of annotation"""
         self.mark_annotation = state
 
     def on_pick_event(self, event):
-        " Store which text object was picked and were the pick event occurs."
+        """Store which text object was picked and were the pick event occurs."""
 
         if isinstance(event.artist, Text):
             self.dragged = event.artist

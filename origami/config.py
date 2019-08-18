@@ -1223,7 +1223,7 @@ class OrigamiConfig:
         self.origami_boltzmannOffset = 0
         self.origami_exponentialPercentage = 0
         self.origami_exponentialIncrement = 0
-        self.origami_acquisition_choices = ["Linear", "Exponential", "Boltzmann", "User-defined", "Manual"]
+        self.origami_acquisition_choices = ["Linear", "Exponential", "Boltzmann", "User-defined"]
         self.origami_acquisition = "Linear"
         self.origami_userDefined_list = []
         self.origami_preprocess = True  # new in v1.3.0.0

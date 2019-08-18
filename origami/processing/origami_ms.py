@@ -128,6 +128,21 @@ def calculate_scan_list_boltzmann(
     return start_end_cv_list
 
 
+def calculate_scan_list_user_defined(start_scan, spv_cv_list):
+
+    scans_per_voltage_list = spv_cv_list[:, 0]
+    cv_list = spv_cv_list[:, 1]
+
+    x1 = 0
+    start_end_cv_list = []
+    for i, cv in zip(scans_per_voltage_list, cv_list):
+        x2 = int(x1 + i)
+        start_end_cv_list.append([x1 + start_scan, x2 + start_scan, cv])
+        x1 = x2
+
+    return start_end_cv_list
+
+
 def origami_combine_linear(data, start_scan, start_voltage, end_voltage, step_voltage, scans_per_voltage):
     # Build dictionary with parameters
     parameters = {
@@ -342,7 +357,6 @@ def origami_combine_userDefined(data=None, start_scan=None, inputList=None):  # 
 
 def generate_extraction_windows(start_end_cv_list):
     start_end_cv_list = np.asarray(start_end_cv_list)
-    print(start_end_cv_list)
 
     start_scan = start_end_cv_list[:, 0]
     end_scan = start_end_cv_list[:, 1]

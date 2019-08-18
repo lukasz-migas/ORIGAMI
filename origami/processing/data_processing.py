@@ -1657,7 +1657,9 @@ class data_processing:
                 raise MessageError(
                     "Missing ORIGAMI-MS configuration",
                     "Please setup ORIGAMI-MS settings by right-clicking on the document in the"
-                    + "Document Tree and selecting `Action -> Setup ORIGAMI-MS parameters",
+                    + "Document Tree and selecting `Action -> Setup ORIGAMI-MS parameters"
+                    + " or clicking in the toolbar of the peaklist and selecting"
+                    + " ORIGAMI-MS: Setup parameters",
                 )
 
             # unpack settings

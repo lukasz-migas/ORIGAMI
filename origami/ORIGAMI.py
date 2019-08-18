@@ -175,6 +175,12 @@ class ORIGAMI(object):
         self.currentPath = None
 
     def _test_(self):
+        """Exit application after performing some tests
+
+        GUI testing is tricky, so we simply invoke a couple of functions and ensure they run without raising any
+        errors. If everything is configured correctly, all tasks will complete and the application will close without
+        errors.
+        """
         # load text MS file
         path = os.path.join(self.config.cwd, "example_files", "text_files", "MS_p27-FL-K31.csv")
         self.data_handling.on_add_text_MS(path)

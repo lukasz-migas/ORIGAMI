@@ -12,6 +12,10 @@ from utils.exceptions import MessageError
 from utils.screen import calculate_window_size
 from visuals import mpl_plots
 
+# TODO: Add limits to some of the parameters as in ORIGAMI-MS GUI
+#    Botlzmann offset: min = 10.0 max = 100
+#    exponential increment < 0.075 and > 0.0
+
 
 class DialogCustomiseORIGAMI(Dialog):
     """Dialog to setup ORIGAMI-MS settings"""
@@ -185,6 +189,12 @@ class DialogCustomiseORIGAMI(Dialog):
         self.origami_loadListBtn = wx.Button(panel, wx.ID_ANY, "...", size=(-1, 22))
         self.origami_loadListBtn.Bind(wx.EVT_BUTTON, self.on_load_origami_list)
 
+        self.origami_calculateBtn = wx.Button(panel, wx.ID_OK, "Calculate", size=(-1, 22))
+        self.origami_calculateBtn.Bind(wx.EVT_BUTTON, self.on_plot)
+
+        btn_grid = wx.GridBagSizer(2, 2)
+        btn_grid.Add(self.origami_calculateBtn, (0, 0), flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL)
+
         horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
         # pack elements
@@ -219,11 +229,11 @@ class DialogCustomiseORIGAMI(Dialog):
         n += 1
         grid.Add(import_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.origami_loadListBtn, (n, 1), flag=wx.EXPAND)
-        n += 1
-        grid.Add(horizontal_line, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
+        main_sizer.Add(btn_grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
+        main_sizer.Add(horizontal_line, 0, wx.EXPAND, 10)
 
         # fit layout
         main_sizer.Fit(panel)
@@ -499,12 +509,12 @@ class DialogCustomiseORIGAMI(Dialog):
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
             origami_list = self._load_origami_list(path)
-
+            print(origami_list)
             self.user_settings["origami_cv_spv_list"] = origami_list
 
         dlg.Destroy()
 
-    def on_plot(self):
+    def on_plot(self, evt=None):
         start_end_cv_list = self.calculate_origami_parameters()
         scans, voltages = pr_origami.generate_extraction_windows(start_end_cv_list)
 
@@ -549,8 +559,8 @@ class DialogCustomiseORIGAMI(Dialog):
                 self.user_settings["origami_boltzmannOffset"],
             )
         elif method == "User-defined":
-            start_end_cv_list = []
-        elif method == "Manual":
-            start_end_cv_list = []
+            start_end_cv_list = pr_origami.calculate_scan_list_user_defined(
+                self.user_settings["origami_startScan"], self.user_settings["origami_cv_spv_list"]
+            )
 
         return start_end_cv_list

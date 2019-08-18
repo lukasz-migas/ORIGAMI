@@ -2478,7 +2478,7 @@ class PanelPlots(wx.Panel):
             plot_size_key = "MS (DT/RT)"
         else:
             window = None
-            plt_kwargs["prevent_extraction"] = True
+            plt_kwargs["prevent_extraction"] = kwargs.pop("prevent_extraction", True)
             plot_size_key = "MS"
 
         # change page

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 import copy
+import logging
 from ast import literal_eval
 from re import split as re_split
 from time import time as ttime
@@ -33,7 +34,6 @@ from pubsub import pub
 from styles import ListCtrl
 from styles import makeCheckbox
 from styles import makeMenuItem
-from styles import makeToggleBtn
 from styles import validator
 from toolbox import checkExtension
 from utils.color import convertRGB1to255
@@ -41,10 +41,13 @@ from utils.color import convertRGB255to1
 from utils.converters import str2int
 from utils.converters import str2num
 from utils.labels import _replace_labels
+from utils.screen import calculate_window_size
+from visuals import mpl_plots
+
+logger = logging.getLogger("origami")
+
 
 # TODO: need to override the on_select_item with the built-in method OR call after with similar method
-
-
 class PanelPeakAnnotationEditor(wx.MiniFrame):
     """
     Simple GUI to view and annotate mass spectra
@@ -59,7 +62,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
 
         self.parent = parent
         self.documentTree = documentTree
-        self.panelPlot = documentTree.presenter.view.panelPlots
+        self.panel_plot = documentTree.presenter.view.panelPlots
         self.config = config
         self.icons = icons
         self.help = OrigamiHelp()
@@ -67,14 +70,14 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
 
         self.kwargs = kwargs
 
+        self._display_size = wx.GetDisplaySize()
+        self._display_resolution = wx.ScreenDC().GetPPI()
+        self._window_size = calculate_window_size(self._display_size, 0.9)
+
         # presets
         self.showLabelsAtIntensity = True
         self.adjustLabelPosition = False
         self.item_loading_lock = False
-        self.check_all = False
-        self.reverse = False
-        self.lastColumn = None
-        #         self.peaklist.item_id = None
 
         self.config.annotation_patch_transparency = 0.2
         self.config.annotation_patch_width = 3
@@ -88,39 +91,36 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         elif self.kwargs["data"] is None:
             self.manual_add_only = True
 
-        self.plot = self.kwargs["plot"]
-
         # make gui items
         self.make_gui()
+        self._update_title()
+        self.onPopulateTable()
+        self.on_toggle_controls(None)
 
-        self.Layout()
-        self.SetSize((-1, 500))
-        self.SetMinSize((521, 300))
-        self.SetFocus()
+        self.plot_type = self.kwargs["plot_type"]
+        self.plot = self.plot_window
+
+        if self.plot_type == "mass_spectrum":
+            self.on_plot_spectrum(kwargs["data"][:, 0], kwargs["data"][:, 1])
+            self.plot_window._on_mark_annotation(True)
 
         # bind
         wx.EVT_CLOSE(self, self.on_close)
         self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_item)
-        self.onPopulateTable()
-        self.on_toggle_controls(None)
 
         # add listener
         pub.subscribe(self.add_annotation_from_mouse_evt, "mark_annotation")
 
-        try:
-            self.SetTitle("Annotating - {} / {}".format(kwargs["document"], kwargs["dataset"]))
-        except Exception:
-            pass
+    def _update_title(self):
+        """Update widget title"""
 
-        print("Startup took {:.3f} seconds".format(ttime() - tstart))
+        self.SetTitle("Annotating - {} / {}".format(self.kwargs.get("document", ""), self.kwargs.get("dataset", "")))
 
     def on_key_event(self, evt):
         key_code = evt.GetKeyCode()
         if key_code == wx.WXK_ESCAPE:  # key = esc
             self.on_close(evt=None)
-        #         elif key_code == 127: # delete
-        #             self.onRemove(None)
 
         evt.Skip()
 
@@ -139,20 +139,28 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         self.documentTree.annotateDlg = None
         self.Destroy()
 
-    # ----
-
     def make_gui(self):
 
         # make panel
-        panel = self.make_panel()
+        settings_panel = self.make_settings_panel(self)
+        self._settings_panel_size = settings_panel.GetSize()
 
-        # pack element
-        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.main_sizer.Add(panel, 1, wx.EXPAND, 5)
+        plot_panel = self.make_plot_panel(self)
+
+        # pack elements
+        self.main_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.main_sizer.Add(settings_panel, 0, wx.EXPAND, 0)
+        self.main_sizer.Add(plot_panel, 1, wx.EXPAND, 0)
 
         # fit layout
         self.main_sizer.Fit(self)
         self.SetSizer(self.main_sizer)
+        self.SetSize(self._window_size)
+        self.Layout()
+        self.Show(True)
+
+        self.CentreOnScreen()
+        self.SetFocus()
 
     def make_peaklist(self, panel):
 
@@ -168,23 +176,56 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             "arrow": 8,
         }
 
-        self.peaklist = ListCtrl(panel, style=wx.LC_REPORT | wx.LC_VRULES | wx.LC_SINGLE_SEL)
-        self.peaklist.InsertColumn(self.annotation_list["check"], "", width=25)
-        self.peaklist.InsertColumn(self.annotation_list["min"], "min band", width=75)
-        self.peaklist.InsertColumn(self.annotation_list["max"], "max band", width=75)
-        self.peaklist.InsertColumn(self.annotation_list["position"], "value (x)", width=75)
-        self.peaklist.InsertColumn(self.annotation_list["intensity"], "value (y)", width=75)
-        self.peaklist.InsertColumn(self.annotation_list["charge"], "charge", width=50)
-        self.peaklist.InsertColumn(self.annotation_list["label"], "label", width=100)
-        self.peaklist.InsertColumn(self.annotation_list["color"], "color", width=107)
-        self.peaklist.InsertColumn(self.annotation_list["arrow"], "show arrow", width=75)
+        self._annotations_peaklist = {
+            0: {"name": "", "tag": "check", "type": "bool", "width": 20, "show": True},
+            1: {"name": "min band", "tag": "min", "type": "float", "width": 75, "show": True},
+            2: {"name": "max band", "tag": "max", "type": "float", "width": 75, "show": True},
+            3: {"name": "value (x)", "tag": "position", "type": "float", "width": 75, "show": True},
+            4: {"name": "value (y)", "tag": "intensity", "type": "color", "width": 75, "show": True},
+            5: {"name": "z", "tag": "charge", "type": "int", "width": 30, "show": True},
+            6: {"name": "label", "tag": "label", "type": "str", "width": 100, "show": True},
+            7: {"name": "color", "tag": "color", "type": "color", "width": 65, "show": True},
+            8: {"name": "arrow", "tag": "arrow", "type": "str", "width": 45, "show": True},
+        }
 
-    #         self.peaklist.Bind(wx.EVT_LIST_COL_CLICK, self.OnGetColumnClick)
+        self.peaklist = ListCtrl(panel, style=wx.LC_REPORT | wx.LC_VRULES, column_info=self._annotations_peaklist)
+        for order, item in self._annotations_peaklist.items():
+            name = item["name"]
+            width = 0
+            if item["show"]:
+                width = item["width"]
+            self.peaklist.InsertColumn(order, name, width=width, format=wx.LIST_FORMAT_CENTER)
 
-    def make_panel(self):
+        max_peaklist_size = (int(self._window_size[0] * 0.3), -1)
+        self.peaklist.SetMaxClientSize(max_peaklist_size)
 
-        panel = wx.Panel(self, -1, size=(-1, -1))
+    def make_plot_panel(self, split_panel):
+
+        panel = wx.Panel(split_panel, -1, size=(-1, -1), name="plot")
+        self.plot_panel = wx.Panel(panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+
+        pixel_size = [(self._window_size[0] - self._settings_panel_size[0]), (self._window_size[1] - 50)]
+        figsize = [pixel_size[0] / self._display_resolution[0], pixel_size[1] / self._display_resolution[1]]
+
+        self.plot_window = mpl_plots.plots(self.plot_panel, figsize=figsize, config=self.config)
+
+        box = wx.BoxSizer(wx.VERTICAL)
+        box.Add(self.plot_window, 1, wx.EXPAND)
+        box.Fit(self.plot_panel)
+        self.plot_panel.SetSizer(box)
+        self.plot_panel.Layout()
+
         main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(self.plot_panel, 1, wx.EXPAND, 2)
+        # fit layout
+        panel.SetSizer(main_sizer)
+        main_sizer.Fit(panel)
+
+        return panel
+
+    def make_settings_panel(self, split_panel):
+
+        panel = wx.Panel(split_panel, -1, size=(-1, -1), name="settings")
 
         # make peaklist
         self.make_peaklist(panel)
@@ -196,18 +237,23 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         max_label = wx.StaticText(panel, -1, "max band (x):")
         self.max_value = wx.TextCtrl(panel, -1, "", validator=validator("float"))
 
+        position_label = wx.StaticText(panel, -1, "value (x):")
+        self.position_value = wx.TextCtrl(panel, -1, "", validator=validator("float"))
+        self.position_value.SetToolTip(wx.ToolTip("Value (x) could represent m/z of an ion in a mass spectrum."))
+
+        intensity_label = wx.StaticText(panel, -1, "value (y):")
+        self.intensity_value = wx.TextCtrl(panel, -1, "", validator=validator("float"))
+        self.intensity_value.SetToolTip(wx.ToolTip("Value (y) could represent intensity of an ion in a mass spectrum."))
+
         charge_label = wx.StaticText(panel, -1, "charge:")
         self.charge_value = wx.TextCtrl(panel, -1, "", validator=validator("int"))
-
-        label_label = wx.StaticText(panel, -1, "label:")
-        self.label_value = wx.TextCtrl(panel, -1, "", style=wx.TE_RICH2)
 
         color_label = wx.StaticText(panel, -1, "color:")
         self.colorBtn = wx.Button(panel, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0)
         self.colorBtn.SetBackgroundColour(convertRGB1to255(self.config.interactive_ms_annotations_color))
         self.colorBtn.Bind(wx.EVT_BUTTON, self.onChangeColour)
 
-        label_format = wx.StaticText(panel, -1, "format:")
+        label_format = wx.StaticText(panel, -1, "auto-label format:")
         self.label_format = wx.ComboBox(
             panel,
             -1,
@@ -217,13 +263,8 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             size=(-1, -1),
         )
 
-        intensity_label = wx.StaticText(panel, -1, "value (y):")
-        self.intensity_value = wx.TextCtrl(panel, -1, "", validator=validator("float"))
-        self.intensity_value.SetToolTip(wx.ToolTip("Value (y) could represent intensity of an ion in a mass spectrum."))
-
-        position_label = wx.StaticText(panel, -1, "value (x):")
-        self.position_value = wx.TextCtrl(panel, -1, "", validator=validator("float"))
-        self.position_value.SetToolTip(wx.ToolTip("Value (x) could represent m/z of an ion in a mass spectrum."))
+        label_label = wx.StaticText(panel, -1, "label:")
+        self.label_value = wx.TextCtrl(panel, -1, "", style=wx.TE_RICH2)
 
         position_x_label = wx.StaticText(panel, -1, "label position (x):")
         self.position_x_value = wx.TextCtrl(panel, -1, "", validator=validator("float"))
@@ -239,21 +280,10 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
         # make buttons
-        self.markTgl = makeToggleBtn(panel, "Annotating: Off", wx.RED, size=(-1, -1))
-        self.markTgl.SetLabel("Annotating: Off")
-        self.markTgl.SetForegroundColour(wx.WHITE)
-        self.markTgl.SetBackgroundColour(wx.RED)
-        self.markTgl.SetToolTip(
-            wx.ToolTip("When toggled to On, right-click in the plot area to select an area and annotate accordingly.")
-        )
-
-        #         if self.manual_add_only:
-        #             self.markTgl.Disable()
-
-        self.addBtn = wx.Button(panel, wx.ID_OK, "Add annotation", size=(-1, 22))
-        self.showBtn = wx.Button(panel, wx.ID_OK, "Show ▼", size=(-1, 22))
+        self.addBtn = wx.Button(panel, wx.ID_OK, "Add", size=(-1, 22))
         self.removeBtn = wx.Button(panel, wx.ID_OK, "Remove", size=(-1, 22))
         self.cancelBtn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, 22))
+        self.showBtn = wx.Button(panel, wx.ID_OK, "Show ▼", size=(-1, 22))
         self.actionBtn = wx.Button(panel, wx.ID_OK, "Action ▼", size=(-1, 22))
 
         self.highlight_on_selection = makeCheckbox(panel, "highlight")
@@ -267,7 +297,6 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             panel, -1, value=str(5), min=0.0001, max=250, initial=5, inc=25, size=(90, -1)
         )
 
-        self.markTgl.Bind(wx.EVT_TOGGLEBUTTON, self.onMarkOnSpectrum)
         self.addBtn.Bind(wx.EVT_BUTTON, self.on_add_annotation)
         self.removeBtn.Bind(wx.EVT_BUTTON, self.onRemove)
         self.cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
@@ -278,13 +307,12 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         # button grid
         btn_grid = wx.GridBagSizer(5, 5)
         y = 0
-        btn_grid.Add(self.actionBtn, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        btn_grid.Add(self.markTgl, (y, 1), flag=wx.ALIGN_CENTER)
-        btn_grid.Add(self.addBtn, (y, 2), flag=wx.ALIGN_CENTER)
-        btn_grid.Add(self.showBtn, (y, 3), flag=wx.ALIGN_CENTER)
-        btn_grid.Add(self.removeBtn, (y, 4), flag=wx.ALIGN_CENTER)
-        btn_grid.Add(self.cancelBtn, (y, 5), flag=wx.ALIGN_CENTER)
-        y = y + 1
+        btn_grid.Add(self.addBtn, (y, 0), flag=wx.ALIGN_CENTER)
+        btn_grid.Add(self.removeBtn, (y, 1), flag=wx.ALIGN_CENTER)
+        btn_grid.Add(self.showBtn, (y, 2), flag=wx.ALIGN_CENTER)
+        btn_grid.Add(self.actionBtn, (y, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        btn_grid.Add(self.cancelBtn, (y, 4), flag=wx.ALIGN_CENTER)
+        y += 1
         btn_grid.Add(self.highlight_on_selection, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         btn_grid.Add(self.zoom_on_selection, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         btn_grid.Add(window_size, (y, 2), flag=wx.ALIGN_CENTER)
@@ -297,34 +325,41 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         grid.Add(self.min_value, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         grid.Add(max_label, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.max_value, (y, 3), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(position_label, (y, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.position_value, (y, 5), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        y = y + 1
-        grid.Add(charge_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.charge_value, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        y += 1
+        grid.Add(position_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.position_value, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         grid.Add(intensity_label, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.intensity_value, (y, 3), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(color_label, (y, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.colorBtn, (y, 5), flag=wx.ALIGN_CENTER_VERTICAL)
-        y = y + 1
+        y += 1
+        grid.Add(charge_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.charge_value, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(color_label, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.colorBtn, (y, 3), flag=wx.ALIGN_CENTER_VERTICAL)
+        y += 1
+        grid.Add(label_format, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.label_format, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        y += 1
         grid.Add(label_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.label_value, (y, 1), wx.GBSpan(1, 3), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(label_format, (y, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.label_format, (y, 5), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        y = y + 1
+        y += 1
         grid.Add(position_x_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.position_x_value, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         grid.Add(position_y_label, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.position_y_value, (y, 3), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(add_arrow_to_peak, (y, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.add_arrow_to_peak, (y, 5), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        y = y + 1
-        grid.Add(horizontal_line, (y, 0), wx.GBSpan(1, 8), flag=wx.EXPAND)
-        y = y + 1
-        grid.Add(btn_grid, (y, 0), wx.GBSpan(1, 8), flag=wx.ALIGN_CENTER)
+        y += 1
+        grid.Add(add_arrow_to_peak, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.add_arrow_to_peak, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        y += 1
+        grid.Add(horizontal_line, (y, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
+        y += 1
+        grid.Add(btn_grid, (y, 0), wx.GBSpan(1, 4), flag=wx.ALIGN_CENTER)
 
+        #         # setup growable column
+        #         grid.AddGrowableCol(5)
+
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(grid, 0, wx.EXPAND, 10)
-        main_sizer.Add(self.peaklist, 1, wx.EXPAND | wx.ALL, 2)
+        main_sizer.Add(self.peaklist, 1, wx.EXPAND, 2)
 
         # fit layout
         main_sizer.Fit(panel)
@@ -333,14 +368,6 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         return panel
 
     def on_toggle_controls(self, evt):
-
-        #         add_arrow = self.add_arrow_to_peak.GetValue()
-        #         if add_arrow:
-        #             self.position_x_value.Enable()
-        #             self.position_y_value.Enable()
-        #         else:
-        #             self.position_x_value.Disable()
-        #             self.position_y_value.Disable()
 
         if evt is not None:
             evt.Skip()
@@ -906,7 +933,6 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             charge = 0
 
         # set values
-        #         try:
         self.min_value.SetValue(str(min_value))
         self.max_value.SetValue(str(max_value))
         self.position_value.SetValue(str(position))
@@ -919,22 +945,8 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         self.add_arrow_to_peak.SetValue(False)
         self.position_x_value.SetValue("")
         self.position_y_value.SetValue("")
-        #         except Exception: pass
 
         self.addBtn.SetFocus()
-
-    def onMarkOnSpectrum(self, evt):
-        marking_state = self.markTgl.GetValue()
-        if not marking_state:
-            self.markTgl.SetLabel("Annotating: Off")
-            self.markTgl.SetForegroundColour(wx.WHITE)
-            self.markTgl.SetBackgroundColour(wx.RED)
-        else:
-            self.markTgl.SetLabel("Annotating: On")
-            self.markTgl.SetForegroundColour(wx.WHITE)
-            self.markTgl.SetBackgroundColour(wx.BLUE)
-
-        self.plot._on_mark_annotation(state=marking_state)
 
     def onUpdateAnnotation(self, index):
         min_value = self.peaklist.GetItem(index, self.annotation_list["min"]).GetText()
@@ -1192,7 +1204,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
                 if self.peaklist.IsChecked(index=row):
                     charge_value = self.peaklist.GetItem(row, self.annotation_list["charge"]).GetText()
                     label_value = self._convert_str_to_unicode(str(charge_value), return_type=label_format)
-                    self.peaklist.SetStringItem(index=row, col=self.annotation_list["label"], label=label_value)
+                    self.peaklist.SetStringItem(row, self.annotation_list["label"], label=label_value)
                     self.onUpdateAnnotation(row)
 
             # update document
@@ -1315,3 +1327,25 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
                 "rotation": self.config.annotation_label_font_orientation,
             }
         return kwargs
+
+    def on_plot_spectrum(self, mz_x, mz_y):
+        """Plot mass spectrum"""
+        self.panel_plot.on_plot_MS(
+            mz_x,
+            mz_y,
+            show_in_window="peak_picker",
+            plot_obj=self.plot_window,
+            override=False,
+            prevent_extraction=False,
+        )
+
+    def on_clear_plot(self, evt):
+        self.plot_window.clearPlot()
+
+    def on_save_figure(self, evt):
+
+        plot_title = f"{self.document_title}_{self.dataset_name}".replace(" ", "-").replace(":", "")
+        self.panel_plot.save_images(None, None, plot_obj=self.plot_window, image_name=plot_title)
+
+    def on_copy_to_clipboard(self, evt):
+        self.plot_window.copy_to_clipboard()
