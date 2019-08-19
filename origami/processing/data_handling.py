@@ -10,6 +10,7 @@ from multiprocessing.pool import ThreadPool
 from sys import platform
 
 import numpy as np
+import objects.annotations as annotations_obj
 import processing.heatmap as pr_heatmap
 import processing.origami_ms as pr_origami
 import processing.spectra as pr_spectra
@@ -2436,6 +2437,29 @@ class data_handling:
         else:
             self.on_open_document(file_path)
 
+    def _upgrade_document_annotations(self, document):
+
+        if "annotations" in document.massSpectrum:
+            document.massSpectrum["annotations"] = self._convert_annotations(document.massSpectrum.pop("annotations"))
+        if "annotations" in document.smoothMS:
+            document.smoothMS["annotations"] = self._convert_annotations(document.smoothMS.pop("annotations"))
+        for key in document.multipleMassSpectrum:
+            if "annotations" in document.multipleMassSpectrum[key]:
+                document.multipleMassSpectrum[key]["annotations"] = self._convert_annotations(
+                    document.multipleMassSpectrum[key].pop("annotations")
+                )
+
+    def _convert_annotations(self, annotations):
+        annotations_doc_obj = annotations
+        if type(annotations) == dict:
+            annotations_doc_obj = annotations_obj.Annotations()
+            for name, annotation_dict in annotations.items():
+                annotations_doc_obj.add_annotation_from_old_format(name, annotation_dict, 0)
+
+            logger.info(f"Converted annotations to latest version. {annotations_doc_obj}")
+
+        return annotations_doc_obj
+
     def _upgrade_document_version(self, document):
         """Fix old-style documents to comply with current version
 
@@ -2466,7 +2490,7 @@ class data_handling:
 
         if not hasattr(document, "file_reader"):
             setattr(document, "file_reader", {})
-            logger.info(f"FIXED [Missing attribute]: file_reader")
+            logger.info(f"FIXED [Missing attribut                    ]: file_reader")
 
         if not hasattr(document, "app_data"):
             setattr(document, "app_data", {})
@@ -2560,6 +2584,9 @@ class data_handling:
                 # check version
                 if document_version < 2:
                     document_obj = self._upgrade_document_version(document_obj)
+
+                # upgrade annotations
+                self._upgrade_document_annotations(document_obj)
 
                 # add document data to document tree
                 self._load_document_data(document=document_obj)
@@ -3467,7 +3494,11 @@ class data_handling:
             dictionary with all data associated with the [document, dataset] combo
         """
 
-        document_title, spectrum_title = query_info
+        if len(query_info) == 3:
+            document_title, __, spectrum_title = query_info
+        else:
+            document_title, spectrum_title = query_info
+
         document = self._on_get_document(document_title)
 
         if spectrum_title == "Mass Spectrum":

@@ -59,6 +59,41 @@ def get_clean_label_without_tag(label, tag):
     return label
 
 
+def convert_str_to_unicode(s, return_type="superscript"):
+    """Convert string label to unicode"""
+
+    if "+" not in s and "-" not in s and return_type not in ["charge-only [n+]", "charge-only [+n]"]:
+        s = "+{}".format(s)
+
+    if return_type == "None":
+        return ""
+    elif return_type == "charge-only [+n]":
+        return "+{}".format(s)
+    elif return_type == "charge-only [n+]":
+        return "{}+".format(s)
+    elif return_type == "superscript":
+        unicode_string = "".join(dict(list(zip("+-0123456789", "⁺⁻⁰¹²³⁴⁵⁶⁷⁸⁹"))).get(c, c) for c in s)
+        return unicode_string
+    elif return_type == "M+nH":
+        unicode_string = "".join(dict(list(zip("+-0123456789", "⁺⁻⁰¹²³⁴⁵⁶⁷⁸⁹"))).get(c, c) for c in s)
+        modified_label = "[M{}H]{}".format(s, unicode_string)
+        return modified_label
+    elif return_type == "2M+nH":
+        unicode_string = "".join(dict(list(zip("+-0123456789", "⁺⁻⁰¹²³⁴⁵⁶⁷⁸⁹"))).get(c, c) for c in s)
+        modified_label = "[2M{}H]{}".format(s, unicode_string)
+        return modified_label
+    elif return_type == "3M+nH":
+        unicode_string = "".join(dict(list(zip("+-0123456789", "⁺⁻⁰¹²³⁴⁵⁶⁷⁸⁹"))).get(c, c) for c in s)
+        modified_label = "[3M{}H]{}".format(s, unicode_string)
+        return modified_label
+    elif return_type == "4M+nH":
+        unicode_string = "".join(dict(list(zip("+-0123456789", "⁺⁻⁰¹²³⁴⁵⁶⁷⁸⁹"))).get(c, c) for c in s)
+        modified_label = "[4M{}H]{}".format(s, unicode_string)
+        return modified_label
+    else:
+        return s
+
+
 def _replace_labels(label):
     """ Replace string labels to unicode """
 

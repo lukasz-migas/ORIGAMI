@@ -1626,6 +1626,7 @@ class DocumentTree(wx.TreeCtrl):
 
         document = self._document_data.title
         dataset = self._item_leaf
+        dataset_type = self._item_leaf
 
         # get data
         data = self.GetPyData(self._item_id)
@@ -1633,15 +1634,20 @@ class DocumentTree(wx.TreeCtrl):
             if self._document_type == "Mass Spectrum":
                 data = self._document_data.massSpectrum
                 dataset = "Mass Spectrum"
+                dataset_type = "Mass Spectrum"
             elif self._document_type == "Mass Spectrum (processed)":
                 data = self._document_data.smoothMS
                 dataset = "Mass Spectrum (processed)"
+                dataset_type = "Mass Spectrum (processed)"
             elif self._document_type == "Mass Spectra" and self._item_leaf == "Annotations":
                 data = self._document_data.multipleMassSpectrum[self._item_branch]
                 dataset = self._item_branch
+                dataset_type = "Mass Spectra"
             elif "Annotated data" in self._document_type and self._item_leaf == "Annotations":
                 data = self._document_data.other_data[self._item_branch]
                 dataset = self._item_branch
+
+        query = [document, dataset, dataset_type]
 
         # check if previous annotations exist
         annotations = {}
@@ -1699,6 +1705,7 @@ class DocumentTree(wx.TreeCtrl):
             "data": data,
             "plot_type": plot_type,
             "annotations": annotations,
+            "query": query,
         }
 
         self.annotateDlg = PanelPeakAnnotationEditor(self.parent, self, self.config, self.icons, **kwargs)

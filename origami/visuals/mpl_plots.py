@@ -260,6 +260,10 @@ class plots(mpl_plotter):
             labelsize=kwargs["tick_size"],
         )
 
+        # prevent scientific notation
+        self.plotMS.get_xaxis().get_major_formatter().set_useOffset(False)
+
+        # setup borders
         self.plotMS.spines["left"].set_visible(kwargs["spines_left"])
         self.plotMS.spines["right"].set_visible(kwargs["spines_right"])
         self.plotMS.spines["top"].set_visible(kwargs["spines_top"])
