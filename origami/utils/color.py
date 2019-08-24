@@ -9,6 +9,14 @@ from utils.random import random_int_0_to_255
 __all__ = ["randomColorGenerator", "convertRGB255to1", "convertRGB1to255", "determineFontColor"]
 
 
+def get_all_color_types(color_1):
+    """Convert color(1) to font color and color(255) representation"""
+    color_255 = convertRGB1to255(color_1, as_integer=True)
+    font_color = determineFontColor(color_255, return_rgb=True)
+
+    return color_255, color_1, font_color
+
+
 def check_color_type(color):
     if isinstance(color, list):
         return color

@@ -3479,6 +3479,13 @@ class data_handling:
             )
             logger.info(f"Saved {filename} in {ttime()-tstart:.4f} seconds.")
 
+    def get_annotations_data(self, query_info, data_type):
+
+        if data_type == "mass_spectrum":
+            __, dataset = self.get_spectrum_data(query_info)
+
+        return dataset.get("annotations", annotations_obj.Annotations())
+
     def get_spectrum_data(self, query_info, **kwargs):
         """Retrieve data for specified query items.
 
