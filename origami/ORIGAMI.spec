@@ -44,6 +44,10 @@ origami_dir_name = "ORIGAMI_v{}".format(version)
 dist_dir = os.path.join(current_dir, "dist\\{}".format(origami_dir_name))
 print("Creating executable in {}".format(dist_dir))
 
+# TODO: add method to ensure `testing` and `debug` are set to FALSE and check `version` number is higher than previous
+#   higher value
+# TODO: add method to automatically zip the folder
+
 
 def collect_pkg_data(package, include_py_files=False, subdir=None):
     # Accept only strings as packages.

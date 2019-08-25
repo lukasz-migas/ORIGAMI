@@ -59,3 +59,9 @@ def convert_type(value):
         return str2int(value)
     elif isinstance(value, float):
         return str2num(value)
+
+
+def rounder(value, digits=4):
+    """Round and return value"""
+    value = round(str2num(value), digits)
+    return f"{value}"

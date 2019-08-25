@@ -144,7 +144,7 @@ from utils.labels import _replace_labels
 from utils.path import clean_filename
 from utils.random import get_random_int
 
-# enable on windowsOS only
+#  enable on windowsOS only
 if platform == "win32":
     import readers.io_thermo_raw as io_thermo
 
@@ -1624,8 +1624,8 @@ class DocumentTree(wx.TreeCtrl):
         """Open annotations panel"""
         from gui_elements.panel_peak_annotation_editor import PanelPeakAnnotationEditor
 
-        document = self._document_data.title
-        dataset = self._item_leaf
+        document_title = self._document_data.title
+        dataset_name = self._item_leaf
         dataset_type = self._item_leaf
 
         # get data
@@ -1633,26 +1633,21 @@ class DocumentTree(wx.TreeCtrl):
         if data is None:
             if self._document_type == "Mass Spectrum":
                 data = self._document_data.massSpectrum
-                dataset = "Mass Spectrum"
+                dataset_name = "Mass Spectrum"
                 dataset_type = "Mass Spectrum"
             elif self._document_type == "Mass Spectrum (processed)":
                 data = self._document_data.smoothMS
-                dataset = "Mass Spectrum (processed)"
+                dataset_name = "Mass Spectrum (processed)"
                 dataset_type = "Mass Spectrum (processed)"
             elif self._document_type == "Mass Spectra" and self._item_leaf == "Annotations":
                 data = self._document_data.multipleMassSpectrum[self._item_branch]
-                dataset = self._item_branch
+                dataset_name = self._item_branch
                 dataset_type = "Mass Spectra"
             elif "Annotated data" in self._document_type and self._item_leaf == "Annotations":
                 data = self._document_data.other_data[self._item_branch]
-                dataset = self._item_branch
+                dataset_name = self._item_branch
 
-        query = [document, dataset, dataset_type]
-
-        # check if previous annotations exist
-        annotations = {}
-        if "annotations" in data:
-            annotations = data["annotations"]
+        query = [document_title, dataset_type, dataset_name]
 
         if self.annotateDlg is not None:
             raise MessageError(
@@ -1686,7 +1681,6 @@ class DocumentTree(wx.TreeCtrl):
         #         else:
         data = np.transpose([data["xvals"], data["yvals"]])
         plot_type = "mass_spectrum"
-        #         plot = self.panel_plot.plot1
 
         _plot_types = {
             "multi-line": "Multi-line",
@@ -1700,11 +1694,12 @@ class DocumentTree(wx.TreeCtrl):
         }
 
         kwargs = {
-            "document": document,
-            "dataset": dataset,
+            "document_title": document_title,
+            "dataset_type": dataset_type,
+            "dataset_name": dataset_name,
             "data": data,
             "plot_type": plot_type,
-            "annotations": annotations,
+            "annotations": self.data_handling.get_annotations_data(query, plot_type),
             "query": query,
         }
 
@@ -1734,7 +1729,7 @@ class DocumentTree(wx.TreeCtrl):
 
         return document, annotations
 
-    def on_update_annotation(self, annotations, document, dataset, set_data_only=False):
+    def on_update_annotation(self, annotations, document_title, dataset_type, dataset_name, set_data_only=False):
         """
         Update annotations in specified document/dataset
         ----------
@@ -1751,36 +1746,36 @@ class DocumentTree(wx.TreeCtrl):
             we it should simply set data
         """
 
-        document = self.presenter.documentsDict[document]
-        item = False
-        docItem = False
-        if dataset == "Mass Spectrum":
+        document = self.data_handling._on_get_document(document_title)
+
+        item, docItem = False, False
+        if dataset_type == "Mass Spectrum":
             item = self.getItemByData(document.massSpectrum)
             document.massSpectrum["annotations"] = annotations
             annotation_data = document.massSpectrum["annotations"]
-        elif dataset == "Mass Spectrum (processed)":
+        elif dataset_type == "Mass Spectrum (processed)":
             item = self.getItemByData(document.smoothMS)
             document.smoothMS["annotations"] = annotations
             annotation_data = document.smoothMS["annotations"]
-        elif "Waterfall (Raw):" in dataset:
-            item = self.getItemByData(document.IMS2DoverlayData[dataset])
-            document.IMS2DoverlayData[dataset]["annotations"] = annotations
-            annotation_data = document.IMS2DoverlayData[dataset]["annotations"]
+        elif "Waterfall (Raw):" in dataset_name:
+            item = self.getItemByData(document.IMS2DoverlayData[dataset_name])
+            document.IMS2DoverlayData[dataset_name]["annotations"] = annotations
+            annotation_data = document.IMS2DoverlayData[dataset_name]["annotations"]
         elif (
-            "Multi-line: " in dataset
-            or "V-bar: " in dataset
-            or "H-bar: " in dataset
-            or "Scatter: " in dataset
-            or "Waterfall: " in dataset
-            or "Line: " in dataset
+            "Multi-line: " in dataset_name
+            or "V-bar: " in dataset_name
+            or "H-bar: " in dataset_name
+            or "Scatter: " in dataset_name
+            or "Waterfall: " in dataset_name
+            or "Line: " in dataset_name
         ):
-            item = self.getItemByData(document.other_data[dataset])
-            document.other_data[dataset]["annotations"] = annotations
-            annotation_data = document.other_data[dataset]["annotations"]
+            item = self.getItemByData(document.other_data[dataset_name])
+            document.other_data[dataset_name]["annotations"] = annotations
+            annotation_data = document.other_data[dataset_name]["annotations"]
         else:
-            item = self.getItemByData(document.multipleMassSpectrum[dataset])
-            document.multipleMassSpectrum[dataset]["annotations"] = annotations
-            annotation_data = document.multipleMassSpectrum[dataset]["annotations"]
+            item = self.getItemByData(document.multipleMassSpectrum[dataset_name])
+            document.multipleMassSpectrum[dataset_name]["annotations"] = annotations
+            annotation_data = document.multipleMassSpectrum[dataset_name]["annotations"]
 
         if item is not False and not set_data_only:
             self.append_annotation(item, annotation_data)
@@ -2846,7 +2841,7 @@ class DocumentTree(wx.TreeCtrl):
         # chromatograms - eic
         elif itemType in ["Chromatograms (combined voltages, EIC)", "Chromatograms (EIC)"]:
             # Only if clicked on an item and not header
-            if not self._item_leaf in ["Chromatograms (combined voltages, EIC)", "Chromatograms (EIC)"]:
+            if self._item_leaf not in ["Chromatograms (combined voltages, EIC)", "Chromatograms (EIC)"]:
                 menu.AppendItem(menu_action_show_plot_chromatogram)
                 menu.AppendSeparator()
                 menu.AppendItem(menu_action_assign_charge)

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 import itertools
+from ast import literal_eval
 from operator import itemgetter
 
 import numpy as np
@@ -322,6 +323,8 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
             return str2int(item_value)
         elif item_type == "float":
             return str2num(item_value)
+        elif item_type == "list":
+            return literal_eval(item_value)
         else:
             return byte2str(item_value)
 

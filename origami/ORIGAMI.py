@@ -235,7 +235,7 @@ class ORIGAMI(object):
             self.config.loggingFile_path = os.path.join(log_directory, file_path)
 
         # setup logger
-        set_logger(file_path=self.config.loggingFile_path, debug_mode=self.config.debug)
+        set_logger(file_path=self.config.loggingFile_path)
         set_logger_level(verbose="DEBUG")
 
         logger.info("Logs can be found in {}".format(self.config.loggingFile_path))

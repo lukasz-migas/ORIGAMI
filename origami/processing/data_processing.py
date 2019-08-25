@@ -190,14 +190,13 @@ class data_processing:
         )
         peak_diff = np.diff(isotope_peaks[:, 0])
         peak_std = np.std(peak_diff)
+        charge = 1
+        msg = f"Failed to predict charge state - set charge state to {charge:d}. Standard deviation: {peak_std:.4f}"
         if len(peak_diff) > 0 and peak_std <= std_dev:
             charge = int(np.round(1 / np.round(np.average(peak_diff), 4), 0))
-            msg = "Predicted charge state: {} | Standard deviation: {}".format(charge, peak_std)
-        else:
-            charge = 1
-            msg = "Failed to predict charge state. Standard deviation: {}".format(peak_std)
+            msg = f"Predicted charge state: {charge:d} | Standard deviation: {peak_std:.4f}"
 
-        self.presenter.onThreading(None, (msg, 4), action="updateStatusbar")
+        logger.info(msg)
 
         return charge
 

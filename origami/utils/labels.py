@@ -6,6 +6,19 @@ import re
 from utils.converters import str2num
 
 
+def sanitize_string(string, replace_with="; "):
+    """Removes all new lines from string
+
+    Parameters
+    ---------
+    string : str
+        input string
+    replace_with : str
+        determines what should be used as replacement for the new line(s), default = ","
+    """
+    return string.replace("\n", replace_with)
+
+
 def get_ion_name_from_label(ion_name, as_num=False):
     """Extract mz values from label
 
