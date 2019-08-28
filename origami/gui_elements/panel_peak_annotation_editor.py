@@ -5,7 +5,6 @@ import logging
 
 import numpy as np
 import processing.utils as pr_utils
-import utils.labels as ut_labels
 import wx
 from gui_elements.dialog_color_picker import DialogColorPicker
 from gui_elements.dialog_customise_user_annotations import DialogCustomiseUserAnnotations
@@ -61,6 +60,10 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         self.annotations_obj = kwargs.pop("annotations")
         self.data = kwargs["data"]
 
+        #         for i in range(wx.Display.GetCount()):
+        #             display = wx.Display(i)
+        #             print(display.IsPrimary(), display.GetGeometry(), self.GetPosition())
+
         self._display_size = wx.GetDisplaySize()
         self._display_resolution = wx.ScreenDC().GetPPI()
         self._window_size = calculate_window_size(self._display_size, 0.9)
@@ -101,6 +104,34 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
 
         # add listener
         pub.subscribe(self.add_annotation_from_mouse_evt, "mark_annotation")
+        self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
+
+    def on_right_click(self, evt):
+
+        menu = wx.Menu()
+        save_figure_menu_item = makeMenuItem(
+            menu, id=wx.ID_ANY, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
+        )
+        menu.AppendItem(save_figure_menu_item)
+
+        menu_action_copy_to_clipboard = makeMenuItem(
+            parent=menu, id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self.icons.iconsLib["filelist_16"]
+        )
+        menu.AppendItem(menu_action_copy_to_clipboard)
+
+        #         clear_plot_menu_item = makeMenuItem(
+        #             menu, id=wx.ID_ANY, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
+        #         )
+        #         menu.AppendSeparator()
+        #         menu.AppendItem(clear_plot_menu_item)
+
+        self.Bind(wx.EVT_MENU, self.on_save_figure, save_figure_menu_item)
+        #         self.Bind(wx.EVT_MENU, self.on_clear_plot, clear_plot_menu_item)
+        self.Bind(wx.EVT_MENU, self.on_copy_to_clipboard, menu_action_copy_to_clipboard)
+
+        self.PopupMenu(menu)
+        menu.Destroy()
+        self.SetFocus()
 
     def _update_title(self):
         """Update widget title"""
@@ -840,7 +871,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         self.item_loading_lock = False
 
         # put a red patch around the peak of interest and zoom-in on the peak
-        intensity = annotation_obj.intensity * 1.5
+        intensity = annotation_obj.intensity * 10
 
         if self.highlight_on_selection.GetValue():
             self.plot.plot_add_patch(
@@ -1136,6 +1167,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         self.documentTree.on_update_annotation(
             self.annotations_obj, self.document_title, self.dataset_type, self.dataset_name
         )
+        self.on_add_label_to_plot(annotations_obj[name])
 
     def on_delete_annotation(self, evt, name=None):
 
@@ -1209,104 +1241,147 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
                 column_id = self.annotation_list[value_type]
                 self.peaklist.SetStringItem(item_id, column_id, str(value))
 
+    def on_add_label_to_plot(self, annotation_obj):
+        label_kwargs = self.panel_plot._buildPlotParameters(plotType="label")
+
+        show_label = "{:.2f}, {}\nz={}".format(annotation_obj.position, annotation_obj.intensity, annotation_obj.charge)
+
+        # add  custom name tag
+        obj_name_tag = "{}|-|{}|-|{} - {}|-|{}".format(
+            self.document_title, self.dataset_name, annotation_obj.span_min, annotation_obj.span_max, "annotation"
+        )
+        label_kwargs["text_name"] = obj_name_tag
+
+        # add label to the plot
+        self.plot.plot_add_text_and_lines(
+            xpos=annotation_obj.label_position_x,
+            yval=annotation_obj.label_position_y,
+            label=show_label,
+            vline=False,
+            vline_position=annotation_obj.position,
+            stick_to_intensity=self._menu_pin_label_to_intensity,
+            yoffset=self.config.annotation_label_y_offset,
+            color=annotation_obj.label_color,
+            **label_kwargs,
+        )
+        self.plot.repaint()
+
     def on_show_on_plot(self, evt):
 
         menu_name = evt.GetEventObject().FindItemById(evt.GetId()).GetLabel()
 
-        # clear plot
-        self.plot.plot_remove_text_and_lines()
-        # prepare plot kwargs
-        label_kwargs = self.panel_plot._buildPlotParameters(plotType="label")
-        arrow_kwargs = self.panel_plot._buildPlotParameters(plotType="arrow")
-        vline = False
-        _ymax = []
+        label_fmt = "all"
+        if "Show charge" in menu_name:
+            label_fmt = "charge"
+        elif "Show label" in menu_name:
+            label_fmt = "label"
 
         annotations_obj = self.get_annotation_data()
-        for name, annotation_obj in annotations_obj.items():
-            __, index = self.check_for_duplcate(name)
-            if self._menu_show_all or self.peaklist.IsChecked(index):
-                #         for key in self.kwargs["annotations"]:
-                #             # get annotation
-                #             annotation = self.kwargs["annotations"][key]
-                #             print(annotation)
-                #             intensity = str2num(annotation["intensity"])
-                #             charge = annotation["charge"]
-                #             label = annotation["label"]
-                #             min_x_value = annotation["min"]
-                #             max_x_value = annotation["max"]
-                #             color_value = annotation.get("color", self.config.interactive_ms_annotations_color)
-                #             add_arrow = annotation.get("add_arrow", False)
-                #
-                #             if "isotopic_x" in annotation:
-                #                 mz_value = annotation["isotopic_x"]
-                #                 if mz_value in ["", 0] or mz_value < min_x_value:
-                #                     mz_value = max_x_value - ((max_x_value - min_x_value) / 2)
-                #             else:
-                #                 mz_value = max_x_value - ((max_x_value - min_x_value) / 2)
-                #
-                #             label_x_position = annotation.get("position_label_x", mz_value)
-                #             label_y_position = annotation.get("position_label_y", intensity)
-                #
-                if "Show charge" in menu_name:
-                    show_label = annotation_obj.charge
-                elif "Show label" in menu_name:
-                    show_label = ut_labels._replace_labels(annotation_obj.label)
-                else:
-                    show_label = "{:.2f}, {}\nz={}".format(
-                        annotation_obj.position, annotation_obj.intensity, annotation_obj.charge
-                    )
+        self.panel_plot.on_plot_1D_annotations(
+            annotations_obj,
+            plot=None,
+            plot_obj=self.plot,
+            label_fmt=label_fmt,
+            pin_to_intensity=self._menu_pin_label_to_intensity,
+            document_title=self.document_title,
+            dataset_name=self.dataset_name,
+        )
 
-                if show_label == "":
-                    continue
-
-            # arrows have 4 positional parameters:
-            #    xpos, ypos = correspond to the label position
-            #    dx, dy = difference between label position and peak position
-            if annotation_obj.arrow_show and self._menu_pin_label_to_intensity:
-                arrow_list, arrow_x_end, arrow_y_end = annotation_obj.get_arrow_position()
-
-                # add  custom name tag
-                obj_name_tag = "{}|-|{}|-|{} - {}|-|{}".format(
-                    self.document_title,
-                    self.dataset_name,
-                    annotation_obj.span_min,
-                    annotation_obj.span_max,
-                    "annotation",
-                )
-                label_kwargs["text_name"] = obj_name_tag
-
-            self.plot.plot_add_text_and_lines(
-                xpos=annotation_obj.label_position_x,
-                yval=annotation_obj.label_position_y,
-                label=show_label,
-                vline=vline,
-                vline_position=annotation_obj.position,
-                stick_to_intensity=self._menu_pin_label_to_intensity,
-                yoffset=self.config.annotation_label_y_offset,
-                color=annotation_obj.label_color,
-                **label_kwargs,
-            )
-
-            _ymax.append(annotation_obj.label_position_y)
-            if annotation_obj.arrow_show and self._menu_pin_label_to_intensity:
-                arrow_kwargs["text_name"] = obj_name_tag
-                arrow_kwargs["props"] = [arrow_x_end, arrow_y_end]
-                print(arrow_list)
-                self.plot.plot_add_arrow(
-                    arrow_list, stick_to_intensity=self._menu_pin_label_to_intensity, **arrow_kwargs
-                )
-
-        if self._menu_autofix_label_position:
-            self.plot._fix_label_positions()
-
-        # update intensity
-        if self.config.annotation_zoom_y:
-            try:
-                self.plot.on_zoom_y_axis(endY=np.amax(_ymax) * self.config.annotation_zoom_y_multiplier)
-            except TypeError:
-                pass
-
-        self.plot.repaint()
+    #         # clear plot
+    #         self.plot.plot_remove_text_and_lines()
+    #         # prepare plot kwargs
+    #         label_kwargs = self.panel_plot._buildPlotParameters(plotType="label")
+    #         arrow_kwargs = self.panel_plot._buildPlotParameters(plotType="arrow")
+    #         vline = False
+    #         _ymax = []
+    #
+    #         annotations_obj = self.get_annotation_data()
+    #         for name, annotation_obj in annotations_obj.items():
+    #             __, index = self.check_for_duplcate(name)
+    #             if self._menu_show_all or self.peaklist.IsChecked(index):
+    #                 #         for key in self.kwargs["annotations"]:
+    #                 #             # get annotation
+    #                 #             annotation = self.kwargs["annotations"][key]
+    #                 #             print(annotation)
+    #                 #             intensity = str2num(annotation["intensity"])
+    #                 #             charge = annotation["charge"]
+    #                 #             label = annotation["label"]
+    #                 #             min_x_value = annotation["min"]
+    #                 #             max_x_value = annotation["max"]
+    #                 #             color_value = annotation.get("color", self.config.interactive_ms_annotations_color)
+    #                 #             add_arrow = annotation.get("add_arrow", False)
+    #                 #
+    #                 #             if "isotopic_x" in annotation:
+    #                 #                 mz_value = annotation["isotopic_x"]
+    #                 #                 if mz_value in ["", 0] or mz_value < min_x_value:
+    #                 #                     mz_value = max_x_value - ((max_x_value - min_x_value) / 2)
+    #                 #             else:
+    #                 #                 mz_value = max_x_value - ((max_x_value - min_x_value) / 2)
+    #                 #
+    #                 #             label_x_position = annotation.get("position_label_x", mz_value)
+    #                 #             label_y_position = annotation.get("position_label_y", intensity)
+    #                 #
+    #                 if "Show charge" in menu_name:
+    #                     show_label = annotation_obj.charge
+    #                 elif "Show label" in menu_name:
+    #                     show_label = ut_labels._replace_labels(annotation_obj.label)
+    #                 else:
+    #                     show_label = "{:.2f}, {}\nz={}".format(
+    #                         annotation_obj.position, annotation_obj.intensity, annotation_obj.charge
+    #                     )
+    #
+    #                 if show_label == "":
+    #                     continue
+    #
+    #             # arrows have 4 positional parameters:
+    #             #    xpos, ypos = correspond to the label position
+    #             #    dx, dy = difference between label position and peak position
+    #             if annotation_obj.arrow_show and self._menu_pin_label_to_intensity:
+    #                 arrow_list, arrow_x_end, arrow_y_end = annotation_obj.get_arrow_position()
+    #
+    #             # add  custom name tag
+    #             obj_name_tag = "{}|-|{}|-|{} - {}|-|{}".format(
+    #                 self.document_title,
+    #                 self.dataset_name,
+    #                 annotation_obj.span_min,
+    #                 annotation_obj.span_max,
+    #                 "annotation",
+    #             )
+    #             label_kwargs["text_name"] = obj_name_tag
+    #
+    #             # add label to the plot
+    #             self.plot.plot_add_text_and_lines(
+    #                 xpos=annotation_obj.label_position_x,
+    #                 yval=annotation_obj.label_position_y,
+    #                 label=show_label,
+    #                 vline=vline,
+    #                 vline_position=annotation_obj.position,
+    #                 stick_to_intensity=self._menu_pin_label_to_intensity,
+    #                 yoffset=self.config.annotation_label_y_offset,
+    #                 color=annotation_obj.label_color,
+    #                 **label_kwargs,
+    #             )
+    #
+    #             _ymax.append(annotation_obj.label_position_y)
+    #             if annotation_obj.arrow_show and self._menu_pin_label_to_intensity:
+    #                 arrow_kwargs["text_name"] = obj_name_tag
+    #                 arrow_kwargs["props"] = [arrow_x_end, arrow_y_end]
+    #                 print(arrow_list)
+    #                 self.plot.plot_add_arrow(
+    #                     arrow_list, stick_to_intensity=self._menu_pin_label_to_intensity, **arrow_kwargs
+    #                 )
+    #
+    #         if self._menu_autofix_label_position:
+    #             self.plot._fix_label_positions()
+    #
+    #         # update intensity
+    #         if self.config.annotation_zoom_y:
+    #             try:
+    #                 self.plot.on_zoom_y_axis(endY=np.amax(_ymax) * self.config.annotation_zoom_y_multiplier)
+    #             except TypeError:
+    #                 pass
+    #
+    #         self.plot.repaint()
 
     #     def on_update_label(self, evt):
     #         evtID = evt.GetId()
@@ -1387,25 +1462,6 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
                 continue
 
         return False, -1
-
-    def _buildPlotParameters(self, plotType="label"):
-        if plotType == "arrow":
-            kwargs = {
-                "arrow_line_width": self.config.annotation_arrow_line_width,
-                "arrow_line_style": self.config.annotation_arrow_line_style,
-                "arrow_head_length": self.config.annotation_arrow_cap_length,
-                "arrow_head_width": self.config.annotation_arrow_cap_width,
-            }
-
-        elif plotType == "label":
-            kwargs = {
-                "horizontalalignment": self.config.annotation_label_horz,
-                "verticalalignment": self.config.annotation_label_vert,
-                "fontweight": self.config.annotation_label_font_weight,
-                "fontsize": self.config.annotation_label_font_size,
-                "rotation": self.config.annotation_label_font_orientation,
-            }
-        return kwargs
 
     def on_plot_spectrum(self, mz_x, mz_y):
         """Plot mass spectrum"""

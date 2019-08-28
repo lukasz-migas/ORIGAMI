@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 """Annotations container"""
+import collections
 
 
 def check_annotation_input(annotation_dict):
@@ -188,7 +189,7 @@ class Annotation:
         self.charge = kwargs.get("charge", self.charge)
 
 
-class Annotations(object):
+class Annotations(collections.MutableMapping):
     """Class containing single annotation metadata"""
 
     VERSION = 1
@@ -210,6 +211,9 @@ class Annotations(object):
 
     def __getitem__(self, key):
         return self.annotations[key]
+
+    def __delitem__(self, *args):
+        self.annotations.pop(*args)
 
     def keys(self):
         return self.annotations.keys()
@@ -273,7 +277,6 @@ class Annotations(object):
 
     def update_annotation(self, name, annotation_dict):
         if name in self.annotations:
-            print(name, "updating")
             self.annotations[name].update_annotation(**annotation_dict)
 
     def remove_annotation(self, annotation_name):

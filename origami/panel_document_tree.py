@@ -1917,14 +1917,15 @@ class DocumentTree(wx.TreeCtrl):
         evt : wxPython event
             unused
         """
-        document = self.presenter.documentsDict[self._document_data.title]
+        document = self.data_handling._on_get_document()
+        #         document = self.presenter.documentsDict[self._document_data.title]
         plot_obj = self.panel_plot.plot1
         if self._document_type == "Mass Spectrum":
-            annotations = document.massSpectrum["annotations"]
+            annotations_obj = document.massSpectrum["annotations"]
         elif self._document_type == "Mass Spectrum (processed)":
-            annotations = document.smoothMS["annotations"]
+            annotations_obj = document.smoothMS["annotations"]
         elif self._document_type == "Mass Spectra":
-            annotations = document.multipleMassSpectrum[self._item_branch]["annotations"]
+            annotations_obj = document.multipleMassSpectrum[self._item_branch]["annotations"]
         elif self._document_type == "Annotated data" and (
             "Waterfall: " in self._item_branch
             or "Multi-line: " in self._item_branch
@@ -1933,76 +1934,87 @@ class DocumentTree(wx.TreeCtrl):
             or "Scatter: " in self._item_branch
             or "Line: " in self._item_branch
         ):
-            annotations = document.other_data[self._item_branch]["annotations"]
+            annotations_obj = document.other_data[self._item_branch]["annotations"]
             plot_obj = self.panel_plot.plotOther
 
-        plot_obj.plot_remove_text_and_lines()
-        _ymax = []
+        self.panel_plot.on_plot_1D_annotations(
+            annotations_obj,
+            plot=None,
+            plot_obj=plot_obj,
+            label_fmt="all",
+            pin_to_intensity=True,
+            document_title=document.title,
+            dataset_name=self._item_branch,
+        )
 
-        label_kwargs = self.panel_plot._buildPlotParameters(plotType="label")
-        for key in annotations:
-            annotation = annotations[key]
-            intensity = str2num(annotation["intensity"])
-            charge = annotation["charge"]
-            min_x_value = annotation["min"]
-            max_x_value = annotation["max"]
-            color_value = annotation.get("color", self.config.interactive_ms_annotations_color)
-            add_arrow = annotation.get("add_arrow", False)
-            show_label = annotation["label"]
+        #         plot_obj.plot_remove_text_and_lines()
 
-            if "isotopic_x" in annotation:
-                mz_value = annotation["isotopic_x"]
-                if mz_value in ["", 0] or mz_value < min_x_value:
-                    mz_value = max_x_value - ((max_x_value - min_x_value) / 2)
-            else:
-                mz_value = max_x_value - ((max_x_value - min_x_value) / 2)
-
-            label_x_position = annotation.get("position_label_x", mz_value)
-            label_y_position = annotation.get("position_label_y", intensity)
-
-            if show_label == "":
-                show_label = "{}, {}\nz={}".format(round(mz_value, 4), intensity, charge)
-
-            # add  custom name tag
-            try:
-                obj_name_tag = "{}|-|{}|-|{} - {}|-|{}".format(
-                    self._document_data.title, self._item_branch, min_x_value, max_x_value, "annotation"
-                )
-                label_kwargs["text_name"] = obj_name_tag
-            except Exception:
-                pass
-
-            if add_arrow:
-                arrow_x_position = label_x_position
-                label_x_position = annotation.get("position_label_x", label_x_position)
-                arrow_dx = label_x_position - arrow_x_position
-                arrow_y_position = label_y_position
-                label_y_position = annotation.get("position_label_y", label_y_position)
-                arrow_dy = label_y_position - arrow_y_position
-
-            plot_obj.plot_add_text_and_lines(
-                xpos=label_x_position,
-                yval=label_y_position,
-                label=show_label,
-                vline=False,
-                stick_to_intensity=True,
-                yoffset=self.config.annotation_label_y_offset,
-                color=color_value,
-                **label_kwargs,
-            )
-
-            _ymax.append(label_y_position)
-            if add_arrow:
-                arrow_list = [arrow_x_position, arrow_y_position, arrow_dx, arrow_dy]
-                plot_obj.plot_add_arrow(arrow_list, stick_to_intensity=True)
-
-        if self.config.annotation_zoom_y:
-            try:
-                plot_obj.on_zoom_y_axis(endY=np.amax(_ymax) * self.config.annotation_zoom_y_multiplier)
-            except TypeError:
-                pass
-
-        plot_obj.repaint()
+    #         _ymax = []
+    #
+    #         label_kwargs = self.panel_plot._buildPlotParameters(plotType="label")
+    #         for key in annotations:
+    #             annotation = annotations[key]
+    #             intensity = str2num(annotation["intensity"])
+    #             charge = annotation["charge"]
+    #             min_x_value = annotation["min"]
+    #             max_x_value = annotation["max"]
+    #             color_value = annotation.get("color", self.config.interactive_ms_annotations_color)
+    #             add_arrow = annotation.get("add_arrow", False)
+    #             show_label = annotation["label"]
+    #
+    #             if "isotopic_x" in annotation:
+    #                 mz_value = annotation["isotopic_x"]
+    #                 if mz_value in ["", 0] or mz_value < min_x_value:
+    #                     mz_value = max_x_value - ((max_x_value - min_x_value) / 2)
+    #             else:
+    #                 mz_value = max_x_value - ((max_x_value - min_x_value) / 2)
+    #
+    #             label_x_position = annotation.get("position_label_x", mz_value)
+    #             label_y_position = annotation.get("position_label_y", intensity)
+    #
+    #             if show_label == "":
+    #                 show_label = "{}, {}\nz={}".format(round(mz_value, 4), intensity, charge)
+    #
+    #             # add  custom name tag
+    #             try:
+    #                 obj_name_tag = "{}|-|{}|-|{} - {}|-|{}".format(
+    #                     self._document_data.title, self._item_branch, min_x_value, max_x_value, "annotation"
+    #                 )
+    #                 label_kwargs["text_name"] = obj_name_tag
+    #             except Exception:
+    #                 pass
+    #
+    #             if add_arrow:
+    #                 arrow_x_position = label_x_position
+    #                 label_x_position = annotation.get("position_label_x", label_x_position)
+    #                 arrow_dx = label_x_position - arrow_x_position
+    #                 arrow_y_position = label_y_position
+    #                 label_y_position = annotation.get("position_label_y", label_y_position)
+    #                 arrow_dy = label_y_position - arrow_y_position
+    #
+    #             plot_obj.plot_add_text_and_lines(
+    #                 xpos=label_x_position,
+    #                 yval=label_y_position,
+    #                 label=show_label,
+    #                 vline=False,
+    #                 stick_to_intensity=True,
+    #                 yoffset=self.config.annotation_label_y_offset,
+    #                 color=color_value,
+    #                 **label_kwargs,
+    #             )
+    #
+    #             _ymax.append(label_y_position)
+    #             if add_arrow:
+    #                 arrow_list = [arrow_x_position, arrow_y_position, arrow_dx, arrow_dy]
+    #                 plot_obj.plot_add_arrow(arrow_list, stick_to_intensity=True)
+    #
+    #         if self.config.annotation_zoom_y:
+    #             try:
+    #                 plot_obj.on_zoom_y_axis(endY=np.amax(_ymax) * self.config.annotation_zoom_y_multiplier)
+    #             except TypeError:
+    #                 pass
+    #
+    #         plot_obj.repaint()
 
     def on_action_ORIGAMI_MS(self, evt, document_title=None):
         from gui_elements.dialog_customise_origami import DialogCustomiseORIGAMI
@@ -2486,10 +2498,6 @@ class DocumentTree(wx.TreeCtrl):
         menu_action_save_heatmap_image_as = makeMenuItem(
             parent=menu, id=ID_save2DImageDoc, text="Save image as...", bitmap=self.icons.iconsLib["file_png_16"]
         )
-
-        #         menu_action_save_other_image_as = makeMenuItem(
-        #             parent=menu, id=ID_saveOtherImageDoc, text="Save image as...", bitmap=self.icons.iconsLib["file_png_16"]
-        #         )
 
         menu_action_save_spectrum_image_as = makeMenuItem(
             parent=menu, id=ID_saveMSImageDoc, text="Save image as...", bitmap=self.icons.iconsLib["file_csv_16"]

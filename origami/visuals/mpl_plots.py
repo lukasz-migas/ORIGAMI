@@ -563,6 +563,12 @@ class plots(mpl_plotter):
             if line_label.startswith(label_starts_with):
                 line.remove()
 
+    def _remove_existing_labels(self, name_tag):
+        for i, text in enumerate(self.text):
+            if text.obj_name == name_tag:
+                text.remove()
+                del self.text[i]
+
     def plot_add_text_and_lines(
         self,
         xpos,
@@ -575,6 +581,9 @@ class plots(mpl_plotter):
         stick_to_intensity=False,
         **kwargs,
     ):
+        obj_name = kwargs.pop("text_name", None)
+        if obj_name is not None:
+            self._remove_existing_labels(obj_name)
 
         try:
             ymin, ymax = self.plotMS.get_ylim()
@@ -590,7 +599,7 @@ class plots(mpl_plotter):
             y_position = ymax
 
         # get custom name tag
-        obj_name = kwargs.pop("text_name", None)
+
         text = self.plotMS.text(
             np.array(xpos),
             y_position + yoffset,

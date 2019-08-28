@@ -9851,8 +9851,8 @@ class panelInteractiveOutput(wx.MiniFrame):
         _color_mapper = LinearColorMapper(palette=_palette, low=zmin, high=zmax)
         if return_palette:
             return _color_mapper, _palette
-        else:
-            return _color_mapper
+
+        return _color_mapper
 
     @staticmethod
     def _convert_color_list(colorList):

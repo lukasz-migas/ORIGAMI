@@ -2442,6 +2442,73 @@ class PanelPlots(wx.Panel):
         # show the plot
         plot_obj.repaint()
 
+    def on_plot_1D_annotations(self, annotations_obj, plot="MS", **kwargs):
+        from utils.labels import _replace_labels
+
+        if plot is None and "plot_obj" in kwargs:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+
+        label_kwargs = self._buildPlotParameters(plotType="label")
+        arrow_kwargs = self._buildPlotParameters(plotType="arrow")
+        vline = False
+        _ymax = []
+
+        plot_obj.plot_remove_text_and_lines()
+        label_fmt = kwargs.pop("label_fmt", "all")
+        pin_to_intensirt = kwargs.pop("pin_to_intensity", True)
+        document_title = kwargs.pop("document_title")
+        dataset_name = kwargs.pop("dataset_name")
+
+        for name, annotation_obj in annotations_obj.items():
+            #             __, index = self.check_for_duplcate(name)
+            #             if self._menu_show_all or self.peaklist.IsChecked(index):
+            if label_fmt == "charge":
+                show_label = annotation_obj.charge
+            elif label_fmt == "label":
+                show_label = _replace_labels(annotation_obj.label)
+            else:
+                show_label = "{:.2f}, {}\nz={}".format(
+                    annotation_obj.position, annotation_obj.intensity, annotation_obj.charge
+                )
+
+            if show_label == "":
+                continue
+
+            # arrows have 4 positional parameters:
+            #    xpos, ypos = correspond to the label position
+            #    dx, dy = difference between label position and peak position
+            if annotation_obj.arrow_show and pin_to_intensirt:
+                arrow_list, arrow_x_end, arrow_y_end = annotation_obj.get_arrow_position()
+
+            # add  custom name tag
+            obj_name_tag = "{}|-|{}|-|{} - {}|-|{}".format(
+                document_title, dataset_name, annotation_obj.span_min, annotation_obj.span_max, "annotation"
+            )
+            label_kwargs["text_name"] = obj_name_tag
+
+            # add label to the plot
+            plot_obj.plot_add_text_and_lines(
+                xpos=annotation_obj.label_position_x,
+                yval=annotation_obj.label_position_y,
+                label=show_label,
+                vline=vline,
+                vline_position=annotation_obj.position,
+                stick_to_intensity=pin_to_intensirt,
+                yoffset=self.config.annotation_label_y_offset,
+                color=annotation_obj.label_color,
+                **label_kwargs,
+            )
+
+            _ymax.append(annotation_obj.label_position_y)
+            if annotation_obj.arrow_show and pin_to_intensirt:
+                arrow_kwargs["text_name"] = obj_name_tag
+                arrow_kwargs["props"] = [arrow_x_end, arrow_y_end]
+                plot_obj.plot_add_arrow(arrow_list, stick_to_intensity=pin_to_intensirt, **arrow_kwargs)
+
+        plot_obj.repaint()
+
     def on_plot_MS(
         self,
         msX=None,
