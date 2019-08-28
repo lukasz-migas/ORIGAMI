@@ -236,11 +236,9 @@ class ZoomBox:
         self,
         axes,
         onselect,
-        drawtype="box",
         minspanx=None,
         minspany=None,
         useblit=False,
-        lineprops=None,
         rectprops=None,
         onmove_callback=None,
         spancoords="data",
@@ -440,16 +438,16 @@ class ZoomBox:
             self.cids.append(self.canvas.mpl_connect("button_press_event", self.press))
             self.cids.append(self.canvas.mpl_connect("button_release_event", self.release))
             self.cids.append(self.canvas.mpl_connect("draw_event", self.update_background))
-            self.cids.append(self.canvas.mpl_connect("motion_notify_event", self.OnMotion))
-            self.cids.append(self.canvas.mpl_connect("motion_notify_event", self.onKeyState))
+            self.cids.append(self.canvas.mpl_connect("motion_notify_event", self.on_motion))
+            self.cids.append(self.canvas.mpl_connect("motion_notify_event", self.on_key_state))
 
-            self.cids.append(self.canvas.mpl_connect("key_press_event", self.onKeyState))
-            self.cids.append(self.canvas.mpl_connect("key_release_event", self.onKeyState))
+            self.cids.append(self.canvas.mpl_connect("key_press_event", self.on_key_state))
+            self.cids.append(self.canvas.mpl_connect("key_release_event", self.on_key_state))
 
             # new
-            self.cids.append(self.canvas.mpl_connect("axes_enter_event", self.onEnterAxes))
-            self.cids.append(self.canvas.mpl_connect("axes_leave_event", self.onLeaveAxes))
-            self.cids.append(self.canvas.mpl_connect("scroll_event", self.onWheelEvent))
+            self.cids.append(self.canvas.mpl_connect("axes_enter_event", self.on_enter_axes))
+            self.cids.append(self.canvas.mpl_connect("axes_leave_event", self.on_leave_axes))
+            self.cids.append(self.canvas.mpl_connect("scroll_event", self.on_wheel_event))
 
         if rectprops is None:
             rectprops = dict(facecolor="white", edgecolor="black", alpha=0.5, fill=False)
@@ -468,7 +466,6 @@ class ZoomBox:
             self.to_draw.append(Rectangle((0, 0), 0, 1, visible=False, **self.rectprops))
 
         self.show_cursor_cross = self.plot_parameters["grid_show"]
-        #         if self.show_cursor_cross:
         lineprops = {}
         if self.useblit:
             lineprops["animated"] = True
@@ -482,10 +479,10 @@ class ZoomBox:
         for axes, to_draw in zip(self.axes, self.to_draw):
             axes.add_patch(to_draw)
 
-    def onEnterAxes(self, evt=None):
+    def on_enter_axes(self, evt=None):
         self.insideAxes = True
 
-    def onLeaveAxes(self, evt=None):
+    def on_leave_axes(self, evt=None):
         self.insideAxes = False
         for axes in self.axes:
             xmin, xmax = axes.get_xlim()
@@ -528,7 +525,7 @@ class ZoomBox:
             except Exception:
                 pass
 
-    def onWheelEvent(self, evt):
+    def on_wheel_event(self, evt):
 
         # Ignore wheel if trying to measure
         if wx.GetKeyState(wx.WXK_ALT) or not self.insideAxes:
@@ -624,7 +621,7 @@ class ZoomBox:
         if evt is not None:
             evt.Skip()
 
-    def onKeyState(self, evt):
+    def on_key_state(self, evt):
 
         # check keys
         self.ctrlKey = wx.GetKeyState(wx.WXK_CONTROL)
@@ -811,7 +808,9 @@ class ZoomBox:
                 return
         except Exception as e:
             self.dragged = None
-            self.canvas.draw()  # redraw image
+            logger.warning(f"ZOOM: {e}")
+
+        self.canvas.draw()  # redraw image
 
         # left-click + ctrl OR double left click reset axes
         if self.eventpress.dblclick:
@@ -1024,13 +1023,16 @@ class ZoomBox:
             self.canvas.draw_idle()
         return False
 
-    def OnMotion(self, evt):
-        "on motion notify event if box/line is wanted"
+    def on_motion(self, evt):
+        """on motion notify event if box/line is wanted"""
 
         # send event
         pub.sendMessage("motion_xy", xpos=evt.xdata, ypos=evt.ydata, plotname=self.plotName)
 
         if self.eventpress is None or self.ignore(evt):
+            return
+
+        if self.dragged is not None:
             return
 
         # actual position (with button still pressed)

@@ -2591,7 +2591,8 @@ class data_handling:
                 # add document data to document tree
                 self._load_document_data(document=document_obj)
             except (ValueError, AttributeError, TypeError, IOError) as e:
-                raise MessageError("Failed to load document on load.", str(e))
+                logger.error(e, exc_info=True)
+                raise MessageError("Failed to load document.", str(e))
 
         self.view.updateRecentFiles(path={"file_type": "pickle", "file_path": file_path})
 
@@ -3479,10 +3480,9 @@ class data_handling:
             )
             logger.info(f"Saved {filename} in {ttime()-tstart:.4f} seconds.")
 
-    def get_annotations_data(self, query_info, data_type):
+    def get_annotations_data(self, query_info):
 
-        if data_type == "mass_spectrum":
-            __, dataset = self.get_spectrum_data(query_info)
+        __, dataset = self.get_spectrum_data(query_info)
 
         return dataset.get("annotations", annotations_obj.Annotations())
 

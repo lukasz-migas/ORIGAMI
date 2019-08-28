@@ -93,8 +93,8 @@ class Annotation:
 
         # meta
         self.charge = kwargs.get("charge", 0)
-        self.position = kwargs.get("position", self.label_position[0])
-        self.intensity = kwargs.get("intensity", self.label_position[1])
+        self.position_x = kwargs.get("position_x", self.label_position[0])
+        self.position_y = kwargs.get("position_y", self.label_position[1])
 
     def __repr__(self):
         return (
@@ -157,13 +157,16 @@ class Annotation:
     def label_position_y(self):
         return self._label_position[1]
 
-    def get_arrow_position(self):
-        arrow_x_end = self.position
-        arrow_dx = arrow_x_end - self.label_position_x
-        arrow_y_end = self.intensity
-        arrow_dy = arrow_y_end - self.label_position_y
+    def get_arrow_position(self, position_x=None, position_y=None):
+        if position_x is None:
+            position_x = self.position_x
+        arrow_dx = position_x - self.label_position_x
 
-        return [self.label_position_x, self.label_position_y, arrow_dx, arrow_dy], arrow_x_end, arrow_y_end
+        if position_y is None:
+            position_y = self.position_y
+        arrow_dy = position_y - self.label_position_y
+
+        return [self.label_position_x, self.label_position_y, arrow_dx, arrow_dy], position_x, position_y
 
     def update_annotation(self, **kwargs):
         """Update annotation"""
@@ -189,7 +192,7 @@ class Annotation:
         self.charge = kwargs.get("charge", self.charge)
 
 
-class Annotations(collections.MutableMapping):
+class Annotations:
     """Class containing single annotation metadata"""
 
     VERSION = 1
@@ -215,6 +218,12 @@ class Annotations(collections.MutableMapping):
     def __delitem__(self, *args):
         self.annotations.pop(*args)
 
+    def __contains__(self, item):
+        return item in self.annotations
+
+    def get(self, key, default):
+        return self.annotations.get(key, default)
+
     def keys(self):
         return self.annotations.keys()
 
@@ -226,9 +235,6 @@ class Annotations(collections.MutableMapping):
 
     def pop(self, *args):
         return self.annotations.pop(*args)
-
-    def __contains__(self, item):
-        return item in self.annotations
 
     def add_annotation(self, name, annotation_dict):
         """Add annotation"""

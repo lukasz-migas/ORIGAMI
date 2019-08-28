@@ -153,37 +153,49 @@ class PanelPlots(wx.Panel):
         self.mainBook.SetSelection(page_name)
 
     def _update_label_position(self, text_obj):
-        document_title, dataset_name, annotation_name, text_type = text_obj.obj_name.split("|-|")
+        document_title, dataset_type, dataset_name, annotation_name, text_type = text_obj.obj_name.split("|-|")
 
-        # get document
-        __, annotations = self.view.panelDocuments.documents.on_get_annotation_dataset(document_title, dataset_name)
         if text_type == "annotation":
+            annotations_obj = self.data_handling.get_annotations_data([document_title, dataset_type, dataset_name])
+            annotation_obj = annotations_obj.get(annotation_name, None)
+            if annotation_obj is None:
+                logger.warning(f"Annotation: {annotation_name} was empty")
+                return
+
             new_pos_x, new_pos_y = text_obj.get_position()
-            annotations[annotation_name]["position_label_x"] = np.round(new_pos_x, 4)
-            annotations[annotation_name]["position_label_y"] = np.round(new_pos_y, 4)
-            try:
-                arrow_kwargs = self._buildPlotParameters(plotType="arrow")
-                if annotations[annotation_name].get("add_arrow", False):
-                    for i, arrow in enumerate(self.current_plot.arrows):
-                        if arrow.obj_name == text_obj.obj_name:
-                            arrow_x_end, arrow_y_end = arrow.obj_props
-                            arrow_kwargs["text_name"] = arrow.obj_name
-                            arrow_kwargs["props"] = [arrow_x_end, arrow_y_end]
+            annotations_obj.update_annotation(
+                annotation_name, {"label_position": [new_pos_x, new_pos_y * text_obj.y_divider]}
+            )
 
-                            # remove all arrow
-                            del self.current_plot.arrows[i]
-                            arrow.remove()
+            self.view.panelDocuments.documents.on_update_annotation(
+                annotations_obj, document_title, dataset_type, dataset_name, set_data_only=True
+            )
 
-                            # add arrow to plot
-                            arrow_list = [new_pos_x, new_pos_y, arrow_x_end - new_pos_x, arrow_y_end - new_pos_y]
-                            self.current_plot.plot_add_arrow(arrow_list, stick_to_intensity=True, **arrow_kwargs)
-            except Exception:
-                pass
-
-        # update annotation
-        self.view.panelDocuments.documents.on_update_annotation(
-            annotations, document_title, dataset_name, set_data_only=True
-        )
+    #             annotations[annotation_name]["position_label_x"] = np.round(new_pos_x, 4)
+    #             annotations[annotation_name]["position_label_y"] = np.round(new_pos_y, 4)
+    #             try:
+    #                 arrow_kwargs = self._buildPlotParameters(plotType="arrow")
+    #                 if annotations[annotation_name].get("add_arrow", False):
+    #                     for i, arrow in enumerate(self.current_plot.arrows):
+    #                         if arrow.obj_name == text_obj.obj_name:
+    #                             arrow_x_end, arrow_y_end = arrow.obj_props
+    #                             arrow_kwargs["text_name"] = arrow.obj_name
+    #                             arrow_kwargs["props"] = [arrow_x_end, arrow_y_end]
+    #
+    #                             # remove all arrow
+    #                             del self.current_plot.arrows[i]
+    #                             arrow.remove()
+    #
+    #                             # add arrow to plot
+    #                             arrow_list = [new_pos_x, new_pos_y, arrow_x_end - new_pos_x, arrow_y_end - new_pos_y]
+    #                             self.current_plot.plot_add_arrow(arrow_list, stick_to_intensity=True, **arrow_kwargs)
+    #             except Exception:
+    #                 pass
+    #
+    #         # update annotation
+    #         self.view.panelDocuments.documents.on_update_annotation(
+    #             annotations, document_title, dataset_name, set_data_only=True
+    #         )
 
     def on_page_changed(self, evt):
         # get current page
@@ -2457,35 +2469,26 @@ class PanelPlots(wx.Panel):
 
         plot_obj.plot_remove_text_and_lines()
         label_fmt = kwargs.pop("label_fmt", "all")
-        pin_to_intensirt = kwargs.pop("pin_to_intensity", True)
+        pin_to_intensity = kwargs.pop("pin_to_intensity", True)
         document_title = kwargs.pop("document_title")
+        dataset_type = kwargs.pop("dataset_type")
         dataset_name = kwargs.pop("dataset_name")
 
         for name, annotation_obj in annotations_obj.items():
-            #             __, index = self.check_for_duplcate(name)
-            #             if self._menu_show_all or self.peaklist.IsChecked(index):
             if label_fmt == "charge":
                 show_label = annotation_obj.charge
             elif label_fmt == "label":
                 show_label = _replace_labels(annotation_obj.label)
             else:
                 show_label = "{:.2f}, {}\nz={}".format(
-                    annotation_obj.position, annotation_obj.intensity, annotation_obj.charge
+                    annotation_obj.position_x, annotation_obj.position_y, annotation_obj.charge
                 )
 
             if show_label == "":
                 continue
 
-            # arrows have 4 positional parameters:
-            #    xpos, ypos = correspond to the label position
-            #    dx, dy = difference between label position and peak position
-            if annotation_obj.arrow_show and pin_to_intensirt:
-                arrow_list, arrow_x_end, arrow_y_end = annotation_obj.get_arrow_position()
-
             # add  custom name tag
-            obj_name_tag = "{}|-|{}|-|{} - {}|-|{}".format(
-                document_title, dataset_name, annotation_obj.span_min, annotation_obj.span_max, "annotation"
-            )
+            obj_name_tag = f"{document_title}|-|{dataset_type}|-|{dataset_name}|-|{name}|-|annotation"
             label_kwargs["text_name"] = obj_name_tag
 
             # add label to the plot
@@ -2494,18 +2497,29 @@ class PanelPlots(wx.Panel):
                 yval=annotation_obj.label_position_y,
                 label=show_label,
                 vline=vline,
-                vline_position=annotation_obj.position,
-                stick_to_intensity=pin_to_intensirt,
+                vline_position=annotation_obj.position_x,
+                stick_to_intensity=pin_to_intensity,
                 yoffset=self.config.annotation_label_y_offset,
                 color=annotation_obj.label_color,
                 **label_kwargs,
             )
 
             _ymax.append(annotation_obj.label_position_y)
-            if annotation_obj.arrow_show and pin_to_intensirt:
+            if annotation_obj.arrow_show and pin_to_intensity:
+                # arrows have 4 positional parameters:
+                #    xpos, ypos = correspond to the label position
+                #    dx, dy = difference between label position and peak position
+                arrow_list, arrow_x_end, arrow_y_end = annotation_obj.get_arrow_position()
+
                 arrow_kwargs["text_name"] = obj_name_tag
                 arrow_kwargs["props"] = [arrow_x_end, arrow_y_end]
-                plot_obj.plot_add_arrow(arrow_list, stick_to_intensity=pin_to_intensirt, **arrow_kwargs)
+                plot_obj.plot_add_arrow(arrow_list, stick_to_intensity=pin_to_intensity, **arrow_kwargs)
+
+        if self.config.annotation_zoom_y:
+            try:
+                plot_obj.on_zoom_y_axis(endY=np.amax(_ymax) * self.config.annotation_zoom_y_multiplier)
+            except TypeError:
+                logger.warning("Failed to zoom in on plot/annotation", exc_info=True)
 
         plot_obj.repaint()
 

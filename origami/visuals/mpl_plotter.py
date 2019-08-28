@@ -109,7 +109,6 @@ class mpl_plotter(wx.Panel):
         self.zoom = ZoomBox(
             plots,
             None,
-            drawtype="box",
             useblit=True,
             button=1,
             onmove_callback=None,

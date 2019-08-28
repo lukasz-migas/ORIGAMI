@@ -1699,7 +1699,7 @@ class DocumentTree(wx.TreeCtrl):
             "dataset_name": dataset_name,
             "data": data,
             "plot_type": plot_type,
-            "annotations": self.data_handling.get_annotations_data(query, plot_type),
+            "annotations": self.data_handling.get_annotations_data(query),
             "query": query,
         }
 

@@ -176,7 +176,11 @@ Text panel:
     Open overlay window...
 
 Annotations panel:
-- [changed] changed the label "Multiple annotations" to "Multiply annotations (selected)" (found in Action...)
+- [New] Annotations panel has its own plotting window where you can plot and easily annotate items
+- [Improved] The UI had a refresh and should allow for better annotation editing
+- [Improved] The peaklist is now colored based on the color of patch
+- [Improved] Annotations are automatically shown on plots
+- [changed] changed the label "Multiple annotations" to "Create (similar) copies of selected annotation(s)" (found in Action...)
 
 IO: Data extraction:
 - [improved] Extraction of MS data moved away from Driftscope to Waters SDK which allows extraction of profile data

@@ -88,15 +88,16 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
 
         # make gui items
         self.make_gui()
+        self.plot = self.plot_window
         self._update_title()
+
         self.on_populate_table()
         self.on_toggle_controls(None)
-
-        self.plot = self.plot_window
 
         if self.plot_type == "mass_spectrum":
             self.on_plot_spectrum(self.data[:, 0], self.data[:, 1])
             self.plot_window._on_mark_annotation(True)
+            self.on_show_on_plot(None)
 
         # bind
         wx.EVT_CLOSE(self, self.on_close)
@@ -104,7 +105,11 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
 
         # add listener
         pub.subscribe(self.add_annotation_from_mouse_evt, "mark_annotation")
+        pub.subscribe(self.edit_annotation_from_mouse_evt, "edit_annotation")
         self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
+
+    def edit_annotation_from_mouse_evt(self, evt):
+        pass
 
     def on_right_click(self, evt):
 
@@ -139,7 +144,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
 
     def get_annotation_data(self):
         """Quickly retrieve annotations object"""
-        return self.data_handling.get_annotations_data(self.query, self.plot_type)
+        return self.data_handling.get_annotations_data(self.query)
 
     def set_annotation_data(self):
         """Set annotations object"""
@@ -166,6 +171,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
 
         try:
             pub.unsubscribe(self.add_annotation_from_mouse_evt, "mark_annotation")
+            pub.unsubscribe(self.edit_annotation_from_mouse_evt, "edit_annotation")
         except Exception as err:
             logger.warning(f"Failed to unsubscribe from `mark_annotation`: {err}")
 
@@ -468,7 +474,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
                 annotation_obj_copy = copy.deepcopy(annotation_obj)
                 annotation_obj_copy.name = annotation_obj_copy.name + f" ({n_duplicate})"
                 annotations_obj.append_annotation(annotation_obj_copy)
-                self.on_add_to_table(None, annotation_obj_copy)
+                self.on_add_to_table(annotation_obj_copy)
 
         self.annotations_obj = annotations_obj
         self.documentTree.on_update_annotation(
@@ -871,7 +877,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         self.item_loading_lock = False
 
         # put a red patch around the peak of interest and zoom-in on the peak
-        intensity = annotation_obj.intensity * 10
+        intensity = annotation_obj.position_y * 10
 
         if self.highlight_on_selection.GetValue():
             self.plot.plot_add_patch(
@@ -896,7 +902,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             return
 
         for annot_obj in annotations.values():
-            self.on_add_to_table(None, annot_obj)
+            self.on_add_to_table(annot_obj)
 
     def on_update_annotation(self, index, update_item, **annotation_dict):
         if not isinstance(update_item, list):
@@ -1070,7 +1076,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             )
         else:
             annotations_obj.add_annotation(name, annotation_dict)
-            self.on_add_to_table(None, annotations_obj[name])
+            self.on_add_to_table(annotations_obj[name])
 
         self.annotations_obj = annotations_obj
 
@@ -1188,40 +1194,21 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
                 self.annotations_obj, self.document_title, self.dataset_type, self.dataset_name
             )
 
-    def on_add_to_table(self, add_dict, annot_obj=None):
+    def on_add_to_table(self, annot_obj):
         """Add data to table"""
-
-        # add using dictionary
-        if add_dict:
-            color = add_dict["color"]
-            self.peaklist.Append(
-                [
-                    "",
-                    add_dict["xmin"],
-                    add_dict["xmax"],
-                    add_dict["position"],
-                    add_dict["intensity"],
-                    add_dict["charge"],
-                    add_dict["label"],
-                    str(roundRGB(convertRGB255to1(color))),
-                    str(add_dict["add_arrow"]),
-                ]
-            )
-        # add using nanotations object
-        else:
-            color = convertRGB1to255(annot_obj.patch_color)
-            self.peaklist.Append(
-                [
-                    "",
-                    annot_obj.name,
-                    annot_obj.label,
-                    annot_obj.label_position,
-                    annot_obj.charge,
-                    annot_obj.patch_position,
-                    str(roundRGB(convertRGB255to1(color))),
-                    str(annot_obj.arrow_show),
-                ]
-            )
+        color = convertRGB1to255(annot_obj.patch_color)
+        self.peaklist.Append(
+            [
+                "",
+                annot_obj.name,
+                annot_obj.label,
+                annot_obj.label_position,
+                annot_obj.charge,
+                annot_obj.patch_position,
+                str(roundRGB(convertRGB255to1(color))),
+                str(annot_obj.arrow_show),
+            ]
+        )
         self.peaklist.SetItemBackgroundColour(self.peaklist.GetItemCount() - 1, color)
         self.peaklist.SetItemTextColour(self.peaklist.GetItemCount() - 1, determineFontColor(color, return_rgb=True))
 
@@ -1242,33 +1229,48 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
                 self.peaklist.SetStringItem(item_id, column_id, str(value))
 
     def on_add_label_to_plot(self, annotation_obj):
-        label_kwargs = self.panel_plot._buildPlotParameters(plotType="label")
 
-        show_label = "{:.2f}, {}\nz={}".format(annotation_obj.position, annotation_obj.intensity, annotation_obj.charge)
-
-        # add  custom name tag
-        obj_name_tag = "{}|-|{}|-|{} - {}|-|{}".format(
-            self.document_title, self.dataset_name, annotation_obj.span_min, annotation_obj.span_max, "annotation"
+        annotations_obj = {annotation_obj.name: annotation_obj}
+        self.panel_plot.on_plot_1D_annotations(
+            annotations_obj,
+            plot=None,
+            plot_obj=self.plot,
+            label_fmt="all",
+            pin_to_intensity=self._menu_pin_label_to_intensity,
+            document_title=self.document_title,
+            dataset_type=self.dataset_type,
+            dataset_name=self.dataset_name,
         )
-        label_kwargs["text_name"] = obj_name_tag
 
-        # add label to the plot
-        self.plot.plot_add_text_and_lines(
-            xpos=annotation_obj.label_position_x,
-            yval=annotation_obj.label_position_y,
-            label=show_label,
-            vline=False,
-            vline_position=annotation_obj.position,
-            stick_to_intensity=self._menu_pin_label_to_intensity,
-            yoffset=self.config.annotation_label_y_offset,
-            color=annotation_obj.label_color,
-            **label_kwargs,
-        )
-        self.plot.repaint()
+    #         label_kwargs = self.panel_plot._buildPlotParameters(plotType="label")
+    #
+    #         show_label = "{:.2f}, {}\nz={}".format(annotation_obj.position_x, annotation_obj.position_y, annotation_obj.charge)
+    #
+    #         # add  custom name tag
+    #         obj_name_tag = "{}|-|{}|-|{} - {}|-|{}".format(
+    #             self.document_title, self.dataset_name, annotation_obj.span_min, annotation_obj.span_max, "annotation"
+    #         )
+    #         label_kwargs["text_name"] = obj_name_tag
+    #
+    #         # add label to the plot
+    #         self.plot.plot_add_text_and_lines(
+    #             xpos=annotation_obj.label_position_x,
+    #             yval=annotation_obj.label_position_y,
+    #             label=show_label,
+    #             vline=False,
+    #             vline_position=annotation_obj.position_x,
+    #             stick_to_intensity=self._menu_pin_label_to_intensity,
+    #             yoffset=self.config.annotation_label_y_offset,
+    #             color=annotation_obj.label_color,
+    #             **label_kwargs,
+    #         )
+    #         self.plot.repaint()
 
     def on_show_on_plot(self, evt):
 
-        menu_name = evt.GetEventObject().FindItemById(evt.GetId()).GetLabel()
+        menu_name = ""
+        if evt is not None:
+            menu_name = evt.GetEventObject().FindItemById(evt.GetId()).GetLabel()
 
         label_fmt = "all"
         if "Show charge" in menu_name:
@@ -1284,6 +1286,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             label_fmt=label_fmt,
             pin_to_intensity=self._menu_pin_label_to_intensity,
             document_title=self.document_title,
+            dataset_type=self.dataset_type,
             dataset_name=self.dataset_name,
         )
 
@@ -1327,7 +1330,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
     #                     show_label = ut_labels._replace_labels(annotation_obj.label)
     #                 else:
     #                     show_label = "{:.2f}, {}\nz={}".format(
-    #                         annotation_obj.position, annotation_obj.intensity, annotation_obj.charge
+    #                         annotation_obj.position_x, annotation_obj.position_y, annotation_obj.charge
     #                     )
     #
     #                 if show_label == "":
@@ -1355,7 +1358,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
     #                 yval=annotation_obj.label_position_y,
     #                 label=show_label,
     #                 vline=vline,
-    #                 vline_position=annotation_obj.position,
+    #                 vline_position=annotation_obj.position_x,
     #                 stick_to_intensity=self._menu_pin_label_to_intensity,
     #                 yoffset=self.config.annotation_label_y_offset,
     #                 color=annotation_obj.label_color,

@@ -504,6 +504,8 @@ class plots(mpl_plotter):
         )
         arrow.obj_name = obj_name  # custom tag
         arrow.obj_props = obj_props
+        arrow.y_divider = self.y_divider
+
         self.arrows.append(arrow)
 
     def plot_remove_arrows(self):
@@ -607,10 +609,12 @@ class plots(mpl_plotter):
             horizontalalignment=kwargs.pop("horizontalalignment", "center"),
             verticalalignment=kwargs.pop("verticalalignment", "top"),
             color=color,
+            clip_on=True,
             picker=True,
             **kwargs,
         )
         text.obj_name = obj_name  # custom tag
+        text.y_divider = self.y_divider
         self.text.append(text)
 
         if vline:
@@ -665,6 +669,7 @@ class plots(mpl_plotter):
         )
         text._yposition = yval - kwargs.get("labels_y_offset", self.config.waterfall_labels_y_offset)
         text.obj_name = obj_name  # custom tag
+        text.y_divider = self.y_divider
         self.text.append(text)
 
     def plot_remove_text(self):
@@ -696,6 +701,7 @@ class plots(mpl_plotter):
 
         # set label
         patch.obj_name = label
+        patch.y_divider = self.y_divider
 
         if add_temporary:
             self.plot_remove_temporary()
@@ -3951,6 +3957,7 @@ class plots(mpl_plotter):
                     j + 1, i + 1, label, horizontalalignment="center", color=color, picker=True, clip_on=True
                 )
                 text.obj_name = obj_name  # custom tag
+                text.y_divider = self.y_divider
                 self.text.append(text)
 
         cbarDivider = make_axes_locatable(self.plotMS)
