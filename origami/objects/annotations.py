@@ -98,7 +98,7 @@ class Annotation:
 
     def __repr__(self):
         return (
-            f"Annotation(label={self.label}; color={self.label_color}; charge={self.charge}"
+            f"Annotation(label={self.label}; \ncolor={self.label_color}; charge={self.charge}"
             + f"; patch={self.patch_position}; color={self.patch_color}"
             + f"; arrow={self.arrow_show})"
         )
@@ -132,6 +132,8 @@ class Annotation:
         if not isinstance(patch_position, (tuple)):
             patch_position = list(patch_position)
         self._patch_position = patch_position
+        self.position_x = patch_position[0]
+        self.position_y = patch_position[1]
 
     @property
     def span_min(self):
@@ -158,6 +160,7 @@ class Annotation:
         return self._label_position[1]
 
     def get_arrow_position(self, position_x=None, position_y=None):
+
         if position_x is None:
             position_x = self.position_x
         arrow_dx = position_x - self.label_position_x

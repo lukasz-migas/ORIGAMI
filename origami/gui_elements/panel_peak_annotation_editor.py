@@ -108,8 +108,11 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         pub.subscribe(self.edit_annotation_from_mouse_evt, "edit_annotation")
         self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
 
-    def edit_annotation_from_mouse_evt(self, evt):
-        pass
+    def edit_annotation_from_mouse_evt(self, annotation_obj):
+        self.on_add_label_to_plot(annotation_obj)
+
+        if self.name_value.GetValue() == annotation_obj.name:
+            self.set_annotation_in_gui(None, annotation_obj)
 
     def on_right_click(self, evt):
 
@@ -173,7 +176,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             pub.unsubscribe(self.add_annotation_from_mouse_evt, "mark_annotation")
             pub.unsubscribe(self.edit_annotation_from_mouse_evt, "edit_annotation")
         except Exception as err:
-            logger.warning(f"Failed to unsubscribe from `mark_annotation`: {err}")
+            logger.warning(f"Failed to unsubscribe from `mark_annotation`or `edit_annotation`: {err}")
 
         self.documentTree.annotateDlg = None
         self.Destroy()
@@ -298,7 +301,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         self.label_color_btn.SetBackgroundColour([0, 0, 0])
         self.label_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
-        add_arrow_to_peak = wx.StaticText(panel, -1, "add arrow:")
+        add_arrow_to_peak = wx.StaticText(panel, -1, "show arrow:")
         self.add_arrow_to_peak = makeCheckbox(panel, "")
         self.add_arrow_to_peak.SetValue(False)
         self.add_arrow_to_peak.Bind(wx.EVT_CHECKBOX, self.on_add_annotation)
@@ -497,13 +500,18 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         )
         menu_action_edit_patch_color = makeMenuItem(parent=menu, text="Set patch color (selected)")
         menu_action_edit_text_color = makeMenuItem(parent=menu, text="Set label color (selected)")
-
         menu_action_fix_label_intensity = makeMenuItem(parent=menu, text="Fix intensity / label position (selected)")
+        menu_action_delete = makeMenuItem(parent=menu, text="Delete (selected)", bitmap=self.icons.iconsLib["bin16"])
+
+        arrow_submenu = wx.Menu()
+        menu_action_edit_arrow_true = arrow_submenu.Append(wx.ID_ANY, "True")
+        menu_action_edit_arrow_false = arrow_submenu.Append(wx.ID_ANY, "False")
+
         #         menu_action_auto_generate_labels = makeMenuItem(
         #                 parent=menu,
         #                 text="Auto-generate labels ({})",  # TODO: add option for specifying type
         #             )
-        menu_action_delete = makeMenuItem(parent=menu, text="Delete (selected)", bitmap=self.icons.iconsLib["bin16"])
+
         #         menu_action_add_from_csv = makeMenuItem(
         #                 parent=menu,
         #                 text="Add list of ions (.csv/.txt)",
@@ -525,6 +533,8 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         menu.Append(menu_action_edit_patch_color)
         menu.Append(menu_action_edit_charge)
         menu.Append(menu_action_fix_label_intensity)
+        menu.AppendMenu(wx.ID_ANY, "Set `show arrow` to... (selected)", arrow_submenu)
+
         #         menu.Append(menu_action_auto_generate_labels)
         #         menu.AppendSeparator()
         #         menu.Append(menu_action_save_to_csv)
@@ -537,6 +547,8 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         self.Bind(wx.EVT_MENU, self.on_assign_color, menu_action_edit_patch_color)
         self.Bind(wx.EVT_MENU, self.on_assign_color, menu_action_edit_text_color)
         self.Bind(wx.EVT_MENU, self.on_fix_intensity, menu_action_fix_label_intensity)
+        self.Bind(wx.EVT_MENU, self.on_assign_arrow, menu_action_edit_arrow_true)
+        self.Bind(wx.EVT_MENU, self.on_assign_arrow, menu_action_edit_arrow_false)
         #         self.Bind(wx.EVT_MENU, self.on_update_label, menu_action_auto_generate_labels)
         #         self.Bind(wx.EVT_MENU, self.on_load_peaklist, menu_action_add_from_csv)
         #         self.Bind(wx.EVT_MENU, self.on_save_peaklist, menu_action_save_to_csv)
@@ -572,11 +584,14 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         menu_plot_show_mz_int_charge = menu.Append(wx.ID_ANY, "Show m/z, intensity, charge")
         menu_plot_show_charge = menu.Append(wx.ID_ANY, "Show charge")
         menu_plot_show_label = menu.Append(wx.ID_ANY, "Show label")
+        menu.AppendSeparator()
+        menu_plot_clear_labels = menu.Append(wx.ID_ANY, "Clear annotations")
 
         # bind events
         self.Bind(wx.EVT_MENU, self.on_show_on_plot, menu_plot_show_charge)
         self.Bind(wx.EVT_MENU, self.on_show_on_plot, menu_plot_show_label)
         self.Bind(wx.EVT_MENU, self.on_show_on_plot, menu_plot_show_mz_int_charge)
+        self.Bind(wx.EVT_MENU, self.on_clear_from_plot, menu_plot_clear_labels)
 
         self.Bind(wx.EVT_TOOL, self.on_check_tools, self._menu_show_all_check)
         self.Bind(wx.EVT_TOOL, self.on_check_tools, self._menu_pin_label_to_intensity_check)
@@ -600,7 +615,14 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         elif "Always " in name:
             check_value = not self._menu_show_all
             self._menu_show_all = check_value
-            print(self._menu_show_all)
+
+    def on_assign_arrow(self, evt):
+        value = evt.GetEventObject().FindItemById(evt.GetId()).GetLabel()
+        value = True if value == "True" else False
+
+        for row in range(self.peaklist.GetItemCount()):
+            if self.peaklist.IsChecked(index=row):
+                self.on_update_annotation(row, ["arrow_show"], **{"arrow_show": value})
 
     def on_customise_parameters(self, evt):
 
@@ -609,11 +631,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
 
     def on_fix_intensity(self, evt):
 
-        rows = self.peaklist.GetItemCount()
-        if rows == 0:
-            return
-
-        for row in range(rows):
+        for row in range(self.peaklist.GetItemCount()):
             if self.peaklist.IsChecked(index=row):
 
                 __, annotation_obj = self.on_get_annotation_obj(row)
@@ -914,7 +932,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         annotations_obj.update_annotation(information["name"], annotation_dict)
         self.annotations_obj = annotations_obj
         self.documentTree.on_update_annotation(
-            self.annotations_obj, self.document_title, self.dataset_type, self.dataset_name
+            self.annotations_obj, self.document_title, self.dataset_type, self.dataset_name, set_data_only=True
         )
 
         try:
@@ -934,9 +952,12 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             # retrieve index value
             max_index = np.where(mz_narrow[:, 1] == intensity)[0]
             position = mz_narrow[max_index, 0][0]
-        except (IndexError, TypeError) as err:
+        except IndexError:
             position = xmax - ((xmax - xmin) / 2)
-            logger.warning(f"Failed to get annotation intensity / position. {err}", exc_info=True)
+            intensity = self.data[:, 1][pr_utils.find_nearest_index(self.data[:, 0], position)]
+        except TypeError:
+            position = xmax - ((xmax - xmin) / 2)
+            logger.warning(f"Failed to get annotation intensity / position", exc_info=True)
 
         charge = self.data_processing.predict_charge_state(
             self.data[:, 0], self.data[:, 1], [xmin - 2, xmax + 2], std_dev=self.config.annotation_charge_std_dev
@@ -1037,13 +1058,13 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             "label_position_x": position,
             "label_position_y": intensity,
             "label_position": [position, intensity],
-            "arrow": False,
+            "arrow": True,
             "width": width,
             "height": height,
             "charge": charge,
             "color": self.config.interactive_ms_annotations_color,
             "label_color": (0.0, 0.0, 0.0),
-            "patch_position": [xmin, ymin, width, height],
+            "patch_position": [xmin, intensity, width, height],
         }
 
         self.set_annotation_in_gui(info_dict)
@@ -1242,30 +1263,6 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             dataset_name=self.dataset_name,
         )
 
-    #         label_kwargs = self.panel_plot._buildPlotParameters(plotType="label")
-    #
-    #         show_label = "{:.2f}, {}\nz={}".format(annotation_obj.position_x, annotation_obj.position_y, annotation_obj.charge)
-    #
-    #         # add  custom name tag
-    #         obj_name_tag = "{}|-|{}|-|{} - {}|-|{}".format(
-    #             self.document_title, self.dataset_name, annotation_obj.span_min, annotation_obj.span_max, "annotation"
-    #         )
-    #         label_kwargs["text_name"] = obj_name_tag
-    #
-    #         # add label to the plot
-    #         self.plot.plot_add_text_and_lines(
-    #             xpos=annotation_obj.label_position_x,
-    #             yval=annotation_obj.label_position_y,
-    #             label=show_label,
-    #             vline=False,
-    #             vline_position=annotation_obj.position_x,
-    #             stick_to_intensity=self._menu_pin_label_to_intensity,
-    #             yoffset=self.config.annotation_label_y_offset,
-    #             color=annotation_obj.label_color,
-    #             **label_kwargs,
-    #         )
-    #         self.plot.repaint()
-
     def on_show_on_plot(self, evt):
 
         menu_name = ""
@@ -1278,6 +1275,8 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         elif "Show label" in menu_name:
             label_fmt = "label"
 
+        show_names = self._get_show_list()
+
         annotations_obj = self.get_annotation_data()
         self.panel_plot.on_plot_1D_annotations(
             annotations_obj,
@@ -1288,126 +1287,22 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             document_title=self.document_title,
             dataset_type=self.dataset_type,
             dataset_name=self.dataset_name,
+            show_names=show_names,
         )
 
-    #         # clear plot
-    #         self.plot.plot_remove_text_and_lines()
-    #         # prepare plot kwargs
-    #         label_kwargs = self.panel_plot._buildPlotParameters(plotType="label")
-    #         arrow_kwargs = self.panel_plot._buildPlotParameters(plotType="arrow")
-    #         vline = False
-    #         _ymax = []
-    #
-    #         annotations_obj = self.get_annotation_data()
-    #         for name, annotation_obj in annotations_obj.items():
-    #             __, index = self.check_for_duplcate(name)
-    #             if self._menu_show_all or self.peaklist.IsChecked(index):
-    #                 #         for key in self.kwargs["annotations"]:
-    #                 #             # get annotation
-    #                 #             annotation = self.kwargs["annotations"][key]
-    #                 #             print(annotation)
-    #                 #             intensity = str2num(annotation["intensity"])
-    #                 #             charge = annotation["charge"]
-    #                 #             label = annotation["label"]
-    #                 #             min_x_value = annotation["min"]
-    #                 #             max_x_value = annotation["max"]
-    #                 #             color_value = annotation.get("color", self.config.interactive_ms_annotations_color)
-    #                 #             add_arrow = annotation.get("add_arrow", False)
-    #                 #
-    #                 #             if "isotopic_x" in annotation:
-    #                 #                 mz_value = annotation["isotopic_x"]
-    #                 #                 if mz_value in ["", 0] or mz_value < min_x_value:
-    #                 #                     mz_value = max_x_value - ((max_x_value - min_x_value) / 2)
-    #                 #             else:
-    #                 #                 mz_value = max_x_value - ((max_x_value - min_x_value) / 2)
-    #                 #
-    #                 #             label_x_position = annotation.get("position_label_x", mz_value)
-    #                 #             label_y_position = annotation.get("position_label_y", intensity)
-    #                 #
-    #                 if "Show charge" in menu_name:
-    #                     show_label = annotation_obj.charge
-    #                 elif "Show label" in menu_name:
-    #                     show_label = ut_labels._replace_labels(annotation_obj.label)
-    #                 else:
-    #                     show_label = "{:.2f}, {}\nz={}".format(
-    #                         annotation_obj.position_x, annotation_obj.position_y, annotation_obj.charge
-    #                     )
-    #
-    #                 if show_label == "":
-    #                     continue
-    #
-    #             # arrows have 4 positional parameters:
-    #             #    xpos, ypos = correspond to the label position
-    #             #    dx, dy = difference between label position and peak position
-    #             if annotation_obj.arrow_show and self._menu_pin_label_to_intensity:
-    #                 arrow_list, arrow_x_end, arrow_y_end = annotation_obj.get_arrow_position()
-    #
-    #             # add  custom name tag
-    #             obj_name_tag = "{}|-|{}|-|{} - {}|-|{}".format(
-    #                 self.document_title,
-    #                 self.dataset_name,
-    #                 annotation_obj.span_min,
-    #                 annotation_obj.span_max,
-    #                 "annotation",
-    #             )
-    #             label_kwargs["text_name"] = obj_name_tag
-    #
-    #             # add label to the plot
-    #             self.plot.plot_add_text_and_lines(
-    #                 xpos=annotation_obj.label_position_x,
-    #                 yval=annotation_obj.label_position_y,
-    #                 label=show_label,
-    #                 vline=vline,
-    #                 vline_position=annotation_obj.position_x,
-    #                 stick_to_intensity=self._menu_pin_label_to_intensity,
-    #                 yoffset=self.config.annotation_label_y_offset,
-    #                 color=annotation_obj.label_color,
-    #                 **label_kwargs,
-    #             )
-    #
-    #             _ymax.append(annotation_obj.label_position_y)
-    #             if annotation_obj.arrow_show and self._menu_pin_label_to_intensity:
-    #                 arrow_kwargs["text_name"] = obj_name_tag
-    #                 arrow_kwargs["props"] = [arrow_x_end, arrow_y_end]
-    #                 print(arrow_list)
-    #                 self.plot.plot_add_arrow(
-    #                     arrow_list, stick_to_intensity=self._menu_pin_label_to_intensity, **arrow_kwargs
-    #                 )
-    #
-    #         if self._menu_autofix_label_position:
-    #             self.plot._fix_label_positions()
-    #
-    #         # update intensity
-    #         if self.config.annotation_zoom_y:
-    #             try:
-    #                 self.plot.on_zoom_y_axis(endY=np.amax(_ymax) * self.config.annotation_zoom_y_multiplier)
-    #             except TypeError:
-    #                 pass
-    #
-    #         self.plot.repaint()
+    def on_clear_from_plot(self, evt):
+        self.plot.plot_remove_arrows()
+        self.plot.plot_remove_text_and_lines()
 
-    #     def on_update_label(self, evt):
-    #         evtID = evt.GetId()
-    #         label_format = self.label_format.GetStringSelection()
-    #             rows = self.peaklist.GetItemCount()
-    #             for row in range(rows):
-    #                 if self.peaklist.IsChecked(index=row):
-    #                     charge_value = self.peaklist.GetItem(row, self.annotation_list["charge"]).GetText()
-    #                     label_value = ut_labels.convert_str_to_unicode(str(charge_value), return_type=label_format)
-    #                     self.peaklist.SetStringItem(row, self.annotation_list["label"], label=label_value)
-    #                     self.onUpdateAnnotation(row)
-    #
-    #             # update document
-    #             self.documentTree.on_update_annotation(
-    #                 self.kwargs["annotations"], self.kwargs["document"], self.kwargs["dataset"]
-    #             )
-    #         else:
-    #             if self.peaklist.item_id is None:
-    #                 return
-    #
-    #             charge_value = self.peaklist.GetItem(self.peaklist.item_id, self.annotation_list["charge"]).GetText()
-    #             label_value = ut_labels.convert_str_to_unicode(str(charge_value), return_type=label_format)
-    #             self.label_value.SetValue(label_value)
+    def _get_show_list(self):
+
+        show_names = []
+        for row in range(self.peaklist.GetItemCount()):
+            if self.peaklist.IsChecked(index=row) or self._menu_show_all:
+                information = self.on_get_item_information(row)
+                show_names.append(information["name"])
+
+        return show_names
 
     def on_save_peaklist(self, evt):
         from pandas import DataFrame
@@ -1454,8 +1349,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
                 print("Could not save file as it is currently open in another program")
 
     def checkDuplicate(self, min_value, max_value):
-        count = self.peaklist.GetItemCount()
-        for i in range(count):
+        for i in range(self.peaklist.GetItemCount()):
             table_min = str2num(self.peaklist.GetItem(i, self.annotation_list["min"]).GetText())
             table_max = str2num(self.peaklist.GetItem(i, self.annotation_list["max"]).GetText())
 

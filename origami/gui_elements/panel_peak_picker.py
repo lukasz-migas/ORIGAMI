@@ -103,22 +103,31 @@ class panel_peak_picker(MiniFrame):
         menu.Destroy()
         self.SetFocus()
 
+    def on_update_method(self, evt):
+        page = self.panel_book.GetPageText(self.panel_book.GetSelection())
+        self.config.peak_find_method = "small_molecule" if page == "Small molecule" else "native"
+
     def make_gui(self):
         """Make miniframe"""
         panel = wx.Panel(self, -1, size=(-1, -1), name="main")
 
-        self.settings_method = self.make_method_selection_panel(panel)
+        self.panel_book = wx.Notebook(panel, wx.ID_ANY, style=wx.NB_NOPAGETHEME)
+        self.panel_book.SetBackgroundColour((240, 240, 240))
+        self.panel_book.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.on_update_method)
+
+        self.settings_native = self.make_settings_panel_native(self.panel_book)
+        self.panel_book.AddPage(self.settings_native, "Native MS", False)
+
+        self.settings_small = self.make_settings_panel_small_molecule(self.panel_book)
+        self.panel_book.AddPage(self.settings_small, "Small molecule", False)
+
         self.settings_mass_range = self.make_mass_selection_panel(panel)
-        self.settings_small = self.make_settings_panel_small_molecule(panel)
-        self.settings_native = self.make_settings_panel_native(panel)
         self.settings_panel = self.make_settings_panel(panel)
 
         # pack settings panel
         self.settings_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.settings_sizer.Add(self.settings_method, 0, wx.EXPAND)
+        self.settings_sizer.Add(self.panel_book, 1, wx.EXPAND, 0)
         self.settings_sizer.Add(self.settings_mass_range, 0, wx.EXPAND)
-        self.settings_sizer.Add(self.settings_small, 0, wx.EXPAND)
-        self.settings_sizer.Add(self.settings_native, 0, wx.EXPAND)
         self.settings_sizer.Add(self.settings_panel, 1, wx.EXPAND)
         self.settings_sizer.Fit(panel)
 
@@ -138,11 +147,6 @@ class panel_peak_picker(MiniFrame):
 
     def make_settings_panel(self, split_panel):
         panel = wx.Panel(split_panel, -1, size=(-1, -1), name="settings")
-
-        verbose_check = wx.StaticText(panel, wx.ID_ANY, "Verbose:")
-        self.verbose_check = makeCheckbox(panel, "")
-        self.verbose_check.SetValue(self.config.peak_find_verbose)
-        self.verbose_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         visualize_highlight_check = wx.StaticText(panel, wx.ID_ANY, "Highlight:")
         self.visualize_highlight_check = makeCheckbox(panel, "")
@@ -194,14 +198,19 @@ class panel_peak_picker(MiniFrame):
         self.close_btn = wx.Button(panel, wx.ID_OK, "Close", size=(-1, 22))
         self.close_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
+#         verbose_check = wx.StaticText(panel, wx.ID_ANY, "Verbose:")
+        self.verbose_check = makeCheckbox(panel, "verbose")
+        self.verbose_check.SetValue(self.config.peak_find_verbose)
+        self.verbose_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
+
         horizontal_line_3 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
         # visualize grid
         annot_grid = wx.GridBagSizer(5, 5)
         n = 0
-        annot_grid.Add(verbose_check, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        annot_grid.Add(self.verbose_check, (n, 1), flag=wx.EXPAND)
-        n += 1
+#         annot_grid.Add(verbose_check, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+#         annot_grid.Add(self.verbose_check, (n, 1), flag=wx.EXPAND)
+#         n += 1
         annot_grid.Add(visualize_highlight_check, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         annot_grid.Add(self.visualize_highlight_check, (n, 1), flag=wx.EXPAND)
         n += 1
@@ -222,6 +231,13 @@ class panel_peak_picker(MiniFrame):
         data_grid.Add(data_add_peaks_to_annotations, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         data_grid.Add(self.data_add_peaks_to_annotations, (n, 1), flag=wx.EXPAND)
 
+        # data grid
+        btn_grid = wx.GridBagSizer(5, 5)
+        n = 0
+        btn_grid.Add(self.find_peaks_btn, (n, 0), flag=wx.EXPAND)
+        btn_grid.Add(self.close_btn, (n, 1), flag=wx.EXPAND)
+        btn_grid.Add(self.verbose_check, (n, 2), flag=wx.EXPAND)
+
         # pack elements
         grid = wx.GridBagSizer(5, 5)
         n = 0
@@ -233,12 +249,12 @@ class panel_peak_picker(MiniFrame):
         n += 1
         grid.Add(horizontal_line_3, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
         n += 1
-        grid.Add(self.find_peaks_btn, (n, 0), flag=wx.ALIGN_CENTER)
-        grid.Add(self.close_btn, (n, 1), flag=wx.ALIGN_CENTER)
+        grid.Add(btn_grid, (n, 0), wx.GBSpan(1, 5), flag=wx.ALIGN_CENTER)
 
         # fit layout
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(grid, 0, wx.EXPAND, 10)
+#         main_sizer.Add(btn_grid, 1, wx.ALIGN_CENTER, 0)
         main_sizer.Fit(panel)
 
         panel.SetSizerAndFit(main_sizer)
@@ -285,36 +301,6 @@ class panel_peak_picker(MiniFrame):
 
         return panel
 
-    def make_method_selection_panel(self, split_panel):
-        panel = wx.Panel(split_panel, -1, size=(-1, -1), name="method_selection")
-
-        panel_info = "Please select a method that best suits your needs"
-
-        panel_info_txt = wx.StaticText(panel, -1, panel_info)
-
-        self.method_small_molecule = wx.RadioButton(panel, label="Small molecule", name="small_molecule")
-        self.method_native_ms = wx.RadioButton(panel, label="Native MS", name="native")
-
-        self.Bind(wx.EVT_RADIOBUTTON, self.on_radio_group)
-
-        horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
-
-        choice_grid = wx.GridBagSizer(2, 2)
-        n = 0
-        choice_grid.Add(self.method_small_molecule, (n, 0), flag=wx.ALIGN_CENTER | wx.EXPAND)
-        choice_grid.Add(self.method_native_ms, (n, 1), flag=wx.ALIGN_CENTER | wx.EXPAND)
-
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(panel_info_txt, 0, wx.EXPAND, 2)
-        main_sizer.Add(choice_grid, 1, wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND, 2)
-        main_sizer.Add(horizontal_line_1, 0, wx.EXPAND, 2)
-
-        # fit layout
-        main_sizer.Fit(panel)
-        panel.SetSizerAndFit(main_sizer)
-
-        return panel
-
     def make_settings_panel_small_molecule(self, split_panel):
         """Make settings panel for small molecule peak picking"""
 
@@ -350,14 +336,14 @@ class panel_peak_picker(MiniFrame):
         self.peak_width_modifier_value.SetValue(str(self.config.peak_find_peak_width_modifier))
         self.peak_width_modifier_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
-        horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+#         horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+#         horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
         # pack elements
         grid = wx.GridBagSizer(5, 5)
         n = 0
-        grid.Add(horizontal_line_0, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
-        n += 1
+#         grid.Add(horizontal_line_0, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+#         n += 1
         grid.Add(threshold_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.threshold_value, (n, 1), flag=wx.EXPAND)
         n += 1
@@ -376,7 +362,7 @@ class panel_peak_picker(MiniFrame):
         grid.Add(peak_width_modifier_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.peak_width_modifier_value, (n, 1), flag=wx.EXPAND)
         n += 1
-        grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+#         grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
 
         # fit layout
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -450,15 +436,15 @@ class panel_peak_picker(MiniFrame):
         # fmt: on
 
         horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
-        horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
-        horizontal_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+#         horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+#         horizontal_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         #         horizontal_line_3 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
         # pack elements
         grid = wx.GridBagSizer(5, 5)
         n = 0
-        grid.Add(horizontal_line_0, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
-        n += 1
+#         grid.Add(horizontal_line_0, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+#         n += 1
         grid.Add(threshold_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.fit_threshold_value, (n, 1), flag=wx.EXPAND)
         n += 1
@@ -468,7 +454,7 @@ class panel_peak_picker(MiniFrame):
         grid.Add(fit_relative_height, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.fit_relative_height, (n, 1), flag=wx.EXPAND)
         n += 1
-        grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        grid.Add(horizontal_line_0, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
         n += 1
         grid.Add(smooth_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.fit_smooth_check, (n, 1), flag=wx.EXPAND)
@@ -476,8 +462,8 @@ class panel_peak_picker(MiniFrame):
         grid.Add(sigma_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.fit_sigma_value, (n, 1), flag=wx.EXPAND)
         #         grid.Add(self.fit_show_smoothed, (n, 2),  flag=wx.EXPAND)
-        n += 1
-        grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+#         n += 1
+#         grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
         # fmt: off
         # n += 1
         # grid.Add(fit_isotopic_check, (n, 0),  flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
@@ -530,23 +516,6 @@ class panel_peak_picker(MiniFrame):
         main_sizer.Fit(panel)
 
         return panel
-
-    def on_radio_group(self, evt, peak_detection_method=None):
-        if peak_detection_method is None:
-            radio_obj = evt.GetEventObject()
-            peak_detection_method = radio_obj.GetName()
-
-        self.config.peak_find_method = peak_detection_method
-
-        # check which method is being used
-        if peak_detection_method == "small_molecule":
-            self.settings_small.Show()
-            self.settings_native.Hide()
-        else:
-            self.settings_small.Hide()
-            self.settings_native.Show()
-
-        self.Layout()
 
     def on_apply(self, evt):
         """Event driven configuration updates"""
@@ -652,6 +621,9 @@ class panel_peak_picker(MiniFrame):
         if self.config.fit_addPeaks:
             self.on_add_to_peaklist(peaks_dict)
 
+        if self.config.fit_addPeaksToAnnotations:
+            raise ValueError("Not implemented yet")
+
     def on_plot_spectrum(self, mz_x, mz_y):
         """Plot mass spectrum"""
 
@@ -681,6 +653,9 @@ class panel_peak_picker(MiniFrame):
 
         return labels
 
+    def on_show_threshold_line(self, evt):
+        pass
+
     def on_annotate_spectrum(self, peaks_dict):
         """Highlight peaks in the spectrum"""
         tstart = ttime()
@@ -697,7 +672,7 @@ class panel_peak_picker(MiniFrame):
 
         if n_peaks == 0:
             return
-
+        logger.info(f"Found {n_peaks} peaks in the spectrum")
         n_peaks_max = 1000
         if n_peaks > n_peaks_max:
             logger.warning(

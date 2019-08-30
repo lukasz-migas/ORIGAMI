@@ -153,6 +153,15 @@ class PanelPlots(wx.Panel):
         self.mainBook.SetSelection(page_name)
 
     def _update_label_position(self, text_obj):
+        """Update annotation position
+
+        Change to the label position triggers another event in Annotation Editor
+
+        Parameters
+        ----------
+        text_obj : mpl.Text object
+            Matplotlib object that is being changed
+        """
         document_title, dataset_type, dataset_name, annotation_name, text_type = text_obj.obj_name.split("|-|")
 
         if text_type == "annotation":
@@ -166,38 +175,21 @@ class PanelPlots(wx.Panel):
             annotations_obj.update_annotation(
                 annotation_name, {"label_position": [new_pos_x, new_pos_y * text_obj.y_divider]}
             )
+            pub.sendMessage("edit_annotation", annotation_obj=annotations_obj[annotation_name])
 
             self.view.panelDocuments.documents.on_update_annotation(
                 annotations_obj, document_title, dataset_type, dataset_name, set_data_only=True
             )
-
-    #             annotations[annotation_name]["position_label_x"] = np.round(new_pos_x, 4)
-    #             annotations[annotation_name]["position_label_y"] = np.round(new_pos_y, 4)
-    #             try:
-    #                 arrow_kwargs = self._buildPlotParameters(plotType="arrow")
-    #                 if annotations[annotation_name].get("add_arrow", False):
-    #                     for i, arrow in enumerate(self.current_plot.arrows):
-    #                         if arrow.obj_name == text_obj.obj_name:
-    #                             arrow_x_end, arrow_y_end = arrow.obj_props
-    #                             arrow_kwargs["text_name"] = arrow.obj_name
-    #                             arrow_kwargs["props"] = [arrow_x_end, arrow_y_end]
-    #
-    #                             # remove all arrow
-    #                             del self.current_plot.arrows[i]
-    #                             arrow.remove()
-    #
-    #                             # add arrow to plot
-    #                             arrow_list = [new_pos_x, new_pos_y, arrow_x_end - new_pos_x, arrow_y_end - new_pos_y]
-    #                             self.current_plot.plot_add_arrow(arrow_list, stick_to_intensity=True, **arrow_kwargs)
-    #             except Exception:
-    #                 pass
-    #
-    #         # update annotation
-    #         self.view.panelDocuments.documents.on_update_annotation(
-    #             annotations, document_title, dataset_name, set_data_only=True
-    #         )
+            logger.info(f"MOUSE: Updated annotation {annotation_name}")
 
     def on_page_changed(self, evt):
+        """Triggered by change of panel in the plot section
+
+        Parameters
+        ----------
+        evt : wxPython event
+            unused
+        """
         # get current page
         self.currentPage = self.mainBook.GetPageText(self.mainBook.GetSelection())
 
@@ -227,6 +219,8 @@ class PanelPlots(wx.Panel):
             self.current_plot = self.plot3D
 
     def make_notebook(self):
+        """Make notebook panel
+        """
         # Setup notebook
         self.mainBook = wx.Notebook(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0)
 
@@ -2467,14 +2461,20 @@ class PanelPlots(wx.Panel):
         vline = False
         _ymax = []
 
-        plot_obj.plot_remove_text_and_lines()
+        if len(annotations_obj) > 1:
+            plot_obj.plot_remove_text_and_lines()
+
         label_fmt = kwargs.pop("label_fmt", "all")
         pin_to_intensity = kwargs.pop("pin_to_intensity", True)
         document_title = kwargs.pop("document_title")
         dataset_type = kwargs.pop("dataset_type")
         dataset_name = kwargs.pop("dataset_name")
+        show_names = kwargs.pop("show_names", None)
 
         for name, annotation_obj in annotations_obj.items():
+            if show_names is not None and name not in show_names:
+                continue
+
             if label_fmt == "charge":
                 show_label = annotation_obj.charge
             elif label_fmt == "label":

@@ -1025,7 +1025,6 @@ class ZoomBox:
 
     def on_motion(self, evt):
         """on motion notify event if box/line is wanted"""
-
         # send event
         pub.sendMessage("motion_xy", xpos=evt.xdata, ypos=evt.ydata, plotname=self.plotName)
 

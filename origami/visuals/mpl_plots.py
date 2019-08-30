@@ -261,7 +261,10 @@ class plots(mpl_plotter):
         )
 
         # prevent scientific notation
-        self.plotMS.get_xaxis().get_major_formatter().set_useOffset(False)
+        try:
+            self.plotMS.get_xaxis().get_major_formatter().set_useOffset(False)
+        except AttributeError:
+            logger.warning("Could not fully set label offsets", exc_info=True)
 
         # setup borders
         self.plotMS.spines["left"].set_visible(kwargs["spines_left"])
@@ -477,6 +480,12 @@ class plots(mpl_plotter):
         # unpack parameters
         xmin, ymin, dx, dy = arrow_vals
 
+        obj_name = kwargs.pop("text_name", None)
+        obj_props = kwargs.pop("props", [None, None])
+
+        if obj_name is not None:
+            self._remove_existing_arrows(obj_name)
+
         if stick_to_intensity:
             try:
                 ymin = np.divide(ymin, self.y_divider)
@@ -488,8 +497,6 @@ class plots(mpl_plotter):
             return
 
         # get custom name tag
-        obj_name = kwargs.pop("text_name", None)
-        obj_props = kwargs.pop("props", [None, None])
         arrow = self.plotMS.arrow(
             xmin,
             ymin,
@@ -570,6 +577,12 @@ class plots(mpl_plotter):
             if text.obj_name == name_tag:
                 text.remove()
                 del self.text[i]
+
+    def _remove_existing_arrows(self, name_tag):
+        for i, arrow in enumerate(self.arrows):
+            if arrow.obj_name == name_tag:
+                arrow.remove()
+                del self.arrows[i]
 
     def plot_add_text_and_lines(
         self,
