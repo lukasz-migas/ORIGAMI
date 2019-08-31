@@ -5231,7 +5231,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             yvals = yvals[0]
 
         if bkh_kwargs.get("test_x_axis", False):
-            xvals, xlabel, __ = self._kda_test(xvals)
+            xvals, xlabel, __ = self.__convert_xaxis(xvals)
 
         if cmap == "":
             cmap = [0, 0, 0]
@@ -5908,7 +5908,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         # test x-axis
         if bkh_kwargs.get("test_x_axis", False):
-            xvals, xlabel, __ = self._kda_test(xvals)
+            xvals, xlabel, __ = self.__convert_xaxis(xvals)
 
         try:
             shape = zvals.shape[1]
@@ -6698,7 +6698,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             zvals = zvals[:, :: user_kwargs["preprocessing_properties"].get("subsample_frequency", 10)].copy()
 
         if bkh_kwargs.get("test_x_axis", False):
-            xvals, xlabel, __ = self._kda_test(xvals)
+            xvals, xlabel, __ = self.__convert_xaxis(xvals)
 
         z_data = dict(
             image=[zvals], x=[min(xvals)], y=[min(yvals)], dw=[max(xvals) - min(xvals)], dh=[max(yvals) - min(yvals)]
@@ -9803,7 +9803,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             return "normal"
 
     @staticmethod
-    def _kda_test(xvals):
+    def __convert_xaxis(xvals):
         """
         Adapted from Unidec/PlottingWindow.py
 

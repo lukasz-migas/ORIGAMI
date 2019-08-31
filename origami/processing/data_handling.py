@@ -59,8 +59,10 @@ if platform == "win32":
 
 logger = logging.getLogger("origami")
 
-
+# TODO: should consolidate `get_spectrum_data` and `get_mobility_And_chroma_data`
 # TODO: when setting document path, it currently removes the file extension which is probably a mistake
+
+
 class data_handling:
     def __init__(self, presenter, view, config):
         self.presenter = presenter
@@ -3483,6 +3485,9 @@ class data_handling:
     def get_annotations_data(self, query_info):
 
         __, dataset = self.get_spectrum_data(query_info)
+        # if dataset was returned empty, try another approach
+        if not dataset:
+            __, dataset = self.get_mobility_chromatographic_data(query_info)
 
         return dataset.get("annotations", annotations_obj.Annotations())
 
@@ -3623,6 +3628,11 @@ class data_handling:
             data = copy.deepcopy(document.IMS2DstatsData)
         elif dataset_type == "Statistical" and dataset_name is not None:
             data = copy.deepcopy(document.IMS2DstatsData[dataset_name])
+        # Annotated data
+        elif dataset_type == "Annotated data" and dataset_name == "Annotated data":
+            data = copy.deepcopy(document.other_data)
+        elif dataset_type == "Annotated data" and dataset_name is not None:
+            data = copy.deepcopy(document.other_data[dataset_name])
 
         return document, data
 

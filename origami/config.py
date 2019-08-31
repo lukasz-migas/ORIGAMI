@@ -538,12 +538,12 @@ class OrigamiConfig:
             "MZDT": 4,
             "Waterfall": 5,
             "3D": 6,
-            "RMSF": 7,
-            "Comparison": 8,
-            "Overlay": 9,
-            "Calibration": 10,
-            "UniDec": 11,
-            "Other": 12,
+            "RMSF": 3,
+            "Comparison": 3,
+            "Overlay": 3,
+            "Calibration": 3,
+            "UniDec": 0,
+            "Other": 7,
         }
 
         self.peaklistColNames = {

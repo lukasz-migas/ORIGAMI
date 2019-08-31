@@ -273,7 +273,7 @@ class plots(mpl_plotter):
         self.plotMS.spines["bottom"].set_visible(kwargs["spines_bottom"])
         [i.set_linewidth(kwargs["frame_width"]) for i in self.plotMS.spines.values()]
 
-    def _convert_intensities(self, values, label, set_divider=True, convert_values=True):
+    def _convert_yaxis(self, values, label, set_divider=True, convert_values=True):
         """ Function to check whether x/y axis labels do not need formatting """
 
         increment = 10
@@ -310,9 +310,9 @@ class plots(mpl_plotter):
 
         return values, label, divider
 
-    def _convert_intensities_with_preset_divider(self, values, label):
+    def _convert_yaxis_with_preset_divider(self, values, label):
         if self.y_divider is None:
-            __, __, __ = self._convert_intensities(values, label)
+            __, __, __ = self._convert_yaxis(values, label)
 
         divider = self.y_divider
         expo = len(str(divider)) - len(str(divider).rstrip("0"))
@@ -334,11 +334,11 @@ class plots(mpl_plotter):
 
         return colorlist
 
-    def _convert_intensities_list(self, values, label):
+    def _convert_yaxis_list(self, values, label):
 
         _dividers = []
         for i in range(len(values)):
-            __, __ylabel, divider = self._convert_intensities(values[i], label, set_divider=False, convert_values=False)
+            __, __ylabel, divider = self._convert_yaxis(values[i], label, set_divider=False, convert_values=False)
             _dividers.append(divider)
 
         self.y_divider = np.max(_dividers)
@@ -484,7 +484,7 @@ class plots(mpl_plotter):
         obj_props = kwargs.pop("props", [None, None])
 
         if obj_name is not None:
-            self._remove_existing_arrows(obj_name)
+            self._remove_existing_arrow(obj_name)
 
         if stick_to_intensity:
             try:
@@ -530,13 +530,13 @@ class plots(mpl_plotter):
     ):
 
         if test_yvals:
-            yvals, __, __ = self._convert_intensities(yvals, "")
+            yvals, __, __ = self._convert_yaxis(yvals, "")
 
         if kwargs.get("test_yvals_with_preset_divider", False):
-            yvals, __, __ = self._convert_intensities_with_preset_divider(yvals, label)
+            yvals, __, __ = self._convert_yaxis_with_preset_divider(yvals, label)
 
         if test_xvals:
-            xvals, __, __ = self.kda_test(xvals)
+            xvals, __, __ = self._convert_xaxis(xvals)
 
         markers = self.plotMS.scatter(
             xvals,
@@ -572,17 +572,29 @@ class plots(mpl_plotter):
             if line_label.startswith(label_starts_with):
                 line.remove()
 
-    def _remove_existing_labels(self, name_tag):
+    def _remove_existing_label(self, name_tag):
         for i, text in enumerate(self.text):
             if text.obj_name == name_tag:
                 text.remove()
                 del self.text[i]
 
-    def _remove_existing_arrows(self, name_tag):
+    def _remove_existing_arrow(self, name_tag):
         for i, arrow in enumerate(self.arrows):
             if arrow.obj_name == name_tag:
                 arrow.remove()
                 del self.arrows[i]
+
+    def _remove_existing_line(self, name_tag):
+        for i, line in enumerate(self.lines):
+            if line.obj_name == name_tag:
+                line.remove()
+                del self.lines[i]
+
+    def _remove_existing_patch(self, name_tag):
+        for i, patch in enumerate(self.patch):
+            if patch.obj_name == name_tag:
+                patch.remove()
+                del self.patch[i]
 
     def plot_add_text_and_lines(
         self,
@@ -598,7 +610,7 @@ class plots(mpl_plotter):
     ):
         obj_name = kwargs.pop("text_name", None)
         if obj_name is not None:
-            self._remove_existing_labels(obj_name)
+            self._remove_existing_label(obj_name)
 
         try:
             ymin, ymax = self.plotMS.get_ylim()
@@ -699,6 +711,9 @@ class plots(mpl_plotter):
         self, xmin, ymin, width, height, color="r", alpha=0.5, linewidth=0, add_temporary=False, label="", **kwargs
     ):
 
+        if label is not None:
+            self._remove_existing_patch(label)
+
         # check if need to rescale height
         try:
             height = np.divide(height, self.y_divider)
@@ -706,7 +721,9 @@ class plots(mpl_plotter):
             pass
         try:
             patch = self.plotMS.add_patch(
-                patches.Rectangle((xmin, ymin), width, height, color=color, alpha=alpha, linewidth=linewidth)
+                patches.Rectangle(
+                    (xmin, ymin), width, height, color=color, alpha=alpha, linewidth=linewidth, picker=True
+                )
             )
         except AttributeError:
             print("Please plot something first")
@@ -732,6 +749,22 @@ class plots(mpl_plotter):
 
         self.patch = []
         self.repaint()
+
+    def plot_add_line(self, xmin, xmax, ymin, ymax, orientation, label="temporary"):
+
+        if label is not None:
+            self._remove_existing_line(label)
+
+        print(self.y_divider)
+
+        if orientation == "vertical":
+            line = self.plotMS.axvline(xmin, 0, 1, color="r", linestyle="dashed", alpha=0.7)
+        else:
+            line = self.plotMS.axhline(ymin / self.y_divider, 0, 1, color="r", linestyle="dashed", alpha=0.7)
+
+        # add name to the line for future removal
+        line.obj_name = label
+        self.lines.append(line)
 
     def plot_remove_temporary(self, repaint=False):
         for patch in self.temporary:
@@ -777,7 +810,7 @@ class plots(mpl_plotter):
         ylabel = self.plotMS.get_ylabel()
         ylabel = ylabel.split(" [")[0]
 
-        yvals, ylabel, __ = self._convert_intensities(yvals, ylabel)
+        yvals, ylabel, __ = self._convert_yaxis(yvals, ylabel)
 
         lines[0].set_xdata(xvals)
         lines[0].set_ydata(yvals)
@@ -834,10 +867,10 @@ class plots(mpl_plotter):
                 shade.remove()
 
         if testMax == "yvals":
-            yvals, ylabel, __ = self._convert_intensities(yvals, ylabel)
+            yvals, ylabel, __ = self._convert_yaxis(yvals, ylabel)
 
         if kwargs.pop("testX", False):
-            xvals, xlabel, __ = self.kda_test(xvals)
+            xvals, xlabel, __ = self._convert_xaxis(xvals)
 
         lines[0].set_xdata(xvals)
         lines[0].set_ydata(yvals)
@@ -901,7 +934,7 @@ class plots(mpl_plotter):
         lines = self.plotMS.get_lines()
 
         # calculate divider
-        __, __, divider = self._convert_intensities(yvals, "", set_divider=False, convert_values=False)
+        __, __, divider = self._convert_yaxis(yvals, "", set_divider=False, convert_values=False)
         #         divider = np.max([divider, self.y_divider])
 
         # convert ylabel based on the divider
@@ -923,7 +956,7 @@ class plots(mpl_plotter):
         self.y_divider = divider
 
         # change data for desired plot
-        yvals, __, __ = self._convert_intensities_with_preset_divider(yvals, "")
+        yvals, __, __ = self._convert_yaxis_with_preset_divider(yvals, "")
         for line in lines:
             plot_gid = line.get_gid()
             if plot_gid == gid:
@@ -961,8 +994,8 @@ class plots(mpl_plotter):
         if ylabel is None:
             ylabel = self.plotMS.get_ylabel()
 
-        yvals_1, __, divider_1 = self._convert_intensities(yvals_1, "", convert_values=False)
-        yvals_2, __, divider_2 = self._convert_intensities(yvals_2, "", convert_values=False)
+        yvals_1, __, divider_1 = self._convert_yaxis(yvals_1, "", convert_values=False)
+        yvals_2, __, divider_2 = self._convert_yaxis(yvals_2, "", convert_values=False)
         divider = np.max([divider_1, divider_2])
         self.y_divider = divider
         yvals_1 = np.divide(yvals_1, float(divider))
@@ -1607,10 +1640,10 @@ class plots(mpl_plotter):
         self._check_and_update_plot_settings(plot_name=plotType, axes_size=axesSize, **kwargs)
 
         if testMax == "yvals":
-            yvals, ylabel, __ = self._convert_intensities(yvals, ylabel)
+            yvals, ylabel, __ = self._convert_yaxis(yvals, ylabel)
 
         if testX:
-            xvals, xlabel, __ = self.kda_test(xvals)
+            xvals, xlabel, __ = self._convert_xaxis(xvals)
 
         # Simple hack to reduce size is to use different subplot size
         self.plotMS = self.figure.add_axes(self._axes)
@@ -1716,7 +1749,7 @@ class plots(mpl_plotter):
             self.plotMS.axhline(linewidth=kwargs["line_width"], color="k")
 
         if update_y_axis:
-            yvals, ylabel, __ = self._convert_intensities(yvals, ylabel)
+            yvals, ylabel, __ = self._convert_yaxis(yvals, ylabel)
         else:
             yvals = np.divide(yvals, float(self.y_divider))
 
@@ -2144,7 +2177,7 @@ class plots(mpl_plotter):
             xvals_limit, __ = find_limits_list(xvals, yvals)
             xlimits = (np.min(xvals_limit), np.max(xvals_limit))
 
-        yvals, ylabel = self._convert_intensities_list(yvals, ylabel)
+        yvals, ylabel = self._convert_yaxis_list(yvals, ylabel)
 
         xlabel = _replace_labels(xlabel)
         ylabel = _replace_labels(ylabel)
@@ -3786,7 +3819,7 @@ class plots(mpl_plotter):
         self.plotMS = self.figure.add_axes(self._axes)
 
         if testX:
-            xvals, xlabel, __ = self.kda_test(xvals)
+            xvals, xlabel, __ = self._convert_xaxis(xvals)
 
         extent = ut_visuals.extents(xvals) + ut_visuals.extents(yvals)
 

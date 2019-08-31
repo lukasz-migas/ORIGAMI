@@ -386,3 +386,158 @@ def text_peaklist_open(path, default_mask=0.5, default_alpha=0.5):
         peaklist_list.append(add_dict)
 
     return peaklist_list
+
+
+def text_annotations_open():
+    pass
+    # def on_load_peaklist(self, evt):
+    #     """
+    #     This function opens a formatted CSV file with peaks
+    #     """
+    #     # TODO: Move to data handling
+    #     raise MessageError("Function was removed", "Need to re-implement this...")
+
+    #         dlg = wx.FileDialog(
+    #             self,
+    #             "Choose a text file (m/z, window size, charge):",
+    #             wildcard="*.csv;*.txt",
+    #             style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR,
+    #         )
+    #         if dlg.ShowModal() == wx.ID_CANCEL:
+    #             return
+    #         else:
+    #
+    #             # Create shortcut
+    #             delimiter, __ = checkExtension(input=dlg.GetPath().encode("ascii", "replace"))
+    #             peaklist = read_csv(dlg.GetPath(), delimiter=delimiter)
+    #             peaklist = peaklist.fillna("")
+    #
+    #             columns = peaklist.columns.values.tolist()
+    #             for min_name in ["min", "min m/z"]:
+    #                 if min_name in columns:
+    #                     break
+    #                 else:
+    #                     continue
+    #             if min_name not in columns:
+    #                 min_name = None
+    #
+    #             for max_name in ["max", "max m/z"]:
+    #                 if max_name in columns:
+    #                     break
+    #                 else:
+    #                     continue
+    #             if max_name not in columns:
+    #                 max_name = None
+    #
+    #             for position_name in ["position"]:
+    #                 if position_name in columns:
+    #                     break
+    #                 else:
+    #                     continue
+    #             if position_name not in columns:
+    #                 position_name = None
+    #
+    #             for charge_name in ["z", "charge"]:
+    #                 if charge_name in columns:
+    #                     break
+    #                 else:
+    #                     continue
+    #             if charge_name not in columns:
+    #                 charge_name = None
+    #
+    #             for label_name in ["label", "information"]:
+    #                 if label_name in columns:
+    #                     break
+    #                 else:
+    #                     continue
+    #             if label_name not in columns:
+    #                 label_name = None
+    #
+    #             for color_name in ["color", "colour"]:
+    #                 if color_name in columns:
+    #                     break
+    #                 else:
+    #                     continue
+    #             if color_name not in columns:
+    #                 color_name = None
+    #
+    #             for intensity_name in ["intensity"]:
+    #                 if intensity_name in columns:
+    #                     break
+    #                 else:
+    #                     continue
+    #             if intensity_name not in columns:
+    #                 intensity_name = None
+    #
+    #             if min_name is None or max_name is None:
+    #                 return
+    #
+    #             # iterate
+    #             color_value = str(convertRGB255to1(self.patch_color_btn.GetBackgroundColour()))
+    #             arrow = False
+    #             for peak in range(len(peaklist)):
+    #                 min_value = peaklist[min_name][peak]
+    #                 max_value = peaklist[max_name][peak]
+    #                 if position_name is not None:
+    #                     position = peaklist[position_name][peak]
+    #                 else:
+    #                     position = max_value - ((max_value - min_value) / 2)
+    #
+    #                 in_table, __ = self.checkDuplicate(min_value, max_value)
+    #
+    #                 if in_table:
+    #                     continue
+    #
+    #                 if intensity_name is not None:
+    #                     intensity = peaklist[intensity_name][peak]
+    #                 else:
+    #                     intensity = np.round(
+    #                         pr_utils.find_peak_maximum(
+    #                             pr_utils.get_narrow_data_range(data=self.data, mzRange=[min_value, max_value]),
+    #                             fail_value=0.0,
+    #                         ),
+    #                         2,
+    #                     )
+    #                 if charge_name is not None:
+    #                     charge_value = peaklist[charge_name][peak]
+    #                 else:
+    #                     charge_value = ""
+    #
+    #                 if label_name is not None:
+    #                     label_value = peaklist[label_name][peak]
+    #                 else:
+    #                     label_value = ""
+    #
+    #                 self.peaklist.Append(
+    #                     [
+    #                         "",
+    #                         str(min_value),
+    #                         str(max_value),
+    #                         str(position),
+    #                         str(intensity),
+    #                         str(charge_value),
+    #                         str(label_value),
+    #                         str(color_value),
+    #                         str(arrow),
+    #                     ]
+    #                 )
+    #
+    #                 annotation_dict = {
+    #                     "min": min_value,
+    #                     "max": max_value,
+    #                     "charge": charge_value,
+    #                     "intensity": intensity,
+    #                     "label": label_value,
+    #                     "color": literal_eval(color_value),
+    #                     "isotopic_x": position,
+    #                     "isotopic_y": intensity,
+    #                 }
+    #
+    #                 name = "{} - {}".format(min_value, max_value)
+    #                 self.kwargs["annotations"][name] = annotation_dict
+    #
+    #             self.documentTree.on_update_annotation(
+    #                 self.kwargs["annotations"], self.kwargs["document"], self.kwargs["dataset"]
+    #             )
+    #
+    #             dlg.Destroy()

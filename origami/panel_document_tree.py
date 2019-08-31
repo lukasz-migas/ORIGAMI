@@ -364,7 +364,7 @@ class DocumentTree(wx.TreeCtrl):
             elif self._item_branch == "UniDec":
                 self.on_open_UniDec(None)
             elif self._item_leaf == "Annotations":
-                self.on_add_annotation(None)
+                self.on_open_annotation_editor(None)
         elif self._document_type in [
             "Chromatogram",
             "Chromatograms (EIC)",
@@ -1620,34 +1620,55 @@ class DocumentTree(wx.TreeCtrl):
         if evt is not None:
             evt.Skip()
 
-    def on_add_annotation(self, evt):
+    def on_open_annotation_editor(self, evt):
         """Open annotations panel"""
         from gui_elements.panel_peak_annotation_editor import PanelPeakAnnotationEditor
 
+        accepted_annotated_datasets = ["Multi-line:", "Line:", "H-bar:", "V-bar:", "Scatter:", "Waterfall:"]
+
         document_title = self._document_data.title
         dataset_name = self._item_leaf
-        dataset_type = self._item_leaf
+        dataset_type = self._item_branch
 
+        print([document_title, dataset_type, dataset_name])
         # get data
         data = self.GetPyData(self._item_id)
-        if data is None:
-            if self._document_type == "Mass Spectrum":
-                data = self._document_data.massSpectrum
-                dataset_name = "Mass Spectrum"
-                dataset_type = "Mass Spectrum"
-            elif self._document_type == "Mass Spectrum (processed)":
-                data = self._document_data.smoothMS
-                dataset_name = "Mass Spectrum (processed)"
-                dataset_type = "Mass Spectrum (processed)"
-            elif self._document_type == "Mass Spectra" and self._item_leaf == "Annotations":
-                data = self._document_data.multipleMassSpectrum[self._item_branch]
-                dataset_name = self._item_branch
-                dataset_type = "Mass Spectra"
-            elif "Annotated data" in self._document_type and self._item_leaf == "Annotations":
-                data = self._document_data.other_data[self._item_branch]
-                dataset_name = self._item_branch
 
-        query = [document_title, dataset_type, dataset_name]
+        # mass spectrum annotations
+        if dataset_name in ["Mass Spectrum", "Mass Spectrum (processed)"] or dataset_type in ["Mass Spectra"]:
+            plot_type = "mass_spectrum"
+            data = np.transpose([data["xvals"], data["yvals"]])
+            if dataset_name in ["Mass Spectrum", "Mass Spectrum (processed)"]:
+                dataset_type = dataset_name
+        elif dataset_type in ["Mass Spectrum", "Mass Spectrum (processed)"]:
+            plot_type = "mass_spectrum"
+            dataset_name = dataset_type
+            __, data = self.data_handling.get_spectrum_data([document_title, dataset_type, dataset_name])
+            data = np.transpose([data["xvals"], data["yvals"]])
+
+        # chromatogram data
+        elif dataset_name in ["Chromatogram"]:
+            plot_type = "chromatogram"
+            dataset_type = dataset_name
+
+        elif dataset_name in ["Drift time (1D)"]:
+            plot_type = "mobilogram"
+            dataset_type = dataset_name
+
+        elif dataset_name in ["Drift time (2D)"]:
+            plot_type = "mobilogram"
+            dataset_type = dataset_name
+
+        # annotated data annotations
+        elif any(ok_item in dataset_name for ok_item in accepted_annotated_datasets):
+            plot_type = "annotated"
+        elif any(ok_item in dataset_type for ok_item in accepted_annotated_datasets):
+            plot_type = "annotated"
+            dataset_name = self._item_branch
+            dataset_type = self._item_root
+            __, data = self.data_handling.get_mobility_chromatographic_data(
+                [document_title, dataset_type, dataset_name]
+            )
 
         if self.annotateDlg is not None:
             raise MessageError(
@@ -1656,43 +1677,8 @@ class DocumentTree(wx.TreeCtrl):
                 + " opening another one.",
             )
 
-        #         # waterfall plot
-        #         if "Waterfall (Raw):" in self._item_leaf:
-        #             data = None
-        #             plot = self.panel_plot.plot_waterfall
-        #         # Annotated data
-        #         elif (
-        #             "Multi-line: " in self._item_leaf
-        #             or "Multi-line: " in self._item_branch
-        #             or "V-bar: " in self._item_leaf
-        #             or "V-bar: " in self._item_branch
-        #             or "H-bar: " in self._item_leaf
-        #             or "H-bar: " in self._item_branch
-        #             or "Scatter: " in self._item_leaf
-        #             or "Scatter: " in self._item_branch
-        #             or "Waterfall: " in self._item_leaf
-        #             or "Waterfall: " in self._item_branch
-        #             or "Line: " in self._item_leaf
-        #             or "Line: " in self._item_branch
-        #         ):
-        #             data = None
-        #             plot = self.panel_plot.plotOther
-        #         # mass spectra
-        #         else:
-        data = np.transpose([data["xvals"], data["yvals"]])
-        plot_type = "mass_spectrum"
-
-        _plot_types = {
-            "multi-line": "Multi-line",
-            "scatter": "Scatter",
-            "line": "Line",
-            "waterfall": "Waterfall",
-            "grid-line": "Grid-line",
-            "grid-scatter": "Grid-scatter",
-            "vertical-bar": "V-bar",
-            "horizontal-bar": "H-bar",
-        }
-
+        query = [document_title, dataset_type, dataset_name]
+        print(query)
         kwargs = {
             "document_title": document_title,
             "dataset_type": dataset_type,
@@ -1705,29 +1691,6 @@ class DocumentTree(wx.TreeCtrl):
 
         self.annotateDlg = PanelPeakAnnotationEditor(self.parent, self, self.config, self.icons, **kwargs)
         self.annotateDlg.Show()
-
-    def on_get_annotation_dataset(self, document, dataset):
-        document = self.presenter.documentsDict[document]
-        annotations = None
-        if dataset == "Mass Spectrum":
-            annotations = document.massSpectrum["annotations"]
-        elif dataset == "Mass Spectrum (processed)":
-            annotations = document.smoothMS["annotations"]
-        elif "Waterfall (Raw):" in dataset:
-            annotations = document.IMS2DoverlayData[dataset]["annotations"]
-        elif (
-            "Multi-line: " in dataset
-            or "V-bar: " in dataset
-            or "H-bar: " in dataset
-            or "Scatter: " in dataset
-            or "Waterfall: " in dataset
-            or "Line: " in dataset
-        ):
-            annotations = document.other_data[dataset]["annotations"]
-        else:
-            annotations = document.multipleMassSpectrum[dataset]["annotations"]
-
-        return document, annotations
 
     def on_update_annotation(self, annotations, document_title, dataset_type, dataset_name, set_data_only=False):
         """
@@ -1945,76 +1908,8 @@ class DocumentTree(wx.TreeCtrl):
             pin_to_intensity=True,
             document_title=document.title,
             dataset_name=self._item_branch,
+            dataset_type=self._item_branch,
         )
-
-        #         plot_obj.plot_remove_text_and_lines()
-
-    #         _ymax = []
-    #
-    #         label_kwargs = self.panel_plot._buildPlotParameters(plotType="label")
-    #         for key in annotations:
-    #             annotation = annotations[key]
-    #             intensity = str2num(annotation["intensity"])
-    #             charge = annotation["charge"]
-    #             min_x_value = annotation["min"]
-    #             max_x_value = annotation["max"]
-    #             color_value = annotation.get("color", self.config.interactive_ms_annotations_color)
-    #             add_arrow = annotation.get("add_arrow", False)
-    #             show_label = annotation["label"]
-    #
-    #             if "isotopic_x" in annotation:
-    #                 mz_value = annotation["isotopic_x"]
-    #                 if mz_value in ["", 0] or mz_value < min_x_value:
-    #                     mz_value = max_x_value - ((max_x_value - min_x_value) / 2)
-    #             else:
-    #                 mz_value = max_x_value - ((max_x_value - min_x_value) / 2)
-    #
-    #             label_x_position = annotation.get("position_label_x", mz_value)
-    #             label_y_position = annotation.get("position_label_y", intensity)
-    #
-    #             if show_label == "":
-    #                 show_label = "{}, {}\nz={}".format(round(mz_value, 4), intensity, charge)
-    #
-    #             # add  custom name tag
-    #             try:
-    #                 obj_name_tag = "{}|-|{}|-|{} - {}|-|{}".format(
-    #                     self._document_data.title, self._item_branch, min_x_value, max_x_value, "annotation"
-    #                 )
-    #                 label_kwargs["text_name"] = obj_name_tag
-    #             except Exception:
-    #                 pass
-    #
-    #             if add_arrow:
-    #                 arrow_x_position = label_x_position
-    #                 label_x_position = annotation.get("position_label_x", label_x_position)
-    #                 arrow_dx = label_x_position - arrow_x_position
-    #                 arrow_y_position = label_y_position
-    #                 label_y_position = annotation.get("position_label_y", label_y_position)
-    #                 arrow_dy = label_y_position - arrow_y_position
-    #
-    #             plot_obj.plot_add_text_and_lines(
-    #                 xpos=label_x_position,
-    #                 yval=label_y_position,
-    #                 label=show_label,
-    #                 vline=False,
-    #                 stick_to_intensity=True,
-    #                 yoffset=self.config.annotation_label_y_offset,
-    #                 color=color_value,
-    #                 **label_kwargs,
-    #             )
-    #
-    #             _ymax.append(label_y_position)
-    #             if add_arrow:
-    #                 arrow_list = [arrow_x_position, arrow_y_position, arrow_dx, arrow_dy]
-    #                 plot_obj.plot_add_arrow(arrow_list, stick_to_intensity=True)
-    #
-    #         if self.config.annotation_zoom_y:
-    #             try:
-    #                 plot_obj.on_zoom_y_axis(endY=np.amax(_ymax) * self.config.annotation_zoom_y_multiplier)
-    #             except TypeError:
-    #                 pass
-    #
-    #         plot_obj.repaint()
 
     def on_action_ORIGAMI_MS(self, evt, document_title=None):
         from gui_elements.dialog_customise_origami import DialogCustomiseORIGAMI
@@ -2317,7 +2212,7 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addOneToTextTable)
         self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addInteractiveToTextTable)
         self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addOneInteractiveToTextTable)
-        self.Bind(wx.EVT_MENU, self.on_add_annotation, id=ID_docTree_add_annotations)
+        self.Bind(wx.EVT_MENU, self.on_open_annotation_editor, id=ID_docTree_add_annotations)
         self.Bind(wx.EVT_MENU, self.on_show_annotations, id=ID_docTree_show_annotations)
         self.Bind(wx.EVT_MENU, self.on_duplicate_annotations, id=ID_docTree_duplicate_annotations)
         self.Bind(wx.EVT_MENU, self.onDuplicateItem, id=ID_docTree_duplicate_document)
@@ -2727,6 +2622,7 @@ class DocumentTree(wx.TreeCtrl):
             "Drift time (2D, combined voltages, EIC)",
             "Drift time (2D, processed, EIC)",
         ]
+        accepted_annotated_items = ["Multi-line:", "Line:", "H-bar:", "V-bar:", "Scatter:", "Waterfall:"]
 
         # mass spectra
         if self._document_type in all_mass_spectra:
@@ -2840,6 +2736,7 @@ class DocumentTree(wx.TreeCtrl):
         # chromatograms - all
         elif itemType == "Chromatogram":
             menu.AppendItem(menu_action_show_plot_chromatogram)
+            menu.AppendItem(menu_show_annotations_panel)
             menu.AppendSeparator()
             menu.AppendMenu(wx.ID_ANY, "Change x-axis to...", xlabel_RT_menu)
             menu.AppendSeparator()
@@ -2861,6 +2758,7 @@ class DocumentTree(wx.TreeCtrl):
         # drift time 1D - single
         elif itemType == "Drift time (1D)":
             menu.AppendItem(menu_action_show_plot_mobilogram)
+            menu.AppendItem(menu_show_annotations_panel)
             menu.AppendSeparator()
             menu.AppendMenu(wx.ID_ANY, "Change x-axis to...", xlabel_1D_menu)
             menu.AppendSeparator()
@@ -2875,6 +2773,7 @@ class DocumentTree(wx.TreeCtrl):
 
             if self._item_leaf not in ["Drift time (1D, EIC)", "Drift time (1D, EIC, DT-IMS)"]:
                 menu.AppendItem(menu_action_show_plot_mobilogram)
+                #                 menu.AppendItem(menu_show_annotations_panel)
                 menu.AppendSeparator()
                 menu.AppendMenu(wx.ID_ANY, "Change x-axis to...", xlabel_1D_menu)
                 menu.AppendItem(menu_action_assign_charge)
@@ -2894,6 +2793,7 @@ class DocumentTree(wx.TreeCtrl):
                 menu.AppendItem(menu_action_show_plot_waterfall)
                 menu.AppendItem(menu_action_process_2D)
                 menu.AppendSeparator()
+                menu.AppendItem(menu_show_annotations_panel)
                 menu.AppendItem(menu_action_assign_charge)
                 menu.AppendMenu(wx.ID_ANY, "Set X-axis label as...", xlabel_2D_menu)
                 menu.AppendMenu(wx.ID_ANY, "Set Y-axis label as...", ylabel_2D_menu)
@@ -3010,6 +2910,12 @@ class DocumentTree(wx.TreeCtrl):
             menu.AppendSeparator()
             menu.Append(ID_saveMZDTImage, "Save image as...")
             menu.AppendItem(menu_action_save_data_as)
+        # annotated data
+        elif itemType == "Annotated data":
+            if self._document_type != self._item_leaf and any(
+                [ok_item in self._item_leaf for ok_item in accepted_annotated_items]
+            ):
+                menu.AppendItem(menu_show_annotations_panel)
         else:
             menu.Append(ID_docTree_add_MS_to_interactive, "Add mass spectra")
             menu.Append(ID_docTree_add_other_to_interactive, "Add other...")
@@ -4177,6 +4083,102 @@ class DocumentTree(wx.TreeCtrl):
     def on_show_unidec_results(self, evt, plot_type="all"):
         logger.error("This function was depracated")
 
+    def on_show_plot_annotated_data(self, data, save_image=False, **kwargs):
+        """Plot annotate data"""
+
+        try:
+            plot_type = data["plot_type"]
+        except KeyError:
+            logger.error("Could not determine plot type from the data")
+            return
+
+        if plot_type in [
+            "scatter",
+            "waterfall",
+            "line",
+            "multi-line",
+            "grid-scatter",
+            "grid-line",
+            "vertical-bar",
+            "horizontal-bar",
+        ]:
+            xlabel = data["xlabel"]
+            ylabel = data["ylabel"]
+            labels = data["labels"]
+            colors = data["colors"]
+            xvals = data["xvals"]
+            yvals = data["yvals"]
+            zvals = data["zvals"]
+
+            plot_obj = kwargs.pop("plot_obj", None)
+
+            kwargs = {
+                "plot_modifiers": data["plot_modifiers"],
+                "item_colors": data["itemColors"],
+                "item_labels": data["itemLabels"],
+                "xerrors": data["xvalsErr"],
+                "yerrors": data["yvalsErr"],
+                "xlabels": data["xlabels"],
+                "ylabels": data["ylabels"],
+                "plot_obj": plot_obj,
+            }
+
+        if plot_type == "scatter":
+            self.panel_plot.on_plot_other_scatter(
+                xvals, yvals, zvals, xlabel, ylabel, colors, labels, set_page=True, **kwargs
+            )
+        elif plot_type == "waterfall":
+            kwargs = {"labels": labels, "plot_obj": plot_obj}
+            self.panel_plot.on_plot_other_waterfall(
+                xvals, yvals, None, xlabel, ylabel, colors=colors, set_page=True, **kwargs
+            )
+        elif plot_type == "multi-line":
+            self.panel_plot.on_plot_other_overlay(
+                xvals, yvals, xlabel, ylabel, colors=colors, set_page=True, labels=labels, **kwargs
+            )
+        elif plot_type == "line":
+            kwargs = {
+                "line_color": colors[0],
+                "shade_under_color": colors[0],
+                "plot_modifiers": data["plot_modifiers"],
+                "plot_obj": plot_obj,
+            }
+            self.panel_plot.on_plot_other_1D(xvals, yvals, xlabel, ylabel, **kwargs)
+        elif plot_type == "grid-line":
+            self.panel_plot.on_plot_other_grid_1D(
+                xvals, yvals, xlabel, ylabel, colors=colors, labels=labels, set_page=True, **kwargs
+            )
+        elif plot_type == "grid-scatter":
+            self.panel_plot.on_plot_other_grid_scatter(
+                xvals, yvals, xlabel, ylabel, colors=colors, labels=labels, set_page=True, **kwargs
+            )
+
+        elif plot_type in ["vertical-bar", "horizontal-bar"]:
+            kwargs.update(orientation=plot_type)
+            self.panel_plot.on_plot_other_bars(
+                xvals, data["yvals_min"], data["yvals_max"], xlabel, ylabel, colors, set_page=True, **kwargs
+            )
+        elif plot_type in ["matrix"]:
+            zvals, yxlabels, cmap = self.presenter.get2DdataFromDictionary(
+                dictionary=data, plotType="Matrix", compact=False
+            )
+            self.panel_plot.on_plot_matrix(zvals=zvals, xylabels=yxlabels, cmap=cmap, set_page=True)
+        else:
+            msg = (
+                "Plot: {} is not supported yet. Please contact Lukasz Migas \n".format(plot_type)
+                + "if you would like to include a new plot type in ORIGAMI. Currently \n"
+                + "supported plots include: line, multi-line, waterfall, scatter and grid."
+            )
+            DialogBox(exceptionTitle="Plot type not supported", exceptionMsg=msg, type="Error")
+
+        if save_image:
+            basename = os.path.splitext(self._document_data.title)[0]
+            defaultValue = (
+                "Custom_{}_{}".format(basename, os.path.splitext(self._item_leaf)[0]).replace(":", "").replace(" ", "")
+            )
+            save_kwargs = {"image_name": defaultValue}
+            self.panel_plot.save_images(evt=ID_saveOtherImageDoc, **save_kwargs)
+
     def on_show_plot(self, evt, save_image=False):
         """ This will send data, plot and change window"""
         if self._document_data is None:
@@ -4192,100 +4194,116 @@ class DocumentTree(wx.TreeCtrl):
         self.presenter.currentDoc = self._document_data.title
         basename = os.path.splitext(self._document_data.title)[0]
         defaultValue, save_kwargs = None, {}
+
         if self._document_type in "Annotated data":
+            # exit early if user clicked on the header
             if self._item_leaf == "Annotated data":
                 return
+
+            # open annotations
             if self._item_leaf == "Annotations":
-                self.on_add_annotation(None)
+                self.on_open_annotation_editor(None)
                 return
+
             data = deepcopy(self.GetPyData(self._item_id))
-            try:
-                plot_type = data["plot_type"]
-            except KeyError:
-                return
-            if plot_type in [
-                "scatter",
-                "waterfall",
-                "line",
-                "multi-line",
-                "grid-scatter",
-                "grid-line",
-                "vertical-bar",
-                "horizontal-bar",
-            ]:
-                xlabel = data["xlabel"]
-                ylabel = data["ylabel"]
-                labels = data["labels"]
-                colors = data["colors"]
-                xvals = data["xvals"]
-                yvals = data["yvals"]
-                zvals = data["zvals"]
+            self.on_show_plot_annotated_data(data, save_image)
 
-                kwargs = {
-                    "plot_modifiers": data["plot_modifiers"],
-                    "item_colors": data["itemColors"],
-                    "item_labels": data["itemLabels"],
-                    "xerrors": data["xvalsErr"],
-                    "yerrors": data["yvalsErr"],
-                    "xlabels": data["xlabels"],
-                    "ylabels": data["ylabels"],
-                }
-
-            if plot_type == "scatter":
-                self.panel_plot.on_plot_other_scatter(
-                    xvals, yvals, zvals, xlabel, ylabel, colors, labels, set_page=True, **kwargs
-                )
-            elif plot_type == "waterfall":
-                kwargs = {"labels": labels}
-                self.panel_plot.on_plot_other_waterfall(
-                    xvals, yvals, None, xlabel, ylabel, colors=colors, set_page=True, **kwargs
-                )
-            elif plot_type == "multi-line":
-                self.panel_plot.on_plot_other_overlay(
-                    xvals, yvals, xlabel, ylabel, colors=colors, set_page=True, labels=labels
-                )
-            elif plot_type == "line":
-                kwargs = {
-                    "line_color": colors[0],
-                    "shade_under_color": colors[0],
-                    "plot_modifiers": data["plot_modifiers"],
-                }
-                self.panel_plot.on_plot_other_1D(xvals, yvals, xlabel, ylabel, **kwargs)
-            elif plot_type == "grid-line":
-                self.panel_plot.on_plot_other_grid_1D(
-                    xvals, yvals, xlabel, ylabel, colors=colors, labels=labels, set_page=True, **kwargs
-                )
-            elif plot_type == "grid-scatter":
-                self.panel_plot.on_plot_other_grid_scatter(
-                    xvals, yvals, xlabel, ylabel, colors=colors, labels=labels, set_page=True, **kwargs
-                )
-
-            elif plot_type in ["vertical-bar", "horizontal-bar"]:
-                kwargs.update(orientation=plot_type)
-                self.panel_plot.on_plot_other_bars(
-                    xvals, data["yvals_min"], data["yvals_max"], xlabel, ylabel, colors, set_page=True, **kwargs
-                )
-            elif plot_type in ["matrix"]:
-                zvals, yxlabels, cmap = self.presenter.get2DdataFromDictionary(
-                    dictionary=data, plotType="Matrix", compact=False
-                )
-                self.panel_plot.on_plot_matrix(zvals=zvals, xylabels=yxlabels, cmap=cmap, set_page=True)
-            else:
-                msg = (
-                    "Plot: {} is not supported yet. Please contact Lukasz Migas \n".format(plot_type)
-                    + "if you would like to include a new plot type in ORIGAMI. Currently \n"
-                    + "supported plots include: line, multi-line, waterfall, scatter and grid."
-                )
-                DialogBox(exceptionTitle="Plot type not supported", exceptionMsg=msg, type="Error")
-
-            if save_image:
-                defaultValue = (
-                    "Custom_{}_{}".format(basename, os.path.splitext(self._item_leaf)[0])
-                    .replace(":", "")
-                    .replace(" ", "")
-                )
-                save_kwargs = {"image_name": defaultValue}
-                self.panel_plot.save_images(evt=ID_saveOtherImageDoc, **save_kwargs)
+        #             if self._item_leaf == "Annotated data":
+        #                 return
+        #
+        #             # open annotations
+        #             if self._item_leaf == "Annotations":
+        #                 self.on_open_annotation_editor(None)
+        #                 return
+        #
+        #             data = deepcopy(self.GetPyData(self._item_id))
+        #             try:
+        #                 plot_type = data["plot_type"]
+        #             except KeyError:
+        #                 return
+        #             if plot_type in [
+        #                 "scatter",
+        #                 "waterfall",
+        #                 "line",
+        #                 "multi-line",
+        #                 "grid-scatter",
+        #                 "grid-line",
+        #                 "vertical-bar",
+        #                 "horizontal-bar",
+        #             ]:
+        #                 xlabel = data["xlabel"]
+        #                 ylabel = data["ylabel"]
+        #                 labels = data["labels"]
+        #                 colors = data["colors"]
+        #                 xvals = data["xvals"]
+        #                 yvals = data["yvals"]
+        #                 zvals = data["zvals"]
+        #
+        #                 kwargs = {
+        #                     "plot_modifiers": data["plot_modifiers"],
+        #                     "item_colors": data["itemColors"],
+        #                     "item_labels": data["itemLabels"],
+        #                     "xerrors": data["xvalsErr"],
+        #                     "yerrors": data["yvalsErr"],
+        #                     "xlabels": data["xlabels"],
+        #                     "ylabels": data["ylabels"],
+        #                 }
+        #
+        #             if plot_type == "scatter":
+        #                 self.panel_plot.on_plot_other_scatter(
+        #                     xvals, yvals, zvals, xlabel, ylabel, colors, labels, set_page=True, **kwargs
+        #                 )
+        #             elif plot_type == "waterfall":
+        #                 kwargs = {"labels": labels}
+        #                 self.panel_plot.on_plot_other_waterfall(
+        #                     xvals, yvals, None, xlabel, ylabel, colors=colors, set_page=True, **kwargs
+        #                 )
+        #             elif plot_type == "multi-line":
+        #                 self.panel_plot.on_plot_other_overlay(
+        #                     xvals, yvals, xlabel, ylabel, colors=colors, set_page=True, labels=labels
+        #                 )
+        #             elif plot_type == "line":
+        #                 kwargs = {
+        #                     "line_color": colors[0],
+        #                     "shade_under_color": colors[0],
+        #                     "plot_modifiers": data["plot_modifiers"],
+        #                 }
+        #                 self.panel_plot.on_plot_other_1D(xvals, yvals, xlabel, ylabel, **kwargs)
+        #             elif plot_type == "grid-line":
+        #                 self.panel_plot.on_plot_other_grid_1D(
+        #                     xvals, yvals, xlabel, ylabel, colors=colors, labels=labels, set_page=True, **kwargs
+        #                 )
+        #             elif plot_type == "grid-scatter":
+        #                 self.panel_plot.on_plot_other_grid_scatter(
+        #                     xvals, yvals, xlabel, ylabel, colors=colors, labels=labels, set_page=True, **kwargs
+        #                 )
+        #
+        #             elif plot_type in ["vertical-bar", "horizontal-bar"]:
+        #                 kwargs.update(orientation=plot_type)
+        #                 self.panel_plot.on_plot_other_bars(
+        #                     xvals, data["yvals_min"], data["yvals_max"], xlabel, ylabel, colors, set_page=True, **kwargs
+        #                 )
+        #             elif plot_type in ["matrix"]:
+        #                 zvals, yxlabels, cmap = self.presenter.get2DdataFromDictionary(
+        #                     dictionary=data, plotType="Matrix", compact=False
+        #                 )
+        #                 self.panel_plot.on_plot_matrix(zvals=zvals, xylabels=yxlabels, cmap=cmap, set_page=True)
+        #             else:
+        #                 msg = (
+        #                     "Plot: {} is not supported yet. Please contact Lukasz Migas \n".format(plot_type)
+        #                     +"if you would like to include a new plot type in ORIGAMI. Currently \n"
+        #                     +"supported plots include: line, multi-line, waterfall, scatter and grid."
+        #                 )
+        #                 DialogBox(exceptionTitle="Plot type not supported", exceptionMsg=msg, type="Error")
+        #
+        #             if save_image:
+        #                 defaultValue = (
+        #                     "Custom_{}_{}".format(basename, os.path.splitext(self._item_leaf)[0])
+        #                     .replace(":", "")
+        #                     .replace(" ", "")
+        #                 )
+        #                 save_kwargs = {"image_name": defaultValue}
+        #                 self.panel_plot.save_images(evt=ID_saveOtherImageDoc, **save_kwargs)
 
         elif self._document_type == "Tandem Mass Spectra":
             if self._item_leaf == "Tandem Mass Spectra":

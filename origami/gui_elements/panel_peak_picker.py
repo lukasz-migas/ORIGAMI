@@ -9,6 +9,7 @@ from styles import MiniFrame
 from styles import validator
 from utils.converters import str2int
 from utils.converters import str2num
+from utils.ranges import get_min_max
 from utils.screen import calculate_window_size
 from utils.time import ttime
 from visuals import mpl_plots
@@ -66,11 +67,10 @@ class panel_peak_picker(MiniFrame):
         self.mz_data = kwargs.pop("mz_data", None)
 
         # initilize plot
-        self.on_plot_spectrum(self.mz_data["xvals"], self.mz_data["yvals"])
-
-        # fix gui problems
-        self.on_radio_group(None, "native")
-        self.on_radio_group(None, "small_molecule")
+        if self.mz_data is not None:
+            self.on_plot_spectrum(self.mz_data["xvals"], self.mz_data["yvals"])
+            self._mz_xrange = get_min_max(self.mz_data["xvals"])
+            self._mz_yrange = get_min_max(self.mz_data["yvals"])
 
         # bind events
         wx.EVT_CLOSE(self, self.on_close)
@@ -148,13 +148,11 @@ class panel_peak_picker(MiniFrame):
     def make_settings_panel(self, split_panel):
         panel = wx.Panel(split_panel, -1, size=(-1, -1), name="settings")
 
-        visualize_highlight_check = wx.StaticText(panel, wx.ID_ANY, "Highlight:")
-        self.visualize_highlight_check = makeCheckbox(panel, "")
+        self.visualize_highlight_check = makeCheckbox(panel, "Highlight with patch")
         self.visualize_highlight_check.SetValue(self.config.fit_highlight)
         self.visualize_highlight_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        visualize_show_labels_check = wx.StaticText(panel, wx.ID_ANY, "Labels:")
-        self.visualize_show_labels_check = makeCheckbox(panel, "")
+        self.visualize_show_labels_check = makeCheckbox(panel, "Show labels on plot")
         self.visualize_show_labels_check.SetValue(self.config.fit_show_labels)
         self.visualize_show_labels_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.visualize_show_labels_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -182,13 +180,11 @@ class panel_peak_picker(MiniFrame):
 
         horizontal_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
-        data_add_peaks_to_peaklist = wx.StaticText(panel, wx.ID_ANY, "Add peaks to peak list:")
-        self.data_add_peaks_to_peaklist = makeCheckbox(panel, "")
+        self.data_add_peaks_to_peaklist = makeCheckbox(panel, "Add peaks to peak list")
         self.data_add_peaks_to_peaklist.SetValue(self.config.fit_addPeaks)
         self.data_add_peaks_to_peaklist.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        data_add_peaks_to_annotations = wx.StaticText(panel, wx.ID_ANY, "Add peaks to spectrum annotations:")
-        self.data_add_peaks_to_annotations = makeCheckbox(panel, "")
+        self.data_add_peaks_to_annotations = makeCheckbox(panel, "Add peaks to spectrum annotations")
         self.data_add_peaks_to_annotations.SetValue(self.config.fit_addPeaksToAnnotations)
         self.data_add_peaks_to_annotations.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
@@ -198,7 +194,6 @@ class panel_peak_picker(MiniFrame):
         self.close_btn = wx.Button(panel, wx.ID_OK, "Close", size=(-1, 22))
         self.close_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
-#         verbose_check = wx.StaticText(panel, wx.ID_ANY, "Verbose:")
         self.verbose_check = makeCheckbox(panel, "verbose")
         self.verbose_check.SetValue(self.config.peak_find_verbose)
         self.verbose_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
@@ -208,14 +203,9 @@ class panel_peak_picker(MiniFrame):
         # visualize grid
         annot_grid = wx.GridBagSizer(5, 5)
         n = 0
-#         annot_grid.Add(verbose_check, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-#         annot_grid.Add(self.verbose_check, (n, 1), flag=wx.EXPAND)
-#         n += 1
-        annot_grid.Add(visualize_highlight_check, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        annot_grid.Add(self.visualize_highlight_check, (n, 1), flag=wx.EXPAND)
+        annot_grid.Add(self.visualize_highlight_check, (n, 0), (1, 2), flag=wx.EXPAND)
         n += 1
-        annot_grid.Add(visualize_show_labels_check, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        annot_grid.Add(self.visualize_show_labels_check, (n, 1), flag=wx.EXPAND)
+        annot_grid.Add(self.visualize_show_labels_check, (n, 0), (1, 2), flag=wx.EXPAND)
         n += 1
         annot_grid.Add(visualize_max_labels, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         annot_grid.Add(self.visualize_max_labels, (n, 1), flag=wx.EXPAND)
@@ -225,11 +215,9 @@ class panel_peak_picker(MiniFrame):
         # data grid
         data_grid = wx.GridBagSizer(5, 5)
         n = 0
-        data_grid.Add(data_add_peaks_to_peaklist, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        data_grid.Add(self.data_add_peaks_to_peaklist, (n, 1), flag=wx.EXPAND)
+        data_grid.Add(self.data_add_peaks_to_peaklist, (n, 0), (1, 2), flag=wx.EXPAND)
         n += 1
-        data_grid.Add(data_add_peaks_to_annotations, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        data_grid.Add(self.data_add_peaks_to_annotations, (n, 1), flag=wx.EXPAND)
+        data_grid.Add(self.data_add_peaks_to_annotations, (n, 0), (1, 2), flag=wx.EXPAND)
 
         # data grid
         btn_grid = wx.GridBagSizer(5, 5)
@@ -254,7 +242,6 @@ class panel_peak_picker(MiniFrame):
         # fit layout
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(grid, 0, wx.EXPAND, 10)
-#         main_sizer.Add(btn_grid, 1, wx.ALIGN_CENTER, 0)
         main_sizer.Fit(panel)
 
         panel.SetSizerAndFit(main_sizer)
@@ -264,8 +251,7 @@ class panel_peak_picker(MiniFrame):
     def make_mass_selection_panel(self, split_panel):
         panel = wx.Panel(split_panel, -1, size=(-1, -1), name="mass_selection")
 
-        mz_limit_check = wx.StaticText(panel, wx.ID_ANY, "Select mass range:")
-        self.mz_limit_check = makeCheckbox(panel, "")
+        self.mz_limit_check = makeCheckbox(panel, "Specify peak picking mass range")
         self.mz_limit_check.SetValue(self.config.peak_find_mz_limit)
         self.mz_limit_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.mz_limit_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -275,21 +261,23 @@ class panel_peak_picker(MiniFrame):
         self.mz_min_value.SetValue(str(self.config.peak_find_mz_min))
         self.mz_min_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        mz_max_value = wx.StaticText(panel, wx.ID_ANY, "m/z end:")
+        mz_max_value = wx.StaticText(panel, wx.ID_ANY, "end:")
         self.mz_max_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
         self.mz_max_value.SetValue(str(self.config.peak_find_mz_max))
         self.mz_max_value.Bind(wx.EVT_TEXT, self.on_apply)
 
+        horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+
         grid = wx.GridBagSizer(5, 5)
         n = 0
-        grid.Add(mz_limit_check, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.mz_limit_check, (n, 1), flag=wx.EXPAND)
+        grid.Add(self.mz_limit_check, (n, 0), (1, 2), flag=wx.EXPAND)
         n += 1
         grid.Add(mz_min_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.mz_min_value, (n, 1), flag=wx.EXPAND)
+        grid.Add(mz_max_value, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.mz_max_value, (n, 3), flag=wx.EXPAND)
         n += 1
-        grid.Add(mz_max_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.mz_max_value, (n, 1), flag=wx.EXPAND)
+        grid.Add(horizontal_line_0, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
 
         # fit layout
         main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -336,14 +324,14 @@ class panel_peak_picker(MiniFrame):
         self.peak_width_modifier_value.SetValue(str(self.config.peak_find_peak_width_modifier))
         self.peak_width_modifier_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-#         horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
-#         horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+        #         horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+        #         horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
         # pack elements
         grid = wx.GridBagSizer(5, 5)
         n = 0
-#         grid.Add(horizontal_line_0, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
-#         n += 1
+        #         grid.Add(horizontal_line_0, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        #         n += 1
         grid.Add(threshold_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.threshold_value, (n, 1), flag=wx.EXPAND)
         n += 1
@@ -362,7 +350,7 @@ class panel_peak_picker(MiniFrame):
         grid.Add(peak_width_modifier_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.peak_width_modifier_value, (n, 1), flag=wx.EXPAND)
         n += 1
-#         grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        #         grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
 
         # fit layout
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -381,6 +369,7 @@ class panel_peak_picker(MiniFrame):
         self.fit_threshold_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
         self.fit_threshold_value.SetValue(str(self.config.fit_threshold))
         self.fit_threshold_value.Bind(wx.EVT_TEXT, self.on_apply)
+        self.fit_threshold_value.Bind(wx.EVT_TEXT, self.on_show_threshold_line)
 
         window_label = wx.StaticText(panel, wx.ID_ANY, "Window size (points):")
         self.fit_window_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("intPos"))
@@ -436,15 +425,15 @@ class panel_peak_picker(MiniFrame):
         # fmt: on
 
         horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
-#         horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
-#         horizontal_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+        #         horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+        #         horizontal_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         #         horizontal_line_3 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
         # pack elements
         grid = wx.GridBagSizer(5, 5)
         n = 0
-#         grid.Add(horizontal_line_0, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
-#         n += 1
+        #         grid.Add(horizontal_line_0, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        #         n += 1
         grid.Add(threshold_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.fit_threshold_value, (n, 1), flag=wx.EXPAND)
         n += 1
@@ -462,8 +451,8 @@ class panel_peak_picker(MiniFrame):
         grid.Add(sigma_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.fit_sigma_value, (n, 1), flag=wx.EXPAND)
         #         grid.Add(self.fit_show_smoothed, (n, 2),  flag=wx.EXPAND)
-#         n += 1
-#         grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        #         n += 1
+        #         grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
         # fmt: off
         # n += 1
         # grid.Add(fit_isotopic_check, (n, 0),  flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
@@ -626,7 +615,6 @@ class panel_peak_picker(MiniFrame):
 
     def on_plot_spectrum(self, mz_x, mz_y):
         """Plot mass spectrum"""
-
         self.panel_plot.on_plot_MS(mz_x, mz_y, show_in_window="peak_picker", plot_obj=self.plot_window, override=False)
 
     def on_plot_spectrum_update(self, mz_x, mz_y):
@@ -654,7 +642,22 @@ class panel_peak_picker(MiniFrame):
         return labels
 
     def on_show_threshold_line(self, evt):
-        pass
+        if self.config.peak_find_method == "small_molecule":
+            threshold = self.config.peak_find_threshold
+        else:
+            threshold = str2num(self.fit_threshold_value.GetValue())
+
+        if self._mz_yrange is not None and threshold not in [None, 0]:
+            __, y_max = self._mz_yrange
+
+            # if threshold is below 1, we assume that its meant to be a proportion
+            if threshold <= 1:
+                threshold = y_max * threshold
+
+            self.panel_plot.on_add_horizontal_line(*self._mz_xrange, threshold, self.plot_window)
+
+        if evt is not None:
+            evt.Skip()
 
     def on_annotate_spectrum(self, peaks_dict):
         """Highlight peaks in the spectrum"""
@@ -765,7 +768,6 @@ class panel_peak_picker(MiniFrame):
         self.plot_window.clearPlot()
 
     def on_save_figure(self, evt):
-
         plot_title = f"{self.document_title}_{self.dataset_name}".replace(" ", "-").replace(":", "")
         self.panel_plot.save_images(None, None, plot_obj=self.plot_window, image_name=plot_title)
 

@@ -150,7 +150,10 @@ class PanelPlots(wx.Panel):
         return self.currentPage
 
     def _set_page(self, page_name):
-        self.mainBook.SetSelection(page_name)
+        try:
+            self.mainBook.SetSelection(page_name)
+        except wx.PyAssertionError:
+            logger.warning("Failed to set to requested page", exc_info=True)
 
     def _update_label_position(self, text_obj):
         """Update annotation position
@@ -731,7 +734,7 @@ class PanelPlots(wx.Panel):
     def on_save_image(self, plot, filename, **kwargs):
         tstart = ttime()
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -1240,7 +1243,7 @@ class PanelPlots(wx.Panel):
             plot_obj = self.get_plot_from_name(plot)
         elif eventID is not None:
             plot_obj = self.get_plot_from_id(eventID)
-        elif plot is None and "plot_obj" in kwargs:
+        elif "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.pop("plot_obj")
 
         if not isinstance(plot_obj, list):
@@ -1290,7 +1293,7 @@ class PanelPlots(wx.Panel):
             if repaint:
                 self.plotRT.repaint()
 
-        elif plot is None and "plot_obj" in kwargs:
+        elif "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
             plot_obj.plot_remove_patches()
             if repaint:
@@ -1311,7 +1314,7 @@ class PanelPlots(wx.Panel):
         self, xmin, ymin, width, height, color="r", alpha=0.5, label="", plot="MS", repaint=False, **kwargs
     ):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -1321,7 +1324,7 @@ class PanelPlots(wx.Panel):
             plot_obj.repaint()
 
     def on_clear_labels(self, plot="MS", **kwargs):
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -1339,7 +1342,7 @@ class PanelPlots(wx.Panel):
             "fontsize": kwargs.pop("font_size", "medium"),
         }
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -1349,7 +1352,7 @@ class PanelPlots(wx.Panel):
         elif plot == "CalibrationMS":
             plot_obj.plot_add_text(xpos, yval, label, **plt_kwargs)
 
-        elif plot is None and "plot_obj" in kwargs:
+        elif "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj.plot_add_text(xpos, yval, label, **plt_kwargs)
 
         if optimise_labels:
@@ -1384,7 +1387,7 @@ class PanelPlots(wx.Panel):
 
     def on_clear_markers(self, plot="MS", repaint=False, **kwargs):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -1431,7 +1434,7 @@ class PanelPlots(wx.Panel):
 
     def on_plot_charge_states(self, position, charges, plot="UniDec_peaks", **kwargs):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -1446,10 +1449,8 @@ class PanelPlots(wx.Panel):
                 )
         plot_obj.repaint()
 
-        #         # optimise label positions
-        #         if kwargs.get('optimise_positions', True):
-        #             plot_obj._fix_label_positions()
-
+    def on_add_horizontal_line(self, xmin, xmax, yval, plot_obj):
+        plot_obj.plot_add_line(xmin, xmax, yval, yval, "horizontal")
         plot_obj.repaint()
 
     def on_plot_unidec_ChargeDistribution(
@@ -1461,7 +1462,7 @@ class PanelPlots(wx.Panel):
         @param xlimits: unused
         """
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -1498,7 +1499,7 @@ class PanelPlots(wx.Panel):
         @param xlimits: unused
         """
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -1528,7 +1529,7 @@ class PanelPlots(wx.Panel):
 
     def on_plot_unidec_MS_v_Fit(self, unidec_eng_data=None, replot=None, xlimits=None, plot="UniDec_MS", **kwargs):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -1570,7 +1571,7 @@ class PanelPlots(wx.Panel):
         Plot simple Mass spectrum before it is pre-processed
         """
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -1604,7 +1605,7 @@ class PanelPlots(wx.Panel):
         self, unidec_eng_data=None, replot=None, xlimits=None, plot="UniDec_MW", **kwargs
     ):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -1642,7 +1643,7 @@ class PanelPlots(wx.Panel):
     def on_plot_unidec_MW_add_markers(self, data, mw_data, plot="UniDec_MW", **kwargs):
         """Add markers to the MW plot to indicate found peaks"""
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -1700,7 +1701,7 @@ class PanelPlots(wx.Panel):
         @param xlimits: unused
         """
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -1738,7 +1739,7 @@ class PanelPlots(wx.Panel):
         self, unidec_eng_data=None, replot=None, plot="UniDec_peaks", **kwargs
     ):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -1850,7 +1851,7 @@ class PanelPlots(wx.Panel):
         @param unidec_eng_data (object):  reference to unidec engine data structure
         """
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -1900,7 +1901,7 @@ class PanelPlots(wx.Panel):
         @param unidec_eng_data (object):  reference to unidec engine data structure
         """
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -2003,7 +2004,7 @@ class PanelPlots(wx.Panel):
         self, msX=None, msY=None, xlabel="", ylabel="", xlimits=None, set_page=False, plot="Other", **kwargs
     ):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -2046,7 +2047,7 @@ class PanelPlots(wx.Panel):
         self, xvals, yvals, xlabel, ylabel, colors, labels, xlimits=None, set_page=False, plot="Other", **kwargs
     ):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -2077,8 +2078,7 @@ class PanelPlots(wx.Panel):
     def on_plot_other_waterfall(
         self, xvals, yvals, zvals, xlabel, ylabel, colors=[], set_page=False, plot="Other", **kwargs
     ):
-
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -2122,7 +2122,7 @@ class PanelPlots(wx.Panel):
         self, xvals, yvals, zvals, xlabel, ylabel, colors, labels, xlimits=None, set_page=False, plot="Other", **kwargs
     ):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -2156,7 +2156,7 @@ class PanelPlots(wx.Panel):
         self, xvals, yvals, xlabel, ylabel, colors, labels, set_page=False, plot="Other", **kwargs
     ):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -2188,7 +2188,7 @@ class PanelPlots(wx.Panel):
         self, xvals, yvals, xlabel, ylabel, colors, labels, set_page=False, plot="Other", **kwargs
     ):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -2220,7 +2220,7 @@ class PanelPlots(wx.Panel):
         self, xvals, yvals_min, yvals_max, xlabel, ylabel, colors, set_page=False, plot="Other", **kwargs
     ):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -2282,7 +2282,7 @@ class PanelPlots(wx.Panel):
         plot="MS",
         **kwargs,
     ):
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -2349,7 +2349,7 @@ class PanelPlots(wx.Panel):
     def on_plot_centroid_MS(
         self, msX, msY, msXY=None, xlimits=None, title="", repaint=True, set_page=False, plot="MS", **kwargs
     ):
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -2389,7 +2389,7 @@ class PanelPlots(wx.Panel):
 
     def on_update_plot_1D(self, xvals, yvals, plot, **kwargs):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -2400,7 +2400,7 @@ class PanelPlots(wx.Panel):
     def on_simple_plot_1D(self, xvals, yvals, **kwargs):
         plot = kwargs.pop("plot", None)
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -2426,7 +2426,7 @@ class PanelPlots(wx.Panel):
         plot_obj.repaint()
 
     def on_plot_scan_vs_voltage(self, xvals, yvals, plot=None, **kwargs):
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -2451,7 +2451,7 @@ class PanelPlots(wx.Panel):
     def on_plot_1D_annotations(self, annotations_obj, plot="MS", **kwargs):
         from utils.labels import _replace_labels
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -2463,6 +2463,8 @@ class PanelPlots(wx.Panel):
 
         if len(annotations_obj) > 1:
             plot_obj.plot_remove_text_and_lines()
+            plot_obj.plot_remove_patches()
+            plot_obj.plot_remove_arrows()
 
         label_fmt = kwargs.pop("label_fmt", "all")
         pin_to_intensity = kwargs.pop("pin_to_intensity", True)
@@ -2484,28 +2486,26 @@ class PanelPlots(wx.Panel):
                     annotation_obj.position_x, annotation_obj.position_y, annotation_obj.charge
                 )
 
-            if show_label == "":
-                continue
-
             # add  custom name tag
             obj_name_tag = f"{document_title}|-|{dataset_type}|-|{dataset_name}|-|{name}|-|annotation"
             label_kwargs["text_name"] = obj_name_tag
 
-            # add label to the plot
-            plot_obj.plot_add_text_and_lines(
-                xpos=annotation_obj.label_position_x,
-                yval=annotation_obj.label_position_y,
-                label=show_label,
-                vline=vline,
-                vline_position=annotation_obj.position_x,
-                stick_to_intensity=pin_to_intensity,
-                yoffset=self.config.annotation_label_y_offset,
-                color=annotation_obj.label_color,
-                **label_kwargs,
-            )
+            # add patch
+            if annotation_obj.patch_show:
+                plot_obj.plot_add_patch(
+                    annotation_obj.patch_position[0],
+                    annotation_obj.patch_position[1],
+                    annotation_obj.width,
+                    annotation_obj.height,
+                    color=annotation_obj.patch_color,
+                    alpha=self.config.annotation_patch_transparency,
+                    label=obj_name_tag,
+                )
+            else:
+                plot_obj._remove_existing_patch(obj_name_tag)
 
             _ymax.append(annotation_obj.label_position_y)
-            if annotation_obj.arrow_show and pin_to_intensity:
+            if show_label != "" and annotation_obj.arrow_show and pin_to_intensity:
                 # arrows have 4 positional parameters:
                 #    xpos, ypos = correspond to the label position
                 #    dx, dy = difference between label position and peak position
@@ -2514,6 +2514,22 @@ class PanelPlots(wx.Panel):
                 arrow_kwargs["text_name"] = obj_name_tag
                 arrow_kwargs["props"] = [arrow_x_end, arrow_y_end]
                 plot_obj.plot_add_arrow(arrow_list, stick_to_intensity=pin_to_intensity, **arrow_kwargs)
+            else:
+                plot_obj._remove_existing_arrow(obj_name_tag)
+
+            # add label to the plot
+            if show_label != "":
+                plot_obj.plot_add_text_and_lines(
+                    xpos=annotation_obj.label_position_x,
+                    yval=annotation_obj.label_position_y,
+                    label=show_label,
+                    vline=vline,
+                    vline_position=annotation_obj.position_x,
+                    stick_to_intensity=pin_to_intensity,
+                    yoffset=self.config.annotation_label_y_offset,
+                    color=annotation_obj.label_color,
+                    **label_kwargs,
+                )
 
         if self.config.annotation_zoom_y:
             try:
@@ -2541,7 +2557,7 @@ class PanelPlots(wx.Panel):
         plt_kwargs = self._buildPlotParameters(plotType="1D")
         window = self.config.panelNames["MS"]
 
-        if "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(show_in_window)
@@ -2627,7 +2643,7 @@ class PanelPlots(wx.Panel):
         **kwargs,
     ):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -2681,7 +2697,7 @@ class PanelPlots(wx.Panel):
         **kwargs,
     ):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -2793,7 +2809,7 @@ class PanelPlots(wx.Panel):
 
     def on_plot_violin(self, data=None, set_page=False, plot="Waterfall", **kwargs):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -2866,7 +2882,7 @@ class PanelPlots(wx.Panel):
         **kwargs,
     ):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -3133,7 +3149,7 @@ class PanelPlots(wx.Panel):
         self, xvals, yvals, zvals, xlabel, ylabel, colors=[], set_page=False, plot="Waterfall", **kwargs
     ):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -3191,7 +3207,7 @@ class PanelPlots(wx.Panel):
         self, xvals, yvals, zvals, colors, xlabel, ylabel, labels=None, set_page=False, plot="Waterfall", **kwargs
     ):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -3228,7 +3244,7 @@ class PanelPlots(wx.Panel):
 
     def on_plot_overlay_RT(self, xvals, yvals, xlabel, colors, labels, xlimits, set_page=False, plot="RT", **kwargs):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -3256,7 +3272,7 @@ class PanelPlots(wx.Panel):
 
     def on_plot_overlay_DT(self, xvals, yvals, xlabel, colors, labels, xlimits, set_page=False, plot="1D", **kwargs):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -3304,7 +3320,7 @@ class PanelPlots(wx.Panel):
         Plot an overlay of *2* ions
         """
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -3343,7 +3359,7 @@ class PanelPlots(wx.Panel):
         **kwargs,
     ):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -3388,7 +3404,7 @@ class PanelPlots(wx.Panel):
         Plot RMSD and RMSF plots together in panel RMSD
         """
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -3468,7 +3484,7 @@ class PanelPlots(wx.Panel):
         **kwargs,
     ):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -3662,7 +3678,7 @@ class PanelPlots(wx.Panel):
         **kwargs,
     ):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -3714,7 +3730,7 @@ class PanelPlots(wx.Panel):
         **kwargs,
     ):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -3752,7 +3768,7 @@ class PanelPlots(wx.Panel):
         self, n_zvals, cmap_list, title_list, xvals, yvals, xlabel, ylabel, set_page=False, plot="Overlay", **kwargs
     ):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -3790,7 +3806,7 @@ class PanelPlots(wx.Panel):
         **kwargs,
     ):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -3893,7 +3909,7 @@ class PanelPlots(wx.Panel):
         **kwargs,
     ):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.pop("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -3932,7 +3948,7 @@ class PanelPlots(wx.Panel):
         plot_obj.repaint()
 
     def plot_1D_update_data_by_label(self, xvals, yvals, gid, label, plot, **kwargs):
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -3941,7 +3957,7 @@ class PanelPlots(wx.Panel):
         plot_obj.repaint()
 
     def plot_1D_update_style_by_label(self, gid, plot, **kwargs):
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -3972,7 +3988,7 @@ class PanelPlots(wx.Panel):
         plot_obj.repaint()
 
     def on_add_legend(self, labels, colors, plot="RT", **kwargs):
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -3985,7 +4001,7 @@ class PanelPlots(wx.Panel):
         plot_obj.plot_1D_add_legend(legend_text, **plt_kwargs)
 
     def on_clear_legend(self, plot, **kwargs):
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -4005,7 +4021,7 @@ class PanelPlots(wx.Panel):
         **kwargs,
     ):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -4028,7 +4044,7 @@ class PanelPlots(wx.Panel):
 
     def on_add_patch(self, x, y, width, height, color="r", alpha=0.5, repaint=False, plot="MS", **kwargs):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
@@ -4039,7 +4055,7 @@ class PanelPlots(wx.Panel):
 
     def on_zoom_1D_x_axis(self, startX, endX, endY=None, set_page=False, plot="MS", repaint=True, **kwargs):
 
-        if plot is None and "plot_obj" in kwargs:
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)

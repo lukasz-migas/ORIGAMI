@@ -141,7 +141,7 @@ class mpl_plotter(wx.Panel):
         if self.zoom is not None:
             ZoomBox.onRebootKeyState(self.zoom, evt=None)
 
-    def kda_test(self, xvals):
+    def _convert_xaxis(self, xvals):
         """
         Adapted from Unidec/PlottingWindow.py
 

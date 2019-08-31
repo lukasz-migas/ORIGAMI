@@ -32,10 +32,6 @@ def check_annotation_input(annotation_dict):
                 + f"{required_keys}. "
             )
 
-    # check label
-    if annotation_dict["label"] in bad_value_list:
-        raise ValueError("`label` must be a valid string. Please fill-in the `annotation` field")
-
     if len(annotation_dict["label_position"]) != 2:
         raise ValueError("`label_position` must be 2 items long [xposition, yposition]")
 
@@ -65,7 +61,7 @@ class Annotation:
 
     VERSION = 1
 
-    def __init__(self, name, label_position, patch_position, color, kind="1D", **kwargs):
+    def __init__(self, name, label_position, patch_position, patch_color, kind="1D", **kwargs):
 
         # type
         self.kind = kind
@@ -82,10 +78,11 @@ class Annotation:
         # patch
         self.patch_position = patch_position
         self.patch_show = kwargs.get("patch_show", True)
-        self.patch_color = kwargs.get("patch_color", color)
+        self.patch_color = kwargs.get("patch_color", patch_color)
+        self.patch_show = kwargs.get("patch_show", False)
 
         # arrow
-        self.arrow_show = kwargs.get("arrow_show", False)
+        self.arrow_show = kwargs.get("arrow_show", True)
         self.arrow_style = "default"
 
         # marker
@@ -132,8 +129,9 @@ class Annotation:
         if not isinstance(patch_position, (tuple)):
             patch_position = list(patch_position)
         self._patch_position = patch_position
-        self.position_x = patch_position[0]
-        self.position_y = patch_position[1]
+
+    #         self.position_x = patch_position[0]
+    #         self.position_y = patch_position[1]
 
     @property
     def span_min(self):
@@ -187,6 +185,11 @@ class Annotation:
         self.patch_position = kwargs.get("patch_position", self.patch_position)
         self.patch_show = kwargs.get("patch_show", self.patch_show)
         self.patch_color = kwargs.get("patch_color", self.patch_color)
+        self.patch_show = kwargs.get("patch_show", self.patch_show)
+
+        # position
+        self.position_x = kwargs.get("position_x", self.position_x)
+        self.position_y = kwargs.get("position_y", self.position_y)
 
         # arrow
         self.arrow_show = kwargs.get("arrow_show", self.arrow_show)
