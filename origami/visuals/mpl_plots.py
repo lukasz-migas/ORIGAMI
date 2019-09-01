@@ -1714,7 +1714,7 @@ class plots(mpl_plotter):
             data_lims=extent,
             plotName=plotType,
             allowWheel=allowWheel,
-            preventExtraction=kwargs.get("prevent_extraction", False),
+            allow_extraction=kwargs.get("allow_extraction", False),
         )
 
         # Setup X-axis getter

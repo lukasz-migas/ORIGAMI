@@ -17,10 +17,6 @@ from visuals import mpl_plots
 
 logger = logging.getLogger("origami")
 
-# TODO: Add peakutils picker
-# TODO: Increase MS plot size
-# TODO: Improve peak picker
-
 
 class panel_peak_picker(MiniFrame):
     """Peak picking panel"""
@@ -59,15 +55,15 @@ class panel_peak_picker(MiniFrame):
         self._mz_yrange = [None, None]
         self._n_peaks_max = 1000
 
-        # initilize gui
-        self.make_gui()
-        self.on_toggle_controls(None)
-
         # setup kwargs
         self.document = kwargs.pop("document", None)
         self.document_title = kwargs.pop("document_title", None)
         self.dataset_name = kwargs.pop("dataset_name", None)
         self.mz_data = kwargs.pop("mz_data", None)
+
+        # initilize gui
+        self.make_gui()
+        self.on_toggle_controls(None)
 
         # initilize plot
         if self.mz_data is not None:
@@ -86,6 +82,16 @@ class panel_peak_picker(MiniFrame):
         self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
 
         logger.info(f"Startup of peak picker took {ttime()-tstart:.2f} seconds")
+
+    @property
+    def mz_data(self):
+        return self._mz_data
+
+    @mz_data.setter
+    def mz_data(self, value):
+        self._mz_data = value
+        self._mz_xrange = get_min_max(self.mz_data["xvals"])
+        self._mz_yrange = get_min_max(self.mz_data["yvals"])
 
     def on_right_click(self, evt):
         # ensure that user clicked inside the plot area

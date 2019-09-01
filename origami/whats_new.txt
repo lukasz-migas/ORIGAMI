@@ -28,15 +28,9 @@ autopep8 --in-place --aggressive --aggressive --max-line-length=120 ORIGAMI.py
 - [IMPORTANT] add CCS calibration panel
 - [IMPORTANT] completely revamp interactive output panel
 - completely revamp how plots are customized
-- re-implement visualisation of overlay items
-- [IMPORTANT] add possibility to migrate to new document structure (e.g. overlay documents)
 - add overlay possibilities for UniDec results
-- add interactive plot to annotations
-- [IMPORTANT] revamp annotations object
 - [IMPORTANT] revamp customization of overlay objects
-- [IMPORTANT] check if current implementation of Boltzmann method gives the same results as whats acquired!
 - add possibility to batch assign charge
--
 
 
 # v1.3.0.0 / 2.0.0
@@ -181,6 +175,11 @@ Annotations panel:
 - [Improved] The peaklist is now colored based on the color of patch
 - [Improved] Annotations are automatically shown on plots
 - [changed] changed the label "Multiple annotations" to "Create (similar) copies of selected annotation(s)" (found in Action...)
+- [New] added new fields to improve how annotations are displayed and handled throughout ORIGAMI visualisations
+- [New] enabled annotation of new plot types (mobilograms, chromatograms, heatmaps)
+- [Improved] plotting is a lot improved now
+- [Improved] editing of annotation positions is as simple as dragging and droping an item
+- [New] each annotation now includes `label`, `patch` and `arrow` which can be displayed independently
 
 IO: Data extraction:
 - [improved] Extraction of MS data moved away from Driftscope to Waters SDK which allows extraction of profile data

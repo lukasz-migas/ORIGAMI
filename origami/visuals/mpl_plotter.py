@@ -99,7 +99,7 @@ class mpl_plotter(wx.Panel):
         self.getxaxis = GetXValues(plots)
 
     def setup_zoom(
-        self, plots, zoom, data_lims=None, plotName=None, plotParameters=None, allowWheel=True, preventExtraction=False
+        self, plots, zoom, data_lims=None, plotName=None, plotParameters=None, allowWheel=True, allow_extraction=False
     ):
         if plotParameters is None:
             plotParameters = self._generatePlotParameters()
@@ -117,7 +117,7 @@ class mpl_plotter(wx.Panel):
             data_lims=data_lims,
             plotName=plotName,
             allowWheel=allowWheel,
-            preventExtraction=preventExtraction,
+            allow_extraction=allow_extraction,
             plotParameters=plotParameters,
         )
         self.onRebootZoomKeys(evt=None)

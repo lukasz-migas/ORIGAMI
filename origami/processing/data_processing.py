@@ -1872,10 +1872,15 @@ class data_processing:
             mz_min, mz_max = check_value_order(mz_min, mz_max)
             mz_range = (mz_min, mz_max)
 
+        # check  threshold
+        threshold = self.config.fit_threshold
+        if threshold > 1:
+            threshold = threshold / np.max(mz_y)
+
         found_peaks = pr_peaks.find_peaks_in_spectrum_local_search(
             mz_xy,
             self.config.fit_window,
-            self.config.fit_threshold,
+            threshold,
             mz_range,
             rel_height=self.config.fit_relative_height,
             verbose=self.config.peak_find_verbose,
@@ -1895,10 +1900,15 @@ class data_processing:
             mz_min, mz_max = check_value_order(mz_min, mz_max)
             mz_range = (mz_min, mz_max)
 
+        # check  threshold
+        threshold = self.config.fit_threshold
+        if threshold > 1:
+            threshold = threshold / np.max(mz_y)
+
         found_peaks = pr_peaks.find_peaks_in_spectrum_peakutils(
             mz_x,
             mz_y,
-            self.config.fit_threshold,
+            threshold,
             self.config.fit_window,
             mz_range,
             rel_height=self.config.fit_relative_height,

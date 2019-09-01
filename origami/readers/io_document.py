@@ -70,6 +70,10 @@ def cleanup_document(document):
         temporary_unidec = copy.deepcopy(document.massSpectrum.pop("temporary_unidec"))
         restore_kwargs["massSpectrum"] = temporary_unidec
 
+    if "temporary_unidec" in document.smoothMS:
+        temporary_unidec = copy.deepcopy(document.smoothMS.pop("temporary_unidec"))
+        restore_kwargs["smoothMassSpectrum"] = temporary_unidec
+
     for spectrum in document.multipleMassSpectrum:
         if "temporary_unidec" in document.multipleMassSpectrum[spectrum]:
             temporary_unidec = copy.deepcopy(document.multipleMassSpectrum[spectrum].pop("temporary_unidec"))
@@ -86,14 +90,25 @@ def cleanup_document(document):
 
 
 def restore_document(document, **kwargs):
+
     if "massSpectrum" in kwargs:
         document.massSpectrum["temporary_unidec"] = kwargs.pop("massSpectrum")
 
-    if "file_reader" in kwargs:
-        document.file_reader = kwargs.pop("file_reader")
+    if "smoothMassSpectrum" in kwargs:
+        document.smoothMS["temporary_unidec"] = kwargs.pop("smoothMassSpectrum")
 
-    for spectrum in kwargs:
-        document.multipleMassSpectrum[spectrum]["temporary_unidec"] = kwargs.pop(spectrum)
+    if "file_reader" in kwargs:
+        try:
+            document.file_reader = kwargs.pop("file_reader")
+        except:
+            logger.warning("Failed to re-add `file_reader` to the document")
+
+    kwargs_names = list(kwargs.keys())
+    for spectrum in kwargs_names:
+        try:
+            document.multipleMassSpectrum[spectrum]["temporary_unidec"] = kwargs.pop(spectrum)
+        except KeyError:
+            logger.warning(f"Failed to re-add `{spectrum}` to the document")
 
     return document
 

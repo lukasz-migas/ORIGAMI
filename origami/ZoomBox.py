@@ -2,12 +2,11 @@
 # __author__ lukasz.g.migas
 import logging
 
+import numpy as np
+import wx
 from matplotlib.patches import Rectangle
 from matplotlib.text import Text
 from pubsub import pub
-import wx
-
-import numpy as np
 
 logger = logging.getLogger("origami")
 
@@ -209,7 +208,6 @@ def xy_range_divider(values=None):
 
 
 class GetXValues:
-
     def __init__(self, axes):
         """
         This function retrieves the x-axis info
@@ -249,7 +247,7 @@ class ZoomBox:
         plotName=None,
         plotParameters=None,
         allowWheel=True,
-        preventExtraction=True,
+        allow_extraction=True,
     ):
         """
         Create a selector in axes.  When a selection is made, clear
@@ -301,7 +299,7 @@ class ZoomBox:
         self.visible = True
         self.cids = []
         self.plotName = plotName
-        self.preventExtraction = preventExtraction
+        self.allow_extraction = allow_extraction
 
         self.active = True  # for activation / deactivation
         self.to_draw = []
@@ -870,7 +868,7 @@ class ZoomBox:
         # release coordinates, button, ...
         self.eventrelease = evt
 
-        if self.addToTable and not self.preventExtraction:
+        if self.addToTable and not self.allow_extraction:
             xmin, ymin = self.eventpress.xdata, self.eventpress.ydata
             xmax, ymax = self.eventrelease.xdata, self.eventrelease.ydata
 

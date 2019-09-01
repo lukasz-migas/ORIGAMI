@@ -3,13 +3,12 @@
 import copy
 import logging
 
-from pubsub import pub
-import wx
-
-from gui_elements.misc_dialogs import DialogSimpleAsk
 import numpy as np
-from objects.annotations import check_annotation_input
 import processing.utils as pr_utils
+import wx
+from gui_elements.misc_dialogs import DialogSimpleAsk
+from objects.annotations import check_annotation_input
+from pubsub import pub
 from styles import ListCtrl
 from styles import makeCheckbox
 from styles import makeMenuItem
@@ -115,6 +114,19 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             self.plot_window._on_mark_annotation(True)
             self.on_show_on_plot(None)
             self._allow_data_check = False
+        elif self.plot_type == "chromatogram":
+            self.on_plot_chromatogram()
+            self.plot_window._on_mark_annotation(True)
+            self.on_show_on_plot(None)
+        elif self.plot_type == "mobilogram":
+            self.on_plot_mobilogram()
+            self.plot_window._on_mark_annotation(True)
+            self.on_show_on_plot(None)
+        elif self.plot_type == "heatmap":
+            self.on_plot_heatmap()
+            self.plot_window._on_mark_annotation(True)
+            self.on_show_on_plot(None)
+            self._allow_data_check = False
 
     def edit_annotation_from_mouse_evt(self, annotation_obj):
 
@@ -215,7 +227,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             "Show/hide patch column": self.annotation_list["patch"],
             "Show/hide patch position column": self.annotation_list["patch_position"],
             "Show/hide patch color column": self.annotation_list["patch_color"],
-            "Restore all columns":-1,
+            "Restore all columns": -1,
         }
 
         col_index = name_dict[name]
@@ -1271,8 +1283,8 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         # save
         wildcard = (
             "CSV (Comma delimited) (*.csv)|*.csv|"
-            +"Text (Tab delimited) (*.txt)|*.txt|"
-            +"Text (Space delimited (*.txt)|*.txt"
+            + "Text (Tab delimited) (*.txt)|*.txt|"
+            + "Text (Space delimited (*.txt)|*.txt"
         )
 
         wildcard_dict = {",": 0, "\t": 1, " ": 2}
@@ -1318,7 +1330,29 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             show_in_window="peak_picker",
             plot_obj=self.plot_window,
             override=False,
-            prevent_extraction=False,
+            allow_extraction=False,
+        )
+
+    def on_plot_chromatogram(self):
+        self.panel_plot.on_plot_RT(
+            self.data[:, 0], self.data[:, 1], plot_obj=self.plot_window, allow_extraction=False, override=False
+        )
+
+    def on_plot_mobilogram(self):
+        self.panel_plot.on_plot_1D(
+            self.data[:, 0], self.data[:, 1], plot_obj=self.plot_window, allow_extraction=False, override=False
+        )
+
+    def on_plot_heatmap(self):
+        self.panel_plot.on_plot_2D(
+            self.data["zvals"],
+            self.data["xvals"],
+            self.data["yvals"],
+            self.data["xlabels"],
+            self.data["ylabels"],
+            plot_obj=self.plot_window,
+            allow_extraction=False,
+            override=False,
         )
 
     def on_clear_plot(self, evt):
