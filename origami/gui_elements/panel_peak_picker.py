@@ -71,7 +71,7 @@ class panel_peak_picker(MiniFrame):
 
         # initilize plot
         if self.mz_data is not None:
-            self.on_plot_spectrum(self.mz_data["xvals"], self.mz_data["yvals"])
+            self.on_plot_spectrum(None)
             self._mz_xrange = get_min_max(self.mz_data["xvals"])
             self._mz_yrange = get_min_max(self.mz_data["yvals"])
             self._mz_bin_width = self.data_processing.get_mz_spacing(self.mz_data["xvals"])
@@ -159,13 +159,17 @@ class panel_peak_picker(MiniFrame):
 
         menu = wx.Menu()
 
+        menu_action_restore_original_plot = makeMenuItem(parent=menu, text="Restore orignal plot")
         menu_action_add_peaks_to_peaklist = makeMenuItem(parent=menu, text="Add peaks to peaklist panel")
         menu_action_add_peaks_to_annotations = makeMenuItem(parent=menu, text="Add peaks to spectrum annotations")
 
+        menu.Append(menu_action_restore_original_plot)
+        menu.AppendSeparator()
         menu.Append(menu_action_add_peaks_to_peaklist)
         menu.Append(menu_action_add_peaks_to_annotations)
 
         # bind events
+        self.Bind(wx.EVT_MENU, self.on_plot_spectrum, menu_action_restore_original_plot)
         self.Bind(wx.EVT_MENU, self.on_add_to_peaklist, menu_action_add_peaks_to_peaklist)
         self.Bind(wx.EVT_MENU, self.on_add_to_annotations, menu_action_add_peaks_to_annotations)
 
@@ -368,6 +372,17 @@ class panel_peak_picker(MiniFrame):
         """Make settings panel for native MS peak picking"""
         panel = wx.Panel(split_panel, -1, size=(-1, -1), name="native")
 
+        method_choice = wx.StaticText(panel, -1, "Method:")
+        self.method_choice = wx.ComboBox(
+            panel,
+            -1,
+            choices=["Local search", "Differential search"],
+            value="Local search",
+            style=wx.CB_READONLY,
+            size=(-1, -1),
+        )
+        self.method_choice.Bind(wx.EVT_COMBOBOX, self.on_apply)
+
         threshold_label = wx.StaticText(panel, wx.ID_ANY, "Threshold:")
         self.fit_threshold_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
         self.fit_threshold_value.SetValue(str(self.config.fit_threshold))
@@ -435,6 +450,9 @@ class panel_peak_picker(MiniFrame):
         # pack elements
         grid = wx.GridBagSizer(5, 5)
         n = 0
+        grid.Add(method_choice, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.method_choice, (n, 1), flag=wx.EXPAND)
+        n += 1
         grid.Add(threshold_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.fit_threshold_value, (n, 1), flag=wx.EXPAND)
         n += 1
@@ -621,23 +639,35 @@ class panel_peak_picker(MiniFrame):
                 mz_x=mz_x, mz_y=mz_y, return_data=True
             )
         elif self.config.peak_find_method == "native":
+            method = self.method_choice.GetStringSelection()
             # pre-process
             if self.config.fit_smoothPeaks:
                 mz_y = self.data_processing.smooth_spectrum(mz_y)
                 self.on_plot_spectrum_update(mz_x, mz_y)
 
-            peaks_dict = self.data_processing.find_peaks_in_mass_spectrum_local_max(
-                mz_x=mz_x, mz_y=mz_y, return_data=True
-            )
+            if method == "Differential search":
+                peaks_dict = self.data_processing.find_peaks_in_mass_spectrum_peakutils(
+                    mz_x=mz_x, mz_y=mz_y, return_data=True
+                )
+            else:
+                peaks_dict = self.data_processing.find_peaks_in_mass_spectrum_local_max(
+                    mz_x=mz_x, mz_y=mz_y, return_data=True
+                )
 
         self._peaks_dict = peaks_dict
 
         # plot found peaks
         self.on_annotate_spectrum(None)
 
-    def on_plot_spectrum(self, mz_x, mz_y):
+    def on_plot_spectrum(self, evt):
         """Plot mass spectrum"""
-        self.panel_plot.on_plot_MS(mz_x, mz_y, show_in_window="peak_picker", plot_obj=self.plot_window, override=False)
+        self.panel_plot.on_plot_MS(
+            self.mz_data["xvals"],
+            self.mz_data["yvals"],
+            show_in_window="peak_picker",
+            plot_obj=self.plot_window,
+            override=False,
+        )
 
     def on_plot_spectrum_update(self, mz_x, mz_y):
         """Update plot data without changing anything else"""
@@ -890,11 +920,11 @@ class panel_peak_picker(MiniFrame):
         allowed_document_types = ["Type: ORIGAMI", "Type: MANUAL", "Type: Infrared", "Type: MassLynx"]
 
         if document_type not in allowed_document_types:
-            logger.error(
-                f"Document type {document_type} does not permit addition of found peaks to the"
-                + f" peaklist. Allowed document types include {allowed_document_types}."
+            raise MessageError(
+                "Incorrect document type",
+                f"Document type `{document_type}` does not permit addition of found peaks to the"
+                + f" peaklist. Allowed document types include {allowed_document_types}.",
             )
-            return
 
         peaks_y_values = peaks_dict["peaks_y_values"]
         peaks_x_minus_width = peaks_dict["peaks_x_minus_width"]

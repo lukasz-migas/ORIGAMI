@@ -3,6 +3,7 @@
 import logging
 
 import numpy as np
+import peakutils
 from scipy.signal import find_peaks
 from scipy.signal import peak_widths
 from utils.check import isnumber
@@ -184,6 +185,59 @@ def find_peaks_in_spectrum_local_search(data, window=10, threshold=0, mz_range=N
     # get peaks
     pks_mz_x_minus_width = mz_x[pks_idx_minus_width]
     pks_mz_x_plus_width = mz_x[pks_idx_plus_width]
+    pks_mz_x_width = pks_mz_x_plus_width - pks_mz_x_minus_width
+
+    if kwargs.get("verbose", False):
+        logger.info(f"Found {len(pks_idx)} peaks in {ttime() - tstart:.4f} seconds")
+
+    # generate output dictionary
+    peaks_dict = {
+        "peaks_x_values": pks_x,
+        "peaks_y_values": pks_y,
+        "peaks_x_minus_width": pks_mz_x_minus_width,
+        "peaks_x_plus_width": pks_mz_x_plus_width,
+        "peaks_x_width": pks_mz_x_width,
+        "peaks_index": pks_idx,
+        "peaks_index_width": pks_idx_width,
+        "peaks_index_x_minus_width": pks_idx_minus_width,
+        "peaks_index_x_plus_width": pks_idx_plus_width,
+        "peaks_properties": pks_props,
+    }
+
+    return peaks_dict
+
+
+def find_peaks_in_spectrum_peakutils(x_signal, y_signal, threshold=0, min_distance=30, mz_range=None, **kwargs):
+    tstart = ttime()
+    # modify search space
+    if mz_range is not None:
+        mz_min, mz_max = mz_range
+        if isnumber(mz_min) and isnumber(mz_max):
+            mz_start_idx = np.argmin(np.abs(x_signal - mz_min))
+            mz_end_idx = np.argmin(np.abs(x_signal - mz_max))
+            x_signal = x_signal[mz_start_idx:mz_end_idx]
+            y_signal = y_signal[mz_start_idx:mz_end_idx]
+
+    pks_idx = peakutils.indexes(y_signal, threshold, min_distance, thres_abs=False if threshold < 1 else True)
+    pks_x = x_signal[pks_idx]
+    pks_y = y_signal[pks_idx]
+
+    pks_width, widths_height, left_ips, right_ips = peak_widths(
+        y_signal, pks_idx, rel_height=kwargs.get("rel_height", 0.5)
+    )
+    pks_props = {"left_ips": left_ips, "right_ips": right_ips, "width_heights": widths_height, "widths": pks_width}
+
+    # round-up peak width index
+    pks_idx_width_half = np.ceil(pks_width / 2).astype(np.int32)
+    pks_idx_width = np.ceil(pks_width).astype(np.int32)
+
+    # collect peak widths
+    pks_idx_minus_width = pks_idx - pks_idx_width_half
+    pks_idx_plus_width = pks_idx + pks_idx_width_half
+
+    # get peaks
+    pks_mz_x_minus_width = x_signal[pks_idx_minus_width]
+    pks_mz_x_plus_width = x_signal[pks_idx_plus_width]
     pks_mz_x_width = pks_mz_x_plus_width - pks_mz_x_minus_width
 
     if kwargs.get("verbose", False):

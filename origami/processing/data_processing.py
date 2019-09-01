@@ -1884,6 +1884,30 @@ class data_processing:
         if kwargs.get("return_data", False):
             return found_peaks
 
+    def find_peaks_in_mass_spectrum_peakutils(self, **kwargs):
+        mz_x = kwargs.get("mz_x")
+        mz_y = kwargs.get("mz_y")
+
+        mz_range = None
+        if self.config.peak_find_mz_limit:
+            mz_min = self.config.peak_find_mz_min
+            mz_max = self.config.peak_find_mz_max
+            mz_min, mz_max = check_value_order(mz_min, mz_max)
+            mz_range = (mz_min, mz_max)
+
+        found_peaks = pr_peaks.find_peaks_in_spectrum_peakutils(
+            mz_x,
+            mz_y,
+            self.config.fit_threshold,
+            self.config.fit_window,
+            mz_range,
+            rel_height=self.config.fit_relative_height,
+            verbose=self.config.peak_find_verbose,
+        )
+
+        if kwargs.get("return_data", False):
+            return found_peaks
+
     #     def find_isotopic_peaks_in_mass_spectrum_local_max(self, peaks_dict, **kwargs):
     #         mz_x = kwargs.get("mz_x")
     #         mz_y = kwargs.get("mz_y")
