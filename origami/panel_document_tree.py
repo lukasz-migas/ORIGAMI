@@ -1630,10 +1630,10 @@ class DocumentTree(wx.TreeCtrl):
         dataset_name = self._item_leaf
         dataset_type = self._item_branch
 
-        print([document_title, dataset_type, dataset_name])
         # get data
         data = self.GetPyData(self._item_id)
 
+        plot_type = None
         # mass spectrum annotations
         if dataset_name in ["Mass Spectrum", "Mass Spectrum (processed)"] or dataset_type in ["Mass Spectra"]:
             plot_type = "mass_spectrum"
@@ -1645,7 +1645,12 @@ class DocumentTree(wx.TreeCtrl):
             dataset_name = dataset_type
             __, data = self.data_handling.get_spectrum_data([document_title, dataset_type, dataset_name])
             data = np.transpose([data["xvals"], data["yvals"]])
-
+        elif self._item_root == "Mass Spectra":
+            plot_type = "mass_spectrum"
+            dataset_name = dataset_type
+            dataset_type = self._item_root
+            __, data = self.data_handling.get_spectrum_data([document_title, dataset_type, dataset_name])
+            data = np.transpose([data["xvals"], data["yvals"]])
         # chromatogram data
         elif dataset_name in ["Chromatogram"]:
             plot_type = "chromatogram"
@@ -1670,6 +1675,10 @@ class DocumentTree(wx.TreeCtrl):
                 [document_title, dataset_type, dataset_name]
             )
 
+        # check plot_type has been specified
+        if plot_type is None:
+            raise MessageError("Not implemented yet", "Function not implemented for this dataset type")
+
         if self.annotateDlg is not None:
             raise MessageError(
                 "Window already open",
@@ -1678,7 +1687,6 @@ class DocumentTree(wx.TreeCtrl):
             )
 
         query = [document_title, dataset_type, dataset_name]
-        print(query)
         kwargs = {
             "document_title": document_title,
             "dataset_type": dataset_type,
@@ -2432,6 +2440,7 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_process_2D, menu_action_process_2D)
         self.Bind(wx.EVT_MENU, self.on_process_all_2D, menu_action_process_2D_all)
 
+        # fmt: off
         #         # INTERACTIVE DATASET ONLY
         #         if self._document_data.dataType == "Type: Interactive":
         #             if self._document_type == "Annotated data" and self._item_leaf != self._document_type:
@@ -2608,6 +2617,7 @@ class DocumentTree(wx.TreeCtrl):
         #
         #         # ALL OTHER DATASETS
         #         el
+        # fmt: on
 
         all_mass_spectra = ["Mass Spectrum", "Mass Spectrum (processed)", "Mass Spectra"]
         all_heatmaps = [
@@ -4208,6 +4218,7 @@ class DocumentTree(wx.TreeCtrl):
             data = deepcopy(self.GetPyData(self._item_id))
             self.on_show_plot_annotated_data(data, save_image)
 
+        # fmt: off
         #             if self._item_leaf == "Annotated data":
         #                 return
         #
@@ -4304,6 +4315,7 @@ class DocumentTree(wx.TreeCtrl):
         #                 )
         #                 save_kwargs = {"image_name": defaultValue}
         #                 self.panel_plot.save_images(evt=ID_saveOtherImageDoc, **save_kwargs)
+        # fmt: on
 
         elif self._document_type == "Tandem Mass Spectra":
             if self._item_leaf == "Tandem Mass Spectra":

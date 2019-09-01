@@ -6,11 +6,10 @@ import os
 import time
 
 import matplotlib
-import matplotlib.pyplot as plt
-import numpy as np
-import processing.UniDec.utilities as unidec_utils
-import seaborn as sns
+from natsort import natsorted
+from pubsub import pub
 import wx
+
 from gui_elements.misc_dialogs import DialogBox
 from icons.icons import IconContainer
 from ids import ID_clearPlot_1D
@@ -18,24 +17,24 @@ from ids import ID_clearPlot_1D_MS
 from ids import ID_clearPlot_2D
 from ids import ID_clearPlot_3D
 from ids import ID_clearPlot_Calibration
-from ids import ID_clearPlot_Matrix
 from ids import ID_clearPlot_MS
 from ids import ID_clearPlot_MZDT
-from ids import ID_clearPlot_other
+from ids import ID_clearPlot_Matrix
 from ids import ID_clearPlot_Overlay
 from ids import ID_clearPlot_RMSD
 from ids import ID_clearPlot_RMSF
 from ids import ID_clearPlot_RT
 from ids import ID_clearPlot_RT_MS
+from ids import ID_clearPlot_UniDec_MS
 from ids import ID_clearPlot_UniDec_barchart
 from ids import ID_clearPlot_UniDec_chargeDistribution
-from ids import ID_clearPlot_UniDec_MS
 from ids import ID_clearPlot_UniDec_mwDistribution
 from ids import ID_clearPlot_UniDec_mwGrid
 from ids import ID_clearPlot_UniDec_mzGrid
 from ids import ID_clearPlot_UniDec_pickedPeaks
 from ids import ID_clearPlot_Watefall
 from ids import ID_clearPlot_Waterfall
+from ids import ID_clearPlot_other
 from ids import ID_docTree_action_open_peak_picker
 from ids import ID_extraSettings_colorbar
 from ids import ID_extraSettings_general_plot
@@ -79,9 +78,11 @@ from ids import ID_saveWaterfallImage
 from ids import ID_saveWaterfallImageDoc
 from ids import ID_smooth1Ddata1DT
 from ids import ID_smooth1DdataRT
-from natsort import natsorted
+import matplotlib.pyplot as plt
+import numpy as np
 from panelCustomisePlot import panel_customise_plot
-from pubsub import pub
+import processing.UniDec.utilities as unidec_utils
+import seaborn as sns
 from styles import makeMenuItem
 from toolbox import merge_two_dicts
 from utils.check import isempty
@@ -100,6 +101,7 @@ logger = logging.getLogger("origami")
 
 
 class PanelPlots(wx.Panel):
+
     def __init__(self, parent, config, presenter):
         wx.Panel.__init__(
             self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(800, 600), style=wx.TAB_TRAVERSAL
@@ -178,7 +180,7 @@ class PanelPlots(wx.Panel):
             annotations_obj.update_annotation(
                 annotation_name, {"label_position": [new_pos_x, new_pos_y * text_obj.y_divider]}
             )
-            pub.sendMessage("edit_annotation", annotation_obj=annotations_obj[annotation_name])
+            pub.sendMessage("editor.edit.annotation", annotation_obj=annotations_obj[annotation_name])
 
             self.view.panelDocuments.documents.on_update_annotation(
                 annotations_obj, document_title, dataset_type, dataset_name, set_data_only=True
@@ -355,8 +357,8 @@ class PanelPlots(wx.Panel):
             raise MessageError(
                 "Failed processing",
                 "This error can occur when visually processing DT/MS dataset. It is best to simply"
-                + " right-click on DT/MS item in the Document Tree and select 'Process...'"
-                + " where it should not occur.",
+                +" right-click on DT/MS item in the Document Tree and select 'Process...'"
+                +" where it should not occur.",
             )
 
     def on_right_click(self, evt):
@@ -868,14 +870,14 @@ class PanelPlots(wx.Panel):
         # Setup filename
         wildcard = (
             "SVG Scalable Vector Graphic (*.svg)|*.svg|"
-            + "SVGZ Compressed Scalable Vector Graphic (*.svgz)|*.svgz|"
-            + "PNG Portable Network Graphic (*.png)|*.png|"
-            + "Enhanced Windows Metafile (*.eps)|*.eps|"
-            + "JPEG File Interchange Format (*.jpeg)|*.jpeg|"
-            + "TIFF Tag Image File Format (*.tiff)|*.tiff|"
-            + "RAW Image File Format (*.raw)|*.raw|"
-            + "PS PostScript Image File Format (*.ps)|*.ps|"
-            + "PDF Portable Document Format (*.pdf)|*.pdf"
+            +"SVGZ Compressed Scalable Vector Graphic (*.svgz)|*.svgz|"
+            +"PNG Portable Network Graphic (*.png)|*.png|"
+            +"Enhanced Windows Metafile (*.eps)|*.eps|"
+            +"JPEG File Interchange Format (*.jpeg)|*.jpeg|"
+            +"TIFF Tag Image File Format (*.tiff)|*.tiff|"
+            +"RAW Image File Format (*.raw)|*.raw|"
+            +"PS PostScript Image File Format (*.ps)|*.ps|"
+            +"PDF Portable Document Format (*.pdf)|*.pdf"
         )
 
         wildcard_dict = {"svg": 0, "svgz": 1, "png": 2, "eps": 3, "jpeg": 4, "tiff": 5, "raw": 6, "ps": 7, "pdf": 8}
@@ -926,8 +928,8 @@ class PanelPlots(wx.Panel):
             raise MessageError(
                 "No spectrum information",
                 "Document title and/or spectrum title were not recorded for this plot."
-                + "\n\nYou can try peak picking by right-clicking in the document tree on the desired mass spectrum"
-                + " and clicking on `Open peak picker`",
+                +"\n\nYou can try peak picking by right-clicking in the document tree on the desired mass spectrum"
+                +" and clicking on `Open peak picker`",
             )
 
         self.view.panelDocuments.documents.on_open_peak_picker(
@@ -1139,8 +1141,8 @@ class PanelPlots(wx.Panel):
                 if plot.lock_plot_from_updating:
                     msg = (
                         "This plot is locked and you cannot use global setting updated. \n"
-                        + "Please right-click in the plot area and select Customise plot..."
-                        + " to adjust plot settings."
+                        +"Please right-click in the plot area and select Customise plot..."
+                        +" to adjust plot settings."
                     )
                     print(msg)
                     continue
@@ -1163,8 +1165,8 @@ class PanelPlots(wx.Panel):
             if plot_obj.lock_plot_from_updating:
                 msg = (
                     "This plot is locked and you cannot use global setting updated. \n"
-                    + "Please right-click in the plot area and select Customise plot..."
-                    + " to adjust plot settings."
+                    +"Please right-click in the plot area and select Customise plot..."
+                    +" to adjust plot settings."
                 )
                 print(msg)
                 return
@@ -1315,11 +1317,11 @@ class PanelPlots(wx.Panel):
     ):
 
         if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
-            plot_obj = kwargs.get("plot_obj")
+            plot_obj = kwargs.pop("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot)
 
-        plot_obj.plot_add_patch(xmin, ymin, width, height, color=color, alpha=alpha, label=label)
+        plot_obj.plot_add_patch(xmin, ymin, width, height, color=color, alpha=alpha, label=label, **kwargs)
         if repaint:
             plot_obj.repaint()
 
@@ -1833,7 +1835,7 @@ class PanelPlots(wx.Panel):
         if len(legend_text) - 1 > plt_kwargs["maximum_shown_items"]:
             msg = (
                 "Only showing {} out of {} items.".format(plt_kwargs["maximum_shown_items"], len(legend_text) - 1)
-                + " If you would like to see more go to Processing -> UniDec -> Max shown"
+                +" If you would like to see more go to Processing -> UniDec -> Max shown"
             )
             logger.info(msg)
 
@@ -1923,7 +1925,7 @@ class PanelPlots(wx.Panel):
             if len(xvals) > plt_kwargs["maximum_shown_items"]:
                 msg = (
                     "Only showing {} out of {} items.".format(plt_kwargs["maximum_shown_items"], len(xvals))
-                    + " If you would like to see more go to Processing -> UniDec -> Max shown"
+                    +" If you would like to see more go to Processing -> UniDec -> Max shown"
                 )
                 self.presenter.onThreading(None, (msg, 4, 7), action="updateStatusbar")
 
@@ -2382,6 +2384,7 @@ class PanelPlots(wx.Panel):
             self.on_clear_labels(plot="MS")
         except Exception:
             pass
+
         try:
             self.on_clear_patches(plot="MS")
         except Exception:
@@ -2593,7 +2596,7 @@ class PanelPlots(wx.Panel):
             plot_obj.dataset_name = kwargs["dataset"]
 
         if not full_repaint:
-            try:
+            if hasattr(plot_obj, "plotMS"):
                 plot_obj.plot_1D_update_data(msX, msY, "m/z", "Intensity", **plt_kwargs)
                 if len(view_range):
                     self.on_zoom_1D_x_axis(startX=view_range[0], endX=view_range[1], repaint=False, plot="MS")
@@ -2601,8 +2604,6 @@ class PanelPlots(wx.Panel):
                 if override:
                     self.config.replotData["MS"] = {"xvals": msX, "yvals": msY, "xlimits": xlimits}
                 return
-            except Exception as err:
-                logger.warning(err)
 
         # check limits
         try:
@@ -2851,7 +2852,7 @@ class PanelPlots(wx.Panel):
                 if n_scans > 500:
                     msg = (
                         f"There are {n_scans} scans in this dataset"
-                        + "(this could be slow...). Would you like to continue?"
+                        +"(this could be slow...). Would you like to continue?"
                     )
                     dlg = DialogBox(exceptionTitle="Would you like to continue?", exceptionMsg=msg, type="Question")
                     if dlg == wx.ID_NO:

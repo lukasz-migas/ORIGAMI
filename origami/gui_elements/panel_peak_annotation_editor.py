@@ -3,12 +3,13 @@
 import copy
 import logging
 
-import numpy as np
-import processing.utils as pr_utils
-import wx
-from gui_elements.misc_dialogs import DialogSimpleAsk
-from objects.annotations import check_annotation_input
 from pubsub import pub
+import wx
+
+from gui_elements.misc_dialogs import DialogSimpleAsk
+import numpy as np
+from objects.annotations import check_annotation_input
+import processing.utils as pr_utils
 from styles import ListCtrl
 from styles import makeCheckbox
 from styles import makeMenuItem
@@ -25,6 +26,7 @@ from utils.converters import str2num
 from utils.exceptions import MessageError
 from utils.labels import sanitize_string
 from utils.screen import calculate_window_size
+from utils.time import ttime
 from visuals import mpl_plots
 
 logger = logging.getLogger("origami")
@@ -33,7 +35,6 @@ logger = logging.getLogger("origami")
 # TODO: add option to sort by intensity
 # TODO: add option to rename annotation
 # TODO: add customisation settings for default: show patch/ show arrow/ label color / patch color/
-# TODO: rename the pubsub event from edit_annotation to editor.edit.annotation and editor.add.annotation
 
 
 class PanelPeakAnnotationEditor(wx.MiniFrame):
@@ -45,6 +46,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         wx.MiniFrame.__init__(
             self, parent, -1, "Annotation...", size=(-1, -1), style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER
         )
+        tstart = ttime()
 
         self.parent = parent
         self.documentTree = documentTree
@@ -89,6 +91,20 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
 
         self.on_populate_table()
         self.on_toggle_controls(None)
+        wx.CallAfter(self.on_setup_plot_on_startup)
+
+        # bind
+        wx.EVT_CLOSE(self, self.on_close)
+        self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
+
+        # add listener
+        pub.subscribe(self.add_annotation_from_mouse_evt, "editor.mark.annotation")
+        pub.subscribe(self.edit_annotation_from_mouse_evt, "editor.edit.annotation")
+        self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
+
+        logger.info(f"Startup of annototations editor took {ttime()-tstart:.2f} seconds")
+
+    def on_setup_plot_on_startup(self):
 
         if self.plot_type == "mass_spectrum":
             self.on_plot_spectrum()
@@ -99,15 +115,6 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             self.plot_window._on_mark_annotation(True)
             self.on_show_on_plot(None)
             self._allow_data_check = False
-
-        # bind
-        wx.EVT_CLOSE(self, self.on_close)
-        self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
-
-        # add listener
-        pub.subscribe(self.add_annotation_from_mouse_evt, "mark_annotation")
-        pub.subscribe(self.edit_annotation_from_mouse_evt, "edit_annotation")
-        self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
 
     def edit_annotation_from_mouse_evt(self, annotation_obj):
 
@@ -208,7 +215,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             "Show/hide patch column": self.annotation_list["patch"],
             "Show/hide patch position column": self.annotation_list["patch_position"],
             "Show/hide patch color column": self.annotation_list["patch_color"],
-            "Restore all columns": -1,
+            "Restore all columns":-1,
         }
 
         col_index = name_dict[name]
@@ -258,10 +265,10 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             logger.warning("Failed to unmark annotation state")
 
         try:
-            pub.unsubscribe(self.add_annotation_from_mouse_evt, "mark_annotation")
-            pub.unsubscribe(self.edit_annotation_from_mouse_evt, "edit_annotation")
+            pub.unsubscribe(self.add_annotation_from_mouse_evt, "editor.mark.annotation")
+            pub.unsubscribe(self.edit_annotation_from_mouse_evt, "editor.edit.annotation")
         except Exception as err:
-            logger.warning(f"Failed to unsubscribe from `mark_annotation`or `edit_annotation`: {err}")
+            logger.warning(f"Failed to unsubscribe from `editor.mark.annotation`or `editor.edit.annotation`: {err}")
 
         self.documentTree.annotateDlg = None
         self.Destroy()
@@ -376,7 +383,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
 
         label_value = wx.StaticText(panel, -1, "annotation:")
         self.label_value = wx.TextCtrl(panel, -1, "", style=wx.TE_RICH2 | wx.TE_MULTILINE)
-        #         self.label_value.SetToolTip(wx.ToolTip("Value (y) could represent intensity of an ion in a mass spectrum."))
+        self.label_value.SetToolTip(wx.ToolTip("Label associated with the marked region in the plot area"))
 
         marker_general = wx.StaticText(panel, -1, "marked\nposition:")
 
@@ -468,12 +475,14 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         #         self.label_format = wx.ComboBox(
         #             panel,
         #             -1,
-        #             choices=["None", "charge-only [n+]", "charge-only [+n]", "superscript", "M+nH", "2M+nH", "3M+nH", "4M+nH"],
+        #             choices=["None", "charge-only [n+]", "charge-only [+n]",
+        # "superscript", "M+nH", "2M+nH", "3M+nH", "4M+nH"],
         #             value="None",
         #             style=wx.CB_READONLY,
         #             size=(-1, -1),
         #         )
         #
+
         self.auto_add_to_table.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.add_btn.Bind(wx.EVT_BUTTON, self.on_add_annotation)
         self.remove_btn.Bind(wx.EVT_BUTTON, self.on_delete_annotation)
@@ -939,42 +948,6 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         except KeyError as err:
             logger.info(err)
 
-    def get_values_from_data(self, xmin, xmax, ymin, ymax):
-
-        #         intensity = np.round(np.average([ymin, ymax]), 4)
-        intensity = ymax
-        position = xmax - ((xmax - xmin) / 2)
-        charge = 1
-        if self._allow_data_check:
-            # try to get position and intensity from data
-            try:
-                # get narrow data values
-                mz_narrow = pr_utils.get_narrow_data_range(data=self.data, mzRange=[xmin, xmax])
-                # get maximum intensity from the subselected data
-                intensity = pr_utils.find_peak_maximum(mz_narrow)
-                # retrieve index value
-                max_index = np.where(mz_narrow[:, 1] == intensity)[0]
-                position = mz_narrow[max_index, 0][0]
-            except IndexError:
-                position = xmax - ((xmax - xmin) / 2)
-                intensity = self.data[:, 1][pr_utils.find_nearest_index(self.data[:, 0], position)]
-            except TypeError:
-                logger.warning(f"Failed to get annotation intensity / position", exc_info=True)
-
-            charge = self.data_processing.predict_charge_state(
-                self.data[:, 0], self.data[:, 1], [xmin - 2, xmax + 2], std_dev=self.config.annotation_charge_std_dev
-            )
-
-        label = f"x={position:.4f}\ny={intensity:.2f}\ncharge={charge:d}"
-        name = f"x={position:.4f}; y={intensity:.2f}"
-        height = ymax - ymin
-        width = xmax - xmin
-
-        if self.plot_type in ["mass_spectrum", "1D"]:
-            height = intensity
-
-        return intensity, position, charge, height, width, label, name
-
     def set_annotation_in_gui(self, info_dict=None, annotation_obj=None):
         if info_dict is None and annotation_obj is None:
             raise MessageError(
@@ -1058,6 +1031,41 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
                 return True, i
 
         return False, -1
+
+    def get_values_from_data(self, xmin, xmax, ymin, ymax):
+
+        intensity = ymax
+        position = xmax - ((xmax - xmin) / 2)
+        charge = 1
+        if self._allow_data_check:
+            # try to get position and intensity from data
+            try:
+                # get narrow data values
+                mz_narrow = pr_utils.get_narrow_data_range(data=self.data, mzRange=[xmin, xmax])
+                # get maximum intensity from the subselected data
+                intensity = pr_utils.find_peak_maximum(mz_narrow)
+                # retrieve index value
+                max_index = np.where(mz_narrow[:, 1] == intensity)[0]
+                position = mz_narrow[max_index, 0][0]
+            except IndexError:
+                position = xmax - ((xmax - xmin) / 2)
+                intensity = self.data[:, 1][pr_utils.find_nearest_index(self.data[:, 0], position)]
+            except TypeError:
+                logger.warning(f"Failed to get annotation intensity / position", exc_info=True)
+
+            charge = self.data_processing.predict_charge_state(
+                self.data[:, 0], self.data[:, 1], [xmin - 2, xmax + 2], std_dev=self.config.annotation_charge_std_dev
+            )
+
+        label = f"x={position:.4f}\ny={intensity:.2f}\ncharge={charge:d}"
+        name = f"x={position:.4f}; y={intensity:.2f}"
+        height = ymax - ymin
+        width = xmax - xmin
+
+        if self.plot_type in ["mass_spectrum", "1D"]:
+            height = intensity
+
+        return intensity, position, charge, height, width, label, name
 
     def add_annotation_from_mouse_evt(self, xmin, xmax, ymin, ymax):
         """Add annotations from mouse event"""
@@ -1263,8 +1271,8 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         # save
         wildcard = (
             "CSV (Comma delimited) (*.csv)|*.csv|"
-            + "Text (Tab delimited) (*.txt)|*.txt|"
-            + "Text (Space delimited (*.txt)|*.txt"
+            +"Text (Tab delimited) (*.txt)|*.txt|"
+            +"Text (Space delimited (*.txt)|*.txt"
         )
 
         wildcard_dict = {",": 0, "\t": 1, " ": 2}

@@ -27,12 +27,12 @@ def num2str(val):
         return None
 
 
-def str2int(string):
+def str2int(string, default_value=None):
     try:
         val = int(string)
         return val
     except (ValueError, TypeError):
-        return None
+        return default_value
 
 
 def float2int(num):

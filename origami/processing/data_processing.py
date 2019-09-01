@@ -166,6 +166,20 @@ class data_processing:
                 cmap = get_data.get("cmap", None)
             return zvals, xylabels, cmap
 
+    def get_mz_spacing(self, x):
+        """Return average spacing in the spectrum
+
+        Parameters
+        ----------
+        x : np.array
+
+        Returns
+        -------
+        np.float
+            average spacing in the array
+        """
+        return np.abs(np.diff(x)).mean()
+
     @staticmethod
     def on_smooth_1D_signal(ys):
         sigma = DialogSimpleAsk(

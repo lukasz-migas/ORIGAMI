@@ -551,7 +551,7 @@ class plots(mpl_plotter):
         )
         self.markers.append(markers)
 
-    def plot_remove_markers(self):
+    def plot_remove_markers(self, repaint=True):
 
         for marker in self.markers:
             try:
@@ -560,7 +560,8 @@ class plots(mpl_plotter):
                 pass
 
         self.markers = []
-        self.repaint()
+        if repaint:
+            self.repaint()
 
     def plot_remove_lines(self, label_starts_with):
         try:
@@ -711,7 +712,7 @@ class plots(mpl_plotter):
         self, xmin, ymin, width, height, color="r", alpha=0.5, linewidth=0, add_temporary=False, label="", **kwargs
     ):
 
-        if label is not None:
+        if label not in [None, ""]:
             self._remove_existing_patch(label)
 
         # check if need to rescale height
@@ -719,10 +720,18 @@ class plots(mpl_plotter):
             height = np.divide(height, self.y_divider)
         except Exception:
             pass
+
         try:
             patch = self.plotMS.add_patch(
                 patches.Rectangle(
-                    (xmin, ymin), width, height, color=color, alpha=alpha, linewidth=linewidth, picker=True
+                    (xmin, ymin),
+                    width,
+                    height,
+                    color=color,
+                    alpha=alpha,
+                    linewidth=linewidth,
+                    picker=True,
+                    edgecolor="k",
                 )
             )
         except AttributeError:
@@ -739,7 +748,7 @@ class plots(mpl_plotter):
         else:
             self.patch.append(patch)
 
-    def plot_remove_patches(self):
+    def plot_remove_patches(self, repaint=True):
 
         for patch in self.patch:
             try:
@@ -748,14 +757,13 @@ class plots(mpl_plotter):
                 pass
 
         self.patch = []
-        self.repaint()
+        if repaint:
+            self.repaint()
 
     def plot_add_line(self, xmin, xmax, ymin, ymax, orientation, label="temporary"):
 
         if label is not None:
             self._remove_existing_line(label)
-
-        print(self.y_divider)
 
         if orientation == "vertical":
             line = self.plotMS.axvline(xmin, 0, 1, color="r", linestyle="dashed", alpha=0.7)
@@ -777,7 +785,7 @@ class plots(mpl_plotter):
         if repaint:
             self.repaint()
 
-    def plot_remove_text_and_lines(self):
+    def plot_remove_text_and_lines(self, repaint=True):
 
         for text in self.text:
             try:
@@ -801,7 +809,8 @@ class plots(mpl_plotter):
         self.lines = []
         self.arrows = []
 
-        self.repaint()
+        if repaint:
+            self.repaint()
 
     def plot_1D_update_data_only(self, xvals, yvals):
         kwargs = self.plot_parameters

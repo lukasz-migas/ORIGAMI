@@ -2,11 +2,12 @@
 # __author__ lukasz.g.migas
 import logging
 
-import numpy as np
-import wx
 from matplotlib.patches import Rectangle
 from matplotlib.text import Text
 from pubsub import pub
+import wx
+
+import numpy as np
 
 logger = logging.getLogger("origami")
 
@@ -208,6 +209,7 @@ def xy_range_divider(values=None):
 
 
 class GetXValues:
+
     def __init__(self, axes):
         """
         This function retrieves the x-axis info
@@ -881,7 +883,7 @@ class ZoomBox:
                 elif self.plotName != "CalibrationDT" and self.eventpress.xdata != evt.xdata:
                     pub.sendMessage("extract_from_plot_1D", xvalsMin=xmin, xvalsMax=xmax, yvalsMax=ymax)
             else:
-                pub.sendMessage("mark_annotation", xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+                pub.sendMessage("editor.mark.annotation", xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
 
         if self.spancoords == "data":
             xmin, ymin = self.eventpress.xdata, self.eventpress.ydata
