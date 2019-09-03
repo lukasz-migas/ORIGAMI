@@ -4,7 +4,6 @@ import copy
 import logging
 import math
 import os
-import re
 import threading
 from multiprocessing.pool import ThreadPool
 from sys import platform
@@ -20,7 +19,6 @@ from document import document as documents
 from gui_elements.dialog_multi_directory_picker import DialogMultiDirectoryPicker
 from gui_elements.dialog_select_document import DialogSelectDocument
 from gui_elements.misc_dialogs import DialogBox
-from h5py._hl import dataset
 from ids import ID_load_masslynx_raw
 from ids import ID_load_origami_masslynx_raw
 from ids import ID_openIRRawFile
@@ -107,43 +105,43 @@ class data_handling:
         """
 
         if action == "statusbar.update":
-            th = threading.Thread(target=self.view.updateStatusbar, args=args)
+            _thread = threading.Thread(target=self.view.updateStatusbar, args=args)
         elif action == "load.raw.masslynx":
-            th = threading.Thread(target=self.on_open_single_MassLynx_raw, args=args)
+            _thread = threading.Thread(target=self.on_open_single_MassLynx_raw, args=args)
         elif action == "load.text.heatmap":
-            th = threading.Thread(target=self.on_open_single_text_2D, args=args)
+            _thread = threading.Thread(target=self.on_open_single_text_2D, args=args)
         elif action == "load.multiple.text.heatmap":
-            th = threading.Thread(target=self.on_open_multiple_text_2D, args=args)
+            _thread = threading.Thread(target=self.on_open_multiple_text_2D, args=args)
         elif action == "load.text.spectrum":
-            th = threading.Thread(target=self.on_add_text_MS, args=args)
+            _thread = threading.Thread(target=self.on_add_text_MS, args=args)
         elif action == "load.raw.masslynx.ms_only":
-            th = threading.Thread(target=self.on_open_MassLynx_raw_MS_only, args=args)
+            _thread = threading.Thread(target=self.on_open_MassLynx_raw_MS_only, args=args)
         elif action == "extract.heatmap":
-            th = threading.Thread(target=self.on_extract_2D_from_mass_range, args=args)
+            _thread = threading.Thread(target=self.on_extract_2D_from_mass_range, args=args)
         elif action == "load.multiple.raw.masslynx":
-            th = threading.Thread(target=self.on_open_multiple_ML_files, args=args)
+            _thread = threading.Thread(target=self.on_open_multiple_ML_files, args=args)
         elif action == "save.document":
-            th = threading.Thread(target=self.on_save_document, args=args)
+            _thread = threading.Thread(target=self.on_save_document, args=args)
         elif action == "save.all.document":
-            th = threading.Thread(target=self.on_save_all_documents, args=args)
+            _thread = threading.Thread(target=self.on_save_all_documents, args=args)
         elif action == "load.document":
-            th = threading.Thread(target=self.on_open_document, args=args)
+            _thread = threading.Thread(target=self.on_open_document, args=args)
         elif action == "extract.data.user":
-            th = threading.Thread(target=self.on_extract_data_from_user_input, args=args, **kwargs)
+            _thread = threading.Thread(target=self.on_extract_data_from_user_input, args=args, **kwargs)
         #             self.pool_data = self.thread_pool.apply_async(
         #                 self.on_extract_data_from_user_input, args=args, kwds=kwargs)
         elif action == "export.config":
-            th = threading.Thread(target=self.on_export_config, args=args)
+            _thread = threading.Thread(target=self.on_export_config, args=args)
         elif action == "import.config":
-            th = threading.Thread(target=self.on_import_config, args=args)
+            _thread = threading.Thread(target=self.on_import_config, args=args)
         elif action == "extract.spectrum.collision.voltage":
-            th = threading.Thread(target=self.on_extract_mass_spectrum_for_each_collision_voltage, args=args)
+            _thread = threading.Thread(target=self.on_extract_mass_spectrum_for_each_collision_voltage, args=args)
         elif action == "load.text.peaklist":
-            th = threading.Thread(target=self.on_load_user_list, args=args, **kwargs)
+            _thread = threading.Thread(target=self.on_load_user_list, args=args, **kwargs)
 
         # Start thread
         try:
-            th.start()
+            _thread.start()
         except Exception as e:
             logger.warning("Failed to execute the operation in threaded mode. Consider switching it off?")
             logger.error(e)
@@ -1963,9 +1961,7 @@ class data_handling:
                 )
 
             elif document.dataType == "Type: Infrared":
-                self.on_add_ion_IR(
-                    item_information, document, path, mz_start, mz_end, mz_y_max, ion_name, ion_id, charge, label
-                )
+                self.on_add_ion_IR(item_information, document, path, mz_start, mz_end, ion_name, ion_id, charge, label)
             else:
                 return
             msg = "Extracted: {}/{}".format((n_extracted), n_items)
@@ -2729,8 +2725,6 @@ class data_handling:
                 if document.dataType != "Type: CALIBRANT":
                     name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
                     self.plotsPanel.on_plot_MS(msX, msY, xlimits=xlimits, **name_kwargs)
-                else:
-                    self.onPlotMSDTCalibration(msX=msX, msY=msY, color=color, xlimits=xlimits, plotType="MS")
             if document.got1DT:
                 self.update_statusbar("Loaded mobiligrams (1D)", 4)
                 dtX = document.DT["xvals"]
@@ -2739,8 +2733,6 @@ class data_handling:
                 color = document.lineColour
                 if document.dataType != "Type: CALIBRANT":
                     self.plotsPanel.on_plot_1D(dtX, dtY, xlabel)
-                else:
-                    self.onPlotMSDTCalibration(dtX=dtX, dtY=dtY, color=color, xlabelDT=xlabel, plotType="1DT")
             if document.got1RT:
                 self.update_statusbar("Loaded chromatograms", 4)
                 rtX = document.RT["xvals"]
@@ -2855,224 +2847,6 @@ class data_handling:
         self.documentTree.add_document(docData=document, expandAll=False)
         self.presenter.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
 
-    def on_overlay_1D(self, source, plot_type):
-        """
-        This function enables overlaying of multiple ions together - 1D and RT
-        """
-        # Check what is the ID
-        if source == "ion":
-            tempList = self.ionList
-            add_data_to_document = self.view.panelMultipleIons.addToDocument
-            normalize_dataset = self.view.panelMultipleIons.normalize1D
-        elif source == "text":
-            tempList = self.textList
-            add_data_to_document = self.view.panelMultipleText.addToDocument
-            normalize_dataset = self.view.panelMultipleText.normalize1D
-
-        if add_data_to_document:
-            document = self._get_document_of_type("Type: Comparison")
-            document_title = document.title
-
-        # Empty lists
-        xlist, ylist, colorlist, legend = [], [], [], []
-        idName = ""
-        # Get data for the dataset
-        for row in range(tempList.GetItemCount()):
-            if tempList.IsChecked(index=row):
-                if source == "ion":
-                    # Get current document
-                    itemInfo = self.ionPanel.on_get_item_information(itemID=row)
-                    document_title = itemInfo["document"]
-                    # Check that data was extracted first
-                    if document_title == "":
-                        continue
-
-                    document = self._on_get_document(document_title)
-                    dataType = document.dataType
-                    selectedItem = itemInfo["ionName"]
-                    label = itemInfo["label"]
-                    color = convertRGB255to1(itemInfo["color"])
-                    itemName = "ion={} ({})".format(selectedItem, document_title)
-
-                    # ORIGAMI dataset
-                    if dataType == "Type: ORIGAMI" and document.gotCombinedExtractedIons:
-                        try:
-                            data = document.IMS2DCombIons[selectedItem]
-                        except KeyError:
-                            try:
-                                data = document.IMS2Dions[selectedItem]
-                            except KeyError:
-                                continue
-                    elif dataType == "Type: ORIGAMI" and not document.gotCombinedExtractedIons:
-                        try:
-                            data = document.IMS2Dions[selectedItem]
-                        except KeyError:
-                            continue
-
-                    # MANUAL dataset
-                    if dataType == "Type: MANUAL" and document.gotCombinedExtractedIons:
-                        try:
-                            data = document.IMS2DCombIons[selectedItem]
-                        except KeyError:
-                            try:
-                                data = document.IMS2Dions[selectedItem]
-                            except KeyError:
-                                continue
-
-                    # Add new label
-                    if idName == "":
-                        idName = itemName
-                    else:
-                        idName = "{}, {}".format(idName, itemName)
-
-                    # Add depending which event was triggered
-                    if plot_type == "mobiligram":
-                        xvals = data["yvals"]  # normally this would be the y-axis
-                        yvals = data["yvals1D"]
-                        if normalize_dataset:
-                            yvals = pr_spectra.smooth_gaussian_1D(data=yvals, sigma=self.config.overlay_smooth1DRT)
-                            yvals = pr_spectra.normalize_1D(yvals)
-                        xlabels = data["ylabels"]  # data was rotated so using ylabel for xlabel
-
-                    elif plot_type == "chromatogram":
-                        xvals = data["xvals"]
-                        yvals = data["yvalsRT"]
-                        if normalize_dataset:
-                            yvals = pr_spectra.smooth_gaussian_1D(data=yvals, sigma=self.config.overlay_smooth1DRT)
-                            yvals = pr_spectra.normalize_1D(yvals)
-                        xlabels = data["xlabels"]
-
-                    # Append data to list
-                    xlist.append(xvals)
-                    ylist.append(yvals)
-                    colorlist.append(color)
-                    if label == "":
-                        label = selectedItem
-                    legend.append(label)
-                elif source == "text":
-                    itemInfo = self.textPanel.on_get_item_information(itemID=row)
-                    document_title = itemInfo["document"]
-                    label = itemInfo["label"]
-                    color = itemInfo["color"]
-                    color = convertRGB255to1(itemInfo["color"])
-                    # get document
-                    try:
-                        document = self._on_get_document(document_title)
-                        comparison_flag = False
-                        selectedItem = document_title
-                        itemName = "file={}".format(document_title)
-                    except Exception as __:
-                        comparison_flag = True
-                        document_title, ion_name = re.split(": ", document_title)
-                        document = self._on_get_document(document_title)
-                        selectedItem = ion_name
-                        itemName = "file={}".format(ion_name)
-
-                    # Text dataset
-                    if comparison_flag:
-                        try:
-                            data = document.IMS2DcompData[ion_name]
-                        except Exception:
-                            data = document.IMS2Dions[ion_name]
-                    else:
-                        try:
-                            data = document.IMS2D
-                        except Exception:
-                            self.onThreading(None, ("No data for selected file", 3), action="updateStatusbar")
-                            continue
-
-                    # Add new label
-                    if idName == "":
-                        idName = itemName
-                    else:
-                        idName = "{}, {}".format(idName, itemName)
-
-                    # Add depending which event was triggered
-                    if plot_type == "mobiligram":
-                        xvals = data["yvals"]  # normally this would be the y-axis
-                        try:
-                            yvals = data["yvals1D"]
-                        except KeyError:
-                            yvals = np.sum(data["zvals"], axis=1).T
-                        if normalize_dataset:
-                            yvals = pr_spectra.smooth_gaussian_1D(data=yvals, sigma=self.config.overlay_smooth1DRT)
-                            yvals = pr_spectra.normalize_1D(yvals)
-                        xlabels = data["ylabels"]  # data was rotated so using ylabel for xlabel
-
-                    elif plot_type == "chromatogram":
-                        xvals = data["xvals"][:-1]  # TEMPORARY FIX
-                        try:
-                            yvals = data["yvalsRT"]
-                        except KeyError:
-                            yvals = np.sum(data["zvals"], axis=0)
-                        if normalize_dataset:
-                            yvals = pr_spectra.smooth_gaussian_1D(data=yvals, sigma=self.config.overlay_smooth1DRT)
-                            yvals = pr_spectra.normalize_1D(yvals)
-                        xlabels = data["xlabels"]
-
-                    # Append data to list
-                    xlist.append(xvals)
-                    ylist.append(yvals)
-                    colorlist.append(color)
-                    if label == "":
-                        label = selectedItem
-                    legend.append(label)
-
-        # Modify the name to include ion tags
-        if plot_type == "mobiligram":
-            idName = "1D: %s" % idName
-        elif plot_type == "chromatogram":
-            idName = "RT: %s" % idName
-
-        # remove unnecessary file extensions from filename
-        if len(idName) > 511:
-            self.onThreading(None, ("Filename is too long. Reducing...", 4), action="updateStatusbar")
-            idName = idName.replace(".csv", "").replace(".txt", "").replace(".raw", "").replace(".d", "")
-            idName = idName[:500]
-
-        # Determine x-axis limits for the zoom function
-        try:
-            xlimits = [min(xvals), max(xvals)]
-        except UnboundLocalError:
-            self.onThreading(None, ("Please select at least one item in the table.", 4), action="updateStatusbar")
-            return
-        # Add data to dictionary
-        if add_data_to_document:
-            document = self._get_document_of_type("Type: Comparison")
-            document.gotOverlay = True
-            document.IMS2DoverlayData[idName] = {
-                "xvals": xlist,
-                "yvals": ylist,
-                "xlabel": xlabels,
-                "colors": colorlist,
-                "xlimits": xlimits,
-                "labels": legend,
-            }
-            document_title = document.title
-            self.on_update_document(document, "comparison_data")
-
-        # Plot
-        if plot_type == "mobiligram":
-            self.plotsPanel.on_plot_overlay_DT(
-                xvals=xlist,
-                yvals=ylist,
-                xlabel=xlabels,
-                colors=colorlist,
-                xlimits=xlimits,
-                labels=legend,
-                set_page=True,
-            )
-        elif plot_type == "chromatogram":
-            self.plotsPanel.on_plot_overlay_RT(
-                xvals=xlist,
-                yvals=ylist,
-                xlabel=xlabels,
-                colors=colorlist,
-                xlimits=xlimits,
-                labels=legend,
-                set_page=True,
-            )
-
     def on_update_DTMS_zoom(self, xmin, xmax, ymin, ymax):
         """Event driven data sub-sampling
 
@@ -3136,7 +2910,7 @@ class data_handling:
             self.config.ms_mzBinSize,
             self.config.ms_auto_range,
         )
-        self.onThreading(None, (msg, 4), action="updateStatusbar")
+        logger.info(msg)
 
         if len(list(document.multipleMassSpectrum.keys())) > 0:
             # check the min/max values in the mass spectrum
@@ -3582,10 +3356,8 @@ class data_handling:
             data = document.massSpectrum
         elif dataset_type == "Mass Spectrum (processed)":
             data = document.smoothMS
-        elif dataset_type == "Mass Spectra" and dataset_name == "Mass Spectra":
-            data = document.multipleMassSpectrum
-        elif dataset_type == "Mass Spectra":
-            data = document.multipleMassSpectrum.get(dataset_name, dict())
+        elif dataset_type == "Chromatogram":
+            data = document.RT
         elif dataset_type == "Drift time (1D)":
             data = document.DT
         elif dataset_type == "Drift time (2D)":
@@ -3594,64 +3366,38 @@ class data_handling:
             data = document.IMS2Dprocess
         elif dataset_type == "DT/MS":
             data = document.DTMZ
+        # MS -
+        elif dataset_type == "Mass Spectra":
+            data = get_subset_or_all(dataset_type, dataset_name, document.multipleMassSpectrum)
         # 2D - EIC
-        elif dataset_type == "Drift time (2D, EIC)" and dataset_name == "Drift time (2D, EIC)":
-            data = document.IMS2Dions
-        elif dataset_type == "Drift time (2D, EIC)" and dataset_name is not None:
-            data = document.IMS2Dions[dataset_name]
-        # 2D - combined voltages
-        elif (
-            dataset_type == "Drift time (2D, combined voltages, EIC)"
-            and dataset_name == "Drift time (2D, combined voltages, EIC)"
-        ):
-            data = document.IMS2DCombIons
-        elif dataset_type == "Drift time (2D, combined voltages, EIC)" and dataset_name is not None:
-            data = document.IMS2DCombIons[dataset_name]
+        elif dataset_type == "Drift time (2D, EIC)":
+            data = get_subset_or_all(dataset_type, dataset_name, document.IMS2Dions)
+        elif dataset_type == "Drift time (2D, combined voltages, EIC)":
+            data = get_subset_or_all(dataset_type, dataset_name, document.IMS2DCombIons)
         # 2D - processed
-        elif dataset_type == "Drift time (2D, processed, EIC)" and dataset_name == "Drift time (2D, processed, EIC)":
-            data = document.IMS2DionsProcess
-        elif dataset_type == "Drift time (2D, processed, EIC)" and dataset_name is not None:
-            data = document.IMS2DionsProcess[dataset_name]
+        elif dataset_type == "Drift time (2D, processed, EIC)":
+            data = get_subset_or_all(dataset_type, dataset_name, document.IMS2DionsProcess)
         # 2D - input data
-        elif dataset_type == "Input data" and dataset_name == "Input data":
-            data = document.IMS2DcompData
-        elif dataset_type == "Input data" and dataset_name is not None:
-            data = document.IMS2DcompData[dataset_name]
+        elif dataset_type == "Input data":
+            data = get_subset_or_all(dataset_type, dataset_name, document.IMS2DcompData)
         # RT - combined voltages
-        elif dataset_type == "Chromatogram":
-            data = document.RT
-        elif (
-            dataset_type == "Chromatograms (combined voltages, EIC)"
-            and dataset_name == "Chromatograms (combined voltages, EIC)"
-        ):
-            data = document.IMSRTCombIons
-        elif dataset_type == "Chromatograms (combined voltages, EIC)" and dataset_name is not None:
-            data = document.IMSRTCombIons[dataset_name]
+        elif dataset_type == "Chromatograms (combined voltages, EIC)":
+            data = get_subset_or_all(dataset_type, dataset_name, document.IMSRTCombIons)
         # RT - EIC
-        elif dataset_type == "Chromatograms (EIC)" and dataset_name == "Chromatograms (EIC)":
-            data = document.multipleRT
-        elif dataset_type == "Chromatograms (EIC)" and dataset_name is not None:
-            data = document.multipleRT[dataset_name]
+        elif dataset_type == "Chromatograms (EIC)":
+            data = get_subset_or_all(dataset_type, dataset_name, document.multipleRT)
         # 1D - EIC
-        elif dataset_type == "Drift time (1D, EIC)" and dataset_name == "Drift time (1D, EIC)":
-            data = document.multipleDT
-        elif dataset_type == "Drift time (1D, EIC)" and dataset_name is not None:
-            data = document.multipleDT[dataset_name]
+        elif dataset_type == "Drift time (1D, EIC)":
+            data = get_subset_or_all(dataset_type, dataset_name, document.multipleDT)
         # 1D - EIC - DTIMS
-        elif dataset_type == "Drift time (1D, EIC, DT-IMS)" and dataset_name == "Drift time (1D, EIC, DT-IMS)":
-            data = document.IMS1DdriftTimes
-        elif dataset_type == "Drift time (1D, EIC, DT-IMS)" and dataset_name is not None:
-            data = document.IMS1DdriftTimes[dataset_name]
+        elif dataset_type == "Drift time (1D, EIC, DT-IMS)":
+            data = get_subset_or_all(dataset_type, dataset_name, document.IMS1DdriftTimes)
         # Statistical
-        elif dataset_type == "Statistical" and dataset_name == "Statistical":
-            data = document.IMS2DstatsData
-        elif dataset_type == "Statistical" and dataset_name is not None:
-            data = document.IMS2DstatsData[dataset_name]
+        elif dataset_type == "Statistical":
+            data = get_subset_or_all(dataset_type, dataset_name, document.IMS2DstatsData)
         # Annotated data
-        elif dataset_type == "Annotated data" and dataset_name == "Annotated data":
-            data = document.other_data
-        elif dataset_type == "Annotated data" and dataset_name is not None:
-            data = document.other_data[dataset_name]
+        elif dataset_type == "Annotated data":
+            data = get_subset_or_all(dataset_type, dataset_name, document.other_data)
 
         if as_copy:
             data = copy.deepcopy(data)

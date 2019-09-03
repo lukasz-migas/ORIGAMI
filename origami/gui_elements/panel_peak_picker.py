@@ -144,6 +144,7 @@ class panel_peak_picker(MiniFrame):
         self.settings_sizer.Add(self.panel_book, 1, wx.EXPAND, 0)
         self.settings_sizer.Add(self.settings_panel, 1, wx.ALIGN_CENTER)
         self.settings_sizer.Fit(panel)
+        self.settings_sizer.SetMinSize((420, -1))
 
         self._settings_panel_size = self.settings_sizer.GetSize()
 
@@ -233,6 +234,9 @@ class panel_peak_picker(MiniFrame):
         self.visualize_show_labels_int_check.SetValue(self.config.fit_show_labels_int)
         self.visualize_show_labels_int_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
+        self.display_label = wx.StaticText(panel, wx.ID_ANY, "")
+        self.display_label.SetForegroundColour(wx.BLUE)
+
         self.find_peaks_btn = wx.Button(panel, wx.ID_OK, "Find peaks", size=(-1, 22))
         self.find_peaks_btn.Bind(wx.EVT_BUTTON, self.on_find_peaks)
 
@@ -288,6 +292,8 @@ class panel_peak_picker(MiniFrame):
         n += 1
         grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
         n += 1
+        grid.Add(self.display_label, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        n += 1
         grid.Add(btn_grid, (n, 0), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER)
         n += 1
         grid.Add(self.verbose_check, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
@@ -337,14 +343,9 @@ class panel_peak_picker(MiniFrame):
         self.peak_width_modifier_value.SetValue(str(self.config.peak_find_peak_width_modifier))
         self.peak_width_modifier_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        #         horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
-        #         horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
-
         # pack elements
         grid = wx.GridBagSizer(5, 5)
         n = 0
-        #         grid.Add(horizontal_line_0, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
-        #         n += 1
         grid.Add(threshold_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.threshold_value, (n, 1), flag=wx.EXPAND)
         n += 1
@@ -363,7 +364,6 @@ class panel_peak_picker(MiniFrame):
         grid.Add(peak_width_modifier_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.peak_width_modifier_value, (n, 1), flag=wx.EXPAND)
         n += 1
-        #         grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
 
         # fit layout
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -714,9 +714,12 @@ class panel_peak_picker(MiniFrame):
         peaks_width = peaks_dict["peaks_x_width"]
         n_peaks = len(peaks_width)
 
+        label = f"Found {n_peaks} peaks in the spectrum"
+        logger.info(label)
+        self.display_label.SetLabel(label)
         if n_peaks == 0:
             return
-        logger.info(f"Found {n_peaks} peaks in the spectrum")
+
         self._n_peaks_max = 1000
         if n_peaks > self._n_peaks_max:
             logger.warning(

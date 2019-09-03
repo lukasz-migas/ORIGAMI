@@ -2479,9 +2479,11 @@ class PanelPlots(wx.Panel):
                 continue
 
             if label_fmt == "charge":
-                show_label = annotation_obj.charge
+                show_label = f"z={annotation_obj.charge:d}"
             elif label_fmt == "label":
                 show_label = _replace_labels(annotation_obj.label)
+            elif label_fmt == "patch":
+                show_label = ""
             else:
                 show_label = "{:.2f}, {}\nz={}".format(
                     annotation_obj.position_x, annotation_obj.position_y, annotation_obj.charge
@@ -2932,7 +2934,7 @@ class PanelPlots(wx.Panel):
                 }
             return
         except Exception:
-            logging.info("Failed to quickly plot heatmap", exc_info=True)
+            logging.info("Failed to quickly plot heatmap", exc_info=False)
 
         # Plot 2D dataset
         plot_obj.clearPlot()

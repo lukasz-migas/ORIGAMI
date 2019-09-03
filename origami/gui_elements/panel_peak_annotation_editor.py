@@ -30,10 +30,7 @@ from visuals import mpl_plots
 
 logger = logging.getLogger("origami")
 
-# TODO: add option to quickly delete items
-# TODO: add option to sort by intensity
 # TODO: add option to rename annotation
-# TODO: add customisation settings for default: show patch/ show arrow/ label color / patch color/
 
 
 class PanelPeakAnnotationEditor(wx.MiniFrame):
@@ -105,28 +102,25 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
 
     def on_setup_plot_on_startup(self):
 
+        self._plot_types_1D = ["mass_spectrum", "chromatogram", "mobilogram"]
+
         if self.plot_type == "mass_spectrum":
             self.on_plot_spectrum()
-            self.plot_window._on_mark_annotation(True)
-            self.on_show_on_plot(None)
         elif self.plot_type == "annotated":
             self.on_plot_annotated()
-            self.plot_window._on_mark_annotation(True)
-            self.on_show_on_plot(None)
             self._allow_data_check = False
         elif self.plot_type == "chromatogram":
             self.on_plot_chromatogram()
-            self.plot_window._on_mark_annotation(True)
-            self.on_show_on_plot(None)
         elif self.plot_type == "mobilogram":
             self.on_plot_mobilogram()
-            self.plot_window._on_mark_annotation(True)
-            self.on_show_on_plot(None)
         elif self.plot_type == "heatmap":
             self.on_plot_heatmap()
-            self.plot_window._on_mark_annotation(True)
-            self.on_show_on_plot(None)
             self._allow_data_check = False
+        else:
+            raise ValueError("Plot type is not supported yet")
+
+        self.plot_window._on_mark_annotation(True)
+        self.on_show_on_plot(None)
 
     def edit_annotation_from_mouse_evt(self, annotation_obj):
 
@@ -259,8 +253,11 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
 
     def on_key_event(self, evt):
         key_code = evt.GetKeyCode()
+
         if key_code == wx.WXK_ESCAPE:  # key = esc
             self.on_close(evt=None)
+        elif key_code == 127 and self.FindFocus() == self.peaklist:
+            self.on_delete_item()
         evt.Skip()
 
     def on_close(self, evt):
@@ -739,9 +736,10 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         )
         self._menu_autofix_label_position_check.Check(self._menu_autofix_label_position)
         menu.AppendSeparator()
-        menu_plot_show_mz_int_charge = menu.Append(wx.ID_ANY, "Show m/z, intensity, charge")
-        menu_plot_show_charge = menu.Append(wx.ID_ANY, "Show charge")
-        menu_plot_show_label = menu.Append(wx.ID_ANY, "Show label")
+        menu_plot_show_patch = menu.Append(wx.ID_ANY, "Show patch")
+        menu_plot_show_mz_int_charge = menu.Append(wx.ID_ANY, "Show annotation: m/z, intensity, charge")
+        menu_plot_show_charge = menu.Append(wx.ID_ANY, "Show annotation: charge")
+        menu_plot_show_label = menu.Append(wx.ID_ANY, "Show annotation: label")
         menu.AppendSeparator()
         menu_plot_clear_labels = menu.Append(wx.ID_ANY, "Clear annotations")
 
@@ -749,6 +747,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         self.Bind(wx.EVT_MENU, self.on_show_on_plot, menu_plot_show_charge)
         self.Bind(wx.EVT_MENU, self.on_show_on_plot, menu_plot_show_label)
         self.Bind(wx.EVT_MENU, self.on_show_on_plot, menu_plot_show_mz_int_charge)
+        self.Bind(wx.EVT_MENU, self.on_show_on_plot, menu_plot_show_patch)
         self.Bind(wx.EVT_MENU, self.on_clear_from_plot, menu_plot_clear_labels)
 
         self.Bind(wx.EVT_TOOL, self.on_check_tools, self._menu_show_all_check)
@@ -839,6 +838,11 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         for row in range(rows):
             if self.peaklist.IsChecked(index=row):
                 self.on_update_annotation(row, update_item, **update_dict)
+
+    def on_delete_item(self):
+        item_information = self.on_get_item_information(None)
+        self.on_delete_annotation(None, item_information["name"])
+        self.on_show_on_plot(None)
 
     def on_delete_items(self, evt):
         rows = self.peaklist.GetItemCount() - 1
@@ -1049,6 +1053,12 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         intensity = ymax
         position = xmax - ((xmax - xmin) / 2)
         charge = 1
+
+        # check if the annotation is a point annotation
+        if np.abs(np.diff([xmin, xmax])) < 0.2:
+            xmin = xmin - 0.2
+            xmax = xmax + 0.2
+
         if self._allow_data_check:
             # try to get position and intensity from data
             try:
@@ -1069,15 +1079,18 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
                 self.data[:, 0], self.data[:, 1], [xmin - 2, xmax + 2], std_dev=self.config.annotation_charge_std_dev
             )
 
-        label = f"x={position:.4f}\ny={intensity:.2f}\ncharge={charge:d}"
+        label = f"x={position:.4f}\ny={intensity:.2f}"
         name = f"x={position:.4f}; y={intensity:.2f}"
-        height = ymax - ymin
         width = xmax - xmin
+        height = ymax - ymin
+        if self.plot_type in self._plot_types_1D:
+            height = ymax
+            ymin = 0
 
         if self.plot_type in ["mass_spectrum", "1D"]:
             height = intensity
 
-        return intensity, position, charge, height, width, label, name
+        return xmin, xmax, ymin, ymax, intensity, position, charge, height, width, label, name
 
     def add_annotation_from_mouse_evt(self, xmin, xmax, ymin, ymax):
         """Add annotations from mouse event"""
@@ -1085,7 +1098,10 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         xmin, xmax = check_value_order(xmin, xmax)
         ymin, ymax = check_value_order(ymin, ymax)
 
-        intensity, position, charge, height, width, label, name = self.get_values_from_data(xmin, xmax, ymin, ymax)
+        # calculate some presets
+        xmin, xmax, ymin, ymax, intensity, position, charge, height, width, label, name = self.get_values_from_data(
+            xmin, xmax, ymin, ymax
+        )
 
         info_dict = {
             "name": name,
@@ -1102,7 +1118,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             "patch_color": self.config.interactive_ms_annotations_color,
             "label_color": (0.0, 0.0, 0.0),
             "patch_position": [xmin, ymin, width, height],
-            "patch": False,
+            "patch": True if self.plot_type == "heatmap" else False,
         }
 
         self.set_annotation_in_gui(info_dict)
@@ -1225,16 +1241,21 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             menu_name = evt.GetEventObject().FindItemById(evt.GetId()).GetLabel()
 
         label_fmt = "label"
-        if "Show charge" in menu_name:
+        if "Show annotation: charge" in menu_name:
             label_fmt = "charge"
-        elif "Show label" in menu_name:
+        elif "Show annotation: label" in menu_name:
             label_fmt = "label"
-        elif "Show m/z" in menu_name:
+        elif "Show annotation: m/z" in menu_name:
             label_fmt = "all"
+        elif "Show patch" in menu_name:
+            label_fmt = "patch"
 
         show_names = self._get_show_list()
 
         annotations_obj = self.get_annotation_data()
+        if not annotations_obj:
+            self.on_clear_from_plot(None)
+
         self.panel_plot.on_plot_1D_annotations(
             annotations_obj,
             plot=None,

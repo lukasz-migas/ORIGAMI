@@ -30,8 +30,8 @@ def GetMaxes(axes, xmin=None, xmax=None):
         try:
             yvals.append([np.amin(ydat), np.amax(ydat)])
             xvals.append([np.amin(xdat), np.amax(xdat)])
-        except Exception as _e:
-            logger.error(_e)
+        except Exception as err:
+            logger.error(err)
 
     for p in axes.collections:
         try:
@@ -46,8 +46,8 @@ def GetMaxes(axes, xmin=None, xmax=None):
         try:
             yvals.append([np.amin(ydat), np.amax(ydat)])
             xvals.append([np.amin(xdat), np.amax(xdat)])
-        except Exception as _e:
-            logger.error(_e)
+        except Exception as err:
+            logger.error(err)
 
     for patch in axes.patches:
         try:
@@ -59,17 +59,17 @@ def GetMaxes(axes, xmin=None, xmax=None):
                     try:
                         yvals.append([np.amin(ydat), np.amax(ydat)])
                         xvals.append([np.amin(xdat), np.amax(xdat)])
-                    except Exception as _e:
-                        logger.error(_e)
-        except Exception as _e:
+                    except Exception as err:
+                        logger.error(err)
+        except Exception as err:
             try:
                 xys = patch.xy
                 xdat, ydat = on_check_xys(xys, xmin, xmax)
 
                 yvals.append([np.amin(ydat), np.amax(ydat)])
                 xvals.append([np.amin(xdat), np.amax(xdat)])
-            except Exception as _e:
-                logger.error(_e)
+            except Exception as err:
+                logger.error(err)
 
     for t in axes.texts:
         x, y = t.get_position()

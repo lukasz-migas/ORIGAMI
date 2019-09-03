@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 """Annotations container"""
-import collections
 
 
 def check_annotation_input(annotation_dict):
