@@ -1751,50 +1751,18 @@ class DocumentTree(wx.TreeCtrl):
             specify whether all annotations should be removed and readded or if
             we it should simply set data
         """
+        # get dataset
+        query_info = [document_title, dataset_type, dataset_name]
+        __, dataset = self.data_handling.get_mobility_chromatographic_data(query_info, as_copy=False)
 
-        document = self.data_handling._on_get_document(document_title)
+        # get pointer to dataset
+        item = self.getItemByData(dataset)
 
-        item, docItem = False, False
-        if dataset_type == "Mass Spectrum":
-            item = self.getItemByData(document.massSpectrum)
-            document.massSpectrum["annotations"] = annotations
-            annotation_data = document.massSpectrum["annotations"]
-        elif dataset_type == "Mass Spectrum (processed)":
-            item = self.getItemByData(document.smoothMS)
-            document.smoothMS["annotations"] = annotations
-            annotation_data = document.smoothMS["annotations"]
-        elif "Waterfall (Raw):" in dataset_name:
-            item = self.getItemByData(document.IMS2DoverlayData[dataset_name])
-            document.IMS2DoverlayData[dataset_name]["annotations"] = annotations
-            annotation_data = document.IMS2DoverlayData[dataset_name]["annotations"]
-        elif any(
-            [
-                ok_item in dataset_name
-                for ok_item in ["Multi-line:", "V-bar:", "H-bar:", "Scatter:", "Waterfall:", "Line:"]
-            ]
-        ):
-            item = self.getItemByData(document.other_data[dataset_name])
-            document.other_data[dataset_name]["annotations"] = annotations
-            annotation_data = document.other_data[dataset_name]["annotations"]
-        elif dataset_type == "Chromatogram":
-            item = self.getItemByData(document.RT)
-            document.RT["annotations"] = annotations
-            annotation_data = document.RT["annotations"]
-        elif dataset_type == "Drift time (1D)":
-            item = self.getItemByData(document.DT)
-            document.DT["annotations"] = annotations
-            annotation_data = document.DT["annotations"]
-        elif dataset_type == "Drift time (2D)":
-            item = self.getItemByData(document.IMS2D)
-            document.IMS2D["annotations"] = annotations
-            annotation_data = document.IMS2D["annotations"]
-        else:
-            item = self.getItemByData(document.multipleMassSpectrum[dataset_name])
-            document.multipleMassSpectrum[dataset_name]["annotations"] = annotations
-            annotation_data = document.multipleMassSpectrum[dataset_name]["annotations"]
+        # update dataset with new annotations
+        document = self.data_handling.set_mobility_chromatographic_keyword_data(query_info, annotations=annotations)
 
         if item is not False and not set_data_only:
-            self.append_annotation(item, annotation_data)
+            self.append_annotation(item, annotations)
             self.data_handling.on_update_document(document, "no_refresh")
         else:
             try:
@@ -4531,7 +4499,7 @@ class DocumentTree(wx.TreeCtrl):
 
             # get filename
             fname_dict = {
-                "Grid (n x n)": "Overlay_Grid_2to1_{}".format(basename),
+                "Grid (n x n)": "Overlay_Grid_NxN_{}".format(basename),
                 "Grid (2": "Overlay_Grid_2to1_{}".format(basename),
                 "Mask": "Overlay_mask_{}".format(basename),
                 "Transparent": "Overlay_transparent_{}".format(basename),

@@ -20,6 +20,7 @@ from document import document as documents
 from gui_elements.dialog_multi_directory_picker import DialogMultiDirectoryPicker
 from gui_elements.dialog_select_document import DialogSelectDocument
 from gui_elements.misc_dialogs import DialogBox
+from h5py._hl import dataset
 from ids import ID_load_masslynx_raw
 from ids import ID_load_origami_masslynx_raw
 from ids import ID_openIRRawFile
@@ -3550,13 +3551,15 @@ class data_handling:
 
         return document
 
-    def get_mobility_chromatographic_data(self, query_info, **kwargs):
+    def get_mobility_chromatographic_data(self, query_info, as_copy=True, **kwargs):
         """Retrieve data for specified query items.
 
         Parameters
         ----------
-        query_info: list
+        query_info : list
              query should be formed as a list containing two elements [document title, dataset type, dataset title]
+        as_copy : bool
+            if True, data will be returned as deepcopy, otherwise not (default: True)
 
         Returns
         -------
@@ -3564,75 +3567,94 @@ class data_handling:
         data: dictionary
             dictionary with all data associated with the [document title, dataset type, dataset title] combo
         """
+
+        def get_subset_or_all(dataset_type, dataset_name, dataset):
+            """Check whether entire dataset of all subdatasets should be returned or simply one subset"""
+            if dataset_type == dataset_name:
+                return dataset
+            else:
+                return dataset[dataset_name]
+
         document_title, dataset_type, dataset_name = query_info
         document = self._on_get_document(document_title)
 
-        if dataset_type == "Drift time (1D)":
-            data = copy.deepcopy(document.DT)
+        if dataset_type == "Mass Spectrum":
+            data = document.massSpectrum
+        elif dataset_type == "Mass Spectrum (processed)":
+            data = document.smoothMS
+        elif dataset_type == "Mass Spectra" and dataset_name == "Mass Spectra":
+            data = document.multipleMassSpectrum
+        elif dataset_type == "Mass Spectra":
+            data = document.multipleMassSpectrum.get(dataset_name, dict())
+        elif dataset_type == "Drift time (1D)":
+            data = document.DT
         elif dataset_type == "Drift time (2D)":
-            data = copy.deepcopy(document.IMS2D)
+            data = document.IMS2D
         elif dataset_type == "Drift time (2D, processed)":
-            data = copy.deepcopy(document.IMS2Dprocess)
+            data = document.IMS2Dprocess
         elif dataset_type == "DT/MS":
-            data = copy.deepcopy(document.DTMZ)
+            data = document.DTMZ
         # 2D - EIC
         elif dataset_type == "Drift time (2D, EIC)" and dataset_name == "Drift time (2D, EIC)":
-            data = copy.deepcopy(document.IMS2Dions)
+            data = document.IMS2Dions
         elif dataset_type == "Drift time (2D, EIC)" and dataset_name is not None:
-            data = copy.deepcopy(document.IMS2Dions[dataset_name])
+            data = document.IMS2Dions[dataset_name]
         # 2D - combined voltages
         elif (
             dataset_type == "Drift time (2D, combined voltages, EIC)"
             and dataset_name == "Drift time (2D, combined voltages, EIC)"
         ):
-            data = copy.deepcopy(document.IMS2DCombIons)
+            data = document.IMS2DCombIons
         elif dataset_type == "Drift time (2D, combined voltages, EIC)" and dataset_name is not None:
-            data = copy.deepcopy(document.IMS2DCombIons[dataset_name])
+            data = document.IMS2DCombIons[dataset_name]
         # 2D - processed
         elif dataset_type == "Drift time (2D, processed, EIC)" and dataset_name == "Drift time (2D, processed, EIC)":
-            data = copy.deepcopy(document.IMS2DionsProcess)
+            data = document.IMS2DionsProcess
         elif dataset_type == "Drift time (2D, processed, EIC)" and dataset_name is not None:
-            data = copy.deepcopy(document.IMS2DionsProcess[dataset_name])
+            data = document.IMS2DionsProcess[dataset_name]
         # 2D - input data
         elif dataset_type == "Input data" and dataset_name == "Input data":
-            data = copy.deepcopy(document.IMS2DcompData)
+            data = document.IMS2DcompData
         elif dataset_type == "Input data" and dataset_name is not None:
-            data = copy.deepcopy(document.IMS2DcompData[dataset_name])
+            data = document.IMS2DcompData[dataset_name]
         # RT - combined voltages
         elif dataset_type == "Chromatogram":
-            data = copy.deepcopy(document.RT)
+            data = document.RT
         elif (
             dataset_type == "Chromatograms (combined voltages, EIC)"
             and dataset_name == "Chromatograms (combined voltages, EIC)"
         ):
-            data = copy.deepcopy(document.IMSRTCombIons)
+            data = document.IMSRTCombIons
         elif dataset_type == "Chromatograms (combined voltages, EIC)" and dataset_name is not None:
-            data = copy.deepcopy(document.IMSRTCombIons[dataset_name])
+            data = document.IMSRTCombIons[dataset_name]
         # RT - EIC
         elif dataset_type == "Chromatograms (EIC)" and dataset_name == "Chromatograms (EIC)":
-            data = copy.deepcopy(document.multipleRT)
+            data = document.multipleRT
         elif dataset_type == "Chromatograms (EIC)" and dataset_name is not None:
-            data = copy.deepcopy(document.multipleRT[dataset_name])
+            data = document.multipleRT[dataset_name]
         # 1D - EIC
         elif dataset_type == "Drift time (1D, EIC)" and dataset_name == "Drift time (1D, EIC)":
-            data = copy.deepcopy(document.multipleDT)
+            data = document.multipleDT
         elif dataset_type == "Drift time (1D, EIC)" and dataset_name is not None:
-            data = copy.deepcopy(document.multipleDT[dataset_name])
+            data = document.multipleDT[dataset_name]
         # 1D - EIC - DTIMS
         elif dataset_type == "Drift time (1D, EIC, DT-IMS)" and dataset_name == "Drift time (1D, EIC, DT-IMS)":
-            data = copy.deepcopy(document.IMS1DdriftTimes)
+            data = document.IMS1DdriftTimes
         elif dataset_type == "Drift time (1D, EIC, DT-IMS)" and dataset_name is not None:
-            data = copy.deepcopy(document.IMS1DdriftTimes[dataset_name])
+            data = document.IMS1DdriftTimes[dataset_name]
         # Statistical
         elif dataset_type == "Statistical" and dataset_name == "Statistical":
-            data = copy.deepcopy(document.IMS2DstatsData)
+            data = document.IMS2DstatsData
         elif dataset_type == "Statistical" and dataset_name is not None:
-            data = copy.deepcopy(document.IMS2DstatsData[dataset_name])
+            data = document.IMS2DstatsData[dataset_name]
         # Annotated data
         elif dataset_type == "Annotated data" and dataset_name == "Annotated data":
-            data = copy.deepcopy(document.other_data)
+            data = document.other_data
         elif dataset_type == "Annotated data" and dataset_name is not None:
-            data = copy.deepcopy(document.other_data[dataset_name])
+            data = document.other_data[dataset_name]
+
+        if as_copy:
+            data = copy.deepcopy(data)
 
         return document, data
 
@@ -3689,8 +3711,15 @@ class data_handling:
         document = self._on_get_document(document_title)
 
         for keyword in kwargs:
+            # MS data
+            if dataset_type == "Mass Spectrum":
+                document.massSpectrum[keyword] = kwargs[keyword]
+            elif dataset_type == "Mass Spectrum (processed)":
+                document.smoothMS[keyword] = kwargs[keyword]
+            elif dataset_type == "Mass Spectra" and dataset_name not in [None, "Mass Spectra"]:
+                document.multipleMassSpectrum[dataset_name][keyword] = kwargs[keyword]
             # Drift time (2D) data
-            if dataset_type == "Drift time (2D)":
+            elif dataset_type == "Drift time (2D)":
                 document.IMS2D[keyword] = kwargs[keyword]
             elif dataset_type == "Drift time (2D, processed)":
                 document.IMS2Dprocess[keyword] = kwargs[keyword]
