@@ -73,20 +73,19 @@ class DialogSelectDataset(Dialog):
         self.ok_btn = wx.Button(panel, wx.ID_OK, "Select", size=(-1, 22))
         self.cancel_btn = wx.Button(panel, -1, "Cancel", size=(-1, 22))
 
-        GRIDBAG_VSPACE = 7
-        GRIDBAG_HSPACE = 5
-        PANEL_SPACE_MAIN = 10
-
         # pack elements
-        grid = wx.GridBagSizer(GRIDBAG_VSPACE, GRIDBAG_HSPACE)
-        grid.Add(documentList_label, (0, 0))
-        grid.Add(self.document_list_choice, (0, 1), wx.GBSpan(1, 3))
-        grid.Add(datasetList_label, (1, 0))
-        grid.Add(self.dataset_list_choice, (1, 1), wx.GBSpan(1, 3))
-        grid.Add(self.ok_btn, (2, 1), wx.GBSpan(1, 1))
-        grid.Add(self.cancel_btn, (2, 2), wx.GBSpan(1, 1))
+        grid = wx.GridBagSizer(5, 5)
+        n = 0
+        grid.Add(documentList_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.document_list_choice, (n, 1), wx.GBSpan(1, 3))
+        n += 1
+        grid.Add(datasetList_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.dataset_list_choice, (n, 1), wx.GBSpan(1, 3))
+        n += 1
+        grid.Add(self.ok_btn, (n, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(self.cancel_btn, (n, 3), wx.GBSpan(1, 1), flag=wx.EXPAND)
 
-        main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, 10)
 
         # fit layout
         main_sizer.Fit(panel)

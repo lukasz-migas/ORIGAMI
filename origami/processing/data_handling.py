@@ -58,7 +58,6 @@ if platform == "win32":
 
 logger = logging.getLogger("origami")
 
-# TODO: should consolidate `get_spectrum_data` and `get_mobility_And_chroma_data`
 # TODO: when setting document path, it currently removes the file extension which is probably a mistake
 
 
@@ -394,6 +393,7 @@ class data_handling:
                 "Type: Interactive",
                 "Type: Calibrant",
                 "Type: Comparison",
+                "Type: MS",
             ]
 
         if not isinstance(document_types, list):
@@ -3259,11 +3259,7 @@ class data_handling:
 
     def get_annotations_data(self, query_info):
 
-        __, dataset = self.get_spectrum_data(query_info)
-        # if dataset was returned empty, try another approach
-        if not dataset:
-            __, dataset = self.get_mobility_chromatographic_data(query_info)
-
+        __, dataset = self.get_mobility_chromatographic_data(query_info)
         return dataset.get("annotations", annotations_obj.Annotations())
 
     def get_spectrum_data(self, query_info, **kwargs):
@@ -3282,21 +3278,15 @@ class data_handling:
         """
 
         if len(query_info) == 3:
-            document_title, __, spectrum_title = query_info
+            document_title, dataset_type, dataset_name = query_info
         else:
-            document_title, spectrum_title = query_info
+            document_title, dataset_name = query_info
+            if dataset_name in ["Mass Spectrum", "Mass Spectrum (processed)", "Mass Spectra"]:
+                dataset_type = dataset_name
+            else:
+                dataset_type = "Mass Spectra"
 
-        document = self._on_get_document(document_title)
-
-        if spectrum_title == "Mass Spectrum":
-            data = copy.deepcopy(document.massSpectrum)
-        elif spectrum_title == "Mass Spectrum (processed)":
-            data = copy.deepcopy(document.smoothMS)
-        elif spectrum_title == "Mass Spectra":
-            data = copy.deepcopy(document.multipleMassSpectrum)
-        else:
-            data = copy.deepcopy(document.multipleMassSpectrum.get(spectrum_title, dict()))
-
+        document, data = self.get_mobility_chromatographic_data([document_title, dataset_type, dataset_name])
         return document, data
 
     def set_spectrum_data(self, query_info, data, **kwargs):
@@ -3492,6 +3482,10 @@ class data_handling:
                 document.multipleDT[dataset_name][keyword] = kwargs[keyword]
             elif dataset_type == "Drift time (1D, EIC, DT-IMS)" and dataset_name is not None:
                 document.IMS1DdriftTimes[dataset_name][keyword] = kwargs[keyword]
+            elif dataset_type == "Annotated data" and dataset_name is not None:
+                document.other_data[dataset_name][keyword] = kwargs[keyword]
+            else:
+                print("?ASDASDASD")
 
         return document
 
@@ -3507,6 +3501,18 @@ class data_handling:
 
         return document
 
+    def generate_annotation_list(self, data_type):
+        if data_type in ["mass_spectra", "mass_spectrum"]:
+            item_list = self.generate_item_list_mass_spectra(output_type="annotations")
+        elif data_type == "heatmap":
+            item_list = self.generate_item_list_heatmap(output_type="annotations")
+        elif data_type == "chromatogram":
+            item_list = self.generate_item_list_chromatogram(output_type="annotations")
+        elif data_type == "mobilogram":
+            item_list = self.generate_item_list_mobilogram(output_type="annotations")
+
+        return item_list
+
     def generate_item_list(self, data_type="heatmap"):
         """Generate list of items with the corrent data type(s)"""
 
@@ -3521,47 +3527,56 @@ class data_handling:
 
         return item_list
 
-    def generate_item_list_mass_spectra(self):
+    def generate_item_list_mass_spectra(self, output_type="overlay"):
         """Generate list of items with the correct data type"""
         all_datasets = ["Mass Spectrum", "Mass Spectrum (processed)", "Mass Spectra"]
         singlular_datasets = ["Mass Spectrum", "Mass Spectrum (processed)"]
         all_documents = self.__get_document_list_of_type("all")
 
         item_list = []
+        if output_type == "annotations":
+            item_list = dict.fromkeys(all_documents, [])
         for document_title in all_documents:
             for dataset_type in all_datasets:
                 __, data = self.get_spectrum_data([document_title, dataset_type])
                 if dataset_type in singlular_datasets and isinstance(data, dict) and len(data) > 0:
-                    item_dict = {
-                        "dataset_name": dataset_type,
-                        "dataset_type": dataset_type,
-                        "document_title": document_title,
-                        "shape": data["xvals"].shape,
-                        "label": data.get("label", ""),
-                        "color": data.get("color", randomColorGenerator(True)),
-                        "overlay_order": data.get("overlay_order", ""),
-                        "processed": True if "processed" in dataset_type else False,
-                    }
-                    # add to list
-                    item_list.append(item_dict)
-                else:
-                    for key in data:
-                        data_subset = data[key]
-                        item_dict = {
-                            "dataset_name": key,
+                    if output_type == "overlay":
+                        item_out = {
+                            "dataset_name": dataset_type,
                             "dataset_type": dataset_type,
                             "document_title": document_title,
-                            "shape": data_subset["xvals"].shape,
-                            "label": data_subset.get("label", ""),
-                            "color": data_subset.get("color", randomColorGenerator(True)),
-                            "overlay_order": data_subset.get("overlay_order", ""),
-                            "processed": True if "(processed)" in key else False,
+                            "shape": data["xvals"].shape,
+                            "label": data.get("label", ""),
+                            "color": data.get("color", randomColorGenerator(True)),
+                            "overlay_order": data.get("overlay_order", ""),
+                            "processed": True if "processed" in dataset_type else False,
                         }
                         # add to list
-                        item_list.append(item_dict)
+                        item_list.append(item_out)
+                    elif output_type == "annotations":
+                        item_list[document_title].append(dataset_type)
+                else:
+                    for key in data:
+                        if output_type == "overlay":
+                            data_subset = data[key]
+                            item_out = {
+                                "dataset_name": key,
+                                "dataset_type": dataset_type,
+                                "document_title": document_title,
+                                "shape": data_subset["xvals"].shape,
+                                "label": data_subset.get("label", ""),
+                                "color": data_subset.get("color", randomColorGenerator(True)),
+                                "overlay_order": data_subset.get("overlay_order", ""),
+                                "processed": True if "(processed)" in key else False,
+                            }
+                            # add to list
+                            item_list.append(key)
+                        elif output_type == "annotations":
+                            item_list[document_title].append(f"{dataset_type} :: {key}")
+        print(item_list)
         return item_list
 
-    def generate_item_list_heatmap(self):
+    def generate_item_list_heatmap(self, output_type="overlay"):
         """Generate list of items with the correct data type"""
         all_datasets = [
             "Drift time (2D)",
@@ -3575,145 +3590,169 @@ class data_handling:
         all_documents = self.__get_document_list_of_type("all")
 
         item_list = []
+        if output_type == "annotations":
+            item_list = dict.fromkeys(all_documents, [])
         for document_title in all_documents:
             for dataset_type in all_datasets:
                 __, data = self.get_mobility_chromatographic_data([document_title, dataset_type, dataset_type])
                 if dataset_type in singlular_datasets and isinstance(data, dict) and len(data) > 0:
-                    item_dict = {
-                        "dataset_name": dataset_type,
-                        "dataset_type": dataset_type,
-                        "document_title": document_title,
-                        "shape": data["zvals"].shape,
-                        "cmap": data.get("cmap", self.config.currentCmap),
-                        "label": data.get("label", ""),
-                        "mask": data.get("mask", self.config.overlay_defaultMask),
-                        "alpha": data.get("alpha", self.config.overlay_defaultAlpha),
-                        "min_threshold": data.get("min_threshold", 0.0),
-                        "max_threshold": data.get("max_threshold", 1.0),
-                        "color": data.get("color", randomColorGenerator(True)),
-                        "overlay_order": data.get("overlay_order", ""),
-                        "processed": True if "processed" in dataset_type else False,
-                        "title": data.get("title", ""),
-                        "header": data.get("header", ""),
-                        "footnote": data.get("footnote", ""),
-                    }
-                    # add to list
-                    item_list.append(item_dict)
-                else:
-                    for key in data:
-                        data_subset = data[key]
+                    if output_type == "overlay":
                         item_dict = {
-                            "dataset_name": key,
+                            "dataset_name": dataset_type,
                             "dataset_type": dataset_type,
                             "document_title": document_title,
-                            "shape": data_subset["zvals"].shape,
-                            "cmap": data_subset.get("cmap", self.config.currentCmap),
-                            "label": data_subset.get("label", ""),
-                            "mask": data_subset.get("mask", self.config.overlay_defaultMask),
-                            "alpha": data_subset.get("alpha", self.config.overlay_defaultAlpha),
-                            "min_threshold": data_subset.get("min_threshold", 0.0),
-                            "max_threshold": data_subset.get("max_threshold", 1.0),
-                            "color": data_subset.get("color", randomColorGenerator(True)),
-                            "overlay_order": data_subset.get("overlay_order", ""),
-                            "processed": True if "(processed)" in key else False,
-                            "title": data_subset.get("title", ""),
-                            "header": data_subset.get("header", ""),
-                            "footnote": data_subset.get("footnote", ""),
+                            "shape": data["zvals"].shape,
+                            "cmap": data.get("cmap", self.config.currentCmap),
+                            "label": data.get("label", ""),
+                            "mask": data.get("mask", self.config.overlay_defaultMask),
+                            "alpha": data.get("alpha", self.config.overlay_defaultAlpha),
+                            "min_threshold": data.get("min_threshold", 0.0),
+                            "max_threshold": data.get("max_threshold", 1.0),
+                            "color": data.get("color", randomColorGenerator(True)),
+                            "overlay_order": data.get("overlay_order", ""),
+                            "processed": True if "processed" in dataset_type else False,
+                            "title": data.get("title", ""),
+                            "header": data.get("header", ""),
+                            "footnote": data.get("footnote", ""),
                         }
                         # add to list
                         item_list.append(item_dict)
+                    elif output_type == "annotations":
+                        item_list[document_title].append(dataset_type)
+                else:
+                    for key in data:
+                        if output_type == "overlay":
+                            data_subset = data[key]
+                            item_dict = {
+                                "dataset_name": key,
+                                "dataset_type": dataset_type,
+                                "document_title": document_title,
+                                "shape": data_subset["zvals"].shape,
+                                "cmap": data_subset.get("cmap", self.config.currentCmap),
+                                "label": data_subset.get("label", ""),
+                                "mask": data_subset.get("mask", self.config.overlay_defaultMask),
+                                "alpha": data_subset.get("alpha", self.config.overlay_defaultAlpha),
+                                "min_threshold": data_subset.get("min_threshold", 0.0),
+                                "max_threshold": data_subset.get("max_threshold", 1.0),
+                                "color": data_subset.get("color", randomColorGenerator(True)),
+                                "overlay_order": data_subset.get("overlay_order", ""),
+                                "processed": True if "(processed)" in key else False,
+                                "title": data_subset.get("title", ""),
+                                "header": data_subset.get("header", ""),
+                                "footnote": data_subset.get("footnote", ""),
+                            }
+                            # add to list
+                            item_list.append(item_dict)
+                        elif output_type == "annotations":
+                            item_list[document_title].append(f"{dataset_type} :: {key}")
         return item_list
 
-    def generate_item_list_chromatogram(self):
+    def generate_item_list_chromatogram(self, output_type="overlay"):
         """Generate list of items with the correct data type"""
         all_datasets = ["Chromatograms (EIC)", "Chromatograms (combined voltages, EIC)", "Chromatogram"]
         singlular_datasets = ["Chromatogram"]
         all_documents = self.__get_document_list_of_type("all")
 
         item_list = []
+        if output_type == "annotations":
+            item_list = dict.fromkeys(all_documents, [])
         for document_title in all_documents:
             for dataset_type in all_datasets:
                 __, data = self.get_mobility_chromatographic_data([document_title, dataset_type, dataset_type])
                 if dataset_type in singlular_datasets and isinstance(data, dict) and len(data) > 0:
-                    item_dict = {
-                        "dataset_name": dataset_type,
-                        "dataset_type": dataset_type,
-                        "document_title": document_title,
-                        "shape": data["xvals"].shape,
-                        "label": data.get("label", ""),
-                        "color": data.get("color", randomColorGenerator(True)),
-                        "overlay_order": data.get("overlay_order", ""),
-                        "processed": True if "processed" in dataset_type else False,
-                        "title": data.get("title", ""),
-                        "header": data.get("header", ""),
-                        "footnote": data.get("footnote", ""),
-                    }
-                    # add to list
-                    item_list.append(item_dict)
-                else:
-                    for key in data:
-                        data_subset = data[key]
+                    if output_type == "overlay":
                         item_dict = {
-                            "dataset_name": key,
+                            "dataset_name": dataset_type,
                             "dataset_type": dataset_type,
                             "document_title": document_title,
-                            "shape": data_subset["xvals"].shape,
-                            "label": data_subset.get("label", ""),
-                            "color": data_subset.get("color", randomColorGenerator(True)),
-                            "overlay_order": data_subset.get("overlay_order", ""),
-                            "processed": True if "(processed)" in key else False,
-                            "title": data_subset.get("title", ""),
-                            "header": data_subset.get("header", ""),
-                            "footnote": data_subset.get("footnote", ""),
+                            "shape": data["xvals"].shape,
+                            "label": data.get("label", ""),
+                            "color": data.get("color", randomColorGenerator(True)),
+                            "overlay_order": data.get("overlay_order", ""),
+                            "processed": True if "processed" in dataset_type else False,
+                            "title": data.get("title", ""),
+                            "header": data.get("header", ""),
+                            "footnote": data.get("footnote", ""),
                         }
                         # add to list
                         item_list.append(item_dict)
+                    elif output_type == "annotations":
+                        item_list[document_title].append(dataset_type)
+                else:
+                    for key in data:
+                        if output_type == "overlay":
+                            data_subset = data[key]
+                            item_dict = {
+                                "dataset_name": key,
+                                "dataset_type": dataset_type,
+                                "document_title": document_title,
+                                "shape": data_subset["xvals"].shape,
+                                "label": data_subset.get("label", ""),
+                                "color": data_subset.get("color", randomColorGenerator(True)),
+                                "overlay_order": data_subset.get("overlay_order", ""),
+                                "processed": True if "(processed)" in key else False,
+                                "title": data_subset.get("title", ""),
+                                "header": data_subset.get("header", ""),
+                                "footnote": data_subset.get("footnote", ""),
+                            }
+                            # add to list
+                            item_list.append(item_dict)
+                        elif output_type == "annotations":
+                            item_list[document_title].append(f"{dataset_type} :: {key}")
         return item_list
 
-    def generate_item_list_mobilogram(self):
+    def generate_item_list_mobilogram(self, output_type="overlay"):
         """Generate list of items with the correct data type"""
         all_datasets = ["Drift time (1D, EIC)", "Drift time (1D, EIC, DT-IMS)", "Drift time (1D)"]
         singlular_datasets = ["Drift time (1D)"]
         all_documents = self.__get_document_list_of_type("all")
 
         item_list = []
+        if output_type == "annotations":
+            item_list = dict.fromkeys(all_documents, [])
         for document_title in all_documents:
             for dataset_type in all_datasets:
                 __, data = self.get_mobility_chromatographic_data([document_title, dataset_type, dataset_type])
                 if dataset_type in singlular_datasets and isinstance(data, dict) and len(data) > 0:
-                    item_dict = {
-                        "dataset_name": dataset_type,
-                        "dataset_type": dataset_type,
-                        "document_title": document_title,
-                        "shape": data["xvals"].shape,
-                        "label": data.get("label", ""),
-                        "color": data.get("color", randomColorGenerator(True)),
-                        "overlay_order": data.get("overlay_order", ""),
-                        "processed": True if "processed" in dataset_type else False,
-                        "title": data.get("title", ""),
-                        "header": data.get("header", ""),
-                        "footnote": data.get("footnote", ""),
-                    }
-                    # add to list
-                    item_list.append(item_dict)
-                else:
-                    for key in data:
-                        data_subset = data[key]
+                    if output_type == "overlay":
                         item_dict = {
-                            "dataset_name": key,
+                            "dataset_name": dataset_type,
                             "dataset_type": dataset_type,
                             "document_title": document_title,
-                            "shape": data_subset["xvals"].shape,
-                            "label": data_subset.get("label", ""),
-                            "color": data_subset.get("color", randomColorGenerator(True)),
-                            "overlay_order": data_subset.get("overlay_order", ""),
-                            "processed": True if "(processed)" in key else False,
-                            "title": data_subset.get("title", ""),
-                            "header": data_subset.get("header", ""),
-                            "footnote": data_subset.get("footnote", ""),
+                            "shape": data["xvals"].shape,
+                            "label": data.get("label", ""),
+                            "color": data.get("color", randomColorGenerator(True)),
+                            "overlay_order": data.get("overlay_order", ""),
+                            "processed": True if "processed" in dataset_type else False,
+                            "title": data.get("title", ""),
+                            "header": data.get("header", ""),
+                            "footnote": data.get("footnote", ""),
                         }
                         # add to list
                         item_list.append(item_dict)
+                    elif output_type == "annotations":
+                        item_list[document_title].append(dataset_type)
+                else:
+                    for key in data:
+                        if output_type == "overlay":
+                            data_subset = data[key]
+                            item_dict = {
+                                "dataset_name": key,
+                                "dataset_type": dataset_type,
+                                "document_title": document_title,
+                                "shape": data_subset["xvals"].shape,
+                                "label": data_subset.get("label", ""),
+                                "color": data_subset.get("color", randomColorGenerator(True)),
+                                "overlay_order": data_subset.get("overlay_order", ""),
+                                "processed": True if "(processed)" in key else False,
+                                "title": data_subset.get("title", ""),
+                                "header": data_subset.get("header", ""),
+                                "footnote": data_subset.get("footnote", ""),
+                            }
+                            # add to list
+                            item_list.append(item_dict)
+                        elif output_type == "annotations":
+                            item_list[document_title].append(f"{dataset_type} :: {key}")
         return item_list
 
     def on_load_user_list_fcn(self, **kwargs):

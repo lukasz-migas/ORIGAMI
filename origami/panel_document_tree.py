@@ -723,7 +723,7 @@ class DocumentTree(wx.TreeCtrl):
         return document, data, dataset_name
 
     def _on_event_get_mobility_chromatogram_query(self, **kwargs):
-        if "document_title" not in kwargs and "dataset_type" not in kwargs and "dataset_name" not in kwargs:
+        if not all([item in kwargs for item in ["document_title", "dataset_type", "dataset_name"]]):
             document_title = self._document_data.title
             dataset_name = None
             dataset_type = self._document_type
@@ -1648,32 +1648,24 @@ class DocumentTree(wx.TreeCtrl):
         elif self._indent == 4:
             return [document_title, item_root, item_branch]
 
+    def _match_plot_type_to_dataset_type(self, dataset_type, dataset_name):
+        _plot_match = {
+            "mass_spectrum": ["Mass Spectrum", "Mass Spectrum (processed)", "Mass Spectra"],
+            "chromatogram": ["Chromatogram", "Chromatograms (EIC)"],
+            "mobilogram": ["Drift time (1D)", "Drift time (1D, EIC)", "Drift time (1D, EIC, DT-IMS)"],
+            "heatmap": ["Drift time (2D)", "Drift time (2D, EIC)"],
+            "annotated": ["Multi-line:", "Line:", "H-bar:", "V-bar:", "Scatter:", "Waterfall:"],
+        }
+        for key, items in _plot_match.items():
+            if dataset_type in items:
+                return key
+            elif any(ok_item in dataset_name for ok_item in items):
+                return key
+        raise MessageError("Failed to find appropriate method", "Failed to find appropriate method")
+
     def on_open_annotation_editor(self, evt):
         """Open annotations panel"""
         from gui_elements.panel_peak_annotation_editor import PanelPeakAnnotationEditor
-
-        def match_plot_type_to_dataset_type(dataset_type):
-            _plot_match = {
-                "chromatogram": ["Chromatogram", "Chromatograms (EIC)"],
-                "mobilogram": ["Drift time (1D)", "Drift time (1D, EIC)", "Drift time (1D, EIC, DT-IMS)"],
-                "heatmap": ["Drift time (2D)", "Drift time (2D, EIC)"],
-            }
-            for key, items in _plot_match.items():
-                if dataset_type in items:
-                    return key
-            raise MessageError("Failed to find appropriate method", "Failed to find appropriate method")
-
-        accepted_annotated_datasets = ["Multi-line:", "Line:", "H-bar:", "V-bar:", "Scatter:", "Waterfall:"]
-        accepted_main_datasets = [
-            "Chromatogram",
-            "Chromatograms (EIC)",
-            "Drift time (1D)",
-            "Drift time (1D, EIC)",
-            "Drift time (1D, EIC, DT-IMS)",
-            "Drift time (2D)",
-            "Drift time (2D, EIC)",
-        ]
-        accepted_spec_datasets = ["Mass Spectrum", "Mass Spectrum (processed)", "Mass Spectra"]
 
         if self.annotateDlg is not None:
             raise MessageError(
@@ -1684,26 +1676,8 @@ class DocumentTree(wx.TreeCtrl):
 
         document_title, dataset_type, dataset_name = self._get_query_info_based_on_indent()
         # get data
-        data = self.GetPyData(self._item_id)
-
-        plot_type = None
-        # mass spectrum annotations
-        if dataset_type in accepted_spec_datasets:
-            plot_type = "mass_spectrum"
-            __, data = self.data_handling.get_spectrum_data([document_title, dataset_type, dataset_name])
-        # chromatogram data
-        elif dataset_type in accepted_main_datasets:
-            __, data = self.data_handling.get_mobility_chromatographic_data(
-                [document_title, dataset_type, dataset_name]
-            )
-            plot_type = match_plot_type_to_dataset_type(dataset_type)
-
-        # annotated data annotations
-        elif any(ok_item in dataset_name for ok_item in accepted_annotated_datasets):
-            plot_type = "annotated"
-            __, data = self.data_handling.get_mobility_chromatographic_data(
-                [document_title, dataset_type, dataset_name]
-            )
+        __, data = self.data_handling.get_mobility_chromatographic_data([document_title, dataset_type, dataset_name])
+        plot_type = self._match_plot_type_to_dataset_type(dataset_type, dataset_name)
 
         # check plot_type has been specified
         if plot_type is None:
@@ -1757,55 +1731,13 @@ class DocumentTree(wx.TreeCtrl):
 
         # update elements in the document tree
         if item is not False and not set_data_only:
-            self.append_annotation(item, annotations)
+            self.add_one_to_group(item, annotations, "Annotations", image="annotation")
             self.data_handling.on_update_document(document, "no_refresh")
         else:
-            try:
-                docItem = self.getItemByData(document)
-            except Exception:
-                docItem = False
-            if docItem is not False:
-                self.SetPyData(docItem, document)
-                self.presenter.documentsDict[document.title] = document
-            else:
-                self.data_handling.on_update_document(document, "document")
-
-    def append_annotation(self, item, annotation_data, expand=True):
-        """
-        Update annotations in the document tree
-        ----------
-        Parameters
-        ----------
-        item : wxPython document tree item
-            item in the document tree that should be cleared and re-filled
-        annotation_data : dict
-            dictionary with annotations
-        expand : bool
-            specify if tree item should be expanded
-
-        """
-        child, cookie = self.GetFirstChild(item)
-        while child.IsOk():
-            if self.GetItemText(child) == "Annotations":
-                self.Delete(child)
-            child, cookie = self.GetNextChild(item, cookie)
-
-        if len(annotation_data) == 0:
-            return
-
-        annotation_item = self.AppendItem(item, "Annotations")
-        self.SetItemImage(annotation_item, self.bulets_dict["annot"], wx.TreeItemIcon_Normal)
-        for key in annotation_data:
-            itemAnnotIndividual = self.AppendItem(annotation_item, key)
-            self.SetPyData(itemAnnotIndividual, annotation_data[key])
-            self.SetItemImage(itemAnnotIndividual, self.bulets_dict["annot"], wx.TreeItemIcon_Normal)
-
-        if expand:
-            self.Expand(annotation_item)
+            self.data_handling.on_update_document(document, "no_refresh")
 
     def on_duplicate_annotations(self, evt):
-        """
-        Duplicate annotations from one spectrum to another
+        """Duplicate annotations from one object to another
 
         Parameters
         ----------
@@ -1814,115 +1746,85 @@ class DocumentTree(wx.TreeCtrl):
         """
         from gui_elements.dialog_select_dataset import DialogSelectDataset
 
-        # get document and annotations
-        document = self.presenter.documentsDict[self._document_data.title]
-        if self._document_type == "Mass Spectrum":
-            annotations = deepcopy(document.massSpectrum.get("annotations", None))
-        elif self._document_type == "Mass Spectrum (processed)":
-            annotations = deepcopy(document.smoothMS.get("annotations", None))
-        else:
-            annotations = deepcopy(document.multipleMassSpectrum[self._item_leaf].get("annotations", None))
+        # get data
+        document_title, dataset_type, dataset_name = self._get_query_info_based_on_indent()
+        __, data = self.data_handling.get_mobility_chromatographic_data([document_title, dataset_type, dataset_name])
+        annotations = deepcopy(data.get("annotations", None))
 
         if annotations is None or len(annotations) == 0:
-            raise MessageError("Annotations were not found", "This item has no annotations to duplicate.\n\n\n")
+            raise MessageError("Annotations were not found", "This item has no annotations to duplicate")
 
-        # ask which document to add it to
-        document_list, document_spectrum_list = [], {}
-        for document_title in self.presenter.documentsDict:
-            document_spectrum_list[document_title] = []
-            if self.presenter.documentsDict[document_title].gotMultipleMS:
-                document_spectrum_list[document_title].extend(
-                    list(self.presenter.documentsDict[document_title].multipleMassSpectrum.keys())
-                )
-            if len(self.presenter.documentsDict[document_title].massSpectrum) > 0:
-                document_spectrum_list[document_title].append("Mass Spectrum")
-            if len(self.presenter.documentsDict[document_title].smoothMS) > 0:
-                document_spectrum_list[document_title].append("Mass Spectrum (processed)")
-            if len(self.presenter.documentsDict[document_title].IMS2DoverlayData) > 0:
-                for key in self.presenter.documentsDict[document_title].IMS2DoverlayData:
-                    if "Waterfall (Raw):" in key:
-                        document_spectrum_list[document_title].append(key)
+        plot_type = self._match_plot_type_to_dataset_type(dataset_type, dataset_name)
+        if plot_type == "annotated":
+            raise MessageError(
+                "Not supported yet", "Duplication of annotations from this data type is not yet supported"
+            )
 
-            if len(document_spectrum_list[document_title]) > 0:
-                document_list.append(document_title)
+        document_spectrum_list = self.data_handling.generate_annotation_list(plot_type)
+        document_list = list(document_spectrum_list.keys())
 
-        kwargs = dict(set_document=document.title)
-        duplicateDlg = DialogSelectDataset(self.presenter.view, self, document_list, document_spectrum_list, **kwargs)
-        if duplicateDlg.ShowModal() != wx.ID_OK:
+        duplicateDlg = DialogSelectDataset(
+            self.presenter.view, self, document_list, document_spectrum_list, set_document=document_title
+        )
+        duplicateDlg.ShowModal()
+        duplicate_document = duplicateDlg.document
+        duplicate_type = duplicateDlg.dataset
+
+        if any(item is None for item in [duplicate_type, duplicate_document]):
             logger.warning("Action was cancelled")
             return
 
-        duplicate_document = duplicateDlg.document
-        duplicate_dataset = duplicateDlg.dataset
+        # split dataset name
+        duplicate_name = duplicate_type
+        if "::" in duplicate_type:
+            duplicate_type, duplicate_name = re.split(" :: ", duplicate_type)
 
-    #         item = False
-    #         # add annotations to document
-    #         duplicate_document = self.presenter.documentsDict[duplicate_document]
-    #         if duplicate_dataset == "Mass Spectrum":
-    #             item = self.getItemByData(duplicate_document.massSpectrum)
-    #             duplicate_document.massSpectrum["annotations"] = annotations
-    #             annotation_data = duplicate_document.massSpectrum["annotations"]
-    #         elif duplicate_dataset == "Mass Spectrum (processed)":
-    #             item = self.getItemByData(duplicate_document.massSpectrum)
-    #             duplicate_document.smoothMS["annotations"] = annotations
-    #             annotation_data = duplicate_document.smoothMS["annotations"]
-    #         elif "Waterfall (Raw):" in duplicate_dataset:
-    #             item = self.getItemByData(duplicate_document.IMS2DoverlayData[duplicate_dataset])
-    #             duplicate_document.IMS2DoverlayData[duplicate_dataset]["annotations"] = annotations
-    #             annotation_data = duplicate_document.IMS2DoverlayData[duplicate_dataset]["annotations"]
-    #         else:
-    #             item = self.getItemByData(duplicate_document.multipleMassSpectrum[duplicate_dataset])
-    #             duplicate_document.multipleMassSpectrum[duplicate_dataset]["annotations"] = annotations
-    #             annotation_data = duplicate_document.multipleMassSpectrum[duplicate_dataset]["annotations"]
-    #
-    #         if item is not False:
-    #             self.append_annotation(item, annotation_data)
-    #             self.data_handling.on_update_document(duplicate_document, "no_refresh")
-    #         else:
-    #             self.data_handling.on_update_document(duplicate_document, "document")
-    #
-    #         msg = "Duplicated annotations to {} - {}".format(duplicate_document.title, duplicate_dataset)
-    #         self.presenter.onThreading(None, (msg, 4, 5), action="updateStatusbar")
+        if document_title == duplicate_document and dataset_name == duplicate_name:
+            logger.warning("Input and output items are the same")
+            raise MessageError("Warning", "Input and output items are the same")
+
+        __, data = self.data_handling.get_mobility_chromatographic_data(
+            [duplicate_document, duplicate_type, duplicate_name]
+        )
+
+        if data.get("annotations", dict()):
+            dlg = DialogBox(
+                exceptionTitle="Dataset already contains annotations",
+                exceptionMsg="The selected dataset already contains annotations. Would you like"
+                + " to continue and override present annotations?",
+                type="Question",
+            )
+            if dlg == wx.ID_NO:
+                logger.info("Cancelled adding annotations to a dataset")
+                return
+
+        # get dataset
+        self.on_update_annotation(annotations, duplicate_document, duplicate_type, duplicate_name)
 
     def on_show_annotations(self, evt):
-        """
-        Show annotations in the currently shown mass spectrum
-        ----------
+        """Show annotations in the currently shown mass spectrum
+
         Parameters
         ----------
         evt : wxPython event
             unused
         """
-        document = self.data_handling._on_get_document()
-        #         document = self.presenter.documentsDict[self._document_data.title]
-        plot_obj = self.panel_plot.plot1
-        if self._document_type == "Mass Spectrum":
-            annotations_obj = document.massSpectrum["annotations"]
-        elif self._document_type == "Mass Spectrum (processed)":
-            annotations_obj = document.smoothMS["annotations"]
-        elif self._document_type == "Mass Spectra":
-            annotations_obj = document.multipleMassSpectrum[self._item_branch]["annotations"]
-        elif self._document_type == "Annotated data" and (
-            "Waterfall: " in self._item_branch
-            or "Multi-line: " in self._item_branch
-            or "V-bar: " in self._item_branch
-            or "H-bar: " in self._item_branch
-            or "Scatter: " in self._item_branch
-            or "Line: " in self._item_branch
-        ):
-            annotations_obj = document.other_data[self._item_branch]["annotations"]
-            plot_obj = self.panel_plot.plotOther
+        # get data
+        document_title, dataset_type, dataset_name = self._get_query_info_based_on_indent()
+        __, data = self.data_handling.get_mobility_chromatographic_data([document_title, dataset_type, dataset_name])
 
-        self.panel_plot.on_plot_1D_annotations(
-            annotations_obj,
-            plot=None,
-            plot_obj=plot_obj,
-            label_fmt="all",
-            pin_to_intensity=True,
-            document_title=document.title,
-            dataset_name=self._item_branch,
-            dataset_type=self._item_branch,
-        )
+        plot_type = self._match_plot_type_to_dataset_type(dataset_type, dataset_name)
+        annotations_obj = data.get("annotations", {})
+        if annotations_obj:
+            self.panel_plot.on_plot_1D_annotations(
+                annotations_obj,
+                plot=plot_type,
+                label_fmt="all",
+                pin_to_intensity=True,
+                document_title=document_title,
+                dataset_type=dataset_type,
+                dataset_name=dataset_name,
+            )
 
     def on_action_ORIGAMI_MS(self, evt, document_title=None):
         from gui_elements.dialog_customise_origami import DialogCustomiseORIGAMI
@@ -2280,6 +2182,18 @@ class DocumentTree(wx.TreeCtrl):
             text="Show annotations panel...",
             bitmap=self.icons.iconsLib["annotate16"],
         )
+        menu_action_duplicate_annotations = makeMenuItem(
+            parent=menu,
+            id=ID_docTree_duplicate_annotations,
+            text="Duplicate annotations...",
+            bitmap=self.icons.iconsLib["duplicate_item_16"],
+        )
+        menu_action_show_annotations = makeMenuItem(
+            parent=menu,
+            id=ID_docTree_show_annotations,
+            text="Show annotations on plot",
+            bitmap=self.icons.iconsLib["highlight_16"],
+        )
         menu_show_comparison_panel = makeMenuItem(
             parent=menu,
             id=ID_docTree_compareMS,
@@ -2294,12 +2208,6 @@ class DocumentTree(wx.TreeCtrl):
         )
         menu_action_delete_item = makeMenuItem(
             parent=menu, id=ID_removeItemDocument, text="Delete item\tDelete", bitmap=self.icons.iconsLib["clear_16"]
-        )
-        menu_action_show_annotations = makeMenuItem(
-            parent=menu,
-            id=ID_docTree_show_annotations,
-            text="Show annotations on plot",
-            bitmap=self.icons.iconsLib["highlight_16"],
         )
         menu_action_show_highlights = makeMenuItem(
             parent=menu,
@@ -2361,13 +2269,6 @@ class DocumentTree(wx.TreeCtrl):
 
         menu_action_rename_item = makeMenuItem(
             parent=menu, id=ID_renameItem, text="Rename\tF2", bitmap=self.icons.iconsLib["rename_16"]
-        )
-
-        menu_action_duplicate_annotations = makeMenuItem(
-            parent=menu,
-            id=ID_docTree_duplicate_annotations,
-            text="Duplicate annotations...",
-            bitmap=self.icons.iconsLib["duplicate_item_16"],
         )
 
         menu_action_process_ms = makeMenuItem(
@@ -2436,6 +2337,11 @@ class DocumentTree(wx.TreeCtrl):
         menu_action_save_document_as = makeMenuItem(
             parent=menu, text="Save document as...", bitmap=self.icons.iconsLib["save16"]
         )
+
+        annotation_menu = wx.Menu()
+        annotation_menu.AppendItem(menu_show_annotations_panel)
+        annotation_menu.AppendItem(menu_action_show_annotations)
+        annotation_menu.AppendItem(menu_action_duplicate_annotations)
 
         # bind events
         self.Bind(wx.EVT_MENU, self.on_save_document_as, menu_action_save_document_as)
@@ -2645,6 +2551,7 @@ class DocumentTree(wx.TreeCtrl):
             if (self._document_type in all_mass_spectra) and self._item_leaf == "Annotations":
                 menu.AppendItem(menu_show_annotations_panel)
                 menu.AppendItem(menu_action_show_annotations)
+                menu.AppendItem(menu_action_duplicate_annotations)
                 menu.AppendItem(menu_action_delete_item)
             # annotations - single
             elif self._item_branch == "Annotations" and self._indent in [4, 5]:
@@ -2676,10 +2583,9 @@ class DocumentTree(wx.TreeCtrl):
             # mass spectrum - single
             elif self._document_type in ["Mass Spectrum", "Mass Spectrum (processed)"] and self._indent == 2:
                 menu.AppendItem(menu_action_show_plot_spectrum)
-                menu.AppendItem(menu_show_annotations_panel)
-                menu.AppendItem(menu_action_duplicate_annotations)
                 menu.AppendItem(menu_show_peak_picker_panel)
                 menu.AppendItem(menu_action_process_ms)
+                menu.AppendMenu(wx.ID_ANY, "Annotations...", annotation_menu)
 
                 # check if deconvolution results are present
                 if hasattr(self.currentData, "unidec"):
@@ -2720,10 +2626,9 @@ class DocumentTree(wx.TreeCtrl):
                 # mass spectra - single
                 elif self._item_leaf != "Mass Spectra" and "UniDec (" not in self._item_leaf and self._indent != 4:
                     menu.AppendItem(menu_action_show_plot_spectrum)
-                    menu.AppendItem(menu_show_annotations_panel)
-                    menu.AppendItem(menu_action_duplicate_annotations)
                     menu.AppendItem(menu_show_peak_picker_panel)
                     menu.AppendItem(menu_action_process_ms)
+                    menu.AppendMenu(wx.ID_ANY, "Annotations...", annotation_menu)
                     menu.AppendItem(menu_show_unidec_panel)
                     menu.AppendSeparator()
                     menu.AppendItem(menu_action_add_spectrum_to_panel)
@@ -2752,22 +2657,23 @@ class DocumentTree(wx.TreeCtrl):
         elif itemType == "Chromatogram":
             if self._indent == 2:
                 menu.AppendItem(menu_action_show_plot_chromatogram)
-                menu.AppendItem(menu_show_annotations_panel)
+                menu.AppendMenu(wx.ID_ANY, "Annotations...", annotation_menu)
                 menu.AppendSeparator()
                 menu.AppendMenu(wx.ID_ANY, "Change x-axis to...", xlabel_RT_menu)
                 menu.AppendSeparator()
                 menu.AppendItem(menu_action_save_chromatogram_image_as)
                 menu.AppendItem(menu_action_save_data_as)
             elif self._indent == 3:
-                menu.AppendItem(menu_action_show_annotations)
                 menu.AppendItem(menu_show_annotations_panel)
+                menu.AppendItem(menu_action_show_annotations)
+                menu.AppendItem(menu_action_duplicate_annotations)
             menu.AppendItem(menu_action_delete_item)
         # chromatograms - eic
         elif itemType in ["Chromatograms (combined voltages, EIC)", "Chromatograms (EIC)"]:
             # Only if clicked on an item and not header
             if self._item_leaf not in ["Chromatograms (combined voltages, EIC)", "Chromatograms (EIC)"]:
                 menu.AppendItem(menu_action_show_plot_chromatogram)
-                menu.AppendItem(menu_show_annotations_panel)
+                menu.AppendMenu(wx.ID_ANY, "Annotations...", annotation_menu)
                 menu.AppendSeparator()
                 menu.AppendItem(menu_action_assign_charge)
                 menu.AppendSeparator()
@@ -2779,15 +2685,16 @@ class DocumentTree(wx.TreeCtrl):
         elif itemType == "Drift time (1D)":
             if self._indent == 2:
                 menu.AppendItem(menu_action_show_plot_mobilogram)
-                menu.AppendItem(menu_show_annotations_panel)
+                menu.AppendMenu(wx.ID_ANY, "Annotations...", annotation_menu)
                 menu.AppendSeparator()
                 menu.AppendMenu(wx.ID_ANY, "Change x-axis to...", xlabel_1D_menu)
                 menu.AppendSeparator()
                 menu.AppendItem(menu_action_save_mobilogram_image_as)
                 menu.AppendItem(menu_action_save_data_as)
             elif self._indent == 3:
-                menu.AppendItem(menu_action_show_annotations)
                 menu.AppendItem(menu_show_annotations_panel)
+                menu.AppendItem(menu_action_show_annotations)
+                menu.AppendItem(menu_action_duplicate_annotations)
             menu.AppendItem(menu_action_delete_item)
         # drift time 1D - eic
         elif itemType in ["Drift time (1D, EIC, DT-IMS)", "Drift time (1D, EIC)"]:
@@ -2797,7 +2704,7 @@ class DocumentTree(wx.TreeCtrl):
 
             if self._item_leaf not in ["Drift time (1D, EIC)", "Drift time (1D, EIC, DT-IMS)"]:
                 menu.AppendItem(menu_action_show_plot_mobilogram)
-                menu.AppendItem(menu_show_annotations_panel)
+                menu.AppendMenu(wx.ID_ANY, "Annotations...", annotation_menu)
                 menu.AppendSeparator()
                 menu.AppendMenu(wx.ID_ANY, "Change x-axis to...", xlabel_1D_menu)
                 menu.AppendItem(menu_action_assign_charge)
@@ -2819,7 +2726,7 @@ class DocumentTree(wx.TreeCtrl):
                 menu.AppendItem(menu_action_show_plot_waterfall)
                 menu.AppendItem(menu_action_process_2D)
                 menu.AppendSeparator()
-                menu.AppendItem(menu_show_annotations_panel)
+                menu.AppendMenu(wx.ID_ANY, "Annotations...", annotation_menu)
                 menu.AppendItem(menu_action_assign_charge)
                 menu.AppendMenu(wx.ID_ANY, "Set X-axis label as...", xlabel_2D_menu)
                 menu.AppendMenu(wx.ID_ANY, "Set Y-axis label as...", ylabel_2D_menu)
@@ -2832,8 +2739,9 @@ class DocumentTree(wx.TreeCtrl):
                     menu.PrependItem(menu_action_show_plot_as_chromatogram)
                     menu.PrependItem(menu_action_show_highlights)
             elif self._item_leaf == "Annotations":
-                menu.AppendItem(menu_action_show_annotations)
                 menu.AppendItem(menu_show_annotations_panel)
+                menu.AppendItem(menu_action_show_annotations)
+                menu.AppendItem(menu_action_duplicate_annotations)
             elif self._item_branch == "Annotations":
                 pass
             # heatmap - all
@@ -2945,7 +2853,7 @@ class DocumentTree(wx.TreeCtrl):
             if self._document_type != self._item_leaf and any(
                 [ok_item in self._item_leaf for ok_item in accepted_annotated_items]
             ):
-                menu.AppendItem(menu_show_annotations_panel)
+                menu.AppendMenu(wx.ID_ANY, "Annotations...", annotation_menu)
         else:
             menu.Append(ID_docTree_add_MS_to_interactive, "Add mass spectra")
             menu.Append(ID_docTree_add_other_to_interactive, "Add other...")
@@ -5286,10 +5194,6 @@ class DocumentTree(wx.TreeCtrl):
             if "annotations" in data and len(data["annotations"]) > 0:
                 branch_item = self.AppendItem(root_obj, "Annotations")
                 self.SetItemImage(branch_item, self.bulets_dict["annot"], wx.TreeItemIcon_Normal)
-                for annotation_name in data["annotations"]:
-                    leaf_item = self.AppendItem(branch_item, annotation_name)
-                    self.SetPyData(leaf_item, data["annotations"][annotation_name])
-                    self.SetItemImage(leaf_item, self.bulets_dict["annot"], wx.TreeItemIcon_Normal)
 
         def _add_unidec_to_object(data, root_obj):
             # add unidec results
@@ -6985,6 +6889,8 @@ class DocumentTree(wx.TreeCtrl):
             image = self.bulets_dict["drift_time_on"]
         elif image_type in ["main.chromatogram", "extracted.chromatogram", "ion.chromatogram.combined"]:
             image = self.bulets_dict["rt_on"]
+        elif image_type in ["annotation"]:
+            image = self.bulets_dict["annot"]
         else:
             image = self.bulets_dict["heatmap_on"]
 

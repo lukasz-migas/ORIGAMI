@@ -170,6 +170,7 @@ class PanelPlots(wx.Panel):
         if text_type == "annotation":
             annotations_obj = self.data_handling.get_annotations_data([document_title, dataset_type, dataset_name])
             annotation_obj = annotations_obj.get(annotation_name, None)
+            print(annotation_obj)
             if annotation_obj is None:
                 logger.warning(f"Annotation: {annotation_name} was empty")
                 return
@@ -949,12 +950,16 @@ class PanelPlots(wx.Panel):
         plot_dict = {
             "MS": self.plot1,
             "Mass spectrum": self.plot1,
+            "mass_spectrum": self.plot1,
             "RT": self.plotRT,
             "Chromatogram": self.plotRT,
+            "chromatogram": self.plotRT,
             "1D": self.plot1D,
             "Mobilogram": self.plot1D,
+            "mobilogram": self.plot1D,
             "2D": self.plot2D,
             "Heatmap": self.plot2D,
+            "heatmap": self.plot2D,
             "DT/MS": self.plot_DT_vs_MS,
             "Overlay": self.plotOther,
             "RMSF": self.plotOther,
@@ -968,6 +973,7 @@ class PanelPlots(wx.Panel):
             "Heatmap (3D)": self.plot3D,
             "Matrix": self.plotOther,
             "Annotated": self.plotOther,
+            "annotated": self.plotOther,
             "MS_RT": self.plot_RT_MS,
             "MS_DT": self.plot_DT_MS,
         }

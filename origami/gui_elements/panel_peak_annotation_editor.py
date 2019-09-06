@@ -347,7 +347,6 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
 
         self.peaklist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_item)
         self.peaklist.Bind(wx.EVT_LEFT_DCLICK, self.on_double_click_on_item)
-        #         self.peaklist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.on_right_click)
         self.peaklist.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.menu_column_right_click)
 
     def on_double_click_on_item(self, evt):
@@ -633,6 +632,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         )
 
     def on_action_tools(self, evt):
+        """Create action menu"""
         #         label_format = self.label_format.GetStringSelection()
 
         menu = wx.Menu()
@@ -640,24 +640,65 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         menu_action_customise = makeMenuItem(
             parent=menu, text="Customise other settings...", bitmap=self.icons.iconsLib["settings16_2"], help_text=""
         )
+        menu.Append(menu_action_customise)
+        menu.AppendSeparator()
+        self.Bind(wx.EVT_MENU, self.on_customise_parameters, menu_action_customise)
+
         menu_action_multiply = makeMenuItem(
             parent=menu, text="Create (similar) copies of selected annotations", bitmap=None
         )
+        menu.Append(menu_action_multiply)
+        menu.AppendSeparator()
+        self.Bind(wx.EVT_MENU, self.on_copy_annotations, menu_action_multiply)
+
         menu_action_edit_charge = makeMenuItem(
             parent=menu, text="Set charge state (selected)", bitmap=self.icons.iconsLib["assign_charge_16"]
         )
-        menu_action_edit_patch_color = makeMenuItem(parent=menu, text="Set patch color (selected)")
+        menu.Append(menu_action_edit_charge)
+        self.Bind(wx.EVT_MENU, self.on_change_item_parameter, menu_action_edit_charge)
+
+        if self._allow_data_check:
+            menu_action_fix_label_intensity = makeMenuItem(
+                parent=menu, text="Fix intensity / label position (selected)"
+            )
+            menu.Append(menu_action_fix_label_intensity)
+            self.Bind(wx.EVT_MENU, self.on_fix_intensity, menu_action_fix_label_intensity)
+
+            menu_action_fix_patch_height = makeMenuItem(
+                parent=menu,
+                text="Fix patch height (selected)",
+                help_text="Pins the height of a patch to the maximum intensity at a particular position (x)",
+            )
+            menu.Append(menu_action_fix_patch_height)
+            self.Bind(wx.EVT_MENU, self.on_fix_patch_height, menu_action_fix_patch_height)
+            menu.AppendSeparator()
+
         menu_action_edit_text_color = makeMenuItem(parent=menu, text="Set label color (selected)")
-        menu_action_fix_label_intensity = makeMenuItem(parent=menu, text="Fix intensity / label position (selected)")
-        menu_action_delete = makeMenuItem(parent=menu, text="Delete (selected)", bitmap=self.icons.iconsLib["bin16"])
+        menu.Append(menu_action_edit_text_color)
+        self.Bind(wx.EVT_MENU, self.on_assign_color, menu_action_edit_text_color)
+
+        menu_action_edit_patch_color = makeMenuItem(parent=menu, text="Set patch color (selected)")
+        menu.Append(menu_action_edit_patch_color)
+        self.Bind(wx.EVT_MENU, self.on_assign_color, menu_action_edit_patch_color)
 
         arrow_submenu = wx.Menu()
         menu_action_edit_arrow_true = arrow_submenu.Append(wx.ID_ANY, "True")
+        self.Bind(wx.EVT_MENU, self.on_assign_arrow, menu_action_edit_arrow_true)
         menu_action_edit_arrow_false = arrow_submenu.Append(wx.ID_ANY, "False")
+        self.Bind(wx.EVT_MENU, self.on_assign_arrow, menu_action_edit_arrow_false)
+        menu.AppendMenu(wx.ID_ANY, "Set `show arrow` to... (selected)", arrow_submenu)
 
         patch_submenu = wx.Menu()
         menu_action_edit_patch_true = patch_submenu.Append(wx.ID_ANY, "True")
+        self.Bind(wx.EVT_MENU, self.on_assign_patch, menu_action_edit_patch_true)
         menu_action_edit_patch_false = patch_submenu.Append(wx.ID_ANY, "False")
+        self.Bind(wx.EVT_MENU, self.on_assign_patch, menu_action_edit_patch_false)
+        menu.AppendMenu(wx.ID_ANY, "Set `show patch` to... (selected)", patch_submenu)
+
+        menu_action_delete = makeMenuItem(parent=menu, text="Delete (selected)", bitmap=self.icons.iconsLib["bin16"])
+        menu.AppendSeparator()
+        menu.Append(menu_action_delete)
+        self.Bind(wx.EVT_MENU, self.on_delete_items, menu_action_delete)
 
         #         menu_action_auto_generate_labels = makeMenuItem(
         #                 parent=menu,
@@ -676,39 +717,17 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         #                 bitmap=self.icons.iconsLib["file_csv_16"],
         #             )
 
-        menu.Append(menu_action_customise)
-        menu.AppendSeparator()
-        menu.Append(menu_action_multiply)
         #         menu.Append(menu_action_add_from_csv)
-        menu.AppendSeparator()
-        menu.Append(menu_action_edit_text_color)
-        menu.Append(menu_action_edit_patch_color)
-        menu.Append(menu_action_edit_charge)
-        menu.Append(menu_action_fix_label_intensity)
-        menu.AppendMenu(wx.ID_ANY, "Set `show arrow` to... (selected)", arrow_submenu)
-        menu.AppendMenu(wx.ID_ANY, "Set `show patch` to... (selected)", patch_submenu)
 
         #         menu.Append(menu_action_auto_generate_labels)
         #         menu.AppendSeparator()
         #         menu.Append(menu_action_save_to_csv)
-        menu.AppendSeparator()
-        menu.Append(menu_action_delete)
 
         # bind events
-        self.Bind(wx.EVT_MENU, self.on_change_item_parameter, menu_action_edit_charge)
-        self.Bind(wx.EVT_MENU, self.on_delete_items, menu_action_delete)
-        self.Bind(wx.EVT_MENU, self.on_assign_color, menu_action_edit_patch_color)
-        self.Bind(wx.EVT_MENU, self.on_assign_color, menu_action_edit_text_color)
-        self.Bind(wx.EVT_MENU, self.on_fix_intensity, menu_action_fix_label_intensity)
-        self.Bind(wx.EVT_MENU, self.on_assign_arrow, menu_action_edit_arrow_true)
-        self.Bind(wx.EVT_MENU, self.on_assign_arrow, menu_action_edit_arrow_false)
-        self.Bind(wx.EVT_MENU, self.on_assign_patch, menu_action_edit_patch_true)
-        self.Bind(wx.EVT_MENU, self.on_assign_patch, menu_action_edit_patch_false)
+
         #         self.Bind(wx.EVT_MENU, self.on_update_label, menu_action_auto_generate_labels)
         #         self.Bind(wx.EVT_MENU, self.on_load_peaklist, menu_action_add_from_csv)
         #         self.Bind(wx.EVT_MENU, self.on_save_peaklist, menu_action_save_to_csv)
-        self.Bind(wx.EVT_MENU, self.on_customise_parameters, menu_action_customise)
-        self.Bind(wx.EVT_MENU, self.on_copy_annotations, menu_action_multiply)
 
         self.PopupMenu(menu)
         menu.Destroy()
@@ -781,6 +800,10 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             if self.peaklist.IsChecked(index=row):
                 self.on_update_annotation(row, ["arrow_show"], **{"arrow_show": value})
 
+                # replot annotation after its been altered
+                __, annotation_obj = self.on_get_annotation_obj(row)
+                self.on_add_label_to_plot(annotation_obj)
+
     def on_assign_patch(self, evt):
         value = evt.GetEventObject().FindItemById(evt.GetId()).GetLabel()
         value = True if value == "True" else False
@@ -789,13 +812,17 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             if self.peaklist.IsChecked(index=row):
                 self.on_update_annotation(row, ["patch_show"], **{"patch_show": value})
 
+                # replot annotation after its been altered
+                __, annotation_obj = self.on_get_annotation_obj(row)
+                self.on_add_label_to_plot(annotation_obj)
+
     def on_customise_parameters(self, evt):
         from gui_elements.dialog_customise_user_annotations import DialogCustomiseUserAnnotations
 
         dlg = DialogCustomiseUserAnnotations(self, config=self.config)
         dlg.ShowModal()
 
-    def on_fix_intensity(self, evt):
+    def on_fix_intensity(self, evt, fix_type="label"):
 
         for row in range(self.peaklist.GetItemCount()):
             if self.peaklist.IsChecked(index=row):
@@ -808,13 +835,30 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
                 intensity = pr_utils.find_peak_maximum(mz_narrow)
                 max_index = np.where(mz_narrow[:, 1] == intensity)[0]
                 intensity = np.round(intensity, 2)
-            try:
-                position = mz_narrow[max_index, 0][0]
-            except (IndexError, TypeError) as err:
-                logger.warning(err)
-                position = annotation_obj.label_position_x
+                try:
+                    position = mz_narrow[max_index, 0][0]
+                except (IndexError, TypeError) as err:
+                    logger.warning(err)
+                    position = annotation_obj.label_position_x
 
-            self.on_update_annotation(row, ["label_position"], **{"label_position": [position, intensity]})
+                if fix_type == "label":
+                    self.on_update_annotation(
+                        row,
+                        ["label_position"],
+                        **{"label_position": [position, intensity], "position_x": position, "position_y": intensity},
+                    )
+                elif fix_type == "patch":
+                    patch_position = annotation_obj.patch_position
+                    patch_position[1] = 0
+                    patch_position[3] = intensity
+                    self.on_update_annotation(row, ["patch_position"], **{"patch_position": patch_position})
+
+                # replot annotation after its been altered
+                __, annotation_obj = self.on_get_annotation_obj(row)
+                self.on_add_label_to_plot(annotation_obj)
+
+    def on_fix_patch_height(self, evt):
+        self.on_fix_intensity(None, "patch")
 
     def on_change_item_parameter(self, evt):
         """ Iterate over list to assign charge state """
@@ -838,6 +882,10 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         for row in range(rows):
             if self.peaklist.IsChecked(index=row):
                 self.on_update_annotation(row, update_item, **update_dict)
+
+                # replot annotation after its been altered
+                __, annotation_obj = self.on_get_annotation_obj(row)
+                self.on_add_label_to_plot(annotation_obj)
 
     def on_delete_item(self):
         item_information = self.on_get_item_information(None)
@@ -885,6 +933,10 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             for row in range(rows):
                 if self.peaklist.IsChecked(index=row):
                     self.on_update_annotation(row, update_item, **update_dict)
+
+                # replot annotation after its been altered
+                __, annotation_obj = self.on_get_annotation_obj(row)
+                self.on_add_label_to_plot(annotation_obj)
 
     def on_get_item_information(self, item_id=None):
         if item_id is None:
