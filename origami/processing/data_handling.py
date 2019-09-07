@@ -55,6 +55,7 @@ from utils.time import ttime
 if platform == "win32":
     import readers.io_waters_raw as io_waters
     import readers.io_waters_raw_api as io_waters_raw_api
+    from readers import io_thermo_raw
 
 logger = logging.getLogger("origami")
 
@@ -137,6 +138,14 @@ class data_handling:
             _thread = threading.Thread(target=self.on_extract_mass_spectrum_for_each_collision_voltage, args=args)
         elif action == "load.text.peaklist":
             _thread = threading.Thread(target=self.on_load_user_list, args=args, **kwargs)
+        elif action == "load.raw.mgf":
+            _thread = threading.Thread(target=self.on_open_MGF_file, args=args)
+        elif action == "load.raw.mzml":
+            _thread = threading.Thread(target=self.on_open_mzML_file, args=args)
+        elif action == "load.add.mzidentml":
+            _thread = threading.Thread(target=self.on_add_mzID_file, args=args)
+        elif action == "load.raw.thermo":
+            _thread = threading.Thread(target=self.on_open_thermo_file, args=args)
 
         # Start thread
         try:
@@ -439,15 +448,20 @@ class data_handling:
 
         return document
 
-    def create_new_document(self):
-        dlg = wx.FileDialog(
-            self.view, "Please select a name for the document", "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
-        )
-        if dlg.ShowModal() == wx.ID_OK:
-            path, document_title = os.path.split(dlg.GetPath())
-            document_title = byte2str(document_title)
+    def create_new_document(self, **kwargs):
+
+        if not kwargs.get("path", False):
+            dlg = wx.FileDialog(
+                self.view, "Please select a name for the document", "", "", "", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
+            )
+            if dlg.ShowModal() == wx.ID_OK:
+                path, document_title = os.path.split(dlg.GetPath())
+                document_title = byte2str(document_title)
+            else:
+                return
         else:
-            return
+            path = kwargs.pop("path")
+            document_title = os.path.basename(path)
 
         # Create document
         document = documents()
@@ -458,10 +472,10 @@ class data_handling:
 
         return document
 
-    def create_new_document_of_type(self, document_type=None):
+    def create_new_document_of_type(self, document_type=None, **kwargs):
         """Adds blank document of specific type"""
 
-        document = self.create_new_document()
+        document = self.create_new_document(**kwargs)
         if document is None:
             logger.error("Document was `None`")
             return
@@ -482,6 +496,18 @@ class data_handling:
         elif document_type in ["manual", "Type: MANUAL"]:
             document.dataType = "Type: MANUAL"
             document.fileFormat = "Format: MassLynx (.raw)"
+
+        elif document_type in ["mgf", "Type: MS/MS"]:
+            document.dataType = "Type: MS/MS"
+            document.fileFormat = "Format: .mgf"
+
+        elif document_type in ["mzml", "mzML"]:
+            document.dataType = "Type: MS/MS"
+            document.fileFormat = "Format: .mzML"
+
+        elif document_type in ["thermo", "Thermo"]:
+            document.dataType = "Type: MS"
+            document.fileFormat = "Format: Thermo (.RAW)"
 
         self.on_update_document(document, "document")
 
@@ -1183,6 +1209,214 @@ class data_handling:
         # Plot
         name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
         self.plotsPanel.on_plot_MS(ms_x, ms_y, xlimits=xlimits, **name_kwargs)
+
+    def on_open_MGF_file_fcn(self, evt):
+
+        if not self.config.threading:
+            self.on_open_MGF_file(evt)
+        else:
+            self.on_threading(action="load.raw.mgf", args=(evt,))
+
+    def on_open_MGF_file(self, evt=None):
+        from readers import io_mgf
+
+        dlg = wx.FileDialog(
+            self.presenter.view, "Open MGF file", wildcard="*.mgf; *.MGF", style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR
+        )
+        if dlg.ShowModal() == wx.ID_OK:
+            tstart = ttime()
+            path = dlg.GetPath()
+            logger.info(f"Opening {path}")
+            reader = io_mgf.MGFreader(filename=path)
+            logger.info("Created file reader. Loading scans...")
+
+            # get document
+            document = self.create_new_document_of_type(document_type="mgf", path=path)
+
+            # get data
+            data = reader.get_n_scans(n_scans=50000)
+
+            # add data to document
+            document.tandem_spectra = data
+            document.file_reader = {"data_reader": reader}
+
+            title = "Precursor: {:.4f} [{}]".format(
+                data["Scan 1"]["scan_info"]["precursor_mz"], data["Scan 1"]["scan_info"]["precursor_charge"]
+            )
+            self.plotsPanel.on_plot_centroid_MS(data["Scan 1"]["xvals"], data["Scan 1"]["yvals"], title=title)
+
+            self.on_update_document(document, "document")
+            logger.info(f"It took {ttime()-tstart:.4f} seconds to load {document.title}")
+
+    def on_open_mzML_file_fcn(self, evt):
+
+        if not self.config.threading:
+            self.on_open_mzML_file(evt)
+        else:
+            self.on_threading(action="load.raw.mzml", args=(evt,))
+
+    def on_open_mzML_file(self, evt=None):
+        from readers import io_mzml
+
+        dlg = wx.FileDialog(
+            self.presenter.view,
+            "Open mzML file",
+            wildcard="*.mzML; *.MZML",
+            style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR,
+        )
+        if dlg.ShowModal() == wx.ID_OK:
+            tstart = ttime()
+            path = dlg.GetPath()
+            logger.info(f"Opening {path}")
+            reader = io_mzml.mzMLreader(filename=path)
+            logger.info("Created file reader. Loading scans...")
+
+            # get document
+            document = self.create_new_document_of_type(document_type="mzml", path=path)
+
+            # get data
+            data = reader.get_n_scans(n_scans=50000)
+
+            # add data to document
+            document.tandem_spectra = data
+            document.file_reader = {"data_reader": reader}
+
+            title = "Precursor: {:.4f} [{}]".format(
+                data["Scan 1"]["scan_info"]["precursor_mz"], data["Scan 1"]["scan_info"]["precursor_charge"]
+            )
+            self.plotsPanel.on_plot_centroid_MS(data["Scan 1"]["xvals"], data["Scan 1"]["yvals"], title=title)
+
+            self.on_update_document(document, "document")
+            logger.info(f"It took {ttime()-tstart:.4f} seconds to load {document.title}")
+
+    def on_add_mzID_file_fcn(self, evt):
+
+        if not self.config.threading:
+            self.on_add_mzID_file(evt)
+        else:
+            self.on_threading(action="load.add.mzidentml", args=(evt,))
+
+    def on_add_mzID_file(self, evt):
+        from readers import io_mzid
+
+        document = self._on_get_document()
+
+        dlg = wx.FileDialog(
+            self.presenter.view,
+            "Open mzIdentML file",
+            wildcard="*.mzid; *.mzid.gz; *mzid.zip",
+            style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR,
+        )
+        if dlg.ShowModal() == wx.ID_OK:
+            logger.info("Adding identification information to {}".format(document.title))
+            tstart = ttime()
+            path = dlg.GetPath()
+            reader = io_mzid.MZIdentReader(filename=path)
+
+            # check if data reader is present
+            try:
+                index_dict = document.file_reader["data_reader"].create_title_map(document.tandem_spectra)
+            except KeyError:
+                logger.warning("Missing file reader. Creating a new instance of the reader...")
+                if document.fileFormat == "Format: .mgf":
+                    from readers import io_mgf
+
+                    document.file_reader["data_reader"] = io_mgf.MGFreader(filename=document.path)
+                elif document.fileFormat == "Format: .mzML":
+                    from readers import io_mzml
+
+                    document.file_reader["data_reader"] = io_mzml.mzMLreader(filename=document.path)
+                else:
+                    DialogBox(
+                        exceptionTitle="Error",
+                        exceptionMsg="{} not supported yet!".format(document.fileFormat),
+                        type="Error",
+                        exceptionPrint=True,
+                    )
+                    return
+                try:
+                    index_dict = document.file_reader["data_reader"].create_title_map(document.tandem_spectra)
+                except AttributeError:
+                    DialogBox(
+                        exceptionTitle="Error",
+                        exceptionMsg="Cannot add identification information to {} yet!".format(document.fileFormat),
+                        type="Error",
+                        exceptionPrint=True,
+                    )
+                    return
+
+            tandem_spectra = reader.match_identification_with_peaklist(
+                peaklist=copy.deepcopy(document.tandem_spectra), index_dict=index_dict
+            )
+
+            document.tandem_spectra = tandem_spectra
+
+            self.on_update_document(document, "document")
+            logger.info(f"It took {ttime()-tstart:.4f} seconds to annotate {document.title}")
+
+    def on_open_thermo_file_fcn(self, evt):
+
+        if not self.config.threading:
+            self.on_open_thermo_file(evt)
+        else:
+            self.on_threading(action="load.raw.thermo", args=(evt,))
+
+    def on_open_thermo_file(self, evt):
+
+        if platform != "win32":
+            raise MessageError(
+                "Failed opening Thermo (.RAW) file", "Extraction of Thermo (.RAW) files is only available on Windows OS"
+            )
+
+        dlg = wx.FileDialog(
+            self.presenter.view,
+            "Open Thermo file",
+            wildcard="*.raw; *.RAW",
+            style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR,
+        )
+        if dlg.ShowModal() == wx.ID_OK:
+            tstart = ttime()
+            path = dlg.GetPath()
+            logger.info(f"Opening {path}")
+            reader = io_thermo_raw.thermoRAWreader(filename=path)
+            logger.info("Created file reader. Loading scans...")
+
+            # get info
+            #             info = reader.get_scan_info()
+
+            # get chromatogram
+            rtX, rtY = reader.get_tic()
+            self.plotsPanel.on_plot_RT(rtX, rtY, "Time (min)", set_page=False)
+
+            mass_spectra = reader.get_spectrum_for_each_filter()
+            chromatograms = reader.get_chromatogram_for_each_filter()
+            #             rtX, rtY = reader._stitch_chromatograms(chromatograms)
+
+            # get average mass spectrum
+            msX, msY = reader.get_average_spectrum()
+            xlimits = [np.min(msX), np.max(msX)]
+            name_kwargs = {"document": None, "dataset": None}
+            self.plotsPanel.on_plot_MS(msX, msY, xlimits=xlimits, set_page=True, **name_kwargs)
+
+            document = self.create_new_document_of_type(document_type="thermo", path=path)
+
+            # add data to document
+            document.got1RT = True
+            document.RT = {"xvals": rtX, "yvals": rtY, "xlabels": "Time (min)"}
+
+            document.gotMS = True
+            document.massSpectrum = {"xvals": msX, "yvals": msY, "xlabels": "m/z (Da)", "xlimits": xlimits}
+
+            document.gotMultipleMS = True
+            document.multipleMassSpectrum = mass_spectra
+
+            document.gotMultipleRT = True
+            document.multipleRT = chromatograms
+
+            document.file_reader = {"data_reader": reader}
+
+            self.on_update_document(document, "document")
+            logger.info(f"It took {ttime()-tstart:.4f} seconds to load {document.title}")
 
     def on_update_document(self, document, expand_item="document", expand_item_title=None):
 
@@ -2717,7 +2951,6 @@ class data_handling:
                 self.update_statusbar("Loaded mass spectra", 4)
                 msX = document.massSpectrum["xvals"]
                 msY = document.massSpectrum["yvals"]
-                color = document.lineColour
                 try:
                     xlimits = document.massSpectrum["xlimits"]
                 except KeyError:
@@ -2730,7 +2963,6 @@ class data_handling:
                 dtX = document.DT["xvals"]
                 dtY = document.DT["yvals"]
                 xlabel = document.DT["xlabels"]
-                color = document.lineColour
                 if document.dataType != "Type: CALIBRANT":
                     self.plotsPanel.on_plot_1D(dtX, dtY, xlabel)
             if document.got1RT:
@@ -2738,7 +2970,6 @@ class data_handling:
                 rtX = document.RT["xvals"]
                 rtY = document.RT["yvals"]
                 xlabel = document.RT["xlabels"]
-                color = document.lineColour
                 self.plotsPanel.on_plot_RT(rtX, rtY, xlabel)
 
             if document.got2DIMS:
@@ -3388,6 +3619,10 @@ class data_handling:
         # Annotated data
         elif dataset_type == "Annotated data":
             data = get_subset_or_all(dataset_type, dataset_name, document.other_data)
+        else:
+            raise MessageError(
+                "Not implemented yet", f"Method to handle {dataset_type}, {dataset_name} has not been implemented yet"
+            )
 
         if as_copy:
             data = copy.deepcopy(data)
@@ -3425,6 +3660,11 @@ class data_handling:
                 self.documentTree.on_update_data(data, dataset_name, document, data_type="ion.mobiligram.raw")
             elif dataset_type == "Drift time (1D, EIC, DT-IMS)" and dataset_name is not None:
                 self.documentTree.on_update_data(data, dataset_name, document, data_type="ion.mobiligram")
+            else:
+                raise MessageError(
+                    "Not implemented yet",
+                    f"Method to handle {dataset_type}, {dataset_name} has not been implemented yet",
+                )
 
         return document
 
@@ -3485,7 +3725,10 @@ class data_handling:
             elif dataset_type == "Annotated data" and dataset_name is not None:
                 document.other_data[dataset_name][keyword] = kwargs[keyword]
             else:
-                print("?ASDASDASD")
+                raise MessageError(
+                    "Not implemented yet",
+                    f"Method to handle {dataset_type}, {dataset_name} has not been implemented yet",
+                )
 
         return document
 
@@ -3529,6 +3772,21 @@ class data_handling:
 
     def generate_item_list_mass_spectra(self, output_type="overlay"):
         """Generate list of items with the correct data type"""
+
+        def get_overlay_data(data, dataset_name):
+            """Generate overlay data dictionary"""
+            item_out = {
+                "dataset_name": dataset_name,
+                "dataset_type": dataset_type,
+                "document_title": document_title,
+                "shape": data["xvals"].shape,
+                "label": data.get("label", ""),
+                "color": data.get("color", randomColorGenerator(True)),
+                "overlay_order": data.get("overlay_order", ""),
+                "processed": True if "processed" in dataset_type else False,
+            }
+            return item_out
+
         all_datasets = ["Mass Spectrum", "Mass Spectrum (processed)", "Mass Spectra"]
         singlular_datasets = ["Mass Spectrum", "Mass Spectrum (processed)"]
         all_documents = self.__get_document_list_of_type("all")
@@ -3541,43 +3799,42 @@ class data_handling:
                 __, data = self.get_spectrum_data([document_title, dataset_type])
                 if dataset_type in singlular_datasets and isinstance(data, dict) and len(data) > 0:
                     if output_type == "overlay":
-                        item_out = {
-                            "dataset_name": dataset_type,
-                            "dataset_type": dataset_type,
-                            "document_title": document_title,
-                            "shape": data["xvals"].shape,
-                            "label": data.get("label", ""),
-                            "color": data.get("color", randomColorGenerator(True)),
-                            "overlay_order": data.get("overlay_order", ""),
-                            "processed": True if "processed" in dataset_type else False,
-                        }
-                        # add to list
-                        item_list.append(item_out)
+                        item_list.append(get_overlay_data(data, dataset_type))
                     elif output_type == "annotations":
                         item_list[document_title].append(dataset_type)
                 else:
                     for key in data:
                         if output_type == "overlay":
-                            data_subset = data[key]
-                            item_out = {
-                                "dataset_name": key,
-                                "dataset_type": dataset_type,
-                                "document_title": document_title,
-                                "shape": data_subset["xvals"].shape,
-                                "label": data_subset.get("label", ""),
-                                "color": data_subset.get("color", randomColorGenerator(True)),
-                                "overlay_order": data_subset.get("overlay_order", ""),
-                                "processed": True if "(processed)" in key else False,
-                            }
-                            # add to list
-                            item_list.append(key)
+                            item_list.append(get_overlay_data(data[key], key))
                         elif output_type == "annotations":
                             item_list[document_title].append(f"{dataset_type} :: {key}")
-        print(item_list)
         return item_list
 
     def generate_item_list_heatmap(self, output_type="overlay"):
         """Generate list of items with the correct data type"""
+
+        def get_overlay_data(data, dataset_name):
+            """Generate overlay data dictionary"""
+            item_dict = {
+                "dataset_name": dataset_name,
+                "dataset_type": dataset_type,
+                "document_title": document_title,
+                "shape": data["zvals"].shape,
+                "cmap": data.get("cmap", self.config.currentCmap),
+                "label": data.get("label", ""),
+                "mask": data.get("mask", self.config.overlay_defaultMask),
+                "alpha": data.get("alpha", self.config.overlay_defaultAlpha),
+                "min_threshold": data.get("min_threshold", 0.0),
+                "max_threshold": data.get("max_threshold", 1.0),
+                "color": data.get("color", randomColorGenerator(True)),
+                "overlay_order": data.get("overlay_order", ""),
+                "processed": True if "processed" in dataset_type else False,
+                "title": data.get("title", ""),
+                "header": data.get("header", ""),
+                "footnote": data.get("footnote", ""),
+            }
+            return item_dict
+
         all_datasets = [
             "Drift time (2D)",
             "Drift time (2D, processed)",
@@ -3597,58 +3854,37 @@ class data_handling:
                 __, data = self.get_mobility_chromatographic_data([document_title, dataset_type, dataset_type])
                 if dataset_type in singlular_datasets and isinstance(data, dict) and len(data) > 0:
                     if output_type == "overlay":
-                        item_dict = {
-                            "dataset_name": dataset_type,
-                            "dataset_type": dataset_type,
-                            "document_title": document_title,
-                            "shape": data["zvals"].shape,
-                            "cmap": data.get("cmap", self.config.currentCmap),
-                            "label": data.get("label", ""),
-                            "mask": data.get("mask", self.config.overlay_defaultMask),
-                            "alpha": data.get("alpha", self.config.overlay_defaultAlpha),
-                            "min_threshold": data.get("min_threshold", 0.0),
-                            "max_threshold": data.get("max_threshold", 1.0),
-                            "color": data.get("color", randomColorGenerator(True)),
-                            "overlay_order": data.get("overlay_order", ""),
-                            "processed": True if "processed" in dataset_type else False,
-                            "title": data.get("title", ""),
-                            "header": data.get("header", ""),
-                            "footnote": data.get("footnote", ""),
-                        }
-                        # add to list
-                        item_list.append(item_dict)
+                        item_list.append(get_overlay_data(data, dataset_type))
                     elif output_type == "annotations":
                         item_list[document_title].append(dataset_type)
                 else:
                     for key in data:
                         if output_type == "overlay":
-                            data_subset = data[key]
-                            item_dict = {
-                                "dataset_name": key,
-                                "dataset_type": dataset_type,
-                                "document_title": document_title,
-                                "shape": data_subset["zvals"].shape,
-                                "cmap": data_subset.get("cmap", self.config.currentCmap),
-                                "label": data_subset.get("label", ""),
-                                "mask": data_subset.get("mask", self.config.overlay_defaultMask),
-                                "alpha": data_subset.get("alpha", self.config.overlay_defaultAlpha),
-                                "min_threshold": data_subset.get("min_threshold", 0.0),
-                                "max_threshold": data_subset.get("max_threshold", 1.0),
-                                "color": data_subset.get("color", randomColorGenerator(True)),
-                                "overlay_order": data_subset.get("overlay_order", ""),
-                                "processed": True if "(processed)" in key else False,
-                                "title": data_subset.get("title", ""),
-                                "header": data_subset.get("header", ""),
-                                "footnote": data_subset.get("footnote", ""),
-                            }
-                            # add to list
-                            item_list.append(item_dict)
+                            item_list.append(get_overlay_data(data[key], key))
                         elif output_type == "annotations":
                             item_list[document_title].append(f"{dataset_type} :: {key}")
         return item_list
 
     def generate_item_list_chromatogram(self, output_type="overlay"):
         """Generate list of items with the correct data type"""
+
+        def get_overlay_data(data, dataset_name):
+            """Generate overlay data dictionary"""
+            item_dict = {
+                "dataset_name": dataset_name,
+                "dataset_type": dataset_type,
+                "document_title": document_title,
+                "shape": data["xvals"].shape,
+                "label": data.get("label", ""),
+                "color": data.get("color", randomColorGenerator(True)),
+                "overlay_order": data.get("overlay_order", ""),
+                "processed": True if "processed" in dataset_type else False,
+                "title": data.get("title", ""),
+                "header": data.get("header", ""),
+                "footnote": data.get("footnote", ""),
+            }
+            return item_dict
+
         all_datasets = ["Chromatograms (EIC)", "Chromatograms (combined voltages, EIC)", "Chromatogram"]
         singlular_datasets = ["Chromatogram"]
         all_documents = self.__get_document_list_of_type("all")
@@ -3661,48 +3897,37 @@ class data_handling:
                 __, data = self.get_mobility_chromatographic_data([document_title, dataset_type, dataset_type])
                 if dataset_type in singlular_datasets and isinstance(data, dict) and len(data) > 0:
                     if output_type == "overlay":
-                        item_dict = {
-                            "dataset_name": dataset_type,
-                            "dataset_type": dataset_type,
-                            "document_title": document_title,
-                            "shape": data["xvals"].shape,
-                            "label": data.get("label", ""),
-                            "color": data.get("color", randomColorGenerator(True)),
-                            "overlay_order": data.get("overlay_order", ""),
-                            "processed": True if "processed" in dataset_type else False,
-                            "title": data.get("title", ""),
-                            "header": data.get("header", ""),
-                            "footnote": data.get("footnote", ""),
-                        }
-                        # add to list
-                        item_list.append(item_dict)
+                        item_list.append(get_overlay_data(data, dataset_type))
                     elif output_type == "annotations":
                         item_list[document_title].append(dataset_type)
                 else:
                     for key in data:
                         if output_type == "overlay":
-                            data_subset = data[key]
-                            item_dict = {
-                                "dataset_name": key,
-                                "dataset_type": dataset_type,
-                                "document_title": document_title,
-                                "shape": data_subset["xvals"].shape,
-                                "label": data_subset.get("label", ""),
-                                "color": data_subset.get("color", randomColorGenerator(True)),
-                                "overlay_order": data_subset.get("overlay_order", ""),
-                                "processed": True if "(processed)" in key else False,
-                                "title": data_subset.get("title", ""),
-                                "header": data_subset.get("header", ""),
-                                "footnote": data_subset.get("footnote", ""),
-                            }
-                            # add to list
-                            item_list.append(item_dict)
+                            item_list.append(get_overlay_data(data[key], key))
                         elif output_type == "annotations":
                             item_list[document_title].append(f"{dataset_type} :: {key}")
         return item_list
 
     def generate_item_list_mobilogram(self, output_type="overlay"):
         """Generate list of items with the correct data type"""
+
+        def get_overlay_data(data, dataset_name):
+            """Generate overlay data dictionary"""
+            item_dict = {
+                "dataset_name": dataset_name,
+                "dataset_type": dataset_type,
+                "document_title": document_title,
+                "shape": data["xvals"].shape,
+                "label": data.get("label", ""),
+                "color": data.get("color", randomColorGenerator(True)),
+                "overlay_order": data.get("overlay_order", ""),
+                "processed": True if "processed" in dataset_type else False,
+                "title": data.get("title", ""),
+                "header": data.get("header", ""),
+                "footnote": data.get("footnote", ""),
+            }
+            return item_dict
+
         all_datasets = ["Drift time (1D, EIC)", "Drift time (1D, EIC, DT-IMS)", "Drift time (1D)"]
         singlular_datasets = ["Drift time (1D)"]
         all_documents = self.__get_document_list_of_type("all")
@@ -3715,42 +3940,13 @@ class data_handling:
                 __, data = self.get_mobility_chromatographic_data([document_title, dataset_type, dataset_type])
                 if dataset_type in singlular_datasets and isinstance(data, dict) and len(data) > 0:
                     if output_type == "overlay":
-                        item_dict = {
-                            "dataset_name": dataset_type,
-                            "dataset_type": dataset_type,
-                            "document_title": document_title,
-                            "shape": data["xvals"].shape,
-                            "label": data.get("label", ""),
-                            "color": data.get("color", randomColorGenerator(True)),
-                            "overlay_order": data.get("overlay_order", ""),
-                            "processed": True if "processed" in dataset_type else False,
-                            "title": data.get("title", ""),
-                            "header": data.get("header", ""),
-                            "footnote": data.get("footnote", ""),
-                        }
-                        # add to list
-                        item_list.append(item_dict)
+                        item_list.append(get_overlay_data(data, dataset_type))
                     elif output_type == "annotations":
                         item_list[document_title].append(dataset_type)
                 else:
                     for key in data:
                         if output_type == "overlay":
-                            data_subset = data[key]
-                            item_dict = {
-                                "dataset_name": key,
-                                "dataset_type": dataset_type,
-                                "document_title": document_title,
-                                "shape": data_subset["xvals"].shape,
-                                "label": data_subset.get("label", ""),
-                                "color": data_subset.get("color", randomColorGenerator(True)),
-                                "overlay_order": data_subset.get("overlay_order", ""),
-                                "processed": True if "(processed)" in key else False,
-                                "title": data_subset.get("title", ""),
-                                "header": data_subset.get("header", ""),
-                                "footnote": data_subset.get("footnote", ""),
-                            }
-                            # add to list
-                            item_list.append(item_dict)
+                            item_list.append(get_overlay_data(data[key], key))
                         elif output_type == "annotations":
                             item_list[document_title].append(f"{dataset_type} :: {key}")
         return item_list

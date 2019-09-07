@@ -34,6 +34,7 @@ class PanelModifyItemSettings(MiniFrame):
         self.apply_thresholds = False
         self.add_show_button = True
         self.show_simple = False
+        self.show_info = False
 
         # based on the kwargs, decide which source it is
         # peaklist
@@ -43,11 +44,12 @@ class PanelModifyItemSettings(MiniFrame):
             self.column_dict = self.config.peaklistColNames
         # overlay
         elif "overlay_type" in kwargs:
-            self.SetTitle(f"Item: {kwargs['dataset_name']} | {kwargs['dataset_type']} | {kwargs['document']}")
+            self.SetTitle(f"Customise item...")
             self.show_mw = False
             self.show_charge = False
             self.apply_thresholds = True
             self.add_show_button = False
+            self.show_info = True
             self.item_name = "item_name"
             self.column_dict = self.config.overlay_list_col_names
             if kwargs["overlay_type"] == "overlay.simple":
@@ -96,6 +98,12 @@ class PanelModifyItemSettings(MiniFrame):
 
         panel = wx.Panel(self, -1, size=(-1, -1))
         main_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        if self.show_info:
+            info_label = wx.StaticText(panel, wx.ID_ANY, "     Document:\n  Dataset type:\nDataset name:")
+            self.info_label = wx.StaticText(panel, wx.ID_ANY, "")
+
+            horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
         select_label = wx.StaticText(panel, wx.ID_ANY, "Select:")
         self.select_value = makeCheckbox(panel, "")
@@ -153,7 +161,7 @@ class PanelModifyItemSettings(MiniFrame):
         self.color_value.SetBackgroundColour(self.itemInfo["color"])
         self.color_value.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
-        horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+        horizontal_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
         if self.add_show_button:
             self.showBtn = wx.Button(panel, wx.ID_OK, "Show", size=(-1, 22))
@@ -187,45 +195,50 @@ class PanelModifyItemSettings(MiniFrame):
         # pack elements
         grid = wx.GridBagSizer(2, 2)
         n = 0
+        if self.show_info:
+            grid.Add(info_label, (n, 0), (3, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+            grid.Add(self.info_label, (n, 1), (3, 1), flag=wx.EXPAND)
+            n += 3
+            grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
+            n += 1
         grid.Add(select_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.select_value, (n, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(filename_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.filename_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(ion_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.ion_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(label_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.label_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
         if self.show_charge:
-            n = n + 1
+            n += 1
             grid.Add(charge_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
             grid.Add(self.charge_value, (n, 1), flag=wx.EXPAND)
         if not self.show_simple:
-            n = n + 1
+            n += 1
             grid.Add(mask_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
             grid.Add(self.mask_value, (n, 1), flag=wx.EXPAND)
-            n = n + 1
+            n += 1
             grid.Add(transparency_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
             grid.Add(self.transparency_value, (n, 1), flag=wx.EXPAND)
-            n = n + 1
+            n += 1
             grid.Add(min_threshold_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
             grid.Add(self.min_threshold_value, (n, 1), flag=wx.EXPAND)
-            n = n + 1
+            n += 1
             grid.Add(max_threshold_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
             grid.Add(self.max_threshold_value, (n, 1), flag=wx.EXPAND)
-            n = n + 1
+            n += 1
             grid.Add(colormap_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
             grid.Add(self.colormap_value, (n, 1), flag=wx.EXPAND)
             grid.Add(self.restrictColormap_value, (n, 2), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(color_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.color_value, (n, 1), flag=wx.EXPAND)
-
-        n = n + 1
-        grid.Add(horizontal_line, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
+        grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
+        n += 1
         grid.Add(btn_grid, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         main_sizer.Add(grid, 0, wx.EXPAND, 10)
 
@@ -317,6 +330,7 @@ class PanelModifyItemSettings(MiniFrame):
         if self.show_charge:
             self.charge_value.SetValue(str(self.itemInfo["charge"]))
         self.label_value.SetValue(self.__check_label(self.itemInfo["label"]))
+
         if not self.show_simple:
             if self.itemInfo["colormap"] is not None:
                 self.colormap_value.SetStringSelection(self.itemInfo["colormap"])
@@ -329,6 +343,11 @@ class PanelModifyItemSettings(MiniFrame):
             if self.itemInfo["max_threshold"] is not None:
                 self.max_threshold_value.SetValue(self.itemInfo["max_threshold"])
 
+        if self.show_info:
+            self.info_label.SetLabel(
+                f'{self.itemInfo["document"]}\n{self.itemInfo["dataset_type"]}\n{self.itemInfo["dataset_name"]}'
+            )
+
         self.color_value.SetBackgroundColour(self.itemInfo["color"])
 
         self.on_toggle_controls(evt=None)
@@ -340,8 +359,6 @@ class PanelModifyItemSettings(MiniFrame):
     def on_update_title(self, itemInfo):
         if "ionName" in itemInfo:
             self.SetTitle(f"Ion: {itemInfo['ionName']}")
-        elif "dataset_name" in itemInfo:
-            self.SetTitle(f"Item: {itemInfo['dataset_name']} | {itemInfo['dataset_type']} | {itemInfo['document']}")
         else:
             self.SetTitle(f"File: {itemInfo.get('document', 'filename')}")
 

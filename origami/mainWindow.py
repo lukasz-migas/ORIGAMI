@@ -1082,9 +1082,9 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_add_blank_document_manual, id=ID_addNewManualDoc)
         self.Bind(wx.EVT_MENU, self.on_add_blank_document_overlay, id=ID_addNewOverlayDoc)
         self.Bind(wx.EVT_TOOL, self.on_open_multiple_files, id=ID_load_multiple_masslynx_raw)
-        self.Bind(wx.EVT_TOOL, self.on_open_community_file, id=ID_fileMenu_MGF)
-        self.Bind(wx.EVT_TOOL, self.on_open_community_file, id=ID_fileMenu_mzML)
-        self.Bind(wx.EVT_TOOL, self.on_open_thermo_file, id=ID_fileMenu_thermoRAW)
+        self.Bind(wx.EVT_TOOL, self.data_handling.on_open_MGF_file_fcn, id=ID_fileMenu_MGF)
+        self.Bind(wx.EVT_TOOL, self.data_handling.on_open_mzML_file_fcn, id=ID_fileMenu_mzML)
+        self.Bind(wx.EVT_TOOL, self.data_handling.on_open_thermo_file_fcn, id=ID_fileMenu_thermoRAW)
 
         # PLOT
         self.Bind(wx.EVT_MENU, self.onPlotParameters, id=ID_extraSettings_general_plot)
@@ -1175,7 +1175,7 @@ class MyFrame(wx.Frame):
         evtID = evt.GetId()
 
         if evtID == ID_fileMenu_MGF:
-            self.panelDocuments.documents.on_open_MGF_file_fcn(None)
+            self.data_handling.on_open_MGF_file_fcn(None)
         elif evtID == ID_fileMenu_mzML:
             self.panelDocuments.documents.on_open_mzML_file_fcn(None)
 

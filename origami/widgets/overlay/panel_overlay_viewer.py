@@ -757,7 +757,6 @@ class PanelOverlayViewer(MiniFrame):
         dataset_type = editor_dict[self.dataset_type_choice.GetStringSelection()]
 
         item_list = self.data_handling.generate_item_list(dataset_type)
-
         self.peaklist.DeleteAllItems()
         for add_dict in item_list:
             color = add_dict.get("color", self.config.customColors[get_random_int(0, 15)])

@@ -241,9 +241,7 @@ class ORIGAMI(object):
         logger.info("Logs can be found in {}".format(self.config.loggingFile_path))
 
     def on_create_document(self, name, path, **kwargs):
-        """
-        Create document
-        """
+        """Create document"""
         document = documents()
         document.title = name
         document.path = path

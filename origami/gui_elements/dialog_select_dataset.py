@@ -9,7 +9,7 @@ class DialogSelectDataset(Dialog):
     """
 
     def __init__(self, parent, presenter, docList, dataList, **kwargs):
-        Dialog.__init__(self, parent, title="Copy annotations to document/dataset...", size=(400, 300))
+        Dialog.__init__(self, parent, title="Copy annotations to document/dataset...", size=(500, 300))
 
         self.parent = parent
         self.presenter = presenter
@@ -62,16 +62,21 @@ class DialogSelectDataset(Dialog):
 
         documentList_label = wx.StaticText(panel, -1, "Document:")
         self.document_list_choice = wx.ComboBox(
-            panel, -1, choices=self.documentList, size=(300, -1), style=wx.CB_READONLY
+            panel, -1, choices=self.documentList, size=(400, -1), style=wx.CB_READONLY
         )
         self.document_list_choice.Select(0)
         self.document_list_choice.Bind(wx.EVT_COMBOBOX, self.on_update_gui)
 
         datasetList_label = wx.StaticText(panel, -1, "Dataset:")
-        self.dataset_list_choice = wx.ComboBox(panel, -1, choices=[], size=(300, -1), style=wx.CB_READONLY)
+        self.dataset_list_choice = wx.ComboBox(panel, -1, choices=[], size=(400, -1), style=wx.CB_READONLY)
 
         self.ok_btn = wx.Button(panel, wx.ID_OK, "Select", size=(-1, 22))
         self.cancel_btn = wx.Button(panel, -1, "Cancel", size=(-1, 22))
+
+        btn_grid = wx.GridBagSizer(5, 5)
+        n = 0
+        btn_grid.Add(self.ok_btn, (n, 0), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        btn_grid.Add(self.cancel_btn, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
 
         # pack elements
         grid = wx.GridBagSizer(5, 5)
@@ -82,8 +87,7 @@ class DialogSelectDataset(Dialog):
         grid.Add(datasetList_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.dataset_list_choice, (n, 1), wx.GBSpan(1, 3))
         n += 1
-        grid.Add(self.ok_btn, (n, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        grid.Add(self.cancel_btn, (n, 3), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(btn_grid, (n, 0), wx.GBSpan(1, 5), flag=wx.ALIGN_CENTER)
 
         main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, 10)
 

@@ -67,11 +67,9 @@ class PanelProcessUniDec(wx.MiniFrame):
         self.SetFocus()
 
         # setup kwargs
-        self.document = kwargs.pop("document", None)
         self.document_title = kwargs.pop("document_title", None)
+        self.dataset_type = kwargs.pop("dataset_type", None)
         self.dataset_name = kwargs.pop("dataset_name", None)
-
-        print(self.document_title, self.dataset_name)
 
         # plot data at startup
         self.data_processing.on_threading("custom.action", ("all",), fcn=self.on_plot)

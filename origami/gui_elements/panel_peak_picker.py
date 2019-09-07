@@ -56,8 +56,9 @@ class panel_peak_picker(MiniFrame):
         self._n_peaks_max = 1000
 
         # setup kwargs
-        self.document = kwargs.pop("document", None)
+        #         self.document = kwargs.pop("document", None)
         self.document_title = kwargs.pop("document_title", None)
+        self.dataset_type = kwargs.pop("dataset_type", None)
         self.dataset_name = kwargs.pop("dataset_name", None)
         self.mz_data = kwargs.pop("mz_data", None)
 
@@ -862,7 +863,7 @@ class panel_peak_picker(MiniFrame):
 
         # get annotations object
         annotations_obj = self.data_handling.get_annotations_data(
-            [self.document_title, self.dataset_name, self.dataset_name]
+            [self.document_title, self.dataset_type, self.dataset_name]
         )
 
         ymin = 0
@@ -909,7 +910,7 @@ class panel_peak_picker(MiniFrame):
                 annotations_obj.add_annotation(name, annotation_dict)
 
         self.document_tree.on_update_annotation(
-            annotations_obj, self.document_title, self.dataset_name, self.dataset_name
+            annotations_obj, self.document_title, self.dataset_type, self.dataset_name
         )
 
         if self.config.peak_find_verbose:
