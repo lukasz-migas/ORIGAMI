@@ -866,9 +866,10 @@ class plots(mpl_plotter):
             pass
 
         # remove old lines
-        lines = self.plotMS.get_lines()
-        for line in lines[1:]:
-            line.remove()
+        if hasattr(self, "plotMS"):
+            lines = self.plotMS.get_lines()
+            for line in lines[1:]:
+                line.remove()
 
         # remove old shades
         while len(self.plotMS.collections) > 0:

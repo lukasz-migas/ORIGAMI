@@ -165,7 +165,6 @@ ID_extraSettings_boxColor = NewId()
 ID_extraSettings_lineColour_violin = NewId()
 ID_extraSettings_shadeColour_violin = NewId()
 ID_extraSettings_bar_edgeColor = NewId()
-ID_extraSettings_instantPlot = NewId()
 ID_extraSettings_multiThreading = NewId()
 ID_extraSettings_logging = NewId()
 

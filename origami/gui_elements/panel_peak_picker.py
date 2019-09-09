@@ -317,7 +317,6 @@ class panel_peak_picker(MiniFrame):
         self.threshold_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
         self.threshold_value.SetValue(str(self.config.peak_find_threshold))
         self.threshold_value.Bind(wx.EVT_TEXT, self.on_apply)
-        self.threshold_value.Bind(wx.EVT_TEXT, self.on_show_threshold_line)
 
         width_value = wx.StaticText(panel, wx.ID_ANY, "Minimal width:")
         self.width_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("intPos"))
@@ -333,6 +332,7 @@ class panel_peak_picker(MiniFrame):
         self.min_intensity_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
         self.min_intensity_value.SetValue(str(self.config.peak_find_min_intensity))
         self.min_intensity_value.Bind(wx.EVT_TEXT, self.on_apply)
+        self.min_intensity_value.Bind(wx.EVT_TEXT, self.on_show_threshold_line)
 
         min_distance_value = wx.StaticText(panel, wx.ID_ANY, "Minimal distance between peaks:")
         self.min_distance_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("intPos"))
@@ -584,7 +584,7 @@ class panel_peak_picker(MiniFrame):
     def on_show_threshold_line(self, evt):
         """Display a horizontal line indicating the minimal intensity that will be picked"""
         if self.config.peak_find_method == "small_molecule":
-            threshold = str2num(self.threshold_value.GetValue())
+            threshold = str2num(self.min_intensity_value.GetValue())
         else:
             threshold = str2num(self.fit_threshold_value.GetValue())
 
@@ -725,7 +725,7 @@ class panel_peak_picker(MiniFrame):
         if n_peaks > self._n_peaks_max:
             logger.warning(
                 f"Cannot plot {n_peaks} as it would be very slow! "
-                + "Will only plot {self._n_peaks_max} first peaks instead."
+                + f"Will only plot {self._n_peaks_max} first peaks instead."
             )
 
         # clean-up previous patches

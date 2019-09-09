@@ -4,11 +4,9 @@ import gc
 import logging
 import os
 import re
-import threading
 import time
 from copy import deepcopy
 from operator import itemgetter
-from sys import platform
 
 import numpy as np
 import pandas as pd
@@ -145,9 +143,7 @@ logger = logging.getLogger("origami")
 
 
 class PanelDocumentTree(wx.Panel):
-    """
-    Make documents panel to store all information about open files
-    """
+    """Make documents panel to store all information about open files"""
 
     def __init__(self, parent, config, icons, presenter):
         wx.Panel.__init__(
@@ -222,17 +218,58 @@ class DocumentTree(wx.TreeCtrl):
 
         # Add bindings
         self.Bind(wx.EVT_TREE_KEY_DOWN, self.on_keyboard_event, id=wx.ID_ANY)
-        self.Bind(wx.EVT_TREE_SEL_CHANGED, self.on_enable_document, id=wx.ID_ANY)
-        self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.on_enable_document, id=wx.ID_ANY)
         self.Bind(wx.EVT_TREE_ITEM_MENU, self.on_right_click, id=wx.ID_ANY)
         self.Bind(wx.EVT_LEFT_DCLICK, self.on_double_click)
 
+        self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.on_enable_document, id=wx.ID_ANY)
+        self.Bind(wx.EVT_TREE_SEL_CHANGING, self.on_item_selecting, id=wx.ID_ANY)
         self.Bind(wx.EVT_TREE_SEL_CHANGED, self.on_enable_document, id=wx.ID_ANY)
-        self.Bind(wx.EVT_TREE_SEL_CHANGED, self.onItemSelection, id=wx.ID_ANY)
+        self.Bind(wx.EVT_TREE_DELETE_ITEM, self.on_item_deleted, id=wx.ID_ANY)
         self.Bind(wx.EVT_CHAR_HOOK, self.on_keyboard_event, id=wx.ID_ANY)
 
-        if self.config.quickDisplay:
-            self.Bind(wx.EVT_TREE_SEL_CHANGED, self.onChangePlot, id=wx.ID_ANY)
+    def reset_document_tree_bullets(self):
+        """Erase all bullets and make defaults."""
+        self.bullets.RemoveAll()
+        self.bullets.Add(self.icons.bulletsLib["bulletsDoc"])
+        self.bullets.Add(self.icons.bulletsLib["bulletsMS"])
+        self.bullets.Add(self.icons.bulletsLib["bulletsDT"])
+        self.bullets.Add(self.icons.bulletsLib["bulletsRT"])
+        self.bullets.Add(self.icons.bulletsLib["bulletsDot"])
+        self.bullets.Add(self.icons.bulletsLib["bulletsAnnot"])
+        self.bullets.Add(self.icons.bulletsLib["bullets2DT"])
+        self.bullets.Add(self.icons.bulletsLib["bulletsCalibration"])
+        self.bullets.Add(self.icons.bulletsLib["bulletsOverlay"])
+
+        self.bullets.Add(self.icons.bulletsLib["bulletsDocOn"])
+        self.bullets.Add(self.icons.bulletsLib["bulletsMSIon"])
+        self.bullets.Add(self.icons.bulletsLib["bulletsDTIon"])
+        self.bullets.Add(self.icons.bulletsLib["bulletsRTIon"])
+        self.bullets.Add(self.icons.bulletsLib["bulletsDotOn"])
+        self.bullets.Add(self.icons.bulletsLib["bulletsAnnotIon"])
+        self.bullets.Add(self.icons.bulletsLib["bullets2DTIon"])
+        self.bullets.Add(self.icons.bulletsLib["bulletsCalibrationIon"])
+        self.bullets.Add(self.icons.bulletsLib["bulletsOverlayIon"])
+
+        self.bullets_dict = {
+            "document": 0,
+            "mass_spec": 1,
+            "drift_time": 2,
+            "rt": 3,
+            "dots": 4,
+            "annot": 5,
+            "heatmap": 6,
+            "calibration": 7,
+            "overlay": 8,
+            "document_on": 9,
+            "mass_spec_on": 10,
+            "drift_time_on": 11,
+            "rt_on": 12,
+            "dots_on": 13,
+            "annot_on": 14,
+            "heatmap_on": 15,
+            "calibration_on": 16,
+            "overlay_on": 17,
+        }
 
     def _setup_handling_and_processing(self):
         self.data_processing = self.view.data_processing
@@ -250,9 +287,221 @@ class DocumentTree(wx.TreeCtrl):
         self.filesPanel = self.view.panelMML
         self.filesList = self.filesPanel.peaklist
 
+    def on_item_deleted(self, evt):
+        pass
+
+    def on_item_selecting(self, evt):
+        print("changing")
+
+        # Get selected item
+        self._item_id = evt.GetItem()
+
+        # Get indent level for selected item
+        self._indent = self.get_item_indent(self._item_id)
+        if self._indent > 1:
+            parent = self.getParentItem(self._item_id, 1)
+            item = self.getParentItem(self._item_id, 2)
+
+            self._item_branch = self.GetItemText(self.GetItemParent(self._item_id))
+            self._item_leaf = self.GetItemText(self._item_id)
+            self._item_root = self.GetItemText(self.GetItemParent(self.GetItemParent(self._item_id)))
+
+            # split
+            try:
+                self.splitText = re.split("-|,|:|__", self._item_leaf)
+            except Exception:
+                self.splitText = []
+
+            # Check item
+            if not item:
+                return
+
+            # Get item data for specified item
+            self._document_data = self.GetPyData(parent)
+            self._document_type = self.GetItemText(item)
+            try:
+                self._current_data = self.GetPyData(self._item_id)
+            except Exception:
+                self._current_data = None
+
+            if self.config.debug:
+                msg = (
+                    f"\n_document_type: {self._document_type}\n_item_leaf: {self._item_leaf}"
+                    + f"\n_item_branch: {self._item_branch}\n_item_root: {self._item_root}\n_indent: {self._indent}"
+                )
+                logger.debug(msg)
+        else:
+            self._item_leaf = None
+            self._item_branch = None
+            self._item_root = None
+
+    def getItemIDbyName(self, root, title):
+        item, cookie = self.GetFirstChild(root)
+
+        while item.IsOk():
+            text = self.GetItemText(item)
+            if text == title:
+                return item
+            if self.ItemHasChildren(item):
+                match = self.getItemIDbyName(item, title)
+                if match.IsOk():
+                    return match
+            item, cookie = self.GetNextChild(root, cookie)
+
+        return wx.TreeItemId()
+
+    def on_enable_document(
+        self,
+        getSelected=False,
+        loadingData=False,
+        highlightSelected=False,
+        expandAll=False,
+        expandSelected=None,
+        evt=None,
+    ):
+        """
+        Highlights and returns currently selected document
+        ---
+        Parameters
+        ----------
+        getSelected
+        loadingData: booleat, flag to tell the function that we are loading data
+        highlightSelected
+        expandAll : boolean, flag to expand or not of the tree
+        expandSelected : string, name of item to expand
+        """
+
+        print("changed")
+        root = self.GetRootItem()
+        selected = self.GetSelection()
+        item, cookie = self.GetFirstChild(root)
+
+        if evt is None:
+            evtID = None
+        else:
+            try:
+                evtID = evt.GetId()
+            except AttributeError:
+                evtID = None
+
+        while item.IsOk():
+            self.SetItemBold(item, False)
+            if loadingData:
+                self.CollapseAllChildren(item)
+            item, cookie = self.GetNextChild(root, cookie)
+
+        # Select parent document
+        if selected is not None:
+            item = self.getParentItem(selected, 1)
+            try:
+                self.SetItemBold(item, True)
+            except wx._core.PyAssertionError:
+                pass
+            if loadingData or evtID == ID_getSelectedDocument:
+                self.Expand(item)  # Parent item
+                if expandAll:
+                    self.ExpandAllChildren(item)
+
+            # window label
+            try:
+                text = self.GetItemText(item)
+                if text != "Documents":
+                    #                     try: self.setCurrentDocument(text)
+                    #                     except Exception: pass
+                    self.presenter.currentDoc = text
+                    self.view.SetTitle(
+                        "ORIGAMI - v{} - {} ({})".format(self.config.version, text, self._document_data.dataType)
+                    )
+            except Exception:
+                self.view.SetTitle("ORIGAMI - v{}".format(self.config.version))
+
+            # status text
+            if self._document_data is not None:
+                try:
+                    parameters = self._document_data.parameters
+                    msg = "{}-{}".format(parameters.get("startMS", ""), parameters.get("endMS", ""))
+                    if msg == "-":
+                        msg = ""
+                    self.presenter.view.SetStatusText(msg, 1)
+                    msg = "MSMS: {}".format(parameters.get("setMS", ""))
+                    if msg == "MSMS: ":
+                        msg = ""
+                    self.presenter.view.SetStatusText(msg, 2)
+                except Exception:
+                    pass
+
+            # In case we also interested in selected item
+            if getSelected:
+                selectedText = self.GetItemText(selected)
+                if highlightSelected:
+                    self.SetItemBold(selected, True)
+                return text, selected, selectedText
+            else:
+                return text
+
+        if evt is not None:
+            evt.Skip()
+
+    def get_item_indent(self, item):
+        # Check item first
+        if not item.IsOk():
+            return False
+
+        # Get Indent
+        indent = 0
+        root = self.GetRootItem()
+        while item.IsOk():
+            if item == root:
+                return indent
+            else:
+                item = self.GetItemParent(item)
+                indent += 1
+        return indent
+
+    def getParentItem(self, item, level, getSelected=False):
+        """ Get parent item for selected item and level"""
+        # Get item
+        for x in range(level, self.get_item_indent(item)):
+            item = self.GetItemParent(item)
+
+        if getSelected:
+            itemText = self.GetItemText(item)
+            return item, itemText
+        else:
+            return item
+
+    def get_item_by_data(self, data, root=None, cookie=0):
+        """Get item by its data."""
+
+        # get root
+        if root is None:
+            root = self.GetRootItem()
+
+        # check children
+        if self.ItemHasChildren(root):
+            firstchild, cookie = self.GetFirstChild(root)
+            if self.GetPyData(firstchild) is data:
+                return firstchild
+            matchedItem = self.get_item_by_data(data, firstchild, cookie)
+            if matchedItem:
+                return matchedItem
+
+        # check siblings
+        child = self.GetNextSibling(root)
+        if child and child.IsOk():
+            if self.GetPyData(child) is data:
+                return child
+            matchedItem = self.get_item_by_data(data, child, cookie)
+            if matchedItem:
+                return matchedItem
+
+        # no such item found
+        return False
+
     def on_keyboard_event(self, evt):
         """ Shortcut to navigate through Document Tree """
         key = evt.GetKeyCode()
+
         # detelete item
         if key == 127:
             item = self.GetSelection()
@@ -390,63 +639,6 @@ class DocumentTree(wx.TreeCtrl):
 
         tend = time.clock()
         print("It took: %s seconds to process double-click." % str(np.round((tend - tstart), 4)))
-
-    def toggle_quick_display(self, evt):
-        """
-        Function to either allow or disallow quick plotting selection of datasets
-        """
-
-        if self.config.quickDisplay:
-            self.Bind(wx.EVT_TREE_SEL_CHANGED, self.onChangePlot, id=wx.ID_ANY)
-        else:
-            self.Unbind(wx.EVT_TREE_SEL_CHANGED, id=wx.ID_ANY)
-
-        if evt is not None:
-            evt.Skip()
-
-    def reset_document_tree_bullets(self):
-        """Erase all bullets and make defaults."""
-        self.bullets.RemoveAll()
-        self.bullets.Add(self.icons.bulletsLib["bulletsDoc"])
-        self.bullets.Add(self.icons.bulletsLib["bulletsMS"])
-        self.bullets.Add(self.icons.bulletsLib["bulletsDT"])
-        self.bullets.Add(self.icons.bulletsLib["bulletsRT"])
-        self.bullets.Add(self.icons.bulletsLib["bulletsDot"])
-        self.bullets.Add(self.icons.bulletsLib["bulletsAnnot"])
-        self.bullets.Add(self.icons.bulletsLib["bullets2DT"])
-        self.bullets.Add(self.icons.bulletsLib["bulletsCalibration"])
-        self.bullets.Add(self.icons.bulletsLib["bulletsOverlay"])
-
-        self.bullets.Add(self.icons.bulletsLib["bulletsDocOn"])
-        self.bullets.Add(self.icons.bulletsLib["bulletsMSIon"])
-        self.bullets.Add(self.icons.bulletsLib["bulletsDTIon"])
-        self.bullets.Add(self.icons.bulletsLib["bulletsRTIon"])
-        self.bullets.Add(self.icons.bulletsLib["bulletsDotOn"])
-        self.bullets.Add(self.icons.bulletsLib["bulletsAnnotIon"])
-        self.bullets.Add(self.icons.bulletsLib["bullets2DTIon"])
-        self.bullets.Add(self.icons.bulletsLib["bulletsCalibrationIon"])
-        self.bullets.Add(self.icons.bulletsLib["bulletsOverlayIon"])
-
-        self.bullets_dict = {
-            "document": 0,
-            "mass_spec": 1,
-            "drift_time": 2,
-            "rt": 3,
-            "dots": 4,
-            "annot": 5,
-            "heatmap": 6,
-            "calibration": 7,
-            "overlay": 8,
-            "document_on": 9,
-            "mass_spec_on": 10,
-            "drift_time_on": 11,
-            "rt_on": 12,
-            "dots_on": 13,
-            "annot_on": 14,
-            "heatmap_on": 15,
-            "calibration_on": 16,
-            "overlay_on": 17,
-        }
 
     def on_save_document_as(self, evt):
         """
@@ -680,46 +872,19 @@ class DocumentTree(wx.TreeCtrl):
 
     def _on_event_get_mass_spectrum(self, **kwargs):
 
-        if "document_title" not in kwargs and "dataset_name" not in kwargs:
-            document_title = self._document_data.title
-            if self._document_type == "Mass Spectrum":
-                dataset_name = "Mass Spectrum"
-            elif self._document_type == "Mass Spectrum (processed)":
-                dataset_name = "Mass Spectrum (processed)"
-            elif self._document_type == "Mass Spectra":
-                dataset_name = self._item_leaf
-        else:
-            document_title = kwargs.pop("document_name")
-            dataset_name = kwargs.pop("dataset_name")
+        query = self._get_query_info_based_on_indent()
+        document, data = self.data_handling.get_mobility_chromatographic_data(query)
 
-        # form query
-        query = [document_title, dataset_name]
-        # get dat and document
-        document, data = self.data_handling.get_spectrum_data(query)
-
-        return document, data, dataset_name
+        return document, data, query[2]
 
     def _on_event_get_mobility_chromatogram_query(self, **kwargs):
         if not all([item in kwargs for item in ["document_title", "dataset_type", "dataset_name"]]):
-            document_title = self._document_data.title
-            dataset_name = None
-            dataset_type = self._document_type
-            if self._document_type in [
-                "Drift time (2D, EIC)",
-                "Drift time (2D, combined voltages, EIC)",
-                "Drift time (2D, processed, EIC)",
-                "Input data",
-                "Chromatograms (combined voltages, EIC)",
-                "Drift time (1D, EIC)",
-                "Drift time (1D, EIC, DT-IMS)",
-            ]:
-                dataset_name = self._item_leaf
+            query = self._get_query_info_based_on_indent()
         else:
             document_title = kwargs.pop("document_name")
             dataset_type = kwargs.pop("dataset_type")
             dataset_name = kwargs.pop("dataset_name")
-
-        query = [document_title, dataset_type, dataset_name]
+            query = [document_title, dataset_type, dataset_name]
 
         return query
 
@@ -1270,253 +1435,317 @@ class DocumentTree(wx.TreeCtrl):
             evt.Skip()
 
     def on_delete_item(self, evt):
-        """
-        Delete selected item from document
-        ---
-        This function is not efficient. At the moment, it deletes the item from
-        document dictionary and then adds each document (and all children)
-        afterwards - we should be directly deleting an item AND then removing
-        the item from the dictionary
-        """
+        """Delete selected item from the document tree and the presenter dictionary"""
 
-        try:
-            currentDoc = self._document_data.title
-        except Exception:
-            print("Please select document in the document tree. Sometimes you might have to right-click on it.")
+        def get_data_dataset():
+            if dataset_name:
+                return data[dataset_name]
+            return data
+
+        # delete document
+        if self._indent == 1:
+            self.removeDocument(None)
             return
-        document_title = byte2str(self._document_data.title)
-        document = self.presenter.documentsDict[document_title]
-        delete_outcome = False
-        docExpandItem = None
 
-        # Check what is going to be deleted
-        # MS
-        if self._document_type == "Mass Spectrum":
-            # remove annotations
-            if "Annotations" in self._item_leaf and self._item_branch == "Mass Spectrum":
-                del self.presenter.documentsDict[currentDoc].massSpectrum["annotations"]
-            elif self._item_branch == "Annotations":
-                del self.presenter.documentsDict[currentDoc].massSpectrum["annotations"][self._item_leaf]
-            # remove unidec data
-            elif "UniDec" in self._item_leaf and self._item_branch == "Mass Spectrum":
-                del self.presenter.documentsDict[currentDoc].massSpectrum["unidec"]
-            elif self._item_branch == "UniDec":
-                del self.presenter.documentsDict[currentDoc].massSpectrum["unidec"][self._item_leaf]
-            # remove mass spectrum
+        # get current item by examining the ident stack
+        query, subkey, dataset_name = self._get_delete_info_based_on_indent()
+        print(query, subkey, dataset_name)
+
+        print(self._item_id)
+
+        # get data
+        __, data = self.data_handling.get_mobility_chromatographic_data(query, as_copy=False)
+        item_parent = self.GetItemParent(self._item_id)
+
+        # check whether subkey exist and if so, get item
+        if subkey:
+            subkey_child = ""
+            if len(subkey) == 2:
+                subkey_parent, subkey_child = subkey
+                if dataset_name:
+                    del data[dataset_name][subkey_parent.lower()][subkey_child]
+                else:
+                    del data[subkey_parent.lower()][subkey_child]
             else:
-                self.presenter.documentsDict[currentDoc].massSpectrum = {}
-                self.presenter.documentsDict[currentDoc].gotMS = False
+                subkey_parent = subkey[0]
+                if dataset_name:
+                    del data[dataset_name][subkey_parent.lower()]
+                else:
+                    del data[subkey_parent.lower()]
+            self.data_handling.set_mobility_chromatographic_data(query, data)
 
-        if self._document_type == "Mass Spectrum (processed)":
-            # remove annotations
-            if "Annotations" in self._item_leaf and self._item_branch == "Mass Spectrum (processed)":
-                del self.presenter.documentsDict[currentDoc].smoothMS["annotations"]
-            elif self._item_branch == "Annotations":
-                del self.presenter.documentsDict[currentDoc].smoothMS["annotations"][self._item_leaf]
-            # remove unidec data
-            elif "UniDec" in self._item_leaf and self._item_branch == "Mass Spectrum (processed)":
-                del self.presenter.documentsDict[currentDoc].smoothMS["unidec"]
-            elif self._item_branch == "UniDec":
-                del self.presenter.documentsDict[currentDoc].smoothMS["unidec"][self._item_leaf]
-            # remove mass spectrum
-            else:
-                self.presenter.documentsDict[currentDoc].smoothMS = {}
-
-        if self._document_type == "Mass Spectra":
-            docExpandItem = document.multipleMassSpectrum
-            # remove unidec data
-            if self._item_leaf == "UniDec" and self._indent == 4:
-                del self.presenter.documentsDict[currentDoc].multipleMassSpectrum[self._item_branch]["unidec"]
-            elif self._item_branch == "UniDec" and self._indent == 5:
-                del self.presenter.documentsDict[currentDoc].multipleMassSpectrum[self._item_root]["unidec"][
-                    self._item_leaf
-                ]
-            # remove annotations
-            elif "Annotations" in self._item_leaf and self._indent == 4:
-                del self.presenter.documentsDict[currentDoc].multipleMassSpectrum[self._item_branch]["annotations"]
-            elif "Annotations" in self._item_branch and self._indent == 5:
-                del self.presenter.documentsDict[currentDoc].multipleMassSpectrum[self._item_root]["annotations"][
-                    self._item_leaf
-                ]
-            # remove mass spectra
-            elif self._item_branch == "Mass Spectra":
-                document, delete_outcome = self.on_delete_data__mass_spectra(
-                    document,
-                    document_title,
-                    delete_type="spectrum.one",
-                    spectrum_name=self._item_leaf,
-                    confirm_deletion=True,
+        # delete only one item from dataset
+        if dataset_name and not subkey:
+            item_child = self.get_item_by_data(data.get(dataset_name, False))
+            item_parent = self.get_item_by_data(data)
+            if not item_child:
+                raise MessageError(
+                    "Error",
+                    "Could not identify which item should be deleted. Please right-click on an item and"
+                    + " select `Delete item` to delete the item from the document.",
                 )
-            elif self._item_leaf == "Mass Spectra":
-                document, delete_outcome = self.on_delete_data__mass_spectra(
-                    document, document_title, delete_type="spectrum.all", confirm_deletion=True
+            del data[dataset_name]
+            if data:
+                self.data_handling.set_parent_mobility_chromatographic_data([query[0], query[1], dataset_name], dict())
+                self.Delete(item_child)
+                self.SelectItem(item_parent)
+            else:
+                self.data_handling.set_parent_mobility_chromatographic_data(query, dict())
+                self.Delete(item_parent)
+            logger.info(f"Deleted {query[0]} : {query[1]} : {dataset_name}")
+
+        # delete entire dataset
+        if not dataset_name and not subkey:
+            item = self.get_item_by_data(data)
+            if not item:
+                raise MessageError(
+                    "Error",
+                    "Could not identify which item should be deleted. Please right-click on an item and"
+                    + " select `Delete item` to delete the item from the document.",
                 )
+            del data
+            self.data_handling.set_parent_mobility_chromatographic_data(query, dict())
+            self.Delete(item)
+            logger.info(f"Deleted {query[0]} : {query[1]}")
 
-        # MS/DT
-        if self._document_type == "DT/MS":
-            self.presenter.documentsDict[currentDoc].DTMZ = {}
-            self.presenter.documentsDict[currentDoc].gotDTMZ = False
+    #         try:
+    #             currentDoc = self._document_data.title
+    #         except Exception:
+    #             print("Please select document in the document tree. Sometimes you might have to right-click on it.")
+    #             return
+    #         document_title = byte2str(self._document_data.title)
+    #         document = self.presenter.documentsDict[document_title]
+    #         delete_outcome = False
+    #         docExpandItem = None
 
-        if self._document_type == "UniDec":
-            del self.presenter.documentsDict[currentDoc].massSpectrum["unidec"]
-            try:
-                del self.presenter.documentsDict[currentDoc].multipleMassSpectrum["temporary_unidec"]
-            except Exception:
-                pass
-
-        # DT
-        elif self._document_type == "Drift time (1D)":
-            self.presenter.documentsDict[currentDoc].DT = {}
-            self.presenter.documentsDict[currentDoc].got1DT = False
-
-        elif self._document_type == "Drift time (1D, EIC, DT-IMS)":
-            if self._item_leaf == "Drift time (1D, EIC, DT-IMS)":
-                self.presenter.documentsDict[currentDoc].IMS1DdriftTimes = {}
-                self.presenter.documentsDict[currentDoc].gotExtractedDriftTimes = False
-            else:
-                del self.presenter.documentsDict[currentDoc].IMS1DdriftTimes[self._item_leaf]
-                if len(self.presenter.documentsDict[currentDoc].IMS1DdriftTimes) == 0:
-                    self.presenter.documentsDict[currentDoc].gotExtractedDriftTimes = False
-
-        elif self._document_type == "Drift time (1D, EIC)":
-            if self._item_leaf == "Drift time (1D, EIC)":
-                self.presenter.documentsDict[currentDoc].multipleDT = {}
-                self.presenter.documentsDict[currentDoc].gotMultipleDT = False
-            else:
-                del self.presenter.documentsDict[currentDoc].multipleDT[self._item_leaf]
-                if len(self.presenter.documentsDict[currentDoc].multipleDT) == 0:
-                    self.presenter.documentsDict[currentDoc].gotMultipleDT = False
-
-        elif self._document_type == "Annotated data":
-            # remove annotations
-            if "Annotations" in self._item_leaf and self._indent == 4:
-                del self.presenter.documentsDict[currentDoc].other_data[self._item_branch]["annotations"]
-            elif "Annotations" in self._item_branch and self._indent == 5:
-                del self.presenter.documentsDict[currentDoc].other_data[self._item_root]["annotations"][self._item_leaf]
-            elif self._item_leaf == "Annotated data":
-                self.presenter.documentsDict[currentDoc].other_data = {}
-            else:
-                del self.presenter.documentsDict[currentDoc].other_data[self._item_leaf]
-
-        # RT
-        elif self._document_type == "Chromatogram":
-            self.presenter.documentsDict[currentDoc].RT = {}
-            self.presenter.documentsDict[currentDoc].got1RT = False
-
-        elif self._document_type == "Chromatograms (combined voltages, EIC)":
-            if self._item_leaf == "Chromatograms (combined voltages, EIC)":
-                document, delete_outcome = self.on_delete_data__heatmap(
-                    document, document_title, delete_type="heatmap.rt.all"
-                )
-            else:
-                document, delete_outcome = self.on_delete_data__heatmap(
-                    document, document_title, delete_type="heatmap.rt.one", ion_name=self._item_leaf
-                )
-
-        elif self._item_branch == "Chromatograms (EIC)":
-            document, delete_outcome = self.on_delete_data__chromatograms(
-                document,
-                document_title,
-                delete_type="chromatogram.one",
-                spectrum_name=self._item_leaf,
-                confirm_deletion=True,
-            )
-        elif self._item_leaf == "Chromatograms (EIC)":
-            document, delete_outcome = self.on_delete_data__chromatograms(
-                document, document_title, delete_type="chromatogram.all", confirm_deletion=True
-            )
-
-        # 2D
-        elif self._document_type == "Drift time (2D)":
-            self.presenter.documentsDict[currentDoc].IMS2D = {}
-            self.presenter.documentsDict[currentDoc].got2DIMS = False
-
-        elif self._document_type == "Drift time (2D, processed)":
-            self.presenter.documentsDict[currentDoc].IMS2Dprocess = {}
-            self.presenter.documentsDict[currentDoc].got2Dprocess = False
-
-        elif self._document_type == "Drift time (2D, EIC)":
-            if self._item_leaf == "Drift time (2D, EIC)":
-                document, delete_outcome = self.on_delete_data__heatmap(
-                    document, document_title, delete_type="heatmap.raw.all"
-                )
-            else:
-                document, delete_outcome = self.on_delete_data__heatmap(
-                    document, document_title, delete_type="heatmap.raw.one", ion_name=self._item_leaf
-                )
-
-        elif self._document_type == "Drift time (2D, combined voltages, EIC)":
-            if self._item_leaf == "Drift time (2D, combined voltages, EIC)":
-                document, delete_outcome = self.on_delete_data__heatmap(
-                    document, document_title, delete_type="heatmap.combined.all"
-                )
-            else:
-                document, delete_outcome = self.on_delete_data__heatmap(
-                    document, document_title, delete_type="heatmap.combined.one", ion_name=self._item_leaf
-                )
-
-        elif self._document_type == "Drift time (2D, processed, EIC)":
-            if self._item_leaf == "Drift time (2D, processed, EIC)":
-                document, delete_outcome = self.on_delete_data__heatmap(
-                    document, document_title, delete_type="heatmap.processed.all"
-                )
-            else:
-                document, delete_outcome = self.on_delete_data__heatmap(
-                    document, document_title, delete_type="heatmap.processed.one", ion_name=self._item_leaf
-                )
-
-        elif self._document_type == "Input data":
-            if self._item_leaf == "Input data":
-                self.presenter.documentsDict[currentDoc].IMS2DcompData = {}
-                self.presenter.documentsDict[currentDoc].gotComparisonData = False
-            else:
-                del self.presenter.documentsDict[currentDoc].IMS2DcompData[self._item_leaf]
-                if len(self.presenter.documentsDict[currentDoc].IMS2DcompData) == 0:
-                    self.presenter.documentsDict[currentDoc].gotComparisonData = False
-
-        elif self._document_type == "Statistical":
-            if self._item_leaf == "Statistical":
-                self.presenter.documentsDict[currentDoc].IMS2DstatsData = {}
-                self.presenter.documentsDict[currentDoc].gotStatsData = False
-            else:
-                del self.presenter.documentsDict[currentDoc].IMS2DstatsData[self._item_leaf]
-                if len(self.presenter.documentsDict[currentDoc].IMS2DstatsData) == 0:
-                    self.presenter.documentsDict[currentDoc].gotStatsData = False
-
-        elif self._document_type == "Overlay":
-            if self._item_leaf == "Overlay":
-                self.presenter.documentsDict[currentDoc].IMS2DoverlayData = {}
-                self.presenter.documentsDict[currentDoc].gotOverlay = False
-            else:
-                del self.presenter.documentsDict[currentDoc].IMS2DoverlayData[self._item_leaf]
-                if len(self.presenter.documentsDict[currentDoc].IMS2DoverlayData) == 0:
-                    self.presenter.documentsDict[currentDoc].gotOverlay = False
-
-        # Calibration
-        elif self._document_type == "Calibration peaks":
-            if self._item_leaf == "Calibration peaks":
-                self.presenter.documentsDict[currentDoc].calibration = {}
-                self.presenter.documentsDict[currentDoc].gotCalibration = False
-            else:
-                del self.presenter.documentsDict[currentDoc].calibration[self._item_leaf]
-                if len(self.presenter.documentsDict[currentDoc].calibration) == 0:
-                    self.presenter.documentsDict[currentDoc].gotCalibration = False
-
-        elif self._document_type == "Calibrants":
-            if self._item_leaf == "Calibrants":
-                self.presenter.documentsDict[currentDoc].calibrationDataset = {}
-                self.presenter.documentsDict[currentDoc].gotCalibrationDataset = False
-            else:
-                del self.presenter.documentsDict[currentDoc].calibrationDataset[self._item_leaf]
-                if len(self.presenter.documentsDict[currentDoc].calibrationDataset) == 0:
-                    self.presenter.documentsDict[currentDoc].gotCalibrationDataset = False
-
-        # Update documents tree
-        if not delete_outcome:
-            self.add_document(docData=document, expandItem=docExpandItem)
-            self.presenter.documentsDict[document_title] = document
-        else:
-            self.data_handling.on_update_document(document, "no_refresh")
+    #         # Check what is going to be deleted
+    #         # MS
+    #         if self._document_type == "Mass Spectrum":
+    #             # remove annotations
+    #             if "Annotations" in self._item_leaf and self._item_branch == "Mass Spectrum":
+    #                 del self.presenter.documentsDict[currentDoc].massSpectrum["annotations"]
+    #             elif self._item_branch == "Annotations":
+    #                 del self.presenter.documentsDict[currentDoc].massSpectrum["annotations"][self._item_leaf]
+    #             # remove unidec data
+    #             elif "UniDec" in self._item_leaf and self._item_branch == "Mass Spectrum":
+    #                 del self.presenter.documentsDict[currentDoc].massSpectrum["unidec"]
+    #             elif self._item_branch == "UniDec":
+    #                 del self.presenter.documentsDict[currentDoc].massSpectrum["unidec"][self._item_leaf]
+    #             # remove mass spectrum
+    #             else:
+    #                 self.presenter.documentsDict[currentDoc].massSpectrum = {}
+    #                 self.presenter.documentsDict[currentDoc].gotMS = False
+    #
+    #         if self._document_type == "Mass Spectrum (processed)":
+    #             # remove annotations
+    #             if "Annotations" in self._item_leaf and self._item_branch == "Mass Spectrum (processed)":
+    #                 del self.presenter.documentsDict[currentDoc].smoothMS["annotations"]
+    #             elif self._item_branch == "Annotations":
+    #                 del self.presenter.documentsDict[currentDoc].smoothMS["annotations"][self._item_leaf]
+    #             # remove unidec data
+    #             elif "UniDec" in self._item_leaf and self._item_branch == "Mass Spectrum (processed)":
+    #                 del self.presenter.documentsDict[currentDoc].smoothMS["unidec"]
+    #             elif self._item_branch == "UniDec":
+    #                 del self.presenter.documentsDict[currentDoc].smoothMS["unidec"][self._item_leaf]
+    #             # remove mass spectrum
+    #             else:
+    #                 self.presenter.documentsDict[currentDoc].smoothMS = {}
+    #
+    #         if self._document_type == "Mass Spectra":
+    #             docExpandItem = document.multipleMassSpectrum
+    #             # remove unidec data
+    #             if self._item_leaf == "UniDec" and self._indent == 4:
+    #                 del self.presenter.documentsDict[currentDoc].multipleMassSpectrum[self._item_branch]["unidec"]
+    #             elif self._item_branch == "UniDec" and self._indent == 5:
+    #                 del self.presenter.documentsDict[currentDoc].multipleMassSpectrum[self._item_root]["unidec"][
+    #                     self._item_leaf
+    #                 ]
+    #             # remove annotations
+    #             elif "Annotations" in self._item_leaf and self._indent == 4:
+    #                 del self.presenter.documentsDict[currentDoc].multipleMassSpectrum[self._item_branch]["annotations"]
+    #             elif "Annotations" in self._item_branch and self._indent == 5:
+    #                 del self.presenter.documentsDict[currentDoc].multipleMassSpectrum[self._item_root]["annotations"][
+    #                     self._item_leaf
+    #                 ]
+    #             # remove mass spectra
+    #             elif self._item_branch == "Mass Spectra":
+    #                 document, delete_outcome = self.on_delete_data__mass_spectra(
+    #                     document,
+    #                     document_title,
+    #                     delete_type="spectrum.one",
+    #                     spectrum_name=self._item_leaf,
+    #                     confirm_deletion=True,
+    #                 )
+    #             elif self._item_leaf == "Mass Spectra":
+    #                 document, delete_outcome = self.on_delete_data__mass_spectra(
+    #                     document, document_title, delete_type="spectrum.all", confirm_deletion=True
+    #                 )
+    #
+    #         # MS/DT
+    #         if self._document_type == "DT/MS":
+    #             self.presenter.documentsDict[currentDoc].DTMZ = {}
+    #             self.presenter.documentsDict[currentDoc].gotDTMZ = False
+    #
+    #         if self._document_type == "UniDec":
+    #             del self.presenter.documentsDict[currentDoc].massSpectrum["unidec"]
+    #             try:
+    #                 del self.presenter.documentsDict[currentDoc].multipleMassSpectrum["temporary_unidec"]
+    #             except Exception:
+    #                 pass
+    #
+    #         # DT
+    #         elif self._document_type == "Drift time (1D)":
+    #             self.presenter.documentsDict[currentDoc].DT = {}
+    #             self.presenter.documentsDict[currentDoc].got1DT = False
+    #
+    #         elif self._document_type == "Drift time (1D, EIC, DT-IMS)":
+    #             if self._item_leaf == "Drift time (1D, EIC, DT-IMS)":
+    #                 self.presenter.documentsDict[currentDoc].IMS1DdriftTimes = {}
+    #                 self.presenter.documentsDict[currentDoc].gotExtractedDriftTimes = False
+    #             else:
+    #                 del self.presenter.documentsDict[currentDoc].IMS1DdriftTimes[self._item_leaf]
+    #                 if len(self.presenter.documentsDict[currentDoc].IMS1DdriftTimes) == 0:
+    #                     self.presenter.documentsDict[currentDoc].gotExtractedDriftTimes = False
+    #
+    #         elif self._document_type == "Drift time (1D, EIC)":
+    #             if self._item_leaf == "Drift time (1D, EIC)":
+    #                 self.presenter.documentsDict[currentDoc].multipleDT = {}
+    #                 self.presenter.documentsDict[currentDoc].gotMultipleDT = False
+    #             else:
+    #                 del self.presenter.documentsDict[currentDoc].multipleDT[self._item_leaf]
+    #                 if len(self.presenter.documentsDict[currentDoc].multipleDT) == 0:
+    #                     self.presenter.documentsDict[currentDoc].gotMultipleDT = False
+    #
+    #         elif self._document_type == "Annotated data":
+    #             # remove annotations
+    #             if "Annotations" in self._item_leaf and self._indent == 4:
+    #                 del self.presenter.documentsDict[currentDoc].other_data[self._item_branch]["annotations"]
+    #             elif "Annotations" in self._item_branch and self._indent == 5:
+    #                 del self.presenter.documentsDict[currentDoc].other_data[self._item_root]["annotations"][self._item_leaf]
+    #             elif self._item_leaf == "Annotated data":
+    #                 self.presenter.documentsDict[currentDoc].other_data = {}
+    #             else:
+    #                 del self.presenter.documentsDict[currentDoc].other_data[self._item_leaf]
+    #
+    #         # RT
+    #         elif self._document_type == "Chromatogram":
+    #             self.presenter.documentsDict[currentDoc].RT = {}
+    #             self.presenter.documentsDict[currentDoc].got1RT = False
+    #
+    #         elif self._document_type == "Chromatograms (combined voltages, EIC)":
+    #             if self._item_leaf == "Chromatograms (combined voltages, EIC)":
+    #                 document, delete_outcome = self.on_delete_data__heatmap(
+    #                     document, document_title, delete_type="heatmap.rt.all"
+    #                 )
+    #             else:
+    #                 document, delete_outcome = self.on_delete_data__heatmap(
+    #                     document, document_title, delete_type="heatmap.rt.one", ion_name=self._item_leaf
+    #                 )
+    #
+    #         elif self._item_branch == "Chromatograms (EIC)":
+    #             document, delete_outcome = self.on_delete_data__chromatograms(
+    #                 document,
+    #                 document_title,
+    #                 delete_type="chromatogram.one",
+    #                 spectrum_name=self._item_leaf,
+    #                 confirm_deletion=True,
+    #             )
+    #         elif self._item_leaf == "Chromatograms (EIC)":
+    #             document, delete_outcome = self.on_delete_data__chromatograms(
+    #                 document, document_title, delete_type="chromatogram.all", confirm_deletion=True
+    #             )
+    #
+    #         # 2D
+    #         elif self._document_type == "Drift time (2D)":
+    #             self.presenter.documentsDict[currentDoc].IMS2D = {}
+    #             self.presenter.documentsDict[currentDoc].got2DIMS = False
+    #
+    #         elif self._document_type == "Drift time (2D, processed)":
+    #             self.presenter.documentsDict[currentDoc].IMS2Dprocess = {}
+    #             self.presenter.documentsDict[currentDoc].got2Dprocess = False
+    #
+    #         elif self._document_type == "Drift time (2D, EIC)":
+    #             if self._item_leaf == "Drift time (2D, EIC)":
+    #                 document, delete_outcome = self.on_delete_data__heatmap(
+    #                     document, document_title, delete_type="heatmap.raw.all"
+    #                 )
+    #             else:
+    #                 document, delete_outcome = self.on_delete_data__heatmap(
+    #                     document, document_title, delete_type="heatmap.raw.one", ion_name=self._item_leaf
+    #                 )
+    #
+    #         elif self._document_type == "Drift time (2D, combined voltages, EIC)":
+    #             if self._item_leaf == "Drift time (2D, combined voltages, EIC)":
+    #                 document, delete_outcome = self.on_delete_data__heatmap(
+    #                     document, document_title, delete_type="heatmap.combined.all"
+    #                 )
+    #             else:
+    #                 document, delete_outcome = self.on_delete_data__heatmap(
+    #                     document, document_title, delete_type="heatmap.combined.one", ion_name=self._item_leaf
+    #                 )
+    #
+    #         elif self._document_type == "Drift time (2D, processed, EIC)":
+    #             if self._item_leaf == "Drift time (2D, processed, EIC)":
+    #                 document, delete_outcome = self.on_delete_data__heatmap(
+    #                     document, document_title, delete_type="heatmap.processed.all"
+    #                 )
+    #             else:
+    #                 document, delete_outcome = self.on_delete_data__heatmap(
+    #                     document, document_title, delete_type="heatmap.processed.one", ion_name=self._item_leaf
+    #                 )
+    #
+    #         elif self._document_type == "Input data":
+    #             if self._item_leaf == "Input data":
+    #                 self.presenter.documentsDict[currentDoc].IMS2DcompData = {}
+    #                 self.presenter.documentsDict[currentDoc].gotComparisonData = False
+    #             else:
+    #                 del self.presenter.documentsDict[currentDoc].IMS2DcompData[self._item_leaf]
+    #                 if len(self.presenter.documentsDict[currentDoc].IMS2DcompData) == 0:
+    #                     self.presenter.documentsDict[currentDoc].gotComparisonData = False
+    #
+    #         elif self._document_type == "Statistical":
+    #             if self._item_leaf == "Statistical":
+    #                 self.presenter.documentsDict[currentDoc].IMS2DstatsData = {}
+    #                 self.presenter.documentsDict[currentDoc].gotStatsData = False
+    #             else:
+    #                 del self.presenter.documentsDict[currentDoc].IMS2DstatsData[self._item_leaf]
+    #                 if len(self.presenter.documentsDict[currentDoc].IMS2DstatsData) == 0:
+    #                     self.presenter.documentsDict[currentDoc].gotStatsData = False
+    #
+    #         elif self._document_type == "Overlay":
+    #             if self._item_leaf == "Overlay":
+    #                 self.presenter.documentsDict[currentDoc].IMS2DoverlayData = {}
+    #                 self.presenter.documentsDict[currentDoc].gotOverlay = False
+    #             else:
+    #                 del self.presenter.documentsDict[currentDoc].IMS2DoverlayData[self._item_leaf]
+    #                 if len(self.presenter.documentsDict[currentDoc].IMS2DoverlayData) == 0:
+    #                     self.presenter.documentsDict[currentDoc].gotOverlay = False
+    #
+    #         # Calibration
+    #         elif self._document_type == "Calibration peaks":
+    #             if self._item_leaf == "Calibration peaks":
+    #                 self.presenter.documentsDict[currentDoc].calibration = {}
+    #                 self.presenter.documentsDict[currentDoc].gotCalibration = False
+    #             else:
+    #                 del self.presenter.documentsDict[currentDoc].calibration[self._item_leaf]
+    #                 if len(self.presenter.documentsDict[currentDoc].calibration) == 0:
+    #                     self.presenter.documentsDict[currentDoc].gotCalibration = False
+    #
+    #         elif self._document_type == "Calibrants":
+    #             if self._item_leaf == "Calibrants":
+    #                 self.presenter.documentsDict[currentDoc].calibrationDataset = {}
+    #                 self.presenter.documentsDict[currentDoc].gotCalibrationDataset = False
+    #             else:
+    #                 del self.presenter.documentsDict[currentDoc].calibrationDataset[self._item_leaf]
+    #                 if len(self.presenter.documentsDict[currentDoc].calibrationDataset) == 0:
+    #                     self.presenter.documentsDict[currentDoc].gotCalibrationDataset = False
+    #
+    #         # Update documents tree
+    #         if not delete_outcome:
+    #             self.add_document(docData=document, expandItem=docExpandItem)
+    #             self.presenter.documentsDict[document_title] = document
+    #         else:
+    #             self.data_handling.on_update_document(document, "no_refresh")
 
     def set_document(self, document_old, document_new):
         """Replace old document data with new
@@ -1531,7 +1760,7 @@ class DocumentTree(wx.TreeCtrl):
 
         # try to get dataset object
         try:
-            docItem = self.getItemByData(document_old)
+            docItem = self.get_item_by_data(document_old)
         except Exception:
             docItem = False
 
@@ -1563,47 +1792,13 @@ class DocumentTree(wx.TreeCtrl):
                 except Exception:
                     pass
 
-    def onItemSelection(self, evt):
-        # Get selected item
-        item = self.GetSelection()
-        self._item_id = item
-
-        # Get the current text value for selected item
-        itemType = self.GetItemText(item)
-
-        # Get indent level for selected item
-        self._indent = self.get_item_indent(item)
-        if self._indent > 1:
-            parent = self.getParentItem(item, 1)  # File name
-            extract = item  # Specific Ion/file name
-            item = self.getParentItem(item, 2)  # Item type
-            itemType = self.GetItemText(item)
-        else:
-            extract = None
-            parent = item
-
-        # Get the ion/file name from deeper indent
-        if extract is None:
-            self._item_leaf = None
-            self._item_branch = None
-            self._item_root = None
-        else:
-            self._item_branch = self.GetItemText(self.GetItemParent(extract))
-            self._item_leaf = self.GetItemText(extract)
-            self._item_root = self.GetItemText(self.GetItemParent(self.GetItemParent(extract)))
-
-        # Check item
-        if not item:
-            return
-        # Get item data for specified item
-        self._document_data = self.GetPyData(parent)
-        self._document_type = itemType
-
-        if evt is not None:
-            evt.Skip()
-
-    def _get_query_info_based_on_indent(self):
+    def _get_query_info_based_on_indent(self, return_subkey=False):
         """Generate query_info keywords that are implied from the indentation of the selected item
+
+        Parameters
+        ----------
+        return_subkey : bool, optional
+            if True, returns the query_info item and associated subkey elements when indent is 4 and 5
 
         Returns
         -------
@@ -1612,18 +1807,56 @@ class DocumentTree(wx.TreeCtrl):
 
         """
         document_title = self._document_data.title
+        item_type = self._document_type
         item_root = self._item_root
         item_branch = self._item_branch
         item_leaf = self._item_leaf
 
+        subkey = []
         if self._indent == 2:
-            return [item_branch, item_leaf, item_leaf]
+            query = [item_branch, item_leaf, item_leaf]
         elif self._indent == 3:
+            # these are only valid when attached to `main` components of the document
             if item_leaf in ["Annotations", "UniDec"]:
+                subkey = [item_leaf]
                 item_leaf = item_branch
-            return [item_root, item_branch, item_leaf]
+            query = [item_root, item_branch, item_leaf]
         elif self._indent == 4:
-            return [document_title, item_root, item_branch]
+            if item_leaf in ["Annotations", "UniDec"]:
+                subkey = [item_leaf]
+            if item_branch in ["Annotations", "UniDec"]:
+                subkey = [item_branch, item_leaf]
+                item_branch = item_root
+            query = [document_title, item_root, item_branch]
+        elif self._indent == 5:
+            query = [document_title, item_type, item_root]
+            subkey = [item_branch, item_leaf]
+
+        if return_subkey:
+            return query, subkey
+        return query
+
+    def _get_delete_info_based_on_indent(self):
+        """Generate query_info keywords that are implied from the indentation of the selected item and modify it to
+        enable eaesier determination which items need to be fully deleted (eg. parent) or partial)
+
+        Returns
+        query_info : list
+            list of [document_title, dataset_type, dataset_type]
+        subkey : list
+            list of [subkey_type, subkey_name]
+        dataset_name : str
+            dataset_name
+        """
+        query, subkey = self._get_query_info_based_on_indent(return_subkey=True)
+
+        dataset_name = ""
+        if self._indent in [3, 4, 5]:
+            if query[1] != query[2]:
+                dataset_name = query[2]
+                query[2] = query[1]
+
+        return query, subkey, dataset_name
 
     def _match_plot_type_to_dataset_type(self, dataset_type, dataset_name):
         _plot_match = {
@@ -1701,7 +1934,7 @@ class DocumentTree(wx.TreeCtrl):
         __, dataset = self.data_handling.get_mobility_chromatographic_data(query_info, as_copy=False)
 
         # get pointer to dataset
-        item = self.getItemByData(dataset)
+        item = self.get_item_by_data(dataset)
 
         # update dataset with new annotations
         document = self.data_handling.set_mobility_chromatographic_keyword_data(query_info, annotations=annotations)
@@ -1897,65 +2130,67 @@ class DocumentTree(wx.TreeCtrl):
     def on_right_click(self, evt):
         """ Create and show up popup menu"""
 
-        # Get selected item
-        item = self.GetSelection()
-        self._item_id = item
-        # Get the current text value for selected item
-        itemType = self.GetItemText(item)
+        #         # Get selected item
+        #         item = self.GetItem()
+        #
+        #         self._item_id = item
+        #         # Get the current text value for selected item
+        itemType = self.GetItemText(evt.GetItem())
+
         if itemType == "Documents":
             self.on_right_click_short()
             return
 
-        # Get indent level for selected item
-        self._indent = self.get_item_indent(item)
-        if self._indent > 1:
-            parent = self.getParentItem(item, 1)  # File name
-            extract = item  # Specific Ion/file name
-            item = self.getParentItem(item, 2)  # Item type
-            itemType = self.GetItemText(item)
-        else:
-            extract = None
-            parent = item
-
-        # Get the ion/file name from deeper indent
-        if extract is None:
-            self._item_leaf = None
-            self._item_branch = None
-            self._item_root = None
-        else:
-            self._item_branch = self.GetItemText(self.GetItemParent(extract))
-            self._item_leaf = self.GetItemText(extract)
-            self._item_root = self.GetItemText(self.GetItemParent(self.GetItemParent(extract)))
-
-        try:
-            self.title = self._document_data.title
-        except Exception:
-            self.title = None
-
-        # split
-        try:
-            self.splitText = re.split("-|,|:|__", self._item_leaf)
-        except Exception:
-            self.splitText = []
-
-        # Check item
-        if not item:
-            return
-
-        # Get item data for specified item
-        self._document_data = self.GetPyData(parent)
-        self._document_type = itemType
-        try:
-            self.currentData = self.GetPyData(self._item_id)
-        except Exception:
-            self.currentData = None
-
-        if self.config.debug:
-            msg = (
-                f"\n_document_type: {self._document_type}\n_item_leaf: {self._item_leaf}"
-                + f"\n_item_branch: {self._item_branch}\n_item_root: {self._item_root}\n_indent: {self._indent}"
-            )
-            logger.debug(msg)
+        # #         # Get indent level for selected item
+        # #         self._indent = self.get_item_indent(item)
+        # #         if self._indent > 1:
+        # #             parent = self.getParentItem(item, 1)  # File name
+        # #             extract = item  # Specific Ion/file name
+        # #             item = self.getParentItem(item, 2)  # Item type
+        # #             itemType = self.GetItemText(item)
+        # #         else:
+        # #             extract = None
+        # #             parent = item
+        # #
+        # #         # Get the ion/file name from deeper indent
+        # #         if extract is None:
+        # #             self._item_leaf = None
+        # #             self._item_branch = None
+        # #             self._item_root = None
+        # #         else:
+        # #             self._item_branch = self.GetItemText(self.GetItemParent(extract))
+        # #             self._item_leaf = self.GetItemText(extract)
+        # #             self._item_root = self.GetItemText(self.GetItemParent(self.GetItemParent(extract)))
+        # #
+        # #         try:
+        # #             self.title = self._document_data.title
+        # #         except Exception:
+        # #             self.title = None
+        # #
+        # #         # split
+        # #         try:
+        # #             self.splitText = re.split("-|,|:|__", self._item_leaf)
+        # #         except Exception:
+        # #             self.splitText = []
+        # #
+        # #         # Check item
+        # #         if not item:
+        # #             return
+        # #
+        # #         # Get item data for specified item
+        # #         self._document_data = self.GetPyData(parent)
+        # #         self._document_type = itemType
+        # #         try:
+        # #             self._current_data = self.GetPyData(self._item_id)
+        # #         except Exception:
+        # #             self._current_data = None
+        #
+        #         if self.config.debug:
+        #             msg = (
+        #                 f"\n_document_type: {self._document_type}\n_item_leaf: {self._item_leaf}"
+        #                 +f"\n_item_branch: {self._item_branch}\n_item_root: {self._item_root}\n_indent: {self._indent}"
+        #             )
+        #             logger.debug(msg)
 
         # load data
         load_data_menu = wx.Menu()
@@ -2151,6 +2386,34 @@ class DocumentTree(wx.TreeCtrl):
                 plotLabel = self._item_leaf.split(":")
             except AttributeError:
                 pass
+
+        # save dataframe
+        annotation_menu = wx.Menu()
+        annotation_menu.Append(
+            makeMenuItem(
+                parent=annotation_menu,
+                id=ID_docTree_add_annotations,
+                text="Show annotations panel...",
+                bitmap=self.icons.iconsLib["annotate16"],
+            )
+        )
+        annotation_menu.Append(
+            makeMenuItem(
+                parent=annotation_menu,
+                id=ID_docTree_duplicate_annotations,
+                text="Duplicate annotations...",
+                bitmap=self.icons.iconsLib["duplicate_item_16"],
+            )
+        )
+        annotation_menu.Append(
+            makeMenuItem(
+                parent=annotation_menu,
+                id=ID_docTree_show_annotations,
+                text="Show annotations on plot",
+                bitmap=self.icons.iconsLib["highlight_16"],
+            )
+        )
+
         menu = wx.Menu()
 
         menu_show_annotations_panel = makeMenuItem(
@@ -2315,11 +2578,6 @@ class DocumentTree(wx.TreeCtrl):
             parent=menu, text="Save document as...", bitmap=self.icons.iconsLib["save16"]
         )
 
-        annotation_menu = wx.Menu()
-        annotation_menu.AppendItem(menu_show_annotations_panel)
-        annotation_menu.AppendItem(menu_action_show_annotations)
-        annotation_menu.AppendItem(menu_action_duplicate_annotations)
-
         # bind events
         self.Bind(wx.EVT_MENU, self.on_save_document_as, menu_action_save_document_as)
         self.Bind(wx.EVT_MENU, self.on_change_charge_state, menu_action_assign_charge)
@@ -2408,7 +2666,7 @@ class DocumentTree(wx.TreeCtrl):
         #                     menu.AppendItem(menu_show_annotations_panel)
         #                     menu.AppendItem(menu_action_duplicate_annotations)
         #                     # check if deconvolution results exist
-        #                     if "unidec" in self.currentData:
+        #                     if "unidec" in self._current_data:
         #                         menu.AppendItem(menu_action_show_unidec_results)
         #                         menu.AppendItem(
         #                             makeMenuItem(
@@ -2562,10 +2820,10 @@ class DocumentTree(wx.TreeCtrl):
                 menu.AppendItem(menu_action_show_plot_spectrum)
                 menu.AppendItem(menu_show_peak_picker_panel)
                 menu.AppendItem(menu_action_process_ms)
-                menu.AppendMenu(wx.ID_ANY, "Annotations...", annotation_menu)
+                menu.AppendSubMenu(annotation_menu, "Annotations...")
 
                 # check if deconvolution results are present
-                if hasattr(self.currentData, "unidec"):
+                if hasattr(self._current_data, "unidec"):
                     menu.AppendSeparator()
                     menu.AppendItem(menu_action_show_unidec_results)
 
@@ -2605,7 +2863,7 @@ class DocumentTree(wx.TreeCtrl):
                     menu.AppendItem(menu_action_show_plot_spectrum)
                     menu.AppendItem(menu_show_peak_picker_panel)
                     menu.AppendItem(menu_action_process_ms)
-                    menu.AppendMenu(wx.ID_ANY, "Annotations...", annotation_menu)
+                    menu.AppendSubMenu(annotation_menu, "Annotations...")
                     menu.AppendItem(menu_show_unidec_panel)
                     menu.AppendSeparator()
                     menu.AppendItem(menu_action_add_spectrum_to_panel)
@@ -2634,7 +2892,7 @@ class DocumentTree(wx.TreeCtrl):
         elif itemType == "Chromatogram":
             if self._indent == 2:
                 menu.AppendItem(menu_action_show_plot_chromatogram)
-                menu.AppendMenu(wx.ID_ANY, "Annotations...", annotation_menu)
+                menu.AppendSubMenu(annotation_menu, "Annotations...")
                 menu.AppendSeparator()
                 menu.AppendMenu(wx.ID_ANY, "Change x-axis to...", xlabel_RT_menu)
                 menu.AppendSeparator()
@@ -2650,7 +2908,7 @@ class DocumentTree(wx.TreeCtrl):
             # Only if clicked on an item and not header
             if self._item_leaf not in ["Chromatograms (combined voltages, EIC)", "Chromatograms (EIC)"]:
                 menu.AppendItem(menu_action_show_plot_chromatogram)
-                menu.AppendMenu(wx.ID_ANY, "Annotations...", annotation_menu)
+                menu.AppendSubMenu(annotation_menu, "Annotations...")
                 menu.AppendSeparator()
                 menu.AppendItem(menu_action_assign_charge)
                 menu.AppendSeparator()
@@ -2662,7 +2920,7 @@ class DocumentTree(wx.TreeCtrl):
         elif itemType == "Drift time (1D)":
             if self._indent == 2:
                 menu.AppendItem(menu_action_show_plot_mobilogram)
-                menu.AppendMenu(wx.ID_ANY, "Annotations...", annotation_menu)
+                menu.AppendSubMenu(annotation_menu, "Annotations...")
                 menu.AppendSeparator()
                 menu.AppendMenu(wx.ID_ANY, "Change x-axis to...", xlabel_1D_menu)
                 menu.AppendSeparator()
@@ -2681,7 +2939,7 @@ class DocumentTree(wx.TreeCtrl):
 
             if self._item_leaf not in ["Drift time (1D, EIC)", "Drift time (1D, EIC, DT-IMS)"]:
                 menu.AppendItem(menu_action_show_plot_mobilogram)
-                menu.AppendMenu(wx.ID_ANY, "Annotations...", annotation_menu)
+                menu.AppendSubMenu(annotation_menu, "Annotations...")
                 menu.AppendSeparator()
                 menu.AppendMenu(wx.ID_ANY, "Change x-axis to...", xlabel_1D_menu)
                 menu.AppendItem(menu_action_assign_charge)
@@ -2703,7 +2961,7 @@ class DocumentTree(wx.TreeCtrl):
                 menu.AppendItem(menu_action_show_plot_waterfall)
                 menu.AppendItem(menu_action_process_2D)
                 menu.AppendSeparator()
-                menu.AppendMenu(wx.ID_ANY, "Annotations...", annotation_menu)
+                menu.AppendSubMenu(annotation_menu, "Annotations...")
                 menu.AppendItem(menu_action_assign_charge)
                 menu.AppendMenu(wx.ID_ANY, "Set X-axis label as...", xlabel_2D_menu)
                 menu.AppendMenu(wx.ID_ANY, "Set Y-axis label as...", ylabel_2D_menu)
@@ -2830,7 +3088,7 @@ class DocumentTree(wx.TreeCtrl):
             if self._document_type != self._item_leaf and any(
                 [ok_item in self._item_leaf for ok_item in accepted_annotated_items]
             ):
-                menu.AppendMenu(wx.ID_ANY, "Annotations...", annotation_menu)
+                menu.AppendSubMenu(annotation_menu, "Annotations...")
         else:
             menu.Append(ID_docTree_add_MS_to_interactive, "Add mass spectra")
             menu.Append(ID_docTree_add_other_to_interactive, "Add other...")
@@ -2850,7 +3108,6 @@ class DocumentTree(wx.TreeCtrl):
             )
             menu.AppendItem(menu_action_rename_item)
             menu.AppendSeparator()
-
         menu.AppendMenu(wx.ID_ANY, "Action...", action_menu)
         menu.AppendSeparator()
         menu.AppendItem(
@@ -2942,7 +3199,7 @@ class DocumentTree(wx.TreeCtrl):
 
         # try to get dataset object
         try:
-            docItem = self.getItemByData(data)
+            docItem = self.get_item_by_data(data)
         except Exception:
             docItem = False
 
@@ -3643,7 +3900,9 @@ class DocumentTree(wx.TreeCtrl):
             if self._document_type == "Mass Spectra" and self._item_leaf != "Mass Spectra":
                 # Change document tree
                 title = self._document_data.title
-                docItem = self.getItemByData(self.presenter.documentsDict[title].multipleMassSpectrum[self._item_leaf])
+                docItem = self.get_item_by_data(
+                    self.presenter.documentsDict[title].multipleMassSpectrum[self._item_leaf]
+                )
                 copy_name = "{} - copy".format(self._item_leaf)
                 # Change dictionary key
                 self.presenter.documentsDict[title].multipleMassSpectrum[copy_name] = (
@@ -3722,7 +3981,7 @@ class DocumentTree(wx.TreeCtrl):
             # Actual new name, prepended
             if self._indent == 1:
                 # Change document tree
-                docItem = self.getItemByData(self.presenter.documentsDict[current_name])
+                docItem = self.get_item_by_data(self.presenter.documentsDict[current_name])
                 document = self.presenter.documentsDict[current_name]
                 document.title = new_name
                 docItem.title = new_name
@@ -3754,7 +4013,9 @@ class DocumentTree(wx.TreeCtrl):
 
             elif self._document_type == "Statistical":
                 # Change document tree
-                docItem = self.getItemByData(self.presenter.documentsDict[self.title].IMS2DstatsData[self._item_leaf])
+                docItem = self.get_item_by_data(
+                    self.presenter.documentsDict[self.title].IMS2DstatsData[self._item_leaf]
+                )
                 parent = self.GetItemParent(docItem)
                 self.SetItemText(docItem, new_name)
                 # Change dictionary key
@@ -3764,7 +4025,9 @@ class DocumentTree(wx.TreeCtrl):
                 self.Expand(docItem)
             elif self._document_type == "Overlay":
                 # Change document tree
-                docItem = self.getItemByData(self.presenter.documentsDict[self.title].IMS2DoverlayData[self._item_leaf])
+                docItem = self.get_item_by_data(
+                    self.presenter.documentsDict[self.title].IMS2DoverlayData[self._item_leaf]
+                )
                 parent = self.GetItemParent(docItem)
                 self.SetItemText(docItem, new_name)
                 # Change dictionary key
@@ -3774,7 +4037,7 @@ class DocumentTree(wx.TreeCtrl):
                 self.Expand(docItem)
             elif self._document_type == "Mass Spectra":
                 # Change document tree
-                docItem = self.getItemByData(
+                docItem = self.get_item_by_data(
                     self.presenter.documentsDict[self.title].multipleMassSpectrum[self._item_leaf]
                 )
                 parent = self.GetItemParent(docItem)
@@ -3792,7 +4055,7 @@ class DocumentTree(wx.TreeCtrl):
             elif self._document_type == "Drift time (2D, EIC)":
                 new_name = new_name.replace(": ", " : ")
                 # Change document tree
-                docItem = self.getItemByData(self.presenter.documentsDict[self.title].IMS2Dions[self._item_leaf])
+                docItem = self.get_item_by_data(self.presenter.documentsDict[self.title].IMS2Dions[self._item_leaf])
                 parent = self.GetItemParent(docItem)
                 self.SetItemText(docItem, new_name)
                 # check if ":" found in the new name
@@ -5163,24 +5426,38 @@ class DocumentTree(wx.TreeCtrl):
 
         self.panelInfo.Show()
 
+    def _add_annotation_to_object(self, data, root_obj, check=False):
+        if check:
+            child, cookie = self.GetFirstChild(root_obj)
+            while child.IsOk():
+                if self.GetItemText(child) == "Annotations":
+                    self.Delete(child)
+                child, cookie = self.GetNextChild(root_obj, cookie)
+
+        # add annotations
+        if "annotations" in data and len(data["annotations"]) > 0:
+            branch_item = self.AppendItem(root_obj, "Annotations")
+            self.SetItemImage(branch_item, self.bullets_dict["annot"], wx.TreeItemIcon_Normal)
+
+    def _add_unidec_to_object(self, data, root_obj, check=False):
+        if check:
+            child, cookie = self.GetFirstChild(root_obj)
+            while child.IsOk():
+                if self.GetItemText(child) == "UniDec":
+                    self.Delete(child)
+                child, cookie = self.GetNextChild(root_obj, cookie)
+
+        # add unidec results
+        if "unidec" in data:
+            branch_item = self.AppendItem(root_obj, "UniDec")
+            self.SetItemImage(branch_item, self.bullets_dict["mass_spec"], wx.TreeItemIcon_Normal)
+            for unidec_name in data["unidec"]:
+                leaf_item = self.AppendItem(branch_item, unidec_name)
+                self.SetPyData(leaf_item, data["unidec"][unidec_name])
+                self.SetItemImage(leaf_item, self.bullets_dict["mass_spec"], wx.TreeItemIcon_Normal)
+
     def add_document(self, docData, expandAll=False, expandItem=None):
         """Add document to the document tree"""
-
-        def _add_annotation_to_object(data, root_obj):
-            # add annotations
-            if "annotations" in data and len(data["annotations"]) > 0:
-                branch_item = self.AppendItem(root_obj, "Annotations")
-                self.SetItemImage(branch_item, self.bullets_dict["annot"], wx.TreeItemIcon_Normal)
-
-        def _add_unidec_to_object(data, root_obj):
-            # add unidec results
-            if "unidec" in data:
-                branch_item = self.AppendItem(root_obj, "UniDec")
-                self.SetItemImage(branch_item, self.bullets_dict["mass_spec"], wx.TreeItemIcon_Normal)
-                for unidec_name in data["unidec"]:
-                    leaf_item = self.AppendItem(branch_item, unidec_name)
-                    self.SetPyData(leaf_item, data["unidec"][unidec_name])
-                    self.SetItemImage(leaf_item, self.bullets_dict["mass_spec"], wx.TreeItemIcon_Normal)
 
         # Get title for added data
         title = byte2str(docData.title)
@@ -5247,21 +5524,21 @@ class DocumentTree(wx.TreeCtrl):
                 self.SetPyData(annotsItem, docData.fileInformation)
                 self.SetItemImage(annotsItem, self.bullets_dict["annot_on"], wx.TreeItemIcon_Normal)
 
-        if docData.gotMS:
+        if docData.massSpectrum:
             annotsItemParent = self.AppendItem(docItem, "Mass Spectrum")
             self.SetPyData(annotsItemParent, docData.massSpectrum)
             self.SetItemImage(annotsItemParent, self.bullets_dict["mass_spec"], wx.TreeItemIcon_Normal)
-            _add_unidec_to_object(docData.massSpectrum, annotsItemParent)
-            _add_annotation_to_object(docData.massSpectrum, annotsItemParent)
+            self._add_unidec_to_object(docData.massSpectrum, annotsItemParent)
+            self._add_annotation_to_object(docData.massSpectrum, annotsItemParent)
 
         if docData.smoothMS:
             annotsItemParent = self.AppendItem(docItem, "Mass Spectrum (processed)")
             self.SetItemImage(annotsItemParent, self.bullets_dict["mass_spec"], wx.TreeItemIcon_Normal)
             self.SetPyData(annotsItemParent, docData.smoothMS)
-            _add_unidec_to_object(docData.smoothMS, annotsItemParent)
-            _add_annotation_to_object(docData.smoothMS, annotsItemParent)
+            self._add_unidec_to_object(docData.smoothMS, annotsItemParent)
+            self._add_annotation_to_object(docData.smoothMS, annotsItemParent)
 
-        if docData.gotMultipleMS:
+        if docData.multipleMassSpectrum:
             docIonItem = self.AppendItem(docItem, "Mass Spectra")
             self.SetItemImage(docIonItem, self.bullets_dict["mass_spec"], wx.TreeItemIcon_Normal)
             self.SetPyData(docIonItem, docData.multipleMassSpectrum)
@@ -5269,49 +5546,47 @@ class DocumentTree(wx.TreeCtrl):
                 annotsItem = self.AppendItem(docIonItem, annotData)
                 self.SetPyData(annotsItem, docData.multipleMassSpectrum[annotData])
                 self.SetItemImage(annotsItem, self.bullets_dict["mass_spec_on"], wx.TreeItemIcon_Normal)
-                _add_unidec_to_object(docData.multipleMassSpectrum[annotData], annotsItem)
-                _add_annotation_to_object(docData.multipleMassSpectrum[annotData], annotsItem)
+                self._add_unidec_to_object(docData.multipleMassSpectrum[annotData], annotsItem)
+                self._add_annotation_to_object(docData.multipleMassSpectrum[annotData], annotsItem)
 
-        if len(docData.tandem_spectra) > 0:
+        if docData.tandem_spectra:
             docIonItem = self.AppendItem(docItem, "Tandem Mass Spectra")
             self.SetItemImage(docIonItem, self.bullets_dict["mass_spec"], wx.TreeItemIcon_Normal)
             self.SetPyData(docIonItem, docData.tandem_spectra)
 
-        if docData.got1RT:
+        if docData.RT:
             annotsItem = self.AppendItem(docItem, "Chromatogram")
             self.SetPyData(annotsItem, docData.RT)
             self.SetItemImage(annotsItem, self.bullets_dict["rt"], wx.TreeItemIcon_Normal)
-            _add_annotation_to_object(docData.RT, annotsItem)
+            self._add_annotation_to_object(docData.RT, annotsItem)
 
-        if hasattr(docData, "gotMultipleRT"):
-            if docData.gotMultipleRT:
-                docIonItem = self.AppendItem(docItem, "Chromatograms (EIC)")
-                self.SetItemImage(docIonItem, self.bullets_dict["rt"], wx.TreeItemIcon_Normal)
-                self.SetPyData(docIonItem, docData.multipleRT)
-                for annotData, __ in natsorted(list(docData.multipleRT.items())):
-                    annotsItem = self.AppendItem(docIonItem, annotData)
-                    self.SetPyData(annotsItem, docData.multipleRT[annotData])
-                    self.SetItemImage(annotsItem, self.bullets_dict["rt_on"], wx.TreeItemIcon_Normal)
-                    _add_annotation_to_object(docData.multipleRT[annotData], annotsItem)
+        if docData.multipleRT:
+            docIonItem = self.AppendItem(docItem, "Chromatograms (EIC)")
+            self.SetItemImage(docIonItem, self.bullets_dict["rt"], wx.TreeItemIcon_Normal)
+            self.SetPyData(docIonItem, docData.multipleRT)
+            for annotData, __ in natsorted(list(docData.multipleRT.items())):
+                annotsItem = self.AppendItem(docIonItem, annotData)
+                self.SetPyData(annotsItem, docData.multipleRT[annotData])
+                self.SetItemImage(annotsItem, self.bullets_dict["rt_on"], wx.TreeItemIcon_Normal)
+                self._add_annotation_to_object(docData.multipleRT[annotData], annotsItem)
 
-        if docData.got1DT:
+        if docData.DT:
             annotsItem = self.AppendItem(docItem, "Drift time (1D)")
             self.SetPyData(annotsItem, docData.DT)
             self.SetItemImage(annotsItem, self.bullets_dict["drift_time"], wx.TreeItemIcon_Normal)
-            _add_annotation_to_object(docData.DT, annotsItem)
+            self._add_annotation_to_object(docData.DT, annotsItem)
 
-        if hasattr(docData, "gotMultipleDT"):
-            if docData.gotMultipleDT:
-                docIonItem = self.AppendItem(docItem, "Drift time (1D, EIC)")
-                self.SetItemImage(docIonItem, self.bullets_dict["drift_time"], wx.TreeItemIcon_Normal)
-                self.SetPyData(docIonItem, docData.multipleDT)
-                for annotData, __ in natsorted(list(docData.multipleDT.items())):
-                    annotsItem = self.AppendItem(docIonItem, annotData)
-                    self.SetPyData(annotsItem, docData.multipleDT[annotData])
-                    self.SetItemImage(annotsItem, self.bullets_dict["drift_time_on"], wx.TreeItemIcon_Normal)
-                    _add_annotation_to_object(docData.multipleDT[annotData], annotsItem)
+        if docData.multipleDT:
+            docIonItem = self.AppendItem(docItem, "Drift time (1D, EIC)")
+            self.SetItemImage(docIonItem, self.bullets_dict["drift_time"], wx.TreeItemIcon_Normal)
+            self.SetPyData(docIonItem, docData.multipleDT)
+            for annotData, __ in natsorted(list(docData.multipleDT.items())):
+                annotsItem = self.AppendItem(docIonItem, annotData)
+                self.SetPyData(annotsItem, docData.multipleDT[annotData])
+                self.SetItemImage(annotsItem, self.bullets_dict["drift_time_on"], wx.TreeItemIcon_Normal)
+                self._add_annotation_to_object(docData.multipleDT[annotData], annotsItem)
 
-        if docData.gotExtractedDriftTimes:
+        if docData.IMS1DdriftTimes:
             docIonItem = self.AppendItem(docItem, "Drift time (1D, EIC, DT-IMS)")
             self.SetItemImage(docIonItem, self.bullets_dict["drift_time"], wx.TreeItemIcon_Normal)
             self.SetPyData(docIonItem, docData.IMS1DdriftTimes)
@@ -5320,19 +5595,19 @@ class DocumentTree(wx.TreeCtrl):
                 self.SetPyData(annotsItem, docData.IMS1DdriftTimes[annotData])
                 self.SetItemImage(annotsItem, self.bullets_dict["drift_time_on"], wx.TreeItemIcon_Normal)
 
-        if docData.got2DIMS:
+        if docData.IMS2D:
             annotsItem = self.AppendItem(docItem, "Drift time (2D)")
             self.SetPyData(annotsItem, docData.IMS2D)
             self.SetItemImage(annotsItem, self.bullets_dict["heatmap"], wx.TreeItemIcon_Normal)
-            _add_annotation_to_object(docData.IMS2D, annotsItem)
+            self._add_annotation_to_object(docData.IMS2D, annotsItem)
 
-        if docData.got2Dprocess or len(docData.IMS2Dprocess) > 0:
+        if docData.IMS2Dprocess or len(docData.IMS2Dprocess) > 0:
             annotsItem = self.AppendItem(docItem, "Drift time (2D, processed)")
             self.SetPyData(annotsItem, docData.IMS2Dprocess)
             self.SetItemImage(annotsItem, self.bullets_dict["heatmap"], wx.TreeItemIcon_Normal)
-            _add_annotation_to_object(docData.IMS2Dprocess, annotsItem)
+            self._add_annotation_to_object(docData.IMS2Dprocess, annotsItem)
 
-        if docData.gotExtractedIons:
+        if docData.IMS2Dions:
             docIonItem = self.AppendItem(docItem, "Drift time (2D, EIC)")
             self.SetItemImage(docIonItem, self.bullets_dict["heatmap"], wx.TreeItemIcon_Normal)
             self.SetPyData(docIonItem, docData.IMS2Dions)
@@ -5340,9 +5615,9 @@ class DocumentTree(wx.TreeCtrl):
                 annotsItem = self.AppendItem(docIonItem, annotData)
                 self.SetPyData(annotsItem, docData.IMS2Dions[annotData])
                 self.SetItemImage(annotsItem, self.bullets_dict["heatmap_on"], wx.TreeItemIcon_Normal)
-                _add_annotation_to_object(docData.IMS2Dions[annotData], annotsItem)
+                self._add_annotation_to_object(docData.IMS2Dions[annotData], annotsItem)
 
-        if docData.gotCombinedExtractedIons:
+        if docData.IMS2DCombIons:
             docIonItem = self.AppendItem(docItem, "Drift time (2D, combined voltages, EIC)")
             self.SetItemImage(docIonItem, self.bullets_dict["heatmap"], wx.TreeItemIcon_Normal)
             self.SetPyData(docIonItem, docData.IMS2DCombIons)
@@ -5350,9 +5625,9 @@ class DocumentTree(wx.TreeCtrl):
                 annotsItem = self.AppendItem(docIonItem, annotData)
                 self.SetPyData(annotsItem, docData.IMS2DCombIons[annotData])
                 self.SetItemImage(annotsItem, self.bullets_dict["heatmap_on"], wx.TreeItemIcon_Normal)
-                _add_annotation_to_object(docData.IMS2DCombIons[annotData], annotsItem)
+                self._add_annotation_to_object(docData.IMS2DCombIons[annotData], annotsItem)
 
-        if docData.gotCombinedExtractedIonsRT:
+        if docData.IMSRTCombIons:
             docIonItem = self.AppendItem(docItem, "Chromatograms (combined voltages, EIC)")
             self.SetItemImage(docIonItem, self.bullets_dict["rt"], wx.TreeItemIcon_Normal)
             self.SetPyData(docIonItem, docData.IMSRTCombIons)
@@ -5360,9 +5635,9 @@ class DocumentTree(wx.TreeCtrl):
                 annotsItem = self.AppendItem(docIonItem, annotData)
                 self.SetPyData(annotsItem, docData.IMSRTCombIons[annotData])
                 self.SetItemImage(annotsItem, self.bullets_dict["rt_on"], wx.TreeItemIcon_Normal)
-                _add_annotation_to_object(docData.IMSRTCombIons[annotData], annotsItem)
+                self._add_annotation_to_object(docData.IMSRTCombIons[annotData], annotsItem)
 
-        if docData.got2DprocessIons:
+        if docData.IMS2DionsProcess:
             docIonItem = self.AppendItem(docItem, "Drift time (2D, processed, EIC)")
             self.SetItemImage(docIonItem, self.bullets_dict["heatmap"], wx.TreeItemIcon_Normal)
             self.SetPyData(docIonItem, docData.IMS2DionsProcess)
@@ -5370,9 +5645,9 @@ class DocumentTree(wx.TreeCtrl):
                 annotsItem = self.AppendItem(docIonItem, annotData)
                 self.SetPyData(annotsItem, docData.IMS2DionsProcess[annotData])
                 self.SetItemImage(annotsItem, self.bullets_dict["heatmap_on"], wx.TreeItemIcon_Normal)
-                _add_annotation_to_object(docData.IMS2DionsProcess[annotData], annotsItem)
+                self._add_annotation_to_object(docData.IMS2DionsProcess[annotData], annotsItem)
 
-        if docData.gotCalibration:
+        if docData.calibration:
             docIonItem = self.AppendItem(docItem, "Calibration peaks")
             self.SetItemImage(docIonItem, self.bullets_dict["calibration"], wx.TreeItemIcon_Normal)
             for annotData, __ in natsorted(list(docData.calibration.items())):
@@ -5380,7 +5655,7 @@ class DocumentTree(wx.TreeCtrl):
                 self.SetPyData(annotsItem, docData.calibration[annotData])
                 self.SetItemImage(annotsItem, self.bullets_dict["dots_on"], wx.TreeItemIcon_Normal)
 
-        if docData.gotCalibrationDataset:
+        if docData.calibrationDataset:
             docIonItem = self.AppendItem(docItem, "Calibrants")
             self.SetItemImage(docIonItem, self.bullets_dict["calibration_on"], wx.TreeItemIcon_Normal)
             for annotData in docData.calibrationDataset:
@@ -5388,12 +5663,12 @@ class DocumentTree(wx.TreeCtrl):
                 self.SetPyData(annotsItem, docData.calibrationDataset[annotData])
                 self.SetItemImage(annotsItem, self.bullets_dict["dots_on"], wx.TreeItemIcon_Normal)
 
-        if docData.gotCalibrationParameters:
+        if docData.calibrationParameters:
             annotsItem = self.AppendItem(docItem, "Calibration parameters")
             self.SetPyData(annotsItem, docData.calibrationParameters)
             self.SetItemImage(annotsItem, self.bullets_dict["calibration"], wx.TreeItemIcon_Normal)
 
-        if docData.gotComparisonData:
+        if docData.IMS2DcompData:
             docIonItem = self.AppendItem(docItem, "Input data")
             self.SetItemImage(docIonItem, self.bullets_dict["overlay"], wx.TreeItemIcon_Normal)
             for annotData, __ in natsorted(list(docData.IMS2DcompData.items())):
@@ -5401,7 +5676,7 @@ class DocumentTree(wx.TreeCtrl):
                 self.SetPyData(annotsItem, docData.IMS2DcompData[annotData])
                 self.SetItemImage(annotsItem, self.bullets_dict["heatmap_on"], wx.TreeItemIcon_Normal)
 
-        if docData.gotOverlay or len(docData.IMS2DoverlayData) > 0:
+        if docData.IMS2DoverlayData or len(docData.IMS2DoverlayData) > 0:
             docIonItem = self.AppendItem(docItem, "Overlay")
             self.SetItemImage(docIonItem, self.bullets_dict["overlay"], wx.TreeItemIcon_Normal)
             self.SetPyData(docIonItem, docData.IMS2DoverlayData)
@@ -5410,7 +5685,7 @@ class DocumentTree(wx.TreeCtrl):
                 self.SetPyData(annotsItem, docData.IMS2DoverlayData[annotData])
                 self.SetItemImage(annotsItem, self.bullets_dict["heatmap_on"], wx.TreeItemIcon_Normal)
 
-        if docData.gotStatsData:
+        if docData.IMS2DstatsData:
             docIonItem = self.AppendItem(docItem, "Statistical")
             self.SetItemImage(docIonItem, self.bullets_dict["overlay"], wx.TreeItemIcon_Normal)
             self.SetPyData(docIonItem, docData.IMS2DstatsData)
@@ -5419,13 +5694,12 @@ class DocumentTree(wx.TreeCtrl):
                 self.SetPyData(annotsItem, docData.IMS2DstatsData[annotData])
                 self.SetItemImage(annotsItem, self.bullets_dict["heatmap_on"], wx.TreeItemIcon_Normal)
 
-        if hasattr(docData, "DTMZ"):
-            if docData.gotDTMZ:
-                annotsItem = self.AppendItem(docItem, "DT/MS")
-                self.SetPyData(annotsItem, docData.DTMZ)
-                self.SetItemImage(annotsItem, self.bullets_dict["heatmap"], wx.TreeItemIcon_Normal)
+        if docData.DTMZ:
+            annotsItem = self.AppendItem(docItem, "DT/MS")
+            self.SetPyData(annotsItem, docData.DTMZ)
+            self.SetItemImage(annotsItem, self.bullets_dict["heatmap"], wx.TreeItemIcon_Normal)
 
-        if len(docData.other_data) > 0:
+        if docData.other_data:
             docIonItem = self.AppendItem(docItem, "Annotated data")
             self.SetItemImage(docIonItem, self.bullets_dict["calibration"], wx.TreeItemIcon_Normal)
             self.SetPyData(docIonItem, docData.other_data)
@@ -5433,18 +5707,7 @@ class DocumentTree(wx.TreeCtrl):
                 annotsItem = self.AppendItem(docIonItem, annotData)
                 self.SetPyData(annotsItem, docData.other_data[annotData])
                 self.SetItemImage(annotsItem, self.bullets_dict["calibration_on"], wx.TreeItemIcon_Normal)
-
-                # add annotations
-                if (
-                    "annotations" in docData.other_data[annotData]
-                    and len(docData.other_data[annotData]["annotations"]) > 0
-                ):
-                    docIonAnnotItem = self.AppendItem(annotsItem, "Annotations")
-                    self.SetItemImage(docIonAnnotItem, self.bullets_dict["annot"], wx.TreeItemIcon_Normal)
-                    for annotNameData in docData.other_data[annotData]["annotations"]:
-                        annotsAnnotItem = self.AppendItem(docIonAnnotItem, annotNameData)
-                        self.SetPyData(annotsAnnotItem, docData.other_data[annotData]["annotations"][annotNameData])
-                        self.SetItemImage(annotsAnnotItem, self.bullets_dict["annot"], wx.TreeItemIcon_Normal)
+                self._add_annotation_to_object(docData.other_data[annotData], annotsItem)
 
         # Recursively check currently selected document
         self.on_enable_document(loadingData=True, expandAll=expandAll, evt=None)
@@ -5453,7 +5716,7 @@ class DocumentTree(wx.TreeCtrl):
         if expandItem is not None:
             # Change document tree
             try:
-                docItem = self.getItemByData(expandItem)
+                docItem = self.get_item_by_data(expandItem)
                 parent = self.GetItemParent(docItem)
                 self.Expand(parent)
             except Exception:
@@ -5551,35 +5814,6 @@ class DocumentTree(wx.TreeCtrl):
             else:
                 return False
 
-    def getItemIDbyName(self, root, title):
-        item, cookie = self.GetFirstChild(root)
-
-        while item.IsOk():
-            text = self.GetItemText(item)
-            if text == title:
-                return item
-            if self.ItemHasChildren(item):
-                match = self.getItemIDbyName(item, title)
-                if match.IsOk():
-                    return match
-            item, cookie = self.GetNextChild(root, cookie)
-
-        return wx.TreeItemId()
-
-    def setAsCurrentDocument(self, title):
-        #         docItem = self.AppendItem(self.GetRootItem(), title)
-
-        docItem = self.getItemIDbyName(self.GetRootItem(), title)
-        self.SetFocusedItem(docItem)
-
-    def getCurrentDocument(self, e=None):
-        item = self.GetSelection()
-        if not item:
-            return
-        while self.GetItemParent(item):
-            text = self.GetItemText(item)
-            return text
-
     def onShowSampleInfo(self, evt=None):
 
         try:
@@ -5593,237 +5827,6 @@ class DocumentTree(wx.TreeCtrl):
 
         info = panelInformation(self, **kwargs)
         info.Show()
-
-    def on_enable_document(
-        self,
-        getSelected=False,
-        loadingData=False,
-        highlightSelected=False,
-        expandAll=False,
-        expandSelected=None,
-        evt=None,
-    ):
-        """
-        Highlights and returns currently selected document
-        ---
-        Parameters
-        ----------
-        getSelected
-        loadingData: booleat, flag to tell the function that we are loading data
-        highlightSelected
-        expandAll : boolean, flag to expand or not of the tree
-        expandSelected : string, name of item to expand
-        """
-        root = self.GetRootItem()
-        selected = self.GetSelection()
-        item, cookie = self.GetFirstChild(root)
-
-        try:
-            evtID = evt.GetId()
-        except AttributeError:
-            evtID = None
-        while item.IsOk():
-            self.SetItemBold(item, False)
-            if loadingData:
-                self.CollapseAllChildren(item)
-            item, cookie = self.GetNextChild(root, cookie)
-
-        # Select parent document
-        if selected is not None:
-            item = self.getParentItem(selected, 1)
-            try:
-                self.SetItemBold(item, True)
-            except wx._core.PyAssertionError:
-                pass
-            if loadingData or evtID == ID_getSelectedDocument:
-                self.Expand(item)  # Parent item
-                if expandAll:
-                    self.ExpandAllChildren(item)
-
-            # window label
-            try:
-                text = self.GetItemText(item)
-                if text != "Documents":
-                    #                     try: self.setCurrentDocument(text)
-                    #                     except Exception: pass
-                    self.presenter.currentDoc = text
-                    self.view.SetTitle(
-                        "ORIGAMI - v{} - {} ({})".format(self.config.version, text, self._document_data.dataType)
-                    )
-            except Exception:
-                self.view.SetTitle("ORIGAMI - v{}".format(self.config.version))
-
-            # status text
-            try:
-                parameters = self._document_data.parameters
-                msg = "{}-{}".format(parameters.get("startMS", ""), parameters.get("endMS", ""))
-                if msg == "-":
-                    msg = ""
-                self.presenter.view.SetStatusText(msg, 1)
-                msg = "MSMS: {}".format(parameters.get("setMS", ""))
-                if msg == "MSMS: ":
-                    msg = ""
-                self.presenter.view.SetStatusText(msg, 2)
-            except Exception:
-                pass
-
-            # In case we also interested in selected item
-            if getSelected:
-                selectedText = self.GetItemText(selected)
-                if highlightSelected:
-                    self.SetItemBold(selected, True)
-                return text, selected, selectedText
-            else:
-                return text
-
-        if evt is not None:
-            evt.Skip()
-
-    def enableCurrentDocument(
-        self,
-        getSelected=False,
-        loadingData=False,
-        highlightSelected=False,
-        expandAll=False,
-        expandSelected=None,
-        evt=None,
-    ):
-        """
-        Highlights and returns currently selected document
-        ---
-        Parameters
-        ----------
-        getSelected
-        loadingData: booleat, flag to tell the function that we are loading data
-        highlightSelected
-        expandAll : boolean, flag to expand or not of the tree
-        expandSelected : string, name of item to expand
-        """
-        root = self.GetRootItem()
-        selected = self.GetSelection()
-        item, cookie = self.GetFirstChild(root)
-
-        try:
-            evtID = evt.GetId()
-        except AttributeError:
-            evtID = None
-        while item.IsOk():
-            self.SetItemBold(item, False)
-            if loadingData:
-                self.CollapseAllChildren(item)
-            item, cookie = self.GetNextChild(root, cookie)
-
-        # Select parent document
-        if selected is not None:
-            item = self.getParentItem(selected, 1)
-            try:
-                self.SetItemBold(item, True)
-            except wx._core.PyAssertionError:
-                pass
-            if loadingData or evtID == ID_getSelectedDocument:
-                self.Expand(item)  # Parent item
-                if expandAll:
-                    self.ExpandAllChildren(item)
-
-            # window label
-            try:
-                text = self.GetItemText(item)
-                if text != "Documents":
-                    #                     try: self.setCurrentDocument(text)
-                    #                     except Exception: pass
-                    self.presenter.currentDoc = text
-                    self.view.SetTitle(
-                        "ORIGAMI - {} - {} ({})".format(self.config.version, text, self._document_data.dataType)
-                    )
-            except Exception:
-                self.view.SetTitle(" - ".join(["ORIGAMI", self.config.version]))
-
-            # In case we also interested in selected item
-            if getSelected:
-                selectedText = self.GetItemText(selected)
-                if highlightSelected:
-                    self.SetItemBold(selected, True)
-                return text, selected, selectedText
-            else:
-                return text
-
-        if evt is not None:
-            evt.Skip()
-
-    def onExpandItem(self, item, evt):
-        """ function to expand selected item """
-        pass
-
-    def setCurrentDocument(self, docTitle, e=None):
-        """ Highlight currently selected document from tables """
-        root = None
-        if root is None:
-            root = self.GetRootItem()
-        if self.ItemHasChildren(root):
-            firstchild, cookie = self.GetFirstChild(self.GetRootItem())
-            title = self.GetItemText(firstchild)
-            if title == docTitle:
-                self.SetItemBold(firstchild, True)
-                self.presenter.currentDoc = docTitle
-
-        self._document_data = self.presenter.documentsDict[docTitle]
-        print(self._document_data)
-
-    def get_item_indent(self, item):
-        # Check item first
-        if not item.IsOk():
-            return False
-
-        # Get Indent
-        indent = 0
-        root = self.GetRootItem()
-        while item.IsOk():
-            if item == root:
-                return indent
-            else:
-                item = self.GetItemParent(item)
-                indent += 1
-        return indent
-
-    def getParentItem(self, item, level, getSelected=False):
-        """ Get parent item for selected item and level"""
-        # Get item
-        for x in range(level, self.get_item_indent(item)):
-            item = self.GetItemParent(item)
-
-        if getSelected:
-            itemText = self.GetItemText(item)
-            return item, itemText
-        else:
-            return item
-
-    def getItemByData(self, data, root=None, cookie=0):
-        """Get item by its data."""
-
-        # get root
-        if root is None:
-            root = self.GetRootItem()
-
-        # check children
-        if self.ItemHasChildren(root):
-            firstchild, cookie = self.GetFirstChild(root)
-            if self.GetPyData(firstchild) is data:
-                return firstchild
-            matchedItem = self.getItemByData(data, firstchild, cookie)
-            if matchedItem:
-                return matchedItem
-
-        # check siblings
-        child = self.GetNextSibling(root)
-        if child and child.IsOk():
-            if self.GetPyData(child) is data:
-                return child
-            matchedItem = self.getItemByData(data, child, cookie)
-            if matchedItem:
-                return matchedItem
-
-        # no such item found
-        return False
 
     def on_open_MSMS_viewer(self, evt=None, **kwargs):
         from widgets.panel_tandem_spectra_viewer import PanelTandemSpectraViewer
@@ -5934,7 +5937,7 @@ class DocumentTree(wx.TreeCtrl):
 
         Returns
         -------
-        document: py object
+        document: ORIGAMI object
             updated document object
         outcome: bool
             result of positive/negative deletion of document tree object
@@ -5948,17 +5951,17 @@ class DocumentTree(wx.TreeCtrl):
                 return document, True
 
         docItem = False
-        main_docItem = self.getItemByData(document.ion2Dmaps)
+        main_docItem = self.get_item_by_data(document.ion2Dmaps)
         # delete all ions
         if delete_type == "ions.all":
-            docItem = self.getItemByData(document.ion2Dmaps)
+            docItem = self.get_item_by_data(document.ion2Dmaps)
             self.ionPanel.on_remove_deleted_item(list(document.ion2Dmaps.keys()), document_title)
             document.ion2Dmaps = {}
             document.gotIon2Dmaps = False
         # delete one ion
         elif delete_type == "ions.one":
             self.ionPanel.on_remove_deleted_item([ion_name], document_title)
-            docItem = self.getItemByData(document.ion2Dmaps[ion_name])
+            docItem = self.get_item_by_data(document.ion2Dmaps[ion_name])
             try:
                 del document.ion2Dmaps[ion_name]
             except KeyError:
@@ -6015,17 +6018,17 @@ class DocumentTree(wx.TreeCtrl):
                 return document, True
 
         docItem = False
-        main_docItem = self.getItemByData(document.ion2Dmaps)
+        main_docItem = self.get_item_by_data(document.ion2Dmaps)
         # delete all ions
         if delete_type == "text.all":
-            docItem = self.getItemByData(document.ion2Dmaps)
+            docItem = self.get_item_by_data(document.ion2Dmaps)
             self.ionPanel.on_remove_deleted_item(list(document.ion2Dmaps.keys()), document_title)
             document.ion2Dmaps = {}
             document.gotIon2Dmaps = False
         # delete one ion
         elif delete_type == "text.one":
             self.ionPanel.on_remove_deleted_item([ion_name], document_title)
-            docItem = self.getItemByData(document.ion2Dmaps[ion_name])
+            docItem = self.get_item_by_data(document.ion2Dmaps[ion_name])
             try:
                 del document.ion2Dmaps[ion_name]
             except KeyError:
@@ -6064,7 +6067,7 @@ class DocumentTree(wx.TreeCtrl):
                 self.presenter.onThreading(None, ("Cancelled operation", 4, 5), action="updateStatusbar")
                 return
 
-        main_docItem = self.getItemByData(document)
+        main_docItem = self.get_item_by_data(document)
 
         # Delete item from the list
         if self.ItemHasChildren(main_docItem):
@@ -6171,19 +6174,19 @@ class DocumentTree(wx.TreeCtrl):
         if delete_type.endswith(".all"):
             for delete_type in delete_types:
                 if delete_type == "heatmap.raw.all":
-                    docItem = self.getItemByData(document.IMS2Dions)
+                    docItem = self.get_item_by_data(document.IMS2Dions)
                     document.IMS2Dions = {}
                     document.gotExtractedIons = False
                 if delete_type == "heatmap.processed.all":
-                    docItem = self.getItemByData(document.IMS2DionsProcess)
+                    docItem = self.get_item_by_data(document.IMS2DionsProcess)
                     document.IMS2DionsProcess = {}
                     document.got2DprocessIons = False
                 if delete_type == "heatmap.rt.all":
-                    docItem = self.getItemByData(document.IMSRTCombIons)
+                    docItem = self.get_item_by_data(document.IMSRTCombIons)
                     document.IMSRTCombIons = {}
                     document.gotCombinedExtractedIonsRT = False
                 if delete_type == "heatmap.combined.all":
-                    docItem = self.getItemByData(document.IMS2DCombIons)
+                    docItem = self.get_item_by_data(document.IMS2DCombIons)
                     document.IMS2DCombIons = {}
                     document.gotCombinedExtractedIons = False
 
@@ -6199,8 +6202,8 @@ class DocumentTree(wx.TreeCtrl):
         elif delete_type.endswith(".one"):
             for delete_type in delete_types:
                 if delete_type == "heatmap.raw.one":
-                    main_docItem = self.getItemByData(document.IMS2Dions)
-                    docItem = self.getItemByData(document.IMS2Dions.get(ion_name, "N/A"))
+                    main_docItem = self.get_item_by_data(document.IMS2Dions)
+                    docItem = self.get_item_by_data(document.IMS2Dions.get(ion_name, "N/A"))
                     if docItem not in ["N/A", None, False]:
                         try:
                             del document.IMS2Dions[ion_name]
@@ -6216,8 +6219,8 @@ class DocumentTree(wx.TreeCtrl):
                                 pass
                 if delete_type == "heatmap.raw.one.processed":
                     ion_name_processed = f"{ion_name} (processed)"
-                    main_docItem = self.getItemByData(document.IMS2Dions)
-                    docItem = self.getItemByData(document.IMS2Dions.get(ion_name_processed, "N/A"))
+                    main_docItem = self.get_item_by_data(document.IMS2Dions)
+                    docItem = self.get_item_by_data(document.IMS2Dions.get(ion_name_processed, "N/A"))
                     if docItem not in ["N/A", None, False]:
                         try:
                             del document.IMS2Dions[ion_name_processed]
@@ -6234,8 +6237,8 @@ class DocumentTree(wx.TreeCtrl):
                             except Exception:
                                 pass
                 if delete_type == "heatmap.processed.one":
-                    main_docItem = self.getItemByData(document.IMS2DionsProcess)
-                    docItem = self.getItemByData(document.IMS2DionsProcess.get(ion_name, "N/A"))
+                    main_docItem = self.get_item_by_data(document.IMS2DionsProcess)
+                    docItem = self.get_item_by_data(document.IMS2DionsProcess.get(ion_name, "N/A"))
                     if docItem not in ["N/A", None, False]:
                         try:
                             del document.IMS2DionsProcess[ion_name]
@@ -6250,8 +6253,8 @@ class DocumentTree(wx.TreeCtrl):
                             except Exception:
                                 pass
                 if delete_type == "heatmap.rt.one":
-                    main_docItem = self.getItemByData(document.IMSRTCombIons)
-                    docItem = self.getItemByData(document.IMSRTCombIons.get(ion_name, "N/A"))
+                    main_docItem = self.get_item_by_data(document.IMSRTCombIons)
+                    docItem = self.get_item_by_data(document.IMSRTCombIons.get(ion_name, "N/A"))
                     if docItem not in ["N/A", None, False]:
                         try:
                             del document.IMSRTCombIons[ion_name]
@@ -6266,8 +6269,8 @@ class DocumentTree(wx.TreeCtrl):
                             except Exception:
                                 pass
                 if delete_type == "heatmap.combined.one":
-                    main_docItem = self.getItemByData(document.IMS2DCombIons)
-                    docItem = self.getItemByData(document.IMS2DCombIons.get(ion_name, "N/A"))
+                    main_docItem = self.get_item_by_data(document.IMS2DCombIons)
+                    docItem = self.get_item_by_data(document.IMS2DCombIons.get(ion_name, "N/A"))
                     if docItem not in ["N/A", None, False]:
                         try:
                             del document.IMS2DCombIons[ion_name]
@@ -6330,15 +6333,15 @@ class DocumentTree(wx.TreeCtrl):
                 return document, True
 
         docItem = False
-        main_docItem = self.getItemByData(document.multipleMassSpectrum)
+        main_docItem = self.get_item_by_data(document.multipleMassSpectrum)
         # delete all classes
         if delete_type == "spectrum.all":
-            docItem = self.getItemByData(document.multipleMassSpectrum)
+            docItem = self.get_item_by_data(document.multipleMassSpectrum)
             document.multipleMassSpectrum = {}
             document.gotMultipleMS = False
             self.filesPanel.delete_row_from_table(delete_item_name=None, delete_document_title=document_title)
         elif delete_type == "spectrum.one":
-            docItem = self.getItemByData(document.multipleMassSpectrum[spectrum_name])
+            docItem = self.get_item_by_data(document.multipleMassSpectrum[spectrum_name])
             try:
                 del document.multipleMassSpectrum[spectrum_name]
             except KeyError:
@@ -6398,14 +6401,14 @@ class DocumentTree(wx.TreeCtrl):
                 return document, True
 
         docItem = False
-        main_docItem = self.getItemByData(document.multipleRT)
+        main_docItem = self.get_item_by_data(document.multipleRT)
         # delete all classes
         if delete_type == "chromatogram.all":
-            docItem = self.getItemByData(document.multipleRT)
+            docItem = self.get_item_by_data(document.multipleRT)
             document.multipleMassSpectrum = {}
             document.gotMultipleMS = False
         elif delete_type == "chromatogram.one":
-            docItem = self.getItemByData(document.multipleRT[spectrum_name])
+            docItem = self.get_item_by_data(document.multipleRT[spectrum_name])
             try:
                 del document.multipleRT[spectrum_name]
             except KeyError:
@@ -6449,13 +6452,13 @@ class DocumentTree(wx.TreeCtrl):
         item = False
         docItem = False
         if dataset == "Mass Spectrum":
-            item = self.getItemByData(document.massSpectrum)
+            item = self.get_item_by_data(document.massSpectrum)
             document.massSpectrum["unidec"] = unidec_data
         elif dataset == "Mass Spectrum (processed)":
-            item = self.getItemByData(document.smoothMS)
+            item = self.get_item_by_data(document.smoothMS)
             document.smoothMS["unidec"] = unidec_data
         else:
-            item = self.getItemByData(document.multipleMassSpectrum[dataset])
+            item = self.get_item_by_data(document.multipleMassSpectrum[dataset])
             document.multipleMassSpectrum[dataset]["unidec"] = unidec_data
 
         if item is not False and not set_data_only:
@@ -6463,7 +6466,7 @@ class DocumentTree(wx.TreeCtrl):
             self.data_handling.on_update_document(document, "no_refresh")
         else:
             try:
-                docItem = self.getItemByData(document)
+                docItem = self.get_item_by_data(document)
             except Exception:
                 docItem = False
             if docItem is not False:
@@ -6529,97 +6532,97 @@ class DocumentTree(wx.TreeCtrl):
             specify whether data should be added with full refresh or just set
         """
         # spectrum
-        if data_type == "main.spectrum":
-            item = self.getItemByData(document.massSpectrum)
+        if data_type == "main.raw.spectrum":
+            item = self.get_item_by_data(document.massSpectrum)
             document.gotMS = True
             document.massSpectrum = item_data
 
-        elif data_type == "main.spectrum.unidec":
-            item = self.getItemByData(document.massSpectrum["unidec"])
+        elif data_type == "main.raw.spectrum.unidec":
+            item = self.get_item_by_data(document.massSpectrum["unidec"])
             document.gotMS = True
             document.massSpectrum["unidec"] = item_data
 
-        elif data_type == "processed.spectrum":
-            item = self.getItemByData(document.smoothMS)
+        elif data_type == "main.processed.spectrum":
+            item = self.get_item_by_data(document.smoothMS)
             document.gotSmoothMS = True
             document.smoothMS = item_data
 
         elif data_type == "extracted.spectrum":
-            item = self.getItemByData(document.multipleMassSpectrum)
+            item = self.get_item_by_data(document.multipleMassSpectrum)
             document.gotMultipleMS = True
             document.multipleMassSpectrum[item_name] = item_data
 
         # mobiligram
         elif data_type == "main.mobiligram":
-            item = self.getItemByData(document.DT)
+            item = self.get_item_by_data(document.DT)
             document.got1DT = True
             document.DT = item_data
 
         elif data_type == "ion.mobiligram":
-            item = self.getItemByData(document.IMS1DdriftTimes)
+            item = self.get_item_by_data(document.IMS1DdriftTimes)
             document.gotExtractedDriftTimes = True
             document.IMS1DdriftTimes[item_name] = item_data
 
         elif data_type == "ion.mobiligram.raw":
-            item = self.getItemByData(document.multipleDT)
+            item = self.get_item_by_data(document.multipleDT)
             document.gotMultipleDT = True
             document.multipleDT[item_name] = item_data
 
         # chromatogram
         elif data_type == "main.chromatogram":
-            item = self.getItemByData(document.RT)
+            item = self.get_item_by_data(document.RT)
             document.got1RT = True
             document.RT = item_data
 
         elif data_type == "extracted.chromatogram":
-            item = self.getItemByData(document.multipleRT)
+            item = self.get_item_by_data(document.multipleRT)
             document.gotMultipleRT = True
             document.multipleRT[item_name] = item_data
 
         elif data_type == "ion.chromatogram.combined":
-            item = self.getItemByData(document.IMSRTCombIons)
+            item = self.get_item_by_data(document.IMSRTCombIons)
             document.gotCombinedExtractedIonsRT = True
             document.IMSRTCombIons[item_name] = item_data
 
         # heatmap
-        elif data_type == "main.heatmap":
-            item = self.getItemByData(document.IMS2D)
+        elif data_type == "main.raw.heatmap":
+            item = self.get_item_by_data(document.IMS2D)
             document.got2DIMS = True
             document.IMS2D = item_data
 
-        elif data_type == "processed.heatmap":
-            item = self.getItemByData(document.IMS2Dprocess)
+        elif data_type == "main.processed.heatmap":
+            item = self.get_item_by_data(document.IMS2Dprocess)
             document.got2Dprocess = True
             document.IMS2Dprocess = item_data
 
         elif data_type == "ion.heatmap.raw":
-            item = self.getItemByData(document.IMS2Dions)
+            item = self.get_item_by_data(document.IMS2Dions)
             document.gotExtractedIons = True
             document.IMS2Dions[item_name] = item_data
 
         elif data_type == "ion.heatmap.combined":
-            item = self.getItemByData(document.IMS2DCombIons)
+            item = self.get_item_by_data(document.IMS2DCombIons)
             document.gotCombinedExtractedIons = True
             document.IMS2DCombIons[item_name] = item_data
 
         elif data_type == "ion.heatmap.processed":
-            item = self.getItemByData(document.IMS2DionsProcess)
+            item = self.get_item_by_data(document.IMS2DionsProcess)
             document.got2DprocessIons = True
             document.IMS2DionsProcess[item_name] = item_data
 
         elif data_type == "ion.heatmap.comparison":
-            item = self.getItemByData(document.IMS2DcompData)
+            item = self.get_item_by_data(document.IMS2DcompData)
             document.gotComparisonData = True
             document.IMS2DcompData[item_name] = item_data
 
         # overlay
         elif data_type == "overlay.statistical":
-            item = self.getItemByData(document.IMS2DstatsData)
+            item = self.get_item_by_data(document.IMS2DstatsData)
             document.gotStatsData = True
             document.IMS2DstatsData[item_name] = item_data
 
         elif data_type == "overlay.overlay":
-            item = self.getItemByData(document.IMS2DoverlayData)
+            item = self.get_item_by_data(document.IMS2DoverlayData)
             document.gotOverlay = True
             document.IMS2DoverlayData[item_name] = item_data
 
@@ -6662,14 +6665,14 @@ class DocumentTree(wx.TreeCtrl):
         self.panel_plot.plot_repaint(plot_window="MS")
 
     def get_item_image(self, image_type):
-        if image_type in ["main.spectrum", "extracted.spectrum", "processed.spectrum", "unidec"]:
+        if image_type in ["main.raw.spectrum", "extracted.spectrum", "main.processed.spectrum", "unidec"]:
             image = self.bullets_dict["mass_spec_on"]
         elif image_type == [
             "ion.heatmap.combined",
             "ion.heatmap.raw",
             "ion.heatmap.processed",
-            "main.heatmap",
-            "processed.heatmap",
+            "main.raw.heatmap",
+            "main.processed.heatmap",
             "ion.heatmap.comparison",
         ]:
             image = self.bullets_dict["heatmap_on"]
@@ -6713,6 +6716,10 @@ class DocumentTree(wx.TreeCtrl):
         self.SetPyData(itemClass, data)
         self.SetItemImage(itemClass, image, wx.TreeItemIcon_Normal)
 
+        # add annotations
+        self._add_unidec_to_object(data, itemClass, check=True)
+        self._add_annotation_to_object(data, itemClass, check=True)
+
         if expand:
             self.Expand(itemClass)
 
@@ -6720,3 +6727,7 @@ class DocumentTree(wx.TreeCtrl):
         image = self.get_item_image(image)
         self.SetPyData(item, data)
         self.SetItemImage(item, image, wx.TreeItemIcon_Normal)
+
+        # add annotations
+        self._add_unidec_to_object(data, item, check=True)
+        self._add_annotation_to_object(data, item, check=True)

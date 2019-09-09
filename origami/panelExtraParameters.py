@@ -12,7 +12,6 @@ from ids import ID_extraSettings_edgeMarkerColor_1D
 from ids import ID_extraSettings_edgeMarkerColor_3D
 from ids import ID_extraSettings_extractColor
 from ids import ID_extraSettings_horizontalColor
-from ids import ID_extraSettings_instantPlot
 from ids import ID_extraSettings_labelColor_rmsd
 from ids import ID_extraSettings_lineColor_1D
 from ids import ID_extraSettings_lineColor_rmsd
@@ -768,14 +767,6 @@ class panelParametersEdit(wx.Panel):
         gui_staticBox.SetSize((-1, -1))
         gui_box_sizer = wx.StaticBoxSizer(gui_staticBox, wx.HORIZONTAL)
 
-        self.general_instantPlot_check = makeCheckbox(
-            panel, "Instant plot when selected in Document Tree", ID=ID_extraSettings_instantPlot
-        )
-        self.general_instantPlot_check.SetValue(self.config.quickDisplay)
-        self.general_instantPlot_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.general_instantPlot_check.Bind(wx.EVT_CHECKBOX, self.onUpdateGUI)
-        _general_instantPlot_check = makeSuperTip(self.general_instantPlot_check, **self.help.general_instantPlot)
-
         self.general_multiThreading_check = makeCheckbox(panel, "Multi-threading", ID=ID_extraSettings_multiThreading)
         self.general_multiThreading_check.SetValue(self.config.threading)
         self.general_multiThreading_check.Bind(wx.EVT_CHECKBOX, self.onUpdateGUI)
@@ -879,8 +870,6 @@ class panelParametersEdit(wx.Panel):
 
         gui_grid = wx.GridBagSizer(2, 2)
         y = 0
-        gui_grid.Add(self.general_instantPlot_check, (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        y = y + 1
         gui_grid.Add(self.general_multiThreading_check, (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
         y = y + 1
         gui_grid.Add(self.general_logToFile_check, (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
@@ -3201,20 +3190,11 @@ class panelParametersEdit(wx.Panel):
 
         evtID = evt.GetId()
 
-        self.config.quickDisplay = self.general_instantPlot_check.GetValue()
         self.config.threading = self.general_multiThreading_check.GetValue()
         self.config.logging = self.general_logToFile_check.GetValue()
         self.config.autoSaveSettings = self.general_autoSaveSettings_check.GetValue()
 
-        if evtID == ID_extraSettings_instantPlot:
-            if self.config.quickDisplay:
-                msg = "Instant plotting was enabled"
-            else:
-                msg = "Instant plotting was disabled"
-            # fire events
-            self.presenter.view.panelDocuments.documents.toggle_quick_display(evt=None)
-
-        elif evtID == ID_extraSettings_multiThreading:
+        if evtID == ID_extraSettings_multiThreading:
             if self.config.threading:
                 msg = "Multi-threading was enabled"
             else:

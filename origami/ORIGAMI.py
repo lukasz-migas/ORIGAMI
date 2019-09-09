@@ -165,6 +165,10 @@ class ORIGAMI(object):
         if self.config.testing:
             self._test_()
 
+        # load text MS file
+        path = r"D:\GitHub\ORIGAMI\origami\example_files\text_files\MS_p27-FL-K31.pickle"
+        self.data_handling.on_open_document(path)
+
     def initilize_state(self):
         """Pre-set variables"""
         self.docsText = {}
@@ -558,7 +562,7 @@ class ORIGAMI(object):
 
     def get_overlay_document(self):
         try:
-            self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
+            self.currentDoc = self.view.panelDocuments.documents.on_enable_document()
         except Exception:
             return
         if self.currentDoc == "Documents":
@@ -678,7 +682,7 @@ class ORIGAMI(object):
         the input data and restore it to the file list - in this case text panel
         """
         try:
-            self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
+            self.currentDoc = self.view.panelDocuments.documents.on_enable_document()
         except Exception:
             return
         if self.currentDoc == "Documents":
@@ -875,7 +879,7 @@ class ORIGAMI(object):
     #     """
 
     #     # Figure out what is the current document
-    #     self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
+    #     self.currentDoc = self.view.panelDocuments.documents.on_enable_document()
     #     if self.currentDoc == 'Documents':
     #         return
     #     document = self.documentsDict[self.currentDoc]
@@ -966,7 +970,7 @@ class ORIGAMI(object):
     #      4),
     #                 action='updateStatusbar')
     #         try:
-    #             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
+    #             self.currentDoc = self.view.panelDocuments.documents.on_enable_document()
     #         except Exception:
     #             return
     #         if self.currentDoc == "Documents":
@@ -1338,7 +1342,7 @@ class ORIGAMI(object):
     #         Save CCS calibration parameters to file
     #         """
     #         try:
-    #             self.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
+    #             self.currentDoc = self.view.panelDocuments.documents.on_enable_document()
     #         except Exception:            return
     #         if self.currentDoc == "Documents":
     #             return
@@ -1841,7 +1845,7 @@ class ORIGAMI(object):
         Function used to get the path to current document
         """
         # Gather info about the file and document
-        self.currentDoc, __, __ = self.view.panelDocuments.documents.enableCurrentDocument(getSelected=True)
+        self.currentDoc, __, __ = self.view.panelDocuments.documents.on_enable_document(getSelected=True)
         if self.currentDoc == "Documents":
             return None, None
         document = self.documentsDict[self.currentDoc]

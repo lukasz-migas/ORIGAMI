@@ -1204,7 +1204,7 @@ class data_handling:
 
         data = {"xvals": ms_x, "yvals": ms_y, "xlabels": "m/z (Da)", "xlimits": xlimits}
 
-        self.documentTree.on_update_data(data, "", document, data_type="main.spectrum")
+        self.documentTree.on_update_data(data, "", document, data_type="main.raw.spectrum")
 
         # Plot
         name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
@@ -2343,7 +2343,7 @@ class data_handling:
 
         xlimits = [parameters["startMS"], parameters["endMS"]]
         data = {"xvals": ms_x, "yvals": ms_y_sum, "xlabels": "m/z (Da)", "xlimits": xlimits}
-        self.documentTree.on_update_data(data, "", document, data_type="main.spectrum")
+        self.documentTree.on_update_data(data, "", document, data_type="main.raw.spectrum")
         # Plot
         name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
         self.plotsPanel.on_plot_MS(ms_x, ms_y_sum, xlimits=xlimits, **name_kwargs)
@@ -2809,7 +2809,7 @@ class data_handling:
             return
 
         if isinstance(file_paths, str):
-            file_path = [file_paths]
+            file_paths = [file_paths]
 
         for file_path in file_paths:
             try:
@@ -2947,7 +2947,7 @@ class data_handling:
                 except Exception as err:
                     logger.warning(f"When trying to create file error an error occurer. Error msg: {err}")
 
-            if document.gotMS:
+            if document.massSpectrum:
                 self.update_statusbar("Loaded mass spectra", 4)
                 msX = document.massSpectrum["xvals"]
                 msY = document.massSpectrum["yvals"]
@@ -2958,21 +2958,21 @@ class data_handling:
                 if document.dataType != "Type: CALIBRANT":
                     name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
                     self.plotsPanel.on_plot_MS(msX, msY, xlimits=xlimits, **name_kwargs)
-            if document.got1DT:
+            if document.DT:
                 self.update_statusbar("Loaded mobiligrams (1D)", 4)
                 dtX = document.DT["xvals"]
                 dtY = document.DT["yvals"]
                 xlabel = document.DT["xlabels"]
                 if document.dataType != "Type: CALIBRANT":
                     self.plotsPanel.on_plot_1D(dtX, dtY, xlabel)
-            if document.got1RT:
+            if document.RT:
                 self.update_statusbar("Loaded chromatograms", 4)
                 rtX = document.RT["xvals"]
                 rtY = document.RT["yvals"]
                 xlabel = document.RT["xlabels"]
                 self.plotsPanel.on_plot_RT(rtX, rtY, xlabel)
 
-            if document.got2DIMS:
+            if document.IMS2D:
                 data = document.IMS2D
                 zvals = data["zvals"]
                 xvals = data["xvals"]
@@ -3076,7 +3076,7 @@ class data_handling:
 
         # Update documents tree
         self.documentTree.add_document(docData=document, expandAll=False)
-        self.presenter.currentDoc = self.view.panelDocuments.documents.enableCurrentDocument()
+        self.presenter.currentDoc = self.view.panelDocuments.documents.on_enable_document()
 
     def on_update_DTMS_zoom(self, xmin, xmax, ymin, ymax):
         """Event driven data sub-sampling
@@ -3538,9 +3538,9 @@ class data_handling:
 
         if data is not None:
             if spectrum_title == "Mass Spectrum":
-                self.documentTree.on_update_data(data, "", document, data_type="main.spectrum")
+                self.documentTree.on_update_data(data, "", document, data_type="main.raw.spectrum")
             elif spectrum_title == "Mass Spectrum (processed)":
-                self.documentTree.on_update_data(data, "", document, data_type="processed.spectrum")
+                self.documentTree.on_update_data(data, "", document, data_type="main.processed.spectrum")
             else:
                 self.documentTree.on_update_data(data, spectrum_title, document, data_type="extracted.spectrum")
 
@@ -3630,17 +3630,23 @@ class data_handling:
         return document, data
 
     def set_mobility_chromatographic_data(self, query_info, data, **kwargs):
-        # TODO: add all other data types
 
         document_title, dataset_type, dataset_name = query_info
         document = self._on_get_document(document_title)
 
         if data is not None:
+            # MS data
+            if dataset_type == "Mass Spectrum":
+                self.documentTree.on_update_data(data, "", document, data_type="main.raw.spectrum")
+            elif dataset_type == "Mass Spectrum (processed)":
+                self.documentTree.on_update_data(data, "", document, data_type="main.processed.spectrum")
+            elif dataset_type == "Mass Spectra" and dataset_name is not None:
+                self.documentTree.on_update_data(data, dataset_name, document, data_type="extracted.spectrum")
             # Drift time (2D) data
-            if dataset_type == "Drift time (2D)":
-                self.documentTree.on_update_data(data, "", document, data_type="main.heatmap")
+            elif dataset_type == "Drift time (2D)":
+                self.documentTree.on_update_data(data, "", document, data_type="main.raw.heatmap")
             elif dataset_type == "Drift time (2D, processed)":
-                self.documentTree.on_update_data(data, "", document, data_type="processed.heatmap")
+                self.documentTree.on_update_data(data, "", document, data_type="main.processed.heatmap")
             elif dataset_type == "Drift time (2D, EIC)" and dataset_name is not None:
                 self.documentTree.on_update_data(data, dataset_name, document, data_type="ion.heatmap.raw")
             elif dataset_type == "Drift time (2D, combined voltages, EIC)" and dataset_name is not None:
@@ -3731,6 +3737,98 @@ class data_handling:
                 )
 
         return document
+
+    def set_parent_mobility_chromatographic_data(self, query_info, data):
+
+        document_title, dataset_type, dataset_name = query_info
+        document = self._on_get_document(document_title)
+
+        if data is None:
+            data = dict()
+
+        # MS data
+        if dataset_type == "Mass Spectrum":
+            document.massSpectrum = data
+            document.gotMS = True if data else False
+        elif dataset_type == "Mass Spectrum (processed)":
+            document.smoothMS = data
+        elif all(item == "Mass Spectra" for item in [dataset_type, dataset_name]):
+            document.multipleMassSpectrum = data
+            document.gotMultipleMS = True if data else False
+        elif dataset_type == "Mass Spectra" and dataset_name not in [None, "Mass Spectra"]:
+            document.multipleMassSpectrum[dataset_name] = data
+        # Drift time (2D) data
+        elif dataset_type == "Drift time (2D)":
+            document.IMS2D = data
+            document.got2DIMS = True if data else False
+        elif dataset_type == "Drift time (2D, processed)":
+            document.IMS2Dprocess = data
+            document.got2Dprocess = True if data else False
+        elif all(item == "Drift time (2D, EIC)" for item in [dataset_type, dataset_name]):
+            document.IMS2Dions = data
+            document.gotExtractedIons = True if data else False
+        elif dataset_type == "Drift time (2D, EIC)" and dataset_name is not None:
+            document.IMS2Dions[dataset_name] = data
+        elif all(item == "Drift time (2D,  combined voltages, EIC)" for item in [dataset_type, dataset_name]):
+            document.IMS2DCombIons = data
+            document.gotCombinedExtractedIons = True if data else False
+        elif dataset_type == "Drift time (2D, combined voltages, EIC)" and dataset_name is not None:
+            document.IMS2DCombIons[dataset_name] = data
+        elif all(item == "Drift time (2D, processed, EIC)" for item in [dataset_type, dataset_name]):
+            document.IMS2DionsProcess = data
+            document.got2DprocessIons = True if data else False
+        elif dataset_type == "Drift time (2D, processed, EIC)" and dataset_name is not None:
+            document.IMS2DionsProcess[dataset_name] = data
+        # overlay input data
+        elif all(item == "Input data" for item in [dataset_type, dataset_name]):
+            document.IMS2DcompData = data
+            document.gotComparisonData = True if data else False
+        elif dataset_type == "Input data" and dataset_name is not None:
+            document.IMS2DcompData[dataset_name] = data
+        # chromatogram data
+        elif dataset_type == "Chromatogram":
+            document.RT = data
+            document.got1RT = True if data else False
+        elif all(item == "Chromatograms (combined voltages, EIC)" for item in [dataset_type, dataset_name]):
+            document.IMSRTCombIons = data
+            document.gotCombinedExtractedIonsRT = True if data else False
+        elif dataset_type == "Chromatograms (combined voltages, EIC)" and dataset_name is not None:
+            document.IMSRTCombIons[dataset_name] = data
+        elif all(item == "Chromatograms (EIC)" for item in [dataset_type, dataset_name]):
+            document.multipleRT = data
+            document.gotMultipleRT = True if data else False
+        elif dataset_type == "Chromatograms (EIC)" and dataset_name is not None:
+            document.multipleRT[dataset_name] = data
+        # mobilogram data
+        elif dataset_type == "Drift time (1D)":
+            document.DT = data
+            document.got1DT = True if data else False
+        elif all(item == "Drift time (1D, EIC)" for item in [dataset_type, dataset_name]):
+            document.multipleDT = data
+            document.gotMultipleDT = True if data else False
+        elif dataset_type == "Drift time (1D, EIC)" and dataset_name is not None:
+            document.multipleDT[dataset_name] = data
+        elif all(item == "Drift time (1D, EIC, DT-IMS)" for item in [dataset_type, dataset_name]):
+            document.IMS1DdriftTimes = data
+            document.gotExtractedDriftTimes = True if data else False
+        elif dataset_type == "Drift time (1D, EIC, DT-IMS)" and dataset_name is not None:
+            document.IMS1DdriftTimes[dataset_name] = data
+        # annotated data
+        elif all(item == "Annotated data" for item in [dataset_type, dataset_name]):
+            document.other_data = data
+
+        elif dataset_type == "Annotated data" and dataset_name is not None:
+            document.other_data[dataset_name] = data
+        # DT/MS heatmap data
+        elif dataset_type == "DT/MS":
+            document.DTMZ = data
+            document.gotDTMZ = True if data else False
+        else:
+            raise MessageError(
+                "Not implemented yet", f"Method to handle {dataset_type}, {dataset_name} has not been implemented yet"
+            )
+
+        self.on_update_document(document, "no_refresh")
 
     def set_overlay_data(self, query_info, data, **kwargs):
         document_title, dataset_type, dataset_name = query_info

@@ -592,7 +592,7 @@ class bottomPanel(wx.Panel):
         """
         # Now insert it into the document
         try:
-            currentDoc = self.presenter.view.panelDocuments.documents.enableCurrentDocument()
+            currentDoc = self.presenter.view.panelDocuments.documents.on_enable_document()
         except Exception:
             return None
         if currentDoc == "Documents":
