@@ -166,8 +166,9 @@ class ORIGAMI(object):
             self._test_()
 
         # load text MS file
-        path = r"D:\GitHub\ORIGAMI\origami\example_files\text_files\MS_p27-FL-K31.pickle"
-        self.data_handling.on_open_document(path)
+
+    #         path = r"D:\GitHub\ORIGAMI\origami\example_files\text_files\MS_p27-FL-K31.pickle"
+    #         self.data_handling.on_open_document(path)
 
     def initilize_state(self):
         """Pre-set variables"""

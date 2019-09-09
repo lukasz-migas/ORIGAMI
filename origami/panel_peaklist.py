@@ -1365,7 +1365,7 @@ class PanelPeaklist(wx.Panel):
                 str(add_dict.get("charge", "")),
                 str(add_dict.get("mz_ymax", "")),
                 str(roundRGB(convertRGB255to1(color))),
-                str(add_dict.get("colormap", "")),
+                str(add_dict.get("colormap", self.config.get_random_colormap())),
                 str(add_dict.get("alpha", "")),
                 str(add_dict.get("mask", "")),
                 str(add_dict.get("label", "")),

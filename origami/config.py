@@ -15,6 +15,7 @@ from matplotlib.pyplot import colormaps
 from utils.converters import str2bool
 from utils.converters import str2int
 from utils.converters import str2num
+from utils.random import get_random_int
 
 logger = logging.getLogger("origami")
 
@@ -2054,6 +2055,27 @@ class OrigamiConfig:
 
         if return_check:
             return True
+
+    def get_random_colormap(self, narrow=True):
+        """Get random colormap
+
+        Parameters
+        ----------
+        narrow : bool
+            if True, only selected colormaps will be used
+
+        Returns
+        -------
+        colormap : str
+            name of random colormap
+        """
+
+        if narrow:
+            colormaps = self.narrowCmapList
+        else:
+            colormaps = self.cmaps2
+
+        return colormaps[get_random_int(0, len(colormaps))]
 
     @staticmethod
     def get_pusher_frequency(parameters, mode="V"):

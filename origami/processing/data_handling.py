@@ -921,8 +921,6 @@ class data_handling:
         xvals, yvals, zvals = self._get_driftscope_mobility_data(path, **kwargs)
 
         # Add data to document object
-        #         document.gotExtractedIons = True
-        #         document.IMS2Dions[ion_name]
         ion_data = {
             "zvals": zvals,
             "xvals": xvals,
@@ -948,6 +946,8 @@ class data_handling:
     def on_add_ion_MANUAL(
         self, item_information, document, mz_start, mz_end, mz_y_max, ion_name, ion_id, charge, label
     ):
+        # TODO: add checks for paths
+        # TODO: cleanup this function to reduce complexity
 
         self.filesList.on_sort(2, False)
         tempDict = {}
@@ -1160,7 +1160,7 @@ class data_handling:
         document.userParameters["date"] = getTime()
         document.dataType = "Type: 2D IM-MS"
         document.fileFormat = "Format: Text (.csv/.txt)"
-        self.on_update_document(document, "document")
+        #         self.on_update_document(document, "document")
 
         data = {
             "zvals": array_2D,
@@ -3902,10 +3902,11 @@ class data_handling:
                         item_list[document_title].append(dataset_type)
                 else:
                     for key in data:
-                        if output_type == "overlay":
-                            item_list.append(get_overlay_data(data[key], key))
-                        elif output_type == "annotations":
-                            item_list[document_title].append(f"{dataset_type} :: {key}")
+                        if data[key]:
+                            if output_type == "overlay":
+                                item_list.append(get_overlay_data(data[key], key))
+                            elif output_type == "annotations":
+                                item_list[document_title].append(f"{dataset_type} :: {key}")
         return item_list
 
     def generate_item_list_heatmap(self, output_type="overlay"):
@@ -3957,10 +3958,11 @@ class data_handling:
                         item_list[document_title].append(dataset_type)
                 else:
                     for key in data:
-                        if output_type == "overlay":
-                            item_list.append(get_overlay_data(data[key], key))
-                        elif output_type == "annotations":
-                            item_list[document_title].append(f"{dataset_type} :: {key}")
+                        if data[key]:
+                            if output_type == "overlay":
+                                item_list.append(get_overlay_data(data[key], key))
+                            elif output_type == "annotations":
+                                item_list[document_title].append(f"{dataset_type} :: {key}")
         return item_list
 
     def generate_item_list_chromatogram(self, output_type="overlay"):
@@ -4000,10 +4002,11 @@ class data_handling:
                         item_list[document_title].append(dataset_type)
                 else:
                     for key in data:
-                        if output_type == "overlay":
-                            item_list.append(get_overlay_data(data[key], key))
-                        elif output_type == "annotations":
-                            item_list[document_title].append(f"{dataset_type} :: {key}")
+                        if data[key]:
+                            if output_type == "overlay":
+                                item_list.append(get_overlay_data(data[key], key))
+                            elif output_type == "annotations":
+                                item_list[document_title].append(f"{dataset_type} :: {key}")
         return item_list
 
     def generate_item_list_mobilogram(self, output_type="overlay"):
@@ -4043,10 +4046,11 @@ class data_handling:
                         item_list[document_title].append(dataset_type)
                 else:
                     for key in data:
-                        if output_type == "overlay":
-                            item_list.append(get_overlay_data(data[key], key))
-                        elif output_type == "annotations":
-                            item_list[document_title].append(f"{dataset_type} :: {key}")
+                        if data[key]:
+                            if output_type == "overlay":
+                                item_list.append(get_overlay_data(data[key], key))
+                            elif output_type == "annotations":
+                                item_list[document_title].append(f"{dataset_type} :: {key}")
         return item_list
 
     def on_load_user_list_fcn(self, **kwargs):

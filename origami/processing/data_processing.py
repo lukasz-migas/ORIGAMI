@@ -1021,7 +1021,11 @@ class data_processing:
         data.update(xvals=xvals, yvals=yvals, zvals=zvals, process_parameters=parameters)
 
         # setup new name
-        if dataset_type == "Drift time (2D)" and dataset_name is None:
+        if (
+            dataset_type == "Drift time (2D)"
+            and dataset_name is None
+            or all([item == "Drift time (2D)" for item in [dataset_type, dataset_name]])
+        ):
             dataset_type = "Drift time (2D, processed)"
             new_dataset = None
         elif dataset_type == "DT/MS" and dataset_name is None:

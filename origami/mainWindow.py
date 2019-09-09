@@ -1171,14 +1171,6 @@ class MyFrame(wx.Frame):
     def on_open_multiple_files(self, evt):
         self.data_handling.on_open_multiple_ML_files_fcn(open_type="multiple_files_new_document")
 
-    def on_open_community_file(self, evt):
-        evtID = evt.GetId()
-
-        if evtID == ID_fileMenu_MGF:
-            self.data_handling.on_open_MGF_file_fcn(None)
-        elif evtID == ID_fileMenu_mzML:
-            self.panelDocuments.documents.on_open_mzML_file_fcn(None)
-
     def on_open_thermo_file(self, evt):
         self.panelDocuments.documents.on_open_thermo_file_fcn(None)
 

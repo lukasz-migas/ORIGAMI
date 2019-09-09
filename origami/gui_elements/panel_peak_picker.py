@@ -926,7 +926,9 @@ class panel_peak_picker(MiniFrame):
                 "Pick peaks first", "You must pick peaks before you can plot them. Click on the `Find peaks` button"
             )
 
-        document_type = self.document.dataType
+        document = self.data_handling._on_get_document(self.document_title)
+
+        document_type = document.dataType
         allowed_document_types = ["Type: ORIGAMI", "Type: MANUAL", "Type: Infrared", "Type: MassLynx"]
 
         if document_type not in allowed_document_types:

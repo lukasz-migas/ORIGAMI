@@ -986,28 +986,16 @@ class PanelTextlist(wx.Panel):
 
         information = self.peaklist.on_get_item_information(itemID)
 
-        try:
-            flag_error = False
-            document = self.data_handling._on_get_document(information["document"])
-        except KeyError as e:
-            logger.error("File: {} is missing. Error: {}".format(information["document"], e))
-            flag_error = True
-            try:
-                document_title, ion_title = re.split(": ", information["document"])
-                document = self.presenter.documentsDict[document_title]
-            except ValueError:
-                return information
-
+        document = self.data_handling._on_get_document(information["document"])
         # check whether the ion has any previous information
         min_threshold, max_threshold = 0, 1
-
-        if not flag_error:
-            if document.IMS2D:
+        if document is not None:
+            try:
                 min_threshold = document.IMS2D.get("min_threshold", 0)
                 max_threshold = document.IMS2D.get("max_threshold", 1)
-            else:
-                min_threshold = document.IMS2DcompData[ion_title].get("min_threshold", 0)
-                max_threshold = document.IMS2DcompData[ion_title].get("max_threshold", 0)
+            except AttributeError:
+                min_threshold = document.IMS2Dprocess.get("min_threshold", 0)
+                max_threshold = document.IMS2Dprocess.get("max_threshold", 1)
 
         information["min_threshold"] = min_threshold
         information["max_threshold"] = max_threshold
@@ -1307,3 +1295,12 @@ class PanelTextlist(wx.Panel):
             itemInfo = self.on_get_item_information(itemID=itemID)
             self.view.panelDocuments.documents.on_delete_data__document(itemInfo["document"], ask_permission=False)
             itemID -= 1
+
+    def delete_row_from_table(self, delete_document_title=None):
+        rows = self.peaklist.GetItemCount() - 1
+        while rows >= 0:
+            itemInfo = self.on_get_item_information(rows)
+
+            if itemInfo["document"] == delete_document_title:
+                self.peaklist.DeleteItem(rows)
+            rows -= 1

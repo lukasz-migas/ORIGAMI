@@ -291,7 +291,6 @@ class DocumentTree(wx.TreeCtrl):
         pass
 
     def on_item_selecting(self, evt):
-        print("changing")
 
         # Get selected item
         self._item_id = evt.GetItem()
@@ -326,8 +325,8 @@ class DocumentTree(wx.TreeCtrl):
 
             if self.config.debug:
                 msg = (
-                    f"\n_document_type: {self._document_type}\n_item_leaf: {self._item_leaf}"
-                    + f"\n_item_branch: {self._item_branch}\n_item_root: {self._item_root}\n_indent: {self._indent}"
+                    f"\n_document_type: {self._document_type} | _item_leaf: {self._item_leaf} | "
+                    + f"_item_branch: {self._item_branch} | _item_root: {self._item_root} | _indent: {self._indent}"
                 )
                 logger.debug(msg)
         else:
@@ -371,7 +370,6 @@ class DocumentTree(wx.TreeCtrl):
         expandSelected : string, name of item to expand
         """
 
-        print("changed")
         root = self.GetRootItem()
         selected = self.GetSelection()
         item, cookie = self.GetFirstChild(root)
@@ -503,7 +501,7 @@ class DocumentTree(wx.TreeCtrl):
         key = evt.GetKeyCode()
 
         # detelete item
-        if key == 127:
+        if key == wx.WXK_DELETE:
             item = self.GetSelection()
             indent = self.get_item_indent(item)
             if indent == 0:
@@ -534,6 +532,376 @@ class DocumentTree(wx.TreeCtrl):
                 self.on_process_MS(evt=None)
         elif key == 341:  # F2
             self.onRenameItem(None)
+
+        if evt and key not in [wx.WXK_DELETE]:
+            evt.Skip()
+
+    def on_update_gui(self, query, subkey, dataset_name):
+        """Update various elements of the UI based on changes made to the document"""
+
+        document_title, dataset_type, __ = query
+        document = self.data_handling._on_get_document(document_title)
+        document_type = document.dataType
+
+        print(query, subkey, dataset_name)
+
+        if not dataset_name:
+            dataset_name = None
+
+        if (
+            dataset_type in ["Drift time (2D, EIC)"]
+            or dataset_type in ["Drift time (2D, combined voltages, EIC)"]
+            and document_type == "Type: MANUAL"
+        ):
+            self.ionPanel.delete_row_from_table(dataset_name, document_title)
+            self.on_update_extracted_patches(document_title, None, dataset_name)
+
+        if dataset_type in ["Drift time (2D)"] and document_type == "Type: 2D IM-MS":
+            self.textPanel.delete_row_from_table(document_title)
+
+        if dataset_type in ["Mass Spectra"]:
+            self.filesPanel.delete_row_from_table(dataset_name, document_title)
+
+    def on_delete_item(self, evt):
+        """Delete selected item from the document tree and the presenter dictionary"""
+        # TODO: change how data is deleted by not setting empty dictionary but simply deleted the item
+
+        def get_data_dataset():
+            if dataset_name:
+                return data[dataset_name]
+            return data
+
+        # delete document
+        if self._indent == 1:
+            self.removeDocument(None)
+            return
+
+        # get current item by examining the ident stack
+        query, subkey, dataset_name = self._get_delete_info_based_on_indent()
+        #         print(query, subkey, dataset_name)
+
+        # get data
+        __, data = self.data_handling.get_mobility_chromatographic_data(query, as_copy=False)
+        item_parent = self.GetNextSibling(self._item_id)
+        if item_parent:
+            self.SelectItem(item_parent)
+
+        # check whether subkey exist and if so, get item
+        if subkey:
+            subkey_child = ""
+            if len(subkey) == 2:
+                subkey_parent, subkey_child = subkey
+                if dataset_name:
+                    del data[dataset_name][subkey_parent.lower()][subkey_child]
+                else:
+                    del data[subkey_parent.lower()][subkey_child]
+            else:
+                subkey_parent = subkey[0]
+                if dataset_name:
+                    del data[dataset_name][subkey_parent.lower()]
+                else:
+                    del data[subkey_parent.lower()]
+            self.data_handling.set_mobility_chromatographic_data(query, data)
+
+        # delete only one item from dataset
+        if dataset_name and not subkey:
+            item_child = self.get_item_by_data(data.get(dataset_name, False))
+            item_parent = self.get_item_by_data(data)
+            if not item_child:
+                raise MessageError(
+                    "Error",
+                    "Could not identify which item should be deleted. Please right-click on an item and"
+                    + " select `Delete item` to delete the item from the document.",
+                )
+            del data[dataset_name]
+            if data:
+                self.data_handling.set_parent_mobility_chromatographic_data([query[0], query[1], dataset_name], dict())
+                self.Delete(item_child)
+                self.SelectItem(item_parent)
+            else:
+                self.data_handling.set_parent_mobility_chromatographic_data(query, dict())
+                self.Delete(item_parent)
+            logger.info(f"Deleted {query[0]} : {query[1]} : {dataset_name}")
+
+        # delete entire dataset
+        if not dataset_name and not subkey:
+            item = self.get_item_by_data(data)
+            if not item:
+                raise MessageError(
+                    "Error",
+                    "Could not identify which item should be deleted. Please right-click on an item and"
+                    + " select `Delete item` to delete the item from the document.",
+                )
+            del data
+            self.data_handling.set_parent_mobility_chromatographic_data(query, dict())
+            self.Delete(item)
+            logger.info(f"Deleted {query[0]} : {query[1]}")
+
+        self.on_update_gui(query, subkey, dataset_name)
+
+    #         try:
+    #             currentDoc = self._document_data.title
+    #         except Exception:
+    #             print("Please select document in the document tree. Sometimes you might have to right-click on it.")
+    #             return
+    #         document_title = byte2str(self._document_data.title)
+    #         document = self.presenter.documentsDict[document_title]
+    #         delete_outcome = False
+    #         docExpandItem = None
+
+    #         # Check what is going to be deleted
+    #         # MS
+    #         if self._document_type == "Mass Spectrum":
+    #             # remove annotations
+    #             if "Annotations" in self._item_leaf and self._item_branch == "Mass Spectrum":
+    #                 del self.presenter.documentsDict[currentDoc].massSpectrum["annotations"]
+    #             elif self._item_branch == "Annotations":
+    #                 del self.presenter.documentsDict[currentDoc].massSpectrum["annotations"][self._item_leaf]
+    #             # remove unidec data
+    #             elif "UniDec" in self._item_leaf and self._item_branch == "Mass Spectrum":
+    #                 del self.presenter.documentsDict[currentDoc].massSpectrum["unidec"]
+    #             elif self._item_branch == "UniDec":
+    #                 del self.presenter.documentsDict[currentDoc].massSpectrum["unidec"][self._item_leaf]
+    #             # remove mass spectrum
+    #             else:
+    #                 self.presenter.documentsDict[currentDoc].massSpectrum = {}
+    #                 self.presenter.documentsDict[currentDoc].gotMS = False
+    #
+    #         if self._document_type == "Mass Spectrum (processed)":
+    #             # remove annotations
+    #             if "Annotations" in self._item_leaf and self._item_branch == "Mass Spectrum (processed)":
+    #                 del self.presenter.documentsDict[currentDoc].smoothMS["annotations"]
+    #             elif self._item_branch == "Annotations":
+    #                 del self.presenter.documentsDict[currentDoc].smoothMS["annotations"][self._item_leaf]
+    #             # remove unidec data
+    #             elif "UniDec" in self._item_leaf and self._item_branch == "Mass Spectrum (processed)":
+    #                 del self.presenter.documentsDict[currentDoc].smoothMS["unidec"]
+    #             elif self._item_branch == "UniDec":
+    #                 del self.presenter.documentsDict[currentDoc].smoothMS["unidec"][self._item_leaf]
+    #             # remove mass spectrum
+    #             else:
+    #                 self.presenter.documentsDict[currentDoc].smoothMS = {}
+    #
+    #         if self._document_type == "Mass Spectra":
+    #             docExpandItem = document.multipleMassSpectrum
+    #             # remove unidec data
+    #             if self._item_leaf == "UniDec" and self._indent == 4:
+    #                 del self.presenter.documentsDict[currentDoc].multipleMassSpectrum[self._item_branch]["unidec"]
+    #             elif self._item_branch == "UniDec" and self._indent == 5:
+    #                 del self.presenter.documentsDict[currentDoc].multipleMassSpectrum[self._item_root]["unidec"][
+    #                     self._item_leaf
+    #                 ]
+    #             # remove annotations
+    #             elif "Annotations" in self._item_leaf and self._indent == 4:
+    #                 del self.presenter.documentsDict[currentDoc].multipleMassSpectrum[self._item_branch]["annotations"]
+    #             elif "Annotations" in self._item_branch and self._indent == 5:
+    #                 del self.presenter.documentsDict[currentDoc].multipleMassSpectrum[self._item_root]["annotations"][
+    #                     self._item_leaf
+    #                 ]
+    #             # remove mass spectra
+    #             elif self._item_branch == "Mass Spectra":
+    #                 document, delete_outcome = self.on_delete_data__mass_spectra(
+    #                     document,
+    #                     document_title,
+    #                     delete_type="spectrum.one",
+    #                     spectrum_name=self._item_leaf,
+    #                     confirm_deletion=True,
+    #                 )
+    #             elif self._item_leaf == "Mass Spectra":
+    #                 document, delete_outcome = self.on_delete_data__mass_spectra(
+    #                     document, document_title, delete_type="spectrum.all", confirm_deletion=True
+    #                 )
+    #
+    #         # MS/DT
+    #         if self._document_type == "DT/MS":
+    #             self.presenter.documentsDict[currentDoc].DTMZ = {}
+    #             self.presenter.documentsDict[currentDoc].gotDTMZ = False
+    #
+    #         if self._document_type == "UniDec":
+    #             del self.presenter.documentsDict[currentDoc].massSpectrum["unidec"]
+    #             try:
+    #                 del self.presenter.documentsDict[currentDoc].multipleMassSpectrum["temporary_unidec"]
+    #             except Exception:
+    #                 pass
+    #
+    #         # DT
+    #         elif self._document_type == "Drift time (1D)":
+    #             self.presenter.documentsDict[currentDoc].DT = {}
+    #             self.presenter.documentsDict[currentDoc].got1DT = False
+    #
+    #         elif self._document_type == "Drift time (1D, EIC, DT-IMS)":
+    #             if self._item_leaf == "Drift time (1D, EIC, DT-IMS)":
+    #                 self.presenter.documentsDict[currentDoc].IMS1DdriftTimes = {}
+    #                 self.presenter.documentsDict[currentDoc].gotExtractedDriftTimes = False
+    #             else:
+    #                 del self.presenter.documentsDict[currentDoc].IMS1DdriftTimes[self._item_leaf]
+    #                 if len(self.presenter.documentsDict[currentDoc].IMS1DdriftTimes) == 0:
+    #                     self.presenter.documentsDict[currentDoc].gotExtractedDriftTimes = False
+    #
+    #         elif self._document_type == "Drift time (1D, EIC)":
+    #             if self._item_leaf == "Drift time (1D, EIC)":
+    #                 self.presenter.documentsDict[currentDoc].multipleDT = {}
+    #                 self.presenter.documentsDict[currentDoc].gotMultipleDT = False
+    #             else:
+    #                 del self.presenter.documentsDict[currentDoc].multipleDT[self._item_leaf]
+    #                 if len(self.presenter.documentsDict[currentDoc].multipleDT) == 0:
+    #                     self.presenter.documentsDict[currentDoc].gotMultipleDT = False
+    #
+    #         elif self._document_type == "Annotated data":
+    #             # remove annotations
+    #             if "Annotations" in self._item_leaf and self._indent == 4:
+    #                 del self.presenter.documentsDict[currentDoc].other_data[self._item_branch]["annotations"]
+    #             elif "Annotations" in self._item_branch and self._indent == 5:
+    #                 del self.presenter.documentsDict[currentDoc].other_data[self._item_root]["annotations"][self._item_leaf]
+    #             elif self._item_leaf == "Annotated data":
+    #                 self.presenter.documentsDict[currentDoc].other_data = {}
+    #             else:
+    #                 del self.presenter.documentsDict[currentDoc].other_data[self._item_leaf]
+    #
+    #         # RT
+    #         elif self._document_type == "Chromatogram":
+    #             self.presenter.documentsDict[currentDoc].RT = {}
+    #             self.presenter.documentsDict[currentDoc].got1RT = False
+    #
+    #         elif self._document_type == "Chromatograms (combined voltages, EIC)":
+    #             if self._item_leaf == "Chromatograms (combined voltages, EIC)":
+    #                 document, delete_outcome = self.on_delete_data__heatmap(
+    #                     document, document_title, delete_type="heatmap.rt.all"
+    #                 )
+    #             else:
+    #                 document, delete_outcome = self.on_delete_data__heatmap(
+    #                     document, document_title, delete_type="heatmap.rt.one", ion_name=self._item_leaf
+    #                 )
+    #
+    #         elif self._item_branch == "Chromatograms (EIC)":
+    #             document, delete_outcome = self.on_delete_data__chromatograms(
+    #                 document,
+    #                 document_title,
+    #                 delete_type="chromatogram.one",
+    #                 spectrum_name=self._item_leaf,
+    #                 confirm_deletion=True,
+    #             )
+    #         elif self._item_leaf == "Chromatograms (EIC)":
+    #             document, delete_outcome = self.on_delete_data__chromatograms(
+    #                 document, document_title, delete_type="chromatogram.all", confirm_deletion=True
+    #             )
+    #
+    #         # 2D
+    #         elif self._document_type == "Drift time (2D)":
+    #             self.presenter.documentsDict[currentDoc].IMS2D = {}
+    #             self.presenter.documentsDict[currentDoc].got2DIMS = False
+    #
+    #         elif self._document_type == "Drift time (2D, processed)":
+    #             self.presenter.documentsDict[currentDoc].IMS2Dprocess = {}
+    #             self.presenter.documentsDict[currentDoc].got2Dprocess = False
+    #
+    #         elif self._document_type == "Drift time (2D, EIC)":
+    #             if self._item_leaf == "Drift time (2D, EIC)":
+    #                 document, delete_outcome = self.on_delete_data__heatmap(
+    #                     document, document_title, delete_type="heatmap.raw.all"
+    #                 )
+    #             else:
+    #                 document, delete_outcome = self.on_delete_data__heatmap(
+    #                     document, document_title, delete_type="heatmap.raw.one", ion_name=self._item_leaf
+    #                 )
+    #
+    #         elif self._document_type == "Drift time (2D, combined voltages, EIC)":
+    #             if self._item_leaf == "Drift time (2D, combined voltages, EIC)":
+    #                 document, delete_outcome = self.on_delete_data__heatmap(
+    #                     document, document_title, delete_type="heatmap.combined.all"
+    #                 )
+    #             else:
+    #                 document, delete_outcome = self.on_delete_data__heatmap(
+    #                     document, document_title, delete_type="heatmap.combined.one", ion_name=self._item_leaf
+    #                 )
+    #
+    #         elif self._document_type == "Drift time (2D, processed, EIC)":
+    #             if self._item_leaf == "Drift time (2D, processed, EIC)":
+    #                 document, delete_outcome = self.on_delete_data__heatmap(
+    #                     document, document_title, delete_type="heatmap.processed.all"
+    #                 )
+    #             else:
+    #                 document, delete_outcome = self.on_delete_data__heatmap(
+    #                     document, document_title, delete_type="heatmap.processed.one", ion_name=self._item_leaf
+    #                 )
+    #
+    #         elif self._document_type == "Input data":
+    #             if self._item_leaf == "Input data":
+    #                 self.presenter.documentsDict[currentDoc].IMS2DcompData = {}
+    #                 self.presenter.documentsDict[currentDoc].gotComparisonData = False
+    #             else:
+    #                 del self.presenter.documentsDict[currentDoc].IMS2DcompData[self._item_leaf]
+    #                 if len(self.presenter.documentsDict[currentDoc].IMS2DcompData) == 0:
+    #                     self.presenter.documentsDict[currentDoc].gotComparisonData = False
+    #
+    #         elif self._document_type == "Statistical":
+    #             if self._item_leaf == "Statistical":
+    #                 self.presenter.documentsDict[currentDoc].IMS2DstatsData = {}
+    #                 self.presenter.documentsDict[currentDoc].gotStatsData = False
+    #             else:
+    #                 del self.presenter.documentsDict[currentDoc].IMS2DstatsData[self._item_leaf]
+    #                 if len(self.presenter.documentsDict[currentDoc].IMS2DstatsData) == 0:
+    #                     self.presenter.documentsDict[currentDoc].gotStatsData = False
+    #
+    #         elif self._document_type == "Overlay":
+    #             if self._item_leaf == "Overlay":
+    #                 self.presenter.documentsDict[currentDoc].IMS2DoverlayData = {}
+    #                 self.presenter.documentsDict[currentDoc].gotOverlay = False
+    #             else:
+    #                 del self.presenter.documentsDict[currentDoc].IMS2DoverlayData[self._item_leaf]
+    #                 if len(self.presenter.documentsDict[currentDoc].IMS2DoverlayData) == 0:
+    #                     self.presenter.documentsDict[currentDoc].gotOverlay = False
+    #
+    #         # Calibration
+    #         elif self._document_type == "Calibration peaks":
+    #             if self._item_leaf == "Calibration peaks":
+    #                 self.presenter.documentsDict[currentDoc].calibration = {}
+    #                 self.presenter.documentsDict[currentDoc].gotCalibration = False
+    #             else:
+    #                 del self.presenter.documentsDict[currentDoc].calibration[self._item_leaf]
+    #                 if len(self.presenter.documentsDict[currentDoc].calibration) == 0:
+    #                     self.presenter.documentsDict[currentDoc].gotCalibration = False
+    #
+    #         elif self._document_type == "Calibrants":
+    #             if self._item_leaf == "Calibrants":
+    #                 self.presenter.documentsDict[currentDoc].calibrationDataset = {}
+    #                 self.presenter.documentsDict[currentDoc].gotCalibrationDataset = False
+    #             else:
+    #                 del self.presenter.documentsDict[currentDoc].calibrationDataset[self._item_leaf]
+    #                 if len(self.presenter.documentsDict[currentDoc].calibrationDataset) == 0:
+    #                     self.presenter.documentsDict[currentDoc].gotCalibrationDataset = False
+    #
+    #         # Update documents tree
+    #         if not delete_outcome:
+    #             self.add_document(docData=document, expandItem=docExpandItem)
+    #             self.presenter.documentsDict[document_title] = document
+    #         else:
+    #             self.data_handling.on_update_document(document, "no_refresh")
+
+    def set_document(self, document_old, document_new):
+        """Replace old document data with new
+
+        Parameters
+        ----------
+        document_old: py object
+            old document (before any data changes)
+        document_new: py object
+            new document (after any data changes)
+        """
+
+        # try to get dataset object
+        try:
+            docItem = self.get_item_by_data(document_old)
+        except Exception:
+            docItem = False
+
+        if docItem is not False:
+            try:
+                self.SetPyData(docItem, document_new)
+            except Exception:
+                self.data_handling.on_update_document(document_new, "document")
+        else:
+            self.data_handling.on_update_document(document_new, "document")
 
     def on_double_click(self, evt):
 
@@ -1433,344 +1801,6 @@ class DocumentTree(wx.TreeCtrl):
 
         if evt is not None:
             evt.Skip()
-
-    def on_delete_item(self, evt):
-        """Delete selected item from the document tree and the presenter dictionary"""
-
-        def get_data_dataset():
-            if dataset_name:
-                return data[dataset_name]
-            return data
-
-        # delete document
-        if self._indent == 1:
-            self.removeDocument(None)
-            return
-
-        # get current item by examining the ident stack
-        query, subkey, dataset_name = self._get_delete_info_based_on_indent()
-        print(query, subkey, dataset_name)
-
-        print(self._item_id)
-
-        # get data
-        __, data = self.data_handling.get_mobility_chromatographic_data(query, as_copy=False)
-        item_parent = self.GetItemParent(self._item_id)
-
-        # check whether subkey exist and if so, get item
-        if subkey:
-            subkey_child = ""
-            if len(subkey) == 2:
-                subkey_parent, subkey_child = subkey
-                if dataset_name:
-                    del data[dataset_name][subkey_parent.lower()][subkey_child]
-                else:
-                    del data[subkey_parent.lower()][subkey_child]
-            else:
-                subkey_parent = subkey[0]
-                if dataset_name:
-                    del data[dataset_name][subkey_parent.lower()]
-                else:
-                    del data[subkey_parent.lower()]
-            self.data_handling.set_mobility_chromatographic_data(query, data)
-
-        # delete only one item from dataset
-        if dataset_name and not subkey:
-            item_child = self.get_item_by_data(data.get(dataset_name, False))
-            item_parent = self.get_item_by_data(data)
-            if not item_child:
-                raise MessageError(
-                    "Error",
-                    "Could not identify which item should be deleted. Please right-click on an item and"
-                    + " select `Delete item` to delete the item from the document.",
-                )
-            del data[dataset_name]
-            if data:
-                self.data_handling.set_parent_mobility_chromatographic_data([query[0], query[1], dataset_name], dict())
-                self.Delete(item_child)
-                self.SelectItem(item_parent)
-            else:
-                self.data_handling.set_parent_mobility_chromatographic_data(query, dict())
-                self.Delete(item_parent)
-            logger.info(f"Deleted {query[0]} : {query[1]} : {dataset_name}")
-
-        # delete entire dataset
-        if not dataset_name and not subkey:
-            item = self.get_item_by_data(data)
-            if not item:
-                raise MessageError(
-                    "Error",
-                    "Could not identify which item should be deleted. Please right-click on an item and"
-                    + " select `Delete item` to delete the item from the document.",
-                )
-            del data
-            self.data_handling.set_parent_mobility_chromatographic_data(query, dict())
-            self.Delete(item)
-            logger.info(f"Deleted {query[0]} : {query[1]}")
-
-    #         try:
-    #             currentDoc = self._document_data.title
-    #         except Exception:
-    #             print("Please select document in the document tree. Sometimes you might have to right-click on it.")
-    #             return
-    #         document_title = byte2str(self._document_data.title)
-    #         document = self.presenter.documentsDict[document_title]
-    #         delete_outcome = False
-    #         docExpandItem = None
-
-    #         # Check what is going to be deleted
-    #         # MS
-    #         if self._document_type == "Mass Spectrum":
-    #             # remove annotations
-    #             if "Annotations" in self._item_leaf and self._item_branch == "Mass Spectrum":
-    #                 del self.presenter.documentsDict[currentDoc].massSpectrum["annotations"]
-    #             elif self._item_branch == "Annotations":
-    #                 del self.presenter.documentsDict[currentDoc].massSpectrum["annotations"][self._item_leaf]
-    #             # remove unidec data
-    #             elif "UniDec" in self._item_leaf and self._item_branch == "Mass Spectrum":
-    #                 del self.presenter.documentsDict[currentDoc].massSpectrum["unidec"]
-    #             elif self._item_branch == "UniDec":
-    #                 del self.presenter.documentsDict[currentDoc].massSpectrum["unidec"][self._item_leaf]
-    #             # remove mass spectrum
-    #             else:
-    #                 self.presenter.documentsDict[currentDoc].massSpectrum = {}
-    #                 self.presenter.documentsDict[currentDoc].gotMS = False
-    #
-    #         if self._document_type == "Mass Spectrum (processed)":
-    #             # remove annotations
-    #             if "Annotations" in self._item_leaf and self._item_branch == "Mass Spectrum (processed)":
-    #                 del self.presenter.documentsDict[currentDoc].smoothMS["annotations"]
-    #             elif self._item_branch == "Annotations":
-    #                 del self.presenter.documentsDict[currentDoc].smoothMS["annotations"][self._item_leaf]
-    #             # remove unidec data
-    #             elif "UniDec" in self._item_leaf and self._item_branch == "Mass Spectrum (processed)":
-    #                 del self.presenter.documentsDict[currentDoc].smoothMS["unidec"]
-    #             elif self._item_branch == "UniDec":
-    #                 del self.presenter.documentsDict[currentDoc].smoothMS["unidec"][self._item_leaf]
-    #             # remove mass spectrum
-    #             else:
-    #                 self.presenter.documentsDict[currentDoc].smoothMS = {}
-    #
-    #         if self._document_type == "Mass Spectra":
-    #             docExpandItem = document.multipleMassSpectrum
-    #             # remove unidec data
-    #             if self._item_leaf == "UniDec" and self._indent == 4:
-    #                 del self.presenter.documentsDict[currentDoc].multipleMassSpectrum[self._item_branch]["unidec"]
-    #             elif self._item_branch == "UniDec" and self._indent == 5:
-    #                 del self.presenter.documentsDict[currentDoc].multipleMassSpectrum[self._item_root]["unidec"][
-    #                     self._item_leaf
-    #                 ]
-    #             # remove annotations
-    #             elif "Annotations" in self._item_leaf and self._indent == 4:
-    #                 del self.presenter.documentsDict[currentDoc].multipleMassSpectrum[self._item_branch]["annotations"]
-    #             elif "Annotations" in self._item_branch and self._indent == 5:
-    #                 del self.presenter.documentsDict[currentDoc].multipleMassSpectrum[self._item_root]["annotations"][
-    #                     self._item_leaf
-    #                 ]
-    #             # remove mass spectra
-    #             elif self._item_branch == "Mass Spectra":
-    #                 document, delete_outcome = self.on_delete_data__mass_spectra(
-    #                     document,
-    #                     document_title,
-    #                     delete_type="spectrum.one",
-    #                     spectrum_name=self._item_leaf,
-    #                     confirm_deletion=True,
-    #                 )
-    #             elif self._item_leaf == "Mass Spectra":
-    #                 document, delete_outcome = self.on_delete_data__mass_spectra(
-    #                     document, document_title, delete_type="spectrum.all", confirm_deletion=True
-    #                 )
-    #
-    #         # MS/DT
-    #         if self._document_type == "DT/MS":
-    #             self.presenter.documentsDict[currentDoc].DTMZ = {}
-    #             self.presenter.documentsDict[currentDoc].gotDTMZ = False
-    #
-    #         if self._document_type == "UniDec":
-    #             del self.presenter.documentsDict[currentDoc].massSpectrum["unidec"]
-    #             try:
-    #                 del self.presenter.documentsDict[currentDoc].multipleMassSpectrum["temporary_unidec"]
-    #             except Exception:
-    #                 pass
-    #
-    #         # DT
-    #         elif self._document_type == "Drift time (1D)":
-    #             self.presenter.documentsDict[currentDoc].DT = {}
-    #             self.presenter.documentsDict[currentDoc].got1DT = False
-    #
-    #         elif self._document_type == "Drift time (1D, EIC, DT-IMS)":
-    #             if self._item_leaf == "Drift time (1D, EIC, DT-IMS)":
-    #                 self.presenter.documentsDict[currentDoc].IMS1DdriftTimes = {}
-    #                 self.presenter.documentsDict[currentDoc].gotExtractedDriftTimes = False
-    #             else:
-    #                 del self.presenter.documentsDict[currentDoc].IMS1DdriftTimes[self._item_leaf]
-    #                 if len(self.presenter.documentsDict[currentDoc].IMS1DdriftTimes) == 0:
-    #                     self.presenter.documentsDict[currentDoc].gotExtractedDriftTimes = False
-    #
-    #         elif self._document_type == "Drift time (1D, EIC)":
-    #             if self._item_leaf == "Drift time (1D, EIC)":
-    #                 self.presenter.documentsDict[currentDoc].multipleDT = {}
-    #                 self.presenter.documentsDict[currentDoc].gotMultipleDT = False
-    #             else:
-    #                 del self.presenter.documentsDict[currentDoc].multipleDT[self._item_leaf]
-    #                 if len(self.presenter.documentsDict[currentDoc].multipleDT) == 0:
-    #                     self.presenter.documentsDict[currentDoc].gotMultipleDT = False
-    #
-    #         elif self._document_type == "Annotated data":
-    #             # remove annotations
-    #             if "Annotations" in self._item_leaf and self._indent == 4:
-    #                 del self.presenter.documentsDict[currentDoc].other_data[self._item_branch]["annotations"]
-    #             elif "Annotations" in self._item_branch and self._indent == 5:
-    #                 del self.presenter.documentsDict[currentDoc].other_data[self._item_root]["annotations"][self._item_leaf]
-    #             elif self._item_leaf == "Annotated data":
-    #                 self.presenter.documentsDict[currentDoc].other_data = {}
-    #             else:
-    #                 del self.presenter.documentsDict[currentDoc].other_data[self._item_leaf]
-    #
-    #         # RT
-    #         elif self._document_type == "Chromatogram":
-    #             self.presenter.documentsDict[currentDoc].RT = {}
-    #             self.presenter.documentsDict[currentDoc].got1RT = False
-    #
-    #         elif self._document_type == "Chromatograms (combined voltages, EIC)":
-    #             if self._item_leaf == "Chromatograms (combined voltages, EIC)":
-    #                 document, delete_outcome = self.on_delete_data__heatmap(
-    #                     document, document_title, delete_type="heatmap.rt.all"
-    #                 )
-    #             else:
-    #                 document, delete_outcome = self.on_delete_data__heatmap(
-    #                     document, document_title, delete_type="heatmap.rt.one", ion_name=self._item_leaf
-    #                 )
-    #
-    #         elif self._item_branch == "Chromatograms (EIC)":
-    #             document, delete_outcome = self.on_delete_data__chromatograms(
-    #                 document,
-    #                 document_title,
-    #                 delete_type="chromatogram.one",
-    #                 spectrum_name=self._item_leaf,
-    #                 confirm_deletion=True,
-    #             )
-    #         elif self._item_leaf == "Chromatograms (EIC)":
-    #             document, delete_outcome = self.on_delete_data__chromatograms(
-    #                 document, document_title, delete_type="chromatogram.all", confirm_deletion=True
-    #             )
-    #
-    #         # 2D
-    #         elif self._document_type == "Drift time (2D)":
-    #             self.presenter.documentsDict[currentDoc].IMS2D = {}
-    #             self.presenter.documentsDict[currentDoc].got2DIMS = False
-    #
-    #         elif self._document_type == "Drift time (2D, processed)":
-    #             self.presenter.documentsDict[currentDoc].IMS2Dprocess = {}
-    #             self.presenter.documentsDict[currentDoc].got2Dprocess = False
-    #
-    #         elif self._document_type == "Drift time (2D, EIC)":
-    #             if self._item_leaf == "Drift time (2D, EIC)":
-    #                 document, delete_outcome = self.on_delete_data__heatmap(
-    #                     document, document_title, delete_type="heatmap.raw.all"
-    #                 )
-    #             else:
-    #                 document, delete_outcome = self.on_delete_data__heatmap(
-    #                     document, document_title, delete_type="heatmap.raw.one", ion_name=self._item_leaf
-    #                 )
-    #
-    #         elif self._document_type == "Drift time (2D, combined voltages, EIC)":
-    #             if self._item_leaf == "Drift time (2D, combined voltages, EIC)":
-    #                 document, delete_outcome = self.on_delete_data__heatmap(
-    #                     document, document_title, delete_type="heatmap.combined.all"
-    #                 )
-    #             else:
-    #                 document, delete_outcome = self.on_delete_data__heatmap(
-    #                     document, document_title, delete_type="heatmap.combined.one", ion_name=self._item_leaf
-    #                 )
-    #
-    #         elif self._document_type == "Drift time (2D, processed, EIC)":
-    #             if self._item_leaf == "Drift time (2D, processed, EIC)":
-    #                 document, delete_outcome = self.on_delete_data__heatmap(
-    #                     document, document_title, delete_type="heatmap.processed.all"
-    #                 )
-    #             else:
-    #                 document, delete_outcome = self.on_delete_data__heatmap(
-    #                     document, document_title, delete_type="heatmap.processed.one", ion_name=self._item_leaf
-    #                 )
-    #
-    #         elif self._document_type == "Input data":
-    #             if self._item_leaf == "Input data":
-    #                 self.presenter.documentsDict[currentDoc].IMS2DcompData = {}
-    #                 self.presenter.documentsDict[currentDoc].gotComparisonData = False
-    #             else:
-    #                 del self.presenter.documentsDict[currentDoc].IMS2DcompData[self._item_leaf]
-    #                 if len(self.presenter.documentsDict[currentDoc].IMS2DcompData) == 0:
-    #                     self.presenter.documentsDict[currentDoc].gotComparisonData = False
-    #
-    #         elif self._document_type == "Statistical":
-    #             if self._item_leaf == "Statistical":
-    #                 self.presenter.documentsDict[currentDoc].IMS2DstatsData = {}
-    #                 self.presenter.documentsDict[currentDoc].gotStatsData = False
-    #             else:
-    #                 del self.presenter.documentsDict[currentDoc].IMS2DstatsData[self._item_leaf]
-    #                 if len(self.presenter.documentsDict[currentDoc].IMS2DstatsData) == 0:
-    #                     self.presenter.documentsDict[currentDoc].gotStatsData = False
-    #
-    #         elif self._document_type == "Overlay":
-    #             if self._item_leaf == "Overlay":
-    #                 self.presenter.documentsDict[currentDoc].IMS2DoverlayData = {}
-    #                 self.presenter.documentsDict[currentDoc].gotOverlay = False
-    #             else:
-    #                 del self.presenter.documentsDict[currentDoc].IMS2DoverlayData[self._item_leaf]
-    #                 if len(self.presenter.documentsDict[currentDoc].IMS2DoverlayData) == 0:
-    #                     self.presenter.documentsDict[currentDoc].gotOverlay = False
-    #
-    #         # Calibration
-    #         elif self._document_type == "Calibration peaks":
-    #             if self._item_leaf == "Calibration peaks":
-    #                 self.presenter.documentsDict[currentDoc].calibration = {}
-    #                 self.presenter.documentsDict[currentDoc].gotCalibration = False
-    #             else:
-    #                 del self.presenter.documentsDict[currentDoc].calibration[self._item_leaf]
-    #                 if len(self.presenter.documentsDict[currentDoc].calibration) == 0:
-    #                     self.presenter.documentsDict[currentDoc].gotCalibration = False
-    #
-    #         elif self._document_type == "Calibrants":
-    #             if self._item_leaf == "Calibrants":
-    #                 self.presenter.documentsDict[currentDoc].calibrationDataset = {}
-    #                 self.presenter.documentsDict[currentDoc].gotCalibrationDataset = False
-    #             else:
-    #                 del self.presenter.documentsDict[currentDoc].calibrationDataset[self._item_leaf]
-    #                 if len(self.presenter.documentsDict[currentDoc].calibrationDataset) == 0:
-    #                     self.presenter.documentsDict[currentDoc].gotCalibrationDataset = False
-    #
-    #         # Update documents tree
-    #         if not delete_outcome:
-    #             self.add_document(docData=document, expandItem=docExpandItem)
-    #             self.presenter.documentsDict[document_title] = document
-    #         else:
-    #             self.data_handling.on_update_document(document, "no_refresh")
-
-    def set_document(self, document_old, document_new):
-        """Replace old document data with new
-
-        Parameters
-        ----------
-        document_old: py object
-            old document (before any data changes)
-        document_new: py object
-            new document (after any data changes)
-        """
-
-        # try to get dataset object
-        try:
-            docItem = self.get_item_by_data(document_old)
-        except Exception:
-            docItem = False
-
-        if docItem is not False:
-            try:
-                self.SetPyData(docItem, document_new)
-            except Exception:
-                self.data_handling.on_update_document(document_new, "document")
-        else:
-            self.data_handling.on_update_document(document_new, "document")
 
     def on_delete_all_documents(self, evt):
         """ Alternative function to delete documents """
@@ -6655,7 +6685,7 @@ class DocumentTree(wx.TreeCtrl):
         """
 
         # remove all patches
-        if data_type == "__all__":
+        if data_type == "__all__" or ion_name is None:
             self.panel_plot.on_clear_patches(plot="MS")
         # remove specific patch
         else:
