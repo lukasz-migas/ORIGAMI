@@ -590,7 +590,7 @@ class HTMLHelp:
 
         msg = """
         <p><strong>Overlaying items</strong></p>
-        <p>ORIGAMI enables multiple overlay and comparison functions for mobiligrams, chromatograms, mass spectra and
+        <p>ORIGAMI enables multiple overlay and comparison functions for mobilograms, chromatograms, mass spectra and
         two-dimensional heatmaps. These items are added to <strong>Comparison</strong> document which holds the
         input and output datasets, often pooled from multiple sources.</p>
         <p><strong>Overlaying mass spectra</strong></p>
@@ -600,12 +600,12 @@ class HTMLHelp:
         Settings: Process mass spectra (<strong>Shift + 3</strong>). In addition to overlaying raw spectra,
         you can also visualise multiple UniDec results.</p>
         <p><img src="images/plot_overlay_waterfall_MS.png" alt="" width="910" height="371" /></p>
-        <p><strong>Overlaying mobiligrams and chromatograms<br /></strong></p>
+        <p><strong>Overlaying mobilograms and chromatograms<br /></strong></p>
         <p>These can be created from within the Peak list panel or Text list panel and generate 1D overlay plots
         for selected items.</p>
-        <p><strong>Figure 2. Overlayed mobiligram from Herceptin
+        <p><strong>Figure 2. Overlayed mobilogram from Herceptin
         mAb (<span data-dobid="hdw">courtesy</span> of Rosie Upton).</strong></p>
-        <p><img src="images/plot_origami_compare_mobiligrams.png" alt="" width="1243" height="527" /></p>
+        <p><img src="images/plot_origami_compare_mobilograms.png" alt="" width="1243" height="527" /></p>
         <p>&nbsp;</p>
         <p><strong>Overlaying heatmaps</strong></p>
         <p>These can be created from within the Peak list panel or Text list panel. There are

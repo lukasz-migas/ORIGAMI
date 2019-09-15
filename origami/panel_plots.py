@@ -571,7 +571,7 @@ class PanelPlots(wx.Panel):
                     )
                 )
             else:
-                menu.Append(ID_smooth1Ddata1DT, "Smooth mobiligram")
+                menu.Append(ID_smooth1Ddata1DT, "Smooth mobilogram")
                 menu.AppendSeparator()
                 menu.AppendItem(menu_edit_general)
                 menu.AppendItem(menu_edit_plot_1D)
@@ -776,6 +776,8 @@ class PanelPlots(wx.Panel):
         # retrieve event ID
         if isinstance(evt, int):
             evtID = evt
+        elif isinstance(evt, str):
+            evtID = evt.lower()
         elif evt is None:
             evtID = None
         else:
@@ -788,7 +790,7 @@ class PanelPlots(wx.Panel):
             return
 
         # Select default name + link to the plot
-        if evtID in [ID_saveMSImage, ID_saveMSImageDoc]:
+        if evtID in [ID_saveMSImage, ID_saveMSImageDoc, "ms"]:
             image_name = self.config._plotSettings["MS"]["default_name"]
             resizeName = "MS"
             plotWindow = self.plot1
@@ -799,27 +801,27 @@ class PanelPlots(wx.Panel):
             resizeName = "MS (compare)"
             plotWindow = self.plot1
 
-        elif evtID in [ID_saveRTImage, ID_saveRTImageDoc]:
+        elif evtID in [ID_saveRTImage, ID_saveRTImageDoc, "rt", "chromatogram"]:
             image_name = self.config._plotSettings["RT"]["default_name"]
             resizeName = "RT"
             plotWindow = self.plotRT
 
-        elif evtID in [ID_save1DImage, ID_save1DImageDoc]:
+        elif evtID in [ID_save1DImage, ID_save1DImageDoc, "1d", "mobilogram"]:
             image_name = self.config._plotSettings["DT"]["default_name"]
             resizeName = "DT"
             plotWindow = self.plot1D
 
-        elif evtID in [ID_save2DImage, ID_save2DImageDoc]:
+        elif evtID in [ID_save2DImage, ID_save2DImageDoc, "2d", "heatmap"]:
             plotWindow = self.plot2D
             image_name = self.config._plotSettings["2D"]["default_name"]
             resizeName = "2D"
 
-        elif evtID in [ID_save3DImage, ID_save3DImageDoc]:
+        elif evtID in [ID_save3DImage, ID_save3DImageDoc, "3d", "heatmap (3d)"]:
             image_name = self.config._plotSettings["3D"]["default_name"]
             resizeName = "3D"
             plotWindow = self.plot3D
 
-        elif evtID in [ID_saveWaterfallImage, ID_saveWaterfallImageDoc]:
+        elif evtID in [ID_saveWaterfallImage, ID_saveWaterfallImageDoc, "waterfall"]:
             plotWindow = self.plot_waterfall
             if plotWindow.plot_name == "Violin":
                 image_name = self.config._plotSettings["Violin"]["default_name"]
@@ -828,30 +830,31 @@ class PanelPlots(wx.Panel):
                 image_name = self.config._plotSettings["Waterfall"]["default_name"]
                 resizeName = "Waterfall"
 
-        elif evtID in [ID_saveRMSDImage, ID_saveRMSDImageDoc, ID_saveRMSFImage, ID_saveRMSFImageDoc]:
-            plotWindow = self.plot2D
-            image_name = self.config._plotSettings["RMSD"]["default_name"]
-            resizeName = plotWindow.get_plot_name()
-
-        elif evtID in [ID_saveOverlayImage, ID_saveOverlayImageDoc]:
-            plotWindow = self.plot2D
-            image_name = plotWindow.get_plot_name()
-            resizeName = "Overlay"
-
-        elif evtID in [ID_saveRMSDmatrixImage, ID_saveRMSDmatrixImageDoc]:
-            image_name = self.config._plotSettings["Matrix"]["default_name"]
-            resizeName = "Matrix"
-            plotWindow = self.plot2D
-
-        elif evtID in [ID_saveMZDTImage, ID_saveMZDTImageDoc]:
+        elif evtID in [ID_saveMZDTImage, ID_saveMZDTImageDoc, "ms/dt"]:
             image_name = self.config._plotSettings["DT/MS"]["default_name"]
             resizeName = "DT/MS"
             plotWindow = self.plot_DT_vs_MS
 
-        elif evtID in [ID_saveOtherImageDoc, ID_saveOtherImage]:
+        elif evtID in [ID_saveOverlayImage, ID_saveOverlayImageDoc, "mask", "transparent"]:
+            plotWindow = self.plotOther
+            image_name = plotWindow.get_plot_name()
+            resizeName = "Overlay"
+
+        elif evtID in [ID_saveRMSDmatrixImage, ID_saveRMSDmatrixImageDoc, "matrix"]:
+            image_name = self.config._plotSettings["Matrix"]["default_name"]
+            resizeName = "Matrix"
+            plotWindow = self.plotOther
+
+        elif evtID in [ID_saveRMSDImage, ID_saveRMSDImageDoc, ID_saveRMSFImage, ID_saveRMSFImageDoc, "rmsd", "rmsf"]:
+            plotWindow = self.plotOther
+            image_name = self.config._plotSettings["RMSD"]["default_name"]
+            resizeName = plotWindow.get_plot_name()
+
+        elif evtID in [ID_saveOtherImageDoc, ID_saveOtherImage, "overlay", "other"]:
             image_name = "custom_plot"
             resizeName = None
             plotWindow = self.plotOther
+
         elif evtID is None and "plot_obj" in save_kwargs:
             image_name = save_kwargs.get("image_name")
             resizeName = None
@@ -948,37 +951,32 @@ class PanelPlots(wx.Panel):
             plot object
         """
         plot_dict = {
-            "MS": self.plot1,
-            "Mass spectrum": self.plot1,
+            "ms": self.plot1,
             "mass_spectrum": self.plot1,
-            "RT": self.plotRT,
-            "Chromatogram": self.plotRT,
+            "rt": self.plotRT,
             "chromatogram": self.plotRT,
-            "1D": self.plot1D,
-            "Mobilogram": self.plot1D,
+            "1d": self.plot1D,
             "mobilogram": self.plot1D,
-            "2D": self.plot2D,
-            "Heatmap": self.plot2D,
+            "2d": self.plot2D,
             "heatmap": self.plot2D,
-            "DT/MS": self.plot_DT_vs_MS,
-            "Overlay": self.plotOther,
-            "RMSF": self.plotOther,
-            "RMSD": self.plotOther,
-            "Grid": self.plotOther,
-            "Compare": self.plotOther,
-            "Comparison": self.plotOther,
-            "Waterfall": self.plot_waterfall,
-            "Other": self.plotOther,
-            "3D": self.plot3D,
-            "Heatmap (3D)": self.plot3D,
-            "Matrix": self.plotOther,
-            "Annotated": self.plotOther,
+            "dt/ms": self.plot_DT_vs_MS,
+            "overlay": self.plotOther,
+            "rmsf": self.plotOther,
+            "rmsd": self.plotOther,
+            "grid": self.plotOther,
+            "compare": self.plotOther,
+            "comparison": self.plotOther,
+            "waterfall": self.plot_waterfall,
+            "other": self.plotOther,
+            "3d": self.plot3D,
+            "heatmap (3d)": self.plot3D,
+            "matrix": self.plotOther,
             "annotated": self.plotOther,
-            "MS_RT": self.plot_RT_MS,
-            "MS_DT": self.plot_DT_MS,
+            "ms_rt": self.plot_RT_MS,
+            "ms_dt": self.plot_DT_MS,
         }
 
-        return plot_dict.get(plot_name, None)
+        return plot_dict.get(plot_name.lower(), None)
 
     def get_plot_from_id(self, id_value):
         """Retireve plot object from id"""
@@ -2571,21 +2569,23 @@ class PanelPlots(wx.Panel):
         else:
             plot_obj = self.get_plot_from_name(show_in_window)
 
+        plt_kwargs["allow_extraction"] = kwargs.pop("allow_extraction", True)
         if show_in_window == "MS":
             window = self.config.panelNames["MS"]
             plot_size_key = "MS"
         elif show_in_window == "MS_RT":
             window = self.config.panelNames["RT"]
-            plt_kwargs["allow_extraction"] = True
+            plt_kwargs["allow_extraction"] = False
             plot_size_key = "MS (DT/RT)"
         elif show_in_window == "MS_DT":
             window = self.config.panelNames["1D"]
-            plt_kwargs["allow_extraction"] = True
+            plt_kwargs["allow_extraction"] = False
             plot_size_key = "MS (DT/RT)"
         else:
             window = None
-            plt_kwargs["allow_extraction"] = kwargs.pop("allow_extraction", True)
             plot_size_key = "MS"
+
+        print("allow_extraction", plt_kwargs["allow_extraction"])
 
         # change page
         if set_page and window is not None:
@@ -2801,22 +2801,6 @@ class PanelPlots(wx.Panel):
 
         # Plot data
         self.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, cmapNorm=cmapNorm, **kwargs)
-
-    #
-    #         if self.config.waterfall:
-    #             if len(xvals) > 500:
-    #                 msg = (
-    #                     "There are {} scans in this dataset".format(len(xvals))
-    #                     +" (it could be slow to plot Waterfall plot...). Would you like to continue?"
-    #                 )
-    #                 dlg = DialogBox(exceptionTitle="Would you like to continue?", exceptionMsg=msg, type="Question")
-    #                 if dlg == wx.ID_YES:
-    #                     self.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals, xlabel=xlabel, ylabel=ylabel)
-    #         try:
-    #             self.on_plot_3D(zvals=zvals, labelsX=xvals, labelsY=yvals, xlabel=xlabel,
-    # ylabel=ylabel, zlabel="Intensity")
-    #         except Exception:
-    #             pass
 
     def on_plot_violin(self, data=None, set_page=False, plot="Waterfall", **kwargs):
 
@@ -3261,7 +3245,7 @@ class PanelPlots(wx.Panel):
         else:
             plot_obj = self.get_plot_from_name(plot)
             if set_page:
-                self._set_page(self.config.panelNames["RT"])
+                self._set_page(self.config.panelNames.get(plot, "RT"))
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType="1D")
@@ -3289,7 +3273,7 @@ class PanelPlots(wx.Panel):
         else:
             plot_obj = self.get_plot_from_name(plot)
             if set_page:
-                self._set_page(self.config.panelNames["1D"])
+                self._set_page(self.config.panelNames.get(plot, "1D"))
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType="1D")
@@ -3376,7 +3360,7 @@ class PanelPlots(wx.Panel):
         else:
             plot_obj = self.get_plot_from_name(plot)
             if set_page:
-                self._set_page(self.config.panelNames["2D"])
+                self._set_page(self.config.panelNames.get(plot, "2D"))
 
         plt_kwargs = self._buildPlotParameters(plotType="2D")
 

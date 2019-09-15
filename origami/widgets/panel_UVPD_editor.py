@@ -15,20 +15,20 @@ from gui_elements.misc_dialogs import DialogBox
 from gui_elements.panel_htmlViewer import panelHTMLViewer
 from ids import ID_uvpd_laser_off_save_chromatogram
 from ids import ID_uvpd_laser_off_save_heatmap
-from ids import ID_uvpd_laser_off_save_mobiligram
+from ids import ID_uvpd_laser_off_save_mobilogram
 from ids import ID_uvpd_laser_off_show_chromatogram
 from ids import ID_uvpd_laser_off_show_heatmap
-from ids import ID_uvpd_laser_off_show_mobiligram
+from ids import ID_uvpd_laser_off_show_mobilogram
 from ids import ID_uvpd_laser_off_show_waterfall
 from ids import ID_uvpd_laser_on_off_compare_chromatogam
-from ids import ID_uvpd_laser_on_off_compare_mobiligram
-from ids import ID_uvpd_laser_on_off_mobiligram_show_chromatogram
+from ids import ID_uvpd_laser_on_off_compare_mobilogram
+from ids import ID_uvpd_laser_on_off_mobilogram_show_chromatogram
 from ids import ID_uvpd_laser_on_save_chromatogram
 from ids import ID_uvpd_laser_on_save_heatmap
-from ids import ID_uvpd_laser_on_save_mobiligram
+from ids import ID_uvpd_laser_on_save_mobilogram
 from ids import ID_uvpd_laser_on_show_chromatogram
 from ids import ID_uvpd_laser_on_show_heatmap
-from ids import ID_uvpd_laser_on_show_mobiligram
+from ids import ID_uvpd_laser_on_show_mobilogram
 from ids import ID_uvpd_laser_on_show_waterfall
 from ids import ID_uvpd_monitor_remove
 from natsort import natsorted
@@ -114,11 +114,11 @@ class PanelUVPDEditor(wx.MiniFrame):
         accelerators = [
             (wx.ACCEL_CTRL, ord("C"), ID_uvpd_laser_on_show_chromatogram),
             (wx.ACCEL_CTRL, ord("H"), ID_uvpd_laser_on_show_heatmap),
-            (wx.ACCEL_CTRL, ord("M"), ID_uvpd_laser_on_show_mobiligram),
+            (wx.ACCEL_CTRL, ord("M"), ID_uvpd_laser_on_show_mobilogram),
             (wx.ACCEL_CTRL, ord("W"), ID_uvpd_laser_on_show_waterfall),
             (wx.ACCEL_SHIFT, ord("C"), ID_uvpd_laser_off_show_chromatogram),
             (wx.ACCEL_SHIFT, ord("H"), ID_uvpd_laser_off_show_heatmap),
-            (wx.ACCEL_SHIFT, ord("M"), ID_uvpd_laser_off_show_mobiligram),
+            (wx.ACCEL_SHIFT, ord("M"), ID_uvpd_laser_off_show_mobilogram),
             (wx.ACCEL_SHIFT, ord("W"), ID_uvpd_laser_off_show_waterfall),
         ]
         self.SetAcceleratorTable(wx.AcceleratorTable(accelerators))
@@ -127,8 +127,8 @@ class PanelUVPDEditor(wx.MiniFrame):
         wx.EVT_MENU(self, ID_uvpd_laser_off_show_chromatogram, self.on_plot_laser_off)
         wx.EVT_MENU(self, ID_uvpd_laser_on_show_heatmap, self.on_plot_laser_on)
         wx.EVT_MENU(self, ID_uvpd_laser_off_show_heatmap, self.on_plot_laser_off)
-        wx.EVT_MENU(self, ID_uvpd_laser_on_show_mobiligram, self.on_plot_laser_on)
-        wx.EVT_MENU(self, ID_uvpd_laser_off_show_mobiligram, self.on_plot_laser_off)
+        wx.EVT_MENU(self, ID_uvpd_laser_on_show_mobilogram, self.on_plot_laser_on)
+        wx.EVT_MENU(self, ID_uvpd_laser_off_show_mobilogram, self.on_plot_laser_off)
         wx.EVT_MENU(self, ID_uvpd_laser_on_show_waterfall, self.on_plot_laser_on)
         wx.EVT_MENU(self, ID_uvpd_laser_off_show_waterfall, self.on_plot_laser_off)
 
@@ -172,7 +172,7 @@ class PanelUVPDEditor(wx.MiniFrame):
         <li>Fill-in peak detection parameters and click on <strong>Find peaks</strong>.
         Make sure you have previously plotted the correct chromatogram in the RT window. (Document Tree -&amp;gt;
         double-click on Chromatogram).</li>
-        <li>Once you are happy with the peak detection, click on <strong>Extract mobiligrams</strong> button.
+        <li>Once you are happy with the peak detection, click on <strong>Extract mobilograms</strong> button.
         This will only work if there are any items in the peaklist above the button.</li>
         <li>Now, if you right-click on any item in the peaklist you can plot the results.</li>
         <li>If you would like to monitor specific drift-time, you can add the mobility peaks to the monitorlist
@@ -209,7 +209,7 @@ class PanelUVPDEditor(wx.MiniFrame):
 
     def OnRightClickMenu_monitorlist(self, evt):
         # Menu events
-        self.Bind(wx.EVT_MENU, self.on_plot_mobility_monitor, id=ID_uvpd_laser_on_off_mobiligram_show_chromatogram)
+        self.Bind(wx.EVT_MENU, self.on_plot_mobility_monitor, id=ID_uvpd_laser_on_off_mobilogram_show_chromatogram)
         self.Bind(wx.EVT_MENU, self.on_delete_monitorlist, id=ID_uvpd_monitor_remove)
 
         self.currentItem = evt.GetIndex()
@@ -217,7 +217,7 @@ class PanelUVPDEditor(wx.MiniFrame):
         menu.AppendItem(
             makeMenuItem(
                 parent=menu,
-                id=ID_uvpd_laser_on_off_mobiligram_show_chromatogram,
+                id=ID_uvpd_laser_on_off_mobilogram_show_chromatogram,
                 text="Compare chromatograms",
                 bitmap=None,
             )
@@ -239,32 +239,32 @@ class PanelUVPDEditor(wx.MiniFrame):
 
         # Menu events
         self.Bind(wx.EVT_MENU, self.on_plot_compare_on_off, id=ID_uvpd_laser_on_off_compare_chromatogam)
-        self.Bind(wx.EVT_MENU, self.on_plot_compare_on_off, id=ID_uvpd_laser_on_off_compare_mobiligram)
+        self.Bind(wx.EVT_MENU, self.on_plot_compare_on_off, id=ID_uvpd_laser_on_off_compare_mobilogram)
         self.Bind(wx.EVT_MENU, self.on_plot_laser_on, id=ID_uvpd_laser_on_show_heatmap)
         self.Bind(wx.EVT_MENU, self.on_plot_laser_off, id=ID_uvpd_laser_off_show_heatmap)
         self.Bind(wx.EVT_MENU, self.on_plot_laser_on, id=ID_uvpd_laser_on_show_waterfall)
         self.Bind(wx.EVT_MENU, self.on_plot_laser_off, id=ID_uvpd_laser_off_show_waterfall)
         self.Bind(wx.EVT_MENU, self.on_plot_laser_on, id=ID_uvpd_laser_on_show_chromatogram)
         self.Bind(wx.EVT_MENU, self.on_plot_laser_off, id=ID_uvpd_laser_off_show_chromatogram)
-        self.Bind(wx.EVT_MENU, self.on_plot_laser_on, id=ID_uvpd_laser_on_show_mobiligram)
-        self.Bind(wx.EVT_MENU, self.on_plot_laser_off, id=ID_uvpd_laser_off_show_mobiligram)
+        self.Bind(wx.EVT_MENU, self.on_plot_laser_on, id=ID_uvpd_laser_on_show_mobilogram)
+        self.Bind(wx.EVT_MENU, self.on_plot_laser_off, id=ID_uvpd_laser_off_show_mobilogram)
 
         self.Bind(wx.EVT_MENU, self.on_save_data, id=ID_uvpd_laser_on_save_chromatogram)
-        self.Bind(wx.EVT_MENU, self.on_save_data, id=ID_uvpd_laser_on_save_mobiligram)
+        self.Bind(wx.EVT_MENU, self.on_save_data, id=ID_uvpd_laser_on_save_mobilogram)
         self.Bind(wx.EVT_MENU, self.on_save_data_heatmap, id=ID_uvpd_laser_on_save_heatmap)
 
         self.Bind(wx.EVT_MENU, self.on_save_data, id=ID_uvpd_laser_off_save_chromatogram)
-        self.Bind(wx.EVT_MENU, self.on_save_data, id=ID_uvpd_laser_off_save_mobiligram)
+        self.Bind(wx.EVT_MENU, self.on_save_data, id=ID_uvpd_laser_off_save_mobilogram)
         self.Bind(wx.EVT_MENU, self.on_save_data_heatmap, id=ID_uvpd_laser_off_save_heatmap)
 
         save_laser_on = wx.Menu()
         save_laser_on.Append(ID_uvpd_laser_on_save_chromatogram, "Save DATASET 1 chromatogram data to file")
-        save_laser_on.Append(ID_uvpd_laser_on_save_mobiligram, "Save DATASET 1 mobiligram data to file")
+        save_laser_on.Append(ID_uvpd_laser_on_save_mobilogram, "Save DATASET 1 mobilogram data to file")
         save_laser_on.Append(ID_uvpd_laser_on_save_heatmap, "Save DATASET 1 heatmap data to file")
 
         save_laser_off = wx.Menu()
         save_laser_off.Append(ID_uvpd_laser_off_save_chromatogram, "Save DATASET 2 chromatogram data to file")
-        save_laser_off.Append(ID_uvpd_laser_off_save_mobiligram, "Save DATASET 2 mobiligram data to file")
+        save_laser_off.Append(ID_uvpd_laser_off_save_mobilogram, "Save DATASET 2 mobilogram data to file")
         save_laser_off.Append(ID_uvpd_laser_off_save_heatmap, "Save DATASET 2 heatmap data to file")
 
         self.currentItem = evt.GetIndex()
@@ -281,7 +281,7 @@ class PanelUVPDEditor(wx.MiniFrame):
         )
         menu.AppendItem(
             makeMenuItem(
-                parent=menu, id=ID_uvpd_laser_on_off_compare_mobiligram, text="Compare mobiligrams", bitmap=None
+                parent=menu, id=ID_uvpd_laser_on_off_compare_mobilogram, text="Compare mobilograms", bitmap=None
             )
         )
         menu.AppendSeparator()
@@ -296,8 +296,8 @@ class PanelUVPDEditor(wx.MiniFrame):
         menu.AppendItem(
             makeMenuItem(
                 parent=menu,
-                id=ID_uvpd_laser_on_show_mobiligram,
-                text="Show DATASET 1 data as mobiligram\tCtrl+M",
+                id=ID_uvpd_laser_on_show_mobilogram,
+                text="Show DATASET 1 data as mobilogram\tCtrl+M",
                 bitmap=None,
             )
         )
@@ -330,8 +330,8 @@ class PanelUVPDEditor(wx.MiniFrame):
         menu.AppendItem(
             makeMenuItem(
                 parent=menu,
-                id=ID_uvpd_laser_off_show_mobiligram,
-                text="Show DATASET 2 data as summed mobiligram\tShift+M",
+                id=ID_uvpd_laser_off_show_mobilogram,
+                text="Show DATASET 2 data as summed mobilogram\tShift+M",
                 bitmap=None,
             )
         )
@@ -495,7 +495,7 @@ class PanelUVPDEditor(wx.MiniFrame):
 
     def make_extract_panel(self, panel):
 
-        self.extract_features = wx.Button(panel, wx.ID_OK, "Extract mobiligrams", size=(-1, 22))
+        self.extract_features = wx.Button(panel, wx.ID_OK, "Extract mobilograms", size=(-1, 22))
         self.extract_features.Bind(wx.EVT_BUTTON, self.on_extract_mobility_for_ions)
         self.extract_features.Disable()
 
@@ -1063,7 +1063,7 @@ class PanelUVPDEditor(wx.MiniFrame):
             yvalsRT = np.average(zvals, axis=0)
             self.view.panelPlots.on_plot_RT(xvals, yvalsRT, "Laser shots", "Intensity", set_page=True)
 
-        elif evtID == ID_uvpd_laser_on_show_mobiligram:
+        elif evtID == ID_uvpd_laser_on_show_mobilogram:
             yvalsDT = np.average(zvals, axis=1)
             self.view.panelPlots.on_plot_1D(yvals, yvalsDT, "Drift time (bins)", ylabel, set_page=True)
 
@@ -1091,7 +1091,7 @@ class PanelUVPDEditor(wx.MiniFrame):
             yvalsRT = np.sum(zvals, axis=0)
             self.view.panelPlots.on_plot_RT(xvals, yvalsRT, "Laser shots", "Intensity", set_page=True)
 
-        elif evtID == ID_uvpd_laser_off_show_mobiligram:
+        elif evtID == ID_uvpd_laser_off_show_mobilogram:
             yvalsDT = np.average(zvals, axis=1)
             self.view.panelPlots.on_plot_1D(yvals, yvalsDT, "Drift time (bins)", ylabel, set_page=True)
 
@@ -1131,7 +1131,7 @@ class PanelUVPDEditor(wx.MiniFrame):
                 set_page=True,
             )
 
-        elif evtID == ID_uvpd_laser_on_off_compare_mobiligram:
+        elif evtID == ID_uvpd_laser_on_off_compare_mobilogram:
             xvals.append(yvals_on)
             xvals.append(yvals_off)
 
@@ -1182,7 +1182,7 @@ class PanelUVPDEditor(wx.MiniFrame):
         evtID = evt.GetId()
         ion_name = self.get_ion_name(self.currentItem)
 
-        if evtID in [ID_uvpd_laser_on_save_chromatogram, ID_uvpd_laser_on_save_mobiligram]:
+        if evtID in [ID_uvpd_laser_on_save_chromatogram, ID_uvpd_laser_on_save_mobilogram]:
             laser_dataset = "dataset_1"
             ion_data = self.laser_on_data[ion_name]
             if evtID == ID_uvpd_laser_on_save_chromatogram:
@@ -1196,7 +1196,7 @@ class PanelUVPDEditor(wx.MiniFrame):
                 xlabel, ylabel = "Drift time (bins)", "Average intensity"
                 name_modifier = "DT"
 
-        elif evtID in [ID_uvpd_laser_off_save_chromatogram, ID_uvpd_laser_off_save_mobiligram]:
+        elif evtID in [ID_uvpd_laser_off_save_chromatogram, ID_uvpd_laser_off_save_mobilogram]:
             laser_dataset = "dataset_2"
             ion_data = self.laser_off_data[ion_name]
             if evtID == ID_uvpd_laser_off_save_chromatogram:

@@ -1144,7 +1144,9 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.onWindowIconize, id=ID_windowMinimize)
         self.Bind(wx.EVT_MENU, self.onWindowFullscreen, id=ID_windowFullscreen)
         self.Bind(wx.EVT_MENU, self.panelPlots.on_clear_all_plots, id=ID_clearAllPlots)
-        self.Bind(wx.EVT_MENU, self.on_open_compare_MS_window, id=ID_docTree_compareMS)
+        self.Bind(
+            wx.EVT_MENU, self.panelDocuments.documents.on_open_spectrum_comparison_viewer, id=ID_docTree_compareMS
+        )
         self.SetMenuBar(self.mainMenubar)
 
     def on_customise_annotation_plot_parameters(self, evt):
@@ -1173,9 +1175,6 @@ class MyFrame(wx.Frame):
 
     def on_open_thermo_file(self, evt):
         self.panelDocuments.documents.on_open_thermo_file_fcn(None)
-
-    def on_open_compare_MS_window(self, evt):
-        self.panelDocuments.documents.onCompareMS(None)
 
     def on_open_link(self, evt):
         """Open selected webpage."""

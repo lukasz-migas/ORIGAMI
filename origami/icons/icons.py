@@ -451,7 +451,7 @@ class IconContainer:
         self.iconsLib["maximize_16"] = icons16.GetSubBitmap(wx.Rect(323, y, 16, 16))
         self.iconsLib["minimize_16"] = icons16.GetSubBitmap(wx.Rect(340, y, 16, 16))
         self.iconsLib["clear_16"] = icons16.GetSubBitmap(wx.Rect(357, y, 16, 16))
-        self.iconsLib["mobiligram_16"] = icons16.GetSubBitmap(wx.Rect(408, y, 16, 16))
+        self.iconsLib["mobilogram_16"] = icons16.GetSubBitmap(wx.Rect(408, y, 16, 16))
         self.iconsLib["mass_spectrum_16"] = icons16.GetSubBitmap(wx.Rect(425, y, 16, 16))
         self.iconsLib["heatmap_16"] = icons16.GetSubBitmap(wx.Rect(442, y, 16, 16))
         self.iconsLib["export2_config_16"] = icons16.GetSubBitmap(wx.Rect(459, y, 16, 16))

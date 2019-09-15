@@ -18,7 +18,7 @@ from visuals import mpl_plots
 logger = logging.getLogger("origami")
 
 
-class panel_peak_picker(MiniFrame):
+class PanelPeakPicker(MiniFrame):
     """Peak picking panel"""
 
     def __init__(self, parent, presenter, config, icons, **kwargs):
@@ -56,11 +56,13 @@ class panel_peak_picker(MiniFrame):
         self._n_peaks_max = 1000
 
         # setup kwargs
-        #         self.document = kwargs.pop("document", None)
         self.document_title = kwargs.pop("document_title", None)
         self.dataset_type = kwargs.pop("dataset_type", None)
         self.dataset_name = kwargs.pop("dataset_name", None)
         self.mz_data = kwargs.pop("mz_data", None)
+
+        # set title
+        self.SetTitle(f"Peak picker: {self.document_title} :: {self.dataset_type} :: {self.dataset_name}")
 
         # initilize gui
         self.make_gui()
@@ -93,6 +95,14 @@ class panel_peak_picker(MiniFrame):
         self._mz_data = value
         self._mz_xrange = get_min_max(self.mz_data["xvals"])
         self._mz_yrange = get_min_max(self.mz_data["yvals"])
+
+    def on_close(self, evt):
+        self.document_tree._picker_panel = None
+        MiniFrame.on_close(self, evt)
+
+    def _check_active(self, query):
+        """Check whether the currently open editor should be closed"""
+        return all([self.document_title == query[0], self.dataset_type == query[1], self.dataset_name == query[2]])
 
     def on_right_click(self, evt):
         # ensure that user clicked inside the plot area

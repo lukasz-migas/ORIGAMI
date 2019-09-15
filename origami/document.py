@@ -36,10 +36,10 @@ class document:
         # save data (dataframe format)
         self.gotMSSaveData = False
         self.massSpectraSave = []
-        # mobiligram (1D) data
+        # mobilogram (1D) data
         self.got1DT = False
         self.DT = []
-        # multiple mobiligrams (1D) data
+        # multiple mobilograms (1D) data
         self.gotMultipleDT = False
         self.multipleDT = OrderedDict()
         # chromatogram data
@@ -48,19 +48,19 @@ class document:
         # multiple chromatograms
         self.gotMultipleRT = False
         self.multipleRT = OrderedDict()
-        # mobiligram (2D) data = global
+        # mobilogram (2D) data = global
         self.got2DIMS = False
         self.IMS2D = {}
-        # processed mobiligram (2D) data = global
+        # processed mobilogram (2D) data = global
         self.got2Dprocess = False
         self.IMS2Dprocess = {}  # 2D processed data
-        # mobiligram (2D) data = extracted ion
+        # mobilogram (2D) data = extracted ion
         self.gotExtractedIons = False
         self.IMS2Dions = {}
-        # processed mobiligram (2D) data = extracted ion
+        # processed mobilogram (2D) data = extracted ion
         self.got2DprocessIons = False
         self.IMS2DionsProcess = {}  # dictionary for processed data
-        # mobiligram (1D) data = extracted ion
+        # mobilogram (1D) data = extracted ion
         self.gotExtractedDriftTimes = False
         self.IMS1DdriftTimes = {}
         # Dictionary to store dt/rt vs mz data

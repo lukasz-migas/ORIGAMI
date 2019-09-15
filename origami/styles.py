@@ -10,6 +10,7 @@ import wx
 import wx.lib.mixins.listctrl as listmix
 from gui_elements.misc_dialogs import DialogBox
 from natsort.natsort import natsorted
+from utils.color import convertRGB1to255
 from utils.color import convertRGB255to1
 from utils.converters import byte2str
 from utils.converters import str2int
@@ -32,12 +33,39 @@ LISTCTRL_SORT = 1
 SLIDER_STYLE = wx.SL_HORIZONTAL | wx.SL_MIN_MAX_LABELS | wx.SL_VALUE_LABEL
 
 
-def make_spin_ctrl(parent, value, min_value, max_value, increment_value, size=(-1, -1), evtid=-1):
+def make_spin_ctrl(parent, value, min_value, max_value, increment_value, size=(-1, -1), evtid=-1, name="name"):
     """Convenient way to initilize SpinCtrlDouble"""
     spin_ctrl = wx.SpinCtrlDouble(
-        parent, evtid, value=str(value), min=min_value, max=max_value, initial=value, inc=increment_value, size=size
+        parent,
+        evtid,
+        value=str(value),
+        min=min_value,
+        max=max_value,
+        initial=value,
+        inc=increment_value,
+        size=size,
+        name=name,
     )
     return spin_ctrl
+
+
+def make_bitmap_btn(
+    parent, evtid, icon, size=(26, 26), style=wx.BORDER_DEFAULT | wx.ALIGN_CENTER_VERTICAL, bg_color=(240, 240, 240)
+):
+    """Convenient way to initilize bitmap btn"""
+    bitmap_btn = wx.BitmapButton(parent, evtid, icon, size=size, style=style)
+    bitmap_btn.SetBackgroundColour(bg_color)
+
+    return bitmap_btn
+
+
+def make_color_btn(parent, color, size=(26, 26), name="color", evtid=-1):
+    """Convenient way to initilize a color btn"""
+
+    color_btn = wx.Button(parent, evtid, size=size, name=name)
+    color_btn.SetBackgroundColour(convertRGB1to255(color))
+
+    return color_btn
 
 
 def makeMenuItem(parent, text, id=-1, bitmap=None, help_text=None, kind=wx.ITEM_NORMAL):

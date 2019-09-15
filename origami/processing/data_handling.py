@@ -325,7 +325,7 @@ class data_handling:
 
         return xvals_RT, yvals_RT, yvals_RT_norm
 
-    def _get_driftscope_mobiligram_data(self, path, **kwargs):
+    def _get_driftscope_mobilogram_data(self, path, **kwargs):
         kwargs.update({"return_data": True})
         kwargs = self._check_driftscope_input(**kwargs)
         xvals_DT, yvals_DT = io_waters.driftscope_extract_DT(
@@ -651,6 +651,13 @@ class data_handling:
             logger.error(f"Failed to load configuration file: {config_path}")
             logger.error(err)
 
+    def on_load_annotated_data(self, filename):
+        from readers.io_text_files import AnnotatedDataReader
+
+        reader = AnnotatedDataReader(filename)
+
+        return reader.dataset_title, reader.data
+
     def on_save_data_as_text(self, data, labels, data_format, **kwargs):
 
         wildcard = (
@@ -796,6 +803,7 @@ class data_handling:
             if self.config.extract_chromatograms_use_dt:
                 rt_kwargs.update(dt_start=dt_start, dt_end=dt_end)
                 chrom_name += f" rt={rt_start:.2f}-{rt_end:.2f}"
+            chrom_name = chrom_name.lstrip()
             if rt_kwargs:
                 logger.info(f"Extracting chromatogram: {rt_kwargs}")
                 xvals_RT, yvals_RT, __ = self._get_driftscope_chromatography_data(document.path, **rt_kwargs)
@@ -828,9 +836,10 @@ class data_handling:
                 dt_kwargs.update(rt_start=rt_start, rt_end=rt_end)
                 dt_name += f" rt={rt_start:.2f}-{rt_end:.2f}"
 
+            dt_name = dt_name.lstrip()
             if dt_kwargs:
                 logger.info(f"Extracting mobilogram: {dt_kwargs}")
-                xvals_DT, yvals_DT = self._get_driftscope_mobiligram_data(document.path, **dt_kwargs)
+                xvals_DT, yvals_DT = self._get_driftscope_mobilogram_data(document.path, **dt_kwargs)
                 self.plotsPanel.on_plot_1D(xvals_DT, yvals_DT, "Drift time (bins)")
                 data = {
                     "xvals": xvals_DT,
@@ -840,11 +849,11 @@ class data_handling:
                     "xlimits": get_min_max(xvals_DT),
                 }
                 if add_to_document:
-                    self.documentTree.on_update_data(data, dt_name, document, data_type="ion.mobiligram.raw")
+                    self.documentTree.on_update_data(data, dt_name, document, data_type="ion.mobilogram.raw")
                 if return_data:
                     data_storage[dt_name + " [1D]"] = {
                         "name": dt_name,
-                        "data_type": "ion.mobiligram.raw",
+                        "data_type": "ion.mobilogram.raw",
                         "data": data,
                         "type": "mobilogram",
                     }
@@ -860,12 +869,13 @@ class data_handling:
                 heatmap_kwargs.update(rt_start=rt_start, rt_end=rt_end)
                 dt_name += f" rt={rt_start:.2f}-{rt_end:.2f}"
 
+            dt_name = dt_name.lstrip()
             if heatmap_kwargs:
                 logger.info(f"Extracting heatmap: {heatmap_kwargs}")
                 xvals, yvals, zvals = self._get_driftscope_mobility_data(document.path, **heatmap_kwargs)
                 self.plotsPanel.on_plot_2D_data(data=[zvals, xvals, "Scans", yvals, "Drift time (bins)"])
                 __, yvals_RT, __ = self._get_driftscope_chromatography_data(document.path, **kwargs)
-                __, yvals_DT = self._get_driftscope_mobiligram_data(document.path, **kwargs)
+                __, yvals_DT = self._get_driftscope_mobilogram_data(document.path, **kwargs)
                 data = {
                     "zvals": zvals,
                     "xvals": xvals,
@@ -904,7 +914,7 @@ class data_handling:
         kwargs = dict(mz_start=mz_start, mz_end=mz_end)
         # 1D
         try:
-            __, yvals_DT = self._get_driftscope_mobiligram_data(path, **kwargs)
+            __, yvals_DT = self._get_driftscope_mobilogram_data(path, **kwargs)
         except IOError:
             msg = (
                 "Failed to open the file - most likely because this file no longer exists"
@@ -961,12 +971,12 @@ class data_handling:
             nameValue = self.filesList.GetItem(item, self.config.multipleMLColNames["filename"]).GetText()
             try:
                 path = document.multipleMassSpectrum[nameValue]["path"]
-                dt_x, dt_y = self._get_driftscope_mobiligram_data(path, mz_start=mz_start, mz_end=mz_end)
+                dt_x, dt_y = self._get_driftscope_mobilogram_data(path, mz_start=mz_start, mz_end=mz_end)
             # if the files were moved, we can at least try to with the document path
             except IOError:
                 try:
                     path = os.path.join(document.path, nameValue)
-                    dt_x, dt_y = self._get_driftscope_mobiligram_data(path, mz_start=mz_start, mz_end=mz_end)
+                    dt_x, dt_y = self._get_driftscope_mobilogram_data(path, mz_start=mz_start, mz_end=mz_end)
                     document.multipleMassSpectrum[nameValue]["path"] = path
                 except Exception:
                     msg = (
@@ -995,7 +1005,7 @@ class data_handling:
                 "xylimits": [mz_start, mz_end, mz_y_max],
                 "filename": nameValue,
             }
-            self.documentTree.on_update_data(ion_data, newName, document, data_type="ion.mobiligram")
+            self.documentTree.on_update_data(ion_data, newName, document, data_type="ion.mobilogram")
 
         # Combine the contents in the dictionary - assumes they are ordered!
         counter = 0  # needed to start off
@@ -1489,17 +1499,14 @@ class data_handling:
             self.plot_page in ["Chromatogram", "Mass spectrum", "Mobilogram", "Heatmap"]
             and document.dataType == "Type: Interactive"
         ):
-            args = ("Cannot extract data from Interactive document", 4)
-            self.on_threading(args=args, action="statusbar.update")
-            return
+            raise MessageError("Error", "Cannot extract data from an INTERACTIVE document")
 
-        # Extract mass spectrum from mobiligram window
+        # Extract mass spectrum from mobilogram window
         elif self.plot_page == "Mobilogram":
             dt_label = self.plotsPanel.plot1D.plot_labels.get("xlabel", "Drift time (bins)")
 
             if xvalsMin is None or xvalsMax is None:
-                args = ("Your extraction range was outside the window. Please try again", 4)
-                self.on_threading(args=args, action="statusbar.update")
+                logging.error("Extraction range was from outside of the plot area. Please try again.")
                 return
 
             if dt_label == "Drift time (bins)":
@@ -1513,12 +1520,12 @@ class data_handling:
             if dtEnd < dtStart:
                 dtEnd, dtStart = dtStart, dtEnd
 
-            self.on_extract_MS_from_mobiligram(dtStart=dtStart, dtEnd=dtEnd, units=dt_label)
+            self.on_extract_MS_from_mobilogram(dtStart=dtStart, dtEnd=dtEnd, units=dt_label)
 
         # Extract heatmap from mass spectrum window
         elif self.plot_page == "Mass spectrum" or currentView == "MS":
             if xvalsMin is None or xvalsMax is None:
-                self.update_statusbar("Your extraction range was outside the window. Please try again", 4)
+                logging.error("Extraction range was from outside of the plot area. Please try again.")
                 return
 
             if document.fileFormat == "Format: Thermo (.RAW)":
@@ -1605,43 +1612,6 @@ class data_handling:
                         repaint=True,
                     )
 
-        # # Extract data from calibration window
-        # if self.plot_page == "Calibration":
-        #     # Check whether the current document is of correct type!
-        #     if (document.fileFormat != 'Format: MassLynx (.raw)' or document.dataType != 'Type: CALIBRANT'):
-        #         print('Please select the correct document file in document window!')
-        #         return
-        #     mzVal = np.round((xvalsMax + xvalsMin) / 2, 2)
-        #     # prevents extraction if value is below 50. This assumes (wrongly!)
-        #     # that the m/z range will never be below 50.
-        #     if xvalsMax < 50:
-        #         self.SetStatusText('Make sure you are extracting in the MS window.', 3)
-        #         return
-        #     # Check if value already present
-        #     outcome = self.panelCCS.topP.onCheckForDuplicates(mzCentre=str(mzVal))
-        #     if outcome:
-        #         return
-        #     self.view._mgr.GetPane(self.panelCCS).Show()
-        #     self.ccsTable.Check(True)
-        #     self.view._mgr.Update()
-        #     if yvalsMax <= 1:
-        #         tD = self.presenter.onAddCalibrant(path=document.path,
-        #                                            mzCentre=mzVal,
-        #                                            mzStart=np.round(xvalsMin, 2),
-        #                                            mzEnd=np.round(xvalsMax, 2),
-        #                                            pusherFreq=document.parameters['pusherFreq'],
-        #                                            tDout=True)
-
-        #         self.panelCCS.topP.peaklist.Append([document_title,
-        #                                             np.round(xvalsMin, 2),
-        #                                             np.round(xvalsMax, 2),
-        #                                             "", "", "", str(tD)])
-        #         if self.config.showRectanges:
-        #             self.presenter.addRectMS(xvalsMin, 0, (xvalsMax - xvalsMin), 1.0,
-        #                                      color=self.config.annotColor,
-        #                                      alpha=(self.config.annotTransparency / 100),
-        #                                      repaint=True, plot='CalibrationMS')
-
         # Extract mass spectrum from chromatogram window - Linear DT files
         elif self.plot_page == "Chromatogram" and document.dataType == "Type: Multifield Linear DT":
             self.view._mgr.GetPane(self.view.panelLinearDT).Show()
@@ -1676,11 +1646,11 @@ class data_handling:
 
             # Get values
             if xvalsMin is None or xvalsMax is None:
-                self.update_statusbar("Extraction range was from outside of the plot area. Please try again", 4)
+                logging.error("Extraction range was from outside of the plot area. Please try again.")
                 return
 
             if rt_label in ["Collision Voltage (V)"]:
-                self.update_statusbar(f"Cannot extract MS data when the x-axis is in {rt_label} format", 4)
+                logging.error(f"Cannot extract MS data when the x-axis is in {rt_label} format")
                 return
 
             if rt_label == "Scans":
@@ -1693,6 +1663,7 @@ class data_handling:
 
             # Extract data
             if document.fileFormat == "Format: Thermo (.RAW)":
+                logging.warning("Cannot extract chromatographic data from Thermo (.raw) files yet")
                 return
             else:
                 self.on_extract_MS_from_chromatogram(startScan=xvalsMin, endScan=xvalsMax, units=rt_label)
@@ -1861,7 +1832,7 @@ class data_handling:
             tstart_extraction = ttime()
             xvals_DT_ms, yvals_DT = reader.get_TIC(1)
             xvals_DT = np.arange(1, len(xvals_DT_ms) + 1)
-            self.update_statusbar(f"Extracted mobiligram in {ttime()-tstart_extraction:.4f}", 4)
+            self.update_statusbar(f"Extracted mobilogram in {ttime()-tstart_extraction:.4f}", 4)
 
             # 2D
             tstart_extraction = ttime()
@@ -1907,7 +1878,7 @@ class data_handling:
         self.plotsPanel.on_plot_RT(xvals_RT, yvals_RT, "Scans")
 
         if data_type != "Type: MS":
-            # add mobiligram data
+            # add mobilogram data
             document.got1DT = True
             document.DT = {
                 "xvals": xvals_DT,
@@ -1918,7 +1889,7 @@ class data_handling:
             }
             self.plotsPanel.on_plot_1D(xvals_DT, yvals_DT, "Drift time (bins)")
 
-            # add 2D mobiligram data
+            # add 2D mobilogram data
             document.got2DIMS = True
             document.IMS2D = {
                 "zvals": zvals,
@@ -2239,8 +2210,9 @@ class data_handling:
             self.on_threading(action="load.multiple.raw.masslynx", args=(document, open_type, pathlist))
 
     def on_open_multiple_ML_files(self, document, open_type, pathlist=[]):
-        # http://stackoverflow.com/questions/1252481/sort-dictionary-by-another-dictionary
-        # http://stackoverflow.com/questions/22520739/python-sort-a-dict-by-values-producing-a-list-how-to-sort-this-from-largest-to
+        # TODO: cleanup code
+        # TODO: add some subsampling method
+        # TODO: ensure that each spectrum has the same size
 
         tstart = ttime()
 
@@ -2249,7 +2221,10 @@ class data_handling:
             enumerate_start = len(document.multipleMassSpectrum)
 
         data_was_added = False
+        _mz_spacing = None
+        ms_x = None
         for i, file_path in enumerate(pathlist, start=enumerate_start):
+            tincr = ttime()
             path = check_waters_path(file_path)
             if not check_path_exists(path):
                 logger.warning("File with path: {} does not exist".format(path))
@@ -2268,8 +2243,17 @@ class data_handling:
             # add data to document
             parameters = self.config.get_waters_inf_data(path)
             xlimits = [parameters["startMS"], parameters["endMS"]]
-            ms_x, ms_y = self._get_driftscope_spectrum_data(path)
-            dt_x, dt_y = self._get_driftscope_mobiligram_data(path)
+
+            reader = io_waters_raw_api.WatersRawReader(path)
+            if _mz_spacing is not None:
+                reader.mz_spacing = _mz_spacing
+                reader.mz_x = ms_x
+
+            ms_x, ms_y = self._get_waters_api_spectrum_data(reader)
+            if _mz_spacing is None:
+                _mz_spacing = reader.mz_spacing
+
+            dt_x, dt_y = self._get_driftscope_mobilogram_data(path)
             try:
                 color = self.config.customColors[i]
             except KeyError:
@@ -2297,6 +2281,7 @@ class data_handling:
             }
 
             self.documentTree.on_update_data(data, file_name, document, data_type="extracted.spectrum")
+            logger.info(f"Loaded {path} in {ttime()-tincr:.0f}s")
             data_was_added = True
 
         # check if any data was added to the document
@@ -2393,7 +2378,7 @@ class data_handling:
         # Update document
         self.documentTree.on_update_data(ion_data, ion_name, document, data_type="extracted.chromatogram")
 
-    def on_extract_MS_from_mobiligram(self, dtStart=None, dtEnd=None, evt=None, units="Drift time (bins)"):
+    def on_extract_MS_from_mobilogram(self, dtStart=None, dtEnd=None, evt=None, units="Drift time (bins)"):
         document = self._on_get_document()
 
         # convert from miliseconds to bins
@@ -2843,57 +2828,56 @@ class data_handling:
             and document.dataType != "Type: Interactive"
         ):
 
-            if len(document.IMS2DCombIons) > 0:
-                dataset = document.IMS2DCombIons
-            elif len(document.IMS2DCombIons) == 0:
-                dataset = document.IMS2Dions
-            elif len(document.IMS2Dions) == 0:
-                dataset = {}
-
-            for _, key in enumerate(dataset):
-                if key.endswith("(processed)"):
+            for dataset in [document.IMS2DCombIons, document.IMS2Dions]:
+                if len(dataset) == 0:
                     continue
 
-                mz_start, mz_end = ut_labels.get_ion_name_from_label(key)
-                charge = dataset[key].get("charge", "")
-                label = dataset[key].get("label", "")
-                alpha = dataset[key].get("alpha", 0.5)
-                mask = dataset[key].get("mask", 0.25)
-                colormap = dataset[key].get("cmap", self.config.currentCmap)
-                color = dataset[key].get("color", randomColorGenerator())
-                if isinstance(color, wx.Colour):
-                    color = convertRGB255to1(color)
-                elif np.sum(color) > 4:
-                    color = convertRGB255to1(color)
-                mz_y_max = dataset[key].get("xylimits", "")
-                if mz_y_max is not None:
-                    mz_y_max = mz_y_max[2]
+                for _, key in enumerate(dataset):
+                    if key.endswith("(processed)"):
+                        continue
 
-                method = dataset[key].get("parameters", None)
-                if method is not None:
-                    method = method.get("method", "")
-                elif method is None and document.dataType == "Type: MANUAL":
-                    method = "Manual"
-                else:
-                    method = ""
+                    mz_start, mz_end = ut_labels.get_ion_name_from_label(key)
+                    charge = dataset[key].get("charge", "")
+                    label = dataset[key].get("label", "")
+                    alpha = dataset[key].get("alpha", 0.5)
+                    mask = dataset[key].get("mask", 0.25)
+                    colormap = dataset[key].get("cmap", self.config.currentCmap)
+                    color = dataset[key].get("color", randomColorGenerator())
+                    if isinstance(color, wx.Colour):
+                        color = convertRGB255to1(color)
+                    elif np.sum(color) > 4:
+                        color = convertRGB255to1(color)
 
-                _add_to_table = {
-                    "ion_name": key,
-                    "mz_start": mz_start,
-                    "mz_end": mz_end,
-                    "charge": charge,
-                    "mz_ymax": mz_y_max,
-                    "color": convertRGB1to255(color),
-                    "colormap": colormap,
-                    "alpha": alpha,
-                    "mask": mask,
-                    "label": label,
-                    "document": document_title,
-                }
-                self.ionPanel.on_add_to_table(_add_to_table, check_color=False)
+                    mz_y_max = dataset[key].get("xylimits", "")
+                    if mz_y_max is not None:
+                        mz_y_max = mz_y_max[2]
 
-                # Update aui manager
-                self.view.on_toggle_panel(evt=ID_window_ionList, check=True)
+                    method = dataset[key].get("parameters", None)
+                    if method is not None:
+                        method = method.get("method", "")
+                    elif method is None and document.dataType == "Type: MANUAL":
+                        method = "Manual"
+                    else:
+                        method = ""
+
+                    _add_to_table = {
+                        "ion_name": key,
+                        "mz_start": mz_start,
+                        "mz_end": mz_end,
+                        "charge": charge,
+                        "mz_ymax": mz_y_max,
+                        "color": convertRGB1to255(color),
+                        "colormap": colormap,
+                        "alpha": alpha,
+                        "mask": mask,
+                        "label": label,
+                        "document": document_title,
+                    }
+                    self.ionPanel.on_add_to_table(_add_to_table, check_color=False)
+
+                    # Update aui manager
+                    self.view.on_toggle_panel(evt=ID_window_ionList, check=True)
+
             self.ionList.on_remove_duplicates()
 
     def _load_document_data_filelist(self, document):
@@ -2945,7 +2929,7 @@ class data_handling:
                     reader = self._get_waters_api_reader(document)
                     document.file_reader = {"data_reader": reader}
                 except Exception as err:
-                    logger.warning(f"When trying to create file error an error occurer. Error msg: {err}")
+                    logger.warning(f"When trying to create file reader an error occured. Error msg: {err}")
 
             if document.massSpectrum:
                 self.update_statusbar("Loaded mass spectra", 4)
@@ -2959,7 +2943,7 @@ class data_handling:
                     name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
                     self.plotsPanel.on_plot_MS(msX, msY, xlimits=xlimits, **name_kwargs)
             if document.DT:
-                self.update_statusbar("Loaded mobiligrams (1D)", 4)
+                self.update_statusbar("Loaded mobilograms (1D)", 4)
                 dtX = document.DT["xvals"]
                 dtY = document.DT["yvals"]
                 xlabel = document.DT["xlabels"]
@@ -2998,7 +2982,7 @@ class data_handling:
 
                     self.textPanel.on_add_to_table(add_dict, return_color=False)
 
-                self.update_statusbar("Loaded mobiligrams (2D)", 4)
+                self.update_statusbar("Loaded mobilograms (2D)", 4)
 
                 self.plotsPanel.on_plot_2D_data(data=[zvals, xvals, data["xlabels"], data["yvals"], data["ylabels"]])
 
@@ -3663,9 +3647,9 @@ class data_handling:
                 self.documentTree.on_update_data(data, dataset_name, document, data_type=" extracted.chromatogram")
             # mobilogram data
             elif dataset_type == "Drift time (1D, EIC)" and dataset_name is not None:
-                self.documentTree.on_update_data(data, dataset_name, document, data_type="ion.mobiligram.raw")
+                self.documentTree.on_update_data(data, dataset_name, document, data_type="ion.mobilogram.raw")
             elif dataset_type == "Drift time (1D, EIC, DT-IMS)" and dataset_name is not None:
-                self.documentTree.on_update_data(data, dataset_name, document, data_type="ion.mobiligram")
+                self.documentTree.on_update_data(data, dataset_name, document, data_type="ion.mobilogram")
             else:
                 raise MessageError(
                     "Not implemented yet",
@@ -3743,6 +3727,8 @@ class data_handling:
         document_title, dataset_type, dataset_name = query_info
         document = self._on_get_document(document_title)
 
+        print(query_info)
+
         if data is None:
             data = dict()
 
@@ -3756,7 +3742,10 @@ class data_handling:
             document.multipleMassSpectrum = data
             document.gotMultipleMS = True if data else False
         elif dataset_type == "Mass Spectra" and dataset_name not in [None, "Mass Spectra"]:
-            document.multipleMassSpectrum[dataset_name] = data
+            if data:
+                document.multipleMassSpectrum[dataset_name] = data
+            else:
+                del document.multipleMassSpectrum[dataset_name]
         # Drift time (2D) data
         elif dataset_type == "Drift time (2D)":
             document.IMS2D = data
@@ -3768,23 +3757,35 @@ class data_handling:
             document.IMS2Dions = data
             document.gotExtractedIons = True if data else False
         elif dataset_type == "Drift time (2D, EIC)" and dataset_name is not None:
-            document.IMS2Dions[dataset_name] = data
-        elif all(item == "Drift time (2D,  combined voltages, EIC)" for item in [dataset_type, dataset_name]):
+            if data:
+                document.IMS2Dions[dataset_name] = data
+            else:
+                del document.IMS2Dions[dataset_name]
+        elif all(item == "Drift time (2D, combined voltages, EIC)" for item in [dataset_type, dataset_name]):
             document.IMS2DCombIons = data
             document.gotCombinedExtractedIons = True if data else False
         elif dataset_type == "Drift time (2D, combined voltages, EIC)" and dataset_name is not None:
-            document.IMS2DCombIons[dataset_name] = data
+            if data:
+                document.IMS2DCombIons[dataset_name] = data
+            else:
+                del document.IMS2DCombIons[dataset_name]
         elif all(item == "Drift time (2D, processed, EIC)" for item in [dataset_type, dataset_name]):
             document.IMS2DionsProcess = data
             document.got2DprocessIons = True if data else False
         elif dataset_type == "Drift time (2D, processed, EIC)" and dataset_name is not None:
-            document.IMS2DionsProcess[dataset_name] = data
+            if data:
+                document.IMS2DionsProcess[dataset_name] = data
+            else:
+                del document.IMS2DionsProcess[dataset_name]
         # overlay input data
         elif all(item == "Input data" for item in [dataset_type, dataset_name]):
             document.IMS2DcompData = data
             document.gotComparisonData = True if data else False
         elif dataset_type == "Input data" and dataset_name is not None:
-            document.IMS2DcompData[dataset_name] = data
+            if data:
+                document.IMS2DcompData[dataset_name] = data
+            else:
+                del document.IMS2DcompData[dataset_name]
         # chromatogram data
         elif dataset_type == "Chromatogram":
             document.RT = data
@@ -3793,12 +3794,18 @@ class data_handling:
             document.IMSRTCombIons = data
             document.gotCombinedExtractedIonsRT = True if data else False
         elif dataset_type == "Chromatograms (combined voltages, EIC)" and dataset_name is not None:
-            document.IMSRTCombIons[dataset_name] = data
+            if data:
+                document.IMSRTCombIons[dataset_name] = data
+            else:
+                del document.IMSRTCombIons[dataset_name]
         elif all(item == "Chromatograms (EIC)" for item in [dataset_type, dataset_name]):
             document.multipleRT = data
             document.gotMultipleRT = True if data else False
         elif dataset_type == "Chromatograms (EIC)" and dataset_name is not None:
-            document.multipleRT[dataset_name] = data
+            if data:
+                document.multipleRT[dataset_name] = data
+            else:
+                del document.multipleRT[dataset_name]
         # mobilogram data
         elif dataset_type == "Drift time (1D)":
             document.DT = data
@@ -3807,18 +3814,29 @@ class data_handling:
             document.multipleDT = data
             document.gotMultipleDT = True if data else False
         elif dataset_type == "Drift time (1D, EIC)" and dataset_name is not None:
-            document.multipleDT[dataset_name] = data
+            if data:
+                document.multipleDT[dataset_name] = data
+            else:
+                del document.multipleDT[dataset_name]
         elif all(item == "Drift time (1D, EIC, DT-IMS)" for item in [dataset_type, dataset_name]):
-            document.IMS1DdriftTimes = data
+            if data:
+                document.IMS1DdriftTimes[dataset_name] = data
+            else:
+                del document.IMS1DdriftTimes[dataset_name]
             document.gotExtractedDriftTimes = True if data else False
         elif dataset_type == "Drift time (1D, EIC, DT-IMS)" and dataset_name is not None:
-            document.IMS1DdriftTimes[dataset_name] = data
+            if data:
+                document.IMS1DdriftTimes[dataset_name] = data
+            else:
+                del document.IMS1DdriftTimes[dataset_name]
         # annotated data
         elif all(item == "Annotated data" for item in [dataset_type, dataset_name]):
             document.other_data = data
-
         elif dataset_type == "Annotated data" and dataset_name is not None:
-            document.other_data[dataset_name] = data
+            if data:
+                document.other_data[dataset_name] = data
+            else:
+                del document.other_data[dataset_name]
         # DT/MS heatmap data
         elif dataset_type == "DT/MS":
             document.DTMZ = data
@@ -3890,23 +3908,29 @@ class data_handling:
         all_documents = self.__get_document_list_of_type("all")
 
         item_list = []
-        if output_type == "annotations":
-            item_list = dict.fromkeys(all_documents, [])
+        if output_type in ["annotations", "comparison"]:
+            item_list = {document_title: list() for document_title in all_documents}
+
         for document_title in all_documents:
             for dataset_type in all_datasets:
                 __, data = self.get_spectrum_data([document_title, dataset_type])
                 if dataset_type in singlular_datasets and isinstance(data, dict) and len(data) > 0:
                     if output_type == "overlay":
                         item_list.append(get_overlay_data(data, dataset_type))
-                    elif output_type == "annotations":
+                    elif output_type in ["annotations"]:
                         item_list[document_title].append(dataset_type)
-                else:
+                    elif output_type in ["comparison"]:
+                        item_list[document_title].append(dataset_type)
+                elif dataset_type not in singlular_datasets and isinstance(data, dict) and len(data) > 0:
                     for key in data:
                         if data[key]:
                             if output_type == "overlay":
                                 item_list.append(get_overlay_data(data[key], key))
-                            elif output_type == "annotations":
+                            elif output_type in ["annotations"]:
                                 item_list[document_title].append(f"{dataset_type} :: {key}")
+                            elif output_type in ["comparison"]:
+                                item_list[document_title].append(key)
+
         return item_list
 
     def generate_item_list_heatmap(self, output_type="overlay"):
@@ -3947,7 +3971,7 @@ class data_handling:
 
         item_list = []
         if output_type == "annotations":
-            item_list = dict.fromkeys(all_documents, [])
+            item_list = {document_title: list() for document_title in all_documents}
         for document_title in all_documents:
             for dataset_type in all_datasets:
                 __, data = self.get_mobility_chromatographic_data([document_title, dataset_type, dataset_type])
@@ -3991,7 +4015,7 @@ class data_handling:
 
         item_list = []
         if output_type == "annotations":
-            item_list = dict.fromkeys(all_documents, [])
+            item_list = {document_title: list() for document_title in all_documents}
         for document_title in all_documents:
             for dataset_type in all_datasets:
                 __, data = self.get_mobility_chromatographic_data([document_title, dataset_type, dataset_type])
@@ -4035,7 +4059,7 @@ class data_handling:
 
         item_list = []
         if output_type == "annotations":
-            item_list = dict.fromkeys(all_documents, [])
+            item_list = {document_title: list() for document_title in all_documents}
         for document_title in all_documents:
             for dataset_type in all_datasets:
                 __, data = self.get_mobility_chromatographic_data([document_title, dataset_type, dataset_type])

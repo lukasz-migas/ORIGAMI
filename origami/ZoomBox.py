@@ -868,21 +868,6 @@ class ZoomBox:
         # release coordinates, button, ...
         self.eventrelease = evt
 
-        if self.addToTable and not self.allow_extraction:
-            xmin, ymin = self.eventpress.xdata, self.eventpress.ydata
-            xmax, ymax = self.eventrelease.xdata, self.eventrelease.ydata
-
-            # A dirty way to prevent users from trying to extract data from the wrong places
-            if not self.mark_annotation:
-                if self.plotName in ["MSDT", "2D"] and (
-                    self.eventpress.xdata != evt.xdata and self.eventpress.ydata != evt.ydata
-                ):
-                    pub.sendMessage("extract_from_plot_2D", dataOut=[xmin, xmax, ymin, ymax])
-                elif self.plotName != "CalibrationDT" and self.eventpress.xdata != evt.xdata:
-                    pub.sendMessage("extract_from_plot_1D", xvalsMin=xmin, xvalsMax=xmax, yvalsMax=ymax)
-            else:
-                pub.sendMessage("editor.mark.annotation", xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
-
         if self.spancoords == "data":
             xmin, ymin = self.eventpress.xdata, self.eventpress.ydata
             xmax, ymax = self.eventrelease.xdata or self.prev[0], self.eventrelease.ydata or self.prev[1]
@@ -891,6 +876,18 @@ class ZoomBox:
             xmax, ymax = self.eventrelease.x, self.eventrelease.y
         else:
             raise ValueError('spancoords must be "data" or "pixels"')
+
+        if self.addToTable and self.allow_extraction:
+            # A dirty way to prevent users from trying to extract data from the wrong places
+            if not self.mark_annotation:
+                if self.plotName in ["MSDT", "2D"] and (
+                    self.eventpress.xdata != evt.xdata and self.eventpress.ydata != evt.ydata
+                ):
+                    pub.sendMessage("extract_from_plot_2D", dataOut=[xmin, xmax, ymin, ymax])
+                elif self.plotName != "CalibrationDT" and self.eventpress.xdata != evt.xdata:
+                    pub.sendMessage("extract_from_plot_1D", xvalsMin=xmin, xvalsMax=xmax, yvalsMax=ymax)
+        if self.addToTable and not self.allow_extraction and self.mark_annotation:
+            pub.sendMessage("editor.mark.annotation", xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
 
         # assure that min<max values
         if xmin > xmax:

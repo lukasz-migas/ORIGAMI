@@ -65,6 +65,8 @@ class plots(mpl_plotter):
         self.plot_parameters = {}
         self.plot_limits = []
 
+        # occassionally used to tag to mark what plot was used previously
+        self._plot_tag = ""
         self.plot_name = ""
         self.plot_data = {}
         self.plot_labels = {}
@@ -1583,10 +1585,17 @@ class plots(mpl_plotter):
             pass
 
     def plot_2D_update_data(self, xvals, yvals, xlabel, ylabel, zvals, **kwargs):
+        # clear plot in some circumstances
+        if self._plot_tag in ["rmsd_matrix"]:
+            self.clearPlot()
 
         # rotate data
         if self.rotate != 0 and not kwargs.pop("already_rotated", False):
             yvals, zvals = self.on_rotate_heatmap_data(yvals, zvals)
+
+        #         # remove any labels
+        #         self.plot_remove_text()
+        #         self.plot_remove_patches(False)
 
         # update settings
         self._check_and_update_plot_settings(**kwargs)
@@ -3960,10 +3969,8 @@ class plots(mpl_plotter):
         self.setup_zoom([self.plotMS], self.zoomtype, data_lims=extent)
         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
 
-    def plot_2D_matrix(
-        self, zvals=None, xylabels=None, xNames=None, zoom="box", axesSize=None, plotName=None, **kwargs
-    ):
-
+    def plot_2D_matrix(self, zvals=None, xylabels=None, axesSize=None, plotName=None, **kwargs):
+        self._plot_tag = "rmsd_matrix"
         # update settings
         self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
 
@@ -4016,8 +4023,6 @@ class plots(mpl_plotter):
                 text.y_divider = self.y_divider
                 self.text.append(text)
 
-        cbarDivider = make_axes_locatable(self.plotMS)
-
         try:
             handles, __ = self.plotMS.get_legend_handles_labels()
             if len(handles) > 0:
@@ -4028,33 +4033,6 @@ class plots(mpl_plotter):
         # add colorbar
         if kwargs["colorbar"]:
             self.set_colorbar_parameters(zvals, **kwargs)
-
-        #         # setup colorbar
-        #         if kwargs["colorbar"]:
-        #             # pad controls how close colorbar is to the axes
-        #             self.cbar = cbarDivider.append_axes(
-        #                 kwargs["colorbar_position"],
-        #                 size="".join([str(kwargs["colorbar_width"]), "%"]),
-        #                 pad=kwargs["colorbar_pad"],
-        #             )
-        #
-        #             ticks = [np.min(zvals), (np.max(zvals) - np.min(zvals)) / 2, np.max(zvals)]
-        #             tick_labels = ["0", "%", "100"]
-        #
-        #             self.cbar.ticks = ticks
-        #             self.cbar.tick_labels = tick_labels
-        #
-        #             if kwargs["colorbar_position"] in ["left", "right"]:
-        #                 self.figure.colorbar(self.cax, cax=self.cbar, ticks=ticks, orientation="vertical")
-        #                 self.cbar.yaxis.set_ticks_position(kwargs["colorbar_position"])
-        #                 self.cbar.set_yticklabels(tick_labels)
-        #             else:
-        #                 self.figure.colorbar(self.cax, cax=self.cbar, ticks=ticks, orientation="horizontal")
-        #                 self.cbar.xaxis.set_ticks_position(kwargs["colorbar_position"])
-        #                 self.cbar.set_xticklabels(tick_labels)
-        #
-        #             # setup other parameters
-        #             self.cbar.tick_params(labelsize=kwargs["colorbar_label_size"])
 
         self.set_tick_parameters(**kwargs)
 

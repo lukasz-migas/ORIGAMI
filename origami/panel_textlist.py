@@ -32,7 +32,7 @@ from ids import ID_textPanel_edit_selected
 from ids import ID_textPanel_editItem
 from ids import ID_textPanel_show_chromatogram
 from ids import ID_textPanel_show_heatmap
-from ids import ID_textPanel_show_mobiligram
+from ids import ID_textPanel_show_mobilogram
 from ids import ID_textPanel_show_process_heatmap
 from ids import ID_textPanel_table_alpha
 from ids import ID_textPanel_table_charge
@@ -102,7 +102,7 @@ class PanelTextlist(wx.Panel):
             (wx.ACCEL_NORMAL, ord("C"), ID_textPanel_assignColor),
             (wx.ACCEL_NORMAL, ord("E"), ID_textPanel_editItem),
             (wx.ACCEL_NORMAL, ord("H"), ID_textPanel_show_heatmap),
-            (wx.ACCEL_NORMAL, ord("M"), ID_textPanel_show_mobiligram),
+            (wx.ACCEL_NORMAL, ord("M"), ID_textPanel_show_mobilogram),
             (wx.ACCEL_NORMAL, ord("S"), ID_textPanel_check_selected),
             (wx.ACCEL_NORMAL, ord("X"), ID_textPanel_check_all),
             (wx.ACCEL_NORMAL, wx.WXK_DELETE, ID_textPanel_delete_rightClick),
@@ -112,7 +112,7 @@ class PanelTextlist(wx.Panel):
         wx.EVT_MENU(self, ID_textPanel_editItem, self.on_open_editor)
         wx.EVT_MENU(self, ID_textPanel_assignColor, self.on_assign_color)
         wx.EVT_MENU(self, ID_textPanel_show_heatmap, self.on_plot)
-        wx.EVT_MENU(self, ID_textPanel_show_mobiligram, self.on_plot)
+        wx.EVT_MENU(self, ID_textPanel_show_mobilogram, self.on_plot)
         wx.EVT_MENU(self, ID_textPanel_check_selected, self.on_check_selected)
         wx.EVT_MENU(self, ID_textPanel_delete_rightClick, self.on_delete_item)
 
@@ -237,7 +237,7 @@ class PanelTextlist(wx.Panel):
 
         # Make bindings
         self.Bind(wx.EVT_MENU, self.on_plot, id=ID_textPanel_show_chromatogram)
-        self.Bind(wx.EVT_MENU, self.on_plot, id=ID_textPanel_show_mobiligram)
+        self.Bind(wx.EVT_MENU, self.on_plot, id=ID_textPanel_show_mobilogram)
         self.Bind(wx.EVT_MENU, self.on_plot, id=ID_textPanel_show_heatmap)
         self.Bind(wx.EVT_MENU, self.on_plot, id=ID_textPanel_show_process_heatmap)
         self.Bind(wx.EVT_MENU, self.on_delete_item, id=ID_textPanel_delete_rightClick)
@@ -257,9 +257,9 @@ class PanelTextlist(wx.Panel):
         menu.AppendItem(
             makeMenuItem(
                 parent=menu,
-                id=ID_textPanel_show_mobiligram,
-                text="Show mobiligram\tM",
-                bitmap=self.icons.iconsLib["mobiligram_16"],
+                id=ID_textPanel_show_mobilogram,
+                text="Show mobilogram\tM",
+                bitmap=self.icons.iconsLib["mobilogram_16"],
             )
         )
         menu.AppendItem(
@@ -863,7 +863,7 @@ class PanelTextlist(wx.Panel):
         else:
             evtID = evt
 
-        if evtID == ID_textPanel_show_mobiligram:
+        if evtID == ID_textPanel_show_mobilogram:
             xvals = data["yvals"]  # normally this would be the y-axis
             yvals = data["yvals1D"]
             xlabels = data["ylabels"]  # normally this would be x-axis label

@@ -72,6 +72,8 @@ TODO: Add option to change charge for AL items in specified branch
 - [fixed] fixed problem that prevented duplicating document
 - [improved] when duplicating document in the Document Tree, all the data auxillary data will be restored in various
     side panels as well
+- [improved] when deleting item(s) from the document tree, various checks will be performed to ensure existing windows/
+    widgets are informed of any changes
 
 Plotting:
 - [new] DT/MS - added smart-zoom option which will speed-up data viewing for very large arrays
@@ -87,6 +89,7 @@ Plotting:
     windows include: UniDec (now has own widget), Overlay (now shown in Heatmap), RMSF (shown in Heatmap), Comparison
     (shown in Heatmap)..
 - [new] Added option to copy plot to clipboard. Simply right-click in any of the plots and select 'Copy plot to clipboard'
+- [improved] plotting ishould be faster now
 
 Processing:
 Processing: ORIGAMI-MS
@@ -333,12 +336,12 @@ New:
 
     Text panel:
         = added 'Overlay automatically' check tool to the Peaklist panel (Toolbar -> Overlay...)
-        = added 'Show chromatogram' and 'Show mobiligram' for each viewed file (Right-click -> Select appropriate)
+        = added 'Show chromatogram' and 'Show mobilogram' for each viewed file (Right-click -> Select appropriate)
 
     Document tree:
         = double-clicking on document name will clear all plots and show the basic plots for
           that document. You can also do this by selecting: Right-click on document title and selecting Refresh document
-        = You can change the x/y-axis labels for chromatograms and mobiligrams. Right-click
+        = You can change the x/y-axis labels for chromatograms and mobilograms. Right-click
           on the item in document tree and select 'Change x/y-axis to...'
 
     Multiple files panel:

@@ -8,11 +8,315 @@ import numpy as np
 import pandas as pd
 from readers.io_utils import remove_non_digits_from_list
 from utils.color import check_color_type
+from utils.color import convertHEXtoRGB1
+from utils.color import get_n_colors
 from utils.color import randomColorGenerator
+from utils.labels import _replace_labels
+from utils.visuals import check_n_grid_dimensions
 
 logger = logging.getLogger("origami")
 
 dtype_dict = {np.int32: "%d", np.float16: "%.3f", np.float32: "%.6f", np.float64: "%.8f"}
+
+
+class AnnotatedDataReader:
+
+    # TODO: add seaborn colors rather than randoms
+    def __init__(self, filename):
+        self.filename = filename
+        self.title = self._parse_title()
+        self._data = self._load_dataframe()
+        self.dataset_title, self.data = self._parse_data(self._data)
+
+    def _load_dataframe(self):
+        if self.filename.endswith(".csv"):
+            df = pd.read_csv(self.filename, sep=",", engine="python", header=None)
+        elif self.filename.endswith(".txt"):
+            df = pd.read_csv(self.filename, sep="\t", engine="python", header=None)
+
+        return df
+
+    def _parse_title(self):
+        title = os.path.basename(self.filename)
+        return title
+
+    def _parse_data(self, df):
+
+        plot_type = "multi-line"
+        plot_modifiers = {}
+        if "title" in list(df.iloc[:, 0]):
+            idx = list(df.iloc[:, 0]).index("title")
+            title = list(df.iloc[idx, 1::])[0]
+
+        row_labels = list(df.iloc[:, 0])
+        if "plot_type" in row_labels:
+            idx = row_labels.index("plot_type")
+            plot_type = list(df.iloc[idx, 1::])[0]
+
+        if "x_label" in row_labels:
+            idx = row_labels.index("x_label")
+            x_label = list(df.iloc[idx, 1::])[0]
+        else:
+            x_label = ""
+
+        if "y_label" in row_labels:
+            idx = row_labels.index("y_label")
+            y_label = list(df.iloc[idx, 1::])[0]
+        else:
+            y_label = ""
+
+        if "x_unit" in row_labels:
+            idx = row_labels.index("x_unit")
+            x_unit = list(df.iloc[idx, 1::])[0]
+        else:
+            x_unit = ""
+
+        if "y_unit" in row_labels:
+            idx = row_labels.index("y_unit")
+            y_unit = list(df.iloc[idx, 1::])[0]
+        else:
+            y_unit = ""
+
+        if "order" in row_labels:
+            idx = row_labels.index("order")
+            order = list(df.iloc[idx, 1::])
+        else:
+            order = []
+
+        if "label" in row_labels:
+            idx = row_labels.index("label")
+            labels = list(df.iloc[idx, 1::].dropna())
+        elif "labels" in row_labels:
+            idx = row_labels.index("labels")
+            labels = list(df.iloc[idx, 1::].dropna())
+        else:
+            labels = []
+
+        if "x_labels" in row_labels:
+            idx = row_labels.index("x_labels")
+            x_labels = list(df.iloc[idx, 1::].dropna())
+        else:
+            x_labels = []
+
+        if "y_labels" in row_labels:
+            idx = row_labels.index("y_labels")
+            y_labels = list(df.iloc[idx, 1::].dropna())
+        else:
+            y_labels = []
+
+        if "xlimits" in row_labels:
+            idx = row_labels.index("xlimits")
+            xlimits = list(df.iloc[idx, 1:3].dropna().astype("float32"))
+        else:
+            xlimits = [None, None]
+
+        if "ylimits" in row_labels:
+            idx = row_labels.index("ylimits")
+            ylimits = list(df.iloc[idx, 1:3].dropna().astype("float32"))
+        else:
+            ylimits = [None, None]
+
+        if "color" in row_labels:
+            idx = row_labels.index("color")
+            colors = list(df.iloc[idx, 1::].dropna())
+        elif "colors" in row_labels:
+            idx = row_labels.index("colors")
+            colors = list(df.iloc[idx, 1::].dropna())
+        else:
+            colors = []
+
+        if "column_type" in row_labels:
+            idx = row_labels.index("column_type")
+            column_types = list(df.iloc[idx, 1::].dropna())
+        else:
+            column_types = []
+
+        if "legend_labels" in row_labels:
+            idx = row_labels.index("legend_labels")
+            legend_labels = list(df.iloc[idx, 1::].dropna())
+        else:
+            legend_labels = []
+
+        if "legend_colors" in row_labels:
+            idx = row_labels.index("legend_colors")
+            legend_colors = list(df.iloc[idx, 1::].dropna())
+        else:
+            legend_colors = []
+
+        if "hover_labels" in row_labels:
+            idx = row_labels.index("hover_labels")
+            hover_labels = list(df.iloc[idx, 1::].dropna())
+        else:
+            hover_labels = []
+
+        plot_modifiers.update(
+            legend_labels=legend_labels, legend_colors=legend_colors, xlimits=xlimits, ylimits=ylimits
+        )
+        xvals, yvals, zvals, xvalsErr, yvalsErr, itemColors, itemLabels = [], [], [], [], [], [], []
+        xyvals, urls = [], []
+        axis_y_min, axis_y_max, axis_note = [], [], []
+        xy_labels = []
+
+        # get first index
+        first_num_idx = pd.to_numeric(df.iloc[:, 0], errors="coerce").notnull().idxmax()
+
+        # check if axis labels have been provided
+        for xy_axis in [
+            "axis_x",
+            "axis_y",
+            "axis_xerr",
+            "axis_yerr",
+            "axis_color",
+            "axis_colors",
+            "axis_label",
+            "axis_labels",
+            "axis_y_min",
+            "axis_y_max",
+            "axis_xy",
+            "axis_url",
+        ]:
+            if xy_axis in row_labels:
+                idx = row_labels.index(xy_axis)
+                xy_labels = list(df.iloc[idx, :])
+
+        if len(xy_labels) == df.shape[1]:
+            df = df.iloc[first_num_idx:, :]
+            for i, xy_label in enumerate(xy_labels):
+                if xy_label == "axis_x":
+                    xvals.append(np.asarray(df.iloc[:, i].dropna().astype("float32")))
+                if xy_label == "axis_y":
+                    yvals.append(np.asarray(df.iloc[:, i].dropna().astype("float32")))
+                if xy_label == "axis_xerr":
+                    xvalsErr.append(np.asarray(df.iloc[:, i].dropna().astype("float32")))
+                if xy_label == "axis_yerr":
+                    yvalsErr.append(np.asarray(df.iloc[:, i].dropna().astype("float32")))
+                if xy_label == "axis_y_min":
+                    axis_y_min.append(np.asarray(df.iloc[:, i].dropna().astype("float32")))
+                if xy_label == "axis_y_max":
+                    axis_y_max.append(np.asarray(df.iloc[:, i].dropna().astype("float32")))
+                if xy_label in ["axis_xy", "axis_yx"]:
+                    xyvals.append(np.asarray(df.iloc[:, i].dropna().astype("float32")))
+                if xy_label in ["axis_color", "axis_colors"]:
+                    _colors = list(df.iloc[:, i].dropna().astype("str"))
+                    _colorsRGB = []
+                    for _color in _colors:
+                        _colorsRGB.append(convertHEXtoRGB1(str(_color)))
+                    itemColors.append(_colorsRGB)
+                    plot_modifiers["color_items"] = True
+                if xy_label in ["axis_label", "axis_labels"]:
+                    itemLabels.append(list(df.iloc[:, i].replace(np.nan, "", regex=True).astype("str")))
+                    plot_modifiers["label_items"] = True
+                if xy_label == "axis_note":
+                    axis_note.append(np.asarray(df.iloc[:, i].replace(np.nan, "", regex=True).astype("str")))
+                if xy_label == "axis_url":
+                    urls.append(np.asarray(df.iloc[:, i].astype("str")))
+        else:
+            # drop all other non-numeric rows
+            df = df[pd.to_numeric(df.iloc[:, 0], errors="coerce").notnull()]
+            df = df.astype("float32")
+
+            # extract x, y and zvals
+            if df.shape[1] >= 2:
+                xvals = list(df.iloc[:, 0])
+            else:
+                return None, None
+
+            if df.shape[1] == 2:
+                yvals = list(df.iloc[:, 1])
+
+            if df.shape[1] > 2:
+                zvals = df.iloc[:, 1::].as_matrix()
+
+            if plot_type in ["multi-line", "waterfall", "scatter", "grid-line", "grid-scatter"]:
+                yvals_new = []
+                for item in range(zvals.shape[1]):
+                    yvals_new.append(zvals[:, item])
+
+                # replace
+                xvals = [xvals]
+                yvals = yvals_new
+                zvals = []
+                if len(labels) != len(yvals):
+                    labels = [""] * len(yvals)
+
+        # create combination of x y columns
+        if len(xyvals) > 0:
+            from itertools import product
+
+            xyproduct = list(product(xyvals, xyvals))
+            xvals, yvals = [], []
+            for iprod in xyproduct:
+                xvals.append(iprod[0])
+                yvals.append(iprod[1])
+            if len(x_labels) == len(xyvals) and len(y_labels) == len(xyvals):
+                xyproduct = list(product(x_labels, y_labels))
+                x_labels, y_labels = [], []
+                for iprod in xyproduct:
+                    x_labels.append(iprod[0])
+                    y_labels.append(iprod[1])
+
+        if plot_type in ["grid-line", "grid-scatter", "grid-mixed"]:
+            n_xvals = len(xvals)
+            n_yvals = len(yvals)
+            n_grid = max([n_xvals, n_yvals])
+            n_rows, n_cols, __, __ = check_n_grid_dimensions(n_grid)
+            plot_modifiers.update(n_grid=n_grid, n_rows=n_rows, n_cols=n_cols)
+
+        # check if we need to add any metadata
+        if len(colors) == 0 or len(colors) < len(yvals):
+            colors = get_n_colors(len(yvals))
+
+        if len(labels) != len(yvals):
+            labels = [""] * len(yvals)
+
+        # update title
+        _plot_types = {
+            "multi-line": "Multi-line",
+            "scatter": "Scatter",
+            "line": "Line",
+            "waterfall": "Waterfall",
+            "grid-line": "Grid-line",
+            "grid-scatter": "Grid-scatter",
+            "vertical-bar": "V-bar",
+            "horizontal-bar": "H-bar",
+        }
+
+        title = "{}: {}".format(_plot_types[plot_type], title)
+        other_data = {
+            "plot_type": plot_type,
+            "xvals": xvals,
+            "yvals": yvals,
+            "zvals": zvals,
+            "xvalsErr": xvalsErr,
+            "yvalsErr": yvalsErr,
+            "yvals_min": axis_y_min,
+            "yvals_max": axis_y_max,
+            "itemColors": itemColors,
+            "itemLabels": itemLabels,
+            "xlabel": _replace_labels(x_label),
+            "ylabel": _replace_labels(y_label),
+            "xlimits": xlimits,
+            "ylimits": ylimits,
+            "xlabels": x_labels,
+            "ylabels": y_labels,
+            "hover_labels": hover_labels,
+            "x_unit": x_unit,
+            "y_unit": y_unit,
+            "colors": colors,
+            "labels": labels,
+            "urls": urls,
+            "column_types": column_types,
+            "column_order": order,
+            "path": self.filename,
+            "plot_modifiers": plot_modifiers,
+        }
+
+        msg = "Item {} has: x-columns ({}), x-errors ({}), y-columns ({}), x-errors ({}), ".format(
+            os.path.basename(self.filename), len(xvals), len(xvalsErr), len(yvals), len(yvalsErr)
+        ) + "labels ({}), colors ({})".format(len(labels), len(colors))
+        logger.info(msg)
+
+        return title, other_data
 
 
 def check_column_names(col_names):

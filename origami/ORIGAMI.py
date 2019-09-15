@@ -214,8 +214,8 @@ class ORIGAMI(object):
             self.data_handling.on_extract_MS_from_chromatogram(1.7, 1.9, "Retention time (min)")
 
             # extract MS data - DT
-            self.data_handling.on_extract_MS_from_mobiligram(65, 75)
-            self.data_handling.on_extract_MS_from_mobiligram(11, 15, "Arrival time (ms)")
+            self.data_handling.on_extract_MS_from_mobilogram(65, 75)
+            self.data_handling.on_extract_MS_from_mobilogram(11, 15, "Arrival time (ms)")
 
         # exit
         self.view.on_close(None, clean_exit=True, ignore_warning=True)

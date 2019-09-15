@@ -32,7 +32,7 @@ from ids import ID_ionPanel_delete_selected
 from ids import ID_ionPanel_editItem
 from ids import ID_ionPanel_show_chromatogram
 from ids import ID_ionPanel_show_heatmap
-from ids import ID_ionPanel_show_mobiligram
+from ids import ID_ionPanel_show_mobilogram
 from ids import ID_ionPanel_show_process_heatmap
 from ids import ID_ionPanel_show_zoom_in_MS
 from ids import ID_ionPanel_table_alpha
@@ -112,7 +112,7 @@ class PanelPeaklist(wx.Panel):
             (wx.ACCEL_NORMAL, ord("C"), ID_ionPanel_assignColor),
             (wx.ACCEL_NORMAL, ord("E"), ID_ionPanel_editItem),
             (wx.ACCEL_NORMAL, ord("H"), ID_highlightRectAllIons),
-            (wx.ACCEL_NORMAL, ord("M"), ID_ionPanel_show_mobiligram),
+            (wx.ACCEL_NORMAL, ord("M"), ID_ionPanel_show_mobilogram),
             (wx.ACCEL_NORMAL, ord("S"), ID_ionPanel_check_selected),
             (wx.ACCEL_NORMAL, ord("X"), ID_ionPanel_check_all),
             (wx.ACCEL_NORMAL, ord("Z"), ID_ionPanel_show_zoom_in_MS),
@@ -123,7 +123,7 @@ class PanelPeaklist(wx.Panel):
         wx.EVT_MENU(self, ID_ionPanel_editItem, self.on_open_editor)
         wx.EVT_MENU(self, ID_ionPanel_assignColor, self.on_assign_color)
         wx.EVT_MENU(self, ID_ionPanel_show_zoom_in_MS, self.on_plot)
-        wx.EVT_MENU(self, ID_ionPanel_show_mobiligram, self.on_plot)
+        wx.EVT_MENU(self, ID_ionPanel_show_mobilogram, self.on_plot)
         wx.EVT_MENU(self, ID_ionPanel_check_selected, self.on_check_selected)
         wx.EVT_MENU(self, ID_ionPanel_delete_rightClick, self.on_delete_item)
 
@@ -342,9 +342,9 @@ class PanelPeaklist(wx.Panel):
         menu.AppendItem(
             makeMenuItem(
                 parent=menu,
-                id=ID_ionPanel_show_mobiligram,
-                text="Show mobiligram\tM",
-                bitmap=self.icons.iconsLib["mobiligram_16"],
+                id=ID_ionPanel_show_mobilogram,
+                text="Show mobilogram\tM",
+                bitmap=self.icons.iconsLib["mobilogram_16"],
             )
         )
         menu_action_show_heatmap = makeMenuItem(
@@ -383,7 +383,7 @@ class PanelPeaklist(wx.Panel):
 
         # bind events
         self.Bind(wx.EVT_MENU, self.on_plot, id=ID_ionPanel_show_zoom_in_MS)
-        self.Bind(wx.EVT_MENU, self.on_plot, id=ID_ionPanel_show_mobiligram)
+        self.Bind(wx.EVT_MENU, self.on_plot, id=ID_ionPanel_show_mobilogram)
         self.Bind(wx.EVT_MENU, self.on_plot, id=ID_ionPanel_show_chromatogram)
         self.Bind(wx.EVT_MENU, self.on_plot, id=ID_ionPanel_show_heatmap)
         self.Bind(wx.EVT_MENU, self.on_plot, menu_action_process_heatmap, id=ID_ionPanel_show_process_heatmap)
@@ -882,7 +882,7 @@ class PanelPeaklist(wx.Panel):
         else:
             evtID = evt
 
-        if evtID == ID_ionPanel_show_mobiligram:
+        if evtID == ID_ionPanel_show_mobilogram:
             xvals = data[rangeName]["yvals"]  # normally this would be the y-axis
             yvals = data[rangeName]["yvals1D"]
             xlabels = data[rangeName]["ylabels"]  # normally this would be x-axis label

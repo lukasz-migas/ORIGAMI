@@ -6,7 +6,11 @@ from ast import literal_eval
 import numpy as np
 from utils.random import random_int_0_to_255
 
-__all__ = ["randomColorGenerator", "convertRGB255to1", "convertRGB1to255", "determineFontColor"]
+__all__ = ["randomColorGenerator", "convertRGB255to1", "convertRGB1to255", "determineFontColor", "get_n_colors"]
+
+
+def get_n_colors(n_colors):
+    return [randomColorGenerator() in range(n_colors)]
 
 
 def get_all_color_types(color_1):

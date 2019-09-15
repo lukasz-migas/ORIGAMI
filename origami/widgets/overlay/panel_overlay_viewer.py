@@ -491,6 +491,9 @@ class PanelOverlayViewer(MiniFrame):
             )
         # get document
         document = self.data_handling._get_document_of_type("Type: Comparison")
+        if document is None:
+            logger.error("Please select valid document title and path")
+            return
         document_title = document.title
 
         # collect list of items in the clipboard

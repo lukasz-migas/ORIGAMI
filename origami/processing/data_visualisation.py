@@ -98,6 +98,7 @@ class data_visualisation:
             shape_list.append(shape.strip())
 
         # reduce to only include unique values
+        print(shape_list)
         shape = list(set(shape_list))
 
         # raise an error if incorrect shape
@@ -288,7 +289,7 @@ class data_visualisation:
         }
 
         # plot
-        self.on_show_overlay_spectrumoverlay(dataset_holder["data"], data_type, **kwargs)
+        self.on_show_overlay_spectrum_overlay(dataset_holder["data"], data_type, **kwargs)
 
         return dataset_holder
 
@@ -386,7 +387,7 @@ class data_visualisation:
         }
 
         # plot
-        self.on_show_overlay_spectrumbutterfly(dataset_holder["data"], **kwargs)
+        self.on_show_overlay_spectrum_butterfly(dataset_holder["data"], **kwargs)
 
         return dataset_holder
 
@@ -487,7 +488,7 @@ class data_visualisation:
         }
 
         # plot
-        self.on_show_overlay_spectrumbutterfly(dataset_holder["data"], **kwargs)
+        self.on_show_overlay_spectrum_butterfly(dataset_holder["data"], **kwargs)
 
         return dataset_holder
 
@@ -1251,7 +1252,7 @@ class data_visualisation:
 
         return dataset_holder
 
-    def on_show_overlay_spectrumoverlay(self, data, data_type, **kwargs):
+    def on_show_overlay_spectrum_overlay(self, data, data_type, **kwargs):
 
         colorlist = data["colors"]
         xlimits = data["xlimits"]
@@ -1278,7 +1279,7 @@ class data_visualisation:
                 xvals=xlist, yvals=ylist, xlabel=xlabel, colors=colorlist, xlimits=xlimits, labels=legend, **kwargs
             )
 
-    def on_show_overlay_spectrumbutterfly(self, data, **kwargs):
+    def on_show_overlay_spectrum_butterfly(self, data, **kwargs):
 
         colorlist = data["colors"]
         legend = data["labels"]
@@ -1303,7 +1304,7 @@ class data_visualisation:
             **kwargs,
         )
 
-    def on_show_overlay_spectrumwaterfall(self, data, **kwargs):
+    def on_show_overlay_spectrum_waterfall(self, data, **kwargs):
 
         colorlist = data["colors"]
         legend = data["labels"]

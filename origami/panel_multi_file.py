@@ -274,8 +274,8 @@ class PanelMultiFile(wx.Panel):
             makeMenuItem(
                 parent=menu,
                 id=ID_mmlPanel_plot_DT,
-                text="Show mobiligram\tD",
-                bitmap=self.icons.iconsLib["mobiligram_16"],
+                text="Show mobilogram\tD",
+                bitmap=self.icons.iconsLib["mobilogram_16"],
             )
         )
         menu.Append(ID_mmlPanel_plot_combined_MS, "Show mass spectrum (average)")

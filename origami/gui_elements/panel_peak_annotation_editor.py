@@ -279,7 +279,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         except Exception as err:
             logger.warning(f"Failed to unsubscribe from `editor.mark.annotation`or `editor.edit.annotation`: {err}")
 
-        self.documentTree.annotateDlg = None
+        self.documentTree._annotate_panel = None
         self.Destroy()
 
     def make_gui(self):
