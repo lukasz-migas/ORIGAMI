@@ -10,7 +10,10 @@ __all__ = ["randomColorGenerator", "convertRGB255to1", "convertRGB1to255", "dete
 
 
 def get_n_colors(n_colors):
-    return [randomColorGenerator() in range(n_colors)]
+    colors = []
+    for __ in range(n_colors):
+        colors.append(randomColorGenerator())
+    return colors
 
 
 def get_all_color_types(color_1):

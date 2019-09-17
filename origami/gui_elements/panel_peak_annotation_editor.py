@@ -100,6 +100,14 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
 
         logger.info(f"Startup of annototations editor took {ttime()-tstart:.2f} seconds")
 
+    def _check_active(self, query):
+        """Check whether the currently open editor should be closed"""
+        return all([self.document_title == query[0], self.dataset_type == query[1], self.dataset_name == query[2]])
+
+    def on_clear_table(self):
+        self.peaklist.DeleteAllItems()
+        self.on_clear_from_plot(None)
+
     def on_setup_plot_on_startup(self):
 
         self._plot_types_1D = ["mass_spectrum", "chromatogram", "mobilogram"]

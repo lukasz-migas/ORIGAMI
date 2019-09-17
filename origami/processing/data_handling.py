@@ -1623,9 +1623,9 @@ class data_handling:
                 xvalsMax, xvalsMin = xvalsMin, xvalsMax
 
             # Check if value already present
-            outcome = self.view.panelLinearDT.topP.onCheckForDuplicates(rtStart=str(xvalsMin), rtEnd=str(xvalsMax))
-            if outcome:
+            if self.view.panelLinearDT.topP.onCheckForDuplicates(rtStart=str(xvalsMin), rtEnd=str(xvalsMax)):
                 return
+
             xvalDiff = xvalsMax - xvalsMin.astype(int)
             self.view.panelLinearDT.topP.peaklist.Append([xvalsMin, xvalsMax, xvalDiff, "", document_title])
 
@@ -1650,8 +1650,7 @@ class data_handling:
                 return
 
             if rt_label in ["Collision Voltage (V)"]:
-                logging.error(f"Cannot extract MS data when the x-axis is in {rt_label} format")
-                return
+                raise MessageError("Error", f"Cannot extract MS data when the x-axis is in {rt_label} format")
 
             if rt_label == "Scans":
                 xvalsMin = np.ceil(xvalsMin).astype(int)
@@ -1663,10 +1662,9 @@ class data_handling:
 
             # Extract data
             if document.fileFormat == "Format: Thermo (.RAW)":
-                logging.warning("Cannot extract chromatographic data from Thermo (.raw) files yet")
-                return
-            else:
-                self.on_extract_MS_from_chromatogram(startScan=xvalsMin, endScan=xvalsMax, units=rt_label)
+                raise MessageError("Error", "Cannot extract chromatographic data from Thermo (.raw) files yet")
+
+            self.on_extract_MS_from_chromatogram(startScan=xvalsMin, endScan=xvalsMax, units=rt_label)
 
     def extract_from_plot_2D(self, dataOut):
         self.plot_page = self.plotsPanel._get_page_text()
@@ -3641,11 +3639,15 @@ class data_handling:
             elif dataset_type == "Input data" and dataset_name is not None:
                 self.documentTree.on_update_data(data, dataset_name, document, data_type="ion.heatmap.comparison")
             # chromatogram data
+            elif dataset_type == "Chromatogram":
+                self.documentTree.on_update_data(data, "", document, data_type="main.chromatogram")
             elif dataset_type == "Chromatograms (combined voltages, EIC)" and dataset_name is not None:
                 self.documentTree.on_update_data(data, dataset_name, document, data_type="ion.chromatogram.combined")
             elif dataset_type == "Chromatograms (EIC)" and dataset_name is not None:
                 self.documentTree.on_update_data(data, dataset_name, document, data_type=" extracted.chromatogram")
             # mobilogram data
+            elif dataset_type == "Drift time (1D)":
+                self.documentTree.on_update_data(data, "", document, data_type="main.mobilogram")
             elif dataset_type == "Drift time (1D, EIC)" and dataset_name is not None:
                 self.documentTree.on_update_data(data, dataset_name, document, data_type="ion.mobilogram.raw")
             elif dataset_type == "Drift time (1D, EIC, DT-IMS)" and dataset_name is not None:
@@ -3726,8 +3728,6 @@ class data_handling:
 
         document_title, dataset_type, dataset_name = query_info
         document = self._on_get_document(document_title)
-
-        print(query_info)
 
         if data is None:
             data = dict()
@@ -3903,6 +3903,13 @@ class data_handling:
             }
             return item_out
 
+        def cleanup(item_list):
+            document_titles = list(item_list.keys())
+            for document_title in document_titles:
+                if not item_list[document_title]:
+                    item_list.pop(document_title)
+            return item_list
+
         all_datasets = ["Mass Spectrum", "Mass Spectrum (processed)", "Mass Spectra"]
         singlular_datasets = ["Mass Spectrum", "Mass Spectrum (processed)"]
         all_documents = self.__get_document_list_of_type("all")
@@ -3930,6 +3937,9 @@ class data_handling:
                                 item_list[document_title].append(f"{dataset_type} :: {key}")
                             elif output_type in ["comparison"]:
                                 item_list[document_title].append(key)
+
+        if output_type == "comparison":
+            item_list = cleanup(item_list)
 
         return item_list
 

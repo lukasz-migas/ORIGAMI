@@ -53,101 +53,86 @@ class AnnotatedDataReader:
             idx = row_labels.index("plot_type")
             plot_type = list(df.iloc[idx, 1::])[0]
 
+        x_label = ""
         if "x_label" in row_labels:
             idx = row_labels.index("x_label")
             x_label = list(df.iloc[idx, 1::])[0]
-        else:
-            x_label = ""
 
+        y_label = ""
         if "y_label" in row_labels:
             idx = row_labels.index("y_label")
             y_label = list(df.iloc[idx, 1::])[0]
-        else:
-            y_label = ""
 
+        x_unit = ""
         if "x_unit" in row_labels:
             idx = row_labels.index("x_unit")
             x_unit = list(df.iloc[idx, 1::])[0]
-        else:
-            x_unit = ""
 
+        y_unit = ""
         if "y_unit" in row_labels:
             idx = row_labels.index("y_unit")
             y_unit = list(df.iloc[idx, 1::])[0]
-        else:
-            y_unit = ""
 
+        order = []
         if "order" in row_labels:
             idx = row_labels.index("order")
             order = list(df.iloc[idx, 1::])
-        else:
-            order = []
 
+        labels = []
         if "label" in row_labels:
             idx = row_labels.index("label")
             labels = list(df.iloc[idx, 1::].dropna())
         elif "labels" in row_labels:
             idx = row_labels.index("labels")
             labels = list(df.iloc[idx, 1::].dropna())
-        else:
-            labels = []
 
+        x_labels = []
         if "x_labels" in row_labels:
             idx = row_labels.index("x_labels")
             x_labels = list(df.iloc[idx, 1::].dropna())
-        else:
-            x_labels = []
 
+        y_labels = []
         if "y_labels" in row_labels:
             idx = row_labels.index("y_labels")
             y_labels = list(df.iloc[idx, 1::].dropna())
-        else:
-            y_labels = []
 
+        xlimits = [None, None]
         if "xlimits" in row_labels:
             idx = row_labels.index("xlimits")
             xlimits = list(df.iloc[idx, 1:3].dropna().astype("float32"))
-        else:
-            xlimits = [None, None]
 
+        ylimits = [None, None]
         if "ylimits" in row_labels:
             idx = row_labels.index("ylimits")
             ylimits = list(df.iloc[idx, 1:3].dropna().astype("float32"))
-        else:
-            ylimits = [None, None]
 
+        colors = []
         if "color" in row_labels:
             idx = row_labels.index("color")
             colors = list(df.iloc[idx, 1::].dropna())
         elif "colors" in row_labels:
             idx = row_labels.index("colors")
             colors = list(df.iloc[idx, 1::].dropna())
-        else:
-            colors = []
 
+        column_types = []
         if "column_type" in row_labels:
             idx = row_labels.index("column_type")
             column_types = list(df.iloc[idx, 1::].dropna())
-        else:
-            column_types = []
 
+        legend_labels = []
         if "legend_labels" in row_labels:
             idx = row_labels.index("legend_labels")
             legend_labels = list(df.iloc[idx, 1::].dropna())
-        else:
-            legend_labels = []
 
+        legend_colors = []
         if "legend_colors" in row_labels:
             idx = row_labels.index("legend_colors")
             legend_colors = list(df.iloc[idx, 1::].dropna())
-        else:
-            legend_colors = []
 
+        hover_labels = []
         if "hover_labels" in row_labels:
             idx = row_labels.index("hover_labels")
             hover_labels = list(df.iloc[idx, 1::].dropna())
-        else:
-            hover_labels = []
 
         plot_modifiers.update(
             legend_labels=legend_labels, legend_colors=legend_colors, xlimits=xlimits, ylimits=ylimits

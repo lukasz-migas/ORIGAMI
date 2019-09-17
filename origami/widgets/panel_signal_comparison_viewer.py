@@ -31,6 +31,7 @@ logger = logging.getLogger("origami")
 
 # TODO: FIXME: Changing label does not update the legend as you write
 # TODO: Add key_events for N, P, I, S (except when editing  labels)
+# TODO: FIXME: changing document title doesnt change the plot
 
 
 class PanelSignalComparisonViewer(MiniFrame):

@@ -20,7 +20,6 @@ from ids import ID_docTree_action_open_extractDTMS
 from ids import ID_docTree_action_open_origami_ms
 from ids import ID_docTree_action_open_peak_picker
 from ids import ID_docTree_add_2DT_to_interactive
-from ids import ID_docTree_add_annotations
 from ids import ID_docTree_add_comparison_to_interactive
 from ids import ID_docTree_add_DT_to_interactive
 from ids import ID_docTree_add_matrix_to_interactive
@@ -35,11 +34,9 @@ from ids import ID_docTree_addOneToTextTable
 from ids import ID_docTree_addToMMLTable
 from ids import ID_docTree_addToTextTable
 from ids import ID_docTree_compareMS
-from ids import ID_docTree_duplicate_annotations
 from ids import ID_docTree_duplicate_document
 from ids import ID_docTree_plugin_UVPD
 from ids import ID_docTree_save_unidec
-from ids import ID_docTree_show_annotations
 from ids import ID_docTree_show_refresh_document
 from ids import ID_docTree_show_unidec
 from ids import ID_docTree_showMassSpectra
@@ -51,7 +48,6 @@ from ids import ID_openDocInfo
 from ids import ID_process2DDocument
 from ids import ID_removeAllDocuments
 from ids import ID_removeDocument
-from ids import ID_removeItemDocument
 from ids import ID_renameItem
 from ids import ID_restoreComparisonData
 from ids import ID_save1DImageDoc
@@ -318,7 +314,7 @@ class DocumentTree(wx.TreeCtrl):
 
             if self.config.debug:
                 msg = (
-                    f"\n_document_type: {self._document_type} | _item_leaf: {self._item_leaf} | "
+                    f"_document_type: {self._document_type} | _item_leaf: {self._item_leaf} | "
                     + f"_item_branch: {self._item_branch} | _item_root: {self._item_root} | _indent: {self._indent}"
                 )
                 logger.debug(msg)
@@ -458,8 +454,8 @@ class DocumentTree(wx.TreeCtrl):
         if getSelected:
             itemText = self.GetItemText(item)
             return item, itemText
-        else:
-            return item
+
+        return item
 
     def get_item_by_data(self, data, root=None, cookie=0):
         """Get item by its data."""
@@ -482,6 +478,7 @@ class DocumentTree(wx.TreeCtrl):
         if child and child.IsOk():
             if self.GetPyData(child) is data:
                 return child
+
             matchedItem = self.get_item_by_data(data, child, cookie)
             if matchedItem:
                 return matchedItem
@@ -539,7 +536,9 @@ class DocumentTree(wx.TreeCtrl):
         document = self.data_handling._on_get_document(document_title)
         document_type = document.dataType
 
-        print(query, subkey, dataset_name)
+        _subkey_check = all([el == "" for el in subkey])
+
+        #         print(query, subkey, dataset_name)
 
         if not dataset_name:
             dataset_name = None
@@ -587,24 +586,30 @@ class DocumentTree(wx.TreeCtrl):
             )
             self._picker_panel.on_close(None)
 
-        # delete annotation links
-        if subkey:
-            __ = ""
-            if len(subkey) == 2:
-                subkey_parent, __ = subkey
+        if self._annotate_panel and self._annotate_panel._check_active([document_title, dataset_type, dataset_name]):
+            if not _subkey_check:
+                self._annotate_panel.on_clear_table()
             else:
-                subkey_parent = subkey[0]
+                DialogBox(
+                    exceptionTitle="Warning",
+                    exceptionMsg="The annotation panel is operating on the same item that was just deleted."
+                    + " The window will be closed",
+                    type="Error",
+                    exceptionPrint=True,
+                )
+                self._annotate_panel.on_close(None)
+
+        # delete annotation links
+        if not _subkey_check:
+            subkey_parent, __ = subkey
 
             if subkey_parent == "Annotations":
                 print("delete annotations")
+            elif subkey_parent == "UniDec":
+                print("delete unidec")
 
     def on_delete_item(self, evt):
         """Delete selected item from the document tree and the presenter dictionary"""
-
-        def get_data_dataset():
-            if dataset_name:
-                return data[dataset_name]
-            return data
 
         # delete document
         if self._indent == 1:
@@ -613,6 +618,7 @@ class DocumentTree(wx.TreeCtrl):
 
         # get current item by examining the ident stack
         query, subkey, dataset_name = self._get_delete_info_based_on_indent()
+        _subkey_check = all([el == "" for el in subkey])
 
         # get data
         __, data = self.data_handling.get_mobility_chromatographic_data(query, as_copy=False)
@@ -621,26 +627,26 @@ class DocumentTree(wx.TreeCtrl):
             self.SelectItem(item_parent)
 
         # check whether subkey exist and if so, get item
-        if subkey:
-            subkey_child = ""
+        if subkey and not _subkey_check:
             item_child = self.get_item_by_data(self.GetPyData(self._item_id))
-            if len(subkey) == 2:
-                subkey_parent, subkey_child = subkey
-                if dataset_name:
+            subkey_parent, subkey_child = subkey
+            if dataset_name:
+                if subkey_child != "":
                     del data[dataset_name][subkey_parent.lower()][subkey_child]
                 else:
-                    del data[subkey_parent.lower()][subkey_child]
+                    data[dataset_name].pop(subkey_parent.lower(), None)
             else:
-                subkey_parent = subkey[0]
-                if dataset_name:
-                    del data[dataset_name][subkey_parent.lower()]
+                if subkey_child != "":
+                    del data[subkey_parent.lower()][subkey_child]
                 else:
-                    del data[subkey_parent.lower()]
-            self.Delete(item_child)
-            self.data_handling.set_mobility_chromatographic_data(query, data)
+                    data.pop(subkey_parent.lower(), None)
+            if item_child:
+                self.Delete(item_child)
+
+            self.data_handling.set_parent_mobility_chromatographic_data(query, data)
 
         # delete only one item from dataset
-        if dataset_name and not subkey:
+        if dataset_name and _subkey_check:
             item_child = self.get_item_by_data(data.get(dataset_name, False))
             item_parent = self.get_item_by_data(data)
             if not item_child:
@@ -658,13 +664,14 @@ class DocumentTree(wx.TreeCtrl):
                 self.Delete(item_parent)
             # delete parent if its empty
             __, data = self.data_handling.get_mobility_chromatographic_data(query, as_copy=False)
+
             if not data:
                 self.Delete(item_parent)
 
             logger.info(f"Deleted {query[0]} : {query[1]} : {dataset_name}")
 
         # delete entire dataset
-        if not dataset_name and not subkey:
+        if not dataset_name and _subkey_check:
             item = self.get_item_by_data(data)
             if not item:
                 raise MessageError(
@@ -1338,18 +1345,22 @@ class DocumentTree(wx.TreeCtrl):
         item_branch = self._item_branch
         item_leaf = self._item_leaf
 
-        subkey = []
-        if self._indent == 2:
+        subkey = ["", ""]
+        if self._indent == 0:
+            query = ["Documents", "", ""]
+        elif self._indent == 1:
+            query = [item_branch, item_leaf, item_leaf]
+        elif self._indent == 2:
             query = [item_branch, item_leaf, item_leaf]
         elif self._indent == 3:
             # these are only valid when attached to `main` components of the document
             if item_leaf in ["Annotations", "UniDec"]:
-                subkey = [item_leaf]
+                subkey = [item_leaf, ""]
                 item_leaf = item_branch
             query = [item_root, item_branch, item_leaf]
         elif self._indent == 4:
             if item_leaf in ["Annotations", "UniDec"]:
-                subkey = [item_leaf]
+                subkey = [item_leaf, ""]
             if item_branch in ["Annotations", "UniDec"]:
                 subkey = [item_branch, item_leaf]
                 item_branch = item_root
@@ -1360,6 +1371,7 @@ class DocumentTree(wx.TreeCtrl):
 
         if return_subkey:
             return query, subkey
+
         return query
 
     def _get_delete_info_based_on_indent(self):
@@ -1387,9 +1399,9 @@ class DocumentTree(wx.TreeCtrl):
     def _match_plot_type_to_dataset_type(self, dataset_type, dataset_name):
         _plot_match = {
             "mass_spectrum": ["Mass Spectrum", "Mass Spectrum (processed)", "Mass Spectra"],
-            "chromatogram": ["Chromatogram", "Chromatograms (EIC)"],
+            "chromatogram": ["Chromatogram", "Chromatograms (EIC)", "Chromatograms (combined voltages, EIC)"],
             "mobilogram": ["Drift time (1D)", "Drift time (1D, EIC)", "Drift time (1D, EIC, DT-IMS)"],
-            "heatmap": ["Drift time (2D)", "Drift time (2D, EIC)"],
+            "heatmap": ["Drift time (2D)", "Drift time (2D, EIC)", "Drift time (2D, combined voltages, EIC)"],
             "annotated": ["Multi-line:", "Line:", "H-bar:", "V-bar:", "Scatter:", "Waterfall:"],
         }
         for key, items in _plot_match.items():
@@ -1499,6 +1511,10 @@ class DocumentTree(wx.TreeCtrl):
         document_spectrum_list = self.data_handling.generate_annotation_list(plot_type)
         document_list = list(document_spectrum_list.keys())
 
+        document_spectrum_list[document_title].pop(
+            document_spectrum_list[document_title].index(f"{dataset_type} :: {dataset_name}")
+        )
+
         duplicateDlg = DialogSelectDataset(
             self.presenter.view, self, document_list, document_spectrum_list, set_document=document_title
         )
@@ -1507,17 +1523,13 @@ class DocumentTree(wx.TreeCtrl):
         duplicate_type = duplicateDlg.dataset
 
         if any(item is None for item in [duplicate_type, duplicate_document]):
-            logger.warning("Action was cancelled")
+            logger.warning("Duplicating annotations was cancelled")
             return
 
         # split dataset name
         duplicate_name = duplicate_type
         if "::" in duplicate_type:
             duplicate_type, duplicate_name = re.split(" :: ", duplicate_type)
-
-        if document_title == duplicate_document and dataset_name == duplicate_name:
-            logger.warning("Input and output items are the same")
-            raise MessageError("Warning", "Input and output items are the same")
 
         __, data = self.data_handling.get_mobility_chromatographic_data(
             [duplicate_document, duplicate_type, duplicate_name]
@@ -1551,16 +1563,18 @@ class DocumentTree(wx.TreeCtrl):
 
         plot_type = self._match_plot_type_to_dataset_type(dataset_type, dataset_name)
         annotations_obj = data.get("annotations", {})
-        if annotations_obj:
-            self.panel_plot.on_plot_1D_annotations(
-                annotations_obj,
-                plot=plot_type,
-                label_fmt="all",
-                pin_to_intensity=True,
-                document_title=document_title,
-                dataset_type=dataset_type,
-                dataset_name=dataset_name,
-            )
+        if not annotations_obj:
+            raise MessageError("Error", "This item has no annotations to display")
+
+        self.panel_plot.on_plot_1D_annotations(
+            annotations_obj,
+            plot=plot_type,
+            label_fmt="all",
+            pin_to_intensity=True,
+            document_title=document_title,
+            dataset_type=dataset_type,
+            dataset_name=dataset_name,
+        )
 
     def on_action_ORIGAMI_MS(self, evt, document_title=None):
         from gui_elements.dialog_customise_origami import DialogCustomiseORIGAMI
@@ -1658,6 +1672,14 @@ class DocumentTree(wx.TreeCtrl):
 
         # Get the current text value for selected item
         itemType = self.GetItemText(evt.GetItem())
+
+        query, subkey = self._get_query_info_based_on_indent(return_subkey=True)
+        dataset_type = query[1]
+        dataset_name = query[2]
+        subkey_parent = subkey[0]
+        subkey_child = subkey[1]
+
+        #         print(query, subkey)
 
         if itemType == "Documents":
             self.on_right_click_short()
@@ -1810,12 +1832,8 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addOneToTextTable)
         self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addInteractiveToTextTable)
         self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addOneInteractiveToTextTable)
-        self.Bind(wx.EVT_MENU, self.on_open_annotation_editor, id=ID_docTree_add_annotations)
-        self.Bind(wx.EVT_MENU, self.on_show_annotations, id=ID_docTree_show_annotations)
-        self.Bind(wx.EVT_MENU, self.on_duplicate_annotations, id=ID_docTree_duplicate_annotations)
         self.Bind(wx.EVT_MENU, self.onDuplicateItem, id=ID_docTree_duplicate_document)
         self.Bind(wx.EVT_MENU, self.on_refresh_document, id=ID_docTree_show_refresh_document)
-        self.Bind(wx.EVT_MENU, self.on_delete_item, id=ID_removeItemDocument)
         self.Bind(wx.EVT_MENU, self.removeDocument, id=ID_removeDocument)
         self.Bind(wx.EVT_MENU, self.onOpenDocInfo, id=ID_openDocInfo)
         self.Bind(wx.EVT_MENU, self.onShow_and_SavePlot, id=ID_saveRTImageDoc)
@@ -1845,50 +1863,30 @@ class DocumentTree(wx.TreeCtrl):
 
         # save dataframe
         annotation_menu = wx.Menu()
-        annotation_menu.Append(
-            makeMenuItem(
-                parent=annotation_menu,
-                id=ID_docTree_add_annotations,
-                text="Show annotations panel...",
-                bitmap=self.icons.iconsLib["annotate16"],
-            )
+
+        annotation_menu_show_annotations_panel = makeMenuItem(
+            parent=annotation_menu, text="Show annotations panel...", bitmap=self.icons.iconsLib["annotate16"]
         )
-        annotation_menu.Append(
-            makeMenuItem(
-                parent=annotation_menu,
-                id=ID_docTree_show_annotations,
-                text="Show annotations on plot",
-                bitmap=self.icons.iconsLib["highlight_16"],
-            )
+        annotation_menu_show_annotations = makeMenuItem(
+            parent=annotation_menu, text="Show annotations on plot", bitmap=self.icons.iconsLib["highlight_16"]
         )
-        annotation_menu.Append(
-            makeMenuItem(
-                parent=annotation_menu,
-                id=ID_docTree_duplicate_annotations,
-                text="Duplicate annotations...",
-                bitmap=self.icons.iconsLib["duplicate_item_16"],
-            )
+        annotation_menu_duplicate_annotations = makeMenuItem(
+            parent=annotation_menu, text="Duplicate annotations...", bitmap=self.icons.iconsLib["duplicate_item_16"]
         )
+
+        annotation_menu.Append(annotation_menu_show_annotations_panel)
+        annotation_menu.Append(annotation_menu_show_annotations)
+        annotation_menu.Append(annotation_menu_duplicate_annotations)
 
         menu = wx.Menu()
-
         menu_show_annotations_panel = makeMenuItem(
-            parent=menu,
-            id=ID_docTree_add_annotations,
-            text="Show annotations panel...",
-            bitmap=self.icons.iconsLib["annotate16"],
+            parent=menu, text="Show annotations panel...", bitmap=self.icons.iconsLib["annotate16"]
         )
         menu_action_duplicate_annotations = makeMenuItem(
-            parent=menu,
-            id=ID_docTree_duplicate_annotations,
-            text="Duplicate annotations...",
-            bitmap=self.icons.iconsLib["duplicate_item_16"],
+            parent=menu, text="Duplicate annotations...", bitmap=self.icons.iconsLib["duplicate_item_16"]
         )
         menu_action_show_annotations = makeMenuItem(
-            parent=menu,
-            id=ID_docTree_show_annotations,
-            text="Show annotations on plot",
-            bitmap=self.icons.iconsLib["highlight_16"],
+            parent=menu, text="Show annotations on plot", bitmap=self.icons.iconsLib["highlight_16"]
         )
         menu_show_comparison_panel = makeMenuItem(
             parent=menu,
@@ -1903,7 +1901,7 @@ class DocumentTree(wx.TreeCtrl):
             bitmap=self.icons.iconsLib["highlight_16"],
         )
         menu_action_delete_item = makeMenuItem(
-            parent=menu, id=ID_removeItemDocument, text="Delete item\tDelete", bitmap=self.icons.iconsLib["clear_16"]
+            parent=menu, text="Delete item\tDelete", bitmap=self.icons.iconsLib["clear_16"]
         )
         menu_action_show_highlights = makeMenuItem(
             parent=menu,
@@ -2035,6 +2033,13 @@ class DocumentTree(wx.TreeCtrl):
         )
 
         # bind events
+        self.Bind(wx.EVT_MENU, self.on_open_annotation_editor, annotation_menu_show_annotations_panel)
+        self.Bind(wx.EVT_MENU, self.on_open_annotation_editor, menu_show_annotations_panel)
+        self.Bind(wx.EVT_MENU, self.on_show_annotations, annotation_menu_show_annotations)
+        self.Bind(wx.EVT_MENU, self.on_show_annotations, menu_action_show_annotations)
+        self.Bind(wx.EVT_MENU, self.on_duplicate_annotations, annotation_menu_duplicate_annotations)
+        self.Bind(wx.EVT_MENU, self.on_duplicate_annotations, menu_action_duplicate_annotations)
+        self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
         self.Bind(wx.EVT_MENU, self.on_save_document_as, menu_action_save_document_as)
         self.Bind(wx.EVT_MENU, self.on_change_charge_state, menu_action_assign_charge)
         self.Bind(wx.EVT_MENU, self.on_process_MS, menu_action_process_ms)
@@ -2059,18 +2064,15 @@ class DocumentTree(wx.TreeCtrl):
         accepted_annotated_items = ["Multi-line:", "Line:", "H-bar:", "V-bar:", "Scatter:", "Waterfall:"]
 
         # mass spectra
-        if self._document_type in all_mass_spectra:
+        if dataset_type in all_mass_spectra:
             # annotations - all
-            if (self._document_type in all_mass_spectra) and self._item_leaf == "Annotations":
+            if (self._document_type in all_mass_spectra) and subkey_parent == "Annotations":
                 menu.AppendItem(menu_show_annotations_panel)
                 menu.AppendItem(menu_action_show_annotations)
                 menu.AppendItem(menu_action_duplicate_annotations)
                 menu.AppendItem(menu_action_delete_item)
-            # annotations - single
-            elif self._item_branch == "Annotations" and self._indent in [4, 5]:
-                menu.AppendItem(menu_action_delete_item)
             # unidec -all
-            elif (self._document_type in all_mass_spectra) and self._item_branch == "UniDec":
+            elif dataset_type in all_mass_spectra and subkey_parent == "UniDec" and subkey_child != "":
                 menu.AppendItem(
                     makeMenuItem(parent=menu, id=ID_docTree_show_unidec, text="Show plot - {}".format(self._item_leaf))
                 )
@@ -2083,7 +2085,7 @@ class DocumentTree(wx.TreeCtrl):
                 )
                 menu.AppendItem(menu_action_delete_item)
             # unidec - single
-            elif (self._document_type in all_mass_spectra) and self._item_leaf == "UniDec":
+            elif dataset_type in all_mass_spectra and subkey_parent == "UniDec":
                 menu.AppendItem(menu_action_show_unidec_results)
                 menu.AppendItem(
                     makeMenuItem(
@@ -2094,26 +2096,12 @@ class DocumentTree(wx.TreeCtrl):
                 )
                 menu.AppendItem(menu_action_delete_item)
             # mass spectrum - single
-            elif self._document_type in ["Mass Spectrum", "Mass Spectrum (processed)"] and self._indent == 2:
+            elif dataset_type in ["Mass Spectrum", "Mass Spectrum (processed)"] and self._indent == 2:
                 menu.AppendItem(menu_action_show_plot_spectrum)
                 menu.AppendItem(menu_show_peak_picker_panel)
                 menu.AppendItem(menu_action_process_ms)
                 menu.AppendItem(menu_show_comparison_panel)
                 menu.AppendSubMenu(annotation_menu, "Annotations...")
-
-                # check if deconvolution results are present
-                if hasattr(self._current_data, "unidec"):
-                    menu.AppendSeparator()
-                    menu.AppendItem(menu_action_show_unidec_results)
-
-                    menu.AppendItem(
-                        makeMenuItem(
-                            parent=menu,
-                            id=ID_docTree_save_unidec,
-                            text="Save UniDec results ({})".format(self.config.saveExtension),
-                            bitmap=None,
-                        )
-                    )
                 menu.AppendItem(menu_show_unidec_panel)
                 menu.AppendSeparator()
                 menu.AppendItem(menu_action_save_image_as)
@@ -2122,7 +2110,7 @@ class DocumentTree(wx.TreeCtrl):
             # mass spectra
             else:
                 # mass spectra - all
-                if self._item_leaf == "Mass Spectra":
+                if dataset_type == "Mass Spectra" and dataset_name == "Mass Spectra":
                     menu.AppendItem(menu_show_comparison_panel)
                     menu.AppendItem(menu_action_show_plot_spectrum_waterfall)
                     menu.AppendItem(
@@ -2138,7 +2126,7 @@ class DocumentTree(wx.TreeCtrl):
                     menu.AppendItem(menu_action_save_data_as)
                     menu.AppendMenu(wx.ID_ANY, "Save to file...", save_data_submenu)
                 # mass spectra - single
-                elif self._item_leaf != "Mass Spectra" and "UniDec (" not in self._item_leaf and self._indent != 4:
+                else:
                     menu.AppendItem(menu_action_show_plot_spectrum)
                     menu.AppendItem(menu_show_peak_picker_panel)
                     menu.AppendItem(menu_action_process_ms)
@@ -2351,14 +2339,16 @@ class DocumentTree(wx.TreeCtrl):
             menu.AppendItem(menu_action_save_data_as)
         # annotated data
         elif self._document_type == "Annotated data":
+            menu.AppendItem(menu_action_show_plot)
             if self._document_type != self._item_leaf and any(
                 [ok_item in self._item_leaf for ok_item in accepted_annotated_items]
             ):
                 menu.AppendSubMenu(annotation_menu, "Annotations...")
+            menu.AppendSeparator()
+            menu.AppendItem(menu_action_save_image_as)
+            menu.AppendItem(menu_action_delete_item)
         else:
             menu.AppendMenu(wx.ID_ANY, "Import data...", load_data_menu)
-        #             menu.Append(ID_docTree_add_MS_to_interactive, "Add mass spectra")
-        #             menu.Append(ID_docTree_add_other_to_interactive, "Add other...")
 
         if menu.MenuItemCount > 0:
             menu.AppendSeparator()
@@ -3616,9 +3606,11 @@ class DocumentTree(wx.TreeCtrl):
             return
 
         # get plot limits
-        xlimits = data.pop(
-            "xlimits", [self._document_data.parameters["startMS"], self._document_data.parameters["endMS"]]
-        )
+        xlimits = [None, None]
+        if "xlimits" in data:
+            xlimits = data["xlimits"]
+        elif "startMS" in self._document_data.parameters and "endMS" in self._document_data.parameters:
+            xllimits = [self._document_data.parameters["startMS"], self._document_data.parameters["endMS"]]
 
         # setup kwargs
         if self._document_type in ["Mass Spectrum"]:
@@ -5150,6 +5142,7 @@ class DocumentTree(wx.TreeCtrl):
             if self.PanelProcessUniDec.document_title == document_title:
                 logger.warning("An instance of a processing panel is alread open")
                 self.PanelProcessUniDec.SetFocus()
+                self.PanelProcessUniDec.CenterOnParent()
                 return
         except (AttributeError, RuntimeError):
             pass
@@ -5782,6 +5775,7 @@ class DocumentTree(wx.TreeCtrl):
         set_data_only: bool
             specify whether data should be added with full refresh or just set
         """
+        item = False
         # spectrum
         if data_type == "main.raw.spectrum":
             item = self.get_item_by_data(document.massSpectrum)
@@ -5876,6 +5870,8 @@ class DocumentTree(wx.TreeCtrl):
             item = self.get_item_by_data(document.IMS2DoverlayData)
             document.gotOverlay = True
             document.IMS2DoverlayData[item_name] = item_data
+        else:
+            logger.error(f"Not implemented yet... {item_name}, {data_type}")
 
         if item is not False and not set_data_only:
             # will add to the main root
