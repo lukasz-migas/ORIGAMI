@@ -16,7 +16,7 @@ class DialogAskOverride(Dialog):
 
         if msg is None:
             msg = "Item already exists in the document. What would you like to do?"
-        self.msg.SetValue(msg)
+        self.msg.SetLabel(msg)
 
     def make_gui(self):
 
@@ -34,29 +34,29 @@ class DialogAskOverride(Dialog):
     def make_panel(self):
         panel = wx.Panel(self, -1)
 
-        self.msg = wx.TextCtrl(panel, -1, "", size=(400, 40), style=wx.TE_READONLY | wx.TE_WORDWRAP)
+        self.msg = wx.StaticText(panel, -1, "", size=(400, 100))
 
-        self.overrideBtn = wx.Button(panel, wx.ID_ANY, "Override", size=(-1, 22))
-        self.overrideBtn.Bind(wx.EVT_BUTTON, self.override)
+        self.override_btn = wx.Button(panel, wx.ID_ANY, "Override", size=(-1, 22))
+        self.override_btn.Bind(wx.EVT_BUTTON, self.override)
 
-        self.mergeBtn = wx.Button(panel, wx.ID_ANY, "Merge", size=(-1, 22))
-        self.mergeBtn.Bind(wx.EVT_BUTTON, self.merge)
+        self.merge_btn = wx.Button(panel, wx.ID_ANY, "Merge", size=(-1, 22))
+        self.merge_btn.Bind(wx.EVT_BUTTON, self.merge)
 
-        self.copyBtn = wx.Button(panel, wx.ID_OK, "Create copy", size=(-1, 22))
-        self.copyBtn.Bind(wx.EVT_BUTTON, self.create_copy)
+        self.copy_btn = wx.Button(panel, wx.ID_OK, "Create copy", size=(-1, 22))
+        self.copy_btn.Bind(wx.EVT_BUTTON, self.create_copy)
 
-        self.askAgain_check = makeCheckbox(panel, "Don't ask again")
-        self.askAgain_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
+        self.not_ask_again_check = makeCheckbox(panel, "Don't ask again")
+        self.not_ask_again_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         # pack elements
         grid = wx.GridBagSizer(5, 5)
         y = 0
         grid.Add(self.msg, (y, 0), wx.GBSpan(1, 4))
         y = y + 1
-        grid.Add(self.overrideBtn, (y, 0), flag=wx.ALIGN_CENTER)
-        grid.Add(self.mergeBtn, (y, 1), flag=wx.ALIGN_CENTER)
-        grid.Add(self.copyBtn, (y, 2), flag=wx.ALIGN_CENTER)
-        grid.Add(self.askAgain_check, (y, 3), flag=wx.ALIGN_CENTER)
+        grid.Add(self.override_btn, (y, 0), flag=wx.ALIGN_CENTER)
+        grid.Add(self.merge_btn, (y, 1), flag=wx.ALIGN_CENTER)
+        grid.Add(self.copy_btn, (y, 2), flag=wx.ALIGN_CENTER)
+        grid.Add(self.not_ask_again_check, (y, 3), flag=wx.ALIGN_CENTER)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(grid, 0, wx.EXPAND, 10)
@@ -80,4 +80,4 @@ class DialogAskOverride(Dialog):
         self.EndModal(wx.OK)
 
     def on_apply(self, evt):
-        self.config.import_duplicate_ask = self.askAgain_check.GetValue()
+        self.config.import_duplicate_ask = self.not_ask_again_check.GetValue()

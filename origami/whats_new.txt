@@ -74,6 +74,9 @@ TODO: Add option to change charge for AL items in specified branch
     side panels as well
 - [improved] when deleting item(s) from the document tree, various checks will be performed to ensure existing windows/
     widgets are informed of any changes
+- [improved] you can load arbitrary data into any document from now on. Simply right-click on the document title (or
+    nearby) and select Import data -> option. A new entry "Don't check if file exist" has been added and duplicate
+    names will be modified to include an incrementally larger numberin bracket
 
 Plotting:
 - [new] DT/MS - added smart-zoom option which will speed-up data viewing for very large arrays

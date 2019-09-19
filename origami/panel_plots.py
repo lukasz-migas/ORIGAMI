@@ -785,8 +785,7 @@ class PanelPlots(wx.Panel):
 
         path, title = self.data_handling._on_get_document_path_and_title()
         if path is None:
-            args = ("Could not find path", 4)
-            self.presenter.onThreading(None, args, action="updateStatusbar")
+            logger.error(f"Could not find path {path}")
             return
 
         # Select default name + link to the plot
@@ -913,13 +912,10 @@ class PanelPlots(wx.Panel):
 
             plotWindow.save_figure(path=filename, **kwargs)
 
-            tend = time.clock()
-            msg = "Saved figure to {}. It took {} s.".format(path, str(np.round((tend - tstart), 4)))
-            args = (msg, 4)
-        else:
-            msg = "Operation was cancelled"
+            logger.info(f"Saved figure `{path}` in {ttime()-tstart:.2f}s")
+            return
 
-        self.data_handling.update_statusbar(msg, 4)
+        logger.warning("Image saving operation was cancelled")
 
     def on_open_peak_picker(self, evt):
         plot_obj = self.get_plot_from_name("MS")

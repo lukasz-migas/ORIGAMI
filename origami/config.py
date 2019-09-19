@@ -612,8 +612,8 @@ class OrigamiConfig:
 
         self._textlistSettings = [
             {"name": "", "order": 0, "width": 25, "show": True},
-            {"name": "min CE", "order": 1, "width": 65, "show": True},
-            {"name": "max CE", "order": 2, "width": 65, "show": True},
+            {"name": "min (x)", "order": 1, "width": 65, "show": True},
+            {"name": "max (x)", "order": 2, "width": 65, "show": True},
             {"name": "z", "order": 3, "width": 25, "show": True},
             {"name": "color", "order": 4, "width": 60, "show": True},
             {"name": "colormap", "order": 5, "width": 70, "show": True},
@@ -621,7 +621,7 @@ class OrigamiConfig:
             {"name": "mask", "order": 7, "width": 40, "show": True},
             {"name": "label", "order": 8, "width": 50, "show": True},
             {"name": "shape", "order": 9, "width": 70, "show": True},
-            {"name": "file", "order": 10, "width": 100, "show": True},
+            {"name": "document", "order": 10, "width": 100, "show": True},
         ]
 
         # column name 'energy' was changed to 'variable' as it might be more appropriate

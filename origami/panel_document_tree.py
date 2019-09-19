@@ -6,27 +6,20 @@ import os
 import re
 import time
 from copy import deepcopy
+from functools import partial
 from operator import itemgetter
 
 import numpy as np
 import pandas as pd
 import utils.labels as ut_labels
 import wx
-from gui_elements.dialog_ask_override import DialogAskOverride
 from gui_elements.misc_dialogs import DialogBox
 from gui_elements.misc_dialogs import DialogSimpleAsk
 from ids import ID_docTree_action_open_extract
 from ids import ID_docTree_action_open_extractDTMS
 from ids import ID_docTree_action_open_origami_ms
 from ids import ID_docTree_action_open_peak_picker
-from ids import ID_docTree_add_2DT_to_interactive
-from ids import ID_docTree_add_comparison_to_interactive
-from ids import ID_docTree_add_DT_to_interactive
-from ids import ID_docTree_add_matrix_to_interactive
-from ids import ID_docTree_add_MS_to_interactive
 from ids import ID_docTree_add_mzIdentML
-from ids import ID_docTree_add_other_to_interactive
-from ids import ID_docTree_add_RT_to_interactive
 from ids import ID_docTree_addInteractiveToTextTable
 from ids import ID_docTree_addOneInteractiveToTextTable
 from ids import ID_docTree_addOneToMMLTable
@@ -110,9 +103,7 @@ from ids import ID_ylabel_DTMS_ms_arrival
 from ids import ID_ylabel_DTMS_restore
 from natsort import natsorted
 from panelInformation import panelDocumentInfo
-from readers.io_text_files import text_heatmap_open
 from styles import makeMenuItem
-from toolbox import merge_two_dicts
 from toolbox import saveAsText
 from utils.color import convertRGB1to255
 from utils.color import convertRGB255to1
@@ -122,7 +113,6 @@ from utils.converters import str2int
 from utils.converters import str2num
 from utils.exceptions import MessageError
 from utils.path import clean_filename
-from utils.random import get_random_int
 
 logger = logging.getLogger("origami")
 
@@ -1070,202 +1060,6 @@ class DocumentTree(wx.TreeCtrl):
 
         return document, data, query
 
-    def on_load_custom_data(self, evt):
-        """
-        Load data into interactive document
-        """
-
-        # get document
-        document = self._document_data
-        evtID = evt.GetId()
-        wildcard = "Text file (*.txt, *.csv, *.tab)| *.txt;*.csv;*.tab"
-        dlg = wx.FileDialog(
-            self.presenter.view,
-            "Choose data [MS, RT, DT]...",
-            wildcard=wildcard,
-            style=wx.FD_MULTIPLE | wx.FD_CHANGE_DIR,
-        )
-        if dlg.ShowModal() == wx.ID_OK:
-            pathlist = dlg.GetPaths()
-            filenames = dlg.GetFilenames()
-            for path, fname in zip(pathlist, filenames):
-                if evtID == ID_docTree_add_MS_to_interactive:
-                    msDataX, msDataY, __, xlimits, extension = self.data_handling._get_text_spectrum_data(path=path)
-                    document.gotMultipleMS = True
-                    data = {
-                        "xvals": msDataX,
-                        "yvals": msDataY,
-                        "xlabels": "m/z (Da)",
-                        "xlimits": xlimits,
-                        "file_path": path,
-                        "file_extension": extension,
-                    }
-
-                    if fname in document.multipleMassSpectrum:
-                        if not self.config.import_duplicate_ask:
-                            msg = "{} already exists in the document. What would you like to do about it?".format(fname)
-                            dlg = DialogAskOverride(self, self.config, msg)
-                            dlg.ShowModal()
-                        if self.config.import_duplicate_action == "merge":
-                            # retrieve and merge
-                            old_data = document.multipleMassSpectrum[fname]
-                            data = merge_two_dicts(old_data, data)
-                        elif self.config.import_duplicate_action == "duplicate":
-                            title = "{} (2)".format(fname)
-
-                    document.multipleMassSpectrum[fname] = data
-
-                elif evtID == ID_docTree_add_RT_to_interactive:
-                    rtDataX, rtDataY, __, xlimits, extension = self.data_handling._get_text_spectrum_data(path=path)
-                    document.gotMultipleRT = True
-                    data = {
-                        "xvals": rtDataX,
-                        "yvals": rtDataY,
-                        "xlabels": "Scans",
-                        "ylabels": "Intensity",
-                        "xlimits": xlimits,
-                        "file_path": path,
-                        "file_extension": extension,
-                    }
-
-                    if fname in document.multipleRT:
-                        if not self.config.import_duplicate_ask:
-                            msg = "{} already exists in the document. What would you like to do about it?".format(fname)
-                            dlg = DialogAskOverride(self, self.config, msg)
-                            dlg.ShowModal()
-                        if self.config.import_duplicate_action == "merge":
-                            # retrieve and merge
-                            old_data = document.multipleRT[fname]
-                            data = merge_two_dicts(old_data, data)
-                        elif self.config.import_duplicate_action == "duplicate":
-                            title = "{} (2)".format(fname)
-
-                    document.multipleRT[fname] = data
-
-                elif evtID == ID_docTree_add_DT_to_interactive:
-                    dtDataX, dtDataY, __, xlimits, extension = self.data_handling._get_text_spectrum_data(path=path)
-                    data = {
-                        "xvals": dtDataX,
-                        "yvals": dtDataY,
-                        "xlabels": "Drift time (bins)",
-                        "ylabels": "Intensity",
-                        "xlimits": xlimits,
-                        "file_path": path,
-                        "file_extension": extension,
-                    }
-
-                    if fname in document.multipleDT:
-                        if not self.config.import_duplicate_ask:
-                            msg = "{} already exists in the document. What would you like to do about it?".format(fname)
-                            dlg = DialogAskOverride(self, self.config, msg)
-                            dlg.ShowModal()
-                        if self.config.import_duplicate_action == "merge":
-                            # retrieve and merge
-                            old_data = document.multipleDT[fname]
-                            data = merge_two_dicts(old_data, data)
-                        elif self.config.import_duplicate_action == "duplicate":
-                            title = "{} (2)".format(fname)
-
-                    document.multipleDT[fname] = data
-
-                elif evtID == ID_docTree_add_2DT_to_interactive:
-                    imsData2D, xAxisLabels, yAxisLabels = text_heatmap_open(path=path)
-                    imsData1D = np.sum(imsData2D, axis=1).T
-                    rtDataY = np.sum(imsData2D, axis=0)
-                    color = convertRGB255to1(self.config.customColors[get_random_int(0, 15)])
-                    document.gotExtractedIons = True
-                    data = {
-                        "zvals": imsData2D,
-                        "xvals": xAxisLabels,
-                        "xlabels": "Scans",
-                        "yvals": yAxisLabels,
-                        "ylabels": "Drift time (bins)",
-                        "yvals1D": imsData1D,
-                        "yvalsRT": rtDataY,
-                        "cmap": self.config.currentCmap,
-                        "mask": self.config.overlay_defaultMask,
-                        "alpha": self.config.overlay_defaultAlpha,
-                        "min_threshold": 0,
-                        "max_threshold": 1,
-                        "color": color,
-                    }
-                    if fname in document.IMS2Dions:
-                        if not self.config.import_duplicate_ask:
-                            msg = "{} already exists in the document. What would you like to do about it?".format(fname)
-                            dlg = DialogAskOverride(self, self.config, msg)
-                            dlg.ShowModal()
-                        if self.config.import_duplicate_action == "merge":
-                            # retrieve and merge
-                            old_data = document.IMS2Dions[fname]
-                            data = merge_two_dicts(old_data, data)
-                        elif self.config.import_duplicate_action == "duplicate":
-                            title = "{} (2)".format(fname)
-
-                    document.IMS2Dions[fname] = data
-
-                elif evtID == ID_docTree_add_other_to_interactive:
-                    try:
-                        title, data = self.data_handling.on_load_annotated_data(path)
-                        if title is None or data is None:
-                            return
-                        if title in document.other_data:
-                            if not self.config.import_duplicate_ask:
-                                msg = "{} already exists in the document. What would you like to do about it?".format(
-                                    title
-                                )
-                                dlg = DialogAskOverride(self, self.config, msg)
-                                dlg.ShowModal()
-
-                            if self.config.import_duplicate_action == "merge":
-                                # retrieve and merge
-                                old_data = document.other_data[title]
-                                data = merge_two_dicts(old_data, data)
-                            elif self.config.import_duplicate_action == "duplicate":
-                                title = "{} (2)".format(title)
-
-                        document.other_data[title] = data
-                    except Exception as e:
-                        print(e)
-                        self.presenter.onThreading(
-                            None, ("Failed to load data for: {}".format(path), 4, 5), action="updateStatusbar"
-                        )
-
-                elif evtID == ID_docTree_add_matrix_to_interactive:
-                    df = pd.read_csv(fname, sep="\t|,", engine="python", header=None)
-                    labels = list(df.iloc[:, 0].dropna())
-                    zvals = df.iloc[1::, 1::].astype("float32").as_matrix()
-
-                    title = "Matrix: {}".format(os.path.basename(fname))
-                    data = {
-                        "plot_type": "matrix",
-                        "zvals": zvals,
-                        "cmap": self.config.currentCmap,
-                        "matrixLabels": labels,
-                        "path": fname,
-                        "plot_modifiers": {},
-                    }
-                    if title in document.other_data:
-                        if not self.config.import_duplicate_ask:
-                            msg = "{} already exists in the document. What would you like to do about it?".format(title)
-                            dlg = DialogAskOverride(self, self.config, msg)
-                            dlg.ShowModal()
-
-                        if self.config.import_duplicate_action == "merge":
-                            # retrieve and merge
-                            old_data = document.other_data[title]
-                            data = merge_two_dicts(old_data, data)
-                        elif self.config.import_duplicate_action == "duplicate":
-                            title = "{} (2)".format(title)
-
-                    document.other_data[title] = data
-
-                elif evtID == ID_docTree_add_comparison_to_interactive:
-                    print("Load comparison")
-
-        dlg.Destroy()
-
-        self.data_handling.on_update_document(document, "document")
-
     def onChangePlot(self, evt):
 
         # Get selected item
@@ -1667,6 +1461,10 @@ class DocumentTree(wx.TreeCtrl):
         menu.Destroy()
         self.SetFocus()
 
+    def on_update_ui(self, value, evt):
+        if value == "menu.load.override":
+            self.config.import_duplicate_ask = not self.config.import_duplicate_ask
+
     def on_right_click(self, evt):
         """ Create and show up popup menu"""
 
@@ -1684,17 +1482,6 @@ class DocumentTree(wx.TreeCtrl):
         if itemType == "Documents":
             self.on_right_click_short()
             return
-
-        # load data
-        load_data_menu = wx.Menu()
-        load_data_menu.Append(ID_docTree_add_MS_to_interactive, "Import mass spectrum")
-        load_data_menu.Append(ID_docTree_add_RT_to_interactive, "Import chromatogram")
-        load_data_menu.Append(ID_docTree_add_DT_to_interactive, "Import mobilogram")
-        load_data_menu.Append(ID_docTree_add_2DT_to_interactive, "Import heatmap")
-        load_data_menu.Append(ID_docTree_add_matrix_to_interactive, "Import matrix")
-        load_data_menu.Append(ID_docTree_add_comparison_to_interactive, "Import comparison")
-        load_data_menu.AppendSeparator()
-        load_data_menu.Append(ID_docTree_add_other_to_interactive, "Import data with metadata...")
 
         # Change x-axis label (2D)
         xlabel_2D_menu = wx.Menu()
@@ -1841,13 +1628,6 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.onShow_and_SavePlot, id=ID_save2DImageDoc)
         self.Bind(wx.EVT_MENU, self.onShow_and_SavePlot, id=ID_save3DImageDoc)
         self.Bind(wx.EVT_MENU, self.on_process_UVPD, id=ID_docTree_plugin_UVPD)
-        self.Bind(wx.EVT_MENU, self.on_load_custom_data, id=ID_docTree_add_MS_to_interactive)
-        self.Bind(wx.EVT_MENU, self.on_load_custom_data, id=ID_docTree_add_RT_to_interactive)
-        self.Bind(wx.EVT_MENU, self.on_load_custom_data, id=ID_docTree_add_DT_to_interactive)
-        self.Bind(wx.EVT_MENU, self.on_load_custom_data, id=ID_docTree_add_2DT_to_interactive)
-        self.Bind(wx.EVT_MENU, self.on_load_custom_data, id=ID_docTree_add_other_to_interactive)
-        self.Bind(wx.EVT_MENU, self.on_load_custom_data, id=ID_docTree_add_matrix_to_interactive)
-        self.Bind(wx.EVT_MENU, self.on_load_custom_data, id=ID_docTree_add_comparison_to_interactive)
         self.Bind(wx.EVT_MENU, self.onSaveDF, id=ID_saveData_csv)
         self.Bind(wx.EVT_MENU, self.onSaveDF, id=ID_saveData_pickle)
         self.Bind(wx.EVT_MENU, self.onSaveDF, id=ID_saveData_excel)
@@ -1861,9 +1641,29 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_open_extract_data, id=ID_docTree_action_open_extract)
         self.Bind(wx.EVT_MENU, self.on_open_UniDec, id=ID_docTree_UniDec)
 
-        # save dataframe
-        annotation_menu = wx.Menu()
+        # load custom data sub menu
+        load_data_menu = wx.Menu()
+        menu_action_load_ms = load_data_menu.Append(wx.ID_ANY, "Import mass spectrum")
+        menu_action_load_rt = load_data_menu.Append(wx.ID_ANY, "Import chromatogram")
+        menu_action_load_dt = load_data_menu.Append(wx.ID_ANY, "Import mobilogram")
+        menu_action_load_heatmap = load_data_menu.Append(wx.ID_ANY, "Import heatmap")
+        menu_action_load_matrix = load_data_menu.Append(wx.ID_ANY, "Import matrix")
+        load_data_menu.AppendSeparator()
+        menu_action_load_other = load_data_menu.Append(wx.ID_ANY, "Import data with metadata...")
+        load_data_menu.AppendSeparator()
+        menu_action_load_check_existing = load_data_menu.AppendCheckItem(wx.ID_ANY, "Don't check if file exists")
+        menu_action_load_check_existing.Check(self.config.import_duplicate_ask)
 
+        self.Bind(wx.EVT_MENU, partial(self.data_handling.on_load_custom_data, "mass_spectra"), menu_action_load_ms)
+        self.Bind(wx.EVT_MENU, partial(self.data_handling.on_load_custom_data, "chromatograms"), menu_action_load_rt)
+        self.Bind(wx.EVT_MENU, partial(self.data_handling.on_load_custom_data, "mobilograms"), menu_action_load_dt)
+        self.Bind(wx.EVT_MENU, partial(self.data_handling.on_load_custom_data, "heatmaps"), menu_action_load_heatmap)
+        self.Bind(wx.EVT_MENU, partial(self.data_handling.on_load_custom_data, "matrix"), menu_action_load_matrix)
+        self.Bind(wx.EVT_MENU, partial(self.data_handling.on_load_custom_data, "annotated"), menu_action_load_other)
+        self.Bind(wx.EVT_MENU, partial(self.on_update_ui, "menu.load.override"), menu_action_load_check_existing)
+
+        # annotations sub menu
+        annotation_menu = wx.Menu()
         annotation_menu_show_annotations_panel = makeMenuItem(
             parent=annotation_menu, text="Show annotations panel...", bitmap=self.icons.iconsLib["annotate16"]
         )
@@ -2331,22 +2131,24 @@ class DocumentTree(wx.TreeCtrl):
                     bitmap=None,
                 )
             )
-
             menu.AppendSeparator()
             menu.AppendMenu(wx.ID_ANY, "Set Y-axis label as...", ylabel_DTMS_menu)
             menu.AppendSeparator()
             menu.AppendItem(menu_action_save_image_as)
             menu.AppendItem(menu_action_save_data_as)
         # annotated data
-        elif self._document_type == "Annotated data":
-            menu.AppendItem(menu_action_show_plot)
-            if self._document_type != self._item_leaf and any(
-                [ok_item in self._item_leaf for ok_item in accepted_annotated_items]
-            ):
-                menu.AppendSubMenu(annotation_menu, "Annotations...")
-            menu.AppendSeparator()
-            menu.AppendItem(menu_action_save_image_as)
-            menu.AppendItem(menu_action_delete_item)
+        elif dataset_type == "Annotated data":
+            if dataset_type == dataset_name:
+                menu.AppendMenu(wx.ID_ANY, "Import data...", load_data_menu)
+            else:
+                menu.AppendItem(menu_action_show_plot)
+                if dataset_type != dataset_name and any(
+                    [ok_item in dataset_name for ok_item in accepted_annotated_items]
+                ):
+                    menu.AppendSubMenu(annotation_menu, "Annotations...")
+                menu.AppendSeparator()
+                menu.AppendItem(menu_action_save_image_as)
+                menu.AppendItem(menu_action_delete_item)
         else:
             menu.AppendMenu(wx.ID_ANY, "Import data...", load_data_menu)
 
@@ -5870,6 +5672,12 @@ class DocumentTree(wx.TreeCtrl):
             item = self.get_item_by_data(document.IMS2DoverlayData)
             document.gotOverlay = True
             document.IMS2DoverlayData[item_name] = item_data
+
+        # annotated data
+        elif data_type == "custom.annotated":
+            item = self.get_item_by_data(document.other_data)
+            document.other_data[item_name] = item_data
+
         else:
             logger.error(f"Not implemented yet... {item_name}, {data_type}")
 
@@ -5884,6 +5692,7 @@ class DocumentTree(wx.TreeCtrl):
             # add data to document without updating it
             self.data_handling.on_update_document(document, "no_refresh")
         else:
+            logger.warning("Failed to quielty update document")
             self.data_handling.on_update_document(document, "document")
 
     def on_update_extracted_patches(self, document_title, data_type, ion_name):

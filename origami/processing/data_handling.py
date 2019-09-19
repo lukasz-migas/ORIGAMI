@@ -4110,3 +4110,165 @@ class data_handling:
             raise MessageError("Not implemented yet", "Method is not implemented yet")
 
         return peaklist
+
+    def on_load_custom_data(self, dataset_type, evt):
+        """Load data into interactive document
+
+        Parameters
+        ----------
+        dataset_type : str
+            specifies which routine should be taken to load data
+        evt : unused
+        """
+        from gui_elements.dialog_ask_override import DialogAskOverride
+        from toolbox import merge_two_dicts
+
+        def check_previous_data(dataset, fname, data):
+            if fname in dataset:
+                if not self.config.import_duplicate_ask:
+                    dlg_ask = DialogAskOverride(
+                        self.view,
+                        self.config,
+                        f"{fname} already exists in the document. What would you like to do about it?",
+                    )
+                    dlg_ask.ShowModal()
+                if self.config.import_duplicate_action == "merge":
+                    logger.info("Existing data will be merged with the new dataset...")
+                    # retrieve and merge
+                    old_data = dataset[fname]
+                    data = merge_two_dicts(old_data, data)
+                elif self.config.import_duplicate_action == "duplicate":
+                    logger.info("A new dataset with new name will be created...")
+                    fname = f"{fname} (2)"
+            return fname, data
+
+        # get document
+        dlg = wx.FileDialog(
+            self.view,
+            "Choose data [MS, RT, DT, Heatmap, other]...",
+            wildcard="Text file (*.txt, *.csv, *.tab)| *.txt;*.csv;*.tab",
+            style=wx.FD_MULTIPLE | wx.FD_CHANGE_DIR,
+        )
+        if dlg.ShowModal() == wx.ID_OK:
+            pathlist = dlg.GetPaths()
+            filenames = dlg.GetFilenames()
+
+            # get document
+            document = self._on_get_document()
+
+            if not pathlist:
+                logger.warning("The filelist was empty")
+                return
+
+            logger.info(f"{len(pathlist)} item(s) in the list")
+            for path, fname in zip(pathlist, filenames):
+                data_type = None
+                if dataset_type == "mass_spectra":
+                    msDataX, msDataY, __, xlimits, extension = self._get_text_spectrum_data(path=path)
+                    document.gotMultipleMS = True
+                    data = {
+                        "xvals": msDataX,
+                        "yvals": msDataY,
+                        "xlabels": "m/z (Da)",
+                        "xlimits": xlimits,
+                        "file_path": path,
+                        "file_extension": extension,
+                    }
+                    fname, data = check_previous_data(document.multipleMassSpectrum, fname, data)
+                    document.multipleMassSpectrum[fname] = data
+                    data_type = "extracted.spectrum"
+
+                elif dataset_type == "chromatograms":
+                    rtDataX, rtDataY, __, xlimits, extension = self._get_text_spectrum_data(path=path)
+                    document.gotMultipleRT = True
+                    data = {
+                        "xvals": rtDataX,
+                        "yvals": rtDataY,
+                        "xlabels": "Scans",
+                        "ylabels": "Intensity",
+                        "xlimits": xlimits,
+                        "file_path": path,
+                        "file_extension": extension,
+                    }
+
+                    fname, data = check_previous_data(document.multipleRT, fname, data)
+                    document.multipleRT[fname] = data
+                    data_type = "extracted.chromatogram"
+
+                elif dataset_type == "mobilogram":
+                    dtDataX, dtDataY, __, xlimits, extension = self._get_text_spectrum_data(path=path)
+                    data = {
+                        "xvals": dtDataX,
+                        "yvals": dtDataY,
+                        "xlabels": "Drift time (bins)",
+                        "ylabels": "Intensity",
+                        "xlimits": xlimits,
+                        "file_path": path,
+                        "file_extension": extension,
+                    }
+
+                    fname, data = check_previous_data(document.multipleDT, fname, data)
+                    document.multipleDT[fname] = data
+                    data_type = "ion.mobilogram.raw"
+
+                elif dataset_type == "heatmaps":
+                    imsData2D, xAxisLabels, yAxisLabels = io_text_files.text_heatmap_open(path=path)
+                    imsData1D = np.sum(imsData2D, axis=1).T
+                    rtDataY = np.sum(imsData2D, axis=0)
+                    color = convertRGB255to1(self.config.customColors[get_random_int(0, 15)])
+                    document.gotExtractedIons = True
+                    data = {
+                        "zvals": imsData2D,
+                        "xvals": xAxisLabels,
+                        "xlabels": "Scans",
+                        "yvals": yAxisLabels,
+                        "ylabels": "Drift time (bins)",
+                        "yvals1D": imsData1D,
+                        "yvalsRT": rtDataY,
+                        "cmap": self.config.currentCmap,
+                        "mask": self.config.overlay_defaultMask,
+                        "alpha": self.config.overlay_defaultAlpha,
+                        "min_threshold": 0,
+                        "max_threshold": 1,
+                        "color": color,
+                    }
+                    fname, data = check_previous_data(document.multipleDT, fname, data)
+                    document.IMS2Dions[fname] = data
+                    data_type = "ion.heatmap.raw"
+
+                elif dataset_type == "annotated":
+                    try:
+                        fname, data = self.on_load_annotated_data(path)
+                        if fname is None or data is None:
+                            continue
+
+                        fname, data = check_previous_data(document.other_data, fname, data)
+                        document.other_data[fname] = data
+                        data_type = "custom.annotated"
+                    except Exception:
+                        logger.error(f"Failed to load `{path}` data", exc_info=True)
+
+                elif dataset_type == "matrix":
+                    from pandas import read_csv
+
+                    df = read_csv(fname, sep="\t|,", engine="python", header=None)
+                    labels = list(df.iloc[:, 0].dropna())
+                    zvals = df.iloc[1::, 1::].astype("float32").as_matrix()
+
+                    fname = "Matrix: {}".format(os.path.basename(fname))
+                    data = {
+                        "plot_type": "matrix",
+                        "zvals": zvals,
+                        "cmap": self.config.currentCmap,
+                        "matrixLabels": labels,
+                        "path": fname,
+                        "plot_modifiers": {},
+                    }
+                    fname, data = check_previous_data(document.other_data, fname, data)
+                    document.other_data[fname] = data
+                    data_type = "custom.annotated"
+
+                self.documentTree.on_update_data(data, fname, document, data_type=data_type)
+                # log
+                logger.info(f"{dataset_type}: Loaded {path}")
+            dlg.Destroy()
