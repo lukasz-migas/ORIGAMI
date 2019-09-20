@@ -16,9 +16,12 @@ def get_n_colors(n_colors):
     return colors
 
 
-def get_all_color_types(color_1):
+def get_all_color_types(color_1, as_255=False):
     """Convert color(1) to font color and color(255) representation"""
-    color_255 = convertRGB1to255(color_1, as_integer=True)
+    if as_255:
+        color_1 = convertRGB255to1(color_1)
+    else:
+        color_255 = convertRGB1to255(color_1, as_integer=True)
     font_color = determineFontColor(color_255, return_rgb=True)
 
     return color_255, color_1, font_color

@@ -55,6 +55,7 @@ from utils.check import isempty
 from utils.color import convertRGB1to255
 from utils.color import convertRGB255to1
 from utils.color import determineFontColor
+from utils.color import get_all_color_types
 from utils.color import randomColorGenerator
 from utils.color import roundRGB
 from utils.random import get_random_int
@@ -245,6 +246,7 @@ class PanelTextlist(wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_assign_color, id=ID_textPanel_assignColor)
 
         self.peaklist.item_id = evt.GetIndex()
+        print(self.peaklist.item_id)
         menu = wx.Menu()
         menu.AppendItem(
             makeMenuItem(
@@ -586,7 +588,7 @@ class PanelTextlist(wx.Panel):
         self.SetFocus()
 
     def get_selected_items(self):
-        all_eic_datasets = ["Drift time (2D)", "Drift time(2D, processed)"]
+        all_eic_datasets = ["Drift time (2D)", "Drift time (2D, processed)"]
 
         item_count = self.peaklist.GetItemCount()
 
@@ -796,12 +798,11 @@ class PanelTextlist(wx.Panel):
                 "keyword": "max_threshold",
             }
 
-        ask_dialog = DialogAsk(self, **ask_kwargs)
-        if ask_dialog.ShowModal() != wx.ID_OK:
-            return
-
-        return_value = ask_dialog.return_value
+        ask = DialogAsk(self, **ask_kwargs)
+        ask.ShowModal()
+        return_value = ask.return_value
         if return_value is None:
+            logger.info("Action was cancelled")
             return
 
         for row in range(rows):
@@ -810,8 +811,7 @@ class PanelTextlist(wx.Panel):
                 document = self.data_handling._on_get_document(itemInfo["document"])
 
                 if not ask_kwargs["keyword"] in ["min_threshold", "max_threshold"]:
-                    column = self.config.textlistColNames[ask_kwargs["keyword"]]
-                    self.peaklist.SetItem(row, column, str(return_value))
+                    self.peaklist.SetItem(row, self.config.textlistColNames[ask_kwargs["keyword"]], str(return_value))
 
                 # set value in document
                 if document.got2DIMS:
@@ -819,8 +819,7 @@ class PanelTextlist(wx.Panel):
                 if document.got2Dprocess:
                     document.IMS2Dprocess[ask_kwargs["keyword"]] = return_value
 
-                # update document
-                self.presenter.documentsDict[document.title] = document
+                self.data_handling.on_update_document(document, "no_refresh")
 
     def on_check_selected(self, evt):
         """Check current item when letter S is pressed on the keyboard"""
@@ -1069,7 +1068,7 @@ class PanelTextlist(wx.Panel):
         if dlg.ShowModal() == "ok":
             color_255, color_1, font_color = dlg.GetChosenColour()
             self.config.customColors = dlg.GetCustomColours()
-            self.on_update_value_in_peaklist(itemID, "color", [color_255, color_1, font_color])
+            self.on_update_value_in_peaklist(self.peaklist.item_id, "color", [color_255, color_1, font_color])
 
             # update document
             self.on_update_document(evt=None)
@@ -1081,6 +1080,7 @@ class PanelTextlist(wx.Panel):
                 color_255 = convertRGB1to255(literal_eval(self.on_get_value(value_type="color")), 3)
             except Exception:
                 color_255 = self.config.customColors[get_random_int(0, 15)]
+            color_255, color_1, font_color = get_all_color_types(color_255, True)
             self.on_update_value_in_peaklist(self.peaklist.item_id, "color", [color_255, color_1, font_color])
             if give_value:
                 return color_255

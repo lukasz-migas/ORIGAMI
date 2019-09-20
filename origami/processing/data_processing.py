@@ -1028,6 +1028,13 @@ class data_processing:
         ):
             dataset_type = "Drift time (2D, processed)"
             new_dataset = None
+        if (
+            dataset_type == "Drift time (2D, processed)"
+            and dataset_name is None
+            or all([item == "Drift time (2D, processed)" for item in [dataset_type, dataset_name]])
+        ):
+            new_dataset = None
+            logger.warning(f"Reprocessing {dataset_type}...")
         elif dataset_type == "DT/MS" and dataset_name is None:
             raise MessageError(
                 "Not implemented yet",
