@@ -29,7 +29,7 @@ from utils.random import get_random_int
 logger = logging.getLogger("origami")
 
 
-class data_processing:
+class DataProcessing:
     def __init__(self, presenter, view, config, **kwargs):
         self.presenter = presenter
         self.view = view

@@ -877,10 +877,7 @@ class PanelPeaklist(wx.Panel):
         if data is None:
             raise MessageError("No data", "Could not find data for this ion")
 
-        if evt is not None:
-            evtID = evt.GetId()
-        else:
-            evtID = evt
+        evtID = evt if evt is None else evt.GetId()
 
         if evtID == ID_ionPanel_show_mobilogram:
             xvals = data[rangeName]["yvals"]  # normally this would be the y-axis

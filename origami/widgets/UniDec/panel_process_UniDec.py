@@ -850,107 +850,110 @@ class PanelProcessUniDec(wx.MiniFrame):
             "speedy": self.config.unidec_speedy,
         }
 
-        # get data and plot in the panel
-        data = self.on_get_unidec_data()
-        if data:
-            # called after `pre-processed` is executed
-            if task in ["all", "preprocess_unidec", "load_data_and_preprocess_unidec"]:
-                replot_data = data.get("Processed", None)
-                if replot_data:
-                    self.panel_plot.on_plot_unidec_MS(
-                        replot=replot_data, plot=None, plot_obj=self.plotUnidec_MS, **kwargs
+        try:
+            # get data and plot in the panel
+            data = self.on_get_unidec_data()
+            if data:
+                # called after `pre-processed` is executed
+                if task in ["all", "preprocess_unidec", "load_data_and_preprocess_unidec"]:
+                    replot_data = data.get("Processed", None)
+                    if replot_data:
+                        self.panel_plot.on_plot_unidec_MS(
+                            replot=replot_data, plot=None, plot_obj=self.plotUnidec_MS, **kwargs
+                        )
+
+                # called after `run unidec` is executed
+                if task in ["all", "run_unidec"]:
+                    replot_data = data.get("Fitted", None)
+                    if replot_data:
+                        self.panel_plot.on_plot_unidec_MS_v_Fit(
+                            replot=replot_data, plot=None, plot_obj=self.plotUnidec_MS, **kwargs
+                        )
+                    replot_data = data.get("MW distribution", None)
+                    if replot_data:
+                        self.panel_plot.on_plot_unidec_mwDistribution(
+                            replot=replot_data, plot=None, plot_obj=self.plotUnidec_mwDistribution, **kwargs
+                        )
+                    replot_data = data.get("m/z vs Charge", None)
+                    if replot_data:
+                        self.panel_plot.on_plot_unidec_mzGrid(
+                            replot=replot_data, plot=None, plot_obj=self.plotUnidec_mzGrid, **kwargs
+                        )
+                    replot_data = data.get("MW vs Charge", None)
+                    if replot_data:
+                        self.panel_plot.on_plot_unidec_MW_v_Charge(
+                            replot=replot_data, plot=None, plot_obj=self.plotUnidec_mwVsZ, **kwargs
+                        )
+
+                # called after `detect peaks` is executed
+                if task in ["all", "pick_peaks_unidec"]:
+                    # update mass list
+                    self.on_update_mass_list()
+
+                    replot_data = data.get("m/z with isolated species", None)
+                    if replot_data:
+                        self.panel_plot.on_plot_unidec_individualPeaks(
+                            replot=replot_data, plot=None, plot_obj=self.plotUnidec_individualPeaks, **kwargs
+                        )
+                        self.on_plot_MW_normalization()
+                        self.panel_plot.on_plot_unidec_MW_add_markers(
+                            data["m/z with isolated species"],
+                            data["MW distribution"],
+                            plot=None,
+                            plot_obj=self.plotUnidec_mwDistribution,
+                            **kwargs,
+                        )
+                    replot_data = data.get("Barchart", None)
+                    if replot_data:
+                        self.panel_plot.on_plot_unidec_barChart(
+                            replot=replot_data, plot=None, plot_obj=self.plotUnidec_barChart, **kwargs
+                        )
+                    replot_data = data.get("Charge information", None)
+                    if replot_data is not None:
+                        self.panel_plot.on_plot_unidec_ChargeDistribution(
+                            replot=replot_data, plot=None, plot_obj=self.plotUnidec_chargeDistribution, **kwargs
+                        )
+
+                # called after `show peaks` is exectured
+                if task in ["show_peak_lines_and_markers"]:
+                    replot_data = data.get("m/z with isolated species", None)
+                    if replot_data:
+                        self.panel_plot.on_plot_unidec_add_individual_lines_and_markers(
+                            replot=replot_data, plot=None, plot_obj=self.plotUnidec_individualPeaks, **kwargs
+                        )
+                    else:
+                        raise MessageError("Missing data", "Please detect peaks first")
+
+                # called after `isolate` is executed
+                if task in ["isolate_mw_unidec"]:
+                    mw_selection = "MW: {}".format(self.unidec_weightList_choice.GetStringSelection().split()[1])
+                    kwargs["show_isolated_mw"] = True
+                    kwargs["mw_selection"] = mw_selection
+                    replot_data = data.get("m/z with isolated species", None)
+                    if replot_data:
+                        self.panel_plot.on_plot_unidec_add_individual_lines_and_markers(
+                            replot=replot_data, plot=None, plot_obj=self.plotUnidec_individualPeaks, **kwargs
+                        )
+
+                # show individual charge states
+                if task in ["charge_states"]:
+                    charges = data["Charge information"]
+                    xvals = data["Processed"]["xvals"]
+
+                    mw_selection = self.unidec_weightList_choice.GetStringSelection().split()[1]
+                    adduct_ion = self.unidec_adductMW_choice.GetStringSelection()
+
+                    peakpos, charges, __ = unidec_utils.calculate_charge_positions(
+                        charges, mw_selection, xvals, adduct_ion, remove_below=self.config.unidec_charges_label_charges
+                    )
+                    self.panel_plot.on_plot_charge_states(
+                        peakpos, charges, plot=None, plot_obj=self.plotUnidec_individualPeaks, **kwargs
                     )
 
-            # called after `run unidec` is executed
-            if task in ["all", "run_unidec"]:
-                replot_data = data.get("Fitted", None)
-                if replot_data:
-                    self.panel_plot.on_plot_unidec_MS_v_Fit(
-                        replot=replot_data, plot=None, plot_obj=self.plotUnidec_MS, **kwargs
-                    )
-                replot_data = data.get("MW distribution", None)
-                if replot_data:
-                    self.panel_plot.on_plot_unidec_mwDistribution(
-                        replot=replot_data, plot=None, plot_obj=self.plotUnidec_mwDistribution, **kwargs
-                    )
-                replot_data = data.get("m/z vs Charge", None)
-                if replot_data:
-                    self.panel_plot.on_plot_unidec_mzGrid(
-                        replot=replot_data, plot=None, plot_obj=self.plotUnidec_mzGrid, **kwargs
-                    )
-                replot_data = data.get("MW vs Charge", None)
-                if replot_data:
-                    self.panel_plot.on_plot_unidec_MW_v_Charge(
-                        replot=replot_data, plot=None, plot_obj=self.plotUnidec_mwVsZ, **kwargs
-                    )
-
-            # called after `detect peaks` is executed
-            if task in ["all", "pick_peaks_unidec"]:
-                # update mass list
-                self.on_update_mass_list()
-
-                replot_data = data.get("m/z with isolated species", None)
-                if replot_data:
-                    self.panel_plot.on_plot_unidec_individualPeaks(
-                        replot=replot_data, plot=None, plot_obj=self.plotUnidec_individualPeaks, **kwargs
-                    )
-                    self.on_plot_MW_normalization()
-                    self.panel_plot.on_plot_unidec_MW_add_markers(
-                        data["m/z with isolated species"],
-                        data["MW distribution"],
-                        plot=None,
-                        plot_obj=self.plotUnidec_mwDistribution,
-                        **kwargs,
-                    )
-                replot_data = data.get("Barchart", None)
-                if replot_data:
-                    self.panel_plot.on_plot_unidec_barChart(
-                        replot=replot_data, plot=None, plot_obj=self.plotUnidec_barChart, **kwargs
-                    )
-                replot_data = data.get("Charge information", None)
-                if replot_data is not None:
-                    self.panel_plot.on_plot_unidec_ChargeDistribution(
-                        replot=replot_data, plot=None, plot_obj=self.plotUnidec_chargeDistribution, **kwargs
-                    )
-
-            # called after `show peaks` is exectured
-            if task in ["show_peak_lines_and_markers"]:
-                replot_data = data.get("m/z with isolated species", None)
-                if replot_data:
-                    self.panel_plot.on_plot_unidec_add_individual_lines_and_markers(
-                        replot=replot_data, plot=None, plot_obj=self.plotUnidec_individualPeaks, **kwargs
-                    )
-                else:
-                    raise MessageError("Missing data", "Please detect peaks first")
-
-            # called after `isolate` is executed
-            if task in ["isolate_mw_unidec"]:
-                mw_selection = "MW: {}".format(self.unidec_weightList_choice.GetStringSelection().split()[1])
-                kwargs["show_isolated_mw"] = True
-                kwargs["mw_selection"] = mw_selection
-                replot_data = data.get("m/z with isolated species", None)
-                if replot_data:
-                    self.panel_plot.on_plot_unidec_add_individual_lines_and_markers(
-                        replot=replot_data, plot=None, plot_obj=self.plotUnidec_individualPeaks, **kwargs
-                    )
-
-            # show individual charge states
-            if task in ["charge_states"]:
-                charges = data["Charge information"]
-                xvals = data["Processed"]["xvals"]
-
-                mw_selection = self.unidec_weightList_choice.GetStringSelection().split()[1]
-                adduct_ion = self.unidec_adductMW_choice.GetStringSelection()
-
-                peakpos, charges, __ = unidec_utils.calculate_charge_positions(
-                    charges, mw_selection, xvals, adduct_ion, remove_below=self.config.unidec_charges_label_charges
-                )
-                self.panel_plot.on_plot_charge_states(
-                    peakpos, charges, plot=None, plot_obj=self.plotUnidec_individualPeaks, **kwargs
-                )
-
-        # update peak width
-        self.on_update_peak_width()
+            # update peak width
+            self.on_update_peak_width()
+        except RuntimeError:
+            logger.warning("The panel was closed before the action could be completed")
 
     def on_update_peak_width(self):
         self.unidec_fit_peakWidth_value.SetValue(f"{self.config.unidec_engine.config.mzsig:.4f}")

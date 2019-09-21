@@ -1,6 +1,6 @@
+"""Main frame module"""
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
-# Load libraries
 import logging
 import os
 import webbrowser
@@ -142,9 +142,9 @@ from panel_plots import PanelPlots
 from panel_textlist import PanelTextlist
 from panelExtraParameters import panelParametersEdit
 from panelInteractiveOutput import panelInteractiveOutput as panelInteractive
-from processing.data_handling import data_handling
-from processing.data_processing import data_processing
-from processing.data_visualisation import data_visualisation
+from processing.data_handling import DataHandling
+from processing.data_processing import DataProcessing
+from processing.data_visualisation import DataVisualization
 from pubsub import pub
 from readers.io_text_files import check_file_type
 from styles import makeMenuItem
@@ -156,6 +156,8 @@ logger = logging.getLogger("origami")
 
 
 class MyFrame(wx.Frame):
+    """Main frame"""
+
     def __init__(self, parent, config, helpInfo, icons, title="ORIGAMI"):
         wx.Frame.__init__(self, None, title=title)
 
@@ -212,9 +214,9 @@ class MyFrame(wx.Frame):
         self.panelParametersEdit = panelParametersEdit(self, self.presenter, self.config, self.icons, **kwargs)
 
         # add handling, processing and visualisation pipelines
-        self.data_processing = data_processing(self.presenter, self, self.config)
-        self.data_handling = data_handling(self.presenter, self, self.config)
-        self.data_visualisation = data_visualisation(self.presenter, self, self.config)
+        self.data_processing = DataProcessing(self.presenter, self, self.config)
+        self.data_handling = DataHandling(self.presenter, self, self.config)
+        self.data_visualisation = DataVisualization(self.presenter, self, self.config)
 
         # make toolbar
         self.make_toolbar()
@@ -1969,22 +1971,22 @@ class MyFrame(wx.Frame):
         if file_type == "pickle":
             self.data_handling.on_open_document_fcn(file_path=file_path, evt=None)
         elif file_type == "MassLynx":
-            self.data_handling.on_open_MassLynx_raw_fcn(path=file_path, evt=ID_load_masslynx_raw)
+            self.data_handling.on_open_single_MassLynx_raw(path=file_path, evt=ID_load_masslynx_raw)
         elif file_type == "ORIGAMI":
-            self.data_handling.on_open_MassLynx_raw_fcn(path=file_path, evt=ID_load_origami_masslynx_raw)
+            self.data_handling.on_open_single_MassLynx_raw(path=file_path, evt=ID_load_origami_masslynx_raw)
         elif file_type == "Infrared":
-            self.data_handling.on_open_MassLynx_raw_fcn(path=file_path, evt=ID_openIRRawFile)
+            self.data_handling.on_open_single_MassLynx_raw(path=file_path, evt=ID_openIRRawFile)
         elif file_type == "Text":
             self.data_handling.on_add_text_2D(None, file_path)
         elif file_type == "Text_MS":
-            self.data_handling.on_open_single_text_MS(path=file_path)
+            self.data_handling.on_add_text_MS(path=file_path)
 
     def onOpenFile_DnD(self, file_path, file_extension):
         # open file
         if file_extension in [".pickle", ".pkl"]:
             self.data_handling.on_open_document_fcn(file_path=file_path, evt=None)
         elif file_extension == ".raw":
-            self.data_handling.on_open_MassLynx_raw_fcn(path=file_path, evt=ID_load_origami_masslynx_raw)
+            self.data_handling.on_open_single_MassLynx_raw(path=file_path, evt=ID_load_origami_masslynx_raw)
         elif file_extension in [".txt", ".csv", ".tab"]:
             file_format = check_file_type(path=file_path)
             if file_format == "2D":
@@ -2131,15 +2133,16 @@ class DragAndDrop(wx.FileDropTarget):
         When files are dropped, write where they were dropped and then
         the file paths themselves
         """
+        logging.info(f"Dropped {len(filenames)} in the window")
         for filename in filenames:
-            print("Opening {} file...".format(filename))
+            logger.info("Opening {filename} file...")
             __, file_extension = os.path.splitext(filename)
             if file_extension in [".raw", ".pickle", ".pkl", ".txt", ".csv", ".tab"]:
                 try:
                     self.window.onOpenFile_DnD(filename, file_extension)
                 except Exception:
-                    print("Failed to open {}".format(filename))
+                    logger.error("Failed to open {}".format(filename))
                     continue
             else:
-                print("Dropped file is not supported")
+                logger.warning("Dropped file is not supported")
                 continue

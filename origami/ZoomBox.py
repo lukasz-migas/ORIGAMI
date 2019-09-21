@@ -246,7 +246,7 @@ class ZoomBox:
         data_lims=None,
         plotName=None,
         plotParameters=None,
-        allowWheel=True,
+        allow_mouse_wheel=True,
         allow_extraction=True,
     ):
         """
@@ -284,7 +284,7 @@ class ZoomBox:
         does not limit which button can be used.
         Note, typically:
          1 = left mouse button
-         2 = center mouse button (scroll wheel)
+         2 = center mouse button (scroll _mouse_wheel)
          3 = right mouse button
         """
         if plotParameters is None:
@@ -293,7 +293,7 @@ class ZoomBox:
             self.plot_parameters = plotParameters
 
         self.crossoverpercent = self.plot_parameters["zoom_crossover_sensitivity"]
-        self.wheelStepSize = 3
+        self._mouse_wheelStepSize = 3
         self.axes = None
         self.canvas = None
         self.visible = True
@@ -306,13 +306,12 @@ class ZoomBox:
         self.background = None
         self.dragged = None
 
-        self.insideAxes = True
-        self.insideFigure = True
-        self.exitLoc = None
+        self._inside_axes = True
+        self._last_location = None
         self.span = None
-        self.lastXY = []
+        self._last_xy_position = []
         self.current_ymax = None
-        self.allowWheel = allowWheel
+        self.allow_mouse_wheel = allow_mouse_wheel
         self.mark_annotation = False
         self.prevent_sync_zoom = False
 
@@ -337,12 +336,12 @@ class ZoomBox:
         assert spancoords in ("data", "pixels")
 
         self.pick_pos = None
-        self.addToTable = False
-        self.ctrlKey = False
-        self.altKey = False
-        self.shiftKey = False
-        self.buttonDown = False
-        self.keyPress = False
+        self._trigger_extraction = False
+        self._ctrl_key = False
+        self._alt_key = False
+        self._shift_key = False
+        self._button_down = False
+        self._key_press = False
         self.spancoords = spancoords
         self.eventpress = None
         self.eventrelease = None
@@ -447,20 +446,20 @@ class ZoomBox:
             # new
             self.cids.append(self.canvas.mpl_connect("axes_enter_event", self.on_enter_axes))
             self.cids.append(self.canvas.mpl_connect("axes_leave_event", self.on_leave_axes))
-            self.cids.append(self.canvas.mpl_connect("scroll_event", self.on_wheel_event))
+            self.cids.append(self.canvas.mpl_connect("scroll_event", self.on__mouse_wheel_event))
 
         if rectprops is None:
             rectprops = dict(facecolor="white", edgecolor="black", alpha=0.5, fill=False)
         self.rectprops = rectprops
 
         # Pre-set keys
-        self.shiftKey = False
-        self.ctrlKey = False
-        self.altKey = False
-        self.wheel = False
-        self.keyPress = False
-        self.addToTable = False
-        self.buttonDown = False
+        self._shift_key = False
+        self._ctrl_key = False
+        self._alt_key = False
+        self._mouse_wheel = False
+        self._key_press = False
+        self._trigger_extraction = False
+        self._button_down = False
 
         for axes in self.axes:
             self.to_draw.append(Rectangle((0, 0), 0, 1, visible=False, **self.rectprops))
@@ -480,10 +479,10 @@ class ZoomBox:
             axes.add_patch(to_draw)
 
     def on_enter_axes(self, evt=None):
-        self.insideAxes = True
+        self._inside_axes = True
 
     def on_leave_axes(self, evt=None):
-        self.insideAxes = False
+        self._inside_axes = False
         for axes in self.axes:
             xmin, xmax = axes.get_xlim()
             ymin, ymax = axes.get_ylim()
@@ -497,19 +496,19 @@ class ZoomBox:
 
         max_value = np.max([x_right, x_left, y_bottom, y_top])
 
-        if len(self.lastXY) != 0:
+        if len(self._last_xy_position) != 0:
             if x_right == max_value:
-                self.exitLoc = "right"
-                self.lastXY[1] = xmax
+                self._last_location = "right"
+                self._last_xy_position[1] = xmax
             elif x_left == max_value:
-                self.exitLoc = "left"
-                self.lastXY[0] = xmin
+                self._last_location = "left"
+                self._last_xy_position[0] = xmin
             elif y_bottom == max_value:
-                self.exitLoc = "bottom"
-                self.lastXY[2] = ymin
+                self._last_location = "bottom"
+                self._last_xy_position[2] = ymin
             elif y_top == max_value:
-                self.exitLoc = "top"
-                self.lastXY[3] = ymax
+                self._last_location = "top"
+                self._last_xy_position[3] = ymax
 
         # find ymax for specific x axis range
         if self.plotName not in ["2D", "RMSD", "RMSF", "Matrix"]:
@@ -525,17 +524,25 @@ class ZoomBox:
             except Exception:
                 pass
 
-    def on_wheel_event(self, evt):
+    def on__mouse_wheel_event(self, evt):
 
-        # Ignore wheel if trying to measure
-        if wx.GetKeyState(wx.WXK_ALT) or not self.insideAxes:
+        # Ignore _mouse_wheel if trying to measure
+        if wx.GetKeyState(wx.WXK_ALT) or not self._inside_axes:
             return
 
         # Update cursor
-        motion_mode = [self.shiftKey, self.ctrlKey, self.altKey, self.addToTable, True, self.buttonDown, self.dragged]
+        motion_mode = [
+            self._shift_key,
+            self._ctrl_key,
+            self._alt_key,
+            self._trigger_extraction,
+            True,
+            self._button_down,
+            self.dragged,
+        ]
         pub.sendMessage("motion_mode", dataOut=motion_mode)
 
-        if self.allowWheel:
+        if self.allow_mouse_wheel:
             # The actual work
             for axes in self.axes:
                 x0, x1 = axes.get_xlim()
@@ -612,11 +619,11 @@ class ZoomBox:
         This function is only necessary in cases where the keys get stuck.
         """
 
-        self.ctrlKey = False
-        self.altKey = False
-        self.shiftKey = False
-        self.buttonDown = False
-        self.addToTable = False
+        self._ctrl_key = False
+        self._alt_key = False
+        self._shift_key = False
+        self._button_down = False
+        self._trigger_extraction = False
 
         if evt is not None:
             evt.Skip()
@@ -624,29 +631,29 @@ class ZoomBox:
     def on_key_state(self, evt):
 
         # check keys
-        self.ctrlKey = wx.GetKeyState(wx.WXK_CONTROL)
-        self.altKey = wx.GetKeyState(wx.WXK_ALT)
-        self.shiftKey = wx.GetKeyState(wx.WXK_SHIFT)
-        self.addToTable = False
+        self._ctrl_key = wx.GetKeyState(wx.WXK_CONTROL)
+        self._alt_key = wx.GetKeyState(wx.WXK_ALT)
+        self._shift_key = wx.GetKeyState(wx.WXK_SHIFT)
+        self._trigger_extraction = False
         self.crossoverpercent = self.plot_parameters["zoom_crossover_sensitivity"]
 
-        if self.ctrlKey:
+        if self._ctrl_key:
             if self.plotName in ["1D", "MS"]:
                 self.crossoverpercent = self.plot_parameters["extract_crossover_sensitivity_1D"]
             else:
                 self.crossoverpercent = self.plot_parameters["extract_crossover_sensitivity_2D"]
 
-        self.keyPress = False
-        if any((self.ctrlKey, self.shiftKey, self.altKey)):
-            self.keyPress = True
+        self._key_press = False
+        if any((self._ctrl_key, self._shift_key, self._alt_key)):
+            self._key_press = True
 
         motion_mode = [
-            self.shiftKey,
-            self.ctrlKey,
-            self.altKey,
-            self.addToTable,
-            self.wheel,
-            self.buttonDown,
+            self._shift_key,
+            self._ctrl_key,
+            self._alt_key,
+            self._trigger_extraction,
+            self._mouse_wheel,
+            self._button_down,
             self.dragged,
         ]
         pub.sendMessage("motion_mode", dataOut=motion_mode)
@@ -691,10 +698,10 @@ class ZoomBox:
             return True
 
         if self.validButtons is not None:
-            if evt.button in self.validButtons and not self.keyPress:
+            if evt.button in self.validButtons and not self._key_press:
                 pass
-            elif evt.button in self.validButtons and self.ctrlKey:
-                self.addToTable = True
+            elif evt.button in self.validButtons and self._ctrl_key:
+                self._trigger_extraction = True
             else:
                 if evt.button == 3:
                     return True
@@ -713,10 +720,10 @@ class ZoomBox:
     def press(self, evt):
         "on button press event"
 
-        if not self.insideAxes:
-            if evt.dblclick and not self.shiftKey:
-                self.reset_axes(axis_pos=self.exitLoc)
-            elif evt.dblclick and self.shiftKey and self.exitLoc in ["left", "right"]:
+        if not self._inside_axes:
+            if evt.dblclick and not self._shift_key:
+                self.reset_axes(axis_pos=self._last_location)
+            elif evt.dblclick and self._shift_key and self._last_location in ["left", "right"]:
                 if self.current_ymax is None:
                     return
                 for axes in self.axes:
@@ -731,7 +738,7 @@ class ZoomBox:
         if self.ignore(evt):
             return
 
-        self.buttonDown = True
+        self._button_down = True
 
         pub.sendMessage("change_x_axis_start", startX=evt.xdata)
         self.startX = evt.xdata
@@ -779,9 +786,9 @@ class ZoomBox:
 
     def release(self, evt):
         "on button release event"
-        if self.eventpress is None or (self.ignore(evt) and not self.buttonDown):
+        if self.eventpress is None or (self.ignore(evt) and not self._button_down):
             return
-        self.buttonDown = False
+        self._button_down = False
 
         pub.sendMessage("change_x_axis_start", startX=None)
 
@@ -877,16 +884,19 @@ class ZoomBox:
         else:
             raise ValueError('spancoords must be "data" or "pixels"')
 
-        if self.addToTable and self.allow_extraction:
+        if self._trigger_extraction and self.allow_extraction:
             # A dirty way to prevent users from trying to extract data from the wrong places
             if not self.mark_annotation:
                 if self.plotName in ["MSDT", "2D"] and (
                     self.eventpress.xdata != evt.xdata and self.eventpress.ydata != evt.ydata
                 ):
-                    pub.sendMessage("extract_from_plot_2D", dataOut=[xmin, xmax, ymin, ymax])
+                    pub.sendMessage("extract_from_plot_2D", xy_values=[xmin, xmax, ymin, ymax])
                 elif self.plotName != "CalibrationDT" and self.eventpress.xdata != evt.xdata:
-                    pub.sendMessage("extract_from_plot_1D", xvalsMin=xmin, xvalsMax=xmax, yvalsMax=ymax)
-        if self.addToTable and not self.allow_extraction and self.mark_annotation:
+                    pub.sendMessage("extract_from_plot_1D", xmin=xmin, xmax=xmax, ymax=ymax)
+        elif self._trigger_extraction and not self.allow_extraction:
+            logger.warning("Cannot extract data at this moment...")
+
+        if self._trigger_extraction and not self.allow_extraction and self.mark_annotation:
             pub.sendMessage("editor.mark.annotation", xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
 
         # assure that min<max values
@@ -922,15 +932,15 @@ class ZoomBox:
         if xmin is None:
             xmin = self.data_lims[0]
 
-        if not self.insideAxes:
-            if self.exitLoc == "left":
-                xmin = self.lastXY[0]
-            elif self.exitLoc == "right":
-                xmax = self.lastXY[1]
-            elif self.exitLoc == "bottom":
-                ymin = self.lastXY[2]
-            elif self.exitLoc == "top":
-                ymax = self.lastXY[3]
+        if not self._inside_axes:
+            if self._last_location == "left":
+                xmin = self._last_xy_position[0]
+            elif self._last_location == "right":
+                xmax = self._last_xy_position[1]
+            elif self._last_location == "bottom":
+                ymin = self._last_xy_position[2]
+            elif self._last_location == "top":
+                ymax = self._last_xy_position[3]
 
         # Check if crossover is large enough
         if ymax - ymin < (y1 - y0) * self.crossoverpercent:
@@ -951,8 +961,8 @@ class ZoomBox:
             return
 
         # This controls whether we will zoom in
-        # If addToTable is true, we wont zoom but will show span/box
-        if not self.addToTable:
+        # If _trigger_extraction is true, we wont zoom but will show span/box
+        if not self._trigger_extraction:
             for axes in self.axes:
                 # Box zoom
                 if self.span == "box":
@@ -965,7 +975,7 @@ class ZoomBox:
 
         if self.plotName == "RMSF":
             pub.sendMessage("change_zoom_rmsd", xmin=xmin, xmax=xmax)
-        elif self.plotName == "MSDT" and not self.addToTable:
+        elif self.plotName == "MSDT" and not self._trigger_extraction:
             pub.sendMessage("change_zoom_dtms", xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
 
         self.canvas.draw()
@@ -995,8 +1005,8 @@ class ZoomBox:
         self.eventrelease = None  # inital values4re5555
 
         # Reset zoom
-        if self.addToTable:
-            self.addToTable = False
+        if self._trigger_extraction:
+            self._trigger_extraction = False
 
         return False
 
@@ -1054,11 +1064,11 @@ class ZoomBox:
         if miny is not None and maxy is not None and miny > maxy:
             miny, maxy = maxy, miny
 
-        if self.insideAxes:
-            self.lastXY = [minx, maxx, miny, maxy]
+        if self._inside_axes:
+            self._last_xy_position = [minx, maxx, miny, maxy]
         else:
             try:
-                minx, maxx, miny, maxy = self.lastXY
+                minx, maxx, miny, maxy = self._last_xy_position
             except ValueError:
                 return
 

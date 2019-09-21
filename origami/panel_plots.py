@@ -313,13 +313,23 @@ class PanelPlots(wx.Panel):
         plot_obj = self.get_plot_from_name(self.currentPage)
         plot_obj.copy_to_clipboard()
 
-    def on_smooth_spectrum(self, evt):
-        """Smooth plot signal"""
+    def on_get_plot_data(self):
         plot_obj = self.get_plot_from_name(self.currentPage)
+        xs, ys, labels, xlabel, ylabel = plot_obj.plot_1D_get_data()
+
+        return plot_obj, xs, ys, labels, xlabel, ylabel
+
+    def on_smooth_spectrum(self, evt):
+        #         """Smooth plot signal"""
         try:
-            xs, ys, labels, xlabel, ylabel = plot_obj.plot_1D_get_data()
+            plot_obj, xs, ys, labels, xlabel, ylabel = self.on_get_plot_data()
         except AttributeError:
             raise MessageError("Plot is empty", "There are no signals in the plot to smooth")
+        #         plot_obj = self.get_plot_from_name(self.currentPage)
+        #         try:
+        #             xs, ys, labels, xlabel, ylabel = plot_obj.plot_1D_get_data()
+        #         except AttributeError:
+        #             raise MessageError("Plot is empty", "There are no signals in the plot to smooth")
         #         n_signals = len(xs)
         #         if n_signals > 1:
         #             raise MessageError("Not supported yet",
@@ -949,6 +959,7 @@ class PanelPlots(wx.Panel):
         plot_dict = {
             "ms": self.plot1,
             "mass_spectrum": self.plot1,
+            "mass spectrum": self.plot1,
             "rt": self.plotRT,
             "chromatogram": self.plotRT,
             "1d": self.plot1D,
@@ -971,8 +982,11 @@ class PanelPlots(wx.Panel):
             "ms_rt": self.plot_RT_MS,
             "ms_dt": self.plot_DT_MS,
         }
-
-        return plot_dict.get(plot_name.lower(), None)
+        plot_name = plot_name.lower()
+        plot_obj = plot_dict.get(plot_name, None)
+        if plot_obj is None:
+            logger.error(f"Could not find plot object with name `{plot_name}")
+        return plot_obj
 
     def get_plot_from_id(self, id_value):
         """Retireve plot object from id"""
@@ -2581,8 +2595,6 @@ class PanelPlots(wx.Panel):
             window = None
             plot_size_key = "MS"
 
-        print("allow_extraction", plt_kwargs["allow_extraction"])
-
         # change page
         if set_page and window is not None:
             self._set_page(window)
@@ -3002,6 +3014,7 @@ class PanelPlots(wx.Panel):
         plt_kwargs = self._buildPlotParameters(plotType="2D")
         plt_kwargs["colormap"] = cmap
         plt_kwargs["colormap_norm"] = cmapNorm
+        plt_kwargs["allow_extraction"] = kwargs.pop("allow_extraction", True)
         plt_kwargs = merge_two_dicts(plt_kwargs, kwargs)
 
         try:

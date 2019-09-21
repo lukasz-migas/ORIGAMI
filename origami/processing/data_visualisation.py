@@ -1,3 +1,4 @@
+"""Data visualisation module"""
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 import logging
@@ -16,7 +17,7 @@ from utils.visuals import calculate_label_position
 logger = logging.getLogger("origami")
 
 
-class data_visualisation:
+class DataVisualization:
     """Module that carries out more complex visualisation steps"""
 
     def __init__(self, presenter, view, config):

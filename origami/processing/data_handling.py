@@ -1,3 +1,4 @@
+"""Data handling module"""
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 import copy
@@ -62,7 +63,9 @@ logger = logging.getLogger("origami")
 # TODO: when setting document path, it currently removes the file extension which is probably a mistake
 
 
-class data_handling:
+class DataHandling:
+    """General data handling module"""
+
     def __init__(self, presenter, view, config):
         self.presenter = presenter
         self.view = view
@@ -1488,11 +1491,10 @@ class data_handling:
         self.presenter.documentsDict[document.title] = document
         self.presenter.currentDoc = document.title
 
-    def extract_from_plot_1D(self, xvalsMin, xvalsMax, yvalsMax, currentView=None, currentDoc=""):
+    def extract_from_plot_1D(self, xmin, xmax, ymax):
         self.plot_page = self.plotsPanel._get_page_text()
 
         document = self._on_get_document()
-        document_title = document.title
 
         # Extraction of data when the Interactive document is enabled is not possible
         if (
@@ -1501,172 +1503,169 @@ class data_handling:
         ):
             raise MessageError("Error", "Cannot extract data from an INTERACTIVE document")
 
+        if xmin is None or xmax is None:
+            logging.error("Extraction range was from outside of the plot area. Please try again.")
+            return
+
+        xmin, xmax = check_value_order(xmin, xmax)
+
         # Extract mass spectrum from mobilogram window
-        elif self.plot_page == "Mobilogram":
-            dt_label = self.plotsPanel.plot1D.plot_labels.get("xlabel", "Drift time (bins)")
-
-            if xvalsMin is None or xvalsMax is None:
-                logging.error("Extraction range was from outside of the plot area. Please try again.")
-                return
-
-            if dt_label == "Drift time (bins)":
-                dtStart = np.ceil(xvalsMin).astype(int)
-                dtEnd = np.floor(xvalsMax).astype(int)
-            else:
-                dtStart = xvalsMin
-                dtEnd = xvalsMax
-
-            # Check that values are in correct order
-            if dtEnd < dtStart:
-                dtEnd, dtStart = dtStart, dtEnd
-
-            self.on_extract_MS_from_mobilogram(dtStart=dtStart, dtEnd=dtEnd, units=dt_label)
+        if self.plot_page == "Mobilogram":
+            self.extract_from_plot_1D_DT(xmin, xmax, document)
 
         # Extract heatmap from mass spectrum window
-        elif self.plot_page == "Mass spectrum" or currentView == "MS":
-            if xvalsMin is None or xvalsMax is None:
-                logging.error("Extraction range was from outside of the plot area. Please try again.")
-                return
-
-            if document.fileFormat == "Format: Thermo (.RAW)":
-                return
-
-            mz_start = np.round(xvalsMin, 2)
-            mz_end = np.round(xvalsMax, 2)
-            mz_start, mz_end = check_value_order(mz_start, mz_end)
-
-            # Make sure the document has MS in first place (i.e. Text)
-            if not document.gotMS:
-                return
-
-            # Get MS data for specified region and extract Y-axis maximum
-            ms = document.massSpectrum
-            ms = np.transpose([ms["xvals"], ms["yvals"]])
-            mz_y_max = np.round(get_maximum_value_in_range(ms, mz_range=(mz_start, mz_end)) * 100, 2)
-
-            # predict charge state
-            charge = self.data_processing.predict_charge_state(ms[:, 0], ms[:, 1], (mz_start, mz_end))
-            color = self.ionPanel.on_check_duplicate_colors(self.config.customColors[get_random_int(0, 15)])
-            color = convertRGB255to1(color)
-            colormap = self.config.overlay_cmaps[get_random_int(0, len(self.config.overlay_cmaps) - 1)]
-            ion_name = f"{mz_start}-{mz_end}"
-
-            if document.dataType in ["Type: ORIGAMI", "Type: MANUAL", "Type: Infrared"]:
-                self.view.on_toggle_panel(evt=ID_window_ionList, check=True)
-                # Check if value already present
-                outcome = self.ionPanel.on_check_duplicate(ion_name, document_title)
-                if outcome:
-                    self.update_statusbar("Selected range already in the table", 4)
-                    if currentView == "MS":
-                        return outcome
-                    return
-
-                _add_to_table = {
-                    "ion_name": ion_name,
-                    "charge": charge,
-                    "mz_ymax": mz_y_max,
-                    "color": convertRGB1to255(color),
-                    "colormap": colormap,
-                    "alpha": self.config.overlay_defaultAlpha,
-                    "mask": self.config.overlay_defaultMask,
-                    "document": document_title,
-                }
-                self.ionPanel.on_add_to_table(_add_to_table, check_color=False)
-
-                if self.config.showRectanges:
-                    label = "{};{:.2f}-{:.2f}".format(document_title, mz_start, mz_end)
-                    self.plotsPanel.on_plot_patches(
-                        mz_start,
-                        0,
-                        (mz_end - mz_start),
-                        100000000000,
-                        color=color,
-                        alpha=self.config.markerTransparency_1D,
-                        label=label,
-                        repaint=True,
-                    )
-
-                if self.ionPanel.extractAutomatically:
-                    self.on_extract_2D_from_mass_range_fcn(None, extract_type="new")
-
-            elif document.dataType == "Type: Multifield Linear DT":
-                self.view.on_toggle_panel(evt=ID_window_multiFieldList, check=True)
-                # Check if value already present
-                outcome = self.view.panelLinearDT.bottomP.onCheckForDuplicates(
-                    mz_start=str(mz_start), mzEnd=str(mz_end)
-                )
-                if outcome:
-                    return
-                self.view.panelLinearDT.bottomP.peaklist.Append(
-                    [mz_start, mz_end, mz_y_max, "", self.presenter.currentDoc]
-                )
-
-                if self.config.showRectanges:
-                    self.plotsPanel.on_plot_patches(
-                        mz_start,
-                        0,
-                        (mz_end - mz_start),
-                        100000000000,
-                        color=self.config.annotColor,
-                        alpha=self.config.markerTransparency_1D,
-                        repaint=True,
-                    )
+        elif self.plot_page == "Mass spectrum":
+            self.extract_from_plot_1D_MS(xmin, xmax, document)
 
         # Extract mass spectrum from chromatogram window - Linear DT files
         elif self.plot_page == "Chromatogram" and document.dataType == "Type: Multifield Linear DT":
-            self.view._mgr.GetPane(self.view.panelLinearDT).Show()
-            self.view._mgr.Update()
-            xvalsMin = np.ceil(xvalsMin).astype(int)
-            xvalsMax = np.floor(xvalsMax).astype(int)
-            # Check that values are in correct order
-            if xvalsMax < xvalsMin:
-                xvalsMax, xvalsMin = xvalsMin, xvalsMax
-
-            # Check if value already present
-            if self.view.panelLinearDT.topP.onCheckForDuplicates(rtStart=str(xvalsMin), rtEnd=str(xvalsMax)):
-                return
-
-            xvalDiff = xvalsMax - xvalsMin.astype(int)
-            self.view.panelLinearDT.topP.peaklist.Append([xvalsMin, xvalsMax, xvalDiff, "", document_title])
-
-            self.plotsPanel.on_add_patch(
-                xvalsMin,
-                0,
-                (xvalsMax - xvalsMin),
-                100000000000,
-                color=self.config.annotColor,
-                alpha=(self.config.annotTransparency / 100),
-                repaint=True,
-                plot="RT",
-            )
+            self.extract_from_plot_1D_RT_DT(xmin, xmax, document)
 
         # Extract mass spectrum from chromatogram window
         elif self.plot_page == "Chromatogram" and document.dataType != "Type: Multifield Linear DT":
-            rt_label = self.plotsPanel.plotRT.plot_labels.get("xlabel", "Scans")
+            self.extract_from_plot_1D_RT(xmin, xmax, document)
 
-            # Get values
-            if xvalsMin is None or xvalsMax is None:
-                logging.error("Extraction range was from outside of the plot area. Please try again.")
+    def extract_from_plot_1D_DT(self, xmin, xmax, document):
+        dt_label = self.plotsPanel.plot1D.plot_labels.get("xlabel", "Drift time (bins)")
+
+        if dt_label == "Drift time (bins)":
+            dt_start = np.ceil(xmin).astype(int)
+            dt_end = np.floor(xmax).astype(int)
+        else:
+            dt_start = xmin
+            dt_end = xmax
+
+        self.on_extract_MS_from_mobilogram(dt_start, dt_end, units=dt_label)
+
+    def extract_from_plot_1D_MS(self, xmin, xmax, document):
+
+        document_title = document.title
+
+        if document.fileFormat == "Format: Thermo (.RAW)":
+            logger.error("Cannot extract MS data for Thermo (.RAW) files yet...")
+            return
+
+        mz_start = np.round(xmin, 2)
+        mz_end = np.round(xmax, 2)
+
+        # Make sure the document has MS in first place (i.e. Text)
+        if not document.gotMS:
+            logger.warning("Document does not have existing main mass spectrum...")
+            __, mz_x, mz_y, __, __, __ = self.plotsPanel.on_get_plot_data()
+            mz_x, mz_y = mz_x[0], mz_y[0]
+        else:
+            mz_xy = document.massSpectrum
+            mz_x, mz_y = mz_xy["xvals"], mz_xy["yvals"]
+
+        mz_xy = np.transpose([mz_x, mz_y])
+        mz_y_max = np.round(get_maximum_value_in_range(mz_xy, mz_range=(mz_start, mz_end)) * 100, 2)
+
+        # predict charge state
+        charge = self.data_processing.predict_charge_state(mz_xy[:, 0], mz_xy[:, 1], (mz_start, mz_end))
+        color = self.ionPanel.on_check_duplicate_colors(self.config.customColors[get_random_int(0, 15)])
+        color = convertRGB255to1(color)
+        colormap = self.config.overlay_cmaps[get_random_int(0, len(self.config.overlay_cmaps) - 1)]
+        spectrum_name = f"{mz_start}-{mz_end}"
+
+        if document.dataType in ["Type: ORIGAMI", "Type: MANUAL", "Type: Infrared"]:
+            self.view.on_toggle_panel(evt=ID_window_ionList, check=True)
+            # Check if value already present
+            outcome = self.ionPanel.on_check_duplicate(spectrum_name, document_title)
+            if outcome:
+                logger.warning("Ion with selected range is already in the table")
                 return
 
-            if rt_label in ["Collision Voltage (V)"]:
-                raise MessageError("Error", f"Cannot extract MS data when the x-axis is in {rt_label} format")
+            _add_to_table = {
+                "ion_name": spectrum_name,
+                "charge": charge,
+                "mz_ymax": mz_y_max,
+                "color": convertRGB1to255(color),
+                "colormap": colormap,
+                "alpha": self.config.overlay_defaultAlpha,
+                "mask": self.config.overlay_defaultMask,
+                "document": document_title,
+            }
+            self.ionPanel.on_add_to_table(_add_to_table, check_color=False)
 
-            if rt_label == "Scans":
-                xvalsMin = np.ceil(xvalsMin).astype(int)
-                xvalsMax = np.floor(xvalsMax).astype(int)
+            if self.config.showRectanges:
+                label = "{};{:.2f}-{:.2f}".format(document_title, mz_start, mz_end)
+                self.plotsPanel.on_plot_patches(
+                    mz_start,
+                    0,
+                    (mz_end - mz_start),
+                    100000000000,
+                    color=color,
+                    alpha=self.config.markerTransparency_1D,
+                    label=label,
+                    repaint=True,
+                )
 
-            # Check that values are in correct order
-            if xvalsMax < xvalsMin:
-                xvalsMax, xvalsMin = xvalsMin, xvalsMax
+            logger.info(f"Added ion {spectrum_name} to the peaklist")
+            if self.ionPanel.extractAutomatically:
+                self.on_extract_2D_from_mass_range_fcn(None, extract_type="new")
 
-            # Extract data
-            if document.fileFormat == "Format: Thermo (.RAW)":
-                raise MessageError("Error", "Cannot extract chromatographic data from Thermo (.raw) files yet")
+        elif document.dataType == "Type: Multifield Linear DT":
+            self.view.on_toggle_panel(evt=ID_window_multiFieldList, check=True)
+            # Check if value already present
+            if self.view.panelLinearDT.bottomP.onCheckForDuplicates(mz_start=str(mz_start), mzEnd=str(mz_end)):
+                return
 
-            self.on_extract_MS_from_chromatogram(startScan=xvalsMin, endScan=xvalsMax, units=rt_label)
+            self.view.panelLinearDT.bottomP.peaklist.Append([mz_start, mz_end, mz_y_max, "", self.presenter.currentDoc])
 
-    def extract_from_plot_2D(self, dataOut):
+            if self.config.showRectanges:
+                self.plotsPanel.on_plot_patches(
+                    mz_start,
+                    0,
+                    (mz_end - mz_start),
+                    100000000000,
+                    color=self.config.annotColor,
+                    alpha=self.config.markerTransparency_1D,
+                    repaint=True,
+                )
+
+    def extract_from_plot_1D_RT_DT(self, xmin, xmax, document):
+        document_title = document.title
+
+        self.view._mgr.GetPane(self.view.panelLinearDT).Show()
+        self.view._mgr.Update()
+        xmin = np.ceil(xmin).astype(int)
+        xmax = np.floor(xmax).astype(int)
+
+        # Check if value already present
+        if self.view.panelLinearDT.topP.onCheckForDuplicates(rtStart=str(xmin), rtEnd=str(xmax)):
+            return
+
+        peak_width = xmax - xmin.astype(int)
+        self.view.panelLinearDT.topP.peaklist.Append([xmin, xmax, peak_width, "", document_title])
+
+        self.plotsPanel.on_add_patch(
+            xmin,
+            0,
+            (xmax - xmin),
+            100000000000,
+            color=self.config.annotColor,
+            alpha=(self.config.annotTransparency / 100),
+            repaint=True,
+            plot="RT",
+        )
+
+    def extract_from_plot_1D_RT(self, xmin, xmax, document):
+        rt_label = self.plotsPanel.plotRT.plot_labels.get("xlabel", "Scans")
+
+        # Extract data
+        if document.fileFormat == "Format: Thermo (.RAW)":
+            raise MessageError("Error", "Cannot extract chromatographic data from Thermo (.raw) files yet")
+
+        if rt_label in ["Collision Voltage (V)"]:
+            raise MessageError("Error", f"Cannot extract MS data when the x-axis is in {rt_label} format")
+
+        if rt_label == "Scans":
+            xmin = np.ceil(xmin).astype(int)
+            xmax = np.floor(xmax).astype(int)
+
+        self.on_extract_MS_from_chromatogram(start_scan=xmin, end_scan=xmax, units=rt_label)
+
+    def extract_from_plot_2D(self, xy_values):
         self.plot_page = self.plotsPanel._get_page_text()
 
         if self.plot_page == "DT/MS":
@@ -1676,9 +1675,9 @@ class data_handling:
             xlabel = self.plotsPanel.plot2D.plot_labels.get("xlabel", "Scans")
             ylabel = self.plotsPanel.plot2D.plot_labels.get("ylabel", "Drift time (bins)")
 
-        xmin, xmax, ymin, ymax = dataOut
-        if xmin is None or xmax is None or ymin is None or ymax is None:
-            self.update_statusbar("Extraction range was from outside of the plot area. Please try again", 4)
+        xmin, xmax, ymin, ymax = xy_values
+        if any([value is None for value in [xmin, xmax, ymin, ymax]]):
+            logging.error("Extraction range was incorrect. Please try again")
             return
 
         xmin = np.round(xmin, 2)
@@ -1690,6 +1689,7 @@ class data_handling:
         elif ylabel in ["Drift time (ms)", "Arrival time (ms)"]:
             ymin, ymax = ymin, ymax
         else:
+            logging.error(f"Cannot extract data when the y-axis limits are `{ylabel}`")
             return
 
         if xlabel == "Scans":
@@ -1698,8 +1698,8 @@ class data_handling:
         elif xlabel in ["Retention time (min)", "Time (min)", "m/z"]:
             xmin, xmax = xmin, xmax
         else:
+            logging.error(f"Cannot extract data when the x-axis limits are `{xlabel}`")
             return
-
         # Reverse values if they are in the wrong order
         xmin, xmax = check_value_order(xmin, xmax)
         ymin, ymax = check_value_order(ymin, ymax)
@@ -1707,7 +1707,7 @@ class data_handling:
         # Extract data
         if self.plot_page == "DT/MS":
             self.on_extract_RT_from_mzdt(xmin, xmax, ymin, ymax, units_x=xlabel, units_y=ylabel)
-        elif self.plot_page == "2D":
+        elif self.plot_page == "Heatmap":
             self.on_extract_MS_from_heatmap(xmin, xmax, ymin, ymax, units_x=xlabel, units_y=ylabel)
 
     def on_open_text_2D_fcn(self, evt):
@@ -1808,7 +1808,7 @@ class data_handling:
 
         # Get experimental parameters
         parameters = self.config.get_waters_inf_data(path)
-        fileInfo = self.config.get_waters_header_data(path)
+        file_info = self.config.get_waters_header_data(path)
         xlimits = [parameters["startMS"], parameters["endMS"]]
         reader = io_waters_raw_api.WatersRawReader(path)
 
@@ -1858,7 +1858,7 @@ class data_handling:
         document.path = path
         document.dataType = data_type
         document.fileFormat = "Format: Waters (.raw)"
-        document.fileInformation = fileInfo
+        document.fileInformation = file_info
         document.parameters = parameters
         document.userParameters = self.config.userParameters
         document.userParameters["date"] = getTime()
@@ -2344,200 +2344,262 @@ class data_handling:
         self.view.SetStatusText("{}-{}".format(parameters["startMS"], parameters["endMS"]), 1)
         self.view.SetStatusText("MSMS: {}".format(parameters["setMS"]), 2)
 
-    def on_extract_RT_from_mzdt(self, mzStart, mzEnd, dtStart, dtEnd, units_x="m/z", units_y="Drift time (bins)"):
-        """Function to extract RT data for specified MZ/DT region """
+    def _get_spectrum_parameters(self, document):
+        """Get common spectral parameters
 
-        document = self._on_get_document()
-        # convert from miliseconds to bins
-        if units_y in ["Drift time (ms)", "Arrival time (ms)"]:
-            pusherFreq = document.parameters.get("pusherFreq", 1000)
-            dtStart = np.ceil((dtStart / pusherFreq) * 1000).astype(int)
-            dtEnd = np.ceil((dtEnd / pusherFreq) * 1000).astype(int)
+        Parameters
+        ----------
+        document : document.Document
+            ORIGAMI document
 
-        # Load data
-        extract_kwargs = {"return_data": True, "normalize": False}
-        rtDataX, rtDataY = io_waters.driftscope_extract_RT(
-            path=document.path,
-            driftscope_path=self.config.driftscopePath,
-            mz_start=mzStart,
-            mz_end=mzEnd,
-            dt_start=dtStart,
-            dt_end=dtEnd,
-            **extract_kwargs,
-        )
-        self.plotsPanel.on_plot_RT(rtDataX, rtDataY, "Scans")
+        Returns
+        -------
+        pusher_freq : float
+            pusher frequency
+        scan_time : float
+            scan time
+        xlimits : list
+            x-axis limits for MS plot
+        """
 
-        ion_name = f"Ion: {mzStart:.2f}-{mzEnd:.2f} | Drift time: {dtStart:.2f}-{dtEnd:.2f}"
-        ion_data = {"xvals": rtDataX, "yvals": rtDataY, "xlabels": "Scans"}
-
-        msg = f"Extracted RT data for m/z: {mzStart}-{mzEnd} | dt: {dtStart}-{dtEnd}"
-        self.update_statusbar(msg, 3)
-
-        # Update document
-        self.documentTree.on_update_data(ion_data, ion_name, document, data_type="extracted.chromatogram")
-
-    def on_extract_MS_from_mobilogram(self, dtStart=None, dtEnd=None, evt=None, units="Drift time (bins)"):
-        document = self._on_get_document()
-
-        # convert from miliseconds to bins
-        if units in ["Drift time (ms)", "Arrival time (ms)"]:
-            pusherFreq = document.parameters.get("pusherFreq", 1000)
-            dtStart = np.ceil((dtStart / pusherFreq) * 1000).astype(int)
-            dtEnd = np.ceil((dtEnd / pusherFreq) * 1000).astype(int)
-
-        # Extract data
-        extract_kwargs = {"return_data": True}
-        msX, msY = io_waters.driftscope_extract_MS(
-            path=document.path,
-            driftscope_path=self.config.driftscopePath,
-            dt_start=dtStart,
-            dt_end=dtEnd,
-            **extract_kwargs,
-        )
-        xlimits = [document.parameters["startMS"], document.parameters["endMS"]]
-
-        # Add data to dictionary
-        ion_name = "Drift time: {}-{}".format(dtStart, dtEnd)
-
-        ion_data = {"xvals": msX, "yvals": msY, "range": [dtStart, dtEnd], "xlabels": "m/z (Da)", "xlimits": xlimits}
-
-        # Plot MS
-        name_kwargs = {"document": document.title, "dataset": ion_name}
-        self.plotsPanel.on_plot_MS(msX, msY, xlimits=xlimits, show_in_window="MS_DT", **name_kwargs)
-        # Update document
-        self.documentTree.on_update_data(ion_data, ion_name, document, data_type="extracted.spectrum")
-
-    def on_extract_MS_from_chromatogram(self, startScan=None, endScan=None, units="Scans"):
-        """ Function to extract MS data for specified RT region """
-
-        document = self._on_get_document()
+        # pusher frequency
+        pusher_freq = document.parameters.get("pusherFreq", 1000)
 
         try:
-            scantime = document.parameters["scanTime"]
-        except Exception:
-            scantime = None
+            scan_time = document.parameters["scanTime"]
+        except (KeyError, AttributeError):
+            scan_time = None
+            logging.warning("Value of `scan time` was missing")
 
         try:
             xlimits = [document.parameters["startMS"], document.parameters["endMS"]]
-        except Exception:
+        except KeyError:
             try:
-                xlimits = [np.min(document.massSpectrum["xvals"]), np.max(document.massSpectrum["xvals"])]
-            except Exception:
-                pass
+                xlimits = get_min_max(document.massSpectrum["xvals"])
+            except KeyError:
+                logging.warning("Could not set the `xlimits` variable")
             xlimits = None
 
-        if scantime is not None:
-            if units in ["Time (min)", "Retention time (min)"]:
-                startScan = np.ceil((startScan / scantime) * 60).astype(int)
-                endScan = np.ceil((endScan / scantime) * 60).astype(int)
+        return pusher_freq, scan_time, xlimits
 
-        if startScan != endScan:
-            scan_list = np.arange(startScan, endScan)
+    def on_extract_RT_from_mzdt(self, mz_start, mz_end, dt_start, dt_end, units_x="m/z", units_y="Drift time (bins)"):
+        """Function to extract RT data for specified MZ/DT region """
+        tstart = ttime()
+        logger.info(f"Extracting chromatogram based DT: {dt_start}-{dt_end} & MS: {mz_start}-{mz_end}...")
+
+        document = self._on_get_document()
+        pusher_freq, __, __ = self._get_spectrum_parameters(document)
+
+        # convert from miliseconds to bins
+        if units_y in ["Drift time (ms)", "Arrival time (ms)"]:
+            dt_start = np.ceil((dt_start / pusher_freq) * 1000).astype(int)
+            dt_end = np.ceil((dt_end / pusher_freq) * 1000).astype(int)
+
+        # Load data
+        rt_x, rt_y = io_waters.driftscope_extract_RT(
+            path=document.path,
+            driftscope_path=self.config.driftscopePath,
+            mz_start=mz_start,
+            mz_end=mz_end,
+            dt_start=dt_start,
+            dt_end=dt_end,
+            return_data=True,
+            normalize=False,
+        )
+        self.plotsPanel.on_plot_RT(rt_x, rt_y, "Scans")
+
+        obj_name = f"Ion: {mz_start:.2f}-{mz_end:.2f} | Drift time: {dt_start:.2f}-{dt_end:.2f}"
+        chromatogram_data = {"xvals": rt_x, "yvals": rt_y, "xlabels": "Scans"}
+
+        self.documentTree.on_update_data(chromatogram_data, obj_name, document, data_type="extracted.chromatogram")
+        logger.info(
+            f"Extracted RT data for m/z: {mz_start}-{mz_end} | dt: {dt_start}-{dt_end} in {ttime()-tstart:.2f}s"
+        )
+
+    def on_extract_MS_from_mobilogram(self, dt_start, dt_end, units="Drift time (bins)"):
+        """Extract mass spectrum based on values from mobilogram
+
+        Parameters
+        ----------
+        dt_start : int
+            start of extraction window
+        dt_end : int
+            end of extraction window
+        units : str, optional
+            plot units to convert between bins <-> ms, by default "Drift time (bins)"
+        """
+        tstart = ttime()
+        logger.info(f"Extracting mass spectrum based on DT window: {dt_start} - {dt_end}...")
+        document = self._on_get_document()
+        if not os.path.exists(document.path):
+            raise MessageError("Error", f"Path {document.path} does not exist - cannot extract data")
+
+        pusher_freq, __, xlimits = self._get_spectrum_parameters(document)
+        # convert from miliseconds to bins
+        if units in ["Drift time (ms)", "Arrival time (ms)"]:
+            dt_start = np.ceil((dt_start / pusher_freq) * 1000).astype(int)
+            dt_end = np.ceil((dt_end / pusher_freq) * 1000).astype(int)
+
+        # Extract data
+        mz_x, mz_y = io_waters.driftscope_extract_MS(
+            path=document.path,
+            driftscope_path=self.config.driftscopePath,
+            dt_start=dt_start,
+            dt_end=dt_end,
+            return_data=True,
+        )
+
+        # Add data to dictionary
+        obj_name = f"Drift time: {dt_start}-{dt_end}"
+
+        ion_data = {
+            "xvals": mz_x,
+            "yvals": mz_y,
+            "range": [dt_start, dt_end],
+            "xlabels": "m/z (Da)",
+            "xlimits": xlimits,
+        }
+
+        # Plot MS
+        self.plotsPanel.on_plot_MS(
+            mz_x, mz_y, xlimits=xlimits, show_in_window="MS_DT", document=document.title, dataset=obj_name
+        )
+        # Update document
+        self.documentTree.on_update_data(ion_data, obj_name, document, data_type="extracted.spectrum")
+        logging.info(f"Extracted mass spectrum in {ttime()-tstart:.2f}s")
+
+    def on_extract_MS_from_chromatogram(self, start_scan, end_scan, units="Scans"):
+        """Extract mass spectrum based on values from chromatogram
+
+        Parameters
+        ----------
+        start_scan : int
+            start of extraction window
+        end_scan : int
+            end of extraction window
+        units : str, optional
+            plot units to convert between scan <-> mins, by default "Scans"
+        """
+        tstart = ttime()
+        logger.info(f"Extracting mass spectrum based on RT window: {start_scan} - {end_scan}...")
+
+        document = self._on_get_document()
+        if not os.path.exists(document.path):
+            raise MessageError("Error", f"Path {document.path} does not exist - cannot extract data")
+
+        __, scan_time, xlimits = self._get_spectrum_parameters(document)
+
+        if scan_time is not None:
+            if units in ["Time (min)", "Retention time (min)"]:
+                start_scan = np.ceil((start_scan / scan_time) * 60).astype(int)
+                end_scan = np.ceil((end_scan / scan_time) * 60).astype(int)
+
+        if start_scan != end_scan:
+            scan_list = np.arange(start_scan, end_scan)
         else:
-            scan_list = [startScan]
+            scan_list = [start_scan]
 
         reader = self._get_waters_api_reader(document)
         kwargs = {"scan_list": scan_list}
         mz_x, mz_y = self._get_waters_api_spectrum_data(reader, **kwargs)
 
         # Add data to dictionary
-        spectrum_name = "Scans: {}-{}".format(startScan, endScan)
-
+        obj_name = f"Scans: {start_scan}-{end_scan}"
         spectrum_data = {
             "xvals": mz_x,
             "yvals": mz_y,
-            "range": [startScan, endScan],
+            "range": [start_scan, end_scan],
             "xlabels": "m/z (Da)",
             "xlimits": xlimits,
         }
         document.file_reader = {"data_reader": reader}
 
-        self.documentTree.on_update_data(spectrum_data, spectrum_name, document, data_type="extracted.spectrum")
+        self.documentTree.on_update_data(spectrum_data, obj_name, document, data_type="extracted.spectrum")
         # Plot MS
-        name_kwargs = {"document": document.title, "dataset": spectrum_name}
-        self.plotsPanel.on_plot_MS(mz_x, mz_y, xlimits=xlimits, show_in_window="MS_RT", **name_kwargs)
-        # Set status
-        msg = f"Extracted MS data for rt: {startScan}-{endScan}"
-        self.update_statusbar(msg, 3)
+        self.plotsPanel.on_plot_MS(
+            mz_x, mz_y, xlimits=xlimits, show_in_window="MS_RT", document=document.title, dataset=obj_name
+        )
+        logging.info(f"Extracted mass spectrum in {ttime()-tstart:.2f}s")
 
     def on_extract_MS_from_heatmap(
-        self, startScan=None, endScan=None, dtStart=None, dtEnd=None, units_x="Scans", units_y="Drift time (bins)"
+        self, start_scan, end_scan, dt_start, dt_end, units_x="Scans", units_y="Drift time (bins)"
     ):
-        """ Function to extract MS data for specified DT/MS region """
+        """Extract mass spectrum based on values in a heatmap
+
+        Parameters
+        ----------
+        start_scan : int
+            start of extraction window
+        end_scan : int
+            end of extraction window
+        dt_start : int
+            start of extraction window
+        dt_end : int
+            end of extraction window
+        units_x : str, optional
+            plot units to convert between scan <-> mins, by default "Scans"
+        units_y : str, optional
+            plot units to convert between drift bins <-> ms, by default "Drift time (bins)
+        """
+        tstart = ttime()
+        logger.info(f"Extracting mass spectrum based DT: {dt_start}-{dt_end} & RT: {start_scan}-{end_scan}...")
 
         document = self._on_get_document()
+        if not os.path.exists(document.path):
+            raise MessageError("Error", f"Path {document.path} does not exist - cannot extract data")
 
-        try:
-            scanTime = document.parameters["scanTime"]
-        except Exception:
-            scanTime = None
-
-        try:
-            pusherFreq = document.parameters["pusherFreq"]
-        except Exception:
-            pusherFreq = None
-
-        try:
-            xlimits = [document.parameters["startMS"], document.parameters["endMS"]]
-        except Exception:
-            try:
-                xlimits = [np.min(document.massSpectrum["xvals"]), np.max(document.massSpectrum["xvals"])]
-            except Exception:
-                return
+        pusher_freq, scan_time, xlimits = self._get_spectrum_parameters(document)
 
         if units_x == "Scans":
-            if scanTime is None:
+            if scan_time is None:
+                logger.error("Failed to extract MS data as `scan_time` was missing")
                 return
-            rtStart = round(startScan * (scanTime / 60), 2)
-            rtEnd = round(endScan * (scanTime / 60), 2)
+            rt_start = round(start_scan * (scan_time / 60), 2)
+            rt_end = round(end_scan * (scan_time / 60), 2)
         elif units_x in ["Time (min)", "Retention time (min)"]:
-            rtStart, rtEnd = startScan, endScan
-            if scanTime is None:
+            rt_start, rt_end = start_scan, end_scan
+            if scan_time is None:
                 return
-            startScan = np.ceil((startScan / scanTime) * 60).astype(int)
-            endScan = np.ceil((endScan / scanTime) * 60).astype(int)
+            start_scan = np.ceil((start_scan / scan_time) * 60).astype(int)
+            end_scan = np.ceil((end_scan / scan_time) * 60).astype(int)
 
         if units_y in ["Drift time (ms)", "Arrival time (ms)"]:
-            if pusherFreq is None:
+            if pusher_freq is None:
                 return
-            dtStart = np.ceil((dtStart / pusherFreq) * 1000).astype(int)
-            dtEnd = np.ceil((dtEnd / pusherFreq) * 1000).astype(int)
+            dt_start = np.ceil((dt_start / pusher_freq) * 1000).astype(int)
+            dt_end = np.ceil((dt_end / pusher_freq) * 1000).astype(int)
 
         # Mass spectra
         try:
-            extract_kwargs = {"return_data": True}
-            msX, msY = io_waters.driftscope_extract_MS(
+            mz_x, mz_y = io_waters.driftscope_extract_MS(
                 path=document.path,
                 driftscope_path=self.config.driftscopePath,
-                rt_start=rtStart,
-                rt_end=rtEnd,
-                dt_start=dtStart,
-                dt_end=dtEnd,
-                **extract_kwargs,
+                rt_start=rt_start,
+                rt_end=rt_end,
+                dt_start=dt_start,
+                dt_end=dt_end,
+                return_data=True,
             )
             if xlimits is None:
-                xlimits = [np.min(msX), np.max(msX)]
+                xlimits = [np.min(mz_x), np.max(mz_x)]
         except (IOError, ValueError):
+            logger.error("Failed to extract mass spectrum...", exc_info=True)
             return
 
         # Add data to dictionary
-        ion_name = "Scans: {}-{} | Drift time: {}-{}".format(startScan, endScan, dtStart, dtEnd)
-
-        ion_data = {
-            "xvals": msX,
-            "yvals": msY,
-            "range": [startScan, endScan],
+        obj_name = f"Scans: {start_scan}-{end_scan} | Drift time: {dt_start}-{dt_end}"
+        spectrum_data = {
+            "xvals": mz_x,
+            "yvals": mz_y,
+            "range": [start_scan, end_scan],
             "xlabels": "m/z (Da)",
             "xlimits": xlimits,
         }
 
-        self.documentTree.on_update_data(ion_data, ion_name, document, data_type="extracted.spectrum")
-        # Plot MS
-        name_kwargs = {"document": document.title, "dataset": ion_name}
-        self.plotsPanel.on_plot_MS(msX, msY, xlimits=xlimits, **name_kwargs)
+        self.documentTree.on_update_data(spectrum_data, obj_name, document, data_type="extracted.spectrum")
+        self.plotsPanel.on_plot_MS(mz_x, mz_y, xlimits=xlimits, document=document.title, dataset=obj_name)
         # Set status
-        msg = f"Extracted MS data for rt: {startScan}-{endScan}"
-        self.update_statusbar(msg, 3)
+        logging.info(f"Extracted mass spectrum in {ttime()-tstart:.2f}s")
 
     def on_save_all_documents_fcn(self, evt):
         if self.config.threading:
@@ -2680,7 +2742,7 @@ class data_handling:
         """Fix old-style documents to comply with current version
 
         Since the original release, a couple of things have changed. I've tried to keep things as backward-compatible
-        as possible, but some things need to changed. Whatever changes were made, old-documents can be re-processed
+        as possible, but some things need to be changed. Whatever changes were made, old-documents can be re-processed
         into the new format, hopefully permitting continuous usage. New documents are not backward compatible so will
         not work on ORIGAMI version < 2.
 
@@ -2696,29 +2758,10 @@ class data_handling:
         logger.info("Upgrading document to latest version...")
 
         # update document with new attributes
-        if not hasattr(document, "other_data"):
-            setattr(document, "other_data", {})
-            logger.info(f"FIXED [Missing attribute]: other_data")
-
-        if not hasattr(document, "tandem_spectra"):
-            setattr(document, "tandem_spectra", {})
-            logger.info(f"FIXED [Missing attribute]: tandem_spectra")
-
-        if not hasattr(document, "file_reader"):
-            setattr(document, "file_reader", {})
-            logger.info(f"FIXED [Missing attribut                    ]: file_reader")
-
-        if not hasattr(document, "app_data"):
-            setattr(document, "app_data", {})
-            logger.info(f"FIXED [Missing attribute]: app_data")
-
-        if not hasattr(document, "last_saved"):
-            setattr(document, "last_saved", {})
-            logger.info(f"FIXED [Missing attribute]: last_saved")
-
-        if not hasattr(document, "metadata"):
-            setattr(document, "metadata", {})
-            logger.info(f"FIXED [Missing attribute]: metadata")
+        for attr in ["other_data", "tandem_spectra", "file_reader", "app_data", "last_saved", "metadata"]:
+            if not hasattr(document, attr):
+                setattr(document, attr, {})
+                logger.info(f"FIXED [Missing attribute]: {attr}")
 
         # OVERLAY DATA
         for key in list(document.IMS2DoverlayData):
@@ -4164,11 +4207,11 @@ class data_handling:
             for path, fname in zip(pathlist, filenames):
                 data_type = None
                 if dataset_type == "mass_spectra":
-                    msDataX, msDataY, __, xlimits, extension = self._get_text_spectrum_data(path=path)
+                    mz_x, mz_y, __, xlimits, extension = self._get_text_spectrum_data(path=path)
                     document.gotMultipleMS = True
                     data = {
-                        "xvals": msDataX,
-                        "yvals": msDataY,
+                        "xvals": mz_x,
+                        "yvals": mz_y,
                         "xlabels": "m/z (Da)",
                         "xlimits": xlimits,
                         "file_path": path,
@@ -4179,11 +4222,11 @@ class data_handling:
                     data_type = "extracted.spectrum"
 
                 elif dataset_type == "chromatograms":
-                    rtDataX, rtDataY, __, xlimits, extension = self._get_text_spectrum_data(path=path)
+                    rt_x, rt_y, __, xlimits, extension = self._get_text_spectrum_data(path=path)
                     document.gotMultipleRT = True
                     data = {
-                        "xvals": rtDataX,
-                        "yvals": rtDataY,
+                        "xvals": rt_x,
+                        "yvals": rt_y,
                         "xlabels": "Scans",
                         "ylabels": "Intensity",
                         "xlimits": xlimits,
@@ -4196,10 +4239,10 @@ class data_handling:
                     data_type = "extracted.chromatogram"
 
                 elif dataset_type == "mobilogram":
-                    dtDataX, dtDataY, __, xlimits, extension = self._get_text_spectrum_data(path=path)
+                    dt_x, dt_y, __, xlimits, extension = self._get_text_spectrum_data(path=path)
                     data = {
-                        "xvals": dtDataX,
-                        "yvals": dtDataY,
+                        "xvals": dt_x,
+                        "yvals": dt_y,
                         "xlabels": "Drift time (bins)",
                         "ylabels": "Intensity",
                         "xlimits": xlimits,
@@ -4212,19 +4255,19 @@ class data_handling:
                     data_type = "ion.mobilogram.raw"
 
                 elif dataset_type == "heatmaps":
-                    imsData2D, xAxisLabels, yAxisLabels = io_text_files.text_heatmap_open(path=path)
-                    imsData1D = np.sum(imsData2D, axis=1).T
-                    rtDataY = np.sum(imsData2D, axis=0)
+                    zvals, xvals, yvals = io_text_files.text_heatmap_open(path=path)
+                    dt_y = np.sum(zvals, axis=1).T
+                    rt_y = np.sum(zvals, axis=0)
                     color = convertRGB255to1(self.config.customColors[get_random_int(0, 15)])
                     document.gotExtractedIons = True
                     data = {
-                        "zvals": imsData2D,
-                        "xvals": xAxisLabels,
+                        "zvals": zvals,
+                        "xvals": xvals,
                         "xlabels": "Scans",
-                        "yvals": yAxisLabels,
+                        "yvals": yvals,
                         "ylabels": "Drift time (bins)",
-                        "yvals1D": imsData1D,
-                        "yvalsRT": rtDataY,
+                        "yvals1D": dt_y,
+                        "yvalsRT": rt_y,
                         "cmap": self.config.currentCmap,
                         "mask": self.config.overlay_defaultMask,
                         "alpha": self.config.overlay_defaultAlpha,
