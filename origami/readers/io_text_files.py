@@ -8,9 +8,9 @@ import numpy as np
 import pandas as pd
 from readers.io_utils import remove_non_digits_from_list
 from utils.color import check_color_type
-from utils.color import convertHEXtoRGB1
+from utils.color import convert_hex_to_rgb_1
 from utils.color import get_n_colors
-from utils.color import randomColorGenerator
+from utils.color import get_random_color
 from utils.labels import _replace_labels
 from utils.visuals import check_n_grid_dimensions
 
@@ -185,7 +185,7 @@ class AnnotatedDataReader:
                     _colors = list(df.iloc[:, i].dropna().astype("str"))
                     _colorsRGB = []
                     for _color in _colors:
-                        _colorsRGB.append(convertHEXtoRGB1(str(_color)))
+                        _colorsRGB.append(convert_hex_to_rgb_1(str(_color)))
                     itemColors.append(_colorsRGB)
                     plot_modifiers["color_items"] = True
                 if xy_label in ["axis_label", "axis_labels"]:
@@ -646,7 +646,7 @@ def text_peaklist_open(path, default_mask=0.5, default_alpha=0.5):
         charge = get_column_data_from_row(row, charge_col, 1)
         intensity = get_column_data_from_row(row, intensity_col, 1.0)
         label = get_column_data_from_row(row, label_col)
-        color = get_column_data_from_row(row, color_col, randomColorGenerator())
+        color = get_column_data_from_row(row, color_col, get_random_color())
         colormap = get_column_data_from_row(row, colormap_col)
         alpha = get_column_data_from_row(row, alpha_col, default_alpha)
         mask = get_column_data_from_row(row, mask_col, default_mask)
@@ -762,7 +762,7 @@ def text_annotations_open():
     #                 return
     #
     #             # iterate
-    #             color_value = str(convertRGB255to1(self.patch_color_btn.GetBackgroundColour()))
+    #             color_value = str(convert_rgb_255_to_1(self.patch_color_btn.GetBackgroundColour()))
     #             arrow = False
     #             for peak in range(len(peaklist)):
     #                 min_value = peaklist[min_name][peak]

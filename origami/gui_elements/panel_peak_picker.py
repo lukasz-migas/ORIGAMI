@@ -3,7 +3,7 @@
 import logging
 
 import wx
-from styles import makeCheckbox
+from styles import make_checkbox
 from styles import makeMenuItem
 from styles import MiniFrame
 from styles import validator
@@ -198,7 +198,7 @@ class PanelPeakPicker(MiniFrame):
     def make_settings_panel(self, split_panel):
         panel = wx.Panel(split_panel, -1, size=(-1, -1), name="settings")
 
-        self.mz_limit_check = makeCheckbox(panel, "Specify peak picking mass range")
+        self.mz_limit_check = make_checkbox(panel, "Specify peak picking mass range")
         self.mz_limit_check.SetValue(self.config.peak_find_mz_limit)
         self.mz_limit_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.mz_limit_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -213,12 +213,12 @@ class PanelPeakPicker(MiniFrame):
         self.mz_max_value.SetValue(str(self._mz_xrange[1]))
         self.mz_max_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        self.visualize_highlight_check = makeCheckbox(panel, "Highlight with patch")
+        self.visualize_highlight_check = make_checkbox(panel, "Highlight with patch")
         self.visualize_highlight_check.SetValue(self.config.fit_highlight)
         self.visualize_highlight_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.visualize_highlight_check.Bind(wx.EVT_CHECKBOX, self.on_annotate_spectrum_with_patches)
 
-        self.visualize_show_labels_check = makeCheckbox(panel, "Show labels on plot")
+        self.visualize_show_labels_check = make_checkbox(panel, "Show labels on plot")
         self.visualize_show_labels_check.SetValue(self.config.fit_show_labels)
         self.visualize_show_labels_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.visualize_show_labels_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -237,11 +237,11 @@ class PanelPeakPicker(MiniFrame):
         )
         self.visualize_max_labels.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        self.visualize_show_labels_mz_check = makeCheckbox(panel, "m/z")
+        self.visualize_show_labels_mz_check = make_checkbox(panel, "m/z")
         self.visualize_show_labels_mz_check.SetValue(self.config.fit_show_labels_mz)
         self.visualize_show_labels_mz_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.visualize_show_labels_int_check = makeCheckbox(panel, "intensity")
+        self.visualize_show_labels_int_check = make_checkbox(panel, "intensity")
         self.visualize_show_labels_int_check.SetValue(self.config.fit_show_labels_int)
         self.visualize_show_labels_int_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
@@ -260,7 +260,7 @@ class PanelPeakPicker(MiniFrame):
         self.close_btn = wx.Button(panel, wx.ID_OK, "Close", size=(-1, 22))
         self.close_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
-        self.verbose_check = makeCheckbox(panel, "verbose")
+        self.verbose_check = make_checkbox(panel, "verbose")
         self.verbose_check.SetValue(self.config.peak_find_verbose)
         self.verbose_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
@@ -420,7 +420,7 @@ class PanelPeakPicker(MiniFrame):
         self.fit_relative_height.Bind(wx.EVT_TEXT, self.on_apply)
 
         smooth_label = wx.StaticText(panel, wx.ID_ANY, "Smooth spectrum using Gaussian filter:")
-        self.fit_smooth_check = makeCheckbox(panel, "")
+        self.fit_smooth_check = make_checkbox(panel, "")
         self.fit_smooth_check.SetValue(self.config.fit_smoothPeaks)
         self.fit_smooth_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.fit_smooth_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -431,12 +431,12 @@ class PanelPeakPicker(MiniFrame):
         self.fit_sigma_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         # fmt: off
-        # self.fit_show_smoothed = makeCheckbox(panel, "Show")
+        # self.fit_show_smoothed = make_checkbox(panel, "Show")
         # self.fit_show_smoothed.SetValue(self._show_smoothed_spectrum)
         # self.fit_show_smoothed.Bind(wx.EVT_CHECKBOX, self.on_apply)
         #
         # fit_isotopic_check = wx.StaticText(panel, wx.ID_ANY, "Enable charge state prediction:")
-        # self.fit_isotopic_check = makeCheckbox(panel, "")
+        # self.fit_isotopic_check = make_checkbox(panel, "")
         # self.fit_isotopic_check.SetValue(self.config.fit_highRes)
         # self.fit_isotopic_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         # self.fit_isotopic_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -457,7 +457,7 @@ class PanelPeakPicker(MiniFrame):
         # self.fit_isotopic_width.Bind(wx.EVT_TEXT, self.on_apply)
         #
         # fit_isotopic_show_envelope = wx.StaticText(panel, wx.ID_ANY, "Show isotopic envelope:")
-        # self.fit_isotopic_show_envelope = makeCheckbox(panel, "")
+        # self.fit_isotopic_show_envelope = make_checkbox(panel, "")
         # self.fit_isotopic_show_envelope.SetValue(self.config.fit_highRes_isotopicFit)
         # self.fit_isotopic_show_envelope.Bind(wx.EVT_CHECKBOX, self.on_apply)
         # fmt: on
@@ -938,7 +938,7 @@ class PanelPeakPicker(MiniFrame):
                 "Pick peaks first", "You must pick peaks before you can plot them. Click on the `Find peaks` button"
             )
 
-        document = self.data_handling._on_get_document(self.document_title)
+        document = self.data_handling.on_get_document(self.document_title)
 
         document_type = document.dataType
         allowed_document_types = ["Type: ORIGAMI", "Type: MANUAL", "Type: Infrared", "Type: MassLynx"]

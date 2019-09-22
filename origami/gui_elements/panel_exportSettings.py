@@ -2,7 +2,7 @@
 # __author__ lukasz.g.migas
 import wx
 from help_documentation import OrigamiHelp
-from styles import makeCheckbox
+from styles import make_checkbox
 
 
 class panelExportSettings(wx.MiniFrame):
@@ -97,7 +97,7 @@ class panelExportSettings(wx.MiniFrame):
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         useInternal_label = wx.StaticText(panel, wx.ID_ANY, "Override imported values:")
-        self.peaklist_useInternalWindow_check = makeCheckbox(panel, "")
+        self.peaklist_useInternalWindow_check = make_checkbox(panel, "")
         self.peaklist_useInternalWindow_check.SetValue(self.config.useInternalMZwindow)
         self.peaklist_useInternalWindow_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.peaklist_useInternalWindow_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -114,7 +114,7 @@ class panelExportSettings(wx.MiniFrame):
         n = 0
         grid.Add(useInternal_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.peaklist_useInternalWindow_check, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        n = n + 1
+        n += 1
         grid.Add(windowSize_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.peaklist_windowSize_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         main_sizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
@@ -141,12 +141,12 @@ class panelExportSettings(wx.MiniFrame):
         self.image_resolution.SetValue(self.config.dpi)
 
         transparency_label = wx.StaticText(panel, wx.ID_ANY, "Transparent:")
-        self.image_transparency_check = makeCheckbox(panel, "")
+        self.image_transparency_check = make_checkbox(panel, "")
         self.image_transparency_check.SetValue(self.config.transparent)
         self.image_transparency_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         resize_label = wx.StaticText(panel, wx.ID_ANY, "Resize:")
-        self.image_resize_check = makeCheckbox(panel, "")
+        self.image_resize_check = make_checkbox(panel, "")
         self.image_resize_check.SetValue(self.config.resize)
         self.image_resize_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
@@ -155,13 +155,13 @@ class panelExportSettings(wx.MiniFrame):
         n = 0
         grid.Add(fileFormat_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.image_fileFormat_choice, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        n = n + 1
+        n += 1
         grid.Add(resolution_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.image_resolution, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        n = n + 1
+        n += 1
         grid.Add(transparency_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.image_transparency_check, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        n = n + 1
+        n += 1
         grid.Add(resize_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.image_resize_check, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         main_sizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
@@ -200,10 +200,10 @@ class panelExportSettings(wx.MiniFrame):
         n = 0
         grid.Add(delimiter_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.file_delimiter_choice, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        n = n + 1
+        n += 1
         grid.Add(default_name_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.file_default_name_choice, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        n = n + 1
+        n += 1
         grid.Add(
             self.file_default_name, (n, 1), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT | wx.EXPAND
         )

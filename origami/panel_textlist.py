@@ -52,12 +52,12 @@ from styles import makeMenuItem
 from styles import makeTooltip
 from toolbox import removeListDuplicates
 from utils.check import isempty
-from utils.color import convertRGB1to255
-from utils.color import convertRGB255to1
-from utils.color import determineFontColor
+from utils.color import convert_rgb_1_to_255
+from utils.color import convert_rgb_255_to_1
 from utils.color import get_all_color_types
-from utils.color import randomColorGenerator
-from utils.color import roundRGB
+from utils.color import get_font_color
+from utils.color import get_random_color
+from utils.color import round_rgb
 from utils.random import get_random_int
 
 logger = logging.getLogger("origami")
@@ -538,31 +538,31 @@ class PanelTextlist(wx.Panel):
         n = 0
         self.table_start = menu.AppendCheckItem(ID_textPanel_table_startCE, "Table: Minimum energy")
         self.table_start.Check(self.config._textlistSettings[n]["show"])
-        n = n + 1
+        n += 1
         self.table_end = menu.AppendCheckItem(ID_textPanel_table_endCE, "Table: Maximum energy")
         self.table_end.Check(self.config._textlistSettings[n]["show"])
-        n = n + 1
+        n += 1
         self.table_color = menu.AppendCheckItem(ID_textPanel_table_charge, "Table: Charge")
         self.table_color.Check(self.config._textlistSettings[n]["show"])
-        n = n + 1
+        n += 1
         self.table_color = menu.AppendCheckItem(ID_textPanel_table_color, "Table: Color")
         self.table_color.Check(self.config._textlistSettings[n]["show"])
-        n = n + 1
+        n += 1
         self.table_colormap = menu.AppendCheckItem(ID_textPanel_table_colormap, "Table: Colormap")
         self.table_colormap.Check(self.config._textlistSettings[n]["show"])
-        n = n + 1
+        n += 1
         self.table_alpha = menu.AppendCheckItem(ID_textPanel_table_alpha, "Table: Transparency")
         self.table_alpha.Check(self.config._textlistSettings[n]["show"])
-        n = n + 1
+        n += 1
         self.table_mask = menu.AppendCheckItem(ID_textPanel_table_mask, "Table: Mask")
         self.table_mask.Check(self.config._textlistSettings[n]["show"])
-        n = n + 1
+        n += 1
         self.table_label = menu.AppendCheckItem(ID_textPanel_table_label, "Table: Label")
         self.table_label.Check(self.config._textlistSettings[n]["show"])
-        n = n + 1
+        n += 1
         self.table_shape = menu.AppendCheckItem(ID_textPanel_table_shape, "Table: Shape")
         self.table_shape.Check(self.config._textlistSettings[n]["show"])
-        n = n + 1
+        n += 1
         self.table_filename = menu.AppendCheckItem(ID_textPanel_table_document, "Table: Filename")
         self.table_filename.Check(self.config._textlistSettings[n]["show"])
         menu.AppendSeparator()
@@ -706,8 +706,8 @@ class PanelTextlist(wx.Panel):
             self.peaklist.item_id = row
             if self.peaklist.IsChecked(index=row):
                 color = colors[check_count]
-                self.peaklist.SetItemBackgroundColour(row, convertRGB1to255(color))
-                self.peaklist.SetItemTextColour(row, determineFontColor(convertRGB1to255(color), return_rgb=True))
+                self.peaklist.SetItemBackgroundColour(row, convert_rgb_1_to_255(color))
+                self.peaklist.SetItemTextColour(row, get_font_color(convert_rgb_1_to_255(color), return_rgb=True))
                 check_count += 1
 
             self.on_update_document(evt=None)
@@ -808,7 +808,7 @@ class PanelTextlist(wx.Panel):
         for row in range(rows):
             if self.peaklist.IsChecked(index=row):
                 itemInfo = self.on_get_item_information(row)
-                document = self.data_handling._on_get_document(itemInfo["document"])
+                document = self.data_handling.on_get_document(itemInfo["document"])
 
                 if not ask_kwargs["keyword"] in ["min_threshold", "max_threshold"]:
                     self.peaklist.SetItem(row, self.config.textlistColNames[ask_kwargs["keyword"]], str(return_value))
@@ -985,7 +985,7 @@ class PanelTextlist(wx.Panel):
 
         information = self.peaklist.on_get_item_information(itemID)
 
-        document = self.data_handling._on_get_document(information["document"])
+        document = self.data_handling.on_get_document(information["document"])
         # check whether the ion has any previous information
         min_threshold, max_threshold = 0, 1
         if document is not None:
@@ -1033,8 +1033,10 @@ class PanelTextlist(wx.Panel):
             self.peaklist.SetItemTextColour(item_id, font_color)
         elif value_type == "color_text":
             self.peaklist.SetItemBackgroundColour(item_id, value)
-            self.peaklist.SetStringItem(item_id, self.config.textlistColNames["color"], str(convertRGB255to1(value)))
-            self.peaklist.SetItemTextColour(item_id, determineFontColor(value, return_rgb=True))
+            self.peaklist.SetStringItem(
+                item_id, self.config.textlistColNames["color"], str(convert_rgb_255_to_1(value))
+            )
+            self.peaklist.SetItemTextColour(item_id, get_font_color(value, return_rgb=True))
 
     def on_get_color(self, evt):
 
@@ -1077,7 +1079,7 @@ class PanelTextlist(wx.Panel):
                 return color_255
         else:
             try:
-                color_255 = convertRGB1to255(literal_eval(self.on_get_value(value_type="color")), 3)
+                color_255 = convert_rgb_1_to_255(literal_eval(self.on_get_value(value_type="color")), 3)
             except Exception:
                 color_255 = self.config.customColors[get_random_int(0, 15)]
             color_255, color_1, font_color = get_all_color_types(color_255, True)
@@ -1209,7 +1211,7 @@ class PanelTextlist(wx.Panel):
 
                 counter -= 1
 
-            return randomColorGenerator(True)
+            return get_random_color(True)
         return new_color
 
     def on_add_to_table(self, add_dict, check_color=True, return_color=False):
@@ -1227,7 +1229,7 @@ class PanelTextlist(wx.Panel):
                 str(add_dict.get("energy_start", "")),
                 str(add_dict.get("energy_end", "")),
                 str(add_dict.get("charge", "")),
-                str(roundRGB(convertRGB255to1(color))),
+                str(round_rgb(convert_rgb_255_to_1(color))),
                 str(add_dict.get("colormap", "")),
                 str(add_dict.get("alpha", "")),
                 str(add_dict.get("mask", "")),
@@ -1238,7 +1240,7 @@ class PanelTextlist(wx.Panel):
         )
         self.peaklist.SetItemBackgroundColour(self.peaklist.GetItemCount() - 1, color)
 
-        font_color = determineFontColor(color, return_rgb=True)
+        font_color = get_font_color(color, return_rgb=True)
         self.peaklist.SetItemTextColour(self.peaklist.GetItemCount() - 1, font_color)
 
         if return_color:

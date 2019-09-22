@@ -23,9 +23,9 @@ from toolbox import find_limits_list
 from toolbox import merge_two_dicts
 from toolbox import remove_nan_from_list
 from utils.adjustText import adjust_text
-from utils.color import convertRGB1to255
-from utils.color import determineFontColor
-from utils.color import randomColorGenerator
+from utils.color import convert_rgb_1_to_255
+from utils.color import get_font_color
+from utils.color import get_random_color
 from utils.exceptions import MessageError
 from utils.labels import _replace_labels
 from utils.ranges import get_min_max
@@ -1093,7 +1093,7 @@ class plots(mpl_plotter):
             elif kwargs["color_scheme"] == "Random":
                 colorlist = []
                 for __ in range(n_colors):
-                    colorlist.append(randomColorGenerator())
+                    colorlist.append(get_random_color())
 
             if self.plot_name != "Violin":
                 for i, line in enumerate(self.plotMS.get_lines()):
@@ -2356,7 +2356,7 @@ class plots(mpl_plotter):
             elif kwargs["color_scheme"] == "Random":
                 colorlist = []
                 for __ in range(n_colors):
-                    colorlist.append(randomColorGenerator())
+                    colorlist.append(get_random_color())
 
             # Iterate over the colormap to get the color shading we desire
             for i in voltage_idx[::-1]:
@@ -2438,7 +2438,7 @@ class plots(mpl_plotter):
             elif kwargs["color_scheme"] == "Random":
                 colorlist = []
                 for __ in range(n_colors):
-                    colorlist.append(randomColorGenerator())
+                    colorlist.append(get_random_color())
 
             if kwargs["reverse"]:
                 xvals = xvals[::-1]
@@ -2722,7 +2722,7 @@ class plots(mpl_plotter):
         elif kwargs["color_scheme"] == "Random":
             colorlist = []
             for __ in range(n_count):
-                colorlist.append(randomColorGenerator())
+                colorlist.append(get_random_color())
 
         tick_labels, tick_position = [], []
         min_percentage = kwargs.get("min_percentage", 0.03)
@@ -4011,9 +4011,9 @@ class plots(mpl_plotter):
         if kwargs["rmsd_matrix_labels"]:
             thresh = zvals.max() / 2.0
             cmap = self.cax.get_cmap()
-            color = determineFontColor(convertRGB1to255(cmap(thresh)))
+            color = get_font_color(convert_rgb_1_to_255(cmap(thresh)))
             for i, j in itertools.product(list(range(zvals.shape[0])), list(range(zvals.shape[1]))):
-                color = determineFontColor(convertRGB1to255(cmap(zvals[i, j] / 2)))
+                color = get_font_color(convert_rgb_1_to_255(cmap(zvals[i, j] / 2)))
                 label = format(zvals[i, j], ".2f")
                 obj_name = kwargs.pop("text_name", None)
                 text = self.plotMS.text(

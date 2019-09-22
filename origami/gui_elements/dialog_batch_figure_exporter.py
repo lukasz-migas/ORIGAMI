@@ -6,7 +6,7 @@ import logging
 
 import wx
 from styles import Dialog
-from styles import makeCheckbox
+from styles import make_checkbox
 from utils.path import check_path_exists
 
 logger = logging.getLogger("origami")
@@ -71,17 +71,17 @@ class DialogExportFigures(Dialog):
         self.image_resolution.SetValue(self.config.dpi)
 
         transparency_label = wx.StaticText(panel, wx.ID_ANY, "Transparent:")
-        self.image_transparency_check = makeCheckbox(panel, "")
+        self.image_transparency_check = make_checkbox(panel, "")
         self.image_transparency_check.SetValue(self.config.transparent)
         self.image_transparency_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         tight_label = wx.StaticText(panel, wx.ID_ANY, "Tight margins:")
-        self.image_tight_check = makeCheckbox(panel, "")
+        self.image_tight_check = make_checkbox(panel, "")
         self.image_tight_check.SetValue(self.config.image_tight)
         self.image_tight_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         resize_label = wx.StaticText(panel, wx.ID_ANY, "Resize:")
-        self.image_resize_check = makeCheckbox(panel, "")
+        self.image_resize_check = make_checkbox(panel, "")
         self.image_resize_check.SetValue(self.config.resize)
         self.image_resize_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.image_resize_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -194,7 +194,7 @@ class DialogExportFigures(Dialog):
         grid.Add(self.height_cm_value, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
         grid.Add(horizontal_line_0, (n, 0), wx.GBSpan(1, 6), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(btn_grid, (n, 0), wx.GBSpan(1, 6), flag=wx.ALIGN_CENTER)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)

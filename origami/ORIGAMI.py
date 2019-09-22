@@ -695,8 +695,8 @@ class ORIGAMI(object):
             self.view.on_toggle_panel(evt=ID_window_textList, check=True)
             #             self.view.textView = False
             #             self.view.mainToolbar.ToggleTool(id=ID_OnOff_textView, toggle=True)
-            #             self.view._mgr.GetPane(self.view.panelMultipleText).Show()
-            #             self.view._mgr.Update()
+            #             self.view.window_mgr.GetPane(self.view.panelMultipleText).Show()
+            #             self.view.window_mgr.Update()
             tempList = self.view.panelMultipleText.peaklist
             document = self.documentsDict[self.currentDoc]
             if document.gotComparisonData:

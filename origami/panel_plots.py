@@ -85,9 +85,9 @@ from pubsub import pub
 from styles import makeMenuItem
 from toolbox import merge_two_dicts
 from utils.check import isempty
-from utils.color import convertRGB1to255
-from utils.color import convertRGB1toHEX
-from utils.color import randomColorGenerator
+from utils.color import convert_rgb_1_to_255
+from utils.color import convert_rgb_1_to_hex
+from utils.color import get_random_color
 from utils.exceptions import MessageError
 from utils.path import clean_filename
 from utils.time import ttime
@@ -1212,12 +1212,12 @@ class PanelPlots(wx.Panel):
 
         if not return_colors:
             for i in range(n_colors):
-                self.config.customColors[i] = convertRGB1to255(new_colors[i])
+                self.config.customColors[i] = convert_rgb_1_to_255(new_colors[i])
         else:
             if return_hex:
                 new_colors_hex = []
                 for new_color in new_colors:
-                    new_colors_hex.append(convertRGB1toHEX(new_color))
+                    new_colors_hex.append(convert_rgb_1_to_hex(new_color))
                 return new_colors_hex
             else:
                 return new_colors
@@ -1230,7 +1230,7 @@ class PanelPlots(wx.Panel):
         colorList = sns.color_palette("cubehelix", count)
         colorList_return = []
         for color in colorList:
-            colorList_return.append(convertRGB1to255(color))
+            colorList_return.append(convert_rgb_1_to_255(color))
 
         return colorList_return
 
@@ -1435,7 +1435,7 @@ class PanelPlots(wx.Panel):
         elif kwargs["color_scheme"] == "Random":
             colorlist = []
             for __ in range(n_count):
-                colorlist.append(randomColorGenerator())
+                colorlist.append(get_random_color())
 
         return colorlist
 

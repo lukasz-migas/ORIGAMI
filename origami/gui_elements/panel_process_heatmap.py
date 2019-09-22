@@ -4,7 +4,7 @@ import copy
 import logging
 
 import wx
-from styles import makeCheckbox
+from styles import make_checkbox
 from styles import MiniFrame
 from styles import validator
 from utils.converters import str2int
@@ -82,7 +82,7 @@ class PanelProcessHeatmap(MiniFrame):
         self.dataset_info_text = wx.StaticText(panel, -1, "")
 
         plot2D_process_crop = wx.StaticText(panel, -1, "Crop heatmap:")
-        self.plot2D_process_crop = makeCheckbox(panel, "")
+        self.plot2D_process_crop = make_checkbox(panel, "")
         self.plot2D_process_crop.SetValue(self.config.plot2D_process_crop)
         self.plot2D_process_crop.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.plot2D_process_crop.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -108,7 +108,7 @@ class PanelProcessHeatmap(MiniFrame):
         self.plot2D_crop_ymax.Bind(wx.EVT_TEXT, self.on_apply)
 
         plot2D_process_interpolate = wx.StaticText(panel, -1, "Interpolate heatmap:")
-        self.plot2D_process_interpolate = makeCheckbox(panel, "")
+        self.plot2D_process_interpolate = make_checkbox(panel, "")
         self.plot2D_process_interpolate.SetValue(self.config.plot2D_process_interpolate)
         self.plot2D_process_interpolate.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.plot2D_process_interpolate.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -126,17 +126,17 @@ class PanelProcessHeatmap(MiniFrame):
         self.plot2D_interpolate_fold.Bind(wx.EVT_TEXT, self.on_apply)
 
         plot2D_interpolate_xaxis = wx.StaticText(panel, -1, "x-axis:")
-        self.plot2D_interpolate_xaxis = makeCheckbox(panel, "")
+        self.plot2D_interpolate_xaxis = make_checkbox(panel, "")
         self.plot2D_interpolate_xaxis.SetValue(self.config.plot2D_interpolate_xaxis)
         self.plot2D_interpolate_xaxis.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         plot2D_interpolate_yaxis = wx.StaticText(panel, -1, "y-axis:")
-        self.plot2D_interpolate_yaxis = makeCheckbox(panel, "")
+        self.plot2D_interpolate_yaxis = make_checkbox(panel, "")
         self.plot2D_interpolate_yaxis.SetValue(self.config.plot2D_interpolate_yaxis)
         self.plot2D_interpolate_yaxis.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         plot2D_process_smooth = wx.StaticText(panel, -1, "Smooth heatmap:")
-        self.plot2D_process_smooth = makeCheckbox(panel, "")
+        self.plot2D_process_smooth = make_checkbox(panel, "")
         self.plot2D_process_smooth.SetValue(self.config.plot2D_process_smooth)
         self.plot2D_process_smooth.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.plot2D_process_smooth.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -163,7 +163,7 @@ class PanelProcessHeatmap(MiniFrame):
         self.plot2D_sigma_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         plot2D_process_threshold = wx.StaticText(panel, -1, "Subtract baseline:")
-        self.plot2D_process_threshold = makeCheckbox(panel, "")
+        self.plot2D_process_threshold = make_checkbox(panel, "")
         self.plot2D_process_threshold.SetValue(self.config.plot2D_process_threshold)
         self.plot2D_process_threshold.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.plot2D_process_threshold.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -174,7 +174,7 @@ class PanelProcessHeatmap(MiniFrame):
         self.plot2D_threshold_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         plot2D_process_normalize = wx.StaticText(panel, -1, "Normalize heatmap:")
-        self.plot2D_process_normalize = makeCheckbox(panel, "")
+        self.plot2D_process_normalize = make_checkbox(panel, "")
         self.plot2D_process_normalize.SetValue(self.config.plot2D_normalize)
         self.plot2D_process_normalize.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.plot2D_process_normalize.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -264,13 +264,13 @@ class PanelProcessHeatmap(MiniFrame):
         n += 1
         grid.Add(smoothFcn_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.plot2D_smoothFcn_choice, (n, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(polynomial_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.plot2D_polynomial_value, (n, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(window_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.plot2D_window_value, (n, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(sigma_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.plot2D_sigma_value, (n, 1), flag=wx.EXPAND)
         n += 1
@@ -291,7 +291,7 @@ class PanelProcessHeatmap(MiniFrame):
         grid.Add(self.plot2D_normalizeFcn_choice, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         n += 1
         grid.Add(horizontal_line_5, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(btn_grid, (n, 0), wx.GBSpan(1, 3), flag=wx.ALIGN_CENTER)
 
         # fit layout

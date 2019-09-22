@@ -2,7 +2,7 @@
 # __author__ lukasz.g.migas
 import wx
 from styles import Dialog
-from styles import makeCheckbox
+from styles import make_checkbox
 
 
 class dialog_customise_smart_zoom(Dialog):
@@ -50,7 +50,7 @@ class dialog_customise_smart_zoom(Dialog):
         hz_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
         smart_zoom_check = wx.StaticText(panel, -1, "Enable smart zoom:")
-        self.smart_zoom_check = makeCheckbox(panel, "")
+        self.smart_zoom_check = make_checkbox(panel, "")
         self.smart_zoom_check.SetValue(self.config.smart_zoom_enable)
         self.smart_zoom_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.smart_zoom_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -134,29 +134,29 @@ class dialog_customise_smart_zoom(Dialog):
         y = 0
         grid.Add(visualisation_mode, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.visualisation_mode, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        y = y + 1
+        y += 1
         grid.Add(hz_line_1, (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        y = y + 1
+        y += 1
         grid.Add(smart_zoom_check, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.smart_zoom_check, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        y = y + 1
+        y += 1
         grid.Add(hz_line_2, (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        y = y + 1
+        y += 1
         grid.Add(smart_zoom_downsampling_method, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.smart_zoom_downsampling_method, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        y = y + 1
+        y += 1
         grid.Add(smart_zoom_soft_max, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.smart_zoom_soft_max, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        y = y + 1
+        y += 1
         grid.Add(smart_zoom_hard_max, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.smart_zoom_hard_max, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        y = y + 1
+        y += 1
         grid.Add(smart_zoom_min_search, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.smart_zoom_min_search, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        y = y + 1
+        y += 1
         grid.Add(smart_zoom_max_search, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.smart_zoom_max_search, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        y = y + 1
+        y += 1
         grid.Add(smart_zoom_subsample_default, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.smart_zoom_subsample_default, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         main_sizer.Add(grid, 0, wx.EXPAND, 10)

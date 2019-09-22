@@ -105,9 +105,9 @@ from natsort import natsorted
 from panelInformation import panelDocumentInfo
 from styles import makeMenuItem
 from toolbox import saveAsText
-from utils.color import convertRGB1to255
-from utils.color import convertRGB255to1
-from utils.color import determineFontColor
+from utils.color import convert_rgb_1_to_255
+from utils.color import convert_rgb_255_to_1
+from utils.color import get_font_color
 from utils.converters import byte2str
 from utils.converters import str2int
 from utils.converters import str2num
@@ -523,7 +523,7 @@ class DocumentTree(wx.TreeCtrl):
         # TODO: add trigger to update interactive window when something is deleted
 
         document_title, dataset_type, __ = query
-        document = self.data_handling._on_get_document(document_title)
+        document = self.data_handling.on_get_document(document_title)
         document_type = document.dataType
 
         _subkey_check = all([el == "" for el in subkey])
@@ -1374,7 +1374,7 @@ class DocumentTree(wx.TreeCtrl):
         from gui_elements.dialog_customise_origami import DialogCustomiseORIGAMI
 
         # get document
-        document = self.data_handling._on_get_document(document_title)
+        document = self.data_handling.on_get_document(document_title)
         if document.dataType != "Type: ORIGAMI":
             raise MessageError(
                 "Incorrect document type", f"Cannot setup ORIGAMI-MS parameters for {document.dataType} document."
@@ -2661,11 +2661,11 @@ class DocumentTree(wx.TreeCtrl):
                 label = data[key].get("label", os.path.splitext(key)[0])
                 color = data[key].get("color", colors[i])
                 if np.sum(color) > 4:
-                    color = convertRGB255to1(color)
+                    color = convert_rgb_255_to_1(color)
                 filelist.Append([key, data[key].get("trap", 0), document_title, label])
-                color = convertRGB1to255(color)
+                color = convert_rgb_1_to_255(color)
                 filelist.SetItemBackgroundColour(count, color)
-                filelist.SetItemTextColour(count, determineFontColor(color, return_rgb=True))
+                filelist.SetItemTextColour(count, get_font_color(color, return_rgb=True))
 
         elif evtID == ID_docTree_addOneToMMLTable:
             data = self._document_data.multipleMassSpectrum
@@ -2676,11 +2676,11 @@ class DocumentTree(wx.TreeCtrl):
             label = data.get("label", key)
             color = data[key].get("color", colors[-1])
             if np.sum(color) > 4:
-                color = convertRGB255to1(color)
+                color = convert_rgb_255_to_1(color)
             filelist.Append([key, data[key].get("trap", 0), document_title, label])
-            color = convertRGB1to255(color)
+            color = convert_rgb_1_to_255(color)
             filelist.SetItemBackgroundColour(count, color)
-            filelist.SetItemTextColour(count, determineFontColor(color, return_rgb=True))
+            filelist.SetItemTextColour(count, get_font_color(color, return_rgb=True))
 
         elif evtID == ID_docTree_addToTextTable:
             data = self._document_data.IMS2DcompData
@@ -2692,7 +2692,7 @@ class DocumentTree(wx.TreeCtrl):
                 label = data[key].get("label", os.path.splitext(key)[0])
                 color = data[key].get("color", colors[i])
                 if np.sum(color) > 4:
-                    color = convertRGB255to1(color)
+                    color = convert_rgb_255_to_1(color)
                 minCE, maxCE = np.min(data[key]["xvals"]), np.max(data[key]["xvals"])
                 document_label = "{}: {}".format(document_title, key)
                 textlist.Append(
@@ -2709,9 +2709,9 @@ class DocumentTree(wx.TreeCtrl):
                         document_label,
                     ]
                 )
-                color = convertRGB1to255(color)
+                color = convert_rgb_1_to_255(color)
                 textlist.SetItemBackgroundColour(count, color)
-                textlist.SetItemTextColour(count, determineFontColor(color, return_rgb=True))
+                textlist.SetItemTextColour(count, get_font_color(color, return_rgb=True))
 
         elif evtID == ID_docTree_addInteractiveToTextTable:
             data = self._document_data.IMS2Dions
@@ -2723,7 +2723,7 @@ class DocumentTree(wx.TreeCtrl):
                 label = data[key].get("label", os.path.splitext(key)[0])
                 color = data[key].get("color", colors[i])
                 if np.sum(color) > 4:
-                    color = convertRGB255to1(color)
+                    color = convert_rgb_255_to_1(color)
                 minCE, maxCE = np.min(data[key]["xvals"]), np.max(data[key]["xvals"])
                 document_label = "{}: {}".format(document_title, key)
                 textlist.Append(
@@ -2741,9 +2741,9 @@ class DocumentTree(wx.TreeCtrl):
                         document_label,
                     ]
                 )
-            color = convertRGB1to255(color)
+            color = convert_rgb_1_to_255(color)
             textlist.SetItemBackgroundColour(count, color)
-            textlist.SetItemTextColour(count, determineFontColor(color, return_rgb=True))
+            textlist.SetItemTextColour(count, get_font_color(color, return_rgb=True))
 
         if evtID in [ID_docTree_addToMMLTable, ID_docTree_addOneToMMLTable]:
             # sort items
@@ -4919,7 +4919,7 @@ class DocumentTree(wx.TreeCtrl):
     def on_open_extract_data(self, evt, **kwargs):
         from gui_elements.panel_process_extract_data import PanelProcessExtractData
 
-        document = self.data_handling._on_get_document()
+        document = self.data_handling.on_get_document()
 
         # initilize data extraction panel
         self.PanelProcessExtractData = PanelProcessExtractData(
@@ -5101,7 +5101,7 @@ class DocumentTree(wx.TreeCtrl):
         """
         Remove selected document from the document tree
         """
-        document = self.data_handling._on_get_document(document_title)
+        document = self.data_handling.on_get_document(document_title)
 
         if ask_permission:
             dlg = DialogBox(
@@ -5494,7 +5494,7 @@ class DocumentTree(wx.TreeCtrl):
             we it should simply set data
         """
 
-        document = self.data_handling._on_get_document(document_title)
+        document = self.data_handling.on_get_document(document_title)
         item = False
         docItem = False
         if dataset == "Mass Spectrum":

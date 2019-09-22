@@ -2285,7 +2285,6 @@ class OrigamiConfig:
         if os.path.isfile(fileName):
             print("Found ORIGAMI-MS configuration file")
             f = open(fileName, "r")
-            pass
         else:
             print("Did not find any ORIGAMI-MS configuration files")
             return parameters

@@ -2,12 +2,12 @@
 # __author__ lukasz.g.migas
 import wx
 from icons.icons import IconContainer
-from styles import makeCheckbox
+from styles import make_checkbox
 from styles import MiniFrame
 from utils.check import check_value
 
 
-class panelModifyManualFiles(MiniFrame):
+class PanelModifyManualFilesSettings(MiniFrame):
     """Modify parameters in panel_multi_file"""
 
     def __init__(self, parent, presenter, config, **kwargs):
@@ -48,7 +48,7 @@ class panelModifyManualFiles(MiniFrame):
         main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         check_label = wx.StaticText(panel, wx.ID_ANY, "Check:")
-        self.check_value = makeCheckbox(panel, "")
+        self.check_value = make_checkbox(panel, "")
         self.check_value.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         document_label = wx.StaticText(panel, wx.ID_ANY, "Document:")
@@ -94,24 +94,24 @@ class panelModifyManualFiles(MiniFrame):
         n = 0
         grid.Add(check_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.check_value, (n, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(document_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.document_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(filename_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.filename_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(label_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.label_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(variable_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.variable_value, (n, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(color_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.color_value, (n, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(horizontal_line, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(btn_grid, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         main_sizer.Add(grid, 0, wx.EXPAND, 10)
 

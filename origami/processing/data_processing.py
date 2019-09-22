@@ -20,7 +20,7 @@ from ids import ID_window_multiFieldList
 from processing.UniDec import unidec
 from utils.check import check_value_order
 from utils.check import isempty
-from utils.color import convertRGB255to1
+from utils.color import convert_rgb_255_to_1
 from utils.converters import str2num
 from utils.exceptions import MessageError
 from utils.path import clean_filename
@@ -58,7 +58,7 @@ class DataProcessing:
     def _setup_handling_and_processing(self):
         self.data_handling = self.view.data_handling
 
-    def _on_get_document(self):
+    def on_get_document(self):
         self.presenter.currentDoc = self.documentTree.on_enable_document()
         if self.presenter.currentDoc is None or self.presenter.currentDoc == "Documents":
             return None
@@ -219,7 +219,7 @@ class DataProcessing:
         """
         This function finds peaks from 1D array
         """
-        document = self.data_handling._on_get_document()
+        document = self.data_handling.on_get_document()
 
         tstart = ttime()
         if document.dataType in ["Type: ORIGAMI", "Type: MANUAL", "Type: Infrared", "Type: MassLynx", "Type: MS"]:
@@ -1412,7 +1412,7 @@ class DataProcessing:
     def on_add_unidec_data(self, task, dataset, document_title=None):
         """Convenience function to add data to document"""
 
-        document = self.data_handling._on_get_document(document_title)
+        document = self.data_handling.on_get_document(document_title)
 
         # initilise data in the mass spectrum dictionary
         if dataset == "Mass Spectrum":
@@ -1528,7 +1528,7 @@ class DataProcessing:
                                 list2.append(mztab2[k, 1])
 
                         if self.config.unidec_engine.pks.plen <= 15:
-                            color = convertRGB255to1(self.config.customColors[i])
+                            color = convert_rgb_255_to_1(self.config.customColors[i])
                         else:
                             color = p.color
                         colors.append(color)
@@ -1575,7 +1575,7 @@ class DataProcessing:
                     if p.ignore == 0:
                         yvals.append(p.height)
                         if self.config.unidec_engine.pks.plen <= 15:
-                            color = convertRGB255to1(self.config.customColors[num])
+                            color = convert_rgb_255_to_1(self.config.customColors[num])
                         else:
                             color = p.color
                         markers.append(p.marker)
@@ -1600,7 +1600,7 @@ class DataProcessing:
             if "document_title" in kwargs:
                 document_title = kwargs["document_title"]
             else:
-                document = self.data_handling._on_get_document()
+                document = self.data_handling.on_get_document()
                 if document is None:
                     return
                 document_title = document.title
@@ -1619,7 +1619,7 @@ class DataProcessing:
             if "document_title" in kwargs:
                 document_title = kwargs["document_title"]
             else:
-                document = self.data_handling._on_get_document()
+                document = self.data_handling.on_get_document()
                 document_title = document.title
 
             try:
@@ -1651,7 +1651,7 @@ class DataProcessing:
                 continue
 
             document_title = itemInfo["document"]
-            document = self.data_handling._on_get_document(document_title)
+            document = self.data_handling.on_get_document(document_title)
 
             # Check that this data was opened in ORIGAMI mode and has extracted data
             if document.dataType == "Type: ORIGAMI" and document.gotExtractedIons:
@@ -1665,7 +1665,7 @@ class DataProcessing:
             ion_name = itemInfo["ionName"]
             method = itemInfo["method"]
             if ion_name not in data:
-                logger.warn(f"Could not find {ion_name} in the document")
+                logger.warning(f"Could not find {ion_name} in the document")
                 continue
 
             zvals = data[ion_name]["zvals"]
@@ -1793,8 +1793,7 @@ class DataProcessing:
 
     def __combine_origami_linear(self, zvals, startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage):
         if not any([startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage]):
-            msg = "Cannot perform action. Missing fields in the ORIGAMI parameters panel"
-            self.update_statusbar(msg, 4)
+            logger.error("Cannot perform action. Missing fields in the ORIGAMI parameters panel")
             return
 
         zvals, scan_list, parameters = pr_origami.origami_combine_linear(
@@ -1806,8 +1805,7 @@ class DataProcessing:
         self, zvals, startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage, expIncrement, expPercentage
     ):
         if not any([startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage, expIncrement, expPercentage]):
-            msg = "Cannot perform action. Missing fields in the ORIGAMI parameters panel"
-            self.update_statusbar(msg, 4)
+            logger.error("Cannot perform action. Missing fields in the ORIGAMI parameters panel")
             return
 
         zvals, scan_list, parameters = pr_origami.origami_combine_exponential(
@@ -1817,8 +1815,7 @@ class DataProcessing:
 
     def __combine_origami_fitted(self, zvals, startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage, dx):
         if not any([startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage, dx]):
-            msg = "Cannot perform action. Missing fields in the ORIGAMI parameters panel"
-            self.update_statusbar(msg, 4)
+            logger.error("Cannot perform action. Missing fields in the ORIGAMI parameters panel")
             return
 
         zvals, scan_list, parameters = pr_origami.origami_combine_boltzmann(
@@ -1836,7 +1833,7 @@ class DataProcessing:
             msg = "The collision voltage list is of incorrect shape."
 
         if msg is not None:
-            self.update_statusbar(msg, 4)
+            logger.error(msg)
             return
 
         zvals, xlabels, scan_list, parameters = pr_origami.origami_combine_userDefined(zvals, startScan, scanList)

@@ -35,9 +35,9 @@ from readers import io_text_files
 from utils.check import check_axes_spacing
 from utils.check import check_value_order
 from utils.check import isempty
-from utils.color import convertRGB1to255
-from utils.color import convertRGB255to1
-from utils.color import randomColorGenerator
+from utils.color import convert_rgb_1_to_255
+from utils.color import convert_rgb_255_to_1
+from utils.color import get_random_color
 from utils.converters import byte2str
 from utils.converters import str2int
 from utils.converters import str2num
@@ -165,7 +165,7 @@ class DataHandling:
 
         # if path is not provided, get one from current document
         if path is None:
-            document = self._on_get_document()
+            document = self.on_get_document()
             path = document.path
 
         # check whether the path exist
@@ -178,7 +178,7 @@ class DataHandling:
         except WindowsError:
             raise MessageError("Path does not exist", f"Failed to open {path}")
 
-    def _on_get_document(self, document_title=None):
+    def on_get_document(self, document_title=None):
 
         if document_title is None:
             document_title = self.documentTree.on_enable_document()
@@ -199,12 +199,12 @@ class DataHandling:
         return document
 
     def on_duplicate_document(self, document_title=None):
-        document = self._on_get_document(document_title)
+        document = self.on_get_document(document_title)
         document_copy = io_document.duplicate_document(document)
         return document_copy
 
     def _on_get_document_path_and_title(self, document_title=None):
-        document = self._on_get_document(document_title)
+        document = self.on_get_document(document_title)
 
         path = document.path
         title = document.title
@@ -433,7 +433,7 @@ class DataHandling:
             if allow_creation:
                 document = self.create_new_document_of_type(document_type)
         elif len(document_list) == 1:
-            document = self._on_get_document(document_list[0])
+            document = self.on_get_document(document_list[0])
         else:
             dlg = DialogSelectDocument(
                 self.view, presenter=self.presenter, document_list=document_list, allow_new_document=allow_creation
@@ -446,7 +446,7 @@ class DataHandling:
                 self.update_statusbar("Please select document", 4)
                 return
 
-            document = self._on_get_document(document_title)
+            document = self.on_get_document(document_title)
             logger.info(f"Will be using {document.title} document")
 
         return document
@@ -717,7 +717,7 @@ class DataHandling:
         """Extract MS/RT/DT/2DT data based on user input"""
         # TODO: This function should check against xvals_mins / xvals_ms to get accurate times
 
-        document = self._on_get_document(document_title)
+        document = self.on_get_document(document_title)
         try:
             reader = self._get_waters_api_reader(document)
         except (AttributeError, ValueError, TypeError):
@@ -893,7 +893,7 @@ class DataHandling:
                     "charge": 1,
                     "alpha": self.config.overlay_defaultAlpha,
                     "mask": self.config.overlay_defaultMask,
-                    "color": randomColorGenerator(),
+                    "color": get_random_color(),
                     "min_threshold": 0,
                     "max_threshold": 1,
                     "xylimits": [mz_start, mz_end, 1],
@@ -1163,7 +1163,7 @@ class DataHandling:
         }
 
         color = self.textPanel.on_add_to_table(add_dict, return_color=True)
-        color = convertRGB255to1(color)
+        color = convert_rgb_255_to_1(color)
 
         # Add data to document
         document = documents()
@@ -1312,7 +1312,7 @@ class DataHandling:
     def on_add_mzID_file(self, evt):
         from readers import io_mzid
 
-        document = self._on_get_document()
+        document = self.on_get_document()
 
         dlg = wx.FileDialog(
             self.presenter.view,
@@ -1494,7 +1494,7 @@ class DataHandling:
     def extract_from_plot_1D(self, xmin, xmax, ymax):
         self.plot_page = self.plotsPanel._get_page_text()
 
-        document = self._on_get_document()
+        document = self.on_get_document()
 
         # Extraction of data when the Interactive document is enabled is not possible
         if (
@@ -1563,7 +1563,7 @@ class DataHandling:
         # predict charge state
         charge = self.data_processing.predict_charge_state(mz_xy[:, 0], mz_xy[:, 1], (mz_start, mz_end))
         color = self.ionPanel.on_check_duplicate_colors(next(self.config.custom_color_cycle))
-        color = convertRGB255to1(color)
+        color = convert_rgb_255_to_1(color)
         colormap = next(self.config.overlay_cmap_cycle)
         spectrum_name = f"{mz_start}-{mz_end}"
 
@@ -1579,7 +1579,7 @@ class DataHandling:
                 "ion_name": spectrum_name,
                 "charge": charge,
                 "mz_ymax": mz_y_max,
-                "color": convertRGB1to255(color),
+                "color": convert_rgb_1_to_255(color),
                 "colormap": colormap,
                 "alpha": self.config.overlay_defaultAlpha,
                 "mask": self.config.overlay_defaultMask,
@@ -1626,8 +1626,8 @@ class DataHandling:
     def extract_from_plot_1D_RT_DT(self, xmin, xmax, document):
         document_title = document.title
 
-        self.view._mgr.GetPane(self.view.panelLinearDT).Show()
-        self.view._mgr.Update()
+        self.view.window_mgr.GetPane(self.view.panelLinearDT).Show()
+        self.view.window_mgr.Update()
         xmin = np.ceil(xmin).astype(int)
         xmax = np.floor(xmax).astype(int)
 
@@ -2094,11 +2094,11 @@ class DataHandling:
             # Check if the ion has been assigned a filename
             if document_title == "":
                 self.update_statusbar("File name column was empty. Using the current document name instead", 4)
-                document = self._on_get_document()
+                document = self.on_get_document()
                 document_title = document.title
                 self.ionPanel.on_update_value_in_peaklist(ion_id, "document", document_title)
 
-            document = self._on_get_document(document_title)
+            document = self.on_get_document(document_title)
             path = document.path
             path = check_waters_path(path)
 
@@ -2253,9 +2253,9 @@ class DataHandling:
             try:
                 color = self.config.customColors[i]
             except KeyError:
-                color = randomColorGenerator(return_as_255=True)
+                color = get_random_color(return_as_255=True)
 
-            color = convertRGB255to1(self.filesPanel.on_check_duplicate_colors(color, document_name=document.title))
+            color = convert_rgb_255_to_1(self.filesPanel.on_check_duplicate_colors(color, document_name=document.title))
             label = os.path.splitext(file_name)[0]
 
             add_dict.update({"variable": parameters["trapCE"], "label": label, "color": color})
@@ -2385,7 +2385,7 @@ class DataHandling:
         tstart = ttime()
         logger.info(f"Extracting chromatogram based DT: {dt_start}-{dt_end} & MS: {mz_start}-{mz_end}...")
 
-        document = self._on_get_document()
+        document = self.on_get_document()
         pusher_freq, __, __ = self._get_spectrum_parameters(document)
 
         # convert from miliseconds to bins
@@ -2428,7 +2428,7 @@ class DataHandling:
         """
         tstart = ttime()
         logger.info(f"Extracting mass spectrum based on DT window: {dt_start} - {dt_end}...")
-        document = self._on_get_document()
+        document = self.on_get_document()
         if not os.path.exists(document.path):
             raise MessageError("Error", f"Path {document.path} does not exist - cannot extract data")
 
@@ -2481,7 +2481,7 @@ class DataHandling:
         tstart = ttime()
         logger.info(f"Extracting mass spectrum based on RT window: {start_scan} - {end_scan}...")
 
-        document = self._on_get_document()
+        document = self.on_get_document()
         if not os.path.exists(document.path):
             raise MessageError("Error", f"Path {document.path} does not exist - cannot extract data")
 
@@ -2542,7 +2542,7 @@ class DataHandling:
         tstart = ttime()
         logger.info(f"Extracting mass spectrum based DT: {dt_start}-{dt_end} & RT: {start_scan}-{end_scan}...")
 
-        document = self._on_get_document()
+        document = self.on_get_document()
         if not os.path.exists(document.path):
             raise MessageError("Error", f"Path {document.path} does not exist - cannot extract data")
 
@@ -2627,7 +2627,7 @@ class DataHandling:
             check whether document should be saved as (select new path/name) or
             as is
         """
-        document = self._on_get_document(document_title)
+        document = self.on_get_document(document_title)
         if document is None:
             return
 
@@ -2881,11 +2881,11 @@ class DataHandling:
                     alpha = dataset[key].get("alpha", 0.5)
                     mask = dataset[key].get("mask", 0.25)
                     colormap = dataset[key].get("cmap", self.config.currentCmap)
-                    color = dataset[key].get("color", randomColorGenerator())
+                    color = dataset[key].get("color", get_random_color())
                     if isinstance(color, wx.Colour):
-                        color = convertRGB255to1(color)
+                        color = convert_rgb_255_to_1(color)
                     elif np.sum(color) > 4:
-                        color = convertRGB255to1(color)
+                        color = convert_rgb_255_to_1(color)
 
                     mz_y_max = dataset[key].get("xylimits", "")
                     if mz_y_max is not None:
@@ -2905,7 +2905,7 @@ class DataHandling:
                         "mz_end": mz_end,
                         "charge": charge,
                         "mz_ymax": mz_y_max,
-                        "color": convertRGB1to255(color),
+                        "color": convert_rgb_1_to_255(color),
                         "colormap": colormap,
                         "alpha": alpha,
                         "mask": mask,
@@ -2931,7 +2931,7 @@ class DataHandling:
                     try:
                         color = colors[count + 1]
                     except Exception:
-                        color = randomColorGenerator()
+                        color = get_random_color()
                     document.multipleMassSpectrum[key]["color"] = color
 
                 if "label" in document.multipleMassSpectrum[key]:
@@ -3095,7 +3095,7 @@ class DataHandling:
                 self.view.panelLinearDT.bottomP.onRemoveDuplicates(evt=None)
 
                 self.view.on_toggle_panel(evt=ID_window_multiFieldList, check=True)
-                self.view._mgr.Update()
+                self.view.window_mgr.Update()
 
         # Update documents tree
         self.documentTree.add_document(docData=document, expandAll=False)
@@ -3148,7 +3148,7 @@ class DataHandling:
 
     def on_combine_mass_spectra(self, document_name=None):
 
-        document = self._on_get_document(document_name)
+        document = self.on_get_document(document_name)
 
         kwargs = {
             "auto_range": False,
@@ -3233,7 +3233,7 @@ class DataHandling:
         """
         This function adds rectanges and markers to the m/z window
         """
-        document = self._on_get_document()
+        document = self.on_get_document()
         document_title = self.documentTree.on_enable_document()
 
         if document.dataType == "Type: ORIGAMI" or document.dataType == "Type: MANUAL":
@@ -3272,7 +3272,7 @@ class DataHandling:
             xmin, xmax = str2num(xmin), str2num(xmax)
 
             width = xmax - xmin
-            color = convertRGB255to1(itemInfo["color"])
+            color = convert_rgb_255_to_1(itemInfo["color"])
             if np.sum(color) <= 0:
                 color = self.config.markerColor_1D
             if item == last:
@@ -3297,7 +3297,7 @@ class DataHandling:
 
     def on_extract_mass_spectrum_for_each_collision_voltage(self, document_title):
         """Extract mass spectrum for each collision voltage"""
-        document = self._on_get_document(document_title)
+        document = self.on_get_document(document_title)
 
         # Make sure the document is of correct type.
         if not document.dataType == "Type: ORIGAMI":
@@ -3557,7 +3557,7 @@ class DataHandling:
         """
 
         document_title, spectrum_title = query_info
-        document = self._on_get_document(document_title)
+        document = self.on_get_document(document_title)
 
         if data is not None:
             if spectrum_title == "Mass Spectrum":
@@ -3594,7 +3594,7 @@ class DataHandling:
                 return dataset[dataset_name]
 
         document_title, dataset_type, dataset_name = query_info
-        document = self._on_get_document(document_title)
+        document = self.on_get_document(document_title)
 
         if dataset_type == "Mass Spectrum":
             data = document.massSpectrum
@@ -3655,7 +3655,7 @@ class DataHandling:
     def set_mobility_chromatographic_data(self, query_info, data, **kwargs):
 
         document_title, dataset_type, dataset_name = query_info
-        document = self._on_get_document(document_title)
+        document = self.on_get_document(document_title)
 
         if data is not None:
             # MS data
@@ -3717,7 +3717,7 @@ class DataHandling:
         """
 
         document_title, dataset_type, dataset_name = query_info
-        document = self._on_get_document(document_title)
+        document = self.on_get_document(document_title)
 
         for keyword in kwargs:
             # MS data
@@ -3768,7 +3768,7 @@ class DataHandling:
     def set_parent_mobility_chromatographic_data(self, query_info, data):
 
         document_title, dataset_type, dataset_name = query_info
-        document = self._on_get_document(document_title)
+        document = self.on_get_document(document_title)
 
         if data is None:
             data = dict()
@@ -3891,7 +3891,7 @@ class DataHandling:
 
     def set_overlay_data(self, query_info, data, **kwargs):
         document_title, dataset_type, dataset_name = query_info
-        document = self._on_get_document(document_title)
+        document = self.on_get_document(document_title)
 
         if data is not None:
             if dataset_type == "Statistical" and dataset_name is not None:
@@ -3938,7 +3938,7 @@ class DataHandling:
                 "document_title": document_title,
                 "shape": data["xvals"].shape,
                 "label": data.get("label", ""),
-                "color": data.get("color", randomColorGenerator(True)),
+                "color": data.get("color", get_random_color(True)),
                 "overlay_order": data.get("overlay_order", ""),
                 "processed": True if "processed" in dataset_type else False,
             }
@@ -4000,7 +4000,7 @@ class DataHandling:
                 "alpha": data.get("alpha", self.config.overlay_defaultAlpha),
                 "min_threshold": data.get("min_threshold", 0.0),
                 "max_threshold": data.get("max_threshold", 1.0),
-                "color": data.get("color", randomColorGenerator(True)),
+                "color": data.get("color", get_random_color(True)),
                 "overlay_order": data.get("overlay_order", ""),
                 "processed": True if "processed" in dataset_type else False,
                 "title": data.get("title", ""),
@@ -4051,7 +4051,7 @@ class DataHandling:
                 "document_title": document_title,
                 "shape": data["xvals"].shape,
                 "label": data.get("label", ""),
-                "color": data.get("color", randomColorGenerator(True)),
+                "color": data.get("color", get_random_color(True)),
                 "overlay_order": data.get("overlay_order", ""),
                 "processed": True if "processed" in dataset_type else False,
                 "title": data.get("title", ""),
@@ -4095,7 +4095,7 @@ class DataHandling:
                 "document_title": document_title,
                 "shape": data["xvals"].shape,
                 "label": data.get("label", ""),
-                "color": data.get("color", randomColorGenerator(True)),
+                "color": data.get("color", get_random_color(True)),
                 "overlay_order": data.get("overlay_order", ""),
                 "processed": True if "processed" in dataset_type else False,
                 "title": data.get("title", ""),
@@ -4195,7 +4195,7 @@ class DataHandling:
             filenames = dlg.GetFilenames()
 
             # get document
-            document = self._on_get_document()
+            document = self.on_get_document()
 
             if not pathlist:
                 logger.warning("The filelist was empty")
@@ -4256,7 +4256,7 @@ class DataHandling:
                     zvals, xvals, yvals = io_text_files.text_heatmap_open(path=path)
                     dt_y = np.sum(zvals, axis=1).T
                     rt_y = np.sum(zvals, axis=0)
-                    color = convertRGB255to1(self.config.customColors[get_random_int(0, 15)])
+                    color = convert_rgb_255_to_1(self.config.customColors[get_random_int(0, 15)])
                     document.gotExtractedIons = True
                     data = {
                         "zvals": zvals,

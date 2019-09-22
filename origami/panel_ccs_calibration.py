@@ -70,7 +70,7 @@ class PanelCCSCalibration(wx.Panel):
     def showHidePanel(self, evt=None):
         """ Reset the sizer and refresh the manager """
         layout(self, self.sizer)
-        self.parent._mgr.Update()
+        self.parent.window_mgr.Update()
 
     def showHideList(self, flag=False, evt=None):
         """ Reset the sizer and refresh the manager """
@@ -79,7 +79,7 @@ class PanelCCSCalibration(wx.Panel):
         else:
             self.bottomP.Show()
         layout(self, self.sizer)
-        self.parent._mgr.Update()
+        self.parent.window_mgr.Update()
 
 
 class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):

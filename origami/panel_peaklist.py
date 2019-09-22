@@ -52,11 +52,11 @@ from styles import ListCtrl
 from styles import makeMenuItem
 from styles import makeTooltip
 from utils.check import isempty
-from utils.color import convertRGB1to255
-from utils.color import convertRGB255to1
-from utils.color import determineFontColor
-from utils.color import randomColorGenerator
-from utils.color import roundRGB
+from utils.color import convert_rgb_1_to_255
+from utils.color import convert_rgb_255_to_1
+from utils.color import get_font_color
+from utils.color import get_random_color
+from utils.color import round_rgb
 from utils.exceptions import MessageError
 from utils.labels import get_ion_name_from_label
 from utils.random import get_random_int
@@ -858,7 +858,7 @@ class PanelPeaklist(wx.Panel):
             raise MessageError("Error", "Please extract data first.")
 
         # Get data from dictionary
-        document = self.data_handling._on_get_document(document_title)
+        document = self.data_handling.on_get_document(document_title)
 
         # Preset empty
         data, zvals, xvals, xlabel, yvals, ylabel = None, None, None, None, None, None
@@ -964,7 +964,7 @@ class PanelPeaklist(wx.Panel):
 
     def on_save_peaklist(self, evt):
         """Save data in CSV format"""
-        from utils.color import convertRGB255toHEX
+        from utils.color import convert_rgb_255_to_hex
 
         rows = self.peaklist.GetItemCount()
         if rows == 0:
@@ -978,7 +978,7 @@ class PanelPeaklist(wx.Panel):
             mz_start, mz_end = get_ion_name_from_label(ion_name, as_num=True)
             charge = information["charge"]
             intensity = information["intensity"]
-            color = convertRGB255toHEX(information["color"])
+            color = convert_rgb_255_to_hex(information["color"])
             colormap = information["colormap"]
             alpha = information["alpha"]
             mask = information["mask"]
@@ -1020,10 +1020,10 @@ class PanelPeaklist(wx.Panel):
 
         # add additional data
         information["ionName"] = information["ion_name"]
-        information["color_255to1"] = convertRGB255to1(information["color"], decimals=3)
+        information["color_255to1"] = convert_rgb_255_to_1(information["color"], decimals=3)
 
         # get document
-        document = self.data_handling._on_get_document(information["document"])
+        document = self.data_handling.on_get_document(information["document"])
 
         # check whether the ion has any previous information
         min_threshold, max_threshold = 0, 1
@@ -1107,8 +1107,10 @@ class PanelPeaklist(wx.Panel):
             self.peaklist.SetItemTextColour(item_id, font_color)
         elif value_type == "color_text":
             self.peaklist.SetItemBackgroundColour(item_id, value)
-            self.peaklist.SetStringItem(item_id, self.config.peaklistColNames["color"], str(convertRGB255to1(value)))
-            self.peaklist.SetItemTextColour(item_id, determineFontColor(value, return_rgb=True))
+            self.peaklist.SetStringItem(
+                item_id, self.config.peaklistColNames["color"], str(convert_rgb_255_to_1(value))
+            )
+            self.peaklist.SetItemTextColour(item_id, get_font_color(value, return_rgb=True))
         elif value_type == "colormap":
             self.peaklist.SetStringItem(item_id, self.config.peaklistColNames["colormap"], str(value))
         elif value_type == "alpha":
@@ -1173,7 +1175,7 @@ class PanelPeaklist(wx.Panel):
                 return color_255
         else:
             try:
-                color_255 = convertRGB1to255(literal_eval(self.on_get_value(value_type="color")), 3)
+                color_255 = convert_rgb_1_to_255(literal_eval(self.on_get_value(value_type="color")), 3)
             except Exception:
                 color_255 = self.config.customColors[get_random_int(0, 15)]
 
@@ -1236,7 +1238,7 @@ class PanelPeaklist(wx.Panel):
         for row in range(self.peaklist.GetItemCount()):
             if self.peaklist.IsChecked(index=row):
                 self.peaklist.item_id = row
-                color_255 = convertRGB1to255(colors[check_count])
+                color_255 = convert_rgb_1_to_255(colors[check_count])
                 self.on_update_value_in_peaklist(row, "color_text", color_255)
                 check_count += 1
 
@@ -1254,7 +1256,7 @@ class PanelPeaklist(wx.Panel):
             itemInfo = self.on_get_item_information(self.peaklist.item_id)
 
         # get item
-        document = self.data_handling._on_get_document(itemInfo["document"])
+        document = self.data_handling.on_get_document(itemInfo["document"])
 
         processed_name = "{} (processed)".format(itemInfo["ionName"])
         keywords = ["color", "colormap", "alpha", "mask", "label", "min_threshold", "max_threshold", "charge"]
@@ -1373,7 +1375,7 @@ class PanelPeaklist(wx.Panel):
                 str(add_dict.get("ion_name", "")),
                 str(add_dict.get("charge", "")),
                 str(add_dict.get("mz_ymax", "")),
-                str(roundRGB(convertRGB255to1(color))),
+                str(round_rgb(convert_rgb_255_to_1(color))),
                 str(add_dict.get("colormap", next(self.config.overlay_cmap_cycle))),
                 str(add_dict.get("alpha", "")),
                 str(add_dict.get("mask", "")),
@@ -1383,7 +1385,7 @@ class PanelPeaklist(wx.Panel):
             ]
         )
         self.peaklist.SetItemBackgroundColour(self.peaklist.GetItemCount() - 1, color)
-        self.peaklist.SetItemTextColour(self.peaklist.GetItemCount() - 1, determineFontColor(color, return_rgb=True))
+        self.peaklist.SetItemTextColour(self.peaklist.GetItemCount() - 1, get_font_color(color, return_rgb=True))
 
     def on_check_duplicate_colors(self, new_color):
         """Check whether newly assigned color is already in the table and if so, return a different one"""
@@ -1400,7 +1402,7 @@ class PanelPeaklist(wx.Panel):
                     return config_color
                 counter -= 1
 
-            return randomColorGenerator(return_as_255=True)
+            return get_random_color(return_as_255=True)
 
         return new_color
 
@@ -1419,7 +1421,7 @@ class PanelPeaklist(wx.Panel):
             print("The operation was cancelled")
             return
 
-        document = self.data_handling._on_get_document(itemInfo["document"])
+        document = self.data_handling.on_get_document(itemInfo["document"])
 
         __, __ = self.view.panelDocuments.documents.on_delete_data__heatmap(
             document, itemInfo["document"], delete_type="heatmap.all.one", ion_name=itemInfo["ionName"]
@@ -1441,7 +1443,7 @@ class PanelPeaklist(wx.Panel):
                     itemID -= 1
                     continue
 
-                document = self.data_handling._on_get_document(itemInfo["document"])
+                document = self.data_handling.on_get_document(itemInfo["document"])
                 __, __ = self.view.panelDocuments.documents.on_delete_data__heatmap(
                     document, itemInfo["document"], delete_type="heatmap.all.one", ion_name=itemInfo["ionName"]
                 )
@@ -1458,7 +1460,7 @@ class PanelPeaklist(wx.Panel):
         itemID = self.peaklist.GetItemCount() - 1
         while itemID >= 0:
             itemInfo = self.on_get_item_information(itemID=itemID)
-            document = self.data_handling._on_get_document(itemInfo["document"])
+            document = self.data_handling.on_get_document(itemInfo["document"])
             __, __ = self.view.panelDocuments.documents.on_delete_data__heatmap(
                 document, itemInfo["document"], delete_type="heatmap.all.one", ion_name=itemInfo["ionName"]
             )

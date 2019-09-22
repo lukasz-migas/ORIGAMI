@@ -152,7 +152,7 @@ class panelSequenceAnalysis(wx.MiniFrame):
         info_grid.Add(vertical_line_2, (y, 5), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND | wx.ALIGN_LEFT)
         info_grid.Add(pI_label, (y, 6), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         info_grid.Add(self.pI_value, (y, 7), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        y = y + 1
+        y += 1
         info_grid.Add(minCCS_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         info_grid.Add(self.minCCS_value, (y, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         info_grid.Add(vertical_line_3, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
@@ -167,17 +167,17 @@ class panelSequenceAnalysis(wx.MiniFrame):
         y = 0
         grid.Add(title_label, (y, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
         grid.Add(self.title_value, (y, 1), wx.GBSpan(1, 6), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        y = y + 1
+        y += 1
         grid.Add(sequence_label, (y, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
         grid.Add(self.sequence_value, (y, 1), wx.GBSpan(2, 6), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         grid.Add(self.sequence_loadBtn, (y, 7), flag=wx.ALIGN_LEFT | wx.ALIGN_TOP)
-        y = y + 1
+        y += 1
         grid.Add(self.sequence_converter, (y, 7), flag=wx.ALIGN_LEFT | wx.ALIGN_TOP)
-        y = y + 1
+        y += 1
         grid.Add(horizontal_line, (y, 0), wx.GBSpan(1, 8), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        y = y + 1
+        y += 1
         grid.Add(info_grid, (y, 0), wx.GBSpan(1, 8), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        y = y + 1
+        y += 1
         grid.Add(btn_grid, (y, 0), wx.GBSpan(1, 8), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
 
         main_sizer.Add(grid, 0, wx.EXPAND, 10)

@@ -4,7 +4,7 @@ import copy
 import logging
 
 import wx
-from styles import makeCheckbox
+from styles import make_checkbox
 from styles import MiniFrame
 from styles import validator
 from utils.converters import str2int
@@ -80,7 +80,7 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.dataset_info_text = wx.StaticText(panel, -1, "")
 
         ms_process_crop = wx.StaticText(panel, -1, "Crop spectrum:")
-        self.ms_process_crop = makeCheckbox(panel, "")
+        self.ms_process_crop = make_checkbox(panel, "")
         self.ms_process_crop.SetValue(self.config.ms_process_crop)
         self.ms_process_crop.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.ms_process_crop.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -96,7 +96,7 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.crop_max_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         ms_process_linearize = wx.StaticText(panel, -1, "Linearize spectrum:")
-        self.ms_process_linearize = makeCheckbox(panel, "")
+        self.ms_process_linearize = make_checkbox(panel, "")
         self.ms_process_linearize.SetValue(self.config.ms_process_linearize)
         self.ms_process_linearize.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.ms_process_linearize.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -118,7 +118,7 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.bin_mzEnd_value.SetValue(str(self.config.ms_mzEnd))
         self.bin_mzEnd_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        self.bin_autoRange_check = makeCheckbox(panel, "Automatic range")
+        self.bin_autoRange_check = make_checkbox(panel, "Automatic range")
         self.bin_autoRange_check.SetValue(self.config.ms_auto_range)
         self.bin_autoRange_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.bin_autoRange_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -129,7 +129,7 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.bin_mzBinSize_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         ms_process_smooth = wx.StaticText(panel, -1, "Smooth spectrum:")
-        self.ms_process_smooth = makeCheckbox(panel, "")
+        self.ms_process_smooth = make_checkbox(panel, "")
         self.ms_process_smooth.SetValue(self.config.ms_process_smooth)
         self.ms_process_smooth.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.ms_process_smooth.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -161,7 +161,7 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.ms_smooth_moving_window.Bind(wx.EVT_TEXT, self.on_apply)
 
         ms_process_threshold = wx.StaticText(panel, -1, "Subtract baseline:")
-        self.ms_process_threshold = makeCheckbox(panel, "")
+        self.ms_process_threshold = make_checkbox(panel, "")
         self.ms_process_threshold.SetValue(self.config.ms_process_threshold)
         self.ms_process_threshold.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.ms_process_threshold.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -189,7 +189,7 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.ms_baseline_curved_window.Bind(wx.EVT_TEXT, self.on_apply)
 
         ms_process_normalize = wx.StaticText(panel, -1, "Normalize spectrum:")
-        self.ms_process_normalize = makeCheckbox(panel, "")
+        self.ms_process_normalize = make_checkbox(panel, "")
         self.ms_process_normalize.SetValue(self.config.ms_process_normalize)
         self.ms_process_normalize.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.ms_process_normalize.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -246,14 +246,14 @@ class PanelProcessMassSpectrum(MiniFrame):
         n += 1
         grid.Add(linearizationMode_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.bin_linearizationMode_choice, (n, 1), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(bin_ms_min_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.bin_mzStart_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
         grid.Add(bin_ms_max_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.bin_mzEnd_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         grid.Add(self.bin_autoRange_check, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(bin_ms_binsize_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.bin_mzBinSize_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
@@ -264,13 +264,13 @@ class PanelProcessMassSpectrum(MiniFrame):
         n += 1
         grid.Add(smoothFcn_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.ms_smoothFcn_choice, (n, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(polynomial_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.ms_polynomial_value, (n, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(window_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.ms_window_value, (n, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(sigma_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.ms_sigma_value, (n, 1), flag=wx.EXPAND)
         n += 1
@@ -300,7 +300,7 @@ class PanelProcessMassSpectrum(MiniFrame):
         grid.Add(self.ms_process_normalize, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         n += 1
         grid.Add(horizontal_line_5, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(btn_grid, (n, 0), wx.GBSpan(1, 3), flag=wx.ALIGN_CENTER)
 
         # fit layout

@@ -7,11 +7,11 @@ from time import time as ttime
 import wx
 from gui_elements.dialog_color_picker import DialogColorPicker
 from help_documentation import OrigamiHelp
-from styles import makeCheckbox
-from styles import makeStaticBox
+from styles import make_checkbox
+from styles import make_staticbox
 from styles import makeStaticText
 from styles import validator
-from utils.color import convertRGB1to255
+from utils.color import convert_rgb_1_to_255
 from utils.converters import str2num
 
 
@@ -278,7 +278,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         )
         self.figure_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_general)
 
-        figureSize_staticBox = makeStaticBox(panel, "Figure parameters", size=(-1, -1), color=wx.BLACK)
+        figureSize_staticBox = make_staticbox(panel, "Figure parameters", size=(-1, -1), color=wx.BLACK)
         figureSize_staticBox.SetSize((-1, -1))
         figureSize_box_sizer = wx.StaticBoxSizer(figureSize_staticBox, wx.HORIZONTAL)
         grid = wx.GridBagSizer(2, 2)
@@ -307,7 +307,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         self.frame_title_fontsize.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_general)
         self.frame_title_fontsize.SetToolTip(wx.ToolTip("Title font size. Value in points."))
 
-        self.frame_title_weight = makeCheckbox(panel, "bold", name="frame")
+        self.frame_title_weight = make_checkbox(panel, "bold", name="frame")
         self.frame_title_weight.SetValue(
             self.kwargs.get("frame_properties", {}).get("title_fontweight", self.config.interactive_title_weight)
         )
@@ -332,7 +332,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         self.frame_label_fontsize.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_general)
         self.frame_label_fontsize.SetToolTip(wx.ToolTip("Label font size. Value in points."))
 
-        self.frame_label_weight = makeCheckbox(panel, "bold", name="frame")
+        self.frame_label_weight = make_checkbox(panel, "bold", name="frame")
         self.frame_label_weight.SetValue(
             self.kwargs.get("frame_properties", {}).get("label_fontweight", self.config.interactive_label_weight)
         )
@@ -356,7 +356,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         self.frame_ticks_fontsize.SetToolTip(wx.ToolTip("Tick font size. Value in points."))
 
         # axes parameters
-        fontSize_staticBox = makeStaticBox(panel, "Font parameters", size=(-1, -1), color=wx.BLACK)
+        fontSize_staticBox = make_staticbox(panel, "Font parameters", size=(-1, -1), color=wx.BLACK)
         fontSize_staticBox.SetSize((-1, -1))
         fontSize_box_sizer = wx.StaticBoxSizer(fontSize_staticBox, wx.HORIZONTAL)
         grid = wx.GridBagSizer(2, 2)
@@ -364,11 +364,11 @@ class panelCustomiseInteractive(wx.MiniFrame):
         grid.Add(title_fontsize_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.frame_title_fontsize, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         grid.Add(self.frame_title_weight, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        y = y + 1
+        y += 1
         grid.Add(label_fontsize_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.frame_label_fontsize, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         grid.Add(self.frame_label_weight, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        y = y + 1
+        y += 1
         grid.Add(ticks_fontsize_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.frame_ticks_fontsize, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         fontSize_box_sizer.Add(grid, 0, wx.EXPAND, 10)
@@ -411,7 +411,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
                 pass
 
         # axes parameters
-        plotSize_staticBox = makeStaticBox(panel, "Plot parameters", size=(-1, -1), color=wx.BLACK)
+        plotSize_staticBox = make_staticbox(panel, "Plot parameters", size=(-1, -1), color=wx.BLACK)
         plotSize_staticBox.SetSize((-1, -1))
         plotSize_box_sizer = wx.StaticBoxSizer(plotSize_staticBox, wx.HORIZONTAL)
         grid = wx.GridBagSizer(2, 2)
@@ -420,7 +420,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         grid.Add(self.plot_xmin_value, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         grid.Add(plot_xmax_label, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.plot_xmax_value, (y, 3), flag=wx.ALIGN_CENTER_VERTICAL)
-        y = y + 1
+        y += 1
         grid.Add(plot_ymin_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.plot_ymin_value, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         grid.Add(plot_ymax_label, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
@@ -428,25 +428,25 @@ class panelCustomiseInteractive(wx.MiniFrame):
         plotSize_box_sizer.Add(grid, 0, wx.EXPAND, 10)
 
         label_label = wx.StaticText(panel, -1, "Label:")
-        self.frame_label_xaxis_check = makeCheckbox(panel, "x-axis", name="frame")
+        self.frame_label_xaxis_check = make_checkbox(panel, "x-axis", name="frame")
         self.frame_label_xaxis_check.SetValue(self.kwargs.get("frame_properties", {}).get("label_xaxis", True))
         self.frame_label_xaxis_check.Bind(wx.EVT_CHECKBOX, self.on_apply_general)
         self.frame_label_xaxis_check.SetToolTip(wx.ToolTip("Show labels on the x-axis."))
 
-        self.frame_label_yaxis_check = makeCheckbox(panel, "y-axis", name="frame")
+        self.frame_label_yaxis_check = make_checkbox(panel, "y-axis", name="frame")
         self.frame_label_yaxis_check.SetValue(self.kwargs.get("frame_properties", {}).get("label_yaxis", True))
         self.frame_label_yaxis_check.Bind(wx.EVT_CHECKBOX, self.on_apply_general)
         self.frame_label_yaxis_check.SetToolTip(wx.ToolTip("Show labels on the y-axis."))
 
         tickLabels_label = wx.StaticText(panel, -1, "Tick labels:")
-        self.frame_tick_labels_xaxis_check = makeCheckbox(panel, "x-axis", name="frame")
+        self.frame_tick_labels_xaxis_check = make_checkbox(panel, "x-axis", name="frame")
         self.frame_tick_labels_xaxis_check.SetValue(
             self.kwargs.get("frame_properties", {}).get("tick_labels_xaxis", True)
         )
         self.frame_tick_labels_xaxis_check.Bind(wx.EVT_CHECKBOX, self.on_apply_general)
         self.frame_tick_labels_xaxis_check.SetToolTip(wx.ToolTip("Show tick labels on the x-axis"))
 
-        self.frame_tick_labels_yaxis_check = makeCheckbox(panel, "y-axis", name="frame")
+        self.frame_tick_labels_yaxis_check = make_checkbox(panel, "y-axis", name="frame")
         self.frame_tick_labels_yaxis_check.SetValue(
             self.kwargs.get("frame_properties", {}).get("tick_labels_yaxis", True)
         )
@@ -454,12 +454,12 @@ class panelCustomiseInteractive(wx.MiniFrame):
         self.frame_tick_labels_yaxis_check.SetToolTip(wx.ToolTip("Show tick labels on the y-axis"))
 
         ticks_label = wx.StaticText(panel, -1, "Ticks:")
-        self.frame_ticks_xaxis_check = makeCheckbox(panel, "x-axis", name="frame")
+        self.frame_ticks_xaxis_check = make_checkbox(panel, "x-axis", name="frame")
         self.frame_ticks_xaxis_check.SetValue(self.kwargs.get("frame_properties", {}).get("ticks_xaxis", True))
         self.frame_ticks_xaxis_check.Bind(wx.EVT_CHECKBOX, self.on_apply_general)
         self.frame_ticks_xaxis_check.SetToolTip(wx.ToolTip("Show ticks on the x-axis"))
 
-        self.frame_ticks_yaxis_check = makeCheckbox(panel, "y-axis", name="frame")
+        self.frame_ticks_yaxis_check = make_checkbox(panel, "y-axis", name="frame")
         self.frame_ticks_yaxis_check.SetValue(self.kwargs.get("frame_properties", {}).get("ticks_yaxis", True))
         self.frame_ticks_yaxis_check.Bind(wx.EVT_CHECKBOX, self.on_apply_general)
         self.frame_ticks_yaxis_check.SetToolTip(wx.ToolTip("Show ticks on the y-axis"))
@@ -571,7 +571,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         frame_background_color = makeStaticText(panel, "Background\ncolor")
         self.frame_background_colorBtn = wx.Button(panel, wx.ID_ANY, size=wx.Size(26, 26), name="background_color")
         self.frame_background_colorBtn.SetBackgroundColour(
-            convertRGB1to255(
+            convert_rgb_1_to_255(
                 self.kwargs.get("frame_properties", {}).get(
                     "background_color", self.config.interactive_background_color
                 )
@@ -580,7 +580,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         self.frame_background_colorBtn.Bind(wx.EVT_BUTTON, self.on_apply_color)
 
         frame_gridline_label = makeStaticText(panel, "Grid lines:")
-        self.frame_gridline_check = makeCheckbox(panel, "show")
+        self.frame_gridline_check = make_checkbox(panel, "show")
         self.frame_gridline_check.SetValue(
             self.kwargs.get("frame_properties", {}).get("gridline", self.config.interactive_grid_line)
         )
@@ -590,7 +590,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         frame_gridline_color = makeStaticText(panel, "Grid\ncolor")
         self.frame_gridline_color = wx.Button(panel, wx.ID_ANY, "", size=wx.Size(26, 26), name="gridline_color")
         self.frame_gridline_color.SetBackgroundColour(
-            convertRGB1to255(
+            convert_rgb_1_to_255(
                 self.kwargs.get("frame_properties", {}).get("gridline_color", self.config.interactive_grid_line_color)
             )
         )
@@ -598,7 +598,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         self.frame_gridline_check.SetToolTip(wx.ToolTip("Gridlines color. Only takes effect if gridlines are shown."))
 
         # axes parameters
-        frameParameters_staticBox = makeStaticBox(panel, "Frame parameters", size=(-1, -1), color=wx.BLACK)
+        frameParameters_staticBox = make_staticbox(panel, "Frame parameters", size=(-1, -1), color=wx.BLACK)
         frameParameters_staticBox.SetSize((-1, -1))
         frame_box_sizer = wx.StaticBoxSizer(frameParameters_staticBox, wx.HORIZONTAL)
         axis_grid = wx.GridBagSizer(2, 2)
@@ -606,15 +606,15 @@ class panelCustomiseInteractive(wx.MiniFrame):
         axis_grid.Add(label_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         axis_grid.Add(self.frame_label_xaxis_check, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         axis_grid.Add(self.frame_label_yaxis_check, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL)
-        y = y + 1
+        y += 1
         axis_grid.Add(tickLabels_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         axis_grid.Add(self.frame_tick_labels_xaxis_check, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         axis_grid.Add(self.frame_tick_labels_yaxis_check, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL)
-        y = y + 1
+        y += 1
         axis_grid.Add(ticks_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         axis_grid.Add(self.frame_ticks_xaxis_check, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         axis_grid.Add(self.frame_ticks_yaxis_check, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL)
-        y = y + 1
+        y += 1
         axis_grid.Add(borderLeft_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         axis_grid.Add(self.frame_border_min_left, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         axis_grid.Add(borderRight_label, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
@@ -623,14 +623,14 @@ class panelCustomiseInteractive(wx.MiniFrame):
         axis_grid.Add(self.frame_border_min_top, (y, 5), flag=wx.ALIGN_CENTER_VERTICAL)
         axis_grid.Add(borderBottom_label, (y, 6), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         axis_grid.Add(self.frame_border_min_bottom, (y, 7), flag=wx.ALIGN_CENTER_VERTICAL)
-        y = y + 1
+        y += 1
         axis_grid.Add(outlineWidth_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         axis_grid.Add(self.frame_outline_width, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         axis_grid.Add(outlineTransparency_label, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         axis_grid.Add(self.frame_outline_alpha, (y, 3), flag=wx.ALIGN_CENTER_VERTICAL)
         axis_grid.Add(frame_background_color, (y, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         axis_grid.Add(self.frame_background_colorBtn, (y, 5), flag=wx.ALIGN_CENTER_VERTICAL)
-        y = y + 1
+        y += 1
         axis_grid.Add(frame_gridline_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         axis_grid.Add(self.frame_gridline_check, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         axis_grid.Add(frame_gridline_color, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
@@ -641,11 +641,11 @@ class panelCustomiseInteractive(wx.MiniFrame):
         grid = wx.GridBagSizer(2, 2)
         y = 0
         grid.Add(figureSize_box_sizer, (y, 0), flag=wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL)
-        y = y + 1
+        y += 1
         grid.Add(fontSize_box_sizer, (y, 0), flag=wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL)
-        y = y + 1
+        y += 1
         grid.Add(plotSize_box_sizer, (y, 0), flag=wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL)
-        y = y + 1
+        y += 1
         grid.Add(frame_box_sizer, (y, 0), flag=wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -720,7 +720,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         self.plot_scatter_line_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_plots)
 
         plot_scatter_marker_edge_sameAsFill = makeStaticText(panel, "Edge same as fill:")
-        self.plot_scatter_marker_edge_sameAsFill = makeCheckbox(panel, "")
+        self.plot_scatter_marker_edge_sameAsFill = make_checkbox(panel, "")
         self.plot_scatter_marker_edge_sameAsFill.SetValue(
             self.kwargs.get("plot_properties", {}).get(
                 "scatter_edge_color_sameAsFill", self.config.interactive_scatter_sameAsFill
@@ -733,7 +733,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
             panel, wx.ID_ANY, "", size=wx.Size(26, 26), name="plot_scatter_edge_color"
         )
         self.plot_scatter_marker_edge_colorBtn.SetBackgroundColour(
-            convertRGB1to255(
+            convert_rgb_1_to_255(
                 self.kwargs.get("plot_properties", {}).get(
                     "scatter_edge_color", self.config.interactive_scatter_edge_color
                 )
@@ -741,7 +741,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         )
         self.plot_scatter_marker_edge_colorBtn.Bind(wx.EVT_BUTTON, self.on_apply_color)
 
-        staticBox = makeStaticBox(panel, "Scatter parameters", size=(-1, -1), color=wx.BLACK)
+        staticBox = make_staticbox(panel, "Scatter parameters", size=(-1, -1), color=wx.BLACK)
         staticBox.SetSize((-1, -1))
         grid_box_sizer = wx.StaticBoxSizer(staticBox, wx.HORIZONTAL)
 
@@ -749,19 +749,19 @@ class panelCustomiseInteractive(wx.MiniFrame):
         n = 0
         grid.Add(plot_scatter_shape_choice, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.plot_scatter_shape_choice, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(plot_scatter_size_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.plot_scatter_size_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(plot_scatter_transparency_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.plot_scatter_transparency_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(plot_scatter_line_width_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.plot_scatter_line_width_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(plot_scatter_marker_edge_sameAsFill, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.plot_scatter_marker_edge_sameAsFill, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(plot_scatter_marker_edge_colorBtn, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.plot_scatter_marker_edge_colorBtn, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
 
@@ -815,7 +815,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         self.plot_bar_line_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_plots)
 
         plot_bar_edge_sameAsFill = makeStaticText(panel, "Edge same as fill:")
-        self.plot_bar_edge_sameAsFill = makeCheckbox(panel, "")
+        self.plot_bar_edge_sameAsFill = make_checkbox(panel, "")
         self.plot_bar_edge_sameAsFill.SetValue(
             self.kwargs.get("plot_properties", {}).get(
                 "bar_edge_color_sameAsFill", self.config.interactive_bar_sameAsFill
@@ -826,13 +826,13 @@ class panelCustomiseInteractive(wx.MiniFrame):
         plot_bar_edge_colorBtn = makeStaticText(panel, "Edge color:")
         self.plot_bar_edge_colorBtn = wx.Button(panel, wx.ID_ANY, "", size=wx.Size(26, 26), name="plot_bar_edge_color")
         self.plot_bar_edge_colorBtn.SetBackgroundColour(
-            convertRGB1to255(
+            convert_rgb_1_to_255(
                 self.kwargs.get("plot_properties", {}).get("bar_edge_color", self.config.interactive_bar_edge_color)
             )
         )
         self.plot_bar_edge_colorBtn.Bind(wx.EVT_BUTTON, self.on_apply_color)
 
-        staticBox = makeStaticBox(panel, "Bar parameters", size=(-1, -1), color=wx.BLACK)
+        staticBox = make_staticbox(panel, "Bar parameters", size=(-1, -1), color=wx.BLACK)
         staticBox.SetSize((-1, -1))
         grid_box_sizer = wx.StaticBoxSizer(staticBox, wx.HORIZONTAL)
 
@@ -840,16 +840,16 @@ class panelCustomiseInteractive(wx.MiniFrame):
         n = 0
         grid.Add(plot_bar_width_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.plot_bar_width_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(plot_bar_transparency_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.plot_bar_transparency_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(plot_bar_line_width_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.plot_bar_line_width_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(plot_bar_edge_sameAsFill, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.plot_bar_edge_sameAsFill, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(plot_bar_edge_colorBtn, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.plot_bar_edge_colorBtn, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
 
@@ -900,14 +900,14 @@ class panelCustomiseInteractive(wx.MiniFrame):
         plot_line_color_label = makeStaticText(panel, "Line color:")
         self.plot_line_color_colorBtn = wx.Button(panel, wx.ID_ANY, "", size=wx.Size(26, 26), name="plot_line_color")
         self.plot_line_color_colorBtn.SetBackgroundColour(
-            convertRGB1to255(
+            convert_rgb_1_to_255(
                 self.kwargs.get("plot_properties", {}).get("line_color", self.config.interactive_line_color)
             )
         )
         self.plot_line_color_colorBtn.Bind(wx.EVT_BUTTON, self.on_apply_color)
 
         plot_fill_under_label = makeStaticText(panel, "Shade under line:")
-        self.plot_line_shade_under = makeCheckbox(panel, "")
+        self.plot_line_shade_under = make_checkbox(panel, "")
         self.plot_line_shade_under.SetValue(
             self.kwargs.get("plot_properties", {}).get("line_shade_under", self.config.interactive_line_shade_under)
         )
@@ -933,7 +933,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         self.plot_shade_transparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_plots)
 
         plot_hover_linkX_label = makeStaticText(panel, "Hover linked to X-axis:")
-        self.plot_line_linkX = makeCheckbox(panel, "")
+        self.plot_line_linkX = make_checkbox(panel, "")
         self.plot_line_linkX.SetValue(
             self.kwargs.get("plot_properties", {}).get("hover_link_x", self.config.linkXYaxes)
         )
@@ -942,7 +942,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
             wx.ToolTip("Hover linked to the x-axis values. Can *significantly* slow plots with many data points!")
         )
 
-        staticBox = makeStaticBox(panel, "Line plot parameters", size=(-1, -1), color=wx.BLACK)
+        staticBox = make_staticbox(panel, "Line plot parameters", size=(-1, -1), color=wx.BLACK)
         staticBox.SetSize((-1, -1))
         grid_box_sizer = wx.StaticBoxSizer(staticBox, wx.HORIZONTAL)
 
@@ -950,22 +950,22 @@ class panelCustomiseInteractive(wx.MiniFrame):
         n = 0
         grid.Add(plot_line_width_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.plot_line_width_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(plot_line_transparency_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.plot_line_transparency_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(plot_line_style_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.plot_line_style_choice, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(plot_line_color_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.plot_line_color_colorBtn, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(plot_fill_under_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.plot_line_shade_under, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(plot_shade_transparency_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.plot_shade_transparency_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(plot_hover_linkX_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.plot_line_linkX, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         grid_box_sizer.Add(grid, 0, wx.EXPAND, 10)
@@ -994,7 +994,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         self.waterfall_yaxis_increment_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_plots)
 
         multiline_shade_under_label = makeStaticText(panel, "Shade under line:")
-        self.waterfall_shade_under_value = makeCheckbox(panel, "")
+        self.waterfall_shade_under_value = make_checkbox(panel, "")
         self.waterfall_shade_under_value.SetValue(
             self.kwargs.get("plot_properties", {}).get(
                 "waterfall_shade_under", self.config.interactive_waterfall_shade_under
@@ -1021,17 +1021,17 @@ class panelCustomiseInteractive(wx.MiniFrame):
         )
         self.waterfall_shade_transparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_plots)
 
-        grid_staticBox = makeStaticBox(panel, "Waterfall parameters", size=(-1, -1), color=wx.BLACK)
+        grid_staticBox = make_staticbox(panel, "Waterfall parameters", size=(-1, -1), color=wx.BLACK)
         grid_staticBox.SetSize((-1, -1))
         grid_box_sizer = wx.StaticBoxSizer(grid_staticBox, wx.HORIZONTAL)
         grid = wx.GridBagSizer(2, 2)
         n = 0
         grid.Add(multiline_yaxis_increment_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.waterfall_yaxis_increment_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(multiline_shade_under_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.waterfall_shade_under_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(multiline_shade_transparency_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.waterfall_shade_transparency_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         grid_box_sizer.Add(grid, 0, wx.EXPAND, 10)
@@ -1050,7 +1050,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         )
         self.plot_colormap_choice.Bind(wx.EVT_COMBOBOX, self.on_apply_plots)
 
-        staticBox = makeStaticBox(panel, "Heatmap parameters", size=(-1, -1), color=wx.BLACK)
+        staticBox = make_staticbox(panel, "Heatmap parameters", size=(-1, -1), color=wx.BLACK)
         staticBox.SetSize((-1, -1))
         grid_box_sizer = wx.StaticBoxSizer(staticBox, wx.HORIZONTAL)
 
@@ -1082,7 +1082,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
             panel, wx.ID_ANY, "", size=wx.Size(26, 26), name="plot_tandem_unlabelled"
         )
         self.plot_tandem_line_unlabelled_colorBtn.SetBackgroundColour(
-            convertRGB1to255(
+            convert_rgb_1_to_255(
                 self.kwargs.get("plot_properties", {}).get("tandem_line_color_unlabelled", (0.0, 0.0, 0.0))
             )
         )
@@ -1093,11 +1093,13 @@ class panelCustomiseInteractive(wx.MiniFrame):
             panel, wx.ID_ANY, "", size=wx.Size(26, 26), name="plot_tandem_labelled"
         )
         self.plot_tandem_line_labelled_colorBtn.SetBackgroundColour(
-            convertRGB1to255(self.kwargs.get("plot_properties", {}).get("tandem_line_color_labelled", (1.0, 0.0, 0.0)))
+            convert_rgb_1_to_255(
+                self.kwargs.get("plot_properties", {}).get("tandem_line_color_labelled", (1.0, 0.0, 0.0))
+            )
         )
         self.plot_tandem_line_labelled_colorBtn.Bind(wx.EVT_BUTTON, self.on_apply_color)
 
-        staticBox = makeStaticBox(panel, "TAndem MS/MS parameters", size=(-1, -1), color=wx.BLACK)
+        staticBox = make_staticbox(panel, "TAndem MS/MS parameters", size=(-1, -1), color=wx.BLACK)
         staticBox.SetSize((-1, -1))
         grid_box_sizer = wx.StaticBoxSizer(staticBox, wx.HORIZONTAL)
 
@@ -1105,10 +1107,10 @@ class panelCustomiseInteractive(wx.MiniFrame):
         n = 0
         grid.Add(plot_tandem_line_width_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.plot_tandem_line_width_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(plot_tandem_line_unlabelled_colorBtn, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.plot_tandem_line_unlabelled_colorBtn, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(plot_tandem_line_labelled_colorBtn, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.plot_tandem_line_labelled_colorBtn, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
 
@@ -1150,7 +1152,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
     def makePreprocessingPanel(self, panel):
 
         preprocess_linearize = makeStaticText(panel, "Linearize:")
-        self.preprocess_linearize_check = makeCheckbox(panel, "")
+        self.preprocess_linearize_check = make_checkbox(panel, "")
         self.preprocess_linearize_check.SetValue(
             self.kwargs.get("preprocessing_properties", {}).get("linearize", self.config.interactive_ms_linearize)
         )
@@ -1188,7 +1190,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         )
         self.preprocess_linearize_limit_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_preprocess)
 
-        staticBox = makeStaticBox(panel, "Line parameters", size=(-1, -1), color=wx.BLACK)
+        staticBox = make_staticbox(panel, "Line parameters", size=(-1, -1), color=wx.BLACK)
         staticBox.SetSize((-1, -1))
         grid_box_sizer = wx.StaticBoxSizer(staticBox, wx.HORIZONTAL)
 
@@ -1196,16 +1198,16 @@ class panelCustomiseInteractive(wx.MiniFrame):
         n = 0
         grid.Add(preprocess_linearize, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.preprocess_linearize_check, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(preprocess_linearize_binsize_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.preprocess_linearize_binsize_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(preprocess_linearize_limit_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.preprocess_linearize_limit_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         grid_box_sizer.Add(grid, 0, wx.EXPAND, 10)
 
         preprocess_subsample = makeStaticText(panel, "Subsample:")
-        self.preprocess_subsample_check = makeCheckbox(panel, "")
+        self.preprocess_subsample_check = make_checkbox(panel, "")
         self.preprocess_subsample_check.SetValue(self.kwargs.get("preprocessing_properties", {}).get("subsample", True))
         self.preprocess_subsample_check.Bind(wx.EVT_CHECKBOX, self.on_apply_preprocess)
 
@@ -1235,7 +1237,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         )
         self.preprocess_subsample_limit_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_preprocess)
 
-        staticBox = makeStaticBox(panel, "Heatmap parameters", size=(-1, -1), color=wx.BLACK)
+        staticBox = make_staticbox(panel, "Heatmap parameters", size=(-1, -1), color=wx.BLACK)
         staticBox.SetSize((-1, -1))
         heatmap_box_sizer = wx.StaticBoxSizer(staticBox, wx.HORIZONTAL)
 
@@ -1243,10 +1245,10 @@ class panelCustomiseInteractive(wx.MiniFrame):
         n = 0
         grid.Add(preprocess_subsample, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.preprocess_subsample_check, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(preprocess_subsample_frequency_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.preprocess_subsample_frequency_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(preprocess_subsample_limit_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.preprocess_subsample_limit_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         heatmap_box_sizer.Add(grid, 0, wx.EXPAND, 10)
@@ -1264,7 +1266,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
     def makeOverlayPanel_grid(self, panel):
 
         grid_add_labels_label = makeStaticText(panel, "Add labels:")
-        self.overlay_grid_show_labels = makeCheckbox(panel, "")
+        self.overlay_grid_show_labels = make_checkbox(panel, "")
         self.overlay_grid_show_labels.SetValue(
             self.kwargs.get("overlay_properties", {}).get("overlay_grid_add_labels", False)
         )
@@ -1289,7 +1291,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         )
         self.overlay_grid_fontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_overlay)
 
-        self.overlay_grid_fontWeight_value = makeCheckbox(panel, "bold")
+        self.overlay_grid_fontWeight_value = make_checkbox(panel, "bold")
         self.overlay_grid_fontWeight_value.SetValue(
             self.kwargs.get("overlay_properties", {}).get(
                 "grid_label_fontweight", self.config.interactive_grid_label_weight
@@ -1302,7 +1304,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
             panel, wx.ID_ANY, "", size=wx.Size(26, 26), name="overlay_grid_label_color"
         )
         self.overlay_grid_label_colorBtn.SetBackgroundColour(
-            convertRGB1to255(
+            convert_rgb_1_to_255(
                 self.kwargs.get("overlay_properties", {}).get(
                     "grid_label_color", self.config.interactive_annotation_color
                 )
@@ -1348,24 +1350,24 @@ class panelCustomiseInteractive(wx.MiniFrame):
         )
         self.overlay_grid_ypos_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_overlay)
 
-        grid_staticBox = makeStaticBox(panel, "Grid (NxN) parameters", size=(-1, -1), color=wx.BLACK)
+        grid_staticBox = make_staticbox(panel, "Grid (NxN) parameters", size=(-1, -1), color=wx.BLACK)
         grid_staticBox.SetSize((-1, -1))
         grid_box_sizer = wx.StaticBoxSizer(grid_staticBox, wx.HORIZONTAL)
         grid = wx.GridBagSizer(2, 2)
         n = 0
         grid.Add(grid_add_labels_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.overlay_grid_show_labels, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(annotation_fontSize_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.overlay_grid_fontSize_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         grid.Add(self.overlay_grid_fontWeight_value, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(annotation_fontColor_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.overlay_grid_label_colorBtn, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(annotation_xpos_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.overlay_grid_xpos_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(annotation_ypos_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.overlay_grid_ypos_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         grid_box_sizer.Add(grid, 0, wx.EXPAND, 10)
@@ -1391,7 +1393,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         )
 
         overlay_linkXY_label = makeStaticText(panel, "Link XY axes:")
-        self.overlay_linkXY = makeCheckbox(panel, "")
+        self.overlay_linkXY = make_checkbox(panel, "")
         self.overlay_linkXY.SetValue(
             self.kwargs.get("overlay_properties", {}).get("overlay_link_xy", self.config.linkXYaxes)
         )
@@ -1419,30 +1421,30 @@ class panelCustomiseInteractive(wx.MiniFrame):
         self.overlay_colormap_2.Bind(wx.EVT_COMBOBOX, self.on_apply_overlay)
 
         overlay_merge_tools_label = makeStaticText(panel, "Merge tools:")
-        self.overlay_merge_tools = makeCheckbox(panel, "")
+        self.overlay_merge_tools = make_checkbox(panel, "")
         self.overlay_merge_tools.SetValue(self.kwargs.get("overlay_properties", {}).get("overlay_merge_tools", False))
         self.overlay_merge_tools.Bind(wx.EVT_CHECKBOX, self.on_apply_overlay)
         self.overlay_merge_tools.SetToolTip(
             wx.ToolTip("Merge tools for both plots. If checked, a lot of the tools will be removed by default.")
         )
 
-        overlay_staticBox = makeStaticBox(panel, "Mask/Transparency parameters", size=(-1, -1), color=wx.BLACK)
+        overlay_staticBox = make_staticbox(panel, "Mask/Transparency parameters", size=(-1, -1), color=wx.BLACK)
         overlay_staticBox.SetSize((-1, -1))
         overlay_box_sizer = wx.StaticBoxSizer(overlay_staticBox, wx.HORIZONTAL)
         grid = wx.GridBagSizer(2, 2)
         y = 0
         grid.Add(overlay_layout_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.overlay_layout, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        y = y + 1
+        y += 1
         grid.Add(overlay_linkXY_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.overlay_linkXY, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        y = y + 1
+        y += 1
         grid.Add(overlay_colormap_1_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.overlay_colormap_1, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        y = y + 1
+        y += 1
         grid.Add(overlay_colormap_2_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.overlay_colormap_2, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        y = y + 1
+        y += 1
         grid.Add(overlay_merge_tools_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.overlay_merge_tools, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         overlay_box_sizer.Add(grid, 0, wx.EXPAND, 10)
@@ -1469,7 +1471,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         )
         self.rmsd_label_fontsize.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_overlay)
 
-        self.rmsd_label_fontweight = makeCheckbox(panel, "bold")
+        self.rmsd_label_fontweight = make_checkbox(panel, "bold")
         self.rmsd_label_fontweight.SetValue(
             self.kwargs.get("overlay_properties", {}).get(
                 "rmsd_label_fontweight", self.config.interactive_annotation_weight
@@ -1498,7 +1500,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         rmsd_label_color_label = makeStaticText(panel, "Label color:")
         self.rmsd_label_colorBtn = wx.Button(panel, wx.ID_ANY, "", size=wx.Size(26, 26), name="rmsd_label_color")
         self.rmsd_label_colorBtn.SetBackgroundColour(
-            convertRGB1to255(
+            convert_rgb_1_to_255(
                 self.kwargs.get("overlay_properties", {}).get(
                     "rmsd_label_color", self.config.interactive_annotation_color
                 )
@@ -1511,7 +1513,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
             panel, wx.ID_ANY, "", size=wx.Size(26, 26), name="rmsd_background_color"
         )
         self.rmsd_background_colorBtn.SetBackgroundColour(
-            convertRGB1to255(
+            convert_rgb_1_to_255(
                 self.kwargs.get("overlay_properties", {}).get(
                     "rmsd_background_color", self.config.interactive_annotation_background_color
                 )
@@ -1519,7 +1521,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         )
         self.rmsd_background_colorBtn.Bind(wx.EVT_BUTTON, self.on_apply_color)
 
-        rmsd_staticBox = makeStaticBox(panel, "RMSD parameters", size=(-1, -1), color=wx.BLACK)
+        rmsd_staticBox = make_staticbox(panel, "RMSD parameters", size=(-1, -1), color=wx.BLACK)
         rmsd_staticBox.SetSize((-1, -1))
         rmsd_box_sizer = wx.StaticBoxSizer(rmsd_staticBox, wx.HORIZONTAL)
         grid = wx.GridBagSizer(2, 2)
@@ -1527,13 +1529,13 @@ class panelCustomiseInteractive(wx.MiniFrame):
         grid.Add(rmsd_label_fontsize, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.rmsd_label_fontsize, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         grid.Add(self.rmsd_label_fontweight, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL)
-        y = y + 1
+        y += 1
         grid.Add(rmsd_label_transparency_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.rmsd_label_transparency, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        y = y + 1
+        y += 1
         grid.Add(rmsd_label_color_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.rmsd_label_colorBtn, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        y = y + 1
+        y += 1
         grid.Add(rmsd_background_color_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.rmsd_background_colorBtn, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         rmsd_box_sizer.Add(grid, 0, wx.EXPAND, 10)
@@ -1571,7 +1573,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         )
         self.rmsd_matrix_fontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_overlay)
 
-        self.rmsd_matrix_fontWeight_value = makeCheckbox(panel, "bold")
+        self.rmsd_matrix_fontWeight_value = make_checkbox(panel, "bold")
         self.rmsd_matrix_fontWeight_value.SetValue(
             self.kwargs.get("overlay_properties", {}).get(
                 "rmsd_matrix_label_fontweight", self.config.interactive_ms_annotations_fontWeight
@@ -1584,7 +1586,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
             panel, wx.ID_ANY, "", size=wx.Size(26, 26), name="rmsd_matrix_label_color"
         )
         self.rmsd_matrix_fontColor_colorBtn.SetBackgroundColour(
-            convertRGB1to255(
+            convert_rgb_1_to_255(
                 self.kwargs.get("overlay_properties", {}).get(
                     "rmsd_matrix_label_color", self.config.interactive_ms_annotations_label_color
                 )
@@ -1592,7 +1594,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         )
         self.rmsd_matrix_fontColor_colorBtn.Bind(wx.EVT_BUTTON, self.on_apply_color)
 
-        self.rmsd_matrix_auto_fontColor_value = makeCheckbox(panel, "Auto-determine\nlabel color")
+        self.rmsd_matrix_auto_fontColor_value = make_checkbox(panel, "Auto-determine\nlabel color")
         self.rmsd_matrix_auto_fontColor_value.SetValue(
             self.kwargs.get("overlay_properties", {}).get("rmsd_matrix_auto_label_color", False)
         )
@@ -1649,28 +1651,28 @@ class panelCustomiseInteractive(wx.MiniFrame):
         )
         self.rmsd_matrix_xaxis_rotation_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_overlay)
 
-        rmsd_matrix_staticBox = makeStaticBox(panel, "RMSD Matrix parameters", size=(-1, -1), color=wx.BLACK)
+        rmsd_matrix_staticBox = make_staticbox(panel, "RMSD Matrix parameters", size=(-1, -1), color=wx.BLACK)
         rmsd_matrix_staticBox.SetSize((-1, -1))
         rmsd_matrix_box_sizer = wx.StaticBoxSizer(rmsd_matrix_staticBox, wx.HORIZONTAL)
         grid = wx.GridBagSizer(2, 2)
         n = 0
         grid.Add(rmsd_matrix_colormap, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.rmsd_matrix_colormap, (n, 1), (1, 2), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(annotation_fontSize_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.rmsd_matrix_fontSize_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         grid.Add(self.rmsd_matrix_fontWeight_value, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(annotation_fontColor_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.rmsd_matrix_fontColor_colorBtn, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         grid.Add(self.rmsd_matrix_auto_fontColor_value, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(annotation_xpos_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.rmsd_matrix_xpos_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(annotation_ypos_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.rmsd_matrix_ypos_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(xaxis_rotation_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.rmsd_matrix_xaxis_rotation_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         rmsd_matrix_box_sizer.Add(grid, 0, wx.EXPAND, 10)
@@ -1679,7 +1681,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
     def makeOverlayPanel_multiline(self, panel):
 
         multiline_shade_under_label = makeStaticText(panel, "Shade under line:")
-        self.multiline_shade_under_value = makeCheckbox(panel, "")
+        self.multiline_shade_under_value = make_checkbox(panel, "")
         self.multiline_shade_under_value.SetValue(
             self.kwargs.get("overlay_properties", {}).get("multiline_shade_under", False)
         )
@@ -1698,14 +1700,14 @@ class panelCustomiseInteractive(wx.MiniFrame):
         )
         self.multiline_shade_transparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_overlay)
 
-        grid_staticBox = makeStaticBox(panel, "Multi-line parameters", size=(-1, -1), color=wx.BLACK)
+        grid_staticBox = make_staticbox(panel, "Multi-line parameters", size=(-1, -1), color=wx.BLACK)
         grid_staticBox.SetSize((-1, -1))
         grid_box_sizer = wx.StaticBoxSizer(grid_staticBox, wx.HORIZONTAL)
         grid = wx.GridBagSizer(2, 2)
         n = 0
         grid.Add(multiline_shade_under_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.multiline_shade_under_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(multiline_shade_transparency_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.multiline_shade_transparency_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         grid_box_sizer.Add(grid, 0, wx.EXPAND, 10)
@@ -1763,12 +1765,12 @@ class panelCustomiseInteractive(wx.MiniFrame):
         plot_line_color_label = makeStaticText(panel, "Line color:")
         self.rmsf_line_color_colorBtn = wx.Button(panel, wx.ID_ANY, "", size=wx.Size(26, 26), name="rmsf_line_color")
         self.rmsf_line_color_colorBtn.SetBackgroundColour(
-            convertRGB1to255(self.kwargs.get("overlay_properties", {}).get("rmsf_line_color", (0.0, 0.0, 0.0)))
+            convert_rgb_1_to_255(self.kwargs.get("overlay_properties", {}).get("rmsf_line_color", (0.0, 0.0, 0.0)))
         )
         self.rmsf_line_color_colorBtn.Bind(wx.EVT_BUTTON, self.on_apply_color)
 
         plot_fill_under_label = makeStaticText(panel, "Shade under line:")
-        self.rmsf_line_shade_under = makeCheckbox(panel, "")
+        self.rmsf_line_shade_under = make_checkbox(panel, "")
         self.rmsf_line_shade_under.SetValue(
             self.kwargs.get("overlay_properties", {}).get("rmsf_line_shade_under", False)
         )
@@ -1793,7 +1795,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         )
         self.rmsf_shade_transparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_overlay)
 
-        staticBox = makeStaticBox(panel, "RMSF parameters", size=(-1, -1), color=wx.BLACK)
+        staticBox = make_staticbox(panel, "RMSF parameters", size=(-1, -1), color=wx.BLACK)
         staticBox.SetSize((-1, -1))
         grid_box_sizer = wx.StaticBoxSizer(staticBox, wx.HORIZONTAL)
 
@@ -1801,19 +1803,19 @@ class panelCustomiseInteractive(wx.MiniFrame):
         n = 0
         grid.Add(plot_line_width_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.rmsf_line_width_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(plot_line_transparency_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.rmsf_line_transparency_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(plot_line_style_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.rmsf_line_style_choice, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(plot_line_color_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.rmsf_line_color_colorBtn, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(plot_fill_under_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.rmsf_line_shade_under, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(plot_shade_transparency_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.rmsf_shade_transparency_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         grid_box_sizer.Add(grid, 0, wx.EXPAND, 10)
@@ -1947,7 +1949,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         )
         self.annotation_fontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_annotation)
 
-        self.annotation_fontWeight_value = makeCheckbox(panel, "bold")
+        self.annotation_fontWeight_value = make_checkbox(panel, "bold")
         self.annotation_fontWeight_value.SetValue(
             self.kwargs.get("annotation_properties", {}).get(
                 "label_fontweight", self.config.interactive_ms_annotations_fontWeight
@@ -1960,7 +1962,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
             panel, wx.ID_ANY, "", size=wx.Size(26, 26), name="annotation_color"
         )
         self.annotation_fontColor_colorBtn.SetBackgroundColour(
-            convertRGB1to255(
+            convert_rgb_1_to_255(
                 self.kwargs.get("annotation_properties", {}).get(
                     "label_color", self.config.interactive_ms_annotations_label_color
                 )
@@ -1968,7 +1970,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         )
         self.annotation_fontColor_colorBtn.Bind(wx.EVT_BUTTON, self.on_apply_color)
 
-        self.annotation_fontColor_presets_value = makeCheckbox(panel, "use preset colors")
+        self.annotation_fontColor_presets_value = make_checkbox(panel, "use preset colors")
         self.annotation_fontColor_presets_value.SetValue(
             self.kwargs.get("annotation_properties", {}).get("label_use_preset_color", False)
         )
@@ -2009,29 +2011,29 @@ class panelCustomiseInteractive(wx.MiniFrame):
         n = 0
         grid.Add(annotation_show_annotations_label, (n, 0), flag=wx.ALIGN_LEFT)
         grid.Add(self.annotation_showAnnotations, (n, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(annotation_annotate_peak_label, (n, 0), flag=wx.ALIGN_LEFT)
         grid.Add(self.annotation_peakLabel, (n, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(annotation_xpos_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.annotation_xpos_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(annotation_ypos_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.annotation_ypos_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(annotation_rotation_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.annotation_rotation_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(annotation_fontSize_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.annotation_fontSize_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         grid.Add(self.annotation_fontWeight_value, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(annotation_fontColor_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.annotation_fontColor_colorBtn, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(annotation_highlight_peak_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.annotation_peakHighlight, (n, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(annotation_patch_transparency_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.annotation_patch_transparency_value, (n, 1), flag=wx.EXPAND)
 
@@ -2151,22 +2153,22 @@ class panelCustomiseInteractive(wx.MiniFrame):
         n = 0
         grid.Add(legend_label, (n, 0), flag=wx.ALIGN_LEFT)
         grid.Add(self.legend_legend, (n, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(position_label, (n, 0), flag=wx.ALIGN_LEFT)
         grid.Add(self.legend_position, (n, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(orientation_label, (n, 0), flag=wx.ALIGN_LEFT)
         grid.Add(self.legend_orientation, (n, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(fontSize_label, (n, 0), flag=wx.ALIGN_LEFT)
         grid.Add(self.legend_fontSize, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(legendAlpha_label, (n, 0), flag=wx.ALIGN_LEFT)
         grid.Add(self.legend_transparency, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(action_label, (n, 0), flag=wx.ALIGN_LEFT)
         grid.Add(self.legend_click_policy, (n, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(muteAlpha_label, (n, 0), flag=wx.ALIGN_LEFT)
         grid.Add(self.legend_mute_transparency, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
 
@@ -2229,7 +2231,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         colorbar_edge_color_label = makeStaticText(panel, "Edge color:")
         self.colorbar_edge_color = wx.Button(panel, wx.ID_ANY, "", size=wx.Size(26, 26), name="colorbar_edge_color")
         self.colorbar_edge_color.SetBackgroundColour(
-            convertRGB1to255(
+            convert_rgb_1_to_255(
                 self.kwargs.get("colorbar_properties", {}).get(
                     "edge_color", self.config.interactive_colorbar_edge_color
                 )
@@ -2276,7 +2278,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         )
         self.colorbar_label_fontsize.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_colorbar)
 
-        self.colorbar_label_fontweight = makeCheckbox(panel, "bold")
+        self.colorbar_label_fontweight = make_checkbox(panel, "bold")
         self.colorbar_label_fontweight.SetValue(
             self.kwargs.get("colorbar_properties", {}).get(
                 "label_fontweight", self.config.interactive_colorbar_label_weight
@@ -2398,39 +2400,39 @@ class panelCustomiseInteractive(wx.MiniFrame):
         n = 0
         grid.Add(colorbar_label, (n, 0), flag=wx.ALIGN_LEFT)
         grid.Add(self.colorbar_colorbar, (n, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(colorbar_modify_label, (n, 0), flag=wx.ALIGN_LEFT)
         grid.Add(self.colorbar_modify_ticks, (n, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(precision_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.colorbar_precision, (n, 1), flag=wx.EXPAND)
         grid.Add(self.colorbar_useScientific, (n, 2), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(colorbar_edge_color_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.colorbar_edge_color, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(colorbar_edge_width_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.colorbar_edge_width, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(colorbar_label_fontsize, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.colorbar_label_fontsize, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         grid.Add(self.colorbar_label_fontweight, (n, 2), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(labelOffset_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.colorbar_label_offset, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(position_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.colorbar_position, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(offsetX_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.colorbar_offset_x, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(offsetY_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.colorbar_offset_y, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(padding_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.colorbar_padding, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(margin_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         grid.Add(self.colorbar_width, (n, 1), flag=wx.EXPAND)
 
@@ -2446,152 +2448,152 @@ class panelCustomiseInteractive(wx.MiniFrame):
 
     def makeWidgetsPanel(self, panel):
 
-        self.widgets_add_widgets = makeCheckbox(panel, "Add custom JS widgets")
+        self.widgets_add_widgets = make_checkbox(panel, "Add custom JS widgets")
         self.widgets_add_widgets.Bind(wx.EVT_CHECKBOX, self.onEnableDisable_widgets)
         self.widgets_add_widgets.SetValue(
             self.kwargs.get("widgets", {}).get("add_custom_widgets", self.config.interactive_custom_scripts)
         )
 
-        self.widgets_check_all_widgets = makeCheckbox(panel, "Check/uncheck all")
+        self.widgets_check_all_widgets = make_checkbox(panel, "Check/uncheck all")
         self.widgets_check_all_widgets.Bind(wx.EVT_CHECKBOX, self.onCheck_widgets)
         self.widgets_check_all_widgets.SetValue(False)
 
         # general
-        general_staticBox = makeStaticBox(panel, "General widgets", size=(-1, -1), color=wx.BLACK)
+        general_staticBox = make_staticbox(panel, "General widgets", size=(-1, -1), color=wx.BLACK)
         general_staticBox.SetSize((-1, -1))
         general_box_sizer = wx.StaticBoxSizer(general_staticBox, wx.HORIZONTAL)
 
-        self.widgets_general_zoom_1D = makeCheckbox(panel, "Y-axis scale slider")
+        self.widgets_general_zoom_1D = make_checkbox(panel, "Y-axis scale slider")
         self.widgets_general_zoom_1D.Bind(wx.EVT_CHECKBOX, self.on_apply_widgets)
         self.widgets_general_zoom_1D.SetValue(self.kwargs.get("widgets", {}).get("slider_zoom", False))
 
-        self.widgets_general_hover_mode = makeCheckbox(panel, "Hover mode toggle")
+        self.widgets_general_hover_mode = make_checkbox(panel, "Hover mode toggle")
         self.widgets_general_hover_mode.Bind(wx.EVT_CHECKBOX, self.on_apply_widgets)
         self.widgets_general_hover_mode.SetValue(self.kwargs.get("widgets", {}).get("hover_mode", False))
 
         general_grid = wx.GridBagSizer(2, 2)
         y = 0
         general_grid.Add(self.widgets_general_zoom_1D, (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        y = y + 1
+        y += 1
         general_grid.Add(self.widgets_general_hover_mode, (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
         general_box_sizer.Add(general_grid, 0, wx.EXPAND, 10)
 
         # color
-        color_staticBox = makeStaticBox(panel, "Color widgets", size=(-1, -1), color=wx.BLACK)
+        color_staticBox = make_staticbox(panel, "Color widgets", size=(-1, -1), color=wx.BLACK)
         color_staticBox.SetSize((-1, -1))
         color_box_sizer = wx.StaticBoxSizer(color_staticBox, wx.HORIZONTAL)
 
-        self.widgets_color_colorblind = makeCheckbox(panel, "Colorblind toggle")
+        self.widgets_color_colorblind = make_checkbox(panel, "Colorblind toggle")
         self.widgets_color_colorblind.Bind(wx.EVT_CHECKBOX, self.on_apply_widgets)
         self.widgets_color_colorblind.SetValue(self.kwargs.get("widgets", {}).get("colorblind_safe_1D", False))
 
-        self.widgets_color_colormap = makeCheckbox(panel, "Colormap dropdown")
+        self.widgets_color_colormap = make_checkbox(panel, "Colormap dropdown")
         self.widgets_color_colormap.Bind(wx.EVT_CHECKBOX, self.on_apply_widgets)
         self.widgets_color_colormap.SetValue(self.kwargs.get("widgets", {}).get("colorblind_safe_2D", False))
 
         color_grid = wx.GridBagSizer(2, 2)
         y = 0
         color_grid.Add(self.widgets_color_colorblind, (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        y = y + 1
+        y += 1
         color_grid.Add(self.widgets_color_colormap, (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
         color_box_sizer.Add(color_grid, 0, wx.EXPAND, 10)
 
         # labels
-        labels_staticBox = makeStaticBox(panel, "Label and annotation widgets", size=(-1, -1), color=wx.BLACK)
+        labels_staticBox = make_staticbox(panel, "Label and annotation widgets", size=(-1, -1), color=wx.BLACK)
         labels_staticBox.SetSize((-1, -1))
         labels_box_sizer = wx.StaticBoxSizer(labels_staticBox, wx.HORIZONTAL)
 
-        self.widgets_labels_show = makeCheckbox(panel, "Show/hide toggle")
+        self.widgets_labels_show = make_checkbox(panel, "Show/hide toggle")
         self.widgets_labels_show.Bind(wx.EVT_CHECKBOX, self.on_apply_widgets)
         self.widgets_labels_show.SetValue(self.kwargs.get("widgets", {}).get("label_toggle", False))
 
-        self.widgets_labels_font_size = makeCheckbox(panel, "Font size slider")
+        self.widgets_labels_font_size = make_checkbox(panel, "Font size slider")
         self.widgets_labels_font_size.Bind(wx.EVT_CHECKBOX, self.on_apply_widgets)
         self.widgets_labels_font_size.SetValue(self.kwargs.get("widgets", {}).get("label_size_slider", False))
 
-        self.widgets_labels_rotate = makeCheckbox(panel, "Rotation slider")
+        self.widgets_labels_rotate = make_checkbox(panel, "Rotation slider")
         self.widgets_labels_rotate.Bind(wx.EVT_CHECKBOX, self.on_apply_widgets)
         self.widgets_labels_rotate.SetValue(self.kwargs.get("widgets", {}).get("label_rotation", False))
 
-        self.widgets_labels_offset_x = makeCheckbox(panel, "Offset x slider")
+        self.widgets_labels_offset_x = make_checkbox(panel, "Offset x slider")
         self.widgets_labels_offset_x.Bind(wx.EVT_CHECKBOX, self.on_apply_widgets)
         self.widgets_labels_offset_x.SetValue(self.kwargs.get("widgets", {}).get("label_offset_x", False))
 
-        self.widgets_labels_offset_y = makeCheckbox(panel, "Offset y slider")
+        self.widgets_labels_offset_y = make_checkbox(panel, "Offset y slider")
         self.widgets_labels_offset_y.Bind(wx.EVT_CHECKBOX, self.on_apply_widgets)
         self.widgets_labels_offset_y.SetValue(self.kwargs.get("widgets", {}).get("label_offset_y", False))
 
         labels_grid = wx.GridBagSizer(2, 2)
         y = 0
         labels_grid.Add(self.widgets_labels_show, (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        y = y + 1
+        y += 1
         labels_grid.Add(self.widgets_labels_font_size, (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        y = y + 1
+        y += 1
         labels_grid.Add(self.widgets_labels_rotate, (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        y = y + 1
+        y += 1
         labels_grid.Add(self.widgets_labels_offset_x, (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        y = y + 1
+        y += 1
         labels_grid.Add(self.widgets_labels_offset_y, (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
         labels_box_sizer.Add(labels_grid, 0, wx.EXPAND, 10)
 
         # legend
-        legend_staticBox = makeStaticBox(panel, "Legend widgets", size=(-1, -1), color=wx.BLACK)
+        legend_staticBox = make_staticbox(panel, "Legend widgets", size=(-1, -1), color=wx.BLACK)
         legend_staticBox.SetSize((-1, -1))
         legend_box_sizer = wx.StaticBoxSizer(legend_staticBox, wx.HORIZONTAL)
 
-        self.widgets_legend_show = makeCheckbox(panel, "Show/hide toggle")
+        self.widgets_legend_show = make_checkbox(panel, "Show/hide toggle")
         self.widgets_legend_show.Bind(wx.EVT_CHECKBOX, self.on_apply_widgets)
         self.widgets_legend_show.SetValue(self.kwargs.get("widgets", {}).get("legend_toggle", False))
 
-        self.widgets_legend_transparency = makeCheckbox(panel, "Transparency slider")
+        self.widgets_legend_transparency = make_checkbox(panel, "Transparency slider")
         self.widgets_legend_transparency.Bind(wx.EVT_CHECKBOX, self.on_apply_widgets)
         self.widgets_legend_transparency.SetValue(self.kwargs.get("widgets", {}).get("legend_transparency", False))
 
-        self.widgets_legend_orientation = makeCheckbox(panel, "Orientation radiobox")
+        self.widgets_legend_orientation = make_checkbox(panel, "Orientation radiobox")
         self.widgets_legend_orientation.Bind(wx.EVT_CHECKBOX, self.on_apply_widgets)
         self.widgets_legend_orientation.SetValue(self.kwargs.get("widgets", {}).get("legend_orientation", False))
 
-        self.widgets_legend_position = makeCheckbox(panel, "Position dropdown")
+        self.widgets_legend_position = make_checkbox(panel, "Position dropdown")
         self.widgets_legend_position.Bind(wx.EVT_CHECKBOX, self.on_apply_widgets)
         self.widgets_legend_position.SetValue(self.kwargs.get("widgets", {}).get("legend_position", False))
 
         legend_grid = wx.GridBagSizer(2, 2)
         y = 0
         legend_grid.Add(self.widgets_legend_show, (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        y = y + 1
+        y += 1
         legend_grid.Add(self.widgets_legend_transparency, (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        y = y + 1
+        y += 1
         legend_grid.Add(self.widgets_legend_orientation, (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        y = y + 1
+        y += 1
         legend_grid.Add(self.widgets_legend_position, (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
         legend_box_sizer.Add(legend_grid, 0, wx.EXPAND, 10)
 
         # scatter
-        scatter_staticBox = makeStaticBox(panel, "Scatter widgets", size=(-1, -1), color=wx.BLACK)
+        scatter_staticBox = make_staticbox(panel, "Scatter widgets", size=(-1, -1), color=wx.BLACK)
         scatter_staticBox.SetSize((-1, -1))
         scatter_box_sizer = wx.StaticBoxSizer(scatter_staticBox, wx.HORIZONTAL)
 
-        self.widgets_scatter_size = makeCheckbox(panel, "Size slider")
+        self.widgets_scatter_size = make_checkbox(panel, "Size slider")
         self.widgets_scatter_size.Bind(wx.EVT_CHECKBOX, self.on_apply_widgets)
         self.widgets_scatter_size.SetValue(self.kwargs.get("widgets", {}).get("scatter_size", False))
 
-        self.widgets_scatter_transparency = makeCheckbox(panel, "Transparency slider")
+        self.widgets_scatter_transparency = make_checkbox(panel, "Transparency slider")
         self.widgets_scatter_transparency.Bind(wx.EVT_CHECKBOX, self.on_apply_widgets)
         self.widgets_scatter_transparency.SetValue(self.kwargs.get("widgets", {}).get("scatter_transparency", False))
 
         scatter_grid = wx.GridBagSizer(2, 2)
         y = 0
         scatter_grid.Add(self.widgets_scatter_size, (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        y = y + 1
+        y += 1
         scatter_grid.Add(self.widgets_scatter_transparency, (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
         scatter_box_sizer.Add(scatter_grid, 0, wx.EXPAND, 10)
 
         # processing
-        processing_staticBox = makeStaticBox(panel, "Data processing widgets", size=(-1, -1), color=wx.BLACK)
+        processing_staticBox = make_staticbox(panel, "Data processing widgets", size=(-1, -1), color=wx.BLACK)
         processing_staticBox.SetSize((-1, -1))
         processing_box_sizer = wx.StaticBoxSizer(processing_staticBox, wx.HORIZONTAL)
 
-        self.widgets_processing_normalization = makeCheckbox(panel, "Normalization modes dropdown")
+        self.widgets_processing_normalization = make_checkbox(panel, "Normalization modes dropdown")
         self.widgets_processing_normalization.Bind(wx.EVT_CHECKBOX, self.on_apply_widgets)
         self.widgets_processing_normalization.SetValue(
             self.kwargs.get("widgets", {}).get("processing_normalization", False)
@@ -2605,7 +2607,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         grid_1 = wx.GridBagSizer(2, 2)
         y = 0
         grid_1.Add(self.widgets_add_widgets, (y, 0), flag=wx.EXPAND | wx.ALIGN_LEFT)
-        y = y + 1
+        y += 1
         grid_1.Add(self.widgets_check_all_widgets, (y, 0), flag=wx.EXPAND | wx.ALIGN_LEFT)
 
         # Add to grid sizer
@@ -2662,50 +2664,50 @@ class panelCustomiseInteractive(wx.MiniFrame):
         self.tools_position_choice.SetToolTip(wx.ToolTip("Position of the toolbar."))
         self.tools_position_choice.Bind(wx.EVT_COMBOBOX, self.on_apply_tools)
 
-        self.tools_check_all = makeCheckbox(panel, "Check default")
+        self.tools_check_all = make_checkbox(panel, "Check default")
         self.tools_check_all.Bind(wx.EVT_CHECKBOX, self.onCheck_tools)
 
-        self.tools_save_check = makeCheckbox(panel, "Save")
+        self.tools_save_check = make_checkbox(panel, "Save")
         self.tools_save_check.Bind(wx.EVT_CHECKBOX, self.on_apply_tools)
         self.tools_save_check.SetValue(self.kwargs.get("tools", {}).get("save", True))
 
-        self.tools_reset_check = makeCheckbox(panel, "Reset")
+        self.tools_reset_check = make_checkbox(panel, "Reset")
         self.tools_reset_check.Bind(wx.EVT_CHECKBOX, self.on_apply_tools)
         self.tools_reset_check.SetValue(self.kwargs.get("tools", {}).get("reset", True))
 
-        self.tools_hover_check = makeCheckbox(panel, "Hover")
+        self.tools_hover_check = make_checkbox(panel, "Hover")
         self.tools_hover_check.Bind(wx.EVT_CHECKBOX, self.on_apply_tools)
         self.tools_hover_check.SetValue(self.kwargs.get("tools", {}).get("hover", True))
 
-        self.tools_crosshair_check = makeCheckbox(panel, "Crosshair")
+        self.tools_crosshair_check = make_checkbox(panel, "Crosshair")
         self.tools_crosshair_check.Bind(wx.EVT_CHECKBOX, self.on_apply_tools)
         self.tools_crosshair_check.SetValue(self.kwargs.get("tools", {}).get("crosshair", True))
 
-        self.tools_pan_xy_check = makeCheckbox(panel, "Pan (both)")
+        self.tools_pan_xy_check = make_checkbox(panel, "Pan (both)")
         self.tools_pan_xy_check.Bind(wx.EVT_CHECKBOX, self.on_apply_tools)
         self.tools_pan_xy_check.SetValue(self.kwargs.get("tools", {}).get("pan", True))
 
-        self.tools_pan_x_check = makeCheckbox(panel, "Pan (horizontal)")
+        self.tools_pan_x_check = make_checkbox(panel, "Pan (horizontal)")
         self.tools_pan_x_check.Bind(wx.EVT_CHECKBOX, self.on_apply_tools)
         self.tools_pan_x_check.SetValue(self.kwargs.get("tools", {}).get("xpan", False))
 
-        self.tools_pan_y_check = makeCheckbox(panel, "Pan (vertical)")
+        self.tools_pan_y_check = make_checkbox(panel, "Pan (vertical)")
         self.tools_pan_y_check.Bind(wx.EVT_CHECKBOX, self.on_apply_tools)
         self.tools_pan_y_check.SetValue(self.kwargs.get("tools", {}).get("ypan", False))
 
-        self.tools_boxzoom_xy_check = makeCheckbox(panel, "Box zoom (both)")
+        self.tools_boxzoom_xy_check = make_checkbox(panel, "Box zoom (both)")
         self.tools_boxzoom_xy_check.Bind(wx.EVT_CHECKBOX, self.on_apply_tools)
         self.tools_boxzoom_xy_check.SetValue(self.kwargs.get("tools", {}).get("boxzoom", True))
 
-        self.tools_boxzoom_x_check = makeCheckbox(panel, "Box zoom (horizontal)")
+        self.tools_boxzoom_x_check = make_checkbox(panel, "Box zoom (horizontal)")
         self.tools_boxzoom_x_check.Bind(wx.EVT_CHECKBOX, self.on_apply_tools)
         self.tools_boxzoom_x_check.SetValue(self.kwargs.get("tools", {}).get("xbox_zoom", False))
 
-        self.tools_boxzoom_y_check = makeCheckbox(panel, "Box zoom (vertical)")
+        self.tools_boxzoom_y_check = make_checkbox(panel, "Box zoom (vertical)")
         self.tools_boxzoom_y_check.Bind(wx.EVT_CHECKBOX, self.on_apply_tools)
         self.tools_boxzoom_y_check.SetValue(self.kwargs.get("tools", {}).get("ybox_zoom", False))
 
-        self.tools_wheel_check = makeCheckbox(panel, "Wheel")
+        self.tools_wheel_check = make_checkbox(panel, "Wheel")
         self.tools_wheel_check.Bind(wx.EVT_CHECKBOX, self.on_apply_tools)
         self.tools_wheel_check.SetValue(self.kwargs.get("tools", {}).get("wheel", True))
 
@@ -2718,27 +2720,27 @@ class panelCustomiseInteractive(wx.MiniFrame):
         self.tools_wheel_choice.SetToolTip(wx.ToolTip("Only one wheel-type is permitted."))
         self.tools_wheel_choice.Bind(wx.EVT_COMBOBOX, self.on_apply_tools)
 
-        tools_staticBox = makeStaticBox(panel, "Available tools", size=(-1, -1), color=wx.BLACK)
+        tools_staticBox = make_staticbox(panel, "Available tools", size=(-1, -1), color=wx.BLACK)
         tools_staticBox.SetSize((-1, -1))
         tools_box_sizer = wx.StaticBoxSizer(tools_staticBox, wx.HORIZONTAL)
 
         grid = wx.GridBagSizer(2, 2)
         y = 0
         grid.Add(self.tools_save_check, (y, 0), flag=wx.EXPAND | wx.ALIGN_LEFT)
-        y = y + 1
+        y += 1
         grid.Add(self.tools_reset_check, (y, 0), flag=wx.EXPAND | wx.ALIGN_LEFT)
-        y = y + 1
+        y += 1
         grid.Add(self.tools_hover_check, (y, 0), flag=wx.EXPAND | wx.ALIGN_LEFT)
         grid.Add(self.tools_crosshair_check, (y, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
-        y = y + 1
+        y += 1
         grid.Add(self.tools_pan_xy_check, (y, 0), flag=wx.EXPAND | wx.ALIGN_LEFT)
         grid.Add(self.tools_pan_x_check, (y, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
         grid.Add(self.tools_pan_y_check, (y, 2), flag=wx.EXPAND | wx.ALIGN_LEFT)
-        y = y + 1
+        y += 1
         grid.Add(self.tools_boxzoom_xy_check, (y, 0), flag=wx.EXPAND | wx.ALIGN_LEFT)
         grid.Add(self.tools_boxzoom_x_check, (y, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
         grid.Add(self.tools_boxzoom_y_check, (y, 2), flag=wx.EXPAND | wx.ALIGN_LEFT)
-        y = y + 1
+        y += 1
         grid.Add(self.tools_wheel_check, (y, 0), flag=wx.EXPAND | wx.ALIGN_LEFT)
         grid.Add(self.tools_wheel_choice, (y, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
         tools_box_sizer.Add(grid, 0, wx.EXPAND, 10)
@@ -2781,7 +2783,7 @@ class panelCustomiseInteractive(wx.MiniFrame):
         )
         self.tools_active_inspect_choice.Bind(wx.EVT_COMBOBOX, self.on_apply_tools)
 
-        active_staticBox = makeStaticBox(panel, "Active tools", size=(-1, -1), color=wx.BLACK)
+        active_staticBox = make_staticbox(panel, "Active tools", size=(-1, -1), color=wx.BLACK)
         active_staticBox.SetSize((-1, -1))
         active_box_sizer = wx.StaticBoxSizer(active_staticBox, wx.HORIZONTAL)
 
@@ -2789,10 +2791,10 @@ class panelCustomiseInteractive(wx.MiniFrame):
         y = 0
         grid.Add(active_wheel, (y, 0), flag=wx.EXPAND | wx.ALIGN_LEFT)
         grid.Add(self.tools_active_wheel_choice, (y, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
-        y = y + 1
+        y += 1
         grid.Add(active_drag, (y, 0), flag=wx.EXPAND | wx.ALIGN_LEFT)
         grid.Add(self.tools_active_drag_choice, (y, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
-        y = y + 1
+        y += 1
         grid.Add(active_inspect, (y, 0), flag=wx.EXPAND | wx.ALIGN_LEFT)
         grid.Add(self.tools_active_inspect_choice, (y, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
         active_box_sizer.Add(grid, 0, wx.EXPAND, 10)
@@ -2801,11 +2803,11 @@ class panelCustomiseInteractive(wx.MiniFrame):
         y = 0
         grid_main.Add(tools_position, (y, 0), flag=wx.ALIGN_LEFT)
         grid_main.Add(self.tools_position_choice, (y, 1), flag=wx.EXPAND)
-        y = y + 1
+        y += 1
         grid_main.Add(self.tools_check_all, (y, 0), wx.GBSpan(1, 3), flag=wx.EXPAND | wx.ALIGN_LEFT)
-        y = y + 1
+        y += 1
         grid_main.Add(tools_box_sizer, (y, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
-        y = y + 1
+        y += 1
         grid_main.Add(active_box_sizer, (y, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
 
         # pack elements

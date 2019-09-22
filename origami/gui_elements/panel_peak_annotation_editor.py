@@ -10,15 +10,15 @@ from gui_elements.misc_dialogs import DialogSimpleAsk
 from objects.annotations import check_annotation_input
 from pubsub import pub
 from styles import ListCtrl
-from styles import makeCheckbox
+from styles import make_checkbox
 from styles import makeMenuItem
 from styles import validator
 from utils.check import check_value_order
-from utils.color import convertRGB1to255
-from utils.color import convertRGB255to1
-from utils.color import determineFontColor
+from utils.color import convert_rgb_1_to_255
+from utils.color import convert_rgb_255_to_1
 from utils.color import get_all_color_types
-from utils.color import roundRGB
+from utils.color import get_font_color
+from utils.color import round_rgb
 from utils.converters import rounder
 from utils.converters import str2int
 from utils.converters import str2num
@@ -430,7 +430,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         self.label_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
         add_arrow_to_peak = wx.StaticText(panel, -1, "show arrow:")
-        self.add_arrow_to_peak = makeCheckbox(panel, "")
+        self.add_arrow_to_peak = make_checkbox(panel, "")
         self.add_arrow_to_peak.SetValue(False)
         self.add_arrow_to_peak.Bind(wx.EVT_CHECKBOX, self.on_add_annotation)
 
@@ -452,11 +452,11 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
 
         patch_color = wx.StaticText(panel, -1, "patch color:")
         self.patch_color_btn = wx.Button(panel, wx.ID_ANY, "", size=wx.Size(26, 26), name="color.patch")
-        self.patch_color_btn.SetBackgroundColour(convertRGB1to255(self.config.interactive_ms_annotations_color))
+        self.patch_color_btn.SetBackgroundColour(convert_rgb_1_to_255(self.config.interactive_ms_annotations_color))
         self.patch_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
         add_patch_to_peak = wx.StaticText(panel, -1, "show patch:")
-        self.add_patch_to_peak = makeCheckbox(panel, "")
+        self.add_patch_to_peak = make_checkbox(panel, "")
         self.add_patch_to_peak.SetValue(False)
         self.add_patch_to_peak.Bind(wx.EVT_CHECKBOX, self.on_add_annotation)
 
@@ -471,11 +471,11 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         self.show_btn = wx.Button(panel, wx.ID_OK, "Show ▼", size=(-1, 22))
         self.action_btn = wx.Button(panel, wx.ID_OK, "Action ▼", size=(-1, 22))
 
-        self.highlight_on_selection = makeCheckbox(panel, "highlight")
+        self.highlight_on_selection = make_checkbox(panel, "highlight")
         self.highlight_on_selection.SetValue(True)
         self.highlight_on_selection.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        self.zoom_on_selection = makeCheckbox(panel, "zoom-in")
+        self.zoom_on_selection = make_checkbox(panel, "zoom-in")
         self.zoom_on_selection.SetValue(False)
 
         window_size = wx.StaticText(panel, wx.ID_ANY, "window size:")
@@ -483,7 +483,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             panel, -1, value=str(5), min=0.0001, max=250, initial=5, inc=25, size=(90, -1)
         )
 
-        self.auto_add_to_table = makeCheckbox(panel, "automatically add to table")
+        self.auto_add_to_table = make_checkbox(panel, "automatically add to table")
         self.auto_add_to_table.SetValue(self._auto_add_to_table)
 
         #
@@ -951,7 +951,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             item_id = self.peaklist.item_id
 
         information = self.peaklist.on_get_item_information(item_id)
-        information["color_255to1"] = convertRGB255to1(information["color"], decimals=3)
+        information["color_255to1"] = convert_rgb_255_to_1(information["color"], decimals=3)
 
         return information
 
@@ -1065,8 +1065,8 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         self.charge_value.SetValue(str(charge))
         self.add_arrow_to_peak.SetValue(arrow_show)
         self.add_patch_to_peak.SetValue(patch_show)
-        self.patch_color_btn.SetBackgroundColour(convertRGB1to255(color))
-        self.label_color_btn.SetBackgroundColour(convertRGB1to255(label_color))
+        self.patch_color_btn.SetBackgroundColour(convert_rgb_1_to_255(color))
+        self.label_color_btn.SetBackgroundColour(convert_rgb_1_to_255(label_color))
         self.patch_min_x.SetValue(rounder(patch_position[0], 4))
         self.patch_min_y.SetValue(rounder(patch_position[1], 4))
         self.patch_width.SetValue(rounder(patch_position[2], 4))
@@ -1083,7 +1083,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             "label": self.label_value.GetValue(),
             "label_position": [str2num(self.label_position_x.GetValue()), str2num(self.label_position_y.GetValue())],
             "charge": str2int(self.charge_value.GetValue()),
-            "label_color": convertRGB255to1(self.label_color_btn.GetBackgroundColour()),
+            "label_color": convert_rgb_255_to_1(self.label_color_btn.GetBackgroundColour()),
             "arrow_show": self.add_arrow_to_peak.GetValue(),
             "patch_show": self.add_patch_to_peak.GetValue(),
             "patch_position": [
@@ -1092,7 +1092,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
                 str2num(self.patch_width.GetValue()),
                 str2num(self.patch_height.GetValue()),
             ],
-            "patch_color": convertRGB255to1(self.patch_color_btn.GetBackgroundColour()),
+            "patch_color": convert_rgb_255_to_1(self.patch_color_btn.GetBackgroundColour()),
         }
 
         return info_dict
@@ -1246,7 +1246,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
 
     def on_add_to_table(self, annot_obj):
         """Add data to table"""
-        color = convertRGB1to255(annot_obj.patch_color)
+        color = convert_rgb_1_to_255(annot_obj.patch_color)
         self.peaklist.Append(
             [
                 "",
@@ -1257,11 +1257,11 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
                 annot_obj.charge,
                 str(annot_obj.patch_show),
                 annot_obj.patch_position,
-                str(roundRGB(convertRGB255to1(color))),
+                str(round_rgb(convert_rgb_255_to_1(color))),
             ]
         )
         self.peaklist.SetItemBackgroundColour(self.peaklist.GetItemCount() - 1, color)
-        self.peaklist.SetItemTextColour(self.peaklist.GetItemCount() - 1, determineFontColor(color, return_rgb=True))
+        self.peaklist.SetItemTextColour(self.peaklist.GetItemCount() - 1, get_font_color(color, return_rgb=True))
 
     def on_update_value_in_peaklist(self, item_id, value_types, values):
 

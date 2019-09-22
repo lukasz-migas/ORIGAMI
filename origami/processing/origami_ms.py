@@ -258,7 +258,7 @@ def origami_combine_boltzmann(
     step_voltage,
     scans_per_voltage,
     expIncrement,
-    verbose,
+    verbose=False,
     A1=2,
     A2=0.07,
     x0=47,

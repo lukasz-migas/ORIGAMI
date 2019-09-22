@@ -17,9 +17,9 @@ from ids import ID_tandemPanel_sort_peptide_by_AZ
 from ids import ID_tandemPanel_sort_peptide_by_length
 from natsort import natsorted
 from styles import ListCtrl
-from styles import makeCheckbox
+from styles import make_checkbox
+from styles import make_staticbox
 from styles import makeMenuItem
-from styles import makeStaticBox
 from toolbox import removeListDuplicates
 from utils.converters import str2int
 from utils.converters import str2num
@@ -463,23 +463,23 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
         tolerance_grid.Add(self.max_labels_value, (n, 5), flag=wx.EXPAND)
 
         # M-ions
-        self.peptide_M_all = makeCheckbox(panel, "P-all")
+        self.peptide_M_all = make_checkbox(panel, "P-all")
         self.peptide_M_all.SetValue(self.config.fragments_search["M-ALL"])
         self.peptide_M_all.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.peptide_M = makeCheckbox(panel, "P")
+        self.peptide_M = make_checkbox(panel, "P")
         self.peptide_M.SetValue(self.config.fragments_search["M"])
         self.peptide_M.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.peptide_M_nH2O = makeCheckbox(panel, "P-nH2O/P°")
+        self.peptide_M_nH2O = make_checkbox(panel, "P-nH2O/P°")
         self.peptide_M_nH2O.SetValue(self.config.fragments_search["M-nH2O"])
         self.peptide_M_nH2O.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.peptide_M_nNH3 = makeCheckbox(panel, "P-nNH3/P*")
+        self.peptide_M_nNH3 = make_checkbox(panel, "P-nNH3/P*")
         self.peptide_M_nNH3.SetValue(self.config.fragments_search["M-nNH3"])
         self.peptide_M_nNH3.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        M_ions_staticBox = makeStaticBox(panel, "Precursor", size=(-1, -1), color=wx.BLACK)
+        M_ions_staticBox = make_staticbox(panel, "Precursor", size=(-1, -1), color=wx.BLACK)
         M_ions_staticBox.SetSize((-1, -1))
         M_ions_box_sizer = wx.StaticBoxSizer(M_ions_staticBox, wx.HORIZONTAL)
 
@@ -491,23 +491,23 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
         M_ions_box_sizer.Add(M_ions_grid, 0, wx.EXPAND, 10)
 
         # a-ions
-        self.peptide_a_all = makeCheckbox(panel, "a-all")
+        self.peptide_a_all = make_checkbox(panel, "a-all")
         self.peptide_a_all.SetValue(self.config.fragments_search["a-ALL"])
         self.peptide_a_all.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.peptide_a = makeCheckbox(panel, "a")
+        self.peptide_a = make_checkbox(panel, "a")
         self.peptide_a.SetValue(self.config.fragments_search["a"])
         self.peptide_a.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.peptide_a_nH2O = makeCheckbox(panel, "a-nH2O/a°")
+        self.peptide_a_nH2O = make_checkbox(panel, "a-nH2O/a°")
         self.peptide_a_nH2O.SetValue(self.config.fragments_search["a-nH2O"])
         self.peptide_a_nH2O.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.peptide_a_nNH3 = makeCheckbox(panel, "a-nNH3/a*")
+        self.peptide_a_nNH3 = make_checkbox(panel, "a-nNH3/a*")
         self.peptide_a_nNH3.SetValue(self.config.fragments_search["a-nNH3"])
         self.peptide_a_nNH3.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        a_ions_staticBox = makeStaticBox(panel, "a-fragments", size=(-1, -1), color=wx.BLACK)
+        a_ions_staticBox = make_staticbox(panel, "a-fragments", size=(-1, -1), color=wx.BLACK)
         a_ions_staticBox.SetSize((-1, -1))
         a_ions_box_sizer = wx.StaticBoxSizer(a_ions_staticBox, wx.HORIZONTAL)
 
@@ -518,24 +518,24 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
         a_ions_grid.Add(self.peptide_a_nNH3, (3, 0), flag=wx.EXPAND)
         a_ions_box_sizer.Add(a_ions_grid, 0, wx.EXPAND, 10)
 
-        self.peptide_b_all = makeCheckbox(panel, "b-all")
+        self.peptide_b_all = make_checkbox(panel, "b-all")
         self.peptide_b_all.SetValue(self.config.fragments_search["b-ALL"])
         self.peptide_b_all.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.peptide_b = makeCheckbox(panel, "b")
+        self.peptide_b = make_checkbox(panel, "b")
         self.peptide_b.SetValue(self.config.fragments_search["b"])
         self.peptide_b.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.peptide_b_nH2O = makeCheckbox(panel, "b-nH2O/b°")
+        self.peptide_b_nH2O = make_checkbox(panel, "b-nH2O/b°")
         self.peptide_b_nH2O.SetValue(self.config.fragments_search["b-nH2O"])
         self.peptide_b_nH2O.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.peptide_b_nNH3 = makeCheckbox(panel, "b-nNH3/b*")
+        self.peptide_b_nNH3 = make_checkbox(panel, "b-nNH3/b*")
         self.peptide_b_nNH3.SetValue(self.config.fragments_search["b-nNH3"])
         self.peptide_b_nNH3.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         # b-ions
-        b_ions_staticBox = makeStaticBox(panel, "b-fragments", size=(-1, -1), color=wx.BLACK)
+        b_ions_staticBox = make_staticbox(panel, "b-fragments", size=(-1, -1), color=wx.BLACK)
         b_ions_staticBox.SetSize((-1, -1))
         b_ions_box_sizer = wx.StaticBoxSizer(b_ions_staticBox, wx.HORIZONTAL)
 
@@ -546,32 +546,32 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
         b_ions_grid.Add(self.peptide_b_nNH3, (3, 0), flag=wx.EXPAND)
         b_ions_box_sizer.Add(b_ions_grid, 0, wx.EXPAND, 10)
 
-        self.peptide_c_all = makeCheckbox(panel, "c-all")
+        self.peptide_c_all = make_checkbox(panel, "c-all")
         self.peptide_c_all.SetValue(self.config.fragments_search["c-ALL"])
         self.peptide_c_all.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.peptide_c = makeCheckbox(panel, "c")
+        self.peptide_c = make_checkbox(panel, "c")
         self.peptide_c.SetValue(self.config.fragments_search["c"])
         self.peptide_c.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.peptide_c_nH2O = makeCheckbox(panel, "c-nH2O/c°")
+        self.peptide_c_nH2O = make_checkbox(panel, "c-nH2O/c°")
         self.peptide_c_nH2O.SetValue(self.config.fragments_search["c-nH2O"])
         self.peptide_c_nH2O.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.peptide_c_nNH3 = makeCheckbox(panel, "c-nNH3/c*")
+        self.peptide_c_nNH3 = make_checkbox(panel, "c-nNH3/c*")
         self.peptide_c_nNH3.SetValue(self.config.fragments_search["c-nNH3"])
         self.peptide_c_nNH3.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.peptide_c_dot = makeCheckbox(panel, "c-dot")
+        self.peptide_c_dot = make_checkbox(panel, "c-dot")
         self.peptide_c_dot.SetValue(self.config.fragments_search["c-dot"])
         self.peptide_c_dot.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.peptide_c_add_1_2 = makeCheckbox(panel, "c+1/2")
+        self.peptide_c_add_1_2 = make_checkbox(panel, "c+1/2")
         self.peptide_c_add_1_2.SetValue(self.config.fragments_search["c+1/2"])
         self.peptide_c_add_1_2.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         # c-ions
-        c_ions_staticBox = makeStaticBox(panel, "c-fragments", size=(-1, -1), color=wx.BLACK)
+        c_ions_staticBox = make_staticbox(panel, "c-fragments", size=(-1, -1), color=wx.BLACK)
         c_ions_staticBox.SetSize((-1, -1))
         c_ions_box_sizer = wx.StaticBoxSizer(c_ions_staticBox, wx.HORIZONTAL)
 
@@ -584,24 +584,24 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
         c_ions_grid.Add(self.peptide_c_add_1_2, (5, 0), flag=wx.EXPAND)
         c_ions_box_sizer.Add(c_ions_grid, 0, wx.EXPAND, 10)
 
-        self.peptide_x_all = makeCheckbox(panel, "x-all")
+        self.peptide_x_all = make_checkbox(panel, "x-all")
         self.peptide_x_all.SetValue(self.config.fragments_search["x-ALL"])
         self.peptide_x_all.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.peptide_x = makeCheckbox(panel, "x")
+        self.peptide_x = make_checkbox(panel, "x")
         self.peptide_x.SetValue(self.config.fragments_search["x"])
         self.peptide_x.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.peptide_x_nH2O = makeCheckbox(panel, "x-nH2O/x°")
+        self.peptide_x_nH2O = make_checkbox(panel, "x-nH2O/x°")
         self.peptide_x_nH2O.SetValue(self.config.fragments_search["x-nH2O"])
         self.peptide_x_nH2O.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.peptide_x_nNH3 = makeCheckbox(panel, "x-nNH3/x*")
+        self.peptide_x_nNH3 = make_checkbox(panel, "x-nNH3/x*")
         self.peptide_x_nNH3.SetValue(self.config.fragments_search["x-nNH3"])
         self.peptide_x_nNH3.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         # y-ions
-        x_ions_staticBox = makeStaticBox(panel, "x-fragments", size=(-1, -1), color=wx.BLACK)
+        x_ions_staticBox = make_staticbox(panel, "x-fragments", size=(-1, -1), color=wx.BLACK)
         x_ions_staticBox.SetSize((-1, -1))
         x_ions_box_sizer = wx.StaticBoxSizer(x_ions_staticBox, wx.HORIZONTAL)
 
@@ -612,24 +612,24 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
         x_ions_grid.Add(self.peptide_x_nNH3, (3, 0), flag=wx.EXPAND)
         x_ions_box_sizer.Add(x_ions_grid, 0, wx.EXPAND, 10)
 
-        self.peptide_y_all = makeCheckbox(panel, "y-all")
+        self.peptide_y_all = make_checkbox(panel, "y-all")
         self.peptide_y_all.SetValue(self.config.fragments_search["y-ALL"])
         self.peptide_y_all.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.peptide_y = makeCheckbox(panel, "y")
+        self.peptide_y = make_checkbox(panel, "y")
         self.peptide_y.SetValue(self.config.fragments_search["y"])
         self.peptide_y.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.peptide_y_nH2O = makeCheckbox(panel, "y-nH2O/y°")
+        self.peptide_y_nH2O = make_checkbox(panel, "y-nH2O/y°")
         self.peptide_y_nH2O.SetValue(self.config.fragments_search["y-nH2O"])
         self.peptide_y_nH2O.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.peptide_y_nNH3 = makeCheckbox(panel, "y-nNH3/y*")
+        self.peptide_y_nNH3 = make_checkbox(panel, "y-nNH3/y*")
         self.peptide_y_nNH3.SetValue(self.config.fragments_search["y-nNH3"])
         self.peptide_y_nNH3.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         # y-ions
-        y_ions_staticBox = makeStaticBox(panel, "y-fragments", size=(-1, -1), color=wx.BLACK)
+        y_ions_staticBox = make_staticbox(panel, "y-fragments", size=(-1, -1), color=wx.BLACK)
         y_ions_staticBox.SetSize((-1, -1))
         y_ions_box_sizer = wx.StaticBoxSizer(y_ions_staticBox, wx.HORIZONTAL)
 
@@ -640,32 +640,32 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
         y_ions_grid.Add(self.peptide_y_nNH3, (3, 0), flag=wx.EXPAND)
         y_ions_box_sizer.Add(y_ions_grid, 0, wx.EXPAND, 10)
 
-        self.peptide_z_all = makeCheckbox(panel, "z-all")
+        self.peptide_z_all = make_checkbox(panel, "z-all")
         self.peptide_z_all.SetValue(self.config.fragments_search["z-ALL"])
         self.peptide_z_all.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.peptide_z = makeCheckbox(panel, "z")
+        self.peptide_z = make_checkbox(panel, "z")
         self.peptide_z.SetValue(self.config.fragments_search["z"])
         self.peptide_z.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.peptide_z_nH2O = makeCheckbox(panel, "z-nH2O/z°")
+        self.peptide_z_nH2O = make_checkbox(panel, "z-nH2O/z°")
         self.peptide_z_nH2O.SetValue(self.config.fragments_search["z-nH2O"])
         self.peptide_z_nH2O.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.peptide_z_nNH3 = makeCheckbox(panel, "z-nNH3/z*")
+        self.peptide_z_nNH3 = make_checkbox(panel, "z-nNH3/z*")
         self.peptide_z_nNH3.SetValue(self.config.fragments_search["z-nNH3"])
         self.peptide_z_nNH3.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.peptide_z_dot = makeCheckbox(panel, "z-dot")
+        self.peptide_z_dot = make_checkbox(panel, "z-dot")
         self.peptide_z_dot.SetValue(self.config.fragments_search["z-dot"])
         self.peptide_z_dot.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.peptide_z_add_1_2 = makeCheckbox(panel, "z+1/2/3")
+        self.peptide_z_add_1_2 = make_checkbox(panel, "z+1/2/3")
         self.peptide_z_add_1_2.SetValue(self.config.fragments_search["z+1/2/3"])
         self.peptide_z_add_1_2.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         # z-ions
-        z_ions_staticBox = makeStaticBox(panel, "z-fragments", size=(-1, -1), color=wx.BLACK)
+        z_ions_staticBox = make_staticbox(panel, "z-fragments", size=(-1, -1), color=wx.BLACK)
         z_ions_staticBox.SetSize((-1, -1))
         z_ions_box_sizer = wx.StaticBoxSizer(z_ions_staticBox, wx.HORIZONTAL)
 
@@ -681,7 +681,7 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
         grid = wx.GridBagSizer(5, 5)
         n = 0
         grid.Add(tolerance_grid, (n, 0), wx.GBSpan(1, 7), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(M_ions_box_sizer, (n, 0), flag=wx.EXPAND)
         grid.Add(a_ions_box_sizer, (n, 1), flag=wx.EXPAND)
         grid.Add(b_ions_box_sizer, (n, 2), flag=wx.EXPAND)
@@ -690,7 +690,7 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
         grid.Add(y_ions_box_sizer, (n, 5), flag=wx.EXPAND)
         grid.Add(z_ions_box_sizer, (n, 6), flag=wx.EXPAND)
 
-        fragment_staticBox = makeStaticBox(panel, "Fragment assignment", size=(-1, -1), color=wx.BLACK)
+        fragment_staticBox = make_staticbox(panel, "Fragment assignment", size=(-1, -1), color=wx.BLACK)
         fragment_staticBox.SetSize((-1, -1))
 
         fragment_box_sizer = wx.StaticBoxSizer(fragment_staticBox, wx.HORIZONTAL)
@@ -906,11 +906,11 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
         self.show_all_Btn = wx.Button(panel, -1, "Load all scans", size=(-1, 25))
         self.show_all_Btn.Bind(wx.EVT_BUTTON, self.on_load_all_spectra)
 
-        self.verbose_check = makeCheckbox(panel, "verbose")
+        self.verbose_check = make_checkbox(panel, "verbose")
         self.verbose_check.SetValue(self.verbose)
         self.verbose_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.butterfly_check = makeCheckbox(panel, "butterfly plot")
+        self.butterfly_check = make_checkbox(panel, "butterfly plot")
         self.butterfly_check.SetValue(self.butterfly_plot)
         self.butterfly_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 

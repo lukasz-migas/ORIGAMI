@@ -4,8 +4,8 @@ import logging
 
 import wx
 from pubsub import pub
+from styles import make_checkbox
 from styles import make_spin_ctrl
-from styles import makeCheckbox
 from styles import MiniFrame
 from styles import validator
 from utils.converters import str2num
@@ -133,7 +133,7 @@ class PanelProcessExtractData(MiniFrame):
         self.extract_rtEnd_value.SetValue(str(self.config.extract_rtEnd))
         self.extract_rtEnd_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        self.extract_rt_scans_check = makeCheckbox(panel, "In scans")
+        self.extract_rt_scans_check = make_checkbox(panel, "In scans")
         self.extract_rt_scans_check.SetValue(self.config.extract_rt_use_scans)
         self.extract_rt_scans_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.extract_rt_scans_check.Bind(wx.EVT_CHECKBOX, self.on_change_validator)
@@ -153,7 +153,7 @@ class PanelProcessExtractData(MiniFrame):
         self.extract_dtEnd_value.SetValue(str(self.config.extract_dtEnd))
         self.extract_dtEnd_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        self.extract_dt_ms_check = makeCheckbox(panel, "In ms")
+        self.extract_dt_ms_check = make_checkbox(panel, "In ms")
         self.extract_dt_ms_check.SetValue(self.config.extract_dt_use_ms)
         self.extract_dt_ms_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.extract_dt_ms_check.Bind(wx.EVT_CHECKBOX, self.on_change_validator)
@@ -164,59 +164,59 @@ class PanelProcessExtractData(MiniFrame):
         self.extract_pusherFreq_value.SetValue(str(self.parameters.get("pusherFreq", 1)))
         self.extract_pusherFreq_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        self.extract_extractMS_check = makeCheckbox(panel, "Extract mass spectrum")
+        self.extract_extractMS_check = make_checkbox(panel, "Extract mass spectrum")
         self.extract_extractMS_check.SetValue(self.config.extract_massSpectra)
         self.extract_extractMS_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.extract_extractMS_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        self.extract_extractMS_ms_check = makeCheckbox(panel, "m/z")
+        self.extract_extractMS_ms_check = make_checkbox(panel, "m/z")
         self.extract_extractMS_ms_check.SetValue(False)
         self.extract_extractMS_ms_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.extract_extractMS_rt_check = makeCheckbox(panel, "RT")
+        self.extract_extractMS_rt_check = make_checkbox(panel, "RT")
         self.extract_extractMS_rt_check.SetValue(True)
         self.extract_extractMS_rt_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.extract_extractMS_dt_check = makeCheckbox(panel, "DT")
+        self.extract_extractMS_dt_check = make_checkbox(panel, "DT")
         self.extract_extractMS_dt_check.SetValue(True)
         self.extract_extractMS_dt_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.extract_extractRT_check = makeCheckbox(panel, "Extract chromatogram")
+        self.extract_extractRT_check = make_checkbox(panel, "Extract chromatogram")
         self.extract_extractRT_check.SetValue(self.config.extract_chromatograms)
         self.extract_extractRT_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.extract_extractRT_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        self.extract_extractRT_ms_check = makeCheckbox(panel, "m/z")
+        self.extract_extractRT_ms_check = make_checkbox(panel, "m/z")
         self.extract_extractRT_ms_check.SetValue(True)
         self.extract_extractRT_ms_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.extract_extractRT_dt_check = makeCheckbox(panel, "DT")
+        self.extract_extractRT_dt_check = make_checkbox(panel, "DT")
         self.extract_extractRT_dt_check.SetValue(True)
         self.extract_extractRT_dt_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.extract_extractDT_check = makeCheckbox(panel, "Extract mobilogram")
+        self.extract_extractDT_check = make_checkbox(panel, "Extract mobilogram")
         self.extract_extractDT_check.SetValue(self.config.extract_driftTime1D)
         self.extract_extractDT_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.extract_extractDT_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        self.extract_extractDT_ms_check = makeCheckbox(panel, "m/z")
+        self.extract_extractDT_ms_check = make_checkbox(panel, "m/z")
         self.extract_extractDT_ms_check.SetValue(True)
         self.extract_extractDT_ms_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.extract_extractDT_rt_check = makeCheckbox(panel, "RT")
+        self.extract_extractDT_rt_check = make_checkbox(panel, "RT")
         self.extract_extractDT_rt_check.SetValue(True)
         self.extract_extractDT_rt_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.extract_extract2D_check = makeCheckbox(panel, "Extract heatmap")
+        self.extract_extract2D_check = make_checkbox(panel, "Extract heatmap")
         self.extract_extract2D_check.SetValue(self.config.extract_driftTime2D)
         self.extract_extract2D_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.extract_extract2D_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        self.extract_extract2D_ms_check = makeCheckbox(panel, "m/z")
+        self.extract_extract2D_ms_check = make_checkbox(panel, "m/z")
         self.extract_extract2D_ms_check.SetValue(True)
         self.extract_extract2D_ms_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.extract_extract2D_rt_check = makeCheckbox(panel, "RT")
+        self.extract_extract2D_rt_check = make_checkbox(panel, "RT")
         self.extract_extract2D_rt_check.SetValue(True)
         self.extract_extract2D_rt_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
@@ -273,51 +273,51 @@ class PanelProcessExtractData(MiniFrame):
         n += 1
         grid.Add(horizontal_line_0, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n += 1
-        grid.Add(start_label, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
-        grid.Add(end_label, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
-        n = n + 1
+        grid.Add(start_label, (n, 1), flag=wx.ALIGN_CENTER)
+        grid.Add(end_label, (n, 2), flag=wx.ALIGN_CENTER)
+        n += 1
         grid.Add(self.mz_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.EXPAND)
         grid.Add(self.extract_mzStart_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         grid.Add(self.extract_mzEnd_value, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(self.rt_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.EXPAND)
         grid.Add(self.extract_rtStart_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         grid.Add(self.extract_rtEnd_value, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(scanTime_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.EXPAND)
         grid.Add(self.extract_scanTime_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         grid.Add(self.extract_rt_scans_check, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(self.dt_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.EXPAND)
         grid.Add(self.extract_dtStart_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         grid.Add(self.extract_dtEnd_value, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(pusherFreq_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT | wx.EXPAND)
         grid.Add(self.extract_pusherFreq_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         grid.Add(self.extract_dt_ms_check, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(self.extract_extractMS_check, (n, 0), flag=wx.ALIGN_LEFT | wx.EXPAND)
         grid.Add(ms_grid, (n, 1), flag=wx.ALIGN_LEFT)
-        n = n + 1
+        n += 1
         grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(self.extract_extractRT_check, (n, 0), flag=wx.ALIGN_LEFT | wx.EXPAND)
         grid.Add(rt_grid, (n, 1), flag=wx.ALIGN_LEFT)
-        n = n + 1
+        n += 1
         grid.Add(horizontal_line_3, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(self.extract_extractDT_check, (n, 0), flag=wx.ALIGN_LEFT | wx.EXPAND)
         grid.Add(dt_grid, (n, 1), flag=wx.ALIGN_LEFT | wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(horizontal_line_4, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(self.extract_extract2D_check, (n, 0), flag=wx.ALIGN_LEFT | wx.EXPAND)
         grid.Add(heatmap_grid, (n, 1), flag=wx.ALIGN_LEFT | wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(horizontal_line_5, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(btn_grid, (n, 0), wx.GBSpan(1, 3), flag=wx.ALIGN_CENTER)
 
         # fit layout
@@ -399,7 +399,7 @@ class PanelProcessExtractData(MiniFrame):
             )
 
         # get document
-        document = self.data_handling._on_get_document(self.document_title)
+        document = self.data_handling.on_get_document(self.document_title)
         if document is None:
             raise MessageError("Missing document", f"Could not find {self.document_title}. Was it deleted?")
 

@@ -1,3 +1,4 @@
+"""Various color utility functions"""
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 import re
@@ -6,23 +7,23 @@ from ast import literal_eval
 import numpy as np
 from utils.random import random_int_0_to_255
 
-__all__ = ["randomColorGenerator", "convertRGB255to1", "convertRGB1to255", "determineFontColor", "get_n_colors"]
+__all__ = ["get_random_color", "convert_rgb_255_to_1", "convert_rgb_1_to_255", "get_font_color", "get_n_colors"]
 
 
 def get_n_colors(n_colors):
     colors = []
     for __ in range(n_colors):
-        colors.append(randomColorGenerator())
+        colors.append(get_random_color())
     return colors
 
 
 def get_all_color_types(color_1, as_255=False):
     """Convert color(1) to font color and color(255) representation"""
     if as_255:
-        color_1 = convertRGB255to1(color_1)
+        color_1 = convert_rgb_255_to_1(color_1)
     else:
-        color_255 = convertRGB1to255(color_1, as_integer=True)
-    font_color = determineFontColor(color_255, return_rgb=True)
+        color_255 = convert_rgb_1_to_255(color_1, as_integer=True)
+    font_color = get_font_color(color_255, return_rgb=True)
 
     return color_255, color_1, font_color
 
@@ -32,31 +33,31 @@ def check_color_type(color):
         return color
 
     if color in [None, ""]:
-        return randomColorGenerator(return_as_255=True)
+        return get_random_color(return_as_255=True)
 
     if re.search(r"^#(?:[0-9a-fA-F]{3}){1,2}$", color):
-        return convertHEXtoRGB255(color)
+        return convert_hex_to_rgb_255(color)
 
 
 def check_color_format(color):
 
     if np.sum(color) < 4:
-        return convertRGB1to255(color)
+        return convert_rgb_1_to_255(color)
 
     return color
 
 
-def randomColorGenerator(return_as_255=False):
+def get_random_color(return_as_255=False):
 
     color = (random_int_0_to_255(), random_int_0_to_255(), random_int_0_to_255())
 
     if not return_as_255:
-        color = convertRGB255to1(color)
+        color = convert_rgb_255_to_1(color)
 
     return color
 
 
-def convertRGB255to1(rgbList, decimals=3, check_color_range=False):
+def convert_rgb_255_to_1(rgbList, decimals=3, check_color_range=False):
 
     # Make sure color is an rgb format and not string format
     try:
@@ -77,7 +78,7 @@ def convertRGB255to1(rgbList, decimals=3, check_color_range=False):
     return rgbList
 
 
-def convertRGB1to255(rgbList, decimals=3, as_integer=False, as_tuple=False):
+def convert_rgb_1_to_255(rgbList, decimals=3, as_integer=False, as_tuple=False):
     if not as_integer:
         rgbList = list(
             [
@@ -99,37 +100,37 @@ def convertRGB1to255(rgbList, decimals=3, as_integer=False, as_tuple=False):
 
     if not as_tuple:
         return rgbList
-    else:
-        return tuple(rgbList)
+
+    return tuple(rgbList)
 
 
-def convertRGB1toHEX(rgbList):
+def convert_rgb_1_to_hex(rgbList):
 
     return "#{:02x}{:02x}{:02x}".format(
         int(np.float(rgbList[0]) * 255), int(np.float(rgbList[1]) * 255), int(np.float(rgbList[2]) * 255)
     )
 
 
-def convertRGB255toHEX(rgbList):
+def convert_rgb_255_to_hex(rgbList):
 
     return "#{:02x}{:02x}{:02x}".format(int(np.float(rgbList[0])), int(np.float(rgbList[1])), int(np.float(rgbList[2])))
 
 
-def convertHEXtoRGB1(hex, decimals=3):
-    hex_color = hex.lstrip("#")
+def convert_hex_to_rgb_1(hex_str, decimals=3):
+    hex_color = hex_str.lstrip("#")
     hlen = len(hex_color)
     rgb = tuple(int(hex_color[i : i + int(hlen / 3)], 16) for i in range(0, int(hlen), int(hlen / 3)))
     return [np.round(rgb[0] / 255.0, decimals), np.round(rgb[1] / 255.0, decimals), np.round(rgb[2] / 255.0, decimals)]
 
 
-def convertHEXtoRGB255(hex):
-    hex_color = hex.lstrip("#")
+def convert_hex_to_rgb_255(hex_str):
+    hex_color = hex_str.lstrip("#")
     hlen = len(hex_color)
     rgb = tuple(int(hex_color[i : i + int(hlen / 3)], 16) for i in range(0, int(hlen), int(hlen / 3)))
     return rgb
 
 
-def determineFontColor(rgb, rgb_mode=2, return_rgb=False, convert1to255=False):
+def get_font_color(rgb, rgb_mode=2, return_rgb=False, convert1to255=False):
     """
     This function determines the luminance of background and determines the
     'best' font color based on that value
@@ -140,28 +141,27 @@ def determineFontColor(rgb, rgb_mode=2, return_rgb=False, convert1to255=False):
     """
 
     if convert1to255:
-        rgb = convertRGB1to255(rgb)
+        rgb = convert_rgb_1_to_255(rgb)
 
     if rgb_mode == 1:
-        a = 1 - (rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722) / 255
+        value = 1 - (rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722) / 255
     elif rgb_mode == 2:
-        a = 1 - (rgb[0] * 0.299 + rgb[1] * 0.587 + rgb[2] * 0.114) / 255
+        value = 1 - (rgb[0] * 0.299 + rgb[1] * 0.587 + rgb[2] * 0.114) / 255
 
     elif rgb_mode == 3:
-        a = 1 - (np.sqrt(rgb[0]) * 0.299 + np.sqrt(rgb[1]) * 0.587 + np.sqrt(rgb[2]) * 0.114) / 255
-    if a < 0.5:
+        value = 1 - (np.sqrt(rgb[0]) * 0.299 + np.sqrt(rgb[1]) * 0.587 + np.sqrt(rgb[2]) * 0.114) / 255
+    if value < 0.5:
         if return_rgb:
             return (0, 0, 0)
-        else:
-            return "black"
+        return "black"
     else:
         if return_rgb:
             return (255, 255, 255)
-        else:
-            return "white"
+
+        return "white"
 
 
-def make_rgb(x, color, add_alpha=False):
+def make_rgb_cube(x, color, add_alpha=False):
     """
     Convert array to specific color
     """
@@ -221,62 +221,62 @@ def make_rgb(x, color, add_alpha=False):
     return rgb
 
 
-def remap_values(x, nMin, nMax, oMin=None, oMax=None, type_format="int"):
+def remap_values(x, n_min, n_max, o_min=None, o_max=None, type_format="int"):
 
-    if oMin is None:
-        oMin = np.min(x)
-    if oMax is None:
-        oMax = np.max(x)
+    if o_min is None:
+        o_min = np.min(x)
+    if o_max is None:
+        o_max = np.max(x)
 
     # range check
-    if oMin == oMax:
+    if o_min == o_max:
         print("Warning: Zero input range")
         return None
 
-    if nMin == nMax:
+    if n_min == n_max:
         print("Warning: Zero input range")
         return None
 
     # Check that values are of correct type
     if type_format == "float":
-        nMin = float(nMin)
-        nMax = float(nMax)
+        n_min = float(n_min)
+        n_max = float(n_max)
 
     # check reversed input range
-    reverseInput = False
-    oldMin = min(oMin, oMax)
-    oldMax = max(oMin, oMax)
-    if not oldMin == oMin:
-        reverseInput = True
+    reverse_input = False
+    old_min = min(o_min, o_max)
+    old_max = max(o_min, o_max)
+    if not old_min == o_min:
+        reverse_input = True
 
     # check reversed output range
-    reverseOutput = False
-    newMin = min(nMin, nMax)
-    newMax = max(nMin, nMax)
-    if not newMin == nMin:
-        reverseOutput = True
+    reverse_output = False
+    new_min = min(n_min, n_max)
+    new_max = max(n_min, n_max)
+    if not new_min == n_min:
+        reverse_output = True
 
-    portion = (x - oldMin) * (newMax - newMin) / (oldMax - oldMin)
-    if reverseInput:
-        portion = (oldMax - x) * (newMax - newMin) / (oldMax - oldMin)
+    portion = (x - old_min) * (new_max - new_min) / (old_max - old_min)
+    if reverse_input:
+        portion = (old_max - x) * (new_max - new_min) / (old_max - old_min)
 
-    result = portion + newMin
-    if reverseOutput:
-        result = newMax - portion
+    result = portion + new_min
+    if reverse_output:
+        result = new_max - portion
 
     if type_format == "int":
         return result.astype(int)
     elif type_format == "float":
         return result.astype(float)
-    else:
-        return result
+
+    return result
 
 
-def rgb_normalize_channel(im, channel, vmin, vmax):
-    c = (im[:, :, channel] - vmin) / (vmax - vmin)
-    c = np.clip(c, 0.0, 1.0)
-    im[:, :, channel] = c
-    return im
+def rgb_normalize_channel(image, channel, vmin, vmax):
+    image_channel = (image[:, :, channel] - vmin) / (vmax - vmin)
+    image_channel = np.clip(image_channel, 0.0, 1.0)
+    image[:, :, channel] = image_channel
+    return image
 
 
 def combine_rgb(data_list):
@@ -285,6 +285,6 @@ def combine_rgb(data_list):
     return np.clip(combined_rgb, 0.0, 1.0)
 
 
-def roundRGB(rgbList, decimals=3):
+def round_rgb(rgbList, decimals=3):
     rgbList = list([round(rgbList[0], decimals), round(rgbList[1], decimals), round(rgbList[2], decimals)])
     return rgbList

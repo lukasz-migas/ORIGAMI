@@ -85,24 +85,24 @@ class PanelProcessExtractDTMS(MiniFrame):
         grid = wx.GridBagSizer(2, 2)
         n = 0
         grid.Add(self.info_bar, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(mz_min_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.mz_min_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(mz_max_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.mz_max_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(mz_bin_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.mz_bin_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(self.msg_bar, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(horizontal_line_3, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(self.extract_btn, (n, 0), flag=wx.ALIGN_CENTER)
         grid.Add(self.add_to_document_btn, (n, 1), flag=wx.ALIGN_CENTER)
         grid.Add(self.save_to_file_btn, (n, 2), flag=wx.ALIGN_CENTER)
@@ -242,7 +242,7 @@ class PanelProcessExtractDTMS(MiniFrame):
         return is_present
 
     def on_get_document(self):
-        document = self.data_handling._on_get_document()
+        document = self.data_handling.on_get_document()
 
         return document, document.title
 

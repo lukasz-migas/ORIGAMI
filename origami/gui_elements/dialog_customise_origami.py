@@ -33,7 +33,7 @@ class DialogCustomiseORIGAMI(Dialog):
 
         self.document_title = kwargs.get("document_title", None)
         if self.document_title is None:
-            document = self.data_handling._on_get_document()
+            document = self.data_handling.on_get_document()
             if document is None:
                 self.Destroy()
                 raise MessageError(
@@ -62,7 +62,7 @@ class DialogCustomiseORIGAMI(Dialog):
         wx.EVT_CLOSE(self, self.on_close)
 
     def on_setup_gui(self):
-        document = self.data_handling._on_get_document(self.document_title)
+        document = self.data_handling.on_get_document(self.document_title)
         origami_settings = document.metadata.get("origami_ms", None)
 
         # there are no user specified settings yet, so we preset them with the global settings
@@ -363,7 +363,7 @@ class DialogCustomiseORIGAMI(Dialog):
 
         start_end_cv_list = self.calculate_origami_parameters()
 
-        document = self.data_handling._on_get_document(self.document_title)
+        document = self.data_handling.on_get_document(self.document_title)
 
         try:
             reader = self.data_handling._get_waters_api_reader(document)
@@ -398,7 +398,7 @@ class DialogCustomiseORIGAMI(Dialog):
             self.info_value.SetLabel("")
             return
 
-        document = self.data_handling._on_get_document(self.document_title)
+        document = self.data_handling.on_get_document(self.document_title)
         reader = self.data_handling._get_waters_api_reader(document)
 
         mz_x, mz_spacing = self.data_handling._get_waters_api_spacing(reader)

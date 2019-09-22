@@ -5,7 +5,7 @@ import logging
 import processing.UniDec.utilities as unidec_utils
 import wx.lib.scrolledpanel
 from ids import ID_plotPanel_resize
-from styles import makeCheckbox
+from styles import make_checkbox
 from styles import makeMenuItem
 from styles import makeTooltip
 from styles import validator
@@ -367,7 +367,7 @@ class PanelProcessUniDec(wx.MiniFrame):
         self.unidec_peak_width_btn.SetToolTip(makeTooltip("Open peak width tool..."))
         self.unidec_peak_width_btn.Bind(wx.EVT_BUTTON, self.on_open_width_tool)
 
-        self.unidec_fit_peakWidth_check = makeCheckbox(panel, "Auto")
+        self.unidec_fit_peakWidth_check = make_checkbox(panel, "Auto")
         self.unidec_fit_peakWidth_check.SetValue(self.config.unidec_peakWidth_auto)
         self.unidec_fit_peakWidth_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.unidec_fit_peakWidth_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -453,13 +453,13 @@ class PanelProcessUniDec(wx.MiniFrame):
         self.unidec_lineSeparation_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         markers_label = wx.StaticText(panel, wx.ID_ANY, "Show markers:")
-        self.unidec_markers_check = makeCheckbox(panel, "")
+        self.unidec_markers_check = make_checkbox(panel, "")
         self.unidec_markers_check.SetValue(self.config.unidec_show_markers)
         self.unidec_markers_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.unidec_markers_check.Bind(wx.EVT_CHECKBOX, self.on_show_peaks_unidec)
 
         individualComponents_label = wx.StaticText(panel, wx.ID_ANY, "Show individual components:")
-        self.unidec_individualComponents_check = makeCheckbox(panel, "")
+        self.unidec_individualComponents_check = make_checkbox(panel, "")
         self.unidec_individualComponents_check.SetValue(self.config.unidec_show_individualComponents)
         self.unidec_individualComponents_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.unidec_individualComponents_check.Bind(wx.EVT_CHECKBOX, self.on_show_peaks_unidec)
@@ -530,7 +530,7 @@ class PanelProcessUniDec(wx.MiniFrame):
         self.unidec_weightList_sort.Bind(wx.EVT_BUTTON, self.on_sort_unidec_MW)
 
         charges_label = wx.StaticText(panel, wx.ID_ANY, "Show charges:")
-        self.unidec_charges_check = makeCheckbox(panel, "")
+        self.unidec_charges_check = make_checkbox(panel, "")
         self.unidec_charges_check.SetValue(self.config.unidec_show_chargeStates)
         self.unidec_charges_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.unidec_charges_check.Bind(wx.EVT_CHECKBOX, self.on_show_charge_states_unidec)

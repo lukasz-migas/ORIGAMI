@@ -8,7 +8,7 @@ import numpy as np
 import wx
 from gui_elements.dialog_color_picker import DialogColorPicker
 from gui_elements.misc_dialogs import DialogBox
-from gui_elements.panel_modifyManualFiles import panelModifyManualFiles
+from gui_elements.panel_modify_manual_settings import PanelModifyManualFilesSettings
 from ids import ID_mmlPanel_about_info
 from ids import ID_mmlPanel_add_files_toCurrentDoc
 from ids import ID_mmlPanel_add_files_toNewDoc
@@ -53,10 +53,10 @@ from processing.spectra import interpolate
 from styles import ListCtrl
 from styles import makeMenuItem
 from styles import makeTooltip
-from utils.color import convertRGB1to255
-from utils.color import convertRGB255to1
-from utils.color import determineFontColor
-from utils.color import randomColorGenerator
+from utils.color import convert_rgb_1_to_255
+from utils.color import convert_rgb_255_to_1
+from utils.color import get_font_color
+from utils.color import get_random_color
 from utils.random import get_random_int
 
 logger = logging.getLogger("origami")
@@ -497,13 +497,13 @@ class PanelMultiFile(wx.Panel):
         n = 0
         self.table_filename = menu.AppendCheckItem(ID_mmlPanel_table_filename, "Table: Filename")
         self.table_filename.Check(self.config._multipleFilesSettings[n]["show"])
-        n = n + 1
+        n += 1
         self.table_variable = menu.AppendCheckItem(ID_mmlPanel_table_variable, "Table: Variable")
         self.table_variable.Check(self.config._multipleFilesSettings[n]["show"])
-        n = n + 1
+        n += 1
         self.table_document = menu.AppendCheckItem(ID_mmlPanel_table_document, "Table: Document")
         self.table_document.Check(self.config._multipleFilesSettings[n]["show"])
-        n = n + 1
+        n += 1
         self.table_label = menu.AppendCheckItem(ID_mmlPanel_table_label, "Table: Label")
         self.table_label.Check(self.config._multipleFilesSettings[n]["show"])
         menu.AppendSeparator()
@@ -564,8 +564,8 @@ class PanelMultiFile(wx.Panel):
         for row in range(self.peaklist.GetItemCount()):
             if self.peaklist.IsChecked(index=row):
                 color = colors[row]
-                self.peaklist.SetItemBackgroundColour(row, convertRGB1to255(color))
-                self.peaklist.SetItemTextColour(row, determineFontColor(convertRGB1to255(color), return_rgb=True))
+                self.peaklist.SetItemBackgroundColour(row, convert_rgb_1_to_255(color))
+                self.peaklist.SetItemTextColour(row, get_font_color(convert_rgb_1_to_255(color), return_rgb=True))
 
     def onAutoUniDec(self, evt):
 
@@ -720,7 +720,7 @@ class PanelMultiFile(wx.Panel):
             for i in range(len(self.config.customColors)):
                 self.config.customColors[i] = data.GetCustomColour(i)
 
-            return convertRGB255to1(newColour)
+            return convert_rgb_255_to_1(newColour)
 
     def on_update_document(self, itemInfo=None, itemID=None):
         """
@@ -740,7 +740,7 @@ class PanelMultiFile(wx.Panel):
                 itemInfo = self.on_get_item_information(itemID)
 
         # get item
-        document = self.data_handling._on_get_document(itemInfo["document"])
+        document = self.data_handling.on_get_document(itemInfo["document"])
 
         keywords = ["color", "energy", "label"]
         for keyword in keywords:
@@ -805,7 +805,7 @@ class PanelMultiFile(wx.Panel):
 
             xvals_list.append(xvals)
             yvals_list.append(yvals)
-            colors.append(convertRGB255to1(itemInfo["color"]))
+            colors.append(convert_rgb_255_to_1(itemInfo["color"]))
 
         if len(xvals_list) == 0:
             print("No data in selected items")
@@ -909,7 +909,7 @@ class PanelMultiFile(wx.Panel):
                     return config_color
 
                 counter -= 1
-            return randomColorGenerator(True)
+            return get_random_color(True)
         return new_color
 
     def on_open_multiple_files_new(self, evt):
@@ -932,7 +932,7 @@ class PanelMultiFile(wx.Panel):
 
         # get color
         color = add_dict.get("color", self.config.customColors[get_random_int(0, 15)])
-        color = convertRGB1to255(color)
+        color = convert_rgb_1_to_255(color)
 
         document_title = add_dict.get("document", None)
         # check for duplicate color
@@ -950,7 +950,7 @@ class PanelMultiFile(wx.Panel):
             ]
         )
         self.peaklist.SetItemBackgroundColour(self.peaklist.GetItemCount() - 1, color)
-        self.peaklist.SetItemTextColour(self.peaklist.GetItemCount() - 1, determineFontColor(color, return_rgb=True))
+        self.peaklist.SetItemTextColour(self.peaklist.GetItemCount() - 1, get_font_color(color, return_rgb=True))
 
     def _check_item_in_table(self, add_dict):
         count = self.peaklist.GetItemCount()
@@ -988,7 +988,7 @@ class PanelMultiFile(wx.Panel):
             print("The operation was cancelled")
             return
 
-        document = self.data_handling._on_get_document(itemInfo["document"])
+        document = self.data_handling.on_get_document(itemInfo["document"])
 
         __, __ = self.view.panelDocuments.documents.on_delete_data__mass_spectra(
             document, itemInfo["document"], delete_type="spectrum.one", spectrum_name=itemInfo["filename"]
@@ -1008,7 +1008,7 @@ class PanelMultiFile(wx.Panel):
                     print("The operation was cancelled")
                     continue
 
-                document = self.data_handling._on_get_document(itemInfo["document"])
+                document = self.data_handling.on_get_document(itemInfo["document"])
                 __, __ = self.view.panelDocuments.documents.on_delete_data__mass_spectra(
                     document, itemInfo["document"], delete_type="spectrum.one", spectrum_name=itemInfo["filename"]
                 )
@@ -1025,7 +1025,7 @@ class PanelMultiFile(wx.Panel):
         item_count = self.peaklist.GetItemCount() - 1
         while item_count >= 0:
             itemInfo = self.on_get_item_information(itemID=item_count)
-            document = self.data_handling._on_get_document(itemInfo["document"])
+            document = self.data_handling.on_get_document(itemInfo["document"])
             __, __ = self.view.panelDocuments.documents.on_delete_data__mass_spectra(
                 document, itemInfo["document"], delete_type="spectrum.one", spectrum_name=itemInfo["filename"]
             )
@@ -1044,7 +1044,7 @@ class PanelMultiFile(wx.Panel):
     def on_open_editor(self, evt):
         information = self.on_get_item_information(self.peaklist.item_id)
 
-        dlg = panelModifyManualFiles(self, self.presenter, self.config, **information)
+        dlg = PanelModifyManualFilesSettings(self, self.presenter, self.config, **information)
         dlg.Show()
 
     def on_update_value_in_peaklist(self, item_id, value_type, value):
@@ -1061,7 +1061,7 @@ class PanelMultiFile(wx.Panel):
             self.peaklist.SetItemTextColour(item_id, font_color)
         elif value_type == "color_text":
             self.peaklist.SetItemBackgroundColour(item_id, value)
-            self.peaklist.SetItemTextColour(item_id, determineFontColor(value, return_rgb=True))
+            self.peaklist.SetItemTextColour(item_id, get_font_color(value, return_rgb=True))
         elif value_type == "label":
             self.peaklist.SetStringItem(item_id, self.config.multipleMLColNames["label"], str(value))
         elif value_type == "document":

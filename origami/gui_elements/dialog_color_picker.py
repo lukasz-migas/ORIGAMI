@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 import wx
-from utils.color import convertRGB255to1
-from utils.color import determineFontColor
+from utils.color import convert_rgb_255_to_1
+from utils.color import get_font_color
 
 
 class DialogColorPicker(wx.ColourDialog):
@@ -30,8 +30,8 @@ class DialogColorPicker(wx.ColourDialog):
         """ Shorthand... """
         data = self.GetColourData()
         color = data.GetColour().Get()
-        color_255 = convertRGB255to1(color)
-        font_color = determineFontColor(color, return_rgb=True)
+        color_255 = convert_rgb_255_to_1(color)
+        font_color = get_font_color(color, return_rgb=True)
         return color, color_255, font_color
 
     @staticmethod

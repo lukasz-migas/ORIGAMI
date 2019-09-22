@@ -10,8 +10,8 @@ import wx
 import wx.lib.mixins.listctrl as listmix
 from gui_elements.misc_dialogs import DialogBox
 from natsort.natsort import natsorted
-from utils.color import convertRGB1to255
-from utils.color import convertRGB255to1
+from utils.color import convert_rgb_1_to_255
+from utils.color import convert_rgb_255_to_1
 from utils.converters import byte2str
 from utils.converters import str2int
 from utils.converters import str2num
@@ -63,7 +63,7 @@ def make_color_btn(parent, color, size=(26, 26), name="color", evtid=-1):
     """Convenient way to initilize a color btn"""
 
     color_btn = wx.Button(parent, evtid, size=size, name=name)
-    color_btn.SetBackgroundColour(convertRGB1to255(color))
+    color_btn.SetBackgroundColour(convert_rgb_1_to_255(color))
 
     return color_btn
 
@@ -88,7 +88,7 @@ def setItemFont(parent, size=10, color=wx.BLACK):
     return parent
 
 
-def makeStaticBox(parent, title, size, color, id=-1):
+def make_staticbox(parent, title, size, color, id=-1):
     staticBox = wx.StaticBox(parent, id, title, size=size, style=wx.SB_FLAT)
     font = wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
     staticBox.SetForegroundColour(color)
@@ -97,7 +97,7 @@ def makeStaticBox(parent, title, size, color, id=-1):
     return staticBox
 
 
-def makeToggleBtn(parent, text, colorOff, name="other", size=(40, -1)):
+def make_toggle_btn(parent, text, colorOff, name="other", size=(40, -1)):
     toggleBtn = wx.ToggleButton(
         parent, wx.ID_ANY, text, wx.DefaultPosition, size, style=wx.ALIGN_CENTER_VERTICAL, name=name
     )
@@ -129,7 +129,7 @@ def makeSlider(parent, value, minValue, maxValue):
     return slider
 
 
-def makeCheckbox(parent, text, style=wx.ALIGN_LEFT, ID=-1, name=""):
+def make_checkbox(parent, text, style=wx.ALIGN_LEFT, ID=-1, name=""):
     checkbox = wx.CheckBox(parent, ID, text, (3, 3), style=style, name=name)
     return checkbox
 
@@ -358,7 +358,7 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
 
     @staticmethod
     def _convert_color(color_255):
-        color_1 = convertRGB255to1(color_255, decimals=3)
+        color_1 = convert_rgb_255_to_1(color_255, decimals=3)
         return color_255, color_1
 
     def on_column_click(self, evt):

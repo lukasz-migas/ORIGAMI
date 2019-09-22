@@ -9,8 +9,8 @@ import processing.heatmap as pr_heatmap
 import processing.spectra as pr_spectra
 from numpy.ma.core import masked_array
 from utils.color import combine_rgb
-from utils.color import convertRGB255to1
-from utils.color import make_rgb
+from utils.color import convert_rgb_255_to_1
+from utils.color import make_rgb_cube
 from utils.exceptions import MessageError
 from utils.visuals import calculate_label_position
 
@@ -629,7 +629,7 @@ class DataVisualization:
     #             xvals.append(deepcopy(data["yvals"]))
     #             yvals.append(deepcopy(data["xvals"]))
     #             zvals.append(deepcopy(data["zvals"]))
-    #             colors.append(convertRGB255to1(itemInfo["color"]))
+    #             colors.append(convert_rgb_255_to_1(itemInfo["color"]))
     #             labels.append(itemInfo["label"])
     #
     #             if self.addToDocument:
@@ -1081,14 +1081,14 @@ class DataVisualization:
             dataset_info.append(query_info)
 
             zvals = data["zvals"].copy()
-            color = convertRGB255to1(item_info["color"])
+            color = convert_rgb_255_to_1(item_info["color"])
             min_threshold = item_info["min_threshold"]
             max_threshold = item_info["max_threshold"]
 
             zvals = pr_heatmap.adjust_min_max_intensity(zvals, min_threshold, max_threshold)
 
             # convert to rgb plot
-            rgb = make_rgb(zvals, color, add_alpha=True)
+            rgb = make_rgb_cube(zvals, color, add_alpha=True)
 
             zlist.append(rgb)
             colorlist.append(item_info["color"])

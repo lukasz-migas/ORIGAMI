@@ -32,9 +32,9 @@ from ids import ID_uvpd_laser_on_show_mobilogram
 from ids import ID_uvpd_laser_on_show_waterfall
 from ids import ID_uvpd_monitor_remove
 from natsort import natsorted
-from styles import makeCheckbox
+from styles import make_checkbox
+from styles import make_staticbox
 from styles import makeMenuItem
-from styles import makeStaticBox
 from styles import validator
 from toolbox import saveAsText
 from utils.converters import str2int
@@ -74,7 +74,7 @@ class PanelUVPDEditor(wx.MiniFrame):
         self.data_processing = self.presenter.data_processing
 
         # get document
-        self.document = self.data_processing._on_get_document()
+        self.document = self.data_processing.on_get_document()
 
         # present parameters
         self.laser_on_marker = []
@@ -443,16 +443,16 @@ class PanelUVPDEditor(wx.MiniFrame):
         self.first_index_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         show_markers = wx.StaticText(panel, wx.ID_ANY, "Show on plot:")
-        self.show_labels = makeCheckbox(panel, "labels")
+        self.show_labels = make_checkbox(panel, "labels")
         self.show_labels.SetValue(self.config.uvpd_peak_show_labels)
         self.show_labels.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.show_labels.Disable()
 
-        self.show_markers = makeCheckbox(panel, "markers")
+        self.show_markers = make_checkbox(panel, "markers")
         self.show_markers.SetValue(self.config.uvpd_peak_show_markers)
         self.show_markers.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.show_patches = makeCheckbox(panel, "patches")
+        self.show_patches = make_checkbox(panel, "patches")
         self.show_patches.SetValue(self.config.uvpd_peak_show_patches)
         self.show_patches.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
@@ -474,18 +474,18 @@ class PanelUVPDEditor(wx.MiniFrame):
         grid.Add(self.buffer_size_value, (n, 3), flag=wx.EXPAND)
         grid.Add(first_index_value, (n, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.first_index_value, (n, 5), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(show_markers, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.show_labels, (n, 1), flag=wx.EXPAND)
         grid.Add(self.show_markers, (n, 2), flag=wx.EXPAND)
         grid.Add(self.show_patches, (n, 3), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         grid.Add(self.find_peaks_btn, (n, 0), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.extract_MS_btn, (n, 2), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        n = n + 1
+        n += 1
         grid.Add(self.msg_bar, (n, 0), wx.GBSpan(1, 6), flag=wx.EXPAND)
 
-        staticBox = makeStaticBox(panel, "Detect peaks", size=(-1, -1), color=wx.BLACK)
+        staticBox = make_staticbox(panel, "Detect peaks", size=(-1, -1), color=wx.BLACK)
         staticBox.SetSize((-1, -1))
 
         box_sizer = wx.StaticBoxSizer(staticBox, wx.HORIZONTAL)

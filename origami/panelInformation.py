@@ -13,7 +13,7 @@ from ids import ID_saveAsConfig
 from ids import ID_selectProtein
 from styles import bgrPanel
 from styles import layout
-from styles import makeCheckbox
+from styles import make_checkbox
 from utils.converters import num2str
 from utils.converters import str2int
 from utils.converters import str2num
@@ -296,7 +296,7 @@ class panelDocumentInfo(wx.MiniFrame):
         self.path_value.SetValue(self.document.path)
         self.path_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        self.path_check = makeCheckbox(panel, "")
+        self.path_check = make_checkbox(panel, "")
         self.path_check.SetToolTip(wx.ToolTip("Enable/disable"))
         self.path_check.SetValue(False)
         self.path_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisable)
@@ -382,7 +382,7 @@ class panelDocumentInfo(wx.MiniFrame):
 
         self.docType_choice.Bind(wx.EVT_COMBOBOX, self.on_apply)
 
-        self.docType_check = makeCheckbox(panel, "")
+        self.docType_check = make_checkbox(panel, "")
         self.docType_check.SetToolTip(wx.ToolTip("Enable/disable"))
         self.docType_check.SetValue(False)
         self.docType_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisable)
@@ -391,7 +391,7 @@ class panelDocumentInfo(wx.MiniFrame):
         self.scanTime_value = wx.TextCtrl(panel, -1, "", size=(180, -1))
         self.scanTime_value.SetValue(num2str(self.document.parameters.get("scanTime", None)))
         self.scanTime_value.Bind(wx.EVT_TEXT, self.on_apply)
-        self.scanTime_check = makeCheckbox(panel, "")
+        self.scanTime_check = make_checkbox(panel, "")
         self.scanTime_check.SetValue(False)
         self.scanTime_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisable)
 
@@ -424,7 +424,7 @@ class panelDocumentInfo(wx.MiniFrame):
         self.pusherFreq_value.SetValue(num2str(self.document.parameters.get("pusherFreq", None)))
         self.pusherFreq_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        self.pusherFreq_check = makeCheckbox(panel, "")
+        self.pusherFreq_check = make_checkbox(panel, "")
         self.pusherFreq_check.SetValue(False)
         self.pusherFreq_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisable)
 
@@ -433,7 +433,7 @@ class panelDocumentInfo(wx.MiniFrame):
         self.tofCorrFactor_value.SetValue(num2str(self.document.parameters.get("corrC", None)))
         self.tofCorrFactor_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        self.tofCorrFactor_check = makeCheckbox(panel, "")
+        self.tofCorrFactor_check = make_checkbox(panel, "")
         self.tofCorrFactor_check.SetValue(False)
         self.tofCorrFactor_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisable)
 
@@ -561,10 +561,10 @@ class panelDocumentInfo(wx.MiniFrame):
         self.labelsX_value.SetStringSelection(data.get("xlabels", "Scans"))
         self.labelsX_value.Bind(wx.EVT_COMBOBOX, self.on_apply)
 
-        self.labelsX_check = makeCheckbox(panel, "Just label")
+        self.labelsX_check = make_checkbox(panel, "Just label")
         self.labelsX_check.SetValue(False)
         self.labelsX_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisable)
-        self.restoreDefaultX_check = makeCheckbox(panel, "Restore default")
+        self.restoreDefaultX_check = make_checkbox(panel, "Restore default")
         self.restoreDefaultX_check.SetValue(False)
         self.restoreDefaultX_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisable)
 
@@ -573,10 +573,10 @@ class panelDocumentInfo(wx.MiniFrame):
         self.labelsY_value.SetStringSelection(data.get("ylabels", "Drift time (bins)"))
         self.labelsY_value.Bind(wx.EVT_COMBOBOX, self.on_apply)
 
-        self.labelsY_check = makeCheckbox(panel, "Just label")
+        self.labelsY_check = make_checkbox(panel, "Just label")
         self.labelsY_check.SetValue(False)
         self.labelsY_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisable)
-        self.restoreDefaultY_check = makeCheckbox(panel, "Restore default")
+        self.restoreDefaultY_check = make_checkbox(panel, "Restore default")
         self.restoreDefaultY_check.SetValue(False)
         self.restoreDefaultY_check.Bind(wx.EVT_CHECKBOX, self.onEnableDisable)
 
@@ -635,7 +635,7 @@ class panelDocumentInfo(wx.MiniFrame):
         self.calibrationType_value = wx.Choice(panel, -1, choices=["Linear", "Power"], size=(180, -1))
         self.calibrationType_value.Disable()
 
-        self.calibrationType_check = makeCheckbox(panel, "")
+        self.calibrationType_check = make_checkbox(panel, "")
         self.calibrationType_check.SetValue(False)
 
         numOfPoints_label = wx.StaticText(panel, -1, "Number of points:")
@@ -705,8 +705,8 @@ class panelDocumentInfo(wx.MiniFrame):
         grid.Add(numOfCalibrants_label, (3, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.numOfCalibrants_value, (3, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
 
-        grid.Add(linear_label, (4, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
-        grid.Add(power_label, (4, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTER)
+        grid.Add(linear_label, (4, 1), flag=wx.ALIGN_CENTER)
+        grid.Add(power_label, (4, 2), flag=wx.ALIGN_CENTER)
 
         grid.Add(slope_label, (5, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.slopeLinear_value, (5, 1), flag=wx.EXPAND)

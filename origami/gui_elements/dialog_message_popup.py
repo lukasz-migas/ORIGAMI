@@ -2,7 +2,7 @@
 # __author__ lukasz.g.migas
 import wx
 from styles import Dialog
-from styles import makeCheckbox
+from styles import make_checkbox
 
 
 class DialogMessagePopup(Dialog):
@@ -41,14 +41,14 @@ class DialogMessagePopup(Dialog):
         self.no_btn = wx.Button(panel, wx.ID_ANY, "No", size=(-1, 22))
         self.no_btn.Bind(wx.EVT_BUTTON, self.on_no)
 
-        self.ask_again_check = makeCheckbox(panel, "Don't ask again")
+        self.ask_again_check = make_checkbox(panel, "Don't ask again")
         self.ask_again_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         # pack elements
         grid = wx.GridBagSizer(5, 5)
         y = 0
         grid.Add(self.msg, (y, 0), wx.GBSpan(1, 4))
-        y = y + 1
+        y += 1
         grid.Add(self.yes_btn, (y, 0), flag=wx.ALIGN_CENTER)
         grid.Add(self.no_btn, (y, 1), flag=wx.ALIGN_CENTER)
         grid.Add(self.ask_again_check, (y, 3), flag=wx.ALIGN_CENTER)

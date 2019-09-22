@@ -132,18 +132,18 @@ from processing.spectra import linearize_data
 from processing.spectra import normalize_1D
 from seaborn import color_palette
 from styles import ListCtrl
-from styles import makeCheckbox
+from styles import make_checkbox
+from styles import make_staticbox
 from styles import makeMenuItem
-from styles import makeStaticBox
 from styles import makeStaticText
 from toolbox import find_limits_all
 from toolbox import find_limits_list
 from toolbox import merge_two_dicts
 from toolbox import remove_nan_from_list
-from utils.color import convertHEXtoRGB255
-from utils.color import convertRGB1to255
-from utils.color import convertRGB1toHEX
-from utils.color import determineFontColor
+from utils.color import convert_hex_to_rgb_255
+from utils.color import convert_rgb_1_to_255
+from utils.color import convert_rgb_1_to_hex
+from utils.color import get_font_color
 from utils.converters import str2int
 from utils.labels import _replace_labels
 
@@ -765,7 +765,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         @param parameters: updated parameters    (dict)
         """
 
-        document = self.data_handling._on_get_document(name)
+        document = self.data_handling.on_get_document(name)
         #         document = self.documentsDict[name]
 
         if key == "MS" and innerKey == "":
@@ -1090,10 +1090,10 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.documentName_value = wx.TextCtrl(panel, -1, "", size=(350, -1))
         self.documentName_value.SetValue(str(self.currentDocumentName))
 
-        self.openInBrowserCheck = makeCheckbox(panel, "Open in browser after saving")
+        self.openInBrowserCheck = make_checkbox(panel, "Open in browser after saving")
         self.openInBrowserCheck.SetValue(self.config.openInteractiveOnSave)
 
-        self.addOfflineSupportCheck = makeCheckbox(panel, "Add offline support")
+        self.addOfflineSupportCheck = make_checkbox(panel, "Add offline support")
         self.addOfflineSupportCheck.SetValue(self.config.interactive_add_offline_support)
         self.addOfflineSupportCheck.SetToolTip(
             wx.ToolTip(
@@ -1102,7 +1102,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             )
         )
 
-        self.addWatermarkCheck = makeCheckbox(panel, "Add watermark")
+        self.addWatermarkCheck = make_checkbox(panel, "Add watermark")
         self.addWatermarkCheck.SetValue(True)
         self.addWatermarkCheck.SetToolTip(
             wx.ToolTip(
@@ -1178,7 +1178,7 @@ class panelInteractiveOutput(wx.MiniFrame):
     def make_page_view(self, panel):
         RICH_TEXT = wx.TE_MULTILINE | wx.TE_WORDWRAP | wx.TE_RICH2
 
-        self.mainBoxPage = makeStaticBox(panel, "Page properties", (-1, -1), wx.BLACK)
+        self.mainBoxPage = make_staticbox(panel, "Page properties", (-1, -1), wx.BLACK)
         self.mainBoxPage.SetSize((-1, -1))
         html_box_sizer = wx.StaticBoxSizer(self.mainBoxPage, wx.HORIZONTAL)
 
@@ -1218,11 +1218,11 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.columns_value.SetToolTip(wx.ToolTip("Grid only. Number of columns in the grid"))
         self.columns_value.Bind(wx.EVT_TEXT, self.on_select_page_properties)
 
-        self.grid_shared_tools = makeCheckbox(panel, "Shared tools")
+        self.grid_shared_tools = make_checkbox(panel, "Shared tools")
         self.grid_shared_tools.SetValue(True)
         self.grid_shared_tools.Bind(wx.EVT_CHECKBOX, self.on_select_page_properties)
 
-        self.grid_add_custom_js_widgets = makeCheckbox(panel, "Add widgets when available")
+        self.grid_add_custom_js_widgets = make_checkbox(panel, "Add widgets when available")
         self.grid_add_custom_js_widgets.SetToolTip(
             wx.ToolTip("Grid/rows only. Add custom widgets that work for all plots in a grid.")
         )
@@ -1266,29 +1266,29 @@ class panelInteractiveOutput(wx.MiniFrame):
         html_grid.Add(self.addPage, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL)
         html_grid.Add(self.removePage, (n, 3), flag=wx.ALIGN_CENTER_VERTICAL)
         html_grid.Add(self.clearAllPages, (n, 4), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         html_grid.Add(layoutDoc_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
         html_grid.Add(self.layoutDoc_combo, (n, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
         html_grid.Add(self.grid_add_custom_js_widgets, (n, 2), wx.GBSpan(1, 3), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         html_grid.Add(columns_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         html_grid.Add(self.columns_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         html_grid.Add(self.grid_shared_tools, (n, 2), wx.GBSpan(1, 3), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         html_grid.Add(height_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         html_grid.Add(self.grid_height_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        n = n + 1
+        n += 1
         html_grid.Add(width_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         html_grid.Add(self.grid_width_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        n = n + 1
+        n += 1
         html_grid.Add(itemName_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
         html_grid.Add(self.pageTitle_value, (n, 1), wx.GBSpan(1, 5), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
-        n = n + 1
+        n += 1
         html_grid.Add(itemHeader_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
         html_grid.Add(
             self.pageHeader_value, (n, 1), wx.GBSpan(1, 5), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL
         )
-        n = n + 1
+        n += 1
         html_grid.Add(itemFootnote_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
         html_grid.Add(
             self.pageFootnote_value, (n, 1), wx.GBSpan(1, 5), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL
@@ -1308,7 +1308,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         RICH_TEXT = wx.TE_MULTILINE | wx.TE_WORDWRAP | wx.TE_RICH2
 
-        self.mainBoxHTML = makeStaticBox(panel, "HTML properties", (-1, -1), wx.BLACK)
+        self.mainBoxHTML = make_staticbox(panel, "HTML properties", (-1, -1), wx.BLACK)
         self.mainBoxHTML.SetSize((-1, -1))
         html_box_sizer = wx.StaticBoxSizer(self.mainBoxHTML, wx.HORIZONTAL)
 
@@ -1349,28 +1349,28 @@ class panelInteractiveOutput(wx.MiniFrame):
         n = 0
         html_grid.Add(editing_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         html_grid.Add(self.document_value, (n, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
-        n = n + 1
+        n += 1
         html_grid.Add(type_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         html_grid.Add(self.type_value, (n, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
-        n = n + 1
+        n += 1
         html_grid.Add(details_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         html_grid.Add(self.details_value, (n, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
-        n = n + 1
+        n += 1
         html_grid.Add(itemInformation_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
         html_grid.Add(self.itemInformation_value, (n, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
-        n = n + 1
+        n += 1
         html_grid.Add(itemName_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         html_grid.Add(self.itemName_value, (n, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
-        n = n + 1
+        n += 1
         html_grid.Add(itemHeader_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
         html_grid.Add(self.itemHeader_value, (n, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
-        n = n + 1
+        n += 1
         html_grid.Add(itemFootnote_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_TOP)
         html_grid.Add(self.itemFootnote_value, (n, 1), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL | wx.ALL)
         html_box_sizer.Add(html_grid, 0, wx.EXPAND, 0)
 
         # general subpanel
-        general_staticBox = makeStaticBox(panel, "General settings", size=(-1, -1), color=wx.BLACK)
+        general_staticBox = make_staticbox(panel, "General settings", size=(-1, -1), color=wx.BLACK)
         general_staticBox.SetSize((-1, -1))
         general_box_sizer = wx.StaticBoxSizer(general_staticBox, wx.HORIZONTAL)
 
@@ -1388,7 +1388,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         y = 0
         general_grid.Add(page_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         general_grid.Add(self.pageLayoutSelect_htmlView, (y, 1), flag=wx.ALIGN_LEFT)
-        y = y + 1
+        y += 1
         general_grid.Add(order_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         general_grid.Add(self.order_value, (y, 1), flag=wx.ALIGN_LEFT)
         general_box_sizer.Add(general_grid, 0, wx.EXPAND, 10)
@@ -1487,7 +1487,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         return panel
 
     def make_fonts_panel(self, panel):
-        mainBox = makeStaticBox(panel, "Font properties", (210, -1), wx.BLACK)
+        mainBox = make_staticbox(panel, "Font properties", (210, -1), wx.BLACK)
         mainBox.SetSize((230, -1))
         main_sizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
         titleFontSize = makeStaticText(panel, "Title font size")
@@ -1502,7 +1502,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             inc=1,
             size=(50, -1),
         )
-        self.titleBoldCheck = makeCheckbox(panel, "Bold")
+        self.titleBoldCheck = make_checkbox(panel, "Bold")
         self.titleBoldCheck.SetValue(self.config.interactive_title_weight)
 
         labelFontSize = makeStaticText(panel, "Label font size")
@@ -1517,7 +1517,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             size=(50, -1),
         )
 
-        self.labelBoldCheck = makeCheckbox(panel, "Bold")
+        self.labelBoldCheck = make_checkbox(panel, "Bold")
         self.labelBoldCheck.SetValue(self.config.interactive_label_weight)
 
         tickFontSize = makeStaticText(panel, "Tick font size")
@@ -1567,7 +1567,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         return main_sizer
 
     def make_rmsd_panel(self, panel):
-        rmsdBox = makeStaticBox(panel, "RMSD label properties", (200, -1), wx.BLACK)
+        rmsdBox = make_staticbox(panel, "RMSD label properties", (200, -1), wx.BLACK)
         rmsdSizer = wx.StaticBoxSizer(rmsdBox, wx.HORIZONTAL)
         rmsdBox.SetToolTip(wx.ToolTip(""))
 
@@ -1582,7 +1582,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             inc=1,
             size=(50, -1),
         )
-        self.notationBoldCheck = makeCheckbox(panel, "Bold")
+        self.notationBoldCheck = make_checkbox(panel, "Bold")
         self.notationBoldCheck.SetValue(self.config.interactive_annotation_weight)
 
         interactive_annotation_color_label = makeStaticText(panel, "Font")
@@ -1590,7 +1590,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             panel, ID_changeColorNotationInteractive, "", wx.DefaultPosition, wx.Size(26, 26), 0
         )
         self.interactive_annotation_colorBtn.SetBackgroundColour(
-            convertRGB1to255(self.config.interactive_annotation_color)
+            convert_rgb_1_to_255(self.config.interactive_annotation_color)
         )
 
         interactive_annotation_background_color_label = makeStaticText(panel, "Background")
@@ -1598,7 +1598,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             panel, ID_changeColorBackgroundNotationInteractive, "", wx.DefaultPosition, wx.Size(26, 26), 0
         )
         self.interactive_annotation_colorBackgroundBtn.SetBackgroundColour(
-            convertRGB1to255(self.config.interactive_annotation_background_color)
+            convert_rgb_1_to_255(self.config.interactive_annotation_background_color)
         )
 
         interactive_transparency_label = makeStaticText(panel, "Transparency")
@@ -1636,7 +1636,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             interactive_annotation_background_color_label, (n, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT
         )
         grid.Add(interactive_transparency_label, (n, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
-        n = n + 1
+        n += 1
         grid.Add(self.notationSlider, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
         grid.Add(self.notationBoldCheck, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
         grid.Add(self.interactive_annotation_colorBtn, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT)
@@ -1649,7 +1649,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         return rmsdSizer
 
     def make_1D_settings_panel(self, panel):
-        mainBox = makeStaticBox(panel, "Plot (1D) properties", (230, -1), wx.BLACK)
+        mainBox = make_staticbox(panel, "Plot (1D) properties", (230, -1), wx.BLACK)
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
         lineWidth_label = makeStaticText(panel, "Line width:")
@@ -1696,7 +1696,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         gridFigure.Add(self.line_width, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         gridFigure.Add(lineAlpha_label, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL)
         gridFigure.Add(self.line_transparency, (n, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        n = n + 1
+        n += 1
         gridFigure.Add(lineStyle_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL)
         gridFigure.Add(self.line_style, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         gridFigure.Add(self.hoverVlineCheck, (n, 2), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL)
@@ -1706,7 +1706,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         return figSizer
 
     def make_overlay_panel(self, panel):
-        mainBox = makeStaticBox(panel, "Overlay plot properties", (230, -1), wx.BLACK)
+        mainBox = make_staticbox(panel, "Overlay plot properties", (230, -1), wx.BLACK)
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
         layout_label = makeStaticText(panel, "Layout")
@@ -1737,7 +1737,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         return figSizer
 
     def make_barplot_panel(self, panel):
-        mainBox = makeStaticBox(panel, "Plot (bar) properties", (230, -1), wx.BLACK)
+        mainBox = make_staticbox(panel, "Plot (bar) properties", (230, -1), wx.BLACK)
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
         bar_width_label = wx.StaticText(panel, -1, "Bar width:")
@@ -1783,10 +1783,10 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.bar_edgeColorBtn = wx.Button(
             panel, ID_interactivePanel_color_barEdge, "", wx.DefaultPosition, wx.Size(26, 26), 0
         )
-        self.bar_edgeColorBtn.SetBackgroundColour(convertRGB1to255(self.config.bar_edge_color))
+        self.bar_edgeColorBtn.SetBackgroundColour(convert_rgb_1_to_255(self.config.bar_edge_color))
         self.bar_edgeColorBtn.Bind(wx.EVT_BUTTON, self.on_change_color)
 
-        self.bar_colorEdge_check = makeCheckbox(panel, "Same as fill")
+        self.bar_colorEdge_check = make_checkbox(panel, "Same as fill")
         self.bar_colorEdge_check.SetValue(self.config.bar_sameAsFill)
         self.bar_colorEdge_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
@@ -1795,11 +1795,11 @@ class panelInteractiveOutput(wx.MiniFrame):
         bar_grid.Add(bar_width_label, (n, 0), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         bar_grid.Add(bar_alpha_label, (n, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
         bar_grid.Add(bar_lineWidth_label, (n, 2), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         bar_grid.Add(self.bar_width_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL)
         bar_grid.Add(self.bar_alpha_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         bar_grid.Add(self.bar_lineWidth_value, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         bar_grid.Add(bar_edgeColor_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL)
         bar_grid.Add(self.bar_edgeColorBtn, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         bar_grid.Add(self.bar_colorEdge_check, (n, 2), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
@@ -1808,7 +1808,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         return figSizer
 
     def make_scatter_panel(self, panel):
-        mainBox = makeStaticBox(panel, "Plot (scatter) properties", (230, -1), wx.BLACK)
+        mainBox = make_staticbox(panel, "Plot (scatter) properties", (230, -1), wx.BLACK)
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
         marker_label = makeStaticText(panel, "Marker shape")
@@ -1852,7 +1852,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             panel, ID_interactivePanel_color_markerEdge, "", wx.DefaultPosition, wx.Size(26, 26), 0
         )
         self.scatter_marker_edge_colorBtn.SetBackgroundColour(
-            convertRGB1to255(self.config.interactive_scatter_edge_color)
+            convert_rgb_1_to_255(self.config.interactive_scatter_edge_color)
         )
         self.scatter_marker_edge_colorBtn.Bind(
             wx.EVT_BUTTON, self.on_change_color, id=ID_interactivePanel_color_markerEdge
@@ -1866,13 +1866,13 @@ class panelInteractiveOutput(wx.MiniFrame):
         n = 0
         gridFigure.Add(marker_label, (n, 0), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         gridFigure.Add(self.scatter_marker, (n, 1), (1, 2), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         gridFigure.Add(marker_size_label, (n, 0), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         gridFigure.Add(marker_alpha_label, (n, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         gridFigure.Add(self.scatter_marker_size, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL)
         gridFigure.Add(self.scatter_marker_alpha, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         gridFigure.Add(marker_color_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL)
         gridFigure.Add(self.scatter_marker_edge_colorBtn, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         gridFigure.Add(self.scatter_color_sameAsFill, (n, 2), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
@@ -1881,7 +1881,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         return figSizer
 
     def make_customJS_panel(self, panel):
-        mainBox = makeStaticBox(panel, "Custom JavaScript", (230, -1), wx.BLACK)
+        mainBox = make_staticbox(panel, "Custom JavaScript", (230, -1), wx.BLACK)
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
         self.custom_js_events = wx.CheckBox(panel, -1, "Add custom JS events when available", (15, 30))
@@ -1917,9 +1917,9 @@ class panelInteractiveOutput(wx.MiniFrame):
         gridAnnot = wx.GridBagSizer(2, 2)
         y = 0
         gridAnnot.Add(self.custom_js_events, (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        y = y + 1
+        y += 1
         gridAnnot.Add(self.custom_js_scripts, (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        y = y + 1
+        y += 1
         gridAnnot.Add(position_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL)
         gridAnnot.Add(self.custom_js_position, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL)
 
@@ -1928,7 +1928,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         return figSizer
 
     def make_annotations_panel(self, panel):
-        mainBox = makeStaticBox(panel, "Annotation properties", (230, -1), wx.BLACK)
+        mainBox = make_staticbox(panel, "Annotation properties", (230, -1), wx.BLACK)
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
         self.annot_peakLabel = wx.CheckBox(panel, -1, "Label peak", (15, 30))
@@ -1991,7 +1991,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         )
         self.annot_fontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        self.annot_fontWeight_value = makeCheckbox(panel, "Bold")
+        self.annot_fontWeight_value = make_checkbox(panel, "Bold")
         self.annot_fontWeight_value.SetValue(self.config.interactive_ms_annotations_fontWeight)
         self.annot_fontWeight_value.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
@@ -2000,7 +2000,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             panel, ID_changeColorAnnotLabelInteractive, "", wx.DefaultPosition, wx.Size(26, 26), 0
         )
         self.annot_fontColor_colorBtn.SetBackgroundColour(
-            convertRGB1to255(self.config.interactive_ms_annotations_label_color)
+            convert_rgb_1_to_255(self.config.interactive_ms_annotations_label_color)
         )
         self.annot_fontColor_colorBtn.Bind(wx.EVT_BUTTON, self.on_change_color, id=ID_changeColorAnnotLabelInteractive)
 
@@ -2008,13 +2008,13 @@ class panelInteractiveOutput(wx.MiniFrame):
         y = 0
         gridAnnot.Add(self.annot_peakLabel, (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
         gridAnnot.Add(self.annot_peakHighlight, (y, 2), wx.GBSpan(1, 2), flag=wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
-        y = y + 1
+        y += 1
         gridAnnot.Add(annot_xpos_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         gridAnnot.Add(annot_ypos_label, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         gridAnnot.Add(annot_rotation_label, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         gridAnnot.Add(annot_fontSize_label, (y, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         gridAnnot.Add(annot_fontColor_label, (y, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        y = y + 1
+        y += 1
         gridAnnot.Add(self.annot_xpos_value, (y, 0), flag=wx.EXPAND)
         gridAnnot.Add(self.annot_ypos_value, (y, 1), flag=wx.EXPAND)
         gridAnnot.Add(self.annot_rotation_value, (y, 2), flag=wx.EXPAND)
@@ -2027,7 +2027,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         return figSizer
 
     def make_colorbar_panel(self, panel):
-        mainBox = makeStaticBox(panel, "Colorbar properties", (230, -1), wx.BLACK)
+        mainBox = make_staticbox(panel, "Colorbar properties", (230, -1), wx.BLACK)
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
         colorbar_label = makeStaticText(panel, "Colorbar:")
@@ -2154,20 +2154,20 @@ class panelInteractiveOutput(wx.MiniFrame):
         n = 0
         gridFigure.Add(colorbar_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         gridFigure.Add(self.interactive_colorbar, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         gridFigure.Add(precision_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         gridFigure.Add(self.interactive_colorbar_precision, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         gridFigure.Add(self.interactive_colorbar_useScientific, (n, 2), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         gridFigure.Add(labelOffset_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         gridFigure.Add(self.interactive_colorbar_label_offset, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         gridFigure.Add(location_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         gridFigure.Add(offsetX_label, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         gridFigure.Add(offsetY_label, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         gridFigure.Add(padding_label, (n, 3), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         gridFigure.Add(margin_label, (n, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        n = n + 1
+        n += 1
         gridFigure.Add(self.interactive_colorbar_location, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL)
         gridFigure.Add(self.interactive_colorbar_offset_x, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
         gridFigure.Add(self.interactive_colorbar_offset_y, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL)
@@ -2179,7 +2179,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         return figSizer
 
     def make_legend_panel(self, panel):
-        mainBox = makeStaticBox(panel, "Legend properties", (210, -1), wx.BLACK)
+        mainBox = make_staticbox(panel, "Legend properties", (210, -1), wx.BLACK)
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
         legend_label = makeStaticText(panel, "Legend:")
@@ -2261,22 +2261,22 @@ class panelInteractiveOutput(wx.MiniFrame):
         n = 0
         gridFigure.Add(legend_label, (n, 0), flag=wx.ALIGN_LEFT)
         gridFigure.Add(self.legend_legend, (n, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         gridFigure.Add(position_label, (n, 0), flag=wx.ALIGN_LEFT)
         gridFigure.Add(self.legend_position, (n, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         gridFigure.Add(orientation_label, (n, 0), flag=wx.ALIGN_LEFT)
         gridFigure.Add(self.legend_orientation, (n, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         gridFigure.Add(fontSize_label, (n, 0), flag=wx.ALIGN_LEFT)
         gridFigure.Add(self.legend_fontSize, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         gridFigure.Add(legendAlpha_label, (n, 0), flag=wx.ALIGN_LEFT)
         gridFigure.Add(self.legend_transparency, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n = n + 1
+        n += 1
         gridFigure.Add(action_label, (n, 0), flag=wx.ALIGN_LEFT)
         gridFigure.Add(self.legend_click_policy, (n, 1), flag=wx.EXPAND)
-        n = n + 1
+        n += 1
         gridFigure.Add(muteAlpha_label, (n, 0), flag=wx.ALIGN_LEFT)
         gridFigure.Add(self.legend_mute_transparency, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
 
@@ -2303,28 +2303,28 @@ class panelInteractiveOutput(wx.MiniFrame):
         n = 1
         self.table_start = menu.AppendCheckItem(ID_interactivePanel_table_document, "Table: Document")
         self.table_start.Check(self.config._interactiveSettings[n]["show"])
-        n = n + 1
+        n += 1
         self.table_end = menu.AppendCheckItem(ID_interactivePanel_table_type, "Table: Type")
         self.table_end.Check(self.config._interactiveSettings[n]["show"])
-        n = n + 1
+        n += 1
         self.table_charge = menu.AppendCheckItem(ID_interactivePanel_table_file, "Table: File/ion/item")
         self.table_charge.Check(self.config._interactiveSettings[n]["show"])
-        n = n + 1
+        n += 1
         self.table_intensity = menu.AppendCheckItem(ID_interactivePanel_table_title, "Table: Title")
         self.table_intensity.Check(self.config._interactiveSettings[n]["show"])
-        n = n + 1
+        n += 1
         self.table_color = menu.AppendCheckItem(ID_interactivePanel_table_header, "Table: Header")
         self.table_color.Check(self.config._interactiveSettings[n]["show"])
-        n = n + 1
+        n += 1
         self.table_colormap = menu.AppendCheckItem(ID_interactivePanel_table_footnote, "Table: Footnote")
         self.table_colormap.Check(self.config._interactiveSettings[n]["show"])
-        n = n + 1
+        n += 1
         self.table_alpha = menu.AppendCheckItem(ID_interactivePanel_table_colormap, "Table: Color/colormap")
         self.table_alpha.Check(self.config._interactiveSettings[n]["show"])
-        n = n + 1
+        n += 1
         self.table_mask = menu.AppendCheckItem(ID_interactivePanel_table_page, "Table: Page")
         self.table_mask.Check(self.config._interactiveSettings[n]["show"])
-        n = n + 1
+        n += 1
         self.table_method = menu.AppendCheckItem(ID_interactivePanel_table_order, "Table: Order")
         self.table_method.Check(self.config._interactiveSettings[n]["show"])
         menu.AppendSeparator()
@@ -3028,7 +3028,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         if "color" in kwargs:
             self.peaklist.SetItemBackgroundColour(self.peaklist.GetItemCount() - 1, kwargs["color"])
             self.peaklist.SetItemTextColour(
-                self.peaklist.GetItemCount() - 1, determineFontColor(kwargs["color"], return_rgb=True)
+                self.peaklist.GetItemCount() - 1, get_font_color(kwargs["color"], return_rgb=True)
             )
 
     def on_add_page_choices(self, evt=None):
@@ -3078,7 +3078,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         information = ""
         # Determine which document was selected
-        document = self.data_handling._on_get_document(name)
+        document = self.data_handling.on_get_document(name)
         docData = self.__get_item_data(name, key, innerKey)
 
         # build information
@@ -3146,7 +3146,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
     def __get_item_data(self, name, key, innerKey):
         # Determine which document was selected
-        document = self.data_handling._on_get_document(name)
+        document = self.data_handling.on_get_document(name)
         #         document = self.documentsDict[name]
 
         if key == "MS" and innerKey == "":
@@ -3307,7 +3307,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
     def on_update_document_keyword(self, name, key, innerKey, keyword, value):
         #         document = self.documentsDict[name]
-        document = self.data_handling._on_get_document(name)
+        document = self.data_handling.on_get_document(name)
 
         if key == "MS" and innerKey == "":
             document.massSpectrum[keyword] = value
@@ -3382,7 +3382,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
     def on_update_document(self, name, key, innerKey, **kwargs):
         #         document = self.documentsDict[name]
-        document = self.data_handling._on_get_document(name)
+        document = self.data_handling.on_get_document(name)
         colorbar = kwargs.pop("colorbar", False)
 
         if key == "MS" and innerKey == "":
@@ -4348,7 +4348,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         # get color
         label_use_preset_color = user_kwargs["annotation_properties"].get("label_use_preset_color", True)
-        label_color = convertRGB1toHEX(
+        label_color = convert_rgb_1_to_hex(
             user_kwargs["annotation_properties"].get("label_color", self.config.interactive_ms_annotations_line_color)
         )
 
@@ -4363,7 +4363,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 annot_ymin_list.append(0)
                 annot_ymax_list.append(ylimits[1] + y_offset)
                 color_list.append(
-                    convertRGB1toHEX(
+                    convert_rgb_1_to_hex(
                         data["annotations"][annotKey].get(
                             "color",
                             data.get("interactive_params", {})
@@ -4396,7 +4396,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 text_annot_ypos.append(ypos + y_offset)
 
                 if label_use_preset_color:
-                    label_color = convertRGB1toHEX(
+                    label_color = convert_rgb_1_to_hex(
                         data["annotations"][annotKey].get(
                             "color",
                             user_kwargs["annotation_properties"].get(
@@ -4555,13 +4555,13 @@ class panelInteractiveOutput(wx.MiniFrame):
             .get("frame_properties", {})
             .get("gridline", self.config.interactive_grid_line)
         ):
-            bokehPlot.grid.grid_line_color = convertRGB1toHEX(
+            bokehPlot.grid.grid_line_color = convert_rgb_1_to_hex(
                 data.get("interactive_params", {})
                 .get("frame_properties", {})
                 .get("gridline_color", self.config.interactive_grid_line_color)
             )
 
-        bokehPlot.background_fill_color = convertRGB1toHEX(
+        bokehPlot.background_fill_color = convert_rgb_1_to_hex(
             data.get("interactive_params", {})
             .get("frame_properties", {})
             .get("background_color", self.config.interactive_background_color)
@@ -5047,8 +5047,8 @@ class panelInteractiveOutput(wx.MiniFrame):
             return
 
         # convert colors
-        color_labelled = convertRGB1toHEX(user_kwargs["plot_properties"]["tandem_line_color_labelled"])
-        color_unlabelled = convertRGB1toHEX(user_kwargs["plot_properties"]["tandem_line_color_unlabelled"])
+        color_labelled = convert_rgb_1_to_hex(user_kwargs["plot_properties"]["tandem_line_color_labelled"])
+        color_unlabelled = convert_rgb_1_to_hex(user_kwargs["plot_properties"]["tandem_line_color_unlabelled"])
 
         # sort list
         annotated_ms_list = natsorted(annotated_ms_list)
@@ -5322,7 +5322,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         )
 
         # add line plot
-        cmap = convertRGB1toHEX(user_kwargs["plot_properties"].get("line_color", cmap))
+        cmap = convert_rgb_1_to_hex(user_kwargs["plot_properties"].get("line_color", cmap))
         line = bokehPlot.line(
             "xvals",
             "yvals",
@@ -5463,7 +5463,7 @@ class panelInteractiveOutput(wx.MiniFrame):
     #                            toolbar_sticky=False)
     #
     #         ms_source = ColumnDataSource(data=dict(xvals=xvals[0], yvals=yvals[0]))
-    #         color_1 = convertRGB1toHEX(line_colors[0])
+    #         color_1 = convert_rgb_1_to_hex(line_colors[0])
     #         line_1 = bokehPlot.line("xvals", "yvals", source=ms_source,
     #                                 line_color=color_1,
     #                                 line_width=user_kwargs["plot_properties"]["line_width"],
@@ -5472,7 +5472,7 @@ class panelInteractiveOutput(wx.MiniFrame):
     #                                 name="plot")
     #
     #         ms_source = ColumnDataSource(data=dict(xvals=xvals[0], yvals=-yvals[0]))
-    #         color_2 = convertRGB1toHEX(line_colors[0])
+    #         color_2 = convert_rgb_1_to_hex(line_colors[0])
     #         line_2 = bokehPlot.line("xvals", "yvals", source=ms_source,
     #                                 line_color=color_2,
     #                                 line_width=user_kwargs["plot_properties"]["line_width"],
@@ -5548,7 +5548,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 )
 
             try:
-                color = convertRGB1toHEX(color)
+                color = convert_rgb_1_to_hex(color)
             except (SyntaxError, ValueError):
                 pass
             source = ColumnDataSource(data=dict(xvals=xval, yvals=yval, label=([_replace_labels(label)] * len(xval))))
@@ -5742,7 +5742,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                     color = self._convert_color_list(itemColors[0])
             else:
                 try:
-                    color = convertRGB1toHEX(colors_list[i])
+                    color = convert_rgb_1_to_hex(colors_list[i])
                 except Exception:
                     color = colors_list[i]
 
@@ -5752,7 +5752,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             ):
                 edge_color = color
             else:
-                edge_color = convertRGB1toHEX(
+                edge_color = convert_rgb_1_to_hex(
                     user_kwargs["plot_properties"].get("scatter_edge_color", self.config.interactive_scatter_edge_color)
                 )
 
@@ -6137,9 +6137,9 @@ class panelInteractiveOutput(wx.MiniFrame):
                         alpha_val = 1.0
                     alpha.append(alpha_val)  # min(zvals[i, j] / 3.0, 0.9) + 0.0)
                     if user_kwargs["overlay_properties"].get("rmsd_matrix_auto_label_color", True):
-                        label_color = determineFontColor(convertHEXtoRGB255(color[-1]), return_hex=True)
+                        label_color = get_font_color(convert_hex_to_rgb_255(color[-1]), return_hex=True)
                     else:
-                        label_color = convertRGB1toHEX(
+                        label_color = convert_rgb_1_to_hex(
                             user_kwargs["overlay_properties"].get(
                                 "rmsd_matrix_label_color", self.config.interactive_ms_annotations_label_color
                             )
@@ -6298,7 +6298,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             toolbar_sticky=False,
         )
         # create rmsf plot
-        color = convertRGB1to255(color, as_integer=True, as_tuple=True)
+        color = convert_rgb_1_to_255(color, as_integer=True, as_tuple=True)
         rmsf_source = ColumnDataSource(data=dict(xvals=xvals, yvals=yvalsRMSF))
         __ = bokehPlotRMSF.line(
             x="xvals",
@@ -6585,7 +6585,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 )
 
             _ydata.extend(line_yvals)
-            color = convertRGB1to255(data[key]["color"], as_integer=True, as_tuple=True)
+            color = convert_rgb_1_to_255(data[key]["color"], as_integer=True, as_tuple=True)
             source = ColumnDataSource(
                 data=dict(xvals=line_xvals, yvals=line_yvals, label=([data[key]["label"]] * len(line_xvals)))
             )
@@ -6621,7 +6621,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             if self.config.interactive_scatter_sameAsFill:
                 edge_color = color
             else:
-                edge_color = convertRGB1toHEX(self.config.interactive_scatter_edge_color)
+                edge_color = convert_rgb_1_to_hex(self.config.interactive_scatter_edge_color)
             bokehPlot.scatter(
                 "xvals",
                 "yvals",
@@ -6759,7 +6759,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         ylabel = data["ylabel"]
         colorList, molweight = [], []
         for color in data["colors"]:
-            colorList.append(convertRGB1toHEX(color))
+            colorList.append(convert_rgb_1_to_hex(color))
         for mw in data["legend"]:
             molweight.append(mw.split(" ")[1])
         legend = data["legend"]
@@ -6889,7 +6889,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         _lines, _patches, _original_colors, = [], [], []
         for xval, yval, color, label in zip(xvals, yvals, colorList, labels):
             try:
-                color = convertRGB1toHEX(color)
+                color = convert_rgb_1_to_hex(color)
             except (SyntaxError, ValueError):
                 pass
 
@@ -7145,8 +7145,8 @@ class panelInteractiveOutput(wx.MiniFrame):
             yval = yvals[item]
             zval = zvals[item]
             dataset = labels[item]
-            line_color = convertRGB1toHEX(colorList[item])
-            shade_color = convertRGB1toHEX(colorList[item])
+            line_color = convert_rgb_1_to_hex(colorList[item])
+            shade_color = convert_rgb_1_to_hex(colorList[item])
             for irow in range(len(yval)):
                 if irow > 0:
                     label = ""
@@ -7515,7 +7515,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             if self.config.interactive_scatter_sameAsFill:
                 edge_color = color
             else:
-                edge_color = convertRGB1toHEX(self.config.interactive_scatter_edge_color)
+                edge_color = convert_rgb_1_to_hex(self.config.interactive_scatter_edge_color)
 
             # generate color list
             if len(color) != yval_size:
@@ -7679,7 +7679,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 )
 
             try:
-                color = convertRGB1toHEX(color)
+                color = convert_rgb_1_to_hex(color)
             except (SyntaxError, ValueError):
                 pass
             source = ColumnDataSource(data=dict(xvals=xval, yvals=yval))
@@ -7810,7 +7810,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 if len(itemColors[i]) == len(xval):
                     colorList = []
                     for color in itemColors[i]:
-                        colorList.append(convertRGB1toHEX(color))
+                        colorList.append(convert_rgb_1_to_hex(color))
                 else:
                     colorList = len(xval) * [_colors[i]]
             else:
@@ -7820,7 +7820,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 linecolorList = colorList
             else:
                 edgecolor = [
-                    convertRGB1toHEX(
+                    convert_rgb_1_to_hex(
                         user_kwargs["plot_properties"].get("bar_edge_color", self.config.interactive_bar_edge_color)
                     )
                 ]
@@ -7993,7 +7993,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             bar_line_width=data.get("interactive_params", {})
             .get("colorbar_properties", {})
             .get("edge_width", self.config.interactive_colorbar_edge_width),
-            bar_line_color=convertRGB1to255(
+            bar_line_color=convert_rgb_1_to_255(
                 data.get("interactive_params", {})
                 .get("colorbar_properties", {})
                 .get("edge_color", self.config.interactive_colorbar_edge_color),
@@ -8001,7 +8001,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                 as_tuple=True,
             ),
             bar_line_cap="square",
-            major_tick_line_color=convertRGB1to255(
+            major_tick_line_color=convert_rgb_1_to_255(
                 data.get("interactive_params", {})
                 .get("colorbar_properties", {})
                 .get("edge_color", self.config.interactive_colorbar_edge_color),
@@ -8011,7 +8011,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             major_tick_line_width=data.get("interactive_params", {})
             .get("colorbar_properties", {})
             .get("edge_width", self.config.interactive_colorbar_edge_width),
-            minor_tick_line_color=convertRGB1to255(
+            minor_tick_line_color=convert_rgb_1_to_255(
                 data.get("interactive_params", {})
                 .get("colorbar_properties", {})
                 .get("edge_color", self.config.interactive_colorbar_edge_color),
@@ -8067,12 +8067,12 @@ class panelInteractiveOutput(wx.MiniFrame):
             y_units="data",
             render_mode="canvas",
             text=label,
-            text_color=convertRGB1toHEX(
+            text_color=convert_rgb_1_to_hex(
                 data.get("interactive_params", {})
                 .get("overlay_properties", {})
                 .get("rmsd_label_color", self.config.interactive_annotation_color)
             ),
-            background_fill_color=convertRGB1toHEX(
+            background_fill_color=convert_rgb_1_to_hex(
                 data.get("interactive_params", {})
                 .get("overlay_properties", {})
                 .get("rmsd_background_color", self.config.interactive_annotation_background_color)
@@ -8103,7 +8103,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             y_units="data",
             text=label,
             render_mode="canvas",
-            text_color=convertRGB1toHEX(self.config.interactive_grid_label_color),
+            text_color=convert_rgb_1_to_hex(self.config.interactive_grid_label_color),
             text_font_size=self._fontSizeConverter(self.config.interactive_grid_label_size),
             text_font_style=self._fontWeightConverter(self.config.interactive_grid_label_weight),
             background_fill_alpha=0,
@@ -8137,7 +8137,7 @@ class panelInteractiveOutput(wx.MiniFrame):
                         "label_fontweight", self.config.interactive_ms_annotations_fontWeight
                     )
                 ),
-                text_color=convertRGB1to255(
+                text_color=convert_rgb_1_to_255(
                     user_kwargs["annotation_properties"].get(
                         "label_color", self.config.interactive_ms_annotations_label_color
                     ),
@@ -9108,7 +9108,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         if return_as_hex:
             hexcolorlist = []
             for _color in colorlist:
-                hexcolorlist.append(convertRGB1toHEX(_color))
+                hexcolorlist.append(convert_rgb_1_to_hex(_color))
             colorlist = hexcolorlist
 
         return colorlist
@@ -9858,7 +9858,7 @@ class panelInteractiveOutput(wx.MiniFrame):
     def _convert_color_list(colorList):
         hexcolorlist = []
         for _color in colorList:
-            hexcolorlist.append(convertRGB1toHEX(_color))
+            hexcolorlist.append(convert_rgb_1_to_hex(_color))
         colorList = hexcolorlist
 
         return colorList

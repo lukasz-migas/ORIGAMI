@@ -199,8 +199,8 @@ class MyFrame(wx.Frame):
         self.Bind(wx.EVT_IDLE, self.OnIdle)
 
         # Setup Notebook manager
-        self._mgr = wx.aui.AuiManager(self)
-        self._mgr.SetDockSizeConstraint(1, 1)
+        self.window_mgr = wx.aui.AuiManager(self)
+        self.window_mgr.SetDockSizeConstraint(1, 1)
 
         # Load panels
         self.panelDocuments = PanelDocumentTree(self, self.config, self.icons, self.presenter)
@@ -222,7 +222,7 @@ class MyFrame(wx.Frame):
         self.make_toolbar()
 
         # Panel to store document information
-        self._mgr.AddPane(
+        self.window_mgr.AddPane(
             self.panelDocuments,
             wx.aui.AuiPaneInfo()
             .Left()
@@ -237,7 +237,7 @@ class MyFrame(wx.Frame):
             .Gripper(self.config._windowSettings["Documents"]["gripper"]),
         )
 
-        self._mgr.AddPane(
+        self.window_mgr.AddPane(
             self.panelPlots,
             wx.aui.AuiPaneInfo()
             .CenterPane()
@@ -249,7 +249,7 @@ class MyFrame(wx.Frame):
         )
 
         # Panel to extract multiple ions from ML files
-        self._mgr.AddPane(
+        self.window_mgr.AddPane(
             self.panelMultipleIons,
             wx.aui.AuiPaneInfo()
             .Right()
@@ -265,7 +265,7 @@ class MyFrame(wx.Frame):
         )
 
         # Panel to operate on multiple text files
-        self._mgr.AddPane(
+        self.window_mgr.AddPane(
             self.panelMultipleText,
             wx.aui.AuiPaneInfo()
             .Right()
@@ -281,7 +281,7 @@ class MyFrame(wx.Frame):
         )
 
         # Panel to operate on multiple ML files
-        self._mgr.AddPane(
+        self.window_mgr.AddPane(
             self.panelMML,
             wx.aui.AuiPaneInfo()
             .Right()
@@ -296,7 +296,7 @@ class MyFrame(wx.Frame):
             .Gripper(self.config._windowSettings["Multiple files"]["gripper"]),
         )
 
-        self._mgr.AddPane(
+        self.window_mgr.AddPane(
             self.panelParametersEdit,
             wx.aui.AuiPaneInfo()
             .Right()
@@ -320,7 +320,7 @@ class MyFrame(wx.Frame):
         pub.subscribe(self.data_handling.on_update_DTMS_zoom, "change_zoom_dtms")
 
         # Load other parts
-        self._mgr.Update()
+        self.window_mgr.Update()
         # self.makeBindings()
         self.make_statusbar()
         self.make_menubar()
@@ -351,8 +351,8 @@ class MyFrame(wx.Frame):
         }
 
         for panel in [self.panelDocuments, self.panelMML, self.panelMultipleIons, self.panelMultipleText]:
-            if self._mgr.GetPane(panel).IsShown():
-                self.on_find_toggle_by_id(find_id=panelDict[self._mgr.GetPane(panel).caption], check=True)
+            if self.window_mgr.GetPane(panel).IsShown():
+                self.on_find_toggle_by_id(find_id=panelDict[self.window_mgr.GetPane(panel).caption], check=True)
 
     def _onUpdatePlotData(self, plot_type=None):
         if plot_type == "2D":
@@ -1548,37 +1548,37 @@ class MyFrame(wx.Frame):
         if evtID is not None:
             if evtID == ID_window_documentList:
                 if not self.panelDocuments.IsShown() or not self.documentsPage.IsChecked():
-                    self._mgr.GetPane(self.panelDocuments).Show()
+                    self.window_mgr.GetPane(self.panelDocuments).Show()
                     self.config._windowSettings["Documents"]["show"] = True
                 else:
-                    self._mgr.GetPane(self.panelDocuments).Hide()
+                    self.window_mgr.GetPane(self.panelDocuments).Hide()
                     self.config._windowSettings["Documents"]["show"] = False
                 self.documentsPage.Check(self.config._windowSettings["Documents"]["show"])
                 self.on_find_toggle_by_id(find_id=evtID, check=self.config._windowSettings["Documents"]["show"])
             elif evtID == ID_window_ionList:
                 if not self.panelMultipleIons.IsShown() or check or not self.mzTable.IsChecked():
-                    self._mgr.GetPane(self.panelMultipleIons).Show()
+                    self.window_mgr.GetPane(self.panelMultipleIons).Show()
                     self.config._windowSettings["Peak list"]["show"] = True
                 else:
-                    self._mgr.GetPane(self.panelMultipleIons).Hide()
+                    self.window_mgr.GetPane(self.panelMultipleIons).Hide()
                     self.config._windowSettings["Peak list"]["show"] = False
                 self.mzTable.Check(self.config._windowSettings["Peak list"]["show"])
                 self.on_find_toggle_by_id(find_id=evtID, check=self.config._windowSettings["Peak list"]["show"])
             elif evtID == ID_window_multipleMLList:
                 if not self.panelMML.IsShown() or check or not self.multipleMLTable.IsChecked():
-                    self._mgr.GetPane(self.panelMML).Show()
+                    self.window_mgr.GetPane(self.panelMML).Show()
                     self.config._windowSettings["Multiple files"]["show"] = True
                 else:
-                    self._mgr.GetPane(self.panelMML).Hide()
+                    self.window_mgr.GetPane(self.panelMML).Hide()
                     self.config._windowSettings["Multiple files"]["show"] = False
                 self.multipleMLTable.Check(self.config._windowSettings["Multiple files"]["show"])
                 self.on_find_toggle_by_id(find_id=evtID, check=self.config._windowSettings["Multiple files"]["show"])
             elif evtID == ID_window_textList:
                 if not self.panelMultipleText.IsShown() or check or not self.textTable.IsChecked():
-                    self._mgr.GetPane(self.panelMultipleText).Show()
+                    self.window_mgr.GetPane(self.panelMultipleText).Show()
                     self.config._windowSettings["Text files"]["show"] = True
                 else:
-                    self._mgr.GetPane(self.panelMultipleText).Hide()
+                    self.window_mgr.GetPane(self.panelMultipleText).Hide()
                     self.config._windowSettings["Text files"]["show"] = False
                 self.textTable.Check(self.config._windowSettings["Text files"]["show"])
                 self.on_find_toggle_by_id(find_id=evtID, check=self.config._windowSettings["Text files"]["show"])
@@ -1589,7 +1589,7 @@ class MyFrame(wx.Frame):
                 self.on_find_toggle_by_id(check_all=True)
 
                 for panel in [self.panelDocuments, self.panelMML, self.panelMultipleIons, self.panelMultipleText]:
-                    self._mgr.GetPane(panel).Show()
+                    self.window_mgr.GetPane(panel).Show()
 
                 self.documentsPage.Check(self.config._windowSettings["Documents"]["show"])
                 self.mzTable.Check(self.config._windowSettings["Peak list"]["show"])
@@ -1612,7 +1612,7 @@ class MyFrame(wx.Frame):
             self.textTable.Check(self.config._windowSettings["Text files"]["show"])
             self.multipleMLTable.Check(self.config._windowSettings["Multiple files"]["show"])
 
-        self._mgr.Update()
+        self.window_mgr.Update()
 
     def on_find_toggle_by_id(self, find_id=None, check=None, check_all=False):
         """
@@ -1680,7 +1680,7 @@ class MyFrame(wx.Frame):
 
         # Try killing window manager
         try:
-            self._mgr.UnInit()
+            self.window_mgr.UnInit()
         except Exception as err:
             print(f"Could not uninitilize window manager: {err}")
 
@@ -1836,16 +1836,16 @@ class MyFrame(wx.Frame):
 
         if not self.panelParametersEdit.IsShown() or not self.config._windowSettings["Plot parameters"]["show"]:
             if self.config._windowSettings["Plot parameters"]["floating"]:
-                self._mgr.GetPane(self.panelParametersEdit).Float()
+                self.window_mgr.GetPane(self.panelParametersEdit).Float()
 
-            self._mgr.GetPane(self.panelParametersEdit).Show()
+            self.window_mgr.GetPane(self.panelParametersEdit).Show()
             self.config._windowSettings["Plot parameters"]["show"] = True
-            self.panelParametersEdit.onSetPage(**kwargs)
-            self._mgr.Update()
+            self.panelParametersEdit.on_set_page(**kwargs)
+            self.window_mgr.Update()
         else:
             args = ("An instance of this panel is already open - changing page to: %s" % kwargs["window"], 4)
             self.presenter.onThreading(evt, args, action="updateStatusbar")
-            self.panelParametersEdit.onSetPage(**kwargs)
+            self.panelParametersEdit.on_set_page(**kwargs)
             return
 
     def onExportParameters(self, evt):

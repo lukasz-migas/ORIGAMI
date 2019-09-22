@@ -3,7 +3,7 @@
 import wx
 from icons.icons import IconContainer
 from styles import make_bitmap_btn
-from styles import makeCheckbox
+from styles import make_checkbox
 from styles import MiniFrame
 from styles import validator
 from utils.converters import num2str
@@ -108,7 +108,7 @@ class PanelModifyItemSettings(MiniFrame):
 
             horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
-        self.select_value = makeCheckbox(panel, "Check in list")
+        self.select_value = make_checkbox(panel, "Check in list")
         self.select_value.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         filename_label = wx.StaticText(panel, wx.ID_ANY, "Document title:")
@@ -162,7 +162,7 @@ class PanelModifyItemSettings(MiniFrame):
             self.colormap_value = wx.Choice(panel, -1, choices=self.config.cmaps2, size=(-1, -1))
             self.colormap_value.Bind(wx.EVT_CHOICE, self.on_apply)
 
-            self.restrictColormap_value = makeCheckbox(panel, "Reduce number of colormaps")
+            self.restrictColormap_value = make_checkbox(panel, "Reduce number of colormaps")
             self.restrictColormap_value.Bind(wx.EVT_CHECKBOX, self.on_restrict_colormaps)
             self.restrictColormap_value.SetToolTip(
                 "Reduce the number of colormaps to selection of most visually pleasing examples"
@@ -426,9 +426,9 @@ class PanelModifyItemSettings(MiniFrame):
             evt.Skip()
 
     def on_assign_random_color(self, evt):
-        from utils.color import randomColorGenerator
+        from utils.color import get_random_color
 
-        color = randomColorGenerator(True)
+        color = get_random_color(True)
         self.color_value.SetBackgroundColour(color)
         self.on_assign_color(None)
 

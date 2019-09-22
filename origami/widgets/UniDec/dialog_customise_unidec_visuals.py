@@ -6,10 +6,10 @@ from gui_elements.misc_dialogs import DialogBox
 from ids import ID_unidecPanel_barEdgeColor
 from ids import ID_unidecPanel_fitLineColor
 from styles import Dialog
-from styles import makeCheckbox
-from styles import makeStaticBox
+from styles import make_checkbox
+from styles import make_staticbox
 from styles import validator
-from utils.color import convertRGB1to255
+from utils.color import convert_rgb_1_to_255
 from utils.converters import str2int
 from wx.adv import BitmapComboBox
 
@@ -44,7 +44,7 @@ class DialogCustomiseUniDecVisuals(Dialog):
     def make_panel(self):
         panel = wx.Panel(self, -1)
 
-        general_staticBox = makeStaticBox(panel, "General", size=(-1, -1), color=wx.BLACK)
+        general_staticBox = make_staticbox(panel, "General", size=(-1, -1), color=wx.BLACK)
         general_staticBox.SetSize((-1, -1))
         general_box_sizer = wx.StaticBoxSizer(general_staticBox, wx.HORIZONTAL)
 
@@ -64,7 +64,7 @@ class DialogCustomiseUniDecVisuals(Dialog):
         self.unidec_maxShownLines_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         remove_label_overlap_label = wx.StaticText(panel, wx.ID_ANY, "Optimise label position:")
-        self.unidec_labels_optimise_position_check = makeCheckbox(panel, "")
+        self.unidec_labels_optimise_position_check = make_checkbox(panel, "")
         self.unidec_labels_optimise_position_check.SetValue(self.config.unidec_optimiseLabelPositions)
         self.unidec_labels_optimise_position_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
@@ -84,7 +84,7 @@ class DialogCustomiseUniDecVisuals(Dialog):
         general_box_sizer.Add(general_grid, 0, wx.EXPAND, 10)
 
         # MS and MS Fit
-        MS_staticBox = makeStaticBox(panel, "MS and UniDec Fit", size=(-1, -1), color=wx.BLACK)
+        MS_staticBox = make_staticbox(panel, "MS and UniDec Fit", size=(-1, -1), color=wx.BLACK)
         MS_staticBox.SetSize((-1, -1))
         MS_box_sizer = wx.StaticBoxSizer(MS_staticBox, wx.HORIZONTAL)
 
@@ -92,7 +92,7 @@ class DialogCustomiseUniDecVisuals(Dialog):
         self.fit_lineColor_Btn = wx.Button(
             panel, ID_unidecPanel_fitLineColor, "", wx.DefaultPosition, wx.Size(26, 26), 0
         )
-        self.fit_lineColor_Btn.SetBackgroundColour(convertRGB1to255(self.config.unidec_plot_fit_lineColor))
+        self.fit_lineColor_Btn.SetBackgroundColour(convert_rgb_1_to_255(self.config.unidec_plot_fit_lineColor))
         self.fit_lineColor_Btn.Bind(wx.EVT_BUTTON, self.on_change_color)
 
         MS_grid = wx.GridBagSizer(2, 2)
@@ -102,12 +102,12 @@ class DialogCustomiseUniDecVisuals(Dialog):
         MS_box_sizer.Add(MS_grid, 0, wx.EXPAND, 10)
 
         # m/z vs charge
-        contour_staticBox = makeStaticBox(panel, "m/z vs charge | MW vs charge", size=(-1, -1), color=wx.BLACK)
+        contour_staticBox = make_staticbox(panel, "m/z vs charge | MW vs charge", size=(-1, -1), color=wx.BLACK)
         contour_staticBox.SetSize((-1, -1))
         contour_box_sizer = wx.StaticBoxSizer(contour_staticBox, wx.HORIZONTAL)
 
         speedy_label = wx.StaticText(panel, wx.ID_ANY, "Quick plot:")
-        self.speedy_check = makeCheckbox(panel, "")
+        self.speedy_check = make_checkbox(panel, "")
         self.speedy_check.SetValue(self.config.unidec_speedy)
         self.speedy_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
@@ -134,12 +134,12 @@ class DialogCustomiseUniDecVisuals(Dialog):
         contour_box_sizer.Add(contour_grid, 0, wx.EXPAND, 10)
 
         # Zero-charge MS
-        MW_staticBox = makeStaticBox(panel, "Zero-charge Mass Spectrum", size=(-1, -1), color=wx.BLACK)
+        MW_staticBox = make_staticbox(panel, "Zero-charge Mass Spectrum", size=(-1, -1), color=wx.BLACK)
         MW_staticBox.SetSize((-1, -1))
         MW_box_sizer = wx.StaticBoxSizer(MW_staticBox, wx.HORIZONTAL)
 
         MW_show_markers = wx.StaticText(panel, -1, "Show markers:")
-        self.MW_show_markers_check = makeCheckbox(panel, "")
+        self.MW_show_markers_check = make_checkbox(panel, "")
         self.MW_show_markers_check.SetValue(self.config.unidec_plot_MW_showMarkers)
         self.MW_show_markers_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
@@ -159,12 +159,12 @@ class DialogCustomiseUniDecVisuals(Dialog):
         MW_box_sizer.Add(MW_grid, 0, wx.EXPAND, 10)
 
         #         # Zero-charge MS
-        #         MW_staticBox = makeStaticBox(panel, "Zero-charge Mass Spectrum", size=(-1, -1), color=wx.BLACK)
+        #         MW_staticBox = make_staticbox(panel, "Zero-charge Mass Spectrum", size=(-1, -1), color=wx.BLACK)
         #         MW_staticBox.SetSize((-1,-1))
         #         MW_box_sizer = wx.StaticBoxSizer(MW_staticBox, wx.HORIZONTAL)
         #
         #         MW_show_markers = wx.StaticText(panel, -1, "Show markers:")
-        #         self.MW_show_markers_check = makeCheckbox(panel, u"")
+        #         self.MW_show_markers_check = make_checkbox(panel, u"")
         #         self.MW_show_markers_check.SetValue(self.config.unidec_plot_MW_showMarkers)
         #         self.MW_show_markers_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         #
@@ -185,7 +185,7 @@ class DialogCustomiseUniDecVisuals(Dialog):
         #         MW_box_sizer.Add(MW_grid, 0, wx.EXPAND, 10)
 
         # MS with isolated species
-        isolatedMS_staticBox = makeStaticBox(panel, "MS with isolated species", size=(-1, -1), color=wx.BLACK)
+        isolatedMS_staticBox = make_staticbox(panel, "MS with isolated species", size=(-1, -1), color=wx.BLACK)
         isolatedMS_staticBox.SetSize((-1, -1))
         isolatedMS_box_sizer = wx.StaticBoxSizer(isolatedMS_staticBox, wx.HORIZONTAL)
 
@@ -209,7 +209,7 @@ class DialogCustomiseUniDecVisuals(Dialog):
         isolatedMS_box_sizer.Add(isolatedMS_grid, 0, wx.EXPAND, 10)
 
         # Barchart
-        barParameters_staticBox = makeStaticBox(panel, "Peak intensities (Barchart)", size=(-1, -1), color=wx.BLACK)
+        barParameters_staticBox = make_staticbox(panel, "Peak intensities (Barchart)", size=(-1, -1), color=wx.BLACK)
         barParameters_staticBox.SetSize((-1, -1))
         bar_box_sizer = wx.StaticBoxSizer(barParameters_staticBox, wx.HORIZONTAL)
 
@@ -269,11 +269,11 @@ class DialogCustomiseUniDecVisuals(Dialog):
         self.bar_edgeColor_Btn = wx.Button(
             panel, ID_unidecPanel_barEdgeColor, "", wx.DefaultPosition, wx.Size(26, 26), 0
         )
-        self.bar_edgeColor_Btn.SetBackgroundColour(convertRGB1to255(self.config.unidec_plot_bar_edge_color))
+        self.bar_edgeColor_Btn.SetBackgroundColour(convert_rgb_1_to_255(self.config.unidec_plot_bar_edge_color))
         self.bar_edgeColor_Btn.Bind(wx.EVT_BUTTON, self.on_change_color)
 
         bar_colorEdge_check_label = wx.StaticText(panel, -1, "Same as fill:")
-        self.bar_colorEdge_check = makeCheckbox(panel, "")
+        self.bar_colorEdge_check = make_checkbox(panel, "")
         self.bar_colorEdge_check.SetValue(self.config.unidec_plot_bar_sameAsFill)
         self.bar_colorEdge_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
@@ -299,7 +299,7 @@ class DialogCustomiseUniDecVisuals(Dialog):
         bar_box_sizer.Add(bar_grid, 0, wx.EXPAND, 10)
 
         # Color
-        color_staticBox = makeStaticBox(panel, "Color scheme", size=(-1, -1), color=wx.BLACK)
+        color_staticBox = make_staticbox(panel, "Color scheme", size=(-1, -1), color=wx.BLACK)
         color_staticBox.SetSize((-1, -1))
         color_box_sizer = wx.StaticBoxSizer(color_staticBox, wx.HORIZONTAL)
 
