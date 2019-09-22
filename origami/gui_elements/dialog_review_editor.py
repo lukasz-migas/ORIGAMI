@@ -5,7 +5,7 @@ import logging
 import wx
 from styles import Dialog
 from styles import ListCtrl
-from styles import setItemFont
+from styles import set_item_font
 
 logger = logging.getLogger("origami")
 
@@ -68,7 +68,7 @@ class DialogReviewEditor(Dialog):
         )
 
         info_label = wx.StaticText(panel, -1, msg)
-        setItemFont(info_label)
+        set_item_font(info_label)
 
         self.make_listctrl_panel(panel)
 

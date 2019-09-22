@@ -51,8 +51,8 @@ from ids import ID_mmlPanel_table_restoreAll
 from ids import ID_mmlPanel_table_variable
 from processing.spectra import interpolate
 from styles import ListCtrl
-from styles import makeMenuItem
-from styles import makeTooltip
+from styles import make_menu_item
+from styles import make_tooltip
 from utils.color import convert_rgb_1_to_255
 from utils.color import convert_rgb_255_to_1
 from utils.color import get_font_color
@@ -159,7 +159,7 @@ class PanelMultiFile(wx.Panel):
             size=(18, 18),
             style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
         )
-        self.add_btn.SetToolTip(makeTooltip("Add..."))
+        self.add_btn.SetToolTip(make_tooltip("Add..."))
 
         self.remove_btn = wx.BitmapButton(
             self,
@@ -168,7 +168,7 @@ class PanelMultiFile(wx.Panel):
             size=(18, 18),
             style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
         )
-        self.remove_btn.SetToolTip(makeTooltip("Remove..."))
+        self.remove_btn.SetToolTip(make_tooltip("Remove..."))
 
         self.annotate_btn = wx.BitmapButton(
             self,
@@ -177,7 +177,7 @@ class PanelMultiFile(wx.Panel):
             size=(18, 18),
             style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
         )
-        self.annotate_btn.SetToolTip(makeTooltip("Annotate..."))
+        self.annotate_btn.SetToolTip(make_tooltip("Annotate..."))
 
         self.process_btn = wx.BitmapButton(
             self,
@@ -186,7 +186,7 @@ class PanelMultiFile(wx.Panel):
             size=(18, 18),
             style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
         )
-        self.process_btn.SetToolTip(makeTooltip("Process..."))
+        self.process_btn.SetToolTip(make_tooltip("Process..."))
 
         self.overlay_btn = wx.BitmapButton(
             self,
@@ -195,7 +195,7 @@ class PanelMultiFile(wx.Panel):
             size=(18, 18),
             style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
         )
-        self.overlay_btn.SetToolTip(makeTooltip("Visualise mass spectra..."))
+        self.overlay_btn.SetToolTip(make_tooltip("Visualise mass spectra..."))
 
         vertical_line_1 = wx.StaticLine(self, -1, style=wx.LI_VERTICAL)
 
@@ -206,7 +206,7 @@ class PanelMultiFile(wx.Panel):
             size=(18, 18),
             style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
         )
-        self.info_btn.SetToolTip(makeTooltip("Information..."))
+        self.info_btn.SetToolTip(make_tooltip("Information..."))
 
         # button grid
         btn_grid_vert = wx.GridBagSizer(2, 2)
@@ -241,7 +241,7 @@ class PanelMultiFile(wx.Panel):
         aIMMS, CIU, SID or any other activation technique where energy was increased for separate files.
         """
 
-        filelistTooltip = makeTooltip(delay=5000, reshow=3000, text=tooltip_text)
+        filelistTooltip = make_tooltip(delay=5000, reshow=3000, text=tooltip_text)
         self.peaklist.SetToolTip(filelistTooltip)
 
         self.peaklist.Bind(wx.EVT_LEFT_DCLICK, self.on_double_click_on_item)
@@ -265,7 +265,7 @@ class PanelMultiFile(wx.Panel):
         # Create popup menu
         menu = wx.Menu()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_mmlPanel_plot_MS,
                 text="Show mass spectrum\tM",
@@ -273,7 +273,7 @@ class PanelMultiFile(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_mmlPanel_plot_DT,
                 text="Show mobilogram\tD",
@@ -283,7 +283,7 @@ class PanelMultiFile(wx.Panel):
         menu.Append(ID_mmlPanel_plot_combined_MS, "Show mass spectrum (average)")
         menu.AppendSeparator()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_mmlPanel_assignColor,
                 text="Assign new color\tC",
@@ -292,7 +292,7 @@ class PanelMultiFile(wx.Panel):
         )
         menu.AppendSeparator()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_mmlPanel_delete_rightClick,
                 text="Remove item\tDelete",
@@ -310,7 +310,7 @@ class PanelMultiFile(wx.Panel):
 
         menu = wx.Menu()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_mmlPanel_changeColorBatch_color,
                 text="Assign color for selected items",
@@ -318,7 +318,7 @@ class PanelMultiFile(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_mmlPanel_changeColorBatch_palette,
                 text="Color selected items using color palette",
@@ -326,7 +326,7 @@ class PanelMultiFile(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_mmlPanel_changeColorBatch_colormap,
                 text="Color selected items using colormap",
@@ -346,7 +346,7 @@ class PanelMultiFile(wx.Panel):
         menu = wx.Menu()
         menu.Append(ID_mmlPanel_add_files_toCurrentDoc, "Add files to current MANUAL document")
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_mmlPanel_add_files_toNewDoc,
                 text="Add files to blank MANUAL document",
@@ -355,7 +355,7 @@ class PanelMultiFile(wx.Panel):
         )
         menu.AppendSeparator()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_mmlPanel_add_manualDoc,
                 text="Create blank MANUAL document",
@@ -377,7 +377,7 @@ class PanelMultiFile(wx.Panel):
         menu = wx.Menu()
         menu.Append(ID_mmlPanel_clear_selected, "Clear selected items")
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu, id=ID_mmlPanel_clear_all, text="Clear all items", bitmap=self.icons.iconsLib["clear_16"]
             )
         )
@@ -419,7 +419,7 @@ class PanelMultiFile(wx.Panel):
         )
         self.preProcess_check.Check(self.preprocessMS)
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_mmlPanel_overlayWaterfall,
                 text="Overlay raw mass spectra",
@@ -428,7 +428,7 @@ class PanelMultiFile(wx.Panel):
         )
         menu.AppendSeparator()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_mmlPanel_overlayProcessedSpectra,
                 text="Overlay processed spectra (UniDec)",
@@ -436,7 +436,7 @@ class PanelMultiFile(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_mmlPanel_overlayFittedSpectra,
                 text="Overlay fitted spectra (UniDec)",
@@ -444,7 +444,7 @@ class PanelMultiFile(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_mmlPanel_overlayMW,
                 text="Overlay molecular weight distribution (UniDec)",
@@ -452,14 +452,14 @@ class PanelMultiFile(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_mmlPanel_overlayChargeStates,
                 text="Overlay charge state distribution (UniDec)",
                 bitmap=self.icons.iconsLib["blank_16"],
             )
         )
-        #         menu.AppendItem(makeMenuItem(parent=menu, id=ID_mmlPanel_overlayFoundPeaks,
+        #         menu.AppendItem(make_menu_item(parent=menu, id=ID_mmlPanel_overlayFoundPeaks,
         #                                      text='Overlay isolated species',
         #                                      bitmap=self.icons.iconsLib['blank_16']))
 
@@ -474,7 +474,7 @@ class PanelMultiFile(wx.Panel):
         menu = wx.Menu()
         menu.Append(ID_mmlPanel_data_combineMS, "Average mass spectra (current document)")
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_mmlPanel_batchRunUniDec,
                 text="Run UniDec for selected items",
@@ -508,7 +508,7 @@ class PanelMultiFile(wx.Panel):
         self.table_label.Check(self.config._multipleFilesSettings[n]["show"])
         menu.AppendSeparator()
         self.table_hide = menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_mmlPanel_table_hideAll,
                 text="Table: Hide all",
@@ -516,7 +516,7 @@ class PanelMultiFile(wx.Panel):
             )
         )
         self.table_restore = menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_mmlPanel_table_restoreAll,
                 text="Table: Restore all",

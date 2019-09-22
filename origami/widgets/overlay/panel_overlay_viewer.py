@@ -7,8 +7,8 @@ from copy import deepcopy
 import wx
 from styles import ListCtrl
 from styles import make_checkbox
-from styles import makeMenuItem
-from styles import makeTooltip
+from styles import make_menu_item
+from styles import make_tooltip
 from styles import MiniFrame
 from utils.color import check_color_format
 from utils.color import convert_rgb_255_to_1
@@ -107,24 +107,24 @@ class PanelOverlayViewer(MiniFrame):
             return
 
         menu = wx.Menu()
-        menu_action_customise_plot = makeMenuItem(
+        menu_action_customise_plot = make_menu_item(
             parent=menu, text="Customise plot...", bitmap=self.icons.iconsLib["change_xlabels_16"]
         )
         menu.AppendItem(menu_action_customise_plot)
         menu.AppendSeparator()
         self.resize_plot_check = menu.AppendCheckItem(-1, "Resize on saving")
         self.resize_plot_check.Check(self.config.resize)
-        save_figure_menu_item = makeMenuItem(
+        save_figure_menu_item = make_menu_item(
             menu, id=wx.ID_ANY, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
         )
         menu.AppendItem(save_figure_menu_item)
-        menu_action_copy_to_clipboard = makeMenuItem(
+        menu_action_copy_to_clipboard = make_menu_item(
             parent=menu, id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self.icons.iconsLib["filelist_16"]
         )
         menu.AppendItem(menu_action_copy_to_clipboard)
 
         menu.AppendSeparator()
-        clear_plot_menu_item = makeMenuItem(
+        clear_plot_menu_item = make_menu_item(
             menu, id=wx.ID_ANY, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
         )
         menu.AppendItem(clear_plot_menu_item)
@@ -278,7 +278,7 @@ class PanelOverlayViewer(MiniFrame):
         )
         self.refresh_btn.Bind(wx.EVT_BUTTON, self.on_populate_item_list)
         self.refresh_btn.SetToolTip(
-            makeTooltip("Re-populate table for specified dataset. All checkboxes will be erased")
+            make_tooltip("Re-populate table for specified dataset. All checkboxes will be erased")
         )
 
         overlay_method_choice = wx.StaticText(panel, -1, "Overlay method:")
@@ -424,7 +424,7 @@ class PanelOverlayViewer(MiniFrame):
 
         menu = wx.Menu()
 
-        menu_action_create_blank_document = makeMenuItem(
+        menu_action_create_blank_document = make_menu_item(
             parent=menu,
             text="Create blank COMPARISON document",
             bitmap=self.icons.iconsLib["new_document_16"],

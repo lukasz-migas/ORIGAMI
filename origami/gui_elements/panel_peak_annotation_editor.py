@@ -11,7 +11,7 @@ from objects.annotations import check_annotation_input
 from pubsub import pub
 from styles import ListCtrl
 from styles import make_checkbox
-from styles import makeMenuItem
+from styles import make_menu_item
 from styles import validator
 from utils.check import check_value_order
 from utils.color import convert_rgb_1_to_255
@@ -152,12 +152,12 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         if hasattr(evt.EventObject, "figure"):
 
             menu = wx.Menu()
-            save_figure_menu_item = makeMenuItem(
+            save_figure_menu_item = make_menu_item(
                 menu, id=wx.ID_ANY, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
             )
             menu.AppendItem(save_figure_menu_item)
 
-            menu_action_copy_to_clipboard = makeMenuItem(
+            menu_action_copy_to_clipboard = make_menu_item(
                 parent=menu, id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self.icons.iconsLib["filelist_16"]
             )
             menu.AppendItem(menu_action_copy_to_clipboard)
@@ -645,34 +645,34 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
 
         menu = wx.Menu()
 
-        menu_action_customise = makeMenuItem(
+        menu_action_customise = make_menu_item(
             parent=menu, text="Customise other settings...", bitmap=self.icons.iconsLib["settings16_2"], help_text=""
         )
         menu.Append(menu_action_customise)
         menu.AppendSeparator()
         self.Bind(wx.EVT_MENU, self.on_customise_parameters, menu_action_customise)
 
-        menu_action_multiply = makeMenuItem(
+        menu_action_multiply = make_menu_item(
             parent=menu, text="Create (similar) copies of selected annotations", bitmap=None
         )
         menu.Append(menu_action_multiply)
         menu.AppendSeparator()
         self.Bind(wx.EVT_MENU, self.on_copy_annotations, menu_action_multiply)
 
-        menu_action_edit_charge = makeMenuItem(
+        menu_action_edit_charge = make_menu_item(
             parent=menu, text="Set charge state (selected)", bitmap=self.icons.iconsLib["assign_charge_16"]
         )
         menu.Append(menu_action_edit_charge)
         self.Bind(wx.EVT_MENU, self.on_change_item_parameter, menu_action_edit_charge)
 
         if self._allow_data_check:
-            menu_action_fix_label_intensity = makeMenuItem(
+            menu_action_fix_label_intensity = make_menu_item(
                 parent=menu, text="Fix intensity / label position (selected)"
             )
             menu.Append(menu_action_fix_label_intensity)
             self.Bind(wx.EVT_MENU, self.on_fix_intensity, menu_action_fix_label_intensity)
 
-            menu_action_fix_patch_height = makeMenuItem(
+            menu_action_fix_patch_height = make_menu_item(
                 parent=menu,
                 text="Fix patch height (selected)",
                 help_text="Pins the height of a patch to the maximum intensity at a particular position (x)",
@@ -681,11 +681,11 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
             self.Bind(wx.EVT_MENU, self.on_fix_patch_height, menu_action_fix_patch_height)
             menu.AppendSeparator()
 
-        menu_action_edit_text_color = makeMenuItem(parent=menu, text="Set label color (selected)")
+        menu_action_edit_text_color = make_menu_item(parent=menu, text="Set label color (selected)")
         menu.Append(menu_action_edit_text_color)
         self.Bind(wx.EVT_MENU, self.on_assign_color, menu_action_edit_text_color)
 
-        menu_action_edit_patch_color = makeMenuItem(parent=menu, text="Set patch color (selected)")
+        menu_action_edit_patch_color = make_menu_item(parent=menu, text="Set patch color (selected)")
         menu.Append(menu_action_edit_patch_color)
         self.Bind(wx.EVT_MENU, self.on_assign_color, menu_action_edit_patch_color)
 
@@ -703,23 +703,23 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         self.Bind(wx.EVT_MENU, self.on_assign_patch, menu_action_edit_patch_false)
         menu.AppendMenu(wx.ID_ANY, "Set `show patch` to... (selected)", patch_submenu)
 
-        menu_action_delete = makeMenuItem(parent=menu, text="Delete (selected)", bitmap=self.icons.iconsLib["bin16"])
+        menu_action_delete = make_menu_item(parent=menu, text="Delete (selected)", bitmap=self.icons.iconsLib["bin16"])
         menu.AppendSeparator()
         menu.Append(menu_action_delete)
         self.Bind(wx.EVT_MENU, self.on_delete_items, menu_action_delete)
 
-        #         menu_action_auto_generate_labels = makeMenuItem(
+        #         menu_action_auto_generate_labels = make_menu_item(
         #                 parent=menu,
         #                 text="Auto-generate labels ({})",  # TODO: add option for specifying type
         #             )
 
-        #         menu_action_add_from_csv = makeMenuItem(
+        #         menu_action_add_from_csv = make_menu_item(
         #                 parent=menu,
         #                 text="Add list of ions (.csv/.txt)",
         #                 bitmap=self.icons.iconsLib["filelist_16"],
         #                 help_text="Format: min, max, charge (optional), label (optional), color (optional)",
         #             )
-        #         menu_action_save_to_csv = makeMenuItem(
+        #         menu_action_save_to_csv = make_menu_item(
         #                 parent=menu,
         #                 text="Save peaks to file (all)",
         #                 bitmap=self.icons.iconsLib["file_csv_16"],

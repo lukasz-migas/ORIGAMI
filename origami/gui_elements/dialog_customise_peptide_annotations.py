@@ -4,7 +4,7 @@ import wx
 from gui_elements.dialog_color_picker import DialogColorPicker
 from styles import Dialog
 from styles import make_checkbox
-from styles import makeTooltip
+from styles import make_tooltip
 from utils.color import convert_rgb_1_to_255
 
 
@@ -136,7 +136,7 @@ class DialogCustomisePeptideAnnotations(Dialog):
         self.label_show_neutral_loss_check.SetValue(self.config.msms_show_neutral_loss)
         self.label_show_neutral_loss_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.label_show_neutral_loss_check.SetToolTip(
-            makeTooltip(text="When checked neutral loss labels (e.g. H2O, NH3) will be shown.")
+            make_tooltip(text="When checked neutral loss labels (e.g. H2O, NH3) will be shown.")
         )
 
         label_show_full_label = wx.StaticText(panel, -1, "Show full label:")
@@ -144,7 +144,9 @@ class DialogCustomisePeptideAnnotations(Dialog):
         self.label_show_full_label_check.SetValue(self.config.msms_show_full_label)
         self.label_show_full_label_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.label_show_full_label_check.SetToolTip(
-            makeTooltip(text="Full labels will be shown, e.g. y5_H2Ox2+1. When unchecked, this label would look: y5+1.")
+            make_tooltip(
+                text="Full labels will be shown, e.g. y5_H2Ox2+1. When unchecked, this label would look: y5+1."
+            )
         )
 
         hz_line_3 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)

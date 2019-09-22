@@ -49,8 +49,8 @@ from ids import ID_ionPanel_table_restoreAll
 from ids import ID_ionPanel_table_startMS
 from ids import ID_window_ionList
 from styles import ListCtrl
-from styles import makeMenuItem
-from styles import makeTooltip
+from styles import make_menu_item
+from styles import make_tooltip
 from utils.check import isempty
 from utils.color import convert_rgb_1_to_255
 from utils.color import convert_rgb_255_to_1
@@ -156,39 +156,39 @@ class PanelPeaklist(wx.Panel):
         self.add_btn = wx.BitmapButton(
             self, -1, self.icons.iconsLib["add16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
-        self.add_btn.SetToolTip(makeTooltip("Add..."))
+        self.add_btn.SetToolTip(make_tooltip("Add..."))
 
         self.remove_btn = wx.BitmapButton(
             self, -1, self.icons.iconsLib["remove16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
-        self.remove_btn.SetToolTip(makeTooltip("Remove..."))
+        self.remove_btn.SetToolTip(make_tooltip("Remove..."))
 
         self.annotate_btn = wx.BitmapButton(
             self, -1, self.icons.iconsLib["annotate16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
-        self.annotate_btn.SetToolTip(makeTooltip("Annotate..."))
+        self.annotate_btn.SetToolTip(make_tooltip("Annotate..."))
 
         self.extract_btn = wx.BitmapButton(
             self, -1, self.icons.iconsLib["extract16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
-        self.extract_btn.SetToolTip(makeTooltip("Extract..."))
+        self.extract_btn.SetToolTip(make_tooltip("Extract..."))
 
         self.process_btn = wx.BitmapButton(
             self, -1, self.icons.iconsLib["process16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
-        self.process_btn.SetToolTip(makeTooltip("Process..."))
+        self.process_btn.SetToolTip(make_tooltip("Process..."))
 
         self.save_btn = wx.BitmapButton(
             self, -1, self.icons.iconsLib["save16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
-        self.save_btn.SetToolTip(makeTooltip("Save..."))
+        self.save_btn.SetToolTip(make_tooltip("Save..."))
 
         vertical_line_1 = wx.StaticLine(self, -1, style=wx.LI_VERTICAL)
 
         self.info_btn = wx.BitmapButton(
             self, -1, self.icons.iconsLib["info16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
-        self.info_btn.SetToolTip(makeTooltip("Information..."))
+        self.info_btn.SetToolTip(make_tooltip("Information..."))
 
         # bind events
         self.Bind(wx.EVT_BUTTON, self.menu_add_tools, self.add_btn)
@@ -299,7 +299,7 @@ class PanelPeaklist(wx.Panel):
         self.table_document.Check(self.config._peakListSettings[n]["show"])
         menu.AppendSeparator()
         self.table_index = menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_ionPanel_table_hideAll,
                 text="Table: Hide all",
@@ -307,7 +307,7 @@ class PanelPeaklist(wx.Panel):
             )
         )
         self.table_index = menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_ionPanel_table_restoreAll,
                 text="Table: Restore all",
@@ -324,7 +324,7 @@ class PanelPeaklist(wx.Panel):
         self.peaklist.item_id = evt.GetIndex()
         menu = wx.Menu()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_ionPanel_show_zoom_in_MS,
                 text="Zoom in on the ion\tZ",
@@ -332,7 +332,7 @@ class PanelPeaklist(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_ionPanel_show_chromatogram,
                 text="Show chromatogram",
@@ -340,23 +340,25 @@ class PanelPeaklist(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_ionPanel_show_mobilogram,
                 text="Show mobilogram\tM",
                 bitmap=self.icons.iconsLib["mobilogram_16"],
             )
         )
-        menu_action_show_heatmap = makeMenuItem(
+        menu_action_show_heatmap = make_menu_item(
             parent=menu, id=ID_ionPanel_show_heatmap, text="Show heatmap", bitmap=self.icons.iconsLib["heatmap_16"]
         )
         menu.AppendItem(menu_action_show_heatmap)
 
-        menu_action_process_heatmap = makeMenuItem(parent=menu, id=ID_ionPanel_show_heatmap, text="Process heatmap...")
+        menu_action_process_heatmap = make_menu_item(
+            parent=menu, id=ID_ionPanel_show_heatmap, text="Process heatmap..."
+        )
         menu.AppendItem(menu_action_process_heatmap)
         menu.AppendSeparator()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_ionPanel_assignColor,
                 text="Assign new color\tC",
@@ -364,7 +366,7 @@ class PanelPeaklist(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_ionPanel_editItem,
                 text="Edit ion information\tE",
@@ -373,7 +375,7 @@ class PanelPeaklist(wx.Panel):
         )
         menu.AppendSeparator()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_ionPanel_delete_rightClick,
                 text="Remove item\tDelete",
@@ -409,7 +411,7 @@ class PanelPeaklist(wx.Panel):
 
         menu = wx.Menu()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_highlightRectAllIons,
                 text="Highlight extracted items on MS plot (all)\tH",
@@ -417,7 +419,7 @@ class PanelPeaklist(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_ionPanel_annotate_charge_state,
                 text="Assign charge state (selected)",
@@ -425,7 +427,7 @@ class PanelPeaklist(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_ionPanel_annotate_alpha,
                 text="Assign transparency value (selected)",
@@ -433,7 +435,7 @@ class PanelPeaklist(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_ionPanel_annotate_mask,
                 text="Assign mask value (selected)",
@@ -441,7 +443,7 @@ class PanelPeaklist(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_ionPanel_annotate_min_threshold,
                 text="Assign minimum threshold (selected)",
@@ -449,7 +451,7 @@ class PanelPeaklist(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_ionPanel_annotate_max_threshold,
                 text="Assign maximum threshold (selected)",
@@ -458,7 +460,7 @@ class PanelPeaklist(wx.Panel):
         )
         menu.AppendSeparator()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_ionPanel_changeColorBatch_color,
                 text="Assign new color using color picker (selected)",
@@ -466,7 +468,7 @@ class PanelPeaklist(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_ionPanel_changeColorBatch_palette,
                 text="Assign new color using color palette (selected)",
@@ -474,7 +476,7 @@ class PanelPeaklist(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_ionPanel_changeColorBatch_colormap,
                 text="Assign new color using colormap (selected)",
@@ -482,7 +484,7 @@ class PanelPeaklist(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_ionPanel_changeColormapBatch,
                 text="Assign new colormap (selected)",
@@ -496,7 +498,7 @@ class PanelPeaklist(wx.Panel):
 
     def menu_add_tools(self, evt):
         menu = wx.Menu()
-        menu_action_load_peaklist = makeMenuItem(
+        menu_action_load_peaklist = make_menu_item(
             parent=menu,
             text="Add list of ions (.csv/.txt)",
             bitmap=self.icons.iconsLib["filelist_16"],
@@ -504,7 +506,7 @@ class PanelPeaklist(wx.Panel):
         )
         menu.AppendItem(menu_action_load_peaklist)
         menu.AppendSeparator()
-        menu_action_restore_peaklist = makeMenuItem(
+        menu_action_restore_peaklist = make_menu_item(
             parent=menu,
             text="Restore items to peaklist",
             help_text="Restore items for selected document to the peaklist",
@@ -552,7 +554,7 @@ class PanelPeaklist(wx.Panel):
 
         menu = wx.Menu()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_ionPanel_clear_selected,
                 text="Remove from list (selected)",
@@ -560,7 +562,7 @@ class PanelPeaklist(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_ionPanel_clear_all,
                 text="Remove from list (all)",
@@ -570,7 +572,7 @@ class PanelPeaklist(wx.Panel):
 
         menu.AppendSeparator()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_ionPanel_delete_selected,
                 text="Remove from file (selected)",
@@ -578,7 +580,7 @@ class PanelPeaklist(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_ionPanel_delete_all,
                 text="Remove from file (all)",
@@ -591,19 +593,19 @@ class PanelPeaklist(wx.Panel):
 
     def menu_process_tools(self, evt):
         menu = wx.Menu()
-        menu_action_process_heatmap = makeMenuItem(parent=menu, text="Process heatmap data (selected)")
+        menu_action_process_heatmap = make_menu_item(parent=menu, text="Process heatmap data (selected)")
         menu.AppendItem(menu_action_process_heatmap)
 
         menu.AppendSeparator()
-        menu_action_setup_origami_parameters = makeMenuItem(parent=menu, text="ORIGAMI-MS: Setup parameters..")
+        menu_action_setup_origami_parameters = make_menu_item(parent=menu, text="ORIGAMI-MS: Setup parameters..")
         menu.AppendItem(menu_action_setup_origami_parameters)
 
-        menu_action_combine_voltages = makeMenuItem(
+        menu_action_combine_voltages = make_menu_item(
             parent=menu, text="ORIGAMI-MS: Combine collision voltages (selected)"
         )
         menu.AppendItem(menu_action_combine_voltages)
 
-        menu_action_extract_spectrum = makeMenuItem(
+        menu_action_extract_spectrum = make_menu_item(
             parent=menu, text="ORIGAMI-MS: Extract mass spectra for each collision voltage..."
         )
         menu.AppendItem(menu_action_extract_spectrum)
@@ -621,30 +623,30 @@ class PanelPeaklist(wx.Panel):
     def menu_save_tools(self, evt):
 
         menu = wx.Menu()
-        menu_action_save_peaklist = makeMenuItem(parent=menu, text="Export peak list to file...")
+        menu_action_save_peaklist = make_menu_item(parent=menu, text="Export peak list to file...")
         menu.AppendItem(menu_action_save_peaklist)
 
         menu.AppendSeparator()
-        menu_action_save_chromatogram = makeMenuItem(parent=menu, text="Save figure(s) as chromatogram (selected)")
+        menu_action_save_chromatogram = make_menu_item(parent=menu, text="Save figure(s) as chromatogram (selected)")
         menu.AppendItem(menu_action_save_chromatogram)
 
-        menu_action_save_mobilogram = makeMenuItem(parent=menu, text="Save figure(s) as mobilogram (selected)")
+        menu_action_save_mobilogram = make_menu_item(parent=menu, text="Save figure(s) as mobilogram (selected)")
         menu.AppendItem(menu_action_save_mobilogram)
 
-        menu_action_save_heatmap = makeMenuItem(parent=menu, text="Save figure(s) as heatmap (selected)")
+        menu_action_save_heatmap = make_menu_item(parent=menu, text="Save figure(s) as heatmap (selected)")
         menu.AppendItem(menu_action_save_heatmap)
 
-        menu_action_save_waterfall = makeMenuItem(parent=menu, text="Save figure(s) as waterfall (selected)")
+        menu_action_save_waterfall = make_menu_item(parent=menu, text="Save figure(s) as waterfall (selected)")
         menu.AppendItem(menu_action_save_waterfall)
 
         menu.AppendSeparator()
-        menu_action_save_data_chromatogram = makeMenuItem(parent=menu, text="Save chromatographic data (selected)")
+        menu_action_save_data_chromatogram = make_menu_item(parent=menu, text="Save chromatographic data (selected)")
         menu.AppendItem(menu_action_save_data_chromatogram)
 
-        menu_action_save_data_mobilogram = makeMenuItem(parent=menu, text="Save mobilogram data (selected)")
+        menu_action_save_data_mobilogram = make_menu_item(parent=menu, text="Save mobilogram data (selected)")
         menu.AppendItem(menu_action_save_data_mobilogram)
 
-        menu_action_save_data_heatmap = makeMenuItem(parent=menu, text="Save heatmap data (selected)")
+        menu_action_save_data_heatmap = make_menu_item(parent=menu, text="Save heatmap data (selected)")
         menu.AppendItem(menu_action_save_data_heatmap)
 
         # bind events

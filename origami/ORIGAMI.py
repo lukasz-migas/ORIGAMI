@@ -1641,10 +1641,6 @@ class ORIGAMI(object):
                 return zvals1, zvals2, cmap1, cmap2, alpha1, alpha2, mask1, mask2, xvals, yvals, xlabels, ylabels
 
     def _get_replot_data(self, data_format):
-        """
-        @param data_format (str): type of data to be returned
-        """
-        # new in 1.1.0
         if data_format == "2D":
             get_data = self.config.replotData.get("2D", None)
             zvals, xvals, yvals, xlabel, ylabel = None, None, None, None, None
@@ -1708,77 +1704,6 @@ class ORIGAMI(object):
                 xylabels = get_data.get("xylabels", None)
                 cmap = get_data.get("cmap", None)
             return zvals, xylabels, cmap
-
-    #     def plot_1D_update(self, plotName='all', evt=None):
-    #
-    #         plt_kwargs = self.view.panelPlots._buildPlotParameters(plotType='1D')
-    #
-    #         if plotName in ['all', 'MS']:
-    #             try:
-    #                 self.view.panelPlots.plot1.plot_1D_update(**plt_kwargs)
-    #                 self.view.panelPlots.plot1.repaint()
-    #             except AttributeError:
-    #                 pass
-    #
-    #         if plotName in ['all', 'RT']:
-    #             try:
-    #                 self.view.panelPlots.plotRT.plot_1D_update(**plt_kwargs)
-    #                 self.view.panelPlots.plotRT.repaint()
-    #             except AttributeError:
-    #                 pass
-    #
-    #         if plotName in ['all', '1D']:
-    #             try:
-    #                 self.view.panelPlots.plot1D.plot_1D_update(**plt_kwargs)
-    #                 self.view.panelPlots.plot1D.repaint()
-    #             except AttributeError:
-    #                 pass
-    #
-    #     def plot_2D_update(self, plotName='all', evt=None):
-    #         plt_kwargs = self.view.panelPlots._buildPlotParameters(plotType='2D')
-    #
-    #         if plotName in ['all', '2D']:
-    #             try:
-    #                 zvals, __, __, __, __ = self._get_replot_data('2D')
-    #                 # normalize
-    #                 cmapNorm = self.normalize_colormap(
-    #                     zvals,
-    #                     min=self.config.minCmap,
-    #                     mid=self.config.midCmap,
-    #                     max=self.config.maxCmap,
-    #                 )
-    #                 plt_kwargs['colormap_norm'] = cmapNorm
-    #
-    #                 self.view.panelPlots.plot2D.plot_2D_update(**plt_kwargs)
-    #                 self.view.panelPlots.plot2D.repaint()
-    #             except AttributeError:
-    #                 pass
-    #
-    #         if plotName in ['all', 'DT/MS']:
-    #             try:
-    #                 zvals, __, __, __, __ = self._get_replot_data('DT/MS')
-    #                 # normalize
-    #                 cmapNorm = self.normalize_colormap(
-    #                     zvals,
-    #                     min=self.config.minCmap,
-    #                     mid=self.config.midCmap,
-    #                     max=self.config.maxCmap,
-    #                 )
-    #                 plt_kwargs['colormap_norm'] = cmapNorm
-    #                 self.view.panelPlots.plot_DT_vs_MS.plot_2D_update(**plt_kwargs)
-    #                 self.view.panelPlots.plot_DT_vs_MS.repaint()
-    #             except AttributeError:
-    #                 pass
-    #
-    #     def plot_3D_update(self, plotName='all', evt=None):
-    #         plt_kwargs = self.view.panelPlots._buildPlotParameters(plotType='3D')
-    #
-    #         if plotName in ['all', '3D']:
-    #             try:
-    #                 self.view.panelPlots.plot3D.plot_3D_update(**plt_kwargs)
-    #                 self.view.panelPlots.plot3D.repaint()
-    #             except AttributeError:
-    #                 pass
 
     def on_add_label(self, x, y, text, rotation, color="k", plot="RMSD"):
 

@@ -13,6 +13,8 @@ import utils.visuals as ut_visuals
 from gui_elements.misc_dialogs import DialogBox
 from matplotlib import gridspec
 from matplotlib.collections import LineCollection
+from matplotlib.colors import LogNorm
+from matplotlib.colors import PowerNorm
 from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from processing.heatmap import normalize_2D
@@ -828,13 +830,16 @@ class plots(mpl_plotter):
 
         self.set_plot_ylabel(ylabel, **kwargs)
 
-    def plot_1D_get_data(self):
+    def plot_1D_get_data(self, use_divider=False):
         xdata, ydata, labels = [], [], []
 
         lines = self.plotMS.get_lines()
         for line in lines:
             xdata.append(line.get_xdata())
-            ydata.append(line.get_ydata() * self.y_divider)
+            if use_divider:
+                ydata.append(line.get_ydata() * self.y_divider)
+            else:
+                ydata.append(line.get_ydata())
             labels.append(line.get_label())
 
         xlabel = self.plotMS.get_xlabel()
@@ -1204,22 +1209,34 @@ class plots(mpl_plotter):
                 + "Please right-click in the plot area and select Customise plot..."
                 + " to adjust plot settings."
             )
-            print(msg)
+            logger.info(msg)
             return
 
         # convert weights
-        if kwargs["label_weight"]:
-            kwargs["label_weight"] = "heavy"
-        else:
-            kwargs["label_weight"] = "normal"
+        kwargs["label_weight"] = "heavy" if kwargs["label_weight"] else "normal"
 
+        # update plot labels
         self.set_plot_xlabel(None, **kwargs)
         self.set_plot_ylabel(None, **kwargs)
         self.set_tick_parameters(**kwargs)
 
+        # update line settings
         for __, line in enumerate(self.plotMS.get_lines()):
             line.set_linewidth(kwargs["line_width"])
             line.set_linestyle(kwargs["line_style"])
+            line.set_color(kwargs["line_color"])
+
+        # add shade if it has been previously deleted
+        if kwargs["shade_under"] and not self.plotMS.collections:
+            xvals, yvals, _, _, _ = self.plot_1D_get_data(use_divider=False)
+            self.plot_1d_add_under_curve(xvals[0], yvals[0], **kwargs)
+
+        for __, shade in enumerate(self.plotMS.collections):
+            if not kwargs["shade_under"]:
+                shade.remove()
+            else:
+                shade.set_facecolor(kwargs["shade_under_color"])
+                shade.set_alpha(kwargs["shade_under_transparency"])
 
         self._update_plot_settings_(**kwargs)
 
@@ -1238,10 +1255,7 @@ class plots(mpl_plotter):
         matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
 
         # convert weights
-        if kwargs["label_weight"]:
-            kwargs["label_weight"] = "heavy"
-        else:
-            kwargs["label_weight"] = "normal"
+        kwargs["label_weight"] = "heavy" if kwargs["label_weight"] else "normal"
 
         # update labels
         self.plotRMSF.set_xlabel(
@@ -1515,20 +1529,30 @@ class plots(mpl_plotter):
 
         if hasattr(self, "plot_data"):
             if "zvals" in self.plot_data:
-                # normalize
-                zvals_max = np.max(self.plot_data["zvals"])
-
-                cmap_min = (zvals_max * kwargs["colormap_min"]) / 100.0
-                cmap_mid = (zvals_max * kwargs["colormap_mid"]) / 100.0
-                cmap_max = (zvals_max * kwargs["colormap_max"]) / 100.0
-
-                cmap_norm = MidpointNormalize(midpoint=cmap_mid, vmin=cmap_min, vmax=cmap_max)
+                cmap_norm = self.get_heatmap_normalization(self.plot_data["zvals"], **kwargs)
 
                 self.plot_parameters["colormap_norm"] = cmap_norm
 
                 if "colormap_norm" in self.plot_parameters:
                     self.cax.set_norm(self.plot_parameters["colormap_norm"])
                     self.plot_2D_colorbar_update(**kwargs)
+
+    def get_heatmap_normalization(self, zvals, **kwargs):
+        # normalize
+        zvals_max = np.max(zvals)
+
+        cmap_min = (zvals_max * kwargs["colormap_min"]) / 100.0
+        cmap_mid = (zvals_max * kwargs["colormap_mid"]) / 100.0
+        cmap_max = (zvals_max * kwargs["colormap_max"]) / 100.0
+
+        if kwargs["colormap_norm_method"] == "Midpoint":
+            cmap_norm = MidpointNormalize(midpoint=cmap_mid, vmin=cmap_min, vmax=cmap_max)
+        elif kwargs["colormap_norm_method"] == "Logarithmic":
+            cmap_norm = LogNorm(vmin=cmap_min, vmax=cmap_max)
+        elif kwargs["colormap_norm_method"] == "Power":
+            cmap_norm = PowerNorm(gamma=kwargs["colormap_norm_power_gamma"], vmin=cmap_min, vmax=cmap_max)
+
+        return cmap_norm
 
     def plot_1D_add(self, xvals, yvals, color, label="", setup_zoom=True, allowWheel=False, plot_name=None, **kwargs):
         # get current limits
@@ -1585,6 +1609,7 @@ class plots(mpl_plotter):
             pass
 
     def plot_2D_update_data(self, xvals, yvals, xlabel, ylabel, zvals, **kwargs):
+
         # clear plot in some circumstances
         if self._plot_tag in ["rmsd_matrix"]:
             self.clearPlot()
@@ -1593,18 +1618,12 @@ class plots(mpl_plotter):
         if self.rotate != 0 and not kwargs.pop("already_rotated", False):
             yvals, zvals = self.on_rotate_heatmap_data(yvals, zvals)
 
-        #         # remove any labels
-        #         self.plot_remove_text()
-        #         self.plot_remove_patches(False)
-
         # update settings
         self._check_and_update_plot_settings(**kwargs)
 
         # update limits and extents
         extent = ut_visuals.extents(xvals) + ut_visuals.extents(yvals)
         self.cax.set_data(zvals)
-        #         vmax = np.quantile(zvals, 0.95)
-        #         self.cax.set_clim(vmax=vmax)
         self.cax.set_norm(kwargs.get("colormap_norm", None))
         self.cax.set_extent(extent)
         self.cax.set_cmap(kwargs["colormap"])
@@ -1635,6 +1654,20 @@ class plots(mpl_plotter):
         # add colorbar
         if kwargs["colorbar"]:
             self.set_colorbar_parameters(zvals, **kwargs)
+
+    def plot_1d_add_under_curve(self, xvals, yvals, **kwargs):
+
+        color = kwargs.get("shade_under_color", None)
+        if not color:
+            color = kwargs["line_color"]
+
+        shade_kws = dict(
+            facecolor=color,
+            alpha=kwargs.get("shade_under_transparency", 0.25),
+            clip_on=kwargs.get("clip_on", True),
+            zorder=kwargs.get("zorder", 1),
+        )
+        self.plotMS.fill_between(xvals, 0, yvals, **shade_kws)
 
     def plot_1D(
         self,
@@ -1675,13 +1708,7 @@ class plots(mpl_plotter):
             linestyle=kwargs["line_style"],
         )
         if kwargs["shade_under"]:
-            shade_kws = dict(
-                facecolor=kwargs["shade_under_color"],
-                alpha=kwargs.get("shade_under_transparency", 0.25),
-                clip_on=kwargs.get("clip_on", True),
-                zorder=kwargs.get("zorder", 1),
-            )
-            self.plotMS.fill_between(xvals, 0, yvals, **shade_kws)
+            self.plot_1d_add_under_curve(xvals, yvals, **kwargs)
 
         # Setup parameters
         if xlimits is None or xlimits[0] is None or xlimits[1] is None:
@@ -3603,91 +3630,6 @@ class plots(mpl_plotter):
         gs.tight_layout(self.figure)
         self.figure.tight_layout()
 
-    def plot_2D(self, zvals=None, xlabel="", ylabel="", axesSize=None, legend=None, plotName="2D", **kwargs):
-        # update settings
-        self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
-
-        matplotlib.rc("xtick", labelsize=kwargs["tick_size"])
-        matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
-
-        # Plot
-        self.plotMS = self.figure.add_axes(self._axes)
-
-        if legend is not None:
-            for i in range(len(legend)):
-                self.plotMS.plot(
-                    -1, -1, "-", c=legend[i][1], label=legend[i][0], marker="s", markersize=15, linewidth=0
-                )
-
-        # Calculate extents
-        xvals, yvals = zvals.shape
-        xvals = np.arange(xvals)
-        yvals = np.arange(yvals)
-
-        # Add imshow
-        self.cax = self.plotMS.imshow(
-            zvals,
-            cmap=kwargs["colormap"],
-            interpolation=kwargs["interpolation"],
-            norm=kwargs["colormap_norm"],
-            origin="lower",
-            aspect="auto",
-        )
-
-        xmin, xmax = self.plotMS.get_xlim()
-        ymin, ymax = self.plotMS.get_ylim()
-        self.plotMS.set_xlim(xmin, xmax - 0.5)
-        self.plotMS.set_ylim(ymin, ymax - 0.5)
-        extent = [xmin, ymin, xmax, ymax]
-
-        cbarDivider = make_axes_locatable(self.plotMS)
-
-        # legend
-        self.set_legend_parameters(None, **kwargs)
-
-        # labels
-        if xlabel in ["None", None]:
-            xlabel = ""
-        if ylabel in ["None", None]:
-            ylabel = ""
-
-        self.set_plot_xlabel(xlabel, **kwargs)
-        self.set_plot_ylabel(ylabel, **kwargs)
-
-        # setup colorbar
-        if kwargs["colorbar"]:
-            # pad controls how close colorbar is to the axes
-            self.cbar = cbarDivider.append_axes(
-                kwargs["colorbar_position"],
-                size="".join([str(kwargs["colorbar_width"]), "%"]),
-                pad=kwargs["colorbar_pad"],
-            )
-
-            ticks = [np.min(zvals), (np.max(zvals) - np.min(zvals)) / 2, np.max(zvals)]
-
-            self.cbar.ticks = ticks
-            #             self.cbar.tick_labels = tick_labels
-
-            if kwargs["colorbar_position"] in ["left", "right"]:
-                self.figure.colorbar(self.cax, cax=self.cbar, ticks=ticks, orientation="vertical")
-                self.cbar.yaxis.set_ticks_position(kwargs["colorbar_position"])
-                self.cbar.set_yticklabels(["0", "%", "100"])
-            else:
-                self.figure.colorbar(self.cax, cax=self.cbar, ticks=ticks, orientation="horizontal")
-                self.cbar.xaxis.set_ticks_position(kwargs["colorbar_position"])
-                self.cbar.set_xticklabels(["0", "%", "100"])
-
-            # setup other parameters
-            self.cbar.tick_params(labelsize=kwargs["colorbar_label_size"])
-
-        self.set_tick_parameters(**kwargs)
-
-        self.setup_zoom([self.plotMS], self.zoomtype, data_lims=extent)
-        self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
-
-        # add data
-        self.plot_data = {"xvals": xvals, "yvals": yvals, "zvals": zvals, "xlabel": xlabel, "ylabel": ylabel}
-
     def plot_2D_surface(
         self, zvals, xvals, yvals, xlabel, ylabel, legend=False, axesSize=None, plotName=None, **kwargs
     ):
@@ -3743,8 +3685,6 @@ class plots(mpl_plotter):
         # add data
         self.plot_data = {"xvals": xvals, "yvals": yvals, "zvals": zvals, "xlabel": xlabel, "ylabel": ylabel}
         self.plot_labels.update({"xlabel": xlabel, "ylabel": ylabel})
-
-        print(axesSize, self.get_optimal_margins(axesSize))
 
     def plot_2D_contour(
         self, zvals, xvals, yvals, xlabel, ylabel, legend=False, axesSize=None, plotName=None, **kwargs

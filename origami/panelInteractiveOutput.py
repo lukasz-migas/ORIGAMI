@@ -133,9 +133,9 @@ from processing.spectra import normalize_1D
 from seaborn import color_palette
 from styles import ListCtrl
 from styles import make_checkbox
+from styles import make_menu_item
+from styles import make_static_text
 from styles import make_staticbox
-from styles import makeMenuItem
-from styles import makeStaticText
 from toolbox import find_limits_all
 from toolbox import find_limits_list
 from toolbox import merge_two_dicts
@@ -302,7 +302,7 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         menu = wx.Menu()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_interactivePanel_customise_item,
                 text="Customise plot...",
@@ -311,12 +311,12 @@ class panelInteractiveOutput(wx.MiniFrame):
         )
         menu.AppendSeparator()
         menu.AppendItem(
-            makeMenuItem(parent=menu, id=ID_interactivePanel_copy_all, text="Copy style (all)", bitmap=None)
+            make_menu_item(parent=menu, id=ID_interactivePanel_copy_all, text="Copy style (all)", bitmap=None)
         )
         menu.AppendMenu(wx.ID_ANY, "Copy style...", copy_style_menu)
         menu.AppendSeparator()
         menu.AppendItem(
-            makeMenuItem(parent=menu, id=ID_interactivePanel_apply_all, text="Paste style (all)", bitmap=None)
+            make_menu_item(parent=menu, id=ID_interactivePanel_apply_all, text="Paste style (all)", bitmap=None)
         )
         menu.AppendMenu(wx.ID_ANY, "Paste style...", apply_style_menu)
         self.PopupMenu(menu)
@@ -607,12 +607,12 @@ class panelInteractiveOutput(wx.MiniFrame):
 
         menu = wx.Menu()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu, id=ID_interactivePanel_apply_batch_all, text="Paste: All (selected items)", bitmap=None
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_interactivePanel_apply_batch_plot,
                 text="Paste: X/Y limits (selected items)",
@@ -620,7 +620,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_interactivePanel_apply_batch_figure,
                 text="Paste: Figure parameters (selected items)",
@@ -628,7 +628,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_interactivePanel_apply_batch_frame,
                 text="Paste: Axes parameters (selected items)",
@@ -636,7 +636,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_interactivePanel_apply_batch_preprocess,
                 text="Paste: Pre-processing parameters (selected items)",
@@ -644,7 +644,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_interactivePanel_apply_batch_annotations,
                 text="Paste: Annotation parameters (selected items)",
@@ -652,7 +652,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_interactivePanel_apply_batch_plots,
                 text="Paste: Plot parameters (selected items)",
@@ -660,7 +660,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_interactivePanel_apply_batch_colorbar,
                 text="Paste: Colorbar parameters (selected items)",
@@ -668,7 +668,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_interactivePanel_apply_batch_legend,
                 text="Paste: Legend parameters (selected items)",
@@ -676,7 +676,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_interactivePanel_apply_batch_overlay,
                 text="Paste: Overlay parameters (selected items)",
@@ -684,7 +684,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_interactivePanel_apply_batch_tools,
                 text="Paste: Tools parameters (selected items)",
@@ -692,7 +692,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_interactivePanel_apply_batch_widgets,
                 text="Paste: Widget parameters (selected items)",
@@ -1182,7 +1182,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.mainBoxPage.SetSize((-1, -1))
         html_box_sizer = wx.StaticBoxSizer(self.mainBoxPage, wx.HORIZONTAL)
 
-        pageSelect_label = makeStaticText(panel, "Select page:")
+        pageSelect_label = make_static_text(panel, "Select page:")
         self.pageLayoutSelect_propView = wx.ComboBox(panel, -1, choices=[], value="None", style=wx.CB_READONLY)
         self.pageLayoutSelect_propView.Bind(wx.EVT_COMBOBOX, self.on_change_page)
 
@@ -1201,7 +1201,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.clearAllPages.Bind(wx.EVT_BUTTON, self.on_clear_pages)
         self.clearAllPages.SetToolTip(wx.ToolTip("Remove ALL non-default pages"))
 
-        layoutDoc_label = makeStaticText(panel, "Page layout:")
+        layoutDoc_label = make_static_text(panel, "Page layout:")
         self.layoutDoc_combo = wx.ComboBox(
             panel,
             -1,
@@ -1213,7 +1213,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.layoutDoc_combo.Bind(wx.EVT_COMBOBOX, self.on_apply)
         self.layoutDoc_combo.Bind(wx.EVT_COMBOBOX, self.on_select_page_properties)
 
-        columns_label = makeStaticText(panel, "Columns:")
+        columns_label = make_static_text(panel, "Columns:")
         self.columns_value = wx.TextCtrl(panel, -1, "", size=(50, -1))
         self.columns_value.SetToolTip(wx.ToolTip("Grid only. Number of columns in the grid"))
         self.columns_value.Bind(wx.EVT_TEXT, self.on_select_page_properties)
@@ -1229,12 +1229,12 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.grid_add_custom_js_widgets.SetValue(True)
         self.grid_add_custom_js_widgets.Bind(wx.EVT_CHECKBOX, self.on_select_page_properties)
 
-        height_label = makeStaticText(panel, "Plot height:")
+        height_label = make_static_text(panel, "Plot height:")
         self.grid_height_value = wx.TextCtrl(panel, -1, "", size=(50, -1))
         self.grid_height_value.SetToolTip(wx.ToolTip("Grid only. Height of individual plots"))
         self.grid_height_value.Bind(wx.EVT_TEXT, self.on_select_page_properties)
 
-        width_label = makeStaticText(panel, "Plot width:")
+        width_label = make_static_text(panel, "Plot width:")
         self.grid_width_value = wx.TextCtrl(panel, -1, "", size=(50, -1))
         self.grid_width_value.SetToolTip(wx.ToolTip("Grid only. Width of individual plots"))
         self.grid_width_value.Bind(wx.EVT_TEXT, self.on_select_page_properties)
@@ -1374,13 +1374,13 @@ class panelInteractiveOutput(wx.MiniFrame):
         general_staticBox.SetSize((-1, -1))
         general_box_sizer = wx.StaticBoxSizer(general_staticBox, wx.HORIZONTAL)
 
-        page_label = makeStaticText(panel, "Output page:")
+        page_label = make_static_text(panel, "Output page:")
         self.pageLayoutSelect_htmlView = wx.ComboBox(
             panel, -1, choices=[], value="None", style=wx.CB_READONLY, size=(200, -1)
         )
         self.pageLayoutSelect_htmlView.Bind(wx.EVT_COMBOBOX, self.on_change_page_for_item)
 
-        order_label = makeStaticText(panel, "Plot order:")
+        order_label = make_static_text(panel, "Plot order:")
         self.order_value = wx.TextCtrl(panel, -1, "", size=(50, -1))
         self.order_value.Bind(wx.EVT_TEXT, self.on_annotate_item)
 
@@ -1416,29 +1416,29 @@ class panelInteractiveOutput(wx.MiniFrame):
         menu = wx.Menu()
         if self.allChecked:
             menu.AppendItem(
-                makeMenuItem(parent=menu, id=ID_interactivePanel_check_all, text="Check all...", bitmap=None)
+                make_menu_item(parent=menu, id=ID_interactivePanel_check_all, text="Check all...", bitmap=None)
             )
         else:
             menu.AppendItem(
-                makeMenuItem(parent=menu, id=ID_interactivePanel_check_all, text="Uncheck all...", bitmap=None)
+                make_menu_item(parent=menu, id=ID_interactivePanel_check_all, text="Uncheck all...", bitmap=None)
             )
         menu.AppendSeparator()
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_check_ms, text="Check MS only", bitmap=None))
-        menu.AppendItem(makeMenuItem(parent=menu, id=ID_interactivePanel_check_rt, text="Check RT only", bitmap=None))
+        menu.AppendItem(make_menu_item(parent=menu, id=ID_interactivePanel_check_ms, text="Check MS only", bitmap=None))
+        menu.AppendItem(make_menu_item(parent=menu, id=ID_interactivePanel_check_rt, text="Check RT only", bitmap=None))
         menu.AppendItem(
-            makeMenuItem(parent=menu, id=ID_interactivePanel_check_dt1D, text="Check DT (1D) only", bitmap=None)
+            make_menu_item(parent=menu, id=ID_interactivePanel_check_dt1D, text="Check DT (1D) only", bitmap=None)
         )
         menu.AppendItem(
-            makeMenuItem(parent=menu, id=ID_interactivePanel_check_dt2D, text="Check DT (2D) only", bitmap=None)
+            make_menu_item(parent=menu, id=ID_interactivePanel_check_dt2D, text="Check DT (2D) only", bitmap=None)
         )
         menu.AppendItem(
-            makeMenuItem(parent=menu, id=ID_interactivePanel_check_overlay, text="Check Overlay only", bitmap=None)
+            make_menu_item(parent=menu, id=ID_interactivePanel_check_overlay, text="Check Overlay only", bitmap=None)
         )
         menu.AppendItem(
-            makeMenuItem(parent=menu, id=ID_interactivePanel_check_unidec, text="Check UniDec only", bitmap=None)
+            make_menu_item(parent=menu, id=ID_interactivePanel_check_unidec, text="Check UniDec only", bitmap=None)
         )
         menu.AppendItem(
-            makeMenuItem(parent=menu, id=ID_interactivePanel_check_other, text="Check Other only", bitmap=None)
+            make_menu_item(parent=menu, id=ID_interactivePanel_check_other, text="Check Other only", bitmap=None)
         )
 
         self.PopupMenu(menu)
@@ -1490,7 +1490,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         mainBox = make_staticbox(panel, "Font properties", (210, -1), wx.BLACK)
         mainBox.SetSize((230, -1))
         main_sizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
-        titleFontSize = makeStaticText(panel, "Title font size")
+        titleFontSize = make_static_text(panel, "Title font size")
 
         self.titleSlider = wx.SpinCtrlDouble(
             panel,
@@ -1505,7 +1505,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.titleBoldCheck = make_checkbox(panel, "Bold")
         self.titleBoldCheck.SetValue(self.config.interactive_title_weight)
 
-        labelFontSize = makeStaticText(panel, "Label font size")
+        labelFontSize = make_static_text(panel, "Label font size")
         self.labelSlider = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
@@ -1520,7 +1520,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.labelBoldCheck = make_checkbox(panel, "Bold")
         self.labelBoldCheck.SetValue(self.config.interactive_label_weight)
 
-        tickFontSize = makeStaticText(panel, "Tick font size")
+        tickFontSize = make_static_text(panel, "Tick font size")
         self.tickSlider = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
@@ -1532,7 +1532,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             size=(50, -1),
         )
 
-        precision_label = makeStaticText(panel, "Tick precision")
+        precision_label = make_static_text(panel, "Tick precision")
         self.tickPrecision = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
@@ -1571,7 +1571,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         rmsdSizer = wx.StaticBoxSizer(rmsdBox, wx.HORIZONTAL)
         rmsdBox.SetToolTip(wx.ToolTip(""))
 
-        notationFontSize = makeStaticText(panel, "Label font size")
+        notationFontSize = make_static_text(panel, "Label font size")
         self.notationSlider = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
@@ -1585,7 +1585,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.notationBoldCheck = make_checkbox(panel, "Bold")
         self.notationBoldCheck.SetValue(self.config.interactive_annotation_weight)
 
-        interactive_annotation_color_label = makeStaticText(panel, "Font")
+        interactive_annotation_color_label = make_static_text(panel, "Font")
         self.interactive_annotation_colorBtn = wx.Button(
             panel, ID_changeColorNotationInteractive, "", wx.DefaultPosition, wx.Size(26, 26), 0
         )
@@ -1593,7 +1593,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             convert_rgb_1_to_255(self.config.interactive_annotation_color)
         )
 
-        interactive_annotation_background_color_label = makeStaticText(panel, "Background")
+        interactive_annotation_background_color_label = make_static_text(panel, "Background")
         self.interactive_annotation_colorBackgroundBtn = wx.Button(
             panel, ID_changeColorBackgroundNotationInteractive, "", wx.DefaultPosition, wx.Size(26, 26), 0
         )
@@ -1601,7 +1601,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             convert_rgb_1_to_255(self.config.interactive_annotation_background_color)
         )
 
-        interactive_transparency_label = makeStaticText(panel, "Transparency")
+        interactive_transparency_label = make_static_text(panel, "Transparency")
         self.rmsd_label_transparency = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
@@ -1652,7 +1652,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         mainBox = make_staticbox(panel, "Plot (1D) properties", (230, -1), wx.BLACK)
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
-        lineWidth_label = makeStaticText(panel, "Line width:")
+        lineWidth_label = make_static_text(panel, "Line width:")
         self.line_width = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
@@ -1665,7 +1665,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         )
         self.line_width.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        lineAlpha_label = makeStaticText(panel, "Transparency:")
+        lineAlpha_label = make_static_text(panel, "Transparency:")
         self.line_transparency = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
@@ -1709,7 +1709,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         mainBox = make_staticbox(panel, "Overlay plot properties", (230, -1), wx.BLACK)
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
-        layout_label = makeStaticText(panel, "Layout")
+        layout_label = make_static_text(panel, "Layout")
         self.layout_combo = wx.ComboBox(
             panel, -1, choices=["Rows", "Columns"], value=self.config.plotLayoutOverlay, style=wx.CB_READONLY
         )
@@ -1811,7 +1811,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         mainBox = make_staticbox(panel, "Plot (scatter) properties", (230, -1), wx.BLACK)
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
-        marker_label = makeStaticText(panel, "Marker shape")
+        marker_label = make_static_text(panel, "Marker shape")
         self.scatter_marker = wx.ComboBox(
             panel,
             -1,
@@ -1821,7 +1821,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         )
         self.scatter_marker.Bind(wx.EVT_COMBOBOX, self.on_apply)
 
-        marker_size_label = makeStaticText(panel, "Marker size:")
+        marker_size_label = make_static_text(panel, "Marker size:")
         self.scatter_marker_size = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
@@ -1834,7 +1834,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         )
         self.scatter_marker_size.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        marker_alpha_label = makeStaticText(panel, "transparency:")
+        marker_alpha_label = make_static_text(panel, "transparency:")
         self.scatter_marker_alpha = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
@@ -1847,7 +1847,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         )
         self.scatter_marker_alpha.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        marker_color_label = makeStaticText(panel, "Edge color:")
+        marker_color_label = make_static_text(panel, "Edge color:")
         self.scatter_marker_edge_colorBtn = wx.Button(
             panel, ID_interactivePanel_color_markerEdge, "", wx.DefaultPosition, wx.Size(26, 26), 0
         )
@@ -1904,7 +1904,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.custom_js_scripts.SetValue(self.config.interactive_custom_scripts)
         self.custom_js_scripts.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        position_label = makeStaticText(panel, "Widget position")
+        position_label = make_static_text(panel, "Widget position")
         self.custom_js_position = wx.ComboBox(
             panel,
             -1,
@@ -1939,7 +1939,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.annot_peakHighlight.SetValue(self.config.interactive_ms_annotations_highlight)
         self.annot_peakHighlight.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        annot_xpos_label = makeStaticText(panel, "Offset X:")
+        annot_xpos_label = make_static_text(panel, "Offset X:")
         self.annot_xpos_value = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
@@ -1952,7 +1952,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         )
         self.annot_xpos_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        annot_ypos_label = makeStaticText(panel, "Offset Y:")
+        annot_ypos_label = make_static_text(panel, "Offset Y:")
         self.annot_ypos_value = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
@@ -1965,7 +1965,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         )
         self.annot_ypos_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        annot_rotation_label = makeStaticText(panel, "Rotation:")
+        annot_rotation_label = make_static_text(panel, "Rotation:")
         self.annot_rotation_value = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
@@ -1978,7 +1978,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         )
         self.annot_rotation_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        annot_fontSize_label = makeStaticText(panel, "Font size:")
+        annot_fontSize_label = make_static_text(panel, "Font size:")
         self.annot_fontSize_value = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
@@ -1995,7 +1995,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.annot_fontWeight_value.SetValue(self.config.interactive_ms_annotations_fontWeight)
         self.annot_fontWeight_value.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        annot_fontColor_label = makeStaticText(panel, "Color:")
+        annot_fontColor_label = make_static_text(panel, "Color:")
         self.annot_fontColor_colorBtn = wx.Button(
             panel, ID_changeColorAnnotLabelInteractive, "", wx.DefaultPosition, wx.Size(26, 26), 0
         )
@@ -2030,12 +2030,12 @@ class panelInteractiveOutput(wx.MiniFrame):
         mainBox = make_staticbox(panel, "Colorbar properties", (230, -1), wx.BLACK)
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
-        colorbar_label = makeStaticText(panel, "Colorbar:")
+        colorbar_label = make_static_text(panel, "Colorbar:")
         self.interactive_colorbar = wx.CheckBox(panel, -1, "", (15, 30))
         self.interactive_colorbar.SetValue(self.config.interactive_colorbar)
         self.interactive_colorbar.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        precision_label = makeStaticText(panel, "Precision")
+        precision_label = make_static_text(panel, "Precision")
         self.interactive_colorbar_precision = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
@@ -2055,7 +2055,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         )
         self.interactive_colorbar_useScientific.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        labelOffset_label = makeStaticText(panel, "Label offset:")
+        labelOffset_label = make_static_text(panel, "Label offset:")
         self.interactive_colorbar_label_offset = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
@@ -2068,7 +2068,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         )
         self.interactive_colorbar_label_offset.SetToolTip(wx.ToolTip("Distance between the colorbar and labels"))
 
-        location_label = makeStaticText(panel, "Position:")
+        location_label = make_static_text(panel, "Position:")
         self.interactive_colorbar_location = wx.ComboBox(
             panel,
             -1,
@@ -2080,7 +2080,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             wx.ToolTip("Colorbar position next to the plot. The colorbar orientation changes automatically")
         )
 
-        offsetX_label = makeStaticText(panel, "Offset X")
+        offsetX_label = make_static_text(panel, "Offset X")
         self.interactive_colorbar_offset_x = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
@@ -2097,7 +2097,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             )
         )
 
-        offsetY_label = makeStaticText(panel, "Offset Y")
+        offsetY_label = make_static_text(panel, "Offset Y")
         self.interactive_colorbar_offset_y = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
@@ -2114,7 +2114,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             )
         )
 
-        padding_label = makeStaticText(panel, "Pad")
+        padding_label = make_static_text(panel, "Pad")
         self.colorbarPadding = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
@@ -2127,7 +2127,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         )
         self.colorbarPadding.SetToolTip(wx.ToolTip(""))
 
-        margin_label = makeStaticText(panel, "Width")
+        margin_label = make_static_text(panel, "Width")
         self.colorbarWidth = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
@@ -2182,12 +2182,12 @@ class panelInteractiveOutput(wx.MiniFrame):
         mainBox = make_staticbox(panel, "Legend properties", (210, -1), wx.BLACK)
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
-        legend_label = makeStaticText(panel, "Legend:")
+        legend_label = make_static_text(panel, "Legend:")
         self.legend_legend = wx.CheckBox(panel, -1, "", (15, 30))
         self.legend_legend.SetValue(self.config.interactive_legend)
         self.legend_legend.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        position_label = makeStaticText(panel, "Position")
+        position_label = make_static_text(panel, "Position")
         self.legend_position = wx.ComboBox(
             panel,
             -1,
@@ -2197,7 +2197,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         )
         self.legend_position.Bind(wx.EVT_COMBOBOX, self.on_apply)
 
-        orientation_label = makeStaticText(panel, "Orientation")
+        orientation_label = make_static_text(panel, "Orientation")
         self.legend_orientation = wx.ComboBox(
             panel,
             -1,
@@ -2207,7 +2207,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         )
         self.legend_orientation.Bind(wx.EVT_COMBOBOX, self.on_apply)
 
-        legendAlpha_label = makeStaticText(panel, "Legend transparency")
+        legendAlpha_label = make_static_text(panel, "Legend transparency")
         self.legend_transparency = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
@@ -2220,7 +2220,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         )
         self.legend_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        fontSize_label = makeStaticText(panel, "Font size")
+        fontSize_label = make_static_text(panel, "Font size")
         self.legend_fontSize = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
@@ -2233,7 +2233,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         )
         self.legend_fontSize.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        action_label = makeStaticText(panel, "Action")
+        action_label = make_static_text(panel, "Action")
         self.legend_click_policy = wx.ComboBox(
             panel,
             -1,
@@ -2244,7 +2244,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.legend_click_policy.Bind(wx.EVT_COMBOBOX, self.on_apply)
         self.legend_click_policy.Bind(wx.EVT_COMBOBOX, self.on_toggle_controls)
 
-        muteAlpha_label = makeStaticText(panel, "Line transparency")
+        muteAlpha_label = make_static_text(panel, "Line transparency")
         self.legend_mute_transparency = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
@@ -2329,7 +2329,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.table_method.Check(self.config._interactiveSettings[n]["show"])
         menu.AppendSeparator()
         self.table_index = menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_interactivePanel_table_hideAll,
                 text="Table: Hide all",
@@ -2337,7 +2337,7 @@ class panelInteractiveOutput(wx.MiniFrame):
             )
         )
         self.table_index = menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_interactivePanel_table_restoreAll,
                 text="Table: Restore all",

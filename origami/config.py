@@ -1540,6 +1540,8 @@ class OrigamiConfig:
         self.tickLabels_bottom_1D = True
 
         # 2D parameters
+        self.normalization_2D = "Midpoint"
+        self.normalization_2D_power_gamma = 0.5
         self.interpolation = "None"
         self.axisOnOff_2D = True
         self.labelPad_2D = 5

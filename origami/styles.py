@@ -68,7 +68,7 @@ def make_color_btn(parent, color, size=(26, 26), name="color", evtid=-1):
     return color_btn
 
 
-def makeMenuItem(parent, text, id=-1, bitmap=None, help_text=None, kind=wx.ITEM_NORMAL):
+def make_menu_item(parent, text, id=-1, bitmap=None, help_text=None, kind=wx.ITEM_NORMAL):
     """ Helper function to make a menu item with or without bitmap image """
     menuItem = wx.MenuItem(parent, id, text, kind=kind)
     if bitmap is not None:
@@ -80,7 +80,7 @@ def makeMenuItem(parent, text, id=-1, bitmap=None, help_text=None, kind=wx.ITEM_
     return menuItem
 
 
-def setItemFont(parent, size=10, color=wx.BLACK):
+def set_item_font(parent, size=10, color=wx.BLACK):
     font = wx.Font(size, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
     parent.SetForegroundColour(color)
     parent.SetFont(font)
@@ -108,21 +108,21 @@ def make_toggle_btn(parent, text, colorOff, name="other", size=(40, -1)):
     return toggleBtn
 
 
-def makeStaticText(parent, text):
+def make_static_text(parent, text):
     textBox = wx.StaticText(
         parent, wx.ID_ANY, text, wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT
     )
     return textBox
 
 
-def makeTextCtrl(parent, size=(wx.DefaultSize)):
+def make_text_ctrl(parent, size=(wx.DefaultSize)):
     textBox = wx.TextCtrl(
         parent, wx.ID_ANY, "", wx.DefaultPosition, size, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT
     )
     return textBox
 
 
-def makeSlider(parent, value, minValue, maxValue):
+def make_slider(parent, value, minValue, maxValue):
     slider = wx.Slider(
         parent, -1, value=value, minValue=minValue, maxValue=maxValue, size=(140, -1), style=SLIDER_STYLE
     )
@@ -134,7 +134,7 @@ def make_checkbox(parent, text, style=wx.ALIGN_LEFT, ID=-1, name=""):
     return checkbox
 
 
-def makeTooltip(text=None, delay=500, reshow=500, autopop=3000):
+def make_tooltip(text=None, delay=500, reshow=500, autopop=3000):
     """
     Make tooltips with specified delay time
     """

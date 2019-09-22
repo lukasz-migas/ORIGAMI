@@ -82,7 +82,7 @@ from ids import ID_smooth1DdataRT
 from natsort import natsorted
 from panelCustomisePlot import panel_customise_plot
 from pubsub import pub
-from styles import makeMenuItem
+from styles import make_menu_item
 from toolbox import merge_two_dicts
 from utils.check import isempty
 from utils.color import convert_rgb_1_to_255
@@ -415,78 +415,78 @@ class PanelPlots(wx.Panel):
         menu = wx.Menu()
 
         # pre-generate common menu items
-        menu_edit_general = makeMenuItem(
+        menu_edit_general = make_menu_item(
             parent=menu,
             id=ID_extraSettings_general_plot,
             text="Edit general parameters...",
             bitmap=self.icons.iconsLib["panel_plot_general_16"],
         )
-        menu_edit_plot_1D = makeMenuItem(
+        menu_edit_plot_1D = make_menu_item(
             parent=menu,
             id=ID_extraSettings_plot1D,
             text="Edit plot parameters...",
             bitmap=self.icons.iconsLib["panel_plot1D_16"],
         )
-        menu_edit_plot_2D = makeMenuItem(
+        menu_edit_plot_2D = make_menu_item(
             parent=menu,
             id=ID_extraSettings_plot2D,
             text="Edit plot parameters...",
             bitmap=self.icons.iconsLib["panel_plot2D_16"],
         )
-        menu_edit_plot_3D = makeMenuItem(
+        menu_edit_plot_3D = make_menu_item(
             parent=menu,
             id=ID_extraSettings_plot3D,
             text="Edit plot parameters...",
             bitmap=self.icons.iconsLib["panel_plot3D_16"],
         )
-        menu_edit_colorbar = makeMenuItem(
+        menu_edit_colorbar = make_menu_item(
             parent=menu,
             id=ID_extraSettings_colorbar,
             text="Edit colorbar parameters...",
             bitmap=self.icons.iconsLib["panel_colorbar_16"],
         )
-        menu_edit_legend = makeMenuItem(
+        menu_edit_legend = make_menu_item(
             parent=menu,
             id=ID_extraSettings_legend,
             text="Edit legend parameters...",
             bitmap=self.icons.iconsLib["panel_legend_16"],
         )
-        #         menu_edit_rmsd = makeMenuItem(
+        #         menu_edit_rmsd = make_menu_item(
         #             parent=menu,
         #             id=ID_extraSettings_rmsd,
         #             text="Edit plot parameters...",
         #             bitmap=self.icons.iconsLib["panel_rmsd_16"],
         #         )
-        menu_edit_waterfall = makeMenuItem(
+        menu_edit_waterfall = make_menu_item(
             parent=menu,
             id=ID_extraSettings_waterfall,
             text="Edit waterfall parameters...",
             bitmap=self.icons.iconsLib["panel_waterfall_16"],
         )
-        menu_edit_violin = makeMenuItem(
+        menu_edit_violin = make_menu_item(
             parent=menu,
             id=ID_extraSettings_violin,
             text="Edit violin parameters...",
             bitmap=self.icons.iconsLib["panel_violin_16"],
         )
-        menu_customise_plot = makeMenuItem(
+        menu_customise_plot = make_menu_item(
             parent=menu,
             id=ID_plots_customise_plot,
             text="Customise plot...",
             bitmap=self.icons.iconsLib["change_xlabels_16"],
         )
-        #         menu_action_rotate90 = makeMenuItem(
+        #         menu_action_rotate90 = make_menu_item(
         #             parent=menu, id=ID_plots_rotate90, text="Rotate 90°", bitmap=self.icons.iconsLib["blank_16"]
         #         )
-        menu_action_process_2D = makeMenuItem(
+        menu_action_process_2D = make_menu_item(
             parent=menu, text="Process heatmap...", bitmap=self.icons.iconsLib["process_2d_16"]
         )
 
-        menu_action_process_MS = makeMenuItem(
+        menu_action_process_MS = make_menu_item(
             parent=menu, text="Process mass spectrum...", bitmap=self.icons.iconsLib["process_ms_16"]
         )
 
-        menu_action_copy_to_clipboard = makeMenuItem(
+        menu_action_copy_to_clipboard = make_menu_item(
             parent=menu, id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self.icons.iconsLib["filelist_16"]
         )
 
@@ -497,7 +497,7 @@ class PanelPlots(wx.Panel):
         if self.currentPage == "Mass spectrum":
             menu.AppendItem(menu_action_process_MS)
             menu.AppendItem(
-                makeMenuItem(
+                make_menu_item(
                     parent=menu,
                     id=ID_docTree_action_open_peak_picker,
                     text="Open peak picker...",
@@ -505,7 +505,7 @@ class PanelPlots(wx.Panel):
                 )
             )
             menu.AppendItem(
-                makeMenuItem(
+                make_menu_item(
                     parent=menu,
                     id=ID_highlightRectAllIons,
                     text="Show extracted ions",
@@ -523,7 +523,7 @@ class PanelPlots(wx.Panel):
             self.resize_plot_check.Check(self.config.resize)
             if self.view.plot_name == "compare_MS":
                 menu.AppendItem(
-                    makeMenuItem(
+                    make_menu_item(
                         parent=menu,
                         id=ID_saveCompareMSImage,
                         text="Save figure as...",
@@ -532,7 +532,7 @@ class PanelPlots(wx.Panel):
                 )
             else:
                 menu.AppendItem(
-                    makeMenuItem(
+                    make_menu_item(
                         parent=menu, id=ID_saveMSImage, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
                     )
                 )
@@ -540,12 +540,14 @@ class PanelPlots(wx.Panel):
             menu.AppendItem(menu_action_copy_to_clipboard)
             menu.AppendSeparator()
             menu.AppendItem(
-                makeMenuItem(parent=menu, id=ID_clearPlot_MS, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"])
+                make_menu_item(
+                    parent=menu, id=ID_clearPlot_MS, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
+                )
             )
         elif self.currentPage == "Chromatogram":
             if self.view.plot_name == "MS":
                 menu.AppendItem(
-                    makeMenuItem(
+                    make_menu_item(
                         parent=menu, id=ID_clearPlot_RT_MS, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
                     )
                 )
@@ -562,21 +564,21 @@ class PanelPlots(wx.Panel):
                 self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
                 self.resize_plot_check.Check(self.config.resize)
                 menu.AppendItem(
-                    makeMenuItem(
+                    make_menu_item(
                         parent=menu, id=ID_saveRTImage, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
                     )
                 )
                 menu.AppendItem(menu_action_copy_to_clipboard)
                 menu.AppendSeparator()
                 menu.AppendItem(
-                    makeMenuItem(
+                    make_menu_item(
                         parent=menu, id=ID_clearPlot_RT, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
                     )
                 )
         elif self.currentPage == "Mobilogram":
             if self.view.plot_name == "MS":
                 menu.AppendItem(
-                    makeMenuItem(
+                    make_menu_item(
                         parent=menu, id=ID_clearPlot_1D_MS, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
                     )
                 )
@@ -593,14 +595,14 @@ class PanelPlots(wx.Panel):
                 self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
                 self.resize_plot_check.Check(self.config.resize)
                 menu.AppendItem(
-                    makeMenuItem(
+                    make_menu_item(
                         parent=menu, id=ID_save1DImage, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
                     )
                 )
                 menu.AppendItem(menu_action_copy_to_clipboard)
                 menu.AppendSeparator()
                 menu.AppendItem(
-                    makeMenuItem(
+                    make_menu_item(
                         parent=menu, id=ID_clearPlot_1D, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
                     )
                 )
@@ -619,21 +621,23 @@ class PanelPlots(wx.Panel):
             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
             self.resize_plot_check.Check(self.config.resize)
             menu.AppendItem(
-                makeMenuItem(
+                make_menu_item(
                     parent=menu, id=ID_save2DImage, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
                 )
             )
             menu.AppendItem(menu_action_copy_to_clipboard)
             menu.AppendSeparator()
             menu.AppendItem(
-                makeMenuItem(parent=menu, id=ID_clearPlot_2D, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"])
+                make_menu_item(
+                    parent=menu, id=ID_clearPlot_2D, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
+                )
             )
         elif self.currentPage == "DT/MS":
             menu.AppendItem(menu_action_process_2D)
             #             menu.AppendItem(menu_action_rotate90)
             menu.AppendSeparator()
             menu.AppendItem(
-                makeMenuItem(
+                make_menu_item(
                     parent=menu,
                     id=ID_plots_customise_smart_zoom,
                     text="Customise smart zoom....",
@@ -651,14 +655,14 @@ class PanelPlots(wx.Panel):
             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
             self.resize_plot_check.Check(self.config.resize)
             menu.AppendItem(
-                makeMenuItem(
+                make_menu_item(
                     parent=menu, id=ID_saveMZDTImage, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
                 )
             )
             menu.AppendItem(menu_action_copy_to_clipboard)
             menu.AppendSeparator()
             menu.AppendItem(
-                makeMenuItem(
+                make_menu_item(
                     parent=menu, id=ID_clearPlot_MZDT, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
                 )
             )
@@ -668,13 +672,15 @@ class PanelPlots(wx.Panel):
             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
             self.resize_plot_check.Check(self.config.resize)
             menu.AppendItem(
-                makeMenuItem(
+                make_menu_item(
                     parent=menu, id=ID_save3DImage, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
                 )
             )
             menu.AppendSeparator()
             menu.AppendItem(
-                makeMenuItem(parent=menu, id=ID_clearPlot_3D, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"])
+                make_menu_item(
+                    parent=menu, id=ID_clearPlot_3D, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
+                )
             )
         elif self.currentPage == "Waterfall":
             menu.AppendItem(menu_edit_general)
@@ -689,7 +695,7 @@ class PanelPlots(wx.Panel):
             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
             self.resize_plot_check.Check(self.config.resize)
             menu.AppendItem(
-                makeMenuItem(
+                make_menu_item(
                     parent=menu,
                     id=ID_saveWaterfallImage,
                     text="Save figure as...",
@@ -699,7 +705,7 @@ class PanelPlots(wx.Panel):
             menu.AppendItem(menu_action_copy_to_clipboard)
             menu.AppendSeparator()
             menu.AppendItem(
-                makeMenuItem(
+                make_menu_item(
                     parent=menu, id=ID_clearPlot_Waterfall, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
                 )
             )
@@ -713,7 +719,7 @@ class PanelPlots(wx.Panel):
             menu.AppendItem(menu_edit_violin)
             menu.AppendSeparator()
             menu.AppendItem(
-                makeMenuItem(
+                make_menu_item(
                     parent=menu,
                     id=ID_plots_customise_plot,
                     text="Customise plot...",
@@ -724,14 +730,14 @@ class PanelPlots(wx.Panel):
             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
             self.resize_plot_check.Check(self.config.resize)
             menu.AppendItem(
-                makeMenuItem(
+                make_menu_item(
                     parent=menu, id=ID_saveOtherImage, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
                 )
             )
             menu.AppendItem(menu_action_copy_to_clipboard)
             menu.AppendSeparator()
             menu.AppendItem(
-                makeMenuItem(
+                make_menu_item(
                     parent=menu, id=ID_clearPlot_other, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
                 )
             )
@@ -1988,21 +1994,21 @@ class PanelPlots(wx.Panel):
                 self.plot1.plot_1D_update(**plt_kwargs)
                 self.plot1.repaint()
             except AttributeError:
-                pass
+                logger.warning("Failed to update `Mass spectrum` plot", exc_info=True)
 
         if plotName in ["all", "RT"]:
             try:
                 self.plotRT.plot_1D_update(**plt_kwargs)
                 self.plotRT.repaint()
             except AttributeError:
-                pass
+                logger.warning("Failed to update `Chromatogram` plot", exc_info=True)
 
         if plotName in ["all", "1D"]:
             try:
                 self.plot1D.plot_1D_update(**plt_kwargs)
                 self.plot1D.repaint()
             except AttributeError:
-                pass
+                logger.warning("Failed to update `Mobilogram` plot", exc_info=True)
 
         if plotName in ["all", "RMSF"]:
             plt_kwargs = self._buildPlotParameters(plotType="2D")
@@ -2012,7 +2018,7 @@ class PanelPlots(wx.Panel):
                 self.plot2D.plot_1D_update_rmsf(**plt_kwargs)
                 self.plot2D.repaint()
             except AttributeError:
-                pass
+                logger.warning("Failed to update `RMSF` plot", exc_info=True)
 
     def on_plot_other_1D(
         self, msX=None, msY=None, xlabel="", ylabel="", xlimits=None, set_page=False, plot="Other", **kwargs
@@ -2600,7 +2606,7 @@ class PanelPlots(wx.Panel):
             self._set_page(window)
 
         if replot:
-            msX, msY, xlimits = self.presenter._get_replot_data("MS")
+            msX, msY, xlimits = self.get_replot_data("MS")
             if msX is None or msY is None:
                 return
 
@@ -2668,7 +2674,7 @@ class PanelPlots(wx.Panel):
                 self._set_page(self.config.panelNames["1D"])
 
         if replot:
-            dtX, dtY, xlabel = self.presenter._get_replot_data("1D")
+            dtX, dtY, xlabel = self.get_replot_data("1D")
             if dtX is None or dtY is None or xlabel is None:
                 return
 
@@ -2723,7 +2729,7 @@ class PanelPlots(wx.Panel):
                 self._set_page(self.config.panelNames["RT"])
 
         if replot:
-            rtX, rtY, xlabel = self.presenter._get_replot_data("RT")
+            rtX, rtY, xlabel = self.get_replot_data("RT")
             if rtX is None or rtY is None or xlabel is None:
                 return
 
@@ -2868,6 +2874,72 @@ class PanelPlots(wx.Panel):
         # Show the mass spectrum
         plot_obj.repaint()
 
+    def get_replot_data(self, data_format):
+
+        if data_format == "2D":
+            get_data = self.config.replotData.get("2D", None)
+            zvals, xvals, yvals, xlabel, ylabel = None, None, None, None, None
+            if get_data is not None:
+                zvals = get_data["zvals"].copy()
+                xvals = get_data["xvals"]
+                yvals = get_data["yvals"]
+                xlabel = get_data["xlabels"]
+                ylabel = get_data["ylabels"]
+            return zvals, xvals, yvals, xlabel, ylabel
+        if data_format == "RMSF":
+            get_data = self.config.replotData.get("RMSF", None)
+            zvals, xvals, yvals, xlabelRMSD, ylabelRMSD, ylabelRMSF = None, None, None, None, None, None
+            if get_data is not None:
+                zvals = get_data["zvals"].copy()
+                xvals = get_data["xvals"]
+                yvals = get_data["yvals"]
+                xlabelRMSD = get_data["xlabelRMSD"]
+                ylabelRMSD = get_data["ylabelRMSD"]
+                ylabelRMSF = get_data["ylabelRMSF"]
+            return zvals, xvals, yvals, xlabelRMSD, ylabelRMSD, ylabelRMSF
+        if data_format == "DT/MS":
+            get_data = self.config.replotData.get("DT/MS", None)
+            zvals, xvals, yvals, xlabel, ylabel = None, None, None, None, None
+            if get_data is not None:
+                zvals = get_data["zvals"].copy()
+                xvals = get_data["xvals"]
+                yvals = get_data["yvals"]
+                xlabel = get_data["xlabels"]
+                ylabel = get_data["ylabels"]
+            return zvals, xvals, yvals, xlabel, ylabel
+        if data_format == "MS":
+            get_data = self.config.replotData.get("MS", None)
+            xvals, yvals, xlimits = None, None, None
+            if get_data is not None:
+                xvals = get_data.get("xvals", None)
+                yvals = get_data.get("yvals", None)
+                xlimits = get_data.get("xlimits", None)
+            return xvals, yvals, xlimits
+        if data_format == "RT":
+            get_data = self.config.replotData.get("RT", None)
+            xvals, yvals, xlabel = None, None, None
+            if get_data is not None:
+                xvals = get_data.get("xvals", None)
+                yvals = get_data.get("yvals", None)
+                xlabel = get_data.get("xlabel", None)
+            return xvals, yvals, xlabel
+        if data_format == "1D":
+            get_data = self.config.replotData.get("1D", None)
+            xvals, yvals, xlabel = None, None, None
+            if get_data is not None:
+                xvals = get_data.get("xvals", None)
+                yvals = get_data.get("yvals", None)
+                xlabel = get_data.get("xlabel", None)
+            return xvals, yvals, xlabel
+        if data_format == "Matrix":
+            get_data = self.config.replotData.get("Matrix", None)
+            zvals, xylabels, cmap = None, None, None
+            if get_data is not None:
+                zvals = get_data.get("zvals", None)
+                xylabels = get_data.get("xylabels", None)
+                cmap = get_data.get("cmap", None)
+            return zvals, xylabels, cmap
+
     def on_plot_2D(
         self,
         zvals=None,
@@ -2875,15 +2947,24 @@ class PanelPlots(wx.Panel):
         yvals=None,
         xlabel=None,
         ylabel=None,
-        cmap=None,
-        cmapNorm=None,
         plotType=None,
         override=True,
         replot=False,
+        cmapNorm=None,
         set_page=False,
         plot="2D",
         **kwargs,
     ):
+        def set_data():
+            self.config.replotData["2D"] = {
+                "zvals": zvals,
+                "xvals": xvals,
+                "yvals": yvals,
+                "xlabels": xlabel,
+                "ylabels": ylabel,
+                "cmap": plt_kwargs["colormap"],
+                "cmapNorm": cmapNorm,
+            }
 
         if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
@@ -2894,45 +2975,37 @@ class PanelPlots(wx.Panel):
 
         # If the user would like to replot data, you can directly unpack it
         if replot:
-            zvals, xvals, yvals, xlabel, ylabel = self.presenter._get_replot_data("2D")
+            zvals, xvals, yvals, xlabel, ylabel = self.get_replot_data("2D")
             if zvals is None or xvals is None or yvals is None:
+                logger.warning("Could not replot data as data was missing...")
                 return
-
-        # Check if cmap should be overwritten
-        if self.config.useCurrentCmap:
-            cmap = self.config.currentCmap
 
         # Check that cmap modifier is included
         if cmapNorm is None and plotType != "RMSD":
             cmapNorm = self.normalize_colormap(
                 zvals, min=self.config.minCmap, mid=self.config.midCmap, max=self.config.maxCmap
             )
-
         elif cmapNorm is None and plotType == "RMSD":
             cmapNorm = self.normalize_colormap(zvals, min=-100, mid=0, max=100)
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType="2D")
-        plt_kwargs["colormap"] = cmap
-        plt_kwargs["colormap_norm"] = cmapNorm
+
+        # Check if cmap should be overwritten
+        if self.config.useCurrentCmap or kwargs.get("cmap", None) is None:
+            plt_kwargs["colormap"] = self.config.currentCmap
+        plt_kwargs["colormap_norm"] = kwargs.get("cmapNorm", None)
         plt_kwargs["allow_extraction"] = kwargs.pop("allow_extraction", True)
 
-        try:
-            plot_obj.plot_2D_update_data(xvals, yvals, xlabel, ylabel, zvals, **plt_kwargs)
-            plot_obj.repaint()
-            if override:
-                self.config.replotData["2D"] = {
-                    "zvals": zvals,
-                    "xvals": xvals,
-                    "yvals": yvals,
-                    "xlabels": xlabel,
-                    "ylabels": ylabel,
-                    "cmap": cmap,
-                    "cmapNorm": cmapNorm,
-                }
-            return
-        except Exception:
-            logging.info("Failed to quickly plot heatmap", exc_info=False)
+        if not kwargs.get("full_repaint", False):
+            try:
+                plot_obj.plot_2D_update_data(xvals, yvals, xlabel, ylabel, zvals, **plt_kwargs)
+                plot_obj.repaint()
+                if override:
+                    set_data()
+                return
+            except Exception:
+                logging.info("Failed to quickly plot heatmap", exc_info=False)
 
         # Plot 2D dataset
         plot_obj.clearPlot()
@@ -2962,15 +3035,7 @@ class PanelPlots(wx.Panel):
 
         plot_obj.repaint()
         if override:
-            self.config.replotData["2D"] = {
-                "zvals": zvals,
-                "xvals": xvals,
-                "yvals": yvals,
-                "xlabels": xlabel,
-                "ylabels": ylabel,
-                "cmap": cmap,
-                "cmapNorm": cmapNorm,
-            }
+            set_data()
 
         # update plot data
         self.presenter.view._onUpdatePlotData(plot_type="2D")
@@ -2996,7 +3061,7 @@ class PanelPlots(wx.Panel):
 
         # If the user would like to replot data, you can directly unpack it
         if replot:
-            zvals, xvals, yvals, xlabel, ylabel = self.presenter._get_replot_data("DT/MS")
+            zvals, xvals, yvals, xlabel, ylabel = self.get_replot_data("DT/MS")
             if zvals is None or xvals is None or yvals is None:
                 return
 
@@ -3106,7 +3171,7 @@ class PanelPlots(wx.Panel):
 
         # If the user would like to replot data, you can directly unpack it
         if replot:
-            zvals, labelsX, labelsY, xlabel, ylabel = self.presenter._get_replot_data("2D")
+            zvals, labelsX, labelsY, xlabel, ylabel = self.get_replot_data("2D")
             if zvals is None or labelsX is None or labelsY is None:
                 return
         # Check if cmap should be overwritten
@@ -3422,7 +3487,7 @@ class PanelPlots(wx.Panel):
 
         # If the user would like to replot data, you can directly unpack it
         if replot:
-            zvals, xvals, yvals, xlabelRMSD, ylabelRMSD, ylabelRMSF = self.presenter._get_replot_data("RMSF")
+            zvals, xvals, yvals, xlabelRMSD, ylabelRMSD, ylabelRMSF = self.get_replot_data("RMSF")
             if zvals is None or xvals is None or yvals is None:
                 return
 
@@ -3500,7 +3565,7 @@ class PanelPlots(wx.Panel):
 
         # If the user would like to replot data, you can directly unpack it
         if replot:
-            zvals, xvals, yvals, xlabel, ylabel = self.presenter._get_replot_data("2D")
+            zvals, xvals, yvals, xlabel, ylabel = self.get_replot_data("2D")
             if zvals is None or xvals is None or yvals is None:
                 return
 
@@ -3645,9 +3710,9 @@ class PanelPlots(wx.Panel):
 
         try:
             if self.plot2D.plot_name == "RMSD":
-                __, xvals, yvals, __, __ = self.presenter._get_replot_data("2D")
+                __, xvals, yvals, __, __ = self.get_replot_data("2D")
             elif self.plot2D.plot_name == "RMSF":
-                __, xvals, yvals, __, __, __ = self.presenter._get_replot_data("RMSF")
+                __, xvals, yvals, __, __, __ = self.get_replot_data("RMSF")
             else:
                 return
 
@@ -3692,7 +3757,7 @@ class PanelPlots(wx.Panel):
 
         # If the user would like to replot data, you can directly unpack it
         if replot:
-            zvals, xylabels, cmap = self.presenter._get_replot_data("Matrix")
+            zvals, xylabels, cmap = self.get_replot_data("Matrix")
             if zvals is None or xylabels is None or cmap is None:
                 return
 
@@ -3820,7 +3885,7 @@ class PanelPlots(wx.Panel):
             self._set_page(self.config.panelNames["MS"])
 
         if replot:
-            data = self.presenter._get_replot_data("compare_MS")
+            data = self.get_replot_data("compare_MS")
             if data["subtract"]:
                 msX = data["xvals"]
                 msY = data["yvals"]
@@ -4256,6 +4321,8 @@ class PanelPlots(wx.Panel):
                 "colormap_min": self.config.minCmap,
                 "colormap_mid": self.config.midCmap,
                 "colormap_max": self.config.maxCmap,
+                "colormap_norm_method": self.config.normalization_2D,
+                "colormap_norm_power_gamma": self.config.normalization_2D_power_gamma,
             }
         elif plotType == "3D":
             plt_kwargs = {
@@ -4405,5 +4472,27 @@ class PanelPlots(wx.Panel):
         cmapMid = (maxValue * mid) / 100
         cmapMax = (maxValue * max) / 100
 
-        cmapNormalization = MidpointNormalize(midpoint=cmapMid, vmin=cmapMin, vmax=cmapMax, clip=False)
+        norm_method = self.config.normalization_2D
+
+        if norm_method == "Midpoint":
+            cmapNormalization = MidpointNormalize(midpoint=cmapMid, vmin=cmapMin, vmax=cmapMax, clip=False)
+        elif norm_method == "Logarithmic":
+            from matplotlib.colors import LogNorm
+
+            cmapNormalization = LogNorm(vmin=cmapMin, vmax=cmapMax)
+        elif norm_method == "Power":
+            from matplotlib.colors import PowerNorm
+
+            cmapNormalization = PowerNorm(gamma=self.config.normalization_2D_power_gamma, vmin=cmapMin, vmax=cmapMax)
+
         return cmapNormalization
+
+    def plot_3D_update(self, plotName="all", evt=None):
+        plt_kwargs = self._buildPlotParameters(plotType="3D")
+
+        if plotName in ["all", "3D"]:
+            try:
+                self.plot3D.plot_3D_update(**plt_kwargs)
+                self.plot3D.repaint()
+            except AttributeError:
+                pass

@@ -6,8 +6,8 @@ import processing.UniDec.utilities as unidec_utils
 import wx.lib.scrolledpanel
 from ids import ID_plotPanel_resize
 from styles import make_checkbox
-from styles import makeMenuItem
-from styles import makeTooltip
+from styles import make_menu_item
+from styles import make_tooltip
 from styles import validator
 from utils.converters import str2int
 from utils.converters import str2num
@@ -84,7 +84,7 @@ class PanelProcessUniDec(wx.MiniFrame):
 
         menu = wx.Menu()
 
-        menu_customise_plot = makeMenuItem(
+        menu_customise_plot = make_menu_item(
             parent=menu, id=wx.ID_ANY, text="Customise plot...", bitmap=self.icons.iconsLib["change_xlabels_16"]
         )
         menu.AppendItem(menu_customise_plot)
@@ -93,21 +93,21 @@ class PanelProcessUniDec(wx.MiniFrame):
         self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving")
         self.resize_plot_check.Check(self.config.resize)
 
-        save_figure_menu_item = makeMenuItem(
+        save_figure_menu_item = make_menu_item(
             menu, id=wx.ID_ANY, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
         )
         menu.AppendItem(save_figure_menu_item)
-        save_all_figures_menu_item = makeMenuItem(
+        save_all_figures_menu_item = make_menu_item(
             menu, id=wx.ID_ANY, text="Save all figures as...", bitmap=self.icons.iconsLib["save_multiple_16"]
         )
         menu.AppendItem(save_all_figures_menu_item)
 
-        menu_action_copy_to_clipboard = makeMenuItem(
+        menu_action_copy_to_clipboard = make_menu_item(
             parent=menu, id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self.icons.iconsLib["filelist_16"]
         )
         menu.AppendItem(menu_action_copy_to_clipboard)
 
-        clear_plot_menu_item = makeMenuItem(
+        clear_plot_menu_item = make_menu_item(
             menu, id=wx.ID_ANY, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
         )
         menu.AppendSeparator()
@@ -364,7 +364,7 @@ class PanelProcessUniDec(wx.MiniFrame):
         self.unidec_peak_width_btn = wx.BitmapButton(
             panel, -1, self.icons.iconsLib["measure_16"], size=(-1, 22), style=wx.ALIGN_CENTER_VERTICAL
         )
-        self.unidec_peak_width_btn.SetToolTip(makeTooltip("Open peak width tool..."))
+        self.unidec_peak_width_btn.SetToolTip(make_tooltip("Open peak width tool..."))
         self.unidec_peak_width_btn.Bind(wx.EVT_BUTTON, self.on_open_width_tool)
 
         self.unidec_fit_peakWidth_check = make_checkbox(panel, "Auto")
@@ -629,38 +629,38 @@ class PanelProcessUniDec(wx.MiniFrame):
             panel, -1, self.icons.iconsLib["rocket_16"], size=(40, 22), style=wx.ALIGN_CENTER_VERTICAL
         )
         self.unidec_auto_btn.Bind(wx.EVT_BUTTON, self.on_auto_unidec)
-        self.unidec_auto_btn.SetToolTip(makeTooltip("Autorun..."))
+        self.unidec_auto_btn.SetToolTip(make_tooltip("Autorun..."))
 
         self.unidec_init_btn = wx.BitmapButton(
             panel, -1, self.icons.iconsLib["run_run_16"], size=(40, 22), style=wx.ALIGN_CENTER_VERTICAL
         )
         self.unidec_init_btn.Bind(wx.EVT_BUTTON, self.on_initilize_unidec)
-        self.unidec_init_btn.SetToolTip(makeTooltip("Initilize and pre-process..."))
+        self.unidec_init_btn.SetToolTip(make_tooltip("Initilize and pre-process..."))
 
         self.unidec_unidec_btn = wx.BitmapButton(
             panel, -1, self.icons.iconsLib["process_unidec_16"], size=(40, 22), style=wx.ALIGN_CENTER_VERTICAL
         )
         self.unidec_unidec_btn.Bind(wx.EVT_BUTTON, self.on_run_unidec)
-        self.unidec_unidec_btn.SetToolTip(makeTooltip("Run UniDec..."))
+        self.unidec_unidec_btn.SetToolTip(make_tooltip("Run UniDec..."))
 
         self.unidec_peak_btn = wx.BitmapButton(
             panel, -1, self.icons.iconsLib["mark_peak_16"], size=(40, 22), style=wx.ALIGN_CENTER_VERTICAL
         )
         self.unidec_peak_btn.Bind(wx.EVT_BUTTON, self.on_detect_peaks_unidec)
-        self.unidec_peak_btn.SetToolTip(makeTooltip("Detect peaks..."))
+        self.unidec_peak_btn.SetToolTip(make_tooltip("Detect peaks..."))
 
         self.unidec_all_btn = wx.Button(panel, wx.ID_OK, "All", size=(40, 22))
         self.unidec_all_btn.Bind(wx.EVT_BUTTON, self.on_all_unidec)
-        self.unidec_all_btn.SetToolTip(makeTooltip("Run all..."))
+        self.unidec_all_btn.SetToolTip(make_tooltip("Run all..."))
 
         self.unidec_cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, 22))
         self.unidec_cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
-        self.unidec_cancel_btn.SetToolTip(makeTooltip("Close window..."))
+        self.unidec_cancel_btn.SetToolTip(make_tooltip("Close window..."))
 
         self.unidec_customise_btn = wx.BitmapButton(
             panel, -1, self.icons.iconsLib["settings16_2"], size=(40, 22), style=wx.ALIGN_CENTER_VERTICAL
         )
-        self.unidec_customise_btn.SetToolTip(makeTooltip("Open customisation window..."))
+        self.unidec_customise_btn.SetToolTip(make_tooltip("Open customisation window..."))
         self.unidec_customise_btn.Bind(wx.EVT_BUTTON, self.on_open_customisation_settings)
 
         horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)

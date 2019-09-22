@@ -48,8 +48,8 @@ from ids import ID_textPanel_table_shape
 from ids import ID_textPanel_table_startCE
 from numpy import arange
 from styles import ListCtrl
-from styles import makeMenuItem
-from styles import makeTooltip
+from styles import make_menu_item
+from styles import make_tooltip
 from toolbox import removeListDuplicates
 from utils.check import isempty
 from utils.color import convert_rgb_1_to_255
@@ -177,34 +177,34 @@ class PanelTextlist(wx.Panel):
         self.add_btn = wx.BitmapButton(
             self, -1, self.icons.iconsLib["add16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
-        self.add_btn.SetToolTip(makeTooltip("Add..."))
+        self.add_btn.SetToolTip(make_tooltip("Add..."))
 
         self.remove_btn = wx.BitmapButton(
             self, -1, self.icons.iconsLib["remove16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
-        self.remove_btn.SetToolTip(makeTooltip("Remove..."))
+        self.remove_btn.SetToolTip(make_tooltip("Remove..."))
 
         self.annotate_btn = wx.BitmapButton(
             self, -1, self.icons.iconsLib["annotate16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
-        self.annotate_btn.SetToolTip(makeTooltip("Annotate..."))
+        self.annotate_btn.SetToolTip(make_tooltip("Annotate..."))
 
         self.process_btn = wx.BitmapButton(
             self, -1, self.icons.iconsLib["process16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
-        self.process_btn.SetToolTip(makeTooltip("Process..."))
+        self.process_btn.SetToolTip(make_tooltip("Process..."))
 
         self.save_btn = wx.BitmapButton(
             self, -1, self.icons.iconsLib["save16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
-        self.save_btn.SetToolTip(makeTooltip("Save..."))
+        self.save_btn.SetToolTip(make_tooltip("Save..."))
 
         vertical_line_1 = wx.StaticLine(self, -1, style=wx.LI_VERTICAL)
 
         self.info_btn = wx.BitmapButton(
             self, -1, self.icons.iconsLib["info16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
-        self.info_btn.SetToolTip(makeTooltip("Information..."))
+        self.info_btn.SetToolTip(make_tooltip("Information..."))
 
         # bind events
         self.Bind(wx.EVT_BUTTON, self.menu_add_tools, self.add_btn)
@@ -249,7 +249,7 @@ class PanelTextlist(wx.Panel):
         print(self.peaklist.item_id)
         menu = wx.Menu()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_textPanel_show_chromatogram,
                 text="Show chromatogram",
@@ -257,7 +257,7 @@ class PanelTextlist(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_textPanel_show_mobilogram,
                 text="Show mobilogram\tM",
@@ -265,7 +265,7 @@ class PanelTextlist(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_textPanel_show_heatmap,
                 text="Show heatmap\tH",
@@ -275,7 +275,7 @@ class PanelTextlist(wx.Panel):
         menu.Append(ID_textPanel_show_process_heatmap, "Process and show heatmap")
         menu.AppendSeparator()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_textPanel_assignColor,
                 text="Assign new color\tC",
@@ -283,7 +283,7 @@ class PanelTextlist(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_textPanel_editItem,
                 text="Edit file information\tE",
@@ -292,7 +292,7 @@ class PanelTextlist(wx.Panel):
         )
         menu.AppendSeparator()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_textPanel_delete_rightClick,
                 text="Remove item\tDelete",
@@ -316,7 +316,7 @@ class PanelTextlist(wx.Panel):
 
         menu = wx.Menu()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_textPanel_annotate_charge_state,
                 text="Assign charge state (selected)",
@@ -324,7 +324,7 @@ class PanelTextlist(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_textPanel_annotate_alpha,
                 text="Assign transparency value (selected)",
@@ -332,7 +332,7 @@ class PanelTextlist(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_textPanel_annotate_mask,
                 text="Assign mask value (selected)",
@@ -340,7 +340,7 @@ class PanelTextlist(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_textPanel_annotate_min_threshold,
                 text="Assign minimum threshold (selected)",
@@ -348,7 +348,7 @@ class PanelTextlist(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_textPanel_annotate_max_threshold,
                 text="Assign maximum threshold (selected)",
@@ -357,7 +357,7 @@ class PanelTextlist(wx.Panel):
         )
         menu.AppendSeparator()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_textPanel_changeColorBatch_color,
                 text="Assign new color using color picker (selected)",
@@ -365,7 +365,7 @@ class PanelTextlist(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_textPanel_changeColorBatch_palette,
                 text="Assign new color using color palette (selected)",
@@ -373,7 +373,7 @@ class PanelTextlist(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_textPanel_changeColorBatch_colormap,
                 text="Assign new color using colormap (selected)",
@@ -381,7 +381,7 @@ class PanelTextlist(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_textPanel_changeColormapBatch,
                 text="Assign new colormap (selected)",
@@ -399,7 +399,7 @@ class PanelTextlist(wx.Panel):
 
         menu = wx.Menu()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_load_multiple_text_2D,
                 text="Add files\tCtrl+W",
@@ -408,7 +408,7 @@ class PanelTextlist(wx.Panel):
         )
         menu.AppendSeparator()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_addNewOverlayDoc,
                 text="Create blank COMPARISON document\tAlt+D",
@@ -429,7 +429,7 @@ class PanelTextlist(wx.Panel):
 
         menu = wx.Menu()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_textPanel_clear_selected,
                 text="Remove from list (selected)",
@@ -437,7 +437,7 @@ class PanelTextlist(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_textPanel_clear_all,
                 text="Remove from list (all)",
@@ -448,7 +448,7 @@ class PanelTextlist(wx.Panel):
         menu.AppendSeparator()
         menu.AppendSeparator()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_textPanel_delete_selected,
                 text="Delete documents (selected)",
@@ -456,7 +456,7 @@ class PanelTextlist(wx.Panel):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_textPanel_delete_all,
                 text="Delete documents (all)",
@@ -471,7 +471,7 @@ class PanelTextlist(wx.Panel):
     def menu_process_tools(self, evt):
 
         menu = wx.Menu()
-        menu_action_process_heatmap = makeMenuItem(parent=menu, text="Process heatmap data (selected)")
+        menu_action_process_heatmap = make_menu_item(parent=menu, text="Process heatmap data (selected)")
         menu.AppendItem(menu_action_process_heatmap)
 
         # bind events
@@ -484,26 +484,26 @@ class PanelTextlist(wx.Panel):
     def menu_save_tools(self, evt):
 
         menu = wx.Menu()
-        menu_action_save_chromatogram = makeMenuItem(parent=menu, text="Save figure(s) as chromatogram (selected)")
+        menu_action_save_chromatogram = make_menu_item(parent=menu, text="Save figure(s) as chromatogram (selected)")
         menu.AppendItem(menu_action_save_chromatogram)
 
-        menu_action_save_mobilogram = makeMenuItem(parent=menu, text="Save figure(s) as mobilogram (selected)")
+        menu_action_save_mobilogram = make_menu_item(parent=menu, text="Save figure(s) as mobilogram (selected)")
         menu.AppendItem(menu_action_save_mobilogram)
 
-        menu_action_save_heatmap = makeMenuItem(parent=menu, text="Save figure(s) as heatmap (selected)")
+        menu_action_save_heatmap = make_menu_item(parent=menu, text="Save figure(s) as heatmap (selected)")
         menu.AppendItem(menu_action_save_heatmap)
 
-        menu_action_save_waterfall = makeMenuItem(parent=menu, text="Save figure(s) as waterfall (selected)")
+        menu_action_save_waterfall = make_menu_item(parent=menu, text="Save figure(s) as waterfall (selected)")
         menu.AppendItem(menu_action_save_waterfall)
 
         menu.AppendSeparator()
-        menu_action_save_data_chromatogram = makeMenuItem(parent=menu, text="Save chromatographic data (selected)")
+        menu_action_save_data_chromatogram = make_menu_item(parent=menu, text="Save chromatographic data (selected)")
         menu.AppendItem(menu_action_save_data_chromatogram)
 
-        menu_action_save_data_mobilogram = makeMenuItem(parent=menu, text="Save mobilogram data (selected)")
+        menu_action_save_data_mobilogram = make_menu_item(parent=menu, text="Save mobilogram data (selected)")
         menu.AppendItem(menu_action_save_data_mobilogram)
 
-        menu_action_save_data_heatmap = makeMenuItem(parent=menu, text="Save heatmap data (selected)")
+        menu_action_save_data_heatmap = make_menu_item(parent=menu, text="Save heatmap data (selected)")
         menu.AppendItem(menu_action_save_data_heatmap)
 
         # bind events
@@ -567,7 +567,7 @@ class PanelTextlist(wx.Panel):
         self.table_filename.Check(self.config._textlistSettings[n]["show"])
         menu.AppendSeparator()
         self.table_index = menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_textPanel_table_hideAll,
                 text="Table: Hide all",
@@ -575,7 +575,7 @@ class PanelTextlist(wx.Panel):
             )
         )
         self.table_index = menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_textPanel_table_restoreAll,
                 text="Table: Restore all",

@@ -18,9 +18,9 @@ from natsort import natsorted
 from styles import make_bitmap_btn
 from styles import make_checkbox
 from styles import make_color_btn
+from styles import make_menu_item
 from styles import make_spin_ctrl
 from styles import make_staticbox
-from styles import makeMenuItem
 from styles import MiniFrame
 from utils.converters import str2num
 from utils.screen import calculate_window_size
@@ -90,7 +90,7 @@ class PanelSignalComparisonViewer(MiniFrame):
 
         menu = wx.Menu()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_plots_customise_plot,
                 text="Customise plot...",
@@ -100,17 +100,17 @@ class PanelSignalComparisonViewer(MiniFrame):
         menu.AppendSeparator()
         self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving")
         self.resize_plot_check.Check(self.config.resize)
-        save_figure_menu_item = makeMenuItem(
+        save_figure_menu_item = make_menu_item(
             menu, id=wx.ID_ANY, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
         )
         menu.AppendItem(save_figure_menu_item)
-        menu_action_copy_to_clipboard = makeMenuItem(
+        menu_action_copy_to_clipboard = make_menu_item(
             parent=menu, id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self.icons.iconsLib["filelist_16"]
         )
         menu.AppendItem(menu_action_copy_to_clipboard)
 
         menu.AppendSeparator()
-        clear_plot_menu_item = makeMenuItem(
+        clear_plot_menu_item = make_menu_item(
             menu, id=wx.ID_ANY, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
         )
         menu.AppendItem(clear_plot_menu_item)

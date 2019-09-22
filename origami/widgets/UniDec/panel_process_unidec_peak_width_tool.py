@@ -6,7 +6,7 @@ from gui_elements.misc_dialogs import DialogBox
 from help_documentation import OrigamiHelp
 from processing.UniDec.unidec_modules.fitting import isolated_peak_fit
 from processing.utils import get_narrow_data_range
-from styles import makeTooltip
+from styles import make_tooltip
 from styles import validator
 from utils.converters import str2num
 from visuals import mpl_plots
@@ -91,7 +91,7 @@ class PanelPeakWidthTool(wx.MiniFrame):
 
         unidec_peakWidth_label = wx.StaticText(panel, wx.ID_ANY, "Peak FWHM (Da):")
         self.unidec_fit_peakWidth_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
-        self.unidec_fit_peakWidth_value.SetToolTip(makeTooltip("Expected peak width at FWHM in Da"))
+        self.unidec_fit_peakWidth_value.SetToolTip(make_tooltip("Expected peak width at FWHM in Da"))
 
         unidec_error_label = wx.StaticText(panel, wx.ID_ANY, "Error:")
         self.unidec_error = wx.StaticText(panel, wx.ID_ANY, "")
@@ -99,7 +99,7 @@ class PanelPeakWidthTool(wx.MiniFrame):
         self.unidec_resolution = wx.StaticText(panel, wx.ID_ANY, "")
 
         self.fitBtn = wx.Button(panel, -1, "Fit", size=(-1, 22))
-        self.fitBtn.SetToolTip(makeTooltip("Fit peak to currently zoomed peak in the spectrum"))
+        self.fitBtn.SetToolTip(make_tooltip("Fit peak to currently zoomed peak in the spectrum"))
 
         self.ok_btn = wx.Button(panel, wx.ID_OK, "OK", size=(-1, 22))
         self.cancel_btn = wx.Button(panel, -1, "Cancel", size=(-1, 22))

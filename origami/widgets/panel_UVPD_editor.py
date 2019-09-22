@@ -33,8 +33,8 @@ from ids import ID_uvpd_laser_on_show_waterfall
 from ids import ID_uvpd_monitor_remove
 from natsort import natsorted
 from styles import make_checkbox
+from styles import make_menu_item
 from styles import make_staticbox
-from styles import makeMenuItem
 from styles import validator
 from toolbox import saveAsText
 from utils.converters import str2int
@@ -215,7 +215,7 @@ class PanelUVPDEditor(wx.MiniFrame):
         self.currentItem = evt.GetIndex()
         menu = wx.Menu()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_uvpd_laser_on_off_mobilogram_show_chromatogram,
                 text="Compare chromatograms",
@@ -224,7 +224,7 @@ class PanelUVPDEditor(wx.MiniFrame):
         )
         menu.AppendSeparator()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_uvpd_monitor_remove,
                 text="Remove item from list",
@@ -275,18 +275,18 @@ class PanelUVPDEditor(wx.MiniFrame):
         #                                                  help="")
         #         menu.AppendSeparator()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu, id=ID_uvpd_laser_on_off_compare_chromatogam, text="Compare chromatograms", bitmap=None
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu, id=ID_uvpd_laser_on_off_compare_mobilogram, text="Compare mobilograms", bitmap=None
             )
         )
         menu.AppendSeparator()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_uvpd_laser_on_show_chromatogram,
                 text="Show DATASET 1 data as chromatogram\tCtrl+C",
@@ -294,7 +294,7 @@ class PanelUVPDEditor(wx.MiniFrame):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_uvpd_laser_on_show_mobilogram,
                 text="Show DATASET 1 data as mobilogram\tCtrl+M",
@@ -302,7 +302,7 @@ class PanelUVPDEditor(wx.MiniFrame):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_uvpd_laser_on_show_heatmap,
                 text="Show DATASET 1 data as heatmap\tCtrl+H",
@@ -310,7 +310,7 @@ class PanelUVPDEditor(wx.MiniFrame):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_uvpd_laser_on_show_waterfall,
                 text="Show DATASET 1 data as waterfall\tCtrl+W",
@@ -320,7 +320,7 @@ class PanelUVPDEditor(wx.MiniFrame):
         menu.AppendMenu(wx.ID_ANY, "Save data...", save_laser_on)
         menu.AppendSeparator()
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_uvpd_laser_off_show_chromatogram,
                 text="Show laser-off data as chromatogram\tShift+C",
@@ -328,7 +328,7 @@ class PanelUVPDEditor(wx.MiniFrame):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_uvpd_laser_off_show_mobilogram,
                 text="Show DATASET 2 data as summed mobilogram\tShift+M",
@@ -336,7 +336,7 @@ class PanelUVPDEditor(wx.MiniFrame):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_uvpd_laser_off_show_heatmap,
                 text="Show DATASET 2 data as heatmap\tShift+H",
@@ -344,7 +344,7 @@ class PanelUVPDEditor(wx.MiniFrame):
             )
         )
         menu.AppendItem(
-            makeMenuItem(
+            make_menu_item(
                 parent=menu,
                 id=ID_uvpd_laser_off_show_waterfall,
                 text="Show DATASET 2 data as waterfall\tShift+W",

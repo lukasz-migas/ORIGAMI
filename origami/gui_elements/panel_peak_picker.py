@@ -4,7 +4,7 @@ import logging
 
 import wx
 from styles import make_checkbox
-from styles import makeMenuItem
+from styles import make_menu_item
 from styles import MiniFrame
 from styles import validator
 from utils.converters import str2int
@@ -109,12 +109,12 @@ class PanelPeakPicker(MiniFrame):
         if hasattr(evt.EventObject, "figure"):
 
             menu = wx.Menu()
-            save_figure_menu_item = makeMenuItem(
+            save_figure_menu_item = make_menu_item(
                 menu, id=wx.ID_ANY, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
             )
             menu.AppendItem(save_figure_menu_item)
 
-            menu_action_copy_to_clipboard = makeMenuItem(
+            menu_action_copy_to_clipboard = make_menu_item(
                 parent=menu, id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self.icons.iconsLib["filelist_16"]
             )
             menu.AppendItem(menu_action_copy_to_clipboard)
@@ -177,9 +177,9 @@ class PanelPeakPicker(MiniFrame):
 
         menu = wx.Menu()
 
-        menu_action_restore_original_plot = makeMenuItem(parent=menu, text="Restore orignal plot")
-        menu_action_add_peaks_to_peaklist = makeMenuItem(parent=menu, text="Add peaks to peaklist panel")
-        menu_action_add_peaks_to_annotations = makeMenuItem(parent=menu, text="Add peaks to spectrum annotations")
+        menu_action_restore_original_plot = make_menu_item(parent=menu, text="Restore orignal plot")
+        menu_action_add_peaks_to_peaklist = make_menu_item(parent=menu, text="Add peaks to peaklist panel")
+        menu_action_add_peaks_to_annotations = make_menu_item(parent=menu, text="Add peaks to spectrum annotations")
 
         menu.Append(menu_action_restore_original_plot)
         menu.AppendSeparator()

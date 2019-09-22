@@ -10,7 +10,6 @@ from ids import ID_extraSettings_autoSaveSettings
 from ids import ID_extraSettings_bar_edgeColor
 from ids import ID_extraSettings_boxColor
 from ids import ID_extraSettings_edgeMarkerColor_1D
-from ids import ID_extraSettings_edgeMarkerColor_3D
 from ids import ID_extraSettings_extractColor
 from ids import ID_extraSettings_horizontalColor
 from ids import ID_extraSettings_labelColor_rmsd
@@ -20,7 +19,6 @@ from ids import ID_extraSettings_lineColour_violin
 from ids import ID_extraSettings_lineColour_waterfall
 from ids import ID_extraSettings_logging
 from ids import ID_extraSettings_markerColor_1D
-from ids import ID_extraSettings_markerColor_3D
 from ids import ID_extraSettings_multiThreading
 from ids import ID_extraSettings_shadeColour_violin
 from ids import ID_extraSettings_shadeColour_waterfall
@@ -29,13 +27,12 @@ from ids import ID_extraSettings_underlineColor_rmsd
 from ids import ID_extraSettings_verticalColor
 from ids import ID_extraSettings_zoomCursorColor
 from styles import make_checkbox
-from styles import make_staticbox
 from styles import make_toggle_btn
+from styles import set_item_font
 from utils.color import convert_rgb_1_to_255
 from utils.converters import str2int
 from utils.converters import str2num
 from wx.adv import BitmapComboBox
-
 
 logger = logging.getLogger("origami")
 
@@ -44,7 +41,7 @@ CTRL_SIZE = 60
 ALIGN_CV_R = wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT
 
 
-class panelParametersEdit(wx.Panel):
+class PanelVisualisationSettingsEditor(wx.Panel):
     """Extra settings panel."""
 
     def __init__(self, parent, presenter, config, icons, **kwargs):
@@ -59,33 +56,15 @@ class panelParametersEdit(wx.Panel):
 
         self.import_evt = True
         self.current_page = None
-        self.window_sizes = {
-            "General": (540, 400),
-            "Plot 1D": (540, 510),
-            "Plot 2D": (540, 295),
-            "Plot 3D": (540, 385),
-            "Colorbar": (540, 220),
-            "Legend": (540, 350),
-            "RMSD": (540, 540),
-            "Waterfall": (540, 515),
-            "Violin": (540, 415),
-            "Plot sizes": (540, 640),
-            "UI behaviour": (540, 640),
-        }
 
         # make gui items
         self.make_gui()
-        #         self.makeStatusBar()
-
-        self.main_book.Bind(wx.EVT_CHOICEBOOK_PAGE_CHANGED, self.on_page_changed)
 
         if kwargs["window"] is not None:
-            self.main_book.SetSelection(self.config.extraParamsWindow[kwargs["window"]])
+            self.on_set_page(**kwargs)
 
         # fire-up some events
         self.on_toggle_controls_1d(evt=None)
-        self.on_toggle_controls_2d(evt=None)
-        self.on_toggle_controls_3d(evt=None)
         self.on_toggle_controls_colorbar(evt=None)
         self.on_toggle_controls_legend(evt=None)
         self.on_toggle_controls_waterfall(evt=None)
@@ -103,8 +82,8 @@ class panelParametersEdit(wx.Panel):
         self.on_update_rmsd_position(evt=None)
         self.on_update_plot_sizes(evt=None)
         self.on_page_changed(evt=None)
-        #         self.updateStatusbar()
-        logger.info(f"Startup took {ttime() - tstart:.3f} seconds")
+
+        logger.info(f"Startup took {ttime() - tstart:.2f} seconds")
 
         wx.EVT_CLOSE(self, self.on_close)
         self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
@@ -130,27 +109,9 @@ class panelParametersEdit(wx.Panel):
             evt.Skip()
 
     def on_page_changed(self, evt):
-        self.window_sizes = {
-            "General": (320, 430),
-            "Plot 1D": (330, 590),
-            "Plot 2D": (320, 350),
-            "Plot 3D": (320, 380),
-            "Colorbar": (320, 230),
-            "Legend": (320, 350),
-            "RMSD": (320, 550),
-            "Waterfall": (360, 570),
-            "Violin": (340, 425),
-            "Plot sizes": (460, 300),
-            "UI behaviour": (320, 470),
-        }
+        tstart = ttime()
         self.current_page = self.main_book.GetPageText(self.main_book.GetSelection())
-
-        if self.view.window_mgr.GetPane(self).IsFloating():
-            self.SetSize(self.window_sizes[self.current_page])
-            self.Layout()
-
-            self.view.window_mgr.GetPane(self).FloatingSize(self.window_sizes[self.current_page])
-            self.view.window_mgr.Update()
+        logger.info(f"Changed window to `{self.current_page}` in {ttime()-tstart:.2f}")
 
     def on_set_page(self, **kwargs):
         self.main_book.SetSelection(self.config.extraParamsWindow[kwargs["window"]])
@@ -166,6 +127,7 @@ class panelParametersEdit(wx.Panel):
     def make_gui(self):
 
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+
         # Setup notebook
         self.main_book = wx.Choicebook(self, wx.ID_ANY, style=wx.CHB_DEFAULT)
 
@@ -227,12 +189,11 @@ class panelParametersEdit(wx.Panel):
         # fit sizer
         self.main_sizer.Add(self.main_book, 1, wx.EXPAND | wx.ALL, 2)
 
-        # setup color
-        # self.main_book.SetBackgroundColour((240, 240, 240))
+        self.main_book.Bind(wx.EVT_CHOICEBOOK_PAGE_CHANGED, self.on_page_changed)
 
     def on_update_values(self):
-        # general
 
+        # general
         self.plot1d_title_font_weight_check.GetValue(self.config.titleFontWeight_1D)
         self.plot_label_font_weight_check.GetValue(self.config.labelFontWeight_1D)
         self.plot_annotation_font_weight_check.GetValue(self.config.annotationFontWeight_1D)
@@ -252,10 +213,6 @@ class panelParametersEdit(wx.Panel):
         self.plot_bottom_tick_labels_check.GetValue(self.config.tickLabels_bottom_1D)
 
     def make_panel_general(self, panel):
-
-        axis_parameters_staticbox = make_staticbox(panel, "Axis parameters", size=(-1, -1), color=wx.BLACK)
-        axis_parameters_staticbox.SetSize((-1, -1))
-        axis_box_sizer = wx.StaticBoxSizer(axis_parameters_staticbox, wx.HORIZONTAL)
 
         plot_axis_on_off = wx.StaticText(panel, -1, "Show frame:")
         self.plot_axis_on_off_check = make_checkbox(panel, "", name="frame")
@@ -341,10 +298,6 @@ class panelParametersEdit(wx.Panel):
         )
         self.plot_frame_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_1D)
         self.plot_frame_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
-
-        font_parameters_static_box = make_staticbox(panel, "Font parameters", size=(-1, -1), color=wx.BLACK)
-        font_parameters_static_box.SetSize((-1, -1))
-        font_box_sizer = wx.StaticBoxSizer(font_parameters_static_box, wx.HORIZONTAL)
 
         plot_padding = wx.StaticText(panel, -1, "Label pad:")
         self.plot_padding_value = wx.SpinCtrlDouble(
@@ -442,10 +395,6 @@ class panelParametersEdit(wx.Panel):
         self.plot_annotation_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_apply_1D)
         self.plot_annotation_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_update)
 
-        style_staticBox = make_staticbox(panel, "Style parameters", size=(-1, -1), color=wx.BLACK)
-        style_staticBox.SetSize((-1, -1))
-        style_box_sizer = wx.StaticBoxSizer(style_staticBox, wx.HORIZONTAL)
-
         style_label = wx.StaticText(panel, -1, "Style:")
         self.plot_style_value = wx.Choice(panel, -1, choices=self.config.styles, size=(-1, -1))
         self.plot_style_value.SetStringSelection(self.config.currentStyle)
@@ -499,7 +448,6 @@ class panelParametersEdit(wx.Panel):
         n += 1
         axis_grid.Add(plot_frame_width, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         axis_grid.Add(self.plot_frame_width_value, (n, 1), (1, 2), flag=wx.ALIGN_CENTER)
-        axis_box_sizer.Add(axis_grid, 0, wx.EXPAND, 10)
 
         # font parameters
         font_grid = wx.GridBagSizer(2, 2)
@@ -522,7 +470,6 @@ class panelParametersEdit(wx.Panel):
         font_grid.Add(plot_annotation_fontsize, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         font_grid.Add(self.plot_annotation_fontsize_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
         font_grid.Add(self.plot_annotation_font_weight_check, (n, 3), flag=wx.EXPAND)
-        font_box_sizer.Add(font_grid, 0, wx.EXPAND, 10)
 
         style_grid = wx.GridBagSizer(2, 2)
         n = 0
@@ -531,19 +478,41 @@ class panelParametersEdit(wx.Panel):
         n += 1
         style_grid.Add(plot_palette, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         style_grid.Add(self.plot_palette_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        style_box_sizer.Add(style_grid, 0, wx.EXPAND, 10)
+
+        axis_parameters_label = wx.StaticText(panel, -1, "Axis and frame parameters")
+        set_item_font(axis_parameters_label)
+
+        horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+
+        font_parameters_label = wx.StaticText(panel, -1, "Font and label parameters")
+        set_item_font(font_parameters_label)
+
+        horizontal_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+
+        style_parameters_label = wx.StaticText(panel, -1, "Style parameters")
+        set_item_font(style_parameters_label)
 
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(axis_box_sizer, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        grid.Add(axis_parameters_label, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
         n += 1
-        grid.Add(font_box_sizer, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        grid.Add(axis_grid, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
         n += 1
-        grid.Add(style_box_sizer, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        n += 1
+        grid.Add(font_parameters_label, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        n += 1
+        grid.Add(font_grid, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        n += 1
+        grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        n += 1
+        grid.Add(style_parameters_label, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        n += 1
+        grid.Add(style_grid, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
 
         # pack elements
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(grid, 1, wx.EXPAND, PANEL_SPACE_MAIN)
+        main_sizer.Add(grid, 1, wx.ALIGN_CENTER, PANEL_SPACE_MAIN)
 
         # fit layout
         main_sizer.Fit(panel)
@@ -552,11 +521,6 @@ class panelParametersEdit(wx.Panel):
         return panel
 
     def make_panel_plot_sizes(self, panel):
-
-        # make elements
-        axes_staticbox = make_staticbox(panel, "Axes parameters", size=(-1, -1), color=wx.BLACK)
-        axes_staticbox.SetSize((-1, -1))
-        axes_box_sizer = wx.StaticBoxSizer(axes_staticbox, wx.HORIZONTAL)
 
         general_plot_name = wx.StaticText(panel, -1, "Plot name:")
         self.general_plot_name_value = wx.Choice(
@@ -591,47 +555,19 @@ class panelParametersEdit(wx.Panel):
         )
         self.general_height_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_general)
 
-        export_staticBox = make_staticbox(panel, "Export parameters", size=(-1, -1), color=wx.BLACK)
-        export_staticBox.SetSize((-1, -1))
-        export_box_sizer = wx.StaticBoxSizer(export_staticBox, wx.HORIZONTAL)
+        plot_size_inch = wx.StaticText(panel, -1, "Plot size (inch)")
 
-        plotSize_export_label = wx.StaticText(panel, -1, "Export plot size (proportion)")
-        left_export_label = wx.StaticText(panel, -1, "Left")
-        self.general_left_export_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(0), min=0.0, max=1, initial=0, inc=0.05, size=(60, -1)
-        )
-        self.general_left_export_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-
-        bottom_export_label = wx.StaticText(panel, -1, "Bottom")
-        self.general_bottom_export_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(0), min=0.0, max=1, initial=0, inc=0.05, size=(60, -1)
-        )
-        self.general_bottom_export_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-
-        width_export_label = wx.StaticText(panel, -1, "Width")
-        self.general_width_export_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(0), min=0.0, max=1, initial=0, inc=0.05, size=(60, -1)
-        )
-        self.general_width_export_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-
-        height_export_label = wx.StaticText(panel, -1, "Height")
-        self.general_height_export_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(0), min=0.0, max=1, initial=0, inc=0.05, size=(60, -1)
-        )
-        self.general_height_export_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-
-        plotSize_inch_label = wx.StaticText(panel, -1, "Plot size (inch)")
-        width_inch_label = wx.StaticText(panel, -1, "Width")
+        general_width_inch_value = wx.StaticText(panel, -1, "Width (inch)")
         self.general_width_inch_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(0), min=0.0, max=20, initial=0, inc=2, size=(60, -1)
+            panel, -1, value=str(0), min=0, max=20, initial=0, inc=2, size=(60, -1)
         )
-        self.general_width_inch_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_general)
+        self.general_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_general)
 
-        height_inch_label = wx.StaticText(panel, -1, "Height")
+        general_height_inch_value = wx.StaticText(panel, -1, "Height (inch)")
         self.general_height_inch_value = wx.SpinCtrlDouble(
             panel, -1, value=str(0), min=0.0, max=20, initial=0, inc=2, size=(60, -1)
         )
-        self.general_height_inch_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_general)
+        self.general_height_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_general)
 
         # add elements to grids
         axes_grid = wx.GridBagSizer(2, 2)
@@ -639,49 +575,41 @@ class panelParametersEdit(wx.Panel):
         axes_grid.Add(general_plot_name, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         axes_grid.Add(self.general_plot_name_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
         n += 1
-        axes_grid.Add(left_label, (n, 1), flag=wx.ALIGN_CENTER)
-        axes_grid.Add(bottom_label, (n, 2), flag=wx.ALIGN_CENTER)
-        axes_grid.Add(width_label, (n, 3), flag=wx.ALIGN_CENTER)
-        axes_grid.Add(height_label, (n, 4), flag=wx.ALIGN_CENTER)
+        axes_grid.Add(plotSize_label, (n, 0), (1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         n += 1
-        axes_grid.Add(plotSize_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        axes_grid.Add(self.general_left_value, (n, 1), flag=wx.ALIGN_CENTER)
-        axes_grid.Add(self.general_bottom_value, (n, 2), flag=wx.ALIGN_CENTER)
-        axes_grid.Add(self.general_width_value, (n, 3), flag=wx.ALIGN_CENTER)
-        axes_grid.Add(self.general_height_value, (n, 4), flag=wx.ALIGN_CENTER)
-        axes_box_sizer.Add(axes_grid, 0, wx.EXPAND, 10)
+        axes_grid.Add(left_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        axes_grid.Add(self.general_left_value, (n, 1), flag=wx.ALIGN_LEFT)
+        n += 1
+        axes_grid.Add(bottom_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        axes_grid.Add(self.general_bottom_value, (n, 1), flag=wx.ALIGN_LEFT)
+        n += 1
+        axes_grid.Add(width_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        axes_grid.Add(self.general_width_value, (n, 1), flag=wx.ALIGN_LEFT)
+        n += 1
+        axes_grid.Add(height_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        axes_grid.Add(self.general_height_value, (n, 1), flag=wx.ALIGN_LEFT)
+        n += 1
+        axes_grid.Add(plot_size_inch, (n, 0), (1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        n += 1
+        axes_grid.Add(general_width_inch_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        axes_grid.Add(self.general_width_inch_value, (n, 1), flag=wx.ALIGN_LEFT)
+        n += 1
+        axes_grid.Add(general_height_inch_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        axes_grid.Add(self.general_height_inch_value, (n, 1), flag=wx.ALIGN_LEFT)
 
-        export_grid = wx.GridBagSizer(2, 2)
-        n = 0
-        export_grid.Add(left_export_label, (n, 1), flag=wx.ALIGN_CENTER)
-        export_grid.Add(bottom_export_label, (n, 2), flag=wx.ALIGN_CENTER)
-        export_grid.Add(width_export_label, (n, 3), flag=wx.ALIGN_CENTER)
-        export_grid.Add(height_export_label, (n, 4), flag=wx.ALIGN_CENTER)
-        n += 1
-        export_grid.Add(plotSize_export_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        export_grid.Add(self.general_left_export_value, (n, 1), flag=wx.ALIGN_CENTER)
-        export_grid.Add(self.general_bottom_export_value, (n, 2), flag=wx.ALIGN_CENTER)
-        export_grid.Add(self.general_width_export_value, (n, 3), flag=wx.ALIGN_CENTER)
-        export_grid.Add(self.general_height_export_value, (n, 4), flag=wx.ALIGN_CENTER)
-        n += 1
-        export_grid.Add(width_inch_label, (n, 1), flag=wx.ALIGN_CENTER)
-        export_grid.Add(height_inch_label, (n, 2), flag=wx.ALIGN_CENTER)
-        n += 1
-        export_grid.Add(plotSize_inch_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        export_grid.Add(self.general_width_inch_value, (n, 1), flag=wx.ALIGN_CENTER)
-        export_grid.Add(self.general_height_inch_value, (n, 2), flag=wx.ALIGN_CENTER)
-        export_box_sizer.Add(export_grid, 0, wx.EXPAND, 10)
+        axes_parameters_label = wx.StaticText(panel, -1, "Axes parameters")
+        set_item_font(axes_parameters_label)
 
         # add elements to the main grid
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(axes_box_sizer, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND | wx.ALIGN_LEFT)
+        grid.Add(axes_parameters_label, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
         n += 1
-        grid.Add(export_box_sizer, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND | wx.ALIGN_LEFT)
+        grid.Add(axes_grid, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
 
         # pack elements
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(grid, 1, wx.EXPAND, PANEL_SPACE_MAIN)
+        main_sizer.Add(grid, 1, wx.ALIGN_CENTER, PANEL_SPACE_MAIN)
 
         # fit layout
         main_sizer.Fit(panel)
@@ -690,10 +618,6 @@ class panelParametersEdit(wx.Panel):
         return panel
 
     def make_panel_ui_behaviour(self, panel):
-
-        plot_staticBox = make_staticbox(panel, "Interactive plot parameters", size=(-1, -1), color=wx.BLACK)
-        plot_staticBox.SetSize((-1, -1))
-        plot_box_sizer = wx.StaticBoxSizer(plot_staticBox, wx.HORIZONTAL)
 
         zoom_grid_label = wx.StaticText(panel, -1, "Show cursor grid:")
         self.zoom_grid_check = make_checkbox(panel, "")
@@ -816,10 +740,6 @@ class panelParametersEdit(wx.Panel):
         )
         self.zoom_sensitivity_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_zoom)
 
-        gui_staticBox = make_staticbox(panel, "Graphical User Interface parameters", size=(-1, -1), color=wx.BLACK)
-        gui_staticBox.SetSize((-1, -1))
-        gui_box_sizer = wx.StaticBoxSizer(gui_staticBox, wx.HORIZONTAL)
-
         self.general_multi_thread_check = make_checkbox(panel, "Multi-threading", ID=ID_extraSettings_multiThreading)
         self.general_multi_thread_check.SetValue(self.config.threading)
         self.general_multi_thread_check.Bind(wx.EVT_CHECKBOX, self.on_update_states)
@@ -865,7 +785,6 @@ class panelParametersEdit(wx.Panel):
         n += 1
         plot_grid.Add(zoom_sensitivity_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         plot_grid.Add(self.zoom_sensitivity_value, (n, 1), flag=wx.EXPAND)
-        plot_box_sizer.Add(plot_grid, 0, wx.EXPAND, 10)
 
         gui_grid = wx.GridBagSizer(2, 2)
         n = 0
@@ -874,18 +793,30 @@ class panelParametersEdit(wx.Panel):
         gui_grid.Add(self.general_log_to_file_check, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
         n += 1
         gui_grid.Add(self.general_auto_save_check, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        gui_box_sizer.Add(gui_grid, 0, wx.EXPAND, 10)
 
-        # add elements to the main grid
+        usage_parameters_label = wx.StaticText(panel, -1, "In-plot interactivity parameters")
+        set_item_font(usage_parameters_label)
+
+        horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+
+        ui_parameters_label = wx.StaticText(panel, -1, "Gralphical User Interface parameters")
+        set_item_font(ui_parameters_label)
+
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(plot_box_sizer, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND | wx.ALIGN_LEFT)
+        grid.Add(usage_parameters_label, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
         n += 1
-        grid.Add(gui_box_sizer, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND | wx.ALIGN_LEFT)
+        grid.Add(plot_grid, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        n += 1
+        grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        n += 1
+        grid.Add(ui_parameters_label, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        n += 1
+        grid.Add(gui_grid, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
 
         # pack elements
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(grid, 1, wx.EXPAND, PANEL_SPACE_MAIN)
+        main_sizer.Add(grid, 1, wx.ALIGN_CENTER, PANEL_SPACE_MAIN)
 
         # fit layout
         main_sizer.Fit(panel)
@@ -894,10 +825,6 @@ class panelParametersEdit(wx.Panel):
         return panel
 
     def make_panel_rmsd(self, panel):
-
-        rmsd_staticbox = make_staticbox(panel, "RMSD", size=(-1, -1), color=wx.BLACK)
-        rmsd_staticbox.SetSize((-1, -1))
-        rmsd_box_sizer = wx.StaticBoxSizer(rmsd_staticbox, wx.HORIZONTAL)
 
         rmsd_position_label = wx.StaticText(panel, -1, "Position:")
         self.rmsd_position_value = wx.Choice(panel, -1, choices=self.config.rmsd_position_choices, size=(-1, -1))
@@ -939,10 +866,6 @@ class panelParametersEdit(wx.Panel):
         )
         self.rmsd_color_btn.SetBackgroundColour(convert_rgb_1_to_255(self.config.rmsd_color))
         self.rmsd_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
-
-        rmsf_staticbox = make_staticbox(panel, "RMSF", size=(-1, -1), color=wx.BLACK)
-        rmsf_staticbox.SetSize((-1, -1))
-        rmsf_box_sizer = wx.StaticBoxSizer(rmsf_staticbox, wx.HORIZONTAL)
 
         rmsd_line_width = wx.StaticText(panel, -1, "Line width:")
         self.rmsd_line_width_value = wx.SpinCtrlDouble(
@@ -1023,10 +946,6 @@ class panelParametersEdit(wx.Panel):
         self.rmsd_hspace_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.rmsd_hspace_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
 
-        rmsd_matrix_staticbox = make_staticbox(panel, "RMSD Matrix", size=(-1, -1), color=wx.BLACK)
-        rmsd_matrix_staticbox.SetSize((-1, -1))
-        rmsd_matrix_box_sizer = wx.StaticBoxSizer(rmsd_matrix_staticbox, wx.HORIZONTAL)
-
         rmsd_x_rotation = wx.StaticText(panel, -1, "Rotation (X-axis):")
         self.rmsd_x_rotation_value = wx.SpinCtrlDouble(
             panel, -1, value=str(self.config.rmsd_rotation_X), min=0, max=360, initial=0, inc=45, size=(90, -1)
@@ -1064,7 +983,6 @@ class panelParametersEdit(wx.Panel):
         n += 1
         rmsd_grid.Add(rmsd_color_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         rmsd_grid.Add(self.rmsd_color_btn, (n, 1), flag=wx.EXPAND)
-        rmsd_box_sizer.Add(rmsd_grid, 0, wx.EXPAND, 10)
 
         rmsf_grid = wx.GridBagSizer(2, 2)
         n = 0
@@ -1088,7 +1006,6 @@ class panelParametersEdit(wx.Panel):
         n += 1
         rmsf_grid.Add(rmsd_hspace_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         rmsf_grid.Add(self.rmsd_hspace_value, (n, 1), flag=wx.EXPAND)
-        rmsf_box_sizer.Add(rmsf_grid, 0, wx.EXPAND, 10)
 
         rmsd_matrix_grid = wx.GridBagSizer(2, 2)
         n = 0
@@ -1101,19 +1018,38 @@ class panelParametersEdit(wx.Panel):
         rmsd_matrix_grid.Add(rmsd_add_labels_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         rmsd_matrix_grid.Add(self.rmsd_add_labels_check, (n, 1), flag=wx.EXPAND)
 
-        rmsd_matrix_box_sizer.Add(rmsd_matrix_grid, 0, wx.EXPAND, 10)
+        rmsd_parameters_label = wx.StaticText(panel, -1, "RMSD parameters")
+        set_item_font(rmsd_parameters_label)
+        horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+
+        rmsf_parameters_label = wx.StaticText(panel, -1, "RMSF parameters")
+        set_item_font(rmsf_parameters_label)
+        horizontal_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+
+        matrix_parameters_label = wx.StaticText(panel, -1, "RMSD matrix parameters")
+        set_item_font(matrix_parameters_label)
 
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(rmsd_box_sizer, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        grid.Add(rmsd_parameters_label, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
         n += 1
-        grid.Add(rmsf_box_sizer, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        grid.Add(rmsd_grid, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
         n += 1
-        grid.Add(rmsd_matrix_box_sizer, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        n += 1
+        grid.Add(rmsf_parameters_label, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        n += 1
+        grid.Add(rmsf_grid, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        n += 1
+        grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        n += 1
+        grid.Add(matrix_parameters_label, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        n += 1
+        grid.Add(rmsd_matrix_grid, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
 
         # pack elements
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(grid, 1, wx.EXPAND, PANEL_SPACE_MAIN)
+        main_sizer.Add(grid, 1, wx.ALIGN_CENTER, PANEL_SPACE_MAIN)
 
         # fit layout
         main_sizer.Fit(panel)
@@ -1187,7 +1123,7 @@ class panelParametersEdit(wx.Panel):
         self.violin_colorLineBtn.SetBackgroundColour(convert_rgb_1_to_255(self.config.violin_color))
         self.violin_colorLineBtn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
-        self.violin_line_sameAsShade_check = make_checkbox(panel, "Same as shade", name="color")
+        self.violin_line_sameAsShade_check = make_checkbox(panel, "Same as fill", name="color")
         self.violin_line_sameAsShade_check.SetValue(self.config.violin_line_sameAsShade)
         self.violin_line_sameAsShade_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.violin_line_sameAsShade_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls_violin)
@@ -1272,55 +1208,77 @@ class panelParametersEdit(wx.Panel):
         )
         self.violin_nLimit_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        grid = wx.GridBagSizer(2, 2)
+        plot_grid = wx.GridBagSizer(2, 2)
         y = 0
-        grid.Add(violin_orientation_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.violin_orientation_value, (y, 1), flag=wx.EXPAND)
+        plot_grid.Add(violin_orientation_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        plot_grid.Add(self.violin_orientation_value, (y, 1), flag=wx.EXPAND)
         y += 1
-        grid.Add(violin_spacing_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.violin_spacing_value, (y, 1), flag=wx.EXPAND)
+        plot_grid.Add(violin_spacing_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        plot_grid.Add(self.violin_spacing_value, (y, 1), flag=wx.EXPAND)
         y += 1
-        grid.Add(violin_min_percentage_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.violin_min_percentage_value, (y, 1), flag=wx.EXPAND)
+        plot_grid.Add(violin_min_percentage_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        plot_grid.Add(self.violin_min_percentage_value, (y, 1), flag=wx.EXPAND)
         y += 1
-        grid.Add(violin_normalize_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.violin_normalize_check, (y, 1), flag=wx.EXPAND)
+        plot_grid.Add(violin_normalize_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        plot_grid.Add(self.violin_normalize_check, (y, 1), flag=wx.EXPAND)
         y += 1
-        grid.Add(violin_line_width, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.violin_line_width_value, (y, 1), flag=wx.EXPAND)
+        plot_grid.Add(violin_line_width, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        plot_grid.Add(self.violin_line_width_value, (y, 1), flag=wx.EXPAND)
         y += 1
-        grid.Add(violin_line_style, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.violin_line_style_value, (y, 1), flag=wx.EXPAND)
+        plot_grid.Add(violin_line_style, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        plot_grid.Add(self.violin_line_style_value, (y, 1), flag=wx.EXPAND)
         y += 1
-        grid.Add(violin_lineColor_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.violin_colorLineBtn, (y, 1), flag=wx.EXPAND)
-        grid.Add(self.violin_line_sameAsShade_check, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL)
+        plot_grid.Add(violin_lineColor_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        plot_grid.Add(self.violin_line_sameAsShade_check, (y, 1), flag=wx.EXPAND)
+        plot_grid.Add(self.violin_colorLineBtn, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         y += 1
-        grid.Add(violin_color_scheme_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.violin_colorScheme_value, (y, 1), flag=wx.EXPAND)
-        grid.Add(self.violin_colorScheme_msg, (y, 2), (2, 1), flag=wx.EXPAND)
+        plot_grid.Add(violin_color_scheme_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        plot_grid.Add(self.violin_colorScheme_value, (y, 1), flag=wx.EXPAND)
         y += 1
-        grid.Add(violin_colormap_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.violin_colormap_value, (y, 1), flag=wx.EXPAND)
+        plot_grid.Add(violin_colormap_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        plot_grid.Add(self.violin_colormap_value, (y, 1), flag=wx.EXPAND)
         y += 1
-        grid.Add(violin_shadeColor_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.violin_colorShadeBtn, (y, 1), flag=wx.EXPAND)
+        plot_grid.Add(violin_shadeColor_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        plot_grid.Add(self.violin_colorShadeBtn, (y, 1), flag=wx.EXPAND)
         y += 1
-        grid.Add(violin_shadeTransparency_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.violin_shadeTransparency_value, (y, 1), flag=wx.EXPAND)
+        plot_grid.Add(violin_shadeTransparency_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        plot_grid.Add(self.violin_shadeTransparency_value, (y, 1), flag=wx.EXPAND)
+
+        label_grid = wx.GridBagSizer(2, 2)
+        y = 0
+        label_grid.Add(violin_label_frequency_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        label_grid.Add(self.violin_label_frequency_value, (y, 1), flag=wx.EXPAND)
         y += 1
-        grid.Add(violin_label_frequency_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.violin_label_frequency_value, (y, 1), flag=wx.EXPAND)
+        label_grid.Add(violin_label_format_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        label_grid.Add(self.violin_label_format_value, (y, 1), flag=wx.EXPAND)
         y += 1
-        grid.Add(violin_label_format_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.violin_label_format_value, (y, 1), flag=wx.EXPAND)
+        label_grid.Add(violin_nLimit_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        label_grid.Add(self.violin_nLimit_value, (y, 1), flag=wx.EXPAND)
         y += 1
-        grid.Add(violin_nLimit_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.violin_nLimit_value, (y, 1), flag=wx.EXPAND)
+        label_grid.Add(self.violin_colorScheme_msg, (y, 0), (2, 3), flag=wx.EXPAND)
+
+        plot_parameters_label = wx.StaticText(panel, -1, "Plot parameters")
+        set_item_font(plot_parameters_label)
+        horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+
+        labels_parameters_label = wx.StaticText(panel, -1, "Labels parameters")
+        set_item_font(labels_parameters_label)
+
+        grid = wx.GridBagSizer(2, 2)
+        n = 0
+        grid.Add(plot_parameters_label, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        n += 1
+        grid.Add(plot_grid, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        n += 1
+        grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        n += 1
+        grid.Add(labels_parameters_label, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        n += 1
+        grid.Add(label_grid, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
 
         # pack elements
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(grid, 1, wx.EXPAND, PANEL_SPACE_MAIN)
+        main_sizer.Add(grid, 1, wx.ALIGN_CENTER, PANEL_SPACE_MAIN)
 
         # fit layout
         main_sizer.Fit(panel)
@@ -1397,7 +1355,7 @@ class panelParametersEdit(wx.Panel):
         self.waterfall_colorLineBtn.SetBackgroundColour(convert_rgb_1_to_255(self.config.waterfall_color))
         self.waterfall_colorLineBtn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
-        self.waterfall_line_sameAsShade_check = make_checkbox(panel, "Same as shade    ", name="color")
+        self.waterfall_line_sameAsShade_check = make_checkbox(panel, "Same as fill", name="color")
         self.waterfall_line_sameAsShade_check.SetValue(self.config.waterfall_line_sameAsShade)
         self.waterfall_line_sameAsShade_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.waterfall_line_sameAsShade_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls_waterfall)
@@ -1411,7 +1369,6 @@ class panelParametersEdit(wx.Panel):
         self.waterfall_colorScheme_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.waterfall_colorScheme_value.Bind(wx.EVT_CHOICE, self.on_update_2d)
         self.waterfall_colorScheme_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls_waterfall)
-        self.waterfall_colorScheme_msg = wx.StaticText(panel, -1, "")
 
         cmap_list = self.config.cmaps2[:]
         cmap_list.remove("jet")
@@ -1421,21 +1378,21 @@ class panelParametersEdit(wx.Panel):
         self.waterfall_colormap_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.waterfall_colormap_value.Bind(wx.EVT_CHOICE, self.on_update_2d)
 
-        waterfall_shade_under_label = wx.StaticText(panel, -1, "Shade under:")
+        waterfall_shade_under_label = wx.StaticText(panel, -1, "Fill under the curve:")
         self.waterfall_shadeUnder_check = make_checkbox(panel, "", name="shade")
         self.waterfall_shadeUnder_check.SetValue(self.config.waterfall_shade_under)
         self.waterfall_shadeUnder_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.waterfall_shadeUnder_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls_waterfall)
         self.waterfall_shadeUnder_check.Bind(wx.EVT_CHECKBOX, self.on_update_2d)
 
-        waterfall_shadeColor_label = wx.StaticText(panel, -1, "Shade color:")
+        waterfall_shadeColor_label = wx.StaticText(panel, -1, "Fill color:")
         self.waterfall_colorShadeBtn = wx.Button(
             panel, ID_extraSettings_shadeColour_waterfall, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="color"
         )
         self.waterfall_colorShadeBtn.SetBackgroundColour(convert_rgb_1_to_255(self.config.waterfall_shade_under_color))
         self.waterfall_colorShadeBtn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
-        waterfall_shadeTransparency_label = wx.StaticText(panel, -1, "Shade transparency:")
+        waterfall_shadeTransparency_label = wx.StaticText(panel, -1, "Fill transparency:")
         self.waterfall_shadeTransparency_value = wx.SpinCtrlDouble(
             panel,
             -1,
@@ -1450,7 +1407,7 @@ class panelParametersEdit(wx.Panel):
         self.waterfall_shadeTransparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.waterfall_shadeTransparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
 
-        waterfall_shadeLimit_label = wx.StaticText(panel, -1, "Shade limit:")
+        waterfall_shadeLimit_label = wx.StaticText(panel, -1, "Fill limit:")
         self.waterfall_shadeLimit_value = wx.SpinCtrlDouble(
             panel,
             -1,
@@ -1458,11 +1415,15 @@ class panelParametersEdit(wx.Panel):
             min=0,
             max=100,
             initial=self.config.waterfall_shade_under_nlimit,
-            inc=5,
+            inc=25,
             size=(90, -1),
             name="shade",
         )
         self.waterfall_shadeLimit_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
+        self.waterfall_shadeLimit_value.SetToolTip(
+            "Maximum number of items to be considered for fill-in plotting. If the number is very high, plotting"
+            + " can be slow"
+        )
 
         waterfall_show_labels_label = wx.StaticText(panel, -1, "Show labels:")
         self.waterfall_showLabels_check = make_checkbox(panel, "", name="label")
@@ -1543,78 +1504,98 @@ class panelParametersEdit(wx.Panel):
         self.waterfall_label_y_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.waterfall_label_y_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
 
-        grid = wx.GridBagSizer(2, 2)
-        y = 0
-        grid.Add(waterfall_waterfallTgl_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.waterfallTgl, (y, 1), flag=wx.EXPAND)
-        y += 1
-        grid.Add(waterfall_offset_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.waterfall_offset_value, (y, 1), flag=wx.EXPAND)
-        y += 1
-        grid.Add(waterfall_increment_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.waterfall_increment_value, (y, 1), flag=wx.EXPAND)
-        y += 1
-        grid.Add(waterfall_normalize_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.waterfall_normalize_check, (y, 1), flag=wx.EXPAND)
-        y += 1
-        grid.Add(waterfall_reverse_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.waterfall_reverse_check, (y, 1), flag=wx.EXPAND)
-        y += 1
-        grid.Add(waterfall_lineWidth_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.waterfall_lineWidth_value, (y, 1), flag=wx.EXPAND)
-        y += 1
-        grid.Add(waterfall_lineStyle_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.waterfall_lineStyle_value, (y, 1), flag=wx.EXPAND)
-        y += 1
-        grid.Add(waterfall_lineColor_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.waterfall_colorLineBtn, (y, 1), flag=wx.EXPAND)
-        grid.Add(self.waterfall_line_sameAsShade_check, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL)
-        y += 1
-        grid.Add(waterfall_color_scheme_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.waterfall_colorScheme_value, (y, 1), flag=wx.EXPAND)
-        grid.Add(self.waterfall_colorScheme_msg, (y, 2), (2, 1), flag=wx.EXPAND)
-        y += 1
-        grid.Add(waterfall_colormap_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.waterfall_colormap_value, (y, 1), flag=wx.EXPAND)
-        y += 1
-        grid.Add(waterfall_shade_under_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.waterfall_shadeUnder_check, (y, 1), flag=wx.EXPAND)
-        y += 1
-        grid.Add(waterfall_shadeColor_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.waterfall_colorShadeBtn, (y, 1), flag=wx.EXPAND)
-        y += 1
-        grid.Add(waterfall_shadeTransparency_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.waterfall_shadeTransparency_value, (y, 1), flag=wx.EXPAND)
-        y += 1
-        grid.Add(waterfall_shadeLimit_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.waterfall_shadeLimit_value, (y, 1), flag=wx.EXPAND)
-        y += 1
-        grid.Add(waterfall_show_labels_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.waterfall_showLabels_check, (y, 1), flag=wx.EXPAND)
-        y += 1
-        grid.Add(waterfall_label_frequency_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.waterfall_label_frequency_value, (y, 1), flag=wx.EXPAND)
-        y += 1
-        grid.Add(waterfall_label_format_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.waterfall_label_format_value, (y, 1), flag=wx.EXPAND)
-        y += 1
-        grid.Add(waterfall_label_fontSize_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.waterfall_label_fontSize_value, (y, 1), flag=wx.EXPAND)
-        grid.Add(self.waterfall_label_fontWeight_check, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL)
-        y += 1
-        grid.Add(waterfall_label_x_offset_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.waterfall_label_x_offset_value, (y, 1), flag=wx.EXPAND)
-        y += 1
-        grid.Add(waterfall_label_y_offset_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.waterfall_label_y_offset_value, (y, 1), flag=wx.EXPAND)
+        self.waterfall_colorScheme_msg = wx.StaticText(panel, -1, "")
 
-        #         y += 1
-        #         grid.Add(waterfall_useColormap_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-        #         grid.Add(self.waterfall_useColormap_check, (y,1), flag=wx.EXPAND)
+        plot_grid = wx.GridBagSizer(2, 2)
+        y = 0
+        plot_grid.Add(waterfall_waterfallTgl_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        plot_grid.Add(self.waterfallTgl, (y, 1), flag=wx.EXPAND)
+        y += 1
+        plot_grid.Add(waterfall_offset_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        plot_grid.Add(self.waterfall_offset_value, (y, 1), flag=wx.EXPAND)
+        y += 1
+        plot_grid.Add(waterfall_increment_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        plot_grid.Add(self.waterfall_increment_value, (y, 1), flag=wx.EXPAND)
+        y += 1
+        plot_grid.Add(waterfall_normalize_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        plot_grid.Add(self.waterfall_normalize_check, (y, 1), flag=wx.EXPAND)
+        y += 1
+        plot_grid.Add(waterfall_reverse_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        plot_grid.Add(self.waterfall_reverse_check, (y, 1), flag=wx.EXPAND)
+        y += 1
+        plot_grid.Add(waterfall_lineWidth_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        plot_grid.Add(self.waterfall_lineWidth_value, (y, 1), flag=wx.EXPAND)
+        y += 1
+        plot_grid.Add(waterfall_lineStyle_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        plot_grid.Add(self.waterfall_lineStyle_value, (y, 1), flag=wx.EXPAND)
+        y += 1
+        plot_grid.Add(waterfall_lineColor_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        plot_grid.Add(self.waterfall_line_sameAsShade_check, (y, 1), flag=wx.EXPAND)
+        plot_grid.Add(self.waterfall_colorLineBtn, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        y += 1
+        plot_grid.Add(waterfall_color_scheme_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        plot_grid.Add(self.waterfall_colorScheme_value, (y, 1), flag=wx.EXPAND)
+        y += 1
+        plot_grid.Add(waterfall_colormap_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        plot_grid.Add(self.waterfall_colormap_value, (y, 1), flag=wx.EXPAND)
+        y += 1
+        plot_grid.Add(waterfall_shade_under_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        plot_grid.Add(self.waterfall_shadeUnder_check, (y, 1), flag=wx.EXPAND)
+        y += 1
+        plot_grid.Add(waterfall_shadeColor_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        plot_grid.Add(self.waterfall_colorShadeBtn, (y, 1), flag=wx.EXPAND)
+        y += 1
+        plot_grid.Add(waterfall_shadeTransparency_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        plot_grid.Add(self.waterfall_shadeTransparency_value, (y, 1), flag=wx.EXPAND)
+        y += 1
+        plot_grid.Add(waterfall_shadeLimit_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        plot_grid.Add(self.waterfall_shadeLimit_value, (y, 1), flag=wx.EXPAND)
+
+        label_grid = wx.GridBagSizer(2, 2)
+        y = 0
+        label_grid.Add(waterfall_show_labels_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        label_grid.Add(self.waterfall_showLabels_check, (y, 1), flag=wx.EXPAND)
+        y += 1
+        label_grid.Add(waterfall_label_frequency_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        label_grid.Add(self.waterfall_label_frequency_value, (y, 1), flag=wx.EXPAND)
+        y += 1
+        label_grid.Add(waterfall_label_format_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        label_grid.Add(self.waterfall_label_format_value, (y, 1), flag=wx.EXPAND)
+        y += 1
+        label_grid.Add(waterfall_label_fontSize_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        label_grid.Add(self.waterfall_label_fontSize_value, (y, 1), flag=wx.EXPAND)
+        label_grid.Add(self.waterfall_label_fontWeight_check, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL)
+        y += 1
+        label_grid.Add(waterfall_label_x_offset_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        label_grid.Add(self.waterfall_label_x_offset_value, (y, 1), flag=wx.EXPAND)
+        y += 1
+        label_grid.Add(waterfall_label_y_offset_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        label_grid.Add(self.waterfall_label_y_offset_value, (y, 1), flag=wx.EXPAND)
+        y += 1
+        label_grid.Add(self.waterfall_colorScheme_msg, (y, 0), (2, 3), flag=wx.EXPAND)
+
+        plot_parameters_label = wx.StaticText(panel, -1, "Plot parameters")
+        set_item_font(plot_parameters_label)
+        horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+
+        labels_parameters_label = wx.StaticText(panel, -1, "Labels parameters")
+        set_item_font(labels_parameters_label)
+
+        grid = wx.GridBagSizer(2, 2)
+        n = 0
+        grid.Add(plot_parameters_label, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        n += 1
+        grid.Add(plot_grid, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        n += 1
+        grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        n += 1
+        grid.Add(labels_parameters_label, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        n += 1
+        grid.Add(label_grid, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
 
         # pack elements
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(grid, 1, wx.EXPAND, PANEL_SPACE_MAIN)
+        main_sizer.Add(grid, 1, wx.ALIGN_CENTER, PANEL_SPACE_MAIN)
 
         # fit layout
         main_sizer.Fit(panel)
@@ -1660,7 +1641,7 @@ class panelParametersEdit(wx.Panel):
         self.colorbarPad_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.colorbarPad_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
 
-        cbar_width_label = wx.StaticText(panel, -1, "Width:")
+        cbar_width_label = wx.StaticText(panel, -1, "Width (%):")
         self.colorbarWidth_value = wx.SpinCtrlDouble(
             panel,
             -1,
@@ -1721,7 +1702,7 @@ class panelParametersEdit(wx.Panel):
 
         # pack elements
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(grid, 1, wx.EXPAND, PANEL_SPACE_MAIN)
+        main_sizer.Add(grid, 1, wx.ALIGN_CENTER, PANEL_SPACE_MAIN)
 
         # fit layout
         main_sizer.Fit(panel)
@@ -1829,7 +1810,7 @@ class panelParametersEdit(wx.Panel):
 
         # pack elements
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(grid, 1, wx.EXPAND, PANEL_SPACE_MAIN)
+        main_sizer.Add(grid, 1, wx.ALIGN_CENTER, PANEL_SPACE_MAIN)
 
         # fit layout
         main_sizer.Fit(panel)
@@ -1839,11 +1820,6 @@ class panelParametersEdit(wx.Panel):
 
     def make_panel_1d(self, panel):
 
-        # make elements
-        line_parameters_staticbox = make_staticbox(panel, "Line parameters", size=(-1, -1), color=wx.BLACK)
-        line_parameters_staticbox.SetSize((-1, -1))
-        line_box_sizer = wx.StaticBoxSizer(line_parameters_staticbox, wx.HORIZONTAL)
-
         plot1d_line_width = wx.StaticText(panel, -1, "Line width:")
         self.plot1d_line_width_value = wx.SpinCtrlDouble(
             panel,
@@ -1852,16 +1828,14 @@ class panelParametersEdit(wx.Panel):
             min=1,
             max=100,
             initial=self.config.lineWidth_1D * 10,
-            inc=5,
+            inc=10,
             size=(90, -1),
         )
         self.plot1d_line_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_1D)
         self.plot1d_line_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_1d)
 
         plot1d_line_color = wx.StaticText(panel, -1, "Line color:")
-        self.plot1d_line_color_btn = wx.Button(
-            panel, ID_extraSettings_lineColor_1D, "", wx.DefaultPosition, wx.Size(26, 26), 0
-        )
+        self.plot1d_line_color_btn = wx.Button(panel, ID_extraSettings_lineColor_1D, "", size=wx.Size(26, 26))
         self.plot1d_line_color_btn.SetBackgroundColour(convert_rgb_1_to_255(self.config.lineColour_1D))
         self.plot1d_line_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
@@ -1871,23 +1845,33 @@ class panelParametersEdit(wx.Panel):
         self.plot1d_line_style_value.Bind(wx.EVT_CHOICE, self.on_apply_1D)
         self.plot1d_line_style_value.Bind(wx.EVT_CHOICE, self.on_update_1d)
 
-        plot1d_underline = wx.StaticText(panel, -1, "Shade under:")
+        plot1d_underline = wx.StaticText(panel, -1, "Fill under:")
         self.plot1d_underline_check = make_checkbox(panel, "")
         self.plot1d_underline_check.SetValue(self.config.lineShadeUnder_1D)
         self.plot1d_underline_check.Bind(wx.EVT_CHECKBOX, self.on_apply_1D)
         self.plot1d_underline_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls_1d)
         self.plot1d_underline_check.Bind(wx.EVT_CHECKBOX, self.on_update_1d)
 
-        plot1d_underline_color = wx.StaticText(panel, -1, "Shade under color:")
+        plot1d_underline_alpha = wx.StaticText(panel, -1, "Fill transparency:")
+        self.plot1d_underline_alpha_value = wx.SpinCtrlDouble(
+            panel,
+            -1,
+            value=str(self.config.lineShadeUnderTransparency_1D * 100),
+            min=0,
+            max=100,
+            initial=self.config.lineShadeUnderTransparency_1D * 100,
+            inc=10,
+            size=(90, -1),
+        )
+        self.plot1d_underline_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_1D)
+        self.plot1d_underline_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_1d)
+
+        plot1d_underline_color = wx.StaticText(panel, -1, "Fill color:")
         self.plot1d_underline_color_btn = wx.Button(
             panel, ID_extraSettings_shadeUnderColor_1D, "", wx.DefaultPosition, wx.Size(26, 26), 0
         )
         self.plot1d_underline_color_btn.SetBackgroundColour(convert_rgb_1_to_255(self.config.lineShadeUnderColour_1D))
         self.plot1d_underline_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
-
-        markerParameters_staticBox = make_staticbox(panel, "Marker parameters", size=(-1, -1), color=wx.BLACK)
-        markerParameters_staticBox.SetSize((-1, -1))
-        marker_box_sizer = wx.StaticBoxSizer(markerParameters_staticBox, wx.HORIZONTAL)
 
         plot1d_marker_shape = wx.StaticText(panel, -1, "Marker shape:")
         self.plot1d_marker_shape_value = wx.Choice(
@@ -1898,7 +1882,7 @@ class panelParametersEdit(wx.Panel):
 
         plot1d_marker_size = wx.StaticText(panel, -1, "Marker size:")
         self.plot1d_marker_size_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(self.config.markerSize_1D), min=1, max=100, initial=1, inc=5, size=(90, -1)
+            panel, -1, value=str(self.config.markerSize_1D), min=1, max=100, initial=1, inc=10, size=(90, -1)
         )
         self.plot1d_marker_size_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_1D)
 
@@ -1910,7 +1894,7 @@ class panelParametersEdit(wx.Panel):
             min=0,
             max=100,
             initial=self.config.markerTransparency_1D * 100,
-            inc=5,
+            inc=10,
             size=(90, -1),
         )
         self.plot1d_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_1D)
@@ -1934,10 +1918,6 @@ class panelParametersEdit(wx.Panel):
 
         self.plot1d_marker_edge_color_btn.SetBackgroundColour(convert_rgb_1_to_255(self.config.markerEdgeColor_3D))
         self.plot1d_marker_edge_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
-
-        barParameters_staticBox = make_staticbox(panel, "Bar parameters", size=(-1, -1), color=wx.BLACK)
-        barParameters_staticBox.SetSize((-1, -1))
-        bar_box_sizer = wx.StaticBoxSizer(barParameters_staticBox, wx.HORIZONTAL)
 
         bar_width_label = wx.StaticText(panel, -1, "Bar width:")
         self.bar_width_value = wx.SpinCtrlDouble(
@@ -1965,7 +1945,7 @@ class panelParametersEdit(wx.Panel):
         )
         self.bar_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_1D)
 
-        bar_lineWidth_label = wx.StaticText(panel, -1, "Edge line width:")
+        bar_lineWidth_label = wx.StaticText(panel, -1, "Bar edge line width:")
         self.bar_lineWidth_value = wx.SpinCtrlDouble(
             panel,
             -1,
@@ -1978,7 +1958,7 @@ class panelParametersEdit(wx.Panel):
         )
         self.bar_lineWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_1D)
 
-        bar_edgeColor_label = wx.StaticText(panel, -1, "Edge color:")
+        bar_edgeColor_label = wx.StaticText(panel, -1, "Bar edge color:")
         self.bar_edgeColorBtn = wx.Button(
             panel, ID_extraSettings_bar_edgeColor, "", wx.DefaultPosition, wx.Size(26, 26), 0
         )
@@ -1999,6 +1979,11 @@ class panelParametersEdit(wx.Panel):
         self.plot1d_replot_btn = wx.Button(panel, wx.ID_ANY, "Replot", wx.DefaultPosition, wx.Size(-1, -1), 0)
         self.plot1d_replot_btn.Bind(wx.EVT_BUTTON, self.on_replot_1d)
 
+        btn_grid = wx.GridBagSizer(2, 2)
+        n = 0
+        btn_grid.Add(self.plot1d_update_btn, (n, 0), flag=wx.EXPAND)
+        btn_grid.Add(self.plot1d_replot_btn, (n, 1), flag=wx.EXPAND)
+
         line_grid = wx.GridBagSizer(2, 2)
         n = 0
         line_grid.Add(plot1d_line_width, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
@@ -2013,9 +1998,12 @@ class panelParametersEdit(wx.Panel):
         line_grid.Add(plot1d_underline, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         line_grid.Add(self.plot1d_underline_check, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
         n += 1
+        line_grid.Add(plot1d_underline_alpha, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        line_grid.Add(self.plot1d_underline_alpha_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        n += 1
+
         line_grid.Add(plot1d_underline_color, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         line_grid.Add(self.plot1d_underline_color_btn, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        line_box_sizer.Add(line_grid, 0, wx.EXPAND, 10)
 
         marker_grid = wx.GridBagSizer(2, 2)
         n = 0
@@ -2029,12 +2017,11 @@ class panelParametersEdit(wx.Panel):
         marker_grid.Add(self.plot1d_alpha_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
         n += 1
         marker_grid.Add(plot1d_marker_color, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        marker_grid.Add(self.plot1d_marker_color_btn, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        marker_grid.Add(self.plot1d_marker_color_btn, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
         n += 1
         marker_grid.Add(plot1d_marker_edge_color, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         marker_grid.Add(self.plot1d_marker_edge_color_check, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
         marker_grid.Add(self.plot1d_marker_edge_color_btn, (n, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        marker_box_sizer.Add(marker_grid, 0, wx.EXPAND, 10)
 
         bar_grid = wx.GridBagSizer(2, 2)
         n = 0
@@ -2050,20 +2037,35 @@ class panelParametersEdit(wx.Panel):
         bar_grid.Add(bar_edgeColor_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         bar_grid.Add(self.bar_colorEdge_check, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
         bar_grid.Add(self.bar_edgeColorBtn, (n, 2), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        bar_box_sizer.Add(bar_grid, 0, wx.EXPAND, 10)
 
-        btn_grid = wx.GridBagSizer(2, 2)
-        n = 0
-        btn_grid.Add(self.plot1d_update_btn, (n, 0), flag=wx.EXPAND)
-        btn_grid.Add(self.plot1d_replot_btn, (n, 1), flag=wx.EXPAND)
+        line_parameters_label = wx.StaticText(panel, -1, "Line parameters")
+        set_item_font(line_parameters_label)
+        horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+
+        marker_parameters_label = wx.StaticText(panel, -1, "Marker parameters")
+        set_item_font(marker_parameters_label)
+        horizontal_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+
+        barplot_parameters_label = wx.StaticText(panel, -1, "Barplot parameters")
+        set_item_font(barplot_parameters_label)
 
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(line_box_sizer, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        grid.Add(line_parameters_label, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
         n += 1
-        grid.Add(marker_box_sizer, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        grid.Add(line_grid, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
         n += 1
-        grid.Add(bar_box_sizer, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        n += 1
+        grid.Add(marker_parameters_label, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        n += 1
+        grid.Add(marker_grid, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        n += 1
+        grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        n += 1
+        grid.Add(barplot_parameters_label, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
+        n += 1
+        grid.Add(bar_grid, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
         n += 1
         grid.Add(horizontal_line, (n, 0), wx.GBSpan(1, 5), flag=wx.EXPAND)
         n += 1
@@ -2071,7 +2073,7 @@ class panelParametersEdit(wx.Panel):
 
         # pack elements
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(grid, 1, wx.EXPAND, PANEL_SPACE_MAIN)
+        main_sizer.Add(grid, 1, wx.ALIGN_CENTER, PANEL_SPACE_MAIN)
 
         # fit layout
         main_sizer.Fit(panel)
@@ -2081,22 +2083,22 @@ class panelParametersEdit(wx.Panel):
 
     def make_panel_2d(self, panel):
 
+        plot2d_plot_type = wx.StaticText(panel, -1, "Plot type:")
+        self.plot2d_plot_type_value = wx.Choice(panel, -1, choices=self.config.imageType2D, size=(-1, -1))
+        self.plot2d_plot_type_value.SetStringSelection(self.config.plotType)
+        self.plot2d_plot_type_value.Bind(wx.EVT_CHOICE, self.on_apply_2D)
+        self.plot2d_plot_type_value.Bind(wx.EVT_CHOICE, self.on_replot_2d)
+
         plot2d_colormap = wx.StaticText(panel, -1, "Colormap:")
         self.plot2d_colormap_value = wx.Choice(panel, -1, choices=self.config.cmaps2, size=(-1, -1), name="color")
         self.plot2d_colormap_value.SetStringSelection(self.config.currentCmap)
         self.plot2d_colormap_value.Bind(wx.EVT_CHOICE, self.on_apply_2D)
         self.plot2d_colormap_value.Bind(wx.EVT_CHOICE, self.on_update_2d)
 
-        self.plot2d_override_colormap_check = make_checkbox(panel, "Always force above")
+        self.plot2d_override_colormap_check = make_checkbox(panel, "Always use global colormap")
         self.plot2d_override_colormap_check.SetValue(self.config.useCurrentCmap)
         self.plot2d_override_colormap_check.Bind(wx.EVT_CHECKBOX, self.on_apply_2D)
         self.plot2d_override_colormap_check.Bind(wx.EVT_CHOICE, self.on_update_2d)
-
-        plot2d_plot_type = wx.StaticText(panel, -1, "Plot type:")
-        self.plot2d_plot_type_value = wx.Choice(panel, -1, choices=self.config.imageType2D, size=(-1, -1))
-        self.plot2d_plot_type_value.SetStringSelection(self.config.plotType)
-        self.plot2d_plot_type_value.Bind(wx.EVT_CHOICE, self.on_apply_2D)
-        self.plot2d_plot_type_value.Bind(wx.EVT_CHOICE, self.on_replot_2d)
 
         plot2d_interpolation = wx.StaticText(panel, -1, "Interpolation:")
         self.plot2d_interpolation_value = wx.Choice(
@@ -2105,6 +2107,15 @@ class panelParametersEdit(wx.Panel):
         self.plot2d_interpolation_value.SetStringSelection(self.config.interpolation)
         self.plot2d_interpolation_value.Bind(wx.EVT_CHOICE, self.on_apply_2D)
         self.plot2d_interpolation_value.Bind(wx.EVT_CHOICE, self.on_update_2d)
+
+        plot2d_normalization = wx.StaticText(panel, -1, "Normalization:")
+        self.plot2d_normalization_value = wx.Choice(
+            panel, -1, choices=["Midpoint", "Logarithmic", "Power"], size=(-1, -1), name="normalization"
+        )
+        self.plot2d_normalization_value.SetStringSelection(self.config.normalization_2D)
+        self.plot2d_normalization_value.Bind(wx.EVT_CHOICE, self.on_apply_2D)
+        self.plot2d_normalization_value.Bind(wx.EVT_CHOICE, self.on_update_2d)
+        self.plot2d_normalization_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls_2d)
 
         plot2d_min = wx.StaticText(panel, -1, "Min %:")
         self.plot2d_min_value = wx.SpinCtrlDouble(
@@ -2151,6 +2162,21 @@ class panelParametersEdit(wx.Panel):
         self.plot2d_max_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_2D)
         self.plot2d_max_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
 
+        plot2d_normalization_gamma = wx.StaticText(panel, -1, "Power gamma:")
+        self.plot2d_normalization_gamma_value = wx.SpinCtrlDouble(
+            panel,
+            -1,
+            value=str(self.config.normalization_2D_power_gamma),
+            min=0,
+            max=3,
+            initial=0,
+            inc=0.1,
+            size=(90, -1),
+            name="normalization",
+        )
+        self.plot2d_normalization_gamma_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_2D)
+        self.plot2d_normalization_gamma_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
+
         horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
         # Replot button
@@ -2159,6 +2185,11 @@ class panelParametersEdit(wx.Panel):
 
         self.plot2d_replot_btn = wx.Button(panel, wx.ID_ANY, "Replot")
         self.plot2d_replot_btn.Bind(wx.EVT_BUTTON, self.on_replot_2d)
+
+        btn_grid = wx.GridBagSizer(2, 2)
+        n = 0
+        btn_grid.Add(self.plot2d_update_btn, (n, 0), flag=wx.EXPAND)
+        btn_grid.Add(self.plot2d_replot_btn, (n, 1), flag=wx.EXPAND)
 
         plot2d_grid = wx.GridBagSizer(2, 2)
         n = 0
@@ -2172,28 +2203,50 @@ class panelParametersEdit(wx.Panel):
         n += 1
         plot2d_grid.Add(plot2d_interpolation, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         plot2d_grid.Add(self.plot2d_interpolation_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
+
+        normalization_grid = wx.GridBagSizer(2, 2)
+        n = 0
+        normalization_grid.Add(plot2d_normalization, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        normalization_grid.Add(self.plot2d_normalization_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
         n += 1
-        plot2d_grid.Add(plot2d_min, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        plot2d_grid.Add(self.plot2d_min_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        normalization_grid.Add(plot2d_min, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        normalization_grid.Add(self.plot2d_min_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
         n += 1
-        plot2d_grid.Add(plot2d_mid, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        plot2d_grid.Add(self.plot2d_mid_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        normalization_grid.Add(plot2d_mid, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        normalization_grid.Add(self.plot2d_mid_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
         n += 1
-        plot2d_grid.Add(plot2d_max, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        plot2d_grid.Add(self.plot2d_max_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        normalization_grid.Add(plot2d_max, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        normalization_grid.Add(self.plot2d_max_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        n += 1
+        normalization_grid.Add(plot2d_normalization_gamma, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        normalization_grid.Add(self.plot2d_normalization_gamma_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
+
+        heatmap_parameters_label = wx.StaticText(panel, -1, "Heatmap parameters")
+        set_item_font(heatmap_parameters_label)
+        horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+
+        normalization_parameters_label = wx.StaticText(panel, -1, "Normalization parameters")
+        set_item_font(normalization_parameters_label)
 
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(plot2d_grid, (n, 0), wx.GBSpan(1, 8), flag=wx.EXPAND)
+        grid.Add(heatmap_parameters_label, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
         n += 1
-        grid.Add(horizontal_line, (n, 0), wx.GBSpan(1, 8), flag=wx.EXPAND)
+        grid.Add(plot2d_grid, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
         n += 1
-        grid.Add(self.plot2d_update_btn, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.plot2d_replot_btn, (n, 1), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        n += 1
+        grid.Add(normalization_parameters_label, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        n += 1
+        grid.Add(normalization_grid, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        n += 1
+        grid.Add(horizontal_line, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        n += 1
+        grid.Add(btn_grid, (n, 0), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER)
 
         # pack elements
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(grid, 1, wx.EXPAND, PANEL_SPACE_MAIN)
+        main_sizer.Add(grid, 1, wx.ALIGN_CENTER, PANEL_SPACE_MAIN)
 
         # fit layout
         main_sizer.Fit(panel)
@@ -2204,166 +2257,107 @@ class panelParametersEdit(wx.Panel):
     def make_panel_3d(self, panel):
 
         # make elements
-        plot3D_staticBox = make_staticbox(panel, "Plot 3D parameters", size=(-1, -1), color=wx.BLACK)
-        plot3D_staticBox.SetSize((-1, -1))
-        plot3D_box_sizer = wx.StaticBoxSizer(plot3D_staticBox, wx.HORIZONTAL)
 
-        plot3D_plotType_label = wx.StaticText(panel, -1, "Plot type:")
-        self.plot3D_plotType_value = wx.Choice(panel, -1, choices=self.config.imageType3D, size=(-1, -1))
-        self.plot3D_plotType_value.SetStringSelection(self.config.plotType_3D)
-        self.plot3D_plotType_value.Bind(wx.EVT_CHOICE, self.on_apply_3D)
-        self.plot3D_plotType_value.Bind(wx.EVT_CHOICE, self.on_replot_3d)
+        plot3d_plot_type = wx.StaticText(panel, -1, "Plot type:")
+        self.plot3d_plot_type_value = wx.Choice(panel, -1, choices=self.config.imageType3D, size=(-1, -1))
+        self.plot3d_plot_type_value.SetStringSelection(self.config.plotType_3D)
+        self.plot3d_plot_type_value.Bind(wx.EVT_CHOICE, self.on_apply_3D)
+        self.plot3d_plot_type_value.Bind(wx.EVT_CHOICE, self.on_replot_3d)
 
-        scatter3D_staticBox = make_staticbox(panel, "Scatter 3D parameters", size=(-1, -1), color=wx.BLACK)
-        scatter3D_staticBox.SetSize((-1, -1))
-        scatter3D_box_sizer = wx.StaticBoxSizer(scatter3D_staticBox, wx.HORIZONTAL)
+        plot3d_shade_toggle = wx.StaticText(panel, -1, "Show shade:")
+        self.plot3d_shade_check = make_checkbox(panel, "")
+        self.plot3d_shade_check.SetValue(self.config.shade_3D)
+        self.plot3d_shade_check.Bind(wx.EVT_CHECKBOX, self.on_apply_3D)
+        self.plot3d_shade_check.Bind(wx.EVT_CHECKBOX, self.on_update_3d)
 
-        plot3D_markerShape_label = wx.StaticText(panel, -1, "Marker shape:")
-        self.plot3D_markerShape_value = wx.Choice(
-            panel, -1, choices=list(self.config.markerShapeDict.keys()), size=(-1, -1)
-        )
-        self.plot3D_markerShape_value.SetStringSelection(self.config.markerShapeTXT_3D)
-        self.plot3D_markerShape_value.Bind(wx.EVT_CHOICE, self.on_apply_3D)
+        plot3d_grids_toggle = wx.StaticText(panel, -1, "Show grids:")
+        self.plot3d_grids_check = make_checkbox(panel, "")
+        self.plot3d_grids_check.SetValue(self.config.showGrids_3D)
+        self.plot3d_grids_check.Bind(wx.EVT_CHECKBOX, self.on_apply_3D)
+        self.plot3d_grids_check.Bind(wx.EVT_CHECKBOX, self.on_update_3d)
 
-        plot3D_markerSize_label = wx.StaticText(panel, -1, "Marker size:")
-        self.plot3D_markerSize_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(self.config.markerSize_3D), min=1, max=200, initial=1, inc=5, size=(90, -1)
-        )
-        self.plot3D_markerSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_3D)
+        plot3d_ticks_toggle = wx.StaticText(panel, -1, "Show ticks:")
+        self.plot3d_ticks_check = make_checkbox(panel, "")
+        self.plot3d_ticks_check.SetValue(self.config.ticks_3D)
+        self.plot3d_ticks_check.Bind(wx.EVT_CHECKBOX, self.on_apply_3D)
+        self.plot3d_ticks_check.Bind(wx.EVT_CHECKBOX, self.on_replot_3d)
 
-        plot3D_alpha_label = wx.StaticText(panel, -1, "Marker transparency:")
-        self.plot3D_alpha_value = wx.SpinCtrlDouble(
-            panel,
-            -1,
-            value=str(self.config.markerTransparency_3D * 100),
-            min=0,
-            max=100,
-            initial=self.config.markerTransparency_3D * 100,
-            inc=5,
-            size=(90, -1),
-        )
-        self.plot3D_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_3D)
+        plot3d_spines_toggle = wx.StaticText(panel, -1, "Show line:")
+        self.plot3d_spines_check = make_checkbox(panel, "")
+        self.plot3d_spines_check.SetValue(self.config.spines_3D)
+        self.plot3d_spines_check.Bind(wx.EVT_CHECKBOX, self.on_apply_3D)
+        self.plot3d_spines_check.Bind(wx.EVT_CHECKBOX, self.on_replot_3d)
 
-        plot3D_markerColor_label = wx.StaticText(panel, -1, "Marker fill color:")
-        self.plot3D_colorAnnotBtn = wx.Button(
-            panel, ID_extraSettings_markerColor_3D, "", wx.DefaultPosition, wx.Size(26, 26), 0
-        )
-        self.plot3D_colorAnnotBtn.SetBackgroundColour(convert_rgb_1_to_255(self.config.markerColor_3D))
-        self.plot3D_colorAnnotBtn.Bind(wx.EVT_BUTTON, self.on_assign_color)
-
-        plot3D_markerEdgeColor_label = wx.StaticText(panel, -1, "Marker edge color:")
-        self.plot3D_colorEdgeAnnotBtn = wx.Button(
-            panel, ID_extraSettings_edgeMarkerColor_3D, "", wx.DefaultPosition, wx.Size(26, 26), 0
-        )
-        self.plot3D_colorEdgeAnnotBtn.SetBackgroundColour(convert_rgb_1_to_255(self.config.markerEdgeColor_3D))
-        self.plot3D_colorEdgeAnnotBtn.Bind(wx.EVT_BUTTON, self.on_assign_color)
-
-        self.plot3D_colorEdgeMarker_check = make_checkbox(panel, "Same as fill")
-        self.plot3D_colorEdgeMarker_check.SetValue(self.config.markerEdgeUseSame_3D)
-        self.plot3D_colorEdgeMarker_check.Bind(wx.EVT_CHECKBOX, self.on_apply_3D)
-        self.plot3D_colorEdgeMarker_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls_3d)
-
-        axisParameters_staticBox = make_staticbox(panel, "Axis parameters", size=(-1, -1), color=wx.BLACK)
-        axisParameters_staticBox.SetSize((-1, -1))
-        axis_box_sizer = wx.StaticBoxSizer(axisParameters_staticBox, wx.HORIZONTAL)
-
-        plot3D_shadeOnOff_label = wx.StaticText(panel, -1, "Show shade:")
-        self.plot3D_shadeOnOff_check = make_checkbox(panel, "")
-        self.plot3D_shadeOnOff_check.SetValue(self.config.shade_3D)
-        self.plot3D_shadeOnOff_check.Bind(wx.EVT_CHECKBOX, self.on_apply_3D)
-        self.plot3D_shadeOnOff_check.Bind(wx.EVT_CHECKBOX, self.on_update_3d)
-
-        plot3D_gridsOnOff_label = wx.StaticText(panel, -1, "Show grids:")
-        self.plot3D_gridsOnOff_check = make_checkbox(panel, "")
-        self.plot3D_gridsOnOff_check.SetValue(self.config.showGrids_3D)
-        self.plot3D_gridsOnOff_check.Bind(wx.EVT_CHECKBOX, self.on_apply_3D)
-        self.plot3D_gridsOnOff_check.Bind(wx.EVT_CHECKBOX, self.on_update_3d)
-
-        plot3D_ticksOnOff_label = wx.StaticText(panel, -1, "Show ticks:")
-        self.plot3D_ticksOnOff_check = make_checkbox(panel, "")
-        self.plot3D_ticksOnOff_check.SetValue(self.config.ticks_3D)
-        self.plot3D_ticksOnOff_check.Bind(wx.EVT_CHECKBOX, self.on_apply_3D)
-        self.plot3D_ticksOnOff_check.Bind(wx.EVT_CHECKBOX, self.on_replot_3d)
-
-        plot3D_spinesOnOff_label = wx.StaticText(panel, -1, "Show line:")
-        self.plot3D_spinesOnOff_check = make_checkbox(panel, "")
-        self.plot3D_spinesOnOff_check.SetValue(self.config.spines_3D)
-        self.plot3D_spinesOnOff_check.Bind(wx.EVT_CHECKBOX, self.on_apply_3D)
-        self.plot3D_spinesOnOff_check.Bind(wx.EVT_CHECKBOX, self.on_replot_3d)
-
-        plot3D_labelsOnOff_label = wx.StaticText(panel, -1, "Show labels:")
-        self.plot3D_labelsOnOff_check = make_checkbox(panel, "")
-        self.plot3D_labelsOnOff_check.SetValue(self.config.labels_3D)
-        self.plot3D_labelsOnOff_check.Bind(wx.EVT_CHECKBOX, self.on_apply_3D)
-        self.plot3D_labelsOnOff_check.Bind(wx.EVT_CHECKBOX, self.on_update_3d)
+        plot3d_labels_toggle = wx.StaticText(panel, -1, "Show labels:")
+        self.plot3d_labels_check = make_checkbox(panel, "")
+        self.plot3d_labels_check.SetValue(self.config.labels_3D)
+        self.plot3d_labels_check.Bind(wx.EVT_CHECKBOX, self.on_apply_3D)
+        self.plot3d_labels_check.Bind(wx.EVT_CHECKBOX, self.on_update_3d)
 
         horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
         # Replot button
-        self.update3DBtn = wx.Button(panel, wx.ID_ANY, "Update", wx.DefaultPosition, wx.Size(-1, -1), 0)
-        self.update3DBtn.Bind(wx.EVT_BUTTON, self.on_update_3d)
+        self.plot3d_update_btn = wx.Button(panel, wx.ID_ANY, "Update", wx.DefaultPosition, wx.Size(-1, -1), 0)
+        self.plot3d_update_btn.Bind(wx.EVT_BUTTON, self.on_update_3d)
 
         # Replot button
-        self.plot3DBtn = wx.Button(panel, wx.ID_ANY, "Replot", wx.DefaultPosition, wx.Size(-1, -1), 0)
-        self.plot3DBtn.Bind(wx.EVT_BUTTON, self.on_replot_3d)
+        self.plot3d_replot_btn = wx.Button(panel, wx.ID_ANY, "Replot", wx.DefaultPosition, wx.Size(-1, -1), 0)
+        self.plot3d_replot_btn.Bind(wx.EVT_BUTTON, self.on_replot_3d)
 
-        plot3D_grid = wx.GridBagSizer(2, 2)
-        y = 0
-        plot3D_grid.Add(plot3D_plotType_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        plot3D_grid.Add(self.plot3D_plotType_value, (y, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        plot3D_box_sizer.Add(plot3D_grid, 0, wx.EXPAND, 10)
+        btn_grid = wx.GridBagSizer(2, 2)
+        n = 0
+        btn_grid.Add(self.plot3d_update_btn, (n, 0), flag=wx.EXPAND)
+        btn_grid.Add(self.plot3d_replot_btn, (n, 1), flag=wx.EXPAND)
 
-        scatter3D_grid = wx.GridBagSizer(2, 2)
-        y = 0
-        scatter3D_grid.Add(plot3D_markerShape_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        scatter3D_grid.Add(self.plot3D_markerShape_value, (y, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        y += 1
-        scatter3D_grid.Add(plot3D_markerSize_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        scatter3D_grid.Add(self.plot3D_markerSize_value, (y, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        y += 1
-        scatter3D_grid.Add(plot3D_alpha_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        scatter3D_grid.Add(self.plot3D_alpha_value, (y, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        y += 1
-        scatter3D_grid.Add(plot3D_markerColor_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        scatter3D_grid.Add(self.plot3D_colorAnnotBtn, (y, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        y += 1
-        scatter3D_grid.Add(plot3D_markerEdgeColor_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        scatter3D_grid.Add(self.plot3D_colorEdgeAnnotBtn, (y, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        scatter3D_grid.Add(self.plot3D_colorEdgeMarker_check, (y, 3), wx.GBSpan(1, 3), flag=wx.EXPAND)
-        scatter3D_box_sizer.Add(scatter3D_grid, 0, wx.EXPAND, 10)
+        plot3d_grid = wx.GridBagSizer(2, 2)
+        n = 0
+        plot3d_grid.Add(plot3d_plot_type, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        plot3d_grid.Add(self.plot3d_plot_type_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
 
         # axis grids
         axis_grid = wx.GridBagSizer(2, 2)
-        y = 0
-        axis_grid.Add(plot3D_shadeOnOff_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        axis_grid.Add(self.plot3D_shadeOnOff_check, (y, 1), flag=wx.EXPAND)
-        axis_grid.Add(plot3D_gridsOnOff_label, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        axis_grid.Add(self.plot3D_gridsOnOff_check, (y, 3), flag=wx.EXPAND)
-        axis_grid.Add(plot3D_ticksOnOff_label, (y, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        axis_grid.Add(self.plot3D_ticksOnOff_check, (y, 5), flag=wx.EXPAND)
-        y += 1
-        axis_grid.Add(plot3D_spinesOnOff_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        axis_grid.Add(self.plot3D_spinesOnOff_check, (y, 1), flag=wx.EXPAND)
-        axis_grid.Add(plot3D_labelsOnOff_label, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        axis_grid.Add(self.plot3D_labelsOnOff_check, (y, 3), flag=wx.EXPAND)
-        axis_box_sizer.Add(axis_grid, 0, wx.EXPAND, 10)
+        n = 0
+        axis_grid.Add(plot3d_shade_toggle, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        axis_grid.Add(self.plot3d_shade_check, (n, 1), flag=wx.EXPAND)
+        n += 1
+        axis_grid.Add(plot3d_grids_toggle, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        axis_grid.Add(self.plot3d_grids_check, (n, 1), flag=wx.EXPAND)
+        n += 1
+        axis_grid.Add(plot3d_ticks_toggle, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        axis_grid.Add(self.plot3d_ticks_check, (n, 1), flag=wx.EXPAND)
+        n += 1
+        axis_grid.Add(plot3d_spines_toggle, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        axis_grid.Add(self.plot3d_spines_check, (n, 1), flag=wx.EXPAND)
+        n += 1
+        axis_grid.Add(plot3d_labels_toggle, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        axis_grid.Add(self.plot3d_labels_check, (n, 1), flag=wx.EXPAND)
+
+        heatmap_parameters_label = wx.StaticText(panel, -1, "Heatmap parameters")
+        set_item_font(heatmap_parameters_label)
+        horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+
+        axes_parameters_label = wx.StaticText(panel, -1, "Axis parameters")
+        set_item_font(axes_parameters_label)
 
         grid = wx.GridBagSizer(2, 2)
-        y = 0
-        grid.Add(plot3D_box_sizer, (y, 0), wx.GBSpan(1, 8), flag=wx.EXPAND)
-        y += 1
-        grid.Add(scatter3D_box_sizer, (y, 0), wx.GBSpan(1, 8), flag=wx.EXPAND)
-        y += 1
-        grid.Add(axis_box_sizer, (y, 0), wx.GBSpan(1, 8), flag=wx.EXPAND)
-        y += 1
-        grid.Add(horizontal_line, (y, 0), wx.GBSpan(1, 8), flag=wx.EXPAND)
-        y += 1
-        grid.Add(self.update3DBtn, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.plot3DBtn, (y, 1), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL)
+        n = 0
+        grid.Add(heatmap_parameters_label, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        n += 1
+        grid.Add(plot3d_grid, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        n += 1
+        grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        n += 1
+        grid.Add(axes_parameters_label, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        n += 1
+        grid.Add(axis_grid, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        n += 1
+        grid.Add(horizontal_line, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        n += 1
+        grid.Add(btn_grid, (n, 0), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER)
 
         # pack elements
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(grid, 1, wx.EXPAND, PANEL_SPACE_MAIN)
+        main_sizer.Add(grid, 1, wx.ALIGN_CENTER, PANEL_SPACE_MAIN)
 
         # fit layout
         main_sizer.Fit(panel)
@@ -2377,6 +2371,7 @@ class panelParametersEdit(wx.Panel):
         self.config.lineStyle_1D = self.plot1d_line_style_value.GetStringSelection()
         self.config.markerSize_1D = str2num(self.plot1d_marker_size_value.GetValue())
         self.config.lineShadeUnder_1D = self.plot1d_underline_check.GetValue()
+        self.config.lineShadeUnderTransparency_1D = str2num(self.plot1d_underline_alpha_value.GetValue()) / 100
         self.config.markerShapeTXT_1D = self.plot1d_marker_shape_value.GetStringSelection()
         self.config.markerShape_1D = self.config.markerShapeDict[self.plot1d_marker_shape_value.GetStringSelection()]
         self.config.markerTransparency_1D = str2num(self.plot1d_alpha_value.GetValue()) / 100
@@ -2420,7 +2415,7 @@ class panelParametersEdit(wx.Panel):
     def on_apply_2D(self, evt):
         if self.import_evt:
             return
-
+        self.config.normalization_2D = self.plot2d_normalization_value.GetStringSelection()
         self.config.currentCmap = self.plot2d_colormap_value.GetStringSelection()
         self.config.useCurrentCmap = self.plot2d_override_colormap_check.GetValue()
         self.config.plotType = self.plot2d_plot_type_value.GetStringSelection()
@@ -2428,6 +2423,7 @@ class panelParametersEdit(wx.Panel):
         self.config.minCmap = str2num(self.plot2d_min_value.GetValue())
         self.config.midCmap = str2num(self.plot2d_mid_value.GetValue())
         self.config.maxCmap = str2num(self.plot2d_max_value.GetValue())
+        self.config.normalization_2D_power_gamma = str2num(self.plot2d_normalization_gamma_value.GetValue())
 
         # fire events
         self.on_apply(evt=None)
@@ -2442,19 +2438,12 @@ class panelParametersEdit(wx.Panel):
         if self.import_evt:
             return
 
-        self.config.plotType_3D = self.plot3D_plotType_value.GetStringSelection()
-        self.config.showGrids_3D = self.plot3D_gridsOnOff_check.GetValue()
-        self.config.shade_3D = self.plot3D_shadeOnOff_check.GetValue()
-        self.config.ticks_3D = self.plot3D_ticksOnOff_check.GetValue()
-        self.config.spines_3D = self.plot3D_spinesOnOff_check.GetValue()
-        self.config.labels_3D = self.plot3D_labelsOnOff_check.GetValue()
-        self.config.markerTransparency_3D = str2num(self.plot3D_alpha_value.GetValue()) / 100
-        self.config.markerShapeTXT_3D = self.plot3D_markerShape_value.GetStringSelection()
-        self.config.markerShape_3D = self.config.markerShapeDict[self.plot3D_markerShape_value.GetStringSelection()]
-        self.config.markerSize_3D = str2num(self.plot3D_markerSize_value.GetValue())
-        self.config.markerEdgeUseSame_3D = self.plot3D_colorEdgeMarker_check.GetValue()
-        if self.plot3D_colorEdgeMarker_check.GetValue():
-            self.config.markerEdgeColor_3D = self.config.markerColor_3D
+        self.config.plotType_3D = self.plot3d_plot_type_value.GetStringSelection()
+        self.config.showGrids_3D = self.plot3d_grids_check.GetValue()
+        self.config.shade_3D = self.plot3d_shade_check.GetValue()
+        self.config.ticks_3D = self.plot3d_ticks_check.GetValue()
+        self.config.spines_3D = self.plot3d_spines_check.GetValue()
+        self.config.labels_3D = self.plot3d_labels_check.GetValue()
 
         if self.config.autoSaveSettings:
             self.data_handling.on_export_config_fcn(None, False)
@@ -2534,7 +2523,7 @@ class panelParametersEdit(wx.Panel):
         self.config.violin_lineStyle = self.violin_line_style_value.GetStringSelection()
         self.config.violin_color_scheme = self.violin_colorScheme_value.GetStringSelection()
         if self.config.violin_color_scheme == "Color palette":
-            self.violin_colorScheme_msg.SetLabel("You can change the color \npalette in the 'Extra' tab.")
+            self.violin_colorScheme_msg.SetLabel("You can change the \ncolor palette in \nthe 'General' tab.")
         else:
             self.violin_colorScheme_msg.SetLabel("")
         self.config.violin_colormap = self.violin_colormap_value.GetStringSelection()
@@ -2554,7 +2543,7 @@ class panelParametersEdit(wx.Panel):
         self.config.waterfall_reverse = self.waterfall_reverse_check.GetValue()
         self.config.waterfall_color_value = self.waterfall_colorScheme_value.GetStringSelection()
         if self.config.waterfall_color_value == "Color palette":
-            self.waterfall_colorScheme_msg.SetLabel("You can change the color \npalette in the 'Extra' tab.")
+            self.waterfall_colorScheme_msg.SetLabel("You can change the color palette in the 'General' tab.")
         else:
             self.waterfall_colorScheme_msg.SetLabel("")
         self.config.waterfall_colormap = self.waterfall_colormap_value.GetStringSelection()
@@ -2631,17 +2620,15 @@ class panelParametersEdit(wx.Panel):
             self.config.markerEdgeColor_1D = color_1
             self.plot1d_marker_edge_color_btn.SetBackgroundColour(color_255)
 
-        elif evtID == ID_extraSettings_markerColor_3D:
-            self.config.markerColor_3D = color_1
-            self.plot3D_colorAnnotBtn.SetBackgroundColour(color_255)
-
-        elif evtID == ID_extraSettings_edgeMarkerColor_3D:
-            self.config.markerEdgeColor_3D = color_1
-            self.plot3D_colorEdgeAnnotBtn.SetBackgroundColour(color_255)
-
         elif evtID == ID_extraSettings_lineColor_1D:
             self.config.lineColour_1D = color_1
             self.plot1d_line_color_btn.SetBackgroundColour(color_255)
+            self.on_update_1d(None)
+
+        elif evtID == ID_extraSettings_shadeUnderColor_1D:
+            self.config.lineShadeUnderColour_1D = color_1
+            self.plot1d_underline_color_btn.SetBackgroundColour(color_255)
+            self.on_update_1d(None)
 
         elif evtID == ID_extraSettings_zoomCursorColor:
             self.config._plots_grid_color = color_1
@@ -2683,21 +2670,12 @@ class panelParametersEdit(wx.Panel):
             self.violin_colorShadeBtn.SetBackgroundColour(color_255)
             self.on_update_2d(evt)
 
-        elif evtID == ID_extraSettings_shadeUnderColor_1D:
-            self.config.lineShadeUnderColour_1D = color_1
-            self.plot1d_underline_color_btn.SetBackgroundColour(color_255)
-
         elif evtID == ID_extraSettings_bar_edgeColor:
             self.config.bar_edge_color = color_1
             self.bar_edgeColorBtn.SetBackgroundColour(color_255)
 
         if self.config.autoSaveSettings:
             self.data_handling.on_export_config_fcn(None, False)
-
-        try:
-            self.presenter.view.updatePlots(None)
-        except Exception:
-            pass
 
     def on_update_rmsd_position(self, evt):
         if self.import_evt:
@@ -2747,18 +2725,19 @@ class panelParametersEdit(wx.Panel):
     def on_update(self, evt):
 
         self.on_apply_1D(None)
-        if self.panel_plot.currentPage in ["MS", "RT", "1D"]:
-            if self.panel_plot.window_plot1D == "MS":
+
+        if self.panel_plot.currentPage in ["Mass spectrum", "Chromatogram", "Mobilogram"]:
+            if self.panel_plot.window_plot1D == "Mass spectrum":
                 self.panel_plot.plot_1D_update(plotName="MS")
 
-            elif self.panel_plot.window_plot1D == "RT":
+            elif self.panel_plot.window_plot1D == "Chromatogram":
                 self.panel_plot.plot_1D_update(plotName="RT")
 
-            elif self.panel_plot.window_plot1D == "1D":
+            elif self.panel_plot.window_plot1D == "Mobilogram":
                 self.panel_plot.plot_1D_update(plotName="1D")
 
-        if self.panel_plot.currentPage in ["2D", "DT/MS", "Waterfall"]:
-            if self.panel_plot.window_plot2D == "2D":
+        if self.panel_plot.currentPage in ["Heatmap", "DT/MS", "Waterfall"]:
+            if self.panel_plot.window_plot2D == "Heatmap":
                 self.panel_plot.plot_2D_update(plotName="2D")
 
             elif self.panel_plot.window_plot2D == "DT/MS":
@@ -2771,10 +2750,10 @@ class panelParametersEdit(wx.Panel):
                     source = "axes"
                 self.panel_plot.plot_1D_waterfall_update(source)
 
-        if self.panel_plot.currentPage == "Other":
+        if self.panel_plot.currentPage == "Annotated":
             try:
                 source = evt.GetEventObject().GetName()
-            except Exception:
+            except AttributeError:
                 source = "axes"
             try:
                 if self.panel_plot.plotOther.plot_type == "waterfall":
@@ -2782,8 +2761,8 @@ class panelParametersEdit(wx.Panel):
             except Exception:
                 pass
 
-        if self.panel_plot.window_plot3D == "3D":
-            self.presenter.plot_3D_update(plotName="3D")
+        if self.panel_plot.window_plot3D == "Heatmap (3D)":
+            self.panel_plot.plot_3D_update(plotName="3D")
 
         if evt is not None:
             evt.Skip()
@@ -2791,13 +2770,13 @@ class panelParametersEdit(wx.Panel):
     def on_update_1d(self, evt):
 
         self.on_apply_1D(None)
-        if self.panel_plot.window_plot1D == "MS":
+        if self.panel_plot.window_plot1D == "Mass spectrum":
             self.panel_plot.plot_1D_update(plotName="MS")
 
-        elif self.panel_plot.window_plot1D == "RT":
+        elif self.panel_plot.window_plot1D == "Chromatogram":
             self.panel_plot.plot_1D_update(plotName="RT")
 
-        elif self.panel_plot.window_plot1D == "1D":
+        elif self.panel_plot.window_plot1D == "Mobilogram":
             self.panel_plot.plot_1D_update(plotName="1D")
 
         if evt is not None:
@@ -2812,35 +2791,35 @@ class panelParametersEdit(wx.Panel):
         except Exception:
             source = "all"
 
-        if self.panel_plot.window_plot2D == "2D":
+        if self.panel_plot.window_plot2D in ["Heatmap", "DT/MS"]:
             if source == "colorbar":
-                self.panel_plot.plot_colorbar_update()
+                self.panel_plot.plot_colorbar_update(self.panel_plot.window_plot2D)
             elif source == "normalization":
-                self.panel_plot.plot_normalization_update()
+                self.panel_plot.plot_normalization_update(self.panel_plot.window_plot2D)
             else:
                 self.panel_plot.plot_2D_update(plotName="2D")
-
-        elif self.panel_plot.window_plot2D == "RMSF":
-            if source == "colorbar":
-                self.panel_plot.plot_colorbar_update()
-            elif source == "rmsf":
-                self.panel_plot.plot_1D_update(plotName="RMSF")
-
-        elif self.panel_plot.window_plot2D == "Comparison":
-            self.panel_plot.plot_colorbar_update()
+        #
+        #         elif self.panel_plot.window_plot2D == "RMSF":
+        #             if source == "colorbar":
+        #                 self.panel_plot.plot_colorbar_update()
+        #             elif source == "rmsf":
+        #                 self.panel_plot.plot_1D_update(plotName="RMSF")
+        #
+        #         elif self.panel_plot.window_plot2D == "Comparison":
+        #             self.panel_plot.plot_colorbar_update()
 
         elif self.panel_plot.window_plot2D == "DT/MS":
             self.panel_plot.plot_2D_update(plotName="DT/MS")
 
-        elif self.panel_plot.window_plot2D == "UniDec":
-            if source == "colorbar":
-                self.panel_plot.plot_colorbar_update()
-            elif source == "normalization":
-                self.panel_plot.plot_normalization_update()
-            else:
-                self.panel_plot.plot_2D_update(plotName="UniDec")
+        #         elif self.panel_plot.window_plot2D == "UniDec":
+        #             if source == "colorbar":
+        #                 self.panel_plot.plot_colorbar_update()
+        #             elif source == "normalization":
+        #                 self.panel_plot.plot_normalization_update()
+        #             else:
+        #                 self.panel_plot.plot_2D_update(plotName="UniDec")
 
-        elif self.panel_plot.window_plot2D == "Waterfall" or self.panel_plot.currentPage == "Other":
+        elif self.panel_plot.window_plot2D == "Waterfall" or self.panel_plot.currentPage == "Annotated":
             try:
                 source = evt.GetEventObject().GetName()
             except Exception:
@@ -2854,8 +2833,8 @@ class panelParametersEdit(wx.Panel):
     def on_update_3d(self, evt):
 
         self.on_apply_3D(None)
-        if self.panel_plot.window_plot3D == "3D":
-            self.presenter.plot_3D_update(plotName="3D")
+        if self.panel_plot.window_plot3D == "Heatmap (3D)":
+            self.panel_plot.plot_3D_update(plotName="3D")
 
         if evt is not None:
             evt.Skip()
@@ -2863,28 +2842,30 @@ class panelParametersEdit(wx.Panel):
     def on_replot_1d(self, evt):
 
         self.on_apply_1D(None)
-        if self.panel_plot.window_plot1D == "MS":
+        if self.panel_plot.window_plot1D == "Mass spectrum":
             self.panel_plot.on_plot_MS(replot=True)
 
-        elif self.panel_plot.window_plot1D == "RT":
+        elif self.panel_plot.window_plot1D == "Chromatogram":
             self.panel_plot.on_plot_RT(replot=True)
 
-        elif self.panel_plot.window_plot1D == "1D":
+        elif self.panel_plot.window_plot1D == "Mobilogram":
             self.panel_plot.on_plot_1D(replot=True)
 
         if evt is not None:
             evt.Skip()
 
     def on_replot_2d(self, evt):
+        """Full replot of heatmap"""
+
         self.on_apply_2D(None)
-        if self.panel_plot.window_plot2D == "2D":
-            self.panel_plot.on_plot_2D(replot=True)
+        if self.panel_plot.window_plot2D == "Heatmap":
+            self.panel_plot.on_plot_2D(replot=True, full_repaint=True)
 
         elif self.panel_plot.window_plot2D == "DT/MS":
             self.panel_plot.on_plot_MSDT(replot=True)
-
-        elif self.panel_plot.window_plot2D == "Comparison":
-            self.panel_plot.on_plot_matrix(replot=True)
+        #
+        #         elif self.panel_plot.window_plot2D == "Comparison":
+        #             self.panel_plot.on_plot_matrix(replot=True)
 
         if evt is not None:
             evt.Skip()
@@ -2892,7 +2873,7 @@ class panelParametersEdit(wx.Panel):
     def on_replot_3d(self, evt):
 
         self.on_apply_3D(None)
-        if self.panel_plot.window_plot3D == "3D":
+        if self.panel_plot.window_plot3D == "Heatmap (3D)":
             self.panel_plot.on_plot_3D(replot=True)
 
         if evt is not None:
@@ -2900,88 +2881,56 @@ class panelParametersEdit(wx.Panel):
 
     def on_toggle_controls_1d(self, evt):
 
-        if not self.plot1d_marker_edge_color_check.GetValue():
-            self.plot1d_marker_edge_color_btn.Enable()
-        else:
-            self.plot1d_marker_edge_color_btn.Disable()
-            self.plot1d_marker_edge_color_btn.SetBackgroundColour(self.plot1d_marker_color_btn.GetBackgroundColour())
+        self.plot1d_marker_edge_color_btn.Enable(self.plot1d_marker_edge_color_check.GetValue())
+        self.plot1d_marker_edge_color_btn.SetBackgroundColour(self.plot1d_marker_color_btn.GetBackgroundColour())
 
-        if not self.plot1d_underline_check.GetValue():
-            self.plot1d_underline_color_btn.Disable()
-        else:
-            self.plot1d_underline_color_btn.Enable()
+        self.plot1d_underline_color_btn.Enable(self.plot1d_underline_check.GetValue())
+        self.plot1d_underline_alpha_value.Enable(self.plot1d_underline_check.GetValue())
 
         if evt is not None:
             evt.Skip()
 
     def on_toggle_controls_2d(self, evt):
-
-        if evt is not None:
-            evt.Skip()
-
-    def on_toggle_controls_3d(self, evt):
-
-        if not self.plot3D_colorEdgeMarker_check.GetValue():
-            self.plot3D_colorEdgeAnnotBtn.Enable()
+        self.config.normalization_2D = self.plot2d_normalization_value.GetStringSelection()
+        if self.config.normalization_2D == "Midpoint":
+            self.plot2d_mid_value.Enable(True)
+            self.plot2d_normalization_gamma_value.Enable(False)
         else:
-            self.plot3D_colorEdgeAnnotBtn.Disable()
-            self.plot3D_colorEdgeAnnotBtn.SetBackgroundColour(self.plot3D_colorAnnotBtn.GetBackgroundColour())
+            if self.config.normalization_2D == "Power":
+                self.plot2d_normalization_gamma_value.Enable(True)
+            else:
+                self.plot2d_normalization_gamma_value.Enable(False)
+            self.plot2d_mid_value.Enable(False)
 
         if evt is not None:
             evt.Skip()
 
     def on_toggle_controls_colorbar(self, evt):
-        enableDisableList = [
-            self.colorbarPosition_value,
-            self.colorbarWidth_value,
-            self.colorbarPad_value,
-            self.colorbarFontsize_value,
-        ]
 
         self.config.colorbar = self.colorbarTgl.GetValue()
         if self.config.colorbar:
             self.colorbarTgl.SetLabel("On")
             self.colorbarTgl.SetForegroundColour(wx.WHITE)
             self.colorbarTgl.SetBackgroundColour(wx.BLUE)
-            for item in enableDisableList:
-                item.Enable()
         else:
             self.colorbarTgl.SetLabel("Off")
             self.colorbarTgl.SetForegroundColour(wx.WHITE)
             self.colorbarTgl.SetBackgroundColour(wx.RED)
-            for item in enableDisableList:
-                item.Disable()
 
         if evt is not None:
             evt.Skip()
 
     def on_toggle_controls_legend(self, evt):
-        enableDisableList = [
-            self.legend_position_value,
-            self.legend_columns_value,
-            self.legend_fontsize_value,
-            self.legend_marker_size_value,
-            self.legend_n_markers_value,
-            self.legend_marker_before_check,
-            self.legend_alpha_value,
-            self.legend_patch_alpha_value,
-            self.legend_frame_check,
-            self.legend_fancybox_check,
-        ]
 
         self.config.legend = self.legend_toggle.GetValue()
         if self.config.legend:
             self.legend_toggle.SetLabel("On")
             self.legend_toggle.SetForegroundColour(wx.WHITE)
             self.legend_toggle.SetBackgroundColour(wx.BLUE)
-            for item in enableDisableList:
-                item.Enable()
         else:
             self.legend_toggle.SetLabel("Off")
             self.legend_toggle.SetForegroundColour(wx.WHITE)
             self.legend_toggle.SetBackgroundColour(wx.RED)
-            for item in enableDisableList:
-                item.Disable()
 
         if evt is not None:
             evt.Skip()
@@ -3006,40 +2955,15 @@ class panelParametersEdit(wx.Panel):
 
     def on_toggle_controls_waterfall(self, evt):
 
-        enableDisableList = [
-            self.waterfall_offset_value,
-            self.waterfall_colorLineBtn,
-            self.waterfall_lineStyle_value,
-            self.waterfall_lineWidth_value,
-            self.waterfall_offset_value,
-            self.waterfall_increment_value,
-            self.waterfall_reverse_check,
-            self.waterfall_colormap_value,
-            self.waterfall_label_fontSize_value,
-            self.waterfall_label_fontWeight_check,
-            self.waterfall_label_frequency_value,
-            self.waterfall_label_x_offset_value,
-            self.waterfall_showLabels_check,
-            self.waterfall_shadeTransparency_value,
-            self.waterfall_shadeLimit_value,
-            self.waterfall_shadeUnder_check,
-            self.waterfall_normalize_check,
-            self.waterfall_colorScheme_value,
-            self.waterfall_line_sameAsShade_check,
-        ]
         self.config.waterfall = self.waterfallTgl.GetValue()
         if self.config.waterfall:
             self.waterfallTgl.SetLabel("On")
             self.waterfallTgl.SetForegroundColour(wx.WHITE)
             self.waterfallTgl.SetBackgroundColour(wx.BLUE)
-            for item in enableDisableList:
-                item.Enable()
         else:
             self.waterfallTgl.SetLabel("Off")
             self.waterfallTgl.SetForegroundColour(wx.WHITE)
             self.waterfallTgl.SetBackgroundColour(wx.RED)
-            for item in enableDisableList:
-                item.Disable()
 
         self.config.waterfall_line_sameAsShade = self.waterfall_line_sameAsShade_check.GetValue()
         if not self.config.waterfall_line_sameAsShade and self.config.waterfall:
@@ -3057,10 +2981,12 @@ class panelParametersEdit(wx.Panel):
 
         self.config.waterfall_add_labels = self.waterfall_showLabels_check.GetValue()
         labels_list = [
+            self.waterfall_label_format_value,
             self.waterfall_label_fontSize_value,
             self.waterfall_label_fontWeight_check,
             self.waterfall_label_frequency_value,
             self.waterfall_label_x_offset_value,
+            self.waterfall_label_y_offset_value,
         ]
         if self.config.waterfall_add_labels and self.config.waterfall:
             for item in labels_list:
@@ -3119,18 +3045,6 @@ class panelParametersEdit(wx.Panel):
         axSizes = plotValues["axes_size"]
         for i, item in enumerate(
             [self.general_left_value, self.general_bottom_value, self.general_width_value, self.general_height_value]
-        ):
-            item.SetValue(axSizes[i])
-
-        # update export axes sizes
-        axSizes = plotValues["save_size"]
-        for i, item in enumerate(
-            [
-                self.general_left_export_value,
-                self.general_bottom_export_value,
-                self.general_width_export_value,
-                self.general_height_export_value,
-            ]
         ):
             item.SetValue(axSizes[i])
 
