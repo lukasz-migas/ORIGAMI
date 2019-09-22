@@ -2,6 +2,7 @@
 # __author__ lukasz.g.migas
 import wx
 from icons.icons import IconContainer
+from styles import make_bitmap_btn
 from styles import makeCheckbox
 from styles import MiniFrame
 from styles import validator
@@ -35,6 +36,7 @@ class PanelModifyItemSettings(MiniFrame):
         self.add_show_button = True
         self.show_simple = False
         self.show_info = False
+        self.show_datasets = False
 
         # based on the kwargs, decide which source it is
         # peaklist
@@ -42,6 +44,7 @@ class PanelModifyItemSettings(MiniFrame):
             self.SetTitle(f"Ion: {kwargs['ionName']}")
             self.item_name = "ion_name"
             self.column_dict = self.config.peaklistColNames
+            self.show_datasets = True
         # overlay
         elif "overlay_type" in kwargs:
             self.SetTitle(f"Customise item...")
@@ -105,19 +108,25 @@ class PanelModifyItemSettings(MiniFrame):
 
             horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
-        select_label = wx.StaticText(panel, wx.ID_ANY, "Select:")
-        self.select_value = makeCheckbox(panel, "")
+        self.select_value = makeCheckbox(panel, "Check in list")
         self.select_value.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        filename_label = wx.StaticText(panel, wx.ID_ANY, "Filename:")
+        filename_label = wx.StaticText(panel, wx.ID_ANY, "Document title:")
         self.filename_value = wx.TextCtrl(panel, wx.ID_ANY, "", style=wx.TE_READONLY)
 
-        ion_label = wx.StaticText(panel, wx.ID_ANY, "Ion:")
+        ion_label = wx.StaticText(panel, wx.ID_ANY, "Item name:")
         self.ion_value = wx.TextCtrl(panel, wx.ID_ANY, "", style=wx.TE_READONLY)
 
-        label_label = wx.StaticText(panel, wx.ID_ANY, "Label:", wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_LEFT)
+        label_label = wx.StaticText(panel, wx.ID_ANY, "Label:")
         self.label_value = wx.TextCtrl(panel, -1, "", size=(90, -1))
         self.label_value.Bind(wx.EVT_TEXT, self.on_apply)
+
+        if self.show_datasets:
+            dataset_value = wx.StaticText(panel, wx.ID_ANY, "Datasets:")
+            self.dataset_value = wx.TextCtrl(
+                panel, wx.ID_ANY, "", size=(-1, 50), style=wx.TE_MULTILINE | wx.TE_READONLY
+            )
+            self.dataset_value.SetToolTip("List of datasets that this item belongs to")
 
         if self.show_charge:
             charge_label = wx.StaticText(panel, wx.ID_ANY, "Charge:")
@@ -153,13 +162,20 @@ class PanelModifyItemSettings(MiniFrame):
             self.colormap_value = wx.Choice(panel, -1, choices=self.config.cmaps2, size=(-1, -1))
             self.colormap_value.Bind(wx.EVT_CHOICE, self.on_apply)
 
-            self.restrictColormap_value = makeCheckbox(panel, "")
+            self.restrictColormap_value = makeCheckbox(panel, "Reduce number of colormaps")
             self.restrictColormap_value.Bind(wx.EVT_CHECKBOX, self.on_restrict_colormaps)
+            self.restrictColormap_value.SetToolTip(
+                "Reduce the number of colormaps to selection of most visually pleasing examples"
+            )
 
         color_label = wx.StaticText(panel, -1, "Color:")
         self.color_value = wx.Button(panel, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0)
         self.color_value.SetBackgroundColour(self.itemInfo["color"])
         self.color_value.Bind(wx.EVT_BUTTON, self.on_assign_color)
+
+        self.color_randomize = make_bitmap_btn(panel, wx.ID_ANY, self.icons.iconsLib["randomize_16"])
+        self.color_randomize.SetToolTip("Assign new (random) color")
+        self.color_randomize.Bind(wx.EVT_BUTTON, self.on_assign_random_color)
 
         horizontal_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
@@ -195,13 +211,13 @@ class PanelModifyItemSettings(MiniFrame):
         # pack elements
         grid = wx.GridBagSizer(2, 2)
         n = 0
+        _max_width = 3
         if self.show_info:
             grid.Add(info_label, (n, 0), (3, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
             grid.Add(self.info_label, (n, 1), (3, 1), flag=wx.EXPAND)
             n += 3
             grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
             n += 1
-        grid.Add(select_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.select_value, (n, 1), flag=wx.EXPAND)
         n += 1
         grid.Add(filename_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
@@ -209,6 +225,11 @@ class PanelModifyItemSettings(MiniFrame):
         n += 1
         grid.Add(ion_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.ion_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        if self.show_datasets:
+            n += 1
+            grid.Add(dataset_value, (n, 0), (2, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+            grid.Add(self.dataset_value, (n, 1), (2, 2), flag=wx.EXPAND)
+            n += 1
         n += 1
         grid.Add(label_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.label_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
@@ -236,10 +257,11 @@ class PanelModifyItemSettings(MiniFrame):
         n += 1
         grid.Add(color_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.color_value, (n, 1), flag=wx.EXPAND)
+        grid.Add(self.color_randomize, (n, 2), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
         n += 1
-        grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
+        grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, _max_width), flag=wx.EXPAND)
         n += 1
-        grid.Add(btn_grid, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
+        grid.Add(btn_grid, (n, 0), wx.GBSpan(1, _max_width), flag=wx.EXPAND)
         main_sizer.Add(grid, 0, wx.EXPAND, 10)
 
         # fit layout
@@ -327,6 +349,9 @@ class PanelModifyItemSettings(MiniFrame):
         # update ion value
         self.on_update_mw()
 
+        if self.show_datasets:
+            self.dataset_value.SetValue("\n".join(self.itemInfo.get("datasets", [])))
+
         if self.show_charge:
             self.charge_value.SetValue(str(self.itemInfo["charge"]))
         self.label_value.SetValue(self.__check_label(self.itemInfo["label"]))
@@ -393,13 +418,19 @@ class PanelModifyItemSettings(MiniFrame):
 
         # setup title
         self.on_update_title(itemInfo)
-
         self.SetFocus()
 
     def on_toggle_controls(self, evt):
 
         if evt is not None:
             evt.Skip()
+
+    def on_assign_random_color(self, evt):
+        from utils.color import randomColorGenerator
+
+        color = randomColorGenerator(True)
+        self.color_value.SetBackgroundColour(color)
+        self.on_assign_color(None)
 
     def on_assign_color(self, evt):
         self.on_check_id()

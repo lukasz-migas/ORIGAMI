@@ -5692,7 +5692,7 @@ class DocumentTree(wx.TreeCtrl):
             # add data to document without updating it
             self.data_handling.on_update_document(document, "no_refresh")
         else:
-            logger.warning("Failed to quielty update document")
+            logger.warning("Failed to quietly update document")
             self.data_handling.on_update_document(document, "document")
 
     def on_update_extracted_patches(self, document_title, data_type, ion_name):

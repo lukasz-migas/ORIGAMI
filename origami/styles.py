@@ -467,7 +467,6 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
 
         # get list data
         tempData = sorted(self._get_list_data())
-
         # remove duplicates
         tempData = list(k for k, _ in itertools.groupby(tempData))
 

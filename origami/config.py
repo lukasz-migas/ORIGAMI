@@ -7,6 +7,7 @@ import platform
 import xml.parsers.expat
 from ast import literal_eval
 from collections import OrderedDict
+from itertools import cycle
 
 import defusedxml.minidom
 import numpy as np
@@ -855,6 +856,8 @@ class OrigamiConfig:
             ]
         )
         self.used_customColors = []
+        self.custom_color_cycle = cycle(list(self.customColors.values()))
+
         self.overlay_cmaps = [
             "Greys",
             "Purples",
@@ -881,6 +884,8 @@ class OrigamiConfig:
             "BuGn",
             "YlGn",
         ]
+        self.overlay_cmap_cycle = cycle(self.overlay_cmaps)
+
         self.overlay_defaultMask = 0.4
         self.overlay_defaultAlpha = 0.5
         self.overlay_smooth1DRT = 1
@@ -2078,7 +2083,7 @@ class OrigamiConfig:
         return colormaps[get_random_int(0, len(colormaps))]
 
     @staticmethod
-    def get_pusher_frequency(parameters, mode="V"):
+    def get_waters_pusher_frequency(parameters, mode="V"):
         """
         mode           V           W
         600         39.25       75.25
@@ -2092,7 +2097,7 @@ class OrigamiConfig:
         Check what pusher frequency should be used
         """
 
-        if mode == "V":
+        if mode in ["V", "Sensitivity", "Resolution", "Sensitivity Mode", "Resolution Mode"]:
             if parameters["endMS"] <= 600:
                 parameters["pusherFreq"] = 39.25
             elif 600 < parameters["endMS"] <= 1200:
@@ -2109,7 +2114,7 @@ class OrigamiConfig:
                 parameters["pusherFreq"] = 274.25
             elif 32000 < parameters["endMS"] <= 100000:
                 parameters["pusherFreq"] = 486.25
-        elif mode == "W":
+        elif mode in ["W", "High Resolution"]:
             if parameters["endMS"] <= 600:
                 parameters["pusherFreq"] = 75.25
             elif 600 < parameters["endMS"] <= 1200:
@@ -2154,63 +2159,66 @@ class OrigamiConfig:
         if not os.path.isfile(fileName):
             return parameters
 
-        f = open(fileName, "r")
-        i = 0  # hacky way to get the correct collision voltage value
-        for line in f:
-            if "Start Mass" in line:
-                try:
-                    parameters["startMS"] = str2num(str(line.split()[2]))
-                except Exception:
-                    pass
-            if "MSMS End Mass" in line:
-                try:
-                    parameters["endMS"] = str2num(str(line.split()[3]))
-                except Exception:
-                    pass
-            elif "End Mass" in line:
-                try:
-                    parameters["endMS"] = str2num(str(line.split()[2]))
-                except Exception:
-                    pass
-            if "Set Mass" in line:
-                try:
-                    parameters["setMS"] = str2num(str(line.split()[2]))
-                except Exception:
-                    pass
-            if "Scan Time (sec)" in line:
-                try:
-                    parameters["scanTime"] = str2num(str(line.split()[3]))
-                except Exception:
-                    pass
-            if "Polarity" in line:
-                try:
-                    parameters["ionPolarity"] = str(line.split()[1])
-                except Exception:
-                    pass
-            if "Sensitivity" in line:
-                try:
-                    parameters["modeSensitivity"] = str(line.split()[1])
-                except Exception:
-                    pass
-            if "Analyser" in line:
-                try:
-                    parameters["modeAnalyser"] = str(line.split()[1])
-                except Exception:
-                    pass
-            if "EDC Delay Coefficient" in line:
-                try:
-                    parameters["corrC"] = str2num(str(line.split()[3]))
-                except Exception:
-                    pass
-            if "Trap Collision Energy" in line:
-                if i == 1:
+        with open(fileName, "r") as f:
+            i = 0  # hacky way to get the correct collision voltage value
+            for line in f:
+                if "Start Mass" in line:
                     try:
-                        parameters["trapCE"] = str2num(str(line.split()[3]))
+                        parameters["startMS"] = str2num(str(line.split()[-1]))
                     except Exception:
                         pass
-                i += 1
-        f.close()
-        parameters = self.get_pusher_frequency(parameters=parameters, mode="V")
+                if "MSMS End Mass" in line:
+                    try:
+                        parameters["endMS"] = str2num(str(line.split()[-1]))
+                    except Exception:
+                        pass
+                elif "End Mass" in line:
+                    try:
+                        parameters["endMS"] = str2num(str(line.split()[-1]))
+                    except Exception:
+                        pass
+                if "Set Mass" in line:
+                    try:
+                        parameters["setMS"] = str2num(str(line.split()[-1]))
+                    except Exception:
+                        pass
+                if "Scan Time (sec)" in line or "Scan Time" in line:
+                    try:
+                        parameters["scanTime"] = str2num(str(line.split()[-1]))
+                    except Exception:
+                        pass
+                if "Polarity" in line:
+                    try:
+                        parameters["ionPolarity"] = str(line.split()[-1])
+                    except Exception:
+                        pass
+                if "Sensitivity" in line:
+                    try:
+                        parameters["modeSensitivity"] = str(line.split()[-1])
+                    except Exception:
+                        pass
+                if "Analyser" in line or "OpticMode" in line:
+                    try:
+                        parameters["modeAnalyser"] = str(line.split("\t")[-1]).strip()
+                    except Exception:
+                        pass
+                if "EDC Delay Coefficient" in line:
+                    try:
+                        parameters["corrC"] = str2num(str(line.split()[-1]))
+                    except Exception:
+                        pass
+                if "ADC Pusher Period (us)" in line:
+                    parameters["pusherFreq"] = str2num(line.split()[-1])
+                if "Trap Collision Energy" in line:
+                    if i == 1:
+                        try:
+                            parameters["trapCE"] = str2num(str(line.split()[-1]))
+                        except Exception:
+                            pass
+                    i += 1
+
+        if parameters["pusherFreq"] is None:
+            parameters = self.get_waters_pusher_frequency(parameters, mode=parameters["modeAnalyser"])
 
         return parameters
 

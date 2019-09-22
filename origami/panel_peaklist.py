@@ -1034,8 +1034,20 @@ class PanelPeaklist(wx.Panel):
         except AttributeError:
             pass
 
+        datasets = []
+        if information["ionName"] in document.IMS2Dions:
+            datasets.append("Drift time (2D, EIC)")
+        if information["ionName"] in document.IMS2DionsProcess:
+            datasets.append("Drift time (2D, processed, EIC)")
+        if information["ionName"] in document.IMS2DCombIons:
+            datasets.append("Drift time (2D, combined voltages, EIC)")
+
+        if not datasets:
+            datasets = ["Not extracted yet"]
+
         information["min_threshold"] = min_threshold
         information["max_threshold"] = max_threshold
+        information["datasets"] = datasets
 
         # Check whether the ion has combined ions
         parameters = None
@@ -1349,7 +1361,7 @@ class PanelPeaklist(wx.Panel):
     def on_add_to_table(self, add_dict, check_color=True):
 
         # get color
-        color = add_dict.get("color", self.config.customColors[get_random_int(0, 15)])
+        color = add_dict.get("color", next(self.config.custom_color_cycle))
         # check for duplicate color
         if check_color:
             color = self.on_check_duplicate_colors(color)
@@ -1362,7 +1374,7 @@ class PanelPeaklist(wx.Panel):
                 str(add_dict.get("charge", "")),
                 str(add_dict.get("mz_ymax", "")),
                 str(roundRGB(convertRGB255to1(color))),
-                str(add_dict.get("colormap", self.config.get_random_colormap())),
+                str(add_dict.get("colormap", next(self.config.overlay_cmap_cycle))),
                 str(add_dict.get("alpha", "")),
                 str(add_dict.get("mask", "")),
                 str(add_dict.get("label", "")),

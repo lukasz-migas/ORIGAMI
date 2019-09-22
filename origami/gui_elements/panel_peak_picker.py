@@ -651,6 +651,8 @@ class PanelPeakPicker(MiniFrame):
         mz_x = self.mz_data["xvals"]
         mz_y = self.mz_data["yvals"]
 
+        self.display_label.SetLabel("Started peak picking...")
+
         if self.config.peak_find_method == "small_molecule":
             peaks_dict = self.data_processing.find_peaks_in_mass_spectrum_peak_properties(
                 mz_x=mz_x, mz_y=mz_y, return_data=True

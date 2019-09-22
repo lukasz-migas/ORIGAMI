@@ -940,7 +940,7 @@ class DataHandling:
             "xlabels": "Scans",
             "yvals": yvals,
             "ylabels": "Drift time (bins)",
-            "cmap": item_information.get("colormap", self.config.currentCmap),
+            "cmap": item_information.get("colormap", next(self.config.overlay_cmap_cycle)),
             "yvals1D": yvals_DT,
             "yvalsRT": yvals_RT,
             "title": label,
@@ -1562,9 +1562,9 @@ class DataHandling:
 
         # predict charge state
         charge = self.data_processing.predict_charge_state(mz_xy[:, 0], mz_xy[:, 1], (mz_start, mz_end))
-        color = self.ionPanel.on_check_duplicate_colors(self.config.customColors[get_random_int(0, 15)])
+        color = self.ionPanel.on_check_duplicate_colors(next(self.config.custom_color_cycle))
         color = convertRGB255to1(color)
-        colormap = self.config.overlay_cmaps[get_random_int(0, len(self.config.overlay_cmaps) - 1)]
+        colormap = next(self.config.overlay_cmap_cycle)
         spectrum_name = f"{mz_start}-{mz_end}"
 
         if document.dataType in ["Type: ORIGAMI", "Type: MANUAL", "Type: Infrared"]:
@@ -2118,31 +2118,32 @@ class DataHandling:
             mz_start, mz_end = ut_labels.get_ion_name_from_label(ion_name, as_num=True)
 
             if charge is None:
-                charge = "1"
+                charge = 1
 
             # Create range name
             ion_name = item_information["ionName"]
 
+            # get spectral parameters
+            __, __, xlimits = self._get_spectrum_parameters(document)
+
             # Check that the mzStart/mzEnd are above the acquire MZ value
-            if mz_start < min(document.massSpectrum["xvals"]):
+            if mz_start < xlimits[0]:
                 self.ionList.ToggleItem(index=ion_id)
-                msg = (
-                    "Ion: {} was below the minimum value in the mass spectrum.".format(ion_name)
-                    + " Consider removing it from the list"
+                raise MessageError(
+                    "Error",
+                    f"Ion: {ion_name} was below the minimum value in the mass spectrum."
+                    + " Consider removing it from the list",
                 )
-                self.update_statusbar(msg, 4)
-                continue
 
             # Check whether this ion was already extracted
             if extract_type == "new" and document.gotExtractedIons:
                 if ion_name in document.IMS2Dions:
-                    self.update_statusbar("Data was already extracted for the : {} ion".format(ion_name), 4)
+                    logger.info(f"Data was already extracted for the : {ion_name} ion")
                     n_items -= 1
                     continue
-
             elif extract_type == "new" and document.gotCombinedExtractedIons:
                 if ion_name in document.IMS2DCombIons:
-                    self.update_statusbar("Data was already extracted for the : {} ion".format(ion_name), 4)
+                    logger.info(f"Data was already extracted for the : {ion_name} ion")
                     n_items -= 1
                     continue
 
@@ -2151,24 +2152,21 @@ class DataHandling:
                 n_items -= 1
                 continue
 
-            n_extracted += 1
             if document.dataType == "Type: ORIGAMI":
                 self.on_add_ion_ORIGAMI(
                     item_information, document, path, mz_start, mz_end, mz_y_max, ion_name, label, charge
                 )
-
             # Check if manual dataset
             elif document.dataType == "Type: MANUAL":
                 self.on_add_ion_MANUAL(
                     item_information, document, mz_start, mz_end, mz_y_max, ion_name, ion_id, charge, label
                 )
-
+            # check if infrared type document
             elif document.dataType == "Type: Infrared":
                 self.on_add_ion_IR(item_information, document, path, mz_start, mz_end, ion_name, ion_id, charge, label)
-            else:
-                return
-            msg = "Extracted: {}/{}".format((n_extracted), n_items)
-            self.update_statusbar(msg, 4)
+
+            n_extracted += 1
+            self.update_statusbar(f"Extracted: {n_extracted}/{n_items}", 4)
 
     def on_open_multiple_ML_files_fcn(self, open_type, pathlist=[]):
 
