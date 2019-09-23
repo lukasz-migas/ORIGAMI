@@ -2151,6 +2151,7 @@ class OrigamiConfig:
                 "scanTime",
                 "ionPolarity",
                 "modeSensitivity",
+                "modeAnalyser",
                 "pusherFreq",
                 "corrC",
                 "trapCE",
