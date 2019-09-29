@@ -6,7 +6,7 @@ import webbrowser
 import wx.html
 
 
-class panelHTMLViewer(wx.MiniFrame):
+class PanelHTMLViewer(wx.MiniFrame):
     def __init__(self, parent, config, msg=None, title=None, **kwargs):
         wx.MiniFrame.__init__(
             self,

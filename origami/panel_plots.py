@@ -1,3 +1,4 @@
+"""Plotting panel"""
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 import logging
@@ -11,6 +12,7 @@ import numpy as np
 import processing.UniDec.utilities as unidec_utils
 import seaborn as sns
 import wx
+from gui_elements.dialog_customise_plot import DialogCustomisePlot
 from gui_elements.misc_dialogs import DialogBox
 from icons.icons import IconContainer
 from ids import ID_clearPlot_1D
@@ -80,10 +82,9 @@ from ids import ID_saveWaterfallImageDoc
 from ids import ID_smooth1Ddata1DT
 from ids import ID_smooth1DdataRT
 from natsort import natsorted
-from panelCustomisePlot import panel_customise_plot
 from pubsub import pub
 from styles import make_menu_item
-from toolbox import merge_two_dicts
+from utils.misc import merge_two_dicts
 from utils.check import isempty
 from utils.color import convert_rgb_1_to_255
 from utils.color import convert_rgb_1_to_hex
@@ -100,6 +101,8 @@ logger = logging.getLogger("origami")
 
 
 class PanelPlots(wx.Panel):
+    """Plotting panel instance"""
+
     def __init__(self, parent, config, presenter):
         wx.Panel.__init__(
             self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(800, 600), style=wx.TAB_TRAVERSAL
@@ -137,7 +140,7 @@ class PanelPlots(wx.Panel):
         # initilise pub
         pub.subscribe(self._update_label_position, "update_text_position")
 
-    def _setup_handling_and_processing(self):
+    def setup_handling_and_processing(self):
         self.data_processing = self.view.data_processing
         self.data_handling = self.view.data_handling
         self.document_tree = self.view.panelDocuments.documents
@@ -315,14 +318,14 @@ class PanelPlots(wx.Panel):
 
     def on_get_plot_data(self):
         plot_obj = self.get_plot_from_name(self.currentPage)
-        xs, ys, labels, xlabel, ylabel = plot_obj.plot_1D_get_data()
+        xvals, yvals, labels, xlabel, ylabel = plot_obj.plot_1D_get_data()
 
-        return plot_obj, xs, ys, labels, xlabel, ylabel
+        return plot_obj, xvals, yvals, labels, xlabel, ylabel
 
     def on_smooth_spectrum(self, evt):
         #         """Smooth plot signal"""
         try:
-            plot_obj, xs, ys, labels, xlabel, ylabel = self.on_get_plot_data()
+            plot_obj, xvals, yvals, labels, xlabel, ylabel = self.on_get_plot_data()
         except AttributeError:
             raise MessageError("Plot is empty", "There are no signals in the plot to smooth")
         #         plot_obj = self.get_plot_from_name(self.currentPage)
@@ -335,20 +338,20 @@ class PanelPlots(wx.Panel):
         #             raise MessageError("Not supported yet",
         #                                "At the moment signal smoothing is only supported for plots with one signal." +
         #                                f" This one appears to have {n_signals}")
-        ys = self.data_processing.on_smooth_1D_signal(ys)
+        yvals = self.data_processing.on_smooth_1D_signal(yvals)
 
         plt_kwargs = self._buildPlotParameters(plotType="1D")
-        plot_obj.plot_1D_update_data(xs[0], ys[0], xlabel, ylabel, label=labels[0], **plt_kwargs)
+        plot_obj.plot_1D_update_data(xvals[0], yvals[0], xlabel, ylabel, label=labels[0], **plt_kwargs)
         plot_obj.repaint()
 
     def on_process_spectrum(self, evt):
         plot_obj = self.get_plot_from_name(self.currentPage)
         try:
-            xs, ys, __, xlabel, ylabel = plot_obj.plot_1D_get_data()
+            xvals, yvals, __, xlabel, ylabel = plot_obj.plot_1D_get_data()
         except AttributeError:
             raise MessageError("Plot is empty", "There are no signals in the plot to smooth")
 
-        data = {"xvals": xs[0], "yvals": ys[0], "xlabels": xlabel, "ylabels": ylabel}
+        data = {"xvals": xvals[0], "yvals": yvals[0], "xlabels": xlabel, "ylabels": ylabel}
         self.document_tree.on_process_MS_plot_only(data)
 
     def on_process_heatmap(self, evt):
@@ -1112,7 +1115,7 @@ class PanelPlots(wx.Panel):
         except AttributeError as err:
             raise MessageError("Error", "Cannot customise plot parameters if the plot does not exist." + f"\n{err}")
 
-        dlg = panel_customise_plot(self, self.presenter, self.config, **kwargs)
+        dlg = DialogCustomisePlot(self, self.presenter, self.config, **kwargs)
         dlg.ShowModal()
 
     def on_rotate_plot(self, evt):
@@ -3005,7 +3008,7 @@ class PanelPlots(wx.Panel):
                     set_data()
                 return
             except Exception:
-                logging.info("Failed to quickly plot heatmap", exc_info=False)
+                logger.info("Failed to quickly plot heatmap", exc_info=False)
 
         # Plot 2D dataset
         plot_obj.clearPlot()
@@ -3707,6 +3710,7 @@ class PanelPlots(wx.Panel):
         self.bottomPlot1DT.repaint()
 
     def plot_2D_update_label(self):
+        from utils.visuals import calculate_label_position
 
         try:
             if self.plot2D.plot_name == "RMSD":
@@ -3717,9 +3721,9 @@ class PanelPlots(wx.Panel):
                 return
 
             plt_kwargs = self._buildPlotParameters(plotType="RMSF")
-            rmsdXpos, rmsdYpos = self.presenter.onCalculateRMSDposition(xlist=xvals, ylist=yvals)
+            label_x_pos, label_y_pos = calculate_label_position(xvals, yvals, self.config.rmsd_location)
 
-            plt_kwargs["rmsd_label_coordinates"] = [rmsdXpos, rmsdYpos]
+            plt_kwargs["rmsd_label_coordinates"] = [label_x_pos, label_y_pos]
             plt_kwargs["rmsd_label_color"] = self.config.rmsd_color
 
             self.plot2D.plot_2D_update_label(**plt_kwargs)
@@ -4036,13 +4040,16 @@ class PanelPlots(wx.Panel):
         plot_obj.repaint()
 
     def plot_colorbar_update(self, plot_window="", **kwargs):
+
         if plot_window is None and "plot_obj" in kwargs:
             plot_obj = kwargs.get("plot_obj")
         else:
             plot_obj = self.get_plot_from_name(plot_window)
 
+        # get parameters
         plt_kwargs = self._buildPlotParameters(plotType="2D")
 
+        # update plot
         plot_obj.plot_2D_colorbar_update(**plt_kwargs)
         plot_obj.repaint()
 

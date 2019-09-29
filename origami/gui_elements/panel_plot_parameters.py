@@ -65,6 +65,7 @@ class PanelVisualisationSettingsEditor(wx.Panel):
 
         # fire-up some events
         self.on_toggle_controls_1d(evt=None)
+        self.on_toggle_controls_2d(evt=None)
         self.on_toggle_controls_colorbar(evt=None)
         self.on_toggle_controls_legend(evt=None)
         self.on_toggle_controls_waterfall(evt=None)
@@ -90,7 +91,7 @@ class PanelVisualisationSettingsEditor(wx.Panel):
 
         self.import_evt = False
 
-    def _setup_handling_and_processing(self):
+    def setup_handling_and_processing(self):
         self.data_processing = self.view.data_processing
         self.data_handling = self.view.data_handling
 
@@ -111,6 +112,7 @@ class PanelVisualisationSettingsEditor(wx.Panel):
     def on_page_changed(self, evt):
         tstart = ttime()
         self.current_page = self.main_book.GetPageText(self.main_book.GetSelection())
+        self.SetFocus()
         logger.info(f"Changed window to `{self.current_page}` in {ttime()-tstart:.2f}")
 
     def on_set_page(self, **kwargs):
@@ -1116,12 +1118,12 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         self.violin_line_style_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.violin_line_style_value.Bind(wx.EVT_CHOICE, self.on_update_2d)
 
-        violin_lineColor_label = wx.StaticText(panel, -1, "Line color:")
-        self.violin_colorLineBtn = wx.Button(
+        violin_line_color = wx.StaticText(panel, -1, "Line color:")
+        self.violin_color_line_btn = wx.Button(
             panel, ID_extraSettings_lineColour_violin, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="color"
         )
-        self.violin_colorLineBtn.SetBackgroundColour(convert_rgb_1_to_255(self.config.violin_color))
-        self.violin_colorLineBtn.Bind(wx.EVT_BUTTON, self.on_assign_color)
+        self.violin_color_line_btn.SetBackgroundColour(convert_rgb_1_to_255(self.config.violin_color))
+        self.violin_color_line_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
         self.violin_line_sameAsShade_check = make_checkbox(panel, "Same as fill", name="color")
         self.violin_line_sameAsShade_check.SetValue(self.config.violin_line_sameAsShade)
@@ -1228,9 +1230,9 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         plot_grid.Add(violin_line_style, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         plot_grid.Add(self.violin_line_style_value, (y, 1), flag=wx.EXPAND)
         y += 1
-        plot_grid.Add(violin_lineColor_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        plot_grid.Add(violin_line_color, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         plot_grid.Add(self.violin_line_sameAsShade_check, (y, 1), flag=wx.EXPAND)
-        plot_grid.Add(self.violin_colorLineBtn, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        plot_grid.Add(self.violin_color_line_btn, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         y += 1
         plot_grid.Add(violin_color_scheme_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         plot_grid.Add(self.violin_colorScheme_value, (y, 1), flag=wx.EXPAND)
@@ -2491,7 +2493,7 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         self.config._plots_extract_crossover_2D = self.zoom_extract_crossover_2d_value.GetValue()
 
         # fire events
-        self.presenter.view.updatePlots(None)
+        self.presenter.view.on_update_interaction_settings(None)
 
         if self.config.autoSaveSettings:
             self.data_handling.on_export_config_fcn(None, False)
@@ -2662,7 +2664,7 @@ class PanelVisualisationSettingsEditor(wx.Panel):
 
         elif evtID == ID_extraSettings_lineColour_violin:
             self.config.violin_color = color_1
-            self.violin_colorLineBtn.SetBackgroundColour(color_255)
+            self.violin_color_line_btn.SetBackgroundColour(color_255)
             self.on_update_2d(evt)
 
         elif evtID == ID_extraSettings_shadeColour_violin:
@@ -2725,7 +2727,6 @@ class PanelVisualisationSettingsEditor(wx.Panel):
     def on_update(self, evt):
 
         self.on_apply_1D(None)
-
         if self.panel_plot.currentPage in ["Mass spectrum", "Chromatogram", "Mobilogram"]:
             if self.panel_plot.window_plot1D == "Mass spectrum":
                 self.panel_plot.plot_1D_update(plotName="MS")
@@ -2784,8 +2785,10 @@ class PanelVisualisationSettingsEditor(wx.Panel):
 
     def on_update_2d(self, evt):
 
+        # update config values
         self.on_apply_1D(None)
         self.on_apply_2D(None)
+
         try:
             source = evt.GetEventObject().GetName()
         except Exception:
@@ -2938,9 +2941,9 @@ class PanelVisualisationSettingsEditor(wx.Panel):
     def on_toggle_controls_violin(self, evt):
         self.config.violin_line_sameAsShade = self.violin_line_sameAsShade_check.GetValue()
         if not self.config.violin_line_sameAsShade:
-            self.violin_colorLineBtn.Enable()
+            self.violin_color_line_btn.Enable()
         else:
-            self.violin_colorLineBtn.Disable()
+            self.violin_color_line_btn.Disable()
 
         self.config.violin_color_value = self.violin_colorScheme_value.GetStringSelection()
         if self.config.violin_color_value == "Same color":
@@ -3095,7 +3098,7 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         if evtID == ID_extraSettings_multiThreading:
             on_off = "enabled" if self.config.threading else "disabled"
             msg = f"Multi-threading was `{on_off}``"
-            self.presenter.view.onEnableDisableThreading(evt=None)
+            self.presenter.view.on_toggle_multithreading(evt=None)
 
         elif evtID == ID_extraSettings_autoSaveSettings:
             on_off = "enabled" if self.config.autoSaveSettings else "disabled"

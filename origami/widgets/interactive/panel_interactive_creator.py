@@ -126,7 +126,7 @@ from ids import ID_interactivePanel_table_type
 from ids import ID_ionPanel_table_label
 from ids import ID_ionPanel_table_method
 from natsort import natsorted
-from panelCustomiseInteractive import panelCustomiseInteractive
+from widgets.interactive.panel_customise_interactive_plot import PanelCustomiseInteractivePlot
 from processing.spectra import crop_1D_data
 from processing.spectra import linearize_data
 from processing.spectra import normalize_1D
@@ -136,16 +136,17 @@ from styles import make_checkbox
 from styles import make_menu_item
 from styles import make_static_text
 from styles import make_staticbox
-from toolbox import find_limits_all
-from toolbox import find_limits_list
-from toolbox import merge_two_dicts
-from toolbox import remove_nan_from_list
+from utils.ranges import find_limits_all
+from utils.ranges import find_limits_list
+from utils.misc import merge_two_dicts
+from utils.misc import remove_nan_from_list
 from utils.color import convert_hex_to_rgb_255
 from utils.color import convert_rgb_1_to_255
 from utils.color import convert_rgb_1_to_hex
 from utils.color import get_font_color
 from utils.converters import str2int
 from utils.labels import _replace_labels
+from utils.visuals import calculate_label_position
 
 # from bokeh.embed import components
 # from bokeh.models import FixedTicker
@@ -163,7 +164,7 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 warnings.filterwarnings("ignore", category=UnicodeWarning)
 
 
-class panelInteractiveOutput(wx.MiniFrame):
+class PanelInteractiveCreator(wx.MiniFrame):
     """Save data in an interactive format"""
 
     def __init__(self, parent, icons, presenter, config):
@@ -182,11 +183,10 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.presenter = presenter
         self.config = config
         self.documentsDict = self.presenter.documentsDict
-        self.docsText = self.presenter.docsText
-        self.currentPath = self.presenter.currentPath
+        self.currentPath = None
         self.currentDocumentName = "ORIGAMI"
 
-        self._setup_handling_and_processing()
+        self.setup_handling_and_processing()
 
         try:
             _main_position = self.view.GetPosition()
@@ -240,7 +240,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         self.peaklist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_item)
         self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
 
-    def _setup_handling_and_processing(self):
+    def setup_handling_and_processing(self):
         self.data_processing = self.view.data_processing
         self.data_handling = self.view.data_handling
 
@@ -752,8 +752,9 @@ class panelInteractiveOutput(wx.MiniFrame):
             return
         data = self.__get_item_data(name, key, innerKey)
 
-        kwargs = dict(data=data, document_title=name, item_type=key, item_title=innerKey)
-        self.itemEditor = panelCustomiseInteractive(self.presenter, self, self.config, self.icons, **kwargs)
+        self.itemEditor = PanelCustomiseInteractivePlot(
+            self.presenter, self, self.config, self.icons,
+            data=data, document_title=name, item_type=key, item_title=innerKey)
         self.itemEditor.Show()
 
     def onUpdateItemParameters(self, name, key, innerKey, parameters):
@@ -766,7 +767,6 @@ class panelInteractiveOutput(wx.MiniFrame):
         """
 
         document = self.data_handling.on_get_document(name)
-        #         document = self.documentsDict[name]
 
         if key == "MS" and innerKey == "":
             document.massSpectrum["interactive_params"] = parameters
@@ -6217,7 +6217,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         cds = ColumnDataSource(data=z_data)
 
         # calculate position of RMSD label
-        rmsdXpos, rmsdYpos = self.presenter.onCalculateRMSDposition(xlist=xvals, ylist=yvals)
+        rmsdXpos, rmsdYpos = calculate_label_position(xvals, yvals, self.config.rmsd_location)
 
         # get colormapper and palette
         colorMapper, bokehpalette = self._convert_cmap_to_colormapper(cmap, zvals=zvals, return_palette=True)
@@ -6333,7 +6333,7 @@ class panelInteractiveOutput(wx.MiniFrame):
         cds = ColumnDataSource(data=z_data)
 
         # Calculate position of RMSD label
-        rmsdXpos, rmsdYpos = self.presenter.onCalculateRMSDposition(xlist=xvals, ylist=yvals)
+        rmsdXpos, rmsdYpos = calculate_label_position(xvals, yvals, self.config.rmsd_location)
         colorMapper, bokehpalette = self._convert_cmap_to_colormapper(cmap, zvals=zvals, return_palette=True)
         hoverTool = HoverTool(
             tooltips=[(xlabelRMSD, "$x{0.00}"), (ylabelRMSD, "$y{0.00}"), ("Intensity", "@image")],

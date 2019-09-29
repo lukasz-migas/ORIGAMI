@@ -127,7 +127,7 @@ class PanelPeaklist(wx.Panel):
         wx.EVT_MENU(self, ID_ionPanel_check_selected, self.on_check_selected)
         wx.EVT_MENU(self, ID_ionPanel_delete_rightClick, self.on_delete_item)
 
-    def _setup_handling_and_processing(self):
+    def setup_handling_and_processing(self):
         self.data_processing = self.view.data_processing
         self.data_handling = self.view.data_handling
         self.data_visualisation = self.view.data_visualisation

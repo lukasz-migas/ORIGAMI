@@ -15,7 +15,7 @@ from utils.color import convert_rgb_1_to_255
 from utils.converters import str2num
 
 
-class panelCustomiseInteractive(wx.MiniFrame):
+class PanelCustomiseInteractivePlot(wx.MiniFrame):
     """
     Panel where you can customise interactive plots
     """

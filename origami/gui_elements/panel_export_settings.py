@@ -5,7 +5,7 @@ from help_documentation import OrigamiHelp
 from styles import make_checkbox
 
 
-class panelExportSettings(wx.MiniFrame):
+class PanelExportSettings(wx.MiniFrame):
     def __init__(self, parent, presenter, config, icons, **kwargs):
         wx.MiniFrame.__init__(
             self,

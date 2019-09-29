@@ -356,8 +356,8 @@ class PanelSignalComparisonViewer(MiniFrame):
         self.plot_btn.Bind(wx.EVT_BUTTON, self.on_plot)
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
-        self.settings_btn.Bind(wx.EVT_BUTTON, self.presenter.view.onPlotParameters)
-        self.legend_btn.Bind(wx.EVT_BUTTON, self.presenter.view.onPlotParameters)
+        self.settings_btn.Bind(wx.EVT_BUTTON, self.presenter.view.on_open_plot_settings_panel)
+        self.legend_btn.Bind(wx.EVT_BUTTON, self.presenter.view.on_open_plot_settings_panel)
         self.process_btn.Bind(wx.EVT_BUTTON, self.on_open_process_MS_settings)
 
         # button grid

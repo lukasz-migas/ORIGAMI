@@ -45,7 +45,7 @@ class DataVisualization:
         # add application defaults
         self.plot_page = None
 
-    def _setup_handling_and_processing(self):
+    def setup_handling_and_processing(self):
         self.data_handling = self.view.data_handling
         self.data_processing = self.view.data_processing
 
@@ -1509,3 +1509,69 @@ class DataVisualization:
         cmaplist = data.get("cmaps", ["Reds", "Greens"])
 
         self.panelPlots.on_plot_n_grid(zlist, cmaplist, legend, xlist, ylist, xlabel, ylabel, **kwargs)
+
+    # def restrictRMSDrange(self, zvals, xvals, yvals, limits):
+    #     """
+    #     This function adjusts the size of the RMSD array to match the selected
+    #     sizes from the GUI
+    #     """
+    #     # Get limits
+    #     xmin, xmax, ymin, ymax = limits
+
+    #     if xmin > xmax:
+    #         xmin_temp = xmax
+    #         xmax = xmin
+    #         xmin = xmin_temp
+
+    #     if ymin > ymax:
+    #         ymin_temp = ymax
+    #         ymax = ymin
+    #         ymin = ymin_temp
+
+    #     #         print(xmin, xmax, ymin, ymax)
+
+    #     if xmin is None:
+    #         xmin = xvals[0]
+    #     if xmax is None:
+    #         xmax = xvals[-1]
+    #     if ymin is None:
+    #         ymin = xvals[0]
+    #     if ymax is None:
+    #         ymax = xvals[-1]
+
+    #     # Find nearest values
+    #     __, idxXmin = find_nearest(np.array(xvals), xmin)
+    #     __, idxXmax = find_nearest(np.array(xvals), xmax)
+    #     __, idxYmin = find_nearest(np.array(yvals), ymin)
+    #     __, idxYmax = find_nearest(np.array(yvals), ymax)
+
+    #     # in case index is returned as 0, return original value
+    #     msg = "".join([""])
+    #     if idxXmax == 0:
+    #         msg = "Your Xmax value is too small - reseting to maximum"
+    #         idxXmax = len(xvals)
+    #     if idxXmin == idxXmax:
+    #         msg = "Your X-axis values are too close together - reseting to original view"
+    #         idxXmin = 0
+    #         idxXmax = len(xvals)
+
+    #     if idxYmax == 0:
+    #         msg = "Your Ymax value is too small - reseting to maximum"
+    #         idxYmax = len(yvals)
+    #     if idxYmin == idxYmax:
+    #         msg = "Your Y-axis values are too close together - reseting to original view"
+    #         idxYmin = 0
+    #         idxYmax = len(yvals)
+
+    #     zvals = zvals[idxYmin:idxYmax, idxXmin:idxXmax]
+    #     xvals = xvals[idxXmin:idxXmax]
+    #     yvals = yvals[idxYmin:idxYmax]
+    #     self.onThreading(None, (msg, 4), action="updateStatusbar")
+
+    #     return zvals, xvals, yvals
+
+    # def setXYlimitsRMSD2D(self, xvals, yvals):
+    #     # Get min/max values
+    #     xmin, xmax = xvals[0], xvals[-1]
+    #     ymin, ymax = yvals[0], yvals[-1]
+    #     self.config.xyLimitsRMSD = [xmin, xmax, ymin, ymax]

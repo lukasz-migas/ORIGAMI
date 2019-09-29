@@ -12,7 +12,7 @@ import wx
 import wx.lib.mixins.listctrl as listmix
 from gui_elements.dialog_customise_peptide_annotations import DialogCustomisePeptideAnnotations
 from gui_elements.misc_dialogs import DialogBox
-from gui_elements.panel_htmlViewer import panelHTMLViewer
+from gui_elements.panel_html_viewer import PanelHTMLViewer
 from ids import ID_uvpd_laser_off_save_chromatogram
 from ids import ID_uvpd_laser_off_save_heatmap
 from ids import ID_uvpd_laser_off_save_mobilogram
@@ -36,7 +36,7 @@ from styles import make_checkbox
 from styles import make_menu_item
 from styles import make_staticbox
 from styles import validator
-from toolbox import saveAsText
+from readers.io_text_files import saveAsText
 from utils.converters import str2int
 from utils.converters import str2num
 
@@ -185,7 +185,7 @@ class PanelUVPDEditor(wx.MiniFrame):
         """.strip()
         kwargs = {"msg": msg, "title": "Learn about: Annotating mass spectra", "window_size": (600, 450)}
 
-        htmlViewer = panelHTMLViewer(self, self.config, **kwargs)
+        htmlViewer = PanelHTMLViewer(self, self.config, **kwargs)
         htmlViewer.Show()
 
     def on_delete_peaklist(self, evt):

@@ -20,7 +20,7 @@ from styles import ListCtrl
 from styles import make_checkbox
 from styles import make_menu_item
 from styles import make_staticbox
-from toolbox import removeListDuplicates
+from utils.misc import removeListDuplicates
 from utils.converters import str2int
 from utils.converters import str2num
 

@@ -20,10 +20,10 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from processing.heatmap import normalize_2D
 from processing.spectra import normalize_1D
 from seaborn import color_palette
-from toolbox import find_limits_all
-from toolbox import find_limits_list
-from toolbox import merge_two_dicts
-from toolbox import remove_nan_from_list
+from utils.ranges import find_limits_all
+from utils.ranges import find_limits_list
+from utils.misc import merge_two_dicts
+from utils.misc import remove_nan_from_list
 from utils.adjustText import adjust_text
 from utils.color import convert_rgb_1_to_255
 from utils.color import get_font_color
@@ -192,7 +192,7 @@ class plots(mpl_plotter):
                 ticks[1] = 0
 
             self.cbar.ticks = ticks
-            #             self.cbar.tick_labels = tick_labels
+            self.cbar.tick_labels = tick_labels
 
             if kwargs["colorbar_position"] in ["left", "right"]:
                 self.figure.colorbar(self.cax, cax=self.cbar, ticks=ticks, orientation="vertical")
@@ -1469,52 +1469,60 @@ class plots(mpl_plotter):
             print(msg)
             return
 
-        try:
-            if kwargs["colorbar"]:
-                cbarDivider = make_axes_locatable(self.plotMS)
+        #         try:
+        # add colorbar
+        if kwargs["colorbar"]:
+            cbarDivider = make_axes_locatable(self.plotMS)
 
-                if hasattr(self.cbar, "ticks"):
-                    ticks = self.cbar.ticks
-                elif hasattr(self, "ticks"):
-                    ticks = self.ticks
-
-                if hasattr(self.cbar, "tick_labels"):
-                    tick_labels = self.cbar.tick_labels
-                elif hasattr(self, "tick_labels"):
-                    tick_labels = self.tick_labels
-
-                try:
-                    self.cbar.remove()
-                except Exception:
-                    pass
-                self.cbar = cbarDivider.append_axes(
-                    kwargs["colorbar_position"],
-                    size="".join([str(kwargs["colorbar_width"]), "%"]),
-                    pad=kwargs["colorbar_pad"],
-                )
-
-                self.cbar.ticks = ticks
-                self.cbar.tick_labels = tick_labels
-
-                if kwargs["colorbar_position"] in ["left", "right"]:
-                    self.figure.colorbar(self.cax, cax=self.cbar, ticks=ticks, orientation="vertical")
-                    self.cbar.yaxis.set_ticks_position(kwargs["colorbar_position"])
-                    self.cbar.set_yticklabels(tick_labels)
-                else:
-                    self.figure.colorbar(self.cax, cax=self.cbar, ticks=ticks, orientation="horizontal")
-                    self.cbar.xaxis.set_ticks_position(kwargs["colorbar_position"])
-                    self.cbar.set_xticklabels(tick_labels)
-
-                self.cbar.tick_params(labelsize=kwargs["colorbar_label_size"])
+            if hasattr(self.cbar, "ticks"):
+                ticks = self.cbar.ticks
+            elif hasattr(self, "ticks"):
+                ticks = self.ticks
             else:
-                if hasattr(self.cbar, "ticks"):
-                    self.ticks = self.cbar.ticks
-                if hasattr(self.cbar, "tick_labels"):
-                    self.tick_labels = self.cbar.tick_labels
+                raise ValueError("Could not identify ticks")
 
+            if hasattr(self.cbar, "tick_labels"):
+                tick_labels = self.cbar.tick_labels
+            elif hasattr(self, "tick_labels"):
+                tick_labels = self.tick_labels
+            else:
+                raise ValueError("Could not identify tick labels")
+
+            try:
                 self.cbar.remove()
-        except Exception:
-            pass
+            except Exception:
+                pass
+
+            self.cbar = cbarDivider.append_axes(
+                kwargs["colorbar_position"],
+                size="".join([str(kwargs["colorbar_width"]), "%"]),
+                pad=kwargs["colorbar_pad"],
+            )
+
+            self.cbar.ticks = ticks
+            self.cbar.tick_labels = tick_labels
+
+            if kwargs["colorbar_position"] in ["left", "right"]:
+                self.figure.colorbar(self.cax, cax=self.cbar, ticks=ticks, orientation="vertical")
+                self.cbar.yaxis.set_ticks_position(kwargs["colorbar_position"])
+                self.cbar.set_yticklabels(tick_labels)
+            else:
+                self.figure.colorbar(self.cax, cax=self.cbar, ticks=ticks, orientation="horizontal")
+                self.cbar.xaxis.set_ticks_position(kwargs["colorbar_position"])
+                self.cbar.set_xticklabels(tick_labels)
+
+            self.cbar.tick_params(labelsize=kwargs["colorbar_label_size"])
+        # remove colorbar
+        else:
+            if hasattr(self.cbar, "ticks"):
+                self.ticks = self.cbar.ticks
+            if hasattr(self.cbar, "tick_labels"):
+                self.tick_labels = self.cbar.tick_labels
+
+            self.cbar.remove()
+
+    #         except Exception as err:
+    #             logger.warning(err)
 
     def plot_2D_update_normalization(self, **kwargs):
 

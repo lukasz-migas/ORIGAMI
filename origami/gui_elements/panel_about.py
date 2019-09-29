@@ -9,7 +9,7 @@ from ids import ID_helpNewFeatures
 from ids import ID_helpReportBugs
 
 
-class panelAbout(wx.MiniFrame):
+class PanelAbout(wx.MiniFrame):
     """About panel."""
 
     def __init__(self, parent, presenter, frameTitle, config, icons):

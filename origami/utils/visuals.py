@@ -15,14 +15,14 @@ def calculate_label_position(xlist, ylist, xy_loc_multiplier=None):
     x_loc_multiplier, y_loc_multiplier = xy_loc_multiplier
 
     # Get values
-    xMin = np.min(xlist)
-    xMax = np.max(xlist)
-    yMin = np.min(ylist)
-    yMax = np.max(ylist)
+    x_min = np.min(xlist)
+    x_max = np.max(xlist)
+    y_min = np.min(ylist)
+    y_max = np.max(ylist)
 
     # Calculate RMSD positions
-    label_x_pos = xMin + ((xMax - xMin) * x_loc_multiplier) / 100
-    label_y_pos = yMin + ((yMax - yMin) * y_loc_multiplier) / 100
+    label_x_pos = x_min + ((x_max - x_min) * x_loc_multiplier) / 100
+    label_y_pos = y_min + ((y_max - y_min) * y_loc_multiplier) / 100
 
     return label_x_pos, label_y_pos
 

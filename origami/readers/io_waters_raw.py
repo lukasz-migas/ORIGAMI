@@ -8,7 +8,7 @@ from subprocess import Popen
 import numpy as np
 from gui_elements.misc_dialogs import DialogBox
 from readers.io_utils import clean_up
-from toolbox import strictly_increasing
+from utils.misc import strictly_increasing
 from utils.path import check_waters_path
 
 logger = logging.getLogger("origami")

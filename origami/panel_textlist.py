@@ -50,7 +50,7 @@ from numpy import arange
 from styles import ListCtrl
 from styles import make_menu_item
 from styles import make_tooltip
-from toolbox import removeListDuplicates
+from utils.misc import removeListDuplicates
 from utils.check import isempty
 from utils.color import convert_rgb_1_to_255
 from utils.color import convert_rgb_255_to_1
@@ -120,7 +120,7 @@ class PanelTextlist(wx.Panel):
     def __del__(self):
         pass
 
-    def _setup_handling_and_processing(self):
+    def setup_handling_and_processing(self):
         self.data_processing = self.view.data_processing
         self.data_handling = self.view.data_handling
         self.data_visualisation = self.view.data_visualisation

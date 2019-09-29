@@ -120,7 +120,7 @@ class PanelMultiFile(wx.Panel):
     def __del__(self):
         pass
 
-    def _setup_handling_and_processing(self):
+    def setup_handling_and_processing(self):
         self.data_processing = self.view.data_processing
         self.data_handling = self.view.data_handling
 
@@ -634,7 +634,7 @@ class PanelMultiFile(wx.Panel):
         # set new column width
         self.peaklist.SetColumnWidth(col_index, col_width)
 
-    def onOpenFile_DnD(self, pathlist):
+    def on_open_file_from_dnd(self, pathlist):
         self.data_handling.on_open_multiple_ML_files_fcn(open_type="multiple_files_add", pathlist=pathlist)
 
     def on_plot_MS(self, evt):
@@ -1120,4 +1120,4 @@ class DragAndDrop(wx.FileDropTarget):
                 print("Dropped file {} is not supported".format(filename))
 
         if len(pathlist) > 0:
-            self.window.onOpenFile_DnD(pathlist)
+            self.window.on_open_file_from_dnd(pathlist)

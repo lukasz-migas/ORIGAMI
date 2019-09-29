@@ -55,7 +55,7 @@ class DataProcessing:
         self.unidec_dataset = None
         self.unidec_document = None
 
-    def _setup_handling_and_processing(self):
+    def setup_handling_and_processing(self):
         self.data_handling = self.view.data_handling
 
     def on_get_document(self):

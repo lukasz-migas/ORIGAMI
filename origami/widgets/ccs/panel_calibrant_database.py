@@ -10,10 +10,8 @@ from utils.converters import str2int
 from utils.converters import str2num
 
 
-class panelCalibrantDB(wx.MiniFrame):
-    """
-    Simple GUI panel to display CCS calibrant database selection
-    """
+class PanelCalibrantDatabase(wx.MiniFrame):
+    """UI controls to display loaded CCS calibration database"""
 
     def __init__(self, parent, presenter, config, mode):
         wx.MiniFrame.__init__(

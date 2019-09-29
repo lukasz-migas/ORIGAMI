@@ -3,9 +3,8 @@
 import wx
 
 
-class panelInformation(wx.MiniFrame):
-    """
-    """
+class PanelInformation(wx.MiniFrame):
+    """"""
 
     def __init__(self, parent, **kwargs):
         wx.MiniFrame.__init__(

@@ -23,10 +23,6 @@ from gui_elements.misc_dialogs import DialogBox
 from ids import ID_load_masslynx_raw
 from ids import ID_load_origami_masslynx_raw
 from ids import ID_openIRRawFile
-from ids import ID_window_ccsList
-from ids import ID_window_ionList
-from ids import ID_window_multiFieldList
-from ids import ID_window_multipleMLList
 from processing.utils import find_nearest_index
 from processing.utils import get_maximum_value_in_range
 from pubsub import pub
@@ -39,7 +35,6 @@ from utils.color import convert_rgb_1_to_255
 from utils.color import convert_rgb_255_to_1
 from utils.color import get_random_color
 from utils.converters import byte2str
-from utils.converters import str2int
 from utils.converters import str2num
 from utils.exceptions import MessageError
 from utils.path import check_path_exists
@@ -131,8 +126,6 @@ class DataHandling:
             _thread = threading.Thread(target=self.on_open_document, args=args)
         elif action == "extract.data.user":
             _thread = threading.Thread(target=self.on_extract_data_from_user_input, args=args, **kwargs)
-        #             self.pool_data = self.thread_pool.apply_async(
-        #                 self.on_extract_data_from_user_input, args=args, kwds=kwargs)
         elif action == "export.config":
             _thread = threading.Thread(target=self.on_export_config, args=args)
         elif action == "import.config":
@@ -648,7 +641,7 @@ class DataHandling:
 
         try:
             self.config.loadConfigXML(path=config_path)
-            self.view.updateRecentFiles()
+            self.view.on_update_recent_files()
             logger.info(f"Loaded configuration file: {config_path}")
         except TypeError as err:
             logger.error(f"Failed to load configuration file: {config_path}")
@@ -1195,7 +1188,7 @@ class DataHandling:
         self.on_update_document(document, "document")
 
         # Update document
-        self.view.updateRecentFiles(path={"file_type": "Text", "file_path": path})
+        self.view.on_update_recent_files(path={"file_type": "Text", "file_path": path})
 
     def on_add_text_MS(self, path):
         # Update statusbar
@@ -1568,7 +1561,7 @@ class DataHandling:
         spectrum_name = f"{mz_start}-{mz_end}"
 
         if document.dataType in ["Type: ORIGAMI", "Type: MANUAL", "Type: Infrared"]:
-            self.view.on_toggle_panel(evt=ID_window_ionList, check=True)
+            self.view.on_toggle_panel(evt="ion", check=True)
             # Check if value already present
             outcome = self.ionPanel.on_check_duplicate(spectrum_name, document_title)
             if outcome:
@@ -1603,25 +1596,6 @@ class DataHandling:
             logger.info(f"Added ion {spectrum_name} to the peaklist")
             if self.ionPanel.extractAutomatically:
                 self.on_extract_2D_from_mass_range_fcn(None, extract_type="new")
-
-        elif document.dataType == "Type: Multifield Linear DT":
-            self.view.on_toggle_panel(evt=ID_window_multiFieldList, check=True)
-            # Check if value already present
-            if self.view.panelLinearDT.bottomP.onCheckForDuplicates(mz_start=str(mz_start), mzEnd=str(mz_end)):
-                return
-
-            self.view.panelLinearDT.bottomP.peaklist.Append([mz_start, mz_end, mz_y_max, "", self.presenter.currentDoc])
-
-            if self.config.showRectanges:
-                self.plotsPanel.on_plot_patches(
-                    mz_start,
-                    0,
-                    (mz_end - mz_start),
-                    100000000000,
-                    color=self.config.annotColor,
-                    alpha=self.config.markerTransparency_1D,
-                    repaint=True,
-                )
 
     def extract_from_plot_1D_RT_DT(self, xmin, xmax, document):
         document_title = document.title
@@ -1803,7 +1777,7 @@ class DataHandling:
     def on_open_single_MassLynx_raw(self, path, data_type):
         """ Load data = threaded """
         tstart = ttime()
-        self.on_threading(args=("Loading {}...".format(path), 4), action="statusbar.update")
+        logger.info(f"Loading {path}...")
         __, document_title = get_path_and_fname(path, simple=True)
 
         # Get experimental parameters
@@ -1914,13 +1888,13 @@ class DataHandling:
                 }
 
         if data_type == "Type: ORIGAMI":
-            self.view.updateRecentFiles(path={"file_type": "ORIGAMI", "file_path": path})
+            self.view.on_update_recent_files(path={"file_type": "ORIGAMI", "file_path": path})
         elif data_type == "Type: MassLynx":
-            self.view.updateRecentFiles(path={"file_type": "MassLynx", "file_path": path})
+            self.view.on_update_recent_files(path={"file_type": "MassLynx", "file_path": path})
         elif data_type == "Type: Infrared":
-            self.view.updateRecentFiles(path={"file_type": "Infrared", "file_path": path})
+            self.view.on_update_recent_files(path={"file_type": "Infrared", "file_path": path})
         else:
-            self.view.updateRecentFiles(path={"file_type": "MassLynx", "file_path": path})
+            self.view.on_update_recent_files(path={"file_type": "MassLynx", "file_path": path})
 
         # Update document
         self.on_update_document(document, "document")
@@ -2061,7 +2035,7 @@ class DataHandling:
         self.plotsPanel.on_plot_RT(rt_x, rt_y, "Scans")
 
         # Update document
-        self.view.updateRecentFiles(path={"file_type": "MassLynx", "file_path": path})
+        self.view.on_update_recent_files(path={"file_type": "MassLynx", "file_path": path})
         self.on_update_document(document, "document")
 
     def on_extract_2D_from_mass_range_fcn(self, evt, extract_type="all"):
@@ -2334,7 +2308,7 @@ class DataHandling:
         self.on_update_document(document, "no_refresh")
 
         # Show panel
-        self.view.on_toggle_panel(evt=ID_window_multipleMLList, check=True)
+        self.view.on_toggle_panel(evt="mass_spectra", check=True)
         self.filesList.on_remove_duplicates()
 
         # Update status bar with MS range
@@ -2464,7 +2438,7 @@ class DataHandling:
         )
         # Update document
         self.documentTree.on_update_data(ion_data, obj_name, document, data_type="extracted.spectrum")
-        logging.info(f"Extracted mass spectrum in {ttime()-tstart:.2f}s")
+        logger.info(f"Extracted mass spectrum in {ttime()-tstart:.2f}s")
 
     def on_extract_MS_from_chromatogram(self, start_scan, end_scan, units="Scans"):
         """Extract mass spectrum based on values from chromatogram
@@ -2517,7 +2491,7 @@ class DataHandling:
         self.plotsPanel.on_plot_MS(
             mz_x, mz_y, xlimits=xlimits, show_in_window="MS_RT", document=document.title, dataset=obj_name
         )
-        logging.info(f"Extracted mass spectrum in {ttime()-tstart:.2f}s")
+        logger.info(f"Extracted mass spectrum in {ttime()-tstart:.2f}s")
 
     def on_extract_MS_from_heatmap(
         self, start_scan, end_scan, dt_start, dt_end, units_x="Scans", units_y="Drift time (bins)"
@@ -2597,7 +2571,7 @@ class DataHandling:
         self.documentTree.on_update_data(spectrum_data, obj_name, document, data_type="extracted.spectrum")
         self.plotsPanel.on_plot_MS(mz_x, mz_y, xlimits=xlimits, document=document.title, dataset=obj_name)
         # Set status
-        logging.info(f"Extracted mass spectrum in {ttime()-tstart:.2f}s")
+        logger.info(f"Extracted mass spectrum in {ttime()-tstart:.2f}s")
 
     def on_save_all_documents_fcn(self, evt):
         if self.config.threading:
@@ -2690,7 +2664,7 @@ class DataHandling:
         # save document
         io_document.save_py_object(save_path, document)
         # update recent files
-        self.view.updateRecentFiles(path={"file_type": "pickle", "file_path": save_path})
+        self.view.on_update_recent_files(path={"file_type": "pickle", "file_path": save_path})
 
     def on_open_document_fcn(self, evt, file_path=None):
 
@@ -2851,7 +2825,7 @@ class DataHandling:
                 logger.error(e, exc_info=True)
                 raise MessageError("Failed to load document.", str(e))
 
-        self.view.updateRecentFiles(path={"file_type": "pickle", "file_path": file_path})
+        self.view.on_update_recent_files(path={"file_type": "pickle", "file_path": file_path})
 
     def _load_document_data_peaklist(self, document):
         document_title = document.title
@@ -2915,7 +2889,7 @@ class DataHandling:
                     self.ionPanel.on_add_to_table(_add_to_table, check_color=False)
 
                     # Update aui manager
-                    self.view.on_toggle_panel(evt=ID_window_ionList, check=True)
+                    self.view.on_toggle_panel(evt="ion", check=True)
 
             self.ionList.on_remove_duplicates()
 
@@ -2952,7 +2926,7 @@ class DataHandling:
 
             self.view.panelMML.onRemoveDuplicates(evt=None, limitCols=False)
             # Update aui manager
-            self.view.on_toggle_panel(evt=ID_window_multipleMLList, check=True)
+            self.view.on_toggle_panel(evt="mass_spectra", check=True)
 
     def _load_document_data(self, document=None):
         """Load data that is stored in the pickle file
@@ -3033,69 +3007,11 @@ class DataHandling:
 
             # Restore calibration list
             if document.dataType == "Type: CALIBRANT":
-                tempList = self.view.panelCCS.topP.peaklist
-                if document.fileFormat == "Format: MassLynx (.raw)":
-                    for key in document.calibration:
-                        tempList.Append(
-                            [
-                                document.title,
-                                str(document.calibration[key]["xrange"][0]),
-                                str(document.calibration[key]["xrange"][1]),
-                                document.calibration[key]["protein"],
-                                str(document.calibration[key]["charge"]),
-                                str(document.calibration[key]["ccs"]),
-                                str(document.calibration[key]["tD"]),
-                            ]
-                        )
-                elif document.fileFormat == "Format: DataFrame":
-                    try:
-                        self.currentCalibrationParams = document.calibrationParameters
-                    except KeyError:
-                        pass
-                    for key in document.calibration:
-                        tempList.Append(
-                            [
-                                document.title,
-                                str(document.calibration[key]["xrange"][0]),
-                                str(document.calibration[key]["xrange"][1]),
-                                document.calibration[key]["protein"],
-                                str(document.calibration[key]["charge"]),
-                                str(document.calibration[key]["ccs"]),
-                                str(document.calibration[key]["tD"]),
-                            ]
-                        )
-                # Check for duplicates
-                self.view.panelCCS.topP.onRemoveDuplicates(evt=None)
-                # Update aui manager
-                self.view.on_toggle_panel(evt=ID_window_ccsList, check=True)
+                logger.info("Document type not supported anymore")
 
             # Restore ion list
             if document.dataType == "Type: Multifield Linear DT":
-                # if self.config.ciuMode == 'LinearDT':
-                rtList = self.view.panelLinearDT.topP.peaklist  # List with MassLynx file information
-                mzList = self.view.panelLinearDT.bottomP.peaklist  # List with m/z information
-                for key in document.IMS1DdriftTimes:
-                    retTimes = document.IMS1DdriftTimes[key]["retTimes"]
-                    driftVoltages = document.IMS1DdriftTimes[key]["driftVoltage"]
-                    mzVals = document.IMS1DdriftTimes[key]["xylimits"]
-                    mzStart = mzVals[0]
-                    mzEnd = mzVals[1]
-                    mzYmax = mzVals[2]
-                    charge = str2int(document.IMS1DdriftTimes[key]["charge"])
-                    for row, __ in enumerate(retTimes):
-                        rtStart = str2int(retTimes[row][0])
-                        rtEnd = str2int(retTimes[row][1])
-                        rtDiff = str2int(rtEnd - rtStart)
-                        driftVoltage = driftVoltages[row]
-                        rtList.Append(
-                            [str2int(rtStart), str2int(rtEnd), str2int(rtDiff), str(driftVoltage), document.title]
-                        )
-                    self.view.panelLinearDT.topP.onRemoveDuplicates(evt=None)
-                    mzList.Append([str(mzStart), str(mzEnd), str(mzYmax), str(charge), document.title])
-                self.view.panelLinearDT.bottomP.onRemoveDuplicates(evt=None)
-
-                self.view.on_toggle_panel(evt=ID_window_multiFieldList, check=True)
-                self.view.window_mgr.Update()
+                logger.info("Document type not supported anymore")
 
         # Update documents tree
         self.documentTree.add_document(docData=document, expandAll=False)
@@ -4162,7 +4078,7 @@ class DataHandling:
         evt : unused
         """
         from gui_elements.dialog_ask_override import DialogAskOverride
-        from toolbox import merge_two_dicts
+        from utils.misc import merge_two_dicts
 
         def check_previous_data(dataset, fname, data):
             if fname in dataset:

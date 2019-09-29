@@ -15,6 +15,7 @@ import utils.labels as ut_labels
 import wx
 from gui_elements.misc_dialogs import DialogBox
 from gui_elements.misc_dialogs import DialogSimpleAsk
+from gui_elements.panel_document_information import PanelDocumentInformation
 from ids import ID_docTree_action_open_extract
 from ids import ID_docTree_action_open_extractDTMS
 from ids import ID_docTree_action_open_origami_ms
@@ -42,7 +43,6 @@ from ids import ID_process2DDocument
 from ids import ID_removeAllDocuments
 from ids import ID_removeDocument
 from ids import ID_renameItem
-from ids import ID_restoreComparisonData
 from ids import ID_save1DImageDoc
 from ids import ID_save2DImageDoc
 from ids import ID_save3DImageDoc
@@ -102,9 +102,8 @@ from ids import ID_ylabel_DTMS_ms
 from ids import ID_ylabel_DTMS_ms_arrival
 from ids import ID_ylabel_DTMS_restore
 from natsort import natsorted
-from panelInformation import panelDocumentInfo
 from styles import make_menu_item
-from toolbox import saveAsText
+from readers.io_text_files import saveAsText
 from utils.color import convert_rgb_1_to_255
 from utils.color import convert_rgb_255_to_1
 from utils.color import get_font_color
@@ -250,7 +249,7 @@ class DocumentTree(wx.TreeCtrl):
             "overlay_on": 17,
         }
 
-    def _setup_handling_and_processing(self):
+    def setup_handling_and_processing(self):
         self.data_processing = self.view.data_processing
         self.data_handling = self.view.data_handling
         self.data_visualisation = self.view.data_visualisation
@@ -1609,8 +1608,7 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.onDuplicateItem, id=ID_duplicateItem)
         self.Bind(wx.EVT_MENU, self.on_save_document, id=ID_saveDocument)
         self.Bind(wx.EVT_MENU, self.onShowSampleInfo, id=ID_showSampleInfo)
-        self.Bind(wx.EVT_MENU, self.view.openSaveAsDlg, id=ID_saveAsInteractive)
-        self.Bind(wx.EVT_MENU, self.presenter.restoreComparisonToList, id=ID_restoreComparisonData)
+        self.Bind(wx.EVT_MENU, self.view.on_open_interactive_output_panel, id=ID_saveAsInteractive)
         self.Bind(wx.EVT_MENU, self.on_open_spectrum_comparison_viewer, id=ID_docTree_compareMS)
         self.Bind(wx.EVT_MENU, self.onShowMassSpectra, id=ID_docTree_showMassSpectra)
         self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addToMMLTable)
@@ -4452,7 +4450,7 @@ class DocumentTree(wx.TreeCtrl):
             self._document_type in itemType for itemType in ["Drift time (2D)", "Drift time (2D, processed)"]
         ):
             kwargs = {"currentTool": "plot2D", "itemType": self._document_type, "extractData": None}
-            self.panelInfo = panelDocumentInfo(self, self.presenter, self.config, self.icons, document, **kwargs)
+            self.panelInfo = PanelDocumentInformation(self, self.presenter, self.config, self.icons, document, **kwargs)
         elif self._indent == 3 and any(
             self._document_type in itemType
             for itemType in [
@@ -4463,11 +4461,11 @@ class DocumentTree(wx.TreeCtrl):
             ]
         ):
             kwargs = {"currentTool": "plot2D", "itemType": self._document_type, "extractData": self._item_leaf}
-            self.panelInfo = panelDocumentInfo(self, self.presenter, self.config, self.icons, document, **kwargs)
+            self.panelInfo = PanelDocumentInformation(self, self.presenter, self.config, self.icons, document, **kwargs)
         else:
 
             kwargs = {"currentTool": "summary", "itemType": None, "extractData": None}
-            self.panelInfo = panelDocumentInfo(self, self.presenter, self.config, self.icons, document, **kwargs)
+            self.panelInfo = PanelDocumentInformation(self, self.presenter, self.config, self.icons, document, **kwargs)
 
         self.panelInfo.Show()
 
@@ -4868,9 +4866,9 @@ class DocumentTree(wx.TreeCtrl):
 
         kwargs = {"title": "Sample information...", "information": sample_information}
 
-        from gui_elements.panel_fileInformation import panelInformation
+        from gui_elements.panel_file_information import PanelInformation
 
-        info = panelInformation(self, **kwargs)
+        info = PanelInformation(self, **kwargs)
         info.Show()
 
     def on_open_MSMS_viewer(self, evt=None, **kwargs):
@@ -4888,7 +4886,7 @@ class DocumentTree(wx.TreeCtrl):
         self.panelUVPD.Show()
 
     def on_open_extract_DTMS(self, evt):
-        from gui_elements.panel_process_extract_DTMS import PanelProcessExtractDTMS
+        from gui_elements.panel_process_extract_dtms import PanelProcessExtractDTMS
 
         self.PanelProcessExtractDTMS = PanelProcessExtractDTMS(
             self.presenter.view, self.presenter, self.config, self.icons

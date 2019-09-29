@@ -600,6 +600,20 @@ def save_data(filename, data, header=None, fmt="%.4f", delimiter=",", **kwargs):
         logger.error(f"Failed to save file {filename} as it is currently in use.")
 
 
+# TODO: replace this function with save_text
+def saveAsText(filename, data, format="%.2f", delimiter=",", header=""):
+    """
+    This function uses np.savetxt to save formatted data to file
+    """
+
+    try:
+        np.savetxt(filename, np.transpose(data), fmt=format, delimiter=delimiter, header=header)
+    except IOError:
+        print("".join(["Cannot save file: '", filename, "' as it is currently open."]))
+        return
+    print("".join(["Saved: ", filename]))
+
+
 def text_peaklist_open(path, default_mask=0.5, default_alpha=0.5):
     """Open peaklist file
 

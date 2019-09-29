@@ -19,7 +19,7 @@ from utils.converters import str2int
 from utils.converters import str2num
 
 
-class panelDocumentInfo(wx.MiniFrame):
+class PanelDocumentInformation(wx.MiniFrame):
     """Document info tools."""
 
     def __init__(self, parent, presenter, config, icons, document, **kwargs):
