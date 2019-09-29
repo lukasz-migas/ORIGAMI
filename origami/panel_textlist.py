@@ -50,7 +50,6 @@ from numpy import arange
 from styles import ListCtrl
 from styles import make_menu_item
 from styles import make_tooltip
-from utils.misc import removeListDuplicates
 from utils.check import isempty
 from utils.color import convert_rgb_1_to_255
 from utils.color import convert_rgb_255_to_1
@@ -58,6 +57,7 @@ from utils.color import get_all_color_types
 from utils.color import get_font_color
 from utils.color import get_random_color
 from utils.color import round_rgb
+from utils.misc import removeListDuplicates
 from utils.random import get_random_int
 
 logger = logging.getLogger("origami")

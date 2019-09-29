@@ -32,11 +32,11 @@ from ids import ID_uvpd_laser_on_show_mobilogram
 from ids import ID_uvpd_laser_on_show_waterfall
 from ids import ID_uvpd_monitor_remove
 from natsort import natsorted
+from readers.io_text_files import saveAsText
 from styles import make_checkbox
 from styles import make_menu_item
 from styles import make_staticbox
 from styles import validator
-from readers.io_text_files import saveAsText
 from utils.converters import str2int
 from utils.converters import str2num
 

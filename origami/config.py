@@ -1122,7 +1122,6 @@ class OrigamiConfig:
             "center",
         ]
         self.legendFontChoice = ["xx-small", "x-small", "small", "medium", "large", "x-large", "xx-large"]
-        self.colorbarChoices = ["left", "right", "top", "bottom"]
 
         self.horizontal_alignment_list = ["center", "right", "left"]
         self.vertical_alignment_list = ["center", "top", "bottom"]
@@ -1479,12 +1478,29 @@ class OrigamiConfig:
 
         # colorbar
         self.colorbar = False
+        self.colorbar_fmt_choices = ["0 % 100", "true-values (pretty)", "true-values (raw)"]  # new
+        self.colorbar_fmt = "0 % 100"  # new
+        self.colorbar_height = 100  # new (%)
         self.colorbarWidth = 2
         self.colorbarPad = 0.03
         self.colorbarRange = [0, 1]
         self.colorbarMinPoints = 5
+        self.colorbar_position_choices = [
+            "left",
+            "right",
+            "top",
+            "bottom",
+            "inside (top-left)",
+            "inside (top-right)",
+            "inside (bottom-left)",
+            "inside (bottom-right)",
+        ]
+        self.colorbar_orientation_choices = ["vertical", "horizontal"]
         self.colorbarPosition = "right"
         self.colorbarLabelSize = 12
+        self.colorbar_edge_color = (0, 0, 0)
+        self.colorbar_label_color = (0, 0, 0)
+        self.colorbar_edge_width = 1
 
         # legend
         self.legend = False
@@ -2950,7 +2966,7 @@ class OrigamiConfig:
         buff += "  <plot_presets_colorbar>\n"
         buff += '    <param name="colorbar" value="%s" type="bool" />\n' % (bool(self.colorbar))
         buff += '    <param name="colorbarPosition" value="{}" type="unicode" choices="{}" />\n'.format(
-            self.colorbarPosition, self.colorbarChoices
+            self.colorbarPosition, self.colorbar_position_choices
         )
         buff += '    <param name="colorbarMinPoints" value="%d" type="int" />\n' % (int(self.colorbarMinPoints))
         buff += '    <param name="colorbarWidth" value="%.2f" type="float" />\n' % (float(self.colorbarWidth))

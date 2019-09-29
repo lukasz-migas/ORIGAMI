@@ -84,12 +84,12 @@ from ids import ID_smooth1DdataRT
 from natsort import natsorted
 from pubsub import pub
 from styles import make_menu_item
-from utils.misc import merge_two_dicts
 from utils.check import isempty
 from utils.color import convert_rgb_1_to_255
 from utils.color import convert_rgb_1_to_hex
 from utils.color import get_random_color
 from utils.exceptions import MessageError
+from utils.misc import merge_two_dicts
 from utils.path import clean_filename
 from utils.time import ttime
 from visuals import mpl_plots
@@ -4288,7 +4288,11 @@ class PanelPlots(wx.Panel):
                 "colorbar_range": self.config.colorbarRange,
                 "colorbar_min_points": self.config.colorbarMinPoints,
                 "colorbar_position": self.config.colorbarPosition,
+                "colorbar_label_fmt": self.config.colorbar_fmt,
                 "colorbar_label_size": self.config.colorbarLabelSize,
+                "colorbar_outline_color": self.config.colorbar_edge_color,
+                "colorbar_outline_width": self.config.colorbar_edge_width,
+                "colorbar_label_color": self.config.colorbar_label_color,
                 "legend": self.config.legend,
                 "legend_transparency": self.config.legendAlpha,
                 "legend_position": self.config.legendPosition,

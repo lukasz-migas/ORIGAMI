@@ -1,6 +1,7 @@
 """Utilities that don't belong anywhere else"""
-import numpy as np
 from collections import OrderedDict
+
+import numpy as np
 
 
 def mlen(listitem):

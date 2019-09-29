@@ -1614,22 +1614,30 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         """
 
         # make elements
-        cbar_colorbarTgl_label = wx.StaticText(panel, -1, "Colorbar:")
-        self.colorbarTgl = make_toggle_btn(panel, "Off", wx.RED, name="colorbar")
-        self.colorbarTgl.SetValue(self.config.colorbar)
-        self.colorbarTgl.Bind(wx.EVT_TOGGLEBUTTON, self.on_toggle_controls_colorbar)
-        self.colorbarTgl.Bind(wx.EVT_TOGGLEBUTTON, self.on_update_2d)
+        colorbar_tgl = wx.StaticText(panel, -1, "Colorbar:")
+        self.colorbar_tgl = make_toggle_btn(panel, "Off", wx.RED, name="colorbar")
+        self.colorbar_tgl.SetValue(self.config.colorbar)
+        self.colorbar_tgl.Bind(wx.EVT_TOGGLEBUTTON, self.on_toggle_controls_colorbar)
+        self.colorbar_tgl.Bind(wx.EVT_TOGGLEBUTTON, self.on_update_2d)
 
-        cbar_position_label = wx.StaticText(panel, -1, "Position:")
-        self.colorbarPosition_value = wx.Choice(
-            panel, -1, choices=self.config.colorbarChoices, size=(-1, -1), name="colorbar"
+        cbar_label_format = wx.StaticText(panel, -1, "Label format:")
+        self.colorbar_label_format = wx.Choice(
+            panel, -1, choices=self.config.colorbar_fmt_choices, size=(-1, -1), name="colorbar"
         )
-        self.colorbarPosition_value.SetStringSelection(self.config.colorbarPosition)
-        self.colorbarPosition_value.Bind(wx.EVT_CHOICE, self.on_apply)
-        self.colorbarPosition_value.Bind(wx.EVT_CHOICE, self.on_update_2d)
+        self.colorbar_label_format.SetStringSelection(self.config.colorbar_fmt)
+        self.colorbar_label_format.Bind(wx.EVT_CHOICE, self.on_apply)
+        self.colorbar_label_format.Bind(wx.EVT_CHOICE, self.on_update_2d)
 
-        cbar_pad_label = wx.StaticText(panel, -1, "Distance:")
-        self.colorbarPad_value = wx.SpinCtrlDouble(
+        colorbar_position = wx.StaticText(panel, -1, "Position:")
+        self.colorbar_position_value = wx.Choice(
+            panel, -1, choices=self.config.colorbar_position_choices, size=(-1, -1), name="colorbar"
+        )
+        self.colorbar_position_value.SetStringSelection(self.config.colorbarPosition)
+        self.colorbar_position_value.Bind(wx.EVT_CHOICE, self.on_apply)
+        self.colorbar_position_value.Bind(wx.EVT_CHOICE, self.on_update_2d)
+
+        colorbar_pad = wx.StaticText(panel, -1, "Distance:")
+        self.colorbar_pad_value = wx.SpinCtrlDouble(
             panel,
             -1,
             value=str(self.config.colorbarPad),
@@ -1640,26 +1648,26 @@ class PanelVisualisationSettingsEditor(wx.Panel):
             size=(90, -1),
             name="colorbar",
         )
-        self.colorbarPad_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.colorbarPad_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
+        self.colorbar_pad_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
+        self.colorbar_pad_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
 
-        cbar_width_label = wx.StaticText(panel, -1, "Width (%):")
-        self.colorbarWidth_value = wx.SpinCtrlDouble(
+        colorbar_width = wx.StaticText(panel, -1, "Width (H) / Height (V) (%):")
+        self.colorbar_width_value = wx.SpinCtrlDouble(
             panel,
             -1,
             value=str(self.config.colorbarWidth),
             min=0.0,
-            max=10,
+            max=100,
             initial=0,
             inc=0.5,
             size=(90, -1),
             name="colorbar",
         )
-        self.colorbarWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.colorbarWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
+        self.colorbar_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
+        self.colorbar_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
 
-        cbar_fontsize = wx.StaticText(panel, -1, "Label font size:")
-        self.colorbarFontsize_value = wx.SpinCtrlDouble(
+        colorbar_fontsize = wx.StaticText(panel, -1, "Label font size:")
+        self.colorbar_fontsize_value = wx.SpinCtrlDouble(
             panel,
             -1,
             value=str(self.config.colorbarLabelSize),
@@ -1670,37 +1678,66 @@ class PanelVisualisationSettingsEditor(wx.Panel):
             size=(90, -1),
             name="colorbar",
         )
-        self.colorbarFontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_2D)
-        self.colorbarFontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
+        self.colorbar_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
+        self.colorbar_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
 
-        #         horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+        colorbar_label_color = wx.StaticText(panel, -1, "Label color:")
+        self.colorbar_label_color_btn = wx.Button(
+            panel, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0.0, name="colorbar.label"
+        )
+        self.colorbar_label_color_btn.SetBackgroundColour(convert_rgb_1_to_255(self.config.colorbar_label_color))
+        self.colorbar_label_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
-        #         # Replot button
-        #         self.plotColorbarBtn = wx.Button(panel, wx.ID_ANY,
-        #                                          u"Plot", wx.DefaultPosition,
-        #                                          wx.Size( -1, -1 ), 0)
-        #         self.plotColorbarBtn.Bind(wx.EVT_BUTTON, self.onReplot2D)
+        colorbar_outline_color = wx.StaticText(panel, -1, "Outline color:")
+        self.colorbar_outline_color_btn = wx.Button(
+            panel, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="colorbar.outline"
+        )
+        self.colorbar_outline_color_btn.SetBackgroundColour(convert_rgb_1_to_255(self.config.colorbar_edge_color))
+        self.colorbar_outline_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
+
+        colorbar_outline_width = wx.StaticText(panel, -1, "Frame width:")
+        self.colorbar_outline_width_value = wx.SpinCtrlDouble(
+            panel,
+            -1,
+            value=str(self.config.colorbar_edge_width),
+            min=0,
+            max=10,
+            initial=self.config.colorbar_edge_width,
+            inc=1,
+            size=(90, -1),
+            name="frame",
+        )
+        self.colorbar_outline_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
+        self.colorbar_outline_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
 
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(cbar_colorbarTgl_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.colorbarTgl, (n, 1), flag=wx.EXPAND)
+        grid.Add(colorbar_tgl, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.colorbar_tgl, (n, 1), flag=wx.EXPAND)
         n += 1
-        grid.Add(cbar_position_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.colorbarPosition_value, (n, 1), flag=wx.EXPAND)
+        grid.Add(cbar_label_format, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.colorbar_label_format, (n, 1), flag=wx.EXPAND)
         n += 1
-        grid.Add(cbar_pad_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.colorbarPad_value, (n, 1), flag=wx.EXPAND)
+        grid.Add(colorbar_position, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.colorbar_position_value, (n, 1), flag=wx.EXPAND)
         n += 1
-        grid.Add(cbar_width_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.colorbarWidth_value, (n, 1), flag=wx.EXPAND)
+        grid.Add(colorbar_pad, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.colorbar_pad_value, (n, 1), flag=wx.EXPAND)
         n += 1
-        grid.Add(cbar_fontsize, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.colorbarFontsize_value, (n, 1), flag=wx.EXPAND)
-        #         y = y+1
-        #         grid.Add(horizontal_line, (y,0), wx.GBSpan(1,3), flag=wx.EXPAND)
-        #         y = y+1
-        #         grid.Add(self.plotColorbarBtn, (y,1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(colorbar_width, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.colorbar_width_value, (n, 1), flag=wx.EXPAND)
+        n += 1
+        grid.Add(colorbar_fontsize, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.colorbar_fontsize_value, (n, 1), flag=wx.EXPAND)
+        n += 1
+        grid.Add(colorbar_label_color, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.colorbar_label_color_btn, (n, 1), flag=wx.EXPAND)
+        n += 1
+        grid.Add(colorbar_outline_color, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.colorbar_outline_color_btn, (n, 1), flag=wx.EXPAND)
+        n += 1
+        grid.Add(colorbar_outline_width, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.colorbar_outline_width_value, (n, 1), flag=wx.EXPAND)
 
         # pack elements
         main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -2576,11 +2613,13 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         self.config.legendFancyBox = self.legend_fancybox_check.GetValue()
 
         # colorbar
-        self.config.colorbar = self.colorbarTgl.GetValue()
-        self.config.colorbarPosition = self.colorbarPosition_value.GetStringSelection()
-        self.config.colorbarWidth = str2num(self.colorbarWidth_value.GetValue())
-        self.config.colorbarPad = str2num(self.colorbarPad_value.GetValue())
-        self.config.colorbarLabelSize = str2num(self.colorbarFontsize_value.GetValue())
+        self.config.colorbar = self.colorbar_tgl.GetValue()
+        self.config.colorbarPosition = self.colorbar_position_value.GetStringSelection()
+        self.config.colorbarWidth = str2num(self.colorbar_width_value.GetValue())
+        self.config.colorbarPad = str2num(self.colorbar_pad_value.GetValue())
+        self.config.colorbarLabelSize = str2num(self.colorbar_fontsize_value.GetValue())
+        self.config.colorbar_fmt = self.colorbar_label_format.GetStringSelection()
+        self.config.colorbar_edge_width = str2num(self.colorbar_outline_width_value.GetValue())
 
         if self.config.autoSaveSettings:
             self.data_handling.on_export_config_fcn(None, False)
@@ -2675,6 +2714,16 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         elif evtID == ID_extraSettings_bar_edgeColor:
             self.config.bar_edge_color = color_1
             self.bar_edgeColorBtn.SetBackgroundColour(color_255)
+        else:
+            obj_name = evt.GetEventObject().GetName()
+            if obj_name == "colorbar.outline":
+                self.config.colorbar_edge_color = color_1
+                self.colorbar_outline_color_btn.SetBackgroundColour(color_255)
+                self.on_update_2d(evt)
+            elif obj_name == "colorbar.label":
+                self.config.colorbar_label_color = color_1
+                self.colorbar_label_color_btn.SetBackgroundColour(color_255)
+                self.on_update_2d(evt)
 
         if self.config.autoSaveSettings:
             self.data_handling.on_export_config_fcn(None, False)
@@ -2795,7 +2844,7 @@ class PanelVisualisationSettingsEditor(wx.Panel):
             source = "all"
 
         if self.panel_plot.window_plot2D in ["Heatmap", "DT/MS"]:
-            if source == "colorbar":
+            if source == "colorbar" or "colorbar" in source:
                 self.panel_plot.plot_colorbar_update(self.panel_plot.window_plot2D)
             elif source == "normalization":
                 self.panel_plot.plot_normalization_update(self.panel_plot.window_plot2D)
@@ -2910,15 +2959,15 @@ class PanelVisualisationSettingsEditor(wx.Panel):
 
     def on_toggle_controls_colorbar(self, evt):
 
-        self.config.colorbar = self.colorbarTgl.GetValue()
+        self.config.colorbar = self.colorbar_tgl.GetValue()
         if self.config.colorbar:
-            self.colorbarTgl.SetLabel("On")
-            self.colorbarTgl.SetForegroundColour(wx.WHITE)
-            self.colorbarTgl.SetBackgroundColour(wx.BLUE)
+            self.colorbar_tgl.SetLabel("On")
+            self.colorbar_tgl.SetForegroundColour(wx.WHITE)
+            self.colorbar_tgl.SetBackgroundColour(wx.BLUE)
         else:
-            self.colorbarTgl.SetLabel("Off")
-            self.colorbarTgl.SetForegroundColour(wx.WHITE)
-            self.colorbarTgl.SetBackgroundColour(wx.RED)
+            self.colorbar_tgl.SetLabel("Off")
+            self.colorbar_tgl.SetForegroundColour(wx.WHITE)
+            self.colorbar_tgl.SetBackgroundColour(wx.RED)
 
         if evt is not None:
             evt.Skip()

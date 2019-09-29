@@ -102,8 +102,8 @@ from ids import ID_ylabel_DTMS_ms
 from ids import ID_ylabel_DTMS_ms_arrival
 from ids import ID_ylabel_DTMS_restore
 from natsort import natsorted
-from styles import make_menu_item
 from readers.io_text_files import saveAsText
+from styles import make_menu_item
 from utils.color import convert_rgb_1_to_255
 from utils.color import convert_rgb_255_to_1
 from utils.color import get_font_color

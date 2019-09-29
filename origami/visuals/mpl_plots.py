@@ -17,20 +17,23 @@ from matplotlib.colors import LogNorm
 from matplotlib.colors import PowerNorm
 from matplotlib.ticker import MaxNLocator
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from processing.heatmap import normalize_2D
 from processing.spectra import normalize_1D
 from seaborn import color_palette
-from utils.ranges import find_limits_all
-from utils.ranges import find_limits_list
-from utils.misc import merge_two_dicts
-from utils.misc import remove_nan_from_list
 from utils.adjustText import adjust_text
 from utils.color import convert_rgb_1_to_255
 from utils.color import get_font_color
 from utils.color import get_random_color
 from utils.exceptions import MessageError
 from utils.labels import _replace_labels
+from utils.misc import merge_two_dicts
+from utils.misc import remove_nan_from_list
+from utils.ranges import find_limits_all
+from utils.ranges import find_limits_list
 from utils.ranges import get_min_max
+from utils.visuals import prettify_tick_format
+from visuals.mpl_colorbar import Colorbar
 from visuals.mpl_plotter import mpl_plotter
 from visuals.normalize import MidpointNormalize
 
@@ -53,6 +56,7 @@ class plots(mpl_plotter):
         mpl_plotter.__init__(self, *args, **kwargs)
 
         self.plotflag = False
+        self.plotMS = None
 
         # obj containers
         self.text = []
@@ -78,6 +82,17 @@ class plots(mpl_plotter):
         self.rotate = 0
         self.document_name = None
         self.dataset_name = None
+
+        # instances
+        self._colorbar = Colorbar(self)
+
+    def _locked(self):
+        raise MessageError(
+            "Plot modification is locked",
+            "This plot is locked and you cannot use global setting updated. \n"
+            + "Please right-click in the plot area and select Customise plot..."
+            + " to adjust plot settings.",
+        )
 
     def _check_axes_size(self, axes_size, min_left=0.12, min_bottom=0.12, max_width=0.8, max_height=0.8):
         try:
@@ -169,42 +184,116 @@ class plots(mpl_plotter):
             dictionary with all plot parameters defined by the user
         """
 
-        try:
-            self.cbar.remove()
-        except (AttributeError, KeyError):
-            pass
+        tick_labels = None
+        if kwargs["colorbar_label_fmt"] == "0 % 100":
+            tick_labels = ["0", "%", "100"]
 
-        tick_labels = ["0", "%", "100"]
+        # always override when dealing with RMSD/RMSF plots
         if self.plot_name in ["RMSD", "RMSF"]:
             tick_labels = ["-100", "%", "100"]
 
+        # retrieve ticks
+        ticks = [np.min(zvals), (np.max(zvals) - np.abs(np.min(zvals))) / 2, np.max(zvals)]
+
+        # override middle tick if value is repeated in the edges
+        if ticks[1] in [ticks[0], ticks[2]]:
+            ticks[1] = 0
+
+        self.ticks = ticks
+        self.tick_labels = tick_labels
+
+        # add colorbar
+        self.plot_2D_colorbar_update(**kwargs)
+
+    def plot_2D_colorbar_update(self, **kwargs):
+
+        if self.lock_plot_from_updating:
+            self._locked()
+
+        # add colorbar
         if kwargs["colorbar"]:
-            cbarDivider = make_axes_locatable(self.plotMS)
-            # pad controls how close colorbar is to the axes
-            self.cbar = cbarDivider.append_axes(
-                kwargs["colorbar_position"],
-                size="".join([str(kwargs["colorbar_width"]), "%"]),
-                pad=kwargs["colorbar_pad"],
-            )
-            ticks = [np.min(zvals), (np.max(zvals) - np.abs(np.min(zvals))) / 2, np.max(zvals)]
 
-            if ticks[1] in [ticks[0], ticks[2]]:
-                ticks[1] = 0
+            if hasattr(self, "ticks"):
+                ticks = self.ticks
+            elif hasattr(self.cbar, "ticks"):
+                ticks = self.cbar.ticks
+            else:
+                raise ValueError("Could not identify ticks")
 
-            self.cbar.ticks = ticks
-            self.cbar.tick_labels = tick_labels
+            if hasattr(self, "tick_labels"):
+                tick_labels = self.tick_labels
+            elif hasattr(self.cbar, "tick_labels"):
+                tick_labels = self.cbar.tick_labels
+            else:
+                raise ValueError("Could not identify tick labels")
+
+            try:
+                self.cbar.remove()
+            except Exception:
+                pass
+
+            colorbar_axes = make_axes_locatable(self.plotMS)
+            if kwargs["colorbar_position"].startswith("inside"):
+                loc_dict = {
+                    "inside (top-left)": [2, [0.005, 0, 1, 1]],
+                    "inside (top-right)": [1, [-0.02, 0, 1, 1]],
+                    "inside (bottom-left)": [3, [0.005, 0.02, 1, 1]],
+                    "inside (bottom-right)": [4, [-0.02, 0.02, 1, 1]],
+                }
+                loc, bbox = loc_dict[kwargs["colorbar_position"]]
+                bbox[1] = bbox[1] * (kwargs["colorbar_label_size"] / 10)
+                self.cbar = inset_axes(
+                    self.plotMS,
+                    width="50%",
+                    height=f"{kwargs['colorbar_width']}%",
+                    loc=loc,
+                    bbox_to_anchor=bbox,
+                    bbox_transform=self.plotMS.transAxes,
+                )
+            else:
+                self.cbar = colorbar_axes.append_axes(
+                    kwargs["colorbar_position"], size=f"{kwargs['colorbar_width']}%", pad=kwargs["colorbar_pad"]
+                )
+
+            # format ticks according to user selection
+            if kwargs["colorbar_label_fmt"] == "0 % 100":
+                tick_labels = ["0", "%", "100"]
+            else:
+                if kwargs["colorbar_label_fmt"] == "true-values (pretty)":
+                    tick_labels = prettify_tick_format(ticks)
+                else:
+                    tick_labels = ticks
 
             if kwargs["colorbar_position"] in ["left", "right"]:
-                self.figure.colorbar(self.cax, cax=self.cbar, ticks=ticks, orientation="vertical")
+                cbar = self.figure.colorbar(self.cax, cax=self.cbar, ticks=ticks, orientation="vertical")
                 self.cbar.yaxis.set_ticks_position(kwargs["colorbar_position"])
                 self.cbar.set_yticklabels(tick_labels)
-            else:
-                self.figure.colorbar(self.cax, cax=self.cbar, ticks=ticks, orientation="horizontal")
+            elif kwargs["colorbar_position"] in ["top", "bottom"]:
+                cbar = self.figure.colorbar(self.cax, cax=self.cbar, ticks=ticks, orientation="horizontal")
                 self.cbar.xaxis.set_ticks_position(kwargs["colorbar_position"])
                 self.cbar.set_xticklabels(tick_labels)
+            else:
+                cbar = self.figure.colorbar(self.cax, cax=self.cbar, ticks=ticks, orientation="horizontal")
+                self.cbar.xaxis.set_ticks_position("bottom")
+                self.cbar.set_xticklabels(tick_labels)
 
-            # setup other parameters
-            self.cbar.tick_params(labelsize=kwargs["colorbar_label_size"])
+            cbar.outline.set_edgecolor(kwargs["colorbar_outline_color"])
+            cbar.outline.set_linewidth(kwargs["colorbar_outline_width"])
+            self.cbar.ticks = ticks
+            self.cbar.tick_labels = tick_labels
+            self.cbar.tick_params(
+                labelsize=kwargs["colorbar_label_size"],
+                labelcolor=kwargs["colorbar_label_color"],
+                color=kwargs["colorbar_outline_color"],
+            )
+
+        # remove colorbar
+        else:
+            if hasattr(self.cbar, "ticks"):
+                self.ticks = self.cbar.ticks
+            if hasattr(self.cbar, "tick_labels"):
+                self.tick_labels = self.cbar.tick_labels
+            self.cbar.remove()
 
     def set_plot_xlabel(self, xlabel, **kwargs):
         kwargs = ut_visuals.check_plot_settings(**kwargs)
@@ -1331,12 +1420,6 @@ class plots(mpl_plotter):
             print(msg)
             return
 
-        try:
-            cbar_yticks = self.cbar.get_yticklabels()
-            cbar_xticks = self.cbar.get_xticklabels()
-        except Exception:
-            pass
-
         if "colormap_norm" in kwargs:
             self.cax.set_norm(kwargs["colormap_norm"])
 
@@ -1352,16 +1435,7 @@ class plots(mpl_plotter):
         self.set_plot_xlabel(None, **kwargs)
         self.set_plot_ylabel(None, **kwargs)
         self.set_tick_parameters(**kwargs)
-
-        # update axis frame
-        try:
-            self.cbar.set_visible(kwargs["colorbar"])
-            if len(cbar_yticks) > len(cbar_xticks):
-                self.cbar.set_yticklabels(["0", "%", "100"])
-            else:
-                self.cbar.set_xticklabels(["0", "%", "100"])
-        except Exception:
-            pass
+        self.plot_2D_colorbar_update(**kwargs)
 
         self.plot_parameters = kwargs
 
@@ -1457,72 +1531,6 @@ class plots(mpl_plotter):
         matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
 
         self.plotMS.grid(kwargs["grid"])
-
-    def plot_2D_colorbar_update(self, **kwargs):
-
-        if self.lock_plot_from_updating:
-            msg = (
-                "This plot is locked and you cannot use global setting updated. \n"
-                + "Please right-click in the plot area and select Customise plot..."
-                + " to adjust plot settings."
-            )
-            print(msg)
-            return
-
-        #         try:
-        # add colorbar
-        if kwargs["colorbar"]:
-            cbarDivider = make_axes_locatable(self.plotMS)
-
-            if hasattr(self.cbar, "ticks"):
-                ticks = self.cbar.ticks
-            elif hasattr(self, "ticks"):
-                ticks = self.ticks
-            else:
-                raise ValueError("Could not identify ticks")
-
-            if hasattr(self.cbar, "tick_labels"):
-                tick_labels = self.cbar.tick_labels
-            elif hasattr(self, "tick_labels"):
-                tick_labels = self.tick_labels
-            else:
-                raise ValueError("Could not identify tick labels")
-
-            try:
-                self.cbar.remove()
-            except Exception:
-                pass
-
-            self.cbar = cbarDivider.append_axes(
-                kwargs["colorbar_position"],
-                size="".join([str(kwargs["colorbar_width"]), "%"]),
-                pad=kwargs["colorbar_pad"],
-            )
-
-            self.cbar.ticks = ticks
-            self.cbar.tick_labels = tick_labels
-
-            if kwargs["colorbar_position"] in ["left", "right"]:
-                self.figure.colorbar(self.cax, cax=self.cbar, ticks=ticks, orientation="vertical")
-                self.cbar.yaxis.set_ticks_position(kwargs["colorbar_position"])
-                self.cbar.set_yticklabels(tick_labels)
-            else:
-                self.figure.colorbar(self.cax, cax=self.cbar, ticks=ticks, orientation="horizontal")
-                self.cbar.xaxis.set_ticks_position(kwargs["colorbar_position"])
-                self.cbar.set_xticklabels(tick_labels)
-
-            self.cbar.tick_params(labelsize=kwargs["colorbar_label_size"])
-        # remove colorbar
-        else:
-            if hasattr(self.cbar, "ticks"):
-                self.ticks = self.cbar.ticks
-            if hasattr(self.cbar, "tick_labels"):
-                self.tick_labels = self.cbar.tick_labels
-
-            self.cbar.remove()
-
-    #         except Exception as err:
-    #             logger.warning(err)
 
     def plot_2D_update_normalization(self, **kwargs):
 
@@ -3550,41 +3558,6 @@ class plots(mpl_plotter):
         self.set_plot_xlabel(xlabelRMSD, **kwargs)
         self.set_plot_ylabel(ylabelRMSD, **kwargs)
 
-        # setup colorbar
-
-        #         if kwargs["colorbar"]:
-        #             cbarDivider = make_axes_locatable(self.plotMS)
-        #             # pad controls how close colorbar is to the axes
-        #             self.cbar = cbarDivider.append_axes(
-        #                 kwargs["colorbar_position"],
-        #                 size="".join([str(kwargs["colorbar_width"]), "%"]),
-        #                 pad=kwargs["colorbar_pad"],
-        #             )
-        #             tick_min = np.min(zvals)
-        #             tick_max = np.max(zvals)
-        #             tick_mid = np.median([tick_min, tick_max])
-        #             ticks = [tick_min, tick_mid, tick_max]
-        #
-        #             if plotName in ["RMSD", "RMSF"]:
-        #                 tick_labels = ["-100", "%", "100"]
-        #             else:
-        #                 tick_labels = ["0", "%", "100"]
-        #
-        #             self.cbar.ticks = ticks
-        #             self.cbar.tick_labels = tick_labels
-        #
-        #             if kwargs["colorbar_position"] in ["left", "right"]:
-        #                 self.figure.colorbar(self.cax, cax=self.cbar, ticks=ticks, orientation="vertical")
-        #                 self.cbar.yaxis.set_ticks_position(kwargs["colorbar_position"])
-        #                 self.cbar.set_yticklabels(tick_labels)
-        #             else:
-        #                 self.figure.colorbar(self.cax, cax=self.cbar, ticks=ticks, orientation="horizontal")
-        #                 self.cbar.xaxis.set_ticks_position(kwargs["colorbar_position"])
-        #                 self.cbar.set_xticklabels(tick_labels)
-        #
-        #             # setup other parameters
-        #             self.cbar.tick_params(labelsize=kwargs["colorbar_label_size"])
-
         # ticks
         self.plotMS.tick_params(
             axis="both",
@@ -3829,37 +3802,6 @@ class plots(mpl_plotter):
         # add colorbar
         if kwargs["colorbar"]:
             self.set_colorbar_parameters(zvals, **kwargs)
-
-        #         cbarDivider = make_axes_locatable(self.plotMS)
-        #         # setup colorbar
-        #         if kwargs["colorbar"]:
-        #             # pad controls how close colorbar is to the axes
-        #             self.cbar = cbarDivider.append_axes(
-        #                 kwargs["colorbar_position"],
-        #                 size="".join([str(kwargs["colorbar_width"]), "%"]),
-        #                 pad=kwargs["colorbar_pad"],
-        #             )
-        #
-        #             ticks = [np.min(zvals), (np.max(zvals) - np.min(zvals)) / 2, np.max(zvals)]
-        #             if ticks[1] in [ticks[0], ticks[2]]:
-        #                 ticks[1] = 0
-        #
-        #             tick_labels = ["0", "%", "100"]
-        #
-        #             self.cbar.ticks = ticks
-        #             self.cbar.tick_labels = tick_labels
-        #
-        #             if kwargs["colorbar_position"] in ["left", "right"]:
-        #                 self.figure.colorbar(self.cax, cax=self.cbar, ticks=ticks, orientation="vertical")
-        #                 self.cbar.yaxis.set_ticks_position(kwargs["colorbar_position"])
-        #                 self.cbar.set_yticklabels(tick_labels)
-        #             else:
-        #                 self.figure.colorbar(self.cax, cax=self.cbar, ticks=ticks, orientation="horizontal")
-        #                 self.cbar.xaxis.set_ticks_position(kwargs["colorbar_position"])
-        #                 self.cbar.set_xticklabels(tick_labels)
-        #
-        #             # setup other parameters
-        #             self.cbar.tick_params(labelsize=kwargs["colorbar_label_size"])
 
         self.set_tick_parameters(**kwargs)
 

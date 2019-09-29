@@ -15,6 +15,7 @@ from gui_elements.dialog_notify_new_version import DialogNewVersion
 from gui_elements.dialog_notify_open_documents import DialogNotifyOpenDocuments
 from gui_elements.misc_dialogs import DialogBox
 from gui_elements.panel_export_settings import PanelExportSettings
+from gui_elements.panel_plot_parameters import PanelVisualisationSettingsEditor
 from ids import ID_addCCScalibrantFile
 from ids import ID_addNewInteractiveDoc
 from ids import ID_addNewManualDoc
@@ -139,8 +140,6 @@ from panel_multi_file import PanelMultiFile
 from panel_peaklist import PanelPeaklist
 from panel_plots import PanelPlots
 from panel_textlist import PanelTextlist
-from gui_elements.panel_plot_parameters import PanelVisualisationSettingsEditor
-from widgets.interactive.panel_interactive_creator import PanelInteractiveCreator
 from processing.data_handling import DataHandling
 from processing.data_processing import DataProcessing
 from processing.data_visualisation import DataVisualization
@@ -150,6 +149,7 @@ from styles import make_menu_item
 from utils.check import compare_versions
 from utils.check import get_latest_version
 from utils.path import clean_directory
+from widgets.interactive.panel_interactive_creator import PanelInteractiveCreator
 
 logger = logging.getLogger("origami")
 
@@ -1881,7 +1881,7 @@ class MainWindow(wx.Frame):
             self.panel_interactive_output.Show()
 
         if not hasattr(self, "panel_interactive_output"):
-            self.startup_module()
+            startup_module()
         else:
             try:
                 if self.config.interactiveParamsWindow_on_off:

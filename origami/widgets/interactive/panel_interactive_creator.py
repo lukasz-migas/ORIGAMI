@@ -126,7 +126,6 @@ from ids import ID_interactivePanel_table_type
 from ids import ID_ionPanel_table_label
 from ids import ID_ionPanel_table_method
 from natsort import natsorted
-from widgets.interactive.panel_customise_interactive_plot import PanelCustomiseInteractivePlot
 from processing.spectra import crop_1D_data
 from processing.spectra import linearize_data
 from processing.spectra import normalize_1D
@@ -136,17 +135,18 @@ from styles import make_checkbox
 from styles import make_menu_item
 from styles import make_static_text
 from styles import make_staticbox
-from utils.ranges import find_limits_all
-from utils.ranges import find_limits_list
-from utils.misc import merge_two_dicts
-from utils.misc import remove_nan_from_list
 from utils.color import convert_hex_to_rgb_255
 from utils.color import convert_rgb_1_to_255
 from utils.color import convert_rgb_1_to_hex
 from utils.color import get_font_color
 from utils.converters import str2int
 from utils.labels import _replace_labels
+from utils.misc import merge_two_dicts
+from utils.misc import remove_nan_from_list
+from utils.ranges import find_limits_all
+from utils.ranges import find_limits_list
 from utils.visuals import calculate_label_position
+from widgets.interactive.panel_customise_interactive_plot import PanelCustomiseInteractivePlot
 
 # from bokeh.embed import components
 # from bokeh.models import FixedTicker
@@ -753,8 +753,15 @@ class PanelInteractiveCreator(wx.MiniFrame):
         data = self.__get_item_data(name, key, innerKey)
 
         self.itemEditor = PanelCustomiseInteractivePlot(
-            self.presenter, self, self.config, self.icons,
-            data=data, document_title=name, item_type=key, item_title=innerKey)
+            self.presenter,
+            self,
+            self.config,
+            self.icons,
+            data=data,
+            document_title=name,
+            item_type=key,
+            item_title=innerKey,
+        )
         self.itemEditor.Show()
 
     def onUpdateItemParameters(self, name, key, innerKey, parameters):
