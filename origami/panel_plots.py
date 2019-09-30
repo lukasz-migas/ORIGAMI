@@ -203,7 +203,7 @@ class PanelPlots(wx.Panel):
         # keep track of previous pages
         if self.currentPage in ["Mass spectrum", "Chromatogram", "Mobilogram"]:
             self.window_plot1D = self.currentPage
-        elif self.currentPage in ["Heatmap", "DT/MS", "Waterfall"]:
+        elif self.currentPage in ["Heatmap", "DT/MS", "Waterfall", "Annotated"]:
             self.window_plot2D = self.currentPage
         elif self.currentPage in ["Heatmap (3D)"]:
             self.window_plot3D = self.currentPage
@@ -1196,7 +1196,6 @@ class PanelPlots(wx.Panel):
             logger.warning("Failed to update plot size")
 
     def on_change_plot_style(self, evt, plot_style=None):
-
         # https://tonysyu.github.io/raw_content/matplotlib-style-gallery/gallery.html
 
         if self.config.currentStyle == "Default":
@@ -2023,6 +2022,11 @@ class PanelPlots(wx.Panel):
             except AttributeError:
                 logger.warning("Failed to update `RMSF` plot", exc_info=True)
 
+        if plotName not in ["all", "1D", "MS", "RT", "RMSF"]:
+            plot_obj = self.get_plot_from_name(plotName)
+            plot_obj.plot_1D_update(**plt_kwargs)
+            plot_obj.repaint()
+
     def on_plot_other_1D(
         self, msX=None, msY=None, xlabel="", ylabel="", xlimits=None, set_page=False, plot="Other", **kwargs
     ):
@@ -2774,7 +2778,7 @@ class PanelPlots(wx.Panel):
                 self.plot2D.plot_2D_update(**plt_kwargs)
                 self.plot2D.repaint()
             except AttributeError:
-                pass
+                logging.warning("Failed to update plot", exc_info=True)
 
         if plotName in ["all", "UniDec"]:
 
@@ -2782,7 +2786,7 @@ class PanelPlots(wx.Panel):
                 self.plotUnidec_mzGrid.plot_2D_update(**plt_kwargs)
                 self.plotUnidec_mzGrid.repaint()
             except AttributeError:
-                pass
+                logging.warning("Failed to update plot", exc_info=True)
 
             try:
                 self.plotUnidec_mwVsZ.plot_2D_update(**plt_kwargs)
@@ -2795,7 +2799,7 @@ class PanelPlots(wx.Panel):
                 self.plot_DT_vs_MS.plot_2D_update(**plt_kwargs)
                 self.plot_DT_vs_MS.repaint()
             except AttributeError:
-                pass
+                logging.warning("Failed to update plot", exc_info=True)
 
     def on_plot_2D_data(self, data=None, **kwargs):
         """
@@ -3709,27 +3713,32 @@ class PanelPlots(wx.Panel):
         )
         self.bottomPlot1DT.repaint()
 
-    def plot_2D_update_label(self):
+    def plot_2D_update_label(self, plot_name="RMSD", **kwargs):
         from utils.visuals import calculate_label_position
 
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot_name)
+
         try:
-            if self.plot2D.plot_name == "RMSD":
+            if plot_obj.plot_name == "RMSD":
                 __, xvals, yvals, __, __ = self.get_replot_data("2D")
-            elif self.plot2D.plot_name == "RMSF":
+            elif plot_obj.plot_name == "RMSF":
                 __, xvals, yvals, __, __, __ = self.get_replot_data("RMSF")
             else:
+                logger.error("Operation is not supported")
                 return
 
             plt_kwargs = self._buildPlotParameters(plotType="RMSF")
             label_x_pos, label_y_pos = calculate_label_position(xvals, yvals, self.config.rmsd_location)
-
             plt_kwargs["rmsd_label_coordinates"] = [label_x_pos, label_y_pos]
             plt_kwargs["rmsd_label_color"] = self.config.rmsd_color
 
-            self.plot2D.plot_2D_update_label(**plt_kwargs)
-            self.plot2D.repaint()
-        except Exception:
-            pass
+            plot_obj.plot_2D_update_label(**plt_kwargs)
+            plot_obj.repaint()
+        except (AttributeError, KeyError, ValueError):
+            logger.error("Failed to update RMSD label", exc_info=True)
 
     def plot_2D_matrix_update_label(self):
         plt_kwargs = self._buildPlotParameters(plotType="RMSF")

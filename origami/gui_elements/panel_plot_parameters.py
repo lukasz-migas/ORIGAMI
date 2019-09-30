@@ -80,7 +80,7 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         self.SetFocus()
         self.SetSizer(self.main_sizer)
 
-        self.on_update_rmsd_position(evt=None)
+        self._recalculate_rmsd_position(evt=None)
         self.on_update_plot_sizes(evt=None)
         self.on_page_changed(evt=None)
 
@@ -831,7 +831,7 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         rmsd_position_label = wx.StaticText(panel, -1, "Position:")
         self.rmsd_position_value = wx.Choice(panel, -1, choices=self.config.rmsd_position_choices, size=(-1, -1))
         self.rmsd_position_value.SetStringSelection(self.config.rmsd_position)
-        self.rmsd_position_value.Bind(wx.EVT_CHOICE, self.on_update_rmsd_position)
+        self.rmsd_position_value.Bind(wx.EVT_CHOICE, self._recalculate_rmsd_position)
         self.rmsd_position_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls_rmsd)
         self.rmsd_position_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.rmsd_position_value.Bind(wx.EVT_CHOICE, self.on_update_rmsd_label)
@@ -840,14 +840,14 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         self.rmsd_x_position_value = wx.SpinCtrlDouble(
             panel, -1, value=str(), min=0, max=100, initial=0, inc=5, size=(90, -1)
         )
-        self.rmsd_x_position_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_rmsd_position)
+        self.rmsd_x_position_value.Bind(wx.EVT_SPINCTRLDOUBLE, self._recalculate_rmsd_position)
         self.rmsd_x_position_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_rmsd_label)
 
         rmsd_y_position = wx.StaticText(panel, -1, "Position Y:")
         self.rmsd_y_position_value = wx.SpinCtrlDouble(
             panel, -1, value=str(), min=0, max=100, initial=0, inc=5, size=(90, -1)
         )
-        self.rmsd_y_position_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_rmsd_position)
+        self.rmsd_y_position_value.Bind(wx.EVT_SPINCTRLDOUBLE, self._recalculate_rmsd_position)
         self.rmsd_y_position_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_rmsd_label)
 
         rmsd_fontsize = wx.StaticText(panel, -1, "Label size:")
@@ -1606,11 +1606,11 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         return panel
 
     def make_panel_colorbar(self, panel):
-        """
-        TODO:
-        - add support for rotating colorbar
-        - allow labels on the left hand side
-        - add check function if vertical = left/right, if horizontal = top/bottom
+        """Make colorbar controls
+
+        Parameters
+        ----------
+        panel : wx.Panel
         """
 
         # make elements
@@ -2728,27 +2728,24 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         if self.config.autoSaveSettings:
             self.data_handling.on_export_config_fcn(None, False)
 
-    def on_update_rmsd_position(self, evt):
+    def _recalculate_rmsd_position(self, evt):
         if self.import_evt:
             return
 
         self.config.rmsd_position = self.rmsd_position_value.GetStringSelection()
-        if self.config.rmsd_position == "bottom left":
-            self.config.rmsd_location = (5, 5)
-        elif self.config.rmsd_position == "bottom right":
-            self.config.rmsd_location = (75, 5)
-        elif self.config.rmsd_position == "top left":
-            self.config.rmsd_location = (5, 95)
-        elif self.config.rmsd_position == "top right":
-            self.config.rmsd_location = (75, 95)
-        elif self.config.rmsd_position == "other":
-            self.config.rmsd_location = (
-                str2int(self.rmsd_x_position_value.GetValue()),
-                str2int(self.rmsd_y_position_value.GetValue()),
-            )
+        rmsd_dict = {
+            "bottom left": [5, 5],
+            "bottom right": [75, 5],
+            "top left": [5, 95],
+            "top right": [75, 95],
+            "none": None,
+            "other": [str2int(self.rmsd_x_position_value.GetValue()), str2int(self.rmsd_y_position_value.GetValue())],
+        }
+        self.config.rmsd_location = rmsd_dict[self.config.rmsd_position]
 
-        self.rmsd_x_position_value.SetValue(self.config.rmsd_location[0])
-        self.rmsd_y_position_value.SetValue(self.config.rmsd_location[1])
+        if self.config.rmsd_location is not None:
+            self.rmsd_x_position_value.SetValue(self.config.rmsd_location[0])
+            self.rmsd_y_position_value.SetValue(self.config.rmsd_location[1])
 
         if self.config.autoSaveSettings:
             self.data_handling.on_export_config_fcn(None, False)
@@ -2758,7 +2755,7 @@ class PanelVisualisationSettingsEditor(wx.Panel):
 
     def on_update_rmsd_label(self, evt):
         self.on_apply(None)
-        self.on_update_rmsd_position(None)
+        self._recalculate_rmsd_position(None)
 
         self.panel_plot.plot_2D_update_label()
 
@@ -2774,8 +2771,10 @@ class PanelVisualisationSettingsEditor(wx.Panel):
             evt.Skip()
 
     def on_update(self, evt):
+        """General plot update"""
 
         self.on_apply_1D(None)
+
         if self.panel_plot.currentPage in ["Mass spectrum", "Chromatogram", "Mobilogram"]:
             if self.panel_plot.window_plot1D == "Mass spectrum":
                 self.panel_plot.plot_1D_update(plotName="MS")
@@ -2801,13 +2800,16 @@ class PanelVisualisationSettingsEditor(wx.Panel):
                 self.panel_plot.plot_1D_waterfall_update(source)
 
         if self.panel_plot.currentPage == "Annotated":
+            plot_name = self.panel_plot.plotOther.plot_name
             try:
                 source = evt.GetEventObject().GetName()
             except AttributeError:
                 source = "axes"
             try:
-                if self.panel_plot.plotOther.plot_type == "waterfall":
+                if plot_name == "waterfall":
                     self.panel_plot.plot_1D_waterfall_update(source)
+                else:
+                    self.panel_plot.plot_1D_update(plotName=plot_name)
             except Exception:
                 pass
 
@@ -2843,7 +2845,7 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         except Exception:
             source = "all"
 
-        if self.panel_plot.window_plot2D in ["Heatmap", "DT/MS"]:
+        if self.panel_plot.window_plot2D in ["Heatmap", "DT/MS", "Annotated"]:
             if source == "colorbar" or "colorbar" in source:
                 self.panel_plot.plot_colorbar_update(self.panel_plot.window_plot2D)
             elif source == "normalization":

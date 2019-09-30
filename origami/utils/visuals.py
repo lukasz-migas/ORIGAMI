@@ -119,6 +119,7 @@ def check_n_grid_dimensions(n_grid):
 
 
 def check_plot_settings(**kwargs):
+
     # convert weights
     if "title" in kwargs:
         if kwargs["title_weight"] and isbool(kwargs["title_weight"]):
