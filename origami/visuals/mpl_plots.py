@@ -372,7 +372,7 @@ class plots(mpl_plotter):
         try:
             self.plotMS.get_xaxis().get_major_formatter().set_useOffset(False)
         except AttributeError:
-            logger.warning("Could not fully set label offsets", exc_info=True)
+            logger.warning("Could not fully set label offsets", exc_info=False)
 
         # setup borders
         self.plotMS.spines["left"].set_visible(kwargs["spines_left"])
@@ -1329,13 +1329,13 @@ class plots(mpl_plotter):
 
         # update labels
         self.plotRMSF.set_xlabel(
-            self.plotMS.get_xlabel(),
+            self.plotRMSF.get_xlabel(),
             labelpad=kwargs["label_pad"],
             fontsize=kwargs["label_size"],
             weight=kwargs["label_weight"],
         )
         self.plotRMSF.set_ylabel(
-            self.plotMS.get_ylabel(),
+            self.plotRMSF.get_ylabel(),
             labelpad=kwargs["label_pad"],
             fontsize=kwargs["label_size"],
             weight=kwargs["label_weight"],
@@ -1361,10 +1361,16 @@ class plots(mpl_plotter):
             labelbottom=kwargs["tickLabels_bottom"],
         )
 
-        for i, line in enumerate(self.plotRMSF.get_lines()):
+        # update line style, width, etc
+        for _, line in enumerate(self.plotRMSF.get_lines()):
             line.set_linewidth(kwargs["rmsd_line_width"])
             line.set_linestyle(kwargs["rmsd_line_style"])
             line.set_color(kwargs["rmsd_line_color"])
+
+        for __, shade in enumerate(self.plotRMSF.collections):
+            shade.set_facecolor(kwargs["rmsd_underline_color"])
+            shade.set_alpha(kwargs["rmsd_underline_transparency"])
+            shade.set_hatch(kwargs["rmsd_underline_hatch"])
 
         self.plotRMSF.spines["left"].set_visible(kwargs["spines_left"])
         self.plotRMSF.spines["right"].set_visible(kwargs["spines_right"])

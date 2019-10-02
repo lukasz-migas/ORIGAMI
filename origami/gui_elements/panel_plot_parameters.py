@@ -56,6 +56,7 @@ class PanelVisualisationSettingsEditor(wx.Panel):
 
         self.import_evt = True
         self.current_page = None
+        self._switch = -1
 
         # make gui items
         self.make_gui()
@@ -110,8 +111,18 @@ class PanelVisualisationSettingsEditor(wx.Panel):
             evt.Skip()
 
     def on_page_changed(self, evt):
+        """Change window"""
         tstart = ttime()
         self.current_page = self.main_book.GetPageText(self.main_book.GetSelection())
+
+        # when the window is changed, the layout can be incorrect, hence we have to "reset it" on each occasion
+        # basically a hack that kind of works...
+        _size = self.GetSize()
+        self._switch = 1 if self._switch == -1 else -1
+        self.SetSize((_size[0] + self._switch, _size[1] + self._switch))
+        self.SetSize(_size)
+        self.SetMinSize(_size)
+
         self.SetFocus()
         logger.info(f"Changed window to `{self.current_page}` in {ttime()-tstart:.2f}")
 
@@ -933,7 +944,7 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         self.rmsd_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.rmsd_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
 
-        rmsd_hspace_label = wx.StaticText(panel, -1, "Vertical spacing:")
+        rmsd_hspace_label = wx.StaticText(panel, -1, "Spacing between RMSF / Heatmap:")
         self.rmsd_hspace_value = wx.SpinCtrlDouble(
             panel,
             -1,
@@ -948,25 +959,76 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         self.rmsd_hspace_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.rmsd_hspace_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
 
-        rmsd_x_rotation = wx.StaticText(panel, -1, "Rotation (X-axis):")
+        rmsd_x_rotation = wx.StaticText(panel, -1, "Tick rotation (x-axis):")
         self.rmsd_x_rotation_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(self.config.rmsd_rotation_X), min=0, max=360, initial=0, inc=45, size=(90, -1)
+            panel,
+            -1,
+            value=str(self.config.rmsd_rotation_X),
+            min=0,
+            max=360,
+            initial=0,
+            inc=45,
+            size=(90, -1),
+            name="rmsd_matrix",
         )
         self.rmsd_x_rotation_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.rmsd_x_rotation_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_label_rmsd_matrix)
 
-        rmsd_y_rotation = wx.StaticText(panel, -1, "Rotation (Y-axis):")
+        rmsd_y_rotation = wx.StaticText(panel, -1, "Tick rotation (y-axis):")
         self.rmsd_y_rotation_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(self.config.rmsd_rotation_Y), min=0, max=360, initial=0, inc=45, size=(90, -1)
+            panel,
+            -1,
+            value=str(self.config.rmsd_rotation_Y),
+            min=0,
+            max=360,
+            initial=0,
+            inc=45,
+            size=(90, -1),
+            name="rmsd_matrix",
         )
         self.rmsd_y_rotation_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.rmsd_y_rotation_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_label_rmsd_matrix)
 
-        rmsd_add_labels_label = wx.StaticText(panel, -1, "Add labels:")
-        self.rmsd_add_labels_check = make_checkbox(panel, "")
+        rmsd_add_labels_label = wx.StaticText(panel, -1, "Show RMSD labels:")
+        self.rmsd_add_labels_check = make_checkbox(panel, "", name="rmsd_matrix")
         self.rmsd_add_labels_check.SetValue(self.config.rmsd_matrix_add_labels)
         self.rmsd_add_labels_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.rmsd_add_labels_check.Bind(wx.EVT_CHECKBOX, self.on_update_label_rmsd_matrix)
+
+        rmsd_matrix_fontsize = wx.StaticText(panel, -1, "Label font size:")
+        self.rmsd_matrix_fontsize = wx.SpinCtrlDouble(
+            panel,
+            -1,
+            value=str(self.config.labelFontSize_1D),
+            min=0,
+            max=48,
+            initial=self.config.labelFontSize_1D,
+            inc=2,
+            size=(90, -1),
+            name="rmsd_matrix",
+        )
+        self.rmsd_matrix_fontsize.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
+        self.rmsd_matrix_fontsize.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
+
+        self.rmsd_matrix_font_weight_check = make_checkbox(panel, "Bold", name="fonts")
+        self.rmsd_matrix_font_weight_check.SetValue(self.config.labelFontWeight_1D)
+        self.rmsd_matrix_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
+        self.rmsd_matrix_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_update_2d)
+
+        rmsd_matrix_color_fmt = wx.StaticText(panel, -1, "Color formatter:")
+        self.rmsd_matrix_color_fmt = wx.Choice(
+            panel, -1, choices=self.config.rmsd_matrix_font_color_choices, size=(-1, -1), name="rmsd_matrix"
+        )
+        self.rmsd_matrix_color_fmt.SetStringSelection(self.config.rmsd_matrix_font_color_choice)
+        self.rmsd_matrix_color_fmt.Bind(wx.EVT_CHOICE, self.on_apply)
+        self.rmsd_matrix_color_fmt.Bind(wx.EVT_CHOICE, self.on_update_2d)
+
+        rmsd_matrix_font_color = wx.StaticText(panel, -1, "Labels color:")
+        self.rmsd_matrix_font_color_btn = wx.Button(
+            panel, -1, "", wx.DefaultPosition, wx.Size(26, 26), name="rmsd_matrix_label"
+        )
+        self.rmsd_matrix_font_color_btn.SetBackgroundColour(convert_rgb_1_to_255(self.config.rmsd_matrix_font_color))
+        self.rmsd_matrix_font_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
         rmsd_grid = wx.GridBagSizer(2, 2)
         n = 0
@@ -1019,7 +1081,18 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         n += 1
         rmsd_matrix_grid.Add(rmsd_add_labels_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         rmsd_matrix_grid.Add(self.rmsd_add_labels_check, (n, 1), flag=wx.EXPAND)
+        n += 1
+        rmsd_matrix_grid.Add(rmsd_matrix_fontsize, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        rmsd_matrix_grid.Add(self.rmsd_matrix_fontsize, (n, 1), flag=wx.EXPAND)
+        rmsd_matrix_grid.Add(self.rmsd_matrix_font_weight_check, (n, 2), flag=wx.EXPAND)
+        n += 1
+        rmsd_matrix_grid.Add(rmsd_matrix_color_fmt, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        rmsd_matrix_grid.Add(self.rmsd_matrix_color_fmt, (n, 1), flag=wx.EXPAND)
+        n += 1
+        rmsd_matrix_grid.Add(rmsd_matrix_font_color, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        rmsd_matrix_grid.Add(self.rmsd_matrix_font_color_btn, (n, 1), flag=wx.EXPAND)
 
+        # put it all together
         rmsd_parameters_label = wx.StaticText(panel, -1, "RMSD parameters")
         set_item_font(rmsd_parameters_label)
         horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
@@ -2648,10 +2721,12 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         elif evtID == ID_extraSettings_lineColor_rmsd:
             self.config.rmsd_lineColour = color_1
             self.rmsd_color_line_btn.SetBackgroundColour(color_255)
+            self.panel_plot.plot_1D_update(plotName="RMSF")
 
         elif evtID == ID_extraSettings_underlineColor_rmsd:
             self.config.rmsd_underlineColor = color_1
             self.rmsd_underline_color_btn.SetBackgroundColour(color_255)
+            self.panel_plot.plot_1D_update(plotName="RMSF")
 
         elif evtID == ID_extraSettings_markerColor_1D:
             self.config.markerColor_1D = color_1
@@ -2801,13 +2876,17 @@ class PanelVisualisationSettingsEditor(wx.Panel):
 
         if self.panel_plot.currentPage == "Annotated":
             plot_name = self.panel_plot.plotOther.plot_name
-            try:
-                source = evt.GetEventObject().GetName()
-            except AttributeError:
-                source = "axes"
+
+            print(plot_name)
             try:
                 if plot_name == "waterfall":
+                    try:
+                        source = evt.GetEventObject().GetName()
+                    except AttributeError:
+                        source = "axes"
                     self.panel_plot.plot_1D_waterfall_update(source)
+                elif plot_name == "2D":
+                    self.panel_plot.plot_2D_update(plotName="other")
                 else:
                     self.panel_plot.plot_1D_update(plotName=plot_name)
             except Exception:
@@ -2845,15 +2924,17 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         except Exception:
             source = "all"
 
+        print(source)
         if self.panel_plot.window_plot2D in ["Heatmap", "DT/MS", "Annotated"]:
             if source == "colorbar" or "colorbar" in source:
                 self.panel_plot.plot_colorbar_update(self.panel_plot.window_plot2D)
             elif source == "normalization":
                 self.panel_plot.plot_normalization_update(self.panel_plot.window_plot2D)
+            elif source == "rmsf":
+                self.panel_plot.plot_1D_update(plotName="RMSF")
             else:
                 self.panel_plot.plot_2D_update(plotName="2D")
         #
-        #         elif self.panel_plot.window_plot2D == "RMSF":
         #             if source == "colorbar":
         #                 self.panel_plot.plot_colorbar_update()
         #             elif source == "rmsf":

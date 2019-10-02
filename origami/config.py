@@ -1317,6 +1317,11 @@ class OrigamiConfig:
         self.rmsd_rotation_X = 45
         self.rmsd_rotation_Y = 0
         self.rmsd_matrix_add_labels = True
+        self.rmsd_matrix_font_size = 12  # new in v2.0.0
+        self.rmsd_matrix_font_weight = False  # new in v2.0.0
+        self.rmsd_matrix_font_color_choices = ["auto", "user-defined"]  # new in v2.0.0
+        self.rmsd_matrix_font_color_choice = "auto"  # new in v2.0.0
+        self.rmsd_matrix_font_color = (0, 0, 0)
         self.rmsd_lineColour = (0, 0, 0)
         self.rmsd_lineTransparency = 0.4
         self.rmsd_underlineColor = (0, 0, 0)

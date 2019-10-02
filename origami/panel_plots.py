@@ -1987,7 +1987,7 @@ class PanelPlots(wx.Panel):
         plot_obj.plot_1D_add_legend(legend_text, **plt_kwargs)
         plot_obj.repaint()
 
-    def plot_1D_update(self, plotName="all", evt=None):
+    def plot_1D_update(self, plotName="all"):
 
         plt_kwargs = self._buildPlotParameters(plotType="1D")
 
@@ -2016,13 +2016,15 @@ class PanelPlots(wx.Panel):
             plt_kwargs = self._buildPlotParameters(plotType="2D")
             rmsd_kwargs = self._buildPlotParameters(plotType="RMSF")
             plt_kwargs = merge_two_dicts(plt_kwargs, rmsd_kwargs)
+
+            plot_obj = self.get_plot_from_name("RMSF")
             try:
-                self.plot2D.plot_1D_update_rmsf(**plt_kwargs)
-                self.plot2D.repaint()
+                plot_obj.plot_1D_update_rmsf(**plt_kwargs)
+                plot_obj.repaint()
             except AttributeError:
                 logger.warning("Failed to update `RMSF` plot", exc_info=True)
 
-        if plotName not in ["all", "1D", "MS", "RT", "RMSF"]:
+        if plotName in ["all", "1D", "MS", "RT", "RMSF"]:
             plot_obj = self.get_plot_from_name(plotName)
             plot_obj.plot_1D_update(**plt_kwargs)
             plot_obj.repaint()
@@ -2798,6 +2800,14 @@ class PanelPlots(wx.Panel):
             try:
                 self.plot_DT_vs_MS.plot_2D_update(**plt_kwargs)
                 self.plot_DT_vs_MS.repaint()
+            except AttributeError:
+                logging.warning("Failed to update plot", exc_info=True)
+
+        if plotName in ["other"]:
+            plot_obj = self.get_plot_from_name(plotName)
+            try:
+                plot_obj.plot_2D_update(**plt_kwargs)
+                plot_obj.repaint()
             except AttributeError:
                 logging.warning("Failed to update plot", exc_info=True)
 
@@ -3743,11 +3753,12 @@ class PanelPlots(wx.Panel):
     def plot_2D_matrix_update_label(self):
         plt_kwargs = self._buildPlotParameters(plotType="RMSF")
 
+        plot_obj = self.get_plot_from_name("matrix")
         try:
-            self.plot2D.plot_2D_matrix_update_label(**plt_kwargs)
-            self.plot2D.repaint()
+            plot_obj.plot_2D_matrix_update_label(**plt_kwargs)
+            plot_obj.repaint()
         except Exception:
-            pass
+            logger.error("Failed to update RMSD matrix", exc_info=True)
 
     def on_plot_matrix(
         self,
