@@ -308,7 +308,7 @@ class plots(mpl_plotter):
                     self.ticks = self.cbar.ticks
                 if hasattr(self.cbar, "tick_labels"):
                     self.tick_labels = self.cbar.tick_labels
-            self.cbar.remove()
+                self.cbar.remove()
 
     def set_plot_xlabel(self, xlabel, **kwargs):
         kwargs = ut_visuals.check_plot_settings(**kwargs)
@@ -1160,6 +1160,125 @@ class plots(mpl_plotter):
         ylimits = get_min_max(ylimits)
         self.on_zoom_y_axis(ylimits[0], ylimits[1], convert_values=False)
 
+    def plot_1d_waterfall_update_style(self, **kwargs):
+        if self.plot_name != "Violin":
+            for i, line in enumerate(self.plotMS.get_lines()):
+                line.set_linestyle(kwargs["line_style"])
+                line.set_linewidth(kwargs["line_width"])
+        else:
+            for shade in range(len(self.plotMS.collections)):
+                self.plotMS.collections[shade].set_linestyle(kwargs["line_style"])
+                self.plotMS.collections[shade].set_linewidth(kwargs["line_width"])
+
+    def plot_1d_waterfall_update_color(self, **kwargs):
+        n_colors = len(self.plotMS.get_lines())
+        n_patch_colors = len(self.plotMS.collections)
+        if n_colors != n_patch_colors:
+            if n_patch_colors > n_colors:
+                n_colors = n_patch_colors
+
+        # get colorlist
+        colorlist = self._get_colorlist(None, n_colors, **kwargs)
+
+        if self.plot_name != "Violin":
+            for i, line in enumerate(self.plotMS.get_lines()):
+                if kwargs["line_color_as_shade"]:
+                    line_color = colorlist[i]
+                else:
+                    line_color = kwargs["line_color"]
+                line.set_color(line_color)
+        else:
+            for i in range(len(self.plotMS.collections)):
+                if kwargs["line_color_as_shade"]:
+                    line_color = colorlist[i]
+                else:
+                    line_color = kwargs["line_color"]
+                self.plotMS.collections[i].set_edgecolor(line_color)
+
+        for shade in range(len(self.plotMS.collections)):
+            shade_color = colorlist[shade]
+            self.plotMS.collections[shade].set_facecolor(shade_color)
+
+    def plot_1d_waterfall_update_shade(self, **kwargs):
+        try:
+            for shade in range(len(self.plotMS.collections)):
+                self.plotMS.collections[shade].set_alpha(kwargs["shade_under_transparency"])
+        except AttributeError:
+            logger.warning("Could not update waterfall underlines")
+
+    def plot_1d_waterfall_update_label(self, **kwargs):
+        # convert weights
+        if kwargs["labels_font_weight"]:
+            kwargs["labels_font_weight"] = "heavy"
+        else:
+            kwargs["labels_font_weight"] = "normal"
+
+        # calculate new position
+        label_xposition = self.text_offset_position["min"] + (
+            self.text_offset_position["max"] * kwargs["labels_x_offset"]
+        )
+
+        for i in range(len(self.text)):
+            self.text[i].set_fontweight(kwargs["labels_font_weight"])
+            self.text[i].set_fontsize(kwargs["labels_font_size"])
+            yposition = self.text[i]._yposition + kwargs["labels_y_offset"]
+            position = [label_xposition, yposition]
+            self.text[i].set_position(position)
+            text = ut_visuals.convert_label(self.text[i].get_text(), label_format=kwargs["labels_format"])
+            self.text[i].set_text(text)
+
+    def plot_1d_waterfall_data(self, **kwargs):
+        # TODO: needs to respect labels
+        # TODO: needs to respect shade
+        # TODO: fix an issue when there is shade under the curve
+        # fix might be here: https://stackoverflow.com/questions/16120801/matplotlib-animate-fill-between-shape
+        #         count = 0
+        increment = kwargs["increment"] - self.plot_parameters["increment"]
+        offset = kwargs["offset"]  # - self.plot_parameters['offset']
+        ydata = []
+        #             print(dir(self.plotMS.collections[0]),
+        #                   self.plotMS.collections[2]._offset_position)
+        #             for shade in range(len(self.plotMS.collections)):
+        #                 self.plotMS.collections[shade].set_offsets(100.)
+        #                 print(self.plotMS.collections[shade].get_paths())
+        #                 print(dir_extra(dir(self.plotMS.collections[shade]), "set"))
+        for i, line in enumerate(self.plotMS.get_lines()):
+            yvals = line.get_ydata()
+        #             if len(yvals) > 5:
+        #                 count = +1
+        yOffset = 0  # offset*(count+1)
+        for i, line in enumerate(self.plotMS.get_lines()):
+            yvals = line.get_ydata()
+            if len(yvals) > 5:
+                new_yvals = yvals + yOffset
+                line.set_ydata(new_yvals)
+                ydata.extend(new_yvals)
+                yOffset = yOffset - increment
+
+        # remove nans
+        ydata = np.array(ydata)
+        ydata = ydata[~np.isnan(ydata)]
+        self.plot_limits[2] = np.min(ydata) - offset
+        self.plot_limits[3] = np.max(ydata) + 0.05
+        extent = [self.plot_limits[0], self.plot_limits[2], self.plot_limits[1], self.plot_limits[3]]
+        self.update_extents(extent)
+        self.plotMS.set_xlim((self.plot_limits[0], self.plot_limits[1]))
+        self.plotMS.set_ylim((self.plot_limits[2], self.plot_limits[3]))
+
+    def plot_1d_waterfall_fonts(self, **kwargs):
+        # update ticks
+        matplotlib.rc("xtick", labelsize=kwargs["tick_size"])
+        matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
+
+        kwargs = ut_visuals.check_plot_settings(**kwargs)
+
+        # update labels
+        self.set_plot_xlabel(None, **kwargs)
+        self.set_plot_ylabel(None, **kwargs)
+
+        # Setup font size info
+        self.plotMS.tick_params(labelsize=kwargs["tick_size"])
+
     def plot_1D_waterfall_update(self, which="other", **kwargs):
 
         if self.lock_plot_from_updating:
@@ -1169,124 +1288,25 @@ class plots(mpl_plotter):
             return
 
         if which in ["other", "style"]:
-            if self.plot_name != "Violin":
-                for i, line in enumerate(self.plotMS.get_lines()):
-                    line.set_linestyle(kwargs["line_style"])
-                    line.set_linewidth(kwargs["line_width"])
-            else:
-                for shade in range(len(self.plotMS.collections)):
-                    self.plotMS.collections[shade].set_linestyle(kwargs["line_style"])
-                    self.plotMS.collections[shade].set_linewidth(kwargs["line_width"])
+            self.plot_1d_waterfall_update_style(**kwargs)
 
         elif which == "color":
-            n_colors = len(self.plotMS.get_lines())
-            n_patch_colors = len(self.plotMS.collections)
-            if n_colors != n_patch_colors:
-                if n_patch_colors > n_colors:
-                    n_colors = n_patch_colors
-
-            # get colorlist
-            colorlist = self._get_colorlist(None, n_colors, **kwargs)
-
-            if self.plot_name != "Violin":
-                for i, line in enumerate(self.plotMS.get_lines()):
-                    if kwargs["line_color_as_shade"]:
-                        line_color = colorlist[i]
-                    else:
-                        line_color = kwargs["line_color"]
-                    line.set_color(line_color)
-            else:
-                for i in range(len(self.plotMS.collections)):
-                    if kwargs["line_color_as_shade"]:
-                        line_color = colorlist[i]
-                    else:
-                        line_color = kwargs["line_color"]
-                    self.plotMS.collections[i].set_edgecolor(line_color)
-
-            for shade in range(len(self.plotMS.collections)):
-                shade_color = colorlist[shade]
-                self.plotMS.collections[shade].set_facecolor(shade_color)
+            self.plot_1d_waterfall_update_color(**kwargs)
 
         elif which == "shade":
-            try:
-                for shade in range(len(self.plotMS.collections)):
-                    self.plotMS.collections[shade].set_alpha(kwargs["shade_under_transparency"])
-            except AttributeError:
-                pass
+            self.plot_1d_waterfall_update_shade(**kwargs)
 
         elif which == "label":
-            # convert weights
-            if kwargs["labels_font_weight"]:
-                kwargs["labels_font_weight"] = "heavy"
-            else:
-                kwargs["labels_font_weight"] = "normal"
-
-            # calculate new position
-            label_xposition = self.text_offset_position["min"] + (
-                self.text_offset_position["max"] * kwargs["labels_x_offset"]
-            )
-
-            for i in range(len(self.text)):
-                self.text[i].set_fontweight(kwargs["labels_font_weight"])
-                self.text[i].set_fontsize(kwargs["labels_font_size"])
-                yposition = self.text[i]._yposition + kwargs["labels_y_offset"]
-                position = [label_xposition, yposition]
-                self.text[i].set_position(position)
-                text = ut_visuals.convert_label(self.text[i].get_text(), label_format=kwargs["labels_format"])
-                self.text[i].set_text(text)
+            self.plot_1d_waterfall_update_label(**kwargs)
 
         elif which == "data":
-            # TODO: fix an issue when there is shade under the curve
-            # fix might be here: https://stackoverflow.com/questions/16120801/matplotlib-animate-fill-between-shape
-            count = 0
-            increment = kwargs["increment"] - self.plot_parameters["increment"]
-            offset = kwargs["offset"]  # - self.plot_parameters['offset']
-            ydata = []
-            #             print(dir(self.plotMS.collections[0]),
-            #                   self.plotMS.collections[2]._offset_position)
-            #             for shade in range(len(self.plotMS.collections)):
-            #                 self.plotMS.collections[shade].set_offsets(100.)
-            #                 print(self.plotMS.collections[shade].get_paths())
-            #                 print(dir_extra(dir(self.plotMS.collections[shade]), "set"))
-            for i, line in enumerate(self.plotMS.get_lines()):
-                yvals = line.get_ydata()
-                if len(yvals) > 5:
-                    count = +1
-            yOffset = 0  # offset*(count+1)
-            for i, line in enumerate(self.plotMS.get_lines()):
-                yvals = line.get_ydata()
-                if len(yvals) > 5:
-                    new_yvals = yvals + yOffset
-                    line.set_ydata(new_yvals)
-                    ydata.extend(new_yvals)
-                    yOffset = yOffset - increment
-
-            # remove nans
-            ydata = np.array(ydata)
-            ydata = ydata[~np.isnan(ydata)]
-            self.plot_limits[2] = np.min(ydata) - offset
-            self.plot_limits[3] = np.max(ydata) + 0.05
-            extent = [self.plot_limits[0], self.plot_limits[2], self.plot_limits[1], self.plot_limits[3]]
-            self.update_extents(extent)
-            self.plotMS.set_xlim((self.plot_limits[0], self.plot_limits[1]))
-            self.plotMS.set_ylim((self.plot_limits[2], self.plot_limits[3]))
+            self.plot_1d_waterfall_data(**kwargs)
 
         elif which == "frame":
             self.set_tick_parameters(**kwargs)
 
         elif which == "fonts":
-            # update ticks
-            matplotlib.rc("xtick", labelsize=kwargs["tick_size"])
-            matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
-
-            kwargs = ut_visuals.check_plot_settings(**kwargs)
-
-            # update labels
-            self.set_plot_xlabel(None, **kwargs)
-            self.set_plot_ylabel(None, **kwargs)
-
-            # Setup font size info
-            self.plotMS.tick_params(labelsize=kwargs["tick_size"])
+            self.plot_1d_waterfall_fonts(**kwargs)
 
         self.plot_parameters = kwargs
 
@@ -1323,43 +1343,51 @@ class plots(mpl_plotter):
         if self.lock_plot_from_updating:
             self._locked()
 
+        # ensure correct format of kwargs
+        kwargs = ut_visuals.check_plot_settings(**kwargs)
+
         # update ticks
         matplotlib.rc("xtick", labelsize=kwargs["tick_size"])
         matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
 
         # update labels
-        self.plotRMSF.set_xlabel(
-            self.plotRMSF.get_xlabel(),
-            labelpad=kwargs["label_pad"],
-            fontsize=kwargs["label_size"],
-            weight=kwargs["label_weight"],
-        )
-        self.plotRMSF.set_ylabel(
-            self.plotRMSF.get_ylabel(),
-            labelpad=kwargs["label_pad"],
-            fontsize=kwargs["label_size"],
-            weight=kwargs["label_weight"],
-        )
-        # Setup font size info
-        self.plotRMSF.tick_params(labelsize=kwargs["tick_size"])
+        for plot_obj in [self.plotRMSF, self.plotMS]:
+            # Setup font size info
+            plot_obj.set_ylabel(
+                plot_obj.get_ylabel(),
+                labelpad=kwargs["label_pad"],
+                fontsize=kwargs["label_size"],
+                weight=kwargs["label_weight"],
+            )
+            plot_obj.set_ylabel(
+                plot_obj.get_ylabel(),
+                labelpad=kwargs["label_pad"],
+                fontsize=kwargs["label_size"],
+                weight=kwargs["label_weight"],
+            )
 
-        # update axis frame
-        if kwargs["axis_onoff"]:
-            self.plotRMSF.set_axis_on()
-        else:
-            self.plotRMSF.set_axis_off()
+            plot_obj.tick_params(labelsize=kwargs["tick_size"])
 
-        self.plotRMSF.tick_params(
-            axis="both",
-            left=kwargs["ticks_left"],
-            right=kwargs["ticks_right"],
-            top=kwargs["ticks_top"],
-            bottom=kwargs["ticks_bottom"],
-            labelleft=kwargs["tickLabels_left"],
-            labelright=kwargs["tickLabels_right"],
-            labeltop=kwargs["tickLabels_top"],
-            labelbottom=kwargs["tickLabels_bottom"],
-        )
+            # update axis frame
+            plot_obj.set_axis_on() if kwargs["axis_onoff"] else plot_obj.set_axis_off()
+
+            plot_obj.tick_params(
+                axis="both",
+                left=kwargs["ticks_left"],
+                right=kwargs["ticks_right"],
+                top=kwargs["ticks_top"],
+                bottom=kwargs["ticks_bottom"],
+                labelleft=kwargs["tickLabels_left"],
+                labelright=kwargs["tickLabels_right"],
+                labeltop=kwargs["tickLabels_top"],
+                labelbottom=kwargs["tickLabels_bottom"],
+            )
+
+            plot_obj.spines["left"].set_visible(kwargs["spines_left"])
+            plot_obj.spines["right"].set_visible(kwargs["spines_right"])
+            plot_obj.spines["top"].set_visible(kwargs["spines_top"])
+            plot_obj.spines["bottom"].set_visible(kwargs["spines_bottom"])
+            [i.set_linewidth(kwargs["frame_width"]) for i in plot_obj.spines.values()]
 
         # update line style, width, etc
         for _, line in enumerate(self.plotRMSF.get_lines()):
@@ -1372,25 +1400,14 @@ class plots(mpl_plotter):
             shade.set_alpha(kwargs["rmsd_underline_transparency"])
             shade.set_hatch(kwargs["rmsd_underline_hatch"])
 
-        self.plotRMSF.spines["left"].set_visible(kwargs["spines_left"])
-        self.plotRMSF.spines["right"].set_visible(kwargs["spines_right"])
-        self.plotRMSF.spines["top"].set_visible(kwargs["spines_top"])
-        self.plotRMSF.spines["bottom"].set_visible(kwargs["spines_bottom"])
-        [i.set_linewidth(kwargs["frame_width"]) for i in self.plotMS.spines.values()]
-
     def plot_2D_update_label(self, **kwargs):
+        kwargs = ut_visuals.check_plot_settings(**kwargs)
 
         if kwargs["rmsd_label_coordinates"] != [None, None]:
             self.text.set_position(kwargs["rmsd_label_coordinates"])
             self.text.set_visible(True)
         else:
             self.text.set_visible(False)
-
-        # convert weights
-        if kwargs["rmsd_label_font_weight"]:
-            kwargs["rmsd_label_font_weight"] = "heavy"
-        else:
-            kwargs["rmsd_label_font_weight"] = "normal"
 
         self.text.set_fontweight(kwargs["rmsd_label_font_weight"])
         self.text.set_fontsize(kwargs["rmsd_label_font_size"])
@@ -1446,12 +1463,17 @@ class plots(mpl_plotter):
         return l, b, 1 - r, 1 - t
 
     def plot_2D_matrix_update_label(self, **kwargs):
+        kwargs = ut_visuals.check_plot_settings(**kwargs)
 
         self.plotMS.set_xticklabels(self.plotMS.get_xticklabels(), rotation=kwargs["rmsd_matrix_rotX"])
         self.plotMS.set_yticklabels(self.plotMS.get_xticklabels(), rotation=kwargs["rmsd_matrix_rotY"])
 
         for text in self.text:
             text.set_visible(kwargs["rmsd_matrix_labels"])
+            if not kwargs["rmsd_matrix_color_choice"] == "auto":
+                text.set_color(kwargs["rmsd_matrix_color"])
+            text.set_fontsize(kwargs["rmsd_matrix_label_size"])
+            text.set_fontweight(kwargs["rmsd_matrix_label_weight"])
 
     def plot_3D_update(self, which="all", **kwargs):
 
@@ -3832,11 +3854,12 @@ class plots(mpl_plotter):
         # add labels
         self.text = []
         if kwargs["rmsd_matrix_labels"]:
-            thresh = zvals.max() / 2.0
             cmap = self.cax.get_cmap()
-            color = get_font_color(convert_rgb_1_to_255(cmap(thresh)))
+            color = kwargs["rmsd_matrix_color"]
             for i, j in itertools.product(list(range(zvals.shape[0])), list(range(zvals.shape[1]))):
-                color = get_font_color(convert_rgb_1_to_255(cmap(zvals[i, j] / 2)))
+                if kwargs["rmsd_matrix_color_choice"] == "auto":
+                    color = get_font_color(convert_rgb_1_to_255(cmap(zvals[i, j] / 2)))
+
                 label = format(zvals[i, j], ".2f")
                 obj_name = kwargs.pop("text_name", None)
                 text = self.plotMS.text(
@@ -3845,13 +3868,6 @@ class plots(mpl_plotter):
                 text.obj_name = obj_name  # custom tag
                 text.y_divider = self.y_divider
                 self.text.append(text)
-
-        try:
-            handles, __ = self.plotMS.get_legend_handles_labels()
-            if len(handles) > 0:
-                self.set_legend_parameters(handles, **kwargs)
-        except Exception:
-            pass
 
         # add colorbar
         self.set_colorbar_parameters(zvals, **kwargs)

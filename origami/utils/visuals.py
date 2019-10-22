@@ -11,6 +11,7 @@ def prettify_tick_format(tick_labels):
 
     def compute_divider(value):
         divider = 1000000000
+        value = abs(value)
         while value == value % divider:
             divider = divider / increment
         return len(str(int(divider))) - len(str(int(divider)).rstrip("0"))
@@ -132,6 +133,18 @@ def check_plot_settings(**kwargs):
             kwargs["label_weight"] = "heavy"
         else:
             kwargs["label_weight"] = "normal"
+
+    if "rmsd_label_font_weight" in kwargs:
+        if kwargs["rmsd_label_font_weight"] and isbool(kwargs["rmsd_label_font_weight"]):
+            kwargs["rmsd_label_font_weight"] = "heavy"
+        else:
+            kwargs["rmsd_label_font_weight"] = "normal"
+
+    if "rmsd_matrix_label_weight" in kwargs:
+        if kwargs["rmsd_matrix_label_weight"] and isbool(kwargs["rmsd_matrix_label_weight"]):
+            kwargs["rmsd_matrix_label_weight"] = "heavy"
+        else:
+            kwargs["rmsd_matrix_label_weight"] = "normal"
 
     return kwargs
 

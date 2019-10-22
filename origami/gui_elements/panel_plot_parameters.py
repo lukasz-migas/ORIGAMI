@@ -954,7 +954,7 @@ class PanelVisualisationSettingsEditor(wx.Panel):
             initial=self.config.rmsd_hspace,
             inc=0.05,
             size=(90, -1),
-            name="rmsf",
+            name="rmsf.spacing",
         )
         self.rmsd_hspace_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.rmsd_hspace_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
@@ -1010,17 +1010,18 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         self.rmsd_matrix_fontsize.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.rmsd_matrix_fontsize.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
 
-        self.rmsd_matrix_font_weight_check = make_checkbox(panel, "Bold", name="fonts")
+        self.rmsd_matrix_font_weight_check = make_checkbox(panel, "Bold", name="rmsd_matrix")
         self.rmsd_matrix_font_weight_check.SetValue(self.config.labelFontWeight_1D)
         self.rmsd_matrix_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.rmsd_matrix_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_update_2d)
 
         rmsd_matrix_color_fmt = wx.StaticText(panel, -1, "Color formatter:")
         self.rmsd_matrix_color_fmt = wx.Choice(
-            panel, -1, choices=self.config.rmsd_matrix_font_color_choices, size=(-1, -1), name="rmsd_matrix"
+            panel, -1, choices=self.config.rmsd_matrix_font_color_choices, size=(-1, -1), name="rmsd_matrix_formatter"
         )
         self.rmsd_matrix_color_fmt.SetStringSelection(self.config.rmsd_matrix_font_color_choice)
         self.rmsd_matrix_color_fmt.Bind(wx.EVT_CHOICE, self.on_apply)
+        self.rmsd_matrix_color_fmt.Bind(wx.EVT_CHOICE, self.on_toggle_controls_rmsd)
         self.rmsd_matrix_color_fmt.Bind(wx.EVT_CHOICE, self.on_update_2d)
 
         rmsd_matrix_font_color = wx.StaticText(panel, -1, "Labels color:")
@@ -1364,16 +1365,21 @@ class PanelVisualisationSettingsEditor(wx.Panel):
     def make_panel_waterfall(self, panel):
 
         # make elements
-        waterfall_waterfallTgl_label = wx.StaticText(panel, -1, "Waterfall:")
-        self.waterfallTgl = make_toggle_btn(panel, "Off", wx.RED)
-        self.waterfallTgl.SetValue(self.config.waterfall)
-        self.waterfallTgl.Bind(wx.EVT_TOGGLEBUTTON, self.on_toggle_controls_waterfall)
 
         waterfall_offset_label = wx.StaticText(panel, -1, "Offset:")
         self.waterfall_offset_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(self.config.waterfall_offset), min=0.0, max=1, initial=0, inc=0.05, size=(90, -1)
+            panel,
+            -1,
+            value=str(self.config.waterfall_offset),
+            min=0.0,
+            max=1,
+            initial=0,
+            inc=0.05,
+            size=(90, -1),
+            name="data",
         )
         self.waterfall_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
+        self.waterfall_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
 
         waterfall_increment_label = wx.StaticText(panel, -1, "Increment:")
         self.waterfall_increment_value = wx.SpinCtrlDouble(
@@ -1391,12 +1397,12 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         self.waterfall_increment_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
 
         waterfall_normalize_label = wx.StaticText(panel, -1, "Normalize:")
-        self.waterfall_normalize_check = make_checkbox(panel, "")
+        self.waterfall_normalize_check = make_checkbox(panel, "", name="data")
         self.waterfall_normalize_check.SetValue(self.config.waterfall_normalize)
         self.waterfall_normalize_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         waterfall_reverse_label = wx.StaticText(panel, -1, "Reverse order:")
-        self.waterfall_reverse_check = make_checkbox(panel, "")
+        self.waterfall_reverse_check = make_checkbox(panel, "", name="data")
         self.waterfall_reverse_check.SetValue(self.config.waterfall_reverse)
         self.waterfall_reverse_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
@@ -1583,9 +1589,6 @@ class PanelVisualisationSettingsEditor(wx.Panel):
 
         plot_grid = wx.GridBagSizer(2, 2)
         y = 0
-        plot_grid.Add(waterfall_waterfallTgl_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        plot_grid.Add(self.waterfallTgl, (y, 1), flag=wx.EXPAND)
-        y += 1
         plot_grid.Add(waterfall_offset_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         plot_grid.Add(self.waterfall_offset_value, (y, 1), flag=wx.EXPAND)
         y += 1
@@ -1778,7 +1781,7 @@ class PanelVisualisationSettingsEditor(wx.Panel):
             initial=self.config.colorbar_edge_width,
             inc=1,
             size=(90, -1),
-            name="frame",
+            name="colorbar.frame",
         )
         self.colorbar_outline_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.colorbar_outline_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
@@ -2625,7 +2628,11 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         self.config.rmsd_lineHatch = self.config.lineHatchDict[self.rmsd_line_hatch_value.GetStringSelection()]
         self.config.rmsd_underlineTransparency = str2num(self.rmsd_alpha_value.GetValue()) / 100
         self.config.rmsd_hspace = str2num(self.rmsd_hspace_value.GetValue())
+
         self.config.rmsd_matrix_add_labels = self.rmsd_add_labels_check.GetValue()
+        self.config.rmsd_matrix_font_color_choice = self.rmsd_matrix_color_fmt.GetStringSelection()
+        self.config.rmsd_matrix_font_weight = self.rmsd_matrix_font_weight_check.GetValue()
+        self.config.rmsd_matrix_font_size = self.rmsd_matrix_fontsize.GetValue()
 
         # violin
         self.config.violin_orientation = self.violin_orientation_value.GetStringSelection()
@@ -2647,7 +2654,6 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         self.config.violin_labels_frequency = self.violin_label_frequency_value.GetValue()
 
         # waterfall
-        self.config.waterfall = self.waterfallTgl.GetValue()
         self.config.waterfall_offset = str2num(self.waterfall_offset_value.GetValue())
         self.config.waterfall_increment = self.waterfall_increment_value.GetValue()
         self.config.waterfall_lineWidth = self.waterfall_lineWidth_value.GetValue()
@@ -2799,6 +2805,10 @@ class PanelVisualisationSettingsEditor(wx.Panel):
                 self.config.colorbar_label_color = color_1
                 self.colorbar_label_color_btn.SetBackgroundColour(color_255)
                 self.on_update_2d(evt)
+            elif obj_name == "rmsd_matrix_label":
+                self.config.rmsd_matrix_font_color = color_1
+                self.rmsd_matrix_font_color_btn.SetBackgroundColour(color_255)
+                self.on_update_2d(evt)
 
         if self.config.autoSaveSettings:
             self.data_handling.on_export_config_fcn(None, False)
@@ -2847,6 +2857,7 @@ class PanelVisualisationSettingsEditor(wx.Panel):
 
     def on_update(self, evt):
         """General plot update"""
+        # TODO: doesnt work with rmsd/rmsf plots
 
         self.on_apply_1D(None)
 
@@ -2877,20 +2888,20 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         if self.panel_plot.currentPage == "Annotated":
             plot_name = self.panel_plot.plotOther.plot_name
 
-            print(plot_name)
             try:
-                if plot_name == "waterfall":
-                    try:
-                        source = evt.GetEventObject().GetName()
-                    except AttributeError:
-                        source = "axes"
-                    self.panel_plot.plot_1D_waterfall_update(source)
-                elif plot_name == "2D":
-                    self.panel_plot.plot_2D_update(plotName="other")
-                else:
-                    self.panel_plot.plot_1D_update(plotName=plot_name)
-            except Exception:
-                pass
+                source = evt.GetEventObject().GetName()
+            except AttributeError:
+                source = "axes"
+
+            logger.debug("update " + source + " / " + plot_name)
+            if plot_name == "waterfall":
+                self.panel_plot.plot_1D_waterfall_update(source)
+            elif plot_name == "2D":
+                self.panel_plot.plot_2D_update(plotName="other")
+            elif plot_name in ["RMSF", "RMSD"]:
+                self.panel_plot.plot_1D_update(plotName="RMSF")
+            else:
+                self.panel_plot.plot_1D_update(plotName=plot_name)
 
         if self.panel_plot.window_plot3D == "Heatmap (3D)":
             self.panel_plot.plot_3D_update(plotName="3D")
@@ -2924,7 +2935,7 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         except Exception:
             source = "all"
 
-        print(source)
+        logger.debug("update " + source)
         if self.panel_plot.window_plot2D in ["Heatmap", "DT/MS", "Annotated"]:
             if source == "colorbar" or "colorbar" in source:
                 self.panel_plot.plot_colorbar_update(self.panel_plot.window_plot2D)
@@ -2932,6 +2943,10 @@ class PanelVisualisationSettingsEditor(wx.Panel):
                 self.panel_plot.plot_normalization_update(self.panel_plot.window_plot2D)
             elif source == "rmsf":
                 self.panel_plot.plot_1D_update(plotName="RMSF")
+            elif source in ["rmsf.spacing", "rmsd_matrix_formatter"]:
+                logger.warning("Quick update not implemented yet - you will have to fully replot the plot")
+            elif source in ["rmsd_matrix", "rmsd_matrix_label"]:
+                self.panel_plot.plot_2D_matrix_update_label()
             else:
                 self.panel_plot.plot_2D_update(plotName="2D")
         #
@@ -3090,16 +3105,6 @@ class PanelVisualisationSettingsEditor(wx.Panel):
 
     def on_toggle_controls_waterfall(self, evt):
 
-        self.config.waterfall = self.waterfallTgl.GetValue()
-        if self.config.waterfall:
-            self.waterfallTgl.SetLabel("On")
-            self.waterfallTgl.SetForegroundColour(wx.WHITE)
-            self.waterfallTgl.SetBackgroundColour(wx.BLUE)
-        else:
-            self.waterfallTgl.SetLabel("Off")
-            self.waterfallTgl.SetForegroundColour(wx.WHITE)
-            self.waterfallTgl.SetBackgroundColour(wx.RED)
-
         self.config.waterfall_line_sameAsShade = self.waterfall_line_sameAsShade_check.GetValue()
         if not self.config.waterfall_line_sameAsShade and self.config.waterfall:
             self.waterfall_colorLineBtn.Enable()
@@ -3145,12 +3150,15 @@ class PanelVisualisationSettingsEditor(wx.Panel):
 
         enableDisableList = [self.rmsd_x_position_value, self.rmsd_y_position_value]
         self.config.rmsd_position = self.rmsd_position_value.GetStringSelection()
+        enable = False
         if self.config.rmsd_position == "other":
-            for item in enableDisableList:
-                item.Enable()
-        else:
-            for item in enableDisableList:
-                item.Disable()
+            enable = True
+        for item in enableDisableList:
+            item.Enable(enable)
+
+        self.config.rmsd_matrix_font_color_choice = self.rmsd_matrix_color_fmt.GetStringSelection()
+        enable = False if self.config.rmsd_matrix_font_color_choice == "auto" else True
+        self.rmsd_matrix_font_color_btn.Enable(enable)
 
         if evt is not None:
             evt.Skip()
