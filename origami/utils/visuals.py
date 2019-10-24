@@ -146,6 +146,12 @@ def check_plot_settings(**kwargs):
         else:
             kwargs["rmsd_matrix_label_weight"] = "normal"
 
+    if "labels_font_weight" in kwargs:
+        if kwargs["labels_font_weight"] and isbool(kwargs["labels_font_weight"]):
+            kwargs["labels_font_weight"] = "heavy"
+        else:
+            kwargs["labels_font_weight"] = "normal"
+
     return kwargs
 
 

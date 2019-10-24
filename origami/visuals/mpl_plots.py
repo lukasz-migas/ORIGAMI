@@ -3,6 +3,7 @@
 import itertools
 import logging
 import warnings
+from builtins import isinstance
 from copy import deepcopy
 
 import matplotlib
@@ -1207,25 +1208,26 @@ class plots(mpl_plotter):
             logger.warning("Could not update waterfall underlines")
 
     def plot_1d_waterfall_update_label(self, **kwargs):
-        # convert weights
-        if kwargs["labels_font_weight"]:
-            kwargs["labels_font_weight"] = "heavy"
-        else:
-            kwargs["labels_font_weight"] = "normal"
 
         # calculate new position
         label_xposition = self.text_offset_position["min"] + (
             self.text_offset_position["max"] * kwargs["labels_x_offset"]
         )
 
-        for i in range(len(self.text)):
-            self.text[i].set_fontweight(kwargs["labels_font_weight"])
-            self.text[i].set_fontsize(kwargs["labels_font_size"])
-            yposition = self.text[i]._yposition + kwargs["labels_y_offset"]
-            position = [label_xposition, yposition]
-            self.text[i].set_position(position)
-            text = ut_visuals.convert_label(self.text[i].get_text(), label_format=kwargs["labels_format"])
-            self.text[i].set_text(text)
+        if not isinstance(self.text, list):
+            logger.warning("Could not update waterfall labels - are they plotted?")
+            return
+
+        for text_obj in self.text:
+            if not kwargs["add_labels"]:
+                text_obj.set_visible(False)
+            else:
+                text_obj.set_fontweight(kwargs["labels_font_weight"])
+                text_obj.set_fontsize(kwargs["labels_font_size"])
+                yposition = text_obj._yposition + kwargs["labels_y_offset"]
+                text_obj.set_position([label_xposition, yposition])
+                text = ut_visuals.convert_label(text_obj.get_text(), label_format=kwargs["labels_format"])
+                text_obj.set_text(text)
 
     def plot_1d_waterfall_data(self, **kwargs):
         # TODO: needs to respect labels
@@ -1235,29 +1237,35 @@ class plots(mpl_plotter):
         #         count = 0
         increment = kwargs["increment"] - self.plot_parameters["increment"]
         offset = kwargs["offset"]  # - self.plot_parameters['offset']
-        ydata = []
+
         #             print(dir(self.plotMS.collections[0]),
         #                   self.plotMS.collections[2]._offset_position)
         #             for shade in range(len(self.plotMS.collections)):
         #                 self.plotMS.collections[shade].set_offsets(100.)
         #                 print(self.plotMS.collections[shade].get_paths())
         #                 print(dir_extra(dir(self.plotMS.collections[shade]), "set"))
-        for i, line in enumerate(self.plotMS.get_lines()):
-            yvals = line.get_ydata()
         #             if len(yvals) > 5:
         #                 count = +1
-        yOffset = 0  # offset*(count+1)
+
+        ydata, y_offset = [], 0
         for i, line in enumerate(self.plotMS.get_lines()):
             yvals = line.get_ydata()
             if len(yvals) > 5:
-                new_yvals = yvals + yOffset
-                line.set_ydata(new_yvals)
-                ydata.extend(new_yvals)
-                yOffset = yOffset - increment
+                y = yvals + y_offset
+                y_min, y_max = get_min_max(y)
+                line.set_ydata(y)
+                ydata.extend([y_min, y_max])
+                y_offset = y_offset - increment
 
-        # remove nans
-        ydata = np.array(ydata)
-        ydata = ydata[~np.isnan(ydata)]
+        for shade in self.plotMS.collections:
+            pass
+        #             print(shade)
+
+        print(dir(shade))
+
+        # y_min, y
+        # update extents
+        ydata = remove_nan_from_list(ydata)
         self.plot_limits[2] = np.min(ydata) - offset
         self.plot_limits[3] = np.max(ydata) + 0.05
         extent = [self.plot_limits[0], self.plot_limits[2], self.plot_limits[1], self.plot_limits[3]]
@@ -1270,8 +1278,6 @@ class plots(mpl_plotter):
         matplotlib.rc("xtick", labelsize=kwargs["tick_size"])
         matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
 
-        kwargs = ut_visuals.check_plot_settings(**kwargs)
-
         # update labels
         self.set_plot_xlabel(None, **kwargs)
         self.set_plot_ylabel(None, **kwargs)
@@ -1283,6 +1289,8 @@ class plots(mpl_plotter):
 
         if self.lock_plot_from_updating:
             self._locked()
+
+        kwargs = ut_visuals.check_plot_settings(**kwargs)
 
         if self.plot_name == "Waterfall_overlay" and which in ["color", "data"]:
             return
@@ -1342,6 +1350,9 @@ class plots(mpl_plotter):
     def plot_1D_update_rmsf(self, **kwargs):
         if self.lock_plot_from_updating:
             self._locked()
+
+        if any([plot is None for plot in [self.plotRMSF, self.plotMS]]):
+            return
 
         # ensure correct format of kwargs
         kwargs = ut_visuals.check_plot_settings(**kwargs)
@@ -1467,6 +1478,9 @@ class plots(mpl_plotter):
 
         self.plotMS.set_xticklabels(self.plotMS.get_xticklabels(), rotation=kwargs["rmsd_matrix_rotX"])
         self.plotMS.set_yticklabels(self.plotMS.get_xticklabels(), rotation=kwargs["rmsd_matrix_rotY"])
+
+        if not isinstance(self.text, list):
+            return
 
         for text in self.text:
             text.set_visible(kwargs["rmsd_matrix_labels"])
@@ -2288,6 +2302,7 @@ class plots(mpl_plotter):
 
         self.zoomtype = zoom
         self.plot_name = plotType
+        kwargs = ut_visuals.check_plot_settings(**kwargs)
 
         # override parameters
         if not self.lock_plot_from_updating:
@@ -2306,14 +2321,11 @@ class plots(mpl_plotter):
         matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
 
         self.plotMS = self.figure.add_axes(self._axes)
-        if kwargs["labels_font_weight"]:
-            kwargs["labels_font_weight"] = "heavy"
-        else:
-            kwargs["labels_font_weight"] = "normal"
 
         zorder, zorder_offset = 5, 5
         count = kwargs["labels_frequency"]
 
+        # swap labels in some circumstances
         if xlabel not in ["m/z", "Mass (Da)", "Charge"]:
             xlabel, ylabel = ylabel, xlabel
 
@@ -2323,74 +2335,61 @@ class plots(mpl_plotter):
         # uniform x-axis
         ydata = []
         if zvals is not None:
-            n_colors = len(zvals[1, :])
+            n_items = len(zvals[1, :])
+            item_list = np.linspace(0, n_items - 1, n_items).astype(np.int32)
+            self.text_offset_position = dict(min=np.min(xvals), max=np.max(xvals), offset=kwargs["labels_x_offset"])
+            label_xposition = np.min(xvals) + (np.max(xvals) * kwargs["labels_x_offset"])
+            yOffset = kwargs["offset"] * (n_items + 1)
+            label_kws = dict(fontsize=kwargs["labels_font_size"], fontweight=kwargs["labels_font_weight"])
+            shade_kws = dict(alpha=kwargs.get("shade_under_transparency", 0.25), clip_on=kwargs.get("clip_on", True))
 
-            if len(labels) == 0:
-                labels = [""] * n_colors
+            if len(labels) != n_items:
+                labels = [""] * n_items
 
+            # reverse data
             if kwargs["reverse"]:
                 zvals = np.fliplr(zvals)
                 yvals = yvals[::-1]
                 labels = labels[::-1]
 
-            # Setup parameters
-            if xlimits is None or xlimits[0] is None or xlimits[1] is None:
+            if xlimits is None or any([val is None for val in xlimits]):
                 xlimits = [np.min(xvals), np.max(xvals)]
 
-            # Always normalizes data - otherwise it looks pretty bad
+            # normalize data if increment is not 0
             if kwargs["increment"] != 0 and kwargs.get("normalize", True):
                 zvals = normalize_2D(zvals)
             else:
-                ylabel = "Intensity"
-                ydivider, expo = self.testXYmaxValsUpdated(values=zvals)
-                if expo > 1:
-                    zvals = np.divide(zvals, float(ydivider))
-                    offset_text = r"x$\mathregular{10^{%d}}$" % expo
-                    ylabel = "".join([ylabel, " [", offset_text, "]"])
+                __, ylabel, __ = self._convert_yaxis(zvals, "Intensity", set_divider=False)
 
-            voltage_idx = np.linspace(0, len(zvals[1, :]) - 1, len(zvals[1, :]))
-            label_xposition = np.min(xvals) + (np.max(xvals) * kwargs["labels_x_offset"])
-            yOffset = kwargs["offset"] * (len(zvals[1, :]) + 1)
-
-            self.text_offset_position = dict(min=np.min(xvals), max=np.max(xvals), offset=kwargs["labels_x_offset"])
-
-            colorlist = self._get_colorlist(colorList, n_colors, **kwargs)
+            colorlist = self._get_colorlist(colorList, n_items, **kwargs)
             # Iterate over the colormap to get the color shading we desire
-            for i in voltage_idx[::-1]:
-                y = zvals[:, int(i)]
-
-                if kwargs.get("normalize", True):
-                    y = normalize_1D(y)
+            for i in item_list[::-1]:
+                y = zvals[:, i] + yOffset
+                y_min, y_max = get_min_max(y)
 
                 if kwargs["line_color_as_shade"]:
-                    line_color = colorlist[int(i)]
+                    line_color = colorlist[i]
                 else:
                     line_color = kwargs["line_color"]
-                shade_color = colorlist[int(i)]
+                shade_color = colorlist[i]
 
                 self.plotMS.plot(
                     xvals,
-                    (y + yOffset),
+                    y,
                     color=line_color,
                     linewidth=kwargs["line_width"],
                     linestyle=kwargs["line_style"],
-                    label=labels[int(i)],
+                    label=labels[i],
                     zorder=zorder,
                 )
 
-                if kwargs["shade_under"] and len(voltage_idx) < kwargs.get("shade_under_n_limit", 50):
-                    shade_kws = dict(
-                        facecolor=shade_color,
-                        alpha=kwargs.get("shade_under_transparency", 0.25),
-                        clip_on=kwargs.get("clip_on", True),
-                        zorder=zorder - 2,
-                    )
-                    self.plotMS.fill_between(xvals, np.min(y + yOffset), (y + yOffset), **shade_kws)
+                if kwargs["shade_under"] and len(item_list) < kwargs.get("shade_under_n_limit", 50):
+                    shade_kws.update(zorder=zorder - 2, facecolor=shade_color)
+                    self.plotMS.fill_between(xvals, y_min, y, **shade_kws)
 
                 if kwargs.get("add_labels", True) and kwargs["labels_frequency"] != 0:
-                    label = ut_visuals.convert_label(yvals[int(i)], label_format=kwargs["labels_format"])
-                    if int(i) % kwargs["labels_frequency"] == 0:
-                        label_kws = dict(fontsize=kwargs["labels_font_size"], fontweight=kwargs["labels_font_weight"])
+                    label = ut_visuals.convert_label(yvals[i], label_format=kwargs["labels_format"])
+                    if i % kwargs["labels_frequency"] == 0:
                         self.plot_add_text(
                             xpos=label_xposition,
                             yval=yOffset + kwargs["labels_y_offset"],
@@ -2398,103 +2397,101 @@ class plots(mpl_plotter):
                             zorder=zorder + 3,
                             **label_kws,
                         )
-                ydata.extend(y + yOffset)
+                ydata.extend([y_min, y_max])
                 yOffset = yOffset - kwargs["increment"]
                 zorder = zorder + zorder_offset
-                count = count + 1
-
-        # non-uniform x-axis
+                count += 1
         else:
-            # check in case only one item was passed
-            # assumes xvals is a list in a list
-            if len(xvals) != len(yvals) and len(xvals) == 1:
-                xvals = xvals * len(yvals)
+            raise ValueError("This method has been removed temporarily!")
 
-            n_colors = len(yvals)
-            if len(labels) == 0:
-                labels = [""] * n_colors
-            yOffset = kwargs["offset"] * (n_colors + 1)
-
-            # Find new xlimits
-            xvals_limit, __ = find_limits_list(xvals, yvals)
-            xlimits = (np.min(xvals_limit), np.max(xvals_limit))
-
-            label_xposition = xlimits[0] + (xlimits[1] * kwargs["labels_x_offset"])
-            self.text_offset_position = dict(min=xlimits[0], max=xlimits[1], offset=kwargs["labels_x_offset"])
-
-            colorlist = self._get_colorlist(colorList, n_colors, **kwargs)
-
-            if kwargs["reverse"]:
-                xvals = xvals[::-1]
-                yvals = yvals[::-1]
-                colorlist = colorlist[::-1]
-                labels = labels[::-1]
-
-            for irow in range(len(xvals)):
-                # Always normalizes data - otherwise it looks pretty bad
-
-                if kwargs["increment"] != 0 and kwargs.get("normalize", True):
-                    yvals[irow] = normalize_1D(yvals[irow])
-                else:
-                    ylabel = "Intensity"
-                    try:
-                        ydivider, expo = self.testXYmaxValsUpdated(values=yvals[irow])
-                        if expo > 1:
-                            yvals[irow] = np.divide(yvals[irow], float(ydivider))
-                            offset_text = r"x$\mathregular{10^{%d}}$" % expo
-                            ylabel = "".join([ylabel, " [", offset_text, "]"])
-                    except AttributeError:
-                        kwargs["increment"] = 0.00001
-                        yvals[irow] = normalize_1D(yvals[irow])
-
-                voltage_idx = np.linspace(0, n_colors - 1, n_colors)
-                if kwargs["line_color_as_shade"]:
-                    line_color = colorlist[irow]
-                else:
-                    line_color = kwargs["line_color"]
-                shade_color = colorlist[int(irow)]
-                y = yvals[irow]
-                self.plotMS.plot(
-                    xvals[irow],
-                    (y + yOffset),
-                    color=line_color,
-                    linewidth=kwargs["line_width"],
-                    linestyle=kwargs["line_style"],
-                    label=labels[irow],
-                    zorder=zorder,
-                )
-
-                if kwargs["shade_under"] and len(voltage_idx) < kwargs.get("shade_under_n_limit", 50):
-                    shade_kws = dict(
-                        facecolor=shade_color,
-                        alpha=kwargs.get("shade_under_transparency", 0.25),
-                        clip_on=kwargs.get("clip_on", True),
-                        zorder=zorder - 2,
-                    )
-                    self.plotMS.fill_between(xvals[irow], np.min(y + yOffset), (y + yOffset), **shade_kws)
-
-                if kwargs.get("add_labels", True) and kwargs["labels_frequency"] != 0:
-                    label = _replace_labels(labels[irow])
-                    if irow % kwargs["labels_frequency"] == 0:
-                        label_kws = dict(fontsize=kwargs["labels_font_size"], fontweight=kwargs["labels_font_weight"])
-                        self.plot_add_text(
-                            xpos=label_xposition,
-                            yval=yOffset + kwargs["labels_y_offset"],
-                            label=label,
-                            zorder=zorder + 3,
-                            **label_kws,
-                        )
-                ydata.extend(y + yOffset)
-                yOffset = yOffset - kwargs["increment"]
-                zorder = zorder + zorder_offset
+        #         # non-uniform x-axis
+        #         else:
+        #             # check in case only one item was passed
+        #             # assumes xvals is a list in a list
+        #             if len(xvals) != len(yvals) and len(xvals) == 1:
+        #                 xvals = xvals * len(yvals)
+        #
+        #             n_items = len(yvals)
+        #             if len(labels) == 0:
+        #                 labels = [""] * n_items
+        #             yOffset = kwargs["offset"] * (n_items + 1)
+        #
+        #             # Find new xlimits
+        #             xvals_limit, __ = find_limits_list(xvals, yvals)
+        #             xlimits = (np.min(xvals_limit), np.max(xvals_limit))
+        #
+        #             label_xposition = xlimits[0] + (xlimits[1] * kwargs["labels_x_offset"])
+        #             self.text_offset_position = dict(min=xlimits[0], max=xlimits[1], offset=kwargs["labels_x_offset"])
+        #
+        #             colorlist = self._get_colorlist(colorList, n_items, **kwargs)
+        #
+        #             if kwargs["reverse"]:
+        #                 xvals = xvals[::-1]
+        #                 yvals = yvals[::-1]
+        #                 colorlist = colorlist[::-1]
+        #                 labels = labels[::-1]
+        #
+        #             for irow in range(len(xvals)):
+        #                 # Always normalizes data - otherwise it looks pretty bad
+        #
+        #                 if kwargs["increment"] != 0 and kwargs.get("normalize", True):
+        #                     yvals[irow] = normalize_1D(yvals[irow])
+        #                 else:
+        #                     ylabel = "Intensity"
+        #                     try:
+        #                         ydivider, expo = self.testXYmaxValsUpdated(values=yvals[irow])
+        #                         if expo > 1:
+        #                             yvals[irow] = np.divide(yvals[irow], float(ydivider))
+        #                             offset_text = r"x$\mathregular{10^{%d}}$" % expo
+        #                             ylabel = "".join([ylabel, " [", offset_text, "]"])
+        #                     except AttributeError:
+        #                         kwargs["increment"] = 0.00001
+        #                         yvals[irow] = normalize_1D(yvals[irow])
+        #
+        #                 item_list = np.linspace(0, n_items - 1, n_items)
+        #                 if kwargs["line_color_as_shade"]:
+        #                     line_color = colorlist[irow]
+        #                 else:
+        #                     line_color = kwargs["line_color"]
+        #                 shade_color = colorlist[int(irow)]
+        #                 y = yvals[irow]
+        #                 self.plotMS.plot(
+        #                     xvals[irow],
+        #                     (y + yOffset),
+        #                     color=line_color,
+        #                     linewidth=kwargs["line_width"],
+        #                     linestyle=kwargs["line_style"],
+        #                     label=labels[irow],
+        #                     zorder=zorder,
+        #                 )
+        #
+        #                 if kwargs["shade_under"] and len(item_list) < kwargs.get("shade_under_n_limit", 50):
+        #                     shade_kws = dict(
+        #                         facecolor=shade_color,
+        #                         alpha=kwargs.get("shade_under_transparency", 0.25),
+        #                         clip_on=kwargs.get("clip_on", True),
+        #                         zorder=zorder - 2,
+        #                     )
+        #                     self.plotMS.fill_between(xvals[irow], np.min(y + yOffset), (y + yOffset), **shade_kws)
+        #
+        #                 if kwargs.get("add_labels", True) and kwargs["labels_frequency"] != 0:
+        #                     label = _replace_labels(labels[irow])
+        #                     if irow % kwargs["labels_frequency"] == 0:
+        #                         label_kws = dict(fontsize=kwargs["labels_font_size"],
+        # fontweight=kwargs["labels_font_weight"])
+        #                         self.plot_add_text(
+        #                             xpos=label_xposition,
+        #                             yval=yOffset + kwargs["labels_y_offset"],
+        #                             label=label,
+        #                             zorder=zorder + 3,
+        #                             **label_kws,
+        #                         )
+        #                 ydata.extend(y + yOffset)
+        #                 yOffset = yOffset - kwargs["increment"]
+        #                 zorder = zorder + zorder_offset
 
         self.set_plot_xlabel(xlabel, **kwargs)
-
         self.set_tick_parameters(**kwargs)
-
-        for __, line in enumerate(self.plotMS.get_lines()):
-            line.set_linewidth(kwargs["line_width"])
-            line.set_linestyle(kwargs["line_style"])
 
         self.plotMS.spines["left"].set_visible(kwargs["spines_left"])
         self.plotMS.spines["right"].set_visible(kwargs["spines_right"])
@@ -2511,12 +2508,12 @@ class plots(mpl_plotter):
 
         self.setup_zoom([self.plotMS], self.zoomtype, plotName=plotName, data_lims=extent)
         self.plot_limits = [xlimits[0], xlimits[1], ylimits[0], ylimits[1]]
+
         # Setup X-axis getter
-        self.setupGetXAxies([self.plotMS])
         self.plotMS.set_xlim([xlimits[0], xlimits[1]])
 
         # a couple of set values
-        self.n_colors = n_colors
+        self.n_colors = n_items
 
     def _get_colorlist(self, colorList, n_colors, **kwargs):
 

@@ -1510,6 +1510,7 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         self.waterfall_showLabels_check = make_checkbox(panel, "", name="label")
         self.waterfall_showLabels_check.SetValue(self.config.waterfall_add_labels)
         self.waterfall_showLabels_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls_waterfall)
+        self.waterfall_showLabels_check.Bind(wx.EVT_CHECKBOX, self.on_update_2d)
 
         waterfall_label_frequency_label = wx.StaticText(panel, -1, "Label frequency:")
         self.waterfall_label_frequency_value = wx.SpinCtrlDouble(
@@ -1521,7 +1522,7 @@ class PanelVisualisationSettingsEditor(wx.Panel):
             initial=self.config.waterfall_labels_frequency,
             inc=1,
             size=(45, -1),
-            name="label",
+            name="label.frequency",
         )
         self.waterfall_label_frequency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.waterfall_label_frequency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
@@ -1540,10 +1541,10 @@ class PanelVisualisationSettingsEditor(wx.Panel):
             panel,
             -1,
             value=str(self.config.waterfall_label_fontSize),
-            min=0,
+            min=4,
             max=32,
             initial=self.config.waterfall_label_fontSize,
-            inc=4,
+            inc=2,
             size=(45, -1),
             name="label",
         )
@@ -2858,7 +2859,7 @@ class PanelVisualisationSettingsEditor(wx.Panel):
     def on_update(self, evt):
         """General plot update"""
         # TODO: doesnt work with rmsd/rmsf plots
-
+        tstart = ttime()
         self.on_apply_1D(None)
 
         if self.panel_plot.currentPage in ["Mass spectrum", "Chromatogram", "Mobilogram"]:
@@ -2893,7 +2894,6 @@ class PanelVisualisationSettingsEditor(wx.Panel):
             except AttributeError:
                 source = "axes"
 
-            logger.debug("update " + source + " / " + plot_name)
             if plot_name == "waterfall":
                 self.panel_plot.plot_1D_waterfall_update(source)
             elif plot_name == "2D":
@@ -2906,6 +2906,7 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         if self.panel_plot.window_plot3D == "Heatmap (3D)":
             self.panel_plot.plot_3D_update(plotName="3D")
 
+        logger.debug(f"update {source} / plot_name {plot_name} in {ttime()-tstart:.4f}s")
         if evt is not None:
             evt.Skip()
 
@@ -2925,17 +2926,15 @@ class PanelVisualisationSettingsEditor(wx.Panel):
             evt.Skip()
 
     def on_update_2d(self, evt):
+        tstart = ttime()
 
         # update config values
         self.on_apply_1D(None)
         self.on_apply_2D(None)
 
-        try:
-            source = evt.GetEventObject().GetName()
-        except Exception:
-            source = "all"
+        source = evt.GetEventObject().GetName()
 
-        logger.debug("update " + source)
+        # Heatmap-like
         if self.panel_plot.window_plot2D in ["Heatmap", "DT/MS", "Annotated"]:
             if source == "colorbar" or "colorbar" in source:
                 self.panel_plot.plot_colorbar_update(self.panel_plot.window_plot2D)
@@ -2949,34 +2948,14 @@ class PanelVisualisationSettingsEditor(wx.Panel):
                 self.panel_plot.plot_2D_matrix_update_label()
             else:
                 self.panel_plot.plot_2D_update(plotName="2D")
-        #
-        #             if source == "colorbar":
-        #                 self.panel_plot.plot_colorbar_update()
-        #             elif source == "rmsf":
-        #                 self.panel_plot.plot_1D_update(plotName="RMSF")
-        #
-        #         elif self.panel_plot.window_plot2D == "Comparison":
-        #             self.panel_plot.plot_colorbar_update()
-
-        elif self.panel_plot.window_plot2D == "DT/MS":
-            self.panel_plot.plot_2D_update(plotName="DT/MS")
-
-        #         elif self.panel_plot.window_plot2D == "UniDec":
-        #             if source == "colorbar":
-        #                 self.panel_plot.plot_colorbar_update()
-        #             elif source == "normalization":
-        #                 self.panel_plot.plot_normalization_update()
-        #             else:
-        #                 self.panel_plot.plot_2D_update(plotName="UniDec")
-
         elif self.panel_plot.window_plot2D == "Waterfall" or self.panel_plot.currentPage == "Annotated":
-            try:
-                source = evt.GetEventObject().GetName()
-            except Exception:
-                source = "color"
-            self.on_apply(None)
-            self.panel_plot.plot_1D_waterfall_update(source)
 
+            if source in ["label.frequency"]:
+                logger.warning("Quick update not implemented yet - you will have to fully replot the plot")
+            else:
+                self.panel_plot.plot_1D_waterfall_update(source)
+
+        logger.debug(f"update {source} in {ttime()-tstart:.4f}s")
         if evt is not None:
             evt.Skip()
 

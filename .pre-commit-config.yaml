@@ -33,3 +33,7 @@ repos:
     hooks:
       - id: reorder-python-imports
         language_version: python3
+  - repo: https://gitlab.com/pycqa/flake8
+    rev: 0359533f
+    hooks:
+      - id: flake8
