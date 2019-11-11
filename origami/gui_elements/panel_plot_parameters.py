@@ -1136,7 +1136,22 @@ class PanelVisualisationSettingsEditor(wx.Panel):
     def make_panel_violin(self, panel):
 
         # make elements
-        violin_orientation_label = wx.StaticText(panel, -1, "Line style:")
+        violin_nLimit_label = wx.StaticText(panel, -1, "Violin limit:")
+        self.violin_nLimit_value = wx.SpinCtrlDouble(
+            panel,
+            -1,
+            value=str(self.config.violin_nlimit),
+            min=1,
+            max=200,
+            initial=self.config.violin_nlimit,
+            inc=5,
+            size=(90, -1),
+            name="shade",
+        )
+        self.violin_nLimit_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
+        self.violin_nLimit_value.SetToolTip("Maximum number of signals before we plot the data as a waterfall plot.")
+
+        violin_orientation_label = wx.StaticText(panel, -1, "Violin plot orientation:")
         self.violin_orientation_value = wx.Choice(
             panel, -1, choices=self.config.violin_orientation_choices, size=(-1, -1), name="style"
         )
@@ -1163,6 +1178,10 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         )
         self.violin_min_percentage_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.violin_min_percentage_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
+        self.violin_min_percentage_value.SetToolTip(
+            "Minimal intensity of data to be shown on the plot. Low intensity or sparse datasets can lead"
+            " to plot distortions"
+        )
 
         violin_normalize_label = wx.StaticText(panel, -1, "Normalize:")
         self.violin_normalize_check = make_checkbox(panel, "")
@@ -1268,24 +1287,12 @@ class PanelVisualisationSettingsEditor(wx.Panel):
             name="label",
         )
         self.violin_label_frequency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        #         self.violin_label_frequency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.onUpdate2D)
-
-        violin_nLimit_label = wx.StaticText(panel, -1, "Violin limit:")
-        self.violin_nLimit_value = wx.SpinCtrlDouble(
-            panel,
-            -1,
-            value=str(self.config.violin_nlimit),
-            min=1,
-            max=200,
-            initial=self.config.violin_nlimit,
-            inc=5,
-            size=(90, -1),
-            name="shade",
-        )
-        self.violin_nLimit_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         plot_grid = wx.GridBagSizer(2, 2)
         y = 0
+        plot_grid.Add(violin_nLimit_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        plot_grid.Add(self.violin_nLimit_value, (y, 1), flag=wx.EXPAND)
+        y += 1
         plot_grid.Add(violin_orientation_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         plot_grid.Add(self.violin_orientation_value, (y, 1), flag=wx.EXPAND)
         y += 1
@@ -1327,9 +1334,6 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         y += 1
         label_grid.Add(violin_label_format_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         label_grid.Add(self.violin_label_format_value, (y, 1), flag=wx.EXPAND)
-        y += 1
-        label_grid.Add(violin_nLimit_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        label_grid.Add(self.violin_nLimit_value, (y, 1), flag=wx.EXPAND)
         y += 1
         label_grid.Add(self.violin_colorScheme_msg, (y, 0), (2, 3), flag=wx.EXPAND)
 
@@ -1400,11 +1404,19 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         self.waterfall_normalize_check = make_checkbox(panel, "", name="data")
         self.waterfall_normalize_check.SetValue(self.config.waterfall_normalize)
         self.waterfall_normalize_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
+        self.waterfall_normalize_check.SetToolTip(
+            "Controls whether signals are normalized during plotting. Changing this value will not have immediate"
+            " effect until the plot is fully replotted."
+        )
 
         waterfall_reverse_label = wx.StaticText(panel, -1, "Reverse order:")
         self.waterfall_reverse_check = make_checkbox(panel, "", name="data")
         self.waterfall_reverse_check.SetValue(self.config.waterfall_reverse)
         self.waterfall_reverse_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
+        self.waterfall_reverse_check.SetToolTip(
+            "Controls in which order lines are plotted. Changing this value will not have immediate"
+            " effect until the plot is fully replotted."
+        )
 
         waterfall_lineWidth_label = wx.StaticText(panel, -1, "Line width:")
         self.waterfall_lineWidth_value = wx.SpinCtrlDouble(
@@ -1442,6 +1454,13 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         self.waterfall_line_sameAsShade_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls_waterfall)
         self.waterfall_line_sameAsShade_check.Bind(wx.EVT_CHECKBOX, self.on_update_2d)
 
+        waterfall_shade_under_label = wx.StaticText(panel, -1, "Fill under the curve:")
+        self.waterfall_shadeUnder_check = make_checkbox(panel, "", name="shade")
+        self.waterfall_shadeUnder_check.SetValue(self.config.waterfall_shade_under)
+        self.waterfall_shadeUnder_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
+        self.waterfall_shadeUnder_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls_waterfall)
+        self.waterfall_shadeUnder_check.Bind(wx.EVT_CHECKBOX, self.on_update_2d)
+
         waterfall_color_scheme_label = wx.StaticText(panel, -1, "Color scheme:")
         self.waterfall_colorScheme_value = wx.Choice(
             panel, -1, choices=self.config.waterfall_color_choices, size=(-1, -1), name="color"
@@ -1458,13 +1477,6 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         self.waterfall_colormap_value.SetStringSelection(self.config.waterfall_colormap)
         self.waterfall_colormap_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.waterfall_colormap_value.Bind(wx.EVT_CHOICE, self.on_update_2d)
-
-        waterfall_shade_under_label = wx.StaticText(panel, -1, "Fill under the curve:")
-        self.waterfall_shadeUnder_check = make_checkbox(panel, "", name="shade")
-        self.waterfall_shadeUnder_check.SetValue(self.config.waterfall_shade_under)
-        self.waterfall_shadeUnder_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.waterfall_shadeUnder_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls_waterfall)
-        self.waterfall_shadeUnder_check.Bind(wx.EVT_CHECKBOX, self.on_update_2d)
 
         waterfall_shadeColor_label = wx.StaticText(panel, -1, "Fill color:")
         self.waterfall_colorShadeBtn = wx.Button(
@@ -1612,14 +1624,14 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         plot_grid.Add(self.waterfall_line_sameAsShade_check, (y, 1), flag=wx.EXPAND)
         plot_grid.Add(self.waterfall_colorLineBtn, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
         y += 1
+        plot_grid.Add(waterfall_shade_under_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        plot_grid.Add(self.waterfall_shadeUnder_check, (y, 1), flag=wx.EXPAND)
+        y += 1
         plot_grid.Add(waterfall_color_scheme_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         plot_grid.Add(self.waterfall_colorScheme_value, (y, 1), flag=wx.EXPAND)
         y += 1
         plot_grid.Add(waterfall_colormap_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         plot_grid.Add(self.waterfall_colormap_value, (y, 1), flag=wx.EXPAND)
-        y += 1
-        plot_grid.Add(waterfall_shade_under_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        plot_grid.Add(self.waterfall_shadeUnder_check, (y, 1), flag=wx.EXPAND)
         y += 1
         plot_grid.Add(waterfall_shadeColor_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         plot_grid.Add(self.waterfall_colorShadeBtn, (y, 1), flag=wx.EXPAND)
@@ -1681,6 +1693,8 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         panel.SetSizer(main_sizer)
 
         return panel
+
+        self._notes = dict()
 
     def make_panel_colorbar(self, panel):
         """Make colorbar controls
@@ -2585,7 +2599,7 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         self.config._plotSettings[plot_name]["resize_size"] = plot_sizes
 
         # fire events
-        self.panel_plot.plot_update_axes(plot_name=plot_name)
+        self.panel_plot.plot_update_axes(plot_name)
 
         if self.config.autoSaveSettings:
             self.data_handling.on_export_config_fcn(None, False)
@@ -2643,7 +2657,7 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         self.config.violin_lineStyle = self.violin_line_style_value.GetStringSelection()
         self.config.violin_color_scheme = self.violin_colorScheme_value.GetStringSelection()
         if self.config.violin_color_scheme == "Color palette":
-            self.violin_colorScheme_msg.SetLabel("You can change the \ncolor palette in \nthe 'General' tab.")
+            self.violin_colorScheme_msg.SetLabel("You can change the color palette in the 'General' tab.")
         else:
             self.violin_colorScheme_msg.SetLabel("")
         self.config.violin_colormap = self.violin_colormap_value.GetStringSelection()
@@ -3074,10 +3088,13 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         self.config.violin_color_value = self.violin_colorScheme_value.GetStringSelection()
         if self.config.violin_color_value == "Same color":
             self.violin_colormap_value.Disable()
+            self.violin_colorShadeBtn.Enable()
         elif self.config.violin_color_value == "Colormap":
             self.violin_colormap_value.Enable()
+            self.violin_colorShadeBtn.Disable()
         else:
             self.violin_colormap_value.Disable()
+            self.violin_colorShadeBtn.Disable()
 
         if evt is not None:
             evt.Skip()

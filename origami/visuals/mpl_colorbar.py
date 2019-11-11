@@ -1,8 +1,7 @@
 """Colorbar object"""
 
 
-class Colorbar():
-
+class Colorbar:
     def __init__(self, parent):
         self.parent = parent
         print(self.parent, "asdasd")

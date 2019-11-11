@@ -468,7 +468,7 @@ class PanelMultiFile(wx.Panel):
         self.SetFocus()
 
     def menu_process_tools(self, evt):
-        self.Bind(wx.EVT_TOOL, self.data_handling.on_combine_mass_spectra, id=ID_mmlPanel_data_combineMS)
+        self.Bind(wx.EVT_TOOL, self.on_combine_mass_spectra, id=ID_mmlPanel_data_combineMS)
         self.Bind(wx.EVT_TOOL, self.onAutoUniDec, id=ID_mmlPanel_batchRunUniDec)
 
         menu = wx.Menu()

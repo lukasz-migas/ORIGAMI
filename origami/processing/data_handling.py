@@ -3065,6 +3065,8 @@ class DataHandling:
     def on_combine_mass_spectra(self, document_name=None):
 
         document = self.on_get_document(document_name)
+        if document is None:
+            raise ValueError("Did not get document")
 
         kwargs = {
             "auto_range": False,
@@ -3082,7 +3084,7 @@ class DataHandling:
         )
         logger.info(msg)
 
-        if len(list(document.multipleMassSpectrum.keys())) > 0:
+        if document.multipleMassSpectrum:
             # check the min/max values in the mass spectrum
             if self.config.ms_auto_range:
                 mzStart, mzEnd = pr_spectra.check_mass_range(ms_dict=document.multipleMassSpectrum)

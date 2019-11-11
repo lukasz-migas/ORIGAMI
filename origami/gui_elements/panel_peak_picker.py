@@ -647,11 +647,10 @@ class PanelPeakPicker(MiniFrame):
     def on_find_peaks(self, evt):
         """Detect peaks in the spectrum"""
         logger.info("Started peak picking...")
+        self.display_label.SetLabel("Started peak picking...")
 
         mz_x = self.mz_data["xvals"]
         mz_y = self.mz_data["yvals"]
-
-        self.display_label.SetLabel("Started peak picking...")
 
         if self.config.peak_find_method == "small_molecule":
             peaks_dict = self.data_processing.find_peaks_in_mass_spectrum_peak_properties(
@@ -731,6 +730,7 @@ class PanelPeakPicker(MiniFrame):
         logger.info(label)
         self.display_label.SetLabel(label)
         if n_peaks == 0:
+            self.on_clear_from_plot(None)
             return
 
         self._n_peaks_max = 1000

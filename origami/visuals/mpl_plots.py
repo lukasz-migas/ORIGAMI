@@ -809,7 +809,7 @@ class plots(mpl_plotter):
         text.y_divider = self.y_divider
         self.text.append(text)
 
-    def plot_remove_text(self):
+    def plot_remove_text(self, repaint=True):
         for text in self.text:
             try:
                 text.remove()
@@ -817,7 +817,8 @@ class plots(mpl_plotter):
                 pass
 
         self.text = []
-        self.repaint()
+        if repaint:
+            self.repaint()
 
     def plot_add_patch(
         self, xmin, ymin, width, height, color="r", alpha=0.5, linewidth=0, add_temporary=False, label="", **kwargs
@@ -1161,6 +1162,39 @@ class plots(mpl_plotter):
         ylimits = get_min_max(ylimits)
         self.on_zoom_y_axis(ylimits[0], ylimits[1], convert_values=False)
 
+    def plot_1D_waterfall_update(self, which="other", **kwargs):
+
+        if self.lock_plot_from_updating:
+            self._locked()
+
+        kwargs = ut_visuals.check_plot_settings(**kwargs)
+
+        if self.plot_name == "Waterfall_overlay" and which in ["color", "data"]:
+            return
+
+        if which in ["other", "style"]:
+            self.plot_1d_waterfall_update_style(**kwargs)
+
+        elif which == "color":
+            self.plot_1d_waterfall_update_color(**kwargs)
+
+        elif which == "shade":
+            self.plot_1d_waterfall_update_shade(**kwargs)
+
+        elif which == "label":
+            self.plot_1d_waterfall_update_label(**kwargs)
+
+        elif which == "data":
+            self.plot_1d_waterfall_data(**kwargs)
+
+        elif which == "frame":
+            self.set_tick_parameters(**kwargs)
+
+        elif which == "fonts":
+            self.plot_1d_waterfall_fonts(**kwargs)
+
+        self.plot_parameters = kwargs
+
     def plot_1d_waterfall_update_style(self, **kwargs):
         if self.plot_name != "Violin":
             for i, line in enumerate(self.plotMS.get_lines()):
@@ -1179,7 +1213,7 @@ class plots(mpl_plotter):
                 n_colors = n_patch_colors
 
         # get colorlist
-        colorlist = self._get_colorlist(None, n_colors, **kwargs)
+        colorlist = self._get_colorlist(None, n_colors, which="shade", **kwargs)
 
         if self.plot_name != "Violin":
             for i, line in enumerate(self.plotMS.get_lines()):
@@ -1238,32 +1272,59 @@ class plots(mpl_plotter):
         increment = kwargs["increment"] - self.plot_parameters["increment"]
         offset = kwargs["offset"]  # - self.plot_parameters['offset']
 
-        #             print(dir(self.plotMS.collections[0]),
-        #                   self.plotMS.collections[2]._offset_position)
-        #             for shade in range(len(self.plotMS.collections)):
-        #                 self.plotMS.collections[shade].set_offsets(100.)
-        #                 print(self.plotMS.collections[shade].get_paths())
-        #                 print(dir_extra(dir(self.plotMS.collections[shade]), "set"))
-        #             if len(yvals) > 5:
-        #                 count = +1
+        # some presets
+        label_kws = dict(fontsize=kwargs["labels_font_size"], fontweight=kwargs["labels_font_weight"])
+        shade_kws = dict(alpha=kwargs.get("shade_under_transparency", 0.25), clip_on=kwargs.get("clip_on", True))
 
-        ydata, y_offset = [], 0
+        # collect information about underlines
+        collection_info = dict()
+        for i, shade in enumerate(self.plotMS.collections):
+            collection_info[i] = [shade.get_zorder(), shade.get_facecolor()]
+        self.plotMS.collections.clear()
+
+        label_info = dict()
+        for i, text in enumerate(self.text):
+            label_info[i] = [text._text, text.get_zorder(), text.get_position()[0]]
+        self.plot_remove_text(False)
+
+        if kwargs["reverse"] and label_info:
+            logger.warning(
+                "When 'reverse' is set to True, labels cannot be changed so they are removed. You have to"
+                " fully replot the waterfall plot."
+            )
+            label_info.clear()
+
+        ydata, y_offset, i_text = [], 0, 0
+        n_count = len(self.plotMS.get_lines())
         for i, line in enumerate(self.plotMS.get_lines()):
+            xvals = line.get_xdata()
             yvals = line.get_ydata()
+            # indication that waterfall plot is actually shown
             if len(yvals) > 5:
                 y = yvals + y_offset
                 y_min, y_max = get_min_max(y)
                 line.set_ydata(y)
+
+                # update labels
+                if label_info:
+                    if i % kwargs["labels_frequency"] == 0 or i == n_count - 1:
+                        self.plot_add_text(
+                            xpos=label_info[i_text][2],
+                            yval=y_min + kwargs["labels_y_offset"],
+                            label=label_info[i_text][0],
+                            zorder=label_info[i_text][1],
+                            **label_kws,
+                        )
+                        i_text += 1
+
+                # add underline data if present
+                if collection_info:
+                    shade_kws.update(zorder=collection_info[i][0], facecolor=collection_info[i][1])
+                    self.plotMS.fill_between(xvals, y_min, y, **shade_kws)
+
                 ydata.extend([y_min, y_max])
                 y_offset = y_offset - increment
 
-        for shade in self.plotMS.collections:
-            pass
-        #             print(shade)
-
-        print(dir(shade))
-
-        # y_min, y
         # update extents
         ydata = remove_nan_from_list(ydata)
         self.plot_limits[2] = np.min(ydata) - offset
@@ -1284,39 +1345,6 @@ class plots(mpl_plotter):
 
         # Setup font size info
         self.plotMS.tick_params(labelsize=kwargs["tick_size"])
-
-    def plot_1D_waterfall_update(self, which="other", **kwargs):
-
-        if self.lock_plot_from_updating:
-            self._locked()
-
-        kwargs = ut_visuals.check_plot_settings(**kwargs)
-
-        if self.plot_name == "Waterfall_overlay" and which in ["color", "data"]:
-            return
-
-        if which in ["other", "style"]:
-            self.plot_1d_waterfall_update_style(**kwargs)
-
-        elif which == "color":
-            self.plot_1d_waterfall_update_color(**kwargs)
-
-        elif which == "shade":
-            self.plot_1d_waterfall_update_shade(**kwargs)
-
-        elif which == "label":
-            self.plot_1d_waterfall_update_label(**kwargs)
-
-        elif which == "data":
-            self.plot_1d_waterfall_data(**kwargs)
-
-        elif which == "frame":
-            self.set_tick_parameters(**kwargs)
-
-        elif which == "fonts":
-            self.plot_1d_waterfall_fonts(**kwargs)
-
-        self.plot_parameters = kwargs
 
     def plot_1D_update(self, **kwargs):
         if self.lock_plot_from_updating:
@@ -2342,6 +2370,8 @@ class plots(mpl_plotter):
             yOffset = kwargs["offset"] * (n_items + 1)
             label_kws = dict(fontsize=kwargs["labels_font_size"], fontweight=kwargs["labels_font_weight"])
             shade_kws = dict(alpha=kwargs.get("shade_under_transparency", 0.25), clip_on=kwargs.get("clip_on", True))
+            add_underline = kwargs["shade_under"] and len(item_list) < kwargs.get("shade_under_n_limit", 50)
+            add_labels = kwargs.get("add_labels", True) and kwargs["labels_frequency"] != 0
 
             if len(labels) != n_items:
                 labels = [""] * n_items
@@ -2383,13 +2413,13 @@ class plots(mpl_plotter):
                     zorder=zorder,
                 )
 
-                if kwargs["shade_under"] and len(item_list) < kwargs.get("shade_under_n_limit", 50):
+                if add_underline:
                     shade_kws.update(zorder=zorder - 2, facecolor=shade_color)
                     self.plotMS.fill_between(xvals, y_min, y, **shade_kws)
 
-                if kwargs.get("add_labels", True) and kwargs["labels_frequency"] != 0:
+                if add_labels:
                     label = ut_visuals.convert_label(yvals[i], label_format=kwargs["labels_format"])
-                    if i % kwargs["labels_frequency"] == 0:
+                    if i % kwargs["labels_frequency"] == 0 or i == n_items - 1:
                         self.plot_add_text(
                             xpos=label_xposition,
                             yval=yOffset + kwargs["labels_y_offset"],
@@ -2515,18 +2545,20 @@ class plots(mpl_plotter):
         # a couple of set values
         self.n_colors = n_items
 
-    def _get_colorlist(self, colorList, n_colors, **kwargs):
+    def _get_colorlist(self, colorList, n_colors, which="line", **kwargs):
 
         if colorList is not None and len(colorList) == n_colors:
             colorlist = colorList
         elif kwargs["color_scheme"] == "Colormap":
             colorlist = color_palette(kwargs["colormap"], n_colors)
+
         elif kwargs["color_scheme"] == "Color palette":
             if kwargs["palette"] not in ["Spectral", "RdPu"]:
                 kwargs["palette"] = kwargs["palette"].lower()
             colorlist = color_palette(kwargs["palette"], n_colors)
         elif kwargs["color_scheme"] == "Same color":
-            colorlist = [kwargs["line_color"]] * n_colors
+            color = [kwargs["line_color"]] if which == "line" else [kwargs["shade_color"]]
+            colorlist = color * n_colors
         elif kwargs["color_scheme"] == "Random":
             colorlist = []
             for __ in range(n_colors):
@@ -2690,13 +2722,10 @@ class plots(mpl_plotter):
         zvals=None,
         xlabel="",
         ylabel="",
-        colorList=[],
         orientation="vertical",
         axesSize=None,
         plotName="Violin",
-        xlimits=None,
         plotType="Violin",
-        labels=[],
         **kwargs,
     ):
 
@@ -2736,6 +2765,12 @@ class plots(mpl_plotter):
             max_value = np.max(yvals_in)
             offset_list.append(max_value)
 
+        # select appropriate fcn
+        if orientation == "horizontal":
+            plot_fcn = self.plotMS.fill_between
+        else:
+            plot_fcn = self.plotMS.fill_betweenx
+
         for i in range(n_count):
             # get yvals
             yvals_in = zvals[:, i]
@@ -2769,45 +2804,28 @@ class plots(mpl_plotter):
                 clip_on=kwargs.get("clip_on", True),
             )
 
-            if orientation == "horizontal":
-                self.plotMS.fill_between(
-                    xvals_plot,
-                    -yvals_plot + offset,
-                    yvals_plot + offset,
-                    #                                          facecolor=colorlist[i],
-                    edgecolor=line_color,
-                    linewidth=kwargs["line_width"],
-                    **shade_kws,
-                )
-            else:
-                self.plotMS.fill_betweenx(
-                    xvals_plot,
-                    -yvals_plot + offset,
-                    yvals_plot + offset,
-                    #                                           facecolor=colorlist[i],
-                    edgecolor=line_color,
-                    linewidth=kwargs["line_width"],
-                    **shade_kws,
-                )
+            plot_fcn(
+                xvals_plot,
+                -yvals_plot + offset,
+                yvals_plot + offset,
+                edgecolor=line_color,
+                linewidth=kwargs["line_width"],
+                **shade_kws,
+            )
 
             if kwargs["labels_frequency"] != 0:
-                if i % kwargs["labels_frequency"] == 0:
+                if i % kwargs["labels_frequency"] == 0 or i == n_count - 1:
                     tick_position.append(offset)
                     tick_labels.append(ut_visuals.convert_label(yvals[int(i)], label_format=kwargs["labels_format"]))
 
-        xlimits = [np.amin(xvals), np.amax(xvals)]
-
+        xlimits = self.plotMS.get_xlim()
+        ylimits = self.plotMS.get_ylim()
+        extent = [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
         if orientation == "horizontal":
-            xlimits = self.plotMS.get_xlim()
-            ylimits = self.plotMS.get_ylim()
-            extent = [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
             self.plotMS.set_yticks(tick_position)
             self.plotMS.set_yticklabels(tick_labels)
             xlabel, ylabel = ylabel, xlabel
         else:
-            xlimits = self.plotMS.get_xlim()
-            ylimits = self.plotMS.get_ylim()
-            extent = [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
             self.plotMS.set_xticks(tick_position)
             self.plotMS.set_xticklabels(tick_labels)
 

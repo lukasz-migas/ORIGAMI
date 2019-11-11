@@ -755,6 +755,8 @@ class DocumentTree(wx.TreeCtrl):
             self._item_branch = self.GetItemText(self.GetItemParent(extract))
             self._item_root = self.GetItemText(self.GetItemParent(self.GetItemParent(extract)))
 
+        if self._document_data is None:
+            return
         self.title = self._document_data.title
 
         if self._indent == 1 and self._item_leaf is None:

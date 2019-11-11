@@ -1,21 +1,3 @@
-# TODO:
-
-- UniDec support
-    = add new 2D plot which colours charge states of various components as with RGB plot
-    = add adduct in the Pre-processing or deconvolution part
-    = add isotopic resolution in deconvolution
-
-- add new sub-document item: Saved images
-	= should allow saving already generated images to the document (no re-plotting required!)
-
-- add support for Agilent files
-
-- retention time:
-    = combine multiple areas
-
-Interactive:
-    - add pie chart
-
 autopep8
 autopep8 --in-place --aggressive --aggressive --max-line-length=120 ORIGAMI.py
 
