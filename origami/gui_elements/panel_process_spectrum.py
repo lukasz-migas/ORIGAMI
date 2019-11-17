@@ -2,8 +2,10 @@
 # __author__ lukasz.g.migas
 import copy
 import logging
+from builtins import isinstance
 
 import wx
+from pubsub import pub
 from styles import make_checkbox
 from styles import MiniFrame
 from styles import validator
@@ -41,6 +43,7 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.disable_plot = kwargs.get("disable_plot", False)
         self.disable_process = kwargs.get("disable_process", False)
         self.process_all = kwargs.get("process_all", False)
+        self.update_widget = kwargs.get("update_widget", False)
 
         self.make_gui()
         self.on_toggle_controls(None)
@@ -202,7 +205,7 @@ class PanelProcessMassSpectrum(MiniFrame):
             self.add_to_document_btn = wx.Button(panel, wx.ID_OK, "Add to document", size=(120, 22))
             self.add_to_document_btn.Bind(wx.EVT_BUTTON, self.on_add_to_document)
 
-        self.cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(120, 22))
+        self.cancel_btn = wx.Button(panel, wx.ID_OK, "Close", size=(120, 22))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
         btn_grid = wx.GridBagSizer(2, 2)
@@ -434,6 +437,9 @@ class PanelProcessMassSpectrum(MiniFrame):
 
         self.config.ms_crop_min = str2num(self.crop_min_value.GetValue())
         self.config.ms_crop_max = str2num(self.crop_max_value.GetValue())
+
+        if self.update_widget and isinstance(self.update_widget, str):
+            pub.sendMessage(self.update_widget)
 
         if evt is not None:
             evt.Skip()

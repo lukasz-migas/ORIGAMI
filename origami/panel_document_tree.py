@@ -181,6 +181,8 @@ class DocumentTree(wx.TreeCtrl):
         self._compare_panel = None
         self._overlay_panel = None
         self._picker_panel = None
+        self._lesa_panel = None
+        self._import_panel = None
 
         # set font and colour
         self.SetFont(wx.SMALL_FONT)
@@ -1390,6 +1392,18 @@ class DocumentTree(wx.TreeCtrl):
         self._overlay_panel = PanelOverlayViewer(self, self.presenter, self.config, self.icons)
         self._overlay_panel.Show()
 
+    def on_open_lesa_viewer(self, evt):
+        from widgets.lesa.panel_imaging_lesa import PanelImagingLESAViewer
+
+        self._lesa_panel = PanelImagingLESAViewer(self, self.presenter, self.config, self.icons)
+        self._lesa_panel.Show()
+
+    def on_import_lesa_dataset(self, evt):
+        from widgets.lesa.panel_imaging_import import PanelImagingImportDataset
+
+        self._import_panel = PanelImagingImportDataset(self, self.presenter, self.config, self.icons)
+        self._import_panel.Show()
+
     def _bind_change_label_events(self):
         for xID in [
             ID_xlabel_2D_scans,
@@ -1472,13 +1486,14 @@ class DocumentTree(wx.TreeCtrl):
         # Get the current text value for selected item
         itemType = self.GetItemText(evt.GetItem())
 
-        query, subkey = self._get_query_info_based_on_indent(return_subkey=True)
+        try:
+            query, subkey = self._get_query_info_based_on_indent(return_subkey=True)
+        except AttributeError:
+            return
         dataset_type = query[1]
         dataset_name = query[2]
         subkey_parent = subkey[0]
         subkey_child = subkey[1]
-
-        #         print(query, subkey)
 
         if itemType == "Documents":
             self.on_right_click_short()
@@ -2873,7 +2888,11 @@ class DocumentTree(wx.TreeCtrl):
         """Process clicked mass spectrum item"""
         document, data, dataset = self._on_event_get_mass_spectrum(**kwargs)
         self.on_open_process_MS_settings(
-            mz_data=data, document=document, document_title=document.title, dataset_name=dataset
+            mz_data=data,
+            document=document,
+            document_title=document.title,
+            dataset_name=dataset,
+            update_widget=kwargs.pop("update_widget", False),
         )
 
     def on_process_MS_plot_only(self, data):

@@ -758,6 +758,16 @@ class MainWindow(wx.Frame):
         )
         menuWidgets.AppendItem(menu_widget_overlay_viewer)
 
+        menu_widget_lesa_import = make_menu_item(
+            parent=menuWidgets, text="Open LESA import manager...\tCTRL+L", bitmap=None
+        )
+        menuWidgets.AppendItem(menu_widget_lesa_import)
+
+        menu_widget_lesa_viewer = make_menu_item(
+            parent=menuWidgets, text="Open LESA imaging window...\tShift+L", bitmap=None
+        )
+        menuWidgets.AppendItem(menu_widget_lesa_viewer)
+
         self.mainMenubar.Append(menuWidgets, "&Widgets")
 
         # CONFIG
@@ -1122,6 +1132,8 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_process_UVPD, id=ID_docTree_plugin_UVPD)
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_MSMS_viewer, id=ID_docTree_plugin_MSMS)
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_overlay_viewer, menu_widget_overlay_viewer)
+        self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_lesa_viewer, menu_widget_lesa_viewer)
+        self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_import_lesa_dataset, menu_widget_lesa_import)
 
         # CONFIG MENU
         self.Bind(wx.EVT_MENU, self.data_handling.on_export_config_fcn, id=ID_saveConfig)

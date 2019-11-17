@@ -4,7 +4,6 @@
 class Colorbar:
     def __init__(self, parent):
         self.parent = parent
-        print(self.parent, "asdasd")
 
     def add_colorbar(self):
         pass

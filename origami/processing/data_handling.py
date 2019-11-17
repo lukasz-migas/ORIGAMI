@@ -221,8 +221,11 @@ class DataHandling:
         else:
             return None, None
 
-    def _get_waters_api_reader(self, document):
+    def get_waters_api_reader(self, path):
+        reader = io_waters_raw_api.WatersRawReader(path)
+        return reader
 
+    def _get_waters_api_reader(self, document):
         reader = document.file_reader.get("data_reader", None)
         if reader is None:
             file_path = check_waters_path(document.path)
@@ -504,6 +507,10 @@ class DataHandling:
         elif document_type in ["thermo", "Thermo"]:
             document.dataType = "Type: MS"
             document.fileFormat = "Format: Thermo (.RAW)"
+
+        elif document_type in ["imaging", "Imaging"]:
+            document.dataType = "Type: Imaging"
+            document.fileFormat = "Format: MassLynx (.raw)"
 
         self.on_update_document(document, "document")
 
@@ -1725,6 +1732,17 @@ class DataHandling:
     def on_open_multiple_text_2D(self, pathlist, filenames):
         for filepath, filename in zip(pathlist, filenames):
             self.on_add_text_2D(filename, filepath)
+
+    def on_open_multiple_LESA_MassLynx_raw_fcn(self):
+        self._on_check_last_path()
+
+        dlg = DialogMultiDirectoryPicker(
+            self.view, title="Choose Waters (.raw) files to open...", default_path=self.config.lastDir
+        )
+
+        if dlg.ShowModal() == "ok":
+            pathlist = dlg.GetPaths()
+            return pathlist
 
     def on_open_multiple_MassLynx_raw_fcn(self, evt):
 

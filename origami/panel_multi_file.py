@@ -868,7 +868,7 @@ class PanelMultiFile(wx.Panel):
         overlay_labels = ", ".join(kwargs["labels"])
         overlay_title = "{}: {}".format(overlay_type, overlay_labels)
 
-        document = self.presenter.get_overlay_document()
+        document = self.data_processing._get_document_of_type("Type: Comparison")
         if document is None:
             self.presenter.onThreading(None, ("No document was selected", 4), action="updateStatusbar")
             return

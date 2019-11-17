@@ -14,7 +14,6 @@ import processing.UniDec.unidec as unidec
 import wx
 from config import OrigamiConfig as config
 from document import document as documents
-from gui_elements.dialog_select_document import DialogSelectDocument
 from gui_elements.misc_dialogs import DialogSimpleAsk
 from help_documentation import OrigamiHelp
 from icons.icons import IconContainer
@@ -274,61 +273,6 @@ class ORIGAMI:
         except Exception:
             print("Failed to execute the operation in threaded mode. Consider switching it off?")
 
-    def get_overlay_document(self):
-        try:
-            self.currentDoc = self.view.panelDocuments.documents.on_enable_document()
-        except Exception:
-            return
-        if self.currentDoc == "Documents":
-            return
-
-        # Check if current document is a comparison document
-        # If so, it will be used
-        if self.documentsDict[self.currentDoc].dataType == "Type: Comparison":
-            document = self.documentsDict[self.currentDoc]
-            self.onThreading(
-                None, ("Using document: " + document.title.encode("ascii", "replace"), 4), action="updateStatusbar"
-            )
-        else:
-            docList = self.checkIfAnyDocumentsAreOfType(type="Type: Comparison")
-            if len(docList) == 0:
-                print("Did not find appropriate document.")
-                dlg = wx.FileDialog(
-                    self.view,
-                    "Please select a name for the comparison document",
-                    "",
-                    "",
-                    "",
-                    wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
-                )
-                if dlg.ShowModal() == wx.ID_OK:
-                    path, idName = os.path.split(dlg.GetPath())
-                else:
-                    return
-                # Create document
-                document = documents()
-                document.title = idName
-                document.path = path
-                document.userParameters = self.config.userParameters
-                document.userParameters["date"] = getTime()
-                document.dataType = "Type: Comparison"
-                document.fileFormat = "Format: ORIGAMI"
-            else:
-                self.selectDocDlg = DialogSelectDocument(self.view, presenter=self, document_list=docList)
-                if self.selectDocDlg.ShowModal() == wx.ID_OK:
-                    pass
-
-                # Check that document exists
-                if self.currentDoc is None:
-                    self.onThreading(None, ("Please select comparison document", 4), action="updateStatusbar")
-                    return
-                document = self.documentsDict[self.currentDoc]
-                self.onThreading(
-                    None, ("Using document: " + document.title.encode("ascii", "replace"), 4), action="updateStatusbar"
-                )
-
-        return document
-
     def getImageFilename(self, prefix=False, csv=False, defaultValue="", withPath=False, extension=None):
         """
         Set-up a new filename for saved images
@@ -366,24 +310,6 @@ class ORIGAMI:
                 )
 
         return saveFileName
-
-    def checkIfAnyDocumentsAreOfType(self, type=None, format=None):
-        """
-        This helper function checkes whether any of the documents in the
-        document tree/ dictionary are of specified type
-        """
-        listOfDocs = []
-        for key in self.documentsDict:
-            if self.documentsDict[key].dataType == type and format is None:
-                listOfDocs.append(key)
-
-            elif self.documentsDict[key].dataType == type and self.documentsDict[key].fileFormat == format:
-                listOfDocs.append(key)
-
-            else:
-                continue
-
-        return listOfDocs
 
     def get2DdataFromDictionary(self, dictionary=None, dataType="plot", compact=False, plotType="2D"):
         """

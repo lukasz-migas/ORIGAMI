@@ -252,17 +252,7 @@ class PanelOverlayViewer(MiniFrame):
 
         dataset_type_choice = wx.StaticText(panel, -1, "Dataset type:")
         self.dataset_type_choice = wx.ComboBox(
-            panel,
-            choices=sorted(
-                [
-                    "Mass spectra",
-                    "Chromatograms",
-                    "Mobilograms",
-                    "Heatmaps",
-                    #                                     "UniDec"
-                ]
-            ),
-            style=wx.CB_READONLY,
+            panel, choices=sorted(["Mass spectra", "Chromatograms", "Mobilograms", "Heatmaps"]), style=wx.CB_READONLY
         )
         self.dataset_type_choice.SetStringSelection("Heatmaps")
         self.dataset_type_choice.Bind(wx.EVT_COMBOBOX, self.on_apply)
@@ -287,11 +277,10 @@ class PanelOverlayViewer(MiniFrame):
 
         self.normalize_1D_check = make_checkbox(panel, "Normalize before plotting")
         self.normalize_1D_check.SetValue(self.config.compare_massSpectrumParams["normalize"])
-        #
+
         # make listctrl
         self.make_listctrl_panel(panel)
 
-        #         horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         horizontal_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         horizontal_line_99 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
