@@ -298,7 +298,7 @@ class PanelImagingLESAViewer(MiniFrame):
             self.item_editor.on_update_gui(self.on_get_item_information(self.peaklist.item_id))
 
     def on_open_editor(self, evt):
-        from gui_elements.panel_modify_item_settings import PanelModifyItemSettings
+        #         from gui_elements.panel_modify_item_settings import PanelModifyItemSettings
 
         if self.peaklist.item_id is None or self.peaklist.item_id < 0:
             raise MessageError("Error", "Please select an item in the table")
@@ -362,7 +362,8 @@ class PanelImagingLESAViewer(MiniFrame):
         give_value : bool
             should/not return color
         """
-        from gui_elements.dialog_color_picker import DialogColorPicker
+        #         from gui_elements.dialog_color_picker import DialogColorPicker
+        pass
 
     #         if item_id is not None:
     #             self.peaklist.item_id = item_id
