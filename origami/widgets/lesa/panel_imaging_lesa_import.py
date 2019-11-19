@@ -299,6 +299,10 @@ class PanelImagingImportDataset(MiniFrame):
             self.config.ms_auto_range = False
             self.on_update_info()
 
+            # update image dimensions
+            self.image_shape_x.SetValue(str(metadata.get("x_dim", 0)))
+            self.image_shape_y.SetValue(str(metadata.get("y_dim", 0)))
+
         # restore dataset filenames
         for spec_dataset in document.multipleMassSpectrum.values():
             file_information = spec_dataset.get("file_information", None)

@@ -18,6 +18,8 @@ def prettify_tick_format(tick_labels):
 
     def convert_divider_to_str(value, exp_value):
         if exp_value in [0, 1, 2]:
+            if value <= 1:
+                return f"{value:.4f}"
             return value
         elif exp_value in [3, 4, 5]:
             return f"{value / 1000:.1f}k"

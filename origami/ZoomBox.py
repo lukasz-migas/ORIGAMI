@@ -248,6 +248,7 @@ class ZoomBox:
         plotParameters=None,
         allow_mouse_wheel=True,
         allow_extraction=True,
+        callbacks=dict(),
     ):
         """
         Create a selector in axes.  When a selection is made, clear
@@ -346,6 +347,7 @@ class ZoomBox:
         self.eventpress = None
         self.eventrelease = None
         self.new_axes(axes, rectprops)
+        self._callbacks = callbacks
 
         try:
             if data_lims is None:
@@ -887,7 +889,9 @@ class ZoomBox:
         if self._trigger_extraction and self.allow_extraction:
             # A dirty way to prevent users from trying to extract data from the wrong places
             if not self.mark_annotation:
-                if self.plotName in ["MSDT", "2D"] and (
+                if self._callbacks.get("CTRL", False) and isinstance(self._callbacks["CTRL"], str):
+                    pub.sendMessage(self._callbacks["CTRL"], rect=[xmin, xmax, ymin, ymax])
+                elif self.plotName in ["MSDT", "2D"] and (
                     self.eventpress.xdata != evt.xdata and self.eventpress.ydata != evt.ydata
                 ):
                     pub.sendMessage("extract_from_plot_2D", xy_values=[xmin, xmax, ymin, ymax])

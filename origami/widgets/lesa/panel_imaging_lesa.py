@@ -4,6 +4,7 @@
 import logging
 
 import wx
+from pubsub import pub
 from styles import ListCtrl
 from styles import make_menu_item
 from styles import MiniFrame
@@ -17,9 +18,9 @@ class PanelImagingLESAViewer(MiniFrame):
 
     _peaklist_peaklist = {
         0: {"name": "", "tag": "check", "type": "bool", "show": True, "width": 20},
-        1: {"name": "ion name", "tag": "ion_name", "type": "str", "show": True, "width": 80},
-        2: {"name": "z", "tag": "charge", "type": "int", "show": True, "width": 35},
-        3: {"name": "int", "tag": "intensity", "type": "float", "show": True, "width": 50},
+        1: {"name": "ion name", "tag": "ion_name", "type": "str", "show": True, "width": 120},
+        2: {"name": "z", "tag": "charge", "type": "int", "show": True, "width": 25},
+        3: {"name": "int", "tag": "intensity", "type": "float", "show": True, "width": 75},
         4: {"name": "color", "tag": "color", "type": "color", "show": True, "width": 80},
         5: {"name": "colormap", "tag": "colormap", "type": "str", "show": True, "width": 80},
         6: {"name": "label", "tag": "label", "type": "str", "show": True, "width": 70},
@@ -59,68 +60,141 @@ class PanelImagingLESAViewer(MiniFrame):
 
         # load document
         self.document_title = None
+        self.mz_data = None
         self.on_select_document()
+
+        self.subscribe()
 
         # bind
         self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
+
+    def subscribe(self):
+        """Initilize pubsub subscribers"""
+        pub.subscribe(self.on_extract_image_from_spectrum, "widget.imaging.lesa.extract.image.spectrum")
+        pub.subscribe(self.on_extract_spectrum_from_image, "widget.imaging.lesa.extract.spectrum.image")
+
+    def on_extract_image_from_spectrum(self, rect):
+        import numpy as np
+        from utils.check import check_value_order
+        from processing.utils import get_maximum_value_in_range
+        from utils.color import convert_rgb_255_to_1
+        from utils.color import round_rgb
+
+        xmin, xmax, __, __ = rect
+        xmin, xmax = check_value_order(xmin, xmax)
+        if self.mz_data is not None:
+            mz_x = self.mz_data["xvals"]
+            mz_y = self.mz_data["yvals"]
+
+            mz_xy = np.transpose([mz_x, mz_y])
+            mz_y_max = np.round(get_maximum_value_in_range(mz_xy, mz_range=(xmin, xmax)) * 100, 2)
+
+            # predict charge state
+            charge = self.data_processing.predict_charge_state(mz_xy[:, 0], mz_xy[:, 1], (xmin - 0, xmax + 3))
+            color = next(self.config.custom_color_cycle)
+            color = convert_rgb_255_to_1(color)
+            self.peaklist.Append(
+                [
+                    "",
+                    f"{xmin:.2f}-{xmax:.2f}",
+                    str(charge),
+                    f"{mz_y_max:.2f}",
+                    round_rgb(color),
+                    next(self.config.overlay_cmap_cycle),
+                    "",
+                    self.document_title,
+                ]
+            ),
+
+        zvals = self.data_handling.on_extract_LESA_img_from_mass_range(xmin, xmax, self.document_title)
+        xvals = np.arange(zvals.shape[0]) + 1
+        yvals = np.arange(zvals.shape[1]) + 1
+        self.panel_plot.on_plot_image(
+            zvals,
+            xvals,
+            yvals,
+            plot_obj=self.plot_window_img,
+            callbacks=dict(CTRL="widget.imaging.lesa.extract.spectrum.image"),
+        )
+
+    def on_extract_spectrum_from_image(self, rect):
+        print(rect)
 
     def on_right_click(self, evt):
         # ensure that user clicked inside the plot area
         if not hasattr(evt.EventObject, "figure"):
             return
 
-    #         menu = wx.Menu()
-    #         menu_action_customise_plot = make_menu_item(
-    #             parent=menu, text="Customise plot...", bitmap=self.icons.iconsLib["change_xlabels_16"]
-    #         )
-    #         menu.AppendItem(menu_action_customise_plot)
-    #         menu.AppendSeparator()
-    #         self.resize_plot_check = menu.AppendCheckItem(-1, "Resize on saving")
-    #         self.resize_plot_check.Check(self.config.resize)
-    #         save_figure_menu_item = make_menu_item(
-    #             menu, id=wx.ID_ANY, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
-    #         )
-    #         menu.AppendItem(save_figure_menu_item)
-    #         menu_action_copy_to_clipboard = make_menu_item(
-    #             parent=menu, id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self.icons.iconsLib["filelist_16"]
-    #         )
-    #         menu.AppendItem(menu_action_copy_to_clipboard)
-    #
-    #         menu.AppendSeparator()
-    #         clear_plot_menu_item = make_menu_item(
-    #             menu, id=wx.ID_ANY, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
-    #         )
-    #         menu.AppendItem(clear_plot_menu_item)
-    #
-    #         self.Bind(wx.EVT_MENU, self.on_resize_check, self.resize_plot_check)
-    #         self.Bind(wx.EVT_MENU, self.on_customise_plot, menu_action_customise_plot)
-    #         self.Bind(wx.EVT_MENU, self.on_save_figure, save_figure_menu_item)
-    #         self.Bind(wx.EVT_MENU, self.on_copy_to_clipboard, menu_action_copy_to_clipboard)
-    #         self.Bind(wx.EVT_MENU, self.on_clear_plot, clear_plot_menu_item)
-    #
-    #         self.PopupMenu(menu)
-    #         menu.Destroy()
-    #         self.SetFocus()
+        menu = wx.Menu()
+        menu_action_customise_plot = make_menu_item(
+            parent=menu, text="Customise plot...", bitmap=self.icons.iconsLib["change_xlabels_16"]
+        )
+        menu.AppendItem(menu_action_customise_plot)
+        menu.AppendSeparator()
+        self.resize_plot_check = menu.AppendCheckItem(-1, "Resize on saving")
+        self.resize_plot_check.Check(self.config.resize)
+        save_figure_menu_item = make_menu_item(
+            menu, id=wx.ID_ANY, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
+        )
+        menu.AppendItem(save_figure_menu_item)
+        menu_action_copy_to_clipboard = make_menu_item(
+            parent=menu, id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self.icons.iconsLib["filelist_16"]
+        )
+        menu.AppendItem(menu_action_copy_to_clipboard)
+
+        menu.AppendSeparator()
+        reset_plot_menu_item = make_menu_item(menu, id=wx.ID_ANY, text="Reset plot zoom")
+        menu.AppendItem(reset_plot_menu_item)
+
+        clear_plot_menu_item = make_menu_item(
+            menu, id=wx.ID_ANY, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
+        )
+        menu.AppendItem(clear_plot_menu_item)
+
+        self.Bind(wx.EVT_MENU, self.on_resize_check, self.resize_plot_check)
+        self.Bind(wx.EVT_MENU, self.on_customise_plot, menu_action_customise_plot)
+        self.Bind(wx.EVT_MENU, self.on_save_figure, save_figure_menu_item)
+        self.Bind(wx.EVT_MENU, self.on_copy_to_clipboard, menu_action_copy_to_clipboard)
+        self.Bind(wx.EVT_MENU, self.on_clear_plot, clear_plot_menu_item)
+        self.Bind(wx.EVT_MENU, self.on_reset_plot, reset_plot_menu_item)
+
+        self.PopupMenu(menu)
+        menu.Destroy()
+        self.SetFocus()
 
     def on_close(self, evt):
         """Destroy this frame"""
+        pub.unsubscribe(self.on_extract_image_from_spectrum, "widget.imaging.lesa.extract.image.spectrum")
+        pub.unsubscribe(self.on_extract_image_from_spectrum, "widget.imaging.lesa.extract.spectrum.image")
         self.Destroy()
 
+    def get_plot_obj(self):
+        plot_obj = {"MS": self.plot_window_MS, "2D": self.plot_window_img}[self.view.plot_name]
+        return plot_obj
+
     def on_clear_plot(self, evt):
-        self.plot_window.clearPlot()
+        plot_obj = self.get_plot_obj()
+        plot_obj.clearPlot()
+
+    def on_reset_plot(self, evt):
+        plot_obj = self.get_plot_obj()
+        plot_obj.on_reset_zoom()
 
     def on_resize_check(self, evt):
         self.panel_plot.on_resize_check(None)
 
     def on_copy_to_clipboard(self, evt):
-        self.plot_window.copy_to_clipboard()
+        plot_obj = self.get_plot_obj()
+        plot_obj.copy_to_clipboard()
 
     def on_customise_plot(self, evt):
-        self.panel_plot.on_customise_plot(None, plot="Overlay...", plot_obj=self.plot_window)
+        plot_obj = self.get_plot_obj()
+        self.panel_plot.on_customise_plot(None, plot="Imaging: LESA...", plot_obj=plot_obj)
 
     def on_save_figure(self, evt):
-        plot_title = "overlay"
-        self.panel_plot.save_images(None, None, plot_obj=self.plot_window, image_name=plot_title)
+        plot_title = "MS" if self.view.plot_name == "MS" else "image"
+        plot_obj = self.get_plot_obj()
+        self.panel_plot.save_images(None, None, plot_obj=plot_obj, image_name=plot_title)
 
     def make_gui(self):
 
@@ -159,8 +233,14 @@ class PanelImagingLESAViewer(MiniFrame):
 
         # show plot
         self.panel_plot.on_plot_MS(
-            mz_data["xvals"], mz_data["yvals"], show_in_window="lesa", plot_obj=self.plot_window_MS, override=False
+            mz_data["xvals"],
+            mz_data["yvals"],
+            show_in_window="LESA",
+            plot_obj=self.plot_window_MS,
+            override=False,
+            callbacks=dict(CTRL="widget.imaging.lesa.extract.image.spectrum"),
         )
+        self.mz_data = mz_data
 
     def on_select_document(self):
         document = self.data_handling._get_document_of_type("Type: Imaging")
@@ -236,12 +316,13 @@ class PanelImagingLESAViewer(MiniFrame):
         self.plot_panel_MS, self.plot_window_MS, __ = self.panel_plot.make_plot(
             panel, self.config._plotSettings["RT"]["gui_size"]
         )
+
         self.plot_panel_img, self.plot_window_img, __ = self.panel_plot.make_plot(
             panel, self.config._plotSettings["2D"]["gui_size"]
         )
 
         panel.SplitHorizontally(self.plot_panel_MS, self.plot_panel_img)
-        panel.SetMinimumPaneSize(300)
+        panel.SetMinimumPaneSize(400)
         panel.SetSashGravity(0.5)
         panel.SetSashSize(5)
 

@@ -309,7 +309,10 @@ class plots(mpl_plotter):
                     self.ticks = self.cbar.ticks
                 if hasattr(self.cbar, "tick_labels"):
                     self.tick_labels = self.cbar.tick_labels
-                self.cbar.remove()
+                try:
+                    self.cbar.remove()
+                except KeyError:
+                    pass
 
     def set_plot_xlabel(self, xlabel, **kwargs):
         kwargs = ut_visuals.check_plot_settings(**kwargs)
@@ -541,6 +544,11 @@ class plots(mpl_plotter):
             self.repaint()
         except Exception:
             pass
+
+    def on_reset_zoom(self):
+        self.plotMS.set_xlim((self.plot_limits[0], self.plot_limits[1]))
+        self.plotMS.set_ylim((self.plot_limits[2], self.plot_limits[3]))
+        self.repaint()
 
     def on_rotate_heatmap_data(self, yvals, zvals):
 
@@ -1776,6 +1784,7 @@ class plots(mpl_plotter):
             plotName=plotType,
             allowWheel=allowWheel,
             allow_extraction=kwargs.get("allow_extraction", False),
+            callbacks=kwargs.get("callbacks", dict()),
         )
 
         # Setup X-axis getter
@@ -3892,6 +3901,62 @@ class plots(mpl_plotter):
         # setup zoom
         self.setup_zoom([self.plotMS], self.zoomtype, data_lims=extent, plotName=plotName)
         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
+
+    def plot_2D_image(self, zvals, xvals, yvals, xlabel="", ylabel="", axesSize=None, plotName=None, **kwargs):
+        # update settings
+        self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
+
+        # set tick size
+        matplotlib.rc("xtick", labelsize=kwargs["tick_size"])
+        matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
+
+        # Plot
+        self.plotMS = self.figure.add_axes(self._axes)
+
+        # Add imshow
+        self.cax = self.plotMS.imshow(
+            zvals,
+            #             extent=extent,
+            cmap=kwargs["colormap"],
+            interpolation=kwargs["interpolation"],
+            norm=kwargs["colormap_norm"],
+            aspect="equal",
+            origin="lower",
+        )
+
+        xlimit = self.plotMS.get_xlim()
+        xmin, xmax = xlimit
+        ylimit = self.plotMS.get_ylim()
+        ymin, ymax = ylimit
+
+        # setup zoom
+        extent = [xmin, ymin, xmax, ymax]
+        self.setup_zoom(
+            [self.plotMS], self.zoomtype, data_lims=extent, plotName=plotName, callbacks=kwargs.get("callbacks", dict())
+        )
+        self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
+
+        # add colorbar
+        self.set_colorbar_parameters(zvals, **kwargs)
+
+        # remove tick labels
+        for key in [
+            "ticks_left",
+            "ticks_right",
+            "ticks_top",
+            "ticks_bottom",
+            "tickLabels_left",
+            "tickLabels_right",
+            "tickLabels_top",
+            "tickLabels_bottom",
+        ]:
+            kwargs[key] = False
+
+        self.set_tick_parameters(**kwargs)
+
+        # add data
+        self.plot_data = {"xvals": xvals, "yvals": yvals, "zvals": zvals, "xlabel": xlabel, "ylabel": ylabel}
+        self.plot_labels.update({"xlabel": xlabel, "ylabel": ylabel})
 
     def plot_2D_overlay(
         self,

@@ -2592,7 +2592,10 @@ class PanelPlots(wx.Panel):
             plot_size_key = "MS (DT/RT)"
         else:
             window = None
-            plot_size_key = "MS"
+            if show_in_window == "LESA":
+                plot_size_key = "MS (DT/RT)"
+            else:
+                plot_size_key = "MS"
 
         # change page
         if set_page and window is not None:
@@ -2638,6 +2641,7 @@ class PanelPlots(wx.Panel):
             ylabel="Intensity",
             axesSize=self.config._plotSettings[plot_size_key]["axes_size"],
             plotType="MS",
+            callbacks=kwargs.get("callbacks", dict()),
             **plt_kwargs,
         )
         # Show the mass spectrum
@@ -2938,6 +2942,50 @@ class PanelPlots(wx.Panel):
                 xylabels = get_data.get("xylabels", None)
                 cmap = get_data.get("cmap", None)
             return zvals, xylabels, cmap
+
+    def on_plot_image(self, zvals, xvals, yvals, plot="2D", set_page=False, **kwargs):
+        def set_data():
+            self.config.replotData["image"] = {
+                "zvals": zvals,
+                "xvals": xvals,
+                "yvals": yvals,
+                "cmap": plt_kwargs["colormap"],
+                "cmapNorm": cmapNorm,
+            }
+
+        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
+            plot_obj = kwargs.get("plot_obj")
+        else:
+            plot_obj = self.get_plot_from_name(plot)
+            if set_page:
+                self._set_page(self.config.panelNames[plot])
+
+        # Check that cmap modifier is included
+        cmapNorm = self.normalize_colormap(
+            zvals, min=self.config.minCmap, mid=self.config.midCmap, max=self.config.maxCmap
+        )
+
+        # Build kwargs
+        plt_kwargs = self._buildPlotParameters(plotType="2D")
+
+        # Check if cmap should be overwritten
+        if self.config.useCurrentCmap or kwargs.get("cmap", None) is None:
+            plt_kwargs["colormap"] = self.config.currentCmap
+        plt_kwargs["colormap_norm"] = kwargs.get("cmapNorm", None)
+        plt_kwargs["allow_extraction"] = kwargs.pop("allow_extraction", True)
+
+        # Plot 2D dataset
+        plot_obj.clearPlot()
+        plot_obj.plot_2D_image(
+            zvals,
+            xvals,
+            yvals,
+            axesSize=self.config._plotSettings["2D"]["axes_size"],
+            plotName="2D",
+            callbacks=kwargs.get("callbacks", dict()),
+            **plt_kwargs,
+        )
+        plot_obj.repaint()
 
     def on_plot_2D(
         self,

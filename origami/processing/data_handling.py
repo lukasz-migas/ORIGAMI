@@ -2180,6 +2180,28 @@ class DataHandling:
             self.on_threading(action="load.multiple.raw.lesa", args=(document, filelist), kwargs=kwargs)
 
     def on_open_multiple_LESA_files(self, document, filelist, **kwargs):
+        """Add data to a LESA document
+
+        Extract mass spectrum and ion mobility data for each file in the file list and linearize it using identical
+        pre-processing parameters.
+
+        Parameters
+        ----------
+        document : ORIGAMI document
+            instance of ORIGAMI document of type:imaging
+        filelist : list of lists
+            filelist containing all necessary information about the file to extract
+        kwargs : dict
+            dictionary containing pre-processing parameters
+        """
+
+        def check_processing_parameters(document, **kwargs):
+            """Check whether pre-processing parameters match those found in existing document"""
+            metadata = document.metadata.get("imaging_lesa", dict())
+            for key in ["linearization_mode", "mz_min", "mz_max", "mz_bin", "im_on", "auto_range"]:
+                if metadata.get(key, None) != kwargs[key]:
+                    return False
+            return True
 
         tstart = ttime()
         tsum = 0
@@ -2201,7 +2223,7 @@ class DataHandling:
 
             # check if dataset is already present in the document and has matching parameters
             if spectrum_name in document.multipleMassSpectrum:
-                if document.metadata.get("imaging_lesa", dict()) == kwargs:
+                if check_processing_parameters(document, **kwargs):
                     logger.info(
                         f"File with name {spectrum_name} is already present and has identical"
                         " pre-processing parameters. Moving on to the next file."
@@ -2219,6 +2241,7 @@ class DataHandling:
             if kwargs.get("im_on", False):
                 dt_x, dt_y = self._get_driftscope_mobilogram_data(path)
 
+            # add data
             data = {
                 "index": idx,
                 "xvals": mz_x,
@@ -2235,7 +2258,9 @@ class DataHandling:
             tincrtot = ttime() - tincr
             tsum += tincrtot
             tavg = (tsum / (i + 1)) * (n_items - i)
-            logger.info(f"Added file {spectrum_name} in {tincrtot:.2f}s. Approx. remaining {tavg:.2f}s")
+            logger.info(
+                f"Added file {spectrum_name} in {tincrtot:.2f}s. Approx. remaining {tavg:.2f}s" f" [{i+1}/{n_items}"
+            )
 
         # add summed mass spectrum
         self.add_summed_spectrum(document, **copy.deepcopy(kwargs))
@@ -2243,7 +2268,30 @@ class DataHandling:
         # add metadata
         document.metadata["imaging_lesa"] = kwargs
 
-        logger.info(f"Added data to document '{document.title} in {ttime()-tstart:.2f}s")
+        logger.info(f"Added data to document '{document.title}' in {ttime()-tstart:.2f}s")
+
+    def on_extract_LESA_img_from_mass_range(self, xmin, xmax, document_title):
+        from processing.utils import get_narrow_data_range_1D
+        from processing.heatmap import normalize_2D
+
+        document = self.on_get_document(document_title)
+
+        metadata = document.metadata.get("imaging_lesa", dict())
+        if not metadata:
+            raise MessageError("Error", "Cannot extract LESA data for this document")
+
+        shape = [int(metadata["x_dim"]), int(metadata["y_dim"])]
+        out = np.zeros(np.dot(shape[0], shape[1]).astype(np.int32))
+        for data in document.multipleMassSpectrum.values():
+            idx = int(data["index"] - 1)
+            __, mz_y = get_narrow_data_range_1D(data["xvals"], data["yvals"], [xmin, xmax])
+
+            #             out[idx] = idx
+            out[idx] = mz_y.sum()
+        out = np.reshape(out, shape)
+        #         out = normalize_2D(out)
+
+        return np.flipud(out)
 
     def add_summed_spectrum(self, document, **kwargs):
 
