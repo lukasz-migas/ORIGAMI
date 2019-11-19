@@ -142,6 +142,8 @@ class DataHandling:
             _thread = threading.Thread(target=self.on_add_mzID_file, args=args)
         elif action == "load.raw.thermo":
             _thread = threading.Thread(target=self.on_open_thermo_file, args=args)
+        elif action == "load.multiple.raw.lesa":
+            _thread = threading.Thread(target=self.on_open_multiple_LESA_files, args=args, **kwargs)
 
         # Start thread
         try:
@@ -246,7 +248,7 @@ class DataHandling:
     def _get_waters_api_spectrum_data(reader, **kwargs):
         fcn = 0
         if not hasattr(reader, "mz_spacing"):
-            logger.info("Missing `mz_spacing` information - computing it now.")
+            logger.debug("Missing `mz_spacing` information - computing it now.")
             __, __ = reader.generate_mz_interpolation_range(fcn)
 
         mz_x = reader.mz_x
@@ -402,6 +404,7 @@ class DataHandling:
                 "Type: Calibrant",
                 "Type: Comparison",
                 "Type: MS",
+                "Type: Imaging",
             ]
 
         if not isinstance(document_types, list):
@@ -1733,7 +1736,7 @@ class DataHandling:
         for filepath, filename in zip(pathlist, filenames):
             self.on_add_text_2D(filename, filepath)
 
-    def on_open_multiple_LESA_MassLynx_raw_fcn(self):
+    def on_select_LESA_MassLynx_raw(self):
         self._on_check_last_path()
 
         dlg = DialogMultiDirectoryPicker(
@@ -2159,6 +2162,108 @@ class DataHandling:
 
             n_extracted += 1
             self.update_statusbar(f"Extracted: {n_extracted}/{n_items}", 4)
+
+    def on_open_multiple_LESA_files_fcn(self, filelist, **kwargs):
+
+        # get document
+        document = self._get_document_of_type("Type: Imaging")
+        if not document:
+            raise ValueError("Please create new document or select one from the list")
+
+        # setup parameters
+        document.dataType = "Type: Imaging"
+        document.fileFormat = "Format: MassLynx (.raw)"
+
+        if not self.config.threading:
+            self.on_open_multiple_LESA_files(document, filelist, **kwargs)
+        else:
+            self.on_threading(action="load.multiple.raw.lesa", args=(document, filelist), kwargs=kwargs)
+
+    def on_open_multiple_LESA_files(self, document, filelist, **kwargs):
+
+        tstart = ttime()
+        tsum = 0
+        n_items = len(filelist)
+
+        for i, file_item in enumerate(filelist):
+            tincr = ttime()
+            # pre-allocate data
+            dt_x, dt_y = [], []
+
+            # unpack data
+            idx, file_path, start_scan, end_scan, information = file_item
+            path = check_waters_path(file_path)
+            __, filename = os.path.split(path)
+            spectrum_name = f"{idx}: {filename}"
+            if not check_path_exists(path):
+                logger.warning("File with path: {} does not exist".format(path))
+                continue
+
+            # check if dataset is already present in the document and has matching parameters
+            if spectrum_name in document.multipleMassSpectrum:
+                if document.metadata.get("imaging_lesa", dict()) == kwargs:
+                    logger.info(
+                        f"File with name {spectrum_name} is already present and has identical"
+                        " pre-processing parameters. Moving on to the next file."
+                    )
+                    continue
+
+            # get file reader
+            reader = self.get_waters_api_reader(path)
+
+            # load mass spectrum
+            mz_x, mz_y = self._get_waters_api_spectrum_data(reader, start_scan=start_scan, end_scan=end_scan)
+            mz_x, mz_y = pr_spectra.linearize_data(mz_x, mz_y, **copy.deepcopy(kwargs))
+
+            # load mobilogram
+            if kwargs.get("im_on", False):
+                dt_x, dt_y = self._get_driftscope_mobilogram_data(path)
+
+            data = {
+                "index": idx,
+                "xvals": mz_x,
+                "yvals": mz_y,
+                "ims1D": dt_y,
+                "ims1DX": dt_x,
+                "xlabel": "Drift time (bins)",
+                "xlabels": "m/z (Da)",
+                "path": path,
+                "filename": filename,
+                "file_information": information,
+            }
+            self.documentTree.on_update_data(data, spectrum_name, document, data_type="extracted.spectrum")
+            tincrtot = ttime() - tincr
+            tsum += tincrtot
+            tavg = (tsum / (i + 1)) * (n_items - i)
+            logger.info(f"Added file {spectrum_name} in {tincrtot:.2f}s. Approx. remaining {tavg:.2f}s")
+
+        # add summed mass spectrum
+        self.add_summed_spectrum(document, **copy.deepcopy(kwargs))
+
+        # add metadata
+        document.metadata["imaging_lesa"] = kwargs
+
+        logger.info(f"Added data to document '{document.title} in {ttime()-tstart:.2f}s")
+
+    def add_summed_spectrum(self, document, **kwargs):
+
+        for counter, key in enumerate(document.multipleMassSpectrum):
+
+            if counter == 0:
+                mz_x, mz_y = pr_spectra.linearize_data(
+                    document.multipleMassSpectrum[key]["xvals"], document.multipleMassSpectrum[key]["yvals"], **kwargs
+                )
+                ms_y_sum = mz_y
+            else:
+                mz_x, mz_y = pr_spectra.linearize_data(
+                    document.multipleMassSpectrum[key]["xvals"], document.multipleMassSpectrum[key]["yvals"], **kwargs
+                )
+                ms_y_sum += mz_y
+
+        xlimits = get_min_max(mz_y)
+        data = {"xvals": mz_x, "yvals": ms_y_sum, "xlabels": "m/z (Da)", "xlimits": xlimits}
+
+        self.documentTree.on_update_data(data, "", document, data_type="main.raw.spectrum")
 
     def on_open_multiple_ML_files_fcn(self, open_type, pathlist=[]):
 

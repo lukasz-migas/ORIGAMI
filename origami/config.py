@@ -21,7 +21,7 @@ from utils.random import get_random_int
 logger = logging.getLogger("origami")
 
 
-class OrigamiConfig:
+class Config:
     def __init__(self):
         """Initilize config"""
 
@@ -3760,5 +3760,3 @@ class OrigamiConfig:
             text = text.replace(item, replace[x])
 
         return text
-
-    # ----

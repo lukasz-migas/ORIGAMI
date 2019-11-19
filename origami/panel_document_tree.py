@@ -1399,7 +1399,7 @@ class DocumentTree(wx.TreeCtrl):
         self._lesa_panel.Show()
 
     def on_import_lesa_dataset(self, evt):
-        from widgets.lesa.panel_imaging_import import PanelImagingImportDataset
+        from widgets.lesa.panel_imaging_lesa_import import PanelImagingImportDataset
 
         self._import_panel = PanelImagingImportDataset(self, self.presenter, self.config, self.icons)
         self._import_panel.Show()

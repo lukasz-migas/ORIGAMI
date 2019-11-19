@@ -759,7 +759,7 @@ class MainWindow(wx.Frame):
         menuWidgets.AppendItem(menu_widget_overlay_viewer)
 
         menu_widget_lesa_import = make_menu_item(
-            parent=menuWidgets, text="Open LESA import manager...\tCTRL+L", bitmap=None
+            parent=menuWidgets, text="Open LESA import manager...\tCtrl+L", bitmap=None
         )
         menuWidgets.AppendItem(menu_widget_lesa_import)
 

@@ -7,7 +7,6 @@ import wx
 from styles import ListCtrl
 from styles import make_menu_item
 from styles import MiniFrame
-from utils.exceptions import MessageError
 from utils.screen import calculate_window_size
 
 logger = logging.getLogger("origami")
@@ -57,7 +56,10 @@ class PanelImagingLESAViewer(MiniFrame):
 
         # make gui items
         self.make_gui()
-        self.on_toggle_controls(None)
+
+        # load document
+        self.document_title = None
+        self.on_select_document()
 
         # bind
         self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
@@ -100,34 +102,8 @@ class PanelImagingLESAViewer(MiniFrame):
     #         menu.Destroy()
     #         self.SetFocus()
 
-    def _get_accepted_keywords_from_dict(self, item_info):
-        keywords = ["color", "colormap", "alpha", "mask", "label", "min_threshold", "max_threshold", "charge", "cmap"]
-        keys = list(item_info.keys())
-        for key in keys:
-            if key not in keywords:
-                item_info.pop(key)
-
-        for bad_key, good_key in self.keyword_alias.items():
-            item_info[good_key] = item_info[bad_key]
-
-        return item_info
-
     def on_close(self, evt):
         """Destroy this frame"""
-
-        #         n_overlay_items = len(self.overlay_data)
-        #         if n_overlay_items > 0:
-        #             from gui_elements.misc_dialogs import DialogBox
-        #
-        #             msg = (
-        #                 f"Found {n_overlay_items} overlay item(s) in the clipboard. Closing this window will lose"
-        #                 + " your overlay plots. Would you like to continue?"
-        #             )
-        #             dlg = DialogBox(exceptionTitle="Clipboard is not empty", exceptionMsg=msg, type="Question")
-        #             if dlg == wx.ID_NO:
-        #                 msg = "Action was cancelled"
-        #                 return
-
         self.Destroy()
 
     def on_clear_plot(self, evt):
@@ -170,33 +146,54 @@ class PanelImagingLESAViewer(MiniFrame):
         self.CentreOnScreen()
         self.SetFocus()
 
-    def on_toggle_controls(self, evt):
-        #         editor_type = self.dataset_type_choice.GetStringSelection()
-        #         heatmap, spectra = False, True
-        #         if editor_type == "Heatmaps":
-        #             heatmap, spectra = True, False
-        #
-        #         obj_list = []
-        #         for item in obj_list:
-        #             item.Enable(enable=heatmap)
-        #         obj_list = [self.normalize_1D_check]
-        #         for item in obj_list:
-        #             item.Enable(enable=spectra)
-
-        if evt is not None:
-            evt.Skip()
-
     def on_apply(self, evt):
+        print("on_apply")
 
         if evt is not None:
             evt.Skip()
+
+    def on_select_spectrum(self, evt):
+        # get data
+        spectrum_name = self.spectrum_choice.GetStringSelection()
+        __, mz_data = self.data_handling.get_spectrum_data([self.document_title, spectrum_name])
+
+        # show plot
+        self.panel_plot.on_plot_MS(
+            mz_data["xvals"], mz_data["yvals"], show_in_window="lesa", plot_obj=self.plot_window_MS, override=False
+        )
+
+    def on_select_document(self):
+        document = self.data_handling._get_document_of_type("Type: Imaging")
+        if document:
+            self.document_title = document.title
+            itemlist = self.data_handling.generate_item_list_mass_spectra("comparison")
+            spectrum_list = itemlist.get(document.title, [])
+            if spectrum_list:
+                self.spectrum_choice.SetItems(spectrum_list)
+                self.spectrum_choice.SetStringSelection(spectrum_list[0])
 
     def make_settings_panel(self, split_panel):
 
         panel = wx.Panel(split_panel, -1, size=(-1, -1), name="settings")
 
+        # add spectrum controls
+        spectrum_choice = wx.StaticText(panel, -1, "Spectrum:")
+        self.spectrum_choice = wx.ComboBox(panel, choices=[], style=wx.CB_READONLY)
+        self.spectrum_choice.Bind(wx.EVT_COMBOBOX, self.on_apply)
+        self.spectrum_choice.Bind(wx.EVT_COMBOBOX, self.on_select_spectrum)
+
+        # add image controls
+        normalization_choice = wx.StaticText(panel, -1, "Normalization:")
+        self.normalization_choice = wx.ComboBox(panel, choices=["None"], style=wx.CB_READONLY)
+        self.normalization_choice.SetStringSelection("None")
+        self.normalization_choice.Bind(wx.EVT_COMBOBOX, self.on_apply)
+        #         self.normalization_choice.Bind(wx.EVT_COMBOBOX, self.on_select_spectrum)
+
         # make listctrl
         self.make_listctrl_panel(panel)
+
+        horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+        horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
         # pack buttons
         #         btn_grid = wx.GridBagSizer(2, 2)
@@ -207,26 +204,23 @@ class PanelImagingLESAViewer(MiniFrame):
         #         btn_grid.Add(self.cancel_btn, (n, 3), flag=wx.ALIGN_CENTER)
         #         btn_grid.Add(self.hot_plot_check, (n, 4), flag=wx.ALIGN_CENTER)
 
-        #         # pack heatmap items
-        #         grid = wx.GridBagSizer(2, 2)
-        #         n = 0
-        #         grid.Add(dataset_type_choice, (n, 0), flag=wx.ALIGN_RIGHT | wx.EXPAND)
-        #         grid.Add(self.dataset_type_choice, (n, 1), flag=wx.ALIGN_CENTER | wx.EXPAND)
-        #         grid.Add(self.refresh_btn, (n, 2), flag=wx.ALIGN_CENTER)
-        #         n += 1
-        #         grid.Add(overlay_method_choice, (n, 0), flag=wx.ALIGN_RIGHT | wx.EXPAND)
-        #         grid.Add(self.overlay_method_choice, (n, 1), flag=wx.ALIGN_CENTER | wx.EXPAND)
-        #         n += 1
-        #         grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
-        #         n += 1
-        #         grid.Add(self.normalize_1D_check, (n, 1), flag=wx.ALIGN_RIGHT | wx.EXPAND)
-        #
-        #         # setup growable column
-        #         grid.AddGrowableCol(3)
-        #
+        # pack heatmap items
+        grid = wx.GridBagSizer(2, 2)
+        n = 0
+        grid.Add(spectrum_choice, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(self.spectrum_choice, (n, 1), (1, 3), flag=wx.ALIGN_CENTER | wx.EXPAND)
+        n += 1
+        grid.Add(horizontal_line_1, (n, 0), (1, 5), flag=wx.ALIGN_CENTER | wx.EXPAND)
+        n += 1
+        grid.Add(normalization_choice, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(self.normalization_choice, (n, 1), (1, 2), flag=wx.ALIGN_CENTER | wx.EXPAND)
+
+        # setup growable column
+        grid.AddGrowableCol(3)
+
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        #         main_sizer.Add(grid, 0, wx.ALL | wx.EXPAND, 5)
-        #         main_sizer.Add(horizontal_line_99, 0, wx.EXPAND, 10)
+        main_sizer.Add(grid, 0, wx.EXPAND, 5)
+        main_sizer.Add(horizontal_line_0, 0, wx.EXPAND, 10)
         #         main_sizer.Add(btn_grid, 0, wx.ALIGN_CENTRE_HORIZONTAL, 10)
         main_sizer.Add(self.peaklist, 1, wx.EXPAND, 10)
         #
@@ -237,14 +231,10 @@ class PanelImagingLESAViewer(MiniFrame):
         return panel
 
     def make_plot_panel(self, split_panel):
-
-        #         pixel_size = [(self._window_size[0] - self._settings_panel_size[0]), (self._window_size[1] - 50)]
-        #         figsize = [pixel_size[0] / self._display_resolution[0], pixel_size[1] / self._display_resolution[1]]
-
         panel = wx.SplitterWindow(split_panel, wx.ID_ANY, style=wx.TAB_TRAVERSAL | wx.SP_3DSASH, name="plot")
 
         self.plot_panel_MS, self.plot_window_MS, __ = self.panel_plot.make_plot(
-            panel, self.config._plotSettings["MS"]["gui_size"]
+            panel, self.config._plotSettings["RT"]["gui_size"]
         )
         self.plot_panel_img, self.plot_window_img, __ = self.panel_plot.make_plot(
             panel, self.config._plotSettings["2D"]["gui_size"]
@@ -254,18 +244,6 @@ class PanelImagingLESAViewer(MiniFrame):
         panel.SetMinimumPaneSize(300)
         panel.SetSashGravity(0.5)
         panel.SetSashSize(5)
-
-        #         box = wx.BoxSizer(wx.VERTICAL)
-        #         box.Add(self.plot_window, 1, wx.EXPAND)
-        #         box.Fit(self.plot_panel)
-        #         self.plot_panel.SetSizer(box)
-        #         self.plot_panel.Layout()
-        #
-        #         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        #         main_sizer.Add(self.plot_panel, 1, wx.EXPAND, 2)
-        #         # fit layout
-        #         panel.SetSizer(main_sizer)
-        #         main_sizer.Fit(panel)
 
         return panel
 
@@ -284,39 +262,11 @@ class PanelImagingLESAViewer(MiniFrame):
         max_peaklist_size = (int(self._window_size[0] * 0.3), -1)
         self.peaklist.SetMaxClientSize(max_peaklist_size)
 
-        #         self.peaklist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.menu_right_click)
-        #         self.peaklist.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.menu_column_right_click)
         self.peaklist.Bind(wx.EVT_LEFT_DCLICK, self.on_double_click_on_item)
 
     def on_double_click_on_item(self, evt):
         """Create annotation for activated peak."""
-
-        if self.peaklist.item_id != -1:
-            if not self.item_editor:
-                self.on_open_editor(evt=None)
-                return
-            self.item_editor.on_update_gui(self.on_get_item_information(self.peaklist.item_id))
-
-    def on_open_editor(self, evt):
-        #         from gui_elements.panel_modify_item_settings import PanelModifyItemSettings
-
-        if self.peaklist.item_id is None or self.peaklist.item_id < 0:
-            raise MessageError("Error", "Please select an item in the table")
-
-        information = self.on_get_item_information(self.peaklist.item_id)
-        print(information)
-
-    #         editor_type = self.dataset_type_choice.GetStringSelection()
-    #         if editor_type in ["Heatmaps", "Chromatograms", "Mobilograms"]:
-    #             overlay_type = "overlay.full"
-    #         else:
-    #             overlay_type = "overlay.simple"
-    #
-    #         self.item_editor = PanelModifyItemSettings(
-    #             self, self.presenter, self.config, alt_parent=self.view, overlay_type=overlay_type, **information
-    #         )
-    #         self.item_editor.Centre()
-    #         self.item_editor.Show()
+        pass
 
     def on_action_tools(self, evt):
 
@@ -341,113 +291,6 @@ class PanelImagingLESAViewer(MiniFrame):
     def on_create_blank_document(self, evt):
         self.data_handling.create_new_document_of_type(document_type="imaging")
 
-    #     def on_double_click_on_item(self, evt):
-    #         logger.error("Method not implemented yet")
-    #
-    #     def menu_right_click(self, evt):
-    #         logger.error("Method not implemented yet")
-    #
-    #     def menu_column_right_click(self, evt):
-    #         logger.error("Method not implemented yet")
-
-    def on_assign_color(self, evt, item_id=None, give_value=False):
-        """Assign new color
-
-        Parameters
-        ----------
-        evt : wxPython event
-            unused
-        itemID : int
-            value for item in table
-        give_value : bool
-            should/not return color
-        """
-        #         from gui_elements.dialog_color_picker import DialogColorPicker
-        pass
-
-    #         if item_id is not None:
-    #             self.peaklist.item_id = item_id
-    #
-    #         if item_id is None:
-    #             item_id = self.peaklist.item_id
-    #
-    #         if item_id is None:
-    #             return
-    #
-    #         dlg = DialogColorPicker(self, self.config.customColors)
-    #         if dlg.ShowModal() == "ok":
-    #             color_255, color_1, font_color = dlg.GetChosenColour()
-    #             self.config.customColors = dlg.GetCustomColours()
-    #             self.on_update_value_in_peaklist(item_id, "color", [color_255, color_1, font_color])
-    #
-    #             # update document
-    #             self.on_update_document(evt=None)
-    #
-    #             if give_value:
-    #                 return color_255
-
-    def on_update_value_in_peaklist(self, item_id, value_type, value):
-        pass
-
-    #         if value_type == "color":
-    #             color_255, color_1, font_color = value
-    #             self.peaklist.SetItemBackgroundColour(item_id, color_255)
-    #             self.peaklist.SetStringItem(item_id, self.config.overlay_list_col_names["color"], str(color_1))
-    #             self.peaklist.SetItemTextColour(item_id, font_color)
-    #         elif value_type == "color_text":
-    #             self.peaklist.SetItemBackgroundColour(item_id, value)
-    #             self.peaklist.SetStringItem(
-    #                 item_id, self.config.overlay_list_col_names["color"], str(convert_rgb_255_to_1(value))
-    #             )
-    #             self.peaklist.SetItemTextColour(item_id, get_font_color(value, return_rgb=True))
-
-    def on_toggle_table_columns(self, data_type):
-        """Toggle table columns based on the dataset type"""
-
-    #
-    #         show_columns = [
-    #             "check",
-    #             "dataset_name",
-    #             "dataset_type",
-    #             "document",
-    #             "shape",
-    #             "color",
-    #             "colormap",
-    #             "alpha",
-    #             "mask",
-    #             "label",
-    #             "min_threshold",
-    #             "max_threshold",
-    #             "processed",
-    #             "order",
-    #         ]
-    #         if data_type in ["mass_spectra", "chromatogram", "mobilogram"]:
-    #             show_columns = [
-    #                 "check",
-    #                 "dataset_name",
-    #                 "dataset_type",
-    #                 "document",
-    #                 "shape",
-    #                 "color",
-    #                 "label",
-    #                 "processed",
-    #                 "order",
-    #             ]
-    #
-    #         for column_id in self._peaklist_peaklist:
-    #             width = self._peaklist_peaklist[column_id]["width"]
-    #             if self._peaklist_peaklist[column_id]["tag"] not in show_columns:
-    #                 width = 0
-    #             self.peaklist.SetColumnWidth(column_id, width)
-
     def on_get_item_information(self, item_id):
         information = self.peaklist.on_get_item_information(item_id)
-
-        # add additional data
-        #         information["color_255to1"] = convert_rgb_255_to_1(information["color"], decimals=3)
-        #         information["color"] = list(information["color"])[0:3]
-        #         information["item_name"] = "{}::{}::{}".format(
-        #             information["dataset_name"], information["dataset_type"], information["document"]
-        #         )
-
         return information

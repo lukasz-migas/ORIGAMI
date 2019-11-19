@@ -12,7 +12,7 @@ from sys import platform
 
 import processing.UniDec.unidec as unidec
 import wx
-from config import OrigamiConfig as config
+from config import Config
 from document import document as documents
 from gui_elements.misc_dialogs import DialogSimpleAsk
 from help_documentation import OrigamiHelp
@@ -77,7 +77,7 @@ class ORIGAMI:
         wx.CallAfter(self.quit, force=True)
 
     def initilize_app(self, *args, **kwargs):
-        self.config = config()
+        self.config = Config()
         self.icons = IconContainer()
         self.docs = documents()
         self.help = OrigamiHelp()
