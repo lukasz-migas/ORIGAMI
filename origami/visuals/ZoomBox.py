@@ -959,7 +959,6 @@ class ZoomBox:
         xproblems = self.minspanx is not None and spanx < self.minspanx
         yproblems = self.minspany is not None and spany < self.minspany
         if xproblems or yproblems:
-            """Box too small"""
             # check if shown distance (if it exists) is
             print("Distance too small")
             return

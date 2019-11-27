@@ -171,6 +171,7 @@ def normalize_1D(data, mode="Maximum"):
 
     #     if mode == 'Maximum':
     norm_data = np.divide(data, data.max())
+
     #     elif mode == 'Total Ion Current (TIC)':
     #         norm_data = np.divide(data, np.sum(data))
     # #         norm_data = np.divide(norm_data, norm_data.max())

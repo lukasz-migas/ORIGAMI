@@ -11,6 +11,27 @@ logger = logging.getLogger("origami")
 LOGGING_TYPES = dict(
     DEBUG=logging.DEBUG, INFO=logging.INFO, WARNING=logging.WARNING, ERROR=logging.ERROR, CRITICAL=logging.CRITICAL
 )
+FMT = "[%(asctime)s] [%(levelname)s] [%(process)d] [%(filename)s:%(lineno)s:%(funcName)s] %(message)s"
+
+
+def delete_logger():
+    """Deletes all loggers"""
+    # in case other logger has already set these
+    for handler in logging.root.handlers[:]:
+        logging.root.removeHandler(handler)
+
+
+def set_logger_parameters(verbose, filepath=None):
+    """Set logger level"""
+
+    set_logger_level(verbose)
+    set_logger_format(filepath)
+
+
+def get_logger(verbose):
+    LOGGER = logging.getLogger("imimspy")
+    set_logger_parameters(verbose)
+    return LOGGER
 
 
 def set_logger(file_path=None):
@@ -29,6 +50,17 @@ def set_logger(file_path=None):
     fmt = "[%(asctime)s.%(msecs)03d] [%(levelname)s] [%(filename)s:%(lineno)s:%(funcName)s] - %(message)s"
 
     logging.basicConfig(level=logging.DEBUG, format=fmt, handlers=handlers, datefmt="%Y-%m-%d %H:%M:%S")
+
+
+def set_logger_format(filepath=None):
+
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    handlers = [stdout_handler]
+    if filepath is not None:
+        file_handler = logging.FileHandler(filename=filepath)
+        handlers.extend([file_handler])
+
+    logging.basicConfig(level=logging.DEBUG, handlers=handlers, format=FMT, datefmt="%Y-%m-%d %H:%M:%S")
 
 
 def set_logger_level(verbose=None):

@@ -8,6 +8,7 @@ from pubsub import pub
 from styles import ListCtrl
 from styles import make_menu_item
 from styles import MiniFrame
+from utils.decorators import timer
 from utils.screen import calculate_window_size
 
 logger = logging.getLogger("origami")
@@ -61,6 +62,7 @@ class PanelImagingLESAViewer(MiniFrame):
         # load document
         self.document_title = None
         self.mz_data = None
+        self.img_data = None
         self.on_select_document()
 
         self.subscribe()
@@ -73,52 +75,49 @@ class PanelImagingLESAViewer(MiniFrame):
         pub.subscribe(self.on_extract_image_from_spectrum, "widget.imaging.lesa.extract.image.spectrum")
         pub.subscribe(self.on_extract_spectrum_from_image, "widget.imaging.lesa.extract.spectrum.image")
 
-    def on_extract_image_from_spectrum(self, rect):
-        import numpy as np
-        from utils.check import check_value_order
-        from processing.utils import get_maximum_value_in_range
-        from utils.color import convert_rgb_255_to_1
-        from utils.color import round_rgb
+    def make_gui(self):
 
-        xmin, xmax, __, __ = rect
-        xmin, xmax = check_value_order(xmin, xmax)
-        if self.mz_data is not None:
-            mz_x = self.mz_data["xvals"]
-            mz_y = self.mz_data["yvals"]
+        # make panel
+        settings_panel = self.make_settings_panel(self)
+        self._settings_panel_size = settings_panel.GetSize()
+        settings_panel.SetMinSize((400, -1))
 
-            mz_xy = np.transpose([mz_x, mz_y])
-            mz_y_max = np.round(get_maximum_value_in_range(mz_xy, mz_range=(xmin, xmax)) * 100, 2)
+        plot_panel = self.make_plot_panel(self)
 
-            # predict charge state
-            charge = self.data_processing.predict_charge_state(mz_xy[:, 0], mz_xy[:, 1], (xmin - 0, xmax + 3))
-            color = next(self.config.custom_color_cycle)
-            color = convert_rgb_255_to_1(color)
-            self.peaklist.Append(
-                [
-                    "",
-                    f"{xmin:.2f}-{xmax:.2f}",
-                    str(charge),
-                    f"{mz_y_max:.2f}",
-                    round_rgb(color),
-                    next(self.config.overlay_cmap_cycle),
-                    "",
-                    self.document_title,
-                ]
-            ),
+        # pack elements
+        self.main_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.main_sizer.Add(plot_panel, 1, wx.EXPAND, 0)
+        self.main_sizer.Add(settings_panel, 0, wx.EXPAND, 0)
 
-        zvals = self.data_handling.on_extract_LESA_img_from_mass_range(xmin, xmax, self.document_title)
-        xvals = np.arange(zvals.shape[0]) + 1
-        yvals = np.arange(zvals.shape[1]) + 1
-        self.panel_plot.on_plot_image(
-            zvals,
-            xvals,
-            yvals,
-            plot_obj=self.plot_window_img,
-            callbacks=dict(CTRL="widget.imaging.lesa.extract.spectrum.image"),
+        # fit layout
+        self.main_sizer.Fit(self)
+        self.SetSizer(self.main_sizer)
+        self.SetSize(self._window_size)
+        self.Layout()
+        self.Show(True)
+
+        self.CentreOnScreen()
+        self.SetFocus()
+
+    def on_action_tools(self, evt):
+
+        menu = wx.Menu()
+
+        menu_action_create_blank_document = make_menu_item(
+            parent=menu,
+            text="Create blank IMAGING document",
+            bitmap=self.icons.iconsLib["new_document_16"],
+            help_text="",
         )
 
-    def on_extract_spectrum_from_image(self, rect):
-        print(rect)
+        menu.AppendItem(menu_action_create_blank_document)
+
+        # bind events
+        self.Bind(wx.EVT_MENU, self.on_create_blank_document, menu_action_create_blank_document)
+
+        self.PopupMenu(menu)
+        menu.Destroy()
+        self.SetFocus()
 
     def on_right_click(self, evt):
         # ensure that user clicked inside the plot area
@@ -162,96 +161,6 @@ class PanelImagingLESAViewer(MiniFrame):
         menu.Destroy()
         self.SetFocus()
 
-    def on_close(self, evt):
-        """Destroy this frame"""
-        pub.unsubscribe(self.on_extract_image_from_spectrum, "widget.imaging.lesa.extract.image.spectrum")
-        pub.unsubscribe(self.on_extract_image_from_spectrum, "widget.imaging.lesa.extract.spectrum.image")
-        self.Destroy()
-
-    def get_plot_obj(self):
-        plot_obj = {"MS": self.plot_window_MS, "2D": self.plot_window_img}[self.view.plot_name]
-        return plot_obj
-
-    def on_clear_plot(self, evt):
-        plot_obj = self.get_plot_obj()
-        plot_obj.clearPlot()
-
-    def on_reset_plot(self, evt):
-        plot_obj = self.get_plot_obj()
-        plot_obj.on_reset_zoom()
-
-    def on_resize_check(self, evt):
-        self.panel_plot.on_resize_check(None)
-
-    def on_copy_to_clipboard(self, evt):
-        plot_obj = self.get_plot_obj()
-        plot_obj.copy_to_clipboard()
-
-    def on_customise_plot(self, evt):
-        plot_obj = self.get_plot_obj()
-        self.panel_plot.on_customise_plot(None, plot="Imaging: LESA...", plot_obj=plot_obj)
-
-    def on_save_figure(self, evt):
-        plot_title = "MS" if self.view.plot_name == "MS" else "image"
-        plot_obj = self.get_plot_obj()
-        self.panel_plot.save_images(None, None, plot_obj=plot_obj, image_name=plot_title)
-
-    def make_gui(self):
-
-        # make panel
-        settings_panel = self.make_settings_panel(self)
-        self._settings_panel_size = settings_panel.GetSize()
-        settings_panel.SetMinSize((400, -1))
-
-        plot_panel = self.make_plot_panel(self)
-
-        # pack elements
-        self.main_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.main_sizer.Add(plot_panel, 1, wx.EXPAND, 0)
-        self.main_sizer.Add(settings_panel, 0, wx.EXPAND, 0)
-
-        # fit layout
-        self.main_sizer.Fit(self)
-        self.SetSizer(self.main_sizer)
-        self.SetSize(self._window_size)
-        self.Layout()
-        self.Show(True)
-
-        self.CentreOnScreen()
-        self.SetFocus()
-
-    def on_apply(self, evt):
-        print("on_apply")
-
-        if evt is not None:
-            evt.Skip()
-
-    def on_select_spectrum(self, evt):
-        # get data
-        spectrum_name = self.spectrum_choice.GetStringSelection()
-        __, mz_data = self.data_handling.get_spectrum_data([self.document_title, spectrum_name])
-
-        # show plot
-        self.panel_plot.on_plot_MS(
-            mz_data["xvals"],
-            mz_data["yvals"],
-            show_in_window="LESA",
-            plot_obj=self.plot_window_MS,
-            override=False,
-            callbacks=dict(CTRL="widget.imaging.lesa.extract.image.spectrum"),
-        )
-        self.mz_data = mz_data
-
-    def on_select_document(self):
-        document = self.data_handling._get_document_of_type("Type: Imaging")
-        if document:
-            self.document_title = document.title
-            itemlist = self.data_handling.generate_item_list_mass_spectra("comparison")
-            spectrum_list = itemlist.get(document.title, [])
-            if spectrum_list:
-                self.spectrum_choice.SetItems(spectrum_list)
-                self.spectrum_choice.SetStringSelection(spectrum_list[0])
-
     def make_settings_panel(self, split_panel):
 
         panel = wx.Panel(split_panel, -1, size=(-1, -1), name="settings")
@@ -263,26 +172,19 @@ class PanelImagingLESAViewer(MiniFrame):
         self.spectrum_choice.Bind(wx.EVT_COMBOBOX, self.on_select_spectrum)
 
         # add image controls
+        choices = ["None", "Total Intensity", "Root Mean Square", "p-Norm", "Median"]
+
         normalization_choice = wx.StaticText(panel, -1, "Normalization:")
-        self.normalization_choice = wx.ComboBox(panel, choices=["None"], style=wx.CB_READONLY)
+        self.normalization_choice = wx.ComboBox(panel, choices=choices, style=wx.CB_READONLY)
         self.normalization_choice.SetStringSelection("None")
         self.normalization_choice.Bind(wx.EVT_COMBOBOX, self.on_apply)
-        #         self.normalization_choice.Bind(wx.EVT_COMBOBOX, self.on_select_spectrum)
+        self.normalization_choice.Bind(wx.EVT_COMBOBOX, self.on_update_normalization)
 
         # make listctrl
         self.make_listctrl_panel(panel)
 
         horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
-
-        # pack buttons
-        #         btn_grid = wx.GridBagSizer(2, 2)
-        #         n = 0
-        #         btn_grid.Add(self.action_btn, (n, 0), flag=wx.ALIGN_CENTER)
-        #         btn_grid.Add(self.plot_btn, (n, 1), flag=wx.ALIGN_CENTER)
-        #         btn_grid.Add(self.add_to_document_btn, (n, 2), flag=wx.ALIGN_CENTER)
-        #         btn_grid.Add(self.cancel_btn, (n, 3), flag=wx.ALIGN_CENTER)
-        #         btn_grid.Add(self.hot_plot_check, (n, 4), flag=wx.ALIGN_CENTER)
 
         # pack heatmap items
         grid = wx.GridBagSizer(2, 2)
@@ -301,7 +203,6 @@ class PanelImagingLESAViewer(MiniFrame):
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(grid, 0, wx.EXPAND, 5)
         main_sizer.Add(horizontal_line_0, 0, wx.EXPAND, 10)
-        #         main_sizer.Add(btn_grid, 0, wx.ALIGN_CENTRE_HORIZONTAL, 10)
         main_sizer.Add(self.peaklist, 1, wx.EXPAND, 10)
         #
         # fit layout
@@ -345,29 +246,151 @@ class PanelImagingLESAViewer(MiniFrame):
 
         self.peaklist.Bind(wx.EVT_LEFT_DCLICK, self.on_double_click_on_item)
 
+    def on_close(self, evt):
+        """Destroy this frame"""
+        pub.unsubscribe(self.on_extract_image_from_spectrum, "widget.imaging.lesa.extract.image.spectrum")
+        pub.unsubscribe(self.on_extract_image_from_spectrum, "widget.imaging.lesa.extract.spectrum.image")
+        self.Destroy()
+
+    def get_plot_obj(self):
+        plot_obj = {"MS": self.plot_window_MS, "2D": self.plot_window_img}[self.view.plot_name]
+        return plot_obj
+
+    def on_clear_plot(self, evt):
+        plot_obj = self.get_plot_obj()
+        plot_obj.clearPlot()
+
+    def on_reset_plot(self, evt):
+        plot_obj = self.get_plot_obj()
+        plot_obj.on_reset_zoom()
+
+    def on_resize_check(self, evt):
+        self.panel_plot.on_resize_check(None)
+
+    def on_copy_to_clipboard(self, evt):
+        plot_obj = self.get_plot_obj()
+        plot_obj.copy_to_clipboard()
+
+    def on_customise_plot(self, evt):
+        plot_obj = self.get_plot_obj()
+        self.panel_plot.on_customise_plot(None, plot="Imaging: LESA...", plot_obj=plot_obj)
+
+    def on_save_figure(self, evt):
+        plot_title = "MS" if self.view.plot_name == "MS" else "image"
+        plot_obj = self.get_plot_obj()
+        self.panel_plot.save_images(None, None, plot_obj=plot_obj, image_name=plot_title)
+
+    def on_apply(self, evt):
+        print("on_apply")
+
+        if evt is not None:
+            evt.Skip()
+
+    def on_extract_image_from_spectrum(self, rect):
+        import numpy as np
+        from utils.check import check_value_order
+        from processing.utils import get_maximum_value_in_range
+        from utils.color import convert_rgb_255_to_1
+        from utils.color import round_rgb
+
+        xmin, xmax, __, __ = rect
+        xmin, xmax = check_value_order(xmin, xmax)
+        if self.mz_data is not None:
+            mz_x = self.mz_data["xvals"]
+            mz_y = self.mz_data["yvals"]
+
+            mz_xy = np.transpose([mz_x, mz_y])
+            mz_y_max = np.round(get_maximum_value_in_range(mz_xy, mz_range=(xmin, xmax)) * 100, 2)
+
+            # predict charge state
+            charge = self.data_processing.predict_charge_state(mz_xy[:, 0], mz_xy[:, 1], (xmin - 0, xmax + 3))
+
+            # get color
+            color = next(self.config.custom_color_cycle)
+            color = convert_rgb_255_to_1(color)
+
+            # add to table
+            self.peaklist.Append(
+                [
+                    "",
+                    f"{xmin:.2f}-{xmax:.2f}",
+                    str(charge),
+                    f"{mz_y_max:.2f}",
+                    round_rgb(color),
+                    next(self.config.overlay_cmap_cycle),
+                    "",
+                    self.document_title,
+                ]
+            ),
+
+        # get data
+        zvals = self.data_handling.on_extract_LESA_img_from_mass_range(xmin, xmax, self.document_title)
+        xvals = np.arange(zvals.shape[0]) + 1
+        yvals = np.arange(zvals.shape[1]) + 1
+        self.img_data = dict(zvals=zvals, xvals=xvals, yvals=yvals)
+        self.on_plot_image(self.img_data)
+
+    @timer
+    def on_plot_image(self, img_data):
+        self.panel_plot.on_plot_image(
+            img_data["zvals"],
+            img_data["xvals"],
+            img_data["yvals"],
+            plot_obj=self.plot_window_img,
+            callbacks=dict(CTRL="widget.imaging.lesa.extract.spectrum.image"),
+        )
+
+    @timer
+    def on_plot_spectrum(self):
+        self.panel_plot.on_plot_MS(
+            self.mz_data["xvals"],
+            self.mz_data["yvals"],
+            show_in_window="LESA",
+            plot_obj=self.plot_window_MS,
+            override=False,
+            callbacks=dict(CTRL="widget.imaging.lesa.extract.image.spectrum"),
+        )
+
+    def on_extract_spectrum_from_image(self, rect):
+        print(rect)
+
+    def on_update_normalization(self, evt):
+        from processing.heatmap import normalize_2D
+        from copy import deepcopy
+
+        method = self.normalization_choice.GetStringSelection()
+
+        if not self.img_data:
+            return
+
+        img_data = deepcopy(self.img_data)
+        img_data["zvals"] = normalize_2D(img_data["zvals"], method, p=0.1)
+
+        self.on_plot_image(img_data)
+
+    @timer
+    def on_select_spectrum(self, evt):
+        # get data
+        spectrum_name = self.spectrum_choice.GetStringSelection()
+        __, mz_data = self.data_handling.get_spectrum_data([self.document_title, spectrum_name])
+        self.mz_data = mz_data
+
+        # show plot
+        self.on_plot_spectrum()
+
+    def on_select_document(self):
+        document = self.data_handling._get_document_of_type("Type: Imaging")
+        if document:
+            self.document_title = document.title
+            itemlist = self.data_handling.generate_item_list_mass_spectra("comparison")
+            spectrum_list = itemlist.get(document.title, [])
+            if spectrum_list:
+                self.spectrum_choice.SetItems(spectrum_list)
+                self.spectrum_choice.SetStringSelection(spectrum_list[0])
+
     def on_double_click_on_item(self, evt):
         """Create annotation for activated peak."""
         pass
-
-    def on_action_tools(self, evt):
-
-        menu = wx.Menu()
-
-        menu_action_create_blank_document = make_menu_item(
-            parent=menu,
-            text="Create blank IMAGING document",
-            bitmap=self.icons.iconsLib["new_document_16"],
-            help_text="",
-        )
-
-        menu.AppendItem(menu_action_create_blank_document)
-
-        # bind events
-        self.Bind(wx.EVT_MENU, self.on_create_blank_document, menu_action_create_blank_document)
-
-        self.PopupMenu(menu)
-        menu.Destroy()
-        self.SetFocus()
 
     def on_create_blank_document(self, evt):
         self.data_handling.create_new_document_of_type(document_type="imaging")

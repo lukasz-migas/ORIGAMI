@@ -4,6 +4,7 @@ import logging
 
 import numpy as np
 from processing.utils import find_nearest_index
+from processing.utils import nthroot
 from scipy.ndimage import gaussian_filter
 from scipy.signal import savgol_filter
 from sklearn.preprocessing import normalize
@@ -115,7 +116,7 @@ def smooth_savgol_2D(data, **kwargs):
     return dataOut
 
 
-def normalize_2D(data, mode="Maximum"):
+def normalize_2D(data, mode="Maximum", **kwargs):
     """Normalize heatmap
 
     Parameters
@@ -136,6 +137,9 @@ def normalize_2D(data, mode="Maximum"):
     data = data.astype(np.float64)
 
     # normalize data
+    if mode == "None":
+        return data
+
     if mode == "Maximum":
         norm_data = normalize(data, axis=0, norm="max")
     elif mode == "Logarithmic":
@@ -148,6 +152,18 @@ def normalize_2D(data, mode="Maximum"):
         norm_data = normalize(data, axis=0, norm="l1")
     elif mode == "Least Squares":
         norm_data = normalize(data, axis=0, norm="l2")
+    elif mode == "Median":
+        median = np.median(data[data > 0])
+        norm_data = data / median
+    elif mode == "p-Norm":
+        div = nthroot(np.sum(data ** kwargs["p"]), kwargs["p"])
+        norm_data = data / div
+    elif mode == "Total Intensity":
+        div = np.sum(data)
+        norm_data = data / div
+    elif mode == "Root Mean Square":
+        div = np.square(np.power(data, 2))
+        norm_data = data / div
 
     # replace NaNs with 0s
     norm_data = np.nan_to_num(norm_data)

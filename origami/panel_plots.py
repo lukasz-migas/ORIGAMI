@@ -2974,6 +2974,14 @@ class PanelPlots(wx.Panel):
         plt_kwargs["colormap_norm"] = kwargs.get("cmapNorm", None)
         plt_kwargs["allow_extraction"] = kwargs.pop("allow_extraction", True)
 
+        if not kwargs.get("full_repaint", False):
+            try:
+                plot_obj.plot_2D_image_update_data(xvals, yvals, zvals, "", "", **plt_kwargs)
+                plot_obj.repaint()
+                return
+            except Exception:
+                logger.info("Failed to quickly plot heatmap", exc_info=False)
+
         # Plot 2D dataset
         plot_obj.clearPlot()
         plot_obj.plot_2D_image(

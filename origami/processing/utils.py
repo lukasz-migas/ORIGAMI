@@ -8,6 +8,11 @@ from scipy.signal import find_peaks
 from utils.check import check_value_order
 
 
+def nthroot(value, n):
+    """Calculate the n-th root of any number"""
+    return value ** (1 / float(n))
+
+
 def detect_peaks_chromatogram(data, threshold, add_buffer=0):  # detectPeaksRT
     """
     This function searches for split in the sequence of numbers (when signal goes to 0)

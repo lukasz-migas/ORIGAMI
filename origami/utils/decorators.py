@@ -1,3 +1,10 @@
+"""Decorators"""
+from utils.logging import get_logger
+from utils.time import ttime
+
+LOGGER = get_logger("DEBUG")
+
+
 def signal_blocker(fcn):
     def wrapped(self, *args, **kwargs):
         if not hasattr(self, "_block"):
@@ -6,6 +13,17 @@ def signal_blocker(fcn):
         self._block = True
         out = fcn(self, *args, **kwargs)
         self._block = False
+        return out
+
+    return wrapped
+
+
+def timer(fcn):
+    def wrapped(self, *args, **kwargs):
+        tstart = ttime()
+        out = fcn(self, *args, **kwargs)
+        LOGGER.debug(f"Function `{fcn.__name__}` took {ttime()-tstart:.4f}s to execute")
+
         return out
 
     return wrapped

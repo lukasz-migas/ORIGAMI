@@ -3902,6 +3902,37 @@ class plots(mpl_plotter):
         self.setup_zoom([self.plotMS], self.zoomtype, data_lims=extent, plotName=plotName)
         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
 
+    def plot_2D_image_update_data(self, xvals, yvals, zvals, xlabel="", ylabel="", **kwargs):
+        # update settings
+        self._check_and_update_plot_settings(**kwargs)
+
+        # update limits and extents
+        #         extent = ut_visuals.extents(xvals) + ut_visuals.extents(yvals)
+        self.cax.set_data(zvals)
+        self.cax.set_norm(kwargs.get("colormap_norm", None))
+        #         self.cax.set_extent(extent)
+        self.cax.set_cmap(kwargs["colormap"])
+        self.cax.set_interpolation(kwargs["interpolation"])
+
+        xlimit = self.plotMS.get_xlim()
+        xmin, xmax = xlimit
+        ylimit = self.plotMS.get_ylim()
+        ymin, ymax = ylimit
+
+        # setup zoom
+        extent = [xmin, ymin, xmax, ymax]
+
+        if kwargs.get("update_extents", True):
+            self.update_extents(extent)
+            self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
+
+        # add data
+        self.plot_data = {"xvals": xvals, "yvals": yvals, "zvals": zvals, "xlabel": xlabel, "ylabel": ylabel}
+        self.plot_labels.update({"xlabel": xlabel, "ylabel": ylabel})
+
+        # add colorbar
+        self.set_colorbar_parameters(zvals, **kwargs)
+
     def plot_2D_image(self, zvals, xvals, yvals, xlabel="", ylabel="", axesSize=None, plotName=None, **kwargs):
         # update settings
         self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)

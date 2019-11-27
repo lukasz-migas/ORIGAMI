@@ -13,8 +13,8 @@ from numpy import amax
 from numpy import divide
 from PIL import Image
 from PIL import ImageChops
-from ZoomBox import GetXValues
-from ZoomBox import ZoomBox
+from visuals.ZoomBox import GetXValues
+from visuals.ZoomBox import ZoomBox
 
 matplotlib.use("WXAgg")
 
@@ -71,12 +71,6 @@ class mpl_plotter(wx.Panel):
 
     def get_ylimits(self):
         return [self.data_limits[1], self.data_limits[3]]
-
-    #     def onPick(self, evt):
-    #         pass
-    # to be used to improve 3D plot
-    #         print(dir(evt.artist.get_xdata))
-    #         print('pick')
 
     def _generatePlotParameters(self):
         plot_parameters = {

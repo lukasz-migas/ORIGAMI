@@ -2272,7 +2272,8 @@ class DataHandling:
 
     def on_extract_LESA_img_from_mass_range(self, xmin, xmax, document_title):
         from processing.utils import get_narrow_data_range_1D
-        from processing.heatmap import normalize_2D
+
+        #         from processing.heatmap import normalize_2D
 
         document = self.on_get_document(document_title)
 
