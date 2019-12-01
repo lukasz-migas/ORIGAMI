@@ -8,7 +8,7 @@ from pubsub import pub
 from styles import ListCtrl
 from styles import make_menu_item
 from styles import MiniFrame
-from utils.decorators import timer
+from utils.decorators import Timer
 from utils.screen import calculate_window_size
 
 logger = logging.getLogger("origami")
@@ -58,14 +58,14 @@ class PanelImagingLESAViewer(MiniFrame):
 
         # make gui items
         self.make_gui()
+        self.subscribe()
 
         # load document
         self.document_title = None
         self.mz_data = None
         self.img_data = None
         self.on_select_document()
-
-        self.subscribe()
+        self.on_select_spectrum(None)
 
         # bind
         self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
@@ -172,7 +172,7 @@ class PanelImagingLESAViewer(MiniFrame):
         self.spectrum_choice.Bind(wx.EVT_COMBOBOX, self.on_select_spectrum)
 
         # add image controls
-        choices = ["None", "Total Intensity", "Root Mean Square", "p-Norm", "Median"]
+        choices = ["None", "Total Intensity", "Root Mean Square", "Median", "L2"]
 
         normalization_choice = wx.StaticText(panel, -1, "Normalization:")
         self.normalization_choice = wx.ComboBox(panel, choices=choices, style=wx.CB_READONLY)
@@ -286,6 +286,10 @@ class PanelImagingLESAViewer(MiniFrame):
         if evt is not None:
             evt.Skip()
 
+    def on_extract_tic_image(self):
+        """Load TIC image"""
+        self.on_extract_image_from_spectrum([None, None, None, None])
+
     def on_extract_image_from_spectrum(self, rect):
         import numpy as np
         from utils.check import check_value_order
@@ -294,6 +298,10 @@ class PanelImagingLESAViewer(MiniFrame):
         from utils.color import round_rgb
 
         xmin, xmax, __, __ = rect
+        add_to_table = True
+        if xmin is None or xmax is None:
+            xmin, xmax = 0, 99999
+            add_to_table = False
         xmin, xmax = check_value_order(xmin, xmax)
         if self.mz_data is not None:
             mz_x = self.mz_data["xvals"]
@@ -310,27 +318,28 @@ class PanelImagingLESAViewer(MiniFrame):
             color = convert_rgb_255_to_1(color)
 
             # add to table
-            self.peaklist.Append(
-                [
-                    "",
-                    f"{xmin:.2f}-{xmax:.2f}",
-                    str(charge),
-                    f"{mz_y_max:.2f}",
-                    round_rgb(color),
-                    next(self.config.overlay_cmap_cycle),
-                    "",
-                    self.document_title,
-                ]
-            ),
+            if add_to_table:
+                self.peaklist.Append(
+                    [
+                        "",
+                        f"{xmin:.2f}-{xmax:.2f}",
+                        str(charge),
+                        f"{mz_y_max:.2f}",
+                        round_rgb(color),
+                        next(self.config.overlay_cmap_cycle),
+                        "",
+                        self.document_title,
+                    ]
+                )
 
         # get data
         zvals = self.data_handling.on_extract_LESA_img_from_mass_range(xmin, xmax, self.document_title)
         xvals = np.arange(zvals.shape[0]) + 1
         yvals = np.arange(zvals.shape[1]) + 1
-        self.img_data = dict(zvals=zvals, xvals=xvals, yvals=yvals)
+        self.img_data = dict(zvals=zvals, xvals=xvals, yvals=yvals, extract_range=[xmin, xmax])
         self.on_plot_image(self.img_data)
 
-    @timer
+    @Timer
     def on_plot_image(self, img_data):
         self.panel_plot.on_plot_image(
             img_data["zvals"],
@@ -340,7 +349,7 @@ class PanelImagingLESAViewer(MiniFrame):
             callbacks=dict(CTRL="widget.imaging.lesa.extract.spectrum.image"),
         )
 
-    @timer
+    @Timer
     def on_plot_spectrum(self):
         self.panel_plot.on_plot_MS(
             self.mz_data["xvals"],
@@ -358,28 +367,46 @@ class PanelImagingLESAViewer(MiniFrame):
         from processing.heatmap import normalize_2D
         from copy import deepcopy
 
-        method = self.normalization_choice.GetStringSelection()
+        # get method
+        method = {"Total Intensity": "total", "Root Mean Square": "sqrt", "Median": "median", "L2": "l2"}.get(
+            self.normalization_choice.GetStringSelection(), "None"
+        )
 
+        # cancel if no data is available
         if not self.img_data:
+            logger.warning("No imaging data available!")
             return
 
         img_data = deepcopy(self.img_data)
-        img_data["zvals"] = normalize_2D(img_data["zvals"], method, p=0.1)
+        if method != "None":
+            try:
+                xmin, xmax = img_data["extract_range"]
+                img_data["zvals"] = self.data_handling.on_extract_LESA_img_from_mass_range_norm(
+                    xmin, xmax, self.document_title, method
+                )
+            except KeyError:
+                img_data["zvals"] = normalize_2D(
+                    img_data["zvals"], self.normalization_choice.GetStringSelection(), p=0.1
+                )
 
         self.on_plot_image(img_data)
+        logger.info(f"Updated image with '{method}' normalization")
 
-    @timer
+    @Timer
     def on_select_spectrum(self, evt):
         # get data
         spectrum_name = self.spectrum_choice.GetStringSelection()
         __, mz_data = self.data_handling.get_spectrum_data([self.document_title, spectrum_name])
         self.mz_data = mz_data
 
+        if spectrum_name == "Mass Spectrum":
+            self.on_extract_tic_image()
+
         # show plot
         self.on_plot_spectrum()
 
     def on_select_document(self):
-        document = self.data_handling._get_document_of_type("Type: Imaging")
+        document = self.data_handling._get_document_of_type("Type: Imaging", allow_creation=False)
         if document:
             self.document_title = document.title
             itemlist = self.data_handling.generate_item_list_mass_spectra("comparison")

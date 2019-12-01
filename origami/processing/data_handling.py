@@ -23,6 +23,7 @@ from gui_elements.misc_dialogs import DialogBox
 from ids import ID_load_masslynx_raw
 from ids import ID_load_origami_masslynx_raw
 from ids import ID_openIRRawFile
+from processing.imaging import ImagingNormalizationProcessor
 from processing.utils import find_nearest_index
 from processing.utils import get_maximum_value_in_range
 from pubsub import pub
@@ -2245,7 +2246,7 @@ class DataHandling:
             data = {
                 "index": idx,
                 "xvals": mz_x,
-                "yvals": mz_y,
+                "yvals": mz_y.astype(np.float32),
                 "ims1D": dt_y,
                 "ims1DX": dt_x,
                 "xlabel": "Drift time (bins)",
@@ -2268,12 +2269,15 @@ class DataHandling:
         # add metadata
         document.metadata["imaging_lesa"] = kwargs
 
+        # compute normalizations
+        if kwargs.get("add_normalizations", True):
+            proc = ImagingNormalizationProcessor(document)
+            document = proc.document
+
         logger.info(f"Added data to document '{document.title}' in {ttime()-tstart:.2f}s")
 
     def on_extract_LESA_img_from_mass_range(self, xmin, xmax, document_title):
         from processing.utils import get_narrow_data_range_1D
-
-        #         from processing.heatmap import normalize_2D
 
         document = self.on_get_document(document_title)
 
@@ -2291,6 +2295,32 @@ class DataHandling:
             out[idx] = mz_y.sum()
         out = np.reshape(out, shape)
         #         out = normalize_2D(out)
+
+        return np.flipud(out)
+
+    def on_extract_LESA_img_from_mass_range_norm(self, xmin, xmax, document_title, norm_mode="total"):
+        from processing.utils import get_narrow_data_range_1D
+
+        document = self.on_get_document(document_title)
+
+        metadata = document.metadata.get("imaging_lesa", dict())
+        if not metadata:
+            raise MessageError("Error", "Cannot extract LESA data for this document")
+
+        shape = [int(metadata["x_dim"]), int(metadata["y_dim"])]
+        out = np.zeros(np.dot(shape[0], shape[1]).astype(np.int32))
+        for data in document.multipleMassSpectrum.values():
+            idx = int(data["index"] - 1)
+            __, mz_y = get_narrow_data_range_1D(data["xvals"], data["yvals"], [xmin, xmax])
+
+            out[idx] = mz_y.sum()
+
+        # get division factor
+        divisor = metadata["norm"][norm_mode]
+        out = np.divide(out, divisor)
+
+        # reshape object
+        out = np.reshape(out, shape)
 
         return np.flipud(out)
 

@@ -162,7 +162,10 @@ def normalize_2D(data, mode="Maximum", **kwargs):
         div = np.sum(data)
         norm_data = data / div
     elif mode == "Root Mean Square":
-        div = np.square(np.power(data, 2))
+        div = np.square(np.mean(np.power(data, 2)))
+        norm_data = data / div
+    elif mode == "L2":
+        div = np.square(np.sum(np.power(data, 2)))
         norm_data = data / div
 
     # replace NaNs with 0s

@@ -33,7 +33,7 @@ LISTCTRL_SORT = 1
 SLIDER_STYLE = wx.SL_HORIZONTAL | wx.SL_MIN_MAX_LABELS | wx.SL_VALUE_LABEL
 
 
-def make_spin_ctrl(parent, value, min_value, max_value, increment_value, size=(-1, -1), evtid=-1, name="name"):
+def make_spin_ctrl_double(parent, value, min_value, max_value, increment_value, size=(-1, -1), evtid=-1, name="name"):
     """Convenient way to initilize SpinCtrlDouble"""
     spin_ctrl = wx.SpinCtrlDouble(
         parent,
@@ -43,6 +43,22 @@ def make_spin_ctrl(parent, value, min_value, max_value, increment_value, size=(-
         max=max_value,
         initial=value,
         inc=increment_value,
+        size=size,
+        name=name,
+    )
+    return spin_ctrl
+
+
+def make_spin_ctrl_int(parent, value, min_value, max_value, increment_value, size=(-1, -1), evtid=-1, name="name"):
+    """Convenient way to initilize SpinCtrl"""
+    spin_ctrl = wx.SpinCtrl(
+        parent,
+        evtid,
+        value=str(value),
+        min=min_value,
+        max=max_value,
+        initial=value,
+        #         inc=increment_value,
         size=size,
         name=name,
     )
@@ -129,8 +145,11 @@ def make_slider(parent, value, minValue, maxValue):
     return slider
 
 
-def make_checkbox(parent, text, style=wx.ALIGN_LEFT, ID=-1, name=""):
+def make_checkbox(parent, text, style=wx.ALIGN_LEFT, ID=-1, name="", tooltip=None):
     checkbox = wx.CheckBox(parent, ID, text, (3, 3), style=style, name=name)
+
+    if tooltip:
+        checkbox.SetToolTip(make_tooltip(tooltip))
     return checkbox
 
 

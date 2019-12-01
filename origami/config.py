@@ -1386,11 +1386,13 @@ class Config:
         self.ms_smooth_window = 3
         self.ms_smooth_polynomial = 1
         self.ms_smooth_moving_window = 5  # new in v1.3.0.0
-        self.ms_baseline_choices = ["Linear", "Polynomial", "Curved"]  # new in v1.3.0.0
+        self.ms_baseline_choices = ["Linear", "Polynomial", "Curved", "Median", "Top Hat"]  # new in v1.3.0.0
         self.ms_baseline = "Linear"
         self.ms_threshold = 0.0  # new in v1.3.0.0
         self.ms_baseline_polynomial_order = 3  # new in v1.3.0.0
         self.ms_baseline_curved_window = 500  # new in v1.3.0.0
+        self.ms_baseline_median_window = 5  # new
+        self.ms_baseline_tophat_window = 100  # new
 
         self.ms_crop_min = 500
         self.ms_crop_max = 8000

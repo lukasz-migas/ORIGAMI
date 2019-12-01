@@ -19,12 +19,20 @@ def prettify_tick_format(tick_labels):
     def convert_divider_to_str(value, exp_value):
         if exp_value in [0, 1, 2]:
             if value <= 1:
-                return f"{value:.4f}"
+                return f"{value:.2g}".replace("e", "E")
+            elif value <= 100:
+                return f"{value:.1g}".replace("e", "E")
+            elif value <= 1000:
+                return f"{value:0g}".replace("e", "E")
             return value
         elif exp_value in [3, 4, 5]:
             return f"{value / 1000:.1f}k"
-        elif exp_value == [6, 7, 8]:
+        elif exp_value in [6, 7, 8]:
             return f"{value / 1000000:.0f}k"
+        elif exp_value in [9, 10, 11, 12]:
+            return f"{value / 1000000000:.0f}M"
+        else:
+            print(exp_value, value)
 
     _tick_labels = []
     for value in tick_labels:

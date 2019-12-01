@@ -18,12 +18,12 @@ def signal_blocker(fcn):
     return wrapped
 
 
-def timer(fcn):
-    def wrapped(self, *args, **kwargs):
+def Timer(fcn):
+    def timer(self, *args, **kwargs):
         tstart = ttime()
         out = fcn(self, *args, **kwargs)
         LOGGER.debug(f"Function `{fcn.__name__}` took {ttime()-tstart:.4f}s to execute")
 
         return out
 
-    return wrapped
+    return timer

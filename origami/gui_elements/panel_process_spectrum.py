@@ -186,10 +186,20 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.ms_baseline_polynomial_order.SetValue(str(self.config.ms_baseline_polynomial_order))
         self.ms_baseline_polynomial_order.Bind(wx.EVT_TEXT, self.on_apply)
 
-        ms_baseline_curved_window = wx.StaticText(panel, wx.ID_ANY, "Window:")
+        ms_baseline_curved_window = wx.StaticText(panel, wx.ID_ANY, "Curved window:")
         self.ms_baseline_curved_window = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("intPos"))
         self.ms_baseline_curved_window.SetValue(str(self.config.ms_baseline_curved_window))
         self.ms_baseline_curved_window.Bind(wx.EVT_TEXT, self.on_apply)
+
+        ms_baseline_median_window = wx.StaticText(panel, wx.ID_ANY, "Median window:")
+        self.ms_baseline_median_window = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("intPos"))
+        self.ms_baseline_median_window.SetValue(str(self.config.ms_baseline_median_window))
+        self.ms_baseline_median_window.Bind(wx.EVT_TEXT, self.on_apply)
+
+        ms_baseline_tophat_window = wx.StaticText(panel, wx.ID_ANY, "Top Hat window:")
+        self.ms_baseline_tophat_window = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("intPos"))
+        self.ms_baseline_tophat_window.SetValue(str(self.config.ms_baseline_tophat_window))
+        self.ms_baseline_tophat_window.Bind(wx.EVT_TEXT, self.on_apply)
 
         ms_process_normalize = wx.StaticText(panel, -1, "Normalize spectrum:")
         self.ms_process_normalize = make_checkbox(panel, "")
@@ -297,6 +307,12 @@ class PanelProcessMassSpectrum(MiniFrame):
         grid.Add(ms_baseline_curved_window, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.ms_baseline_curved_window, (n, 1), flag=wx.EXPAND)
         n += 1
+        grid.Add(ms_baseline_median_window, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.ms_baseline_median_window, (n, 1), flag=wx.EXPAND)
+        n += 1
+        grid.Add(ms_baseline_tophat_window, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.ms_baseline_tophat_window, (n, 1), flag=wx.EXPAND)
+        n += 1
         grid.Add(horizontal_line_4, (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n += 1
         grid.Add(ms_process_normalize, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
@@ -346,6 +362,7 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.data_processing.on_process_MS_and_add_data(self.document_title, self.dataset_name)
 
     def on_toggle_controls(self, evt):
+
         # crop
         self.config.ms_process_crop = self.ms_process_crop.GetValue()
         obj_list = [self.crop_min_value, self.crop_max_value]
@@ -394,6 +411,8 @@ class PanelProcessMassSpectrum(MiniFrame):
             self.ms_baseline_choice,
             self.ms_baseline_polynomial_order,
             self.ms_baseline_curved_window,
+            self.ms_baseline_median_window,
+            self.ms_baseline_tophat_window,
         ]
         for item in obj_list:
             item.Enable(enable=False)
@@ -406,6 +425,10 @@ class PanelProcessMassSpectrum(MiniFrame):
                 self.ms_baseline_polynomial_order.Enable()
             elif self.config.ms_baseline == "Curved":
                 self.ms_baseline_curved_window.Enable()
+            elif self.config.ms_baseline == "Median":
+                self.ms_baseline_median_window.Enable()
+            elif self.config.ms_baseline == "Top Hat":
+                self.ms_baseline_tophat_window.Enable()
 
         if evt is not None:
             evt.Skip()

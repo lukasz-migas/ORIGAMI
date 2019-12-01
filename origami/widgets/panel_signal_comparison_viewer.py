@@ -19,7 +19,7 @@ from styles import make_bitmap_btn
 from styles import make_checkbox
 from styles import make_color_btn
 from styles import make_menu_item
-from styles import make_spin_ctrl
+from styles import make_spin_ctrl_double
 from styles import make_staticbox
 from styles import MiniFrame
 from utils.converters import str2num
@@ -257,7 +257,7 @@ class PanelSignalComparisonViewer(MiniFrame):
         self.spectrum_1_color_btn = make_color_btn(panel, self.config.lineColour_MS1, name="color_1")
 
         spectrum_1_transparency_label = wx.StaticText(panel, -1, "Transparency:")
-        self.spectrum_1_transparency = make_spin_ctrl(
+        self.spectrum_1_transparency = make_spin_ctrl_double(
             panel, self.config.lineTransparency_MS1 * 100, 0, 100, 10, (90, -1), name="transparency_1"
         )
 
@@ -285,7 +285,7 @@ class PanelSignalComparisonViewer(MiniFrame):
         self.spectrum_2_color_btn = make_color_btn(panel, self.config.lineColour_MS2, name="color_2")
 
         spectrum_2_transparency_label = wx.StaticText(panel, -1, "Transparency:")
-        self.spectrum_2_transparency = make_spin_ctrl(
+        self.spectrum_2_transparency = make_spin_ctrl_double(
             panel, self.config.lineTransparency_MS2 * 100, 0, 100, 10, (90, -1), name="transparency_2"
         )
 

@@ -1571,13 +1571,14 @@ class plots(mpl_plotter):
                     self.plot_2D_colorbar_update(**kwargs)
 
     def get_heatmap_normalization(self, zvals, **kwargs):
+
         # normalize
         zvals_max = np.max(zvals)
-
         cmap_min = (zvals_max * kwargs["colormap_min"]) / 100.0
         cmap_mid = (zvals_max * kwargs["colormap_mid"]) / 100.0
         cmap_max = (zvals_max * kwargs["colormap_max"]) / 100.0
 
+        # compute normalization
         if kwargs["colormap_norm_method"] == "Midpoint":
             cmap_norm = MidpointNormalize(midpoint=cmap_mid, vmin=cmap_min, vmax=cmap_max)
         elif kwargs["colormap_norm_method"] == "Logarithmic":
@@ -3907,10 +3908,8 @@ class plots(mpl_plotter):
         self._check_and_update_plot_settings(**kwargs)
 
         # update limits and extents
-        #         extent = ut_visuals.extents(xvals) + ut_visuals.extents(yvals)
         self.cax.set_data(zvals)
         self.cax.set_norm(kwargs.get("colormap_norm", None))
-        #         self.cax.set_extent(extent)
         self.cax.set_cmap(kwargs["colormap"])
         self.cax.set_interpolation(kwargs["interpolation"])
 
@@ -3931,6 +3930,7 @@ class plots(mpl_plotter):
         self.plot_labels.update({"xlabel": xlabel, "ylabel": ylabel})
 
         # add colorbar
+        self.plot_2D_update_normalization(**kwargs)
         self.set_colorbar_parameters(zvals, **kwargs)
 
     def plot_2D_image(self, zvals, xvals, yvals, xlabel="", ylabel="", axesSize=None, plotName=None, **kwargs):
@@ -3988,6 +3988,9 @@ class plots(mpl_plotter):
         # add data
         self.plot_data = {"xvals": xvals, "yvals": yvals, "zvals": zvals, "xlabel": xlabel, "ylabel": ylabel}
         self.plot_labels.update({"xlabel": xlabel, "ylabel": ylabel})
+
+        # update normalization
+        self.plot_2D_update_normalization(**kwargs)
 
     def plot_2D_overlay(
         self,

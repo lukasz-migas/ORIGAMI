@@ -7,7 +7,8 @@ import os
 import wx
 from pubsub import pub
 from styles import ListCtrl
-from styles import make_spin_ctrl
+from styles import make_checkbox
+from styles import make_spin_ctrl_int
 from styles import MiniFrame
 from styles import set_item_font
 from utils.decorators import signal_blocker
@@ -25,7 +26,7 @@ class PanelImagingImportDataset(MiniFrame):
         2: {"name": "filename", "tag": "filename", "type": "str", "show": True, "width": 150},
         3: {"name": "path", "tag": "path", "type": "str", "show": True, "width": 290},
         4: {"name": "m/z range", "tag": "mz_range", "type": "str", "show": True, "width": 80},
-        5: {"name": "# scans", "tag": "n_scans", "type": "str", "show": True, "width": 50},
+        5: {"name": "# scans", "tag": "n_scans", "type": "str", "show": True, "width": 55},
         6: {"name": "scan range", "tag": "scan_range", "type": "str", "show": True, "width": 80},
         7: {"name": "IM", "tag": "ion_mobility", "type": "str", "show": True, "width": 40},
     }
@@ -120,15 +121,25 @@ class PanelImagingImportDataset(MiniFrame):
         # import
         image_dimension_label = set_item_font(wx.StaticText(panel, wx.ID_ANY, "Image dimensions"))
         image_shape_x = wx.StaticText(panel, -1, "Shape (x-dim):")
-        self.image_shape_x = make_spin_ctrl(panel, 0, 0, 100, 1, (90, -1), name="shape_x")
+        self.image_shape_x = make_spin_ctrl_int(panel, 0, 0, 100, 1, (90, -1), name="shape_x")
         self.image_shape_x.SetBackgroundColour((255, 230, 239))
 
         image_shape_y = wx.StaticText(panel, -1, "Shape (y-dim):")
-        self.image_shape_y = make_spin_ctrl(panel, 0, 0, 100, 1, (90, -1), name="shape_y")
+        self.image_shape_y = make_spin_ctrl_int(panel, 0, 0, 100, 1, (90, -1), name="shape_y")
         self.image_shape_y.SetBackgroundColour((255, 230, 239))
 
         import_label = set_item_font(wx.StaticText(panel, wx.ID_ANY, "Import information"))
         self.import_label = wx.StaticText(panel, wx.ID_ANY, "")
+
+        # import info
+        self.import_precompute_norm = make_checkbox(
+            panel,
+            "Pre-compute dataset normalizations",
+            tooltip="This will slow-down the processing speed but will allow for immediate access to normalizations.",
+        )
+        self.import_precompute_norm.Disable()
+        self.import_precompute_norm.SetValue(True)
+
         self.import_btn = wx.Button(panel, wx.ID_OK, "Import", size=(-1, 22))
         self.import_btn.Bind(wx.EVT_BUTTON, self.on_import)
 
@@ -165,6 +176,8 @@ class PanelImagingImportDataset(MiniFrame):
         grid_2.Add(import_label, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
         n += 1
         grid_2.Add(self.import_label, (n, 0), wx.GBSpan(3, 2), flag=wx.EXPAND)
+        n += 3
+        grid_2.Add(self.import_precompute_norm, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
 
         # pack heatmap items
         grid_3 = wx.GridBagSizer(2, 2)
@@ -497,8 +510,8 @@ class PanelImagingImportDataset(MiniFrame):
             mz_bin=mz_bin,
             im_on=im_on_out,
             auto_range=False,
-            x_dim=x_dim,
-            y_dim=y_dim,
+            x_dim=int(x_dim),
+            y_dim=int(y_dim),
         )
 
         return kwargs
@@ -507,5 +520,6 @@ class PanelImagingImportDataset(MiniFrame):
         """Initilize data import"""
         filelist = self.get_extraction_filelist()
         kwargs = self.get_extraction_processing_parameters()
+        kwargs["add_normalizations"] = self.import_precompute_norm.GetValue()
 
         self.data_handling.on_open_multiple_LESA_files_fcn(filelist, **kwargs)

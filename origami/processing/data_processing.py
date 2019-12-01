@@ -809,6 +809,8 @@ class DataProcessing:
                 self.config.ms_baseline,
                 threshold=self.config.ms_threshold,
                 window=self.config.ms_baseline_curved_window,
+                median_window=self.config.ms_baseline_median_window,
+                tophat_window=self.config.ms_baseline_tophat_window,
             )
             process_msg += f"Baseline:{ttime()-tstart:.4f}s | "
 

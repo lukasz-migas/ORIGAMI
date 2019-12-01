@@ -9,6 +9,7 @@ import scipy.linalg as LA
 from processing.utils import get_narrow_data_range
 from scipy.interpolate.interpolate import interp1d
 from scipy.ndimage import gaussian_filter
+from scipy.ndimage import median_filter
 from scipy.signal import savgol_filter
 from utils.exceptions import MessageError
 from utils.ranges import get_min_max
@@ -148,6 +149,21 @@ def baseline_linear(data, threshold=0, **kwargs):
     return data
 
 
+def baseline_median(data, median_window=5, **kwargs):
+    """Median-filter"""
+    if median_window % 2 == 0:
+        raise MessageError("Median window must be an odd number")
+
+    data = median_filter(data, median_window)
+    return data
+
+
+def baseline_tophat(data, tophat_window=100, **kwargs):
+    from scipy.ndimage.morphology import white_tophat
+
+    return white_tophat(data, tophat_window)
+
+
 def baseline_1D(data, mode="Linear", **kwargs):
     # ensure data is in 64-bit format
     data = np.array(data, dtype=np.float64)
@@ -157,8 +173,12 @@ def baseline_1D(data, mode="Linear", **kwargs):
     elif mode == "Polynomial":
         baseline = baseline_polynomial(data, **kwargs)
         data = data - baseline
+    elif mode == "Median":
+        data = baseline_median(data, **kwargs)
     elif mode == "Curved":
         data = baseline_curve(data, **kwargs)
+    elif mode == "Top Hat":
+        data = baseline_tophat(data, **kwargs)
 
     data[data <= 0] = 0
 

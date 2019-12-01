@@ -5,7 +5,7 @@ import logging
 import wx
 from pubsub import pub
 from styles import make_checkbox
-from styles import make_spin_ctrl
+from styles import make_spin_ctrl_double
 from styles import MiniFrame
 from styles import validator
 from utils.converters import str2num
@@ -116,12 +116,14 @@ class PanelProcessExtractData(MiniFrame):
 
         mass_range = self.extraction_ranges.get("mass_range", [0, 99999])
         self.mz_label = wx.StaticText(panel, wx.ID_ANY, "m/z (Da):")
-        self.extract_mzStart_value = make_spin_ctrl(
+        self.extract_mzStart_value = make_spin_ctrl_double(
             panel, self.config.extract_mzStart, mass_range[0], mass_range[1], 100
         )
         self.extract_mzStart_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        self.extract_mzEnd_value = make_spin_ctrl(panel, self.config.extract_mzEnd, mass_range[0], mass_range[1], 100)
+        self.extract_mzEnd_value = make_spin_ctrl_double(
+            panel, self.config.extract_mzEnd, mass_range[0], mass_range[1], 100
+        )
         self.extract_mzEnd_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         self.rt_label = wx.StaticText(panel, wx.ID_ANY, "RT (min): ")
