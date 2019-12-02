@@ -124,11 +124,16 @@ class PanelImagingLESAViewer(MiniFrame):
         if not hasattr(evt.EventObject, "figure"):
             return
 
+        # get plot
+        plot_obj = self.get_plot_obj()
+
         menu = wx.Menu()
         menu_action_customise_plot = make_menu_item(
             parent=menu, text="Customise plot...", bitmap=self.icons.iconsLib["change_xlabels_16"]
         )
         menu.AppendItem(menu_action_customise_plot)
+        self.lock_plot_check = menu.AppendCheckItem(wx.ID_ANY, "Lock plot", help="")
+        self.lock_plot_check.Check(plot_obj.lock_plot_from_updating)
         menu.AppendSeparator()
         self.resize_plot_check = menu.AppendCheckItem(-1, "Resize on saving")
         self.resize_plot_check.Check(self.config.resize)
@@ -156,6 +161,7 @@ class PanelImagingLESAViewer(MiniFrame):
         self.Bind(wx.EVT_MENU, self.on_copy_to_clipboard, menu_action_copy_to_clipboard)
         self.Bind(wx.EVT_MENU, self.on_clear_plot, clear_plot_menu_item)
         self.Bind(wx.EVT_MENU, self.on_reset_plot, reset_plot_menu_item)
+        self.Bind(wx.EVT_MENU, self.on_lock_plot, self.lock_plot_check)
 
         self.PopupMenu(menu)
         menu.Destroy()
@@ -280,6 +286,11 @@ class PanelImagingLESAViewer(MiniFrame):
         plot_obj = self.get_plot_obj()
         self.panel_plot.save_images(None, None, plot_obj=plot_obj, image_name=plot_title)
 
+    def on_lock_plot(self, evt):
+        """Lock/unlock plot"""
+        plot_obj = self.get_plot_obj()
+        plot_obj.lock_plot_from_updating = not plot_obj.lock_plot_from_updating
+
     def on_apply(self, evt):
         print("on_apply")
 
@@ -333,7 +344,11 @@ class PanelImagingLESAViewer(MiniFrame):
                 )
 
         # get data
-        zvals = self.data_handling.on_extract_LESA_img_from_mass_range(xmin, xmax, self.document_title)
+        method = {"Total Intensity": "total", "Root Mean Square": "sqrt", "Median": "median", "L2": "l2"}.get(
+            self.normalization_choice.GetStringSelection(), "None"
+        )
+
+        zvals = self.data_handling.on_extract_LESA_img_from_mass_range_norm(xmin, xmax, self.document_title, method)
         xvals = np.arange(zvals.shape[0]) + 1
         yvals = np.arange(zvals.shape[1]) + 1
         self.img_data = dict(zvals=zvals, xvals=xvals, yvals=yvals, extract_range=[xmin, xmax])
@@ -361,7 +376,7 @@ class PanelImagingLESAViewer(MiniFrame):
         )
 
     def on_extract_spectrum_from_image(self, rect):
-        print(rect)
+        xmin, xmax, ymin, ymax = rect
 
     def on_update_normalization(self, evt):
         from processing.heatmap import normalize_2D
@@ -378,16 +393,13 @@ class PanelImagingLESAViewer(MiniFrame):
             return
 
         img_data = deepcopy(self.img_data)
-        if method != "None":
-            try:
-                xmin, xmax = img_data["extract_range"]
-                img_data["zvals"] = self.data_handling.on_extract_LESA_img_from_mass_range_norm(
-                    xmin, xmax, self.document_title, method
-                )
-            except KeyError:
-                img_data["zvals"] = normalize_2D(
-                    img_data["zvals"], self.normalization_choice.GetStringSelection(), p=0.1
-                )
+        try:
+            xmin, xmax = img_data["extract_range"]
+            img_data["zvals"] = self.data_handling.on_extract_LESA_img_from_mass_range_norm(
+                xmin, xmax, self.document_title, method
+            )
+        except KeyError:
+            img_data["zvals"] = normalize_2D(img_data["zvals"], self.normalization_choice.GetStringSelection(), p=0.1)
 
         self.on_plot_image(img_data)
         logger.info(f"Updated image with '{method}' normalization")

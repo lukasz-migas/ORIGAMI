@@ -594,7 +594,7 @@ class DialogCustomisePlot(wx.Dialog):
 
         self.plot.lock_plot_from_updating = False
         self.plot.plot_2D_colorbar_update(**self.plot.plot_parameters)
-        self.plot.lock_plot_from_updating = True
+        #         self.plot.lock_plot_from_updating = True
         self.plot.repaint()
 
         # update kwargs

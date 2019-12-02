@@ -170,11 +170,12 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.ms_process_threshold.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
         baseline_label = wx.StaticText(panel, wx.ID_ANY, "Subtraction mode:")
-
         self.ms_baseline_choice = wx.Choice(panel, choices=self.config.ms_baseline_choices)
         self.ms_baseline_choice.SetStringSelection(self.config.ms_baseline)
         self.ms_baseline_choice.Bind(wx.EVT_CHOICE, self.on_apply)
         self.ms_baseline_choice.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
+
+        self.baseline_warning_msg = wx.StaticText(panel, wx.ID_ANY, "")
 
         threshold_label = wx.StaticText(panel, wx.ID_ANY, "Threshold:")
         self.ms_threshold_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
@@ -297,6 +298,7 @@ class PanelProcessMassSpectrum(MiniFrame):
         n += 1
         grid.Add(baseline_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.ms_baseline_choice, (n, 1), flag=wx.EXPAND)
+        grid.Add(self.baseline_warning_msg, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL)
         n += 1
         grid.Add(threshold_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.ms_threshold_value, (n, 1), flag=wx.EXPAND)
@@ -417,7 +419,7 @@ class PanelProcessMassSpectrum(MiniFrame):
         for item in obj_list:
             item.Enable(enable=False)
         self.ms_baseline_choice.Enable(enable=self.config.ms_process_threshold)
-
+        self.baseline_warning_msg.SetLabel("")
         if self.config.ms_process_threshold:
             if self.config.ms_baseline == "Linear":
                 self.ms_threshold_value.Enable()
@@ -425,6 +427,7 @@ class PanelProcessMassSpectrum(MiniFrame):
                 self.ms_baseline_polynomial_order.Enable()
             elif self.config.ms_baseline == "Curved":
                 self.ms_baseline_curved_window.Enable()
+                self.baseline_warning_msg.SetLabel("Note: Can be slow!")
             elif self.config.ms_baseline == "Median":
                 self.ms_baseline_median_window.Enable()
             elif self.config.ms_baseline == "Top Hat":
@@ -457,6 +460,8 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.config.ms_baseline = self.ms_baseline_choice.GetStringSelection()
         self.config.ms_baseline_polynomial_order = str2int(self.ms_baseline_polynomial_order.GetValue())
         self.config.ms_baseline_curved_window = str2int(self.ms_baseline_curved_window.GetValue())
+        self.config.ms_baseline_median_window = str2int(self.ms_baseline_median_window.GetValue())
+        self.config.ms_baseline_tophat_window = str2int(self.ms_baseline_tophat_window.GetValue())
 
         self.config.ms_crop_min = str2num(self.crop_min_value.GetValue())
         self.config.ms_crop_max = str2num(self.crop_max_value.GetValue())

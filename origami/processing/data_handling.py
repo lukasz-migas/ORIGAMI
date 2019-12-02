@@ -2199,7 +2199,16 @@ class DataHandling:
         def check_processing_parameters(document, **kwargs):
             """Check whether pre-processing parameters match those found in existing document"""
             metadata = document.metadata.get("imaging_lesa", dict())
-            for key in ["linearization_mode", "mz_min", "mz_max", "mz_bin", "im_on", "auto_range"]:
+            for key in [
+                "linearization_mode",
+                "mz_min",
+                "mz_max",
+                "mz_bin",
+                "im_on",
+                "auto_range",
+                "baseline_correction",
+                "baseline_method",
+            ]:
                 if metadata.get(key, None) != kwargs[key]:
                     return False
             return True
@@ -2208,6 +2217,7 @@ class DataHandling:
         tsum = 0
         n_items = len(filelist)
 
+        print(kwargs)
         for i, file_item in enumerate(filelist):
             tincr = ttime()
             # pre-allocate data
@@ -2236,7 +2246,12 @@ class DataHandling:
 
             # load mass spectrum
             mz_x, mz_y = self._get_waters_api_spectrum_data(reader, start_scan=start_scan, end_scan=end_scan)
+
+            # linearize spectrum
             mz_x, mz_y = pr_spectra.linearize_data(mz_x, mz_y, **copy.deepcopy(kwargs))
+
+            # remove background
+            mz_y = pr_spectra.baseline_1D(mz_y, mode=kwargs.get("baseline_method"), **copy.deepcopy(kwargs))
 
             # load mobilogram
             if kwargs.get("im_on", False):
@@ -2277,6 +2292,22 @@ class DataHandling:
         logger.info(f"Added data to document '{document.title}' in {ttime()-tstart:.2f}s")
 
     def on_extract_LESA_img_from_mass_range(self, xmin, xmax, document_title):
+        """Extract image data for particular m/z range from multiple MS spectra
+
+        Parameters
+        ----------
+        xmin : float
+            minimum value of m/z window
+        xmax : float
+            maximum value of m/z window
+        document_title: str
+            name of the document to be examined
+
+        Returns
+        -------
+        out : np.array
+            image array
+        """
         from processing.utils import get_narrow_data_range_1D
 
         document = self.on_get_document(document_title)
@@ -2299,6 +2330,23 @@ class DataHandling:
         return np.flipud(out)
 
     def on_extract_LESA_img_from_mass_range_norm(self, xmin, xmax, document_title, norm_mode="total"):
+        """Apply normalization factors to the image. By default, values will be collected from the
+        `metadata` store as they should have been pre-calculated
+
+        Parameters
+        ----------
+        xmin : float
+            minimum value of m/z window
+        xmax : float
+            maximum value of m/z window
+        document_title: str
+            name of the document to be examined
+
+        Returns
+        -------
+        out : np.array
+            image array
+        """
         from processing.utils import get_narrow_data_range_1D
 
         document = self.on_get_document(document_title)
@@ -2316,8 +2364,9 @@ class DataHandling:
             out[idx] = mz_y.sum()
 
         # get division factor
-        divisor = metadata["norm"][norm_mode]
-        out = np.divide(out, divisor)
+        if norm_mode in metadata["norm"]:
+            divisor = metadata["norm"][norm_mode]
+            out = np.divide(out, divisor)
 
         # reshape object
         out = np.reshape(out, shape)
@@ -2325,7 +2374,12 @@ class DataHandling:
         return np.flipud(out)
 
     def add_summed_spectrum(self, document, **kwargs):
+        """Add summed mass spectrum to a document based on all spectra in the document.multipleMassSpectrum store
 
+        Parameters
+        ----------
+        document : ORIGAMI document
+        """
         for counter, key in enumerate(document.multipleMassSpectrum):
 
             if counter == 0:

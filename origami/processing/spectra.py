@@ -167,7 +167,6 @@ def baseline_tophat(data, tophat_window=100, **kwargs):
 def baseline_1D(data, mode="Linear", **kwargs):
     # ensure data is in 64-bit format
     data = np.array(data, dtype=np.float64)
-
     if mode == "Linear":
         data = baseline_linear(data, **kwargs)
     elif mode == "Polynomial":

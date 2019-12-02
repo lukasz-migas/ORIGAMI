@@ -254,22 +254,25 @@ class PanelImagingImportDataset(MiniFrame):
         info = ""
         if self.config.ms_process_linearize:
             info += f"Linearize \n"
-            info += f"  Mode: {self.config.ms_linearization_mode}\n"
-            info += f"  Auto-range: {self.config.ms_auto_range}\n"
+            info += f"    Mode: {self.config.ms_linearization_mode}\n"
+            info += f"    Auto-range: {self.config.ms_auto_range}\n"
             if not self.config.ms_auto_range:
                 try:
-                    info += f"  m/z range: {self.config.ms_mzStart:.2f} - {self.config.ms_mzEnd:.2f}"
+                    info += f"    m/z range: {self.config.ms_mzStart:.2f} - {self.config.ms_mzEnd:.2f}"
                     info += " (if broader than raw data, it will be cropped appropriately)\n"
                 except TypeError:
                     pass
-            info += f"  bin size: {self.config.ms_mzBinSize}\n"
-
+            info += f"    bin size: {self.config.ms_mzBinSize}\n"
         if not info:
             info += "By default, ORIGAMI will pick common mass range (by looking at all the m/z range of each file)\n"
-            info += "and use modest 0.01 Da bin size with 'Linear interpolation'"
+            info += "and use modest 0.01 Da bin size with 'Linear interpolation'\n\n"
             self.processing_label.SetForegroundColour(wx.RED)
         else:
             self.processing_label.SetForegroundColour(wx.BLACK)
+
+        if self.config.ms_process_threshold:
+            info += f"Subtract baseline \n"
+            info += f"   Mode: {self.config.ms_baseline}"
 
         self.processing_label.SetLabel(info)
 
@@ -304,12 +307,30 @@ class PanelImagingImportDataset(MiniFrame):
         # restore pre-processing parameters
         metadata = document.metadata.get("imaging_lesa")
         if metadata:
+            # linearization
             self.config.ms_process_linearize = True
             self.config.ms_linearization_mode = metadata.get("linearization_mode", "Linear interpolation")
-            self.config.ms_mzStart = metadata.get("mz_min")
-            self.config.ms_mzEnd = metadata.get("mz_max")
-            self.config.ms_mzBinSize = metadata.get("mz_bin")
+            self.config.ms_mzStart = metadata.get("mz_min", self.config.ms_mzStart)
+            self.config.ms_mzEnd = metadata.get("mz_max", self.config.ms_mzEnd)
+            self.config.ms_mzBinSize = metadata.get("mz_bin", self.config.ms_mzBinSize)
             self.config.ms_auto_range = False
+
+            # baseline
+            self.config.ms_process_threshold = metadata.get("baseline_correction", self.config.ms_process_threshold)
+            self.config.ms_baseline = metadata.get("baseline_method", self.config.ms_baseline)
+            self.config.ms_threshold = metadata.get("baseline_threshold", self.config.ms_threshold)
+            self.config.ms_baseline_polynomial_order = metadata.get(
+                "baseline_polynomial_order", self.config.ms_baseline_polynomial_order
+            )
+            self.config.ms_baseline_curved_window = metadata.get(
+                "baseline_curved_window", self.config.ms_baseline_curved_window
+            )
+            self.config.ms_baseline_median_window = metadata.get(
+                "baseline_median_window", self.config.ms_baseline_median_window
+            )
+            self.config.ms_baseline_tophat_window = metadata.get(
+                "baseline_tophat_window", self.config.ms_baseline_tophat_window
+            )
             self.on_update_info()
 
             # update image dimensions
@@ -512,6 +533,13 @@ class PanelImagingImportDataset(MiniFrame):
             auto_range=False,
             x_dim=int(x_dim),
             y_dim=int(y_dim),
+            baseline_correction=self.config.ms_process_threshold,
+            baseline_method=self.config.ms_baseline,
+            baseline_threshold=self.config.ms_threshold,
+            baseline_polynomial_order=self.config.ms_baseline_polynomial_order,
+            baseline_curved_window=self.config.ms_baseline_curved_window,
+            baseline_median_window=self.config.ms_baseline_median_window,
+            baseline_tophat_window=self.config.ms_baseline_tophat_window,
         )
 
         return kwargs
