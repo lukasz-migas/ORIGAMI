@@ -1,11 +1,14 @@
-# -*- coding: utf-8 -*-
-# __author__ lukasz.g.migas
+"""Annotations editor"""
+# Standard library imports
 import copy
 import logging
 
+# Third party imports
 import numpy as np
 import processing.utils as pr_utils
 import wx
+
+# Local imports
 from gui_elements.misc_dialogs import DialogSimpleAsk
 from objects.annotations import check_annotation_input
 from pubsub import pub
@@ -28,7 +31,8 @@ from utils.screen import calculate_window_size
 from utils.time import ttime
 from visuals import mpl_plots
 
-logger = logging.getLogger("origami")
+# Module globals
+logger = logging.getLogger(__name__)
 
 # TODO: add option to rename annotation
 
@@ -61,11 +65,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         self.annotations_obj = kwargs.pop("annotations")
         self.data = kwargs["data"]
 
-        #         for i in range(wx.Display.GetCount()):
-        #             display = wx.Display(i)
-        #             print(display.IsPrimary(), display.GetGeometry(), self.GetPosition())
-
-        self._display_size = wx.GetDisplaySize()
+        self._display_size = self.parent.GetSize()
         self._display_resolution = wx.ScreenDC().GetPPI()
         self._window_size = calculate_window_size(self._display_size, 0.9)
 
@@ -401,17 +401,13 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         self.label_value = wx.TextCtrl(panel, -1, "", style=wx.TE_RICH2 | wx.TE_MULTILINE)
         self.label_value.SetToolTip(wx.ToolTip("Label associated with the marked region in the plot area"))
 
-        marker_general = wx.StaticText(panel, -1, "marked\nposition:")
-
-        position_x = wx.StaticText(panel, -1, "position (x):")
+        position_x = wx.StaticText(panel, -1, "marker position (x):")
         self.position_x = wx.TextCtrl(panel, -1, "", validator=validator("float"))
         self.position_x.SetBackgroundColour((255, 230, 239))
 
-        position_y = wx.StaticText(panel, -1, "position (y):")
+        position_y = wx.StaticText(panel, -1, "marker position (y):")
         self.position_y = wx.TextCtrl(panel, -1, "", validator=validator("float"))
         self.position_y.SetBackgroundColour((255, 230, 239))
-
-        label_general = wx.StaticText(panel, -1, "label:")
 
         label_position_x = wx.StaticText(panel, -1, "label position (x):")
         self.label_position_x = wx.TextCtrl(panel, -1, "", validator=validator("float"))
@@ -530,14 +526,14 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         grid.Add(position_x, (y, 1), flag=wx.ALIGN_CENTER)
         grid.Add(position_y, (y, 2), flag=wx.ALIGN_CENTER)
         y += 1
-        grid.Add(marker_general, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        #         grid.Add(marker_general, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.position_x, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.position_y, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         y += 1
         grid.Add(label_position_x, (y, 1), flag=wx.ALIGN_CENTER)
         grid.Add(label_position_y, (y, 2), flag=wx.ALIGN_CENTER)
         y += 1
-        grid.Add(label_general, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        #         grid.Add(label_general, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.label_position_x, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.label_position_y, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         y += 1

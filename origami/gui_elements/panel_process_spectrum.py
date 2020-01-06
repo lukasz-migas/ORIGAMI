@@ -12,7 +12,7 @@ from styles import validator
 from utils.converters import str2int
 from utils.converters import str2num
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 # TODO: speed up plotting
 

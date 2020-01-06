@@ -1,17 +1,21 @@
-# -*- coding: utf-8 -*-
-# __author__ lukasz.g.migas
-# Load libraries
+"""Panel for LESA datasets"""
+# Standard library imports
 import logging
 
+# Third-party imports
 import wx
 from pubsub import pub
+
+# Local imports
 from styles import ListCtrl
 from styles import make_menu_item
 from styles import MiniFrame
 from utils.decorators import Timer
 from utils.screen import calculate_window_size
+from styles import validator
 
-logger = logging.getLogger("origami")
+# Module globals
+logger = logging.getLogger(__name__)
 
 
 class PanelImagingLESAViewer(MiniFrame):
@@ -48,13 +52,14 @@ class PanelImagingLESAViewer(MiniFrame):
         self.data_handling = presenter.data_handling
         self.data_processing = presenter.data_processing
         self.data_visualisation = presenter.data_visualisation
-
         self.panel_plot = self.presenter.view.panelPlots
         self.document_tree = self.presenter.view.panelDocuments.documents
 
-        self._display_size = wx.GetDisplaySize()
+        self._display_size = self.parent.GetSize()
         self._display_resolution = wx.ScreenDC().GetPPI()
         self._window_size = calculate_window_size(self._display_size, 0.9)
+
+        self.item_loading_lock = False
 
         # make gui items
         self.make_gui()
@@ -73,6 +78,7 @@ class PanelImagingLESAViewer(MiniFrame):
     def subscribe(self):
         """Initilize pubsub subscribers"""
         pub.subscribe(self.on_extract_image_from_spectrum, "widget.imaging.lesa.extract.image.spectrum")
+        pub.subscribe(self.on_extract_image_from_mobilogram, "widget.imaging.lesa.extract.image.mobilogram")
         pub.subscribe(self.on_extract_spectrum_from_image, "widget.imaging.lesa.extract.spectrum.image")
 
     def make_gui(self):
@@ -100,9 +106,7 @@ class PanelImagingLESAViewer(MiniFrame):
         self.SetFocus()
 
     def on_action_tools(self, evt):
-
         menu = wx.Menu()
-
         menu_action_create_blank_document = make_menu_item(
             parent=menu,
             text="Create blank IMAGING document",
@@ -168,7 +172,6 @@ class PanelImagingLESAViewer(MiniFrame):
         self.SetFocus()
 
     def make_settings_panel(self, split_panel):
-
         panel = wx.Panel(split_panel, -1, size=(-1, -1), name="settings")
 
         # add spectrum controls
@@ -186,11 +189,34 @@ class PanelImagingLESAViewer(MiniFrame):
         self.normalization_choice.Bind(wx.EVT_COMBOBOX, self.on_apply)
         self.normalization_choice.Bind(wx.EVT_COMBOBOX, self.on_update_normalization)
 
+        # add item controls
+        item_name = wx.StaticText(panel, wx.ID_ANY, "Item name:")
+        self.item_name = wx.TextCtrl(panel, wx.ID_ANY, "", style=wx.TE_READONLY)
+
+        label_value = wx.StaticText(panel, -1, "label:")
+        self.label_value = wx.TextCtrl(panel, -1, "")
+        self.label_value.Bind(wx.EVT_TEXT, self.on_update_item)
+
+        charge_value = wx.StaticText(panel, -1, "charge:")
+        self.charge_value = wx.TextCtrl(panel, -1, "", validator=validator("int"))
+        self.charge_value.Bind(wx.EVT_TEXT, self.on_update_item)
+
+        item_color = wx.StaticText(panel, -1, "color:")
+        self.item_color_btn = wx.Button(panel, wx.ID_ANY, "", size=wx.Size(26, 26), name="color.label")
+        self.item_color_btn.SetBackgroundColour([0, 0, 0])
+        self.item_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
+
+        colormap_label = wx.StaticText(panel, -1, "colormap:")
+        self.colormap_value = wx.Choice(panel, -1, choices=self.config.cmaps2, size=(-1, -1))
+        self.colormap_value.Bind(wx.EVT_CHOICE, self.on_update_item)
+
         # make listctrl
         self.make_listctrl_panel(panel)
+        self.make_dt_plot_panel(panel)
 
         horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+        horizontal_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
         # pack heatmap items
         grid = wx.GridBagSizer(2, 2)
@@ -202,6 +228,22 @@ class PanelImagingLESAViewer(MiniFrame):
         n += 1
         grid.Add(normalization_choice, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         grid.Add(self.normalization_choice, (n, 1), (1, 2), flag=wx.ALIGN_CENTER | wx.EXPAND)
+        n += 1
+        grid.Add(horizontal_line_2, (n, 0), (1, 5), flag=wx.ALIGN_CENTER | wx.EXPAND)
+        n += 1
+        grid.Add(item_name, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.item_name, (n, 1), wx.GBSpan(1, 3), flag=wx.ALIGN_CENTER | wx.EXPAND)
+        n += 1
+        grid.Add(label_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.label_value, (n, 1), wx.GBSpan(1, 3), flag=wx.ALIGN_CENTER | wx.EXPAND)
+        n += 1
+        grid.Add(charge_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.charge_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        n += 1
+        grid.Add(item_color, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.item_color_btn, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(colormap_label, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.colormap_value, (n, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
 
         # setup growable column
         grid.AddGrowableCol(3)
@@ -209,6 +251,7 @@ class PanelImagingLESAViewer(MiniFrame):
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(grid, 0, wx.EXPAND, 5)
         main_sizer.Add(horizontal_line_0, 0, wx.EXPAND, 10)
+        main_sizer.Add(self.plot_panel_DT, 1, wx.EXPAND, 10)
         main_sizer.Add(self.peaklist, 1, wx.EXPAND, 10)
         #
         # fit layout
@@ -249,17 +292,33 @@ class PanelImagingLESAViewer(MiniFrame):
             self.peaklist.SetFont(wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
         max_peaklist_size = (int(self._window_size[0] * 0.3), -1)
         self.peaklist.SetMaxClientSize(max_peaklist_size)
-
         self.peaklist.Bind(wx.EVT_LEFT_DCLICK, self.on_double_click_on_item)
+
+    def make_dt_plot_panel(self, panel):
+        """Make DT plot and hide it"""
+
+        self.plot_panel_DT, self.plot_window_DT, __ = self.panel_plot.make_plot(
+            panel, self.config._plotSettings["DT"]["gui_size"]
+        )
+        self.plot_panel_DT.Show(False)
+
+    def on_update_item(self, evt):
+        if self.item_loading_lock:
+            return
+
+        print("on_update_item")
 
     def on_close(self, evt):
         """Destroy this frame"""
         pub.unsubscribe(self.on_extract_image_from_spectrum, "widget.imaging.lesa.extract.image.spectrum")
-        pub.unsubscribe(self.on_extract_image_from_spectrum, "widget.imaging.lesa.extract.spectrum.image")
+        pub.unsubscribe(self.on_extract_image_from_mobilogram, "widget.imaging.lesa.extract.image.mobilogram")
+        pub.unsubscribe(self.on_extract_spectrum_from_image, "widget.imaging.lesa.extract.spectrum.image")
         self.Destroy()
 
     def get_plot_obj(self):
-        plot_obj = {"MS": self.plot_window_MS, "2D": self.plot_window_img}[self.view.plot_name]
+        plot_obj = {"MS": self.plot_window_MS, "2D": self.plot_window_img, "1D": self.plot_window_DT}[
+            self.view.plot_name
+        ]
         return plot_obj
 
     def on_clear_plot(self, evt):
@@ -297,22 +356,53 @@ class PanelImagingLESAViewer(MiniFrame):
         if evt is not None:
             evt.Skip()
 
+    def on_assign_color(self, evt):
+        """Assign new color to the item"""
+        from gui_elements.dialog_color_picker import DialogColorPicker
+
+        dlg = DialogColorPicker(self, self.config.customColors)
+        if dlg.ShowModal() == "ok":
+            color_255, color_1, __ = dlg.GetChosenColour()
+            self.config.customColors = dlg.GetCustomColours()
+        else:
+            return
+
+        # update button
+        self.item_color_btn.SetBackgroundColour(color_255)
+
+        # update peaklist
+
+    #             rows = self.peaklist.GetItemCount()
+    #             for row in range(rows):
+    #                 if self.peaklist.IsChecked(index=row):
+    # #                     self.on_update_annotation(row, update_item, **update_dict)
+    #
+    #                 # replot annotation after its been altered
+    #                 __, annotation_obj = self.on_get_annotation_obj(row)
+    #                 self.on_add_label_to_plot(annotation_obj)
+
     def on_extract_tic_image(self):
         """Load TIC image"""
         self.on_extract_image_from_spectrum([None, None, None, None])
+
+    def on_extract_image_from_mobilogram(self, rect):
+        print(rect)
 
     def on_extract_image_from_spectrum(self, rect):
         import numpy as np
         from utils.check import check_value_order
         from processing.utils import get_maximum_value_in_range
-        from utils.color import convert_rgb_255_to_1
-        from utils.color import round_rgb
 
         xmin, xmax, __, __ = rect
-        add_to_table = True
+
         if xmin is None or xmax is None:
             xmin, xmax = 0, 99999
             add_to_table = False
+            ion_name = None
+        else:
+            ion_name = f"{xmin:.2f}-{xmax:.2f}"
+            add_to_table, _ = self.find_item(ion_name)
+
         xmin, xmax = check_value_order(xmin, xmax)
         if self.mz_data is not None:
             mz_x = self.mz_data["xvals"]
@@ -326,21 +416,11 @@ class PanelImagingLESAViewer(MiniFrame):
 
             # get color
             color = next(self.config.custom_color_cycle)
-            color = convert_rgb_255_to_1(color)
 
             # add to table
-            if add_to_table:
-                self.peaklist.Append(
-                    [
-                        "",
-                        f"{xmin:.2f}-{xmax:.2f}",
-                        str(charge),
-                        f"{mz_y_max:.2f}",
-                        round_rgb(color),
-                        next(self.config.overlay_cmap_cycle),
-                        "",
-                        self.document_title,
-                    ]
+            if add_to_table and ion_name is not None:
+                self.on_add_to_table(
+                    ion_name=ion_name, charge=charge, intensity=mz_y_max, color=color, label=f"ion={ion_name}"
                 )
 
         # get data
@@ -348,11 +428,29 @@ class PanelImagingLESAViewer(MiniFrame):
             self.normalization_choice.GetStringSelection(), "None"
         )
 
+        # get image data
         zvals = self.data_handling.on_extract_LESA_img_from_mass_range_norm(xmin, xmax, self.document_title, method)
         xvals = np.arange(zvals.shape[0]) + 1
         yvals = np.arange(zvals.shape[1]) + 1
-        self.img_data = dict(zvals=zvals, xvals=xvals, yvals=yvals, extract_range=[xmin, xmax])
+
+        # get mobilogram data
+        xvals_dt, yvals_dt = self.data_handling.on_extract_LESA_mobilogram_from_mass_range(
+            xmin, xmax, self.document_title
+        )
+
+        self.img_data = dict(
+            zvals=zvals,
+            xvals=xvals,
+            yvals=yvals,
+            extract_range=[xmin, xmax],
+            ion_name=ion_name,
+            xvals_dt=xvals_dt,
+            yvals_dt=yvals_dt,
+        )
+
+        # update plots
         self.on_plot_image(self.img_data)
+        self.on_plot_mobilogram(self.img_data)
 
     @Timer
     def on_plot_image(self, img_data):
@@ -374,6 +472,39 @@ class PanelImagingLESAViewer(MiniFrame):
             override=False,
             callbacks=dict(CTRL="widget.imaging.lesa.extract.image.spectrum"),
         )
+
+    def on_plot_mobilogram(self, img_data):
+        self.panel_plot.on_plot_1D(
+            img_data["xvals_dt"],
+            img_data["yvals_dt"],
+            xlabel="Drift time (bins)",
+            show_in_window="LESA",
+            plot_obj=self.plot_window_DT,
+            override=False,
+            callbacks=dict(CTRL="widget.imaging.lesa.extract.image.mobilogram"),
+        )
+
+    def on_add_to_table(self, **add_dict):
+        from utils.color import round_rgb
+        from utils.color import convert_rgb_255_to_1
+        from utils.color import get_font_color
+
+        color = add_dict["color"]
+
+        self.peaklist.Append(
+            [
+                "",
+                str(add_dict["ion_name"]),
+                str(add_dict["charge"]),
+                f"{add_dict['intensity']:.2f}",
+                str(round_rgb(convert_rgb_255_to_1(color))),
+                next(self.config.overlay_cmap_cycle),
+                str(add_dict.get("label", "")),
+                self.document_title,
+            ]
+        )
+        self.peaklist.SetItemBackgroundColour(self.peaklist.GetItemCount() - 1, color)
+        self.peaklist.SetItemTextColour(self.peaklist.GetItemCount() - 1, get_font_color(color, return_rgb=True))
 
     def on_extract_spectrum_from_image(self, rect):
         xmin, xmax, ymin, ymax = rect
@@ -428,12 +559,58 @@ class PanelImagingLESAViewer(MiniFrame):
                 self.spectrum_choice.SetStringSelection(spectrum_list[0])
 
     def on_double_click_on_item(self, evt):
-        """Create annotation for activated peak."""
-        pass
+        """Select item in list"""
+
+        def get_ion_range(ion_name):
+            # TODO: add dt support
+            mz_min, mz_max = ion_name.split("-")
+            return float(mz_min), float(mz_max)
+
+        self.item_loading_lock = True
+        item_info = self.on_get_item_information(None)
+
+        # already present
+        if item_info["ion_name"] == self.img_data["ion_name"]:
+            self.on_update_normalization(None)
+        # need to retrieve again
+        else:
+            xmin, xmax = get_ion_range(item_info["ion_name"])
+            self.on_extract_image_from_spectrum([xmin, xmax, None, None])
+
+        self.on_populate_item(item_info)
+        self.on_toggle_dt_plot()
+        self.item_loading_lock = True
+
+    def on_populate_item(self, item_info):
+        """Populate values in the gui"""
+        self.charge_value.SetValue(str(item_info["charge"]))
+        self.label_value.SetValue(item_info["label"])
+        self.item_name.SetValue(item_info["ion_name"])
+        self.colormap_value.SetStringSelection(item_info["colormap"])
+        self.item_color_btn.SetBackgroundColour(item_info["color"])
 
     def on_create_blank_document(self, evt):
         self.data_handling.create_new_document_of_type(document_type="imaging")
 
     def on_get_item_information(self, item_id):
+        if item_id is None:
+            item_id = self.peaklist.item_id
+
         information = self.peaklist.on_get_item_information(item_id)
         return information
+
+    def find_item(self, name):
+        """Check for duplicate items with the same name"""
+        count = self.peaklist.GetItemCount()
+        for i in range(count):
+            information = self.on_get_item_information(i)
+
+            if information["ion_name"] == name:
+                return False, i
+
+        return True, -1
+
+    def on_toggle_dt_plot(self, show=True):
+        #         show = not self.plot_panel_DT.IsShown()
+        self.plot_panel_DT.Show(show)
+        self.Layout()

@@ -15,7 +15,7 @@ from utils.screen import calculate_window_size
 from utils.time import ttime
 from visuals import mpl_plots
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 
 class PanelPeakPicker(MiniFrame):
@@ -28,12 +28,12 @@ class PanelPeakPicker(MiniFrame):
         )
         tstart = ttime()
 
-        self.view = parent
+        self.parent = parent
         self.presenter = presenter
-        self.document_tree = self.view.panelDocuments.documents
-        self.panel_plot = self.view.panelPlots
+        self.document_tree = self.parent.panelDocuments.documents
+        self.panel_plot = self.parent.panelPlots
 
-        self.ionPanel = self.view.panelMultipleIons
+        self.ionPanel = self.parent.panelMultipleIons
         self.ionList = self.ionPanel.peaklist
 
         self.config = config
@@ -42,7 +42,7 @@ class PanelPeakPicker(MiniFrame):
         self.data_processing = presenter.data_processing
         self.data_handling = presenter.data_handling
 
-        self._display_size = wx.GetDisplaySize()
+        self._display_size = self.parent.GetSize()
         self._display_resolution = wx.ScreenDC().GetPPI()
         self._window_size = calculate_window_size(self._display_size, [0.7, 0.6])
 

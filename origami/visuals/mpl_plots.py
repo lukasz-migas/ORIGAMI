@@ -38,7 +38,7 @@ from visuals.mpl_colorbar import Colorbar
 from visuals.mpl_plotter import mpl_plotter
 from visuals.normalize import MidpointNormalize
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 # needed to avoid annoying warnings to be printed on console
 # import matplotlib.colors as mpl_colors

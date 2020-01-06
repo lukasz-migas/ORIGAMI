@@ -113,7 +113,7 @@ from utils.converters import str2num
 from utils.exceptions import MessageError
 from utils.path import clean_filename
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 
 class PanelDocumentTree(wx.Panel):
@@ -1105,24 +1105,34 @@ class DocumentTree(wx.TreeCtrl):
     def on_delete_all_documents(self, evt):
         """ Alternative function to delete documents """
 
+        doc_keys = list(self.presenter.documentsDict.keys())
+        n_docs = len(doc_keys)
+
+        if not doc_keys:
+            logger.warning("Document list is empty")
+            return
+
         dlg = DialogBox(
             exceptionTitle="Are you sure?",
-            exceptionMsg="".join(["Are you sure you would like to delete ALL documents?"]),
+            exceptionMsg=f"Are you sure you would like to delete ALL ({n_docs}) documents?",
             type="Question",
         )
+
         if dlg == wx.ID_NO:
             self.presenter.onThreading(None, ("Cancelled operation", 4, 5), action="updateStatusbar")
             return
-        else:
-            self.panel_plot.on_clear_all_plots()
-            doc_keys = list(self.presenter.documentsDict.keys())
-            for document in doc_keys:
-                try:
-                    self.removeDocument(evt=None, deleteItem=document, ask_permission=False)
-                except Exception:
-                    pass
 
-    def _get_query_info_based_on_indent(self, return_subkey=False):
+        # clear all plots
+        self.panel_plot.on_clear_all_plots()
+
+        # iterate over the list
+        for document in doc_keys:
+            try:
+                self.removeDocument(evt=None, deleteItem=document, ask_permission=False)
+            except Exception:
+                logger.error(f"Encountered an error when deleting document: '{document}'.", exc_info=True)
+
+    def _get_query_info_based_on_indent(self, return_subkey=False, evt=None):
         """Generate query_info keywords that are implied from the indentation of the selected item
 
         Parameters
@@ -1136,13 +1146,19 @@ class DocumentTree(wx.TreeCtrl):
             list of [document_title, dataset_type, dataset_name]
 
         """
-        document_title = self._document_data.title
+        if self._document_data is None and evt is not None:
+            self.on_item_selecting(evt)
+
+        if self._document_data is not None:
+            document_title = self._document_data.title
+
         item_type = self._document_type
         item_root = self._item_root
         item_branch = self._item_branch
         item_leaf = self._item_leaf
 
         subkey = ["", ""]
+
         if self._indent == 0:
             query = ["Documents", "", ""]
         elif self._indent == 1:
@@ -1243,7 +1259,7 @@ class DocumentTree(wx.TreeCtrl):
             "query": query,
         }
 
-        self._annotate_panel = PanelPeakAnnotationEditor(self.parent, self, self.config, self.icons, **kwargs)
+        self._annotate_panel = PanelPeakAnnotationEditor(self.view, self, self.config, self.icons, **kwargs)
         self._annotate_panel.Show()
 
     def on_update_annotation(self, annotations, document_title, dataset_type, dataset_name, set_data_only=False):
@@ -1389,19 +1405,19 @@ class DocumentTree(wx.TreeCtrl):
     def on_open_overlay_viewer(self, evt):
         from widgets.overlay.panel_overlay_viewer import PanelOverlayViewer
 
-        self._overlay_panel = PanelOverlayViewer(self, self.presenter, self.config, self.icons)
+        self._overlay_panel = PanelOverlayViewer(self.view, self.presenter, self.config, self.icons)
         self._overlay_panel.Show()
 
     def on_open_lesa_viewer(self, evt):
         from widgets.lesa.panel_imaging_lesa import PanelImagingLESAViewer
 
-        self._lesa_panel = PanelImagingLESAViewer(self, self.presenter, self.config, self.icons)
+        self._lesa_panel = PanelImagingLESAViewer(self.view, self.presenter, self.config, self.icons)
         self._lesa_panel.Show()
 
     def on_import_lesa_dataset(self, evt):
         from widgets.lesa.panel_imaging_lesa_import import PanelImagingImportDataset
 
-        self._import_panel = PanelImagingImportDataset(self, self.presenter, self.config, self.icons)
+        self._import_panel = PanelImagingImportDataset(self.view, self.presenter, self.config, self.icons)
         self._import_panel.Show()
 
     def _bind_change_label_events(self):
@@ -1487,9 +1503,13 @@ class DocumentTree(wx.TreeCtrl):
         itemType = self.GetItemText(evt.GetItem())
 
         try:
-            query, subkey = self._get_query_info_based_on_indent(return_subkey=True)
+            query, subkey = self._get_query_info_based_on_indent(return_subkey=True, evt=evt)
         except AttributeError:
+            logger.debug(
+                "Could not obtain right-click query key. Please first left-click on an item in " " the document tree"
+            )
             return
+
         dataset_type = query[1]
         dataset_name = query[2]
         subkey_parent = subkey[0]
@@ -2837,9 +2857,7 @@ class DocumentTree(wx.TreeCtrl):
             "document_spectrum_list": document_spectrum_list,
         }
 
-        self._compare_panel = PanelSignalComparisonViewer(
-            self.parent, self.presenter, self.config, self.icons, **kwargs
-        )
+        self._compare_panel = PanelSignalComparisonViewer(self.view, self.presenter, self.config, self.icons, **kwargs)
         self._compare_panel.Show()
 
     def on_process_2D(self, evt):

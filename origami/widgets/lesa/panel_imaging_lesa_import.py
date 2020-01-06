@@ -1,11 +1,12 @@
-# -*- coding: utf-8 -*-
-# __author__ lukasz.g.migas
-# Load libraries
+# Standard library imports
 import logging
 import os
 
+# Third-party imports
 import wx
 from pubsub import pub
+
+# Local imports
 from styles import ListCtrl
 from styles import make_checkbox
 from styles import make_spin_ctrl_int
@@ -14,7 +15,7 @@ from styles import set_item_font
 from utils.decorators import signal_blocker
 from utils.exceptions import MessageError
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 
 class PanelImagingImportDataset(MiniFrame):
@@ -298,6 +299,7 @@ class PanelImagingImportDataset(MiniFrame):
     def on_select_document(self, evt):
         """Select document from the list of current documents (or create a new one) and restore previous metadata"""
         document = self.data_handling._get_document_of_type("Type: Imaging")
+
         if not document:
             raise MessageError("Error", "Please select document in order to load processing metadata")
 

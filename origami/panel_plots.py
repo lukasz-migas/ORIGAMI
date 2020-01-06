@@ -95,7 +95,7 @@ from utils.time import ttime
 from visuals import mpl_plots
 from visuals.normalize import MidpointNormalize
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 # 2D -> Heatmap; Other -> Annotated (or else)
 
@@ -2697,6 +2697,7 @@ class PanelPlots(wx.Panel):
             ylabel="Intensity",
             axesSize=self.config._plotSettings["DT"]["axes_size"],
             plotType="1D",
+            callbacks=kwargs.get("callbacks", dict()),
             **plt_kwargs,
         )
         plot_obj.repaint()

@@ -280,6 +280,9 @@ class MiniFrame(wx.MiniFrame):
         if evt is not None:
             evt.Skip()
 
+    def filter_keys(self, evt):
+        print(evt)
+
     def on_close(self, evt):
         """Destroy this frame."""
         self.Destroy()

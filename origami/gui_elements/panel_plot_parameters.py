@@ -34,7 +34,7 @@ from utils.converters import str2int
 from utils.converters import str2num
 from wx.adv import BitmapComboBox
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 PANEL_SPACE_MAIN = 2
 CTRL_SIZE = 60

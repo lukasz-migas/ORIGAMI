@@ -59,7 +59,7 @@ from utils.color import get_font_color
 from utils.color import get_random_color
 from utils.random import get_random_int
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 # TODO: Move opening files to new function and check if files are on a network drive (process locally maybe?)
 # TODO: create new import panel where user can select a directory with folders and then all *.raw files will be listed
 # with some associated metadata

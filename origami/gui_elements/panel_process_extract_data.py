@@ -11,7 +11,7 @@ from styles import validator
 from utils.converters import str2num
 from utils.exceptions import MessageError
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 # TODO: Should have a temporary data storage and check whether data was previously extracted
 

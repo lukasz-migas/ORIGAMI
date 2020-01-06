@@ -9,7 +9,7 @@ from styles import MiniFrame
 from styles import validator
 from utils.converters import str2num
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 
 class PanelProcessExtractDTMS(MiniFrame):

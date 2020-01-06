@@ -9,7 +9,7 @@ from styles import Dialog
 from styles import make_checkbox
 from utils.path import check_path_exists
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 
 class DialogExportFigures(Dialog):

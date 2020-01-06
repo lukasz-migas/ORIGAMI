@@ -7,7 +7,7 @@ from styles import Dialog
 from styles import ListCtrl
 from styles import set_item_font
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 
 class DialogReviewEditor(Dialog):

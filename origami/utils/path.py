@@ -6,7 +6,7 @@ import shutil
 
 from utils.converters import byte2str
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 __all__ = ["get_path_and_fname", "clean_up_folder", "check_waters_path", "check_path_exists", "check_file_exists"]
 

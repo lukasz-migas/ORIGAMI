@@ -27,7 +27,7 @@ from utils.screen import calculate_window_size
 from utils.time import ttime
 from visuals import mpl_plots
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 # TODO: FIXME: Changing label does not update the legend as you write
 # TODO: Add key_events for N, P, I, S (except when editing  labels)
@@ -61,7 +61,8 @@ class PanelSignalComparisonViewer(MiniFrame):
         self.panel_plot = self.presenter.view.panelPlots
         self.document_tree = self.presenter.view.panelDocuments.documents
 
-        self._display_size = wx.GetDisplaySize()
+        self.parent.GetSize()
+        self._display_size = self.parent.GetSize()
         self._display_resolution = wx.ScreenDC().GetPPI()
         self._window_size = calculate_window_size(self._display_size, 0.8)
 

@@ -60,7 +60,7 @@ from utils.color import round_rgb
 from utils.misc import removeListDuplicates
 from utils.random import get_random_int
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 
 class PanelTextlist(wx.Panel):

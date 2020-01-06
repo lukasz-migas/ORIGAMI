@@ -8,7 +8,7 @@ from matplotlib.patches import Rectangle
 from matplotlib.text import Text
 from pubsub import pub
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 # TODO: add dragging in the labels area - should be able to grab and drag so its easier
 #       to manipulate plot area

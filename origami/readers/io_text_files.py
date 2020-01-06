@@ -14,7 +14,7 @@ from utils.color import get_random_color
 from utils.labels import _replace_labels
 from utils.visuals import check_n_grid_dimensions
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 dtype_dict = {np.int32: "%d", np.float16: "%.3f", np.float32: "%.6f", np.float64: "%.8f"}
 

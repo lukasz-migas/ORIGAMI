@@ -14,7 +14,7 @@ from utils.color import make_rgb_cube
 from utils.exceptions import MessageError
 from utils.visuals import calculate_label_position
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 
 class DataVisualization:

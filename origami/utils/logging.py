@@ -29,7 +29,7 @@ def set_logger_parameters(verbose, filepath=None):
 
 
 def get_logger(verbose):
-    LOGGER = logging.getLogger("imimspy")
+    LOGGER = logging.getLogger("origami")
     set_logger_parameters(verbose)
     return LOGGER
 
@@ -47,7 +47,7 @@ def set_logger(file_path=None):
     file_handler = logging.FileHandler(filename=file_path)
     stdout_handler = logging.StreamHandler(sys.stdout)
     handlers = [file_handler, stdout_handler]
-    fmt = "[%(asctime)s.%(msecs)03d] [%(levelname)s] [%(filename)s:%(lineno)s:%(funcName)s] - %(message)s"
+    fmt = "[%(asctime)s.%(msecs)03d] [%(levelname)s] [%(lineno)s:%(filename)s:%(funcName)s] - %(message)s"
 
     logging.basicConfig(level=logging.DEBUG, format=fmt, handlers=handlers, datefmt="%Y-%m-%d %H:%M:%S")
 

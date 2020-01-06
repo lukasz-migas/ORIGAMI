@@ -6,7 +6,7 @@ from operator import itemgetter
 
 import numpy as np
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 
 def origami_combine_infrared(inputData=None, threshold=2000, noiseLevel=500, sigma=0.5):  # combineIRdata

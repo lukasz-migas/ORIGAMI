@@ -54,7 +54,7 @@ if platform == "win32":
     import readers.io_waters_raw_api as io_waters_raw_api
     from readers import io_thermo_raw
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 # TODO: when setting document path, it currently removes the file extension which is probably a mistake
 
@@ -428,12 +428,18 @@ class DataHandling:
         document_list = self.__get_document_list_of_type(document_type=document_type)
 
         document = None
+
+        # if document list is empty it is necessary to create a new document
         if len(document_list) == 0:
             self.update_statusbar("Did not find appropriate document. Creating a new one...", 4)
             if allow_creation:
                 document = self.create_new_document_of_type(document_type)
+
+        #  if only one document is present, lets get it
         elif len(document_list) == 1:
             document = self.on_get_document(document_list[0])
+
+        # select from a list
         else:
             dlg = DialogSelectDocument(
                 self.view, presenter=self.presenter, document_list=document_list, allow_new_document=allow_creation
@@ -512,7 +518,7 @@ class DataHandling:
             document.dataType = "Type: MS"
             document.fileFormat = "Format: Thermo (.RAW)"
 
-        elif document_type in ["imaging", "Imaging"]:
+        elif document_type in ["imaging", "Imaging", "Type: Imaging"]:
             document.dataType = "Type: Imaging"
             document.fileFormat = "Format: MassLynx (.raw)"
 
@@ -2275,7 +2281,7 @@ class DataHandling:
             tsum += tincrtot
             tavg = (tsum / (i + 1)) * (n_items - i)
             logger.info(
-                f"Added file {spectrum_name} in {tincrtot:.2f}s. Approx. remaining {tavg:.2f}s" f" [{i+1}/{n_items}"
+                f"Added file {spectrum_name} in {tincrtot:.2f}s. Approx. remaining {tavg:.2f}s" f" [{i+1}/{n_items}]"
             )
 
         # add summed mass spectrum
@@ -2372,6 +2378,22 @@ class DataHandling:
         out = np.reshape(out, shape)
 
         return np.flipud(out)
+
+    def on_extract_LESA_mobilogram_from_mass_range(self, xmin, xmax, document_title):
+        document = self.on_get_document(document_title)
+
+        n_items = len(document.multipleMassSpectrum.keys())
+        yvals = np.zeros((200,), dtype=np.int64)
+        for idx, data in enumerate(document.multipleMassSpectrum.values()):
+            tstart = ttime()
+            path = data["path"]
+            xvals, yvals_DT = self._get_driftscope_mobilogram_data(path, mz_start=xmin, mz_end=xmax)
+            yvals += yvals_DT
+            logger.debug(
+                f"Extracted mobilogram for ion {xmin:.2f}-{xmax:.2f} in {ttime()-tstart:.2f}s." f" [{idx+1}/{n_items}]"
+            )
+
+        return xvals, yvals
 
     def add_summed_spectrum(self, document, **kwargs):
         """Add summed mass spectrum to a document based on all spectra in the document.multipleMassSpectrum store

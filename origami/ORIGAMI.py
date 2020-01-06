@@ -41,7 +41,7 @@ warnings.filterwarnings("ignore", category=RuntimeWarning)
 warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 # disable MPL logger
 logging.getLogger("matplotlib").setLevel(logging.ERROR)

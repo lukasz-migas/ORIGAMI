@@ -9,7 +9,7 @@ from scipy.signal import peak_widths
 from utils.check import isnumber
 from utils.time import ttime
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 # TODO: add another peak method that will try to determine the charge state:
 # could be based on the the assumption that adjacent peaks will have same spacing when belonging to the same ion

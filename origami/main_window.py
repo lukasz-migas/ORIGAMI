@@ -151,7 +151,7 @@ from utils.check import get_latest_version
 from utils.path import clean_directory
 from widgets.interactive.panel_interactive_creator import PanelInteractiveCreator
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 
 class MainWindow(wx.Frame):

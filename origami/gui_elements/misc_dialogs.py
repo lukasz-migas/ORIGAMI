@@ -4,7 +4,7 @@ import logging
 
 import wx
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 
 def DialogBox(exceptionTitle="", exceptionMsg="", type="Error", exceptionPrint=True):

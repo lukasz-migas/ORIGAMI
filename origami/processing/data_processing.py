@@ -26,7 +26,7 @@ from utils.exceptions import MessageError
 from utils.path import clean_filename
 from utils.random import get_random_int
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 
 class DataProcessing:

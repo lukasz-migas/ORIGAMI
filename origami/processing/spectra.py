@@ -14,7 +14,7 @@ from scipy.signal import savgol_filter
 from utils.exceptions import MessageError
 from utils.ranges import get_min_max
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 
 # TODO: should try to speed this up as the for-loop makes this very computationally expensive

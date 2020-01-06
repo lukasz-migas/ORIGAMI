@@ -61,7 +61,7 @@ from utils.exceptions import MessageError
 from utils.labels import get_ion_name_from_label
 from utils.random import get_random_int
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 
 class PanelPeaklist(wx.Panel):

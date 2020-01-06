@@ -10,7 +10,7 @@ from styles import validator
 from utils.converters import str2int
 from utils.converters import str2num
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 # TODO: remove self.data and self.document and rather always get new instance of the document which accounts for
 # changes

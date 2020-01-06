@@ -20,7 +20,7 @@ from utils.screen import calculate_window_size
 from visuals import mpl_plots
 
 # from gui_elements.dialog_color_picker import DialogColorPicker
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 
 class PanelOverlayViewer(MiniFrame):
@@ -84,7 +84,8 @@ class PanelOverlayViewer(MiniFrame):
         self.panel_plot = self.presenter.view.panelPlots
         self.document_tree = self.presenter.view.panelDocuments.documents
 
-        self._display_size = wx.GetDisplaySize()
+        #         self._display_size = wx.GetDisplaySize()
+        self._display_size = self.parent.GetSize()
         self._display_resolution = wx.ScreenDC().GetPPI()
         self._window_size = calculate_window_size(self._display_size, 0.9)
 

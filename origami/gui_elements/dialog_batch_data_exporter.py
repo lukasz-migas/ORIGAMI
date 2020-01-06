@@ -8,7 +8,7 @@ import wx
 from styles import Dialog
 from utils.path import check_path_exists
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 
 class DialogExportData(Dialog):

@@ -11,7 +11,7 @@ from readers.io_utils import clean_up
 from utils.misc import strictly_increasing
 from utils.path import check_waters_path
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 # Load C library
 # mlLib = cdll.LoadLibrary(os.path.join("MassLynxRaw.dll"))

@@ -12,7 +12,7 @@ from utils.check import check_value_order
 from utils.check import is_prime
 from utils.exceptions import MessageError
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 
 def adjust_min_max_intensity(inputData=None, min_threshold=0.0, max_threshold=1.0):

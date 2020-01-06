@@ -7,7 +7,7 @@ import time
 
 from utils.path import check_file_exists
 
-logger = logging.getLogger("origami")
+logger = logging.getLogger(__name__)
 
 
 def save_py_object(filename=None, saveFile=None):
