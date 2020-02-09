@@ -5,6 +5,7 @@ import os
 import shutil
 
 from utils.converters import byte2str
+from macpath import dirname
 
 logger = logging.getLogger(__name__)
 
@@ -115,3 +116,23 @@ def clean_directory(dirpath):
                 os.remove(filepath)
             except Exception:
                 continue
+
+
+def get_subdirectories(path, extension=None, as_short=True):
+    """Get list of directories"""
+    def append():
+        if as_short:
+            subdirectories.append(dirpath)
+        else:
+            subdirectories.append(_dirpath)
+
+    subdirectories = []
+    for dirpath in os.listdir(path):
+        _dirpath = os.path.join(path, dirpath)
+        if os.path.isdir(_dirpath):
+            if extension is not None:
+                if _dirpath.endswith(extension):
+                    append()
+            else:
+                append()
+    return subdirectories

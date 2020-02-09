@@ -758,6 +758,11 @@ class MainWindow(wx.Frame):
         )
         menuWidgets.AppendItem(menu_widget_overlay_viewer)
 
+#         menu_widget_interactive_viewer = make_menu_item(
+#             parent=menuWidgets, text="Open interactive window...", bitmap=None
+#         )
+#         menuWidgets.AppendItem(menu_widget_interactive_viewer)
+
         menu_widget_lesa_import = make_menu_item(
             parent=menuWidgets, text="Open LESA import manager...\tCtrl+L", bitmap=None
         )
@@ -1134,6 +1139,7 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_overlay_viewer, menu_widget_overlay_viewer)
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_lesa_viewer, menu_widget_lesa_viewer)
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_import_lesa_dataset, menu_widget_lesa_import)
+#         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_interactive_viewer, menu_widget_interactive_viewer)
 
         # CONFIG MENU
         self.Bind(wx.EVT_MENU, self.data_handling.on_export_config_fcn, id=ID_saveConfig)

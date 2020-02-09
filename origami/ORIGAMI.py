@@ -67,7 +67,6 @@ class ORIGAMI:
         self.view.Show()
 
     def quit(self):
-        # TODO Export config to file
         self.__wx_app.ProcessIdle()
         self.__wx_app.ExitMainLoop()
         self.view.Destroy()
@@ -121,10 +120,6 @@ class ORIGAMI:
         self.data_handling = self.view.data_handling
         self.data_visualisation = self.view.data_visualisation
 
-        #         # Load protein/CCS database
-        #         if self.config.loadCCSAtStart:
-        #             self.onImportCCSDatabase(evt=None, onStart=True)
-
         gc.enable()
         self.on_start_logging()
 
@@ -140,6 +135,7 @@ class ORIGAMI:
         # only check if on Windows
         if self.config.checkForDriftscopeAtStart and platform == "win32":
             self.config.initilize_paths()
+            self.initilize_registry()
 
         # add data handling and processing modules
         self.view.panelDocuments.documents.setup_handling_and_processing()
@@ -157,16 +153,20 @@ class ORIGAMI:
         if self.config.testing:
             self._test_()
 
-        # load text MS file
-
-    #         path = r"D:\GitHub\ORIGAMI\origami\example_files\text_files\MS_p27-FL-K31.pickle"
-    #         self.data_handling.on_open_document(path)
 
     def initilize_state(self):
         """Pre-set variables"""
         self.documents = []
         self.documentsDict = {}
         self.currentDoc = None
+
+    def initilize_registry(self):
+        """Update reg keys to allow viewing of JS/HTML inside ORIGAMI windows"""
+        from utils.windows_reg_edit import set_ie_emulation_level
+        from utils.windows_reg_edit import set_ie_lockdown_level
+        set_ie_emulation_level()
+        set_ie_lockdown_level()
+        logger.info("Initilized registry...")
 
     def _test_(self):
         """Exit application after performing some tests

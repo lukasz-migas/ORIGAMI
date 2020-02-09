@@ -108,7 +108,11 @@ class WatersRawReader:
             xvals = np.array(xvals)
             yvals = np.array(yvals)
             if len(xvals) > 0:
-                f = interpolate.interp1d(xvals, yvals, "linear", bounds_error=False, fill_value=0)
+                f = interpolate.interp1d(xvals, 
+                                         yvals, 
+                                         "linear", 
+                                         bounds_error=False,
+                                         fill_value=0)
                 mz_y += f(mz_x)
 
         return mz_y

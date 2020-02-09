@@ -221,12 +221,15 @@ class Dialog(wx.Dialog):
     """Proxy of Dialog"""
 
     def __init__(self, parent, **kwargs):
+        bind_key_events = kwargs.pop("bind_key_events", True)
         wx.Dialog.__init__(
             self, parent, -1, style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX), **kwargs
         )
 
         self.Bind(wx.EVT_CLOSE, self.on_close)
-        self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
+
+        if bind_key_events:
+            self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
 
     def on_key_event(self, evt):
         key_code = evt.GetKeyCode()
@@ -339,6 +342,24 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
         if evt is not None:
             evt.Skip()
 
+    def remove_by_key(self, key, value):
+        item_id = self.GetItemCount() - 1
+        while item_id >= 0:
+            item_info = self.on_get_item_information(item_id)
+            if item_info[key] == value:
+                self.DeleteItem(item_id)
+            item_id -= 1
+
+    def remove_by_keys(self, keys, values):
+        assert len(keys) == len(values)
+        item_id = self.GetItemCount() - 1
+        while item_id >= 0:
+            item_info = self.on_get_item_information(item_id)
+            if all([check_value == list_value for check_value, list_value in
+                    zip(values, [item_info.get(key) for key in keys])]):
+                self.DeleteItem(item_id)
+            item_id -= 1
+
     def on_get_item_information(self, item_id):
         if self.column_info is None:
             return dict()
@@ -363,6 +384,15 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
         information["check"] = is_checked
 
         return information
+
+    def get_all_checked(self):
+        rows = self.GetItemCount()
+
+        items = list()
+        for item_id in range(rows):
+            if self.IsChecked(item_id):
+                items.append(self.on_get_item_information(item_id))
+        return items
 
     @staticmethod
     def _convert_type(item_value, item_type):
@@ -473,16 +503,17 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
                 self.DeleteItem(rows)
             rows -= 1
 
-    def on_clear_table_all(self, evt):
+    def on_clear_table_all(self, evt, ask=True):
         """
         This function clears the table without deleting any items from the
         document tree
         """
         # Ask if you want to delete all items
-        dlg = DialogBox(exceptionMsg="Are you sure you would like to clear the table?", type="Question")
-        if dlg == wx.ID_NO:
-            print("The operation was cancelled")
-            return
+        if ask:
+            dlg = DialogBox(exceptionMsg="Are you sure you would like to clear the table?", type="Question")
+            if dlg == wx.ID_NO:
+                print("The operation was cancelled")
+                return
         self.DeleteAllItems()
 
     def on_remove_duplicates(self):

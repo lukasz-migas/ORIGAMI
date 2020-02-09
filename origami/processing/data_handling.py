@@ -47,6 +47,7 @@ from utils.random import get_random_int
 from utils.ranges import get_min_max
 from utils.time import getTime
 from utils.time import ttime
+from gui_elements.dialog_multi_directory_picker import DialogMultiDirPicker
 
 # enable on windowsOS only
 if platform == "win32":
@@ -1745,14 +1746,12 @@ class DataHandling:
 
     def on_select_LESA_MassLynx_raw(self):
         self._on_check_last_path()
-
-        dlg = DialogMultiDirectoryPicker(
-            self.view, title="Choose Waters (.raw) files to open...", default_path=self.config.lastDir
-        )
+        dlg = DialogMultiDirPicker(self.view, extension=".raw")
 
         if dlg.ShowModal() == "ok":
             pathlist = dlg.GetPaths()
             return pathlist
+        return []
 
     def on_open_multiple_MassLynx_raw_fcn(self, evt):
 

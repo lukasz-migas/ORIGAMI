@@ -177,6 +177,7 @@ class DocumentTree(wx.TreeCtrl):
         self._indent_items = ["Annotations", "UniDec"]
 
         # widgets
+        self._bokeh_panel = None
         self._annotate_panel = None
         self._compare_panel = None
         self._overlay_panel = None
@@ -1401,6 +1402,26 @@ class DocumentTree(wx.TreeCtrl):
 
         dlg = DialogCustomiseORIGAMI(self, self.presenter, self.config, document_title=document_title)
         dlg.ShowModal()
+
+#     def on_open_interactive_viewer(self, evt):
+#         from gui_elements.panel_plot_viewer import PanelPlotViewer
+#
+#         # get data
+#         document_title, dataset_type, dataset_name = self._get_query_info_based_on_indent()
+#         __, data = self.data_handling.get_mobility_chromatographic_data([document_title, dataset_type, dataset_name])
+#
+#         # initilize peak picker
+#         self._bokeh_panel = PanelPlotViewer(
+#             self.presenter.view,
+#             self.presenter,
+#             self.config,
+#             self.icons,
+#             mz_data=data,
+#             document_title=document_title,
+#             dataset_type=dataset_type,
+#             dataset_name=dataset_name,
+#         )
+#         self._bokeh_panel.Show()
 
     def on_open_overlay_viewer(self, evt):
         from widgets.overlay.panel_overlay_viewer import PanelOverlayViewer
