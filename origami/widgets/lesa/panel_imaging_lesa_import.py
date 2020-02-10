@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 class PanelImagingImportDataset(MiniFrame):
     """LESA import manager"""
 
-    _peaklist_peaklist = {
+    PEAKLIST = {
         0: {"name": "", "tag": "check", "type": "bool", "show": True, "width": 20},
         1: {"name": "index", "tag": "index", "type": "int", "show": True, "width": 40},
         2: {"name": "filename", "tag": "filename", "type": "str", "show": True, "width": 150},
@@ -91,7 +91,7 @@ class PanelImagingImportDataset(MiniFrame):
         self.SetFocus()
 
     def make_settings_panel(self, split_panel):
-
+        """Make settings panel"""
         panel = wx.Panel(split_panel, -1, size=(-1, -1), name="settings")
 
         info_label = set_item_font(wx.StaticText(panel, wx.ID_ANY, "Instructions"))
@@ -212,10 +212,10 @@ class PanelImagingImportDataset(MiniFrame):
         return panel
 
     def make_listctrl_panel(self, panel):
-
-        self.peaklist = ListCtrl(panel, style=wx.LC_REPORT | wx.LC_VRULES, column_info=self._peaklist_peaklist)
-        for col in range(len(self._peaklist_peaklist)):
-            item = self._peaklist_peaklist[col]
+        """Initilize list"""
+        self.peaklist = ListCtrl(panel, style=wx.LC_REPORT | wx.LC_VRULES, column_info=self.PEAKLIST)
+        for col in range(len(self.PEAKLIST)):
+            item = self.PEAKLIST[col]
             order = col
             name = item["name"]
             width = 0

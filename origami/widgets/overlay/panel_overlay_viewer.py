@@ -84,7 +84,6 @@ class PanelOverlayViewer(MiniFrame):
         self.panel_plot = self.presenter.view.panelPlots
         self.document_tree = self.presenter.view.panelDocuments.documents
 
-        #         self._display_size = wx.GetDisplaySize()
         self._display_size = self.parent.GetSize()
         self._display_resolution = wx.ScreenDC().GetPPI()
         self._window_size = calculate_window_size(self._display_size, 0.9)
@@ -92,7 +91,7 @@ class PanelOverlayViewer(MiniFrame):
         # preset
         self.item_editor = None
         self.dataset_type = None
-        self.overlay_data = dict()
+        self.clipboard = dict()
 
         # make gui items
         self.make_gui()
@@ -172,12 +171,12 @@ class PanelOverlayViewer(MiniFrame):
     def on_close(self, evt):
         """Destroy this frame"""
 
-        n_overlay_items = len(self.overlay_data)
-        if n_overlay_items > 0:
+        n_clipboard_items = len(self.clipboard)
+        if n_clipboard_items > 0:
             from gui_elements.misc_dialogs import DialogBox
 
             msg = (
-                f"Found {n_overlay_items} overlay item(s) in the clipboard. Closing this window will lose"
+                f"Found {n_clipboard_items} overlay item(s) in the clipboard. Closing this window will lose"
                 + " your overlay plots. Would you like to continue?"
             )
             dlg = DialogBox(exceptionTitle="Clipboard is not empty", exceptionMsg=msg, type="Question")
@@ -436,7 +435,7 @@ class PanelOverlayViewer(MiniFrame):
     def generate_overlay_plot_list(self):
 
         item_list = []
-        for key in self.overlay_data:
+        for key in self.clipboard:
             method = key.split(": ")[0]
             item_list.append([method, key])
 
@@ -469,7 +468,7 @@ class PanelOverlayViewer(MiniFrame):
         ]
 
         # if the list is empty, notify the user
-        if not self.overlay_data:
+        if not self.clipboard:
             raise MessageError(
                 "Clipboard is empty",
                 "There are no items in the clipboard."
@@ -490,7 +489,7 @@ class PanelOverlayViewer(MiniFrame):
 
         # add data to document while also removing it from the clipboard object
         for key in add_to_document_list:
-            data = self.overlay_data.pop(key)
+            data = self.clipboard.pop(key)
             for method in stats_list:
                 if key.startswith(method):
                     self.data_handling.set_overlay_data([document_title, "Statistical", key], data)
@@ -616,7 +615,7 @@ class PanelOverlayViewer(MiniFrame):
             logger.error("Method not implemented yet")
             return
 
-        self.overlay_data[overlay_data.pop("name")] = overlay_data.pop("data")
+        self.clipboard[overlay_data.pop("name")] = overlay_data.pop("data")
 
     def on_overlay_mass_spectra(self, item_list, method):
         if method == "Overlay":
@@ -655,7 +654,7 @@ class PanelOverlayViewer(MiniFrame):
             logger.error("Method not implemented yet")
             return
 
-        self.overlay_data[overlay_data.pop("name")] = overlay_data.pop("data")
+        self.clipboard[overlay_data.pop("name")] = overlay_data.pop("data")
 
     def on_overlay_mobilogram(self, item_list, method):
         if method == "Overlay":
@@ -694,7 +693,7 @@ class PanelOverlayViewer(MiniFrame):
             logger.error("Method not implemented yet")
             return
 
-        self.overlay_data[overlay_data.pop("name")] = overlay_data.pop("data")
+        self.clipboard[overlay_data.pop("name")] = overlay_data.pop("data")
 
     def on_overlay_chromatogram(self, item_list, method):
         if method == "Overlay":
@@ -733,7 +732,7 @@ class PanelOverlayViewer(MiniFrame):
             logger.error("Method not implemented yet")
             return
 
-        self.overlay_data[overlay_data.pop("name")] = overlay_data.pop("data")
+        self.clipboard[overlay_data.pop("name")] = overlay_data.pop("data")
 
     def on_populate_item_list(self, evt):
         """Populate table based on the dataset selection"""

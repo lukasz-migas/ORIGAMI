@@ -5,6 +5,7 @@ import logging
 # Third-party imports
 import wx
 from pubsub import pub
+import numpy as np
 
 # Local imports
 from styles import ListCtrl
@@ -12,6 +13,8 @@ from styles import make_menu_item
 from styles import MiniFrame
 from utils.decorators import Timer
 from utils.screen import calculate_window_size
+from utils.check import check_value_order
+from processing.utils import get_maximum_value_in_range
 from styles import validator
 
 # Module globals
@@ -69,12 +72,32 @@ class PanelImagingLESAViewer(MiniFrame):
         self.document_title = None
         self.mz_data = None
         self.img_data = None
+        self.clipboard = dict()
         self.on_select_document()
         self.on_select_spectrum(None)
 
         # bind
         self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
 
+    def on_close(self, evt):
+        """Destroy this frame"""
+        n_clipboard_items = len(self.clipboard)
+        if n_clipboard_items > 0:
+            from gui_elements.misc_dialogs import DialogBox
+
+            msg = (
+                f"Found {n_clipboard_items} item(s) in the clipboard. Closing this window will lose"
+                +" your extracted data. Would you like to continue?"
+            )
+            dlg = DialogBox(exceptionTitle="Clipboard is not empty", exceptionMsg=msg, type="Question")
+            if dlg == wx.ID_NO:
+                msg = "Action was cancelled"
+                return
+
+        pub.unsubscribe(self.on_extract_image_from_spectrum, "widget.imaging.lesa.extract.image.spectrum")
+        pub.unsubscribe(self.on_extract_image_from_mobilogram, "widget.imaging.lesa.extract.image.mobilogram")
+        pub.unsubscribe(self.on_extract_spectrum_from_image, "widget.imaging.lesa.extract.spectrum.image")
+        self.Destroy()
     def subscribe(self):
         """Initilize pubsub subscribers"""
         pub.subscribe(self.on_extract_image_from_spectrum, "widget.imaging.lesa.extract.image.spectrum")
@@ -106,6 +129,7 @@ class PanelImagingLESAViewer(MiniFrame):
         self.SetFocus()
 
     def on_action_tools(self, evt):
+        """Action tools dropdown menu"""
         menu = wx.Menu()
         menu_action_create_blank_document = make_menu_item(
             parent=menu,
@@ -124,6 +148,7 @@ class PanelImagingLESAViewer(MiniFrame):
         self.SetFocus()
 
     def on_right_click(self, evt):
+        """Event on right-click"""
         # ensure that user clicked inside the plot area
         if not hasattr(evt.EventObject, "figure"):
             return
@@ -172,6 +197,7 @@ class PanelImagingLESAViewer(MiniFrame):
         self.SetFocus()
 
     def make_settings_panel(self, split_panel):
+        """Make settings panel"""
         panel = wx.Panel(split_panel, -1, size=(-1, -1), name="settings")
 
         # add spectrum controls
@@ -261,6 +287,7 @@ class PanelImagingLESAViewer(MiniFrame):
         return panel
 
     def make_plot_panel(self, split_panel):
+        """Make plot panel"""
         panel = wx.SplitterWindow(split_panel, wx.ID_ANY, style=wx.TAB_TRAVERSAL | wx.SP_3DSASH, name="plot")
 
         self.plot_panel_MS, self.plot_window_MS, __ = self.panel_plot.make_plot(
@@ -279,7 +306,7 @@ class PanelImagingLESAViewer(MiniFrame):
         return panel
 
     def make_listctrl_panel(self, panel):
-
+        """Initilize table"""
         self.peaklist = ListCtrl(panel, style=wx.LC_REPORT | wx.LC_VRULES, column_info=self._peaklist_peaklist)
         for col in range(len(self._peaklist_peaklist)):
             item = self._peaklist_peaklist[col]
@@ -308,12 +335,6 @@ class PanelImagingLESAViewer(MiniFrame):
 
         print("on_update_item")
 
-    def on_close(self, evt):
-        """Destroy this frame"""
-        pub.unsubscribe(self.on_extract_image_from_spectrum, "widget.imaging.lesa.extract.image.spectrum")
-        pub.unsubscribe(self.on_extract_image_from_mobilogram, "widget.imaging.lesa.extract.image.mobilogram")
-        pub.unsubscribe(self.on_extract_spectrum_from_image, "widget.imaging.lesa.extract.spectrum.image")
-        self.Destroy()
 
     def get_plot_obj(self):
         plot_obj = {"MS": self.plot_window_MS, "2D": self.plot_window_img, "1D": self.plot_window_DT}[
@@ -322,17 +343,21 @@ class PanelImagingLESAViewer(MiniFrame):
         return plot_obj
 
     def on_clear_plot(self, evt):
+        """Clear plot"""
         plot_obj = self.get_plot_obj()
         plot_obj.clearPlot()
 
     def on_reset_plot(self, evt):
+        """Reset plot"""
         plot_obj = self.get_plot_obj()
         plot_obj.on_reset_zoom()
 
     def on_resize_check(self, evt):
+        """Toggle resize check in the plot"""
         self.panel_plot.on_resize_check(None)
 
     def on_copy_to_clipboard(self, evt):
+        """Copy plot object to clipboard"""
         plot_obj = self.get_plot_obj()
         plot_obj.copy_to_clipboard()
 
@@ -362,7 +387,7 @@ class PanelImagingLESAViewer(MiniFrame):
 
         dlg = DialogColorPicker(self, self.config.customColors)
         if dlg.ShowModal() == "ok":
-            color_255, color_1, __ = dlg.GetChosenColour()
+            color_255, __, __ = dlg.GetChosenColour()
             self.config.customColors = dlg.GetCustomColours()
         else:
             return
@@ -386,12 +411,15 @@ class PanelImagingLESAViewer(MiniFrame):
         self.on_extract_image_from_spectrum([None, None, None, None])
 
     def on_extract_image_from_mobilogram(self, rect):
-        print(rect)
+        zvals = self.data_handling.on_extract_LESA_img_from_mobilogram(rect[0], rect[1],
+                                                               self.clipboard[self.img_data]["zvals_dt"])
 
     def on_extract_image_from_spectrum(self, rect):
-        import numpy as np
-        from utils.check import check_value_order
-        from processing.utils import get_maximum_value_in_range
+
+        def plot():
+            # update plots
+            self.on_plot_image(self.clipboard[ion_name])
+            self.on_plot_mobilogram(self.clipboard[ion_name])
 
         xmin, xmax, __, __ = rect
 
@@ -402,6 +430,11 @@ class PanelImagingLESAViewer(MiniFrame):
         else:
             ion_name = f"{xmin:.2f}-{xmax:.2f}"
             add_to_table, _ = self.find_item(ion_name)
+
+        if ion_name in self.clipboard:
+            logger.info("Found item in the clipboard...")
+            plot()
+            return
 
         xmin, xmax = check_value_order(xmin, xmax)
         if self.mz_data is not None:
@@ -433,26 +466,28 @@ class PanelImagingLESAViewer(MiniFrame):
         xvals = np.arange(zvals.shape[0]) + 1
         yvals = np.arange(zvals.shape[1]) + 1
 
-        # get mobilogram data
-        xvals_dt, yvals_dt = self.data_handling.on_extract_LESA_mobilogram_from_mass_range(
-            xmin, xmax, self.document_title
-        )
-
-        self.img_data = dict(
+        self.img_data = ion_name
+        self.clipboard[ion_name] = dict(
             zvals=zvals,
             xvals=xvals,
             yvals=yvals,
             extract_range=[xmin, xmax],
             ion_name=ion_name,
-            xvals_dt=xvals_dt,
-            yvals_dt=yvals_dt,
         )
 
-        # update plots
-        self.on_plot_image(self.img_data)
-        self.on_plot_mobilogram(self.img_data)
+        # get mobilogram data
+        # TODO: should check whether IM data exists
+        xvals_dt, yvals_dt, zvals_dt = self.data_handling.on_extract_LESA_mobilogram_from_mass_range(
+            xmin, xmax, self.document_title
+        )
+        self.clipboard[ion_name].update(
+            xvals_dt=xvals_dt,
+            yvals_dt=yvals_dt,
+            zvals_dt=zvals_dt
+            )
 
-    @Timer
+        plot()
+
     def on_plot_image(self, img_data):
         self.panel_plot.on_plot_image(
             img_data["zvals"],
@@ -462,7 +497,6 @@ class PanelImagingLESAViewer(MiniFrame):
             callbacks=dict(CTRL="widget.imaging.lesa.extract.spectrum.image"),
         )
 
-    @Timer
     def on_plot_spectrum(self):
         self.panel_plot.on_plot_MS(
             self.mz_data["xvals"],
@@ -523,7 +557,7 @@ class PanelImagingLESAViewer(MiniFrame):
             logger.warning("No imaging data available!")
             return
 
-        img_data = deepcopy(self.img_data)
+        img_data = deepcopy(self.clipboard[self.img_data])
         try:
             xmin, xmax = img_data["extract_range"]
             img_data["zvals"] = self.data_handling.on_extract_LESA_img_from_mass_range_norm(
@@ -570,7 +604,7 @@ class PanelImagingLESAViewer(MiniFrame):
         item_info = self.on_get_item_information(None)
 
         # already present
-        if item_info["ion_name"] == self.img_data["ion_name"]:
+        if item_info["ion_name"] == self.img_data:
             self.on_update_normalization(None)
         # need to retrieve again
         else:

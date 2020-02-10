@@ -17,7 +17,6 @@ import processing.spectra as pr_spectra
 import utils.labels as ut_labels
 import wx
 from document import document as documents
-from gui_elements.dialog_multi_directory_picker import DialogMultiDirectoryPicker
 from gui_elements.dialog_select_document import DialogSelectDocument
 from gui_elements.misc_dialogs import DialogBox
 from ids import ID_load_masslynx_raw
@@ -1757,8 +1756,8 @@ class DataHandling:
 
         self._on_check_last_path()
 
-        dlg = DialogMultiDirectoryPicker(
-            self.view, title="Choose Waters (.raw) files to open...", default_path=self.config.lastDir
+        dlg = DialogMultiDirPicker(
+            self.view, title="Choose Waters (.raw) files to open...", last_dir=self.config.lastDir
         )
 
         if dlg.ShowModal() == "ok":  # wx.ID_OK:
@@ -2361,7 +2360,7 @@ class DataHandling:
             raise MessageError("Error", "Cannot extract LESA data for this document")
 
         shape = [int(metadata["x_dim"]), int(metadata["y_dim"])]
-        out = np.zeros(np.dot(shape[0], shape[1]).astype(np.int32))
+        out = np.zeros(np.dot(shape[0], shape[1]).astype(np.int64))
         for data in document.multipleMassSpectrum.values():
             idx = int(data["index"] - 1)
             __, mz_y = get_narrow_data_range_1D(data["xvals"], data["yvals"], [xmin, xmax])
@@ -2382,17 +2381,22 @@ class DataHandling:
         document = self.on_get_document(document_title)
 
         n_items = len(document.multipleMassSpectrum.keys())
-        yvals = np.zeros((200,), dtype=np.int64)
+        zvals = np.zeros((200, n_items), dtype=np.int64)
         for idx, data in enumerate(document.multipleMassSpectrum.values()):
             tstart = ttime()
             path = data["path"]
             xvals, yvals_DT = self._get_driftscope_mobilogram_data(path, mz_start=xmin, mz_end=xmax)
-            yvals += yvals_DT
+            zvals[:, idx] = yvals_DT
             logger.debug(
                 f"Extracted mobilogram for ion {xmin:.2f}-{xmax:.2f} in {ttime()-tstart:.2f}s." f" [{idx+1}/{n_items}]"
             )
+        return xvals, zvals.sum(axis=1), zvals
 
-        return xvals, yvals
+    def on_extract_LESA_img_from_mobilogram(self, xmin, xmax, zvals):
+        xmin, xmax = math.floor(xmin), math.ceil(xmax)
+        zvals = zvals[xmin:xmax, :]
+
+        return zvals.sum(axis=0)
 
     def add_summed_spectrum(self, document, **kwargs):
         """Add summed mass spectrum to a document based on all spectra in the document.multipleMassSpectrum store
@@ -2424,8 +2428,8 @@ class DataHandling:
         if not check_path_exists(self.config.lastDir):
             self.config.lastDir = os.getcwd()
 
-        dlg = DialogMultiDirectoryPicker(
-            self.view, title="Choose Waters (.raw) files to open...", default_path=self.config.lastDir
+        dlg = DialogMultiDirPicker(
+            self.view, title="Choose Waters (.raw) files to open...", last_dir=self.config.lastDir
         )
         #
         if dlg.ShowModal() == "ok":

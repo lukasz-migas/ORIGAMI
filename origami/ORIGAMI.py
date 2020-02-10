@@ -8,6 +8,7 @@ import sys
 import threading
 import warnings
 import webbrowser
+import faulthandler
 from sys import platform
 
 import processing.UniDec.unidec as unidec
@@ -42,9 +43,11 @@ warnings.filterwarnings("ignore", category=UserWarning)
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 logger = logging.getLogger(__name__)
+faulthandler.enable()
 
 # disable MPL logger
 logging.getLogger("matplotlib").setLevel(logging.ERROR)
+
 
 
 class ORIGAMI:
@@ -91,7 +94,7 @@ class ORIGAMI:
         )
         self.__wx_app.SetTopWindow(self.view)
         self.__wx_app.SetAppName("ORIGAMI - %s " % self.config.version)
-        self.__wx_app.SetVendorName("Lukasz G. Migas, University of Manchester")
+        self.__wx_app.SetVendorName("Lukasz G. Migas")
 
         # Assign standard input/output to variable
         self.config.stdin = sys.stdin
@@ -166,7 +169,7 @@ class ORIGAMI:
         from utils.windows_reg_edit import set_ie_lockdown_level
         set_ie_emulation_level()
         set_ie_lockdown_level()
-        logger.info("Initilized registry...")
+        logger.debug("Initilized registry...")
 
     def _test_(self):
         """Exit application after performing some tests

@@ -1,6 +1,6 @@
-# __author__ lukasz.g.migas
 import os
 import wx
+import logging
 import wx.lib.agw.multidirdialog as MDD
 
 from utils.path import clean_up_MDD_path
@@ -9,6 +9,8 @@ from styles import Dialog
 from styles import ListCtrl
 
 from utils.path import get_subdirectories
+
+LOGGER = logging.getLogger(__name__)
 
 
 class DialogMultiDirectoryPicker(MDD.MultiDirDialog):
@@ -49,8 +51,11 @@ class DialogMultiDirPicker(Dialog):
         2: {"name": "path", "tag": "path", "type": "str", "width": 0, "show": False},
     }
 
-    def __init__(self, parent, last_dir="", extension=None):
-        Dialog.__init__(self, parent, title="Select files/directories....", bind_key_events=False)
+    def __init__(self, parent, title="Select files/directories", last_dir="", extension=None):
+        """This panel serves as a replacement for the MultiDirDialog provided by wxPython - the reason being that MDD
+        can sporadically crash the UI if user clicks in the wrong place. I have tried tracing it but annoying I cannot
+        figure out what is causing it..."""
+        Dialog.__init__(self, parent, title=title, bind_key_events=False)
         self.view = parent
 
         # private attributes
@@ -90,10 +95,12 @@ class DialogMultiDirPicker(Dialog):
         self.EndModal(wx.ID_NO)
 
     def on_ok(self, evt):
+        """Exit with OK statement"""
         self.output_list = self.get_selected_items()
         self.EndModal(wx.ID_OK)
 
     def make_panel(self):
+        """Make panel"""
         panel = wx.Panel(self, -1, size=(-1, -1))
 
         msg = ("Please specify path and select files/directories on the left-hand side before pressing the '>>>' "
@@ -160,6 +167,7 @@ class DialogMultiDirPicker(Dialog):
 
     def make_listctrl_panel(self, panel):
         """Initilize filelists"""
+        LOGGER.debug("Initilized filelists")
 
         # intilize filelist with all files/directories in the folder
         self.filelist_all = ListCtrl(panel, style=wx.LC_REPORT | wx.LC_VRULES, column_info=self.FILELIST_ALL)
@@ -186,6 +194,7 @@ class DialogMultiDirPicker(Dialog):
             self.filelist_select.SetFont(wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
 
     def on_select_directory(self, evt):
+        """Select directory where to start searching for files/directories"""
         dlg = wx.DirDialog(self.view, "Choose directory", style=wx.DD_DEFAULT_STYLE)
 
         if dlg.ShowModal() == wx.ID_OK:
@@ -194,16 +203,18 @@ class DialogMultiDirPicker(Dialog):
             self.filelist_all.on_clear_table_all(None, False)
             if path in self._filelist_all:
                 self._filelist_all[path] = []
-
             self.path_value.SetValue(path)
+            LOGGER.info(f"Selected {path}")
 
         dlg.Destroy()
 
     def on_add(self, evt):
+        """Add currently selected items (on the lhs) to the rhs"""
         item_list = self.filelist_all.get_all_checked()
         self.populate_select_list(item_list)
 
     def on_remove(self, evt):
+        """Remove currently selected items (on the rhs) from the list"""
         item_list = self.filelist_select.get_all_checked()
         i = 0
         for item_info in item_list:
@@ -214,9 +225,11 @@ class DialogMultiDirPicker(Dialog):
                 self.filelist_select.remove_by_keys(["filename", "path"],
                                                     [filename, path])
                 i += 1
-        print(f"Removed {i} items")
+        logging.info(f"Removed {i} items")
 
     def _populate_all_list(self, _=None):
+        """Populate filelist (lhs) with new items by first collecting subdirectories of the
+        self._path path"""
         self._path = self.path_value.GetValue()
 
         if self._path not in self._filelist_all:
@@ -228,8 +241,9 @@ class DialogMultiDirPicker(Dialog):
         self.populate_all_list(directories)
         
     def populate_all_list(self, item_list):
+        """Populate filelist (lhs) with new items"""
         if not item_list:
-            print("Filelist was empty")
+            LOGGER.warning("Filelist was empty")
             return
 
         for filename in item_list:
@@ -238,6 +252,7 @@ class DialogMultiDirPicker(Dialog):
                 self._filelist_all[self._path].append(filename)
 
     def populate_select_list(self, item_list):
+        """Populate filelist (rhs) with items that have been selected on the lhs"""
         if not item_list:
             print("You must select at least one item in the left-hand side")
             return
@@ -250,6 +265,7 @@ class DialogMultiDirPicker(Dialog):
         self.filelist_select.on_check_all(True)
 
     def get_selected_items(self):
+        """Get currently selected items in the filelist"""
         item_count = self.filelist_select.GetItemCount()
 
         # generate list of document_title and dataset_name
@@ -262,5 +278,6 @@ class DialogMultiDirPicker(Dialog):
         return item_list
 
     def on_get_item_information(self, item_id):
+        """Get item information from the lhs table"""
         return self.filelist_select.on_get_item_information(item_id)
 

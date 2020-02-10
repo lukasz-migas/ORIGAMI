@@ -385,8 +385,6 @@ class DocumentTree(wx.TreeCtrl):
             try:
                 text = self.GetItemText(item)
                 if text != "Documents":
-                    #                     try: self.setCurrentDocument(text)
-                    #                     except Exception: pass
                     self.presenter.currentDoc = text
                     self.view.SetTitle(
                         "ORIGAMI - v{} - {} ({})".format(self.config.version, text, self._document_data.dataType)
