@@ -1,7 +1,8 @@
 """Test utils.color.py"""
-from utils.color import convert_rgb_1_to_255
-from utils.color import convert_rgb_255_to_1
-from utils.color import get_font_color
+# Local imports
+from origami.utils.color import get_font_color
+from origami.utils.color import convert_rgb_1_to_255
+from origami.utils.color import convert_rgb_255_to_1
 
 
 class TestColor(object):

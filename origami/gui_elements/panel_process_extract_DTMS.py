@@ -1,13 +1,19 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
-import logging
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import math
+import logging
 
-import numpy as np
+# Third-party imports
 import wx
-from styles import MiniFrame
-from styles import validator
-from utils.converters import str2num
+import numpy as np
+
+# Local imports
+from origami.styles import MiniFrame
+from origami.styles import validator
+from origami.utils.converters import str2num
 
 logger = logging.getLogger(__name__)
 

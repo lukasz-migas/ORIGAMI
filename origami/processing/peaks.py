@@ -1,13 +1,19 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import logging
 
+# Third-party imports
 import numpy as np
 import peakutils
 from scipy.signal import find_peaks
 from scipy.signal import peak_widths
-from utils.check import isnumber
-from utils.time import ttime
+
+# Local imports
+from origami.utils.time import ttime
+from origami.utils.check import isnumber
 
 logger = logging.getLogger(__name__)
 

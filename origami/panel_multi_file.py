@@ -1,63 +1,67 @@
 """Panel to load and combine multiple ML files"""
+# Standard library imports
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 import logging
 from os.path import splitext
 
-import numpy as np
+# Third-party imports
 import wx
-from gui_elements.dialog_color_picker import DialogColorPicker
-from gui_elements.misc_dialogs import DialogBox
-from gui_elements.panel_modify_manual_settings import PanelModifyManualFilesSettings
-from ids import ID_mmlPanel_about_info
-from ids import ID_mmlPanel_add_files_toCurrentDoc
-from ids import ID_mmlPanel_add_files_toNewDoc
-from ids import ID_mmlPanel_add_manualDoc
-from ids import ID_mmlPanel_add_menu
-from ids import ID_mmlPanel_addToDocument
-from ids import ID_mmlPanel_annotateTool
-from ids import ID_mmlPanel_assignColor
-from ids import ID_mmlPanel_batchRunUniDec
-from ids import ID_mmlPanel_changeColorBatch_color
-from ids import ID_mmlPanel_changeColorBatch_colormap
-from ids import ID_mmlPanel_changeColorBatch_palette
-from ids import ID_mmlPanel_check_all
-from ids import ID_mmlPanel_check_selected
-from ids import ID_mmlPanel_clear_all
-from ids import ID_mmlPanel_clear_selected
-from ids import ID_mmlPanel_data_combineMS
-from ids import ID_mmlPanel_delete_all
-from ids import ID_mmlPanel_delete_rightClick
-from ids import ID_mmlPanel_delete_selected
-from ids import ID_mmlPanel_overlay_menu
-from ids import ID_mmlPanel_overlayChargeStates
-from ids import ID_mmlPanel_overlayFittedSpectra
-from ids import ID_mmlPanel_overlayFoundPeaks
-from ids import ID_mmlPanel_overlayMW
-from ids import ID_mmlPanel_overlayProcessedSpectra
-from ids import ID_mmlPanel_overlayWaterfall
-from ids import ID_mmlPanel_plot_combined_MS
-from ids import ID_mmlPanel_plot_DT
-from ids import ID_mmlPanel_plot_MS
-from ids import ID_mmlPanel_preprocess
-from ids import ID_mmlPanel_processTool
-from ids import ID_mmlPanel_remove_menu
-from ids import ID_mmlPanel_showLegend
-from ids import ID_mmlPanel_table_document
-from ids import ID_mmlPanel_table_filename
-from ids import ID_mmlPanel_table_hideAll
-from ids import ID_mmlPanel_table_label
-from ids import ID_mmlPanel_table_restoreAll
-from ids import ID_mmlPanel_table_variable
-from processing.spectra import interpolate
-from styles import ListCtrl
-from styles import make_menu_item
-from styles import make_tooltip
-from utils.color import convert_rgb_1_to_255
-from utils.color import convert_rgb_255_to_1
-from utils.color import get_font_color
-from utils.color import get_random_color
-from utils.random import get_random_int
+import numpy as np
+
+# Local imports
+from origami.ids import ID_mmlPanel_plot_DT
+from origami.ids import ID_mmlPanel_plot_MS
+from origami.ids import ID_mmlPanel_add_menu
+from origami.ids import ID_mmlPanel_check_all
+from origami.ids import ID_mmlPanel_clear_all
+from origami.ids import ID_mmlPanel_overlayMW
+from origami.ids import ID_mmlPanel_about_info
+from origami.ids import ID_mmlPanel_delete_all
+from origami.ids import ID_mmlPanel_preprocess
+from origami.ids import ID_mmlPanel_showLegend
+from origami.ids import ID_mmlPanel_assignColor
+from origami.ids import ID_mmlPanel_processTool
+from origami.ids import ID_mmlPanel_remove_menu
+from origami.ids import ID_mmlPanel_table_label
+from origami.ids import ID_mmlPanel_annotateTool
+from origami.ids import ID_mmlPanel_overlay_menu
+from origami.ids import ID_mmlPanel_add_manualDoc
+from origami.ids import ID_mmlPanel_addToDocument
+from origami.ids import ID_mmlPanel_table_hideAll
+from origami.ids import ID_mmlPanel_batchRunUniDec
+from origami.ids import ID_mmlPanel_check_selected
+from origami.ids import ID_mmlPanel_clear_selected
+from origami.ids import ID_mmlPanel_data_combineMS
+from origami.ids import ID_mmlPanel_table_document
+from origami.ids import ID_mmlPanel_table_filename
+from origami.ids import ID_mmlPanel_table_variable
+from origami.ids import ID_mmlPanel_delete_selected
+from origami.ids import ID_mmlPanel_overlayWaterfall
+from origami.ids import ID_mmlPanel_plot_combined_MS
+from origami.ids import ID_mmlPanel_table_restoreAll
+from origami.ids import ID_mmlPanel_delete_rightClick
+from origami.ids import ID_mmlPanel_overlayFoundPeaks
+from origami.ids import ID_mmlPanel_add_files_toNewDoc
+from origami.ids import ID_mmlPanel_overlayChargeStates
+from origami.ids import ID_mmlPanel_overlayFittedSpectra
+from origami.ids import ID_mmlPanel_add_files_toCurrentDoc
+from origami.ids import ID_mmlPanel_changeColorBatch_color
+from origami.ids import ID_mmlPanel_overlayProcessedSpectra
+from origami.ids import ID_mmlPanel_changeColorBatch_palette
+from origami.ids import ID_mmlPanel_changeColorBatch_colormap
+from origami.styles import ListCtrl
+from origami.styles import make_tooltip
+from origami.styles import make_menu_item
+from origami.utils.color import get_font_color
+from origami.utils.color import get_random_color
+from origami.utils.color import convert_rgb_1_to_255
+from origami.utils.color import convert_rgb_255_to_1
+from origami.utils.random import get_random_int
+from origami.processing.spectra import interpolate
+from origami.gui_elements.misc_dialogs import DialogBox
+from origami.gui_elements.dialog_color_picker import DialogColorPicker
+from origami.gui_elements.panel_modify_manual_settings import PanelModifyManualFilesSettings
 
 logger = logging.getLogger(__name__)
 # TODO: Move opening files to new function and check if files are on a network drive (process locally maybe?)

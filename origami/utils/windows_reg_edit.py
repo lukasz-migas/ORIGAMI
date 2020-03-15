@@ -2,8 +2,9 @@
 # https://stackoverflow.com/questions/15128225/python-script-to-read-and-write-a-path-to-registry
 # Accessed on May 31, 2019
 
-import winreg
+# Standard library imports
 import sys
+import winreg
 from os.path import basename
 
 

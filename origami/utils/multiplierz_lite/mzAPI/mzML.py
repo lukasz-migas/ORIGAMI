@@ -1,11 +1,13 @@
+# Standard library imports
 import shutil
 import sqlite3
 import tempfile
 import warnings
 
-from utils.multiplierz_lite.mzAPI import mzFile as mzAPImzFile
-from utils.multiplierz_lite.mzml import demarshal
-from utils.multiplierz_lite.mzml import mzmlToSqlite
+# Local imports
+from origami.utils.multiplierz_lite.mzml import demarshal
+from origami.utils.multiplierz_lite.mzml import mzmlToSqlite
+from origami.utils.multiplierz_lite.mzAPI import mzFile as mzAPImzFile
 
 
 class mzFile(mzAPImzFile):

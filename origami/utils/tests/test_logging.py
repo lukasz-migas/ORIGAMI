@@ -1,8 +1,11 @@
+# Third-party imports
 import pytest
-from utils.logging import delete_logger
-from utils.logging import set_logger_format
-from utils.logging import set_logger_level
-from utils.logging import set_logger_parameters
+
+# Local imports
+from origami.utils.logging import delete_logger
+from origami.utils.logging import set_logger_level
+from origami.utils.logging import set_logger_format
+from origami.utils.logging import set_logger_parameters
 
 
 @pytest.mark.parametrize("verbose", [None, True, "INFO", "DEBUG", "WARNING", "ERROR", "CRITICAL"])

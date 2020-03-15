@@ -1,6 +1,7 @@
 """Decorators"""
-from utils.logging import get_logger
-from utils.time import ttime
+# Local imports
+from origami.utils.time import ttime
+from origami.utils.logging import get_logger
 
 LOGGER = get_logger("DEBUG")
 

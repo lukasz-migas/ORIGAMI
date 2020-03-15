@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Third-party imports
+# Third-party imports
+# Third-party imports
 import wx
-from styles import Dialog
+
+# Local imports
+from origami.styles import Dialog
 
 FORBIDDEN_NAMES = ["Documents", ""]
 
@@ -114,7 +119,7 @@ class DialogRenameObject(Dialog):
             self.new_name = "{}".format(self.new_name_value.GetValue())
 
         if self.new_name in FORBIDDEN_NAMES:
-            from gui_elements.misc_dialogs import DialogBox
+            from origami.gui_elements.misc_dialogs import DialogBox
 
             DialogBox(
                 exceptionTitle="Forbidden name",

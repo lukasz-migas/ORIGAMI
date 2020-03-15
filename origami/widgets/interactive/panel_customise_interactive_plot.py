@@ -1,18 +1,24 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import re
 from copy import deepcopy
 from time import time as ttime
 
+# Third-party imports
 import wx
-from gui_elements.dialog_color_picker import DialogColorPicker
-from help_documentation import OrigamiHelp
-from styles import make_checkbox
-from styles import make_static_text
-from styles import make_staticbox
-from styles import validator
-from utils.color import convert_rgb_1_to_255
-from utils.converters import str2num
+
+# Local imports
+from origami.styles import validator
+from origami.styles import make_checkbox
+from origami.styles import make_staticbox
+from origami.styles import make_static_text
+from origami.utils.color import convert_rgb_1_to_255
+from origami.utils.converters import str2num
+from origami.help_documentation import OrigamiHelp
+from origami.gui_elements.dialog_color_picker import DialogColorPicker
 
 
 class PanelCustomiseInteractivePlot(wx.MiniFrame):

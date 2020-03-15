@@ -1,4 +1,5 @@
-from config import Config
+# Local imports
+from origami.config import Config
 
 
 def test_config_init():

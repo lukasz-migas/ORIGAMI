@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Third-party imports
+# Third-party imports
+# Third-party imports
 import wx
-from ids import ID_saveAllDocuments
-from styles import Dialog
+
+# Local imports
+from origami.ids import ID_saveAllDocuments
+from origami.styles import Dialog
 
 
 class DialogNotifyOpenDocuments(Dialog):

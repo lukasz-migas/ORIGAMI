@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import logging
 
-import numpy as np
+# Third-party imports
 import wx
-from matplotlib.patches import Rectangle
-from matplotlib.text import Text
+import numpy as np
 from pubsub import pub
+from matplotlib.text import Text
+from matplotlib.patches import Rectangle
 
 logger = logging.getLogger(__name__)
 

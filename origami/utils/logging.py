@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 """Define ORIGAMI logger"""
-import logging
+# Standard library imports
 import sys
+import logging
 
 __all__ = ["set_logger_level", "set_logger"]
 

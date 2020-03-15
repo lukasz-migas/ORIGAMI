@@ -1,16 +1,22 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import logging
 
+# Third-party imports
 import numpy as np
-from processing.utils import find_nearest_index
-from processing.utils import nthroot
-from scipy.ndimage import gaussian_filter
 from scipy.signal import savgol_filter
+from scipy.ndimage import gaussian_filter
 from sklearn.preprocessing import normalize
-from utils.check import check_value_order
-from utils.check import is_prime
-from utils.exceptions import MessageError
+
+# Local imports
+from origami.utils.check import is_prime
+from origami.utils.check import check_value_order
+from origami.processing.utils import nthroot
+from origami.processing.utils import find_nearest_index
+from origami.utils.exceptions import MessageError
 
 logger = logging.getLogger(__name__)
 

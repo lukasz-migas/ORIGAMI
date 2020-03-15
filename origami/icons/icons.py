@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Third-party imports
+# Third-party imports
+# Third-party imports
 import wx
-from icons.embed import icons as icons_16
 from wx.lib.embeddedimage import PyEmbeddedImage
+
+# Local imports
+from origami.icons.embed import icons as icons_16
 
 
 class IconContainer:

@@ -1,19 +1,25 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import logging
 
+# Third-party imports
 import wx
-from styles import make_checkbox
-from styles import make_menu_item
-from styles import MiniFrame
-from styles import validator
-from utils.converters import str2int
-from utils.converters import str2num
-from utils.exceptions import MessageError
-from utils.ranges import get_min_max
-from utils.screen import calculate_window_size
-from utils.time import ttime
-from visuals import mpl_plots
+
+# Local imports
+from origami.styles import MiniFrame
+from origami.styles import validator
+from origami.styles import make_checkbox
+from origami.styles import make_menu_item
+from origami.visuals import mpl_plots
+from origami.utils.time import ttime
+from origami.utils.ranges import get_min_max
+from origami.utils.screen import calculate_window_size
+from origami.utils.converters import str2int
+from origami.utils.converters import str2num
+from origami.utils.exceptions import MessageError
 
 logger = logging.getLogger(__name__)
 
@@ -861,8 +867,8 @@ class PanelPeakPicker(MiniFrame):
         self.on_show_threshold_line(None)
 
     def on_add_to_annotations(self, evt):
-        from utils.labels import sanitize_string
-        from objects.annotations import check_annotation_input
+        from origami.utils.labels import sanitize_string
+        from origami.objects.annotations import check_annotation_input
 
         tstart = ttime()
         logger.info("Adding peaks to annotations...")

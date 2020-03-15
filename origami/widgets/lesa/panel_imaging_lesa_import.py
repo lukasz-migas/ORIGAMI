@@ -1,19 +1,19 @@
 # Standard library imports
-import logging
 import os
+import logging
 
 # Third-party imports
 import wx
 from pubsub import pub
 
 # Local imports
-from styles import ListCtrl
-from styles import make_checkbox
-from styles import make_spin_ctrl_int
-from styles import MiniFrame
-from styles import set_item_font
-from utils.decorators import signal_blocker
-from utils.exceptions import MessageError
+from origami.styles import ListCtrl
+from origami.styles import MiniFrame
+from origami.styles import make_checkbox
+from origami.styles import set_item_font
+from origami.styles import make_spin_ctrl_int
+from origami.utils.decorators import signal_blocker
+from origami.utils.exceptions import MessageError
 
 logger = logging.getLogger(__name__)
 
@@ -420,7 +420,7 @@ class PanelImagingImportDataset(MiniFrame):
 
     def on_clear_files(self, evt):
         """Clear filelist from existing files"""
-        from gui_elements.misc_dialogs import DialogBox
+        from origami.gui_elements.misc_dialogs import DialogBox
 
         dlg = DialogBox(
             exceptionTitle="Would you like to continue?",
@@ -463,7 +463,7 @@ class PanelImagingImportDataset(MiniFrame):
 
     def get_extraction_filelist(self):
         """Retrieve list parameters for data extraction"""
-        from utils.converters import str2int
+        from origami.utils.converters import str2int
 
         n_rows = self.peaklist.GetItemCount()
 
@@ -480,9 +480,9 @@ class PanelImagingImportDataset(MiniFrame):
 
     def get_extraction_processing_parameters(self):
         """Retrieve processing parameters"""
-        from utils.converters import str2num
-        from utils.converters import str2bool
-        from utils.ranges import get_min_max
+        from origami.utils.converters import str2num
+        from origami.utils.converters import str2bool
+        from origami.utils.ranges import get_min_max
 
         n_checked, mz_range, im_on, __ = self.get_list_parameters()
         if not n_checked:

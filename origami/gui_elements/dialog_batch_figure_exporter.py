@@ -2,12 +2,16 @@
 # __author__ lukasz.g.migas
 from __future__ import division
 
+# Standard library imports
 import logging
 
+# Third-party imports
 import wx
-from styles import Dialog
-from styles import make_checkbox
-from utils.path import check_path_exists
+
+# Local imports
+from origami.styles import Dialog
+from origami.styles import make_checkbox
+from origami.utils.path import check_path_exists
 
 logger = logging.getLogger(__name__)
 
@@ -221,7 +225,7 @@ class DialogExportFigures(Dialog):
 
     def on_save(self, evt):
         if not check_path_exists(self.config.image_folder_path):
-            from gui_elements.misc_dialogs import DialogBox
+            from origami.gui_elements.misc_dialogs import DialogBox
 
             dlg = DialogBox(
                 "Incorrect input path",

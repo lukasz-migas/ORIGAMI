@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import logging
-from itertools import groupby
 from operator import itemgetter
+from itertools import groupby
 
+# Third-party imports
 import numpy as np
 
 logger = logging.getLogger(__name__)

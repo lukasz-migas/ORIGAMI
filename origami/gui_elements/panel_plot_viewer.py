@@ -1,14 +1,19 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import logging
 
+# Third-party imports
 import wx
 
-from styles import MiniFrame
-from utils.ranges import get_min_max
-from utils.screen import calculate_window_size
-from utils.time import ttime
-from visuals.bkh_plots import PlotSpectrum
+# Local imports
+from origami.styles import MiniFrame
+from origami.utils.time import ttime
+from origami.utils.ranges import get_min_max
+from origami.utils.screen import calculate_window_size
+from origami.visuals.bkh_plots import PlotSpectrum
 
 logger = logging.getLogger(__name__)
 
@@ -20,9 +25,7 @@ class PanelPlotViewer(MiniFrame):
 
     def __init__(self, parent, presenter, config, icons, **kwargs):
         """Initlize panel"""
-        MiniFrame.__init__(
-            self, parent, title="Plot viewer...", style=wx.DEFAULT_FRAME_STYLE & ~(wx.MAXIMIZE_BOX)
-        )
+        MiniFrame.__init__(self, parent, title="Plot viewer...", style=wx.DEFAULT_FRAME_STYLE & ~(wx.MAXIMIZE_BOX))
         tstart = ttime()
 
         self.parent = parent
@@ -95,7 +98,6 @@ class PanelPlotViewer(MiniFrame):
         sizer_plot = wx.BoxSizer(wx.HORIZONTAL)
         sizer_plot.Add(self.plot.layout, 1, wx.EXPAND, 0)
 
-
         # pack element
         self.main_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.main_sizer.Add(sizer_plot, 1, wx.EXPAND, 0)
@@ -106,4 +108,3 @@ class PanelPlotViewer(MiniFrame):
         self.Layout()
         self.CentreOnScreen()
         self.SetFocus()
-

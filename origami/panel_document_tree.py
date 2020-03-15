@@ -1,117 +1,123 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import gc
-import logging
 import os
 import re
 import time
+import logging
 from copy import deepcopy
-from functools import partial
 from operator import itemgetter
+from functools import partial
 
+# Third-party imports
+import wx
 import numpy as np
 import pandas as pd
-import utils.labels as ut_labels
-import wx
-from gui_elements.misc_dialogs import DialogBox
-from gui_elements.misc_dialogs import DialogSimpleAsk
-from gui_elements.panel_document_information import PanelDocumentInformation
-from ids import ID_docTree_action_open_extract
-from ids import ID_docTree_action_open_extractDTMS
-from ids import ID_docTree_action_open_origami_ms
-from ids import ID_docTree_action_open_peak_picker
-from ids import ID_docTree_add_mzIdentML
-from ids import ID_docTree_addInteractiveToTextTable
-from ids import ID_docTree_addOneInteractiveToTextTable
-from ids import ID_docTree_addOneToMMLTable
-from ids import ID_docTree_addOneToTextTable
-from ids import ID_docTree_addToMMLTable
-from ids import ID_docTree_addToTextTable
-from ids import ID_docTree_compareMS
-from ids import ID_docTree_duplicate_document
-from ids import ID_docTree_plugin_UVPD
-from ids import ID_docTree_save_unidec
-from ids import ID_docTree_show_refresh_document
-from ids import ID_docTree_show_unidec
-from ids import ID_docTree_showMassSpectra
-from ids import ID_docTree_UniDec
-from ids import ID_duplicateItem
-from ids import ID_getSelectedDocument
-from ids import ID_goToDirectory
-from ids import ID_openDocInfo
-from ids import ID_process2DDocument
-from ids import ID_removeAllDocuments
-from ids import ID_removeDocument
-from ids import ID_renameItem
-from ids import ID_save1DImageDoc
-from ids import ID_save2DImageDoc
-from ids import ID_save3DImageDoc
-from ids import ID_saveAllDocuments
-from ids import ID_saveAsDataCSVDocument
-from ids import ID_saveAsDataCSVDocument1D
-from ids import ID_saveAsInteractive
-from ids import ID_saveData_csv
-from ids import ID_saveData_excel
-from ids import ID_saveData_hdf
-from ids import ID_saveData_pickle
-from ids import ID_saveDataCSVDocument
-from ids import ID_saveDataCSVDocument1D
-from ids import ID_saveDocument
-from ids import ID_saveRTImageDoc
-from ids import ID_saveWaterfallImageDoc
-from ids import ID_showPlot1DDocument
-from ids import ID_showPlotDocument
-from ids import ID_showPlotDocument_violin
-from ids import ID_showPlotDocument_waterfall
-from ids import ID_showPlotMSDocument
-from ids import ID_showPlotRTDocument
-from ids import ID_showSampleInfo
-from ids import ID_window_multipleMLList
-from ids import ID_window_textList
-from ids import ID_xlabel_1D_bins
-from ids import ID_xlabel_1D_ccs
-from ids import ID_xlabel_1D_ms
-from ids import ID_xlabel_1D_ms_arrival
-from ids import ID_xlabel_1D_restore
-from ids import ID_xlabel_2D_actLabFrame
-from ids import ID_xlabel_2D_actVolt
-from ids import ID_xlabel_2D_ccs
-from ids import ID_xlabel_2D_charge
-from ids import ID_xlabel_2D_colVolt
-from ids import ID_xlabel_2D_custom
-from ids import ID_xlabel_2D_labFrame
-from ids import ID_xlabel_2D_massToCharge
-from ids import ID_xlabel_2D_mz
-from ids import ID_xlabel_2D_restore
-from ids import ID_xlabel_2D_retTime_min
-from ids import ID_xlabel_2D_scans
-from ids import ID_xlabel_2D_time_min
-from ids import ID_xlabel_2D_wavenumber
-from ids import ID_xlabel_RT_restore
-from ids import ID_xlabel_RT_retTime_min
-from ids import ID_xlabel_RT_scans
-from ids import ID_xlabel_RT_time_min
-from ids import ID_ylabel_2D_bins
-from ids import ID_ylabel_2D_ccs
-from ids import ID_ylabel_2D_custom
-from ids import ID_ylabel_2D_ms
-from ids import ID_ylabel_2D_ms_arrival
-from ids import ID_ylabel_2D_restore
-from ids import ID_ylabel_DTMS_bins
-from ids import ID_ylabel_DTMS_ms
-from ids import ID_ylabel_DTMS_ms_arrival
-from ids import ID_ylabel_DTMS_restore
 from natsort import natsorted
-from readers.io_text_files import saveAsText
-from styles import make_menu_item
-from utils.color import convert_rgb_1_to_255
-from utils.color import convert_rgb_255_to_1
-from utils.color import get_font_color
-from utils.converters import byte2str
-from utils.converters import str2int
-from utils.converters import str2num
-from utils.exceptions import MessageError
-from utils.path import clean_filename
+
+# Local imports
+import origami.utils.labels as ut_labels
+from origami.ids import ID_renameItem
+from origami.ids import ID_openDocInfo
+from origami.ids import ID_saveData_csv
+from origami.ids import ID_saveData_hdf
+from origami.ids import ID_saveDocument
+from origami.ids import ID_xlabel_1D_ms
+from origami.ids import ID_xlabel_2D_mz
+from origami.ids import ID_ylabel_2D_ms
+from origami.ids import ID_duplicateItem
+from origami.ids import ID_goToDirectory
+from origami.ids import ID_xlabel_1D_ccs
+from origami.ids import ID_xlabel_2D_ccs
+from origami.ids import ID_ylabel_2D_ccs
+from origami.ids import ID_docTree_UniDec
+from origami.ids import ID_removeDocument
+from origami.ids import ID_save1DImageDoc
+from origami.ids import ID_save2DImageDoc
+from origami.ids import ID_save3DImageDoc
+from origami.ids import ID_saveData_excel
+from origami.ids import ID_saveRTImageDoc
+from origami.ids import ID_showSampleInfo
+from origami.ids import ID_xlabel_1D_bins
+from origami.ids import ID_ylabel_2D_bins
+from origami.ids import ID_ylabel_DTMS_ms
+from origami.ids import ID_saveData_pickle
+from origami.ids import ID_window_textList
+from origami.ids import ID_xlabel_2D_scans
+from origami.ids import ID_xlabel_RT_scans
+from origami.ids import ID_saveAllDocuments
+from origami.ids import ID_showPlotDocument
+from origami.ids import ID_xlabel_2D_charge
+from origami.ids import ID_xlabel_2D_custom
+from origami.ids import ID_ylabel_2D_custom
+from origami.ids import ID_ylabel_DTMS_bins
+from origami.ids import ID_docTree_compareMS
+from origami.ids import ID_process2DDocument
+from origami.ids import ID_saveAsInteractive
+from origami.ids import ID_xlabel_1D_restore
+from origami.ids import ID_xlabel_2D_actVolt
+from origami.ids import ID_xlabel_2D_colVolt
+from origami.ids import ID_xlabel_2D_restore
+from origami.ids import ID_xlabel_RT_restore
+from origami.ids import ID_ylabel_2D_restore
+from origami.ids import ID_removeAllDocuments
+from origami.ids import ID_showPlot1DDocument
+from origami.ids import ID_showPlotMSDocument
+from origami.ids import ID_showPlotRTDocument
+from origami.ids import ID_xlabel_2D_labFrame
+from origami.ids import ID_xlabel_2D_time_min
+from origami.ids import ID_xlabel_RT_time_min
+from origami.ids import ID_docTree_plugin_UVPD
+from origami.ids import ID_docTree_save_unidec
+from origami.ids import ID_docTree_show_unidec
+from origami.ids import ID_getSelectedDocument
+from origami.ids import ID_saveDataCSVDocument
+from origami.ids import ID_ylabel_DTMS_restore
+from origami.ids import ID_xlabel_1D_ms_arrival
+from origami.ids import ID_xlabel_2D_wavenumber
+from origami.ids import ID_ylabel_2D_ms_arrival
+from origami.ids import ID_docTree_add_mzIdentML
+from origami.ids import ID_docTree_addToMMLTable
+from origami.ids import ID_saveAsDataCSVDocument
+from origami.ids import ID_saveDataCSVDocument1D
+from origami.ids import ID_saveWaterfallImageDoc
+from origami.ids import ID_window_multipleMLList
+from origami.ids import ID_xlabel_2D_actLabFrame
+from origami.ids import ID_xlabel_2D_retTime_min
+from origami.ids import ID_xlabel_RT_retTime_min
+from origami.ids import ID_docTree_addToTextTable
+from origami.ids import ID_xlabel_2D_massToCharge
+from origami.ids import ID_ylabel_DTMS_ms_arrival
+from origami.ids import ID_docTree_showMassSpectra
+from origami.ids import ID_saveAsDataCSVDocument1D
+from origami.ids import ID_showPlotDocument_violin
+from origami.ids import ID_docTree_addOneToMMLTable
+from origami.ids import ID_docTree_addOneToTextTable
+from origami.ids import ID_docTree_duplicate_document
+from origami.ids import ID_showPlotDocument_waterfall
+from origami.ids import ID_docTree_action_open_extract
+from origami.ids import ID_docTree_show_refresh_document
+from origami.ids import ID_docTree_action_open_origami_ms
+from origami.ids import ID_docTree_action_open_extractDTMS
+from origami.ids import ID_docTree_action_open_peak_picker
+from origami.ids import ID_docTree_addInteractiveToTextTable
+from origami.ids import ID_docTree_addOneInteractiveToTextTable
+from origami.styles import make_menu_item
+from origami.utils.path import clean_filename
+from origami.utils.color import get_font_color
+from origami.utils.color import convert_rgb_1_to_255
+from origami.utils.color import convert_rgb_255_to_1
+from origami.utils.converters import str2int
+from origami.utils.converters import str2num
+from origami.utils.converters import byte2str
+from origami.utils.exceptions import MessageError
+from origami.readers.io_text_files import saveAsText
+from origami.gui_elements.misc_dialogs import DialogBox
+from origami.gui_elements.misc_dialogs import DialogSimpleAsk
+from origami.gui_elements.panel_document_information import PanelDocumentInformation
 
 logger = logging.getLogger(__name__)
 
@@ -144,9 +150,7 @@ class PanelDocumentTree(wx.Panel):
 
 
 class DocumentTree(wx.TreeCtrl):
-    """
-    Documents tree
-    """
+    """Documents tree"""
 
     def __init__(
         self,
@@ -1225,7 +1229,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_annotation_editor(self, evt):
         """Open annotations panel"""
-        from gui_elements.panel_peak_annotation_editor import PanelPeakAnnotationEditor
+        from origami.gui_elements.panel_peak_annotation_editor import PanelPeakAnnotationEditor
 
         if self._annotate_panel is not None:
             raise MessageError(
@@ -1304,7 +1308,7 @@ class DocumentTree(wx.TreeCtrl):
         evt : wxPython event
             unused
         """
-        from gui_elements.dialog_select_dataset import DialogSelectDataset
+        from origami.gui_elements.dialog_select_dataset import DialogSelectDataset
 
         # get data
         document_title, dataset_type, dataset_name = self._get_query_info_based_on_indent()
@@ -1389,7 +1393,7 @@ class DocumentTree(wx.TreeCtrl):
         )
 
     def on_action_ORIGAMI_MS(self, evt, document_title=None):
-        from gui_elements.dialog_customise_origami import DialogCustomiseORIGAMI
+        from origami.gui_elements.dialog_customise_origami import DialogCustomiseORIGAMI
 
         # get document
         document = self.data_handling.on_get_document(document_title)
@@ -1401,40 +1405,41 @@ class DocumentTree(wx.TreeCtrl):
         dlg = DialogCustomiseORIGAMI(self, self.presenter, self.config, document_title=document_title)
         dlg.ShowModal()
 
-#     def on_open_interactive_viewer(self, evt):
-#         from gui_elements.panel_plot_viewer import PanelPlotViewer
-#
-#         # get data
-#         document_title, dataset_type, dataset_name = self._get_query_info_based_on_indent()
-#         __, data = self.data_handling.get_mobility_chromatographic_data([document_title, dataset_type, dataset_name])
-#
-#         # initilize peak picker
-#         self._bokeh_panel = PanelPlotViewer(
-#             self.presenter.view,
-#             self.presenter,
-#             self.config,
-#             self.icons,
-#             mz_data=data,
-#             document_title=document_title,
-#             dataset_type=dataset_type,
-#             dataset_name=dataset_name,
-#         )
-#         self._bokeh_panel.Show()
+    #     def on_open_interactive_viewer(self, evt):
+    #         from origami.gui_elements.panel_plot_viewer import PanelPlotViewer
+    #
+    #         # get data
+    #         document_title, dataset_type, dataset_name = self._get_query_info_based_on_indent()
+    #         __, data = self.data_handling.get_mobility_chromatographic_data([document_title, dataset_type,
+    # dataset_name])
+    #
+    #         # initilize peak picker
+    #         self._bokeh_panel = PanelPlotViewer(
+    #             self.presenter.view,
+    #             self.presenter,
+    #             self.config,
+    #             self.icons,
+    #             mz_data=data,
+    #             document_title=document_title,
+    #             dataset_type=dataset_type,
+    #             dataset_name=dataset_name,
+    #         )
+    #         self._bokeh_panel.Show()
 
     def on_open_overlay_viewer(self, evt):
-        from widgets.overlay.panel_overlay_viewer import PanelOverlayViewer
+        from origami.widgets.overlay.panel_overlay_viewer import PanelOverlayViewer
 
         self._overlay_panel = PanelOverlayViewer(self.view, self.presenter, self.config, self.icons)
         self._overlay_panel.Show()
 
     def on_open_lesa_viewer(self, evt):
-        from widgets.lesa.panel_imaging_lesa import PanelImagingLESAViewer
+        from origami.widgets.lesa.panel_imaging_lesa import PanelImagingLESAViewer
 
         self._lesa_panel = PanelImagingLESAViewer(self.view, self.presenter, self.config, self.icons)
         self._lesa_panel.Show()
 
     def on_import_lesa_dataset(self, evt):
-        from widgets.lesa.panel_imaging_lesa_import import PanelImagingImportDataset
+        from origami.widgets.lesa.panel_imaging_lesa_import import PanelImagingImportDataset
 
         self._import_panel = PanelImagingImportDataset(self.view, self.presenter, self.config, self.icons)
         self._import_panel.Show()
@@ -2852,7 +2857,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_spectrum_comparison_viewer(self, evt):
         """Open panel where user can select mas spectra to compare """
-        from widgets.panel_signal_comparison_viewer import PanelSignalComparisonViewer
+        from origami.widgets.panel_signal_comparison_viewer import PanelSignalComparisonViewer
 
         if self._item_id is None:
             return
@@ -2916,7 +2921,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_process_2D_settings(self, **kwargs):
         """Open heatmap processing settings"""
-        from gui_elements.panel_process_heatmap import PanelProcessHeatmap
+        from origami.gui_elements.panel_process_heatmap import PanelProcessHeatmap
 
         panel = PanelProcessHeatmap(self.presenter.view, self.presenter, self.config, self.icons, **kwargs)
         panel.Show()
@@ -2959,7 +2964,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_process_MS_settings(self, **kwargs):
         """Open mass spectrum processing settings"""
-        from gui_elements.panel_process_spectrum import PanelProcessMassSpectrum
+        from origami.gui_elements.panel_process_spectrum import PanelProcessMassSpectrum
 
         panel = PanelProcessMassSpectrum(self.presenter.view, self.presenter, self.config, self.icons, **kwargs)
         panel.Show()
@@ -3017,7 +3022,7 @@ class DocumentTree(wx.TreeCtrl):
     # TODO: should restore items to various side panels
 
     def onRenameItem(self, evt):
-        from gui_elements.dialog_rename import DialogRenameObject
+        from origami.gui_elements.dialog_rename import DialogRenameObject
 
         if self._document_data is None:
             return
@@ -4924,13 +4929,13 @@ class DocumentTree(wx.TreeCtrl):
 
         kwargs = {"title": "Sample information...", "information": sample_information}
 
-        from gui_elements.panel_file_information import PanelInformation
+        from origami.gui_elements.panel_file_information import PanelInformation
 
         info = PanelInformation(self, **kwargs)
         info.Show()
 
     def on_open_MSMS_viewer(self, evt=None, **kwargs):
-        from widgets.panel_tandem_spectra_viewer import PanelTandemSpectraViewer
+        from origami.widgets.panel_tandem_spectra_viewer import PanelTandemSpectraViewer
 
         self.panelTandemSpectra = PanelTandemSpectraViewer(
             self.presenter.view, self.presenter, self.config, self.icons, **kwargs
@@ -4938,13 +4943,13 @@ class DocumentTree(wx.TreeCtrl):
         self.panelTandemSpectra.Show()
 
     def on_process_UVPD(self, evt=None, **kwargs):
-        from widgets.panel_UVPD_editor import PanelUVPDEditor
+        from origami.widgets.panel_UVPD_editor import PanelUVPDEditor
 
         self.panelUVPD = PanelUVPDEditor(self.presenter.view, self.presenter, self.config, self.icons, **kwargs)
         self.panelUVPD.Show()
 
     def on_open_extract_DTMS(self, evt):
-        from gui_elements.panel_process_extract_dtms import PanelProcessExtractDTMS
+        from origami.gui_elements.panel_process_extract_dtms import PanelProcessExtractDTMS
 
         self.PanelProcessExtractDTMS = PanelProcessExtractDTMS(
             self.presenter.view, self.presenter, self.config, self.icons
@@ -4953,7 +4958,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_peak_picker(self, evt, **kwargs):
         """Open peak picker"""
-        from gui_elements.panel_peak_picker import PanelPeakPicker
+        from origami.gui_elements.panel_peak_picker import PanelPeakPicker
 
         # get data
         document_title, dataset_type, dataset_name = self._get_query_info_based_on_indent()
@@ -4977,7 +4982,7 @@ class DocumentTree(wx.TreeCtrl):
         self._picker_panel.Show()
 
     def on_open_extract_data(self, evt, **kwargs):
-        from gui_elements.panel_process_extract_data import PanelProcessExtractData
+        from origami.gui_elements.panel_process_extract_data import PanelProcessExtractData
 
         document = self.data_handling.on_get_document()
 
@@ -4994,7 +4999,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_UniDec(self, evt, **kwargs):
         """Open UniDec panel which allows processing and visualisation"""
-        from widgets.UniDec.panel_process_UniDec import PanelProcessUniDec
+        from origami.widgets.UniDec.panel_process_UniDec import PanelProcessUniDec
 
         # get data
         document_title, dataset_type, dataset_name = self._get_query_info_based_on_indent()

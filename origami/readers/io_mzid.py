@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
-import gzip
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import os
+import gzip
 import zipfile
 
+# Third-party imports
 from pyteomics import mzid
 
 

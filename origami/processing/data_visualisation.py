@@ -1,18 +1,22 @@
 """Data visualisation module"""
+# Standard library imports
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 import logging
 
+# Third-party imports
 import numpy as np
-import processing.activation as pr_activation
-import processing.heatmap as pr_heatmap
-import processing.spectra as pr_spectra
 from numpy.ma.core import masked_array
-from utils.color import combine_rgb
-from utils.color import convert_rgb_255_to_1
-from utils.color import make_rgb_cube
-from utils.exceptions import MessageError
-from utils.visuals import calculate_label_position
+
+# Local imports
+import origami.processing.heatmap as pr_heatmap
+import origami.processing.spectra as pr_spectra
+import origami.processing.activation as pr_activation
+from origami.utils.color import combine_rgb
+from origami.utils.color import make_rgb_cube
+from origami.utils.color import convert_rgb_255_to_1
+from origami.utils.visuals import calculate_label_position
+from origami.utils.exceptions import MessageError
 
 logger = logging.getLogger(__name__)
 

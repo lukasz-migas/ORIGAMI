@@ -1,14 +1,15 @@
 """ Waters
     MassLynx Python SDK
 """
+# Standard library imports
+import os
 # import string
 import ctypes
-import os
-from ctypes import c_char_p
-from ctypes import c_int
-from ctypes import c_void_p
-from ctypes import POINTER
 from enum import IntEnum
+from ctypes import POINTER
+from ctypes import c_int
+from ctypes import c_char_p
+from ctypes import c_void_p
 
 
 class MassLynxBaseType(IntEnum):

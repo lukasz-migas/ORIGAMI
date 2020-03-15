@@ -1,18 +1,24 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
-import logging
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import os
 import time
+import logging
 
+# Third-party imports
 import numpy as np
 import pandas as pd
-from readers.io_utils import remove_non_digits_from_list
-from utils.color import check_color_type
-from utils.color import convert_hex_to_rgb_1
-from utils.color import get_n_colors
-from utils.color import get_random_color
-from utils.labels import _replace_labels
-from utils.visuals import check_n_grid_dimensions
+
+# Local imports
+from origami.utils.color import get_n_colors
+from origami.utils.color import check_color_type
+from origami.utils.color import get_random_color
+from origami.utils.color import convert_hex_to_rgb_1
+from origami.utils.labels import _replace_labels
+from origami.utils.visuals import check_n_grid_dimensions
+from origami.readers.io_utils import remove_non_digits_from_list
 
 logger = logging.getLogger(__name__)
 

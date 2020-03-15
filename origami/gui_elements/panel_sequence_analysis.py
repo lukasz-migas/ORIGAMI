@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Third-party imports
+# Third-party imports
+# Third-party imports
 import wx
-from help_documentation import OrigamiHelp
+
+# Local imports
+from origami.help_documentation import OrigamiHelp
 
 
 class panelSequenceAnalysis(wx.MiniFrame):

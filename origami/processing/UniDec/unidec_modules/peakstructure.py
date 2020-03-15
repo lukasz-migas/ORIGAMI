@@ -1,9 +1,13 @@
+# Standard library imports
 import math
 import string
 
-import matplotlib.cm as cm
+# Third-party imports
 import numpy as np
-from processing.UniDec.unidec_modules import unidectools as ud
+import matplotlib.cm as cm
+
+# Local imports
+from origami.processing.UniDec.unidec_modules import unidectools as ud
 
 __author__ = "Michael.Marty"
 

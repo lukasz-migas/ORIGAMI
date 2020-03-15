@@ -1,4 +1,5 @@
-from utils.screen import calculate_window_size
+# Local imports
+from origami.utils.screen import calculate_window_size
 
 
 class TestScreen(object):

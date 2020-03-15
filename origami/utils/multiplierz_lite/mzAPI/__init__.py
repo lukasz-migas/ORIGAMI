@@ -29,10 +29,12 @@ __author__ = "Jignesh Parikh, James Webber, William Max Alexander"
 
 __all__ = ["mzFile"]
 
-import pickle
+# Standard library imports
 import os
+import pickle
 
-from utils.multiplierz_lite import logger_message
+# Local imports
+from origami.utils.multiplierz_lite import logger_message
 
 
 def make_info_file(data_file, **kwargs):
@@ -57,7 +59,7 @@ def make_info_file(data_file, **kwargs):
 
     if file_type == "mzml":
         pass
-    #         from utils.multiplierz_lite.mzAPI import mzML
+    #         from origami.utils.multiplierz_lite.mzAPI import mzML
     #         mzML.make_info_file(data_file)
     else:
         my_file = mzFile(data_file, **kwargs)
@@ -192,7 +194,7 @@ class mzFile(object):
             raise IOError("%s not found." % data_file)
 
         elif data_file.lower().endswith(".raw"):
-            from utils.multiplierz_lite.mzAPI import raw
+            from origami.utils.multiplierz_lite.mzAPI import raw
 
             self.__class__ = raw.mzFile
             self.format = "raw"
@@ -202,7 +204,7 @@ class mzFile(object):
             or data_file.lower().endswith(".mzml.gz")
             or data_file.lower().endswith(".mzmlsql")
         ):
-            from utils.multiplierz_lite.mzAPI import mzML
+            from origami.utils.multiplierz_lite.mzAPI import mzML
 
             self.__class__ = mzML.mzFile
             self.format = "mzml"

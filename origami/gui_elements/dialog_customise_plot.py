@@ -1,13 +1,18 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
-import matplotlib.ticker as ticker
-import numpy as np
+# Third-party imports
+# Third-party imports
+# Third-party imports
 import wx
-from styles import make_checkbox
-from styles import validator
-from utils.converters import str2num
-from utils.labels import _replace_labels
-from visuals.normalize import MidpointNormalize
+import numpy as np
+import matplotlib.ticker as ticker
+
+# Local imports
+from origami.styles import validator
+from origami.styles import make_checkbox
+from origami.utils.labels import _replace_labels
+from origami.utils.converters import str2num
+from origami.visuals.normalize import MidpointNormalize
 
 
 class DialogCustomisePlot(wx.Dialog):

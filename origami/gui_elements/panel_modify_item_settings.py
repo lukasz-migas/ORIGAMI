@@ -1,14 +1,19 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Third-party imports
+# Third-party imports
+# Third-party imports
 import wx
-from icons.icons import IconContainer
-from styles import make_bitmap_btn
-from styles import make_checkbox
-from styles import MiniFrame
-from styles import validator
-from utils.converters import num2str
-from utils.converters import str2int
-from utils.labels import get_ion_name_from_label
+
+# Local imports
+from origami.styles import MiniFrame
+from origami.styles import validator
+from origami.styles import make_checkbox
+from origami.styles import make_bitmap_btn
+from origami.icons.icons import IconContainer
+from origami.utils.labels import get_ion_name_from_label
+from origami.utils.converters import num2str
+from origami.utils.converters import str2int
 
 
 # TODO: Add possibility to visualise heatmap as false-color image
@@ -426,7 +431,7 @@ class PanelModifyItemSettings(MiniFrame):
             evt.Skip()
 
     def on_assign_random_color(self, evt):
-        from utils.color import get_random_color
+        from origami.utils.color import get_random_color
 
         color = get_random_color(True)
         self.color_value.SetBackgroundColour(color)

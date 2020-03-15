@@ -1,12 +1,17 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Third-party imports
+# Third-party imports
+# Third-party imports
 import wx
-from ids import ID_helpAuthor
-from ids import ID_helpCite
-from ids import ID_helpGitHub
-from ids import ID_helpHomepage
-from ids import ID_helpNewFeatures
-from ids import ID_helpReportBugs
+
+# Local imports
+from origami.ids import ID_helpCite
+from origami.ids import ID_helpAuthor
+from origami.ids import ID_helpGitHub
+from origami.ids import ID_helpHomepage
+from origami.ids import ID_helpReportBugs
+from origami.ids import ID_helpNewFeatures
 
 
 class PanelAbout(wx.MiniFrame):

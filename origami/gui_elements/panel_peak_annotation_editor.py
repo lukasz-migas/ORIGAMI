@@ -3,33 +3,34 @@
 import copy
 import logging
 
+# Third-party imports
+import wx
 # Third party imports
 import numpy as np
-import processing.utils as pr_utils
-import wx
+from pubsub import pub
 
 # Local imports
-from gui_elements.misc_dialogs import DialogSimpleAsk
-from objects.annotations import check_annotation_input
-from pubsub import pub
-from styles import ListCtrl
-from styles import make_checkbox
-from styles import make_menu_item
-from styles import validator
-from utils.check import check_value_order
-from utils.color import convert_rgb_1_to_255
-from utils.color import convert_rgb_255_to_1
-from utils.color import get_all_color_types
-from utils.color import get_font_color
-from utils.color import round_rgb
-from utils.converters import rounder
-from utils.converters import str2int
-from utils.converters import str2num
-from utils.exceptions import MessageError
-from utils.labels import sanitize_string
-from utils.screen import calculate_window_size
-from utils.time import ttime
-from visuals import mpl_plots
+import origami.processing.utils as pr_utils
+from origami.styles import ListCtrl
+from origami.styles import validator
+from origami.styles import make_checkbox
+from origami.styles import make_menu_item
+from origami.visuals import mpl_plots
+from origami.utils.time import ttime
+from origami.utils.check import check_value_order
+from origami.utils.color import round_rgb
+from origami.utils.color import get_font_color
+from origami.utils.color import get_all_color_types
+from origami.utils.color import convert_rgb_1_to_255
+from origami.utils.color import convert_rgb_255_to_1
+from origami.utils.labels import sanitize_string
+from origami.utils.screen import calculate_window_size
+from origami.utils.converters import rounder
+from origami.utils.converters import str2int
+from origami.utils.converters import str2num
+from origami.utils.exceptions import MessageError
+from origami.objects.annotations import check_annotation_input
+from origami.gui_elements.misc_dialogs import DialogSimpleAsk
 
 # Module globals
 logger = logging.getLogger(__name__)
@@ -821,7 +822,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
                 self.on_add_label_to_plot(annotation_obj)
 
     def on_customise_parameters(self, evt):
-        from gui_elements.dialog_customise_user_annotations import DialogCustomiseUserAnnotations
+        from origami.gui_elements.dialog_customise_user_annotations import DialogCustomiseUserAnnotations
 
         dlg = DialogCustomiseUserAnnotations(self, config=self.config)
         dlg.ShowModal()
@@ -909,7 +910,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         self.on_show_on_plot(None)
 
     def on_assign_color(self, evt):
-        from gui_elements.dialog_color_picker import DialogColorPicker
+        from origami.gui_elements.dialog_color_picker import DialogColorPicker
 
         dlg = DialogColorPicker(self, self.config.customColors)
         if dlg.ShowModal() == "ok":

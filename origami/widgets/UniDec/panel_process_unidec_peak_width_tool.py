@@ -1,15 +1,20 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
-import numpy as np
+# Third-party imports
+# Third-party imports
+# Third-party imports
 import wx
-from gui_elements.misc_dialogs import DialogBox
-from help_documentation import OrigamiHelp
-from processing.UniDec.unidec_modules.fitting import isolated_peak_fit
-from processing.utils import get_narrow_data_range
-from styles import make_tooltip
-from styles import validator
-from utils.converters import str2num
-from visuals import mpl_plots
+import numpy as np
+
+# Local imports
+from origami.styles import validator
+from origami.styles import make_tooltip
+from origami.visuals import mpl_plots
+from origami.processing.utils import get_narrow_data_range
+from origami.utils.converters import str2num
+from origami.help_documentation import OrigamiHelp
+from origami.gui_elements.misc_dialogs import DialogBox
+from origami.processing.UniDec.unidec_modules.fitting import isolated_peak_fit
 
 
 class PanelPeakWidthTool(wx.MiniFrame):

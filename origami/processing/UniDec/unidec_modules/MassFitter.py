@@ -1,6 +1,9 @@
+# Third-party imports
 import numpy as np
 import scipy.optimize as opt
-from processing.UniDec.unidec_modules import unidectools as ud
+
+# Local imports
+from origami.processing.UniDec.unidec_modules import unidectools as ud
 
 __author__ = "Michael.Marty"
 

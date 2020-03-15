@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Standard library imports
+# Standard library imports
+import sys
 import copy
-import logging
-import pickle
 import time
+import pickle
+import logging
 
-from utils.path import check_file_exists
+# Local imports
+from origami.utils.path import check_file_exists
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +50,6 @@ def open_py_object(filename):
                 except Exception as err:
                     # try loading as python 2 with wxPython2 support
                     try:
-                        import sys
                         from wx import _core
 
                         sys.modules["wx._gdi"] = _core

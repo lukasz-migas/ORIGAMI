@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import re
 from operator import itemgetter
 
+# Third-party imports
 import numpy as np
-import processing.utils as pr_utils
 from natsort.natsort import natsorted
+
+# Local imports
+import origami.processing.utils as pr_utils
 
 
 def unidec_sort_MW_list(mass_list, column_id):

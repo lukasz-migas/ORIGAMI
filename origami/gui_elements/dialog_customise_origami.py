@@ -1,16 +1,21 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
-import numpy as np
-import processing.origami_ms as pr_origami
+# Third-party imports
+# Third-party imports
+# Third-party imports
 import wx
-from gui_elements.misc_dialogs import DialogBox
-from styles import Dialog
-from styles import validator
-from utils.converters import str2int
-from utils.converters import str2num
-from utils.exceptions import MessageError
-from utils.screen import calculate_window_size
-from visuals import mpl_plots
+import numpy as np
+
+# Local imports
+import origami.processing.origami_ms as pr_origami
+from origami.styles import Dialog
+from origami.styles import validator
+from origami.visuals import mpl_plots
+from origami.utils.screen import calculate_window_size
+from origami.utils.converters import str2int
+from origami.utils.converters import str2num
+from origami.utils.exceptions import MessageError
+from origami.gui_elements.misc_dialogs import DialogBox
 
 # TODO: Add limits to some of the parameters as in ORIGAMI-MS GUI
 #    Botlzmann offset: min = 10.0 max = 100

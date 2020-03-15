@@ -11,12 +11,14 @@ It is a pretty good wavelet-based peak picker that should be useful for DT peak 
 # __author__ lukasz.g.migas
 from __future__ import division
 
+# Standard library imports
 from collections import deque
 
+# Third-party imports
 import numpy as np
-from scipy.signal import fftconvolve
 from scipy.stats import mode
 from scipy.stats import scoreatpercentile
+from scipy.signal import fftconvolve
 
 
 def mexican_hat(points, a):

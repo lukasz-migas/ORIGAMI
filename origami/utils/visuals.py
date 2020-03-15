@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Third-party imports
+# Third-party imports
+# Third-party imports
 import numpy as np
-from utils.check import isbool
-from utils.converters import str2int
-from utils.converters import str2num
+
+# Local imports
+from origami.utils.check import isbool
+from origami.utils.converters import str2int
+from origami.utils.converters import str2num
 
 
 def prettify_tick_format(tick_labels):

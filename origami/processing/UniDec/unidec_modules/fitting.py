@@ -1,7 +1,8 @@
+# Third-party imports
 import numpy as np
 import scipy.optimize as opt
-from scipy import special
 from scipy import stats
+from scipy import special
 from scipy.optimize import curve_fit
 
 

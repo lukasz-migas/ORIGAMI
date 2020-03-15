@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
-from gui_elements.misc_dialogs import DialogBox
+# Local imports
+# Local imports
+# Local imports
+from origami.gui_elements.misc_dialogs import DialogBox
 
 
 class IncorrectValueError(Exception):

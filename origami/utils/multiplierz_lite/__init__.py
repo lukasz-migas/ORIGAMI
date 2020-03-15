@@ -15,9 +15,12 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with multiplierz.  If not, see <http://www.gnu.org/licenses/>.
-import logging
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import os
 import sys
+import logging
 
 __author__ = "Jignesh Parikh, James Webber, William Max Alexander"
 __version__ = "2.0.0"

@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
-from itertools import groupby
+# Standard library imports
+# Standard library imports
+# Standard library imports
 from operator import itemgetter
+from itertools import groupby
 
+# Third-party imports
 import numpy as np
 from scipy.signal import find_peaks
-from utils.check import check_value_order
+
+# Local imports
+from origami.utils.check import check_value_order
 
 
 def nthroot(value, n):

@@ -1,58 +1,62 @@
 """Data handling module"""
+# Standard library imports
+import os
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 import copy
-import logging
 import math
-import os
+import logging
 import threading
-from multiprocessing.pool import ThreadPool
 from sys import platform
+from multiprocessing.pool import ThreadPool
 
-import numpy as np
-import objects.annotations as annotations_obj
-import processing.heatmap as pr_heatmap
-import processing.origami_ms as pr_origami
-import processing.spectra as pr_spectra
-import utils.labels as ut_labels
+# Third-party imports
 import wx
-from document import document as documents
-from gui_elements.dialog_select_document import DialogSelectDocument
-from gui_elements.misc_dialogs import DialogBox
-from ids import ID_load_masslynx_raw
-from ids import ID_load_origami_masslynx_raw
-from ids import ID_openIRRawFile
-from processing.imaging import ImagingNormalizationProcessor
-from processing.utils import find_nearest_index
-from processing.utils import get_maximum_value_in_range
+import numpy as np
 from pubsub import pub
-from readers import io_document
-from readers import io_text_files
-from utils.check import check_axes_spacing
-from utils.check import check_value_order
-from utils.check import isempty
-from utils.color import convert_rgb_1_to_255
-from utils.color import convert_rgb_255_to_1
-from utils.color import get_random_color
-from utils.converters import byte2str
-from utils.converters import str2num
-from utils.exceptions import MessageError
-from utils.path import check_path_exists
-from utils.path import check_waters_path
-from utils.path import clean_filename
-from utils.path import get_base_path
-from utils.path import get_path_and_fname
-from utils.random import get_random_int
-from utils.ranges import get_min_max
-from utils.time import getTime
-from utils.time import ttime
-from gui_elements.dialog_multi_directory_picker import DialogMultiDirPicker
+
+# Local imports
+import origami.utils.labels as ut_labels
+import origami.processing.heatmap as pr_heatmap
+import origami.processing.spectra as pr_spectra
+import origami.objects.annotations as annotations_obj
+import origami.processing.origami_ms as pr_origami
+from origami.ids import ID_openIRRawFile
+from origami.ids import ID_load_masslynx_raw
+from origami.ids import ID_load_origami_masslynx_raw
+from origami.readers import io_document
+from origami.readers import io_text_files
+from origami.document import document as documents
+from origami.utils.path import get_base_path
+from origami.utils.path import clean_filename
+from origami.utils.path import check_path_exists
+from origami.utils.path import check_waters_path
+from origami.utils.path import get_path_and_fname
+from origami.utils.time import ttime
+from origami.utils.time import getTime
+from origami.utils.check import isempty
+from origami.utils.check import check_value_order
+from origami.utils.check import check_axes_spacing
+from origami.utils.color import get_random_color
+from origami.utils.color import convert_rgb_1_to_255
+from origami.utils.color import convert_rgb_255_to_1
+from origami.utils.random import get_random_int
+from origami.utils.ranges import get_min_max
+from origami.processing.utils import find_nearest_index
+from origami.processing.utils import get_maximum_value_in_range
+from origami.utils.converters import str2num
+from origami.utils.converters import byte2str
+from origami.utils.exceptions import MessageError
+from origami.processing.imaging import ImagingNormalizationProcessor
+from origami.gui_elements.misc_dialogs import DialogBox
+from origami.gui_elements.dialog_select_document import DialogSelectDocument
+from origami.gui_elements.dialog_multi_directory_picker import DialogMultiDirPicker
 
 # enable on windowsOS only
 if platform == "win32":
-    import readers.io_waters_raw as io_waters
-    import readers.io_waters_raw_api as io_waters_raw_api
-    from readers import io_thermo_raw
+    import origami.readers.io_waters_raw as io_waters
+    import origami.readers.io_waters_raw_api as io_waters_raw_api
+    from origami.readers import io_thermo_raw
 
 logger = logging.getLogger(__name__)
 
@@ -665,7 +669,7 @@ class DataHandling:
             logger.error(err)
 
     def on_load_annotated_data(self, filename):
-        from readers.io_text_files import AnnotatedDataReader
+        from origami.readers.io_text_files import AnnotatedDataReader
 
         reader = AnnotatedDataReader(filename)
 
@@ -1241,7 +1245,7 @@ class DataHandling:
             self.on_threading(action="load.raw.mgf", args=(evt,))
 
     def on_open_MGF_file(self, evt=None):
-        from readers import io_mgf
+        from origami.readers import io_mgf
 
         dlg = wx.FileDialog(
             self.presenter.view, "Open MGF file", wildcard="*.mgf; *.MGF", style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR
@@ -1279,7 +1283,7 @@ class DataHandling:
             self.on_threading(action="load.raw.mzml", args=(evt,))
 
     def on_open_mzML_file(self, evt=None):
-        from readers import io_mzml
+        from origami.readers import io_mzml
 
         dlg = wx.FileDialog(
             self.presenter.view,
@@ -1320,7 +1324,7 @@ class DataHandling:
             self.on_threading(action="load.add.mzidentml", args=(evt,))
 
     def on_add_mzID_file(self, evt):
-        from readers import io_mzid
+        from origami.readers import io_mzid
 
         document = self.on_get_document()
 
@@ -1342,11 +1346,11 @@ class DataHandling:
             except KeyError:
                 logger.warning("Missing file reader. Creating a new instance of the reader...")
                 if document.fileFormat == "Format: .mgf":
-                    from readers import io_mgf
+                    from origami.readers import io_mgf
 
                     document.file_reader["data_reader"] = io_mgf.MGFreader(filename=document.path)
                 elif document.fileFormat == "Format: .mzML":
-                    from readers import io_mzml
+                    from origami.readers import io_mzml
 
                     document.file_reader["data_reader"] = io_mzml.mzMLreader(filename=document.path)
                 else:
@@ -2312,7 +2316,7 @@ class DataHandling:
         out : np.array
             image array
         """
-        from processing.utils import get_narrow_data_range_1D
+        from origami.processing.utils import get_narrow_data_range_1D
 
         document = self.on_get_document(document_title)
 
@@ -2351,7 +2355,7 @@ class DataHandling:
         out : np.array
             image array
         """
-        from processing.utils import get_narrow_data_range_1D
+        from origami.processing.utils import get_narrow_data_range_1D
 
         document = self.on_get_document(document_title)
 
@@ -3553,7 +3557,7 @@ class DataHandling:
         item_list : list
             list of items to be plotted. Must be constructed to have [document_title, dataset_type, dataset_name]
         """
-        from gui_elements.dialog_batch_figure_exporter import DialogExportFigures
+        from origami.gui_elements.dialog_batch_figure_exporter import DialogExportFigures
 
         fname_alias = {
             "Drift time (2D)": "raw",
@@ -3631,7 +3635,7 @@ class DataHandling:
         item_list : list
             list of items to be saved. Must be constructed to have [document_title, dataset_type, dataset_name]
         """
-        from gui_elements.dialog_batch_data_exporter import DialogExportData
+        from origami.gui_elements.dialog_batch_data_exporter import DialogExportData
 
         if data_type not in ["heatmap", "chromatogram", "mobilogram", "waterfall"]:
             raise MessageError("Incorrect data type", "This function cannot save this data type")
@@ -4360,8 +4364,8 @@ class DataHandling:
             specifies which routine should be taken to load data
         evt : unused
         """
-        from gui_elements.dialog_ask_override import DialogAskOverride
-        from utils.misc import merge_two_dicts
+        from origami.gui_elements.dialog_ask_override import DialogAskOverride
+        from origami.utils.misc import merge_two_dicts
 
         def check_previous_data(dataset, fname, data):
             if fname in dataset:

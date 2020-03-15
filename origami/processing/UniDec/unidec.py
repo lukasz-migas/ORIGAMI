@@ -1,17 +1,23 @@
 # -*- coding: utf-8 -*-
 # __author__ michael.marty
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import os
-import shutil
 import time
+import shutil
 from copy import deepcopy
 
+# Third-party imports
 import numpy as np
-import processing.UniDec.unidec_modules.unidectools as ud
-from processing.UniDec.unidec_modules import MassFitter
-from processing.UniDec.unidec_modules import peakstructure
-from processing.UniDec.unidec_modules import unidecstructure
-from processing.UniDec.unidec_modules.unidec_enginebase import UniDecEngine
 from scipy.interpolate import interp1d
+
+# Local imports
+import origami.processing.UniDec.unidec_modules.unidectools as ud
+from origami.processing.UniDec.unidec_modules import MassFitter
+from origami.processing.UniDec.unidec_modules import peakstructure
+from origami.processing.UniDec.unidec_modules import unidecstructure
+from origami.processing.UniDec.unidec_modules.unidec_enginebase import UniDecEngine
 
 __author__ = "Michael.Marty"
 

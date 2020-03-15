@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import logging
 
+# Third-party imports
 import wx
 
 logger = logging.getLogger(__name__)

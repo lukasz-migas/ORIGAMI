@@ -1,11 +1,15 @@
 """Various color utility functions"""
+# Standard library imports
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 import re
 from ast import literal_eval
 
+# Third-party imports
 import numpy as np
-from utils.random import random_int_0_to_255
+
+# Local imports
+from origami.utils.random import random_int_0_to_255
 
 __all__ = ["get_random_color", "convert_rgb_255_to_1", "convert_rgb_1_to_255", "get_font_color", "get_n_colors"]
 

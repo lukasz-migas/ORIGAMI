@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 """Utility tools for label replacements"""
+# Standard library imports
 import re
 
-from utils.converters import str2num
+# Local imports
+from origami.utils.converters import str2num
 
 
 def sanitize_string(string, replace_with="; "):

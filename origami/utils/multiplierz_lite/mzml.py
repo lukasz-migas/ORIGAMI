@@ -1,11 +1,13 @@
+# Standard library imports
+import zlib
 import base64
 import pickle as pickle
-import sqlite3
 import struct
+import sqlite3
 import xml.etree.ElementTree as xml
-import zlib
 
-from utils.multiplierz_lite.mzUtils import gzOptOpen
+# Local imports
+from origami.utils.multiplierz_lite.mzUtils import gzOptOpen
 
 namespace = "{http://psi.hupo.org/ms/mzml}"
 

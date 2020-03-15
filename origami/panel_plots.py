@@ -1,99 +1,103 @@
 """Plotting panel"""
+# Standard library imports
+import os
+import math
+import time
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 import logging
-import math
-import os
-import time
 
+# Third-party imports
+import wx
+import numpy as np
+import seaborn as sns
 import matplotlib
 import matplotlib.pyplot as plt
-import numpy as np
-import processing.UniDec.utilities as unidec_utils
-import seaborn as sns
-import wx
-from gui_elements.dialog_customise_plot import DialogCustomisePlot
-from gui_elements.misc_dialogs import DialogBox
-from icons.icons import IconContainer
-from ids import ID_clearPlot_1D
-from ids import ID_clearPlot_1D_MS
-from ids import ID_clearPlot_2D
-from ids import ID_clearPlot_3D
-from ids import ID_clearPlot_Calibration
-from ids import ID_clearPlot_Matrix
-from ids import ID_clearPlot_MS
-from ids import ID_clearPlot_MZDT
-from ids import ID_clearPlot_other
-from ids import ID_clearPlot_Overlay
-from ids import ID_clearPlot_RMSD
-from ids import ID_clearPlot_RMSF
-from ids import ID_clearPlot_RT
-from ids import ID_clearPlot_RT_MS
-from ids import ID_clearPlot_UniDec_barchart
-from ids import ID_clearPlot_UniDec_chargeDistribution
-from ids import ID_clearPlot_UniDec_MS
-from ids import ID_clearPlot_UniDec_mwDistribution
-from ids import ID_clearPlot_UniDec_mwGrid
-from ids import ID_clearPlot_UniDec_mzGrid
-from ids import ID_clearPlot_UniDec_pickedPeaks
-from ids import ID_clearPlot_Watefall
-from ids import ID_clearPlot_Waterfall
-from ids import ID_docTree_action_open_peak_picker
-from ids import ID_extraSettings_colorbar
-from ids import ID_extraSettings_general_plot
-from ids import ID_extraSettings_legend
-from ids import ID_extraSettings_plot1D
-from ids import ID_extraSettings_plot2D
-from ids import ID_extraSettings_plot3D
-from ids import ID_extraSettings_violin
-from ids import ID_extraSettings_waterfall
-from ids import ID_highlightRectAllIons
-from ids import ID_pickMSpeaksDocument
-from ids import ID_plotPanel_lockPlot
-from ids import ID_plotPanel_resize
-from ids import ID_plots_customise_plot
-from ids import ID_plots_customise_smart_zoom
-from ids import ID_plots_rotate90
-from ids import ID_save1DImage
-from ids import ID_save1DImageDoc
-from ids import ID_save2DImage
-from ids import ID_save2DImageDoc
-from ids import ID_save3DImage
-from ids import ID_save3DImageDoc
-from ids import ID_saveCompareMSImage
-from ids import ID_saveMSImage
-from ids import ID_saveMSImageDoc
-from ids import ID_saveMZDTImage
-from ids import ID_saveMZDTImageDoc
-from ids import ID_saveOtherImage
-from ids import ID_saveOtherImageDoc
-from ids import ID_saveOverlayImage
-from ids import ID_saveOverlayImageDoc
-from ids import ID_saveRMSDImage
-from ids import ID_saveRMSDImageDoc
-from ids import ID_saveRMSDmatrixImage
-from ids import ID_saveRMSDmatrixImageDoc
-from ids import ID_saveRMSFImage
-from ids import ID_saveRMSFImageDoc
-from ids import ID_saveRTImage
-from ids import ID_saveRTImageDoc
-from ids import ID_saveWaterfallImage
-from ids import ID_saveWaterfallImageDoc
-from ids import ID_smooth1Ddata1DT
-from ids import ID_smooth1DdataRT
-from natsort import natsorted
 from pubsub import pub
-from styles import make_menu_item
-from utils.check import isempty
-from utils.color import convert_rgb_1_to_255
-from utils.color import convert_rgb_1_to_hex
-from utils.color import get_random_color
-from utils.exceptions import MessageError
-from utils.misc import merge_two_dicts
-from utils.path import clean_filename
-from utils.time import ttime
-from visuals import mpl_plots
-from visuals.normalize import MidpointNormalize
+from natsort import natsorted
+
+# Local imports
+import origami.processing.UniDec.utilities as unidec_utils
+from origami.ids import ID_save1DImage
+from origami.ids import ID_save2DImage
+from origami.ids import ID_save3DImage
+from origami.ids import ID_saveMSImage
+from origami.ids import ID_saveRTImage
+from origami.ids import ID_clearPlot_1D
+from origami.ids import ID_clearPlot_2D
+from origami.ids import ID_clearPlot_3D
+from origami.ids import ID_clearPlot_MS
+from origami.ids import ID_clearPlot_RT
+from origami.ids import ID_saveMZDTImage
+from origami.ids import ID_saveRMSDImage
+from origami.ids import ID_saveRMSFImage
+from origami.ids import ID_clearPlot_MZDT
+from origami.ids import ID_clearPlot_RMSD
+from origami.ids import ID_clearPlot_RMSF
+from origami.ids import ID_plots_rotate90
+from origami.ids import ID_save1DImageDoc
+from origami.ids import ID_save2DImageDoc
+from origami.ids import ID_save3DImageDoc
+from origami.ids import ID_saveMSImageDoc
+from origami.ids import ID_saveOtherImage
+from origami.ids import ID_saveRTImageDoc
+from origami.ids import ID_smooth1DdataRT
+from origami.ids import ID_clearPlot_1D_MS
+from origami.ids import ID_clearPlot_other
+from origami.ids import ID_clearPlot_RT_MS
+from origami.ids import ID_smooth1Ddata1DT
+from origami.ids import ID_clearPlot_Matrix
+from origami.ids import ID_plotPanel_resize
+from origami.ids import ID_saveMZDTImageDoc
+from origami.ids import ID_saveOverlayImage
+from origami.ids import ID_saveRMSDImageDoc
+from origami.ids import ID_saveRMSFImageDoc
+from origami.ids import ID_clearPlot_Overlay
+from origami.ids import ID_saveOtherImageDoc
+from origami.ids import ID_clearPlot_Watefall
+from origami.ids import ID_plotPanel_lockPlot
+from origami.ids import ID_saveCompareMSImage
+from origami.ids import ID_saveWaterfallImage
+from origami.ids import ID_clearPlot_UniDec_MS
+from origami.ids import ID_clearPlot_Waterfall
+from origami.ids import ID_pickMSpeaksDocument
+from origami.ids import ID_saveOverlayImageDoc
+from origami.ids import ID_saveRMSDmatrixImage
+from origami.ids import ID_extraSettings_legend
+from origami.ids import ID_extraSettings_plot1D
+from origami.ids import ID_extraSettings_plot2D
+from origami.ids import ID_extraSettings_plot3D
+from origami.ids import ID_extraSettings_violin
+from origami.ids import ID_highlightRectAllIons
+from origami.ids import ID_plots_customise_plot
+from origami.ids import ID_clearPlot_Calibration
+from origami.ids import ID_saveWaterfallImageDoc
+from origami.ids import ID_extraSettings_colorbar
+from origami.ids import ID_saveRMSDmatrixImageDoc
+from origami.ids import ID_clearPlot_UniDec_mwGrid
+from origami.ids import ID_clearPlot_UniDec_mzGrid
+from origami.ids import ID_extraSettings_waterfall
+from origami.ids import ID_clearPlot_UniDec_barchart
+from origami.ids import ID_extraSettings_general_plot
+from origami.ids import ID_plots_customise_smart_zoom
+from origami.ids import ID_clearPlot_UniDec_pickedPeaks
+from origami.ids import ID_clearPlot_UniDec_mwDistribution
+from origami.ids import ID_docTree_action_open_peak_picker
+from origami.ids import ID_clearPlot_UniDec_chargeDistribution
+from origami.styles import make_menu_item
+from origami.visuals import mpl_plots
+from origami.utils.misc import merge_two_dicts
+from origami.utils.path import clean_filename
+from origami.utils.time import ttime
+from origami.icons.icons import IconContainer
+from origami.utils.check import isempty
+from origami.utils.color import get_random_color
+from origami.utils.color import convert_rgb_1_to_255
+from origami.utils.color import convert_rgb_1_to_hex
+from origami.utils.exceptions import MessageError
+from origami.visuals.normalize import MidpointNormalize
+from origami.gui_elements.misc_dialogs import DialogBox
+from origami.gui_elements.dialog_customise_plot import DialogCustomisePlot
 
 logger = logging.getLogger(__name__)
 
@@ -1028,7 +1032,7 @@ class PanelPlots(wx.Panel):
         self.config.resize = not self.config.resize
 
     def on_customise_smart_zoom(self, evt):
-        from gui_elements.dialog_customise_smart_zoom import dialog_customise_smart_zoom
+        from origami.gui_elements.dialog_customise_smart_zoom import dialog_customise_smart_zoom
 
         dlg = dialog_customise_smart_zoom(self, self.presenter, self.config)
         dlg.ShowModal()
@@ -2463,7 +2467,7 @@ class PanelPlots(wx.Panel):
         plot_obj.repaint()
 
     def on_plot_1D_annotations(self, annotations_obj, plot="MS", **kwargs):
-        from utils.labels import _replace_labels
+        from origami.utils.labels import _replace_labels
 
         if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
@@ -3757,7 +3761,7 @@ class PanelPlots(wx.Panel):
         self.bottomPlot1DT.repaint()
 
     def plot_2D_update_label(self, plot_name="RMSD", **kwargs):
-        from utils.visuals import calculate_label_position
+        from origami.utils.visuals import calculate_label_position
 
         if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")

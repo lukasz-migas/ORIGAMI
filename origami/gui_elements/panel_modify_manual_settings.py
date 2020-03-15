@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Third-party imports
+# Third-party imports
+# Third-party imports
 import wx
-from icons.icons import IconContainer
-from styles import make_checkbox
-from styles import MiniFrame
-from utils.check import check_value
+
+# Local imports
+from origami.styles import MiniFrame
+from origami.styles import make_checkbox
+from origami.icons.icons import IconContainer
+from origami.utils.check import check_value
 
 
 class PanelModifyManualFilesSettings(MiniFrame):

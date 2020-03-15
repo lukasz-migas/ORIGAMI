@@ -1,4 +1,5 @@
-from processing.utils import nthroot
+# Local imports
+from origami.processing.utils import nthroot
 
 
 def test_nthroot():

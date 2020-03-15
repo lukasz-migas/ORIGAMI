@@ -1,25 +1,31 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 # Load libraries
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import logging
 from copy import deepcopy
 
+# Third-party imports
 import wx
-from styles import ListCtrl
-from styles import make_checkbox
-from styles import make_menu_item
-from styles import make_tooltip
-from styles import MiniFrame
-from utils.color import check_color_format
-from utils.color import convert_rgb_255_to_1
-from utils.color import get_font_color
-from utils.color import round_rgb
-from utils.exceptions import MessageError
-from utils.random import get_random_int
-from utils.screen import calculate_window_size
-from visuals import mpl_plots
 
-# from gui_elements.dialog_color_picker import DialogColorPicker
+# Local imports
+from origami.styles import ListCtrl
+from origami.styles import MiniFrame
+from origami.styles import make_tooltip
+from origami.styles import make_checkbox
+from origami.styles import make_menu_item
+from origami.visuals import mpl_plots
+from origami.utils.color import round_rgb
+from origami.utils.color import get_font_color
+from origami.utils.color import check_color_format
+from origami.utils.color import convert_rgb_255_to_1
+from origami.utils.random import get_random_int
+from origami.utils.screen import calculate_window_size
+from origami.utils.exceptions import MessageError
+
+# from origami.gui_elements.dialog_color_picker import DialogColorPicker
 logger = logging.getLogger(__name__)
 
 
@@ -173,7 +179,7 @@ class PanelOverlayViewer(MiniFrame):
 
         n_clipboard_items = len(self.clipboard)
         if n_clipboard_items > 0:
-            from gui_elements.misc_dialogs import DialogBox
+            from origami.gui_elements.misc_dialogs import DialogBox
 
             msg = (
                 f"Found {n_clipboard_items} overlay item(s) in the clipboard. Closing this window will lose"
@@ -391,7 +397,7 @@ class PanelOverlayViewer(MiniFrame):
                 self.item_editor.on_update_gui(self.on_get_item_information(self.peaklist.item_id))
 
     def on_open_editor(self, evt):
-        from gui_elements.panel_modify_item_settings import PanelModifyItemSettings
+        from origami.gui_elements.panel_modify_item_settings import PanelModifyItemSettings
 
         if self.peaklist.item_id is None or self.peaklist.item_id < 0:
             raise MessageError("Error", "Please select an item in the table")
@@ -443,7 +449,7 @@ class PanelOverlayViewer(MiniFrame):
 
     def on_add_to_document(self, evt):
         """Add data to document"""
-        from gui_elements.dialog_review_editor import DialogReviewEditor
+        from origami.gui_elements.dialog_review_editor import DialogReviewEditor
 
         # data classifiers
         stats_list = ["Mean", "Standard Deviation", "Variance", "RMSD", "RMSF", "RMSD Matrix"]
@@ -520,7 +526,7 @@ class PanelOverlayViewer(MiniFrame):
         give_value : bool
             should/not return color
         """
-        from gui_elements.dialog_color_picker import DialogColorPicker
+        from origami.gui_elements.dialog_color_picker import DialogColorPicker
 
         if item_id is not None:
             self.peaklist.item_id = item_id

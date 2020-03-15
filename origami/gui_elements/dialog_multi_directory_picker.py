@@ -1,14 +1,16 @@
+# Standard library imports
 import os
-import wx
 import logging
+
+# Third-party imports
+import wx
 import wx.lib.agw.multidirdialog as MDD
 
-from utils.path import clean_up_MDD_path
-
-from styles import Dialog
-from styles import ListCtrl
-
-from utils.path import get_subdirectories
+# Local imports
+from origami.styles import Dialog
+from origami.styles import ListCtrl
+from origami.utils.path import clean_up_MDD_path
+from origami.utils.path import get_subdirectories
 
 LOGGER = logging.getLogger(__name__)
 
@@ -103,9 +105,11 @@ class DialogMultiDirPicker(Dialog):
         """Make panel"""
         panel = wx.Panel(self, -1, size=(-1, -1))
 
-        msg = ("Please specify path and select files/directories on the left-hand side before pressing the '>>>' "
-               " button. You can easily remove items from the list by selecting them on the right-hand side and"
-               " pressing the '<<<' button.")
+        msg = (
+            "Please specify path and select files/directories on the left-hand side before pressing the '>>>' "
+            " button. You can easily remove items from the list by selecting them on the right-hand side and"
+            " pressing the '<<<' button."
+        )
 
         info_label = wx.StaticText(panel, -1, msg)
         info_label.Wrap(750)
@@ -222,8 +226,7 @@ class DialogMultiDirPicker(Dialog):
             filename = item_info["filename"]
             if filename in self._filelist_select[path]:
                 self._filelist_select[path].remove(filename)
-                self.filelist_select.remove_by_keys(["filename", "path"],
-                                                    [filename, path])
+                self.filelist_select.remove_by_keys(["filename", "path"], [filename, path])
                 i += 1
         logging.info(f"Removed {i} items")
 
@@ -239,7 +242,7 @@ class DialogMultiDirPicker(Dialog):
 
         directories = get_subdirectories(self._path, self._extension, as_short=True)
         self.populate_all_list(directories)
-        
+
     def populate_all_list(self, item_list):
         """Populate filelist (lhs) with new items"""
         if not item_list:
@@ -280,4 +283,3 @@ class DialogMultiDirPicker(Dialog):
     def on_get_item_information(self, item_id):
         """Get item information from the lhs table"""
         return self.filelist_select.on_get_item_information(item_id)
-

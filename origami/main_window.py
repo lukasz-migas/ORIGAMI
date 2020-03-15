@@ -1,155 +1,159 @@
 """Main frame module"""
+# Standard library imports
+import os
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 import logging
-import os
 import webbrowser
-from time import gmtime
 from time import sleep
+from time import gmtime
 from time import strftime
 
+# Third-party imports
 import numpy as np
 import psutil
 import wx.aui
-from gui_elements.dialog_notify_new_version import DialogNewVersion
-from gui_elements.dialog_notify_open_documents import DialogNotifyOpenDocuments
-from gui_elements.misc_dialogs import DialogBox
-from gui_elements.panel_export_settings import PanelExportSettings
-from gui_elements.panel_plot_parameters import PanelVisualisationSettingsEditor
-from ids import ID_addCCScalibrantFile
-from ids import ID_addNewInteractiveDoc
-from ids import ID_addNewManualDoc
-from ids import ID_addNewOverlayDoc
-from ids import ID_annotPanel_otherSettings
-from ids import ID_assignChargeState
-from ids import ID_check_Driftscope
-from ids import ID_CHECK_VERSION
-from ids import ID_checkAtStart_Driftscope
-from ids import ID_clearAllPlots
-from ids import ID_docTree_compareMS
-from ids import ID_docTree_plugin_MSMS
-from ids import ID_docTree_plugin_UVPD
-from ids import ID_documentRecent0
-from ids import ID_documentRecent1
-from ids import ID_documentRecent2
-from ids import ID_documentRecent3
-from ids import ID_documentRecent4
-from ids import ID_documentRecent5
-from ids import ID_documentRecent6
-from ids import ID_documentRecent7
-from ids import ID_documentRecent8
-from ids import ID_documentRecent9
-from ids import ID_extraSettings_colorbar
-from ids import ID_extraSettings_general
-from ids import ID_extraSettings_general_plot
-from ids import ID_extraSettings_legend
-from ids import ID_extraSettings_plot1D
-from ids import ID_extraSettings_plot2D
-from ids import ID_extraSettings_plot3D
-from ids import ID_extraSettings_rmsd
-from ids import ID_extraSettings_violin
-from ids import ID_extraSettings_waterfall
-from ids import ID_fileMenu_clearRecent
-from ids import ID_fileMenu_MGF
-from ids import ID_fileMenu_mzML
-from ids import ID_fileMenu_openRecent
-from ids import ID_fileMenu_thermoRAW
-from ids import ID_help_page_annotatingMassSpectra
-from ids import ID_help_page_CCScalibration
-from ids import ID_help_page_dataExtraction
-from ids import ID_help_page_dataLoading
-from ids import ID_help_page_gettingStarted
-from ids import ID_help_page_Interactive
-from ids import ID_help_page_linearDT
-from ids import ID_help_page_multipleFiles
-from ids import ID_help_page_ORIGAMI
-from ids import ID_help_page_OtherData
-from ids import ID_help_page_overlay
-from ids import ID_help_page_UniDec
-from ids import ID_help_UniDecInfo
-from ids import ID_helpAuthor
-from ids import ID_helpCite
-from ids import ID_helpGitHub
-from ids import ID_helpGuide
-from ids import ID_helpGuideLocal
-from ids import ID_helpHomepage
-from ids import ID_helpHTMLEditor
-from ids import ID_helpNewFeatures
-from ids import ID_helpNewVersion
-from ids import ID_helpReportBugs
-from ids import ID_helpYoutube
-from ids import ID_importAtStart_CCS
-from ids import ID_importExportSettings_file
-from ids import ID_importExportSettings_image
-from ids import ID_importExportSettings_peaklist
-from ids import ID_load_clipboard_spectrum
-from ids import ID_load_masslynx_raw_ms_only
-from ids import ID_load_multiple_masslynx_raw
-from ids import ID_load_multiple_origami_masslynx_raw
-from ids import ID_load_multiple_text_2D
-from ids import ID_load_origami_masslynx_raw
-from ids import ID_load_text_2D
-from ids import ID_load_text_MS
-from ids import ID_mainPanel_openSourceFiles
-from ids import ID_openAsConfig
-from ids import ID_openCCScalibrationDatabse
-from ids import ID_openConfig
-from ids import ID_openDocument
-from ids import ID_openIRRawFile
-from ids import ID_openLinearDTRawFile
-from ids import ID_plots_showCursorGrid
-from ids import ID_process2DDocument
-from ids import ID_quit
-from ids import ID_renameItem
-from ids import ID_RESET_ORIGAMI
-from ids import ID_save1DImage
-from ids import ID_save2DImage
-from ids import ID_save3DImage
-from ids import ID_saveAllDocuments
-from ids import ID_saveAsConfig
-from ids import ID_saveAsInteractive
-from ids import ID_saveConfig
-from ids import ID_saveDataCSVDocument
-from ids import ID_saveDocument
-from ids import ID_saveMSImage
-from ids import ID_saveMZDTImage
-from ids import ID_saveOverlayImage
-from ids import ID_saveRMSDImage
-from ids import ID_saveRMSDmatrixImage
-from ids import ID_saveRMSFImage
-from ids import ID_saveRTImage
-from ids import ID_saveWaterfallImage
-from ids import ID_selectCalibrant
-from ids import ID_setDriftScopeDir
-from ids import ID_SHOW_ABOUT
-from ids import ID_showPlotDocument
-from ids import ID_showPlotMSDocument
-from ids import ID_unidecPanel_otherSettings
-from ids import ID_WHATS_NEW
-from ids import ID_window_all
-from ids import ID_window_controls
-from ids import ID_window_documentList
-from ids import ID_window_ionList
-from ids import ID_window_multipleMLList
-from ids import ID_window_textList
-from ids import ID_windowFullscreen
-from ids import ID_windowMaximize
-from ids import ID_windowMinimize
-from panel_document_tree import PanelDocumentTree
-from panel_multi_file import PanelMultiFile
-from panel_peaklist import PanelPeaklist
-from panel_plots import PanelPlots
-from panel_textlist import PanelTextlist
-from processing.data_handling import DataHandling
-from processing.data_processing import DataProcessing
-from processing.data_visualisation import DataVisualization
 from pubsub import pub
-from readers.io_text_files import check_file_type
-from styles import make_menu_item
-from utils.check import compare_versions
-from utils.check import get_latest_version
-from utils.path import clean_directory
-from widgets.interactive.panel_interactive_creator import PanelInteractiveCreator
+
+# Local imports
+from origami.ids import ID_WHATS_NEW
+from origami.ids import ID_SHOW_ABOUT
+from origami.ids import ID_CHECK_VERSION
+from origami.ids import ID_RESET_ORIGAMI
+from origami.ids import ID_quit
+from origami.ids import ID_helpCite
+from origami.ids import ID_helpGuide
+from origami.ids import ID_helpAuthor
+from origami.ids import ID_helpGitHub
+from origami.ids import ID_openConfig
+from origami.ids import ID_renameItem
+from origami.ids import ID_saveConfig
+from origami.ids import ID_window_all
+from origami.ids import ID_helpYoutube
+from origami.ids import ID_save1DImage
+from origami.ids import ID_save2DImage
+from origami.ids import ID_save3DImage
+from origami.ids import ID_saveMSImage
+from origami.ids import ID_saveRTImage
+from origami.ids import ID_fileMenu_MGF
+from origami.ids import ID_helpHomepage
+from origami.ids import ID_load_text_2D
+from origami.ids import ID_load_text_MS
+from origami.ids import ID_openAsConfig
+from origami.ids import ID_openDocument
+from origami.ids import ID_saveAsConfig
+from origami.ids import ID_saveDocument
+from origami.ids import ID_clearAllPlots
+from origami.ids import ID_fileMenu_mzML
+from origami.ids import ID_openIRRawFile
+from origami.ids import ID_saveMZDTImage
+from origami.ids import ID_saveRMSDImage
+from origami.ids import ID_saveRMSFImage
+from origami.ids import ID_helpGuideLocal
+from origami.ids import ID_helpHTMLEditor
+from origami.ids import ID_helpNewVersion
+from origami.ids import ID_helpReportBugs
+from origami.ids import ID_window_ionList
+from origami.ids import ID_windowMaximize
+from origami.ids import ID_windowMinimize
+from origami.ids import ID_addNewManualDoc
+from origami.ids import ID_documentRecent0
+from origami.ids import ID_documentRecent1
+from origami.ids import ID_documentRecent2
+from origami.ids import ID_documentRecent3
+from origami.ids import ID_documentRecent4
+from origami.ids import ID_documentRecent5
+from origami.ids import ID_documentRecent6
+from origami.ids import ID_documentRecent7
+from origami.ids import ID_documentRecent8
+from origami.ids import ID_documentRecent9
+from origami.ids import ID_help_UniDecInfo
+from origami.ids import ID_helpNewFeatures
+from origami.ids import ID_selectCalibrant
+from origami.ids import ID_window_controls
+from origami.ids import ID_window_textList
+from origami.ids import ID_addNewOverlayDoc
+from origami.ids import ID_check_Driftscope
+from origami.ids import ID_help_page_UniDec
+from origami.ids import ID_saveAllDocuments
+from origami.ids import ID_saveOverlayImage
+from origami.ids import ID_setDriftScopeDir
+from origami.ids import ID_showPlotDocument
+from origami.ids import ID_windowFullscreen
+from origami.ids import ID_assignChargeState
+from origami.ids import ID_docTree_compareMS
+from origami.ids import ID_help_page_ORIGAMI
+from origami.ids import ID_help_page_overlay
+from origami.ids import ID_importAtStart_CCS
+from origami.ids import ID_process2DDocument
+from origami.ids import ID_saveAsInteractive
+from origami.ids import ID_extraSettings_rmsd
+from origami.ids import ID_fileMenu_thermoRAW
+from origami.ids import ID_help_page_linearDT
+from origami.ids import ID_saveWaterfallImage
+from origami.ids import ID_showPlotMSDocument
+from origami.ids import ID_addCCScalibrantFile
+from origami.ids import ID_docTree_plugin_MSMS
+from origami.ids import ID_docTree_plugin_UVPD
+from origami.ids import ID_fileMenu_openRecent
+from origami.ids import ID_help_page_OtherData
+from origami.ids import ID_openLinearDTRawFile
+from origami.ids import ID_saveDataCSVDocument
+from origami.ids import ID_saveRMSDmatrixImage
+from origami.ids import ID_window_documentList
+from origami.ids import ID_addNewInteractiveDoc
+from origami.ids import ID_extraSettings_legend
+from origami.ids import ID_extraSettings_plot1D
+from origami.ids import ID_extraSettings_plot2D
+from origami.ids import ID_extraSettings_plot3D
+from origami.ids import ID_extraSettings_violin
+from origami.ids import ID_fileMenu_clearRecent
+from origami.ids import ID_plots_showCursorGrid
+from origami.ids import ID_extraSettings_general
+from origami.ids import ID_help_page_dataLoading
+from origami.ids import ID_help_page_Interactive
+from origami.ids import ID_load_multiple_text_2D
+from origami.ids import ID_window_multipleMLList
+from origami.ids import ID_extraSettings_colorbar
+from origami.ids import ID_checkAtStart_Driftscope
+from origami.ids import ID_extraSettings_waterfall
+from origami.ids import ID_help_page_multipleFiles
+from origami.ids import ID_load_clipboard_spectrum
+from origami.ids import ID_annotPanel_otherSettings
+from origami.ids import ID_help_page_CCScalibration
+from origami.ids import ID_help_page_dataExtraction
+from origami.ids import ID_help_page_gettingStarted
+from origami.ids import ID_importExportSettings_file
+from origami.ids import ID_load_masslynx_raw_ms_only
+from origami.ids import ID_load_origami_masslynx_raw
+from origami.ids import ID_mainPanel_openSourceFiles
+from origami.ids import ID_openCCScalibrationDatabse
+from origami.ids import ID_unidecPanel_otherSettings
+from origami.ids import ID_extraSettings_general_plot
+from origami.ids import ID_importExportSettings_image
+from origami.ids import ID_load_multiple_masslynx_raw
+from origami.ids import ID_importExportSettings_peaklist
+from origami.ids import ID_help_page_annotatingMassSpectra
+from origami.ids import ID_load_multiple_origami_masslynx_raw
+from origami.styles import make_menu_item
+from origami.utils.path import clean_directory
+from origami.panel_plots import PanelPlots
+from origami.utils.check import compare_versions
+from origami.utils.check import get_latest_version
+from origami.panel_peaklist import PanelPeaklist
+from origami.panel_textlist import PanelTextlist
+from origami.panel_multi_file import PanelMultiFile
+from origami.panel_document_tree import PanelDocumentTree
+from origami.readers.io_text_files import check_file_type
+from origami.processing.data_handling import DataHandling
+from origami.gui_elements.misc_dialogs import DialogBox
+from origami.processing.data_processing import DataProcessing
+from origami.processing.data_visualisation import DataVisualization
+from origami.gui_elements.panel_export_settings import PanelExportSettings
+from origami.gui_elements.panel_plot_parameters import PanelVisualisationSettingsEditor
+from origami.gui_elements.dialog_notify_new_version import DialogNewVersion
+from origami.gui_elements.dialog_notify_open_documents import DialogNotifyOpenDocuments
+from origami.widgets.interactive.panel_interactive_creator import PanelInteractiveCreator
 
 logger = logging.getLogger(__name__)
 
@@ -758,10 +762,10 @@ class MainWindow(wx.Frame):
         )
         menuWidgets.AppendItem(menu_widget_overlay_viewer)
 
-#         menu_widget_interactive_viewer = make_menu_item(
-#             parent=menuWidgets, text="Open interactive window...", bitmap=None
-#         )
-#         menuWidgets.AppendItem(menu_widget_interactive_viewer)
+        #         menu_widget_interactive_viewer = make_menu_item(
+        #             parent=menuWidgets, text="Open interactive window...", bitmap=None
+        #         )
+        #         menuWidgets.AppendItem(menu_widget_interactive_viewer)
 
         menu_widget_lesa_import = make_menu_item(
             parent=menuWidgets, text="Open LESA import manager...\tCtrl+L", bitmap=None
@@ -1139,7 +1143,8 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_overlay_viewer, menu_widget_overlay_viewer)
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_lesa_viewer, menu_widget_lesa_viewer)
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_import_lesa_dataset, menu_widget_lesa_import)
-#         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_interactive_viewer, menu_widget_interactive_viewer)
+        #         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_interactive_viewer,
+        # menu_widget_interactive_viewer)
 
         # CONFIG MENU
         self.Bind(wx.EVT_MENU, self.data_handling.on_export_config_fcn, id=ID_saveConfig)
@@ -1170,13 +1175,13 @@ class MainWindow(wx.Frame):
         self.SetMenuBar(self.mainMenubar)
 
     def on_customise_annotation_plot_parameters(self, evt):
-        from gui_elements.dialog_customise_user_annotations import DialogCustomiseUserAnnotations
+        from origami.gui_elements.dialog_customise_user_annotations import DialogCustomiseUserAnnotations
 
         dlg = DialogCustomiseUserAnnotations(self, config=self.config)
         dlg.ShowModal()
 
     def on_customise_unidec_plot_parameters(self, evt):
-        from widgets.UniDec.dialog_customise_unidec_visuals import DialogCustomiseUniDecVisuals
+        from origami.widgets.UniDec.dialog_customise_unidec_visuals import DialogCustomiseUniDecVisuals
 
         dlg = DialogCustomiseUniDecVisuals(self, self.config, self.icons)
         dlg.ShowModal()
@@ -1276,8 +1281,8 @@ class MainWindow(wx.Frame):
             pass
 
     def on_open_HTML_guide(self, evt):
-        from gui_elements.panel_html_viewer import PanelHTMLViewer
-        from help_documentation import HTMLHelp as htmlPages
+        from origami.gui_elements.panel_html_viewer import PanelHTMLViewer
+        from origami.help_documentation import HTMLHelp as htmlPages
 
         htmlPages = htmlPages()
         evtID = evt.GetId()
@@ -1815,7 +1820,7 @@ class MainWindow(wx.Frame):
 
     def on_open_about_panel(self, evt):
         """Show About ORIGAMI panel."""
-        from gui_elements.panel_about import PanelAbout
+        from origami.gui_elements.panel_about import PanelAbout
 
         about = PanelAbout(self, self.presenter, "About ORIGAMI", self.config, self.icons)
         about.Centre()
@@ -1886,10 +1891,11 @@ class MainWindow(wx.Frame):
             return
 
     def on_open_sequence_editor(self, evt):
-        from gui_elements.panel_sequenceAnalysis import panelSequenceAnalysis
-
-        self.panelSequenceAnalysis = panelSequenceAnalysis(self, self.presenter, self.config, self.icons)
-        self.panelSequenceAnalysis.Show()
+        #         from origami.gui_elements.panel_sequenceAnalysis import panelSequenceAnalysis
+        #
+        #         self.panelSequenceAnalysis = panelSequenceAnalysis(self, self.presenter, self.config, self.icons)
+        #         self.panelSequenceAnalysis.Show()
+        pass
 
     def on_open_interactive_output_panel(self, evt):
         def startup_module():
@@ -2134,13 +2140,8 @@ class DragAndDrop(wx.FileDropTarget):
         wx.FileDropTarget.__init__(self)
         self.window = window
 
-    # ----------------------------------------------------------------------
-
     def OnDropFiles(self, x, y, filenames):
-        """
-        When files are dropped, write where they were dropped and then
-        the file paths themselves
-        """
+        """When files are dropped, write where they were dropped and then the file paths themselves"""
         logger.info(f"Dropped {len(filenames)} in the window")
         for filename in filenames:
             logger.info("Opening {filename} file...")

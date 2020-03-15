@@ -1,7 +1,8 @@
 """Test check functions"""
-from utils.check import check_value_order
-from utils.check import isbool
-from utils.check import isnumber
+# Local imports
+from origami.utils.check import isbool
+from origami.utils.check import isnumber
+from origami.utils.check import check_value_order
 
 
 class TestCheck(object):

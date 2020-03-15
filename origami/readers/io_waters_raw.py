@@ -1,15 +1,21 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import logging
 import os.path
 from subprocess import CREATE_NEW_CONSOLE
 from subprocess import Popen
 
+# Third-party imports
 import numpy as np
-from gui_elements.misc_dialogs import DialogBox
-from readers.io_utils import clean_up
-from utils.misc import strictly_increasing
-from utils.path import check_waters_path
+
+# Local imports
+from origami.utils.misc import strictly_increasing
+from origami.utils.path import check_waters_path
+from origami.readers.io_utils import clean_up
+from origami.gui_elements.misc_dialogs import DialogBox
 
 logger = logging.getLogger(__name__)
 

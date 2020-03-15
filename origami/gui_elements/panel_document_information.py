@@ -1,22 +1,28 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import re
 
-import numpy as np
+# Third-party imports
 import wx
-from ids import ID_documentInfoCalibration
-from ids import ID_documentInfoNotes
-from ids import ID_documentInfoPlotIMS
-from ids import ID_documentInfoSpectrum
-from ids import ID_documentInfoSummary
-from ids import ID_saveAsConfig
-from ids import ID_selectProtein
-from styles import bgrPanel
-from styles import layout
-from styles import make_checkbox
-from utils.converters import num2str
-from utils.converters import str2int
-from utils.converters import str2num
+import numpy as np
+
+# Local imports
+from origami.ids import ID_saveAsConfig
+from origami.ids import ID_selectProtein
+from origami.ids import ID_documentInfoNotes
+from origami.ids import ID_documentInfoPlotIMS
+from origami.ids import ID_documentInfoSummary
+from origami.ids import ID_documentInfoSpectrum
+from origami.ids import ID_documentInfoCalibration
+from origami.styles import layout
+from origami.styles import bgrPanel
+from origami.styles import make_checkbox
+from origami.utils.converters import num2str
+from origami.utils.converters import str2int
+from origami.utils.converters import str2num
 
 
 class PanelDocumentInformation(wx.MiniFrame):

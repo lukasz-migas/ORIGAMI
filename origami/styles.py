@@ -1,21 +1,27 @@
 """This file creates various styles for the GUI"""
+
+
+# Standard library imports
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 import itertools
 from ast import literal_eval
 from operator import itemgetter
 
-import numpy as np
+# Third-party imports
 import wx
+import numpy as np
 import wx.lib.mixins.listctrl as listmix
-from gui_elements.misc_dialogs import DialogBox
-from natsort.natsort import natsorted
-from utils.color import convert_rgb_1_to_255
-from utils.color import convert_rgb_255_to_1
-from utils.converters import byte2str
-from utils.converters import str2int
-from utils.converters import str2num
 from wx.lib.agw import supertooltip as superTip
+from natsort.natsort import natsorted
+
+# Local imports
+from origami.utils.color import convert_rgb_1_to_255
+from origami.utils.color import convert_rgb_255_to_1
+from origami.utils.converters import str2int
+from origami.utils.converters import str2num
+from origami.utils.converters import byte2str
+from origami.gui_elements.misc_dialogs import DialogBox
 
 # Sizes
 COMBO_SIZE = 120
@@ -355,8 +361,12 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
         item_id = self.GetItemCount() - 1
         while item_id >= 0:
             item_info = self.on_get_item_information(item_id)
-            if all([check_value == list_value for check_value, list_value in
-                    zip(values, [item_info.get(key) for key in keys])]):
+            if all(
+                [
+                    check_value == list_value
+                    for check_value, list_value in zip(values, [item_info.get(key) for key in keys])
+                ]
+            ):
                 self.DeleteItem(item_id)
             item_id -= 1
 

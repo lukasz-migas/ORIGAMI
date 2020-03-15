@@ -1,44 +1,50 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import os
-from operator import itemgetter
 from re import split as re_split
 from time import time as ttime
+from operator import itemgetter
 
-import numpy as np
-import processing.utils as pr_utils
-import readers.io_waters_raw as io_waters
+# Third-party imports
 import wx
+import numpy as np
 import wx.lib.mixins.listctrl as listmix
-from gui_elements.dialog_customise_peptide_annotations import DialogCustomisePeptideAnnotations
-from gui_elements.misc_dialogs import DialogBox
-from gui_elements.panel_html_viewer import PanelHTMLViewer
-from ids import ID_uvpd_laser_off_save_chromatogram
-from ids import ID_uvpd_laser_off_save_heatmap
-from ids import ID_uvpd_laser_off_save_mobilogram
-from ids import ID_uvpd_laser_off_show_chromatogram
-from ids import ID_uvpd_laser_off_show_heatmap
-from ids import ID_uvpd_laser_off_show_mobilogram
-from ids import ID_uvpd_laser_off_show_waterfall
-from ids import ID_uvpd_laser_on_off_compare_chromatogam
-from ids import ID_uvpd_laser_on_off_compare_mobilogram
-from ids import ID_uvpd_laser_on_off_mobilogram_show_chromatogram
-from ids import ID_uvpd_laser_on_save_chromatogram
-from ids import ID_uvpd_laser_on_save_heatmap
-from ids import ID_uvpd_laser_on_save_mobilogram
-from ids import ID_uvpd_laser_on_show_chromatogram
-from ids import ID_uvpd_laser_on_show_heatmap
-from ids import ID_uvpd_laser_on_show_mobilogram
-from ids import ID_uvpd_laser_on_show_waterfall
-from ids import ID_uvpd_monitor_remove
 from natsort import natsorted
-from readers.io_text_files import saveAsText
-from styles import make_checkbox
-from styles import make_menu_item
-from styles import make_staticbox
-from styles import validator
-from utils.converters import str2int
-from utils.converters import str2num
+
+# Local imports
+import origami.processing.utils as pr_utils
+import origami.readers.io_waters_raw as io_waters
+from origami.ids import ID_uvpd_monitor_remove
+from origami.ids import ID_uvpd_laser_on_save_heatmap
+from origami.ids import ID_uvpd_laser_on_show_heatmap
+from origami.ids import ID_uvpd_laser_off_save_heatmap
+from origami.ids import ID_uvpd_laser_off_show_heatmap
+from origami.ids import ID_uvpd_laser_on_show_waterfall
+from origami.ids import ID_uvpd_laser_off_show_waterfall
+from origami.ids import ID_uvpd_laser_on_save_mobilogram
+from origami.ids import ID_uvpd_laser_on_show_mobilogram
+from origami.ids import ID_uvpd_laser_off_save_mobilogram
+from origami.ids import ID_uvpd_laser_off_show_mobilogram
+from origami.ids import ID_uvpd_laser_on_save_chromatogram
+from origami.ids import ID_uvpd_laser_on_show_chromatogram
+from origami.ids import ID_uvpd_laser_off_save_chromatogram
+from origami.ids import ID_uvpd_laser_off_show_chromatogram
+from origami.ids import ID_uvpd_laser_on_off_compare_mobilogram
+from origami.ids import ID_uvpd_laser_on_off_compare_chromatogam
+from origami.ids import ID_uvpd_laser_on_off_mobilogram_show_chromatogram
+from origami.styles import validator
+from origami.styles import make_checkbox
+from origami.styles import make_menu_item
+from origami.styles import make_staticbox
+from origami.utils.converters import str2int
+from origami.utils.converters import str2num
+from origami.readers.io_text_files import saveAsText
+from origami.gui_elements.misc_dialogs import DialogBox
+from origami.gui_elements.panel_html_viewer import PanelHTMLViewer
+from origami.gui_elements.dialog_customise_peptide_annotations import DialogCustomisePeptideAnnotations
 
 
 class EditableListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
@@ -1363,7 +1369,7 @@ class PanelUVPDEditor(wx.MiniFrame):
         print("In total, it took {:.4f} seconds.".format(ttime() - tstart))
 
     def _extract_mass_spectrum(self, document_path, scan_list, **kwargs):
-        from processing.spectra import sum_1D_dictionary
+        from origami.processing.spectra import sum_1D_dictionary
 
         for counter, item in enumerate(scan_list):
             msDict = io_waters.rawMassLynx_MS_bin(

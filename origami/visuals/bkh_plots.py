@@ -1,14 +1,17 @@
 """Classes to generate bokeh plots"""
-from os.path import join, isdir
+# Standard library imports
 from os import mkdir
+from os.path import join
+from os.path import isdir
 
+# Third-party imports
 import wx.html2
+from bokeh.models import Div
+from bokeh.models import Range1d
+from bokeh.models import ColumnDataSource
+from bokeh.layouts import column
 from bokeh.plotting import figure
 from bokeh.io.export import get_layout_html
-from bokeh.models import ColumnDataSource
-from bokeh.models import Div
-from bokeh.models import  Range1d
-from bokeh.layouts import column
 
 DEFAULT_TOOLS = "hover, pan,box_zoom,crosshair,reset"
 
@@ -26,8 +29,9 @@ class Plot:
     Pass the layout property into a wx sizer
     """
 
-    def __init__(self, parent, options, x_axis_label='X Axis', y_axis_label='Y Axis', x_axis_type='linear',
-                 tools=DEFAULT_TOOLS):
+    def __init__(
+        self, parent, options, x_axis_label="X Axis", y_axis_label="Y Axis", x_axis_type="linear", tools=DEFAULT_TOOLS
+    ):
         """
         :param parent: the wx UI object where the plot will be displayed
         :param options: user options object for visual preferences
@@ -44,7 +48,7 @@ class Plot:
 
         self.layout = wx.html2.WebView.New(parent)
         self.bokeh_layout = None
-        self.html_str = ''
+        self.html_str = ""
 
         # For windows users, since wx.html2 requires a file to load rather than passing a string
         # The file name for each plot will be join(TEMP_DIR, "%s.html" % self.type)
@@ -59,8 +63,8 @@ class Plot:
     def clear_plot(self):
         if self.bokeh_layout:
             self.clear_sources()
-            self.figure.xaxis.axis_label = ''
-            self.figure.yaxis.axis_label = ''
+            self.figure.xaxis.axis_label = ""
+            self.figure.yaxis.axis_label = ""
             self.update_bokeh_layout_in_wx_python()
 
     def clear_sources(self):
@@ -71,13 +75,15 @@ class Plot:
         try:
             self.html_str = get_layout_html(self.bokeh_layout)
         except MemoryError:
-            print('ERROR: dvha.models.plot in Plot.update_bokeh_layout_in_wx_python with '
-                  'bokeh.io.export.get_layout_html() raised MemoryError')
+            print(
+                "ERROR: dvha.models.plot in Plot.update_bokeh_layout_in_wx_python with "
+                "bokeh.io.export.get_layout_html() raised MemoryError"
+            )
         if is_windows():  # Windows requires LoadURL()
             if not isdir(TEMP_DIR):
                 mkdir(TEMP_DIR)
             web_file = join(TEMP_DIR, "%s.html" % self.type)
-            with open(web_file, 'wb') as f:
+            with open(web_file, "wb") as f:
                 f.write(self.html_str.encode("utf-8"))
             self.layout.LoadURL(web_file)
         else:
@@ -98,7 +104,7 @@ class Plot:
         """
         bad_indices = []
         for var in data:
-            bad_indices.extend([i for i, value in enumerate(var) if value == 'None'])
+            bad_indices.extend([i for i, value in enumerate(var) if value == "None"])
         bad_indices = set(bad_indices)
 
         ans = [[value for i, value in enumerate(var) if i not in bad_indices] for var in data]
@@ -118,13 +124,12 @@ class Plot:
 
 
 class PlotSpectrum(Plot):
-
     def __init__(self, parent, options, xvals, yvals, title="Mass Spectrum"):
         Plot.__init__(self, parent, options)
 
-        self.size_factor = {'plot': (0.95, 0.9)}
+        self.size_factor = {"plot": (0.95, 0.9)}
 
-        self.type = 'spectrum'
+        self.type = "spectrum"
 
         self.div_title = Div(text="<b>%s</b>" % title)
 
@@ -134,7 +139,7 @@ class PlotSpectrum(Plot):
         self.xvals = xvals
         self.yvals = yvals
 
-        self.source = {'plot': ColumnDataSource(data=dict(x=[], y=[]))}
+        self.source = {"plot": ColumnDataSource(data=dict(x=[], y=[]))}
 
         self.figure = figure(tools=DEFAULT_TOOLS)
 
@@ -161,13 +166,13 @@ class PlotSpectrum(Plot):
 
     def initialize_figures(self):
         self.figure.xaxis.axis_label_text_baseline = "bottom"
-        self.figure.xaxis.axis_label = 'm/z'
-        self.figure.yaxis.axis_label = 'Intensity'
+        self.figure.xaxis.axis_label = "m/z"
+        self.figure.yaxis.axis_label = "Intensity"
 
     def set_figure_dimensions(self):
         panel_width, panel_height = self.parent.GetSize()
-        self.figure.plot_width = int(self.size_factor['plot'][0] * float(panel_width))
-        self.figure.plot_height = int(self.size_factor['plot'][1] * float(panel_height))
+        self.figure.plot_width = int(self.size_factor["plot"][0] * float(panel_width))
+        self.figure.plot_height = int(self.size_factor["plot"][1] * float(panel_height))
 
     def update_data(self, xvals, yvals):
         self.xvals = xvals
@@ -179,7 +184,6 @@ class PlotSpectrum(Plot):
         if len(self.xvals) == 0 or len(self.yvals) == 0:
             return
 
-        self.source['plot'].data = {"x":self.xvals, "y":self.yvals}
+        self.source["plot"].data = {"x": self.xvals, "y": self.yvals}
         self.figure.x_range = Range1d(min(self.xvals), max(self.xvals))
         self.figure.y_range = Range1d(min(self.yvals), max(self.yvals) * 1.05)
-

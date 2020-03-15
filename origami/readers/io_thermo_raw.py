@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Third-party imports
+# Third-party imports
+# Third-party imports
 import numpy as np
-from utils.multiplierz_lite.mzAPI import raw
-from utils.path import clean_filename
+
+# Local imports
+from origami.utils.path import clean_filename
+from origami.utils.multiplierz_lite.mzAPI import raw
 
 
 class thermoRAWreader:

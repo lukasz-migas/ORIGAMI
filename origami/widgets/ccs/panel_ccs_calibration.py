@@ -1,47 +1,53 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import itertools
 from operator import itemgetter
 
+# Third-party imports
 import wx
 import wx.lib.mixins.listctrl as listmix
-from gui_elements.misc_dialogs import DialogBox
-from ids import ID_addCCScalibrantFile
-from ids import ID_addCCScalibrantMenu
-from ids import ID_addNewCalibrationDoc
-from ids import ID_applyCalibrationOnDataset
-from ids import ID_calibration_changeTD
-from ids import ID_calibrationPlot1D
-from ids import ID_checkAllItems_caliApply
-from ids import ID_checkAllItems_caliMS
-from ids import ID_clearTableCaliMS
-from ids import ID_extractCCScalibrantAll
-from ids import ID_extractCCScalibrantMenu
-from ids import ID_extractCCScalibrantSelected
-from ids import ID_openCCScalibrationDatabse
-from ids import ID_openDocument
-from ids import ID_plotCCScalibrationMenu
-from ids import ID_processApplyCCScalibrantMenu
-from ids import ID_processCCScalibrantMenu
-from ids import ID_removeApplyCCScalibrantMenu
-from ids import ID_removeCCScalibrantBottomPanel
-from ids import ID_removeCCScalibrantBottomPanelPopup
-from ids import ID_removeCCScalibrantFile
-from ids import ID_removeCCScalibrantFiles
-from ids import ID_removeCCScalibrantMenu
-from ids import ID_removeItemCCSCalibrantPopup
-from ids import ID_saveCCScalibrantMenu
-from ids import ID_saveCCScalibration
-from ids import ID_selectCalibrant
-from ids import ID_showHideListCCSMenu
-from ids import ID_showHidePanelCCSMenu
-from numpy import arange
 from numpy import round
-from styles import layout
-from styles import validator
-from utils.check import isnumber
-from utils.converters import str2int
-from utils.converters import str2num
+from numpy import arange
+
+# Local imports
+from origami.ids import ID_openDocument
+from origami.ids import ID_selectCalibrant
+from origami.ids import ID_clearTableCaliMS
+from origami.ids import ID_calibrationPlot1D
+from origami.ids import ID_saveCCScalibration
+from origami.ids import ID_addCCScalibrantFile
+from origami.ids import ID_addCCScalibrantMenu
+from origami.ids import ID_showHideListCCSMenu
+from origami.ids import ID_addNewCalibrationDoc
+from origami.ids import ID_calibration_changeTD
+from origami.ids import ID_checkAllItems_caliMS
+from origami.ids import ID_saveCCScalibrantMenu
+from origami.ids import ID_showHidePanelCCSMenu
+from origami.ids import ID_extractCCScalibrantAll
+from origami.ids import ID_plotCCScalibrationMenu
+from origami.ids import ID_removeCCScalibrantFile
+from origami.ids import ID_removeCCScalibrantMenu
+from origami.ids import ID_checkAllItems_caliApply
+from origami.ids import ID_extractCCScalibrantMenu
+from origami.ids import ID_processCCScalibrantMenu
+from origami.ids import ID_removeCCScalibrantFiles
+from origami.ids import ID_applyCalibrationOnDataset
+from origami.ids import ID_openCCScalibrationDatabse
+from origami.ids import ID_extractCCScalibrantSelected
+from origami.ids import ID_removeApplyCCScalibrantMenu
+from origami.ids import ID_removeItemCCSCalibrantPopup
+from origami.ids import ID_processApplyCCScalibrantMenu
+from origami.ids import ID_removeCCScalibrantBottomPanel
+from origami.ids import ID_removeCCScalibrantBottomPanelPopup
+from origami.styles import layout
+from origami.styles import validator
+from origami.utils.check import isnumber
+from origami.utils.converters import str2int
+from origami.utils.converters import str2num
+from origami.gui_elements.misc_dialogs import DialogBox
 
 
 class PanelCCSCalibration(wx.Panel):

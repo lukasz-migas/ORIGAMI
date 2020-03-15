@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
-from icons.icons import IconContainer
+# Local imports
+# Local imports
+# Local imports
+from origami.icons.icons import IconContainer
 
 
 class OrigamiHelp:

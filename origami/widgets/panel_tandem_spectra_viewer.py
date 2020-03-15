@@ -1,28 +1,34 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 # Load libraries
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import logging
 from re import split as re_split
 from time import time as ttime
 
-import numpy as np
+# Third-party imports
 import wx
-from gui_elements.dialog_customise_peptide_annotations import DialogCustomisePeptideAnnotations
-from gui_elements.misc_dialogs import DialogBox
-from ids import ID_tandemPanel_otherSettings
-from ids import ID_tandemPanel_peaklist_show_selected
-from ids import ID_tandemPanel_showPTMs
-from ids import ID_tandemPanel_showUnidentifiedScans
-from ids import ID_tandemPanel_sort_peptide_by_AZ
-from ids import ID_tandemPanel_sort_peptide_by_length
+import numpy as np
 from natsort import natsorted
-from styles import ListCtrl
-from styles import make_checkbox
-from styles import make_menu_item
-from styles import make_staticbox
-from utils.converters import str2int
-from utils.converters import str2num
-from utils.misc import removeListDuplicates
+
+# Local imports
+from origami.ids import ID_tandemPanel_showPTMs
+from origami.ids import ID_tandemPanel_otherSettings
+from origami.ids import ID_tandemPanel_sort_peptide_by_AZ
+from origami.ids import ID_tandemPanel_showUnidentifiedScans
+from origami.ids import ID_tandemPanel_peaklist_show_selected
+from origami.ids import ID_tandemPanel_sort_peptide_by_length
+from origami.styles import ListCtrl
+from origami.styles import make_checkbox
+from origami.styles import make_menu_item
+from origami.styles import make_staticbox
+from origami.utils.misc import removeListDuplicates
+from origami.utils.converters import str2int
+from origami.utils.converters import str2num
+from origami.gui_elements.misc_dialogs import DialogBox
+from origami.gui_elements.dialog_customise_peptide_annotations import DialogCustomisePeptideAnnotations
 
 logger = logging.getLogger(__name__)
 

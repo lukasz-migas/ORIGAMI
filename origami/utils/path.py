@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
-import logging
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import os
 import shutil
+import logging
 
-from utils.converters import byte2str
-from macpath import dirname
+# Local imports
+from origami.utils.converters import byte2str
 
 logger = logging.getLogger(__name__)
 
@@ -120,6 +123,7 @@ def clean_directory(dirpath):
 
 def get_subdirectories(path, extension=None, as_short=True):
     """Get list of directories"""
+
     def append():
         if as_short:
             subdirectories.append(dirpath)

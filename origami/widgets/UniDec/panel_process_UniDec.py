@@ -1,20 +1,26 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import logging
 
-import processing.UniDec.utilities as unidec_utils
+# Third-party imports
 import wx.lib.scrolledpanel
-from ids import ID_plotPanel_resize
-from styles import make_checkbox
-from styles import make_menu_item
-from styles import make_tooltip
-from styles import validator
-from utils.converters import str2int
-from utils.converters import str2num
-from utils.exceptions import MessageError
-from utils.screen import calculate_window_size
-from utils.time import ttime
-from visuals import mpl_plots
+
+# Local imports
+import origami.processing.UniDec.utilities as unidec_utils
+from origami.ids import ID_plotPanel_resize
+from origami.styles import validator
+from origami.styles import make_tooltip
+from origami.styles import make_checkbox
+from origami.styles import make_menu_item
+from origami.visuals import mpl_plots
+from origami.utils.time import ttime
+from origami.utils.screen import calculate_window_size
+from origami.utils.converters import str2int
+from origami.utils.converters import str2num
+from origami.utils.exceptions import MessageError
 
 logger = logging.getLogger(__name__)
 
@@ -803,7 +809,7 @@ class PanelProcessUniDec(wx.MiniFrame):
         self.view.on_customise_unidec_plot_parameters(None)
 
     def on_open_width_tool(self, evt):
-        from widgets.UniDec.panel_process_unidec_peak_width_tool import PanelPeakWidthTool
+        from origami.widgets.UniDec.panel_process_unidec_peak_width_tool import PanelPeakWidthTool
 
         try:
             kwargs = {

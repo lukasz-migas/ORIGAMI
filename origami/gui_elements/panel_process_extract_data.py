@@ -1,15 +1,21 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import logging
 
+# Third-party imports
 import wx
 from pubsub import pub
-from styles import make_checkbox
-from styles import make_spin_ctrl_double
-from styles import MiniFrame
-from styles import validator
-from utils.converters import str2num
-from utils.exceptions import MessageError
+
+# Local imports
+from origami.styles import MiniFrame
+from origami.styles import validator
+from origami.styles import make_checkbox
+from origami.styles import make_spin_ctrl_double
+from origami.utils.converters import str2num
+from origami.utils.exceptions import MessageError
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +76,7 @@ class PanelProcessExtractData(MiniFrame):
 
         n_extracted_items = len(self.extraction_data)
         if n_extracted_items > 0:
-            from gui_elements.misc_dialogs import DialogBox
+            from origami.gui_elements.misc_dialogs import DialogBox
 
             msg = (
                 f"Found {n_extracted_items} extracted item(s) in the clipboard. Closing this window will lose"
@@ -391,7 +397,7 @@ class PanelProcessExtractData(MiniFrame):
 
     def on_add_to_document(self, evt):
         """Add data to document. Ask users what data should be added"""
-        from gui_elements.dialog_review_editor import DialogReviewEditor
+        from origami.gui_elements.dialog_review_editor import DialogReviewEditor
 
         # if the list is empty, notify the user
         if not self.extraction_data:

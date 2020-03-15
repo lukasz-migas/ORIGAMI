@@ -1,42 +1,48 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
-import itertools
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import logging
 import warnings
-from builtins import isinstance
+import itertools
 from copy import deepcopy
+from builtins import isinstance
 
+# Third-party imports
+import numpy as np
 import matplotlib
 import matplotlib.cm as cm
 import matplotlib.patches as patches
-import numpy as np
-import utils.visuals as ut_visuals
-from gui_elements.misc_dialogs import DialogBox
+from seaborn import color_palette
 from matplotlib import gridspec
-from matplotlib.collections import LineCollection
 from matplotlib.colors import LogNorm
 from matplotlib.colors import PowerNorm
 from matplotlib.ticker import MaxNLocator
+from matplotlib.collections import LineCollection
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-from processing.heatmap import normalize_2D
-from processing.spectra import normalize_1D
-from seaborn import color_palette
-from utils.adjustText import adjust_text
-from utils.color import convert_rgb_1_to_255
-from utils.color import get_font_color
-from utils.color import get_random_color
-from utils.exceptions import MessageError
-from utils.labels import _replace_labels
-from utils.misc import merge_two_dicts
-from utils.misc import remove_nan_from_list
-from utils.ranges import find_limits_all
-from utils.ranges import find_limits_list
-from utils.ranges import get_min_max
-from utils.visuals import prettify_tick_format
-from visuals.mpl_colorbar import Colorbar
-from visuals.mpl_plotter import mpl_plotter
-from visuals.normalize import MidpointNormalize
+
+# Local imports
+import origami.utils.visuals as ut_visuals
+from origami.utils.misc import merge_two_dicts
+from origami.utils.misc import remove_nan_from_list
+from origami.utils.color import get_font_color
+from origami.utils.color import get_random_color
+from origami.utils.color import convert_rgb_1_to_255
+from origami.utils.labels import _replace_labels
+from origami.utils.ranges import get_min_max
+from origami.utils.ranges import find_limits_all
+from origami.utils.ranges import find_limits_list
+from origami.utils.visuals import prettify_tick_format
+from origami.utils.adjustText import adjust_text
+from origami.utils.exceptions import MessageError
+from origami.visuals.normalize import MidpointNormalize
+from origami.processing.heatmap import normalize_2D
+from origami.processing.spectra import normalize_1D
+from origami.visuals.mpl_plotter import mpl_plotter
+from origami.visuals.mpl_colorbar import Colorbar
+from origami.gui_elements.misc_dialogs import DialogBox
 
 logger = logging.getLogger(__name__)
 

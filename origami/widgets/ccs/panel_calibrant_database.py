@@ -1,13 +1,19 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import itertools
 from operator import itemgetter
 
-import numpy as np
+# Third-party imports
 import wx
-from styles import ListCtrl
-from utils.converters import str2int
-from utils.converters import str2num
+import numpy as np
+
+# Local imports
+from origami.styles import ListCtrl
+from origami.utils.converters import str2int
+from origami.utils.converters import str2num
 
 
 class PanelCalibrantDatabase(wx.MiniFrame):

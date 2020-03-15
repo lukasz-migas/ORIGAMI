@@ -1,40 +1,46 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 # Import libraries
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import gc
-import logging
 import os
 import sys
-import threading
+import logging
 import warnings
+import threading
 import webbrowser
 import faulthandler
 from sys import platform
 
-import processing.UniDec.unidec as unidec
+# Third-party imports
 import wx
-from config import Config
-from document import document as documents
-from gui_elements.misc_dialogs import DialogSimpleAsk
-from help_documentation import OrigamiHelp
-from icons.icons import IconContainer
-from ids import ID_addNewCalibrationDoc
-from ids import ID_addNewInteractiveDoc
-from ids import ID_addNewManualDoc
-from ids import ID_addNewOverlayDoc
-from ids import ID_helpCite
-from ids import ID_helpGitHub
-from ids import ID_helpGuide
-from ids import ID_helpHomepage
-from ids import ID_helpHTMLEditor
-from ids import ID_helpNewFeatures
-from ids import ID_helpNewVersion
-from ids import ID_helpReportBugs
-from ids import ID_helpYoutube
-from main_window import MainWindow
-from utils.logging import set_logger
-from utils.logging import set_logger_level
-from utils.time import getTime
+
+# Local imports
+import origami.processing.UniDec.unidec as unidec
+from origami.ids import ID_helpCite
+from origami.ids import ID_helpGuide
+from origami.ids import ID_helpGitHub
+from origami.ids import ID_helpYoutube
+from origami.ids import ID_helpHomepage
+from origami.ids import ID_helpHTMLEditor
+from origami.ids import ID_helpNewVersion
+from origami.ids import ID_helpReportBugs
+from origami.ids import ID_addNewManualDoc
+from origami.ids import ID_helpNewFeatures
+from origami.ids import ID_addNewOverlayDoc
+from origami.ids import ID_addNewCalibrationDoc
+from origami.ids import ID_addNewInteractiveDoc
+from origami.config import Config
+from origami.document import document as documents
+from origami.utils.time import getTime
+from origami.icons.icons import IconContainer
+from origami.main_window import MainWindow
+from origami.utils.logging import set_logger
+from origami.utils.logging import set_logger_level
+from origami.help_documentation import OrigamiHelp
+from origami.gui_elements.misc_dialogs import DialogSimpleAsk
 
 # needed to avoid annoying warnings to be printed on console
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -47,7 +53,6 @@ faulthandler.enable()
 
 # disable MPL logger
 logging.getLogger("matplotlib").setLevel(logging.ERROR)
-
 
 
 class ORIGAMI:
@@ -156,7 +161,6 @@ class ORIGAMI:
         if self.config.testing:
             self._test_()
 
-
     def initilize_state(self):
         """Pre-set variables"""
         self.documents = []
@@ -165,8 +169,9 @@ class ORIGAMI:
 
     def initilize_registry(self):
         """Update reg keys to allow viewing of JS/HTML inside ORIGAMI windows"""
-        from utils.windows_reg_edit import set_ie_emulation_level
-        from utils.windows_reg_edit import set_ie_lockdown_level
+        from origami.utils.windows_reg_edit import set_ie_emulation_level
+        from origami.utils.windows_reg_edit import set_ie_lockdown_level
+
         set_ie_emulation_level()
         set_ie_lockdown_level()
         logger.debug("Initilized registry...")

@@ -1,14 +1,19 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Third-party imports
+# Third-party imports
+# Third-party imports
 import numpy as np
-import readers.waters.MassLynxRawChromatogramReader as MassLynxRawChromatogramReader
-import readers.waters.MassLynxRawInfoReader as MassLynxRawInfoReader
-import readers.waters.MassLynxRawReader as MassLynxRawReader
-import readers.waters.MassLynxRawScanReader as MassLynxRawScanReader
-from scipy.interpolate import interpolate
-from utils.ranges import get_min_max
 from natsort import order_by_index
 from natsort import index_natsorted
+from scipy.interpolate import interpolate
+
+# Local imports
+import origami.readers.waters.MassLynxRawReader as MassLynxRawReader
+import origami.readers.waters.MassLynxRawInfoReader as MassLynxRawInfoReader
+import origami.readers.waters.MassLynxRawScanReader as MassLynxRawScanReader
+import origami.readers.waters.MassLynxRawChromatogramReader as MassLynxRawChromatogramReader
+from origami.utils.ranges import get_min_max
 
 
 class WatersRawReader:
@@ -108,11 +113,7 @@ class WatersRawReader:
             xvals = np.array(xvals)
             yvals = np.array(yvals)
             if len(xvals) > 0:
-                f = interpolate.interp1d(xvals, 
-                                         yvals, 
-                                         "linear", 
-                                         bounds_error=False,
-                                         fill_value=0)
+                f = interpolate.interp1d(xvals, yvals, "linear", bounds_error=False, fill_value=0)
                 mz_y += f(mz_x)
 
         return mz_y
@@ -150,6 +151,45 @@ class WatersRawReader:
                 mz_y += f(mz_x)
 
         return mz_y
+
+    def get_summed_drift_spectrum2(self, fcn, n_scans, mz_x, scan_list=None, drift_list=None):
+        if not self.check_fcn(fcn):
+            raise ValueError(f"Function {fcn} could not be found in the file.")
+
+        if scan_list is None:
+            scan_list = range(n_scans)
+
+        if drift_list is None:
+            drift_list = range(200)
+
+        if len(scan_list) == 0:
+            raise ValueError("Scan list is empty")
+
+        xvals, yvals = [], []
+        mz_y = np.zeros_like(mz_x, dtype=np.float64)
+        for scan_id in scan_list:
+            for drift_id in drift_list:
+                _xvals, _yvals = self.data_reader.ReadDriftScan(fcn, scan_id, drift_id)
+                xvals.extend(_xvals)
+                yvals.extend(_yvals)
+
+        idx = index_natsorted(xvals)
+
+        return np.asarray(order_by_index(xvals, idx)), np.asarray(order_by_index(yvals, idx))
+
+        # if len(xvals) > 0:
+        #     idx = index_natsorted(xvals)
+        #
+        #     f = interpolate.interp1d(
+        #         np.asarray(order_by_index(xvals, idx)),
+        #         np.asarray(order_by_index(yvals, idx)),
+        #         "linear",
+        #         bounds_error=False,
+        #         fill_value=0,
+        #     )
+        #     mz_y += f(mz_x)
+        #
+        # return mz_y
 
     def get_TIC(self, fcn):
         tic_x, tic_y = self.chrom_reader.ReadTIC(fcn)

@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Standard library imports
+# Standard library imports
+# Standard library imports
 from collections import OrderedDict
 
+# Third-party imports
 import numpy as np
 from pyteomics import mgf
 

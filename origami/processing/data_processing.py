@@ -1,30 +1,36 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import logging
 import threading
 from time import time as ttime
 
+# Third-party imports
 import numpy as np
-import processing.heatmap as pr_heatmap
-import processing.origami_ms as pr_origami
-import processing.peaks as pr_peaks
-import processing.peptide_annotation as pr_frag
-import processing.spectra as pr_spectra
-import processing.utils as pr_utils
-import utils.labels as ut_labels
-from gui_elements.misc_dialogs import DialogBox
-from gui_elements.misc_dialogs import DialogSimpleAsk
-from ids import ID_window_ccsList
-from ids import ID_window_ionList
-from ids import ID_window_multiFieldList
-from processing.UniDec import unidec
-from utils.check import check_value_order
-from utils.check import isempty
-from utils.color import convert_rgb_255_to_1
-from utils.converters import str2num
-from utils.exceptions import MessageError
-from utils.path import clean_filename
-from utils.random import get_random_int
+
+# Local imports
+import origami.utils.labels as ut_labels
+import origami.processing.peaks as pr_peaks
+import origami.processing.utils as pr_utils
+import origami.processing.heatmap as pr_heatmap
+import origami.processing.spectra as pr_spectra
+import origami.processing.origami_ms as pr_origami
+import origami.processing.peptide_annotation as pr_frag
+from origami.ids import ID_window_ccsList
+from origami.ids import ID_window_ionList
+from origami.ids import ID_window_multiFieldList
+from origami.utils.path import clean_filename
+from origami.utils.check import isempty
+from origami.utils.check import check_value_order
+from origami.utils.color import convert_rgb_255_to_1
+from origami.utils.random import get_random_int
+from origami.utils.converters import str2num
+from origami.utils.exceptions import MessageError
+from origami.processing.UniDec import unidec
+from origami.gui_elements.misc_dialogs import DialogBox
+from origami.gui_elements.misc_dialogs import DialogSimpleAsk
 
 logger = logging.getLogger(__name__)
 

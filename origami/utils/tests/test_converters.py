@@ -1,10 +1,11 @@
 """Test converters in utils.converters.py"""
-from utils.converters import byte2str
-from utils.converters import float2int
-from utils.converters import num2str
-from utils.converters import str2bool
-from utils.converters import str2int
-from utils.converters import str2num
+# Local imports
+from origami.utils.converters import num2str
+from origami.utils.converters import str2int
+from origami.utils.converters import str2num
+from origami.utils.converters import byte2str
+from origami.utils.converters import str2bool
+from origami.utils.converters import float2int
 
 
 class TestConverters(object):

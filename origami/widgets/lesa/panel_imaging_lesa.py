@@ -4,18 +4,18 @@ import logging
 
 # Third-party imports
 import wx
-from pubsub import pub
 import numpy as np
+from pubsub import pub
 
 # Local imports
-from styles import ListCtrl
-from styles import make_menu_item
-from styles import MiniFrame
-from utils.decorators import Timer
-from utils.screen import calculate_window_size
-from utils.check import check_value_order
-from processing.utils import get_maximum_value_in_range
-from styles import validator
+from origami.styles import ListCtrl
+from origami.styles import MiniFrame
+from origami.styles import validator
+from origami.styles import make_menu_item
+from origami.utils.check import check_value_order
+from origami.utils.screen import calculate_window_size
+from origami.processing.utils import get_maximum_value_in_range
+from origami.utils.decorators import Timer
 
 # Module globals
 logger = logging.getLogger(__name__)
@@ -83,11 +83,11 @@ class PanelImagingLESAViewer(MiniFrame):
         """Destroy this frame"""
         n_clipboard_items = len(self.clipboard)
         if n_clipboard_items > 0:
-            from gui_elements.misc_dialogs import DialogBox
+            from origami.gui_elements.misc_dialogs import DialogBox
 
             msg = (
                 f"Found {n_clipboard_items} item(s) in the clipboard. Closing this window will lose"
-                +" your extracted data. Would you like to continue?"
+                + " your extracted data. Would you like to continue?"
             )
             dlg = DialogBox(exceptionTitle="Clipboard is not empty", exceptionMsg=msg, type="Question")
             if dlg == wx.ID_NO:
@@ -98,6 +98,7 @@ class PanelImagingLESAViewer(MiniFrame):
         pub.unsubscribe(self.on_extract_image_from_mobilogram, "widget.imaging.lesa.extract.image.mobilogram")
         pub.unsubscribe(self.on_extract_spectrum_from_image, "widget.imaging.lesa.extract.spectrum.image")
         self.Destroy()
+
     def subscribe(self):
         """Initilize pubsub subscribers"""
         pub.subscribe(self.on_extract_image_from_spectrum, "widget.imaging.lesa.extract.image.spectrum")
@@ -335,7 +336,6 @@ class PanelImagingLESAViewer(MiniFrame):
 
         print("on_update_item")
 
-
     def get_plot_obj(self):
         plot_obj = {"MS": self.plot_window_MS, "2D": self.plot_window_img, "1D": self.plot_window_DT}[
             self.view.plot_name
@@ -383,7 +383,7 @@ class PanelImagingLESAViewer(MiniFrame):
 
     def on_assign_color(self, evt):
         """Assign new color to the item"""
-        from gui_elements.dialog_color_picker import DialogColorPicker
+        from origami.gui_elements.dialog_color_picker import DialogColorPicker
 
         dlg = DialogColorPicker(self, self.config.customColors)
         if dlg.ShowModal() == "ok":
@@ -411,11 +411,11 @@ class PanelImagingLESAViewer(MiniFrame):
         self.on_extract_image_from_spectrum([None, None, None, None])
 
     def on_extract_image_from_mobilogram(self, rect):
-        zvals = self.data_handling.on_extract_LESA_img_from_mobilogram(rect[0], rect[1],
-                                                               self.clipboard[self.img_data]["zvals_dt"])
+        zvals = self.data_handling.on_extract_LESA_img_from_mobilogram(
+            rect[0], rect[1], self.clipboard[self.img_data]["zvals_dt"]
+        )
 
     def on_extract_image_from_spectrum(self, rect):
-
         def plot():
             # update plots
             self.on_plot_image(self.clipboard[ion_name])
@@ -468,11 +468,7 @@ class PanelImagingLESAViewer(MiniFrame):
 
         self.img_data = ion_name
         self.clipboard[ion_name] = dict(
-            zvals=zvals,
-            xvals=xvals,
-            yvals=yvals,
-            extract_range=[xmin, xmax],
-            ion_name=ion_name,
+            zvals=zvals, xvals=xvals, yvals=yvals, extract_range=[xmin, xmax], ion_name=ion_name
         )
 
         # get mobilogram data
@@ -480,11 +476,7 @@ class PanelImagingLESAViewer(MiniFrame):
         xvals_dt, yvals_dt, zvals_dt = self.data_handling.on_extract_LESA_mobilogram_from_mass_range(
             xmin, xmax, self.document_title
         )
-        self.clipboard[ion_name].update(
-            xvals_dt=xvals_dt,
-            yvals_dt=yvals_dt,
-            zvals_dt=zvals_dt
-            )
+        self.clipboard[ion_name].update(xvals_dt=xvals_dt, yvals_dt=yvals_dt, zvals_dt=zvals_dt)
 
         plot()
 
@@ -519,9 +511,9 @@ class PanelImagingLESAViewer(MiniFrame):
         )
 
     def on_add_to_table(self, **add_dict):
-        from utils.color import round_rgb
-        from utils.color import convert_rgb_255_to_1
-        from utils.color import get_font_color
+        from origami.utils.color import round_rgb
+        from origami.utils.color import convert_rgb_255_to_1
+        from origami.utils.color import get_font_color
 
         color = add_dict["color"]
 
@@ -544,7 +536,7 @@ class PanelImagingLESAViewer(MiniFrame):
         xmin, xmax, ymin, ymax = rect
 
     def on_update_normalization(self, evt):
-        from processing.heatmap import normalize_2D
+        from origami.processing.heatmap import normalize_2D
         from copy import deepcopy
 
         # get method

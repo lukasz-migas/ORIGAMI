@@ -1,6 +1,8 @@
 """Utilities that don't belong anywhere else"""
+# Standard library imports
 from collections import OrderedDict
 
+# Third-party imports
 import numpy as np
 
 

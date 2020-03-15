@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Third-party imports
+# Third-party imports
+# Third-party imports
 import wx
-from help_documentation import OrigamiHelp
-from styles import make_checkbox
+
+# Local imports
+from origami.styles import make_checkbox
+from origami.help_documentation import OrigamiHelp
 
 
 class PanelExportSettings(wx.MiniFrame):

@@ -1,38 +1,44 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import logging
 from time import time as ttime
 
+# Third-party imports
 import wx.lib.scrolledpanel
-from gui_elements.dialog_color_picker import DialogColorPicker
-from help_documentation import OrigamiHelp
-from ids import ID_extraSettings_autoSaveSettings
-from ids import ID_extraSettings_bar_edgeColor
-from ids import ID_extraSettings_boxColor
-from ids import ID_extraSettings_edgeMarkerColor_1D
-from ids import ID_extraSettings_extractColor
-from ids import ID_extraSettings_horizontalColor
-from ids import ID_extraSettings_labelColor_rmsd
-from ids import ID_extraSettings_lineColor_1D
-from ids import ID_extraSettings_lineColor_rmsd
-from ids import ID_extraSettings_lineColour_violin
-from ids import ID_extraSettings_lineColour_waterfall
-from ids import ID_extraSettings_logging
-from ids import ID_extraSettings_markerColor_1D
-from ids import ID_extraSettings_multiThreading
-from ids import ID_extraSettings_shadeColour_violin
-from ids import ID_extraSettings_shadeColour_waterfall
-from ids import ID_extraSettings_shadeUnderColor_1D
-from ids import ID_extraSettings_underlineColor_rmsd
-from ids import ID_extraSettings_verticalColor
-from ids import ID_extraSettings_zoomCursorColor
-from styles import make_checkbox
-from styles import make_toggle_btn
-from styles import set_item_font
-from utils.color import convert_rgb_1_to_255
-from utils.converters import str2int
-from utils.converters import str2num
 from wx.adv import BitmapComboBox
+
+# Local imports
+from origami.ids import ID_extraSettings_logging
+from origami.ids import ID_extraSettings_boxColor
+from origami.ids import ID_extraSettings_extractColor
+from origami.ids import ID_extraSettings_lineColor_1D
+from origami.ids import ID_extraSettings_bar_edgeColor
+from origami.ids import ID_extraSettings_verticalColor
+from origami.ids import ID_extraSettings_lineColor_rmsd
+from origami.ids import ID_extraSettings_markerColor_1D
+from origami.ids import ID_extraSettings_multiThreading
+from origami.ids import ID_extraSettings_horizontalColor
+from origami.ids import ID_extraSettings_labelColor_rmsd
+from origami.ids import ID_extraSettings_zoomCursorColor
+from origami.ids import ID_extraSettings_autoSaveSettings
+from origami.ids import ID_extraSettings_lineColour_violin
+from origami.ids import ID_extraSettings_edgeMarkerColor_1D
+from origami.ids import ID_extraSettings_shadeColour_violin
+from origami.ids import ID_extraSettings_shadeUnderColor_1D
+from origami.ids import ID_extraSettings_underlineColor_rmsd
+from origami.ids import ID_extraSettings_lineColour_waterfall
+from origami.ids import ID_extraSettings_shadeColour_waterfall
+from origami.styles import make_checkbox
+from origami.styles import set_item_font
+from origami.styles import make_toggle_btn
+from origami.utils.color import convert_rgb_1_to_255
+from origami.utils.converters import str2int
+from origami.utils.converters import str2num
+from origami.help_documentation import OrigamiHelp
+from origami.gui_elements.dialog_color_picker import DialogColorPicker
 
 logger = logging.getLogger(__name__)
 

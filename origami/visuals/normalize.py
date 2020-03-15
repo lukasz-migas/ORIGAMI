@@ -1,4 +1,5 @@
 """Visual normalization functions"""
+# Third-party imports
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 import numpy as np

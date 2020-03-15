@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Third-party imports
+# Third-party imports
+# Third-party imports
 import wx
-from styles import Dialog
-from styles import make_checkbox
+
+# Local imports
+from origami.styles import Dialog
+from origami.styles import make_checkbox
 
 
 class DialogAskOverride(Dialog):

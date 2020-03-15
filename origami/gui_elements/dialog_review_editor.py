@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import logging
 
+# Third-party imports
 import wx
-from styles import Dialog
-from styles import ListCtrl
-from styles import set_item_font
+
+# Local imports
+from origami.styles import Dialog
+from origami.styles import ListCtrl
+from origami.styles import set_item_font
 
 logger = logging.getLogger(__name__)
 

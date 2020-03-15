@@ -1,12 +1,14 @@
 """This module is the exact copy of the adjustText package available at:
 https://github.com/Phlya/adjustText
 """
+# Standard library imports
 import sys
-from itertools import product
 from operator import itemgetter
+from itertools import product
 
-import matplotlib
+# Third-party imports
 import numpy as np
+import matplotlib
 from matplotlib import pyplot as plt
 from matplotlib.path import get_path_collection_extents
 

@@ -1,31 +1,37 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
 # Load libraries
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import logging
 from copy import deepcopy
 
-import processing.spectra as pr_spectra
+# Third-party imports
 import wx
-from gui_elements.dialog_color_picker import DialogColorPicker
-from ids import ID_compareMS_MS_1
-from ids import ID_compareMS_MS_2
-from ids import ID_extraSettings_legend
-from ids import ID_extraSettings_plot1D
-from ids import ID_plotPanel_resize
-from ids import ID_plots_customise_plot
-from ids import ID_processSettings_MS
 from natsort import natsorted
-from styles import make_bitmap_btn
-from styles import make_checkbox
-from styles import make_color_btn
-from styles import make_menu_item
-from styles import make_spin_ctrl_double
-from styles import make_staticbox
-from styles import MiniFrame
-from utils.converters import str2num
-from utils.screen import calculate_window_size
-from utils.time import ttime
-from visuals import mpl_plots
+
+# Local imports
+import origami.processing.spectra as pr_spectra
+from origami.ids import ID_compareMS_MS_1
+from origami.ids import ID_compareMS_MS_2
+from origami.ids import ID_plotPanel_resize
+from origami.ids import ID_processSettings_MS
+from origami.ids import ID_extraSettings_legend
+from origami.ids import ID_extraSettings_plot1D
+from origami.ids import ID_plots_customise_plot
+from origami.styles import MiniFrame
+from origami.styles import make_checkbox
+from origami.styles import make_color_btn
+from origami.styles import make_menu_item
+from origami.styles import make_staticbox
+from origami.styles import make_bitmap_btn
+from origami.styles import make_spin_ctrl_double
+from origami.visuals import mpl_plots
+from origami.utils.time import ttime
+from origami.utils.screen import calculate_window_size
+from origami.utils.converters import str2num
+from origami.gui_elements.dialog_color_picker import DialogColorPicker
 
 logger = logging.getLogger(__name__)
 

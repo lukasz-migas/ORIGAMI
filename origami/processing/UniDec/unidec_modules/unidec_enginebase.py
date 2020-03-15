@@ -1,6 +1,7 @@
-import processing.UniDec.unidec_modules.peakstructure as peakstructure
-import processing.UniDec.unidec_modules.unidecstructure as unidecstructure
-import processing.UniDec.unidec_modules.unidectools as ud
+# Local imports
+import origami.processing.UniDec.unidec_modules.unidectools as ud
+import origami.processing.UniDec.unidec_modules.peakstructure as peakstructure
+import origami.processing.UniDec.unidec_modules.unidecstructure as unidecstructure
 
 
 class UniDecEngine:

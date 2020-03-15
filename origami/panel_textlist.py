@@ -1,64 +1,70 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
-import logging
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import re
+import logging
 from ast import literal_eval
 
+# Third-party imports
 import wx
-from gui_elements.dialog_ask import DialogAsk
-from gui_elements.dialog_color_picker import DialogColorPicker
-from gui_elements.misc_dialogs import DialogBox
-from ids import ID_addNewOverlayDoc
-from ids import ID_ionPanel_edit_all
-from ids import ID_load_multiple_text_2D
-from ids import ID_textPanel_annotate_alpha
-from ids import ID_textPanel_annotate_charge_state
-from ids import ID_textPanel_annotate_mask
-from ids import ID_textPanel_annotate_max_threshold
-from ids import ID_textPanel_annotate_min_threshold
-from ids import ID_textPanel_assignColor
-from ids import ID_textPanel_changeColorBatch_color
-from ids import ID_textPanel_changeColorBatch_colormap
-from ids import ID_textPanel_changeColorBatch_palette
-from ids import ID_textPanel_changeColormapBatch
-from ids import ID_textPanel_check_all
-from ids import ID_textPanel_check_selected
-from ids import ID_textPanel_clear_all
-from ids import ID_textPanel_clear_selected
-from ids import ID_textPanel_delete_all
-from ids import ID_textPanel_delete_rightClick
-from ids import ID_textPanel_delete_selected
-from ids import ID_textPanel_edit_selected
-from ids import ID_textPanel_editItem
-from ids import ID_textPanel_show_chromatogram
-from ids import ID_textPanel_show_heatmap
-from ids import ID_textPanel_show_mobilogram
-from ids import ID_textPanel_show_process_heatmap
-from ids import ID_textPanel_table_alpha
-from ids import ID_textPanel_table_charge
-from ids import ID_textPanel_table_color
-from ids import ID_textPanel_table_colormap
-from ids import ID_textPanel_table_document
-from ids import ID_textPanel_table_endCE
-from ids import ID_textPanel_table_hideAll
-from ids import ID_textPanel_table_label
-from ids import ID_textPanel_table_mask
-from ids import ID_textPanel_table_restoreAll
-from ids import ID_textPanel_table_shape
-from ids import ID_textPanel_table_startCE
 from numpy import arange
-from styles import ListCtrl
-from styles import make_menu_item
-from styles import make_tooltip
-from utils.check import isempty
-from utils.color import convert_rgb_1_to_255
-from utils.color import convert_rgb_255_to_1
-from utils.color import get_all_color_types
-from utils.color import get_font_color
-from utils.color import get_random_color
-from utils.color import round_rgb
-from utils.misc import removeListDuplicates
-from utils.random import get_random_int
+
+# Local imports
+from origami.ids import ID_addNewOverlayDoc
+from origami.ids import ID_ionPanel_edit_all
+from origami.ids import ID_textPanel_editItem
+from origami.ids import ID_textPanel_check_all
+from origami.ids import ID_textPanel_clear_all
+from origami.ids import ID_textPanel_delete_all
+from origami.ids import ID_textPanel_table_mask
+from origami.ids import ID_load_multiple_text_2D
+from origami.ids import ID_textPanel_assignColor
+from origami.ids import ID_textPanel_table_alpha
+from origami.ids import ID_textPanel_table_color
+from origami.ids import ID_textPanel_table_endCE
+from origami.ids import ID_textPanel_table_label
+from origami.ids import ID_textPanel_table_shape
+from origami.ids import ID_textPanel_show_heatmap
+from origami.ids import ID_textPanel_table_charge
+from origami.ids import ID_textPanel_annotate_mask
+from origami.ids import ID_textPanel_edit_selected
+from origami.ids import ID_textPanel_table_hideAll
+from origami.ids import ID_textPanel_table_startCE
+from origami.ids import ID_textPanel_annotate_alpha
+from origami.ids import ID_textPanel_check_selected
+from origami.ids import ID_textPanel_clear_selected
+from origami.ids import ID_textPanel_table_colormap
+from origami.ids import ID_textPanel_table_document
+from origami.ids import ID_textPanel_delete_selected
+from origami.ids import ID_textPanel_show_mobilogram
+from origami.ids import ID_textPanel_table_restoreAll
+from origami.ids import ID_textPanel_delete_rightClick
+from origami.ids import ID_textPanel_show_chromatogram
+from origami.ids import ID_textPanel_changeColormapBatch
+from origami.ids import ID_textPanel_show_process_heatmap
+from origami.ids import ID_textPanel_annotate_charge_state
+from origami.ids import ID_textPanel_annotate_max_threshold
+from origami.ids import ID_textPanel_annotate_min_threshold
+from origami.ids import ID_textPanel_changeColorBatch_color
+from origami.ids import ID_textPanel_changeColorBatch_palette
+from origami.ids import ID_textPanel_changeColorBatch_colormap
+from origami.styles import ListCtrl
+from origami.styles import make_tooltip
+from origami.styles import make_menu_item
+from origami.utils.misc import removeListDuplicates
+from origami.utils.check import isempty
+from origami.utils.color import round_rgb
+from origami.utils.color import get_font_color
+from origami.utils.color import get_random_color
+from origami.utils.color import get_all_color_types
+from origami.utils.color import convert_rgb_1_to_255
+from origami.utils.color import convert_rgb_255_to_1
+from origami.utils.random import get_random_int
+from origami.gui_elements.dialog_ask import DialogAsk
+from origami.gui_elements.misc_dialogs import DialogBox
+from origami.gui_elements.dialog_color_picker import DialogColorPicker
 
 logger = logging.getLogger(__name__)
 
@@ -1119,7 +1125,7 @@ class PanelTextlist(wx.Panel):
         self.data_handling.on_update_document(document, "no_refresh")
 
     def on_open_editor(self, evt):
-        from gui_elements.panel_modify_item_settings import PanelModifyItemSettings
+        from origami.gui_elements.panel_modify_item_settings import PanelModifyItemSettings
 
         if evt is None:
             evtID = ID_textPanel_editItem

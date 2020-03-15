@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Third-party imports
+# Third-party imports
+# Third-party imports
 import numpy as np
-from processing.heatmap import normalize_2D
-from processing.spectra import normalize_1D
-from utils.check import isempty
+
+# Local imports
+from origami.utils.check import isempty
+from origami.processing.heatmap import normalize_2D
+from origami.processing.spectra import normalize_1D
 
 
 def compute_RMSD(inputData1, inputData2, normalize=True):  # computeRMSD

@@ -1,17 +1,22 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Third-party imports
+# Third-party imports
+# Third-party imports
 import wx
-from gui_elements.dialog_color_picker import DialogColorPicker
-from gui_elements.misc_dialogs import DialogBox
-from ids import ID_unidecPanel_barEdgeColor
-from ids import ID_unidecPanel_fitLineColor
-from styles import Dialog
-from styles import make_checkbox
-from styles import make_staticbox
-from styles import validator
-from utils.color import convert_rgb_1_to_255
-from utils.converters import str2int
 from wx.adv import BitmapComboBox
+
+# Local imports
+from origami.ids import ID_unidecPanel_barEdgeColor
+from origami.ids import ID_unidecPanel_fitLineColor
+from origami.styles import Dialog
+from origami.styles import validator
+from origami.styles import make_checkbox
+from origami.styles import make_staticbox
+from origami.utils.color import convert_rgb_1_to_255
+from origami.utils.converters import str2int
+from origami.gui_elements.misc_dialogs import DialogBox
+from origami.gui_elements.dialog_color_picker import DialogColorPicker
 
 
 class DialogCustomiseUniDecVisuals(Dialog):

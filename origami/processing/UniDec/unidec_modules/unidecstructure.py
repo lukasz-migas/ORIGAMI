@@ -1,13 +1,17 @@
+# Standard library imports
 import os
 import platform
 
+# Third-party imports
 import h5py
-import matplotlib.cm as cm
 import numpy as np
+import matplotlib.cm as cm
 from matplotlib.pyplot import colormaps
-from processing.UniDec.unidec_modules import unidectools as ud
-from processing.UniDec.unidec_modules.hdf5_tools import get_dataset
-from processing.UniDec.unidec_modules.hdf5_tools import replace_dataset
+
+# Local imports
+from origami.processing.UniDec.unidec_modules import unidectools as ud
+from origami.processing.UniDec.unidec_modules.hdf5_tools import get_dataset
+from origami.processing.UniDec.unidec_modules.hdf5_tools import replace_dataset
 
 __author__ = "Michael.Marty"
 

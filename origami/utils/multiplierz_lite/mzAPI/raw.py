@@ -1,6 +1,9 @@
+# Third-party imports
 from comtypes import COMError
 from comtypes.client import CreateObject
-from utils.multiplierz_lite.mzAPI import mzFile as mzAPImzFile
+
+# Local imports
+from origami.utils.multiplierz_lite.mzAPI import mzFile as mzAPImzFile
 
 __author__ = "William Max Alexander"
 

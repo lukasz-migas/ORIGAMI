@@ -1,15 +1,17 @@
 """ Waters
     MassLynx Python SDK
 """
+# Standard library imports
+from ctypes import POINTER
+from ctypes import cast
+from ctypes import c_int
 from ctypes import c_byte
 from ctypes import c_float
-from ctypes import c_int
 from ctypes import c_void_p
-from ctypes import cast
-from ctypes import POINTER
 
-from readers.waters.MassLynxRawReader import MassLynxBaseType
-from readers.waters.MassLynxRawReader import MassLynxRawReader
+# Local imports
+from origami.readers.waters.MassLynxRawReader import MassLynxBaseType
+from origami.readers.waters.MassLynxRawReader import MassLynxRawReader
 
 
 class MassLynxRawScanReader(MassLynxRawReader):

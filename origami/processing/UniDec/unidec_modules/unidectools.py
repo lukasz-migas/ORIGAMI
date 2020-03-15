@@ -2,35 +2,39 @@
 Loads initial dll called libmypfunc. Will speed up convolutions and a few functions.
 If this isn't present, it will print a warning but use the pure python code later on.
 """
-import fnmatch
-import math
+# Standard library imports
 import os
+import sys
+import math
+import time
+import fnmatch
+import zipfile
 import platform
 import subprocess
-import sys
-import time
-import zipfile
-from bisect import bisect_left
 from copy import deepcopy
-from ctypes import byref
-from ctypes import c_double
-from ctypes import c_int
+from bisect import bisect_left
 from ctypes import cdll
+from ctypes import byref
+from ctypes import c_int
+from ctypes import c_double
 
-import matplotlib.cm as cm
+# Third-party imports
 import numpy as np
+import matplotlib.cm as cm
 import scipy.ndimage.filters as filt
-from processing.UniDec.unidec_modules.fitting import isolated_peak_fit
-from processing.UniDec.unidec_modules.fitting import ldis
-from processing.UniDec.unidec_modules.fitting import logistic
-from processing.UniDec.unidec_modules.fitting import ndis
-from processing.UniDec.unidec_modules.fitting import ndis_std
-from processing.UniDec.unidec_modules.fitting import splitdis
-from processing.UniDec.unidec_modules.fitting import stats
-from scipy import fftpack
 from scipy import signal
+from scipy import fftpack
 from scipy.interpolate import griddata
 from scipy.interpolate import interp1d
+
+# Local imports
+from origami.processing.UniDec.unidec_modules.fitting import ldis
+from origami.processing.UniDec.unidec_modules.fitting import ndis
+from origami.processing.UniDec.unidec_modules.fitting import stats
+from origami.processing.UniDec.unidec_modules.fitting import logistic
+from origami.processing.UniDec.unidec_modules.fitting import ndis_std
+from origami.processing.UniDec.unidec_modules.fitting import splitdis
+from origami.processing.UniDec.unidec_modules.fitting import isolated_peak_fit
 
 is_64bits = sys.maxsize > 2 ** 32
 
@@ -548,10 +552,10 @@ def header_test(path):
 
 
 def waters_convert(path, config=None):
-    import processing.UniDec.unidec_modules.unidecstructure
+    import origami.processing.UniDec.unidec_modules.unidecstructure
 
     if config is None:
-        config = processing.UniDec.unidec_modules.unidecstructure.UniDecConfig()
+        config = origami.processing.UniDec.unidec_modules.unidecstructure.UniDecConfig()
         config.initialize_system_paths()
         print(config.rawreaderpath)
 

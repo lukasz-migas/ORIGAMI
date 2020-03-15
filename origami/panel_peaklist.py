@@ -1,65 +1,71 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import logging
 from ast import literal_eval
 
+# Third-party imports
 import wx
-from gui_elements.dialog_ask import DialogAsk
-from gui_elements.dialog_color_picker import DialogColorPicker
-from gui_elements.misc_dialogs import DialogBox
-from ids import ID_extractAllIons
-from ids import ID_extractNewIon
-from ids import ID_extractSelectedIon
-from ids import ID_highlightRectAllIons
-from ids import ID_ionPanel_annotate_alpha
-from ids import ID_ionPanel_annotate_charge_state
-from ids import ID_ionPanel_annotate_mask
-from ids import ID_ionPanel_annotate_max_threshold
-from ids import ID_ionPanel_annotate_min_threshold
-from ids import ID_ionPanel_assignColor
-from ids import ID_ionPanel_automaticExtract
-from ids import ID_ionPanel_changeColorBatch_color
-from ids import ID_ionPanel_changeColorBatch_colormap
-from ids import ID_ionPanel_changeColorBatch_palette
-from ids import ID_ionPanel_changeColormapBatch
-from ids import ID_ionPanel_check_all
-from ids import ID_ionPanel_check_selected
-from ids import ID_ionPanel_clear_all
-from ids import ID_ionPanel_clear_selected
-from ids import ID_ionPanel_delete_all
-from ids import ID_ionPanel_delete_rightClick
-from ids import ID_ionPanel_delete_selected
-from ids import ID_ionPanel_editItem
-from ids import ID_ionPanel_show_chromatogram
-from ids import ID_ionPanel_show_heatmap
-from ids import ID_ionPanel_show_mobilogram
-from ids import ID_ionPanel_show_process_heatmap
-from ids import ID_ionPanel_show_zoom_in_MS
-from ids import ID_ionPanel_table_alpha
-from ids import ID_ionPanel_table_charge
-from ids import ID_ionPanel_table_color
-from ids import ID_ionPanel_table_colormap
-from ids import ID_ionPanel_table_document
-from ids import ID_ionPanel_table_hideAll
-from ids import ID_ionPanel_table_intensity
-from ids import ID_ionPanel_table_label
-from ids import ID_ionPanel_table_mask
-from ids import ID_ionPanel_table_method
-from ids import ID_ionPanel_table_restoreAll
-from ids import ID_ionPanel_table_startMS
-from ids import ID_window_ionList
-from styles import ListCtrl
-from styles import make_menu_item
-from styles import make_tooltip
-from utils.check import isempty
-from utils.color import convert_rgb_1_to_255
-from utils.color import convert_rgb_255_to_1
-from utils.color import get_font_color
-from utils.color import get_random_color
-from utils.color import round_rgb
-from utils.exceptions import MessageError
-from utils.labels import get_ion_name_from_label
-from utils.random import get_random_int
+
+# Local imports
+from origami.ids import ID_extractNewIon
+from origami.ids import ID_extractAllIons
+from origami.ids import ID_window_ionList
+from origami.ids import ID_ionPanel_editItem
+from origami.ids import ID_extractSelectedIon
+from origami.ids import ID_ionPanel_check_all
+from origami.ids import ID_ionPanel_clear_all
+from origami.ids import ID_ionPanel_delete_all
+from origami.ids import ID_ionPanel_table_mask
+from origami.ids import ID_highlightRectAllIons
+from origami.ids import ID_ionPanel_assignColor
+from origami.ids import ID_ionPanel_table_alpha
+from origami.ids import ID_ionPanel_table_color
+from origami.ids import ID_ionPanel_table_label
+from origami.ids import ID_ionPanel_show_heatmap
+from origami.ids import ID_ionPanel_table_charge
+from origami.ids import ID_ionPanel_table_method
+from origami.ids import ID_ionPanel_annotate_mask
+from origami.ids import ID_ionPanel_table_hideAll
+from origami.ids import ID_ionPanel_table_startMS
+from origami.ids import ID_ionPanel_annotate_alpha
+from origami.ids import ID_ionPanel_check_selected
+from origami.ids import ID_ionPanel_clear_selected
+from origami.ids import ID_ionPanel_table_colormap
+from origami.ids import ID_ionPanel_table_document
+from origami.ids import ID_ionPanel_delete_selected
+from origami.ids import ID_ionPanel_show_mobilogram
+from origami.ids import ID_ionPanel_show_zoom_in_MS
+from origami.ids import ID_ionPanel_table_intensity
+from origami.ids import ID_ionPanel_automaticExtract
+from origami.ids import ID_ionPanel_table_restoreAll
+from origami.ids import ID_ionPanel_delete_rightClick
+from origami.ids import ID_ionPanel_show_chromatogram
+from origami.ids import ID_ionPanel_changeColormapBatch
+from origami.ids import ID_ionPanel_show_process_heatmap
+from origami.ids import ID_ionPanel_annotate_charge_state
+from origami.ids import ID_ionPanel_annotate_max_threshold
+from origami.ids import ID_ionPanel_annotate_min_threshold
+from origami.ids import ID_ionPanel_changeColorBatch_color
+from origami.ids import ID_ionPanel_changeColorBatch_palette
+from origami.ids import ID_ionPanel_changeColorBatch_colormap
+from origami.styles import ListCtrl
+from origami.styles import make_tooltip
+from origami.styles import make_menu_item
+from origami.utils.check import isempty
+from origami.utils.color import round_rgb
+from origami.utils.color import get_font_color
+from origami.utils.color import get_random_color
+from origami.utils.color import convert_rgb_1_to_255
+from origami.utils.color import convert_rgb_255_to_1
+from origami.utils.labels import get_ion_name_from_label
+from origami.utils.random import get_random_int
+from origami.utils.exceptions import MessageError
+from origami.gui_elements.dialog_ask import DialogAsk
+from origami.gui_elements.misc_dialogs import DialogBox
+from origami.gui_elements.dialog_color_picker import DialogColorPicker
 
 logger = logging.getLogger(__name__)
 
@@ -966,7 +972,7 @@ class PanelPeaklist(wx.Panel):
 
     def on_save_peaklist(self, evt):
         """Save data in CSV format"""
-        from utils.color import convert_rgb_255_to_hex
+        from origami.utils.color import convert_rgb_255_to_hex
 
         rows = self.peaklist.GetItemCount()
         if rows == 0:
@@ -1127,7 +1133,7 @@ class PanelPeaklist(wx.Panel):
             self.peaklist.SetStringItem(item_id, self.config.peaklistColNames["filename"], str(value))
 
     def on_open_editor(self, evt):
-        from gui_elements.panel_modify_item_settings import PanelModifyItemSettings
+        from origami.gui_elements.panel_modify_item_settings import PanelModifyItemSettings
 
         if self.peaklist.item_id is None:
             logger.warning("Please select an item")

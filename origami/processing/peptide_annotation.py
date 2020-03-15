@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import re
 from time import time as ttime
 
+# Third-party imports
 import numpy as np
 from pyteomics import mass
 

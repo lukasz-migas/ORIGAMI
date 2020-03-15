@@ -1,20 +1,26 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import os
 
+# Third-party imports
+import wx
 import matplotlib
 import matplotlib.patches as patches
-import wx
-from gui_elements.misc_dialogs import DialogBox
-from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
-from matplotlib.figure import Figure
-from mpl_toolkits.mplot3d import Axes3D  # NOQA
-from numpy import amax
-from numpy import divide
 from PIL import Image
 from PIL import ImageChops
-from visuals.ZoomBox import GetXValues
-from visuals.ZoomBox import ZoomBox
+from numpy import amax
+from numpy import divide
+from matplotlib.figure import Figure
+from mpl_toolkits.mplot3d import Axes3D  # NOQA
+from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
+
+# Local imports
+from origami.visuals.ZoomBox import ZoomBox
+from origami.visuals.ZoomBox import GetXValues
+from origami.gui_elements.misc_dialogs import DialogBox
 
 matplotlib.use("WXAgg")
 

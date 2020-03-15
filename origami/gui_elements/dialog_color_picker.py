@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Third-party imports
+# Third-party imports
+# Third-party imports
 import wx
-from utils.color import convert_rgb_255_to_1
-from utils.color import get_font_color
+
+# Local imports
+from origami.utils.color import get_font_color
+from origami.utils.color import convert_rgb_255_to_1
 
 
 class DialogColorPicker(wx.ColourDialog):

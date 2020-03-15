@@ -33,7 +33,7 @@ install:
   - conda create -n testenv --yes
   - activate testenv
   - python -m pip install --upgrade pip
-  - pip install -r requirements_origami_CI.txt
+  - pip install -r requirements/requirements-dev.txt
   - pip install -U wxPython;
   - cd origami
   - powershell -Command "(gc config.py) -replace 'self.testing = False', 'self.testing = True' | Out-File -encoding ASCII config.py"

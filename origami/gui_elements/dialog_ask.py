@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Third-party imports
+# Third-party imports
+# Third-party imports
 import wx
-from styles import Dialog
+
+# Local imports
+from origami.styles import Dialog
 
 
 class DialogAsk(Dialog):

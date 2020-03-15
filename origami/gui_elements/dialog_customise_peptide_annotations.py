@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Third-party imports
+# Third-party imports
+# Third-party imports
 import wx
-from gui_elements.dialog_color_picker import DialogColorPicker
-from styles import Dialog
-from styles import make_checkbox
-from styles import make_tooltip
-from utils.color import convert_rgb_1_to_255
+
+# Local imports
+from origami.styles import Dialog
+from origami.styles import make_tooltip
+from origami.styles import make_checkbox
+from origami.utils.color import convert_rgb_1_to_255
+from origami.gui_elements.dialog_color_picker import DialogColorPicker
 
 
 class DialogCustomisePeptideAnnotations(Dialog):

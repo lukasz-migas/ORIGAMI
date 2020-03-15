@@ -1,14 +1,20 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import copy
 import logging
 
+# Third-party imports
 import wx
-from styles import make_checkbox
-from styles import MiniFrame
-from styles import validator
-from utils.converters import str2int
-from utils.converters import str2num
+
+# Local imports
+from origami.styles import MiniFrame
+from origami.styles import validator
+from origami.styles import make_checkbox
+from origami.utils.converters import str2int
+from origami.utils.converters import str2num
 
 logger = logging.getLogger(__name__)
 

@@ -1,22 +1,28 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import glob
 import logging
 import os.path
 import platform
 import xml.parsers.expat
 from ast import literal_eval
-from collections import OrderedDict
 from itertools import cycle
+from collections import OrderedDict
 
-import defusedxml.minidom
+# Third-party imports
 import numpy as np
-from gui_elements.misc_dialogs import DialogBox
+import defusedxml.minidom
 from matplotlib.pyplot import colormaps
-from utils.converters import str2bool
-from utils.converters import str2int
-from utils.converters import str2num
-from utils.random import get_random_int
+
+# Local imports
+from origami.utils.random import get_random_int
+from origami.utils.converters import str2int
+from origami.utils.converters import str2num
+from origami.utils.converters import str2bool
+from origami.gui_elements.misc_dialogs import DialogBox
 
 logger = logging.getLogger(__name__)
 

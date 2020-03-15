@@ -1,18 +1,24 @@
 # -*- coding: utf-8 -*-
 # __author__ lukasz.g.migas
-import logging
+# Standard library imports
+# Standard library imports
+# Standard library imports
 import math
+import logging
 from bisect import bisect_left
 
+# Third-party imports
 import numpy as np
 import scipy.linalg as LA
-from processing.utils import get_narrow_data_range
-from scipy.interpolate.interpolate import interp1d
-from scipy.ndimage import gaussian_filter
-from scipy.ndimage import median_filter
 from scipy.signal import savgol_filter
-from utils.exceptions import MessageError
-from utils.ranges import get_min_max
+from scipy.ndimage import median_filter
+from scipy.ndimage import gaussian_filter
+from scipy.interpolate.interpolate import interp1d
+
+# Local imports
+from origami.utils.ranges import get_min_max
+from origami.processing.utils import get_narrow_data_range
+from origami.utils.exceptions import MessageError
 
 logger = logging.getLogger(__name__)
 
