@@ -11,5 +11,4 @@ pyteomics
 scipy
 seaborn
 scikit-learn
-wxPython
 defusedxml

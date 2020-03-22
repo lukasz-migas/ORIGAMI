@@ -1,6 +1,7 @@
 """Test origami.readers.io_waters_raw.py"""
 # Standard library imports
 import os
+import sys
 
 # Third-party imports
 import numpy as np
@@ -9,6 +10,9 @@ from numpy.testing import assert_array_equal
 
 # Local imports
 from origami.readers.io_waters_raw import WatersIMReader
+
+if sys.platform.startswith("linux") or sys.platform.startswith("darwin"):
+    pytest.skip("skipping Linux-only tests", allow_module_level=True)
 
 
 class TestWatersIMReader:

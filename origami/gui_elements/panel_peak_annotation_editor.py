@@ -5,6 +5,7 @@ import logging
 
 # Third-party imports
 import wx
+
 # Third party imports
 import numpy as np
 from pubsub import pub

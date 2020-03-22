@@ -5,7 +5,7 @@ cache:
   pip: true
 
 python:
-  - "3.6"
+  - "3.7"
 
 addons:
   apt:
@@ -65,7 +65,7 @@ before_install:
 # https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04/wxPython-4.0.6-cp36-cp36m-linux_x86_64.whl
 install:
   # - pip install --upgrade pip
-  - pip install -r requirements_origami_CI.txt
+  - pip install -r requirements/requirements-std.txt
   - if [[ "${Image}" == "Linux_37" ]]; then
     pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04 wxPython;
     elif [[ "${Image}" == "Win10_37" ]]; then
@@ -76,7 +76,7 @@ install:
   - if [[ "${TEST}" == "flake" ]]; then
     pip install flake8;
     elif [ "${TEST}" == "coverage" ]; then
-    pip install codecov pytest==3.6 pytest-cov pytest-sugar pytest-travis-fold;
+    pip install codecov pytest==5.3.5 pytest-cov pytest-sugar pytest-travis-fold;
     elif [ "${Image}" == "Win10_37" ]; then
     pip install setuptools;
     fi;
@@ -95,13 +95,13 @@ script:
   - if [[ "${TEST}" == "flake" ]]; then
     flake8;
     elif [[ "${TEST}" == "coverage" ]]; then
-    py.test --cov;
+    pytest . --cov;
     elif [[ "${Image}" == "Win10_37" ]]; then
     powershell -Command "(gc config.py) -replace 'self.testing = False', 'self.testing = True' | Out-File -encoding ASCII config.py";
     python ORIGAMI.py;
     elif [[ "${Image}" == "Linux_37" ]]; then
     sed -i 's/self.testing = False/self.testing = True/g' config.py;
-    python ORIGAMI.py;
+    python main.py;
     fi;
 
 notifications:

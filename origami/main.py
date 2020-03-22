@@ -27,7 +27,7 @@ from origami.ids import ID_helpNewFeatures
 from origami.ids import ID_addNewOverlayDoc
 from origami.ids import ID_addNewCalibrationDoc
 from origami.ids import ID_addNewInteractiveDoc
-from origami.config import Config
+from origami.config.config import Config
 from origami.document import document as documents
 from origami.utils.time import getTime
 from origami.icons.icons import IconContainer
