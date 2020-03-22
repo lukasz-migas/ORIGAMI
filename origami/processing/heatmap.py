@@ -17,7 +17,7 @@ from origami.utils.exceptions import MessageError
 logger = logging.getLogger(__name__)
 
 
-def adjust_min_max_intensity(inputData=None, min_threshold=0.0, max_threshold=1.0):
+def adjust_min_max_intensity(array, min_threshold=0.0, max_threshold=1.0):
 
     # Check min_threshold is larger than max_threshold
     if min_threshold > max_threshold:
@@ -27,51 +27,51 @@ def adjust_min_max_intensity(inputData=None, min_threshold=0.0, max_threshold=1.
     # Check if they are the same
     if min_threshold == max_threshold:
         print("Minimum and maximum thresholds are the same.")
-        return inputData
+        return array
 
     # Find maximum value in the array
-    data_max = np.max(inputData)
+    data_max = np.max(array)
     min_threshold = min_threshold * data_max
     max_threshold = max_threshold * data_max
 
     # Adjust minimum threshold
-    inputData[inputData <= min_threshold] = 0
+    array[array <= min_threshold] = 0
 
     # Adjust maximum threshold
-    inputData[inputData >= max_threshold] = data_max
+    array[array >= max_threshold] = data_max
 
-    return inputData
+    return array
 
 
-def remove_noise_2D(inputData, threshold=0):
-    data_max = np.max(inputData)
+def remove_noise_2D(array, threshold=0):
+    data_max = np.max(array)
     if threshold > data_max:
         logger.warning(f"Threshold value {threshold} is larger than the maximum value in the data {data_max}")
-        return inputData
+        return array
 
-    inputData[inputData <= threshold] = 0
-    return inputData
+    array[array <= threshold] = 0
+    return array
 
 
-def crop_2D(xvals, yvals, data, xmin, xmax, ymin, ymax):
+def crop_2D(xvals, yvals, data, x_min, x_max, y_min, y_max):
     """Crop array"""
     # ensure order of values is correct
-    xmin, xmax = check_value_order(xmin, xmax)
-    ymin, ymax = check_value_order(ymin, ymax)
+    x_min, x_max = check_value_order(x_min, x_max)
+    y_min, y_max = check_value_order(y_min, y_max)
 
     # check if values are not the same
     crop_x = True
-    if xmin == xmax:
+    if x_min == x_max:
         crop_x = False
     crop_y = True
-    if ymin == ymax:
+    if y_min == y_max:
         crop_y = False
 
     # find nearest index
-    xmin_idx = find_nearest_index(xvals, xmin)
-    xmax_idx = find_nearest_index(xvals, xmax)
-    ymin_idx = find_nearest_index(yvals, ymin)
-    ymax_idx = find_nearest_index(yvals, ymax)
+    xmin_idx = find_nearest_index(xvals, x_min)
+    xmax_idx = find_nearest_index(xvals, x_max)
+    ymin_idx = find_nearest_index(yvals, y_min)
+    ymax_idx = find_nearest_index(yvals, y_max)
 
     if crop_x:
         xvals = xvals[xmin_idx : xmax_idx + 1]
@@ -169,7 +169,8 @@ def normalize_2D(data, mode="Maximum", **kwargs):
     elif mode == "L2":
         div = np.square(np.sum(np.power(data, 2)))
         norm_data = data / div
-
+    else:
+        raise ValueError(f"Could not normalized with the mode=`{mode}`")
     # replace NaNs with 0s
     norm_data = np.nan_to_num(norm_data)
 

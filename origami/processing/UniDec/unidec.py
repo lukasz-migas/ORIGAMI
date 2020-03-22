@@ -1,9 +1,3 @@
-# __author__ michael.marty
-# Standard library imports
-# Standard library imports
-# Standard library imports
-# Standard library imports
-# Standard library imports
 # Standard library imports
 import os
 import time

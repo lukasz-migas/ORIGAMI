@@ -44,7 +44,7 @@ nav:
         - 'Heatmap': user-guide/processing/heatmaps.md
       - Deconvolution:
         - 'UniDec - deconvolution': user-guide/deconvolution/unidec-deconvolution.md
-        - 'UniDec - customising plots ': user-guide/deconvolution/unidec-customise-plots.md
+        - 'UniDec - customising plots ': user-guide/deconvolution/unidec-customise-PlotBase.md
         - 'UniDec - changing window view ': user-guide/deconvolution/unidec-change-window-view.md
       - Interactive Output:
         - 'Getting started': user-guide/interactive-output/simple-output.md

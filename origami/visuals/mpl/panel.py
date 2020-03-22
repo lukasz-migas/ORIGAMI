@@ -4,24 +4,19 @@ import os
 # Third-party imports
 import wx
 import matplotlib
-import matplotlib.patches as patches
-from PIL import Image
-from PIL import ImageChops
 from numpy import amax
-from numpy import divide
 from matplotlib.figure import Figure
-from mpl_toolkits.mplot3d import Axes3D  # NOQA
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 
 # Local imports
-from origami.visuals.zoom import ZoomBox
-from origami.visuals.zoom import GetXValues
+from origami.visuals.mpl.zoom import ZoomBox
+from origami.visuals.mpl.zoom import GetXValues
 from origami.gui_elements.misc_dialogs import DialogBox
 
 matplotlib.use("WXAgg")
 
 
-class mpl_plotter(wx.Panel):
+class MPLPanel(wx.Panel):
     def __init__(self, *args, **kwargs):
 
         if "figsize" in kwargs:
@@ -61,6 +56,31 @@ class mpl_plotter(wx.Panel):
         self.plotName = None
         self.resize = 1
         self.screen_dpi = wx.ScreenDC().GetPPI()
+
+        # obj containers
+        self.text = []
+        self.lines = []
+        self.patch = []
+        self.markers = []
+        self.arrows = []
+        self.temporary = []  # temporary holder
+
+        self.lock_plot_from_updating = False
+        self.lock_plot_from_updating_size = False
+        self.plot_parameters = {}
+        self.plot_limits = []
+
+        # occasionally used to tag to mark what plot was used previously
+        self._plot_tag = ""
+        self.plot_name = ""
+        self.plot_data = {}
+        self.plot_labels = {}
+
+        self.x_divider = 1
+        self.y_divider = 1
+        self.rotate = 0
+        self.document_name = None
+        self.dataset_name = None
 
         # plot data
         self.data_limits = []
@@ -159,44 +179,44 @@ class mpl_plotter(wx.Panel):
         """
         try:
             if xvals[int(len(xvals) / 2)] > 100000 or xvals[len(xvals) - 1] > 1000000:
-                kdnorm = 1000.0
-                xlabel = "Mass (kDa)"
+                kda_norm_factor = 1000.0
+                x_label = "Mass (kDa)"
                 kda = True
             elif amax(xvals) > 10000:
-                kdnorm = 1000.0
-                xlabel = "Mass (kDa)"
+                kda_norm_factor = 1000.0
+                x_label = "Mass (kDa)"
                 kda = True
             else:
-                xlabel = "Mass (Da)"
+                x_label = "Mass (Da)"
                 kda = False
-                kdnorm = 1.0
+                kda_norm_factor = 1.0
         except (TypeError, ValueError):
             try:
                 if xvals > 10000:
-                    kdnorm = 1000.0
-                    xlabel = "Mass (kDa)"
+                    kda_norm_factor = 1000.0
+                    x_label = "Mass (kDa)"
                     kda = True
             except Exception:
-                xlabel = "Mass (Da)"
-                kdnorm = 1.0
+                x_label = "Mass (Da)"
+                kda_norm_factor = 1.0
                 kda = False
 
         # convert x-axis
-        xvals = xvals / kdnorm
+        xvals = xvals / kda_norm_factor
 
-        return xvals, xlabel, kda
+        return xvals, x_label, kda
 
-    def testXYmaxVals(self, values=None):
-        """
-        Function to check whether x/y axis labels do not need formatting
-        """
-        if max(values) > 1000:
-            divider = 1000
-        elif max(values) > 1000000:
-            divider = 1000000
-        else:
-            divider = 1
-        return divider
+    # def testXYmaxVals(self, values=None):
+    #     """
+    #     Function to check whether x/y axis labels do not need formatting
+    #     """
+    #     if max(values) > 1000:
+    #         divider = 1000
+    #     elif max(values) > 1000000:
+    #         divider = 1000000
+    #     else:
+    #         divider = 1
+    #     return divider
 
     def testXYmaxValsUpdated(self, values=None):
         """
@@ -235,39 +255,23 @@ class mpl_plotter(wx.Panel):
         """
         self.canvas.draw()
 
-    def clearPlot(self, *args):
+    def clear(self, *args):
         """
         Clear the plot and rest some of the parameters.
         :param args: Arguments
         :return:
         """
         self.figure.clear()
-        # clear labels
-        try:
-            self.text = []
-        except Exception:
-            pass
-        try:
-            self.lines = []
-        except Exception:
-            pass
-        try:
-            self.patch = []
-        except Exception:
-            pass
-        try:
-            self.markers = []
-        except Exception:
-            pass
-        try:
-            self.arrows = []
-        except Exception:
-            pass
-        try:
-            self.temporary = []
-        except Exception:
-            pass
 
+        # clear stores
+        self.text = []
+        self.lines = []
+        self.patch = []
+        self.markers = []
+        self.arrows = []
+        self.temporary = []
+
+        # reset attributes
         self.rotate = 0
 
         # clear plots
@@ -277,7 +281,7 @@ class mpl_plotter(wx.Panel):
             pass
 
         try:
-            self.plotMS = None
+            self.plot_base = None
         except Exception:
             pass
 
@@ -312,24 +316,6 @@ class mpl_plotter(wx.Panel):
         if self.resize == 1:
             self.canvas.SetSize(self.GetSize())
 
-    def onselect(self, ymin, ymax):
-        pass
-
-    def pil_trim(self, im):
-        bg = Image.new(im.mode, im.size, im.getpixel((0, 0)))
-        diff = ImageChops.difference(im, bg)
-        diff = ImageChops.add(diff, diff, 2.0, -100)
-        bbox = diff.getbbox()
-        if bbox:
-            return im.crop(bbox)
-
-    def saveFigure(self, path, transparent, dpi, **kwargs):
-        """
-        Saves figures in specified location.
-        Transparency and DPI taken from config file
-        """
-        self.figure.savefig(path, transparent=transparent, dpi=dpi, **kwargs)
-
     def save_figure(self, path, **kwargs):
         """
         Saves figures in specified location.
@@ -352,7 +338,7 @@ class mpl_plotter(wx.Panel):
         if resize_name is not None:
             resize_size_inch = self.config._plotSettings[resize_name]["resize_size"]
 
-        if not hasattr(self.plotMS, "get_position"):
+        if not hasattr(self.plot_base, "get_position"):
             resize_size_inch = None
 
         if resize_size_inch is not None and not self.lock_plot_from_updating_size:
@@ -369,15 +355,15 @@ class mpl_plotter(wx.Panel):
             self.canvas.SetSize(resize_size_px)
             self.canvas.draw()
             # Get old and new plot sizes
-            old_axes_size = self.plotMS.get_position()
+            old_axes_size = self.plot_base.get_position()
             new_axes_size = override_axes_size
             if override_axes_size is None:
                 new_axes_size = self.config._plotSettings[resize_name]["save_size"]
 
             try:
-                self.plotMS.set_position(new_axes_size)
+                self.plot_base.set_position(new_axes_size)
             except RuntimeError:
-                self.plotMS.set_position(old_axes_size)
+                self.plot_base.set_position(old_axes_size)
 
             self.repaint()
 
@@ -387,7 +373,7 @@ class mpl_plotter(wx.Panel):
         except IOError:
             # reset axes size
             if resize_size_inch is not None and not self.lock_plot_from_updating_size:
-                self.plotMS.set_position(old_axes_size)
+                self.plot_base.set_position(old_axes_size)
                 self.on_resize()
             # warn user
             DialogBox(
@@ -416,9 +402,9 @@ class mpl_plotter(wx.Panel):
                     self.canvas.SetSize(resize_size_px)
                     self.canvas.draw()
                     try:
-                        self.plotMS.set_position(new_axes_size)
+                        self.plot_base.set_position(new_axes_size)
                     except RuntimeError:
-                        self.plotMS.set_position(old_axes_size)
+                        self.plot_base.set_position(old_axes_size)
                     self.repaint()
 
                 try:
@@ -433,31 +419,8 @@ class mpl_plotter(wx.Panel):
 
         # Reset previous view
         if resize_size_inch is not None and not self.lock_plot_from_updating_size:
-            self.plotMS.set_position(old_axes_size)
+            self.plot_base.set_position(old_axes_size)
             self.on_resize()
-
-    def onAddMarker(self, xval=None, yval=None, marker="s", color="r", size=5, testMax="none", label="", as_line=True):
-        """
-        This function adds a marker to 1D plot
-        """
-        if testMax == "yvals":
-            ydivider, expo = self.testXYmaxValsUpdated(values=yval)
-            if expo > 1:
-                yvals = divide(yval, float(ydivider))
-
-        if as_line:
-            self.plotMS.plot(
-                xval,
-                yval,
-                color=color,
-                marker=marker,
-                linestyle="None",
-                markersize=size,
-                markeredgecolor="k",
-                label=label,
-            )
-        else:
-            self.plotMS.scatter(xval, yval, color=color, marker=marker, s=size, edgecolor="k", label=label, alpha=1.0)
 
     def addText(self, xval=None, yval=None, text=None, rotation=90, color="k", fontsize=16, weight=True, plot=None):
         """
@@ -470,7 +433,7 @@ class mpl_plotter(wx.Panel):
             weight = "regular"
 
         if plot in [None, "RMSD", "RMSF"]:
-            self.text = self.plotMS.text(
+            self.text = self.plot_base.text(
                 x=xval,
                 y=yval,
                 s=text,
@@ -495,24 +458,13 @@ class mpl_plotter(wx.Panel):
                 clip_on=True,
             )
 
-    def addRectangle(self, x, y, width, height, color="green", alpha=0.5, linewidth=0):
-        """
-        Add rect patch to plot
-        """
-        # (x,y), width, height, alpha, facecolor, linewidth
-        add_patch = patches.Rectangle((x, y), width, height, color=color, alpha=alpha, linewidth=linewidth)
-        self.plotMS.add_patch(add_patch)
-
-    def onZoomIn(self, startX, endX, endY):
-        self.plotMS.axis([startX, endX, 0, endY])
-
     def onZoomRMSF(self, startX, endX):
         x1, x2, y1, y2 = self.plotRMSF.axis()
         self.plotRMSF.axis([startX, endX, y1, y2])
 
     def onGetXYvals(self, axes="both"):
-        xvals = self.plotMS.get_xlim()
-        yvals = self.plotMS.get_ylim()
+        xvals = self.plot_base.get_xlim()
+        yvals = self.plot_base.get_ylim()
         if axes == "both":
             return xvals, yvals
         elif axes == "x":
@@ -522,6 +474,3 @@ class mpl_plotter(wx.Panel):
 
     def get_plot_name(self):
         return self.plot_name
-
-    def get_axes_size(self):
-        return self._axes

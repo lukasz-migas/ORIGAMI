@@ -291,11 +291,11 @@ class PanelImagingLESAViewer(MiniFrame):
         """Make plot panel"""
         panel = wx.SplitterWindow(split_panel, wx.ID_ANY, style=wx.TAB_TRAVERSAL | wx.SP_3DSASH, name="plot")
 
-        self.plot_panel_MS, self.plot_window_MS, __ = self.panel_plot.make_plot(
+        self.plot_panel_MS, self.plot_window_MS, __ = self.panel_plot.make_base_plot(
             panel, self.config._plotSettings["RT"]["gui_size"]
         )
 
-        self.plot_panel_img, self.plot_window_img, __ = self.panel_plot.make_plot(
+        self.plot_panel_img, self.plot_window_img, __ = self.panel_plot.make_base_plot(
             panel, self.config._plotSettings["2D"]["gui_size"]
         )
 
@@ -325,7 +325,7 @@ class PanelImagingLESAViewer(MiniFrame):
     def make_dt_plot_panel(self, panel):
         """Make DT plot and hide it"""
 
-        self.plot_panel_DT, self.plot_window_DT, __ = self.panel_plot.make_plot(
+        self.plot_panel_DT, self.plot_window_DT, __ = self.panel_plot.make_base_plot(
             panel, self.config._plotSettings["DT"]["gui_size"]
         )
         self.plot_panel_DT.Show(False)
@@ -345,7 +345,7 @@ class PanelImagingLESAViewer(MiniFrame):
     def on_clear_plot(self, evt):
         """Clear plot"""
         plot_obj = self.get_plot_obj()
-        plot_obj.clearPlot()
+        plot_obj.clear()
 
     def on_reset_plot(self, evt):
         """Reset plot"""

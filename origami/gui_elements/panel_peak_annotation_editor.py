@@ -16,7 +16,6 @@ from origami.styles import ListCtrl
 from origami.styles import validator
 from origami.styles import make_checkbox
 from origami.styles import make_menu_item
-from origami.visuals import mpl_plots
 from origami.utils.time import ttime
 from origami.utils.check import check_value_order
 from origami.utils.color import round_rgb
@@ -24,6 +23,7 @@ from origami.utils.color import get_font_color
 from origami.utils.color import get_all_color_types
 from origami.utils.color import convert_rgb_1_to_255
 from origami.utils.color import convert_rgb_255_to_1
+from origami.visuals.mpl import base
 from origami.utils.labels import sanitize_string
 from origami.utils.screen import calculate_window_size
 from origami.utils.converters import rounder
@@ -372,7 +372,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         pixel_size = [(self._window_size[0] - self._settings_panel_size[0]), (self._window_size[1] - 50)]
         figsize = [pixel_size[0] / self._display_resolution[0], pixel_size[1] / self._display_resolution[1]]
 
-        self.plot_window = mpl_plots.plots(self.plot_panel, figsize=figsize, config=self.config)
+        self.plot_window = base.PlotBase(self.plot_panel, figsize=figsize, config=self.config)
 
         box = wx.BoxSizer(wx.VERTICAL)
         box.Add(self.plot_window, 1, wx.EXPAND)
@@ -1435,7 +1435,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         )
 
     def on_clear_plot(self, evt):
-        self.plot_window.clearPlot()
+        self.plot_window.clear()
 
     def on_save_figure(self, evt):
 

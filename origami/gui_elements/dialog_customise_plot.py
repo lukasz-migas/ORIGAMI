@@ -8,7 +8,7 @@ from origami.styles import validator
 from origami.styles import make_checkbox
 from origami.utils.labels import _replace_labels
 from origami.utils.converters import str2num
-from origami.visuals.normalize import MidpointNormalize
+from origami.visuals.mpl.normalize import MidpointNormalize
 
 
 class DialogCustomisePlot(wx.Dialog):
@@ -586,7 +586,7 @@ class DialogCustomisePlot(wx.Dialog):
                 cmap_mid = (zvals_max * cmap_mid) / 100.0
                 cmap_max = (zvals_max * cmap_max) / 100.0
 
-                cmap_norm = MidpointNormalize(midpoint=cmap_mid, vmin=cmap_min, vmax=cmap_max)
+                cmap_norm = MidpointNormalize(midpoint=cmap_mid, v_min=cmap_min, v_max=cmap_max)
                 self.plot.plot_parameters["colormap_norm"] = cmap_norm
 
                 if "colormap_norm" in self.plot.plot_parameters:

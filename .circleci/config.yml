@@ -57,12 +57,13 @@ jobs:
             pip install -U pip wheel;
             pip install -r requirements/requirements-std.txt --ignore-installed;
             pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04 wxPython;
+            python setup.py develop
       - run:
           name: Run ORIGAMI
           command: |
             source activate testenv;
             cd origami;
-            sed -i 's/self.testing = False/self.testing = True/g' config.py;
+            sed -i 's/self.testing = False/self.testing = True/g' config/config.py;
             python main.py;
       - save_cache:
           key: pip-cache

@@ -5,6 +5,8 @@
 # Standard library imports
 # Standard library imports
 # Standard library imports
+# Standard library imports
+# Standard library imports
 import logging
 from copy import deepcopy
 
@@ -17,11 +19,11 @@ from origami.styles import MiniFrame
 from origami.styles import make_tooltip
 from origami.styles import make_checkbox
 from origami.styles import make_menu_item
-from origami.visuals import mpl_plots
 from origami.utils.color import round_rgb
 from origami.utils.color import get_font_color
 from origami.utils.color import check_color_format
 from origami.utils.color import convert_rgb_255_to_1
+from origami.visuals.mpl import base
 from origami.utils.random import get_random_int
 from origami.utils.screen import calculate_window_size
 from origami.utils.exceptions import MessageError
@@ -194,7 +196,7 @@ class PanelOverlayViewer(MiniFrame):
         self.Destroy()
 
     def on_clear_plot(self, evt):
-        self.plot_window.clearPlot()
+        self.plot_window.clear()
 
     def on_resize_check(self, evt):
         self.panel_plot.on_resize_check(None)
@@ -353,7 +355,7 @@ class PanelOverlayViewer(MiniFrame):
         pixel_size = [(self._window_size[0] - self._settings_panel_size[0]), (self._window_size[1] - 50)]
         figsize = [pixel_size[0] / self._display_resolution[0], pixel_size[1] / self._display_resolution[1]]
 
-        self.plot_window = mpl_plots.plots(self.plot_panel, figsize=figsize, config=self.config)
+        self.plot_window = base.PlotBase(self.plot_panel, figsize=figsize, config=self.config)
 
         box = wx.BoxSizer(wx.VERTICAL)
         box.Add(self.plot_window, 1, wx.EXPAND)

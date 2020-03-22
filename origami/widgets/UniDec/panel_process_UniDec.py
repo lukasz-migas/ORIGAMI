@@ -15,8 +15,8 @@ from origami.styles import validator
 from origami.styles import make_tooltip
 from origami.styles import make_checkbox
 from origami.styles import make_menu_item
-from origami.visuals import mpl_plots
 from origami.utils.time import ttime
+from origami.visuals.mpl import base
 from origami.utils.screen import calculate_window_size
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
@@ -179,17 +179,15 @@ class PanelProcessUniDec(wx.MiniFrame):
             self.plot_panel = wx.lib.scrolledpanel.ScrolledPanel(split_panel)
             self.plot_panel.SetupScrolling()
 
-            self.plotUnidec_MS = mpl_plots.plots(self.plot_panel, config=self.config, figsize=figsize_1D)
-            self.plotUnidec_mwDistribution = mpl_plots.plots(self.plot_panel, config=self.config, figsize=figsize_1D)
+            self.plotUnidec_MS = base.PlotBase(self.plot_panel, config=self.config, figsize=figsize_1D)
+            self.plotUnidec_mwDistribution = base.PlotBase(self.plot_panel, config=self.config, figsize=figsize_1D)
 
-            self.plotUnidec_mzGrid = mpl_plots.plots(self.plot_panel, config=self.config, figsize=figsize_2D)
-            self.plotUnidec_mwVsZ = mpl_plots.plots(self.plot_panel, config=self.config, figsize=figsize_2D)
+            self.plotUnidec_mzGrid = base.PlotBase(self.plot_panel, config=self.config, figsize=figsize_2D)
+            self.plotUnidec_mwVsZ = base.PlotBase(self.plot_panel, config=self.config, figsize=figsize_2D)
 
-            self.plotUnidec_individualPeaks = mpl_plots.plots(self.plot_panel, config=self.config, figsize=figsize_2D)
-            self.plotUnidec_barChart = mpl_plots.plots(self.plot_panel, config=self.config, figsize=figsize_2D)
-            self.plotUnidec_chargeDistribution = mpl_plots.plots(
-                self.plot_panel, config=self.config, figsize=figsize_1D
-            )
+            self.plotUnidec_individualPeaks = base.PlotBase(self.plot_panel, config=self.config, figsize=figsize_2D)
+            self.plotUnidec_barChart = base.PlotBase(self.plot_panel, config=self.config, figsize=figsize_2D)
+            self.plotUnidec_chargeDistribution = base.PlotBase(self.plot_panel, config=self.config, figsize=figsize_1D)
 
             grid = wx.GridBagSizer(10, 10)
             n = 0
@@ -213,22 +211,26 @@ class PanelProcessUniDec(wx.MiniFrame):
             self.plot_panel = wx.Panel(split_panel)
             self.unidec_notebook = wx.Notebook(self.plot_panel)
 
-            self.unidec_MS, self.plotUnidec_MS, __ = self.panel_plot.make_plot(self.unidec_notebook, figsize_1D)
-            self.unidec_mwDistribution, self.plotUnidec_mwDistribution, __ = self.panel_plot.make_plot(
+            self.unidec_MS, self.plotUnidec_MS, __ = self.panel_plot.make_base_plot(self.unidec_notebook, figsize_1D)
+            self.unidec_mwDistribution, self.plotUnidec_mwDistribution, __ = self.panel_plot.make_base_plot(
                 self.unidec_notebook, figsize_1D
             )
 
-            self.unidec_mzGrid, self.plotUnidec_mzGrid, __ = self.panel_plot.make_plot(self.unidec_notebook, figsize_2D)
-            self.unidec_mwVsZ, self.plotUnidec_mwVsZ, __ = self.panel_plot.make_plot(self.unidec_notebook, figsize_2D)
-
-            self.unidec_individualPeaks, self.plotUnidec_individualPeaks, __ = self.panel_plot.make_plot(
+            self.unidec_mzGrid, self.plotUnidec_mzGrid, __ = self.panel_plot.make_base_plot(
                 self.unidec_notebook, figsize_2D
             )
-            self.unidec_barChart, self.plotUnidec_barChart, __ = self.panel_plot.make_plot(
+            self.unidec_mwVsZ, self.plotUnidec_mwVsZ, __ = self.panel_plot.make_base_plot(
                 self.unidec_notebook, figsize_2D
             )
 
-            self.unidec_chargeDistribution, self.plotUnidec_chargeDistribution, __ = self.panel_plot.make_plot(
+            self.unidec_individualPeaks, self.plotUnidec_individualPeaks, __ = self.panel_plot.make_base_plot(
+                self.unidec_notebook, figsize_2D
+            )
+            self.unidec_barChart, self.plotUnidec_barChart, __ = self.panel_plot.make_base_plot(
+                self.unidec_notebook, figsize_2D
+            )
+
+            self.unidec_chargeDistribution, self.plotUnidec_chargeDistribution, __ = self.panel_plot.make_base_plot(
                 self.unidec_notebook, figsize_1D
             )
 
@@ -758,22 +760,22 @@ class PanelProcessUniDec(wx.MiniFrame):
 
     def on_clear_plot(self, evt):
         plot_obj = self.on_get_plot_obj_from_name(self.view.plot_name)
-        plot_obj.clearPlot()
+        plot_obj.clear()
 
     def on_clear_plot_as_task(self, task):
 
         if task in ["all", "load_data_and_preprocess_unidec", "preprocess_unidec"]:
-            self.plotUnidec_MS.clearPlot()
+            self.plotUnidec_MS.clear()
 
         if task in ["all", "load_data_and_preprocess_unidec", "preprocess_unidec", "run_unidec"]:
-            self.plotUnidec_mzGrid.clearPlot()
-            self.plotUnidec_mwDistribution.clearPlot()
-            self.plotUnidec_mwVsZ.clearPlot()
+            self.plotUnidec_mzGrid.clear()
+            self.plotUnidec_mwDistribution.clear()
+            self.plotUnidec_mwVsZ.clear()
 
         if task in ["all", "load_data_and_preprocess_unidec", "preprocess_unidec", "detect", "run_unidec"]:
-            self.plotUnidec_individualPeaks.clearPlot()
-            self.plotUnidec_barChart.clearPlot()
-            self.plotUnidec_chargeDistribution.clearPlot()
+            self.plotUnidec_individualPeaks.clear()
+            self.plotUnidec_barChart.clear()
+            self.plotUnidec_chargeDistribution.clear()
 
     def on_save_figure(self, evt):
         """Save figure"""

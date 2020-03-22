@@ -9,8 +9,6 @@ import numpy as np
 # Local imports
 from origami.utils.random import random_int_0_to_255
 
-__all__ = ["get_random_color", "convert_rgb_255_to_1", "convert_rgb_1_to_255", "get_font_color", "get_n_colors"]
-
 
 def get_n_colors(n_colors):
     colors = []

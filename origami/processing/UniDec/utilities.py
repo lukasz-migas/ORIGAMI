@@ -1,8 +1,4 @@
 # Standard library imports
-# Standard library imports
-# Standard library imports
-# Standard library imports
-# Standard library imports
 import re
 from operator import itemgetter
 

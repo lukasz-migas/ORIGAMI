@@ -9,7 +9,7 @@ import numpy as np
 # Local imports
 from origami.styles import validator
 from origami.styles import make_tooltip
-from origami.visuals import mpl_plots
+from origami.visuals.mpl import base
 from origami.processing.utils import get_narrow_data_range
 from origami.utils.converters import str2num
 from origami.help_documentation import OrigamiHelp
@@ -77,7 +77,7 @@ class PanelPeakWidthTool(wx.MiniFrame):
     def make_settings_panel(self):
         panel = wx.Panel(self, -1)
 
-        self.plotMS = mpl_plots.plots(panel, figsize=(6, 3), config=self.config)
+        self.plotMS = base.PlotBase(panel, figsize=(6, 3), config=self.config)
 
         msg = (
             "Note:\nIn order to determine peak width, \nplease zoom-in on a desired peak\n"
@@ -161,7 +161,7 @@ class PanelPeakWidthTool(wx.MiniFrame):
         self.Destroy()
 
     def on_crop_data(self):
-        xlimits = self.plotMS.plotMS.get_xlim()
+        xlimits = self.plotMS.plot_base.get_xlim()
         ms_spectrum = np.transpose([self.kwargs["xvals"], self.kwargs["yvals"]])
         ms_narrow = get_narrow_data_range(data=ms_spectrum, mzRange=xlimits)
         return ms_narrow, xlimits
@@ -191,7 +191,7 @@ class PanelPeakWidthTool(wx.MiniFrame):
         # Build kwargs
         plt_kwargs = self.panel_plot._buildPlotParameters(plotType="1D")
 
-        self.plotMS.clearPlot()
+        self.plotMS.clear()
         self.plotMS.plot_1D(
             xvals=msX,
             yvals=msY,
@@ -211,7 +211,7 @@ class PanelPeakWidthTool(wx.MiniFrame):
         plt_kwargs = self.presenter.view.panelPlots._buildPlotParameters(plotType="1D")
 
         # Plot MS
-        self.plotMS.clearPlot()
+        self.plotMS.clear()
         self.plotMS.plot_1D(
             xvals=xvals,
             yvals=yvals,
@@ -225,5 +225,5 @@ class PanelPeakWidthTool(wx.MiniFrame):
         )
         self.plotMS.plot_1D_add(fit_xvals, fit_yvals, color="red", label="Fit", setup_zoom=False)
 
-        self.plotMS.plotMS.set_xlim(xlimits)
+        self.plotMS.plot_base.set_xlim(xlimits)
         self.plotMS.repaint()

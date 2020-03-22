@@ -1,6 +1,6 @@
 # Local imports
-from document import document as documents
+from origami.document import document
 
 
 def test_config_init():
-    __ = documents()
+    __ = document()

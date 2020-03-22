@@ -13,13 +13,13 @@ from origami.styles import MiniFrame
 from origami.styles import validator
 from origami.styles import make_checkbox
 from origami.styles import make_menu_item
-from origami.visuals import mpl_plots
 from origami.utils.time import ttime
 from origami.utils.ranges import get_min_max
 from origami.utils.screen import calculate_window_size
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
 from origami.utils.exceptions import MessageError
+from origami.visuals.mpl.plot_spectrum import PlotSpectrum
 
 logger = logging.getLogger(__name__)
 
@@ -534,7 +534,7 @@ class PanelPeakPicker(MiniFrame):
         pixel_size = [(self._window_size[0] - self._settings_panel_size[0]), (self._window_size[1] - 50)]
         figsize = [pixel_size[0] / self._display_resolution[0], pixel_size[1] / self._display_resolution[1]]
 
-        self.plot_window = mpl_plots.plots(self.plot_panel, figsize=figsize, config=self.config)
+        self.plot_window = PlotSpectrum(self.plot_panel, figsize=figsize, config=self.config)
 
         box = wx.BoxSizer(wx.VERTICAL)
         box.Add(self.plot_window, 1, wx.EXPAND)
@@ -979,7 +979,7 @@ class PanelPeakPicker(MiniFrame):
             logger.info(f"Adding peaks to peaklist took {ttime()-tstart:.4f} seconds.")
 
     def on_clear_plot(self, evt):
-        self.plot_window.clearPlot()
+        self.plot_window.clear()
 
     def on_save_figure(self, evt):
         plot_title = f"{self.document_title}_{self.dataset_name}".replace(" ", "-").replace(":", "")

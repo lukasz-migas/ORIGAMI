@@ -10,9 +10,9 @@ class MidpointNormalize(Normalize):
     e.g. im=ax1.imshow(array, norm=MidpointNormalize(midpoint=0.,vmin=-100, vmax=100))
     """
 
-    def __init__(self, vmin=None, vmax=None, midpoint=None, clip=False):
+    def __init__(self, v_min=None, v_max=None, midpoint=None, clip=False):
         self.midpoint = midpoint
-        Normalize.__init__(self, vmin, vmax, clip)
+        Normalize.__init__(self, v_min, v_max, clip)
 
     def __call__(self, value, clip=None):
         # I'm ignoring masked values and all kinds of edge cases to make a

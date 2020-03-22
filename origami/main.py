@@ -27,11 +27,11 @@ from origami.ids import ID_helpNewFeatures
 from origami.ids import ID_addNewOverlayDoc
 from origami.ids import ID_addNewCalibrationDoc
 from origami.ids import ID_addNewInteractiveDoc
-from origami.config.config import Config
 from origami.document import document as documents
 from origami.utils.time import getTime
 from origami.icons.icons import IconContainer
 from origami.main_window import MainWindow
+from origami.config.config import Config
 from origami.utils.logging import set_logger
 from origami.utils.logging import set_logger_level
 from origami.help_documentation import OrigamiHelp

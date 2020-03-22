@@ -21,10 +21,7 @@ addons:
       - freeglut3-dev
       - libnotify-dev
 
-sudo: false
-
-matrix:
-  # jobs
+jobs:
   include:
     # linux - 3.7
     - env: Image=Linux_37
@@ -80,6 +77,7 @@ install:
     elif [ "${Image}" == "Win10_37" ]; then
     pip install setuptools;
     fi;
+  - python setup.py develop
   - cd origami
 
 before_script:
@@ -97,10 +95,10 @@ script:
     elif [[ "${TEST}" == "coverage" ]]; then
     pytest . --cov;
     elif [[ "${Image}" == "Win10_37" ]]; then
-    powershell -Command "(gc config.py) -replace 'self.testing = False', 'self.testing = True' | Out-File -encoding ASCII config.py";
+    powershell -Command "(gc config/config.py) -replace 'self.testing = False', 'self.testing = True' | Out-File -encoding ASCII config/config.py";
     python ORIGAMI.py;
     elif [[ "${Image}" == "Linux_37" ]]; then
-    sed -i 's/self.testing = False/self.testing = True/g' config.py;
+    sed -i 's/self.testing = False/self.testing = True/g' config/config.py;
     python main.py;
     fi;
 

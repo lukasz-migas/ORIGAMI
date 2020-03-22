@@ -83,7 +83,6 @@ from origami.ids import ID_clearPlot_UniDec_mwDistribution
 from origami.ids import ID_docTree_action_open_peak_picker
 from origami.ids import ID_clearPlot_UniDec_chargeDistribution
 from origami.styles import make_menu_item
-from origami.visuals import mpl_plots
 from origami.utils.misc import merge_two_dicts
 from origami.utils.path import clean_filename
 from origami.utils.time import ttime
@@ -93,8 +92,12 @@ from origami.utils.color import get_random_color
 from origami.utils.color import convert_rgb_1_to_255
 from origami.utils.color import convert_rgb_1_to_hex
 from origami.utils.exceptions import MessageError
-from origami.visuals.normalize import MidpointNormalize
+from origami.visuals.mpl.normalize import MidpointNormalize
+from origami.visuals.mpl.plot_misc import PlotMixed
 from origami.gui_elements.misc_dialogs import DialogBox
+from origami.visuals.mpl.plot_spectrum import PlotSpectrum
+from origami.visuals.mpl.plot_heatmap_2d import PlotHeatmap2D
+from origami.visuals.mpl.plot_heatmap_3d import PlotHeatmap3D
 from origami.gui_elements.dialog_customise_plot import DialogCustomisePlot
 
 logger = logging.getLogger(__name__)
@@ -117,29 +120,29 @@ class PanelPlots(wx.Panel):
 
         self.currentPage = None
         # Extract size of screen
-        self.displaysize = wx.GetDisplaySize()
-        self.SetDimensions(0, 0, self.displaysize[0] - 320, self.displaysize[1] - 50)
-        self.displaysizeMM = wx.GetDisplaySizeMM()
+        self._display_size_px = wx.GetDisplaySize()
+        self.SetDimensions(0, 0, self._display_size_px[0] - 320, self._display_size_px[1] - 50)
+        self._display_size_mm = wx.GetDisplaySizeMM()
 
         self.displayRes = wx.GetDisplayPPI()
-        self.figsizeX = (self.displaysize[0] - 320) / self.displayRes[0]
-        self.figsizeY = (self.displaysize[1] - 70) / self.displayRes[1]
+        self.figsizeX = (self._display_size_px[0] - 320) / self.displayRes[0]
+        self.figsizeY = (self._display_size_px[1] - 70) / self.displayRes[1]
 
         # used to keep track of what were the last selected pages
         self.window_plot1D = "MS"
         self.window_plot2D = "2D"
         self.window_plot3D = "3D"
         self.make_notebook()
-        self.current_plot = self.plot1
+        self.current_plot = self.plot_ms
         self.plot_objs = dict()
 
         # bind events
-        self.mainBook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.on_page_changed)
+        self.plot_notebook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.on_page_changed)
 
         # initialise
         self.on_page_changed(evt=None)
 
-        # initilise pub
+        # initialise pub
         pub.subscribe(self._update_label_position, "update_text_position")
 
     def setup_handling_and_processing(self):
@@ -148,7 +151,7 @@ class PanelPlots(wx.Panel):
         self.document_tree = self.view.panelDocuments.documents
 
     def on_get_current_page(self):
-        self.currentPage = self.mainBook.GetPageText(self.mainBook.GetSelection())
+        self.currentPage = self.plot_notebook.GetPageText(self.plot_notebook.GetSelection())
 
     def _get_page_text(self):
         self.on_get_current_page()
@@ -156,7 +159,7 @@ class PanelPlots(wx.Panel):
 
     def _set_page(self, page_name):
         try:
-            self.mainBook.SetSelection(page_name)
+            self.plot_notebook.SetSelection(page_name)
         except wx.PyAssertionError:
             logger.warning("Failed to set to requested page", exc_info=True)
 
@@ -175,7 +178,6 @@ class PanelPlots(wx.Panel):
         if text_type == "annotation":
             annotations_obj = self.data_handling.get_annotations_data([document_title, dataset_type, dataset_name])
             annotation_obj = annotations_obj.get(annotation_name, None)
-            print(annotation_obj)
             if annotation_obj is None:
                 logger.warning(f"Annotation: {annotation_name} was empty")
                 return
@@ -200,7 +202,7 @@ class PanelPlots(wx.Panel):
             unused
         """
         # get current page
-        self.currentPage = self.mainBook.GetPageText(self.mainBook.GetSelection())
+        self.currentPage = self.plot_notebook.GetPageText(self.plot_notebook.GetSelection())
 
         # keep track of previous pages
         if self.currentPage in ["Mass spectrum", "Chromatogram", "Mobilogram"]:
@@ -211,102 +213,148 @@ class PanelPlots(wx.Panel):
             self.window_plot3D = self.currentPage
 
         if self.currentPage == "Waterfall":
-            self.current_plot = self.plot_waterfall
+            self.current_plot = self.plot_overlay
         elif self.currentPage == "Mass spectrum":
-            self.current_plot = self.plot1
+            self.current_plot = self.plot_ms
         elif self.currentPage == "Mobilogram":
-            self.current_plot = self.plot1D
+            self.current_plot = self.plot_dt_dt
         elif self.currentPage == "Chromatogram":
-            self.current_plot = self.plotRT
+            self.current_plot = self.plot_rt_rt
         elif self.currentPage == "Heatmap":
-            self.current_plot = self.plot2D
+            self.current_plot = self.plot_heatmap
         elif self.currentPage == "DT/MS":
-            self.current_plot = self.plot_DT_vs_MS
+            self.current_plot = self.plot_msdt
         elif self.currentPage == "Annotated":
-            self.current_plot = self.plotOther
+            self.current_plot = self.plot_annotated
         elif self.currentPage == "Heatmap (3D)":
-            self.current_plot = self.plot3D
+            self.current_plot = self.plot_heatmap_3d
 
     def make_notebook(self):
-        """Make notebook panel
-        """
+        """Make notebook panel"""
+
         # Setup notebook
-        self.mainBook = wx.Notebook(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0)
+        self.plot_notebook = wx.Notebook(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0)
 
         # Setup PLOT MS
-        self.panelMS, self.plot1, __ = self.make_plot(self.mainBook, self.config._plotSettings["MS"]["gui_size"])
-        self.mainBook.AddPage(self.panelMS, "Mass spectrum", False)
+        self.panel_ms, self.plot_ms, __ = self.make_1d_plot(
+            self.plot_notebook, self.config._plotSettings["MS"]["gui_size"]
+        )
+        self.plot_notebook.AddPage(self.panel_ms, "Mass spectrum", False)
 
         # Setup PLOT RT
-        self.panelRT = wx.SplitterWindow(self.mainBook, wx.ID_ANY, style=wx.TAB_TRAVERSAL | wx.SP_3DSASH)
-        self.mainBook.AddPage(self.panelRT, "Chromatogram", False)  # RT
+        self.panel_rt = wx.SplitterWindow(self.plot_notebook, wx.ID_ANY, style=wx.TAB_TRAVERSAL | wx.SP_3DSASH)
+        self.plot_notebook.AddPage(self.panel_rt, "Chromatogram", False)  # RT
 
-        self.topPanelRT_RT, self.plotRT, __ = self.make_plot(self.panelRT, self.config._plotSettings["RT"]["gui_size"])
-        self.bottomPanelRT_MS, self.plot_RT_MS, __ = self.make_plot(
-            self.panelRT, self.config._plotSettings["MS (DT/RT)"]["gui_size"]
+        self.panel_rt_top_rt, self.plot_rt_rt, __ = self.make_1d_plot(
+            self.panel_rt, self.config._plotSettings["RT"]["gui_size"]
+        )
+        self.panel_rt_bottom_ms, self.plot_rt_ms, __ = self.make_1d_plot(
+            self.panel_rt, self.config._plotSettings["MS (DT/RT)"]["gui_size"]
         )
         #
-        self.panelRT.SplitHorizontally(self.topPanelRT_RT, self.bottomPanelRT_MS)
-        self.panelRT.SetMinimumPaneSize(300)
-        self.panelRT.SetSashGravity(0.5)
-        self.panelRT.SetSashSize(5)
+        self.panel_rt.SplitHorizontally(self.panel_rt_top_rt, self.panel_rt_bottom_ms)
+        self.panel_rt.SetMinimumPaneSize(300)
+        self.panel_rt.SetSashGravity(0.5)
+        self.panel_rt.SetSashSize(5)
 
         # Setup PLOT 1D
-        self.panel1D = wx.SplitterWindow(self.mainBook, wx.ID_ANY, style=wx.TAB_TRAVERSAL | wx.SP_3DSASH)
-        self.mainBook.AddPage(self.panel1D, "Mobilogram", False)  # 1D
+        self.panel_dt = wx.SplitterWindow(self.plot_notebook, wx.ID_ANY, style=wx.TAB_TRAVERSAL | wx.SP_3DSASH)
+        self.plot_notebook.AddPage(self.panel_dt, "Mobilogram", False)  # 1D
 
-        self.topPanel1D_1D, self.plot1D, __ = self.make_plot(self.panel1D, self.config._plotSettings["DT"]["gui_size"])
-        self.bottomPanel1D_MS, self.plot_DT_MS, __ = self.make_plot(
-            self.panel1D, self.config._plotSettings["MS (DT/RT)"]["gui_size"]
+        self.panel_dt_top_dt, self.plot_dt_dt, __ = self.make_1d_plot(
+            self.panel_dt, self.config._plotSettings["DT"]["gui_size"]
+        )
+        self.panel_dt_bottom_ms, self.plot_dt_ms, __ = self.make_1d_plot(
+            self.panel_dt, self.config._plotSettings["MS (DT/RT)"]["gui_size"]
         )
 
-        self.panel1D.SplitHorizontally(self.topPanel1D_1D, self.bottomPanel1D_MS)
-        self.panel1D.SetMinimumPaneSize(300)
-        self.panel1D.SetSashGravity(0.5)
-        self.panel1D.SetSashSize(5)
+        self.panel_dt.SplitHorizontally(self.panel_dt_top_dt, self.panel_dt_bottom_ms)
+        self.panel_dt.SetMinimumPaneSize(300)
+        self.panel_dt.SetSashGravity(0.5)
+        self.panel_dt.SetSashSize(5)
 
         # Setup PLOT 2D
-        self.panel2D, self.plot2D, __ = self.make_plot(self.mainBook, self.config._plotSettings["2D"]["gui_size"])
-        self.mainBook.AddPage(self.panel2D, "Heatmap", False)
+        self.panel_heatmap, self.plot_heatmap, __ = self.make_heatmap_2d_plot(
+            self.plot_notebook, self.config._plotSettings["2D"]["gui_size"]
+        )
+        self.plot_notebook.AddPage(self.panel_heatmap, "Heatmap", False)
 
         # Setup PLOT DT/MS
-        self.panelMZDT, self.plot_DT_vs_MS, __ = self.make_plot(
-            self.mainBook, self.config._plotSettings["DT/MS"]["gui_size"]
+        self.panel_msdt, self.plot_msdt, __ = self.make_heatmap_2d_plot(
+            self.plot_notebook, self.config._plotSettings["DT/MS"]["gui_size"]
         )
-        self.mainBook.AddPage(self.panelMZDT, "DT/MS", False)
+        self.plot_notebook.AddPage(self.panel_msdt, "DT/MS", False)
 
         # Setup PLOT WATERFALL
-        self.waterfallIMS, self.plot_waterfall, __ = self.make_plot(
-            self.mainBook, self.config._plotSettings["Waterfall"]["gui_size"]
+        self.panel_overlay, self.plot_overlay, __ = self.make_base_plot(
+            self.plot_notebook, self.config._plotSettings["Waterfall"]["gui_size"]
         )
-        self.mainBook.AddPage(self.waterfallIMS, "Waterfall", False)
+        self.plot_notebook.AddPage(self.panel_overlay, "Waterfall", False)
 
         # Setup PLOT 3D
-        self.panel3D, self.plot3D, __ = self.make_plot(self.mainBook, self.config._plotSettings["3D"]["gui_size"])
-        self.mainBook.AddPage(self.panel3D, "Heatmap (3D)", False)
+        self.panel_heatmap_3d, self.plot_heatmap_3d, __ = self.make_heatmap_3d_plot(
+            self.plot_notebook, self.config._plotSettings["3D"]["gui_size"]
+        )
+        self.plot_notebook.AddPage(self.panel_heatmap_3d, "Heatmap (3D)", False)
 
         # Other
-        self.panelOther, self.plotOther, __ = self.make_plot(self.mainBook, self.config._plotSettings["2D"]["gui_size"])
-        self.mainBook.AddPage(self.panelOther, "Annotated", False)
+        self.panel_annotated, self.plot_annotated, __ = self.make_base_plot(
+            self.plot_notebook, self.config._plotSettings["2D"]["gui_size"]
+        )
+        self.plot_notebook.AddPage(self.panel_annotated, "Annotated", False)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(self.mainBook, 1, wx.EXPAND | wx.ALL, 1)
+        main_sizer.Add(self.plot_notebook, 1, wx.EXPAND | wx.ALL, 1)
         self.SetSizer(main_sizer)
         self.Layout()
         self.Show(True)
 
         # now that we set sizer, we can get window size
-        panel_size = self.mainBook.GetSize()[1]
+        panel_size = self.plot_notebook.GetSize()[1]
         half_size = (panel_size - 50) / 2
 
-        self.panel1D.SetMinimumPaneSize(half_size)
-        self.panelRT.SetMinimumPaneSize(half_size)
+        self.panel_dt.SetMinimumPaneSize(half_size)
+        self.panel_rt.SetMinimumPaneSize(half_size)
 
         self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
 
-    def make_plot(self, parent, figsize):
+    def make_base_plot(self, parent, figsize):
+        """Make basic plot"""
         plot_panel = wx.Panel(parent)
-        plot_window = mpl_plots.plots(plot_panel, config=self.config, figsize=figsize)
+        plot_window = PlotMixed(plot_panel, config=self.config, figsize=figsize)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(plot_window, 1, wx.EXPAND)
+        plot_panel.SetSizer(sizer)
+        sizer.Fit(plot_panel)
+
+        return plot_panel, plot_window, sizer
+
+    def make_1d_plot(self, parent, figsize):
+        """Make 2d heatmap plot"""
+        plot_panel = wx.Panel(parent)
+        plot_window = PlotSpectrum(plot_panel, config=self.config, figsize=figsize)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(plot_window, 1, wx.EXPAND)
+        plot_panel.SetSizer(sizer)
+        sizer.Fit(plot_panel)
+
+        return plot_panel, plot_window, sizer
+
+    def make_heatmap_2d_plot(self, parent, figsize):
+        """Make 2d heatmap plot"""
+        plot_panel = wx.Panel(parent)
+        plot_window = PlotHeatmap2D(plot_panel, config=self.config, figsize=figsize)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(plot_window, 1, wx.EXPAND)
+        plot_panel.SetSizer(sizer)
+        sizer.Fit(plot_panel)
+
+        return plot_panel, plot_window, sizer
+
+    def make_heatmap_3d_plot(self, parent, figsize):
+        """Make 3d heatmap plot"""
+        plot_panel = wx.Panel(parent)
+        plot_window = PlotHeatmap3D(plot_panel, config=self.config, figsize=figsize)
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(plot_window, 1, wx.EXPAND)
         plot_panel.SetSizer(sizer)
@@ -338,7 +386,8 @@ class PanelPlots(wx.Panel):
         #         n_signals = len(xs)
         #         if n_signals > 1:
         #             raise MessageError("Not supported yet",
-        #                                "At the moment signal smoothing is only supported for plots with one signal." +
+        #                                "At the moment signal smoothing is only supported for plot with one
+        #                                signal." +
         #                                f" This one appears to have {n_signals}")
         yvals = self.data_processing.on_smooth_1D_signal(yvals)
 
@@ -376,7 +425,7 @@ class PanelPlots(wx.Panel):
             )
 
     def on_right_click(self, evt):
-        self.currentPage = self.mainBook.GetPageText(self.mainBook.GetSelection())
+        self.currentPage = self.plot_notebook.GetPageText(self.plot_notebook.GetSelection())
 
         # Make bindings
         self.Bind(wx.EVT_MENU, self.on_smooth_spectrum, id=ID_smooth1DdataRT)
@@ -409,7 +458,6 @@ class PanelPlots(wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_lock_plot, id=ID_plotPanel_lockPlot)
         self.Bind(wx.EVT_MENU, self.on_rotate_plot, id=ID_plots_rotate90)
         self.Bind(wx.EVT_MENU, self.on_resize_check, id=ID_plotPanel_resize)
-
         self.Bind(wx.EVT_MENU, self.on_customise_plot, id=ID_plots_customise_plot)
         self.Bind(wx.EVT_MENU, self.save_images, id=ID_saveOtherImage)
         self.Bind(wx.EVT_MENU, self.save_images, id=ID_saveCompareMSImage)
@@ -521,7 +569,7 @@ class PanelPlots(wx.Panel):
             menu.AppendItem(menu_edit_general)
             menu.AppendItem(menu_edit_plot_1D)
             self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, "Lock plot", help="")
-            self.lock_plot_check.Check(self.plot1.lock_plot_from_updating)
+            self.lock_plot_check.Check(self.plot_ms.lock_plot_from_updating)
             menu.AppendItem(menu_customise_plot)
             menu.AppendSeparator()
             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
@@ -563,7 +611,7 @@ class PanelPlots(wx.Panel):
                 menu.AppendItem(menu_edit_plot_1D)
                 menu.AppendItem(menu_edit_legend)
                 self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, "Lock plot", help="")
-                self.lock_plot_check.Check(self.plotRT.lock_plot_from_updating)
+                self.lock_plot_check.Check(self.plot_rt_rt.lock_plot_from_updating)
                 menu.AppendItem(menu_customise_plot)
                 menu.AppendSeparator()
                 self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
@@ -594,7 +642,7 @@ class PanelPlots(wx.Panel):
                 menu.AppendItem(menu_edit_plot_1D)
                 menu.AppendItem(menu_edit_legend)
                 self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, "Lock plot", help="")
-                self.lock_plot_check.Check(self.plot1D.lock_plot_from_updating)
+                self.lock_plot_check.Check(self.plot_dt_dt.lock_plot_from_updating)
                 menu.AppendItem(menu_customise_plot)
                 menu.AppendSeparator()
                 self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
@@ -620,7 +668,7 @@ class PanelPlots(wx.Panel):
             menu.AppendItem(menu_edit_colorbar)
             menu.AppendItem(menu_edit_legend)
             self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, "Lock plot", help="")
-            self.lock_plot_check.Check(self.plot2D.lock_plot_from_updating)
+            self.lock_plot_check.Check(self.plot_heatmap.lock_plot_from_updating)
             menu.AppendItem(menu_customise_plot)
             menu.AppendSeparator()
             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
@@ -654,7 +702,7 @@ class PanelPlots(wx.Panel):
             menu.AppendItem(menu_edit_plot_2D)
             menu.AppendItem(menu_edit_colorbar)
             self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, "Lock plot", help="")
-            self.lock_plot_check.Check(self.plot_DT_vs_MS.lock_plot_from_updating)
+            self.lock_plot_check.Check(self.plot_msdt.lock_plot_from_updating)
             menu.AppendItem(menu_customise_plot)
             menu.AppendSeparator()
             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
@@ -694,7 +742,7 @@ class PanelPlots(wx.Panel):
             menu.AppendItem(menu_edit_waterfall)
             menu.AppendItem(menu_edit_violin)
             self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, "Lock plot", help="")
-            self.lock_plot_check.Check(self.plot_waterfall.lock_plot_from_updating)
+            self.lock_plot_check.Check(self.plot_overlay.lock_plot_from_updating)
             menu.AppendItem(menu_customise_plot)
             menu.AppendSeparator()
             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
@@ -813,36 +861,36 @@ class PanelPlots(wx.Panel):
         if evtID in [ID_saveMSImage, ID_saveMSImageDoc, "ms"]:
             image_name = self.config._plotSettings["MS"]["default_name"]
             resizeName = "MS"
-            plotWindow = self.plot1
+            plotWindow = self.plot_ms
 
         # Select default name + link to the plot
         elif evtID in [ID_saveCompareMSImage]:
             image_name = self.config._plotSettings["MS (compare)"]["default_name"]
             resizeName = "MS (compare)"
-            plotWindow = self.plot1
+            plotWindow = self.plot_ms
 
         elif evtID in [ID_saveRTImage, ID_saveRTImageDoc, "rt", "chromatogram"]:
             image_name = self.config._plotSettings["RT"]["default_name"]
             resizeName = "RT"
-            plotWindow = self.plotRT
+            plotWindow = self.plot_rt_rt
 
         elif evtID in [ID_save1DImage, ID_save1DImageDoc, "1d", "mobilogram"]:
             image_name = self.config._plotSettings["DT"]["default_name"]
             resizeName = "DT"
-            plotWindow = self.plot1D
+            plotWindow = self.plot_dt_dt
 
         elif evtID in [ID_save2DImage, ID_save2DImageDoc, "2d", "heatmap"]:
-            plotWindow = self.plot2D
+            plotWindow = self.plot_heatmap
             image_name = self.config._plotSettings["2D"]["default_name"]
             resizeName = "2D"
 
         elif evtID in [ID_save3DImage, ID_save3DImageDoc, "3d", "heatmap (3d)"]:
             image_name = self.config._plotSettings["3D"]["default_name"]
             resizeName = "3D"
-            plotWindow = self.plot3D
+            plotWindow = self.plot_heatmap_3d
 
         elif evtID in [ID_saveWaterfallImage, ID_saveWaterfallImageDoc, "waterfall"]:
-            plotWindow = self.plot_waterfall
+            plotWindow = self.plot_overlay
             if plotWindow.plot_name == "Violin":
                 image_name = self.config._plotSettings["Violin"]["default_name"]
                 resizeName = "Violin"
@@ -853,27 +901,27 @@ class PanelPlots(wx.Panel):
         elif evtID in [ID_saveMZDTImage, ID_saveMZDTImageDoc, "ms/dt"]:
             image_name = self.config._plotSettings["DT/MS"]["default_name"]
             resizeName = "DT/MS"
-            plotWindow = self.plot_DT_vs_MS
+            plotWindow = self.plot_msdt
 
         elif evtID in [ID_saveOverlayImage, ID_saveOverlayImageDoc, "mask", "transparent"]:
-            plotWindow = self.plotOther
+            plotWindow = self.plot_annotated
             image_name = plotWindow.get_plot_name()
             resizeName = "Overlay"
 
         elif evtID in [ID_saveRMSDmatrixImage, ID_saveRMSDmatrixImageDoc, "matrix"]:
             image_name = self.config._plotSettings["Matrix"]["default_name"]
             resizeName = "Matrix"
-            plotWindow = self.plotOther
+            plotWindow = self.plot_annotated
 
         elif evtID in [ID_saveRMSDImage, ID_saveRMSDImageDoc, ID_saveRMSFImage, ID_saveRMSFImageDoc, "rmsd", "rmsf"]:
-            plotWindow = self.plotOther
+            plotWindow = self.plot_annotated
             image_name = self.config._plotSettings["RMSD"]["default_name"]
             resizeName = plotWindow.get_plot_name()
 
         elif evtID in [ID_saveOtherImageDoc, ID_saveOtherImage, "overlay", "other"]:
             image_name = "custom_plot"
             resizeName = None
-            plotWindow = self.plotOther
+            plotWindow = self.plot_annotated
 
         elif evtID is None and "plot_obj" in save_kwargs:
             image_name = save_kwargs.get("image_name")
@@ -964,34 +1012,34 @@ class PanelPlots(wx.Panel):
             name of the plot
 
         Returns
-        plot_obj : plots.plots object
+        plot_obj : plot.plots object
             plot object
         """
         plot_dict = {
-            "ms": self.plot1,
-            "mass_spectrum": self.plot1,
-            "mass spectrum": self.plot1,
-            "rt": self.plotRT,
-            "chromatogram": self.plotRT,
-            "1d": self.plot1D,
-            "mobilogram": self.plot1D,
-            "2d": self.plot2D,
-            "heatmap": self.plot2D,
-            "dt/ms": self.plot_DT_vs_MS,
-            "overlay": self.plotOther,
-            "rmsf": self.plotOther,
-            "rmsd": self.plotOther,
-            "grid": self.plotOther,
-            "compare": self.plotOther,
-            "comparison": self.plotOther,
-            "waterfall": self.plot_waterfall,
-            "other": self.plotOther,
-            "3d": self.plot3D,
-            "heatmap (3d)": self.plot3D,
-            "matrix": self.plotOther,
-            "annotated": self.plotOther,
-            "ms_rt": self.plot_RT_MS,
-            "ms_dt": self.plot_DT_MS,
+            "ms": self.plot_ms,
+            "mass_spectrum": self.plot_ms,
+            "mass spectrum": self.plot_ms,
+            "rt": self.plot_rt_rt,
+            "chromatogram": self.plot_rt_rt,
+            "1d": self.plot_dt_dt,
+            "mobilogram": self.plot_dt_dt,
+            "2d": self.plot_heatmap,
+            "heatmap": self.plot_heatmap,
+            "dt/ms": self.plot_msdt,
+            "overlay": self.plot_annotated,
+            "rmsf": self.plot_annotated,
+            "rmsd": self.plot_annotated,
+            "grid": self.plot_annotated,
+            "compare": self.plot_annotated,
+            "comparison": self.plot_annotated,
+            "waterfall": self.plot_overlay,
+            "other": self.plot_annotated,
+            "3d": self.plot_heatmap_3d,
+            "heatmap (3d)": self.plot_heatmap_3d,
+            "matrix": self.plot_annotated,
+            "annotated": self.plot_annotated,
+            "ms_rt": self.plot_rt_ms,
+            "ms_dt": self.plot_dt_ms,
         }
         plot_name = plot_name.lower()
         plot_obj = plot_dict.get(plot_name, None)
@@ -1071,8 +1119,8 @@ class PanelPlots(wx.Panel):
             ymin, ymax = plot.plot_limits[2], plot.plot_limits[3]
         else:
             try:
-                xmin, xmax = plot.plotMS.get_xlim()
-                ymin, ymax = plot.plotMS.get_ylim()
+                xmin, xmax = plot.plot_base.get_xlim()
+                ymin, ymax = plot.plot_base.get_ylim()
             except AttributeError as err:
                 raise MessageError("Error", "Cannot customise plot parameters if the plot does not exist." + f"\n{err}")
 
@@ -1096,19 +1144,19 @@ class PanelPlots(wx.Panel):
                 "xmax": xmax,
                 "ymin": ymin,
                 "ymax": ymax,
-                "major_xticker": plot.plotMS.xaxis.get_major_locator(),
-                "major_yticker": plot.plotMS.yaxis.get_major_locator(),
-                "minor_xticker": plot.plotMS.xaxis.get_minor_locator(),
-                "minor_yticker": plot.plotMS.yaxis.get_minor_locator(),
+                "major_xticker": plot.plot_base.xaxis.get_major_locator(),
+                "major_yticker": plot.plot_base.yaxis.get_major_locator(),
+                "minor_xticker": plot.plot_base.xaxis.get_minor_locator(),
+                "minor_yticker": plot.plot_base.yaxis.get_minor_locator(),
                 "tick_size": self.config.tickFontSize_1D,
                 "tick_weight": self.config.tickFontWeight_1D,
                 "label_size": self.config.labelFontSize_1D,
                 "label_weight": self.config.labelFontWeight_1D,
                 "title_size": self.config.titleFontSize_1D,
                 "title_weight": self.config.titleFontWeight_1D,
-                "xlabel": plot.plotMS.get_xlabel(),
-                "ylabel": plot.plotMS.get_ylabel(),
-                "title": plot.plotMS.get_title(),
+                "xlabel": plot.plot_base.get_xlabel(),
+                "ylabel": plot.plot_base.get_ylabel(),
+                "title": plot.plot_base.get_title(),
                 "plot_size": plot_sizeInch,
                 "plot_axes": plot._axes,
                 "plot": plot,
@@ -1274,7 +1322,7 @@ class PanelPlots(wx.Panel):
             plot_obj = [plot_obj]
 
         for p in plot_obj:
-            p.clearPlot()
+            p.clear()
 
         logger.info("Cleared plot area...")
 
@@ -1282,20 +1330,20 @@ class PanelPlots(wx.Panel):
 
         # Delete all plots
         plotList = [
-            self.plot1,
-            self.plotRT,
-            self.plot1D,
-            self.plot2D,
-            self.plot3D,
-            self.plot_waterfall,
-            self.plot_DT_vs_MS,
-            self.plotOther,
-            self.plot_RT_MS,
-            self.plot_DT_MS,
+            self.plot_ms,
+            self.plot_rt_rt,
+            self.plot_dt_dt,
+            self.plot_heatmap,
+            self.plot_heatmap_3d,
+            self.plot_overlay,
+            self.plot_msdt,
+            self.plot_annotated,
+            self.plot_rt_ms,
+            self.plot_dt_ms,
         ]
 
         for plot in plotList:
-            plot.clearPlot()
+            plot.clear()
             plot.repaint()
         # Message
         logger.info("Cleared all plots")
@@ -1303,9 +1351,9 @@ class PanelPlots(wx.Panel):
     def on_clear_patches(self, plot="MS", repaint=False, **kwargs):
 
         if plot == "MS":
-            self.plot1.plot_remove_patches()
+            self.plot_ms.plot_remove_patches()
             if repaint:
-                self.plot1.repaint()
+                self.plot_ms.repaint()
 
         elif plot == "CalibrationMS":
             self.topPlotMS.plot_remove_patches()
@@ -1313,9 +1361,9 @@ class PanelPlots(wx.Panel):
                 self.topPlotMS.repaint()
 
         elif plot == "RT":
-            self.plotRT.plot_remove_patches()
+            self.plot_rt_rt.plot_remove_patches()
             if repaint:
-                self.plotRT.repaint()
+                self.plot_rt_rt.repaint()
 
         elif "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
@@ -1325,14 +1373,14 @@ class PanelPlots(wx.Panel):
 
     def plot_repaint(self, plot_window="MS"):
         if plot_window == "MS":
-            self.plot1.repaint()
+            self.plot_ms.repaint()
 
     def plot_remove_patches_with_labels(self, label, plot_window="2D", refresh=False):
         if plot_window == "MS":
-            self.plot1.plot_remove_patch_with_label(label)
+            self.plot_ms.plot_remove_patch_with_label(label)
 
             if refresh:
-                self.plot1.repaint()
+                self.plot_ms.repaint()
 
     def on_plot_patches(
         self, xmin, ymin, width, height, color="r", alpha=0.5, label="", plot="MS", repaint=False, **kwargs
@@ -1385,21 +1433,21 @@ class PanelPlots(wx.Panel):
         if not repaint:
             return
 
-        self.plot1.repaint()
+        self.plot_ms.repaint()
 
     def on_plot_markers(self, xvals, yvals, color="b", marker="o", size=5, plot="MS", repaint=True, **kwargs):
         if plot == "MS":
-            self.plot1.plot_add_markers(
+            self.plot_ms.plot_add_markers(
                 xvals=xvals, yvals=yvals, color=color, marker=marker, size=size, test_yvals=True
             )
             if not repaint:
                 return
             else:
-                self.plot1.repaint()
+                self.plot_ms.repaint()
 
         elif plot == "RT":
-            self.plotRT.plot_add_markers(xvals=xvals, yvals=yvals, color=color, marker=marker, size=size)
-            self.plotRT.repaint()
+            self.plot_rt_rt.plot_add_markers(xvals=xvals, yvals=yvals, color=color, marker=marker, size=size)
+            self.plot_rt_rt.repaint()
         elif plot == "CalibrationMS":
             self.topPlotMS.plot_add_markers(xval=xvals, yval=yvals, color=color, marker=marker, size=size)
             self.topPlotMS.repaint()
@@ -1499,7 +1547,7 @@ class PanelPlots(wx.Panel):
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType="1D")
 
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_1D(
             xvals=xvals,
             yvals=yvals,
@@ -1535,7 +1583,7 @@ class PanelPlots(wx.Panel):
             xvals = replot["xvals"]
             yvals = replot["yvals"]
 
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_1D(
             xvals=xvals,
             yvals=yvals,
@@ -1570,7 +1618,7 @@ class PanelPlots(wx.Panel):
 
         colors[1] = plt_kwargs["fit_line_color"]
 
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_1D_overlay(
             xvals=xvals,
             yvals=yvals,
@@ -1607,7 +1655,7 @@ class PanelPlots(wx.Panel):
         if unidec_eng_data is None and replot is not None:
             grid = replot["grid"]
 
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_2D_contour_unidec(
             data=grid,
             xlabel="m/z (Da)",
@@ -1643,7 +1691,7 @@ class PanelPlots(wx.Panel):
         try:
             plot_obj.plot_1D_update_data(xvals, yvals, "Mass Distribution", "Intensity", testX=True, **plt_kwargs)
         except AttributeError:
-            plot_obj.clearPlot()
+            plot_obj.clear()
             plot_obj.plot_1D(
                 xvals=xvals,
                 yvals=yvals,
@@ -1733,7 +1781,7 @@ class PanelPlots(wx.Panel):
             yvals = replot["yvals"]
 
         # Plot MS
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_1D(
             xvals=xvals,
             yvals=yvals,
@@ -1891,7 +1939,7 @@ class PanelPlots(wx.Panel):
         )
         plt_kwargs["colormap_norm"] = cmapNorm
 
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_2D_contour_unidec(
             xvals=xvals,
             yvals=yvals,
@@ -1951,7 +1999,7 @@ class PanelPlots(wx.Panel):
         for i in range(len(legend_text)):
             legend_text[i][0] = colors[i]
 
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_1D_barplot(
             xvals,
             yvals,
@@ -1983,22 +2031,22 @@ class PanelPlots(wx.Panel):
 
         if plotName in ["all", "MS"]:
             try:
-                self.plot1.plot_1D_update(**plt_kwargs)
-                self.plot1.repaint()
+                self.plot_ms.plot_1D_update(**plt_kwargs)
+                self.plot_ms.repaint()
             except AttributeError:
                 logger.warning("Failed to update `Mass spectrum` plot", exc_info=True)
 
         if plotName in ["all", "RT"]:
             try:
-                self.plotRT.plot_1D_update(**plt_kwargs)
-                self.plotRT.repaint()
+                self.plot_rt_rt.plot_1D_update(**plt_kwargs)
+                self.plot_rt_rt.repaint()
             except AttributeError:
                 logger.warning("Failed to update `Chromatogram` plot", exc_info=True)
 
         if plotName in ["all", "1D"]:
             try:
-                self.plot1D.plot_1D_update(**plt_kwargs)
-                self.plot1D.repaint()
+                self.plot_dt_dt.plot_1D_update(**plt_kwargs)
+                self.plot_dt_dt.repaint()
             except AttributeError:
                 logger.warning("Failed to update `Mobilogram` plot", exc_info=True)
 
@@ -2046,7 +2094,7 @@ class PanelPlots(wx.Panel):
         except TypeError:
             pass
 
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_1D(
             xvals=msX,
             yvals=msY,
@@ -2074,7 +2122,7 @@ class PanelPlots(wx.Panel):
         plt_kwargs = self._buildPlotParameters(plotType="1D")
         plt_kwargs = merge_two_dicts(plt_kwargs, kwargs)
 
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_1D_overlay(
             xvals=xvals,
             yvals=yvals,
@@ -2109,7 +2157,7 @@ class PanelPlots(wx.Panel):
         # reverse labels
         xlabel, ylabel = ylabel, xlabel
 
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_1D_waterfall(
             xvals=xvals,
             yvals=yvals,
@@ -2148,7 +2196,7 @@ class PanelPlots(wx.Panel):
         plt_kwargs = self._buildPlotParameters(plotType="1D")
         plt_kwargs = merge_two_dicts(plt_kwargs, kwargs)
 
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_1D_scatter(
             xvals=xvals,
             yvals=yvals,
@@ -2182,7 +2230,7 @@ class PanelPlots(wx.Panel):
         plt_kwargs = self._buildPlotParameters(plotType="1D")
         plt_kwargs = merge_two_dicts(plt_kwargs, kwargs)
 
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_n_grid_1D_overlay(
             xvals=xvals,
             yvals=yvals,
@@ -2214,7 +2262,7 @@ class PanelPlots(wx.Panel):
         plt_kwargs = self._buildPlotParameters(plotType="1D")
         plt_kwargs = merge_two_dicts(plt_kwargs, kwargs)
 
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_n_grid_scatter(
             xvals=xvals,
             yvals=yvals,
@@ -2246,7 +2294,7 @@ class PanelPlots(wx.Panel):
         plt_kwargs = self._buildPlotParameters(plotType="1D")
         plt_kwargs = merge_two_dicts(plt_kwargs, kwargs)
 
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_floating_barplot(
             xvals=xvals,
             yvals_min=yvals_min,
@@ -2268,7 +2316,7 @@ class PanelPlots(wx.Panel):
         """
         plot = None
         if plot_window == "MS":
-            plot = self.plot1
+            plot = self.plot_ms
 
         if plot is None:
             return False
@@ -2315,7 +2363,7 @@ class PanelPlots(wx.Panel):
             plot_name = "compareMS"
             plot_size = self.config._plotSettings["MS (compare)"]["axes_size"]
 
-        xylimits = self.plot1.get_xylimits()
+        xylimits = self.plot_ms.get_xylimits()
         plot_obj.plot_1D_centroid(
             xvals=msX,
             yvals=msY,
@@ -2357,7 +2405,7 @@ class PanelPlots(wx.Panel):
             )
 
         if i == len(labels) - 1 and not butterfly_plot:
-            plot_obj.set_xylimits(xylimits)
+            plot_obj.set_xy_limits(xylimits)
 
         plot_obj.repaint()
 
@@ -2375,7 +2423,7 @@ class PanelPlots(wx.Panel):
         plt_kwargs = self._buildPlotParameters(plotType="1D")
         plt_kwargs["line_color"] = self.config.msms_line_color_unlabelled
 
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_1D_centroid(
             xvals=msX,
             yvals=msY,
@@ -2429,7 +2477,7 @@ class PanelPlots(wx.Panel):
         except Exception as err:
             print(err)
 
-            plot_obj.clearPlot()
+            plot_obj.clear()
             plot_obj.plot_1D(
                 xvals=xvals,
                 yvals=yvals,
@@ -2450,7 +2498,7 @@ class PanelPlots(wx.Panel):
         # get kwargs
         plt_kwargs = self._buildPlotParameters(plotType="1D")
 
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_1D(
             xvals=xvals,
             yvals=yvals,
@@ -2634,7 +2682,7 @@ class PanelPlots(wx.Panel):
         except Exception:
             xlimits = [np.min(msX), np.max(msX)]
 
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_1D(
             xvals=msX,
             yvals=msY,
@@ -2691,7 +2739,7 @@ class PanelPlots(wx.Panel):
             except Exception:
                 pass
 
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_1D(
             xvals=dtX,
             yvals=dtY,
@@ -2747,7 +2795,7 @@ class PanelPlots(wx.Panel):
             except Exception:
                 pass
 
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_1D(
             xvals=rtX,
             yvals=rtY,
@@ -2768,8 +2816,8 @@ class PanelPlots(wx.Panel):
 
         if plotName in ["all", "2D"]:
             try:
-                self.plot2D.plot_2D_update(**plt_kwargs)
-                self.plot2D.repaint()
+                self.plot_heatmap.plot_2D_update(**plt_kwargs)
+                self.plot_heatmap.repaint()
             except AttributeError:
                 logging.warning("Failed to update plot", exc_info=True)
 
@@ -2789,8 +2837,8 @@ class PanelPlots(wx.Panel):
 
         if plotName in ["all", "DT/MS"]:
             try:
-                self.plot_DT_vs_MS.plot_2D_update(**plt_kwargs)
-                self.plot_DT_vs_MS.repaint()
+                self.plot_msdt.plot_2D_update(**plt_kwargs)
+                self.plot_msdt.repaint()
             except AttributeError:
                 logging.warning("Failed to update plot", exc_info=True)
 
@@ -2845,7 +2893,7 @@ class PanelPlots(wx.Panel):
 
         n_scans = zvals.shape[1]
 
-        plot_obj.clearPlot()
+        plot_obj.clear()
         try:
             if n_scans < plt_kwargs["violin_nlimit"]:
                 plot_obj.plot_1D_violin(
@@ -2874,7 +2922,7 @@ class PanelPlots(wx.Panel):
                 # plot
                 self.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals, xlabel=xlabel, ylabel=ylabel)
         except Exception:
-            plot_obj.clearPlot()
+            plot_obj.clear()
             logger.warning("Failed to plot violin plot...")
 
         # Show the mass spectrum
@@ -2986,7 +3034,7 @@ class PanelPlots(wx.Panel):
                 logger.info("Failed to quickly plot heatmap", exc_info=False)
 
         # Plot 2D dataset
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_2D_image(
             zvals,
             xvals,
@@ -3066,7 +3114,7 @@ class PanelPlots(wx.Panel):
                 logger.info("Failed to quickly plot heatmap", exc_info=False)
 
         # Plot 2D dataset
-        plot_obj.clearPlot()
+        plot_obj.clear()
         if self.config.plotType == "Image":
             plot_obj.plot_2D_surface(
                 zvals,
@@ -3141,8 +3189,8 @@ class PanelPlots(wx.Panel):
         plt_kwargs = merge_two_dicts(plt_kwargs, kwargs)
 
         try:
-            self.plot_DT_vs_MS.plot_2D_update_data(xvals, yvals, xlabel, ylabel, zvals, **plt_kwargs)
-            self.plot_DT_vs_MS.repaint()
+            self.plot_msdt.plot_2D_update_data(xvals, yvals, xlabel, ylabel, zvals, **plt_kwargs)
+            self.plot_msdt.repaint()
             if override:
                 self.config.replotData["DT/MS"] = {
                     "zvals": zvals,
@@ -3158,9 +3206,9 @@ class PanelPlots(wx.Panel):
             pass
 
         # Plot 2D dataset
-        self.plot_DT_vs_MS.clearPlot()
+        self.plot_msdt.clear()
         if self.config.plotType == "Image":
-            self.plot_DT_vs_MS.plot_2D_surface(
+            self.plot_msdt.plot_2D_surface(
                 zvals,
                 xvals,
                 yvals,
@@ -3172,7 +3220,7 @@ class PanelPlots(wx.Panel):
             )
 
         elif self.config.plotType == "Contour":
-            self.plot_DT_vs_MS.plot_2D_contour(
+            self.plot_msdt.plot_2D_contour(
                 zvals,
                 xvals,
                 yvals,
@@ -3184,7 +3232,7 @@ class PanelPlots(wx.Panel):
             )
 
         # Show the mass spectrum
-        self.plot_DT_vs_MS.repaint()
+        self.plot_msdt.repaint()
 
         # since we always sub-sample this dataset, it is makes sense to keep track of the full dataset before it was
         # subsampled - this way, when we replot data it will always use the full information
@@ -3243,9 +3291,9 @@ class PanelPlots(wx.Panel):
         plt_kwargs["colormap"] = cmap
         plt_kwargs["colormap_norm"] = cmapNorm
 
-        self.plot3D.clearPlot()
+        self.plot_heatmap_3d.clear()
         if self.config.plotType_3D == "Surface":
-            self.plot3D.plot_3D_surface(
+            self.plot_heatmap_3d.plot_3D_surface(
                 xvals=labelsX,
                 yvals=labelsY,
                 zvals=zvals,
@@ -3257,7 +3305,7 @@ class PanelPlots(wx.Panel):
                 **plt_kwargs,
             )
         elif self.config.plotType_3D == "Wireframe":
-            self.plot3D.plot_3D_wireframe(
+            self.plot_heatmap_3d.plot_3D_wireframe(
                 xvals=labelsX,
                 yvals=labelsY,
                 zvals=zvals,
@@ -3269,7 +3317,7 @@ class PanelPlots(wx.Panel):
                 **plt_kwargs,
             )
         # Show the mass spectrum
-        self.plot3D.repaint()
+        self.plot_heatmap_3d.repaint()
 
     def on_plot_waterfall(
         self, xvals, yvals, zvals, xlabel, ylabel, colors=[], set_page=False, plot="Waterfall", **kwargs
@@ -3286,7 +3334,7 @@ class PanelPlots(wx.Panel):
         if "increment" in kwargs:
             plt_kwargs["increment"] = kwargs["increment"]
 
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_1D_waterfall(
             xvals=xvals,
             yvals=yvals,
@@ -3312,11 +3360,11 @@ class PanelPlots(wx.Panel):
         plt_kwargs = self._buildPlotParameters(plotType="1D")
 
         if self.currentPage == "Other":
-            plot_name = self.plotOther
+            plot_name = self.plot_annotated
         else:
-            plot_name = self.plot_waterfall
+            plot_name = self.plot_overlay
 
-        if self.plot_waterfall.plot_name != "Violin":
+        if self.plot_overlay.plot_name != "Violin":
             extra_kwargs = self._buildPlotParameters(plotType="waterfall")
         else:
             extra_kwargs = self._buildPlotParameters(plotType="violin")
@@ -3344,7 +3392,7 @@ class PanelPlots(wx.Panel):
         if "increment" in kwargs:
             plt_kwargs["increment"] = kwargs["increment"]
 
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_1D_waterfall_overlay(
             xvals=xvals,
             yvals=yvals,
@@ -3377,7 +3425,7 @@ class PanelPlots(wx.Panel):
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType="1D")
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_1D_overlay(
             xvals=xvals,
             yvals=yvals,
@@ -3406,7 +3454,7 @@ class PanelPlots(wx.Panel):
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType="1D")
 
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_1D_overlay(
             xvals=xvals,
             yvals=yvals,
@@ -3452,7 +3500,7 @@ class PanelPlots(wx.Panel):
                 self._set_page(self.config.panelNames["Overlay"])
 
         plt_kwargs = self._buildPlotParameters(plotType="2D")
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_2D_overlay(
             zvalsIon1=zvalsIon1,
             zvalsIon2=zvalsIon2,
@@ -3492,7 +3540,7 @@ class PanelPlots(wx.Panel):
 
         plt_kwargs = self._buildPlotParameters(plotType="2D")
 
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_2D_rgb(
             zvals,
             xvals,
@@ -3556,7 +3604,7 @@ class PanelPlots(wx.Panel):
         plt_kwargs["colormap"] = cmap
         plt_kwargs["colormap_norm"] = cmapNorm
 
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_1D_2D(
             yvalsRMSF=yvalsRMSF,
             zvals=zvals,
@@ -3613,7 +3661,7 @@ class PanelPlots(wx.Panel):
             if set_page:
                 self._set_page(self.config.panelNames["RMSF"])
 
-        plot_obj.clearPlot()
+        plot_obj.clear()
 
         # If the user would like to replot data, you can directly unpack it
         if replot:
@@ -3698,7 +3746,7 @@ class PanelPlots(wx.Panel):
 
         # MS plot
         if plotType == "both" or plotType == "MS":
-            self.topPlotMS.clearPlot()
+            self.topPlotMS.clear()
             # get kwargs
             plt_kwargs = self._buildPlotParameters(plotType="1D")
             self.topPlotMS.plot_1D(
@@ -3719,7 +3767,7 @@ class PanelPlots(wx.Panel):
         if plotType == "both" or plotType == "1DT":
             ylabel = "Intensity"
             # 1DT plot
-            self.bottomPlot1DT.clearPlot()
+            self.bottomPlot1DT.clear()
             # get kwargs
             plt_kwargs = self._buildPlotParameters(plotType="1D")
             self.bottomPlot1DT.plot_1D(
@@ -3744,7 +3792,7 @@ class PanelPlots(wx.Panel):
         # Check yaxis labels
         ylabel = "Intensity"
         # 1DT plot
-        self.bottomPlot1DT.clearPlot()
+        self.bottomPlot1DT.clear()
         # get kwargs
         plt_kwargs = self._buildPlotParameters(plotType="1D")
         self.bottomPlot1DT.plot_1D(
@@ -3827,7 +3875,7 @@ class PanelPlots(wx.Panel):
         plt_kwargs = self._buildPlotParameters(["2D", "RMSF"])
         plt_kwargs["colormap"] = cmap
 
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_2D_matrix(
             zvals=zvals,
             xylabels=xylabels,
@@ -3875,7 +3923,7 @@ class PanelPlots(wx.Panel):
             zvals_2, min=self.config.minCmap, mid=self.config.midCmap, max=self.config.maxCmap
         )
         plt_kwargs["cmap_norm_cum"] = self.normalize_colormap(zvals_cum, min=-100, mid=0, max=100)
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_grid_2D_overlay(
             zvals_1,
             zvals_2,
@@ -3901,7 +3949,7 @@ class PanelPlots(wx.Panel):
                 self._set_page(self.config.panelNames["Overlay"])
 
         plt_kwargs = self._buildPlotParameters(plotType="2D")
-        plot_obj.clearPlot()
+        plot_obj.clear()
         plot_obj.plot_n_grid_2D_overlay(
             n_zvals,
             cmap_list,
@@ -3960,7 +4008,7 @@ class PanelPlots(wx.Panel):
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType="1D")
 
-        plot_obj.clearPlot()
+        plot_obj.clear()
         if subtract:
             try:
                 plot_obj.plot_1D(
@@ -4053,7 +4101,7 @@ class PanelPlots(wx.Panel):
         try:
             plot_obj.plot_1D_compare_update_data(xvals_1, xvals_2, yvals_1, yvals_2, **plt_kwargs)
         except (AttributeError, ValueError):
-            plot_obj.clearPlot()
+            plot_obj.clear()
             plot_obj.plot_1D_compare(
                 xvals1=xvals_1,
                 xvals2=xvals_2,
@@ -4204,10 +4252,10 @@ class PanelPlots(wx.Panel):
             self._set_page(self.config.panelNames["MS"])
 
         if plot == "MS":
-            self.plot1.on_zoom_xy(startX, endX, startY, endY)
+            self.plot_ms.on_zoom_xy(startX, endX, startY, endY)
 
             if repaint:
-                self.plot1.repaint()
+                self.plot_ms.repaint()
 
     def on_add_label(self, x, y, text, rotation, color="k", plot="RMSD", **kwargs):
 
@@ -4567,7 +4615,7 @@ class PanelPlots(wx.Panel):
         norm_method = self.config.normalization_2D
 
         if norm_method == "Midpoint":
-            cmapNormalization = MidpointNormalize(midpoint=cmapMid, vmin=cmapMin, vmax=cmapMax, clip=False)
+            cmapNormalization = MidpointNormalize(midpoint=cmapMid, v_min=cmapMin, v_max=cmapMax, clip=False)
         elif norm_method == "Logarithmic":
             from matplotlib.colors import LogNorm
 
@@ -4584,7 +4632,7 @@ class PanelPlots(wx.Panel):
 
         if plotName in ["all", "3D"]:
             try:
-                self.plot3D.plot_3D_update(**plt_kwargs)
-                self.plot3D.repaint()
+                self.plot_heatmap_3d.plot_3D_update(**plt_kwargs)
+                self.plot_heatmap_3d.repaint()
             except AttributeError:
                 pass

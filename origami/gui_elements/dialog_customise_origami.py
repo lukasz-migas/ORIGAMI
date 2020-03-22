@@ -6,7 +6,7 @@ import numpy as np
 import origami.processing.origami_ms as pr_origami
 from origami.styles import Dialog
 from origami.styles import validator
-from origami.visuals import mpl_plots
+from origami.visuals.mpl import base
 from origami.utils.screen import calculate_window_size
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
@@ -322,7 +322,7 @@ class DialogCustomiseORIGAMI(Dialog):
         pixel_size = [(self._window_size[0] - self._settings_panel_size[0]), (self._window_size[1] - 50)]
         figsize = [pixel_size[0] / self._display_resolution[0], pixel_size[1] / self._display_resolution[1]]
 
-        self.plot_window = mpl_plots.plots(self.plot_panel, figsize=figsize, config=self.config)
+        self.plot_window = base.PlotBase(self.plot_panel, figsize=figsize, config=self.config)
 
         box = wx.BoxSizer(wx.VERTICAL)
         box.Add(self.plot_window, 1, wx.EXPAND)

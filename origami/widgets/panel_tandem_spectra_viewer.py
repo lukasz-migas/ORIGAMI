@@ -1,9 +1,3 @@
-# Load libraries
-# Standard library imports
-# Standard library imports
-# Standard library imports
-# Standard library imports
-# Standard library imports
 # Standard library imports
 import logging
 from re import split as re_split
