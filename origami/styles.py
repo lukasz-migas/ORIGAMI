@@ -2,8 +2,6 @@
 
 
 # Standard library imports
-# -*- coding: utf-8 -*-
-# __author__ lukasz.g.migas
 import itertools
 from ast import literal_eval
 from operator import itemgetter

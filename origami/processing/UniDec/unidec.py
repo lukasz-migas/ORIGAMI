@@ -1,5 +1,7 @@
-# -*- coding: utf-8 -*-
 # __author__ michael.marty
+# Standard library imports
+# Standard library imports
+# Standard library imports
 # Standard library imports
 # Standard library imports
 # Standard library imports

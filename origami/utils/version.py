@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# __author__ lukasz.g.migas
 #
 # import wx
 # from origami.utils.check import get_latest_version, compare_versions

@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-# __author__ lukasz.g.migas
-# Third-party imports
-# Third-party imports
 # Third-party imports
 import wx
 

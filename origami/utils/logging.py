@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# __author__ lukasz.g.migas
 """Define ORIGAMI logger"""
 # Standard library imports
 import sys

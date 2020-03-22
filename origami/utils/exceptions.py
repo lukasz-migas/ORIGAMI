@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-# __author__ lukasz.g.migas
-# Local imports
-# Local imports
 # Local imports
 from origami.gui_elements.misc_dialogs import DialogBox
 

@@ -1,8 +1,6 @@
 """Main frame module"""
 # Standard library imports
 import os
-# -*- coding: utf-8 -*-
-# __author__ lukasz.g.migas
 import logging
 import webbrowser
 from time import sleep

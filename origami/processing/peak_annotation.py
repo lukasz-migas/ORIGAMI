@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-# __author__ lukasz.g.migas
-
-
 class PeakAnnotation:
     def __init__(self, **kwargs):
         self.document = kwargs.get("document", "")

@@ -4,6 +4,9 @@
 # Third-party imports
 # Third-party imports
 # Third-party imports
+# Third-party imports
+# Third-party imports
+# Third-party imports
 from wx.lib.embeddedimage import PyEmbeddedImage
 
 icons = PyEmbeddedImage(

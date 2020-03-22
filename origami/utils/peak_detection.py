@@ -7,8 +7,8 @@ It is a pretty good wavelet-based peak picker that should be useful for DT peak 
 # - cleaned up a little
 # - added some comments for my own usage
 """
-# -*- coding: utf-8 -*-
-# __author__ lukasz.g.migas
+
+
 from __future__ import division
 
 # Standard library imports

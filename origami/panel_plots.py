@@ -3,8 +3,6 @@
 import os
 import math
 import time
-# -*- coding: utf-8 -*-
-# __author__ lukasz.g.migas
 import logging
 
 # Third-party imports

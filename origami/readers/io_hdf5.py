@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# __author__ lukasz.g.migas
 """Tools to operate on hdf5 file"""
 # Third-party imports
 import h5py

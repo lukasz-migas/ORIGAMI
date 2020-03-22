@@ -1,8 +1,3 @@
-# -*- coding: utf-8 -*-
-# __author__ lukasz.g.migas
-# Import libraries
-# Standard library imports
-# Standard library imports
 # Standard library imports
 import gc
 import os

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# __author__ lukasz.g.migas
 """Utility tools for label replacements"""
 # Standard library imports
 import re

@@ -1,7 +1,5 @@
 """Panel to load and combine multiple ML files"""
 # Standard library imports
-# -*- coding: utf-8 -*-
-# __author__ lukasz.g.migas
 import logging
 from os.path import splitext
 

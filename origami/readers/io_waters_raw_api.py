@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-# __author__ lukasz.g.migas
-# Third-party imports
-# Third-party imports
 # Third-party imports
 import numpy as np
 from natsort import order_by_index
@@ -176,20 +172,6 @@ class WatersRawReader:
         idx = index_natsorted(xvals)
 
         return np.asarray(order_by_index(xvals, idx)), np.asarray(order_by_index(yvals, idx))
-
-        # if len(xvals) > 0:
-        #     idx = index_natsorted(xvals)
-        #
-        #     f = interpolate.interp1d(
-        #         np.asarray(order_by_index(xvals, idx)),
-        #         np.asarray(order_by_index(yvals, idx)),
-        #         "linear",
-        #         bounds_error=False,
-        #         fill_value=0,
-        #     )
-        #     mz_y += f(mz_x)
-        #
-        # return mz_y
 
     def get_TIC(self, fcn):
         tic_x, tic_y = self.chrom_reader.ReadTIC(fcn)

@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-# __author__ lukasz.g.migas
-# Standard library imports
-# Standard library imports
 # Standard library imports
 import glob
 import logging
@@ -19,6 +15,7 @@ from matplotlib.pyplot import colormaps
 
 # Local imports
 from origami.utils.random import get_random_int
+from origami.utils.version import __version__
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
 from origami.utils.converters import str2bool
@@ -29,11 +26,11 @@ logger = logging.getLogger(__name__)
 
 class Config:
     def __init__(self):
-        """Initilize config"""
+        """Initialize config"""
 
         self._processID = None
         self.loggingFile_path = None
-        self.version = "2.0.0.0"
+        self.version = __version__
         self.debug = True
         self.testing = False
 
@@ -3491,7 +3488,7 @@ class Config:
             document = defusedxml.minidom.parse(path)
         except IOError:
             print("Missing configuration file")
-            self.saveConfigXML(path="configOut.xml")
+            self.saveConfigXML(path="../configOut.xml")
             return
         except xml.parsers.expat.ExpatError as e:
             print(f"Syntax error - please load XML config file. {e}")

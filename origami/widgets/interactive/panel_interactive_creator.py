@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# __author__ lukasz.g.migas
 # TODO: add support for holoviews
 # EXAMPLE
 # import holoviews as hv
@@ -8,6 +6,9 @@
 # np.random.seed(37)
 # violin = hv.Violin(np.random.randn(100), vdims='Value')
 # plot = renderer.get_plot(violin).state # need to grab the figure instance
+# Standard library imports
+# Standard library imports
+# Standard library imports
 # Standard library imports
 # Standard library imports
 # Standard library imports

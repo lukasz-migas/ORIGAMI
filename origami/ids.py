@@ -1,7 +1,5 @@
 """File containing all IDs for functions"""
 # Third-party imports
-# -*- coding: utf-8 -*-
-# __author__ lukasz.g.migas
 from wx import ID_EXIT
 from wx import ID_ABOUT
 from wx import NewId

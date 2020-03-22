@@ -1,6 +1,7 @@
-# -*- coding: utf-8 -*-
-# __author__ lukasz.g.migas
 # Load libraries
+# Standard library imports
+# Standard library imports
+# Standard library imports
 # Standard library imports
 # Standard library imports
 # Standard library imports

@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-# __author__ lukasz.g.migas
-
 __all__ = ["byte2str", "str2num", "num2str", "str2int", "float2int", "str2bool"]
 
 

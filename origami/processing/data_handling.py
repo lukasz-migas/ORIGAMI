@@ -1,8 +1,6 @@
 """Data handling module"""
 # Standard library imports
 import os
-# -*- coding: utf-8 -*-
-# __author__ lukasz.g.migas
 import copy
 import math
 import logging
@@ -54,13 +52,11 @@ from origami.gui_elements.dialog_multi_directory_picker import DialogMultiDirPic
 
 # enable on windowsOS only
 if platform == "win32":
-    import origami.readers.io_waters_raw as io_waters
-    import origami.readers.io_waters_raw_api as io_waters_raw_api
+    from origami.readers import io_waters_raw
+    from origami.readers import io_waters_raw_api
     from origami.readers import io_thermo_raw
 
 logger = logging.getLogger(__name__)
-
-# TODO: when setting document path, it currently removes the file extension which is probably a mistake
 
 
 class DataHandling:
@@ -107,6 +103,7 @@ class DataHandling:
             decides which action should be taken
         """
 
+        _thread = None
         if action == "statusbar.update":
             _thread = threading.Thread(target=self.view.updateStatusbar, args=args)
         elif action == "load.raw.masslynx":
@@ -149,6 +146,10 @@ class DataHandling:
             _thread = threading.Thread(target=self.on_open_thermo_file, args=args)
         elif action == "load.multiple.raw.lesa":
             _thread = threading.Thread(target=self.on_open_multiple_LESA_files, args=args, **kwargs)
+
+        if _thread is None:
+            logger.warning("Failed to execute the operation in threaded mode. Consider switching it off?")
+            return
 
         # Start thread
         try:
@@ -293,65 +294,68 @@ class DataHandling:
 
     @staticmethod
     def _get_waters_api_nearest_RT_in_minutes(reader, rt_start, rt_end):
-        xvals, __ = reader.get_TIC(0)
-        xvals = np.asarray(xvals)
+        x, __ = reader.get_TIC(0)
+        x = np.asarray(x)
 
         rt_start = int(rt_start)
         rt_end = int(rt_end)
 
         if rt_start < 0:
             rt_start = 0
-        if rt_end > xvals.shape[0]:
-            rt_end = xvals.shape[0] - 1
-        return xvals[rt_start], xvals[rt_end]
+        if rt_end > x.shape[0]:
+            rt_end = x.shape[0] - 1
+        return x[rt_start], x[rt_end]
 
     @staticmethod
     def _get_waters_api_nearest_DT_in_bins(reader, dt_start, dt_end):
-        xvals, __ = reader.get_TIC(1)
-        xvals = np.asarray(xvals)
+        x, __ = reader.get_TIC(1)
+        x = np.asarray(x)
 
-        dt_start = find_nearest_index(xvals, dt_start)
-        dt_end = find_nearest_index(xvals, dt_end)
+        dt_start = find_nearest_index(x, dt_start)
+        dt_end = find_nearest_index(x, dt_end)
 
         return dt_start, dt_end
 
     def _get_driftscope_spectrum_data(self, path, **kwargs):
+        """Load MS data from IM dataset"""
         kwargs.update({"return_data": True})
         kwargs = self._check_driftscope_input(**kwargs)
-        ms_x, ms_y = io_waters.driftscope_extract_MS(path=path, driftscope_path=self.config.driftscopePath, **kwargs)
+        reader = io_waters_raw.WatersIMReader(path)
+        x, y, _ = reader.extract_ms(**kwargs)
 
-        return ms_x, ms_y
+        return x, y
 
     def _get_driftscope_chromatography_data(self, path, **kwargs):
+        """Load chromatographic data from IM dataset"""
         kwargs.update({"return_data": True, "normalize": True})
         kwargs = self._check_driftscope_input(**kwargs)
-        xvals_RT, yvals_RT, yvals_RT_norm = io_waters.driftscope_extract_RT(
-            path=path, driftscope_path=self.config.driftscopePath, **kwargs
-        )
+        reader = io_waters_raw.WatersIMReader(path)
+        _, x_bin, y, y_norm = reader.extract_rt(**kwargs)
 
-        return xvals_RT, yvals_RT, yvals_RT_norm
+        return x_bin, y, y_norm
 
     def _get_driftscope_mobilogram_data(self, path, **kwargs):
+        """Load mobilogram data from IM dataset"""
         kwargs.update({"return_data": True})
         kwargs = self._check_driftscope_input(**kwargs)
-        xvals_DT, yvals_DT = io_waters.driftscope_extract_DT(
-            path=path, driftscope_path=self.config.driftscopePath, **kwargs
-        )
+        reader = io_waters_raw.WatersIMReader(path)
+        x, y, _ = reader.extract_dt(**kwargs)
 
-        return xvals_DT, yvals_DT
+        return x, y
 
     def _get_driftscope_mobility_data(self, path, **kwargs):
+        """Load heatmap data from IM dataset"""
         kwargs.update({"return_data": True})
         kwargs = self._check_driftscope_input(**kwargs)
-        zvals = io_waters.driftscope_extract_2D(path=path, driftscope_path=self.config.driftscopePath, **kwargs)
-        y_size, x_size = zvals.shape
-        xvals = 1 + np.arange(x_size)
-        yvals = 1 + np.arange(y_size)
+        reader = io_waters_raw.WatersIMReader(path)
+        array, _ = reader.extract_heatmap(**kwargs)
+        y_size, x_size = array.shape
+        x = 1 + np.arange(x_size)
+        y = 1 + np.arange(y_size)
 
-        return xvals, yvals, zvals
+        return x, y, array
 
     def _get_driftscope_mobility_vs_spectrum_data(self, path, mz_min, mz_max, mz_binsize=None, **kwargs):
-
         if mz_binsize is None:
             mz_binsize = self.config.ms_dtmsBinSize
 
@@ -360,27 +364,21 @@ class DataHandling:
 
         # Extract and load data
         kwargs.update({"return_data": True})
-        zvals_MSDT = io_waters.driftscope_extract_MZDT(
-            path=path,
-            driftscope_path=self.config.driftscopePath,
-            mz_start=mz_min,
-            mz_end=mz_max,
-            mz_nPoints=n_points,
-            **kwargs,
-        )
+        reader = io_waters_raw.WatersIMReader(path)
+        array, _ = reader.extract_msdt(mz_start=mz_min, mz_end=mz_max, n_points=n_points, **kwargs)
 
         # in cases when the bin size is very small, the number of points in the zvals might not match those in the
         # xvals hence this should be resampled
-        if n_points != zvals_MSDT.shape[1]:
-            n_points = zvals_MSDT.shape[1]
+        if n_points != array.shape[1]:
+            n_points = array.shape[1]
 
-        y_size, __ = zvals_MSDT.shape
+        y_size, __ = array.shape
         # calculate m/z values
-        xvals_MSDT = np.linspace(mz_min - mz_binsize, mz_max + mz_binsize, n_points, endpoint=True)
+        x = np.linspace(mz_min - mz_binsize, mz_max + mz_binsize, n_points, endpoint=True)
         # calculate DT bins
-        yvals_MSDT = 1 + np.arange(y_size)
+        y = 1 + np.arange(y_size)
 
-        return xvals_MSDT, yvals_MSDT, zvals_MSDT
+        return x, y, array
 
     @staticmethod
     def _get_text_spectrum_data(path):
@@ -391,10 +389,7 @@ class DataHandling:
         return xvals, yvals, dirname, xlimits, extension
 
     def __get_document_list_of_type(self, document_type, document_format=None):
-        """
-        This helper function checkes whether any of the documents in the
-        document tree/ dictionary are of specified type
-        """
+        """Helper function to check whether any of the documents in the document tree are of particular type"""
 
         document_types = document_type
 
@@ -535,7 +530,8 @@ class DataHandling:
 
         Parameters
         ----------
-        document : document instance
+        document : str
+            document instance
 
         Returns
         -------
@@ -545,18 +541,18 @@ class DataHandling:
         reader = self._get_waters_api_reader(document)
         mass_range = reader.stats_in_functions.get(0, 1)["mass_range"]
 
-        xvals_RT_mins, __ = reader.get_TIC(0)
-        xvals_RT_scans = np.arange(0, len(xvals_RT_mins))
+        x_rt_mins, __ = reader.get_TIC(0)
+        xvals_rt_scans = np.arange(0, len(x_rt_mins))
 
-        xvals_DT_ms, __ = reader.get_TIC(1)
-        xvals_DT_bins = np.arange(0, len(xvals_DT_ms))
+        xvals_dt_ms, __ = reader.get_TIC(1)
+        xvals_dt_bins = np.arange(0, len(xvals_dt_ms))
 
         extraction_ranges = dict(
             mass_range=get_min_max(mass_range),
-            xvals_RT_mins=get_min_max(xvals_RT_mins),
-            xvals_RT_scans=get_min_max(xvals_RT_scans),
-            xvals_DT_ms=get_min_max(xvals_DT_ms),
-            xvals_DT_bins=get_min_max(xvals_DT_bins),
+            xvals_RT_mins=get_min_max(x_rt_mins),
+            xvals_RT_scans=get_min_max(xvals_rt_scans),
+            xvals_DT_ms=get_min_max(xvals_dt_ms),
+            xvals_DT_bins=get_min_max(xvals_dt_bins),
         )
 
         return extraction_ranges
@@ -1026,7 +1022,8 @@ class DataHandling:
 
         # Combine the contents in the dictionary - assumes they are ordered!
         counter = 0  # needed to start off
-        xlabelsActual = []
+        x_labels_actual = []
+        _temp_array = None
         for counter, item in enumerate(range(self.filesList.GetItemCount()), 1):
             # Determine whether the title of the document matches the title of the item in the table
             # if it does not, skip the row
@@ -1035,24 +1032,23 @@ class DataHandling:
                 continue
             key = self.filesList.GetItem(item, self.config.multipleMLColNames["filename"]).GetText()
             energy = str2num(document.multipleMassSpectrum[key]["trap"])
-            if counter == 1:
-                tempArray = tempDict[key][0]
-            else:
-                imsList = tempDict[key][0]
-                tempArray = np.concatenate((tempArray, imsList), axis=0)
-            xlabelsActual.append(energy)
+            if _temp_array is None:
+                _temp_array = tempDict[key][0]
+            imsList = tempDict[key][0]
+            _temp_array = np.concatenate((_temp_array, imsList), axis=0)
+            x_labels_actual.append(energy)
 
         # Reshape data to form a 2D array of size 200 x number of files
-        zvals = tempArray.reshape((200, counter), order="F")
+        zvals = _temp_array.reshape((200, counter), order="F")
 
         try:
-            xLabelHigh = np.max(xlabelsActual)
-            xLabelLow = np.min(xlabelsActual)
+            x_label_high = np.max(x_labels_actual)
+            x_label_low = np.min(x_labels_actual)
         except Exception:
-            xLabelLow, xLabelHigh = None, None
+            x_label_low, x_label_high = None, None
 
         # Get the x-axis labels
-        if xLabelLow in [None, "None"] or xLabelHigh in [None, "None"]:
+        if x_label_low in [None, "None"] or x_label_high in [None, "None"]:
             msg = (
                 "The user-specified labels appear to be 'None'. Rather than failing to generate x-axis labels"
                 + " a list of 1-n values is created."
@@ -1060,7 +1056,7 @@ class DataHandling:
             logger.warning(msg)
             xvals = np.arange(1, counter)
         else:
-            xvals = xlabelsActual  # np.linspace(xLabelLow, xLabelHigh, num=counter)
+            xvals = x_labels_actual  # np.linspace(xLabelLow, xLabelHigh, num=counter)
 
         yvals = 1 + np.arange(200)
         if not check_axes_spacing(xvals):
@@ -1664,46 +1660,48 @@ class DataHandling:
         self.plot_page = self.plotsPanel._get_page_text()
 
         if self.plot_page == "DT/MS":
-            xlabel = self.plotsPanel.plot_DT_vs_MS.plot_labels.get("xlabel", "m/z")
-            ylabel = self.plotsPanel.plot_DT_vs_MS.plot_labels.get("ylabel", "Drift time (bins)")
+            x_label = self.plotsPanel.plot_DT_vs_MS.plot_labels.get("xlabel", "m/z")
+            y_label = self.plotsPanel.plot_DT_vs_MS.plot_labels.get("ylabel", "Drift time (bins)")
         elif self.plot_page == "Heatmap":
-            xlabel = self.plotsPanel.plot2D.plot_labels.get("xlabel", "Scans")
-            ylabel = self.plotsPanel.plot2D.plot_labels.get("ylabel", "Drift time (bins)")
+            x_label = self.plotsPanel.plot2D.plot_labels.get("xlabel", "Scans")
+            y_label = self.plotsPanel.plot2D.plot_labels.get("ylabel", "Drift time (bins)")
+        else:
+            raise ValueError("Could not process request")
 
-        xmin, xmax, ymin, ymax = xy_values
-        if any([value is None for value in [xmin, xmax, ymin, ymax]]):
+        x_min, x_max, y_min, y_max = xy_values
+        if any([value is None for value in [x_min, x_max, y_min, y_max]]):
             logging.error("Extraction range was incorrect. Please try again")
             return
 
-        xmin = np.round(xmin, 2)
-        xmax = np.round(xmax, 2)
+        x_min = np.round(x_min, 2)
+        x_max = np.round(x_max, 2)
 
-        if ylabel == "Drift time (bins)":
-            ymin = int(np.round(ymin, 0))
-            ymax = int(np.round(ymax, 0))
-        elif ylabel in ["Drift time (ms)", "Arrival time (ms)"]:
-            ymin, ymax = ymin, ymax
+        if y_label == "Drift time (bins)":
+            y_min = int(np.round(y_min, 0))
+            y_max = int(np.round(y_max, 0))
+        elif y_label in ["Drift time (ms)", "Arrival time (ms)"]:
+            y_min, y_max = y_min, y_max
         else:
-            logging.error(f"Cannot extract data when the y-axis limits are `{ylabel}`")
+            logging.error(f"Cannot extract data when the y-axis limits are `{y_label}`")
             return
 
-        if xlabel == "Scans":
-            xmin = np.ceil(xmin).astype(int)
-            xmax = np.floor(xmax).astype(int)
-        elif xlabel in ["Retention time (min)", "Time (min)", "m/z"]:
-            xmin, xmax = xmin, xmax
+        if x_label == "Scans":
+            x_min = np.ceil(x_min).astype(int)
+            x_max = np.floor(x_max).astype(int)
+        elif x_label in ["Retention time (min)", "Time (min)", "m/z"]:
+            x_min, x_max = x_min, x_max
         else:
-            logging.error(f"Cannot extract data when the x-axis limits are `{xlabel}`")
+            logging.error(f"Cannot extract data when the x-axis limits are `{x_label}`")
             return
         # Reverse values if they are in the wrong order
-        xmin, xmax = check_value_order(xmin, xmax)
-        ymin, ymax = check_value_order(ymin, ymax)
+        x_min, x_max = check_value_order(x_min, x_max)
+        y_min, y_max = check_value_order(y_min, y_max)
 
         # Extract data
         if self.plot_page == "DT/MS":
-            self.on_extract_RT_from_mzdt(xmin, xmax, ymin, ymax, units_x=xlabel, units_y=ylabel)
+            self.on_extract_RT_from_mzdt(x_min, x_max, y_min, y_max, units_x=x_label, units_y=y_label)
         elif self.plot_page == "Heatmap":
-            self.on_extract_MS_from_heatmap(xmin, xmax, ymin, ymax, units_x=xlabel, units_y=ylabel)
+            self.on_extract_MS_from_heatmap(x_min, x_max, y_min, y_max, units_x=x_label, units_y=y_label)
 
     def on_open_text_2D_fcn(self, evt):
         if not self.config.threading:
@@ -1806,7 +1804,7 @@ class DataHandling:
 
     def on_open_single_MassLynx_raw(self, path, data_type):
         """ Load data = threaded """
-        tstart = ttime()
+        t_start = ttime()
         logger.info(f"Loading {path}...")
         __, document_title = get_path_and_fname(path, simple=True)
 
@@ -1816,14 +1814,14 @@ class DataHandling:
         xlimits = [parameters["startMS"], parameters["endMS"]]
         reader = io_waters_raw_api.WatersRawReader(path)
 
-        tstart_extraction = ttime()
+        t_start_ext = ttime()
         ms_x, ms_y = self._get_waters_api_spectrum_data(reader)
-        self.update_statusbar(f"Extracted mass spectrum in {ttime()-tstart_extraction:.4f}", 4)
+        self.update_statusbar(f"Extracted mass spectrum in {ttime()-t_start_ext:.4f}", 4)
 
-        tstart_extraction = ttime()
+        t_start_ext = ttime()
         xvals_RT_mins, yvals_RT = reader.get_TIC(0)
         xvals_RT = np.arange(1, len(xvals_RT_mins) + 1)
-        self.update_statusbar(f"Extracted chromatogram in {ttime()-tstart_extraction:.4f}", 4)
+        self.update_statusbar(f"Extracted chromatogram in {ttime()-t_start_ext:.4f}", 4)
 
         if reader.n_functions == 1:
             data_type = "Type: MS"
@@ -1831,23 +1829,23 @@ class DataHandling:
         if data_type != "Type: MS" and reader.n_functions > 1:
 
             # DT
-            tstart_extraction = ttime()
+            t_start_ext = ttime()
             xvals_DT_ms, yvals_DT = reader.get_TIC(1)
             xvals_DT = np.arange(1, len(xvals_DT_ms) + 1)
-            self.update_statusbar(f"Extracted mobilogram in {ttime()-tstart_extraction:.4f}", 4)
+            self.update_statusbar(f"Extracted mobilogram in {ttime()-t_start_ext:.4f}", 4)
 
             # 2D
-            tstart_extraction = ttime()
+            t_start_ext = ttime()
             xvals, yvals, zvals = self._get_driftscope_mobility_data(path)
-            self.update_statusbar(f"Extracted heatmap in {ttime()-tstart_extraction:.4f}", 4)
+            self.update_statusbar(f"Extracted heatmap in {ttime()-t_start_ext:.4f}", 4)
 
             # Plot MZ vs DT
             if self.config.showMZDT:
-                tstart_extraction = ttime()
+                t_start_ext = ttime()
                 xvals_MSDT, yvals_MSDT, zvals_MSDT = self._get_driftscope_mobility_vs_spectrum_data(
                     path, parameters["startMS"], parameters["endMS"]
                 )
-                self.update_statusbar(f"Extracted DT/MS heatmap in {ttime()-tstart_extraction:.4f}", 4)
+                self.update_statusbar(f"Extracted DT/MS heatmap in {ttime()-t_start_ext:.4f}", 4)
                 # Plot
                 xvals_MSDT, zvals_MSDT = self.data_processing.downsample_array(xvals_MSDT, zvals_MSDT)
                 self.plotsPanel.on_plot_MSDT(zvals_MSDT, xvals_MSDT, yvals_MSDT, "m/z", "Drift time (bins)")
@@ -1928,9 +1926,11 @@ class DataHandling:
 
         # Update document
         self.on_update_document(document, "document")
-        self.on_threading(args=("Opened file in {:.4f} seconds".format(ttime() - tstart), 4), action="statusbar.update")
+        self.on_threading(
+            args=("Opened file in {:.4f} seconds".format(ttime() - t_start), 4), action="statusbar.update"
+        )
 
-    def on_open_single_text_MS_fcn(self, evt):
+    def on_open_single_text_MS_fcn(self, _):
         wildcard = "Text file (*.txt, *.csv, *.tab)| *.txt;*.csv;*.tab"
         dlg = wx.FileDialog(
             self.view,
@@ -1948,10 +1948,8 @@ class DataHandling:
 
         dlg.Destroy()
 
-    def on_open_single_clipboard_MS(self, evt):
-        """
-        Get spectrum (n x 2) from clipboard
-        """
+    def on_open_single_clipboard_MS(self, _):
+        """Get spectrum (n x 2) from clipboard"""
         try:
             wx.TheClipboard.Open()
             textObj = wx.TextDataObject()
@@ -2299,14 +2297,14 @@ class DataHandling:
 
         logger.info(f"Added data to document '{document.title}' in {ttime()-tstart:.2f}s")
 
-    def on_extract_LESA_img_from_mass_range(self, xmin, xmax, document_title):
+    def on_extract_LESA_img_from_mass_range(self, x_min, x_max, document_title):
         """Extract image data for particular m/z range from multiple MS spectra
 
         Parameters
         ----------
-        xmin : float
+        x_min : float
             minimum value of m/z window
-        xmax : float
+        x_max : float
             maximum value of m/z window
         document_title: str
             name of the document to be examined
@@ -2328,7 +2326,7 @@ class DataHandling:
         out = np.zeros(np.dot(shape[0], shape[1]).astype(np.int32))
         for data in document.multipleMassSpectrum.values():
             idx = int(data["index"] - 1)
-            __, mz_y = get_narrow_data_range_1D(data["xvals"], data["yvals"], [xmin, xmax])
+            __, mz_y = get_narrow_data_range_1D(data["xvals"], data["yvals"], [x_min, x_max])
 
             #             out[idx] = idx
             out[idx] = mz_y.sum()
@@ -2337,15 +2335,15 @@ class DataHandling:
 
         return np.flipud(out)
 
-    def on_extract_LESA_img_from_mass_range_norm(self, xmin, xmax, document_title, norm_mode="total"):
+    def on_extract_LESA_img_from_mass_range_norm(self, x_min, x_max, document_title, norm_mode="total"):
         """Apply normalization factors to the image. By default, values will be collected from the
         `metadata` store as they should have been pre-calculated
 
         Parameters
         ----------
-        xmin : float
+        x_min : float
             minimum value of m/z window
-        xmax : float
+        x_max : float
             maximum value of m/z window
         document_title: str
             name of the document to be examined
@@ -2367,7 +2365,7 @@ class DataHandling:
         out = np.zeros(np.dot(shape[0], shape[1]).astype(np.int64))
         for data in document.multipleMassSpectrum.values():
             idx = int(data["index"] - 1)
-            __, mz_y = get_narrow_data_range_1D(data["xvals"], data["yvals"], [xmin, xmax])
+            __, mz_y = get_narrow_data_range_1D(data["xvals"], data["yvals"], [x_min, x_max])
 
             out[idx] = mz_y.sum()
 
@@ -2409,26 +2407,24 @@ class DataHandling:
         ----------
         document : ORIGAMI document
         """
+        ms_y_sum = None
         for counter, key in enumerate(document.multipleMassSpectrum):
-
-            if counter == 0:
-                mz_x, mz_y = pr_spectra.linearize_data(
-                    document.multipleMassSpectrum[key]["xvals"], document.multipleMassSpectrum[key]["yvals"], **kwargs
-                )
-                ms_y_sum = mz_y
-            else:
-                mz_x, mz_y = pr_spectra.linearize_data(
-                    document.multipleMassSpectrum[key]["xvals"], document.multipleMassSpectrum[key]["yvals"], **kwargs
-                )
-                ms_y_sum += mz_y
+            mz_x, mz_y = pr_spectra.linearize_data(
+                document.multipleMassSpectrum[key]["xvals"], document.multipleMassSpectrum[key]["yvals"], **kwargs
+            )
+            if ms_y_sum is None:
+                ms_y_sum = np.zeros_like(mz_y)
+            ms_y_sum += mz_y
 
         xlimits = get_min_max(mz_y)
         data = {"xvals": mz_x, "yvals": ms_y_sum, "xlabels": "m/z (Da)", "xlimits": xlimits}
 
         self.documentTree.on_update_data(data, "", document, data_type="main.raw.spectrum")
 
-    def on_open_multiple_ML_files_fcn(self, open_type, pathlist=[]):
+    def on_open_multiple_ML_files_fcn(self, open_type, pathlist=None):
 
+        if pathlist is None:
+            pathlist = []
         if not check_path_exists(self.config.lastDir):
             self.config.lastDir = os.getcwd()
 
@@ -2464,11 +2460,13 @@ class DataHandling:
         else:
             self.on_threading(action="load.multiple.raw.masslynx", args=(document, open_type, pathlist))
 
-    def on_open_multiple_ML_files(self, document, open_type, pathlist=[]):
+    def on_open_multiple_ML_files(self, document, open_type, pathlist=None):
         # TODO: cleanup code
         # TODO: add some subsampling method
         # TODO: ensure that each spectrum has the same size
 
+        if pathlist is None:
+            pathlist = []
         tstart = ttime()
 
         enumerate_start = 0
@@ -2567,19 +2565,15 @@ class DataHandling:
             kwargs.update(mz_min=mzStart, mz_max=mzEnd)
 
         msFilenames = ["m/z"]
+        ms_y_sum = None
         for counter, key in enumerate(document.multipleMassSpectrum):
             msFilenames.append(key)
-
-            if counter == 0:
-                ms_x, ms_y = pr_spectra.linearize_data(
-                    document.multipleMassSpectrum[key]["xvals"], document.multipleMassSpectrum[key]["yvals"], **kwargs
-                )
-                ms_y_sum = ms_y
-            else:
-                ms_x, ms_y = pr_spectra.linearize_data(
-                    document.multipleMassSpectrum[key]["xvals"], document.multipleMassSpectrum[key]["yvals"], **kwargs
-                )
-                ms_y_sum += ms_y
+            ms_x, ms_y = pr_spectra.linearize_data(
+                document.multipleMassSpectrum[key]["xvals"], document.multipleMassSpectrum[key]["yvals"], **kwargs
+            )
+            if ms_y_sum is None:
+                ms_y_sum = np.zeros_like(ms_y)
+            ms_y_sum += ms_y
 
         xlimits = [parameters["startMS"], parameters["endMS"]]
         data = {"xvals": ms_x, "yvals": ms_y_sum, "xlabels": "m/z (Da)", "xlimits": xlimits}
@@ -2653,7 +2647,8 @@ class DataHandling:
             dt_end = np.ceil((dt_end / pusher_freq) * 1000).astype(int)
 
         # Load data
-        rt_x, rt_y = io_waters.driftscope_extract_RT(
+        reader = io_waters_raw.WatersIMReader(document.path)
+        _, rt_x, rt_y, _ = reader.extract_rt(
             path=document.path,
             driftscope_path=self.config.driftscopePath,
             mz_start=mz_start,
@@ -2698,13 +2693,8 @@ class DataHandling:
             dt_end = np.ceil((dt_end / pusher_freq) * 1000).astype(int)
 
         # Extract data
-        mz_x, mz_y = io_waters.driftscope_extract_MS(
-            path=document.path,
-            driftscope_path=self.config.driftscopePath,
-            dt_start=dt_start,
-            dt_end=dt_end,
-            return_data=True,
-        )
+        reader = io_waters_raw.WatersIMReader(document.path)
+        mz_x, mz_y, _ = reader.extract_ms(dt_start=dt_start, dt_end=dt_end, return_data=True)
 
         # Add data to dictionary
         obj_name = f"Drift time: {dt_start}-{dt_end}"
@@ -2807,6 +2797,7 @@ class DataHandling:
 
         pusher_freq, scan_time, xlimits = self._get_spectrum_parameters(document)
 
+        rt_start, rt_end = 0, 99999
         if units_x == "Scans":
             if scan_time is None:
                 logger.error("Failed to extract MS data as `scan_time` was missing")
@@ -2828,14 +2819,9 @@ class DataHandling:
 
         # Mass spectra
         try:
-            mz_x, mz_y = io_waters.driftscope_extract_MS(
-                path=document.path,
-                driftscope_path=self.config.driftscopePath,
-                rt_start=rt_start,
-                rt_end=rt_end,
-                dt_start=dt_start,
-                dt_end=dt_end,
-                return_data=True,
+            reader = io_waters_raw.WatersIMReader(document.path)
+            mz_x, mz_y, _ = reader.extract_ms(
+                rt_start=rt_start, rt_end=rt_end, dt_start=dt_start, dt_end=dt_end, return_data=True
             )
             if xlimits is None:
                 xlimits = [np.min(mz_x), np.max(mz_x)]

@@ -1,7 +1,5 @@
 """Various color utility functions"""
 # Standard library imports
-# -*- coding: utf-8 -*-
-# __author__ lukasz.g.migas
 import re
 from ast import literal_eval
 

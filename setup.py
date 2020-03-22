@@ -2,14 +2,14 @@
 import os
 import sys
 import traceback
-from distutils.errors import CCompilerError
-from distutils.errors import DistutilsExecError
+# from distutils.errors import CCompilerError
+# from distutils.errors import DistutilsExecError
 from distutils.errors import DistutilsPlatformError
 # Extension must be loaded AFTER setup
 from distutils.command.build_ext import build_ext
 
 # Third-party imports
-from setuptools import Extension
+# from setuptools import Extension
 from setuptools import setup
 from setuptools import find_packages
 
@@ -53,20 +53,13 @@ def make_extensions():
         if is_ci and include_diagnostics:
             cython_directives["linetrace"] = True
 
-        extensions = cythonize(
-            [
-            ],
-            compiler_directives=cython_directives,
-            force=force_cythonize,
-        )
+        extensions = cythonize([], compiler_directives=cython_directives, force=force_cythonize)
     except ImportError:
-        extensions = [
-        ]
+        extensions = []
     return extensions
 
 
 class BuildFailed(Exception):
-
     def __init__(self):
         self.cause = sys.exc_info()[1]  # work around py 2/3 different syntax
 
@@ -120,10 +113,11 @@ MAINTAINER_EMAIL = "lukas.migas@yahoo.com"
 URL = "https://github.com/lukasz-migas/origami"
 LICENSE = "Apache license 2.0"
 DOWNLOAD_URL = "https://github.com/lukasz-migas/origami"
-INSTALL_REQUIRES, DEPENDENCY_LINKS = get_requirements_and_links("requirements/requirements-dev.txt")
+INSTALL_REQUIRES, DEPENDENCY_LINKS = get_requirements_and_links("requirements/requirements-std.txt")
 PACKAGES = [package for package in find_packages()]
-# PACKAGES = ["origami"]
 PACKAGE_DATA = {"": []}
+
+print(INSTALL_REQUIRES)
 
 CLASSIFIERS = [
     "Intended Audience :: Science/Research",
