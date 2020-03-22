@@ -1,9 +1,3 @@
-# Load libraries
-# Standard library imports
-# Standard library imports
-# Standard library imports
-# Standard library imports
-# Standard library imports
 # Standard library imports
 import logging
 from copy import deepcopy
@@ -28,10 +22,10 @@ from origami.styles import make_menu_item
 from origami.styles import make_staticbox
 from origami.styles import make_bitmap_btn
 from origami.styles import make_spin_ctrl_double
-from origami.visuals import mpl_plots
 from origami.utils.time import ttime
 from origami.utils.screen import calculate_window_size
 from origami.utils.converters import str2num
+from origami.visuals.mpl.plot_spectrum import PlotSpectrum
 from origami.gui_elements.dialog_color_picker import DialogColorPicker
 
 logger = logging.getLogger(__name__)
@@ -458,7 +452,7 @@ class PanelSignalComparisonViewer(MiniFrame):
         pixel_size = [(self._window_size[0] - self._settings_panel_size[0]), (self._window_size[1] - 50)]
         figsize = [pixel_size[0] / self._display_resolution[0], pixel_size[1] / self._display_resolution[1]]
 
-        self.plot_window = mpl_plots.plots(self.plot_panel, figsize=figsize, config=self.config)
+        self.plot_window = PlotSpectrum(self.plot_panel, figsize=figsize, config=self.config)
 
         box = wx.BoxSizer(wx.VERTICAL)
         box.Add(self.plot_window, 1, wx.EXPAND)
@@ -642,7 +636,7 @@ class PanelSignalComparisonViewer(MiniFrame):
         self.compare_massSpectrum = [spectrum_1_choice, spectrum_2_choice]
 
     def on_clear_plot(self, evt):
-        self.plot_window.clearPlot()
+        self.plot_window.clear()
 
     def on_save_figure(self, evt):
         document_title_1, spectrum_1 = self.config.compare_massSpectrum[0][:2]
