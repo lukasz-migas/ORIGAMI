@@ -327,7 +327,8 @@ class MainWindow(wx.Frame):
         self.make_statusbar()
         self.make_menubar()
         self.make_shortcuts()
-        self.Maximize(True)
+        self.SetSize(1980, 1080)
+        #         self.Maximize(True)
 
         # bind events
         self.Bind(wx.aui.EVT_AUI_PANE_CLOSE, self.on_closed_page)

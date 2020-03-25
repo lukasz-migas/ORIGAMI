@@ -1,16 +1,3 @@
-# TODO: add support for holoviews
-# EXAMPLE
-# import holoviews as hv
-# hv.extension('bokeh')
-# renderer = hv.renderer('bokeh')
-# np.random.seed(37)
-# violin = hv.Violin(np.random.randn(100), vdims='Value')
-# plot = renderer.get_plot(violin).state # need to grab the figure instance
-# Standard library imports
-# Standard library imports
-# Standard library imports
-# Standard library imports
-# Standard library imports
 # Standard library imports
 import re
 import time

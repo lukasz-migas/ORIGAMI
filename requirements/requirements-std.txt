@@ -12,3 +12,5 @@ scipy
 seaborn
 scikit-learn
 defusedxml
+psutil
+comtypes

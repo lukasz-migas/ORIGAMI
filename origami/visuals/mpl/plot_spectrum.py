@@ -31,14 +31,81 @@ class PlotSpectrum(PlotBase):
     def __init__(self, *args, **kwargs):
         PlotBase.__init__(self, *args, **kwargs)
 
+    def transform(self, x, y, x_label, y_label, transform_x, transform_y):
+        """Performs basic transformation on the x/y axis data to ensure it is nicely displayed to the user"""
+        if transform_x:
+            x, y_label, __ = self._convert_xaxis(x, x_label)
+
+        if transform_y:
+            y, y_label, __ = self._convert_yaxis(x, y_label)
+
+        return x, y, x_label, y_label
+
+    def set_line_style(self, **kwargs):
+        """Updates line style"""
+        for __, line in enumerate(self.plot_base.get_lines()):
+            line.set_linewidth(kwargs["line_width"])
+            line.set_linestyle(kwargs["line_style"])
+
+    def store_plot_limits(self, extent):
+        self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
+
+    def plot_1d(self, x, y, title="", x_label="", y_label="", label="", **kwargs):
+        """Standard 1d plot"""
+        # Simple hack to reduce size is to use different subplot size
+        self._set_axes()
+
+        # transform data and determine plot limits
+        x, y, x_label, y_label = self.transform(
+            x,
+            y,
+            x_label,
+            y_label,
+            transform_x=kwargs.get("transform_x", False),
+            transform_y=kwargs.get("transform_y", False),
+        )
+        xlimits, ylimits, extent = self._compute_xy_limits(x, y, 1.1)
+
+        # add 1d plot
+        self.plot_base.plot(
+            x,
+            y,
+            color=kwargs["line_color"],
+            label=label,
+            linewidth=kwargs["line_width"],
+            linestyle=kwargs["line_style"],
+        )
+        if kwargs["shade_under"]:
+            self.plot_1d_add_under_curve(x, y, **kwargs)
+
+        # set plot limits
+        self.plot_base.set_xlim(xlimits)
+        self.plot_base.set_ylim(ylimits)
+
+        self.set_plot_xlabel(x_label, **kwargs)
+        self.set_plot_ylabel(x_label, **kwargs)
+        self.set_plot_title(title, **kwargs)
+        self.set_tick_parameters(**kwargs)
+        self.set_line_style(**kwargs)
+
+        self.setup_new_zoom(
+            [self.plot_base],
+            data_limits=extent,
+            allow_extraction=kwargs.get("allow_extraction", False),
+            callbacks=kwargs.get("callbacks", dict()),
+        )
+
+        # Setup X-axis getter
+        self.store_plot_limits(extent)
+
     def plot_1D(
         self,
         xvals=None,
         yvals=None,
-        title="",
         xlabel="",
         ylabel="",
         label="",
+        title="",
         xlimits=None,
         plotType=None,
         testMax="yvals",

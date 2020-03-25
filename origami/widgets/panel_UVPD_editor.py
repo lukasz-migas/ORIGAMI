@@ -1,8 +1,4 @@
 # Standard library imports
-# Standard library imports
-# Standard library imports
-# Standard library imports
-# Standard library imports
 import os
 from re import split as re_split
 from time import time as ttime

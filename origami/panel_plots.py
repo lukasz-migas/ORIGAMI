@@ -96,6 +96,7 @@ from origami.visuals.mpl.normalize import MidpointNormalize
 from origami.visuals.mpl.plot_misc import PlotMixed
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.visuals.mpl.plot_spectrum import PlotSpectrum
+from origami.gui_elements.views.view_ms import ViewMassSpectrum
 from origami.visuals.mpl.plot_heatmap_2d import PlotHeatmap2D
 from origami.visuals.mpl.plot_heatmap_3d import PlotHeatmap3D
 from origami.gui_elements.dialog_customise_plot import DialogCustomisePlot
@@ -236,10 +237,14 @@ class PanelPlots(wx.Panel):
         self.plot_notebook = wx.Notebook(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0)
 
         # Setup PLOT MS
-        self.panel_ms, self.plot_ms, __ = self.make_1d_plot(
-            self.plot_notebook, self.config._plotSettings["MS"]["gui_size"]
-        )
-        self.plot_notebook.AddPage(self.panel_ms, "Mass spectrum", False)
+        self.view_ms = ViewMassSpectrum(self.plot_notebook, self.config._plotSettings["MS"]["gui_size"], self.config)
+        self.plot_notebook.AddPage(self.view_ms._panel, "Mass spectrum", False)
+        self.plot_ms = self.view_ms._plot
+
+        # self.panel_ms, self.plot_ms, __ = self.make_1d_plot(
+        #     self.plot_notebook, self.config._plotSettings["MS"]["gui_size"]
+        # )
+        # self.plot_notebook.AddPage(self.panel_ms, "Mass spectrum", False)
 
         # Setup PLOT RT
         self.panel_rt = wx.SplitterWindow(self.plot_notebook, wx.ID_ANY, style=wx.TAB_TRAVERSAL | wx.SP_3DSASH)
@@ -1448,14 +1453,14 @@ class PanelPlots(wx.Panel):
         elif plot == "RT":
             self.plot_rt_rt.plot_add_markers(xvals=xvals, yvals=yvals, color=color, marker=marker, size=size)
             self.plot_rt_rt.repaint()
-        elif plot == "CalibrationMS":
-            self.topPlotMS.plot_add_markers(xval=xvals, yval=yvals, color=color, marker=marker, size=size)
-            self.topPlotMS.repaint()
-        elif plot == "CalibrationDT":
-            self.bottomPlot1DT.plot_add_markers(
-                xvals=xvals, yvals=yvals, color=color, marker=marker, size=size, testMax="yvals"
-            )
-            self.bottomPlot1DT.repaint()
+        # elif plot == "CalibrationMS":
+        #     self.topPlotMS.plot_add_markers(xval=xvals, yval=yvals, color=color, marker=marker, size=size)
+        #     self.topPlotMS.repaint()
+        # elif plot == "CalibrationDT":
+        #     self.bottomPlot1DT.plot_add_markers(
+        #         xvals=xvals, yvals=yvals, color=color, marker=marker, size=size, testMax="yvals"
+        #     )
+        #     self.bottomPlot1DT.repaint()
 
     def on_clear_markers(self, plot="MS", repaint=False, **kwargs):
 
@@ -2621,6 +2626,7 @@ class PanelPlots(wx.Panel):
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType="1D")
+
         window = self.config.panelNames["MS"]
 
         if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
@@ -2632,6 +2638,12 @@ class PanelPlots(wx.Panel):
         if show_in_window == "MS":
             window = self.config.panelNames["MS"]
             plot_size_key = "MS"
+            self.view_ms.plot(msX, msY, allow_extraction=True, **plt_kwargs)
+            #             try:
+            #                 self.view_ms.update(msX, msY, **plt_kwargs)
+            #             except AttributeError:
+            #                 self.view_ms.plot(msX, msY, allow_extraction=True, **plt_kwargs)
+            return
         elif show_in_window == "MS_RT":
             window = self.config.panelNames["RT"]
             plt_kwargs["allow_extraction"] = False

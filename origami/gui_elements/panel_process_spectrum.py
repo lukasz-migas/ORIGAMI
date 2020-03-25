@@ -1,11 +1,6 @@
 # Standard library imports
-# Standard library imports
-# Standard library imports
-# Standard library imports
-# Standard library imports
 import copy
 import logging
-from builtins import isinstance
 
 # Third-party imports
 import wx

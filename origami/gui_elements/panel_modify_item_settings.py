@@ -1,8 +1,4 @@
 # Third-party imports
-# Third-party imports
-# Third-party imports
-# Third-party imports
-# Third-party imports
 import wx
 
 # Local imports

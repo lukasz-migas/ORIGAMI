@@ -5,8 +5,6 @@ import logging
 
 # Third-party imports
 import wx
-
-# Third party imports
 import numpy as np
 from pubsub import pub
 
@@ -23,7 +21,6 @@ from origami.utils.color import get_font_color
 from origami.utils.color import get_all_color_types
 from origami.utils.color import convert_rgb_1_to_255
 from origami.utils.color import convert_rgb_255_to_1
-from origami.visuals.mpl import base
 from origami.utils.labels import sanitize_string
 from origami.utils.screen import calculate_window_size
 from origami.utils.converters import rounder
@@ -32,6 +29,7 @@ from origami.utils.converters import str2num
 from origami.utils.exceptions import MessageError
 from origami.objects.annotations import check_annotation_input
 from origami.gui_elements.misc_dialogs import DialogSimpleAsk
+from origami.visuals.mpl.plot_spectrum import PlotSpectrum
 
 # Module globals
 logger = logging.getLogger(__name__)
@@ -40,9 +38,7 @@ logger = logging.getLogger(__name__)
 
 
 class PanelPeakAnnotationEditor(wx.MiniFrame):
-    """
-    Simple GUI to view and annotate mass spectra
-    """
+    """Simple GUI to view and annotate plots"""
 
     def __init__(self, parent, documentTree, config, icons, **kwargs):
         wx.MiniFrame.__init__(
@@ -107,11 +103,12 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         return all([self.document_title == query[0], self.dataset_type == query[1], self.dataset_name == query[2]])
 
     def on_clear_table(self):
+        """Clear annotation table"""
         self.peaklist.DeleteAllItems()
         self.on_clear_from_plot(None)
 
     def on_setup_plot_on_startup(self):
-
+        """Setup plot on startup of the window"""
         self._plot_types_1D = ["mass_spectrum", "chromatogram", "mobilogram"]
 
         if self.plot_type == "mass_spectrum":
@@ -372,7 +369,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         pixel_size = [(self._window_size[0] - self._settings_panel_size[0]), (self._window_size[1] - 50)]
         figsize = [pixel_size[0] / self._display_resolution[0], pixel_size[1] / self._display_resolution[1]]
 
-        self.plot_window = base.PlotBase(self.plot_panel, figsize=figsize, config=self.config)
+        self.plot_window = PlotSpectrum(self.plot_panel, figsize=figsize, config=self.config)
 
         box = wx.BoxSizer(wx.VERTICAL)
         box.Add(self.plot_window, 1, wx.EXPAND)
@@ -639,8 +636,6 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
 
     def on_action_tools(self, evt):
         """Create action menu"""
-        #         label_format = self.label_format.GetStringSelection()
-
         menu = wx.Menu()
 
         menu_action_customise = make_menu_item(

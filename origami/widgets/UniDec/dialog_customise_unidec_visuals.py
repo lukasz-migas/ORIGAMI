@@ -1,8 +1,5 @@
 # Third-party imports
-# Third-party imports
-# Third-party imports
-# Third-party imports
-# Third-party imports
+# Local imports
 import wx
 from wx.adv import BitmapComboBox
 

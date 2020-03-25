@@ -33,6 +33,10 @@ class PlotBase(MPLPanel):
         self._plot_flag = False
         self.plot_base = None
 
+    def _set_axes(self):
+        """Add axis to the figure"""
+        self.plot_base = self.figure.add_axes(self._axes)
+
     def _locked(self):
         raise MessageError(
             "Plot modification is locked",
@@ -51,6 +55,21 @@ class PlotBase(MPLPanel):
         axes_size = [max([l, min_left]), max([b, min_bottom]), min([w, max_width]), min([h, max_height])]
 
         return axes_size
+
+    def _compute_xy_limits(self, x, y, y_upper_multiplier=1.0):
+        """Calculate the x/y axis ranges"""
+        x = np.asarray(x)
+        y = np.asarray(y)
+        x_min, x_max = get_min_max(x)
+        y_min, y_max = get_min_max(y)
+
+        xlimits = [x_min, x_max]
+        ylimits = [y_min, y_max * y_upper_multiplier]
+
+        # extent is x_min, y_min, x_max, y_max
+        extent = [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
+
+        return xlimits, ylimits, extent
 
     def _update_plot_settings_(self, **kwargs):
         for parameter in kwargs:
@@ -130,6 +149,7 @@ class PlotBase(MPLPanel):
         self.plot_base.set_xlabel(
             xlabel, labelpad=kwargs["label_pad"], fontsize=kwargs["label_size"], weight=kwargs["label_weight"]
         )
+        self.plot_labels["xlabel"] = xlabel
 
     def set_plot_ylabel(self, ylabel, **kwargs):
         kwargs = ut_visuals.check_plot_settings(**kwargs)
@@ -138,6 +158,7 @@ class PlotBase(MPLPanel):
         self.plot_base.set_ylabel(
             ylabel, labelpad=kwargs["label_pad"], fontsize=kwargs["label_size"], weight=kwargs["label_weight"]
         )
+        self.plot_labels["ylabel"] = ylabel
 
     def set_plot_title(self, title, **kwargs):
         kwargs = ut_visuals.check_plot_settings(**kwargs)
@@ -750,7 +771,7 @@ class PlotBase(MPLPanel):
             pass
 
         # remove old lines
-        if hasattr(self, "plotMS"):
+        if hasattr(self, "plot_base"):
             lines = self.plot_base.get_lines()
             for line in lines[1:]:
                 line.remove()

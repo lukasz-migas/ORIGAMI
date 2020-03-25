@@ -11,6 +11,7 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 # Local imports
 from origami.visuals.mpl.zoom import ZoomBox
 from origami.visuals.mpl.zoom import GetXValues
+from origami.visuals.mpl.new_zoom import MPLInteraction
 from origami.gui_elements.misc_dialogs import DialogBox
 
 matplotlib.use("WXAgg")
@@ -114,6 +115,25 @@ class MPLPanel(wx.Panel):
     def setupGetXAxies(self, plots):
         self.getxaxis = GetXValues(plots)
 
+    def setup_new_zoom(
+        self, figure, data_limits=None, plot_parameters=None, allow_wheel=True, allow_extraction=True, callbacks=None
+    ):
+        if callbacks is None:
+            callbacks = dict()
+
+        if plot_parameters is None:
+            plot_parameters = self._generatePlotParameters()
+
+        self.zoom = MPLInteraction(
+            figure,
+            None,
+            data_limits=data_limits,
+            plot_parameters=plot_parameters,
+            allow_extraction=allow_extraction,
+            allow_wheel=allow_wheel,
+            callbacks=callbacks,
+        )
+
     def setup_zoom(
         self,
         plots,
@@ -145,7 +165,7 @@ class MPLPanel(wx.Panel):
             plotParameters=plotParameters,
             callbacks=callbacks,
         )
-        self.onRebootZoomKeys(evt=None)
+        # self.onRebootZoomKeys(evt=None)
 
     def update_extents(self, extents):
         ZoomBox.update_extents(self.zoom, extents)
@@ -158,6 +178,8 @@ class MPLPanel(wx.Panel):
             ZoomBox.update_mark_state(self.zoom, state)
         except TypeError:
             pass
+        except AttributeError:
+            MPLInteraction.update_mark_state(self.zoom, state)
 
     def onRebootZoomKeys(self, evt):
         """
@@ -166,7 +188,7 @@ class MPLPanel(wx.Panel):
         if self.zoom is not None:
             ZoomBox.onRebootKeyState(self.zoom, evt=None)
 
-    def _convert_xaxis(self, xvals):
+    def _convert_xaxis(self, xvals, x_label=""):
         """
         Adapted from Unidec/PlottingWindow.py
 

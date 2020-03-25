@@ -150,8 +150,8 @@ class ORIGAMI:
         self.data_processing.setup_handling_and_processing()
         self.data_visualisation.setup_handling_and_processing()
 
-        if self.config.debug and not self.config.testing:
-            self._debug_()
+        #         if self.config.debug and not self.config.testing:
+        #             self._debug_()
 
         if self.config.testing:
             self._test_()
