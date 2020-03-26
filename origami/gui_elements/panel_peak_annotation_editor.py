@@ -36,6 +36,9 @@ logger = logging.getLogger(__name__)
 
 # TODO: add option to rename annotation
 
+# class PanelPeakAnnotationEditorUI(wx.MiniFrame):
+#     pass
+
 
 class PanelPeakAnnotationEditor(wx.MiniFrame):
     """Simple GUI to view and annotate plots"""
@@ -46,15 +49,16 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         )
         tstart = ttime()
 
+        # reference to other objects
         self.parent = parent
         self.documentTree = documentTree
         self.panel_plot = documentTree.presenter.view.panelPlots
         self.config = config
         self.icons = icons
-
         self.data_processing = self.parent.presenter.data_processing
         self.data_handling = self.parent.presenter.data_handling
 
+        # data
         self.query = kwargs["query"]
         self.plot_type = kwargs["plot_type"]
         self.document_title = kwargs["document_title"]
@@ -63,6 +67,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         self.annotations_obj = kwargs.pop("annotations")
         self.data = kwargs["data"]
 
+        # view
         self._display_size = self.parent.GetSize()
         self._display_resolution = wx.ScreenDC().GetPPI()
         self._window_size = calculate_window_size(self._display_size, 0.9)
@@ -75,14 +80,16 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         self._allow_data_check = True
         self.item_loading_lock = False
 
+        # hard code few parameters
         self.config.annotation_patch_transparency = 0.2
         self.config.annotation_patch_width = 3
 
         # make gui items
         self.make_gui()
         self.plot = self.plot_window
-        self._update_title()
 
+        # initilize correct view
+        self._update_title()
         self.on_populate_table()
         self.on_toggle_controls(None)
         wx.CallAfter(self.on_setup_plot_on_startup)
@@ -248,7 +255,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
 
     def _update_title(self):
         """Update widget title"""
-        self.SetTitle(f"Annotationg: {self.document_title} :: {self.dataset_type} :: {self.dataset_name}")
+        self.SetTitle(f"Annotating: {self.document_title} :: {self.dataset_type} :: {self.dataset_name}")
 
     def get_annotation_data(self):
         """Quickly retrieve annotations object"""
@@ -261,7 +268,7 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
     def on_key_event(self, evt):
         key_code = evt.GetKeyCode()
 
-        if key_code == wx.WXK_ESCAPE:  # key = esc
+        if key_code == wx.WXK_ESCAPE:
             self.on_close(evt=None)
         elif key_code == 127 and self.FindFocus() == self.peaklist:
             self.on_delete_item()
@@ -308,7 +315,6 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         self.SetSize(self._window_size)
         self.Layout()
         self.Show(True)
-
         self.CentreOnScreen()
         self.SetFocus()
 
@@ -363,13 +369,19 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
 
     def make_plot_panel(self, split_panel):
 
-        panel = wx.Panel(split_panel, -1, size=(-1, -1), name="plot")
-        self.plot_panel = wx.Panel(panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-
         pixel_size = [(self._window_size[0] - self._settings_panel_size[0]), (self._window_size[1] - 50)]
         figsize = [pixel_size[0] / self._display_resolution[0], pixel_size[1] / self._display_resolution[1]]
 
-        self.plot_window = PlotSpectrum(self.plot_panel, figsize=figsize, config=self.config)
+        panel = wx.Panel(split_panel, -1, size=(-1, -1), name="plot")
+        if self.plot_type == "mass_spectrum":
+            from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
+
+            self.plot_view = ViewMassSpectrum(panel, figsize, self.config)
+            self.plot_panel = self.plot_view._panel
+            self.plot_window = self.plot_view._plot
+        else:
+            self.plot_panel = wx.Panel(panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+            self.plot_window = PlotSpectrum(self.plot_panel, figsize=figsize, config=self.config)
 
         box = wx.BoxSizer(wx.VERTICAL)
         box.Add(self.plot_window, 1, wx.EXPAND)
@@ -1398,26 +1410,23 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
 
     def on_plot_spectrum(self):
         """Plot mass spectrum"""
-        self.panel_plot.on_plot_MS(
-            self.data[:, 0],
-            self.data[:, 1],
-            show_in_window="peak_picker",
-            plot_obj=self.plot_window,
-            override=False,
-            allow_extraction=False,
-        )
+        kwargs = self.config.get_mpl_parameters("1D")
+        self.plot_view.plot(self.data[:, 0], self.data[:, 1], allow_extraction=False, **kwargs)
 
     def on_plot_chromatogram(self):
+        """Plot chromatogram"""
         self.panel_plot.on_plot_RT(
             self.data[:, 0], self.data[:, 1], plot_obj=self.plot_window, allow_extraction=False, override=False
         )
 
     def on_plot_mobilogram(self):
+        """Plot mobilogram"""
         self.panel_plot.on_plot_1D(
             self.data[:, 0], self.data[:, 1], plot_obj=self.plot_window, allow_extraction=False, override=False
         )
 
     def on_plot_heatmap(self):
+        """Plot heatmap"""
         self.panel_plot.on_plot_2D(
             self.data["zvals"],
             self.data["xvals"],
@@ -1433,7 +1442,6 @@ class PanelPeakAnnotationEditor(wx.MiniFrame):
         self.plot_window.clear()
 
     def on_save_figure(self, evt):
-
         plot_title = f"{self.document_title}_{self.dataset_name}".replace(" ", "-").replace(":", "")
         self.panel_plot.save_images(None, None, plot_obj=self.plot_window, image_name=plot_title)
 

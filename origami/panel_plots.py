@@ -96,7 +96,8 @@ from origami.visuals.mpl.normalize import MidpointNormalize
 from origami.visuals.mpl.plot_misc import PlotMixed
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.visuals.mpl.plot_spectrum import PlotSpectrum
-from origami.gui_elements.views.view_ms import ViewMassSpectrum
+from origami.gui_elements.views.view_base import ViewBase
+from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
 from origami.visuals.mpl.plot_heatmap_2d import PlotHeatmap2D
 from origami.visuals.mpl.plot_heatmap_3d import PlotHeatmap3D
 from origami.gui_elements.dialog_customise_plot import DialogCustomisePlot
@@ -241,11 +242,6 @@ class PanelPlots(wx.Panel):
         self.plot_notebook.AddPage(self.view_ms._panel, "Mass spectrum", False)
         self.plot_ms = self.view_ms._plot
 
-        # self.panel_ms, self.plot_ms, __ = self.make_1d_plot(
-        #     self.plot_notebook, self.config._plotSettings["MS"]["gui_size"]
-        # )
-        # self.plot_notebook.AddPage(self.panel_ms, "Mass spectrum", False)
-
         # Setup PLOT RT
         self.panel_rt = wx.SplitterWindow(self.plot_notebook, wx.ID_ANY, style=wx.TAB_TRAVERSAL | wx.SP_3DSASH)
         self.plot_notebook.AddPage(self.panel_rt, "Chromatogram", False)  # RT
@@ -253,9 +249,14 @@ class PanelPlots(wx.Panel):
         self.panel_rt_top_rt, self.plot_rt_rt, __ = self.make_1d_plot(
             self.panel_rt, self.config._plotSettings["RT"]["gui_size"]
         )
-        self.panel_rt_bottom_ms, self.plot_rt_ms, __ = self.make_1d_plot(
-            self.panel_rt, self.config._plotSettings["MS (DT/RT)"]["gui_size"]
-        )
+
+        self.view_rt_ms = ViewMassSpectrum(self.panel_rt, self.config._plotSettings["MS (DT/RT)"]["gui_size"], self.config)
+        self.plot_rt_ms = self.view_ms._plot
+        self.panel_rt_bottom_ms = self.view_ms._panel
+
+#         self.panel_rt_bottom_ms, self.plot_rt_ms, __ = self.make_1d_plot(
+#             self.panel_rt, self.config._plotSettings["MS (DT/RT)"]["gui_size"]
+#         )
         #
         self.panel_rt.SplitHorizontally(self.panel_rt_top_rt, self.panel_rt_bottom_ms)
         self.panel_rt.SetMinimumPaneSize(300)
@@ -269,9 +270,14 @@ class PanelPlots(wx.Panel):
         self.panel_dt_top_dt, self.plot_dt_dt, __ = self.make_1d_plot(
             self.panel_dt, self.config._plotSettings["DT"]["gui_size"]
         )
-        self.panel_dt_bottom_ms, self.plot_dt_ms, __ = self.make_1d_plot(
-            self.panel_dt, self.config._plotSettings["MS (DT/RT)"]["gui_size"]
-        )
+
+        self.view_dt_ms = ViewMassSpectrum(self.panel_dt, self.config._plotSettings["MS (DT/RT)"]["gui_size"], self.config)
+        self.plot_dt_ms = self.view_ms._plot
+        self.panel_dt_bottom_ms = self.view_ms._panel
+
+#         self.panel_dt_bottom_ms, self.plot_dt_ms, __ = self.make_1d_plot(
+#             self.panel_dt, self.config._plotSettings["MS (DT/RT)"]["gui_size"]
+#         )
 
         self.panel_dt.SplitHorizontally(self.panel_dt_top_dt, self.panel_dt_bottom_ms)
         self.panel_dt.SetMinimumPaneSize(300)
@@ -2620,11 +2626,13 @@ class PanelPlots(wx.Panel):
         full_repaint=False,
         set_page=False,
         show_in_window="MS",
-        view_range=[],
+        view_range=None,
         **kwargs,
     ):
 
         # Build kwargs
+        if view_range is None:
+            view_range = []
         plt_kwargs = self._buildPlotParameters(plotType="1D")
 
         window = self.config.panelNames["MS"]
@@ -2636,9 +2644,10 @@ class PanelPlots(wx.Panel):
 
         plt_kwargs["allow_extraction"] = kwargs.pop("allow_extraction", True)
         if show_in_window == "MS":
-            window = self.config.panelNames["MS"]
-            plot_size_key = "MS"
-            self.view_ms.plot(msX, msY, allow_extraction=True, **plt_kwargs)
+
+            self.view_ms.plot(msX, msY, **kwargs, **plt_kwargs)
+            # window = self.config.panelNames["MS"]
+            # plot_size_key = "MS"
             #             try:
             #                 self.view_ms.update(msX, msY, **plt_kwargs)
             #             except AttributeError:
@@ -4289,324 +4298,7 @@ class PanelPlots(wx.Panel):
         plot_obj.repaint()
 
     def _buildPlotParameters(self, plotType):
-        add_frame_width = True
-        plt_kwargs = dict()
-        plotTypes = plotType
-        if not isinstance(plotTypes, list):
-            plotTypes = [plotTypes]
-
-        for plotType in plotTypes:
-            if plotType == "1D":
-                plt_kwargs = {
-                    "line_width": self.config.lineWidth_1D,
-                    "line_color": self.config.lineColour_1D,
-                    "line_style": self.config.lineStyle_1D,
-                    "shade_under": self.config.lineShadeUnder_1D,
-                    "shade_under_color": self.config.lineShadeUnderColour_1D,
-                    "shade_under_transparency": self.config.lineShadeUnderTransparency_1D,
-                    "line_color_1": self.config.lineColour_MS1,
-                    "line_color_2": self.config.lineColour_MS2,
-                    "line_transparency_1": self.config.lineTransparency_MS1,
-                    "line_transparency_2": self.config.lineTransparency_MS2,
-                    "line_style_1": self.config.lineStyle_MS1,
-                    "line_style_2": self.config.lineStyle_MS2,
-                    "inverse": self.config.compare_massSpectrumParams["inverse"],
-                    "tick_size": self.config.tickFontSize_1D,
-                    "tick_weight": self.config.tickFontWeight_1D,
-                    "label_size": self.config.labelFontSize_1D,
-                    "label_weight": self.config.labelFontWeight_1D,
-                    "title_size": self.config.titleFontSize_1D,
-                    "title_weight": self.config.titleFontWeight_1D,
-                    "frame_width": self.config.frameWidth_1D,
-                    "label_pad": self.config.labelPad_1D,
-                    "axis_onoff": self.config.axisOnOff_1D,
-                    "ticks_left": self.config.ticks_left_1D,
-                    "ticks_right": self.config.ticks_right_1D,
-                    "ticks_top": self.config.ticks_top_1D,
-                    "ticks_bottom": self.config.ticks_bottom_1D,
-                    "tickLabels_left": self.config.tickLabels_left_1D,
-                    "tickLabels_right": self.config.tickLabels_right_1D,
-                    "tickLabels_top": self.config.tickLabels_top_1D,
-                    "tickLabels_bottom": self.config.tickLabels_bottom_1D,
-                    "spines_left": self.config.spines_left_1D,
-                    "spines_right": self.config.spines_right_1D,
-                    "spines_top": self.config.spines_top_1D,
-                    "spines_bottom": self.config.spines_bottom_1D,
-                    "scatter_edge_color": self.config.markerEdgeColor_1D,
-                    "scatter_color": self.config.markerColor_1D,
-                    "scatter_size": self.config.markerSize_1D,
-                    "scatter_shape": self.config.markerShape_1D,
-                    "scatter_alpha": self.config.markerTransparency_1D,
-                    "legend": self.config.legend,
-                    "legend_transparency": self.config.legendAlpha,
-                    "legend_position": self.config.legendPosition,
-                    "legend_num_columns": self.config.legendColumns,
-                    "legend_font_size": self.config.legendFontSize,
-                    "legend_frame_on": self.config.legendFrame,
-                    "legend_fancy_box": self.config.legendFancyBox,
-                    "legend_marker_first": self.config.legendMarkerFirst,
-                    "legend_marker_size": self.config.legendMarkerSize,
-                    "legend_num_markers": self.config.legendNumberMarkers,
-                    "legend_line_width": self.config.legendLineWidth,
-                    "legend_patch_transparency": self.config.legendPatchAlpha,
-                    "bar_width": self.config.bar_width,
-                    "bar_alpha": self.config.bar_alpha,
-                    "bar_edgecolor": self.config.bar_edge_color,
-                    "bar_edgecolor_sameAsFill": self.config.bar_sameAsFill,
-                    "bar_linewidth": self.config.bar_lineWidth,
-                }
-            if plotType == "annotation":
-                plt_kwargs.update(
-                    {
-                        "horizontal_alignment": self.config.annotation_label_horz,
-                        "vertical_alignment": self.config.annotation_label_vert,
-                        "font_size": self.config.annotation_label_font_size,
-                        "font_weight": self.config.annotation_label_font_weight,
-                    }
-                )
-            if plotType == "legend":
-                plt_kwargs.update(
-                    {
-                        "legend": self.config.legend,
-                        "legend_transparency": self.config.legendAlpha,
-                        "legend_position": self.config.legendPosition,
-                        "legend_num_columns": self.config.legendColumns,
-                        "legend_font_size": self.config.legendFontSize,
-                        "legend_frame_on": self.config.legendFrame,
-                        "legend_fancy_box": self.config.legendFancyBox,
-                        "legend_marker_first": self.config.legendMarkerFirst,
-                        "legend_marker_size": self.config.legendMarkerSize,
-                        "legend_num_markers": self.config.legendNumberMarkers,
-                        "legend_line_width": self.config.legendLineWidth,
-                        "legend_patch_transparency": self.config.legendPatchAlpha,
-                    }
-                )
-            if plotType == "UniDec":
-                plt_kwargs.update(
-                    {
-                        "bar_width": self.config.unidec_plot_bar_width,
-                        "bar_alpha": self.config.unidec_plot_bar_alpha,
-                        "bar_edgecolor": self.config.unidec_plot_bar_edge_color,
-                        "bar_edgecolor_sameAsFill": self.config.unidec_plot_bar_sameAsFill,
-                        "bar_linewidth": self.config.unidec_plot_bar_lineWidth,
-                        "bar_marker_size": self.config.unidec_plot_bar_markerSize,
-                        "fit_line_color": self.config.unidec_plot_fit_lineColor,
-                        "isolated_marker_size": self.config.unidec_plot_isolatedMS_markerSize,
-                        "MW_marker_size": self.config.unidec_plot_MW_markerSize,
-                        "MW_show_markers": self.config.unidec_plot_MW_showMarkers,
-                        "color_scheme": self.config.unidec_plot_color_scheme,
-                        "colormap": self.config.unidec_plot_colormap,
-                        "palette": self.config.unidec_plot_palette,
-                        "maximum_shown_items": self.config.unidec_maxShown_individualLines,
-                        "contour_levels": self.config.unidec_plot_contour_levels,
-                    }
-                )
-
-            if plotType == "2D":
-                plt_kwargs.update(
-                    {
-                        "colorbar": self.config.colorbar,
-                        "colorbar_width": self.config.colorbarWidth,
-                        "colorbar_pad": self.config.colorbarPad,
-                        "colorbar_range": self.config.colorbarRange,
-                        "colorbar_min_points": self.config.colorbarMinPoints,
-                        "colorbar_position": self.config.colorbarPosition,
-                        "colorbar_label_fmt": self.config.colorbar_fmt,
-                        "colorbar_label_size": self.config.colorbarLabelSize,
-                        "colorbar_outline_color": self.config.colorbar_edge_color,
-                        "colorbar_outline_width": self.config.colorbar_edge_width,
-                        "colorbar_label_color": self.config.colorbar_label_color,
-                        "legend": self.config.legend,
-                        "legend_transparency": self.config.legendAlpha,
-                        "legend_position": self.config.legendPosition,
-                        "legend_num_columns": self.config.legendColumns,
-                        "legend_font_size": self.config.legendFontSize,
-                        "legend_frame_on": self.config.legendFrame,
-                        "legend_fancy_box": self.config.legendFancyBox,
-                        "legend_marker_first": self.config.legendMarkerFirst,
-                        "legend_marker_size": self.config.legendMarkerSize,
-                        "legend_num_markers": self.config.legendNumberMarkers,
-                        "legend_line_width": self.config.legendLineWidth,
-                        "legend_patch_transparency": self.config.legendPatchAlpha,
-                        "interpolation": self.config.interpolation,
-                        "frame_width": self.config.frameWidth_1D,
-                        "axis_onoff": self.config.axisOnOff_1D,
-                        "label_pad": self.config.labelPad_1D,
-                        "tick_size": self.config.tickFontSize_1D,
-                        "tick_weight": self.config.tickFontWeight_1D,
-                        "label_size": self.config.labelFontSize_1D,
-                        "label_weight": self.config.labelFontWeight_1D,
-                        "title_size": self.config.titleFontSize_1D,
-                        "title_weight": self.config.titleFontWeight_1D,
-                        "ticks_left": self.config.ticks_left_1D,
-                        "ticks_right": self.config.ticks_right_1D,
-                        "ticks_top": self.config.ticks_top_1D,
-                        "ticks_bottom": self.config.ticks_bottom_1D,
-                        "tickLabels_left": self.config.tickLabels_left_1D,
-                        "tickLabels_right": self.config.tickLabels_right_1D,
-                        "tickLabels_top": self.config.tickLabels_top_1D,
-                        "tickLabels_bottom": self.config.tickLabels_bottom_1D,
-                        "spines_left": self.config.spines_left_1D,
-                        "spines_right": self.config.spines_right_1D,
-                        "spines_top": self.config.spines_top_1D,
-                        "spines_bottom": self.config.spines_bottom_1D,
-                        "override_colormap": self.config.useCurrentCmap,
-                        "colormap": self.config.currentCmap,
-                        "colormap_min": self.config.minCmap,
-                        "colormap_mid": self.config.midCmap,
-                        "colormap_max": self.config.maxCmap,
-                        "colormap_norm_method": self.config.normalization_2D,
-                        "colormap_norm_power_gamma": self.config.normalization_2D_power_gamma,
-                    }
-                )
-
-            if plotType == "3D":
-                plt_kwargs.update(
-                    {
-                        "label_pad": self.config.labelPad_1D,
-                        "tick_size": self.config.tickFontSize_1D,
-                        "tick_weight": self.config.tickFontWeight_1D,
-                        "label_size": self.config.labelFontSize_1D,
-                        "label_weight": self.config.labelFontWeight_1D,
-                        "title_size": self.config.titleFontSize_1D,
-                        "title_weight": self.config.titleFontWeight_1D,
-                        "scatter_edge_color": self.config.markerEdgeColor_3D,
-                        "scatter_color": self.config.markerColor_3D,
-                        "scatter_size": self.config.markerSize_3D,
-                        "scatter_shape": self.config.markerShape_3D,
-                        "scatter_alpha": self.config.markerTransparency_3D,
-                        "grid": self.config.showGrids_3D,
-                        "shade": self.config.shade_3D,
-                        "show_ticks": self.config.ticks_3D,
-                        "show_spines": self.config.spines_3D,
-                        "show_labels": self.config.labels_3D,
-                    }
-                )
-
-            if plotType in ["RMSD", "RMSF"]:
-                plt_kwargs.update(
-                    {
-                        "axis_onoff_1D": self.config.axisOnOff_1D,
-                        "ticks_left_1D": self.config.ticks_left_1D,
-                        "ticks_right_1D": self.config.ticks_right_1D,
-                        "ticks_top_1D": self.config.ticks_top_1D,
-                        "ticks_bottom_1D": self.config.ticks_bottom_1D,
-                        "tickLabels_left_1D": self.config.tickLabels_left_1D,
-                        "tickLabels_right_1D": self.config.tickLabels_right_1D,
-                        "tickLabels_top_1D": self.config.tickLabels_top_1D,
-                        "tickLabels_bottom_1D": self.config.tickLabels_bottom_1D,
-                        "spines_left_1D": self.config.spines_left_1D,
-                        "spines_right_1D": self.config.spines_right_1D,
-                        "spines_top_1D": self.config.spines_top_1D,
-                        "spines_bottom_1D": self.config.spines_bottom_1D,
-                        "rmsd_label_position": self.config.rmsd_position,
-                        "rmsd_label_font_size": self.config.rmsd_fontSize,
-                        "rmsd_label_font_weight": self.config.rmsd_fontWeight,
-                        "rmsd_hspace": self.config.rmsd_hspace,
-                        "rmsd_line_color": self.config.rmsd_lineColour,
-                        "rmsd_line_transparency": self.config.rmsd_lineTransparency,
-                        "rmsd_line_style": self.config.rmsd_lineStyle,
-                        "rmsd_line_width": self.config.rmsd_lineWidth,
-                        "rmsd_underline_hatch": self.config.rmsd_lineHatch,
-                        "rmsd_underline_color": self.config.rmsd_underlineColor,
-                        "rmsd_underline_transparency": self.config.rmsd_underlineTransparency,
-                        "rmsd_matrix_rotX": self.config.rmsd_rotation_X,
-                        "rmsd_matrix_rotY": self.config.rmsd_rotation_Y,
-                        "rmsd_matrix_labels": self.config.rmsd_matrix_add_labels,
-                        "rmsd_matrix_label_size": self.config.rmsd_matrix_font_size,
-                        "rmsd_matrix_label_weight": self.config.rmsd_matrix_font_weight,
-                        "rmsd_matrix_color_choice": self.config.rmsd_matrix_font_color_choice,
-                        "rmsd_matrix_color": self.config.rmsd_matrix_font_color,
-                    }
-                )
-            if plotType in "waterfall":
-                plt_kwargs.update(
-                    {
-                        "increment": self.config.waterfall_increment,
-                        "offset": self.config.waterfall_offset,
-                        "line_width": self.config.waterfall_lineWidth,
-                        "line_style": self.config.waterfall_lineStyle,
-                        "reverse": self.config.waterfall_reverse,
-                        "use_colormap": self.config.waterfall_useColormap,
-                        "line_color": self.config.waterfall_color,
-                        "shade_color": self.config.waterfall_shade_under_color,
-                        "normalize": self.config.waterfall_normalize,
-                        "colormap": self.config.waterfall_colormap,
-                        "palette": self.config.currentPalette,
-                        "color_scheme": self.config.waterfall_color_value,
-                        "line_color_as_shade": self.config.waterfall_line_sameAsShade,
-                        "add_labels": self.config.waterfall_add_labels,
-                        "labels_frequency": self.config.waterfall_labels_frequency,
-                        "labels_x_offset": self.config.waterfall_labels_x_offset,
-                        "labels_y_offset": self.config.waterfall_labels_y_offset,
-                        "labels_font_size": self.config.waterfall_label_fontSize,
-                        "labels_font_weight": self.config.waterfall_label_fontWeight,
-                        "labels_format": self.config.waterfall_label_format,
-                        "shade_under": self.config.waterfall_shade_under,
-                        "shade_under_n_limit": self.config.waterfall_shade_under_nlimit,
-                        "shade_under_transparency": self.config.waterfall_shade_under_transparency,
-                        "legend": self.config.legend,
-                        "legend_transparency": self.config.legendAlpha,
-                        "legend_position": self.config.legendPosition,
-                        "legend_num_columns": self.config.legendColumns,
-                        "legend_font_size": self.config.legendFontSize,
-                        "legend_frame_on": self.config.legendFrame,
-                        "legend_fancy_box": self.config.legendFancyBox,
-                        "legend_marker_first": self.config.legendMarkerFirst,
-                        "legend_marker_size": self.config.legendMarkerSize,
-                        "legend_num_markers": self.config.legendNumberMarkers,
-                        "legend_line_width": self.config.legendLineWidth,
-                        "legend_patch_transparency": self.config.legendPatchAlpha,
-                    }
-                )
-            elif plotType in ["violin"]:
-                plt_kwargs.update(
-                    {
-                        "min_percentage": self.config.violin_min_percentage,
-                        "spacing": self.config.violin_spacing,
-                        "line_width": self.config.violin_lineWidth,
-                        "line_style": self.config.violin_lineStyle,
-                        "line_color": self.config.violin_color,
-                        "shade_color": self.config.violin_shade_under_color,
-                        "normalize": self.config.violin_normalize,
-                        "colormap": self.config.violin_colormap,
-                        "palette": self.config.currentPalette,
-                        "color_scheme": self.config.violin_color_value,
-                        "line_color_as_shade": self.config.violin_line_sameAsShade,
-                        "labels_format": self.config.violin_label_format,
-                        "shade_under": self.config.violin_shade_under,
-                        "violin_nlimit": self.config.violin_nlimit,
-                        "shade_under_transparency": self.config.violin_shade_under_transparency,
-                        "labels_frequency": self.config.violin_labels_frequency,
-                    }
-                )
-            if plotType in ["arrow"]:
-                plt_kwargs.update(
-                    {
-                        "arrow_line_width": self.config.annotation_arrow_line_width,
-                        "arrow_line_style": self.config.annotation_arrow_line_style,
-                        "arrow_head_length": self.config.annotation_arrow_cap_length,
-                        "arrow_head_width": self.config.annotation_arrow_cap_width,
-                    }
-                )
-                add_frame_width = False
-            if plotType == "label":
-                plt_kwargs.update(
-                    {
-                        "horizontalalignment": self.config.annotation_label_horz,
-                        "verticalalignment": self.config.annotation_label_vert,
-                        "fontweight": self.config.annotation_label_font_weight,
-                        "fontsize": self.config.annotation_label_font_size,
-                        "rotation": self.config.annotation_label_font_orientation,
-                    }
-                )
-                add_frame_width = False
-
-        if "frame_width" not in plt_kwargs and add_frame_width:
-            plt_kwargs["frame_width"] = self.config.frameWidth_1D
-
-        # return kwargs
-        return plt_kwargs
+        return self.config.get_mpl_parameters(plotType)
 
     def normalize_colormap(self, data, min=0, mid=50, max=100, cbarLimits=None):
         """

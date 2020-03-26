@@ -2389,6 +2389,324 @@ class Config:
 
         return parameters
 
+    def get_mpl_parameters(self, plot_type, add_frame_width: bool=True):
+        """Get plot parameters that can be consumed by plotting classes"""
+        plt_kwargs = dict()
+        if not isinstance(plot_type, list):
+            plot_type = [plot_type]
+
+        for _plot_type in plot_type:
+            if _plot_type == "1D":
+                plt_kwargs = {
+                    "line_width": self.lineWidth_1D,
+                    "line_color": self.lineColour_1D,
+                    "line_style": self.lineStyle_1D,
+                    "shade_under": self.lineShadeUnder_1D,
+                    "shade_under_color": self.lineShadeUnderColour_1D,
+                    "shade_under_transparency": self.lineShadeUnderTransparency_1D,
+                    "line_color_1": self.lineColour_MS1,
+                    "line_color_2": self.lineColour_MS2,
+                    "line_transparency_1": self.lineTransparency_MS1,
+                    "line_transparency_2": self.lineTransparency_MS2,
+                    "line_style_1": self.lineStyle_MS1,
+                    "line_style_2": self.lineStyle_MS2,
+                    "inverse": self.compare_massSpectrumParams["inverse"],
+                    "tick_size": self.tickFontSize_1D,
+                    "tick_weight": self.tickFontWeight_1D,
+                    "label_size": self.labelFontSize_1D,
+                    "label_weight": self.labelFontWeight_1D,
+                    "title_size": self.titleFontSize_1D,
+                    "title_weight": self.titleFontWeight_1D,
+                    "frame_width": self.frameWidth_1D,
+                    "label_pad": self.labelPad_1D,
+                    "axis_onoff": self.axisOnOff_1D,
+                    "ticks_left": self.ticks_left_1D,
+                    "ticks_right": self.ticks_right_1D,
+                    "ticks_top": self.ticks_top_1D,
+                    "ticks_bottom": self.ticks_bottom_1D,
+                    "tickLabels_left": self.tickLabels_left_1D,
+                    "tickLabels_right": self.tickLabels_right_1D,
+                    "tickLabels_top": self.tickLabels_top_1D,
+                    "tickLabels_bottom": self.tickLabels_bottom_1D,
+                    "spines_left": self.spines_left_1D,
+                    "spines_right": self.spines_right_1D,
+                    "spines_top": self.spines_top_1D,
+                    "spines_bottom": self.spines_bottom_1D,
+                    "scatter_edge_color": self.markerEdgeColor_1D,
+                    "scatter_color": self.markerColor_1D,
+                    "scatter_size": self.markerSize_1D,
+                    "scatter_shape": self.markerShape_1D,
+                    "scatter_alpha": self.markerTransparency_1D,
+                    "legend": self.legend,
+                    "legend_transparency": self.legendAlpha,
+                    "legend_position": self.legendPosition,
+                    "legend_num_columns": self.legendColumns,
+                    "legend_font_size": self.legendFontSize,
+                    "legend_frame_on": self.legendFrame,
+                    "legend_fancy_box": self.legendFancyBox,
+                    "legend_marker_first": self.legendMarkerFirst,
+                    "legend_marker_size": self.legendMarkerSize,
+                    "legend_num_markers": self.legendNumberMarkers,
+                    "legend_line_width": self.legendLineWidth,
+                    "legend_patch_transparency": self.legendPatchAlpha,
+                    "bar_width": self.bar_width,
+                    "bar_alpha": self.bar_alpha,
+                    "bar_edgecolor": self.bar_edge_color,
+                    "bar_edgecolor_sameAsFill": self.bar_sameAsFill,
+                    "bar_linewidth": self.bar_lineWidth,
+                }
+            if _plot_type == "annotation":
+                plt_kwargs.update(
+                    {
+                        "horizontal_alignment": self.annotation_label_horz,
+                        "vertical_alignment": self.annotation_label_vert,
+                        "font_size": self.annotation_label_font_size,
+                        "font_weight": self.annotation_label_font_weight,
+                    }
+                )
+            if _plot_type == "legend":
+                plt_kwargs.update(
+                    {
+                        "legend": self.legend,
+                        "legend_transparency": self.legendAlpha,
+                        "legend_position": self.legendPosition,
+                        "legend_num_columns": self.legendColumns,
+                        "legend_font_size": self.legendFontSize,
+                        "legend_frame_on": self.legendFrame,
+                        "legend_fancy_box": self.legendFancyBox,
+                        "legend_marker_first": self.legendMarkerFirst,
+                        "legend_marker_size": self.legendMarkerSize,
+                        "legend_num_markers": self.legendNumberMarkers,
+                        "legend_line_width": self.legendLineWidth,
+                        "legend_patch_transparency": self.legendPatchAlpha,
+                    }
+                )
+            if _plot_type == "UniDec":
+                plt_kwargs.update(
+                    {
+                        "bar_width": self.unidec_plot_bar_width,
+                        "bar_alpha": self.unidec_plot_bar_alpha,
+                        "bar_edgecolor": self.unidec_plot_bar_edge_color,
+                        "bar_edgecolor_sameAsFill": self.unidec_plot_bar_sameAsFill,
+                        "bar_linewidth": self.unidec_plot_bar_lineWidth,
+                        "bar_marker_size": self.unidec_plot_bar_markerSize,
+                        "fit_line_color": self.unidec_plot_fit_lineColor,
+                        "isolated_marker_size": self.unidec_plot_isolatedMS_markerSize,
+                        "MW_marker_size": self.unidec_plot_MW_markerSize,
+                        "MW_show_markers": self.unidec_plot_MW_showMarkers,
+                        "color_scheme": self.unidec_plot_color_scheme,
+                        "colormap": self.unidec_plot_colormap,
+                        "palette": self.unidec_plot_palette,
+                        "maximum_shown_items": self.unidec_maxShown_individualLines,
+                        "contour_levels": self.unidec_plot_contour_levels,
+                    }
+                )
+
+            if _plot_type == "2D":
+                plt_kwargs.update(
+                    {
+                        "colorbar": self.colorbar,
+                        "colorbar_width": self.colorbarWidth,
+                        "colorbar_pad": self.colorbarPad,
+                        "colorbar_range": self.colorbarRange,
+                        "colorbar_min_points": self.colorbarMinPoints,
+                        "colorbar_position": self.colorbarPosition,
+                        "colorbar_label_fmt": self.colorbar_fmt,
+                        "colorbar_label_size": self.colorbarLabelSize,
+                        "colorbar_outline_color": self.colorbar_edge_color,
+                        "colorbar_outline_width": self.colorbar_edge_width,
+                        "colorbar_label_color": self.colorbar_label_color,
+                        "legend": self.legend,
+                        "legend_transparency": self.legendAlpha,
+                        "legend_position": self.legendPosition,
+                        "legend_num_columns": self.legendColumns,
+                        "legend_font_size": self.legendFontSize,
+                        "legend_frame_on": self.legendFrame,
+                        "legend_fancy_box": self.legendFancyBox,
+                        "legend_marker_first": self.legendMarkerFirst,
+                        "legend_marker_size": self.legendMarkerSize,
+                        "legend_num_markers": self.legendNumberMarkers,
+                        "legend_line_width": self.legendLineWidth,
+                        "legend_patch_transparency": self.legendPatchAlpha,
+                        "interpolation": self.interpolation,
+                        "frame_width": self.frameWidth_1D,
+                        "axis_onoff": self.axisOnOff_1D,
+                        "label_pad": self.labelPad_1D,
+                        "tick_size": self.tickFontSize_1D,
+                        "tick_weight": self.tickFontWeight_1D,
+                        "label_size": self.labelFontSize_1D,
+                        "label_weight": self.labelFontWeight_1D,
+                        "title_size": self.titleFontSize_1D,
+                        "title_weight": self.titleFontWeight_1D,
+                        "ticks_left": self.ticks_left_1D,
+                        "ticks_right": self.ticks_right_1D,
+                        "ticks_top": self.ticks_top_1D,
+                        "ticks_bottom": self.ticks_bottom_1D,
+                        "tickLabels_left": self.tickLabels_left_1D,
+                        "tickLabels_right": self.tickLabels_right_1D,
+                        "tickLabels_top": self.tickLabels_top_1D,
+                        "tickLabels_bottom": self.tickLabels_bottom_1D,
+                        "spines_left": self.spines_left_1D,
+                        "spines_right": self.spines_right_1D,
+                        "spines_top": self.spines_top_1D,
+                        "spines_bottom": self.spines_bottom_1D,
+                        "override_colormap": self.useCurrentCmap,
+                        "colormap": self.currentCmap,
+                        "colormap_min": self.minCmap,
+                        "colormap_mid": self.midCmap,
+                        "colormap_max": self.maxCmap,
+                        "colormap_norm_method": self.normalization_2D,
+                        "colormap_norm_power_gamma": self.normalization_2D_power_gamma,
+                    }
+                )
+
+            if _plot_type == "3D":
+                plt_kwargs.update(
+                    {
+                        "label_pad": self.labelPad_1D,
+                        "tick_size": self.tickFontSize_1D,
+                        "tick_weight": self.tickFontWeight_1D,
+                        "label_size": self.labelFontSize_1D,
+                        "label_weight": self.labelFontWeight_1D,
+                        "title_size": self.titleFontSize_1D,
+                        "title_weight": self.titleFontWeight_1D,
+                        "scatter_edge_color": self.markerEdgeColor_3D,
+                        "scatter_color": self.markerColor_3D,
+                        "scatter_size": self.markerSize_3D,
+                        "scatter_shape": self.markerShape_3D,
+                        "scatter_alpha": self.markerTransparency_3D,
+                        "grid": self.showGrids_3D,
+                        "shade": self.shade_3D,
+                        "show_ticks": self.ticks_3D,
+                        "show_spines": self.spines_3D,
+                        "show_labels": self.labels_3D,
+                    }
+                )
+
+            if _plot_type in ["RMSD", "RMSF"]:
+                plt_kwargs.update(
+                    {
+                        "axis_onoff_1D": self.axisOnOff_1D,
+                        "ticks_left_1D": self.ticks_left_1D,
+                        "ticks_right_1D": self.ticks_right_1D,
+                        "ticks_top_1D": self.ticks_top_1D,
+                        "ticks_bottom_1D": self.ticks_bottom_1D,
+                        "tickLabels_left_1D": self.tickLabels_left_1D,
+                        "tickLabels_right_1D": self.tickLabels_right_1D,
+                        "tickLabels_top_1D": self.tickLabels_top_1D,
+                        "tickLabels_bottom_1D": self.tickLabels_bottom_1D,
+                        "spines_left_1D": self.spines_left_1D,
+                        "spines_right_1D": self.spines_right_1D,
+                        "spines_top_1D": self.spines_top_1D,
+                        "spines_bottom_1D": self.spines_bottom_1D,
+                        "rmsd_label_position": self.rmsd_position,
+                        "rmsd_label_font_size": self.rmsd_fontSize,
+                        "rmsd_label_font_weight": self.rmsd_fontWeight,
+                        "rmsd_hspace": self.rmsd_hspace,
+                        "rmsd_line_color": self.rmsd_lineColour,
+                        "rmsd_line_transparency": self.rmsd_lineTransparency,
+                        "rmsd_line_style": self.rmsd_lineStyle,
+                        "rmsd_line_width": self.rmsd_lineWidth,
+                        "rmsd_underline_hatch": self.rmsd_lineHatch,
+                        "rmsd_underline_color": self.rmsd_underlineColor,
+                        "rmsd_underline_transparency": self.rmsd_underlineTransparency,
+                        "rmsd_matrix_rotX": self.rmsd_rotation_X,
+                        "rmsd_matrix_rotY": self.rmsd_rotation_Y,
+                        "rmsd_matrix_labels": self.rmsd_matrix_add_labels,
+                        "rmsd_matrix_label_size": self.rmsd_matrix_font_size,
+                        "rmsd_matrix_label_weight": self.rmsd_matrix_font_weight,
+                        "rmsd_matrix_color_choice": self.rmsd_matrix_font_color_choice,
+                        "rmsd_matrix_color": self.rmsd_matrix_font_color,
+                    }
+                )
+            if _plot_type in "waterfall":
+                plt_kwargs.update(
+                    {
+                        "increment": self.waterfall_increment,
+                        "offset": self.waterfall_offset,
+                        "line_width": self.waterfall_lineWidth,
+                        "line_style": self.waterfall_lineStyle,
+                        "reverse": self.waterfall_reverse,
+                        "use_colormap": self.waterfall_useColormap,
+                        "line_color": self.waterfall_color,
+                        "shade_color": self.waterfall_shade_under_color,
+                        "normalize": self.waterfall_normalize,
+                        "colormap": self.waterfall_colormap,
+                        "palette": self.currentPalette,
+                        "color_scheme": self.waterfall_color_value,
+                        "line_color_as_shade": self.waterfall_line_sameAsShade,
+                        "add_labels": self.waterfall_add_labels,
+                        "labels_frequency": self.waterfall_labels_frequency,
+                        "labels_x_offset": self.waterfall_labels_x_offset,
+                        "labels_y_offset": self.waterfall_labels_y_offset,
+                        "labels_font_size": self.waterfall_label_fontSize,
+                        "labels_font_weight": self.waterfall_label_fontWeight,
+                        "labels_format": self.waterfall_label_format,
+                        "shade_under": self.waterfall_shade_under,
+                        "shade_under_n_limit": self.waterfall_shade_under_nlimit,
+                        "shade_under_transparency": self.waterfall_shade_under_transparency,
+                        "legend": self.legend,
+                        "legend_transparency": self.legendAlpha,
+                        "legend_position": self.legendPosition,
+                        "legend_num_columns": self.legendColumns,
+                        "legend_font_size": self.legendFontSize,
+                        "legend_frame_on": self.legendFrame,
+                        "legend_fancy_box": self.legendFancyBox,
+                        "legend_marker_first": self.legendMarkerFirst,
+                        "legend_marker_size": self.legendMarkerSize,
+                        "legend_num_markers": self.legendNumberMarkers,
+                        "legend_line_width": self.legendLineWidth,
+                        "legend_patch_transparency": self.legendPatchAlpha,
+                    }
+                )
+            elif _plot_type in ["violin"]:
+                plt_kwargs.update(
+                    {
+                        "min_percentage": self.violin_min_percentage,
+                        "spacing": self.violin_spacing,
+                        "line_width": self.violin_lineWidth,
+                        "line_style": self.violin_lineStyle,
+                        "line_color": self.violin_color,
+                        "shade_color": self.violin_shade_under_color,
+                        "normalize": self.violin_normalize,
+                        "colormap": self.violin_colormap,
+                        "palette": self.currentPalette,
+                        "color_scheme": self.violin_color_value,
+                        "line_color_as_shade": self.violin_line_sameAsShade,
+                        "labels_format": self.violin_label_format,
+                        "shade_under": self.violin_shade_under,
+                        "violin_nlimit": self.violin_nlimit,
+                        "shade_under_transparency": self.violin_shade_under_transparency,
+                        "labels_frequency": self.violin_labels_frequency,
+                    }
+                )
+            if _plot_type in ["arrow"]:
+                plt_kwargs.update(
+                    {
+                        "arrow_line_width": self.annotation_arrow_line_width,
+                        "arrow_line_style": self.annotation_arrow_line_style,
+                        "arrow_head_length": self.annotation_arrow_cap_length,
+                        "arrow_head_width": self.annotation_arrow_cap_width,
+                    }
+                )
+                add_frame_width = False
+            if _plot_type == "label":
+                plt_kwargs.update(
+                    {
+                        "horizontalalignment": self.annotation_label_horz,
+                        "verticalalignment": self.annotation_label_vert,
+                        "fontweight": self.annotation_label_font_weight,
+                        "fontsize": self.annotation_label_font_size,
+                        "rotation": self.annotation_label_font_orientation,
+                    }
+                )
+                add_frame_width = False
+
+        if "frame_width" not in plt_kwargs and add_frame_width:
+            plt_kwargs["frame_width"] = self.frameWidth_1D
+
+        return plt_kwargs
+
     def saveConfigXML(self, path, verbose=False):
         """ Make and save config file in XML format """
 
