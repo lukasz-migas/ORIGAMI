@@ -2389,7 +2389,7 @@ class Config:
 
         return parameters
 
-    def get_mpl_parameters(self, plot_type, add_frame_width: bool=True):
+    def get_mpl_parameters(self, plot_type, add_frame_width: bool = True):
         """Get plot parameters that can be consumed by plotting classes"""
         plt_kwargs = dict()
         if not isinstance(plot_type, list):

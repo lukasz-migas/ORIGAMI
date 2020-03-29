@@ -1536,7 +1536,7 @@ class DataHandling:
             self.extract_from_plot_1D_RT(xmin, xmax, document)
 
     def extract_from_plot_1D_DT(self, xmin, xmax, document):
-        dt_label = self.plotsPanel.plot1D.plot_labels.get("xlabel", "Drift time (bins)")
+        dt_label = self.plotsPanel.plot_dt_dt.plot_labels.get("xlabel", "Drift time (bins)")
 
         if dt_label == "Drift time (bins)":
             dt_start = np.ceil(xmin).astype(int)
@@ -1641,7 +1641,7 @@ class DataHandling:
         )
 
     def extract_from_plot_1D_RT(self, xmin, xmax, document):
-        rt_label = self.plotsPanel.plotRT.plot_labels.get("xlabel", "Scans")
+        rt_label = self.plotsPanel.plot_rt_rt.plot_labels.get("xlabel", "Scans")
 
         # Extract data
         if document.fileFormat == "Format: Thermo (.RAW)":

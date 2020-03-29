@@ -20,6 +20,7 @@ from origami.utils.ranges import get_min_max
 from origami.utils.ranges import find_limits_all
 from origami.utils.ranges import find_limits_list
 from origami.visuals.mpl.base import PlotBase
+from origami.visuals.utilities import get_intensity_formatter
 from origami.processing.heatmap import normalize_2D
 from origami.processing.spectra import normalize_1D
 from origami.gui_elements.misc_dialogs import DialogBox
@@ -55,15 +56,6 @@ class PlotSpectrum(PlotBase):
         # Simple hack to reduce size is to use different subplot size
         self._set_axes()
 
-        # transform data and determine plot limits
-        x, y, x_label, y_label = self.transform(
-            x,
-            y,
-            x_label,
-            y_label,
-            transform_x=kwargs.get("transform_x", False),
-            transform_y=kwargs.get("transform_y", False),
-        )
         xlimits, ylimits, extent = self._compute_xy_limits(x, y, 1.1)
 
         # add 1d plot
@@ -78,12 +70,18 @@ class PlotSpectrum(PlotBase):
         if kwargs["shade_under"]:
             self.plot_1d_add_under_curve(x, y, **kwargs)
 
+        # setup axis formatters
+        y_formatter = get_intensity_formatter()
+        self.plot_base.yaxis.set_major_formatter(y_formatter)
+        #
+        #         x_formatter = get_intensity_formatter()
+        #         self.plot_base.xaxis.set_major_formatter(x_formatter)
+
         # set plot limits
         self.plot_base.set_xlim(xlimits)
         self.plot_base.set_ylim(ylimits)
-
         self.set_plot_xlabel(x_label, **kwargs)
-        self.set_plot_ylabel(x_label, **kwargs)
+        self.set_plot_ylabel(y_label, **kwargs)
         self.set_plot_title(title, **kwargs)
         self.set_tick_parameters(**kwargs)
         self.set_line_style(**kwargs)

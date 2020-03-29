@@ -1,4 +1,4 @@
-__all__ = ["byte2str", "str2num", "num2str", "str2int", "float2int", "str2bool"]
+__all__ = ["byte2str", "str2num", "num2str", "str2int", "float2int", "str2bool", "rounder"]
 
 
 def byte2str(string):

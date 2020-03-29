@@ -2,11 +2,9 @@
 import os
 import sys
 import traceback
-
 # from distutils.errors import CCompilerError
 # from distutils.errors import DistutilsExecError
 from distutils.errors import DistutilsPlatformError
-
 # Extension must be loaded AFTER setup
 from distutils.command.build_ext import build_ext
 

@@ -507,6 +507,17 @@ class PlotBase(MPLPanel):
                 patch.remove()
                 del self.patch[i]
 
+    def add_labels(self, x, y, labels, **kwargs):
+        """Add labels to the plot"""
+        if not isinstance(x, (list, tuple, np.ndarray)):
+            x = [x]
+        if not isinstance(y, (list, tuple, np.ndarray)):
+            y = [y]
+        if not isinstance(labels, (list, tuple, np.ndarray)):
+            labels = [labels]
+
+        pass
+
     def plot_add_text_and_lines(
         self,
         xpos,

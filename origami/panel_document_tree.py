@@ -1225,7 +1225,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_annotation_editor(self, evt):
         """Open annotations panel"""
-        from origami.gui_elements.panel_peak_annotation_editor import PanelPeakAnnotationEditor
+        from origami.widgets.annotations.panel_annotation_editor import PanelAnnotationEditor
 
         if self._annotate_panel is not None:
             raise MessageError(
@@ -1258,7 +1258,7 @@ class DocumentTree(wx.TreeCtrl):
             "query": query,
         }
 
-        self._annotate_panel = PanelPeakAnnotationEditor(self.view, self, self.config, self.icons, **kwargs)
+        self._annotate_panel = PanelAnnotationEditor(self.view, self, self.config, self.icons, **kwargs)
         self._annotate_panel.Show()
 
     def on_update_annotation(self, annotations, document_title, dataset_type, dataset_name, set_data_only=False):
@@ -2853,7 +2853,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_spectrum_comparison_viewer(self, evt):
         """Open panel where user can select mas spectra to compare """
-        from origami.widgets.panel_signal_comparison_viewer import PanelSignalComparisonViewer
+        from origami.widgets.comparison.panel_signal_comparison_viewer import PanelSignalComparisonViewer
 
         if self._item_id is None:
             return
@@ -4931,7 +4931,7 @@ class DocumentTree(wx.TreeCtrl):
         info.Show()
 
     def on_open_MSMS_viewer(self, evt=None, **kwargs):
-        from origami.widgets.panel_tandem_spectra_viewer import PanelTandemSpectraViewer
+        from origami.widgets.tandem.panel_tandem_spectra_viewer import PanelTandemSpectraViewer
 
         self.panelTandemSpectra = PanelTandemSpectraViewer(
             self.presenter.view, self.presenter, self.config, self.icons, **kwargs
@@ -4939,7 +4939,7 @@ class DocumentTree(wx.TreeCtrl):
         self.panelTandemSpectra.Show()
 
     def on_process_UVPD(self, evt=None, **kwargs):
-        from origami.widgets.panel_UVPD_editor import PanelUVPDEditor
+        from origami.widgets.uvpd.panel_UVPD_editor import PanelUVPDEditor
 
         self.panelUVPD = PanelUVPDEditor(self.presenter.view, self.presenter, self.config, self.icons, **kwargs)
         self.panelUVPD.Show()
@@ -4954,7 +4954,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_peak_picker(self, evt, **kwargs):
         """Open peak picker"""
-        from origami.gui_elements.panel_peak_picker import PanelPeakPicker
+        from origami.widgets.mz_picker.panel_peak_picker import PanelPeakPicker
 
         # get data
         document_title, dataset_type, dataset_name = self._get_query_info_based_on_indent()

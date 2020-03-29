@@ -126,7 +126,6 @@ class MPLPanel(wx.Panel):
 
         self.zoom = MPLInteraction(
             figure,
-            None,
             data_limits=data_limits,
             plot_parameters=plot_parameters,
             allow_extraction=allow_extraction,
@@ -173,7 +172,7 @@ class MPLPanel(wx.Panel):
     def update_y_extents(self, y_min, y_max):
         ZoomBox.update_y_extents(self.zoom, y_min, y_max)
 
-    def _on_mark_annotation(self, state):
+    def on_mark_annotation(self, state):
         try:
             ZoomBox.update_mark_state(self.zoom, state)
         except TypeError:
@@ -227,18 +226,6 @@ class MPLPanel(wx.Panel):
         xvals = xvals / kda_norm_factor
 
         return xvals, x_label, kda
-
-    # def testXYmaxVals(self, values=None):
-    #     """
-    #     Function to check whether x/y axis labels do not need formatting
-    #     """
-    #     if max(values) > 1000:
-    #         divider = 1000
-    #     elif max(values) > 1000000:
-    #         divider = 1000000
-    #     else:
-    #         divider = 1
-    #     return divider
 
     def testXYmaxValsUpdated(self, values=None):
         """

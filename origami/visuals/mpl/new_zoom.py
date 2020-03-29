@@ -8,9 +8,7 @@ from pubsub import pub
 from matplotlib.text import Text
 from matplotlib.patches import Rectangle
 
-logger = logging.getLogger(__name__)
-
-# Take a look at lib\matplotlib\backend_bases.py and lib\matplotlib\backend_bases.py
+LOGGER = logging.getLogger(__name__)
 
 
 def get_axes_limits(axes, xmin=None, xmax=None):
@@ -28,7 +26,7 @@ def get_axes_limits(axes, xmin=None, xmax=None):
             yvals.append([np.amin(ydat), np.amax(ydat)])
             xvals.append([np.amin(xdat), np.amax(xdat)])
         except Exception as err:
-            logger.error(err)
+            LOGGER.error(err)
 
     for p in axes.collections:
         try:
@@ -44,7 +42,7 @@ def get_axes_limits(axes, xmin=None, xmax=None):
             yvals.append([np.amin(ydat), np.amax(ydat)])
             xvals.append([np.amin(xdat), np.amax(xdat)])
         except Exception as err:
-            logger.error(err)
+            LOGGER.error(err)
 
     for patch in axes.patches:
         try:
@@ -57,7 +55,7 @@ def get_axes_limits(axes, xmin=None, xmax=None):
                         yvals.append([np.amin(ydat), np.amax(ydat)])
                         xvals.append([np.amin(xdat), np.amax(xdat)])
                     except Exception as err:
-                        logger.error(err)
+                        LOGGER.error(err)
         except Exception as err:
             try:
                 xys = patch.xy
@@ -66,7 +64,7 @@ def get_axes_limits(axes, xmin=None, xmax=None):
                 yvals.append([np.amin(ydat), np.amax(ydat)])
                 xvals.append([np.amin(xdat), np.amax(xdat)])
             except Exception as err:
-                logger.error(err)
+                LOGGER.error(err)
 
     for t in axes.texts:
         x, y = t.get_position()
@@ -142,66 +140,6 @@ def get_axes_start(axes):
     return out
 
 
-def get_max_from_window(data, start, end):
-    """
-    Find and return a narrow data range
-    """
-    # find values closest to the start/end
-    try:
-        start = np.argmin(np.abs(data[:, 0] - start))
-        end = np.argmin(np.abs(data[:, 0] - end))
-    except Exception:
-        return 1
-
-    # ensure start/end are in correct order
-    if start > end:
-        end, start = start, end
-    # narrow down the search
-    data = data[start:end, :]
-    # find maximum
-    try:
-        ymax = np.amax(data[:, 1])
-    except ValueError:
-        #         print('Could not find maximum')
-        ymax = 1
-    return ymax
-
-
-def xy_range_divider(values=None):
-    """Function to check whether x/y axis labels do not need formatting"""
-    baseDiv = 10
-    increment = 10
-    divider = baseDiv
-    multiplier = 1
-
-    itemShape = values.shape
-    # find maximum
-    if len(itemShape) > 1:
-        maxValue = np.amax(values)
-    elif len(itemShape) == 1:
-        maxValue = np.max(values)
-    else:
-        maxValue = values
-
-    # calculate division value
-    dValue = maxValue / divider
-    while 10 <= dValue <= 1:
-        divider = divider * increment
-        dValue = maxValue / divider
-
-    mValue = maxValue * multiplier
-    while mValue <= 1 and not mValue >= 0.1:
-        multiplier = multiplier * increment
-        mValue = maxValue * multiplier
-
-    if divider == baseDiv:
-        expo = -len(str(multiplier)) - len(str(multiplier).rstrip("0"))
-        return multiplier, expo
-    else:
-        expo = len(str(divider)) - len(str(divider).rstrip("0"))
-        return divider, expo
-
-
 class GetXValues:
     def __init__(self, axes):
         """
@@ -230,12 +168,8 @@ class MPLInteraction:
     def __init__(
         self,
         axes,
-        onselect,
-        minspanx=None,
-        minspany=None,
         useblit=False,
         patch_kwargs=None,
-        onmove_callback=None,
         button=1,
         data_limits=None,
         plotName=None,
@@ -275,15 +209,8 @@ class MPLInteraction:
         self.allow_wheel = allow_wheel
         self.n_mouse_wheel_steps = 3
 
-        self.onselect = onselect
-        self.onmove_callback = onmove_callback
         self.useblit = useblit
-        self.minspanx = minspanx
-        self.minspany = minspany
-
         self._xy_press = []
-        self.horz_line = None
-        self.vert_line = None
         self.eventpress = None
         self.eventrelease = None
 
@@ -343,40 +270,8 @@ class MPLInteraction:
     def on_update_parameters(self, plot_parameters):
         self.plot_parameters = plot_parameters
 
-        if self.show_cursor_cross:
-            line_kwargs = self.get_line_kwargs()
-
-            # set horizontal line
-            try:
-                self.horz_line.set_visible(False)
-            except AttributeError:
-                for axes in self.axes:
-                    self.horz_line = axes.axhline(axes.get_ybound()[0], visible=False, **line_kwargs)
-            self.horz_line.set_color(self.plot_parameters["grid_color"])
-            self.horz_line.set_linewidth(self.plot_parameters["grid_line_width"])
-
-            # set vertical line
-            try:
-                self.vert_line.set_visible(False)
-            except AttributeError:
-                for axes in self.axes:
-                    self.vert_line = axes.axvline(axes.get_xbound()[0], visible=False, **line_kwargs)
-
-            self.vert_line.set_color(self.plot_parameters["grid_color"])
-            self.vert_line.set_linewidth(self.plot_parameters["grid_line_width"])
-
         self.show_cursor_cross = self.plot_parameters["grid_show"]
         self.crossover_percent = self.plot_parameters["zoom_crossover_sensitivity"]
-
-    def get_line_kwargs(self):
-        """Get line properties"""
-        line_kwargs = {
-            "color": self.plot_parameters["grid_color"],
-            "linewidth": self.plot_parameters["grid_line_width"],
-        }
-        if self.useblit:
-            line_kwargs["animated"] = True
-        return line_kwargs
 
     def update_extents(self, data_limits=None):
         """Update plot extents"""
@@ -452,12 +347,6 @@ class MPLInteraction:
             self.to_draw.append(Rectangle((0, 0), 0, 1, visible=False, **self.patch_kwargs))
 
         self.show_cursor_cross = self.plot_parameters["grid_show"]
-
-        line_kwargs = self.get_line_kwargs()
-
-        for axes in self.axes:
-            self.horz_line = axes.axhline(axes.get_ybound()[0], visible=False, **line_kwargs)
-            self.vert_line = axes.axvline(axes.get_xbound()[0], visible=False, **line_kwargs)
 
         for axes, to_draw in zip(self.axes, self.to_draw):
             axes.add_patch(to_draw)
@@ -739,6 +628,15 @@ class MPLInteraction:
         self.dragged = None
         self.canvas.draw()  # redraw image
 
+    def get_labels(self):
+        """Collects labels"""
+        x_labels, y_labels = [], []
+        for axes in self.axes:
+            x_labels.append(axes.get_xlabel())
+            y_labels.append(axes.get_ylabel())
+
+        return list(set(x_labels)), list(set(y_labels))
+
     def calculate_new_limits(self, evt):
         # Just grab bounding box
         lastx, lasty, ax = self._xy_press[0]
@@ -845,14 +743,19 @@ class MPLInteraction:
         # on_release coordinates, button, ...
         self.eventrelease = evt
 
-        xmin, ymin = self.eventpress.xdata, self.eventpress.ydata
-        xmax, ymax = evt.xdata, evt.ydata
+        # xmin, ymin = self.eventpress.xdata, self.eventpress.ydata
+        # xmax, ymax = evt.xdata, evt.ydata
+
+        xmin, xmax, ymin, ymax = self.calculate_new_limits(evt)
 
         if self._trigger_extraction and self.allow_extraction:
             # A dirty way to prevent users from trying to extract data from the wrong places
             if not self.mark_annotation:
                 if self._callbacks.get("CTRL", False) and isinstance(self._callbacks["CTRL"], str):
-                    pub.sendMessage(self._callbacks["CTRL"], rect=[xmin, xmax, ymin, ymax])
+                    x_labels, y_labels = self.get_labels()
+                    pub.sendMessage(
+                        self._callbacks["CTRL"], rect=[xmin, xmax, ymin, ymax], x_labels=x_labels, y_labels=y_labels
+                    )
                 elif self.plotName in ["MSDT", "2D"] and (
                     self.eventpress.xdata != evt.xdata and self.eventpress.ydata != evt.ydata
                 ):
@@ -862,20 +765,19 @@ class MPLInteraction:
             self.canvas.draw()
             return
         elif self._trigger_extraction and not self.allow_extraction:
-            logger.warning("Cannot extract data at this moment...")
+            LOGGER.warning("Cannot extract data at this moment...")
             self.canvas.draw()
             return
 
+        # send annotation
         if self._trigger_extraction and not self.allow_extraction and self.mark_annotation:
             pub.sendMessage("editor.mark.annotation", xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
-
-        xmin, xmax, ymin, ymax = self.calculate_new_limits(evt)
 
         # zoom in the plot area
         x, y = evt.x, evt.y
         for lastx, lasty, a in self._xy_press:
             # allow cancellation of the zoom-in if the spatial distance is too small (5 pixels)
-            if (abs(x - lastx) < 5 and evt.key != "y") or (abs(y - lasty) < 5 and evt.key != "x"):
+            if (abs(x - lastx) < 3 and evt.key != "y") or (abs(y - lasty) < 3 and evt.key != "x"):
                 self._xypress = None
                 self.canvas.draw()
                 return
@@ -910,8 +812,13 @@ class MPLInteraction:
             self.canvas.blit(self.zoomAxes.bbox)
             return
 
-        # Use an Overlay to draw a rubberband-like bounding box.
+        if not hasattr(self, "wxoverlay"):
+            self.wxoverlay = None
+            return
+        if not self.wxoverlay:
+            return
 
+        # Use an Overlay to draw a rubberband-like bounding box.
         dc = wx.ClientDC(self.canvas)
         odc = wx.DCOverlay(self.wxoverlay, dc)
         odc.Clear()
@@ -952,197 +859,20 @@ class MPLInteraction:
         # send event
         pub.sendMessage("motion_xy", xpos=evt.xdata, ypos=evt.ydata, plotname=self.plotName)
 
-        # # show x/y axis lines
-        # x, y = evt.xdata, evt.ydata
-        # minx, maxx = self.eventpress.xdata, x  # click-x and actual mouse-x
-        # miny, maxy = self.eventpress.ydata, y  # click-y and actual mouse-y
-        # if minx is not None and maxx is not None and minx > maxx:
-        #     minx, maxx = maxx, minx
-        # if miny is not None and maxy is not None and miny > maxy:
-        #     miny, maxy = maxy, miny
-        # pub.sendMessage("motion_range", dataOut=[minx, maxx, miny, maxy])
-        # if self.show_cursor_cross and (x is not None and y is not None):
-        #     try:
-        #         for _ in self.axes:
-        #             self.horz_line.set_ydata((y, y))
-        #             self.horz_line.set_visible(True)
-        #             self.vert_line.set_xdata((x, x))
-        #             self.vert_line.set_visible(True)
-        #     except Exception:
-        #         pass
-
         # print(evt.xdata, evt.ydata, evt.key, evt.button)
 
         # show rubberband
         # if evt.key in ["x", "y", "ctrl+control"] or evt.button is not None:
-        if evt.button == 1:
+        if evt.button == 1 and self._xy_press and not self.mark_annotation:
             x, y = evt.x, evt.y
             lastx, lasty, a = self._xy_press[0]
             (x1, y1), (x2, y2) = np.clip([[lastx, lasty], [x, y]], a.bbox.min, a.bbox.max)
-            #             _x_zoom = abs(y2 - y1) < 10
-            #             _y_zoom = abs(x2 - x1) < 10
-            if evt.key is not None:  # or _x_zoom or _y_zoom:
-                #                 if evt.key is None and _x_zoom:
-                #                     evt.key = "x"
-                #                 elif evt.key is None and _y_zoom:
-                #                     evt.key = "y"
-                if "x" in evt.key or "alt" in evt.key:  # or _x_zoom:
+            if evt.key is not None:
+                if "x" in evt.key or "alt" in evt.key:
                     y1, y2 = a.bbox.intervaly
-                elif "y" in evt.key or "shift" in evt.key:  # or _y_zoom:
+                elif "y" in evt.key or "shift" in evt.key:
                     x1, x2 = a.bbox.intervalx
             self.draw_rubberband(evt, x1, y1, x2, y2)
-
-        # # exit early if event does not pass criteria
-        # if self.eventpress is None or self.ignore(evt):
-        #     return
-        #
-        # if self.dragged is not None:
-        #     return
-        #
-        # # actual position (with button still pressed)
-        # x, y = evt.xdata, evt.ydata
-        #
-        # if self.show_cursor_cross and (x is not None and y is not None):
-        #     try:
-        #         for _ in self.axes:
-        #             self.horz_line.set_ydata((y, y))
-        #             self.horz_line.set_visible(True)
-        #             self.vert_line.set_xdata((x, x))
-        #             self.vert_line.set_visible(True)
-        #     except Exception:
-        #         pass
-        #
-        # self.prev = x, y
-        #
-        # minx, maxx = self.eventpress.xdata, x  # click-x and actual mouse-x
-        # miny, maxy = self.eventpress.ydata, y  # click-y and actual mouse-y
-        #
-        # if minx is not None and maxx is not None and minx > maxx:
-        #     minx, maxx = maxx, minx
-        # if miny is not None and maxy is not None and miny > maxy:
-        #     miny, maxy = maxy, miny
-        #
-        # if self._is_inside_axes:
-        #     self._last_xy_position = [minx, maxx, miny, maxy]
-        # else:
-        #     try:
-        #         minx, maxx, miny, maxy = self._last_xy_position
-        #     except ValueError:
-        #         return
-        #
-        # # Checks whether values are not empty (or are float)
-        # if not isinstance(minx, float) or not isinstance(maxx, float):
-        #     return
-        # if not isinstance(miny, float) or not isinstance(maxy, float):
-        #     return
-        #
-        # # Changes from a yellow box to a colored line
-        # for axes in self.axes:
-        #     y0, y1 = axes.get_ylim()
-        #     x0, x1 = axes.get_xlim()
-        #
-        # x_width = abs(maxx - minx)
-        # y_height = abs(maxy - miny)
-        #
-        # # print(evt.x, evt.y, evt.xdata, evt.ydata, axes.bbox.min, axes.bbox.max)
-        # # print(self._xy_press)
-        #
-        # # X-axis line
-        # if abs(maxy - miny) < abs(y1 - y0) * self.crossover_percent:
-        #     self.span = "horizontal"
-        #     # avg = (miny + maxy) / 2
-        #     if y is not None and y > miny:
-        #         avg = miny
-        #     else:
-        #         avg = maxy
-        #     miny = avg
-        #     maxy = avg
-        #     for to_draw in self.to_draw:
-        #         if wx.GetKeyState(wx.WXK_CONTROL):
-        #             to_draw.set_edgecolor(self.plot_parameters["extract_color"])
-        #             to_draw.set_linewidth(self.plot_parameters["extract_line_width"])
-        #             to_draw.set_alpha(0.9)
-        #             to_draw.set_linestyle("-")
-        #         else:
-        #             to_draw.set_edgecolor(self.plot_parameters["zoom_color_horizontal"])
-        #             to_draw.set_linewidth(self.plot_parameters["zoom_line_width"])
-        #             to_draw.set_alpha(0.9)
-        #             to_draw.set_linestyle("-")
-        #
-        # # Y-axis line
-        # elif abs(maxx - minx) < abs(x1 - x0) * self.crossover_percent:
-        #     self.span = "vertical"
-        #     avg = (minx + maxx) / 2
-        #     if x is not None and x > minx:
-        #         avg = minx
-        #     else:
-        #         avg = maxx
-        #     minx = avg
-        #     maxx = avg
-        #     for to_draw in self.to_draw:
-        #         to_draw.set_edgecolor(self.plot_parameters["zoom_color_vertical"])
-        #         to_draw.set_linewidth(self.plot_parameters["zoom_line_width"])
-        #         to_draw.set_alpha(0.9)
-        #         to_draw.set_linestyle("-")
-        # # box
-        # else:
-        #     self.span = "box"
-        #     for to_draw in self.to_draw:
-        #         if wx.GetKeyState(wx.WXK_CONTROL):
-        #             to_draw.set_edgecolor(self.plot_parameters["extract_color"])
-        #             to_draw.set_facecolor(self.plot_parameters["extract_color"])
-        #             to_draw.set_linewidth(self.plot_parameters["extract_line_width"])
-        #             to_draw.set_alpha(0.4)
-        #             to_draw.set_linestyle("--")
-        #         else:
-        #             to_draw.set_edgecolor(self.plot_parameters["zoom_color_box"])
-        #             to_draw.set_facecolor(self.plot_parameters["zoom_color_box"])
-        #             to_draw.set_linewidth(self.plot_parameters["zoom_line_width"])
-        #             to_draw.set_alpha(0.2)
-        #             to_draw.set_linestyle("-")
-        #
-        # # set size parameters
-        # for to_draw in self.to_draw:
-        #     to_draw.set_x(minx)  # set lower left of box
-        #     to_draw.set_y(miny)
-        #     to_draw.set_width(maxx - minx)  # set width and height of box
-        #     to_draw.set_height(maxy - miny)
-        #
-        #     # Send to main window
-        #     pub.sendMessage("motion_range", dataOut=[minx, maxx, miny, maxy])
-        #
-        # if self.onmove_callback is not None and evt.inaxes.lines != []:
-        #     # gather the values to report in a selection event
-        #     value = []
-        #     x0, y0, x1, y1 = evt.inaxes.dataLim.bounds
-        #     dat = evt.inaxes.lines[0].get_ydata()
-        #     npts = len(dat)
-        #     indx = int(round((npts - 1) * (evt.xdata - x0) / (x1 - x0)))
-        #     if indx > (npts - 1):
-        #         indx = npts - 1
-        #     if indx < 0:
-        #         indx = 0
-        #     for line in evt.inaxes.lines:
-        #         dat = line.get_ydata()
-        #         if indx < len(dat):
-        #             value.append(dat[indx])
-        #     if value == []:
-        #         value = 0.0
-        #     self.onmove_callback(minx, maxx, value, miny, maxy)  # zeros are for consistency with box zoom
-        #
-        # self.update()
-        # return False
-
-    def set_active(self, active):
-        """ Use this to activate / deactivate the RectangleSelector
-
-            from your program with an boolean variable 'active'.
-        """
-        self.active = active
-
-    def get_active(self):
-        """ to get status of active mode (boolean variable)"""
-        return self.active
 
     def update(self):
         """draw using newfangled blit or oldfangled draw depending on useblit"""
@@ -1151,14 +881,6 @@ class MPLInteraction:
                 self.canvas.restore_region(self.background)
             for axes, to_draw in zip(self.axes, self.to_draw):
                 axes.draw_artist(to_draw)
-
-            if self.show_cursor_cross:
-                try:
-                    for axes in self.axes:
-                        axes.draw_artist(self.horz_line)
-                        axes.draw_artist(self.vert_line)
-                except Exception:
-                    pass
             self.canvas.blit(self.canvas.figure.bbox)
         else:
             self.canvas.draw_idle()

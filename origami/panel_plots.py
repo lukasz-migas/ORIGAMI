@@ -96,10 +96,11 @@ from origami.visuals.mpl.normalize import MidpointNormalize
 from origami.visuals.mpl.plot_misc import PlotMixed
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.visuals.mpl.plot_spectrum import PlotSpectrum
-from origami.gui_elements.views.view_base import ViewBase
-from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
 from origami.visuals.mpl.plot_heatmap_2d import PlotHeatmap2D
 from origami.visuals.mpl.plot_heatmap_3d import PlotHeatmap3D
+from origami.gui_elements.views.view_spectrum import ViewMobilogram
+from origami.gui_elements.views.view_spectrum import ViewChromatogram
+from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
 from origami.gui_elements.dialog_customise_plot import DialogCustomisePlot
 
 logger = logging.getLogger(__name__)
@@ -109,6 +110,38 @@ logger = logging.getLogger(__name__)
 
 class PanelPlots(wx.Panel):
     """Plotting panel instance"""
+
+    view_ms = None
+    plot_ms = None
+    panel_rt = None
+    panel_rt_top_rt = None
+    panel_rt_bottom_ms = None
+    view_rt_rt = None
+    view_rt_ms = None
+    plot_rt_rt = None
+    plot_rt_ms = None
+    panel_dt = None
+    panel_dt_top_dt = None
+    panel_dt_bottom_ms = None
+    view_dt_dt = None
+    view_dt_ms = None
+    plot_dt_dt = None
+    plot_dt_ms = None
+    panel_heatmap = None
+    plot_heatmap = None
+    view_heatmap = None
+    panel_msdt = None
+    plot_msdt = None
+    view_msdt = None
+    panel_overlay = None
+    plot_overlay = None
+    view_overlay = None
+    panel_heatmap_3d = None
+    plot_heatmap_3d = None
+    view_heatmap_3d = None
+    panel_annotated = None
+    plot_annotated = None
+    view_annotated = None
 
     def __init__(self, parent, config, presenter):
         wx.Panel.__init__(
@@ -134,18 +167,51 @@ class PanelPlots(wx.Panel):
         self.window_plot1D = "MS"
         self.window_plot2D = "2D"
         self.window_plot3D = "3D"
-        self.make_notebook()
+        self.plot_notebook = self.make_notebook()
         self.current_plot = self.plot_ms
         self.plot_objs = dict()
 
-        # bind events
-        self.plot_notebook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.on_page_changed)
-
-        # initialise
-        self.on_page_changed(evt=None)
+        self._resizing = False
+        self._timer = wx.Timer(self, True)
+        self.Bind(wx.EVT_TIMER, self._on_late_resize, self._timer)
+        #         self._timer.Bind(wx.EVT_TIMER, self._on_late_resize)
 
         # initialise pub
         pub.subscribe(self._update_label_position, "update_text_position")
+
+        self.plot_notebook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.on_page_changed)
+        self.Bind(wx.EVT_SIZE, self.on_resize)
+
+        # initialise
+        self.setup_splitter_windows()
+        self.on_page_changed(evt=None)
+
+    def on_resize(self, evt):
+        """Slightly modified resized event which reduces the number of `EVT_SIZE` triggers that can significantly
+        affect performance since each plot object in ORIGAMI is automatically resized too"""
+        if self._resizing:
+            evt.Skip()
+            self._resizing = False
+        else:
+            if not self._timer.IsRunning():
+                self._timer.StartOnce(350)
+
+    def _on_late_resize(self, evt):
+        """Triggers additional resize after timer event has run out"""
+        # trigger resize event
+        self._resizing = True
+        self.PostSizeEvent()
+        self.setup_splitter_windows()
+
+    def setup_splitter_windows(self):
+        """Update the size(s) of splitter windows after the window size has changed or at the startup of the program"""
+        _, h = self.panel_rt.GetSize()
+        h = h // 2
+        self.panel_rt.SetMinimumPaneSize(h)
+
+        _, h = self.panel_dt.GetSize()
+        h = h // 2
+        self.panel_dt.SetMinimumPaneSize(h)
 
     def setup_handling_and_processing(self):
         self.data_processing = self.view.data_processing
@@ -235,99 +301,113 @@ class PanelPlots(wx.Panel):
         """Make notebook panel"""
 
         # Setup notebook
-        self.plot_notebook = wx.Notebook(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0)
+        plot_notebook = wx.Notebook(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0)
 
         # Setup PLOT MS
-        self.view_ms = ViewMassSpectrum(self.plot_notebook, self.config._plotSettings["MS"]["gui_size"], self.config)
-        self.plot_notebook.AddPage(self.view_ms._panel, "Mass spectrum", False)
-        self.plot_ms = self.view_ms._plot
+        self.view_ms = ViewMassSpectrum(
+            plot_notebook,
+            self.config._plotSettings["MS"]["gui_size"],
+            self.config,
+            allow_extraction=True,
+            callbacks=dict(CTRL=None),
+        )
+        plot_notebook.AddPage(self.view_ms.panel, "Mass spectrum", False)
+        self.plot_ms = self.view_ms.figure
 
         # Setup PLOT RT
-        self.panel_rt = wx.SplitterWindow(self.plot_notebook, wx.ID_ANY, style=wx.TAB_TRAVERSAL | wx.SP_3DSASH)
-        self.plot_notebook.AddPage(self.panel_rt, "Chromatogram", False)  # RT
+        self.panel_rt = wx.SplitterWindow(plot_notebook, wx.ID_ANY, style=wx.TAB_TRAVERSAL | wx.SP_3DSASH)
+        plot_notebook.AddPage(self.panel_rt, "Chromatogram", False)  # RT
 
-        self.panel_rt_top_rt, self.plot_rt_rt, __ = self.make_1d_plot(
-            self.panel_rt, self.config._plotSettings["RT"]["gui_size"]
+        self.view_rt_rt = ViewChromatogram(
+            self.panel_rt,
+            self.config._plotSettings["RT"]["gui_size"],
+            self.config,
+            allow_extraction=True,
+            callbacks=dict(CTRL=None),
         )
+        self.panel_rt_top_rt = self.view_rt_rt.panel
+        self.plot_rt_rt = self.view_rt_rt.figure
 
-        self.view_rt_ms = ViewMassSpectrum(self.panel_rt, self.config._plotSettings["MS (DT/RT)"]["gui_size"], self.config)
-        self.plot_rt_ms = self.view_ms._plot
-        self.panel_rt_bottom_ms = self.view_ms._panel
+        self.view_rt_ms = ViewMassSpectrum(
+            self.panel_rt, self.config._plotSettings["MS (DT/RT)"]["gui_size"], self.config, allow_extraction=False
+        )
+        self.panel_rt_bottom_ms = self.view_rt_ms.panel
+        self.plot_rt_ms = self.view_rt_ms.figure
 
-#         self.panel_rt_bottom_ms, self.plot_rt_ms, __ = self.make_1d_plot(
-#             self.panel_rt, self.config._plotSettings["MS (DT/RT)"]["gui_size"]
-#         )
-        #
         self.panel_rt.SplitHorizontally(self.panel_rt_top_rt, self.panel_rt_bottom_ms)
-        self.panel_rt.SetMinimumPaneSize(300)
         self.panel_rt.SetSashGravity(0.5)
         self.panel_rt.SetSashSize(5)
 
         # Setup PLOT 1D
-        self.panel_dt = wx.SplitterWindow(self.plot_notebook, wx.ID_ANY, style=wx.TAB_TRAVERSAL | wx.SP_3DSASH)
-        self.plot_notebook.AddPage(self.panel_dt, "Mobilogram", False)  # 1D
+        self.panel_dt = wx.SplitterWindow(plot_notebook, wx.ID_ANY, style=wx.TAB_TRAVERSAL | wx.SP_3DSASH)
+        plot_notebook.AddPage(self.panel_dt, "Mobilogram", False)  # 1D
 
-        self.panel_dt_top_dt, self.plot_dt_dt, __ = self.make_1d_plot(
-            self.panel_dt, self.config._plotSettings["DT"]["gui_size"]
+        self.view_dt_dt = ViewMobilogram(
+            self.panel_dt,
+            self.config._plotSettings["DT"]["gui_size"],
+            self.config,
+            allow_extraction=True,
+            callbacks=dict(CTRL=None),
         )
+        self.panel_dt_top_dt = self.view_dt_dt.panel
+        self.plot_dt_dt = self.view_dt_dt.figure
 
-        self.view_dt_ms = ViewMassSpectrum(self.panel_dt, self.config._plotSettings["MS (DT/RT)"]["gui_size"], self.config)
-        self.plot_dt_ms = self.view_ms._plot
-        self.panel_dt_bottom_ms = self.view_ms._panel
-
-#         self.panel_dt_bottom_ms, self.plot_dt_ms, __ = self.make_1d_plot(
-#             self.panel_dt, self.config._plotSettings["MS (DT/RT)"]["gui_size"]
-#         )
+        self.view_dt_ms = ViewMassSpectrum(
+            self.panel_dt, self.config._plotSettings["MS (DT/RT)"]["gui_size"], self.config, allow_extraction=False
+        )
+        self.plot_dt_ms = self.view_dt_ms.figure
+        self.panel_dt_bottom_ms = self.view_dt_ms.panel
 
         self.panel_dt.SplitHorizontally(self.panel_dt_top_dt, self.panel_dt_bottom_ms)
-        self.panel_dt.SetMinimumPaneSize(300)
         self.panel_dt.SetSashGravity(0.5)
         self.panel_dt.SetSashSize(5)
 
         # Setup PLOT 2D
         self.panel_heatmap, self.plot_heatmap, __ = self.make_heatmap_2d_plot(
-            self.plot_notebook, self.config._plotSettings["2D"]["gui_size"]
+            plot_notebook, self.config._plotSettings["2D"]["gui_size"]
         )
-        self.plot_notebook.AddPage(self.panel_heatmap, "Heatmap", False)
+        plot_notebook.AddPage(self.panel_heatmap, "Heatmap", False)
 
         # Setup PLOT DT/MS
         self.panel_msdt, self.plot_msdt, __ = self.make_heatmap_2d_plot(
-            self.plot_notebook, self.config._plotSettings["DT/MS"]["gui_size"]
+            plot_notebook, self.config._plotSettings["DT/MS"]["gui_size"]
         )
-        self.plot_notebook.AddPage(self.panel_msdt, "DT/MS", False)
+        plot_notebook.AddPage(self.panel_msdt, "DT/MS", False)
 
         # Setup PLOT WATERFALL
         self.panel_overlay, self.plot_overlay, __ = self.make_base_plot(
-            self.plot_notebook, self.config._plotSettings["Waterfall"]["gui_size"]
+            plot_notebook, self.config._plotSettings["Waterfall"]["gui_size"]
         )
-        self.plot_notebook.AddPage(self.panel_overlay, "Waterfall", False)
+        plot_notebook.AddPage(self.panel_overlay, "Waterfall", False)
 
         # Setup PLOT 3D
         self.panel_heatmap_3d, self.plot_heatmap_3d, __ = self.make_heatmap_3d_plot(
-            self.plot_notebook, self.config._plotSettings["3D"]["gui_size"]
+            plot_notebook, self.config._plotSettings["3D"]["gui_size"]
         )
-        self.plot_notebook.AddPage(self.panel_heatmap_3d, "Heatmap (3D)", False)
+        plot_notebook.AddPage(self.panel_heatmap_3d, "Heatmap (3D)", False)
 
         # Other
         self.panel_annotated, self.plot_annotated, __ = self.make_base_plot(
-            self.plot_notebook, self.config._plotSettings["2D"]["gui_size"]
+            plot_notebook, self.config._plotSettings["2D"]["gui_size"]
         )
-        self.plot_notebook.AddPage(self.panel_annotated, "Annotated", False)
+        plot_notebook.AddPage(self.panel_annotated, "Annotated", False)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(self.plot_notebook, 1, wx.EXPAND | wx.ALL, 1)
+        main_sizer.Add(plot_notebook, 1, wx.EXPAND | wx.ALL, 1)
         self.SetSizer(main_sizer)
         self.Layout()
         self.Show(True)
 
         # now that we set sizer, we can get window size
-        panel_size = self.plot_notebook.GetSize()[1]
+        panel_size = plot_notebook.GetSize()[1]
         half_size = (panel_size - 50) / 2
 
         self.panel_dt.SetMinimumPaneSize(half_size)
         self.panel_rt.SetMinimumPaneSize(half_size)
 
         self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
+
+        return plot_notebook
 
     def make_base_plot(self, parent, figsize):
         """Make basic plot"""
@@ -2643,8 +2723,8 @@ class PanelPlots(wx.Panel):
             plot_obj = self.get_plot_from_name(show_in_window)
 
         plt_kwargs["allow_extraction"] = kwargs.pop("allow_extraction", True)
-        if show_in_window == "MS":
-
+        #         if show_in_window == "MS":
+        if plot_obj == self.plot_ms:
             self.view_ms.plot(msX, msY, **kwargs, **plt_kwargs)
             # window = self.config.panelNames["MS"]
             # plot_size_key = "MS"
@@ -2653,14 +2733,18 @@ class PanelPlots(wx.Panel):
             #             except AttributeError:
             #                 self.view_ms.plot(msX, msY, allow_extraction=True, **plt_kwargs)
             return
-        elif show_in_window == "MS_RT":
-            window = self.config.panelNames["RT"]
+        elif plot_obj == self.plot_rt_ms:
+            #         elif show_in_window == "MS_RT":
+            #             window = self.config.panelNames["RT"]
+            #             plot_size_key = "MS (DT/RT)"
             plt_kwargs["allow_extraction"] = False
-            plot_size_key = "MS (DT/RT)"
-        elif show_in_window == "MS_DT":
-            window = self.config.panelNames["1D"]
+            self.view_rt_ms.plot(msX, msY, **kwargs, **plt_kwargs)
+        #         elif show_in_window == "MS_DT":
+        #             window = self.config.panelNames["1D"]
+        #             plot_size_key = "MS (DT/RT)"
+        elif plot_obj == self.plot_dt_ms:
             plt_kwargs["allow_extraction"] = False
-            plot_size_key = "MS (DT/RT)"
+            self.view_dt_ms.plot(msX, msY, **kwargs, **plt_kwargs)
         else:
             window = None
             if show_in_window == "LESA":
@@ -2733,7 +2817,6 @@ class PanelPlots(wx.Panel):
         plot="1D",
         **kwargs,
     ):
-
         if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
             plot_obj = kwargs.get("plot_obj")
         else:
@@ -2749,6 +2832,10 @@ class PanelPlots(wx.Panel):
         # get kwargs
         plt_kwargs = self._buildPlotParameters(plotType="1D")
         plt_kwargs["allow_extraction"] = kwargs.pop("allow_extraction", True)
+
+        if plot_obj == self.plot_dt_dt:
+            self.view_dt_dt.plot(dtX, dtY, **plt_kwargs)
+            return
 
         if not full_repaint:
             try:
@@ -2805,6 +2892,10 @@ class PanelPlots(wx.Panel):
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType="1D")
         plt_kwargs["allow_extraction"] = kwargs.pop("allow_extraction", True)
+
+        if plot_obj == self.plot_rt_rt:
+            self.view_rt_rt.plot(rtX, rtY, **plt_kwargs)
+            return
 
         if not full_repaint:
             try:

@@ -3,7 +3,6 @@
 """
 # Standard library imports
 import os
-
 # import string
 import ctypes
 from enum import IntEnum

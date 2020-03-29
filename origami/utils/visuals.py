@@ -5,41 +5,12 @@ import numpy as np
 from origami.utils.check import isbool
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
+from origami.visuals.utilities import y_tick_fmt
 
 
-def prettify_tick_format(tick_labels):
-    increment = 1000
-
-    def compute_divider(value):
-        divider = 1000000000
-        value = abs(value)
-        while value == value % divider:
-            divider = divider / increment
-        return len(str(int(divider))) - len(str(int(divider)).rstrip("0"))
-
-    def convert_divider_to_str(value, exp_value):
-        if exp_value in [0, 1, 2]:
-            if value <= 1:
-                return f"{value:.2g}".replace("e", "E")
-            elif value <= 100:
-                return f"{value:.1g}".replace("e", "E")
-            elif value <= 1000:
-                return f"{value:0g}".replace("e", "E")
-            return value
-        elif exp_value in [3, 4, 5]:
-            return f"{value / 1000:.1f}k"
-        elif exp_value in [6, 7, 8]:
-            return f"{value / 1000000:.0f}k"
-        elif exp_value in [9, 10, 11, 12]:
-            return f"{value / 1000000000:.0f}M"
-        else:
-            print(exp_value, value)
-
-    _tick_labels = []
-    for value in tick_labels:
-        _tick_labels.append(convert_divider_to_str(value, compute_divider(value)))
-
-    return _tick_labels
+def prettify_tick_format(tick_values):
+    """Nicely formats tick labels"""
+    return [y_tick_fmt(value) for value in tick_values]
 
 
 def calculate_label_position(xlist, ylist, xy_loc_multiplier=None):
