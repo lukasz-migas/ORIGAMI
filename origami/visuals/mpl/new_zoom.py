@@ -863,7 +863,7 @@ class MPLInteraction:
 
         # show rubberband
         # if evt.key in ["x", "y", "ctrl+control"] or evt.button is not None:
-        if evt.button == 1 and self._xy_press and not self.mark_annotation:
+        if evt.button == 1 and self._xy_press:  # and not self.mark_annotation:
             x, y = evt.x, evt.y
             lastx, lasty, a = self._xy_press[0]
             (x1, y1), (x2, y2) = np.clip([[lastx, lasty], [x, y]], a.bbox.min, a.bbox.max)

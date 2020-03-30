@@ -9,10 +9,9 @@ from origami.visuals.mpl.base import PlotBase
 
 
 class ViewBase(ABC):
-    def __init__(self, parent, figsize, config, title, **kwargs):
+    def __init__(self, parent, figsize, title, **kwargs):
         self.parent = parent
         self.figsize = figsize
-        self.config = config
         self.title = title
         self.DATA_KEYS = None
 
@@ -109,6 +108,15 @@ class ViewBase(ABC):
             self.document_name = kwargs.pop("document")
         if "dataset" in kwargs:
             self.document_name = kwargs.pop("dataset")
+
+    def set_labels(self, **kwargs):
+        """Update plot labels without triggering replot"""
+        if "x_label" in kwargs:
+            self._x_label = kwargs.pop("x_label")
+        if "y_label" in kwargs:
+            self._y_label = kwargs.pop("y_label")
+        if "z_label" in kwargs:
+            self._z_label = kwargs.pop("z_label")
 
     def add_labels(self, x, y, text, **kwargs):
         """Add text label to the plot"""

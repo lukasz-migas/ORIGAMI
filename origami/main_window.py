@@ -141,6 +141,7 @@ from origami.utils.check import get_latest_version
 from origami.panel_peaklist import PanelPeaklist
 from origami.panel_textlist import PanelTextlist
 from origami.panel_multi_file import PanelMultiFile
+from origami.config.environment import ENV
 from origami.panel_document_tree import PanelDocumentTree
 from origami.readers.io_text_files import check_file_type
 from origami.processing.data_handling import DataHandling
@@ -323,7 +324,6 @@ class MainWindow(wx.Frame):
 
         # Load other parts
         self.window_mgr.Update()
-        # self.makeBindings()
         self.make_statusbar()
         self.make_menubar()
         self.make_shortcuts()
@@ -1664,12 +1664,11 @@ class MainWindow(wx.Frame):
 
     def on_close(self, evt, **kwargs):
 
-        n_documents = len(self.presenter.documentsDict)
+        n_documents = len(ENV)
         if n_documents > 0 and not kwargs.get("ignore_warning", False):
             verb_form = {"1": "is"}.get(str(n_documents), "are")
             message = (
-                "There {} {} document(s) open.\n".format(verb_form, len(self.presenter.documentsDict))
-                + "Are you sure you want to continue?"
+                "There {} {} document(s) open.\n".format(verb_form, len(ENV)) + "Are you sure you want to continue?"
             )
             msgDialog = DialogNotifyOpenDocuments(self, presenter=self.presenter, message=message)
             dlg = msgDialog.ShowModal()
@@ -1687,7 +1686,7 @@ class MainWindow(wx.Frame):
 
         # Clear-up dictionary
         try:
-            self.presenter.documentsDict.clear()
+            ENV.clear()
         except Exception as err:
             print(err)
 
@@ -1811,7 +1810,7 @@ class MainWindow(wx.Frame):
             self.SetStatusText("", number=4)
 
     def OnSize(self, evt):
-        self.resized = True  # set dirty
+        self.resized = True
 
     def OnIdle(self, evt):
         if self.resized:
@@ -1888,13 +1887,6 @@ class MainWindow(wx.Frame):
             self.config.importExportParamsWindow_on_off = False
             DialogBox(exceptionTitle="Failed to open panel", exceptionMsg=str(e), type="Error")
             return
-
-    def on_open_sequence_editor(self, evt):
-        #         from origami.gui_elements.panel_sequenceAnalysis import panelSequenceAnalysis
-        #
-        #         self.panelSequenceAnalysis = panelSequenceAnalysis(self, self.presenter, self.config, self.icons)
-        #         self.panelSequenceAnalysis.Show()
-        pass
 
     def on_open_interactive_output_panel(self, evt):
         def startup_module():

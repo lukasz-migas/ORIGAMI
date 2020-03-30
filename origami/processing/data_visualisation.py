@@ -610,13 +610,13 @@ class DataVisualization:
     #             itemInfo = self.on_get_item_information(row)
     #             try:
     #                 ion_title = itemInfo["document"]
-    #                 document = self.presenter.documentsDict[ion_title]
+    #                 document = ENV[ion_title]
     #
     #                 # get data
     #                 data = document.IMS2D
     #             except Exception:
     #                 document_title, ion_title = re.split(": ", itemInfo["document"])
-    #                 document = self.presenter.documentsDict[document_title]
+    #                 document = ENV[document_title]
     #                 try:
     #                     data = document.IMS2DcompData[ion_title]
     #                 except KeyError:

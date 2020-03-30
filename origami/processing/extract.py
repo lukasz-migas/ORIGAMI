@@ -1,6 +1,13 @@
 """Processing module that handles data extract"""
+# Standard library imports
+import logging
+
 # Third-party imports
 import numpy as np
+
+# Local imports
+
+LOGGER = logging.getLogger(__name__)
 
 
 class ExtractionHandler:

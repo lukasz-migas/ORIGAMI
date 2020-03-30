@@ -45,6 +45,7 @@ from origami.processing.utils import get_maximum_value_in_range
 from origami.utils.converters import str2num
 from origami.utils.converters import byte2str
 from origami.utils.exceptions import MessageError
+from origami.config.environment import ENV
 from origami.processing.imaging import ImagingNormalizationProcessor
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.dialog_select_document import DialogSelectDocument
@@ -91,6 +92,9 @@ class DataHandling:
         self.pool_data = None
 
         # Setup listeners
+        pub.subscribe(self.extract_from_plot_1D_DT, "extract.spectrum.from.mobilogram")
+        pub.subscribe(self.extract_from_plot_1D_RT, "extract.spectrum.from.chromatogram")
+        pub.subscribe(self.extract_from_plot_1D_MS, "extract.heatmap.from.spectrum")
         pub.subscribe(self.extract_from_plot_1D, "extract_from_plot_1D")
         pub.subscribe(self.extract_from_plot_2D, "extract_from_plot_2D")
 
@@ -192,7 +196,7 @@ class DataHandling:
 
         document_title = byte2str(document_title)
         try:
-            document = self.presenter.documentsDict[document_title]
+            document = ENV[document_title]
         except KeyError:
             logger.error(f"Document {document_title} does not exist")
             return None
@@ -412,12 +416,11 @@ class DataHandling:
 
         document_list = []
         for document_type in document_types:
-            for document_title in self.presenter.documentsDict:
-                if self.presenter.documentsDict[document_title].dataType == document_type and document_format is None:
+            for document_title in ENV:
+                if ENV[document_title].dataType == document_type and document_format is None:
                     document_list.append(document_title)
                 elif (
-                    self.presenter.documentsDict[document_title].dataType == document_type
-                    and self.presenter.documentsDict[document_title].fileFormat == document_format
+                    ENV[document_title].dataType == document_type and ENV[document_title].fileFormat == document_format
                 ):
                     document_list.append(document_title)
 
@@ -1443,6 +1446,10 @@ class DataHandling:
 
     def on_update_document(self, document, expand_item="document", expand_item_title=None):
 
+        # update dictionary
+        ENV[document.title] = document
+        self.presenter.currentDoc = document.title
+
         if expand_item == "document":
             self.documentTree.add_document(docData=document, expandItem=document)
         elif expand_item == "ions":
@@ -1493,13 +1500,7 @@ class DataHandling:
                 )
         # just set data
         elif expand_item == "no_refresh":
-            self.documentTree.set_document(
-                document_old=self.presenter.documentsDict[document.title], document_new=document
-            )
-
-        # update dictionary
-        self.presenter.documentsDict[document.title] = document
-        self.presenter.currentDoc = document.title
+            self.documentTree.set_document(document_old=ENV[document.title], document_new=document)
 
     def extract_from_plot_1D(self, xmin, xmax, ymax):
         self.plot_page = self.plotsPanel._get_page_text()
@@ -1519,44 +1520,51 @@ class DataHandling:
 
         xmin, xmax = check_value_order(xmin, xmax)
 
-        # Extract mass spectrum from mobilogram window
-        if self.plot_page == "Mobilogram":
-            self.extract_from_plot_1D_DT(xmin, xmax, document)
+    #         # Extract heatmap from mass spectrum window
+    #         if self.plot_page == "Mass spectrum":
+    #             self.extract_from_plot_1D_MS(xmin, xmax, document)
+    # # Extract mass spectrum from chromatogram window - Linear DT files
+    # elif self.plot_page == "Chromatogram" and document.dataType == "Type: Multifield Linear DT":
+    #     self.extract_from_plot_1D_RT_DT(xmin, xmax, document)
 
-        # Extract heatmap from mass spectrum window
-        elif self.plot_page == "Mass spectrum":
-            self.extract_from_plot_1D_MS(xmin, xmax, document)
+    # # Extract mass spectrum from chromatogram window
+    # elif self.plot_page == "Chromatogram" and document.dataType != "Type: Multifield Linear DT":
+    #     self.extract_from_plot_1D_RT(xmin, xmax, document)
 
-        # Extract mass spectrum from chromatogram window - Linear DT files
-        elif self.plot_page == "Chromatogram" and document.dataType == "Type: Multifield Linear DT":
-            self.extract_from_plot_1D_RT_DT(xmin, xmax, document)
+    def extract_from_plot_1D_DT(self, rect, x_labels, y_labels):
+        """Extracts mass spectrum based on selection window in a mobilogram plot"""
+        if len(x_labels) > 1:
+            raise ValueError("Cannot handle multiple labels")
 
-        # Extract mass spectrum from chromatogram window
-        elif self.plot_page == "Chromatogram" and document.dataType != "Type: Multifield Linear DT":
-            self.extract_from_plot_1D_RT(xmin, xmax, document)
+        # unpack values
+        x_label = x_labels[0]
+        x_min, x_max, _, _ = rect
 
-    def extract_from_plot_1D_DT(self, xmin, xmax, document):
-        dt_label = self.plotsPanel.plot_dt_dt.plot_labels.get("xlabel", "Drift time (bins)")
-
-        if dt_label == "Drift time (bins)":
-            dt_start = np.ceil(xmin).astype(int)
-            dt_end = np.floor(xmax).astype(int)
+        if x_label == "Drift time (bins)":
+            dt_start = np.floor(x_min).astype(int)
+            dt_end = np.ceil(x_max).astype(int)
         else:
-            dt_start = xmin
-            dt_end = xmax
+            dt_start = x_min
+            dt_end = x_max
 
-        self.on_extract_MS_from_mobilogram(dt_start, dt_end, units=dt_label)
+        self.on_extract_MS_from_mobilogram(dt_start, dt_end, units=x_label)
 
-    def extract_from_plot_1D_MS(self, xmin, xmax, document):
+    def extract_from_plot_1D_MS(self, rect, x_labels, y_labels):
+        if len(x_labels) > 1:
+            raise ValueError("Cannot handle multiple labels")
 
-        document_title = document.title
+        # unpack values
+        x_label = x_labels[0]
+        x_min, x_max, _, _ = rect
+        document = ENV.on_get_document()
+        document_title = ENV.current
 
         if document.fileFormat == "Format: Thermo (.RAW)":
             logger.error("Cannot extract MS data for Thermo (.RAW) files yet...")
             return
 
-        mz_start = np.round(xmin, 2)
-        mz_end = np.round(xmax, 2)
+        mz_start = np.round(x_min, 2)
+        mz_end = np.round(x_max, 2)
 
         # Make sure the document has MS in first place (i.e. Text)
         if not document.gotMS:
@@ -1640,21 +1648,29 @@ class DataHandling:
             plot="RT",
         )
 
-    def extract_from_plot_1D_RT(self, xmin, xmax, document):
-        rt_label = self.plotsPanel.plot_rt_rt.plot_labels.get("xlabel", "Scans")
+    def extract_from_plot_1D_RT(self, rect, x_labels, y_labels):
+        """Extract mass spectrum from chromatogram"""
+        if len(x_labels) > 1:
+            raise ValueError("Cannot handle multiple labels")
+
+        # unpack values
+        x_label = x_labels[0]
+        x_min, x_max, _, _ = rect
+
+        document = ENV.on_get_document()
 
         # Extract data
         if document.fileFormat == "Format: Thermo (.RAW)":
             raise MessageError("Error", "Cannot extract chromatographic data from Thermo (.raw) files yet")
 
-        if rt_label in ["Collision Voltage (V)"]:
-            raise MessageError("Error", f"Cannot extract MS data when the x-axis is in {rt_label} format")
+        if x_label in ["Collision Voltage (V)"]:
+            raise MessageError("Error", f"Cannot extract MS data when the x-axis is in {x_label} format")
 
-        if rt_label == "Scans":
-            xmin = np.ceil(xmin).astype(int)
-            xmax = np.floor(xmax).astype(int)
+        if x_label == "Scans":
+            x_min = np.floor(x_min).astype(int)
+            x_max = np.ceil(x_max).astype(int)
 
-        self.on_extract_MS_from_chromatogram(start_scan=xmin, end_scan=xmax, units=rt_label)
+        self.on_extract_MS_from_chromatogram(start_scan=x_min, end_scan=x_max, units=x_label)
 
     def extract_from_plot_2D(self, xy_values):
         self.plot_page = self.plotsPanel._get_page_text()
@@ -2852,7 +2868,7 @@ class DataHandling:
 
     def on_save_all_documents(self):
 
-        for document_title in self.presenter.documentsDict:
+        for document_title in ENV:
             self.on_save_document(document_title, False)
 
     def on_save_document_fcn(self, document_title, save_as=True):
@@ -3206,7 +3222,7 @@ class DataHandling:
         """
         if document is not None:
             document_title = document.title
-            self.presenter.documentsDict[document_title] = document
+            ENV[document_title] = document
 
             if document.fileFormat == "Format: Waters (.raw)":
                 try:

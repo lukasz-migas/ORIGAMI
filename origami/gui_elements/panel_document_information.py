@@ -19,6 +19,7 @@ from origami.styles import make_checkbox
 from origami.utils.converters import num2str
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
+from origami.config.environment import ENV
 
 
 class PanelDocumentInformation(wx.MiniFrame):
@@ -959,7 +960,7 @@ class PanelDocumentInformation(wx.MiniFrame):
                     )
 
         # Update list
-        self.presenter.documentsDict[self.document.title] = self.document
+        ENV[self.document.title] = self.document
 
     def onEnableDisable(self, evt):
         # ---

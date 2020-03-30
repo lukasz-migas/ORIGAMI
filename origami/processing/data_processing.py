@@ -25,6 +25,7 @@ from origami.utils.random import get_random_int
 from origami.utils.converters import str2num
 from origami.utils.exceptions import MessageError
 from origami.processing.UniDec import unidec
+from origami.config.environment import ENV
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.misc_dialogs import DialogSimpleAsk
 
@@ -64,7 +65,7 @@ class DataProcessing:
         self.presenter.currentDoc = self.documentTree.on_enable_document()
         if self.presenter.currentDoc is None or self.presenter.currentDoc == "Documents":
             return None
-        document = self.presenter.documentsDict[self.presenter.currentDoc]
+        document = ENV[self.presenter.currentDoc]
 
         return document
 
@@ -681,7 +682,7 @@ class DataProcessing:
             dataset_title = self.presenter.view.panelPlots.plot1.dataset_name
 
             try:
-                document = self.presenter.documentsDict[document_title]
+                document = ENV[document_title]
             except Exception:
                 return None
 
@@ -706,7 +707,7 @@ class DataProcessing:
 
         if document_title is not None and dataset_title is not None:
 
-            document = self.presenter.documentsDict[document_title]
+            document = ENV[document_title]
             if dataset_title == "Mass Spectrum":
                 document.massSpectrum["annotations"] = annotations
             elif dataset_title == "Mass Spectrum (processed)":
@@ -1627,7 +1628,7 @@ class DataProcessing:
                 document_title = document.title
 
             try:
-                document = self.presenter.documentsDict[document_title]
+                document = ENV[document_title]
             except KeyError:
                 if kwargs.get("notify_of_error", True):
                     DialogBox(

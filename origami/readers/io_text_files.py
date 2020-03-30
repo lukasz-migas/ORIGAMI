@@ -212,7 +212,7 @@ class AnnotatedDataReader:
                 yvals = list(df.iloc[:, 1])
 
             if df.shape[1] > 2:
-                zvals = df.iloc[:, 1::].as_matrix()
+                zvals = df.iloc[:, 1::].values()
 
             if plot_type in ["multi-line", "waterfall", "scatter", "grid-line", "grid-scatter"]:
                 yvals_new = []

@@ -583,3 +583,6 @@ class IconContainer:
 
         # TOOLBAR
         self.iconsLib["bgrToolbar"] = self.getBgrToolbarBitmap()
+
+
+ICONS = IconContainer()

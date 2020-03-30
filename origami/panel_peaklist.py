@@ -59,6 +59,7 @@ from origami.utils.color import convert_rgb_255_to_1
 from origami.utils.labels import get_ion_name_from_label
 from origami.utils.random import get_random_int
 from origami.utils.exceptions import MessageError
+from origami.config.environment import ENV
 from origami.gui_elements.dialog_ask import DialogAsk
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.dialog_color_picker import DialogColorPicker
@@ -777,7 +778,7 @@ class PanelPeaklist(wx.Panel):
                 itemInfo = self.on_get_item_information(row)
                 filename = itemInfo["document"]
                 selectedText = itemInfo["ionName"]
-                document = self.presenter.documentsDict[filename]
+                document = ENV[filename]
                 if not ask_kwargs["keyword"] in ["min_threshold", "max_threshold"]:
                     self.peaklist.SetStringItem(
                         row, self.config.peaklistColNames[ask_kwargs["keyword"]], str(self.ask_value)

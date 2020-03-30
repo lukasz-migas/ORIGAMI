@@ -29,6 +29,7 @@ from origami.ids import ID_removeSelectedPopupDT_RT
 from origami.ids import ID_extractDriftVoltagesForEachIon
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
+from origami.config.environment import ENV
 from origami.gui_elements.misc_dialogs import DialogBox
 
 
@@ -216,7 +217,7 @@ class topPanel(wx.Panel):
         currentDoc = self.presenter.currentDoc
         if currentDoc == "Documents":
             return
-        document = self.presenter.documentsDict[currentDoc]
+        document = ENV[currentDoc]
         # Replot RT for current document
         rtX = document.RT["xvals"]
         rtY = document.RT["yvals"]
@@ -600,7 +601,7 @@ class bottomPanel(wx.Panel):
         if currentDoc == "Documents":
             print("There are no documents in the tree")
             return currentDoc
-        document = self.presenter.documentsDict[currentDoc]
+        document = ENV[currentDoc]
         if document.dataType != "Type: Multifield Linear DT":
             print("Make sure you select the correct dataset - Multifield Linear DT")
             return None
@@ -625,9 +626,9 @@ class bottomPanel(wx.Panel):
                     selectedIon = "".join([str(mzStart), "-", str(mzEnd)])
                     print("".join(["Deleting ", selectedIon, " from ", selectedItem]))
                     try:
-                        del self.presenter.documentsDict[selectedItem].IMS1DdriftTimes[selectedIon]
-                        if len(list(self.presenter.documentsDict[selectedItem].IMS1DdriftTimes.keys())) == 0:
-                            self.presenter.documentsDict[selectedItem].gotExtractedDriftTimes = False
+                        del ENV[selectedItem].IMS1DdriftTimes[selectedIon]
+                        if len(list(ENV[selectedItem].IMS1DdriftTimes.keys())) == 0:
+                            ENV[selectedItem].gotExtractedDriftTimes = False
                     except KeyError:
                         pass
                     self.peaklist.DeleteItem(currentItems)
@@ -635,9 +636,7 @@ class bottomPanel(wx.Panel):
                 else:
                     currentItems -= 1
             try:
-                self.presenter.view.panelDocuments.documents.add_document(
-                    docData=self.presenter.documentsDict[selectedItem]
-                )
+                self.presenter.view.panelDocuments.documents.add_document(docData=ENV[selectedItem])
             except KeyError:
                 pass
         elif evt.GetId() == ID_removeSelectedPopupDT:
@@ -647,9 +646,9 @@ class bottomPanel(wx.Panel):
             selectedIon = "".join([str(mzStart), "-", str(mzEnd)])
             print("".join(["Deleting ", selectedIon, " from ", selectedItem]))
             try:
-                del self.presenter.documentsDict[selectedItem].IMS1DdriftTimes[selectedIon]
-                if len(list(self.presenter.documentsDict[selectedItem].IMS1DdriftTimes.keys())) == 0:
-                    self.presenter.documentsDict[selectedItem].gotExtractedDriftTimes = False
+                del ENV[selectedItem].IMS1DdriftTimes[selectedIon]
+                if len(list(ENV[selectedItem].IMS1DdriftTimes.keys())) == 0:
+                    ENV[selectedItem].gotExtractedDriftTimes = False
             except KeyError:
                 pass
             self.peaklist.DeleteItem(self.currentItem)
@@ -671,17 +670,15 @@ class bottomPanel(wx.Panel):
                 selectedIon = "".join([str(mzStart), "-", str(mzEnd)])
                 print("".join(["Deleting ", selectedIon, " from ", selectedItem]))
                 try:
-                    del self.presenter.documentsDict[selectedItem].IMS1DdriftTimes[selectedIon]
-                    if len(list(self.presenter.documentsDict[selectedItem].IMS1DdriftTimes.keys())) == 0:
-                        self.presenter.documentsDict[selectedItem].gotExtractedDriftTimes = False
+                    del ENV[selectedItem].IMS1DdriftTimes[selectedIon]
+                    if len(list(ENV[selectedItem].IMS1DdriftTimes.keys())) == 0:
+                        ENV[selectedItem].gotExtractedDriftTimes = False
                 except KeyError:
                     pass
                 self.peaklist.DeleteItem(currentItems)
                 currentItems -= 1
                 try:
-                    self.presenter.view.panelDocuments.documents.add_document(
-                        docData=self.presenter.documentsDict[selectedItem]
-                    )
+                    self.presenter.view.panelDocuments.documents.add_document(docData=ENV[selectedItem])
                 except KeyError:
                     pass
 
@@ -695,7 +692,7 @@ class bottomPanel(wx.Panel):
         currentDoc = self.presenter.currentDoc
         if currentDoc == "Documents":
             return
-        document = self.presenter.documentsDict[currentDoc]
+        document = ENV[currentDoc]
         # Replot RT for current document
         msX = document.massSpectrum["xvals"]
         msY = document.massSpectrum["yvals"]

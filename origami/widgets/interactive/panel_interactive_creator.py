@@ -135,6 +135,7 @@ from origami.utils.ranges import find_limits_all
 from origami.utils.ranges import find_limits_list
 from origami.utils.visuals import calculate_label_position
 from origami.utils.converters import str2int
+from origami.config.environment import ENV
 from origami.processing.spectra import crop_1D_data
 from origami.processing.spectra import normalize_1D
 from origami.processing.spectra import linearize_data
@@ -176,7 +177,6 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.icons = icons
         self.presenter = presenter
         self.config = config
-        self.documentsDict = self.presenter.documentsDict
         self.currentPath = None
         self.currentDocumentName = "ORIGAMI"
 
@@ -943,7 +943,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.Bind(wx.EVT_BUTTON, self.on_check_tool, id=ID_interactivePanel_check_menu)
 
         document_label = wx.StaticText(panel, -1, "Document filter:")
-        docList = ["All"] + list(self.documentsDict.keys())
+        docList = ["All"] + list(ENV.keys())
         self.docSelection_combo = wx.Choice(panel, -1, choices=docList, size=(160, -1))
         self.docSelection_combo.SetStringSelection("All")
         self.docSelection_combo.Bind(wx.EVT_CHOICE, self.OnShowOneDataType)
@@ -2839,10 +2839,10 @@ class PanelInteractiveCreator(wx.MiniFrame):
         Populate table with appropriate dataset values
         """
 
-        if len(self.documentsDict) > 0:
-            for key in self.documentsDict:
+        if len(ENV) > 0:
+            for key in ENV:
                 data = []
-                docData = self.documentsDict[key]
+                docData = ENV[key]
                 if docData.gotMS:
                     data = docData.massSpectrum
                     if data.get("cmap", "") == "":
@@ -3148,7 +3148,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
     def __get_item_data(self, name, key, innerKey):
         # Determine which document was selected
         document = self.data_handling.on_get_document(name)
-        #         document = self.documentsDict[name]
+        #         document = ENV[name]
 
         if key == "MS" and innerKey == "":
             docData = deepcopy(document.massSpectrum)
@@ -3307,7 +3307,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
             self.on_annotate_item(evt=None)
 
     def on_update_document_keyword(self, name, key, innerKey, keyword, value):
-        #         document = self.documentsDict[name]
+        #         document = ENV[name]
         document = self.data_handling.on_get_document(name)
 
         if key == "MS" and innerKey == "":
@@ -3379,10 +3379,10 @@ class PanelInteractiveCreator(wx.MiniFrame):
             document.document.tandem_spectra[keyword] = value
 
         # Update dictionary
-        self.presenter.documentsDict[document.title] = document
+        ENV[document.title] = document
 
     def on_update_document(self, name, key, innerKey, **kwargs):
-        #         document = self.documentsDict[name]
+        #         document = ENV[name]
         document = self.data_handling.on_get_document(name)
         colorbar = kwargs.pop("colorbar", False)
 
@@ -3481,7 +3481,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
             )
 
         # Update dictionary
-        self.presenter.documentsDict[document.title] = document
+        ENV[document.title] = document
 
     def on_annotate_item(self, evt=None, itemID=None):
 

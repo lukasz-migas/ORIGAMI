@@ -9,6 +9,7 @@ from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 
 # Local imports
+from origami.config.config import CONFIG
 from origami.visuals.mpl.zoom import ZoomBox
 from origami.visuals.mpl.zoom import GetXValues
 from origami.visuals.mpl.new_zoom import MPLInteraction
@@ -34,7 +35,7 @@ class MPLPanel(wx.Panel):
         self.figure = Figure(figsize=self.figsize)
 
         if "config" in kwargs:
-            self.config = kwargs.pop("config")
+            kwargs.pop("config")
 
         self.window_name = kwargs.pop("window_name", None)
 
@@ -97,18 +98,18 @@ class MPLPanel(wx.Panel):
 
     def _generatePlotParameters(self):
         plot_parameters = {
-            "grid_show": self.config._plots_grid_show,
-            "grid_color": self.config._plots_grid_color,
-            "grid_line_width": self.config._plots_grid_line_width,
-            "extract_color": self.config._plots_extract_color,
-            "extract_line_width": self.config._plots_extract_line_width,
-            "extract_crossover_sensitivity_1D": self.config._plots_extract_crossover_1D,
-            "extract_crossover_sensitivity_2D": self.config._plots_extract_crossover_2D,
-            "zoom_color_vertical": self.config._plots_zoom_vertical_color,
-            "zoom_color_horizontal": self.config._plots_zoom_horizontal_color,
-            "zoom_color_box": self.config._plots_zoom_box_color,
-            "zoom_line_width": self.config._plots_zoom_line_width,
-            "zoom_crossover_sensitivity": self.config._plots_zoom_crossover,
+            "grid_show": CONFIG._plots_grid_show,
+            "grid_color": CONFIG._plots_grid_color,
+            "grid_line_width": CONFIG._plots_grid_line_width,
+            "extract_color": CONFIG._plots_extract_color,
+            "extract_line_width": CONFIG._plots_extract_line_width,
+            "extract_crossover_sensitivity_1D": CONFIG._plots_extract_crossover_1D,
+            "extract_crossover_sensitivity_2D": CONFIG._plots_extract_crossover_2D,
+            "zoom_color_vertical": CONFIG._plots_zoom_vertical_color,
+            "zoom_color_horizontal": CONFIG._plots_zoom_horizontal_color,
+            "zoom_color_box": CONFIG._plots_zoom_box_color,
+            "zoom_line_width": CONFIG._plots_zoom_line_width,
+            "zoom_crossover_sensitivity": CONFIG._plots_zoom_crossover,
         }
         return plot_parameters
 
@@ -345,7 +346,7 @@ class MPLPanel(wx.Panel):
         override_axes_size = kwargs.pop("image_axes_size", None)
 
         if resize_name is not None:
-            resize_size_inch = self.config._plotSettings[resize_name]["resize_size"]
+            resize_size_inch = CONFIG._plotSettings[resize_name]["resize_size"]
 
         if not hasattr(self.plot_base, "get_position"):
             resize_size_inch = None
@@ -367,7 +368,7 @@ class MPLPanel(wx.Panel):
             old_axes_size = self.plot_base.get_position()
             new_axes_size = override_axes_size
             if override_axes_size is None:
-                new_axes_size = self.config._plotSettings[resize_name]["save_size"]
+                new_axes_size = CONFIG._plotSettings[resize_name]["save_size"]
 
             try:
                 self.plot_base.set_position(new_axes_size)

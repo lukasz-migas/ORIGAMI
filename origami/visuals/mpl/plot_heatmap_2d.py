@@ -19,6 +19,7 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import origami.utils.visuals as ut_visuals
 from origami.utils.color import get_font_color
 from origami.utils.color import convert_rgb_1_to_255
+from origami.config.config import CONFIG
 from origami.utils.visuals import prettify_tick_format
 from origami.visuals.mpl.base import PlotBase
 from origami.visuals.mpl.normalize import MidpointNormalize
@@ -103,12 +104,12 @@ class PlotHeatmap2D(PlotBase):
                 raise ValueError("Could not find tick labels")
 
             if self.plot_name == "RMSF":
-                if kwargs["colorbar_position"] not in self.config.colorbar_position_choices[4::]:
+                if kwargs["colorbar_position"] not in CONFIG.colorbar_position_choices[4::]:
                     kwargs["colorbar_position"] = "inside (top-left)"
                     logger.warning(
                         f"RMSF plot can only have in-plot colorbar."
                         f" Set value to the default: {kwargs['colorbar_position']}"
-                        f" Please use one of the `{self.config.colorbar_position_choices[4::]}`"
+                        f" Please use one of the `{CONFIG.colorbar_position_choices[4::]}`"
                     )
 
             # remove colorbar

@@ -43,6 +43,7 @@ from origami.styles import validator
 from origami.utils.check import isnumber
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
+from origami.config.environment import ENV
 from origami.gui_elements.misc_dialogs import DialogBox
 
 
@@ -383,7 +384,7 @@ class topPanel(wx.Panel):
         # Get data from dictionary
         rangeName = "".join([str(mzStart), "-", str(mzEnd)])
         try:
-            self.docs = self.presenter.documentsDict[filename]
+            self.docs = ENV[filename]
         except KeyError:
             return
 
@@ -475,7 +476,7 @@ class topPanel(wx.Panel):
                 self.ccs_value.SetValue(ccs)
 
             # Get data from dictionary
-            self.docs = self.presenter.documentsDict[filename]
+            self.docs = ENV[filename]
             # If we have molecular weight and charge state, modify the 'xcentre' value
             if isnumber(str2int(charge)) and isnumber(str2num(mw)):
                 xcentre = (self.config.elementalMass["Hydrogen"] * str2int(charge) + str2num(mw)) / str2int(charge)
@@ -497,7 +498,7 @@ class topPanel(wx.Panel):
             self.peaklist.SetStringItem(index=self.currentItem, col=self.config.ccsTopColNames["ccs"], label=ccs)
             self.peaklist.SetStringItem(index=self.currentItem, col=self.config.ccsTopColNames["tD"], label=tD)
 
-            self.presenter.documentsDict[filename] = self.docs
+            ENV[filename] = self.docs
 
             # Plot on change
             if evt is not None:
@@ -532,7 +533,7 @@ class topPanel(wx.Panel):
                 elif self.format == "Input data":
                     self.docs.IMS2DcompData[self.rangeName] = self.data
 
-                self.presenter.documentsDict[self.filename] = self.docs
+                ENV[self.filename] = self.docs
 
             self.parent.bottomP.peaklist.SetStringItem(
                 index=self.currentItemBottom, col=self.config.ccsBottomColNames["protein"], label=protein
@@ -554,7 +555,7 @@ class topPanel(wx.Panel):
         # Get data from dictionary
         rangeName = "".join([str(mzStart), "-", str(mzEnd)])
 
-        self.docs = self.presenter.documentsDict[filename]
+        self.docs = ENV[filename]
 
         if self.docs.fileFormat == "Format: MassLynx (.raw)" or self.docs.fileFormat == "Format: DataFrame":
             dtX = self.docs.calibration[rangeName]["xvals"]
@@ -711,17 +712,15 @@ class topPanel(wx.Panel):
                     mzEnd = self.peaklist.GetItem(itemId=currentItems, col=self.config.ccsTopColNames["end"]).GetText()
                     rangeName = "".join([str(mzStart), "-", str(mzEnd)])
                     try:
-                        del self.presenter.documentsDict[selectedItem].calibration[rangeName]
-                        if len(list(self.presenter.documentsDict[selectedItem].calibration.keys())) == 0:
-                            self.presenter.documentsDict[selectedItem].gotCalibration = False
+                        del ENV[selectedItem].calibration[rangeName]
+                        if len(list(ENV[selectedItem].calibration.keys())) == 0:
+                            ENV[selectedItem].gotCalibration = False
                     except KeyError:
                         pass
                     self.peaklist.DeleteItem(currentItems)
                     # Remove reference to calibrants if there are none remaining for the document
                     try:
-                        self.presenter.view.panelDocuments.documents.add_document(
-                            docData=self.presenter.documentsDict[selectedItem]
-                        )
+                        self.presenter.view.panelDocuments.documents.add_document(docData=ENV[selectedItem])
                     except KeyError:
                         pass
                     currentItems -= 1
@@ -733,17 +732,15 @@ class topPanel(wx.Panel):
             mzEnd = self.peaklist.GetItem(itemId=self.currentItem, col=self.config.ccsTopColNames["end"]).GetText()
             rangeName = "".join([str(mzStart), "-", str(mzEnd)])
             try:
-                del self.presenter.documentsDict[selectedItem].calibration[rangeName]
-                if len(list(self.presenter.documentsDict[selectedItem].calibration.keys())) == 0:
-                    self.presenter.documentsDict[selectedItem].gotCalibration = False
+                del ENV[selectedItem].calibration[rangeName]
+                if len(list(ENV[selectedItem].calibration.keys())) == 0:
+                    ENV[selectedItem].gotCalibration = False
             except KeyError:
                 pass
             self.peaklist.DeleteItem(self.currentItem)
             # Remove reference to calibrants if there are none remaining for the document
             try:
-                self.presenter.view.panelDocuments.documents.add_document(
-                    docData=self.presenter.documentsDict[selectedItem]
-                )
+                self.presenter.view.panelDocuments.documents.add_document(docData=ENV[selectedItem])
             except KeyError:
                 pass
         else:
@@ -771,20 +768,18 @@ class topPanel(wx.Panel):
 
                     # Delete selected document from dictionary + table
                     try:
-                        del self.presenter.documentsDict[selectedItem].calibration[rangeName]
+                        del ENV[selectedItem].calibration[rangeName]
                         # Remove reference to calibrants
-                        self.presenter.documentsDict[selectedItem].gotCalibration = False
+                        ENV[selectedItem].gotCalibration = False
                     except KeyError:
                         pass
                     try:
-                        self.presenter.view.panelDocuments.documents.add_document(
-                            docData=self.presenter.documentsDict[selectedItem]
-                        )
+                        self.presenter.view.panelDocuments.documents.add_document(docData=ENV[selectedItem])
                     except KeyError:
                         pass
                     self.peaklist.DeleteItem(currentItems)
                     currentItems -= 1
-        print("".join(["Remaining documents: ", str(len(self.presenter.documentsDict))]))
+        print("".join(["Remaining documents: ", str(len(ENV))]))
 
     def onRemoveDuplicates(self, evt):
         """
@@ -1015,7 +1010,7 @@ class bottomPanel(wx.Panel):
         # Get data from dictionary
         rangeName = "".join([str(mzStart), "-", str(mzEnd)])
         try:
-            self.docs = self.presenter.documentsDict[filename]
+            self.docs = ENV[filename]
         except KeyError:
             self.presenter.view.SetStatusText("No data for this ion", 3)
             return
@@ -1195,7 +1190,7 @@ class bottomPanel(wx.Panel):
         else:
             self.OnClearTable(evt=None)
 
-        print("".join(["Remaining documents: ", str(len(self.presenter.documentsDict))]))
+        print("".join(["Remaining documents: ", str(len(ENV))]))
 
     def onRemoveDuplicates(self, evt):
         """

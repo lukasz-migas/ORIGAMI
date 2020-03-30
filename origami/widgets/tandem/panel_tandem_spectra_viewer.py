@@ -22,6 +22,7 @@ from origami.styles import make_staticbox
 from origami.utils.misc import removeListDuplicates
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
+from origami.config.environment import ENV
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.dialog_customise_peptide_annotations import DialogCustomisePeptideAnnotations
 
@@ -298,7 +299,7 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
         tstart = ttime()
         count = self.peaklist_selected.GetItemCount()
 
-        document = self.presenter.documentsDict[self.kwargs["document"]]
+        document = ENV[self.kwargs["document"]]
         if "annotated_item_list" not in document.tandem_spectra:
             document.tandem_spectra["annotated_item_list"] = []
 
@@ -357,7 +358,7 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
             self._update_status_("Operation was cancelled.")
             return
         else:
-            document = self.presenter.documentsDict[self.kwargs["document"]]
+            document = ENV[self.kwargs["document"]]
             count = self.peaklist_selected.GetItemCount()
             for i in range(count):
                 itemInfo = self.get_item_info_peaklist_selected(i)
@@ -380,7 +381,7 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
 
     def on_clear_annotations(self, evt):
 
-        document = self.presenter.documentsDict[self.kwargs["document"]]
+        document = ENV[self.kwargs["document"]]
         count = self.peaklist_selected.GetItemCount()
         # iterate over list
         counter = 0
@@ -1482,7 +1483,7 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
             itemID = self.peaklist.item_id
 
         itemInfo = self.get_item_info_peaklist(itemID)
-        document = self.presenter.documentsDict[self.kwargs["document"]]
+        document = ENV[self.kwargs["document"]]
         tandem_spectra = document.tandem_spectra[itemInfo["scanID"]]
 
         kwargs = {
@@ -1546,7 +1547,7 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
 
         itemInfo = self.get_item_info_peaklist_selected(itemID)
         if document is None:
-            document = self.presenter.documentsDict[self.kwargs["document"]]
+            document = ENV[self.kwargs["document"]]
 
         tandem_spectra = document.tandem_spectra[itemInfo["scanID"]]
 

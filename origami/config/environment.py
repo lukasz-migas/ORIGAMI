@@ -10,7 +10,7 @@ LOGGER = logging.getLogger(__name__)
 
 class Environment:
     def __init__(self):
-        self.title = None
+        self._current = None
         self.documents = dict()
 
     def __repr__(self):
@@ -23,17 +23,21 @@ class Environment:
         """Get document object"""
         if item not in self.documents:
             raise ValueError(f"Document `{item}` does not exist")
-        self.title = item
+        self.current = item
         LOGGER.debug(f"Retrieved `{item}`")
         return self.documents[item]
 
     def __setitem__(self, key, value):
         """Set document object"""
+        if not isinstance(value, Document):
+            raise ValueError("Item must be of `Document` type")
         self.documents[key] = value
+        self.current = value.title
 
     def __delitem__(self, key):
         """Delete document object"""
         self.documents.pop(key)
+        self.current = None
         LOGGER.debug(f"Deleted `{key}`")
 
     def __contains__(self, item):
@@ -44,7 +48,26 @@ class Environment:
 
     @property
     def n_documents(self):
+        """Return the number of documents"""
         return len(self.documents)
+
+    @property
+    def current(self):
+        return self._current
+
+    @current.setter
+    def current(self, value):
+        if value not in self.documents and value is not None:
+            raise ValueError(
+                f"Cannot set `{value}` as current document as its not present in the document store. Use"
+                f" {self.titles}"
+            )
+        self._current = value
+        LOGGER.debug(f"Updated current document -> `{value}`")
+
+    @property
+    def titles(self):
+        return list(self.keys())
 
     def add(self, document: Document):
         """Add document to the store"""
@@ -80,6 +103,18 @@ class Environment:
 
     def items(self):
         return self.documents.items()
+
+    def on_get_document(self):
+        """Returns current document"""
+        return self.documents[self.current]
+
+    def save(self, path: str):
+        """Save document to pickle file"""
+        pass
+
+    def load(self, path: str):
+        """Load document from pickle file"""
+        pass
 
 
 ENV = Environment()

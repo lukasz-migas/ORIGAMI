@@ -110,6 +110,7 @@ from origami.utils.converters import str2int
 from origami.utils.converters import str2num
 from origami.utils.converters import byte2str
 from origami.utils.exceptions import MessageError
+from origami.config.environment import ENV
 from origami.readers.io_text_files import saveAsText
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.misc_dialogs import DialogSimpleAsk
@@ -279,8 +280,8 @@ class DocumentTree(wx.TreeCtrl):
         # Get indent level for selected item
         self._indent = self.get_item_indent(self._item_id)
         if self._indent > 1:
-            parent = self.getParentItem(self._item_id, 1)
-            item = self.getParentItem(self._item_id, 2)
+            parent = self.get_parent_item(self._item_id, 1)
+            item = self.get_parent_item(self._item_id, 2)
 
             self._item_branch = self.GetItemText(self.GetItemParent(self._item_id))
             self._item_leaf = self.GetItemText(self._item_id)
@@ -304,12 +305,11 @@ class DocumentTree(wx.TreeCtrl):
             except Exception:
                 self._current_data = None
 
-            if self.config.debug:
-                msg = (
-                    f"_document_type: {self._document_type} | _item_leaf: {self._item_leaf} | "
-                    + f"_item_branch: {self._item_branch} | _item_root: {self._item_root} | _indent: {self._indent}"
-                )
-                logger.debug(msg)
+            msg = (
+                f"type: {self._document_type} | leaf: {self._item_leaf} | "
+                + f"branch: {self._item_branch} | root: {self._item_root} | indent: {self._indent}"
+            )
+            logger.debug(msg)
         else:
             self._item_leaf = None
             self._item_branch = None
@@ -331,90 +331,92 @@ class DocumentTree(wx.TreeCtrl):
         return wx.TreeItemId()
 
     def on_enable_document(
-        self,
-        getSelected=False,
-        loadingData=False,
-        highlightSelected=False,
-        expandAll=False,
-        expandSelected=None,
-        evt=None,
+        self, get_selected_item=False, loading_data=False, highlight_selected=False, expand_all=False, evt=None
     ):
-        """
-        Highlights and returns currently selected document
-        ---
+        """Highlights and returns currently selected document
+
         Parameters
         ----------
-        getSelected
-        loadingData: booleat, flag to tell the function that we are loading data
-        highlightSelected
-        expandAll : boolean, flag to expand or not of the tree
-        expandSelected : string, name of item to expand
+        get_selected_item : bool, optional
+            if `True`, the current item will be return alongside its text and the document title
+        loading_data : bool, optional
+            if `True`, the document will be expanded
+        highlight_selected : bool, optional
+            if `True`, the current item will be highlighted
+        expand_all : bool, optional
+            if `True`, all the elements in the branch will be expanded
+        evt :
+            ignore
         """
 
         root = self.GetRootItem()
-        selected = self.GetSelection()
+        selected_item = self.GetSelection()
         item, cookie = self.GetFirstChild(root)
 
-        if evt is None:
-            evtID = None
-        else:
-            try:
-                evtID = evt.GetId()
-            except AttributeError:
-                evtID = None
+        evt_id = None
+        if hasattr(evt, "GetId"):
+            evt_id = evt.GetId()
 
         while item.IsOk():
             self.SetItemBold(item, False)
-            if loadingData:
+            if loading_data:
                 self.CollapseAllChildren(item)
             item, cookie = self.GetNextChild(root, cookie)
 
         # Select parent document
-        if selected is not None:
-            item = self.getParentItem(selected, 1)
-            try:
+        if selected_item:
+            # get parent of the item
+            item = self.get_parent_item(selected_item, 1)
+
+            # highlight current item
+            if highlight_selected:
+                self.SetItemBold(selected_item, True)
+
+            # item, try setting it bold
+            if item:
                 self.SetItemBold(item, True)
-            except wx._core.PyAssertionError:
-                pass
-            if loadingData or evtID == ID_getSelectedDocument:
+
+            if loading_data or evt_id == ID_getSelectedDocument:
                 self.Expand(item)  # Parent item
-                if expandAll:
+                if expand_all:
                     self.ExpandAllChildren(item)
 
-            # window label
+            # update window table
             try:
-                text = self.GetItemText(item)
-                if text != "Documents":
-                    self.presenter.currentDoc = text
-                    self.view.SetTitle(
-                        "ORIGAMI - v{} - {} ({})".format(self.config.version, text, self._document_data.dataType)
-                    )
+                document_title = self.GetItemText(item)
             except Exception:
-                self.view.SetTitle("ORIGAMI - v{}".format(self.config.version))
+                document_title = "Documents"
 
-            # status text
-            if self._document_data is not None:
-                try:
-                    parameters = self._document_data.parameters
-                    msg = "{}-{}".format(parameters.get("startMS", ""), parameters.get("endMS", ""))
-                    if msg == "-":
-                        msg = ""
-                    self.presenter.view.SetStatusText(msg, 1)
-                    msg = "MSMS: {}".format(parameters.get("setMS", ""))
-                    if msg == "MSMS: ":
-                        msg = ""
-                    self.presenter.view.SetStatusText(msg, 2)
-                except Exception:
-                    pass
+            title = f"ORIGAMI (v{self.config.version})"
+            if document_title != "Documents":
+                ENV.current = document_title
+                if self._document_data is None:
+                    self._document_data = ENV.on_get_document()
+                title += f" :: {document_title} [{self._document_data.dataType}]"
+            self.view.SetTitle(title)
+
+            # update statusbar
+            msms_text = ""
+            ms_text = ""
+            if hasattr(self._document_data, "parameters"):
+                parameters = self._document_data.parameters
+                ms_start, ms_end = parameters.get("startMS", ""), parameters.get("endMS", "")
+                if ms_start and ms_end:
+                    ms_text = f"{ms_start}-{ms_end}"
+                ms_set = parameters.get("setMS", "")
+                if ms_set:
+                    msms_text = f"MSMS: {ms_set}"
+            try:
+                self.view.SetStatusText(ms_text, 1)
+                self.view.SetStatusText(msms_text, 2)
+            except wx.PyAssertionError:
+                pass
 
             # In case we also interested in selected item
-            if getSelected:
-                selectedText = self.GetItemText(selected)
-                if highlightSelected:
-                    self.SetItemBold(selected, True)
-                return text, selected, selectedText
-            else:
-                return text
+            if get_selected_item:
+                selected_item_text = self.GetItemText(selected_item)
+                return document_title, selected_item, selected_item_text
+            return document_title
 
         if evt is not None:
             evt.Skip()
@@ -435,10 +437,10 @@ class DocumentTree(wx.TreeCtrl):
                 indent += 1
         return indent
 
-    def getParentItem(self, item, level, getSelected=False):
+    def get_parent_item(self, item, level, getSelected=False):
         """ Get parent item for selected item and level"""
         # Get item
-        for x in range(level, self.get_item_indent(item)):
+        for _ in range(level, self.get_item_indent(item)):
             item = self.GetItemParent(item)
 
         if getSelected:
@@ -736,7 +738,7 @@ class DocumentTree(wx.TreeCtrl):
         self._indent = self.get_item_indent(item)
         if self._indent > 1:
             extract = item  # Specific Ion/file name
-            item = self.getParentItem(item, 2)  # Item type
+            item = self.get_parent_item(item, 2)  # Item type
             itemType = self.GetItemText(item)
         else:
             extract = None
@@ -823,7 +825,7 @@ class DocumentTree(wx.TreeCtrl):
             wx.CallAfter(self.data_handling.on_save_document_fcn, document_title, save_as=False)
 
     def on_refresh_document(self, evt=None):
-        document = self.presenter.documentsDict.get(self.title, None)
+        document = ENV.get(self.title, None)
         if document is None:
             return
 
@@ -1075,9 +1077,9 @@ class DocumentTree(wx.TreeCtrl):
         # Get indent level for selected item
         indent = self.get_item_indent(item)
         if indent > 1:
-            parent = self.getParentItem(item, 1)  # File name
+            parent = self.get_parent_item(item, 1)  # File name
             extract = item  # Specific Ion/file name
-            item = self.getParentItem(item, 2)  # Item type
+            item = self.get_parent_item(item, 2)  # Item type
             itemType = self.GetItemText(item)
         else:
             extract = None
@@ -1104,7 +1106,7 @@ class DocumentTree(wx.TreeCtrl):
     def on_delete_all_documents(self, evt):
         """ Alternative function to delete documents """
 
-        doc_keys = list(self.presenter.documentsDict.keys())
+        doc_keys = list(ENV.keys())
         n_docs = len(doc_keys)
 
         if not doc_keys:
@@ -2269,14 +2271,14 @@ class DocumentTree(wx.TreeCtrl):
         """Change xy-axis labels"""
 
         # Get current document info
-        document_title, selectedItem, selectedText = self.on_enable_document(getSelected=True)
+        document_title, selectedItem, selectedText = self.on_enable_document(get_selected_item=True)
         indent = self.get_item_indent(selectedItem)
         selectedItemParentText = None
         if indent > 2:
-            __, selectedItemParentText = self.getParentItem(selectedItem, 2, getSelected=True)
+            __, selectedItemParentText = self.get_parent_item(selectedItem, 2, getSelected=True)
         else:
             pass
-        document = self.presenter.documentsDict[document_title]
+        document = ENV[document_title]
 
         # get event
         evtID = evt.GetId()
@@ -2559,7 +2561,7 @@ class DocumentTree(wx.TreeCtrl):
         if docItem is not False:
             try:
                 self.SetPyData(docItem, data)
-                self.presenter.documentsDict[document.title] = document
+                ENV[document.title] = document
             except Exception:
                 self.data_handling.on_update_document(document, expand_item, expand_item_title=expand_item_title)
         else:
@@ -2996,15 +2998,13 @@ class DocumentTree(wx.TreeCtrl):
             if self._document_type == "Mass Spectra" and self._item_leaf != "Mass Spectra":
                 # Change document tree
                 title = self._document_data.title
-                docItem = self.get_item_by_data(
-                    self.presenter.documentsDict[title].multipleMassSpectrum[self._item_leaf]
-                )
+                docItem = self.get_item_by_data(ENV[title].multipleMassSpectrum[self._item_leaf])
                 copy_name = "{} - copy".format(self._item_leaf)
                 # Change dictionary key
-                self.presenter.documentsDict[title].multipleMassSpectrum[copy_name] = (
-                    self.presenter.documentsDict[self.title].multipleMassSpectrum[self._item_leaf].copy()
+                ENV[title].multipleMassSpectrum[copy_name] = (
+                    ENV[self.title].multipleMassSpectrum[self._item_leaf].copy()
                 )
-                document = self.presenter.documentsDict[title]
+                document = ENV[title]
                 self.data_handling.on_update_document(document, "document")
                 self.Expand(docItem)
         # duplicate document
@@ -3077,12 +3077,12 @@ class DocumentTree(wx.TreeCtrl):
             # Actual new name, prepended
             if self._indent == 1:
                 # Change document tree
-                docItem = self.get_item_by_data(self.presenter.documentsDict[current_name])
-                document = self.presenter.documentsDict[current_name]
+                docItem = self.get_item_by_data(ENV[current_name])
+                document = ENV[current_name]
                 document.title = new_name
                 docItem.title = new_name
                 parent = self.GetItemParent(docItem)
-                del self.presenter.documentsDict[current_name]
+                del ENV[current_name]
                 self.SetItemText(docItem, new_name)
                 # Change dictionary key
                 self.data_handling.on_update_document(document, "document")
@@ -3109,39 +3109,29 @@ class DocumentTree(wx.TreeCtrl):
 
             elif self._document_type == "Statistical":
                 # Change document tree
-                docItem = self.get_item_by_data(
-                    self.presenter.documentsDict[self.title].IMS2DstatsData[self._item_leaf]
-                )
+                docItem = self.get_item_by_data(ENV[self.title].IMS2DstatsData[self._item_leaf])
                 parent = self.GetItemParent(docItem)
                 self.SetItemText(docItem, new_name)
                 # Change dictionary key
-                self.presenter.documentsDict[self.title].IMS2DstatsData[new_name] = self.presenter.documentsDict[
-                    self.title
-                ].IMS2DstatsData.pop(self._item_leaf)
+                ENV[self.title].IMS2DstatsData[new_name] = ENV[self.title].IMS2DstatsData.pop(self._item_leaf)
                 self.Expand(docItem)
             elif self._document_type == "Overlay":
                 # Change document tree
-                docItem = self.get_item_by_data(
-                    self.presenter.documentsDict[self.title].IMS2DoverlayData[self._item_leaf]
-                )
+                docItem = self.get_item_by_data(ENV[self.title].IMS2DoverlayData[self._item_leaf])
                 parent = self.GetItemParent(docItem)
                 self.SetItemText(docItem, new_name)
                 # Change dictionary key
-                self.presenter.documentsDict[self.title].IMS2DoverlayData[new_name] = self.presenter.documentsDict[
-                    self.title
-                ].IMS2DoverlayData.pop(self._item_leaf)
+                ENV[self.title].IMS2DoverlayData[new_name] = ENV[self.title].IMS2DoverlayData.pop(self._item_leaf)
                 self.Expand(docItem)
             elif self._document_type == "Mass Spectra":
                 # Change document tree
-                docItem = self.get_item_by_data(
-                    self.presenter.documentsDict[self.title].multipleMassSpectrum[self._item_leaf]
-                )
+                docItem = self.get_item_by_data(ENV[self.title].multipleMassSpectrum[self._item_leaf])
                 parent = self.GetItemParent(docItem)
                 self.SetItemText(docItem, new_name)
                 # Change dictionary key
-                self.presenter.documentsDict[self.title].multipleMassSpectrum[new_name] = self.presenter.documentsDict[
-                    self.title
-                ].multipleMassSpectrum.pop(self._item_leaf)
+                ENV[self.title].multipleMassSpectrum[new_name] = ENV[self.title].multipleMassSpectrum.pop(
+                    self._item_leaf
+                )
                 self.Expand(docItem)
                 # check if item is in other panels
                 try:
@@ -3151,16 +3141,14 @@ class DocumentTree(wx.TreeCtrl):
             elif self._document_type == "Drift time (2D, EIC)":
                 new_name = new_name.replace(": ", " : ")
                 # Change document tree
-                docItem = self.get_item_by_data(self.presenter.documentsDict[self.title].IMS2Dions[self._item_leaf])
+                docItem = self.get_item_by_data(ENV[self.title].IMS2Dions[self._item_leaf])
                 parent = self.GetItemParent(docItem)
                 self.SetItemText(docItem, new_name)
                 # check if ":" found in the new name
 
                 # TODO: check if iterm is in the peaklist
                 # Change dictionary key
-                self.presenter.documentsDict[self.title].IMS2Dions[new_name] = self.presenter.documentsDict[
-                    self.title
-                ].IMS2Dions.pop(self._item_leaf)
+                ENV[self.title].IMS2Dions[new_name] = ENV[self.title].IMS2Dions.pop(self._item_leaf)
                 self.Expand(docItem)
             else:
                 return
@@ -3473,7 +3461,7 @@ class DocumentTree(wx.TreeCtrl):
         if "xlimits" in data:
             xlimits = data["xlimits"]
         elif "startMS" in self._document_data.parameters and "endMS" in self._document_data.parameters:
-            xllimits = [self._document_data.parameters["startMS"], self._document_data.parameters["endMS"]]
+            xlimits = [self._document_data.parameters["startMS"], self._document_data.parameters["endMS"]]
 
         # setup kwargs
         if self._document_type in ["Mass Spectrum"]:
@@ -3484,10 +3472,12 @@ class DocumentTree(wx.TreeCtrl):
             name_kwargs = {"document": self._document_data.title, "dataset": self._item_leaf}
 
         # plot
-        if self._document_data.dataType == "Type: CALIBRANT":
-            self.panel_plot.on_plot_MS_DT_calibration(msX, msY, xlimits=xlimits, plotType="MS", set_page=True)
-        else:
-            self.panel_plot.on_plot_MS(msX, msY, xlimits, set_page=True, **name_kwargs)
+        #         if self._document_data.dataType == "Type: CALIBRANT":
+        #             self.panel_plot.on_plot_MS_DT_calibration(msX, msY, xlimits=xlimits, plotType="MS", set_page=True)
+        #         else:
+        plt_kwargs = self.config.get_mpl_parameters("1D")
+        self.panel_plot.view_ms.plot(msX, msY, **name_kwargs, **plt_kwargs)
+        #         self.panel_plot.on_plot_MS(msX, msY, xlimits, set_page=True, **name_kwargs)
 
         if save_image:
             basename = os.path.splitext(self._document_data.title)[0]
@@ -4497,13 +4487,13 @@ class DocumentTree(wx.TreeCtrl):
         document_title = self.on_enable_document()
         if self.presenter.currentDoc == "Documents":
             return
-        document = self.presenter.documentsDict.get(document_title, None)
+        document = ENV.get(document_title, None)
 
         if document is None:
             return
 
-        for key in self.presenter.documentsDict:
-            print(self.presenter.documentsDict[key].title)
+        for key in ENV:
+            print(ENV[key].title)
 
         if self._indent == 2 and any(
             self._document_type in itemType for itemType in ["Drift time (2D)", "Drift time (2D, processed)"]
@@ -4812,7 +4802,7 @@ class DocumentTree(wx.TreeCtrl):
                 self._add_annotation_to_object(docData.other_data[annotData], annotsItem)
 
         # Recursively check currently selected document
-        self.on_enable_document(loadingData=True, expandAll=expandAll, evt=None)
+        self.on_enable_document(loading_data=True, expand_all=expandAll)
 
         # If expandItem is not empty, the Tree will expand specified item
         if expandItem is not None:
@@ -4903,11 +4893,11 @@ class DocumentTree(wx.TreeCtrl):
                             pass
 
                         # delete document
-                        del self.presenter.documentsDict[title]
+                        del ENV[title]
                         self.presenter.currentDoc = None
                         # go to the next document
-                        if len(self.presenter.documentsDict) > 0:
-                            self.presenter.currentDoc = list(self.presenter.documentsDict.keys())[0]
+                        if len(ENV) > 0:
+                            self.presenter.currentDoc = list(ENV.keys())[0]
                             self.on_enable_document()
                         # collect garbage
                         gc.collect()
@@ -5216,12 +5206,12 @@ class DocumentTree(wx.TreeCtrl):
                         pass
 
                     # delete document
-                    del self.presenter.documentsDict[document_title]
+                    del ENV[document_title]
                     self.presenter.currentDoc = None
 
                     # go to the next document
-                    if len(self.presenter.documentsDict) > 0:
-                        self.presenter.currentDoc = list(self.presenter.documentsDict.keys())[0]
+                    if len(ENV) > 0:
+                        self.presenter.currentDoc = list(ENV.keys())[0]
                         self.on_enable_document()
 
                     # collect garbage
@@ -5578,7 +5568,7 @@ class DocumentTree(wx.TreeCtrl):
                 docItem = False
             if docItem is not False:
                 self.SetPyData(docItem, document)
-                self.presenter.documentsDict[document.title] = document
+                ENV[document.title] = document
             else:
                 self.data_handling.on_update_document(document, "document")
 

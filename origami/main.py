@@ -29,11 +29,12 @@ from origami.ids import ID_addNewCalibrationDoc
 from origami.ids import ID_addNewInteractiveDoc
 from origami.document import document as documents
 from origami.utils.time import getTime
-from origami.icons.icons import IconContainer
+from origami.icons.icons import ICONS
 from origami.main_window import MainWindow
-from origami.config.config import Config
+from origami.config.config import CONFIG
 from origami.utils.logging import set_logger
 from origami.utils.logging import set_logger_level
+from origami.config.environment import ENV
 from origami.help_documentation import OrigamiHelp
 from origami.gui_elements.misc_dialogs import DialogSimpleAsk
 
@@ -79,9 +80,8 @@ class ORIGAMI:
         wx.CallAfter(self.quit, force=True)
 
     def initilize_app(self, *args, **kwargs):
-        self.config = Config()
-        self.icons = IconContainer()
-        self.docs = documents()
+        self.config = CONFIG
+        self.icons = ICONS
         self.help = OrigamiHelp()
 
         # Load configuration file
@@ -158,8 +158,6 @@ class ORIGAMI:
 
     def initilize_state(self):
         """Pre-set variables"""
-        self.documents = []
-        self.documentsDict = {}
         self.currentDoc = None
 
     def initilize_registry(self):
@@ -572,12 +570,10 @@ class ORIGAMI:
                 )
         # just set data
         elif expand_item == "no_refresh":
-            self.view.panelDocuments.documents.set_document(
-                document_old=self.documentsDict[document.title], document_new=document
-            )
+            self.view.panelDocuments.documents.set_document(document_old=ENV[document.title], document_new=document)
 
         # update dictionary
-        self.documentsDict[document.title] = document
+        ENV[document.title] = document
         self.currentDoc = document.title
 
     # TODO: move to data_handling module

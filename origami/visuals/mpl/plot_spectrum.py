@@ -19,6 +19,7 @@ from origami.utils.labels import _replace_labels
 from origami.utils.ranges import get_min_max
 from origami.utils.ranges import find_limits_all
 from origami.utils.ranges import find_limits_list
+from origami.config.config import CONFIG
 from origami.visuals.mpl.base import PlotBase
 from origami.visuals.utilities import get_intensity_formatter
 from origami.processing.heatmap import normalize_2D
@@ -995,7 +996,7 @@ class PlotSpectrum(PlotBase):
         self._check_and_update_plot_settings(**kwargs)
 
         handles = []
-        if legend_text is not None and kwargs.get("legend", self.config.legend):
+        if legend_text is not None and kwargs.get("legend", CONFIG.legend):
             for i in range(len(legend_text)):
                 handles.append(
                     patches.Patch(
@@ -1429,18 +1430,18 @@ class PlotSpectrum(PlotBase):
                 ylabel, labelpad=kwargs["label_pad"], fontsize=kwargs["label_size"], weight=kwargs["label_weight"]
             )
 
-            if kwargs.get("legend", self.config.legend):
+            if kwargs.get("legend", CONFIG.legend):
                 handle, label = ax.get_legend_handles_labels()
                 ax.legend(
-                    loc=kwargs.get("legend_position", self.config.legendPosition),
-                    ncol=kwargs.get("legend_num_columns", self.config.legendColumns),
-                    fontsize=kwargs.get("legend_font_size", self.config.legendFontSize),
-                    frameon=kwargs.get("legend_frame_on", self.config.legendFrame),
-                    framealpha=kwargs.get("legend_transparency", self.config.legendAlpha),
-                    markerfirst=kwargs.get("legend_marker_first", self.config.legendMarkerFirst),
-                    markerscale=kwargs.get("legend_marker_size", self.config.legendMarkerSize),
-                    fancybox=kwargs.get("legend_fancy_box", self.config.legendFancyBox),
-                    scatterpoints=kwargs.get("legend_num_markers", self.config.legendNumberMarkers),
+                    loc=kwargs.get("legend_position", CONFIG.legendPosition),
+                    ncol=kwargs.get("legend_num_columns", CONFIG.legendColumns),
+                    fontsize=kwargs.get("legend_font_size", CONFIG.legendFontSize),
+                    frameon=kwargs.get("legend_frame_on", CONFIG.legendFrame),
+                    framealpha=kwargs.get("legend_transparency", CONFIG.legendAlpha),
+                    markerfirst=kwargs.get("legend_marker_first", CONFIG.legendMarkerFirst),
+                    markerscale=kwargs.get("legend_marker_size", CONFIG.legendMarkerSize),
+                    fancybox=kwargs.get("legend_fancy_box", CONFIG.legendFancyBox),
+                    scatterpoints=kwargs.get("legend_num_markers", CONFIG.legendNumberMarkers),
                     handles=handle,
                     labels=label,
                 )
@@ -1608,18 +1609,18 @@ class PlotSpectrum(PlotBase):
                 ylabel, labelpad=kwargs["label_pad"], fontsize=kwargs["label_size"], weight=kwargs["label_weight"]
             )
 
-            if kwargs.get("legend", self.config.legend):
+            if kwargs.get("legend", CONFIG.legend):
                 handle, label = ax.get_legend_handles_labels()
                 ax.legend(
-                    loc=kwargs.get("legend_position", self.config.legendPosition),
-                    ncol=kwargs.get("legend_num_columns", self.config.legendColumns),
-                    fontsize=kwargs.get("legend_font_size", self.config.legendFontSize),
-                    frameon=kwargs.get("legend_frame_on", self.config.legendFrame),
-                    framealpha=kwargs.get("legend_transparency", self.config.legendAlpha),
-                    markerfirst=kwargs.get("legend_marker_first", self.config.legendMarkerFirst),
-                    markerscale=kwargs.get("legend_marker_size", self.config.legendMarkerSize),
-                    fancybox=kwargs.get("legend_fancy_box", self.config.legendFancyBox),
-                    scatterpoints=kwargs.get("legend_num_markers", self.config.legendNumberMarkers),
+                    loc=kwargs.get("legend_position", CONFIG.legendPosition),
+                    ncol=kwargs.get("legend_num_columns", CONFIG.legendColumns),
+                    fontsize=kwargs.get("legend_font_size", CONFIG.legendFontSize),
+                    frameon=kwargs.get("legend_frame_on", CONFIG.legendFrame),
+                    framealpha=kwargs.get("legend_transparency", CONFIG.legendAlpha),
+                    markerfirst=kwargs.get("legend_marker_first", CONFIG.legendMarkerFirst),
+                    markerscale=kwargs.get("legend_marker_size", CONFIG.legendMarkerSize),
+                    fancybox=kwargs.get("legend_fancy_box", CONFIG.legendFancyBox),
+                    scatterpoints=kwargs.get("legend_num_markers", CONFIG.legendNumberMarkers),
                     handles=handle,
                     labels=label,
                 )

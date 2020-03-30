@@ -15,6 +15,7 @@ from origami.utils.misc import merge_two_dicts
 from origami.utils.misc import remove_nan_from_list
 from origami.utils.color import get_random_color
 from origami.utils.ranges import get_min_max
+from origami.config.config import CONFIG
 from origami.utils.adjustText import adjust_text
 from origami.utils.exceptions import MessageError
 from origami.visuals.mpl.panel import MPLPanel
@@ -89,7 +90,7 @@ class PlotBase(MPLPanel):
         else:
             axes_size = self._axes
 
-        #         if self.config._plots_check_axes_size:
+        #         if CONFIG._plots_check_axes_size:
         axes_size = self._check_axes_size(axes_size)
 
         # override parameters
@@ -124,17 +125,17 @@ class PlotBase(MPLPanel):
         """
         # legend
         self.plot_remove_legend()
-        if kwargs.get("legend", self.config.legend):
+        if kwargs.get("legend", CONFIG.legend):
             legend = self.plot_base.legend(
-                loc=kwargs.get("legend_position", self.config.legendPosition),
-                ncol=kwargs.get("legend_num_columns", self.config.legendColumns),
-                fontsize=kwargs.get("legend_font_size", self.config.legendFontSize),
-                frameon=kwargs.get("legend_frame_on", self.config.legendFrame),
-                framealpha=kwargs.get("legend_transparency", self.config.legendAlpha),
-                markerfirst=kwargs.get("legend_marker_first", self.config.legendMarkerFirst),
-                markerscale=kwargs.get("legend_marker_size", self.config.legendMarkerSize),
-                fancybox=kwargs.get("legend_fancy_box", self.config.legendFancyBox),
-                scatterpoints=kwargs.get("legend_num_markers", self.config.legendNumberMarkers),
+                loc=kwargs.get("legend_position", CONFIG.legendPosition),
+                ncol=kwargs.get("legend_num_columns", CONFIG.legendColumns),
+                fontsize=kwargs.get("legend_font_size", CONFIG.legendFontSize),
+                frameon=kwargs.get("legend_frame_on", CONFIG.legendFrame),
+                framealpha=kwargs.get("legend_transparency", CONFIG.legendAlpha),
+                markerfirst=kwargs.get("legend_marker_first", CONFIG.legendMarkerFirst),
+                markerscale=kwargs.get("legend_marker_size", CONFIG.legendMarkerSize),
+                fancybox=kwargs.get("legend_fancy_box", CONFIG.legendFancyBox),
+                scatterpoints=kwargs.get("legend_num_markers", CONFIG.legendNumberMarkers),
                 handles=handles,
             )
             if "legend_zorder" in kwargs:
@@ -258,10 +259,10 @@ class PlotBase(MPLPanel):
         return values, label, divider
 
     def _get_colors(self, n_colors):
-        if self.config.currentPalette not in ["Spectral", "RdPu"]:
-            palette = self.config.currentPalette.lower()
+        if CONFIG.currentPalette not in ["Spectral", "RdPu"]:
+            palette = CONFIG.currentPalette.lower()
         else:
-            palette = self.config.currentPalette
+            palette = CONFIG.currentPalette
         colorlist = color_palette(palette, n_colors)
 
         return colorlist
@@ -285,15 +286,15 @@ class PlotBase(MPLPanel):
         return values, label
 
     def _check_colormap(self, cmap=None, **kwargs):
-        # checking entire dict
-        if cmap is None:
-            if kwargs["colormap"] in self.config.cmocean_cmaps:
-                kwargs["colormap"] = eval("cmocean.cm.%s" % kwargs["colormap"])
-            return kwargs
-
-        # only checking colormap
-        if cmap in self.config.cmocean_cmaps:
-            cmap = eval("cmocean.cm.%s" % cmap)
+        #         # checking entire dict
+        #         if cmap is None:
+        #             if kwargs["colormap"] in CONFIG.cmocean_cmaps:
+        #                 kwargs["colormap"] = eval("cmocean.cm.%s" % kwargs["colormap"])
+        #             return kwargs
+        #
+        #         # only checking colormap
+        #         if cmap in CONFIG.cmocean_cmaps:
+        #             cmap = eval("cmocean.cm.%s" % cmap)
         return cmap
 
     def _fix_label_positions(self, lim=20):
@@ -614,7 +615,7 @@ class PlotBase(MPLPanel):
         text = self.plot_base.text(
             np.array(xpos), yval + yoffset, label, color=color, clip_on=True, zorder=zorder, picker=True, **kwargs
         )
-        text._yposition = yval - kwargs.get("labels_y_offset", self.config.waterfall_labels_y_offset)
+        text._yposition = yval - kwargs.get("labels_y_offset", CONFIG.waterfall_labels_y_offset)
         text.obj_name = obj_name  # custom tag
         text.y_divider = self.y_divider
         self.text.append(text)

@@ -4083,3 +4083,6 @@ class Config:
             text = text.replace(item, replace[x])
 
         return text
+
+
+CONFIG = Config()

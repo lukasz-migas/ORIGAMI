@@ -309,7 +309,7 @@ class PanelPlots(wx.Panel):
             self.config._plotSettings["MS"]["gui_size"],
             self.config,
             allow_extraction=True,
-            callbacks=dict(CTRL=None),
+            callbacks=dict(CTRL="extract.heatmap.from.spectrum"),
         )
         plot_notebook.AddPage(self.view_ms.panel, "Mass spectrum", False)
         self.plot_ms = self.view_ms.figure
@@ -323,7 +323,7 @@ class PanelPlots(wx.Panel):
             self.config._plotSettings["RT"]["gui_size"],
             self.config,
             allow_extraction=True,
-            callbacks=dict(CTRL=None),
+            callbacks=dict(CTRL="extract.spectrum.from.chromatogram"),
         )
         self.panel_rt_top_rt = self.view_rt_rt.panel
         self.plot_rt_rt = self.view_rt_rt.figure
@@ -347,7 +347,7 @@ class PanelPlots(wx.Panel):
             self.config._plotSettings["DT"]["gui_size"],
             self.config,
             allow_extraction=True,
-            callbacks=dict(CTRL=None),
+            callbacks=dict(CTRL="extract.spectrum.from.mobilogram"),
         )
         self.panel_dt_top_dt = self.view_dt_dt.panel
         self.plot_dt_dt = self.view_dt_dt.figure
@@ -2722,28 +2722,12 @@ class PanelPlots(wx.Panel):
         else:
             plot_obj = self.get_plot_from_name(show_in_window)
 
-        plt_kwargs["allow_extraction"] = kwargs.pop("allow_extraction", True)
-        #         if show_in_window == "MS":
         if plot_obj == self.plot_ms:
             self.view_ms.plot(msX, msY, **kwargs, **plt_kwargs)
-            # window = self.config.panelNames["MS"]
-            # plot_size_key = "MS"
-            #             try:
-            #                 self.view_ms.update(msX, msY, **plt_kwargs)
-            #             except AttributeError:
-            #                 self.view_ms.plot(msX, msY, allow_extraction=True, **plt_kwargs)
             return
         elif plot_obj == self.plot_rt_ms:
-            #         elif show_in_window == "MS_RT":
-            #             window = self.config.panelNames["RT"]
-            #             plot_size_key = "MS (DT/RT)"
-            plt_kwargs["allow_extraction"] = False
             self.view_rt_ms.plot(msX, msY, **kwargs, **plt_kwargs)
-        #         elif show_in_window == "MS_DT":
-        #             window = self.config.panelNames["1D"]
-        #             plot_size_key = "MS (DT/RT)"
         elif plot_obj == self.plot_dt_ms:
-            plt_kwargs["allow_extraction"] = False
             self.view_dt_ms.plot(msX, msY, **kwargs, **plt_kwargs)
         else:
             window = None
@@ -2831,12 +2815,12 @@ class PanelPlots(wx.Panel):
 
         # get kwargs
         plt_kwargs = self._buildPlotParameters(plotType="1D")
-        plt_kwargs["allow_extraction"] = kwargs.pop("allow_extraction", True)
 
         if plot_obj == self.plot_dt_dt:
             self.view_dt_dt.plot(dtX, dtY, **plt_kwargs)
             return
 
+        plt_kwargs["allow_extraction"] = kwargs.pop("allow_extraction", True)
         if not full_repaint:
             try:
                 plot_obj.plot_1D_update_data(dtX, dtY, xlabel, "Intensity", **plt_kwargs)
@@ -2891,12 +2875,12 @@ class PanelPlots(wx.Panel):
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType="1D")
-        plt_kwargs["allow_extraction"] = kwargs.pop("allow_extraction", True)
 
         if plot_obj == self.plot_rt_rt:
             self.view_rt_rt.plot(rtX, rtY, **plt_kwargs)
             return
 
+        plt_kwargs["allow_extraction"] = kwargs.pop("allow_extraction", True)
         if not full_repaint:
             try:
                 plot_obj.plot_1D_update_data(rtX, rtY, xlabel, ylabel, **plt_kwargs)

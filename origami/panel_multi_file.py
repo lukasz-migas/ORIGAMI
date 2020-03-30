@@ -56,6 +56,7 @@ from origami.utils.color import get_random_color
 from origami.utils.color import convert_rgb_1_to_255
 from origami.utils.color import convert_rgb_255_to_1
 from origami.utils.random import get_random_int
+from origami.config.environment import ENV
 from origami.processing.spectra import interpolate
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.dialog_color_picker import DialogColorPicker
@@ -577,7 +578,7 @@ class PanelMultiFile(wx.Panel):
             itemInfo = self.on_get_item_information(itemID=row)
 
             # get mass spectrum information
-            document = self.presenter.documentsDict[itemInfo["document"]]
+            document = ENV[itemInfo["document"]]
             dataset = itemInfo["filename"]
             self.data_processing.on_run_unidec(dataset, task="auto_unidec")
 
@@ -645,7 +646,7 @@ class PanelMultiFile(wx.Panel):
         """
 
         itemInfo = self.on_get_item_information(itemID=self.peaklist.item_id)
-        document = self.presenter.documentsDict[itemInfo["document"]]
+        document = ENV[itemInfo["document"]]
         if document is None:
             return
 
@@ -684,7 +685,7 @@ class PanelMultiFile(wx.Panel):
         Function to plot selected 1DT in the mainWindow
         """
         itemInfo = self.on_get_item_information(itemID=self.peaklist.item_id)
-        document = self.presenter.documentsDict[itemInfo["document"]]
+        document = ENV[itemInfo["document"]]
 
         if document is None:
             return
@@ -763,7 +764,7 @@ class PanelMultiFile(wx.Panel):
             itemInfo = self.on_get_item_information(itemID=row)
             names.append(itemInfo["label"])
             # get mass spectrum information
-            document = self.presenter.documentsDict[itemInfo["document"]]
+            document = ENV[itemInfo["document"]]
             data = document.multipleMassSpectrum[itemInfo["filename"]]
 
             # check if unidec dataset is present

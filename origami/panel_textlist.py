@@ -58,6 +58,7 @@ from origami.utils.color import get_all_color_types
 from origami.utils.color import convert_rgb_1_to_255
 from origami.utils.color import convert_rgb_255_to_1
 from origami.utils.random import get_random_int
+from origami.config.environment import ENV
 from origami.gui_elements.dialog_ask import DialogAsk
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.dialog_color_picker import DialogColorPicker
@@ -844,13 +845,13 @@ class PanelTextlist(wx.Panel):
 
         try:
             selectedItem = itemInfo["document"]
-            currentDocument = self.presenter.documentsDict[selectedItem]
+            currentDocument = ENV[selectedItem]
 
             # get data
             data = currentDocument.IMS2D
         except Exception:
             document_title, ion_title = re.split(": ", itemInfo["document"])
-            document = self.presenter.documentsDict[document_title]
+            document = ENV[document_title]
             try:
                 data = document.IMS2DcompData[ion_title]
             except KeyError:
@@ -1099,7 +1100,7 @@ class PanelTextlist(wx.Panel):
 
         # get item
         try:
-            document = self.presenter.documentsDict[itemInfo["document"]]
+            document = ENV[itemInfo["document"]]
             for keyword in keywords:
                 keyword_name = self.keyword_alias.get(keyword, keyword)
                 if document.got2DIMS:
@@ -1109,7 +1110,7 @@ class PanelTextlist(wx.Panel):
         except Exception as err:
             logger.error(err)
             document_title, ion_title = re.split(": ", itemInfo["document"])
-            document = self.presenter.documentsDict[document_title]
+            document = ENV[document_title]
             for keyword in keywords:
                 keyword_name = self.keyword_alias.get(keyword, keyword)
                 if ion_title in document.IMS2DcompData:
