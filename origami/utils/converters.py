@@ -1,6 +1,33 @@
 __all__ = ["byte2str", "str2num", "num2str", "str2int", "float2int", "str2bool", "rounder"]
 
 
+def convert_ms_to_bins(values, pusher_freq):
+    """Converts milliseconds to drift bins"""
+
+    def convert(value):
+        return round(value / pusher_freq)
+
+    return [convert(value) for value in values]
+
+
+def convert_bins_to_ms(values, pusher_freq):
+    """Converts drift bins to milliseconds"""
+
+    def convert(value):
+        return float(value * pusher_freq)
+
+    return [convert(value) for value in values]
+
+
+def convert_mins_to_scans(values, scan_time):
+    """Converts retention time minutes to scans"""
+
+    def convert(value):
+        return round(value / scan_time) * 60
+
+    return [convert(value) for value in values]
+
+
 def byte2str(string):
     try:
         return string.decode()

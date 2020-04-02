@@ -1841,7 +1841,7 @@ class DataProcessing:
             logger.error(msg)
             return
 
-        zvals, xlabels, scan_list, parameters = pr_origami.origami_combine_userDefined(zvals, startScan, scanList)
+        zvals, xlabels, scan_list, parameters = pr_origami.origami_combine_user_defined(zvals, startScan, scanList)
 
         return zvals, xlabels, scan_list, parameters
 

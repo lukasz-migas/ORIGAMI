@@ -561,7 +561,7 @@ class topPanel(wx.Panel):
             dtX = self.docs.calibration[rangeName]["xvals"]
             dtY = self.docs.calibration[rangeName]["yvals"]
             xlabel = self.docs.calibration[rangeName]["xlabels"]
-            color = self.docs.lineColour
+            color = (0, 0, 0)
             peak = self.docs.calibration[rangeName]["peak"]
 
         # Plot

@@ -7,71 +7,71 @@ from origami.processing.heatmap import normalize_2D
 from origami.processing.spectra import normalize_1D
 
 
-def compute_RMSD(inputData1, inputData2, normalize=True):  # computeRMSD
+def compute_rmsd(array_1, array_2, normalize=True):
     """
     Compute the RMSD for a part of arrays
     """
-    if isempty(inputData1) or isempty(inputData2):
+    if isempty(array_1) or isempty(array_2):
         print("Make sure you pick more than one file")
         return
-    elif inputData1.shape != inputData2.shape:
+    elif array_1.shape != array_2.shape:
         print("The two arrays are of different size! Cannot compare.")
         return
 
     if normalize:
-        inputData1 = normalize_2D(inputData1.copy())
-        inputData2 = normalize_2D(inputData2.copy())
+        array_1 = normalize_2D(array_1.copy())
+        array_2 = normalize_2D(array_2.copy())
 
     # Before computing RMSD, we need to normalize to 1
-    tempArray = inputData1 - inputData2
-    tempArray2 = tempArray ** 2
-    RMSD = (np.average(tempArray2)) ** 0.5
-    pRMSD = RMSD * 100
+    array_sub = array_1 - array_2
+    array_pow = array_sub ** 2
+    rmsd = (np.average(array_pow)) ** 0.5
+    rmsd_percent = rmsd * 100
 
-    return pRMSD, tempArray
+    return rmsd_percent, array_sub
 
 
-def compute_RMSF(inputData1, inputData2):  # computeRMSF
+def compute_rmsf(array_1, array_2):
     """
     Compute the pairwise RMSF for a pair of arrays. RMSF is computed by comparing
     each individual voltage separately
     """
-    if isempty(inputData1) or isempty(inputData2):
+    if isempty(array_1) or isempty(array_2):
         print("Make sure you pick more than file")
         return
-    elif inputData1.shape != inputData2.shape:
+    elif array_1.shape != array_2.shape:
         print("The two arrays are of different size! Cannot compare.")
         return
 
-    pRMSFlist = []
-    size = len(inputData1[1, :])
+    rmsf_percent = []
+    size = len(array_1[1, :])
     for row in range(0, size, 1):
         # Before computing the value of RMSF, we have to normalize to 1
         # to convert to percentage
-        inputData1norm = normalize_1D(inputData1[:, row])
-        np.nan_to_num(inputData1norm, copy=False)
-        inputData2norm = normalize_1D(inputData2[:, row])
-        np.nan_to_num(inputData2norm, copy=False)
+        array_1_norm = normalize_1D(array_1[:, row])
+        np.nan_to_num(array_1_norm, copy=False)
+        array_2_norm = normalize_1D(array_2[:, row])
+        np.nan_to_num(array_2_norm, copy=False)
         # Compute difference
-        tempArray = inputData1norm - inputData2norm
-        tempArray2 = tempArray ** 2
+        array_sub = array_1_norm - array_2_norm
+        array_pow = array_sub ** 2
         # Calculate RMSF/D value
-        RMSF = (np.average(tempArray2)) ** 0.5
-        pRMSF = RMSF * 100
-        pRMSFlist.append(pRMSF)
-    return pRMSFlist
+        rmsf = (np.average(array_pow)) ** 0.5
+        _percent_rmsf = rmsf * 100
+        rmsf_percent.append(_percent_rmsf)
+    return rmsf_percent
 
 
-def compute_variance(inputData=None):  # computeVariance
-    output = np.var(inputData, axis=0)
+def compute_variance(array):
+    output = np.var(array, axis=0)
     return output
 
 
-def compute_mean(inputData=None):  # computeMean
-    output = np.mean(inputData, axis=0)
+def compute_mean(array):
+    output = np.mean(array, axis=0)
     return output
 
 
-def compute_std_dev(inputData=None):  # computeStdDev
-    output = np.std(inputData, axis=0)
+def compute_std_dev(array):
+    output = np.std(array, axis=0)
     return output

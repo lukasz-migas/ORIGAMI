@@ -222,8 +222,8 @@ class topPanel(wx.Panel):
         rtX = document.RT["xvals"]
         rtY = document.RT["yvals"]
         xlabel = document.RT["xlabels"]
-        color = document.lineColour
-        style = document.style
+        color = (0, 0, 0)
+        style = "solid"
         # Change panel and plot
         self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames["RT"])
         self.presenter.onPlotRT2(rtX, rtY, xlabel, color, style)

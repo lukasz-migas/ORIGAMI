@@ -64,6 +64,7 @@ def open_py_object(filename):
 
 
 def cleanup_document(document):
+    """Remove some of the temporary elements - some cannot be pickled/deep copied"""
 
     restore_kwargs = dict()
     if "temporary_unidec" in document.massSpectrum:
@@ -114,11 +115,12 @@ def restore_document(document, **kwargs):
 
 
 def duplicate_document(document):
+    """Duplicate document without affecting underlying data"""
     document, restore_kwargs = cleanup_document(document)
     document_copy = copy.deepcopy(document)
 
     # restore
-    document = restore_document(document, **restore_kwargs)
+    _ = restore_document(document, **restore_kwargs)
     document_copy = restore_document(document_copy, **restore_kwargs)
 
     return document_copy

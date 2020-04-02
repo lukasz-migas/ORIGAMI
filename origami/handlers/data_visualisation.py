@@ -835,7 +835,7 @@ class DataVisualization:
         #             xaxisLabels, yaxisLabels = xvals, yvals
         #
         # calculate RMSD
-        pRMSD, zvals = pr_activation.compute_RMSD(zlist[0], zlist[1])
+        pRMSD, zvals = pr_activation.compute_rmsd(zlist[0], zlist[1])
         #
         #         self.setXYlimitsRMSD2D(xaxisLabels, yaxisLabels)
         #
@@ -904,10 +904,10 @@ class DataVisualization:
         yvals = data["yvals"]
 
         # calculate RMSD
-        pRMSD, zvals = pr_activation.compute_RMSD(zlist[0], zlist[1])
+        pRMSD, zvals = pr_activation.compute_rmsd(zlist[0], zlist[1])
 
         # calculate RMSF
-        pRMSF_list = pr_activation.compute_RMSF(zlist[0], zlist[1])
+        pRMSF_list = pr_activation.compute_rmsf(zlist[0], zlist[1])
         pRMSF_list = pr_heatmap.smooth_gaussian_2D(pRMSF_list, sigma=1)
 
         # add label
@@ -978,7 +978,7 @@ class DataVisualization:
         yvals = data["yvals"]
 
         # calculate RMSD
-        pRMSD, zvals = pr_activation.compute_RMSD(zlist[0], zlist[1])
+        pRMSD, zvals = pr_activation.compute_rmsd(zlist[0], zlist[1])
         label_x_pos, label_y_pos = calculate_label_position(xvals, yvals, self.config.rmsd_location)
 
         # generate item name
@@ -1166,7 +1166,7 @@ class DataVisualization:
         zvals = np.zeros((n_items, n_items))
         for i in range(n_items):
             for j in range(i + 1, n_items):
-                pRMSD, __ = pr_activation.compute_RMSD(zlist[i], zlist[j])
+                pRMSD, __ = pr_activation.compute_rmsd(zlist[i], zlist[j])
                 zvals[i, j] = np.round(pRMSD, 2)
 
         # generate item name

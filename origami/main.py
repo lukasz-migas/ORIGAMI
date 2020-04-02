@@ -29,7 +29,7 @@ from origami.ids import ID_addNewCalibrationDoc
 from origami.ids import ID_addNewInteractiveDoc
 from origami.document import document as documents
 from origami.utils.time import getTime
-from origami.icons.icons import ICONS
+from origami.icons.icons import IconContainer
 from origami.main_window import MainWindow
 from origami.config.config import CONFIG
 from origami.utils.logging import set_logger
@@ -81,7 +81,7 @@ class ORIGAMI:
 
     def initilize_app(self, *args, **kwargs):
         self.config = CONFIG
-        self.icons = ICONS
+        self.icons = IconContainer()
         self.help = OrigamiHelp()
 
         # Load configuration file

@@ -66,8 +66,8 @@ class document:
         # introduced in v 1.0.4
         self.gotDTMZ = False
         self.DTMZ = {}
-        self.gotDTMZions = False
-        self.DTMZions = {}
+        self.gotDTMZions = False  # not used
+        self.DTMZions = {}  # not used
         # Dictionary with 1D and 2D IMMS data - from ORIGAMI
         self.gotCombinedExtractedIonsRT = False
         self.IMSRTCombIons = {}
@@ -125,3 +125,31 @@ class document:
 
     def __repr__(self):
         return f"Title: {self.title}\n" + f"{self.dataType}\n" + f"{self.fileFormat}"
+
+    @property
+    def scan_time(self):
+        """Get file scan time"""
+        if "scanTime" in self.parameters:
+            return self.parameters["scanTime"]
+
+    @property
+    def pusher_frequency(self):
+        """Get pusher frequency"""
+        if "pusherFreq" in self.parameters:
+            return self.parameters["pusherFreq"]
+        return 1000
+
+    @property
+    def mz_x_limits(self):
+        if "xvals" in self.massSpectrum:
+            x = self.massSpectrum["xvals"]
+            return [x[0], x[-1]]
+
+    def get_reader(self, title):
+        """Retrieve reader"""
+        if title in self.file_reader:
+            return self.file_reader[title]
+
+    def set_reader(self, title, reader):
+        """Set reader"""
+        self.file_reader[title] = reader

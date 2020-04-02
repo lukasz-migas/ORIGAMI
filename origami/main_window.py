@@ -144,10 +144,10 @@ from origami.panel_multi_file import PanelMultiFile
 from origami.config.environment import ENV
 from origami.panel_document_tree import PanelDocumentTree
 from origami.readers.io_text_files import check_file_type
-from origami.processing.data_handling import DataHandling
+from origami.handlers.data_handling import DataHandling
+from origami.handlers.data_processing import DataProcessing
 from origami.gui_elements.misc_dialogs import DialogBox
-from origami.processing.data_processing import DataProcessing
-from origami.processing.data_visualisation import DataVisualization
+from origami.handlers.data_visualisation import DataVisualization
 from origami.gui_elements.panel_export_settings import PanelExportSettings
 from origami.gui_elements.panel_plot_parameters import PanelVisualisationSettingsEditor
 from origami.gui_elements.dialog_notify_new_version import DialogNewVersion

@@ -4,6 +4,9 @@ import logging
 
 # Local imports
 from origami.document import document as Document
+from origami.config.convert import convert_v1_to_v2
+from origami.config.convert import upgrade_document_annotations
+from origami.readers.io_document import open_py_object
 
 LOGGER = logging.getLogger(__name__)
 
@@ -29,8 +32,8 @@ class Environment:
 
     def __setitem__(self, key, value):
         """Set document object"""
-        if not isinstance(value, Document):
-            raise ValueError("Item must be of `Document` type")
+        #         if not isinstance(value, Document):
+        #             raise ValueError(f"Item must be of `Document` type not {type(value)}")
         self.documents[key] = value
         self.current = value.title
 
@@ -53,6 +56,8 @@ class Environment:
 
     @property
     def current(self):
+        if self.n_documents == 1:
+            self._current = self.titles[0]
         return self._current
 
     @current.setter
@@ -104,9 +109,12 @@ class Environment:
     def items(self):
         return self.documents.items()
 
-    def on_get_document(self):
+    def on_get_document(self, title=None):
         """Returns current document"""
-        return self.documents[self.current]
+        if title is None:
+            title = self.current
+
+        return self.documents[title]
 
     def save(self, path: str):
         """Save document to pickle file"""
@@ -114,7 +122,19 @@ class Environment:
 
     def load(self, path: str):
         """Load document from pickle file"""
-        pass
+        document_obj, document_version = open_py_object(path)
+        # check version
+        if document_version < 2:
+            document_obj = convert_v1_to_v2(document_obj)
+
+        # upgrade annotations
+        upgrade_document_annotations(document_obj)
+
+        self.add(document_obj)
+
+    def new(self, document_type: str, path: str):
+        """Create new document that contains certain attributes"""
+        # TODO: add dict at the top with each type:metadata for easy generation without if/else
 
 
 ENV = Environment()

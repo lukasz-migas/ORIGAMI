@@ -203,9 +203,9 @@ def interpolate_2D(xvals, yvals, zvals, fold=1, mode="linear", **kwargs):
 
     Parameters
     ----------
-    xvals : np.array
-    yvals : np.array
-    zvals : np.array
+    xvals : np.ndarray
+    yvals : np.ndarray
+    zvals : np.ndarray
     fold: float
     mode : {'linear', 'cubic', 'quintic'}, optional
 
@@ -229,6 +229,8 @@ def interpolate_2D(xvals, yvals, zvals, fold=1, mode="linear", **kwargs):
     new_yvals = kwargs.pop("new_yvals", yvals)
     if kwargs.get("y_axis", False):
         new_yvals = calculate_interpolation_axes(yvals, fold)
+
+    print(xvals.shape, yvals.shape, zvals.shape)
 
     fcn = interp2d(xvals, yvals, zvals, kind=mode)
     new_zvals = fcn(new_xvals, new_yvals)
