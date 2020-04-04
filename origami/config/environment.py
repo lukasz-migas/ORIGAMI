@@ -1,14 +1,51 @@
 """Container object that stores the current state of the application"""
 # Standard library imports
+import os
 import logging
 
 # Local imports
 from origami.document import document as Document
+from origami.utils.time import get_current_time
+from origami.config.config import CONFIG
 from origami.config.convert import convert_v1_to_v2
 from origami.config.convert import upgrade_document_annotations
 from origami.readers.io_document import open_py_object
 
 LOGGER = logging.getLogger(__name__)
+
+DOCUMENT_TYPE_ATTRIBUTES = dict(
+    overlay=dict(data_type="Type: Comparison", file_format="Format: ORIGAMI"),
+    interactive=dict(data_type="Type: Interactive", file_format="Format: ORIGAMI"),
+    manual=dict(data_type="Type: MANUAL", file_format="Format: MassLynx (.raw)"),
+    thermo=dict(data_type="Type: MS", file_format="Format: Thermo (.RAW)"),
+    mgf=dict(data_type="Type: MS/MS", file_format="Format: .mgf"),
+    mzml=dict(data_type="Type: MS/MS", file_format="Format: .mzML"),
+    imaging=dict(data_type="Type: Imaging", file_format="Format: MassLynx (.raw)"),
+    origami=dict(data_type="Type: ORIGAMI", file_format="Format: MassLynx (.raw)"),
+    waters=dict(data_type="Type: MassLynx", file_format="Format: MassLynx (.raw)"),
+)
+ALTERNATIVE_NAMES = {
+    "compare": "overlay",
+    "Type: Comparison": "overlay",
+    "Type: Interactive": "interactive",
+    "Type: MANUAL": "manual",
+    "Type: MS/MS": "mgf",
+    "mzML": "mzml",
+    "Imaging": "imaging",
+    "Type: Imaging": "imaging",
+}
+
+
+# TODO: add `callbacks` section to the  document
+
+
+def get_document_title(path):
+    base_title = "New Document"
+    if path in ["", None]:
+        return base_title
+    elif os.path.exists(path):
+        return os.path.basename(path)
+    return base_title
 
 
 class Environment:
@@ -132,9 +169,35 @@ class Environment:
 
         self.add(document_obj)
 
-    def new(self, document_type: str, path: str):
+    @staticmethod
+    def blank() -> Document:
+        """Creates new document instance without any attributes being pre-set"""
+        return Document()
+
+    @staticmethod
+    def new(document_type: str, path: str) -> Document:
         """Create new document that contains certain attributes"""
-        # TODO: add dict at the top with each type:metadata for easy generation without if/else
+        # ensure the correct name is used
+        if document_type not in DOCUMENT_TYPE_ATTRIBUTES:
+            document_type = ALTERNATIVE_NAMES[document_type]
+
+        # get document attributes
+        attributes = DOCUMENT_TYPE_ATTRIBUTES[document_type]
+
+        # instantiate document
+        document = Document()
+        document.title = get_document_title(path)
+        document.path = path
+        document.userParameters = CONFIG.userParameters
+        document.userParameters["date"] = get_current_time()
+        document.dataType = attributes["data_type"]
+        document.fileFormat = attributes["file_format"]
+
+        return document
+
+    def get_new_document(self, document_type: str, path: str) -> Document:
+        """Alias for `new`"""
+        return self.new(document_type, path)
 
 
 ENV = Environment()

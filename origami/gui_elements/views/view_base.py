@@ -53,6 +53,14 @@ class ViewBase(ABC):
         raise NotImplementedError("Must implement method")
 
     @property
+    def callbacks(self):
+        return self._callbacks
+
+    @callbacks.setter
+    def callbacks(self, value):
+        self._callbacks = value
+
+    @property
     def x_label(self):
         return self._x_label
 

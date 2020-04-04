@@ -13,6 +13,7 @@ class Document:
         # temporary metadata
         self.app_data = dict()
         self.file_reader = dict()
+        self.callbacks = dict()
 
         # metadata
         self.parameters = dict()

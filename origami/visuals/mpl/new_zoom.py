@@ -760,8 +760,8 @@ class MPLInteraction:
                     self.eventpress.xdata != evt.xdata and self.eventpress.ydata != evt.ydata
                 ):
                     pub.sendMessage("extract_from_plot_2D", xy_values=[xmin, xmax, ymin, ymax])
-                elif self.plotName != "CalibrationDT" and self.eventpress.xdata != evt.xdata:
-                    pub.sendMessage("extract_from_plot_1D", xmin=xmin, xmax=xmax, ymax=ymax)
+                # elif self.plotName != "CalibrationDT" and self.eventpress.xdata != evt.xdata:
+                #     pub.sendMessage("extract_from_plot_1D", xmin=xmin, xmax=xmax, ymax=ymax)
             self.canvas.draw()
             return
         elif self._trigger_extraction and not self.allow_extraction:

@@ -2,6 +2,8 @@
 import os
 import time
 import logging
+from abc import ABC
+from abc import abstractmethod
 
 # Third-party imports
 import numpy as np
@@ -13,12 +15,22 @@ from origami.utils.color import check_color_type
 from origami.utils.color import get_random_color
 from origami.utils.color import convert_hex_to_rgb_1
 from origami.utils.labels import _replace_labels
+from origami.utils.ranges import get_min_max
 from origami.utils.visuals import check_n_grid_dimensions
 from origami.readers.io_utils import remove_non_digits_from_list
 
 logger = logging.getLogger(__name__)
 
 dtype_dict = {np.int32: "%d", np.float16: "%.3f", np.float32: "%.6f", np.float64: "%.8f"}
+
+
+def get_file_extension(path):
+    _, extension = os.path.splitext(path)
+    return extension
+
+
+def get_file_directory(path):
+    return os.path.dirname(path)
 
 
 class AnnotatedDataReader:
@@ -306,6 +318,118 @@ class AnnotatedDataReader:
         return title, other_data
 
 
+class TextReader(ABC):
+    x = None
+    y = None
+    path = None
+    extension = None
+    directory = None
+
+    def __init__(self, path):
+        self.path = path
+        self.extension = get_file_extension(path)
+        self.directory = get_file_directory(path)
+
+    @abstractmethod
+    def load(self):
+        """Load data from text file"""
+        raise NotImplementedError("Must implement method")
+
+    @property
+    def x_limits(self):
+        """Returns the min/max of the x-axis"""
+        return get_min_max(self.x)
+
+    @property
+    def y_limits(self):
+        """Returns the min/max of the y-axis"""
+        return get_min_max(self.y)
+
+
+class TextSpectrumReader(TextReader):
+    def __init__(self, path):
+        super().__init__(path)
+        self.x, self.y, self.ys = self.load()
+
+    @property
+    def n_spectra(self):
+        """Returns the number of spectra in the file"""
+        if self.ys is None:
+            return 1
+        return len(self.ys)
+
+    def load(self):
+        def read_data(skip_rows: int = 0):
+            if "csv" in self.extension:
+                _df = pd.read_csv(self.path, header=None, skiprows=skip_rows)
+            elif any([val in self.extension for val in ["txt", "tab"]]):
+                _df = pd.read_csv(self.path, delim_whitespace=True, header=None, skiprows=skip_rows)
+            else:
+                raise ValueError(f"Cannot process `{self.extension}` file format")
+            return _df
+
+        df = read_data(0)
+        # check if first row is numerical
+        if df.loc[0, :].dtype != "float64":
+            logger.warning("Detected non-numerical value in the first row - trying again while skipping the first row")
+            df = read_data(1)
+
+        # check how many rows are present
+        n_rows = df.shape[1] - 1
+
+        # convert to numpy array
+        df = np.array(df)
+
+        ys = None
+        if n_rows > 1:
+            logger.info(
+                "Detected multiple spectra in the file - created summed spectrum and returned each as a separate array"
+            )
+            x, ys = df[:, 0], df[:, 1::]
+            y = ys.sum(axis=0)
+        else:
+            x, y = df[:, 0], df[:, 1]
+        return x, y, ys
+
+    load.__doc__ = TextReader.load.__doc__
+
+
+class TextHeatmapReader(TextReader):
+    def __init__(self, path, normalize=False):
+        super().__init__(path)
+        self.normalize = normalize
+
+        self.array, self.x, self.y = self.load()
+
+    def load(self):
+        # Get data using pandas df
+        df = pd.read_csv(self.path, sep="\t|,| ", engine="python", index_col=False)
+
+        # First value at 0,0 is equal to zero
+        df.rename(columns={"0.00": "", "0.00.1": "0.00"}, inplace=True)
+
+        # Get xvalues
+        xvals_list = df.columns.tolist()
+        x = list(map(float, remove_non_digits_from_list(xvals_list)))
+
+        # Remove NaNs
+        df.dropna(axis=1, how="all", inplace=True)  # remove entire column that has NaNs
+        df.fillna(value=0, inplace=True)
+
+        # Convert df to matrix
+        df_array = df.values()
+        array = df_array[:, 1::]
+        y = df_array[:, 0]
+
+        if len(x) == (array.shape[1] + 1) and x[0] == 0:
+            x = x[1::]
+
+        logger.debug(f"Labels size= {len(x)} x {len(y)}; array shape={array.shape}")
+        return array, x, y
+
+    load.__doc__ = TextReader.load.__doc__
+
+
 def check_column_names(col_names):
     col_names_out = list()
     for column in col_names:
@@ -448,108 +572,6 @@ def prepare_signal_data_for_saving(xvals, yvals, xlabel, ylabel, guess_dtype=Fal
     header = [xlabel, ylabel]
 
     return data, header, fmt
-
-
-def text_infrared_open(path=None, normalize=None):
-    tstart = time.clock()
-
-    outName = path.encode("ascii", "replace")
-    # Determine what file type it is
-    fileNameExt = str.split(outName, ".")
-    fileNameExt = fileNameExt[-1]
-    if fileNameExt.lower() == "csv":
-        _imsDataText = np.genfromtxt(outName, delimiter=",", missing_values=[""], filling_values=[0])
-    elif fileNameExt.lower() == "txt":
-        _imsDataText = np.genfromtxt(outName, delimiter="\t", missing_values=[""], filling_values=[0])
-
-    # Remove values that are not numbers
-    _imsDataText = np.nan_to_num(_imsDataText)
-    yvals = _imsDataText[:, 0]
-    xvals = _imsDataText[0, :]
-    zvals = _imsDataText[1:, 1:]
-
-    return zvals, xvals, yvals
-
-
-# TODO: remove pandas dependency
-
-
-def text_heatmap_open(path=None, normalize=None):
-
-    #     outName = path.encode('ascii', 'replace')
-    # Determine what file type it is
-    fileNameExt = str.split(path, ".")
-    fileNameExt = fileNameExt[-1]
-
-    # Get data using pandas df
-    df = pd.read_csv(path, sep="\t|,| ", engine="python", index_col=False)
-
-    # First value at 0,0 is equal to zero
-    df.rename(columns={"0.00": "", "0.00.1": "0.00"}, inplace=True)
-
-    # Get xvalues
-    xvals_list = df.columns.tolist()
-    xvals = list(map(float, remove_non_digits_from_list(xvals_list)))
-
-    # Remove NaNs
-    df.dropna(axis=1, how="all", inplace=True)  # remove entire column that has NaNs
-    df.fillna(value=0, inplace=True)
-
-    # Convert df to matrix
-    df_array = df.as_matrix()
-    zvals = df_array[:, 1::]
-    # Get yvalues
-    yvals = df_array[:, 0]
-
-    if len(xvals) == (zvals.shape[1] + 1) and xvals[0] == 0:
-        xvals = xvals[1::]
-
-    logger.info(
-        "Labels size: {} x {} Array size: {} x {}".format(len(xvals), len(yvals), len(zvals[0, :]), len(zvals[:, 0]))
-    )
-
-    if normalize:
-        zvals_norm = normalize(zvals, axis=0, norm="max")  # Norm to 1
-        return zvals, zvals_norm, xvals, yvals
-
-    return zvals, xvals, yvals
-
-
-def text_spectrum_open(path=None):
-
-    # get extension
-    __, extension = os.path.splitext(path)
-    dirname = os.path.dirname(path)
-
-    # read data
-    if extension == ".csv":
-        ms = pd.read_csv(path, header=None)
-    elif extension in [".txt", ".tab"]:
-        ms = pd.read_csv(path, delim_whitespace=True, header=None)
-
-    # check if first row is numerical
-    if ms.loc[0, :].dtype != "float64":
-        logger.info(
-            "Detected non-numerical values in the first row. Attempting to reopen the file and skipping the first row."
-        )
-        if extension == ".csv":
-            ms = pd.read_csv(path, header=None, skiprows=1)
-        elif extension in [".txt", ".tab"]:
-            ms = pd.read_csv(path, delim_whitespace=True, header=None, skiprows=1)
-
-    # check how many rows are present
-    n_rows = ms.shape[1] - 1
-    # convert to numpy array
-    ms = np.array(ms)
-    if n_rows > 1:
-        logger.info(
-            "MS file has more than two columns. In future each row will be combined into one MS and"
-            + " additional container will be created for multiple MS"
-        )
-        xvals, yvals = ms[:, 0], ms[:, 1]
-    else:
-        xvals, yvals = ms[:, 0], ms[:, 1]
-    return xvals, yvals, dirname, extension  # , n_rows
 
 
 def text_ccs_database_open(filename):

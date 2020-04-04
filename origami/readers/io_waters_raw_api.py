@@ -59,6 +59,12 @@ class WatersRawReader:
 
         return stats_in_functions
 
+    def get_inf_data(self):
+        """Read metadata data"""
+        from origami.readers.io_utils import get_waters_inf_data
+
+        return get_waters_inf_data(self.filename)
+
     def check_fcn(self, fcn):
         found_fcn = True
         if fcn not in self.stats_in_functions:
@@ -92,6 +98,16 @@ class WatersRawReader:
         self.mz_x = mz_x
 
         return mz_spacing, mz_x
+
+    def get_average_spectrum(self, fcn: int = 0):
+        """Load average spectrum"""
+        _, mz_x = self.generate_mz_interpolation_range(fcn)
+        n_scans = self.stats_in_functions[fcn]["n_scans"]
+        scan_list = np.arange(n_scans)
+
+        mz_y = self.get_summed_spectrum(fcn, 0, mz_x, scan_list)
+
+        return mz_x, mz_y
 
     def get_summed_spectrum(self, fcn, n_scans, mz_x, scan_list=None):
         if not self.check_fcn(fcn):
@@ -175,11 +191,11 @@ class WatersRawReader:
 
     def get_TIC(self, fcn):
         tic_x, tic_y = self.chrom_reader.ReadTIC(fcn)
-        return tic_x, tic_y
+        return np.asarray(tic_x), np.asarray(tic_y)
 
     def get_BPI(self, fcn):
         bpi_x, bpi_y = self.chrom_reader.ReadBPI(fcn)
-        return bpi_x, bpi_y
+        return np.asarray(bpi_x), np.asarray(bpi_y)
 
     def get_chromatogram(self, mz_values, tolerance=0.05):
         if not isinstance(mz_values, list):

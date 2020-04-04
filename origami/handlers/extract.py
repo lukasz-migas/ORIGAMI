@@ -1,8 +1,11 @@
 """Processing module that handles data extract"""
 # Standard library imports
+import os
+import math
 import logging
 from sys import platform
 from typing import Dict
+from typing import Optional
 
 # Third-party imports
 import numpy as np
@@ -19,6 +22,14 @@ if platform == "win32":
     from origami.readers import io_waters_raw
 
 LOGGER = logging.getLogger(__name__)
+
+
+def check_path(path: str, extension: Optional[str] = None):
+    """Check whether path is correct"""
+    if not os.path.exists(path):
+        raise ValueError(f"Path `{path}` does not exist")
+    if extension is not None and not path.endswith(extension):
+        raise ValueError(f"Path `{path}` does not have the correct extension")
 
 
 class ExtractionHandler:
@@ -223,3 +234,67 @@ class ExtractionHandler:
         }
 
         return obj_name, obj_data, None  # document
+
+    @staticmethod
+    @check_os("win32")
+    def waters_im_extract_ms(path, **kwargs):
+        """Extract chromatographic data"""
+        check_path(path)
+        reader = io_waters_raw.WatersIMReader(path)
+        x, y, _ = reader.extract_ms(**kwargs)
+
+        return x, y
+
+    @staticmethod
+    @check_os("win32")
+    def waters_im_extract_rt(path, **kwargs):
+        """Extract chromatographic data"""
+        check_path(path)
+        reader = io_waters_raw.WatersIMReader(path)
+        x, x_bin, y, y_norm = reader.extract_rt(**kwargs)
+
+        return x_bin, y, y_norm
+
+    @staticmethod
+    @check_os("win32")
+    def waters_im_extract_dt(path, **kwargs):
+        """Extract mobility data"""
+        check_path(path)
+        reader = io_waters_raw.WatersIMReader(path)
+        x_bin, y, y_norm = reader.extract_dt(**kwargs)
+
+        return x_bin, y, y_norm
+
+    @staticmethod
+    @check_os("win32")
+    def waters_im_extract_heatmap(path, **kwargs):
+        """Extract mobility data"""
+        check_path(path)
+        reader = io_waters_raw.WatersIMReader(path)
+        array, _ = reader.extract_heatmap(**kwargs)
+        x = reader.dt_bin
+        y = reader.rt_bin
+
+        return x, y, array
+
+    @staticmethod
+    @check_os("win32")
+    def waters_im_extract_msdt(path, mz_min: float, mz_max: float, mz_bin_size: float = 1.0, **kwargs):
+        """Extract mobility data"""
+        check_path(path)
+
+        # calculate number of m/z bins
+        n_mz_bins = math.floor((mz_max - mz_min) / mz_bin_size)
+        print(n_mz_bins)
+        reader = io_waters_raw.WatersIMReader(path)
+        array, _ = reader.extract_msdt(mz_start=mz_min, mz_end=mz_max, n_points=n_mz_bins, **kwargs)
+
+        # correct the number of m/z bins if the number of bins does not quite match what was requested - this can
+        # happen if the `mz_bin_size` was very small
+        if n_mz_bins != array.shape[1]:
+            n_mz_bins = array.shape[1]
+
+        y = reader.dt_bin
+        x = reader.mz_from_n_bins(mz_min - mz_bin_size, mz_max + mz_bin_size, n_mz_bins)
+
+        return x, y, array

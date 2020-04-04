@@ -28,7 +28,7 @@ from origami.ids import ID_addNewOverlayDoc
 from origami.ids import ID_addNewCalibrationDoc
 from origami.ids import ID_addNewInteractiveDoc
 from origami.document import document as documents
-from origami.utils.time import getTime
+from origami.utils.time import get_current_time
 from origami.icons.icons import IconContainer
 from origami.main_window import MainWindow
 from origami.config.config import CONFIG
@@ -137,7 +137,7 @@ class ORIGAMI:
 
         # only check if on Windows
         if self.config.checkForDriftscopeAtStart and platform == "win32":
-            self.config.initilize_paths()
+            self.config.setup_paths()
             self.initilize_registry()
 
         # add data handling and processing modules
@@ -241,7 +241,7 @@ class ORIGAMI:
         document.title = name
         document.path = path
         document.userParameters = self.config.userParameters
-        document.userParameters["date"] = getTime()
+        document.userParameters["date"] = get_current_time()
         document.dataType = kwargs.get("data_type", "Type: Other")
         document.fileFormat = kwargs.get("file_format", "Format: Other")
 
@@ -607,7 +607,7 @@ class ORIGAMI:
         document.path = itemPath
         self.currentDoc = idName
         document.userParameters = self.config.userParameters
-        document.userParameters["date"] = getTime()
+        document.userParameters["date"] = get_current_time()
         # Add method specific parameters
         if evtID == ID_addNewOverlayDoc or document_type == "overlay":
             document.dataType = "Type: Comparison"

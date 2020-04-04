@@ -259,7 +259,7 @@ class PanelProcessExtractDTMS(MiniFrame):
         path = document.path
 
         # Extract and load data
-        mz_x, dt_y, data = self.data_handling._get_driftscope_mobility_vs_spectrum_data(
+        mz_x, dt_y, data = self.data_handling.waters_im_extract_msdt(
             path, self.config.extract_dtms_mzStart, self.config.extract_dtms_mzEnd, self.config.extract_dtms_mzBinSize
         )
 

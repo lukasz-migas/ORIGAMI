@@ -2114,7 +2114,7 @@ class MainWindow(wx.Frame):
         evt.Skip()
 
     def on_check_driftscope_path(self, evt=None):
-        check = self.config.initilize_paths(return_check=True)
+        check = self.config.setup_paths(return_check=True)
         if check:
             wx.Bell()
             DialogBox(

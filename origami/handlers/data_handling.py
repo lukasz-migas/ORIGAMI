@@ -31,7 +31,7 @@ from origami.utils.path import clean_filename
 from origami.utils.path import check_path_exists
 from origami.utils.path import check_waters_path
 from origami.utils.path import get_path_and_fname
-from origami.utils.time import getTime
+from origami.utils.time import get_current_time
 from origami.utils.check import isempty
 from origami.utils.check import check_value_order
 from origami.utils.check import check_axes_spacing
@@ -40,12 +40,15 @@ from origami.utils.color import convert_rgb_1_to_255
 from origami.utils.color import convert_rgb_255_to_1
 from origami.utils.random import get_random_int
 from origami.utils.ranges import get_min_max
+from origami.handlers.load import LoadHandler
 from origami.config.convert import convert_v1_to_v2
 from origami.config.convert import upgrade_document_annotations
+from origami.handlers.export import ExportHandler
 from origami.utils.utilities import report_time
 from origami.handlers.extract import ExtractionHandler
 from origami.processing.utils import find_nearest_index
 from origami.processing.utils import get_maximum_value_in_range
+from origami.readers.io_utils import get_waters_inf_data
 from origami.utils.converters import str2num
 from origami.utils.converters import byte2str
 from origami.utils.converters import convert_ms_to_bins
@@ -59,18 +62,19 @@ from origami.gui_elements.dialog_multi_directory_picker import DialogMultiDirPic
 
 # enable on windowsOS only
 if platform == "win32":
-    from origami.readers import io_thermo_raw
     from origami.readers import io_waters_raw
     from origami.readers import io_waters_raw_api
 
 logger = logging.getLogger(__name__)
 
 
-class DataHandling(ExtractionHandler):
+class DataHandling(ExtractionHandler, LoadHandler, ExportHandler):
     """General data handling module"""
 
     def __init__(self, presenter, view, config):
         ExtractionHandler.__init__(self)
+        LoadHandler.__init__(self)
+        ExportHandler.__init__(self)
 
         self.presenter = presenter
         self.view = view
@@ -104,7 +108,6 @@ class DataHandling(ExtractionHandler):
         pub.subscribe(self.evt_extract_ms_from_chromatogram, "extract.spectrum.from.chromatogram")
         pub.subscribe(self.extract_from_plot_1D_MS, "extract.heatmap.from.spectrum")
 
-        pub.subscribe(self.extract_from_plot_1D, "extract_from_plot_1D")
         pub.subscribe(self.extract_from_plot_2D, "extract_from_plot_2D")
 
     def evt_extract_ms_from_mobilogram(self, rect, x_labels, y_labels):
@@ -365,17 +368,17 @@ class DataHandling(ExtractionHandler):
 
         return mz_x, mz_spacing
 
-    @staticmethod
-    def _check_driftscope_input(**kwargs):
-        """Check Driftscope input is correct"""
-        if "dt_start" in kwargs:
-            if kwargs["dt_start"] < 0:
-                kwargs["dt_start"] = 0
-        if "dt_end" in kwargs:
-            if kwargs["dt_end"] > 200:
-                kwargs["dt_end"] = 200
-
-        return kwargs
+    # @staticmethod
+    # def _check_driftscope_input(**kwargs):
+    #     """Check Driftscope input is correct"""
+    #     if "dt_start" in kwargs:
+    #         if kwargs["dt_start"] < 0:
+    #             kwargs["dt_start"] = 0
+    #     if "dt_end" in kwargs:
+    #         if kwargs["dt_end"] > 200:
+    #             kwargs["dt_end"] = 200
+    #
+    #     return kwargs
 
     @staticmethod
     def _get_waters_api_nearest_RT_in_minutes(reader, rt_start, rt_end):
@@ -400,78 +403,6 @@ class DataHandling(ExtractionHandler):
         dt_end = find_nearest_index(x, dt_end)
 
         return dt_start, dt_end
-
-    def _get_driftscope_spectrum_data(self, path, **kwargs):
-        """Load MS data from IM dataset"""
-        kwargs.update({"return_data": True})
-        kwargs = self._check_driftscope_input(**kwargs)
-        reader = io_waters_raw.WatersIMReader(path)
-        x, y, _ = reader.extract_ms(**kwargs)
-
-        return x, y
-
-    def _get_driftscope_chromatography_data(self, path, **kwargs):
-        """Load chromatographic data from IM dataset"""
-        kwargs.update({"return_data": True, "normalize": True})
-        kwargs = self._check_driftscope_input(**kwargs)
-        reader = io_waters_raw.WatersIMReader(path)
-        _, x_bin, y, y_norm = reader.extract_rt(**kwargs)
-
-        return x_bin, y, y_norm
-
-    def _get_driftscope_mobilogram_data(self, path, **kwargs):
-        """Load mobilogram data from IM dataset"""
-        kwargs.update({"return_data": True})
-        kwargs = self._check_driftscope_input(**kwargs)
-        reader = io_waters_raw.WatersIMReader(path)
-        x, y, _ = reader.extract_dt(**kwargs)
-
-        return x, y
-
-    def _get_driftscope_mobility_data(self, path, **kwargs):
-        """Load heatmap data from IM dataset"""
-        kwargs.update({"return_data": True})
-        kwargs = self._check_driftscope_input(**kwargs)
-        reader = io_waters_raw.WatersIMReader(path)
-        array, _ = reader.extract_heatmap(**kwargs)
-        y_size, x_size = array.shape
-        x = 1 + np.arange(x_size)
-        y = 1 + np.arange(y_size)
-
-        return x, y, array
-
-    def _get_driftscope_mobility_vs_spectrum_data(self, path, mz_min, mz_max, mz_binsize=None, **kwargs):
-        if mz_binsize is None:
-            mz_binsize = self.config.ms_dtmsBinSize
-
-        # m/z spacing, default is 1 Da
-        n_points = int(math.floor((mz_max - mz_min) / mz_binsize))
-
-        # Extract and load data
-        kwargs.update({"return_data": True})
-        reader = io_waters_raw.WatersIMReader(path)
-        array, _ = reader.extract_msdt(mz_start=mz_min, mz_end=mz_max, n_points=n_points, **kwargs)
-
-        # in cases when the bin size is very small, the number of points in the zvals might not match those in the
-        # xvals hence this should be resampled
-        if n_points != array.shape[1]:
-            n_points = array.shape[1]
-
-        y_size, __ = array.shape
-        # calculate m/z values
-        x = np.linspace(mz_min - mz_binsize, mz_max + mz_binsize, n_points, endpoint=True)
-        # calculate DT bins
-        y = 1 + np.arange(y_size)
-
-        return x, y, array
-
-    @staticmethod
-    def _get_text_spectrum_data(path):
-        # Extract MS file
-        xvals, yvals, dirname, extension = io_text_files.text_spectrum_open(path=path)
-        xlimits = get_min_max(xvals)
-
-        return xvals, yvals, dirname, xlimits, extension
 
     @staticmethod
     def get_document_list_of_type(document_type, document_format=None):
@@ -561,7 +492,7 @@ class DataHandling(ExtractionHandler):
         document.title = document_title
         document.path = path
         document.userParameters = self.config.userParameters
-        document.userParameters["date"] = getTime()
+        document.userParameters["date"] = get_current_time()
 
         return document
 
@@ -749,13 +680,6 @@ class DataHandling(ExtractionHandler):
             logger.error(f"Failed to load configuration file: {config_path}")
             logger.error(err)
 
-    def on_load_annotated_data(self, filename):
-        from origami.readers.io_text_files import AnnotatedDataReader
-
-        reader = AnnotatedDataReader(filename)
-
-        return reader.dataset_title, reader.data
-
     def on_save_data_as_text(self, data, labels, data_format, **kwargs):
 
         wildcard = (
@@ -878,7 +802,7 @@ class DataHandling(ExtractionHandler):
             spectrum_name = spectrum_name.lstrip()
             if mz_kwargs:
                 logger.info(f"Extracting mass spectrum: {mz_kwargs}")
-                mz_x, mz_y = self._get_driftscope_spectrum_data(document.path, **mz_kwargs)
+                mz_x, mz_y = self.waters_im_extract_ms(document.path, **mz_kwargs)
                 self.plotsPanel.on_plot_MS(mz_x, mz_y)
                 data = {"xvals": mz_x, "yvals": mz_y, "xlabels": "m/z (Da)", "xlimits": get_min_max(mz_x)}
                 if add_to_document:
@@ -904,7 +828,7 @@ class DataHandling(ExtractionHandler):
             chrom_name = chrom_name.lstrip()
             if rt_kwargs:
                 logger.info(f"Extracting chromatogram: {rt_kwargs}")
-                xvals_RT, yvals_RT, __ = self._get_driftscope_chromatography_data(document.path, **rt_kwargs)
+                xvals_RT, yvals_RT, __ = self.waters_im_extract_rt(document.path, **rt_kwargs)
                 self.plotsPanel.on_plot_RT(xvals_RT, yvals_RT, "Scans")
                 data = {
                     "xvals": xvals_RT,
@@ -937,7 +861,7 @@ class DataHandling(ExtractionHandler):
             dt_name = dt_name.lstrip()
             if dt_kwargs:
                 logger.info(f"Extracting mobilogram: {dt_kwargs}")
-                xvals_DT, yvals_DT = self._get_driftscope_mobilogram_data(document.path, **dt_kwargs)
+                xvals_DT, yvals_DT = self.waters_im_extract_dt(document.path, **dt_kwargs)
                 self.plotsPanel.on_plot_1D(xvals_DT, yvals_DT, "Drift time (bins)")
                 data = {
                     "xvals": xvals_DT,
@@ -970,10 +894,10 @@ class DataHandling(ExtractionHandler):
             dt_name = dt_name.lstrip()
             if heatmap_kwargs:
                 logger.info(f"Extracting heatmap: {heatmap_kwargs}")
-                xvals, yvals, zvals = self._get_driftscope_mobility_data(document.path, **heatmap_kwargs)
+                xvals, yvals, zvals = self.waters_im_extract_heatmap(document.path, **heatmap_kwargs)
                 self.plotsPanel.on_plot_2D_data(data=[zvals, xvals, "Scans", yvals, "Drift time (bins)"])
-                __, yvals_RT, __ = self._get_driftscope_chromatography_data(document.path, **kwargs)
-                __, yvals_DT = self._get_driftscope_mobilogram_data(document.path, **kwargs)
+                __, yvals_RT, __ = self.waters_im_extract_rt(document.path, **kwargs)
+                __, yvals_DT = self.waters_im_extract_dt(document.path, **kwargs)
                 data = {
                     "zvals": zvals,
                     "xvals": xvals,
@@ -1012,7 +936,7 @@ class DataHandling(ExtractionHandler):
         kwargs = dict(mz_start=mz_start, mz_end=mz_end)
         # 1D
         try:
-            __, yvals_DT = self._get_driftscope_mobilogram_data(path, **kwargs)
+            __, yvals_DT = self.waters_im_extract_dt(path, **kwargs)
         except IOError:
             msg = (
                 "Failed to open the file - most likely because this file no longer exists"
@@ -1023,10 +947,10 @@ class DataHandling(ExtractionHandler):
             raise MessageError("Missing folder", msg)
 
         # RT
-        __, yvals_RT, __ = self._get_driftscope_chromatography_data(path, **kwargs)
+        __, yvals_RT, __ = self.waters_im_extract_rt(path, **kwargs)
 
         # 2D
-        xvals, yvals, zvals = self._get_driftscope_mobility_data(path, **kwargs)
+        xvals, yvals, zvals = self.waters_im_extract_heatmap(path, **kwargs)
 
         # Add data to document object
         ion_data = {
@@ -1069,12 +993,12 @@ class DataHandling(ExtractionHandler):
             nameValue = self.filesList.GetItem(item, self.config.multipleMLColNames["filename"]).GetText()
             try:
                 path = document.multipleMassSpectrum[nameValue]["path"]
-                dt_x, dt_y = self._get_driftscope_mobilogram_data(path, mz_start=mz_start, mz_end=mz_end)
+                dt_x, dt_y = self.waters_im_extract_dt(path, mz_start=mz_start, mz_end=mz_end)
             # if the files were moved, we can at least try to with the document path
             except IOError:
                 try:
                     path = os.path.join(document.path, nameValue)
-                    dt_x, dt_y = self._get_driftscope_mobilogram_data(path, mz_start=mz_start, mz_end=mz_end)
+                    dt_x, dt_y = self.waters_im_extract_dt(path, mz_start=mz_start, mz_end=mz_end)
                     document.multipleMassSpectrum[nameValue]["path"] = path
                 except Exception:
                     msg = (
@@ -1183,7 +1107,7 @@ class DataHandling(ExtractionHandler):
 
     def on_add_ion_IR(self, item_information, document, path, mz_start, mz_end, ion_name, ion_id, charge, label):
         # 2D
-        __, __, zvals = self._get_driftscope_mobility_data(path)
+        __, __, zvals = self.waters_im_extract_heatmap(path)
 
         dataSplit, xvals, yvals, yvals_RT, yvals_DT = pr_origami.origami_combine_infrared(
             array=zvals, threshold=2000, noise_level=500
@@ -1227,13 +1151,11 @@ class DataHandling(ExtractionHandler):
             return
 
         # load heatmap information and split into individual components
-        array_2D, xvals, yvals = io_text_files.text_heatmap_open(path=filepath)
-        array_1D_mob = np.sum(array_2D, axis=1).T
-        array_1D_RT = np.sum(array_2D, axis=0)
+        array, x, y, dt_y, rt_y = self.load_text_heatmap_data(filepath)
 
         # Try to extract labels from the text file
-        if isempty(xvals) or isempty(yvals):
-            xvals, yvals = "", ""
+        if isempty(x) or isempty(y):
+            x, y = "", ""
             xlabel_start, xlabel_end = "", ""
 
             msg = (
@@ -1242,7 +1164,7 @@ class DataHandling(ExtractionHandler):
             )
             DialogBox(exceptionTitle="Missing data", exceptionMsg=msg, type="Warning")
         else:
-            xlabel_start, xlabel_end = xvals[0], xvals[-1]
+            xlabel_start, xlabel_end = x[0], x[-1]
 
         add_dict = {
             "energy_start": xlabel_start,
@@ -1253,7 +1175,7 @@ class DataHandling(ExtractionHandler):
             "alpha": self.config.overlay_defaultAlpha,
             "mask": self.config.overlay_defaultMask,
             "label": "",
-            "shape": array_2D.shape,
+            "shape": array.shape,
             "document": filename,
         }
 
@@ -1265,18 +1187,18 @@ class DataHandling(ExtractionHandler):
         document.title = filename
         document.path = path
         document.userParameters = self.config.userParameters
-        document.userParameters["date"] = getTime()
+        document.userParameters["date"] = get_current_time()
         document.dataType = "Type: 2D IM-MS"
         document.fileFormat = "Format: Text (.csv/.txt)"
         #         self.on_update_document(document, "document")
 
         data = {
-            "zvals": array_2D,
-            "xvals": xvals,
+            "zvals": array,
+            "xvals": x,
             "xlabels": "Collision Voltage (V)",
-            "yvals": yvals,
-            "yvals1D": array_1D_mob,
-            "yvalsRT": array_1D_RT,
+            "yvals": y,
+            "yvals1D": dt_y,
+            "yvalsRT": rt_y,
             "ylabels": "Drift time (bins)",
             "cmap": self.config.currentCmap,
             "mask": self.config.overlay_defaultMask,
@@ -1297,26 +1219,24 @@ class DataHandling(ExtractionHandler):
         self.on_threading(args=("Loading {}...".format(path), 4), action="statusbar.update")
         __, document_title = get_path_and_fname(path, simple=True)
 
-        ms_x, ms_y, dirname, xlimits, extension = self._get_text_spectrum_data(path)
+        ms_x, ms_y, directory, x_limits, extension = self.load_text_mass_spectrum_data(path)
 
         # Add data to document
         document = documents()
         document.title = document_title
-        document.path = dirname
+        document.path = directory
         document.userParameters = self.config.userParameters
-        document.userParameters["date"] = getTime()
+        document.userParameters["date"] = get_current_time()
         document.dataType = "Type: MS"
         document.fileFormat = "Format: Text ({})".format(extension)
         # add document
         self.on_update_document(document, "document")
 
-        data = {"xvals": ms_x, "yvals": ms_y, "xlabels": "m/z (Da)", "xlimits": xlimits}
+        data = {"xvals": ms_x, "yvals": ms_y, "xlabels": "m/z (Da)", "xlimits": x_limits}
 
         self.documentTree.on_update_data(data, "", document, data_type="main.raw.spectrum")
 
-        # Plot
-        name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
-        self.plotsPanel.on_plot_MS(ms_x, ms_y, xlimits=xlimits, **name_kwargs)
+        self.plotsPanel.view_ms.plot(ms_x, ms_y, xliimits=x_limits, document=document.title, dataset="Mass Spectrum")
 
     def on_open_MGF_file_fcn(self, evt):
 
@@ -1332,29 +1252,17 @@ class DataHandling(ExtractionHandler):
             self.presenter.view, "Open MGF file", wildcard="*.mgf; *.MGF", style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR
         )
         if dlg.ShowModal() == wx.ID_OK:
-            tstart = time.time()
+            t_start = time.time()
             path = dlg.GetPath()
-            logger.info(f"Opening {path}")
-            reader = io_mgf.MGFreader(filename=path)
-            logger.info("Created file reader. Loading scans...")
 
-            # get document
-            document = self.create_new_document_of_type(document_type="mgf", path=path)
+            document = self.load_mgf_document(path)
+            data = document.tandem_spectra["Scan 1"]
 
-            # get data
-            data = reader.get_n_scans(n_scans=50000)
-
-            # add data to document
-            document.tandem_spectra = data
-            document.file_reader = {"data_reader": reader}
-
-            title = "Precursor: {:.4f} [{}]".format(
-                data["Scan 1"]["scan_info"]["precursor_mz"], data["Scan 1"]["scan_info"]["precursor_charge"]
-            )
+            title = f"Precursor: {data['scan_info']['precursor_mz']:.4f} [{data['scan_info']['precursor_charge']}]"
             self.plotsPanel.on_plot_centroid_MS(data["Scan 1"]["xvals"], data["Scan 1"]["yvals"], title=title)
 
             self.on_update_document(document, "document")
-            logger.info(f"It took {time.time()-tstart:.4f} seconds to load {document.title}")
+            logger.info(f"It took {time.time()-t_start:.4f} seconds to load {document.title}")
 
     def on_open_mzML_file_fcn(self, evt):
 
@@ -1373,29 +1281,17 @@ class DataHandling(ExtractionHandler):
             style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR,
         )
         if dlg.ShowModal() == wx.ID_OK:
-            tstart = time.time()
+            t_start = time.time()
             path = dlg.GetPath()
-            logger.info(f"Opening {path}")
-            reader = io_mzml.mzMLreader(filename=path)
-            logger.info("Created file reader. Loading scans...")
 
-            # get document
-            document = self.create_new_document_of_type(document_type="mzml", path=path)
+            document = self.load_mzml_document(path)
+            data = document.tandem_spectra["Scan 1"]
 
-            # get data
-            data = reader.get_n_scans(n_scans=50000)
-
-            # add data to document
-            document.tandem_spectra = data
-            document.file_reader = {"data_reader": reader}
-
-            title = "Precursor: {:.4f} [{}]".format(
-                data["Scan 1"]["scan_info"]["precursor_mz"], data["Scan 1"]["scan_info"]["precursor_charge"]
-            )
+            title = f"Precursor: {data['scan_info']['precursor_mz']:.4f} [{data['scan_info']['precursor_charge']}]"
             self.plotsPanel.on_plot_centroid_MS(data["Scan 1"]["xvals"], data["Scan 1"]["yvals"], title=title)
 
             self.on_update_document(document, "document")
-            logger.info(f"It took {time.time()-tstart:.4f} seconds to load {document.title}")
+            logger.info(f"It took {time.time()-t_start:.4f} seconds to load {document.title}")
 
     def on_add_mzID_file_fcn(self, evt):
 
@@ -1483,48 +1379,23 @@ class DataHandling(ExtractionHandler):
             style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR,
         )
         if dlg.ShowModal() == wx.ID_OK:
-            tstart = time.time()
+            t_start = time.time()
             path = dlg.GetPath()
-            logger.info(f"Opening {path}")
-            reader = io_thermo_raw.thermoRAWreader(filename=path)
-            logger.info("Created file reader. Loading scans...")
 
-            # get info
-            #             info = reader.get_scan_info()
+            # read data
+            document = self.load_thermo_document(path)
 
-            # get chromatogram
-            rtX, rtY = reader.get_tic()
-            self.plotsPanel.on_plot_RT(rtX, rtY, "Time (min)", set_page=False)
+            # plot data
+            rt = document.RT
+            self.plotsPanel.view_rt.plot(rt["xvals"], rt["yvals"], x_label=rt["xlabels"])
 
-            mass_spectra = reader.get_spectrum_for_each_filter()
-            chromatograms = reader.get_chromatogram_for_each_filter()
-            #             rtX, rtY = reader._stitch_chromatograms(chromatograms)
-
-            # get average mass spectrum
-            msX, msY = reader.get_average_spectrum()
-            xlimits = [np.min(msX), np.max(msX)]
-            name_kwargs = {"document": None, "dataset": None}
-            self.plotsPanel.on_plot_MS(msX, msY, xlimits=xlimits, set_page=True, **name_kwargs)
-
-            document = self.create_new_document_of_type(document_type="thermo", path=path)
-
-            # add data to document
-            document.got1RT = True
-            document.RT = {"xvals": rtX, "yvals": rtY, "xlabels": "Time (min)"}
-
-            document.gotMS = True
-            document.massSpectrum = {"xvals": msX, "yvals": msY, "xlabels": "m/z (Da)", "xlimits": xlimits}
-
-            document.gotMultipleMS = True
-            document.multipleMassSpectrum = mass_spectra
-
-            document.gotMultipleRT = True
-            document.multipleRT = chromatograms
-
-            document.file_reader = {"data_reader": reader}
+            mz = document.massSpectrum
+            self.plotsPanel.view_ms.plot(
+                mz["xvals"], mz["yvals"], x_limits=mz["xlimits"], document_title=document.title, dataset="Mass Spectrum"
+            )
 
             self.on_update_document(document, "document")
-            logger.info(f"It took {time.time()-tstart:.4f} seconds to load {document.title}")
+            logger.info(f"It took {time.time()-t_start:.4f} seconds to load {document.title}")
 
     def on_update_document(self, document, expand_item="document", expand_item_title=None):
 
@@ -1583,24 +1454,6 @@ class DataHandling(ExtractionHandler):
         # just set data
         elif expand_item == "no_refresh":
             self.documentTree.set_document(document_old=ENV[document.title], document_new=document)
-
-    def extract_from_plot_1D(self, xmin, xmax, ymax):
-        self.plot_page = self.plotsPanel._get_page_text()
-
-        document = self.on_get_document()
-
-        # Extraction of data when the Interactive document is enabled is not possible
-        if (
-            self.plot_page in ["Chromatogram", "Mass spectrum", "Mobilogram", "Heatmap"]
-            and document.dataType == "Type: Interactive"
-        ):
-            raise MessageError("Error", "Cannot extract data from an INTERACTIVE document")
-
-        if xmin is None or xmax is None:
-            logging.error("Extraction range was from outside of the plot area. Please try again.")
-            return
-
-        xmin, xmax = check_value_order(xmin, xmax)
 
     def extract_from_plot_1D_MS(self, rect, x_labels, _):
         # unpack values
@@ -1850,7 +1703,7 @@ class DataHandling(ExtractionHandler):
         __, document_title = get_path_and_fname(path, simple=True)
 
         # Get experimental parameters
-        parameters = self.config.get_waters_inf_data(path)
+        parameters = get_waters_inf_data(path)
         file_info = self.config.get_waters_header_data(path)
         xlimits = [parameters["startMS"], parameters["endMS"]]
         reader = io_waters_raw_api.WatersRawReader(path)
@@ -1877,13 +1730,13 @@ class DataHandling(ExtractionHandler):
 
             # 2D
             t_start_ext = time.time()
-            xvals, yvals, zvals = self._get_driftscope_mobility_data(path)
+            xvals, yvals, zvals = self.waters_im_extract_heatmap(path)
             self.update_statusbar(f"Extracted heatmap in {time.time()-t_start_ext:.4f}", 4)
 
             # Plot MZ vs DT
             if self.config.showMZDT:
                 t_start_ext = time.time()
-                xvals_MSDT, yvals_MSDT, zvals_MSDT = self._get_driftscope_mobility_vs_spectrum_data(
+                xvals_MSDT, yvals_MSDT, zvals_MSDT = self.waters_im_extract_msdt(
                     path, parameters["startMS"], parameters["endMS"]
                 )
                 self.update_statusbar(f"Extracted DT/MS heatmap in {time.time()-t_start_ext:.4f}", 4)
@@ -1904,7 +1757,7 @@ class DataHandling(ExtractionHandler):
         document.fileInformation = file_info
         document.parameters = parameters
         document.userParameters = self.config.userParameters
-        document.userParameters["date"] = getTime()
+        document.userParameters["date"] = get_current_time()
         document.file_reader = {"data_reader": reader}
 
         # add mass spectrum data
@@ -2030,7 +1883,7 @@ class DataHandling(ExtractionHandler):
                 document.title = fname
                 document.path = dirname
                 document.userParameters = self.config.userParameters
-                document.userParameters["date"] = getTime()
+                document.userParameters["date"] = get_current_time()
                 document.dataType = "Type: MS"
                 document.fileFormat = "Format: Text ({})".format("Clipboard")
                 document.gotMS = True
@@ -2072,7 +1925,7 @@ class DataHandling(ExtractionHandler):
         __, document_title = get_path_and_fname(path, simple=True)
 
         # Get experimental parameters
-        parameters = self.config.get_waters_inf_data(path)
+        parameters = get_waters_inf_data(path)
         xlimits = [parameters["startMS"], parameters["endMS"]]
 
         reader = io_waters_raw_api.WatersRawReader(path)
@@ -2090,7 +1943,7 @@ class DataHandling(ExtractionHandler):
         document.path = path
         document.parameters = parameters
         document.userParameters = self.config.userParameters
-        document.userParameters["date"] = getTime()
+        document.userParameters["date"] = get_current_time()
         document.dataType = "Type: MS"
         document.fileFormat = "Format: Waters (.raw)"
         document.gotMS = True
@@ -2302,7 +2155,7 @@ class DataHandling(ExtractionHandler):
 
             # load mobilogram
             if kwargs.get("im_on", False):
-                dt_x, dt_y = self._get_driftscope_mobilogram_data(path)
+                dt_x, dt_y = self.waters_im_extract_dt(path)
 
             # add data
             data = {
@@ -2428,7 +2281,7 @@ class DataHandling(ExtractionHandler):
         for idx, data in enumerate(document.multipleMassSpectrum.values()):
             tstart = time.time()
             path = data["path"]
-            xvals, yvals_DT = self._get_driftscope_mobilogram_data(path, mz_start=xmin, mz_end=xmax)
+            xvals, yvals_DT = self.waters_im_extract_dt(path, mz_start=xmin, mz_end=xmax)
             zvals[:, idx] = yvals_DT
             logger.debug(
                 f"Extracted mobilogram for ion {xmin:.2f}-{xmax:.2f} in {time.time()-tstart:.2f}s."
@@ -2536,7 +2389,7 @@ class DataHandling(ExtractionHandler):
                 continue
 
             # add data to document
-            parameters = self.config.get_waters_inf_data(path)
+            parameters = get_waters_inf_data(path)
             xlimits = [parameters["startMS"], parameters["endMS"]]
 
             reader = io_waters_raw_api.WatersRawReader(path)
@@ -2548,7 +2401,7 @@ class DataHandling(ExtractionHandler):
             if _mz_spacing is None:
                 _mz_spacing = reader.mz_spacing
 
-            dt_x, dt_y = self._get_driftscope_mobilogram_data(path)
+            dt_x, dt_y = self.waters_im_extract_dt(path)
             try:
                 color = self.config.customColors[i]
             except KeyError:
@@ -4228,7 +4081,7 @@ class DataHandling(ExtractionHandler):
             for path, fname in zip(pathlist, filenames):
                 data_type = None
                 if dataset_type == "mass_spectra":
-                    mz_x, mz_y, __, xlimits, extension = self._get_text_spectrum_data(path=path)
+                    mz_x, mz_y, __, xlimits, extension = self.load_text_mass_spectrum_data(path=path)
                     document.gotMultipleMS = True
                     data = {
                         "xvals": mz_x,
@@ -4243,7 +4096,7 @@ class DataHandling(ExtractionHandler):
                     data_type = "extracted.spectrum"
 
                 elif dataset_type == "chromatograms":
-                    rt_x, rt_y, __, xlimits, extension = self._get_text_spectrum_data(path=path)
+                    rt_x, rt_y, __, xlimits, extension = self.load_text_mass_spectrum_data(path=path)
                     document.gotMultipleRT = True
                     data = {
                         "xvals": rt_x,
@@ -4260,7 +4113,7 @@ class DataHandling(ExtractionHandler):
                     data_type = "extracted.chromatogram"
 
                 elif dataset_type == "mobilogram":
-                    dt_x, dt_y, __, xlimits, extension = self._get_text_spectrum_data(path=path)
+                    dt_x, dt_y, __, xlimits, extension = self.load_text_mass_spectrum_data(path=path)
                     data = {
                         "xvals": dt_x,
                         "yvals": dt_y,
@@ -4276,9 +4129,7 @@ class DataHandling(ExtractionHandler):
                     data_type = "ion.mobilogram.raw"
 
                 elif dataset_type == "heatmaps":
-                    zvals, xvals, yvals = io_text_files.text_heatmap_open(path=path)
-                    dt_y = np.sum(zvals, axis=1).T
-                    rt_y = np.sum(zvals, axis=0)
+                    zvals, xvals, yvals, dt_y, rt_y = self.load_text_heatmap_data(path)
                     color = convert_rgb_255_to_1(self.config.customColors[get_random_int(0, 15)])
                     document.gotExtractedIons = True
                     data = {
@@ -4302,7 +4153,7 @@ class DataHandling(ExtractionHandler):
 
                 elif dataset_type == "annotated":
                     try:
-                        fname, data = self.on_load_annotated_data(path)
+                        fname, data = self.load_text_annotated_data(path)
                         if fname is None or data is None:
                             continue
 

@@ -28,13 +28,19 @@ class WatersIMReader:
         self.output_dir = self._temp_dir
         self.verbose = True
         self._last = None
+        self._rt_min = None
 
         self.mz_min, self.mz_max, self.n_scans = self.get_mass_range()
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}<path={self.path}; m/z range={self.mz_min:.2f}-{self.mz_max:.2f}>"
 
     def get_mass_range(self):
         """Create handle to the API reader and extract the experimental mass range"""
         reader = WatersRawReader(self.path)
         stats = reader.stats_in_functions
+        if len(stats) < 2:
+            raise ValueError("This Waters (.raw) file only has 1 function! Cannot extract ion mobility data")
         mz_min, mz_max = stats[0]["mass_range"]
         return mz_min, mz_max, stats[0]["n_scans"]
 
@@ -58,6 +64,42 @@ class WatersIMReader:
 
     def get_filepath(self, filename):
         return os.path.join(self.output_dir, filename)
+
+    @property
+    def dt_bin(self):
+        """Return mobility axis in bins"""
+        return np.arange(200) + 1
+
+    @property
+    def rt_bin(self):
+        """Return chromatogram axis in bins"""
+        return np.arange(self.n_scans) + 1
+
+    @property
+    def rt_min(self):
+        if self._rt_min is None:
+            self._rt_min, _, _, _ = self.extract_rt(dt_start=0, dt_end=1)
+        return self._rt_min
+
+    def mz_from_n_bins(self, mz_start: float, mz_end: float, n_mz_bins: int):
+        """Return approximate m/z axis based on number of bins and specified mass range. The mass axis is calculated
+        using simple linear spacing
+
+        Parameters
+        ----------
+        mz_start : float
+            start m/z value - ensure the m/z bin size was subtracted from this value
+        mz_end : float
+            end m/z value - ensure the m/z bin size was added to this value
+        n_mz_bins : int
+            number of m/z points
+
+        Returns
+        -------
+        x : np.ndarray
+            linearly spaced m/z axis with constant bin size
+        """
+        return np.linspace(mz_start, mz_end, n_mz_bins, endpoint=True)
 
     @staticmethod
     def clean(path):

@@ -3,6 +3,7 @@ import pytest
 
 # Local imports
 from origami.document import document as Document
+from origami.config.environment import DOCUMENT_TYPE_ATTRIBUTES
 from origami.config.environment import Environment
 
 
@@ -29,3 +30,12 @@ class TestEnvironment:
             env.remove("TEST_NOT_THERE")
 
         env.remove("TEST")
+
+    def test_new(self):
+        env = Environment()
+
+        for document_type, document_attributes in DOCUMENT_TYPE_ATTRIBUTES.items():
+            document = env.new(document_type, "")
+            assert document.path == ""
+            assert document.dataType == document_attributes["data_type"]
+            assert document.fileFormat == document_attributes["file_format"]
