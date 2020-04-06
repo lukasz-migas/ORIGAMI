@@ -1,6 +1,5 @@
 # Standard library imports
 import os
-import time
 import logging
 from abc import ABC
 from abc import abstractmethod

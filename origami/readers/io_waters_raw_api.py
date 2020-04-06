@@ -1,7 +1,9 @@
+# Standard library imports
+from typing import List
+from typing import Optional
+
 # Third-party imports
 import numpy as np
-from natsort import order_by_index
-from natsort import index_natsorted
 from scipy.interpolate import interpolate
 
 # Local imports
@@ -13,208 +15,357 @@ from origami.utils.ranges import get_min_max
 
 
 class WatersRawReader:
-    def __init__(self, filename, **kwargs):
-        self.filename = filename
+    def __init__(self, filename, mz_spacing: float = 0.01):
+        self.path = filename
 
         # create parsers
-        self.reader = self.create_file_parser()
-        self.info_reader = self.create_info_parser()
-        self.data_reader = self.create_data_parser()
-        self.chrom_reader = self.create_chrom_parser()
+        self.reader, self.info_reader, self.data_reader, self.chrom_reader = self.create_readers()
 
         # get parameters
-        self.stats_in_functions = self.get_functions_and_stats()
+        self.stats_in_functions, self._n_functions, self.mz_min, self.mz_max, self.mz_range = (
+            self.get_functions_and_stats()
+        )
+        self._mz_spacing = mz_spacing
+        self._mz_x = self.get_linear_mz(self._mz_spacing)
 
         # setup file mode
         self.instrument_type = self.stats_in_functions[0]["ion_mode"]
 
-    def create_file_parser(self):
-        return MassLynxRawReader.MassLynxRawReader(self.filename, 1)
+    def __repr__(self):
+        return f"{self.__class__.__name__}<path={self.path}; m/z range={self.mz_min:.2f}-{self.mz_max:.2f}>"
 
-    def create_info_parser(self):
-        return MassLynxRawInfoReader.MassLynxRawInfoReader(self.reader)
+    @property
+    def n_functions(self):
+        return self._n_functions
 
-    def create_data_parser(self):
-        return MassLynxRawScanReader.MassLynxRawScanReader(self.reader)
+    @property
+    def mz_x(self):
+        if self._mz_x is None:
+            self._mz_x = self.get_linear_mz(self._mz_spacing)
+        return self._mz_x
 
-    def create_chrom_parser(self):
-        return MassLynxRawChromatogramReader.MassLynxRawChromatogramReader(self.reader)
+    @mz_x.setter
+    def mz_x(self, value):
+        """Sets the m/z axis"""
+        self._mz_x = np.asarray(value)
+
+    def n_scans(self, fcn: int):
+        """Get number of scans in particular function"""
+        return self.stats_in_functions[fcn]["n_scans"]
+
+    def create_readers(self):
+        """Creates various readers used for data extraction"""
+        reader = MassLynxRawReader.MassLynxRawReader(self.path, 1)
+        info_reader = MassLynxRawInfoReader.MassLynxRawInfoReader(reader)
+        data_reader = MassLynxRawScanReader.MassLynxRawScanReader(reader)
+        chrom_reader = MassLynxRawChromatogramReader.MassLynxRawChromatogramReader(reader)
+
+        return reader, info_reader, data_reader, chrom_reader
 
     def get_functions_and_stats(self):
-        self.n_functions = self.info_reader.GetNumberofFunctions()
+        """Collects basic information about the file"""
+        n_functions = self.info_reader.GetNumberofFunctions()
 
         stats_in_functions = {}
-        for fcn in range(self.n_functions):
+        mass_range = []
+        for fcn in range(n_functions):
             scans = self.info_reader.GetScansInFunction(fcn)
-            mass_range = self.info_reader.GetAcquisitionMassRange(fcn)
+            _mass_range = self.info_reader.GetAcquisitionMassRange(fcn)
             ion_mode = self.info_reader.GetIonModeString(self.info_reader.GetIonMode(fcn))
             fcn_type = self.info_reader.GetFunctionTypeString(self.info_reader.GetFunctionType(fcn))
 
             stats_in_functions[fcn] = {
                 "n_scans": scans,
-                "mass_range": mass_range,
+                "mass_range": _mass_range,
                 "ion_mode": ion_mode,
                 "fcn_type": fcn_type,
             }
+            mass_range.extend(_mass_range)
 
-        return stats_in_functions
+        return stats_in_functions, n_functions, min(mass_range), max(mass_range), mass_range
 
     def get_inf_data(self):
         """Read metadata data"""
         from origami.readers.io_utils import get_waters_inf_data
 
-        return get_waters_inf_data(self.filename)
+        return get_waters_inf_data(self.path)
 
     def check_fcn(self, fcn):
+        """Checks whether the requested function exists"""
         found_fcn = True
         if fcn not in self.stats_in_functions:
             found_fcn = False
 
         return found_fcn
 
-    def find_minimum_mz_spacing(self, fcn, n_scans, n_max_scans=100):
-        if not self.check_fcn(fcn):
-            raise ValueError(f"Function {fcn} could not be found in the file.")
-
-        mz_spacing_diff = np.zeros((0,))
-        if n_scans > n_max_scans:
-            n_scans = n_max_scans
-
-        for i in range(n_scans):
-            xvals, __ = self.data_reader.ReadScan(fcn, i)
-            mz_spacing_diff = np.append(mz_spacing_diff, np.diff(xvals))
-        return np.min(mz_spacing_diff)
-
-    def generate_mz_interpolation_range(self, fcn):
-        if not self.check_fcn(fcn):
-            raise ValueError(f"Function {fcn} could not be found in the file.")
-
-        mass_range = self.stats_in_functions[fcn]["mass_range"]
-        n_scans = self.stats_in_functions[fcn]["n_scans"]
-        mz_spacing = self.find_minimum_mz_spacing(fcn, n_scans)
-        mz_x = np.arange(mass_range[0], mass_range[1], mz_spacing)
-
-        self.mz_spacing = mz_spacing
-        self.mz_x = mz_x
-
-        return mz_spacing, mz_x
+    def get_linear_mz(self, mz_spacing: float):
+        """Generates linearly spaced interpolation range"""
+        x = np.arange(self.mz_min, self.mz_max, mz_spacing)
+        return x
 
     def get_average_spectrum(self, fcn: int = 0):
         """Load average spectrum"""
-        _, mz_x = self.generate_mz_interpolation_range(fcn)
-        n_scans = self.stats_in_functions[fcn]["n_scans"]
-        scan_list = np.arange(n_scans)
+        x, y = self.get_spectrum(0, self.n_scans(fcn), fcn)
+        y = y / self.n_scans(fcn)
+        return x, y
 
-        mz_y = self.get_summed_spectrum(fcn, 0, mz_x, scan_list)
+    def _get_spectrum(self, fcn, scan_id):
+        """Retrieve scan"""
+        return self.data_reader.ReadScan(fcn, scan_id)
 
-        return mz_x, mz_y
+    def _process_spectrum(self, x, y):
+        # TODO: add qualitative check to see if the distance between two adjacent (sorted) x-axis elements is not larger
+        #       than some value (e.g. 0.1) and if so, insert two values right next to it with intensity of 0 so the
+        #       interpolation does not try to do crazy things
+        """Processes accumulated mass spectrum
 
-    def get_summed_spectrum(self, fcn, n_scans, mz_x, scan_list=None):
-        if not self.check_fcn(fcn):
-            raise ValueError(f"Function {fcn} could not be found in the file.")
+        Notes
+        -----
+        1. The final mass spectrum is generated by reordering the accumulated mass and intensity values (according to
+        the mass axis) and subsequently summed together for the unique values of the mass axis. Once the summation is
+        done, interpolated mass spectrum is generated.
+        2. If the amount of data in x/y is low, the spectrum can have visual issues, especially if the values are far
+        apart.
 
+        Parameters
+        ----------
+        x : List
+            unsorted list of x-axis values
+        y : List
+            unsorted list of y-axis values
+
+        Returns
+        -------
+        y : np.ndarray
+            interpolated y-axis values
+        """
+        # convert lists to array
+        x = np.asarray(x)
+        y = np.asarray(y)
+
+        # retrieve index
+        idx = x.argsort()
+        x = x[idx]
+        y = y[idx]
+
+        # combine data
+        x_unique, x_idx = np.unique(x, return_index=True)
+
+        # reindex y-axis and combine same values
+        start_idx = 0
+        y_summed = np.zeros_like(x_unique)
+        for i, end_idx in enumerate(x_idx[1::]):
+            y_summed[i] = y[start_idx:end_idx].sum()
+            start_idx = end_idx
+
+        # generate interpolation function
+        f = interpolate.interp1d(x_unique, y_summed, "linear", bounds_error=False, fill_value=0)
+        return f(self.mz_x)
+
+    def _get_scan_list(self, start_scan, end_scan, scan_list, fcn):
+        """Process user-defined parameters and return iterable object of scans or drift scans"""
         if scan_list is None:
-            scan_list = range(n_scans)
+            if not start_scan:
+                start_scan = 0
+            if not end_scan:
+                end_scan = self.n_scans(fcn)
+            scan_list = range(start_scan, end_scan)
+        return scan_list
 
-        if len(scan_list) == 0:
-            raise ValueError("Scan list is empty")
+    def get_spectrum(
+        self,
+        start_scan: Optional[int] = None,
+        end_scan: Optional[int] = None,
+        scan_list: Optional[List[int]] = None,
+        fcn: int = 0,
+    ):
+        """Retrieve mass spectrum
 
-        mz_y = np.zeros_like(mz_x, dtype=np.float64)
+        Parameters
+        ----------
+        start_scan : int
+            start scan of the data extraction
+        end_scan : int
+            end scan of the data extraction
+        scan_list : list
+            list of scans to extract. If `scan_list` is provided, the `start_scan` and `end_scan` variables are ignored
+        fcn : int
+            function to extract data from
+
+        Returns
+        -------
+        x : np.ndarray
+            x-axis of the mass spectrum
+        y : np.ndarray
+            y-axis of the mass spectrum
+        """
+        scan_list = self._get_scan_list(start_scan, end_scan, scan_list, fcn)
+
+        x, y = [], []
         for scan_id in scan_list:
-            xvals, yvals = self.data_reader.ReadScan(fcn, scan_id)
-            xvals = np.array(xvals)
-            yvals = np.array(yvals)
-            if len(xvals) > 0:
-                f = interpolate.interp1d(xvals, yvals, "linear", bounds_error=False, fill_value=0)
-                mz_y += f(mz_x)
+            _x, _y = self.data_reader.ReadScan(fcn, scan_id)
+            x.extend(_x)
+            y.extend(_y)
 
-        return mz_y
+        return self.mz_x, self._process_spectrum(x, y)
 
-    def get_summed_drift_spectrum(self, fcn, n_scans, mz_x, scan_list=None, drift_list=None):
-        if not self.check_fcn(fcn):
-            raise ValueError(f"Function {fcn} could not be found in the file.")
+    def get_drift_spectrum(
+        self,
+        start_scan: Optional[int] = None,
+        end_scan: Optional[int] = None,
+        scan_list: Optional[List[int]] = None,
+        start_drift: Optional[int] = None,
+        end_drift: Optional[int] = None,
+        drift_list: Optional[List[int]] = None,
+        fcn: int = 0,
+    ):
+        """Retrieve mass spectrum
 
-        if scan_list is None:
-            scan_list = range(n_scans)
+        Parameters
+        ----------
+        start_scan : int
+            start scan of the data extraction
+        end_scan : int
+            end scan of the data extraction
+        scan_list : list
+            list of scans to extract. If `scan_list` is provided, the `start_scan` and `end_scan` variables are ignored
+        start_drift : int
+            start drift scan of the data extraction
+        end_drift : int
+            end drift scan of the data extraction
+        drift_list : list
+            list of drift scans to extract. If `drift_list` is provided, the `drift_start` and `drift_end` variables are
+            ignored
+        fcn : int
+            function to extract data from
 
-        if drift_list is None:
-            drift_list = range(200)
+        Returns
+        -------
+        x : np.ndarray
+            x-axis of the mass spectrum
+        y : np.ndarray
+            y-axis of the mass spectrum
+        """
+        """Retrieve drift mass spectrum"""
+        scan_list = self._get_scan_list(start_scan, end_scan, scan_list, fcn)
+        drift_list = self._get_scan_list(start_drift, end_drift, drift_list, 1)
+        # use the `ReadScan` method instead since ion mobility criteria are not used
+        if len(drift_list) == 200:
+            return self.get_spectrum(scan_list=scan_list, fcn=fcn)
 
-        if len(scan_list) == 0:
-            raise ValueError("Scan list is empty")
-
-        xvals, yvals = [], []
-        mz_y = np.zeros_like(mz_x, dtype=np.float64)
+        x, y = [], []
         for scan_id in scan_list:
             for drift_id in drift_list:
-                _xvals, _yvals = self.data_reader.ReadDriftScan(fcn, scan_id, drift_id)
-                xvals.extend(_xvals)
-                yvals.extend(_yvals)
-            if len(xvals) > 0:
-                idx = index_natsorted(xvals)
+                _x, _y = self.data_reader.ReadDriftScan(fcn, scan_id, drift_id)
+                x.extend(_x)
+                y.extend(_y)
+        return x, y
 
-                f = interpolate.interp1d(
-                    np.asarray(order_by_index(xvals, idx)),
-                    np.asarray(order_by_index(yvals, idx)),
-                    "linear",
-                    bounds_error=False,
-                    fill_value=0,
-                )
-                mz_y += f(mz_x)
+        return self.mz_x, self._process_spectrum(x, y)
 
-        return mz_y
+    def get_tic(self, fcn: int = 0):
+        """Retrieve TIC data for particular function
 
-    def get_summed_drift_spectrum2(self, fcn, n_scans, mz_x, scan_list=None, drift_list=None):
-        if not self.check_fcn(fcn):
-            raise ValueError(f"Function {fcn} could not be found in the file.")
+        Parameters
+        ----------
+        fcn : int
+            function id
 
-        if scan_list is None:
-            scan_list = range(n_scans)
+        Returns
+        -------
+        x : np.ndarray
+            x-axis of the TIC data
+        y : np.ndarray
+            y-axis of the TIC data
+        """
+        x, y = self.chrom_reader.ReadTIC(fcn)
+        return np.asarray(x), np.asarray(y)
 
-        if drift_list is None:
-            drift_list = range(200)
+    def get_bpi(self, fcn: int = 0):
+        """Retrieve BPI data for particular function
 
-        if len(scan_list) == 0:
-            raise ValueError("Scan list is empty")
+        Parameters
+        ----------
+        fcn : int
+            function id
 
-        xvals, yvals = [], []
-        mz_y = np.zeros_like(mz_x, dtype=np.float64)
-        for scan_id in scan_list:
-            for drift_id in drift_list:
-                _xvals, _yvals = self.data_reader.ReadDriftScan(fcn, scan_id, drift_id)
-                xvals.extend(_xvals)
-                yvals.extend(_yvals)
-
-        idx = index_natsorted(xvals)
-
-        return np.asarray(order_by_index(xvals, idx)), np.asarray(order_by_index(yvals, idx))
-
-    def get_TIC(self, fcn):
-        tic_x, tic_y = self.chrom_reader.ReadTIC(fcn)
-        return np.asarray(tic_x), np.asarray(tic_y)
-
-    def get_BPI(self, fcn):
-        bpi_x, bpi_y = self.chrom_reader.ReadBPI(fcn)
-        return np.asarray(bpi_x), np.asarray(bpi_y)
+        Returns
+        -------
+        x : np.ndarray
+            x-axis of the TIC data
+        y : np.ndarray
+            y-axis of the TIC data
+        """
+        x, y = self.chrom_reader.ReadBPI(fcn)
+        return np.asarray(x), np.asarray(y)
 
     def get_chromatogram(self, mz_values, tolerance=0.05):
-        if not isinstance(mz_values, list):
-            mz_values = [mz_values]
+        """Get chromatograms for particular masses within m/z tolerance window
 
-        rt_x, rt_ys = self.chrom_reader.ReadMassChromatograms(0, mz_values, tolerance, 0)
+        Parameters
+        ----------
+        mz_values : Union[float, List[float]]
+            single m/z value or list of m/z vales
+        tolerance : float
+            tolerance window
 
-        return rt_x, rt_ys
+        Returns
+        -------
+        x : np.ndarray
+            x-axis of the chromatogram
+        ys : List[np.ndarray]
+            list of y-axes values
+        """
+        return self._get_mass_chromatogram(0, mz_values, tolerance)
 
     def get_mobilogram(self, mz_values, tolerance=0.05):
-        """Same as `get_chromatogram` but using function 1"""
+        """Get mobilogram for particular masses within m/z tolerance window
+
+        Parameters
+        ----------
+        mz_values : Union[float, List[float]]
+            single m/z value or list of m/z vales
+        tolerance : float
+            tolerance window
+
+        Returns
+        -------
+        x : np.ndarray
+            x-axis of the chromatogram
+        ys : List[np.ndarray]
+            list of y-axes values
+        """
+        return self._get_mass_chromatogram(1, mz_values, tolerance)
+
+    def _get_mass_chromatogram(self, fcn, mz_values, tolerance=0.05):
+        """Get chromatogram/mobilogram for particular masses within m/z tolerance window
+
+        Parameters
+        ----------
+        fcn : int
+            function id
+        mz_values : Union[float, List[float]]
+            single m/z value or list of m/z vales
+        tolerance : float
+            tolerance window
+
+        Returns
+        -------
+        x : np.ndarray
+            x-axis of the chromatogram
+        ys : List[np.ndarray]
+            list of y-axes values
+        """
         if not isinstance(mz_values, list):
             mz_values = [mz_values]
 
-        dt_x, dt_ys = self.chrom_reader.ReadMassChromatograms(1, mz_values, tolerance, 0)
+        x, ys = self.chrom_reader.ReadMassChromatograms(fcn, mz_values, tolerance, 0)
+        assert isinstance(ys, list)
 
-        return dt_x, dt_ys
+        return np.asarray(x), [np.asarray(y) for y in ys]
 
-    def _check_waters_input(self, reader, mz_start, mz_end, rt_start, rt_end, dt_start, dt_end):
+    @staticmethod
+    def _check_waters_input(reader, mz_start, mz_end, rt_start, rt_end, dt_start, dt_end):
         """Check input for waters files"""
         # check mass range
         mass_range = reader.stats_in_functions.get(0, 1)["mass_range"]
@@ -224,7 +375,7 @@ class WatersRawReader:
             mz_end = mass_range[1]
 
         # check chromatographic range
-        xvals, __ = reader.get_TIC(0)
+        xvals, __ = reader.get_tic(0)
         rt_range = get_min_max(xvals)
         if rt_start < rt_range[0]:
             rt_start = rt_range[0]

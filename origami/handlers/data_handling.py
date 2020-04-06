@@ -36,8 +36,8 @@ from origami.utils.check import isempty
 from origami.utils.check import check_value_order
 from origami.utils.check import check_axes_spacing
 from origami.utils.color import get_random_color
-from origami.utils.color import convert_rgb_1_to_255
 from origami.utils.color import convert_rgb_255_to_1
+from origami.utils.color import convert_rgb_1_to_255
 from origami.utils.random import get_random_int
 from origami.utils.ranges import get_min_max
 from origami.handlers.load import LoadHandler
@@ -317,7 +317,8 @@ class DataHandling(ExtractionHandler, LoadHandler, ExportHandler):
         else:
             return None, None
 
-    def get_waters_api_reader(self, path):
+    @staticmethod
+    def get_waters_api_reader(path):
         reader = io_waters_raw_api.WatersRawReader(path)
         return reader
 
@@ -341,32 +342,25 @@ class DataHandling(ExtractionHandler, LoadHandler, ExportHandler):
     @staticmethod
     def _get_waters_api_spectrum_data(reader, **kwargs):
         fcn = 0
-        if not hasattr(reader, "mz_spacing"):
-            logger.debug("Missing `mz_spacing` information - computing it now.")
-            __, __ = reader.generate_mz_interpolation_range(fcn)
-
-        mz_x = reader.mz_x
-
         start_scan = kwargs.get("start_scan", 0)
         end_scan = kwargs.get("end_scan", reader.stats_in_functions[fcn]["n_scans"])
         scan_list = kwargs.get("scan_list", np.arange(start_scan, end_scan))
 
-        mz_y = reader.get_summed_spectrum(fcn, 0, mz_x, scan_list)
-        mz_y = mz_y.astype(np.int32)
+        x, y = reader.get_spectrum(fcn=0, scan_list=scan_list)
 
-        return mz_x, mz_y
+        return x.astype(np.float32), y.astype(np.float32)
 
-    @staticmethod
-    def _get_waters_api_spacing(reader):
-        fcn = 0
-        if not hasattr(reader, "mz_spacing"):
-            logger.info("Missing `mz_spacing` information - computing it now.")
-            __, __ = reader.generate_mz_interpolation_range(fcn)
-
-        mz_x = reader.mz_x
-        mz_spacing = reader.mz_spacing
-
-        return mz_x, mz_spacing
+    # @staticmethod
+    # def _get_waters_api_spacing(reader):
+    #     fcn = 0
+    #     if not hasattr(reader, "mz_spacing"):
+    #         logger.info("Missing `mz_spacing` information - computing it now.")
+    #         __, __ = reader.generate_mz_interpolation_range(fcn)
+    #
+    #     mz_x = reader.mz_x
+    #     mz_spacing = reader.mz_spacing
+    #
+    #     return mz_x, mz_spacing
 
     # @staticmethod
     # def _check_driftscope_input(**kwargs):
@@ -382,7 +376,7 @@ class DataHandling(ExtractionHandler, LoadHandler, ExportHandler):
 
     @staticmethod
     def _get_waters_api_nearest_RT_in_minutes(reader, rt_start, rt_end):
-        x, __ = reader.get_TIC(0)
+        x, __ = reader.get_tic(0)
         x = np.asarray(x)
 
         rt_start = int(rt_start)
@@ -396,7 +390,7 @@ class DataHandling(ExtractionHandler, LoadHandler, ExportHandler):
 
     @staticmethod
     def _get_waters_api_nearest_DT_in_bins(reader, dt_start, dt_end):
-        x, __ = reader.get_TIC(1)
+        x, __ = reader.get_tic(1)
         x = np.asarray(x)
 
         dt_start = find_nearest_index(x, dt_start)
@@ -404,43 +398,8 @@ class DataHandling(ExtractionHandler, LoadHandler, ExportHandler):
 
         return dt_start, dt_end
 
-    @staticmethod
-    def get_document_list_of_type(document_type, document_format=None):
-        """Helper function to check whether any of the documents in the document tree are of particular type"""
-
-        document_types = document_type
-
-        if document_type == "all":
-            document_types = [
-                "Type: ORIGAMI",
-                "Type: MANUAL",
-                "Type: Infrared",
-                "Type: 2D IM-MS",
-                "Type: Multifield Linear DT",
-                "Type: Interactive",
-                "Type: Calibrant",
-                "Type: Comparison",
-                "Type: MS",
-                "Type: Imaging",
-            ]
-
-        if not isinstance(document_types, list):
-            document_types = [document_type]
-
-        document_list = []
-        for document_type in document_types:
-            for document_title in ENV:
-                if ENV[document_title].dataType == document_type and document_format is None:
-                    document_list.append(document_title)
-                elif (
-                    ENV[document_title].dataType == document_type and ENV[document_title].fileFormat == document_format
-                ):
-                    document_list.append(document_title)
-
-        return document_list
-
     def _get_document_of_type(self, document_type, allow_creation=True):
-        document_list = self.get_document_list_of_type(document_type=document_type)
+        document_list = ENV.get_document_list(document_type=document_type)
 
         document = None
 
@@ -557,10 +516,10 @@ class DataHandling(ExtractionHandler, LoadHandler, ExportHandler):
         reader = self._get_waters_api_reader(document)
         mass_range = reader.stats_in_functions.get(0, 1)["mass_range"]
 
-        x_rt_mins, __ = reader.get_TIC(0)
+        x_rt_mins, __ = reader.get_tic(0)
         xvals_rt_scans = np.arange(0, len(x_rt_mins))
 
-        xvals_dt_ms, __ = reader.get_TIC(1)
+        xvals_dt_ms, __ = reader.get_tic(1)
         xvals_dt_bins = np.arange(0, len(xvals_dt_ms))
 
         extraction_ranges = dict(
@@ -584,7 +543,7 @@ class DataHandling(ExtractionHandler, LoadHandler, ExportHandler):
             mz_end = mass_range[1]
 
         # check chromatographic range
-        xvals, __ = reader.get_TIC(0)
+        xvals, __ = reader.get_tic(0)
         rt_range = get_min_max(xvals)
         if rt_start < rt_range[0]:
             rt_start = rt_range[0]
@@ -1246,8 +1205,6 @@ class DataHandling(ExtractionHandler, LoadHandler, ExportHandler):
             self.on_threading(action="load.raw.mgf", args=(evt,))
 
     def on_open_MGF_file(self, evt=None):
-        from origami.readers import io_mgf
-
         dlg = wx.FileDialog(
             self.presenter.view, "Open MGF file", wildcard="*.mgf; *.MGF", style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR
         )
@@ -1272,8 +1229,6 @@ class DataHandling(ExtractionHandler, LoadHandler, ExportHandler):
             self.on_threading(action="load.raw.mzml", args=(evt,))
 
     def on_open_mzML_file(self, evt=None):
-        from origami.readers import io_mzml
-
         dlg = wx.FileDialog(
             self.presenter.view,
             "Open mzML file",
@@ -1325,11 +1280,11 @@ class DataHandling(ExtractionHandler, LoadHandler, ExportHandler):
                 if document.fileFormat == "Format: .mgf":
                     from origami.readers import io_mgf
 
-                    document.file_reader["data_reader"] = io_mgf.MGFreader(filename=document.path)
+                    document.file_reader["data_reader"] = io_mgf.MGFReader(filename=document.path)
                 elif document.fileFormat == "Format: .mzML":
                     from origami.readers import io_mzml
 
-                    document.file_reader["data_reader"] = io_mzml.mzMLreader(filename=document.path)
+                    document.file_reader["data_reader"] = io_mzml.mzMLReader(filename=document.path)
                 else:
                     DialogBox(
                         exceptionTitle="Error",
@@ -1713,7 +1668,7 @@ class DataHandling(ExtractionHandler, LoadHandler, ExportHandler):
         self.update_statusbar(f"Extracted mass spectrum in {time.time()-t_start_ext:.4f}", 4)
 
         t_start_ext = time.time()
-        xvals_RT_mins, yvals_RT = reader.get_TIC(0)
+        xvals_RT_mins, yvals_RT = reader.get_tic(0)
         xvals_RT = np.arange(1, len(xvals_RT_mins) + 1)
         self.update_statusbar(f"Extracted chromatogram in {time.time()-t_start_ext:.4f}", 4)
 
@@ -1724,7 +1679,7 @@ class DataHandling(ExtractionHandler, LoadHandler, ExportHandler):
 
             # DT
             t_start_ext = time.time()
-            xvals_DT_ms, yvals_DT = reader.get_TIC(1)
+            xvals_DT_ms, yvals_DT = reader.get_tic(1)
             xvals_DT = np.arange(1, len(xvals_DT_ms) + 1)
             self.update_statusbar(f"Extracted mobilogram in {time.time()-t_start_ext:.4f}", 4)
 
@@ -1934,7 +1889,7 @@ class DataHandling(ExtractionHandler, LoadHandler, ExportHandler):
         ms_x, ms_y = self._get_waters_api_spectrum_data(reader)
 
         # get chromatogram
-        rt_x, rt_y = reader.get_TIC(0)
+        rt_x, rt_y = reader.get_tic(0)
         rt_x = np.arange(1, len(rt_x) + 1)
 
         # Add data to document
@@ -2369,7 +2324,6 @@ class DataHandling(ExtractionHandler, LoadHandler, ExportHandler):
             enumerate_start = len(document.multipleMassSpectrum)
 
         data_was_added = False
-        _mz_spacing = None
         ms_x = None
         for i, file_path in enumerate(pathlist, start=enumerate_start):
             tincr = time.time()
@@ -2393,13 +2347,10 @@ class DataHandling(ExtractionHandler, LoadHandler, ExportHandler):
             xlimits = [parameters["startMS"], parameters["endMS"]]
 
             reader = io_waters_raw_api.WatersRawReader(path)
-            if _mz_spacing is not None:
-                reader.mz_spacing = _mz_spacing
+            if ms_x is not None:
                 reader.mz_x = ms_x
 
             ms_x, ms_y = self._get_waters_api_spectrum_data(reader)
-            if _mz_spacing is None:
-                _mz_spacing = reader.mz_spacing
 
             dt_x, dt_y = self.waters_im_extract_dt(path)
             try:
@@ -3829,7 +3780,7 @@ class DataHandling(ExtractionHandler, LoadHandler, ExportHandler):
 
         all_datasets = ["Mass Spectrum", "Mass Spectrum (processed)", "Mass Spectra"]
         singlular_datasets = ["Mass Spectrum", "Mass Spectrum (processed)"]
-        all_documents = self.get_document_list_of_type("all")
+        all_documents = ENV.get_document_list("all")
 
         item_list = []
         if output_type in ["annotations", "comparison"]:
@@ -3894,7 +3845,7 @@ class DataHandling(ExtractionHandler, LoadHandler, ExportHandler):
             "Input data",
         ]
         singlular_datasets = ["Drift time (2D)", "Drift time (2D, processed)"]
-        all_documents = self.get_document_list_of_type("all")
+        all_documents = ENV.get_document_list("all")
 
         item_list = []
         if output_type == "annotations":
@@ -3938,7 +3889,7 @@ class DataHandling(ExtractionHandler, LoadHandler, ExportHandler):
 
         all_datasets = ["Chromatograms (EIC)", "Chromatograms (combined voltages, EIC)", "Chromatogram"]
         singlular_datasets = ["Chromatogram"]
-        all_documents = self.get_document_list_of_type("all")
+        all_documents = ENV.get_document_list("all")
 
         item_list = []
         if output_type == "annotations":
@@ -3982,7 +3933,7 @@ class DataHandling(ExtractionHandler, LoadHandler, ExportHandler):
 
         all_datasets = ["Drift time (1D, EIC)", "Drift time (1D, EIC, DT-IMS)", "Drift time (1D)"]
         singlular_datasets = ["Drift time (1D)"]
-        all_documents = self.get_document_list_of_type("all")
+        all_documents = ENV.get_document_list("all")
 
         item_list = []
         if output_type == "annotations":

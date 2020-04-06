@@ -2,21 +2,26 @@
 # Standard library imports
 import time
 import logging
+from sys import platform
 
 # Third-party imports
 import numpy as np
 
 # Local imports
 from origami.utils.ranges import get_min_max
-from origami.readers.io_mgf import MGFreader
-from origami.readers.io_mzml import mzMLreader
+from origami.readers.io_mgf import MGFReader
+from origami.readers.io_mzml import mzMLReader
 from origami.utils.utilities import format_time
+from origami.utils.decorators import check_os
 from origami.config.environment import ENV
 from origami.readers.io_text_files import TextHeatmapReader
 from origami.readers.io_text_files import TextSpectrumReader
 from origami.readers.io_text_files import AnnotatedDataReader
-from origami.readers.io_thermo_raw import thermoRAWreader
-from origami.readers.io_waters_raw_api import WatersRawReader
+
+# enable on windowsOS only
+if platform == "win32":
+    from origami.readers.io_waters_raw_api import WatersRawReader
+    from origami.readers.io_thermo_raw import ThermoRawReader
 
 LOGGER = logging.getLogger(__name__)
 
@@ -58,7 +63,7 @@ class LoadHandler:
     def load_mgf_data(path):
         """Read data from MGF file format"""
         t_start = time.time()
-        reader = MGFreader(path)
+        reader = MGFReader(path)
         LOGGER.debug("Created MGF file reader. Started loading data...")
 
         data = reader.get_n_scans(MGF_N_SCANS)
@@ -83,7 +88,7 @@ class LoadHandler:
     def load_mzml_data(path):
         """Read data from mzML file format"""
         t_start = time.time()
-        reader = mzMLreader(path)
+        reader = mzMLReader(path)
         LOGGER.debug("Created mzML file reader. Started loading data...")
 
         data = reader.get_n_scans(MZML_N_SCANS)
@@ -105,9 +110,10 @@ class LoadHandler:
         return document
 
     @staticmethod
+    @check_os("win32")
     def load_thermo_data(path):
         """Load Thermo data"""
-        reader = thermoRAWreader(path)
+        reader = ThermoRawReader(path)
         LOGGER.debug("Created Thermo file reader. Started loading data...")
 
         # get chromatographic data
@@ -129,6 +135,7 @@ class LoadHandler:
         }
         return reader, data
 
+    @check_os("win32")
     def load_thermo_document(self, path):
         """Load Thermo data and set in ORIGAMI document"""
         reader, data = self.load_thermo_data(path)
@@ -144,6 +151,7 @@ class LoadHandler:
         return document
 
     @staticmethod
+    @check_os("win32")
     def load_waters_ms_data(path):
         """Load Waters mass spectrometry and chromatographic data"""
         t_start = time.time()
@@ -154,7 +162,7 @@ class LoadHandler:
         x_limits = get_min_max(mz_x)
         LOGGER.debug("Loaded spectrum in " + format_time(t_start))
 
-        rt_x, rt_y = reader.get_TIC(0)
+        rt_x, rt_y = reader.get_tic(0)
         LOGGER.debug("Loaded TIC in " + format_time(t_start))
 
         parameters = reader.get_inf_data()
@@ -167,6 +175,7 @@ class LoadHandler:
 
         return reader, data
 
+    @check_os("win32")
     def load_waters_ms_document(self, path):
         """Load Waters data and set in ORIGAMI document"""
         reader, data = self.load_waters_ms_data(path)

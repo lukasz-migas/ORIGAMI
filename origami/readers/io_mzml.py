@@ -6,7 +6,7 @@ import numpy as np
 from pymzml import run as pymzml_run
 
 
-class mzMLreader:
+class mzMLReader:
     """mzML reader"""
 
     def __init__(self, filename, **kwargs):

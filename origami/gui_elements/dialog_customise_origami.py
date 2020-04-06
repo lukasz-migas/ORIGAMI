@@ -401,8 +401,8 @@ class DialogCustomiseORIGAMI(Dialog):
 
         document = self.data_handling.on_get_document(self.document_title)
         reader = self.data_handling._get_waters_api_reader(document)
-
-        mz_x, mz_spacing = self.data_handling._get_waters_api_spacing(reader)
+        mz_x = reader.mz_x
+        # mz_x, mz_spacing = self.data_handling._get_waters_api_spacing(reader)
         n_spectra = len(start_end_cv_list)
         n_bins = len(mz_x)
 
@@ -412,7 +412,7 @@ class DialogCustomiseORIGAMI(Dialog):
         info = (
             f"\n" + f"Number of iterations: {n_spectra}\n" + f"First scan {first_scan} | Last scan: {last_scan}\n"
             f"Number of points in each spectrum: {n_bins}\n"
-            + f"m/z spacing: {mz_spacing}\n"
+            # + f"m/z spacing: {mz_spacing}\n"
             + f"Approx. amount of RAM: {approx_ram:.0f} MB"
         )
         self.info_value.SetLabel(info)

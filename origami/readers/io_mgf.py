@@ -6,7 +6,7 @@ import numpy as np
 from pyteomics import mgf
 
 
-class MGFreader:
+class MGFReader:
     def __init__(self, filename, **kwargs):
         self.filename = filename
         self.source = self.create_parser()

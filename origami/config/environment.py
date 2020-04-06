@@ -2,6 +2,9 @@
 # Standard library imports
 import os
 import logging
+from typing import List
+from typing import Union
+from typing import Optional
 
 # Local imports
 from origami.document import document as Document
@@ -34,7 +37,16 @@ ALTERNATIVE_NAMES = {
     "Imaging": "imaging",
     "Type: Imaging": "imaging",
 }
-
+DOCUMENT_TYPES = [
+    "Type: ORIGAMI",
+    "Type: MANUAL",
+    "Type: Infrared",
+    "Type: 2D IM-MS",
+    "Type: Interactive",
+    "Type: Comparison",
+    "Type: MS",
+    "Type: Imaging",
+]
 
 # TODO: add `callbacks` section to the  document
 
@@ -138,12 +150,15 @@ class Environment:
         self.documents.clear()
 
     def keys(self):
-        return self.documents.keys()
+        """Returns document list"""
+        return list(self.documents.keys())
 
     def values(self):
+        """Return documents"""
         return self.documents.values()
 
     def items(self):
+        """Returns list of tuples of (key, document)"""
         return self.documents.items()
 
     def on_get_document(self, title=None):
@@ -176,7 +191,8 @@ class Environment:
 
     @staticmethod
     def new(document_type: str, path: str) -> Document:
-        """Create new document that contains certain attributes"""
+        """Create new document that contains certain pre-set attributes. The document is not automatically added to the
+        store. Use `add_new` if you would like to instantiate and add the document to the document store"""
         # ensure the correct name is used
         if document_type not in DOCUMENT_TYPE_ATTRIBUTES:
             document_type = ALTERNATIVE_NAMES[document_type]
@@ -198,6 +214,39 @@ class Environment:
     def get_new_document(self, document_type: str, path: str) -> Document:
         """Alias for `new`"""
         return self.new(document_type, path)
+
+    def add_new(self, document_type: str, path: str) -> Document:
+        """Creates new document and adds it to the store"""
+        document = self.new(document_type, path)
+        self.add(document)
+        return document
+
+    def get_document_list(self, document_types: Union[str, List[str]] = "all", document_format: Optional[str] = None):
+        """Get list of currently opened documents based on some requirements
+
+        Parameters
+        ----------
+        document_types : Union[str, List[str]]
+            types of document to be searched for in the store
+        document_format : Optional[str]
+            types of format to be searched for in the store
+
+        Returns
+        -------
+        document_list : List
+            list of document titles
+        """
+        if document_types == "all":
+            document_types = DOCUMENT_TYPES
+        if isinstance(document_types, str):
+            document_types = [document_types]
+
+        document_list = []
+        for document_title, document in self.items():
+            if document.dataType in document_types:
+                if document_format is not None or document_format == document.fileFormat:
+                    document_list.append(document_title)
+        return document_list
 
 
 ENV = Environment()

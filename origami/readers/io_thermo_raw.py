@@ -6,7 +6,7 @@ from origami.utils.path import clean_filename
 from origami.utils.multiplierz_lite.mzAPI import raw
 
 
-class thermoRAWreader:
+class ThermoRawReader:
     def __init__(self, filename, **kwargs):
         self.filename = filename
         self.source = self.create_parser()

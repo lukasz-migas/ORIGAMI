@@ -35,36 +35,6 @@ class WatersIMReader:
     def __repr__(self):
         return f"{self.__class__.__name__}<path={self.path}; m/z range={self.mz_min:.2f}-{self.mz_max:.2f}>"
 
-    def get_mass_range(self):
-        """Create handle to the API reader and extract the experimental mass range"""
-        reader = WatersRawReader(self.path)
-        stats = reader.stats_in_functions
-        if len(stats) < 2:
-            raise ValueError("This Waters (.raw) file only has 1 function! Cannot extract ion mobility data")
-        mz_min, mz_max = stats[0]["mass_range"]
-        return mz_min, mz_max, stats[0]["n_scans"]
-
-    def check_mz_range(self, mz_start, mz_end):
-        """Ensure the user-defined mass-range makes sense"""
-        if mz_start < self.mz_min:
-            mz_start = self.mz_min
-        if mz_end > self.mz_max:
-            mz_end = self.mz_max
-
-        return mz_start, mz_end
-
-    def get_temp_filename(self):
-        filename = get_short_hash()
-        self._last = filename
-        return filename
-
-    def execute(self, cmd):
-        process_id = Popen(cmd, shell=self.verbose, creationflags=CREATE_NEW_CONSOLE)
-        process_id.wait()
-
-    def get_filepath(self, filename):
-        return os.path.join(self.output_dir, filename)
-
     @property
     def dt_bin(self):
         """Return mobility axis in bins"""
@@ -81,7 +51,41 @@ class WatersIMReader:
             self._rt_min, _, _, _ = self.extract_rt(dt_start=0, dt_end=1)
         return self._rt_min
 
-    def mz_from_n_bins(self, mz_start: float, mz_end: float, n_mz_bins: int):
+    def get_mass_range(self):
+        """Create handle to the API reader and extract the experimental mass range"""
+        reader = WatersRawReader(self.path)
+        stats = reader.stats_in_functions
+        # if len(stats) < 2:
+        #     raise ValueError("This Waters (.raw) file only has 1 function! Cannot extract ion mobility data")
+        mz_min, mz_max = stats[0]["mass_range"]
+        return mz_min, mz_max, stats[0]["n_scans"]
+
+    def check_mz_range(self, mz_start, mz_end):
+        """Ensure the user-defined mass-range makes sense"""
+        if mz_start < self.mz_min:
+            mz_start = self.mz_min
+        if mz_end > self.mz_max:
+            mz_end = self.mz_max
+
+        return mz_start, mz_end
+
+    def get_temp_filename(self):
+        """Creates temporary filename"""
+        filename = get_short_hash()
+        self._last = filename
+        return filename
+
+    def execute(self, cmd):
+        """Executes the extraction command"""
+        process_id = Popen(cmd, shell=self.verbose, creationflags=CREATE_NEW_CONSOLE)
+        process_id.wait()
+
+    def get_filepath(self, filename):
+        """Combines output directory with new filename"""
+        return os.path.join(self.output_dir, filename)
+
+    @staticmethod
+    def mz_from_n_bins(mz_start: float, mz_end: float, n_mz_bins: int):
         """Return approximate m/z axis based on number of bins and specified mass range. The mass axis is calculated
         using simple linear spacing
 
