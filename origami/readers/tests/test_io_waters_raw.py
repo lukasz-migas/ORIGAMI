@@ -23,6 +23,10 @@ class TestWatersIMReader:
         assert reader._last is None
         assert reader.mz_min < reader.mz_max
         assert reader._driftscope is not None
+        assert len(reader.dt_bin) == 200
+        assert len(reader.dt_ms) == 200
+        assert len(reader.rt_bin) == reader.n_scans
+        assert len(reader.rt_min) == reader.n_scans
 
     def test_get_ms(self, get_waters_im_small):
         reader = WatersIMReader(get_waters_im_small)

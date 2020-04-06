@@ -36,8 +36,8 @@ from origami.utils.check import isempty
 from origami.utils.check import check_value_order
 from origami.utils.check import check_axes_spacing
 from origami.utils.color import get_random_color
-from origami.utils.color import convert_rgb_255_to_1
 from origami.utils.color import convert_rgb_1_to_255
+from origami.utils.color import convert_rgb_255_to_1
 from origami.utils.random import get_random_int
 from origami.utils.ranges import get_min_max
 from origami.handlers.load import LoadHandler

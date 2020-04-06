@@ -29,6 +29,7 @@ class WatersIMReader:
         self.verbose = True
         self._last = None
         self._rt_min = None
+        self._dt_ms = None
 
         self.mz_min, self.mz_max, self.n_scans = self.get_mass_range()
 
@@ -38,17 +39,27 @@ class WatersIMReader:
     @property
     def dt_bin(self):
         """Return mobility axis in bins"""
-        return np.arange(200) + 1
+        return np.arange(200, dtype=np.int32) + 1
+
+    @property
+    def dt_ms(self):
+        """Return mobility axis in milliseconds"""
+        if self._dt_ms is None:
+            reader = WatersRawReader(self.path)
+            self._dt_ms, _ = reader.get_tic(1)
+        return self._dt_ms
 
     @property
     def rt_bin(self):
         """Return chromatogram axis in bins"""
-        return np.arange(self.n_scans) + 1
+        return np.arange(self.n_scans, dtype=np.int32) + 1
 
     @property
     def rt_min(self):
         if self._rt_min is None:
-            self._rt_min, _, _, _ = self.extract_rt(dt_start=0, dt_end=1)
+            reader = WatersRawReader(self.path)
+            self._rt_min, _ = reader.get_tic(0)
+            # self._rt_min, _, _, _ = self.extract_rt(dt_start=0, dt_end=1)
         return self._rt_min
 
     def get_mass_range(self):

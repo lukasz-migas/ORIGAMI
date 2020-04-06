@@ -27,6 +27,8 @@ class WatersRawReader:
         )
         self._mz_spacing = mz_spacing
         self._mz_x = self.get_linear_mz(self._mz_spacing)
+        self._rt_min = None
+        self._dt_ms = None
 
         # setup file mode
         self.instrument_type = self.stats_in_functions[0]["ion_mode"]
@@ -48,6 +50,29 @@ class WatersRawReader:
     def mz_x(self, value):
         """Sets the m/z axis"""
         self._mz_x = np.asarray(value)
+
+    @property
+    def dt_bin(self):
+        """Return mobility axis in bins"""
+        return np.arange(self.n_scans(1), dtype=np.int32) + 1
+
+    @property
+    def dt_ms(self):
+        """Return mobility axis in milliseconds"""
+        if self._dt_ms is None:
+            self._dt_ms, _ = self.get_tic(1)
+        return self._dt_ms
+
+    @property
+    def rt_bin(self):
+        """Return chromatogram axis in bins"""
+        return np.arange(self.n_scans(0), dtype=np.int32) + 1
+
+    @property
+    def rt_min(self):
+        if self._rt_min is None:
+            self._rt_min, _ = self.get_tic(0)
+        return self._rt_min
 
     def n_scans(self, fcn: int):
         """Get number of scans in particular function"""
@@ -92,11 +117,8 @@ class WatersRawReader:
 
     def check_fcn(self, fcn):
         """Checks whether the requested function exists"""
-        found_fcn = True
         if fcn not in self.stats_in_functions:
-            found_fcn = False
-
-        return found_fcn
+            raise ValueError(f"Function {fcn} not found in the file. Try: {list(self.stats_in_functions.keys())}")
 
     def get_linear_mz(self, mz_spacing: float):
         """Generates linearly spaced interpolation range"""
@@ -105,7 +127,7 @@ class WatersRawReader:
 
     def get_average_spectrum(self, fcn: int = 0):
         """Load average spectrum"""
-        x, y = self.get_spectrum(0, self.n_scans(fcn), fcn)
+        x, y = self.get_spectrum(fcn=fcn)
         y = y / self.n_scans(fcn)
         return x, y
 
@@ -143,6 +165,9 @@ class WatersRawReader:
         x = np.asarray(x)
         y = np.asarray(y)
 
+        if len(x) == 0:
+            return np.zeros_like(self.mz_x, dtype=np.float32)
+
         # retrieve index
         idx = x.argsort()
         x = x[idx]
@@ -160,7 +185,7 @@ class WatersRawReader:
 
         # generate interpolation function
         f = interpolate.interp1d(x_unique, y_summed, "linear", bounds_error=False, fill_value=0)
-        return f(self.mz_x)
+        return f(self.mz_x).astype(np.float32)
 
     def _get_scan_list(self, start_scan, end_scan, scan_list, fcn):
         """Process user-defined parameters and return iterable object of scans or drift scans"""
@@ -199,6 +224,7 @@ class WatersRawReader:
         y : np.ndarray
             y-axis of the mass spectrum
         """
+        self.check_fcn(fcn)
         scan_list = self._get_scan_list(start_scan, end_scan, scan_list, fcn)
 
         x, y = [], []
@@ -246,7 +272,7 @@ class WatersRawReader:
         y : np.ndarray
             y-axis of the mass spectrum
         """
-        """Retrieve drift mass spectrum"""
+        self.check_fcn(fcn)
         scan_list = self._get_scan_list(start_scan, end_scan, scan_list, fcn)
         drift_list = self._get_scan_list(start_drift, end_drift, drift_list, 1)
         # use the `ReadScan` method instead since ion mobility criteria are not used
@@ -259,8 +285,6 @@ class WatersRawReader:
                 _x, _y = self.data_reader.ReadDriftScan(fcn, scan_id, drift_id)
                 x.extend(_x)
                 y.extend(_y)
-        return x, y
-
         return self.mz_x, self._process_spectrum(x, y)
 
     def get_tic(self, fcn: int = 0):
@@ -278,6 +302,7 @@ class WatersRawReader:
         y : np.ndarray
             y-axis of the TIC data
         """
+        self.check_fcn(fcn)
         x, y = self.chrom_reader.ReadTIC(fcn)
         return np.asarray(x), np.asarray(y)
 
@@ -296,6 +321,7 @@ class WatersRawReader:
         y : np.ndarray
             y-axis of the TIC data
         """
+        self.check_fcn(fcn)
         x, y = self.chrom_reader.ReadBPI(fcn)
         return np.asarray(x), np.asarray(y)
 
@@ -356,8 +382,13 @@ class WatersRawReader:
         ys : List[np.ndarray]
             list of y-axes values
         """
-        if not isinstance(mz_values, list):
+        self.check_fcn(fcn)
+        if isinstance(mz_values, (float, int)):
             mz_values = [mz_values]
+        if isinstance(mz_values, tuple):
+            mz_values = list(mz_values)
+        if not isinstance(tolerance, float) or tolerance <= 0:
+            raise ValueError("m/z tolerance must be larger than 0")
 
         x, ys = self.chrom_reader.ReadMassChromatograms(fcn, mz_values, tolerance, 0)
         assert isinstance(ys, list)

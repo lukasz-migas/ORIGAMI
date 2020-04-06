@@ -1,6 +1,7 @@
 """Config file for pytest"""
 # Standard library imports
 import os
+import glob
 
 # Third-party imports
 import wx
@@ -21,6 +22,8 @@ dw_config = Download()
 
 DATA_PATH = os.path.join(os.path.split(__file__)[0], "data")
 DATA_WATERS_IM_SMALL = os.path.join(DATA_PATH, "WATERS_IM_SMALL.raw.zip")
+DATA_TEXT_MS = os.path.join(DATA_PATH, "TEXT_MS.zip")
+DATA_TEXT_HEATMAP = os.path.join(DATA_PATH, "TEXT_HEATMAP.zip")
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -33,6 +36,18 @@ def get_waters_im_small(tmpdir_factory):
         link = dw_config["waters_raw_im"]
         path = download_file(link, output_dir=output_dir)
     return os.path.abspath(path)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def get_text_ms(tmpdir_factory):
+    """Create folder with processed data for testing purposes"""
+    output_dir = str(tmpdir_factory.mktemp("data"))
+    if os.path.exists(DATA_TEXT_MS):
+        path = unzip_directory(DATA_TEXT_MS, output_dir, False)
+    else:
+        link = dw_config["text_ms"]
+        path = download_file(link, output_dir=output_dir)
+    return glob.glob(os.path.join(path, "*"))
 
 
 @pytest.fixture(scope="session", autouse=True)

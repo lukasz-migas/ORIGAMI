@@ -416,7 +416,7 @@ class TextHeatmapReader(TextReader):
         df.fillna(value=0, inplace=True)
 
         # Convert df to matrix
-        df_array = df.values()
+        df_array = df.values
         array = df_array[:, 1::]
         y = df_array[:, 0]
 

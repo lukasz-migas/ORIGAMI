@@ -2,16 +2,12 @@
 import os
 import sys
 import traceback
-
-# from distutils.errors import CCompilerError
-# from distutils.errors import DistutilsExecError
+from distutils.errors import CCompilerError
+from distutils.errors import DistutilsExecError
 from distutils.errors import DistutilsPlatformError
-
-# Extension must be loaded AFTER setup
 from distutils.command.build_ext import build_ext
 
 # Third-party imports
-# from setuptools import Extension
 from setuptools import setup
 from setuptools import find_packages
 
@@ -59,6 +55,13 @@ def make_extensions():
     except ImportError:
         extensions = []
     return extensions
+
+
+ext_errors = (CCompilerError, DistutilsExecError, DistutilsPlatformError)
+if sys.platform == "win32":
+    # 2.6's distutils.msvc9compiler can raise an IOError when failing to
+    # find the compiler
+    ext_errors += (IOError,)
 
 
 class BuildFailed(Exception):
@@ -118,8 +121,6 @@ DOWNLOAD_URL = "https://github.com/lukasz-migas/origami"
 INSTALL_REQUIRES, DEPENDENCY_LINKS = get_requirements_and_links("requirements/requirements-std.txt")
 PACKAGES = [package for package in find_packages()]
 PACKAGE_DATA = {"": []}
-
-print(INSTALL_REQUIRES)
 
 CLASSIFIERS = [
     "Intended Audience :: Science/Research",
