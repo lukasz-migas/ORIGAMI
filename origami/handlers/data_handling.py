@@ -49,6 +49,7 @@ from origami.handlers.extract import ExtractionHandler
 from origami.processing.utils import find_nearest_index
 from origami.processing.utils import get_maximum_value_in_range
 from origami.readers.io_utils import get_waters_inf_data
+from origami.readers.io_utils import get_waters_header_data
 from origami.utils.converters import str2num
 from origami.utils.converters import byte2str
 from origami.utils.converters import convert_ms_to_bins
@@ -1659,7 +1660,7 @@ class DataHandling(ExtractionHandler, LoadHandler, ExportHandler):
 
         # Get experimental parameters
         parameters = get_waters_inf_data(path)
-        file_info = self.config.get_waters_header_data(path)
+        file_info = get_waters_header_data(path)
         xlimits = [parameters["startMS"], parameters["endMS"]]
         reader = io_waters_raw_api.WatersRawReader(path)
 

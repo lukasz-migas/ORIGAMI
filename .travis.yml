@@ -61,9 +61,11 @@ before_install:
 
 # https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04/wxPython-4.0.6-cp36-cp36m-linux_x86_64.whl
 install:
-  # - pip install --upgrade pip
+  - pip install --upgrade pip
   - pip install -r requirements/requirements-std.txt
   - if [[ "${Image}" == "Linux_37" ]]; then
+    pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04 wxPython;
+    elif [[ "${Image}" == "coverage" ]]; then
     pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04 wxPython;
     elif [[ "${Image}" == "Win10_37" ]]; then
     pip install -U wxPython;
