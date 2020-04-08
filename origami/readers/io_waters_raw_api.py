@@ -15,8 +15,8 @@ from origami.utils.ranges import get_min_max
 
 
 class WatersRawReader:
-    def __init__(self, filename, mz_spacing: float = 0.01):
-        self.path = filename
+    def __init__(self, path, mz_spacing: float = 0.01):
+        self.path = path
 
         # create parsers
         self.reader, self.info_reader, self.data_reader, self.chrom_reader = self.create_readers()

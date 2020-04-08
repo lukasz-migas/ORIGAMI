@@ -11,7 +11,6 @@ import numpy as np
 from origami.utils.path import check_waters_path
 from origami.utils.secret import get_short_hash
 from origami.readers.io_utils import clean_up
-from origami.processing.heatmap import normalize_2D
 from origami.readers.io_waters_raw_api import WatersRawReader
 
 logger = logging.getLogger(__name__)
@@ -20,8 +19,9 @@ logger = logging.getLogger(__name__)
 temp_data_folder = os.path.join(os.getcwd(), "temporary_data")
 
 
-class WatersIMReader:
+class WatersIMReader(WatersRawReader):
     def __init__(self, path, driftscope_path=r"C:\DriftScope\lib", temp_dir=None):
+        super().__init__(path)
         self.path = check_waters_path(path)
         self._driftscope = driftscope_path
         self._temp_dir = temp_dir if temp_dir is not None else self.path
@@ -30,46 +30,6 @@ class WatersIMReader:
         self._last = None
         self._rt_min = None
         self._dt_ms = None
-
-        self.mz_min, self.mz_max, self.n_scans = self.get_mass_range()
-
-    def __repr__(self):
-        return f"{self.__class__.__name__}<path={self.path}; m/z range={self.mz_min:.2f}-{self.mz_max:.2f}>"
-
-    @property
-    def dt_bin(self):
-        """Return mobility axis in bins"""
-        return np.arange(200, dtype=np.int32) + 1
-
-    @property
-    def dt_ms(self):
-        """Return mobility axis in milliseconds"""
-        if self._dt_ms is None:
-            reader = WatersRawReader(self.path)
-            self._dt_ms, _ = reader.get_tic(1)
-        return self._dt_ms
-
-    @property
-    def rt_bin(self):
-        """Return chromatogram axis in bins"""
-        return np.arange(self.n_scans, dtype=np.int32) + 1
-
-    @property
-    def rt_min(self):
-        if self._rt_min is None:
-            reader = WatersRawReader(self.path)
-            self._rt_min, _ = reader.get_tic(0)
-            # self._rt_min, _, _, _ = self.extract_rt(dt_start=0, dt_end=1)
-        return self._rt_min
-
-    def get_mass_range(self):
-        """Create handle to the API reader and extract the experimental mass range"""
-        reader = WatersRawReader(self.path)
-        stats = reader.stats_in_functions
-        # if len(stats) < 2:
-        #     raise ValueError("This Waters (.raw) file only has 1 function! Cannot extract ion mobility data")
-        mz_min, mz_max = stats[0]["mass_range"]
-        return mz_min, mz_max, stats[0]["n_scans"]
 
     def check_mz_range(self, mz_start, mz_end):
         """Ensure the user-defined mass-range makes sense"""
@@ -134,7 +94,6 @@ class WatersIMReader:
         mz_start: float = 0,
         mz_end: float = 99999,
         return_data=True,
-        **kwargs,
     ):
         """Extract mass spectrum from ion mobility dataset
 
@@ -163,8 +122,6 @@ class WatersIMReader:
             m/z values
         y : np.ndarray
             intensity values
-        y_norm : np.ndarray
-            normalized (to 1) intensity values
         """
         # write output filename first
         filename = self.get_temp_filename()
@@ -181,19 +138,17 @@ class WatersIMReader:
         self.clean(range_file)
 
         if return_data:
-            x, y, y_norm = self.load_ms(out_path, normalize=kwargs.get("normalize", False))
-            return x, y, y_norm
+            x, y = self.load_ms(out_path)
+            return x, y
         return out_path
 
-    def load_ms(self, path, normalize=False):
+    def load_ms(self, path):
         """Load binary data extracted using `extract_ms`
 
         Parameters
         ----------
         path : str
             path to the binary MS data
-        normalize : bool
-            if `True`, a normalized spectrum will be also generated
 
         Returns
         -------
@@ -210,14 +165,9 @@ class WatersIMReader:
         xy = data[3::].reshape(2, n_rows, order="F")
         x = xy[0, :]
         y = xy[1, :] / data[2]
-
         self.clean(path)
-        # normalize mass spectrum to 1
-        y_norm = y
-        if normalize:
-            y_norm = y / y.max()
 
-        return x, y, y_norm
+        return x, y
 
     def extract_rt(
         self,
@@ -228,7 +178,6 @@ class WatersIMReader:
         mz_start: float = 0,
         mz_end: float = 99999,
         return_data=True,
-        **kwargs,
     ):
         """Extract chromatogram from ion mobility dataset
 
@@ -255,8 +204,6 @@ class WatersIMReader:
             m/z values
         y : np.ndarray
             intensity values
-        y_norm : np.ndarray
-            normalized (to 1) intensity values
         """
         mz_start, mz_end = self.check_mz_range(mz_start, mz_end)
 
@@ -275,19 +222,17 @@ class WatersIMReader:
         self.clean(range_file)
 
         if return_data:
-            x, x_bin, y, y_norm = self.load_rt(out_path, normalize=kwargs.get("normalize", False))
-            return x, x_bin, y, y_norm
+            x, x_bin, y = self.load_rt(out_path)
+            return x, x_bin, y
         return out_path
 
-    def load_rt(self, path, normalize=False, **kwargs):
+    def load_rt(self, path):
         """Load binary data extracted using `extract_rt`
 
         Parameters
         ----------
         path : str
             path to the binary MS data
-        normalize : bool
-            if `True`, a normalized spectrum will be also generated
 
         Returns
         -------
@@ -297,8 +242,6 @@ class WatersIMReader:
             retention time, in bins
         y : np.ndarray
             intensity values
-        y_norm : np.ndarray
-            normalized (to 1) intensity values
         """
         # load retention time data
         data = np.fromfile(path, dtype=np.float32)
@@ -311,13 +254,9 @@ class WatersIMReader:
         data = np.fromfile(path, dtype=np.int32)
         xy = data[3::].reshape(2, n_rows, order="F")
         y = xy[1, :]
-
         self.clean(path)
-        y_norm = y
-        if normalize:
-            y_norm = y.astype(np.float64) / max(y)
 
-        return x, x_bin, y, y_norm
+        return x, x_bin, y
 
     def extract_dt(
         self,
@@ -328,7 +267,6 @@ class WatersIMReader:
         mz_start: float = 0,
         mz_end: float = 99999,
         return_data=True,
-        **kwargs,
     ):
         """Extract mobilogram from ion mobility dataset
 
@@ -355,8 +293,6 @@ class WatersIMReader:
             drift time in bins
         y : np.ndarray
             intensity values
-        y_norm : np.ndarray
-            normalized (to 1) intensity values
         """
         mz_start, mz_end = self.check_mz_range(mz_start, mz_end)
 
@@ -374,19 +310,17 @@ class WatersIMReader:
         self.clean(range_file)
 
         if return_data:
-            x_bin, y, y_norm = self.load_dt(out_path, normalize=kwargs.get("normalize", False))
-            return x_bin, y, y_norm
+            x_bin, y = self.load_dt(out_path)
+            return x_bin, y
         return out_path
 
-    def load_dt(self, path, normalize=False, **kwargs):
+    def load_dt(self, path):
         """Load binary data extracted using `extract_dt`
 
         Parameters
         ----------
         path : str
             path to the binary MS data
-        normalize : bool
-            if `True`, a normalized spectrum will be also generated
 
         Returns
         -------
@@ -394,21 +328,15 @@ class WatersIMReader:
             drift time, in bins
         y : np.ndarray
             intensity values
-        y_norm : np.ndarray
-            normalized (to 1) intensity values
         """
         data = np.fromfile(path, dtype=np.int32)
         n_rows = data[2]
         xy = data[3::].reshape(2, n_rows, order="F")
         y = xy[1, :]
         x_bin = np.arange(1, n_rows + 1, dtype=np.int32)
-
         self.clean(path)
-        y_norm = y
-        if normalize:
-            y_norm = y.astype(np.float64) / y.max()
 
-        return x_bin, y, y_norm
+        return x_bin, y
 
     def extract_heatmap(
         self,
@@ -418,9 +346,8 @@ class WatersIMReader:
         dt_end: int = 200,
         mz_start: float = 0,
         mz_end: float = 99999,
-        return_data=True,
         reduce: str = "sum",
-        **kwargs,
+        return_data=True,
     ):
         """Extract heatmap from ion mobility dataset
 
@@ -445,10 +372,16 @@ class WatersIMReader:
 
         Returns
         -------
+        dt_x : np.ndarray
+            drift time bins
+        dt_y : np.ndarray
+            drift time intensity array
+        rt_x : np.ndarray
+            chromatogram scans
+        rt_y : np.ndarray
+            chromatogram intensity array
         array : np.ndarray
             heatmap array
-        array_norm : np.ndarray
-            normalized (to 1) heatmap array
         """
         mz_start, mz_end = self.check_mz_range(mz_start, mz_end)
 
@@ -470,11 +403,15 @@ class WatersIMReader:
         self.clean(range_file)
 
         if return_data:
-            array, array_norm = self.load_heatmap(out_path, normalize=kwargs.get("normalize", False), reduce=reduce)
-            return array, array_norm
+            array = self.load_heatmap(out_path, reduce=reduce)
+            dt_x = self.dt_bin
+            dt_y = array.sum(axis=1)
+            rt_x = self.rt_bin
+            rt_y = array.sum(axis=0)
+            return dt_x, dt_y, rt_x, rt_y, array
         return out_path
 
-    def load_heatmap(self, path, normalize=False, reduce="sum", **kwargs):
+    def load_heatmap(self, path, reduce="sum"):
         """Load binary data extracted using `extract_heatmap`
 
         Notes
@@ -488,8 +425,6 @@ class WatersIMReader:
         ----------
         path : str
             path to the binary MS data
-        normalize : bool
-            if `True`, a normalized spectrum will be also generated
         reduce : str
             data reduction of the interpolated heatmap - see `Notes` above
 
@@ -497,8 +432,6 @@ class WatersIMReader:
         -------
         heatmap : np.ndarray
             intensity array
-        heatmap_norm : np.ndarray
-            normalized (to 1) intensity array
         """
         heatmap = np.fromfile(path, dtype=np.int32)
         n_rows = int(heatmap[3::].shape[0] / 200)
@@ -510,13 +443,10 @@ class WatersIMReader:
         elif reduce == "median":
             heatmap = np.median(np.hsplit(heatmap, heatmap.shape[1] / 5), axis=2).T
         else:
-            raise ValueError("Could not reduce the size of heatmap")
+            raise ValueError("Could not reduce the size of heatmap. Use either `sum, mean, median` methods")
 
         self.clean(path)
-        heatmap_norm = heatmap
-        if normalize:
-            heatmap_norm = normalize_2D(heatmap.astype(np.float64), axis=0, norm="max")
-        return heatmap, heatmap_norm
+        return heatmap
 
     def extract_msdt(
         self,
@@ -526,8 +456,37 @@ class WatersIMReader:
         dt_start: int = 1,
         dt_end: int = 200,
         return_data=True,
-        **kwargs,
     ):
+        """Extract heatmap from ion mobility dataset
+
+        Parameters
+        ----------
+        mz_start : float
+            start m/z extraction range, in Da
+        mz_end : float
+            end m/z extraction range, in Da
+        n_points : int
+            number of points in the mass dimension
+        dt_start : int
+            start drift time, in drift bins
+        dt_end : int
+            end drift time, in drift bins
+        return_data : bool
+            if `True`, extracted data will be loaded and returned
+
+        Returns
+        -------
+        mz_x : np.ndarray
+            m/z values
+        mz_y : np.ndarray
+            m/z intensity values
+        dt_x : np.ndarray
+            drift scans
+        dt_y : np.ndarray
+            drift intensity array
+        array : np.ndarray
+            heatmap array
+        """
         mz_start, mz_end = self.check_mz_range(mz_start, mz_end)
 
         # write output filename first
@@ -542,36 +501,37 @@ class WatersIMReader:
 
         # Extract command
         self.execute(cmd)
-        # self.clean(range_file)
+        self.clean(range_file)
 
         if return_data:
-            array, array_norm = self.load_msdt(out_path, normalize=kwargs.get("normalize", False))
-            return array, array_norm
+            array = self.load_msdt(out_path)
+            n_points = array.shape[1]
+            mz_bin_size = (mz_end - mz_start) / n_points
+            mz_x = self.mz_from_n_bins(mz_start - mz_bin_size, mz_end + mz_bin_size, n_points)
+            mz_y = array.sum(axis=0)
+            dt_x = self.dt_bin
+            dt_y = array.sum(axis=1)
+            return mz_x, mz_y, dt_x, dt_y, array
+
         return out_path
 
-    def load_msdt(self, path, normalize=False, **kwargs):
+    def load_msdt(self, path):
         """Load binary data extracted using `extract_msdt`
 
         Parameters
         ----------
         path : str
             path to the binary MS data
-        normalize : bool
-            if `True`, a normalized spectrum will be also generated
 
         Returns
         -------
         heatmap : np.ndarray
             intensity array
-        heatmap_norm : np.ndarray
-            normalized (to 1) intensity array
         """
         heatmap = np.fromfile(path, dtype=np.int32)
         n_bins = heatmap[0]
         heatmap = heatmap[3::].reshape((200, n_bins), order="C")
 
         self.clean(path)
-        heatmap_norm = heatmap
-        if normalize:
-            heatmap_norm = normalize_2D(heatmap.astype(np.float64), axis=0, norm="max")
-        return heatmap, heatmap_norm
+
+        return heatmap

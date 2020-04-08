@@ -45,7 +45,6 @@ from origami.config.convert import convert_v1_to_v2
 from origami.config.convert import upgrade_document_annotations
 from origami.handlers.export import ExportHandler
 from origami.utils.utilities import report_time
-from origami.handlers.extract import ExtractionHandler
 from origami.processing.utils import find_nearest_index
 from origami.processing.utils import get_maximum_value_in_range
 from origami.readers.io_utils import get_waters_inf_data
@@ -69,11 +68,10 @@ if platform == "win32":
 logger = logging.getLogger(__name__)
 
 
-class DataHandling(ExtractionHandler, LoadHandler, ExportHandler):
+class DataHandling(LoadHandler, ExportHandler):
     """General data handling module"""
 
     def __init__(self, presenter, view, config):
-        ExtractionHandler.__init__(self)
         LoadHandler.__init__(self)
         ExportHandler.__init__(self)
 
@@ -2501,15 +2499,8 @@ class DataHandling(ExtractionHandler, LoadHandler, ExportHandler):
 
         # Load data
         reader = io_waters_raw.WatersIMReader(document.path)
-        _, rt_x, rt_y, _ = reader.extract_rt(
-            path=document.path,
-            driftscope_path=self.config.driftscopePath,
-            mz_start=mz_start,
-            mz_end=mz_end,
-            dt_start=dt_start,
-            dt_end=dt_end,
-            return_data=True,
-            normalize=False,
+        _, rt_x, rt_y = reader.extract_rt(
+            mz_start=mz_start, mz_end=mz_end, dt_start=dt_start, dt_end=dt_end, return_data=True
         )
         self.plotsPanel.on_plot_RT(rt_x, rt_y, "Scans")
 
@@ -2573,7 +2564,7 @@ class DataHandling(ExtractionHandler, LoadHandler, ExportHandler):
         # Mass spectra
         try:
             reader = io_waters_raw.WatersIMReader(document.path)
-            mz_x, mz_y, _ = reader.extract_ms(
+            mz_x, mz_y = reader.extract_ms(
                 rt_start=rt_start, rt_end=rt_end, dt_start=dt_start, dt_end=dt_end, return_data=True
             )
             if xlimits is None:

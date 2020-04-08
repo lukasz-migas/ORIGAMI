@@ -4,7 +4,8 @@ from origami.readers.io_text_files import TextSpectrumReader
 
 
 class TestTextSpectrumReader:
-    def test_one_spectrum(self, get_text_ms):
+    @staticmethod
+    def test_one_spectrum(get_text_ms):
         for path in get_text_ms:
             reader = TextSpectrumReader(path)
             assert len(reader.x) == len(reader.y)

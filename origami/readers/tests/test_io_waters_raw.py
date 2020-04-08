@@ -6,7 +6,6 @@ import sys
 # Third-party imports
 import numpy as np
 import pytest
-from numpy.testing import assert_array_equal
 
 # Local imports
 from origami.readers.io_waters_raw import WatersIMReader
@@ -16,7 +15,8 @@ if sys.platform.startswith("linux") or sys.platform.startswith("darwin"):
 
 
 class TestWatersIMReader:
-    def test_init(self, get_waters_im_small):
+    @staticmethod
+    def test_init(get_waters_im_small):
         reader = WatersIMReader(get_waters_im_small)
 
         assert reader
@@ -25,77 +25,73 @@ class TestWatersIMReader:
         assert reader._driftscope is not None
         assert len(reader.dt_bin) == 200
         assert len(reader.dt_ms) == 200
-        assert len(reader.rt_bin) == reader.n_scans
-        assert len(reader.rt_min) == reader.n_scans
+        assert len(reader.rt_bin) == reader.n_scans(0)
+        assert len(reader.rt_min) == reader.n_scans(0)
 
-    def test_get_ms(self, get_waters_im_small):
+    @staticmethod
+    def test_get_ms(get_waters_im_small):
         reader = WatersIMReader(get_waters_im_small)
-        x, y, y_norm = reader.extract_ms(normalize=False)
-        assert len(x) == len(y) == len(y_norm)
-        assert_array_equal(y, y_norm)
+        x, y = reader.extract_ms()
+        assert len(x) == len(y)
 
-        x, y, y_norm = reader.extract_ms(normalize=True)
-        assert y_norm.max() <= 1.0
-
-    def test_extract_ms(self, get_waters_im_small):
+    @staticmethod
+    def test_extract_ms(get_waters_im_small):
         reader = WatersIMReader(get_waters_im_small)
         path = reader.extract_ms(return_data=False)
         assert os.path.exists(path)
 
-    def test_get_dt(self, get_waters_im_small):
+    @staticmethod
+    def test_get_dt(get_waters_im_small):
         reader = WatersIMReader(get_waters_im_small)
-        x, y, y_norm = reader.extract_dt(normalize=False)
-        assert len(x) == len(y) == len(y_norm)
-        assert_array_equal(y, y_norm)
+        x, y = reader.extract_dt()
+        assert len(x) == len(y)
         assert x.dtype == np.int32
 
-        x, y, y_norm = reader.extract_dt(normalize=True)
-        assert y_norm.max() <= 1.0
-
-    def test_extract_dt(self, get_waters_im_small):
+    @staticmethod
+    def test_extract_dt(get_waters_im_small):
         reader = WatersIMReader(get_waters_im_small)
         path = reader.extract_dt(return_data=False)
         assert os.path.exists(path)
 
-    def test_get_rt(self, get_waters_im_small):
+    @staticmethod
+    def test_get_rt(get_waters_im_small):
         reader = WatersIMReader(get_waters_im_small)
-        x, x_bin, y, y_norm = reader.extract_rt(normalize=False)
-        assert len(x) == len(x_bin) == len(y) == len(y_norm)
-        assert_array_equal(y, y_norm)
+        x, x_bin, y = reader.extract_rt()
+        assert len(x) == len(x_bin) == len(y)
         assert x_bin.dtype == np.int32
 
-        x, x_bin, y, y_norm = reader.extract_rt(normalize=True)
-        assert y_norm.max() <= 1.0
-
-    def test_extract_rt(self, get_waters_im_small):
+    @staticmethod
+    def test_extract_rt(get_waters_im_small):
         reader = WatersIMReader(get_waters_im_small)
         path = reader.extract_rt(return_data=False)
         assert os.path.exists(path)
 
+    @staticmethod
     @pytest.mark.parametrize("reduce", ("sum", "mean", "median"))
-    def test_get_heatmap(self, get_waters_im_small, reduce):
+    def test_get_heatmap(get_waters_im_small, reduce):
         reader = WatersIMReader(get_waters_im_small)
-        heatmap, heatmap_norm = reader.extract_heatmap(normalize=False, reduce=reduce)
+        dt_x, dt_y, rt_x, rt_y, heatmap = reader.extract_heatmap(reduce=reduce)
 
-        assert_array_equal(heatmap, heatmap_norm)
-        assert heatmap.shape[0] == 200
-        assert heatmap.shape[1] == reader.n_scans
+        assert heatmap.shape[0] == 200 == len(dt_x) == len(dt_y)
+        assert heatmap.shape[1] == reader.n_scans(0) == len(rt_x) == len(rt_y)
 
-    def test_extract_heatmap(self, get_waters_im_small):
+    @staticmethod
+    def test_extract_heatmap(get_waters_im_small):
         reader = WatersIMReader(get_waters_im_small)
         path = reader.extract_heatmap(return_data=False)
         assert os.path.exists(path)
 
+    @staticmethod
     @pytest.mark.parametrize("n_points", (100, 1000, 5000))
-    def test_get_msdt(self, get_waters_im_small, n_points):
+    def test_get_msdt(get_waters_im_small, n_points):
         reader = WatersIMReader(get_waters_im_small)
-        heatmap, heatmap_norm = reader.extract_msdt(n_points=n_points, normalize=False)
+        mz_x, mz_y, dt_x, dt_y, heatmap = reader.extract_msdt(n_points=n_points)
 
-        assert_array_equal(heatmap, heatmap_norm)
-        assert heatmap.shape[0] == 200
-        assert heatmap.shape[1] == n_points
+        assert heatmap.shape[0] == 200 == len(dt_x) == len(dt_y)
+        assert heatmap.shape[1] == n_points == len(mz_x) == len(mz_y)
 
-    def test_extract_msdt(self, get_waters_im_small):
+    @staticmethod
+    def test_extract_msdt(get_waters_im_small):
         reader = WatersIMReader(get_waters_im_small)
         path = reader.extract_heatmap(return_data=False)
         assert os.path.exists(path)
