@@ -37,13 +37,13 @@ class document:
         self.massSpectraSave = []
         # mobilogram (1D) data
         self.got1DT = False
-        self.DT = []
+        self.DT = {}
         # multiple mobilograms (1D) data
         self.gotMultipleDT = False
         self.multipleDT = OrderedDict()
         # chromatogram data
         self.got1RT = False
-        self.RT = []
+        self.RT = {}
         # multiple chromatograms
         self.gotMultipleRT = False
         self.multipleRT = OrderedDict()

@@ -2,6 +2,7 @@
 # Standard library imports
 import os
 import logging
+from typing import Dict
 from typing import List
 from typing import Union
 from typing import Optional
@@ -47,6 +48,20 @@ DOCUMENT_TYPES = [
     "Type: MS",
     "Type: Imaging",
 ]
+DOCUMENT_DEFAULT = "origami"
+DOCUMENT_KEY_PAIRS = {
+    "mz": "massSpectrum",
+    "rt": "RT",
+    "dt": "DT",
+    "heatmap": "IMS2D",
+    "mass_spectra": "multipleMassSpectrum",
+    "chromatograms": "multipleRT",
+    "mobilograms": "multipleDT",
+    "msdt": "DTMZ",
+    "parameters": "parameters",
+    "reader": "file_reader",
+    "tandem_spectra": "tandem_spectra",
+}
 
 # TODO: add `callbacks` section to the  document
 
@@ -184,13 +199,47 @@ class Environment:
 
         self.add(document_obj)
 
+    def set_document(
+        self,
+        document: Optional[Document] = None,
+        path: Optional[str] = None,
+        document_type: Optional[str] = None,
+        data: Optional[Dict] = None,
+    ):
+        """Set document in the environment"""
+        # create new document if one was not provided
+        if document is None:
+            if path is None:
+                path = os.path.join(CONFIG.cwd, self._get_new_name())
+            if document_type is None:
+                document_type = DOCUMENT_DEFAULT
+            document = self.new(document_type, path)
+
+        # add data to the document
+        if isinstance(data, dict):
+            for name, _data in data.items():
+                attr_name = DOCUMENT_KEY_PAIRS.get(name)
+                print(name, attr_name)
+                if attr_name is None:
+                    LOGGER.error(f"Could not processes {name}")
+                    continue
+                # setattr(document, attr_name, getattr(document, attr_name, dict()).update(_data))
+                getattr(document, attr_name, dict()).update(_data)
+        return document
+
     @staticmethod
     def blank() -> Document:
         """Creates new document instance without any attributes being pre-set"""
         return Document()
 
-    @staticmethod
-    def new(document_type: str, path: str) -> Document:
+    def _get_new_name(self, title: str = "New Document", n_fill: int = 1):
+        """Returns unique, document name"""
+        n = 0
+        while title + "#" + "%d".zfill(n_fill) % n in self:
+            n += 1
+        return title + "#" + "%d".zfill(n_fill)
+
+    def new(self, document_type: str, path: str, data: Optional[Dict] = None) -> Document:
         """Create new document that contains certain pre-set attributes. The document is not automatically added to the
         store. Use `add_new` if you would like to instantiate and add the document to the document store"""
         # ensure the correct name is used
@@ -209,15 +258,19 @@ class Environment:
         document.dataType = attributes["data_type"]
         document.fileFormat = attributes["file_format"]
 
+        # add data to document
+        if data is not None:
+            document = self.set_document(document, data=data)
+
         return document
 
-    def get_new_document(self, document_type: str, path: str) -> Document:
+    def get_new_document(self, document_type: str, path: str, data: Optional[Dict] = None) -> Document:
         """Alias for `new`"""
-        return self.new(document_type, path)
+        return self.new(document_type, path, data)
 
-    def add_new(self, document_type: str, path: str) -> Document:
+    def add_new(self, document_type: str, path: str, data: Optional[Dict] = None) -> Document:
         """Creates new document and adds it to the store"""
-        document = self.new(document_type, path)
+        document = self.new(document_type, path, data)
         self.add(document)
         return document
 

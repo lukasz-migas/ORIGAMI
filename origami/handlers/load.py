@@ -44,6 +44,9 @@ def check_path(path: str, extension: Optional[str] = None):
         raise ValueError(f"Path `{path}` does not have the correct extension")
 
 
+# TODO: add the registration class to the multiplierz_lite library
+
+
 class LoadHandler:
     def __init__(self):
         """Initialized"""
@@ -296,7 +299,7 @@ class LoadHandler:
         # calculate number of m/z bins
         n_mz_bins = math.floor((mz_max - mz_min) / mz_bin_size)
         reader = WatersIMReader(path)
-        x, _, y, _, array, _ = reader.extract_msdt(mz_start=mz_min, mz_end=mz_max, n_points=n_mz_bins, **kwargs)
+        x, _, y, _, array = reader.extract_msdt(mz_start=mz_min, mz_end=mz_max, n_points=n_mz_bins, **kwargs)
 
         return x, y, array
 
@@ -339,12 +342,11 @@ class LoadHandler:
 
     def load_mgf_document(self, path):
         """Load mgf data and set inside ORIGAMI document"""
-        # instantiate document
-        document = ENV.get_new_document("mgf", path)
-
         # read data
         reader, data = self.load_mgf_data(path)
 
+        # instantiate document
+        document = ENV.get_new_document("mgf", path)
         # set data
         document.tandem_spectra = data
         document.set_reader("data_reader", reader)
@@ -364,12 +366,11 @@ class LoadHandler:
 
     def load_mzml_document(self, path):
         """Load mzml data and set inside ORIGAMI document"""
-        # instantiate document
-        document = ENV.get_new_document("mzml", path)
-
         # read data
         reader, data = self.load_mzml_data(path)
 
+        # instantiate document
+        document = ENV.get_new_document("mzml", path)
         # set data
         document.tandem_spectra = data
         document.set_reader("data_reader", reader)
@@ -407,12 +408,12 @@ class LoadHandler:
         """Load Thermo data and set in ORIGAMI document"""
         reader, data = self.load_thermo_data(path)
 
-        document = ENV.get_new_document("thermo", path)
-
-        document.RT = data["rt"]
-        document.massSpectrum = data["mz"]
-        document.multipleMassSpectrum = data["mass_spectra"]
-        document.multipleRT = data["chromatograms"]
+        document = ENV.get_new_document("thermo", path, data=data)
+        # document = ENV.get_new_document("thermo", path)
+        # document.RT = data["rt"]
+        # document.massSpectrum = data["mz"]
+        # document.multipleMassSpectrum = data["mass_spectra"]
+        # document.multipleRT = data["chromatograms"]
         document.set_reader("data_reader", reader)
 
         return document
@@ -439,41 +440,39 @@ class LoadHandler:
             "rt": {"xvals": rt_x, "yvals": rt_y, "xlabels": "Scans", "ylabels": "Intensity"},
             "parameters": parameters,
         }
-
+        LOGGER.debug("Loaded data in " + report_time(t_start))
         return reader, data
 
     @check_os("win32")
     def load_waters_ms_document(self, path):
         """Load Waters data and set in ORIGAMI document"""
         reader, data = self.load_waters_ms_data(path)
-
-        document = ENV.get_new_document("waters", path)
-        document.parameters = data["parameters"]
-        document.massSpectrum = data["mz"]
-        document.RT = data["rt"]
+        document = ENV.get_new_document("waters", path, data=data)
+        document.set_reader("data_reader", reader)
 
         return document
 
+    @check_os("win32")
     def load_waters_im_data(self, path):
         """Load Waters IM-MS data"""
         t_start = time.time()
         reader = WatersIMReader(path)
         LOGGER.debug("Initialized Waters reader")
 
-        mz_x, mz_y, _ = reader.extract_ms()
+        mz_x, mz_y = reader.extract_ms()
         x_limits = get_min_max(mz_x)
         LOGGER.debug("Loaded spectrum in " + report_time(t_start))
 
-        rt_x_min, rt_x, rt_y, _ = reader.extract_rt()
+        rt_x_min, rt_x, rt_y = reader.extract_rt()
         LOGGER.debug("Loaded RT in " + report_time(t_start))
 
-        dt_x, dt_y, _ = reader.extract_dt()
+        dt_x, dt_y = reader.extract_dt()
         LOGGER.debug("Loaded DT in " + report_time(t_start))
 
-        array, _ = reader.extract_heatmap()
+        _, _, _, _, array = reader.extract_heatmap()
         LOGGER.debug("Loaded DT in " + report_time(t_start))
 
-        msdt_mz, msdt_dt, msdt_array = self.waters_im_extract_msdt(path, reader.mz_min, reader.mz_max)
+        msdt_mz_x, msdt_dt_x, msdt_array = self.waters_im_extract_msdt(path, reader.mz_min, reader.mz_max)
         LOGGER.debug("Loaded MSDT in " + report_time(t_start))
         parameters = reader.get_inf_data()
 
@@ -491,13 +490,22 @@ class LoadHandler:
                 "yvalsRT": rt_y,
             },
             "msdt": {
-                "zvals": msdt_mz,
-                "xvals": msdt_dt,
-                "yvals": msdt_array,
+                "xvals": msdt_mz_x,
+                "yvals": msdt_dt_x,
+                "zvals": msdt_array,
                 "xlabels": "m/z",
                 "ylabels": "Drift time (bins)",
             },
             "parameters": parameters,
         }
-
+        LOGGER.debug("Loaded data in " + report_time(t_start))
         return reader, data
+
+    @check_os("win32")
+    def load_waters_im_document(self, path):
+        """Load Waters data and set in ORIGAMI document"""
+        reader, data = self.load_waters_im_data(path)
+        document = ENV.get_new_document("origami", path, data=data)
+        document.set_reader("data_reader", reader)
+
+        return document
