@@ -30,7 +30,7 @@ jobs:
       max-parallel: 4
       matrix:
         python-version: [3.6, 3.7, 3.8]
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+        os: [ubuntu-latest, windows-latest] #, macOS-latest]
 
     runs-on: ${{ matrix.os }}
     name: "Tests"
@@ -47,7 +47,7 @@ jobs:
           pip install -r requirements/requirements-std.txt
           pip install -r requirements/requirements-dev.txt
       - name: Install wxPython (Windows/macOS)
-        if: runner.os == 'Windows' || runner.os == 'macOS'
+        if: runner.os != 'Linux'
         run: |
           pip install -U wxPython
       - name: Install wxPython (Linux)
@@ -80,9 +80,13 @@ jobs:
           pip install -U wxPython
       - name: Test with pytest
         run: |
-          pytest --cov=origami
+          pytest --cov=origami --cov-report=xml
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.xml
+          flags: unittests
 
 #  install-dev:
 #    strategy:
