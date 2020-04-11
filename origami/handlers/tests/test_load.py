@@ -7,8 +7,10 @@ import pytest
 # Local imports
 from origami.document import document as Document
 from origami.handlers.load import LoadHandler
-from origami.readers.io_waters_raw import WatersIMReader
-from origami.readers.io_waters_raw_api import WatersRawReader
+
+if sys.platform.startswith("linux") or sys.platform.startswith("darwin"):
+    from origami.readers.io_waters_raw import WatersIMReader
+    from origami.readers.io_waters_raw_api import WatersRawReader
 
 
 @pytest.fixture

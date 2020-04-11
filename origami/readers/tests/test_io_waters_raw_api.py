@@ -6,14 +6,12 @@ import sys
 import numpy as np
 import pytest
 
-# Local imports
-from origami.readers.io_waters_raw_api import WatersRawReader
-
 if sys.platform.startswith("linux") or sys.platform.startswith("darwin"):
+    from origami.readers.io_waters_raw_api import WatersRawReader
+
     pytest.skip("skipping Linux-only tests", allow_module_level=True)
 
 
-@pytest.mark.skipif(sys.platform != "win32", reason="Cannot extract data on MacOSX or Linux")
 class TestWatersRawReader:
     @staticmethod
     def test_init(get_waters_im_small):
