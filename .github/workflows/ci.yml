@@ -41,10 +41,6 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: ${{ matrix.python-version }}
-#      - name: Enable XVFB
-#        if: runner.os == 'Linux'
-#        run: |
-#          /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16;
       - name: Install dependencies
         run: |
           pip install --upgrade pip
@@ -66,20 +62,6 @@ jobs:
         if: runner.os != 'Linux'
         run: |
           pytest .
-#      - name: Xvfb setup
-#        if: runner.os == 'Linux'
-#        run: |
-#          export DISPLAY=:99.0;
-#          sh -e /etc/init.d/xvfb start;
-#          sleep 3;
-#      - name: Run headless test
-#        uses: GabrielBB/xvfb-action@v1.0
-#        with:
-#          run: |
-#            pytest .
-#      - name: Test with pytest
-#        run: |
-#          pytest .
 
   coverage:
     name: "Coverage"

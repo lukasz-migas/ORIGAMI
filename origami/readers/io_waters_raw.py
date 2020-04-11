@@ -16,14 +16,25 @@ from origami.readers.io_waters_raw_api import WatersRawReader
 logger = logging.getLogger(__name__)
 
 # create data holder
-temp_data_folder = os.path.join(os.getcwd(), "temporary_data")
+TEMP_DATA_FOLDER = os.path.join(os.getcwd(), "temporary_data")
+
+
+def get_driftscope_path():
+    """Searches in the common places for Driftscope path"""
+    # if installed on the system, Driftscope will be in C:\DriftScope\lib
+    if os.path.exists(r"C:\DriftScope\lib"):
+        return r"C:\DriftScope\lib"
+    else:
+        path = os.path.join(os.path.dirname(__file__), "driftscope")
+        if os.path.exists(path):
+            return path
 
 
 class WatersIMReader(WatersRawReader):
-    def __init__(self, path, driftscope_path=r"C:\DriftScope\lib", temp_dir=None):
+    def __init__(self, path, driftscope_path=None, temp_dir=None):
         super().__init__(path)
         self.path = check_waters_path(path)
-        self._driftscope = driftscope_path
+        self._driftscope = driftscope_path if driftscope_path is not None else get_driftscope_path()
         self._temp_dir = temp_dir if temp_dir is not None else self.path
         self.output_dir = self._temp_dir
         self.verbose = True
