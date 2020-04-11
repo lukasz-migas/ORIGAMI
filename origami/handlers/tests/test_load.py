@@ -8,6 +8,7 @@ import pytest
 from origami.document import document as Document
 from origami.handlers.load import LoadHandler
 
+# enable on windowsOS only
 if sys.platform == "win32":
     from origami.readers.io_waters_raw import WatersIMReader
     from origami.readers.io_waters_raw_api import WatersRawReader

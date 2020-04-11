@@ -41,6 +41,10 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Enable XVFB
+        if: runner.os == 'Linux'
+        run: |
+          /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16;
       - name: Install dependencies
         run: |
           pip install --upgrade pip
@@ -54,13 +58,19 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-18.04 wxPython
+      - name: Xvfb setup
+        if: runner.os == 'Linux'
+        run: |
+          export DISPLAY=:99.0;
+          sh -e /etc/init.d/xvfb start;
+          sleep 3;
       - name: Test with pytest
         run: |
           pytest .
 
   coverage:
     name: "Coverage"
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@master
       - name: Set up Python
@@ -72,7 +82,7 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements/requirements-std.txt
           pip install -r requirements/requirements-dev.txt
-          pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-18.04 wxPython;
+          pip install -U wxPython
       - name: Test with pytest
         run: |
           pytest --cov=origami
