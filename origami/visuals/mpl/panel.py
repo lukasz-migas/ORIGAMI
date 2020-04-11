@@ -26,6 +26,12 @@ class MPLPanel(wx.Panel):
         else:
             self.figsize = [8, 2.5]
 
+        # ensure minimal figure size
+        if self.figsize[0] <= 0:
+            self.figsize[0] = 1.0
+        if self.figsize[1] <= 0:
+            self.figsize[1] = 1.0
+
         if "axes_size" in kwargs:
             axes_size = kwargs.pop("axes_size")
             self._axes = axes_size

@@ -69,7 +69,6 @@ coverage.xml
 # mkdocs documentation
 /site
 ORIGAMI_ANALYSE/origami/icons/icons_binary.py
-*.json
 origami-docs.code-workspace
 ORIGAMI_ANALYSE/origami/configOut.xml
 origami.npp
@@ -77,3 +76,5 @@ origami/.vscode/.ropeproject/objectdb
 origami/.vscode/.ropeproject/config.py
 
 *.pickle
+.vscode/
+
