@@ -46,13 +46,14 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements/requirements-std.txt
           pip install -r requirements/requirements-dev.txt
-          if: startsWith(runner.os, 'Windows')
-            pip install -U wxPython
-          if: startsWith(runner.os, 'macOS')
-            pip install -U wxPython
-          if: startsWith(runner.os, 'Linux')
-            pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-18.04 wxPython;
-            # pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-18.04/wxPython-4.0.7.post2-cp37-cp37m-linux_x86_64.whl
+      - name: Install wxPython (Windows/macOS)
+        if: runner.os == "Windows || runner.os == "macOS"
+        run: |
+          pip install -U wxPython
+      - name: Install wxPython (Linux)
+        if: runner.os == "Linux"
+        run: |
+          pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-18.04 wxPython
       - name: Test with pytest
         run: |
           pytest .
