@@ -24,25 +24,25 @@ for dll in DLL_LIST:
     clr.AddReference(dll)
 
 # noinspection PyUnresolvedReferences
-from ThermoFisher.CommonCore.Data import Extensions
+from ThermoFisher.CommonCore.Data import Extensions  # noqa
 
 # noinspection PyUnresolvedReferences
-from ThermoFisher.CommonCore.Data.Business import Range
+from ThermoFisher.CommonCore.Data.Business import Range  # noqa
 
 # noinspection PyUnresolvedReferences
-from ThermoFisher.CommonCore.Data.Business import Device
+from ThermoFisher.CommonCore.Data.Business import Device  # noqa
 
 # noinspection PyUnresolvedReferences
-from ThermoFisher.CommonCore.Data.Business import ChromatogramSignal
+from ThermoFisher.CommonCore.Data.Business import ChromatogramSignal  # noqa
 
 # noinspection PyUnresolvedReferences
-from ThermoFisher.CommonCore.Data.Business import ChromatogramTraceSettings
+from ThermoFisher.CommonCore.Data.Business import ChromatogramTraceSettings  # noqa
 
 # noinspection PyUnresolvedReferences
-from ThermoFisher.CommonCore.RawFileReader import RawFileReaderAdapter
+from ThermoFisher.CommonCore.RawFileReader import RawFileReaderAdapter  # noqa
 
 # noinspection PyUnresolvedReferences
-from ThermoFisher.CommonCore.Data.Interfaces import IScanFilter
+from ThermoFisher.CommonCore.Data.Interfaces import IScanFilter  # noqa
 
 
 class ThermoRawReader:
