@@ -63,6 +63,7 @@ jobs:
         run: |
           xvfb-run -a pytest .
       - name: Test with pytest (Windows/macOS)
+        if: runner.os != 'Linux'
         run: |
           pytest .
 #      - name: Xvfb setup
