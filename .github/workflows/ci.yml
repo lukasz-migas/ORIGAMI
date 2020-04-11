@@ -50,6 +50,7 @@ jobs:
         if: runner.os != 'Linux'
         run: |
           pip install -U wxPython
+          pip install -r requirements/requirements-win32.txt
       - name: Install wxPython (Linux)
         if: runner.os == 'Linux'
         run: |
@@ -77,6 +78,7 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements/requirements-std.txt
           pip install -r requirements/requirements-dev.txt
+          pip install -r requirements/requirements-win32.txt
           pip install -U wxPython
       - name: Test with pytest
         run: |

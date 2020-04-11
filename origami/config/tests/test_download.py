@@ -1,7 +1,11 @@
+# Standard library imports
+import os
+
+# Third-party imports
 import pytest
 
+# Local imports
 from origami.config.download import Download
-import os
 
 
 class TestDownload:
