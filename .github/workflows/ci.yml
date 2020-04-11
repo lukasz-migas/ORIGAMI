@@ -29,8 +29,8 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        python-version: [3.6, 3.7, 3.8]
-        os: [ubuntu-latest, windows-latest] #, macOS-latest]
+        python-version: [3.6, 3.7] #, 3.8]  # wxpython for linux 3.8 is not available yet
+        os: [ubuntu-latest, windows-latest] #, macOS-latest]  # some bug in macOS version I don't care to investigate yet
 
     runs-on: ${{ matrix.os }}
     name: "Tests"
