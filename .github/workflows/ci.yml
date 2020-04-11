@@ -47,11 +47,11 @@ jobs:
           pip install -r requirements/requirements-std.txt
           pip install -r requirements/requirements-dev.txt
       - name: Install wxPython (Windows/macOS)
-        if: runner.os == "Windows || runner.os == "macOS"
+        if: runner.os == 'Windows' || runner.os == 'macOS'
         run: |
           pip install -U wxPython
       - name: Install wxPython (Linux)
-        if: runner.os == "Linux"
+        if: runner.os == 'Linux'
         run: |
           pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-18.04 wxPython
       - name: Test with pytest
