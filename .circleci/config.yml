@@ -56,6 +56,7 @@ jobs:
             source activate testenv;
             pip install -U pip wheel;
             pip install -r requirements/requirements-std.txt --ignore-installed;
+            pip install -r requirements/requirements-dev.txt --ignore-installed;
             pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-14.04 wxPython;
             python setup.py develop
       - run:

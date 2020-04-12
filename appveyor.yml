@@ -8,11 +8,10 @@ platform:
 
 environment:
   matrix:
-    # python 3.6
     - PYTHON: "C:/Python36"
       MINICONDA: C:\Miniconda36-x64
       PYTHON_ARCH: 64
-      PYTHON_VERSION: "3.7"
+      PYTHON_VERSION: "3.6"
 
 init:
   - "ECHO %PYTHON_VERSION% %MINICONDA% %PYTHON_ARCH%"
@@ -29,6 +28,7 @@ install:
   - activate testenv
   - python -m pip install --upgrade pip
   - pip install -r requirements/requirements-dev.txt
+  - pip install -r requirements/requirements-win32.txt
   - pip install -U wxPython;
   - python setup.py develop
   - cd origami

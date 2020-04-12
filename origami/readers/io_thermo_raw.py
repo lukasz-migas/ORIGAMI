@@ -3,12 +3,14 @@
 import os
 import sys
 from typing import Optional
+import logging
 
 import clr
 import numpy as np
 
 # Local imports
-from origami.utils.path import clean_filename
+# from origami.utils.path import clean_filename
+# from origami.utils.check import check_value_order
 
 DLL_PATH = os.path.join(os.path.dirname(__file__), "thermo")
 DLL_LIST = [
@@ -45,14 +47,34 @@ from ThermoFisher.CommonCore.RawFileReader import RawFileReaderAdapter  # noqa
 from ThermoFisher.CommonCore.Data.Interfaces import IScanFilter  # noqa
 
 
+DEFAULT_FILTER = "Full MS"
+LOGGER = logging.getLogger(__name__)
+
+
 class ThermoRawReader:
     def __init__(self, path):
         self.path = path
         self.source = self.create_parser()
-        self._filters = self.filter_list()
-        self.filters = self._collect_filters()
+        self._unique_filters = self.filter_list()
+        self._scan_filters = self._collect_filters()
         self.last_scan = 1
         self._rt_min = None
+        self.mz_min, self.mz_max = self.mass_range
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}<path={self.path}; m/z range={self.mz_min:.2f}-{self.mz_max:.2f}>"
+
+    def __getitem__(self, item):
+        """Retrieve mass spectrum for indexed filter"""
+        if isinstance(item, int):
+            title = self._unique_filters[item]
+        elif isinstance(item, str):
+            self._check_filter(item)
+            title = item
+        else:
+            raise ValueError("Not sure how to process the request! Try using `scan_id` or `filter` values")
+        LOGGER.debug(f"Getting mass spectrum for {title} filter")
+        return self.get_spectrum(title=title)
 
     @property
     def scan_range(self):
@@ -80,15 +102,19 @@ class ThermoRawReader:
             self._rt_min, _ = self.get_chromatogram(0, 1)
         return self._rt_min
 
+    def n_filters(self):
+        """Returns the number of filters in the file"""
+        return len(self._unique_filters)
+
     def n_scans(self):
-        """Returns the number of scans"""
+        """Returns the number of scans in the file"""
         return self.scan_range[-1]
 
     def create_parser(self):
         """Create parser"""
         source = RawFileReaderAdapter.FileFactory(self.path)
         if source.InstrumentCount > 1:
-            print("This file has multiple files present - only one is allowed at the moment")
+            LOGGER.warning("This file has multiple files present - only one is allowed at the moment")
         source.SelectInstrument(Device.MS, 1)
         return source
 
@@ -104,80 +130,64 @@ class ThermoRawReader:
         filters = [IScanFilter(x).ToString() for x in self.source.GetFilters()]
         return filters
 
+    def get_filter_by_idx(self, index):
+        if index >= self.n_filters():
+            raise IndexError(f"Index `{index}` is larger than the maximum number of filters ({self.n_filters()}")
+        return self._unique_filters[index]
+
     def get_scan_info(self, rt_start=None, rt_end=None):
 
-        _scan_range = self.source.scan_range()
+        _scan_range = self.scan_range
         if rt_start is None:
             rt_start = _scan_range[0]
         if rt_end is None or rt_end > _scan_range[1]:
             rt_end = _scan_range[1]
 
-        scan_info = {}
-        for scan_id in range(rt_start, rt_end):
+        scan_dict = {}
+        for scan_id in range(rt_start, rt_end + 1):
             info = self.source.GetFilterForScanNumber(scan_id)
-            level = "MS%d" % info.MSOrder
+            ms_level = "MS%d" % info.MSOrder
             mz = 0.0
-            if level != "MS1":
+            if ms_level != "MS1":
                 mz = info.GetMass(0)  # I guess >0 is for MS3 etc?
-
-            ms_level = info[0].upper() if info[0].upper() != "MS" else "MS1"
             time = self.source.RetentionTimeFromScanNumber(scan_id)
             scan_info = self.source.GetScanStatsForScanNumber(scan_id)
             ms_format = "c" if scan_info.IsCentroidScan else "p"
-            scan_info[scan_id] = {
+            scan_dict[scan_id] = {
                 "time": time,
                 "precursor_mz": mz,
                 "ms_level": ms_level,
                 "format": ms_format,
-                "filter": self.filters[scan_id - 1],
+                "filter": IScanFilter(info).ToString(),
             }
-
-        return scan_info
-
-    def get_average_spectrum(self, title="Full ms ", return_xy=True):
-        spectrum = np.array(self.source.average_scan(0, 99999, title))
-
-        if return_xy:
-            return spectrum[:, 0], spectrum[:, 1]
-        else:
-            return spectrum
+        return scan_dict
 
     def get_spectrum_for_each_filter(self):
 
-        unique_filters = set(self.filters)
+        unique_filters = set(self._scan_filters)
         data = {}
         for title in unique_filters:
             if title not in ["None", None]:
-                x, y = self.get_average_spectrum(title)
+                x, y = self.get_spectrum(title=title)
                 xlimits = [np.min(x), np.max(x)]
-                data[clean_filename(title)] = {
-                    "xvals": x,
-                    "yvals": y,
-                    "xlabels": "m/z (Da)",
-                    "xlimits": xlimits,
-                    "filter": title,
-                }
+                # data[clean_filename(title)] = {
+                data[title] = {"xvals": x, "yvals": y, "xlabels": "m/z (Da)", "xlimits": xlimits, "filter": title}
         return data
 
     def get_chromatogram_for_each_filter(self):
-        unique_filters = set(self.filters)
+        unique_filters = set(self._scan_filters)
         data = {}
         for title in unique_filters:
             if title not in ["None", None]:
                 x, y = self.get_chromatogram(title=title)
                 xlimits = [np.min(x), np.max(y)]
-                data[clean_filename(title)] = {
-                    "xvals": x,
-                    "yvals": y,
-                    "xlabels": "Time (min)",
-                    "xlimits": xlimits,
-                    "filter": title,
-                }
+                # data[clean_filename(title)] = {
+                data[title] = {"xvals": x, "yvals": y, "xlabels": "Time (min)", "xlimits": xlimits, "filter": title}
         return data
 
     def _get_spectrum(self, scan_id, centroid: bool = False):
         """Retrieve scan data"""
-        if scan_id > self.n_scans():
+        if scan_id > self.n_scans() or scan_id < 1:
             raise ValueError("Tried to extract scan that is not present in the data")
 
         scan_stats = self.source.GetScanStatsForScanNumber(scan_id)
@@ -202,21 +212,6 @@ class ThermoRawReader:
             y = np.asarray(list(scan.Intensities))
         return x, y
 
-    def _get_scan_parameters(
-        self, start_scan: Optional[int] = None, end_scan: Optional[int] = None, title: Optional[str] = None
-    ):
-        """Retrieve scan information for defined range"""
-        if title:
-            if title not in self._filters:
-                raise ValueError(f"Filter `{title}` was not recorded")
-            scans = []
-            for scan_id, _title in enumerate(self.filters, start=1):
-                if _title == title:
-                    scans.append(scan_id)
-            start_scan = min(scans)
-            end_scan = max(scans)
-        return start_scan, end_scan, title
-
     def get_spectrum(
         self,
         start_scan: Optional[int] = None,
@@ -224,9 +219,21 @@ class ThermoRawReader:
         centroid: bool = False,
         title: Optional[str] = None,
     ):
-        """Retrieve average mass spectrum"""
+        """Get average mass spectrum for particular scan range
+
+        Parameters
+        ----------
+        start_scan : int
+            retention start time in scans
+        end_scan : int
+            retention end time in scans
+        centroid : bool
+            if `True`, centroid mass spectrum will be returned instead of profile
+        title : str
+            filter title
+        """
         if title is None:
-            title = "Full MS"
+            title = DEFAULT_FILTER
         start_scan, end_scan, title = self._get_scan_parameters(start_scan, end_scan, title)
         average_scan = Extensions.AverageScansInScanRange(self.source, start_scan, end_scan, title)
 
@@ -245,7 +252,7 @@ class ThermoRawReader:
         x, y = self.get_chromatogram()
         return x, y
 
-    def get_chromatogram(self, mz_start=0, mz_end=99999, rt_start=-1, rt_end=-1, title=None):
+    def get_chromatogram(self, mz_start=0, mz_end=99999, rt_start=-1, rt_end=-1, title=None, rt_as_scan: bool = False):
         """Return extracted chromatogram
 
         Parameters
@@ -254,22 +261,80 @@ class ThermoRawReader:
             start m/z value
         mz_end : float
             end m/z value
-        rt_start : float
+        rt_start : Union[int, float]
             retention start time in minutes
-        rt_end : float
+        rt_end : Union[int, float]
             retention end time in minutes
         title : str
             filter title
+        rt_as_scan : bool
+            if `True`, the function will accept scans to be provided as scan numbers
         """
         if rt_start != -1:
-            rt_start = self.source.ScanNumberFromRetentionTime(rt_start)
+            if not rt_as_scan:
+                rt_start = self.source.ScanNumberFromRetentionTime(rt_start)
         if rt_end != -1:
-            rt_end = self.source.ScanNumberFromRetentionTime(rt_end)
+            if not rt_as_scan:
+                rt_end = self.source.ScanNumberFromRetentionTime(rt_end)
+        if mz_start == -1:
+            mz_start = 0
+        if mz_end == -1:
+            mz_end = 99999
         if title is None:
-            title = "Full MS"
+            title = DEFAULT_FILTER
 
-        # start_scan, stop_scan = list(map(self.scan_from_time, [rt_start, rt_end]))
+        start_scan, end_scan, title = self._get_scan_parameters(rt_start, rt_end, title)
         settings = ChromatogramTraceSettings(title, [Range.Create(mz_start, mz_end)])
-        xic_data = self.source.GetChromatogramData([settings], rt_start, rt_end)
+        xic_data = self.source.GetChromatogramData([settings], start_scan, end_scan)
         xic_trace = ChromatogramSignal.FromChromatogramData(xic_data)[0]
         return np.asarray(list(xic_trace.Times)), np.asarray(list(xic_trace.Intensities))
+
+    def _check_filter(self, title):
+        """Checks whether requested filter exists"""
+        if title != DEFAULT_FILTER and title not in self._unique_filters:
+            filter_fmt = "\n".join(self._unique_filters)
+            raise ValueError(f"Filter `{title}` was not recorded. Try any of these instead: \n{filter_fmt}")
+
+    def _get_scan_parameters(
+        self, start_scan: Optional[int] = None, end_scan: Optional[int] = None, title: Optional[str] = None
+    ):
+        """Retrieve scan information for defined range"""
+
+        def check_scan(value, min_value, max_value, default_value):
+            """Checks against values present in the filter"""
+            if value is None or value == -1:
+                return default_value
+            if value < min_value:
+                raise ValueError(
+                    f"Scan number {value} does not belong to this filter. Try between {min_value}-{max_value}"
+                )
+            if value > max_value:
+                raise ValueError(
+                    f"Scan number {value} does not belong to this filter. Try between {min_value}-{max_value}"
+                )
+            return value
+
+        # user provided title/filter
+        _start_scan, _end_scan = self.scan_range
+        if title:
+            self._check_filter(title)
+            # using default filter so all scans
+            if title == DEFAULT_FILTER:
+                _start_scan, _end_scan = self.scan_range
+            else:
+                scans = []
+                for scan_id, _title in enumerate(self._scan_filters, start=1):
+                    if _title == title:
+                        scans.append(scan_id)
+                _start_scan = np.min(scans)
+                _end_scan = np.max(scans)
+            start_scan = check_scan(start_scan, _start_scan, _end_scan, _start_scan)
+            end_scan = check_scan(end_scan, _start_scan, _end_scan, _end_scan)
+        # # user provided start/end regions in the chromatogram
+        # elif start_scan is not None and end_scan is not None:
+        #     start_scan, end_scan = check_value_order(start_scan, end_scan)
+        #     if start_scan < _start_scan:
+        #         start_scan = _start_scan
+        #     if end_scan > _end_scan:
+        #         end_scan = _end_scan
+        return start_scan, end_scan, title
