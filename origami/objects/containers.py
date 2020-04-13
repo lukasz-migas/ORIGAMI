@@ -6,7 +6,7 @@ from origami.utils.ranges import get_min_max
 
 
 class DataObject:
-    def __init__(self, name, x, y, x_label, y_label, x_label_options=None, y_label_options=None):
+    def __init__(self, name, x, y, x_label, y_label, x_label_options=None, y_label_options=None, metadata=None):
         self.name = name
         self._x = x
         self._y = y
@@ -16,6 +16,9 @@ class DataObject:
         self._y_limit = None
         self._x_label_options = x_label_options
         self._y_label_options = y_label_options
+        self._metadata = dict() if metadata is None else metadata
+
+        self.check()
 
     @property
     def x_label(self):
@@ -41,13 +44,13 @@ class DataObject:
 
     @property
     def x_limit(self):
-        if self._x_limit:
+        if not self._x_limit:
             self._x_limit = get_min_max(self.x)
         return self._x_limit
 
     @property
     def y_limit(self):
-        if self._y_limit:
+        if not self._y_limit:
             self._y_limit = get_min_max(self.x)
         return self._y_limit
 
@@ -60,33 +63,65 @@ class DataObject:
     def save_to_json(self):
         pass
 
+    def check(self):
+        raise NotImplementedError("Must implement method")
+
     def to_dict(self):
         raise NotImplementedError("Must implement method")
 
 
 class SpectrumObject(DataObject):
-    def __init__(self, x, y, x_label: str, y_label: str, name: str, **kwargs):
-        super().__init__(name, x, y, x_label, y_label, **kwargs)
+    def __init__(self, x, y, x_label: str, y_label: str, name: str, metadata: dict, **kwargs):
+        super().__init__(name, x, y, x_label, y_label, metadata=metadata, **kwargs)
 
     def to_dict(self):
-        return {
+        """Outputs data to dictionary"""
+        data = {
             "xvals": self.x,
             "yvals": self.y,
             "xlimits": self.x_limit,
             "xlabels": self.x_label,
             "ylabels": self.y_label,
+            **self._metadata,
         }
+        return data
+
+    def check(self):
+        """Checks whether the provided data has the same size and shape"""
+        if len(self._x) != len(self._y):
+            raise ValueError("x and y axis data must have the same length")
+        if not isinstance(self._metadata, dict):
+            self._metadata = dict()
 
 
 class MassSpectrumObject(SpectrumObject):
-    def __init__(self, x, y, name: str):
-        super().__init__(x, y, x_label="m/z (Da)", y_label="Intensity", name=name)
+    def __init__(self, x, y, name: str = "", metadata=None, x_label="m/z (Da)", y_label="Intensity"):
+        super().__init__(x, y, x_label=x_label, y_label=y_label, name=name, metadata=metadata)
 
 
 class ChromatogramObject(SpectrumObject):
-    def __init__(self, x, y, name: str):
+    def __init__(self, x, y, name: str = "", metadata=None, x_label="Scans", y_label="Intensity"):
         super().__init__(
-            x, y, x_label="Scans", y_label="Intensity", name=name, x_label_options=["Scans", "Retention time (mins)"]
+            x,
+            y,
+            x_label=x_label,
+            y_label=y_label,
+            name=name,
+            x_label_options=["Scans", "Retention time (mins)"],
+            metadata=metadata,
+        )
+
+
+class MobilogramObject(SpectrumObject):
+    def __init__(self, x, y, name: str = "", metadata=None, x_label="Drift time (bins)", y_label="Intensity"):
+        super().__init__(
+            x,
+            y,
+            x_label=x_label,
+            y_label=y_label,
+            name=name,
+            x_label_options=["Drift time (bins)", "Arrival time (ms)", "Drift time (ms)"],
+            metadata=metadata,
         )
 
 
@@ -101,8 +136,9 @@ class HeatmapObject(DataObject):
         yy=None,
         x_label: str = "x-axis",
         y_label: str = "y-axis",
+        metadata=None,
     ):
-        super().__init__(name, x, y, x_label, y_label)
+        super().__init__(name, x, y, x_label, y_label, metadata=metadata)
         self._array = array
         self._xy = xy
         self._yy = yy
@@ -148,4 +184,8 @@ class HeatmapObject(DataObject):
             "yvals_sum": self.yy,
             "xlabels": self.x_label,
             "ylabels": self.y_label,
+            **self._metadata,
         }
+
+    def check(self):
+        pass

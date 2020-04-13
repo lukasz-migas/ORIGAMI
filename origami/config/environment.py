@@ -9,6 +9,7 @@ from typing import Optional
 
 # Local imports
 from origami.document import document as Document
+from origami.objects.containers import DataObject
 from origami.utils.time import get_current_time
 from origami.config.config import CONFIG
 from origami.config.convert import convert_v1_to_v2
@@ -219,10 +220,12 @@ class Environment:
         if isinstance(data, dict):
             for name, _data in data.items():
                 attr_name = DOCUMENT_KEY_PAIRS.get(name)
-                print(name, attr_name)
+                # print(name, attr_name)
                 if attr_name is None:
                     LOGGER.error(f"Could not processes {name}")
                     continue
+                if isinstance(_data, DataObject) and hasattr(_data, "to_dict"):
+                    _data = _data.to_dict()
                 # setattr(document, attr_name, getattr(document, attr_name, dict()).update(_data))
                 getattr(document, attr_name, dict()).update(_data)
         return document

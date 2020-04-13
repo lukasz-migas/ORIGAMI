@@ -6,10 +6,11 @@ import numpy as np
 from pymzml import run as pymzml_run
 
 
+# noinspection PyPep8Naming
 class mzMLReader:
     """mzML reader"""
 
-    def __init__(self, filename, **kwargs):
+    def __init__(self, filename):
         self.filename = filename
         self.source = self.create_parser()
         self.last_scan = 1

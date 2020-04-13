@@ -13,7 +13,6 @@ import numpy as np
 
 # Local imports
 from origami.utils.check import check_axes_spacing
-from origami.utils.ranges import get_min_max
 from origami.readers.io_mgf import MGFReader
 from origami.readers.io_mzml import mzMLReader
 from origami.utils.utilities import report_time
@@ -23,6 +22,9 @@ from origami.processing.heatmap import equalize_heatmap_spacing
 from origami.readers.io_text_files import TextHeatmapReader
 from origami.readers.io_text_files import TextSpectrumReader
 from origami.readers.io_text_files import AnnotatedDataReader
+from origami.objects.containers import MassSpectrumObject
+from origami.objects.containers import ChromatogramObject
+from origami.objects.containers import MobilogramObject
 
 # enable on windowsOS only
 if platform == "win32":
@@ -87,13 +89,7 @@ class LoadHandler:
 
         # preset data
         obj_name = f"Drift time: {x_min}-{x_max}"
-        obj_data = {
-            "xvals": mz_x,
-            "yvals": mz_y,
-            "range": [x_min, x_max],
-            "xlabels": "m/z (Da)",
-            "xlimits": document.mz_x_limits,
-        }
+        obj_data = MassSpectrumObject(mz_x, mz_y, metadata={"range": [x_min, x_max]}).to_dict()
 
         return obj_name, obj_data, document
 
@@ -132,13 +128,7 @@ class LoadHandler:
 
         # Add data to dictionary
         obj_name = f"Scans: {x_min}-{x_max}"
-        obj_data = {
-            "xvals": mz_x,
-            "yvals": mz_y,
-            "range": [x_min, x_max],
-            "xlabels": "m/z (Da)",
-            "xlimits": document.mz_x_limits,
-        }
+        obj_data = MassSpectrumObject(mz_x, mz_y, metadata={"range": [x_min, x_max]}).to_dict()
 
         return obj_name, obj_data, document
 
@@ -337,7 +327,7 @@ class LoadHandler:
         LOGGER.debug("Created MGF file reader. Started loading data...")
 
         data = reader.get_n_scans(MGF_N_SCANS)
-        LOGGER.debug("Loaded mzML data in " + report_time(t_start))
+        LOGGER.debug("Loaded MGF data in " + report_time(t_start))
         return reader, data
 
     def load_mgf_document(self, path):
@@ -379,7 +369,7 @@ class LoadHandler:
 
     @staticmethod
     @check_os("win32")
-    def load_thermo_data(path):
+    def load_thermo_ms_data(path):
         """Load Thermo data"""
         reader = ThermoRawReader(path)
         LOGGER.debug("Created Thermo file reader. Started loading data...")
@@ -392,28 +382,22 @@ class LoadHandler:
         chromatograms = reader.get_chromatogram_for_each_filter()
 
         # get average spectrum
-        mz_x, mz_y = reader.get_average_spectrum()
-        x_limits = get_min_max(mz_x)
+        mz_x, mz_y = reader.get_spectrum()
 
         data = {
-            "mz": {"xvals": mz_x, "yvals": mz_y, "xlimits": x_limits, "xlabels": "m/z (Da)", "ylabels": "Intensity"},
-            "rt": {"xvals": rt_x, "yvals": rt_y, "xlabels": "Time (min)", "ylabels": "Intensity"},
+            "mz": MassSpectrumObject(mz_x, mz_y).to_dict(),
+            "rt": ChromatogramObject(rt_x, rt_y, x_label="Retention time (mins)").to_dict(),
             "mass_spectra": mass_spectra,
             "chromatograms": chromatograms,
         }
         return reader, data
 
     @check_os("win32")
-    def load_thermo_document(self, path):
+    def load_thermo_ms_document(self, path):
         """Load Thermo data and set in ORIGAMI document"""
-        reader, data = self.load_thermo_data(path)
+        reader, data = self.load_thermo_ms_data(path)
 
         document = ENV.get_new_document("thermo", path, data=data)
-        # document = ENV.get_new_document("thermo", path)
-        # document.RT = data["rt"]
-        # document.massSpectrum = data["mz"]
-        # document.multipleMassSpectrum = data["mass_spectra"]
-        # document.multipleRT = data["chromatograms"]
         document.set_reader("data_reader", reader)
 
         return document
@@ -427,7 +411,6 @@ class LoadHandler:
         LOGGER.debug("Initialized Waters reader")
 
         mz_x, mz_y = reader.get_average_spectrum()
-        x_limits = get_min_max(mz_x)
         LOGGER.debug("Loaded spectrum in " + report_time(t_start))
 
         rt_x, rt_y = reader.get_tic(0)
@@ -436,8 +419,8 @@ class LoadHandler:
         parameters = reader.get_inf_data()
 
         data = {
-            "mz": {"xvals": mz_x, "yvals": mz_y, "xlimits": x_limits, "xlabels": "m/z (Da)", "ylabels": "Intensity"},
-            "rt": {"xvals": rt_x, "yvals": rt_y, "xlabels": "Scans", "ylabels": "Intensity"},
+            "mz": MassSpectrumObject(mz_x, mz_y).to_dict(),
+            "rt": ChromatogramObject(rt_x, rt_y).to_dict(),
             "parameters": parameters,
         }
         LOGGER.debug("Loaded data in " + report_time(t_start))
@@ -460,7 +443,6 @@ class LoadHandler:
         LOGGER.debug("Initialized Waters reader")
 
         mz_x, mz_y = reader.extract_ms()
-        x_limits = get_min_max(mz_x)
         LOGGER.debug("Loaded spectrum in " + report_time(t_start))
 
         rt_x_min, rt_x, rt_y = reader.extract_rt()
@@ -477,9 +459,9 @@ class LoadHandler:
         parameters = reader.get_inf_data()
 
         data = {
-            "mz": {"xvals": mz_x, "yvals": mz_y, "xlimits": x_limits, "xlabels": "m/z (Da)", "ylabels": "Intensity"},
-            "rt": {"xvals": rt_x, "yvals": rt_y, "xlabels": "Scans", "yvals_min": rt_x_min, "ylabels": "Intensity"},
-            "dt": {"xvals": dt_x, "yvals": dt_y, "xlabels": "Drift time (bins)", "ylabels": "Intensity"},
+            "mz": MassSpectrumObject(mz_x, mz_y).to_dict(),
+            "rt": ChromatogramObject(rt_x, rt_y, metadata={"yvals_min": rt_x_min}).to_dict(),
+            "dt": MobilogramObject(dt_x, dt_y).to_dict(),
             "heatmap": {
                 "ylabels": "Drift time (bins)",
                 "xlabels": "Scans",

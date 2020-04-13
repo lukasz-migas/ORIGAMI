@@ -76,6 +76,9 @@ class ThermoRawReader:
         LOGGER.debug(f"Getting mass spectrum for {title} filter")
         return self.get_spectrum(title=title)
 
+    def __del__(self):
+        self.close()
+
     @property
     def scan_range(self):
         """Returns the scan range"""
@@ -117,6 +120,10 @@ class ThermoRawReader:
             LOGGER.warning("This file has multiple files present - only one is allowed at the moment")
         source.SelectInstrument(Device.MS, 1)
         return source
+
+    def close(self):
+        """Close file"""
+        self.source.Dispose()
 
     def _collect_filters(self):
         """Returns filter for each scan"""

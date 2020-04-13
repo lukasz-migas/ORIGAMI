@@ -1,5 +1,4 @@
 # Standard library imports
-from collections import OrderedDict
 
 # Third-party imports
 import numpy as np
@@ -7,7 +6,7 @@ from pyteomics import mgf
 
 
 class MGFReader:
-    def __init__(self, filename, **kwargs):
+    def __init__(self, filename):
         self.filename = filename
         self.source = self.create_parser()
         self.last_scan = 1
@@ -22,7 +21,8 @@ class MGFReader:
 
         return scan_info
 
-    def get_title_from_scan(self, scan):
+    @staticmethod
+    def get_title_from_scan(scan):
         return scan["params"]["title"]
 
     def get_all_info(self):
@@ -37,7 +37,8 @@ class MGFReader:
 
         return scan_info
 
-    def get_info_from_scan(self, scan):
+    @staticmethod
+    def get_info_from_scan(scan):
         return {
             "title": scan["params"]["title"],
             "precursor_mz": np.round(scan["params"]["pepmass"][0], 4),
@@ -48,7 +49,7 @@ class MGFReader:
     def get_all_scans(self):
         self.reset()
 
-        data = OrderedDict()
+        data = dict()
         for scan, spectrum in enumerate(self.source):
             xvals, yvals, charges = self.get_spectrum_from_scan(spectrum, "1D")
             scan_info = self.get_info_from_scan(spectrum)
@@ -57,7 +58,8 @@ class MGFReader:
         return data
 
     def get_n_scans(self, n_scans):
-        data = OrderedDict()
+        data = dict()
+        scan_n = 0
         for scan in range(n_scans):
             try:
                 spectrum = next(self.source)
@@ -78,6 +80,7 @@ class MGFReader:
         return data
 
     def add_n_scans(self, data, n_scans):
+        scan_n = 0
         for scan in range(n_scans):
             try:
                 spectrum = next(self.source)

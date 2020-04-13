@@ -1337,7 +1337,7 @@ class DataHandling(LoadHandler, ExportHandler):
             path = dlg.GetPath()
 
             # read data
-            document = self.load_thermo_document(path)
+            document = self.load_thermo_ms_document(path)
 
             # plot data
             rt = document.RT

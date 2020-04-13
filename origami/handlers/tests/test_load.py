@@ -12,6 +12,7 @@ from origami.handlers.load import LoadHandler
 if sys.platform == "win32":
     from origami.readers.io_waters_raw import WatersIMReader
     from origami.readers.io_waters_raw_api import WatersRawReader
+    from origami.readers.io_thermo_raw import ThermoRawReader
 
 
 @pytest.fixture
@@ -72,11 +73,20 @@ class TestLoadHandler:
     def test_load_mzml_document(self):
         assert True
 
-    def test_load_thermo_data(self):
-        assert True
+    def test_load_thermo_ms_data(self, load_handler, get_thermo_ms_small):
+        reader, data = load_handler.load_thermo_ms_data(get_thermo_ms_small)
+        assert isinstance(data, dict)
+        assert isinstance(reader, ThermoRawReader)
+        assert "mz" in data
+        assert "rt" in data
 
-    def test_load_thermo_document(self):
-        assert True
+    def test_load_thermo_ms_document(self, load_handler, get_thermo_ms_small):
+        document = load_handler.load_thermo_ms_document(get_thermo_ms_small)
+        assert isinstance(document, Document)
+        assert "xvals" in document.massSpectrum and "yvals" in document.massSpectrum
+        assert len(document.massSpectrum["xvals"]) == len(document.massSpectrum["yvals"])
+        assert "xvals" in document.RT and "yvals" in document.RT
+        assert len(document.RT["xvals"]) == len(document.RT["yvals"])
 
     @pytest.mark.skipif(sys.platform != "win32", reason="Cannot extract data on MacOSX or Linux")
     def test_load_waters_ms_data(self, load_handler, get_waters_im_small):

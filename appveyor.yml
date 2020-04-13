@@ -27,17 +27,15 @@ install:
   - conda create -n testenv --yes
   - activate testenv
   - python -m pip install --upgrade pip
+  - pip install -r requirements/requirements-std.txt
   - pip install -r requirements/requirements-dev.txt
   - pip install -r requirements/requirements-win32.txt
   - pip install -U wxPython;
   - python setup.py develop
-  - cd origami
-  - powershell -Command "(gc config/config.py) -replace 'self.testing = False', 'self.testing = True' | Out-File -encoding ASCII config/config.py"
 
 test_script:
   - activate testenv
-  - dir
-  - python main.py
+  - pytest .
 
 matrix:
   fast_finish: true
