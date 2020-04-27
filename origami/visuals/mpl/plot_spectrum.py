@@ -74,7 +74,7 @@ class PlotSpectrum(PlotBase):
         # setup axis formatters
         y_formatter = get_intensity_formatter()
         self.plot_base.yaxis.set_major_formatter(y_formatter)
-        #
+
         #         x_formatter = get_intensity_formatter()
         #         self.plot_base.xaxis.set_major_formatter(x_formatter)
 

@@ -2707,6 +2707,7 @@ class PanelPlots(wx.Panel):
         set_page=False,
         show_in_window="MS",
         view_range=None,
+        ms_obj=None,
         **kwargs,
     ):
 
@@ -2723,12 +2724,18 @@ class PanelPlots(wx.Panel):
             plot_obj = self.get_plot_from_name(show_in_window)
 
         if plot_obj == self.plot_ms:
-            self.view_ms.plot(msX, msY, **kwargs, **plt_kwargs)
+            self.view_ms.plot(msX, msY, obj=ms_obj, **kwargs, **plt_kwargs)
             return
         elif plot_obj == self.plot_rt_ms:
-            self.view_rt_ms.plot(msX, msY, **kwargs, **plt_kwargs)
+            if ms_obj:
+                self.view_rt_ms.plot(obj=ms_obj)
+            else:
+                self.view_rt_ms.plot(msX, msY, **kwargs, **plt_kwargs)
         elif plot_obj == self.plot_dt_ms:
-            self.view_dt_ms.plot(msX, msY, **kwargs, **plt_kwargs)
+            if ms_obj:
+                self.view_dt_ms.plot(obj=ms_obj)
+            else:
+                self.view_dt_ms.plot(msX, msY, **kwargs, **plt_kwargs)
         else:
             window = None
             if show_in_window == "LESA":
@@ -2799,6 +2806,7 @@ class PanelPlots(wx.Panel):
         replot=False,
         set_page=False,
         plot="1D",
+        dt_obj=None,
         **kwargs,
     ):
         if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
@@ -2817,7 +2825,7 @@ class PanelPlots(wx.Panel):
         plt_kwargs = self._buildPlotParameters(plotType="1D")
 
         if plot_obj == self.plot_dt_dt:
-            self.view_dt_dt.plot(dtX, dtY, **plt_kwargs)
+            self.view_dt_dt.plot(dtX, dtY, obj=dt_obj, **plt_kwargs)
             return
 
         plt_kwargs["allow_extraction"] = kwargs.pop("allow_extraction", True)
@@ -2858,6 +2866,7 @@ class PanelPlots(wx.Panel):
         full_repaint=False,
         set_page=False,
         plot="RT",
+        rt_obj=None,
         **kwargs,
     ):
 
@@ -2877,7 +2886,7 @@ class PanelPlots(wx.Panel):
         plt_kwargs = self._buildPlotParameters(plotType="1D")
 
         if plot_obj == self.plot_rt_rt:
-            self.view_rt_rt.plot(rtX, rtY, **plt_kwargs)
+            self.view_rt_rt.plot(rtX, rtY, obj=rt_obj, **plt_kwargs)
             return
 
         plt_kwargs["allow_extraction"] = kwargs.pop("allow_extraction", True)

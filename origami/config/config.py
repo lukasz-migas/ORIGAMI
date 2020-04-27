@@ -626,6 +626,7 @@ class Config:
             {"name": "label", "order": 8, "width": 50, "show": True},
             {"name": "shape", "order": 9, "width": 70, "show": True},
             {"name": "document", "order": 10, "width": 100, "show": True},
+            {"name": "key", "order": 11, "width": 0, "show": False},
         ]
 
         # column name 'energy' was changed to 'variable' as it might be more appropriate

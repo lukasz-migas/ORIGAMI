@@ -1,32 +1,106 @@
 # Third-party imports
 import numpy as np
+from zarr import Group
 
 # Local imports
 from origami.utils.ranges import get_min_max
 
+# TODO: add x/y-axis converters to easily switch between labels
+
+
+def get_fmt(*arrays):
+    """Retrieve appropriate numpy format based on the data"""
+    fmts = []
+    for array in arrays:
+        if np.issubdtype(array.dtype, np.integer):
+            fmts.append("%d")
+        elif np.issubdtype(array.dtype, np.float32):
+            fmts.append("%.4f")
+        else:
+            fmts.append("%.6f")
+    return fmts
+
 
 class DataObject:
-    def __init__(self, name, x, y, x_label, y_label, x_label_options=None, y_label_options=None, metadata=None):
+
+    # data attributes
+    _x_limit = None
+    _y_limit = None
+
+    def __init__(
+        self,
+        name,
+        x,
+        y,
+        x_label="",
+        y_label="",
+        x_label_options=None,
+        y_label_options=None,
+        metadata=None,
+        extra_data=None,
+        **kwargs,
+    ):
+        """Base object for all other container objects
+
+        Parameters
+        ----------
+        name : str
+            name of the object so its easily searchable
+        x : np.ndarray
+            x-axis array
+        y : np.ndarray
+            y-axis array
+        x_label : str
+            x-axis label
+        y_label : str
+            y-axis label
+        x_label_options : List[str]
+            list of alternative x-axis labels
+        y_label_options : List[str]
+            list of alternative y-axis labels
+        extra_data : dict
+            dictionary containing additional data that should be exported in zarr container
+        metadata : dict
+            dictionary containing additional metadata that should be exported in zarr container
+        """
+        self._cls = self.__class__.__name__
+        self._owner = None
+
+        # settable attributes
         self.name = name
         self._x = x
         self._y = y
         self._x_label = x_label
         self._y_label = y_label
-        self._x_limit = None
-        self._y_limit = None
         self._x_label_options = x_label_options
         self._y_label_options = y_label_options
+        self._extra_data = dict() if extra_data is None else extra_data
         self._metadata = dict() if metadata is None else metadata
-
+        self.options = dict()
         self.check()
+
+        self.check_kwargs(kwargs)
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}<x-label={self.x_label}; y-label={self.y_label}>"
 
     @property
     def x_label(self):
         return self._x_label
 
+    @x_label.setter
+    def x_label(self, value):
+        """Sets the x-axis label"""
+        self._x_label = value
+
     @property
     def y_label(self):
         return self._y_label
+
+    @y_label.setter
+    def y_label(self, value):
+        """Sets the x-axis label"""
+        self._y_label = value
 
     @property
     def x_label_options(self):
@@ -54,25 +128,51 @@ class DataObject:
             self._y_limit = get_min_max(self.x)
         return self._y_limit
 
-    def save_to_hdf5(self):
-        pass
+    @property
+    def owner(self):
+        return self._owner
 
-    def save_to_csv(self):
-        pass
+    @owner.setter
+    def owner(self, value):
+        """Sets the owner of the container object"""
+        self._owner = value
 
-    def save_to_json(self):
-        pass
+    def set_owner(self, value):
+        """Sets the owner of the container object"""
+        self.owner = value
 
-    def check(self):
+    def set_metadata(self, metadata):
+        """Updates the metadata store"""
+        if not isinstance(metadata, dict):
+            raise ValueError("Cannot parse metadata that is not a dictionary")
+        self._metadata.update(**metadata)
+
+    def check_kwargs(self, kwargs):
+        """Checks whether kwargs have been fully processed"""
+        if kwargs:
+            for key, value in kwargs.items():
+                if isinstance(value, np.ndarray):
+                    self._extra_data[key] = value
+                elif isinstance(value, (int, float, list, tuple, dict)):
+                    self._metadata[key] = value
+
+    def to_csv(self, *args, **kwargs):
         raise NotImplementedError("Must implement method")
 
     def to_dict(self):
         raise NotImplementedError("Must implement method")
 
+    def to_zarr(self):
+        """Outputs data to dictionary of `data` and `attributes`"""
+        raise NotImplementedError("Must implement method")
+
+    def check(self):
+        raise NotImplementedError("Must implement method")
+
 
 class SpectrumObject(DataObject):
-    def __init__(self, x, y, x_label: str, y_label: str, name: str, metadata: dict, **kwargs):
-        super().__init__(name, x, y, x_label, y_label, metadata=metadata, **kwargs)
+    def __init__(self, x, y, x_label: str, y_label: str, name: str, metadata: dict, extra_data: dict, **kwargs):
+        super().__init__(name, x, y, x_label, y_label, metadata=metadata, extra_data=extra_data, **kwargs)
 
     def to_dict(self):
         """Outputs data to dictionary"""
@@ -86,6 +186,33 @@ class SpectrumObject(DataObject):
         }
         return data
 
+    def to_zarr(self):
+        """Outputs data to dictionary of `data` and `attributes`"""
+        data = {"x": self.x, "y": self.y, **self._extra_data}
+        attrs = {
+            "class": self._cls,
+            "x_limit": self.x_limit,
+            "x_label": self.x_label,
+            "y_label": self.y_label,
+            **self._metadata,
+        }
+        return data, attrs
+
+    def to_csv(self, path, *args, **kwargs):
+        """Export data in a csv/txt format"""
+        x = self.x
+        y = self.y
+        if kwargs.get("remove_zeros", self.options.get("remove_zeros", False)):
+            index = np.where((self.x == 0) | (self.y == 0))
+            x = x[index]
+            y = y[index]
+
+        # get metadata
+        fmt = get_fmt(x, y)
+        delimiter = kwargs.get("delimiter", ",")
+        header = f"{delimiter}".join([self.x_label, self.y_label])
+        np.savetxt(path, np.c_[x, y], delimiter=delimiter, fmt=fmt, header=header)
+
     def check(self):
         """Checks whether the provided data has the same size and shape"""
         if len(self._x) != len(self._y):
@@ -95,12 +222,21 @@ class SpectrumObject(DataObject):
 
 
 class MassSpectrumObject(SpectrumObject):
-    def __init__(self, x, y, name: str = "", metadata=None, x_label="m/z (Da)", y_label="Intensity"):
-        super().__init__(x, y, x_label=x_label, y_label=y_label, name=name, metadata=metadata)
+    def __init__(
+        self, x, y, name: str = "", metadata=None, extra_data=None, x_label="m/z (Da)", y_label="Intensity", **kwargs
+    ):
+        super().__init__(
+            x, y, x_label=x_label, y_label=y_label, name=name, metadata=metadata, extra_data=extra_data, **kwargs
+        )
+
+        # set default options
+        self.options["remove_zeros"] = True
 
 
 class ChromatogramObject(SpectrumObject):
-    def __init__(self, x, y, name: str = "", metadata=None, x_label="Scans", y_label="Intensity"):
+    def __init__(
+        self, x, y, name: str = "", metadata=None, extra_data=None, x_label="Scans", y_label="Intensity", **kwargs
+    ):
         super().__init__(
             x,
             y,
@@ -109,11 +245,23 @@ class ChromatogramObject(SpectrumObject):
             name=name,
             x_label_options=["Scans", "Retention time (mins)"],
             metadata=metadata,
+            extra_data=extra_data,
+            **kwargs,
         )
 
 
 class MobilogramObject(SpectrumObject):
-    def __init__(self, x, y, name: str = "", metadata=None, x_label="Drift time (bins)", y_label="Intensity"):
+    def __init__(
+        self,
+        x,
+        y,
+        name: str = "",
+        metadata=None,
+        extra_data=None,
+        x_label="Drift time (bins)",
+        y_label="Intensity",
+        **kwargs,
+    ):
         super().__init__(
             x,
             y,
@@ -122,6 +270,8 @@ class MobilogramObject(SpectrumObject):
             name=name,
             x_label_options=["Drift time (bins)", "Arrival time (ms)", "Drift time (ms)"],
             metadata=metadata,
+            extra_data=extra_data,
+            **kwargs,
         )
 
 
@@ -137,8 +287,10 @@ class HeatmapObject(DataObject):
         x_label: str = "x-axis",
         y_label: str = "y-axis",
         metadata=None,
+        extra_data=None,
+        **kwargs,
     ):
-        super().__init__(name, x, y, x_label, y_label, metadata=metadata)
+        super().__init__(name, x, y, x_label, y_label, metadata=metadata, extra_data=extra_data, **kwargs)
         self._array = array
         self._xy = xy
         self._yy = yy
@@ -187,5 +339,106 @@ class HeatmapObject(DataObject):
             **self._metadata,
         }
 
+    def to_zarr(self):
+        """Outputs data to dictionary of `data` and `attributes`"""
+        data = {"x": self.x, "y": self.y, "array": self.array, "xy": self.xy, "yy": self.yy, **self._extra_data}
+        attrs = {"class": self._cls, "x_label": self.x_label, "y_label": self.y_label, **self._metadata}
+        return data, attrs
+
+    def to_csv(self, *args, **kwargs):
+        """Export data in a csv/txt format"""
+        pass
+
     def check(self):
         pass
+
+
+class IonHeatmapObject(HeatmapObject):
+    def __init__(
+        self,
+        array,
+        x,
+        y,
+        xy=None,
+        yy=None,
+        name: str = "",
+        metadata=None,
+        extra_data=None,
+        x_label="Scans",
+        y_label="Drift time (bins)",
+        **kwargs,
+    ):
+        super().__init__(
+            array,
+            name,
+            x=x,
+            y=y,
+            xy=xy,
+            yy=yy,
+            x_label=x_label,
+            y_label=y_label,
+            x_label_options=["Scans", "Retention time (mins)"],
+            metadata=metadata,
+            extra_data=extra_data,
+            **kwargs,
+        )
+
+
+class MassSpectrumHeatmapObject(HeatmapObject):
+    def __init__(
+        self,
+        array,
+        x,
+        y,
+        xy=None,
+        yy=None,
+        name: str = "",
+        metadata=None,
+        extra_data=None,
+        x_label="m/z (Da)",
+        y_label="Drift time (bins)",
+        **kwargs,
+    ):
+        super().__init__(
+            array,
+            name,
+            x=x,
+            y=y,
+            xy=xy,
+            yy=yy,
+            x_label=x_label,
+            y_label=y_label,
+            x_label_options=["Drift time (bins)", "Drift time (ms)"],
+            metadata=metadata,
+            extra_data=extra_data,
+            **kwargs,
+        )
+
+
+def mass_spectrum_object(group: Group):
+    """Instantiate mass spectrum object from mass spectrum group saved in zarr format"""
+    return MassSpectrumObject(group["x"][:], group["y"][:], **group.attrs.asdict())
+
+
+def chromatogram_object(group: Group):
+    """Instantiate mass spectrum object from chromatogram group saved in zarr format"""
+    return ChromatogramObject(group["x"][:], group["y"][:], **group.attrs.asdict())
+
+
+def mobilogram_object(group: Group):
+    """Instantiate mass spectrum object from mobilogram group saved in zarr format"""
+    return MobilogramObject(group["x"][:], group["y"][:], **group.attrs.asdict())
+
+
+def ion_heatmap_object(group: Group):
+    """Instantiate ion heatmap object from ion heatmap group saved in zarr format"""
+    return IonHeatmapObject(
+        group["array"][:], group["x"][:], group["y"][:], group["xy"][:], group["yy"][:], **group.attrs.asdict()
+    )
+
+
+def msdt_heatmap_object(group: Group):
+    """Instantiate ion heatmap object from ion heatmap group saved in zarr format"""
+    return MassSpectrumHeatmapObject(
+        group["array"][:], group["x"][:], group["y"][:], group["xy"][:], group["yy"][:], **group.attrs.asdict()
+    )

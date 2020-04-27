@@ -88,7 +88,7 @@ class ORIGAMI:
         self.on_import_configuration_on_startup()
 
         # Setup variables
-        self.initilize_state()
+        #         self.initilize_state()
         self.view = MainWindow(
             self, config=self.config, icons=self.icons, helpInfo=self.help, title="ORIGAMI - %s " % self.config.version
         )
@@ -138,7 +138,7 @@ class ORIGAMI:
         # only check if on Windows
         if self.config.checkForDriftscopeAtStart and platform == "win32":
             self.config.setup_paths()
-            self.initilize_registry()
+        #             self.initilize_registry()
 
         # add data handling and processing modules
         self.view.panelDocuments.documents.setup_handling_and_processing()
@@ -156,18 +156,18 @@ class ORIGAMI:
         if self.config.testing:
             self._test_()
 
-    def initilize_state(self):
-        """Pre-set variables"""
-        self.currentDoc = None
+    #     def initilize_state(self):
+    #         """Pre-set variables"""
+    #         self.currentDoc = None
 
-    def initilize_registry(self):
-        """Update reg keys to allow viewing of JS/HTML inside ORIGAMI windows"""
-        from origami.utils.windows_reg_edit import set_ie_emulation_level
-        from origami.utils.windows_reg_edit import set_ie_lockdown_level
-
-        set_ie_emulation_level()
-        set_ie_lockdown_level()
-        logger.debug("Initilized registry...")
+    #     def initilize_registry(self):
+    #         """Update reg keys to allow viewing of JS/HTML inside ORIGAMI windows"""
+    #         from origami.utils.windows_reg_edit import set_ie_emulation_level
+    #         from origami.utils.windows_reg_edit import set_ie_lockdown_level
+    #
+    #         set_ie_emulation_level()
+    #         set_ie_lockdown_level()
+    #         logger.debug("Initilized registry...")
 
     def _test_(self):
         """Exit application after performing some tests
@@ -187,7 +187,7 @@ class ORIGAMI:
             "3_Boltzmann_IMS2D_5139.58-5170.58.csv",
         ]:
             path = os.path.join(self.config.cwd, "example_files", "text_files", fname)
-            self.data_handling.on_add_text_2D(None, path)
+            self.data_handling.on_add_text_2d(None, path)
 
         if platform == "win32":
             # load Waters (.raw) file - MS only

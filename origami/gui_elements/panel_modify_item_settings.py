@@ -1,4 +1,5 @@
 # Third-party imports
+# Local imports
 import wx
 
 # Local imports
@@ -274,7 +275,7 @@ class PanelModifyItemSettings(MiniFrame):
         return panel
 
     def on_show(self, evt):
-        self.parent.on_plot(evt=None, itemID=self.itemInfo["id"])
+        self.parent.on_plot(evt=None, item_id=self.itemInfo["id"])
 
     def on_apply(self, evt):
         self.on_check_id()
@@ -436,7 +437,7 @@ class PanelModifyItemSettings(MiniFrame):
     def on_assign_color(self, evt):
         self.on_check_id()
         if evt:
-            color = self.parent.on_assign_color(evt=None, itemID=self.itemInfo["id"], give_value=True)
+            color = self.parent.on_assign_color(evt=None, item_id=self.itemInfo["id"], give_value=True)
             self.color_value.SetBackgroundColour(color)
             self.SetFocus()
         else:

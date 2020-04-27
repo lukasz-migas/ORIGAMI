@@ -3,7 +3,7 @@ import numpy as np
 
 
 def get_min_max(data):
-    return [np.min(data), np.max(data)]
+    return [float(np.min(data)), float(np.max(data))]
 
 
 def find_limits(xvals, yvals):

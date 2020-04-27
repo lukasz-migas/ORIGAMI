@@ -1,5 +1,10 @@
-from origami.objects.containers import MassSpectrumObject
+# Third-party imports
 import numpy as np
+
+# Local imports
+from origami.objects.containers import MobilogramObject
+from origami.objects.containers import ChromatogramObject
+from origami.objects.containers import MassSpectrumObject
 
 
 def get_data():
@@ -13,6 +18,36 @@ class TestMassSpectrumObject:
         x, y = get_data()
         obj = MassSpectrumObject(x, y)
         assert obj.x_label == "m/z (Da)"
+        assert obj.y_label == "Intensity"
+        assert len(obj.x_limit) == 2
+        assert len(obj.y_limit) == 2
+
+        data = obj.to_dict()
+        assert isinstance(data, dict)
+        assert "xvals" in data
+        assert "yvals" in data
+
+
+class TestChromatogramObject:
+    def test_init(self):
+        x, y = get_data()
+        obj = ChromatogramObject(x, y)
+        assert obj.x_label == "Scans"
+        assert obj.y_label == "Intensity"
+        assert len(obj.x_limit) == 2
+        assert len(obj.y_limit) == 2
+
+        data = obj.to_dict()
+        assert isinstance(data, dict)
+        assert "xvals" in data
+        assert "yvals" in data
+
+
+class TestMobilogramObject:
+    def test_init(self):
+        x, y = get_data()
+        obj = MobilogramObject(x, y)
+        assert obj.x_label == "Drift time (bins)"
         assert obj.y_label == "Intensity"
         assert len(obj.x_limit) == 2
         assert len(obj.y_limit) == 2

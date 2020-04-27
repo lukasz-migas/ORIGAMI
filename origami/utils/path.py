@@ -1,12 +1,42 @@
 # Standard library imports
 import os
 import shutil
+import string
 import logging
+import unicodedata
+from collections import Iterable
 
 # Local imports
 from origami.utils.converters import byte2str
 
 logger = logging.getLogger(__name__)
+
+VALID_FILENAME_CHARACTERS = "-_.() %s%s" % (string.ascii_letters, string.digits)
+CHARACTER_LIMIT = 255
+
+
+def clean_filename(filename, whitelist=VALID_FILENAME_CHARACTERS, replace=False):
+    """Clean-up filename so it complies with Windows-naming scheme"""
+    # replace spaces
+    if replace and isinstance(replace, Iterable):
+        for r in replace:
+            filename = filename.replace(r, "_")
+
+    # keep only valid ascii chars
+    cleaned_filename = unicodedata.normalize("NFKD", filename).encode("ASCII", "ignore").decode()
+
+    # replace multiple whitespaces
+    cleaned_filename = " ".join(cleaned_filename.split())
+
+    # keep only whitelisted chars
+    cleaned_filename = "".join(c for c in cleaned_filename if c in whitelist)
+    if len(cleaned_filename) > CHARACTER_LIMIT:
+        print(
+            "Warning, filename truncated because it was over {}. Filenames may no longer be unique".format(
+                CHARACTER_LIMIT
+            )
+        )
+    return cleaned_filename[:CHARACTER_LIMIT]
 
 
 def get_path_and_fname(path, simple=False):
@@ -78,26 +108,26 @@ def get_base_path(filepath):
     return os.path.dirname(filepath)
 
 
-def clean_filename(filename):
-    filename = (
-        filename.replace(".csv", "")
-        .replace(".txt", "")
-        .replace(".raw", "")
-        .replace(".tab", "")
-        .replace(".RAW", "")
-        .replace(".mgf", "")
-        .replace(".mzML", "")
-        .replace(".mzIdentML", "")
-        .replace(":", "")
-        .replace("/", "")
-        .replace("~", "")
-        .replace("@", "at")
-        .replace("[", "_")
-        .replace("]", "_")
-        .replace(" ", "_")
-    )
-
-    return filename
+# def clean_filename(filename):
+#     filename = (
+#         filename.replace(".csv", "")
+#         .replace(".txt", "")
+#         .replace(".raw", "")
+#         .replace(".tab", "")
+#         .replace(".RAW", "")
+#         .replace(".mgf", "")
+#         .replace(".mzML", "")
+#         .replace(".mzIdentML", "")
+#         .replace(":", "")
+#         .replace("/", "")
+#         .replace("~", "")
+#         .replace("@", "at")
+#         .replace("[", "_")
+#         .replace("]", "_")
+#         .replace(" ", "_")
+#     )
+#
+#     return filename
 
 
 def clean_directory(dirpath):

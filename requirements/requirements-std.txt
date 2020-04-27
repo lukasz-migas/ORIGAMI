@@ -13,3 +13,4 @@ seaborn
 scikit-learn
 defusedxml
 psutil
+zarr

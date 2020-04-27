@@ -18,13 +18,15 @@ from origami.readers.io_mzml import mzMLReader
 from origami.utils.utilities import report_time
 from origami.utils.decorators import check_os
 from origami.config.environment import ENV
+from origami.objects.containers import IonHeatmapObject
+from origami.objects.containers import MobilogramObject
+from origami.objects.containers import ChromatogramObject
+from origami.objects.containers import MassSpectrumObject
+from origami.objects.containers import MassSpectrumHeatmapObject
 from origami.processing.heatmap import equalize_heatmap_spacing
 from origami.readers.io_text_files import TextHeatmapReader
 from origami.readers.io_text_files import TextSpectrumReader
 from origami.readers.io_text_files import AnnotatedDataReader
-from origami.objects.containers import MassSpectrumObject
-from origami.objects.containers import ChromatogramObject
-from origami.objects.containers import MobilogramObject
 
 # enable on windowsOS only
 if platform == "win32":
@@ -44,9 +46,6 @@ def check_path(path: str, extension: Optional[str] = None):
         raise ValueError(f"Path `{path}` does not exist")
     if extension is not None and not path.endswith(extension):
         raise ValueError(f"Path `{path}` does not have the correct extension")
-
-
-# TODO: add the registration class to the multiplierz_lite library
 
 
 class LoadHandler:
@@ -89,7 +88,7 @@ class LoadHandler:
 
         # preset data
         obj_name = f"Drift time: {x_min}-{x_max}"
-        obj_data = MassSpectrumObject(mz_x, mz_y, metadata={"range": [x_min, x_max]}).to_dict()
+        obj_data = MassSpectrumObject(mz_x, mz_y, metadata={"range": [x_min, x_max]})
 
         return obj_name, obj_data, document
 
@@ -128,7 +127,50 @@ class LoadHandler:
 
         # Add data to dictionary
         obj_name = f"Scans: {x_min}-{x_max}"
-        obj_data = MassSpectrumObject(mz_x, mz_y, metadata={"range": [x_min, x_max]}).to_dict()
+        obj_data = MassSpectrumObject(mz_x, mz_y, metadata={"range": [x_min, x_max]})
+
+        return obj_name, obj_data, document
+
+    @staticmethod
+    @check_os("win32")
+    def waters_extract_ms_from_heatmap(x_min: float, x_max: float, y_min: int, y_max: int, title=None):
+        """Extract mass spectrum based on retention time selection
+
+        Parameters
+        ----------
+        x_min : float
+            start retention time in minutes
+        x_max : float
+            end retention time in minutes
+        y_min : int
+            start drift time in bins
+        y_max : int
+            end drift time in bins
+        title: str, optional
+            document title
+
+        Returns
+        -------
+        obj_name : str
+            name of the data object
+        obj_data : Dict
+            dictionary containing extracted data
+        document : Document
+            instance of the document for which data was extracted
+        """
+        document = ENV.on_get_document(title)
+
+        # setup file reader
+        reader = document.get_reader("ion_mobility")
+        if reader is None:
+            reader = WatersIMReader(document.path)
+            document.set_reader("ion_mobility", reader)
+
+        mz_x, mz_y = reader.extract_ms(rt_start=x_min, rt_end=x_max, dt_start=y_min, dt_end=y_max, return_data=True)
+
+        # Add data to dictionary
+        obj_name = f"Scans: {x_min}-{x_max}"
+        obj_data = MassSpectrumObject(mz_x, mz_y, metadata={"range": [x_min, x_max]})
 
         return obj_name, obj_data, document
 
@@ -169,15 +211,7 @@ class LoadHandler:
         _, rt_x, rt_y = reader.extract_rt(mz_start=x_min, mz_end=x_max, return_data=True)
 
         obj_name = f"{x_min:.2f}-{x_max:.2f}"
-        obj_data = {
-            "zvals": array,
-            "yvals": dt_x,
-            "xvals": rt_y,
-            "xlabels": "Scans",
-            "ylabels": "Drift time (bins)",
-            "yvals1D": dt_y,
-            "yvalsRT": rt_y,
-        }
+        obj_data = IonHeatmapObject(array, x=dt_x, y=rt_x, xy=dt_y, yy=rt_y)
 
         return obj_name, obj_data, document
 
@@ -228,15 +262,7 @@ class LoadHandler:
         dt_y = array.sum(axis=1)
 
         obj_name = f"{x_min:.2f}-{x_max:.2f}"
-        obj_data = {
-            "zvals": array,
-            "yvals": dt_x,
-            "xvals": rt_x,
-            "xlabels": "Scans",
-            "ylabels": "Drift time (bins)",
-            "yvals1D": dt_y,
-            "yvalsRT": rt_y,
-        }
+        obj_data = IonHeatmapObject(array, x=dt_x, y=rt_x, xy=dt_y, yy=rt_y)
 
         return obj_name, obj_data, None  # document
 
@@ -276,9 +302,9 @@ class LoadHandler:
         """Extract mobility data"""
         check_path(path)
         reader = WatersIMReader(path)
-        x, _, y, _, array, _ = reader.extract_heatmap(**kwargs)
+        dt_x, _, rt_x, _, array = reader.extract_heatmap(**kwargs)
 
-        return x, y, array
+        return dt_x, rt_x, array
 
     @staticmethod
     @check_os("win32")
@@ -289,9 +315,9 @@ class LoadHandler:
         # calculate number of m/z bins
         n_mz_bins = math.floor((mz_max - mz_min) / mz_bin_size)
         reader = WatersIMReader(path)
-        x, _, y, _, array = reader.extract_msdt(mz_start=mz_min, mz_end=mz_max, n_points=n_mz_bins, **kwargs)
+        mz_x, _, dt_x, _, array = reader.extract_msdt(mz_start=mz_min, mz_end=mz_max, n_points=n_mz_bins, **kwargs)
 
-        return x, y, array
+        return mz_x, dt_x, array
 
     @staticmethod
     def load_text_mass_spectrum_data(path):
@@ -312,12 +338,12 @@ class LoadHandler:
         """Read heatmap data from text file"""
         reader = TextHeatmapReader(path)
 
-        # sum the first and second axes to obtain the dt and rt values
-        array = reader.array
-        dt_y = np.sum(array, axis=1).T
-        rt_y = np.sum(array, axis=0)
+        return IonHeatmapObject(reader.array, x=reader.x, y=reader.y, xy=reader.xy, yy=reader.yy)
 
-        return array, reader.x, reader.y, dt_y, rt_y
+    def load_text_heatmap_document(self, path):
+        heatmap_obj = self.load_text_heatmap_data(path)
+        document = ENV.get_new_document("origami", path, data=dict(heatmap=heatmap_obj))
+        return document
 
     @staticmethod
     def load_mgf_data(path):
@@ -371,25 +397,22 @@ class LoadHandler:
     @check_os("win32")
     def load_thermo_ms_data(path):
         """Load Thermo data"""
+        t_start = time.time()
         reader = ThermoRawReader(path)
         LOGGER.debug("Created Thermo file reader. Started loading data...")
 
-        # get chromatographic data
-        rt_x, rt_y = reader.get_tic()
+        # get average data
+        chromatogram: ChromatogramObject = reader.get_tic()
+        LOGGER.debug("Loaded TIC in " + report_time(t_start))
+
+        mass_spectrum: MassSpectrumObject = reader.get_spectrum()
+        LOGGER.debug("Loaded spectrum in " + report_time(t_start))
 
         # get mass spectra
-        mass_spectra = reader.get_spectrum_for_each_filter()
-        chromatograms = reader.get_chromatogram_for_each_filter()
+        mass_spectra: Dict[MassSpectrumObject] = reader.get_spectrum_for_each_filter()
+        chromatograms: Dict[ChromatogramObject] = reader.get_chromatogram_for_each_filter()
 
-        # get average spectrum
-        mz_x, mz_y = reader.get_spectrum()
-
-        data = {
-            "mz": MassSpectrumObject(mz_x, mz_y).to_dict(),
-            "rt": ChromatogramObject(rt_x, rt_y, x_label="Retention time (mins)").to_dict(),
-            "mass_spectra": mass_spectra,
-            "chromatograms": chromatograms,
-        }
+        data = {"mz": mass_spectrum, "rt": chromatogram, "mass_spectra": mass_spectra, "chromatograms": chromatograms}
         return reader, data
 
     @check_os("win32")
@@ -418,11 +441,7 @@ class LoadHandler:
 
         parameters = reader.get_inf_data()
 
-        data = {
-            "mz": MassSpectrumObject(mz_x, mz_y).to_dict(),
-            "rt": ChromatogramObject(rt_x, rt_y).to_dict(),
-            "parameters": parameters,
-        }
+        data = {"mz": MassSpectrumObject(mz_x, mz_y), "rt": ChromatogramObject(rt_x, rt_y), "parameters": parameters}
         LOGGER.debug("Loaded data in " + report_time(t_start))
         return reader, data
 
@@ -459,25 +478,11 @@ class LoadHandler:
         parameters = reader.get_inf_data()
 
         data = {
-            "mz": MassSpectrumObject(mz_x, mz_y).to_dict(),
-            "rt": ChromatogramObject(rt_x, rt_y, metadata={"yvals_min": rt_x_min}).to_dict(),
-            "dt": MobilogramObject(dt_x, dt_y).to_dict(),
-            "heatmap": {
-                "ylabels": "Drift time (bins)",
-                "xlabels": "Scans",
-                "zvals": array,
-                "xvals": dt_x,
-                "yvals": rt_x,
-                "yvals1D": dt_y,
-                "yvalsRT": rt_y,
-            },
-            "msdt": {
-                "xvals": msdt_mz_x,
-                "yvals": msdt_dt_x,
-                "zvals": msdt_array,
-                "xlabels": "m/z",
-                "ylabels": "Drift time (bins)",
-            },
+            "mz": MassSpectrumObject(mz_x, mz_y),
+            "rt": ChromatogramObject(rt_x, rt_y, extra_data={"yvals_min": rt_x_min}),
+            "dt": MobilogramObject(dt_x, dt_y),
+            "heatmap": IonHeatmapObject(array, x=dt_x, y=rt_x, xy=dt_y, yy=rt_y),
+            "msdt": MassSpectrumHeatmapObject(msdt_array, x=msdt_mz_x, y=msdt_dt_x),
             "parameters": parameters,
         }
         LOGGER.debug("Loaded data in " + report_time(t_start))

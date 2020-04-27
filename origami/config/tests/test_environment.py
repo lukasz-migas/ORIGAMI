@@ -33,7 +33,6 @@ class TestEnvironment:
 
     def test_new(self):
         env = Environment()
-
         for document_type, document_attributes in DOCUMENT_TYPE_ATTRIBUTES.items():
             document = env.new(document_type, "")
             assert document.path == ""

@@ -3,8 +3,21 @@ import logging
 
 # Local imports
 from origami.objects.annotations import Annotations
+from origami.readers.io_document import open_py_object
 
 logger = logging.getLogger(__name__)
+
+
+def convert_pickle_to_zarr(path: str):
+    """Convert pickle object to the latest zarr version"""
+    document_obj, document_version = open_py_object(path)
+    # check version
+    if document_version < 2:
+        document_obj = convert_v1_to_v2(document_obj)
+    # upgrade annotations
+    upgrade_document_annotations(document_obj)
+
+    #
 
 
 def convert_v1_to_v2(document):

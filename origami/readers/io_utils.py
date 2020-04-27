@@ -1,5 +1,6 @@
 # Standard library imports
 import os
+from typing import Optional
 
 # Local imports
 from origami.utils.converters import str2num
@@ -24,7 +25,7 @@ def clean_up(filepath):
         pass
 
 
-def get_waters_pusher_frequency(parameters, mode="V"):
+def get_waters_pusher_frequency(parameters, mode: Optional[str] = "V"):
     """
     mode           V           W
     600         39.25       75.25
@@ -38,43 +39,43 @@ def get_waters_pusher_frequency(parameters, mode="V"):
     Check what pusher frequency should be used
     """
     if mode is None:
-        parameters["pusherFreq"] = -1
+        parameters["pusher_freq"] = -1
         return parameters
 
     if mode in ["V", "Sensitivity", "Resolution", "Sensitivity Mode", "Resolution Mode"]:
-        if parameters["endMS"] <= 600:
-            parameters["pusherFreq"] = 39.25
-        elif 600 < parameters["endMS"] <= 1200:
-            parameters["pusherFreq"] = 54.25
-        elif 1200 < parameters["endMS"] <= 2000:
-            parameters["pusherFreq"] = 69.25
-        elif 2000 < parameters["endMS"] <= 5000:
-            parameters["pusherFreq"] = 110.25
-        elif 5000 < parameters["endMS"] <= 8000:
-            parameters["pusherFreq"] = 138.25
-        elif 8000 < parameters["endMS"] <= 14000:
-            parameters["pusherFreq"] = 182.25
-        elif 14000 < parameters["endMS"] <= 32000:
-            parameters["pusherFreq"] = 274.25
-        elif 32000 < parameters["endMS"] <= 100000:
-            parameters["pusherFreq"] = 486.25
+        if parameters["end_ms"] <= 600:
+            parameters["pusher_freq"] = 39.25
+        elif 600 < parameters["end_ms"] <= 1200:
+            parameters["pusher_freq"] = 54.25
+        elif 1200 < parameters["end_ms"] <= 2000:
+            parameters["pusher_freq"] = 69.25
+        elif 2000 < parameters["end_ms"] <= 5000:
+            parameters["pusher_freq"] = 110.25
+        elif 5000 < parameters["end_ms"] <= 8000:
+            parameters["pusher_freq"] = 138.25
+        elif 8000 < parameters["end_ms"] <= 14000:
+            parameters["pusher_freq"] = 182.25
+        elif 14000 < parameters["end_ms"] <= 32000:
+            parameters["pusher_freq"] = 274.25
+        elif 32000 < parameters["end_ms"] <= 100000:
+            parameters["pusher_freq"] = 486.25
     elif mode in ["W", "High Resolution"]:
-        if parameters["endMS"] <= 600:
-            parameters["pusherFreq"] = 75.25
-        elif 600 < parameters["endMS"] <= 1200:
-            parameters["pusherFreq"] = 106.25
-        elif 1200 < parameters["endMS"] <= 2000:
-            parameters["pusherFreq"] = 137.25
-        elif 2000 < parameters["endMS"] <= 5000:
-            parameters["pusherFreq"] = 216.25
-        elif 5000 < parameters["endMS"] <= 8000:
-            parameters["pusherFreq"] = 273.25
-        elif 8000 < parameters["endMS"] <= 14000:
-            parameters["pusherFreq"] = 363.25
-        elif 14000 < parameters["endMS"] <= 32000:
-            parameters["pusherFreq"] = 547.25
-        elif 32000 < parameters["endMS"] <= 100000:
-            parameters["pusherFreq"] = 547.25
+        if parameters["end_ms"] <= 600:
+            parameters["pusher_freq"] = 75.25
+        elif 600 < parameters["end_ms"] <= 1200:
+            parameters["pusher_freq"] = 106.25
+        elif 1200 < parameters["end_ms"] <= 2000:
+            parameters["pusher_freq"] = 137.25
+        elif 2000 < parameters["end_ms"] <= 5000:
+            parameters["pusher_freq"] = 216.25
+        elif 5000 < parameters["end_ms"] <= 8000:
+            parameters["pusher_freq"] = 273.25
+        elif 8000 < parameters["end_ms"] <= 14000:
+            parameters["pusher_freq"] = 363.25
+        elif 14000 < parameters["end_ms"] <= 32000:
+            parameters["pusher_freq"] = 547.25
+        elif 32000 < parameters["end_ms"] <= 100000:
+            parameters["pusher_freq"] = 547.25
 
     return parameters
 
@@ -82,18 +83,20 @@ def get_waters_pusher_frequency(parameters, mode="V"):
 def get_waters_inf_data(path):
     """Imports information file for selected MassLynx file"""
     filename = os.path.join(path, "_extern.inf")
+    # TODO: replace current method with regex since it will be more specific...
     parameters = dict.fromkeys(
         [
-            "startMS",
-            "endMS",
-            "setMS",
-            "scanTime",
-            "ionPolarity",
-            "modeSensitivity",
-            "modeAnalyser",
-            "pusherFreq",
-            "corrC",
-            "trapCE",
+            "start_ms",
+            "end_ms",
+            "end_msms",
+            "set_msms",
+            "scan_time",
+            "polarity",
+            "mode_sensitivity",
+            "mode_analyser",
+            "pusher_freq",
+            "correction_c",
+            "trap_ce",
         ],
         None,
     )
@@ -106,61 +109,61 @@ def get_waters_inf_data(path):
         for line in f:
             if "Start Mass" in line:
                 try:
-                    parameters["startMS"] = str2num(str(line.split()[-1]))
+                    parameters["start_ms"] = str2num(str(line.split()[-1]))
                 except Exception:
                     pass
             if "MSMS End Mass" in line:
                 try:
-                    parameters["endMS"] = str2num(str(line.split()[-1]))
+                    parameters["end_ms"] = str2num(str(line.split()[-1]))
                 except Exception:
                     pass
-            elif "End Mass" in line:
+            if "End Mass" in line:
                 try:
-                    parameters["endMS"] = str2num(str(line.split()[-1]))
+                    parameters["end_ms"] = str2num(str(line.split()[-1]))
                 except Exception:
                     pass
             if "Set Mass" in line:
                 try:
-                    parameters["setMS"] = str2num(str(line.split()[-1]))
+                    parameters["set_msms"] = str2num(str(line.split()[-1]))
                 except Exception:
                     pass
             if "Scan Time (sec)" in line or "Scan Time" in line:
                 try:
-                    parameters["scanTime"] = str2num(str(line.split()[-1]))
+                    parameters["scan_time"] = str2num(str(line.split()[-1]))
                 except Exception:
                     pass
             if "Polarity" in line:
                 try:
-                    parameters["ionPolarity"] = str(line.split()[-1])
+                    parameters["polarity"] = str(line.split()[-1])
                 except Exception:
                     pass
             if "Sensitivity" in line:
                 try:
-                    parameters["modeSensitivity"] = str(line.split()[-1])
+                    parameters["mode_sensitivity"] = str(line.split()[-1])
                 except Exception:
                     pass
             if "Analyser" in line or "OpticMode" in line:
                 try:
-                    parameters["modeAnalyser"] = str(line.split("\t")[-1]).strip()
+                    parameters["mode_analyser"] = str(line.split("\t")[-1]).strip()
                 except Exception:
                     pass
             if "EDC Delay Coefficient" in line:
                 try:
-                    parameters["corrC"] = str2num(str(line.split()[-1]))
+                    parameters["correction_c"] = str2num(str(line.split()[-1]))
                 except Exception:
                     pass
             if "ADC Pusher Period (us)" in line:
-                parameters["pusherFreq"] = str2num(line.split()[-1])
+                parameters["pusher_freq"] = str2num(line.split()[-1])
             if "Trap Collision Energy" in line:
                 if i == 1:
                     try:
-                        parameters["trapCE"] = str2num(str(line.split()[-1]))
+                        parameters["trap_ce"] = str2num(str(line.split()[-1]))
                     except Exception:
                         pass
                 i += 1
 
-    if parameters["pusherFreq"] is None:
-        parameters = get_waters_pusher_frequency(parameters, mode=parameters["modeAnalyser"])
+    if parameters["pusher_freq"] is None:
+        parameters = get_waters_pusher_frequency(parameters, mode=parameters["mode_analyser"])
 
     return parameters
 

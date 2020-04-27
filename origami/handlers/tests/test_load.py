@@ -2,6 +2,7 @@
 import sys
 
 # Third-party imports
+import numpy as np
 import pytest
 
 # Local imports
@@ -25,32 +26,67 @@ class TestLoadHandler:
         _load_handler = LoadHandler()
         assert _load_handler
 
-    def test_waters_extract_ms_from_mobilogram(self, get_waters_im_small):
+    @pytest.mark.skipif(sys.platform != "win32", reason="Cannot extract data on MacOSX or Linux")
+    def test_waters_extract_ms_from_mobilogram(self, load_handler, get_waters_im_small):
         assert True
 
-    def test_waters_extract_ms_from_chromatogram(self):
+    @pytest.mark.skipif(sys.platform != "win32", reason="Cannot extract data on MacOSX or Linux")
+    def test_waters_extract_ms_from_chromatogram(self, load_handler, get_waters_im_small):
         assert True
 
-    def test_waters_extract_heatmap_from_mass_spectrum_one(self):
+    @pytest.mark.skipif(sys.platform != "win32", reason="Cannot extract data on MacOSX or Linux")
+    def test_waters_extract_heatmap_from_mass_spectrum_one(self, load_handler, get_waters_im_small):
         assert True
 
-    def test_waters_extract_heatmap_from_mass_spectrum_many(self):
+    @pytest.mark.skipif(sys.platform != "win32", reason="Cannot extract data on MacOSX or Linux")
+    def test_waters_extract_heatmap_from_mass_spectrum_many(self, load_handler, get_waters_im_small):
         assert True
 
-    def test_waters_im_extract_ms(self):
-        assert True
+    @pytest.mark.skipif(sys.platform != "win32", reason="Cannot extract data on MacOSX or Linux")
+    def test_waters_im_extract_ms(self, load_handler, get_waters_im_small):
+        x, y = load_handler.waters_im_extract_ms(get_waters_im_small)
+        assert isinstance(x, np.ndarray)
+        assert isinstance(y, np.ndarray)
+        assert len(x) == len(y)
+        assert np.max(y) >= 1  # check that values are correctly rescaled
 
-    def test_waters_im_extract_rt(self):
-        assert True
+    @pytest.mark.skipif(sys.platform != "win32", reason="Cannot extract data on MacOSX or Linux")
+    def test_waters_im_extract_rt(self, load_handler, get_waters_im_small):
+        x, y = load_handler.waters_im_extract_rt(get_waters_im_small)
+        assert isinstance(x, np.ndarray)
+        assert isinstance(y, np.ndarray)
+        assert len(x) == len(y)
+        assert np.max(y) >= 1  # check that values are correctly rescaled
 
-    def test_waters_im_extract_dt(self):
-        assert True
+    @pytest.mark.skipif(sys.platform != "win32", reason="Cannot extract data on MacOSX or Linux")
+    def test_waters_im_extract_dt(self, load_handler, get_waters_im_small):
+        x, y = load_handler.waters_im_extract_dt(get_waters_im_small)
+        assert isinstance(x, np.ndarray)
+        assert isinstance(y, np.ndarray)
+        assert len(x) == len(y)
+        assert np.max(y) >= 1  # check that values are correctly rescaled
 
-    def test_waters_im_extract_heatmap(self):
-        assert True
+    @pytest.mark.skipif(sys.platform != "win32", reason="Cannot extract data on MacOSX or Linux")
+    def test_waters_im_extract_heatmap(self, load_handler, get_waters_im_small):
+        x, y, array = load_handler.waters_im_extract_heatmap(get_waters_im_small)
+        assert isinstance(x, np.ndarray)
+        assert isinstance(y, np.ndarray)
+        assert isinstance(array, np.ndarray)
+        assert x.shape[0] == array.shape[0]
+        assert y.shape[0] == array.shape[1]
 
-    def test_waters_im_extract_msdt(self):
-        assert True
+    @pytest.mark.skipif(sys.platform != "win32", reason="Cannot extract data on MacOSX or Linux")
+    @pytest.mark.parametrize("mz_min, mz_max, mz_bin_size", ([500, 1000, 1.0], [500, 1000, 0.1]))
+    def test_waters_im_extract_msdt(self, load_handler, get_waters_im_small, mz_min, mz_max, mz_bin_size):
+        x, y, array = load_handler.waters_im_extract_msdt(get_waters_im_small, mz_min, mz_max, mz_bin_size)
+        assert isinstance(x, np.ndarray)
+        assert isinstance(y, np.ndarray)
+        assert isinstance(array, np.ndarray)
+        assert x.shape[0] == array.shape[0]
+        assert y.shape[0] == array.shape[1]
+        assert np.diff(x).mean() - mz_bin_size < 0.01
+        assert x[0] <= mz_min
+        assert x[-1] >= mz_max
 
     def test_load_text_mass_spectrum_data(self):
         assert True
@@ -73,6 +109,7 @@ class TestLoadHandler:
     def test_load_mzml_document(self):
         assert True
 
+    @pytest.mark.skipif(sys.platform != "win32", reason="Cannot extract data on MacOSX or Linux")
     def test_load_thermo_ms_data(self, load_handler, get_thermo_ms_small):
         reader, data = load_handler.load_thermo_ms_data(get_thermo_ms_small)
         assert isinstance(data, dict)
@@ -80,6 +117,7 @@ class TestLoadHandler:
         assert "mz" in data
         assert "rt" in data
 
+    @pytest.mark.skipif(sys.platform != "win32", reason="Cannot extract data on MacOSX or Linux")
     def test_load_thermo_ms_document(self, load_handler, get_thermo_ms_small):
         document = load_handler.load_thermo_ms_document(get_thermo_ms_small)
         assert isinstance(document, Document)

@@ -424,9 +424,19 @@ class TextHeatmapReader(TextReader):
             x = x[1::]
 
         logger.debug(f"Labels size= {len(x)} x {len(y)}; array shape={array.shape}")
-        return array, x, y
+        return array, np.asarray(x), y
 
     load.__doc__ = TextReader.load.__doc__
+
+    @property
+    def yy(self):
+        """Returns the intensity data for the y-axis"""
+        return np.sum(self.array, axis=1).T
+
+    @property
+    def xy(self):
+        """Returns the intensity data for the x-axis"""
+        return np.sum(self.array, axis=0)
 
 
 def check_column_names(col_names):

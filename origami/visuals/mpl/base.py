@@ -57,7 +57,7 @@ class PlotBase(MPLPanel):
 
         return axes_size
 
-    def _compute_xy_limits(self, x, y, y_upper_multiplier=1.0):
+    def _compute_xy_limits(self, x, y, y_lower_start=0, y_upper_multiplier=1.0):
         """Calculate the x/y axis ranges"""
         x = np.asarray(x)
         y = np.asarray(y)
@@ -65,7 +65,7 @@ class PlotBase(MPLPanel):
         y_min, y_max = get_min_max(y)
 
         xlimits = [x_min, x_max]
-        ylimits = [y_min, y_max * y_upper_multiplier]
+        ylimits = [y_lower_start, y_max * y_upper_multiplier]
 
         # extent is x_min, y_min, x_max, y_max
         extent = [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
@@ -742,7 +742,7 @@ class PlotBase(MPLPanel):
         ylabel = self.plot_base.get_ylabel()
         ylabel = ylabel.split(" [")[0]
 
-        yvals, ylabel, __ = self._convert_yaxis(yvals, ylabel)
+        #         yvals, ylabel, __ = self._convert_yaxis(yvals, ylabel)
 
         lines[0].set_xdata(xvals)
         lines[0].set_ydata(yvals)
@@ -793,11 +793,11 @@ class PlotBase(MPLPanel):
             for shade in self.plot_base.collections:
                 shade.remove()
 
-        if testMax == "yvals":
-            yvals, ylabel, __ = self._convert_yaxis(yvals, ylabel)
-
-        if kwargs.pop("testX", False):
-            xvals, xlabel, __ = self._convert_xaxis(xvals)
+        #         if testMax == "yvals":
+        #             yvals, ylabel, __ = self._convert_yaxis(yvals, ylabel)
+        #
+        #         if kwargs.pop("testX", False):
+        #             xvals, xlabel, __ = self._convert_xaxis(xvals)
 
         lines[0].set_xdata(xvals)
         lines[0].set_ydata(yvals)

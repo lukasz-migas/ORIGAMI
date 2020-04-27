@@ -8,13 +8,14 @@ from typing import Union
 from typing import Optional
 
 # Local imports
-from origami.document import document as Document
-from origami.objects.containers import DataObject
 from origami.utils.time import get_current_time
 from origami.config.config import CONFIG
-from origami.config.convert import convert_v1_to_v2
-from origami.config.convert import upgrade_document_annotations
-from origami.readers.io_document import open_py_object
+
+# from origami.document import document as Document
+from origami.config.convert import convert_pickle_to_zarr
+from origami.objects.document import DocumentStore
+from origami.objects.callbacks import PropertyCallbackManager
+from origami.objects.containers import DataObject
 
 LOGGER = logging.getLogger(__name__)
 
@@ -42,26 +43,27 @@ ALTERNATIVE_NAMES = {
 DOCUMENT_TYPES = [
     "Type: ORIGAMI",
     "Type: MANUAL",
-    "Type: Infrared",
-    "Type: 2D IM-MS",
-    "Type: Interactive",
+    "Type: Infrared",  # remove
+    "Type: 2D IM-MS",  # remove
+    "Type: Interactive",  # remove
     "Type: Comparison",
     "Type: MS",
     "Type: Imaging",
+    "Type: MS/MS",
 ]
 DOCUMENT_DEFAULT = "origami"
 DOCUMENT_KEY_PAIRS = {
-    "mz": "massSpectrum",
-    "rt": "RT",
-    "dt": "DT",
-    "heatmap": "IMS2D",
-    "mass_spectra": "multipleMassSpectrum",
-    "chromatograms": "multipleRT",
-    "mobilograms": "multipleDT",
-    "msdt": "DTMZ",
-    "parameters": "parameters",
-    "reader": "file_reader",
-    "tandem_spectra": "tandem_spectra",
+    "mz": "MassSpectra/Summed Spectrum",
+    "rt": "Chromatograms/Summed Chromatogram",
+    "dt": "Mobilograms/Summed Mobilogram",
+    "heatmap": "IonHeatmaps/Summed Heatmap",
+    "msdt": "MSDTHeatmaps/Summed Heatmap",
+    "mass_spectra": ("MassSpectra", "*"),
+    "chromatograms": ("Chromatograms", "*"),
+    "mobilograms": ("Mobilograms", "*"),
+    "parameters": "Metadata/Parameters",
+    # "reader": "file_reader",
+    # "tandem_spectra": "tandem_spectra",
 }
 
 # TODO: add `callbacks` section to the  document
@@ -76,8 +78,11 @@ def get_document_title(path):
     return base_title
 
 
-class Environment:
+class Environment(PropertyCallbackManager):
+    ALLOWED_EVENTS = ["add", "change", "rename", "delete"]
+
     def __init__(self):
+        super(Environment, self).__init__()
         self._current = None
         self.documents = dict()
 
@@ -97,15 +102,15 @@ class Environment:
 
     def __setitem__(self, key, value):
         """Set document object"""
-        #         if not isinstance(value, Document):
-        #             raise ValueError(f"Item must be of `Document` type not {type(value)}")
         self.documents[key] = value
         self.current = value.title
+        self._trigger("add", value.title)
 
     def __delitem__(self, key):
         """Delete document object"""
         self.documents.pop(key)
         self.current = None
+        self._trigger("delete", key)
         LOGGER.debug(f"Deleted `{key}`")
 
     def __contains__(self, item):
@@ -113,6 +118,10 @@ class Environment:
         if item in self.documents:
             return True
         return False
+
+    def _trigger(self, event: str, metadata):
+        """Trigger callback on the object"""
+        super(Environment, self).trigger(event, metadata)
 
     @property
     def n_documents(self):
@@ -139,19 +148,22 @@ class Environment:
     def titles(self):
         return list(self.keys())
 
-    def add(self, document: Document):
+    def add(self, document: DocumentStore):
         """Add document to the store"""
         self.documents[document.title] = document
+        self._trigger("add", document.title)
 
     def remove(self, key):
         """Remove document from the store"""
-        self.documents.pop(key)
+        document = self.documents.pop(key)
+        self._trigger("delete", document.title)
 
     def rename(self, old_name, new_name):
         """Rename document"""
         document = self.documents.pop(old_name)
         document.title = new_name
-        self.add(document)
+        self.documents[new_name] = document
+        self._trigger("rename", [old_name, new_name])
 
     def get(self, key, alt=None):
         """Get document"""
@@ -159,11 +171,17 @@ class Environment:
 
     def pop(self, key, alt=None):
         """Pop document"""
-        return self.documents.pop(key, alt)
+        document = self.documents.pop(key, alt)
+        if document is not None:
+            self._trigger("delete", document.title)
+        return document
 
     def clear(self):
         """Clear document store"""
+        titles = self.titles
         self.documents.clear()
+        for title in titles:
+            self._trigger("delete", title)
 
     def keys(self):
         """Returns document list"""
@@ -190,19 +208,22 @@ class Environment:
 
     def load(self, path: str):
         """Load document from pickle file"""
-        document_obj, document_version = open_py_object(path)
-        # check version
-        if document_version < 2:
-            document_obj = convert_v1_to_v2(document_obj)
+        # check whether path ends with pickle (e.g. old format) and if so, handle the transition to the new format
+        if path.endswith(".pickle"):
+            path = convert_pickle_to_zarr(path)
 
-        # upgrade annotations
-        upgrade_document_annotations(document_obj)
+        document_obj = DocumentStore(path)
 
         self.add(document_obj)
+        return document_obj
+
+    def open(self, path: str):
+        """Alias for load"""
+        return self.load(path)
 
     def set_document(
         self,
-        document: Optional[Document] = None,
+        document: Optional[DocumentStore] = None,
         path: Optional[str] = None,
         document_type: Optional[str] = None,
         data: Optional[Dict] = None,
@@ -218,31 +239,36 @@ class Environment:
 
         # add data to the document
         if isinstance(data, dict):
-            for name, _data in data.items():
-                attr_name = DOCUMENT_KEY_PAIRS.get(name)
+            for obj_name, obj_data in data.items():
+                attr_name = DOCUMENT_KEY_PAIRS.get(obj_name)
                 # print(name, attr_name)
                 if attr_name is None:
-                    LOGGER.error(f"Could not processes {name}")
+                    LOGGER.error(f"Could not processes {obj_name} - not registered yet")
                     continue
-                if isinstance(_data, DataObject) and hasattr(_data, "to_dict"):
-                    _data = _data.to_dict()
-                # setattr(document, attr_name, getattr(document, attr_name, dict()).update(_data))
-                getattr(document, attr_name, dict()).update(_data)
+                if isinstance(obj_data, DataObject) and hasattr(obj_data, "to_zarr"):
+                    _data, _attrs = obj_data.to_zarr()
+                    document.add(attr_name, _data, _attrs)
+                elif isinstance(attr_name, tuple) and isinstance(obj_data, dict):
+                    attr_name, _ = attr_name
+                    for _obj_name, _obj_data in obj_data.items():
+                        _data, _attrs = _obj_data.to_zarr()
+                        document.add(f"{attr_name}/{_obj_name}", _data, _attrs)
+                elif isinstance(obj_data, dict):
+                    _attrs = obj_data
+                    document.add(attr_name, attrs=_attrs)
+                else:
+                    LOGGER.error(f"Could not process {obj_name} - lacks converter ({type(obj_data)}")
+                # getattr(document, attr_name, dict()).update(_data)
         return document
-
-    @staticmethod
-    def blank() -> Document:
-        """Creates new document instance without any attributes being pre-set"""
-        return Document()
 
     def _get_new_name(self, title: str = "New Document", n_fill: int = 1):
         """Returns unique, document name"""
         n = 0
-        while title + "#" + "%d".zfill(n_fill) % n in self:
+        while title + " #" + "%d".zfill(n_fill) % n in self:
             n += 1
-        return title + "#" + "%d".zfill(n_fill)
+        return title + " #" + "%d".zfill(n_fill) % n
 
-    def new(self, document_type: str, path: str, data: Optional[Dict] = None) -> Document:
+    def new(self, document_type: str, path: str, data: Optional[Dict] = None) -> DocumentStore:
         """Create new document that contains certain pre-set attributes. The document is not automatically added to the
         store. Use `add_new` if you would like to instantiate and add the document to the document store"""
         # ensure the correct name is used
@@ -253,13 +279,16 @@ class Environment:
         attributes = DOCUMENT_TYPE_ATTRIBUTES[document_type]
 
         # instantiate document
-        document = Document()
-        document.title = get_document_title(path)
-        document.path = path
-        document.userParameters = CONFIG.userParameters
-        document.userParameters["date"] = get_current_time()
-        document.dataType = attributes["data_type"]
-        document.fileFormat = attributes["file_format"]
+        document = DocumentStore(path, self._get_new_name(get_document_title(path)))
+        document.add_attrs(
+            attrs={
+                "path": path,
+                "data_type": attributes["data_type"],
+                "file_format": attributes["file_format"],
+                "date": get_current_time(),
+            }
+        )
+        document.add_config("user-parameters", CONFIG.userParameters)
 
         # add data to document
         if data is not None:
@@ -267,11 +296,11 @@ class Environment:
 
         return document
 
-    def get_new_document(self, document_type: str, path: str, data: Optional[Dict] = None) -> Document:
+    def get_new_document(self, document_type: str, path: str, data: Optional[Dict] = None) -> DocumentStore:
         """Alias for `new`"""
         return self.new(document_type, path, data)
 
-    def add_new(self, document_type: str, path: str, data: Optional[Dict] = None) -> Document:
+    def add_new(self, document_type: str, path: str, data: Optional[Dict] = None) -> DocumentStore:
         """Creates new document and adds it to the store"""
         document = self.new(document_type, path, data)
         self.add(document)

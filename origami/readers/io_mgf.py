@@ -25,6 +25,15 @@ class MGFReader:
     def get_title_from_scan(scan):
         return scan["params"]["title"]
 
+    @staticmethod
+    def get_info_from_scan(scan):
+        return {
+            "title": scan["params"]["title"],
+            "precursor_mz": np.round(scan["params"]["pepmass"][0], 4),
+            "precursor_charge": scan["params"].get("charge", 1),
+            "peak_count": len(scan["m/z array"]),
+        }
+
     def get_all_info(self):
         scan_info = dict()
         for scan, spectrum in enumerate(self.source):
@@ -36,15 +45,6 @@ class MGFReader:
             }
 
         return scan_info
-
-    @staticmethod
-    def get_info_from_scan(scan):
-        return {
-            "title": scan["params"]["title"],
-            "precursor_mz": np.round(scan["params"]["pepmass"][0], 4),
-            "precursor_charge": scan["params"].get("charge", 1),
-            "peak_count": len(scan["m/z array"]),
-        }
 
     def get_all_scans(self):
         self.reset()

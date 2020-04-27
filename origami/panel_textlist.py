@@ -1,11 +1,9 @@
 # Standard library imports
 import re
 import logging
-from ast import literal_eval
 
 # Third-party imports
 import wx
-from numpy import arange
 
 # Local imports
 from origami.ids import ID_addNewOverlayDoc
@@ -14,28 +12,16 @@ from origami.ids import ID_textPanel_editItem
 from origami.ids import ID_textPanel_check_all
 from origami.ids import ID_textPanel_clear_all
 from origami.ids import ID_textPanel_delete_all
-from origami.ids import ID_textPanel_table_mask
 from origami.ids import ID_load_multiple_text_2D
 from origami.ids import ID_textPanel_assignColor
-from origami.ids import ID_textPanel_table_alpha
-from origami.ids import ID_textPanel_table_color
-from origami.ids import ID_textPanel_table_endCE
-from origami.ids import ID_textPanel_table_label
-from origami.ids import ID_textPanel_table_shape
 from origami.ids import ID_textPanel_show_heatmap
-from origami.ids import ID_textPanel_table_charge
 from origami.ids import ID_textPanel_annotate_mask
 from origami.ids import ID_textPanel_edit_selected
-from origami.ids import ID_textPanel_table_hideAll
-from origami.ids import ID_textPanel_table_startCE
 from origami.ids import ID_textPanel_annotate_alpha
 from origami.ids import ID_textPanel_check_selected
 from origami.ids import ID_textPanel_clear_selected
-from origami.ids import ID_textPanel_table_colormap
-from origami.ids import ID_textPanel_table_document
 from origami.ids import ID_textPanel_delete_selected
 from origami.ids import ID_textPanel_show_mobilogram
-from origami.ids import ID_textPanel_table_restoreAll
 from origami.ids import ID_textPanel_delete_rightClick
 from origami.ids import ID_textPanel_show_chromatogram
 from origami.ids import ID_textPanel_changeColormapBatch
@@ -46,60 +32,110 @@ from origami.ids import ID_textPanel_annotate_min_threshold
 from origami.ids import ID_textPanel_changeColorBatch_color
 from origami.ids import ID_textPanel_changeColorBatch_palette
 from origami.ids import ID_textPanel_changeColorBatch_colormap
-from origami.styles import ListCtrl
 from origami.styles import make_tooltip
 from origami.styles import make_menu_item
-from origami.utils.misc import removeListDuplicates
 from origami.utils.check import isempty
-from origami.utils.color import round_rgb
 from origami.utils.color import get_font_color
-from origami.utils.color import get_random_color
-from origami.utils.color import get_all_color_types
 from origami.utils.color import convert_rgb_1_to_255
-from origami.utils.color import convert_rgb_255_to_1
-from origami.utils.random import get_random_int
+from origami.config.config import CONFIG
 from origami.config.environment import ENV
 from origami.gui_elements.dialog_ask import DialogAsk
+from origami.gui_elements.panel_base import PanelBase
 from origami.gui_elements.misc_dialogs import DialogBox
-from origami.gui_elements.dialog_color_picker import DialogColorPicker
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
-class PanelTextlist(wx.Panel):
-    keyword_alias = {"cmap": "colormap"}
+class PanelTextlist(PanelBase):
+    KEYWORD_ALIAS = {"cmap": "colormap"}
+    TABLE_DICT = {
+        0: {
+            "name": "",
+            "tag": "check",
+            "type": "bool",
+            "order": 0,
+            "id": wx.NewIdRef(),
+            "show": True,
+            "width": 25,
+            "hidden": True,
+        },
+        1: {
+            "name": "min (x)",
+            "tag": "start",
+            "type": "float",
+            "order": 1,
+            "id": wx.NewIdRef(),
+            "show": True,
+            "width": 65,
+        },
+        2: {
+            "name": "max (x)",
+            "tag": "end",
+            "type": "float",
+            "order": 2,
+            "id": wx.NewIdRef(),
+            "show": True,
+            "width": 65,
+        },
+        3: {"name": "z", "tag": "charge", "type": "int", "order": 3, "id": wx.NewIdRef(), "show": True, "width": 25},
+        4: {
+            "name": "color",
+            "tag": "color",
+            "type": "color",
+            "order": 4,
+            "id": wx.NewIdRef(),
+            "show": True,
+            "width": 60,
+        },
+        5: {
+            "name": "colormap",
+            "tag": "colormap",
+            "type": "str",
+            "order": 5,
+            "id": wx.NewIdRef(),
+            "show": True,
+            "width": 70,
+        },
+        6: {
+            "name": "\N{GREEK SMALL LETTER ALPHA}",
+            "tag": "alpha",
+            "type": "float",
+            "order": 6,
+            "id": wx.NewIdRef(),
+            "show": True,
+            "width": 35,
+        },
+        7: {"name": "mask", "tag": "mask", "type": "float", "order": 7, "id": wx.NewIdRef(), "show": True, "width": 40},
+        8: {"name": "label", "tag": "label", "type": "str", "order": 8, "id": wx.NewIdRef(), "show": True, "width": 50},
+        9: {"name": "shape", "tag": "shape", "type": "str", "order": 9, "id": wx.NewIdRef(), "show": True, "width": 70},
+        10: {
+            "name": "document",
+            "tag": "document",
+            "type": "str",
+            "order": 10,
+            "id": wx.NewIdRef(),
+            "show": True,
+            "width": 100,
+        },
+        11: {
+            "name": "key",
+            "tag": "key",
+            "type": "str",
+            "order": 11,
+            "id": wx.NewIdRef(),
+            "show": True,
+            "width": 0,
+            "hidden": True,
+        },
+    }
 
-    def __init__(self, parent, config, icons, presenter):
-        wx.Panel.__init__(
-            self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(300, -1), style=wx.TAB_TRAVERSAL
-        )
-
-        self.view = parent
-        self.config = config
-        self.presenter = presenter
-        self.icons = icons
+    def __init__(self, parent, icons, presenter):
+        PanelBase.__init__(self, parent, icons, presenter)
 
         self.addToDocument = False
         self.normalize1D = True
         self.plotAutomatically = True
-
-        self._textPanel_peaklist = {
-            0: {"name": "", "tag": "check", "type": "bool"},
-            1: {"name": "min (x)", "tag": "start", "type": "float"},
-            2: {"name": "max (x)", "tag": "end", "type": "float"},
-            3: {"name": "z", "tag": "charge", "type": "int"},
-            4: {"name": "color", "tag": "color", "type": "color"},
-            5: {"name": "colormap", "tag": "colormap", "type": "str"},
-            6: {"name": "\N{GREEK SMALL LETTER ALPHA}", "tag": "alpha", "type": "float"},
-            7: {"name": "mask", "tag": "mask", "type": "float"},
-            8: {"name": "label", "tag": "label", "type": "str"},
-            9: {"name": "shape", "tag": "shape", "type": "str"},
-            10: {"name": "document", "tag": "document", "type": "str"},
-        }
-
         self.item_editor = None
-
-        self.make_panel_gui()
 
         # add a couple of accelerators
         accelerators = [
@@ -120,47 +156,11 @@ class PanelTextlist(wx.Panel):
         wx.EVT_MENU(self, ID_textPanel_check_selected, self.on_check_selected)
         wx.EVT_MENU(self, ID_textPanel_delete_rightClick, self.on_delete_item)
 
-    def __del__(self):
-        pass
-
     def setup_handling_and_processing(self):
         self.data_processing = self.view.data_processing
         self.data_handling = self.view.data_handling
         self.data_visualisation = self.view.data_visualisation
         self.document_tree = self.presenter.view.panelDocuments.documents
-
-    def make_panel_gui(self):
-        """ Make panel GUI """
-        # make toolbar
-        toolbar = self.make_toolbar()
-        self.makeListCtrl()
-
-        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.main_sizer.Add(toolbar, 0, wx.EXPAND, 0)
-        self.main_sizer.Add(self.peaklist, 1, wx.EXPAND, 0)
-
-        # fit layout
-        self.main_sizer.Fit(self)
-        self.SetSizer(self.main_sizer)
-        self.SetSize((300, -1))
-        self.Layout()
-
-    def makeListCtrl(self):
-
-        self.peaklist = ListCtrl(self, style=wx.LC_REPORT | wx.LC_VRULES, column_info=self._textPanel_peaklist)
-
-        for item in self.config._textlistSettings:
-            order = item["order"]
-            name = item["name"]
-            if item["show"]:
-                width = item["width"]
-            else:
-                width = 0
-            self.peaklist.InsertColumn(order, name, width=width, format=wx.LIST_FORMAT_CENTER)
-
-        self.peaklist.Bind(wx.EVT_LEFT_DCLICK, self.on_double_click_on_item)
-        self.peaklist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.menu_right_click)
-        self.peaklist.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.menu_column_right_click)
 
     def on_double_click_on_item(self, evt):
         if self.peaklist.item_id != -1:
@@ -173,71 +173,65 @@ class PanelTextlist(wx.Panel):
         self.presenter.onAddBlankDocument(evt=None, document_type="overlay")
 
     def on_open_info_panel(self, evt):
-        logger.error("This function is not implemented yet")
+        LOGGER.error("This function is not implemented yet")
 
     def make_toolbar(self):
 
-        self.add_btn = wx.BitmapButton(
+        add_btn = wx.BitmapButton(
             self, -1, self.icons.iconsLib["add16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
-        self.add_btn.SetToolTip(make_tooltip("Add..."))
+        add_btn.SetToolTip(make_tooltip("Add..."))
 
-        self.remove_btn = wx.BitmapButton(
+        remove_btn = wx.BitmapButton(
             self, -1, self.icons.iconsLib["remove16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
-        self.remove_btn.SetToolTip(make_tooltip("Remove..."))
+        remove_btn.SetToolTip(make_tooltip("Remove..."))
 
-        self.annotate_btn = wx.BitmapButton(
+        annotate_btn = wx.BitmapButton(
             self, -1, self.icons.iconsLib["annotate16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
-        self.annotate_btn.SetToolTip(make_tooltip("Annotate..."))
+        annotate_btn.SetToolTip(make_tooltip("Annotate..."))
 
-        self.process_btn = wx.BitmapButton(
+        process_btn = wx.BitmapButton(
             self, -1, self.icons.iconsLib["process16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
-        self.process_btn.SetToolTip(make_tooltip("Process..."))
+        process_btn.SetToolTip(make_tooltip("Process..."))
 
-        self.save_btn = wx.BitmapButton(
+        save_btn = wx.BitmapButton(
             self, -1, self.icons.iconsLib["save16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
-        self.save_btn.SetToolTip(make_tooltip("Save..."))
+        save_btn.SetToolTip(make_tooltip("Save..."))
 
         vertical_line_1 = wx.StaticLine(self, -1, style=wx.LI_VERTICAL)
 
-        self.info_btn = wx.BitmapButton(
+        info_btn = wx.BitmapButton(
             self, -1, self.icons.iconsLib["info16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
-        self.info_btn.SetToolTip(make_tooltip("Information..."))
+        info_btn.SetToolTip(make_tooltip("Information..."))
 
         # bind events
-        self.Bind(wx.EVT_BUTTON, self.menu_add_tools, self.add_btn)
-        self.Bind(wx.EVT_BUTTON, self.menu_remove_tools, self.remove_btn)
-        self.Bind(wx.EVT_BUTTON, self.menu_process_tools, self.process_btn)
-        self.Bind(wx.EVT_BUTTON, self.menu_save_tools, self.save_btn)
-        self.Bind(wx.EVT_BUTTON, self.menu_annotate_tools, self.annotate_btn)
-        self.Bind(wx.EVT_BUTTON, self.on_open_info_panel, self.info_btn)
+        self.Bind(wx.EVT_BUTTON, self.menu_add_tools, add_btn)
+        self.Bind(wx.EVT_BUTTON, self.menu_remove_tools, remove_btn)
+        self.Bind(wx.EVT_BUTTON, self.menu_process_tools, process_btn)
+        self.Bind(wx.EVT_BUTTON, self.menu_save_tools, save_btn)
+        self.Bind(wx.EVT_BUTTON, self.menu_annotate_tools, annotate_btn)
+        self.Bind(wx.EVT_BUTTON, self.on_open_info_panel, info_btn)
 
         # button grid
-        btn_grid_vert = wx.GridBagSizer(2, 2)
-        x = 0
-        n = 0
-        btn_grid_vert.Add(self.add_btn, (x, n), flag=wx.ALIGN_CENTER)
-        n += 1
-        btn_grid_vert.Add(self.remove_btn, (x, n), flag=wx.ALIGN_CENTER)
-        n += 1
-        btn_grid_vert.Add(self.annotate_btn, (x, n), flag=wx.ALIGN_CENTER)
-        n += 1
-        btn_grid_vert.Add(self.process_btn, (x, n), flag=wx.ALIGN_CENTER)
-        n += 1
-        btn_grid_vert.Add(self.save_btn, (x, n), flag=wx.ALIGN_CENTER)
-        n += 1
-        btn_grid_vert.Add(vertical_line_1, (x, n), flag=wx.EXPAND)
-        n += 1
-        btn_grid_vert.Add(self.info_btn, (x, n), flag=wx.ALIGN_CENTER)
+        toolbar = wx.BoxSizer(wx.HORIZONTAL)
+        toolbar.Add(add_btn, 0, wx.ALIGN_CENTER)
+        toolbar.Add(remove_btn, 0, wx.ALIGN_CENTER)
+        toolbar.Add(annotate_btn, 0, wx.ALIGN_CENTER)
+        toolbar.Add(process_btn, 0, wx.ALIGN_CENTER)
+        toolbar.Add(save_btn, 0, wx.ALIGN_CENTER)
+        toolbar.AddSpacer(5)
+        toolbar.Add(vertical_line_1, 0, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        toolbar.AddSpacer(5)
+        toolbar.Add(info_btn, 0, wx.ALIGN_CENTER)
 
-        return btn_grid_vert
+        return toolbar
 
-    def menu_right_click(self, evt):
+    def on_menu_item_right_click(self, evt):
 
         # Make bindings
         self.Bind(wx.EVT_MENU, self.on_plot, id=ID_textPanel_show_chromatogram)
@@ -249,7 +243,6 @@ class PanelTextlist(wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_assign_color, id=ID_textPanel_assignColor)
 
         self.peaklist.item_id = evt.GetIndex()
-        print(self.peaklist.item_id)
         menu = wx.Menu()
         menu.AppendItem(
             make_menu_item(
@@ -523,73 +516,6 @@ class PanelTextlist(wx.Panel):
         menu.Destroy()
         self.SetFocus()
 
-    def menu_column_right_click(self, evt):
-        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_textPanel_table_startCE)
-        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_textPanel_table_endCE)
-        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_textPanel_table_charge)
-        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_textPanel_table_color)
-        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_textPanel_table_colormap)
-        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_textPanel_table_alpha)
-        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_textPanel_table_mask)
-        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_textPanel_table_document)
-        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_textPanel_table_label)
-        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_textPanel_table_shape)
-        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_textPanel_table_hideAll)
-        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_textPanel_table_restoreAll)
-
-        menu = wx.Menu()
-        n = 0
-        self.table_start = menu.AppendCheckItem(ID_textPanel_table_startCE, "Table: Minimum energy")
-        self.table_start.Check(self.config._textlistSettings[n]["show"])
-        n += 1
-        self.table_end = menu.AppendCheckItem(ID_textPanel_table_endCE, "Table: Maximum energy")
-        self.table_end.Check(self.config._textlistSettings[n]["show"])
-        n += 1
-        self.table_color = menu.AppendCheckItem(ID_textPanel_table_charge, "Table: Charge")
-        self.table_color.Check(self.config._textlistSettings[n]["show"])
-        n += 1
-        self.table_color = menu.AppendCheckItem(ID_textPanel_table_color, "Table: Color")
-        self.table_color.Check(self.config._textlistSettings[n]["show"])
-        n += 1
-        self.table_colormap = menu.AppendCheckItem(ID_textPanel_table_colormap, "Table: Colormap")
-        self.table_colormap.Check(self.config._textlistSettings[n]["show"])
-        n += 1
-        self.table_alpha = menu.AppendCheckItem(ID_textPanel_table_alpha, "Table: Transparency")
-        self.table_alpha.Check(self.config._textlistSettings[n]["show"])
-        n += 1
-        self.table_mask = menu.AppendCheckItem(ID_textPanel_table_mask, "Table: Mask")
-        self.table_mask.Check(self.config._textlistSettings[n]["show"])
-        n += 1
-        self.table_label = menu.AppendCheckItem(ID_textPanel_table_label, "Table: Label")
-        self.table_label.Check(self.config._textlistSettings[n]["show"])
-        n += 1
-        self.table_shape = menu.AppendCheckItem(ID_textPanel_table_shape, "Table: Shape")
-        self.table_shape.Check(self.config._textlistSettings[n]["show"])
-        n += 1
-        self.table_filename = menu.AppendCheckItem(ID_textPanel_table_document, "Table: Filename")
-        self.table_filename.Check(self.config._textlistSettings[n]["show"])
-        menu.AppendSeparator()
-        self.table_index = menu.AppendItem(
-            make_menu_item(
-                parent=menu,
-                id=ID_textPanel_table_hideAll,
-                text="Table: Hide all",
-                bitmap=self.icons.iconsLib["hide_table_16"],
-            )
-        )
-        self.table_index = menu.AppendItem(
-            make_menu_item(
-                parent=menu,
-                id=ID_textPanel_table_restoreAll,
-                text="Table: Restore all",
-                bitmap=self.icons.iconsLib["show_table_16"],
-            )
-        )
-
-        self.PopupMenu(menu)
-        menu.Destroy()
-        self.SetFocus()
-
     def get_selected_items(self):
         all_eic_datasets = ["Drift time (2D)", "Drift time (2D, processed)"]
 
@@ -670,16 +596,16 @@ class PanelTextlist(wx.Panel):
             if self.peaklist.IsChecked(index=row):
                 check_count += 1
 
-        if check_count > len(self.config.narrowCmapList):
-            colormaps = self.config.narrowCmapList
+        if check_count > len(CONFIG.narrowCmapList):
+            colormaps = CONFIG.narrowCmapList
         else:
-            colormaps = self.config.narrowCmapList + self.config.cmaps2
+            colormaps = CONFIG.narrowCmapList + CONFIG.cmaps2
 
         for row in range(self.peaklist.GetItemCount()):
             if self.peaklist.IsChecked(index=row):
                 self.peaklist.item_id = row
                 colormap = colormaps[row]
-                self.peaklist.SetItem(row, self.config.textlistColNames["colormap"], str(colormap))
+                self.peaklist.SetItem(row, CONFIG.textlistColNames["colormap"], str(colormap))
 
                 # update document
                 try:
@@ -714,53 +640,6 @@ class PanelTextlist(wx.Panel):
                 check_count += 1
 
             self.on_update_document(evt=None)
-
-    def on_update_peaklist_table(self, evt):
-        evtID = evt.GetId()
-
-        # check which event was triggered
-        if evtID == ID_textPanel_table_startCE:
-            col_index = self.config.textlistColNames["start"]
-        elif evtID == ID_textPanel_table_endCE:
-            col_index = self.config.textlistColNames["end"]
-        elif evtID == ID_textPanel_table_charge:
-            col_index = self.config.textlistColNames["charge"]
-        elif evtID == ID_textPanel_table_color:
-            col_index = self.config.textlistColNames["color"]
-        elif evtID == ID_textPanel_table_colormap:
-            col_index = self.config.textlistColNames["colormap"]
-        elif evtID == ID_textPanel_table_alpha:
-            col_index = self.config.textlistColNames["alpha"]
-        elif evtID == ID_textPanel_table_mask:
-            col_index = self.config.textlistColNames["mask"]
-        elif evtID == ID_textPanel_table_label:
-            col_index = self.config.textlistColNames["label"]
-        elif evtID == ID_textPanel_table_shape:
-            col_index = self.config.textlistColNames["shape"]
-        elif evtID == ID_textPanel_table_document:
-            col_index = self.config.textlistColNames["filename"]
-        elif evtID == ID_textPanel_table_restoreAll:
-            for i in range(len(self.config._textlistSettings)):
-                self.config._textlistSettings[i]["show"] = True
-                col_width = self.config._textlistSettings[i]["width"]
-                self.peaklist.SetColumnWidth(i, col_width)
-            return
-        elif evtID == ID_textPanel_table_hideAll:
-            for i in range(len(self.config._textlistSettings)):
-                self.config._textlistSettings[i]["show"] = False
-                col_width = 0
-                self.peaklist.SetColumnWidth(i, col_width)
-            return
-
-        # check values
-        col_check = not self.config._textlistSettings[col_index]["show"]
-        self.config._textlistSettings[col_index]["show"] = col_check
-        if col_check:
-            col_width = self.config._textlistSettings[col_index]["width"]
-        else:
-            col_width = 0
-        # set new column width
-        self.peaklist.SetColumnWidth(col_index, col_width)
 
     def on_change_item_parameter(self, evt):
         """ Iterate over list to assign charge state """
@@ -800,12 +679,14 @@ class PanelTextlist(wx.Panel):
                 "validator": "float",
                 "keyword": "max_threshold",
             }
+        else:
+            raise ValueError("Not sure what to do...")
 
         ask = DialogAsk(self, **ask_kwargs)
         ask.ShowModal()
         return_value = ask.return_value
         if return_value is None:
-            logger.info("Action was cancelled")
+            LOGGER.info("Action was cancelled")
             return
 
         for row in range(rows):
@@ -814,7 +695,7 @@ class PanelTextlist(wx.Panel):
                 document = self.data_handling.on_get_document(itemInfo["document"])
 
                 if not ask_kwargs["keyword"] in ["min_threshold", "max_threshold"]:
-                    self.peaklist.SetItem(row, self.config.textlistColNames[ask_kwargs["keyword"]], str(return_value))
+                    self.peaklist.SetItem(row, CONFIG.textlistColNames[ask_kwargs["keyword"]], str(return_value))
 
                 # set value in document
                 if document.got2DIMS:
@@ -824,33 +705,25 @@ class PanelTextlist(wx.Panel):
 
                 self.data_handling.on_update_document(document, "no_refresh")
 
-    def on_check_selected(self, evt):
-        """Check current item when letter S is pressed on the keyboard"""
-        if self.peaklist.item_id is None:
-            return
-
-        check = not self.peaklist.IsChecked(index=self.peaklist.item_id)
-        self.peaklist.CheckItem(self.peaklist.item_id, check=check)
-
-    def on_plot(self, evt, itemID=None):
+    def on_plot(self, evt, item_id=None):
         """Plot data"""
 
-        if itemID is not None:
-            self.peaklist.item_id = itemID
+        if item_id is not None:
+            self.peaklist.item_id = item_id
 
         if self.peaklist.item_id is None:
             return
 
-        itemInfo = self.on_get_item_information(self.peaklist.item_id)
+        item_info = self.on_get_item_information(self.peaklist.item_id)
 
         try:
-            selectedItem = itemInfo["document"]
-            currentDocument = ENV[selectedItem]
+            document_title = item_info["document"]
+            document = ENV[document_title]
 
             # get data
-            data = currentDocument.IMS2D
+            data = document.IMS2D
         except Exception:
-            document_title, ion_title = re.split(": ", itemInfo["document"])
+            document_title, ion_title = re.split(": ", item_info["document"])
             document = ENV[document_title]
             try:
                 data = document.IMS2DcompData[ion_title]
@@ -900,195 +773,35 @@ class PanelTextlist(wx.Panel):
                 zvals, xvals, yvals, xlabel, ylabel, cmap, override=True, set_page=True
             )
 
-    def onCheckDuplicates(self, fileName):
+    def on_check_existing(self, fileName):
         currentItems = self.peaklist.GetItemCount() - 1
         while currentItems >= 0:
             itemInfo = self.on_get_item_information(currentItems)
             if itemInfo["document"] == fileName:
-                logger.info("File {} already in the table - skipping".format(itemInfo["document"]))
+                LOGGER.info("File {} already in the table - skipping".format(itemInfo["document"]))
                 currentItems = 0
                 return True
             currentItems -= 1
         return False
 
-    def onRemoveDuplicates(self, evt):
-        """
-        This function removes duplicates from the list
-        Its not very efficient!
-        """
+    def on_get_item_information(self, item_id, return_list=False):
+        information = self.peaklist.on_get_item_information(item_id)
 
-        columns = self.peaklist.GetColumnCount()
-        rows = self.peaklist.GetItemCount()
-        tempData = []
-        # Iterate over row and columns to get data
-        for row in range(rows):
-            tempRow = []
-            for col in range(columns):
-                item = self.peaklist.GetItem(row, col=col)
-                tempRow.append(item.GetText())
-            tempRow.append(self.peaklist.IsChecked(index=row))
-            tempRow.append(self.peaklist.GetItemBackgroundColour(row))
-            tempRow.append(self.peaklist.GetItemTextColour(row))
-            tempData.append(tempRow)
-
-        # Remove duplicates
-        tempData = removeListDuplicates(
-            input=tempData,
-            columnsIn=[
-                "check",
-                "start",
-                "end",
-                "charge",
-                "color",
-                "colormap",
-                "alpha",
-                "mask",
-                "label",
-                "shape",
-                "filename",
-                "check",
-                "rgb",
-                "font_color",
-            ],
-            limitedCols=["filename"],
-        )
-        rows = len(tempData)
-        # Clear table
-        self.peaklist.DeleteAllItems()
-
-        checkData, bg_rgb, fg_rgb = [], [], []
-        for check in tempData:
-            fg_rgb.append(check[-1])
-            del check[-1]
-            bg_rgb.append(check[-1])
-            del check[-1]
-            checkData.append(check[-1])
-            del check[-1]
-
-        # Reinstate data
-        rowList = arange(len(tempData))
-        for row, check, bg_rgb, fg_color in zip(rowList, checkData, bg_rgb, fg_rgb):
-            self.peaklist.Append(tempData[row])
-            self.peaklist.CheckItem(row, check)
-            self.peaklist.SetItemBackgroundColour(row, bg_rgb)
-            self.peaklist.SetItemTextColour(row, fg_color)
-
-        if evt is None:
-            return
-        else:
-            evt.Skip()
-
-    def onUpdateOverlayMethod(self, evt):
-        self.config.overlayMethod = self.combo.GetStringSelection()
-
-        if evt is not None:
-            evt.Skip()
-
-    def on_get_item_information(self, itemID, return_list=False):
-
-        information = self.peaklist.on_get_item_information(itemID)
-
-        document = self.data_handling.on_get_document(information["document"])
+        #         document = self.data_handling.on_get_document(information["document"])
         # check whether the ion has any previous information
         min_threshold, max_threshold = 0, 1
-        if document is not None:
-            try:
-                min_threshold = document.IMS2D.get("min_threshold", 0)
-                max_threshold = document.IMS2D.get("max_threshold", 1)
-            except AttributeError:
-                min_threshold = document.IMS2Dprocess.get("min_threshold", 0)
-                max_threshold = document.IMS2Dprocess.get("max_threshold", 1)
+        #         if document:
+        #             try:
+        #                 min_threshold = document.IMS2D.get("min_threshold", 0)
+        #                 max_threshold = document.IMS2D.get("max_threshold", 1)
+        #             except AttributeError:
+        #                 min_threshold = document.IMS2Dprocess.get("min_threshold", 0)
+        #                 max_threshold = document.IMS2Dprocess.get("max_threshold", 1)
 
         information["min_threshold"] = min_threshold
         information["max_threshold"] = max_threshold
 
         return information
-
-    def on_get_value(self, value_type="color"):
-        information = self.on_get_item_information(self.peaklist.item_id)
-
-        if value_type == "minCE":
-            return information["minCE"]
-        elif value_type == "maxCE":
-            return information["maxCE"]
-        elif value_type == "color":
-            return information["color"]
-        elif value_type == "charge":
-            return information["charge"]
-        elif value_type == "colormap":
-            return information["colormap"]
-        elif value_type == "intensity":
-            return information["intensity"]
-        elif value_type == "mask":
-            return information["mask"]
-        elif value_type == "label":
-            return information["label"]
-        elif value_type == "shape":
-            return information["shape"]
-        elif value_type == "document":
-            return information["document"]
-
-    def on_update_value_in_peaklist(self, item_id, value_type, value):
-        if value_type == "color":
-            color_255, color_1, font_color = value
-            self.peaklist.SetItemBackgroundColour(item_id, color_255)
-            self.peaklist.SetStringItem(item_id, self.config.textlistColNames["color"], str(color_1))
-            self.peaklist.SetItemTextColour(item_id, font_color)
-        elif value_type == "color_text":
-            self.peaklist.SetItemBackgroundColour(item_id, value)
-            self.peaklist.SetStringItem(
-                item_id, self.config.textlistColNames["color"], str(convert_rgb_255_to_1(value))
-            )
-            self.peaklist.SetItemTextColour(item_id, get_font_color(value, return_rgb=True))
-
-    def on_get_color(self, evt):
-
-        dlg = DialogColorPicker(self, self.config.customColors)
-        if dlg.ShowModal() == "ok":
-            __, color_1, __ = dlg.GetChosenColour()
-            self.config.customColors = dlg.GetCustomColours()
-
-            return color_1
-
-    def on_assign_color(self, evt, itemID=None, give_value=False):
-        """Assign new color
-
-        Parameters
-        ----------
-        evt : wxPython event
-            unused
-        itemID : int
-            value for item in table
-        give_value : bool
-            should/not return color
-        """
-
-        if itemID is not None:
-            self.peaklist.item_id = itemID
-
-        if self.peaklist.item_id is None:
-            return
-
-        dlg = DialogColorPicker(self, self.config.customColors)
-        if dlg.ShowModal() == "ok":
-            color_255, color_1, font_color = dlg.GetChosenColour()
-            self.config.customColors = dlg.GetCustomColours()
-            self.on_update_value_in_peaklist(self.peaklist.item_id, "color", [color_255, color_1, font_color])
-
-            # update document
-            self.on_update_document(evt=None)
-
-            if give_value:
-                return color_255
-        else:
-            try:
-                color_255 = convert_rgb_1_to_255(literal_eval(self.on_get_value(value_type="color")), 3)
-            except Exception:
-                color_255 = self.config.customColors[get_random_int(0, 15)]
-            color_255, color_1, font_color = get_all_color_types(color_255, True)
-            self.on_update_value_in_peaklist(self.peaklist.item_id, "color", [color_255, color_1, font_color])
-            if give_value:
-                return color_255
 
     def on_update_document(self, evt, itemInfo=None):
 
@@ -1102,17 +815,17 @@ class PanelTextlist(wx.Panel):
         try:
             document = ENV[itemInfo["document"]]
             for keyword in keywords:
-                keyword_name = self.keyword_alias.get(keyword, keyword)
+                keyword_name = self.KEYWORD_ALIAS.get(keyword, keyword)
                 if document.got2DIMS:
                     document.IMS2D[keyword] = itemInfo[keyword_name]
                 if document.got2Dprocess:
                     document.IMS2Dprocess[keyword] = itemInfo[keyword_name]
         except Exception as err:
-            logger.error(err)
+            LOGGER.error(err)
             document_title, ion_title = re.split(": ", itemInfo["document"])
             document = ENV[document_title]
             for keyword in keywords:
-                keyword_name = self.keyword_alias.get(keyword, keyword)
+                keyword_name = self.KEYWORD_ALIAS.get(keyword, keyword)
                 if ion_title in document.IMS2DcompData:
                     document.IMS2DcompData[ion_title][keyword] = itemInfo[keyword_name]
                 else:
@@ -1137,7 +850,7 @@ class PanelTextlist(wx.Panel):
 
             dlg_kwargs = self.on_get_item_information(self.peaklist.item_id)
 
-            self.item_editor = PanelModifyItemSettings(self, self.presenter, self.config, **dlg_kwargs)
+            self.item_editor = PanelModifyItemSettings(self, self.presenter, CONFIG, **dlg_kwargs)
             self.item_editor.Centre()
             self.item_editor.Show()
         elif evtID == ID_textPanel_edit_selected:
@@ -1155,7 +868,7 @@ class PanelTextlist(wx.Panel):
                         "id": rows,
                     }
 
-                    self.item_editor = PanelModifyItemSettings(self, self.presenter, self.config, **dlg_kwargs)
+                    self.item_editor = PanelModifyItemSettings(self, self.presenter, CONFIG, **dlg_kwargs)
                     self.item_editor.Show()
                 rows -= 1
         elif evtID == ID_ionPanel_edit_all:
@@ -1172,140 +885,5 @@ class PanelTextlist(wx.Panel):
                     "id": row,
                 }
 
-                self.item_editor = PanelModifyItemSettings(self, self.presenter, self.config, **dlg_kwargs)
+                self.item_editor = PanelModifyItemSettings(self, self.presenter, CONFIG, **dlg_kwargs)
                 self.item_editor.Show()
-
-    def on_remove_deleted_item(self, document):
-        """
-        document: str
-            name of the deleted document
-        """
-        row = self.peaklist.GetItemCount() - 1
-
-        if isinstance(document, str):
-            document = [document]
-
-        document_list = document
-
-        while row >= 0:
-            info = self.on_get_item_information(itemID=row)
-            for document_title in document_list:
-                if info["document"] == document_title or document_title in info["document"]:
-                    self.peaklist.DeleteItem(row)
-                    del document_list[document_list.index(document_title)]
-            row -= 1
-
-    def on_check_duplicate_colors(self, new_color):
-        """
-        Check whether newly assigned color is already in the table and if so,
-        return a different one
-        """
-        count = self.peaklist.GetItemCount()
-        color_list = []
-        for row in range(count):
-            color_list.append(self.peaklist.GetItemBackgroundColour(item=row))
-
-        if new_color in color_list:
-            counter = len(self.config.customColors) - 1
-            while counter > 0:
-                config_color = self.config.customColors[counter]
-                if config_color not in color_list:
-                    return config_color
-
-                counter -= 1
-
-            return get_random_color(True)
-        return new_color
-
-    def on_add_to_table(self, add_dict, check_color=True, return_color=False):
-
-        # get color
-        color = add_dict.get("color", self.config.customColors[get_random_int(0, 15)])
-        # check for duplicate color
-        if check_color:
-            color = self.on_check_duplicate_colors(color)
-
-        # add to filelist
-        self.peaklist.Append(
-            [
-                "",
-                str(add_dict.get("energy_start", "")),
-                str(add_dict.get("energy_end", "")),
-                str(add_dict.get("charge", "")),
-                str(round_rgb(convert_rgb_255_to_1(color))),
-                str(add_dict.get("colormap", "")),
-                str(add_dict.get("alpha", "")),
-                str(add_dict.get("mask", "")),
-                str(add_dict.get("label", "")),
-                str(add_dict.get("shape", "")),
-                str(add_dict.get("document", "")),
-            ]
-        )
-        self.peaklist.SetItemBackgroundColour(self.peaklist.GetItemCount() - 1, color)
-
-        font_color = get_font_color(color, return_rgb=True)
-        self.peaklist.SetItemTextColour(self.peaklist.GetItemCount() - 1, font_color)
-
-        if return_color:
-            return color
-
-    def on_delete_item(self, evt):
-
-        itemInfo = self.on_get_item_information(itemID=self.peaklist.item_id)
-        msg = "Are you sure you would like to delete {}?\nThis action cannot be undone.".format(itemInfo["document"])
-        dlg = DialogBox(type="Question", exceptionMsg=msg)
-        if dlg == wx.ID_NO:
-            print("The operation was cancelled")
-            return
-
-        self.view.panelDocuments.documents.on_delete_data__document(itemInfo["document"], ask_permission=False)
-
-    def on_delete_selected(self, evt):
-
-        itemID = self.peaklist.GetItemCount() - 1
-
-        while itemID >= 0:
-            if self.peaklist.IsChecked(index=itemID):
-                itemInfo = self.on_get_item_information(itemID=itemID)
-                msg = "Are you sure you would like to delete {}?\nThis action cannot be undone.".format(
-                    itemInfo["document"]
-                )
-                dlg = DialogBox(exceptionMsg=msg, type="Question")
-                if dlg == wx.ID_NO:
-                    print("The operation was cancelled")
-                    continue
-                try:
-                    self.view.panelDocuments.documents.on_delete_data__document(
-                        itemInfo["document"], ask_permission=False
-                    )
-                # item does not exist
-                except KeyError:
-                    self.on_remove_deleted_item(itemInfo["document"])
-
-            itemID -= 1
-
-    def on_delete_all(self, evt):
-
-        msg = (
-            "Are you sure you would like to delete all [2D IM-MS documents]"
-            + " from the list?\nThis action cannot be undone."
-        )
-        dlg = DialogBox(exceptionMsg=msg, type="Question")
-        if dlg == wx.ID_NO:
-            print("The operation was cancelled")
-            return
-
-        itemID = self.peaklist.GetItemCount() - 1
-        while itemID >= 0:
-            itemInfo = self.on_get_item_information(itemID=itemID)
-            self.view.panelDocuments.documents.on_delete_data__document(itemInfo["document"], ask_permission=False)
-            itemID -= 1
-
-    def delete_row_from_table(self, delete_document_title=None):
-        rows = self.peaklist.GetItemCount() - 1
-        while rows >= 0:
-            itemInfo = self.on_get_item_information(rows)
-
-            if itemInfo["document"] == delete_document_title:
-                self.peaklist.DeleteItem(rows)
-            rows -= 1

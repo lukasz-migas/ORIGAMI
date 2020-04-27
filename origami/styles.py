@@ -90,14 +90,14 @@ def make_color_btn(parent, color, size=(26, 26), name="color", evtid=-1):
 
 def make_menu_item(parent, text, id=-1, bitmap=None, help_text=None, kind=wx.ITEM_NORMAL):
     """ Helper function to make a menu item with or without bitmap image """
-    menuItem = wx.MenuItem(parent, id, text, kind=kind)
+    menu_item = wx.MenuItem(parent, id, text, kind=kind)
     if bitmap is not None:
-        menuItem.SetBitmap(bitmap)
+        menu_item.SetBitmap(bitmap)
 
     if help_text is not None:
-        menuItem.SetHelp(help_text)
+        menu_item.SetHelp(help_text)
 
-    return menuItem
+    return menu_item
 
 
 def set_item_font(parent, size=10, color=wx.BLACK):
@@ -452,18 +452,18 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
         """
 
         # get list data
-        tempData = self._get_list_data()
+        temp_data = self._get_list_data()
 
         # Sort data
-        tempData = natsorted(tempData, key=itemgetter(column), reverse=direction)
+        temp_data = natsorted(temp_data, key=itemgetter(column), reverse=direction)
         # Clear table
         self.DeleteAllItems()
 
         # restructure data
-        tempData, checkData, bg_rgb, fg_rgb = self._restructure_list_data(tempData)
+        temp_data, check_data, bg_rgb, fg_rgb = self._restructure_list_data(temp_data)
 
         # Reinstate data
-        self._set_list_data(tempData, checkData, bg_rgb, fg_rgb)
+        self._set_list_data(temp_data, check_data, bg_rgb, fg_rgb)
 
     def on_simple_sort(self, column, direction):
         """
@@ -472,32 +472,32 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
         columns = self.GetColumnCount()
         rows = self.GetItemCount()
 
-        tempData = []
+        temp_data = []
         # Iterate over row and columns to get data
         for row in range(rows):
-            tempRow = []
+            temp_row = []
 
             for col in range(columns):
                 item = self.GetItem(itemIdx=row, col=col)
-                tempRow.append(item.GetText())
+                temp_row.append(item.GetText())
 
-            tempRow.append(self.IsChecked(index=row))
-            tempData.append(tempRow)
+            temp_row.append(self.IsChecked(index=row))
+            temp_data.append(temp_row)
 
         # Sort data
-        tempData = natsorted(tempData, key=itemgetter(column), reverse=direction)
+        temp_data = natsorted(temp_data, key=itemgetter(column), reverse=direction)
         # Clear table
         self.DeleteAllItems()
 
-        checkData = []
-        for check in tempData:
-            checkData.append(check[-1])
+        check_data = []
+        for check in temp_data:
+            check_data.append(check[-1])
             del check[-1]
 
         # Reinstate data
-        rowList = np.arange(len(tempData))
-        for row, check in zip(rowList, checkData):
-            self.Append(tempData[row])
+        row_list = np.arange(len(temp_data))
+        for row, check in zip(row_list, check_data):
+            self.Append(temp_data[row])
             self.CheckItem(row, check)
 
     def on_clear_table_selected(self, evt):
@@ -527,16 +527,16 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
     def on_remove_duplicates(self):
 
         # get list data
-        tempData = sorted(self._get_list_data())
+        temp_data = sorted(self._get_list_data())
         # remove duplicates
-        tempData = list(k for k, _ in itertools.groupby(tempData))
+        temp_data = list(k for k, _ in itertools.groupby(temp_data))
 
         # clear table
         self.DeleteAllItems()
 
-        tempData, checkData, bg_rgb, fg_rgb = self._restructure_list_data(tempData)
+        temp_data, checkData, bg_rgb, fg_rgb = self._restructure_list_data(temp_data)
 
-        self._set_list_data(tempData, checkData, bg_rgb, fg_rgb)
+        self._set_list_data(temp_data, checkData, bg_rgb, fg_rgb)
 
     def _get_list_data(self, include_color=True):
         columns = self.GetColumnCount()

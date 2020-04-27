@@ -35,7 +35,6 @@ from origami.ids import ID_saveMSImage
 from origami.ids import ID_saveRTImage
 from origami.ids import ID_fileMenu_MGF
 from origami.ids import ID_helpHomepage
-from origami.ids import ID_load_text_2D
 from origami.ids import ID_load_text_MS
 from origami.ids import ID_openAsConfig
 from origami.ids import ID_openDocument
@@ -208,9 +207,9 @@ class MainWindow(wx.Frame):
         self.panelDocuments = PanelDocumentTree(self, self.config, self.icons, self.presenter)
 
         self.panelPlots = PanelPlots(self, self.config, self.presenter)
-        self.panelMultipleIons = PanelPeaklist(self, self.config, self.icons, self.help, self.presenter)
-        self.panelMultipleText = PanelTextlist(self, self.config, self.icons, self.presenter)
-        self.panelMML = PanelMultiFile(self, self.config, self.icons, self.presenter)
+        self.panelMultipleIons = PanelPeaklist(self, self.icons, self.presenter)
+        self.panelMultipleText = PanelTextlist(self, self.icons, self.presenter)
+        self.panelMML = PanelMultiFile(self, self.icons, self.presenter)
 
         self.panelParametersEdit = PanelVisualisationSettingsEditor(
             self, self.presenter, self.config, self.icons, window=None
@@ -538,16 +537,8 @@ class MainWindow(wx.Frame):
         menuFile.AppendItem(
             make_menu_item(
                 parent=menuFile,
-                id=ID_load_text_2D,
-                text="Open IM-MS Text file [CIU]\tCtrl+T",
-                bitmap=self.icons.iconsLib["open_text_16"],
-            )
-        )
-        menuFile.AppendItem(
-            make_menu_item(
-                parent=menuFile,
                 id=ID_load_multiple_text_2D,
-                text="Open multiple IM-MS text files [CIU]\tCtrl+Shift+T",
+                text="Open one (or more) heatmap text file\tCtrl+Shift+T",
                 bitmap=self.icons.iconsLib["open_textMany_16"],
             )
         )
@@ -1049,9 +1040,6 @@ class MainWindow(wx.Frame):
         self.mainMenubar.Append(menuHelp, "&Help")
         self.SetMenuBar(self.mainMenubar)
 
-        # Menu events
-        self.Bind(wx.EVT_MENU_HIGHLIGHT_ALL, self.OnMenuHighlight)
-
         # Bind functions to menu
         # HELP MENU
         self.Bind(wx.EVT_MENU, self.on_open_about_panel, id=ID_SHOW_ABOUT)
@@ -1082,8 +1070,7 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_open_HTML_guide, id=ID_help_page_annotatingMassSpectra)
 
         # FILE MENU
-        self.Bind(wx.EVT_MENU, self.data_handling.on_open_text_2D_fcn, id=ID_load_text_2D)
-        self.Bind(wx.EVT_MENU, self.data_handling.on_open_multiple_text_2D_fcn, id=ID_load_multiple_text_2D)
+        self.Bind(wx.EVT_MENU, self.data_handling.on_open_multiple_text_2d_fcn, id=ID_load_multiple_text_2D)
 
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_MassLynx_raw_fcn, id=ID_load_origami_masslynx_raw)
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_MassLynx_raw_fcn, id=ID_openIRRawFile)
@@ -1137,11 +1124,12 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_open_interactive_output_panel, id=ID_saveAsInteractive)
 
         # UTILITIES
-        self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_process_UVPD, id=ID_docTree_plugin_UVPD)
-        self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_MSMS_viewer, id=ID_docTree_plugin_MSMS)
-        self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_overlay_viewer, menu_widget_overlay_viewer)
-        self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_lesa_viewer, menu_widget_lesa_viewer)
-        self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_import_lesa_dataset, menu_widget_lesa_import)
+        #         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_process_UVPD, id=ID_docTree_plugin_UVPD)
+        #         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_MSMS_viewer, id=ID_docTree_plugin_MSMS)
+        #         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_overlay_viewer,
+        #         menu_widget_overlay_viewer)
+        #         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_lesa_viewer, menu_widget_lesa_viewer)
+        #         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_import_lesa_dataset, menu_widget_lesa_import)
         #         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_interactive_viewer,
         # menu_widget_interactive_viewer)
 
@@ -1350,15 +1338,6 @@ class MainWindow(wx.Frame):
             self.config.loadCCSAtStart = check_value
             self.loadCCSAtStart.Check(check_value)
 
-    def OnMenuHighlight(self, evt):
-        # Show how to get menu item info from this event handler
-        itemID = evt.GetId()
-        try:
-            msg = self.GetMenuBar().FindItemById(itemID).GetHelp()
-            self.SetStatusText(msg, number=4)
-        except Exception:
-            self.SetStatusText("", number=4)
-
     def on_set_window_maximize(self, evt):
         """Maximize app."""
         self.Maximize()
@@ -1379,15 +1358,15 @@ class MainWindow(wx.Frame):
         Setup shortcuts for the GUI application
         """
         # Setup shortcuts. Format: 'KEY', 'FUNCTION', 'MODIFIER'
-        accelerator_evenets = [
-            ["I", self.panelDocuments.documents.onOpenDocInfo, wx.ACCEL_CTRL],
-            ["W", self.data_handling.on_open_multiple_text_2D_fcn, wx.ACCEL_CTRL],
+        accelerator_events = [
+            #             ["I", self.panelDocuments.documents.onOpenDocInfo, wx.ACCEL_CTRL],
+            ["W", self.data_handling.on_open_multiple_text_2d_fcn, wx.ACCEL_CTRL],
             ["Z", self.on_open_interactive_output_panel, wx.ACCEL_SHIFT],
             ["G", self.data_handling.on_open_directory, wx.ACCEL_CTRL],
         ]
-        key_ids_list = [wx.NewId() for item in accelerator_evenets]
+        key_ids_list = [wx.NewId() for _ in accelerator_events]
         control_list = []
-        for idx, key_binding in enumerate(accelerator_evenets):
+        for idx, key_binding in enumerate(accelerator_events):
             self.Bind(wx.EVT_MENU, key_binding[1], id=key_ids_list[idx])
             control_list.append((key_binding[2], ord(key_binding[0]), key_ids_list[idx]))
 
@@ -1435,7 +1414,6 @@ class MainWindow(wx.Frame):
 
         # Bind events
         #         self.Bind(wx.EVT_TOOL, self.presenter.onOrigamiRawDirectory, id=ID_load_origami_masslynx_raw)
-        #         self.Bind(wx.EVT_TOOL, self.data_handling.on_open_text_2D_fcn, id=ID_load_text_2D)
         #         self.Bind(wx.EVT_TOOL, self.presenter.onOrigamiRawDirectory, id=ID_load_masslynx_raw)
         self.Bind(wx.EVT_TOOL, self.on_open_source_menu, id=ID_mainPanel_openSourceFiles)
 
@@ -1474,13 +1452,10 @@ class MainWindow(wx.Frame):
         )
         self.mainToolbar_horizontal.AddSeparator()
         self.mainToolbar_horizontal.AddLabelTool(
-            ID_load_text_2D, "", self.icons.iconsLib["open_text_16"], shortHelp="Open text files (2D)"
-        )
-        self.mainToolbar_horizontal.AddLabelTool(
             ID_load_multiple_text_2D,
             "",
             self.icons.iconsLib["open_textMany_16"],
-            shortHelp="Open multiple text files (2D)",
+            shortHelp="Open one (or more) heatmap text file",
         )
         self.mainToolbar_horizontal.AddSeparator()
         self.mainToolbar_horizontal.AddLabelTool(
@@ -1634,9 +1609,7 @@ class MainWindow(wx.Frame):
         self.window_mgr.Update()
 
     def on_find_toggle_by_id(self, find_id=None, check=None, check_all=False):
-        """
-        Find toggle item by id in either horizontal/vertiacal toolbar
-        """
+        """Find toggle item by id in either horizontal/vertical toolbar"""
         id_list = [
             ID_window_documentList,
             ID_window_controls,
@@ -1690,7 +1663,7 @@ class MainWindow(wx.Frame):
         except Exception as err:
             print(err)
 
-        # Try unsubscribing events
+        # try to unsubscribe from events
         try:
             self.disable_publisher()
         except Exception as err:
@@ -1720,7 +1693,8 @@ class MainWindow(wx.Frame):
 
         self.Destroy()
 
-    def disable_publisher(self):
+    @staticmethod
+    def disable_publisher():
         """ Unsubscribe from all events """
         pub.unsubAll()
 
@@ -1982,7 +1956,7 @@ class MainWindow(wx.Frame):
         elif file_type == "Infrared":
             self.data_handling.on_open_single_MassLynx_raw(file_path, "Type: Infrared")
         elif file_type == "Text":
-            self.data_handling.on_add_text_2D(None, file_path)
+            self.data_handling.on_add_text_2d(None, file_path)
         elif file_type == "Text_MS":
             self.data_handling.on_add_text_MS(path=file_path)
 
@@ -1995,7 +1969,7 @@ class MainWindow(wx.Frame):
         elif file_extension in [".txt", ".csv", ".tab"]:
             file_format = check_file_type(path=file_path)
             if file_format == "2D":
-                self.data_handling.on_add_text_2D(None, file_path)
+                self.data_handling.on_add_text_2d(None, file_path)
             else:
                 self.data_handling.on_add_text_MS(path=file_path)
 

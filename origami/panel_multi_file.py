@@ -10,34 +10,22 @@ import numpy as np
 # Local imports
 from origami.ids import ID_mmlPanel_plot_DT
 from origami.ids import ID_mmlPanel_plot_MS
-from origami.ids import ID_mmlPanel_add_menu
 from origami.ids import ID_mmlPanel_check_all
 from origami.ids import ID_mmlPanel_clear_all
 from origami.ids import ID_mmlPanel_overlayMW
-from origami.ids import ID_mmlPanel_about_info
 from origami.ids import ID_mmlPanel_delete_all
 from origami.ids import ID_mmlPanel_preprocess
 from origami.ids import ID_mmlPanel_showLegend
 from origami.ids import ID_mmlPanel_assignColor
-from origami.ids import ID_mmlPanel_processTool
-from origami.ids import ID_mmlPanel_remove_menu
-from origami.ids import ID_mmlPanel_table_label
-from origami.ids import ID_mmlPanel_annotateTool
-from origami.ids import ID_mmlPanel_overlay_menu
 from origami.ids import ID_mmlPanel_add_manualDoc
 from origami.ids import ID_mmlPanel_addToDocument
-from origami.ids import ID_mmlPanel_table_hideAll
 from origami.ids import ID_mmlPanel_batchRunUniDec
 from origami.ids import ID_mmlPanel_check_selected
 from origami.ids import ID_mmlPanel_clear_selected
 from origami.ids import ID_mmlPanel_data_combineMS
-from origami.ids import ID_mmlPanel_table_document
-from origami.ids import ID_mmlPanel_table_filename
-from origami.ids import ID_mmlPanel_table_variable
 from origami.ids import ID_mmlPanel_delete_selected
 from origami.ids import ID_mmlPanel_overlayWaterfall
 from origami.ids import ID_mmlPanel_plot_combined_MS
-from origami.ids import ID_mmlPanel_table_restoreAll
 from origami.ids import ID_mmlPanel_delete_rightClick
 from origami.ids import ID_mmlPanel_overlayFoundPeaks
 from origami.ids import ID_mmlPanel_add_files_toNewDoc
@@ -48,18 +36,16 @@ from origami.ids import ID_mmlPanel_changeColorBatch_color
 from origami.ids import ID_mmlPanel_overlayProcessedSpectra
 from origami.ids import ID_mmlPanel_changeColorBatch_palette
 from origami.ids import ID_mmlPanel_changeColorBatch_colormap
-from origami.styles import ListCtrl
 from origami.styles import make_tooltip
 from origami.styles import make_menu_item
 from origami.utils.color import get_font_color
-from origami.utils.color import get_random_color
 from origami.utils.color import convert_rgb_1_to_255
 from origami.utils.color import convert_rgb_255_to_1
-from origami.utils.random import get_random_int
+from origami.config.config import CONFIG
 from origami.config.environment import ENV
 from origami.processing.spectra import interpolate
+from origami.gui_elements.panel_base import PanelBase
 from origami.gui_elements.misc_dialogs import DialogBox
-from origami.gui_elements.dialog_color_picker import DialogColorPicker
 from origami.gui_elements.panel_modify_manual_settings import PanelModifyManualFilesSettings
 
 logger = logging.getLogger(__name__)
@@ -68,17 +54,68 @@ logger = logging.getLogger(__name__)
 # with some associated metadata
 
 
-class PanelMultiFile(wx.Panel):
-    def __init__(self, parent, config, icons, presenter):
-        wx.Panel.__init__(
-            self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(300, -1), style=wx.TAB_TRAVERSAL
-        )
+class PanelMultiFile(PanelBase):
+    TABLE_DICT = {
+        0: {
+            "name": "",
+            "tag": "check",
+            "type": "bool",
+            "order": 0,
+            "id": wx.NewIdRef(),
+            "show": True,
+            "width": 25,
+            "hidden": True,
+        },
+        1: {
+            "name": "filename",
+            "tag": "filename",
+            "type": "str",
+            "order": 1,
+            "id": wx.NewIdRef(),
+            "show": True,
+            "width": 200,
+        },
+        2: {
+            "name": "variable",
+            "tag": "energy",
+            "type": "float",
+            "order": 2,
+            "id": wx.NewIdRef(),
+            "show": True,
+            "width": 50,
+        },
+        3: {
+            "name": "document",
+            "tag": "document",
+            "type": "str",
+            "order": 3,
+            "id": wx.NewIdRef(),
+            "show": True,
+            "width": 80,
+        },
+        4: {
+            "name": "label",
+            "tag": "label",
+            "type": "str",
+            "order": 4,
+            "id": wx.NewIdRef(),
+            "show": True,
+            "width": 100,
+        },
+        5: {
+            "name": "color",
+            "tag": "color",
+            "type": "color",
+            "order": 5,
+            "id": wx.NewIdRef(),
+            "show": True,
+            "width": 0,
+            "hidden": True,
+        },
+    }
 
-        self.view = parent
-        self.config = config
-        self.presenter = presenter
-        self.icons = icons
-
+    def __init__(self, parent, icons, presenter):
+        PanelBase.__init__(self, parent, icons, presenter)
         self.editingItem = None
         self.allChecked = True
         self.preprocessMS = False
@@ -86,17 +123,6 @@ class PanelMultiFile(wx.Panel):
         self.addToDocument = False
         self.reverse = False
         self.lastColumn = None
-
-        self._filePanel_peaklist = {
-            0: {"name": "", "tag": "check", "type": "bool"},
-            1: {"name": "filename", "tag": "filename", "type": "str"},
-            2: {"name": "variable", "tag": "energy", "type": "float"},
-            3: {"name": "document", "tag": "document", "type": "str"},
-            4: {"name": "label", "tag": "label", "type": "str"},
-            -1: {"name": "color", "tag": "color", "type": "color"},
-        }
-
-        self.make_gui()
 
         file_drop_target = DragAndDrop(self)
         self.SetDropTarget(file_drop_target)
@@ -120,142 +146,75 @@ class PanelMultiFile(wx.Panel):
         wx.EVT_MENU(self, ID_mmlPanel_delete_rightClick, self.on_delete_item)
         wx.EVT_MENU(self, ID_mmlPanel_addToDocument, self.on_check_tool)
 
-    def __del__(self):
-        pass
-
     def setup_handling_and_processing(self):
         self.data_processing = self.view.data_processing
         self.data_handling = self.view.data_handling
 
-    def make_gui(self):
-        """ Make panel GUI """
-
-        self.toolbar = self.make_toolbar()
-        self.make_peaklist()
-        panelSizer = wx.BoxSizer(wx.VERTICAL)
-        panelSizer.Add(self.toolbar, 0, wx.EXPAND, 0)
-        panelSizer.Add(self.peaklist, 1, wx.EXPAND | wx.ALL, 5)
-        self.SetSizer(panelSizer)
-        self.SetSize((300, -1))
-        self.Layout()
-
-    def on_check_selected(self, evt):
-        check = not self.peaklist.IsChecked(index=self.peaklist.item_id)
-        self.on_update_value_in_peaklist(self.peaklist.item_id, "check", check)
-
     def on_open_info_panel(self, evt):
         pass
 
+    # noinspection DuplicatedCode
     def make_toolbar(self):
 
-        self.Bind(wx.EVT_BUTTON, self.menu_add_tools, id=ID_mmlPanel_add_menu)
-        self.Bind(wx.EVT_BUTTON, self.menu_remove_tools, id=ID_mmlPanel_remove_menu)
-        self.Bind(wx.EVT_BUTTON, self.menu_overlay_tools, id=ID_mmlPanel_overlay_menu)
-        self.Bind(wx.EVT_BUTTON, self.menu_annotate_tools, id=ID_mmlPanel_annotateTool)
-        self.Bind(wx.EVT_BUTTON, self.menu_process_tools, id=ID_mmlPanel_processTool)
-        self.Bind(wx.EVT_BUTTON, self.on_open_info_panel, id=ID_mmlPanel_about_info)
-
-        self.add_btn = wx.BitmapButton(
-            self,
-            ID_mmlPanel_add_menu,
-            self.icons.iconsLib["add16"],
-            size=(18, 18),
-            style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+        add_btn = wx.BitmapButton(
+            self, -1, self.icons.iconsLib["add16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
-        self.add_btn.SetToolTip(make_tooltip("Add..."))
+        add_btn.SetToolTip(make_tooltip("Add..."))
 
-        self.remove_btn = wx.BitmapButton(
-            self,
-            ID_mmlPanel_remove_menu,
-            self.icons.iconsLib["remove16"],
-            size=(18, 18),
-            style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+        remove_btn = wx.BitmapButton(
+            self, -1, self.icons.iconsLib["remove16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
-        self.remove_btn.SetToolTip(make_tooltip("Remove..."))
+        remove_btn.SetToolTip(make_tooltip("Remove..."))
 
-        self.annotate_btn = wx.BitmapButton(
-            self,
-            ID_mmlPanel_annotateTool,
-            self.icons.iconsLib["annotate16"],
-            size=(18, 18),
-            style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+        annotate_btn = wx.BitmapButton(
+            self, -1, self.icons.iconsLib["annotate16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
-        self.annotate_btn.SetToolTip(make_tooltip("Annotate..."))
+        annotate_btn.SetToolTip(make_tooltip("Annotate..."))
 
-        self.process_btn = wx.BitmapButton(
-            self,
-            ID_mmlPanel_processTool,
-            self.icons.iconsLib["process16"],
-            size=(18, 18),
-            style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+        process_btn = wx.BitmapButton(
+            self, -1, self.icons.iconsLib["process16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
-        self.process_btn.SetToolTip(make_tooltip("Process..."))
+        process_btn.SetToolTip(make_tooltip("Process..."))
 
-        self.overlay_btn = wx.BitmapButton(
-            self,
-            ID_mmlPanel_overlay_menu,
-            self.icons.iconsLib["overlay16"],
-            size=(18, 18),
-            style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+        overlay_btn = wx.BitmapButton(
+            self, -1, self.icons.iconsLib["overlay16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
-        self.overlay_btn.SetToolTip(make_tooltip("Visualise mass spectra..."))
+        overlay_btn.SetToolTip(make_tooltip("Visualise mass spectra..."))
 
         vertical_line_1 = wx.StaticLine(self, -1, style=wx.LI_VERTICAL)
 
-        self.info_btn = wx.BitmapButton(
-            self,
-            ID_mmlPanel_about_info,
-            self.icons.iconsLib["info16"],
-            size=(18, 18),
-            style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL,
+        info_btn = wx.BitmapButton(
+            self, -1, self.icons.iconsLib["info16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
-        self.info_btn.SetToolTip(make_tooltip("Information..."))
+        info_btn.SetToolTip(make_tooltip("Information..."))
+
+        # bind events
+        self.Bind(wx.EVT_BUTTON, self.menu_add_tools, add_btn)
+        self.Bind(wx.EVT_BUTTON, self.menu_remove_tools, remove_btn)
+        self.Bind(wx.EVT_BUTTON, self.menu_process_tools, process_btn)
+        self.Bind(wx.EVT_BUTTON, self.menu_overlay_tools, overlay_btn)
+        self.Bind(wx.EVT_BUTTON, self.menu_annotate_tools, annotate_btn)
+        self.Bind(wx.EVT_BUTTON, self.on_open_info_panel, info_btn)
 
         # button grid
-        btn_grid_vert = wx.GridBagSizer(2, 2)
-        x = 0
-        btn_grid_vert.Add(self.add_btn, (x, 0), flag=wx.ALIGN_CENTER)
-        btn_grid_vert.Add(self.remove_btn, (x, 1), flag=wx.ALIGN_CENTER)
-        btn_grid_vert.Add(self.annotate_btn, (x, 2), flag=wx.ALIGN_CENTER)
-        btn_grid_vert.Add(self.process_btn, (x, 3), flag=wx.ALIGN_CENTER)
-        btn_grid_vert.Add(self.overlay_btn, (x, 4), flag=wx.ALIGN_CENTER)
-        btn_grid_vert.Add(vertical_line_1, (x, 5), flag=wx.EXPAND)
-        btn_grid_vert.Add(self.info_btn, (x, 6), flag=wx.ALIGN_CENTER)
+        toolbar = wx.BoxSizer(wx.HORIZONTAL)
+        toolbar.Add(add_btn, 0, wx.ALIGN_CENTER)
+        toolbar.Add(remove_btn, 0, wx.ALIGN_CENTER)
+        toolbar.Add(annotate_btn, 0, wx.ALIGN_CENTER)
+        toolbar.Add(process_btn, 0, wx.ALIGN_CENTER)
+        toolbar.Add(overlay_btn, 0, wx.ALIGN_CENTER)
+        toolbar.AddSpacer(5)
+        toolbar.Add(vertical_line_1, 0, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        toolbar.AddSpacer(5)
+        toolbar.Add(info_btn, 0, wx.ALIGN_CENTER)
 
-        return btn_grid_vert
-
-    def make_peaklist(self):
-
-        # init table
-        self.peaklist = ListCtrl(
-            self, style=wx.LC_REPORT | wx.LC_VRULES, column_info=self._filePanel_peaklist
-        )  # EditableListCtrl(self, style=wx.LC_REPORT | wx.LC_VRULES)
-        for item in self.config._multipleFilesSettings:
-            order = item["order"]
-            name = item["name"]
-            if item["show"]:
-                width = item["width"]
-            else:
-                width = 0
-            self.peaklist.InsertColumn(order, name, width=width, format=wx.LIST_FORMAT_LEFT)
-
-        tooltip_text = """
-        List of files and their respective energy values. This panel is relatively universal and can be used for
-        aIMMS, CIU, SID or any other activation technique where energy was increased for separate files.
-        """
-
-        filelistTooltip = make_tooltip(delay=5000, reshow=3000, text=tooltip_text)
-        self.peaklist.SetToolTip(filelistTooltip)
-
-        self.peaklist.Bind(wx.EVT_LEFT_DCLICK, self.on_double_click_on_item)
-        self.peaklist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.on_right_click_menu)
-        self.peaklist.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.menu_column_right_click)
+        return toolbar
 
     def on_double_click_on_item(self, evt):
         if self.peaklist.item_id != -1:
             self.on_open_editor(evt=None)
 
-    def on_right_click_menu(self, evt):
+    def on_menu_item_right_click(self, evt):
 
         self.Bind(wx.EVT_MENU, self.on_plot_MS, id=ID_mmlPanel_plot_MS)
         self.Bind(wx.EVT_MENU, self.on_plot_1D, id=ID_mmlPanel_plot_DT)
@@ -488,49 +447,6 @@ class PanelMultiFile(wx.Panel):
         menu.Destroy()
         self.SetFocus()
 
-    def menu_column_right_click(self, evt):
-        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_mmlPanel_table_filename)
-        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_mmlPanel_table_variable)
-        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_mmlPanel_table_document)
-        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_mmlPanel_table_label)
-        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_mmlPanel_table_hideAll)
-        self.Bind(wx.EVT_MENU, self.on_update_peaklist_table, id=ID_mmlPanel_table_restoreAll)
-
-        menu = wx.Menu()
-        n = 0
-        self.table_filename = menu.AppendCheckItem(ID_mmlPanel_table_filename, "Table: Filename")
-        self.table_filename.Check(self.config._multipleFilesSettings[n]["show"])
-        n += 1
-        self.table_variable = menu.AppendCheckItem(ID_mmlPanel_table_variable, "Table: Variable")
-        self.table_variable.Check(self.config._multipleFilesSettings[n]["show"])
-        n += 1
-        self.table_document = menu.AppendCheckItem(ID_mmlPanel_table_document, "Table: Document")
-        self.table_document.Check(self.config._multipleFilesSettings[n]["show"])
-        n += 1
-        self.table_label = menu.AppendCheckItem(ID_mmlPanel_table_label, "Table: Label")
-        self.table_label.Check(self.config._multipleFilesSettings[n]["show"])
-        menu.AppendSeparator()
-        self.table_hide = menu.AppendItem(
-            make_menu_item(
-                parent=menu,
-                id=ID_mmlPanel_table_hideAll,
-                text="Table: Hide all",
-                bitmap=self.icons.iconsLib["hide_table_16"],
-            )
-        )
-        self.table_restore = menu.AppendItem(
-            make_menu_item(
-                parent=menu,
-                id=ID_mmlPanel_table_restoreAll,
-                text="Table: Restore all",
-                bitmap=self.icons.iconsLib["show_table_16"],
-            )
-        )
-
-        self.PopupMenu(menu)
-        menu.Destroy()
-        self.SetFocus()
-
     def on_check_tool(self, evt):
         evtID = evt.GetId()
 
@@ -575,7 +491,7 @@ class PanelMultiFile(wx.Panel):
         for row in range(self.peaklist.GetItemCount()):
             if not self.peaklist.IsChecked(index=row):
                 continue
-            itemInfo = self.on_get_item_information(itemID=row)
+            itemInfo = self.on_get_item_information(row)
 
             # get mass spectrum information
             document = ENV[itemInfo["document"]]
@@ -584,58 +500,19 @@ class PanelMultiFile(wx.Panel):
 
             print(
                 "Pre-processing mass spectra using m/z range {} - {} with {} bin size".format(
-                    self.config.unidec_mzStart, self.config.unidec_mzEnd, self.config.unidec_mzBinSize
+                    CONFIG.unidec_mzStart, CONFIG.unidec_mzEnd, CONFIG.unidec_mzBinSize
                 )
             )
 
     def onRenameItem(self, old_name, new_name, item_type="Document"):
         for row in range(self.peaklist.GetItemCount()):
-            itemInfo = self.on_get_item_information(itemID=row)
+            itemInfo = self.on_get_item_information(row)
             if item_type == "document":
                 if itemInfo["document"] == old_name:
-                    self.peaklist.SetStringItem(
-                        index=row, col=self.config.multipleMLColNames["document"], label=new_name
-                    )
+                    self.peaklist.SetStringItem(index=row, col=CONFIG.multipleMLColNames["document"], label=new_name)
             elif item_type == "filename":
                 if itemInfo["filename"] == old_name:
-                    self.peaklist.SetStringItem(
-                        index=row, col=self.config.multipleMLColNames["filename"], label=new_name
-                    )
-
-    def on_update_peaklist_table(self, evt):
-        evtID = evt.GetId()
-
-        # check which event was triggered
-        if evtID == ID_mmlPanel_table_filename:
-            col_index = self.config.multipleMLColNames["filename"]
-        elif evtID == ID_mmlPanel_table_variable:
-            col_index = self.config.multipleMLColNames["energy"]
-        elif evtID == ID_mmlPanel_table_document:
-            col_index = self.config.multipleMLColNames["document"]
-        elif evtID == ID_mmlPanel_table_label:
-            col_index = self.config.multipleMLColNames["label"]
-        elif evtID == ID_mmlPanel_table_restoreAll:
-            for i in range(len(self.config._multipleFilesSettings)):
-                self.config._multipleFilesSettings[i]["show"] = True
-                col_width = self.config._multipleFilesSettings[i]["width"]
-                self.peaklist.SetColumnWidth(i, col_width)
-            return
-        elif evtID == ID_mmlPanel_table_hideAll:
-            for i in range(len(self.config._multipleFilesSettings)):
-                self.config._multipleFilesSettings[i]["show"] = False
-                col_width = 0
-                self.peaklist.SetColumnWidth(i, col_width)
-            return
-
-        # check values
-        col_check = not self.config._multipleFilesSettings[col_index]["show"]
-        self.config._multipleFilesSettings[col_index]["show"] = col_check
-        if col_check:
-            col_width = self.config._multipleFilesSettings[col_index]["width"]
-        else:
-            col_width = 0
-        # set new column width
-        self.peaklist.SetColumnWidth(col_index, col_width)
+                    self.peaklist.SetStringItem(index=row, col=CONFIG.multipleMLColNames["filename"], label=new_name)
 
     def on_open_file_from_dnd(self, pathlist):
         self.data_handling.on_open_multiple_ML_files_fcn(open_type="multiple_files_add", pathlist=pathlist)
@@ -645,7 +522,7 @@ class PanelMultiFile(wx.Panel):
         Function to plot selected MS in the mainWindow
         """
 
-        itemInfo = self.on_get_item_information(itemID=self.peaklist.item_id)
+        itemInfo = self.on_get_item_information(self.peaklist.item_id)
         document = ENV[itemInfo["document"]]
         if document is None:
             return
@@ -684,7 +561,7 @@ class PanelMultiFile(wx.Panel):
         """
         Function to plot selected 1DT in the mainWindow
         """
-        itemInfo = self.on_get_item_information(itemID=self.peaklist.item_id)
+        itemInfo = self.on_get_item_information(self.peaklist.item_id)
         document = ENV[itemInfo["document"]]
 
         if document is None:
@@ -699,31 +576,6 @@ class PanelMultiFile(wx.Panel):
         except KeyError:
             DialogBox(exceptionTitle="Error", exceptionMsg="No mobility data present for selected item", type="Error")
             return
-
-    def on_get_item_information(self, itemID, return_list=False):
-        information = self.peaklist.on_get_item_information(itemID)
-        return information
-
-    def on_get_color(self, evt):
-        # Restore custom colors
-        custom = wx.ColourData()
-        for key in self.config.customColors:
-            custom.SetCustomColour(key, self.config.customColors[key])
-        dlg = wx.ColourDialog(self, custom)
-        dlg.Centre()
-        dlg.GetColourData().SetChooseFull(True)
-
-        # Show dialog and get new colour
-        if dlg.ShowModal() == wx.ID_OK:
-            data = dlg.GetColourData()
-            newColour = list(data.GetColour().Get())
-            dlg.Destroy()
-
-            # Retrieve custom colors
-            for i in range(len(self.config.customColors)):
-                self.config.customColors[i] = data.GetCustomColour(i)
-
-            return convert_rgb_255_to_1(newColour)
 
     def on_update_document(self, itemInfo=None, itemID=None):
         """
@@ -761,7 +613,7 @@ class PanelMultiFile(wx.Panel):
         for row in range(self.peaklist.GetItemCount()):
             if not self.peaklist.IsChecked(index=row):
                 continue
-            itemInfo = self.on_get_item_information(itemID=row)
+            itemInfo = self.on_get_item_information(row)
             names.append(itemInfo["label"])
             # get mass spectrum information
             document = ENV[itemInfo["document"]]
@@ -892,29 +744,6 @@ class PanelMultiFile(wx.Panel):
     def on_add_blank_document_manual(self, evt):
         self.presenter.onAddBlankDocument(evt=None, document_type="manual")
 
-    def on_check_duplicate_colors(self, new_color, document_name):
-        """
-        Check whether newly assigned color is already in the table and if so,
-        return a different one
-        """
-        count = self.peaklist.GetItemCount()
-        color_list = []
-        for row in range(count):
-            itemInfo = self.on_get_item_information(itemID=row)
-            if itemInfo["document"] == document_name:
-                color_list.append(self.peaklist.GetItemBackgroundColour(item=row))
-
-        if new_color in color_list:
-            counter = len(self.config.customColors) - 1
-            while counter > 0:
-                config_color = self.config.customColors[counter]
-                if config_color not in color_list:
-                    return config_color
-
-                counter -= 1
-            return get_random_color(True)
-        return new_color
-
     def on_open_multiple_files_new(self, evt):
         self.data_handling.on_open_multiple_ML_files_fcn(open_type="multiple_files_new_document")
 
@@ -924,130 +753,19 @@ class PanelMultiFile(wx.Panel):
     def on_combine_mass_spectra(self, evt, document_name=None):
         self.data_handling.on_combine_mass_spectra(document_name=document_name)
 
-    def on_add_to_table(self, add_dict, check_color=True):
-
-        # check if item already exists
-        if self._check_item_in_table(add_dict):
-            logger.info(
-                "Item {}:{} is already present in the document".format(add_dict["document"], add_dict["filename"])
-            )
-            return
-
-        # get color
-        color = add_dict.get("color", self.config.customColors[get_random_int(0, 15)])
-        color = convert_rgb_1_to_255(color)
-
-        document_title = add_dict.get("document", None)
-        # check for duplicate color
-        if check_color:
-            color = self.on_check_duplicate_colors(color, document_title)
-
-        # add to peaklist
-        self.peaklist.Append(
-            [
-                "",
-                str(add_dict.get("filename", "")),
-                str(add_dict.get("variable", "")),
-                str(add_dict.get("document", "")),
-                str(add_dict.get("label", "")),
-            ]
-        )
-        self.peaklist.SetItemBackgroundColour(self.peaklist.GetItemCount() - 1, color)
-        self.peaklist.SetItemTextColour(self.peaklist.GetItemCount() - 1, get_font_color(color, return_rgb=True))
-
     def _check_item_in_table(self, add_dict):
         count = self.peaklist.GetItemCount()
         for row in range(count):
-            item_info = self.on_get_item_information(itemID=row)
+            item_info = self.on_get_item_information(row)
             if add_dict["filename"] == item_info["filename"] and add_dict["document"] == item_info["document"]:
                 return True
 
         return False
 
-    def delete_row_from_table(self, delete_item_name=None, delete_document_title=None):
-
-        rows = self.peaklist.GetItemCount() - 1
-        while rows >= 0:
-            itemInfo = self.on_get_item_information(rows)
-
-            if itemInfo["filename"] == delete_item_name and itemInfo["document"] == delete_document_title:
-                self.peaklist.DeleteItem(rows)
-                rows = 0
-                return
-            elif delete_item_name is None and itemInfo["document"] == delete_document_title:
-                self.peaklist.DeleteItem(rows)
-            rows -= 1
-
-    def on_delete_item(self, evt):
-
-        itemInfo = self.on_get_item_information(itemID=self.peaklist.item_id)
-        dlg = DialogBox(
-            type="Question",
-            exceptionMsg="Are you sure you would like to delete {} from {}?\nThis action cannot be undone.".format(
-                itemInfo["filename"], itemInfo["document"]
-            ),
-        )
-        if dlg == wx.ID_NO:
-            print("The operation was cancelled")
-            return
-
-        document = self.data_handling.on_get_document(itemInfo["document"])
-
-        __, __ = self.view.panelDocuments.documents.on_delete_data__mass_spectra(
-            document, itemInfo["document"], delete_type="spectrum.one", spectrum_name=itemInfo["filename"]
-        )
-
-    def on_delete_selected(self, evt):
-
-        itemID = self.peaklist.GetItemCount() - 1
-        while itemID >= 0:
-            if self.peaklist.IsChecked(index=itemID):
-                itemInfo = self.on_get_item_information(itemID=itemID)
-                msg = "Are you sure you would like to delete {} from {}?\nThis action cannot be undone.".format(
-                    itemInfo["filename"], itemInfo["document"]
-                )
-                dlg = DialogBox(exceptionMsg=msg, type="Question")
-                if dlg == wx.ID_NO:
-                    print("The operation was cancelled")
-                    continue
-
-                document = self.data_handling.on_get_document(itemInfo["document"])
-                __, __ = self.view.panelDocuments.documents.on_delete_data__mass_spectra(
-                    document, itemInfo["document"], delete_type="spectrum.one", spectrum_name=itemInfo["filename"]
-                )
-            itemID -= 1
-
-    def on_delete_all(self, evt):
-
-        msg = "Are you sure you would like to delete all classifiers from all documents?\nThis action cannot be undone."
-        dlg = DialogBox(exceptionMsg=msg, type="Question")
-        if dlg == wx.ID_NO:
-            print("The operation was cancelled")
-            return
-
-        item_count = self.peaklist.GetItemCount() - 1
-        while item_count >= 0:
-            itemInfo = self.on_get_item_information(itemID=item_count)
-            document = self.data_handling.on_get_document(itemInfo["document"])
-            __, __ = self.view.panelDocuments.documents.on_delete_data__mass_spectra(
-                document, itemInfo["document"], delete_type="spectrum.one", spectrum_name=itemInfo["filename"]
-            )
-            item_count -= 1
-
-    def on_remove_deleted_item(self, document):
-        row = self.peaklist.GetItemCount() - 1
-        while row >= 0:
-            info = self.on_get_item_information(itemID=row)
-            if info["document"] == document:
-                self.peaklist.DeleteItem(row)
-                row -= 1
-            else:
-                row -= 1
-
     def on_open_editor(self, evt):
         information = self.on_get_item_information(self.peaklist.item_id)
 
-        dlg = PanelModifyManualFilesSettings(self, self.presenter, self.config, **information)
+        dlg = PanelModifyManualFilesSettings(self, self.presenter, CONFIG, **information)
         dlg.Show()
 
     def on_update_value_in_peaklist(self, item_id, value_type, value):
@@ -1055,9 +773,9 @@ class PanelMultiFile(wx.Panel):
         if value_type == "check":
             self.peaklist.CheckItem(item_id, value)
         elif value_type == "filename":
-            self.peaklist.SetStringItem(item_id, self.config.multipleMLColNames["filename"], str(value))
+            self.peaklist.SetStringItem(item_id, CONFIG.multipleMLColNames["filename"], str(value))
         elif value_type == "energy":
-            self.peaklist.SetStringItem(item_id, self.config.multipleMLColNames["energy"], str(value))
+            self.peaklist.SetStringItem(item_id, CONFIG.multipleMLColNames["energy"], str(value))
         elif value_type == "color":
             color_255, color_1, font_color = value
             self.peaklist.SetItemBackgroundColour(item_id, color_255)
@@ -1066,29 +784,9 @@ class PanelMultiFile(wx.Panel):
             self.peaklist.SetItemBackgroundColour(item_id, value)
             self.peaklist.SetItemTextColour(item_id, get_font_color(value, return_rgb=True))
         elif value_type == "label":
-            self.peaklist.SetStringItem(item_id, self.config.multipleMLColNames["label"], str(value))
+            self.peaklist.SetStringItem(item_id, CONFIG.multipleMLColNames["label"], str(value))
         elif value_type == "document":
-            self.peaklist.SetStringItem(item_id, self.config.multipleMLColNames["filename"], str(value))
-
-    def on_assign_color(self, evt, itemID=None, return_value=False):
-        """
-        @param itemID (int): value for item in table
-        @param return_value (bool): should/not return color
-        """
-        if itemID is not None:
-            self.peaklist.item_id = itemID
-
-        if itemID is None:
-            itemID = self.peaklist.item_id
-
-        dlg = DialogColorPicker(self, self.config.customColors)
-        if dlg.ShowModal() == "ok":
-            color_255, color_1, font_color = dlg.GetChosenColour()
-            self.config.customColors = dlg.GetCustomColours()
-            self.on_update_value_in_peaklist(itemID, "color", [color_255, color_1, font_color])
-
-            if return_value:
-                return color_255
+            self.peaklist.SetStringItem(item_id, CONFIG.multipleMLColNames["filename"], str(value))
 
     @staticmethod
     def __check_keyword(keyword_name):

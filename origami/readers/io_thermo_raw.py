@@ -9,6 +9,8 @@ import clr
 import numpy as np
 
 # Local imports
+from origami.objects.containers import ChromatogramObject, MassSpectrumObject
+
 # from origami.utils.path import clean_filename
 # from origami.utils.check import check_value_order
 
@@ -175,10 +177,7 @@ class ThermoRawReader:
         data = {}
         for title in unique_filters:
             if title not in ["None", None]:
-                x, y = self.get_spectrum(title=title)
-                xlimits = [np.min(x), np.max(x)]
-                # data[clean_filename(title)] = {
-                data[title] = {"xvals": x, "yvals": y, "xlabels": "m/z (Da)", "xlimits": xlimits, "filter": title}
+                data[title] = self.get_spectrum(title=title)
         return data
 
     def get_chromatogram_for_each_filter(self):
@@ -186,10 +185,7 @@ class ThermoRawReader:
         data = {}
         for title in unique_filters:
             if title not in ["None", None]:
-                x, y = self.get_chromatogram(title=title)
-                xlimits = [np.min(x), np.max(y)]
-                # data[clean_filename(title)] = {
-                data[title] = {"xvals": x, "yvals": y, "xlabels": "Time (min)", "xlimits": xlimits, "filter": title}
+                data[title] = self.get_chromatogram(title=title)
         return data
 
     def _get_spectrum(self, scan_id, centroid: bool = False):
@@ -252,12 +248,13 @@ class ThermoRawReader:
         else:
             x = np.asarray(list(average_scan.SegmentedScan.Positions))
             y = np.asarray(list(average_scan.SegmentedScan.Intensities))
-        return x, y
+        return MassSpectrumObject(
+            x, y, metadata={"filter": title, "start_scan": int(start_scan), "end_scan": int(end_scan)}
+        )
 
     def get_tic(self):
         """Get total ion current"""
-        x, y = self.get_chromatogram()
-        return x, y
+        return self.get_chromatogram()
 
     def get_chromatogram(self, mz_start=0, mz_end=99999, rt_start=-1, rt_end=-1, title=None, rt_as_scan: bool = False):
         """Return extracted chromatogram
@@ -294,7 +291,12 @@ class ThermoRawReader:
         settings = ChromatogramTraceSettings(title, [Range.Create(mz_start, mz_end)])
         xic_data = self.source.GetChromatogramData([settings], start_scan, end_scan)
         xic_trace = ChromatogramSignal.FromChromatogramData(xic_data)[0]
-        return np.asarray(list(xic_trace.Times)), np.asarray(list(xic_trace.Intensities))
+        return ChromatogramObject(
+            np.asarray(list(xic_trace.Times)),
+            np.asarray(list(xic_trace.Intensities)),
+            x_label="Retention time (min)",
+            metadata={"filter": title, "start_scan": int(start_scan), "end_scan": int(end_scan)},
+        )
 
     def _check_filter(self, title):
         """Checks whether requested filter exists"""

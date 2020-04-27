@@ -378,7 +378,7 @@ class PanelOverlayViewer(MiniFrame):
         max_peaklist_size = (int(self._window_size[0] * 0.3), -1)
         self.peaklist.SetMaxClientSize(max_peaklist_size)
 
-        #         self.peaklist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.menu_right_click)
+        #         self.peaklist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.on_menu_item_right_click)
         #         self.peaklist.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.menu_column_right_click)
         self.peaklist.Bind(wx.EVT_LEFT_DCLICK, self.on_double_click_on_item)
 
@@ -503,7 +503,7 @@ class PanelOverlayViewer(MiniFrame):
     #     def on_double_click_on_item(self, evt):
     #         logger.error("Method not implemented yet")
     #
-    #     def menu_right_click(self, evt):
+    #     def on_menu_item_right_click(self, evt):
     #         logger.error("Method not implemented yet")
     #
     #     def menu_column_right_click(self, evt):

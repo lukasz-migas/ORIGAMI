@@ -6,6 +6,7 @@ from typing import Optional
 
 # Local imports
 from origami.visuals.mpl.base import PlotBase
+from origami.objects.containers import DataObject
 
 
 class ViewBase(ABC):
@@ -110,21 +111,34 @@ class ViewBase(ABC):
         for key, value in kwargs.items():
             self._data[key] = value
 
-    def set_document(self, **kwargs):
+    def set_document(self, obj: Optional[DataObject] = None, **kwargs):
         """Set document information for particular plot"""
-        if "document" in kwargs:
-            self.document_name = kwargs.pop("document")
-        if "dataset" in kwargs:
-            self.document_name = kwargs.pop("dataset")
+        document, dataset = None, None
+        if obj and obj.owner is not None:
+            document, dataset = obj.owner
+        else:
+            document = kwargs.pop("document", None)
+            dataset = kwargs.pop("dataset", None)
 
-    def set_labels(self, **kwargs):
+        self.document_name = document
+        self.document_name = dataset
+
+    def set_labels(self, obj: Optional[DataObject] = None, **kwargs):
         """Update plot labels without triggering replot"""
-        if "x_label" in kwargs:
-            self._x_label = kwargs.pop("x_label")
-        if "y_label" in kwargs:
-            self._y_label = kwargs.pop("y_label")
-        if "z_label" in kwargs:
-            self._z_label = kwargs.pop("z_label")
+        x_label, y_label, z_label = self._x_label, self._y_label, self._z_label
+        if obj and obj.owner is not None:
+            x_label = obj.x_label
+            y_label = obj.y_label
+            if hasattr(obj, "z_label"):
+                z_label = obj.z_label
+        else:
+            x_label = kwargs.pop("x_label", self._x_label)
+            y_label = kwargs.pop("x_label", self._y_label)
+            z_label = kwargs.pop("x_label", self._z_label)
+
+        self._x_label = x_label
+        self._y_label = y_label
+        self._z_label = z_label
 
     def add_labels(self, x, y, text, **kwargs):
         """Add text label to the plot"""
