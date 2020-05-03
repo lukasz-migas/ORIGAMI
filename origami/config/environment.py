@@ -24,6 +24,7 @@ DOCUMENT_TYPE_ATTRIBUTES = dict(
     interactive=dict(data_type="Type: Interactive", file_format="Format: ORIGAMI"),
     manual=dict(data_type="Type: MANUAL", file_format="Format: MassLynx (.raw)"),
     thermo=dict(data_type="Type: MS", file_format="Format: Thermo (.RAW)"),
+    text=dict(data_type="Type: ORIGAMI", file_format="Format: Text (.csv; .txt; .tab)"),
     mgf=dict(data_type="Type: MS/MS", file_format="Format: .mgf"),
     mzml=dict(data_type="Type: MS/MS", file_format="Format: .mzML"),
     imaging=dict(data_type="Type: Imaging", file_format="Format: MassLynx (.raw)"),
@@ -43,9 +44,9 @@ ALTERNATIVE_NAMES = {
 DOCUMENT_TYPES = [
     "Type: ORIGAMI",
     "Type: MANUAL",
-    "Type: Infrared",  # remove
-    "Type: 2D IM-MS",  # remove
-    "Type: Interactive",  # remove
+    # "Type: Infrared",  # remove
+    # "Type: 2D IM-MS",  # remove
+    # "Type: Interactive",  # remove
     "Type: Comparison",
     "Type: MS",
     "Type: Imaging",
@@ -148,6 +149,14 @@ class Environment(PropertyCallbackManager):
     def titles(self):
         return list(self.keys())
 
+    def exists(self, title: Optional[str] = None, path: Optional[str] = None):
+        """Checks whether document with the name already exists"""
+        if path is not None:
+            title = get_document_title(path)
+        if title is None and path is None:
+            raise ValueError("Expected either `title` or `path` keyword parameter")
+        return title in self
+
     def add(self, document: DocumentStore):
         """Add document to the store"""
         self.documents[document.title] = document
@@ -238,27 +247,38 @@ class Environment(PropertyCallbackManager):
             document = self.new(document_type, path)
 
         # add data to the document
+        changed = []
+        title = document.title
         if isinstance(data, dict):
             for obj_name, obj_data in data.items():
                 attr_name = DOCUMENT_KEY_PAIRS.get(obj_name)
-                # print(name, attr_name)
+                # could not figure out what to do with the data
                 if attr_name is None:
                     LOGGER.error(f"Could not processes {obj_name} - not registered yet")
                     continue
+
+                # data is simply object that can be directly mapped to container
                 if isinstance(obj_data, DataObject) and hasattr(obj_data, "to_zarr"):
                     _data, _attrs = obj_data.to_zarr()
                     document.add(attr_name, _data, _attrs)
+                    changed.append((title, attr_name))
+                # data is dictionary object that needs to be iterated over
                 elif isinstance(attr_name, tuple) and isinstance(obj_data, dict):
                     attr_name, _ = attr_name
                     for _obj_name, _obj_data in obj_data.items():
                         _data, _attrs = _obj_data.to_zarr()
-                        document.add(f"{attr_name}/{_obj_name}", _data, _attrs)
+                        dataset_name = f"{attr_name}/{_obj_name}"
+                        document.add(dataset_name, _data, _attrs)
+                        changed.append((title, dataset_name))
+                # data is dictionary that should be treated as attributes
                 elif isinstance(obj_data, dict):
                     _attrs = obj_data
                     document.add(attr_name, attrs=_attrs)
                 else:
                     LOGGER.error(f"Could not process {obj_name} - lacks converter ({type(obj_data)}")
-                # getattr(document, attr_name, dict()).update(_data)
+
+        if changed:
+            self._trigger("change", changed)
         return document
 
     def _get_new_name(self, title: str = "New Document", n_fill: int = 1):
@@ -268,7 +288,9 @@ class Environment(PropertyCallbackManager):
             n += 1
         return title + " #" + "%d".zfill(n_fill) % n
 
-    def new(self, document_type: str, path: str, data: Optional[Dict] = None) -> DocumentStore:
+    def new(
+        self, document_type: str, path: str, data: Optional[Dict] = None, check_unique: bool = False
+    ) -> DocumentStore:
         """Create new document that contains certain pre-set attributes. The document is not automatically added to the
         store. Use `add_new` if you would like to instantiate and add the document to the document store"""
         # ensure the correct name is used
@@ -278,8 +300,12 @@ class Environment(PropertyCallbackManager):
         # get document attributes
         attributes = DOCUMENT_TYPE_ATTRIBUTES[document_type]
 
+        title = get_document_title(path)
+        if check_unique:
+            title = self._get_new_name(title)
+
         # instantiate document
-        document = DocumentStore(path, self._get_new_name(get_document_title(path)))
+        document = DocumentStore(path, title)
         document.add_attrs(
             attrs={
                 "path": path,

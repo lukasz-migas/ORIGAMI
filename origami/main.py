@@ -178,7 +178,7 @@ class ORIGAMI:
         """
         # load text MS file
         path = os.path.join(self.config.cwd, "example_files", "text_files", "MS_p27-FL-K31.csv")
-        self.data_handling.on_add_text_MS(path)
+        self.data_handling.on_add_text_ms(path)
 
         # load text 2D file
         for fname in [

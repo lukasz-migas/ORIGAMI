@@ -5,6 +5,7 @@ from sys import platform
 # Local imports
 from origami.utils.time import ttime
 from origami.utils.logging import get_logger
+from origami.utils.exceptions import MessageError
 
 LOGGER = get_logger("DEBUG")
 
@@ -39,6 +40,25 @@ def check_os(*os):
     def _check_os(f):
         def new_f(*args, **kwargs):
             assert platform in os, f"Cannot perform action on this operating system ({platform}) - try again on `{os}`"
+            return f(*args, **kwargs)
+
+        new_f.__name__ = f.__name__
+        return new_f
+
+    return _check_os
+
+
+def check_os_msg(*os):
+    """Check whether this function can be executed on current OS"""
+
+    def _check_os(f):
+        def new_f(*args, **kwargs):
+            if platform not in os:
+                raise MessageError(
+                    f"Action only available on {os}",
+                    f"Cannot perform action on this operating system ({platform}) - try again on `{os}`",
+                )
+            print(args, kwargs)
             return f(*args, **kwargs)
 
         new_f.__name__ = f.__name__

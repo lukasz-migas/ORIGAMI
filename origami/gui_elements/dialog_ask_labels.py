@@ -72,6 +72,10 @@ class DialogSelectLabels(Dialog):
         _, y_label = self.get_labels()
         return y_label
 
+    @property
+    def xy_labels(self):
+        return self.x_label, self.y_label
+
     def make_gui(self):
         """Make UI"""
         self.make_panel()
@@ -110,14 +114,14 @@ class DialogSelectLabels(Dialog):
         grid.Add(self.msg, (y, 0), (1, 2), flag=wx.ALIGN_CENTER | wx.EXPAND)
         y += 1
         grid.Add(x_label_txt, (y, 0), flag=wx.ALIGN_RIGHT)
-        grid.Add(self.x_label_combo, (y, 1), flag=wx.ALIGN_CENTER | wx.EXPAND)
+        grid.Add(self.x_label_combo, (y, 1), flag=wx.EXPAND)
         y += 1
-        grid.Add(self.x_label_enter, (y, 1), flag=wx.ALIGN_CENTER | wx.EXPAND)
+        grid.Add(self.x_label_enter, (y, 1), flag=wx.EXPAND)
         y += 1
         grid.Add(y_label_txt, (y, 0), flag=wx.ALIGN_RIGHT)
-        grid.Add(self.y_label_combo, (y, 1), flag=wx.ALIGN_CENTER | wx.EXPAND)
+        grid.Add(self.y_label_combo, (y, 1), flag=wx.EXPAND)
         y += 1
-        grid.Add(self.y_label_enter, (y, 1), flag=wx.ALIGN_CENTER | wx.EXPAND)
+        grid.Add(self.y_label_enter, (y, 1), flag=wx.EXPAND)
         y += 1
         grid.Add(btn_grid, (y, 0), (1, 2), flag=wx.ALIGN_CENTER_HORIZONTAL)
 
@@ -160,8 +164,8 @@ class DialogSelectLabels(Dialog):
 
 def main():
 
-    app = wx.App()
-    frame = wx.Frame()
+    app = wx.App(False)
+    frame = wx.Frame(None, -1)
     ex = DialogSelectLabels(frame)
     ex.ShowModal()
     app.MainLoop()

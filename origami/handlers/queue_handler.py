@@ -65,11 +65,10 @@ class QueueHandler:
         while True:
             # get object
             call_obj = q.get()
-
             # call function
             call_obj.run()
             q.task_done()
-            LOGGER.debug("Queue > Completed task")
+            LOGGER.info("Queue > Completed task")
 
             # update statusbar
             self.update()

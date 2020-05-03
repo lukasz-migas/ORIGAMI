@@ -31,6 +31,44 @@ class PlotHeatmap2D(PlotBase):
     def __init__(self, *args, **kwargs):
         PlotBase.__init__(self, *args, **kwargs)
 
+    def plot_2d(self, x, y, array, title="", x_label="", y_label="", axesSize=None, plotName=None, **kwargs):
+        self._set_axes()
+
+        xlimits, ylimits, extent = self._compute_xy_limits(x, y, None)
+
+        # add 2d plot
+        self.cax = self.plot_base.imshow(
+            array,
+            cmap=kwargs["colormap"],
+            interpolation=kwargs["interpolation"],
+            #             norm=kwargs["colormap_norm"],
+            aspect="auto",
+            origin="lower",
+            extent=[*xlimits, *ylimits],
+        )
+        #         print(extent)
+        # set plot limits
+        self.plot_base.set_xlim(xlimits)
+        self.plot_base.set_ylim(ylimits)
+        self.set_plot_xlabel(x_label, **kwargs)
+        self.set_plot_ylabel(y_label, **kwargs)
+        self.set_plot_title(title, **kwargs)
+        self.set_tick_parameters(**kwargs)
+
+        self.setup_new_zoom(
+            [self.plot_base],
+            data_limits=extent,
+            allow_extraction=kwargs.get("allow_extraction", False),
+            callbacks=kwargs.get("callbacks", dict()),
+        )
+        self.store_plot_limits(extent)
+
+        # add colorbar
+        self.set_colorbar_parameters(array, **kwargs)
+
+        # update normalization
+        self.plot_2D_update_normalization(**kwargs)
+
     def get_heatmap_normalization(self, zvals, **kwargs):
 
         # normalize

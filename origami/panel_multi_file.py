@@ -204,7 +204,7 @@ class PanelMultiFile(PanelBase):
         toolbar.Add(process_btn, 0, wx.ALIGN_CENTER)
         toolbar.Add(overlay_btn, 0, wx.ALIGN_CENTER)
         toolbar.AddSpacer(5)
-        toolbar.Add(vertical_line_1, 0, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        toolbar.Add(vertical_line_1, 0, wx.EXPAND)
         toolbar.AddSpacer(5)
         toolbar.Add(info_btn, 0, wx.ALIGN_CENTER)
 

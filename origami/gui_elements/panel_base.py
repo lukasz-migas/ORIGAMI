@@ -2,7 +2,10 @@
 import logging
 from abc import abstractmethod
 from ast import literal_eval
+from enum import IntEnum
+from typing import Dict
 from typing import List
+from typing import Optional
 
 # Third-party imports
 import wx
@@ -21,6 +24,10 @@ from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.dialog_color_picker import DialogColorPicker
 
 LOGGER = logging.getLogger(__name__)
+
+
+class TableColumnIndex(IntEnum):
+    pass
 
 
 class PanelBase(wx.Panel):
@@ -51,9 +58,7 @@ class PanelBase(wx.Panel):
 
         self._check_table(self.TABLE_DICT)
         self.make_panel_gui()
-
-    def __del__(self):
-        pass
+        self.bind_events()
 
     @abstractmethod
     def on_double_click_on_item(self, evt):
@@ -68,8 +73,11 @@ class PanelBase(wx.Panel):
         raise NotImplementedError("Must implement method")
 
     @abstractmethod
-    def on_update_document(self, item_id: int):
+    def on_update_document(self, item_id: Optional[int] = None, item_info: Optional[Dict] = None):
         raise NotImplementedError("Must implement method")
+
+    def bind_events(self):
+        """Bind extra events"""
 
     def on_open_info_panel(self, evt):
         # TODO: add info handler
@@ -112,8 +120,6 @@ class PanelBase(wx.Panel):
         # make toolbar
         self.toolbar = self.make_toolbar()
         self.peaklist = self.make_table(self.TABLE_DICT)
-
-        print(self.toolbar, self.peaklist)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         if self.toolbar:
@@ -199,6 +205,11 @@ class PanelBase(wx.Panel):
             self.peaklist.SetItemBackgroundColour(item_id, value)
             self.peaklist.SetStringItem(item_id, self.TABLE_DICT["color"], str(convert_rgb_255_to_1(value)))
             self.peaklist.SetItemTextColour(item_id, get_font_color(value, return_rgb=True))
+        else:
+            for col_id, col_values in self.TABLE_DICT.items():
+                if col_values["tag"] == value_type:
+                    self.peaklist.SetStringItem(item_id, col_id, str(value))
+                    break
 
     def on_get_value(self, value_type="color"):
         """Returns item information for particular key/column"""
@@ -219,6 +230,10 @@ class PanelBase(wx.Panel):
     def n_columns(self):
         """Returns number of columns in the table"""
         return -1
+
+    def on_get_unique_color(self, color):
+        """Retrieves unique color by checking if current color already exists"""
+        return self.on_check_duplicate_colors(color)
 
     def on_check_duplicate_colors(self, new_color):
         """Check whether newly assigned color is already in the table and if so, return a different one"""
@@ -426,6 +441,31 @@ class PanelBase(wx.Panel):
                 self.peaklist.SetColumnWidth(col_id, col_width)
                 self.TABLE_DICT[col_id]["show"] = col_shown
 
+    def on_change_item_colormap(self, evt):
+        """Update colormap of item(s)"""
+        # get number of checked items
+        check_count = 0
+        for row in range(self.peaklist.GetItemCount()):
+            if self.peaklist.IsChecked(index=row):
+                check_count += 1
+
+        if check_count > len(CONFIG.narrowCmapList):
+            colormaps = CONFIG.narrowCmapList
+        else:
+            colormaps = CONFIG.narrowCmapList + CONFIG.cmaps2
+
+        for row in range(self.peaklist.GetItemCount()):
+            if self.peaklist.IsChecked(index=row):
+                self.peaklist.item_id = row
+                colormap = colormaps[row]
+                self.peaklist.SetStringItem(row, TableColumnIndex.colormap, str(colormap))
+
+                # update document
+                try:
+                    self.on_update_document()
+                except TypeError:
+                    print("Please select item")
+
 
 class TestPanel(PanelBase):
     TABLE_DICT = {
@@ -464,13 +504,13 @@ class TestPanel(PanelBase):
     def make_toolbar(self):
         pass
 
-    def on_update_document(self, item_id: int):
+    def on_update_document(self, item_id: Optional[int] = None, item_info: Optional[Dict] = None):
         pass
 
 
-class ExampleFrame(wx.Frame):
+class ExampleFrame(wx.MiniFrame):
     def __init__(self, parent):
-        wx.Frame.__init__(self, parent)
+        wx.MiniFrame.__init__(self, parent, style=wx.RESIZE_BORDER | wx.CLOSE_BOX | wx.CAPTION)
         self.panel = TestPanel(self, None, None)
         add_btn = wx.Button(self, wx.ID_ANY, "Add")
         self.Bind(wx.EVT_BUTTON, self.add_item, add_btn)

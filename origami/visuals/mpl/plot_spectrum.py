@@ -49,9 +49,6 @@ class PlotSpectrum(PlotBase):
             line.set_linewidth(kwargs["line_width"])
             line.set_linestyle(kwargs["line_style"])
 
-    def store_plot_limits(self, extent):
-        self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
-
     def plot_1d(self, x, y, title="", x_label="", y_label="", label="", **kwargs):
         """Standard 1d plot"""
         # Simple hack to reduce size is to use different subplot size

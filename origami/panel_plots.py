@@ -98,6 +98,8 @@ from origami.gui_elements.misc_dialogs import DialogBox
 from origami.visuals.mpl.plot_spectrum import PlotSpectrum
 from origami.visuals.mpl.plot_heatmap_2d import PlotHeatmap2D
 from origami.visuals.mpl.plot_heatmap_3d import PlotHeatmap3D
+from origami.gui_elements.views.view_heatmap import ViewIonHeatmap
+from origami.gui_elements.views.view_heatmap import ViewMassSpectrumHeatmap
 from origami.gui_elements.views.view_spectrum import ViewMobilogram
 from origami.gui_elements.views.view_spectrum import ViewChromatogram
 from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
@@ -317,7 +319,6 @@ class PanelPlots(wx.Panel):
         # Setup PLOT RT
         self.panel_rt = wx.SplitterWindow(plot_notebook, wx.ID_ANY, style=wx.TAB_TRAVERSAL | wx.SP_3DSASH)
         plot_notebook.AddPage(self.panel_rt, "Chromatogram", False)  # RT
-
         self.view_rt_rt = ViewChromatogram(
             self.panel_rt,
             self.config._plotSettings["RT"]["gui_size"],
@@ -336,7 +337,6 @@ class PanelPlots(wx.Panel):
 
         self.panel_rt.SplitHorizontally(self.panel_rt_top_rt, self.panel_rt_bottom_ms)
         self.panel_rt.SetSashGravity(0.5)
-        self.panel_rt.SetSashSize(5)
 
         # Setup PLOT 1D
         self.panel_dt = wx.SplitterWindow(plot_notebook, wx.ID_ANY, style=wx.TAB_TRAVERSAL | wx.SP_3DSASH)
@@ -360,19 +360,39 @@ class PanelPlots(wx.Panel):
 
         self.panel_dt.SplitHorizontally(self.panel_dt_top_dt, self.panel_dt_bottom_ms)
         self.panel_dt.SetSashGravity(0.5)
-        self.panel_dt.SetSashSize(5)
 
         # Setup PLOT 2D
-        self.panel_heatmap, self.plot_heatmap, __ = self.make_heatmap_2d_plot(
-            plot_notebook, self.config._plotSettings["2D"]["gui_size"]
+        self.view_heatmap = ViewIonHeatmap(
+            plot_notebook,
+            self.config._plotSettings["2D"]["gui_size"],
+            self.config,
+            allow_extraction=True,
+            callbacks=dict(CTRL="extract.heatmap.from.spectrum"),
         )
-        plot_notebook.AddPage(self.panel_heatmap, "Heatmap", False)
+        plot_notebook.AddPage(self.view_heatmap.panel, "Heatmap", False)
+        self.plot_heatmap = self.view_heatmap.figure
+
+        #         self.panel_heatmap, self.plot_heatmap, __ = self.make_heatmap_2d_plot(
+        #             plot_notebook, self.config._plotSettings["2D"]["gui_size"]
+        #         )
+        #         plot_notebook.AddPage(self.panel_heatmap, "Heatmap", False)
 
         # Setup PLOT DT/MS
-        self.panel_msdt, self.plot_msdt, __ = self.make_heatmap_2d_plot(
-            plot_notebook, self.config._plotSettings["DT/MS"]["gui_size"]
+
+        self.view_msdt = ViewMassSpectrumHeatmap(
+            plot_notebook,
+            self.config._plotSettings["DT/MS"]["gui_size"],
+            self.config,
+            allow_extraction=True,
+            callbacks=dict(CTRL="extract.heatmap.from.spectrum"),
         )
-        plot_notebook.AddPage(self.panel_msdt, "DT/MS", False)
+        plot_notebook.AddPage(self.view_msdt.panel, "DT/MS", False)
+        self.plot_msdt = self.view_msdt.figure
+
+        #         self.panel_msdt, self.plot_msdt, __ = self.make_heatmap_2d_plot(
+        #             plot_notebook, self.config._plotSettings["DT/MS"]["gui_size"]
+        #         )
+        #         plot_notebook.AddPage(self.panel_msdt, "DT/MS", False)
 
         # Setup PLOT WATERFALL
         self.panel_overlay, self.plot_overlay, __ = self.make_base_plot(
@@ -2707,7 +2727,7 @@ class PanelPlots(wx.Panel):
         set_page=False,
         show_in_window="MS",
         view_range=None,
-        ms_obj=None,
+        obj=None,
         **kwargs,
     ):
 
@@ -2724,16 +2744,16 @@ class PanelPlots(wx.Panel):
             plot_obj = self.get_plot_from_name(show_in_window)
 
         if plot_obj == self.plot_ms:
-            self.view_ms.plot(msX, msY, obj=ms_obj, **kwargs, **plt_kwargs)
+            self.view_ms.plot(msX, msY, obj=obj, **kwargs, **plt_kwargs)
             return
         elif plot_obj == self.plot_rt_ms:
-            if ms_obj:
-                self.view_rt_ms.plot(obj=ms_obj)
+            if obj:
+                self.view_rt_ms.plot(obj=obj)
             else:
                 self.view_rt_ms.plot(msX, msY, **kwargs, **plt_kwargs)
         elif plot_obj == self.plot_dt_ms:
-            if ms_obj:
-                self.view_dt_ms.plot(obj=ms_obj)
+            if obj:
+                self.view_dt_ms.plot(obj=obj)
             else:
                 self.view_dt_ms.plot(msX, msY, **kwargs, **plt_kwargs)
         else:
@@ -2806,7 +2826,7 @@ class PanelPlots(wx.Panel):
         replot=False,
         set_page=False,
         plot="1D",
-        dt_obj=None,
+        obj=None,
         **kwargs,
     ):
         if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
@@ -2825,7 +2845,7 @@ class PanelPlots(wx.Panel):
         plt_kwargs = self._buildPlotParameters(plotType="1D")
 
         if plot_obj == self.plot_dt_dt:
-            self.view_dt_dt.plot(dtX, dtY, obj=dt_obj, **plt_kwargs)
+            self.view_dt_dt.plot(dtX, dtY, obj=obj, **plt_kwargs)
             return
 
         plt_kwargs["allow_extraction"] = kwargs.pop("allow_extraction", True)
@@ -2866,7 +2886,7 @@ class PanelPlots(wx.Panel):
         full_repaint=False,
         set_page=False,
         plot="RT",
-        rt_obj=None,
+        obj=None,
         **kwargs,
     ):
 
@@ -2886,7 +2906,7 @@ class PanelPlots(wx.Panel):
         plt_kwargs = self._buildPlotParameters(plotType="1D")
 
         if plot_obj == self.plot_rt_rt:
-            self.view_rt_rt.plot(rtX, rtY, obj=rt_obj, **plt_kwargs)
+            self.view_rt_rt.plot(rtX, rtY, obj=obj, **plt_kwargs)
             return
 
         plt_kwargs["allow_extraction"] = kwargs.pop("allow_extraction", True)
@@ -3164,6 +3184,7 @@ class PanelPlots(wx.Panel):
         cmapNorm=None,
         set_page=False,
         plot="2D",
+        obj=None,
         **kwargs,
     ):
         def set_data():
@@ -3184,6 +3205,12 @@ class PanelPlots(wx.Panel):
             if set_page:
                 self._set_page(self.config.panelNames["2D"])
 
+        plt_kwargs = self._buildPlotParameters(plotType="2D")
+
+        if plot_obj == self.plot_heatmap:
+            self.view_heatmap.plot(xvals, yvals, zvals, obj=obj, **plt_kwargs)
+            return
+
         # If the user would like to replot data, you can directly unpack it
         if replot:
             zvals, xvals, yvals, xlabel, ylabel = self.get_replot_data("2D")
@@ -3198,9 +3225,6 @@ class PanelPlots(wx.Panel):
             )
         elif cmapNorm is None and plotType == "RMSD":
             cmapNorm = self.normalize_colormap(zvals, min=-100, mid=0, max=100)
-
-        # Build kwargs
-        plt_kwargs = self._buildPlotParameters(plotType="2D")
 
         # Check if cmap should be overwritten
         if self.config.useCurrentCmap or kwargs.get("cmap", None) is None:
@@ -3263,6 +3287,7 @@ class PanelPlots(wx.Panel):
         override=True,
         replot=False,
         set_page=False,
+        obj=None,
         **kwargs,
     ):
 
@@ -3270,93 +3295,96 @@ class PanelPlots(wx.Panel):
         if set_page:
             self._set_page(self.config.panelNames["MZDT"])
 
-        # If the user would like to replot data, you can directly unpack it
-        if replot:
-            zvals, xvals, yvals, xlabel, ylabel = self.get_replot_data("DT/MS")
-            if zvals is None or xvals is None or yvals is None:
-                return
-
-        # Check if cmap should be overwritten
-        if self.config.useCurrentCmap or cmap is None:
-            cmap = self.config.currentCmap
-
-        # Check that cmap modifier is included
-        if cmapNorm is None:
-            cmapNorm = self.normalize_colormap(
-                zvals, min=self.config.minCmap, mid=self.config.midCmap, max=self.config.maxCmap
-            )
+        #         # If the user would like to replot data, you can directly unpack it
+        #         if replot:
+        #             zvals, xvals, yvals, xlabel, ylabel = self.get_replot_data("DT/MS")
+        #             if zvals is None or xvals is None or yvals is None:
+        #                 return
+        #
+        #         # Check if cmap should be overwritten
+        #         if self.config.useCurrentCmap or cmap is None:
+        #             cmap = self.config.currentCmap
+        #
+        #         # Check that cmap modifier is included
+        #         if cmapNorm is None:
+        #             cmapNorm = self.normalize_colormap(
+        #                 zvals, min=self.config.minCmap, mid=self.config.midCmap, max=self.config.maxCmap
+        #             )
 
         # Build kwargs
         plt_kwargs = self._buildPlotParameters(plotType="2D")
-        plt_kwargs["colormap"] = cmap
-        plt_kwargs["colormap_norm"] = cmapNorm
-        plt_kwargs["allow_extraction"] = kwargs.pop("allow_extraction", True)
-        plt_kwargs = merge_two_dicts(plt_kwargs, kwargs)
+        #         plt_kwargs["colormap"] = cmap
+        #         plt_kwargs["colormap_norm"] = cmapNorm
+        #         plt_kwargs["allow_extraction"] = kwargs.pop("allow_extraction", True)
+        #         plt_kwargs = merge_two_dicts(plt_kwargs, kwargs)
 
-        try:
-            self.plot_msdt.plot_2D_update_data(xvals, yvals, xlabel, ylabel, zvals, **plt_kwargs)
-            self.plot_msdt.repaint()
-            if override:
-                self.config.replotData["DT/MS"] = {
-                    "zvals": zvals,
-                    "xvals": xvals,
-                    "yvals": yvals,
-                    "xlabels": xlabel,
-                    "ylabels": ylabel,
-                    "cmap": cmap,
-                    "cmapNorm": cmapNorm,
-                }
-            return
-        except Exception:
-            pass
+        self.view_msdt.plot(xvals, yvals, zvals, obj=obj, **plt_kwargs)
+        return
 
-        # Plot 2D dataset
-        self.plot_msdt.clear()
-        if self.config.plotType == "Image":
-            self.plot_msdt.plot_2D_surface(
-                zvals,
-                xvals,
-                yvals,
-                xlabel,
-                ylabel,
-                axesSize=self.config._plotSettings["DT/MS"]["axes_size"],
-                plotName="MSDT",
-                **plt_kwargs,
-            )
-
-        elif self.config.plotType == "Contour":
-            self.plot_msdt.plot_2D_contour(
-                zvals,
-                xvals,
-                yvals,
-                xlabel,
-                ylabel,
-                axesSize=self.config._plotSettings["DT/MS"]["axes_size"],
-                plotName="MSDT",
-                **plt_kwargs,
-            )
-
-        # Show the mass spectrum
-        self.plot_msdt.repaint()
-
-        # since we always sub-sample this dataset, it is makes sense to keep track of the full dataset before it was
-        # subsampled - this way, when we replot data it will always use the full information
-        if kwargs.get("full_data", False):
-            xvals = kwargs["full_data"].pop("xvals", xvals)
-            zvals = kwargs["full_data"].pop("zvals", zvals)
-
-        if override:
-            self.config.replotData["DT/MS"] = {
-                "zvals": zvals,
-                "xvals": xvals,
-                "yvals": yvals,
-                "xlabels": xlabel,
-                "ylabels": ylabel,
-                "cmap": cmap,
-                "cmapNorm": cmapNorm,
-            }
-        # update plot data
-        self.presenter.view._onUpdatePlotData(plot_type="DT/MS")
+    #         try:
+    #             self.plot_msdt.plot_2D_update_data(xvals, yvals, xlabel, ylabel, zvals, **plt_kwargs)
+    #             self.plot_msdt.repaint()
+    #             if override:
+    #                 self.config.replotData["DT/MS"] = {
+    #                     "zvals": zvals,
+    #                     "xvals": xvals,
+    #                     "yvals": yvals,
+    #                     "xlabels": xlabel,
+    #                     "ylabels": ylabel,
+    #                     "cmap": cmap,
+    #                     "cmapNorm": cmapNorm,
+    #                 }
+    #             return
+    #         except Exception:
+    #             pass
+    #
+    #         # Plot 2D dataset
+    #         self.plot_msdt.clear()
+    #         if self.config.plotType == "Image":
+    #             self.plot_msdt.plot_2D_surface(
+    #                 zvals,
+    #                 xvals,
+    #                 yvals,
+    #                 xlabel,
+    #                 ylabel,
+    #                 axesSize=self.config._plotSettings["DT/MS"]["axes_size"],
+    #                 plotName="MSDT",
+    #                 **plt_kwargs,
+    #             )
+    #
+    #         elif self.config.plotType == "Contour":
+    #             self.plot_msdt.plot_2D_contour(
+    #                 zvals,
+    #                 xvals,
+    #                 yvals,
+    #                 xlabel,
+    #                 ylabel,
+    #                 axesSize=self.config._plotSettings["DT/MS"]["axes_size"],
+    #                 plotName="MSDT",
+    #                 **plt_kwargs,
+    #             )
+    #
+    #         # Show the mass spectrum
+    #         self.plot_msdt.repaint()
+    #
+    #         # since we always sub-sample this dataset, it is makes sense to keep track of the full dataset before it was
+    #         # subsampled - this way, when we replot data it will always use the full information
+    #         if kwargs.get("full_data", False):
+    #             xvals = kwargs["full_data"].pop("xvals", xvals)
+    #             zvals = kwargs["full_data"].pop("zvals", zvals)
+    #
+    #         if override:
+    #             self.config.replotData["DT/MS"] = {
+    #                 "zvals": zvals,
+    #                 "xvals": xvals,
+    #                 "yvals": yvals,
+    #                 "xlabels": xlabel,
+    #                 "ylabels": ylabel,
+    #                 "cmap": cmap,
+    #                 "cmapNorm": cmapNorm,
+    #             }
+    #         # update plot data
+    #         self.presenter.view._onUpdatePlotData(plot_type="DT/MS")
 
     def on_plot_3D(
         self,

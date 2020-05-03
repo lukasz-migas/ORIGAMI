@@ -240,7 +240,7 @@ class ThermoRawReader:
         start_scan, end_scan, title = self._get_scan_parameters(start_scan, end_scan, title)
         average_scan = Extensions.AverageScansInScanRange(self.source, start_scan, end_scan, title)
 
-        if not average_scan.HasCentroidStream:
+        if average_scan is None or not average_scan.HasCentroidStream:
             raise ValueError("Could not retrieve average scan %d - %d" % (start_scan, end_scan))
         if centroid:
             x = np.asarray(list(average_scan.CentroidScan.Masses))

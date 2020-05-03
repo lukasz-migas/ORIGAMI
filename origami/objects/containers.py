@@ -1,8 +1,14 @@
 # Third-party imports
+# Standard library imports
+import os
+from typing import Union
+from typing import Optional
+
 import numpy as np
 from zarr import Group
 
 # Local imports
+from origami.utils.path import clean_filename
 from origami.utils.ranges import get_min_max
 
 # TODO: add x/y-axis converters to easily switch between labels
@@ -65,6 +71,8 @@ class DataObject:
         """
         self._cls = self.__class__.__name__
         self._owner = None
+        self._path = None
+        self._output_path = None
 
         # settable attributes
         self.name = name
@@ -83,6 +91,32 @@ class DataObject:
 
     def __repr__(self):
         return f"{self.__class__.__name__}<x-label={self.x_label}; y-label={self.y_label}>"
+
+    @property
+    def owner(self):
+        return self._owner
+
+    @owner.setter
+    def owner(self, value):
+        """Sets the owner of the container object"""
+        self._owner = value
+
+    def set_owner(self, value):
+        """Sets the owner of the container object"""
+        self.owner = value
+
+    def set_output_path(self, value):
+        """Sets the owner of the container object"""
+        self._output_path = value
+
+    @property
+    def path(self):
+        return self._path
+
+    @property
+    def output_path(self):
+        if self._output_path:
+            return os.path.join(self._output_path, clean_filename(self.owner[1].split("/")[-1]))
 
     @property
     def x_label(self):
@@ -128,19 +162,6 @@ class DataObject:
             self._y_limit = get_min_max(self.x)
         return self._y_limit
 
-    @property
-    def owner(self):
-        return self._owner
-
-    @owner.setter
-    def owner(self, value):
-        """Sets the owner of the container object"""
-        self._owner = value
-
-    def set_owner(self, value):
-        """Sets the owner of the container object"""
-        self.owner = value
-
     def set_metadata(self, metadata):
         """Updates the metadata store"""
         if not isinstance(metadata, dict):
@@ -173,6 +194,10 @@ class DataObject:
 class SpectrumObject(DataObject):
     def __init__(self, x, y, x_label: str, y_label: str, name: str, metadata: dict, extra_data: dict, **kwargs):
         super().__init__(name, x, y, x_label, y_label, metadata=metadata, extra_data=extra_data, **kwargs)
+
+    @property
+    def x_bin(self):
+        return np.arange(len(self.x))
 
     def to_dict(self):
         """Outputs data to dictionary"""
@@ -237,6 +262,18 @@ class ChromatogramObject(SpectrumObject):
     def __init__(
         self, x, y, name: str = "", metadata=None, extra_data=None, x_label="Scans", y_label="Intensity", **kwargs
     ):
+        """
+        Additional data can be stored in the `extra_data` dictionary. The convention should be:
+            data that is most commonly used/displayed should be stored under the x/y attributes
+            alternative x-axis should be stored in the `extra_data` dict. If the extra data is
+            scans, then store it under `x_bin` and if its in time/minutes, store it under `x_min`.
+
+        Data keys:
+            x : x-axis data most commonly used
+            y : y-axis data most commonly used
+            x_bin : x-axis data in scans/bins
+            x_min : x-axis data in minutes/time
+            """
         super().__init__(
             x,
             y,
@@ -248,6 +285,26 @@ class ChromatogramObject(SpectrumObject):
             extra_data=extra_data,
             **kwargs,
         )
+
+    def to_scans(self, scan_time: Optional[Union[int, float]] = None):
+        """Return x-axis in scans"""
+        if scan_time is None:
+            if "x_bin" in self._extra_data:
+                return self._extra_data["x_bin"]
+            return self.x_bin
+        if self.x_label == "Scans":
+            return self.x
+        return np.round(self.x / scan_time).astype(np.int32)
+
+    def to_min(self, scan_time: Optional[Union[int, float]] = None):
+        """Return x-axis in minutes"""
+        if scan_time is None:
+            if "x_min" in self._extra_data:
+                return self._extra_data["x_min"]
+            raise ValueError("Could not process the request")
+        if self.x_label == "Scans":
+            return self.x * scan_time
+        return self.x
 
 
 class MobilogramObject(SpectrumObject):
@@ -273,6 +330,12 @@ class MobilogramObject(SpectrumObject):
             extra_data=extra_data,
             **kwargs,
         )
+
+    def to_bins(self, pusher_freq: Optional[float] = None):
+        """Converts x-axis to bins"""
+
+    def to_ms(self, pusher_freq: Optional[float] = None):
+        """Converts x-axis to milliseconds"""
 
 
 class HeatmapObject(DataObject):
@@ -351,6 +414,9 @@ class HeatmapObject(DataObject):
 
     def check(self):
         pass
+
+    def downsample(self, rate: int = 5, mode: str = "Sub-sample"):
+        """Return data at a downsampled rate"""
 
 
 class IonHeatmapObject(HeatmapObject):

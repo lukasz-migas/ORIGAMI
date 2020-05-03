@@ -17,9 +17,11 @@ from zarr.util import is_valid_python_name
 # Local imports
 from origami import __version__
 from origami.utils.path import clean_filename
+from origami.objects.tandem import TandemSpectra
 from origami.readers.io_json import write_json_data
 from origami.utils.utilities import get_chunk_size
 from origami.utils.converters import byte2str
+from origami.objects.containers import DataObject
 from origami.objects.containers import mobilogram_object
 from origami.objects.containers import ion_heatmap_object
 from origami.objects.containers import chromatogram_object
@@ -62,6 +64,8 @@ class DocumentStore:
         self.file_reader = dict()
         self.app_data = dict()
         self.metadata = dict()
+        self._tandem_spectra = TandemSpectra(self.fp)
+        self.output_path = os.path.join(self.path, "Output")
 
         self._check_version()
 
@@ -111,9 +115,9 @@ class DocumentStore:
     def __len__(self):
         return len(self.fp)
 
-    def __iter__(self):
-        for key in self.fp:
-            yield key
+    #     def __iter__(self):
+    #         for key in self.fp:
+    #             yield key
 
     def __enter__(self):
         """Return the Group for use as a context manager."""
@@ -133,19 +137,20 @@ class DocumentStore:
 
         if klass_name == "MassSpectrumObject":
             obj = mass_spectrum_object(group)
-        if klass_name == "ChromatogramObject":
+        elif klass_name == "ChromatogramObject":
             obj = chromatogram_object(group)
-        if klass_name == "MobilogramObject":
+        elif klass_name == "MobilogramObject":
             obj = mobilogram_object(group)
-        if klass_name == "MassSpectrumHeatmapObject":
+        elif klass_name == "MassSpectrumHeatmapObject":
             obj = msdt_heatmap_object(group)
-        if klass_name == "IonHeatmapObject":
+        elif klass_name == "IonHeatmapObject":
             obj = ion_heatmap_object(group)
 
         # return instantiated objected
         if obj:
             # associate object with metadata
             obj.set_owner((self.title, group.path))
+            obj.set_output_path(self.output_path)
 
             return obj
 
@@ -195,6 +200,10 @@ class DocumentStore:
         """Returns the type of dataset"""
         # TODO: change
         return "ORIGAMI"
+
+    @property
+    def file_format(self):
+        return self.fp.attrs["file_format"]
 
     @property
     def parameters(self):
@@ -254,6 +263,34 @@ class DocumentStore:
             _attrs[attr] = group.attrs.get(attr, None)
         return _attrs
 
+    def add_spectrum(self, title: str, data: Optional[Dict] = None, attrs: Optional[Dict] = None):
+        """Adds mass spectrum to the document"""
+        if isinstance(data, DataObject):
+            data, attrs = data.to_zarr()
+        group = self.add(f"MassSpectra/{title}", data, attrs)
+        return self.as_object(group)
+
+    def add_chromatogram(self, title: str, data: Optional[Dict] = None, attrs: Optional[Dict] = None):
+        """Adds chromatogram to the document"""
+        if isinstance(data, DataObject):
+            data, attrs = data.to_zarr()
+        group = self.add(f"Chromatograms/{title}", data, attrs)
+        return self.as_object(group)
+
+    def add_mobilogram(self, title: str, data: Optional[Dict] = None, attrs: Optional[Dict] = None):
+        """Adds mobilograms to the document"""
+        if isinstance(data, DataObject):
+            data, attrs = data.to_zarr()
+        group = self.add(f"Mobilograms/{title}", data, attrs)
+        return self.as_object(group)
+
+    def add_heatmap(self, title: str, data: Optional[Dict] = None, attrs: Optional[Dict] = None):
+        """Adds heatmap to the document"""
+        if isinstance(data, DataObject):
+            data, attrs = data.to_zarr()
+        group = self.add(f"IonHeatmaps/{title}", data, attrs)
+        return self.as_object(group)
+
     def add(self, key, data=None, attrs=None):
         """Add data to group"""
         # TODO: add name check so that names are always valid keys
@@ -278,6 +315,10 @@ class DocumentStore:
         except (KeyError, AttributeError):
             LOGGER.warning(f"Could not clear `{item}`")
 
+    def duplicate(self, path):
+        """Create copy of the document with new name"""
+        raise NotImplementedError("Must implement method")
+
     def remove(self, item):
         """Deletes all data and the root directory from the store"""
         try:
@@ -300,7 +341,8 @@ class DocumentStore:
             n += 1
         return title + " #" + "%d".zfill(n_fill) % n
 
-    def _set_group_data(self, group: Group, data: Dict, attrs: Dict, chunks: bool = True):
+    @staticmethod
+    def _set_group_data(group: Group, data: Dict, attrs: Dict, chunks: bool = True):
         """Add all components of a group or subgroup"""
         # add datasets
         for key, value in data.items():
@@ -344,10 +386,7 @@ class DocumentStore:
             raise ValueError("Cannot copy data if it does not exist")
 
         dst_path = os.path.join(str(self.full_path("Raw")), filepath.name)
-        # dst_path = os.path.join(self.path / Path(self["Raw"].path), filepath.name)
-        # raw_path = os.path.join(str(self.path), group.path + "\\")
         if os.path.isdir(filepath):
-            # raw_path = os.path.join(raw_path)
             shutil.copytree(filepath, dst_path)
         else:
             shutil.copy2(filepath, dst_path)
@@ -385,3 +424,11 @@ class DocumentStore:
     def set_reader(self, title, reader):
         """Set reader"""
         self.file_reader[title] = reader
+
+    @property
+    def tandem_spectra(self):
+        return self._tandem_spectra
+
+    @tandem_spectra.setter
+    def tandem_spectra(self, value):
+        self._tandem_spectra.set_from_dict(value)

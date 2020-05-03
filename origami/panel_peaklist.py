@@ -1,13 +1,16 @@
 # Standard library imports
 import logging
+from enum import IntEnum
+from typing import Dict
+from typing import Optional
 
 # Third-party imports
 import wx
 
 # Local imports
+# from origami.ids import ID_window_ionList
 from origami.ids import ID_extractNewIon
 from origami.ids import ID_extractAllIons
-from origami.ids import ID_window_ionList
 from origami.ids import ID_ionPanel_editItem
 from origami.ids import ID_extractSelectedIon
 from origami.ids import ID_ionPanel_check_all
@@ -36,19 +39,39 @@ from origami.ids import ID_ionPanel_changeColorBatch_palette
 from origami.ids import ID_ionPanel_changeColorBatch_colormap
 from origami.styles import make_tooltip
 from origami.styles import make_menu_item
-from origami.utils.check import isempty
-from origami.utils.color import get_font_color
+
+# from origami.utils.check import isempty
+# from origami.utils.color import get_font_color
 from origami.utils.color import convert_rgb_1_to_255
-from origami.utils.color import convert_rgb_255_to_1
-from origami.utils.labels import get_ion_name_from_label
+
+# from origami.utils.color import convert_rgb_255_to_1
+# from origami.utils.labels import get_ion_name_from_label
 from origami.config.config import CONFIG
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
-from origami.gui_elements.dialog_ask import DialogAsk
+
+# from origami.gui_elements.dialog_ask import DialogAsk
 from origami.gui_elements.panel_base import PanelBase
-from origami.gui_elements.misc_dialogs import DialogBox
+
+# from origami.gui_elements.misc_dialogs import DialogBox
 
 LOGGER = logging.getLogger(__name__)
+
+
+class TableColumnIndex(IntEnum):
+    check = 0
+    ion_name = 1
+    charge = 2
+    intensity = 3
+    color = 4
+    colormap = 5
+    alpha = 6
+    mask = 7
+    label = 8
+    method = 9
+    document = 10
+    extracted = 11
+    key = 12
 
 
 class PanelPeaklist(PanelBase):
@@ -117,7 +140,7 @@ class PanelPeaklist(PanelBase):
             "name": "method",
             "tag": "method",
             "type": "str",
-            "order": 8,
+            "order": 9,
             "id": wx.NewIdRef(),
             "show": True,
             "width": 50,
@@ -126,16 +149,25 @@ class PanelPeaklist(PanelBase):
             "name": "document",
             "tag": "document",
             "type": "str",
-            "order": 9,
+            "order": 10,
             "id": wx.NewIdRef(),
             "show": True,
             "width": 100,
         },
         11: {
+            "name": "☑/☒",
+            "tag": "extracted",
+            "type": "str",
+            "order": 11,
+            "id": wx.NewIdRef(),
+            "show": True,
+            "width": 20,
+        },
+        12: {
             "name": "key",
             "tag": "key",
             "type": "str",
-            "order": 11,
+            "order": 12,
             "id": wx.NewIdRef(),
             "show": True,
             "width": 0,
@@ -143,16 +175,12 @@ class PanelPeaklist(PanelBase):
         },
     }
 
-    def __init__(self, parent, icons, presenter):
+    def __init__(self, parent, icons, presenter, document_title: str = None):
         PanelBase.__init__(self, parent, icons, presenter)
 
-        self.allChecked = True
-        self.override = CONFIG.overrideCombine
-        self.addToDocument = False
-        self.normalize1D = False
-        self.extractAutomatically = False
-        self.plotAutomatically = True
+        self._document_title = document_title
 
+        self._automatic_extract = False
         self.item_editor = None
         self.onSelectingItem = True
         self.ask_value = None
@@ -188,8 +216,13 @@ class PanelPeaklist(PanelBase):
     def on_open_info_panel(self, evt):
         LOGGER.error("This function is not implemented yet")
 
+    def bind_events(self):
+        """Bind extra events"""
+        self.peaklist.Bind(wx.EVT_LIST_INSERT_ITEM, self.on_extract_auto)
+
     # noinspection DuplicatedCode
     def make_toolbar(self):
+        """Create toolbar"""
 
         add_btn = wx.BitmapButton(
             self, -1, self.icons.iconsLib["add16"], size=(18, 18), style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
@@ -245,7 +278,7 @@ class PanelPeaklist(PanelBase):
         toolbar.Add(process_btn, 0, wx.ALIGN_CENTER)
         toolbar.Add(save_btn, 0, wx.ALIGN_CENTER)
         toolbar.AddSpacer(5)
-        toolbar.Add(vertical_line_1, 0, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        toolbar.Add(vertical_line_1, 0, wx.EXPAND)
         toolbar.AddSpacer(5)
         toolbar.Add(info_btn, 0, wx.ALIGN_CENTER)
 
@@ -479,12 +512,12 @@ class PanelPeaklist(PanelBase):
         self.Bind(wx.EVT_MENU, self.on_extract_new, id=ID_extractNewIon)
 
         menu = wx.Menu()
-        self.automaticExtract_check = menu.AppendCheckItem(
+        extract_check = menu.AppendCheckItem(
             ID_ionPanel_automaticExtract,
-            "Automatically extract data",
-            help="Data will be automatically extracted as its added to the peaklist",
+            "Extract data as it is added to the peaklist...",
+            help="Event is triggered as soon as data is added to the table",
         )
-        self.automaticExtract_check.Check(self.extractAutomatically)
+        extract_check.Check(self._automatic_extract)
         menu.AppendSeparator()
         menu.Append(ID_extractNewIon, "Extract heatmap data (new)")
         menu.Append(ID_extractSelectedIon, "Extract heatmap data (selected)")
@@ -561,8 +594,8 @@ class PanelPeaklist(PanelBase):
         # bind events
         self.Bind(wx.EVT_MENU, self.on_process_heatmap_selected, menu_action_process_heatmap)
         self.Bind(wx.EVT_MENU, self.data_processing.on_combine_origami_collision_voltages, menu_action_combine_voltages)
-        self.Bind(wx.EVT_MENU, self.on_open_ORIGAMI_MS_panel, menu_action_setup_origami_parameters)
-        self.Bind(wx.EVT_MENU, self.on_open_ORIGAMI_MS_panel, menu_action_extract_spectrum)
+        self.Bind(wx.EVT_MENU, self.on_open_origami_ms_panel, menu_action_setup_origami_parameters)
+        self.Bind(wx.EVT_MENU, self.on_open_origami_ms_panel, menu_action_extract_spectrum)
 
         self.PopupMenu(menu)
         menu.Destroy()
@@ -571,8 +604,8 @@ class PanelPeaklist(PanelBase):
     def menu_save_tools(self, evt):
 
         menu = wx.Menu()
-        menu_action_save_peaklist = make_menu_item(parent=menu, text="Export peak list to file...")
-        menu.AppendItem(menu_action_save_peaklist)
+        # menu_action_save_peaklist = make_menu_item(parent=menu, text="Export peak list to file...")
+        # menu.AppendItem(menu_action_save_peaklist)
 
         menu.AppendSeparator()
         menu_action_save_chromatogram = make_menu_item(parent=menu, text="Save figure(s) as chromatogram (selected)")
@@ -598,7 +631,7 @@ class PanelPeaklist(PanelBase):
         menu.AppendItem(menu_action_save_data_heatmap)
 
         # bind events
-        self.Bind(wx.EVT_MENU, self.on_save_peaklist, menu_action_save_peaklist)
+        # self.Bind(wx.EVT_MENU, self.on_save_peaklist, menu_action_save_peaklist)
 
         self.Bind(wx.EVT_MENU, self.on_save_figures_chromatogram, menu_action_save_chromatogram)
         self.Bind(wx.EVT_MENU, self.on_save_figures_mobilogram, menu_action_save_mobilogram)
@@ -616,12 +649,10 @@ class PanelPeaklist(PanelBase):
     def on_check_tool(self, evt):
         """ Check/uncheck menu item """
 
-        evtID = evt.GetId()
+        evt_id = evt.GetId()
 
-        if evtID == ID_ionPanel_automaticExtract:
-            self.extractAutomatically = not self.extractAutomatically
-            args = ("Automatic extraction was set to: {}".format(self.extractAutomatically), 4)
-            self.presenter.onThreading(evt, args, action="updateStatusbar")
+        if evt_id == ID_ionPanel_automaticExtract:
+            self._automatic_extract = not self._automatic_extract
 
     def on_change_item_parameter(self, evt):
         """ Iterate over list to assign charge state """
@@ -666,86 +697,90 @@ class PanelPeaklist(PanelBase):
         else:
             raise ValueError("Not sure what to do...")
 
-        ask = DialogAsk(self, **ask_kwargs)
-        ask.ShowModal()
+        raise NotImplementedError("Must implement method")
 
-        if self.ask_value is None:
-            LOGGER.info("Action was cancelled")
-            return
-
-        for row in range(rows):
-            if self.peaklist.IsChecked(index=row):
-                itemInfo = self.on_get_item_information(row)
-                filename = itemInfo["document"]
-                selectedText = itemInfo["ionName"]
-                document = ENV[filename]
-                if not ask_kwargs["keyword"] in ["min_threshold", "max_threshold"]:
-                    self.peaklist.SetStringItem(
-                        row, CONFIG.peaklistColNames[ask_kwargs["keyword"]], str(self.ask_value)
-                    )
-
-                if selectedText in document.IMS2Dions:
-                    document.IMS2Dions[selectedText][ask_kwargs["keyword"]] = self.ask_value
-                if selectedText in document.IMS2DCombIons:
-                    document.IMS2DCombIons[selectedText][ask_kwargs["keyword"]] = self.ask_value
-                if selectedText in document.IMS2DionsProcess:
-                    document.IMS2DionsProcess[selectedText][ask_kwargs["keyword"]] = self.ask_value
-                if selectedText in document.IMSRTCombIons:
-                    document.IMSRTCombIons[selectedText][ask_kwargs["keyword"]] = self.ask_value
-
-                # Update document
-                self.data_handling.on_update_document(document, "no_refresh")
+        # ask = DialogAsk(self, **ask_kwargs)
+        # ask.ShowModal()
+        #
+        # if self.ask_value is None:
+        #     LOGGER.info("Action was cancelled")
+        #     return
+        #
+        # for row in range(rows):
+        #     if self.peaklist.IsChecked(index=row):
+        #         itemInfo = self.on_get_item_information(row)
+        #         filename = itemInfo["document"]
+        #         selectedText = itemInfo["ion_name"]
+        #         document = ENV[filename]
+        #         if not ask_kwargs["keyword"] in ["min_threshold", "max_threshold"]:
+        #             self.peaklist.SetStringItem(
+        #                 row, CONFIG.peaklistColNames[ask_kwargs["keyword"]], str(self.ask_value)
+        #             )
+        #
+        #         if selectedText in document.IMS2Dions:
+        #             document.IMS2Dions[selectedText][ask_kwargs["keyword"]] = self.ask_value
+        #         if selectedText in document.IMS2DCombIons:
+        #             document.IMS2DCombIons[selectedText][ask_kwargs["keyword"]] = self.ask_value
+        #         if selectedText in document.IMS2DionsProcess:
+        #             document.IMS2DionsProcess[selectedText][ask_kwargs["keyword"]] = self.ask_value
+        #         if selectedText in document.IMSRTCombIons:
+        #             document.IMSRTCombIons[selectedText][ask_kwargs["keyword"]] = self.ask_value
+        #
+        #         # Update document
+        #         self.data_handling.on_update_document(document, "no_refresh")
 
     def on_check_duplicate(self, ion_name, document):
         """Check whether ion name exist in table"""
         rows = self.peaklist.GetItemCount()
 
         for row in range(rows):
-            ion_name_in_table = self.peaklist.GetItem(row, CONFIG.peaklistColNames["ion_name"]).GetText()
-            document_in_table = self.peaklist.GetItem(row, CONFIG.peaklistColNames["filename"]).GetText()
+            ion_name_in_table = self.peaklist.GetItem(row, TableColumnIndex.ion_name).GetText()
+            document_in_table = self.peaklist.GetItem(row, TableColumnIndex.document).GetText()
             if (ion_name_in_table == ion_name) and (document_in_table == document):
                 return True
         return False
 
     def get_selected_items(self):
-        all_eic_datasets = [
-            "Drift time (2D, EIC)",
-            "Drift time (2D, processed, EIC)",
-            "Drift time (2D, combined voltages, EIC)",
-            "Input data",
-        ]
-
-        item_count = self.peaklist.GetItemCount()
-
-        # generate list of document_title and dataset_name
-        process_list = []
-        for item_id in range(item_count):
-            information = self.on_get_item_information(item_id)
-            if information["select"]:
-                for dataset_type in all_eic_datasets:
-                    document_title = information["document"]
-                    ion_name = information["ion_name"]
-                    if document_title not in ["", None]:
-                        # append raw
-                        process_item = [document_title, dataset_type, ion_name]
-                        process_list.append(process_item)
-
-                        # append processed
-                        process_item = [document_title, dataset_type, f"{ion_name} (processed)"]
-                        process_list.append(process_item)
-
-        return process_list
+        raise NotImplementedError("Must implement method")
+        # all_eic_datasets = [
+        #     "Drift time (2D, EIC)",
+        #     "Drift time (2D, processed, EIC)",
+        #     "Drift time (2D, combined voltages, EIC)",
+        #     "Input data",
+        # ]
+        #
+        # item_count = self.peaklist.GetItemCount()
+        #
+        # # generate list of document_title and dataset_name
+        # process_list = []
+        # for item_id in range(item_count):
+        #     information = self.on_get_item_information(item_id)
+        #     if information["select"]:
+        #         for dataset_type in all_eic_datasets:
+        #             document_title = information["document"]
+        #             ion_name = information["ion_name"]
+        #             if document_title not in ["", None]:
+        #                 # append raw
+        #                 process_item = [document_title, dataset_type, ion_name]
+        #                 process_list.append(process_item)
+        #
+        #                 # append processed
+        #                 process_item = [document_title, dataset_type, f"{ion_name} (processed)"]
+        #                 process_list.append(process_item)
+        #
+        # return process_list
 
     def on_process_heatmap_selected(self, evt):
         """Collect list of titles and dataset names and open processing panel"""
         process_list = self.get_selected_items()
 
         n_items = len(process_list)
-        if n_items > 0:
-            # open-up panel
-            self.document_tree.on_open_process_2D_settings(
-                process_all=True, process_list=True, data=process_list, disable_plot=True, disable_process=False
-            )
+        raise NotImplementedError("Must implement method")
+        # if n_items:
+        #     # open-up panel
+        #     self.document_tree.on_open_process_2D_settings(
+        #         process_all=True, process_list=True, data=process_list, disable_plot=True, disable_process=False
+        #     )
 
     def on_plot(self, evt, itemID=None):
         """Plot data"""
@@ -754,75 +789,77 @@ class PanelPeaklist(PanelBase):
         if self.peaklist.item_id is None:
             return
 
-        itemInfo = self.on_get_item_information(self.peaklist.item_id)
-        document_title = itemInfo["document"]
-        rangeName = itemInfo["ionName"]
+        raise NotImplementedError("Must implement method")
 
-        # Check if data was extracted
-        if document_title == "":
-            raise MessageError("Error", "Please extract data first.")
-
-        # Get data from dictionary
-        document = self.data_handling.on_get_document(document_title)
-
-        # Preset empty
-        data, zvals, xvals, xlabel, yvals, ylabel = None, None, None, None, None, None
-        # Check whether its ORIGAMI or MANUAL data type
-        if document.dataType == "Type: ORIGAMI":
-            if document.gotCombinedExtractedIons:
-                data = document.IMS2DCombIons
-            elif document.gotExtractedIons:
-                data = document.IMS2Dions
-        elif document.dataType == "Type: MANUAL":
-            if document.gotCombinedExtractedIons:
-                data = document.IMS2DCombIons
-        else:
-            return
-
-        if data is None:
-            raise MessageError("No data", "Could not find data for this ion")
-
-        evtID = evt if evt is None else evt.GetId()
-
-        if evtID == ID_ionPanel_show_mobilogram:
-            xvals = data[rangeName]["yvals"]  # normally this would be the y-axis
-            yvals = data[rangeName]["yvals1D"]
-            xlabels = data[rangeName]["ylabels"]  # normally this would be x-axis label
-            self.view.panelPlots.on_plot_1D(xvals, yvals, xlabels, set_page=True)
-
-        elif evtID == ID_ionPanel_show_chromatogram:
-            xvals = data[rangeName]["xvals"]
-            yvals = data[rangeName]["yvalsRT"]
-            xlabels = data[rangeName]["xlabels"]  # normally this would be x-axis label
-            self.view.panelPlots.on_plot_RT(xvals, yvals, xlabels, set_page=True)
-
-        elif evtID == ID_ionPanel_show_zoom_in_MS:
-            mz_start, mz_end = get_ion_name_from_label(rangeName, as_num=True)
-            mz_start = mz_start - CONFIG.zoomWindowX
-            mz_end = mz_end + CONFIG.zoomWindowX
-
-            try:
-                self.view.panelPlots.on_zoom_1D_x_axis(startX=mz_start, endX=mz_end, set_page=True, plot="MS")
-            except AttributeError:
-                LOGGER.error("Failed to zoom-in on an ion - most likely because there is no mass spectrum present")
-                return
-        else:
-            # Unpack data
-            zvals, xvals, xlabel, yvals, ylabel, cmap = self.presenter.get2DdataFromDictionary(
-                dictionary=data[rangeName], dataType="plot", compact=False
-            )
-
-            # Warning in case  there is missing data
-            if isempty(xvals) or isempty(yvals) or xvals == "" or yvals == "":
-                msg = "Missing x/y-axis labels. Cannot continue! \nAdd x/y-axis labels to each file before continuing."
-                print(msg)
-                DialogBox(exceptionTitle="Missing data", exceptionMsg=msg, type="Error")
-                return
-            # Process data
-            if evtID == ID_ionPanel_show_process_heatmap:
-                xvals, yvals, zvals = self.data_processing.on_process_2D(xvals, yvals, zvals, return_data=True)
-            # Plot data
-            self.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, cmap, override=True, set_page=True)
+        # itemInfo = self.on_get_item_information(self.peaklist.item_id)
+        # document_title = itemInfo["document"]
+        # rangeName = itemInfo["ion_name"]
+        #
+        # # Check if data was extracted
+        # if document_title == "":
+        #     raise MessageError("Error", "Please extract data first.")
+        #
+        # # Get data from dictionary
+        # document = self.data_handling.on_get_document(document_title)
+        #
+        # # Preset empty
+        # data, zvals, xvals, xlabel, yvals, ylabel = None, None, None, None, None, None
+        # # Check whether its ORIGAMI or MANUAL data type
+        # if document.dataType == "Type: ORIGAMI":
+        #     if document.gotCombinedExtractedIons:
+        #         data = document.IMS2DCombIons
+        #     elif document.gotExtractedIons:
+        #         data = document.IMS2Dions
+        # elif document.dataType == "Type: MANUAL":
+        #     if document.gotCombinedExtractedIons:
+        #         data = document.IMS2DCombIons
+        # else:
+        #     return
+        #
+        # if data is None:
+        #     raise MessageError("No data", "Could not find data for this ion")
+        #
+        # evtID = evt if evt is None else evt.GetId()
+        #
+        # if evtID == ID_ionPanel_show_mobilogram:
+        #     xvals = data[rangeName]["yvals"]  # normally this would be the y-axis
+        #     yvals = data[rangeName]["yvals1D"]
+        #     xlabels = data[rangeName]["ylabels"]  # normally this would be x-axis label
+        #     self.view.panelPlots.on_plot_1D(xvals, yvals, xlabels, set_page=True)
+        #
+        # elif evtID == ID_ionPanel_show_chromatogram:
+        #     xvals = data[rangeName]["xvals"]
+        #     yvals = data[rangeName]["yvalsRT"]
+        #     xlabels = data[rangeName]["xlabels"]  # normally this would be x-axis label
+        #     self.view.panelPlots.on_plot_RT(xvals, yvals, xlabels, set_page=True)
+        #
+        # elif evtID == ID_ionPanel_show_zoom_in_MS:
+        #     mz_start, mz_end = get_ion_name_from_label(rangeName, as_num=True)
+        #     mz_start = mz_start - CONFIG.zoomWindowX
+        #     mz_end = mz_end + CONFIG.zoomWindowX
+        #
+        #     try:
+        #         self.view.panelPlots.on_zoom_1D_x_axis(startX=mz_start, endX=mz_end, set_page=True, plot="MS")
+        #     except AttributeError:
+        #         LOGGER.error("Failed to zoom-in on an ion - most likely because there is no mass spectrum present")
+        #         return
+        # else:
+        #     # Unpack data
+        #     zvals, xvals, xlabel, yvals, ylabel, cmap = self.presenter.get2DdataFromDictionary(
+        #         dictionary=data[rangeName], dataType="plot", compact=False
+        #     )
+        #
+        #     # Warning in case  there is missing data
+        #     if isempty(xvals) or isempty(yvals) or xvals == "" or yvals == "":
+        #         msg = "Missing x/y-axis labels. Cannot continue! \nAdd x/y-axis labels to each file before continuing."
+        #         print(msg)
+        #         DialogBox(exceptionTitle="Missing data", exceptionMsg=msg, type="Error")
+        #         return
+        #     # Process data
+        #     if evtID == ID_ionPanel_show_process_heatmap:
+        #         xvals, yvals, zvals = self.data_processing.on_process_2D(xvals, yvals, zvals, return_data=True)
+        #     # Plot data
+        #     self.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, cmap, override=True, set_page=True)
 
     def on_save_figures(self, plot_type):
         """Save figure(s) for selected item(s)
@@ -856,7 +893,8 @@ class PanelPeaklist(PanelBase):
             type of data to be saved
         """
         process_list = self.get_selected_items()
-        self.data_handling.on_save_heatmap_data(data_type, process_list)
+        raise NotImplementedError("Must implement method")
+        # self.data_handling.on_save_heatmap_data(data_type, process_list)
 
     def on_save_data_chromatogram(self, evt):
         self.on_save_data("chromatogram")
@@ -867,49 +905,49 @@ class PanelPeaklist(PanelBase):
     def on_save_data_heatmap(self, evt):
         self.on_save_data("heatmap")
 
-    def on_save_peaklist(self, evt):
-        """Save data in CSV format"""
-        from origami.utils.color import convert_rgb_255_to_hex
-
-        rows = self.peaklist.GetItemCount()
-        if rows == 0:
-            return
-
-        data = []
-        # Iterate over row and columns to get data
-        for row in range(rows):
-            information = self.on_get_item_information(row)
-            ion_name = information["ion_name"]
-            mz_start, mz_end = get_ion_name_from_label(ion_name, as_num=True)
-            charge = information["charge"]
-            intensity = information["intensity"]
-            color = convert_rgb_255_to_hex(information["color"])
-            colormap = information["colormap"]
-            alpha = information["alpha"]
-            mask = information["mask"]
-            label = information["label"]
-            method = information["method"]
-            document = information["document"]
-            data.append(
-                [ion_name, mz_start, mz_end, charge, intensity, color, colormap, alpha, mask, label, method, document]
-            )
-        fmt = ["%s", "%.4f", "%.4f", "%i", "%.4f", "%s", "%s", "%.2f", "%.2f", "%s", "%s", "%s"]
-        header = [
-            "ion_name",
-            "mz_start",
-            "mz_end",
-            "charge",
-            "intensity",
-            "color",
-            "colormap",
-            "alpha",
-            "mask",
-            "label",
-            "method",
-            "document",
-        ]
-
-        self.data_handling.on_save_data_as_text(data, header, fmt, as_object=True)
+    # def on_save_peaklist(self, evt):
+    #     """Save data in CSV format"""
+    #     from origami.utils.color import convert_rgb_255_to_hex
+    #
+    #     rows = self.peaklist.GetItemCount()
+    #     if rows == 0:
+    #         return
+    #
+    #     data = []
+    #     # Iterate over row and columns to get data
+    #     for row in range(rows):
+    #         information = self.on_get_item_information(row)
+    #         ion_name = information["ion_name"]
+    #         mz_start, mz_end = get_ion_name_from_label(ion_name, as_num=True)
+    #         charge = information["charge"]
+    #         intensity = information["intensity"]
+    #         color = convert_rgb_255_to_hex(information["color"])
+    #         colormap = information["colormap"]
+    #         alpha = information["alpha"]
+    #         mask = information["mask"]
+    #         label = information["label"]
+    #         method = information["method"]
+    #         document = information["document"]
+    #         data.append(
+    #             [ion_name, mz_start, mz_end, charge, intensity, color, colormap, alpha, mask, label, method, document]
+    #         )
+    #     fmt = ["%s", "%.4f", "%.4f", "%i", "%.4f", "%s", "%s", "%.2f", "%.2f", "%s", "%s", "%s"]
+    #     header = [
+    #         "ion_name",
+    #         "mz_start",
+    #         "mz_end",
+    #         "charge",
+    #         "intensity",
+    #         "color",
+    #         "colormap",
+    #         "alpha",
+    #         "mask",
+    #         "label",
+    #         "method",
+    #         "document",
+    #     ]
+    #
+    #     self.data_handling.on_save_data_as_text(data, header, fmt, as_object=True)
 
     def on_find_item(self, ion_name, filename):
         """Find index of item with the provided parameters"""
@@ -917,50 +955,45 @@ class PanelPeaklist(PanelBase):
 
         for item_id in range(item_count):
             information = self.on_get_item_information(item_id)
-            if ion_name == information["ionName"] and filename == information["document"]:
+            if ion_name == information["ion_name"] and filename == information["document"]:
                 return item_id
 
     def on_get_item_information(self, itemID, return_list=False):
         information = self.peaklist.on_get_item_information(itemID)
-
-        # add additional data
-        information["ionName"] = information["ion_name"]
-        information["color_255to1"] = convert_rgb_255_to_1(information["color"], decimals=3)
-
-        # get document
-        document = self.data_handling.on_get_document(information["document"])
+        # # get document
+        # document = self.data_handling.on_get_document(information["document"])
 
         # check whether the ion has any previous information
         min_threshold, max_threshold = 0, 1
-        try:
-            if information["ionName"] in document.IMS2Dions:
-                min_threshold = document.IMS2Dions[information["ionName"]].get("min_threshold", 0)
-                max_threshold = document.IMS2Dions[information["ionName"]].get("max_threshold", 1)
-        except AttributeError:
-            pass
+        # try:
+        #     if information["ion_name"] in document.IMS2Dions:
+        #         min_threshold = document.IMS2Dions[information["ion_name"]].get("min_threshold", 0)
+        #         max_threshold = document.IMS2Dions[information["ion_name"]].get("max_threshold", 1)
+        # except AttributeError:
+        #     pass
+        #
+        # datasets = []
+        # if information["ion_name"] in document.IMS2Dions:
+        #     datasets.append("Drift time (2D, EIC)")
+        # if information["ion_name"] in document.IMS2DionsProcess:
+        #     datasets.append("Drift time (2D, processed, EIC)")
+        # if information["ion_name"] in document.IMS2DCombIons:
+        #     datasets.append("Drift time (2D, combined voltages, EIC)")
 
-        datasets = []
-        if information["ionName"] in document.IMS2Dions:
-            datasets.append("Drift time (2D, EIC)")
-        if information["ionName"] in document.IMS2DionsProcess:
-            datasets.append("Drift time (2D, processed, EIC)")
-        if information["ionName"] in document.IMS2DCombIons:
-            datasets.append("Drift time (2D, combined voltages, EIC)")
-
-        if not datasets:
-            datasets = ["Not extracted yet"]
+        # if not datasets:
+        #     datasets = ["Not extracted yet"]
 
         information["min_threshold"] = min_threshold
         information["max_threshold"] = max_threshold
-        information["datasets"] = datasets
+        # information["datasets"] = datasets
 
-        # Check whether the ion has combined ions
-        parameters = None
-        try:
-            parameters = document.IMS2DCombIons[information["ionName"]].get("parameters", None)
-        except (KeyError, AttributeError):
-            pass
-        information["parameters"] = parameters
+        # # Check whether the ion has combined ions
+        # parameters = None
+        # try:
+        #     parameters = document.IMS2DCombIons[information["ion_name"]].get("parameters", None)
+        # except (KeyError, AttributeError):
+        #     pass
+        # information["parameters"] = parameters
 
         return information
 
@@ -985,47 +1018,47 @@ class PanelPeaklist(PanelBase):
     #         return information["document"]
     #     elif value_type == "label":
     #         return information["label"]
-    #     elif value_type == "ionName":
-    #         return information["ionName"]
+    #     elif value_type == "ion_name":
+    #         return information["ion_name"]
 
     def on_find_and_update_values(self, ion_name, **kwargs):
         item_count = self.peaklist.GetItemCount()
 
         for item_id in range(item_count):
             information = self.on_get_item_information(item_id)
-            if ion_name == information["ionName"]:
+            if ion_name == information["ion_name"]:
                 for keyword in kwargs:
                     self.on_update_value_in_peaklist(item_id, keyword, kwargs[keyword])
 
-    def on_update_value_in_peaklist(self, item_id, value_type, value):
-
-        if value_type == "ion_name":
-            self.peaklist.SetStringItem(item_id, CONFIG.peaklistColNames["ion_name"], str(value))
-        elif value_type == "charge":
-            self.peaklist.SetStringItem(item_id, CONFIG.peaklistColNames["charge"], str(value))
-        elif value_type == "intensity":
-            self.peaklist.SetStringItem(item_id, CONFIG.peaklistColNames["intensity"], str(value))
-        elif value_type == "color":
-            color_255, color_1, font_color = value
-            self.peaklist.SetItemBackgroundColour(item_id, color_255)
-            self.peaklist.SetStringItem(item_id, CONFIG.peaklistColNames["color"], str(color_1))
-            self.peaklist.SetItemTextColour(item_id, font_color)
-        elif value_type == "color_text":
-            self.peaklist.SetItemBackgroundColour(item_id, value)
-            self.peaklist.SetStringItem(item_id, CONFIG.peaklistColNames["color"], str(convert_rgb_255_to_1(value)))
-            self.peaklist.SetItemTextColour(item_id, get_font_color(value, return_rgb=True))
-        elif value_type == "colormap":
-            self.peaklist.SetStringItem(item_id, CONFIG.peaklistColNames["colormap"], str(value))
-        elif value_type == "alpha":
-            self.peaklist.SetStringItem(item_id, CONFIG.peaklistColNames["alpha"], str(value))
-        elif value_type == "mask":
-            self.peaklist.SetStringItem(item_id, CONFIG.peaklistColNames["mask"], str(value))
-        elif value_type == "label":
-            self.peaklist.SetStringItem(item_id, CONFIG.peaklistColNames["label"], str(value))
-        elif value_type == "method":
-            self.peaklist.SetStringItem(item_id, CONFIG.peaklistColNames["method"], str(value))
-        elif value_type == "document":
-            self.peaklist.SetStringItem(item_id, CONFIG.peaklistColNames["filename"], str(value))
+    # def on_update_value_in_peaklist(self, item_id, value_type, value):
+    #
+    #     if value_type == "ion_name":
+    #         self.peaklist.SetStringItem(item_id, CONFIG.peaklistColNames["ion_name"], str(value))
+    #     elif value_type == "charge":
+    #         self.peaklist.SetStringItem(item_id, CONFIG.peaklistColNames["charge"], str(value))
+    #     elif value_type == "intensity":
+    #         self.peaklist.SetStringItem(item_id, CONFIG.peaklistColNames["intensity"], str(value))
+    #     elif value_type == "color":
+    #         color_255, color_1, font_color = value
+    #         self.peaklist.SetItemBackgroundColour(item_id, color_255)
+    #         self.peaklist.SetStringItem(item_id, CONFIG.peaklistColNames["color"], str(color_1))
+    #         self.peaklist.SetItemTextColour(item_id, font_color)
+    #     elif value_type == "color_text":
+    #         self.peaklist.SetItemBackgroundColour(item_id, value)
+    #         self.peaklist.SetStringItem(item_id, CONFIG.peaklistColNames["color"], str(convert_rgb_255_to_1(value)))
+    #         self.peaklist.SetItemTextColour(item_id, get_font_color(value, return_rgb=True))
+    #     elif value_type == "colormap":
+    #         self.peaklist.SetStringItem(item_id, CONFIG.peaklistColNames["colormap"], str(value))
+    #     elif value_type == "alpha":
+    #         self.peaklist.SetStringItem(item_id, CONFIG.peaklistColNames["alpha"], str(value))
+    #     elif value_type == "mask":
+    #         self.peaklist.SetStringItem(item_id, CONFIG.peaklistColNames["mask"], str(value))
+    #     elif value_type == "label":
+    #         self.peaklist.SetStringItem(item_id, CONFIG.peaklistColNames["label"], str(value))
+    #     elif value_type == "method":
+    #         self.peaklist.SetStringItem(item_id, CONFIG.peaklistColNames["method"], str(value))
+    #     elif value_type == "document":
+    #         self.peaklist.SetStringItem(item_id, CONFIG.peaklistColNames["filename"], str(value))
 
     def on_open_editor(self, evt):
         from origami.gui_elements.panel_modify_item_settings import PanelModifyItemSettings
@@ -1044,29 +1077,29 @@ class PanelPeaklist(PanelBase):
         self.item_editor.Centre()
         self.item_editor.Show()
 
-    def on_change_item_colormap(self, evt):
-        # get number of checked items
-        check_count = 0
-        for row in range(self.peaklist.GetItemCount()):
-            if self.peaklist.IsChecked(index=row):
-                check_count += 1
-
-        if check_count > len(CONFIG.narrowCmapList):
-            colormaps = CONFIG.narrowCmapList
-        else:
-            colormaps = CONFIG.narrowCmapList + CONFIG.cmaps2
-
-        for row in range(self.peaklist.GetItemCount()):
-            if self.peaklist.IsChecked(index=row):
-                self.peaklist.item_id = row
-                colormap = colormaps[row]
-                self.peaklist.SetStringItem(row, CONFIG.peaklistColNames["colormap"], str(colormap))
-
-                # update document
-                try:
-                    self.on_update_document(evt=None)
-                except TypeError:
-                    print("Please select item")
+    # def on_change_item_colormap(self, evt):
+    #     # get number of checked items
+    #     check_count = 0
+    #     for row in range(self.peaklist.GetItemCount()):
+    #         if self.peaklist.IsChecked(index=row):
+    #             check_count += 1
+    #
+    #     if check_count > len(CONFIG.narrowCmapList):
+    #         colormaps = CONFIG.narrowCmapList
+    #     else:
+    #         colormaps = CONFIG.narrowCmapList + CONFIG.cmaps2
+    #
+    #     for row in range(self.peaklist.GetItemCount()):
+    #         if self.peaklist.IsChecked(index=row):
+    #             self.peaklist.item_id = row
+    #             colormap = colormaps[row]
+    #             self.peaklist.SetStringItem(row, CONFIG.peaklistColNames["colormap"], str(colormap))
+    #
+    #             # update document
+    #             try:
+    #                 self.on_update_document()
+    #             except TypeError:
+    #                 print("Please select item")
 
     def on_change_item_color_batch(self, evt):
         # get number of checked items
@@ -1095,85 +1128,89 @@ class PanelPeaklist(PanelBase):
 
             # update document
             try:
-                self.on_update_document(evt=None)
+                self.on_update_document()
             except TypeError:
                 print("Please select an item")
 
-    def on_update_document(self, evt, itemInfo=None):
+    def on_update_document(self, item_id: Optional[int] = None, item_info: Optional[Dict] = None):
         """Update document data"""
 
         # get item info
-        if itemInfo is None:
-            itemInfo = self.on_get_item_information(self.peaklist.item_id)
+        if item_info is None:
+            if item_id is None:
+                item_id = self.peaklist.item_id
+            item_info = self.on_get_item_information(item_id)
 
         # get item
-        document = self.data_handling.on_get_document(itemInfo["document"])
+        document = self.data_handling.on_get_document(item_info["document"])
 
-        processed_name = "{} (processed)".format(itemInfo["ionName"])
+        processed_name = "{} (processed)".format(item_info["ion_name"])
         keywords = ["color", "colormap", "alpha", "mask", "label", "min_threshold", "max_threshold", "charge"]
 
-        if itemInfo["ionName"] in document.IMS2Dions:
-            for keyword in keywords:
-                keyword_name = self.KEYWORD_ALIAS.get(keyword, keyword)
-                document.IMS2Dions[itemInfo["ionName"]][keyword_name] = itemInfo[keyword]
-                if processed_name in document.IMS2Dions:
-                    document.IMS2Dions[processed_name][keyword_name] = itemInfo[keyword]
-
-        if f"{itemInfo['ionName']} (processed)" in document.IMS2Dions:
-            for keyword in keywords:
-                keyword_name = self.KEYWORD_ALIAS.get(keyword, keyword)
-                document.IMS2Dions[itemInfo["ionName"]][keyword_name] = itemInfo[keyword]
-                if processed_name in document.IMS2Dions:
-                    document.IMS2Dions[processed_name][keyword_name] = itemInfo[keyword]
-
-        if itemInfo["ionName"] in document.IMS2DCombIons:
-            for keyword in keywords:
-                keyword_name = self.KEYWORD_ALIAS.get(keyword, keyword)
-                document.IMS2DCombIons[itemInfo["ionName"]][keyword_name] = itemInfo[keyword]
-                if processed_name in document.IMS2DCombIons:
-                    document.IMS2DCombIons[processed_name][keyword_name] = itemInfo[keyword]
-
-        if itemInfo["ionName"] in document.IMS2DionsProcess:
-            for keyword in keywords:
-                keyword_name = self.KEYWORD_ALIAS.get(keyword, keyword)
-                document.IMS2DionsProcess[itemInfo["ionName"]][keyword_name] = itemInfo[keyword]
-                if processed_name in document.IMS2DionsProcess:
-                    document.IMS2DionsProcess[processed_name][keyword_name] = itemInfo[keyword]
-
-        if itemInfo["ionName"] in document.IMSRTCombIons:
-            for keyword in keywords:
-                keyword_name = self.KEYWORD_ALIAS.get(keyword, keyword)
-                document.IMSRTCombIons[itemInfo["ionName"]][keyword_name] = itemInfo[keyword]
-                if processed_name in document.IMSRTCombIons:
-                    document.IMSRTCombIons[processed_name][keyword_name] = itemInfo[keyword]
+        # if itemInfo["ion_name"] in document.IMS2Dions:
+        #     for keyword in keywords:
+        #         keyword_name = self.KEYWORD_ALIAS.get(keyword, keyword)
+        #         document.IMS2Dions[itemInfo["ion_name"]][keyword_name] = itemInfo[keyword]
+        #         if processed_name in document.IMS2Dions:
+        #             document.IMS2Dions[processed_name][keyword_name] = itemInfo[keyword]
+        #
+        # if f"{itemInfo['ion_name']} (processed)" in document.IMS2Dions:
+        #     for keyword in keywords:
+        #         keyword_name = self.KEYWORD_ALIAS.get(keyword, keyword)
+        #         document.IMS2Dions[itemInfo["ion_name"]][keyword_name] = itemInfo[keyword]
+        #         if processed_name in document.IMS2Dions:
+        #             document.IMS2Dions[processed_name][keyword_name] = itemInfo[keyword]
+        #
+        # if itemInfo["ion_name"] in document.IMS2DCombIons:
+        #     for keyword in keywords:
+        #         keyword_name = self.KEYWORD_ALIAS.get(keyword, keyword)
+        #         document.IMS2DCombIons[itemInfo["ion_name"]][keyword_name] = itemInfo[keyword]
+        #         if processed_name in document.IMS2DCombIons:
+        #             document.IMS2DCombIons[processed_name][keyword_name] = itemInfo[keyword]
+        #
+        # if itemInfo["ion_name"] in document.IMS2DionsProcess:
+        #     for keyword in keywords:
+        #         keyword_name = self.KEYWORD_ALIAS.get(keyword, keyword)
+        #         document.IMS2DionsProcess[itemInfo["ion_name"]][keyword_name] = itemInfo[keyword]
+        #         if processed_name in document.IMS2DionsProcess:
+        #             document.IMS2DionsProcess[processed_name][keyword_name] = itemInfo[keyword]
+        #
+        # if itemInfo["ion_name"] in document.IMSRTCombIons:
+        #     for keyword in keywords:
+        #         keyword_name = self.KEYWORD_ALIAS.get(keyword, keyword)
+        #         document.IMSRTCombIons[itemInfo["ion_name"]][keyword_name] = itemInfo[keyword]
+        #         if processed_name in document.IMSRTCombIons:
+        #             document.IMSRTCombIons[processed_name][keyword_name] = itemInfo[keyword]
 
         # Update document
         self.data_handling.on_update_document(document, "no_refresh")
 
-    def on_open_ORIGAMI_MS_panel(self, evt):
-        document = self.data_handling._get_document_of_type(["Type: ORIGAMI"], allow_creation=False)
+    def on_open_origami_ms_panel(self, evt):
+        """Opens panel where ORIGAMI-MS parameters can be altered"""
+        document = ENV.on_get_document(self._document_title)
         if document is None:
             raise MessageError("Error", "Please create/load ORIGAMI document first")
-
         self.document_tree.on_action_ORIGAMI_MS(None, document.title)
 
     def on_load_peaklist(self, evt):
         """This function opens a formatted CSV file with peaks"""
+        raise NotImplementedError("Must implement method")
 
-        document = self.data_handling._get_document_of_type(
-            ["Type: MANUAL", "Type: ORIGAMI", "Type: Infrared"], allow_creation=False
-        )
-        if document is None:
-            raise MessageError("Error", "Please load/create a document before loading peaklist")
-
-        document_title = document.title
-        peaklist = self.data_handling.on_load_user_list_fcn(data_type="peaklist")
-
-        for add_dict in peaklist:
-            add_dict["document"] = document_title
-            self.on_add_to_table(add_dict, check_color=False)
-        self.peaklist.on_remove_duplicates()
-        self.view.on_toggle_panel(evt=ID_window_ionList, check=True)
+    #
+    #     document = self.data_handling._get_document_of_type(
+    #         ["Type: MANUAL", "Type: ORIGAMI", "Type: Infrared"], allow_creation=False
+    #     )
+    #     if document is None:
+    #         raise MessageError("Error", "Please load/create a document before loading peaklist")
+    #
+    #     document_title = document.title
+    #     peaklist = self.data_handling.on_load_user_list_fcn(data_type="peaklist")
+    #
+    #     for add_dict in peaklist:
+    #         add_dict["document"] = document_title
+    #         self.on_add_to_table(add_dict, check_color=False)
+    #     self.peaklist.on_remove_duplicates()
+    #     self.view.on_toggle_panel(evt=ID_window_ionList, check=True)
 
     def on_restore_to_peaklist(self, evt):
         document = self.data_handling._get_document_of_type(
@@ -1189,4 +1226,10 @@ class PanelPeaklist(PanelBase):
         self.data_handling.on_extract_2D_from_mass_range_fcn(None, extract_type="selected")
 
     def on_extract_new(self, evt):
+        """Triggers data extraction of new item(s)"""
         self.data_handling.on_extract_2D_from_mass_range_fcn(None, extract_type="new")
+
+    def on_extract_auto(self, evt):
+        """Triggers data extraction as soon as the element has been inserted"""
+        if self._automatic_extract:
+            self.on_extract_new(evt)

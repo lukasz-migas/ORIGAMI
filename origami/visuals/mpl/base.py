@@ -65,12 +65,17 @@ class PlotBase(MPLPanel):
         y_min, y_max = get_min_max(y)
 
         xlimits = [x_min, x_max]
+        if y_lower_start is None:
+            y_lower_start = y_min
         ylimits = [y_lower_start, y_max * y_upper_multiplier]
 
         # extent is x_min, y_min, x_max, y_max
         extent = [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
 
         return xlimits, ylimits, extent
+
+    def store_plot_limits(self, extent):
+        self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
 
     def _update_plot_settings_(self, **kwargs):
         for parameter in kwargs:

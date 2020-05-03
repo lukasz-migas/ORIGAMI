@@ -3236,7 +3236,7 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         if evtID == ID_extraSettings_multiThreading:
             on_off = "enabled" if self.config.threading else "disabled"
             msg = f"Multi-threading was `{on_off}``"
-            self.presenter.view.on_toggle_multithreading(evt=None)
+            self.presenter.view.on_toggle_threading(evt=None)
 
         elif evtID == ID_extraSettings_autoSaveSettings:
             on_off = "enabled" if self.config.autoSaveSettings else "disabled"

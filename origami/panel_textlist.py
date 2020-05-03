@@ -1,6 +1,7 @@
 # Standard library imports
 import re
 import logging
+from enum import IntEnum
 
 # Third-party imports
 import wx
@@ -44,6 +45,21 @@ from origami.gui_elements.panel_base import PanelBase
 from origami.gui_elements.misc_dialogs import DialogBox
 
 LOGGER = logging.getLogger(__name__)
+
+
+class TableColumnIndex(IntEnum):
+    check = 0
+    start = 1
+    end = 2
+    charge = 3
+    color = 4
+    colormap = 5
+    alpha = 6
+    mask = 7
+    label = 8
+    shape = 9
+    document = 10
+    key = 11
 
 
 class PanelTextlist(PanelBase):
@@ -175,6 +191,7 @@ class PanelTextlist(PanelBase):
     def on_open_info_panel(self, evt):
         LOGGER.error("This function is not implemented yet")
 
+    # noinspection DuplicatedCode
     def make_toolbar(self):
 
         add_btn = wx.BitmapButton(
@@ -225,7 +242,7 @@ class PanelTextlist(PanelBase):
         toolbar.Add(process_btn, 0, wx.ALIGN_CENTER)
         toolbar.Add(save_btn, 0, wx.ALIGN_CENTER)
         toolbar.AddSpacer(5)
-        toolbar.Add(vertical_line_1, 0, wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
+        toolbar.Add(vertical_line_1, 0, wx.EXPAND)
         toolbar.AddSpacer(5)
         toolbar.Add(info_btn, 0, wx.ALIGN_CENTER)
 
@@ -589,29 +606,29 @@ class PanelTextlist(PanelBase):
     def on_save_data_heatmap(self, evt):
         self.on_save_data("heatmap")
 
-    def on_change_item_colormap(self, evt):
-        # get number of checked items
-        check_count = 0
-        for row in range(self.peaklist.GetItemCount()):
-            if self.peaklist.IsChecked(index=row):
-                check_count += 1
-
-        if check_count > len(CONFIG.narrowCmapList):
-            colormaps = CONFIG.narrowCmapList
-        else:
-            colormaps = CONFIG.narrowCmapList + CONFIG.cmaps2
-
-        for row in range(self.peaklist.GetItemCount()):
-            if self.peaklist.IsChecked(index=row):
-                self.peaklist.item_id = row
-                colormap = colormaps[row]
-                self.peaklist.SetItem(row, CONFIG.textlistColNames["colormap"], str(colormap))
-
-                # update document
-                try:
-                    self.on_update_document(evt=None)
-                except TypeError:
-                    print("Please select item")
+    # def on_change_item_colormap(self, evt):
+    #     # get number of checked items
+    #     check_count = 0
+    #     for row in range(self.peaklist.GetItemCount()):
+    #         if self.peaklist.IsChecked(index=row):
+    #             check_count += 1
+    #
+    #     if check_count > len(CONFIG.narrowCmapList):
+    #         colormaps = CONFIG.narrowCmapList
+    #     else:
+    #         colormaps = CONFIG.narrowCmapList + CONFIG.cmaps2
+    #
+    #     for row in range(self.peaklist.GetItemCount()):
+    #         if self.peaklist.IsChecked(index=row):
+    #             self.peaklist.item_id = row
+    #             colormap = colormaps[row]
+    #             self.peaklist.SetItem(row, CONFIG.textlistColNames["colormap"], str(colormap))
+    #
+    #             # update document
+    #             try:
+    #                 self.on_update_document(evt=None)
+    #             except TypeError:
+    #                 print("Please select item")
 
     def on_change_item_color_batch(self, evt):
         # get number of checked items

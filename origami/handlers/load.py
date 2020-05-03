@@ -84,13 +84,11 @@ class LoadHandler:
             document.set_reader("ion_mobility", reader)
 
         # extract data
-        mz_x, mz_y = reader.extract_ms(dt_start=x_min, dt_end=x_max, return_data=True)
-
-        # preset data
+        mz_obj = reader.extract_ms(dt_start=x_min, dt_end=x_max, return_data=True)
         obj_name = f"Drift time: {x_min}-{x_max}"
-        obj_data = MassSpectrumObject(mz_x, mz_y, metadata={"range": [x_min, x_max]})
+        mz_obj = document.add_spectrum(obj_name, mz_obj)
 
-        return obj_name, obj_data, document
+        return obj_name, mz_obj, document
 
     @staticmethod
     @check_os("win32")
@@ -123,13 +121,11 @@ class LoadHandler:
             reader = WatersIMReader(document.path)
             document.set_reader("ion_mobility", reader)
 
-        mz_x, mz_y = reader.extract_ms(rt_start=x_min, rt_end=x_max, return_data=True)
-
-        # Add data to dictionary
+        mz_obj = reader.extract_ms(rt_start=x_min, rt_end=x_max, return_data=True)
         obj_name = f"Scans: {x_min}-{x_max}"
-        obj_data = MassSpectrumObject(mz_x, mz_y, metadata={"range": [x_min, x_max]})
+        mz_obj = document.add_spectrum(obj_name, mz_obj)
 
-        return obj_name, obj_data, document
+        return obj_name, mz_obj, document
 
     @staticmethod
     @check_os("win32")
@@ -153,7 +149,7 @@ class LoadHandler:
         -------
         obj_name : str
             name of the data object
-        obj_data : Dict
+        mz_obj : MassSpectrumObject
             dictionary containing extracted data
         document : Document
             instance of the document for which data was extracted
@@ -166,13 +162,11 @@ class LoadHandler:
             reader = WatersIMReader(document.path)
             document.set_reader("ion_mobility", reader)
 
-        mz_x, mz_y = reader.extract_ms(rt_start=x_min, rt_end=x_max, dt_start=y_min, dt_end=y_max, return_data=True)
-
-        # Add data to dictionary
+        mz_obj = reader.extract_ms(rt_start=x_min, rt_end=x_max, dt_start=y_min, dt_end=y_max, return_data=True)
         obj_name = f"Scans: {x_min}-{x_max}"
-        obj_data = MassSpectrumObject(mz_x, mz_y, metadata={"range": [x_min, x_max]})
+        mz_obj = document.add_spectrum(obj_name, mz_obj)
 
-        return obj_name, obj_data, document
+        return obj_name, mz_obj, document
 
     @staticmethod
     @check_os("win32")
@@ -192,7 +186,7 @@ class LoadHandler:
         -------
         obj_name : str
             name of the data object
-        obj_data : Dict
+        heatmap_obj : IonHeatmapObject
             dictionary containing extracted data
         document : Document
             instance of the document for which data was extracted
@@ -206,14 +200,11 @@ class LoadHandler:
             document.set_reader("ion_mobility", reader)
 
         # get heatmap
-        _, _, _, _, array = reader.extract_heatmap(mz_start=x_min, mz_end=x_max, return_data=True)
-        dt_x, dt_y = reader.extract_dt(mz_start=x_min, mz_end=x_max, return_data=True)
-        _, rt_x, rt_y = reader.extract_rt(mz_start=x_min, mz_end=x_max, return_data=True)
-
+        heatmap_obj = reader.extract_heatmap(mz_start=x_min, mz_end=x_max, return_data=True)
         obj_name = f"{x_min:.2f}-{x_max:.2f}"
-        obj_data = IonHeatmapObject(array, x=dt_x, y=rt_x, xy=dt_y, yy=rt_y)
+        heatmap_obj = document.add_spectrum(obj_name, heatmap_obj)
 
-        return obj_name, obj_data, document
+        return obj_name, heatmap_obj, document
 
     @staticmethod
     @check_os("win32")
@@ -248,8 +239,8 @@ class LoadHandler:
         rt_x = []
         for idx, (filepath, value) in enumerate(filelist.items()):
             reader = WatersIMReader(filepath)
-            dt_x, _dt_y = reader.extract_dt(mz_start=x_min, mz_end=x_max, return_data=True)
-            array[:, idx] = _dt_y
+            dt_obj = reader.extract_dt(mz_start=x_min, mz_end=x_max, return_data=True)
+            array[:, idx] = dt_obj.y
             rt_x.append(value)
 
         rt_x = np.asarray(rt_x)
@@ -264,67 +255,78 @@ class LoadHandler:
         obj_name = f"{x_min:.2f}-{x_max:.2f}"
         obj_data = IonHeatmapObject(array, x=dt_x, y=rt_x, xy=dt_y, yy=rt_y)
 
-        return obj_name, obj_data, None  # document
+        return obj_name, obj_data, None
 
     @staticmethod
     @check_os("win32")
-    def waters_im_extract_ms(path, **kwargs):
+    def waters_im_extract_ms(path, **kwargs) -> MassSpectrumObject:
         """Extract chromatographic data"""
         check_path(path)
         reader = WatersIMReader(path)
-        x, y = reader.extract_ms(**kwargs)
+        mz_obj: MassSpectrumObject = reader.extract_ms(**kwargs)
 
-        return x, y
+        return mz_obj
 
     @staticmethod
     @check_os("win32")
-    def waters_im_extract_rt(path, **kwargs):
+    def waters_im_extract_rt(path, **kwargs) -> ChromatogramObject:
         """Extract chromatographic data"""
         check_path(path)
         reader = WatersIMReader(path)
-        x, x_bin, y = reader.extract_rt(**kwargs)
+        rt_obj: ChromatogramObject = reader.extract_rt(**kwargs)
 
-        return x_bin, y
+        return rt_obj
 
     @staticmethod
     @check_os("win32")
-    def waters_im_extract_dt(path, **kwargs):
+    def waters_im_extract_dt(path, **kwargs) -> MobilogramObject:
         """Extract mobility data"""
         check_path(path)
         reader = WatersIMReader(path)
-        x_bin, y = reader.extract_dt(**kwargs)
+        dt_obj: MobilogramObject = reader.extract_dt(**kwargs)
 
-        return x_bin, y
+        return dt_obj
 
     @staticmethod
     @check_os("win32")
-    def waters_im_extract_heatmap(path, **kwargs):
+    def waters_im_extract_heatmap(path, **kwargs) -> IonHeatmapObject:
         """Extract mobility data"""
         check_path(path)
         reader = WatersIMReader(path)
-        dt_x, _, rt_x, _, array = reader.extract_heatmap(**kwargs)
+        heatmap_obj: IonHeatmapObject = reader.extract_heatmap(**kwargs)
 
-        return dt_x, rt_x, array
+        return heatmap_obj
 
     @staticmethod
     @check_os("win32")
-    def waters_im_extract_msdt(path, mz_min: float, mz_max: float, mz_bin_size: float = 1.0, **kwargs):
+    def waters_im_extract_msdt(
+        path, mz_min: float, mz_max: float, mz_bin_size: float = 1.0, **kwargs
+    ) -> MassSpectrumHeatmapObject:
         """Extract mobility data"""
         check_path(path)
 
         # calculate number of m/z bins
         n_mz_bins = math.floor((mz_max - mz_min) / mz_bin_size)
         reader = WatersIMReader(path)
-        mz_x, _, dt_x, _, array = reader.extract_msdt(mz_start=mz_min, mz_end=mz_max, n_points=n_mz_bins, **kwargs)
+        mzdt_obj: MassSpectrumHeatmapObject = reader.extract_msdt(
+            mz_start=mz_min, mz_end=mz_max, n_points=n_mz_bins, **kwargs
+        )
 
-        return mz_x, dt_x, array
+        return mzdt_obj
 
     @staticmethod
-    def load_text_mass_spectrum_data(path):
+    def load_text_spectrum_data(path):
         """Read mass spectrum data from text file"""
         reader = TextSpectrumReader(path)
 
         return reader.x, reader.y, reader.directory, reader.x_limits, reader.extension
+
+    def load_text_mass_spectrum_document(self, path):
+        x, y, _, _, _ = self.load_text_spectrum_data(path)
+        mz_obj = MassSpectrumObject(x, y)
+
+        document = ENV.get_new_document("origami", path, data=dict(mz=mz_obj))
+        return document
 
     @staticmethod
     def load_text_annotated_data(filename):
@@ -461,28 +463,28 @@ class LoadHandler:
         reader = WatersIMReader(path)
         LOGGER.debug("Initialized Waters reader")
 
-        mz_x, mz_y = reader.extract_ms()
+        mz_obj: MassSpectrumObject = reader.extract_ms()
         LOGGER.debug("Loaded spectrum in " + report_time(t_start))
 
-        rt_x_min, rt_x, rt_y = reader.extract_rt()
+        rt_obj: ChromatogramObject = reader.extract_rt()
         LOGGER.debug("Loaded RT in " + report_time(t_start))
 
-        dt_x, dt_y = reader.extract_dt()
+        dt_obj: MobilogramObject = reader.extract_dt()
         LOGGER.debug("Loaded DT in " + report_time(t_start))
 
-        _, _, _, _, array = reader.extract_heatmap()
+        heatmap_obj: IonHeatmapObject = reader.extract_heatmap()
         LOGGER.debug("Loaded DT in " + report_time(t_start))
 
-        msdt_mz_x, msdt_dt_x, msdt_array = self.waters_im_extract_msdt(path, reader.mz_min, reader.mz_max)
+        mzdt_obj: MassSpectrumHeatmapObject = self.waters_im_extract_msdt(path, reader.mz_min, reader.mz_max)
         LOGGER.debug("Loaded MSDT in " + report_time(t_start))
         parameters = reader.get_inf_data()
 
         data = {
-            "mz": MassSpectrumObject(mz_x, mz_y),
-            "rt": ChromatogramObject(rt_x, rt_y, extra_data={"yvals_min": rt_x_min}),
-            "dt": MobilogramObject(dt_x, dt_y),
-            "heatmap": IonHeatmapObject(array, x=dt_x, y=rt_x, xy=dt_y, yy=rt_y),
-            "msdt": MassSpectrumHeatmapObject(msdt_array, x=msdt_mz_x, y=msdt_dt_x),
+            "mz": mz_obj,
+            "rt": rt_obj,
+            "dt": dt_obj,
+            "heatmap": heatmap_obj,
+            "msdt": mzdt_obj,
             "parameters": parameters,
         }
         LOGGER.debug("Loaded data in " + report_time(t_start))

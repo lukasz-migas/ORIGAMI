@@ -11,12 +11,19 @@ import numpy as np
 from origami.utils.path import check_waters_path
 from origami.utils.secret import get_short_hash
 from origami.readers.io_utils import clean_up
+from origami.objects.containers import IonHeatmapObject
+from origami.objects.containers import MobilogramObject
+from origami.objects.containers import ChromatogramObject
+from origami.objects.containers import MassSpectrumObject
+from origami.objects.containers import MassSpectrumHeatmapObject
 from origami.readers.io_waters_raw_api import WatersRawReader
 
 logger = logging.getLogger(__name__)
 
 # create data holder
 TEMP_DATA_FOLDER = os.path.join(os.getcwd(), "temporary_data")
+
+# TODO: move away from returning individual arrays to wrapping them into MS objects
 
 
 def get_driftscope_path():
@@ -129,10 +136,8 @@ class WatersIMReader(WatersRawReader):
 
         Returns
         -------
-        x : np.ndarray
-            m/z values
-        y : np.ndarray
-            intensity values
+        mz_obj : MassSpectrumObject
+            mass spectrum object
         """
         # write output filename first
         filename = self.get_temp_filename()
@@ -150,7 +155,18 @@ class WatersIMReader(WatersRawReader):
 
         if return_data:
             x, y = self.load_ms(out_path)
-            return x, y
+            return MassSpectrumObject(
+                x,
+                y,
+                metadata={
+                    "rt_start": rt_start,
+                    "rt_end": rt_end,
+                    "dt_start": dt_start,
+                    "dt_end": dt_end,
+                    "mz_start": mz_start,
+                    "mz_end": mz_end,
+                },
+            )
         return out_path
 
     def load_ms(self, path):
@@ -211,10 +227,8 @@ class WatersIMReader(WatersRawReader):
 
         Returns
         -------
-        x : np.ndarray
-            m/z values
-        y : np.ndarray
-            intensity values
+        rt_obj : ChromatogramObject
+            chrmatogram object
         """
         mz_start, mz_end = self.check_mz_range(mz_start, mz_end)
 
@@ -234,7 +248,19 @@ class WatersIMReader(WatersRawReader):
 
         if return_data:
             x, x_bin, y = self.load_rt(out_path)
-            return x, x_bin, y
+            return ChromatogramObject(
+                x_bin,
+                y,
+                extra_data=dict(x_min=x),
+                metadata={
+                    "rt_start": rt_start,
+                    "rt_end": rt_end,
+                    "dt_start": dt_start,
+                    "dt_end": dt_end,
+                    "mz_start": mz_start,
+                    "mz_end": mz_end,
+                },
+            )
         return out_path
 
     def load_rt(self, path):
@@ -300,10 +326,8 @@ class WatersIMReader(WatersRawReader):
 
         Returns
         -------
-        x_bin : np.ndarray
-            drift time in bins
-        y : np.ndarray
-            intensity values
+        dt_obj : MobilogramObject
+            mobilogram object
         """
         mz_start, mz_end = self.check_mz_range(mz_start, mz_end)
 
@@ -322,7 +346,19 @@ class WatersIMReader(WatersRawReader):
 
         if return_data:
             x_bin, y = self.load_dt(out_path)
-            return x_bin, y
+            return MobilogramObject(
+                x_bin,
+                y,
+                extra_data=dict(x_ms=self.dt_ms),
+                metadata={
+                    "rt_start": rt_start,
+                    "rt_end": rt_end,
+                    "dt_start": dt_start,
+                    "dt_end": dt_end,
+                    "mz_start": mz_start,
+                    "mz_end": mz_end,
+                },
+            )
         return out_path
 
     def load_dt(self, path):
@@ -383,16 +419,8 @@ class WatersIMReader(WatersRawReader):
 
         Returns
         -------
-        dt_x : np.ndarray
-            drift time bins
-        dt_y : np.ndarray
-            drift time intensity array
-        rt_x : np.ndarray
-            chromatogram scans
-        rt_y : np.ndarray
-            chromatogram intensity array
-        array : np.ndarray
-            heatmap array
+        heatmap_obj : IonHeatmapObject
+            heatmap object
         """
         mz_start, mz_end = self.check_mz_range(mz_start, mz_end)
 
@@ -419,7 +447,21 @@ class WatersIMReader(WatersRawReader):
             dt_y = array.sum(axis=1)
             rt_x = self.rt_bin
             rt_y = array.sum(axis=0)
-            return dt_x, dt_y, rt_x, rt_y, array
+            return IonHeatmapObject(
+                array,
+                x=rt_x,
+                y=dt_x,
+                xy=rt_y,
+                yy=dt_y,
+                metadata={
+                    "rt_start": rt_start,
+                    "rt_end": rt_end,
+                    "dt_start": dt_start,
+                    "dt_end": dt_end,
+                    "mz_start": mz_start,
+                    "mz_end": mz_end,
+                },
+            )
         return out_path
 
     def load_heatmap(self, path, reduce="sum"):
@@ -487,16 +529,8 @@ class WatersIMReader(WatersRawReader):
 
         Returns
         -------
-        mz_x : np.ndarray
-            m/z values
-        mz_y : np.ndarray
-            m/z intensity values
-        dt_x : np.ndarray
-            drift scans
-        dt_y : np.ndarray
-            drift intensity array
-        array : np.ndarray
-            heatmap array
+        msdt_obj : MassSpectrumHeatmapObject
+            heatmap object
         """
         mz_start, mz_end = self.check_mz_range(mz_start, mz_end)
 
@@ -522,7 +556,20 @@ class WatersIMReader(WatersRawReader):
             mz_y = array.sum(axis=0)
             dt_x = self.dt_bin
             dt_y = array.sum(axis=1)
-            return mz_x, mz_y, dt_x, dt_y, array
+            return MassSpectrumHeatmapObject(
+                array,
+                x=mz_x,
+                y=dt_x,
+                xy=mz_y,
+                yy=dt_y,
+                metadata={
+                    "dt_start": dt_start,
+                    "dt_end": dt_end,
+                    "mz_start": mz_start,
+                    "mz_end": mz_end,
+                    "n_points": n_points,
+                },
+            )
 
         return out_path
 
