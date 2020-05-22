@@ -35,8 +35,8 @@ class PanelPeakPicker(MiniFrame):
         self.document_tree = self.parent.panelDocuments.documents
         self.panel_plot = self.parent.panelPlots
 
-        self.ionPanel = self.parent.panelMultipleIons
-        self.ionList = self.ionPanel.peaklist
+        # self.ionPanel = self.parent.panelMultipleIons
+        # self.ionList = self.ionPanel.peaklist
 
         self.config = config
         self.icons = icons

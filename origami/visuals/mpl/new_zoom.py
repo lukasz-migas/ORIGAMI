@@ -538,8 +538,7 @@ class MPLInteraction:
             if x is not None and y is not None and a.in_axes(evt) and a.get_navigate() and a.can_zoom():
                 self._xy_press.append((x, y, a))
 
-        self.zoomStartX = evt.xdata
-        self.zoomStartY = evt.ydata
+        xy_start = [evt.xdata, evt.ydata]
 
         # set rect for displaying the zoom
         if not self.retinaFix:
@@ -568,8 +567,7 @@ class MPLInteraction:
             pass
 
         self._button_down = True
-        pub.sendMessage("change_x_axis_start", startX=self.zoomStartX)
-        # self.startX = evt.xdata
+        pub.sendMessage("change_x_axis_start", xy_start=xy_start)
 
         # make the box/line visible get the click-coordinates, button, ...
         # for to_draw in self.to_draw:
@@ -580,6 +578,7 @@ class MPLInteraction:
         if self.data_limits is not None:
             xmin, ymin, xmax, ymax = self.data_limits
             xmin, ymin, xmax, ymax = self._check_xy_values(xmin, ymin, xmax, ymax)
+            print(self.data_limits)
 
         # Check if a zoom out is necessary
         zoomout = False
@@ -618,6 +617,7 @@ class MPLInteraction:
         #         pub.sendMessage("change_zoom_dtms", xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
         #
         self.canvas.draw()
+        LOGGER.debug("Plot -> Zoom out")
 
     def _drag_label(self, evt):
         old_pos = self.dragged.get_position()
@@ -701,7 +701,7 @@ class MPLInteraction:
         if self.eventpress is None or (self.ignore(evt) and not self._button_down):
             return
         self._button_down = False
-        pub.sendMessage("change_x_axis_start", startX=None)
+        pub.sendMessage("change_x_axis_start", xy_start=[None, None])
 
         # When the mouse is released we reset the overlay and it restores the former content to the window.
         if not self.retinaFix:

@@ -30,10 +30,11 @@ class TableColumnIndex(IntEnum):
     pass
 
 
-class PanelBase(wx.Panel):
+class TablePanelBase(wx.Panel):
 
     # must have name, tag, type, show, id, width
     TABLE_DICT = {}
+    TABLE_COLUMN_INDEX = TableColumnIndex
     TABLE_RESERVED = {"hide_all": wx.NewIdRef(), "show_all": wx.NewIdRef()}
     DUPLICATE_ID_CHECK = []
     KEYWORD_ALIAS = {}
@@ -199,11 +200,11 @@ class PanelBase(wx.Panel):
         if value_type == "color":
             color_255, color_1, font_color = value
             self.peaklist.SetItemBackgroundColour(item_id, color_255)
-            self.peaklist.SetStringItem(item_id, self.TABLE_DICT["color"], str(color_1))
+            self.peaklist.SetStringItem(item_id, self.TABLE_COLUMN_INDEX.color, str(color_1))
             self.peaklist.SetItemTextColour(item_id, font_color)
         elif value_type == "color_text":
             self.peaklist.SetItemBackgroundColour(item_id, value)
-            self.peaklist.SetStringItem(item_id, self.TABLE_DICT["color"], str(convert_rgb_255_to_1(value)))
+            self.peaklist.SetStringItem(item_id, self.TABLE_COLUMN_INDEX.color, str(convert_rgb_255_to_1(value)))
             self.peaklist.SetItemTextColour(item_id, get_font_color(value, return_rgb=True))
         else:
             for col_id, col_values in self.TABLE_DICT.items():
@@ -458,7 +459,7 @@ class PanelBase(wx.Panel):
             if self.peaklist.IsChecked(index=row):
                 self.peaklist.item_id = row
                 colormap = colormaps[row]
-                self.peaklist.SetStringItem(row, TableColumnIndex.colormap, str(colormap))
+                self.peaklist.SetStringItem(row, self.TABLE_COLUMN_INDEX.colormap, str(colormap))
 
                 # update document
                 try:
@@ -467,7 +468,7 @@ class PanelBase(wx.Panel):
                     print("Please select item")
 
 
-class TestPanel(PanelBase):
+class TestPanel(TablePanelBase):
     TABLE_DICT = {
         0: {
             "name": "",

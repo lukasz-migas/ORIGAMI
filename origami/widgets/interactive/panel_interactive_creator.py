@@ -3572,9 +3572,9 @@ class PanelInteractiveCreator(wx.MiniFrame):
     def linearize_spectrum(self, xvals, yvals, binsize):
         kwargs = {
             "auto_range": self.config.ms_auto_range,
-            "mz_min": np.round(np.min(xvals), 0),
-            "mz_max": np.round(np.min(yvals), 0),
-            "mz_bin": float(binsize),
+            "x_min": np.round(np.min(xvals), 0),
+            "x_max": np.round(np.min(yvals), 0),
+            "bin_bin": float(binsize),
             "linearization_mode": "Linear interpolation",
         }
 

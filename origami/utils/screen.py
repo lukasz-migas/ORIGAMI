@@ -9,7 +9,7 @@ def calculate_window_size(screen_size, percentage_size):
     ----------
     screen_size: tuple
         x, y size in pixels
-    percentage_size: float
+    percentage_size: float, list
         desired size of the window size. Values should be between 0 and 1
 
     Returns

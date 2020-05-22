@@ -6,6 +6,7 @@ import webbrowser
 from time import sleep
 from time import gmtime
 from time import strftime
+from typing import List
 from typing import Optional
 
 # Third-party imports
@@ -39,14 +40,12 @@ from origami.ids import ID_saveMSImage
 from origami.ids import ID_saveRTImage
 from origami.ids import ID_fileMenu_MGF
 from origami.ids import ID_helpHomepage
-from origami.ids import ID_load_text_MS
 from origami.ids import ID_openAsConfig
 from origami.ids import ID_openDocument
 from origami.ids import ID_saveAsConfig
 from origami.ids import ID_saveDocument
 from origami.ids import ID_clearAllPlots
 from origami.ids import ID_fileMenu_mzML
-from origami.ids import ID_openIRRawFile
 from origami.ids import ID_saveMZDTImage
 from origami.ids import ID_saveRMSDImage
 from origami.ids import ID_saveRMSFImage
@@ -76,7 +75,6 @@ from origami.ids import ID_window_textList
 from origami.ids import ID_addNewOverlayDoc
 from origami.ids import ID_check_Driftscope
 from origami.ids import ID_help_page_UniDec
-from origami.ids import ID_saveAllDocuments
 from origami.ids import ID_saveOverlayImage
 from origami.ids import ID_showPlotDocument
 from origami.ids import ID_windowFullscreen
@@ -116,7 +114,6 @@ from origami.ids import ID_extraSettings_colorbar
 from origami.ids import ID_checkAtStart_Driftscope
 from origami.ids import ID_extraSettings_waterfall
 from origami.ids import ID_help_page_multipleFiles
-from origami.ids import ID_load_clipboard_spectrum
 from origami.ids import ID_annotPanel_otherSettings
 from origami.ids import ID_help_page_CCScalibration
 from origami.ids import ID_help_page_dataExtraction
@@ -193,7 +190,7 @@ class MainWindow(wx.Frame):
         self.mode = None
         self.xpos = None
         self.ypos = None
-        self.startX = None
+        self.xy_start = None
         self.resized = False
 
         self.menubar = None
@@ -218,9 +215,9 @@ class MainWindow(wx.Frame):
         self.panelDocuments = PanelDocumentTree(self, CONFIG, self.icons, self.presenter)
 
         self.panelPlots = PanelPlots(self, CONFIG, self.presenter)
-        self.panelMultipleIons = PanelPeaklist(self, self.icons, self.presenter)
+        # self.panelMultipleIons = PanelPeaklist(self, self.icons, self.presenter)
         self.panelMultipleText = PanelTextlist(self, self.icons, self.presenter)
-        self.panelMML = PanelMultiFile(self, self.icons, self.presenter)
+        # self.panelMML = PanelMultiFile(self, self.icons, self.presenter)
 
         self.panelParametersEdit = PanelVisualisationSettingsEditor(
             self, self.presenter, CONFIG, self.icons, window=None
@@ -261,28 +258,28 @@ class MainWindow(wx.Frame):
             .Gripper(CONFIG._windowSettings["Plots"]["gripper"]),
         )
 
-        # Panel to extract multiple ions from ML files
-        self.window_mgr.AddPane(
-            self.panelMultipleIons,
-            wx.aui.AuiPaneInfo()
-            .Right()
-            .Caption("Peak list")
-            .MinSize((300, -1))
-            .GripperTop()
-            .BottomDockable(True)
-            .TopDockable(False)
-            .Show(CONFIG._windowSettings["Peak list"]["show"])
-            .CloseButton(CONFIG._windowSettings["Peak list"]["close_button"])
-            .CaptionVisible(CONFIG._windowSettings["Peak list"]["caption"])
-            .Gripper(CONFIG._windowSettings["Peak list"]["gripper"]),
-        )
+        # # Panel to extract multiple ions from ML files
+        # self.window_mgr.AddPane(
+        #     self.panelMultipleIons,
+        #     wx.aui.AuiPaneInfo()
+        #     .Right()
+        #     .Caption("Peak list")
+        #     .MinSize((300, -1))
+        #     .GripperTop()
+        #     .BottomDockable(True)
+        #     .TopDockable(False)
+        #     .Show(CONFIG._windowSettings["Peak list"]["show"])
+        #     .CloseButton(CONFIG._windowSettings["Peak list"]["close_button"])
+        #     .CaptionVisible(CONFIG._windowSettings["Peak list"]["caption"])
+        #     .Gripper(CONFIG._windowSettings["Peak list"]["gripper"]),
+        # )
 
         # Panel to operate on multiple text files
         self.window_mgr.AddPane(
             self.panelMultipleText,
             wx.aui.AuiPaneInfo()
             .Right()
-            .Caption("Text files")
+            .Caption("Heatmap List")
             .MinSize((300, -1))
             .GripperTop()
             .BottomDockable(True)
@@ -292,22 +289,22 @@ class MainWindow(wx.Frame):
             .CaptionVisible(CONFIG._windowSettings["Text files"]["caption"])
             .Gripper(CONFIG._windowSettings["Text files"]["gripper"]),
         )
-
-        # Panel to operate on multiple ML files
-        self.window_mgr.AddPane(
-            self.panelMML,
-            wx.aui.AuiPaneInfo()
-            .Right()
-            .Caption("Multiple files")
-            .MinSize((300, -1))
-            .GripperTop()
-            .BottomDockable(True)
-            .TopDockable(False)
-            .Show(CONFIG._windowSettings["Multiple files"]["show"])
-            .CloseButton(CONFIG._windowSettings["Multiple files"]["close_button"])
-            .CaptionVisible(CONFIG._windowSettings["Multiple files"]["caption"])
-            .Gripper(CONFIG._windowSettings["Multiple files"]["gripper"]),
-        )
+        #
+        # # Panel to operate on multiple ML files
+        # self.window_mgr.AddPane(
+        #     self.panelMML,
+        #     wx.aui.AuiPaneInfo()
+        #     .Right()
+        #     .Caption("Multiple files")
+        #     .MinSize((300, -1))
+        #     .GripperTop()
+        #     .BottomDockable(True)
+        #     .TopDockable(False)
+        #     .Show(CONFIG._windowSettings["Multiple files"]["show"])
+        #     .CloseButton(CONFIG._windowSettings["Multiple files"]["close_button"])
+        #     .CaptionVisible(CONFIG._windowSettings["Multiple files"]["caption"])
+        #     .Gripper(CONFIG._windowSettings["Multiple files"]["gripper"]),
+        # )
 
         self.window_mgr.AddPane(
             self.panelParametersEdit,
@@ -350,25 +347,29 @@ class MainWindow(wx.Frame):
         self.on_toggle_panel(evt=None)
         self.on_toggle_panel_at_start()
 
-    def on_queue_change(self, msg):
-        """Update size of the queue"""
-        self.SetStatusText(msg, number=6)
-
     def create_panel(self, which: str, document_title: str):
         """Creates new instance of panel for particular document"""
-        if which not in ["ion"]:
-            raise ValueError("Currently can only instantiate `ion` panel(s)")
+
+        def show_panel(_name, klass):
+            panel = self.get_panel(_name)
+            if panel.window:
+                self.show_panel(panel=panel)
+            else:
+                panel = klass(self, self.icons, self.presenter)
+                self.add_panel(panel, title, _name)
+
+        if which not in ["ion", "files"]:
+            raise ValueError("Currently can only instantiate [`ion`, `files`] panels")
 
         name = None
         if which == "ion":
             title = f"Ion table: {document_title}"
             name = f"ion; {document_title}"
-            pane = self.get_panel(name)
-            if pane.window:
-                self.show_panel(panel=pane)
-            else:
-                panel = PanelPeaklist(self, self.icons, self.presenter)
-                self.add_panel(panel, title, name)
+            show_panel(name, PanelPeaklist)
+        elif which == "files":
+            title = f"Filelist: {document_title}"
+            name = f"filelist; {document_title}"
+            show_panel(name, PanelMultiFile)
 
         return name
 
@@ -435,51 +436,55 @@ class MainWindow(wx.Frame):
     def on_toggle_panel_at_start(self):
         panelDict = {
             "Documents": ID_window_documentList,
+            "Heatmap List": ID_window_textList,
             # "Multiple files": ID_window_multipleMLList,
             # "Peak list": ID_window_ionList,
             # "Text files": ID_window_textList,
         }
 
-        for panel in [self.panelDocuments]:  # , self.panelMML, self.panelMultipleIons, self.panelMultipleText]:
+        for panel in [self.panelDocuments, self.panelMultipleText]:  # , self.panelMML, self.panelMultipleIons, ]:
             if self.window_mgr.GetPane(panel).IsShown():
                 self.on_find_toggle_by_id(find_id=panelDict[self.window_mgr.GetPane(panel).caption], check=True)
 
-    def _onUpdatePlotData(self, plot_type=None):
-        if plot_type == "2D":
-            _data = self.presenter._get_replot_data(data_format="2D")
-            try:
-                yshape, xshape = _data[0].shape
-                _yscale = yshape / np.max(_data[2])
-                _xscale = xshape / np.max(_data[1])
-                self.plot_data["2D"] = _data[0]
-                self.plot_scale["2D"] = [_yscale, _xscale]
-            except Exception:
-                pass
-        elif plot_type == "DT/MS":
-            _data = self.presenter._get_replot_data(data_format="DT/MS")
-            yshape, xshape = _data[0].shape
-            _yscale = yshape / np.max(_data[2])
-            _xscale = xshape / np.max(_data[1])
-            self.plot_data["DT/MS"] = _data[0]
-            self.plot_scale["DT/MS"] = [_yscale, _xscale]
-        elif plot_type == "RMSF":
-            _data = self.presenter._get_replot_data(data_format="RMSF")
-            yshape, xshape = _data[0].shape
-            _yscale = yshape / np.max(_data[2])
-            _xscale = xshape / np.max(_data[1])
-            self.plot_data["DT/MS"] = _data[0]
-            self.plot_scale["DT/MS"] = [_yscale, _xscale]
+    # def _onUpdatePlotData(self, plot_type=None):
+    #     if plot_type == "2D":
+    #         _data = self.presenter._get_replot_data(data_format="2D")
+    #         try:
+    #             yshape, xshape = _data[0].shape
+    #             _yscale = yshape / np.max(_data[2])
+    #             _xscale = xshape / np.max(_data[1])
+    #             self.plot_data["2D"] = _data[0]
+    #             self.plot_scale["2D"] = [_yscale, _xscale]
+    #         except Exception:
+    #             pass
+    #     elif plot_type == "DT/MS":
+    #         _data = self.presenter._get_replot_data(data_format="DT/MS")
+    #         yshape, xshape = _data[0].shape
+    #         _yscale = yshape / np.max(_data[2])
+    #         _xscale = xshape / np.max(_data[1])
+    #         self.plot_data["DT/MS"] = _data[0]
+    #         self.plot_scale["DT/MS"] = [_yscale, _xscale]
+    #     elif plot_type == "RMSF":
+    #         _data = self.presenter._get_replot_data(data_format="RMSF")
+    #         yshape, xshape = _data[0].shape
+    #         _yscale = yshape / np.max(_data[2])
+    #         _xscale = xshape / np.max(_data[1])
+    #         self.plot_data["DT/MS"] = _data[0]
+    #         self.plot_scale["DT/MS"] = [_yscale, _xscale]
 
     def on_closed_page(self, evt):
         """Keep track of which page was closed"""
         # Keep track of which window is closed
-        CONFIG._windowSettings[evt.GetPane().caption]["show"] = False
-        # fire-up events
-        try:
-            evtID = self.onCheckToggleID(panel=evt.GetPane().caption)
-            self.on_toggle_panel(evt=evtID)
-        except Exception:
-            pass
+        panel_name = evt.GetPane().caption
+        if panel_name in CONFIG._windowSettings:
+            CONFIG._windowSettings[panel_name]["show"] = False
+
+            # fire-up events
+            try:
+                evtID = self.onCheckToggleID(panel=evt.GetPane().caption)
+                self.on_toggle_panel(evt=evtID)
+            except Exception:
+                pass
 
     def on_restored_page(self, evt):
         """Keep track of which page was restored"""
@@ -505,38 +510,6 @@ class MainWindow(wx.Frame):
         # 7 = queue size
         self.mainStatusbar.SetStatusWidths([250, 80, 80, 200, -1, 50, 50])
         self.mainStatusbar.SetFont(wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
-
-    def on_event_mode(self, dataOut):
-        """Changed cursor based on which key is pressed"""
-        shift, ctrl, alt, add2table, wheel, zoom, dragged = dataOut
-        self.mode = ""
-        cursor = wx.StockCursor(wx.CURSOR_ARROW)
-        if alt:
-            self.mode = "Measure"
-            cursor = wx.StockCursor(wx.CURSOR_MAGNIFIER)
-        elif ctrl:
-            self.mode = "Add data"
-            cursor = wx.StockCursor(wx.CURSOR_CROSS)
-        elif add2table:
-            self.mode = "Add data"
-            cursor = wx.StockCursor(wx.CURSOR_CROSS)
-        elif shift:
-            self.mode = "Wheel zoom Y"
-            cursor = wx.StockCursor(wx.CURSOR_SIZENS)
-        elif wheel:
-            self.mode = "Wheel zoom X"
-            cursor = wx.StockCursor(wx.CURSOR_SIZEWE)
-        elif alt and ctrl:
-            self.mode = ""
-        elif dragged is not None:
-            self.mode = "Dragging"
-            cursor = wx.StockCursor(wx.CURSOR_HAND)
-        elif zoom:
-            self.mode = "Zooming"
-            cursor = wx.StockCursor(wx.CURSOR_MAGNIFIER)
-
-        self.SetCursor(cursor)
-        self.SetStatusText("{}".format(self.mode), number=5)
 
     def make_menubar(self):
         # TODO: revamp the menu completely
@@ -567,15 +540,14 @@ class MainWindow(wx.Frame):
         menu_file.AppendItem(
             make_menu_item(
                 parent=menu_file,
-                id=ID_load_origami_masslynx_raw,
-                text="Open Waters file (.raw) [ORIGAMI-MS; CIU]\tCtrl+R",
-                bitmap=self.icons.iconsLib["open_origami_16"],
+                id=ID_load_masslynx_raw_ms_only,
+                text="Open Waters file (.raw) [MS only]\tCtrl+Shift+M",
+                #                 bitmap=self.icons.iconsLib["open_origami_16"],
             )
         )
         menu_file_waters_imms = menu_file.AppendItem(
             make_menu_item(
                 parent=menu_file,
-                #                 id=ID_load_origami_masslynx_raw,
                 text="Open Waters file (.raw) [IM-MS only]",
                 #                 bitmap=self.icons.iconsLib["open_origami_16"],
             )
@@ -583,11 +555,12 @@ class MainWindow(wx.Frame):
         menu_file.AppendItem(
             make_menu_item(
                 parent=menu_file,
-                id=ID_load_masslynx_raw_ms_only,
-                text="Open Waters file (.raw) [MS only]\tCtrl+Shift+M",
-                #                 bitmap=self.icons.iconsLib["open_origami_16"],
+                id=ID_load_origami_masslynx_raw,
+                text="Open Waters file (.raw) [ORIGAMI-MS; CIU]\tCtrl+R",
+                bitmap=self.icons.iconsLib["open_origami_16"],
             )
         )
+
         #         menu_file.AppendSeparator()
 
         #         menu_file.AppendItem(
@@ -627,19 +600,15 @@ class MainWindow(wx.Frame):
             )
         )
         menu_file.AppendSeparator()
-        menu_file.AppendItem(
-            make_menu_item(
-                parent=menu_file, id=ID_load_text_MS, text="Open mass spectrum file(s) (.csv; .txt; .tab)", bitmap=None
-            )
+        menu_file_text_ms = make_menu_item(parent=menu_file, text="Open mass spectrum file(s) (.csv; .txt; .tab)")
+        menu_file.AppendItem(menu_file_text_ms)
+        menu_file_text_heatmap = make_menu_item(
+            parent=menu_file,
+            id=ID_load_multiple_text_2D,
+            text="Open heatmap file(s) (.csv; .txt; .tab)\tCtrl+Shift+T",
+            bitmap=self.icons.iconsLib["open_textMany_16"],
         )
-        menu_file.AppendItem(
-            make_menu_item(
-                parent=menu_file,
-                id=ID_load_multiple_text_2D,
-                text="Open heatmap file(s) (.csv; .txt; .tab)\tCtrl+Shift+T",
-                bitmap=self.icons.iconsLib["open_textMany_16"],
-            )
-        )
+        menu_file.AppendItem(menu_file_text_heatmap)
         menu_file.AppendSeparator()
         menu_file.AppendMenu(wx.ID_ANY, "Open MS/MS files...", menu_tandem)
         #         menu_file.AppendSeparator()
@@ -661,14 +630,13 @@ class MainWindow(wx.Frame):
         #         )
 
         menu_file.AppendSeparator()
-        menu_file.AppendItem(
-            make_menu_item(
-                parent=menu_file,
-                id=ID_load_clipboard_spectrum,
-                text="Grab MS spectrum from clipboard\tCtrl+V",
-                bitmap=self.icons.iconsLib["filelist_16"],
-            )
+        menu_file_clipboard_ms = make_menu_item(
+            parent=menu_file,
+            #                 id=ID_load_clipboard_spectrum,
+            text="Grab MS spectrum from clipboard\tCtrl+V",
+            bitmap=self.icons.iconsLib["filelist_16"],
         )
+        menu_file.AppendItem(menu_file_clipboard_ms)
 
         menu_file.AppendSeparator()
         menu_file.AppendItem(
@@ -923,8 +891,10 @@ class MainWindow(wx.Frame):
             )
         )
         menu_config.AppendSeparator()
-        self.loadCCSAtStart = menu_config.Append(ID_importAtStart_CCS, "Load at start", kind=wx.ITEM_CHECK)
-        self.loadCCSAtStart.Check(CONFIG.loadCCSAtStart)
+        self.menu_config_check_load_ccs_db_btn = menu_config.Append(
+            ID_importAtStart_CCS, "Load at start", kind=wx.ITEM_CHECK
+        )
+        self.menu_config_check_load_ccs_db_btn.Check(CONFIG.loadCCSAtStart)
         menu_config.AppendItem(
             make_menu_item(
                 parent=menu_config,
@@ -958,10 +928,10 @@ class MainWindow(wx.Frame):
             )
         )
         menu_config.AppendSeparator()
-        self.checkDriftscopeAtStart = menu_config.Append(
+        self.menu_config_check_driftscope_btn = menu_config.Append(
             ID_checkAtStart_Driftscope, "Look for DriftScope at start", kind=wx.ITEM_CHECK
         )
-        self.checkDriftscopeAtStart.Check(CONFIG.checkForDriftscopeAtStart)
+        self.menu_config_check_driftscope_btn.Check(CONFIG.checkForDriftscopeAtStart)
         menu_config.AppendItem(
             make_menu_item(
                 parent=menu_config,
@@ -1170,6 +1140,23 @@ class MainWindow(wx.Frame):
         self.menubar.Append(menu_help, "&Help")
         self.SetMenuBar(self.menubar)
 
+        # DEBUG MODE
+        if CONFIG.debug:
+            menu_dev = wx.Menu()
+            # append inspector
+            menu_dev_wxpython = make_menu_item(parent=menu_dev, text="Open wxPython inspector")
+            menu_dev.AppendItem(menu_dev_wxpython)
+            self.Bind(wx.EVT_MENU, self._dev_open_wxpython_inspector, menu_dev_wxpython)
+
+            # append closable widget
+            menu_dev_widget = make_menu_item(parent=menu_dev, text="Add closable widget")
+            menu_dev.AppendItem(menu_dev_widget)
+            self.Bind(wx.EVT_MENU, self._dev_add_widget, menu_dev_widget)
+
+            self.menubar.Append(menu_dev, "&Development")
+
+        self.SetMenuBar(self.menubar)
+
         # Bind functions to menu
         # HELP MENU
         self.Bind(wx.EVT_MENU, self.on_open_about_panel, id=ID_SHOW_ABOUT)
@@ -1200,30 +1187,33 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_open_HTML_guide, id=ID_help_page_annotatingMassSpectra)
 
         # FILE MENU
-        self.Bind(wx.EVT_MENU, self.data_handling.on_open_multiple_text_2d_fcn, id=ID_load_multiple_text_2D)
+        self.Bind(wx.EVT_MENU, self.data_handling.on_open_multiple_text_2d_fcn, menu_file_text_heatmap)
 
-        self.Bind(wx.EVT_MENU, self.data_handling.on_open_MassLynx_raw_fcn, id=ID_load_origami_masslynx_raw)
-        self.Bind(wx.EVT_MENU, self.data_handling.on_open_MassLynx_raw_fcn, id=ID_openIRRawFile)
+        #         self.Bind(wx.EVT_MENU, self.data_handling.on_open_MassLynx_raw_fcn, id=ID_openIRRawFile)
         self.Bind(
             wx.EVT_MENU, self.data_handling.on_open_multiple_MassLynx_raw_fcn, id=ID_load_multiple_origami_masslynx_raw
         )
 
-        self.Bind(wx.EVT_MENU, self.data_handling.on_open_document_fcn, id=ID_openDocument)
+        #         self.Bind(wx.EVT_MENU, self.data_handling.on_open_document_fcn, id=ID_openDocument)
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_save_document, id=ID_saveDocument)
-        self.Bind(wx.EVT_MENU, self.data_handling.on_save_all_documents_fcn, id=ID_saveAllDocuments)
-        self.Bind(wx.EVT_MENU, self.data_handling.on_open_single_text_MS_fcn, id=ID_load_text_MS)
-        self.Bind(wx.EVT_MENU, self.data_handling.on_open_single_clipboard_MS, id=ID_load_clipboard_spectrum)
+        #         self.Bind(wx.EVT_MENU, self.data_handling.on_save_all_documents_fcn, id=ID_saveAllDocuments)
+        self.Bind(wx.EVT_MENU, self.data_handling.on_open_multiple_text_ms_fcn, menu_file_text_ms)
+        self.Bind(wx.EVT_MENU, self.data_handling.on_open_single_clipboard_ms, menu_file_clipboard_ms)
+        # , id=ID_load_clipboard_spectrum)
         self.Bind(wx.EVT_MENU, self.on_close, id=ID_quit)
         self.Bind(wx.EVT_MENU, self.on_add_blank_document_interactive, id=ID_addNewInteractiveDoc)
         self.Bind(wx.EVT_MENU, self.on_add_blank_document_manual, id=ID_addNewManualDoc)
         self.Bind(wx.EVT_MENU, self.on_add_blank_document_overlay, id=ID_addNewOverlayDoc)
         self.Bind(wx.EVT_TOOL, self.on_open_multiple_files, id=ID_load_multiple_masslynx_raw)
+
         self.Bind(wx.EVT_TOOL, self.data_handling.on_open_mgf_file_fcn, id=ID_fileMenu_MGF)
         self.Bind(wx.EVT_TOOL, self.data_handling.on_open_mzml_file_fcn, id=ID_fileMenu_mzML)
         self.Bind(wx.EVT_TOOL, self.data_handling.on_open_thermo_file_fcn, id=ID_fileMenu_thermoRAW)
 
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_waters_raw_ms_fcn, id=ID_load_masslynx_raw_ms_only)
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_waters_raw_imms_fcn, menu_file_waters_imms)
+        self.Bind(wx.EVT_MENU, self.data_handling.on_open_waters_raw_imms_fcn, id=ID_load_origami_masslynx_raw)
+        #         self.Bind(wx.EVT_MENU, self.data_handling.on_open_MassLynx_raw_fcn, id=ID_load_origami_masslynx_raw)
 
         # PLOT
         self.Bind(wx.EVT_MENU, self.on_open_plot_settings_panel, id=ID_extraSettings_general_plot)
@@ -1275,8 +1265,8 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_open_export_settings_panel, id=ID_importExportSettings_peaklist)
         self.Bind(wx.EVT_MENU, self.on_open_export_settings_panel, id=ID_importExportSettings_image)
         self.Bind(wx.EVT_MENU, self.on_open_export_settings_panel, id=ID_importExportSettings_file)
-        self.Bind(wx.EVT_MENU, self.onCheckToggle, id=ID_checkAtStart_Driftscope)
-        self.Bind(wx.EVT_MENU, self.onCheckToggle, id=ID_importAtStart_CCS)
+        self.Bind(wx.EVT_MENU, self.on_check_in_menu, id=ID_checkAtStart_Driftscope)
+        self.Bind(wx.EVT_MENU, self.on_check_in_menu, id=ID_importAtStart_CCS)
 
         # VIEW MENU
         self.Bind(wx.EVT_MENU, self.on_toggle_panel, id=ID_window_all)
@@ -1292,6 +1282,19 @@ class MainWindow(wx.Frame):
             wx.EVT_MENU, self.panelDocuments.documents.on_open_spectrum_comparison_viewer, id=ID_docTree_compareMS
         )
         self.SetMenuBar(self.menubar)
+
+    def _dev_open_wxpython_inspector(self, evt):
+        """Opens wxpython inspector"""
+        import wx.lib.inspection
+
+        wx.lib.inspection.InspectionTool().Show()
+        logger.debug("Opened inspection tool")
+
+    def _dev_add_widget(self, evt):
+        """Opens closable widget - use to ensure that widgets can be dynamically added/removed from the UI"""
+        item = np.random.choice(["ion", "files"], 1, False)[0]
+        panel_name = self.create_panel(item, f"TEST_DOC_#{np.random.randint(0, 100, 1)[0]}")
+        logger.debug(f"Created random panel - {panel_name}")
 
     def on_customise_annotation_plot_parameters(self, evt):
         from origami.gui_elements.dialog_customise_user_annotations import DialogCustomiseUserAnnotations
@@ -1457,18 +1460,20 @@ class MainWindow(wx.Frame):
             except Exception:
                 pass
 
-    def onCheckToggle(self, evt):
-        evtID = evt.GetId()
+    def on_check_in_menu(self, evt):
+        """Update the check buttons in the menu upon registration of an event"""
 
-        if evtID == ID_checkAtStart_Driftscope:
+        # get event id
+        evt_id = evt.GetId()
+
+        if evt_id == ID_checkAtStart_Driftscope:
             check_value = not CONFIG.checkForDriftscopeAtStart
             CONFIG.checkForDriftscopeAtStart = check_value
-            self.checkDriftscopeAtStart.Check(check_value)
-
-        if evtID == ID_importAtStart_CCS:
+            self.menu_config_check_driftscope_btn.Check(check_value)
+        elif evt_id == ID_importAtStart_CCS:
             check_value = not CONFIG.loadCCSAtStart
             CONFIG.loadCCSAtStart = check_value
-            self.loadCCSAtStart.Check(check_value)
+            self.menu_config_check_load_ccs_db_btn.Check(check_value)
 
     def on_set_window_maximize(self, evt):
         """Maximize app."""
@@ -1568,12 +1573,12 @@ class MainWindow(wx.Frame):
             self.icons.iconsLib["open_origami_16"],
             shortHelp="Open MassLynx file (.raw)",
         )
-        self.toolbar.AddLabelTool(
-            ID_load_origami_masslynx_raw,
-            "",
-            self.icons.iconsLib["open_masslynx_16"],
-            shortHelp="Open MassLynx file (IM-MS)",
-        )
+        #         self.toolbar.AddLabelTool(
+        #             ID_load_origami_masslynx_raw,
+        #             "",
+        #             self.icons.iconsLib["open_masslynx_16"],
+        #             shortHelp="Open MassLynx file (IM-MS)",
+        #         )
         self.toolbar.AddLabelTool(
             ID_load_multiple_masslynx_raw,
             "",
@@ -1828,88 +1833,150 @@ class MainWindow(wx.Frame):
         """ Unsubscribe from all events """
         pub.unsubAll()
 
-    def on_distance(self, startX):
-        # Simple way of setting the start point
-        self.startX = startX
+    def on_distance(self, xy_start: List[float]):
+        """Update the start position of when event has started
+
+        Parameters
+        ----------
+        xy_start : List[float]
+            starting position in the x- and y-dimension
+        """
+        self.xy_start = xy_start
+
+    def on_queue_change(self, msg: str):
+        """Update size of the queue
+
+        Parameters
+        ----------
+        msg : str
+            message to be displayed in the queue marker
+        """
+        self.SetStatusText(msg, number=6)
+
+    def on_event_mode(self, dataOut):
+        """Changed cursor based on which key is pressed"""
+        shift, ctrl, alt, add2table, wheel, zoom, dragged = dataOut
+        self.mode = ""
+        cursor = wx.StockCursor(wx.CURSOR_ARROW)
+        if alt:
+            self.mode = "Measure"
+            cursor = wx.StockCursor(wx.CURSOR_MAGNIFIER)
+        elif ctrl:
+            self.mode = "Add data"
+            cursor = wx.StockCursor(wx.CURSOR_CROSS)
+        elif add2table:
+            self.mode = "Add data"
+            cursor = wx.StockCursor(wx.CURSOR_CROSS)
+        elif shift:
+            self.mode = "Wheel zoom Y"
+            cursor = wx.StockCursor(wx.CURSOR_SIZENS)
+        elif wheel:
+            self.mode = "Wheel zoom X"
+            cursor = wx.StockCursor(wx.CURSOR_SIZEWE)
+        elif alt and ctrl:
+            self.mode = ""
+        elif dragged is not None:
+            self.mode = "Dragging"
+            cursor = wx.StockCursor(wx.CURSOR_HAND)
+        elif zoom:
+            self.mode = "Zooming"
+            cursor = wx.StockCursor(wx.CURSOR_MAGNIFIER)
+
+        self.SetCursor(cursor)
+        self.SetStatusText("{}".format(self.mode), number=5)
 
     def on_motion(self, xpos, ypos, plotname):
-        """
-        Triggered by pubsub from plot windows. Reports text in Status Bar.
-        :param xpos: x position fed from event
-        :param ypos: y position fed from event
-        :return: None
+        """Updates the x/y values shown in the window based on where in the plot area the mouse is found
+
+        Parameters
+        ----------
+        xpos : float
+            x-axis position of the mouse in the plot area
+        ypos : float
+            y-axis position of the mouse in the plot area
+        plotname : str
+            name of the plot from where the action is taking place
         """
 
         self.plot_name = plotname
 
-        if xpos is not None and ypos is not None:
-            # If measuring distance, additional fields are used to help user
-            # make observations
-            if self.startX is not None:
-                delta = np.absolute(self.startX - xpos)
-                charge = np.round(1.0 / delta, 1)
-                mass = (xpos + charge) * charge
-                # If inside a plot area with MS, give out charge state
-                if self.mode == "Measure" and self.panelPlots.currentPage in ["MS", "DT/MS"]:
-                    self.SetStatusText(
-                        f"m/z={xpos:.2f} int={ypos:.2f} Δm/z={delta:.2f} z={charge:.1f} mw={mass:.1f}", number=0
-                    )
-                else:
-                    if self.panelPlots.currentPage in ["MS"]:
-                        self.SetStatusText("m/z={:.4f} int={:.4f} Δm/z={:.2f}".format(xpos, ypos, delta), number=0)
-                    elif self.panelPlots.currentPage in ["DT/MS"]:
-                        self.SetStatusText("m/z={:.4f} dt={:.4f} Δm/z={:.2f}".format(xpos, ypos, delta), number=0)
-                    elif self.panelPlots.currentPage in ["RT"]:
-                        self.SetStatusText("scan={:.0f} int={:.4f} Δscans={:.2f}".format(xpos, ypos, delta), number=0)
-                    elif self.panelPlots.currentPage in ["1D"]:
-                        self.SetStatusText("dt={:.2f} int={:.4f} Δdt={:.2f}".format(xpos, ypos, delta), number=0)
-                    elif self.panelPlots.currentPage in ["2D"]:
-                        self.SetStatusText("x={:.4f} dt={:.4f} Δx={:.2f}".format(xpos, ypos, delta), number=0)
-                    else:
-                        self.SetStatusText("x={:.4f} y={:.4f} Δx={:.2f}".format(xpos, ypos, delta), number=0)
-            else:
-                if self.panelPlots.currentPage in ["MS"]:
-                    self.SetStatusText("m/z={:.4f} int={:.4f}".format(xpos, ypos), number=0)
-                elif self.panelPlots.currentPage in ["DT/MS"]:
-                    #                     if self.plot_data["DT/MS"] is not None and len(self.plot_scale["DT/MS"]) == 2:
-                    #                         try:
-                    #                             yIdx = int(ypos * self.plot_scale["DT/MS"][0]) - 1
-                    #                             xIdx = int(xpos * self.plot_scale["DT/MS"][1]) - 1
-                    #                             int_value = self.plot_data["DT/MS"][yIdx, xIdx]
-                    #                         except Exception:
-                    #                         int_value = 0.0
-                    #                         self.SetStatusText("m/z={:.4f} dt={:.4f} int={:.2f}".format(xpos, ypos, int_value), number=0)
-                    #                     else:
-                    self.SetStatusText("m/z={:.4f} dt={:.4f}".format(xpos, ypos), number=0)
-                elif self.panelPlots.currentPage in ["RT"]:
-                    self.SetStatusText("scan={:.0f} int={:.2f}".format(xpos, ypos), number=0)
-                elif self.panelPlots.currentPage in ["1D"]:
-                    self.SetStatusText("dt={:.2f} int={:.2f}".format(xpos, ypos), number=0)
-                elif self.panelPlots.currentPage in ["2D"]:
-                    try:
-                        if self.plot_data["2D"] is not None and len(self.plot_scale["2D"]) == 2:
-                            try:
-                                yIdx = int(ypos * self.plot_scale["2D"][0]) - 1
-                                xIdx = int(xpos * self.plot_scale["2D"][1]) - 1
-                                int_value = self.plot_data["2D"][yIdx, xIdx]
-                            except Exception:
-                                int_value = ""
-                            self.SetStatusText("x={:.2f} dt={:.2f} int={:.2f}".format(xpos, ypos, int_value), number=0)
-                        else:
-                            self.SetStatusText("x={:.2f} dt={:.2f}".format(xpos, ypos), number=0)
-                    except Exception:
-                        self.SetStatusText("x={:.2f} dt={:.2f}".format(xpos, ypos), number=0)
-                elif plotname == "zGrid":
-                    self.SetStatusText("x={:.2f} charge={:.0f}".format(xpos, ypos), number=0)
-                elif plotname == "mwDistribution":
-                    self.SetStatusText("MW={:.2f} intensity={:.2f}".format(xpos, ypos), number=0)
-                else:
-                    self.SetStatusText("x={:.2f} y={:.2f}".format(xpos, ypos), number=0)
+        if xpos is None or ypos is None:
+            msg = ""
+        else:
+            msg = "x={:.4f} y={:.4f}".format(xpos, ypos)
+        self.SetStatusText(msg, number=0)
 
-    def motion_range(self, dataOut):
-        minx, maxx, miny, maxy = dataOut
+    #
+    #         if xpos is not None and ypos is not None:
+    #             # If measuring distance, additional fields are used to help user
+    #             # make observations
+    #             if self.startX is not None:
+    #                 delta = np.absolute(self.startX - xpos)
+    #                 charge = np.round(1.0 / delta, 1)
+    #                 mass = (xpos + charge) * charge
+    #                 # If inside a plot area with MS, give out charge state
+    #                 if self.mode == "Measure" and self.panelPlots.currentPage in ["MS", "DT/MS"]:
+    #                     self.SetStatusText(
+    #                         f"m/z={xpos:.2f} int={ypos:.2f} Δm/z={delta:.2f} z={charge:.1f} mw={mass:.1f}", number=0
+    #                     )
+    #                 else:
+    #                     if self.panelPlots.currentPage in ["MS"]:
+    #                         self.SetStatusText("m/z={:.4f} int={:.4f} Δm/z={:.2f}".format(xpos, ypos, delta),
+    #                         number=0)
+    #                     elif self.panelPlots.currentPage in ["DT/MS"]:
+    #                         self.SetStatusText("m/z={:.4f} dt={:.4f} Δm/z={:.2f}".format(xpos, ypos, delta), number=0)
+    #                     elif self.panelPlots.currentPage in ["RT"]:
+    #                         self.SetStatusText("scan={:.0f} int={:.4f} Δscans={:.2f}".format(xpos, ypos, delta),
+    #                         number=0)
+    #                     elif self.panelPlots.currentPage in ["1D"]:
+    #                         self.SetStatusText("dt={:.2f} int={:.4f} Δdt={:.2f}".format(xpos, ypos, delta), number=0)
+    #                     elif self.panelPlots.currentPage in ["2D"]:
+    #                         self.SetStatusText("x={:.4f} dt={:.4f} Δx={:.2f}".format(xpos, ypos, delta), number=0)
+    #                     else:
+    #                         self.SetStatusText("x={:.4f} y={:.4f} Δx={:.2f}".format(xpos, ypos, delta), number=0)
+    #             else:
+    #                 if self.panelPlots.currentPage in ["MS"]:
+    #                     self.SetStatusText("m/z={:.4f} int={:.4f}".format(xpos, ypos), number=0)
+    #                 elif self.panelPlots.currentPage in ["DT/MS"]:
+    #                      if self.plot_data["DT/MS"] is not None and len(self.plot_scale["DT/MS"]) == 2:
+    #                                              try:
+    #                                                  yIdx = int(ypos * self.plot_scale["DT/MS"][0]) - 1
+    #                                                  xIdx = int(xpos * self.plot_scale["DT/MS"][1]) - 1
+    #                                                  int_value = self.plot_data["DT/MS"][yIdx, xIdx]
+    #                                              except Exception:
+    #                                              int_value = 0.0
+    #                     self.SetStatusText("m/z={:.4f} dt={:.4f} int={:.2f}".format(xpos, ypos, int_value), number=0)
+    #                     else:
+    #                     self.SetStatusText("m/z={:.4f} dt={:.4f}".format(xpos, ypos), number=0)
+    #                 elif self.panelPlots.currentPage in ["RT"]:
+    #                     self.SetStatusText("scan={:.0f} int={:.2f}".format(xpos, ypos), number=0)
+    #                 elif self.panelPlots.currentPage in ["1D"]:
+    #                     self.SetStatusText("dt={:.2f} int={:.2f}".format(xpos, ypos), number=0)
+    #                 elif self.panelPlots.currentPage in ["2D"]:
+    #                     try:
+    #                         if self.plot_data["2D"] is not None and len(self.plot_scale["2D"]) == 2:
+    #                             try:
+    #                                 yIdx = int(ypos * self.plot_scale["2D"][0]) - 1
+    #                                 xIdx = int(xpos * self.plot_scale["2D"][1]) - 1
+    #                                 int_value = self.plot_data["2D"][yIdx, xIdx]
+    #                             except Exception:
+    #                                 int_value = ""
+    #                             self.SetStatusText("x={:.2f} dt={:.2f} int={:.2f}".format(xpos, ypos, int_value),
+    #                             number=0)
+    #                         else:
+    #                             self.SetStatusText("x={:.2f} dt={:.2f}".format(xpos, ypos), number=0)
+    #                     except Exception:
+    #                         self.SetStatusText("x={:.2f} dt={:.2f}".format(xpos, ypos), number=0)
+    #                 elif plotname == "zGrid":
+    #                     self.SetStatusText("x={:.2f} charge={:.0f}".format(xpos, ypos), number=0)
+    #                 elif plotname == "mwDistribution":
+    #                     self.SetStatusText("MW={:.2f} intensity={:.2f}".format(xpos, ypos), number=0)
+    #                 else:
+    #                     self.SetStatusText("x={:.2f} y={:.2f}".format(xpos, ypos), number=0)
+
+    def motion_range(self, xmin, xmax, ymin, ymax):
         if self.mode == "Add data":
-            self.SetStatusText(f"X={minx:.3f}:{maxx:.3f} | Y={miny:.3f}:{maxy:.3f}", number=4)
+            self.SetStatusText(f"X={xmin:.3f}:{xmax:.3f} | Y={ymin:.3f}:{ymax:.3f}", number=4)
         else:
             self.SetStatusText("", number=4)
 
@@ -2056,7 +2123,7 @@ class MainWindow(wx.Frame):
 
     def on_open_recent_file(self, evt):
         """Open recent document."""
-
+        # TODO: FIXME
         # get index
         indexes = {
             ID_documentRecent0: 0,

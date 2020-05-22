@@ -48,8 +48,8 @@ class PanelProcessUniDec(wx.MiniFrame):
         self.document_tree = self.view.panelDocuments.documents
         self.panel_plot = self.view.panelPlots
 
-        self.ionPanel = self.view.panelMultipleIons
-        self.ionList = self.ionPanel.peaklist
+        # self.ionPanel = self.view.panelMultipleIons
+        # self.ionList = self.ionPanel.peaklist
 
         self.config = config
         self.icons = icons

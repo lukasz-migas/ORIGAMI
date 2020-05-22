@@ -15,7 +15,6 @@ import pandas as pd
 
 # Local imports
 import origami.utils.labels as ut_labels
-
 # from origami.ids import ID_docTree_plugin_UVPD
 from origami.ids import ID_renameItem
 from origami.ids import ID_openDocInfo
@@ -113,7 +112,6 @@ from origami.utils.converters import str2num
 from origami.utils.converters import byte2str
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
-
 # from origami.gui_elements.panel_document_information import PanelDocumentInformation
 from origami.objects.containers import MassSpectrumObject
 from origami.readers.io_text_files import saveAsText
@@ -332,14 +330,14 @@ class DocumentTree(wx.TreeCtrl):
 
         self.panel_plot = self.view.panelPlots
 
-        self.ionPanel = self.view.panelMultipleIons
-        self.ionList = self.ionPanel.peaklist
-
-        self.textPanel = self.view.panelMultipleText
-        self.textList = self.textPanel.peaklist
-
-        self.filesPanel = self.view.panelMML
-        self.filesList = self.filesPanel.peaklist
+        # self.ionPanel = self.view.panelMultipleIons
+        # self.ionList = self.ionPanel.peaklist
+        #
+        # self.textPanel = self.view.panelMultipleText
+        # self.textList = self.textPanel.peaklist
+        #
+        # self.filesPanel = self.view.panelMML
+        # self.filesList = self.filesPanel.peaklist
 
     def on_item_deleted(self, evt):
         pass
@@ -2723,114 +2721,117 @@ class DocumentTree(wx.TreeCtrl):
             return data
 
     def onAddToTable(self, evt):
-        evtID = evt.GetId()
+        # TODO: FIX ME
+        pass
 
-        filelist = self.presenter.view.panelMML.peaklist
-        textlist = self.presenter.view.panelMultipleText.peaklist
-        if evtID == ID_docTree_addToMMLTable:
-            data = self._document_data.multipleMassSpectrum
-            document_title = self._document_data.title
-            n_rows = len(data)
-            colors = self.panel_plot.on_change_color_palette(None, n_colors=n_rows, return_colors=True)
-            for i, key in enumerate(data):
-                count = filelist.GetItemCount()
-                label = data[key].get("label", os.path.splitext(key)[0])
-                color = data[key].get("color", colors[i])
-                if np.sum(color) > 4:
-                    color = convert_rgb_255_to_1(color)
-                filelist.Append([key, data[key].get("trap", 0), document_title, label])
-                color = convert_rgb_1_to_255(color)
-                filelist.SetItemBackgroundColour(count, color)
-                filelist.SetItemTextColour(count, get_font_color(color, return_rgb=True))
-
-        elif evtID == ID_docTree_addOneToMMLTable:
-            data = self._document_data.multipleMassSpectrum
-            count = filelist.GetItemCount()
-            colors = self.panel_plot.on_change_color_palette(None, n_colors=count + 1, return_colors=True)
-            key = self._item_leaf
-            document_title = self._document_data.title
-            label = data.get("label", key)
-            color = data[key].get("color", colors[-1])
-            if np.sum(color) > 4:
-                color = convert_rgb_255_to_1(color)
-            filelist.Append([key, data[key].get("trap", 0), document_title, label])
-            color = convert_rgb_1_to_255(color)
-            filelist.SetItemBackgroundColour(count, color)
-            filelist.SetItemTextColour(count, get_font_color(color, return_rgb=True))
-
-        elif evtID == ID_docTree_addToTextTable:
-            data = self._document_data.IMS2DcompData
-            document_title = self._document_data.title
-            n_rows = len(data)
-            colors = self.panel_plot.on_change_color_palette(None, n_colors=n_rows, return_colors=True)
-            for i, key in enumerate(data):
-                count = textlist.GetItemCount()
-                label = data[key].get("label", os.path.splitext(key)[0])
-                color = data[key].get("color", colors[i])
-                if np.sum(color) > 4:
-                    color = convert_rgb_255_to_1(color)
-                minCE, maxCE = np.min(data[key]["xvals"]), np.max(data[key]["xvals"])
-                document_label = "{}: {}".format(document_title, key)
-                textlist.Append(
-                    [
-                        minCE,
-                        maxCE,
-                        data[key]["charge"],
-                        color,
-                        data[key]["cmap"],
-                        data[key]["alpha"],
-                        data[key]["mask"],
-                        label,
-                        data[key]["zvals"].shape,
-                        document_label,
-                    ]
-                )
-                color = convert_rgb_1_to_255(color)
-                textlist.SetItemBackgroundColour(count, color)
-                textlist.SetItemTextColour(count, get_font_color(color, return_rgb=True))
-
-        elif evtID == ID_docTree_addInteractiveToTextTable:
-            data = self._document_data.IMS2Dions
-            document_title = self._document_data.title
-            n_rows = len(data)
-            colors = self.panel_plot.on_change_color_palette(None, n_colors=n_rows, return_colors=True)
-            for i, key in enumerate(data):
-                count = textlist.GetItemCount()
-                label = data[key].get("label", os.path.splitext(key)[0])
-                color = data[key].get("color", colors[i])
-                if np.sum(color) > 4:
-                    color = convert_rgb_255_to_1(color)
-                minCE, maxCE = np.min(data[key]["xvals"]), np.max(data[key]["xvals"])
-                document_label = "{}: {}".format(document_title, key)
-                textlist.Append(
-                    [
-                        "",
-                        minCE,
-                        maxCE,
-                        data[key].get("charge", ""),
-                        color,
-                        data[key]["cmap"],
-                        data[key]["alpha"],
-                        data[key]["mask"],
-                        label,
-                        data[key]["zvals"].shape,
-                        document_label,
-                    ]
-                )
-            color = convert_rgb_1_to_255(color)
-            textlist.SetItemBackgroundColour(count, color)
-            textlist.SetItemTextColour(count, get_font_color(color, return_rgb=True))
-
-        if evtID in [ID_docTree_addToMMLTable, ID_docTree_addOneToMMLTable]:
-            # sort items
-            self.presenter.view.panelMML.OnSortByColumn(column=1, overrideReverse=True)
-            self.presenter.view.panelMML.onRemoveDuplicates(None)
-            self.presenter.view.on_toggle_panel(evt=ID_window_multipleMLList, check=True)
-
-        elif evtID in [ID_docTree_addToTextTable, ID_docTree_addOneToTextTable, ID_docTree_addInteractiveToTextTable]:
-            # sort items
-            self.presenter.view.panelMultipleText.onRemoveDuplicates(None)
-            self.presenter.view.on_toggle_panel(evt=ID_window_textList, check=True)
+        # evtID = evt.GetId()
+        #
+        # filelist = self.presenter.view.panelMML.peaklist
+        # textlist = self.presenter.view.panelMultipleText.peaklist
+        # if evtID == ID_docTree_addToMMLTable:
+        #     data = self._document_data.multipleMassSpectrum
+        #     document_title = self._document_data.title
+        #     n_rows = len(data)
+        #     colors = self.panel_plot.on_change_color_palette(None, n_colors=n_rows, return_colors=True)
+        #     for i, key in enumerate(data):
+        #         count = filelist.GetItemCount()
+        #         label = data[key].get("label", os.path.splitext(key)[0])
+        #         color = data[key].get("color", colors[i])
+        #         if np.sum(color) > 4:
+        #             color = convert_rgb_255_to_1(color)
+        #         filelist.Append([key, data[key].get("trap", 0), document_title, label])
+        #         color = convert_rgb_1_to_255(color)
+        #         filelist.SetItemBackgroundColour(count, color)
+        #         filelist.SetItemTextColour(count, get_font_color(color, return_rgb=True))
+        #
+        # elif evtID == ID_docTree_addOneToMMLTable:
+        #     data = self._document_data.multipleMassSpectrum
+        #     count = filelist.GetItemCount()
+        #     colors = self.panel_plot.on_change_color_palette(None, n_colors=count + 1, return_colors=True)
+        #     key = self._item_leaf
+        #     document_title = self._document_data.title
+        #     label = data.get("label", key)
+        #     color = data[key].get("color", colors[-1])
+        #     if np.sum(color) > 4:
+        #         color = convert_rgb_255_to_1(color)
+        #     filelist.Append([key, data[key].get("trap", 0), document_title, label])
+        #     color = convert_rgb_1_to_255(color)
+        #     filelist.SetItemBackgroundColour(count, color)
+        #     filelist.SetItemTextColour(count, get_font_color(color, return_rgb=True))
+        #
+        # elif evtID == ID_docTree_addToTextTable:
+        #     data = self._document_data.IMS2DcompData
+        #     document_title = self._document_data.title
+        #     n_rows = len(data)
+        #     colors = self.panel_plot.on_change_color_palette(None, n_colors=n_rows, return_colors=True)
+        #     for i, key in enumerate(data):
+        #         count = textlist.GetItemCount()
+        #         label = data[key].get("label", os.path.splitext(key)[0])
+        #         color = data[key].get("color", colors[i])
+        #         if np.sum(color) > 4:
+        #             color = convert_rgb_255_to_1(color)
+        #         minCE, maxCE = np.min(data[key]["xvals"]), np.max(data[key]["xvals"])
+        #         document_label = "{}: {}".format(document_title, key)
+        #         textlist.Append(
+        #             [
+        #                 minCE,
+        #                 maxCE,
+        #                 data[key]["charge"],
+        #                 color,
+        #                 data[key]["cmap"],
+        #                 data[key]["alpha"],
+        #                 data[key]["mask"],
+        #                 label,
+        #                 data[key]["zvals"].shape,
+        #                 document_label,
+        #             ]
+        #         )
+        #         color = convert_rgb_1_to_255(color)
+        #         textlist.SetItemBackgroundColour(count, color)
+        #         textlist.SetItemTextColour(count, get_font_color(color, return_rgb=True))
+        #
+        # elif evtID == ID_docTree_addInteractiveToTextTable:
+        #     data = self._document_data.IMS2Dions
+        #     document_title = self._document_data.title
+        #     n_rows = len(data)
+        #     colors = self.panel_plot.on_change_color_palette(None, n_colors=n_rows, return_colors=True)
+        #     for i, key in enumerate(data):
+        #         count = textlist.GetItemCount()
+        #         label = data[key].get("label", os.path.splitext(key)[0])
+        #         color = data[key].get("color", colors[i])
+        #         if np.sum(color) > 4:
+        #             color = convert_rgb_255_to_1(color)
+        #         minCE, maxCE = np.min(data[key]["xvals"]), np.max(data[key]["xvals"])
+        #         document_label = "{}: {}".format(document_title, key)
+        #         textlist.Append(
+        #             [
+        #                 "",
+        #                 minCE,
+        #                 maxCE,
+        #                 data[key].get("charge", ""),
+        #                 color,
+        #                 data[key]["cmap"],
+        #                 data[key]["alpha"],
+        #                 data[key]["mask"],
+        #                 label,
+        #                 data[key]["zvals"].shape,
+        #                 document_label,
+        #             ]
+        #         )
+        #     color = convert_rgb_1_to_255(color)
+        #     textlist.SetItemBackgroundColour(count, color)
+        #     textlist.SetItemTextColour(count, get_font_color(color, return_rgb=True))
+        #
+        # if evtID in [ID_docTree_addToMMLTable, ID_docTree_addOneToMMLTable]:
+        #     # sort items
+        #     self.presenter.view.panelMML.OnSortByColumn(column=1, overrideReverse=True)
+        #     self.presenter.view.panelMML.onRemoveDuplicates(None)
+        #     self.presenter.view.on_toggle_panel(evt=ID_window_multipleMLList, check=True)
+        #
+        # elif evtID in [ID_docTree_addToTextTable, ID_docTree_addOneToTextTable, ID_docTree_addInteractiveToTextTable]:
+        #     # sort items
+        #     self.presenter.view.panelMultipleText.onRemoveDuplicates(None)
+        #     self.presenter.view.on_toggle_panel(evt=ID_window_textList, check=True)
 
     def onShowMassSpectra(self, evt):
 
@@ -3033,6 +3034,7 @@ class DocumentTree(wx.TreeCtrl):
     # TODO: should restore items to various side panels
 
     def onRenameItem(self, evt):
+        # TODO: FIXME
         from origami.gui_elements.dialog_rename import DialogRenameObject
 
         if self._document_data is None:
@@ -3105,14 +3107,14 @@ class DocumentTree(wx.TreeCtrl):
 
                 # check if item is in other panels
                 # TODO: implement for other panels
-                try:
-                    self.presenter.view.panelMML.onRenameItem(current_name, new_name, item_type="document")
-                except Exception:
-                    pass
-                try:
-                    self.presenter.view.panelMultipleIons.onRenameItem(current_name, new_name, item_type="document")
-                except Exception:
-                    pass
+                # try:
+                #     self.presenter.view.panelMML.onRenameItem(current_name, new_name, item_type="document")
+                # except Exception:
+                #     pass
+                # try:
+                #     self.presenter.view.panelMultipleIons.onRenameItem(current_name, new_name, item_type="document")
+                # except Exception:
+                #     pass
             #                 try: self.presenter.view.panelMultipleText.on_remove_deleted_item(title)
             #                 except Exception: pass
             #                 try: self.presenter.view.panelMML.on_remove_deleted_item(title)
@@ -3138,21 +3140,21 @@ class DocumentTree(wx.TreeCtrl):
                 # Change dictionary key
                 ENV[self.title].IMS2DoverlayData[new_name] = ENV[self.title].IMS2DoverlayData.pop(self._item_leaf)
                 self.Expand(docItem)
-            elif self._document_type == "Mass Spectra":
-                # Change document tree
-                docItem = self.get_item_by_data(ENV[self.title].multipleMassSpectrum[self._item_leaf])
-                parent = self.GetItemParent(docItem)
-                self.SetItemText(docItem, new_name)
-                # Change dictionary key
-                ENV[self.title].multipleMassSpectrum[new_name] = ENV[self.title].multipleMassSpectrum.pop(
-                    self._item_leaf
-                )
-                self.Expand(docItem)
-                # check if item is in other panels
-                try:
-                    self.presenter.view.panelMML.onRenameItem(current_name, new_name, item_type="filename")
-                except Exception:
-                    pass
+            # elif self._document_type == "Mass Spectra":
+            #     # Change document tree
+            #     docItem = self.get_item_by_data(ENV[self.title].multipleMassSpectrum[self._item_leaf])
+            #     parent = self.GetItemParent(docItem)
+            #     self.SetItemText(docItem, new_name)
+            #     # Change dictionary key
+            #     ENV[self.title].multipleMassSpectrum[new_name] = ENV[self.title].multipleMassSpectrum.pop(
+            #         self._item_leaf
+            #     )
+            #     self.Expand(docItem)
+            #     # check if item is in other panels
+            #     try:
+            #         self.presenter.view.panelMML.onRenameItem(current_name, new_name, item_type="filename")
+            #     except Exception:
+            #         pass
             elif self._document_type == "Drift time (2D, EIC)":
                 new_name = new_name.replace(": ", " : ")
                 # Change document tree
@@ -4451,8 +4453,8 @@ class DocumentTree(wx.TreeCtrl):
                 item, cookie = self.GetNextChild(item, cookie)
             return None
 
-        for title, name in metadata:
-            print("item", get_document(), name)
+    #         for title, name in metadata:
+    #             print("item", get_document(), name)
 
     def add_document(self, document: DocumentStore, expandAll=False, expandItem=None):
         """Add document to the document tree"""
@@ -4810,26 +4812,26 @@ class DocumentTree(wx.TreeCtrl):
                     # Remove data from dictionary if removing whole document
                     if evtID == ID_removeDocument or evtID is None:
                         # make sure to clean-up various tables
-                        try:
-                            self.presenter.view.panelMultipleIons.on_remove_deleted_item(title)
-                        except Exception:
-                            pass
-                        try:
-                            self.presenter.view.panelMultipleText.on_remove_deleted_item(title)
-                        except Exception:
-                            pass
-                        try:
-                            self.presenter.view.panelMML.on_remove_deleted_item(title)
-                        except Exception:
-                            pass
-                        try:
-                            self.presenter.view.panelLinearDT.topP.on_remove_deleted_item(title)
-                        except Exception:
-                            pass
-                        try:
-                            self.presenter.view.panelLinearDT.bottomP.on_remove_deleted_item(title)
-                        except Exception:
-                            pass
+                        # try:
+                        #     self.presenter.view.panelMultipleIons.on_remove_deleted_item(title)
+                        # except Exception:
+                        #     pass
+                        # try:
+                        #     self.presenter.view.panelMultipleText.on_remove_deleted_item(title)
+                        # except Exception:
+                        #     pass
+                        # try:
+                        #     self.presenter.view.panelMML.on_remove_deleted_item(title)
+                        # except Exception:
+                        #     pass
+                        # try:
+                        #     self.presenter.view.panelLinearDT.topP.on_remove_deleted_item(title)
+                        # except Exception:
+                        #     pass
+                        # try:
+                        #     self.presenter.view.panelLinearDT.bottomP.on_remove_deleted_item(title)
+                        # except Exception:
+                        #     pass
 
                         # delete document
                         del ENV[title]
@@ -5122,27 +5124,27 @@ class DocumentTree(wx.TreeCtrl):
                 if child:
                     print("Deleted {}".format(document_title))
                     self.Delete(child)
-                    # make sure to clean-up various tables
-                    try:
-                        self.presenter.view.panelMultipleIons.on_remove_deleted_item(title)
-                    except Exception:
-                        pass
-                    try:
-                        self.presenter.view.panelMultipleText.on_remove_deleted_item(title)
-                    except Exception:
-                        pass
-                    try:
-                        self.presenter.view.panelMML.on_remove_deleted_item(title)
-                    except Exception:
-                        pass
-                    try:
-                        self.presenter.view.panelLinearDT.topP.on_remove_deleted_item(title)
-                    except Exception:
-                        pass
-                    try:
-                        self.presenter.view.panelLinearDT.bottomP.on_remove_deleted_item(title)
-                    except Exception:
-                        pass
+                    # # make sure to clean-up various tables
+                    # try:
+                    #     self.presenter.view.panelMultipleIons.on_remove_deleted_item(title)
+                    # except Exception:
+                    #     pass
+                    # try:
+                    #     self.presenter.view.panelMultipleText.on_remove_deleted_item(title)
+                    # except Exception:
+                    #     pass
+                    # try:
+                    #     self.presenter.view.panelMML.on_remove_deleted_item(title)
+                    # except Exception:
+                    #     pass
+                    # try:
+                    #     self.presenter.view.panelLinearDT.topP.on_remove_deleted_item(title)
+                    # except Exception:
+                    #     pass
+                    # try:
+                    #     self.presenter.view.panelLinearDT.bottomP.on_remove_deleted_item(title)
+                    # except Exception:
+                    #     pass
 
                     # delete document
                     del ENV[document_title]

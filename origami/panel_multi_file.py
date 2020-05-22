@@ -44,7 +44,7 @@ from origami.utils.color import convert_rgb_255_to_1
 from origami.config.config import CONFIG
 from origami.config.environment import ENV
 from origami.processing.spectra import interpolate
-from origami.gui_elements.panel_base import PanelBase
+from origami.gui_elements.panel_base import TablePanelBase
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.panel_modify_manual_settings import PanelModifyManualFilesSettings
 
@@ -54,7 +54,7 @@ logger = logging.getLogger(__name__)
 # with some associated metadata
 
 
-class PanelMultiFile(PanelBase):
+class PanelMultiFile(TablePanelBase):
     TABLE_DICT = {
         0: {
             "name": "",
@@ -115,7 +115,7 @@ class PanelMultiFile(PanelBase):
     }
 
     def __init__(self, parent, icons, presenter):
-        PanelBase.__init__(self, parent, icons, presenter)
+        TablePanelBase.__init__(self, parent, icons, presenter)
         self.editingItem = None
         self.allChecked = True
         self.preprocessMS = False

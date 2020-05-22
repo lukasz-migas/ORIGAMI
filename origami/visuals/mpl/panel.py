@@ -174,7 +174,9 @@ class MPLPanel(wx.Panel):
         # self.onRebootZoomKeys(evt=None)
 
     def update_extents(self, extents):
-        ZoomBox.update_extents(self.zoom, extents)
+        self.zoom.update_extents(extents)
+
+    #         ZoomBox.update_extents(self.zoom, extents)
 
     def update_y_extents(self, y_min, y_max):
         ZoomBox.update_y_extents(self.zoom, y_min, y_max)

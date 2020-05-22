@@ -6,6 +6,10 @@ class IncorrectValueError(Exception):
     pass
 
 
+class NoIonMobilityDatasetError(Exception):
+    pass
+
+
 class MessageError(Exception):
     """Exception raised for errors in the input.
 

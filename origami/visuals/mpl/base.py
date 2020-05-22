@@ -812,9 +812,7 @@ class PlotBase(MPLPanel):
         lines[0].set_label(kwargs.get("label", ""))
 
         # update limits and extents
-        xlimits = (np.min(xvals), np.max(xvals))
-        ylimits = (np.min(yvals), np.max(yvals) * 1.1)
-        extent = [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
+        xlimits, ylimits, extent = self._compute_xy_limits(xvals, yvals, 1.1)
 
         if kwargs["shade_under"]:
             shade_kws = dict(
@@ -848,6 +846,9 @@ class PlotBase(MPLPanel):
         # update legend
         handles, __ = self.plot_base.get_legend_handles_labels()
         self.set_legend_parameters(handles, **self.plot_parameters)
+
+        # Setup X-axis getter
+        self.store_plot_limits(extent)
 
     def plot_1D_update_data_by_label(self, xvals, yvals, gid, label):
         """Update plot data without replotting the entire plot

@@ -106,6 +106,7 @@ class ORIGAMI:
 
         # Set temporary data path
         temp_data_folder = os.path.join(os.getcwd(), "temporary_data")
+        print(temp_data_folder)
         if not os.path.exists(temp_data_folder):
             os.makedirs(temp_data_folder)
         self.config.temporary_data = temp_data_folder
@@ -142,16 +143,13 @@ class ORIGAMI:
 
         # add data handling and processing modules
         self.view.panelDocuments.documents.setup_handling_and_processing()
-        self.view.panelMultipleIons.setup_handling_and_processing()
-        self.view.panelMultipleText.setup_handling_and_processing()
-        self.view.panelMML.setup_handling_and_processing()
+        # self.view.panelMultipleIons.setup_handling_and_processing()
+        # self.view.panelMultipleText.setup_handling_and_processing()
+        # self.view.panelMML.setup_handling_and_processing()
         self.view.panelPlots.setup_handling_and_processing()
         self.view.panelParametersEdit.setup_handling_and_processing()
         self.data_processing.setup_handling_and_processing()
         self.data_visualisation.setup_handling_and_processing()
-
-        #         if self.config.debug and not self.config.testing:
-        #             self._debug_()
 
         if self.config.testing:
             self._test_()
@@ -246,11 +244,6 @@ class ORIGAMI:
         document.fileFormat = kwargs.get("file_format", "Format: Other")
 
         return document
-
-    def _debug_(self):
-        import wx.lib.inspection
-
-        wx.lib.inspection.InspectionTool().Show()
 
     def onThreading(self, evt, args, action="loadOrigami"):
 

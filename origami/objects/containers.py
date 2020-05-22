@@ -1,5 +1,6 @@
 # Third-party imports
 # Standard library imports
+# Standard library imports
 import os
 from typing import Union
 from typing import Optional
@@ -90,7 +91,7 @@ class DataObject:
         self.check_kwargs(kwargs)
 
     def __repr__(self):
-        return f"{self.__class__.__name__}<x-label={self.x_label}; y-label={self.y_label}>"
+        return f"{self.__class__.__name__}<x-label={self.x_label}; y-label={self.y_label}; shape={self.shape}>"
 
     @property
     def owner(self):
@@ -161,6 +162,10 @@ class DataObject:
         if not self._y_limit:
             self._y_limit = get_min_max(self.x)
         return self._y_limit
+
+    @property
+    def shape(self):
+        return self.x.shape
 
     def set_metadata(self, metadata):
         """Updates the metadata store"""
@@ -280,7 +285,7 @@ class ChromatogramObject(SpectrumObject):
             x_label=x_label,
             y_label=y_label,
             name=name,
-            x_label_options=["Scans", "Retention time (mins)"],
+            x_label_options=["Scans", "Time (mins)", "Retention time (mins)"],
             metadata=metadata,
             extra_data=extra_data,
             **kwargs,

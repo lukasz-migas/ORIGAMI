@@ -13,10 +13,12 @@ import numpy as np
 
 # Local imports
 from origami.utils.check import check_axes_spacing
+from origami.config.config import CONFIG
 from origami.readers.io_mgf import MGFReader
 from origami.readers.io_mzml import mzMLReader
 from origami.utils.utilities import report_time
 from origami.utils.decorators import check_os
+from origami.utils.exceptions import NoIonMobilityDatasetError
 from origami.config.environment import ENV
 from origami.objects.containers import IonHeatmapObject
 from origami.objects.containers import MobilogramObject
@@ -80,7 +82,7 @@ class LoadHandler:
         # setup file reader
         reader = document.get_reader("ion_mobility")
         if reader is None:
-            reader = WatersIMReader(document.path)
+            reader = WatersIMReader(document.path, temp_dir=CONFIG.temporary_data)
             document.set_reader("ion_mobility", reader)
 
         # extract data
@@ -118,7 +120,7 @@ class LoadHandler:
         # setup file reader
         reader = document.get_reader("ion_mobility")
         if reader is None:
-            reader = WatersIMReader(document.path)
+            reader = WatersIMReader(document.path, temp_dir=CONFIG.temporary_data)
             document.set_reader("ion_mobility", reader)
 
         mz_obj = reader.extract_ms(rt_start=x_min, rt_end=x_max, return_data=True)
@@ -159,7 +161,7 @@ class LoadHandler:
         # setup file reader
         reader = document.get_reader("ion_mobility")
         if reader is None:
-            reader = WatersIMReader(document.path)
+            reader = WatersIMReader(document.path, temp_dir=CONFIG.temporary_data)
             document.set_reader("ion_mobility", reader)
 
         mz_obj = reader.extract_ms(rt_start=x_min, rt_end=x_max, dt_start=y_min, dt_end=y_max, return_data=True)
@@ -196,7 +198,7 @@ class LoadHandler:
         # setup file reader
         reader = document.get_reader("ion_mobility")
         if reader is None:
-            reader = WatersIMReader(document.path)
+            reader = WatersIMReader(document.path, temp_dir=CONFIG.temporary_data)
             document.set_reader("ion_mobility", reader)
 
         # get heatmap
@@ -238,7 +240,7 @@ class LoadHandler:
         array = np.zeros((200, n_files))
         rt_x = []
         for idx, (filepath, value) in enumerate(filelist.items()):
-            reader = WatersIMReader(filepath)
+            reader = WatersIMReader(filepath, temp_dir=CONFIG.temporary_data)
             dt_obj = reader.extract_dt(mz_start=x_min, mz_end=x_max, return_data=True)
             array[:, idx] = dt_obj.y
             rt_x.append(value)
@@ -262,7 +264,7 @@ class LoadHandler:
     def waters_im_extract_ms(path, **kwargs) -> MassSpectrumObject:
         """Extract chromatographic data"""
         check_path(path)
-        reader = WatersIMReader(path)
+        reader = WatersIMReader(path, temp_dir=CONFIG.temporary_data)
         mz_obj: MassSpectrumObject = reader.extract_ms(**kwargs)
 
         return mz_obj
@@ -272,7 +274,7 @@ class LoadHandler:
     def waters_im_extract_rt(path, **kwargs) -> ChromatogramObject:
         """Extract chromatographic data"""
         check_path(path)
-        reader = WatersIMReader(path)
+        reader = WatersIMReader(path, temp_dir=CONFIG.temporary_data)
         rt_obj: ChromatogramObject = reader.extract_rt(**kwargs)
 
         return rt_obj
@@ -282,7 +284,7 @@ class LoadHandler:
     def waters_im_extract_dt(path, **kwargs) -> MobilogramObject:
         """Extract mobility data"""
         check_path(path)
-        reader = WatersIMReader(path)
+        reader = WatersIMReader(path, temp_dir=CONFIG.temporary_data)
         dt_obj: MobilogramObject = reader.extract_dt(**kwargs)
 
         return dt_obj
@@ -292,7 +294,7 @@ class LoadHandler:
     def waters_im_extract_heatmap(path, **kwargs) -> IonHeatmapObject:
         """Extract mobility data"""
         check_path(path)
-        reader = WatersIMReader(path)
+        reader = WatersIMReader(path, temp_dir=CONFIG.temporary_data)
         heatmap_obj: IonHeatmapObject = reader.extract_heatmap(**kwargs)
 
         return heatmap_obj
@@ -307,7 +309,7 @@ class LoadHandler:
 
         # calculate number of m/z bins
         n_mz_bins = math.floor((mz_max - mz_min) / mz_bin_size)
-        reader = WatersIMReader(path)
+        reader = WatersIMReader(path, temp_dir=CONFIG.temporary_data)
         mzdt_obj: MassSpectrumHeatmapObject = reader.extract_msdt(
             mz_start=mz_min, mz_end=mz_max, n_points=n_mz_bins, **kwargs
         )
@@ -343,6 +345,7 @@ class LoadHandler:
         return IonHeatmapObject(reader.array, x=reader.x, y=reader.y, xy=reader.xy, yy=reader.yy)
 
     def load_text_heatmap_document(self, path):
+        """Load heatmap data from text file and instantiate it as a document"""
         heatmap_obj = self.load_text_heatmap_data(path)
         document = ENV.get_new_document("origami", path, data=dict(heatmap=heatmap_obj))
         return document
@@ -427,6 +430,43 @@ class LoadHandler:
 
         return document
 
+    def _parse_clipboard_stream(self, clip_stream):
+        """Parse clipboard stream data"""
+        data = []
+        for t in clip_stream:
+            line = t.split()
+            try:
+                data.append(list(map(float, line)))
+            except (ValueError, TypeError):
+                LOGGER.warning("Failed to convert mass range to dtype: float")
+
+        if not data:
+            return None
+
+        # check data size
+        sizes = []
+        for _d in data:
+            sizes.append(len(_d))
+
+        if len(np.unique(sizes)) != 1:
+            raise ValueError("Could not parse clipboard data")
+
+        data = np.asarray(data)
+        return data
+
+    def load_clipboard_ms_document(self, path, clip_stream):
+        """Load clipboard data and instantiate new document"""
+        # process clipboard stream
+        data = self._parse_clipboard_stream(clip_stream)
+        if data is None:
+            raise ValueError("Clipboard object was empty")
+
+        mz_obj = MassSpectrumObject(data[:, 0], data[:, 1])
+        title = os.path.basename(path)
+        document = ENV.get_new_document("text", path, data=dict(mz=mz_obj), title=title)
+
+        return document
+
     @staticmethod
     @check_os("win32")
     def load_waters_ms_data(path):
@@ -443,7 +483,17 @@ class LoadHandler:
 
         parameters = reader.get_inf_data()
 
-        data = {"mz": MassSpectrumObject(mz_x, mz_y), "rt": ChromatogramObject(rt_x, rt_y), "parameters": parameters}
+        data = {
+            "mz": MassSpectrumObject(mz_x, mz_y),
+            "rt": ChromatogramObject(
+                rt_x,
+                rt_y,
+                x_label="Time (min)",
+                metadata=dict(scan_time=parameters["scan_time"]),
+                extra_data=dict(x_min=rt_x),
+            ),
+            "parameters": parameters,
+        }
         LOGGER.debug("Loaded data in " + report_time(t_start))
         return reader, data
 
@@ -456,11 +506,21 @@ class LoadHandler:
 
         return document
 
+    @staticmethod
+    @check_os("win32")
+    def check_waters_im(path):
+        """Checks whether dataset has ion mobility"""
+        try:
+            _ = WatersIMReader(path)
+            return True
+        except NoIonMobilityDatasetError:
+            return False
+
     @check_os("win32")
     def load_waters_im_data(self, path):
         """Load Waters IM-MS data"""
         t_start = time.time()
-        reader = WatersIMReader(path)
+        reader = WatersIMReader(path, temp_dir=CONFIG.temporary_data)
         LOGGER.debug("Initialized Waters reader")
 
         mz_obj: MassSpectrumObject = reader.extract_ms()

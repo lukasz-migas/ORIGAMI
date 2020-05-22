@@ -948,16 +948,16 @@ class PanelDocumentInformation(wx.MiniFrame):
                     if "-".join([splitText[0], splitText[1]]) == self.extractData:
                         self.document.IMS1DdriftTimes[key]["charge"] = str2int(self.charge_value.GetValue())
 
-            # We also have to check if there is data in the table
-            if (
-                self.document.dataType == "Type: ORIGAMI" or self.document.dataType == "Type: MANUAL"
-            ) and self.extractData is not None:
-
-                row = self.presenter.view.panelMultipleIons.on_find_item(splitText, self.document.title)
-                if row is not None:
-                    self.presenter.view.panelMultipleIons.peaklist.SetStringItem(
-                        index=row, col=self.config.peaklistColNames["charge"], label=self.charge_value.GetValue()
-                    )
+            # # We also have to check if there is data in the table
+            # if (
+            #     self.document.dataType == "Type: ORIGAMI" or self.document.dataType == "Type: MANUAL"
+            # ) and self.extractData is not None:
+            #
+            #     row = self.presenter.view.panelMultipleIons.on_find_item(splitText, self.document.title)
+            #     if row is not None:
+            #         self.presenter.view.panelMultipleIons.peaklist.SetStringItem(
+            #             index=row, col=self.config.peaklistColNames["charge"], label=self.charge_value.GetValue()
+            #         )
 
         # Update list
         ENV[self.document.title] = self.document

@@ -39,19 +39,16 @@ from origami.ids import ID_ionPanel_changeColorBatch_palette
 from origami.ids import ID_ionPanel_changeColorBatch_colormap
 from origami.styles import make_tooltip
 from origami.styles import make_menu_item
-
 # from origami.utils.check import isempty
 # from origami.utils.color import get_font_color
 from origami.utils.color import convert_rgb_1_to_255
-
 # from origami.utils.color import convert_rgb_255_to_1
 # from origami.utils.labels import get_ion_name_from_label
 from origami.config.config import CONFIG
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
-
 # from origami.gui_elements.dialog_ask import DialogAsk
-from origami.gui_elements.panel_base import PanelBase
+from origami.gui_elements.panel_base import TablePanelBase
 
 # from origami.gui_elements.misc_dialogs import DialogBox
 
@@ -74,7 +71,7 @@ class TableColumnIndex(IntEnum):
     key = 12
 
 
-class PanelPeaklist(PanelBase):
+class PanelPeaklist(TablePanelBase):
     KEYWORD_ALIAS = {"colormap": "cmap"}
 
     TABLE_DICT = {
@@ -174,9 +171,10 @@ class PanelPeaklist(PanelBase):
             "hidden": True,
         },
     }
+    TABLE_COLUMN_INDEX = TableColumnIndex
 
     def __init__(self, parent, icons, presenter, document_title: str = None):
-        PanelBase.__init__(self, parent, icons, presenter)
+        TablePanelBase.__init__(self, parent, icons, presenter)
 
         self._document_title = document_title
 
@@ -734,8 +732,8 @@ class PanelPeaklist(PanelBase):
         rows = self.peaklist.GetItemCount()
 
         for row in range(rows):
-            ion_name_in_table = self.peaklist.GetItem(row, TableColumnIndex.ion_name).GetText()
-            document_in_table = self.peaklist.GetItem(row, TableColumnIndex.document).GetText()
+            ion_name_in_table = self.peaklist.GetItem(row, self.TABLE_COLUMN_INDEX.ion_name).GetText()
+            document_in_table = self.peaklist.GetItem(row, self.TABLE_COLUMN_INDEX.document).GetText()
             if (ion_name_in_table == ion_name) and (document_in_table == document):
                 return True
         return False

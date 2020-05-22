@@ -2,6 +2,7 @@
 import math
 import logging
 from bisect import bisect_left
+from typing import Optional
 
 # Third-party imports
 import numpy as np
@@ -242,24 +243,29 @@ def interpolate(x_short, y_short, x_long):
     return x_long, new_y_long
 
 
-def linearize_data(msX, msY, **kwargs):
+def linearize_data(
+    x: np.ndarray,
+    y: np.ndarray,
+    bin_size: Optional[float] = None,
+    linearization_mode: Optional[str] = None,
+    auto_range: bool = True,
+    x_min: Optional[float] = None,
+    x_max: Optional[float] = None,
+    x_bin: Optional[np.ndarray] = None,
+):
+    """Linearize data by either up- or down-sampling"""
 
-    if kwargs.get("auto_range", True):
-        mzStart = msX[0]
-        mzEnd = msX[-1]
-    else:
-        mzStart = kwargs["mz_min"]
-        mzEnd = kwargs["mz_max"]
+    # get the x axis minimum/maximum values
+    if auto_range or x_min is None or x_max is None:
+        x_min = math.ceil(x[0] / bin_size) * bin_size
+        x_max = math.floor(x[-1] / bin_size) * bin_size
+    if x_bin is None:
+        x_bin = get_linearization_range(x_min, x_max, bin_size, linearization_mode)
 
-    binsize = kwargs["mz_bin"]
-    msCentre = get_linearization_range(mzStart, mzEnd, binsize, kwargs["linearization_mode"])
+    x_bin, y_bin = linearize(data=np.transpose([x, y]), bin_size=bin_size, mode=linearization_mode, x_bin=x_bin)
+    y_bin = np.nan_to_num(y_bin)
 
-    msCentre, msYbin = linearize(
-        data=np.transpose([msX, msY]), binsize=binsize, mode=kwargs["linearization_mode"], input_list=msCentre
-    )
-    msYbin = np.nan_to_num(msYbin)
-
-    return msCentre, msYbin
+    return x_bin, y_bin
 
 
 def crop_1D_data(msX, msY, **kwargs):
@@ -416,38 +422,50 @@ def nearest(array, target):
     return i
 
 
-def get_linearization_range(mzStart, mzEnd, binsize, mode):
+def get_linearization_range(x_min: float, x_max: float, bin_size: float, mode: str):
+    """Calculate the x-axis range based on the provided min/max values
+
+    Parameters
+    ----------
+    x_min : float
+        minimum value of x-axis
+    x_max : float
+        maximum value of the x-axis
+    bin_size : float
+        spacing between points in the x-axis
+    mode : str
+        type of linearization to be performed on the data
+    """
     if mode in ["Linear m/z", "Linear interpolation"]:
-        msList = np.arange(mzStart, mzEnd, binsize)
+        x = np.arange(x_min, x_max, bin_size)
     else:
-        msList = nonlinear_axis(mzStart, mzEnd, mzStart / binsize)
+        x = nonlinear_axis(x_min, x_max, x_min / bin_size)
 
-    return msList
+    return x
 
 
-def linearize(data, binsize, mode, input_list=[]):
-    if len(input_list) == 0:
-        length = len(data)
-        firstpoint = math.ceil(data[0, 0] / binsize) * binsize
-        lastpoint = math.floor(data[length - 1, 0] / binsize) * binsize
+def linearize(data, bin_size, mode, x_bin=None):
+    if x_bin is None:
+        x_bin = []
 
-        if mode in ["Linear m/z", "Linear interpolation"]:
-            intx = np.arange(firstpoint, lastpoint, binsize)
-        else:
-            intx = nonlinear_axis(firstpoint, lastpoint, firstpoint / binsize)
-    else:
-        intx = input_list
+    if len(x_bin) == 0:
+        # length = len(data)
+        # firstpoint = math.ceil(data[0, 0] / bin_size) * bin_size
+        # lastpoint = math.floor(data[length - 1, 0] / bin_size) * bin_size
 
+        x_bin = get_linearization_range(data[0, 0], data[-1, 0], bin_size, mode)
+
+    # perform linearization
     if mode in ["Linear m/z", "Linear resolution"]:
-        newdat = lintegrate(data, intx)
+        xy = lintegrate(data, x_bin)
     else:
-        newdat = linterpolate(data, intx)
+        xy = linterpolate(data, x_bin)
 
     # unpact to x and y list
-    xvals = newdat[:, 0]
-    yvals = newdat[:, 1]
+    x = xy[:, 0]
+    y = xy[:, 1]
 
-    return xvals, yvals
+    return x, y
 
 
 def nonlinear_axis(start, end, res):
@@ -567,9 +585,9 @@ def subtract_spectra(xvals_1, yvals_1, xvals_2, yvals_2, **kwargs):
 
         pr_kwargs = {
             "auto_range": False,
-            "mz_min": ylimits[0],
-            "mz_max": ylimits[1],
-            "mz_bin": mz_bin,
+            "x_min": ylimits[0],
+            "x_max": ylimits[1],
+            "bin_size": mz_bin,
             "linearization_mode": "Linear interpolation",
         }
         xvals_1, yvals_1 = linearize_data(xvals_1, yvals_1, **pr_kwargs)

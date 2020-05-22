@@ -742,8 +742,7 @@ class ZoomBox:
 
         self._button_down = True
 
-        pub.sendMessage("change_x_axis_start", startX=evt.xdata)
-        self.startX = evt.xdata
+        pub.sendMessage("change_x_axis_start", xy_start=[evt.xdata, evt.ydata])
 
         # make the drawed box/line visible get the click-coordinates, button, ...
         for to_draw in self.to_draw:
@@ -792,7 +791,7 @@ class ZoomBox:
             return
         self._button_down = False
 
-        pub.sendMessage("change_x_axis_start", startX=None)
+        pub.sendMessage("change_x_axis_start", xy_start=[None, None])
 
         # make the box/line invisible again
         for to_draw in self.to_draw:
@@ -1059,26 +1058,26 @@ class ZoomBox:
 
         self.prev = x, y
 
-        minx, maxx = self.eventpress.xdata, x  # click-x and actual mouse-x
-        miny, maxy = self.eventpress.ydata, y  # click-y and actual mouse-y
+        xmin, xmax = self.eventpress.xdata, x  # click-x and actual mouse-x
+        ymin, ymax = self.eventpress.ydata, y  # click-y and actual mouse-y
 
-        if minx is not None and maxx is not None and minx > maxx:
-            minx, maxx = maxx, minx
-        if miny is not None and maxy is not None and miny > maxy:
-            miny, maxy = maxy, miny
+        if xmin is not None and xmax is not None and xmin > xmax:
+            xmin, xmax = xmax, xmin
+        if ymin is not None and ymax is not None and ymin > ymax:
+            ymin, ymax = ymax, ymin
 
         if self._inside_axes:
-            self._last_xy_position = [minx, maxx, miny, maxy]
+            self._last_xy_position = [xmin, xmax, ymin, ymax]
         else:
             try:
-                minx, maxx, miny, maxy = self._last_xy_position
+                xmin, xmax, ymin, ymax = self._last_xy_position
             except ValueError:
                 return
 
         # Checks whether values are not empty (or are float)
-        if not isinstance(minx, float) or not isinstance(maxx, float):
+        if not isinstance(xmin, float) or not isinstance(xmax, float):
             return
-        if not isinstance(miny, float) or not isinstance(maxy, float):
+        if not isinstance(ymin, float) or not isinstance(ymax, float):
             return
 
         # Changes from a yellow box to a colored line
@@ -1087,15 +1086,15 @@ class ZoomBox:
             x0, x1 = axes.get_xlim()
 
         # X-axis line
-        if abs(maxy - miny) < abs(y1 - y0) * self.crossoverpercent:
+        if abs(ymax - ymin) < abs(y1 - y0) * self.crossoverpercent:
             self.span = "horizontal"
-            avg = (miny + maxy) / 2
-            if y is not None and y > miny:
-                avg = miny
+            avg = (ymin + ymax) / 2
+            if y is not None and y > ymin:
+                avg = ymin
             else:
-                avg = maxy
-            miny = avg
-            maxy = avg
+                avg = ymax
+            ymin = avg
+            ymax = avg
             for to_draw in self.to_draw:
                 if wx.GetKeyState(wx.WXK_CONTROL):
                     to_draw.set_edgecolor(self.plot_parameters["extract_color"])
@@ -1109,15 +1108,15 @@ class ZoomBox:
                     to_draw.set_linestyle("-")
 
         # Y-axis line
-        elif abs(maxx - minx) < abs(x1 - x0) * self.crossoverpercent:
+        elif abs(xmax - xmin) < abs(x1 - x0) * self.crossoverpercent:
             self.span = "vertical"
-            avg = (minx + maxx) / 2
-            if x is not None and x > minx:
-                avg = minx
+            avg = (xmin + xmax) / 2
+            if x is not None and x > xmin:
+                avg = xmin
             else:
-                avg = maxx
-            minx = avg
-            maxx = avg
+                avg = xmax
+            xmin = avg
+            xmax = avg
             for to_draw in self.to_draw:
                 to_draw.set_edgecolor(self.plot_parameters["zoom_color_vertical"])
                 to_draw.set_linewidth(self.plot_parameters["zoom_line_width"])
@@ -1142,13 +1141,13 @@ class ZoomBox:
 
         # set size parameters
         for to_draw in self.to_draw:
-            to_draw.set_x(minx)  # set lower left of box
-            to_draw.set_y(miny)
-            to_draw.set_width(maxx - minx)  # set width and height of box
-            to_draw.set_height(maxy - miny)
+            to_draw.set_x(xmin)  # set lower left of box
+            to_draw.set_y(ymin)
+            to_draw.set_width(xmax - xmin)  # set width and height of box
+            to_draw.set_height(ymax - ymin)
 
             # Send to main window
-            pub.sendMessage("motion_range", dataOut=[minx, maxx, miny, maxy])
+            pub.sendMessage("motion_range", xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
 
         value = 0.0
         if self.onmove_callback is not None and evt.inaxes.lines != []:
@@ -1168,7 +1167,7 @@ class ZoomBox:
                     value.append(dat[indx])
             if value == []:
                 value = 0.0
-            self.onmove_callback(minx, maxx, value, miny, maxy)  # zeros are for consistency with box zoom
+            self.onmove_callback(xmin, xmax, value, ymin, ymax)  # zeros are for consistency with box zoom
 
         self.update()
         return False

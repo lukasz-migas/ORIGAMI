@@ -35,14 +35,14 @@ class DataVisualization:
 
         self.panelPlots = self.view.panelPlots
 
-        self.ionPanel = self.view.panelMultipleIons
-        self.ionList = self.ionPanel.peaklist
-
-        self.textPanel = self.view.panelMultipleText
-        self.textList = self.textPanel.peaklist
-
-        self.filesPanel = self.view.panelMML
-        self.filesList = self.filesPanel.peaklist
+        # self.ionPanel = self.view.panelMultipleIons
+        # self.ionList = self.ionPanel.peaklist
+        #
+        # self.textPanel = self.view.panelMultipleText
+        # self.textList = self.textPanel.peaklist
+        #
+        # self.filesPanel = self.view.panelMML
+        # self.filesList = self.filesPanel.peaklist
 
         # add application defaults
         self.plot_page = None

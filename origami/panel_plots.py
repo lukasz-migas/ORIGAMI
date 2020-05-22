@@ -3273,7 +3273,7 @@ class PanelPlots(wx.Panel):
             set_data()
 
         # update plot data
-        self.presenter.view._onUpdatePlotData(plot_type="2D")
+        # self.presenter.view._onUpdatePlotData(plot_type="2D")
 
     def on_plot_MSDT(
         self,
@@ -3754,18 +3754,18 @@ class PanelPlots(wx.Panel):
         plot_obj.repaint()
         self.rmsdfFlag = False
 
-        if override:
-            self.config.replotData["RMSF"] = {
-                "zvals": zvals,
-                "xvals": xvals,
-                "yvals": yvals,
-                "xlabelRMSD": xlabelRMSD,
-                "ylabelRMSD": ylabelRMSD,
-                "ylabelRMSF": ylabelRMSF,
-                "cmapNorm": cmapNorm,
-            }
+        # if override:
+        #     self.config.replotData["RMSF"] = {
+        #         "zvals": zvals,
+        #         "xvals": xvals,
+        #         "yvals": yvals,
+        #         "xlabelRMSD": xlabelRMSD,
+        #         "ylabelRMSD": ylabelRMSD,
+        #         "ylabelRMSF": ylabelRMSF,
+        #         "cmapNorm": cmapNorm,
+        #     }
 
-        self.presenter.view._onUpdatePlotData(plot_type="RMSF")
+        # self.presenter.view._onUpdatePlotData(plot_type="RMSF")
 
         # setup plot object
         self.plot_objs["RMSF"] = plot_obj
@@ -3845,19 +3845,19 @@ class PanelPlots(wx.Panel):
         # Show the mass spectrum
         plot_obj.repaint()
 
-        if override:
-            self.config.replotData["2D"] = {
-                "zvals": zvals,
-                "xvals": xvals,
-                "yvals": yvals,
-                "xlabels": xlabel,
-                "ylabels": ylabel,
-                "cmap": cmap,
-                "cmapNorm": cmapNorm,
-            }
+        # if override:
+        #     self.config.replotData["2D"] = {
+        #         "zvals": zvals,
+        #         "xvals": xvals,
+        #         "yvals": yvals,
+        #         "xlabels": xlabel,
+        #         "ylabels": ylabel,
+        #         "cmap": cmap,
+        #         "cmapNorm": cmapNorm,
+        #     }
 
         # update plot data
-        self.presenter.view._onUpdatePlotData(plot_type="2D")
+        # self.presenter.view._onUpdatePlotData(plot_type="2D")
 
     def on_plot_MS_DT_calibration(
         self,

@@ -1,6 +1,8 @@
 # Third-party imports
 from matplotlib.ticker import FuncFormatter
 
+__all__ = ("compute_divider", "y_tick_fmt", "get_intensity_formatter")
+
 
 def compute_divider(value):
     divider = 1000000000

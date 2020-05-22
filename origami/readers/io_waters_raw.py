@@ -11,6 +11,7 @@ import numpy as np
 from origami.utils.path import check_waters_path
 from origami.utils.secret import get_short_hash
 from origami.readers.io_utils import clean_up
+from origami.utils.exceptions import NoIonMobilityDatasetError
 from origami.objects.containers import IonHeatmapObject
 from origami.objects.containers import MobilogramObject
 from origami.objects.containers import ChromatogramObject
@@ -48,6 +49,12 @@ class WatersIMReader(WatersRawReader):
         self._last = None
         self._rt_min = None
         self._dt_ms = None
+        if self.n_functions < 2:
+            raise NoIonMobilityDatasetError(f"Dataset {path} does not have ion mobility dimension")
+
+    @property
+    def driftscope_path(self):
+        return os.path.join(self._driftscope, "imextract.exe")
 
     def check_mz_range(self, mz_start, mz_end):
         """Ensure the user-defined mass-range makes sense"""
@@ -68,6 +75,7 @@ class WatersIMReader(WatersRawReader):
         """Executes the extraction command"""
         process_id = Popen(cmd, shell=self.verbose, creationflags=CREATE_NEW_CONSOLE)
         process_id.wait()
+        logger.debug(f">>> {cmd}")
 
     def get_filepath(self, filename):
         """Combines output directory with new filename"""
@@ -147,7 +155,7 @@ class WatersIMReader(WatersRawReader):
 
         # create command
         out_path = self.get_filepath(filename + ".1dMZ")
-        cmd = rf'{self._driftscope}\imextract.exe -d "{self.path}" -f 1 -o "{out_path}" -t mobilicube -p "{range_file}'
+        cmd = rf'{self.driftscope_path} -d "{self.path}" -f 1 -o "{out_path}" -t mobilicube -p "{range_file}'
 
         # Extract command
         self.execute(cmd)
@@ -240,7 +248,7 @@ class WatersIMReader(WatersRawReader):
 
         # create command
         out_path = self.get_filepath(filename + ".1dRT")
-        cmd = rf'{self._driftscope}\imextract.exe -d "{self.path}" -f 1 -o "{out_path}" -t mobilicube -p "{range_file}'
+        cmd = rf'{self.driftscope_path} -d "{self.path}" -f 1 -o "{out_path}" -t mobilicube -p "{range_file}'
 
         # Extract command
         self.execute(cmd)
@@ -339,7 +347,7 @@ class WatersIMReader(WatersRawReader):
 
         # create command
         out_path = self.get_filepath(filename + ".1dDT")
-        cmd = rf'{self._driftscope}\imextract.exe -d "{self.path}" -f 1 -o "{out_path}" -t mobilicube -p "{range_file}'
+        cmd = rf'{self.driftscope_path} -d "{self.path}" -f 1 -o "{out_path}" -t mobilicube -p "{range_file}'
         # Extract command
         self.execute(cmd)
         self.clean(range_file)
@@ -433,7 +441,7 @@ class WatersIMReader(WatersRawReader):
         # create command
         out_path = self.get_filepath(filename + ".2dRTDT")
         cmd = (
-            rf'{self._driftscope}\imextract.exe -d "{self.path}" -f 1 -o "{out_path}" -t mobilicube -b 1 '
+            rf'{self.driftscope_path} -d "{self.path}" -f 1 -o "{out_path}" -t mobilicube -b 1 '
             rf'-scans 0 -p "{range_file}'
         )
 
@@ -542,7 +550,7 @@ class WatersIMReader(WatersRawReader):
 
         # create command
         out_path = self.get_filepath(filename + ".2dDTMZ")
-        cmd = rf'{self._driftscope}\imextract.exe -d "{self.path}" -f 1 -o "{out_path}" -t mobilicube -p "{range_file}'
+        cmd = rf'{self.driftscope_path} -d "{self.path}" -f 1 -o "{out_path}" -t mobilicube -p "{range_file}'
 
         # Extract command
         self.execute(cmd)

@@ -10,7 +10,6 @@ from typing import Optional
 # Local imports
 from origami.utils.time import get_current_time
 from origami.config.config import CONFIG
-
 # from origami.document import document as Document
 from origami.config.convert import convert_pickle_to_zarr
 from origami.objects.document import DocumentStore
@@ -55,8 +54,11 @@ DOCUMENT_TYPES = [
 DOCUMENT_DEFAULT = "origami"
 DOCUMENT_KEY_PAIRS = {
     "mz": "MassSpectra/Summed Spectrum",
+    "mass_spectrum": "MassSpectra/Summed Spectrum",
     "rt": "Chromatograms/Summed Chromatogram",
+    "chromatogram": "Chromatograms/Summed Chromatogram",
     "dt": "Mobilograms/Summed Mobilogram",
+    "mobilogram": "Mobilograms/Summed Mobilogram",
     "heatmap": "IonHeatmaps/Summed Heatmap",
     "msdt": "MSDTHeatmaps/Summed Heatmap",
     "mass_spectra": ("MassSpectra", "*"),
@@ -289,7 +291,12 @@ class Environment(PropertyCallbackManager):
         return title + " #" + "%d".zfill(n_fill) % n
 
     def new(
-        self, document_type: str, path: str, data: Optional[Dict] = None, check_unique: bool = False
+        self,
+        document_type: str,
+        path: str,
+        data: Optional[Dict] = None,
+        check_unique: bool = False,
+        title: Optional[str] = None,
     ) -> DocumentStore:
         """Create new document that contains certain pre-set attributes. The document is not automatically added to the
         store. Use `add_new` if you would like to instantiate and add the document to the document store"""
@@ -300,7 +307,9 @@ class Environment(PropertyCallbackManager):
         # get document attributes
         attributes = DOCUMENT_TYPE_ATTRIBUTES[document_type]
 
-        title = get_document_title(path)
+        if not title:
+            title = get_document_title(path)
+
         if check_unique:
             title = self._get_new_name(title)
 
@@ -322,13 +331,17 @@ class Environment(PropertyCallbackManager):
 
         return document
 
-    def get_new_document(self, document_type: str, path: str, data: Optional[Dict] = None) -> DocumentStore:
+    def get_new_document(
+        self, document_type: str, path: str, data: Optional[Dict] = None, title: Optional[str] = None
+    ) -> DocumentStore:
         """Alias for `new`"""
-        return self.new(document_type, path, data)
+        return self.new(document_type, path, data, title=title)
 
-    def add_new(self, document_type: str, path: str, data: Optional[Dict] = None) -> DocumentStore:
+    def add_new(
+        self, document_type: str, path: str, data: Optional[Dict] = None, title: Optional[str] = None
+    ) -> DocumentStore:
         """Creates new document and adds it to the store"""
-        document = self.new(document_type, path, data)
+        document = self.new(document_type, path, data, title=title)
         self.add(document)
         return document
 

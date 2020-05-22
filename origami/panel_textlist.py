@@ -41,7 +41,7 @@ from origami.utils.color import convert_rgb_1_to_255
 from origami.config.config import CONFIG
 from origami.config.environment import ENV
 from origami.gui_elements.dialog_ask import DialogAsk
-from origami.gui_elements.panel_base import PanelBase
+from origami.gui_elements.panel_base import TablePanelBase
 from origami.gui_elements.misc_dialogs import DialogBox
 
 LOGGER = logging.getLogger(__name__)
@@ -62,7 +62,7 @@ class TableColumnIndex(IntEnum):
     key = 11
 
 
-class PanelTextlist(PanelBase):
+class PanelTextlist(TablePanelBase):
     KEYWORD_ALIAS = {"cmap": "colormap"}
     TABLE_DICT = {
         0: {
@@ -144,9 +144,10 @@ class PanelTextlist(PanelBase):
             "hidden": True,
         },
     }
+    TABLE_COLUMN_INDEX = TableColumnIndex
 
     def __init__(self, parent, icons, presenter):
-        PanelBase.__init__(self, parent, icons, presenter)
+        TablePanelBase.__init__(self, parent, icons, presenter)
 
         self.addToDocument = False
         self.normalize1D = True
@@ -821,6 +822,7 @@ class PanelTextlist(PanelBase):
         return information
 
     def on_update_document(self, evt, itemInfo=None):
+        # TODO: fix this so document data is updated
 
         # get item info
         if itemInfo is None:
@@ -829,27 +831,28 @@ class PanelTextlist(PanelBase):
         keywords = ["color", "colormap", "alpha", "mask", "label", "min_threshold", "max_threshold", "charge", "cmap"]
 
         # get item
-        try:
-            document = ENV[itemInfo["document"]]
-            for keyword in keywords:
-                keyword_name = self.KEYWORD_ALIAS.get(keyword, keyword)
-                if document.got2DIMS:
-                    document.IMS2D[keyword] = itemInfo[keyword_name]
-                if document.got2Dprocess:
-                    document.IMS2Dprocess[keyword] = itemInfo[keyword_name]
-        except Exception as err:
-            LOGGER.error(err)
-            document_title, ion_title = re.split(": ", itemInfo["document"])
-            document = ENV[document_title]
-            for keyword in keywords:
-                keyword_name = self.KEYWORD_ALIAS.get(keyword, keyword)
-                if ion_title in document.IMS2DcompData:
-                    document.IMS2DcompData[ion_title][keyword] = itemInfo[keyword_name]
-                else:
-                    document.IMS2Dions[ion_title][keyword] = itemInfo[keyword_name]
 
-        # Update file list
-        self.data_handling.on_update_document(document, "no_refresh")
+    #         try:
+    #             document = ENV[itemInfo["document"]]
+    #             for keyword in keywords:
+    #                 keyword_name = self.KEYWORD_ALIAS.get(keyword, keyword)
+    #                 if document.got2DIMS:
+    #                     document.IMS2D[keyword] = itemInfo[keyword_name]
+    #                 if document.got2Dprocess:
+    #                     document.IMS2Dprocess[keyword] = itemInfo[keyword_name]
+    #         except Exception as err:
+    #             LOGGER.error(err)
+    #             document_title, ion_title = re.split(": ", itemInfo["document"])
+    #             document = ENV[document_title]
+    #             for keyword in keywords:
+    #                 keyword_name = self.KEYWORD_ALIAS.get(keyword, keyword)
+    #                 if ion_title in document.IMS2DcompData:
+    #                     document.IMS2DcompData[ion_title][keyword] = itemInfo[keyword_name]
+    #                 else:
+    #                     document.IMS2Dions[ion_title][keyword] = itemInfo[keyword_name]
+    #
+    #         # Update file list
+    #         self.data_handling.on_update_document(document, "no_refresh")
 
     def on_open_editor(self, evt):
         from origami.gui_elements.panel_modify_item_settings import PanelModifyItemSettings
