@@ -1,16 +1,14 @@
-# Third-party imports
 # Standard library imports
-# Standard library imports
-import os
 from typing import Union
 from typing import Optional
 
+# Third-party imports
 import numpy as np
 from zarr import Group
 
 # Local imports
-from origami.utils.path import clean_filename
 from origami.utils.ranges import get_min_max
+from origami.objects.container import ContainerBase
 
 # TODO: add x/y-axis converters to easily switch between labels
 
@@ -28,8 +26,7 @@ def get_fmt(*arrays):
     return fmts
 
 
-class DataObject:
-
+class DataObject(ContainerBase):
     # data attributes
     _x_limit = None
     _y_limit = None
@@ -70,78 +67,24 @@ class DataObject:
         metadata : dict
             dictionary containing additional metadata that should be exported in zarr container
         """
-        self._cls = self.__class__.__name__
-        self._owner = None
-        self._path = None
-        self._output_path = None
-
+        super().__init__(
+            extra_data,
+            metadata,
+            x_label=x_label,
+            y_label=y_label,
+            x_label_options=x_label_options,
+            y_label_options=y_label_options,
+        )
         # settable attributes
         self.name = name
         self._x = x
         self._y = y
-        self._x_label = x_label
-        self._y_label = y_label
-        self._x_label_options = x_label_options
-        self._y_label_options = y_label_options
-        self._extra_data = dict() if extra_data is None else extra_data
-        self._metadata = dict() if metadata is None else metadata
-        self.options = dict()
         self.check()
 
         self.check_kwargs(kwargs)
 
     def __repr__(self):
         return f"{self.__class__.__name__}<x-label={self.x_label}; y-label={self.y_label}; shape={self.shape}>"
-
-    @property
-    def owner(self):
-        return self._owner
-
-    @owner.setter
-    def owner(self, value):
-        """Sets the owner of the container object"""
-        self._owner = value
-
-    def set_owner(self, value):
-        """Sets the owner of the container object"""
-        self.owner = value
-
-    def set_output_path(self, value):
-        """Sets the owner of the container object"""
-        self._output_path = value
-
-    @property
-    def path(self):
-        return self._path
-
-    @property
-    def output_path(self):
-        if self._output_path:
-            return os.path.join(self._output_path, clean_filename(self.owner[1].split("/")[-1]))
-
-    @property
-    def x_label(self):
-        return self._x_label
-
-    @x_label.setter
-    def x_label(self, value):
-        """Sets the x-axis label"""
-        self._x_label = value
-
-    @property
-    def y_label(self):
-        return self._y_label
-
-    @y_label.setter
-    def y_label(self, value):
-        """Sets the x-axis label"""
-        self._y_label = value
-
-    @property
-    def x_label_options(self):
-        if self._x_label_options is None:
-            self._x_label_options = [self._x_label]
-        return self._x_label_options
 
     @property
     def x(self):
@@ -166,12 +109,6 @@ class DataObject:
     @property
     def shape(self):
         return self.x.shape
-
-    def set_metadata(self, metadata):
-        """Updates the metadata store"""
-        if not isinstance(metadata, dict):
-            raise ValueError("Cannot parse metadata that is not a dictionary")
-        self._metadata.update(**metadata)
 
     def check_kwargs(self, kwargs):
         """Checks whether kwargs have been fully processed"""
@@ -207,12 +144,13 @@ class SpectrumObject(DataObject):
     def to_dict(self):
         """Outputs data to dictionary"""
         data = {
-            "xvals": self.x,
-            "yvals": self.y,
-            "xlimits": self.x_limit,
-            "xlabels": self.x_label,
-            "ylabels": self.y_label,
+            "x": self.x,
+            "y": self.y,
+            "x_limit": self.x_limit,
+            "x_label": self.x_label,
+            "y_label": self.y_label,
             **self._metadata,
+            **self._extra_data,
         }
         return data
 
@@ -397,14 +335,15 @@ class HeatmapObject(DataObject):
 
     def to_dict(self):
         return {
-            "xvals": self.x,
-            "yvals": self.y,
-            "zvals": self.array,
-            "xvals_sum": self.xy,
-            "yvals_sum": self.yy,
-            "xlabels": self.x_label,
-            "ylabels": self.y_label,
+            "x": self.x,
+            "y": self.y,
+            "array": self.array,
+            "xy": self.xy,
+            "yy": self.yy,
+            "x_label": self.x_label,
+            "y_label": self.y_label,
             **self._metadata,
+            **self._extra_data,
         }
 
     def to_zarr(self):

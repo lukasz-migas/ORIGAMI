@@ -248,6 +248,9 @@ class Dialog(wx.Dialog):
         """Destroy this frame."""
         self.Destroy()
 
+    def make_panel(self):
+        raise NotImplementedError("Must implement method")
+
     def make_gui(self):
         """Make and arrange main panel"""
 
@@ -294,6 +297,9 @@ class MiniFrame(wx.MiniFrame):
         """Destroy this frame."""
         self.Destroy()
 
+    def make_panel(self, *args):
+        raise NotImplementedError("Must implement method")
+
     def make_gui(self):
         """Make and arrange main panel"""
         # make panel
@@ -309,12 +315,12 @@ class MiniFrame(wx.MiniFrame):
         self.Layout()
 
 
-class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
+class ListCtrl(wx.ListCtrl):
     """ListCtrl"""
 
     def __init__(self, parent, id=-1, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.LC_REPORT, **kwargs):
         wx.ListCtrl.__init__(self, parent, id, pos, size, style)
-        listmix.CheckListCtrlMixin.__init__(self)
+        self.EnableCheckBoxes(True)
 
         # specify that simpler sorter should be used to speed things up
         self.use_simple_sorter = kwargs.get("use_simple_sorter", False)
@@ -331,6 +337,9 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_item, self)
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.on_activate_item, self)
         self.Bind(wx.EVT_LIST_KEY_DOWN, self.on_key_select_item, self)
+
+    def IsChecked(self, item):
+        return self.IsItemChecked(item)
 
     def on_select_item(self, evt):
         self.item_id = evt.Index
@@ -376,9 +385,7 @@ class ListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
             return dict()
 
         is_checked = self.IsChecked(item_id)
-        information = {}
-        information["id"] = item_id
-        information["select"] = is_checked
+        information = {"id": item_id, "select": is_checked}
 
         for column in self.column_info:
             item_tag = self.column_info[column]["tag"]

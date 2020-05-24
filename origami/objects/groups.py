@@ -1,4 +1,5 @@
 # Standard library imports
+from typing import Any
 from typing import List
 
 # Third-party imports
@@ -7,28 +8,91 @@ import numpy as np
 # Local imports
 from origami.processing import spectra
 from origami.config.config import CONFIG
+from origami.objects.container import ContainerBase
 from origami.objects.containers import DataObject
 
 
-class DataGroup:
+class DataGroup(ContainerBase):
 
+    _resample = True
     _x_min = None
     _x_max = None
     _x = None
     _y_sum = None
     _y_mean = None
+    _processing = None
 
-    def __init__(self, data_objects: List[DataObject]):
+    def __init__(
+        self,
+        data_objects: List[DataObject],
+        x_label="",
+        y_label="",
+        x_label_options=None,
+        y_label_options=None,
+        metadata=None,
+        extra_data=None,
+        **kwargs,
+    ):
+        super().__init__(
+            extra_data,
+            metadata,
+            x_label=x_label,
+            y_label=y_label,
+            x_label_options=x_label_options,
+            y_label_options=y_label_options,
+        )
         self._data_objs = data_objects
+        self._next: int = -1
 
         self.check()
 
     def __repr__(self):
-        return f"{self.__class__.__name__}<no. objects={self.n_objects}>"
+        return f"{self.__class__.__name__}<no. objects={self.n_objects}; resample={self.need_resample}>"
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        self._next += 1
+        if self._next < self.n_objects:
+            return self._data_objs[self._next]
+
+        # reset iterator
+        self._next = -1
+        raise StopIteration
 
     @property
     def n_objects(self):
+        """Return number of objects in the group container"""
         return len(self._data_objs)
+
+    @property
+    def need_resample(self):
+        raise NotImplementedError("Must implement method")
+
+    @property
+    def processing(self):
+        """Returns the processing processing used by the group dataset"""
+        raise NotImplementedError("Must implement method")
+
+    def add_processing_step(self, method: str, processing: Any):
+        """Sets all processing processing associated with this fitter than can later be exported as a json file"""
+        if self._processing is None:
+            self._processing = dict()
+        old_processing = self._processing.pop(method, None)
+        self._processing[method] = processing
+
+        # checks whether previous processing parameters are the same as what is being updated - if they are the same
+        # no action needs to be taken, however, if they are different, all currently preset parameter MUST BE reset
+        # otherwise you might get different results!
+        if old_processing != processing:
+            self.reset()
+
+    def get_processing_step(self, method):
+        """Retrieves processing steps previously carried out on the dataset"""
+        if self._processing is None:
+            self._processing = dict()
+        return self._processing.get(method, dict())
 
     def mean(self):
         raise NotImplementedError("Must implement method")
@@ -37,6 +101,9 @@ class DataGroup:
         raise NotImplementedError("Must implement method")
 
     def resample(self):
+        raise NotImplementedError("Must implement method")
+
+    def reset(self):
         raise NotImplementedError("Must implement method")
 
     def to_csv(self, *args, **kwargs):
@@ -60,8 +127,27 @@ class DataGroup:
 
 
 class SpectrumGroup(DataGroup):
-    def __init__(self, data_objects: List[DataObject]):
-        super().__init__(data_objects)
+    def __init__(
+        self,
+        data_objects: List[DataObject],
+        x_label="",
+        y_label="",
+        x_label_options=None,
+        y_label_options=None,
+        metadata=None,
+        extra_data=None,
+        **kwargs,
+    ):
+        super().__init__(
+            data_objects,
+            x_label=x_label,
+            y_label=y_label,
+            metadata=metadata,
+            extra_data=extra_data,
+            x_label_options=x_label_options,
+            y_label_options=y_label_options,
+            **kwargs,
+        )
 
     @property
     def x(self):
@@ -85,6 +171,19 @@ class SpectrumGroup(DataGroup):
             self._x, self._y_mean = self.mean()
         return self._y_mean
 
+    @property
+    def x_limit(self):
+        return list(self.get_x_range())
+
+    @property
+    def processing(self):
+        return self._processing
+
+    @property
+    def need_resample(self):
+        self.get_x_range()
+        return self._resample
+
     def get_x_range(self):
         """Calculate data extents"""
 
@@ -93,22 +192,47 @@ class SpectrumGroup(DataGroup):
 
         if not x_min or not x_max:
 
-            x_mins, x_maxs = [], []
+            x_min_list, x_max_list = [], []
             for obj in self._data_objs:
-                x_mins.append(obj.x[0])
-                x_maxs.append(obj.x[-1])
+                x_min_list.append(obj.x[0])
+                x_max_list.append(obj.x[-1])
 
-            self._x_min = np.min(x_mins)
-            self._x_max = np.max(x_maxs)
+            if len(np.unique(x_min_list)) == 1 and len(np.unique(x_max_list)) == 1:
+                self._resample = False
+
+            self._x_min = np.min(x_min_list)
+            self._x_max = np.max(x_max_list)
 
         return self._x_min, self._x_max
 
     def reset(self):
+        """Resets class data"""
         self._x = None
         self._y_sum = None
         self._y_mean = None
         self._x_min = None
         self._x_max = None
+
+    # def _get_parameters(self, x_min, x_max, bin_size, linearization_mode, auto_range):
+    #     """Get processing parameters"""
+    #     # retrieve previous processing parameters
+    #     prev_processing = self.get_processing_step("resample")
+    #
+    #     # specify x-axis limits
+    #     _x_min, _x_max = self.get_x_range()
+    #
+    #     # specify processing processing
+    #     if x_min is None:
+    #         x_min = prev_processing.get("x_min", _x_min)
+    #
+    #     if x_max is None:
+    #         x_max = prev_processing.get("x_max", _x_max)
+    #
+    #     if not linearization_mode:
+    #         linearization_mode = prev_processing.get("linearization_mode", CONFIG.ms_linearization_mode)
+    #
+    #     if not bin_size:
+    #         bin_size = prev_processing.get("bin_size", CONFIG.ms_mzBinSize)
 
     def mean(self, x_min=None, x_max=None, bin_size=None, linearization_mode=None, auto_range=False):
         x, ys = self.resample(x_min, x_max, bin_size, linearization_mode, auto_range)
@@ -122,45 +246,64 @@ class SpectrumGroup(DataGroup):
 
     def resample(self, x_min=None, x_max=None, bin_size=None, linearization_mode=None, auto_range=False):
         """Resample dataset so it has consistent size and shape"""
+
+        def _resample_obj():
+            """If array needs resampling, it will be resampled, otherwise it will be returned as is"""
+            if self.need_resample:
+                _x, _y = spectra.linearize_data(
+                    obj.x,
+                    obj.y,
+                    x_min=x_min,
+                    x_max=x_max,
+                    linearization_mode=linearization_mode,
+                    bin_size=bin_size,
+                    auto_range=False,
+                )
+            else:
+                _x, _y = obj.x, obj.y
+            return _x, _y
+
+        # retrieve previous processing parameters
+        prev_processing = self.get_processing_step("resample")
+
         # specify x-axis limits
         _x_min, _x_max = self.get_x_range()
-        x_min = x_min if x_min else _x_min
-        x_max = x_max if x_max else _x_max
 
-        # specify processing parameters
+        # specify processing processing
+        if x_min is None:
+            x_min = prev_processing.get("x_min", _x_min)
+
+        if x_max is None:
+            x_max = prev_processing.get("x_max", _x_max)
+
         if not linearization_mode:
-            linearization_mode = CONFIG.ms_linearization_mode
+            linearization_mode = prev_processing.get("linearization_mode", CONFIG.ms_linearization_mode)
 
         if not bin_size:
-            bin_size = CONFIG.ms_mzBinSize
+            bin_size = prev_processing.get("bin_size", CONFIG.ms_mzBinSize)
 
         # pre-calculate data for single data object to be able to instantiate numpy array for each spectrum
         obj = self._data_objs[0]
-        x, y = spectra.linearize_data(
-            obj.x,
-            obj.y,
-            x_min=x_min,
-            x_max=x_max,
-            linearization_mode=linearization_mode,
-            bin_size=bin_size,
-            auto_range=False,
-        )
+        x, y = _resample_obj()
 
         # preset array
         ys = np.zeros((self.n_objects, len(x)), dtype=np.float32)
         ys[0] = y
         for i, obj in enumerate(self._data_objs[1::], start=1):
-            _, y = spectra.linearize_data(
-                obj.x,
-                obj.y,
-                x_min=x_min,
-                x_max=x_max,
-                linearization_mode=linearization_mode,
-                bin_size=bin_size,
-                auto_range=False,
-                x_bin=x,
-            )
+            _, y = _resample_obj()
             ys[i] = y
+
+        if self._resample:
+            self.add_processing_step(
+                "resample",
+                dict(
+                    x_min=x_min,
+                    x_max=x_max,
+                    bin_size=bin_size,
+                    linearization_mode=linearization_mode,
+                    auto_range=auto_range,
+                ),
+            )
 
         return x, ys
 
@@ -168,7 +311,28 @@ class SpectrumGroup(DataGroup):
         pass
 
     def to_dict(self):
-        pass
+        data = {
+            "x": self.x,
+            "y": self.y,
+            "y_sum": self.y_sum,
+            "y_mean": self.y_mean,
+            "x_limit": self.x_limit,
+            "x_label": self.x_label,
+            "y_label": self.y_label,
+            "processing_steps": self.processing,
+            **self._metadata,
+            **self._extra_data,
+        }
+        return data
 
     def to_zarr(self):
-        pass
+        """Outputs data to dictionary of `data` and `attributes`"""
+        attrs = {"class": self._cls}
+        return dict(), attrs
+
+
+class MassSpectrumGroup(SpectrumGroup):
+    def __init__(self, data_objects, metadata=None, extra_data=None, x_label="m/z (Da)", y_label="Intensity", **kwargs):
+        super().__init__(
+            data_objects, x_label=x_label, y_label=y_label, metadata=metadata, extra_data=extra_data, **kwargs
+        )

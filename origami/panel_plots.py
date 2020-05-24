@@ -541,7 +541,7 @@ class PanelPlots(wx.Panel):
         # Make bindings
         self.Bind(wx.EVT_MENU, self.on_smooth_spectrum, id=ID_smooth1DdataRT)
         self.Bind(wx.EVT_MENU, self.on_smooth_spectrum, id=ID_smooth1Ddata1DT)
-        self.Bind(wx.EVT_MENU, self.data_handling.on_highlight_selected_ions, id=ID_highlightRectAllIons)
+        #         self.Bind(wx.EVT_MENU, self.data_handling.on_highlight_selected_ions, id=ID_highlightRectAllIons)
         self.Bind(wx.EVT_MENU, self.data_processing.on_pick_peaks, id=ID_pickMSpeaksDocument)
         self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_MS)
         self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_RT)

@@ -10,7 +10,6 @@ from typing import Optional
 # Local imports
 from origami.utils.time import get_current_time
 from origami.config.config import CONFIG
-# from origami.document import document as Document
 from origami.config.convert import convert_pickle_to_zarr
 from origami.objects.document import DocumentStore
 from origami.objects.callbacks import PropertyCallbackManager
@@ -39,6 +38,7 @@ ALTERNATIVE_NAMES = {
     "mzML": "mzml",
     "Imaging": "imaging",
     "Type: Imaging": "imaging",
+    "Type: ORIGAMI": "origami",
 }
 DOCUMENT_TYPES = [
     "Type: ORIGAMI",
@@ -214,7 +214,7 @@ class Environment(PropertyCallbackManager):
         return self.documents[title]
 
     def save(self, path: str):
-        """Save document to pickle file"""
+        """Save document - this function should not exist since zarr data is saved as it is added to the document"""
         pass
 
     def load(self, path: str):
@@ -222,6 +222,8 @@ class Environment(PropertyCallbackManager):
         # check whether path ends with pickle (e.g. old format) and if so, handle the transition to the new format
         if path.endswith(".pickle"):
             path = convert_pickle_to_zarr(path)
+        elif not path.endswith(".origami"):
+            raise ValueError(f"Not sure how to handle document store `{path}`")
 
         document_obj = DocumentStore(path)
 
@@ -343,6 +345,7 @@ class Environment(PropertyCallbackManager):
         """Creates new document and adds it to the store"""
         document = self.new(document_type, path, data, title=title)
         self.add(document)
+        LOGGER.debug(f"Created new document: {document.path}")
         return document
 
     def get_document_list(self, document_types: Union[str, List[str]] = "all", document_format: Optional[str] = None):
@@ -360,15 +363,15 @@ class Environment(PropertyCallbackManager):
         document_list : List
             list of document titles
         """
-        if document_types == "all":
+        if document_types == "all" or document_types is None:
             document_types = DOCUMENT_TYPES
         if isinstance(document_types, str):
             document_types = [document_types]
 
         document_list = []
         for document_title, document in self.items():
-            if document.dataType in document_types:
-                if document_format is not None or document_format == document.fileFormat:
+            if document.data_type in document_types:
+                if document_format is None or document_format == document.file_format:
                     document_list.append(document_title)
         return document_list
 

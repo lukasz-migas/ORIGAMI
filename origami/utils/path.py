@@ -145,7 +145,7 @@ def clean_directory(dirpath):
                 continue
 
 
-def get_subdirectories(path, extension=None, as_short=True):
+def get_subdirectories(path, extensions=None, as_short=True):
     """Get list of directories"""
 
     def append():
@@ -154,13 +154,20 @@ def get_subdirectories(path, extension=None, as_short=True):
         else:
             subdirectories.append(_dirpath)
 
+    # if extensions is None:
+    #     extensions = []
+
+    if extensions is not None and not isinstance(extensions, (list, tuple)):
+        extensions = [extensions]
+
     subdirectories = []
     for dirpath in os.listdir(path):
         _dirpath = os.path.join(path, dirpath)
         if os.path.isdir(_dirpath):
-            if extension is not None:
-                if _dirpath.endswith(extension):
-                    append()
+            if extensions is not None:
+                for extension in extensions:
+                    if _dirpath.endswith(extension):
+                        append()
             else:
                 append()
     return subdirectories

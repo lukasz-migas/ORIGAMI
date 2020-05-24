@@ -4,58 +4,37 @@ import logging
 
 # Third-party imports
 import wx
-import wx.lib.agw.multidirdialog as MDD
 
 # Local imports
 from origami.styles import Dialog
 from origami.styles import ListCtrl
-from origami.utils.path import clean_up_MDD_path
 from origami.utils.path import get_subdirectories
 
 LOGGER = logging.getLogger(__name__)
 
 
-class DialogMultiDirectoryPicker(MDD.MultiDirDialog):
-    def __init__(
-        self, parent, title="Choose directories...", default_path=None, style=MDD.DD_MULTIPLE | MDD.DD_DIR_MUST_EXIST
-    ):
-
-        MDD.MultiDirDialog.__init__(self, parent=parent, title=title, defaultPath=default_path, agwStyle=style)
-
-    def ShowModal(self):
-        """Simplified ShowModal(), returning strings 'ok' or 'cancel'. """
-        result = MDD.MultiDirDialog.ShowModal(self)
-
-        output = "cancel"
-        if result == wx.ID_OK:
-            output = "ok"
-
-        return output
-
-    def GetPaths(self, *args, **kwargs):
-        """Clean-up the list of paths that is returned from the GetPaths function"""
-        path_list = MDD.MultiDirDialog.GetPaths(self, *args, **kwargs)
-        return [clean_up_MDD_path(path) for path in path_list]
-
-
 class DialogMultiDirPicker(Dialog):
 
     # lists
-    FILELIST_ALL = {
+    FILELIST_ALL = FILELIST_SELECT = {
         0: {"name": "", "tag": "check", "type": "bool", "width": 20, "show": True},
         1: {"name": "filename", "tag": "filename", "type": "str", "width": 300, "show": True},
         2: {"name": "path", "tag": "path", "type": "str", "width": 0, "show": False},
     }
 
-    FILELIST_SELECT = {
-        0: {"name": "", "tag": "check", "type": "bool", "width": 20, "show": True},
-        1: {"name": "filename", "tag": "filename", "type": "str", "width": 300, "show": True},
-        2: {"name": "path", "tag": "path", "type": "str", "width": 0, "show": False},
-    }
+    # ui elements
+    path_value = None
+    directory_btn = None
+    add_btn = None
+    remove_btn = None
+    ok_btn = None
+    cancel_btn = None
+    filelist_all = None
+    filelist_select = None
 
     def __init__(self, parent, title="Select files/directories", last_dir="", extension=None):
         """This panel serves as a replacement for the MultiDirDialog provided by wxPython - the reason being that MDD
-        can sporadically crash the UI if user clicks in the wrong place. I have tried tracing it but annoying I cannot
+        can sporadically crash the UI if user clicks in the wrong place. I have tried tracing it but annoyingly I cannot
         figure out what is causing it..."""
         Dialog.__init__(self, parent, title=title, bind_key_events=False)
         self.view = parent
@@ -80,7 +59,7 @@ class DialogMultiDirPicker(Dialog):
 
     def ShowModal(self):
         """Simplified ShowModal(), returning strings 'ok' or 'cancel'. """
-        result = MDD.MultiDirDialog.ShowModal(self)
+        result = super().ShowModal()
 
         output = "cancel"
         if result == wx.ID_OK:
@@ -92,14 +71,20 @@ class DialogMultiDirPicker(Dialog):
         """Compatibility method"""
         return self.get_selected_items()
 
-    def on_close(self, evt):
-        """Destroy this frame"""
-        self.EndModal(wx.ID_NO)
-
     def on_ok(self, evt):
         """Exit with OK statement"""
         self.output_list = self.get_selected_items()
-        self.EndModal(wx.ID_OK)
+        if self.IsModal():
+            self.EndModal(wx.ID_OK)
+        else:
+            self.Destroy()
+
+    def on_close(self, evt):
+        """Destroy this frame"""
+        if self.IsModal():
+            self.EndModal(wx.ID_NO)
+        else:
+            self.Destroy()
 
     def make_panel(self):
         """Make panel"""
@@ -114,7 +99,7 @@ class DialogMultiDirPicker(Dialog):
         info_label = wx.StaticText(panel, -1, msg)
         info_label.Wrap(750)
 
-        self.make_listctrl_panel(panel)
+        self.make_table(panel)
 
         horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
@@ -169,55 +154,54 @@ class DialogMultiDirPicker(Dialog):
 
         return panel
 
-    def make_listctrl_panel(self, panel):
-        """Initilize filelists"""
-        LOGGER.debug("Initilized filelists")
+    def make_table(self, panel):
+        """Initialize file lists"""
 
-        # intilize filelist with all files/directories in the folder
-        self.filelist_all = ListCtrl(panel, style=wx.LC_REPORT | wx.LC_VRULES, column_info=self.FILELIST_ALL)
-        for col in range(len(self.FILELIST_ALL)):
-            item = self.FILELIST_ALL[col]
-            order = col
-            name = item["name"]
-            width = 0
-            if item["show"]:
-                width = item["width"]
-            self.filelist_all.InsertColumn(order, name, width=width, format=wx.LIST_FORMAT_CENTER)
-            self.filelist_all.SetFont(wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
+        def _make_table(iterator):
+            filelist = ListCtrl(panel, style=wx.LC_REPORT | wx.LC_VRULES, column_info=iterator)
+            for order, item in iterator.items():
+                name = item["name"]
+                width = 0 if not item["show"] else item["width"]
+                filelist.InsertColumn(order, name, width=width, format=wx.LIST_FORMAT_LEFT)
+                filelist.SetFont(wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
 
-        # intilize filelist with select files/directories in the folder
-        self.filelist_select = ListCtrl(panel, style=wx.LC_REPORT | wx.LC_VRULES, column_info=self.FILELIST_SELECT)
-        for col in range(len(self.FILELIST_SELECT)):
-            item = self.FILELIST_SELECT[col]
-            order = col
-            name = item["name"]
-            width = 0
-            if item["show"]:
-                width = item["width"]
-            self.filelist_select.InsertColumn(order, name, width=width, format=wx.LIST_FORMAT_CENTER)
-            self.filelist_select.SetFont(wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
+            return filelist
 
-    def on_select_directory(self, evt):
+        # initialize filelist with all files/directories in the folder
+        self.filelist_all = _make_table(self.FILELIST_ALL)
+        self.filelist_select = _make_table(self.FILELIST_SELECT)
+
+        LOGGER.debug("Initialized file lists")
+
+    def on_select_directory(self, _):
         """Select directory where to start searching for files/directories"""
         dlg = wx.DirDialog(self.view, "Choose directory", style=wx.DD_DEFAULT_STYLE)
 
+        path = None
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            # clear previous list
-            self.filelist_all.on_clear_table_all(None, False)
-            if path in self._filelist_all:
-                self._filelist_all[path] = []
-            self.path_value.SetValue(path)
-            LOGGER.info(f"Selected {path}")
-
         dlg.Destroy()
 
-    def on_add(self, evt):
+        self._on_select_directory(path)
+
+    def _on_select_directory(self, path):
+        """Select directory where the files/directories can be found"""
+        if path is None:
+            return
+
+        # clear previous list
+        self.filelist_all.on_clear_table_all(None, False)
+        if path in self._filelist_all:
+            self._filelist_all[path] = []
+        self.path_value.SetValue(path)
+        LOGGER.info(f"Selected {path}")
+
+    def on_add(self, _):
         """Add currently selected items (on the lhs) to the rhs"""
         item_list = self.filelist_all.get_all_checked()
         self.populate_select_list(item_list)
 
-    def on_remove(self, evt):
+    def on_remove(self, _):
         """Remove currently selected items (on the rhs) from the list"""
         item_list = self.filelist_select.get_all_checked()
         i = 0
@@ -232,7 +216,8 @@ class DialogMultiDirPicker(Dialog):
 
     def _populate_all_list(self, _=None):
         """Populate filelist (lhs) with new items by first collecting subdirectories of the
-        self._path path"""
+        self._path path
+        """
         self._path = self.path_value.GetValue()
 
         if self._path not in self._filelist_all:
@@ -283,3 +268,16 @@ class DialogMultiDirPicker(Dialog):
     def on_get_item_information(self, item_id):
         """Get item information from the lhs table"""
         return self.filelist_select.on_get_item_information(item_id)
+
+
+def main():
+    app = wx.App()
+    ex = DialogMultiDirPicker(None)
+    # ex.ShowModal()
+    ex.Show()
+    app.MainLoop()
+    print("ls", ex.get_selected_items())
+
+
+if __name__ == "__main__":
+    main()

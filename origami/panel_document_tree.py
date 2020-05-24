@@ -15,6 +15,7 @@ import pandas as pd
 
 # Local imports
 import origami.utils.labels as ut_labels
+
 # from origami.ids import ID_docTree_plugin_UVPD
 from origami.ids import ID_renameItem
 from origami.ids import ID_openDocInfo
@@ -112,6 +113,7 @@ from origami.utils.converters import str2num
 from origami.utils.converters import byte2str
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
+
 # from origami.gui_elements.panel_document_information import PanelDocumentInformation
 from origami.objects.containers import MassSpectrumObject
 from origami.readers.io_text_files import saveAsText
@@ -1499,7 +1501,10 @@ class DocumentTree(wx.TreeCtrl):
     def on_import_lesa_dataset(self, _):
         from origami.widgets.lesa.panel_imaging_lesa_import import PanelImagingImportDataset
 
-        self._import_panel = PanelImagingImportDataset(self.view, self.presenter, self.config, self.icons)
+        #         from origami.gui_elements.panel_import_files import PanelImportManagerBase
+
+        self._import_panel = PanelImagingImportDataset(self.view, self.presenter, self.icons)
+        #         self._import_panel = PanelImportManagerBase(self.view, self.presenter, self.icons)
         self._import_panel.Show()
 
     def on_right_click_short(self):

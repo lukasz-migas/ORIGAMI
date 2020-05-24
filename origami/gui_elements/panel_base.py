@@ -30,7 +30,7 @@ class TableColumnIndex(IntEnum):
     pass
 
 
-class TablePanelBase(wx.Panel):
+class TableMixin:
 
     # must have name, tag, type, show, id, width
     TABLE_DICT = {}
@@ -45,21 +45,13 @@ class TablePanelBase(wx.Panel):
     data_visualisation = None
     document_tree = None
 
-    def __init__(self, parent, icons, presenter):
-        """Instantiate class"""
-        wx.Panel.__init__(
-            self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(300, -1), style=wx.TAB_TRAVERSAL
-        )
-        self.view = parent
-        self.presenter = presenter
-        self.icons = icons
+    def __init__(self):
 
         self.peaklist = None
-        self.toolbar = None
 
-        self._check_table(self.TABLE_DICT)
-        self.make_panel_gui()
-        self.bind_events()
+    @abstractmethod
+    def on_update_document(self, item_id: Optional[int] = None, item_info: Optional[Dict] = None):
+        raise NotImplementedError("Must implement method")
 
     @abstractmethod
     def on_double_click_on_item(self, evt):
@@ -68,21 +60,6 @@ class TablePanelBase(wx.Panel):
     @abstractmethod
     def on_menu_item_right_click(self, evt):
         raise NotImplementedError("Must implement method")
-
-    @abstractmethod
-    def make_toolbar(self):
-        raise NotImplementedError("Must implement method")
-
-    @abstractmethod
-    def on_update_document(self, item_id: Optional[int] = None, item_info: Optional[Dict] = None):
-        raise NotImplementedError("Must implement method")
-
-    def bind_events(self):
-        """Bind extra events"""
-
-    def on_open_info_panel(self, evt):
-        # TODO: add info handler
-        LOGGER.error("This function is not implemented yet")
 
     @staticmethod
     def _check_table(table_dict):
@@ -103,8 +80,10 @@ class TablePanelBase(wx.Panel):
         if len(set(tags)) != len(table_dict):
             raise ValueError("Expected tags to be unique")
 
-    def make_table(self, table_dict):
-        peaklist = ListCtrl(self, style=wx.LC_REPORT | wx.LC_VRULES, column_info=table_dict)
+    def make_table(self, table_dict, panel=None):
+        if panel is None:
+            panel = self
+        peaklist = ListCtrl(panel, style=wx.LC_REPORT | wx.LC_VRULES, column_info=table_dict)
 
         for order, item in table_dict.items():
             name = item["name"]
@@ -115,24 +94,6 @@ class TablePanelBase(wx.Panel):
         peaklist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.on_menu_item_right_click)
         peaklist.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.on_menu_column_right_click)
         return peaklist
-
-    def make_panel_gui(self):
-        """ Make panel GUI """
-        # make toolbar
-        self.toolbar = self.make_toolbar()
-        self.peaklist = self.make_table(self.TABLE_DICT)
-
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
-        if self.toolbar:
-            main_sizer.Add(self.toolbar, 0, wx.EXPAND, 0)
-        if self.peaklist:
-            main_sizer.Add(self.peaklist, 1, wx.EXPAND, 0)
-
-        # fit layout
-        main_sizer.Fit(self)
-        self.SetSizer(main_sizer)
-        self.SetSize((300, -1))
-        self.Layout()
 
     def on_get_item_information(self, item_id: int):
         """Return basic information about an item - method should be overwritten if want to have access to more
@@ -383,6 +344,7 @@ class TablePanelBase(wx.Panel):
                 self.peaklist.DeleteItem(item_id)
             item_id -= 1
 
+    # noinspection PyUnresolvedReferences
     def on_menu_column_right_click(self, evt):
         """Right-click on column title to show/hide it"""
         menu = wx.Menu()
@@ -466,6 +428,111 @@ class TablePanelBase(wx.Panel):
                     self.on_update_document()
                 except TypeError:
                     print("Please select item")
+
+
+# noinspection DuplicatedCode
+class TablePanelBase(wx.Panel, TableMixin):
+    def __init__(self, parent, icons, presenter):
+        """Instantiate class"""
+        wx.Panel.__init__(
+            self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.Size(300, -1), style=wx.TAB_TRAVERSAL
+        )
+        TableMixin.__init__(self)
+
+        self.view = parent
+        self.presenter = presenter
+        self.icons = icons
+
+        self.toolbar = None
+
+        self._check_table(self.TABLE_DICT)
+        self.make_panel_gui()
+        self.bind_events()
+
+    @abstractmethod
+    def make_toolbar(self):
+        raise NotImplementedError("Must implement method")
+
+    def bind_events(self):
+        """Bind extra events"""
+
+    @staticmethod
+    def on_open_info_panel(evt):
+        # TODO: add info handler
+        LOGGER.error("This function is not implemented yet")
+
+    def make_panel_gui(self):
+        """ Make panel GUI """
+        # make toolbar
+        self.toolbar = self.make_toolbar()
+        self.peaklist = self.make_table(self.TABLE_DICT)
+
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        if self.toolbar:
+            main_sizer.Add(self.toolbar, 0, wx.EXPAND, 0)
+        if self.peaklist:
+            main_sizer.Add(self.peaklist, 1, wx.EXPAND, 0)
+
+        # fit layout
+        main_sizer.Fit(self)
+        self.SetSizer(main_sizer)
+        self.SetSize((300, -1))
+        self.Layout()
+
+
+# noinspection DuplicatedCode
+class TableMiniFrameBase(wx.MiniFrame, TableMixin):
+    def __init__(self, parent, icons, presenter):
+        """Instantiate class"""
+        wx.MiniFrame.__init__(
+            self,
+            parent,
+            id=wx.ID_ANY,
+            pos=wx.DefaultPosition,
+            size=wx.Size(300, -1),
+            style=wx.RESIZE_BORDER | wx.CLOSE_BOX | wx.CAPTION,
+        )
+        TableMixin.__init__(self)
+
+        self.view = parent
+        self.presenter = presenter
+        self.icons = icons
+
+        self.toolbar = None
+
+        self._check_table(self.TABLE_DICT)
+        self.make_panel_gui()
+        self.bind_events()
+
+    @abstractmethod
+    def make_toolbar(self):
+        raise NotImplementedError("Must implement method")
+
+    def bind_events(self):
+        """Bind extra events"""
+
+    @staticmethod
+    def on_open_info_panel(evt):
+        # TODO: add info handler
+        LOGGER.error("This function is not implemented yet")
+
+    def make_panel_gui(self):
+        """ Make panel GUI """
+        # make toolbar
+        self.toolbar = self.make_toolbar()
+        self.peaklist = self.make_table(self.TABLE_DICT)
+
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        if self.toolbar:
+            main_sizer.Add(self.toolbar, 0, wx.EXPAND, 0)
+        if self.peaklist:
+            main_sizer.Add(self.peaklist, 1, wx.EXPAND, 0)
+
+        # fit layout
+        main_sizer.Fit(self)
+        self.SetSizer(main_sizer)
+        self.SetSize((300, -1))
+        self.Layout()
 
 
 class TestPanel(TablePanelBase):

@@ -79,13 +79,13 @@ class DocumentStore:
             item, as_object = item
         if not isinstance(item, str):
             raise ValueError(f"Expected str and got {type(item)} ({item})")
+
         if as_object:
             return self.as_object(self.fp[item])
         return self.fp[item]
 
     def __contains__(self, item):
         """Check whether object is present in the store"""
-        # if isinstance(item, str):
         return item in self.fp
 
     def __delitem__(self, key):
@@ -132,7 +132,7 @@ class DocumentStore:
 
     def as_object(self, group: Group):
         """Returns the group data as an object"""
-        klass_name = group.attrs["class"]
+        klass_name = group.attrs.get("class", None)
         obj = None
 
         if klass_name == "MassSpectrumObject":
@@ -145,6 +145,8 @@ class DocumentStore:
             obj = msdt_heatmap_object(group)
         elif klass_name == "IonHeatmapObject":
             obj = ion_heatmap_object(group)
+        # elif klass_name == "MassSpectrumGroup":
+        #     obj =
 
         # return instantiated objected
         if obj:
@@ -189,6 +191,8 @@ class DocumentStore:
 
     @property
     def title(self):
+        if self._title is None:
+            self._title = os.path.splitext(os.path.split(self.path)[1])[0]
         return self._title
 
     @title.setter
@@ -198,8 +202,7 @@ class DocumentStore:
     @property
     def data_type(self):
         """Returns the type of dataset"""
-        # TODO: change
-        return "ORIGAMI"
+        return self.fp.attrs["data_type"]
 
     @property
     def file_format(self):

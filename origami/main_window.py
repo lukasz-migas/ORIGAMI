@@ -327,7 +327,7 @@ class MainWindow(wx.Frame):
         pub.subscribe(self.on_distance, "change_x_axis_start")
         pub.subscribe(self.panelPlots.on_change_rmsf_zoom, "change_zoom_rmsd")
         pub.subscribe(self.on_event_mode, "motion_mode")
-        pub.subscribe(self.data_handling.on_update_DTMS_zoom, "change_zoom_dtms")
+        #         pub.subscribe(self.data_handling.on_update_DTMS_zoom, "change_zoom_dtms")
         pub.subscribe(self.on_queue_change, "statusbar.update.queue")
 
         # Load other parts
@@ -1251,7 +1251,7 @@ class MainWindow(wx.Frame):
         #         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_overlay_viewer,
         #         menu_widget_overlay_viewer)
         #         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_lesa_viewer, menu_widget_lesa_viewer)
-        #         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_import_lesa_dataset, menu_widget_lesa_import)
+        self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_import_lesa_dataset, menu_widget_lesa_import)
         #         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_interactive_viewer,
         # menu_widget_interactive_viewer)
 

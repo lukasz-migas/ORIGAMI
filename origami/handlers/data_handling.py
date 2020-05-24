@@ -17,23 +17,29 @@ from pubsub import pub
 
 # Local imports
 import origami.utils.labels as ut_labels
+
 # import origami.processing.heatmap as pr_heatmap
 import origami.processing.spectra as pr_spectra
 import origami.objects.annotations as annotations_obj
+
 # import origami.processing.origami_ms as pr_origami
 from origami.ids import ID_openIRRawFile
 from origami.ids import ID_load_masslynx_raw
 from origami.ids import ID_load_origami_masslynx_raw
+
 # from origami.readers import io_document
 from origami.readers import io_text_files
+
 # from origami.document import document as documents
 from origami.utils.path import get_base_path
 from origami.utils.path import clean_filename
 from origami.utils.path import check_path_exists
 from origami.utils.path import check_waters_path
 from origami.utils.path import get_path_and_fname
+
 # from origami.utils.time import get_current_time
 from origami.utils.check import check_value_order
+
 # from origami.utils.check import check_axes_spacing
 from origami.utils.color import get_random_color
 from origami.utils.color import convert_rgb_1_to_255
@@ -42,6 +48,7 @@ from origami.utils.random import get_random_int
 from origami.utils.ranges import get_min_max
 from origami.handlers.call import Call
 from origami.handlers.load import LoadHandler
+
 # from origami.config.convert import convert_v1_to_v2
 # from origami.config.convert import upgrade_document_annotations
 from origami.handlers.export import ExportHandler
@@ -50,6 +57,7 @@ from origami.objects.document import DocumentStore
 from origami.processing.utils import find_nearest_index
 from origami.processing.utils import get_maximum_value_in_range
 from origami.readers.io_utils import get_waters_inf_data
+
 # from origami.readers.io_utils import get_waters_header_data
 # from origami.utils.converters import str2num
 from origami.utils.converters import byte2str
@@ -62,17 +70,11 @@ from origami.objects.containers import DataObject
 from origami.processing.imaging import ImagingNormalizationProcessor
 from origami.handlers.queue_handler import QueueHandler
 from origami.gui_elements.misc_dialogs import DialogBox
+
 # from origami.gui_elements.dialog_select_document import DialogSelectDocument
 from origami.gui_elements.dialog_multi_directory_picker import DialogMultiDirPicker
 
 # from origami.utils.exceptions import NoIonMobilityDatasetError
-
-
-
-
-
-
-
 
 
 # enable on windowsOS only
@@ -2811,423 +2813,423 @@ class DataHandling(LoadHandler, ExportHandler):
     #     self.documentTree.add_document(document, expandAll=False)
     #     self.presenter.currentDoc = self.view.panelDocuments.documents.on_enable_document()
 
-    def on_update_DTMS_zoom(self, xmin, xmax, ymin, ymax):
-        """Event driven data sub-sampling
+    # def on_update_DTMS_zoom(self, xmin, xmax, ymin, ymax):
+    #     """Event driven data sub-sampling
+    #
+    #     Parameters
+    #     ----------
+    #     xmin: float
+    #         mouse-event minimum in x-axis
+    #     xmax: float
+    #         mouse-event maximum in x-axis
+    #     ymin: float
+    #         mouse-event minimum in y-axis
+    #     ymax: float
+    #         mouse-event maximum in y-axis
+    #     """
+    #     tstart = time.time()
+    #     # get data
+    #     xvals = copy.deepcopy(self.config.replotData["DT/MS"].get("xvals", None))
+    #     yvals = copy.deepcopy(self.config.replotData["DT/MS"].get("yvals", None))
+    #     zvals = copy.deepcopy(self.config.replotData["DT/MS"].get("zvals", None))
+    #     xlabel = copy.deepcopy(self.config.replotData["DT/MS"].get("xlabels", None))
+    #     ylabel = copy.deepcopy(self.config.replotData["DT/MS"].get("ylabels", None))
+    #     # check if data type is correct
+    #     if zvals is None:
+    #         logger.error("Cannot complete action as plotting data is empty")
+    #         return
+    #
+    #     # reduce size of the array to match data extraction window
+    #     xmin_idx, xmax_idx = find_nearest_index(xvals, xmin), find_nearest_index(xvals, xmax)
+    #     ymin_idx, ymax_idx = find_nearest_index(yvals, ymin), find_nearest_index(yvals, ymax)
+    #     zvals = zvals[ymin_idx:ymax_idx, xmin_idx:xmax_idx]
+    #     xvals = xvals[xmin_idx:xmax_idx]
+    #     yvals = yvals[ymin_idx : ymax_idx + 1]
+    #
+    #     # check if user enabled smart zoom (ON by default)
+    #     if self.config.smart_zoom_enable:
+    #         xvals, zvals = self.data_processing.downsample_array(xvals, zvals)
+    #
+    #     # check if selection window is large enough
+    #     if np.prod(zvals.shape) == 0:
+    #         logger.error("You must select wider dt/mz range to continue")
+    #         return
+    #     # replot
+    #     self.plotsPanel.on_plot_MSDT(zvals, xvals, yvals, xlabel, ylabel, override=False, update_extents=False)
+    #     logger.info("Sub-sampling took {:.4f}".format(time.time() - tstart))
+    #
+    # def on_combine_mass_spectra(self, document_name=None):
+    #
+    #     document = self.on_get_document(document_name)
+    #     if document is None:
+    #         raise ValueError("Did not get document")
+    #
+    #     kwargs = {
+    #         "auto_range": False,
+    #         "mz_min": self.config.ms_mzStart,
+    #         "mz_max": self.config.ms_mzEnd,
+    #         "mz_bin": self.config.ms_mzBinSize,
+    #         "linearization_mode": self.config.ms_linearization_mode,
+    #     }
+    #     msg = "Linearization method: {} | min: {} | max: {} | window: {} | auto-range: {}".format(
+    #         self.config.ms_linearization_mode,
+    #         self.config.ms_mzStart,
+    #         self.config.ms_mzEnd,
+    #         self.config.ms_mzBinSize,
+    #         self.config.ms_auto_range,
+    #     )
+    #     logger.info(msg)
+    #
+    #     if document.multipleMassSpectrum:
+    #         # check the min/max values in the mass spectrum
+    #         if self.config.ms_auto_range:
+    #             mzStart, mzEnd = pr_spectra.check_mass_range(ms_dict=document.multipleMassSpectrum)
+    #             self.config.ms_mzStart = mzStart
+    #             self.config.ms_mzEnd = mzEnd
+    #             kwargs.update(mz_min=mzStart, mz_max=mzEnd)
+    #             try:
+    #                 self.view.panelProcessData.on_update_GUI(update_what="mass_spectra")
+    #             except Exception:
+    #                 pass
+    #
+    #         msFilenames = ["m/z"]
+    #         counter = 0
+    #         for key in document.multipleMassSpectrum:
+    #             msFilenames.append(key)
+    #             if counter == 0:
+    #                 msDataX, tempArray = pr_spectra.linearize_data(
+    #                     document.multipleMassSpectrum[key]["xvals"],
+    #                     document.multipleMassSpectrum[key]["yvals"],
+    #                     **kwargs,
+    #                 )
+    #                 msList = tempArray
+    #             else:
+    #                 msDataX, msList = pr_spectra.linearize_data(
+    #                     document.multipleMassSpectrum[key]["xvals"],
+    #                     document.multipleMassSpectrum[key]["yvals"],
+    #                     **kwargs,
+    #                 )
+    #                 tempArray = np.concatenate((tempArray, msList), axis=0)
+    #             counter += 1
+    #
+    #         # Reshape the list
+    #         combMS = tempArray.reshape((len(msList), int(counter)), order="F")
+    #
+    #         # Sum y-axis data
+    #         msDataY = np.sum(combMS, axis=1)
+    #         msDataY = pr_spectra.normalize_1D(msDataY)
+    #         xlimits = [document.parameters["start_ms"], document.parameters["end_ms"]]
+    #
+    #         # Form pandas dataframe
+    #         combMSOut = np.concatenate((msDataX, tempArray), axis=0)
+    #         combMSOut = combMSOut.reshape((len(msList), int(counter + 1)), order="F")
+    #
+    #         # Add data
+    #         document.gotMS = True
+    #         document.massSpectrum = {"xvals": msDataX, "yvals": msDataY, "xlabels": "m/z (Da)", "xlimits": xlimits}
+    #         # Plot
+    #         name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
+    #         self.plotsPanel.on_plot_MS(msDataX, msDataY, xlimits=xlimits, **name_kwargs)
+    #
+    #         # Update status bar with MS range
+    #         self.view.SetStatusText("{}-{}".format(document.parameters["start_ms"], document.parameters["end_ms"]), 1)
+    #         self.view.SetStatusText("MSMS: {}".format(document.parameters["set_msms"]), 2)
+    #     else:
+    #         document.gotMS = False
+    #         document.massSpectrum = {}
+    #         self.view.SetStatusText("", 1)
+    #         self.view.SetStatusText("", 2)
+    #
+    #     # Add info to document
+    #     self.on_update_document(document, "document")
 
-        Parameters
-        ----------
-        xmin: float
-            mouse-event minimum in x-axis
-        xmax: float
-            mouse-event maximum in x-axis
-        ymin: float
-            mouse-event minimum in y-axis
-        ymax: float
-            mouse-event maximum in y-axis
-        """
-        tstart = time.time()
-        # get data
-        xvals = copy.deepcopy(self.config.replotData["DT/MS"].get("xvals", None))
-        yvals = copy.deepcopy(self.config.replotData["DT/MS"].get("yvals", None))
-        zvals = copy.deepcopy(self.config.replotData["DT/MS"].get("zvals", None))
-        xlabel = copy.deepcopy(self.config.replotData["DT/MS"].get("xlabels", None))
-        ylabel = copy.deepcopy(self.config.replotData["DT/MS"].get("ylabels", None))
-        # check if data type is correct
-        if zvals is None:
-            logger.error("Cannot complete action as plotting data is empty")
-            return
+    # def on_highlight_selected_ions(self, evt):
+    #     """
+    #     This function adds rectanges and markers to the m/z window
+    #     """
+    #     # TODO: FIXME
+    # document = self.on_get_document()
+    # document_title = self.documentTree.on_enable_document()
+    #
+    # if document.dataType == "Type: ORIGAMI" or document.dataType == "Type: MANUAL":
+    #     peaklist = self.ionList
+    # elif document.dataType == "Type: Multifield Linear DT":
+    #     peaklist = self.view.panelLinearDT.bottomP.peaklist
+    # else:
+    #     return
+    #
+    # if not document.gotMS:
+    #     return
 
-        # reduce size of the array to match data extraction window
-        xmin_idx, xmax_idx = find_nearest_index(xvals, xmin), find_nearest_index(xvals, xmax)
-        ymin_idx, ymax_idx = find_nearest_index(yvals, ymin), find_nearest_index(yvals, ymax)
-        zvals = zvals[ymin_idx:ymax_idx, xmin_idx:xmax_idx]
-        xvals = xvals[xmin_idx:xmax_idx]
-        yvals = yvals[ymin_idx : ymax_idx + 1]
-
-        # check if user enabled smart zoom (ON by default)
-        if self.config.smart_zoom_enable:
-            xvals, zvals = self.data_processing.downsample_array(xvals, zvals)
-
-        # check if selection window is large enough
-        if np.prod(zvals.shape) == 0:
-            logger.error("You must select wider dt/mz range to continue")
-            return
-        # replot
-        self.plotsPanel.on_plot_MSDT(zvals, xvals, yvals, xlabel, ylabel, override=False, update_extents=False)
-        logger.info("Sub-sampling took {:.4f}".format(time.time() - tstart))
-
-    def on_combine_mass_spectra(self, document_name=None):
-
-        document = self.on_get_document(document_name)
-        if document is None:
-            raise ValueError("Did not get document")
-
-        kwargs = {
-            "auto_range": False,
-            "mz_min": self.config.ms_mzStart,
-            "mz_max": self.config.ms_mzEnd,
-            "mz_bin": self.config.ms_mzBinSize,
-            "linearization_mode": self.config.ms_linearization_mode,
-        }
-        msg = "Linearization method: {} | min: {} | max: {} | window: {} | auto-range: {}".format(
-            self.config.ms_linearization_mode,
-            self.config.ms_mzStart,
-            self.config.ms_mzEnd,
-            self.config.ms_mzBinSize,
-            self.config.ms_auto_range,
-        )
-        logger.info(msg)
-
-        if document.multipleMassSpectrum:
-            # check the min/max values in the mass spectrum
-            if self.config.ms_auto_range:
-                mzStart, mzEnd = pr_spectra.check_mass_range(ms_dict=document.multipleMassSpectrum)
-                self.config.ms_mzStart = mzStart
-                self.config.ms_mzEnd = mzEnd
-                kwargs.update(mz_min=mzStart, mz_max=mzEnd)
-                try:
-                    self.view.panelProcessData.on_update_GUI(update_what="mass_spectra")
-                except Exception:
-                    pass
-
-            msFilenames = ["m/z"]
-            counter = 0
-            for key in document.multipleMassSpectrum:
-                msFilenames.append(key)
-                if counter == 0:
-                    msDataX, tempArray = pr_spectra.linearize_data(
-                        document.multipleMassSpectrum[key]["xvals"],
-                        document.multipleMassSpectrum[key]["yvals"],
-                        **kwargs,
-                    )
-                    msList = tempArray
-                else:
-                    msDataX, msList = pr_spectra.linearize_data(
-                        document.multipleMassSpectrum[key]["xvals"],
-                        document.multipleMassSpectrum[key]["yvals"],
-                        **kwargs,
-                    )
-                    tempArray = np.concatenate((tempArray, msList), axis=0)
-                counter += 1
-
-            # Reshape the list
-            combMS = tempArray.reshape((len(msList), int(counter)), order="F")
-
-            # Sum y-axis data
-            msDataY = np.sum(combMS, axis=1)
-            msDataY = pr_spectra.normalize_1D(msDataY)
-            xlimits = [document.parameters["start_ms"], document.parameters["end_ms"]]
-
-            # Form pandas dataframe
-            combMSOut = np.concatenate((msDataX, tempArray), axis=0)
-            combMSOut = combMSOut.reshape((len(msList), int(counter + 1)), order="F")
-
-            # Add data
-            document.gotMS = True
-            document.massSpectrum = {"xvals": msDataX, "yvals": msDataY, "xlabels": "m/z (Da)", "xlimits": xlimits}
-            # Plot
-            name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
-            self.plotsPanel.on_plot_MS(msDataX, msDataY, xlimits=xlimits, **name_kwargs)
-
-            # Update status bar with MS range
-            self.view.SetStatusText("{}-{}".format(document.parameters["start_ms"], document.parameters["end_ms"]), 1)
-            self.view.SetStatusText("MSMS: {}".format(document.parameters["set_msms"]), 2)
-        else:
-            document.gotMS = False
-            document.massSpectrum = {}
-            self.view.SetStatusText("", 1)
-            self.view.SetStatusText("", 2)
-
-        # Add info to document
-        self.on_update_document(document, "document")
-
-    def on_highlight_selected_ions(self, evt):
-        """
-        This function adds rectanges and markers to the m/z window
-        """
-        # TODO: FIXME
-        # document = self.on_get_document()
-        # document_title = self.documentTree.on_enable_document()
-        #
-        # if document.dataType == "Type: ORIGAMI" or document.dataType == "Type: MANUAL":
-        #     peaklist = self.ionList
-        # elif document.dataType == "Type: Multifield Linear DT":
-        #     peaklist = self.view.panelLinearDT.bottomP.peaklist
-        # else:
-        #     return
-        #
-        # if not document.gotMS:
-        #     return
-
-        # name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
-        # self.plotsPanel.on_plot_MS(
-        #     document.massSpectrum["xvals"],
-        #     document.massSpectrum["yvals"],
-        #     xlimits=document.massSpectrum["xlimits"],
-        #     **name_kwargs,
-        # )
-        # # Show rectangles
-        # # Need to check whether there were any ions in the table already
-        # last = peaklist.GetItemCount() - 1
-        # ymin = 0
-        # height = 100000000000
-        # repaint = False
-        # for item in range(peaklist.GetItemCount()):
-        #     itemInfo = self.view.panelMultipleIons.on_get_item_information(item_id=item)
-        #     filename = itemInfo["document"]
-        #     if filename != document_title:
-        #         continue
-        #     ion_name = itemInfo["ion_name"]
-        #     label = "{};{}".format(filename, ion_name)
-        #
-        #     # assumes label is made of start-end
-        #     xmin, xmax = ut_labels.get_ion_name_from_label(ion_name)
-        #     xmin, xmax = str2num(xmin), str2num(xmax)
-        #
-        #     width = xmax - xmin
-        #     color = convert_rgb_255_to_1(itemInfo["color"])
-        #     if np.sum(color) <= 0:
-        #         color = self.config.markerColor_1D
-        #     if item == last:
-        #         repaint = True
-        #     self.plotsPanel.on_plot_patches(
-        #         xmin,
-        #         ymin,
-        #         width,
-        #         height,
-        #         color=color,
-        #         alpha=self.config.markerTransparency_1D,
-        #         label=label,
-        #         repaint=repaint,
-        #     )
-
-    def on_extract_mass_spectrum_for_each_collision_voltage_fcn(self, evt, document_title=None):
-
-        if self.config.threading:
-            self.on_threading(action="extract.spectrum.collision.voltage", args=(document_title,))
-        else:
-            self.on_extract_mass_spectrum_for_each_collision_voltage(document_title)
-
-    def on_extract_mass_spectrum_for_each_collision_voltage(self, document_title):
-        """Extract mass spectrum for each collision voltage"""
-        document = self.on_get_document(document_title)
-
-        # Make sure the document is of correct type.
-        if not document.dataType == "Type: ORIGAMI":
-            self.update_statusbar("Please select correct document type - ORIGAMI", 4)
-            return
-
-        # get origami-ms settings from the metadata
-        origami_settings = document.metadata.get("origami_ms", None)
-        scan_list = document.combineIonsList
-        if origami_settings is None or len(scan_list) == 0:
-            raise MessageError(
-                "Missing ORIGAMI-MS configuration",
-                "Please setup ORIGAMI-MS settings by right-clicking on the document in the"
-                + "Document Tree and selecting `Action -> Setup ORIGAMI-MS parameters",
-            )
-
-        reader = self._get_waters_api_reader(document)
-
-        document.gotMultipleMS = True
-        xlimits = [document.parameters["start_ms"], document.parameters["end_ms"]]
-        for start_end_cv in scan_list:
-            tstart = time.time()
-            start_scan, end_scan, cv = start_end_cv
-            spectrum_name = f"Scans: {start_scan}-{end_scan} | CV: {cv} V"
-
-            # extract spectrum
-            mz_x, mz_y = self._get_waters_api_spectrum_data(reader, start_scan=start_scan, end_scan=end_scan)
-            # process each
-            if self.config.origami_preprocess:
-                mz_x, mz_y = self.data_processing.on_process_MS(mz_x, mz_y, return_data=True)
-
-            # add to document
-            spectrum_data = {
-                "xvals": mz_x,
-                "yvals": mz_y,
-                "range": [start_scan, end_scan],
-                "xlabels": "m/z (Da)",
-                "xlimits": xlimits,
-                "trap": cv,
-            }
-            self.documentTree.on_update_data(spectrum_data, spectrum_name, document, data_type="extracted.spectrum")
-            logger.info(f"Extracted {spectrum_name} in {time.time()-tstart:.2f} seconds.")
-
-    def on_save_heatmap_figures(self, plot_type, item_list):
-        """Export heatmap-based data as figures in batch mode
-
-        Executing this action will open dialog where user can specify various settings and subsequently decide whether
-        to continue or cancel the action
-
-        Parameters
-        ----------
-        plot_type : str
-            type of figure to be plotted
-        item_list : list
-            list of items to be plotted. Must be constructed to have [document_title, dataset_type, dataset_name]
-        """
-        from origami.gui_elements.dialog_batch_figure_exporter import DialogExportFigures
-
-        filename_alias = {
-            "Drift time (2D)": "raw",
-            "Drift time (2D, processed)": "processed",
-            "Drift time (2D, EIC)": "raw",
-            "Drift time (2D, processed, EIC)": "processed",
-            "Drift time (2D, combined voltages, EIC)": "combined_cv",
-            "Input data": "input_data",
-        }
-        resize_alias = {"heatmap": "2D", "chromatogram": "RT", "mobilogram": "DT", "waterfall": "Waterfall"}
-
-        # check input is correct
-        if plot_type not in ["heatmap", "chromatogram", "mobilogram", "waterfall"]:
-            raise MessageError("Incorrect plot type", "This function cannot plot this plot type")
-
-        if len(item_list) == 0:
-            raise MessageError("No items in the list", "Please select at least one item in the panel to export")
-
-        # setup output parameters
-        dlg_kwargs = {"image_size_inch": self.config._plotSettings[resize_alias[plot_type]]["resize_size"]}
-        dlg = DialogExportFigures(self.presenter.view, self.presenter, self.config, self.presenter.icons, **dlg_kwargs)
-
-        if dlg.ShowModal() == wx.ID_NO:
-            logger.error("Action was cancelled")
-            return
-
-        path = self.config.image_folder_path
-        if not check_path_exists(path):
-            logger.error("Action was cancelled because the path does not exist")
-            return
-
-        # save individual images
-        for document_title, dataset_type, dataset_name in item_list:
-            # generate filename
-            filename = f"{plot_type}_{dataset_name}_{filename_alias[dataset_type]}_{document_title}"
-            filename = clean_filename(filename)
-            filename = os.path.join(path, filename)
-            # get data
-            try:
-                query_info = [document_title, dataset_type, dataset_name]
-                __, data = self.get_mobility_chromatographic_data(query_info)
-            except KeyError:
-                continue
-
-            # unpack data
-            zvals = data["zvals"]
-            xvals = data["xvals"]
-            yvals = data["yvals"]
-            xlabel = data["xlabels"]
-            ylabel = data["ylabels"]
-
-            # plot data
-            if plot_type == "heatmap":
-                self.plotsPanel.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel)
-                self.plotsPanel.on_save_image("2D", filename, resize_name=resize_alias[plot_type])
-            elif plot_type == "chromatogram":
-                yvals_RT = data.get("yvalsRT", zvals.sum(axis=0))
-                self.plotsPanel.on_plot_RT(xvals, yvals_RT, xlabel)
-                self.plotsPanel.on_save_image("RT", filename, resize_name=resize_alias[plot_type])
-            elif plot_type == "mobilogram":
-                yvals_DT = data.get("yvals1D", zvals.sum(axis=1))
-                self.plotsPanel.on_plot_1D(yvals, yvals_DT, ylabel)
-                self.plotsPanel.on_save_image("1D", filename, resize_name=resize_alias[plot_type])
-            elif plot_type == "waterfall":
-                self.plotsPanel.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals, xlabel=xlabel, ylabel=ylabel)
-                self.plotsPanel.on_save_image("Waterfall", filename, resize_name=resize_alias[plot_type])
-
-    def on_save_heatmap_data(self, data_type, item_list):
-        """Save heatmap-based figures to file
-
-        Parameters
-        ----------
-        data_type : str
-            type of data to be saved
-        item_list : list
-            list of items to be saved. Must be constructed to have [document_title, dataset_type, dataset_name]
-        """
-        from origami.gui_elements.dialog_batch_data_exporter import DialogExportData
-
-        if data_type not in ["heatmap", "chromatogram", "mobilogram", "waterfall"]:
-            raise MessageError("Incorrect data type", "This function cannot save this data type")
-
-        fname_alias = {
-            "Drift time (2D)": "raw",
-            "Drift time (2D, processed)": "processed",
-            "Drift time (2D, EIC)": "raw",
-            "Drift time (2D, processed, EIC)": "processed",
-            "Drift time (2D, combined voltages, EIC)": "combined_cv",
-            "Input data": "input_data",
-        }
-
-        if len(item_list) == 0:
-            raise MessageError("No items in the list", "Please select at least one item in the panel to export")
-
-        # setup output parameters
-        dlg = DialogExportData(self.presenter.view, self.presenter, self.config, self.presenter.icons)
-
-        if dlg.ShowModal() == wx.ID_NO:
-            logger.error("Action was cancelled")
-            return
-
-        path = self.config.data_folder_path
-        if not check_path_exists(path):
-            logger.error("Action was cancelled because the path does not exist")
-            return
-
-        delimiter = self.config.saveDelimiter
-        extension = self.config.saveExtension
-        path = r"D:\Data\ORIGAMI\origami_ms\images"
-        for document_title, dataset_type, dataset_name in item_list:
-            tstart = time.time()
-            # generate filename
-            filename = f"{data_type}_{dataset_name}_{fname_alias[dataset_type]}_{document_title}"
-            filename = clean_filename(filename)
-            filename = os.path.join(path, filename)
-
-            if not filename.endswith(f"{extension}"):
-                filename += f"{extension}"
-
-            # get data
-            try:
-                query_info = [document_title, dataset_type, dataset_name]
-                __, data = self.get_mobility_chromatographic_data(query_info)
-            except KeyError:
-                continue
-
-            # unpack data
-            zvals = data["zvals"]
-            xvals = data["xvals"]
-            yvals = data["yvals"]
-            xlabel = data["xlabels"]
-            ylabel = data["ylabels"]
-
-            # plot data
-            if data_type == "heatmap":
-                save_data, header, data_format = io_text_files.prepare_heatmap_data_for_saving(
-                    zvals, xvals, yvals, guess_dtype=True
-                )
-            elif data_type == "chromatogram":
-                yvals_RT = data.get("yvalsRT", zvals.sum(axis=0))
-                save_data, header, data_format = io_text_files.prepare_signal_data_for_saving(
-                    xvals, yvals_RT, xlabel, "Intensity"
-                )
-            elif data_type == "mobilogram":
-                yvals_DT = data.get("yvals1D", zvals.sum(axis=1))
-                save_data, header, data_format = io_text_files.prepare_signal_data_for_saving(
-                    yvals, yvals_DT, ylabel, "Intensity"
-                )
-
-            header = delimiter.join(header)
-
-            io_text_files.save_data(
-                filename=filename, data=save_data, fmt=data_format, delimiter=delimiter, header=header
-            )
-            logger.info(f"Saved {filename} in {time.time()-tstart:.4f} seconds.")
-
-    def get_annotations_data(self, query_info):
-
-        __, dataset = self.get_mobility_chromatographic_data(query_info)
-        return dataset.get("annotations", annotations_obj.Annotations())
+    # name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
+    # self.plotsPanel.on_plot_MS(
+    #     document.massSpectrum["xvals"],
+    #     document.massSpectrum["yvals"],
+    #     xlimits=document.massSpectrum["xlimits"],
+    #     **name_kwargs,
+    # )
+    # # Show rectangles
+    # # Need to check whether there were any ions in the table already
+    # last = peaklist.GetItemCount() - 1
+    # ymin = 0
+    # height = 100000000000
+    # repaint = False
+    # for item in range(peaklist.GetItemCount()):
+    #     itemInfo = self.view.panelMultipleIons.on_get_item_information(item_id=item)
+    #     filename = itemInfo["document"]
+    #     if filename != document_title:
+    #         continue
+    #     ion_name = itemInfo["ion_name"]
+    #     label = "{};{}".format(filename, ion_name)
+    #
+    #     # assumes label is made of start-end
+    #     xmin, xmax = ut_labels.get_ion_name_from_label(ion_name)
+    #     xmin, xmax = str2num(xmin), str2num(xmax)
+    #
+    #     width = xmax - xmin
+    #     color = convert_rgb_255_to_1(itemInfo["color"])
+    #     if np.sum(color) <= 0:
+    #         color = self.config.markerColor_1D
+    #     if item == last:
+    #         repaint = True
+    #     self.plotsPanel.on_plot_patches(
+    #         xmin,
+    #         ymin,
+    #         width,
+    #         height,
+    #         color=color,
+    #         alpha=self.config.markerTransparency_1D,
+    #         label=label,
+    #         repaint=repaint,
+    #     )
+    #
+    # def on_extract_mass_spectrum_for_each_collision_voltage_fcn(self, evt, document_title=None):
+    #
+    #     if self.config.threading:
+    #         self.on_threading(action="extract.spectrum.collision.voltage", args=(document_title,))
+    #     else:
+    #         self.on_extract_mass_spectrum_for_each_collision_voltage(document_title)
+    #
+    # def on_extract_mass_spectrum_for_each_collision_voltage(self, document_title):
+    #     """Extract mass spectrum for each collision voltage"""
+    #     document = self.on_get_document(document_title)
+    #
+    #     # Make sure the document is of correct type.
+    #     if not document.dataType == "Type: ORIGAMI":
+    #         self.update_statusbar("Please select correct document type - ORIGAMI", 4)
+    #         return
+    #
+    #     # get origami-ms settings from the metadata
+    #     origami_settings = document.metadata.get("origami_ms", None)
+    #     scan_list = document.combineIonsList
+    #     if origami_settings is None or len(scan_list) == 0:
+    #         raise MessageError(
+    #             "Missing ORIGAMI-MS configuration",
+    #             "Please setup ORIGAMI-MS settings by right-clicking on the document in the"
+    #             + "Document Tree and selecting `Action -> Setup ORIGAMI-MS parameters",
+    #         )
+    #
+    #     reader = self._get_waters_api_reader(document)
+    #
+    #     document.gotMultipleMS = True
+    #     xlimits = [document.parameters["start_ms"], document.parameters["end_ms"]]
+    #     for start_end_cv in scan_list:
+    #         tstart = time.time()
+    #         start_scan, end_scan, cv = start_end_cv
+    #         spectrum_name = f"Scans: {start_scan}-{end_scan} | CV: {cv} V"
+    #
+    #         # extract spectrum
+    #         mz_x, mz_y = self._get_waters_api_spectrum_data(reader, start_scan=start_scan, end_scan=end_scan)
+    #         # process each
+    #         if self.config.origami_preprocess:
+    #             mz_x, mz_y = self.data_processing.on_process_MS(mz_x, mz_y, return_data=True)
+    #
+    #         # add to document
+    #         spectrum_data = {
+    #             "xvals": mz_x,
+    #             "yvals": mz_y,
+    #             "range": [start_scan, end_scan],
+    #             "xlabels": "m/z (Da)",
+    #             "xlimits": xlimits,
+    #             "trap": cv,
+    #         }
+    #         self.documentTree.on_update_data(spectrum_data, spectrum_name, document, data_type="extracted.spectrum")
+    #         logger.info(f"Extracted {spectrum_name} in {time.time()-tstart:.2f} seconds.")
+    #
+    # def on_save_heatmap_figures(self, plot_type, item_list):
+    #     """Export heatmap-based data as figures in batch mode
+    #
+    #     Executing this action will open dialog where user can specify various settings and subsequently decide whether
+    #     to continue or cancel the action
+    #
+    #     Parameters
+    #     ----------
+    #     plot_type : str
+    #         type of figure to be plotted
+    #     item_list : list
+    #         list of items to be plotted. Must be constructed to have [document_title, dataset_type, dataset_name]
+    #     """
+    #     from origami.gui_elements.dialog_batch_figure_exporter import DialogExportFigures
+    #
+    #     filename_alias = {
+    #         "Drift time (2D)": "raw",
+    #         "Drift time (2D, processed)": "processed",
+    #         "Drift time (2D, EIC)": "raw",
+    #         "Drift time (2D, processed, EIC)": "processed",
+    #         "Drift time (2D, combined voltages, EIC)": "combined_cv",
+    #         "Input data": "input_data",
+    #     }
+    #     resize_alias = {"heatmap": "2D", "chromatogram": "RT", "mobilogram": "DT", "waterfall": "Waterfall"}
+    #
+    #     # check input is correct
+    #     if plot_type not in ["heatmap", "chromatogram", "mobilogram", "waterfall"]:
+    #         raise MessageError("Incorrect plot type", "This function cannot plot this plot type")
+    #
+    #     if len(item_list) == 0:
+    #         raise MessageError("No items in the list", "Please select at least one item in the panel to export")
+    #
+    #     # setup output parameters
+    #     dlg_kwargs = {"image_size_inch": self.config._plotSettings[resize_alias[plot_type]]["resize_size"]}
+    #     dlg = DialogExportFigures(self.presenter.view, self.presenter, self.config, self.presenter.icons, **dlg_kwargs)
+    #
+    #     if dlg.ShowModal() == wx.ID_NO:
+    #         logger.error("Action was cancelled")
+    #         return
+    #
+    #     path = self.config.image_folder_path
+    #     if not check_path_exists(path):
+    #         logger.error("Action was cancelled because the path does not exist")
+    #         return
+    #
+    #     # save individual images
+    #     for document_title, dataset_type, dataset_name in item_list:
+    #         # generate filename
+    #         filename = f"{plot_type}_{dataset_name}_{filename_alias[dataset_type]}_{document_title}"
+    #         filename = clean_filename(filename)
+    #         filename = os.path.join(path, filename)
+    #         # get data
+    #         try:
+    #             query_info = [document_title, dataset_type, dataset_name]
+    #             __, data = self.get_mobility_chromatographic_data(query_info)
+    #         except KeyError:
+    #             continue
+    #
+    #         # unpack data
+    #         zvals = data["zvals"]
+    #         xvals = data["xvals"]
+    #         yvals = data["yvals"]
+    #         xlabel = data["xlabels"]
+    #         ylabel = data["ylabels"]
+    #
+    #         # plot data
+    #         if plot_type == "heatmap":
+    #             self.plotsPanel.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel)
+    #             self.plotsPanel.on_save_image("2D", filename, resize_name=resize_alias[plot_type])
+    #         elif plot_type == "chromatogram":
+    #             yvals_RT = data.get("yvalsRT", zvals.sum(axis=0))
+    #             self.plotsPanel.on_plot_RT(xvals, yvals_RT, xlabel)
+    #             self.plotsPanel.on_save_image("RT", filename, resize_name=resize_alias[plot_type])
+    #         elif plot_type == "mobilogram":
+    #             yvals_DT = data.get("yvals1D", zvals.sum(axis=1))
+    #             self.plotsPanel.on_plot_1D(yvals, yvals_DT, ylabel)
+    #             self.plotsPanel.on_save_image("1D", filename, resize_name=resize_alias[plot_type])
+    #         elif plot_type == "waterfall":
+    #             self.plotsPanel.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals, xlabel=xlabel, ylabel=ylabel)
+    #             self.plotsPanel.on_save_image("Waterfall", filename, resize_name=resize_alias[plot_type])
+    #
+    # def on_save_heatmap_data(self, data_type, item_list):
+    #     """Save heatmap-based figures to file
+    #
+    #     Parameters
+    #     ----------
+    #     data_type : str
+    #         type of data to be saved
+    #     item_list : list
+    #         list of items to be saved. Must be constructed to have [document_title, dataset_type, dataset_name]
+    #     """
+    #     from origami.gui_elements.dialog_batch_data_exporter import DialogExportData
+    #
+    #     if data_type not in ["heatmap", "chromatogram", "mobilogram", "waterfall"]:
+    #         raise MessageError("Incorrect data type", "This function cannot save this data type")
+    #
+    #     fname_alias = {
+    #         "Drift time (2D)": "raw",
+    #         "Drift time (2D, processed)": "processed",
+    #         "Drift time (2D, EIC)": "raw",
+    #         "Drift time (2D, processed, EIC)": "processed",
+    #         "Drift time (2D, combined voltages, EIC)": "combined_cv",
+    #         "Input data": "input_data",
+    #     }
+    #
+    #     if len(item_list) == 0:
+    #         raise MessageError("No items in the list", "Please select at least one item in the panel to export")
+    #
+    #     # setup output parameters
+    #     dlg = DialogExportData(self.presenter.view, self.presenter, self.config, self.presenter.icons)
+    #
+    #     if dlg.ShowModal() == wx.ID_NO:
+    #         logger.error("Action was cancelled")
+    #         return
+    #
+    #     path = self.config.data_folder_path
+    #     if not check_path_exists(path):
+    #         logger.error("Action was cancelled because the path does not exist")
+    #         return
+    #
+    #     delimiter = self.config.saveDelimiter
+    #     extension = self.config.saveExtension
+    #     path = r"D:\Data\ORIGAMI\origami_ms\images"
+    #     for document_title, dataset_type, dataset_name in item_list:
+    #         tstart = time.time()
+    #         # generate filename
+    #         filename = f"{data_type}_{dataset_name}_{fname_alias[dataset_type]}_{document_title}"
+    #         filename = clean_filename(filename)
+    #         filename = os.path.join(path, filename)
+    #
+    #         if not filename.endswith(f"{extension}"):
+    #             filename += f"{extension}"
+    #
+    #         # get data
+    #         try:
+    #             query_info = [document_title, dataset_type, dataset_name]
+    #             __, data = self.get_mobility_chromatographic_data(query_info)
+    #         except KeyError:
+    #             continue
+    #
+    #         # unpack data
+    #         zvals = data["zvals"]
+    #         xvals = data["xvals"]
+    #         yvals = data["yvals"]
+    #         xlabel = data["xlabels"]
+    #         ylabel = data["ylabels"]
+    #
+    #         # plot data
+    #         if data_type == "heatmap":
+    #             save_data, header, data_format = io_text_files.prepare_heatmap_data_for_saving(
+    #                 zvals, xvals, yvals, guess_dtype=True
+    #             )
+    #         elif data_type == "chromatogram":
+    #             yvals_RT = data.get("yvalsRT", zvals.sum(axis=0))
+    #             save_data, header, data_format = io_text_files.prepare_signal_data_for_saving(
+    #                 xvals, yvals_RT, xlabel, "Intensity"
+    #             )
+    #         elif data_type == "mobilogram":
+    #             yvals_DT = data.get("yvals1D", zvals.sum(axis=1))
+    #             save_data, header, data_format = io_text_files.prepare_signal_data_for_saving(
+    #                 yvals, yvals_DT, ylabel, "Intensity"
+    #             )
+    #
+    #         header = delimiter.join(header)
+    #
+    #         io_text_files.save_data(
+    #             filename=filename, data=save_data, fmt=data_format, delimiter=delimiter, header=header
+    #         )
+    #         logger.info(f"Saved {filename} in {time.time()-tstart:.4f} seconds.")
+    #
+    # def get_annotations_data(self, query_info):
+    #
+    #     __, dataset = self.get_mobility_chromatographic_data(query_info)
+    #     return dataset.get("annotations", annotations_obj.Annotations())
 
     def get_spectrum_data(self, query_info, **kwargs):
         """Retrieve data for specified query items.
