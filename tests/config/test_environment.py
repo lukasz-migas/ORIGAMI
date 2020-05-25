@@ -31,10 +31,10 @@ class TestEnvironment:
 
         env.remove("TEST")
 
-    def test_new(self):
+    def test_new(self, tmp_path):
         env = Environment()
         for document_type, document_attributes in DOCUMENT_TYPE_ATTRIBUTES.items():
-            document = env.new(document_type, "")
-            assert document.path == ""
-            assert document.dataType == document_attributes["data_type"]
-            assert document.fileFormat == document_attributes["file_format"]
+            document = env.new(document_type, str(tmp_path))
+            assert ".origami" in document.path
+            assert document.data_type == document_attributes["data_type"]
+            assert document.file_format == document_attributes["file_format"]

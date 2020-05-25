@@ -20,7 +20,7 @@ os.environ["ORIGAMI_PYTEST"] = "True"
 
 dw_config = Download()
 
-DATA_PATH = os.path.join(os.path.split(__file__)[0], "data")
+DATA_PATH = os.path.join(os.path.split(__file__)[0], "_data")
 DATA_WATERS_IM_SMALL = os.path.join(DATA_PATH, "WATERS_IM_SMALL.raw.zip")
 DATA_TEXT_MS = os.path.join(DATA_PATH, "TEXT_MS.zip")
 DATA_TEXT_HEATMAP = os.path.join(DATA_PATH, "TEXT_HEATMAP.zip")

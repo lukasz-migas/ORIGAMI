@@ -6,6 +6,10 @@ import sys
 import numpy as np
 import pytest
 
+# Local imports
+from origami.objects.containers import ChromatogramObject
+from origami.objects.containers import MassSpectrumObject
+
 if sys.platform.startswith("linux") or sys.platform.startswith("darwin"):
     pytest.skip("skipping Linux-only tests", allow_module_level=True)
 
@@ -32,11 +36,11 @@ class TestThermoRawReader:
         item_list = [0, 1]
         item_list.extend(reader._unique_filters)
         for item in item_list:
-            x, y = reader[item]
-            assert isinstance(x, np.ndarray)
-            assert isinstance(y, np.ndarray)
-            assert len(x) > 0
-            assert len(x) == len(y)
+            obj = reader[item]
+            assert isinstance(obj, MassSpectrumObject)
+            assert len(obj.x) == len(obj.y)
+            assert isinstance(obj.x, np.ndarray)
+            assert isinstance(obj.y, np.ndarray)
 
         with pytest.raises(IndexError):
             _ = reader[3]
@@ -92,23 +96,29 @@ class TestThermoRawReader:
     @pytest.mark.parametrize("centroid", (True, False))
     def test_get_spectrum(self, get_thermo_ms_small, start_scan, end_scan, centroid):
         reader = ThermoRawReader(get_thermo_ms_small)
-        x, y = reader.get_spectrum(start_scan, end_scan, centroid=centroid)
-        assert isinstance(x, np.ndarray)
-        assert len(x) > 0
-        assert len(x) == len(y)
+        obj = reader.get_spectrum(start_scan, end_scan, centroid=centroid)
+
+        assert isinstance(obj, MassSpectrumObject)
+        assert len(obj.x) == len(obj.y)
+        assert isinstance(obj.x, np.ndarray)
+        assert isinstance(obj.y, np.ndarray)
 
     def test_get_tic(self, get_thermo_ms_small):
         reader = ThermoRawReader(get_thermo_ms_small)
-        x, y = reader.get_tic()
-        assert isinstance(x, np.ndarray)
-        assert len(x) > 0
-        assert len(x) == len(y)
+        obj = reader.get_tic()
+
+        assert isinstance(obj, ChromatogramObject)
+        assert len(obj.x) == len(obj.y)
+        assert isinstance(obj.x, np.ndarray)
+        assert isinstance(obj.y, np.ndarray)
 
     @pytest.mark.parametrize("mz_start, mz_end", ([-1, -1], [500, 600], [-1, 1000], [500, -1]))
     @pytest.mark.parametrize("rt_start, rt_end", ([-1, -1], [-1, 1.0], [1.0, -1]))
     def test_get_chromatogram(self, get_thermo_ms_small, mz_start, mz_end, rt_start, rt_end):
         reader = ThermoRawReader(get_thermo_ms_small)
-        x, y = reader.get_chromatogram(mz_start, mz_end, rt_start, rt_end)
-        assert isinstance(x, np.ndarray)
-        assert len(x) > 0
-        assert len(x) == len(y)
+        obj = reader.get_chromatogram(mz_start, mz_end, rt_start, rt_end)
+
+        assert isinstance(obj, ChromatogramObject)
+        assert len(obj.x) == len(obj.y)
+        assert isinstance(obj.x, np.ndarray)
+        assert isinstance(obj.y, np.ndarray)

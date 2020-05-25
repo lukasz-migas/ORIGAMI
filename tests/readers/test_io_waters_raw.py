@@ -7,6 +7,13 @@ import sys
 import numpy as np
 import pytest
 
+# Local imports
+from origami.objects.containers import IonHeatmapObject
+from origami.objects.containers import MobilogramObject
+from origami.objects.containers import ChromatogramObject
+from origami.objects.containers import MassSpectrumObject
+from origami.objects.containers import MassSpectrumHeatmapObject
+
 if sys.platform.startswith("linux") or sys.platform.startswith("darwin"):
     pytest.skip("skipping Linux-only tests", allow_module_level=True)
 
@@ -31,8 +38,12 @@ class TestWatersIMReader:
     @staticmethod
     def test_get_ms(get_waters_im_small):
         reader = WatersIMReader(get_waters_im_small)
-        x, y = reader.extract_ms()
-        assert len(x) == len(y)
+        obj = reader.extract_ms()
+
+        assert isinstance(obj, MassSpectrumObject)
+        assert len(obj.x) == len(obj.y)
+        assert isinstance(obj.x, np.ndarray)
+        assert isinstance(obj.y, np.ndarray)
 
     @staticmethod
     def test_extract_ms(get_waters_im_small):
@@ -43,9 +54,12 @@ class TestWatersIMReader:
     @staticmethod
     def test_get_dt(get_waters_im_small):
         reader = WatersIMReader(get_waters_im_small)
-        x, y = reader.extract_dt()
-        assert len(x) == len(y)
-        assert x.dtype == np.int32
+        obj = reader.extract_dt()
+
+        assert isinstance(obj, MobilogramObject)
+        assert len(obj.x) == len(obj.y)
+        assert isinstance(obj.x, np.ndarray)
+        assert isinstance(obj.y, np.ndarray)
 
     @staticmethod
     def test_extract_dt(get_waters_im_small):
@@ -56,9 +70,12 @@ class TestWatersIMReader:
     @staticmethod
     def test_get_rt(get_waters_im_small):
         reader = WatersIMReader(get_waters_im_small)
-        x, x_bin, y = reader.extract_rt()
-        assert len(x) == len(x_bin) == len(y)
-        assert x_bin.dtype == np.int32
+        obj = reader.extract_rt()
+
+        assert isinstance(obj, ChromatogramObject)
+        assert len(obj.x) == len(obj.y)
+        assert isinstance(obj.x, np.ndarray)
+        assert isinstance(obj.y, np.ndarray)
 
     @staticmethod
     def test_extract_rt(get_waters_im_small):
@@ -70,10 +87,18 @@ class TestWatersIMReader:
     @pytest.mark.parametrize("reduce", ("sum", "mean", "median"))
     def test_get_heatmap(get_waters_im_small, reduce):
         reader = WatersIMReader(get_waters_im_small)
-        dt_x, dt_y, rt_x, rt_y, heatmap = reader.extract_heatmap(reduce=reduce)
+        obj = reader.extract_heatmap(reduce=reduce)
 
-        assert heatmap.shape[0] == 200 == len(dt_x) == len(dt_y)
-        assert heatmap.shape[1] == reader.n_scans(0) == len(rt_x) == len(rt_y)
+        assert isinstance(obj, IonHeatmapObject)
+        assert isinstance(obj.x, np.ndarray)
+        assert isinstance(obj.y, np.ndarray)
+        assert isinstance(obj.xy, np.ndarray)
+        assert isinstance(obj.yy, np.ndarray)
+        assert isinstance(obj.array, np.ndarray)
+        assert len(obj.x) == len(obj.xy)
+        assert len(obj.y) == len(obj.yy)
+        assert obj.x.shape[0] == obj.array.shape[1]
+        assert obj.y.shape[0] == obj.array.shape[0]
 
     @staticmethod
     def test_extract_heatmap(get_waters_im_small):
@@ -85,10 +110,18 @@ class TestWatersIMReader:
     @pytest.mark.parametrize("n_points", (100, 1000, 5000))
     def test_get_msdt(get_waters_im_small, n_points):
         reader = WatersIMReader(get_waters_im_small)
-        mz_x, mz_y, dt_x, dt_y, heatmap = reader.extract_msdt(n_points=n_points)
+        obj = reader.extract_msdt(n_points=n_points)
 
-        assert heatmap.shape[0] == 200 == len(dt_x) == len(dt_y)
-        assert heatmap.shape[1] == n_points == len(mz_x) == len(mz_y)
+        assert isinstance(obj, MassSpectrumHeatmapObject)
+        assert isinstance(obj.x, np.ndarray)
+        assert isinstance(obj.y, np.ndarray)
+        assert isinstance(obj.xy, np.ndarray)
+        assert isinstance(obj.yy, np.ndarray)
+        assert isinstance(obj.array, np.ndarray)
+        assert len(obj.x) == len(obj.xy)
+        assert len(obj.y) == len(obj.yy)
+        assert obj.x.shape[0] == obj.array.shape[1]
+        assert obj.y.shape[0] == obj.array.shape[0]
 
     @staticmethod
     def test_extract_msdt(get_waters_im_small):

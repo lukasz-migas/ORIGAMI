@@ -17,29 +17,23 @@ from pubsub import pub
 
 # Local imports
 import origami.utils.labels as ut_labels
-
 # import origami.processing.heatmap as pr_heatmap
 import origami.processing.spectra as pr_spectra
 import origami.objects.annotations as annotations_obj
-
 # import origami.processing.origami_ms as pr_origami
 from origami.ids import ID_openIRRawFile
 from origami.ids import ID_load_masslynx_raw
 from origami.ids import ID_load_origami_masslynx_raw
-
 # from origami.readers import io_document
 from origami.readers import io_text_files
-
 # from origami.document import document as documents
 from origami.utils.path import get_base_path
 from origami.utils.path import clean_filename
 from origami.utils.path import check_path_exists
 from origami.utils.path import check_waters_path
 from origami.utils.path import get_path_and_fname
-
 # from origami.utils.time import get_current_time
 from origami.utils.check import check_value_order
-
 # from origami.utils.check import check_axes_spacing
 from origami.utils.color import get_random_color
 from origami.utils.color import convert_rgb_1_to_255
@@ -48,7 +42,6 @@ from origami.utils.random import get_random_int
 from origami.utils.ranges import get_min_max
 from origami.handlers.call import Call
 from origami.handlers.load import LoadHandler
-
 # from origami.config.convert import convert_v1_to_v2
 # from origami.config.convert import upgrade_document_annotations
 from origami.handlers.export import ExportHandler
@@ -57,7 +50,6 @@ from origami.objects.document import DocumentStore
 from origami.processing.utils import find_nearest_index
 from origami.processing.utils import get_maximum_value_in_range
 from origami.readers.io_utils import get_waters_inf_data
-
 # from origami.readers.io_utils import get_waters_header_data
 # from origami.utils.converters import str2num
 from origami.utils.converters import byte2str
@@ -70,7 +62,6 @@ from origami.objects.containers import DataObject
 from origami.processing.imaging import ImagingNormalizationProcessor
 from origami.handlers.queue_handler import QueueHandler
 from origami.gui_elements.misc_dialogs import DialogBox
-
 # from origami.gui_elements.dialog_select_document import DialogSelectDocument
 from origami.gui_elements.dialog_multi_directory_picker import DialogMultiDirPicker
 

@@ -17,7 +17,7 @@ def get_mass_spectrum_data():
 
 class TestSpectrumGroup:
     def test_init(self):
-        objs = get_mass_spectrum_data()
+        objs, y_shape = get_mass_spectrum_data()
 
         group = SpectrumGroup(objs)
         assert group.n_objects == len(objs)

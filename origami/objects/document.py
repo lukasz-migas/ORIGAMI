@@ -179,7 +179,7 @@ class DocumentStore:
     def _has_extension(path, extension):
         """Cleans-up path"""
         path = Path(path)
-        return path.with_suffix(extension)
+        return str(path.with_suffix(extension))
 
     @property
     def groups(self):

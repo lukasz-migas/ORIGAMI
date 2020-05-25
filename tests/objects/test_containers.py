@@ -24,8 +24,13 @@ class TestMassSpectrumObject:
 
         data = obj.to_dict()
         assert isinstance(data, dict)
-        assert "xvals" in data
-        assert "yvals" in data
+        assert "x" in data
+        assert "y" in data
+
+        data, attrs = obj.to_zarr()
+        assert isinstance(data, dict)
+        assert isinstance(attrs, dict)
+        assert "class" in attrs
 
 
 class TestChromatogramObject:
@@ -39,8 +44,13 @@ class TestChromatogramObject:
 
         data = obj.to_dict()
         assert isinstance(data, dict)
-        assert "xvals" in data
-        assert "yvals" in data
+        assert "x" in data
+        assert "y" in data
+
+        data, attrs = obj.to_zarr()
+        assert isinstance(data, dict)
+        assert isinstance(attrs, dict)
+        assert "class" in attrs
 
 
 class TestMobilogramObject:
@@ -54,5 +64,10 @@ class TestMobilogramObject:
 
         data = obj.to_dict()
         assert isinstance(data, dict)
-        assert "xvals" in data
-        assert "yvals" in data
+        assert "x" in data
+        assert "y" in data
+
+        data, attrs = obj.to_zarr()
+        assert isinstance(data, dict)
+        assert isinstance(attrs, dict)
+        assert "class" in attrs

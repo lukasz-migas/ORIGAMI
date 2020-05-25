@@ -104,7 +104,8 @@ class ThermoRawReader:
     @property
     def rt_min(self):
         if self._rt_min is None:
-            self._rt_min, _ = self.get_chromatogram(0, 1)
+            obj = self.get_chromatogram(0, 1)
+            self._rt_min = obj.x
         return self._rt_min
 
     def n_filters(self):
