@@ -2,7 +2,8 @@
 import os
 import logging
 from enum import IntEnum
-from typing import Dict
+from numbers import Number
+from typing import Dict, List, Tuple
 from typing import Optional
 
 # Third-party imports
@@ -10,7 +11,7 @@ import wx
 from pubsub import pub
 
 # Local imports
-from origami.styles import MiniFrame
+from origami.styles import MiniFrame, make_menu_item
 from origami.styles import set_item_font
 from origami.config.config import CONFIG
 from origami.utils.decorators import signal_blocker
@@ -104,12 +105,15 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         },
     }
     TABLE_COLUMN_INDEX = TableColumnIndex
+    TABLE_STYLE = wx.LC_REPORT | wx.LC_VRULES | wx.LC_HRULES
+    TABLE_ALLOWED_EDIT = [TABLE_COLUMN_INDEX.variable]
 
     # module specific parameters
     DOCUMENT_TYPE = None
     PUB_SUBSCRIBE_EVENT = None
     SUPPORTED_FILE_FORMATS = [".raw"]
     DIALOG_SIZE = (800, 600)
+    USE_COLOR = False
 
     # UI elements
     main_sizer = None
@@ -135,15 +139,6 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         self.parent = parent
         self.presenter = presenter
         self.icons = icons
-
-        # self.view = presenter.view
-        # self.data_handling = presenter.data_handling
-        # self.data_processing = presenter.data_processing
-        # self.data_visualisation = presenter.data_visualisation
-
-        # self.panel_plot = self.presenter.view.panelPlots
-        # self.document_tree = self.presenter.view.panelDocuments.documents
-
         self._block = False
 
         # make gui items
@@ -175,9 +170,25 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
     def on_double_click_on_item(self, evt):
         """Process double-click event"""
-        pass
+        from origami.gui_elements.misc_dialogs import DialogSimpleAsk
 
-    def get_implementation_extraction_processing_parameters(self):
+        info = self.on_get_item_information()
+        if evt.ControlDown():
+            self.peaklist.CheckItem(self.peaklist.item_id, not info["check"])
+        else:
+            value = DialogSimpleAsk(
+                "Please specify index value", "Please specify index value", info["variable"], "float"
+            )
+            if value is not None:
+                self.on_update_value_in_peaklist(self.peaklist.item_id, "variable", value)
+
+        # print(evt.GetColumn(), evt.GetIndex())
+        # print(dir(evt))
+        # self.on_check_selected(None)
+        # print(dir(evt))
+        # self.on_check_item(None, None)
+
+    def get_parameters_implementation(self):
         """Retrieve processing parameters that are specific for the implementation"""
         return dict()
 
@@ -193,16 +204,16 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
     def on_menu_item_right_click(self, evt):
         pass
 
-    def subscribe(self):
-        """Initialize PubSub subscribers"""
-        if self.PUB_SUBSCRIBE_EVENT:
-            pub.subscribe(self.on_update_info, self.PUB_SUBSCRIBE_EVENT)
-
     def on_close(self, evt):
         """Destroy this frame"""
         if self.PUB_SUBSCRIBE_EVENT:
             pub.unsubscribe(self.on_update_info, self.PUB_SUBSCRIBE_EVENT)
         self.Destroy()
+
+    def subscribe(self):
+        """Initialize PubSub subscribers"""
+        if self.PUB_SUBSCRIBE_EVENT:
+            pub.subscribe(self.on_update_info, self.PUB_SUBSCRIBE_EVENT)
 
     def bind_events(self):
         """Bind extra events"""
@@ -495,19 +506,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
     def on_clear_files(self, _):
         """Clear filelist from existing files"""
-        from origami.gui_elements.misc_dialogs import DialogBox
-
-        dlg = DialogBox(
-            exceptionTitle="Would you like to continue?",
-            exceptionMsg="Are you sure you want to clear the filelist? This action cannot be undone.",
-            type="Question",
-        )
-        if dlg == wx.ID_NO:
-            msg = "Cancelled was operation"
-            logger.info(msg)
-            return
-
-        self.peaklist.DeleteAllItems()
+        self.on_delete_all(None)
         self.on_update_import_info()
 
     def get_list_parameters(self):
@@ -536,7 +535,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
         return n_checked, mz_range, im_on, scan_range
 
-    def get_extraction_filelist(self):
+    def get_extraction_filelist(self) -> List[Tuple[Number, str, int, int, Dict]]:
         """Retrieve list parameters for data extraction"""
         from origami.utils.converters import str2int
 
@@ -550,10 +549,10 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
                 variable = information["variable"]
                 scan_range = information["scan_range"]
                 scan_min, scan_max = scan_range.split("-")
-                filelist.append([variable, path, str2int(scan_min), str2int(scan_max), information])
+                filelist.append((variable, path, str2int(scan_min), str2int(scan_max), information))
         return filelist
 
-    def get_extraction_processing_parameters(self):
+    def get_parameters(self):
         """Retrieve processing parameters"""
         from origami.utils.converters import str2num
         from origami.utils.converters import str2bool
@@ -564,7 +563,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
             raise MessageError("Error", "Please tick items in the item list before trying to import data.")
 
         # check image dimensions
-        impl_kwargs = self.get_implementation_extraction_processing_parameters()
+        impl_kwargs = self.get_parameters_implementation()
 
         # get mass range
         mz_range_out = []
@@ -619,13 +618,24 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         self.import_label.SetForegroundColour(color)
         self.import_label.SetLabel(info)
 
-    def on_import(self, evt):
+    def on_import(self, _):
         """Initialize data import"""
         filelist = self.get_extraction_filelist()
-        kwargs = self.get_extraction_processing_parameters()
-        # kwargs["add_normalizations"] = self.import_precompute_norm.GetValue()
+        kwargs = self.get_parameters()
 
-        self.data_handling.on_open_multiple_LESA_files_fcn(filelist, **kwargs)
+        self._import(filelist, **kwargs)
+
+    def _import(self, filelist: List[Tuple[Number, str, int, int, Dict]], parameters: Dict):
+        """Actual implementation of how data should be imported
+
+        Parameters
+        ----------
+        filelist : List[List[Number, str, int, int, Dict]]
+            list containing all necessary data and metadata to perform data import
+        parameters : Dict
+            dictionary containing pre-processing parameters
+        """
+        raise NotImplementedError("Must implement method")
 
 
 def main():

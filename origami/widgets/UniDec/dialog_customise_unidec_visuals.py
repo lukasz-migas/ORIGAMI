@@ -416,9 +416,9 @@ class DialogCustomiseUniDecVisuals(Dialog):
         self.config.unidec_plot_panel_view = self.unidec_view_value.GetStringSelection()
 
         DialogBox(
-            exceptionTitle="Warning",
-            exceptionMsg="This will not take effect until the UniDec processing panel is restarted",
-            type="Warning",
+            title="Warning",
+            msg="This will not take effect until the UniDec processing panel is restarted",
+            kind="Warning",
         )
 
     def on_toggle_controls(self, evt):

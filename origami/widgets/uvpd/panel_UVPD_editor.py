@@ -749,7 +749,7 @@ class PanelUVPDEditor(wx.MiniFrame):
         try:
             rtList = np.transpose([self.document.RT["xvals"], self.document.RT["yvals"]])
         except AttributeError:
-            DialogBox(exceptionTitle="Error", exceptionMsg="Please load document first", type="Error")
+            DialogBox(title="Error", msg="Please load document first", kind="Error")
             return
 
         # Detect peaks
@@ -838,10 +838,10 @@ class PanelUVPDEditor(wx.MiniFrame):
         max_mz = str2num(self.max_mz_value.GetValue())
 
         if min_mz in [None, "None", ""]:
-            DialogBox(exceptionTitle="Error", exceptionMsg="Incorrect value of min m/z. Try again.", type="Error")
+            DialogBox(title="Error", msg="Incorrect value of min m/z. Try again.", kind="Error")
             return
         if max_mz in [None, "None", ""]:
-            DialogBox(exceptionTitle="Error", exceptionMsg="Incorrect value of max m/z. Try again.", type="Error")
+            DialogBox(title="Error", msg="Incorrect value of max m/z. Try again.", kind="Error")
             return
 
         self.peaklist.Append(["", min_mz, max_mz])
@@ -852,10 +852,10 @@ class PanelUVPDEditor(wx.MiniFrame):
         max_dt = str2int(self.max_dt_value.GetValue())
 
         if min_dt in [None, "None", ""]:
-            DialogBox(exceptionTitle="Error", exceptionMsg="Incorrect value of min dt. Try again.", type="Error")
+            DialogBox(title="Error", msg="Incorrect value of min dt. Try again.", kind="Error")
             return
         if max_dt in [None, "None", ""]:
-            DialogBox(exceptionTitle="Error", exceptionMsg="Incorrect value of max dt. Try again.", type="Error")
+            DialogBox(title="Error", msg="Incorrect value of max dt. Try again.", kind="Error")
             return
 
         self.monitorlist.Append(["", min_dt, max_dt, self.current_ion])
@@ -887,14 +887,14 @@ class PanelUVPDEditor(wx.MiniFrame):
         ion_list = self.get_ion_list()
 
         if len(ion_list) == 0:
-            DialogBox(exceptionTitle="Error", exceptionMsg="Please extract data for some ions first!", type="Error")
+            DialogBox(title="Error", msg="Please extract data for some ions first!", kind="Error")
             return
 
         if len(self.laser_on_list) == 0 or len(self.laser_off_list) == 0:
             DialogBox(
-                exceptionTitle="Error",
-                exceptionMsg="Please detect regions of interest first using the Find peaks button above",
-                type="Error",
+                title="Error",
+                msg="Please detect regions of interest first using the Find peaks button above",
+                kind="Error",
             )
             return
 
@@ -1003,13 +1003,13 @@ class PanelUVPDEditor(wx.MiniFrame):
         mobility_list = self.get_mobility_list()
 
         if len(mobility_list) == 0:
-            DialogBox(exceptionTitle="Error", exceptionMsg="Please add mobility regions first!", type="Error")
+            DialogBox(title="Error", msg="Please add mobility regions first!", kind="Error")
             return
 
         ion_list = self.get_ion_list()
 
         if len(ion_list) == 0:
-            DialogBox(exceptionTitle="Error", exceptionMsg="Please extract data for some ions first!", type="Error")
+            DialogBox(title="Error", msg="Please extract data for some ions first!", kind="Error")
             return
 
         for mz_region in ion_list:
@@ -1050,7 +1050,7 @@ class PanelUVPDEditor(wx.MiniFrame):
         try:
             zvals, xvals, yvals, xlabel, ylabel = self.get_laser_on_ion_data()
         except KeyError:
-            DialogBox(exceptionTitle="Error", exceptionMsg="Please extract data first!", type="Error")
+            DialogBox(title="Error", msg="Please extract data first!", kind="Error")
             return
 
         if evtID == ID_uvpd_laser_on_show_heatmap:
@@ -1078,7 +1078,7 @@ class PanelUVPDEditor(wx.MiniFrame):
         try:
             zvals, xvals, yvals, xlabel, ylabel = self.get_laser_off_ion_data()
         except KeyError:
-            DialogBox(exceptionTitle="Error", exceptionMsg="Please extract data first!", type="Error")
+            DialogBox(title="Error", msg="Please extract data first!", kind="Error")
             return
 
         if evtID == ID_uvpd_laser_off_show_heatmap:
@@ -1106,7 +1106,7 @@ class PanelUVPDEditor(wx.MiniFrame):
             zvals_on, xvals_on, yvals_on, xlabel_on, ylabel_on = self.get_laser_on_ion_data()
             zvals_off, xvals_off, yvals_off, xlabel_off, ylabel_off = self.get_laser_off_ion_data()
         except KeyError:
-            DialogBox(exceptionTitle="Error", exceptionMsg="Please extract data first!", type="Error")
+            DialogBox(title="Error", msg="Please extract data first!", kind="Error")
             return
 
         colors = self.legend["colors"]
@@ -1294,7 +1294,7 @@ class PanelUVPDEditor(wx.MiniFrame):
         ion_list = self.get_ion_list()
 
         if len(ion_list) == 0:
-            DialogBox(exceptionTitle="Error", exceptionMsg="Please extract data for some ions first!", type="Error")
+            DialogBox(title="Error", msg="Please extract data for some ions first!", kind="Error")
             return
 
         dt_name, ion_name = self.get_mobility_name(self.currentItem)
@@ -1319,7 +1319,7 @@ class PanelUVPDEditor(wx.MiniFrame):
         tstart = ttime()
 
         if len(self.laser_on_list) == 0 or len(self.laser_off_list) == 0:
-            DialogBox(exceptionTitle="Error", exceptionMsg="Please find peaks first!", type="Error")
+            DialogBox(title="Error", msg="Please find peaks first!", kind="Error")
             return
 
         # get document

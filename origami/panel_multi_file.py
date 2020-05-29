@@ -547,9 +547,7 @@ class PanelMultiFile(TablePanelBase):
                 xlimits = document.massSpectrum["xlimits"]
                 name_kwargs = {"document": itemInfo["document"], "dataset": "Mass Spectrum"}
             except KeyError:
-                DialogBox(
-                    exceptionTitle="Error", exceptionMsg="Document does not have averaged mass spectrum", type="Error"
-                )
+                DialogBox(title="Error", msg="Document does not have averaged mass spectrum", kind="Error")
                 return
 
         # Plot data
@@ -574,7 +572,7 @@ class PanelMultiFile(TablePanelBase):
 
             self.presenter.view.panelPlots.on_plot_1D(dtX, dtY, xlabel, full_repaint=True, set_page=True)
         except KeyError:
-            DialogBox(exceptionTitle="Error", exceptionMsg="No mobility data present for selected item", type="Error")
+            DialogBox(title="Error", msg="No mobility data present for selected item", kind="Error")
             return
 
     def on_update_document(self, itemInfo=None, itemID=None):

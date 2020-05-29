@@ -2420,9 +2420,9 @@ class PanelInteractiveCreator(wx.MiniFrame):
     def on_clear_pages(self, evt):
 
         dlg = DialogBox(
-            exceptionTitle="Are you sure?",
-            exceptionMsg="Are you sure you want to remove all pages?\nThis action is irreversible!",
-            type="Question",
+            title="Are you sure?",
+            msg="Are you sure you want to remove all pages?\nThis action is irreversible!",
+            kind="Question",
         )
         if dlg == wx.ID_NO:
             self.presenter.onThreading(evt, ("Cancelled operation", 4, 3), action="updateStatusbar")
@@ -2475,13 +2475,13 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.pageLayoutSelect_toolbar.SetStringSelection("None")
 
     def on_add_page(self, evt):
-        pageName = DialogSimpleAsk("Please select page name.", defaultValue="")
+        pageName = DialogSimpleAsk("Please select page name.", value="")
         if pageName in ["", False]:
             self.presenter.onThreading(None, ("Incorrect name. Operation was cancelled", 4), action="updateStatusbar")
             return
         elif pageName == "None":
             msg = "This name is reserved. Please try again."
-            DialogBox(exceptionTitle="Incorrect name", exceptionMsg=msg, type="Error")
+            DialogBox(title="Incorrect name", msg=msg, kind="Error")
             return
 
         # If page name is correct, we can add it to the combo boxes
@@ -4260,7 +4260,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 + f"ORIGAMI directory: {self.config.cwd}"
             )
 
-            DialogBox(exceptionTitle="No JavaScript available", exceptionMsg=msg, type="Error")
+            DialogBox(title="No JavaScript available", msg=msg, kind="Error")
             self.config.interactive_custom_scripts = False
             self.custom_js_scripts.SetValue(False)
 
@@ -4321,7 +4321,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 + "ORIGAMI directory: {}".format(self.config.cwd)
             )
 
-            DialogBox(exceptionTitle="No JavaScript available", exceptionMsg=msg, type="Error")
+            DialogBox(title="No JavaScript available", msg=msg, kind="Error")
             self.config.interactive_custom_events = False
             self.custom_js_events.SetValue(False)
         # return plot
@@ -6119,7 +6119,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 "Exporting RMSD Matrix to a HTML file is only possible with full list of x/y-axis labels.\n"
                 + "Please add those to the file and try repeating."
             )
-            DialogBox(exceptionTitle="No file name", exceptionMsg=msg, type="Error")
+            DialogBox(title="No file name", msg=msg, kind="Error")
             return None
         else:
             text_annot_xpos, text_annot_ypos, text_annot_label = [], [], []
@@ -8238,7 +8238,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
         if self.currentPath is None:
             try:
                 msg = "Please select file name"
-                DialogBox(exceptionTitle="No file name", exceptionMsg=msg, type="Error")
+                DialogBox(title="No file name", msg=msg, kind="Error")
                 self.on_get_path(evt=None)
             except Exception:
                 msg = "Please select a path to save the file before continuing"
@@ -8283,7 +8283,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
         # check if user selected anything in the list
         if len(listOfPages) == 0:
             msg = "Please select items to plot"
-            DialogBox(exceptionTitle="No plots were selected", exceptionMsg=msg, type="Warning")
+            DialogBox(title="No plots were selected", msg=msg, kind="Warning")
 
         itemCount = self.peaklist.GetItemCount()
         data_export_list = []
@@ -8463,7 +8463,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                         )
                         + " - it will be available in the future updates. For now, please deselect it in the table. LM"
                     )
-                    DialogBox(exceptionTitle="Not supported yet", exceptionMsg=msg, type="Error")
+                    DialogBox(title="Not supported yet", msg=msg, kind="Error")
                     continue
             elif key == "Statistical":
                 overlayMethod = re.split("-|,|:|__", innerKey)
@@ -8480,7 +8480,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                         "Cannot export '{} ({})' in an interactive format yet".format(key, innerKey)
                         + " - it will be available in the future updates. For now, please deselect it in the table. LM"
                     )
-                    DialogBox(exceptionTitle="Not supported yet", exceptionMsg=msg, type="Error")
+                    DialogBox(title="Not supported yet", msg=msg, kind="Error")
                     continue
                 else:
                     bokehPlot = self._add_plot_centroid_with_annotations(data, **bkh_kwargs)
@@ -8489,7 +8489,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                     "Cannot export '{} ({})' in an interactive format yet".format(key, innerKey)
                     + " - it will be available in the future updates. For now, please deselect it in the table. LM"
                 )
-                DialogBox(exceptionTitle="Not supported yet", exceptionMsg=msg, type="Error")
+                DialogBox(title="Not supported yet", msg=msg, kind="Error")
                 continue
 
             if bokehPlot is None:
@@ -8596,7 +8596,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                         outList.append(plotDict[pageKey][plot])
                 elif len(plotDict[pageKey]) == 0:
                     msg = "The list of plots is empty. Please select supported plots and try again."
-                    DialogBox(exceptionTitle="Error", exceptionMsg=msg, type="Error")
+                    DialogBox(title="Error", msg=msg, kind="Error")
                     return
                 else:
                     outList.append(plotDict[pageKey][0])
@@ -8733,7 +8733,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 "This file already exists and is currently in usage. "
                 + "Try selecting a different file name or closing the file first."
             )
-            DialogBox(exceptionTitle="Wrong file name", exceptionMsg=msg, type="Error")
+            DialogBox(title="Wrong file name", msg=msg, kind="Error")
             return
         if self.openInBrowserCheck.GetValue():
             webbrowser.open(filename)

@@ -395,10 +395,9 @@ class MPLPanel(wx.Panel):
                 self.on_resize()
             # warn user
             DialogBox(
-                exceptionTitle="Warning",
-                exceptionMsg="Cannot save file: %s as it appears to be currently open or the folder doesn't exist"
-                % path,
-                type="Error",
+                title="Warning",
+                msg="Cannot save file: %s as it appears to be currently open or the folder doesn't exist" % path,
+                kind="Error",
             )
             # get file extension
             fname, delimiter_txt = os.path.splitext(path)

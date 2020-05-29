@@ -687,7 +687,7 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
         annotations_obj = self.get_annotation_data()
 
         n_duplicates = DialogSimpleAsk(
-            "How many times would you like to duplicate this annotations?", defaultValue="1", value_type="intPos"
+            "How many times would you like to duplicate this annotations?", value="1", value_type="intPos"
         )
         n_duplicates = int(n_duplicates)
         for row in checked:
@@ -909,11 +909,11 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
             return
 
         if evt == "label":
-            value = DialogSimpleAsk("Assign label for selected item(s)", defaultValue="")
+            value = DialogSimpleAsk("Assign label for selected item(s)", value="")
             update_dict = {"label": value}
             update_item = ["label"]
         else:
-            value = DialogSimpleAsk("Assign charge state for selected item(s)", defaultValue="1", value_type="int")
+            value = DialogSimpleAsk("Assign charge state for selected item(s)", value="1", value_type="int")
             update_dict = {"charge": value}
             update_item = ["charge"]
 

@@ -5,10 +5,24 @@ import wx
 from origami.styles import Dialog
 
 
+QUERIES = {
+    "charge": ("Assign charge...", "integer"),
+    "alpha": ("Assign transparency...", "float"),
+    "mask": ("Assign mask...", "float"),
+    "min_threshold": ("Assign minimum threshold...", "float"),
+    "max_threshold": ("Assign maximum threshold...", "float"),
+    "label": ("Assign label...", "str"),
+}
+
+
 class DialogAsk(Dialog):
-    """
-    Simple dialog that will ask what should the new value be.
-    """
+    """Simple dialog that will ask what should the new value be."""
+
+    # ui elements
+    ok_btn = None
+    cancel_btn = None
+    input_label = None
+    input_value = None
 
     def __init__(self, parent, **kwargs):
         Dialog.__init__(self, parent, title="Edit parameters...", size=(400, 300))
@@ -21,18 +35,8 @@ class DialogAsk(Dialog):
 
         self.return_value = None
 
-        if kwargs["keyword"] == "charge":
-            self.SetTitle("Assign charge...")
-        elif kwargs["keyword"] == "alpha":
-            self.SetTitle("Assign transparency...")
-        elif kwargs["keyword"] == "mask":
-            self.SetTitle("Assign mask...")
-        elif kwargs["keyword"] == "min_threshold":
-            self.SetTitle("Assign minimum threshold...")
-        elif kwargs["keyword"] == "max_threshold":
-            self.SetTitle("Assign maximum threshold...")
-        elif kwargs["keyword"] == "label":
-            self.SetTitle("Assign label...")
+        title, _ = QUERIES.get(kwargs["keyword"], ("Assign value...", "str"))
+        self.SetTitle(title)
 
         # make gui items
         self.make_gui()
@@ -45,7 +49,7 @@ class DialogAsk(Dialog):
         if key_code == wx.WXK_ESCAPE:
             self.on_close(None)
         elif key_code in [wx.WXK_RETURN, 370]:  # enter or enter on numpad
-            self.onOK(None)
+            self.on_ok(None)
 
         if evt is not None:
             evt.Skip()
@@ -56,7 +60,7 @@ class DialogAsk(Dialog):
         self.parent.ask_value = None
         self.Destroy()
 
-    def onOK(self, evt):
+    def on_ok(self, evt):
         self.on_apply(evt=None)
 
         if self.item_validator == "integer":
@@ -76,16 +80,16 @@ class DialogAsk(Dialog):
         panel = self.make_panel()
 
         # pack element
-        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.main_sizer.Add(panel, 0, wx.EXPAND, 0)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(panel, 0, wx.EXPAND, 0)
 
         # bind
-        self.okBtn.Bind(wx.EVT_BUTTON, self.onOK, id=wx.ID_OK)
-        self.cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
+        self.ok_btn.Bind(wx.EVT_BUTTON, self.on_ok, id=wx.ID_OK)
+        self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
         # fit layout
-        self.main_sizer.Fit(self)
-        self.SetSizer(self.main_sizer)
+        main_sizer.Fit(self)
+        self.SetSizer(main_sizer)
 
     def make_panel(self):
 
@@ -107,24 +111,20 @@ class DialogAsk(Dialog):
 
         self.input_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        self.okBtn = wx.Button(panel, wx.ID_OK, "Select", size=(-1, 22))
-        self.cancelBtn = wx.Button(panel, -1, "Cancel", size=(-1, 22))
-
-        GRIDBAG_VSPACE = 7
-        GRIDBAG_HSPACE = 5
-        PANEL_SPACE_MAIN = 10
+        self.ok_btn = wx.Button(panel, wx.ID_OK, "Select", size=(-1, 22))
+        self.cancel_btn = wx.Button(panel, -1, "Cancel", size=(-1, 22))
 
         # pack elements
-        grid = wx.GridBagSizer(GRIDBAG_VSPACE, GRIDBAG_HSPACE)
+        grid = wx.GridBagSizer(5, 5)
 
         grid.Add(self.input_label, (0, 0), wx.GBSpan(2, 3), flag=wx.ALIGN_RIGHT | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL)
 
         grid.Add(self.input_value, (0, 3), flag=wx.ALIGN_CENTER_VERTICAL)
 
-        grid.Add(self.okBtn, (2, 2), wx.GBSpan(1, 1))
-        grid.Add(self.cancelBtn, (2, 3), wx.GBSpan(1, 1))
+        grid.Add(self.ok_btn, (2, 2), wx.GBSpan(1, 1))
+        grid.Add(self.cancel_btn, (2, 3), wx.GBSpan(1, 1))
 
-        main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, PANEL_SPACE_MAIN)
+        main_sizer.Add(grid, 0, wx.ALIGN_CENTER | wx.ALL, 10)
 
         # fit layout
         main_sizer.Fit(panel)

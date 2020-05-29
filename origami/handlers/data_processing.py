@@ -186,7 +186,7 @@ class DataProcessing:
     @staticmethod
     def on_smooth_1D_signal(ys):
         sigma = DialogSimpleAsk(
-            "Smoothing spectrum using Gaussian Filter. Sigma value:", defaultValue="", value_type="floatPos"
+            "Smoothing spectrum using Gaussian Filter. Sigma value:", value="", value_type="floatPos"
         )
         sigma = str2num(sigma)
 
@@ -1177,7 +1177,7 @@ class DataProcessing:
                 + "Consider reducing interpolation range to cover the span of the mass spectrum"
             )
             self.presenter.onThreading(None, (msg, 4), action="updateStatusbar")
-            DialogBox(exceptionTitle="Error", exceptionMsg=msg, type="Error")
+            DialogBox(title="Error", msg=msg, kind="Error")
             return
         logger.info(f"UniDec: Finished pre-processing in {ttime()-tstart:.2f} seconds")
 
@@ -1244,11 +1244,11 @@ class DataProcessing:
                 "Failed to find peaks. Try increasing the value of 'Peak detection window (Da)'"
                 + "to be same or larger than 'Sample frequency (Da)'."
             )
-            DialogBox(exceptionTitle="Error", exceptionMsg=msg, type="Error")
+            DialogBox(title="Error", msg=msg, kind="Error")
             return
 
         except IndexError:
-            DialogBox(exceptionTitle="Error", exceptionMsg="Please run UniDec first", type="Error")
+            DialogBox(title="Error", msg="Please run UniDec first", kind="Error")
             return
 
         logger.info(f"UniDec: Finished isolating a single MW in {ttime()-tstart:.2f} seconds")
@@ -1631,9 +1631,7 @@ class DataProcessing:
                 document = ENV[document_title]
             except KeyError:
                 if kwargs.get("notify_of_error", True):
-                    DialogBox(
-                        exceptionTitle="Error", exceptionMsg="Please create or load a document first", type="Error"
-                    )
+                    DialogBox(title="Error", msg="Please create or load a document first", kind="Error")
                 return
 
             return document, document_title
@@ -1663,7 +1661,7 @@ class DataProcessing:
                 data = document.IMS2Dions
             else:
                 msg = "Data was not extracted yet. Please extract before continuing."
-                DialogBox(exceptionTitle="Missing data", exceptionMsg=msg, type="Error")
+                DialogBox(title="Missing data", msg=msg, kind="Error")
                 continue
 
             # Extract ion name
@@ -1740,7 +1738,7 @@ class DataProcessing:
                     + "There are %s scans in your file and your settings suggest there should be %s"
                     % (zvals[2], zvals[1])
                 )
-                DialogBox(exceptionTitle="Are your settings correct?", exceptionMsg=msg, type="Warning")
+                DialogBox(title="Are your settings correct?", msg=msg, kind="Warning")
                 continue
 
             # Add x-axis and y-axis labels

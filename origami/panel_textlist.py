@@ -778,7 +778,7 @@ class PanelTextlist(TablePanelBase):
                 msg1 = "Missing x- and/or y-axis labels. Cannot continue!"
                 msg2 = "Add x- and/or y-axis labels to each file before continuing!"
                 msg = "\n".join([msg1, msg2])
-                DialogBox(exceptionTitle="Missing data", exceptionMsg=msg, type="Error")
+                DialogBox(title="Missing data", msg=msg, kind="Error")
                 return
 
             # Process data

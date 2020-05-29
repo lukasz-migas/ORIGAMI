@@ -118,9 +118,9 @@ class DialogRenameObject(Dialog):
             from origami.gui_elements.misc_dialogs import DialogBox
 
             DialogBox(
-                exceptionTitle="Forbidden name",
-                exceptionMsg=f"The name you've selected {self.new_name} is not allowed! Please try again",
-                type="Error",
+                title="Forbidden name",
+                msg=f"The name you've selected {self.new_name} is not allowed! Please try again",
+                kind="Error",
             )
             return
 

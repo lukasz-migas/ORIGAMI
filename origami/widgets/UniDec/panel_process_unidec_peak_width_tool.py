@@ -148,7 +148,7 @@ class PanelPeakWidthTool(wx.MiniFrame):
         width = self.unidec_fit_peakWidth_value.GetValue()
         function = self.unidec_peakFcn_choice.GetStringSelection()
         if width == "" or width is None:
-            DialogBox(exceptionTitle="Error", exceptionMsg="Could not complete action. `Fit` peaks first", type="Error")
+            DialogBox(title="Error", msg="Could not complete action. `Fit` peaks first", kind="Error")
             return
 
         width = str2num(width)

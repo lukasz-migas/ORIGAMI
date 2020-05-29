@@ -275,6 +275,7 @@ class MiniFrame(wx.MiniFrame):
     ):
         bind_key_events = kwargs.pop("bind_key_events", True)
         wx.MiniFrame.__init__(self, parent, -1, size=(-1, -1), style=style, **kwargs)
+        self.parent = parent
 
         self.Bind(wx.EVT_CLOSE, self.on_close)
 
@@ -315,11 +316,13 @@ class MiniFrame(wx.MiniFrame):
         self.Layout()
 
 
-class ListCtrl(wx.ListCtrl):
+class ListCtrl(wx.ListCtrl, listmix.TextEditMixin):
     """ListCtrl"""
 
     def __init__(self, parent, id=-1, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.LC_REPORT, **kwargs):
         wx.ListCtrl.__init__(self, parent, id, pos, size, style)
+        # listmix.TextEditMixin.__init__(self)
+
         self.EnableCheckBoxes(True)
 
         # specify that simpler sorter should be used to speed things up
@@ -332,11 +335,21 @@ class ListCtrl(wx.ListCtrl):
         self.check = False
 
         self.column_info = kwargs.get("column_info", None)
+        self.allowed_edit = kwargs.pop("allowed_edit", [])
 
         self.Bind(wx.EVT_LIST_COL_CLICK, self.on_column_click, self)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_item, self)
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.on_activate_item, self)
         self.Bind(wx.EVT_LIST_KEY_DOWN, self.on_key_select_item, self)
+
+    #     self.Bind(wx.EVT_LIST_BEGIN_LABEL_EDIT, self.OnBeginLabelEdit, self)
+    #
+    # def OnBeginLabelEdit(self, evt):
+    #     print(self.allowed_edit)
+    #     # if evt.Column not in self.allowed_edit:
+    #     #     evt.Veto()
+    #     # else:
+    #     #     evt.Skip()
 
     def IsChecked(self, item):
         return self.IsItemChecked(item)
@@ -346,6 +359,9 @@ class ListCtrl(wx.ListCtrl):
 
     def on_activate_item(self, evt):
         self.item_id = evt.Index
+
+        if evt is not None:
+            evt.Skip()
 
     def on_key_select_item(self, evt):
         key_code = evt.GetKeyCode()
@@ -525,7 +541,7 @@ class ListCtrl(wx.ListCtrl):
         """
         # Ask if you want to delete all items
         if ask:
-            dlg = DialogBox(exceptionMsg="Are you sure you would like to clear the table?", type="Question")
+            dlg = DialogBox(msg="Are you sure you would like to clear the table?", kind="Question")
             if dlg == wx.ID_NO:
                 print("The operation was cancelled")
                 return
@@ -556,7 +572,7 @@ class ListCtrl(wx.ListCtrl):
             for col in range(columns):
                 item = self.GetItem(itemIdx=row, col=col)
                 tempRow.append(item.GetText())
-            tempRow.append(self.IsChecked(index=row))
+            tempRow.append(self.IsChecked(row))
             tempRow.append(self.GetItemBackgroundColour(row))
             tempRow.append(self.GetItemTextColour(row))
             tempData.append(tempRow)
@@ -657,7 +673,7 @@ class SimpleListCtrl(wx.ListCtrl):
         document tree
         """
         # Ask if you want to delete all items
-        dlg = DialogBox(exceptionMsg="Are you sure you would like to clear the table?", type="Question")
+        dlg = DialogBox(msg="Are you sure you would like to clear the table?", kind="Question")
         if dlg == wx.ID_NO:
             print("The operation was cancelled")
             return

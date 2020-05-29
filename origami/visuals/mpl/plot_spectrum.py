@@ -1686,11 +1686,7 @@ class PlotSpectrum(PlotBase):
 
         # Plot RMSF data (top plot)
         if len(labelsX) != len(yvalsRMSF):
-            DialogBox(
-                exceptionTitle="Missing data",
-                exceptionMsg="Missing x-axis labels! Cannot execute this action!",
-                type="Error",
-            )
+            DialogBox(title="Missing data", msg="Missing x-axis labels! Cannot execute this action!", kind="Error")
             return
 
         self.plotRMSF = self.figure.add_subplot(gs[0], aspect="auto")

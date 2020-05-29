@@ -180,7 +180,7 @@ class PanelOverlayViewer(MiniFrame):
                 f"Found {n_clipboard_items} overlay item(s) in the clipboard. Closing this window will lose"
                 + " your overlay plots. Would you like to continue?"
             )
-            dlg = DialogBox(exceptionTitle="Clipboard is not empty", exceptionMsg=msg, type="Question")
+            dlg = DialogBox(title="Clipboard is not empty", msg=msg, kind="Question")
             if dlg == wx.ID_NO:
                 msg = "Action was cancelled"
                 return

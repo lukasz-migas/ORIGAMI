@@ -1367,9 +1367,9 @@ class MainWindow(wx.Frame):
                 try:
                     if evt.GetId() == ID_CHECK_VERSION:
                         DialogBox(
-                            exceptionTitle="ORIGAMI",
-                            exceptionMsg="You are using the most up to date version {}.".format(CONFIG.version),
-                            type="Info",
+                            title="ORIGAMI",
+                            msg="You are using the most up to date version {}.".format(CONFIG.version),
+                            kind="Info",
                         )
                 except Exception:
                     pass
@@ -2056,7 +2056,7 @@ class MainWindow(wx.Frame):
             self.panelImportExportParameters.Show()
         except (ValueError, AttributeError, TypeError, KeyError) as e:
             CONFIG.importExportParamsWindow_on_off = False
-            DialogBox(exceptionTitle="Failed to open panel", exceptionMsg=str(e), type="Error")
+            DialogBox(title="Failed to open panel", msg=str(e), kind="Error")
             return
 
     def on_open_interactive_output_panel(self, evt):
@@ -2238,7 +2238,7 @@ class MainWindow(wx.Frame):
                 "Multi-threading is only an experimental feature for now! It might occasionally crash ORIGAMI,"
                 + " in which case you will lose your processed data!"
             )
-            DialogBox(exceptionTitle="Warning", exceptionMsg=msg, type="Warning")
+            DialogBox(title="Warning", msg=msg, kind="Warning")
         if evt is not None:
             evt.Skip()
 
@@ -2248,9 +2248,7 @@ class MainWindow(wx.Frame):
         if check:
             wx.Bell()
             DialogBox(
-                exceptionTitle="DriftScope path looks good",
-                exceptionMsg="Found DriftScope on your PC. You are good to go.",
-                type="Info",
+                title="DriftScope path looks good", msg="Found DriftScope on your PC. You are good to go.", kind="Info"
             )
             return
 

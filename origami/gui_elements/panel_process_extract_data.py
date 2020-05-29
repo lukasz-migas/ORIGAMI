@@ -78,7 +78,7 @@ class PanelProcessExtractData(MiniFrame):
                 f"Found {n_extracted_items} extracted item(s) in the clipboard. Closing this window will lose"
                 + " this data. Would you like to continue?"
             )
-            dlg = DialogBox(exceptionTitle="Clipboard is not empty", exceptionMsg=msg, type="Question")
+            dlg = DialogBox(title="Clipboard is not empty", msg=msg, kind="Question")
             if dlg == wx.ID_NO:
                 msg = "Action was cancelled"
                 return

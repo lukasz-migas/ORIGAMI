@@ -23,8 +23,6 @@ class PanelModifyItemSettings(MiniFrame):
             title="Modify parameters...",
             style=wx.DEFAULT_FRAME_STYLE & ~wx.RESIZE_BORDER,
         )
-
-        self.parent = kwargs.pop("alt_parent", parent)
         self.presenter = presenter
         self.config = config
         self.icons = IconContainer()

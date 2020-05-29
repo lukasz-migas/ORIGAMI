@@ -15,6 +15,7 @@ import pandas as pd
 
 # Local imports
 import origami.utils.labels as ut_labels
+
 # from origami.ids import ID_docTree_plugin_UVPD
 from origami.ids import ID_renameItem
 from origami.ids import ID_openDocInfo
@@ -112,6 +113,7 @@ from origami.utils.converters import str2num
 from origami.utils.converters import byte2str
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
+
 # from origami.gui_elements.panel_document_information import PanelDocumentInformation
 from origami.objects.containers import MassSpectrumObject
 from origami.readers.io_text_files import saveAsText
@@ -644,22 +646,22 @@ class DocumentTree(wx.TreeCtrl):
                 )
             else:
                 DialogBox(
-                    exceptionTitle="Warning",
-                    exceptionMsg="The MS comparison window requires at least 2 items to compare."
+                    title="Warning",
+                    msg="The MS comparison window requires at least 2 items to compare."
                     + f" There are only {count} items in the list. The window will be closed",
-                    type="Error",
-                    exceptionPrint=True,
+                    kind="Error",
+                    show_exception=True,
                 )
                 self._compare_panel.on_close(None)
 
         # update peak picker
         if self._picker_panel and self._picker_panel._check_active([document_title, dataset_type, dataset_name]):
             DialogBox(
-                exceptionTitle="Warning",
-                exceptionMsg="The peak picking panel is operating on the same item that was just deleted."
+                title="Warning",
+                msg="The peak picking panel is operating on the same item that was just deleted."
                 + " The window will be closed",
-                type="Error",
-                exceptionPrint=True,
+                kind="Error",
+                show_exception=True,
             )
             self._picker_panel.on_close(None)
 
@@ -669,11 +671,11 @@ class DocumentTree(wx.TreeCtrl):
                 self._annotate_panel.on_clear_table()
             else:
                 DialogBox(
-                    exceptionTitle="Warning",
-                    exceptionMsg="The annotation panel is operating on the same item that was just deleted."
+                    title="Warning",
+                    msg="The annotation panel is operating on the same item that was just deleted."
                     + " The window will be closed",
-                    type="Error",
-                    exceptionPrint=True,
+                    kind="Error",
+                    show_exception=True,
                 )
                 self._annotate_panel.on_close(None)
 
@@ -1083,7 +1085,7 @@ class DocumentTree(wx.TreeCtrl):
         __, data, __ = self._on_event_get_mobility_chromatogram_data()
         current_charge = data.get("charge", None)
 
-        charge = DialogSimpleAsk("Type in new charge state", defaultValue=str(current_charge))
+        charge = DialogSimpleAsk("Type in new charge state", value=str(current_charge))
 
         charge = str2int(charge)
 
@@ -1175,9 +1177,9 @@ class DocumentTree(wx.TreeCtrl):
             return
 
         dlg = DialogBox(
-            exceptionTitle="Are you sure?",
-            exceptionMsg=f"Are you sure you would like to delete ALL ({n_docs}) documents?",
-            type="Question",
+            title="Are you sure?",
+            msg=f"Are you sure you would like to delete ALL ({n_docs}) documents?",
+            kind="Question",
         )
 
         if dlg == wx.ID_NO:
@@ -1411,10 +1413,10 @@ class DocumentTree(wx.TreeCtrl):
 
         if data.get("annotations", dict()):
             dlg = DialogBox(
-                exceptionTitle="Dataset already contains annotations",
-                exceptionMsg="The selected dataset already contains annotations. Would you like"
+                title="Dataset already contains annotations",
+                msg="The selected dataset already contains annotations. Would you like"
                 + " to continue and override present annotations?",
-                type="Question",
+                kind="Question",
             )
             if dlg == wx.ID_NO:
                 logger.info("Cancelled adding annotations to a dataset")
@@ -2842,11 +2844,9 @@ class DocumentTree(wx.TreeCtrl):
         spectra_count = len(list(data.keys()))
         if spectra_count > 50:
             dlg = DialogBox(
-                exceptionTitle="Would you like to continue?",
-                exceptionMsg="There are {} mass spectra in this document. Would you like to continue?".format(
-                    spectra_count
-                ),
-                type="Question",
+                title="Would you like to continue?",
+                msg="There are {} mass spectra in this document. Would you like to continue?".format(spectra_count),
+                kind="Question",
             )
             if dlg == wx.ID_NO:
                 msg = "Cancelled was operation"
@@ -3451,7 +3451,7 @@ class DocumentTree(wx.TreeCtrl):
                 + "if you would like to include a new plot type in ORIGAMI. Currently \n"
                 + "supported plots include: line, multi-line, waterfall, scatter and grid."
             )
-            DialogBox(exceptionTitle="Plot type not supported", exceptionMsg=msg, type="Error")
+            DialogBox(title="Plot type not supported", msg=msg, kind="Error")
 
         if save_image:
             basename = os.path.splitext(self._document_data.title)[0]
@@ -4777,9 +4777,9 @@ class DocumentTree(wx.TreeCtrl):
 
             if ask_permission:
                 dlg = DialogBox(
-                    exceptionTitle="Are you sure?",
-                    exceptionMsg="".join(["Are you sure you would like to delete: ", self._document_data.title, "?"]),
-                    type="Question",
+                    title="Are you sure?",
+                    msg="".join(["Are you sure you would like to delete: ", self._document_data.title, "?"]),
+                    kind="Question",
                 )
                 if dlg == wx.ID_NO:
                     self.presenter.onThreading(None, ("Cancelled operation", 4, 5), action="updateStatusbar")
@@ -4986,7 +4986,7 @@ class DocumentTree(wx.TreeCtrl):
 
         if confirm_deletion:
             msg = "Are you sure you want to continue with this action?" + "\nThis action cannot be undone."
-            dlg = DialogBox(exceptionMsg=msg, type="Question")
+            dlg = DialogBox(msg=msg, kind="Question")
             if dlg == wx.ID_NO:
                 logger.info("The operation was cancelled")
                 return document, True
@@ -5053,7 +5053,7 @@ class DocumentTree(wx.TreeCtrl):
 
         if confirm_deletion:
             msg = "Are you sure you want to continue with this action?" + "\nThis action cannot be undone."
-            dlg = DialogBox(exceptionMsg=msg, type="Question")
+            dlg = DialogBox(msg=msg, kind="Question")
             if dlg == wx.ID_NO:
                 logger.info("The operation was cancelled")
                 return document, True
@@ -5100,9 +5100,9 @@ class DocumentTree(wx.TreeCtrl):
 
         if ask_permission:
             dlg = DialogBox(
-                exceptionTitle="Are you sure?",
-                exceptionMsg="Are you sure you would like to delete {}".format(document_title),
-                type="Question",
+                title="Are you sure?",
+                msg="Are you sure you would like to delete {}".format(document_title),
+                kind="Question",
             )
             if dlg == wx.ID_NO:
                 self.presenter.onThreading(None, ("Cancelled operation", 4, 5), action="updateStatusbar")
@@ -5189,7 +5189,7 @@ class DocumentTree(wx.TreeCtrl):
 
         if confirm_deletion:
             msg = "Are you sure you want to continue with this action?" + "\nThis action cannot be undone."
-            dlg = DialogBox(exceptionMsg=msg, type="Question")
+            dlg = DialogBox(msg=msg, kind="Question")
             if dlg == wx.ID_NO:
                 logger.info("The operation was cancelled")
                 return document, True
@@ -5368,7 +5368,7 @@ class DocumentTree(wx.TreeCtrl):
 
         if confirm_deletion:
             msg = "Are you sure you want to continue with this action?" + "\nThis action cannot be undone."
-            dlg = DialogBox(exceptionMsg=msg, type="Question")
+            dlg = DialogBox(msg=msg, kind="Question")
             if dlg == wx.ID_NO:
                 logger.info("The operation was cancelled")
                 return document, True
@@ -5436,7 +5436,7 @@ class DocumentTree(wx.TreeCtrl):
 
         if confirm_deletion:
             msg = "Are you sure you want to continue with this action?" + "\nThis action cannot be undone."
-            dlg = DialogBox(exceptionMsg=msg, type="Question")
+            dlg = DialogBox(msg=msg, kind="Question")
             if dlg == wx.ID_NO:
                 logger.info("The operation was cancelled")
                 return document, True

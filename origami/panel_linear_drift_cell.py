@@ -269,9 +269,9 @@ class topPanel(wx.Panel):
         else:
             # Ask if you want to delete all items
             dlg = DialogBox(
-                exceptionTitle="Are you sure?",
-                exceptionMsg="Are you sure you would like to delete ALL RT peaks from the table?",
-                type="Question",
+                title="Are you sure?",
+                msg="Are you sure you would like to delete ALL RT peaks from the table?",
+                kind="Question",
             )
             if dlg == wx.ID_NO:
                 print("Cancelled operation")
@@ -289,11 +289,7 @@ class topPanel(wx.Panel):
         This function clears the table without deleting any items from the document tree
         """
         # Ask if you want to delete all items
-        dlg = DialogBox(
-            exceptionTitle="Are you sure?",
-            exceptionMsg="Are you sure you would like to clear the table??",
-            type="Question",
-        )
+        dlg = DialogBox(title="Are you sure?", msg="Are you sure you would like to clear the table??", kind="Question")
         if dlg == wx.ID_NO:
             print("Cancelled operation")
             return
@@ -578,11 +574,7 @@ class bottomPanel(wx.Panel):
         This function clears the table without deleting any items from the document tree
         """
         # Ask if you want to delete all items
-        dlg = DialogBox(
-            exceptionTitle="Are you sure?",
-            exceptionMsg="Are you sure you would like to clear the table??",
-            type="Question",
-        )
+        dlg = DialogBox(title="Are you sure?", msg="Are you sure you would like to clear the table??", kind="Question")
         if dlg == wx.ID_NO:
             print("Cancelled operation")
             return
@@ -655,9 +647,9 @@ class bottomPanel(wx.Panel):
         else:
             # Ask if you want to delete all items
             dlg = DialogBox(
-                exceptionTitle="Are you sure?",
-                exceptionMsg="Are you sure you would like to delete ALL ions from the table?",
-                type="Question",
+                title="Are you sure?",
+                msg="Are you sure you would like to delete ALL ions from the table?",
+                kind="Question",
             )
             if dlg == wx.ID_NO:
                 print("Cancelled operation")

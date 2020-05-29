@@ -2074,7 +2074,7 @@ class Config:
                     "Could not localise Driftscope directory. Please setup path to Dritscope lib folder."
                     + r" It usually exists under C:\DriftScope\lib"
                 )
-                DialogBox(exceptionTitle="Could not find Driftscope", exceptionMsg=msg, type="Warning")
+                DialogBox(title="Could not find Driftscope", msg=msg, kind="Warning")
                 return False
             self.driftscopePath = alternative_driftscope_path
 
@@ -2083,7 +2083,7 @@ class Config:
                 "Could not localise Driftscope imextract.exe program. Please setup path to Dritscope lib folder."
                 + r" It usually exists under C:\DriftScope\lib"
             )
-            DialogBox(exceptionTitle="Could not find Driftscope", exceptionMsg=msg, type="Warning")
+            DialogBox(title="Could not find Driftscope", msg=msg, kind="Warning")
             return False
 
         print("Driftscope Path: {}".format(self.driftscopePath))

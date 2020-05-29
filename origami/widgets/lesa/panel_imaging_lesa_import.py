@@ -3,6 +3,9 @@ import os
 import logging
 
 # Third-party imports
+from numbers import Number
+from typing import Dict, List, Tuple
+
 import wx
 
 # Local imports
@@ -21,6 +24,11 @@ class PanelImagingImportDataset(PanelImportManagerBase):
     DOCUMENT_TYPE = "Type: Imaging"
     PUB_SUBSCRIBE_EVENT = "widget.imaging.import.update.spectrum"
     SUPPORTED_FILE_FORMATS = [".raw"]
+
+    # ui elements
+    image_shape_x = None
+    image_shape_y = None
+    import_precompute_norm = None
 
     def __init__(self, parent, presenter, icons, **kwargs):
         PanelImportManagerBase.__init__(self, parent, presenter, icons, title="Imaging: Import LESA")
@@ -96,7 +104,7 @@ class PanelImagingImportDataset(PanelImportManagerBase):
         self.image_shape_x.SetValue(str(metadata.get("x_dim", 0)))
         self.image_shape_y.SetValue(str(metadata.get("y_dim", 0)))
 
-    def get_implementation_extraction_processing_parameters(self):
+    def get_parameters_implementation(self):
         """Retrieve processing parameters that are specific for the implementation"""
         x_dim = self.image_shape_x.GetValue()
         y_dim = self.image_shape_y.GetValue()
@@ -133,3 +141,8 @@ class PanelImagingImportDataset(PanelImportManagerBase):
         is_im = True if dt_fcn else False
 
         return dict(mz_range=mz_range, ion_mobility=is_im, scan_range=scan_range)
+
+    def _import(self, filelist: List[Tuple[Number, str, int, int, Dict]], parameters: Dict):
+        self.data_handling.on_open_multiple_LESA_files_fcn(filelist, **parameters)
+
+    _import.__doc__ = PanelImportManagerBase._import.__doc__

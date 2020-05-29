@@ -94,7 +94,7 @@ class DialogCustomiseORIGAMI(Dialog):
                 "You've made some changes to the ORIGAMI-MS settings but have not saved them.\n"
                 + "Would you like to continue?"
             )
-            dlg = DialogBox(exceptionTitle="Would you like to continue?", exceptionMsg=msg, type="Question")
+            dlg = DialogBox(title="Would you like to continue?", msg=msg, kind="Question")
             if dlg == wx.ID_NO:
                 msg = "Action was cancelled"
                 return

@@ -3041,7 +3041,7 @@ class PanelPlots(wx.Panel):
                         f"There are {n_scans} scans in this dataset"
                         + "(this could be slow...). Would you like to continue?"
                     )
-                    dlg = DialogBox(exceptionTitle="Would you like to continue?", exceptionMsg=msg, type="Question")
+                    dlg = DialogBox(title="Would you like to continue?", msg=msg, kind="Question")
                     if dlg == wx.ID_NO:
                         return
                 # plot

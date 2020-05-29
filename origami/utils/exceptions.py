@@ -25,4 +25,4 @@ class MessageError(Exception):
         self.title = title
         self.message = message
 
-        DialogBox(title, message, type="Error")
+        DialogBox(title, message, kind="Error")

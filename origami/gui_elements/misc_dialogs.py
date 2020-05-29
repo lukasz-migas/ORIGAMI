@@ -7,41 +7,60 @@ import wx
 logger = logging.getLogger(__name__)
 
 
-def DialogBox(exceptionTitle="", exceptionMsg="", type="Error", exceptionPrint=True):
-    """
-    Generic message box
+# noinspection PyPep8Naming
+def DialogBox(title="", msg="", kind="Error", show_exception=True):
+    """Generic dialog box that displays any kind of message
+
+    Parameters
+    ----------
+    title : str
+        title of  the dialog box
+    msg : str
+        message to be shown to the user
+    kind : str
+        message to be shown to the user
+    show_exception : bool
+        if `True`, exception will be printed in the logger
+
+    Returns
+    -------
+    result : bool
+        value if  question was the type specified by the user
     """
 
     logger_printer = logger.info
-    if type == "Error":
-        dlgStyle = wx.OK | wx.ICON_ERROR
+    if kind == "Error":
+        style = wx.OK | wx.ICON_ERROR
         logger_printer = logger.error
-    elif type == "Info":
-        dlgStyle = wx.OK | wx.ICON_INFORMATION
-    elif type == "Stop":
-        dlgStyle = wx.OK | wx.ICON_STOP
-    elif type == "Warning":
-        dlgStyle = wx.OK | wx.ICON_EXCLAMATION
+    elif kind == "Info":
+        style = wx.OK | wx.ICON_INFORMATION
+    elif kind == "Stop":
+        style = wx.OK | wx.ICON_STOP
+    elif kind == "Warning":
+        style = wx.OK | wx.ICON_EXCLAMATION
         logger_printer = logger.warning
-    elif type == "Question":
-        dlgStyle = wx.YES_NO | wx.ICON_QUESTION
+    elif kind == "Question":
+        style = wx.YES_NO | wx.ICON_QUESTION
+    else:
+        style = wx.OK | wx.ICON_INFORMATION
 
-    if exceptionPrint:
-        logger_printer(exceptionMsg)
+    if show_exception:
+        logger_printer(msg)
 
-    dlg = wx.MessageDialog(None, exceptionMsg, exceptionTitle, dlgStyle)
+    dlg = wx.MessageDialog(None, msg, title, style)
     result = dlg.ShowModal()
 
-    if type == "Question":
+    if kind == "Question":
         return result
 
 
-def DialogSimpleAsk(message="", title="", defaultValue="", value_type=None):
+# noinspection PyPep8Naming
+def DialogSimpleAsk(message="", title="", value="", value_type=None):
 
     if value_type is not None and value_type in ["float", "floatPos", "int", "intPos"]:
-        dlg = wx.NumberEntryDialog(None, message, "", title, 0, -100000, 1000000)
+        dlg = wx.NumberEntryDialog(None, message, "", title, value, -100000, 1000000)
     else:
-        dlg = wx.TextEntryDialog(None, message, title, defaultValue)
+        dlg = wx.TextEntryDialog(None, message, title, value)
 
     dlg.CentreOnScreen()
 

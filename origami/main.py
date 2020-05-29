@@ -289,18 +289,18 @@ class ORIGAMI:
         elif not prefix:
             saveFileName = DialogSimpleAsk(
                 "Please enter a new filename for the images. Names will be appended with the item keyword.",
-                defaultValue=defaultValue,
+                value=defaultValue,
             )
         else:
             if not csv:
                 saveFileName = DialogSimpleAsk(
                     "Please enter a new prefix for the images. Names will be appended with the item keyword.",
-                    defaultValue=defaultValue,
+                    value=defaultValue,
                 )
             else:
                 saveFileName = DialogSimpleAsk(
                     "Please enter a new prefix for the output file. Names will be appended with the item keyword.",
-                    defaultValue=defaultValue,
+                    value=defaultValue,
                 )
 
         return saveFileName

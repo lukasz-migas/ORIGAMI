@@ -109,7 +109,7 @@ class DialogExportData(Dialog):
                 "Incorrect input path",
                 f"The folder path is set to `{self.config.data_folder_path}` or does not exist."
                 + " Are you sure you would like to continue?",
-                type="Question",
+                kind="Question",
             )
             if dlg == wx.ID_NO:
                 return

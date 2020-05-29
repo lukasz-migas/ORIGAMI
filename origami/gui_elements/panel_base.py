@@ -36,8 +36,11 @@ class TableMixin:
     TABLE_DICT = {}
     TABLE_COLUMN_INDEX = TableColumnIndex
     TABLE_RESERVED = {"hide_all": wx.NewIdRef(), "show_all": wx.NewIdRef()}
+    TABLE_STYLE = wx.LC_REPORT | wx.LC_VRULES
+    TABLE_ALLOWED_EDIT = []
     DUPLICATE_ID_CHECK = []
     KEYWORD_ALIAS = {}
+    USE_COLOR = True
 
     # ui attributes
     data_processing = None
@@ -45,7 +48,7 @@ class TableMixin:
     data_visualisation = None
     document_tree = None
 
-    def __init__(self):
+    def __init__(self, **kwargs):
 
         self.peaklist = None
 
@@ -83,7 +86,7 @@ class TableMixin:
     def make_table(self, table_dict, panel=None):
         if panel is None:
             panel = self
-        peaklist = ListCtrl(panel, style=wx.LC_REPORT | wx.LC_VRULES, column_info=table_dict)
+        peaklist = ListCtrl(panel, style=self.TABLE_STYLE, column_info=table_dict, allowed_edit=self.TABLE_ALLOWED_EDIT)
 
         for order, item in table_dict.items():
             name = item["name"]
@@ -93,11 +96,14 @@ class TableMixin:
         peaklist.Bind(wx.EVT_LEFT_DCLICK, self.on_double_click_on_item)
         peaklist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.on_menu_item_right_click)
         peaklist.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.on_menu_column_right_click)
+        # peaklist.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.on_double_click_on_item)
         return peaklist
 
-    def on_get_item_information(self, item_id: int):
+    def on_get_item_information(self, item_id: Optional[int] = None):
         """Return basic information about an item - method should be overwritten if want to have access to more
         attributes"""
+        if item_id is None:
+            item_id = self.peaklist.item_id
         information = self.peaklist.on_get_item_information(item_id)
         return information
 
@@ -106,7 +112,7 @@ class TableMixin:
         if self.peaklist.item_id is None:
             return
 
-        check = not self.peaklist.IsChecked(index=self.peaklist.item_id)
+        check = not self.peaklist.IsChecked(self.peaklist.item_id)
         self.peaklist.CheckItem(self.peaklist.item_id, check=check)
 
     def on_assign_color(self, _evt, item_id=None, give_value=False):
@@ -161,16 +167,16 @@ class TableMixin:
         if value_type == "color":
             color_255, color_1, font_color = value
             self.peaklist.SetItemBackgroundColour(item_id, color_255)
-            self.peaklist.SetStringItem(item_id, self.TABLE_COLUMN_INDEX.color, str(color_1))
+            self.peaklist.SetItem(item_id, self.TABLE_COLUMN_INDEX.color, str(color_1))
             self.peaklist.SetItemTextColour(item_id, font_color)
         elif value_type == "color_text":
             self.peaklist.SetItemBackgroundColour(item_id, value)
-            self.peaklist.SetStringItem(item_id, self.TABLE_COLUMN_INDEX.color, str(convert_rgb_255_to_1(value)))
+            self.peaklist.SetItem(item_id, self.TABLE_COLUMN_INDEX.color, str(convert_rgb_255_to_1(value)))
             self.peaklist.SetItemTextColour(item_id, get_font_color(value, return_rgb=True))
         else:
             for col_id, col_values in self.TABLE_DICT.items():
                 if col_values["tag"] == value_type:
-                    self.peaklist.SetStringItem(item_id, col_id, str(value))
+                    self.peaklist.SetItem(item_id, col_id, str(value))
                     break
 
     def on_get_value(self, value_type="color"):
@@ -228,18 +234,18 @@ class TableMixin:
         color :
             color of the item in the table
         """
-
-        color = add_dict.get("color", next(CONFIG.custom_color_cycle))
-        if check_color:
-            color = self.on_check_duplicate_colors(color)
+        if self.USE_COLOR:
+            color = add_dict.get("color", next(CONFIG.custom_color_cycle))
+            if check_color:
+                color = self.on_check_duplicate_colors(color)
 
         self.peaklist.Append(self._parse(add_dict))
-        self.peaklist.SetItemBackgroundColour(self.peaklist.GetItemCount() - 1, color)
-        font_color = get_font_color(color, return_rgb=True)
-        self.peaklist.SetItemTextColour(self.peaklist.GetItemCount() - 1, font_color)
-
-        if return_color:
-            return color
+        if self.USE_COLOR:
+            self.peaklist.SetItemBackgroundColour(self.peaklist.GetItemCount() - 1, color)  # noqa
+            font_color = get_font_color(color, return_rgb=True)
+            self.peaklist.SetItemTextColour(self.peaklist.GetItemCount() - 1, font_color)
+            if return_color:
+                return color
 
     def remove_from_table(self, item_ids: List[int]):
         """
@@ -296,7 +302,7 @@ class TableMixin:
         if not item_info:
             return
         msg = "Are you sure you would like to delete {}?\nThis action cannot be undone.".format(item_info["document"])
-        dlg = DialogBox(type="Question", exceptionMsg=msg)
+        dlg = DialogBox(kind="Question", msg=msg)
         if dlg == wx.ID_NO:
             LOGGER.info("Delete operation was cancelled")
             return
@@ -306,12 +312,12 @@ class TableMixin:
         """Delete checked item(s) from ORIGAMI"""
         item_id = self.n_rows - 1
         while item_id >= 0:
-            if self.peaklist.IsChecked(index=item_id):
+            if self.peaklist.IsChecked(item_id):
                 item_info = self.on_get_item_information(item_id)
                 msg = "Are you sure you would like to delete {}?\nThis action cannot be undone.".format(
                     item_info["document"]
                 )
-                dlg = DialogBox(exceptionMsg=msg, type="Question")
+                dlg = DialogBox(msg=msg, kind="Question")
                 if dlg == wx.ID_NO:
                     LOGGER.info("Delete operation was cancelled")
                     continue
@@ -320,11 +326,8 @@ class TableMixin:
             item_id -= 1
 
     def on_delete_all(self, evt):
-        msg = (
-            "Are you sure you would like to delete all [2D IM-MS documents]"
-            + " from the list?\nThis action cannot be undone."
-        )
-        dlg = DialogBox(exceptionMsg=msg, type="Question")
+        msg = "Are you sure you would like to delete all elements from the list?\nThis action cannot be undone."
+        dlg = DialogBox(msg=msg, kind="Question")
         if dlg == wx.ID_NO:
             LOGGER.info("Delete operation was cancelled")
             return
@@ -409,7 +412,7 @@ class TableMixin:
         # get number of checked items
         check_count = 0
         for row in range(self.peaklist.GetItemCount()):
-            if self.peaklist.IsChecked(index=row):
+            if self.peaklist.IsChecked(row):
                 check_count += 1
 
         if check_count > len(CONFIG.narrowCmapList):
@@ -418,7 +421,7 @@ class TableMixin:
             colormaps = CONFIG.narrowCmapList + CONFIG.cmaps2
 
         for row in range(self.peaklist.GetItemCount()):
-            if self.peaklist.IsChecked(index=row):
+            if self.peaklist.IsChecked(row):
                 self.peaklist.item_id = row
                 colormap = colormaps[row]
                 self.peaklist.SetStringItem(row, self.TABLE_COLUMN_INDEX.colormap, str(colormap))
