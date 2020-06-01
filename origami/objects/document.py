@@ -18,6 +18,7 @@ from zarr.util import is_valid_python_name
 from origami import __version__
 from origami.utils.path import clean_filename
 from origami.objects.tandem import TandemSpectra
+from origami.readers.io_json import read_json_data
 from origami.readers.io_json import write_json_data
 from origami.utils.utilities import get_chunk_size
 from origami.utils.converters import byte2str
@@ -294,6 +295,13 @@ class DocumentStore:
         group = self.add(f"IonHeatmaps/{title}", data, attrs)
         return self.as_object(group)
 
+    def add_metadata(self, title: str, data: Optional[Dict] = None, attrs: Optional[Dict] = None):
+        """Adds metadata to the document"""
+        if isinstance(data, DataObject):
+            data, attrs = data.to_zarr()
+        group = self.add(f"Metadata/{title}", data, attrs)
+        return group
+
     def add(self, key, data=None, attrs=None):
         """Add data to group"""
         # TODO: add name check so that names are always valid keys
@@ -367,14 +375,39 @@ class DocumentStore:
             group.attrs[key] = value
         return group
 
+    def _get_config_path(self, name):
+        """Returns nicely formatted config file path"""
+        path = self.full_path("Configs")
+        path = self._has_extension(os.path.join(str(path), clean_filename(name)), ".json")
+        return path
+
     def add_config(self, name: str, data: Dict):
         """Write or update configuration file in the `Config` directory"""
         assert isinstance(data, dict), "Configuration file should be a dict object"
-        path = self.full_path("Configs")
-        path = self._has_extension(os.path.join(str(path), clean_filename(name)), ".json")
+        path = self._get_config_path(name)
 
         write_json_data(path, data, check_existing=True)
         LOGGER.debug(f"Wrote configuration file to {path}")
+
+    def get_config(self, name: str, default: bool = None):
+        """Retrieves configuration file
+
+        Parameters
+        ----------
+        name : str
+            name of the configuration file
+        default : bool, optional
+            what should be the default value if the configuration file with `name` does not exist
+
+        Returns
+        -------
+        value : dict
+            dictionary with config values
+        """
+        path = self._get_config_path(name)
+        if os.path.exists(path):
+            return read_json_data(path)
+        return default
 
     def add_raw(self, filepath):
         """Copies raw file to the ORIGAMI directory
@@ -394,9 +427,6 @@ class DocumentStore:
         else:
             shutil.copy2(filepath, dst_path)
         LOGGER.debug(f"Copied {filepath} to {str(dst_path)}")
-
-    def to_dict(self, key):
-        pass
 
     def tree(self):
         """Returns tree representation of the document"""

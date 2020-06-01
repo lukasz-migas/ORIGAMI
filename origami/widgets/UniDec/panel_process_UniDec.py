@@ -87,7 +87,7 @@ class PanelProcessUniDec(wx.MiniFrame):
         menu = wx.Menu()
 
         menu_customise_plot = make_menu_item(
-            parent=menu, id=wx.ID_ANY, text="Customise plot...", bitmap=self.icons.iconsLib["change_xlabels_16"]
+            parent=menu, evt_id=wx.ID_ANY, text="Customise plot...", bitmap=self.icons.iconsLib["change_xlabels_16"]
         )
         menu.AppendItem(menu_customise_plot)
 
@@ -96,21 +96,21 @@ class PanelProcessUniDec(wx.MiniFrame):
         self.resize_plot_check.Check(self.config.resize)
 
         save_figure_menu_item = make_menu_item(
-            menu, id=wx.ID_ANY, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
+            menu, evt_id=wx.ID_ANY, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
         )
         menu.AppendItem(save_figure_menu_item)
         save_all_figures_menu_item = make_menu_item(
-            menu, id=wx.ID_ANY, text="Save all figures as...", bitmap=self.icons.iconsLib["save_multiple_16"]
+            menu, evt_id=wx.ID_ANY, text="Save all figures as...", bitmap=self.icons.iconsLib["save_multiple_16"]
         )
         menu.AppendItem(save_all_figures_menu_item)
 
         menu_action_copy_to_clipboard = make_menu_item(
-            parent=menu, id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self.icons.iconsLib["filelist_16"]
+            parent=menu, evt_id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self.icons.iconsLib["filelist_16"]
         )
         menu.AppendItem(menu_action_copy_to_clipboard)
 
         clear_plot_menu_item = make_menu_item(
-            menu, id=wx.ID_ANY, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
+            menu, evt_id=wx.ID_ANY, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
         )
         menu.AppendSeparator()
         menu.AppendItem(clear_plot_menu_item)

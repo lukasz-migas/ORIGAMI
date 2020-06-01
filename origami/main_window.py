@@ -531,7 +531,7 @@ class MainWindow(wx.Frame):
         menu_file.AppendItem(
             make_menu_item(
                 parent=menu_file,
-                id=ID_openDocument,
+                evt_id=ID_openDocument,
                 text="Open ORIGAMI Document file (.pickle)\tCtrl+Shift+P",
                 bitmap=self.icons.iconsLib["open_project_16"],
             )
@@ -540,7 +540,7 @@ class MainWindow(wx.Frame):
         menu_file.AppendItem(
             make_menu_item(
                 parent=menu_file,
-                id=ID_load_masslynx_raw_ms_only,
+                evt_id=ID_load_masslynx_raw_ms_only,
                 text="Open Waters file (.raw) [MS only]\tCtrl+Shift+M",
                 #                 bitmap=self.icons.iconsLib["open_origami_16"],
             )
@@ -555,7 +555,7 @@ class MainWindow(wx.Frame):
         menu_file.AppendItem(
             make_menu_item(
                 parent=menu_file,
-                id=ID_load_origami_masslynx_raw,
+                evt_id=ID_load_origami_masslynx_raw,
                 text="Open Waters file (.raw) [ORIGAMI-MS; CIU]\tCtrl+R",
                 bitmap=self.icons.iconsLib["open_origami_16"],
             )
@@ -575,7 +575,7 @@ class MainWindow(wx.Frame):
         menu_file.AppendItem(
             make_menu_item(
                 parent=menu_file,
-                id=ID_addNewManualDoc,
+                evt_id=ID_addNewManualDoc,
                 text="Create blank document [CIU; SID;...]",
                 help_text="Creating this document will give you an option to load any number of .raw files afterwards",
                 bitmap=self.icons.iconsLib["guide_16"],
@@ -584,7 +584,7 @@ class MainWindow(wx.Frame):
         menu_file.AppendItem(
             make_menu_item(
                 parent=menu_file,
-                id=ID_load_multiple_masslynx_raw,
+                evt_id=ID_load_multiple_masslynx_raw,
                 text="Create `Activation` document and open Waters file(s) (.raw) [CIU; SID; ...]",
                 bitmap=self.icons.iconsLib["open_masslynxMany_16"],
             )
@@ -596,7 +596,10 @@ class MainWindow(wx.Frame):
         menu_file.AppendSeparator()
         menu_file.AppendItem(
             make_menu_item(
-                parent=menu_file, id=ID_fileMenu_thermoRAW, text="Open Thermo file (.RAW)\tCtrl+Shift+Y", bitmap=None
+                parent=menu_file,
+                evt_id=ID_fileMenu_thermoRAW,
+                text="Open Thermo file (.RAW)\tCtrl+Shift+Y",
+                bitmap=None,
             )
         )
         menu_file.AppendSeparator()
@@ -604,7 +607,7 @@ class MainWindow(wx.Frame):
         menu_file.AppendItem(menu_file_text_ms)
         menu_file_text_heatmap = make_menu_item(
             parent=menu_file,
-            id=ID_load_multiple_text_2D,
+            evt_id=ID_load_multiple_text_2D,
             text="Open heatmap file(s) (.csv; .txt; .tab)\tCtrl+Shift+T",
             bitmap=self.icons.iconsLib["open_textMany_16"],
         )
@@ -641,7 +644,10 @@ class MainWindow(wx.Frame):
         menu_file.AppendSeparator()
         menu_file.AppendItem(
             make_menu_item(
-                parent=menu_file, id=ID_saveDocument, text="Save document as...", bitmap=self.icons.iconsLib["save16"]
+                parent=menu_file,
+                evt_id=ID_saveDocument,
+                text="Save document as...",
+                bitmap=self.icons.iconsLib["save16"],
             )
         )
         #         menu_file.AppendItem(
@@ -654,7 +660,7 @@ class MainWindow(wx.Frame):
         #         )
         menu_file.AppendSeparator()
         menu_file.AppendItem(
-            make_menu_item(parent=menu_file, id=ID_quit, text="Quit\tCtrl+Q", bitmap=self.icons.iconsLib["exit_16"])
+            make_menu_item(parent=menu_file, evt_id=ID_quit, text="Quit\tCtrl+Q", bitmap=self.icons.iconsLib["exit_16"])
         )
         self.menubar.Append(menu_file, "&File")
 
@@ -663,7 +669,7 @@ class MainWindow(wx.Frame):
         menu_plot.AppendItem(
             make_menu_item(
                 parent=menu_plot,
-                id=ID_extraSettings_general_plot,
+                evt_id=ID_extraSettings_general_plot,
                 text="Settings: Plot &General",
                 bitmap=self.icons.iconsLib["panel_plot_general_16"],
             )
@@ -672,7 +678,7 @@ class MainWindow(wx.Frame):
         menu_plot.AppendItem(
             make_menu_item(
                 parent=menu_plot,
-                id=ID_extraSettings_plot1D,
+                evt_id=ID_extraSettings_plot1D,
                 text="Settings: Plot &1D",
                 bitmap=self.icons.iconsLib["panel_plot1D_16"],
             )
@@ -681,7 +687,7 @@ class MainWindow(wx.Frame):
         menu_plot.AppendItem(
             make_menu_item(
                 parent=menu_plot,
-                id=ID_extraSettings_plot2D,
+                evt_id=ID_extraSettings_plot2D,
                 text="Settings: Plot &2D",
                 bitmap=self.icons.iconsLib["panel_plot2D_16"],
             )
@@ -690,7 +696,7 @@ class MainWindow(wx.Frame):
         menu_plot.AppendItem(
             make_menu_item(
                 parent=menu_plot,
-                id=ID_extraSettings_plot3D,
+                evt_id=ID_extraSettings_plot3D,
                 text="Settings: Plot &3D",
                 bitmap=self.icons.iconsLib["panel_plot3D_16"],
             )
@@ -699,7 +705,7 @@ class MainWindow(wx.Frame):
         menu_plot.AppendItem(
             make_menu_item(
                 parent=menu_plot,
-                id=ID_extraSettings_colorbar,
+                evt_id=ID_extraSettings_colorbar,
                 text="Settings: &Colorbar",
                 bitmap=self.icons.iconsLib["panel_colorbar_16"],
             )
@@ -708,7 +714,7 @@ class MainWindow(wx.Frame):
         menu_plot.AppendItem(
             make_menu_item(
                 parent=menu_plot,
-                id=ID_extraSettings_legend,
+                evt_id=ID_extraSettings_legend,
                 text="Settings: &Legend",
                 bitmap=self.icons.iconsLib["panel_legend_16"],
             )
@@ -717,7 +723,7 @@ class MainWindow(wx.Frame):
         menu_plot.AppendItem(
             make_menu_item(
                 parent=menu_plot,
-                id=ID_extraSettings_rmsd,
+                evt_id=ID_extraSettings_rmsd,
                 text="Settings: &RMSD",
                 bitmap=self.icons.iconsLib["panel_rmsd_16"],
             )
@@ -726,7 +732,7 @@ class MainWindow(wx.Frame):
         menu_plot.AppendItem(
             make_menu_item(
                 parent=menu_plot,
-                id=ID_extraSettings_waterfall,
+                evt_id=ID_extraSettings_waterfall,
                 text="Settings: &Waterfall",
                 bitmap=self.icons.iconsLib["panel_waterfall_16"],
             )
@@ -735,7 +741,7 @@ class MainWindow(wx.Frame):
         menu_plot.AppendItem(
             make_menu_item(
                 parent=menu_plot,
-                id=ID_extraSettings_violin,
+                evt_id=ID_extraSettings_violin,
                 text="Settings: &Violin",
                 bitmap=self.icons.iconsLib["panel_violin_16"],
             )
@@ -744,7 +750,7 @@ class MainWindow(wx.Frame):
         menu_plot.AppendItem(
             make_menu_item(
                 parent=menu_plot,
-                id=ID_extraSettings_general,
+                evt_id=ID_extraSettings_general,
                 text="Settings: &Extra",
                 bitmap=self.icons.iconsLib["panel_general2_16"],
             )
@@ -753,12 +759,15 @@ class MainWindow(wx.Frame):
         menu_plot.AppendSeparator()
         menu_plot.AppendItem(
             make_menu_item(
-                parent=menu_plot, id=ID_annotPanel_otherSettings, text="Settings: Annotation parameters", bitmap=None
+                parent=menu_plot,
+                evt_id=ID_annotPanel_otherSettings,
+                text="Settings: Annotation parameters",
+                bitmap=None,
             )
         )
         menu_plot.AppendItem(
             make_menu_item(
-                parent=menu_plot, id=ID_unidecPanel_otherSettings, text="Settings: UniDec parameters", bitmap=None
+                parent=menu_plot, evt_id=ID_unidecPanel_otherSettings, text="Settings: UniDec parameters", bitmap=None
             )
         )
 
@@ -771,7 +780,10 @@ class MainWindow(wx.Frame):
         menu_view = wx.Menu()
         menu_view.AppendItem(
             make_menu_item(
-                parent=menu_view, id=ID_clearAllPlots, text="&Clear all plots", bitmap=self.icons.iconsLib["clear_16"]
+                parent=menu_view,
+                evt_id=ID_clearAllPlots,
+                text="&Clear all plots",
+                bitmap=self.icons.iconsLib["clear_16"],
             )
         )
         menu_view.AppendSeparator()
@@ -787,7 +799,7 @@ class MainWindow(wx.Frame):
         menu_view.AppendItem(
             make_menu_item(
                 parent=menu_view,
-                id=ID_windowMaximize,
+                evt_id=ID_windowMaximize,
                 text="Maximize window",
                 bitmap=self.icons.iconsLib["maximize_16"],
             )
@@ -795,7 +807,7 @@ class MainWindow(wx.Frame):
         menu_view.AppendItem(
             make_menu_item(
                 parent=menu_view,
-                id=ID_windowMinimize,
+                evt_id=ID_windowMinimize,
                 text="Minimize window",
                 bitmap=self.icons.iconsLib["minimize_16"],
             )
@@ -803,7 +815,7 @@ class MainWindow(wx.Frame):
         menu_view.AppendItem(
             make_menu_item(
                 parent=menu_view,
-                id=ID_windowFullscreen,
+                evt_id=ID_windowFullscreen,
                 text="Toggle fullscreen\tAlt+F11",
                 bitmap=self.icons.iconsLib["fullscreen_16"],
             )
@@ -815,7 +827,7 @@ class MainWindow(wx.Frame):
         menu_widgets.AppendItem(
             make_menu_item(
                 parent=menu_view,
-                id=ID_saveAsInteractive,
+                evt_id=ID_saveAsInteractive,
                 text="Open &interactive output panel...\tShift+Z",
                 bitmap=self.icons.iconsLib["bokehLogo_16"],
             )
@@ -823,18 +835,18 @@ class MainWindow(wx.Frame):
         menu_widgets.AppendItem(
             make_menu_item(
                 parent=menu_widgets,
-                id=ID_docTree_compareMS,
+                evt_id=ID_docTree_compareMS,
                 text="Open spectrum comparison window...",
                 bitmap=self.icons.iconsLib["compare_mass_spectra_16"],
             )
         )
         menu_widgets.AppendItem(
             make_menu_item(
-                parent=menu_widgets, id=ID_docTree_plugin_UVPD, text="Open UVPD processing window...", bitmap=None
+                parent=menu_widgets, evt_id=ID_docTree_plugin_UVPD, text="Open UVPD processing window...", bitmap=None
             )
         )
         menu_widgets.AppendItem(
-            make_menu_item(parent=menu_widgets, id=ID_docTree_plugin_MSMS, text="Open MS/MS window...", bitmap=None)
+            make_menu_item(parent=menu_widgets, evt_id=ID_docTree_plugin_MSMS, text="Open MS/MS window...", bitmap=None)
         )
         menu_widget_overlay_viewer = make_menu_item(
             parent=menu_widgets, text="Open overlay window...\tShift+O", bitmap=None
@@ -863,7 +875,7 @@ class MainWindow(wx.Frame):
         menu_config.AppendItem(
             make_menu_item(
                 parent=menu_config,
-                id=ID_saveConfig,
+                evt_id=ID_saveConfig,
                 text="Export configuration XML file (default location)\tCtrl+S",
                 bitmap=self.icons.iconsLib["export_config_16"],
             )
@@ -871,7 +883,7 @@ class MainWindow(wx.Frame):
         menu_config.AppendItem(
             make_menu_item(
                 parent=menu_config,
-                id=ID_saveAsConfig,
+                evt_id=ID_saveAsConfig,
                 text="Export configuration XML file as...\tCtrl+Shift+S",
                 bitmap=None,
             )
@@ -880,14 +892,14 @@ class MainWindow(wx.Frame):
         menu_config.AppendItem(
             make_menu_item(
                 parent=menu_config,
-                id=ID_openConfig,
+                evt_id=ID_openConfig,
                 text="Import configuration XML file (default location)\tCtrl+Shift+O",
                 bitmap=self.icons.iconsLib["import_config_16"],
             )
         )
         menu_config.AppendItem(
             make_menu_item(
-                parent=menu_config, id=ID_openAsConfig, text="Import configuration XML file from...", bitmap=None
+                parent=menu_config, evt_id=ID_openAsConfig, text="Import configuration XML file from...", bitmap=None
             )
         )
         menu_config.AppendSeparator()
@@ -898,7 +910,7 @@ class MainWindow(wx.Frame):
         menu_config.AppendItem(
             make_menu_item(
                 parent=menu_config,
-                id=ID_openCCScalibrationDatabse,
+                evt_id=ID_openCCScalibrationDatabse,
                 text="Import CCS calibration database\tCtrl+Alt+C",
                 bitmap=self.icons.iconsLib["filelist_16"],
             )
@@ -906,7 +918,7 @@ class MainWindow(wx.Frame):
         menu_config.AppendItem(
             make_menu_item(
                 parent=menu_config,
-                id=ID_selectCalibrant,
+                evt_id=ID_selectCalibrant,
                 text="Show CCS calibrants\tCtrl+Shift+C",
                 bitmap=self.icons.iconsLib["ccs_table_16"],
             )
@@ -914,17 +926,20 @@ class MainWindow(wx.Frame):
         menu_config.AppendSeparator()
         menu_config.AppendItem(
             make_menu_item(
-                parent=menu_config, id=ID_importExportSettings_peaklist, text="Import parameters: Peaklist", bitmap=None
+                parent=menu_config,
+                evt_id=ID_importExportSettings_peaklist,
+                text="Import parameters: Peaklist",
+                bitmap=None,
             )
         )
         menu_config.AppendItem(
             make_menu_item(
-                parent=menu_config, id=ID_importExportSettings_image, text="Export parameters: Image", bitmap=None
+                parent=menu_config, evt_id=ID_importExportSettings_image, text="Export parameters: Image", bitmap=None
             )
         )
         menu_config.AppendItem(
             make_menu_item(
-                parent=menu_config, id=ID_importExportSettings_file, text="Export parameters: File", bitmap=None
+                parent=menu_config, evt_id=ID_importExportSettings_file, text="Export parameters: File", bitmap=None
             )
         )
         menu_config.AppendSeparator()
@@ -935,7 +950,7 @@ class MainWindow(wx.Frame):
         menu_config.AppendItem(
             make_menu_item(
                 parent=menu_config,
-                id=ID_check_Driftscope,
+                evt_id=ID_check_Driftscope,
                 text="Check DriftScope path",
                 bitmap=self.icons.iconsLib["check_online_16"],
             )
@@ -954,7 +969,7 @@ class MainWindow(wx.Frame):
         menu_software.AppendItem(
             make_menu_item(
                 parent=menu_software,
-                id=ID_help_UniDecInfo,
+                evt_id=ID_help_UniDecInfo,
                 text="About UniDec engine...",
                 bitmap=self.icons.iconsLib["process_unidec_16"],
             )
@@ -969,7 +984,7 @@ class MainWindow(wx.Frame):
         menu_help_pages.AppendItem(
             make_menu_item(
                 parent=menu_help_pages,
-                id=ID_help_page_dataLoading,
+                evt_id=ID_help_page_dataLoading,
                 text="Learn more: Loading data",
                 bitmap=self.icons.iconsLib["open16"],
             )
@@ -978,7 +993,7 @@ class MainWindow(wx.Frame):
         menu_help_pages.AppendItem(
             make_menu_item(
                 parent=menu_help_pages,
-                id=ID_help_page_dataExtraction,
+                evt_id=ID_help_page_dataExtraction,
                 text="Learn more: Data extraction",
                 bitmap=self.icons.iconsLib["extract16"],
             )
@@ -987,7 +1002,7 @@ class MainWindow(wx.Frame):
         menu_help_pages.AppendItem(
             make_menu_item(
                 parent=menu_help_pages,
-                id=ID_help_page_UniDec,
+                evt_id=ID_help_page_UniDec,
                 text="Learn more: MS deconvolution using UniDec",
                 bitmap=self.icons.iconsLib["process_unidec_16"],
             )
@@ -996,7 +1011,7 @@ class MainWindow(wx.Frame):
         menu_help_pages.AppendItem(
             make_menu_item(
                 parent=menu_help_pages,
-                id=ID_help_page_ORIGAMI,
+                evt_id=ID_help_page_ORIGAMI,
                 text="Learn more: ORIGAMI-MS (Automated CIU)",
                 bitmap=self.icons.iconsLib["origamiLogoDark16"],
             )
@@ -1005,7 +1020,7 @@ class MainWindow(wx.Frame):
         menu_help_pages.AppendItem(
             make_menu_item(
                 parent=menu_help_pages,
-                id=ID_help_page_multipleFiles,
+                evt_id=ID_help_page_multipleFiles,
                 text="Learn more: Multiple files (Manual CIU)",
                 bitmap=self.icons.iconsLib["panel_mll__16"],
             )
@@ -1014,7 +1029,7 @@ class MainWindow(wx.Frame):
         menu_help_pages.AppendItem(
             make_menu_item(
                 parent=menu_help_pages,
-                id=ID_help_page_overlay,
+                evt_id=ID_help_page_overlay,
                 text="Learn more: Overlay documents",
                 bitmap=self.icons.iconsLib["overlay16"],
             )
@@ -1031,7 +1046,7 @@ class MainWindow(wx.Frame):
         menu_help_pages.AppendItem(
             make_menu_item(
                 parent=menu_help_pages,
-                id=ID_help_page_Interactive,
+                evt_id=ID_help_page_Interactive,
                 text="Learn more: Interactive output",
                 bitmap=self.icons.iconsLib["bokehLogo_16"],
             )
@@ -1040,7 +1055,7 @@ class MainWindow(wx.Frame):
         menu_help_pages.AppendItem(
             make_menu_item(
                 parent=menu_help_pages,
-                id=ID_help_page_annotatingMassSpectra,
+                evt_id=ID_help_page_annotatingMassSpectra,
                 text="Learn more: Annotating mass spectra",
                 bitmap=self.icons.iconsLib["annotate16"],
             )
@@ -1049,7 +1064,7 @@ class MainWindow(wx.Frame):
         menu_help_pages.AppendItem(
             make_menu_item(
                 parent=menu_help_pages,
-                id=ID_help_page_OtherData,
+                evt_id=ID_help_page_OtherData,
                 text="Learn more: Annotated data",
                 bitmap=self.icons.iconsLib["blank_16"],
             )
@@ -1062,7 +1077,7 @@ class MainWindow(wx.Frame):
         menu_help.AppendItem(
             make_menu_item(
                 parent=menu_help,
-                id=ID_helpGuide,
+                evt_id=ID_helpGuide,
                 text="Open User Guide...",
                 bitmap=self.icons.iconsLib["web_access_16"],
             )
@@ -1070,7 +1085,7 @@ class MainWindow(wx.Frame):
         menu_help.AppendItem(
             make_menu_item(
                 parent=menu_help,
-                id=ID_helpYoutube,
+                evt_id=ID_helpYoutube,
                 text="Check out video guides... (online)",
                 bitmap=self.icons.iconsLib["youtube16"],
                 help_text=self.help.link_youtube,
@@ -1079,7 +1094,7 @@ class MainWindow(wx.Frame):
         menu_help.AppendItem(
             make_menu_item(
                 parent=menu_help,
-                id=ID_helpNewVersion,
+                evt_id=ID_helpNewVersion,
                 text="Check for updates... (online)",
                 bitmap=self.icons.iconsLib["github16"],
             )
@@ -1087,7 +1102,7 @@ class MainWindow(wx.Frame):
         menu_help.AppendItem(
             make_menu_item(
                 parent=menu_help,
-                id=ID_helpCite,
+                evt_id=ID_helpCite,
                 text="Paper to cite... (online)",
                 bitmap=self.icons.iconsLib["cite_16"],
             )
@@ -1098,7 +1113,7 @@ class MainWindow(wx.Frame):
         menu_help.AppendItem(
             make_menu_item(
                 parent=menu_help,
-                id=ID_helpNewFeatures,
+                evt_id=ID_helpNewFeatures,
                 text="Request new features... (web)",
                 bitmap=self.icons.iconsLib["request_16"],
             )
@@ -1106,7 +1121,7 @@ class MainWindow(wx.Frame):
         menu_help.AppendItem(
             make_menu_item(
                 parent=menu_help,
-                id=ID_helpReportBugs,
+                evt_id=ID_helpReportBugs,
                 text="Report bugs... (web)",
                 bitmap=self.icons.iconsLib["bug_16"],
             )
@@ -1115,7 +1130,7 @@ class MainWindow(wx.Frame):
         menu_help.AppendItem(
             make_menu_item(
                 parent=menu_help,
-                id=ID_CHECK_VERSION,
+                evt_id=ID_CHECK_VERSION,
                 text="Check for newest version...",
                 bitmap=self.icons.iconsLib["check_online_16"],
             )
@@ -1123,7 +1138,7 @@ class MainWindow(wx.Frame):
         menu_help.AppendItem(
             make_menu_item(
                 parent=menu_help,
-                id=ID_WHATS_NEW,
+                evt_id=ID_WHATS_NEW,
                 text="Whats new in v{}".format(CONFIG.version),
                 bitmap=self.icons.iconsLib["blank_16"],
             )
@@ -1132,7 +1147,7 @@ class MainWindow(wx.Frame):
         menu_help.AppendItem(
             make_menu_item(
                 parent=menu_help,
-                id=ID_SHOW_ABOUT,
+                evt_id=ID_SHOW_ABOUT,
                 text="About ORIGAMI\tCtrl+Shift+A",
                 bitmap=self.icons.iconsLib["origamiLogoDark16"],
             )
@@ -1530,7 +1545,7 @@ class MainWindow(wx.Frame):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_fileMenu_MGF,
+                evt_id=ID_fileMenu_MGF,
                 text="Open Mascot Generic Format file (.mgf) [MS/MS]",
                 bitmap=self.icons.iconsLib["blank_16"],
             )
@@ -1538,7 +1553,7 @@ class MainWindow(wx.Frame):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_fileMenu_mzML,
+                evt_id=ID_fileMenu_mzML,
                 text="Open mzML (.mzML) [MS/MS]",
                 bitmap=self.icons.iconsLib["blank_16"],
             )

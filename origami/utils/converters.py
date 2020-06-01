@@ -28,6 +28,15 @@ def convert_mins_to_scans(values, scan_time):
     return [convert(value) for value in values]
 
 
+def convert_scans_to_mins(values, scan_time):
+    """Converts scans to retention time in minutes"""
+
+    def convert(value):
+        return round(value * scan_time) / 60
+
+    return [convert(value) for value in values]
+
+
 def byte2str(string):
     try:
         return string.decode()

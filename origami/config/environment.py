@@ -348,7 +348,12 @@ class Environment(PropertyCallbackManager):
         LOGGER.debug(f"Created new document: {document.path}")
         return document
 
-    def get_document_list(self, document_types: Union[str, List[str]] = "all", document_format: Optional[str] = None):
+    def get_document_list(
+        self,
+        document_types: Union[str, List[str]] = "all",
+        document_format: Optional[str] = None,
+        check_path: bool = False,
+    ):
         """Get list of currently opened documents based on some requirements
 
         Parameters
@@ -357,6 +362,8 @@ class Environment(PropertyCallbackManager):
             types of document to be searched for in the store
         document_format : Optional[str]
             types of format to be searched for in the store
+        check_path : bool
+            if `True`, a simple OS check will be performed to ensure only existing document is selected
 
         Returns
         -------
@@ -370,6 +377,8 @@ class Environment(PropertyCallbackManager):
 
         document_list = []
         for document_title, document in self.items():
+            if check_path and not os.path.exists(document.path):
+                continue
             if document.data_type in document_types:
                 if document_format is None or document_format == document.file_format:
                     document_list.append(document_title)

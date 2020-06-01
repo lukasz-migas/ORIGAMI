@@ -58,6 +58,8 @@ def DialogBox(title="", msg="", kind="Error", show_exception=True):
 def DialogSimpleAsk(message="", title="", value="", value_type=None):
 
     if value_type is not None and value_type in ["float", "floatPos", "int", "intPos"]:
+        if value is None:
+            value = 0
         dlg = wx.NumberEntryDialog(None, message, "", title, value, -100000, 1000000)
     else:
         dlg = wx.TextEntryDialog(None, message, title, value)

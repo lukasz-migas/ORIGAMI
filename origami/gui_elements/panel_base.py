@@ -363,7 +363,7 @@ class TableMixin:
         _ = menu.Append(
             make_menu_item(
                 parent=menu,
-                id=self.TABLE_RESERVED["hide_all"],
+                evt_id=self.TABLE_RESERVED["hide_all"],
                 text="Column: Hide all",
                 # bitmap=self.icons.iconsLib["hide_table_16"],
             )
@@ -372,7 +372,7 @@ class TableMixin:
         _ = menu.Append(
             make_menu_item(
                 parent=menu,
-                id=self.TABLE_RESERVED["show_all"],
+                evt_id=self.TABLE_RESERVED["show_all"],
                 text="Column: Restore all",
                 # bitmap=self.icons.iconsLib["show_table_16"],
             )

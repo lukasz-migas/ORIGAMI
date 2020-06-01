@@ -38,7 +38,7 @@ SLIDER_STYLE = wx.SL_HORIZONTAL | wx.SL_MIN_MAX_LABELS | wx.SL_VALUE_LABEL
 
 
 def make_spin_ctrl_double(parent, value, min_value, max_value, increment_value, size=(-1, -1), evtid=-1, name="name"):
-    """Convenient way to initilize SpinCtrlDouble"""
+    """Convenient way to initialize SpinCtrlDouble"""
     spin_ctrl = wx.SpinCtrlDouble(
         parent,
         evtid,
@@ -54,7 +54,7 @@ def make_spin_ctrl_double(parent, value, min_value, max_value, increment_value, 
 
 
 def make_spin_ctrl_int(parent, value, min_value, max_value, increment_value, size=(-1, -1), evtid=-1, name="name"):
-    """Convenient way to initilize SpinCtrl"""
+    """Convenient way to initialize SpinCtrl"""
     spin_ctrl = wx.SpinCtrl(
         parent,
         evtid,
@@ -70,27 +70,27 @@ def make_spin_ctrl_int(parent, value, min_value, max_value, increment_value, siz
 
 
 def make_bitmap_btn(
-    parent, evtid, icon, size=(26, 26), style=wx.BORDER_DEFAULT | wx.ALIGN_CENTER_VERTICAL, bg_color=(240, 240, 240)
+    parent, evt_id, icon, size=(26, 26), style=wx.BORDER_DEFAULT | wx.ALIGN_CENTER_VERTICAL, bg_color=(240, 240, 240)
 ):
-    """Convenient way to initilize bitmap btn"""
-    bitmap_btn = wx.BitmapButton(parent, evtid, icon, size=size, style=style)
+    """Convenient way to initialize bitmap btn"""
+    bitmap_btn = wx.BitmapButton(parent, evt_id, icon, size=size, style=style)
     bitmap_btn.SetBackgroundColour(bg_color)
 
     return bitmap_btn
 
 
-def make_color_btn(parent, color, size=(26, 26), name="color", evtid=-1):
-    """Convenient way to initilize a color btn"""
+def make_color_btn(parent, color, size=(26, 26), name="color", evt_id=-1):
+    """Convenient way to initialize a color btn"""
 
-    color_btn = wx.Button(parent, evtid, size=size, name=name)
+    color_btn = wx.Button(parent, evt_id, size=size, name=name)
     color_btn.SetBackgroundColour(convert_rgb_1_to_255(color))
 
     return color_btn
 
 
-def make_menu_item(parent, text, id=-1, bitmap=None, help_text=None, kind=wx.ITEM_NORMAL):
+def make_menu_item(parent, text, evt_id=-1, bitmap=None, help_text=None, kind=wx.ITEM_NORMAL):
     """ Helper function to make a menu item with or without bitmap image """
-    menu_item = wx.MenuItem(parent, id, text, kind=kind)
+    menu_item = wx.MenuItem(parent, evt_id, text, kind=kind)
     if bitmap is not None:
         menu_item.SetBitmap(bitmap)
 
@@ -109,62 +109,62 @@ def set_item_font(parent, size=10, color=wx.BLACK):
 
 
 def make_staticbox(parent, title, size, color, id=-1):
-    staticBox = wx.StaticBox(parent, id, title, size=size, style=wx.SB_FLAT)
+    static_box = wx.StaticBox(parent, id, title, size=size, style=wx.SB_FLAT)
     font = wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
-    staticBox.SetForegroundColour(color)
-    staticBox.SetFont(font)
+    static_box.SetForegroundColour(color)
+    static_box.SetFont(font)
 
-    return staticBox
+    return static_box
 
 
 def make_toggle_btn(parent, text, colorOff, name="other", size=(40, -1)):
-    toggleBtn = wx.ToggleButton(
+    toggle_btn = wx.ToggleButton(
         parent, wx.ID_ANY, text, wx.DefaultPosition, size, style=wx.ALIGN_CENTER_VERTICAL, name=name
     )
     font = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
-    toggleBtn.SetFont(font)
-    toggleBtn.SetForegroundColour(colorOff)
+    toggle_btn.SetFont(font)
+    toggle_btn.SetForegroundColour(colorOff)
 
-    return toggleBtn
+    return toggle_btn
 
 
 def make_static_text(parent, text):
-    textBox = wx.StaticText(
+    text_box = wx.StaticText(
         parent, wx.ID_ANY, text, wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT
     )
-    return textBox
+    return text_box
 
 
 def make_text_ctrl(parent, size=(wx.DefaultSize)):
-    textBox = wx.TextCtrl(
+    text_ctrl = wx.TextCtrl(
         parent, wx.ID_ANY, "", wx.DefaultPosition, size, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT
     )
-    return textBox
+    return text_ctrl
 
 
-def make_slider(parent, value, minValue, maxValue):
+def make_slider(parent, value, min_value, max_value):
     slider = wx.Slider(
-        parent, -1, value=value, minValue=minValue, maxValue=maxValue, size=(140, -1), style=SLIDER_STYLE
+        parent, -1, value=value, minValue=min_value, maxValue=max_value, size=(140, -1), style=SLIDER_STYLE
     )
     return slider
 
 
-def make_checkbox(parent, text, style=wx.ALIGN_LEFT, ID=-1, name="", tooltip=None):
-    checkbox = wx.CheckBox(parent, ID, text, (3, 3), style=style, name=name)
+def make_checkbox(parent, text, style=wx.ALIGN_LEFT, evt_id=-1, name="", tooltip=None):
+    checkbox = wx.CheckBox(parent, evt_id, text, (3, 3), style=style, name=name)
 
     if tooltip:
         checkbox.SetToolTip(make_tooltip(tooltip))
     return checkbox
 
 
-def make_tooltip(text=None, delay=500, reshow=500, autopop=3000):
+def make_tooltip(text=None, delay=500, reshow=500, auto_pop=3000):
     """
     Make tooltips with specified delay time
     """
     tooltip = wx.ToolTip(text)
     tooltip.SetDelay(delay)
     tooltip.SetReshow(reshow)
-    tooltip.SetAutoPop(autopop)
+    tooltip.SetAutoPop(auto_pop)
     return tooltip
 
 
@@ -182,31 +182,38 @@ def layout(parent, sizer, size=None):
     parent.SetMinSize(size)
 
 
-def makeSuperTip(
-    parent, title="Title", text="Insert message", delay=5, headerLine=False, footerLine=False, headerImg=None, **kwargs
+def make_super_tooltip(
+    parent,
+    title="Title",
+    text="Insert message",
+    delay=5,
+    header_line=False,
+    footer_line=False,
+    header_img=None,
+    **kwargs,
 ):
 
     if kwargs:
         title = kwargs["help_title"]
         text = kwargs["help_msg"]
-        headerImg = kwargs["header_img"]
-        headerLine = kwargs["header_line"]
-        footerLine = kwargs["footer_line"]
+        header_img = kwargs["header_img"]
+        header_line = kwargs["header_line"]
+        footer_line = kwargs["footer_line"]
 
     # You can define your BalloonTip as follows:
     tip = superTip.SuperToolTip(text)
     tip.SetStartDelay(1)
     tip.SetEndDelay(delay)
-    tip.SetDrawHeaderLine(headerLine)
-    tip.SetDrawFooterLine(footerLine)
+    tip.SetDrawHeaderLine(header_line)
+    tip.SetDrawFooterLine(footer_line)
     tip.SetHeader(title)
     tip.SetTarget(parent)
     tip.SetTopGradientColour((255, 255, 255, 255))
     tip.SetMiddleGradientColour((228, 236, 248, 255))
     tip.SetBottomGradientColour((198, 214, 235, 255))
 
-    if headerImg is not None:
-        tip.SetHeaderBitmap(headerImg)
+    if header_img is not None:
+        tip.SetHeaderBitmap(header_img)
 
     return tip
 
@@ -270,6 +277,9 @@ class Dialog(wx.Dialog):
 class MiniFrame(wx.MiniFrame):
     """Proxy of MiniFrame"""
 
+    HELP_MD = None
+    HELP_LINK = None
+
     def __init__(
         self, parent, style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX | wx.STAY_ON_TOP, **kwargs
     ):
@@ -292,11 +302,23 @@ class MiniFrame(wx.MiniFrame):
             evt.Skip()
 
     def filter_keys(self, evt):
-        print(evt)
+        """Filter keys"""
+        # print(evt)
 
     def on_close(self, evt):
         """Destroy this frame."""
         self.Destroy()
+
+    def on_open_info(self, evt):
+        """Open help window to inform user on how to use this window / panel"""
+        from origami.gui_elements.panel_html_viewer import PanelHTMLViewer
+
+        print("??")
+
+        if self.HELP_LINK:
+            PanelHTMLViewer(self, link=self.HELP_LINK)
+        elif self.HELP_MD:
+            PanelHTMLViewer(self, md_msg=self.HELP_MD)
 
     def make_panel(self, *args):
         raise NotImplementedError("Must implement method")

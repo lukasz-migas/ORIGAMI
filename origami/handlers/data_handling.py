@@ -7,7 +7,6 @@ import time
 import logging
 import threading
 from sys import platform
-from typing import List
 from multiprocessing.pool import ThreadPool
 
 # Third-party imports
@@ -17,30 +16,14 @@ from pubsub import pub
 
 # Local imports
 import origami.utils.labels as ut_labels
-
-# import origami.processing.heatmap as pr_heatmap
 import origami.processing.spectra as pr_spectra
-import origami.objects.annotations as annotations_obj
-
-# import origami.processing.origami_ms as pr_origami
-from origami.ids import ID_openIRRawFile
-from origami.ids import ID_load_masslynx_raw
-from origami.ids import ID_load_origami_masslynx_raw
-
-# from origami.readers import io_document
 from origami.readers import io_text_files
-
-# from origami.document import document as documents
 from origami.utils.path import get_base_path
 from origami.utils.path import clean_filename
 from origami.utils.path import check_path_exists
 from origami.utils.path import check_waters_path
 from origami.utils.path import get_path_and_fname
-
-# from origami.utils.time import get_current_time
 from origami.utils.check import check_value_order
-
-# from origami.utils.check import check_axes_spacing
 from origami.utils.color import get_random_color
 from origami.utils.color import convert_rgb_1_to_255
 from origami.utils.color import convert_rgb_255_to_1
@@ -48,29 +31,24 @@ from origami.utils.random import get_random_int
 from origami.utils.ranges import get_min_max
 from origami.handlers.call import Call
 from origami.handlers.load import LoadHandler
-
 # from origami.config.convert import convert_v1_to_v2
 # from origami.config.convert import upgrade_document_annotations
 from origami.handlers.export import ExportHandler
 from origami.utils.utilities import report_time
 from origami.objects.document import DocumentStore
-from origami.processing.utils import find_nearest_index
 from origami.processing.utils import get_maximum_value_in_range
 from origami.readers.io_utils import get_waters_inf_data
-
 # from origami.readers.io_utils import get_waters_header_data
 # from origami.utils.converters import str2num
 from origami.utils.converters import byte2str
 from origami.utils.converters import convert_ms_to_bins
 from origami.utils.converters import convert_mins_to_scans
-from origami.utils.decorators import check_os_msg
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
 from origami.objects.containers import DataObject
 from origami.processing.imaging import ImagingNormalizationProcessor
-from origami.handlers.queue_handler import QueueHandler
+from origami.handlers.queue_handler import QUEUE
 from origami.gui_elements.misc_dialogs import DialogBox
-
 # from origami.gui_elements.dialog_select_document import DialogSelectDocument
 from origami.gui_elements.dialog_multi_directory_picker import DialogMultiDirPicker
 
@@ -100,8 +78,6 @@ class DataHandling(LoadHandler, ExportHandler):
         self.presenter = presenter
         self.view = view
         self.config = config
-
-        self._queue = QueueHandler(self.view, n_threads=4)
 
         # processing links
         self.data_processing = self.view.data_processing
@@ -144,7 +120,7 @@ class DataHandling(LoadHandler, ExportHandler):
             func_result=func_result,
             **kwargs,
         )
-        self._queue.add(call_obj)
+        QUEUE.add(call_obj)
 
     def on_error(self, *args, **kwargs):
         """Inform user and log an error"""
@@ -499,6 +475,7 @@ class DataHandling(LoadHandler, ExportHandler):
     def on_open_thermo_file_fcn(self, evt):
         """Open Thermo .RAW file"""
 
+        paths = []
         dlg = wx.FileDialog(
             self.presenter.view,
             "Open Thermo file",
@@ -519,7 +496,7 @@ class DataHandling(LoadHandler, ExportHandler):
     def on_open_mgf_file_fcn(self, evt):
         """Load tandem data in MZML format"""
 
-        path = None
+        paths = []
         dlg = wx.FileDialog(
             self.presenter.view,
             "Open mzML file",
@@ -1752,7 +1729,7 @@ class DataHandling(LoadHandler, ExportHandler):
         )
 
         if dlg.ShowModal() == "ok":  # wx.ID_OK:
-            path_list = dlg.GetPaths()
+            path_list = dlg.get_paths()
             data_type = "Type: ORIGAMI"
             for path in path_list:
                 if not check_waters_path(path):
@@ -1953,141 +1930,143 @@ class DataHandling(LoadHandler, ExportHandler):
             n_extracted += 1
             self.update_statusbar(f"Extracted: {n_extracted}/{n_items}", 4)
 
-    def on_select_LESA_MassLynx_raw(self):
-        self._on_check_last_path()
-        dlg = DialogMultiDirPicker(self.view, extension=".raw")
+    # def on_select_LESA_MassLynx_raw(self):
+    #     self._on_check_last_path()
+    #     dlg = DialogMultiDirPicker(self.view, extension=".raw")
+    #
+    #     if dlg.ShowModal() == "ok":
+    #         pathlist = dlg.get_paths()
+    #         return pathlist
+    #     return []
 
-        if dlg.ShowModal() == "ok":
-            pathlist = dlg.GetPaths()
-            return pathlist
-        return []
+    def on_open_lesa_file_fcn(self, document_title, filelist, raw_format="waters", **kwargs):
 
-    def on_open_multiple_LESA_files_fcn(self, filelist, **kwargs):
+        # # check that there are no gaps in the list of variables
+        # variables = []
+        # for file_info in filelist:
+        #     variables.append(file_info[0])
 
         # get document
-        document = self._get_document_of_type("Type: Imaging")
+        document = ENV[document_title]
         if not document:
             raise ValueError("Please create new document or select one from the list")
 
-        # setup parameters
-        document.dataType = "Type: Imaging"
-        document.fileFormat = "Format: MassLynx (.raw)"
-
         if not self.config.threading:
-            self.on_open_multiple_LESA_files(document, filelist, **kwargs)
+            self.on_setup_basic_document(self.load_lesa_document(document.path, filelist, **kwargs))
         else:
-            self.on_threading(action="load.multiple.raw.lesa", args=(document, filelist), kwargs=kwargs)
-
-    def on_open_multiple_LESA_files(self, document, filelist, **kwargs):
-        """Add data to a LESA document
-
-        Extract mass spectrum and ion mobility data for each file in the file list and linearize it using identical
-        pre-processing parameters.
-
-        Parameters
-        ----------
-        document : ORIGAMI document
-            instance of ORIGAMI document of type:imaging
-        filelist : list of lists
-            filelist containing all necessary information about the file to extract
-        kwargs : dict
-            dictionary containing pre-processing parameters
-        """
-
-        def check_processing_parameters(document, **kwargs):
-            """Check whether pre-processing parameters match those found in existing document"""
-            metadata = document.metadata.get("imaging_lesa", dict())
-            for key in [
-                "linearization_mode",
-                "mz_min",
-                "mz_max",
-                "mz_bin",
-                "im_on",
-                "auto_range",
-                "baseline_correction",
-                "baseline_method",
-            ]:
-                if metadata.get(key, None) != kwargs[key]:
-                    return False
-            return True
-
-        tstart = time.time()
-        tsum = 0
-        n_items = len(filelist)
-
-        print(kwargs)
-        for i, file_item in enumerate(filelist):
-            tincr = time.time()
-            # pre-allocate data
-            dt_x, dt_y = [], []
-
-            # unpack data
-            idx, file_path, start_scan, end_scan, information = file_item
-            path = check_waters_path(file_path)
-            __, filename = os.path.split(path)
-            spectrum_name = f"{idx}: {filename}"
-            if not check_path_exists(path):
-                logger.warning("File with path: {} does not exist".format(path))
-                continue
-
-            # check if dataset is already present in the document and has matching parameters
-            if spectrum_name in document.multipleMassSpectrum:
-                if check_processing_parameters(document, **kwargs):
-                    logger.info(
-                        f"File with name {spectrum_name} is already present and has identical"
-                        " pre-processing parameters. Moving on to the next file."
-                    )
-                    continue
-
-            # get file reader
-            reader = self.get_waters_api_reader(path)
-
-            # load mass spectrum
-            mz_x, mz_y = self._get_waters_api_spectrum_data(reader, start_scan=start_scan, end_scan=end_scan)
-
-            # linearize spectrum
-            mz_x, mz_y = pr_spectra.linearize_data(mz_x, mz_y, **copy.deepcopy(kwargs))
-
-            # remove background
-            mz_y = pr_spectra.baseline_1D(mz_y, mode=kwargs.get("baseline_method"), **copy.deepcopy(kwargs))
-
-            # load mobilogram
-            if kwargs.get("im_on", False):
-                dt_x, dt_y = self.waters_im_extract_dt(path)
-
-            # add data
-            data = {
-                "index": idx,
-                "xvals": mz_x,
-                "yvals": mz_y.astype(np.float32),
-                "ims1D": dt_y,
-                "ims1DX": dt_x,
-                "xlabel": "Drift time (bins)",
-                "xlabels": "m/z (Da)",
-                "path": path,
-                "filename": filename,
-                "file_information": information,
-            }
-            self.documentTree.on_update_data(data, spectrum_name, document, data_type="extracted.spectrum")
-            tincrtot = time.time() - tincr
-            tsum += tincrtot
-            tavg = (tsum / (i + 1)) * (n_items - i)
-            logger.info(
-                f"Added file {spectrum_name} in {tincrtot:.2f}s. Approx. remaining {tavg:.2f}s" f" [{i+1}/{n_items}]"
+            self.add_task(
+                self.load_lesa_document, (document.path, filelist), func_result=self.on_setup_basic_document, **kwargs
             )
 
-        # add summed mass spectrum
-        self.add_summed_spectrum(document, **copy.deepcopy(kwargs))
-
-        # add metadata
-        document.metadata["imaging_lesa"] = kwargs
-
-        # compute normalizations
-        if kwargs.get("add_normalizations", True):
-            proc = ImagingNormalizationProcessor(document)
-            document = proc.document
-
-        logger.info(f"Added data to document '{document.title}' in {time.time()-tstart:.2f}s")
+    # def on_open_multiple_LESA_files(self, document, filelist, **kwargs):
+    #     """Add data to a LESA document
+    #
+    #     Extract mass spectrum and ion mobility data for each file in the file list and linearize it using identical
+    #     pre-processing parameters.
+    #
+    #     Parameters
+    #     ----------
+    #     document : ORIGAMI document
+    #         instance of ORIGAMI document of type:imaging
+    #     filelist : list
+    #         filelist containing all necessary information about the file to extract
+    #     kwargs : dict
+    #         dictionary containing pre-processing parameters
+    #     """
+    #
+    #     def check_processing_parameters(document, **kwargs):
+    #         """Check whether pre-processing parameters match those found in existing document"""
+    #         metadata = document.metadata.get("imaging_lesa", dict())
+    #         for key in [
+    #             "linearization_mode",
+    #             "mz_min",
+    #             "mz_max",
+    #             "mz_bin",
+    #             "im_on",
+    #             "auto_range",
+    #             "baseline_correction",
+    #             "baseline_method",
+    #         ]:
+    #             if metadata.get(key, None) != kwargs[key]:
+    #                 return False
+    #         return True
+    #
+    #     t_start = time.time()
+    #     tsum = 0
+    #     n_items = len(filelist)
+    #
+    #     for i, file_item in enumerate(filelist):
+    #         tincr = time.time()
+    #         # pre-allocate data
+    #         dt_x, dt_y = [], []
+    #
+    #         # unpack data
+    #         idx, file_path, start_scan, end_scan, information = file_item
+    #         path = check_waters_path(file_path)
+    #         __, filename = os.path.split(path)
+    #         spectrum_name = f"{idx}: {filename}"
+    #         if not check_path_exists(path):
+    #             logger.warning("File with path: {} does not exist".format(path))
+    #             continue
+    #
+    #         # check if dataset is already present in the document and has matching parameters
+    #         if spectrum_name in document.multipleMassSpectrum:
+    #             if check_processing_parameters(document, **kwargs):
+    #                 logger.info(
+    #                     f"File with name {spectrum_name} is already present and has identical"
+    #                     " pre-processing parameters. Moving on to the next file."
+    #                 )
+    #                 continue
+    #
+    #         # get file reader
+    #         reader = self.get_waters_api_reader(path)
+    #
+    #         # load mass spectrum
+    #         mz_x, mz_y = self._get_waters_api_spectrum_data(reader, start_scan=start_scan, end_scan=end_scan)
+    #
+    #         # linearize spectrum
+    #         mz_x, mz_y = pr_spectra.linearize_data(mz_x, mz_y, **copy.deepcopy(kwargs))
+    #
+    #         # remove background
+    #         mz_y = pr_spectra.baseline_1D(mz_y, mode=kwargs.get("baseline_method"), **copy.deepcopy(kwargs))
+    #
+    #         # load mobilogram
+    #         if kwargs.get("im_on", False):
+    #             dt_x, dt_y = self.waters_im_extract_dt(path)
+    #
+    #         # add data
+    #         data = {
+    #             "index": idx,
+    #             "xvals": mz_x,
+    #             "yvals": mz_y.astype(np.float32),
+    #             "ims1D": dt_y,
+    #             "ims1DX": dt_x,
+    #             "xlabel": "Drift time (bins)",
+    #             "xlabels": "m/z (Da)",
+    #             "path": path,
+    #             "filename": filename,
+    #             "file_information": information,
+    #         }
+    #         self.documentTree.on_update_data(data, spectrum_name, document, data_type="extracted.spectrum")
+    #         tincrtot = time.time() - tincr
+    #         tsum += tincrtot
+    #         tavg = (tsum / (i + 1)) * (n_items - i)
+    #         logger.info(
+    #             f"Added file {spectrum_name} in {tincrtot:.2f}s. Approx. remaining {tavg:.2f}s" f" [{i+1}/{n_items}]"
+    #         )
+    #
+    #     # add summed mass spectrum
+    #     self.add_summed_spectrum(document, **copy.deepcopy(kwargs))
+    #
+    #     # add metadata
+    #     document.metadata["imaging_lesa"] = kwargs
+    #
+    #     # compute normalizations
+    #     if kwargs.get("add_normalizations", True):
+    #         proc = ImagingNormalizationProcessor(document)
+    #         document = proc.document
+    #
+    #     logger.info(f"Added data to document '{document.title}' in {time.time()-t_start:.2f}s")
 
     def on_extract_LESA_img_from_mass_range(self, x_min, x_max, document_title):
         """Extract image data for particular m/z range from multiple MS spectra
@@ -2226,7 +2205,7 @@ class DataHandling(LoadHandler, ExportHandler):
         )
         #
         if dlg.ShowModal() == "ok":
-            pathlist = dlg.GetPaths()
+            pathlist = dlg.get_paths()
 
         if len(pathlist) == 0:
             self.update_statusbar("Please select at least one file in order to continue.", 4)
@@ -2587,7 +2566,7 @@ class DataHandling(LoadHandler, ExportHandler):
     #
     #     if hasattr(dlg, "ShowModal"):
     #         if dlg.ShowModal() == wx.ID_OK:
-    #             file_path = dlg.GetPaths()
+    #             file_path = dlg.get_paths()
     #
     #     if self.config.threading:
     #         self.on_threading(action="load.document", args=(file_path,))

@@ -168,20 +168,20 @@ class PanelImagingLESAViewer(MiniFrame):
         self.resize_plot_check = menu.AppendCheckItem(-1, "Resize on saving")
         self.resize_plot_check.Check(self.config.resize)
         save_figure_menu_item = make_menu_item(
-            menu, id=wx.ID_ANY, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
+            menu, evt_id=wx.ID_ANY, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
         )
         menu.AppendItem(save_figure_menu_item)
         menu_action_copy_to_clipboard = make_menu_item(
-            parent=menu, id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self.icons.iconsLib["filelist_16"]
+            parent=menu, evt_id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self.icons.iconsLib["filelist_16"]
         )
         menu.AppendItem(menu_action_copy_to_clipboard)
 
         menu.AppendSeparator()
-        reset_plot_menu_item = make_menu_item(menu, id=wx.ID_ANY, text="Reset plot zoom")
+        reset_plot_menu_item = make_menu_item(menu, evt_id=wx.ID_ANY, text="Reset plot zoom")
         menu.AppendItem(reset_plot_menu_item)
 
         clear_plot_menu_item = make_menu_item(
-            menu, id=wx.ID_ANY, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
+            menu, evt_id=wx.ID_ANY, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
         )
         menu.AppendItem(clear_plot_menu_item)
 

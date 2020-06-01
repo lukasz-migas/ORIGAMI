@@ -39,7 +39,7 @@ def get_driftscope_path():
 
 
 class WatersIMReader(WatersRawReader):
-    def __init__(self, path, driftscope_path=None, temp_dir=None):
+    def __init__(self, path, driftscope_path=None, temp_dir=None, silent: bool = False):
         super().__init__(path)
         self.path = check_waters_path(path)
         self._driftscope = driftscope_path if driftscope_path is not None else get_driftscope_path()
@@ -49,7 +49,7 @@ class WatersIMReader(WatersRawReader):
         self._last = None
         self._rt_min = None
         self._dt_ms = None
-        if self.n_functions < 2:
+        if self.n_functions < 2 and not silent:
             raise NoIonMobilityDatasetError(f"Dataset {path} does not have ion mobility dimension")
 
     @property
@@ -75,7 +75,6 @@ class WatersIMReader(WatersRawReader):
         """Executes the extraction command"""
         process_id = Popen(cmd, shell=self.verbose, creationflags=CREATE_NEW_CONSOLE)
         process_id.wait()
-        logger.debug(f">>> {cmd}")
 
     def get_filepath(self, filename):
         """Combines output directory with new filename"""

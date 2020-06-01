@@ -5,7 +5,9 @@ import math
 import time
 import logging
 from sys import platform
+from copy import deepcopy
 from typing import Dict
+from typing import List
 from typing import Optional
 
 # Third-party imports
@@ -13,10 +15,14 @@ import numpy as np
 
 # Local imports
 from origami.utils.check import check_axes_spacing
+from origami.objects.misc import FileItem
 from origami.config.config import CONFIG
+from origami.objects.groups import MassSpectrumGroup
 from origami.readers.io_mgf import MGFReader
 from origami.readers.io_mzml import mzMLReader
+from origami.utils.utilities import time_loop
 from origami.utils.utilities import report_time
+from origami.objects.document import DocumentStore
 from origami.utils.decorators import check_os
 from origami.utils.exceptions import NoIonMobilityDatasetError
 from origami.config.environment import ENV
@@ -26,6 +32,7 @@ from origami.objects.containers import ChromatogramObject
 from origami.objects.containers import MassSpectrumObject
 from origami.objects.containers import MassSpectrumHeatmapObject
 from origami.processing.heatmap import equalize_heatmap_spacing
+from origami.processing.imaging import ImagingNormalizationProcessor
 from origami.readers.io_text_files import TextHeatmapReader
 from origami.readers.io_text_files import TextSpectrumReader
 from origami.readers.io_text_files import AnnotatedDataReader
@@ -317,6 +324,14 @@ class LoadHandler:
         return mzdt_obj
 
     @staticmethod
+    @check_os("win32")
+    def get_waters_info(path: str):
+        """Retrieves information about the file in question"""
+        reader = WatersIMReader(path)
+        info = dict(is_im=reader.is_im, n_scans=reader.n_scans(0), mz_range=reader.mz_range)
+        return info
+
+    @staticmethod
     def load_text_spectrum_data(path):
         """Read mass spectrum data from text file"""
         reader = TextSpectrumReader(path)
@@ -558,3 +573,118 @@ class LoadHandler:
         document.set_reader("data_reader", reader)
 
         return document
+
+    @check_os("win32")
+    def load_lesa_data(self, filelist: List[FileItem], **proc_kwargs):
+        """Vendor agnostic LESA data load"""
+        t_start = time.time()
+        n_items = len(filelist)
+
+        # iterate over all selected files
+        mass_spectra, chromatograms, mobilograms = {}, {}, {}
+        for file_id, file_info in enumerate(filelist):
+            # create item name
+            __, filename = os.path.split(file_info.path)
+            spectrum_name = f"{file_info.variable}={filename}"
+
+            # get item data
+            mz_obj, rt_obj, dt_obj = self._load_waters_data_chunk(file_info, **deepcopy(proc_kwargs))
+            mass_spectra[spectrum_name] = mz_obj
+            chromatograms[spectrum_name] = rt_obj
+            if dt_obj is not None:
+                mobilograms[spectrum_name] = dt_obj
+            LOGGER.debug(time_loop(t_start, file_id, n_items))
+
+        data_out = dict(mass_spectra=mass_spectra, chromatograms=chromatograms, mobilograms=mobilograms)
+        # average mass spectrum
+        if mass_spectra:
+            mz_obj = MassSpectrumGroup(mass_spectra).mean(**deepcopy(proc_kwargs))
+            data_out["mz"] = mz_obj
+        return data_out
+
+    def load_lesa_document(self, path, filelist: List[FileItem], **proc_kwargs) -> DocumentStore:
+        """Load Waters data and set in ORIGAMI document"""
+        document = ENV.get_new_document("imaging", path)
+
+        filelist = self.check_lesa_document(document, filelist, **proc_kwargs)
+        data = self.load_lesa_data(filelist, **proc_kwargs)
+        document = ENV.set_document(document, data=data)
+        document.add_config("imaging", proc_kwargs)
+        ImagingNormalizationProcessor(document)
+
+        return document
+
+    @staticmethod
+    def check_lesa_document(document: DocumentStore, filelist: List[FileItem], **proc_kwargs) -> List[FileItem]:
+        """Check whether the dataset already has some spectral data"""
+
+        def compare_parameters():
+            """Compare processing parameters"""
+            for key in [
+                "linearization_mode",
+                "x_min",
+                "x_max",
+                "bin_size",
+                "im_on",
+                "auto_range",
+                "baseline_correction",
+                "baseline_method",
+            ]:
+                if _proc_kwargs.get(key, None) != proc_kwargs[key]:
+                    return False
+                return True
+
+        def remove_item():
+            """Remove item that has already been processed"""
+            for file_info in filelist:
+                if file_info.path == path:
+                    filelist.remove(file_info)
+                    LOGGER.debug(
+                        f"File with path `{path}` has been extracted before with the same pre-processing"
+                        f" parameters - not extracting it again."
+                    )
+                    break
+
+        metadata = document.get_config("imaging", None)
+
+        if metadata is None:
+            return filelist
+
+        # check data of the each spectrum
+        mass_spectra = document["MassSpectra"]
+        for name in mass_spectra:
+            obj = mass_spectra[name]
+            if "preprocessing" not in obj.attrs or "file_info" not in obj.attrs:
+                continue
+
+            _proc_kwargs = obj.attrs["preprocessing"]
+            path = obj.attrs["file_info"]["path"]
+            if compare_parameters():
+                remove_item()
+
+        return filelist
+
+    @staticmethod
+    @check_os("win32")
+    def _load_waters_data_chunk(file_info: FileItem, **proc_kwargs):
+        """Load waters data for single chunk"""
+        mz_obj, dt_obj, rt_obj = None, None, None
+        reader = WatersIMReader(file_info.path, silent=True)
+        mz_start, mz_end = file_info.mz_range
+        scan_start, scan_end = file_info.scan_range
+
+        # get mass spectrum
+        mz_obj = reader.get_spectrum(scan_start, scan_end)
+        mz_obj.linearize(**proc_kwargs)
+        mz_obj.baseline(**proc_kwargs)
+        mz_obj.set_metadata(dict(preprocessing=proc_kwargs, file_info=dict(file_info._asdict())))  # noqa
+
+        # get chromatogram
+        rt_start, rt_end = reader.convert_scan_to_min([scan_start, scan_end])
+        rt_obj = reader.extract_rt(rt_start=rt_start, rt_end=rt_end, mz_start=mz_start, mz_end=mz_end)
+
+        # get mobilogram
+        if file_info.im_on:
+            dt_obj = reader.extract_dt(rt_start=rt_start, rt_end=rt_end, mz_start=mz_start, mz_end=mz_end)
+
+        return mz_obj, rt_obj, dt_obj

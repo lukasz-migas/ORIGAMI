@@ -265,7 +265,7 @@ class PanelTextlist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_textPanel_show_chromatogram,
+                evt_id=ID_textPanel_show_chromatogram,
                 text="Show chromatogram",
                 bitmap=self.icons.iconsLib["chromatogram_16"],
             )
@@ -273,7 +273,7 @@ class PanelTextlist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_textPanel_show_mobilogram,
+                evt_id=ID_textPanel_show_mobilogram,
                 text="Show mobilogram\tM",
                 bitmap=self.icons.iconsLib["mobilogram_16"],
             )
@@ -281,7 +281,7 @@ class PanelTextlist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_textPanel_show_heatmap,
+                evt_id=ID_textPanel_show_heatmap,
                 text="Show heatmap\tH",
                 bitmap=self.icons.iconsLib["heatmap_16"],
             )
@@ -291,7 +291,7 @@ class PanelTextlist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_textPanel_assignColor,
+                evt_id=ID_textPanel_assignColor,
                 text="Assign new color\tC",
                 bitmap=self.icons.iconsLib["color_panel_16"],
             )
@@ -299,7 +299,7 @@ class PanelTextlist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_textPanel_editItem,
+                evt_id=ID_textPanel_editItem,
                 text="Edit file information\tE",
                 bitmap=self.icons.iconsLib["info16"],
             )
@@ -308,7 +308,7 @@ class PanelTextlist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_textPanel_delete_rightClick,
+                evt_id=ID_textPanel_delete_rightClick,
                 text="Remove item\tDelete",
                 bitmap=self.icons.iconsLib["bin16"],
             )
@@ -332,7 +332,7 @@ class PanelTextlist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_textPanel_annotate_charge_state,
+                evt_id=ID_textPanel_annotate_charge_state,
                 text="Assign charge state (selected)",
                 bitmap=self.icons.iconsLib["assign_charge_16"],
             )
@@ -340,7 +340,7 @@ class PanelTextlist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_textPanel_annotate_alpha,
+                evt_id=ID_textPanel_annotate_alpha,
                 text="Assign transparency value (selected)",
                 bitmap=self.icons.iconsLib["transparency_16"],
             )
@@ -348,7 +348,7 @@ class PanelTextlist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_textPanel_annotate_mask,
+                evt_id=ID_textPanel_annotate_mask,
                 text="Assign mask value (selected)",
                 bitmap=self.icons.iconsLib["mask_16"],
             )
@@ -356,7 +356,7 @@ class PanelTextlist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_textPanel_annotate_min_threshold,
+                evt_id=ID_textPanel_annotate_min_threshold,
                 text="Assign minimum threshold (selected)",
                 bitmap=self.icons.iconsLib["min_threshold_16"],
             )
@@ -364,7 +364,7 @@ class PanelTextlist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_textPanel_annotate_max_threshold,
+                evt_id=ID_textPanel_annotate_max_threshold,
                 text="Assign maximum threshold (selected)",
                 bitmap=self.icons.iconsLib["max_threshold_16"],
             )
@@ -373,7 +373,7 @@ class PanelTextlist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_textPanel_changeColorBatch_color,
+                evt_id=ID_textPanel_changeColorBatch_color,
                 text="Assign new color using color picker (selected)",
                 bitmap=self.icons.iconsLib["color_panel_16"],
             )
@@ -381,7 +381,7 @@ class PanelTextlist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_textPanel_changeColorBatch_palette,
+                evt_id=ID_textPanel_changeColorBatch_palette,
                 text="Assign new color using color palette (selected)",
                 bitmap=self.icons.iconsLib["blank_16"],
             )
@@ -389,7 +389,7 @@ class PanelTextlist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_textPanel_changeColorBatch_colormap,
+                evt_id=ID_textPanel_changeColorBatch_colormap,
                 text="Assign new color using colormap (selected)",
                 bitmap=self.icons.iconsLib["blank_16"],
             )
@@ -397,7 +397,7 @@ class PanelTextlist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_textPanel_changeColormapBatch,
+                evt_id=ID_textPanel_changeColormapBatch,
                 text="Assign new colormap (selected)",
                 bitmap=self.icons.iconsLib["randomize_16"],
             )
@@ -415,7 +415,7 @@ class PanelTextlist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_load_multiple_text_2D,
+                evt_id=ID_load_multiple_text_2D,
                 text="Add files\tCtrl+W",
                 bitmap=self.icons.iconsLib["file_csv_16"],
             )
@@ -424,7 +424,7 @@ class PanelTextlist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_addNewOverlayDoc,
+                evt_id=ID_addNewOverlayDoc,
                 text="Create blank COMPARISON document\tAlt+D",
                 bitmap=self.icons.iconsLib["new_document_16"],
             )
@@ -445,7 +445,7 @@ class PanelTextlist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_textPanel_clear_selected,
+                evt_id=ID_textPanel_clear_selected,
                 text="Remove from list (selected)",
                 bitmap=self.icons.iconsLib["clear_16"],
             )
@@ -453,7 +453,7 @@ class PanelTextlist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_textPanel_clear_all,
+                evt_id=ID_textPanel_clear_all,
                 text="Remove from list (all)",
                 bitmap=self.icons.iconsLib["clear_16"],
             )
@@ -464,7 +464,7 @@ class PanelTextlist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_textPanel_delete_selected,
+                evt_id=ID_textPanel_delete_selected,
                 text="Delete documents (selected)",
                 bitmap=self.icons.iconsLib["bin16"],
             )
@@ -472,7 +472,7 @@ class PanelTextlist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_textPanel_delete_all,
+                evt_id=ID_textPanel_delete_all,
                 text="Delete documents (all)",
                 bitmap=self.icons.iconsLib["bin16"],
             )

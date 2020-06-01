@@ -755,15 +755,19 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         )
         self.zoom_sensitivity_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_zoom)
 
-        self.general_multi_thread_check = make_checkbox(panel, "Multi-threading", ID=ID_extraSettings_multiThreading)
+        self.general_multi_thread_check = make_checkbox(
+            panel, "Multi-threading", evt_id=ID_extraSettings_multiThreading
+        )
         self.general_multi_thread_check.SetValue(self.config.threading)
         self.general_multi_thread_check.Bind(wx.EVT_CHECKBOX, self.on_update_states)
 
-        self.general_log_to_file_check = make_checkbox(panel, "Log events to file", ID=ID_extraSettings_logging)
+        self.general_log_to_file_check = make_checkbox(panel, "Log events to file", evt_id=ID_extraSettings_logging)
         self.general_log_to_file_check.SetValue(self.config.logging)
         self.general_log_to_file_check.Bind(wx.EVT_CHECKBOX, self.on_update_states)
 
-        self.general_auto_save_check = make_checkbox(panel, "Auto-save settings", ID=ID_extraSettings_autoSaveSettings)
+        self.general_auto_save_check = make_checkbox(
+            panel, "Auto-save settings", evt_id=ID_extraSettings_autoSaveSettings
+        )
         self.general_auto_save_check.SetValue(self.config.autoSaveSettings)
         self.general_auto_save_check.Bind(wx.EVT_CHECKBOX, self.on_update_states)
 

@@ -167,14 +167,15 @@ def time_loop(t_start: float, n_item: int, n_total: int, as_percentage: bool = T
     timed : str
         loop timing information
     """
+    n_item += 1
     t_tot = time.time() - t_start
-    t_avg = t_tot / (n_item + 1)
-    t_rem = t_avg * (n_total - n_item + 1)
+    t_avg = t_tot / n_item
+    t_rem = t_avg * (n_total - n_item)
 
     # calculate progress
-    progress = f"{n_item}/{n_total + 1}"
+    progress = f"{n_item}/{n_total}"
     if as_percentage:
-        progress = f"{(n_item / (n_total + 1)) * 100:.1f}%"
+        progress = f"{(n_item / n_total) * 100:.1f}%"
 
     return f"[Avg: {format_time(t_avg)} | Rem: {format_time(t_rem)} | Tot: {format_time(t_tot)} || {progress}]"
 

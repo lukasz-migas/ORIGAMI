@@ -39,17 +39,14 @@ from origami.ids import ID_ionPanel_changeColorBatch_palette
 from origami.ids import ID_ionPanel_changeColorBatch_colormap
 from origami.styles import make_tooltip
 from origami.styles import make_menu_item
-
 # from origami.utils.check import isempty
 # from origami.utils.color import get_font_color
 from origami.utils.color import convert_rgb_1_to_255
-
 # from origami.utils.color import convert_rgb_255_to_1
 # from origami.utils.labels import get_ion_name_from_label
 from origami.config.config import CONFIG
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
-
 # from origami.gui_elements.dialog_ask import DialogAsk
 from origami.gui_elements.panel_base import TablePanelBase
 
@@ -308,7 +305,7 @@ class PanelPeaklist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_ionPanel_show_zoom_in_MS,
+                evt_id=ID_ionPanel_show_zoom_in_MS,
                 text="Zoom in on the ion\tZ",
                 bitmap=self.icons.iconsLib["zoom_16"],
             )
@@ -316,7 +313,7 @@ class PanelPeaklist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_ionPanel_show_chromatogram,
+                evt_id=ID_ionPanel_show_chromatogram,
                 text="Show chromatogram",
                 bitmap=self.icons.iconsLib["chromatogram_16"],
             )
@@ -324,25 +321,25 @@ class PanelPeaklist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_ionPanel_show_mobilogram,
+                evt_id=ID_ionPanel_show_mobilogram,
                 text="Show mobilogram\tM",
                 bitmap=self.icons.iconsLib["mobilogram_16"],
             )
         )
         menu_action_show_heatmap = make_menu_item(
-            parent=menu, id=ID_ionPanel_show_heatmap, text="Show heatmap", bitmap=self.icons.iconsLib["heatmap_16"]
+            parent=menu, evt_id=ID_ionPanel_show_heatmap, text="Show heatmap", bitmap=self.icons.iconsLib["heatmap_16"]
         )
         menu.AppendItem(menu_action_show_heatmap)
 
         menu_action_process_heatmap = make_menu_item(
-            parent=menu, id=ID_ionPanel_show_heatmap, text="Process heatmap..."
+            parent=menu, evt_id=ID_ionPanel_show_heatmap, text="Process heatmap..."
         )
         menu.AppendItem(menu_action_process_heatmap)
         menu.AppendSeparator()
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_ionPanel_assignColor,
+                evt_id=ID_ionPanel_assignColor,
                 text="Assign new color\tC",
                 bitmap=self.icons.iconsLib["color_panel_16"],
             )
@@ -350,7 +347,7 @@ class PanelPeaklist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_ionPanel_editItem,
+                evt_id=ID_ionPanel_editItem,
                 text="Edit ion information\tE",
                 bitmap=self.icons.iconsLib["info16"],
             )
@@ -359,7 +356,7 @@ class PanelPeaklist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_ionPanel_delete_rightClick,
+                evt_id=ID_ionPanel_delete_rightClick,
                 text="Remove item\tDelete",
                 bitmap=self.icons.iconsLib["bin16"],
             )
@@ -395,7 +392,7 @@ class PanelPeaklist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_highlightRectAllIons,
+                evt_id=ID_highlightRectAllIons,
                 text="Highlight extracted items on MS plot (all)\tH",
                 bitmap=self.icons.iconsLib["highlight_16"],
             )
@@ -403,7 +400,7 @@ class PanelPeaklist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_ionPanel_annotate_charge_state,
+                evt_id=ID_ionPanel_annotate_charge_state,
                 text="Assign charge state (selected)",
                 bitmap=self.icons.iconsLib["assign_charge_16"],
             )
@@ -411,7 +408,7 @@ class PanelPeaklist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_ionPanel_annotate_alpha,
+                evt_id=ID_ionPanel_annotate_alpha,
                 text="Assign transparency value (selected)",
                 bitmap=self.icons.iconsLib["transparency_16"],
             )
@@ -419,7 +416,7 @@ class PanelPeaklist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_ionPanel_annotate_mask,
+                evt_id=ID_ionPanel_annotate_mask,
                 text="Assign mask value (selected)",
                 bitmap=self.icons.iconsLib["mask_16"],
             )
@@ -427,7 +424,7 @@ class PanelPeaklist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_ionPanel_annotate_min_threshold,
+                evt_id=ID_ionPanel_annotate_min_threshold,
                 text="Assign minimum threshold (selected)",
                 bitmap=self.icons.iconsLib["min_threshold_16"],
             )
@@ -435,7 +432,7 @@ class PanelPeaklist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_ionPanel_annotate_max_threshold,
+                evt_id=ID_ionPanel_annotate_max_threshold,
                 text="Assign maximum threshold (selected)",
                 bitmap=self.icons.iconsLib["max_threshold_16"],
             )
@@ -444,7 +441,7 @@ class PanelPeaklist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_ionPanel_changeColorBatch_color,
+                evt_id=ID_ionPanel_changeColorBatch_color,
                 text="Assign new color using color picker (selected)",
                 bitmap=self.icons.iconsLib["color_panel_16"],
             )
@@ -452,7 +449,7 @@ class PanelPeaklist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_ionPanel_changeColorBatch_palette,
+                evt_id=ID_ionPanel_changeColorBatch_palette,
                 text="Assign new color using color palette (selected)",
                 bitmap=self.icons.iconsLib["blank_16"],
             )
@@ -460,7 +457,7 @@ class PanelPeaklist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_ionPanel_changeColorBatch_colormap,
+                evt_id=ID_ionPanel_changeColorBatch_colormap,
                 text="Assign new color using colormap (selected)",
                 bitmap=self.icons.iconsLib["blank_16"],
             )
@@ -468,7 +465,7 @@ class PanelPeaklist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_ionPanel_changeColormapBatch,
+                evt_id=ID_ionPanel_changeColormapBatch,
                 text="Assign new colormap (selected)",
                 bitmap=self.icons.iconsLib["randomize_16"],
             )
@@ -538,7 +535,7 @@ class PanelPeaklist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_ionPanel_clear_selected,
+                evt_id=ID_ionPanel_clear_selected,
                 text="Remove from list (selected)",
                 bitmap=self.icons.iconsLib["clear_16"],
             )
@@ -546,7 +543,7 @@ class PanelPeaklist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_ionPanel_clear_all,
+                evt_id=ID_ionPanel_clear_all,
                 text="Remove from list (all)",
                 bitmap=self.icons.iconsLib["clear_16"],
             )
@@ -556,7 +553,7 @@ class PanelPeaklist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_ionPanel_delete_selected,
+                evt_id=ID_ionPanel_delete_selected,
                 text="Remove from file (selected)",
                 bitmap=self.icons.iconsLib["bin16"],
             )
@@ -564,7 +561,7 @@ class PanelPeaklist(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_ionPanel_delete_all,
+                evt_id=ID_ionPanel_delete_all,
                 text="Remove from file (all)",
                 bitmap=self.icons.iconsLib["bin16"],
             )

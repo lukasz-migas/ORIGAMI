@@ -229,7 +229,7 @@ class PanelMultiFile(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_mmlPanel_plot_MS,
+                evt_id=ID_mmlPanel_plot_MS,
                 text="Show mass spectrum\tM",
                 bitmap=self.icons.iconsLib["mass_spectrum_16"],
             )
@@ -237,7 +237,7 @@ class PanelMultiFile(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_mmlPanel_plot_DT,
+                evt_id=ID_mmlPanel_plot_DT,
                 text="Show mobilogram\tD",
                 bitmap=self.icons.iconsLib["mobilogram_16"],
             )
@@ -247,7 +247,7 @@ class PanelMultiFile(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_mmlPanel_assignColor,
+                evt_id=ID_mmlPanel_assignColor,
                 text="Assign new color\tC",
                 bitmap=self.icons.iconsLib["color_panel_16"],
             )
@@ -256,7 +256,7 @@ class PanelMultiFile(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_mmlPanel_delete_rightClick,
+                evt_id=ID_mmlPanel_delete_rightClick,
                 text="Remove item\tDelete",
                 bitmap=self.icons.iconsLib["bin16"],
             )
@@ -274,7 +274,7 @@ class PanelMultiFile(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_mmlPanel_changeColorBatch_color,
+                evt_id=ID_mmlPanel_changeColorBatch_color,
                 text="Assign color for selected items",
                 bitmap=self.icons.iconsLib["color_panel_16"],
             )
@@ -282,7 +282,7 @@ class PanelMultiFile(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_mmlPanel_changeColorBatch_palette,
+                evt_id=ID_mmlPanel_changeColorBatch_palette,
                 text="Color selected items using color palette",
                 bitmap=self.icons.iconsLib["blank_16"],
             )
@@ -290,7 +290,7 @@ class PanelMultiFile(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_mmlPanel_changeColorBatch_colormap,
+                evt_id=ID_mmlPanel_changeColorBatch_colormap,
                 text="Color selected items using colormap",
                 bitmap=self.icons.iconsLib["blank_16"],
             )
@@ -310,7 +310,7 @@ class PanelMultiFile(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_mmlPanel_add_files_toNewDoc,
+                evt_id=ID_mmlPanel_add_files_toNewDoc,
                 text="Add files to blank MANUAL document",
                 bitmap=self.icons.iconsLib["new_document_16"],
             )
@@ -319,7 +319,7 @@ class PanelMultiFile(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_mmlPanel_add_manualDoc,
+                evt_id=ID_mmlPanel_add_manualDoc,
                 text="Create blank MANUAL document",
                 bitmap=self.icons.iconsLib["guide_16"],
             )
@@ -340,7 +340,10 @@ class PanelMultiFile(TablePanelBase):
         menu.Append(ID_mmlPanel_clear_selected, "Clear selected items")
         menu.AppendItem(
             make_menu_item(
-                parent=menu, id=ID_mmlPanel_clear_all, text="Clear all items", bitmap=self.icons.iconsLib["clear_16"]
+                parent=menu,
+                evt_id=ID_mmlPanel_clear_all,
+                text="Clear all items",
+                bitmap=self.icons.iconsLib["clear_16"],
             )
         )
         menu.AppendSeparator()
@@ -383,7 +386,7 @@ class PanelMultiFile(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_mmlPanel_overlayWaterfall,
+                evt_id=ID_mmlPanel_overlayWaterfall,
                 text="Overlay raw mass spectra",
                 bitmap=self.icons.iconsLib["panel_waterfall_16"],
             )
@@ -392,7 +395,7 @@ class PanelMultiFile(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_mmlPanel_overlayProcessedSpectra,
+                evt_id=ID_mmlPanel_overlayProcessedSpectra,
                 text="Overlay processed spectra (UniDec)",
                 bitmap=self.icons.iconsLib["blank_16"],
             )
@@ -400,7 +403,7 @@ class PanelMultiFile(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_mmlPanel_overlayFittedSpectra,
+                evt_id=ID_mmlPanel_overlayFittedSpectra,
                 text="Overlay fitted spectra (UniDec)",
                 bitmap=self.icons.iconsLib["blank_16"],
             )
@@ -408,7 +411,7 @@ class PanelMultiFile(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_mmlPanel_overlayMW,
+                evt_id=ID_mmlPanel_overlayMW,
                 text="Overlay molecular weight distribution (UniDec)",
                 bitmap=self.icons.iconsLib["blank_16"],
             )
@@ -416,7 +419,7 @@ class PanelMultiFile(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_mmlPanel_overlayChargeStates,
+                evt_id=ID_mmlPanel_overlayChargeStates,
                 text="Overlay charge state distribution (UniDec)",
                 bitmap=self.icons.iconsLib["blank_16"],
             )
@@ -438,7 +441,7 @@ class PanelMultiFile(TablePanelBase):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_mmlPanel_batchRunUniDec,
+                evt_id=ID_mmlPanel_batchRunUniDec,
                 text="Run UniDec for selected items",
                 bitmap=self.icons.iconsLib["process_unidec_16"],
             )

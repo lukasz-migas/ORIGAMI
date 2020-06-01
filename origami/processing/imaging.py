@@ -1,66 +1,90 @@
 """Imaging mass spectrometry normalization"""
+# Standard library imports
+import logging
+
 # Third-party imports
 import numpy as np
+import regex
+from natsort import natsorted
+
+# Local imports
+from origami.objects.document import DocumentStore
+from origami.objects.containers import MassSpectrumObject
+
+LOGGER = logging.getLogger(__name__)
 
 
 class ImagingNormalizationProcessor:
-    def __init__(self, document):
+    def __init__(self, document: DocumentStore):
         self.document = document
 
         self.n_px = self.generate_metadata()
         self.compute_normalizations()
 
+    @staticmethod
+    def _reduce_total(mz_obj: MassSpectrumObject):
+        """Compute TIC normalization"""
+        return np.sum(mz_obj.y)
+
+    @staticmethod
+    def _reduce_rms(mz_obj: MassSpectrumObject):
+        """Compute TIC normalization"""
+        return np.sqrt(np.mean(np.square(mz_obj.y)))
+
+    @staticmethod
+    def _reduce_median(mz_obj: MassSpectrumObject):
+        """Compute TIC normalization"""
+        return np.median(mz_obj.y[mz_obj.y > 0])
+
+    @staticmethod
+    def _reduce_l2(mz_obj: MassSpectrumObject):
+        """Compute TIC normalization"""
+        return np.sqrt(np.sum(np.square(mz_obj.y)))
+
     def generate_metadata(self):
-        meta = self.document.metadata["imaging_lesa"]
+        meta = self.document.get_config("imaging")
 
         # compute parameters
         n_px = int(meta["x_dim"] * meta["y_dim"])
+        LOGGER.debug(f"Document has {n_px} pixels")
         return n_px
+
+    def get_spectrum(self):
+        """Yields mass spectrum"""
+
+        spectra = self.document["MassSpectra"]
+        names = natsorted(list(spectra.keys()))
+        for name in names:
+            obj = spectra[name]
+            if not regex.findall(r"\d+=", name) or "file_info" not in obj.attrs:
+                LOGGER.debug(f"Skipped {name} - it is missing index information")
+                continue
+            # variable = obj.attrs["file_info"]["variable"]
+            yield MassSpectrumObject(obj.x[:], obj.y[:])
 
     def compute_normalizations(self):
         """Computes each normalization for the dataset"""
-        self.add_normalization(*self.add_total_normalization())
-        self.add_normalization(*self.add_rms_normalization())
-        self.add_normalization(*self.add_median_normalization())
-        self.add_normalization(*self.add_l2_normalization())
+        norm_reduce = [
+            (0, "total", self._reduce_total),
+            (1, "sqrt", self._reduce_rms),
+            (2, "median", self._reduce_median),
+            (3, "l2", self._reduce_l2),
+        ]
 
-    def add_total_normalization(self):
-        """Compute the TIC normalization"""
-        # total intensity normalization
-        norm_intensity = np.zeros((self.n_px,), dtype=np.float32)
-        for i, dataset in enumerate(self.document.multipleMassSpectrum.values()):
-            norm_intensity[i] = np.sum(dataset["yvals"])
-        return norm_intensity, "total"
+        # pre-allocate arrays
+        norm_intensity = np.zeros((self.n_px, len(norm_reduce)), dtype=np.float32)
+        for i, mz_obj in enumerate(self.get_spectrum()):
+            for j, _, reduce in norm_reduce:
+                norm_intensity[i, j] = reduce(mz_obj)
 
-    def add_rms_normalization(self):
-        """Compute the RMS normalization"""
-        # root-mean square normalization
-        norm_intensity = np.zeros((self.n_px,), dtype=np.float32)
-        for i, dataset in enumerate(self.document.multipleMassSpectrum.values()):
-            norm_intensity[i] = np.sqrt(np.mean(np.square(dataset["yvals"])))
-        return norm_intensity, "sqrt"
+        # write to disk
+        for j, name, _ in norm_reduce:
+            self.add_normalization(name, norm_intensity[:, j])
 
-    def add_median_normalization(self):
-        """Compute the MEDIAN normalization"""
-        # median normalization
-        norm_intensity = np.zeros((self.n_px,), dtype=np.float32)
-        for i, dataset in enumerate(self.document.multipleMassSpectrum.values()):
-            norm_intensity[i] = np.median(dataset["yvals"][dataset["yvals"] > 0])
-        return norm_intensity, "median"
-
-    def add_l2_normalization(self):
-        """Compute the L2 normalization"""
-        # l2 normalization
-        norm_intensity = np.zeros((self.n_px,), dtype=np.float32)
-        for i, dataset in enumerate(self.document.multipleMassSpectrum.values()):
-            norm_intensity[i] = np.sqrt(np.sum(np.square(dataset["yvals"])))
-        return norm_intensity, "l2"
-
-    def add_normalization(self, normalization, name):
+    def add_normalization(self, name, normalization):
         """Appends normalization to the metadata store"""
         # make sure there is somewhere to add normalization to
-        if "norm" not in self.document.metadata["imaging_lesa"]:
-            self.document.metadata["imaging_lesa"]["norm"] = dict()
-
-        # actually add data
-        self.document.metadata["imaging_lesa"]["norm"][name] = normalization
+        self.document.add_metadata(
+            f"Normalization={name}", data=dict(array=normalization), attrs=dict(normalization=name)
+        )
+        LOGGER.debug(f"Added normalization={name}")

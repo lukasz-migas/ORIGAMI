@@ -16,13 +16,12 @@ LOGGER = logging.getLogger(__name__)
 class QueueHandler:
     """Simple Queue handler that executes code as its being added to the queue"""
 
-    def __init__(self, parent, n_threads=2, *args):
+    def __init__(self, n_threads=2, *args):
         super().__init__(*args)
 
         max_size = 0
 
         # initialize queue
-        self.parent = parent
         self.q = queue.Queue(maxsize=max_size)
 
         for _ in range(n_threads):
@@ -43,6 +42,21 @@ class QueueHandler:
         self.q.put(call_obj)
         LOGGER.debug(f"Added new task to the queue (queue size ~{self.count()})")
         self.update()
+
+    def add_call(self, func, args, func_pre=None, func_result=None, func_error=None, func_post=None, **kwargs):
+        """Add call but without implicitly specifying it as a call"""
+        # if func_error is None:
+        #     func_error = self.on_error
+        call_obj = Call(
+            func,
+            *args,
+            func_pre=func_pre,
+            func_post=func_post,
+            func_error=func_error,
+            func_result=func_result,
+            **kwargs,
+        )
+        self.add(call_obj)
 
     def clear(self):
         """Safely empty queue from waiting tasks"""
@@ -83,3 +97,6 @@ class QueueHandler:
 
     def __repr__(self):
         return f"Queue<count={self.count()}>"
+
+
+QUEUE = QueueHandler(n_threads=4)

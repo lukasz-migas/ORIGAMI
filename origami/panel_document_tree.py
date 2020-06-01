@@ -15,7 +15,6 @@ import pandas as pd
 
 # Local imports
 import origami.utils.labels as ut_labels
-
 # from origami.ids import ID_docTree_plugin_UVPD
 from origami.ids import ID_renameItem
 from origami.ids import ID_openDocInfo
@@ -113,7 +112,6 @@ from origami.utils.converters import str2num
 from origami.utils.converters import byte2str
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
-
 # from origami.gui_elements.panel_document_information import PanelDocumentInformation
 from origami.objects.containers import MassSpectrumObject
 from origami.readers.io_text_files import saveAsText
@@ -804,7 +802,7 @@ class DocumentTree(wx.TreeCtrl):
             menu.AppendItem(
                 make_menu_item(
                     parent=menu,
-                    id=ID_saveAllDocuments,
+                    evt_id=ID_saveAllDocuments,
                     text="Save all documents",
                     bitmap=self.icons.iconsLib["save_multiple_16"],
                 )
@@ -812,7 +810,7 @@ class DocumentTree(wx.TreeCtrl):
             menu.AppendItem(
                 make_menu_item(
                     parent=menu,
-                    id=ID_removeAllDocuments,
+                    evt_id=ID_removeAllDocuments,
                     text="Delete all documents",
                     bitmap=self.icons.iconsLib["bin16"],
                 )
@@ -1501,10 +1499,7 @@ class DocumentTree(wx.TreeCtrl):
     def on_import_lesa_dataset(self, _):
         from origami.widgets.lesa.panel_imaging_lesa_import import PanelImagingImportDataset
 
-        #         from origami.gui_elements.panel_import_files import PanelImportManagerBase
-
-        self._import_panel = PanelImagingImportDataset(self.view, self.presenter, self.icons)
-        #         self._import_panel = PanelImportManagerBase(self.view, self.presenter, self.icons)
+        self._import_panel = PanelImagingImportDataset(self.view, self.presenter)
         self._import_panel.Show()
 
     def on_right_click_short(self):
@@ -1518,14 +1513,17 @@ class DocumentTree(wx.TreeCtrl):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_saveAllDocuments,
+                evt_id=ID_saveAllDocuments,
                 text="Save all documents",
                 bitmap=self.icons.iconsLib["save_multiple_16"],
             )
         )
         menu.AppendItem(
             make_menu_item(
-                parent=menu, id=ID_removeAllDocuments, text="Delete all documents", bitmap=self.icons.iconsLib["bin16"]
+                parent=menu,
+                evt_id=ID_removeAllDocuments,
+                text="Delete all documents",
+                bitmap=self.icons.iconsLib["bin16"],
             )
         )
         self.PopupMenu(menu)
@@ -1765,13 +1763,13 @@ class DocumentTree(wx.TreeCtrl):
         )
         menu_show_comparison_panel = make_menu_item(
             parent=menu,
-            id=ID_docTree_compareMS,
+            evt_id=ID_docTree_compareMS,
             text="Compare mass spectra...",
             bitmap=self.icons.iconsLib["compare_mass_spectra_16"],
         )
         menu_show_peak_picker_panel = make_menu_item(
             parent=menu,
-            id=ID_docTree_action_open_peak_picker,
+            evt_id=ID_docTree_action_open_peak_picker,
             text="Open peak picker...",
             bitmap=self.icons.iconsLib["highlight_16"],
         )
@@ -1780,64 +1778,70 @@ class DocumentTree(wx.TreeCtrl):
         )
         menu_action_show_highlights = make_menu_item(
             parent=menu,
-            id=ID_showPlotMSDocument,
+            evt_id=ID_showPlotMSDocument,
             text="Highlight ion in mass spectrum\tAlt+X",
             bitmap=self.icons.iconsLib["zoom_16"],
         )
 
         menu_action_show_plot = make_menu_item(
-            parent=menu, id=ID_showPlotDocument, text="Show plot\tAlt+S", bitmap=self.icons.iconsLib["blank_16"]
+            parent=menu, evt_id=ID_showPlotDocument, text="Show plot\tAlt+S", bitmap=self.icons.iconsLib["blank_16"]
         )
         menu_action_show_plot_spectrum = make_menu_item(
             parent=menu,
-            id=ID_showPlotDocument,
+            evt_id=ID_showPlotDocument,
             text="Show mass spectrum\tAlt+S",
             bitmap=self.icons.iconsLib["mass_spectrum_16"],
         )
         menu_action_show_plot_spectrum_waterfall = make_menu_item(
-            parent=menu, id=ID_docTree_showMassSpectra, text="Show mass spectra (waterfall)", bitmap=None
+            parent=menu, evt_id=ID_docTree_showMassSpectra, text="Show mass spectra (waterfall)", bitmap=None
         )
         menu_action_show_plot_mobilogram = make_menu_item(
             parent=menu,
-            id=ID_showPlotDocument,
+            evt_id=ID_showPlotDocument,
             text="Show mobilogram\tAlt+S",
             bitmap=self.icons.iconsLib["mobilogram_16"],
         )
         menu_action_show_plot_chromatogram = make_menu_item(
             parent=menu,
-            id=ID_showPlotDocument,
+            evt_id=ID_showPlotDocument,
             text="Show chromatogram\tAlt+S",
             bitmap=self.icons.iconsLib["chromatogram_16"],
         )
         menu_action_show_plot_2D = make_menu_item(
-            parent=menu, id=ID_showPlotDocument, text="Show heatmap\tAlt+S", bitmap=self.icons.iconsLib["heatmap_16"]
+            parent=menu,
+            evt_id=ID_showPlotDocument,
+            text="Show heatmap\tAlt+S",
+            bitmap=self.icons.iconsLib["heatmap_16"],
         )
         menu_action_show_plot_violin = make_menu_item(
             parent=menu,
-            id=ID_showPlotDocument_violin,
+            evt_id=ID_showPlotDocument_violin,
             text="Show violin plot",
             bitmap=self.icons.iconsLib["panel_violin_16"],
         )
         menu_action_show_plot_waterfall = make_menu_item(
             parent=menu,
-            id=ID_showPlotDocument_waterfall,
+            evt_id=ID_showPlotDocument_waterfall,
             text="Show waterfall plot",
             bitmap=self.icons.iconsLib["panel_waterfall_16"],
         )
 
         menu_action_show_plot_as_mobilogram = make_menu_item(
-            parent=menu, id=ID_showPlot1DDocument, text="Show mobilogram", bitmap=self.icons.iconsLib["mobilogram_16"]
+            parent=menu,
+            evt_id=ID_showPlot1DDocument,
+            text="Show mobilogram",
+            bitmap=self.icons.iconsLib["mobilogram_16"],
         )
 
         menu_action_show_plot_as_chromatogram = make_menu_item(
             parent=menu,
-            id=ID_showPlotRTDocument,
+            evt_id=ID_showPlotRTDocument,
             text="Show chromatogram",
             bitmap=self.icons.iconsLib["chromatogram_16"],
         )
 
         menu_action_rename_item = make_menu_item(
-            parent=menu, id=ID_renameItem, text="Rename\tF2", bitmap=self.icons.iconsLib["rename_16"]
+            parent=menu, evt_id=ID_renameItem, text="Rename\tF2", bitmap=self.icons.iconsLib["rename_16"]
         )
 
         menu_action_process_ms = make_menu_item(
@@ -1859,22 +1863,22 @@ class DocumentTree(wx.TreeCtrl):
 
         menu_show_unidec_panel = make_menu_item(
             parent=menu,
-            id=ID_docTree_UniDec,
+            evt_id=ID_docTree_UniDec,
             text="Deconvolute using UniDec...",
             bitmap=self.icons.iconsLib["process_unidec_16"],
         )
         menu_action_add_spectrum_to_panel = make_menu_item(
-            parent=menu, id=ID_docTree_addOneToMMLTable, text="Add spectrum to multiple files panel", bitmap=None
+            parent=menu, evt_id=ID_docTree_addOneToMMLTable, text="Add spectrum to multiple files panel", bitmap=None
         )
         menu_action_show_unidec_results = make_menu_item(
-            parent=menu, id=ID_docTree_show_unidec, text="Show UniDec results", bitmap=None
+            parent=menu, evt_id=ID_docTree_show_unidec, text="Show UniDec results", bitmap=None
         )
         menu_action_save_mobilogram_image_as = make_menu_item(
-            parent=menu, id=ID_save1DImageDoc, text="Save image as...", bitmap=self.icons.iconsLib["file_png_16"]
+            parent=menu, evt_id=ID_save1DImageDoc, text="Save image as...", bitmap=self.icons.iconsLib["file_png_16"]
         )
 
         menu_action_save_heatmap_image_as = make_menu_item(
-            parent=menu, id=ID_save2DImageDoc, text="Save image as...", bitmap=self.icons.iconsLib["file_png_16"]
+            parent=menu, evt_id=ID_save2DImageDoc, text="Save image as...", bitmap=self.icons.iconsLib["file_png_16"]
         )
 
         menu_action_save_image_as = make_menu_item(
@@ -1882,25 +1886,31 @@ class DocumentTree(wx.TreeCtrl):
         )
 
         menu_action_save_data_as = make_menu_item(
-            parent=menu, id=ID_saveDataCSVDocument, text="Save data as...", bitmap=self.icons.iconsLib["file_csv_16"]
+            parent=menu,
+            evt_id=ID_saveDataCSVDocument,
+            text="Save data as...",
+            bitmap=self.icons.iconsLib["file_csv_16"],
         )
 
         menu_action_save_1D_data_as = make_menu_item(
             parent=menu,
-            id=ID_saveDataCSVDocument1D,
+            evt_id=ID_saveDataCSVDocument1D,
             text="Save 1D data as...",
             bitmap=self.icons.iconsLib["file_csv_16"],
         )
 
         menu_action_save_2D_data_as = make_menu_item(
-            parent=menu, id=ID_saveDataCSVDocument, text="Save 2D data as...", bitmap=self.icons.iconsLib["file_csv_16"]
+            parent=menu,
+            evt_id=ID_saveDataCSVDocument,
+            text="Save 2D data as...",
+            bitmap=self.icons.iconsLib["file_csv_16"],
         )
         menu_action_save_chromatogram_image_as = make_menu_item(
-            parent=menu, id=ID_saveRTImageDoc, text="Save image as...", bitmap=self.icons.iconsLib["file_png_16"]
+            parent=menu, evt_id=ID_saveRTImageDoc, text="Save image as...", bitmap=self.icons.iconsLib["file_png_16"]
         )
 
         menu_action_save_document = make_menu_item(
-            parent=menu, id=ID_saveDocument, text="Save document\tCtrl+S", bitmap=self.icons.iconsLib["pickle_16"]
+            parent=menu, evt_id=ID_saveDocument, text="Save document\tCtrl+S", bitmap=self.icons.iconsLib["pickle_16"]
         )
 
         menu_action_save_document_as = make_menu_item(
@@ -1950,13 +1960,13 @@ class DocumentTree(wx.TreeCtrl):
             elif dataset_type in all_mass_spectra and subkey_parent == "UniDec" and subkey_child != "":
                 menu.AppendItem(
                     make_menu_item(
-                        parent=menu, id=ID_docTree_show_unidec, text="Show plot - {}".format(self._item_leaf)
+                        parent=menu, evt_id=ID_docTree_show_unidec, text="Show plot - {}".format(self._item_leaf)
                     )
                 )
                 menu.AppendItem(
                     make_menu_item(
                         parent=menu,
-                        id=ID_docTree_save_unidec,
+                        evt_id=ID_docTree_save_unidec,
                         text="Save results - {} ({})".format(self._item_leaf, self.config.saveExtension),
                     )
                 )
@@ -1967,7 +1977,7 @@ class DocumentTree(wx.TreeCtrl):
                 menu.AppendItem(
                     make_menu_item(
                         parent=menu,
-                        id=ID_docTree_save_unidec,
+                        evt_id=ID_docTree_save_unidec,
                         text="Save UniDec results ({})".format(self.config.saveExtension),
                     )
                 )
@@ -1993,7 +2003,7 @@ class DocumentTree(wx.TreeCtrl):
                     menu.AppendItem(
                         make_menu_item(
                             parent=menu,
-                            id=ID_docTree_addToMMLTable,
+                            evt_id=ID_docTree_addToMMLTable,
                             text="Add spectra to multiple files panel",
                             bitmap=None,
                         )
@@ -2023,7 +2033,7 @@ class DocumentTree(wx.TreeCtrl):
             menu.AppendItem(
                 make_menu_item(
                     parent=menu,
-                    id=ID_docTree_add_mzIdentML,
+                    evt_id=ID_docTree_add_mzIdentML,
                     text="Add identification information (.mzIdentML, .mzid, .mzid.gz)",
                     bitmap=None,
                 )
@@ -2203,7 +2213,7 @@ class DocumentTree(wx.TreeCtrl):
             menu.AppendItem(
                 make_menu_item(
                     parent=menu,
-                    id=ID_docTree_action_open_extractDTMS,
+                    evt_id=ID_docTree_action_open_extractDTMS,
                     text="Open DT/MS extraction panel...",
                     bitmap=None,
                 )
@@ -2237,7 +2247,7 @@ class DocumentTree(wx.TreeCtrl):
             menu.AppendItem(
                 make_menu_item(
                     parent=menu,
-                    id=ID_docTree_duplicate_document,
+                    evt_id=ID_docTree_duplicate_document,
                     text="Duplicate document\tShift+D",
                     bitmap=self.icons.iconsLib["duplicate_16"],
                 )
@@ -2249,7 +2259,7 @@ class DocumentTree(wx.TreeCtrl):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_openDocInfo,
+                evt_id=ID_openDocInfo,
                 text="Notes, Information, Labels...\tCtrl+I",
                 bitmap=self.icons.iconsLib["info16"],
             )
@@ -2257,7 +2267,7 @@ class DocumentTree(wx.TreeCtrl):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_goToDirectory,
+                evt_id=ID_goToDirectory,
                 text="Go to folder...\tCtrl+G",
                 bitmap=self.icons.iconsLib["folder_path_16"],
             )
@@ -2265,7 +2275,7 @@ class DocumentTree(wx.TreeCtrl):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_saveAsInteractive,
+                evt_id=ID_saveAsInteractive,
                 text="Open interactive output panel...\tShift+Z",
                 bitmap=self.icons.iconsLib["bokehLogo_16"],
             )
@@ -2276,7 +2286,7 @@ class DocumentTree(wx.TreeCtrl):
         menu.AppendSeparator()
         menu.AppendItem(
             make_menu_item(
-                parent=menu, id=ID_removeDocument, text="Delete document", bitmap=self.icons.iconsLib["bin16"]
+                parent=menu, evt_id=ID_removeDocument, text="Delete document", bitmap=self.icons.iconsLib["bin16"]
             )
         )
 

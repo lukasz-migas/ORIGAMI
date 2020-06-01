@@ -1,6 +1,7 @@
 # Third-party imports
 # Standard library imports
 # Standard library imports
+# Standard library imports
 import logging
 
 import wx
@@ -150,7 +151,7 @@ class DialogSelectDocument(Dialog):
 
     def refresh(self, _):
         """Refresh list of documents"""
-        self._document_list = ENV.get_document_list(self._document_type)
+        self._document_list = ENV.get_document_list(self._document_type, check_path=True)
         self.document_list_choice.Clear()
         self.document_list_choice.AppendItems(self._document_list)
         self.document_list_choice.SetSelection(0)

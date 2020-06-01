@@ -204,11 +204,11 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
 
         menu = wx.Menu()
         self.menu_tool_sort_peptide_az = make_menu_item(
-            parent=menu, id=ID_tandemPanel_sort_peptide_by_AZ, text="Sort by A-Z", bitmap=None
+            parent=menu, evt_id=ID_tandemPanel_sort_peptide_by_AZ, text="Sort by A-Z", bitmap=None
         )
         menu.AppendItem(self.menu_tool_sort_peptide_az)
         self.menu_tool_sort_peptide_length = make_menu_item(
-            parent=menu, id=ID_tandemPanel_sort_peptide_by_length, text="Sort by size", bitmap=None
+            parent=menu, evt_id=ID_tandemPanel_sort_peptide_by_length, text="Sort by size", bitmap=None
         )
         menu.AppendItem(self.menu_tool_sort_peptide_length)
 
@@ -230,7 +230,7 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
         menu = wx.Menu()
         menu.AppendItem(
             make_menu_item(
-                parent=menu, id=ID_tandemPanel_peaklist_show_selected, text="Hide unselected items", bitmap=None
+                parent=menu, evt_id=ID_tandemPanel_peaklist_show_selected, text="Hide unselected items", bitmap=None
             )
         )
         self.PopupMenu(menu)
@@ -957,7 +957,7 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_tandemPanel_otherSettings,
+                evt_id=ID_tandemPanel_otherSettings,
                 text="Customise plot settings...",
                 bitmap=self.icons.iconsLib["settings16_2"],
                 help_text="",

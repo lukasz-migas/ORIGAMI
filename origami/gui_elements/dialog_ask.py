@@ -4,7 +4,6 @@ import wx
 # Local imports
 from origami.styles import Dialog
 
-
 QUERIES = {
     "charge": ("Assign charge...", "integer"),
     "alpha": ("Assign transparency...", "float"),

@@ -19,7 +19,7 @@ from origami.utils.exceptions import MessageError
 
 logger = logging.getLogger(__name__)
 
-
+# TODO: add ppm sampling
 # TODO: should try to speed this up as the for-loop makes this very computationally expensive
 def baseline_curve(data, window, **kwargs):
     """Based on massign method: https://pubs.acs.org/doi/abs/10.1021/ac300056a
@@ -252,6 +252,7 @@ def linearize_data(
     x_min: Optional[float] = None,
     x_max: Optional[float] = None,
     x_bin: Optional[np.ndarray] = None,
+    **kwargs,
 ):
     """Linearize data by either up- or down-sampling"""
 
@@ -604,3 +605,11 @@ def subtract_spectra(xvals_1, yvals_1, xvals_2, yvals_2, **kwargs):
     yvals_2[yvals_2 >= 0] = 0
 
     return xvals_1, yvals_1, xvals_2, yvals_2
+
+
+def seq_ppm(mz_start: float, mz_end: float, ppm: float):
+    """Compute sequence of m/z values at a particular ppm"""
+    length = (np.log(mz_end) - np.log(mz_start)) / np.log((1 + 1e-6 * ppm) / (1 - 1e-6 * ppm))
+    length = math.floor(length) + 1
+    mz = mz_start * np.power(((1 + 1e-6 * ppm) / (1 - 1e-6 * ppm)), (np.arange(length) - 1))
+    return mz

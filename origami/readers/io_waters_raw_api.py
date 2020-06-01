@@ -1,4 +1,6 @@
 # Standard library imports
+import os
+import glob
 from typing import List
 from typing import Optional
 
@@ -12,6 +14,7 @@ import origami.readers.waters.MassLynxRawInfoReader as MassLynxRawInfoReader
 import origami.readers.waters.MassLynxRawScanReader as MassLynxRawScanReader
 import origami.readers.waters.MassLynxRawChromatogramReader as MassLynxRawChromatogramReader
 from origami.utils.ranges import get_min_max
+from origami.objects.containers import MassSpectrumObject
 
 
 class WatersRawReader:
@@ -74,6 +77,24 @@ class WatersRawReader:
             self._rt_min, _ = self.get_tic(0)
         return self._rt_min
 
+    @property
+    def is_im(self):
+        if self.n_functions < 2:
+            return False
+        if glob.glob(os.path.join(self.path, "*.cdt")):
+            return True
+        return False
+
+    def convert_scan_to_min(self, scans):
+        """Converts scan(s) to minutes"""
+        rt_min = self.rt_min
+        return [rt_min[scan_id] for scan_id in scans]
+
+    def convert_bin_to_ms(self, bins):
+        """Converts scan(s) to minutes"""
+        dt_ms = self.dt_ms
+        return [dt_ms[dt_bin] for dt_bin in bins]
+
     def n_scans(self, fcn: int):
         """Get number of scans in particular function"""
         return self.stats_in_functions[fcn]["n_scans"]
@@ -106,8 +127,9 @@ class WatersRawReader:
                 "fcn_type": fcn_type,
             }
             mass_range.extend(_mass_range)
+        mz_min, mz_max = min(mass_range), max(mass_range)
 
-        return stats_in_functions, n_functions, min(mass_range), max(mass_range), mass_range
+        return stats_in_functions, n_functions, mz_min, mz_max, [mz_min, mz_max]
 
     def get_inf_data(self):
         """Read metadata data"""
@@ -219,10 +241,8 @@ class WatersRawReader:
 
         Returns
         -------
-        x : np.ndarray
-            x-axis of the mass spectrum
-        y : np.ndarray
-            y-axis of the mass spectrum
+        mz_obj : MassSpectrumObject
+            mass spectrum object
         """
         self.check_fcn(fcn)
         scan_list = self._get_scan_list(start_scan, end_scan, scan_list, fcn)
@@ -233,7 +253,7 @@ class WatersRawReader:
             x.extend(_x)
             y.extend(_y)
 
-        return self.mz_x, self._process_spectrum(x, y)
+        return MassSpectrumObject(self.mz_x, self._process_spectrum(x, y))
 
     def get_drift_spectrum(
         self,
@@ -267,10 +287,8 @@ class WatersRawReader:
 
         Returns
         -------
-        x : np.ndarray
-            x-axis of the mass spectrum
-        y : np.ndarray
-            y-axis of the mass spectrum
+        mz_obj : MassSpectrumObject
+            mass spectrum object
         """
         self.check_fcn(fcn)
         scan_list = self._get_scan_list(start_scan, end_scan, scan_list, fcn)
@@ -285,7 +303,8 @@ class WatersRawReader:
                 _x, _y = self.data_reader.ReadDriftScan(fcn, scan_id, drift_id)
                 x.extend(_x)
                 y.extend(_y)
-        return self.mz_x, self._process_spectrum(x, y)
+
+        return MassSpectrumObject(self.mz_x, self._process_spectrum(x, y))
 
     def get_tic(self, fcn: int = 0):
         """Retrieve TIC data for particular function

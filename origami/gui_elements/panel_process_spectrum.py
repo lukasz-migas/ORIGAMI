@@ -327,7 +327,7 @@ class PanelProcessMassSpectrum(MiniFrame):
 
         # fit layout
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(grid, 1, wx.ALIGN_CENTER_HORIZONTAL | wx.EXPAND, 5)
+        main_sizer.Add(grid, 1, wx.EXPAND, 5)
         main_sizer.Fit(panel)
 
         panel.SetSizerAndFit(main_sizer)

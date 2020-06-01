@@ -1,11 +1,12 @@
 # Standard library imports
 import os
 import logging
+from typing import Dict
+from typing import List
+from typing import Tuple
+from numbers import Number
 
 # Third-party imports
-from numbers import Number
-from typing import Dict, List, Tuple
-
 import wx
 
 # Local imports
@@ -24,18 +25,20 @@ class PanelImagingImportDataset(PanelImportManagerBase):
     DOCUMENT_TYPE = "Type: Imaging"
     PUB_SUBSCRIBE_EVENT = "widget.imaging.import.update.spectrum"
     SUPPORTED_FILE_FORMATS = [".raw"]
+    CONFIG_NAME = "imaging"
 
     # ui elements
     image_shape_x = None
     image_shape_y = None
     import_precompute_norm = None
 
-    def __init__(self, parent, presenter, icons, **kwargs):
-        PanelImportManagerBase.__init__(self, parent, presenter, icons, title="Imaging: Import LESA")
+    def __init__(self, parent, presenter, **kwargs):
+        self._init()
+        PanelImportManagerBase.__init__(self, parent, presenter, title="Imaging: Import LESA")
 
-        self.parent = parent
-        self.presenter = presenter
-        self.icons = icons
+    def _init(self):
+        """Modify certain elements before initialization takes place"""
+        self.TABLE_DICT[self.TABLE_COLUMN_INDEX.variable]["type"] = "int"
 
     @property
     def data_handling(self):
@@ -132,17 +135,22 @@ class PanelImagingImportDataset(PanelImportManagerBase):
         except TypeError:
             logger.warning(f"Could not identify the index of {path}")
 
-        reader = self.data_handling.get_waters_api_reader(path)
-        ms_fcn = reader.stats_in_functions[0]
-        dt_fcn = reader.stats_in_functions.get(1, False)
-        mz_range = ms_fcn["mass_range"]
-        n_scans = ms_fcn["n_scans"]
+        # get waters metadata without explicitly loading data
+        info = self.data_handling.get_waters_info(path)
+        is_im = info["is_im"]
+        mz_range = info["mz_range"]
+        n_scans = info["n_scans"]
         scan_range = f"0-{n_scans - 1}"
-        is_im = True if dt_fcn else False
+        mz_range = f"{mz_range[0]}-{mz_range[1]}"
 
-        return dict(mz_range=mz_range, ion_mobility=is_im, scan_range=scan_range)
+        return dict(mz_range=mz_range, ion_mobility=is_im, scan_range=scan_range, variable=idx, n_scans=n_scans)
 
-    def _import(self, filelist: List[Tuple[Number, str, int, int, Dict]], parameters: Dict):
-        self.data_handling.on_open_multiple_LESA_files_fcn(filelist, **parameters)
+    def _import(self, filelist: List[Tuple[Number, str, int, int, Dict]], **parameters: Dict):
+        if self.document_title is None:
+            raise MessageError(
+                "Incorrect document", "Please specify document by clicking on the `Select document...` " "button"
+            )
+
+        self.data_handling.on_open_lesa_file_fcn(self.document_title, filelist, **parameters)
 
     _import.__doc__ = PanelImportManagerBase._import.__doc__

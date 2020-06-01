@@ -9,6 +9,9 @@ from zarr import Group
 # Local imports
 from origami.utils.ranges import get_min_max
 from origami.objects.container import ContainerBase
+from origami.processing.spectra import baseline_1D
+from origami.processing.spectra import normalize_1D
+from origami.processing.spectra import linearize_data
 
 # TODO: add x/y-axis converters to easily switch between labels
 
@@ -188,6 +191,10 @@ class SpectrumObject(DataObject):
         if not isinstance(self._metadata, dict):
             self._metadata = dict()
 
+    def normalize(self, copy: bool = False):
+        """Normalize spectrum to 1"""
+        self._y = normalize_1D(self.y)
+
 
 class MassSpectrumObject(SpectrumObject):
     def __init__(
@@ -199,6 +206,18 @@ class MassSpectrumObject(SpectrumObject):
 
         # set default options
         self.options["remove_zeros"] = True
+
+    def linearize(self, copy: bool = False, **kwargs):
+        """Linearize spectrum to common m/z axis"""
+        x, y = linearize_data(self.x, self.y, **kwargs)
+        self._x, self._y = x, y
+        # self.set_metadata(dict(linearize=kwargs))
+
+    def baseline(self, copy: bool = False, **kwargs):
+        """Remove baseline from the mass spectrum"""
+        y = baseline_1D(self.y, mode=kwargs.get("baseline_method"), **kwargs)
+        self._y = y
+        # self.set_metadata(dict(baseline=kwargs))
 
 
 class ChromatogramObject(SpectrumObject):

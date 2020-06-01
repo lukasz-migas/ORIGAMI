@@ -4,6 +4,7 @@ import logging
 
 # Third-party imports
 import wx
+from natsort import natsorted
 
 # Local imports
 from origami.styles import Dialog
@@ -48,14 +49,18 @@ class DialogMultiDirPicker(Dialog):
         self.output_list = []
 
         self.make_gui()
+        self.setup()
 
         # setup layout
         self.SetSize((800, 500))
         self.Layout()
-
         self.CentreOnScreen()
         self.Show(True)
         self.SetFocus()
+
+    def setup(self):
+        """Setup UI before displayed to the user"""
+        self._populate_all_list(None)
 
     def ShowModal(self):
         """Simplified ShowModal(), returning strings 'ok' or 'cancel'. """
@@ -67,9 +72,13 @@ class DialogMultiDirPicker(Dialog):
 
         return output
 
-    def GetPaths(self):
+    def get_paths(self):
         """Compatibility method"""
         return self.get_selected_items()
+
+    @property
+    def last_path(self):
+        return self._path
 
     def on_ok(self, evt):
         """Exit with OK statement"""
@@ -219,6 +228,9 @@ class DialogMultiDirPicker(Dialog):
         self._path path
         """
         self._path = self.path_value.GetValue()
+        if self._path in ["", "None", None] or not os.path.exists(self._path):
+            LOGGER.warning(f"Path `{self._path} does not exist")
+            return
 
         if self._path not in self._filelist_all:
             self._filelist_all[self._path] = []
@@ -263,7 +275,7 @@ class DialogMultiDirPicker(Dialog):
             if information["select"]:
                 item_list.append(os.path.join(information["path"], information["filename"]))
 
-        return item_list
+        return natsorted(item_list)
 
     def on_get_item_information(self, item_id):
         """Get item information from the lhs table"""

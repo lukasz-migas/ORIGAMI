@@ -581,37 +581,37 @@ class PanelPlots(wx.Panel):
         # pre-generate common menu items
         menu_edit_general = make_menu_item(
             parent=menu,
-            id=ID_extraSettings_general_plot,
+            evt_id=ID_extraSettings_general_plot,
             text="Edit general parameters...",
             bitmap=self.icons.iconsLib["panel_plot_general_16"],
         )
         menu_edit_plot_1D = make_menu_item(
             parent=menu,
-            id=ID_extraSettings_plot1D,
+            evt_id=ID_extraSettings_plot1D,
             text="Edit plot parameters...",
             bitmap=self.icons.iconsLib["panel_plot1D_16"],
         )
         menu_edit_plot_2D = make_menu_item(
             parent=menu,
-            id=ID_extraSettings_plot2D,
+            evt_id=ID_extraSettings_plot2D,
             text="Edit plot parameters...",
             bitmap=self.icons.iconsLib["panel_plot2D_16"],
         )
         menu_edit_plot_3D = make_menu_item(
             parent=menu,
-            id=ID_extraSettings_plot3D,
+            evt_id=ID_extraSettings_plot3D,
             text="Edit plot parameters...",
             bitmap=self.icons.iconsLib["panel_plot3D_16"],
         )
         menu_edit_colorbar = make_menu_item(
             parent=menu,
-            id=ID_extraSettings_colorbar,
+            evt_id=ID_extraSettings_colorbar,
             text="Edit colorbar parameters...",
             bitmap=self.icons.iconsLib["panel_colorbar_16"],
         )
         menu_edit_legend = make_menu_item(
             parent=menu,
-            id=ID_extraSettings_legend,
+            evt_id=ID_extraSettings_legend,
             text="Edit legend parameters...",
             bitmap=self.icons.iconsLib["panel_legend_16"],
         )
@@ -623,19 +623,19 @@ class PanelPlots(wx.Panel):
         #         )
         menu_edit_waterfall = make_menu_item(
             parent=menu,
-            id=ID_extraSettings_waterfall,
+            evt_id=ID_extraSettings_waterfall,
             text="Edit waterfall parameters...",
             bitmap=self.icons.iconsLib["panel_waterfall_16"],
         )
         menu_edit_violin = make_menu_item(
             parent=menu,
-            id=ID_extraSettings_violin,
+            evt_id=ID_extraSettings_violin,
             text="Edit violin parameters...",
             bitmap=self.icons.iconsLib["panel_violin_16"],
         )
         menu_customise_plot = make_menu_item(
             parent=menu,
-            id=ID_plots_customise_plot,
+            evt_id=ID_plots_customise_plot,
             text="Customise plot...",
             bitmap=self.icons.iconsLib["change_xlabels_16"],
         )
@@ -651,7 +651,7 @@ class PanelPlots(wx.Panel):
         )
 
         menu_action_copy_to_clipboard = make_menu_item(
-            parent=menu, id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self.icons.iconsLib["filelist_16"]
+            parent=menu, evt_id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self.icons.iconsLib["filelist_16"]
         )
 
         # bind events by item
@@ -663,7 +663,7 @@ class PanelPlots(wx.Panel):
             menu.AppendItem(
                 make_menu_item(
                     parent=menu,
-                    id=ID_docTree_action_open_peak_picker,
+                    evt_id=ID_docTree_action_open_peak_picker,
                     text="Open peak picker...",
                     bitmap=self.icons.iconsLib["process_fit_16"],
                 )
@@ -671,7 +671,7 @@ class PanelPlots(wx.Panel):
             menu.AppendItem(
                 make_menu_item(
                     parent=menu,
-                    id=ID_highlightRectAllIons,
+                    evt_id=ID_highlightRectAllIons,
                     text="Show extracted ions",
                     bitmap=self.icons.iconsLib["annotate16"],
                 )
@@ -689,7 +689,7 @@ class PanelPlots(wx.Panel):
                 menu.AppendItem(
                     make_menu_item(
                         parent=menu,
-                        id=ID_saveCompareMSImage,
+                        evt_id=ID_saveCompareMSImage,
                         text="Save figure as...",
                         bitmap=self.icons.iconsLib["save16"],
                     )
@@ -697,7 +697,10 @@ class PanelPlots(wx.Panel):
             else:
                 menu.AppendItem(
                     make_menu_item(
-                        parent=menu, id=ID_saveMSImage, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
+                        parent=menu,
+                        evt_id=ID_saveMSImage,
+                        text="Save figure as...",
+                        bitmap=self.icons.iconsLib["save16"],
                     )
                 )
 
@@ -705,14 +708,17 @@ class PanelPlots(wx.Panel):
             menu.AppendSeparator()
             menu.AppendItem(
                 make_menu_item(
-                    parent=menu, id=ID_clearPlot_MS, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
+                    parent=menu, evt_id=ID_clearPlot_MS, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
                 )
             )
         elif self.currentPage == "Chromatogram":
             if self.view.plot_name == "MS":
                 menu.AppendItem(
                     make_menu_item(
-                        parent=menu, id=ID_clearPlot_RT_MS, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
+                        parent=menu,
+                        evt_id=ID_clearPlot_RT_MS,
+                        text="Clear plot",
+                        bitmap=self.icons.iconsLib["clear_16"],
                     )
                 )
             else:
@@ -729,21 +735,27 @@ class PanelPlots(wx.Panel):
                 self.resize_plot_check.Check(self.config.resize)
                 menu.AppendItem(
                     make_menu_item(
-                        parent=menu, id=ID_saveRTImage, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
+                        parent=menu,
+                        evt_id=ID_saveRTImage,
+                        text="Save figure as...",
+                        bitmap=self.icons.iconsLib["save16"],
                     )
                 )
                 menu.AppendItem(menu_action_copy_to_clipboard)
                 menu.AppendSeparator()
                 menu.AppendItem(
                     make_menu_item(
-                        parent=menu, id=ID_clearPlot_RT, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
+                        parent=menu, evt_id=ID_clearPlot_RT, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
                     )
                 )
         elif self.currentPage == "Mobilogram":
             if self.view.plot_name == "MS":
                 menu.AppendItem(
                     make_menu_item(
-                        parent=menu, id=ID_clearPlot_1D_MS, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
+                        parent=menu,
+                        evt_id=ID_clearPlot_1D_MS,
+                        text="Clear plot",
+                        bitmap=self.icons.iconsLib["clear_16"],
                     )
                 )
             else:
@@ -760,14 +772,17 @@ class PanelPlots(wx.Panel):
                 self.resize_plot_check.Check(self.config.resize)
                 menu.AppendItem(
                     make_menu_item(
-                        parent=menu, id=ID_save1DImage, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
+                        parent=menu,
+                        evt_id=ID_save1DImage,
+                        text="Save figure as...",
+                        bitmap=self.icons.iconsLib["save16"],
                     )
                 )
                 menu.AppendItem(menu_action_copy_to_clipboard)
                 menu.AppendSeparator()
                 menu.AppendItem(
                     make_menu_item(
-                        parent=menu, id=ID_clearPlot_1D, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
+                        parent=menu, evt_id=ID_clearPlot_1D, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
                     )
                 )
         elif self.currentPage == "Heatmap":
@@ -786,14 +801,14 @@ class PanelPlots(wx.Panel):
             self.resize_plot_check.Check(self.config.resize)
             menu.AppendItem(
                 make_menu_item(
-                    parent=menu, id=ID_save2DImage, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
+                    parent=menu, evt_id=ID_save2DImage, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
                 )
             )
             menu.AppendItem(menu_action_copy_to_clipboard)
             menu.AppendSeparator()
             menu.AppendItem(
                 make_menu_item(
-                    parent=menu, id=ID_clearPlot_2D, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
+                    parent=menu, evt_id=ID_clearPlot_2D, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
                 )
             )
         elif self.currentPage == "DT/MS":
@@ -803,7 +818,7 @@ class PanelPlots(wx.Panel):
             menu.AppendItem(
                 make_menu_item(
                     parent=menu,
-                    id=ID_plots_customise_smart_zoom,
+                    evt_id=ID_plots_customise_smart_zoom,
                     text="Customise smart zoom....",
                     bitmap=self.icons.iconsLib["zoom_16"],
                 )
@@ -820,14 +835,14 @@ class PanelPlots(wx.Panel):
             self.resize_plot_check.Check(self.config.resize)
             menu.AppendItem(
                 make_menu_item(
-                    parent=menu, id=ID_saveMZDTImage, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
+                    parent=menu, evt_id=ID_saveMZDTImage, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
                 )
             )
             menu.AppendItem(menu_action_copy_to_clipboard)
             menu.AppendSeparator()
             menu.AppendItem(
                 make_menu_item(
-                    parent=menu, id=ID_clearPlot_MZDT, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
+                    parent=menu, evt_id=ID_clearPlot_MZDT, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
                 )
             )
         elif self.currentPage == "Heatmap (3D)":
@@ -837,13 +852,13 @@ class PanelPlots(wx.Panel):
             self.resize_plot_check.Check(self.config.resize)
             menu.AppendItem(
                 make_menu_item(
-                    parent=menu, id=ID_save3DImage, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
+                    parent=menu, evt_id=ID_save3DImage, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
                 )
             )
             menu.AppendSeparator()
             menu.AppendItem(
                 make_menu_item(
-                    parent=menu, id=ID_clearPlot_3D, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
+                    parent=menu, evt_id=ID_clearPlot_3D, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
                 )
             )
         elif self.currentPage == "Waterfall":
@@ -861,7 +876,7 @@ class PanelPlots(wx.Panel):
             menu.AppendItem(
                 make_menu_item(
                     parent=menu,
-                    id=ID_saveWaterfallImage,
+                    evt_id=ID_saveWaterfallImage,
                     text="Save figure as...",
                     bitmap=self.icons.iconsLib["save16"],
                 )
@@ -870,7 +885,10 @@ class PanelPlots(wx.Panel):
             menu.AppendSeparator()
             menu.AppendItem(
                 make_menu_item(
-                    parent=menu, id=ID_clearPlot_Waterfall, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
+                    parent=menu,
+                    evt_id=ID_clearPlot_Waterfall,
+                    text="Clear plot",
+                    bitmap=self.icons.iconsLib["clear_16"],
                 )
             )
         elif self.currentPage == "Annotated":
@@ -885,7 +903,7 @@ class PanelPlots(wx.Panel):
             menu.AppendItem(
                 make_menu_item(
                     parent=menu,
-                    id=ID_plots_customise_plot,
+                    evt_id=ID_plots_customise_plot,
                     text="Customise plot...",
                     bitmap=self.icons.iconsLib["change_xlabels_16"],
                 )
@@ -895,14 +913,17 @@ class PanelPlots(wx.Panel):
             self.resize_plot_check.Check(self.config.resize)
             menu.AppendItem(
                 make_menu_item(
-                    parent=menu, id=ID_saveOtherImage, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
+                    parent=menu,
+                    evt_id=ID_saveOtherImage,
+                    text="Save figure as...",
+                    bitmap=self.icons.iconsLib["save16"],
                 )
             )
             menu.AppendItem(menu_action_copy_to_clipboard)
             menu.AppendSeparator()
             menu.AppendItem(
                 make_menu_item(
-                    parent=menu, id=ID_clearPlot_other, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
+                    parent=menu, evt_id=ID_clearPlot_other, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
                 )
             )
 

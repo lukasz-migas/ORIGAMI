@@ -2,8 +2,8 @@
 import os
 import logging
 from enum import IntEnum
-from numbers import Number
-from typing import Dict, List, Tuple
+from typing import Dict
+from typing import List
 from typing import Optional
 
 # Third-party imports
@@ -11,9 +11,14 @@ import wx
 from pubsub import pub
 
 # Local imports
-from origami.styles import MiniFrame, make_menu_item
+from origami.styles import MiniFrame
 from origami.styles import set_item_font
+from origami.styles import make_menu_item
+from origami.styles import make_bitmap_btn
+from origami.icons.assets import Icons
+from origami.objects.misc import FileItem
 from origami.config.config import CONFIG
+from origami.utils.converters import str2num
 from origami.utils.decorators import signal_blocker
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
@@ -105,8 +110,15 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         },
     }
     TABLE_COLUMN_INDEX = TableColumnIndex
-    TABLE_STYLE = wx.LC_REPORT | wx.LC_VRULES | wx.LC_HRULES
+    TABLE_STYLE = wx.LC_REPORT | wx.LC_VRULES | wx.LC_HRULES | wx.LC_SINGLE_SEL
     TABLE_ALLOWED_EDIT = [TABLE_COLUMN_INDEX.variable]
+
+    HELP_MD = """## Table controls
+    
+    Double-click on an item will open new window where you can change the index/variable value of the selected item
+    Double-click + CTRL button will check/uncheck the selected item
+    """
+    HELP_LINK = "https://origami.lukasz-migas.com/"
 
     # module specific parameters
     DOCUMENT_TYPE = None
@@ -114,10 +126,12 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
     SUPPORTED_FILE_FORMATS = [".raw"]
     DIALOG_SIZE = (800, 600)
     USE_COLOR = False
+    CONFIG_NAME = None
 
     # UI elements
     main_sizer = None
     info_label = None
+    info_btn = None
     import_label = None
     import_btn = None
     processing_label = None
@@ -126,7 +140,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
     select_files_btn = None
     clear_files_btn = None
 
-    def __init__(self, parent, presenter, icons, **kwargs):
+    def __init__(self, parent, presenter, **kwargs):
         MiniFrame.__init__(
             self,
             parent,
@@ -138,8 +152,10 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
         self.parent = parent
         self.presenter = presenter
-        self.icons = icons
+        self._icons = Icons()
         self._block = False
+        self.document_title = ""
+        self._last_dir = ""
 
         # make gui items
         self.make_gui()
@@ -148,6 +164,10 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         # subscribe to events
         self.subscribe()
         self.bind_events()
+        self.setup()
+
+    def setup(self):
+        """Finalizes setting up of the panel"""
 
     @property
     def data_handling(self):
@@ -176,6 +196,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         if evt.ControlDown():
             self.peaklist.CheckItem(self.peaklist.item_id, not info["check"])
         else:
+            print(info["variable"])
             value = DialogSimpleAsk(
                 "Please specify index value", "Please specify index value", info["variable"], "float"
             )
@@ -267,6 +288,12 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
         main_sizer.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND, 10)
         main_sizer.Add(import_sizer, 0, wx.ALL | wx.EXPAND, 5)
+
+        self.info_btn = make_bitmap_btn(
+            panel, wx.ID_ANY, self._icons["info"], style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
+        )
+        self.info_btn.Bind(wx.EVT_BUTTON, self.on_open_info)
+        main_sizer.Add(self.info_btn, 0, wx.ALIGN_RIGHT)
 
         # fit layout
         main_sizer.Fit(panel)
@@ -400,7 +427,10 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
             logger.info(f"Found document: {document.title}")
 
         # restore pre-processing parameters
-        metadata = document.metadata.get("imaging_lesa")
+        metadata = dict()
+        if self.CONFIG_NAME is not None:
+            metadata = document.get_config(self.CONFIG_NAME)
+
         if metadata:
             # linearization
             CONFIG.ms_process_linearize = True
@@ -423,12 +453,17 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
             self.on_update_info()
             self.on_update_implementation(metadata)
 
+        self.document_title = document.title
+
         # restore dataset filenames
-        for spec_dataset in document.multipleMassSpectrum.values():
-            file_information = spec_dataset.get("file_information", None)
+        mass_spectra = document["MassSpectra"]
+        for name in mass_spectra:
+            obj = mass_spectra[name]
+            if "file_info" not in obj.attrs:
+                continue
+            file_information = obj.attrs["file_info"]["information"]
             if not file_information:
                 continue
-
             self.on_add_to_table(
                 dict(
                     filename=file_information["filename"],
@@ -452,9 +487,10 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         """Collects a list of files from directory"""
         from origami.gui_elements.dialog_multi_directory_picker import DialogMultiDirPicker
 
-        dlg = DialogMultiDirPicker(self, extension=self.SUPPORTED_FILE_FORMATS)
+        dlg = DialogMultiDirPicker(self, extension=self.SUPPORTED_FILE_FORMATS, last_dir=self._last_dir)
         if dlg.ShowModal() == "ok":
-            pathlist = dlg.GetPaths()
+            pathlist = dlg.get_paths()
+            self._last_dir = dlg.last_path
             return pathlist
         return []
 
@@ -490,7 +526,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
             parsed_data = self._parse_path(path)
 
-            self.on_add_to_table(dict(filename=filename, path=path, **parsed_data))
+            self.on_add_to_table(dict(filename=filename, path=path, document=self.document_title, **parsed_data))
 
         self.on_update_import_info()
 
@@ -535,21 +571,31 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
         return n_checked, mz_range, im_on, scan_range
 
-    def get_extraction_filelist(self) -> List[Tuple[Number, str, int, int, Dict]]:
+    def get_extraction_filelist(self) -> List[FileItem]:
         """Retrieve list parameters for data extraction"""
         from origami.utils.converters import str2int
 
-        n_rows = self.peaklist.GetItemCount()
-
         filelist = []
-        for item_id in range(n_rows):
+        for item_id in range(self.n_rows):
             information = self.on_get_item_information(item_id)
             if information["check"]:
                 path = information["path"]
                 variable = information["variable"]
+                im_on = information["ion_mobility"]
                 scan_range = information["scan_range"]
                 scan_min, scan_max = scan_range.split("-")
-                filelist.append((variable, path, str2int(scan_min), str2int(scan_max), information))
+                mz_range = information["mz_range"]
+                mz_min, mz_max = mz_range.split("-")
+                filelist.append(
+                    FileItem(
+                        variable,
+                        path,
+                        [str2int(scan_min), str2int(scan_max)],
+                        [str2num(mz_min), str2num(mz_max)],
+                        im_on,
+                        information,
+                    )
+                )
         return filelist
 
     def get_parameters(self):
@@ -595,11 +641,11 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         # build kwargs
         kwargs = dict(
             linearization_mode=linearization_mode,
-            mz_min=mz_min,
-            mz_max=mz_max,
-            mz_bin=mz_bin,
-            im_on=im_on_out,
+            x_min=mz_min,
+            x_max=mz_max,
+            bin_size=mz_bin,
             auto_range=False,
+            im_on=im_on_out,
             baseline_correction=CONFIG.ms_process_threshold,
             baseline_method=CONFIG.ms_baseline,
             baseline_threshold=CONFIG.ms_threshold,
@@ -625,12 +671,12 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
         self._import(filelist, **kwargs)
 
-    def _import(self, filelist: List[Tuple[Number, str, int, int, Dict]], parameters: Dict):
+    def _import(self, filelist: List[FileItem], **parameters: Dict):
         """Actual implementation of how data should be imported
 
         Parameters
         ----------
-        filelist : List[List[Number, str, int, int, Dict]]
+        filelist : List[FileItem]
             list containing all necessary data and metadata to perform data import
         parameters : Dict
             dictionary containing pre-processing parameters
@@ -639,11 +685,9 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
 
 def main():
-    from origami.icons.icons import IconContainer
 
     app = wx.App()
-    icons = IconContainer()
-    ex = PanelImportManagerBase(None, None, icons)
+    ex = PanelImportManagerBase(None, None)
     ex.on_add_to_table({"variable": 1})
     ex.on_add_to_table({"variable": 4})
 

@@ -298,19 +298,19 @@ class PanelInteractiveCreator(wx.MiniFrame):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_interactivePanel_customise_item,
+                evt_id=ID_interactivePanel_customise_item,
                 text="Customise plot...",
                 bitmap=self.icons.iconsLib["change_xlabels_16"],
             )
         )
         menu.AppendSeparator()
         menu.AppendItem(
-            make_menu_item(parent=menu, id=ID_interactivePanel_copy_all, text="Copy style (all)", bitmap=None)
+            make_menu_item(parent=menu, evt_id=ID_interactivePanel_copy_all, text="Copy style (all)", bitmap=None)
         )
         menu.AppendMenu(wx.ID_ANY, "Copy style...", copy_style_menu)
         menu.AppendSeparator()
         menu.AppendItem(
-            make_menu_item(parent=menu, id=ID_interactivePanel_apply_all, text="Paste style (all)", bitmap=None)
+            make_menu_item(parent=menu, evt_id=ID_interactivePanel_apply_all, text="Paste style (all)", bitmap=None)
         )
         menu.AppendMenu(wx.ID_ANY, "Paste style...", apply_style_menu)
         self.PopupMenu(menu)
@@ -602,13 +602,13 @@ class PanelInteractiveCreator(wx.MiniFrame):
         menu = wx.Menu()
         menu.AppendItem(
             make_menu_item(
-                parent=menu, id=ID_interactivePanel_apply_batch_all, text="Paste: All (selected items)", bitmap=None
+                parent=menu, evt_id=ID_interactivePanel_apply_batch_all, text="Paste: All (selected items)", bitmap=None
             )
         )
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_interactivePanel_apply_batch_plot,
+                evt_id=ID_interactivePanel_apply_batch_plot,
                 text="Paste: X/Y limits (selected items)",
                 bitmap=None,
             )
@@ -616,7 +616,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_interactivePanel_apply_batch_figure,
+                evt_id=ID_interactivePanel_apply_batch_figure,
                 text="Paste: Figure parameters (selected items)",
                 bitmap=None,
             )
@@ -624,7 +624,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_interactivePanel_apply_batch_frame,
+                evt_id=ID_interactivePanel_apply_batch_frame,
                 text="Paste: Axes parameters (selected items)",
                 bitmap=None,
             )
@@ -632,7 +632,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_interactivePanel_apply_batch_preprocess,
+                evt_id=ID_interactivePanel_apply_batch_preprocess,
                 text="Paste: Pre-processing parameters (selected items)",
                 bitmap=None,
             )
@@ -640,7 +640,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_interactivePanel_apply_batch_annotations,
+                evt_id=ID_interactivePanel_apply_batch_annotations,
                 text="Paste: Annotation parameters (selected items)",
                 bitmap=self.icons.iconsLib["annotate16"],
             )
@@ -648,7 +648,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_interactivePanel_apply_batch_plots,
+                evt_id=ID_interactivePanel_apply_batch_plots,
                 text="Paste: Plot parameters (selected items)",
                 bitmap=None,
             )
@@ -656,7 +656,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_interactivePanel_apply_batch_colorbar,
+                evt_id=ID_interactivePanel_apply_batch_colorbar,
                 text="Paste: Colorbar parameters (selected items)",
                 bitmap=self.icons.iconsLib["panel_colorbar_16"],
             )
@@ -664,7 +664,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_interactivePanel_apply_batch_legend,
+                evt_id=ID_interactivePanel_apply_batch_legend,
                 text="Paste: Legend parameters (selected items)",
                 bitmap=self.icons.iconsLib["panel_legend_16"],
             )
@@ -672,7 +672,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_interactivePanel_apply_batch_overlay,
+                evt_id=ID_interactivePanel_apply_batch_overlay,
                 text="Paste: Overlay parameters (selected items)",
                 bitmap=self.icons.iconsLib["overlay_2D_16"],
             )
@@ -680,7 +680,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_interactivePanel_apply_batch_tools,
+                evt_id=ID_interactivePanel_apply_batch_tools,
                 text="Paste: Tools parameters (selected items)",
                 bitmap=self.icons.iconsLib["parameters_16"],
             )
@@ -688,7 +688,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_interactivePanel_apply_batch_widgets,
+                evt_id=ID_interactivePanel_apply_batch_widgets,
                 text="Paste: Widget parameters (selected items)",
                 bitmap=None,
             )
@@ -1417,29 +1417,35 @@ class PanelInteractiveCreator(wx.MiniFrame):
         menu = wx.Menu()
         if self.allChecked:
             menu.AppendItem(
-                make_menu_item(parent=menu, id=ID_interactivePanel_check_all, text="Check all...", bitmap=None)
+                make_menu_item(parent=menu, evt_id=ID_interactivePanel_check_all, text="Check all...", bitmap=None)
             )
         else:
             menu.AppendItem(
-                make_menu_item(parent=menu, id=ID_interactivePanel_check_all, text="Uncheck all...", bitmap=None)
+                make_menu_item(parent=menu, evt_id=ID_interactivePanel_check_all, text="Uncheck all...", bitmap=None)
             )
         menu.AppendSeparator()
-        menu.AppendItem(make_menu_item(parent=menu, id=ID_interactivePanel_check_ms, text="Check MS only", bitmap=None))
-        menu.AppendItem(make_menu_item(parent=menu, id=ID_interactivePanel_check_rt, text="Check RT only", bitmap=None))
         menu.AppendItem(
-            make_menu_item(parent=menu, id=ID_interactivePanel_check_dt1D, text="Check DT (1D) only", bitmap=None)
+            make_menu_item(parent=menu, evt_id=ID_interactivePanel_check_ms, text="Check MS only", bitmap=None)
         )
         menu.AppendItem(
-            make_menu_item(parent=menu, id=ID_interactivePanel_check_dt2D, text="Check DT (2D) only", bitmap=None)
+            make_menu_item(parent=menu, evt_id=ID_interactivePanel_check_rt, text="Check RT only", bitmap=None)
         )
         menu.AppendItem(
-            make_menu_item(parent=menu, id=ID_interactivePanel_check_overlay, text="Check Overlay only", bitmap=None)
+            make_menu_item(parent=menu, evt_id=ID_interactivePanel_check_dt1D, text="Check DT (1D) only", bitmap=None)
         )
         menu.AppendItem(
-            make_menu_item(parent=menu, id=ID_interactivePanel_check_unidec, text="Check UniDec only", bitmap=None)
+            make_menu_item(parent=menu, evt_id=ID_interactivePanel_check_dt2D, text="Check DT (2D) only", bitmap=None)
         )
         menu.AppendItem(
-            make_menu_item(parent=menu, id=ID_interactivePanel_check_other, text="Check Other only", bitmap=None)
+            make_menu_item(
+                parent=menu, evt_id=ID_interactivePanel_check_overlay, text="Check Overlay only", bitmap=None
+            )
+        )
+        menu.AppendItem(
+            make_menu_item(parent=menu, evt_id=ID_interactivePanel_check_unidec, text="Check UniDec only", bitmap=None)
+        )
+        menu.AppendItem(
+            make_menu_item(parent=menu, evt_id=ID_interactivePanel_check_other, text="Check Other only", bitmap=None)
         )
 
         self.PopupMenu(menu)
@@ -2332,7 +2338,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.table_index = menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_interactivePanel_table_hideAll,
+                evt_id=ID_interactivePanel_table_hideAll,
                 text="Table: Hide all",
                 bitmap=self.icons.iconsLib["hide_table_16"],
             )
@@ -2340,7 +2346,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.table_index = menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                id=ID_interactivePanel_table_restoreAll,
+                evt_id=ID_interactivePanel_table_restoreAll,
                 text="Table: Restore all",
                 bitmap=self.icons.iconsLib["show_table_16"],
             )

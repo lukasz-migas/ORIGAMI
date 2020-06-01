@@ -1,6 +1,8 @@
 # Standard library imports
 from typing import Any
+from typing import Dict
 from typing import List
+from typing import Union
 
 # Third-party imports
 import numpy as np
@@ -10,6 +12,7 @@ from origami.processing import spectra
 from origami.config.config import CONFIG
 from origami.objects.container import ContainerBase
 from origami.objects.containers import DataObject
+from origami.objects.containers import MassSpectrumObject
 
 
 class DataGroup(ContainerBase):
@@ -21,10 +24,11 @@ class DataGroup(ContainerBase):
     _y_sum = None
     _y_mean = None
     _processing = None
+    _names = None
 
     def __init__(
         self,
-        data_objects: List[DataObject],
+        data_objects: Union[Dict, List[DataObject]],
         x_label="",
         y_label="",
         x_label_options=None,
@@ -43,6 +47,7 @@ class DataGroup(ContainerBase):
         )
         self._data_objs = data_objects
         self._next: int = -1
+        self._is_dict = isinstance(data_objects, dict)
 
         self.check()
 
@@ -54,12 +59,31 @@ class DataGroup(ContainerBase):
 
     def __next__(self):
         self._next += 1
+
         if self._next < self.n_objects:
-            return self._data_objs[self._next]
+            return self[self._next]
+            # name = self._next if not self._is_dict else self.names[self._next]
+            # return self._data_objs[name]
 
         # reset iterator
         self._next = -1
         raise StopIteration
+
+    def __getitem__(self, item):
+        """Get item"""
+        if isinstance(item, int):
+            item = item if not self._is_dict else self.names[item]
+        else:
+            if not self._is_dict:
+                raise ValueError("Cannot retrieve item by name if data was provided as a dictionary")
+
+        return self._data_objs[item]
+
+    @property
+    def names(self):
+        if self._names is None:
+            self._names = range(self.n_objects) if not self._is_dict else list(self._data_objs.keys())
+        return self._names
 
     @property
     def n_objects(self):
@@ -74,6 +98,9 @@ class DataGroup(ContainerBase):
     def processing(self):
         """Returns the processing processing used by the group dataset"""
         raise NotImplementedError("Must implement method")
+
+    # def get(self, idx: int=None, name: str=None):
+    #     """Retrieve one item by its name / index"""
 
     def add_processing_step(self, method: str, processing: Any):
         """Sets all processing processing associated with this fitter than can later be exported as a json file"""
@@ -120,16 +147,16 @@ class DataGroup(ContainerBase):
 
     def check(self):
         """Ensure correct data was added to the data group"""
-        assert isinstance(self._data_objs, list), "Group data should be provided in a list object"
+        assert isinstance(self._data_objs, (list, dict)), "Group data should be provided in a list or dict object"
         assert len(self._data_objs) >= 1, "Group should have 1 or more elements"
-        for do in self._data_objs:
-            assert isinstance(do, DataObject), "Objects must be of the instance `DataObject`"
+        for data_obj in self:
+            assert isinstance(data_obj, DataObject), "Objects must be of the instance `DataObject`"
 
 
 class SpectrumGroup(DataGroup):
     def __init__(
         self,
-        data_objects: List[DataObject],
+        data_objects: Union[Dict, List[DataObject]],
         x_label="",
         y_label="",
         x_label_options=None,
@@ -193,7 +220,7 @@ class SpectrumGroup(DataGroup):
         if not x_min or not x_max:
 
             x_min_list, x_max_list = [], []
-            for obj in self._data_objs:
+            for obj in self:
                 x_min_list.append(obj.x[0])
                 x_max_list.append(obj.x[-1])
 
@@ -234,17 +261,23 @@ class SpectrumGroup(DataGroup):
     #     if not bin_size:
     #         bin_size = prev_processing.get("bin_size", CONFIG.ms_mzBinSize)
 
-    def mean(self, x_min=None, x_max=None, bin_size=None, linearization_mode=None, auto_range=False):
+    def mean(self, x_min=None, x_max=None, bin_size=None, linearization_mode=None, auto_range=False, **kwargs):
+        raise NotImplementedError("Must implement method")
+
+    def _mean(self, x_min=None, x_max=None, bin_size=None, linearization_mode=None, auto_range=False, **kwargs):
         x, ys = self.resample(x_min, x_max, bin_size, linearization_mode, auto_range)
         y_mean = ys.mean(axis=0)
         return x, y_mean
 
-    def sum(self, x_min=None, x_max=None, bin_size=None, linearization_mode=None, auto_range=False):
+    def sum(self, x_min=None, x_max=None, bin_size=None, linearization_mode=None, auto_range=False, **kwargs):
+        raise NotImplementedError("Must implement method")
+
+    def _sum(self, x_min=None, x_max=None, bin_size=None, linearization_mode=None, auto_range=False, **kwargs):
         x, ys = self.resample(x_min, x_max, bin_size, linearization_mode, auto_range)
         y_sum = ys.sum(axis=0, dtype=np.float64)
         return x, y_sum
 
-    def resample(self, x_min=None, x_max=None, bin_size=None, linearization_mode=None, auto_range=False):
+    def resample(self, x_min=None, x_max=None, bin_size=None, linearization_mode=None, auto_range=False, **kwargs):
         """Resample dataset so it has consistent size and shape"""
 
         def _resample_obj():
@@ -283,13 +316,15 @@ class SpectrumGroup(DataGroup):
             bin_size = prev_processing.get("bin_size", CONFIG.ms_mzBinSize)
 
         # pre-calculate data for single data object to be able to instantiate numpy array for each spectrum
-        obj = self._data_objs[0]
+        obj = self[0]
         x, y = _resample_obj()
 
         # preset array
         ys = np.zeros((self.n_objects, len(x)), dtype=np.float32)
         ys[0] = y
-        for i, obj in enumerate(self._data_objs[1::], start=1):
+        for i in range(1, self.n_objects):
+            obj = self[i]
+            # for i, obj in enumerate(self._data_objs[1::], start=1):
             _, y = _resample_obj()
             ys[i] = y
 
@@ -336,3 +371,11 @@ class MassSpectrumGroup(SpectrumGroup):
         super().__init__(
             data_objects, x_label=x_label, y_label=y_label, metadata=metadata, extra_data=extra_data, **kwargs
         )
+
+    def mean(self, x_min=None, x_max=None, bin_size=None, linearization_mode=None, auto_range=False, **kwargs):
+        x, y = self._mean(x_min, x_max, bin_size, linearization_mode, auto_range, **kwargs)
+        return MassSpectrumObject(x, y)
+
+    def sum(self, x_min=None, x_max=None, bin_size=None, linearization_mode=None, auto_range=False, **kwargs):
+        x, y = self._sum(x_min, x_max, bin_size, linearization_mode, auto_range, **kwargs)
+        return MassSpectrumObject(x, y)
