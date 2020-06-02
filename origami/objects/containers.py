@@ -513,6 +513,13 @@ def ion_heatmap_object(group: Group):
     )
 
 
+def stitch_ion_heatmap_object(group: Group):
+    """Instantiate ion heatmap object from ion heatmap group saved in zarr format"""
+    return StitchIonHeatmapObject(
+        group["array"][:], group["x"][:], group["y"][:], group["xy"][:], group["yy"][:], **group.attrs.asdict()
+    )
+
+
 def msdt_heatmap_object(group: Group):
     """Instantiate ion heatmap object from ion heatmap group saved in zarr format"""
     return MassSpectrumHeatmapObject(

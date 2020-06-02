@@ -122,6 +122,7 @@ from origami.objects.containers import MassSpectrumObject
 from origami.readers.io_text_files import saveAsText
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.misc_dialogs import DialogSimpleAsk
+from builtins import isinstance
 
 logger = logging.getLogger(__name__)
 
@@ -1508,10 +1509,10 @@ class DocumentTree(wx.TreeCtrl):
         self._lesa_import_panel = PanelImagingImportDataset(self.view, self.presenter)
         self._lesa_import_panel.Show()
 
-    def on_import_manual_dataset(self, _):
+    def on_import_manual_dataset(self, activation_type, _):
         from origami.widgets.manual.panel_manual_import import PanelManualImportDataset
 
-        self._manual_import_panel = PanelManualImportDataset(self.view, self.presenter)
+        self._manual_import_panel = PanelManualImportDataset(self.view, self.presenter, activation_type=activation_type)
         self._manual_import_panel.Show()
 
     def on_right_click_short(self):

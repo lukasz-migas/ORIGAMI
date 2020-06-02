@@ -3,6 +3,7 @@
 import os
 import logging
 import webbrowser
+from functools import partial
 from time import sleep
 from time import gmtime
 from time import strftime
@@ -860,10 +861,14 @@ class MainWindow(wx.Frame):
 
         # add manual activation sub-menu
         menu_widgets.AppendSeparator()
-        menu_widget_manual_import = make_menu_item(
-            parent=menu_widgets, text="Open Manual SID/CID import manager...", bitmap=None
+        menu_widget_ciu_import = make_menu_item(
+            parent=menu_widgets, text="Open Manual CIU import manager...", bitmap=None
         )
-        menu_widgets.AppendItem(menu_widget_manual_import)
+        menu_widgets.AppendItem(menu_widget_ciu_import)
+        menu_widget_sid_import = make_menu_item(
+            parent=menu_widgets, text="Open Manual SID import manager...", bitmap=None
+        )
+        menu_widgets.AppendItem(menu_widget_sid_import)
 
         # add lesa activation sub-menu
         menu_widgets.AppendSeparator()
@@ -1278,7 +1283,12 @@ class MainWindow(wx.Frame):
         #         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_interactive_viewer,
         # menu_widget_interactive_viewer)
 
-        self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_import_manual_dataset, menu_widget_manual_import)
+        self.Bind(
+            wx.EVT_MENU, partial(self.panelDocuments.documents.on_import_manual_dataset, "SID"), menu_widget_sid_import
+        )
+        self.Bind(
+            wx.EVT_MENU, partial(self.panelDocuments.documents.on_import_manual_dataset, "CIU"), menu_widget_ciu_import
+        )
 
         # CONFIG MENU
         self.Bind(wx.EVT_MENU, self.data_handling.on_export_config_fcn, id=ID_saveConfig)

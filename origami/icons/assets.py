@@ -23,7 +23,7 @@ class Icons:
 
     def __getitem__(self, item):
         """Key access to the icon dictionary"""
-        return self.icons[item]
+        return self.icons.get(item, None)
 
     def keys(self):
         """Returns names of the icons"""

@@ -11,7 +11,7 @@ import wx
 from pubsub import pub
 
 # Local imports
-from origami.styles import MiniFrame
+from origami.styles import MiniFrame, make_menu_item
 from origami.styles import set_item_font
 
 # from origami.styles import make_menu_item
@@ -190,10 +190,9 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         from origami.gui_elements.misc_dialogs import DialogSimpleAsk
 
         info = self.on_get_item_information()
-        if evt.ControlDown():
+        if hasattr(evt, "ControlDown") and evt.ControlDown():  # noqa
             self.peaklist.CheckItem(self.peaklist.item_id, not info["check"])
         else:
-            print(info["variable"])
             value = DialogSimpleAsk(
                 "Please specify index value", "Please specify index value", info["variable"], "float"
             )
@@ -214,7 +213,21 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         pass
 
     def on_menu_item_right_click(self, evt):
-        pass
+        self.peaklist.item_id = evt.GetIndex()
+
+        menu = wx.Menu()
+        menu_edit = make_menu_item(parent=menu, text="Edit\tDouble-click", bitmap=self._icons["edit"])
+        menu.Append(menu_edit)
+        menu_remove = make_menu_item(parent=menu, text="Remove item\tDelete", bitmap=self._icons["bin"])
+        menu.Append(menu_remove)
+
+        # bind events
+        self.Bind(wx.EVT_MENU, self.on_double_click_on_item, menu_edit)
+        self.Bind(wx.EVT_MENU, self.on_delete_item, menu_remove)
+
+        self.PopupMenu(menu)
+        menu.Destroy()
+        self.SetFocus()
 
     def on_close(self, evt):
         """Destroy this frame"""
