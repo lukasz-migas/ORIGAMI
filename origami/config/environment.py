@@ -27,6 +27,7 @@ DOCUMENT_TYPE_ATTRIBUTES = dict(
     mzml=dict(data_type="Type: MS/MS", file_format="Format: .mzML"),
     imaging=dict(data_type="Type: Imaging", file_format="Format: MassLynx (.raw)"),
     origami=dict(data_type="Type: ORIGAMI", file_format="Format: MassLynx (.raw)"),
+    activation=dict(data_type="Type: Activation", file_format="Format: MassLynx (.raw)"),
     waters=dict(data_type="Type: MassLynx", file_format="Format: MassLynx (.raw)"),
 )
 ALTERNATIVE_NAMES = {
@@ -38,16 +39,18 @@ ALTERNATIVE_NAMES = {
     "mzML": "mzml",
     "Imaging": "imaging",
     "Type: Imaging": "imaging",
+    "Type: Activation": "activation",
     "Type: ORIGAMI": "origami",
 }
 DOCUMENT_TYPES = [
     "Type: ORIGAMI",
-    "Type: MANUAL",
+    "Type: Activation",
+    "Type: MANUAL",  # remove
     # "Type: Infrared",  # remove
     # "Type: 2D IM-MS",  # remove
     # "Type: Interactive",  # remove
     "Type: Comparison",
-    "Type: MS",
+    "Type: MS",  # remove
     "Type: Imaging",
     "Type: MS/MS",
 ]

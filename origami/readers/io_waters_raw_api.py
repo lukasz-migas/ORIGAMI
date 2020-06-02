@@ -32,6 +32,7 @@ class WatersRawReader:
         self._mz_x = self.get_linear_mz(self._mz_spacing)
         self._rt_min = None
         self._dt_ms = None
+        self._info = None
 
         # setup file mode
         self.instrument_type = self.stats_in_functions[0]["ion_mode"]
@@ -84,6 +85,12 @@ class WatersRawReader:
         if glob.glob(os.path.join(self.path, "*.cdt")):
             return True
         return False
+
+    @property
+    def info(self):
+        if self._info is None:
+            self._info = self.get_inf_data()
+        return self._info
 
     def convert_scan_to_min(self, scans):
         """Converts scan(s) to minutes"""

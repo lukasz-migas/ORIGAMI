@@ -3388,7 +3388,8 @@ class PanelPlots(wx.Panel):
     #         # Show the mass spectrum
     #         self.plot_msdt.repaint()
     #
-    #         # since we always sub-sample this dataset, it is makes sense to keep track of the full dataset before it was
+    #         # since we always sub-sample this dataset, it is makes sense to keep track of the full dataset before
+    #         it was
     #         # subsampled - this way, when we replot data it will always use the full information
     #         if kwargs.get("full_data", False):
     #             xvals = kwargs["full_data"].pop("xvals", xvals)

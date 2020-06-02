@@ -15,6 +15,7 @@ import pandas as pd
 
 # Local imports
 import origami.utils.labels as ut_labels
+
 # from origami.ids import ID_docTree_plugin_UVPD
 from origami.ids import ID_renameItem
 from origami.ids import ID_openDocInfo
@@ -41,7 +42,8 @@ from origami.ids import ID_xlabel_1D_bins
 from origami.ids import ID_ylabel_2D_bins
 from origami.ids import ID_ylabel_DTMS_ms
 from origami.ids import ID_saveData_pickle
-from origami.ids import ID_window_textList
+
+# from origami.ids import ID_window_textList
 from origami.ids import ID_xlabel_2D_scans
 from origami.ids import ID_xlabel_RT_scans
 from origami.ids import ID_saveAllDocuments
@@ -79,7 +81,8 @@ from origami.ids import ID_docTree_addToMMLTable
 from origami.ids import ID_saveAsDataCSVDocument
 from origami.ids import ID_saveDataCSVDocument1D
 from origami.ids import ID_saveWaterfallImageDoc
-from origami.ids import ID_window_multipleMLList
+
+# from origami.ids import ID_window_multipleMLList
 from origami.ids import ID_xlabel_2D_actLabFrame
 from origami.ids import ID_xlabel_2D_retTime_min
 from origami.ids import ID_xlabel_RT_retTime_min
@@ -102,9 +105,10 @@ from origami.ids import ID_docTree_addInteractiveToTextTable
 from origami.ids import ID_docTree_addOneInteractiveToTextTable
 from origami.styles import make_menu_item
 from origami.utils.path import clean_filename
-from origami.utils.color import get_font_color
-from origami.utils.color import convert_rgb_1_to_255
-from origami.utils.color import convert_rgb_255_to_1
+
+# from origami.utils.color import get_font_color
+# from origami.utils.color import convert_rgb_1_to_255
+# from origami.utils.color import convert_rgb_255_to_1
 from origami.utils.utilities import report_time
 from origami.objects.document import DocumentStore
 from origami.utils.converters import str2int
@@ -112,6 +116,7 @@ from origami.utils.converters import str2num
 from origami.utils.converters import byte2str
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
+
 # from origami.gui_elements.panel_document_information import PanelDocumentInformation
 from origami.objects.containers import MassSpectrumObject
 from origami.readers.io_text_files import saveAsText
@@ -200,7 +205,8 @@ class DocumentTree(wx.TreeCtrl):
         self._overlay_panel = None
         self._picker_panel = None
         self._lesa_panel = None
-        self._import_panel = None
+        self._lesa_import_panel = None
+        self._manual_import_panel = None
 
         # set font and colour
         self.SetFont(wx.SMALL_FONT)
@@ -1499,8 +1505,14 @@ class DocumentTree(wx.TreeCtrl):
     def on_import_lesa_dataset(self, _):
         from origami.widgets.lesa.panel_imaging_lesa_import import PanelImagingImportDataset
 
-        self._import_panel = PanelImagingImportDataset(self.view, self.presenter)
-        self._import_panel.Show()
+        self._lesa_import_panel = PanelImagingImportDataset(self.view, self.presenter)
+        self._lesa_import_panel.Show()
+
+    def on_import_manual_dataset(self, _):
+        from origami.widgets.manual.panel_manual_import import PanelManualImportDataset
+
+        self._manual_import_panel = PanelManualImportDataset(self.view, self.presenter)
+        self._manual_import_panel.Show()
 
     def on_right_click_short(self):
         """Right-click menu when clicked on the `Documents` item in the documents tree"""
@@ -4466,8 +4478,9 @@ class DocumentTree(wx.TreeCtrl):
                 item, cookie = self.GetNextChild(item, cookie)
             return None
 
-    #         for title, name in metadata:
-    #             print("item", get_document(), name)
+        for title, name in metadata:
+            pass
+            # print("item", get_document(), name)
 
     def add_document(self, document: DocumentStore, expandAll=False, expandItem=None):
         """Add document to the document tree"""

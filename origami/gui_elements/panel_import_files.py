@@ -13,7 +13,8 @@ from pubsub import pub
 # Local imports
 from origami.styles import MiniFrame
 from origami.styles import set_item_font
-from origami.styles import make_menu_item
+
+# from origami.styles import make_menu_item
 from origami.styles import make_bitmap_btn
 from origami.icons.assets import Icons
 from origami.objects.misc import FileItem
@@ -114,7 +115,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
     TABLE_ALLOWED_EDIT = [TABLE_COLUMN_INDEX.variable]
 
     HELP_MD = """## Table controls
-    
+
     Double-click on an item will open new window where you can change the index/variable value of the selected item
     Double-click + CTRL button will check/uncheck the selected item
     """
@@ -177,10 +178,6 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
     def document_tree(self):
         raise NotImplementedError("Must implement method")
 
-    def _on_update_import_info(self):
-        """Returns string to be inserted into the import label"""
-        raise NotImplementedError("Must implement method")
-
     def on_update_implementation(self, metadata):
         """Update UI elements of the implementation"""
         pass
@@ -202,12 +199,6 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
             )
             if value is not None:
                 self.on_update_value_in_peaklist(self.peaklist.item_id, "variable", value)
-
-        # print(evt.GetColumn(), evt.GetIndex())
-        # print(dir(evt))
-        # self.on_check_selected(None)
-        # print(dir(evt))
-        # self.on_check_item(None, None)
 
     def get_parameters_implementation(self):
         """Retrieve processing parameters that are specific for the implementation"""
@@ -542,7 +533,8 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
     def on_clear_files(self, _):
         """Clear filelist from existing files"""
-        self.on_delete_all(None)
+        # self.on_delete_all(None)
+        self.on_delete_selected(None)
         self.on_update_import_info()
 
     def get_list_parameters(self):
@@ -682,6 +674,23 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
             dictionary containing pre-processing parameters
         """
         raise NotImplementedError("Must implement method")
+
+    def _on_update_import_info(self):
+        """Returns string to be inserted into the import label"""
+        n_checked, mz_range, im_on, __ = self.get_list_parameters()
+
+        if not mz_range or not im_on:
+            return "Please load files first", wx.RED
+
+        color = wx.BLACK
+        if isinstance(mz_range, list) or isinstance(im_on, list):
+            color = wx.RED
+
+        info = f"Number of files: {n_checked}\n"
+        info += f"Mass range: {mz_range}\n"
+        info += f"Ion mobility: {im_on}"
+
+        return info, color
 
 
 def main():

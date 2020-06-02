@@ -1,4 +1,16 @@
-__all__ = ["byte2str", "str2num", "num2str", "str2int", "float2int", "str2bool", "rounder"]
+__all__ = [
+    "byte2str",
+    "str2num",
+    "num2str",
+    "str2int",
+    "float2int",
+    "str2bool",
+    "rounder",
+    "convert_ms_to_bins",
+    "convert_bins_to_ms",
+    "convert_mins_to_scans",
+    "convert_scans_to_mins",
+]
 
 
 def convert_ms_to_bins(values, pusher_freq):

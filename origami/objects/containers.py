@@ -1,4 +1,5 @@
 # Standard library imports
+from typing import List
 from typing import Union
 from typing import Optional
 
@@ -9,6 +10,7 @@ from zarr import Group
 # Local imports
 from origami.utils.ranges import get_min_max
 from origami.objects.container import ContainerBase
+from origami.processing.heatmap import equalize_heatmap_spacing
 from origami.processing.spectra import baseline_1D
 from origami.processing.spectra import normalize_1D
 from origami.processing.spectra import linearize_data
@@ -411,6 +413,51 @@ class IonHeatmapObject(HeatmapObject):
             extra_data=extra_data,
             **kwargs,
         )
+
+
+class StitchIonHeatmapObject(IonHeatmapObject):
+    def __init__(
+        self,
+        data_objects: List[MobilogramObject],
+        variables: List,
+        name: str = "",
+        metadata=None,
+        extra_data=None,
+        x_label="Scans",
+        y_label="Drift time (bins)",
+        **kwargs,
+    ):
+        # pre-process data before setting it up in the container
+        array, x, y = self._preprocess(data_objects, variables)
+
+        super().__init__(
+            array,
+            x=x,
+            y=y,
+            xy=None,
+            yy=None,
+            x_label=x_label,
+            y_label=y_label,
+            metadata=metadata,
+            extra_data=extra_data,
+            name=name,
+            **kwargs,
+        )
+
+    @staticmethod
+    def _preprocess(data_objects: List[MobilogramObject], variables: List):
+        """"""
+        assert len(data_objects) == len(variables)
+        obj = data_objects[0]
+        y = obj.x
+        x = np.asarray(variables)
+        array = np.zeros((len(y), len(x)), dtype=np.float32)
+        for i, mob in enumerate(data_objects):
+            array[:, i] = mob.y
+
+        x, y, array = equalize_heatmap_spacing(x, y, array)
+
+        return array, x, y
 
 
 class MassSpectrumHeatmapObject(HeatmapObject):

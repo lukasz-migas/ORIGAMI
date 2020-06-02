@@ -8,7 +8,8 @@ import wx
 from origami.styles import MiniFrame
 from origami.styles import make_bitmap_btn
 from origami.icons.assets import Icons
-from origami.config.config import CONFIG
+
+# from origami.config.config import CONFIG
 
 
 class PanelModifyItem(MiniFrame):

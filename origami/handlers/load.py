@@ -30,6 +30,7 @@ from origami.objects.containers import IonHeatmapObject
 from origami.objects.containers import MobilogramObject
 from origami.objects.containers import ChromatogramObject
 from origami.objects.containers import MassSpectrumObject
+from origami.objects.containers import StitchIonHeatmapObject
 from origami.objects.containers import MassSpectrumHeatmapObject
 from origami.processing.heatmap import equalize_heatmap_spacing
 from origami.processing.imaging import ImagingNormalizationProcessor
@@ -328,7 +329,7 @@ class LoadHandler:
     def get_waters_info(path: str):
         """Retrieves information about the file in question"""
         reader = WatersIMReader(path)
-        info = dict(is_im=reader.is_im, n_scans=reader.n_scans(0), mz_range=reader.mz_range)
+        info = dict(is_im=reader.is_im, n_scans=reader.n_scans(0), mz_range=reader.mz_range, cid=reader.info["trap_ce"])
         return info
 
     @staticmethod
@@ -532,7 +533,7 @@ class LoadHandler:
             return False
 
     @check_os("win32")
-    def load_waters_im_data(self, path):
+    def load_waters_im_data(self, path: str):
         """Load Waters IM-MS data"""
         t_start = time.time()
         reader = WatersIMReader(path, temp_dir=CONFIG.temporary_data)
@@ -566,7 +567,7 @@ class LoadHandler:
         return reader, data
 
     @check_os("win32")
-    def load_waters_im_document(self, path):
+    def load_waters_im_document(self, path: str):
         """Load Waters data and set in ORIGAMI document"""
         reader, data = self.load_waters_im_data(path)
         document = ENV.get_new_document("origami", path, data=data)
@@ -574,15 +575,40 @@ class LoadHandler:
 
         return document
 
+    def load_lesa_document(self, path, filelist: List[FileItem], **proc_kwargs) -> DocumentStore:
+        """Load Waters data and set in ORIGAMI document"""
+        document = ENV.get_new_document("imaging", path)
+
+        filelist = self.check_lesa_document(document, filelist, **proc_kwargs)
+        data = self.load_multi_file_waters_data(filelist, **proc_kwargs)
+        document = ENV.set_document(document, data=data)
+        document.add_config("imaging", proc_kwargs)
+        ImagingNormalizationProcessor(document)
+
+        return document
+
+    def load_manual_document(self, path, filelist: List[FileItem], **proc_kwargs) -> DocumentStore:
+        """Load Waters data and set in ORIGAMI document"""
+        document = ENV.get_new_document("activation", path)
+
+        filelist = self.check_lesa_document(document, filelist, **proc_kwargs)
+        data = self.load_multi_file_waters_data(filelist, **proc_kwargs)
+        document = ENV.set_document(document, data=data)
+        document.add_config("activation", proc_kwargs)
+
+        return document
+
     @check_os("win32")
-    def load_lesa_data(self, filelist: List[FileItem], **proc_kwargs):
+    def load_multi_file_waters_data(self, filelist: List[FileItem], **proc_kwargs):
         """Vendor agnostic LESA data load"""
         t_start = time.time()
         n_items = len(filelist)
 
         # iterate over all selected files
         mass_spectra, chromatograms, mobilograms = {}, {}, {}
+        variables = []
         for file_id, file_info in enumerate(filelist):
+            variables.append(file_info.variable)
             # create item name
             __, filename = os.path.split(file_info.path)
             spectrum_name = f"{file_info.variable}={filename}"
@@ -600,19 +626,12 @@ class LoadHandler:
         if mass_spectra:
             mz_obj = MassSpectrumGroup(mass_spectra).mean(**deepcopy(proc_kwargs))
             data_out["mz"] = mz_obj
+
+        if mobilograms and variables:
+            heatmap_obj = StitchIonHeatmapObject(list(mobilograms.values()), variables)
+            data_out["heatmap"] = heatmap_obj
+
         return data_out
-
-    def load_lesa_document(self, path, filelist: List[FileItem], **proc_kwargs) -> DocumentStore:
-        """Load Waters data and set in ORIGAMI document"""
-        document = ENV.get_new_document("imaging", path)
-
-        filelist = self.check_lesa_document(document, filelist, **proc_kwargs)
-        data = self.load_lesa_data(filelist, **proc_kwargs)
-        document = ENV.set_document(document, data=data)
-        document.add_config("imaging", proc_kwargs)
-        ImagingNormalizationProcessor(document)
-
-        return document
 
     @staticmethod
     def check_lesa_document(document: DocumentStore, filelist: List[FileItem], **proc_kwargs) -> List[FileItem]:

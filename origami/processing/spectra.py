@@ -19,6 +19,7 @@ from origami.utils.exceptions import MessageError
 
 logger = logging.getLogger(__name__)
 
+
 # TODO: add ppm sampling
 # TODO: should try to speed this up as the for-loop makes this very computationally expensive
 def baseline_curve(data, window, **kwargs):

@@ -52,7 +52,7 @@ class PanelImagingImportDataset(PanelImportManagerBase):
         """Make settings panel"""
 
         # import
-        image_dimension_label = set_item_font(wx.StaticText(panel, wx.ID_ANY, "Image dimensions:"))
+        image_dimension_label = set_item_font(wx.StaticText(panel, wx.ID_ANY, "Imaging details:"))
         image_shape_x = wx.StaticText(panel, -1, "Shape (x-dim):")
         self.image_shape_x = make_spin_ctrl_int(panel, 0, 0, 100, 1, (90, -1), name="shape_x")
         self.image_shape_x.SetBackgroundColour((255, 230, 239))
@@ -84,23 +84,6 @@ class PanelImagingImportDataset(PanelImportManagerBase):
 
         return sizer
 
-    def _on_update_import_info(self):
-        """Returns string to be inserted into the import label"""
-        n_checked, mz_range, im_on, __ = self.get_list_parameters()
-
-        if not mz_range or not im_on:
-            return "Please load files first", wx.RED
-
-        color = wx.BLACK
-        if isinstance(mz_range, list) or isinstance(im_on, list):
-            color = wx.RED
-
-        info = f"Number of files: {n_checked}\n"
-        info += f"Mass range: {mz_range}\n"
-        info += f"Ion mobility: {im_on}"
-
-        return info, color
-
     def on_update_implementation(self, metadata):
         """Update UI elements of the implementation"""
         # update image dimensions
@@ -129,9 +112,9 @@ class PanelImagingImportDataset(PanelImportManagerBase):
             return _idx
 
         # get data
-        idx = get_file_idx()
+        variable = get_file_idx()
         try:
-            idx = int(idx)
+            idx = int(variable)
         except TypeError:
             logger.warning(f"Could not identify the index of {path}")
 
@@ -143,7 +126,7 @@ class PanelImagingImportDataset(PanelImportManagerBase):
         scan_range = f"0-{n_scans - 1}"
         mz_range = f"{mz_range[0]}-{mz_range[1]}"
 
-        return dict(mz_range=mz_range, ion_mobility=is_im, scan_range=scan_range, variable=idx, n_scans=n_scans)
+        return dict(mz_range=mz_range, ion_mobility=is_im, scan_range=scan_range, variable=variable, n_scans=n_scans)
 
     def _import(self, filelist: List[Tuple[Number, str, int, int, Dict]], **parameters: Dict):
         if self.document_title is None:

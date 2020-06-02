@@ -96,8 +96,7 @@ class DataGroup(ContainerBase):
 
     @property
     def processing(self):
-        """Returns the processing processing used by the group dataset"""
-        raise NotImplementedError("Must implement method")
+        return self._processing
 
     # def get(self, idx: int=None, name: str=None):
     #     """Retrieve one item by its name / index"""
@@ -153,6 +152,55 @@ class DataGroup(ContainerBase):
             assert isinstance(data_obj, DataObject), "Objects must be of the instance `DataObject`"
 
 
+# class HeatmapGroup(DataGroup):
+#     def __init__(
+#         self,
+#         data_objects: Union[Dict, List[DataObject]],
+#         x_label="",
+#         y_label="",
+#         x_label_options=None,
+#         y_label_options=None,
+#         metadata=None,
+#         extra_data=None,
+#         **kwargs,
+#     ):
+#         super().__init__(
+#             data_objects,
+#             x_label=x_label,
+#             y_label=y_label,
+#             metadata=metadata,
+#             extra_data=extra_data,
+#             x_label_options=x_label_options,
+#             y_label_options=y_label_options,
+#             **kwargs,
+#         )
+#
+#     @property
+#     def need_resample(self):
+#         return
+#
+#     def mean(self):
+#         pass
+#
+#     def sum(self):
+#         pass
+#
+#     def resample(self):
+#         pass
+#
+#     def reset(self):
+#         pass
+#
+#     def to_csv(self, *args, **kwargs):
+#         pass
+#
+#     def to_dict(self):
+#         pass
+#
+#     def to_zarr(self):
+#         pass
+
+
 class SpectrumGroup(DataGroup):
     def __init__(
         self,
@@ -203,10 +251,6 @@ class SpectrumGroup(DataGroup):
         return list(self.get_x_range())
 
     @property
-    def processing(self):
-        return self._processing
-
-    @property
     def need_resample(self):
         self.get_x_range()
         return self._resample
@@ -239,27 +283,6 @@ class SpectrumGroup(DataGroup):
         self._y_mean = None
         self._x_min = None
         self._x_max = None
-
-    # def _get_parameters(self, x_min, x_max, bin_size, linearization_mode, auto_range):
-    #     """Get processing parameters"""
-    #     # retrieve previous processing parameters
-    #     prev_processing = self.get_processing_step("resample")
-    #
-    #     # specify x-axis limits
-    #     _x_min, _x_max = self.get_x_range()
-    #
-    #     # specify processing processing
-    #     if x_min is None:
-    #         x_min = prev_processing.get("x_min", _x_min)
-    #
-    #     if x_max is None:
-    #         x_max = prev_processing.get("x_max", _x_max)
-    #
-    #     if not linearization_mode:
-    #         linearization_mode = prev_processing.get("linearization_mode", CONFIG.ms_linearization_mode)
-    #
-    #     if not bin_size:
-    #         bin_size = prev_processing.get("bin_size", CONFIG.ms_mzBinSize)
 
     def mean(self, x_min=None, x_max=None, bin_size=None, linearization_mode=None, auto_range=False, **kwargs):
         raise NotImplementedError("Must implement method")

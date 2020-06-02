@@ -12,6 +12,7 @@ from pathlib import Path
 import zarr
 import numpy as np
 from zarr import Group
+from natsort import natsorted
 from zarr.util import is_valid_python_name
 
 # Local imports
@@ -145,6 +146,8 @@ class DocumentStore:
         elif klass_name == "MassSpectrumHeatmapObject":
             obj = msdt_heatmap_object(group)
         elif klass_name == "IonHeatmapObject":
+            obj = ion_heatmap_object(group)
+        elif klass_name == "StitchIonHeatmapObject":
             obj = ion_heatmap_object(group)
         # elif klass_name == "MassSpectrumGroup":
         #     obj =
@@ -437,7 +440,7 @@ class DocumentStore:
 
         def get_children(o):
 
-            return [i.path for i in o.values()]
+            return natsorted([i.path for i in o.values()])
 
         out = []
         for o in self.fp.values():

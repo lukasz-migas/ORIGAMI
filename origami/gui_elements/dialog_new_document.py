@@ -1,10 +1,8 @@
-# Third-party imports
-# Standard library imports
-# Standard library imports
 # Standard library imports
 import os
 import logging
 
+# Third-party imports
 import wx
 
 # Local imports
