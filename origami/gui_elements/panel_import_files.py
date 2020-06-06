@@ -11,10 +11,10 @@ import wx
 from pubsub import pub
 
 # Local imports
-from origami.styles import MiniFrame, make_menu_item
-from origami.styles import set_item_font
-
 # from origami.styles import make_menu_item
+from origami.styles import MiniFrame
+from origami.styles import set_item_font
+from origami.styles import make_menu_item
 from origami.styles import make_bitmap_btn
 from origami.icons.assets import Icons
 from origami.objects.misc import FileItem

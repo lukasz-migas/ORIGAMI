@@ -1192,7 +1192,7 @@ class PanelPeaklist(TablePanelBase):
         document = ENV.on_get_document(self._document_title)
         if document is None:
             raise MessageError("Error", "Please create/load ORIGAMI document first")
-        self.document_tree.on_action_ORIGAMI_MS(None, document.title)
+        self.document_tree.on_action_origami_ms(None, document.title)
 
     def on_load_peaklist(self, evt):
         """This function opens a formatted CSV file with peaks"""

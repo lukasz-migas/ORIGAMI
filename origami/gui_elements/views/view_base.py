@@ -1,12 +1,22 @@
 """Base class of the `View` object"""
 # Standard library imports
+import os
+import time
+import logging
 from abc import ABC
 from abc import abstractmethod
 from typing import Optional
 
+# Third-party imports
+import wx
+
 # Local imports
+from origami.config.config import CONFIG
+from origami.utils.utilities import report_time
 from origami.visuals.mpl.base import PlotBase
 from origami.objects.containers import DataObject
+
+LOGGER = logging.getLogger(__name__)
 
 
 class ViewBase(ABC):
@@ -154,3 +164,54 @@ class ViewBase(ABC):
 
     def add_line(self, x, y, **kwargs):
         """Add text label to the plot"""
+
+    def save_figure(self, filename, **kwargs):
+        """Export figure"""
+        # setup file dialog
+        wildcard = (
+            "SVG Scalable Vector Graphic (*.svg)|*.svg|"
+            + "SVGZ Compressed Scalable Vector Graphic (*.svgz)|*.svgz|"
+            + "PNG Portable Network Graphic (*.png)|*.png|"
+            + "Enhanced Windows Metafile (*.eps)|*.eps|"
+            + "JPEG File Interchange Format (*.jpeg)|*.jpeg|"
+            + "TIFF Tag Image File Format (*.tiff)|*.tiff|"
+            + "RAW Image File Format (*.raw)|*.raw|"
+            + "PS PostScript Image File Format (*.ps)|*.ps|"
+            + "PDF Portable Document Format (*.pdf)|*.pdf"
+        )
+
+        wildcard_dict = {"svg": 0, "svgz": 1, "png": 2, "eps": 3, "jpeg": 4, "tiff": 5, "raw": 6, "ps": 7, "pdf": 8}
+
+        dlg = wx.FileDialog(
+            self.parent, "Save as...", "", "", wildcard=wildcard, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
+        )
+        dlg.CentreOnParent()
+        dlg.SetFilename(filename)
+        try:
+            dlg.SetFilterIndex(wildcard_dict[CONFIG.imageFormat])
+        except Exception:
+            LOGGER.error("Could not set image format")
+
+        if dlg.ShowModal() == wx.ID_OK:
+            t_start = time.time()
+            filename = dlg.GetPath()
+            __, extension = os.path.splitext(filename)
+            CONFIG.imageFormat = extension[1::]
+
+            # build kwargs
+            kwargs = {
+                "transparent": CONFIG.transparent,
+                "dpi": CONFIG.dpi,
+                "format": extension[1::],
+                "compression": "zlib",
+                "resize": None,
+                "tight": CONFIG.image_tight,
+            }
+
+            # if CONFIG.resize:
+            #     kwargs["resize"] = resizeName
+
+            self.figure.save_figure(path=filename, **kwargs)
+
+            LOGGER.info(f"Saved figure in {report_time(t_start)}")
+        dlg.Destroy()

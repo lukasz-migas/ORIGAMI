@@ -6,6 +6,9 @@ import glob
 # Third-party imports
 import wx
 
+# Local imports
+from origami.utils.utilities import is_valid_python_name
+
 ASSETS_PATH = os.path.join(os.path.dirname(__file__), "assets")
 
 
@@ -24,6 +27,20 @@ class Icons:
     def __getitem__(self, item):
         """Key access to the icon dictionary"""
         return self.icons.get(item, None)
+
+    def __getattr__(self, item):
+        # allow access to group members via dot notation
+        try:
+            return self.icons[item]
+        except KeyError:
+            raise AttributeError
+
+    def __dir__(self):
+        # noinspection PyUnresolvedReferences
+        base = super().__dir__()
+        keys = sorted(set(base + list(self.icons.keys())))
+        keys = [k for k in keys if is_valid_python_name(k)]
+        return keys
 
     def keys(self):
         """Returns names of the icons"""
@@ -47,41 +64,42 @@ class Icons:
         return icons
 
 
-# class Example(wx.Frame):
-#     def __init__(self, *args, **kwargs):
-#         super(Example, self).__init__(*args, **kwargs)
-#
-#         self.InitUI()
-#
-#     def InitUI(self):
-#         icons = Icons()
-#
-#         menubar = wx.MenuBar()
-#         fileMenu = wx.Menu()
-#
-#         for key, icon in icons.items():
-#             fileItem = fileMenu.Append(wx.ID_ANY, key, "Quit application")
-#             fileItem.SetBitmap(icon)
-#             self.Bind(wx.EVT_MENU, self.OnQuit, fileItem)
-#
-#         menubar.Append(fileMenu, "&File")
-#         self.SetMenuBar(menubar)
-#
-#         self.SetSize((300, 200))
-#         self.SetTitle("Simple menu")
-#         self.Centre()
-#
-#     def OnQuit(self, e):
-#         self.Close()
-#
-#
-# def main():
-#     app = wx.App()
-#
-#     ex = Example(None)
-#     ex.Show()
-#     app.MainLoop()
-#
-#
-# if __name__ == "__main__":
-#     main()
+class Example(wx.Frame):
+    def __init__(self, *args, **kwargs):
+        super(Example, self).__init__(*args, **kwargs)
+
+        self.InitUI()
+
+    def InitUI(self):
+        icons = Icons()
+        print(dir(icons))
+
+        menubar = wx.MenuBar()
+        fileMenu = wx.Menu()
+
+        for key, icon in icons.items():
+            fileItem = fileMenu.Append(wx.ID_ANY, key, "Quit application")
+            fileItem.SetBitmap(icon)
+            self.Bind(wx.EVT_MENU, self.OnQuit, fileItem)
+
+        menubar.Append(fileMenu, "&File")
+        self.SetMenuBar(menubar)
+
+        self.SetSize((300, 200))
+        self.SetTitle("Simple menu")
+        self.Centre()
+
+    def OnQuit(self, e):
+        self.Close()
+
+
+def main():
+    app = wx.App()
+
+    ex = Example(None)
+    ex.Show()
+    app.MainLoop()
+
+
+if __name__ == "__main__":
+    main()

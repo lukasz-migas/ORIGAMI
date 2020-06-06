@@ -1107,11 +1107,11 @@ class DataHandling(LoadHandler, ExportHandler):
             style = wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
         dlg = wx.FileDialog(self.view, "Save text file...", "", "", wildcard=wildcard, style=style)
 
-        defaultName = ""
+        default_name = ""
         if "default_name" in kwargs:
-            defaultName = kwargs.pop("default_name")
-            defaultName = clean_filename(defaultName)
-        dlg.SetFilename(defaultName)
+            default_name = kwargs.pop("default_name")
+            default_name = clean_filename(default_name)
+        dlg.SetFilename(default_name)
 
         try:
             dlg.SetFilterIndex(wildcard_dict[self.config.saveDelimiter])

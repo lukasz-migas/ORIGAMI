@@ -13,6 +13,12 @@ CHUNK_MIN = 256 * 1024  # Soft lower limit (128k)
 CHUNK_MAX = 64 * 1024 * 1024  # Hard upper limit
 
 
+def is_valid_python_name(name):
+    from keyword import iskeyword
+
+    return name.isidentifier() and not iskeyword(name)
+
+
 def get_chunk_size(chunks, shape, dtype):
     dtype, object_codec = normalize_dtype(dtype, None)
     shape = normalize_shape(shape) + dtype.shape
@@ -174,7 +180,7 @@ def time_loop(t_start: float, n_item: int, n_total: int, as_percentage: bool = T
 
     # calculate progress
     progress = f"{n_item}/{n_total}"
-    if as_percentage:
+    if as_percentage and n_total != 0:
         progress = f"{(n_item / n_total) * 100:.1f}%"
 
     return f"[Avg: {format_time(t_avg)} | Rem: {format_time(t_rem)} | Tot: {format_time(t_tot)} || {progress}]"

@@ -15,6 +15,8 @@ from origami.objects.document import DocumentStore
 from origami.objects.callbacks import PropertyCallbackManager
 from origami.objects.containers import DataObject
 
+# ID_showPlotMSDocument
+
 LOGGER = logging.getLogger(__name__)
 
 DOCUMENT_TYPE_ATTRIBUTES = dict(

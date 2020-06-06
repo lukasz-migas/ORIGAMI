@@ -3,12 +3,12 @@
 import os
 import logging
 import webbrowser
-from functools import partial
 from time import sleep
 from time import gmtime
 from time import strftime
 from typing import List
 from typing import Optional
+from functools import partial
 
 # Third-party imports
 import numpy as np
@@ -17,9 +17,6 @@ import wx.aui
 from pubsub import pub
 
 # Local imports
-# from origami.ids import ID_openLinearDTRawFile
-# from origami.ids import ID_addCCScalibrantFile
-# from origami.ids import ID_setDriftScopeDir
 from origami.ids import ID_WHATS_NEW
 from origami.ids import ID_SHOW_ABOUT
 from origami.ids import ID_CHECK_VERSION
@@ -84,7 +81,6 @@ from origami.ids import ID_docTree_compareMS
 from origami.ids import ID_help_page_ORIGAMI
 from origami.ids import ID_help_page_overlay
 from origami.ids import ID_importAtStart_CCS
-from origami.ids import ID_process2DDocument
 from origami.ids import ID_saveAsInteractive
 from origami.ids import ID_extraSettings_rmsd
 from origami.ids import ID_fileMenu_thermoRAW
@@ -1547,11 +1543,10 @@ class MainWindow(wx.Frame):
             # ["Q", self.presenter.on_overlay_2D, wx.ACCEL_ALT, ID_overlayMZfromList],
             # ["W", self.presenter.on_overlay_2D, wx.ACCEL_ALT, ID_overlayTextFromList],
             ["S", self.panelDocuments.documents.on_show_plot, wx.ACCEL_ALT, ID_showPlotDocument],
-            ["P", self.panelDocuments.documents.onProcess, wx.ACCEL_ALT, ID_process2DDocument],
             ["R", self.panelDocuments.documents.onRenameItem, wx.ACCEL_ALT, ID_renameItem],
             ["X", self.panelDocuments.documents.on_show_plot, wx.ACCEL_ALT, ID_showPlotMSDocument],
             ["Z", self.panelDocuments.documents.on_change_charge_state, wx.ACCEL_ALT, ID_assignChargeState],
-            ["V", self.panelDocuments.documents.onSaveCSV, wx.ACCEL_ALT, ID_saveDataCSVDocument],
+            ["V", self.panelDocuments.documents.on_save_csv, wx.ACCEL_ALT, ID_saveDataCSVDocument],
         ]
 
         for item in extra_key_events:

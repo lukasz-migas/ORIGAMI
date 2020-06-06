@@ -5,45 +5,30 @@ import re
 import time
 import logging
 from copy import deepcopy
-from operator import itemgetter
 from functools import partial
 
 # Third-party imports
 import wx
 import numpy as np
-import pandas as pd
 
 # Local imports
 import origami.utils.labels as ut_labels
-
-# from origami.ids import ID_docTree_plugin_UVPD
-from origami.ids import ID_renameItem
-from origami.ids import ID_openDocInfo
 from origami.ids import ID_saveData_csv
 from origami.ids import ID_saveData_hdf
-from origami.ids import ID_saveDocument
 from origami.ids import ID_xlabel_1D_ms
 from origami.ids import ID_xlabel_2D_mz
 from origami.ids import ID_ylabel_2D_ms
 from origami.ids import ID_duplicateItem
-from origami.ids import ID_goToDirectory
 from origami.ids import ID_xlabel_1D_ccs
 from origami.ids import ID_xlabel_2D_ccs
 from origami.ids import ID_ylabel_2D_ccs
-from origami.ids import ID_docTree_UniDec
 from origami.ids import ID_removeDocument
-from origami.ids import ID_save1DImageDoc
 from origami.ids import ID_save2DImageDoc
-from origami.ids import ID_save3DImageDoc
 from origami.ids import ID_saveData_excel
-from origami.ids import ID_saveRTImageDoc
-from origami.ids import ID_showSampleInfo
 from origami.ids import ID_xlabel_1D_bins
 from origami.ids import ID_ylabel_2D_bins
 from origami.ids import ID_ylabel_DTMS_ms
 from origami.ids import ID_saveData_pickle
-
-# from origami.ids import ID_window_textList
 from origami.ids import ID_xlabel_2D_scans
 from origami.ids import ID_xlabel_RT_scans
 from origami.ids import ID_saveAllDocuments
@@ -52,9 +37,6 @@ from origami.ids import ID_xlabel_2D_charge
 from origami.ids import ID_xlabel_2D_custom
 from origami.ids import ID_ylabel_2D_custom
 from origami.ids import ID_ylabel_DTMS_bins
-from origami.ids import ID_docTree_compareMS
-from origami.ids import ID_process2DDocument
-from origami.ids import ID_saveAsInteractive
 from origami.ids import ID_xlabel_1D_restore
 from origami.ids import ID_xlabel_2D_actVolt
 from origami.ids import ID_xlabel_2D_colVolt
@@ -62,53 +44,26 @@ from origami.ids import ID_xlabel_2D_restore
 from origami.ids import ID_xlabel_RT_restore
 from origami.ids import ID_ylabel_2D_restore
 from origami.ids import ID_removeAllDocuments
-from origami.ids import ID_showPlot1DDocument
-from origami.ids import ID_showPlotMSDocument
-from origami.ids import ID_showPlotRTDocument
 from origami.ids import ID_xlabel_2D_labFrame
 from origami.ids import ID_xlabel_2D_time_min
 from origami.ids import ID_xlabel_RT_time_min
-from origami.ids import ID_docTree_save_unidec
-from origami.ids import ID_docTree_show_unidec
 from origami.ids import ID_getSelectedDocument
 from origami.ids import ID_saveDataCSVDocument
 from origami.ids import ID_ylabel_DTMS_restore
 from origami.ids import ID_xlabel_1D_ms_arrival
 from origami.ids import ID_xlabel_2D_wavenumber
 from origami.ids import ID_ylabel_2D_ms_arrival
-from origami.ids import ID_docTree_add_mzIdentML
-from origami.ids import ID_docTree_addToMMLTable
-from origami.ids import ID_saveAsDataCSVDocument
-from origami.ids import ID_saveDataCSVDocument1D
-from origami.ids import ID_saveWaterfallImageDoc
-
-# from origami.ids import ID_window_multipleMLList
 from origami.ids import ID_xlabel_2D_actLabFrame
 from origami.ids import ID_xlabel_2D_retTime_min
 from origami.ids import ID_xlabel_RT_retTime_min
-from origami.ids import ID_docTree_addToTextTable
 from origami.ids import ID_xlabel_2D_massToCharge
 from origami.ids import ID_ylabel_DTMS_ms_arrival
-from origami.ids import ID_docTree_showMassSpectra
-from origami.ids import ID_saveAsDataCSVDocument1D
-from origami.ids import ID_showPlotDocument_violin
-from origami.ids import ID_docTree_addOneToMMLTable
-from origami.ids import ID_docTree_addOneToTextTable
 from origami.ids import ID_docTree_duplicate_document
-from origami.ids import ID_showPlotDocument_waterfall
 from origami.ids import ID_docTree_action_open_extract
-from origami.ids import ID_docTree_show_refresh_document
 from origami.ids import ID_docTree_action_open_origami_ms
 from origami.ids import ID_docTree_action_open_extractDTMS
-from origami.ids import ID_docTree_action_open_peak_picker
-from origami.ids import ID_docTree_addInteractiveToTextTable
-from origami.ids import ID_docTree_addOneInteractiveToTextTable
 from origami.styles import make_menu_item
-from origami.utils.path import clean_filename
-
-# from origami.utils.color import get_font_color
-# from origami.utils.color import convert_rgb_1_to_255
-# from origami.utils.color import convert_rgb_255_to_1
+from origami.icons.assets import Icons
 from origami.utils.utilities import report_time
 from origami.objects.document import DocumentStore
 from origami.utils.converters import str2int
@@ -116,15 +71,161 @@ from origami.utils.converters import str2num
 from origami.utils.converters import byte2str
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
-
-# from origami.gui_elements.panel_document_information import PanelDocumentInformation
-from origami.objects.containers import MassSpectrumObject
-from origami.readers.io_text_files import saveAsText
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.misc_dialogs import DialogSimpleAsk
-from builtins import isinstance
 
 logger = logging.getLogger(__name__)
+
+
+class Item:
+    def __init__(self):
+        self.data = None
+        self.title = None
+        self.root = None
+        self.branch = None
+        self.leaf = None
+        self.indent = None
+        self.current = None
+
+    def __repr__(self):
+        return (
+            f"Item<\n\ttitle={self.title};\n\troot={self.root};\n\tbranch={self.branch}; "
+            f"\n\tleaf={self.leaf};\n\tcurrent={self.current}\n\tindent={self.indent}\n>"
+        )
+
+    def update(self, title=None, root=None, branch=None, leaf=None, indent=None, current=None, data=None):
+        self.title = title
+        self.root = root
+        self.branch = branch
+        self.leaf = leaf
+        self.indent = indent
+        self.current = current
+        self.data = data
+
+    @property
+    def data_type(self):
+        self.check_data()
+        return self.data.data_type
+
+    @property
+    def document_title(self):
+        self.check_data()
+        return self.data.title
+
+    @property
+    def parameters(self):
+        self.check_data()
+        if hasattr(self.data, "parameters"):
+            return self.data.parameters
+        return dict()
+
+    @property
+    def is_empty(self):
+        return self.data is None
+
+    def check_data(self):
+        """Checks whether the current item is empty and if so, gets the last reset document from the environment"""
+        if self.data is None:
+            try:
+                self.data = ENV.on_get_document()
+            except KeyError:
+                pass
+
+    @property
+    def is_group(self):
+        """Returns `True` if the current item is the group object (e.g. Mass Spectra)"""
+        return self.indent == 2
+
+    @property
+    def is_dataset(self):
+        """Returns `True` if the current item is a dataset object (e.g. Summed Chromatogram)"""
+        return self.indent == 3
+
+    @property
+    def is_annotation(self):
+        """Returns `True` if the current item is an annotation on the dataset object (e.g. UniDec or Annotations)"""
+        return self.indent == 3
+
+    def is_match(self, which, parent: bool = False):
+        """Checks whether current selection matches that of a pre-defined data group"""
+        check = dict(
+            chromatogram=["Chromatograms"],
+            spectrum=["Mass Spectra"],
+            mobilogram=["Mobilograms"],
+            heatmap=["Heatmaps"],
+            msdt=["Heatmaps (MS/DT)"],
+            annotation=["Annotations"],
+            unidec=["UniDec"],
+        )
+
+        item_list = []
+        if isinstance(which, str):
+            item_list = check.get(which, [])
+        elif isinstance(which, list):
+            for key in which:
+                item_list.extend(check.get(key, []))
+        if not item_list:
+            return False
+
+        #         is_branch = self.branch in item_list
+        is_leaf = self.leaf in item_list
+        is_current = self.current in item_list
+        #
+        # print(is_leaf, is_current, item_list, self.current, self.leaf)
+
+        if parent:
+            if is_leaf and is_current:
+                return True
+        else:
+            if is_current:
+                return True
+        return False
+
+    def get_query(self, return_subkey: bool = False):
+        """Returns query and subkey information about the currently selected item
+
+        This function is mostly used to have an idea what was clicked to display right-click menu on request and such
+        """
+        subkey = ["", ""]
+        query = ["", "", ""]
+        item_root = self.root
+        item_branch = self.branch
+        item_leaf = self.leaf
+
+        if self.indent == 0:
+            query = ["Documents", "", ""]
+        elif self.indent == 1:
+            query = [self.branch, self.leaf, self.leaf]
+        elif self.indent == 2:
+            query = [self.branch, self.leaf, self.leaf]
+        elif self.indent == 3:
+            # these are only valid when attached to `main` components of the document
+            if self.leaf in ["Annotations", "UniDec"]:
+                subkey = [self.leaf, ""]
+                item_leaf = self.branch
+            query = [item_root, self.branch, item_leaf]
+        elif self.indent == 4:
+            if item_leaf in ["Annotations", "UniDec"]:
+                subkey = [item_leaf, ""]
+            if self.branch in ["Annotations", "UniDec"]:
+                subkey = [self.branch, self.leaf]
+                item_branch = item_root
+            query = [self.document_title, item_root, item_branch]
+        elif self.indent == 5:
+            query = [self.document_title, self.current, item_root]
+            subkey = [item_branch, item_leaf]
+
+        if return_subkey:
+            return query, subkey
+        return query
+
+    def get_name(self, stem: str):
+        """Get filename based on the document title"""
+        assert isinstance(stem, str)
+        item = self.leaf.replace(" ", "-")
+        if stem == "":
+            return item
+        return f"{stem}_{item}"
 
 
 class PanelDocumentTree(wx.Panel):
@@ -178,15 +279,10 @@ class DocumentTree(wx.TreeCtrl):
         self.icons = icons
         self.config = config
 
-        self._document_data = None  # itemData
-        self._item_id = None  # currentItem
-        self._indent = None  # indent
-        self._document_type = None  # itemType
-        self._item_leaf = None  # extractData
-        self._item_branch = None  # extractParent
-        self._item_root = None  # extractGrandparent
-        self.splitText = None
-        self._current_data = None
+        self._icons = Icons()
+
+        self._item = Item()
+        self._indent = None
 
         self.data_processing = None
         self.data_handling = None
@@ -360,37 +456,28 @@ class DocumentTree(wx.TreeCtrl):
             parent = self.get_parent_item(self._item_id, 1)
             item = self.get_parent_item(self._item_id, 2)
 
-            self._item_branch = self.GetItemText(self.GetItemParent(self._item_id))
-            self._item_leaf = self.GetItemText(self._item_id)
-            self._item_root = self.GetItemText(self.GetItemParent(self.GetItemParent(self._item_id)))
-
-            # split
-            try:
-                self.splitText = re.split("-|,|:|__", self._item_leaf)
-            except Exception:
-                self.splitText = []
+            self._item.update(
+                root=self.GetItemText(self.GetItemParent(self.GetItemParent(self._item_id))),
+                branch=self.GetItemText(self.GetItemParent(self._item_id)),
+                leaf=self.GetItemText(self._item_id),
+                indent=self._indent,
+            )
 
             # Check item
             if not item:
                 return
 
-            # Get item data for specified item
-            self._document_data = self.GetPyData(parent)
-            self._document_type = self.GetItemText(item)
-            try:
-                self._current_data = self.GetPyData(self._item_id)
-            except Exception:
-                self._current_data = None
+            # update item
+            self._item.current = self.GetItemText(item)
+            self._item.check_data()
+            #             self._item.data = self.GetPyData(parent)
 
-            msg = (
-                f"type: {self._document_type} | leaf: {self._item_leaf} | "
-                + f"branch: {self._item_branch} | root: {self._item_root} | indent: {self._indent}"
-            )
-            logger.debug(msg)
+            # Get item data for specified item
+            #             self._document_data = self.GetPyData(parent)
+            #             self._document_type = self.GetItemText(item)
+            logger.debug(self._item)
         else:
-            self._item_leaf = None
-            self._item_branch = None
-            self._item_root = None
+            self._item.update()
 
     def on_enable_document(
         self, get_selected_item=False, loading_data=False, highlight_selected=False, expand_all=False, evt=None
@@ -452,22 +539,19 @@ class DocumentTree(wx.TreeCtrl):
             title = f"ORIGAMI (v{self.config.version})"
             if document_title != "Documents":
                 ENV.current = document_title
-                if self._document_data is None:
-                    self._document_data = ENV.on_get_document()
-                title += f" :: {document_title} [{self._document_data.data_type}]"
+                title += f" :: {document_title} [{self._item.data_type}]"
             self.view.SetTitle(title)
 
             # update statusbar
             msms_text = ""
             ms_text = ""
-            if hasattr(self._document_data, "parameters"):
-                parameters = self._document_data.parameters
-                ms_start, ms_end = parameters.get("start_ms", ""), parameters.get("end_ms", "")
-                if ms_start and ms_end:
-                    ms_text = f"{ms_start}-{ms_end}"
-                ms_set = parameters.get("set_msms", "")
-                if ms_set:
-                    msms_text = f"MSMS: {ms_set}"
+            parameters = self._item.parameters
+            ms_start, ms_end = parameters.get("start_ms", ""), parameters.get("end_ms", "")
+            if ms_start and ms_end:
+                ms_text = f"{ms_start}-{ms_end}"
+            ms_set = parameters.get("set_msms", "")
+            if ms_set:
+                msms_text = f"MSMS: {ms_set}"
             try:
                 self.view.SetStatusText(ms_text, 1)
                 self.view.SetStatusText(msms_text, 2)
@@ -584,26 +668,9 @@ class DocumentTree(wx.TreeCtrl):
             else:
                 self.on_delete_item(evt=None)
         elif key == 80:
-            if self._document_type in ["Drift time (2D)", "Drift time (2D, processed)"]:
+            if self._item.is_match("heatmap"):
                 self.on_process_2D(evt=None)
-            elif self._document_type in [
-                "Drift time (2D, EIC)",
-                "Drift time (2D, combined voltages, EIC)",
-                "Drift time (2D, processed, EIC)",
-                "Input data",
-                "Statistical",
-            ] and self._item_leaf not in [
-                "Drift time (2D, EIC)",
-                "Drift time (2D, combined voltages, EIC)",
-                "Drift time (2D, processed, EIC)",
-                "Input data",
-                "Statistical",
-            ]:
-                self.on_process_2D(evt=None)
-            elif (
-                self._document_type in ["Mass Spectrum", "Mass Spectrum (processed)", "Mass Spectra"]
-                and self._item_leaf != "Mass Spectra"
-            ):
+            elif self._item.is_match("spectrum"):
                 self.on_process_MS(evt=None)
         elif key == 341:  # F2
             self.onRenameItem(None)
@@ -829,71 +896,26 @@ class DocumentTree(wx.TreeCtrl):
 
         # Get indent level for selected item
         self._indent = self.get_item_indent(item)
-        extract = None
-        if self._indent > 1:
-            extract = item  # Specific Ion/file name
-            item = self.get_parent_item(item, 2)  # Item type
 
-        # split
-        try:
-            self.splitText = re.split(r"-|,|:|__| \(", self._item_leaf)
-        except Exception:
-            self.splitText = []
-
-        # Get the ion/file name from deeper indent
-        if extract is None:
-            self._item_leaf = None
-            self._item_branch = None
-            self._item_root = None
-        else:
-            self._item_leaf = self.GetItemText(extract)
-            self._item_branch = self.GetItemText(self.GetItemParent(extract))
-            self._item_root = self.GetItemText(self.GetItemParent(self.GetItemParent(extract)))
-
-        if self._document_data is None:
+        if self._item.is_empty:
             return
-        self.title = self._document_data.title
+        self.title = self._item.document_title
 
-        if self._indent == 1 and self._item_leaf is None:
+        if self._indent == 1:  # and self._item_leaf is None:
             self.on_refresh_document()
-        elif self._document_type == "Mass Spectra" and self._item_leaf == "Mass Spectra":
+        elif self._item.is_match("spectrum", True):
             self.on_open_spectrum_comparison_viewer(evt=None)
-        elif self._document_type in ["Mass Spectrum", "Mass Spectrum (processed)", "Mass Spectra"]:
-            if (
-                self._item_leaf in ["Mass Spectrum", "Mass Spectrum (processed)", "Mass Spectra"]
-                or self._item_branch == "Mass Spectra"
-            ):
+        elif self._item.is_match("spectrum"):
+            if self._item.is_match("spectrum"):
                 self.on_show_plot(evt=ID_showPlotDocument)
-            elif self._item_leaf == "UniDec":
+            if self._item.is_match("unidec"):
                 self.on_open_UniDec(None)
-            elif self._item_branch == "UniDec":
-                self.on_open_UniDec(None)
-            elif self._item_leaf == "Annotations":
-                self.on_open_annotation_editor(None)
-        elif self._document_type in [
-            #             "Chromatogram",
-            #             "Chromatograms (EIC)",
-            "Chromatograms",
-            "Annotated data",
-            "Mobilograms",
-            #             "Drift time (1D)",
-            #             "Drift time (1D, EIC, DT-IMS)",
-            #             "Drift time (1D, EIC)",
-            #             "Chromatograms (combined voltages, EIC)",
-            "Heatmaps",
-            "Heatmaps (MS/DT)",
-            #             "Drift time (2D)",
-            #             "Drift time (2D, processed)",
-            #             "Drift time (2D, EIC)",
-            #             "Drift time (2D, combined voltages, EIC)",
-            #             "Drift time (2D, processed, EIC)",
-            #             "Input data",
-            #             "Statistical",
-            #             "Overlay",
-            #             "DT/MS",
-            #             "Tandem Mass Spectra",
-        ]:
-            if self._item_leaf == "Annotations":
+        #             elif self._item_branch == "UniDec":
+        #                 self.on_open_UniDec(None)
+        #             elif self._item_leaf == "Annotations":
+        #                 self.on_open_annotation_editor(None)
+        elif self._item.is_match(["chromatogram", "mobilogram", "heatmap", "msdt", "tandem", "overlay"], False):
+            if self._item.is_match("annotation", False):
                 self.on_open_annotation_editor(None)
             else:
                 self.on_show_plot(None)
@@ -920,82 +942,83 @@ class DocumentTree(wx.TreeCtrl):
         if document is None:
             return
 
-        # set what to plot
-        mass_spectrum, chromatogram, mobilogram, heatmap = False, False, False, False
-        # check document
-        if document.data_type == "Type: ORIGAMI":
-            mass_spectrum, chromatogram, mobilogram, heatmap = True, True, True, True
-            go_to_page = self.config.panelNames["MS"]
-        elif document.data_type == "Type: MANUAL":
-            mass_spectrum = True
-            go_to_page = self.config.panelNames["MS"]
-        elif document.data_type == "Type: Multifield Linear DT":
-            mass_spectrum, chromatogram, mobilogram, heatmap = True, True, True, True
-            go_to_page = self.config.panelNames["MS"]
-        elif document.data_type == "Type: 2D IM-MS":
-            heatmap = True
-            go_to_page = self.config.panelNames["2D"]
-        else:
-            return
+        raise NotImplementedError
 
-        # clear all plots
-        self.panel_plot.on_clear_all_plots()
-
-        if mass_spectrum:
-            try:
-                msX = document.massSpectrum["xvals"]
-                msY = document.massSpectrum["yvals"]
-                try:
-                    xlimits = document.massSpectrum["xlimits"]
-                except KeyError:
-                    xlimits = [document.parameters["start_ms"], document.parameters["end_ms"]]
-                name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
-                self.panel_plot.on_plot_MS(msX, msY, xlimits=xlimits, set_page=False, **name_kwargs)
-            except Exception:
-                pass
-
-        if chromatogram:
-            try:
-                rtX = document.RT["xvals"]
-                rtY = document.RT["yvals"]
-                xlabel = document.RT["xlabels"]
-                self.panel_plot.on_plot_RT(rtX, rtY, xlabel, set_page=False)
-            except Exception:
-                pass
-
-        if mobilogram:
-            try:
-                dtX = document.DT["xvals"]
-                dtY = document.DT["yvals"]
-                if len(dtY) >= 1:
-                    try:
-                        dtY = document.DT["yvalsSum"]
-                    except KeyError:
-                        pass
-                xlabel = document.DT["xlabels"]
-                self.panel_plot.on_plot_1D(dtX, dtY, xlabel, set_page=False)
-            except Exception:
-                pass
-
-        if heatmap:
-            try:
-                zvals = document.IMS2D["zvals"]
-                xvals = document.IMS2D["xvals"]
-                yvals = document.IMS2D["yvals"]
-                xlabel = document.IMS2D["xlabels"]
-                ylabel = document.IMS2D["ylabels"]
-                self.panel_plot.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, override=True)
-            except Exception:
-                pass
-
-        # go to page
-        self.panel_plot._set_page(go_to_page)
+    #         # set what to plot
+    #         mass_spectrum, chromatogram, mobilogram, heatmap = False, False, False, False
+    #         # check document
+    #         if document.data_type == "Type: ORIGAMI":
+    #             mass_spectrum, chromatogram, mobilogram, heatmap = True, True, True, True
+    #             go_to_page = self.config.panelNames["MS"]
+    #         elif document.data_type == "Type: MANUAL":
+    #             mass_spectrum = True
+    #             go_to_page = self.config.panelNames["MS"]
+    #         elif document.data_type == "Type: Multifield Linear DT":
+    #             mass_spectrum, chromatogram, mobilogram, heatmap = True, True, True, True
+    #             go_to_page = self.config.panelNames["MS"]
+    #         elif document.data_type == "Type: 2D IM-MS":
+    #             heatmap = True
+    #             go_to_page = self.config.panelNames["2D"]
+    #         else:
+    #             return
+    #
+    #         # clear all plots
+    #         self.panel_plot.on_clear_all_plots()
+    #
+    #         if mass_spectrum:
+    #             try:
+    #                 msX = document.massSpectrum["xvals"]
+    #                 msY = document.massSpectrum["yvals"]
+    #                 try:
+    #                     xlimits = document.massSpectrum["xlimits"]
+    #                 except KeyError:
+    #                     xlimits = [document.parameters["start_ms"], document.parameters["end_ms"]]
+    #                 name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
+    #                 self.panel_plot.on_plot_MS(msX, msY, xlimits=xlimits, set_page=False, **name_kwargs)
+    #             except Exception:
+    #                 pass
+    #
+    #         if chromatogram:
+    #             try:
+    #                 rtX = document.RT["xvals"]
+    #                 rtY = document.RT["yvals"]
+    #                 xlabel = document.RT["xlabels"]
+    #                 self.panel_plot.on_plot_RT(rtX, rtY, xlabel, set_page=False)
+    #             except Exception:
+    #                 pass
+    #
+    #         if mobilogram:
+    #             try:
+    #                 dtX = document.DT["xvals"]
+    #                 dtY = document.DT["yvals"]
+    #                 if len(dtY) >= 1:
+    #                     try:
+    #                         dtY = document.DT["yvalsSum"]
+    #                     except KeyError:
+    #                         pass
+    #                 xlabel = document.DT["xlabels"]
+    #                 self.panel_plot.on_plot_1D(dtX, dtY, xlabel, set_page=False)
+    #             except Exception:
+    #                 pass
+    #
+    #         if heatmap:
+    #             try:
+    #                 zvals = document.IMS2D["zvals"]
+    #                 xvals = document.IMS2D["xvals"]
+    #                 yvals = document.IMS2D["yvals"]
+    #                 xlabel = document.IMS2D["xlabels"]
+    #                 ylabel = document.IMS2D["ylabels"]
+    #                 self.panel_plot.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, override=True)
+    #             except Exception:
+    #                 pass
+    #
+    #         # go to page
+    #         self.panel_plot._set_page(go_to_page)
 
     def on_check_xlabels_rt(self):
         """Check label of the chromatogram dataset"""
 
-        data = self.GetPyData(self._item_id)
-        xlabel = data["xlabels"]
+        xlabel, _ = self._get_item_label(True)
 
         xlabel_evt_dict = {
             "Scans": ID_xlabel_RT_scans,
@@ -1007,7 +1030,6 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_check_xy_labels_heatmap(self):
         """Check label of the heatmap dataset"""
-
         xlabel_evt_dict = {
             "Scans": ID_xlabel_2D_scans,
             "Time (min)": ID_xlabel_2D_time_min,
@@ -1030,20 +1052,13 @@ class DocumentTree(wx.TreeCtrl):
             "Collision Cross Section (Å²)": ID_ylabel_2D_ccs,
         }
 
-        # Select dataset
-        data = self.GetPyData(self._item_id)
-        if not isinstance(data, dict):
-            return None, None
-
-        xlabel = data.get("xlabels", None)
-        ylabel = data.get("ylabels", None)
+        xlabel, ylabel = self._get_item_label(True, True)
 
         return xlabel_evt_dict.get(xlabel, ID_xlabel_2D_custom), ylabel_evt_dict.get(ylabel, ID_ylabel_2D_custom)
 
     def on_check_xlabels_dt(self):
         """Check labels of the mobilogram dataset"""
-        data = self.GetPyData(self._item_id)
-        xlabel = data["xlabels"]
+        xlabel, _ = self._get_item_label(True)
 
         xlabel_evt_dict = {
             "Drift time (bins)": ID_xlabel_1D_bins,
@@ -1056,8 +1071,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_check_xlabels_dtms(self):
         """Check labels of the DT/MS dataset"""
-        data = self.GetPyData(self._item_id)
-        ylabel = data["ylabels"]
+        _, ylabel = self._get_item_label(False, True)
 
         ylabel_evt_dict = {
             "Drift time (bins)": ID_ylabel_DTMS_bins,
@@ -1132,44 +1146,44 @@ class DocumentTree(wx.TreeCtrl):
 
         return document, data, query
 
-    def onChangePlot(self, evt):
-
-        # Get selected item
-        item = self.GetSelection()
-        self._item_id = item
-        # Get the current text value for selected item
-        itemType = self.GetItemText(item)
-        if itemType == "Documents":
-            return
-
-        # Get indent level for selected item
-        indent = self.get_item_indent(item)
-        if indent > 1:
-            parent = self.get_parent_item(item, 1)  # File name
-            extract = item  # Specific Ion/file name
-            item = self.get_parent_item(item, 2)  # Item type
-            itemType = self.GetItemText(item)
-        else:
-            extract = None
-            parent = item
-
-        # Get the ion/file name from deeper indent
-        if extract is None:
-            pass
-        else:
-            self._item_leaf = self.GetItemText(extract)
-
-        # Check item
-        if not item:
-            return
-        # Get item data for specified item
-        self._document_data = self.GetPyData(parent)
-        self._document_type = itemType
-
-        self.on_show_plot(evt=None)
-
-        if evt is not None:
-            evt.Skip()
+    #     def onChangePlot(self, evt):
+    #
+    #         # Get selected item
+    #         item = self.GetSelection()
+    #         self._item_id = item
+    #         # Get the current text value for selected item
+    #         itemType = self.GetItemText(item)
+    #         if itemType == "Documents":
+    #             return
+    #
+    #         # Get indent level for selected item
+    #         indent = self.get_item_indent(item)
+    #         if indent > 1:
+    #             parent = self.get_parent_item(item, 1)  # File name
+    #             extract = item  # Specific Ion/file name
+    #             item = self.get_parent_item(item, 2)  # Item type
+    #             itemType = self.GetItemText(item)
+    #         else:
+    #             extract = None
+    #             parent = item
+    #
+    #         # Get the ion/file name from deeper indent
+    #         if extract is None:
+    #             pass
+    #         else:
+    #             self._item_leaf = self.GetItemText(extract)
+    #
+    #         # Check item
+    #         if not item:
+    #             return
+    #         # Get item data for specified item
+    #         self._document_data = self.GetPyData(parent)
+    #         self._document_type = itemType
+    #
+    #         self.on_show_plot(evt=None)
+    #
+    #         if evt is not None:
+    #             evt.Skip()
 
     def on_delete_all_documents(self, evt):
         """ Alternative function to delete documents """
@@ -1215,46 +1229,10 @@ class DocumentTree(wx.TreeCtrl):
             list of [document_title, dataset_type, dataset_name]
 
         """
-        if self._document_data is None and evt is not None:
+        if self._item.is_empty is None and evt is not None:
             self.on_item_selecting(evt)
 
-        if self._document_data is not None:
-            document_title = self._document_data.title
-
-        item_type = self._document_type
-        item_root = self._item_root
-        item_branch = self._item_branch
-        item_leaf = self._item_leaf
-
-        subkey = ["", ""]
-
-        if self._indent == 0:
-            query = ["Documents", "", ""]
-        elif self._indent == 1:
-            query = [item_branch, item_leaf, item_leaf]
-        elif self._indent == 2:
-            query = [item_branch, item_leaf, item_leaf]
-        elif self._indent == 3:
-            # these are only valid when attached to `main` components of the document
-            if item_leaf in ["Annotations", "UniDec"]:
-                subkey = [item_leaf, ""]
-                item_leaf = item_branch
-            query = [item_root, item_branch, item_leaf]
-        elif self._indent == 4:
-            if item_leaf in ["Annotations", "UniDec"]:
-                subkey = [item_leaf, ""]
-            if item_branch in ["Annotations", "UniDec"]:
-                subkey = [item_branch, item_leaf]
-                item_branch = item_root
-            query = [document_title, item_root, item_branch]
-        elif self._indent == 5:
-            query = [document_title, item_type, item_root]
-            subkey = [item_branch, item_leaf]
-
-        if return_subkey:
-            return query, subkey
-
-        return query
+        return self._item.get_query(return_subkey)
 
     def _get_delete_info_based_on_indent(self):
         """Generate query_info keywords that are implied from the indentation of the selected item and modify it to
@@ -1396,12 +1374,12 @@ class DocumentTree(wx.TreeCtrl):
             document_spectrum_list[document_title].index(f"{dataset_type} :: {dataset_name}")
         )
 
-        duplicateDlg = DialogSelectDataset(
+        duplicate_dlg = DialogSelectDataset(
             self.presenter.view, self, document_list, document_spectrum_list, set_document=document_title
         )
-        duplicateDlg.ShowModal()
-        duplicate_document = duplicateDlg.document
-        duplicate_type = duplicateDlg.dataset
+        duplicate_dlg.ShowModal()
+        duplicate_document = duplicate_dlg.document
+        duplicate_type = duplicate_dlg.dataset
 
         if any(item is None for item in [duplicate_type, duplicate_document]):
             logger.warning("Duplicating annotations was cancelled")
@@ -1457,7 +1435,7 @@ class DocumentTree(wx.TreeCtrl):
             dataset_name=dataset_name,
         )
 
-    def on_action_ORIGAMI_MS(self, _, document_title=None):
+    def on_action_origami_ms(self, _, document_title=None):
         from origami.gui_elements.dialog_customise_origami import DialogCustomiseORIGAMI
 
         # get document
@@ -1470,7 +1448,9 @@ class DocumentTree(wx.TreeCtrl):
         dlg = DialogCustomiseORIGAMI(self, self.presenter, self.config, document_title=document_title)
         dlg.ShowModal()
 
-    #     def on_open_interactive_viewer(self, evt):
+    def on_open_interactive_viewer(self, evt):
+        raise NotImplementedError("Must implement method")
+
     #         from origami.gui_elements.panel_plot_viewer import PanelPlotViewer
     #
     #         # get data
@@ -1547,186 +1527,107 @@ class DocumentTree(wx.TreeCtrl):
         if value == "menu.load.override":
             self.config.import_duplicate_ask = not self.config.import_duplicate_ask
 
-    def on_right_click(self, evt):
-        """ Create and show up popup menu"""
-
-        # Get the current text value for selected item
-        itemType = self.GetItemText(evt.GetItem())
-
-        try:
-            query, subkey = self._get_query_info_based_on_indent(return_subkey=True, evt=evt)
-        except AttributeError:
-            logger.debug(
-                "Could not obtain right-click query key. Please first left-click on an item in " " the document tree"
-            )
-            return
-
-        dataset_type = query[1]
-        dataset_name = query[2]
-        subkey_parent = subkey[0]
-        subkey_child = subkey[1]
-
-        if itemType == "Documents":
-            self.on_right_click_short()
-            return
+    def _get_menu_heatmap_label(self):
 
         # Change x-axis label (2D)
-        xlabel_2D_menu = wx.Menu()
-        xlabel_2D_menu.Append(ID_xlabel_2D_scans, "Scans", "", wx.ITEM_RADIO)
-        xlabel_2D_menu.Append(ID_xlabel_2D_time_min, "Time (min)", "", wx.ITEM_RADIO)
-        xlabel_2D_menu.Append(ID_xlabel_2D_retTime_min, "Retention time (min)", "", wx.ITEM_RADIO)
-        xlabel_2D_menu.Append(ID_xlabel_2D_colVolt, "Collision Voltage (V)", "", wx.ITEM_RADIO)
-        xlabel_2D_menu.Append(ID_xlabel_2D_actVolt, "Activation Energy (V)", "", wx.ITEM_RADIO)
-        xlabel_2D_menu.Append(ID_xlabel_2D_labFrame, "Lab Frame Energy (eV)", "", wx.ITEM_RADIO)
-        xlabel_2D_menu.Append(ID_xlabel_2D_actLabFrame, "Activation Energy (eV)", "", wx.ITEM_RADIO)
-        xlabel_2D_menu.Append(ID_xlabel_2D_massToCharge, "Mass-to-charge (Da)", "", wx.ITEM_RADIO)
-        xlabel_2D_menu.Append(ID_xlabel_2D_mz, "m/z (Da)", "", wx.ITEM_RADIO)
-        xlabel_2D_menu.Append(ID_xlabel_2D_wavenumber, "Wavenumber (cm⁻¹)", "", wx.ITEM_RADIO)
-        xlabel_2D_menu.Append(ID_xlabel_2D_charge, "Charge", "", wx.ITEM_RADIO)
-        xlabel_2D_menu.Append(ID_xlabel_2D_ccs, "Collision Cross Section (Å²)", "", wx.ITEM_RADIO)
-        xlabel_2D_menu.Append(ID_xlabel_2D_custom, "Custom label...", "", wx.ITEM_RADIO)
-        xlabel_2D_menu.AppendSeparator()
-        xlabel_2D_menu.Append(ID_xlabel_2D_restore, "Restore default", "")
+        menu_xlabel = wx.Menu()
+        menu_xlabel.Append(ID_xlabel_2D_scans, "Scans", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_2D_time_min, "Time (min)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_2D_retTime_min, "Retention time (min)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_2D_colVolt, "Collision Voltage (V)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_2D_actVolt, "Activation Energy (V)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_2D_labFrame, "Lab Frame Energy (eV)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_2D_actLabFrame, "Activation Energy (eV)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_2D_massToCharge, "Mass-to-charge (Da)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_2D_mz, "m/z (Da)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_2D_wavenumber, "Wavenumber (cm⁻¹)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_2D_charge, "Charge", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_2D_ccs, "Collision Cross Section (Å²)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_2D_custom, "Custom label...", "", wx.ITEM_RADIO)
+        menu_xlabel.AppendSeparator()
+        menu_xlabel.Append(ID_xlabel_2D_restore, "Restore default", "")
 
         # Change y-axis label (2D)
-        ylabel_2D_menu = wx.Menu()
-        ylabel_2D_menu.Append(ID_ylabel_2D_bins, "Drift time (bins)", "", wx.ITEM_RADIO)
-        ylabel_2D_menu.Append(ID_ylabel_2D_ms, "Drift time (ms)", "", wx.ITEM_RADIO)
-        ylabel_2D_menu.Append(ID_ylabel_2D_ms_arrival, "Arrival time (ms)", "", wx.ITEM_RADIO)
-        ylabel_2D_menu.Append(ID_ylabel_2D_ccs, "Collision Cross Section (Å²)", "", wx.ITEM_RADIO)
-        ylabel_2D_menu.Append(ID_ylabel_2D_custom, "Custom label...", "", wx.ITEM_RADIO)
-        ylabel_2D_menu.AppendSeparator()
-        ylabel_2D_menu.Append(ID_ylabel_2D_restore, "Restore default", "")
+        menu_ylabel = wx.Menu()
+        menu_ylabel.Append(ID_ylabel_2D_bins, "Drift time (bins)", "", wx.ITEM_RADIO)
+        menu_ylabel.Append(ID_ylabel_2D_ms, "Drift time (ms)", "", wx.ITEM_RADIO)
+        menu_ylabel.Append(ID_ylabel_2D_ms_arrival, "Arrival time (ms)", "", wx.ITEM_RADIO)
+        menu_ylabel.Append(ID_ylabel_2D_ccs, "Collision Cross Section (Å²)", "", wx.ITEM_RADIO)
+        menu_ylabel.Append(ID_ylabel_2D_custom, "Custom label...", "", wx.ITEM_RADIO)
+        menu_ylabel.AppendSeparator()
+        menu_ylabel.Append(ID_ylabel_2D_restore, "Restore default", "")
 
-        # Check xy axis labels
-        if self._document_type in [
-            "Drift time (2D)",
-            "Drift time (2D, processed)",
-            "Drift time (2D, EIC)",
-            "Drift time (2D, combined voltages, EIC)",
-            "Drift time (2D, processed, EIC)",
-            "Input data",
-        ]:
-
+        #         # Check xy axis labels
+        if self._item.is_match("heatmap", False):
             # Check what is the current label for this particular dataset
             try:
-                idX, idY = self.on_check_xy_labels_heatmap()
-                xlabel_2D_menu.FindItemById(idX).Check(True)
-                ylabel_2D_menu.FindItemById(idY).Check(True)
+                item_id_x, item_id_y = self.on_check_xy_labels_heatmap()
+                menu_xlabel.FindItemById(item_id_x).Check(True)
+                menu_ylabel.FindItemById(item_id_y).Check(True)
             except (UnboundLocalError, TypeError, KeyError):
-                logger.warning(f"Failed to setup x/y labels for `{self._document_type}` item`")
+                logger.warning(f"Failed to setup x/y labels for `{self._item.current}` item`")
 
+        return menu_xlabel, menu_ylabel
+
+    def _get_menu_mobilogram_label(self):
         # Change x-axis label (1D)
-        xlabel_1D_menu = wx.Menu()
-        xlabel_1D_menu.Append(ID_xlabel_1D_bins, "Drift time (bins)", "", wx.ITEM_RADIO)
-        xlabel_1D_menu.Append(ID_xlabel_1D_ms, "Drift time (ms)", "", wx.ITEM_RADIO)
-        xlabel_1D_menu.Append(ID_xlabel_1D_ms_arrival, "Arrival time (ms)", "", wx.ITEM_RADIO)
-        xlabel_1D_menu.Append(ID_xlabel_1D_ccs, "Collision Cross Section (Å²)", "", wx.ITEM_RADIO)
-        xlabel_1D_menu.AppendSeparator()
-        xlabel_1D_menu.Append(ID_xlabel_1D_restore, "Restore default", "")
+        menu_xlabel = wx.Menu()
+        menu_xlabel.Append(ID_xlabel_1D_bins, "Drift time (bins)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_1D_ms, "Drift time (ms)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_1D_ms_arrival, "Arrival time (ms)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_1D_ccs, "Collision Cross Section (Å²)", "", wx.ITEM_RADIO)
+        menu_xlabel.AppendSeparator()
+        menu_xlabel.Append(ID_xlabel_1D_restore, "Restore default", "")
 
-        if self._document_type in ["Drift time (1D)", "Drift time (1D, EIC)"]:
+        # bind events
+        if self._item.is_match("mobilogram", False):
             try:
-                idX = self.on_check_xlabels_dt()
-                xlabel_1D_menu.FindItemById(idX).Check(True)
+                item_id = self.on_check_xlabels_dt()
+                menu_xlabel.FindItemById(item_id).Check(True)
             except (UnboundLocalError, TypeError, KeyError):
-                logger.warning(f"Failed to setup labels for `{self._document_type}` item`")
+                logger.warning(f"Failed to setup labels for `{self._item.current}` item`")
 
+        return menu_xlabel
+
+    def _get_menu_chromatogram_label(self):
         # Change x-axis label (RT)
-        xlabel_RT_menu = wx.Menu()
-        xlabel_RT_menu.Append(ID_xlabel_RT_scans, "Scans", "", wx.ITEM_RADIO)
-        xlabel_RT_menu.Append(ID_xlabel_RT_time_min, "Time (min)", "", wx.ITEM_RADIO)
-        xlabel_RT_menu.Append(ID_xlabel_RT_retTime_min, "Retention time (min)", "", wx.ITEM_RADIO)
-        xlabel_RT_menu.AppendSeparator()
-        xlabel_RT_menu.Append(ID_xlabel_RT_restore, "Restore default", "")
+        menu_xlabel = wx.Menu()
+        menu_xlabel.Append(ID_xlabel_RT_scans, "Scans", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_RT_time_min, "Time (min)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_RT_retTime_min, "Retention time (min)", "", wx.ITEM_RADIO)
+        menu_xlabel.AppendSeparator()
+        menu_xlabel.Append(ID_xlabel_RT_restore, "Restore default", "")
 
-        if (self._document_type in ["Chromatogram"] and self._indent == 2) or (
-            self._document_type in ["Chromatograms (EIC)", "Chromatograms (combined voltages, EIC)"]
-            and self._indent > 2
-        ):
+        # bind events
+        if self._item.is_match("chromatogram", False):
             try:
-                idX = self.on_check_xlabels_rt()
-                xlabel_RT_menu.FindItemById(idX).Check(True)
+                item_id = self.on_check_xlabels_rt()
+                menu_xlabel.FindItemById(item_id).Check(True)
             except (UnboundLocalError, TypeError, KeyError):
-                logger.warning(f"Failed to setup labels for `{self._document_type}` item`")
+                logger.warning(f"Failed to setup labels for `{self._item.current}` item`")
 
+        return menu_xlabel
+
+    def _get_menu_msdt_label(self):
         # change y-axis label (DT/MS)
-        ylabel_DTMS_menu = wx.Menu()
-        ylabel_DTMS_menu.Append(ID_ylabel_DTMS_bins, "Drift time (bins)", "", wx.ITEM_RADIO)
-        ylabel_DTMS_menu.Append(ID_ylabel_DTMS_ms, "Drift time (ms)", "", wx.ITEM_RADIO)
-        ylabel_DTMS_menu.Append(ID_ylabel_DTMS_ms_arrival, "Arrival time (ms)", "", wx.ITEM_RADIO)
-        ylabel_DTMS_menu.AppendSeparator()
-        ylabel_DTMS_menu.Append(ID_ylabel_DTMS_restore, "Restore default", "")
+        menu_ylabel = wx.Menu()
+        menu_ylabel.Append(ID_ylabel_DTMS_bins, "Drift time (bins)", "", wx.ITEM_RADIO)
+        menu_ylabel.Append(ID_ylabel_DTMS_ms, "Drift time (ms)", "", wx.ITEM_RADIO)
+        menu_ylabel.Append(ID_ylabel_DTMS_ms_arrival, "Arrival time (ms)", "", wx.ITEM_RADIO)
+        menu_ylabel.AppendSeparator()
+        menu_ylabel.Append(ID_ylabel_DTMS_restore, "Restore default", "")
 
-        if self._document_type == "DT/MS":
+        # bind events
+        if self._item.is_match("msdt", False):
             try:
-                idX = self.on_check_xlabels_dtms()
-                ylabel_DTMS_menu.FindItemById(idX).Check(True)
+                item_id = self.on_check_xlabels_dtms()
+                menu_ylabel.FindItemById(item_id).Check(True)
             except (UnboundLocalError, TypeError, KeyError):
-                logger.warning(f"Failed to setup labels for `{self._document_type}` item`")
+                logger.warning(f"Failed to setup labels for `{self._item.current}` item`")
 
-        action_menu = wx.Menu()
-        action_menu.Append(ID_docTree_action_open_origami_ms, "Setup ORIGAMI-MS parameters...")
-        action_menu.Append(ID_docTree_action_open_extract, "Open data extraction panel...")
-        action_menu.Append(ID_docTree_action_open_extractDTMS, "Open DT/MS dataset settings...")
+        return menu_ylabel
 
-        # save dataframe
-        save_data_submenu = wx.Menu()
-        save_data_submenu.Append(ID_saveData_csv, "Save to .csv file")
-        save_data_submenu.Append(ID_saveData_pickle, "Save to .pickle file")
-        save_data_submenu.Append(ID_saveData_hdf, "Save to .hdf file (slow)")
-        save_data_submenu.Append(ID_saveData_excel, "Save to .excel file (v. slow)")
-
-        # Bind events
-        self._bind_change_label_events()
-
-        self.Bind(wx.EVT_MENU, self.on_show_plot, id=ID_showPlotDocument)
-        self.Bind(wx.EVT_MENU, self.on_show_plot, id=ID_showPlotDocument_violin)
-        self.Bind(wx.EVT_MENU, self.on_show_plot, id=ID_showPlotDocument_waterfall)
-        self.Bind(wx.EVT_MENU, self.on_show_plot, id=ID_showPlot1DDocument)
-        self.Bind(wx.EVT_MENU, self.on_show_plot, id=ID_showPlotRTDocument)
-        self.Bind(wx.EVT_MENU, self.on_show_plot, id=ID_showPlotMSDocument)
-        self.Bind(wx.EVT_MENU, self.onProcess, id=ID_process2DDocument)
-        self.Bind(wx.EVT_MENU, self.onGoToDirectory, id=ID_goToDirectory)
-        self.Bind(wx.EVT_MENU, self.onSaveCSV, id=ID_saveDataCSVDocument)
-        self.Bind(wx.EVT_MENU, self.onSaveCSV, id=ID_saveDataCSVDocument1D)
-        self.Bind(wx.EVT_MENU, self.onSaveCSV, id=ID_saveAsDataCSVDocument)
-        self.Bind(wx.EVT_MENU, self.onSaveCSV, id=ID_saveAsDataCSVDocument1D)
-        self.Bind(wx.EVT_MENU, self.onRenameItem, id=ID_renameItem)
-        self.Bind(wx.EVT_MENU, self.onDuplicateItem, id=ID_duplicateItem)
-        self.Bind(wx.EVT_MENU, self.on_save_document, id=ID_saveDocument)
-        # self.Bind(wx.EVT_MENU, self.onShowSampleInfo, id=ID_showSampleInfo)
-        self.Bind(wx.EVT_MENU, self.view.on_open_interactive_output_panel, id=ID_saveAsInteractive)
-        self.Bind(wx.EVT_MENU, self.on_open_spectrum_comparison_viewer, id=ID_docTree_compareMS)
-        self.Bind(wx.EVT_MENU, self.onShowMassSpectra, id=ID_docTree_showMassSpectra)
-        self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addToMMLTable)
-        self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addOneToMMLTable)
-        self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addToTextTable)
-        self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addOneToTextTable)
-        self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addInteractiveToTextTable)
-        self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addOneInteractiveToTextTable)
-        self.Bind(wx.EVT_MENU, self.onDuplicateItem, id=ID_docTree_duplicate_document)
-        self.Bind(wx.EVT_MENU, self.on_refresh_document, id=ID_docTree_show_refresh_document)
-        self.Bind(wx.EVT_MENU, self.removeDocument, id=ID_removeDocument)
-        # self.Bind(wx.EVT_MENU, self.onOpenDocInfo, id=ID_openDocInfo)
-        self.Bind(wx.EVT_MENU, self.onShow_and_SavePlot, id=ID_saveRTImageDoc)
-        self.Bind(wx.EVT_MENU, self.onShow_and_SavePlot, id=ID_save1DImageDoc)
-        self.Bind(wx.EVT_MENU, self.onShow_and_SavePlot, id=ID_save2DImageDoc)
-        self.Bind(wx.EVT_MENU, self.onShow_and_SavePlot, id=ID_save3DImageDoc)
-        # self.Bind(wx.EVT_MENU, self.on_process_UVPD, id=ID_docTree_plugin_UVPD)
-        self.Bind(wx.EVT_MENU, self.onSaveDF, id=ID_saveData_csv)
-        self.Bind(wx.EVT_MENU, self.onSaveDF, id=ID_saveData_pickle)
-        self.Bind(wx.EVT_MENU, self.onSaveDF, id=ID_saveData_excel)
-        self.Bind(wx.EVT_MENU, self.onSaveDF, id=ID_saveData_hdf)
-        # self.Bind(wx.EVT_MENU, self.on_open_UniDec, id=ID_docTree_show_unidec)
-        self.Bind(wx.EVT_MENU, self.on_save_unidec_results, id=ID_docTree_save_unidec)
-        self.Bind(wx.EVT_MENU, self.data_handling.on_add_mzident_file_fcn, id=ID_docTree_add_mzIdentML)
-        self.Bind(wx.EVT_MENU, self.on_action_ORIGAMI_MS, id=ID_docTree_action_open_origami_ms)
-        # self.Bind(wx.EVT_MENU, self.on_open_extract_DTMS, id=ID_docTree_action_open_extractDTMS)
-        # self.Bind(wx.EVT_MENU, self.on_open_peak_picker, id=ID_docTree_action_open_peak_picker)
-        # self.Bind(wx.EVT_MENU, self.on_open_extract_data, id=ID_docTree_action_open_extract)
-        # self.Bind(wx.EVT_MENU, self.on_open_UniDec, id=ID_docTree_UniDec)
-
+    def _set_menu_load_data(self, menu):
         # load custom data sub menu
         load_data_menu = wx.Menu()
         menu_action_load_ms = load_data_menu.Append(wx.ID_ANY, "Import mass spectrum")
@@ -1740,6 +1641,7 @@ class DocumentTree(wx.TreeCtrl):
         menu_action_load_check_existing = load_data_menu.AppendCheckItem(wx.ID_ANY, "Don't check if file exists")
         menu_action_load_check_existing.Check(self.config.import_duplicate_ask)
 
+        # bind events
         self.Bind(wx.EVT_MENU, partial(self.data_handling.on_load_custom_data, "mass_spectra"), menu_action_load_ms)
         self.Bind(wx.EVT_MENU, partial(self.data_handling.on_load_custom_data, "chromatograms"), menu_action_load_rt)
         self.Bind(wx.EVT_MENU, partial(self.data_handling.on_load_custom_data, "mobilograms"), menu_action_load_dt)
@@ -1748,560 +1650,682 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, partial(self.data_handling.on_load_custom_data, "annotated"), menu_action_load_other)
         self.Bind(wx.EVT_MENU, partial(self.on_update_ui, "menu.load.override"), menu_action_load_check_existing)
 
+        menu.AppendMenu(wx.ID_ANY, "Import data...", load_data_menu)
+
+    def _set_menu_annotations(self, menu):
         # annotations sub menu
-        annotation_menu = wx.Menu()
+
+        if self._item.is_dataset:
+            _menu = wx.Menu()
+        elif self._item.is_annotation:
+            _menu = menu
+        else:
+            return
+
         annotation_menu_show_annotations_panel = make_menu_item(
-            parent=annotation_menu, text="Show annotations panel...", bitmap=self.icons.iconsLib["annotate16"]
+            parent=_menu, text="Show annotations panel...", bitmap=self._icons.label
         )
         annotation_menu_show_annotations = make_menu_item(
-            parent=annotation_menu, text="Show annotations on plot", bitmap=self.icons.iconsLib["highlight_16"]
+            parent=_menu, text="Show annotations on plot", bitmap=self._icons.highlight
         )
         annotation_menu_duplicate_annotations = make_menu_item(
-            parent=annotation_menu, text="Duplicate annotations...", bitmap=self.icons.iconsLib["duplicate_item_16"]
+            parent=_menu, text="Duplicate annotations...", bitmap=self._icons.duplicate
         )
 
-        annotation_menu.Append(annotation_menu_show_annotations_panel)
-        annotation_menu.Append(annotation_menu_show_annotations)
-        annotation_menu.Append(annotation_menu_duplicate_annotations)
+        _menu.Append(annotation_menu_show_annotations_panel)
+        _menu.Append(annotation_menu_show_annotations)
+        _menu.Append(annotation_menu_duplicate_annotations)
 
-        menu = wx.Menu()
-        menu_show_annotations_panel = make_menu_item(
-            parent=menu, text="Show annotations panel...", bitmap=self.icons.iconsLib["annotate16"]
-        )
-        menu_action_duplicate_annotations = make_menu_item(
-            parent=menu, text="Duplicate annotations...", bitmap=self.icons.iconsLib["duplicate_item_16"]
-        )
-        menu_action_show_annotations = make_menu_item(
-            parent=menu, text="Show annotations on plot", bitmap=self.icons.iconsLib["highlight_16"]
-        )
-        menu_show_comparison_panel = make_menu_item(
-            parent=menu,
-            evt_id=ID_docTree_compareMS,
-            text="Compare mass spectra...",
-            bitmap=self.icons.iconsLib["compare_mass_spectra_16"],
+        if self._item.is_dataset:
+            menu.AppendSubMenu(_menu, "Annotations...")
+
+        # bind events
+        self.Bind(wx.EVT_MENU, self.on_open_annotation_editor, annotation_menu_show_annotations_panel)
+        self.Bind(wx.EVT_MENU, self.on_show_annotations, annotation_menu_show_annotations)
+        self.Bind(wx.EVT_MENU, self.on_duplicate_annotations, annotation_menu_duplicate_annotations)
+
+    def _set_menu_actions(self, menu):
+        action_menu = wx.Menu()
+        action_menu.Append(ID_docTree_action_open_origami_ms, "Setup ORIGAMI-MS parameters...")
+        action_menu.Append(ID_docTree_action_open_extract, "Open data extraction panel...")
+        action_menu.Append(ID_docTree_action_open_extractDTMS, "Open DT/MS dataset settings...")
+
+        self.Bind(wx.EVT_MENU, self.on_action_origami_ms, id=ID_docTree_action_open_origami_ms)
+        self.Bind(wx.EVT_MENU, self.on_open_extract_DTMS, id=ID_docTree_action_open_extractDTMS)
+        self.Bind(wx.EVT_MENU, self.on_open_extract_data, id=ID_docTree_action_open_extract)
+
+        menu.AppendMenu(wx.ID_ANY, "Action...", action_menu)
+
+    def _get_menu_save(self):
+        # save dataframe
+        save_data_submenu = wx.Menu()
+        save_data_submenu.Append(ID_saveData_csv, "Save to .csv file")
+        save_data_submenu.Append(ID_saveData_pickle, "Save to .pickle file")
+        save_data_submenu.Append(ID_saveData_hdf, "Save to .hdf file (slow)")
+        save_data_submenu.Append(ID_saveData_excel, "Save to .excel file (v. slow)")
+
+        return save_data_submenu
+
+    def _set_menu_mass_spectrum(self, menu):
+
+        # show menu
+        menu_action_show_plot_spectrum = make_menu_item(
+            parent=menu, text="Show mass spectrum\tAlt+S", bitmap=self.icons.iconsLib["mass_spectrum_16"]
         )
         menu_show_peak_picker_panel = make_menu_item(
-            parent=menu,
-            evt_id=ID_docTree_action_open_peak_picker,
-            text="Open peak picker...",
-            bitmap=self.icons.iconsLib["highlight_16"],
+            parent=menu, text="Open peak picker...", bitmap=self._icons.highlight
         )
-        menu_action_delete_item = make_menu_item(
-            parent=menu, text="Delete item\tDelete", bitmap=self.icons.iconsLib["clear_16"]
-        )
-        menu_action_show_highlights = make_menu_item(
-            parent=menu,
-            evt_id=ID_showPlotMSDocument,
-            text="Highlight ion in mass spectrum\tAlt+X",
-            bitmap=self.icons.iconsLib["zoom_16"],
-        )
-
-        menu_action_show_plot = make_menu_item(
-            parent=menu, evt_id=ID_showPlotDocument, text="Show plot\tAlt+S", bitmap=self.icons.iconsLib["blank_16"]
-        )
-        menu_action_show_plot_spectrum = make_menu_item(
-            parent=menu,
-            evt_id=ID_showPlotDocument,
-            text="Show mass spectrum\tAlt+S",
-            bitmap=self.icons.iconsLib["mass_spectrum_16"],
-        )
-        menu_action_show_plot_spectrum_waterfall = make_menu_item(
-            parent=menu, evt_id=ID_docTree_showMassSpectra, text="Show mass spectra (waterfall)", bitmap=None
-        )
-        menu_action_show_plot_mobilogram = make_menu_item(
-            parent=menu,
-            evt_id=ID_showPlotDocument,
-            text="Show mobilogram\tAlt+S",
-            bitmap=self.icons.iconsLib["mobilogram_16"],
-        )
-        menu_action_show_plot_chromatogram = make_menu_item(
-            parent=menu,
-            evt_id=ID_showPlotDocument,
-            text="Show chromatogram\tAlt+S",
-            bitmap=self.icons.iconsLib["chromatogram_16"],
-        )
-        menu_action_show_plot_2D = make_menu_item(
-            parent=menu,
-            evt_id=ID_showPlotDocument,
-            text="Show heatmap\tAlt+S",
-            bitmap=self.icons.iconsLib["heatmap_16"],
-        )
-        menu_action_show_plot_violin = make_menu_item(
-            parent=menu,
-            evt_id=ID_showPlotDocument_violin,
-            text="Show violin plot",
-            bitmap=self.icons.iconsLib["panel_violin_16"],
-        )
-        menu_action_show_plot_waterfall = make_menu_item(
-            parent=menu,
-            evt_id=ID_showPlotDocument_waterfall,
-            text="Show waterfall plot",
-            bitmap=self.icons.iconsLib["panel_waterfall_16"],
-        )
-
-        menu_action_show_plot_as_mobilogram = make_menu_item(
-            parent=menu,
-            evt_id=ID_showPlot1DDocument,
-            text="Show mobilogram",
-            bitmap=self.icons.iconsLib["mobilogram_16"],
-        )
-
-        menu_action_show_plot_as_chromatogram = make_menu_item(
-            parent=menu,
-            evt_id=ID_showPlotRTDocument,
-            text="Show chromatogram",
-            bitmap=self.icons.iconsLib["chromatogram_16"],
-        )
-
-        menu_action_rename_item = make_menu_item(
-            parent=menu, evt_id=ID_renameItem, text="Rename\tF2", bitmap=self.icons.iconsLib["rename_16"]
-        )
-
         menu_action_process_ms = make_menu_item(
             parent=menu, text="Process...\tP", bitmap=self.icons.iconsLib["process_ms_16"]
         )
         menu_action_process_ms_all = make_menu_item(
             parent=menu, text="Process all...", bitmap=self.icons.iconsLib["process_ms_16"]
         )
-        menu_action_process_2D = make_menu_item(
-            parent=menu, text="Process...\tP", bitmap=self.icons.iconsLib["process_2d_16"]
-        )
-        menu_action_process_2D_all = make_menu_item(
-            parent=menu, text="Process all...\tP", bitmap=self.icons.iconsLib["process_2d_16"]
-        )
-
-        menu_action_assign_charge = make_menu_item(
-            parent=menu, text="Assign charge state...\tAlt+Z", bitmap=self.icons.iconsLib["assign_charge_16"]
+        menu_show_comparison_panel = make_menu_item(
+            parent=menu, text="Compare mass spectra...", bitmap=self.icons.iconsLib["compare_mass_spectra_16"]
         )
 
         menu_show_unidec_panel = make_menu_item(
-            parent=menu,
-            evt_id=ID_docTree_UniDec,
-            text="Deconvolute using UniDec...",
-            bitmap=self.icons.iconsLib["process_unidec_16"],
-        )
-        menu_action_add_spectrum_to_panel = make_menu_item(
-            parent=menu, evt_id=ID_docTree_addOneToMMLTable, text="Add spectrum to multiple files panel", bitmap=None
-        )
-        menu_action_show_unidec_results = make_menu_item(
-            parent=menu, evt_id=ID_docTree_show_unidec, text="Show UniDec results", bitmap=None
-        )
-        menu_action_save_mobilogram_image_as = make_menu_item(
-            parent=menu, evt_id=ID_save1DImageDoc, text="Save image as...", bitmap=self.icons.iconsLib["file_png_16"]
+            parent=menu, text="Deconvolute using UniDec...", bitmap=self.icons.iconsLib["process_unidec_16"]
         )
 
-        menu_action_save_heatmap_image_as = make_menu_item(
-            parent=menu, evt_id=ID_save2DImageDoc, text="Save image as...", bitmap=self.icons.iconsLib["file_png_16"]
-        )
-
-        menu_action_save_image_as = make_menu_item(
-            parent=menu, text="Save image as...", bitmap=self.icons.iconsLib["file_png_16"]
-        )
+        menu_action_save_image_as = make_menu_item(parent=menu, text="Save image as...", bitmap=self._icons.png)
 
         menu_action_save_data_as = make_menu_item(
-            parent=menu,
-            evt_id=ID_saveDataCSVDocument,
-            text="Save data as...",
-            bitmap=self.icons.iconsLib["file_csv_16"],
+            parent=menu, evt_id=ID_saveDataCSVDocument, text="Save data as...", bitmap=self._icons.csv
         )
-
-        menu_action_save_1D_data_as = make_menu_item(
-            parent=menu,
-            evt_id=ID_saveDataCSVDocument1D,
-            text="Save 1D data as...",
-            bitmap=self.icons.iconsLib["file_csv_16"],
-        )
-
-        menu_action_save_2D_data_as = make_menu_item(
-            parent=menu,
-            evt_id=ID_saveDataCSVDocument,
-            text="Save 2D data as...",
-            bitmap=self.icons.iconsLib["file_csv_16"],
-        )
-        menu_action_save_chromatogram_image_as = make_menu_item(
-            parent=menu, evt_id=ID_saveRTImageDoc, text="Save image as...", bitmap=self.icons.iconsLib["file_png_16"]
-        )
-
-        menu_action_save_document = make_menu_item(
-            parent=menu, evt_id=ID_saveDocument, text="Save document\tCtrl+S", bitmap=self.icons.iconsLib["pickle_16"]
-        )
-
-        menu_action_save_document_as = make_menu_item(
-            parent=menu, text="Save document as...", bitmap=self.icons.iconsLib["save16"]
-        )
+        menu_action_delete_item = make_menu_item(parent=menu, text="Delete item\tDelete", bitmap=self._icons.delete)
 
         # bind events
-        self.Bind(wx.EVT_MENU, self.on_open_annotation_editor, annotation_menu_show_annotations_panel)
-        self.Bind(wx.EVT_MENU, self.on_open_annotation_editor, menu_show_annotations_panel)
-        self.Bind(wx.EVT_MENU, self.on_show_annotations, annotation_menu_show_annotations)
-        self.Bind(wx.EVT_MENU, self.on_show_annotations, menu_action_show_annotations)
-        self.Bind(wx.EVT_MENU, self.on_duplicate_annotations, annotation_menu_duplicate_annotations)
-        self.Bind(wx.EVT_MENU, self.on_duplicate_annotations, menu_action_duplicate_annotations)
-        self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
-        self.Bind(wx.EVT_MENU, self.on_save_document_as, menu_action_save_document_as)
-        self.Bind(wx.EVT_MENU, self.on_change_charge_state, menu_action_assign_charge)
+        self.Bind(wx.EVT_MENU, self.on_show_plot_mass_spectra, menu_action_show_plot_spectrum)
+        self.Bind(wx.EVT_MENU, partial(self.on_show_plot_mass_spectra, True), menu_action_save_image_as)
+        self.Bind(wx.EVT_MENU, self.on_open_peak_picker, menu_show_peak_picker_panel)
+        self.Bind(wx.EVT_MENU, self.on_open_spectrum_comparison_viewer, menu_show_comparison_panel)
+        self.Bind(wx.EVT_MENU, self.on_open_UniDec, menu_show_unidec_panel)
         self.Bind(wx.EVT_MENU, self.on_process_MS, menu_action_process_ms)
         self.Bind(wx.EVT_MENU, self.on_process_MS_all, menu_action_process_ms_all)
-        self.Bind(wx.EVT_MENU, self.on_process_2D, menu_action_process_2D)
-        self.Bind(wx.EVT_MENU, self.on_process_all_2D, menu_action_process_2D_all)
-        self.Bind(wx.EVT_MENU, self.onShow_and_SavePlot, menu_action_save_image_as)
 
-        all_mass_spectra = ["Mass Spectrum", "Mass Spectrum (processed)", "Mass Spectra"]
-        all_heatmaps = [
-            "Drift time (2D)",
-            "Drift time (2D, processed)",
-            "Drift time (2D, EIC)",
-            "Drift time (2D, combined voltages, EIC)",
-            "Drift time (2D, processed, EIC)",
-        ]
-        heatmap_multi = [
-            "Drift time (2D, EIC)",
-            "Drift time (2D, combined voltages, EIC)",
-            "Drift time (2D, processed, EIC)",
-        ]
-        accepted_annotated_items = ["Multi-line:", "Line:", "H-bar:", "V-bar:", "Scatter:", "Waterfall:"]
+        # append menu
+        menu.AppendItem(menu_action_show_plot_spectrum)
+        menu.AppendSeparator()
+        menu.AppendItem(menu_show_peak_picker_panel)
+        menu.AppendItem(menu_show_comparison_panel)
+        self._set_menu_annotations(menu)
+        menu.AppendItem(menu_action_process_ms)
+        menu.AppendItem(menu_action_process_ms_all)
+        menu.AppendItem(menu_show_unidec_panel)
+        menu.AppendSeparator()
+        menu.AppendItem(menu_action_save_image_as)
+        menu.AppendItem(menu_action_save_data_as)
+        menu.AppendItem(menu_action_delete_item)
 
-        # mass spectra
-        if dataset_type in all_mass_spectra:
-            # annotations - all
-            if (self._document_type in all_mass_spectra) and subkey_parent == "Annotations":
-                menu.AppendItem(menu_show_annotations_panel)
-                menu.AppendItem(menu_action_show_annotations)
-                menu.AppendItem(menu_action_duplicate_annotations)
-                menu.AppendItem(menu_action_delete_item)
-            # unidec -all
-            elif dataset_type in all_mass_spectra and subkey_parent == "UniDec" and subkey_child != "":
-                menu.AppendItem(
-                    make_menu_item(
-                        parent=menu, evt_id=ID_docTree_show_unidec, text="Show plot - {}".format(self._item_leaf)
-                    )
-                )
-                menu.AppendItem(
-                    make_menu_item(
-                        parent=menu,
-                        evt_id=ID_docTree_save_unidec,
-                        text="Save results - {} ({})".format(self._item_leaf, self.config.saveExtension),
-                    )
-                )
-                menu.AppendItem(menu_action_delete_item)
-            # unidec - single
-            elif dataset_type in all_mass_spectra and subkey_parent == "UniDec":
-                menu.AppendItem(menu_action_show_unidec_results)
-                menu.AppendItem(
-                    make_menu_item(
-                        parent=menu,
-                        evt_id=ID_docTree_save_unidec,
-                        text="Save UniDec results ({})".format(self.config.saveExtension),
-                    )
-                )
-                menu.AppendItem(menu_action_delete_item)
-            # mass spectrum - single
-            elif dataset_type in ["Mass Spectrum", "Mass Spectrum (processed)"] and self._indent == 2:
-                menu.AppendItem(menu_action_show_plot_spectrum)
-                menu.AppendItem(menu_show_peak_picker_panel)
-                menu.AppendItem(menu_action_process_ms)
-                menu.AppendItem(menu_show_comparison_panel)
-                menu.AppendSubMenu(annotation_menu, "Annotations...")
-                menu.AppendItem(menu_show_unidec_panel)
-                menu.AppendSeparator()
-                menu.AppendItem(menu_action_save_image_as)
-                menu.AppendItem(menu_action_save_data_as)
-                menu.AppendItem(menu_action_delete_item)
-            # mass spectra
-            else:
-                # mass spectra - all
-                if dataset_type == "Mass Spectra" and dataset_name == "Mass Spectra":
-                    menu.AppendItem(menu_show_comparison_panel)
-                    menu.AppendItem(menu_action_show_plot_spectrum_waterfall)
-                    menu.AppendItem(
-                        make_menu_item(
-                            parent=menu,
-                            evt_id=ID_docTree_addToMMLTable,
-                            text="Add spectra to multiple files panel",
-                            bitmap=None,
-                        )
-                    )
-                    menu.AppendItem(menu_action_process_ms_all)
-                    menu.AppendSeparator()
-                    menu.AppendItem(menu_action_save_data_as)
-                    menu.AppendMenu(wx.ID_ANY, "Save to file...", save_data_submenu)
-                # mass spectra - single
-                else:
-                    menu.AppendItem(menu_action_show_plot_spectrum)
-                    menu.AppendItem(menu_show_peak_picker_panel)
-                    menu.AppendItem(menu_action_process_ms)
-                    menu.AppendSubMenu(annotation_menu, "Annotations...")
-                    menu.AppendItem(menu_show_unidec_panel)
-                    menu.AppendSeparator()
-                    menu.AppendItem(menu_action_add_spectrum_to_panel)
-                    menu.Append(ID_duplicateItem, "Duplicate item")
-                    menu.AppendItem(menu_action_rename_item)
-                    menu.AppendSeparator()
-                    menu.AppendItem(menu_action_save_image_as)
-                    menu.AppendItem(menu_action_save_data_as)
-                menu.AppendItem(menu_action_delete_item)
+        #     # mass spectra
+        #     else:
+        #         # mass spectra - all
+        #         if dataset_type == "Mass Spectra" and dataset_name == "Mass Spectra":
+        #             menu.AppendItem(menu_show_comparison_panel)
+        #             menu.AppendItem(menu_action_show_plot_spectrum_waterfall)
+        #             menu.AppendItem(
+        #                 make_menu_item(
+        #                     parent=menu,
+        #                     evt_id=ID_docTree_addToMMLTable,
+        #                     text="Add spectra to multiple files panel",
+        #                     bitmap=None,
+        #                 )
+        #             )
+        #             menu.AppendItem(menu_action_process_ms_all)
+        #             menu.AppendSeparator()
+        #             menu.AppendItem(menu_action_save_data_as)
+        #             menu.AppendMenu(wx.ID_ANY, "Save to file...", save_data_submenu)
+        #         # mass spectra - single
+        #         else:
+        #             menu.AppendItem(menu_action_show_plot_spectrum)
+        #             menu.AppendItem(menu_show_peak_picker_panel)
+        #             menu.AppendItem(menu_action_process_ms)
+        #             menu.AppendSubMenu(annotation_menu, "Annotations...")
+        #             menu.AppendItem(menu_show_unidec_panel)
+        #             menu.AppendSeparator()
+        #             menu.AppendItem(menu_action_add_spectrum_to_panel)
+        #             menu.Append(ID_duplicateItem, "Duplicate item")
+        #             menu.AppendItem(menu_action_rename_item)
+        #             menu.AppendSeparator()
+        #             menu.AppendItem(menu_action_save_image_as)
+        #             menu.AppendItem(menu_action_save_data_as)
+        #         menu.AppendItem(menu_action_delete_item)
 
-        # tandem MS
-        elif itemType == "Tandem Mass Spectra" and self._indent == 2:
-            menu.AppendItem(
-                make_menu_item(
-                    parent=menu,
-                    evt_id=ID_docTree_add_mzIdentML,
-                    text="Add identification information (.mzIdentML, .mzid, .mzid.gz)",
-                    bitmap=None,
-                )
-            )
-        # Sample information
-        elif itemType == "Sample information":
-            menu.Append(ID_showSampleInfo, "Show sample information")
+    def _set_menu_chromatogram(self, menu):
+        # view actions
+        menu_action_show_plot_chromatogram = make_menu_item(
+            parent=menu, text="Show chromatogram\tAlt+S", bitmap=self.icons.iconsLib["chromatogram_16"]
+        )
 
-        # chromatograms - all
-        elif itemType == "Chromatogram":
-            if self._indent == 2:
-                menu.AppendItem(menu_action_show_plot_chromatogram)
-                menu.AppendSubMenu(annotation_menu, "Annotations...")
-                menu.AppendSeparator()
-                menu.AppendMenu(wx.ID_ANY, "Change x-axis to...", xlabel_RT_menu)
-                menu.AppendSeparator()
-                menu.AppendItem(menu_action_save_chromatogram_image_as)
-                menu.AppendItem(menu_action_save_data_as)
-            elif self._indent == 3:
-                menu.AppendItem(menu_show_annotations_panel)
-                menu.AppendItem(menu_action_show_annotations)
-                menu.AppendItem(menu_action_duplicate_annotations)
-            menu.AppendItem(menu_action_delete_item)
-        # chromatograms - eic
-        elif self._document_type in ["Chromatograms (combined voltages, EIC)", "Chromatograms (EIC)"]:
-            # Only if clicked on an item and not header
-            if self._item_leaf not in ["Chromatograms (combined voltages, EIC)", "Chromatograms (EIC)"]:
-                menu.AppendItem(menu_action_show_plot_chromatogram)
-                menu.AppendSubMenu(annotation_menu, "Annotations...")
-                menu.AppendSeparator()
-                menu.AppendItem(menu_action_assign_charge)
-                menu.AppendSeparator()
-                menu.Append(ID_saveRTImageDoc, "Save image as...")
-            menu.AppendItem(menu_action_save_data_as)
-            menu.AppendItem(menu_action_delete_item)
+        # process actions
+        menu_xlabel = self._get_menu_chromatogram_label()
 
-        # drift time 1D - single
-        elif itemType == "Drift time (1D)":
-            if self._indent == 2:
-                menu.AppendItem(menu_action_show_plot_mobilogram)
-                menu.AppendSubMenu(annotation_menu, "Annotations...")
-                menu.AppendSeparator()
-                menu.AppendMenu(wx.ID_ANY, "Change x-axis to...", xlabel_1D_menu)
-                menu.AppendSeparator()
-                menu.AppendItem(menu_action_save_mobilogram_image_as)
-                menu.AppendItem(menu_action_save_data_as)
-            elif self._indent == 3:
-                menu.AppendItem(menu_show_annotations_panel)
-                menu.AppendItem(menu_action_show_annotations)
-                menu.AppendItem(menu_action_duplicate_annotations)
-            menu.AppendItem(menu_action_delete_item)
-        # drift time 1D - eic
-        elif self._document_type in ["Drift time (1D, EIC, DT-IMS)", "Drift time (1D, EIC)"]:
-            # Only if clicked on an item and not header
-            if self._item_leaf != "Drift time (1D, EIC, DT-IMS)" and itemType != "Drift time (1D, EIC)":
-                menu.AppendItem(menu_action_show_highlights)
+        # export actions
+        menu_action_save_chromatogram_image_as = make_menu_item(
+            parent=menu, text="Save image as...", bitmap=self._icons.png
+        )
+        menu_action_save_data_as = make_menu_item(parent=menu, text="Save data as...", bitmap=self._icons.csv)
+        menu_action_delete_item = make_menu_item(parent=menu, text="Delete item\tDelete", bitmap=self._icons.delete)
 
-            if self._item_leaf not in ["Drift time (1D, EIC)", "Drift time (1D, EIC, DT-IMS)"]:
-                menu.AppendItem(menu_action_show_plot_mobilogram)
-                menu.AppendSubMenu(annotation_menu, "Annotations...")
-                menu.AppendSeparator()
-                menu.AppendMenu(wx.ID_ANY, "Change x-axis to...", xlabel_1D_menu)
-                menu.AppendItem(menu_action_assign_charge)
-                menu.AppendSeparator()
-                menu.AppendItem(menu_action_save_mobilogram_image_as)
-            menu.AppendItem(menu_action_save_data_as)
-            menu.AppendItem(menu_action_delete_item)
+        # bind event
+        self.Bind(wx.EVT_MENU, self.on_show_plot_chromatogram, menu_action_show_plot_chromatogram)
+        self.Bind(wx.EVT_MENU, self.on_save_csv, menu_action_save_data_as)
+        self.Bind(wx.EVT_MENU, partial(self.on_show_plot_chromatogram, True), menu_action_save_chromatogram_image_as)
 
-        # heatmap - 2D
-        elif self._document_type in all_heatmaps:
-            # heatmap - single
-            if (
-                (self._document_type in ["Drift time (2D)", "Drift time (2D, processed)"])
-                or (self._document_type in heatmap_multi and self._item_leaf != self._document_type)
-                and (self._item_leaf != "Annotations" and self._item_branch != "Annotations")
-            ):
-                if self._item_leaf == "Annotations":
-                    menu.AppendItem(menu_show_annotations_panel)
-                    menu.AppendItem(menu_action_show_annotations)
-                    menu.AppendItem(menu_action_duplicate_annotations)
-                else:
-                    menu.AppendItem(menu_action_show_plot_2D)
-                    menu.AppendItem(menu_action_show_plot_violin)
-                    menu.AppendItem(menu_action_show_plot_waterfall)
-                    menu.AppendItem(menu_action_process_2D)
-                    menu.AppendSeparator()
-                    menu.AppendSubMenu(annotation_menu, "Annotations...")
-                    menu.AppendItem(menu_action_assign_charge)
-                    menu.AppendMenu(wx.ID_ANY, "Set X-axis label as...", xlabel_2D_menu)
-                    menu.AppendMenu(wx.ID_ANY, "Set Y-axis label as...", ylabel_2D_menu)
-                    menu.AppendSeparator()
-                    menu.AppendItem(menu_action_save_heatmap_image_as)
-                    menu.AppendItem(menu_action_save_1D_data_as)
-                    menu.AppendItem(menu_action_save_2D_data_as)
-                if self._document_type not in ["Drift time (2D)", "Drift time (2D, processed)"]:
-                    menu.PrependItem(menu_action_show_plot_as_mobilogram)
-                    menu.PrependItem(menu_action_show_plot_as_chromatogram)
-                    menu.PrependItem(menu_action_show_highlights)
-            elif self._item_leaf == "Annotations":
-                menu.AppendItem(menu_show_annotations_panel)
-                menu.AppendItem(menu_action_show_annotations)
-                menu.AppendItem(menu_action_duplicate_annotations)
-            # heatmap - all
-            else:
-                menu.AppendItem(menu_action_process_2D_all)
-                menu.AppendSeparator()
-                menu.AppendItem(menu_action_save_1D_data_as)
-                menu.AppendItem(menu_action_save_2D_data_as)
-            menu.AppendItem(menu_action_delete_item)
-        # input data
-        elif self._document_type == "Input data":
-            # input data - all
-            if self._document_type == "Input data" and self._item_leaf != self._document_type:
-                menu.AppendItem(menu_action_show_plot_2D)
-                menu.AppendItem(menu_action_process_2D)
-                menu.AppendSeparator()
-                menu.AppendMenu(wx.ID_ANY, "Set X-axis label as...", xlabel_2D_menu)
-                menu.AppendMenu(wx.ID_ANY, "Set Y-axis label as...", ylabel_2D_menu)
-                menu.AppendItem(menu_action_save_heatmap_image_as)
-            # single and all
-            menu.AppendItem(menu_action_save_data_as)
-            menu.AppendItem(menu_action_delete_item)
+        menu.AppendItem(menu_action_show_plot_chromatogram)
+        self._set_menu_annotations(menu)
+        menu.AppendSeparator()
+        menu.AppendMenu(wx.ID_ANY, "Change x-axis to...", menu_xlabel)
+        menu.AppendSeparator()
+        menu.AppendItem(menu_action_save_chromatogram_image_as)
+        menu.AppendItem(menu_action_save_data_as)
+        #         elif self._indent == 3:
+        #             menu.AppendItem(menu_show_annotations_panel)
+        #             menu.AppendItem(menu_action_show_annotations)
+        #             menu.AppendItem(menu_action_duplicate_annotations)
+        menu.AppendItem(menu_action_delete_item)
 
-        # statistical method
-        elif self._document_type == "Statistical":
-            # Only if clicked on an item and not header
-            if self._item_leaf != self._document_type:
-                menu.AppendItem(menu_action_show_plot_2D)
-                menu.AppendSeparator()
-                menu.AppendItem(menu_action_save_image_as)
-                menu.AppendItem(menu_action_save_data_as)
-                menu.AppendItem(menu_action_delete_item)
-                menu.AppendSeparator()
-                menu.AppendItem(menu_action_rename_item)
-            # Only if on a header
-            else:
-                menu.AppendItem(menu_action_save_data_as)
-                menu.AppendItem(menu_action_delete_item)
+        # # chromatograms - all
+        # elif itemType == "Chromatogram":
+        #     if self._indent == 2:
+        #         menu.AppendItem(menu_action_show_plot_chromatogram)
+        #         menu.AppendSubMenu(annotation_menu, "Annotations...")
+        #         menu.AppendSeparator()
+        #         menu.AppendMenu(wx.ID_ANY, "Change x-axis to...", xlabel_RT_menu)
+        #         menu.AppendSeparator()
+        #         menu.AppendItem(menu_action_save_chromatogram_image_as)
+        #         menu.AppendItem(menu_action_save_data_as)
+        #     elif self._indent == 3:
+        #         menu.AppendItem(menu_show_annotations_panel)
+        #         menu.AppendItem(menu_action_show_annotations)
+        #         menu.AppendItem(menu_action_duplicate_annotations)
+        #     menu.AppendItem(menu_action_delete_item)
+        # # chromatograms - eic
+        # elif self._document_type in ["Chromatograms (combined voltages, EIC)", "Chromatograms (EIC)"]:
+        #     # Only if clicked on an item and not header
+        #     if self._item_leaf not in ["Chromatograms (combined voltages, EIC)", "Chromatograms (EIC)"]:
+        #         menu.AppendItem(menu_action_show_plot_chromatogram)
+        #         menu.AppendSubMenu(annotation_menu, "Annotations...")
+        #         menu.AppendSeparator()
+        #         menu.AppendItem(menu_action_assign_charge)
+        #         menu.AppendSeparator()
+        #         menu.Append(ID_saveRTImageDoc, "Save image as...")
+        #     menu.AppendItem(menu_action_save_data_as)
+        #     menu.AppendItem(menu_action_delete_item)
 
-        # overlay
-        elif self._document_type == "Overlay":
-            plot_type = self.splitText[0]
-            if self._document_type != self._item_leaf:
-                if plot_type in [
-                    "Waterfall (Raw)",
-                    "Waterfall (Processed)",
-                    "Waterfall (Fitted)",
-                    "Waterfall (Deconvoluted MW)",
-                    "Waterfall (Charge states)",
-                ]:
-                    menu.AppendItem(menu_action_show_plot)
-                    if plot_type in ["Waterfall (Raw)", "Waterfall (Processed)"]:
-                        menu.AppendItem(menu_show_annotations_panel)
-                else:
-                    menu.AppendItem(menu_action_show_plot)
-                menu.AppendSeparator()
-                if self.splitText[0] in [
-                    "Waterfall (Raw)",
-                    "Waterfall (Processed)",
-                    "Waterfall (Fitted)",
-                    "Waterfall (Deconvoluted MW)",
-                    "Waterfall (Charge states)",
-                ]:
-                    menu.Append(ID_saveWaterfallImageDoc, "Save image as...")
-                else:
-                    menu.AppendItem(menu_action_save_image_as)
-                menu.AppendItem(menu_action_delete_item)
-                menu.AppendSeparator()
-                menu.AppendItem(menu_action_rename_item)
-            else:
-                menu.AppendItem(menu_action_delete_item)
-        # dt-ms
-        elif itemType == "DT/MS":
-            menu.AppendItem(menu_action_show_plot_2D)
-            menu.AppendItem(menu_action_process_2D)
-            menu.AppendSeparator()
-            menu.AppendItem(
-                make_menu_item(
-                    parent=menu,
-                    evt_id=ID_docTree_action_open_extractDTMS,
-                    text="Open DT/MS extraction panel...",
-                    bitmap=None,
-                )
-            )
-            menu.AppendSeparator()
-            menu.AppendMenu(wx.ID_ANY, "Set Y-axis label as...", ylabel_DTMS_menu)
-            menu.AppendSeparator()
-            menu.AppendItem(menu_action_save_image_as)
-            menu.AppendItem(menu_action_save_data_as)
-        # annotated data
-        elif dataset_type == "Annotated data":
-            if dataset_type == dataset_name:
-                menu.AppendMenu(wx.ID_ANY, "Import data...", load_data_menu)
-            else:
-                menu.AppendItem(menu_action_show_plot)
-                if dataset_type != dataset_name and any(
-                    [ok_item in dataset_name for ok_item in accepted_annotated_items]
-                ):
-                    menu.AppendSubMenu(annotation_menu, "Annotations...")
-                menu.AppendSeparator()
-                menu.AppendItem(menu_action_save_image_as)
-                menu.AppendItem(menu_action_delete_item)
-        else:
-            menu.AppendMenu(wx.ID_ANY, "Import data...", load_data_menu)
+    def _set_menu_mobilogram(self, menu):
 
-        if menu.MenuItemCount > 0:
-            menu.AppendSeparator()
+        # view actions
+        menu_action_show_plot_mobilogram = make_menu_item(
+            parent=menu, text="Show mobilogram\tAlt+S", bitmap=self.icons.iconsLib["mobilogram_16"]
+        )
 
-        if self._indent == 1:
-            menu.Append(ID_docTree_show_refresh_document, "Refresh document")
-            menu.AppendItem(
-                make_menu_item(
-                    parent=menu,
-                    evt_id=ID_docTree_duplicate_document,
-                    text="Duplicate document\tShift+D",
-                    bitmap=self.icons.iconsLib["duplicate_16"],
-                )
-            )
-            menu.AppendItem(menu_action_rename_item)
-            menu.AppendSeparator()
-        menu.AppendMenu(wx.ID_ANY, "Action...", action_menu)
+        # process actions
+        menu_xlabel = self._get_menu_mobilogram_label()
+        menu_action_delete_item = make_menu_item(parent=menu, text="Delete item\tDelete", bitmap=self._icons.delete)
+
+        # export actions
+        menu_action_save_mobilogram_image_as = make_menu_item(
+            parent=menu, text="Save image as...", bitmap=self._icons.png
+        )
+        menu_action_save_data_as = make_menu_item(parent=menu, text="Save data as...", bitmap=self._icons.csv)
+
+        # bind events
+        self.Bind(wx.EVT_MENU, self.on_show_plot_mobilogram, menu_action_show_plot_mobilogram)
+        self.Bind(wx.EVT_MENU, partial(self.on_show_plot_mobilogram, True), menu_action_save_mobilogram_image_as)
+        self.Bind(wx.EVT_MENU, self.on_save_csv, menu_action_save_data_as)
+
+        # make menu
+        menu.AppendItem(menu_action_show_plot_mobilogram)
+        self._set_menu_annotations(menu)
+        menu.AppendSeparator()
+        menu.AppendMenu(wx.ID_ANY, "Change x-axis to...", menu_xlabel)
+        menu.AppendSeparator()
+        menu.AppendItem(menu_action_save_mobilogram_image_as)
+        menu.AppendItem(menu_action_save_data_as)
+        menu.AppendItem(menu_action_delete_item)
+
+        # # drift time 1D - single
+        # elif itemType == "Drift time (1D)":
+        #     if self._indent == 2:
+        #         menu.AppendItem(menu_action_show_plot_mobilogram)
+        #         menu.AppendSubMenu(annotation_menu, "Annotations...")
+        #         menu.AppendSeparator()
+        #         menu.AppendMenu(wx.ID_ANY, "Change x-axis to...", xlabel_1D_menu)
+        #         menu.AppendSeparator()
+        #         menu.AppendItem(menu_action_save_mobilogram_image_as)
+        #         menu.AppendItem(menu_action_save_data_as)
+        #     elif self._indent == 3:
+        #         menu.AppendItem(menu_show_annotations_panel)
+        #         menu.AppendItem(menu_action_show_annotations)
+        #         menu.AppendItem(menu_action_duplicate_annotations)
+        #     menu.AppendItem(menu_action_delete_item)
+        # # drift time 1D - eic
+        # elif self._document_type in ["Drift time (1D, EIC, DT-IMS)", "Drift time (1D, EIC)"]:
+        #     # Only if clicked on an item and not header
+        #     if self._item_leaf != "Drift time (1D, EIC, DT-IMS)" and itemType != "Drift time (1D, EIC)":
+        #         menu.AppendItem(menu_action_show_highlights)
+        #
+        #     if self._item_leaf not in ["Drift time (1D, EIC)", "Drift time (1D, EIC, DT-IMS)"]:
+        #         menu.AppendItem(menu_action_show_plot_mobilogram)
+        #         menu.AppendSubMenu(annotation_menu, "Annotations...")
+        #         menu.AppendSeparator()
+        #         menu.AppendMenu(wx.ID_ANY, "Change x-axis to...", xlabel_1D_menu)
+        #         menu.AppendItem(menu_action_assign_charge)
+        #         menu.AppendSeparator()
+        #         menu.AppendItem(menu_action_save_mobilogram_image_as)
+        #     menu.AppendItem(menu_action_save_data_as)
+        #     menu.AppendItem(menu_action_delete_item)
+
+    def _set_menu_heatmap(self, menu):
+
+        # view actions
+        menu_action_show_plot_2d = make_menu_item(
+            parent=menu, text="Show heatmap\tAlt+S", bitmap=self.icons.iconsLib["heatmap_16"]
+        )
+        menu_action_show_plot_as_mobilogram = make_menu_item(
+            parent=menu, text="Show mobilogram", bitmap=self.icons.iconsLib["mobilogram_16"]
+        )
+        menu_action_show_plot_as_chromatogram = make_menu_item(
+            parent=menu, text="Show chromatogram", bitmap=self.icons.iconsLib["chromatogram_16"]
+        )
+        menu_action_show_plot_violin = make_menu_item(
+            parent=menu, text="Show violin plot", bitmap=self.icons.iconsLib["panel_violin_16"]
+        )
+        menu_action_show_plot_waterfall = make_menu_item(
+            parent=menu, text="Show waterfall plot", bitmap=self.icons.iconsLib["panel_waterfall_16"]
+        )
+        menu_action_show_highlights = make_menu_item(
+            parent=menu, text="Highlight ion in mass spectrum\tAlt+X", bitmap=self.icons.iconsLib["zoom_16"]
+        )
+
+        # process actions
+        menu_action_process_2d = make_menu_item(
+            parent=menu, text="Process...\tP", bitmap=self.icons.iconsLib["process_2d_16"]
+        )
+        menu_action_process_2d_all = make_menu_item(
+            parent=menu, text="Process all...", bitmap=self.icons.iconsLib["process_2d_16"]
+        )
+        menu_action_assign_charge = make_menu_item(
+            parent=menu, text="Assign charge state...\tAlt+Z", bitmap=self.icons.iconsLib["assign_charge_16"]
+        )
+        menu_xlabel, menu_ylabel = self._get_menu_heatmap_label()
+
+        # export actions
+        menu_action_save_heatmap_image_as = make_menu_item(parent=menu, text="Save image as...", bitmap=self._icons.png)
+        menu_action_save_2d_data_as = make_menu_item(parent=menu, text="Save data as...", bitmap=self._icons.csv)
+
+        # bind events
+        self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap, menu_action_show_plot_2d)
+        self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_violin, menu_action_show_plot_violin)
+        self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_waterfall, menu_action_show_plot_waterfall)
+        self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_mobilogram, menu_action_show_plot_as_mobilogram)
+        self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_chromatogram, menu_action_show_plot_as_chromatogram)
+        self.Bind(wx.EVT_MENU, self.on_show_zoom_on_ion, menu_action_show_highlights)
+        self.Bind(wx.EVT_MENU, partial(self.on_show_plot_heatmap, True), menu_action_save_heatmap_image_as)
+        self.Bind(wx.EVT_MENU, self.on_process_2D, menu_action_process_2d)
+        self.Bind(wx.EVT_MENU, self.on_process_all_2D, menu_action_process_2d_all)
+        self.Bind(wx.EVT_MENU, self.on_save_csv, menu_action_save_2d_data_as)
+
+        # make menu
+        menu.AppendItem(menu_action_show_plot_2d)
+        menu.AppendItem(menu_action_show_plot_as_mobilogram)
+        menu.AppendItem(menu_action_show_plot_as_chromatogram)
+        menu.AppendItem(menu_action_show_highlights)
+        menu.AppendItem(menu_action_show_plot_violin)
+        menu.AppendItem(menu_action_show_plot_waterfall)
+        menu.AppendSeparator()
+        menu.AppendItem(menu_action_process_2d)
+        menu.AppendItem(menu_action_process_2d_all)
+        menu.AppendSeparator()
+        self._set_menu_annotations(menu)
+        menu.AppendItem(menu_action_assign_charge)
+        menu.AppendMenu(wx.ID_ANY, "Set X-axis label as...", menu_xlabel)
+        menu.AppendMenu(wx.ID_ANY, "Set Y-axis label as...", menu_ylabel)
+        menu.AppendSeparator()
+        menu.AppendItem(menu_action_save_heatmap_image_as)
+        menu.AppendItem(menu_action_save_2d_data_as)
+
+        # # heatmap - 2D
+        # elif self._document_type in all_heatmaps:
+        #     # heatmap - single
+        #     if (
+        #         (self._document_type in ["Drift time (2D)", "Drift time (2D, processed)"])
+        #         or (self._document_type in heatmap_multi and self._item_leaf != self._document_type)
+        #         and (self._item_leaf != "Annotations" and self._item_branch != "Annotations")
+        #     ):
+        #         if self._item_leaf == "Annotations":
+        #             menu.AppendItem(menu_show_annotations_panel)
+        #             menu.AppendItem(menu_action_show_annotations)
+        #             menu.AppendItem(menu_action_duplicate_annotations)
+        #     elif self._item_leaf == "Annotations":
+        #         menu.AppendItem(menu_show_annotations_panel)
+        #         menu.AppendItem(menu_action_show_annotations)
+        #         menu.AppendItem(menu_action_duplicate_annotations)
+        #     # heatmap - all
+        #     else:
+        #         menu.AppendItem(menu_action_process_2D_all)
+        #         menu.AppendSeparator()
+        #         menu.AppendItem(menu_action_save_1D_data_as)
+        #         menu.AppendItem(menu_action_save_2D_data_as)
+        #     menu.AppendItem(menu_action_delete_item)
+        # # input data
+        # elif self._document_type == "Input data":
+        #     # input data - all
+        #     if self._document_type == "Input data" and self._item_leaf != self._document_type:
+        #         menu.AppendItem(menu_action_show_plot_2D)
+        #         menu.AppendItem(menu_action_process_2D)
+        #         menu.AppendSeparator()
+        #         menu.AppendMenu(wx.ID_ANY, "Set X-axis label as...", xlabel_2D_menu)
+        #         menu.AppendMenu(wx.ID_ANY, "Set Y-axis label as...", ylabel_2D_menu)
+        #         menu.AppendItem(menu_action_save_heatmap_image_as)
+        #     # single and all
+        #     menu.AppendItem(menu_action_save_data_as)
+        #     menu.AppendItem(menu_action_delete_item)
+
+    def _set_menu_msdt(self, menu):
+
+        # view actions
+        menu_action_show_plot_2d = make_menu_item(
+            parent=menu, text="Show heatmap\tAlt+S", bitmap=self.icons.iconsLib["heatmap_16"]
+        )
+
+        # process actions
+        menu_action_process_2d = make_menu_item(
+            parent=menu, text="Process...\tP", bitmap=self.icons.iconsLib["process_2d_16"]
+        )
+        menu_action_process_2d_all = make_menu_item(
+            parent=menu, text="Process all...\tP", bitmap=self.icons.iconsLib["process_2d_16"]
+        )
+        menu_ylabel = self._get_menu_msdt_label()
+
+        # export actions
+        menu_action_save_image_as = make_menu_item(parent=menu, text="Save image as...", bitmap=self._icons.png)
+        menu_action_save_data_as = make_menu_item(parent=menu, text="Save data as...", bitmap=self._icons.csv)
+
+        # bind events
+        self.Bind(wx.EVT_MENU, self.on_show_plot_dtms, menu_action_show_plot_2d)
+        self.Bind(wx.EVT_MENU, partial(self.on_show_plot_dtms, True), menu_action_save_image_as)
+        self.Bind(wx.EVT_MENU, self.on_process_2D, menu_action_process_2d)
+        self.Bind(wx.EVT_MENU, self.on_process_all_2D, menu_action_process_2d_all)
+        self.Bind(wx.EVT_MENU, self.on_save_csv, menu_action_save_data_as)
+
+        # make menu
+        menu.AppendItem(menu_action_show_plot_2d)
+        menu.AppendSeparator()
+        menu.AppendItem(menu_action_process_2d)
+        menu.AppendItem(menu_action_process_2d_all)
         menu.AppendSeparator()
         menu.AppendItem(
             make_menu_item(
                 parent=menu,
-                evt_id=ID_openDocInfo,
-                text="Notes, Information, Labels...\tCtrl+I",
-                bitmap=self.icons.iconsLib["info16"],
+                evt_id=ID_docTree_action_open_extractDTMS,
+                text="Open DT/MS extraction panel...",
+                bitmap=None,
             )
         )
-        menu.AppendItem(
-            make_menu_item(
-                parent=menu,
-                evt_id=ID_goToDirectory,
-                text="Go to folder...\tCtrl+G",
-                bitmap=self.icons.iconsLib["folder_path_16"],
+        menu.AppendSeparator()
+        menu.AppendMenu(wx.ID_ANY, "Set Y-axis label as...", menu_ylabel)
+        menu.AppendSeparator()
+        menu.AppendItem(menu_action_save_image_as)
+        menu.AppendItem(menu_action_save_data_as)
+
+    def _get_menu_overlay(self, menu):
+        # # statistical method
+        # elif self._document_type == "Statistical":
+        #     # Only if clicked on an item and not header
+        #     if self._item_leaf != self._document_type:
+        #         menu.AppendItem(menu_action_show_plot_2D)
+        #         menu.AppendSeparator()
+        #         menu.AppendItem(menu_action_save_image_as)
+        #         menu.AppendItem(menu_action_save_data_as)
+        #         menu.AppendItem(menu_action_delete_item)
+        #         menu.AppendSeparator()
+        #         menu.AppendItem(menu_action_rename_item)
+        #     # Only if on a header
+        #     else:
+        #         menu.AppendItem(menu_action_save_data_as)
+        #         menu.AppendItem(menu_action_delete_item)
+        #
+        # # overlay
+        # elif self._document_type == "Overlay":
+        #     plot_type = self.splitText[0]
+        #     if self._document_type != self._item_leaf:
+        #         if plot_type in [
+        #             "Waterfall (Raw)",
+        #             "Waterfall (Processed)",
+        #             "Waterfall (Fitted)",
+        #             "Waterfall (Deconvoluted MW)",
+        #             "Waterfall (Charge states)",
+        #         ]:
+        #             menu.AppendItem(menu_action_show_plot)
+        #             if plot_type in ["Waterfall (Raw)", "Waterfall (Processed)"]:
+        #                 menu.AppendItem(menu_show_annotations_panel)
+        #         else:
+        #             menu.AppendItem(menu_action_show_plot)
+        #         menu.AppendSeparator()
+        #         if self.splitText[0] in [
+        #             "Waterfall (Raw)",
+        #             "Waterfall (Processed)",
+        #             "Waterfall (Fitted)",
+        #             "Waterfall (Deconvoluted MW)",
+        #             "Waterfall (Charge states)",
+        #         ]:
+        #             menu.Append(ID_saveWaterfallImageDoc, "Save image as...")
+        #         else:
+        #             menu.AppendItem(menu_action_save_image_as)
+        #         menu.AppendItem(menu_action_delete_item)
+        #         menu.AppendSeparator()
+        #         menu.AppendItem(menu_action_rename_item)
+        #     else:
+        #         menu.AppendItem(menu_action_delete_item)
+        return None
+
+    def _set_menu_annotated(self, menu):
+        pass
+        # # annotated data
+        # elif dataset_type == "Annotated data":
+        #     if dataset_type == dataset_name:
+        #         menu.AppendMenu(wx.ID_ANY, "Import data...", load_data_menu)
+        #     else:
+        #         menu.AppendItem(menu_action_show_plot)
+        #         if dataset_type != dataset_name and any(
+        #             [ok_item in dataset_name for ok_item in accepted_annotated_items]
+        #         ):
+        #             menu.AppendSubMenu(annotation_menu, "Annotations...")
+        #         menu.AppendSeparator()
+        #         menu.AppendItem(menu_action_save_image_as)
+        #         menu.AppendItem(menu_action_delete_item)
+
+    def _set_menu_tandem(self, menu):
+        pass
+        # # tandem MS
+        # elif itemType == "Tandem Mass Spectra" and self._indent == 2:
+        #     menu.AppendItem(
+        #         make_menu_item(
+        #             parent=menu,
+        #             evt_id=ID_docTree_add_mzIdentML,
+        #             text="Add identification information (.mzIdentML, .mzid, .mzid.gz)",
+        #             bitmap=None,
+        #         )
+        #     )
+
+    def on_right_click(self, evt):
+        """ Create and show up popup menu"""
+
+        # Get the current text value for selected item
+        itemType = self.GetItemText(evt.GetItem())
+
+        try:
+            query, subkey = self._get_query_info_based_on_indent(return_subkey=True, evt=evt)
+        except AttributeError:
+            logger.debug(
+                "Could not obtain right-click query key. Please first left-click on an item in the document tree",
+                exc_info=True,
             )
+            return
+
+        dataset_type = query[1]
+        dataset_name = query[2]
+        subkey_parent = subkey[0]
+        subkey_child = subkey[1]
+
+        if itemType == "Documents":
+            self.on_right_click_short()
+            return
+
+        # Bind events
+        self._bind_change_label_events()
+
+        # self.Bind(wx.EVT_MENU, self.on_show_plot, id=ID_showPlot1DDocument)
+        # self.Bind(wx.EVT_MENU, self.on_show_plot, id=ID_showPlotRTDocument)
+        # self.Bind(wx.EVT_MENU, self.on_show_plot, id=ID_showPlotMSDocument)
+        # self.Bind(wx.EVT_MENU, self.onProcess, id=ID_process2DDocument)
+        # self.Bind(wx.EVT_MENU, self.onGoToDirectory, id=ID_goToDirectory)
+        # self.Bind(wx.EVT_MENU, self.on_save_csv, id=ID_saveDataCSVDocument)
+        # self.Bind(wx.EVT_MENU, self.on_save_csv, id=ID_saveDataCSVDocument1D)
+        # self.Bind(wx.EVT_MENU, self.on_save_csv, id=ID_saveAsDataCSVDocument)
+        # self.Bind(wx.EVT_MENU, self.on_save_csv, id=ID_saveAsDataCSVDocument1D)
+        # self.Bind(wx.EVT_MENU, self.onRenameItem, id=ID_renameItem)
+        # self.Bind(wx.EVT_MENU, self.onDuplicateItem, id=ID_duplicateItem)
+        #
+        # # self.Bind(wx.EVT_MENU, self.onShowSampleInfo, id=ID_showSampleInfo)
+        # self.Bind(wx.EVT_MENU, self.view.on_open_interactive_output_panel, id=ID_saveAsInteractive)
+        # self.Bind(wx.EVT_MENU, self.on_open_spectrum_comparison_viewer, id=ID_docTree_compareMS)
+        # self.Bind(wx.EVT_MENU, self.onShowMassSpectra, id=ID_docTree_showMassSpectra)
+        # self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addToMMLTable)
+        # self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addOneToMMLTable)
+        # self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addToTextTable)
+        # self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addOneToTextTable)
+        # self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addInteractiveToTextTable)
+        # self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addOneInteractiveToTextTable)
+        # self.Bind(wx.EVT_MENU, self.onDuplicateItem, id=ID_docTree_duplicate_document)
+        # self.Bind(wx.EVT_MENU, self.on_refresh_document, id=ID_docTree_show_refresh_document)
+        #
+        # # self.Bind(wx.EVT_MENU, self.onOpenDocInfo, id=ID_openDocInfo)
+        # self.Bind(wx.EVT_MENU, self.onShow_and_SavePlot, id=ID_saveRTImageDoc)
+        # self.Bind(wx.EVT_MENU, self.onShow_and_SavePlot, id=ID_save1DImageDoc)
+        # self.Bind(wx.EVT_MENU, self.onShow_and_SavePlot, id=ID_save2DImageDoc)
+        # self.Bind(wx.EVT_MENU, self.onShow_and_SavePlot, id=ID_save3DImageDoc)
+        # # self.Bind(wx.EVT_MENU, self.on_process_UVPD, id=ID_docTree_plugin_UVPD)
+        # self.Bind(wx.EVT_MENU, self.onSaveDF, id=ID_saveData_csv)
+        # self.Bind(wx.EVT_MENU, self.onSaveDF, id=ID_saveData_pickle)
+        # self.Bind(wx.EVT_MENU, self.onSaveDF, id=ID_saveData_excel)
+        # self.Bind(wx.EVT_MENU, self.onSaveDF, id=ID_saveData_hdf)
+        # # self.Bind(wx.EVT_MENU, self.on_open_UniDec, id=ID_docTree_show_unidec)
+        # self.Bind(wx.EVT_MENU, self.on_save_unidec_results, id=ID_docTree_save_unidec)
+        # self.Bind(wx.EVT_MENU, self.data_handling.on_add_mzident_file_fcn, id=ID_docTree_add_mzIdentML)
+        # self.Bind(wx.EVT_MENU, self.on_action_origami_ms, id=ID_docTree_action_open_origami_ms)
+        # # self.Bind(wx.EVT_MENU, self.on_open_extract_DTMS, id=ID_docTree_action_open_extractDTMS)
+        # # self.Bind(wx.EVT_MENU, self.on_open_extract_data, id=ID_docTree_action_open_extract)
+        # #
+        #
+        menu = wx.Menu()
+
+        if self._item.is_match("spectrum"):
+            self._set_menu_mass_spectrum(menu)
+        elif self._item.is_match("chromatogram"):
+            self._set_menu_chromatogram(menu)
+        elif self._item.is_match("mobilogram"):
+            self._set_menu_mobilogram(menu)
+        elif self._item.is_match("heatmap"):
+            self._set_menu_heatmap(menu)
+        elif self._item.is_match("msdt"):
+            self._set_menu_msdt(menu)
+
+        # elements that are always present
+        self._set_menu_actions(menu)
+        self._set_menu_load_data(menu)
+
+        # menu_action_rename_item = make_menu_item(
+        #     parent=menu, evt_id=ID_renameItem, text="Rename\tF2", bitmap=self.icons.iconsLib["rename_16"]
+        # )
+        # menu_action_add_spectrum_to_panel = make_menu_item(
+        #     parent=menu, evt_id=ID_docTree_addOneToMMLTable, text="Add spectrum to multiple files panel", bitmap=None
+        # )
+        # menu_action_show_unidec_results = make_menu_item(
+        #     parent=menu, evt_id=ID_docTree_show_unidec, text="Show UniDec results", bitmap=None
+        # )
+        #
+        #
+        #         menu_action_show_plot_spectrum_waterfall = make_menu_item(
+        #             parent=menu, evt_id=ID_docTree_showMassSpectra, text="Show mass spectra (waterfall)", bitmap=None
+        #         )
+        # menu_action_save_document = make_menu_item(
+        #     parent=menu, evt_id=ID_saveDocument, text="Save document\tCtrl+S", bitmap=self.icons.iconsLib["pickle_16"]
+        # )
+        #
+        # menu_action_save_document_as = make_menu_item(
+        #     parent=menu, text="Save document as...", bitmap=self.icons.iconsLib["save16"]
+        # )
+
+        menu_action_remove_document = make_menu_item(
+            parent=menu, text="Delete document", bitmap=self.icons.iconsLib["bin16"]
         )
-        menu.AppendItem(
-            make_menu_item(
-                parent=menu,
-                evt_id=ID_saveAsInteractive,
-                text="Open interactive output panel...\tShift+Z",
-                bitmap=self.icons.iconsLib["bokehLogo_16"],
-            )
-        )
-        menu.AppendItem(menu_action_save_document)
-        menu.AppendItem(menu_action_save_document_as)
+
+        # # bind events
+        # self.Bind(wx.EVT_MENU, self.on_save_document_as, menu_action_save_document_as)
+        # self.Bind(wx.EVT_MENU, self.on_save_document, menu_action_save_document)
+        # self.Bind(wx.EVT_MENU, self.removeDocument, menu_action_remove_document)
+
+        # self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
+        # self.Bind(wx.EVT_MENU, self.on_change_charge_state, menu_action_assign_charge)
+        # self.Bind(wx.EVT_MENU, self.onShow_and_SavePlot, menu_action_save_image_as)
+
+        # # Sample information
+        # elif itemType == "Sample information":
+        #     menu.Append(ID_showSampleInfo, "Show sample information")
+
+        #
+        #
+        # if menu.MenuItemCount > 0:
+        #     menu.AppendSeparator()
+        #
+        # if self._indent == 1:
+        #     menu.Append(ID_docTree_show_refresh_document, "Refresh document")
+        #     menu.AppendItem(
+        #         make_menu_item(
+        #             parent=menu,
+        #             evt_id=ID_docTree_duplicate_document,
+        #             text="Duplicate document\tShift+D",
+        #             bitmap=self.icons.iconsLib["duplicate_16"],
+        #         )
+        #     )
+        #     menu.AppendItem(menu_action_rename_item)
+        #     menu.AppendSeparator()
+        # menu.AppendMenu(wx.ID_ANY, "Action...", action_menu)
+        # menu.AppendSeparator()
+        # menu.AppendItem(
+        #     make_menu_item(
+        #         parent=menu,
+        #         evt_id=ID_openDocInfo,
+        #         text="Notes, Information, Labels...\tCtrl+I",
+        #         bitmap=self.icons.iconsLib["info16"],
+        #     )
+        # )
+        # menu.AppendItem(
+        #     make_menu_item(
+        #         parent=menu,
+        #         evt_id=ID_goToDirectory,
+        #         text="Go to folder...\tCtrl+G",
+        #         bitmap=self.icons.iconsLib["folder_path_16"],
+        #     )
+        # )
+        # menu.AppendItem(
+        #     make_menu_item(
+        #         parent=menu,
+        #         evt_id=ID_saveAsInteractive,
+        #         text="Open interactive output panel...\tShift+Z",
+        #         bitmap=self.icons.iconsLib["bokehLogo_16"],
+        #     )
+        # )
+        # menu.AppendItem(menu_action_save_document)
+        # menu.AppendItem(menu_action_save_document_as)
 
         menu.AppendSeparator()
-        menu.AppendItem(
-            make_menu_item(
-                parent=menu, evt_id=ID_removeDocument, text="Delete document", bitmap=self.icons.iconsLib["bin16"]
-            )
-        )
+        menu.AppendItem(menu_action_remove_document)
 
         self.PopupMenu(menu)
         menu.Destroy()
@@ -2310,309 +2334,310 @@ class DocumentTree(wx.TreeCtrl):
     # TODO: FIXME
     def on_change_xy_values_and_labels(self, evt):
         """Change xy-axis labels"""
-
-        # Get current document info
-        document_title, selectedItem, selectedText = self.on_enable_document(get_selected_item=True)
-        indent = self.get_item_indent(selectedItem)
-        selectedItemParentText = None
-        if indent > 2:
-            __, selectedItemParentText = self.get_parent_item(selectedItem, 2, get_selected=True)
-        else:
-            pass
-        document = ENV[document_title]
-
-        # get event
-        evtID = evt.GetId()
-
-        # Determine which dataset is used
-        if selectedText is None:
-            data = document.IMS2D
-        elif selectedText == "Drift time (2D)":
-            data = document.IMS2D
-        elif selectedText == "Drift time (2D, processed)":
-            data = document.IMS2Dprocess
-        elif selectedItemParentText == "Drift time (2D, EIC)" and selectedText is not None:
-            data = document.IMS2Dions[selectedText]
-        elif selectedItemParentText == "Drift time (2D, combined voltages, EIC)" and selectedText is not None:
-            data = document.IMS2DCombIons[selectedText]
-        elif selectedItemParentText == "Drift time (2D, processed, EIC)" and selectedText is not None:
-            data = document.IMS2DionsProcess[selectedText]
-        elif selectedItemParentText == "Input data" and selectedText is not None:
-            data = document.IMS2DcompData[selectedText]
-
-        # 1D data
-        elif selectedText == "Drift time (1D)":
-            data = document.DT
-        elif selectedItemParentText == "Drift time (1D, EIC)" and selectedText is not None:
-            data = document.multipleDT[selectedText]
-
-        # chromatograms
-        elif selectedText == "Chromatogram":
-            data = document.RT
-        elif selectedItemParentText == "Chromatograms (EIC)" and selectedText is not None:
-            data = document.multipleRT[selectedText]
-        elif selectedItemParentText == "Chromatograms (combined voltages, EIC)" and selectedText is not None:
-            data = document.IMSRTCombIons[selectedText]
-
-        # DTMS
-        elif selectedText == "DT/MS":
-            data = document.DTMZ
-
-        # try to get dataset object
-        try:
-            docItem = self.get_item_by_data(data)
-        except Exception:
-            docItem = False
-
-        # Add default values
-        if "defaultX" not in data:
-            data["defaultX"] = {"xlabels": data["xlabels"], "xvals": data["xvals"]}
-        if "defaultY" not in data:
-            data["defaultY"] = {"ylabels": data.get("ylabels", "Intensity"), "yvals": data["yvals"]}
-
-        # If either label is none, then ignore it
-        newXlabel, newYlabel = None, None
-        restoreX, restoreY = False, False
-
-        # Determine what the new label should be
-        if evtID in [
-            ID_xlabel_2D_scans,
-            ID_xlabel_2D_colVolt,
-            ID_xlabel_2D_actVolt,
-            ID_xlabel_2D_labFrame,
-            ID_xlabel_2D_massToCharge,
-            ID_xlabel_2D_actLabFrame,
-            ID_xlabel_2D_massToCharge,
-            ID_xlabel_2D_mz,
-            ID_xlabel_2D_wavenumber,
-            ID_xlabel_2D_wavenumber,
-            ID_xlabel_2D_custom,
-            ID_xlabel_2D_charge,
-            ID_xlabel_2D_ccs,
-            ID_xlabel_2D_retTime_min,
-            ID_xlabel_2D_time_min,
-            ID_xlabel_2D_restore,
-        ]:
-
-            # If changing X-labels
-            newXlabel = "Scans"
-            restoreX = False
-            if evtID == ID_xlabel_2D_scans:
-                newXlabel = "Scans"
-            elif evtID == ID_xlabel_2D_time_min:
-                newXlabel = "Time (min)"
-            elif evtID == ID_xlabel_2D_retTime_min:
-                newXlabel = "Retention time (min)"
-            elif evtID == ID_xlabel_2D_colVolt:
-                newXlabel = "Collision Voltage (V)"
-            elif evtID == ID_xlabel_2D_actVolt:
-                newXlabel = "Activation Voltage (V)"
-            elif evtID == ID_xlabel_2D_labFrame:
-                newXlabel = "Lab Frame Energy (eV)"
-            elif evtID == ID_xlabel_2D_actLabFrame:
-                newXlabel = "Activation Energy (eV)"
-            elif evtID == ID_xlabel_2D_massToCharge:
-                newXlabel = "Mass-to-charge (Da)"
-            elif evtID == ID_xlabel_2D_mz:
-                newXlabel = "m/z (Da)"
-            elif evtID == ID_xlabel_2D_wavenumber:
-                newXlabel = "Wavenumber (cm⁻¹)"
-            elif evtID == ID_xlabel_2D_charge:
-                newXlabel = "Charge"
-            elif evtID == ID_xlabel_2D_ccs:
-                newXlabel = "Collision Cross Section (Å²)"
-            elif evtID == ID_xlabel_2D_custom:
-                newXlabel = DialogSimpleAsk("Please type in your new label...")
-            elif evtID == ID_xlabel_2D_restore:
-                newXlabel = data["defaultX"]["xlabels"]
-                restoreX = True
-            elif newXlabel == "" or newXlabel is None:
-                newXlabel = "Scans"
-
-        if evtID in [
-            ID_ylabel_2D_bins,
-            ID_ylabel_2D_ms,
-            ID_ylabel_2D_ms_arrival,
-            ID_ylabel_2D_ccs,
-            ID_ylabel_2D_restore,
-            ID_ylabel_2D_custom,
-        ]:
-            # If changing Y-labels
-            newYlabel = "Drift time (bins)"
-            restoreY = False
-            if evtID == ID_ylabel_2D_bins:
-                newYlabel = "Drift time (bins)"
-            elif evtID == ID_ylabel_2D_ms:
-                newYlabel = "Drift time (ms)"
-            elif evtID == ID_ylabel_2D_ms_arrival:
-                newYlabel = "Arrival time (ms)"
-            elif evtID == ID_ylabel_2D_ccs:
-                newYlabel = "Collision Cross Section (Å²)"
-            elif evtID == ID_ylabel_2D_custom:
-                newYlabel = DialogSimpleAsk("Please type in your new label...")
-            elif evtID == ID_ylabel_2D_restore:
-                newYlabel = data["defaultY"]["ylabels"]
-                restoreY = True
-            elif newYlabel == "" or newYlabel is None:
-                newYlabel = "Drift time (bins)"
-
-        # 1D data
-        if evtID in [
-            ID_xlabel_1D_bins,
-            ID_xlabel_1D_ms,
-            ID_xlabel_1D_ms_arrival,
-            ID_xlabel_1D_ccs,
-            ID_xlabel_1D_restore,
-        ]:
-            newXlabel = "Drift time (bins)"
-            restoreX = False
-            if evtID == ID_xlabel_1D_bins:
-                newXlabel = "Drift time (bins)"
-            elif evtID == ID_xlabel_1D_ms:
-                newXlabel = "Drift time (ms)"
-            elif evtID == ID_xlabel_1D_ms_arrival:
-                newXlabel = "Arrival time (ms)"
-            elif evtID == ID_xlabel_1D_ccs:
-                newXlabel = "Collision Cross Section (Å²)"
-            elif evtID == ID_xlabel_1D_restore:
-                newXlabel = data["defaultX"]["xlabels"]
-                restoreX = True
-
-        # 1D data
-        if evtID in [ID_xlabel_RT_scans, ID_xlabel_RT_time_min, ID_xlabel_RT_retTime_min, ID_xlabel_RT_restore]:
-            newXlabel = "Drift time (bins)"
-            restoreX = False
-            if evtID == ID_xlabel_RT_scans:
-                newXlabel = "Scans"
-            elif evtID == ID_xlabel_RT_time_min:
-                newXlabel = "Time (min)"
-            elif evtID == ID_xlabel_RT_retTime_min:
-                newXlabel = "Retention time (min)"
-            elif evtID == ID_xlabel_RT_restore:
-                newXlabel = data["defaultX"]["xlabels"]
-                restoreX = True
-
-        # DT/MS
-        if evtID in [ID_ylabel_DTMS_bins, ID_ylabel_DTMS_ms, ID_ylabel_DTMS_ms_arrival, ID_ylabel_DTMS_restore]:
-            newYlabel = "Drift time (bins)"
-            restoreX = False
-            if evtID == ID_ylabel_DTMS_bins:
-                newYlabel = "Drift time (bins)"
-            elif evtID == ID_ylabel_DTMS_ms:
-                newYlabel = "Drift time (ms)"
-            elif evtID == ID_ylabel_DTMS_ms_arrival:
-                newYlabel = "Arrival time (ms)"
-            elif evtID == ID_ylabel_DTMS_restore:
-                newYlabel = data["defaultY"]["ylabels"]
-                restoreY = True
-            elif newYlabel == "" or newYlabel is None:
-                newYlabel = "Drift time (bins)"
-
-        if restoreX:
-            newXvals = data["defaultX"]["xvals"]
-            data["xvals"] = newXvals
-            data["xlabels"] = newXlabel
-
-        if restoreY:
-            newYvals = data["defaultY"]["yvals"]
-            data["yvals"] = newYvals
-            data["ylabels"] = newYlabel
-
-        # Change labels
-        if newXlabel is not None:
-            oldXLabel = data["xlabels"]
-            data["xlabels"] = newXlabel  # Set new x-label
-            newXvals = self.on_change_xy_axis(
-                data["xvals"],
-                oldXLabel,
-                newXlabel,
-                charge=data.get("charge", 1),
-                pusherFreq=document.parameters.get("pusherFreq", 1000),
-                scanTime=document.parameters.get("scanTime", 1.0),
-                defaults=data["defaultX"],
-            )
-            data["xvals"] = newXvals  # Set new x-values
-
-        if newYlabel is not None:
-            oldYLabel = data["ylabels"]
-            data["ylabels"] = newYlabel
-            newYvals = self.on_change_xy_axis(
-                data["yvals"],
-                oldYLabel,
-                newYlabel,
-                pusherFreq=document.parameters.get("pusherFreq", 1000),
-                scanTime=document.parameters.get("scanTime", 1.0),
-                defaults=data["defaultY"],
-            )
-            data["yvals"] = newYvals
-
-        expand_item = "document"
-        expand_item_title = None
-        replotID = evtID
-        # Replace data in the dictionary
-        if selectedText is None:
-            document.IMS2D = data
-            replotID = ID_showPlotDocument
-        elif selectedText == "Drift time (2D)":
-            document.IMS2D = data
-            replotID = ID_showPlotDocument
-        elif selectedText == "Drift time (2D, processed)":
-            document.IMS2Dprocess = data
-            replotID = ID_showPlotDocument
-        elif selectedItemParentText == "Drift time (2D, EIC)" and selectedText is not None:
-            document.IMS2Dions[selectedText] = data
-            expand_item, expand_item_title = "ions", selectedText
-            replotID = ID_showPlotDocument
-        elif selectedItemParentText == "Drift time (2D, combined voltages, EIC)" and selectedText is not None:
-            document.IMS2DCombIons[selectedText] = data
-            expand_item, expand_item_title = "combined_ions", selectedText
-            replotID = ID_showPlotDocument
-        elif selectedItemParentText == "Drift time (2D, processed, EIC)" and selectedText is not None:
-            document.IMS2DionsProcess[selectedText] = data
-            expand_item, expand_item_title = "processed_ions", selectedText
-            replotID = ID_showPlotDocument
-        elif selectedItemParentText == "Input data" and selectedText is not None:
-            document.IMS2DcompData[selectedText] = data
-            expand_item_title = selectedText
-            replotID = ID_showPlotDocument
-
-        # 1D data
-        elif selectedText == "Drift time (1D)":
-            document.DT = data
-        elif selectedItemParentText == "Drift time (1D, EIC)" and selectedText is not None:
-            document.multipleDT[selectedText] = data
-            expand_item, expand_item_title = "ions_1D", selectedText
-
-        # Chromatograms
-        elif selectedText == "Chromatogram":
-            document.RT = data
-            replotID = ID_showPlotDocument
-        elif selectedItemParentText == "Chromatograms (EIC)" and selectedText is not None:
-            data = document.multipleRT[selectedText] = data
-        elif selectedItemParentText == "Chromatograms (combined voltages, EIC)" and selectedText is not None:
-            data = document.IMSRTCombIons[selectedText] = data
-
-        # DT/MS
-        elif selectedText == "DT/MS":
-            document.DTMZ = data
-        else:
-            document.IMS2D
-
-        # update document
-        if docItem is not False:
-            try:
-                self.SetPyData(docItem, data)
-                ENV[document.title] = document
-            except Exception:
-                self.data_handling.on_update_document(document, expand_item, expand_item_title=expand_item_title)
-        else:
-            self.data_handling.on_update_document(document, expand_item, expand_item_title=expand_item_title)
-
-        # Try to plot that data
-        try:
-            self.on_show_plot(evt=replotID)
-        except Exception:
-            pass
+        raise NotImplementedError("Must implement method")
+        #
+        # # Get current document info
+        # document_title, selectedItem, selectedText = self.on_enable_document(get_selected_item=True)
+        # indent = self.get_item_indent(selectedItem)
+        # selectedItemParentText = None
+        # if indent > 2:
+        #     __, selectedItemParentText = self.get_parent_item(selectedItem, 2, get_selected=True)
+        # else:
+        #     pass
+        # document = ENV[document_title]
+        #
+        # # get event
+        # evtID = evt.GetId()
+        #
+        # # Determine which dataset is used
+        # if selectedText is None:
+        #     data = document.IMS2D
+        # elif selectedText == "Drift time (2D)":
+        #     data = document.IMS2D
+        # elif selectedText == "Drift time (2D, processed)":
+        #     data = document.IMS2Dprocess
+        # elif selectedItemParentText == "Drift time (2D, EIC)" and selectedText is not None:
+        #     data = document.IMS2Dions[selectedText]
+        # elif selectedItemParentText == "Drift time (2D, combined voltages, EIC)" and selectedText is not None:
+        #     data = document.IMS2DCombIons[selectedText]
+        # elif selectedItemParentText == "Drift time (2D, processed, EIC)" and selectedText is not None:
+        #     data = document.IMS2DionsProcess[selectedText]
+        # elif selectedItemParentText == "Input data" and selectedText is not None:
+        #     data = document.IMS2DcompData[selectedText]
+        #
+        # # 1D data
+        # elif selectedText == "Drift time (1D)":
+        #     data = document.DT
+        # elif selectedItemParentText == "Drift time (1D, EIC)" and selectedText is not None:
+        #     data = document.multipleDT[selectedText]
+        #
+        # # chromatograms
+        # elif selectedText == "Chromatogram":
+        #     data = document.RT
+        # elif selectedItemParentText == "Chromatograms (EIC)" and selectedText is not None:
+        #     data = document.multipleRT[selectedText]
+        # elif selectedItemParentText == "Chromatograms (combined voltages, EIC)" and selectedText is not None:
+        #     data = document.IMSRTCombIons[selectedText]
+        #
+        # # DTMS
+        # elif selectedText == "DT/MS":
+        #     data = document.DTMZ
+        #
+        # # try to get dataset object
+        # try:
+        #     docItem = self.get_item_by_data(data)
+        # except Exception:
+        #     docItem = False
+        #
+        # # Add default values
+        # if "defaultX" not in data:
+        #     data["defaultX"] = {"xlabels": data["xlabels"], "xvals": data["xvals"]}
+        # if "defaultY" not in data:
+        #     data["defaultY"] = {"ylabels": data.get("ylabels", "Intensity"), "yvals": data["yvals"]}
+        #
+        # # If either label is none, then ignore it
+        # newXlabel, newYlabel = None, None
+        # restoreX, restoreY = False, False
+        #
+        # # Determine what the new label should be
+        # if evtID in [
+        #     ID_xlabel_2D_scans,
+        #     ID_xlabel_2D_colVolt,
+        #     ID_xlabel_2D_actVolt,
+        #     ID_xlabel_2D_labFrame,
+        #     ID_xlabel_2D_massToCharge,
+        #     ID_xlabel_2D_actLabFrame,
+        #     ID_xlabel_2D_massToCharge,
+        #     ID_xlabel_2D_mz,
+        #     ID_xlabel_2D_wavenumber,
+        #     ID_xlabel_2D_wavenumber,
+        #     ID_xlabel_2D_custom,
+        #     ID_xlabel_2D_charge,
+        #     ID_xlabel_2D_ccs,
+        #     ID_xlabel_2D_retTime_min,
+        #     ID_xlabel_2D_time_min,
+        #     ID_xlabel_2D_restore,
+        # ]:
+        #
+        #     # If changing X-labels
+        #     newXlabel = "Scans"
+        #     restoreX = False
+        #     if evtID == ID_xlabel_2D_scans:
+        #         newXlabel = "Scans"
+        #     elif evtID == ID_xlabel_2D_time_min:
+        #         newXlabel = "Time (min)"
+        #     elif evtID == ID_xlabel_2D_retTime_min:
+        #         newXlabel = "Retention time (min)"
+        #     elif evtID == ID_xlabel_2D_colVolt:
+        #         newXlabel = "Collision Voltage (V)"
+        #     elif evtID == ID_xlabel_2D_actVolt:
+        #         newXlabel = "Activation Voltage (V)"
+        #     elif evtID == ID_xlabel_2D_labFrame:
+        #         newXlabel = "Lab Frame Energy (eV)"
+        #     elif evtID == ID_xlabel_2D_actLabFrame:
+        #         newXlabel = "Activation Energy (eV)"
+        #     elif evtID == ID_xlabel_2D_massToCharge:
+        #         newXlabel = "Mass-to-charge (Da)"
+        #     elif evtID == ID_xlabel_2D_mz:
+        #         newXlabel = "m/z (Da)"
+        #     elif evtID == ID_xlabel_2D_wavenumber:
+        #         newXlabel = "Wavenumber (cm⁻¹)"
+        #     elif evtID == ID_xlabel_2D_charge:
+        #         newXlabel = "Charge"
+        #     elif evtID == ID_xlabel_2D_ccs:
+        #         newXlabel = "Collision Cross Section (Å²)"
+        #     elif evtID == ID_xlabel_2D_custom:
+        #         newXlabel = DialogSimpleAsk("Please type in your new label...")
+        #     elif evtID == ID_xlabel_2D_restore:
+        #         newXlabel = data["defaultX"]["xlabels"]
+        #         restoreX = True
+        #     elif newXlabel == "" or newXlabel is None:
+        #         newXlabel = "Scans"
+        #
+        # if evtID in [
+        #     ID_ylabel_2D_bins,
+        #     ID_ylabel_2D_ms,
+        #     ID_ylabel_2D_ms_arrival,
+        #     ID_ylabel_2D_ccs,
+        #     ID_ylabel_2D_restore,
+        #     ID_ylabel_2D_custom,
+        # ]:
+        #     # If changing Y-labels
+        #     newYlabel = "Drift time (bins)"
+        #     restoreY = False
+        #     if evtID == ID_ylabel_2D_bins:
+        #         newYlabel = "Drift time (bins)"
+        #     elif evtID == ID_ylabel_2D_ms:
+        #         newYlabel = "Drift time (ms)"
+        #     elif evtID == ID_ylabel_2D_ms_arrival:
+        #         newYlabel = "Arrival time (ms)"
+        #     elif evtID == ID_ylabel_2D_ccs:
+        #         newYlabel = "Collision Cross Section (Å²)"
+        #     elif evtID == ID_ylabel_2D_custom:
+        #         newYlabel = DialogSimpleAsk("Please type in your new label...")
+        #     elif evtID == ID_ylabel_2D_restore:
+        #         newYlabel = data["defaultY"]["ylabels"]
+        #         restoreY = True
+        #     elif newYlabel == "" or newYlabel is None:
+        #         newYlabel = "Drift time (bins)"
+        #
+        # # 1D data
+        # if evtID in [
+        #     ID_xlabel_1D_bins,
+        #     ID_xlabel_1D_ms,
+        #     ID_xlabel_1D_ms_arrival,
+        #     ID_xlabel_1D_ccs,
+        #     ID_xlabel_1D_restore,
+        # ]:
+        #     newXlabel = "Drift time (bins)"
+        #     restoreX = False
+        #     if evtID == ID_xlabel_1D_bins:
+        #         newXlabel = "Drift time (bins)"
+        #     elif evtID == ID_xlabel_1D_ms:
+        #         newXlabel = "Drift time (ms)"
+        #     elif evtID == ID_xlabel_1D_ms_arrival:
+        #         newXlabel = "Arrival time (ms)"
+        #     elif evtID == ID_xlabel_1D_ccs:
+        #         newXlabel = "Collision Cross Section (Å²)"
+        #     elif evtID == ID_xlabel_1D_restore:
+        #         newXlabel = data["defaultX"]["xlabels"]
+        #         restoreX = True
+        #
+        # # 1D data
+        # if evtID in [ID_xlabel_RT_scans, ID_xlabel_RT_time_min, ID_xlabel_RT_retTime_min, ID_xlabel_RT_restore]:
+        #     newXlabel = "Drift time (bins)"
+        #     restoreX = False
+        #     if evtID == ID_xlabel_RT_scans:
+        #         newXlabel = "Scans"
+        #     elif evtID == ID_xlabel_RT_time_min:
+        #         newXlabel = "Time (min)"
+        #     elif evtID == ID_xlabel_RT_retTime_min:
+        #         newXlabel = "Retention time (min)"
+        #     elif evtID == ID_xlabel_RT_restore:
+        #         newXlabel = data["defaultX"]["xlabels"]
+        #         restoreX = True
+        #
+        # # DT/MS
+        # if evtID in [ID_ylabel_DTMS_bins, ID_ylabel_DTMS_ms, ID_ylabel_DTMS_ms_arrival, ID_ylabel_DTMS_restore]:
+        #     newYlabel = "Drift time (bins)"
+        #     restoreX = False
+        #     if evtID == ID_ylabel_DTMS_bins:
+        #         newYlabel = "Drift time (bins)"
+        #     elif evtID == ID_ylabel_DTMS_ms:
+        #         newYlabel = "Drift time (ms)"
+        #     elif evtID == ID_ylabel_DTMS_ms_arrival:
+        #         newYlabel = "Arrival time (ms)"
+        #     elif evtID == ID_ylabel_DTMS_restore:
+        #         newYlabel = data["defaultY"]["ylabels"]
+        #         restoreY = True
+        #     elif newYlabel == "" or newYlabel is None:
+        #         newYlabel = "Drift time (bins)"
+        #
+        # if restoreX:
+        #     newXvals = data["defaultX"]["xvals"]
+        #     data["xvals"] = newXvals
+        #     data["xlabels"] = newXlabel
+        #
+        # if restoreY:
+        #     newYvals = data["defaultY"]["yvals"]
+        #     data["yvals"] = newYvals
+        #     data["ylabels"] = newYlabel
+        #
+        # # Change labels
+        # if newXlabel is not None:
+        #     oldXLabel = data["xlabels"]
+        #     data["xlabels"] = newXlabel  # Set new x-label
+        #     newXvals = self.on_change_xy_axis(
+        #         data["xvals"],
+        #         oldXLabel,
+        #         newXlabel,
+        #         charge=data.get("charge", 1),
+        #         pusherFreq=document.parameters.get("pusherFreq", 1000),
+        #         scanTime=document.parameters.get("scanTime", 1.0),
+        #         defaults=data["defaultX"],
+        #     )
+        #     data["xvals"] = newXvals  # Set new x-values
+        #
+        # if newYlabel is not None:
+        #     oldYLabel = data["ylabels"]
+        #     data["ylabels"] = newYlabel
+        #     newYvals = self.on_change_xy_axis(
+        #         data["yvals"],
+        #         oldYLabel,
+        #         newYlabel,
+        #         pusherFreq=document.parameters.get("pusherFreq", 1000),
+        #         scanTime=document.parameters.get("scanTime", 1.0),
+        #         defaults=data["defaultY"],
+        #     )
+        #     data["yvals"] = newYvals
+        #
+        # expand_item = "document"
+        # expand_item_title = None
+        # replotID = evtID
+        # # Replace data in the dictionary
+        # if selectedText is None:
+        #     document.IMS2D = data
+        #     replotID = ID_showPlotDocument
+        # elif selectedText == "Drift time (2D)":
+        #     document.IMS2D = data
+        #     replotID = ID_showPlotDocument
+        # elif selectedText == "Drift time (2D, processed)":
+        #     document.IMS2Dprocess = data
+        #     replotID = ID_showPlotDocument
+        # elif selectedItemParentText == "Drift time (2D, EIC)" and selectedText is not None:
+        #     document.IMS2Dions[selectedText] = data
+        #     expand_item, expand_item_title = "ions", selectedText
+        #     replotID = ID_showPlotDocument
+        # elif selectedItemParentText == "Drift time (2D, combined voltages, EIC)" and selectedText is not None:
+        #     document.IMS2DCombIons[selectedText] = data
+        #     expand_item, expand_item_title = "combined_ions", selectedText
+        #     replotID = ID_showPlotDocument
+        # elif selectedItemParentText == "Drift time (2D, processed, EIC)" and selectedText is not None:
+        #     document.IMS2DionsProcess[selectedText] = data
+        #     expand_item, expand_item_title = "processed_ions", selectedText
+        #     replotID = ID_showPlotDocument
+        # elif selectedItemParentText == "Input data" and selectedText is not None:
+        #     document.IMS2DcompData[selectedText] = data
+        #     expand_item_title = selectedText
+        #     replotID = ID_showPlotDocument
+        #
+        # # 1D data
+        # elif selectedText == "Drift time (1D)":
+        #     document.DT = data
+        # elif selectedItemParentText == "Drift time (1D, EIC)" and selectedText is not None:
+        #     document.multipleDT[selectedText] = data
+        #     expand_item, expand_item_title = "ions_1D", selectedText
+        #
+        # # Chromatograms
+        # elif selectedText == "Chromatogram":
+        #     document.RT = data
+        #     replotID = ID_showPlotDocument
+        # elif selectedItemParentText == "Chromatograms (EIC)" and selectedText is not None:
+        #     data = document.multipleRT[selectedText] = data
+        # elif selectedItemParentText == "Chromatograms (combined voltages, EIC)" and selectedText is not None:
+        #     data = document.IMSRTCombIons[selectedText] = data
+        #
+        # # DT/MS
+        # elif selectedText == "DT/MS":
+        #     document.DTMZ = data
+        # else:
+        #     document.IMS2D
+        #
+        # # update document
+        # if docItem is not False:
+        #     try:
+        #         self.SetPyData(docItem, data)
+        #         ENV[document.title] = document
+        #     except Exception:
+        #         self.data_handling.on_update_document(document, expand_item, expand_item_title=expand_item_title)
+        # else:
+        #     self.data_handling.on_update_document(document, expand_item, expand_item_title=expand_item_title)
+        #
+        # # Try to plot that data
+        # try:
+        #     self.on_show_plot(evt=replotID)
+        # except Exception:
+        #     pass
 
     def on_change_xy_axis(self, data, oldLabel, newLabel, charge=1, pusherFreq=1000, scanTime=1.0, defaults=None):
         """
@@ -2629,128 +2654,129 @@ class DocumentTree(wx.TreeCtrl):
         -------
         newVals : array/list, 1D array of new X/Y-axis labels
         """
+        raise NotImplementedError("Must implement method")
 
-        # Make sure we have charge and pusher values
-        if charge == "None" or charge == "":
-            charge = 1
-        else:
-            charge = str2int(charge)
-
-        if pusherFreq == "None" or pusherFreq == "":
-            pusherFreq = 1000
-        else:
-            pusherFreq = str2num(pusherFreq)
-
-        msg = "Currently just changing label. Proper conversion will be coming soon"
-        # Check whether labels were changed
-        if oldLabel != newLabel:
-            # Convert Y-axis labels
-            if oldLabel == "Drift time (bins)" and newLabel in ["Drift time (ms)", "Arrival time (ms)"]:
-                newVals = (data * pusherFreq) / 1000
-                return newVals
-            elif oldLabel in ["Drift time (ms)", "Arrival time (ms)"] and newLabel == "Drift time (bins)":
-                newVals = (data / pusherFreq) * 1000
-                return newVals
-            elif oldLabel in ["Drift time (ms)", "Arrival time (ms)"] and newLabel == "Collision Cross Section (Å²)":
-                self.presenter.onThreading(None, (msg, 4, 7), action="updateStatusbar")
-                newVals = data
-            elif oldLabel == "Collision Cross Section (Å²)" and newLabel in ["Drift time (ms)", "Arrival time (ms)"]:
-                self.presenter.onThreading(None, (msg, 4, 7), action="updateStatusbar")
-                newVals = data
-            elif oldLabel == "Drift time (bins)" and newLabel == "Collision Cross Section (Å²)":
-                self.presenter.onThreading(None, (msg, 4, 7), action="updateStatusbar")
-                newVals = data
-            elif oldLabel == "Collision Cross Section (Å²)" and newLabel == "Drift time (bins)":
-                self.presenter.onThreading(None, (msg, 4, 7), action="updateStatusbar")
-                newVals = data
-            elif (
-                oldLabel == "Drift time (ms)"
-                and newLabel == "Arrival time (ms)"
-                or oldLabel == "Arrival time (ms)"
-                and newLabel == "Drift time (ms)"
-            ):
-                newVals = data
-            else:
-                newVals = data
-
-            # Convert X-axis labels
-            # Convert CV --> LFE
-            if oldLabel in ["Collision Voltage (V)", "Activation Energy (V)"] and newLabel in [
-                "Lab Frame Energy (eV)",
-                "Activation Energy (eV)",
-            ]:
-                if isinstance(data, list):
-                    newVals = [value * charge for value in data]
-                else:
-                    newVals = data * charge
-            # If labels involve no conversion
-            elif (
-                (oldLabel == "Activation Energy (V)" and newLabel == "Collision Voltage (V)")
-                or (oldLabel == "Collision Voltage (V)" and newLabel == "Activation Energy (V)")
-                or (oldLabel == "Lab Frame Energy (eV)" and newLabel == "Activation Energy (eV)")
-                or (oldLabel == "Activation Energy (eV)" and newLabel == "Lab Frame Energy (eV)")
-            ):
-                if isinstance(data, list):
-                    newVals = [value for value in data]
-                else:
-                    newVals = data
-            # Convert Lab frame energy --> collision voltage
-            elif newLabel in ["Collision Voltage (V)", "Activation Energy (V)"] and oldLabel in [
-                "Lab Frame Energy (eV)",
-                "Activation Energy (eV)",
-            ]:
-                if isinstance(data, list):
-                    newVals = [value / charge for value in data]
-                else:
-                    newVals = data / charge
-            # Convert LFE/CV --> scans
-            elif newLabel == "Scans" and oldLabel in [
-                "Lab Frame Energy (eV)",
-                "Collision Voltage (V)",
-                "Activation Energy (eV)",
-                "Activation Energy (V)",
-            ]:
-                newVals = 1 + np.arange(len(data))
-            # Convert Scans --> LFE/CV
-            elif oldLabel == "Scans" and newLabel in [
-                "Lab Frame Energy (eV)",
-                "Collision Voltage (V)",
-                "Activation Energy (eV)",
-                "Activation Energy (V)",
-            ]:
-                # Check if defaults were provided
-                if defaults is None:
-                    newVals = data
-                else:
-                    if defaults["xlabels"] == "Lab Frame Energy (eV)" or defaults["xlabels"] == "Collision Voltage (V)":
-                        newVals = defaults["xvals"]
-                    else:
-                        newVals = data
-            # Convert Scans -> Time
-            elif newLabel in ["Retention time (min)", "Time (min)"] and oldLabel == "Scans":
-                newVals = (data * scanTime) / 60
-                return newVals
-            elif oldLabel in ["Retention time (min)", "Time (min)"] and newLabel == "Scans":
-                newVals = (data / scanTime) * 60
-                return newVals
-            elif oldLabel in ["Retention time (min)", "Time (min)"] and newLabel == [
-                "Retention time (min)",
-                "Time (min)",
-            ]:
-                return data
-
-            else:
-                newVals = data
-
-            # Return new values
-            return newVals
-        # labels were not changed
-        else:
-            return data
+        # # Make sure we have charge and pusher values
+        # if charge == "None" or charge == "":
+        #     charge = 1
+        # else:
+        #     charge = str2int(charge)
+        #
+        # if pusherFreq == "None" or pusherFreq == "":
+        #     pusherFreq = 1000
+        # else:
+        #     pusherFreq = str2num(pusherFreq)
+        #
+        # msg = "Currently just changing label. Proper conversion will be coming soon"
+        # # Check whether labels were changed
+        # if oldLabel != newLabel:
+        #     # Convert Y-axis labels
+        #     if oldLabel == "Drift time (bins)" and newLabel in ["Drift time (ms)", "Arrival time (ms)"]:
+        #         newVals = (data * pusherFreq) / 1000
+        #         return newVals
+        #     elif oldLabel in ["Drift time (ms)", "Arrival time (ms)"] and newLabel == "Drift time (bins)":
+        #         newVals = (data / pusherFreq) * 1000
+        #         return newVals
+        #     elif oldLabel in ["Drift time (ms)", "Arrival time (ms)"] and newLabel == "Collision Cross Section (Å²)":
+        #         self.presenter.onThreading(None, (msg, 4, 7), action="updateStatusbar")
+        #         newVals = data
+        #     elif oldLabel == "Collision Cross Section (Å²)" and newLabel in ["Drift time (ms)", "Arrival time (ms)"]:
+        #         self.presenter.onThreading(None, (msg, 4, 7), action="updateStatusbar")
+        #         newVals = data
+        #     elif oldLabel == "Drift time (bins)" and newLabel == "Collision Cross Section (Å²)":
+        #         self.presenter.onThreading(None, (msg, 4, 7), action="updateStatusbar")
+        #         newVals = data
+        #     elif oldLabel == "Collision Cross Section (Å²)" and newLabel == "Drift time (bins)":
+        #         self.presenter.onThreading(None, (msg, 4, 7), action="updateStatusbar")
+        #         newVals = data
+        #     elif (
+        #         oldLabel == "Drift time (ms)"
+        #         and newLabel == "Arrival time (ms)"
+        #         or oldLabel == "Arrival time (ms)"
+        #         and newLabel == "Drift time (ms)"
+        #     ):
+        #         newVals = data
+        #     else:
+        #         newVals = data
+        #
+        #     # Convert X-axis labels
+        #     # Convert CV --> LFE
+        #     if oldLabel in ["Collision Voltage (V)", "Activation Energy (V)"] and newLabel in [
+        #         "Lab Frame Energy (eV)",
+        #         "Activation Energy (eV)",
+        #     ]:
+        #         if isinstance(data, list):
+        #             newVals = [value * charge for value in data]
+        #         else:
+        #             newVals = data * charge
+        #     # If labels involve no conversion
+        #     elif (
+        #         (oldLabel == "Activation Energy (V)" and newLabel == "Collision Voltage (V)")
+        #         or (oldLabel == "Collision Voltage (V)" and newLabel == "Activation Energy (V)")
+        #         or (oldLabel == "Lab Frame Energy (eV)" and newLabel == "Activation Energy (eV)")
+        #         or (oldLabel == "Activation Energy (eV)" and newLabel == "Lab Frame Energy (eV)")
+        #     ):
+        #         if isinstance(data, list):
+        #             newVals = [value for value in data]
+        #         else:
+        #             newVals = data
+        #     # Convert Lab frame energy --> collision voltage
+        #     elif newLabel in ["Collision Voltage (V)", "Activation Energy (V)"] and oldLabel in [
+        #         "Lab Frame Energy (eV)",
+        #         "Activation Energy (eV)",
+        #     ]:
+        #         if isinstance(data, list):
+        #             newVals = [value / charge for value in data]
+        #         else:
+        #             newVals = data / charge
+        #     # Convert LFE/CV --> scans
+        #     elif newLabel == "Scans" and oldLabel in [
+        #         "Lab Frame Energy (eV)",
+        #         "Collision Voltage (V)",
+        #         "Activation Energy (eV)",
+        #         "Activation Energy (V)",
+        #     ]:
+        #         newVals = 1 + np.arange(len(data))
+        #     # Convert Scans --> LFE/CV
+        #     elif oldLabel == "Scans" and newLabel in [
+        #         "Lab Frame Energy (eV)",
+        #         "Collision Voltage (V)",
+        #         "Activation Energy (eV)",
+        #         "Activation Energy (V)",
+        #     ]:
+        #         # Check if defaults were provided
+        #         if defaults is None:
+        #             newVals = data
+        #         else:
+        #             if defaults["xlabels"] == "Lab Frame Energy (eV)" or defaults["xlabels"] == "Collision Voltage (V)":
+        #                 newVals = defaults["xvals"]
+        #             else:
+        #                 newVals = data
+        #     # Convert Scans -> Time
+        #     elif newLabel in ["Retention time (min)", "Time (min)"] and oldLabel == "Scans":
+        #         newVals = (data * scanTime) / 60
+        #         return newVals
+        #     elif oldLabel in ["Retention time (min)", "Time (min)"] and newLabel == "Scans":
+        #         newVals = (data / scanTime) * 60
+        #         return newVals
+        #     elif oldLabel in ["Retention time (min)", "Time (min)"] and newLabel == [
+        #         "Retention time (min)",
+        #         "Time (min)",
+        #     ]:
+        #         return data
+        #
+        #     else:
+        #         newVals = data
+        #
+        #     # Return new values
+        #     return newVals
+        # # labels were not changed
+        # else:
+        #     return data
 
     def onAddToTable(self, evt):
         # TODO: FIX ME
-        pass
+        raise NotImplementedError("Must implement method")
 
         # evtID = evt.GetId()
         #
@@ -2862,38 +2888,39 @@ class DocumentTree(wx.TreeCtrl):
         #     self.presenter.view.on_toggle_panel(evt=ID_window_textList, check=True)
 
     def onShowMassSpectra(self, evt):
+        raise NotImplementedError("Must implement method")
 
-        data = self._document_data.multipleMassSpectrum
-        spectra_count = len(list(data.keys()))
-        if spectra_count > 50:
-            dlg = DialogBox(
-                title="Would you like to continue?",
-                msg="There are {} mass spectra in this document. Would you like to continue?".format(spectra_count),
-                kind="Question",
-            )
-            if dlg == wx.ID_NO:
-                msg = "Cancelled was operation"
-                self.presenter.view.SetStatusText(msg, 3)
-                return
-
-        # Check for energy
-        energy_name = []
-        for key in data:
-            energy_name.append([key, data[key].get("trap", 0)])
-        # sort
-        energy_name.sort(key=itemgetter(1))
-
-        names, xvals_list, yvals_list = [], [], []
-        for row in energy_name:
-            key = row[0]
-            xvals_list.append(data[key]["xvals"])
-            yvals_list.append(data[key]["yvals"])
-            names.append(key)
-
-        kwargs = {"show_y_labels": True, "labels": names}
-        self.panel_plot.on_plot_waterfall(
-            xvals_list, yvals_list, None, colors=[], xlabel="m/z", ylabel="", set_page=True, **kwargs
-        )
+        # data = self._document_data.multipleMassSpectrum
+        # spectra_count = len(list(data.keys()))
+        # if spectra_count > 50:
+        #     dlg = DialogBox(
+        #         title="Would you like to continue?",
+        #         msg="There are {} mass spectra in this document. Would you like to continue?".format(spectra_count),
+        #         kind="Question",
+        #     )
+        #     if dlg == wx.ID_NO:
+        #         msg = "Cancelled was operation"
+        #         self.presenter.view.SetStatusText(msg, 3)
+        #         return
+        #
+        # # Check for energy
+        # energy_name = []
+        # for key in data:
+        #     energy_name.append([key, data[key].get("trap", 0)])
+        # # sort
+        # energy_name.sort(key=itemgetter(1))
+        #
+        # names, xvals_list, yvals_list = [], [], []
+        # for row in energy_name:
+        #     key = row[0]
+        #     xvals_list.append(data[key]["xvals"])
+        #     yvals_list.append(data[key]["yvals"])
+        #     names.append(key)
+        #
+        # kwargs = {"show_y_labels": True, "labels": names}
+        # self.panel_plot.on_plot_waterfall(
+        #     xvals_list, yvals_list, None, colors=[], xlabel="m/z", ylabel="", set_page=True, **kwargs
+        # )
 
     def on_open_spectrum_comparison_viewer(self, evt):
         """Open panel where user can select mas spectra to compare """
@@ -3009,31 +3036,6 @@ class DocumentTree(wx.TreeCtrl):
         panel = PanelProcessMassSpectrum(self.presenter.view, self.presenter, self.config, self.icons, **kwargs)
         panel.Show()
 
-    def onProcess(self, evt=None):
-        if self._document_data is None:
-            return
-
-        # TODO: This function needs to be fixed before next release
-
-    #         if self._document_type == 'Mass Spectrum': pass
-    #         elif any(self._document_type in itemType for itemType in ['Drift time (2D)', 'Drift time (2D, processed)',
-    #                                                             'Drift time (2D, EIC)',
-    #                                                             'Drift time (2D, combined voltages, EIC)',
-    #                                                             'Drift time (2D, processed, EIC)',
-    #                                                             'Input data', 'Statistical']):
-    #             self.presenter.process2Ddata2()
-    #             self_set_pageSetSelection(self.config.panelNames['2D'])
-    #
-    #         elif self._document_type == 'DT/MS':
-    #             self.presenter.process2Ddata2(mode='MSDT')
-    #             self.panel_plot._set_page(self.config.panelNames['MZDT'])
-
-    def onShow_and_SavePlot(self, evt):
-        """Replot and save image"""
-
-        # Show plot first
-        self.on_show_plot(evt=None, save_image=True)
-
     def onDuplicateItem(self, evt):
         evtID = evt.GetId()
         if evtID == ID_duplicateItem:
@@ -3063,7 +3065,7 @@ class DocumentTree(wx.TreeCtrl):
         # TODO: FIXME
         from origami.gui_elements.dialog_rename import DialogRenameObject
 
-        if self._document_data is None:
+        if self._item.is_empty:
             return
 
         current_name = None
@@ -3386,7 +3388,7 @@ class DocumentTree(wx.TreeCtrl):
             pass
 
     def on_show_unidec_results(self, evt, plot_type="all"):
-        logger.error("This function was depracated")
+        raise NotImplementedError("Must implement method")
 
     def on_show_plot_annotated_data(self, data, save_image=False, **kwargs):
         """Plot annotate data"""
@@ -3488,12 +3490,30 @@ class DocumentTree(wx.TreeCtrl):
         """Retrieves container object for particular dataset"""
         document = ENV.on_get_document()
         obj_title = self.GetPyData(self._item_id)
+        print(obj_title)
         return document[obj_title, True]
 
-    def on_show_plot_mass_spectra(self, save_image=False):
+    def _get_item_objects(self):
+        """Same as `_get_item_object` but the function yields consecutive elements of the group"""
+        raise NotImplementedError("Must implement method")
 
-        # Select dataset
-        if self._item_leaf == "Mass Spectra":
+    def _get_item_label(self, x=False, y=False):
+        """Get x/y labels from the object"""
+        try:
+            obj = self._get_item_object()
+        except (KeyError, IndexError):
+            return None, None
+        x_label, y_label = "", ""
+        if x:
+            x_label = obj.x_label
+        if y:
+            y_label = obj.y_label
+
+        return x_label, y_label
+
+    def on_show_plot_mass_spectra(self, evt, save_image=False):
+        """Show mass spectrum in the main viewer"""
+        if self._item.is_match("spectrum", True):
             return
 
         # get plot data
@@ -3501,44 +3521,34 @@ class DocumentTree(wx.TreeCtrl):
         self.panel_plot.on_plot_MS(obj=ms_obj)
 
         if save_image:
-            basename = os.path.splitext(self._document_data.title)[0]
-            save_filename = f"MS_{basename}"
-            if self._document_type == "Mass Spectrum (processed)":
-                save_filename = f"MS_processed_{basename}"
-            elif self._document_type == "Mass Spectra" and self._item_leaf != self._document_type:
-                save_filename = "MS_{}_{}".format(basename, os.path.splitext(self._item_leaf)[0]).replace(":", "")
-            # save plot
-            self.panel_plot.save_images(evt="ms", image_name=save_filename)
+            filename = self._item.get_name("ms")
+            self.panel_plot.save_images(evt="ms", image_name=filename)
 
-    def on_show_plot_dtms(self, save_image=False):
+    def on_show_plot_dtms(self, evt, save_image=False):
+
+        if self._item.is_match("msdt", True):
+            return
 
         # get data for selected item
         obj = self._get_item_object()
         self.panel_plot.on_plot_MSDT(obj=obj, set_page=True)
         if save_image:
-            basename = os.path.splitext(self._document_data.title)[0]
-            save_filename = "DTMS_{}".format(basename)
-            self.panel_plot.save_images(evt="ms/dt", image_name=save_filename)
+            filename = self._item.get_name("dtms")
+            self.panel_plot.save_images(evt="ms/dt", image_name=filename)
 
     def on_show_plot_mobilogram(self, evtID, save_image=False):
-        if self._item_leaf in ["Drift time (1D, EIC)", "Drift time (1D, EIC, DT-IMS)"]:
+        if self._item.is_match("mobilogram", True):
             return
 
         dt_obj = self._get_item_object()
         self.panel_plot.on_plot_1D(obj=dt_obj)
 
         if save_image:
-            basename = os.path.splitext(self._document_data.title)[0]
-            if self._document_type == "Drift time (1D)":
-                save_filename = "DT_1D_{}".format(basename)
-            elif self._document_type == "Drift time (1D, EIC, DT-IMS)":
-                save_filename = "DTIMS_1D_{}_{}".format(basename, self._item_leaf)
-            elif self._document_type == "Drift time (1D, EIC)":
-                save_filename = "DT_1D_{}_{}".format(basename, self._item_leaf)
-            self.panel_plot.save_images(evt="mobilogram", image_name=save_filename)
+            filename = self._item.get_name("dt")
+            self.panel_plot.save_images(evt="mobilogram", image_name=filename)
 
     def on_show_plot_chromatogram(self, evtID, save_image=False):
-        if self._item_leaf in ["Chromatograms (EIC)", "Chromatograms (combined voltages, EIC)"]:
+        if self._item.is_match("chromatogram", True):
             return
 
         # get plot data
@@ -3546,15 +3556,8 @@ class DocumentTree(wx.TreeCtrl):
         self.panel_plot.on_plot_RT(obj=rt_obj)
 
         if save_image:
-            # generate plot name
-            basename = os.path.splitext(self._document_data.title)[0]
-            if self._document_type == "Chromatogram":
-                save_filename = "RT_{}".format(basename)
-            elif self._document_type == "Chromatograms (combined voltages, EIC)":
-                save_filename = "RT_CV_{}_{}".format(basename, self._item_leaf)
-            elif self._document_type == "Chromatograms (EIC)":
-                save_filename = "RT_{}_{}".format(basename, self._item_leaf)
-            self.panel_plot.save_images(evt="chromatogram", image_name=save_filename)
+            filename = self._item.get_name("rt")
+            self.panel_plot.save_images(evt="chromatogram", image_name=filename)
 
     def on_show_plot_zoom_on_mass_spectrum(self, data, ion_name):
         mz_min, mz_max = ut_labels.get_ion_name_from_label(ion_name)
@@ -3572,23 +3575,79 @@ class DocumentTree(wx.TreeCtrl):
         self.panel_plot.on_zoom_1D_x_axis(mz_min, mz_max, set_page=True, plot="MS")
 
     def on_show_plot_heatmap(self, evtID, save_image=False):
-        if self._item_leaf == "Heatmaps":
+        if self._item.is_match("heatmap", True):
+            return
+
+        # get data for selected item
+        obj = self._get_item_object()
+        self.panel_plot.on_plot_2D(obj=obj, set_page=True)
+
+        if save_image:
+            filename = self._item.get_name("heatmap")
+            self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
+
+    def on_show_plot_heatmap_chromatogram(self, evtID, save_image=False):
+        if self._item.is_match("heatmap", True):
+            return
+
+        # get data for selected item
+        obj = self._get_item_object()
+        self.panel_plot.on_plot_RT(obj.x, obj.xy, obj=obj, set_page=True)
+
+        if save_image:
+            filename = self._item.get_name("heatmap")
+            self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
+
+    def on_show_plot_heatmap_mobilogram(self, evtID, save_image=False):
+        if self._item.is_match("heatmap", True):
+            return
+
+        # get data for selected item
+        obj = self._get_item_object()
+        self.panel_plot.on_plot_1D(obj.y, obj.yy, obj=obj, set_page=True)
+
+        if save_image:
+            filename = self._item.get_name("heatmap")
+            self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
+
+    def on_show_zoom_on_ion(self, evtID, save_image=False):
+        if self._item.is_match("heatmap", True):
+            return
+
+        # get data for selected item
+        obj = self._get_item_object()
+        raise NotImplementedError("Not implemented yet")
+
+    #             self.on_show_plot_zoom_on_mass_spectrum(data, self._item_leaf)
+    #
+    #     if save_image:
+    #         filename = self._item.get_name("heatmap")
+    #         self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
+
+    def on_show_plot_heatmap_violin(self, evt, save_image=False):
+        if self._item.is_match("heatmap", True):
             return
 
         # get data for selected item
         obj = self._get_item_object()
 
-        if evtID == ID_showPlot1DDocument:
-            self.panel_plot.on_plot_1D(obj.y, obj.yy, obj=obj, set_page=True)
-        elif evtID == ID_showPlotRTDocument:
-            self.panel_plot.on_plot_RT(obj.x, obj.xy, obj=obj, set_page=True)
-        elif evtID == ID_showPlotDocument_violin:
-            raise NotImplementedError("Not implemented yet")
+        raise NotImplementedError("Not implemented yet")
         #             dataOut = self.presenter.get2DdataFromDictionary(dictionary=data, dataType="plot", compact=True)
         #             self.panel_plot.on_plot_violin(data=dataOut, set_page=True)
         #             return
-        elif evtID == ID_showPlotDocument_waterfall:
-            raise NotImplementedError("Not implemented yet")
+        #
+        # if save_image:
+        #     filename = self._item.get_name("heatmap")
+        #     self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
+
+    def on_show_plot_heatmap_waterfall(self, evt, save_image=False):
+        if self._item.is_match("heatmap", True):
+            return
+
+        # get data for selected item
+        obj = self._get_item_object()
+
+        raise NotImplementedError("Not implemented yet")
         #             zvals, xvals, xlabel, yvals, ylabel, __ = self.presenter.get2DdataFromDictionary(
         #                 dictionary=data, dataType="plot", compact=False
         #             )
@@ -3605,169 +3664,150 @@ class DocumentTree(wx.TreeCtrl):
         #                 yvals=xvals, xvals=yvals, zvals=zvals, xlabel=xlabel, ylabel=ylabel, set_page=True
         #             )
         #             return
-        elif evtID == ID_showPlotMSDocument:
-            raise NotImplementedError("Not implemented yet")
-        #             self.on_show_plot_zoom_on_mass_spectrum(data, self._item_leaf)
-        else:
-            self.panel_plot.on_plot_2D(obj=obj, set_page=True)
-
-        if save_image:
-            basename = os.path.splitext(self._document_data.title)[0]
-            # check appropriate data is selected
-            if self._document_type == "Drift time (2D, EIC)":
-                save_filename = "DT_2D_{}_{}".format(basename, self._item_leaf)
-            elif self._document_type == "Drift time (2D, combined voltages, EIC)":
-                save_filename = "DT_2D_CV_{}_{}".format(basename, self._item_leaf)
-            elif self._document_type == "Drift time (2D, processed, EIC)":
-                save_filename = "DT_2D_processed_{}_{}".format(basename, self._item_leaf)
-            elif self._document_type == "Input data":
-                save_filename = "DT_2D_{}_{}".format(basename, self._item_leaf)
-            elif self._document_type == "Statistical":
-                save_filename = "DT_2D_{}_{}".format(basename, self._item_leaf)
-            elif self._document_type == "Drift time (2D)":
-                save_filename = "DT_2D_{}".format(basename)
-            elif self._document_type == "Drift time (2D, processed)":
-                save_filename = "DT_2D_processed_{}".format(basename)
-            self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=save_filename)
+        #
+        # if save_image:
+        #     filename = self._item.get_name("heatmap")
+        #     self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
 
     def on_show_plot_overlay(self, save_image):
-        if self._item_leaf == self._document_type:
-            return
-
-        # get filename
-        method = re.split("-|,|__|:", self._item_leaf)[0]
-        basename = os.path.splitext(self._document_data.title)[0]
-        fname_dict = {
-            "Grid (n x n)": "overlay_Grid_NxN_{}".format(basename),
-            "Grid (2": "overlay_Grid_2to1_{}".format(basename),
-            "Mask": "overlay_mask_{}".format(basename),
-            "Transparent": "overlay_transparent_{}".format(basename),
-            "RMSF": "overlay_RMSF_{}".format(basename),
-            "RGB": "overlay_RGB_{}".format(basename),
-            "RMSD": "overlay_RMSD_{}".format(basename),
-            "Variance": "overlay_variance_{}".format(basename),
-            "Mean": "overlay_mean_{}".format(basename),
-            "Standard Deviation": "overlay_std_{}".format(basename),
-            "RMSD Matrix": "overlay_matrix_{}".format(basename),
-            "Waterfall (Raw)": "MS_Waterfall_raw_{}".format(basename),
-            "Waterfall (Processed)": "MS_Waterfall_processed_{}".format(basename),
-            "Waterfall (Fitted)": "MS_Waterfall_fitted_{}".format(basename),
-            "Waterfall (Deconvoluted MW)": "MS_Waterfall_deconvolutedMW_{}".format(basename),
-            "Waterfall (Charge states)": "MS_Waterfall_charges_{}".format(basename),
-            "Waterfall overlay": "Waterfall_overlay_{}".format(basename),
-            "1D": "overlay_DT_1D_{}".format(basename),
-            "Overlay (DT)": "overlay_DT_1D_{}".format(basename),
-            "RT": "overlay_RT_{}".format(basename),
-            "Overlay (RT)": "overlay_RT_{}".format(basename),
-        }
-        save_filename = fname_dict.get(method, f"overlay_{basename}")
-
-        # get data
-        data = self.GetPyData(self._item_id)
-        if data is None:
-            raise MessageError("Data buffer was empty...")
-
-        # plot
-        if method in [
-            "Grid (n x n)",
-            "Grid (2",
-            "Mask",
-            "Transparent",
-            "RMSF",
-            "RGB",
-            "RMSD",
-            "Variance",
-            "Mean",
-            "Standard Deviation",
-            "RMSD Matrix",
-            "1D",
-            "Overlay (DT)",
-            "RT",
-            "Overlay (RT)",
-            "Butterfly (MS)",
-            "Butterfly (RT)",
-            "Butterfly (DT)",
-            "Subtract (MS)",
-            "Subtract (RT)",
-            "Subtract (DT)",
-            "Waterfall (MS)",
-            "Waterfall (RT)",
-            "Waterfall (DT)",
-            "Overlay (MS)",
-        ]:
-
-            if method == "Grid (n x n)":
-                self.data_visualisation.on_show_overlay_heatmap_grid_nxn(data, set_page=True)
-            elif method == "Grid (2":
-                self.data_visualisation.on_show_overlay_heatmap_grid_2to1(data, set_page=True)
-            elif method == "Mask":
-                self.data_visualisation.on_show_overlay_heatmap_mask(data, set_page=True)
-            elif method == "Transparent":
-                self.data_visualisation.on_show_overlay_heatmap_transparent(data, set_page=True)
-            elif method == "RMSF":
-                self.data_visualisation.on_show_overlay_heatmap_rmsf(data, set_page=True)
-            elif method == "RGB":
-                self.data_visualisation.on_show_overlay_heatmap_rgb(data, set_page=True)
-            elif method == "RMSD":
-                self.data_visualisation.on_show_overlay_heatmap_rmsd(data, set_page=True)
-            elif method in ["Variance", "Mean", "Standard Deviation"]:
-                self.data_visualisation.on_show_overlay_heatmap_statistical(data, set_page=True)
-            elif method == "RMSD Matrix":
-                self.data_visualisation.on_show_overlay_heatmap_rmsd_matrix(data, set_page=True)
-            # Overlayed 1D data
-            elif method in ["1D", "Overlay (DT)"]:
-                self.data_visualisation.on_show_overlay_spectrum_overlay(data, "mobilogram", set_page=True)
-            elif method in ["RT", "Overlay (RT)"]:
-                self.data_visualisation.on_show_overlay_spectrum_overlay(data, "chromatogram", set_page=True)
-            elif method in ["Overlay (MS)"]:
-                self.data_visualisation.on_show_overlay_spectrum_overlay(data, "mass_spectra", set_page=True)
-            elif method in ["Butterfly (MS)", "Butterfly (RT)", "Butterfly (DT)"]:
-                self.data_visualisation.on_show_overlay_spectrum_butterfly(data, set_page=True)
-            elif method in ["Subtract (MS)", "Subtract (RT)", "Subtract (DT)"]:
-                self.data_visualisation.on_show_overlay_spectrum_butterfly(data, set_page=True)
-            elif method in ["Waterfall (MS)", "Waterfall (RT)", "Waterfall (DT)"]:
-                self.data_visualisation.on_show_overlay_spectrum_waterfall(data, set_page=True)
-
-            # save plot
-            if save_image:
-                self.panel_plot.save_images(evt="overlay", image_name=save_filename)
-                return
-
-        elif method in [
-            "Waterfall (Raw)",
-            "Waterfall (Processed)",
-            "Waterfall (Fitted)",
-            "Waterfall (Deconvoluted MW)",
-            "Waterfall (Charge states)",
-        ]:
-            self.panel_plot.on_plot_waterfall(
-                data["xvals"],
-                data["yvals"],
-                None,
-                colors=data["colors"],
-                xlabel=data["xlabel"],
-                ylabel=data["ylabel"],
-                set_page=True,
-                **data["waterfall_kwargs"],
-            )
-        elif method == "Waterfall overlay":
-            self.panel_plot.on_plot_waterfall_overlay(
-                data["xvals"],
-                data["yvals"],
-                data["zvals"],
-                data["colors"],
-                data["xlabel"],
-                data["ylabel"],
-                data["labels"],
-                set_page=True,
-            )
-
-        if save_image:
-            self.panel_plot.save_images(evt="waterfall", image_name=save_filename)
+        raise NotImplementedError("Must implement method")
+        # if self._item_leaf == self._document_type:
+        #     return
+        #
+        # # get filename
+        # method = re.split("-|,|__|:", self._item_leaf)[0]
+        # basename = os.path.splitext(self._document_data.title)[0]
+        # fname_dict = {
+        #     "Grid (n x n)": "overlay_Grid_NxN_{}".format(basename),
+        #     "Grid (2": "overlay_Grid_2to1_{}".format(basename),
+        #     "Mask": "overlay_mask_{}".format(basename),
+        #     "Transparent": "overlay_transparent_{}".format(basename),
+        #     "RMSF": "overlay_RMSF_{}".format(basename),
+        #     "RGB": "overlay_RGB_{}".format(basename),
+        #     "RMSD": "overlay_RMSD_{}".format(basename),
+        #     "Variance": "overlay_variance_{}".format(basename),
+        #     "Mean": "overlay_mean_{}".format(basename),
+        #     "Standard Deviation": "overlay_std_{}".format(basename),
+        #     "RMSD Matrix": "overlay_matrix_{}".format(basename),
+        #     "Waterfall (Raw)": "MS_Waterfall_raw_{}".format(basename),
+        #     "Waterfall (Processed)": "MS_Waterfall_processed_{}".format(basename),
+        #     "Waterfall (Fitted)": "MS_Waterfall_fitted_{}".format(basename),
+        #     "Waterfall (Deconvoluted MW)": "MS_Waterfall_deconvolutedMW_{}".format(basename),
+        #     "Waterfall (Charge states)": "MS_Waterfall_charges_{}".format(basename),
+        #     "Waterfall overlay": "Waterfall_overlay_{}".format(basename),
+        #     "1D": "overlay_DT_1D_{}".format(basename),
+        #     "Overlay (DT)": "overlay_DT_1D_{}".format(basename),
+        #     "RT": "overlay_RT_{}".format(basename),
+        #     "Overlay (RT)": "overlay_RT_{}".format(basename),
+        # }
+        # save_filename = fname_dict.get(method, f"overlay_{basename}")
+        #
+        # # get data
+        # data = self.GetPyData(self._item_id)
+        # if data is None:
+        #     raise MessageError("Data buffer was empty...")
+        #
+        # # plot
+        # if method in [
+        #     "Grid (n x n)",
+        #     "Grid (2",
+        #     "Mask",
+        #     "Transparent",
+        #     "RMSF",
+        #     "RGB",
+        #     "RMSD",
+        #     "Variance",
+        #     "Mean",
+        #     "Standard Deviation",
+        #     "RMSD Matrix",
+        #     "1D",
+        #     "Overlay (DT)",
+        #     "RT",
+        #     "Overlay (RT)",
+        #     "Butterfly (MS)",
+        #     "Butterfly (RT)",
+        #     "Butterfly (DT)",
+        #     "Subtract (MS)",
+        #     "Subtract (RT)",
+        #     "Subtract (DT)",
+        #     "Waterfall (MS)",
+        #     "Waterfall (RT)",
+        #     "Waterfall (DT)",
+        #     "Overlay (MS)",
+        # ]:
+        #
+        #     if method == "Grid (n x n)":
+        #         self.data_visualisation.on_show_overlay_heatmap_grid_nxn(data, set_page=True)
+        #     elif method == "Grid (2":
+        #         self.data_visualisation.on_show_overlay_heatmap_grid_2to1(data, set_page=True)
+        #     elif method == "Mask":
+        #         self.data_visualisation.on_show_overlay_heatmap_mask(data, set_page=True)
+        #     elif method == "Transparent":
+        #         self.data_visualisation.on_show_overlay_heatmap_transparent(data, set_page=True)
+        #     elif method == "RMSF":
+        #         self.data_visualisation.on_show_overlay_heatmap_rmsf(data, set_page=True)
+        #     elif method == "RGB":
+        #         self.data_visualisation.on_show_overlay_heatmap_rgb(data, set_page=True)
+        #     elif method == "RMSD":
+        #         self.data_visualisation.on_show_overlay_heatmap_rmsd(data, set_page=True)
+        #     elif method in ["Variance", "Mean", "Standard Deviation"]:
+        #         self.data_visualisation.on_show_overlay_heatmap_statistical(data, set_page=True)
+        #     elif method == "RMSD Matrix":
+        #         self.data_visualisation.on_show_overlay_heatmap_rmsd_matrix(data, set_page=True)
+        #     # Overlayed 1D data
+        #     elif method in ["1D", "Overlay (DT)"]:
+        #         self.data_visualisation.on_show_overlay_spectrum_overlay(data, "mobilogram", set_page=True)
+        #     elif method in ["RT", "Overlay (RT)"]:
+        #         self.data_visualisation.on_show_overlay_spectrum_overlay(data, "chromatogram", set_page=True)
+        #     elif method in ["Overlay (MS)"]:
+        #         self.data_visualisation.on_show_overlay_spectrum_overlay(data, "mass_spectra", set_page=True)
+        #     elif method in ["Butterfly (MS)", "Butterfly (RT)", "Butterfly (DT)"]:
+        #         self.data_visualisation.on_show_overlay_spectrum_butterfly(data, set_page=True)
+        #     elif method in ["Subtract (MS)", "Subtract (RT)", "Subtract (DT)"]:
+        #         self.data_visualisation.on_show_overlay_spectrum_butterfly(data, set_page=True)
+        #     elif method in ["Waterfall (MS)", "Waterfall (RT)", "Waterfall (DT)"]:
+        #         self.data_visualisation.on_show_overlay_spectrum_waterfall(data, set_page=True)
+        #
+        #     # save plot
+        #     if save_image:
+        #         self.panel_plot.save_images(evt="overlay", image_name=save_filename)
+        #         return
+        #
+        # elif method in [
+        #     "Waterfall (Raw)",
+        #     "Waterfall (Processed)",
+        #     "Waterfall (Fitted)",
+        #     "Waterfall (Deconvoluted MW)",
+        #     "Waterfall (Charge states)",
+        # ]:
+        #     self.panel_plot.on_plot_waterfall(
+        #         data["xvals"],
+        #         data["yvals"],
+        #         None,
+        #         colors=data["colors"],
+        #         xlabel=data["xlabel"],
+        #         ylabel=data["ylabel"],
+        #         set_page=True,
+        #         **data["waterfall_kwargs"],
+        #     )
+        # elif method == "Waterfall overlay":
+        #     self.panel_plot.on_plot_waterfall_overlay(
+        #         data["xvals"],
+        #         data["yvals"],
+        #         data["zvals"],
+        #         data["colors"],
+        #         data["xlabel"],
+        #         data["ylabel"],
+        #         data["labels"],
+        #         set_page=True,
+        #     )
+        #
+        # if save_image:
+        #     self.panel_plot.save_images(evt="waterfall", image_name=save_filename)
 
     def on_show_plot(self, evt, save_image=False):
         """ This will send data, plot and change window"""
-        if self._document_data is None:
+        if self._item.is_empty:
             return
 
         if isinstance(evt, int):
@@ -3777,15 +3817,15 @@ class DocumentTree(wx.TreeCtrl):
         else:
             evtID = evt.GetId()
 
-        _click_obj = self._document_type
+        _click_obj = self._item.current  # self._document_type
         # show annotated data
         if _click_obj in "Annotated data":
             # exit early if user clicked on the header
-            if self._item_leaf == "Annotated data":
+            if self._item.leaf == "Annotated data":
                 return
 
             # open annotations
-            if self._item_leaf == "Annotations":
+            if self._item.leaf == "Annotations":
                 self.on_open_annotation_editor(None)
                 return
 
@@ -3802,7 +3842,7 @@ class DocumentTree(wx.TreeCtrl):
 
         # show mass spectrum
         elif _click_obj == "Mass Spectra":
-            self.on_show_plot_mass_spectra(save_image)
+            self.on_show_plot_mass_spectra(evtID, save_image)
 
         # show mobilogram
         elif _click_obj == "Mobilograms":
@@ -3904,488 +3944,82 @@ class DocumentTree(wx.TreeCtrl):
         """
         Helper function to save data in consistent manner
         """
-        wildcard = (
-            "CSV (Comma delimited) (*.csv)|*.csv|"
-            + "Text (Tab delimited) (*.txt)|*.txt|"
-            + "Text (Space delimited (*.txt)|*.txt"
-        )
+        raise NotImplementedError("Must implement method")
+        # wildcard = (
+        #     "CSV (Comma delimited) (*.csv)|*.csv|"
+        #     + "Text (Tab delimited) (*.txt)|*.txt|"
+        #     + "Text (Space delimited (*.txt)|*.txt"
+        # )
+        #
+        # wildcard_dict = {",": 0, "\t": 1, " ": 2}
+        #
+        # if kwargs.get("ask_permission", False):
+        #     style = wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
+        # else:
+        #     style = wx.FD_SAVE
+        #
+        # dlg = wx.FileDialog(
+        #     self.presenter.view, "Please select a name for the file", "", "", wildcard=wildcard, style=style
+        # )
+        # dlg.CentreOnParent()
+        #
+        # if "default_name" in kwargs:
+        #     defaultName = kwargs.pop("default_name")
+        # else:
+        #     defaultName = ""
+        # defaultName = (
+        #     defaultName.replace(" ", "")
+        #     .replace(":", "")
+        #     .replace(" ", "")
+        #     .replace(".csv", "")
+        #     .replace(".txt", "")
+        #     .replace(".raw", "")
+        #     .replace(".d", "")
+        #     .replace(".", "_")
+        # )
+        #
+        # dlg.SetFilename(defaultName)
+        #
+        # try:
+        #     dlg.SetFilterIndex(wildcard_dict[self.config.saveDelimiter])
+        # except Exception:
+        #     pass
+        #
+        # if not kwargs.get("return_filename", False):
+        #     if dlg.ShowModal() == wx.ID_OK:
+        #         filename = dlg.GetPath()
+        #         __, extension = os.path.splitext(filename)
+        #         self.config.saveExtension = extension
+        #         self.config.saveDelimiter = list(wildcard_dict.keys())[
+        #             list(wildcard_dict.values()).index(dlg.GetFilterIndex())
+        #         ]
+        #         saveAsText(
+        #             filename=filename,
+        #             data=data,
+        #             format=data_format,
+        #             delimiter=self.config.saveDelimiter,
+        #             header=self.config.saveDelimiter.join(labels),
+        #         )
+        #     else:
+        #         self.presenter.onThreading(None, ("Cancelled operation", 4, 5), action="updateStatusbar")
+        # else:
+        #     if dlg.ShowModal() == wx.ID_OK:
+        #         filename = dlg.GetPath()
+        #         basename, extension = os.path.splitext(filename)
+        #
+        #         return filename, basename, extension
+        #     else:
+        #         return None, None, None
 
-        wildcard_dict = {",": 0, "\t": 1, " ": 2}
+    def on_save_csv(self, evt, save_all: bool = False):
+        """This function extracts the 1D or 2D data and saves it in a CSV format"""
+        obj = self._get_item_object()
+        if not hasattr(obj, "to_csv"):
+            raise NotImplementedError("Must implement method")
 
-        if kwargs.get("ask_permission", False):
-            style = wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
-        else:
-            style = wx.FD_SAVE
-
-        dlg = wx.FileDialog(
-            self.presenter.view, "Please select a name for the file", "", "", wildcard=wildcard, style=style
-        )
-        dlg.CentreOnParent()
-
-        if "default_name" in kwargs:
-            defaultName = kwargs.pop("default_name")
-        else:
-            defaultName = ""
-        defaultName = (
-            defaultName.replace(" ", "")
-            .replace(":", "")
-            .replace(" ", "")
-            .replace(".csv", "")
-            .replace(".txt", "")
-            .replace(".raw", "")
-            .replace(".d", "")
-            .replace(".", "_")
-        )
-
-        dlg.SetFilename(defaultName)
-
-        try:
-            dlg.SetFilterIndex(wildcard_dict[self.config.saveDelimiter])
-        except Exception:
-            pass
-
-        if not kwargs.get("return_filename", False):
-            if dlg.ShowModal() == wx.ID_OK:
-                filename = dlg.GetPath()
-                __, extension = os.path.splitext(filename)
-                self.config.saveExtension = extension
-                self.config.saveDelimiter = list(wildcard_dict.keys())[
-                    list(wildcard_dict.values()).index(dlg.GetFilterIndex())
-                ]
-                saveAsText(
-                    filename=filename,
-                    data=data,
-                    format=data_format,
-                    delimiter=self.config.saveDelimiter,
-                    header=self.config.saveDelimiter.join(labels),
-                )
-            else:
-                self.presenter.onThreading(None, ("Cancelled operation", 4, 5), action="updateStatusbar")
-        else:
-            if dlg.ShowModal() == wx.ID_OK:
-                filename = dlg.GetPath()
-                basename, extension = os.path.splitext(filename)
-
-                return filename, basename, extension
-            else:
-                return None, None, None
-
-    def onSaveCSV(self, evt):
-        """
-        This function extracts the 1D or 2D data and saves it in a CSV format
-        """
-        if self._document_data is None:
-            return
-
-        saveFileName = None
-        basename = os.path.splitext(self._document_data.title)[0]
-        # Save MS - single
-        if (
-            self._document_type == "Mass Spectrum"
-            or self._document_type == "Mass Spectrum (processed)"
-            or self._document_type == "Mass Spectra"
-            and self._item_leaf != self._document_type
-        ):
-            # Default name
-            default_value = "MSout"
-            # Saves MS to file. Automatically removes values with 0s from the array
-            # Get data
-            if self._document_type == "Mass Spectrum":
-                data = self._document_data.massSpectrum
-                default_value = "MS_{}{}".format(basename, self.config.saveExtension)
-            elif self._document_type == "Mass Spectrum (processed)":
-                data = self._document_data.smoothMS
-                default_value = "MS_processed_{}{}".format(basename, self.config.saveExtension)
-            elif self._document_type == "Mass Spectra" and self._item_leaf != self._document_type:
-                data = self._document_data.multipleMassSpectrum[self._item_leaf]
-                extract_basename = os.path.splitext(self._item_leaf)[0]
-                default_value = "MS_{}_{}{}".format(basename, extract_basename, self.config.saveExtension).replace(
-                    ":", ""
-                )
-
-            ms_obj = MassSpectrumObject(data["xvals"], data["yvals"])
-            self.data_handling.on_save_data_as_text(data=ms_obj, default_name=default_value)
-
-        # Save MS - multiple MassLynx fields
-        elif self._document_type == "Mass Spectra" and self._item_leaf == "Mass Spectra":
-            for key in self._document_data.multipleMassSpectrum:
-                stripped_key_name = clean_filename(key)
-                default_value = "MS_{}_{}{}".format(basename, stripped_key_name, self.config.saveExtension)
-                data = self._document_data.multipleMassSpectrum[key]
-
-                ms_obj = MassSpectrumObject(data["xvals"], data["yvals"])
-                self.data_handling.on_save_data_as_text(data=ms_obj, default_name=default_value)
-
-        # Save RT - single
-        elif self._document_type == "Chromatogram":
-            if evt.GetId() == ID_saveDataCSVDocument:
-                default_value = "RT_{}{}".format(basename, self.config.saveExtension)
-                # data = self._document_data.RT
-
-                rtX = self._document_data.RT["xvals"]
-                rtY = self._document_data.RT["yvals"]
-                xlabel = self._document_data.RT["xlabels"]
-                kwargs = {"default_name": default_value}
-                self.data_handling.on_save_data_as_text(
-                    data=[rtX, rtY], labels=[xlabel, "Intensity"], data_format="%.4f", **kwargs
-                )
-
-        # Save 1D - single
-        elif self._document_type == "Drift time (1D)":
-            if evt.GetId() == ID_saveDataCSVDocument:
-                default_value = "DT_1D_{}{}".format(basename, self.config.saveExtension)
-                dtX = self._document_data.DT["xvals"]
-                dtY = self._document_data.DT["yvals"]
-                ylabel = self._document_data.DT["xlabels"]
-                kwargs = {"default_name": default_value}
-                self.data_handling.on_save_data_as_text(
-                    data=[dtX, dtY], labels=[ylabel, "Intensity"], data_format="%.2f", **kwargs
-                )
-
-        # Save RT (combined voltages) - batch + single
-        elif self._document_type == "Chromatograms (combined voltages, EIC)":
-            # Batch mode
-            if self._item_leaf == "Chromatograms (combined voltages, EIC)":
-                for key in self._document_data.IMSRTCombIons:
-                    stripped_key_name = key.replace(" ", "")
-                    default_value = "RT_{}_{}{}".format(basename, stripped_key_name, self.config.saveExtension)
-                    rtX = self._document_data.IMSRTCombIons[key]["xvals"]
-                    rtY = self._document_data.IMSRTCombIons[key]["yvals"]
-                    xlabel = self._document_data.IMSRTCombIons[key]["xlabels"]
-                    kwargs = {"default_name": default_value}
-                    self.data_handling.on_save_data_as_text(
-                        data=[rtX, rtY], labels=[xlabel, "Intensity"], data_format="%.4f", **kwargs
-                    )
-            #             # Single mode
-            else:
-                default_value = "RT_{}_{}{}".format(basename, self._item_leaf, self.config.saveExtension)
-                rtX = self._document_data.IMSRTCombIons[self._item_leaf]["xvals"]
-                rtY = self._document_data.IMSRTCombIons[self._item_leaf]["yvals"]
-                xlabel = self._document_data.IMSRTCombIons[self._item_leaf]["xlabels"]
-                kwargs = {"default_name": default_value}
-                self.data_handling.on_save_data_as_text(
-                    data=[rtX, rtY], labels=[xlabel, "Intensity"], data_format="%.4f", **kwargs
-                )
-
-        # Save 1D - batch + single
-        elif self._document_type == "Drift time (1D, EIC, DT-IMS)":
-            if evt.GetId() == ID_saveDataCSVDocument:
-                saveFileName = self.presenter.getImageFilename(prefix=True, csv=True, defaultValue="DT_1D_")
-                if saveFileName == "" or saveFileName is None:
-                    saveFileName = "DT_1D_"
-            # Batch mode
-            if self._item_leaf == "Drift time (1D, EIC, DT-IMS)":
-                for key in self._document_data.IMS1DdriftTimes:
-                    if self._document_data.data_type == "Type: MANUAL":
-                        name = re.split(", File: |.raw", key)
-                        filename = "".join(
-                            [
-                                self._document_data.path,
-                                "\\",
-                                saveFileName,
-                                name[0],
-                                "_",
-                                name[1],
-                                self.config.saveExtension,
-                            ]
-                        )
-                        dtX = self._document_data.IMS1DdriftTimes[key]["xvals"]
-                        dtY = self._document_data.IMS1DdriftTimes[key]["yvals"]
-                        xlabel = self._document_data.IMS1DdriftTimes[key]["xlabels"]
-                        saveAsText(
-                            filename=filename,
-                            data=[dtX, dtY],
-                            format="%.4f",
-                            delimiter=self.config.saveDelimiter,
-                            header=self.config.saveDelimiter.join([xlabel, "Intensity"]),
-                        )
-                    else:
-                        filename = "".join(
-                            [self._document_data.path, "\\", saveFileName, key, self.config.saveExtension]
-                        )
-                        zvals = self._document_data.IMS1DdriftTimes[key]["yvals"]
-                        yvals = self._document_data.IMS1DdriftTimes[key]["xvals"]
-                        xvals = np.asarray(self._document_data.IMS1DdriftTimes[key]["driftVoltage"])
-                        # Y-axis labels need a value for [0,0]
-                        yvals = np.insert(yvals, 0, 0)  # array, index, value
-                        # Combine x-axis with data
-                        saveData = np.vstack((xvals, zvals.T))
-                        saveData = np.vstack((yvals, saveData.T))
-                        # Save data
-                        saveAsText(
-                            filename=filename,
-                            data=saveData,
-                            format="%.2f",
-                            delimiter=self.config.saveDelimiter,
-                            header="",
-                        )
-
-            # Single mode
-            else:
-                if self._document_data.data_type == "Type: MANUAL":
-                    name = re.split(", File: |.raw", self._item_leaf)
-                    filename = "".join(
-                        [self._document_data.path, "\\", saveFileName, name[0], "_", name[1], self.config.saveExtension]
-                    )
-                    dtX = self._document_data.IMS1DdriftTimes[self._item_leaf]["xvals"]
-                    dtY = self._document_data.IMS1DdriftTimes[self._item_leaf]["yvals"]
-                    xlabel = self._document_data.IMS1DdriftTimes[self._item_leaf]["xlabels"]
-                    saveAsText(
-                        filename=filename,
-                        data=[dtX, dtY],
-                        format="%.4f",
-                        delimiter=self.config.saveDelimiter,
-                        header=self.config.saveDelimiter.join([xlabel, "Intensity"]),
-                    )
-                else:
-                    filename = "".join(
-                        [self._document_data.path, "\\", saveFileName, self._item_leaf, self.config.saveExtension]
-                    )
-                    zvals = self._document_data.IMS1DdriftTimes[self._item_leaf]["yvals"]
-                    yvals = self._document_data.IMS1DdriftTimes[self._item_leaf]["xvals"]
-                    xvals = np.asarray(self._document_data.IMS1DdriftTimes[self._item_leaf].get("driftVoltage", " "))
-                    # Y-axis labels need a value for [0,0]
-                    yvals = np.insert(yvals, 0, 0)  # array, index, value
-                    # Combine x-axis with data
-                    saveData = np.vstack((xvals, zvals.T))
-                    saveData = np.vstack((yvals, saveData.T))
-                    saveAsText(
-                        filename=filename, data=saveData, format="%.2f", delimiter=self.config.saveDelimiter, header=""
-                    )
-        # Save DT/MS
-        elif self._document_type == "DT/MS":
-            data = self.GetPyData(self._item_id)
-            zvals = data["zvals"]
-            xvals = data["xvals"]
-            yvals = data["yvals"]
-
-            if evt.GetId() == ID_saveDataCSVDocument:
-                default_value = "MSDT_{}{}".format(basename, self.config.saveExtension)
-                saveData = np.vstack((xvals, zvals))
-                xvals = list(map(str, xvals.tolist()))
-                labels = ["DT"]
-                labels.extend(yvals)
-                fmts = ["%.4f"] + ["%i"] * len(yvals)
-                # Save 2D array
-                kwargs = {"default_name": default_value}
-                self.data_handling.on_save_data_as_text(data=[saveData], labels=labels, data_format=fmts, **kwargs)
-
-        # Save 1D/2D - batch + single
-        elif any(
-            self._document_type in itemType
-            for itemType in [
-                "Drift time (2D)",
-                "Drift time (2D, processed)",
-                "Drift time (2D, EIC)",
-                "Drift time (2D, combined voltages, EIC)",
-                "Drift time (2D, processed, EIC)",
-                "Input data",
-                "Statistical",
-            ]
-        ):
-            # Select dataset
-            if self._document_type in ["Drift time (2D)", "Drift time (2D, processed)"]:
-                if self._document_type == "Drift time (2D)":
-                    data = self._document_data.IMS2D
-                    default_value = "DT_2D_raw_{}{}".format(basename, self.config.saveExtension)
-
-                elif self._document_type == "Drift time (2D, processed)":
-                    data = self._document_data.IMS2Dprocess
-                    default_value = "DT_2D_processed_{}{}".format(basename, self.config.saveExtension)
-
-                # Save 2D
-                if evt.GetId() == ID_saveDataCSVDocument:
-                    # Prepare data for saving
-                    zvals, xvals, xlabel, yvals, ylabel, __ = self.presenter.get2DdataFromDictionary(
-                        dictionary=data, dataType="plot", compact=False
-                    )
-                    saveData = np.vstack((yvals, zvals.T))
-                    xvals = list(map(str, xvals.tolist()))
-                    labels = ["DT"]
-                    for label in xvals:
-                        labels.append(label)
-                    # Save 2D array
-                    kwargs = {"default_name": default_value}
-                    self.data_handling.on_save_data_as_text(
-                        data=[saveData], labels=labels, data_format="%.2f", **kwargs
-                    )
-
-                # Save 1D
-                elif evt.GetId() == ID_saveDataCSVDocument1D:
-                    if self._document_type == "Drift time (2D)":
-                        default_value = "DT_1D_raw_{}{}".format(basename, self.config.saveExtension)
-
-                    elif self._document_type == "Drift time (2D, processed)":
-                        default_value = "DT_1D_processed_{}{}".format(basename, self.config.saveExtension)
-                    # Get data from the document
-                    dtX = data["yvals"]
-                    ylabel = data["xlabels"]
-                    try:
-                        dtY = data["yvals1D"]
-                    except KeyError:
-                        msg = "Missing data. Cancelling operation."
-                        self.presenter.view.SetStatusText(msg, 3)
-                        return
-                    kwargs = {"default_name": default_value}
-                    self.data_handling.on_save_data_as_text(
-                        data=[dtX, dtY], labels=[ylabel, "Intensity"], data_format="%.4f", **kwargs
-                    )
-
-            # Save 1D/2D - single + batch
-            elif any(
-                self._document_type in itemType
-                for itemType in [
-                    "Drift time (2D, EIC)",
-                    "Drift time (2D, combined voltages, EIC)",
-                    "Drift time (2D, processed, EIC)",
-                    "Input data",
-                    "Statistical",
-                ]
-            ):
-                # Save 1D/2D - batch
-                if any(
-                    self._item_leaf in extractData
-                    for extractData in [
-                        "Drift time (2D, EIC)",
-                        "Drift time (2D, combined voltages, EIC)",
-                        "Drift time (2D, processed, EIC)",
-                        "Input data",
-                        "Statistical",
-                    ]
-                ):
-                    name_modifier = ""
-                    if self._document_type == "Drift time (2D, EIC)":
-                        data = self._document_data.IMS2Dions
-                    elif self._document_type == "Drift time (2D, combined voltages, EIC)":
-                        data = self._document_data.IMS2DCombIons
-                        name_modifier = "_CV_"
-                    elif self._document_type == "Drift time (2D, processed, EIC)":
-                        data = self._document_data.IMS2DionsProcess
-                    elif self._document_type == "Input data":
-                        data = self._document_data.IMS2DcompData
-                    elif self._document_type == "Statistical":
-                        data = self._document_data.IMS2DstatsData
-
-                    # 2D - batch
-                    if evt.GetId() == ID_saveDataCSVDocument:
-                        # Iterate over dictionary
-                        for key in data:
-                            stripped_key_name = key.replace(" ", "")
-                            default_value = "DT_2D_{}_{}{}{}".format(
-                                basename, name_modifier, stripped_key_name, self.config.saveExtension
-                            )
-                            # Prepare data for saving
-                            zvals, xvals, xlabel, yvals, ylabel, __ = self.presenter.get2DdataFromDictionary(
-                                dictionary=data[key], dataType="plot", compact=False
-                            )
-                            saveData = np.vstack((yvals, zvals.T))
-                            xvals = list(map(str, xvals.tolist()))
-                            labels = ["DT"]
-                            for label in xvals:
-                                labels.append(label)
-                            # Save 2D array
-                            kwargs = {"default_name": default_value}
-                            self.data_handling.on_save_data_as_text(
-                                data=[saveData], labels=labels, data_format="%.2f", **kwargs
-                            )
-                    # 1D - batch
-                    elif evt.GetId() == ID_saveDataCSVDocument1D:
-                        if not (self._document_type == "Input data" or self._document_type == "Statistical"):
-                            for key in data:
-                                stripped_key_name = key.replace(" ", "")
-                                default_value = "DT_1D_{}_{}{}{}".format(
-                                    basename, name_modifier, stripped_key_name, self.config.saveExtension
-                                )
-                                # Get data from the document
-                                dtX = data[key]["yvals"]
-                                ylabel = data[key]["xlabels"]
-                                try:
-                                    dtY = data[key]["yvals1D"]
-                                except KeyError:
-                                    msg = "Missing data. Cancelling operation."
-                                    self.presenter.view.SetStatusText(msg, 3)
-                                    continue
-                                kwargs = {"default_name": default_value}
-                                self.data_handling.on_save_data_as_text(
-                                    data=[dtX, dtY], labels=[ylabel, "Intensity"], data_format="%.4f", **kwargs
-                                )
-
-                # Save 1D/2D - single
-                else:
-                    name_modifier = ""
-                    if self._document_type == "Drift time (2D, EIC)":
-                        data = self._document_data.IMS2Dions
-                    elif self._document_type == "Drift time (2D, combined voltages, EIC)":
-                        data = self._document_data.IMS2DCombIons
-                        name_modifier = "_CV_"
-                    elif self._document_type == "Drift time (2D, processed, EIC)":
-                        data = self._document_data.IMS2DionsProcess
-                    elif self._document_type == "Input data":
-                        data = self._document_data.IMS2DcompData
-                    elif self._document_type == "Statistical":
-                        data = self._document_data.IMS2DstatsData
-                    # Save RMSD matrix
-                    out = self._item_leaf.split(":")
-                    if out[0] == "RMSD Matrix":
-                        if evt.GetId() == ID_saveDataCSVDocument:
-                            saveFileName = self.presenter.getImageFilename(prefix=True, csv=True, defaultValue="DT_")
-                        if saveFileName == "" or saveFileName is None:
-                            saveFileName = "DT_"
-
-                        # Its a bit easier to save data with text labels using pandas df,
-                        # so data is reshuffled to pandas dataframe and then saved
-                        # in a standard .csv format
-                        filename = "".join(
-                            [self._document_data.path, "\\", saveFileName, self._item_leaf, self.config.saveExtension]
-                        )
-                        zvals, xylabels, __ = self.presenter.get2DdataFromDictionary(
-                            dictionary=data[self._item_leaf], plotType="Matrix", compact=False
-                        )
-                        saveData = pd.DataFrame(data=zvals, index=xylabels, columns=xylabels)
-                        saveData.to_csv(path_or_buf=filename, sep=self.config.saveDelimiter, header=True, index=True)
-                    # Save 2D - single
-                    elif self._item_leaf != "RMSD Matrix" and evt.GetId() == ID_saveDataCSVDocument:
-                        default_value = "DT_2D_{}_{}{}{}".format(
-                            basename, name_modifier, self._item_leaf, self.config.saveExtension
-                        )
-
-                        zvals, xvals, xlabel, yvals, ylabel, __ = self.presenter.get2DdataFromDictionary(
-                            dictionary=data[self._item_leaf], dataType="plot", compact=False
-                        )
-                        saveData = np.vstack((yvals, zvals.T))
-                        try:
-                            xvals = list(map(str, xvals.tolist()))
-                        except AttributeError:
-                            xvals = list(map(str, xvals))
-                        labels = ["DT"]
-                        for label in xvals:
-                            labels.append(label)
-                        # Save 2D array
-                        kwargs = {"default_name": default_value}
-                        self.data_handling.on_save_data_as_text(
-                            data=[saveData], labels=labels, data_format="%.2f", **kwargs
-                        )
-                    # Save 1D - single
-                    elif self._item_leaf != "RMSD Matrix" and evt.GetId() == ID_saveDataCSVDocument1D:
-                        default_value = "DT_1D_{}_{}{}{}".format(
-                            basename, name_modifier, self._item_leaf, self.config.saveExtension
-                        )
-
-                        # Get data from the document
-                        dtX = data[self._item_leaf]["yvals"]
-                        ylabel = data[self._item_leaf]["xlabels"]
-                        try:
-                            dtY = data[self._item_leaf]["yvals1D"]
-                        except KeyError:
-                            msg = "Missing data. Cancelling operation."
-                            self.presenter.view.SetStatusText(msg, 3)
-                            return
-                        kwargs = {"default_name": default_value}
-                        self.data_handling.on_save_data_as_text(
-                            data=[dtX, dtY], labels=[ylabel, "Intensity"], data_format="%.4f", **kwargs
-                        )
-        else:
-            return
+        # get filename
+        filename = self._item.get_name("")
+        self.data_handling.on_save_data_as_text(obj, None, None, default_name=filename)
 
     #     def onOpenDocInfo(self, evt):
     #
@@ -4509,7 +4143,6 @@ class DocumentTree(wx.TreeCtrl):
         document_item = self.AppendItem(self.GetRootItem(), title)
         self.SetFocusedItem(document_item)
         self.SetItemImage(document_item, self.bullets_dict["document_on"], wx.TreeItemIcon_Normal)
-        self.title = title
 
         tree_view = document.view()
         for key in tree_view:
@@ -4526,250 +4159,6 @@ class DocumentTree(wx.TreeCtrl):
                 child_item = self.AppendItem(group_item, child_title)
                 self.SetItemImage(child_item, group_metadata["image"], wx.TreeItemIcon_Normal)
                 self.SetPyData(child_item, key)
-
-        #     annotation_item_parent = self.AppendItem(docItem, "Mass Spectrum")
-        #     self.SetPyData(annotation_item_parent, docData.massSpectrum)
-        #     self.SetItemImage(annotation_item_parent, self.bullets_dict["mass_spec"], wx.TreeItemIcon_Normal)
-        #     self._add_unidec_to_object(docData.massSpectrum, annotation_item_parent)
-        #     self._add_annotation_to_object(docData.massSpectrum, annotation_item_parent)
-
-        # # update document with new attributes
-        # if not hasattr(docData, "other_data"):
-        #     setattr(docData, "other_data", {})
-        #     logger.info("Added missing attribute ('other_data') to document")
-        #
-        # if not hasattr(docData, "tandem_spectra"):
-        #     setattr(docData, "tandem_spectra", {})
-        #     logger.info("Added missing attribute ('tandem_spectra') to document")
-        #
-        # if not hasattr(docData, "file_reader"):
-        #     setattr(docData, "file_reader", {})
-        #     logger.info("Added missing attribute ('file_reader') to document")
-        #
-        # if not hasattr(docData, "app_data"):
-        #     setattr(docData, "app_data", {})
-        #     logger.info("Added missing attribute ('app_data') to document")
-        #
-        # if not hasattr(docData, "last_saved"):
-        #     setattr(docData, "last_saved", {})
-        #     logger.info("Added missing attribute ('last_saved') to document")
-        #
-        # if not hasattr(docData, "metadata"):
-        #     setattr(docData, "metadata", {})
-        #     logger.info("Added missing attribute ('metadata') to document")
-        #
-        # # update document to latest version
-        #
-        # # Add document
-        # docItem = self.AppendItem(self.GetRootItem(), title)
-        # self.SetFocusedItem(docItem)
-        # self.SetItemImage(docItem, self.bullets_dict["document_on"], wx.TreeItemIcon_Normal)
-        # self.title = title
-        # self.SetPyData(docItem, docData)
-        #
-        # # Add annotations to document tree
-        # if hasattr(docData, "dataType"):
-        #     annotation_item = self.AppendItem(docItem, docData.data_type)
-        #     self.SetItemImage(annotation_item, self.bullets_dict["annot_on"], wx.TreeItemIcon_Normal)
-        #     self.SetPyData(annotation_item, docData.data_type)
-        #
-        # if hasattr(docData, "fileFormat"):
-        #     annotation_item = self.AppendItem(docItem, docData.fileFormat)
-        #     self.SetItemImage(annotation_item, self.bullets_dict["annot_on"], wx.TreeItemIcon_Normal)
-        #     self.SetPyData(annotation_item, docData.fileFormat)
-        #
-        # if hasattr(docData, "fileInformation"):
-        #     if docData.fileInformation is not None:
-        #         annotation_item = self.AppendItem(docItem, "Sample information")
-        #         self.SetPyData(annotation_item, docData.fileInformation)
-        #         self.SetItemImage(annotation_item, self.bullets_dict["annot_on"], wx.TreeItemIcon_Normal)
-        #
-        # if docData.massSpectrum:
-        #     annotation_item_parent = self.AppendItem(docItem, "Mass Spectrum")
-        #     self.SetPyData(annotation_item_parent, docData.massSpectrum)
-        #     self.SetItemImage(annotation_item_parent, self.bullets_dict["mass_spec"], wx.TreeItemIcon_Normal)
-        #     self._add_unidec_to_object(docData.massSpectrum, annotation_item_parent)
-        #     self._add_annotation_to_object(docData.massSpectrum, annotation_item_parent)
-        #
-        # if docData.smoothMS:
-        #     annotation_item_parent = self.AppendItem(docItem, "Mass Spectrum (processed)")
-        #     self.SetItemImage(annotation_item_parent, self.bullets_dict["mass_spec"], wx.TreeItemIcon_Normal)
-        #     self.SetPyData(annotation_item_parent, docData.smoothMS)
-        #     self._add_unidec_to_object(docData.smoothMS, annotation_item_parent)
-        #     self._add_annotation_to_object(docData.smoothMS, annotation_item_parent)
-        #
-        # if docData.multipleMassSpectrum:
-        #     item = self.AppendItem(docItem, "Mass Spectra")
-        #     self.SetItemImage(item, self.bullets_dict["mass_spec"], wx.TreeItemIcon_Normal)
-        #     self.SetPyData(item, docData.multipleMassSpectrum)
-        #     for item_data in docData.multipleMassSpectrum:
-        #         annotation_item = self.AppendItem(item, item_data)
-        #         self.SetPyData(annotation_item, docData.multipleMassSpectrum[item_data])
-        #         self.SetItemImage(annotation_item, self.bullets_dict["mass_spec_on"], wx.TreeItemIcon_Normal)
-        #         self._add_unidec_to_object(docData.multipleMassSpectrum[item_data], annotation_item)
-        #         self._add_annotation_to_object(docData.multipleMassSpectrum[item_data], annotation_item)
-        #
-        # if docData.tandem_spectra:
-        #     item = self.AppendItem(docItem, "Tandem Mass Spectra")
-        #     self.SetItemImage(item, self.bullets_dict["mass_spec"], wx.TreeItemIcon_Normal)
-        #     self.SetPyData(item, docData.tandem_spectra)
-        #
-        # if docData.RT:
-        #     annotation_item = self.AppendItem(docItem, "Chromatogram")
-        #     self.SetPyData(annotation_item, docData.RT)
-        #     self.SetItemImage(annotation_item, self.bullets_dict["rt"], wx.TreeItemIcon_Normal)
-        #     self._add_annotation_to_object(docData.RT, annotation_item)
-        #
-        # if docData.multipleRT:
-        #     item = self.AppendItem(docItem, "Chromatograms (EIC)")
-        #     self.SetItemImage(item, self.bullets_dict["rt"], wx.TreeItemIcon_Normal)
-        #     self.SetPyData(item, docData.multipleRT)
-        #     for item_data, __ in natsorted(list(docData.multipleRT.items())):
-        #         annotation_item = self.AppendItem(item, item_data)
-        #         self.SetPyData(annotation_item, docData.multipleRT[item_data])
-        #         self.SetItemImage(annotation_item, self.bullets_dict["rt_on"], wx.TreeItemIcon_Normal)
-        #         self._add_annotation_to_object(docData.multipleRT[item_data], annotation_item)
-        #
-        # if docData.DT:
-        #     annotation_item = self.AppendItem(docItem, "Drift time (1D)")
-        #     self.SetPyData(annotation_item, docData.DT)
-        #     self.SetItemImage(annotation_item, self.bullets_dict["drift_time"], wx.TreeItemIcon_Normal)
-        #     self._add_annotation_to_object(docData.DT, annotation_item)
-        #
-        # if docData.multipleDT:
-        #     item = self.AppendItem(docItem, "Drift time (1D, EIC)")
-        #     self.SetItemImage(item, self.bullets_dict["drift_time"], wx.TreeItemIcon_Normal)
-        #     self.SetPyData(item, docData.multipleDT)
-        #     for item_data, __ in natsorted(list(docData.multipleDT.items())):
-        #         annotation_item = self.AppendItem(item, item_data)
-        #         self.SetPyData(annotation_item, docData.multipleDT[item_data])
-        #         self.SetItemImage(annotation_item, self.bullets_dict["drift_time_on"], wx.TreeItemIcon_Normal)
-        #         self._add_annotation_to_object(docData.multipleDT[item_data], annotation_item)
-        #
-        # if docData.IMS1DdriftTimes:
-        #     item = self.AppendItem(docItem, "Drift time (1D, EIC, DT-IMS)")
-        #     self.SetItemImage(item, self.bullets_dict["drift_time"], wx.TreeItemIcon_Normal)
-        #     self.SetPyData(item, docData.IMS1DdriftTimes)
-        #     for item_data, __ in natsorted(list(docData.IMS1DdriftTimes.items())):
-        #         annotation_item = self.AppendItem(item, item_data)
-        #         self.SetPyData(annotation_item, docData.IMS1DdriftTimes[item_data])
-        #         self.SetItemImage(annotation_item, self.bullets_dict["drift_time_on"], wx.TreeItemIcon_Normal)
-        #
-        # if docData.IMS2D:
-        #     annotation_item = self.AppendItem(docItem, "Drift time (2D)")
-        #     self.SetPyData(annotation_item, docData.IMS2D)
-        #     self.SetItemImage(annotation_item, self.bullets_dict["heatmap"], wx.TreeItemIcon_Normal)
-        #     self._add_annotation_to_object(docData.IMS2D, annotation_item)
-        #
-        # if docData.IMS2Dprocess or len(docData.IMS2Dprocess) > 0:
-        #     annotation_item = self.AppendItem(docItem, "Drift time (2D, processed)")
-        #     self.SetPyData(annotation_item, docData.IMS2Dprocess)
-        #     self.SetItemImage(annotation_item, self.bullets_dict["heatmap"], wx.TreeItemIcon_Normal)
-        #     self._add_annotation_to_object(docData.IMS2Dprocess, annotation_item)
-        #
-        # if docData.IMS2Dions:
-        #     item = self.AppendItem(docItem, "Drift time (2D, EIC)")
-        #     self.SetItemImage(item, self.bullets_dict["heatmap"], wx.TreeItemIcon_Normal)
-        #     self.SetPyData(item, docData.IMS2Dions)
-        #     for item_data, __ in natsorted(list(docData.IMS2Dions.items())):
-        #         annotation_item = self.AppendItem(item, item_data)
-        #         self.SetPyData(annotation_item, docData.IMS2Dions[item_data])
-        #         self.SetItemImage(annotation_item, self.bullets_dict["heatmap_on"], wx.TreeItemIcon_Normal)
-        #         self._add_annotation_to_object(docData.IMS2Dions[item_data], annotation_item)
-        #
-        # if docData.IMS2DCombIons:
-        #     item = self.AppendItem(docItem, "Drift time (2D, combined voltages, EIC)")
-        #     self.SetItemImage(item, self.bullets_dict["heatmap"], wx.TreeItemIcon_Normal)
-        #     self.SetPyData(item, docData.IMS2DCombIons)
-        #     for item_data, __ in natsorted(list(docData.IMS2DCombIons.items())):
-        #         annotation_item = self.AppendItem(item, item_data)
-        #         self.SetPyData(annotation_item, docData.IMS2DCombIons[item_data])
-        #         self.SetItemImage(annotation_item, self.bullets_dict["heatmap_on"], wx.TreeItemIcon_Normal)
-        #         self._add_annotation_to_object(docData.IMS2DCombIons[item_data], annotation_item)
-        #
-        # if docData.IMSRTCombIons:
-        #     item = self.AppendItem(docItem, "Chromatograms (combined voltages, EIC)")
-        #     self.SetItemImage(item, self.bullets_dict["rt"], wx.TreeItemIcon_Normal)
-        #     self.SetPyData(item, docData.IMSRTCombIons)
-        #     for item_data, __ in natsorted(list(docData.IMSRTCombIons.items())):
-        #         annotation_item = self.AppendItem(item, item_data)
-        #         self.SetPyData(annotation_item, docData.IMSRTCombIons[item_data])
-        #         self.SetItemImage(annotation_item, self.bullets_dict["rt_on"], wx.TreeItemIcon_Normal)
-        #         self._add_annotation_to_object(docData.IMSRTCombIons[item_data], annotation_item)
-        #
-        # if docData.IMS2DionsProcess:
-        #     item = self.AppendItem(docItem, "Drift time (2D, processed, EIC)")
-        #     self.SetItemImage(item, self.bullets_dict["heatmap"], wx.TreeItemIcon_Normal)
-        #     self.SetPyData(item, docData.IMS2DionsProcess)
-        #     for item_data, __ in natsorted(list(docData.IMS2DionsProcess.items())):
-        #         annotation_item = self.AppendItem(item, item_data)
-        #         self.SetPyData(annotation_item, docData.IMS2DionsProcess[item_data])
-        #         self.SetItemImage(annotation_item, self.bullets_dict["heatmap_on"], wx.TreeItemIcon_Normal)
-        #         self._add_annotation_to_object(docData.IMS2DionsProcess[item_data], annotation_item)
-        #
-        # # if docData.calibration:
-        # #     item = self.AppendItem(docItem, "Calibration peaks")
-        # #     self.SetItemImage(item, self.bullets_dict["calibration"], wx.TreeItemIcon_Normal)
-        # #     for item_data, __ in natsorted(list(docData.calibration.items())):
-        # #         annotation_item = self.AppendItem(item, item_data)
-        # #         self.SetPyData(annotation_item, docData.calibration[item_data])
-        # #         self.SetItemImage(annotation_item, self.bullets_dict["dots_on"], wx.TreeItemIcon_Normal)
-        #
-        # # if docData.calibrationDataset:
-        # #     item = self.AppendItem(docItem, "Calibrants")
-        # #     self.SetItemImage(item, self.bullets_dict["calibration_on"], wx.TreeItemIcon_Normal)
-        # #     for item_data in docData.calibrationDataset:
-        # #         annotation_item = self.AppendItem(item, item_data)
-        # #         self.SetPyData(annotation_item, docData.calibrationDataset[item_data])
-        # #         self.SetItemImage(annotation_item, self.bullets_dict["dots_on"], wx.TreeItemIcon_Normal)
-        #
-        # if docData.calibrationParameters:
-        #     annotation_item = self.AppendItem(docItem, "Calibration parameters")
-        #     self.SetPyData(annotation_item, docData.calibrationParameters)
-        #     self.SetItemImage(annotation_item, self.bullets_dict["calibration"], wx.TreeItemIcon_Normal)
-        #
-        # if docData.IMS2DcompData:
-        #     item = self.AppendItem(docItem, "Input data")
-        #     self.SetItemImage(item, self.bullets_dict["overlay"], wx.TreeItemIcon_Normal)
-        #     for item_data, __ in natsorted(list(docData.IMS2DcompData.items())):
-        #         annotation_item = self.AppendItem(item, item_data)
-        #         self.SetPyData(annotation_item, docData.IMS2DcompData[item_data])
-        #         self.SetItemImage(annotation_item, self.bullets_dict["heatmap_on"], wx.TreeItemIcon_Normal)
-        #
-        # if docData.IMS2DoverlayData or len(docData.IMS2DoverlayData) > 0:
-        #     item = self.AppendItem(docItem, "Overlay")
-        #     self.SetItemImage(item, self.bullets_dict["overlay"], wx.TreeItemIcon_Normal)
-        #     self.SetPyData(item, docData.IMS2DoverlayData)
-        #     for item_data, __ in natsorted(list(docData.IMS2DoverlayData.items())):
-        #         annotation_item = self.AppendItem(item, item_data)
-        #         self.SetPyData(annotation_item, docData.IMS2DoverlayData[item_data])
-        #         self.SetItemImage(annotation_item, self.bullets_dict["heatmap_on"], wx.TreeItemIcon_Normal)
-        #
-        # if docData.IMS2DstatsData:
-        #     item = self.AppendItem(docItem, "Statistical")
-        #     self.SetItemImage(item, self.bullets_dict["overlay"], wx.TreeItemIcon_Normal)
-        #     self.SetPyData(item, docData.IMS2DstatsData)
-        #     for item_data, __ in natsorted(list(docData.IMS2DstatsData.items())):
-        #         annotation_item = self.AppendItem(item, item_data)
-        #         self.SetPyData(annotation_item, docData.IMS2DstatsData[item_data])
-        #         self.SetItemImage(annotation_item, self.bullets_dict["heatmap_on"], wx.TreeItemIcon_Normal)
-        #
-        # if docData.DTMZ:
-        #     annotation_item = self.AppendItem(docItem, "DT/MS")
-        #     self.SetPyData(annotation_item, docData.DTMZ)
-        #     self.SetItemImage(annotation_item, self.bullets_dict["heatmap"], wx.TreeItemIcon_Normal)
-        #
-        # if docData.other_data:
-        #     item = self.AppendItem(docItem, "Annotated data")
-        #     self.SetItemImage(item, self.bullets_dict["calibration"], wx.TreeItemIcon_Normal)
-        #     self.SetPyData(item, docData.other_data)
-        #     for item_data, __ in natsorted(list(docData.other_data.items())):
-        #         annotation_item = self.AppendItem(item, item_data)
-        #         self.SetPyData(annotation_item, docData.other_data[item_data])
-        #         self.SetItemImage(annotation_item, self.bullets_dict["calibration_on"], wx.TreeItemIcon_Normal)
-        #         self._add_annotation_to_object(docData.other_data[item_data], annotation_item)
-        #
-        # # Recursively check currently selected document
         self.on_enable_document(loading_data=True, expand_all=expandAll)
         #
         # # If expandItem is not empty, the Tree will expand specified item
@@ -4902,7 +4291,9 @@ class DocumentTree(wx.TreeCtrl):
     #     self.panelUVPD = PanelUVPDEditor(self.presenter.view, self.presenter, self.config, self.icons, **kwargs)
     #     self.panelUVPD.Show()
     #
-    # def on_open_extract_DTMS(self, evt):
+    def on_open_extract_DTMS(self, evt):
+        raise NotImplementedError("Must implement method")
+
     #     from origami.gui_elements.panel_process_extract_dtms import PanelProcessExtractDTMS
     #
     #     self.PanelProcessExtractDTMS = PanelProcessExtractDTMS(
@@ -4910,32 +4301,36 @@ class DocumentTree(wx.TreeCtrl):
     #     )
     #     self.PanelProcessExtractDTMS.Show()
     #
-    # def on_open_peak_picker(self, evt, **kwargs):
-    #     """Open peak picker"""
-    #     from origami.widgets.mz_picker.panel_peak_picker import PanelPeakPicker
+    def on_open_peak_picker(self, evt, **kwargs):
+        """Open peak picker"""
+        raise NotImplementedError("Must implement method")
+        # from origami.widgets.mz_picker.panel_peak_picker import PanelPeakPicker
+        #
+        # # get data
+        # document_title, dataset_type, dataset_name = self._get_query_info_based_on_indent()
+        # __, data = self.data_handling.get_mobility_chromatographic_data([document_title, dataset_type, dataset_name])
+        #
+        # if self._picker_panel:
+        #     self._picker_panel.SetFocus()
+        #     raise MessageError("Warning", "An instance of a Peak Picking panel is already open")
+        #
+        # # initialize peak picker
+        # self._picker_panel = PanelPeakPicker(
+        #     self.presenter.view,
+        #     self.presenter,
+        #     self.config,
+        #     self.icons,
+        #     mz_data=data,
+        #     document_title=document_title,
+        #     dataset_type=dataset_type,
+        #     dataset_name=dataset_name,
+        # )
+        # self._picker_panel.Show()
+
     #
-    #     # get data
-    #     document_title, dataset_type, dataset_name = self._get_query_info_based_on_indent()
-    #     __, data = self.data_handling.get_mobility_chromatographic_data([document_title, dataset_type, dataset_name])
-    #
-    #     if self._picker_panel:
-    #         self._picker_panel.SetFocus()
-    #         raise MessageError("Warning", "An instance of a Peak Picking panel is already open")
-    #
-    #     # initialize peak picker
-    #     self._picker_panel = PanelPeakPicker(
-    #         self.presenter.view,
-    #         self.presenter,
-    #         self.config,
-    #         self.icons,
-    #         mz_data=data,
-    #         document_title=document_title,
-    #         dataset_type=dataset_type,
-    #         dataset_name=dataset_name,
-    #     )
-    #     self._picker_panel.Show()
-    #
-    # def on_open_extract_data(self, evt, **kwargs):
+    def on_open_extract_data(self, evt, **kwargs):
+        raise NotImplementedError("Must implement method")
+
     #     from origami.gui_elements.panel_process_extract_data import PanelProcessExtractData
     #
     #     document = self.data_handling.on_get_document()
@@ -4951,8 +4346,10 @@ class DocumentTree(wx.TreeCtrl):
     #     )
     #     self.PanelProcessExtractData.Show()
     #
-    # def on_open_UniDec(self, evt, **kwargs):
-    #     """Open UniDec panel which allows processing and visualisation"""
+    def on_open_UniDec(self, evt, **kwargs):
+        """Open UniDec panel which allows processing and visualisation"""
+        raise NotImplementedError("Must implement method")
+
     #     from origami.widgets.UniDec.panel_process_UniDec import PanelProcessUniDec
     #
     #     # get data
