@@ -14,6 +14,7 @@ from scipy.interpolate.interpolate import interp1d
 
 # Local imports
 from origami.utils.ranges import get_min_max
+from origami.processing.utils import find_nearest_index
 from origami.processing.utils import get_narrow_data_range
 from origami.utils.exceptions import MessageError
 
@@ -22,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 # TODO: add ppm sampling
 # TODO: should try to speed this up as the for-loop makes this very computationally expensive
-def baseline_curve(data, window, **kwargs):
+def baseline_curve(data, window: int, **kwargs):
     """Based on massign method: https://pubs.acs.org/doi/abs/10.1021/ac300056a
 
     We initlise an array which has the same length as the input array, subsequently smooth the spectrum  and then
@@ -47,7 +48,7 @@ def baseline_curve(data, window, **kwargs):
     window = abs(window)
 
     length = data.shape[0]
-    mins = np.zeros((length), dtype=np.int32)
+    mins = np.zeros(length, dtype=np.int32)
 
     for i in range(length):
         mins[i] = np.amin(data[int(max([0, i - window])) : int(min([i + window, length]))])
@@ -55,7 +56,7 @@ def baseline_curve(data, window, **kwargs):
     return data - background
 
 
-def baseline_polynomial(y, deg=None, max_it=None, tol=None, **kwargs):
+def baseline_polynomial(y: np.ndarray, deg: int = 4, max_iter: int = 100, tol: float = 1e-3, **kwargs):
     """
     Taken from: https://peakutils.readthedocs.io/en/latest/index.html
     -----------------------------------------------------------------
@@ -73,7 +74,7 @@ def baseline_polynomial(y, deg=None, max_it=None, tol=None, **kwargs):
         Degree of the polynomial that will estimate the data baseline. A low
         degree may fail to detect all the baseline present, while a high
         degree may make the data too oscillatory, especially at the edges.
-    max_it : int (default: 100)
+    max_iter : int (default: 100)
         Maximum number of iterations to perform.
     tol : float (default: 1e-3)
         Tolerance to use when comparing the difference between the current
@@ -89,8 +90,8 @@ def baseline_polynomial(y, deg=None, max_it=None, tol=None, **kwargs):
     # for not repeating ourselves in `envelope`
     if deg is None:
         deg = 4
-    if max_it is None:
-        max_it = 100
+    if max_iter is None:
+        max_iter = 100
     if tol is None:
         tol = 1e-3
 
@@ -105,7 +106,7 @@ def baseline_polynomial(y, deg=None, max_it=None, tol=None, **kwargs):
     vander = np.vander(x, order)
     vander_pinv = LA.pinv2(vander)
 
-    for _ in range(max_it):
+    for _ in range(max_iter):
         coeffs_new = np.dot(vander_pinv, y)
 
         if LA.norm(coeffs_new - coeffs) / LA.norm(coeffs) < tol:
@@ -140,7 +141,7 @@ def baseline_als(y, lam, p, niter=10):
     return z
 
 
-def baseline_linear(data, threshold=0, **kwargs):
+def baseline_linear(data, threshold: float, **kwargs):
     value_max = np.max(data)
     if threshold < 0:
         raise MessageError("Incorrect input", "Value should be above 0")
@@ -153,10 +154,10 @@ def baseline_linear(data, threshold=0, **kwargs):
     return data
 
 
-def baseline_median(data, median_window=5, **kwargs):
+def baseline_median(data, median_window: int = 5, **kwargs):
     """Median-filter"""
     if median_window % 2 == 0:
-        raise MessageError("Median window must be an odd number")
+        raise MessageError("Incorrect input", "Median window must be an odd number")
 
     data = median_filter(data, median_window)
     return data
@@ -168,24 +169,67 @@ def baseline_tophat(data, tophat_window=100, **kwargs):
     return white_tophat(data, tophat_window)
 
 
-def baseline_1D(data, mode="Linear", **kwargs):
+def baseline_1D(
+    y,
+    baseline_method: str = "Linear",
+    threshold: Optional[float] = None,
+    poly_order: Optional[int] = 4,
+    max_iter: Optional[int] = 100,
+    tol: Optional[float] = 1e-3,
+    median_window: Optional[int] = 5,
+    curved_window: Optional[int] = None,
+    tophat_window: Optional[int] = 100,
+    **kwargs,
+):
+    """Subtract baseline from the y-axis intensity array
+
+    Parameters
+    ----------
+    y : ndarray
+        Data to detect the baseline.
+    baseline_method : str
+        baseline removal method
+    threshold : float
+        any value below `threshold` will be set to 0
+    poly_order : int
+        Degree of the polynomial that will estimate the data baseline. A low degree may fail to detect all the
+        baseline present, while a high degree may make the data too oscillatory, especially at the edges; only used
+        with method being `Polynomial`
+    max_iter : int
+        Maximum number of iterations to perform; only used with method being `Polynomial`
+    tol : float
+        Tolerance to use when comparing the difference between the current fit coefficients and the ones from the
+        last iteration. The iteration procedure will stop when the difference between them is lower than *tol*.; only
+        used with method being `Polynomial`
+    median_window : int
+        median filter size - should be an odd number; only used with method being `Median`
+    curved_window : int
+        curved window size; only used with method being `Curved`
+    tophat_window : int
+        tophat window size; only used with method being `Top Hat`
+
+    Returns
+    -------
+    y : np.ndarray
+        y-axis intensity array with baseline removed
+    """
     # ensure data is in 64-bit format
-    data = np.array(data, dtype=np.float64)
-    if mode == "Linear":
-        data = baseline_linear(data, **kwargs)
-    elif mode == "Polynomial":
-        baseline = baseline_polynomial(data, **kwargs)
-        data = data - baseline
-    elif mode == "Median":
-        data = baseline_median(data, **kwargs)
-    elif mode == "Curved":
-        data = baseline_curve(data, **kwargs)
-    elif mode == "Top Hat":
-        data = baseline_tophat(data, **kwargs)
+    y = np.array(y, dtype=np.float64)
+    if baseline_method == "Linear":
+        y = baseline_linear(y, threshold=threshold)
+    elif baseline_method == "Polynomial":
+        baseline = baseline_polynomial(y, deg=poly_order, max_iter=max_iter, tol=tol)
+        y = y - baseline
+    elif baseline_method == "Median":
+        y = baseline_median(y, median_window=median_window)
+    elif baseline_method == "Curved":
+        y = baseline_curve(y, curved_window)
+    elif baseline_method == "Top Hat":
+        y = baseline_tophat(y, tophat_window)
 
-    data[data <= 0] = 0
+    y[y <= 0] = 0
 
-    return data
+    return y
 
 
 def normalize_1D(data, mode="Maximum"):
@@ -247,58 +291,91 @@ def interpolate(x_short, y_short, x_long):
 def linearize_data(
     x: np.ndarray,
     y: np.ndarray,
+    linearize_method: Optional[str] = None,
     bin_size: Optional[float] = None,
-    linearization_mode: Optional[str] = None,
     auto_range: bool = True,
     x_min: Optional[float] = None,
     x_max: Optional[float] = None,
     x_bin: Optional[np.ndarray] = None,
     **kwargs,
 ):
-    """Linearize data by either up- or down-sampling"""
+    """Linearize data by either up- or down-sampling
+
+    Parameters
+    ----------
+    x : np.ndarray
+        x-axis values
+    y : np.ndarray
+        y-axis intensity values
+    linearize_method : str
+        name of the linearization method
+    bin_size : float
+        size of the bin between adjacent values in the x-axis
+    auto_range : bool
+        if `True`, the x-axis range will be decided automatically
+    x_min : floats
+        starting value of the linearization method
+    x_max : float
+        ending value of the linearization method
+    x_bin : np.ndarray
+        pre-computed x-axis values
+
+    Returns
+    -------
+    x_bin : np.ndarray
+        sub-sampled x-axis values
+    y_bin : np.ndarray
+        sub-sampled y-axis intensity values
+    """
 
     # get the x axis minimum/maximum values
     if auto_range or x_min is None or x_max is None:
         x_min = math.ceil(x[0] / bin_size) * bin_size
         x_max = math.floor(x[-1] / bin_size) * bin_size
     if x_bin is None:
-        x_bin = get_linearization_range(x_min, x_max, bin_size, linearization_mode)
+        x_bin = get_linearization_range(x_min, x_max, bin_size, linearize_method)
 
-    x_bin, y_bin = linearize(data=np.transpose([x, y]), bin_size=bin_size, mode=linearization_mode, x_bin=x_bin)
+    x_bin, y_bin = linearize(data=np.transpose([x, y]), bin_size=bin_size, mode=linearize_method, x_bin=x_bin)
     y_bin = np.nan_to_num(y_bin)
 
     return x_bin, y_bin
 
 
-def crop_1D_data(msX, msY, **kwargs):
-    """
-    msX : list
-        x-axis list
-    msY : list
-        y-axis list
-    """
+def crop_1D_data(x, y, crop_min: Optional[float] = None, crop_max: Optional[float] = None):
+    """Crop signal to defined x-axis region
 
-    crop_min, crop_max = kwargs["min"], kwargs["max"]
+    Parameters
+    ----------
+    x : np.ndarray
+        x-axis values
+    y : np.ndarray
+        y-axis intensity values
+    crop_min : float, optional
+        minimum value in the x-axis array to be retained
+    crop_max : float, optional
+        maximum value in the x-axis array to be retained
 
+    Returns
+    -------
+    x : np.ndarray
+        cropped x-axis array
+    y : np.ndarray
+        cropped y-axis array
+    """
     # get data min, max
-    data_min, data_max = get_min_max(msX)
-
-    # check if data is in appropriate range
-    if crop_min < data_min:
+    data_min, data_max = get_min_max(x)
+    if crop_min is None or crop_min < data_min:
         crop_min = data_min
 
-    if crop_max > data_max:
+    if crop_max is None or crop_max > data_max:
         crop_max = data_max
 
-    if crop_min == crop_max:
-        print("Please widen the mass range")
-        return msX, msY
+    if crop_min == crop_max or (crop_min == data_min and crop_max == data_max):
+        return x, y
 
-    # get spectrum
-    spectrum = np.transpose([msX, msY])
-    spectrum = get_narrow_data_range(spectrum, mzRange=(crop_min, crop_max))
+    min_idx, max_idx = find_nearest_index(x, [crop_min, crop_max])
 
-    return spectrum[:, 0], spectrum[:, 1]
+    return x[min_idx:max_idx], y[min_idx:max_idx]
 
 
 def sum_1D(data):
@@ -335,65 +412,82 @@ def sum_1D_dictionary(ydict=None):
     return ydict[key][0], msSum
 
 
-def smooth_gaussian_1D(data=None, sigma=1, **kwargs):
+def smooth_gaussian_1D(y, sigma: float, **kwargs):
     """Smooth using Gaussian filter"""
     if sigma < 0:
         raise MessageError("Incorrest value of `sigma`", "Value of `sigma` is too low. Value must be larger than 0")
 
-    dataOut = gaussian_filter(data, sigma=sigma, order=0)
+    dataOut = gaussian_filter(y, sigma=sigma, order=0)
     return dataOut
 
 
-def smooth_moving_average_1D(x, **kwargs):
+def smooth_moving_average_1D(y, N: int, **kwargs):
     """Smooth using moving average"""
     # get parameters
-    N = kwargs.pop("N")
     if N <= 0:
         raise MessageError(
-            "Incorrest value of `window size`", "Value of `window size` is too low. Value must be larger than 0"
+            "Incorrect value of `window size`", "Value of `window size` is too low. Value must be larger than 0"
         )
 
-    return np.convolve(x, np.ones((N,)) / N, mode="same")
+    return np.convolve(y, np.ones((N,)) / N, mode="same")
 
 
-def smooth_sav_gol_1D(data, **kwargs):
+def smooth_sav_gol_1D(y, poly_order: int, window_size: int, **kwargs):
     """Smooth using Savitzky-Golay filter"""
     # get parameters
-    polyOrder = kwargs.pop("polyOrder")
-    windowSize = kwargs.pop("windowSize")
     try:
-        dataOut = savgol_filter(data, polyorder=polyOrder, window_length=windowSize, axis=0)
+        y = savgol_filter(y, polyorder=poly_order, window_length=window_size, axis=0)
     except (ValueError, TypeError, MemoryError) as err:
         logger.error(err)
-        return data
+        return y
 
-    return dataOut
+    return y
 
 
-def smooth_1D(data=None, mode="Gaussian", **kwargs):
-    """Smooth data"""
+def smooth_1D(
+    y,
+    smooth_method: Optional[str] = "Gaussian",
+    sigma: Optional[float] = None,
+    poly_order: Optional[int] = None,
+    window_size: Optional[int] = None,
+    N: Optional[int] = None,
+    **kwargs,
+):
+    """Smooth spectral data using one of few filters
 
-    if mode == "Gaussian":
-        data = smooth_gaussian_1D(data, **kwargs)
-    elif mode == "Savitzky-Golay":
-        data = smooth_sav_gol_1D(data, **kwargs)
-    elif mode == "Moving average":
-        data = smooth_moving_average_1D(data, **kwargs)
+    Parameters
+    ----------
+    y : np.ndarray
+        y-axis intensity values
+    smooth_method : str
+        name of the smoothing method
+    sigma: float
+        gaussian sigma value; only used with method being `Gaussian`
+    poly_order : int
+        polynomial value; only used with method being `Savitzky-Golay`
+    window_size : int
+        window size; only used with method being `Savitzky-Golay`
+    N : int
+        size of the window in moving average; only used with method being `Moving average`
+
+    Returns
+    -------
+    y : np.ndarray
+        smoothed signal
+
+    """
+
+    if smooth_method == "Gaussian":
+        y = smooth_gaussian_1D(y, sigma=sigma)
+    elif smooth_method == "Savitzky-Golay":
+        y = smooth_sav_gol_1D(y, poly_order=poly_order, window_size=window_size)
+    elif smooth_method == "Moving average":
+        y = smooth_moving_average_1D(y, N=N)
 
     # remove values below zero
-    data[data < 0] = 0
+    y[y < 0] = 0
 
-    return data
-
-
-def sum_spectrum_to_chromatogram(ydict=None):
-    """ sum data in direction to obtain retention times plot """
-    rtX, rtY = [], []
-    for key in ydict:
-        rtX.append(key)
-        rtY.append(np.sum(ydict[key][1]))
-
-    return np.asarray(rtX), np.asarray(rtY)
+    return y
 
 
 def abline(x_vals, slope, intercept):

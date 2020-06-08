@@ -525,14 +525,17 @@ class MainWindow(wx.Frame):
         menu_file = wx.Menu()
         menu_file.AppendMenu(ID_fileMenu_openRecent, "Open Recent", self.menuRecent)
         menu_file.AppendSeparator()
-        menu_file.AppendItem(
-            make_menu_item(
-                parent=menu_file,
-                evt_id=ID_openDocument,
-                text="Open ORIGAMI Document file (.pickle)\tCtrl+Shift+P",
-                bitmap=self.icons.iconsLib["open_project_16"],
-            )
+
+        menu_file_load_origami = make_menu_item(parent=menu_file, text="Open ORIGAMI Document (.origami)")
+        menu_file.AppendItem(menu_file_load_origami)
+
+        menu_file_load_pickle = make_menu_item(
+            parent=menu_file,
+            evt_id=ID_openDocument,
+            text="Open ORIGAMI Document file (.pickle) [LEGACY]",
+            bitmap=self.icons.iconsLib["open_project_16"],
         )
+        menu_file.AppendItem(menu_file_load_pickle)
         menu_file.AppendSeparator()
         menu_file.AppendItem(
             make_menu_item(
@@ -1211,6 +1214,7 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_open_HTML_guide, id=ID_help_page_annotatingMassSpectra)
 
         # FILE MENU
+        self.Bind(wx.EVT_MENU, self.data_handling.on_open_origami_document, menu_file_load_origami)
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_multiple_text_2d_fcn, menu_file_text_heatmap)
 
         #         self.Bind(wx.EVT_MENU, self.data_handling.on_open_MassLynx_raw_fcn, id=ID_openIRRawFile)

@@ -775,8 +775,9 @@ class DataProcessing:
         # crop spectrum
         if self.config.ms_process_crop:
             tstart = ttime()
-            pr_kwargs = {"min": self.config.ms_crop_min, "max": self.config.ms_crop_max}
-            msX, msY = pr_spectra.crop_1D_data(msX, msY, **pr_kwargs)
+            msX, msY = pr_spectra.crop_1D_data(
+                msX, msY, crop_min=self.config.ms_crop_min, crop_max=self.config.ms_crop_max
+            )
             process_msg += f"Crop:{ttime()-tstart:.4f}s | "
 
         # linear spectrum

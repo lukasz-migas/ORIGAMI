@@ -93,6 +93,7 @@ class Environment(PropertyCallbackManager):
         super(Environment, self).__init__()
         self._current = None
         self.documents = dict()
+        LOGGER.debug("Instantiated Document Store Environment")
 
     def __repr__(self):
         return f"DocumentStore<{self.n_documents} documents>"
@@ -110,6 +111,8 @@ class Environment(PropertyCallbackManager):
 
     def __setitem__(self, key, value):
         """Set document object"""
+        #         if key.endswith(".origami"):
+        #             key, _ = key[::-8]
         self.documents[key] = value
         self.current = value.title
         self._trigger("add", value.title)
@@ -215,7 +218,6 @@ class Environment(PropertyCallbackManager):
         """Returns current document"""
         if title is None:
             title = self.current
-
         return self.documents[title]
 
     def save(self, path: str):
@@ -288,6 +290,9 @@ class Environment(PropertyCallbackManager):
 
         if changed:
             self._trigger("change", changed)
+
+        # set document in-place
+        self[document.title] = document
         return document
 
     def _get_new_name(self, title: str = "New Document", n_fill: int = 1):

@@ -334,6 +334,8 @@ class DocumentTree(wx.TreeCtrl):
 
     def _env_on_change(self, evt, metadata):
         print(evt, metadata)
+        if evt == "add":
+            self.add_document(ENV[metadata])
 
     def _bind_change_label_events(self):
         for xID in [
@@ -352,7 +354,7 @@ class DocumentTree(wx.TreeCtrl):
             ID_xlabel_2D_time_min,
             ID_xlabel_2D_retTime_min,
         ]:
-            self.Bind(wx.EVT_MENU, self.on_change_xy_values_and_labels, id=xID)
+            self.Bind(wx.EVT_MENU, self.on_change_x_values_and_labels, id=xID)
 
         for yID in [
             ID_ylabel_2D_bins,
@@ -362,7 +364,7 @@ class DocumentTree(wx.TreeCtrl):
             ID_ylabel_2D_restore,
             ID_ylabel_2D_custom,
         ]:
-            self.Bind(wx.EVT_MENU, self.on_change_xy_values_and_labels, id=yID)
+            self.Bind(wx.EVT_MENU, self.on_change_y_values_and_labels, id=yID)
 
         # 1D
         for yID in [
@@ -372,15 +374,15 @@ class DocumentTree(wx.TreeCtrl):
             ID_xlabel_1D_ccs,
             ID_xlabel_1D_restore,
         ]:
-            self.Bind(wx.EVT_MENU, self.on_change_xy_values_and_labels, id=yID)
+            self.Bind(wx.EVT_MENU, self.on_change_x_values_and_labels, id=yID)
 
         # RT
         for yID in [ID_xlabel_RT_scans, ID_xlabel_RT_time_min, ID_xlabel_RT_retTime_min, ID_xlabel_RT_restore]:
-            self.Bind(wx.EVT_MENU, self.on_change_xy_values_and_labels, id=yID)
+            self.Bind(wx.EVT_MENU, self.on_change_x_values_and_labels, id=yID)
 
         # DT/MS
         for yID in [ID_ylabel_DTMS_bins, ID_ylabel_DTMS_ms, ID_ylabel_DTMS_ms_arrival, ID_ylabel_DTMS_restore]:
-            self.Bind(wx.EVT_MENU, self.on_change_xy_values_and_labels, id=yID)
+            self.Bind(wx.EVT_MENU, self.on_change_y_values_and_labels, id=yID)
 
     def reset_document_tree_bullets(self):
         """Erase all bullets and make defaults."""
@@ -1022,8 +1024,8 @@ class DocumentTree(wx.TreeCtrl):
 
         xlabel_evt_dict = {
             "Scans": ID_xlabel_RT_scans,
-            "Time (min)": ID_xlabel_RT_time_min,
-            "Retention time (min)": ID_xlabel_RT_retTime_min,
+            "Time (mins)": ID_xlabel_RT_time_min,
+            "Retention time (mins)": ID_xlabel_RT_retTime_min,
         }
 
         return xlabel_evt_dict.get(xlabel, None)
@@ -1032,8 +1034,8 @@ class DocumentTree(wx.TreeCtrl):
         """Check label of the heatmap dataset"""
         xlabel_evt_dict = {
             "Scans": ID_xlabel_2D_scans,
-            "Time (min)": ID_xlabel_2D_time_min,
-            "Retention time (min)": ID_xlabel_2D_retTime_min,
+            "Time (mins)": ID_xlabel_2D_time_min,
+            "Retention time (mins)": ID_xlabel_2D_retTime_min,
             "Collision Voltage (V)": ID_xlabel_2D_colVolt,
             "Activation Voltage (V)": ID_xlabel_2D_actVolt,
             "Lab Frame Energy (eV)": ID_xlabel_2D_labFrame,
@@ -1532,8 +1534,8 @@ class DocumentTree(wx.TreeCtrl):
         # Change x-axis label (2D)
         menu_xlabel = wx.Menu()
         menu_xlabel.Append(ID_xlabel_2D_scans, "Scans", "", wx.ITEM_RADIO)
-        menu_xlabel.Append(ID_xlabel_2D_time_min, "Time (min)", "", wx.ITEM_RADIO)
-        menu_xlabel.Append(ID_xlabel_2D_retTime_min, "Retention time (min)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_2D_time_min, "Time (mins)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_2D_retTime_min, "Retention time (mins)", "", wx.ITEM_RADIO)
         menu_xlabel.Append(ID_xlabel_2D_colVolt, "Collision Voltage (V)", "", wx.ITEM_RADIO)
         menu_xlabel.Append(ID_xlabel_2D_actVolt, "Activation Energy (V)", "", wx.ITEM_RADIO)
         menu_xlabel.Append(ID_xlabel_2D_labFrame, "Lab Frame Energy (eV)", "", wx.ITEM_RADIO)
@@ -1593,8 +1595,8 @@ class DocumentTree(wx.TreeCtrl):
         # Change x-axis label (RT)
         menu_xlabel = wx.Menu()
         menu_xlabel.Append(ID_xlabel_RT_scans, "Scans", "", wx.ITEM_RADIO)
-        menu_xlabel.Append(ID_xlabel_RT_time_min, "Time (min)", "", wx.ITEM_RADIO)
-        menu_xlabel.Append(ID_xlabel_RT_retTime_min, "Retention time (min)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_RT_time_min, "Time (mins)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_RT_retTime_min, "Retention time (mins)", "", wx.ITEM_RADIO)
         menu_xlabel.AppendSeparator()
         menu_xlabel.Append(ID_xlabel_RT_restore, "Restore default", "")
 
@@ -2331,313 +2333,19 @@ class DocumentTree(wx.TreeCtrl):
         menu.Destroy()
         self.SetFocus()
 
-    # TODO: FIXME
-    def on_change_xy_values_and_labels(self, evt):
+    def on_change_x_values_and_labels(self, evt):
         """Change xy-axis labels"""
-        raise NotImplementedError("Must implement method")
-        #
-        # # Get current document info
-        # document_title, selectedItem, selectedText = self.on_enable_document(get_selected_item=True)
-        # indent = self.get_item_indent(selectedItem)
-        # selectedItemParentText = None
-        # if indent > 2:
-        #     __, selectedItemParentText = self.get_parent_item(selectedItem, 2, get_selected=True)
-        # else:
-        #     pass
-        # document = ENV[document_title]
-        #
-        # # get event
-        # evtID = evt.GetId()
-        #
-        # # Determine which dataset is used
-        # if selectedText is None:
-        #     data = document.IMS2D
-        # elif selectedText == "Drift time (2D)":
-        #     data = document.IMS2D
-        # elif selectedText == "Drift time (2D, processed)":
-        #     data = document.IMS2Dprocess
-        # elif selectedItemParentText == "Drift time (2D, EIC)" and selectedText is not None:
-        #     data = document.IMS2Dions[selectedText]
-        # elif selectedItemParentText == "Drift time (2D, combined voltages, EIC)" and selectedText is not None:
-        #     data = document.IMS2DCombIons[selectedText]
-        # elif selectedItemParentText == "Drift time (2D, processed, EIC)" and selectedText is not None:
-        #     data = document.IMS2DionsProcess[selectedText]
-        # elif selectedItemParentText == "Input data" and selectedText is not None:
-        #     data = document.IMS2DcompData[selectedText]
-        #
-        # # 1D data
-        # elif selectedText == "Drift time (1D)":
-        #     data = document.DT
-        # elif selectedItemParentText == "Drift time (1D, EIC)" and selectedText is not None:
-        #     data = document.multipleDT[selectedText]
-        #
-        # # chromatograms
-        # elif selectedText == "Chromatogram":
-        #     data = document.RT
-        # elif selectedItemParentText == "Chromatograms (EIC)" and selectedText is not None:
-        #     data = document.multipleRT[selectedText]
-        # elif selectedItemParentText == "Chromatograms (combined voltages, EIC)" and selectedText is not None:
-        #     data = document.IMSRTCombIons[selectedText]
-        #
-        # # DTMS
-        # elif selectedText == "DT/MS":
-        #     data = document.DTMZ
-        #
-        # # try to get dataset object
-        # try:
-        #     docItem = self.get_item_by_data(data)
-        # except Exception:
-        #     docItem = False
-        #
-        # # Add default values
-        # if "defaultX" not in data:
-        #     data["defaultX"] = {"xlabels": data["xlabels"], "xvals": data["xvals"]}
-        # if "defaultY" not in data:
-        #     data["defaultY"] = {"ylabels": data.get("ylabels", "Intensity"), "yvals": data["yvals"]}
-        #
-        # # If either label is none, then ignore it
-        # newXlabel, newYlabel = None, None
-        # restoreX, restoreY = False, False
-        #
-        # # Determine what the new label should be
-        # if evtID in [
-        #     ID_xlabel_2D_scans,
-        #     ID_xlabel_2D_colVolt,
-        #     ID_xlabel_2D_actVolt,
-        #     ID_xlabel_2D_labFrame,
-        #     ID_xlabel_2D_massToCharge,
-        #     ID_xlabel_2D_actLabFrame,
-        #     ID_xlabel_2D_massToCharge,
-        #     ID_xlabel_2D_mz,
-        #     ID_xlabel_2D_wavenumber,
-        #     ID_xlabel_2D_wavenumber,
-        #     ID_xlabel_2D_custom,
-        #     ID_xlabel_2D_charge,
-        #     ID_xlabel_2D_ccs,
-        #     ID_xlabel_2D_retTime_min,
-        #     ID_xlabel_2D_time_min,
-        #     ID_xlabel_2D_restore,
-        # ]:
-        #
-        #     # If changing X-labels
-        #     newXlabel = "Scans"
-        #     restoreX = False
-        #     if evtID == ID_xlabel_2D_scans:
-        #         newXlabel = "Scans"
-        #     elif evtID == ID_xlabel_2D_time_min:
-        #         newXlabel = "Time (min)"
-        #     elif evtID == ID_xlabel_2D_retTime_min:
-        #         newXlabel = "Retention time (min)"
-        #     elif evtID == ID_xlabel_2D_colVolt:
-        #         newXlabel = "Collision Voltage (V)"
-        #     elif evtID == ID_xlabel_2D_actVolt:
-        #         newXlabel = "Activation Voltage (V)"
-        #     elif evtID == ID_xlabel_2D_labFrame:
-        #         newXlabel = "Lab Frame Energy (eV)"
-        #     elif evtID == ID_xlabel_2D_actLabFrame:
-        #         newXlabel = "Activation Energy (eV)"
-        #     elif evtID == ID_xlabel_2D_massToCharge:
-        #         newXlabel = "Mass-to-charge (Da)"
-        #     elif evtID == ID_xlabel_2D_mz:
-        #         newXlabel = "m/z (Da)"
-        #     elif evtID == ID_xlabel_2D_wavenumber:
-        #         newXlabel = "Wavenumber (cm⁻¹)"
-        #     elif evtID == ID_xlabel_2D_charge:
-        #         newXlabel = "Charge"
-        #     elif evtID == ID_xlabel_2D_ccs:
-        #         newXlabel = "Collision Cross Section (Å²)"
-        #     elif evtID == ID_xlabel_2D_custom:
-        #         newXlabel = DialogSimpleAsk("Please type in your new label...")
-        #     elif evtID == ID_xlabel_2D_restore:
-        #         newXlabel = data["defaultX"]["xlabels"]
-        #         restoreX = True
-        #     elif newXlabel == "" or newXlabel is None:
-        #         newXlabel = "Scans"
-        #
-        # if evtID in [
-        #     ID_ylabel_2D_bins,
-        #     ID_ylabel_2D_ms,
-        #     ID_ylabel_2D_ms_arrival,
-        #     ID_ylabel_2D_ccs,
-        #     ID_ylabel_2D_restore,
-        #     ID_ylabel_2D_custom,
-        # ]:
-        #     # If changing Y-labels
-        #     newYlabel = "Drift time (bins)"
-        #     restoreY = False
-        #     if evtID == ID_ylabel_2D_bins:
-        #         newYlabel = "Drift time (bins)"
-        #     elif evtID == ID_ylabel_2D_ms:
-        #         newYlabel = "Drift time (ms)"
-        #     elif evtID == ID_ylabel_2D_ms_arrival:
-        #         newYlabel = "Arrival time (ms)"
-        #     elif evtID == ID_ylabel_2D_ccs:
-        #         newYlabel = "Collision Cross Section (Å²)"
-        #     elif evtID == ID_ylabel_2D_custom:
-        #         newYlabel = DialogSimpleAsk("Please type in your new label...")
-        #     elif evtID == ID_ylabel_2D_restore:
-        #         newYlabel = data["defaultY"]["ylabels"]
-        #         restoreY = True
-        #     elif newYlabel == "" or newYlabel is None:
-        #         newYlabel = "Drift time (bins)"
-        #
-        # # 1D data
-        # if evtID in [
-        #     ID_xlabel_1D_bins,
-        #     ID_xlabel_1D_ms,
-        #     ID_xlabel_1D_ms_arrival,
-        #     ID_xlabel_1D_ccs,
-        #     ID_xlabel_1D_restore,
-        # ]:
-        #     newXlabel = "Drift time (bins)"
-        #     restoreX = False
-        #     if evtID == ID_xlabel_1D_bins:
-        #         newXlabel = "Drift time (bins)"
-        #     elif evtID == ID_xlabel_1D_ms:
-        #         newXlabel = "Drift time (ms)"
-        #     elif evtID == ID_xlabel_1D_ms_arrival:
-        #         newXlabel = "Arrival time (ms)"
-        #     elif evtID == ID_xlabel_1D_ccs:
-        #         newXlabel = "Collision Cross Section (Å²)"
-        #     elif evtID == ID_xlabel_1D_restore:
-        #         newXlabel = data["defaultX"]["xlabels"]
-        #         restoreX = True
-        #
-        # # 1D data
-        # if evtID in [ID_xlabel_RT_scans, ID_xlabel_RT_time_min, ID_xlabel_RT_retTime_min, ID_xlabel_RT_restore]:
-        #     newXlabel = "Drift time (bins)"
-        #     restoreX = False
-        #     if evtID == ID_xlabel_RT_scans:
-        #         newXlabel = "Scans"
-        #     elif evtID == ID_xlabel_RT_time_min:
-        #         newXlabel = "Time (min)"
-        #     elif evtID == ID_xlabel_RT_retTime_min:
-        #         newXlabel = "Retention time (min)"
-        #     elif evtID == ID_xlabel_RT_restore:
-        #         newXlabel = data["defaultX"]["xlabels"]
-        #         restoreX = True
-        #
-        # # DT/MS
-        # if evtID in [ID_ylabel_DTMS_bins, ID_ylabel_DTMS_ms, ID_ylabel_DTMS_ms_arrival, ID_ylabel_DTMS_restore]:
-        #     newYlabel = "Drift time (bins)"
-        #     restoreX = False
-        #     if evtID == ID_ylabel_DTMS_bins:
-        #         newYlabel = "Drift time (bins)"
-        #     elif evtID == ID_ylabel_DTMS_ms:
-        #         newYlabel = "Drift time (ms)"
-        #     elif evtID == ID_ylabel_DTMS_ms_arrival:
-        #         newYlabel = "Arrival time (ms)"
-        #     elif evtID == ID_ylabel_DTMS_restore:
-        #         newYlabel = data["defaultY"]["ylabels"]
-        #         restoreY = True
-        #     elif newYlabel == "" or newYlabel is None:
-        #         newYlabel = "Drift time (bins)"
-        #
-        # if restoreX:
-        #     newXvals = data["defaultX"]["xvals"]
-        #     data["xvals"] = newXvals
-        #     data["xlabels"] = newXlabel
-        #
-        # if restoreY:
-        #     newYvals = data["defaultY"]["yvals"]
-        #     data["yvals"] = newYvals
-        #     data["ylabels"] = newYlabel
-        #
-        # # Change labels
-        # if newXlabel is not None:
-        #     oldXLabel = data["xlabels"]
-        #     data["xlabels"] = newXlabel  # Set new x-label
-        #     newXvals = self.on_change_xy_axis(
-        #         data["xvals"],
-        #         oldXLabel,
-        #         newXlabel,
-        #         charge=data.get("charge", 1),
-        #         pusherFreq=document.parameters.get("pusherFreq", 1000),
-        #         scanTime=document.parameters.get("scanTime", 1.0),
-        #         defaults=data["defaultX"],
-        #     )
-        #     data["xvals"] = newXvals  # Set new x-values
-        #
-        # if newYlabel is not None:
-        #     oldYLabel = data["ylabels"]
-        #     data["ylabels"] = newYlabel
-        #     newYvals = self.on_change_xy_axis(
-        #         data["yvals"],
-        #         oldYLabel,
-        #         newYlabel,
-        #         pusherFreq=document.parameters.get("pusherFreq", 1000),
-        #         scanTime=document.parameters.get("scanTime", 1.0),
-        #         defaults=data["defaultY"],
-        #     )
-        #     data["yvals"] = newYvals
-        #
-        # expand_item = "document"
-        # expand_item_title = None
-        # replotID = evtID
-        # # Replace data in the dictionary
-        # if selectedText is None:
-        #     document.IMS2D = data
-        #     replotID = ID_showPlotDocument
-        # elif selectedText == "Drift time (2D)":
-        #     document.IMS2D = data
-        #     replotID = ID_showPlotDocument
-        # elif selectedText == "Drift time (2D, processed)":
-        #     document.IMS2Dprocess = data
-        #     replotID = ID_showPlotDocument
-        # elif selectedItemParentText == "Drift time (2D, EIC)" and selectedText is not None:
-        #     document.IMS2Dions[selectedText] = data
-        #     expand_item, expand_item_title = "ions", selectedText
-        #     replotID = ID_showPlotDocument
-        # elif selectedItemParentText == "Drift time (2D, combined voltages, EIC)" and selectedText is not None:
-        #     document.IMS2DCombIons[selectedText] = data
-        #     expand_item, expand_item_title = "combined_ions", selectedText
-        #     replotID = ID_showPlotDocument
-        # elif selectedItemParentText == "Drift time (2D, processed, EIC)" and selectedText is not None:
-        #     document.IMS2DionsProcess[selectedText] = data
-        #     expand_item, expand_item_title = "processed_ions", selectedText
-        #     replotID = ID_showPlotDocument
-        # elif selectedItemParentText == "Input data" and selectedText is not None:
-        #     document.IMS2DcompData[selectedText] = data
-        #     expand_item_title = selectedText
-        #     replotID = ID_showPlotDocument
-        #
-        # # 1D data
-        # elif selectedText == "Drift time (1D)":
-        #     document.DT = data
-        # elif selectedItemParentText == "Drift time (1D, EIC)" and selectedText is not None:
-        #     document.multipleDT[selectedText] = data
-        #     expand_item, expand_item_title = "ions_1D", selectedText
-        #
-        # # Chromatograms
-        # elif selectedText == "Chromatogram":
-        #     document.RT = data
-        #     replotID = ID_showPlotDocument
-        # elif selectedItemParentText == "Chromatograms (EIC)" and selectedText is not None:
-        #     data = document.multipleRT[selectedText] = data
-        # elif selectedItemParentText == "Chromatograms (combined voltages, EIC)" and selectedText is not None:
-        #     data = document.IMSRTCombIons[selectedText] = data
-        #
-        # # DT/MS
-        # elif selectedText == "DT/MS":
-        #     document.DTMZ = data
-        # else:
-        #     document.IMS2D
-        #
-        # # update document
-        # if docItem is not False:
-        #     try:
-        #         self.SetPyData(docItem, data)
-        #         ENV[document.title] = document
-        #     except Exception:
-        #         self.data_handling.on_update_document(document, expand_item, expand_item_title=expand_item_title)
-        # else:
-        #     self.data_handling.on_update_document(document, expand_item, expand_item_title=expand_item_title)
-        #
-        # # Try to plot that data
-        # try:
-        #     self.on_show_plot(evt=replotID)
-        # except Exception:
-        #     pass
+        obj = self._get_item_object()
+        to_label = evt.EventObject.GetLabelText(evt.GetId())
+        obj.change_x_label(to_label)
+        self.on_show_plot(None)
+
+    def on_change_y_values_and_labels(self, evt):
+        """Change xy-axis labels"""
+        obj = self._get_item_object()
+        to_label = evt.EventObject.GetLabelText(evt.GetId())
+        obj.change_y_label(to_label)
+        self.on_show_plot(None)
 
     def on_change_xy_axis(self, data, oldLabel, newLabel, charge=1, pusherFreq=1000, scanTime=1.0, defaults=None):
         """

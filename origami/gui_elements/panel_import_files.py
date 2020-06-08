@@ -429,6 +429,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
         if document:
             logger.info(f"Found document: {document.title}")
+            self._on_delete_all_force()
 
         # restore pre-processing parameters
         metadata = dict()
@@ -436,24 +437,27 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
             metadata = document.get_config(self.CONFIG_NAME)
 
         if metadata:
+            linearize_metadata = metadata.get("linearize", dict())
+
             # linearization
             CONFIG.ms_process_linearize = True
-            CONFIG.ms_linearization_mode = metadata.get("linearization_mode", "Linear interpolation")
-            CONFIG.ms_mzStart = metadata.get("mz_min", CONFIG.ms_mzStart)
-            CONFIG.ms_mzEnd = metadata.get("mz_max", CONFIG.ms_mzEnd)
-            CONFIG.ms_mzBinSize = metadata.get("mz_bin", CONFIG.ms_mzBinSize)
+            CONFIG.ms_linearization_mode = linearize_metadata.get("linearize_method", "Linear interpolation")
+            CONFIG.ms_mzStart = linearize_metadata.get("x_min", CONFIG.ms_mzStart)
+            CONFIG.ms_mzEnd = linearize_metadata.get("x_max", CONFIG.ms_mzEnd)
+            CONFIG.ms_mzBinSize = linearize_metadata.get("bin_size", CONFIG.ms_mzBinSize)
             CONFIG.ms_auto_range = False
 
             # baseline
-            CONFIG.ms_process_threshold = metadata.get("baseline_correction", CONFIG.ms_process_threshold)
-            CONFIG.ms_baseline = metadata.get("baseline_method", CONFIG.ms_baseline)
-            CONFIG.ms_threshold = metadata.get("baseline_threshold", CONFIG.ms_threshold)
-            CONFIG.ms_baseline_polynomial_order = metadata.get(
-                "baseline_polynomial_order", CONFIG.ms_baseline_polynomial_order
+            baseline_metadata = metadata.get("baseline", dict())
+            CONFIG.ms_baseline = baseline_metadata.get("baseline_method", CONFIG.ms_baseline)
+            CONFIG.ms_process_threshold = baseline_metadata.get("correction", CONFIG.ms_process_threshold)
+            CONFIG.ms_threshold = baseline_metadata.get("threshold", CONFIG.ms_threshold)
+            CONFIG.ms_baseline_polynomial_order = baseline_metadata.get(
+                "poly_order", CONFIG.ms_baseline_polynomial_order
             )
-            CONFIG.ms_baseline_curved_window = metadata.get("baseline_curved_window", CONFIG.ms_baseline_curved_window)
-            CONFIG.ms_baseline_median_window = metadata.get("baseline_median_window", CONFIG.ms_baseline_median_window)
-            CONFIG.ms_baseline_tophat_window = metadata.get("baseline_tophat_window", CONFIG.ms_baseline_tophat_window)
+            CONFIG.ms_baseline_curved_window = metadata.get("curved_window", CONFIG.ms_baseline_curved_window)
+            CONFIG.ms_baseline_median_window = metadata.get("median_window", CONFIG.ms_baseline_median_window)
+            CONFIG.ms_baseline_tophat_window = metadata.get("tophat_window", CONFIG.ms_baseline_tophat_window)
             self.on_update_info()
             self.on_update_implementation(metadata)
 
@@ -645,19 +649,19 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
         # build kwargs
         kwargs = dict(
-            linearization_mode=linearization_mode,
-            x_min=mz_min,
-            x_max=mz_max,
-            bin_size=mz_bin,
-            auto_range=False,
             im_on=im_on_out,
-            baseline_correction=CONFIG.ms_process_threshold,
-            baseline_method=CONFIG.ms_baseline,
-            baseline_threshold=CONFIG.ms_threshold,
-            baseline_polynomial_order=CONFIG.ms_baseline_polynomial_order,
-            baseline_curved_window=CONFIG.ms_baseline_curved_window,
-            baseline_median_window=CONFIG.ms_baseline_median_window,
-            baseline_tophat_window=CONFIG.ms_baseline_tophat_window,
+            linearize=dict(
+                linearize_method=linearization_mode, x_min=mz_min, x_max=mz_max, bin_size=mz_bin, auto_range=False
+            ),
+            baseline=dict(
+                correction=CONFIG.ms_process_threshold,
+                baseline_method=CONFIG.ms_baseline,
+                threshold=CONFIG.ms_threshold,
+                poly_order=CONFIG.ms_baseline_polynomial_order,
+                curved_window=CONFIG.ms_baseline_curved_window,
+                median_window=CONFIG.ms_baseline_median_window,
+                tophat_window=CONFIG.ms_baseline_tophat_window,
+            ),
             **impl_kwargs,
         )
 

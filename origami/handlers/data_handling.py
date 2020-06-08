@@ -31,7 +31,6 @@ from origami.utils.random import get_random_int
 from origami.utils.ranges import get_min_max
 from origami.handlers.call import Call
 from origami.handlers.load import LoadHandler
-
 # from origami.config.convert import convert_v1_to_v2
 # from origami.config.convert import upgrade_document_annotations
 from origami.handlers.export import ExportHandler
@@ -39,7 +38,6 @@ from origami.utils.utilities import report_time
 from origami.objects.document import DocumentStore
 from origami.processing.utils import get_maximum_value_in_range
 from origami.readers.io_utils import get_waters_inf_data
-
 # from origami.readers.io_utils import get_waters_header_data
 # from origami.utils.converters import str2num
 from origami.utils.converters import byte2str
@@ -48,11 +46,9 @@ from origami.utils.converters import convert_mins_to_scans
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
 from origami.objects.containers import DataObject
-
 # from origami.processing.imaging import ImagingNormalizationProcessor
 from origami.handlers.queue_handler import QUEUE
 from origami.gui_elements.misc_dialogs import DialogBox
-
 # from origami.gui_elements.dialog_select_document import DialogSelectDocument
 from origami.gui_elements.dialog_multi_directory_picker import DialogMultiDirPicker
 
@@ -205,6 +201,20 @@ class DataHandling(LoadHandler, ExportHandler):
 
     def update_statusbar(self, msg, field):
         self.on_threading(args=(msg, field), action="statusbar.update")
+
+    def on_open_origami_document(self, evt):
+        """Open ORIGAMI document"""
+        path = None
+        dlg = wx.DirDialog(self.view, "Choose a ORIGAMI (.origami) directory store", style=wx.DD_DEFAULT_STYLE)
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+        dlg.Destroy()
+
+        if path is None or not path.endswith(".origami"):
+            logger.warning("Operation was cancelled")
+            return
+
+        self.on_setup_basic_document(ENV.load(path))
 
     def on_open_directory(self, path):
         """Open document path"""
@@ -2263,7 +2273,6 @@ class DataHandling(LoadHandler, ExportHandler):
 
         # update dictionary
         ENV[document.title] = document
-        self.presenter.currentDoc = document.title
 
         if expand_item == "document":
             self.documentTree.add_document(document, expandItem=document)

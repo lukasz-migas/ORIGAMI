@@ -311,7 +311,7 @@ class SpectrumGroup(DataGroup):
                     obj.y,
                     x_min=x_min,
                     x_max=x_max,
-                    linearization_mode=linearization_mode,
+                    linearize_method=linearization_mode,
                     bin_size=bin_size,
                     auto_range=False,
                 )
@@ -333,7 +333,7 @@ class SpectrumGroup(DataGroup):
             x_max = prev_processing.get("x_max", _x_max)
 
         if not linearization_mode:
-            linearization_mode = prev_processing.get("linearization_mode", CONFIG.ms_linearization_mode)
+            linearization_mode = prev_processing.get("linearize_method", CONFIG.ms_linearization_mode)
 
         if not bin_size:
             bin_size = prev_processing.get("bin_size", CONFIG.ms_mzBinSize)

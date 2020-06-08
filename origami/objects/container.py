@@ -23,6 +23,7 @@ class ContainerBase:
 
     @property
     def owner(self):
+        """Returns the owner of the container object"""
         return self._owner
 
     @owner.setter
@@ -39,7 +40,14 @@ class ContainerBase:
         self._output_path = value
 
     @property
+    def title(self):
+        if self.owner is not None:
+            _, item_name = self.owner
+            return item_name
+
+    @property
     def path(self):
+        """Returns the path to the container object data and metadata"""
         return self._path
 
     def set_metadata(self, metadata):
@@ -50,11 +58,13 @@ class ContainerBase:
 
     @property
     def output_path(self):
+        """Returns the output path in relation to the DocumentStore"""
         if self._output_path:
             return os.path.join(self._output_path, clean_filename(self.owner[1].split("/")[-1]))
 
     @property
     def x_label(self):
+        """Returns the x-axis label"""
         return self._x_label
 
     @x_label.setter
@@ -63,7 +73,15 @@ class ContainerBase:
         self._x_label = value
 
     @property
+    def x_label_options(self):
+        """Returns the x-axis label options"""
+        if self._x_label_options is None:
+            self._x_label_options = [self._x_label]
+        return self._x_label_options
+
+    @property
     def y_label(self):
+        """Returns the y-axis label"""
         return self._y_label
 
     @y_label.setter
@@ -72,7 +90,17 @@ class ContainerBase:
         self._y_label = value
 
     @property
-    def x_label_options(self):
-        if self._x_label_options is None:
-            self._x_label_options = [self._x_label]
-        return self._x_label_options
+    def y_label_options(self):
+        """Returns the y-axis label options"""
+        if self._y_label_options is None:
+            self._y_label_options = [self._y_label]
+        return self._y_label_options
+
+    def get_parent(self):
+        """Returns the DocumentStore object that is associated with the container"""
+        # environment must be imported here since it might cause circular reference if imported at the top
+        from origami.config.environment import ENV
+
+        if self.owner is not None:
+            parent, _ = self.owner
+            return ENV.on_get_document(parent)

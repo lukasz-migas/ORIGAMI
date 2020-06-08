@@ -216,7 +216,7 @@ class DocumentStore:
     def parameters(self):
         """Returns parameters object"""
         if "Metadata/Parameters" in self:
-            return self["Metadata/Parameters"]
+            return self["Metadata/Parameters"].attrs.asdict()
         return {}
 
     def group(self, key):

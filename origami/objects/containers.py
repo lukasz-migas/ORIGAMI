@@ -8,12 +8,10 @@ import numpy as np
 from zarr import Group
 
 # Local imports
+import origami.processing.spectra as pr_spectra
 from origami.utils.ranges import get_min_max
 from origami.objects.container import ContainerBase
 from origami.processing.heatmap import equalize_heatmap_spacing
-from origami.processing.spectra import baseline_1D
-from origami.processing.spectra import normalize_1D
-from origami.processing.spectra import linearize_data
 
 # TODO: add x/y-axis converters to easily switch between labels
 
@@ -29,6 +27,13 @@ def get_fmt(*arrays):
         else:
             fmts.append("%.6f")
     return fmts
+
+
+def check_alternative_names(current_label, to_label, alternative_labels):
+    """Checks whether the current label and the new label are alternatives of each other"""
+    if current_label in alternative_labels and to_label in alternative_labels:
+        return True
+    return False
 
 
 class DataObject(ContainerBase):
@@ -101,15 +106,11 @@ class DataObject(ContainerBase):
 
     @property
     def x_limit(self):
-        if not self._x_limit:
-            self._x_limit = get_min_max(self.x)
-        return self._x_limit
+        return get_min_max(self.x)
 
     @property
     def y_limit(self):
-        if not self._y_limit:
-            self._y_limit = get_min_max(self.x)
-        return self._y_limit
+        return get_min_max(self.y)
 
     @property
     def shape(self):
@@ -137,6 +138,30 @@ class DataObject(ContainerBase):
     def check(self):
         raise NotImplementedError("Must implement method")
 
+    def copy(self):
+        """Copy object and flush to disk"""
+        store = self.get_parent()
+        title = self.title
+        if store is not None and title is not None:
+            title += " (copy)"
+            data, attrs = self.to_zarr()
+            store.add(title, data, attrs)
+            return store[title, True]
+
+    def flush(self):
+        """Flush current object data to the DocumentStore"""
+        store = self.get_parent()
+        title = self.title
+        if store is not None and title is not None:
+            data, attrs = self.to_zarr()
+            store.add(title, data, attrs)
+
+    def change_x_label(self, to_label: str, **kwargs):
+        """Changes the label and x-axis values to a new format"""
+
+    def change_y_label(self, to_label: str, **kwargs):
+        """Changes the label and y-axis values to a new format"""
+
 
 class SpectrumObject(DataObject):
     def __init__(self, x, y, x_label: str, y_label: str, name: str, metadata: dict, extra_data: dict, **kwargs):
@@ -161,13 +186,13 @@ class SpectrumObject(DataObject):
 
     def to_zarr(self):
         """Outputs data to dictionary of `data` and `attributes`"""
-        data = {"x": self.x, "y": self.y, **self._extra_data}
+        data = {**self._extra_data, "x": self.x, "y": self.y}
         attrs = {
+            **self._metadata,
             "class": self._cls,
             "x_limit": self.x_limit,
             "x_label": self.x_label,
             "y_label": self.y_label,
-            **self._metadata,
         }
         return data, attrs
 
@@ -193,9 +218,9 @@ class SpectrumObject(DataObject):
         if not isinstance(self._metadata, dict):
             self._metadata = dict()
 
-    def normalize(self, copy: bool = False):
+    def normalize(self):
         """Normalize spectrum to 1"""
-        self._y = normalize_1D(self.y)
+        self._y = pr_spectra.normalize_1D(self.y)
 
 
 class MassSpectrumObject(SpectrumObject):
@@ -209,17 +234,140 @@ class MassSpectrumObject(SpectrumObject):
         # set default options
         self.options["remove_zeros"] = True
 
-    def linearize(self, copy: bool = False, **kwargs):
-        """Linearize spectrum to common m/z axis"""
-        x, y = linearize_data(self.x, self.y, **kwargs)
-        self._x, self._y = x, y
-        # self.set_metadata(dict(linearize=kwargs))
+    def crop(self, crop_min: Optional[float] = None, crop_max: Optional[float] = None, **kwargs):
+        """Crop signal to defined x-axis region
 
-    def baseline(self, copy: bool = False, **kwargs):
-        """Remove baseline from the mass spectrum"""
-        y = baseline_1D(self.y, mode=kwargs.get("baseline_method"), **kwargs)
+        Parameters
+        ----------
+        crop_min : float, optional
+            minimum value in the x-axis array to be retained
+        crop_max : float, optional
+            maximum value in the x-axis array to be retained
+        """
+        x, y = pr_spectra.crop_1D_data(self.x, self.y, crop_min, crop_max)
+        self._x, self._y = x, y
+        return self
+
+    def linearize(
+        self,
+        bin_size: Optional[float] = None,
+        linearize_method: Optional[str] = None,
+        auto_range: bool = True,
+        x_min: Optional[float] = None,
+        x_max: Optional[float] = None,
+        x_bin: Optional[np.ndarray] = None,
+        **kwargs,
+    ):
+        """Linearize data by either up- or down-sampling
+
+        Parameters
+        ----------
+        bin_size : float
+            size of the bin between adjacent values in the x-axis
+        linearize_method : str
+            name of the linearization method
+        auto_range : bool
+            if `True`, the x-axis range will be decided automatically
+        x_min : floats
+            starting value of the linearization method
+        x_max : float
+            ending value of the linearization method
+        x_bin : np.ndarray
+            pre-computed x-axis values
+        """
+        x, y = pr_spectra.linearize_data(
+            self.x,
+            self.y,
+            bin_size=bin_size,
+            linearize_method=linearize_method,
+            auto_range=auto_range,
+            x_min=x_min,
+            x_max=x_max,
+            x_bin=x_bin,
+        )
+        self._x, self._y = x, y
+        return self
+
+    def smooth(
+        self,
+        method: Optional[str] = None,
+        sigma: Optional[float] = None,
+        poly_order: Optional[int] = None,
+        window_size: Optional[int] = None,
+        N: Optional[int] = None,
+        **kwargs,
+    ):
+        """Smooth spectral data using one of few filters
+
+        Parameters
+        ----------
+        method : str
+            name of the smoothing method
+        sigma: float
+            gaussian sigma value; only used with method being `Gaussian`
+        poly_order : int
+            polynomial value; only used with method being `Savitzky-Golay`
+        window_size : int
+            window size; only used with method being `Savitzky-Golay`
+        N : int
+            size of the window in moving average; only used with method being `Moving average`
+        """
+        y = pr_spectra.smooth_1D(
+            self.y, smooth_method=method, sigma=sigma, window_size=window_size, poly_order=poly_order, N=N
+        )
         self._y = y
-        # self.set_metadata(dict(baseline=kwargs))
+        return self
+
+    def baseline(
+        self,
+        method: str = "Linear",
+        threshold: Optional[float] = None,
+        poly_order: Optional[int] = 4,
+        max_iter: Optional[int] = 100,
+        tol: Optional[float] = 1e-3,
+        median_window: Optional[int] = 5,
+        curved_window: Optional[int] = None,
+        tophat_window: Optional[int] = 100,
+        **kwargs,
+    ):
+        """Subtract baseline from the y-axis intensity array
+
+        Parameters
+        ----------
+        method : str
+            baseline removal method
+        threshold : float
+            any value below `threshold` will be set to 0
+        poly_order : int
+            Degree of the polynomial that will estimate the data baseline. A low degree may fail to detect all the
+            baseline present, while a high degree may make the data too oscillatory, especially at the edges; only used
+            with method being `Polynomial`
+        max_iter : int
+            Maximum number of iterations to perform; only used with method being `Polynomial`
+        tol : float
+            Tolerance to use when comparing the difference between the current fit coefficients and the ones from the
+            last iteration. The iteration procedure will stop when the difference between them is lower than *tol*.; only
+            used with method being `Polynomial`
+        median_window : int
+            median filter size - should be an odd number; only used with method being `Median`
+        curved_window : int
+            curved window size; only used with method being `Curved`
+        tophat_window : int
+            tophat window size; only used with method being `Top Hat`
+        """
+        y = pr_spectra.baseline_1D(
+            self.y,
+            baseline_method=method,
+            threshold=threshold,
+            poly_order=poly_order,
+            max_iter=max_iter,
+            tol=tol,
+            median_window=median_window,
+            curved_window=curved_window,
+            tophat_window=tophat_window,
+        )
+        self._y = y
+        return self
 
 
 class ChromatogramObject(SpectrumObject):
@@ -250,25 +398,64 @@ class ChromatogramObject(SpectrumObject):
             **kwargs,
         )
 
-    def to_scans(self, scan_time: Optional[Union[int, float]] = None):
-        """Return x-axis in scans"""
-        if scan_time is None:
-            if "x_bin" in self._extra_data:
-                return self._extra_data["x_bin"]
-            return self.x_bin
-        if self.x_label == "Scans":
-            return self.x
-        return np.round(self.x / scan_time).astype(np.int32)
+    def change_x_label(self, to_label: str, scan_time: Optional[float] = None):
+        """Change x-axis label and values. Any changes are automatically flushed to disk.
 
-    def to_min(self, scan_time: Optional[Union[int, float]] = None):
-        """Return x-axis in minutes"""
+        Notes
+        -----
+        Scans -> Retention time (mins), Time (mins)
+            - requires x-axis bins
+            - requires scan time in seconds
+            multiply x-axis bins * scan time and then divide by 60
+        Retention time (mins), Time (mins) -> Scans
+            - requires x-axis bins OR x-axis time in minutes
+            - requires scan time in seconds
+            multiply x-axis time * 60 to convert to seconds and then divide by the scan time. Values are rounded
+        """
+        # set default label
+        if "x_label_default" not in self._metadata:
+            self._metadata["x_label_default"] = self.x_label
+
+        # check whether the new label refers to the default value
+        if to_label == "Restore default":
+            to_label = self._metadata["x_label_default"]
+
+        print(to_label, self._metadata)
+
+        if to_label not in self.x_label_options:
+            raise ValueError(f"Cannot change label to `{to_label}`; \nAllowed labels: {self.x_label_options}")
+
+        # no need to change anything
         if scan_time is None:
-            if "x_min" in self._extra_data:
-                return self._extra_data["x_min"]
-            raise ValueError("Could not process the request")
+            scan_time = self.get_parent().parameters.get("scan_time", None)
+        if self.x_label == to_label or scan_time is None:
+            return
+
+        # create back-up of the bin data
         if self.x_label == "Scans":
-            return self.x * scan_time
-        return self.x
+            self._extra_data["x_bin"] = self.x
+
+        if to_label in ["Time (mins)", "Retention time (mins)"] and self.x_label == "Scans":
+            if "x_min" in self._extra_data:
+                x = self._extra_data["x_min"]
+            else:
+                x = self._extra_data["x_bin"]
+                x = x * (scan_time / 60)
+        elif to_label == "Scans" and self.x_label in ["Time (mins)", "Retention time (mins)"]:
+            if "x_bin" in self._extra_data:
+                x = self._extra_data["x_bin"]
+            else:
+                x = self.x
+                x = np.round((x * 60) / scan_time).astype(np.int32)
+        elif check_alternative_names(self.x_label, to_label, ["Time (mins)", "Retention time (mins)"]):
+            x = self.x
+        else:
+            raise ValueError("Cannot convert x-axis")
+
+        # set data
+        self.x_label = to_label
+        self._x = x
+        self.flush()
 
 
 class MobilogramObject(SpectrumObject):
@@ -289,17 +476,75 @@ class MobilogramObject(SpectrumObject):
             x_label=x_label,
             y_label=y_label,
             name=name,
-            x_label_options=["Drift time (bins)", "Arrival time (ms)", "Drift time (ms)"],
+            x_label_options=[
+                "Drift time (bins)",
+                "Drift time (ms)",
+                "Arrival time (ms)",
+                "Collision Cross Section (Å²)",
+                "CCS (Å²)",
+            ],
             metadata=metadata,
             extra_data=extra_data,
             **kwargs,
         )
 
-    def to_bins(self, pusher_freq: Optional[float] = None):
-        """Converts x-axis to bins"""
+    def change_x_label(self, to_label: str, pusher_freq: Optional[float] = None):
+        """Change x-axis label and values. Any changes are automatically flushed to disk.
 
-    def to_ms(self, pusher_freq: Optional[float] = None):
-        """Converts x-axis to milliseconds"""
+        Notes
+        -----
+        Drift time (bins) -> Drift time (ms) / Arrival time (ms)
+            - requires x-axis bins
+            - requires pusher frequency in microseconds
+            multiply x-axis bins * pusher frequency and divide by 1000
+        Drift time (ms) / Arrival time (ms) -> Drift time (bins)
+            - requires x-axis bins OR x-axis time
+            - requires pusher frequency in microseconds
+            multiply x-axis time * 1000 and divide by pusher frequency
+        """
+        # set default label
+        if "x_label_default" not in self._metadata:
+            self._metadata["x_label_default"] = self.x_label
+
+        # check whether the new label refers to the default value
+        if to_label == "Restore default":
+            to_label = self._metadata["x_label_default"]
+
+        print(to_label, self._metadata)
+
+        if to_label not in self.x_label_options:
+            raise ValueError(f"Cannot change label to `{to_label}`; \nAllowed labels: {self.x_label_options}")
+
+        # no need to change anything
+        pusher_freq = self.get_parent().parameters.get("pusher_freq", None)
+        if self.x_label == to_label or pusher_freq is None:
+            return
+
+        # create back-up of the bin data
+        if self.x_label == "Drift time (bins)":
+            self._extra_data["x_bin"] = self.x
+
+        if to_label in ["Drift time (ms)", "Arrival time (ms)"] and self.x_label == "Drift time (bins)":
+            if "x_ms" in self._extra_data:
+                x = self._extra_data["x_ms"]
+            else:
+                x = self._extra_data["x_bin"]
+                x = x * (pusher_freq / 1000)
+        elif to_label == "Drift time (bins)" and self.x_label in ["Drift time (ms)", "Arrival time (ms)"]:
+            if "x_bin" in self._extra_data:
+                x = self._extra_data["x_bin"]
+            else:
+                x = self.x
+                x = np.round((x * 1000) / pusher_freq).astype(np.int32)
+        elif check_alternative_names(self.x_label, to_label, ["Drift time (ms)", "Arrival time (ms)"]):
+            x = self.x
+        else:
+            raise ValueError("Cannot convert x-axis")
+
+        # set data
+        self.x_label = to_label
+        self._x = x
+        self.flush()
 
 
 class HeatmapObject(DataObject):
@@ -369,8 +614,8 @@ class HeatmapObject(DataObject):
 
     def to_zarr(self):
         """Outputs data to dictionary of `data` and `attributes`"""
-        data = {"x": self.x, "y": self.y, "array": self.array, "xy": self.xy, "yy": self.yy, **self._extra_data}
-        attrs = {"class": self._cls, "x_label": self.x_label, "y_label": self.y_label, **self._metadata}
+        data = {**self._extra_data, "x": self.x, "y": self.y, "array": self.array, "xy": self.xy, "yy": self.yy}
+        attrs = {**self._metadata, "class": self._cls, "x_label": self.x_label, "y_label": self.y_label}
         return data, attrs
 
     def to_csv(self, *args, **kwargs):
@@ -408,11 +653,164 @@ class IonHeatmapObject(HeatmapObject):
             yy=yy,
             x_label=x_label,
             y_label=y_label,
-            x_label_options=["Scans", "Retention time (mins)"],
+            x_label_options=[
+                "Scans",
+                "Time (mins)",
+                "Retention time (mins)",
+                "Collision Voltage (V)",
+                "Activation Voltage (V)",
+                "Lab Frame Energy (eV)",
+            ],
+            y_label_options=[
+                "Drift time (bins)",
+                "Drift time (ms)",
+                "Arrival time (ms)",
+                "Collision Cross Section (Å²)",
+                "CCS (Å²)",
+            ],
             metadata=metadata,
             extra_data=extra_data,
             **kwargs,
         )
+
+    # noinspection DuplicatedCode
+    def change_x_label(self, to_label: str, charge: Optional[int] = None, scan_time: Optional[float] = None):
+        """Change x-axis label and values. Any changes are automatically flushed to disk.
+
+        Notes
+        -----
+        Scans -> Retention time (mins), Time (mins)
+            - requires x-axis bins
+            - requires scan time in seconds
+            multiply x-axis bins * scan time and then divide by 60
+        Retention time (mins), Time (mins) -> Scans
+            - requires x-axis bins OR x-axis time in minutes
+            - requires scan time in seconds
+            multiply x-axis time * 60 to convert to seconds and then divide by the scan time. Values are rounded
+        """
+        # set default label
+        if "x_label_default" not in self._metadata:
+            self._metadata["x_label_default"] = self.x_label
+
+        # check whether the new label refers to the default value
+        if to_label == "Restore default":
+            to_label = self._metadata["x_label_default"]
+
+        if to_label not in self.x_label_options:
+            raise ValueError(f"Cannot change label to `{to_label}`; \nAllowed labels: {self.x_label_options}")
+
+        # no need to change anything
+        if scan_time is None:
+            scan_time = self.get_parent().parameters.get("scan_time", None)
+        if charge is None:
+            charge = self._metadata.get("charge", 1)
+        if self.x_label == to_label or scan_time is None:
+            return
+
+        # create back-up of the bin data
+        if self.x_label == "Scans":
+            self._extra_data["x_bin"] = self.x
+
+        # convert scans to time
+        if to_label in ["Time (mins)", "Retention time (mins)"] and self.x_label == "Scans":
+            if "x_min" in self._extra_data:
+                x = self._extra_data["x_min"]
+            else:
+                x = self._extra_data["x_bin"]
+                x = x * (scan_time / 60)
+        # convert time to scans
+        elif to_label == "Scans" and self.x_label in ["Time (mins)", "Retention time (mins)"]:
+            if "x_bin" in self._extra_data:
+                x = self._extra_data["x_bin"]
+            else:
+                x = self.x
+                x = np.round((x * 60) / scan_time).astype(np.int32)
+        # convert lab frame energy to activation energy
+        elif (
+            to_label in ["Collision Voltage (V)", "Activation Voltage (V)"] and self.x_label == "Lab Frame Energy (eV)"
+        ):
+            if "x_cv" in self._extra_data:
+                x = self._extra_data["x_cv"]
+            else:
+                x = self.x / charge
+        # convert lab frame energy to activation energy
+        elif to_label == "Lab Frame Energy (eV)" and self.x_label in [
+            "Collision Voltage (V)",
+            "Activation Voltage (V)",
+        ]:
+            if "x_ev" in self._extra_data:
+                x = self._extra_data["x_ev"]
+            else:
+                x = self.x * charge
+        elif check_alternative_names(
+            self.x_label, to_label, ["Time (mins)", "Retention time (mins)"]
+        ) or check_alternative_names(self.x_label, to_label, ["Collision Voltage (V)", "Activation Voltage (V)"]):
+            x = self.x
+        else:
+            raise ValueError("Cannot convert x-axis")
+
+        # set data
+        self.x_label = to_label
+        self._x = x
+        self.flush()
+
+    # noinspection DuplicatedCode
+    def change_y_label(self, to_label: str, pusher_freq: Optional[float] = None):
+        """Change x-axis label and values. Any changes are automatically flushed to disk.
+
+        Notes
+        -----
+        Drift time (bins) -> Drift time (ms) / Arrival time (ms)
+            - requires x-axis bins
+            - requires pusher frequency in microseconds
+            multiply x-axis bins * pusher frequency and divide by 1000
+        Drift time (ms) / Arrival time (ms) -> Drift time (bins)
+            - requires x-axis bins OR x-axis time
+            - requires pusher frequency in microseconds
+            multiply x-axis time * 1000 and divide by pusher frequency
+        """
+        # set default label
+        if "y_label_default" not in self._metadata:
+            self._metadata["y_label_default"] = self.x_label
+
+        # check whether the new label refers to the default value
+        if to_label == "Restore default":
+            to_label = self._metadata["y_label_default"]
+
+        if to_label not in self.y_label_options:
+            raise ValueError(f"Cannot change label to `{to_label}`; \nAllowed labels: {self.y_label_options}")
+
+        # no need to change anything
+        if pusher_freq is None:
+            pusher_freq = self.get_parent().parameters.get("pusher_freq", None)
+        if self.y_label == to_label or pusher_freq is None:
+            return
+
+        # create back-up of the bin data
+        if self.y_label == "Drift time (bins)":
+            self._extra_data["y_bin"] = self.y
+
+        if to_label in ["Drift time (ms)", "Arrival time (ms)"] and self.y_label == "Drift time (bins)":
+            if "y_ms" in self._extra_data:
+                y = self._extra_data["y_ms"]
+            else:
+                y = self._extra_data["y_bin"]
+                y = y * (pusher_freq / 1000)
+        elif to_label == "Drift time (bins)" and self.y_label in ["Drift time (ms)", "Arrival time (ms)"]:
+            if "y_bin" in self._extra_data:
+                y = self._extra_data["y_bin"]
+            else:
+                y = self.y
+                y = np.round((y * 1000) / pusher_freq).astype(np.int32)
+        elif check_alternative_names(self.y_label, to_label, ["Drift time (ms)", "Arrival time (ms)"]):
+            y = self.y
+        else:
+            raise ValueError("Cannot convert x-axis")
+
+        # set data
+        self.y_label = to_label
+        self._y = y
+        self.flush()
 
 
 class StitchIonHeatmapObject(IonHeatmapObject):
@@ -484,44 +882,72 @@ class MassSpectrumHeatmapObject(HeatmapObject):
             yy=yy,
             x_label=x_label,
             y_label=y_label,
-            x_label_options=["Drift time (bins)", "Drift time (ms)"],
+            x_label_options=["m/z (Da)"],
+            y_label_options=[
+                "Drift time (bins)",
+                "Drift time (ms)",
+                "Arrival time (ms)",
+                "Collision Cross Section (Å²)",
+                "CCS (Å²)",
+            ],
             metadata=metadata,
             extra_data=extra_data,
             **kwargs,
         )
 
+    def change_x_label(self, to_label: str, **kwargs):
+        """Changes the label and x-axis values to a new format"""
+
 
 def mass_spectrum_object(group: Group):
     """Instantiate mass spectrum object from mass spectrum group saved in zarr format"""
-    return MassSpectrumObject(group["x"][:], group["y"][:], **group.attrs.asdict())
+    metadata = group.attrs.asdict()
+    obj = MassSpectrumObject(group["x"][:], group["y"][:], **metadata)
+    obj.set_metadata(metadata)
+    return obj
 
 
 def chromatogram_object(group: Group):
-    """Instantiate mass spectrum object from chromatogram group saved in zarr format"""
-    return ChromatogramObject(group["x"][:], group["y"][:], **group.attrs.asdict())
+    """Instantiate chromatogram object from chromatogram group saved in zarr format"""
+    metadata = group.attrs.asdict()
+    obj = ChromatogramObject(group["x"][:], group["y"][:], **group.attrs.asdict())
+    obj.set_metadata(metadata)
+    return obj
 
 
 def mobilogram_object(group: Group):
-    """Instantiate mass spectrum object from mobilogram group saved in zarr format"""
-    return MobilogramObject(group["x"][:], group["y"][:], **group.attrs.asdict())
+    """Instantiate mobilogram object from mobilogram group saved in zarr format"""
+    metadata = group.attrs.asdict()
+    obj = MobilogramObject(group["x"][:], group["y"][:], **group.attrs.asdict())
+    obj.set_metadata(metadata)
+    return obj
 
 
 def ion_heatmap_object(group: Group):
     """Instantiate ion heatmap object from ion heatmap group saved in zarr format"""
-    return IonHeatmapObject(
+    metadata = group.attrs.asdict()
+    obj = IonHeatmapObject(
         group["array"][:], group["x"][:], group["y"][:], group["xy"][:], group["yy"][:], **group.attrs.asdict()
     )
+    obj.set_metadata(metadata)
+    return obj
 
 
 def stitch_ion_heatmap_object(group: Group):
-    """Instantiate ion heatmap object from ion heatmap group saved in zarr format"""
-    return StitchIonHeatmapObject(
+    """Instantiate stitch ion heatmap object from ion heatmap group saved in zarr format"""
+    metadata = group.attrs.asdict()
+    obj = StitchIonHeatmapObject(
         group["array"][:], group["x"][:], group["y"][:], group["xy"][:], group["yy"][:], **group.attrs.asdict()
     )
+    obj.set_metadata(metadata)
+    return obj
 
 
 def msdt_heatmap_object(group: Group):
-    """Instantiate ion heatmap object from ion heatmap group saved in zarr format"""
-    return MassSpectrumHeatmapObject(
+    """Instantiate mass heatmap object from ion heatmap group saved in zarr format"""
+    metadata = group.attrs.asdict()
+    obj = MassSpectrumHeatmapObject(
         group["array"][:], group["x"][:], group["y"][:], group["xy"][:], group["yy"][:], **group.attrs.asdict()
     )
+    obj.set_metadata(metadata)
+    return obj

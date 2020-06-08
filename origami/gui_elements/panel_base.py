@@ -347,6 +347,14 @@ class TableMixin:
                 self.peaklist.DeleteItem(item_id)
             item_id -= 1
 
+    def _on_delete_all_force(self):
+        """Forecfully remove all elements without asking for permission"""
+        item_id = self.n_rows - 1
+        while item_id >= 0:
+            item_info = self.on_get_item_information(item_id)
+            self.remove_from_table(item_info["id"])
+            item_id -= 1
+
     # noinspection PyUnresolvedReferences
     def on_menu_column_right_click(self, evt):
         """Right-click on column title to show/hide it"""

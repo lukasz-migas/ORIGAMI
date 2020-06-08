@@ -594,6 +594,7 @@ class LoadHandler:
         filelist = self.check_lesa_document(document, filelist, **proc_kwargs)
         data = self.load_multi_file_waters_data(filelist, **proc_kwargs)
         document = ENV.set_document(document, data=data)
+        print("ENVIR", ENV)
         document.add_config("activation", proc_kwargs)
 
         return document
@@ -605,7 +606,7 @@ class LoadHandler:
         n_items = len(filelist)
 
         # iterate over all selected files
-        mass_spectra, chromatograms, mobilograms = {}, {}, {}
+        mass_spectra, chromatograms, mobilograms, parameters = {}, {}, {}, {}
         variables = []
         for file_id, file_info in enumerate(filelist):
             variables.append(file_info.variable)
@@ -614,7 +615,7 @@ class LoadHandler:
             spectrum_name = f"{file_info.variable}={filename}"
 
             # get item data
-            mz_obj, rt_obj, dt_obj = self._load_waters_data_chunk(file_info, **deepcopy(proc_kwargs))
+            mz_obj, rt_obj, dt_obj, parameters = self._load_waters_data_chunk(file_info, **deepcopy(proc_kwargs))
             mass_spectra[spectrum_name] = mz_obj
             chromatograms[spectrum_name] = rt_obj
             if dt_obj is not None:
@@ -631,6 +632,9 @@ class LoadHandler:
             heatmap_obj = StitchIonHeatmapObject(list(mobilograms.values()), variables)
             data_out["heatmap"] = heatmap_obj
 
+        if parameters:
+            data_out["parameters"] = parameters
+
         return data_out
 
     @staticmethod
@@ -639,16 +643,7 @@ class LoadHandler:
 
         def compare_parameters():
             """Compare processing parameters"""
-            for key in [
-                "linearization_mode",
-                "x_min",
-                "x_max",
-                "bin_size",
-                "im_on",
-                "auto_range",
-                "baseline_correction",
-                "baseline_method",
-            ]:
+            for key in ["linearize", "baseline", "im_on"]:
                 if _proc_kwargs.get(key, None) != proc_kwargs[key]:
                     return False
                 return True
@@ -689,13 +684,30 @@ class LoadHandler:
         """Load waters data for single chunk"""
         mz_obj, dt_obj, rt_obj = None, None, None
         reader = WatersIMReader(file_info.path, silent=True)
+
+        # get parameters
+        parameters = reader.get_inf_data()
+
+        # unpack processing kwargs
         mz_start, mz_end = file_info.mz_range
         scan_start, scan_end = file_info.scan_range
 
         # get mass spectrum
         mz_obj = reader.get_spectrum(scan_start, scan_end)
-        mz_obj.linearize(**proc_kwargs)
-        mz_obj.baseline(**proc_kwargs)
+
+        # linearization is necessary
+        lin_kwargs = proc_kwargs
+        if "linearize" in proc_kwargs:
+            lin_kwargs = proc_kwargs["linearize"]
+        mz_obj.linearize(**lin_kwargs)
+
+        # but baseline correction is not
+        baseline_kwargs = proc_kwargs
+        if "baseline" in proc_kwargs:
+            baseline_kwargs = proc_kwargs["baseline"]
+        if baseline_kwargs.get("correction", False):
+            mz_obj.baseline(**baseline_kwargs)
+
         mz_obj.set_metadata(dict(preprocessing=proc_kwargs, file_info=dict(file_info._asdict())))  # noqa
 
         # get chromatogram
@@ -706,4 +718,4 @@ class LoadHandler:
         if file_info.im_on:
             dt_obj = reader.extract_dt(rt_start=rt_start, rt_end=rt_end, mz_start=mz_start, mz_end=mz_end)
 
-        return mz_obj, rt_obj, dt_obj
+        return mz_obj, rt_obj, dt_obj, parameters
