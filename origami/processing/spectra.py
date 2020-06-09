@@ -15,7 +15,6 @@ from scipy.interpolate.interpolate import interp1d
 # Local imports
 from origami.utils.ranges import get_min_max
 from origami.processing.utils import find_nearest_index
-from origami.processing.utils import get_narrow_data_range
 from origami.utils.exceptions import MessageError
 
 logger = logging.getLogger(__name__)
@@ -26,7 +25,7 @@ logger = logging.getLogger(__name__)
 def baseline_curve(data, window: int, **kwargs):
     """Based on massign method: https://pubs.acs.org/doi/abs/10.1021/ac300056a
 
-    We initlise an array which has the same length as the input array, subsequently smooth the spectrum  and then
+    We initialise an array which has the same length as the input array, subsequently smooth the spectrum  and then
     subtract the background from the spectrum
 
     Parameters
@@ -131,13 +130,13 @@ def baseline_als(y, lam, p, niter=10):
     L = len(y)
     D = sparse.diags([1, -2, 1], [0, -1, -2], shape=(L, L - 2))
     w = np.ones(L)
+    z = np.zeros_like(w)
     while niter > 0:
         W = sparse.spdiags(w, 0, L, L)
         Z = W + lam * D.dot(D.transpose())
         z = spsolve(Z, w * y)
         w = p * (y > z) + (1 - p) * (y < z)
         niter -= 1
-        print(niter)
     return z
 
 
@@ -393,26 +392,26 @@ def sum_1D(data):
     return msY
 
 
-def sum_1D_dictionary(ydict=None):
-    """
-    Sum binned data
-    Input
-    -----
-    ydict : dictionary with binned X/Y values
-    Output
-    ------
-    """
-    msOut = []
-    # Extract y-data from dictionary
-    for key in ydict:
-        msOut.append(ydict[key][1])
-    # Sum into one Y-axis list
-    msSum = np.sum(msOut, axis=0)
+# def sum_1D_dictionary(ydict=None):
+#     """
+#     Sum binned data
+#     Input
+#     -----
+#     ydict : dictionary with binned X/Y values
+#     Output
+#     ------
+#     """
+#     msOut = []
+#     # Extract y-data from dictionary
+#     for key in ydict:
+#         msOut.append(ydict[key][1])
+#     # Sum into one Y-axis list
+#     msSum = np.sum(msOut, axis=0)
+#
+#     return ydict[key][0], msSum
 
-    return ydict[key][0], msSum
 
-
-def smooth_gaussian_1D(y, sigma: float, **kwargs):
+def smooth_gaussian_1d(y, sigma: float, **kwargs):
     """Smooth using Gaussian filter"""
     if sigma < 0:
         raise MessageError("Incorrest value of `sigma`", "Value of `sigma` is too low. Value must be larger than 0")
@@ -421,7 +420,7 @@ def smooth_gaussian_1D(y, sigma: float, **kwargs):
     return dataOut
 
 
-def smooth_moving_average_1D(y, N: int, **kwargs):
+def smooth_moving_average_1d(y, N: int, **kwargs):
     """Smooth using moving average"""
     # get parameters
     if N <= 0:
@@ -432,7 +431,7 @@ def smooth_moving_average_1D(y, N: int, **kwargs):
     return np.convolve(y, np.ones((N,)) / N, mode="same")
 
 
-def smooth_sav_gol_1D(y, poly_order: int, window_size: int, **kwargs):
+def smooth_sav_gol_1d(y, poly_order: int, window_size: int, **kwargs):
     """Smooth using Savitzky-Golay filter"""
     # get parameters
     try:
@@ -444,7 +443,7 @@ def smooth_sav_gol_1D(y, poly_order: int, window_size: int, **kwargs):
     return y
 
 
-def smooth_1D(
+def smooth_1d(
     y,
     smooth_method: Optional[str] = "Gaussian",
     sigma: Optional[float] = None,
@@ -478,11 +477,11 @@ def smooth_1D(
     """
 
     if smooth_method == "Gaussian":
-        y = smooth_gaussian_1D(y, sigma=sigma)
+        y = smooth_gaussian_1d(y, sigma=sigma)
     elif smooth_method == "Savitzky-Golay":
-        y = smooth_sav_gol_1D(y, poly_order=poly_order, window_size=window_size)
+        y = smooth_sav_gol_1d(y, poly_order=poly_order, window_size=window_size)
     elif smooth_method == "Moving average":
-        y = smooth_moving_average_1D(y, N=N)
+        y = smooth_moving_average_1d(y, N=N)
 
     # remove values below zero
     y[y < 0] = 0

@@ -1,6 +1,5 @@
 # Standard library imports
-from typing import List
-from typing import Union
+from typing import List, Union
 from typing import Optional
 
 # Third-party imports
@@ -13,10 +12,8 @@ from origami.utils.ranges import get_min_max
 from origami.objects.container import ContainerBase
 from origami.processing.heatmap import equalize_heatmap_spacing
 
-# TODO: add x/y-axis converters to easily switch between labels
 
-
-def get_fmt(*arrays):
+def get_fmt(*arrays: np.ndarray, get_largest: bool = False):
     """Retrieve appropriate numpy format based on the data"""
     fmts = []
     for array in arrays:
@@ -26,6 +23,12 @@ def get_fmt(*arrays):
             fmts.append("%.4f")
         else:
             fmts.append("%.6f")
+    if get_largest:
+        if "%.6f" in fmts:
+            return "%.6f"
+        if "%.4f" in fmts:
+            return "%.4f"
+        return "%d"
     return fmts
 
 
@@ -198,8 +201,7 @@ class SpectrumObject(DataObject):
 
     def to_csv(self, path, *args, **kwargs):
         """Export data in a csv/txt format"""
-        x = self.x
-        y = self.y
+        x, y = self.x, self.y
         if kwargs.get("remove_zeros", self.options.get("remove_zeros", False)):
             index = np.where((self.x == 0) | (self.y == 0))
             x = x[index]
@@ -221,6 +223,13 @@ class SpectrumObject(DataObject):
     def normalize(self):
         """Normalize spectrum to 1"""
         self._y = pr_spectra.normalize_1D(self.y)
+        return self
+
+    def divide(self, divider: Union[int, float]):
+        """Divide intensity array by specified divider"""
+        assert isinstance(divider, (int, float)), "Division factor must be an integer or a float"
+        self._y /= divider
+        return self
 
 
 class MassSpectrumObject(SpectrumObject):
@@ -233,6 +242,39 @@ class MassSpectrumObject(SpectrumObject):
 
         # set default options
         self.options["remove_zeros"] = True
+
+    def process(
+        self, crop: bool = False, linearize: bool = False, smooth: bool = False, baseline: bool = False, **kwargs
+    ):
+        """Perform all processing steps in one go. For correct parameter names, refer to the individual methods
+
+        Parameters
+        ----------
+        crop : bool
+            if `True`, spectral cropping will occur
+        linearize : bool
+            if `True`, spectrum will be linearized
+        smooth : bool
+            if `True`, spectrum will be smoothed
+        baseline : bool
+            if `True`, baseline will be removed from the mass spectrum
+        kwargs : Dict[Any, Any]
+            dictionary containing processing parameters
+
+        Returns
+        -------
+        self : MassSpectrumObject
+            processed mass spectrum object
+        """
+        if crop:
+            self.crop(**kwargs)
+        if linearize:
+            self.linearize(**kwargs)
+        if smooth:
+            self.smooth(**kwargs)
+        if baseline:
+            self.baseline(**kwargs)
+        return self
 
     def crop(self, crop_min: Optional[float] = None, crop_max: Optional[float] = None, **kwargs):
         """Crop signal to defined x-axis region
@@ -290,7 +332,7 @@ class MassSpectrumObject(SpectrumObject):
 
     def smooth(
         self,
-        method: Optional[str] = None,
+        smooth_method: Optional[str] = None,
         sigma: Optional[float] = None,
         poly_order: Optional[int] = None,
         window_size: Optional[int] = None,
@@ -301,7 +343,7 @@ class MassSpectrumObject(SpectrumObject):
 
         Parameters
         ----------
-        method : str
+        smooth_method : str
             name of the smoothing method
         sigma: float
             gaussian sigma value; only used with method being `Gaussian`
@@ -312,15 +354,15 @@ class MassSpectrumObject(SpectrumObject):
         N : int
             size of the window in moving average; only used with method being `Moving average`
         """
-        y = pr_spectra.smooth_1D(
-            self.y, smooth_method=method, sigma=sigma, window_size=window_size, poly_order=poly_order, N=N
+        y = pr_spectra.smooth_1d(
+            self.y, smooth_method=smooth_method, sigma=sigma, window_size=window_size, poly_order=poly_order, N=N
         )
         self._y = y
         return self
 
     def baseline(
         self,
-        method: str = "Linear",
+        baseline_method: str = "Linear",
         threshold: Optional[float] = None,
         poly_order: Optional[int] = 4,
         max_iter: Optional[int] = 100,
@@ -334,7 +376,7 @@ class MassSpectrumObject(SpectrumObject):
 
         Parameters
         ----------
-        method : str
+        baseline_method : str
             baseline removal method
         threshold : float
             any value below `threshold` will be set to 0
@@ -346,8 +388,8 @@ class MassSpectrumObject(SpectrumObject):
             Maximum number of iterations to perform; only used with method being `Polynomial`
         tol : float
             Tolerance to use when comparing the difference between the current fit coefficients and the ones from the
-            last iteration. The iteration procedure will stop when the difference between them is lower than *tol*.; only
-            used with method being `Polynomial`
+            last iteration. The iteration procedure will stop when the difference between them is lower than *tol*.;
+            only used with method being `Polynomial`
         median_window : int
             median filter size - should be an odd number; only used with method being `Median`
         curved_window : int
@@ -357,7 +399,7 @@ class MassSpectrumObject(SpectrumObject):
         """
         y = pr_spectra.baseline_1D(
             self.y,
-            baseline_method=method,
+            baseline_method=baseline_method,
             threshold=threshold,
             poly_order=poly_order,
             max_iter=max_iter,
@@ -562,10 +604,10 @@ class HeatmapObject(DataObject):
         extra_data=None,
         **kwargs,
     ):
-        super().__init__(name, x, y, x_label, y_label, metadata=metadata, extra_data=extra_data, **kwargs)
         self._array = array
         self._xy = xy
         self._yy = yy
+        super().__init__(name, x, y, x_label, y_label, metadata=metadata, extra_data=extra_data, **kwargs)
 
     @property
     def x(self):
@@ -618,15 +660,39 @@ class HeatmapObject(DataObject):
         attrs = {**self._metadata, "class": self._cls, "x_label": self.x_label, "y_label": self.y_label}
         return data, attrs
 
-    def to_csv(self, *args, **kwargs):
+    def to_csv(self, path, *args, **kwargs):
         """Export data in a csv/txt format"""
-        pass
+        array, x, y = self.array, self.x, self.y
+        # get metadata
+        delimiter = kwargs.get("delimiter", ",")
+
+        # sum the mobility dimension
+        if kwargs.get("dim_dt"):
+            fmt = get_fmt(self.x, self.xy)
+            header = f"{delimiter}".join([self.y_label, "Intensity"])
+            np.savetxt(path, np.c_[self.y, self.yy], delimiter=delimiter, fmt=fmt, header=header)
+        # sum the chromatography dimension
+        elif kwargs.get("dim_rt"):
+            fmt = get_fmt(self.x, self.xy)
+            header = f"{delimiter}".join([self.x_label, "Intensity"])
+            np.savetxt(path, np.c_[self.x, self.xy], delimiter=delimiter, fmt=fmt, header=header)
+        # return array
+        else:
+            fmt = get_fmt(array, x, y, get_largest=True)
+            labels = list(map(str, x.tolist()))
+            labels.insert(0, "")
+            header = f"{delimiter}".join(labels)
+            np.savetxt(path, np.c_[y, array], delimiter=delimiter, fmt=fmt, header=header)
 
     def check(self):
-        pass
+        """Checks whether the provided data has the same size and shape"""
+        if len(self._array.shape) != 2:
+            raise ValueError("`array` must have two dimensions")
+        if not isinstance(self._metadata, dict):
+            self._metadata = dict()
 
     def downsample(self, rate: int = 5, mode: str = "Sub-sample"):
-        """Return data at a downsampled rate"""
+        """Return data at a down-sampled rate"""
 
 
 class IonHeatmapObject(HeatmapObject):

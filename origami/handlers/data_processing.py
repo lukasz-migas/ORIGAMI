@@ -195,7 +195,7 @@ class DataProcessing:
 
         ys_smooth = []
         for y_signal in ys:
-            ys_smooth.append(pr_spectra.smooth_gaussian_1D(y_signal, sigma=sigma))
+            ys_smooth.append(pr_spectra.smooth_gaussian_1d(y_signal, sigma=sigma))
 
         return ys_smooth
 
@@ -390,7 +390,7 @@ class DataProcessing:
                     msX = document.massSpectrum["xvals"]
                     msY = document.massSpectrum["yvals"]
                     # Smooth data
-                    msY = pr_spectra.smooth_gaussian_1D(data=msY, sigma=self.config.fit_smooth_sigma)
+                    msY = pr_spectra.smooth_gaussian_1d(data=msY, sigma=self.config.fit_smooth_sigma)
                     msY = pr_spectra.normalize_1D(msY)
                 else:
                     msX = document.massSpectrum["xvals"]
@@ -802,7 +802,7 @@ class DataProcessing:
                 "windowSize": self.config.ms_smooth_window,
                 "N": self.config.ms_smooth_moving_window,
             }
-            msY = pr_spectra.smooth_1D(msY, mode=self.config.ms_smooth_mode, **pr_kwargs)
+            msY = pr_spectra.smooth_1d(msY, mode=self.config.ms_smooth_mode, **pr_kwargs)
             process_msg += f"Smooth:{ttime()-tstart:.4f}s | "
 
         # subtract baseline
@@ -1932,7 +1932,7 @@ class DataProcessing:
 
     def smooth_spectrum(self, mz_y, method="gaussian"):
         if method == "gaussian":
-            mz_y = pr_spectra.smooth_gaussian_1D(mz_y, self.config.fit_smooth_sigma)
+            mz_y = pr_spectra.smooth_gaussian_1d(mz_y, self.config.fit_smooth_sigma)
 
         return mz_y
 

@@ -491,7 +491,7 @@ class LoadHandler:
         reader = WatersRawReader(path)
         LOGGER.debug("Initialized Waters reader")
 
-        mz_x, mz_y = reader.get_average_spectrum()
+        mz_obj = reader.get_average_spectrum()
         LOGGER.debug("Loaded spectrum in " + report_time(t_start))
 
         rt_x, rt_y = reader.get_tic(0)
@@ -500,7 +500,7 @@ class LoadHandler:
         parameters = reader.get_inf_data()
 
         data = {
-            "mz": MassSpectrumObject(mz_x, mz_y),
+            "mz": mz_obj,
             "rt": ChromatogramObject(
                 rt_x,
                 rt_y,

@@ -44,13 +44,13 @@ def test_time_loop():
     """Test 'time_loop'"""
     t_start = time.time()
     time.sleep(0.01)
-    result = time_loop(t_start, 0, 0)
+    result = time_loop(t_start, 0, 1)
     assert "Avg:" in result
     assert "Rem:" in result
     assert "Tot:" in result
     assert "%" in result
 
-    result = time_loop(t_start, 0, 0, as_percentage=False)
+    result = time_loop(t_start, 0, 1, as_percentage=False)
     assert "%" not in result
     assert result.startswith("[")
     assert result.endswith("]")

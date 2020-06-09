@@ -31,28 +31,20 @@ from origami.utils.random import get_random_int
 from origami.utils.ranges import get_min_max
 from origami.handlers.call import Call
 from origami.handlers.load import LoadHandler
-# from origami.config.convert import convert_v1_to_v2
-# from origami.config.convert import upgrade_document_annotations
 from origami.handlers.export import ExportHandler
 from origami.utils.utilities import report_time
 from origami.objects.document import DocumentStore
 from origami.processing.utils import get_maximum_value_in_range
 from origami.readers.io_utils import get_waters_inf_data
-# from origami.readers.io_utils import get_waters_header_data
-# from origami.utils.converters import str2num
 from origami.utils.converters import byte2str
 from origami.utils.converters import convert_ms_to_bins
 from origami.utils.converters import convert_mins_to_scans
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
 from origami.objects.containers import DataObject
-# from origami.processing.imaging import ImagingNormalizationProcessor
 from origami.handlers.queue_handler import QUEUE
 from origami.gui_elements.misc_dialogs import DialogBox
-# from origami.gui_elements.dialog_select_document import DialogSelectDocument
 from origami.gui_elements.dialog_multi_directory_picker import DialogMultiDirPicker
-
-# from origami.utils.exceptions import NoIonMobilityDatasetError
 
 
 # enable on windowsOS only

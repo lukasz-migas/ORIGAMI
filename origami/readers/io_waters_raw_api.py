@@ -156,9 +156,9 @@ class WatersRawReader:
 
     def get_average_spectrum(self, fcn: int = 0):
         """Load average spectrum"""
-        x, y = self.get_spectrum(fcn=fcn)
-        y = y / self.n_scans(fcn)
-        return x, y
+        mz_obj = self.get_spectrum(fcn=fcn)
+        mz_obj.divide(self.n_scans(fcn))
+        return mz_obj
 
     def _get_spectrum(self, fcn, scan_id):
         """Retrieve scan"""

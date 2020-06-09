@@ -6,6 +6,8 @@ import sys
 import numpy as np
 import pytest
 
+from origami.objects.containers import MassSpectrumObject
+
 if sys.platform.startswith("linux") or sys.platform.startswith("darwin"):
     pytest.skip("skipping Linux-only tests", allow_module_level=True)
 
@@ -80,9 +82,10 @@ class TestWatersRawReader:
     @pytest.mark.parametrize("end_scan", (None, 10))
     def test_get_spectrum(get_waters_im_small, start_scan, end_scan):
         reader = WatersRawReader(get_waters_im_small)
-        x, y = reader.get_spectrum(start_scan, end_scan)
-        assert len(x) == len(y)
-        assert y.dtype == np.float32
+        mz_obj = reader.get_spectrum(start_scan, end_scan)
+        assert isinstance(mz_obj, MassSpectrumObject)
+        assert len(mz_obj.x) == len(mz_obj.y)
+        assert mz_obj.y.dtype == np.float32
 
     @staticmethod
     def test__get_spectrum(get_waters_im_small):
@@ -93,8 +96,9 @@ class TestWatersRawReader:
     @staticmethod
     def test_get_average_spectrum(get_waters_im_small):
         reader = WatersRawReader(get_waters_im_small)
-        x, y = reader.get_average_spectrum(0)
-        assert len(x) == len(y)
+        mz_obj = reader.get_average_spectrum(0)
+        assert isinstance(mz_obj, MassSpectrumObject)
+        assert len(mz_obj.x) == len(mz_obj.y)
 
     @staticmethod
     @pytest.mark.parametrize("start_scan", (None, 0, 500))
@@ -103,6 +107,7 @@ class TestWatersRawReader:
     @pytest.mark.parametrize("end_drift", (None, 100))
     def test_get_drift_spectrum(get_waters_im_small, start_scan, end_scan, start_drift, end_drift):
         reader = WatersRawReader(get_waters_im_small)
-        x, y = reader.get_drift_spectrum(start_scan, end_scan, start_drift=start_drift, end_drift=end_drift)
-        assert len(x) == len(y)
-        assert y.dtype == np.float32
+        mz_obj = reader.get_drift_spectrum(start_scan, end_scan, start_drift=start_drift, end_drift=end_drift)
+        assert isinstance(mz_obj, MassSpectrumObject)
+        assert len(mz_obj.x) == len(mz_obj.y)
+        assert mz_obj.y.dtype == np.float32

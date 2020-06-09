@@ -164,7 +164,7 @@ def time_loop(t_start: float, n_item: int, n_total: int, as_percentage: bool = T
     n_item : int
         index of the current item - assumes index starts at 0
     n_total : int
-        total number of items in the for loop - assumes index starts at 0
+        total number of items in the loop - if using enumerate/range, make sure to add +1 to the total
     as_percentage : bool, optional
         if 'True', progress will be displayed as percentage rather than the raw value
 

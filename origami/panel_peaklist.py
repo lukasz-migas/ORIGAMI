@@ -39,14 +39,17 @@ from origami.ids import ID_ionPanel_changeColorBatch_palette
 from origami.ids import ID_ionPanel_changeColorBatch_colormap
 from origami.styles import make_tooltip
 from origami.styles import make_menu_item
+
 # from origami.utils.check import isempty
 # from origami.utils.color import get_font_color
 from origami.utils.color import convert_rgb_1_to_255
+
 # from origami.utils.color import convert_rgb_255_to_1
 # from origami.utils.labels import get_ion_name_from_label
 from origami.config.config import CONFIG
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
+
 # from origami.gui_elements.dialog_ask import DialogAsk
 from origami.gui_elements.panel_base import TablePanelBase
 
