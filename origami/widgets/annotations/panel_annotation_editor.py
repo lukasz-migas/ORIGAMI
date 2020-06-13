@@ -267,15 +267,15 @@ class PanelAnnotationEditorUI(wx.MiniFrame):
             if self.plot_type == "mass_spectrum":
                 from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
 
-                self.plot_view = ViewMassSpectrum(panel, figsize, self.config)
+                self.plot_view = ViewMassSpectrum(panel, figsize)
             elif self.plot_type == "chromatogram":
                 from origami.gui_elements.views.view_spectrum import ViewChromatogram
 
-                self.plot_view = ViewChromatogram(panel, figsize, self.config)
+                self.plot_view = ViewChromatogram(panel, figsize)
             elif self.plot_type == "mobilogram":
                 from origami.gui_elements.views.view_spectrum import ViewMobilogram
 
-                self.plot_view = ViewMobilogram(panel, figsize, self.config)
+                self.plot_view = ViewMobilogram(panel, figsize)
 
             self.plot_panel = self.plot_view.panel
             self.plot_window = self.plot_view.figure

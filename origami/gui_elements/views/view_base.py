@@ -20,7 +20,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 class ViewBase(ABC):
-    def __init__(self, parent, figsize, title, **kwargs):
+    def __init__(self, parent, figsize, title="", **kwargs):
         self.parent = parent
         self.figsize = figsize
         self.title = title
@@ -135,6 +135,11 @@ class ViewBase(ABC):
 
     def set_labels(self, obj: Optional[DataObject] = None, **kwargs):
         """Update plot labels without triggering replot"""
+
+        def remove_keys(key):
+            if key in kwargs:
+                del kwargs[key]
+
         x_label, y_label, z_label = self._x_label, self._y_label, self._z_label
         if obj and obj.owner is not None:
             x_label = obj.x_label
@@ -143,12 +148,13 @@ class ViewBase(ABC):
                 z_label = obj.z_label
         else:
             x_label = kwargs.pop("x_label", self._x_label)
-            y_label = kwargs.pop("x_label", self._y_label)
-            z_label = kwargs.pop("x_label", self._z_label)
+            y_label = kwargs.pop("y_label", self._y_label)
+            z_label = kwargs.pop("z_label", self._z_label)
 
         self._x_label = x_label
         self._y_label = y_label
         self._z_label = z_label
+        remove_keys("x_label"), remove_keys("y_label"), remove_keys("z_label")
 
     def add_labels(self, x, y, text, **kwargs):
         """Add text label to the plot"""

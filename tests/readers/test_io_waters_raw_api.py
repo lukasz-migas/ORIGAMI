@@ -6,6 +6,7 @@ import sys
 import numpy as np
 import pytest
 
+# Local imports
 from origami.objects.containers import MassSpectrumObject
 
 if sys.platform.startswith("linux") or sys.platform.startswith("darwin"):

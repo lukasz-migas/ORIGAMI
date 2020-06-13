@@ -243,6 +243,7 @@ class Dialog(wx.Dialog):
             self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
 
     def on_key_event(self, evt):
+        """Catch key events"""
         key_code = evt.GetKeyCode()
         # exit window
         if key_code == wx.WXK_ESCAPE:
@@ -256,7 +257,8 @@ class Dialog(wx.Dialog):
         self.Destroy()
 
     def make_panel(self):
-        raise NotImplementedError("Must implement method")
+        """Make panel"""
+        pass
 
     def make_gui(self):
         """Make and arrange main panel"""
@@ -265,12 +267,12 @@ class Dialog(wx.Dialog):
         panel = self.make_panel()
 
         # pack element
-        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.main_sizer.Add(panel, 1, wx.EXPAND, 5)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(panel, 1, wx.EXPAND, 5)
 
         # fit layout
-        self.main_sizer.Fit(self)
-        self.SetSizer(self.main_sizer)
+        main_sizer.Fit(self)
+        self.SetSizer(main_sizer)
         self.Layout()
 
 

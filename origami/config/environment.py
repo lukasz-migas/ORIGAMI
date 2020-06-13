@@ -176,6 +176,7 @@ class Environment(PropertyCallbackManager):
         """Remove document from the store"""
         document = self.documents.pop(key)
         self._trigger("delete", document.title)
+        return document
 
     def rename(self, old_name, new_name):
         """Rename document"""
@@ -240,6 +241,15 @@ class Environment(PropertyCallbackManager):
     def open(self, path: str):
         """Alias for load"""
         return self.load(path)
+
+    def duplicate(self, title: str, path: str):
+        """Duplicate document in-place"""
+        document = self[title]
+        document_copy = document.duplicate(path)
+
+        # load duplicated document
+        if document_copy is not None and isinstance(document_copy, DocumentStore):
+            self.add(document_copy)
 
     def set_document(
         self,

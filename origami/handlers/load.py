@@ -387,6 +387,7 @@ class LoadHandler:
         # set data
         document.tandem_spectra = data
         document.set_reader("data_reader", reader)
+        document.add_file_path("main", path)
 
         return document
 
@@ -411,6 +412,7 @@ class LoadHandler:
         # set data
         document.tandem_spectra = data
         document.set_reader("data_reader", reader)
+        document.add_file_path("main", path)
 
         return document
 
@@ -443,6 +445,7 @@ class LoadHandler:
 
         document = ENV.get_new_document("thermo", path, data=data)
         document.set_reader("data_reader", reader)
+        document.add_file_path("main", path)
 
         return document
 
@@ -519,6 +522,7 @@ class LoadHandler:
         reader, data = self.load_waters_ms_data(path)
         document = ENV.get_new_document("waters", path, data=data)
         document.set_reader("data_reader", reader)
+        document.add_file_path("main", path)
 
         return document
 
@@ -572,6 +576,7 @@ class LoadHandler:
         reader, data = self.load_waters_im_data(path)
         document = ENV.get_new_document("origami", path, data=data)
         document.set_reader("data_reader", reader)
+        document.add_file_path("main", path)
 
         return document
 
@@ -594,7 +599,6 @@ class LoadHandler:
         filelist = self.check_lesa_document(document, filelist, **proc_kwargs)
         data = self.load_multi_file_waters_data(filelist, **proc_kwargs)
         document = ENV.set_document(document, data=data)
-        print("ENVIR", ENV)
         document.add_config("activation", proc_kwargs)
 
         return document

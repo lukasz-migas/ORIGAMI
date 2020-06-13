@@ -13,6 +13,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 class ViewSpectrum(ViewBase):
+    """Viewer class for spectral data"""
+
     DATA_KEYS = ("x", "y")
     MPL_KEYS = ["1D"]
 
@@ -37,6 +39,7 @@ class ViewSpectrum(ViewBase):
         return plot_panel, plot_window, sizer
 
     def check_input(self, x, y, obj):
+        """Ensure that input is correct"""
         if x is None and y is None and obj is None:
             raise ValueError("You must provide the x/y values or container object")
         if x is None and y is None and obj is not None:
@@ -102,6 +105,8 @@ class ViewSpectrum(ViewBase):
 
 
 class ViewMassSpectrum(ViewSpectrum):
+    """Specialized viewer for mass spectral data"""
+
     def __init__(self, parent, figsize, title="MassSpectrum", **kwargs):
         ViewSpectrum.__init__(self, parent, figsize, title, **kwargs)
         self._x_label = kwargs.pop("x_label", "m/z (Da)")
@@ -109,6 +114,8 @@ class ViewMassSpectrum(ViewSpectrum):
 
 
 class ViewChromatogram(ViewSpectrum):
+    """Specialized viewer for chromatographic data"""
+
     def __init__(self, parent, figsize, title="Chromatogram", **kwargs):
         ViewSpectrum.__init__(self, parent, figsize, title, **kwargs)
         self._x_label = kwargs.pop("x_label", "Scans")
@@ -116,6 +123,8 @@ class ViewChromatogram(ViewSpectrum):
 
 
 class ViewMobilogram(ViewSpectrum):
+    """Specialized viewer for mobilogram data"""
+
     def __init__(self, parent, figsize, title="Mobilogram", **kwargs):
         ViewSpectrum.__init__(self, parent, figsize, title, **kwargs)
         self._x_label = kwargs.pop("x_label", "Drift time (bins)")

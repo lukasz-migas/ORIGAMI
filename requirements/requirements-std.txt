@@ -14,3 +14,4 @@ scikit-learn
 defusedxml
 psutil
 zarr
+send2trash

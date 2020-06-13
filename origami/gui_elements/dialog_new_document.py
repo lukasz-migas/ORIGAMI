@@ -47,18 +47,22 @@ class DialogNewDocument(Dialog):
 
     @property
     def path(self):
+        """Return current path"""
         return self.path_value.GetValue()
 
     @property
     def title(self):
+        """Return current title"""
         return self.title_value.GetValue()
 
     @property
     def document_type(self):
+        """Return current document title"""
         return self.document_type_choice.GetStringSelection()
 
     @property
     def full_path(self):
+        """Return full path including the `.origami` directory extension"""
         return os.path.join(self.path, self.title + ".origami")
 
     def setup(self):
@@ -206,7 +210,7 @@ class DialogNewDocument(Dialog):
             self.Destroy()
 
 
-def main():
+def _main():
 
     app = wx.App()
     ex = DialogNewDocument(None, document_type="Type: Imaging")
@@ -216,4 +220,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    _main()

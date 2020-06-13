@@ -364,11 +364,10 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
         # pack buttons
         btn_grid = wx.GridBagSizer(2, 2)
-        n = 0
-        btn_grid.Add(self.select_document_btn, (n, 0), flag=wx.ALIGN_CENTER)
-        btn_grid.Add(self.select_files_btn, (n, 1), flag=wx.ALIGN_CENTER)
-        btn_grid.Add(self.processing_btn, (n, 2), flag=wx.ALIGN_CENTER)
-        btn_grid.Add(self.clear_files_btn, (n, 3), flag=wx.ALIGN_CENTER)
+        btn_grid.Add(self.select_document_btn, (0, 0), flag=wx.ALIGN_CENTER)
+        btn_grid.Add(self.select_files_btn, (0, 1), flag=wx.ALIGN_CENTER)
+        btn_grid.Add(self.processing_btn, (0, 2), flag=wx.ALIGN_CENTER)
+        btn_grid.Add(self.clear_files_btn, (0, 3), flag=wx.ALIGN_CENTER)
 
         return grid, btn_grid
 
@@ -710,7 +709,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         return info, color
 
 
-def main():
+def _main():
 
     app = wx.App()
     ex = PanelImportManagerBase(None, None)
@@ -722,4 +721,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    _main()

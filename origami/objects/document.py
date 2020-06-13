@@ -36,6 +36,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 class DocumentStore:
+    """DocumentStore object"""
+
     VERSION: int = 1
     EXTENSION: str = ".origami"
     GROUPS = [
@@ -69,6 +71,7 @@ class DocumentStore:
         self._tandem_spectra = TandemSpectra(self.fp)
         self.output_path = os.path.join(self.path, "Output")
 
+        self.add_config("paths", dict())
         self._check_version()
 
     def __repr__(self):
@@ -187,14 +190,17 @@ class DocumentStore:
 
     @property
     def groups(self):
+        """Returns list of groups"""
         return [group for group in self.fp.group_keys()]
 
     @property
     def info(self):
+        """Return document information"""
         return self.fp.info
 
     @property
     def title(self):
+        """Returns the title of the document"""
         if self._title is None:
             self._title = os.path.splitext(os.path.split(self.path)[1])[0]
         return self._title
@@ -210,6 +216,7 @@ class DocumentStore:
 
     @property
     def file_format(self):
+        """Returns the file type of the dataset"""
         return self.fp.attrs["file_format"]
 
     @property
@@ -329,9 +336,18 @@ class DocumentStore:
         except (KeyError, AttributeError):
             LOGGER.warning(f"Could not clear `{item}`")
 
-    def duplicate(self, path):
+    def duplicate(self, path: str):
         """Create copy of the document with new name"""
-        raise NotImplementedError("Must implement method")
+        from origami.utils.path import copy_directory
+
+        if path == self.path:
+            raise ValueError("Destination path cannot be the same as the DocumentStore path")
+
+        try:
+            copy_directory(self.path, path, False)
+            return DocumentStore(path)
+        except OSError:
+            LOGGER.error("Could not duplicate directory")
 
     def remove(self, item):
         """Deletes all data and the root directory from the store"""
@@ -339,6 +355,16 @@ class DocumentStore:
             del self.fp[item]
         except KeyError:
             LOGGER.warning(f"Could not delete `{item}`")
+
+    def delete(self):
+        """Delete DocumentStore from the disk"""
+        from send2trash import send2trash, TrashPermissionError
+
+        try:
+            send2trash(self.path)
+            LOGGER.info(f"Send directory `{self.path}` to the Recycle Bin")
+        except TrashPermissionError:
+            LOGGER.error("Could not delete self")
 
     def copy(self, item: str, copy: Optional[str] = None):
         """Copy object and set it inside the document"""
@@ -438,33 +464,47 @@ class DocumentStore:
     def view(self) -> List[str]:
         """Returns tree-like representation of the dataset"""
 
-        def get_children(o):
-
+        def get_children():
+            """Return list of children of the group object"""
             return natsorted([i.path for i in o.values()])
 
         out = []
         for o in self.fp.values():
             if hasattr(o, "values"):
-                children = get_children(o)
+                children = get_children()
                 out.extend(children)
         return out
 
     def _extend_group(self, group: Group):
         """Extends the functionality of the `Group` object by adding new attribute"""
 
+    def set_reader(self, title, reader):
+        """Set reader"""
+        self.file_reader[title] = reader
+        self.add_file_path(title, reader.path)
+
     def get_reader(self, title):
         """Retrieve reader"""
         if title in self.file_reader:
             return self.file_reader[title]
 
-    def set_reader(self, title, reader):
-        """Set reader"""
-        self.file_reader[title] = reader
+    def add_file_path(self, title: str, path: str):
+        """Add file path associated with the document"""
+        config = self.get_config("paths")
+        config[title] = path
+        self.add_config("paths", config)
+
+    def get_file_path(self, title: str):
+        """Return path to a raw file"""
+        config = self.get_config("paths")
+        return config.get(title, "")
 
     @property
     def tandem_spectra(self):
+        """Return the tandem spectra object"""
         return self._tandem_spectra
 
     @tandem_spectra.setter
     def tandem_spectra(self, value):
+        """Set the tandem spectra object"""
         self._tandem_spectra.set_from_dict(value)

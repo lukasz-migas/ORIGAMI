@@ -1,5 +1,6 @@
 # Standard library imports
 import os
+import re
 import shutil
 import string
 import logging
@@ -13,6 +14,44 @@ logger = logging.getLogger(__name__)
 
 VALID_FILENAME_CHARACTERS = "-_.() %s%s" % (string.ascii_letters, string.digits)
 CHARACTER_LIMIT = 255
+
+
+def get_duplicate_name(name: str, split_str: str = None):
+    """Get alternative name for an object
+
+    Parameters
+    ----------
+    name : str
+        initial name to be checked
+    split_str : str, optional
+        value by which the name should be split, e.g. can be file extension such as `.origami`
+
+    Returns
+    -------
+    name : str
+        new name with `copy N` appended to it
+    """
+    if split_str is not None:
+        name = name.split(split_str)[0]
+
+    prev = re.findall(r"\(copy (\d+)", name)
+    n = 0
+
+    if prev:
+        n = int(prev[-1])
+
+    while " (copy %d)" % n in name:
+        n += 1
+
+    if n == 0:
+        name = name + " (copy %d)" % n
+    else:
+        name = name.replace(f" (copy {n-1})", f" (copy {n})")
+
+    if split_str is not None:
+        name += split_str
+
+    return name
 
 
 def clean_filename(filename, whitelist=VALID_FILENAME_CHARACTERS, replace=False):
@@ -106,6 +145,16 @@ def clean_up_MDD_path(path):
 
 def get_base_path(filepath):
     return os.path.dirname(filepath)
+
+
+def copy_directory(from_path, to_path, overwrite: bool = False):
+    """Copy directory to a new location"""
+    if os.path.exists(to_path):
+        if overwrite:
+            shutil.rmtree(to_path)
+        else:
+            raise OSError("Cannot copy directory to this location because the destination directory is not empty!")
+    shutil.copytree(from_path, to_path)
 
 
 # def clean_filename(filename):

@@ -46,7 +46,6 @@ from origami.handlers.queue_handler import QUEUE
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.dialog_multi_directory_picker import DialogMultiDirPicker
 
-
 # enable on windowsOS only
 if platform == "win32":
     from origami.readers import io_waters_raw
@@ -194,13 +193,19 @@ class DataHandling(LoadHandler, ExportHandler):
     def update_statusbar(self, msg, field):
         self.on_threading(args=(msg, field), action="statusbar.update")
 
-    def on_open_origami_document(self, evt):
-        """Open ORIGAMI document"""
+    def on_get_directory_path(self, title: str):
+        """Get path to directory"""
         path = None
-        dlg = wx.DirDialog(self.view, "Choose a ORIGAMI (.origami) directory store", style=wx.DD_DEFAULT_STYLE)
+        dlg = wx.DirDialog(self.view, title, style=wx.DD_DEFAULT_STYLE)
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
         dlg.Destroy()
+
+        return path
+
+    def on_open_origami_document(self, evt):
+        """Open ORIGAMI document"""
+        path = self.on_get_directory_path("Choose a ORIGAMI (.origami) directory store")
 
         if path is None or not path.endswith(".origami"):
             logger.warning("Operation was cancelled")
@@ -562,12 +567,7 @@ class DataHandling(LoadHandler, ExportHandler):
 
     def on_open_waters_raw_ms_fcn(self, evt):
         """Open Waters (.raw) file"""
-        path = None
-        dlg = wx.DirDialog(self.view, "Choose a Waters (.raw) directory", style=wx.DD_DEFAULT_STYLE)
-        if dlg.ShowModal() == wx.ID_OK:
-            path = dlg.GetPath()
-        dlg.Destroy()
-
+        path = self.on_get_directory_path("Choose a Waters (.raw) directory")
         if path is None:
             logger.warning("Could not load file")
             return
@@ -580,12 +580,7 @@ class DataHandling(LoadHandler, ExportHandler):
 
     def on_open_waters_raw_imms_fcn(self, evt):
         """Open Waters (.raw) file"""
-        path = None
-        dlg = wx.DirDialog(self.view, "Choose a Waters (.raw) directory", style=wx.DD_DEFAULT_STYLE)
-        if dlg.ShowModal() == wx.ID_OK:
-            path = dlg.GetPath()
-        dlg.Destroy()
-
+        path = self.on_get_directory_path("Choose a Waters (.raw) directory")
         if path is None:
             logger.warning("Could not load file")
             return
