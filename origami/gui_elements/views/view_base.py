@@ -36,9 +36,9 @@ class ViewBase(ABC):
         self._callbacks = kwargs.pop("callbacks", dict())
 
         # user settings
-        self._x_label = None
-        self._y_label = None
-        self._z_label = None
+        self._x_label = kwargs.pop("x_label", None)
+        self._y_label = kwargs.pop("y_label", None)
+        self._z_label = kwargs.pop("z_label", None)
         self._data = dict()
         self._plt_kwargs = dict()
         self.document_name = None
@@ -65,6 +65,7 @@ class ViewBase(ABC):
 
     @property
     def callbacks(self):
+        """Return list of callbacks associated with the figure"""
         return self._callbacks
 
     @callbacks.setter
@@ -73,6 +74,7 @@ class ViewBase(ABC):
 
     @property
     def x_label(self):
+        """Return x-axis label"""
         return self._x_label
 
     @x_label.setter
@@ -84,6 +86,7 @@ class ViewBase(ABC):
 
     @property
     def y_label(self):
+        """Return y-axis label"""
         return self._y_label
 
     @y_label.setter
@@ -95,6 +98,7 @@ class ViewBase(ABC):
 
     @property
     def z_label(self):
+        """Return z-axis label"""
         return self._z_label
 
     @z_label.setter
@@ -137,6 +141,7 @@ class ViewBase(ABC):
         """Update plot labels without triggering replot"""
 
         def remove_keys(key):
+            """Remove key from kwargs"""
             if key in kwargs:
                 del kwargs[key]
 
@@ -159,17 +164,37 @@ class ViewBase(ABC):
     def add_labels(self, x, y, text, **kwargs):
         """Add text label to the plot"""
 
-    def add_h_lines(self, value, **kwargs):
-        """Add text label to the plot"""
+    def add_h_line(self, y_val, x_min: float = None, x_max: float = None, **kwargs):
+        """Add horizontal line to the plot"""
+        _x_min, _x_max = self.figure.get_xlim()
+        if x_min is None:
+            x_min = _x_min
+        if x_max is None:
+            x_max = _x_max
 
-    def add_v_lines(self, value, **kwargs):
-        """Add text label to the plot"""
+        self.figure.plot_add_line(x_min, x_max, y_val, y_val, "horizontal")
+        self.figure.repaint()
+
+    def add_v_line(self, x_val, y_min: float = None, y_max: float = None, **kwargs):
+        """Add vertical line to the plot"""
+        _y_min, _y_max = self.figure.get_ylim()
+        if y_min is None:
+            y_min = _y_min
+        if y_max is None:
+            y_max = _y_max
+
+        self.figure.plot_add_line(x_val, x_val, y_min, y_max, "vertical")
+        self.figure.repaint()
 
     def add_rects(self, coordinates, **kwargs):
         """Add text label to the plot"""
 
     def add_line(self, x, y, **kwargs):
         """Add text label to the plot"""
+
+    def copy_to_clipboard(self):
+        """Copy plot to clipboard"""
+        return self.figure.copy_to_clipboard()
 
     def save_figure(self, filename, **kwargs):
         """Export figure"""

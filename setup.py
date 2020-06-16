@@ -8,6 +8,7 @@ from distutils.errors import DistutilsPlatformError
 from distutils.command.build_ext import build_ext
 
 # Third-party imports
+from setuptools import Extension
 from setuptools import setup
 from setuptools import find_packages
 
@@ -51,9 +52,27 @@ def make_extensions():
         if is_ci and include_diagnostics:
             cython_directives["linetrace"] = True
 
-        extensions = cythonize([], compiler_directives=cython_directives, force=force_cythonize)
+        extensions = cythonize(
+            [
+                Extension(
+                    name="origami.c.spectra", sources=["origami/c/spectra.pyx"], include_dirs=[numpy.get_include()]
+                ),
+                Extension(name="origami.c.peaks", sources=["origami/c/peaks.pyx"], include_dirs=[numpy.get_include()]),
+                Extension(
+                    name="origami.c.utilities", sources=["origami/c/utilities.pyx"], include_dirs=[numpy.get_include()]
+                ),
+            ],
+            compiler_directives=cython_directives,
+            force=force_cythonize,
+        )
     except ImportError:
-        extensions = []
+        extensions = [
+            Extension(name="origami.c.spectra", sources=["origami/c/spectra.c"], include_dirs=[numpy.get_include()]),
+            Extension(name="origami.c.peaks", sources=["origami/c/peaks.c"], include_dirs=[numpy.get_include()]),
+            Extension(
+                name="origami.c.utilities", sources=["origami/c/utilities.c"], include_dirs=[numpy.get_include()]
+            ),
+        ]
     return extensions
 
 
@@ -168,6 +187,7 @@ if __name__ == "__main__":
         print(exc)
         run_setup(include_c_ext=False)
 
+        print(os.getcwd())
         status_msgs(
             "WARNING: The C extension could not be compiled, speedups are not enabled." "Plain-Python build succeeded."
         )

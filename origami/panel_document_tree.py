@@ -874,18 +874,12 @@ class DocumentTree(wx.TreeCtrl):
             menu = wx.Menu()
             menu.AppendItem(
                 make_menu_item(
-                    parent=menu,
-                    evt_id=ID_saveAllDocuments,
-                    text="Save all documents",
-                    bitmap=self.icons.iconsLib["save_multiple_16"],
+                    parent=menu, evt_id=ID_saveAllDocuments, text="Save all documents", bitmap=self._icons.save
                 )
             )
             menu.AppendItem(
                 make_menu_item(
-                    parent=menu,
-                    evt_id=ID_removeAllDocuments,
-                    text="Delete all documents",
-                    bitmap=self.icons.iconsLib["bin16"],
+                    parent=menu, evt_id=ID_removeAllDocuments, text="Delete all documents", bitmap=self._icons.bin
                 )
             )
             self.PopupMenu(menu)
@@ -1184,36 +1178,6 @@ class DocumentTree(wx.TreeCtrl):
     #         if evt is not None:
     #             evt.Skip()
 
-    def on_delete_all_documents(self, evt):
-        """ Alternative function to delete documents """
-
-        doc_keys = list(ENV.keys())
-        n_docs = len(doc_keys)
-
-        if not doc_keys:
-            LOGGER.warning("Document list is empty")
-            return
-
-        dlg = DialogBox(
-            title="Are you sure?",
-            msg=f"Are you sure you would like to delete ALL ({n_docs}) documents?",
-            kind="Question",
-        )
-
-        if dlg == wx.ID_NO:
-            self.presenter.onThreading(None, ("Cancelled operation", 4, 5), action="updateStatusbar")
-            return
-
-        # clear all plots
-        self.panel_plot.on_clear_all_plots()
-
-        # iterate over the list
-        for document in doc_keys:
-            try:
-                self.removeDocument(evt=None, deleteItem=document, ask_permission=False)
-            except Exception:
-                LOGGER.error(f"Encountered an error when deleting document: '{document}'.", exc_info=True)
-
     def _get_query_info_based_on_indent(self, return_subkey=False, evt=None):
         """Generate query_info keywords that are implied from the indentation of the selected item
 
@@ -1494,34 +1458,6 @@ class DocumentTree(wx.TreeCtrl):
         self._manual_import_panel = PanelManualImportDataset(self.view, self.presenter, activation_type=activation_type)
         self._manual_import_panel.Show()
 
-    def on_right_click_short(self):
-        """Right-click menu when clicked on the `Documents` item in the documents tree"""
-
-        # bind few events first
-        self.Bind(wx.EVT_MENU, self.data_handling.on_save_all_documents_fcn, id=ID_saveAllDocuments)
-        self.Bind(wx.EVT_MENU, self.on_delete_all_documents, id=ID_removeAllDocuments)
-
-        menu = wx.Menu()
-        menu.AppendItem(
-            make_menu_item(
-                parent=menu,
-                evt_id=ID_saveAllDocuments,
-                text="Save all documents",
-                bitmap=self.icons.iconsLib["save_multiple_16"],
-            )
-        )
-        menu.AppendItem(
-            make_menu_item(
-                parent=menu,
-                evt_id=ID_removeAllDocuments,
-                text="Delete all documents",
-                bitmap=self.icons.iconsLib["bin16"],
-            )
-        )
-        self.PopupMenu(menu)
-        menu.Destroy()
-        self.SetFocus()
-
     def on_update_ui(self, value, evt):
         if value == "menu.load.override":
             self.config.import_duplicate_ask = not self.config.import_duplicate_ask
@@ -1713,31 +1649,27 @@ class DocumentTree(wx.TreeCtrl):
         # make menu items
         # view actions
         menu_action_show_plot_spectrum = make_menu_item(
-            parent=menu, text="Show mass spectrum\tAlt+S", bitmap=self.icons.iconsLib["mass_spectrum_16"]
+            parent=menu, text="Show mass spectrum\tAlt+S", bitmap=self._icons.ms
         )
         menu_action_show_plot_spectrum_waterfall = make_menu_item(
-            parent=menu, text="Show mass spectra as waterfall", bitmap=self.icons.iconsLib["mass_spectrum_16"]
+            parent=menu, text="Show mass spectra as waterfall", bitmap=self._icons.ms
         )
         menu_action_show_plot_spectrum_heatmap = make_menu_item(
-            parent=menu, text="Show mass spectra as heatmap", bitmap=self.icons.iconsLib["mass_spectrum_16"]
+            parent=menu, text="Show mass spectra as heatmap", bitmap=self._icons.ms
         )
 
         # process actions
         menu_show_peak_picker_panel = make_menu_item(
             parent=menu, text="Open peak picker...", bitmap=self._icons.highlight
         )
-        menu_action_process_ms = make_menu_item(
-            parent=menu, text="Process...\tP", bitmap=self.icons.iconsLib["process_ms_16"]
-        )
-        menu_action_process_ms_all = make_menu_item(
-            parent=menu, text="Process all...", bitmap=self.icons.iconsLib["process_ms_16"]
-        )
+        menu_action_process_ms = make_menu_item(parent=menu, text="Process...\tP", bitmap=self._icons.process_ms)
+        menu_action_process_ms_all = make_menu_item(parent=menu, text="Process all...", bitmap=self._icons.process_ms)
         menu_show_comparison_panel = make_menu_item(
-            parent=menu, text="Compare mass spectra...", bitmap=self.icons.iconsLib["compare_mass_spectra_16"]
+            parent=menu, text="Compare mass spectra...", bitmap=self._icons.compare_ms
         )
 
         menu_show_unidec_panel = make_menu_item(
-            parent=menu, text="Deconvolute using UniDec...", bitmap=self.icons.iconsLib["process_unidec_16"]
+            parent=menu, text="Deconvolute using UniDec...", bitmap=self._icons.unidec
         )
 
         # export actions
@@ -1793,7 +1725,7 @@ class DocumentTree(wx.TreeCtrl):
 
         # view actions
         menu_action_show_plot_chromatogram = make_menu_item(
-            parent=menu, text="Show chromatogram\tAlt+S", bitmap=self.icons.iconsLib["chromatogram_16"]
+            parent=menu, text="Show chromatogram\tAlt+S", bitmap=self._icons.chromatogram
         )
 
         # export actions
@@ -1840,7 +1772,7 @@ class DocumentTree(wx.TreeCtrl):
 
         # view actions
         menu_action_show_plot_mobilogram = make_menu_item(
-            parent=menu, text="Show mobilogram\tAlt+S", bitmap=self.icons.iconsLib["mobilogram_16"]
+            parent=menu, text="Show mobilogram\tAlt+S", bitmap=self._icons.mobilogram
         )
 
         # process actions
@@ -1887,34 +1819,28 @@ class DocumentTree(wx.TreeCtrl):
             return
 
         # view actions
-        menu_action_show_plot_2d = make_menu_item(
-            parent=menu, text="Show heatmap\tAlt+S", bitmap=self.icons.iconsLib["heatmap_16"]
-        )
+        menu_action_show_plot_2d = make_menu_item(parent=menu, text="Show heatmap\tAlt+S", bitmap=self._icons.heatmap)
         menu_action_show_plot_as_mobilogram = make_menu_item(
-            parent=menu, text="Show mobilogram", bitmap=self.icons.iconsLib["mobilogram_16"]
+            parent=menu, text="Show mobilogram", bitmap=self._icons.mobilogram
         )
         menu_action_show_plot_as_chromatogram = make_menu_item(
-            parent=menu, text="Show chromatogram", bitmap=self.icons.iconsLib["chromatogram_16"]
+            parent=menu, text="Show chromatogram", bitmap=self._icons.chromatogram
         )
-        menu_action_show_plot_violin = make_menu_item(
-            parent=menu, text="Show violin plot", bitmap=self.icons.iconsLib["panel_violin_16"]
-        )
+        menu_action_show_plot_violin = make_menu_item(parent=menu, text="Show violin plot", bitmap=self._icons.violin)
         menu_action_show_plot_waterfall = make_menu_item(
-            parent=menu, text="Show waterfall plot", bitmap=self.icons.iconsLib["panel_waterfall_16"]
+            parent=menu, text="Show waterfall plot", bitmap=self._icons.waterfall
         )
         menu_action_show_highlights = make_menu_item(
-            parent=menu, text="Highlight ion in mass spectrum\tAlt+X", bitmap=self.icons.iconsLib["zoom_16"]
+            parent=menu, text="Highlight ion in mass spectrum\tAlt+X", bitmap=self._icons.zoom
         )
 
         # process actions
-        menu_action_process_2d = make_menu_item(
-            parent=menu, text="Process...\tP", bitmap=self.icons.iconsLib["process_2d_16"]
-        )
+        menu_action_process_2d = make_menu_item(parent=menu, text="Process...\tP", bitmap=self._icons.process_heatmap)
         menu_action_process_2d_all = make_menu_item(
-            parent=menu, text="Process all...", bitmap=self.icons.iconsLib["process_2d_16"]
+            parent=menu, text="Process all...", bitmap=self._icons.process_heatmap
         )
         menu_action_assign_charge = make_menu_item(
-            parent=menu, text="Assign charge state...\tAlt+Z", bitmap=self.icons.iconsLib["assign_charge_16"]
+            parent=menu, text="Assign charge state...\tAlt+Z", bitmap=self._icons.charge
         )
         menu_action_delete_item = make_menu_item(parent=menu, text="Delete item\tDelete", bitmap=self._icons.delete)
 
@@ -1974,16 +1900,12 @@ class DocumentTree(wx.TreeCtrl):
             return
 
         # view actions
-        menu_action_show_plot_2d = make_menu_item(
-            parent=menu, text="Show heatmap\tAlt+S", bitmap=self.icons.iconsLib["heatmap_16"]
-        )
+        menu_action_show_plot_2d = make_menu_item(parent=menu, text="Show heatmap\tAlt+S", bitmap=self._icons.heatmap)
 
         # process actions
-        menu_action_process_2d = make_menu_item(
-            parent=menu, text="Process...\tP", bitmap=self.icons.iconsLib["process_2d_16"]
-        )
+        menu_action_process_2d = make_menu_item(parent=menu, text="Process...\tP", bitmap=self._icons.process_heatmap)
         menu_action_process_2d_all = make_menu_item(
-            parent=menu, text="Process all...\tP", bitmap=self.icons.iconsLib["process_2d_16"]
+            parent=menu, text="Process all...", bitmap=self._icons.process_heatmap
         )
         menu_action_delete_item = make_menu_item(parent=menu, text="Delete item\tDelete", bitmap=self._icons.delete)
 
@@ -2110,6 +2032,22 @@ class DocumentTree(wx.TreeCtrl):
         #         )
         #     )
 
+    def on_right_click_short(self):
+        """Right-click menu when clicked on the `Documents` item in the documents tree"""
+
+        menu = wx.Menu()
+        menu_delete_all = make_menu_item(parent=menu, text="Close all documents", bitmap=self._icons.bin)
+
+        # bind events
+        self.Bind(wx.EVT_MENU, self.on_delete_all_documents, menu_delete_all)
+
+        # make menu
+        # menu.AppendItem(menu_save_all)
+        menu.AppendItem(menu_delete_all)
+        self.PopupMenu(menu)
+        menu.Destroy()
+        self.SetFocus()
+
     def on_right_click(self, evt):
         """ Create and show up popup menu"""
 
@@ -2125,10 +2063,10 @@ class DocumentTree(wx.TreeCtrl):
             )
             return
 
-        dataset_type = query[1]
-        dataset_name = query[2]
-        subkey_parent = subkey[0]
-        subkey_child = subkey[1]
+        # dataset_type = query[1]
+        # dataset_name = query[2]
+        # subkey_parent = subkey[0]
+        # subkey_child = subkey[1]
 
         if itemType == "Documents":
             self.on_right_click_short()
@@ -2198,7 +2136,7 @@ class DocumentTree(wx.TreeCtrl):
         self._set_menu_load_data(menu)
 
         # menu_action_rename_item = make_menu_item(
-        #     parent=menu, evt_id=ID_renameItem, text="Rename\tF2", bitmap=self.icons.iconsLib["rename_16"]
+        #     parent=menu, evt_id=ID_renameItem, text="Rename\tF2", bitmap=self._icons.edit
         # )
         # menu_action_add_spectrum_to_panel = make_menu_item(
         #     parent=menu, evt_id=ID_docTree_addOneToMMLTable, text="Add spectrum to multiple files panel", bitmap=None
@@ -2206,27 +2144,14 @@ class DocumentTree(wx.TreeCtrl):
         # menu_action_show_unidec_results = make_menu_item(
         #     parent=menu, evt_id=ID_docTree_show_unidec, text="Show UniDec results", bitmap=None
         # )
-        #
-        #
-        #         menu_action_show_plot_spectrum_waterfall = make_menu_item(
-        #             parent=menu, evt_id=ID_docTree_showMassSpectra, text="Show mass spectra (waterfall)", bitmap=None
-        #         )
-        # menu_action_save_document = make_menu_item(
-        #     parent=menu, evt_id=ID_saveDocument, text="Save document\tCtrl+S", bitmap=self.icons.iconsLib["pickle_16"]
-        # )
-        #
-        # menu_action_save_document_as = make_menu_item(
-        #     parent=menu, text="Save document as...", bitmap=self.icons.iconsLib["save16"]
-        # )
+
         menu_action_duplicate_document = make_menu_item(
             parent=menu, text="Duplicate document", bitmap=self._icons.duplicate
         )
 
-        menu_action_remove_document = make_menu_item(
-            parent=menu, text="Delete document", bitmap=self.icons.iconsLib["bin16"]
-        )
+        menu_action_remove_document = make_menu_item(parent=menu, text="Close document", bitmap=self._icons.bin)
         menu_action_remove_document_disk = make_menu_item(
-            parent=menu, text="Delete document from disk", bitmap=self.icons.iconsLib["bin16"]
+            parent=menu, text="Delete document from disk", bitmap=self._icons.bin
         )
 
         # # bind events
@@ -2256,7 +2181,7 @@ class DocumentTree(wx.TreeCtrl):
         #             parent=menu,
         #             evt_id=ID_docTree_duplicate_document,
         #             text="Duplicate document\tShift+D",
-        #             bitmap=self.icons.iconsLib["duplicate_16"],
+        #             bitmap=self._icons.duplicate,
         #         )
         #     )
         #     menu.AppendItem(menu_action_rename_item)
@@ -2268,7 +2193,7 @@ class DocumentTree(wx.TreeCtrl):
         #         parent=menu,
         #         evt_id=ID_openDocInfo,
         #         text="Notes, Information, Labels...\tCtrl+I",
-        #         bitmap=self.icons.iconsLib["info16"],
+        #         bitmap=self._icons.info,
         #     )
         # )
         # menu.AppendItem(
@@ -2276,7 +2201,7 @@ class DocumentTree(wx.TreeCtrl):
         #         parent=menu,
         #         evt_id=ID_goToDirectory,
         #         text="Go to folder...\tCtrl+G",
-        #         bitmap=self.icons.iconsLib["folder_path_16"],
+        #         bitmap=self._icons.folder,
         #     )
         # )
         # menu.AppendItem(
@@ -2284,7 +2209,7 @@ class DocumentTree(wx.TreeCtrl):
         #         parent=menu,
         #         evt_id=ID_saveAsInteractive,
         #         text="Open interactive output panel...\tShift+Z",
-        #         bitmap=self.icons.iconsLib["bokehLogo_16"],
+        #         bitmap=self._icons.bokeh,
         #     )
         # )
         # menu.AppendItem(menu_action_save_document)
@@ -2487,7 +2412,7 @@ class DocumentTree(wx.TreeCtrl):
             "document_spectrum_list": document_spectrum_list,
         }
 
-        self._compare_panel = PanelSignalComparisonViewer(self.view, self.presenter, self.config, self.icons, **kwargs)
+        self._compare_panel = PanelSignalComparisonViewer(self.view, self.presenter, self._icons, **kwargs)
         self._compare_panel.Show()
 
     def on_process_2D(self, evt):
@@ -2572,7 +2497,7 @@ class DocumentTree(wx.TreeCtrl):
         """Open mass spectrum processing settings"""
         from origami.gui_elements.panel_process_spectrum import PanelProcessMassSpectrum
 
-        panel = PanelProcessMassSpectrum(self.presenter.view, self.presenter, self.config, self.icons, **kwargs)
+        panel = PanelProcessMassSpectrum(self.presenter.view, self.presenter, **kwargs)
         panel.Show()
 
     def onDuplicateItem(self, evt):
@@ -3696,6 +3621,18 @@ class DocumentTree(wx.TreeCtrl):
         self.panel_plot.on_clear_all_plots()
         self.on_enable_document()
 
+    def on_delete_all_documents(self, evt):
+        """ Alternative function to delete documents """
+        titles = ENV.titles
+
+        for title in titles:
+            dlg = DialogBox("Are you sure?", f"Are you sure you would like to close `{title}`?", kind="Question")
+            if dlg == wx.ID_NO:
+                continue
+            ENV.remove(title)
+            self.panel_plot.on_clear_all_plots()
+            self.on_enable_document()
+
     def on_duplicate_document(self, evt):
         """Duplicate existing document and load it"""
         from origami.utils.path import get_duplicate_name
@@ -3858,29 +3795,28 @@ class DocumentTree(wx.TreeCtrl):
     #
     def on_open_peak_picker(self, evt, **kwargs):
         """Open peak picker"""
-        raise NotImplementedError("Must implement method")
-        # from origami.widgets.mz_picker.panel_peak_picker import PanelPeakPicker
-        #
-        # # get data
-        # document_title, dataset_type, dataset_name = self._get_query_info_based_on_indent()
+        from origami.widgets.mz_picker.panel_peak_picker import PanelPeakPicker
+
+        # get data
+        document_title, dataset_type, dataset_name = self._get_query_info_based_on_indent()
+        mz_obj = self._get_item_object()
         # __, data = self.data_handling.get_mobility_chromatographic_data([document_title, dataset_type, dataset_name])
         #
         # if self._picker_panel:
         #     self._picker_panel.SetFocus()
         #     raise MessageError("Warning", "An instance of a Peak Picking panel is already open")
-        #
-        # # initialize peak picker
-        # self._picker_panel = PanelPeakPicker(
-        #     self.presenter.view,
-        #     self.presenter,
-        #     self.config,
-        #     self.icons,
-        #     mz_data=data,
-        #     document_title=document_title,
-        #     dataset_type=dataset_type,
-        #     dataset_name=dataset_name,
-        # )
-        # self._picker_panel.Show()
+
+        # initialize peak picker
+        self._picker_panel = PanelPeakPicker(
+            self.presenter.view,
+            self.presenter,
+            self._icons,
+            mz_obj=mz_obj,
+            document_title=document_title,
+            dataset_type=dataset_type,
+            dataset_name=dataset_name,
+        )
+        self._picker_panel.Show()
 
     #
     def on_open_extract_data(self, evt, **kwargs):

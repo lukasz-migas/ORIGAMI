@@ -15,7 +15,6 @@ from pubsub import pub
 from origami.styles import MiniFrame
 from origami.styles import set_item_font
 from origami.styles import make_menu_item
-from origami.styles import make_bitmap_btn
 from origami.icons.assets import Icons
 from origami.objects.misc import FileItem
 from origami.config.config import CONFIG
@@ -292,12 +291,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
         main_sizer.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND, 10)
         main_sizer.Add(import_sizer, 0, wx.ALL | wx.EXPAND, 5)
-
-        self.info_btn = make_bitmap_btn(
-            panel, wx.ID_ANY, self._icons["info"], style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
-        )
-        self.info_btn.Bind(wx.EVT_BUTTON, self.on_open_info)
-        main_sizer.Add(self.info_btn, 0, wx.ALIGN_RIGHT)
+        main_sizer.Add(self.make_info_button(panel), 0, wx.ALIGN_RIGHT)
 
         # fit layout
         main_sizer.Fit(panel)

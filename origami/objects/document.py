@@ -32,7 +32,11 @@ from origami.objects.containers import mass_spectrum_object
 
 LOGGER = logging.getLogger(__name__)
 
+
 # TODO: add annotations attribute to group
+def get_children(o):
+    """Return list of children of the group object"""
+    return natsorted([i.path for i in o.values()])
 
 
 class DocumentStore:
@@ -464,21 +468,26 @@ class DocumentStore:
     def view(self) -> List[str]:
         """Returns tree-like representation of the dataset"""
 
-        def get_children():
-            """Return list of children of the group object"""
-            return natsorted([i.path for i in o.values()])
-
         out = []
         for o in self.fp.values():
             if hasattr(o, "values"):
-                children = get_children()
+                children = get_children(o)
                 out.extend(children)
         return out
+
+    def view_group(self, group_name: str):
+        """View group elements"""
+        try:
+            group = self.fp[group_name]
+        except KeyError:
+            LOGGER.warning(f"Group `{group_name}` does not exist")
+            return []
+        return get_children(group)
 
     def _extend_group(self, group: Group):
         """Extends the functionality of the `Group` object by adding new attribute"""
 
-    def set_reader(self, title, reader):
+    def add_reader(self, title, reader):
         """Set reader"""
         self.file_reader[title] = reader
         self.add_file_path(title, reader.path)

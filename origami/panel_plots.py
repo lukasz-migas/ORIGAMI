@@ -195,8 +195,8 @@ class PanelPlots(wx.Panel):
             evt.Skip()
             self._resizing = False
         else:
-            if not self._timer.IsRunning():
-                self._timer.StartOnce(350)
+            self._timer.Stop()
+            self._timer.StartOnce(200)
 
     def _on_late_resize(self, evt):
         """Triggers additional resize after timer event has run out"""
@@ -208,6 +208,7 @@ class PanelPlots(wx.Panel):
     def setup_splitter_windows(self):
         """Update the size(s) of splitter windows after the window size has changed or at the startup of the program"""
         _, h = self.panel_rt.GetSize()
+        print(h)
         h = h // 2
         self.panel_rt.SetMinimumPaneSize(h)
 

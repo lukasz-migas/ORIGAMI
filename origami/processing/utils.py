@@ -13,6 +13,11 @@ from scipy.signal import find_peaks
 from origami.utils.check import check_value_order
 
 
+def ppm_error(x, y):
+    """Calculate ppm error"""
+    return (x - y) / y
+
+
 def nthroot(value, n):
     """Calculate the n-th root of any number"""
     return value ** (1 / float(n))
@@ -179,3 +184,12 @@ def get_narrow_data_range_1D(xvals, yvals, x_range=None):
 def get_maximum_value_in_range(data, mz_range):
     data = get_narrow_data_range(data, mz_range)
     return find_peak_maximum(data)
+
+
+try:
+    has_c = True
+    _ppm_error = ppm_error
+    from origami.c.utilities import ppm_error
+except ImportError as e:
+    print(e)
+    has_c = False

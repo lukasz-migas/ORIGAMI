@@ -57,7 +57,34 @@ class PlotBase(MPLPanel):
 
         return axes_size
 
-    def _compute_xy_limits(self, x, y, y_lower_start=0, y_upper_multiplier=1.0):
+    @staticmethod
+    def _compute_multi_xy_limits(xs, ys, y_lower_start=0, y_upper_multiplier=1.0):
+        """Calculate x/y axis ranges from multiple arrays"""
+        assert isinstance(xs, list)
+        assert isinstance(ys, list)
+
+        _xlimits, _ylimits = [], []
+        for x, y in zip(xs, ys):
+            x_min, x_max = get_min_max(x)
+            y_min, y_max = get_min_max(y)
+            _xlimits.append([x_min, x_max])
+            _ylimits.append([y_min, y_max])
+
+        x_min, x_max = get_min_max(_xlimits)
+        y_min, y_max = get_min_max(_ylimits)
+
+        xlimits = [x_min, x_max]
+        if y_lower_start is None:
+            y_lower_start = y_min
+        ylimits = [y_lower_start, y_max * y_upper_multiplier]
+
+        # extent is x_min, y_min, x_max, y_max
+        extent = [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
+
+        return xlimits, ylimits, extent
+
+    @staticmethod
+    def _compute_xy_limits(x, y, y_lower_start=0, y_upper_multiplier=1.0):
         """Calculate the x/y axis ranges"""
         x = np.asarray(x)
         y = np.asarray(y)
@@ -75,7 +102,16 @@ class PlotBase(MPLPanel):
         return xlimits, ylimits, extent
 
     def store_plot_limits(self, extent):
+        """Setup plot limits"""
         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
+
+    def get_xlim(self):
+        """Get x-axis limits"""
+        return self.plot_limits[0], self.plot_limits[1]
+
+    def get_ylim(self):
+        """Get y-axis limits"""
+        return self.plot_limits[2], self.plot_limits[3]
 
     def _update_plot_settings_(self, **kwargs):
         for parameter in kwargs:
@@ -95,7 +131,6 @@ class PlotBase(MPLPanel):
         else:
             axes_size = self._axes
 
-        #         if CONFIG._plots_check_axes_size:
         axes_size = self._check_axes_size(axes_size)
 
         # override parameters
@@ -326,27 +361,27 @@ class PlotBase(MPLPanel):
         extent = [xy_limits[0], xy_limits[2], xy_limits[1], xy_limits[3]]
         self.update_extents(extent)
 
-    def on_zoom_x_axis(self, xmin, xmax):
+    def on_zoom_x_axis(self, xmin=None, xmax=None):
+        """Horizontal zoom"""
+        _start_x, _end_x, _, _ = self.get_xylimits()
+        if xmin is None:
+            xmin = _start_x
+
+        if xmax is None:
+            xmax = _end_x
+
         self.plot_base.set_xlim([xmin, xmax])
 
-    def on_zoom_y_axis(self, startY=None, endY=None, **kwargs):
-        xylimits = self.get_xylimits()
+    def on_zoom_y_axis(self, start_y=None, end_y=None):
+        """Vertical zoom"""
+        _, _, _start_y, _end_y = self.get_xylimits()
+        if start_y is None:
+            start_y = _start_y
 
-        if startY is None:
-            startY = xylimits[2]
+        if end_y is None:
+            end_y = _end_y
 
-        if endY is None:
-            endY = xylimits[3]
-
-        if kwargs.pop("convert_values", False):
-            try:
-                startY = np.divide(startY, self.y_divider)
-                endY = np.divide(endY, self.y_divider)
-            except Exception:
-                pass
-
-        self.plot_base.set_ylim([startY, endY])
-        self.update_y_extents(startY, endY)
+        self.plot_base.set_ylim([start_y, end_y])
 
     def on_zoom_xy(self, startX, endX, startY, endY):
         try:
@@ -688,7 +723,8 @@ class PlotBase(MPLPanel):
         if repaint:
             self.repaint()
 
-    def plot_add_line(self, xmin, xmax, ymin, ymax, orientation, label="temporary"):
+    def plot_add_line(self, xmin: float, xmax: float, ymin: float, ymax: float, orientation: str, label="temporary"):
+        """Add vertical or horizontal line to the plot area"""
 
         if label is not None:
             self._remove_existing_line(label)
@@ -918,6 +954,8 @@ class PlotBase(MPLPanel):
                     line.set_linestyle(kwargs.get("line_style"))
                 if "transparency" in kwargs:
                     line.set_alpha(kwargs.get("transparency"))
+                if "label" in kwargs:
+                    line.set_label(kwargs.get("label"))
                 break
 
         handles, __ = self.plot_base.get_legend_handles_labels()

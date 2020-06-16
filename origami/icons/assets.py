@@ -13,6 +13,8 @@ ASSETS_PATH = os.path.join(os.path.dirname(__file__), "assets")
 
 
 class Icons:
+    """Simple loader of .png icons from the file system"""
+
     def __init__(self, fmt="*.png", path=ASSETS_PATH):
         # determine list of files in the directory
         if not os.path.exists(path):
@@ -22,6 +24,7 @@ class Icons:
 
     @property
     def n_icons(self):
+        """Return the number of icons in the folder"""
         return len(self.icons)
 
     def __getitem__(self, item):
@@ -31,7 +34,7 @@ class Icons:
     def __getattr__(self, item):
         # allow access to group members via dot notation
         try:
-            return self.icons[item]
+            return self.icons.get(item, None)
         except KeyError:
             raise AttributeError
 
@@ -75,14 +78,16 @@ class Example(wx.Frame):
         print(dir(icons))
 
         menubar = wx.MenuBar()
-        fileMenu = wx.Menu()
+        menu = wx.Menu()
 
-        for key, icon in icons.items():
-            fileItem = fileMenu.Append(wx.ID_ANY, key, "Quit application")
-            fileItem.SetBitmap(icon)
-            self.Bind(wx.EVT_MENU, self.OnQuit, fileItem)
+        for i, (key, icon) in enumerate(icons.items()):
+            file_item = menu.Append(wx.ID_ANY, key, "Quit application")
+            file_item.SetBitmap(icon)
+            self.Bind(wx.EVT_MENU, self.OnQuit, file_item)
+            if i % 25 == 0:
+                menu.Break()
 
-        menubar.Append(fileMenu, "&File")
+        menubar.Append(menu, "&File")
         self.SetMenuBar(menubar)
 
         self.SetSize((300, 200))

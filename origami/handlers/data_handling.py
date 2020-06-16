@@ -3182,58 +3182,65 @@ class DataHandling(LoadHandler, ExportHandler):
                 return dataset[dataset_name]
 
         document_title, dataset_type, dataset_name = query_info
-        document = self.on_get_document(document_title)
+        document = ENV.on_get_document(document_title)
 
-        if dataset_type == "Mass Spectrum":
-            data = document.massSpectrum
-        elif dataset_type == "Mass Spectrum (processed)":
-            data = document.smoothMS
-        elif dataset_type == "Chromatogram":
-            data = document.RT
-        elif dataset_type == "Drift time (1D)":
-            data = document.DT
-        elif dataset_type == "Drift time (2D)":
-            data = document.IMS2D
-        elif dataset_type == "Drift time (2D, processed)":
-            data = document.IMS2Dprocess
-        elif dataset_type == "DT/MS":
-            data = document.DTMZ
-        # MS -
-        elif dataset_type == "Mass Spectra":
-            data = get_subset_or_all(dataset_type, dataset_name, document.multipleMassSpectrum)
-        # 2D - EIC
-        elif dataset_type == "Drift time (2D, EIC)":
-            data = get_subset_or_all(dataset_type, dataset_name, document.IMS2Dions)
-        elif dataset_type == "Drift time (2D, combined voltages, EIC)":
-            data = get_subset_or_all(dataset_type, dataset_name, document.IMS2DCombIons)
-        # 2D - processed
-        elif dataset_type == "Drift time (2D, processed, EIC)":
-            data = get_subset_or_all(dataset_type, dataset_name, document.IMS2DionsProcess)
-        # 2D - input data
-        elif dataset_type == "Input data":
-            data = get_subset_or_all(dataset_type, dataset_name, document.IMS2DcompData)
-        # RT - combined voltages
-        elif dataset_type == "Chromatograms (combined voltages, EIC)":
-            data = get_subset_or_all(dataset_type, dataset_name, document.IMSRTCombIons)
-        # RT - EIC
-        elif dataset_type == "Chromatograms (EIC)":
-            data = get_subset_or_all(dataset_type, dataset_name, document.multipleRT)
-        # 1D - EIC
-        elif dataset_type == "Drift time (1D, EIC)":
-            data = get_subset_or_all(dataset_type, dataset_name, document.multipleDT)
-        # 1D - EIC - DTIMS
-        elif dataset_type == "Drift time (1D, EIC, DT-IMS)":
-            data = get_subset_or_all(dataset_type, dataset_name, document.IMS1DdriftTimes)
-        # Statistical
-        elif dataset_type == "Statistical":
-            data = get_subset_or_all(dataset_type, dataset_name, document.IMS2DstatsData)
-        # Annotated data
-        elif dataset_type == "Annotated data":
-            data = get_subset_or_all(dataset_type, dataset_name, document.other_data)
-        else:
-            raise MessageError(
-                "Not implemented yet", f"Method to handle {dataset_type}, {dataset_name} has not been implemented yet"
-            )
+        if "/" not in dataset_name:
+            raise ValueError("Incorrect query arguments")
+        data = document[dataset_name, True]
+
+        #         document = self.on_get_document(document_title)
+
+        #         if dataset_type == "Mass Spectrum":
+        #             data = document.massSpectrum
+        #         elif dataset_type == "Mass Spectrum (processed)":
+        #             data = document.smoothMS
+        #         elif dataset_type == "Chromatogram":
+        #             data = document.RT
+        #         elif dataset_type == "Drift time (1D)":
+        #             data = document.DT
+        #         elif dataset_type == "Drift time (2D)":
+        #             data = document.IMS2D
+        #         elif dataset_type == "Drift time (2D, processed)":
+        #             data = document.IMS2Dprocess
+        #         elif dataset_type == "DT/MS":
+        #             data = document.DTMZ
+        #         # MS -
+        #         elif dataset_type == "Mass Spectra":
+        #             data = get_subset_or_all(dataset_type, dataset_name, document.multipleMassSpectrum)
+        #         # 2D - EIC
+        #         elif dataset_type == "Drift time (2D, EIC)":
+        #             data = get_subset_or_all(dataset_type, dataset_name, document.IMS2Dions)
+        #         elif dataset_type == "Drift time (2D, combined voltages, EIC)":
+        #             data = get_subset_or_all(dataset_type, dataset_name, document.IMS2DCombIons)
+        #         # 2D - processed
+        #         elif dataset_type == "Drift time (2D, processed, EIC)":
+        #             data = get_subset_or_all(dataset_type, dataset_name, document.IMS2DionsProcess)
+        #         # 2D - input data
+        #         elif dataset_type == "Input data":
+        #             data = get_subset_or_all(dataset_type, dataset_name, document.IMS2DcompData)
+        #         # RT - combined voltages
+        #         elif dataset_type == "Chromatograms (combined voltages, EIC)":
+        #             data = get_subset_or_all(dataset_type, dataset_name, document.IMSRTCombIons)
+        #         # RT - EIC
+        #         elif dataset_type == "Chromatograms (EIC)":
+        #             data = get_subset_or_all(dataset_type, dataset_name, document.multipleRT)
+        #         # 1D - EIC
+        #         elif dataset_type == "Drift time (1D, EIC)":
+        #             data = get_subset_or_all(dataset_type, dataset_name, document.multipleDT)
+        #         # 1D - EIC - DTIMS
+        #         elif dataset_type == "Drift time (1D, EIC, DT-IMS)":
+        #             data = get_subset_or_all(dataset_type, dataset_name, document.IMS1DdriftTimes)
+        #         # Statistical
+        #         elif dataset_type == "Statistical":
+        #             data = get_subset_or_all(dataset_type, dataset_name, document.IMS2DstatsData)
+        #         # Annotated data
+        #         elif dataset_type == "Annotated data":
+        #             data = get_subset_or_all(dataset_type, dataset_name, document.other_data)
+        #         else:
+        #             raise MessageError(
+        #                 "Not implemented yet", f"Method to handle {dataset_type}, {dataset_name} has not been
+        #                 implemented yet"
+        #             )
 
         if as_copy:
             data = copy.deepcopy(data)
@@ -3539,33 +3546,49 @@ class DataHandling(LoadHandler, ExportHandler):
                     item_list.pop(document_title)
             return item_list
 
-        all_datasets = ["Mass Spectrum", "Mass Spectrum (processed)", "Mass Spectra"]
-        singlular_datasets = ["Mass Spectrum", "Mass Spectrum (processed)"]
+        all_datasets = ["MassSpectra"]
+        #         all_datasets = ["Mass Spectrum", "Mass Spectrum (processed)", "Mass Spectra"]
+        #         singlular_datasets = ["Mass Spectrum", "Mass Spectrum (processed)"]
         all_documents = ENV.get_document_list("all")
 
         item_list = []
         if output_type in ["annotations", "comparison"]:
             item_list = {document_title: list() for document_title in all_documents}
 
+        # iterate over all datasets
         for document_title in all_documents:
+            document = ENV.on_get_document(document_title)
+
+            # iterate over all groups
             for dataset_type in all_datasets:
-                __, data = self.get_spectrum_data([document_title, dataset_type])
-                if dataset_type in singlular_datasets and isinstance(data, dict) and len(data) > 0:
+                dataset_items = document.view_group(dataset_type)
+
+                # iterate over all objects
+                for dataset_name in dataset_items:
+                    obj = document[dataset_name, True]
                     if output_type == "overlay":
-                        item_list.append(get_overlay_data(data, dataset_type))
-                    elif output_type in ["annotations"]:
-                        item_list[document_title].append(dataset_type)
-                    elif output_type in ["comparison"]:
-                        item_list[document_title].append(dataset_type)
-                elif dataset_type not in singlular_datasets and isinstance(data, dict) and len(data) > 0:
-                    for key in data:
-                        if data[key]:
-                            if output_type == "overlay":
-                                item_list.append(get_overlay_data(data[key], key))
-                            elif output_type in ["annotations"]:
-                                item_list[document_title].append(f"{dataset_type} :: {key}")
-                            elif output_type in ["comparison"]:
-                                item_list[document_title].append(key)
+                        item_list.append(get_overlay_data(obj, dataset_type))
+                    elif output_type in ["annotations", "comparison"]:
+                        item_list[document_title].append(dataset_name)
+        #
+        #             for dataset_type in all_datasets:
+        #                 __, data = self.get_spectrum_data([document_title, dataset_type])
+        #                 if dataset_type in singlular_datasets and isinstance(data, dict) and len(data) > 0:
+        #                     if output_type == "overlay":
+        #                         item_list.append(get_overlay_data(data, dataset_type))
+        #                     elif output_type in ["annotations"]:
+        #                         item_list[document_title].append(dataset_type)
+        #                     elif output_type in ["comparison"]:
+        #                         item_list[document_title].append(dataset_type)
+        #                 elif dataset_type not in singlular_datasets and isinstance(data, dict) and len(data) > 0:
+        #                     for key in data:
+        #                         if data[key]:
+        #                             if output_type == "overlay":
+        #                                 item_list.append(get_overlay_data(data[key], key))
+        #                             elif output_type in ["annotations"]:
+        #                                 item_list[document_title].append(f"{dataset_type} :: {key}")
+        #                             elif output_type in ["comparison"]:
+        #                                 item_list[document_title].append(key)
 
         if output_type == "comparison":
             item_list = cleanup(item_list)

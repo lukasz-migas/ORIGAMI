@@ -38,7 +38,8 @@ class ViewSpectrum(ViewBase):
 
         return plot_panel, plot_window, sizer
 
-    def check_input(self, x, y, obj):
+    @staticmethod
+    def check_input(x, y, obj):
         """Ensure that input is correct"""
         if x is None and y is None and obj is None:
             raise ValueError("You must provide the x/y values or container object")
@@ -59,7 +60,6 @@ class ViewSpectrum(ViewBase):
             self.update(x, y, obj, **kwargs)
         except AttributeError:
             x, y = self.check_input(x, y, obj)
-            _ = kwargs.pop("x_label", "?")
             self.figure.clear()
             self.figure.plot_1d(
                 x,
@@ -111,6 +111,72 @@ class ViewMassSpectrum(ViewSpectrum):
         ViewSpectrum.__init__(self, parent, figsize, title, **kwargs)
         self._x_label = kwargs.pop("x_label", "m/z (Da)")
         self._y_label = kwargs.pop("y_label", "Intensity")
+
+
+class ViewCompareMassSpectra(ViewMassSpectrum):
+    """Specialized viewer for comparison of mass spectral data"""
+
+    def __init__(self, parent, figsize, title="CompareMassSpectra", **kwargs):
+        ViewMassSpectrum.__init__(self, parent, figsize, title=title, **kwargs)
+
+    def plot(
+        self, x_top=None, x_bottom=None, y_top=None, y_bottom=None, obj_top=None, obj_bottom=None, labels=None, **kwargs
+    ):
+        """Simple line plot"""
+        # try to update plot first, as it can be quicker
+        # self.set_document(obj, **kwargs)
+        # self.set_labels(obj, **kwargs)
+
+        if labels is None:
+            labels = ["", ""]
+        kwargs.update(**CONFIG.get_mpl_parameters(self.MPL_KEYS))
+
+        try:
+            self.update(x_top, x_bottom, y_top, y_bottom, obj_top, obj_bottom, labels, **kwargs)
+        except AttributeError:
+            # x, y = self.check_input(x, y, obj)
+            self.figure.clear()
+            self.figure.plot_1d_compare(
+                x_top,
+                x_bottom,
+                y_top,
+                y_bottom,
+                labels=labels,
+                x_label=self.x_label,
+                y_label=self.y_label,
+                callbacks=self._callbacks,
+                allow_extraction=self._allow_extraction,
+                **kwargs,
+            )
+            self.figure.repaint()
+
+            # set data
+            self._data.update(x=[x_top, x_bottom], y=[y_top, y_bottom])
+            self._plt_kwargs = kwargs
+            LOGGER.debug("Plotted data")
+
+    def update(
+        self, x_top=None, x_bottom=None, y_top=None, y_bottom=None, obj_top=None, obj_bottom=None, labels=None, **kwargs
+    ):
+        """Update plot without having to clear it"""
+        # self.set_document(obj, **kwargs)
+        # self.set_labels(obj, **kwargs)
+        if labels is None:
+            labels = ["", ""]
+        # update plot
+        # x, y = self.check_input(x, y, obj)
+        self.figure.plot_1d_compare_update_data(x_top, x_bottom, y_top, y_bottom, labels, **kwargs)
+        self.figure.repaint()
+
+        # set data
+        self._data.update(x=[x_top, x_bottom], y=[y_top, y_bottom])
+        self._plt_kwargs = kwargs
+        LOGGER.debug("Updated plot data")
+
+    def update_style(self, *args, **kwargs):
+        """Update plot style"""
+        self.figure.plot_1D_update_style_by_label(*args, **kwargs)
+        self.figure.repaint()
 
 
 class ViewChromatogram(ViewSpectrum):

@@ -13,7 +13,35 @@ CHUNK_MIN = 256 * 1024  # Soft lower limit (128k)
 CHUNK_MAX = 64 * 1024 * 1024  # Hard upper limit
 
 
+def rescale(values, new_min, new_max, dtype=None):
+    """Rescale values from one range to another
+
+    Parameters
+    ----------
+    values : Union[np.ndarray, List]
+        input range
+    new_min : Union[int, float]
+        new minimum value
+    new_max : Union[int, float]
+        new maximum value
+    dtype :
+        data type
+
+    Returns
+    -------
+    new_values : np.ndarray
+        rescaled range
+    """
+    values = np.asarray(values)
+    if dtype is None:
+        dtype = values.dtype
+    old_min, old_max = values.min(), values.max()
+    new_values = ((values - old_min) / (old_max - old_min)) * (new_max - new_min) + new_min
+    return new_values.astype(dtype)
+
+
 def is_valid_python_name(name):
+    """Check whether name is a valid keyword, usually meaning it has no spacing or hyphen"""
     from keyword import iskeyword
 
     return name.isidentifier() and not iskeyword(name)

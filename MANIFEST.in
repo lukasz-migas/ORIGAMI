@@ -1,0 +1,15 @@
+# Things to always exclude
+global-exclude .git*
+global-exclude .ipynb_checkpoints
+global-exclude *.py[co]
+
+
+# Top-level config
+include MANIFEST.in
+include setup.cfg
+include versioneer.py
+include _setup_utils.py
+
+# Always include
+global-include *.pyx
+global-include *.c

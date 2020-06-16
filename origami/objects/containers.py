@@ -9,6 +9,7 @@ from zarr import Group
 
 # Local imports
 import origami.processing.spectra as pr_spectra
+from origami.utils.path import get_duplicate_name
 from origami.utils.ranges import get_min_max
 from origami.objects.container import ContainerBase
 from origami.processing.heatmap import equalize_heatmap_spacing
@@ -41,6 +42,8 @@ def check_alternative_names(current_label, to_label, alternative_labels):
 
 
 class DataObject(ContainerBase):
+    """Generic data object"""
+
     # data attributes
     _x_limit = None
     _y_limit = None
@@ -140,6 +143,7 @@ class DataObject(ContainerBase):
         raise NotImplementedError("Must implement method")
 
     def check(self):
+        """Check input"""
         raise NotImplementedError("Must implement method")
 
     def copy(self):
@@ -147,7 +151,7 @@ class DataObject(ContainerBase):
         store = self.get_parent()
         title = self.title
         if store is not None and title is not None:
-            title += " (copy)"
+            title = get_duplicate_name(title)
             data, attrs = self.to_zarr()
             store.add(title, data, attrs)
             return store[title, True]
@@ -234,6 +238,8 @@ class SpectrumObject(DataObject):
 
 
 class MassSpectrumObject(SpectrumObject):
+    """Mass spectrum container object"""
+
     def __init__(
         self, x, y, name: str = "", metadata=None, extra_data=None, x_label="m/z (Da)", y_label="Intensity", **kwargs
     ):

@@ -282,6 +282,8 @@ class MiniFrame(wx.MiniFrame):
     HELP_MD = None
     HELP_LINK = None
 
+    _icons = None
+
     def __init__(
         self, parent, style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX | wx.STAY_ON_TOP, **kwargs
     ):
@@ -315,15 +317,20 @@ class MiniFrame(wx.MiniFrame):
         """Open help window to inform user on how to use this window / panel"""
         from origami.gui_elements.panel_html_viewer import PanelHTMLViewer
 
-        print("??")
-
         if self.HELP_LINK:
             PanelHTMLViewer(self, link=self.HELP_LINK)
         elif self.HELP_MD:
             PanelHTMLViewer(self, md_msg=self.HELP_MD)
 
+    def make_info_button(self, panel):
+        """Make clickable information button"""
+        info_btn = make_bitmap_btn(panel, wx.ID_ANY, self._icons.info, style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
+        info_btn.Bind(wx.EVT_BUTTON, self.on_open_info)
+        return info_btn
+
     def make_panel(self, *args):
-        raise NotImplementedError("Must implement method")
+        """Make panel"""
+        pass
 
     def make_gui(self):
         """Make and arrange main panel"""
@@ -748,11 +755,11 @@ class bgrPanel(wx.Panel):
             dc.DrawBitmap(self.image, x, 0, True)
 
 
-class validator(wx.PyValidator):
+class validator(wx.Validator):
     """Text validator."""
 
     def __init__(self, flag):
-        wx.PyValidator.__init__(self)
+        wx.Validator.__init__(self)
         self.flag = flag
         self.Bind(wx.EVT_CHAR, self.OnChar)
 

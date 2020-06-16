@@ -41,11 +41,14 @@ def baseline_curve(data, window: int, **kwargs):
         data without background
 
     """
+    window = abs(window)
     if window <= 0:
         raise MessageError("Incorrect input", "Value should be above 0")
 
-    window = abs(window)
+    return baseline_curve_(data, window)
 
+
+def baseline_curve_(data, window: int):
     length = data.shape[0]
     mins = np.zeros(length, dtype=np.int32)
 
@@ -146,7 +149,9 @@ def baseline_linear(data, threshold: float, **kwargs):
         raise MessageError("Incorrect input", "Value should be above 0")
 
     if threshold > value_max:
-        raise MessageError("Incorrect input", f"Value {threshold} is above the maximum {value_max}")
+        raise MessageError(
+            "Incorrect input", f"Value {threshold} is above the maximum {value_max} when trying to remove baseline"
+        )
 
     data[data <= threshold] = 0
 
@@ -707,3 +712,12 @@ def seq_ppm(mz_start: float, mz_end: float, ppm: float):
     length = math.floor(length) + 1
     mz = mz_start * np.power(((1 + 1e-6 * ppm) / (1 - 1e-6 * ppm)), (np.arange(length) - 1))
     return mz
+
+
+try:
+    has_c = True
+    _baseline_curve_ = baseline_curve_
+    from origami.c.spectra import baseline_curve_
+except ImportError as e:
+    print(e)
+    has_c = False

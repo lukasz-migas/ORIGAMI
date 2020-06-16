@@ -3,12 +3,15 @@
 """
 # Standard library imports
 import os
+import sys
 import ctypes
 from enum import IntEnum
 from ctypes import POINTER
 from ctypes import c_int
 from ctypes import c_char_p
 from ctypes import c_void_p
+
+sys.path.append(os.path.dirname(__file__))
 
 
 class MassLynxBaseType(IntEnum):
@@ -220,14 +223,8 @@ class MassLynxRawReader(object):
     """basic functionality to read raw files"""
 
     # load the dll
-    current_directory = os.getcwd()
-    waters_path = os.path.join(current_directory, "readers", "waters")
-    os.chdir(waters_path)
-    dll_path = os.path.join(waters_path, "MassLynxRaw.dll")
     massLynxDll = ctypes.WinDLL("MassLynxRaw.dll")
     version = "1.0"  # class variable
-
-    os.chdir(current_directory)
 
     def __init__(self, source, mlType):
 

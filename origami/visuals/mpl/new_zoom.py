@@ -1,11 +1,13 @@
 # Standard library imports
 import logging
+from builtins import isinstance
 
 # Third-party imports
 import wx
 import numpy as np
 from pubsub import pub
 from matplotlib.text import Text
+from matplotlib.legend import Legend
 from matplotlib.patches import Rectangle
 
 LOGGER = logging.getLogger(__name__)
@@ -220,6 +222,8 @@ class MPLInteraction:
             self.validButtons = [button]
 
         self._trigger_extraction = False
+        self._is_label = False
+        self._is_legend = False
         self.pick_pos = None
         self._ctrl_key = False
         self._alt_key = False
@@ -293,10 +297,16 @@ class MPLInteraction:
 
     def on_pick_event(self, event):
         """Store which text object was picked and were the pick event occurs."""
+        self._is_label = False
+        self._is_legend = False
 
         if isinstance(event.artist, Text):
             self.dragged = event.artist
             self.pick_pos = (event.mouseevent.xdata, event.mouseevent.ydata)
+            self._is_label = True
+        elif isinstance(event.artist, Legend):
+            self.dragged = event.artist
+            self._is_legend = True
 
         return True
 
@@ -540,6 +550,11 @@ class MPLInteraction:
 
         xy_start = [evt.xdata, evt.ydata]
 
+        # dragging annotation
+        if self.dragged is not None:
+            if self._is_legend:
+                return
+
         # set rect for displaying the zoom
         if not self.retinaFix:
             self.wxoverlay = wx.Overlay()
@@ -561,10 +576,6 @@ class MPLInteraction:
                     axes.set_ylim(0, self.current_ymax)
                 self.canvas.draw()
                 return
-
-        # dragging annotation
-        if self.dragged is not None:
-            pass
 
         self._button_down = True
         pub.sendMessage("change_x_axis_start", xy_start=xy_start)
@@ -620,13 +631,20 @@ class MPLInteraction:
         LOGGER.debug("Plot -> Zoom out")
 
     def _drag_label(self, evt):
+        """Move label, update its position and reset dragged object"""
         old_pos = self.dragged.get_position()
         new_pos = (old_pos[0] + evt.xdata - self.pick_pos[0], old_pos[1] + evt.ydata - self.pick_pos[1])
         self.dragged.set_position(new_pos)
         if self.dragged.obj_name is not None:
             pub.sendMessage("update_text_position", text_obj=self.dragged)
+        self._is_label = False
         self.dragged = None
         self.canvas.draw()  # redraw image
+
+    def _drag_legend(self, evt):
+        """Drag legend post-event"""
+        self._is_legend = False
+        self.dragged = None
 
     def get_labels(self):
         """Collects labels"""
@@ -704,7 +722,7 @@ class MPLInteraction:
         pub.sendMessage("change_x_axis_start", xy_start=[None, None])
 
         # When the mouse is released we reset the overlay and it restores the former content to the window.
-        if not self.retinaFix:
+        if not self.retinaFix and self.wxoverlay:
             self.wxoverlay.Reset()
             del self.wxoverlay
         else:
@@ -724,7 +742,10 @@ class MPLInteraction:
 
         # drag label
         if self.dragged is not None:
-            self._drag_label(evt)
+            if self._is_label:
+                self._drag_label(evt)
+            elif self._is_legend:
+                self._drag_legend(evt)
             return
 
         # left-click + ctrl OR double left click reset axes

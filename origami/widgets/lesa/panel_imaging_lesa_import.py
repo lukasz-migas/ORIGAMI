@@ -42,10 +42,12 @@ class PanelImagingImportDataset(PanelImportManagerBase):
 
     @property
     def data_handling(self):
+        """Return handle to the `data_handling` object"""
         return self.presenter.data_handling
 
     @property
     def document_tree(self):
+        """Return handle to the `document_tree` object"""
         return self.presenter.view.panelDocuments.documents
 
     def make_implementation_panel(self, panel):
@@ -105,7 +107,10 @@ class PanelImagingImportDataset(PanelImportManagerBase):
         return dict(x_dim=int(x_dim), y_dim=int(y_dim))
 
     def _parse_path(self, path):
+        """Parse raw file"""
+
         def get_file_idx():
+            """Get information about the raw file"""
             _, file = os.path.split(path)
             _idx = file.split("_")[-1]
             _idx = _idx.split(".raw")[0]
@@ -114,7 +119,7 @@ class PanelImagingImportDataset(PanelImportManagerBase):
         # get data
         variable = get_file_idx()
         try:
-            idx = int(variable)
+            variable = int(variable)
         except TypeError:
             logger.warning(f"Could not identify the index of {path}")
 

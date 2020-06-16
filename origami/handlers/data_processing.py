@@ -8,7 +8,6 @@ import numpy as np
 
 # Local imports
 import origami.utils.labels as ut_labels
-import origami.processing.peaks as pr_peaks
 import origami.processing.utils as pr_utils
 import origami.processing.heatmap as pr_heatmap
 import origami.processing.spectra as pr_spectra
@@ -26,6 +25,7 @@ from origami.utils.converters import str2num
 from origami.utils.exceptions import MessageError
 from origami.processing.UniDec import unidec
 from origami.config.environment import ENV
+from origami.objects.containers import MassSpectrumObject
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.misc_dialogs import DialogSimpleAsk
 
@@ -757,6 +757,44 @@ class DataProcessing:
 
         return xvals, zvals
 
+    def on_process_ms(self, mz_obj, **kwargs):
+        """Process and modify mass spectrum object"""
+        assert isinstance(mz_obj, MassSpectrumObject), "This function takes `MassSpectrumObject` as an argument"
+
+        if self.config.ms_process_crop:
+            mz_obj.crop(crop_min=self.config.ms_crop_min, crop_max=self.config.ms_crop_max)
+
+        if self.config.ms_process_linearize:
+            mz_obj.linearize(
+                bin_size=self.config.ms_mzBinSize,
+                x_min=self.config.ms_mzStart,
+                x_max=self.config.ms_mzEnd,
+                linearize_method=self.config.ms_linearization_mode,
+            )
+
+        if self.config.ms_process_smooth:
+            mz_obj.smooth(
+                smooth_method=self.config.ms_smooth_mode,
+                sigma=self.config.ms_smooth_sigma,
+                poly_order=self.config.ms_smooth_polynomial,
+                window_size=self.config.ms_smooth_window,
+                N=self.config.ms_smooth_moving_window,
+            )
+
+        if self.config.ms_process_threshold:
+            mz_obj.baseline(
+                baseline_method=self.config.ms_baseline,
+                threshold=self.config.ms_threshold,
+                curved_window=self.config.ms_baseline_curved_window,
+                median_window=self.config.ms_baseline_median_window,
+                tophat_window=self.config.ms_baseline_tophat_window,
+            )
+
+        if self.config.ms_process_normalize:
+            mz_obj.normalize()
+
+        return mz_obj
+
     def on_process_MS(self, msX=None, msY=None, **kwargs):
 
         # check if data should be replotted (e.g. taken from the plot pre-set data)
@@ -785,10 +823,10 @@ class DataProcessing:
             tstart = ttime()
             pr_kwargs = {
                 "auto_range": self.config.ms_auto_range,
-                "mz_min": self.config.ms_mzStart,
-                "mz_max": self.config.ms_mzEnd,
-                "mz_bin": self.config.ms_mzBinSize,
-                "linearization_mode": self.config.ms_linearization_mode,
+                "x_min": self.config.ms_mzStart,
+                "x_max": self.config.ms_mzEnd,
+                "bin_size": self.config.ms_mzBinSize,
+                "linearization_method": self.config.ms_linearization_mode,
             }
             msX, msY = pr_spectra.linearize_data(msX, msY, **pr_kwargs)
             process_msg += f"Linearize:{ttime()-tstart:.4f}s | "
@@ -798,8 +836,8 @@ class DataProcessing:
             tstart = ttime()
             pr_kwargs = {
                 "sigma": self.config.ms_smooth_sigma,
-                "polyOrder": self.config.ms_smooth_polynomial,
-                "windowSize": self.config.ms_smooth_window,
+                "poly_order": self.config.ms_smooth_polynomial,
+                "window_size": self.config.ms_smooth_window,
                 "N": self.config.ms_smooth_moving_window,
             }
             msY = pr_spectra.smooth_1d(msY, mode=self.config.ms_smooth_mode, **pr_kwargs)
@@ -812,7 +850,7 @@ class DataProcessing:
                 msY,
                 self.config.ms_baseline,
                 threshold=self.config.ms_threshold,
-                window=self.config.ms_baseline_curved_window,
+                curved_window=self.config.ms_baseline_curved_window,
                 median_window=self.config.ms_baseline_median_window,
                 tophat_window=self.config.ms_baseline_tophat_window,
             )
@@ -1844,91 +1882,101 @@ class DataProcessing:
 
         return zvals, xlabels, scan_list, parameters
 
-    def find_peaks_in_mass_spectrum_peak_properties(self, **kwargs):
-        mz_x = kwargs.get("mz_x")
-        mz_y = kwargs.get("mz_y")
+    def find_peaks_in_mass_spectrum_peak_properties(self, mz_obj: MassSpectrumObject, **kwargs):
+        """Find peaks in mass spectrum using peak properties"""
+        from origami.processing.feature.mz_picker import PropertyPeakPicker
 
-        mz_min, mz_max = None, None
+        mz_min, mz_max = mz_obj.x_limit
         if self.config.peak_find_mz_limit:
             mz_min = self.config.peak_find_mz_min
             mz_max = self.config.peak_find_mz_max
             mz_min, mz_max = check_value_order(mz_min, mz_max)
 
-        found_peaks = pr_peaks.find_peaks_in_spectrum_peak_properties(
-            mz_x,
-            mz_y,
+        picker = PropertyPeakPicker(mz_obj.x, mz_obj.y)
+        picker.find_peaks(
+            mz_range=[mz_min, mz_max],
             threshold=self.config.peak_find_threshold,
             distance=self.config.peak_find_distance,
             width=self.config.peak_find_width,
             rel_height=self.config.peak_find_relative_height,
             min_intensity=self.config.peak_find_min_intensity,
-            mz_min=mz_min,
-            mz_max=mz_max,
             peak_width_modifier=self.config.peak_find_peak_width_modifier,
-            verbose=self.config.peak_find_verbose,
         )
+        return picker
 
-        if kwargs.get("return_data", False):
-            return found_peaks
+    def find_peaks_in_mass_spectrum_local_max(self, mz_obj: MassSpectrumObject, **kwargs):
+        """Find peaks in mass spectrum using local-maximum algorithm"""
+        from origami.processing.feature.mz_picker import LocalMaxPeakPicker
 
-    def find_peaks_in_mass_spectrum_local_max(self, **kwargs):
-        mz_x = kwargs.get("mz_x")
-        mz_y = kwargs.get("mz_y")
-
-        mz_xy = np.transpose([mz_x, mz_y])
-
-        mz_range = None
+        mz_min, mz_max = mz_obj.x_limit
         if self.config.peak_find_mz_limit:
             mz_min = self.config.peak_find_mz_min
             mz_max = self.config.peak_find_mz_max
             mz_min, mz_max = check_value_order(mz_min, mz_max)
-            mz_range = (mz_min, mz_max)
 
         # check  threshold
         threshold = self.config.fit_threshold
         if threshold > 1:
-            threshold = threshold / np.max(mz_y)
+            threshold = threshold / mz_obj.y_limit[1]
 
-        found_peaks = pr_peaks.find_peaks_in_spectrum_local_search(
-            mz_xy,
-            self.config.fit_window,
-            threshold,
-            mz_range,
+        picker = LocalMaxPeakPicker(mz_obj.x, mz_obj.y)
+        picker.find_peaks(
+            mz_range=[mz_min, mz_max],
+            window=self.config.fit_window,
+            min_intensity=threshold,
             rel_height=self.config.fit_relative_height,
-            verbose=self.config.peak_find_verbose,
         )
+        return picker
 
-        if kwargs.get("return_data", False):
-            return found_peaks
+    def find_peaks_in_mass_spectrum_peakutils(self, mz_obj: MassSpectrumObject, **kwargs):
+        from origami.processing.feature.mz_picker import DifferentialPeakPicker
 
-    def find_peaks_in_mass_spectrum_peakutils(self, **kwargs):
-        mz_x = kwargs.get("mz_x")
-        mz_y = kwargs.get("mz_y")
-
-        mz_range = None
+        mz_min, mz_max = mz_obj.x_limit
         if self.config.peak_find_mz_limit:
             mz_min = self.config.peak_find_mz_min
             mz_max = self.config.peak_find_mz_max
             mz_min, mz_max = check_value_order(mz_min, mz_max)
-            mz_range = (mz_min, mz_max)
 
         # check  threshold
         threshold = self.config.fit_threshold
         if threshold > 1:
-            threshold = threshold / np.max(mz_y)
+            threshold = threshold / mz_obj.y_limit[1]
 
-        found_peaks = pr_peaks.find_peaks_in_spectrum_peakutils(
-            mz_x,
-            mz_y,
-            threshold,
-            self.config.fit_window,
-            mz_range,
+        picker = DifferentialPeakPicker(mz_obj.x, mz_obj.y)
+        picker.find_peaks(
+            mz_range=[mz_min, mz_max],
+            min_distance=self.config.fit_window,
+            min_intensity=threshold,
             rel_height=self.config.fit_relative_height,
-            verbose=self.config.peak_find_verbose,
         )
-
-        if kwargs.get("return_data", False):
-            return found_peaks
+        return picker
+        # mz_x = kwargs.get("mz_x")
+        # mz_y = kwargs.get("mz_y")
+        #
+        # mz_range = None
+        # if self.config.peak_find_mz_limit:
+        #     mz_min = self.config.peak_find_mz_min
+        #     mz_max = self.config.peak_find_mz_max
+        #     mz_min, mz_max = check_value_order(mz_min, mz_max)
+        #     mz_range = (mz_min, mz_max)
+        #
+        # # check  threshold
+        # threshold = self.config.fit_threshold
+        # if threshold > 1:
+        #     threshold = threshold / np.max(mz_y)
+        #
+        # found_peaks = pr_peaks.find_peaks_in_spectrum_peakutils(
+        #     mz_x,
+        #     mz_y,
+        #     threshold,
+        #     self.config.fit_window,
+        #     mz_range,
+        #     rel_height=self.config.fit_relative_height,
+        #     verbose=self.config.peak_find_verbose,
+        # )
+        #
+        # if kwargs.get("return_data", False):
+        #     return found_peaks
 
     def smooth_spectrum(self, mz_y, method="gaussian"):
         if method == "gaussian":

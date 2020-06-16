@@ -1,5 +1,6 @@
 # Standard library imports
 import os
+from typing import List
 
 # Third-party imports
 import wx
@@ -21,9 +22,8 @@ matplotlib.use("WXAgg")
 class MPLPanel(wx.Panel):
     def __init__(self, *args, **kwargs):
 
-        if "figsize" in kwargs:
-            self.figsize = kwargs.pop("figsize")
-        else:
+        self.figsize = kwargs.pop("figsize", None)
+        if self.figsize is None:
             self.figsize = [8, 2.5]
 
         # ensure minimal figure size
@@ -50,9 +50,8 @@ class MPLPanel(wx.Panel):
 
         # RESIZE
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(self.canvas, 1, wx.LEFT | wx.TOP | wx.GROW, 0)
-        self.SetSizer(sizer)
-        self.Fit()
+        sizer.Add(self.canvas, 1, wx.LEFT | wx.TOP | wx.EXPAND, 0)
+        self.SetSizerAndFit(sizer)
         self.Show()
 
         # Create a resizer
@@ -97,6 +96,8 @@ class MPLPanel(wx.Panel):
         return f"Plot: {self.plotName} | Window name: {self.window_name} | Axes size: {self._axes}"
 
     def get_xlimits(self):
+        """Get x-axis limits"""
+
         return [self.data_limits[0], self.data_limits[2]]
 
     def get_ylimits(self):
@@ -125,6 +126,7 @@ class MPLPanel(wx.Panel):
     def setup_new_zoom(
         self, figure, data_limits=None, plot_parameters=None, allow_wheel=True, allow_extraction=True, callbacks=None
     ):
+        """Setup the new-style matplotlib zoom"""
         if callbacks is None:
             callbacks = dict()
 
@@ -173,12 +175,12 @@ class MPLPanel(wx.Panel):
         )
         # self.onRebootZoomKeys(evt=None)
 
-    def update_extents(self, extents):
+    def update_extents(self, extents: List):
+        """Update plot extents"""
         self.zoom.update_extents(extents)
 
-    #         ZoomBox.update_extents(self.zoom, extents)
-
-    def update_y_extents(self, y_min, y_max):
+    def update_y_extents(self, y_min: float, y_max: float):
+        """Update y-axis plot extents"""
         ZoomBox.update_y_extents(self.zoom, y_min, y_max)
 
     def on_mark_annotation(self, state):
@@ -188,13 +190,6 @@ class MPLPanel(wx.Panel):
             pass
         except AttributeError:
             MPLInteraction.update_mark_state(self.zoom, state)
-
-    def onRebootZoomKeys(self, evt):
-        """
-        Reboot 'stuck' keys
-        """
-        if self.zoom is not None:
-            ZoomBox.onRebootKeyState(self.zoom, evt=None)
 
     def _convert_xaxis(self, xvals, x_label=""):
         """
@@ -325,14 +320,15 @@ class MPLPanel(wx.Panel):
 
         self.repaint()
 
-    def on_resize(self, *args, **kwargs):
-
+    def on_resize(self, evt):
+        """Update plot area as it is being resized"""
         if self.lock_plot_from_updating_size:
             self.SetBackgroundColour(wx.WHITE)
             return
 
         if self.resize == 1:
             self.canvas.SetSize(self.GetSize())
+        evt.Skip()
 
     def save_figure(self, path, **kwargs):
         """
@@ -438,42 +434,6 @@ class MPLPanel(wx.Panel):
         if resize_size_inch is not None and not self.lock_plot_from_updating_size:
             self.plot_base.set_position(old_axes_size)
             self.on_resize()
-
-    def addText(self, xval=None, yval=None, text=None, rotation=90, color="k", fontsize=16, weight=True, plot=None):
-        """
-        This function annotates the MS peak
-        """
-        # Change label weight
-        if weight:
-            weight = "bold"
-        else:
-            weight = "regular"
-
-        if plot in [None, "RMSD", "RMSF"]:
-            self.text = self.plot_base.text(
-                x=xval,
-                y=yval,
-                s=text,
-                fontsize=fontsize,
-                rotation=rotation,
-                weight=weight,
-                fontdict=None,
-                color=color,
-                clip_on=True,
-            )
-
-        elif plot == "Grid":
-            self.text = self.plot2D_side.text(
-                x=xval,
-                y=yval,
-                s=text,
-                fontsize=fontsize,
-                rotation=rotation,
-                weight=weight,
-                fontdict=None,
-                color=color,
-                clip_on=True,
-            )
 
     def onZoomRMSF(self, startX, endX):
         x1, x2, y1, y2 = self.plotRMSF.axis()

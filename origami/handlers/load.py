@@ -91,7 +91,7 @@ class LoadHandler:
         reader = document.get_reader("ion_mobility")
         if reader is None:
             reader = WatersIMReader(document.path, temp_dir=CONFIG.temporary_data)
-            document.set_reader("ion_mobility", reader)
+            document.add_reader("ion_mobility", reader)
 
         # extract data
         mz_obj = reader.extract_ms(dt_start=x_min, dt_end=x_max, return_data=True)
@@ -129,7 +129,7 @@ class LoadHandler:
         reader = document.get_reader("ion_mobility")
         if reader is None:
             reader = WatersIMReader(document.path, temp_dir=CONFIG.temporary_data)
-            document.set_reader("ion_mobility", reader)
+            document.add_reader("ion_mobility", reader)
 
         mz_obj = reader.extract_ms(rt_start=x_min, rt_end=x_max, return_data=True)
         obj_name = f"Scans: {x_min}-{x_max}"
@@ -170,7 +170,7 @@ class LoadHandler:
         reader = document.get_reader("ion_mobility")
         if reader is None:
             reader = WatersIMReader(document.path, temp_dir=CONFIG.temporary_data)
-            document.set_reader("ion_mobility", reader)
+            document.add_reader("ion_mobility", reader)
 
         mz_obj = reader.extract_ms(rt_start=x_min, rt_end=x_max, dt_start=y_min, dt_end=y_max, return_data=True)
         obj_name = f"Scans: {x_min}-{x_max}"
@@ -207,7 +207,7 @@ class LoadHandler:
         reader = document.get_reader("ion_mobility")
         if reader is None:
             reader = WatersIMReader(document.path, temp_dir=CONFIG.temporary_data)
-            document.set_reader("ion_mobility", reader)
+            document.add_reader("ion_mobility", reader)
 
         # get heatmap
         heatmap_obj = reader.extract_heatmap(mz_start=x_min, mz_end=x_max, return_data=True)
@@ -386,7 +386,7 @@ class LoadHandler:
         document = ENV.get_new_document("mgf", path)
         # set data
         document.tandem_spectra = data
-        document.set_reader("data_reader", reader)
+        document.add_reader("data_reader", reader)
         document.add_file_path("main", path)
 
         return document
@@ -411,7 +411,7 @@ class LoadHandler:
         document = ENV.get_new_document("mzml", path)
         # set data
         document.tandem_spectra = data
-        document.set_reader("data_reader", reader)
+        document.add_reader("data_reader", reader)
         document.add_file_path("main", path)
 
         return document
@@ -444,7 +444,7 @@ class LoadHandler:
         reader, data = self.load_thermo_ms_data(path)
 
         document = ENV.get_new_document("thermo", path, data=data)
-        document.set_reader("data_reader", reader)
+        document.add_reader("data_reader", reader)
         document.add_file_path("main", path)
 
         return document
@@ -521,7 +521,7 @@ class LoadHandler:
         """Load Waters data and set in ORIGAMI document"""
         reader, data = self.load_waters_ms_data(path)
         document = ENV.get_new_document("waters", path, data=data)
-        document.set_reader("data_reader", reader)
+        document.add_reader("data_reader", reader)
         document.add_file_path("main", path)
 
         return document
@@ -575,7 +575,7 @@ class LoadHandler:
         """Load Waters data and set in ORIGAMI document"""
         reader, data = self.load_waters_im_data(path)
         document = ENV.get_new_document("origami", path, data=data)
-        document.set_reader("data_reader", reader)
+        document.add_reader("data_reader", reader)
         document.add_file_path("main", path)
 
         return document

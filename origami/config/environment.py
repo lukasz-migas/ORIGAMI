@@ -157,6 +157,7 @@ class Environment(PropertyCallbackManager):
 
     @property
     def titles(self):
+        """Return all document titles"""
         return list(self.keys())
 
     def exists(self, title: Optional[str] = None, path: Optional[str] = None):

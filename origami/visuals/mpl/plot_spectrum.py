@@ -50,7 +50,18 @@ class PlotSpectrum(PlotBase):
             line.set_linestyle(kwargs["line_style"])
 
     def plot_1d(self, x, y, title="", x_label="", y_label="", label="", **kwargs):
-        """Standard 1d plot"""
+        """Standard 1d plot
+
+        Parameters
+        ----------
+        x :
+        y :
+        title :
+        x_label :
+        y_label :
+        label :
+        kwargs :
+        """
         # Simple hack to reduce size is to use different subplot size
         self._set_axes()
 
@@ -93,6 +104,121 @@ class PlotSpectrum(PlotBase):
 
         # Setup X-axis getter
         self.store_plot_limits(extent)
+
+    def plot_1d_compare(
+        self, x_top, x_bottom, y_top, y_bottom, x_label="", y_label="", labels=None, title="", **kwargs
+    ):
+        """Standard overlay plot
+
+        Parameters
+        ----------
+        x_top :
+        x_bottom :
+        y_top :
+        y_bottom :
+        x_label :
+        y_label :
+        labels :
+        title :
+        kwargs :
+        """
+        self._set_axes()
+
+        if labels is None or not isinstance(labels, list):
+            labels = ["", ""]
+
+        xlimits, ylimits, extent = self._compute_multi_xy_limits([x_top, x_bottom], [y_top, y_bottom], None)
+
+        # setup axis formatters
+        y_formatter = get_intensity_formatter()
+        self.plot_base.yaxis.set_major_formatter(y_formatter)
+
+        if x_bottom is None:
+            x_bottom = x_top
+
+        self.plot_base = self.figure.add_axes(self._axes)
+        self.plot_base.plot(
+            x_top,
+            y_top,
+            color=kwargs["line_color_1"],
+            label=labels[0],
+            linewidth=kwargs["line_width"],
+            linestyle=kwargs["line_style_1"],
+            alpha=kwargs["line_transparency_1"],
+            gid=0,
+        )
+
+        self.plot_base.plot(
+            x_bottom,
+            y_bottom,
+            color=kwargs["line_color_2"],
+            label=labels[1],
+            linewidth=kwargs["line_width"],
+            linestyle=kwargs["line_style_2"],
+            alpha=kwargs["line_transparency_2"],
+            gid=1,
+        )
+
+        self.plot_base.axhline(linewidth=kwargs["line_width"], color="k")
+
+        # set plot limits
+        self.plot_base.set_xlim(xlimits)
+        self.plot_base.set_ylim(ylimits)
+        self.set_plot_xlabel(x_label, **kwargs)
+        self.set_plot_ylabel(y_label, **kwargs)
+        self.set_plot_title(title, **kwargs)
+        self.set_tick_parameters(**kwargs)
+        self.set_legend_parameters(None, **kwargs)
+        self.set_line_style(**kwargs)
+
+        self.setup_new_zoom(
+            [self.plot_base],
+            data_limits=extent,
+            allow_extraction=kwargs.get("allow_extraction", False),
+            callbacks=kwargs.get("callbacks", dict()),
+        )
+
+        # Setup X-axis getter
+        self.store_plot_limits(extent)
+
+    def plot_1d_compare_update_data(self, x_top, x_bottom, y_top, y_bottom, labels=None, **kwargs):
+        # # update settings
+        # self._check_and_update_plot_settings(**kwargs)
+        #
+        # y_top, y_bottom, ylabel = self._plot_1D_compare_prepare_data(y_top, y_bottom, None)
+        # self.set_plot_ylabel(ylabel, **self.plot_parameters)
+
+        if labels is None or not isinstance(labels, list):
+            labels = ["", ""]
+
+        _, ylimits, extent = self._compute_multi_xy_limits([x_top, x_bottom], [y_top, y_bottom], None)
+
+        lines = self.plot_base.get_lines()
+        for line in lines:
+            plot_gid = line.get_gid()
+            if plot_gid == 0:
+                if labels[0] is None:
+                    labels[0] = line.get_label()
+                line.set_xdata(x_top)
+                line.set_ydata(y_top)
+                line.set_label(labels[0])
+                line.set_color(kwargs.get("line_color_1", line.get_color()))
+            elif plot_gid == 1:
+                if labels[1] is None:
+                    labels[1] = line.get_label()
+                line.set_xdata(x_bottom)
+                line.set_ydata(y_bottom)
+                line.set_label(labels[1])
+                line.set_color(kwargs.get("line_color_2", line.get_color()))
+
+        # update legend
+        handles, __ = self.plot_base.get_legend_handles_labels()
+        self.set_legend_parameters(handles, **self.plot_parameters)
+
+        # update plot limits
+        self.update_extents(extent)
+        self.store_plot_limits(extent)
+        self.on_zoom_y_axis(*ylimits)
 
     def plot_1D(
         self,
@@ -551,71 +677,6 @@ class PlotSpectrum(PlotBase):
         self.set_tick_parameters(**kwargs)
 
         self.setup_zoom([self.plot_base], self.zoomtype, data_lims=extent)
-
-        # Setup X-axis getter
-        self.setupGetXAxies([self.plot_base])
-        self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
-
-    def plot_1D_compare(
-        self,
-        xvals1,
-        xvals2,
-        yvals1,
-        yvals2,
-        xlabel="",
-        ylabel="",
-        label="",
-        plotType="compare_MS",
-        testMax="yvals",
-        axesSize=None,
-        **kwargs,
-    ):
-        # update settings
-        self._check_and_update_plot_settings(plot_name=plotType, axes_size=axesSize, **kwargs)
-
-        matplotlib.rc("xtick", labelsize=kwargs["tick_size"])
-        matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
-
-        if testMax == "yvals":
-            yvals1, yvals2, ylabel = self._plot_1D_compare_prepare_data(yvals1, yvals2, ylabel)
-
-        if xvals2 is None:
-            xvals2 = xvals1
-
-        self.plot_base = self.figure.add_axes(self._axes)
-        self.plot_base.plot(
-            xvals1,
-            yvals1,
-            color=kwargs["line_color_1"],
-            label=label[0],
-            linewidth=kwargs["line_width"],
-            linestyle=kwargs["line_style_1"],
-            alpha=kwargs["line_transparency_1"],
-            gid=0,
-        )
-
-        self.plot_base.plot(
-            xvals2,
-            yvals2,
-            color=kwargs["line_color_2"],
-            label=label[1],
-            linewidth=kwargs["line_width"],
-            linestyle=kwargs["line_style_2"],
-            alpha=kwargs["line_transparency_2"],
-            gid=1,
-        )
-
-        self.plot_base.axhline(linewidth=kwargs["line_width"], color="k")
-
-        xlimits = np.min([np.min(xvals1), np.min(xvals2)]), np.max([np.max(xvals1), np.max(xvals2)])
-        ylimits = np.min([np.min(yvals1), np.min(yvals2)]), np.max([np.max(yvals1), np.max(yvals2)])
-        extent = [xlimits[0], ylimits[0] - 0.01, xlimits[-1], ylimits[1] + 0.01]
-
-        self.set_plot_xlabel(xlabel, **kwargs)
-        self.set_plot_ylabel(ylabel, **kwargs)
-        self.set_legend_parameters(None, **kwargs)
-        self.set_tick_parameters(**kwargs)
-        self.setup_zoom([self.plot_base], self.zoomtype, data_lims=extent, plotName=plotType)
 
         # Setup X-axis getter
         self.setupGetXAxies([self.plot_base])

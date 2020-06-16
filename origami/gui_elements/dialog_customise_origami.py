@@ -59,19 +59,16 @@ class DialogCustomiseORIGAMI(Dialog):
         self.presenter = presenter
 
         self.document_title = kwargs.get("document_title", None)
-        # if self.document_title is None:
-        #     document = ENV.on_get_document()
-        #     if document is None:
-        #         self.Destroy()
-        #         raise MessageError(
-        #             "Please load a document",
-        #             "Could not find a document. Please load a document before trying this action again",
-        #         )
-        #
-        #     self.document_title = document.title
-        #
-        # self.SetTitle(f"ORIGAMI-MS settings: {self.document_title}")
-        #
+        if self.document_title is None:
+            document = ENV.on_get_document()
+            if document is None:
+                self.Destroy()
+                raise MessageError(
+                    "Please load a document",
+                    "Could not find a document. Please load a document before trying this action again",
+                )
+            self.document_title = document.title
+
         self.user_settings = self.on_setup_gui()
         self.user_settings_changed = False
 
@@ -84,6 +81,7 @@ class DialogCustomiseORIGAMI(Dialog):
         self.Layout()
         self.CentreOnScreen()
         self.SetFocus()
+        self.SetTitle(f"ORIGAMI-MS settings: {self.document_title}")
 
         # bind events
         wx.EVT_CLOSE(self, self.on_close)
@@ -142,16 +140,16 @@ class DialogCustomiseORIGAMI(Dialog):
 
     def make_gui(self):
         """Make UI"""
-        panel = wx.Panel(self, -1, size=(-1, -1), name="main")
+        #         panel = wx.Panel(self, -1, size=(-1, -1), name="main")
 
         # make panel
-        settings_panel = self.make_panel_settings(panel)
+        settings_panel = self.make_panel_settings(self)
         self._settings_panel_size = settings_panel.GetSize()
-        buttons_panel = self.make_buttons_panel(panel)
+        buttons_panel = self.make_buttons_panel(self)
 
-        plot_panel = self.make_plot_panel(panel)
+        plot_panel = self.make_plot_panel(self)
 
-        extraction_panel = self.make_spectrum_panel(panel)
+        extraction_panel = self.make_spectrum_panel(self)
 
         # pack element
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -351,24 +349,16 @@ class DialogCustomiseORIGAMI(Dialog):
         return panel
 
     # noinspection DuplicatedCode
+
     def make_plot_panel(self, split_panel):
         """Make plot panel"""
-
-        pixel_size = [(self._window_size[0] - self._settings_panel_size[0]), (self._window_size[1] - 50)]
+        pixel_size = [(self._window_size[0] - self._settings_panel_size[0] - 50), (self._window_size[1] - 50)]
         figsize = [pixel_size[0] / self._display_resolution[0], pixel_size[1] / self._display_resolution[1]]
 
-        panel = wx.Panel(split_panel, -1, size=(-1, -1), name="plot")
-        self.plot_view = ViewSpectrum(panel, figsize, x_label="Scans", y_label="Collision Voltage (V)")
-        self.plot_panel = self.plot_view.panel
+        self.plot_view = ViewSpectrum(split_panel, figsize, x_label="Scans", y_label="Collision Voltage (V)")
         self.plot_window = self.plot_view.figure
 
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(self.plot_panel, 1, wx.EXPAND, 2)
-        # fit layout
-        panel.SetSizer(main_sizer)
-        main_sizer.Fit(panel)
-
-        return panel
+        return self.plot_view.panel
 
     def on_apply(self, _evt):
         """Update user settings"""

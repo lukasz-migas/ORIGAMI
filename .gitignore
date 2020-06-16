@@ -78,4 +78,4 @@ origami/.vscode/.ropeproject/config.py
 *.pickle
 .vscode/
 origami/_data
-
+origami/c/*.c
