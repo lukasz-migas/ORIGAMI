@@ -552,7 +552,7 @@ class MPLInteraction:
 
         # dragging annotation
         if self.dragged is not None:
-            if self._is_legend:
+            if self._is_legend or self._is_label:
                 return
 
         # set rect for displaying the zoom

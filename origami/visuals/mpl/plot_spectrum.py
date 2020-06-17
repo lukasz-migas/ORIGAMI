@@ -65,7 +65,7 @@ class PlotSpectrum(PlotBase):
         # Simple hack to reduce size is to use different subplot size
         self._set_axes()
 
-        xlimits, ylimits, extent = self._compute_xy_limits(x, y, 1.1)
+        xlimits, ylimits, extent = self._compute_xy_limits(x, y, 0, 1.1)
 
         # add 1d plot
         self.plot_base.plot(

@@ -286,24 +286,46 @@ class PanelSignalComparisonViewer(MiniFrame):
         self.spectrum_2_line_style_value.SetStringSelection(CONFIG.lineStyle_MS2)
 
         # Processing
-        process_static_box = make_staticbox(panel, "Processing", size=(-1, -1), color=wx.BLACK)
+        process_static_box = make_staticbox(panel, "Visualization", size=(-1, -1), color=wx.BLACK)
         process_static_box.SetSize((-1, -1))
 
-        self.preprocess_check = make_checkbox(panel, "Pre-process")
+        self.preprocess_check = make_checkbox(panel, "Pre-process", tooltip="Enable pre-processing before plotting")
         self.preprocess_check.SetValue(CONFIG.compare_massSpectrumParams["preprocess"])
+        self.preprocess_check.Bind(wx.EVT_CHECKBOX, self.update_spectrum)
+        self.preprocess_check.Bind(wx.EVT_CHECKBOX, self.on_plot)
 
-        self.normalize_check = make_checkbox(panel, "Normalize")
+        self.normalize_check = make_checkbox(
+            panel, "Normalize", tooltip="Normalize spectra to range 0-1 before plotting"
+        )
         self.normalize_check.SetValue(CONFIG.compare_massSpectrumParams["normalize"])
+        self.normalize_check.Bind(wx.EVT_CHECKBOX, self.update_spectrum)
+        self.normalize_check.Bind(wx.EVT_CHECKBOX, self.on_plot)
 
-        self.inverse_check = make_checkbox(panel, "Inverse")
+        self.inverse_check = make_checkbox(panel, "Inverse", tooltip="Inverse spectra to give a butterfly-like effect")
         self.inverse_check.SetValue(CONFIG.compare_massSpectrumParams["inverse"])
+        self.inverse_check.Bind(wx.EVT_CHECKBOX, self.update_spectrum)
+        self.inverse_check.Bind(wx.EVT_CHECKBOX, self.on_plot)
 
-        self.subtract_check = make_checkbox(panel, "Subtract")
+        self.subtract_check = make_checkbox(
+            panel,
+            "Subtract",
+            tooltip="Subtract the bottom spectrum from the top. You can combine effect by pre-processing or "
+            "normalizing spectra before subtraction/",
+        )
         self.subtract_check.SetValue(CONFIG.compare_massSpectrumParams["subtract"])
+        self.subtract_check.Bind(wx.EVT_CHECKBOX, self.update_spectrum)
+        self.subtract_check.Bind(wx.EVT_CHECKBOX, self.on_plot)
+        self.subtract_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        self.settings_btn = make_bitmap_btn(panel, ID_extraSettings_plot1D, self._icons.plot_1d)
-        self.legend_btn = make_bitmap_btn(panel, ID_extraSettings_legend, self._icons.plot_legend)
-        self.process_btn = make_bitmap_btn(panel, ID_processSettings_MS, self._icons.process_ms)
+        self.settings_btn = make_bitmap_btn(
+            panel, ID_extraSettings_plot1D, self._icons.plot_1d, tooltip="Change plot parameters"
+        )
+        self.legend_btn = make_bitmap_btn(
+            panel, ID_extraSettings_legend, self._icons.plot_legend, tooltip="Change legend parameters"
+        )
+        self.process_btn = make_bitmap_btn(
+            panel, ID_processSettings_MS, self._icons.process_ms, tooltip="Change MS pre-processing parameters"
+        )
 
         self.plot_btn = wx.Button(panel, wx.ID_OK, "Plot", size=(-1, 22))
         self.cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, 22))
@@ -316,11 +338,6 @@ class PanelSignalComparisonViewer(MiniFrame):
         self.spectrum_1_spectrum_value.Bind(wx.EVT_COMBOBOX, self.on_plot)
         self.spectrum_2_spectrum_value.Bind(wx.EVT_COMBOBOX, self.on_plot)
 
-        self.preprocess_check.Bind(wx.EVT_CHECKBOX, self.update_spectrum)
-        self.normalize_check.Bind(wx.EVT_CHECKBOX, self.update_spectrum)
-        self.inverse_check.Bind(wx.EVT_CHECKBOX, self.update_spectrum)
-        self.subtract_check.Bind(wx.EVT_CHECKBOX, self.update_spectrum)
-
         self.spectrum_1_label_value.Bind(wx.EVT_TEXT_ENTER, self.on_plot)
         self.spectrum_2_label_value.Bind(wx.EVT_TEXT_ENTER, self.on_plot)
 
@@ -331,12 +348,6 @@ class PanelSignalComparisonViewer(MiniFrame):
         self.spectrum_2_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.spectrum_1_line_style_value.Bind(wx.EVT_COMBOBOX, self.on_apply)
         self.spectrum_2_line_style_value.Bind(wx.EVT_COMBOBOX, self.on_apply)
-
-        self.preprocess_check.Bind(wx.EVT_CHECKBOX, self.on_plot)
-        self.normalize_check.Bind(wx.EVT_CHECKBOX, self.on_plot)
-        self.inverse_check.Bind(wx.EVT_CHECKBOX, self.on_plot)
-        self.subtract_check.Bind(wx.EVT_CHECKBOX, self.on_plot)
-        self.subtract_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
         self.plot_btn.Bind(wx.EVT_BUTTON, self.on_plot)
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)

@@ -161,8 +161,61 @@ class ViewBase(ABC):
         self._z_label = z_label
         remove_keys("x_label"), remove_keys("y_label"), remove_keys("z_label")
 
-    def add_labels(self, x, y, text, **kwargs):
+    def repaint(self):
+        """Repaint plot"""
+        self.figure.repaint()
+
+    def add_scatter(self, x, y, color="r", marker="o", size=5, repaint: bool = True):
+        """Add scatter points to the plot"""
+        #         if isinstance(color, list):
+        #             assert len(color) == len(x), "Number of colors must match the number of markers"
+
+        self.figure.plot_add_markers(
+            xvals=x,
+            yvals=y,
+            color=color,
+            marker=marker,
+            size=size,
+            #             test_yvals=kwargs.pop("test_yvals", False),
+            #             **kwargs,
+        )
+        if repaint:
+            self.figure.repaint()
+
+    def remove_scatter(self, repaint: bool = True):
+        """Remove scatter points from the plot area"""
+        self.figure.plot_remove_markers(False)
+
+        if repaint:
+            self.figure.repaint()
+
+    def add_labels(self, x, y, label, optimize_labels: bool = False, repaint: bool = True, **kwargs):
         """Add text label to the plot"""
+        plt_kwargs = {
+            "horizontalalignment": kwargs.pop("horizontal_alignment", "center"),
+            "verticalalignment": kwargs.pop("vertical_alignment", "center"),
+            "check_yscale": kwargs.pop("check_yscale", False),
+            "butterfly_plot": kwargs.pop("butterfly_plot", False),
+            "fontweight": kwargs.pop("font_weight", "normal"),
+            "fontsize": kwargs.pop("font_size", "medium"),
+        }
+        y_offset = kwargs.get("yoffset", 0.0)
+
+        for _x, _y, _label in zip(x, y, label):
+            self.figure.plot_add_text(_x, _y, _label, yoffset=y_offset, **plt_kwargs)
+
+        if optimize_labels:
+            self.figure._fix_label_positions()
+
+        if repaint:
+            self.figure.repaint()
+
+    def remove_labels(self, repaint: bool = True):
+        """Remove scatter points from the plot area"""
+        self.figure.plot_remove_text_and_lines(False)
+
+        if repaint:
+            self.figure.repaint()
 
     def add_h_line(self, y_val, x_min: float = None, x_max: float = None, **kwargs):
         """Add horizontal line to the plot"""
@@ -175,7 +228,7 @@ class ViewBase(ABC):
         self.figure.plot_add_line(x_min, x_max, y_val, y_val, "horizontal")
         self.figure.repaint()
 
-    def add_v_line(self, x_val, y_min: float = None, y_max: float = None, **kwargs):
+    def add_v_line(self, x_val, y_min: float = None, y_max: float = None, repaint: bool = True, **kwargs):
         """Add vertical line to the plot"""
         _y_min, _y_max = self.figure.get_ylim()
         if y_min is None:
@@ -184,7 +237,24 @@ class ViewBase(ABC):
             y_max = _y_max
 
         self.figure.plot_add_line(x_val, x_val, y_min, y_max, "vertical")
-        self.figure.repaint()
+        if repaint:
+            self.figure.repaint()
+
+    def add_patches(self, x, y, width, height, repaint: bool = True):
+        """Add rectangular patches to the plot"""
+        assert len(x) == len(y) == len(width), "Incorrect shape of the data. `x, y, width` must have the same length"
+        for _x, _y, _width, _height in zip(x, y, width, height):
+            self.figure.plot_add_patch(_x, _y, _width, _height)  # , color=color, alpha=alpha, label=label, **kwargs)
+
+        if repaint:
+            self.figure.repaint()
+
+    def remove_patches(self, repaint: bool = True):
+        """Remove rectangular patches from the plot"""
+        self.figure.plot_remove_patches(False)
+
+        if repaint:
+            self.figure.repaint()
 
     def add_rects(self, coordinates, **kwargs):
         """Add text label to the plot"""

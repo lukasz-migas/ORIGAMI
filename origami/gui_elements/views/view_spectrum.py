@@ -1,3 +1,4 @@
+"""Viewer classes for spectral data"""
 # Standard library imports
 import logging
 
@@ -12,24 +13,14 @@ from origami.gui_elements.views.view_base import ViewBase
 LOGGER = logging.getLogger(__name__)
 
 
-class ViewSpectrum(ViewBase):
-    """Viewer class for spectral data"""
+class ViewSpectrumPanelMixin:
+    """Spectrum panel base"""
 
-    DATA_KEYS = ("x", "y")
-    MPL_KEYS = ["1D"]
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.panel, self.figure, self.sizer = self.make_panel()
-
-    def _update(self):
-        """Update plot with current data"""
-        self.update(self._data["x"], self._data["y"], **self._plt_kwargs)
-
-    def make_panel(self):
+    @staticmethod
+    def make_panel(parent, figsize):
         """Initialize plot panel"""
-        plot_panel = wx.Panel(self.parent)
-        plot_window = PlotSpectrum(plot_panel, figsize=self.figsize)
+        plot_panel = wx.Panel(parent)
+        plot_window = PlotSpectrum(plot_panel, figsize=figsize)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(plot_window, 1, wx.EXPAND)
@@ -37,6 +28,21 @@ class ViewSpectrum(ViewBase):
         sizer.Fit(plot_panel)
 
         return plot_panel, plot_window, sizer
+
+
+class ViewSpectrum(ViewBase, ViewSpectrumPanelMixin):
+    """Viewer class for spectral data"""
+
+    DATA_KEYS = ("x", "y")
+    MPL_KEYS = ["1D"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.panel, self.figure, self.sizer = self.make_panel(self.parent, self.figsize)
+
+    def _update(self):
+        """Update plot with current data"""
+        self.update(self._data["x"], self._data["y"], **self._plt_kwargs)
 
     @staticmethod
     def check_input(x, y, obj):
@@ -113,11 +119,49 @@ class ViewMassSpectrum(ViewSpectrum):
         self._y_label = kwargs.pop("y_label", "Intensity")
 
 
-class ViewCompareMassSpectra(ViewMassSpectrum):
-    """Specialized viewer for comparison of mass spectral data"""
+class ViewChromatogram(ViewSpectrum):
+    """Specialized viewer for chromatographic data"""
 
-    def __init__(self, parent, figsize, title="CompareMassSpectra", **kwargs):
-        ViewMassSpectrum.__init__(self, parent, figsize, title=title, **kwargs)
+    def __init__(self, parent, figsize, title="Chromatogram", **kwargs):
+        ViewSpectrum.__init__(self, parent, figsize, title, **kwargs)
+        self._x_label = kwargs.pop("x_label", "Scans")
+        self._y_label = kwargs.pop("y_label", "Intensity")
+
+
+class ViewMobilogram(ViewSpectrum):
+    """Specialized viewer for mobilogram data"""
+
+    def __init__(self, parent, figsize, title="Mobilogram", **kwargs):
+        ViewSpectrum.__init__(self, parent, figsize, title, **kwargs)
+        self._x_label = kwargs.pop("x_label", "Drift time (bins)")
+        self._y_label = kwargs.pop("y_label", "Intensity")
+
+
+class ViewCompareSpectra(ViewBase, ViewSpectrumPanelMixin):
+    """Viewer class for comparison of spectral data"""
+
+    DATA_KEYS = ("x_top", "x_bottom", "y_top", "y_bottom", "labels")
+    MPL_KEYS = ["1D"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.panel, self.figure, self.sizer = self.make_panel(self.parent, self.figsize)
+
+    @staticmethod
+    def check_input(x_top, x_bottom, y_top, y_bottom, obj_top, obj_bottom):
+        """Ensure that input is correct"""
+        if x_top is None and y_top is None and obj_top is None:
+            raise ValueError("You must provide the x/y values or container object")
+        if x_top is None and y_top is None and obj_top is not None:
+            x_top = obj_top.x
+            y_top = obj_top.y
+        if x_bottom is None and y_bottom is None and obj_bottom is None:
+            raise ValueError("You must provide the x/y values or container object")
+        if x_bottom is None and y_bottom is None and obj_bottom is not None:
+            x_bottom = obj_top.x
+            y_bottom = obj_top.y
+
+        return x_top, x_bottom, y_top, y_bottom
 
     def plot(
         self, x_top=None, x_bottom=None, y_top=None, y_bottom=None, obj_top=None, obj_bottom=None, labels=None, **kwargs
@@ -134,7 +178,7 @@ class ViewCompareMassSpectra(ViewMassSpectrum):
         try:
             self.update(x_top, x_bottom, y_top, y_bottom, obj_top, obj_bottom, labels, **kwargs)
         except AttributeError:
-            # x, y = self.check_input(x, y, obj)
+            x_top, x_bottom, y_top, y_bottom = self.check_input(x_top, x_bottom, y_top, y_bottom, obj_top, obj_bottom)
             self.figure.clear()
             self.figure.plot_1d_compare(
                 x_top,
@@ -151,7 +195,7 @@ class ViewCompareMassSpectra(ViewMassSpectrum):
             self.figure.repaint()
 
             # set data
-            self._data.update(x=[x_top, x_bottom], y=[y_top, y_bottom])
+            self._data.update(x_top=x_top, x_bottom=x_bottom, y_top=y_top, y_bottom=y_bottom, labels=labels)
             self._plt_kwargs = kwargs
             LOGGER.debug("Plotted data")
 
@@ -164,12 +208,12 @@ class ViewCompareMassSpectra(ViewMassSpectrum):
         if labels is None:
             labels = ["", ""]
         # update plot
-        # x, y = self.check_input(x, y, obj)
+        x_top, x_bottom, y_top, y_bottom = self.check_input(x_top, x_bottom, y_top, y_bottom, obj_top, obj_bottom)
         self.figure.plot_1d_compare_update_data(x_top, x_bottom, y_top, y_bottom, labels, **kwargs)
         self.figure.repaint()
 
         # set data
-        self._data.update(x=[x_top, x_bottom], y=[y_top, y_bottom])
+        self._data.update(x_top=x_top, x_bottom=x_bottom, y_top=y_top, y_bottom=y_bottom, labels=labels)
         self._plt_kwargs = kwargs
         LOGGER.debug("Updated plot data")
 
@@ -178,20 +222,28 @@ class ViewCompareMassSpectra(ViewMassSpectrum):
         self.figure.plot_1D_update_style_by_label(*args, **kwargs)
         self.figure.repaint()
 
+    def replot(self, **kwargs):
+        """Replot the current plot"""
+        if kwargs is None:
+            kwargs = self._plt_kwargs
 
-class ViewChromatogram(ViewSpectrum):
-    """Specialized viewer for chromatographic data"""
+        self.update(
+            self._data["x_top"],
+            self._data["x_bottom"],
+            self._data["y_top"],
+            self._data["y_bottom"],
+            self._data["labels"],
+            **kwargs,
+        )
 
-    def __init__(self, parent, figsize, title="Chromatogram", **kwargs):
-        ViewSpectrum.__init__(self, parent, figsize, title, **kwargs)
-        self._x_label = kwargs.pop("x_label", "Scans")
-        self._y_label = kwargs.pop("y_label", "Intensity")
+    def _update(self):
+        pass
 
 
-class ViewMobilogram(ViewSpectrum):
-    """Specialized viewer for mobilogram data"""
+class ViewCompareMassSpectra(ViewCompareSpectra):
+    """Specialized viewer for comparison of mass spectral data"""
 
-    def __init__(self, parent, figsize, title="Mobilogram", **kwargs):
-        ViewSpectrum.__init__(self, parent, figsize, title, **kwargs)
-        self._x_label = kwargs.pop("x_label", "Drift time (bins)")
+    def __init__(self, parent, figsize, title="CompareMassSpectra", **kwargs):
+        ViewCompareSpectra.__init__(self, parent, figsize, title=title, **kwargs)
+        self._x_label = kwargs.pop("x_label", "m/z (Da)")
         self._y_label = kwargs.pop("y_label", "Intensity")

@@ -21,6 +21,7 @@ from origami.utils.check import isempty
 from origami.utils.check import check_value_order
 from origami.utils.color import convert_rgb_255_to_1
 from origami.utils.random import get_random_int
+from origami.config.config import CONFIG
 from origami.utils.converters import str2num
 from origami.utils.exceptions import MessageError
 from origami.processing.UniDec import unidec
@@ -1882,101 +1883,100 @@ class DataProcessing:
 
         return zvals, xlabels, scan_list, parameters
 
-    def find_peaks_in_mass_spectrum_peak_properties(self, mz_obj: MassSpectrumObject, **kwargs):
+    # noinspection DuplicatedCode
+    @staticmethod
+    def find_peaks_in_mass_spectrum_peak_properties(
+        mz_obj: MassSpectrumObject,
+        threshold=CONFIG.peak_property_threshold,
+        distance=CONFIG.peak_property_distance,
+        width=CONFIG.peak_property_width,
+        rel_height=CONFIG.peak_property_relative_height,
+        min_intensity=CONFIG.peak_property_min_intensity,
+        peak_width_modifier=CONFIG.peak_property_peak_width_modifier,
+        pick_mz_min=None,
+        pick_mz_max=None,
+    ):
         """Find peaks in mass spectrum using peak properties"""
         from origami.processing.feature.mz_picker import PropertyPeakPicker
 
         mz_min, mz_max = mz_obj.x_limit
-        if self.config.peak_find_mz_limit:
-            mz_min = self.config.peak_find_mz_min
-            mz_max = self.config.peak_find_mz_max
-            mz_min, mz_max = check_value_order(mz_min, mz_max)
+        if pick_mz_min is None:
+            pick_mz_min = mz_min
+        if pick_mz_max is None:
+            pick_mz_max = mz_max
+        pick_mz_min, pick_mz_max = check_value_order(pick_mz_min, pick_mz_max)
 
         picker = PropertyPeakPicker(mz_obj.x, mz_obj.y)
         picker.find_peaks(
-            mz_range=[mz_min, mz_max],
-            threshold=self.config.peak_find_threshold,
-            distance=self.config.peak_find_distance,
-            width=self.config.peak_find_width,
-            rel_height=self.config.peak_find_relative_height,
-            min_intensity=self.config.peak_find_min_intensity,
-            peak_width_modifier=self.config.peak_find_peak_width_modifier,
+            mz_range=[pick_mz_min, pick_mz_max],
+            threshold=threshold,
+            distance=distance,
+            width=width,
+            rel_height=rel_height,
+            min_intensity=min_intensity,
+            peak_width_modifier=peak_width_modifier,
         )
         return picker
 
-    def find_peaks_in_mass_spectrum_local_max(self, mz_obj: MassSpectrumObject, **kwargs):
+    # noinspection DuplicatedCode
+    @staticmethod
+    def find_peaks_in_mass_spectrum_local_max(
+        mz_obj: MassSpectrumObject,
+        window=CONFIG.peak_local_window,
+        threshold=CONFIG.peak_local_threshold,
+        rel_height=CONFIG.peak_local_relative_height,
+        pick_mz_min=None,
+        pick_mz_max=None,
+    ):
         """Find peaks in mass spectrum using local-maximum algorithm"""
         from origami.processing.feature.mz_picker import LocalMaxPeakPicker
 
         mz_min, mz_max = mz_obj.x_limit
-        if self.config.peak_find_mz_limit:
-            mz_min = self.config.peak_find_mz_min
-            mz_max = self.config.peak_find_mz_max
-            mz_min, mz_max = check_value_order(mz_min, mz_max)
+        if pick_mz_min is None:
+            pick_mz_min = mz_min
+        if pick_mz_max is None:
+            pick_mz_max = mz_max
+        pick_mz_min, pick_mz_max = check_value_order(pick_mz_min, pick_mz_max)
 
         # check  threshold
-        threshold = self.config.fit_threshold
         if threshold > 1:
             threshold = threshold / mz_obj.y_limit[1]
 
         picker = LocalMaxPeakPicker(mz_obj.x, mz_obj.y)
         picker.find_peaks(
-            mz_range=[mz_min, mz_max],
-            window=self.config.fit_window,
-            min_intensity=threshold,
-            rel_height=self.config.fit_relative_height,
+            mz_range=[pick_mz_min, pick_mz_max], window=window, min_intensity=threshold, rel_height=rel_height
         )
         return picker
 
-    def find_peaks_in_mass_spectrum_peakutils(self, mz_obj: MassSpectrumObject, **kwargs):
+    # noinspection DuplicatedCode
+    @staticmethod
+    def find_peaks_in_mass_spectrum_peakutils(
+        mz_obj: MassSpectrumObject,
+        window=CONFIG.peak_differential_window,
+        threshold=CONFIG.peak_differential_threshold,
+        rel_height=CONFIG.peak_differential_relative_height,
+        pick_mz_min=None,
+        pick_mz_max=None,
+    ):
+        """Find peaks in the mass spectrum using differential algorithm"""
         from origami.processing.feature.mz_picker import DifferentialPeakPicker
 
         mz_min, mz_max = mz_obj.x_limit
-        if self.config.peak_find_mz_limit:
-            mz_min = self.config.peak_find_mz_min
-            mz_max = self.config.peak_find_mz_max
-            mz_min, mz_max = check_value_order(mz_min, mz_max)
+        if pick_mz_min is None:
+            pick_mz_min = mz_min
+        if pick_mz_max is None:
+            pick_mz_max = mz_max
+        pick_mz_min, pick_mz_max = check_value_order(pick_mz_min, pick_mz_max)
 
         # check  threshold
-        threshold = self.config.fit_threshold
         if threshold > 1:
             threshold = threshold / mz_obj.y_limit[1]
 
         picker = DifferentialPeakPicker(mz_obj.x, mz_obj.y)
         picker.find_peaks(
-            mz_range=[mz_min, mz_max],
-            min_distance=self.config.fit_window,
-            min_intensity=threshold,
-            rel_height=self.config.fit_relative_height,
+            mz_range=[pick_mz_min, pick_mz_max], min_distance=window, min_intensity=threshold, rel_height=rel_height
         )
         return picker
-        # mz_x = kwargs.get("mz_x")
-        # mz_y = kwargs.get("mz_y")
-        #
-        # mz_range = None
-        # if self.config.peak_find_mz_limit:
-        #     mz_min = self.config.peak_find_mz_min
-        #     mz_max = self.config.peak_find_mz_max
-        #     mz_min, mz_max = check_value_order(mz_min, mz_max)
-        #     mz_range = (mz_min, mz_max)
-        #
-        # # check  threshold
-        # threshold = self.config.fit_threshold
-        # if threshold > 1:
-        #     threshold = threshold / np.max(mz_y)
-        #
-        # found_peaks = pr_peaks.find_peaks_in_spectrum_peakutils(
-        #     mz_x,
-        #     mz_y,
-        #     threshold,
-        #     self.config.fit_window,
-        #     mz_range,
-        #     rel_height=self.config.fit_relative_height,
-        #     verbose=self.config.peak_find_verbose,
-        # )
-        #
-        # if kwargs.get("return_data", False):
-        #     return found_peaks
 
     def smooth_spectrum(self, mz_y, method="gaussian"):
         if method == "gaussian":

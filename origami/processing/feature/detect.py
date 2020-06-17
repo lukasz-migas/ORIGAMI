@@ -1,5 +1,6 @@
 # Third-party imports
 # Standard library imports
+# Standard library imports
 from typing import List
 from typing import Tuple
 from typing import Union
@@ -82,7 +83,13 @@ def find_peaks_in_spectrum_peak_properties(
 
 
 def find_peaks_in_spectrum_local_max(
-    x, y, window: int = 10, min_intensity: float = 0, mz_range: Union[Tuple, List] = None, **kwargs
+    x,
+    y,
+    window: int = 10,
+    min_intensity: float = 0,
+    mz_range: Union[Tuple, List] = None,
+    rel_height: float = 0.5,
+    **kwargs,
 ):
     """Find peaks in a signal (e.g. mass spectrum) based on a local max search
 
@@ -126,7 +133,7 @@ def find_peaks_in_spectrum_local_max(
     if n_peaks == 0:
         return dict(peaks_index=[])
 
-    pks_width, widths_height, left_ips, right_ips = peak_widths(y, pks_idx, rel_height=kwargs.get("rel_height", 0.5))
+    pks_width, widths_height, left_ips, right_ips = peak_widths(y, pks_idx, rel_height=rel_height)
 
     # round-up peak width index
     pks_idx_width_half = np.ceil(pks_width / 2).astype(np.int32)
@@ -154,7 +161,13 @@ def find_peaks_in_spectrum_local_max(
 
 
 def find_peaks_in_spectrum_peakutils(
-    x, y, min_intensity: float = 0, min_distance: int = 30, mz_range: Union[Tuple, List] = None, **kwargs
+    x,
+    y,
+    min_intensity: float = 0,
+    min_distance: int = 30,
+    mz_range: Union[Tuple, List] = None,
+    rel_height: float = 0.5,
+    **kwargs,
 ):
     pks_idx = peakutils.indexes(y, min_intensity, min_distance, thres_abs=False if min_intensity < 1 else True)
     pks_x = x[pks_idx]
@@ -169,7 +182,7 @@ def find_peaks_in_spectrum_peakutils(
         pks_y = np.asarray(pks_y)[mz_start_idx:mz_end_idx]
         pks_idx = np.asarray(pks_idx)[mz_start_idx:mz_end_idx]
 
-    pks_width, widths_height, left_ips, right_ips = peak_widths(y, pks_idx, rel_height=kwargs.get("rel_height", 0.5))
+    pks_width, widths_height, left_ips, right_ips = peak_widths(y, pks_idx, rel_height=rel_height)
 
     # round-up peak width index
     pks_idx_width_half = np.ceil(pks_width / 2).astype(np.int32)

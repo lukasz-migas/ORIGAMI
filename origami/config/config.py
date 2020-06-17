@@ -1283,7 +1283,6 @@ class Config:
         self.fit_highRes_window = 10
         self.fit_highRes_width = 1
         self.fit_highRes_isotopicFit = False
-
         self.fit_relative_height = 0.75  # new in v1.3.0.0
 
         # Peak finding/fitting - local + wavelet
@@ -1298,8 +1297,42 @@ class Config:
         self.peak_find_mz_limit = False  # new in v1.3.0.0
         self.peak_find_peak_width_modifier = 1.0  # new in v1.3.0.0
         self.peak_find_verbose = False  # new in v1.3.0.0
-
         self.peak_fit_method = None  # new in v1.3.0.0
+
+        # Peak-picking parameters
+        # Panel settings
+        self.peak_panel_specify_mz = False
+        self.peak_panel_mz_start = None
+        self.peak_panel_mz_end = None
+        self.peak_panel_preprocess = True
+        self.peak_panel_verbose = False
+        self.peak_panel_method = None
+        self.peak_panel_scatter = True
+        self.peak_panel_highlight = True
+        self.peak_panel_labels = True
+        self.peak_panel_labels_mz = True
+        self.peak_panel_labels_int = True
+        self.peak_panel_labels_width = False
+        self.peak_panel_optimise_position = True
+        self.peak_panel_labels_max_count = 100
+
+        # Local-max settings
+        self.peak_local_threshold = 0.01
+        self.peak_local_window = 10
+        self.peak_local_relative_height = 0.75
+
+        # Differential settings
+        self.peak_differential_threshold = 0.01
+        self.peak_differential_window = 10
+        self.peak_differential_relative_height = 0.75
+
+        # Small-molecule settings
+        self.peak_property_threshold = 250  # new in v1.3.0.0
+        self.peak_property_width = 0  # new in v1.3.0.0
+        self.peak_property_relative_height = 0.5  # new in v1.3.0.0
+        self.peak_property_min_intensity = 0.0  # new in v1.3.0.0
+        self.peak_property_distance = 1  # new in v1.3.0.0
+        self.peak_property_peak_width_modifier = 1.0  # new in v1.3.0.0
 
         # UVPD
         self.uvpd_peak_finding_threshold = 0.1  # new in v1.2.1

@@ -4909,17 +4909,17 @@ class PanelInteractiveCreator(wx.MiniFrame):
         """
         Generate html text for div
         """
-
-        html_title = """
-        <p><strong>Title: </strong>{}</p>
-        <p><strong>ID</strong>: {}</p>
-        <p><strong>Identification ID</strong>: {}</p>
-        <p><strong>Precursor m/z</strong>: {}</p>
-        <p><strong>Precursor charge</strong>: {}</p>
-        <p><strong>Protein</strong>: {}</p>
-        """.format(
-            data[scanID]["scan_info"]["title"], scanID, scan_num + 1, data[scanID]["scan_info"]["precursor_mz"], ""
-        )
+        html_title = ""
+        # html_title = """
+        # <p><strong>Title: </strong>{}</p>
+        # <p><strong>ID</strong>: {}</p>
+        # <p><strong>Identification ID</strong>: {}</p>
+        # <p><strong>Precursor m/z</strong>: {}</p>
+        # <p><strong>Precursor charge</strong>: {}</p>
+        # <p><strong>Protein</strong>: {}</p>
+        # """.format(
+        #     data[scanID]["scan_info"]["title"], scanID, scan_num + 1, data[scanID]["scan_info"]["precursor_mz"], ""
+        # )
 
         return html_title
 

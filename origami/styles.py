@@ -70,11 +70,19 @@ def make_spin_ctrl_int(parent, value, min_value, max_value, increment_value, siz
 
 
 def make_bitmap_btn(
-    parent, evt_id, icon, size=(26, 26), style=wx.BORDER_DEFAULT | wx.ALIGN_CENTER_VERTICAL, bg_color=(240, 240, 240)
+    parent,
+    evt_id,
+    icon,
+    size=(26, 26),
+    style=wx.BORDER_DEFAULT | wx.ALIGN_CENTER_VERTICAL,
+    bg_color=(240, 240, 240),
+    tooltip: str = None,
 ):
     """Convenient way to initialize bitmap btn"""
     bitmap_btn = wx.BitmapButton(parent, evt_id, icon, size=size, style=style)
     bitmap_btn.SetBackgroundColour(bg_color)
+    if tooltip is not None:
+        bitmap_btn.SetToolTip(make_tooltip(tooltip))
 
     return bitmap_btn
 
@@ -155,6 +163,13 @@ def make_checkbox(parent, text, style=wx.ALIGN_LEFT, evt_id=-1, name="", tooltip
     if tooltip:
         checkbox.SetToolTip(make_tooltip(tooltip))
     return checkbox
+
+
+def set_tooltip(parent, tooltip):
+    """Set tooltip information on an object"""
+    assert hasattr(parent, "SetToolTip"), "Parent object does not have `SetToolTip` attribute"
+    parent.SetToolTip(make_tooltip(tooltip))
+    return parent
 
 
 def make_tooltip(text=None, delay=500, reshow=500, auto_pop=3000):

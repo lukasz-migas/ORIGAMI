@@ -134,7 +134,7 @@ class BasePicker(ABC):
     @property
     def x_width(self):
         """Get full-width half max for all peaks"""
-        return np.asarray([peak.x_width for peak in self._peaks])
+        return np.asarray([peak.x_fwhm for peak in self._peaks])
 
     @property
     def idx_window(self):

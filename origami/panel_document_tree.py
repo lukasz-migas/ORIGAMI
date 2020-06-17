@@ -2953,6 +2953,12 @@ class DocumentTree(wx.TreeCtrl):
             save_kwargs = {"image_name": defaultValue}
             self.panel_plot.save_images(evt="other", **save_kwargs)
 
+    def _get_item_info(self):
+        """Retrieve information about object"""
+        document = ENV.on_get_document()
+        _, obj_title = self.GetPyData(self._item_id)
+        return document.title, obj_title
+
     def _get_item_object(self):
         """Retrieves container object for particular dataset"""
         document = ENV.on_get_document()
@@ -3799,7 +3805,8 @@ class DocumentTree(wx.TreeCtrl):
 
         # get data
         document_title, dataset_type, dataset_name = self._get_query_info_based_on_indent()
-        mz_obj = self._get_item_object()
+        document_title, dataset_name = self._get_item_info()
+        #         mz_obj = self._get_item_object()
         # __, data = self.data_handling.get_mobility_chromatographic_data([document_title, dataset_type, dataset_name])
         #
         # if self._picker_panel:
@@ -3811,7 +3818,7 @@ class DocumentTree(wx.TreeCtrl):
             self.presenter.view,
             self.presenter,
             self._icons,
-            mz_obj=mz_obj,
+            #             mz_obj=mz_obj,
             document_title=document_title,
             dataset_type=dataset_type,
             dataset_name=dataset_name,

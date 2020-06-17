@@ -1166,7 +1166,7 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
                 position = xmax - ((xmax - xmin) / 2)
                 intensity = self.data[:, 1][pr_utils.find_nearest_index(self.data[:, 0], position)]
             except TypeError:
-                logger.warning(f"Failed to get annotation intensity / position", exc_info=True)
+                logger.warning("Failed to get annotation intensity / position", exc_info=True)
 
             charge = self.data_processing.predict_charge_state(
                 self.data[:, 0], self.data[:, 1], [xmin - 2, xmax + 2], std_dev=self.config.annotation_charge_std_dev

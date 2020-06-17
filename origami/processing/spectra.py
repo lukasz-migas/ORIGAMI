@@ -144,14 +144,15 @@ def baseline_als(y, lam, p, niter=10):
 
 
 def baseline_linear(data, threshold: float, **kwargs):
-    value_max = np.max(data)
+    # value_max = np.max(data)
     if threshold < 0:
         raise MessageError("Incorrect input", "Value should be above 0")
 
-    if threshold > value_max:
-        raise MessageError(
-            "Incorrect input", f"Value {threshold} is above the maximum {value_max} when trying to remove baseline"
-        )
+    #     if threshold > value_max:
+    #         raise MessageError(
+    #             "Incorrect input", f"Value {threshold} is above the maximum {value_max} when trying to remove
+    #             baseline"
+    #         )
 
     data[data <= threshold] = 0
 

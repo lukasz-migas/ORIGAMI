@@ -172,12 +172,19 @@ class DataObject(ContainerBase):
 
 
 class SpectrumObject(DataObject):
+    """Generic spectrum object"""
+
     def __init__(self, x, y, x_label: str, y_label: str, name: str, metadata: dict, extra_data: dict, **kwargs):
         super().__init__(name, x, y, x_label, y_label, metadata=metadata, extra_data=extra_data, **kwargs)
 
     @property
     def x_bin(self):
         return np.arange(len(self.x))
+
+    @property
+    def x_spacing(self):
+        """Return the average spacing value for the x-axis"""
+        return np.mean(np.diff(self.x))
 
     def to_dict(self):
         """Outputs data to dictionary"""

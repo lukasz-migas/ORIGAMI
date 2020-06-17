@@ -181,7 +181,7 @@ class DocumentStore:
             self.fp.attrs["format_version"] = version = self.VERSION
 
         if version != self.VERSION:
-            LOGGER.warning(f"The current version of the document is out of date - update will happen automatically.")
+            LOGGER.warning("The current version of the document is out of date - update will happen automatically.")
 
     def _ipython_key_completions_(self):
         return sorted(self)

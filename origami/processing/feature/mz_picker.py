@@ -68,6 +68,22 @@ class MassSpectrumBasePicker(BasePicker):
 
         return PeakSet(peak_data)
 
+    def get_label(self, mz: bool = True, intensity: bool = True, width: bool = False):
+        """Return label iterator"""
+        x = self.x
+        y = self.y
+        widths = self.x_width
+
+        for _x, _y, _width in zip(x, y, widths):
+            label = ""
+            if mz:
+                label += f"m/z: {_x:.2f} "
+            if intensity:
+                label += f"int: {_y:.2f} "
+            if width:
+                label += f"fwhm: {_width:.2f} "
+            yield (_x, _y, label)
+
 
 # noinspection DuplicatedCode
 class PropertyPeakPicker(MassSpectrumBasePicker):
@@ -78,7 +94,6 @@ class PropertyPeakPicker(MassSpectrumBasePicker):
 
     def find_peaks(
         self,
-        mz_range: Optional[Union[List, Tuple]] = None,
         min_intensity: float = 0.01,
         threshold: float = 250,
         width: int = 0,
@@ -86,6 +101,7 @@ class PropertyPeakPicker(MassSpectrumBasePicker):
         distance: int = 1,
         peak_width_modifier: float = 1.0,
         prominence: int = 1,
+        mz_range: Optional[Union[List, Tuple]] = None,
         get: bool = False,
         **kwargs,
     ):
@@ -143,8 +159,9 @@ class LocalMaxPeakPicker(MassSpectrumBasePicker):
     def find_peaks(
         self,
         window: int = 10,
-        mz_range: Optional[Union[List, Tuple]] = None,
         min_intensity: float = 0.01,
+        rel_height: float = 0.5,
+        mz_range: Optional[Union[List, Tuple]] = None,
         get: bool = False,
         **kwargs: Dict[str, Any],
     ):
@@ -160,11 +177,18 @@ class LocalMaxPeakPicker(MassSpectrumBasePicker):
             raise ValueError(f"Intensity should be between 0 and 1")
 
         found_peaks = find_peaks_in_spectrum_local_max(
-            self._x_array, self._y_array, window=window, min_intensity=min_intensity, mz_range=mz_range, **kwargs
+            self._x_array,
+            self._y_array,
+            window=window,
+            min_intensity=min_intensity,
+            mz_range=mz_range,
+            rel_height=rel_height,
         )
 
         # update parameters
-        self.add_processing_step("find_peaks", {"mz_range": mz_range, "min_intensity": min_intensity, **kwargs})
+        self.add_processing_step(
+            "find_peaks", {"mz_range": mz_range, "min_intensity": min_intensity, "rel_height": rel_height, **kwargs}
+        )
 
         # set data
         if get:
@@ -185,6 +209,7 @@ class DifferentialPeakPicker(MassSpectrumBasePicker):
         self,
         min_intensity: float = 0,
         min_distance: int = 30,
+        rel_height: float = 0.5,
         mz_range: Union[Tuple, List] = None,
         get: bool = False,
         **kwargs: Dict[str, Any],
@@ -206,11 +231,19 @@ class DifferentialPeakPicker(MassSpectrumBasePicker):
             min_distance=min_distance,
             min_intensity=min_intensity,
             mz_range=mz_range,
-            **kwargs,
+            rel_height=rel_height,
         )
 
         # update parameters
-        self.add_processing_step("find_peaks", {"mz_range": mz_range, "min_intensity": min_intensity, **kwargs})
+        self.add_processing_step(
+            "find_peaks",
+            {
+                "mz_range": mz_range,
+                "min_distance": min_distance,
+                "min_intensity": min_intensity,
+                "rel_height": rel_height,
+            },
+        )
 
         # set data
         if get:
