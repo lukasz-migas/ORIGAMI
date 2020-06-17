@@ -46,7 +46,7 @@ class PanelModifyItemSettings(MiniFrame):
             self.show_datasets = True
         # overlay
         elif "overlay_type" in kwargs:
-            self.SetTitle(f"Customise item...")
+            self.SetTitle("Customise item...")
             self.show_mw = False
             self.show_charge = False
             self.apply_thresholds = True

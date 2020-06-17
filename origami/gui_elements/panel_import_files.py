@@ -28,6 +28,8 @@ logger = logging.getLogger(__name__)
 
 
 class TableColumnIndex(IntEnum):
+    """Table indexer"""
+
     check = 0
     filename = 1
     path = 2
@@ -374,7 +376,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         """Update processing parameters"""
         info = ""
         if CONFIG.ms_process_linearize:
-            info += f"Linearize \n"
+            info += "Linearize \n"
             info += f"    Mode: {CONFIG.ms_linearization_mode}\n"
             info += f"    Auto-range: {CONFIG.ms_auto_range}\n"
             if not CONFIG.ms_auto_range:
@@ -392,7 +394,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
             self.processing_label.SetForegroundColour(wx.BLACK)
 
         if CONFIG.ms_process_threshold:
-            info += f"Subtract baseline \n"
+            info += "Subtract baseline \n"
             info += f"   Mode: {CONFIG.ms_baseline}"
 
         self.processing_label.SetLabel(info)

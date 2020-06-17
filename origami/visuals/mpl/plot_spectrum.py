@@ -202,7 +202,7 @@ class PlotSpectrum(PlotBase):
                 line.set_xdata(x_top)
                 line.set_ydata(y_top)
                 line.set_label(labels[0])
-                line.set_color(kwargs.get("line_color_1", line.get_color()))
+                line.set_color(kwargs.get("line_colors_1", line.get_color()))
             elif plot_gid == 1:
                 if labels[1] is None:
                     labels[1] = line.get_label()

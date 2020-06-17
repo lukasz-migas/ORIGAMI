@@ -11,7 +11,10 @@ from ctypes import c_int
 from ctypes import c_char_p
 from ctypes import c_void_p
 
-sys.path.append(os.path.dirname(__file__))
+MODULE_PATH = os.path.dirname(__file__)
+sys.path.append(MODULE_PATH)
+sys.path.append(os.path.join(MODULE_PATH, r"MassLynxRaw.dll"))
+sys.path.append(os.path.join(MODULE_PATH, r"cdt.dll"))
 
 
 class MassLynxBaseType(IntEnum):
@@ -223,7 +226,14 @@ class MassLynxRawReader(object):
     """basic functionality to read raw files"""
 
     # load the dll
-    massLynxDll = ctypes.WinDLL("MassLynxRaw.dll")
+    try:
+        massLynxDll = ctypes.WinDLL("MassLynxRaw.dll")
+    except OSError:
+        cwd = os.getcwd()
+        os.chdir(MODULE_PATH)
+        massLynxDll = ctypes.WinDLL("MassLynxRaw.dll")
+        os.chdir(cwd)
+
     version = "1.0"  # class variable
 
     def __init__(self, source, mlType):

@@ -82,7 +82,7 @@ class MassSpectrumBasePicker(BasePicker):
                 label += f"int: {_y:.2f} "
             if width:
                 label += f"fwhm: {_width:.2f} "
-            yield (_x, _y, label)
+            yield _x, _y, label
 
 
 # noinspection DuplicatedCode
@@ -114,7 +114,7 @@ class PropertyPeakPicker(MassSpectrumBasePicker):
             raise ValueError(f"'mz_range' expected a list or tuple and not '{type(mz_range)}'")
 
         if not 0 <= min_intensity <= 1:
-            raise ValueError(f"Intensity should be between 0 and 1")
+            raise ValueError("Intensity should be between 0 and 1")
 
         found_peaks = find_peaks_in_spectrum_peak_properties(
             self._x_array,
@@ -174,7 +174,7 @@ class LocalMaxPeakPicker(MassSpectrumBasePicker):
             raise ValueError(f"'mz_range' expected a list or tuple and not '{type(mz_range)}'")
 
         if not 0 <= min_intensity <= 1:
-            raise ValueError(f"Intensity should be between 0 and 1")
+            raise ValueError("Intensity should be between 0 and 1")
 
         found_peaks = find_peaks_in_spectrum_local_max(
             self._x_array,
@@ -223,7 +223,7 @@ class DifferentialPeakPicker(MassSpectrumBasePicker):
             raise ValueError(f"'mz_range' expected a list or tuple and not '{type(mz_range)}'")
 
         if not 0 <= min_intensity <= 1:
-            raise ValueError(f"Intensity should be between 0 and 1")
+            raise ValueError("Intensity should be between 0 and 1")
 
         found_peaks = find_peaks_in_spectrum_peakutils(
             self._x_array,

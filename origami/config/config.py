@@ -3325,7 +3325,7 @@ class Config:
                 + f' reset="{bool(ts["reset"])}" wheel="{bool(ts["wheel"])}"'
                 + f' wheelType="{ts["wheelType"]}" activeDrag="{ts["activeDrag"]}"'
                 + f' activeWheel="{ts["activeWheel"]}" activeInspect="{ts["activeInspect"]}"'
-                + f' type="mixed" />\n'
+                + ' type="mixed" />\n'
             )
         buff += "  </presets_interactive_toolsets>\n\n"
 

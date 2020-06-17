@@ -673,7 +673,7 @@ def subtract_spectra(xvals_1, yvals_1, xvals_2, yvals_2, **kwargs):
     n_size_2 = len(xvals_2)
 
     if n_size_1 != n_size_2:
-        logger.warning(f"The two spectra are of different size. They will be interpolated to the same scale.")
+        logger.warning("The two spectra are of different size. They will be interpolated to the same scale.")
         # calculate plot size
         ylimits_1 = get_min_max(xvals_1)
         ylimits_2 = get_min_max(xvals_2)

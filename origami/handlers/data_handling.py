@@ -1869,8 +1869,8 @@ class DataHandling(LoadHandler, ExportHandler):
                 raise MessageError(
                     "Missing file",
                     f"File with {path} path no longer exists. If you think this is a mistake"
-                    + f", please update the path by right-clicking on the document in the Document Tree"
-                    + f" and selecting `Notes, information, labels...` and update file path",
+                    + ", please update the path by right-clicking on the document in the Document Tree"
+                    + " and selecting `Notes, information, labels...` and update file path",
                 )
 
             # Extract information from the table
