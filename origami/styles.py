@@ -247,6 +247,7 @@ class Dialog(wx.Dialog):
     """Proxy of Dialog"""
 
     def __init__(self, parent, **kwargs):
+        self.parent = parent
         bind_key_events = kwargs.pop("bind_key_events", True)
         wx.Dialog.__init__(
             self, parent, -1, style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX), **kwargs
@@ -299,6 +300,9 @@ class MiniFrame(wx.MiniFrame):
 
     _icons = None
 
+    info_btn = None
+    display_label = None
+
     def __init__(
         self, parent, style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX | wx.STAY_ON_TOP, **kwargs
     ):
@@ -315,7 +319,7 @@ class MiniFrame(wx.MiniFrame):
         key_code = evt.GetKeyCode()
         # exit window
         if key_code == wx.WXK_ESCAPE:
-            self.on_close(evt=None)
+            self.on_close(None)
 
         if evt is not None:
             evt.Skip()
@@ -343,6 +347,21 @@ class MiniFrame(wx.MiniFrame):
         info_btn.Bind(wx.EVT_BUTTON, self.on_open_info)
         return info_btn
 
+    def make_statusbar(self, panel):
+        """Make make-shift statusbar"""
+        # add info button
+        self.info_btn = self.make_info_button(panel)
+
+        self.display_label = wx.StaticText(panel, wx.ID_ANY, "")
+        self.display_label.SetForegroundColour(wx.BLUE)
+
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(self.info_btn, 0, wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        sizer.AddSpacer(5)
+        sizer.Add(self.display_label, 1, wx.ALIGN_CENTER_VERTICAL)
+
+        return sizer
+
     def make_panel(self, *args):
         """Make panel"""
         pass
@@ -367,7 +386,6 @@ class ListCtrl(wx.ListCtrl, listmix.TextEditMixin):
 
     def __init__(self, parent, id=-1, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.LC_REPORT, **kwargs):
         wx.ListCtrl.__init__(self, parent, id, pos, size, style)
-        # listmix.TextEditMixin.__init__(self)
 
         self.EnableCheckBoxes(True)
 
@@ -381,7 +399,7 @@ class ListCtrl(wx.ListCtrl, listmix.TextEditMixin):
         self.check = False
 
         self.column_info = kwargs.get("column_info", None)
-        self.allowed_edit = kwargs.pop("allowed_edit", [])
+        self.color_0_to_1 = kwargs.get("color_0_to_1", False)
 
         self.Bind(wx.EVT_LIST_COL_CLICK, self.on_column_click, self)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_item, self)
@@ -485,9 +503,14 @@ class ListCtrl(wx.ListCtrl, listmix.TextEditMixin):
         else:
             return byte2str(item_value)
 
-    @staticmethod
-    def _convert_color(color_255):
-        color_1 = convert_rgb_255_to_1(color_255, decimals=3)
+    def _convert_color(self, color_255):
+        """Convert color to appropriate format"""
+        # sometimes its convenient to keep colors in the 0-1 range
+        if self.color_0_to_1:
+            color_1 = color_255
+            color_255 = convert_rgb_1_to_255(color_1, decimals=3)
+        else:
+            color_1 = convert_rgb_255_to_1(color_255, decimals=3)
         return color_255, color_1
 
     def on_column_click(self, evt):
@@ -851,3 +874,47 @@ class validator(wx.Validator):
         else:
             wx.Bell()
             return
+
+
+class PopupBase(wx.PopupTransientWindow):
+    """Create popup window to modify few uncommon settings"""
+
+    ld_pos = None
+    w_pos = None
+
+    def __init__(self, parent, style=wx.BORDER_SIMPLE):
+        wx.PopupTransientWindow.__init__(self, parent, style)
+
+        self.make_panel()
+
+        self.Bind(wx.EVT_LEFT_DOWN, self.on_mouse_left_down)
+        self.Bind(wx.EVT_LEFT_UP, self.on_mouse_left_up)
+        self.Bind(wx.EVT_MOTION, self.on_move)
+
+    def make_panel(self):
+        """Make popup window"""
+        raise NotImplementedError("Must implement method")
+
+    def position_on_event(self, evt):
+        """Position the window on an event location"""
+        pos = evt.GetEventObject().ClientToScreen((0, 0))
+        self.SetPosition(pos)
+
+    def on_mouse_left_down(self, evt):
+        """On left-click event"""
+        self.Refresh()
+        self.ld_pos = evt.GetEventObject().ClientToScreen(evt.GetPosition())
+        self.w_pos = self.ClientToScreen((0, 0))
+        self.CaptureMouse()
+
+    def on_mouse_left_up(self, evt):
+        """On left-release event"""
+        if self.HasCapture():
+            self.ReleaseMouse()
+
+    def on_move(self, evt):
+        """On move event"""
+        if evt.Dragging() and evt.LeftIsDown() and self.w_pos is not None and self.ld_pos is not None:
+            d_pos = evt.GetEventObject().ClientToScreen(evt.GetPosition())
+            new_pos = (self.w_pos.x + (d_pos.x - self.ld_pos.x), self.w_pos.y + (d_pos.y - self.ld_pos.y))
+            self.Move(new_pos)

@@ -124,11 +124,12 @@ class DialogCustomiseORIGAMI(Dialog):
         """Destroy this frame"""
 
         if self.user_settings_changed:
-            msg = (
-                "You've made some changes to the ORIGAMI-MS settings but have not saved them.\n"
-                + "Would you like to continue?"
+            dlg = DialogBox(
+                title="Would you like to continue?",
+                msg="You've made some changes to the ORIGAMI-MS settings but have not saved them."
+                "\nWould you like to continue?",
+                kind="Question",
             )
-            dlg = DialogBox(title="Would you like to continue?", msg=msg, kind="Question")
             if dlg == wx.ID_NO:
                 return
 

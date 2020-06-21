@@ -9,7 +9,6 @@ from functools import partial
 
 # Third-party imports
 import wx
-import numpy as np
 
 # Local imports
 from origami.ids import ID_saveData_csv
@@ -65,6 +64,10 @@ from origami.utils.converters import str2int
 from origami.utils.converters import byte2str
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
+from origami.objects.containers import IonHeatmapObject
+from origami.objects.containers import MobilogramObject
+from origami.objects.containers import ChromatogramObject
+from origami.objects.containers import MassSpectrumObject
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.misc_dialogs import DialogSimpleAsk
 
@@ -379,6 +382,36 @@ class DocumentTree(wx.TreeCtrl):
         # DT/MS
         for yID in [ID_ylabel_DTMS_bins, ID_ylabel_DTMS_ms, ID_ylabel_DTMS_ms_arrival, ID_ylabel_DTMS_restore]:
             self.Bind(wx.EVT_MENU, self.on_change_y_values_and_labels, id=yID)
+
+    def _get_item_info(self):
+        """Retrieve information about object"""
+        document = ENV.on_get_document()
+        _, obj_title = self.GetPyData(self._item_id)
+        return document.title, obj_title
+
+    def _get_item_object(self):
+        """Retrieves container object for particular dataset"""
+        document = ENV.on_get_document()
+        _, obj_title = self.GetPyData(self._item_id)
+        return document[obj_title, True]
+
+    def _get_item_objects(self):
+        """Same as `_get_item_object` but the function yields consecutive elements of the group"""
+        raise NotImplementedError("Must implement method")
+
+    def _get_item_label(self, x=False, y=False):
+        """Get x/y labels from the object"""
+        try:
+            obj = self._get_item_object()
+        except (KeyError, IndexError):
+            return None, None
+        x_label, y_label = "", ""
+        if x:
+            x_label = obj.x_label
+        if y:
+            y_label = obj.y_label
+
+        return x_label, y_label
 
     def reset_document_tree_bullets(self):
         """Erase all bullets and make defaults."""
@@ -1221,11 +1254,14 @@ class DocumentTree(wx.TreeCtrl):
 
     def _match_plot_type_to_dataset_type(self, dataset_type, dataset_name):
         _plot_match = {
-            "mass_spectrum": ["Mass Spectrum", "Mass Spectrum (processed)", "Mass Spectra"],
-            "chromatogram": ["Chromatogram", "Chromatograms (EIC)", "Chromatograms (combined voltages, EIC)"],
-            "mobilogram": ["Drift time (1D)", "Drift time (1D, EIC)", "Drift time (1D, EIC, DT-IMS)"],
-            "heatmap": ["Drift time (2D)", "Drift time (2D, EIC)", "Drift time (2D, combined voltages, EIC)"],
-            "annotated": ["Multi-line:", "Line:", "H-bar:", "V-bar:", "Scatter:", "Waterfall:"],
+            #             "mass_spectrum": ["Mass Spectrum", "Mass Spectrum (processed)",
+            #  "Mass Spectra"],
+            #             "chromatogram": ["Chromatogram", "Chromatograms (EIC)",
+            # "Chromatograms (combined voltages, EIC)"],
+            #             "mobilogram": ["Drift time (1D)", "Drift time (1D, EIC)", "Drift time (1D, EIC, DT-IMS)"],
+            #             "heatmap": ["Drift time (2D)", "Drift time (2D, EIC)",
+            #  "Drift time (2D, combined voltages, EIC)"],
+            #             "annotated": ["Multi-line:", "Line:", "H-bar:", "V-bar:", "Scatter:", "Waterfall:"],
         }
         for key, items in _plot_match.items():
             if dataset_type in items:
@@ -1233,6 +1269,17 @@ class DocumentTree(wx.TreeCtrl):
             elif any(ok_item in dataset_name for ok_item in items):
                 return key
         raise MessageError("Failed to find appropriate method", "Failed to find appropriate method")
+
+    def _match_plot_type_to_data_obj(self, data_obj):
+        """Return type of plot depending on the data object"""
+        if isinstance(data_obj, MassSpectrumObject):
+            return "mass_spectrum"
+        elif isinstance(data_obj, ChromatogramObject):
+            return "chromatogram"
+        elif isinstance(data_obj, MobilogramObject):
+            return "mobilogram"
+        elif isinstance(data_obj, IonHeatmapObject):
+            return "heatmap"
 
     def on_open_annotation_editor(self, evt):
         """Open annotations panel"""
@@ -1245,31 +1292,24 @@ class DocumentTree(wx.TreeCtrl):
                 + " opening another one.",
             )
 
-        document_title, dataset_type, dataset_name = self._get_query_info_based_on_indent()
-        # get data
-        __, data = self.data_handling.get_mobility_chromatographic_data([document_title, dataset_type, dataset_name])
-        plot_type = self._match_plot_type_to_dataset_type(dataset_type, dataset_name)
+        # get data and annotations
+        document_title, dataset_name = self._get_item_info()
+        data_obj = self._get_item_object()
+        plot_type = self._match_plot_type_to_data_obj(data_obj)
 
         # check plot_type has been specified
         if plot_type is None:
             raise MessageError("Not implemented yet", "Function not implemented for this dataset type")
 
-        # reshape data
-        if plot_type in ["mass_spectrum", "mobilogram", "chromatogram"]:
-            data = np.transpose([data["xvals"], data["yvals"]])
-
-        query = [document_title, dataset_type, dataset_name]
-        kwargs = {
-            "document_title": document_title,
-            "dataset_type": dataset_type,
-            "dataset_name": dataset_name,
-            "data": data,
-            "plot_type": plot_type,
-            "annotations": self.data_handling.get_annotations_data(query),
-            "query": query,
-        }
-
-        self._annotate_panel = PanelAnnotationEditor(self.view, self, self.config, self.icons, **kwargs)
+        self._annotate_panel = PanelAnnotationEditor(
+            self.view,
+            self.presenter,
+            self._icons,
+            data_obj=data_obj,
+            document_title=document_title,
+            dataset_name=dataset_name,
+            plot_type=plot_type,
+        )
         self._annotate_panel.Show()
 
     def on_update_annotation(self, annotations, document_title, dataset_type, dataset_name, set_data_only=False):
@@ -2953,36 +2993,6 @@ class DocumentTree(wx.TreeCtrl):
             save_kwargs = {"image_name": defaultValue}
             self.panel_plot.save_images(evt="other", **save_kwargs)
 
-    def _get_item_info(self):
-        """Retrieve information about object"""
-        document = ENV.on_get_document()
-        _, obj_title = self.GetPyData(self._item_id)
-        return document.title, obj_title
-
-    def _get_item_object(self):
-        """Retrieves container object for particular dataset"""
-        document = ENV.on_get_document()
-        _, obj_title = self.GetPyData(self._item_id)
-        return document[obj_title, True]
-
-    def _get_item_objects(self):
-        """Same as `_get_item_object` but the function yields consecutive elements of the group"""
-        raise NotImplementedError("Must implement method")
-
-    def _get_item_label(self, x=False, y=False):
-        """Get x/y labels from the object"""
-        try:
-            obj = self._get_item_object()
-        except (KeyError, IndexError):
-            return None, None
-        x_label, y_label = "", ""
-        if x:
-            x_label = obj.x_label
-        if y:
-            y_label = obj.y_label
-
-        return x_label, y_label
-
     def on_show_plot_mass_spectra(self, evt, save_image=False):
         """Show mass spectrum in the main viewer"""
         if self._item.is_match("spectrum", True):
@@ -3048,6 +3058,7 @@ class DocumentTree(wx.TreeCtrl):
         # self.panel_plot.on_zoom_1D_x_axis(mz_min, mz_max, set_page=True, plot="MS")
 
     def on_show_plot_heatmap(self, evt, save_image=False):
+        """Show heatmap"""
         if self._item.is_match("heatmap", True):
             return
 
@@ -3803,22 +3814,20 @@ class DocumentTree(wx.TreeCtrl):
         """Open peak picker"""
         from origami.widgets.mz_picker.panel_peak_picker import PanelPeakPicker
 
-        # get data
-        document_title, dataset_type, dataset_name = self._get_query_info_based_on_indent()
+        # get data and annotations
+        _, dataset_type, _ = self._get_query_info_based_on_indent()
         document_title, dataset_name = self._get_item_info()
-        #         mz_obj = self._get_item_object()
-        # __, data = self.data_handling.get_mobility_chromatographic_data([document_title, dataset_type, dataset_name])
-        #
-        # if self._picker_panel:
-        #     self._picker_panel.SetFocus()
-        #     raise MessageError("Warning", "An instance of a Peak Picking panel is already open")
+
+        # permit only single instance of the peak-picker
+        if self._picker_panel:
+            self._picker_panel.SetFocus()
+            raise MessageError("Warning", "An instance of a Peak Picking panel is already open")
 
         # initialize peak picker
         self._picker_panel = PanelPeakPicker(
             self.presenter.view,
             self.presenter,
             self._icons,
-            #             mz_obj=mz_obj,
             document_title=document_title,
             dataset_type=dataset_type,
             dataset_name=dataset_name,

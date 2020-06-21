@@ -1,7 +1,6 @@
 """Signal comparison panel"""
 # Standard library imports
 import logging
-from copy import deepcopy
 
 # Third-party imports
 import wx
@@ -24,10 +23,12 @@ from origami.styles import make_staticbox
 from origami.styles import make_bitmap_btn
 from origami.styles import make_spin_ctrl_double
 from origami.utils.time import ttime
+from origami.objects.misc import CompareItem
 from origami.utils.screen import calculate_window_size
 from origami.config.config import CONFIG
 from origami.utils.utilities import report_time
 from origami.utils.converters import str2num
+from origami.visuals.mpl.gids import PlotIds
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.dialog_color_picker import DialogColorPicker
 from origami.gui_elements.views.view_spectrum import ViewCompareMassSpectra
@@ -39,6 +40,9 @@ logger = logging.getLogger(__name__)
 
 class PanelSignalComparisonViewer(MiniFrame):
     """Signal comparison viewer"""
+
+    # panel settings
+    TIMER_DELAY = 1000  # ms
 
     # module specific parameters
     PUB_SUBSCRIBE_EVENT = "widget.compare.update.spectrum"
@@ -111,6 +115,9 @@ class PanelSignalComparisonViewer(MiniFrame):
         except (KeyError, IndexError) as err:
             logger.error(err)
 
+        self._timer = wx.Timer(self, True)
+        self.Bind(wx.EVT_TIMER, self.on_update_widget, self._timer)
+
         # bind
         self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
 
@@ -121,6 +128,11 @@ class PanelSignalComparisonViewer(MiniFrame):
         self.process_btn.Bind(wx.EVT_BUTTON, self.on_open_process_ms_settings)
         if self.PUB_SUBSCRIBE_EVENT:
             pub.subscribe(self.on_process, self.PUB_SUBSCRIBE_EVENT)
+
+    def on_update_widget(self, _evt):
+        """Timer-based update"""
+        if not self._timer.IsRunning():
+            self.on_plot(None)
 
     @property
     def data_handling(self):
@@ -146,9 +158,9 @@ class PanelSignalComparisonViewer(MiniFrame):
     def _get_dataset_index(source):
         """Return source index, depending on which spectrum parameter was selected"""
         if source.endswith("_1"):
-            return 0
+            return PlotIds.PLOT_COMPARE_TOP_GID
         elif source.endswith("_2"):
-            return 1
+            return PlotIds.PLOT_COMPARE_BOTTOM_GID
 
     # noinspection DuplicatedCode
     def on_right_click(self, _evt):
@@ -199,6 +211,7 @@ class PanelSignalComparisonViewer(MiniFrame):
             pass
         self.Destroy()
 
+    # noinspection DuplicatedCode
     def make_gui(self):
         """Make UI"""
         # make panel
@@ -217,7 +230,7 @@ class PanelSignalComparisonViewer(MiniFrame):
         self.SetSizer(main_sizer)
         self.SetSize(self._window_size)
         self.Layout()
-        self.CentreOnScreen()
+        self.CenterOnParent()
         self.SetFocus()
 
     # noinspection DuplicatedCode
@@ -225,84 +238,94 @@ class PanelSignalComparisonViewer(MiniFrame):
         """Make settings panel"""
         panel = wx.Panel(split_panel, -1, size=(-1, -1), name="settings")
 
-        ms_1_static_box = make_staticbox(panel, "Spectrum (top)", size=(-1, -1), color=wx.BLACK)
-        ms_1_static_box.SetSize((-1, -1))
-
-        ms_2_static_box = make_staticbox(panel, "Spectrum (bottom)", size=(-1, -1), color=wx.BLACK)
-        ms_2_static_box.SetSize((-1, -1))
-
         # MS 1
         spectrum_1_document_label = wx.StaticText(panel, -1, "Document:")
         self.spectrum_1_document_value = wx.ComboBox(panel, ID_compareMS_MS_1, choices=[], style=wx.CB_READONLY)
+        self.spectrum_1_document_value.Bind(wx.EVT_COMBOBOX, self.update_gui)
 
         spectrum_1_spectrum_label = wx.StaticText(panel, -1, "Spectrum:")
         self.spectrum_1_spectrum_value = wx.ComboBox(
             panel, wx.ID_ANY, choices=[], style=wx.CB_READONLY, name="spectrum_1"
         )
+        self.spectrum_1_spectrum_value.Bind(wx.EVT_COMBOBOX, self.update_spectrum)
+        self.spectrum_1_spectrum_value.Bind(wx.EVT_COMBOBOX, self.on_plot)
 
         spectrum_1_label_label = wx.StaticText(panel, -1, "Label:")
         self.spectrum_1_label_value = wx.TextCtrl(panel, -1, "", style=wx.TE_PROCESS_ENTER, name="label_1")
+        self.spectrum_1_label_value.Bind(wx.EVT_TEXT_ENTER, self.on_plot)
+        self.spectrum_1_label_value.Bind(wx.EVT_TEXT, self.on_update_label)
 
         spectrum_1_color_label = wx.StaticText(panel, -1, "Color:")
-        self.spectrum_1_color_btn = make_color_btn(panel, CONFIG.lineColour_MS1, name="color_1")
+        self.spectrum_1_color_btn = make_color_btn(panel, CONFIG.compare_panel_color_top, name="color_1")
+        self.spectrum_1_color_btn.Bind(wx.EVT_BUTTON, self.on_update_color)
 
         spectrum_1_transparency_label = wx.StaticText(panel, -1, "Transparency:")
         self.spectrum_1_transparency = make_spin_ctrl_double(
-            panel, CONFIG.lineTransparency_MS1 * 100, 0, 100, 10, (90, -1), name="transparency_1"
+            panel, CONFIG.compare_panel_alpha_top * 100, 0, 100, 10, (90, -1), name="transparency_1"
         )
+        self.spectrum_1_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         spectrum_1_line_style_label = wx.StaticText(panel, -1, "Line style:")
         self.spectrum_1_line_style_value = wx.ComboBox(
             panel, choices=CONFIG.lineStylesList, style=wx.CB_READONLY, name="style_1"
         )
-        self.spectrum_1_line_style_value.SetStringSelection(CONFIG.lineStyle_MS1)
+        self.spectrum_1_line_style_value.SetStringSelection(CONFIG.compare_panel_style_top)
+        self.spectrum_1_line_style_value.Bind(wx.EVT_COMBOBOX, self.on_apply)
 
         # MS 2
         document_2_label = wx.StaticText(panel, -1, "Document:")
         self.spectrum_2_document_value = wx.ComboBox(
             panel, ID_compareMS_MS_2, choices=self.document_list, style=wx.CB_READONLY
         )
+        self.spectrum_2_document_value.Bind(wx.EVT_COMBOBOX, self.update_gui)
 
         spectrum_2_spectrum_label = wx.StaticText(panel, -1, "Spectrum:")
         self.spectrum_2_spectrum_value = wx.ComboBox(
             panel, wx.ID_ANY, choices=[], style=wx.CB_READONLY, name="spectrum_2"
         )
+        self.spectrum_2_spectrum_value.Bind(wx.EVT_COMBOBOX, self.update_spectrum)
+        self.spectrum_2_spectrum_value.Bind(wx.EVT_COMBOBOX, self.on_plot)
 
         spectrum_2_label_label = wx.StaticText(panel, -1, "Label:")
         self.spectrum_2_label_value = wx.TextCtrl(panel, -1, "", style=wx.TE_PROCESS_ENTER, name="label_2")
+        self.spectrum_2_label_value.Bind(wx.EVT_TEXT_ENTER, self.on_plot)
+        self.spectrum_2_label_value.Bind(wx.EVT_TEXT, self.on_update_label)
 
         spectrum_2_color_label = wx.StaticText(panel, -1, "Color:")
-        self.spectrum_2_color_btn = make_color_btn(panel, CONFIG.lineColour_MS2, name="color_2")
+        self.spectrum_2_color_btn = make_color_btn(panel, CONFIG.compare_panel_color_bottom, name="color_2")
+        self.spectrum_2_color_btn.Bind(wx.EVT_BUTTON, self.on_update_color)
 
         spectrum_2_transparency_label = wx.StaticText(panel, -1, "Transparency:")
         self.spectrum_2_transparency = make_spin_ctrl_double(
-            panel, CONFIG.lineTransparency_MS2 * 100, 0, 100, 10, (90, -1), name="transparency_2"
+            panel, CONFIG.compare_panel_alpha_bottom * 100, 0, 100, 10, (90, -1), name="transparency_2"
         )
+        self.spectrum_2_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         spectrum_2_line_style_label = wx.StaticText(panel, -1, "Line style:")
         self.spectrum_2_line_style_value = wx.ComboBox(
             panel, choices=CONFIG.lineStylesList, style=wx.CB_READONLY, name="style_2"
         )
-        self.spectrum_2_line_style_value.SetStringSelection(CONFIG.lineStyle_MS2)
+        self.spectrum_2_line_style_value.SetStringSelection(CONFIG.compare_panel_style_bottom)
+        self.spectrum_2_line_style_value.Bind(wx.EVT_COMBOBOX, self.on_apply)
 
         # Processing
         process_static_box = make_staticbox(panel, "Visualization", size=(-1, -1), color=wx.BLACK)
         process_static_box.SetSize((-1, -1))
 
         self.preprocess_check = make_checkbox(panel, "Pre-process", tooltip="Enable pre-processing before plotting")
-        self.preprocess_check.SetValue(CONFIG.compare_massSpectrumParams["preprocess"])
+        self.preprocess_check.SetValue(CONFIG.compare_panel_preprocess)
         self.preprocess_check.Bind(wx.EVT_CHECKBOX, self.update_spectrum)
         self.preprocess_check.Bind(wx.EVT_CHECKBOX, self.on_plot)
 
         self.normalize_check = make_checkbox(
             panel, "Normalize", tooltip="Normalize spectra to range 0-1 before plotting"
         )
-        self.normalize_check.SetValue(CONFIG.compare_massSpectrumParams["normalize"])
+        self.normalize_check.SetValue(CONFIG.compare_panel_normalize)
         self.normalize_check.Bind(wx.EVT_CHECKBOX, self.update_spectrum)
         self.normalize_check.Bind(wx.EVT_CHECKBOX, self.on_plot)
 
         self.inverse_check = make_checkbox(panel, "Inverse", tooltip="Inverse spectra to give a butterfly-like effect")
-        self.inverse_check.SetValue(CONFIG.compare_massSpectrumParams["inverse"])
+        self.inverse_check.SetValue(CONFIG.compare_panel_inverse)
         self.inverse_check.Bind(wx.EVT_CHECKBOX, self.update_spectrum)
         self.inverse_check.Bind(wx.EVT_CHECKBOX, self.on_plot)
 
@@ -312,7 +335,7 @@ class PanelSignalComparisonViewer(MiniFrame):
             tooltip="Subtract the bottom spectrum from the top. You can combine effect by pre-processing or "
             "normalizing spectra before subtraction/",
         )
-        self.subtract_check.SetValue(CONFIG.compare_massSpectrumParams["subtract"])
+        self.subtract_check.SetValue(CONFIG.compare_panel_subtract)
         self.subtract_check.Bind(wx.EVT_CHECKBOX, self.update_spectrum)
         self.subtract_check.Bind(wx.EVT_CHECKBOX, self.on_plot)
         self.subtract_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -328,28 +351,9 @@ class PanelSignalComparisonViewer(MiniFrame):
         )
 
         self.plot_btn = wx.Button(panel, wx.ID_OK, "Plot", size=(-1, 22))
-        self.cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, 22))
-
-        self.spectrum_1_document_value.Bind(wx.EVT_COMBOBOX, self.update_gui)
-        self.spectrum_2_document_value.Bind(wx.EVT_COMBOBOX, self.update_gui)
-
-        self.spectrum_1_spectrum_value.Bind(wx.EVT_COMBOBOX, self.update_spectrum)
-        self.spectrum_2_spectrum_value.Bind(wx.EVT_COMBOBOX, self.update_spectrum)
-        self.spectrum_1_spectrum_value.Bind(wx.EVT_COMBOBOX, self.on_plot)
-        self.spectrum_2_spectrum_value.Bind(wx.EVT_COMBOBOX, self.on_plot)
-
-        self.spectrum_1_label_value.Bind(wx.EVT_TEXT_ENTER, self.on_plot)
-        self.spectrum_2_label_value.Bind(wx.EVT_TEXT_ENTER, self.on_plot)
-
-        self.spectrum_1_color_btn.Bind(wx.EVT_BUTTON, self.on_update_color)
-        self.spectrum_2_color_btn.Bind(wx.EVT_BUTTON, self.on_update_color)
-
-        self.spectrum_1_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.spectrum_2_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.spectrum_1_line_style_value.Bind(wx.EVT_COMBOBOX, self.on_apply)
-        self.spectrum_2_line_style_value.Bind(wx.EVT_COMBOBOX, self.on_apply)
-
         self.plot_btn.Bind(wx.EVT_BUTTON, self.on_plot)
+
+        self.cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, 22))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
         # pack elements
@@ -371,6 +375,8 @@ class PanelSignalComparisonViewer(MiniFrame):
         ms1_grid.Add(spectrum_1_line_style_label, (y, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         ms1_grid.Add(self.spectrum_1_line_style_value, (y, 5), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
 
+        ms_1_static_box = make_staticbox(panel, "Spectrum (top)", size=(-1, -1), color=wx.BLACK)
+        ms_1_static_box.SetSize((-1, -1))
         ms_1_box_sizer = wx.StaticBoxSizer(ms_1_static_box, wx.HORIZONTAL)
         ms_1_box_sizer.Add(ms1_grid, 0, wx.EXPAND, 10)
 
@@ -392,6 +398,8 @@ class PanelSignalComparisonViewer(MiniFrame):
         ms2_grid.Add(spectrum_2_line_style_label, (y, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         ms2_grid.Add(self.spectrum_2_line_style_value, (y, 5), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
 
+        ms_2_static_box = make_staticbox(panel, "Spectrum (bottom)", size=(-1, -1), color=wx.BLACK)
+        ms_2_static_box.SetSize((-1, -1))
         ms_2_box_sizer = wx.StaticBoxSizer(ms_2_static_box, wx.HORIZONTAL)
         ms_2_box_sizer.Add(ms2_grid, 0, wx.EXPAND, 10)
 
@@ -427,11 +435,7 @@ class PanelSignalComparisonViewer(MiniFrame):
         sizer.AddSpacer(5)
         sizer.Add(btn_grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
         sizer.AddStretchSpacer(1)
-        sizer.Add(self.info_btn, 0, wx.ALIGN_RIGHT, 10)
-
-        # main_sizer = wx.BoxSizer(wx.VERTICAL)
-        # main_sizer.Add(sizer, 1, wx.EXPAND)
-        # main_sizer.Add(self.info_btn, 0, wx.ALIGN_RIGHT, 10)
+        sizer.Add(self.info_btn, 0, wx.ALIGN_LEFT, 10)
 
         # fit layout
         sizer.Fit(panel)
@@ -540,11 +544,11 @@ class PanelSignalComparisonViewer(MiniFrame):
         if evt is not None:
             source = evt.GetEventObject().GetName()
 
-        CONFIG.lineTransparency_MS1 = str2num(self.spectrum_1_transparency.GetValue()) / 100
-        CONFIG.lineStyle_MS1 = self.spectrum_1_line_style_value.GetStringSelection()
+        CONFIG.compare_panel_alpha_top = str2num(self.spectrum_1_transparency.GetValue()) / 100
+        CONFIG.compare_panel_style_top = self.spectrum_1_line_style_value.GetStringSelection()
 
-        CONFIG.lineTransparency_MS2 = str2num(self.spectrum_2_transparency.GetValue()) / 100
-        CONFIG.lineStyle_MS2 = self.spectrum_2_line_style_value.GetStringSelection()
+        CONFIG.compare_panel_alpha_bottom = str2num(self.spectrum_2_transparency.GetValue()) / 100
+        CONFIG.compare_panel_style_bottom = self.spectrum_2_line_style_value.GetStringSelection()
 
         if evt is not None:
             self.on_plot_update_style(source)
@@ -562,19 +566,18 @@ class PanelSignalComparisonViewer(MiniFrame):
 
     def update_spectrum(self, evt):
         """Update spectrum selection"""
-        spectrum_1_choice = [
-            self.spectrum_1_document_value.GetStringSelection(),
-            self.spectrum_1_spectrum_value.GetStringSelection(),
-        ]
-        spectrum_2_choice = [
-            self.spectrum_2_document_value.GetStringSelection(),
-            self.spectrum_2_spectrum_value.GetStringSelection(),
-        ]
-        CONFIG.compare_massSpectrum = [spectrum_1_choice, spectrum_2_choice]
-        CONFIG.compare_massSpectrumParams["preprocess"] = self.preprocess_check.GetValue()
-        CONFIG.compare_massSpectrumParams["inverse"] = self.inverse_check.GetValue()
-        CONFIG.compare_massSpectrumParams["normalize"] = self.normalize_check.GetValue()
-        CONFIG.compare_massSpectrumParams["subtract"] = self.subtract_check.GetValue()
+        CONFIG.compare_panel_top_ = CompareItem(
+            document=self.spectrum_1_document_value.GetStringSelection(),
+            title=self.spectrum_1_spectrum_value.GetStringSelection(),
+        )
+        CONFIG.compare_panel_bottom_ = CompareItem(
+            document=self.spectrum_2_document_value.GetStringSelection(),
+            title=self.spectrum_2_spectrum_value.GetStringSelection(),
+        )
+        CONFIG.compare_panel_preprocess = self.preprocess_check.GetValue()
+        CONFIG.compare_panel_inverse = self.inverse_check.GetValue()
+        CONFIG.compare_panel_normalize = self.normalize_check.GetValue()
+        CONFIG.compare_panel_subtract = self.subtract_check.GetValue()
 
         # setup labels - if the user has not specified the label, infer it from the object name. Names that are too long
         # will be automatically truncated to approx 35 characters long. The inferred name is purposefully not set in the
@@ -590,12 +593,18 @@ class PanelSignalComparisonViewer(MiniFrame):
             label_2 = self.spectrum_2_spectrum_value.GetStringSelection()
             if len(label_2) > 35:
                 label_2 = label_2[:35] + "..."
-        CONFIG.compare_massSpectrumParams["legend"] = [label_1, label_2]
+        CONFIG.compare_panel_top_.legend = label_1
+        CONFIG.compare_panel_bottom_.legend = label_2
 
         self.on_apply(None)
 
         if evt is not None:
             evt.Skip()
+
+    def on_update_label(self, _evt):
+        """Reset timer based on how frequently the label is being updated"""
+        self._timer.Stop()
+        self._timer.StartOnce(self.TIMER_DELAY)
 
     def on_update_color(self, evt):
         """Update spectrum color"""
@@ -612,10 +621,10 @@ class PanelSignalComparisonViewer(MiniFrame):
 
         # assign color
         if source == "color_1":
-            CONFIG.lineColour_MS1 = color_1
+            CONFIG.compare_panel_color_top = color_1
             self.spectrum_1_color_btn.SetBackgroundColour(color_255)
         elif source == "color_2":
-            CONFIG.lineColour_MS2 = color_1
+            CONFIG.compare_panel_color_bottom = color_1
             self.spectrum_2_color_btn.SetBackgroundColour(color_255)
 
         self.on_plot_update_style(source)
@@ -639,14 +648,14 @@ class PanelSignalComparisonViewer(MiniFrame):
 
         kwargs = dict()
         if source.endswith("_1"):
-            kwargs["color"] = CONFIG.lineColour_MS1
-            kwargs["line_style"] = CONFIG.lineStyle_MS1
-            kwargs["transparency"] = CONFIG.lineTransparency_MS1
+            kwargs["color"] = CONFIG.compare_panel_color_top
+            kwargs["line_style"] = CONFIG.compare_panel_style_top
+            kwargs["transparency"] = CONFIG.compare_panel_alpha_top
             kwargs["label"] = self.spectrum_1_label_value.GetValue()
         elif source.endswith("_2"):
-            kwargs["color"] = CONFIG.lineColour_MS2
-            kwargs["line_style"] = CONFIG.lineStyle_MS2
-            kwargs["transparency"] = CONFIG.lineTransparency_MS2
+            kwargs["color"] = CONFIG.compare_panel_color_bottom
+            kwargs["line_style"] = CONFIG.compare_panel_style_bottom
+            kwargs["transparency"] = CONFIG.compare_panel_alpha_bottom
             kwargs["label"] = self.spectrum_2_label_value.GetValue()
 
         self.plot_view.update_style(index, **kwargs)
@@ -658,34 +667,43 @@ class PanelSignalComparisonViewer(MiniFrame):
         t_start = ttime()
         self.update_spectrum(None)
 
-        __, spectrum_1 = self.data_handling.get_spectrum_data(CONFIG.compare_massSpectrum[0][:2])
-        __, spectrum_2 = self.data_handling.get_spectrum_data(CONFIG.compare_massSpectrum[1][:2])
+        __, spectrum_1 = self.data_handling.get_spectrum_data(
+            [CONFIG.compare_panel_top_.document, CONFIG.compare_panel_top_.title]
+        )
+        __, spectrum_2 = self.data_handling.get_spectrum_data(
+            [CONFIG.compare_panel_bottom_.document, CONFIG.compare_panel_bottom_.title]
+        )
 
         # normalize mass spectra
-        if CONFIG.compare_massSpectrumParams["normalize"]:
+        if CONFIG.compare_panel_normalize:
             spectrum_1.normalize()
             spectrum_2.normalize()
 
-        if CONFIG.compare_massSpectrumParams["preprocess"]:
+        if CONFIG.compare_panel_preprocess:
             self.data_processing.on_process_ms(spectrum_1)
             self.data_processing.on_process_ms(spectrum_2)
 
         x_top, y_top = spectrum_1.x, spectrum_1.y
         x_bottom, y_bottom = spectrum_2.x, spectrum_2.y
 
-        if CONFIG.compare_massSpectrumParams["inverse"] and not CONFIG.compare_massSpectrumParams["subtract"]:
+        if CONFIG.compare_panel_inverse and not CONFIG.compare_panel_subtract:
             y_bottom = -y_bottom
 
-        if CONFIG.compare_massSpectrumParams["subtract"]:
+        if CONFIG.compare_panel_subtract:
             x_top, y_top, x_bottom, y_bottom = self.data_processing.subtract_spectra(x_top, y_top, x_bottom, y_bottom)
 
-        self.plot_view.plot(x_top, x_bottom, y_top, y_bottom, labels=CONFIG.compare_massSpectrumParams["legend"])
-        self._update_local_plot_information()
+        self.plot_view.plot(
+            x_top,
+            x_bottom,
+            y_top,
+            y_bottom,
+            labels=[CONFIG.compare_panel_top_.legend, CONFIG.compare_panel_bottom_.legend],
+        )
         logger.info(f"Plot update took {report_time(t_start)}")
 
     def on_process(self):
         """Process spectrum"""
-        if CONFIG.compare_massSpectrumParams["preprocess"]:
+        if CONFIG.compare_panel_preprocess:
             self.on_plot(None)
         else:
             dlg = DialogBox(
@@ -698,20 +716,11 @@ class PanelSignalComparisonViewer(MiniFrame):
             )
             if dlg == wx.ID_YES:
                 self.preprocess_check.SetValue(True)
-                CONFIG.compare_massSpectrumParams["preprocess"] = True
+                CONFIG.compare_panel_preprocess = True
 
     def on_clear_plot(self, _evt):
         """Clear plot area"""
         self.plot_window.clear()
-
-    def _update_local_plot_information(self):
-        # update local information about the plots
-        spectrum_1_choice = deepcopy(CONFIG.compare_massSpectrum[0])
-        spectrum_1_choice.append(CONFIG.compare_massSpectrumParams["legend"][0])
-        spectrum_2_choice = deepcopy(CONFIG.compare_massSpectrum[1])
-        spectrum_2_choice.append(CONFIG.compare_massSpectrumParams["legend"][1])
-
-        self.compare_massSpectrum = [spectrum_1_choice, spectrum_2_choice]
 
     def on_save_figure(self, _evt):
         """Save figure"""

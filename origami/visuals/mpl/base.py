@@ -361,39 +361,39 @@ class PlotBase(MPLPanel):
         extent = [xy_limits[0], xy_limits[2], xy_limits[1], xy_limits[3]]
         self.update_extents(extent)
 
-    def on_zoom_x_axis(self, xmin=None, xmax=None):
+    def on_zoom_x_axis(self, start_x=None, end_x=None):
         """Horizontal zoom"""
         _start_x, _end_x, _, _ = self.get_xylimits()
-        if xmin is None:
-            xmin = _start_x
+        if start_x is None:
+            start_x = _start_x
+        if end_x is None:
+            end_x = _end_x
 
-        if xmax is None:
-            xmax = _end_x
-
-        self.plot_base.set_xlim([xmin, xmax])
+        self.plot_base.set_xlim([start_x, end_x])
 
     def on_zoom_y_axis(self, start_y=None, end_y=None):
         """Vertical zoom"""
         _, _, _start_y, _end_y = self.get_xylimits()
         if start_y is None:
             start_y = _start_y
-
         if end_y is None:
             end_y = _end_y
 
         self.plot_base.set_ylim([start_y, end_y])
 
-    def on_zoom_xy(self, startX, endX, startY, endY):
-        try:
-            startY = startY / float(self.y_divider)
-            endY = endY / float(self.y_divider)
-        except Exception:
-            pass
-        try:
-            self.plot_base.axis([startX, endX, startY, endY])
-            self.repaint()
-        except Exception:
-            pass
+    def on_zoom_xy_axis(self, start_x, end_x, start_y, end_y):
+        """Horizontal and vertical zoom"""
+        _start_x, _end_x, _start_y, _end_y = self.get_xylimits()
+        if start_x is None:
+            start_x = _start_x
+        if end_x is None:
+            end_x = _end_x
+        if start_y is None:
+            start_y = _start_y
+        if end_y is None:
+            end_y = _end_y
+
+        self.plot_base.axis([start_x, end_x, start_y, end_y])
 
     def on_zoom(self, startX, endX, endY):
         try:

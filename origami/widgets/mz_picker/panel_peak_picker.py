@@ -1,10 +1,12 @@
 """Peak picking panel"""
 # Standard library imports
+import time
 import logging
 
 # Third-party imports
 import wx
 import numpy as np
+import wx.lib.scrolledpanel as wxScrolledPanel
 from pubsub import pub
 from pubsub.core.topicexc import TopicNameError
 
@@ -14,9 +16,9 @@ from origami.styles import MiniFrame
 from origami.styles import validator
 from origami.styles import set_tooltip
 from origami.styles import make_checkbox
+from origami.styles import set_item_font
 from origami.styles import make_menu_item
 from origami.styles import make_bitmap_btn
-from origami.utils.time import ttime
 from origami.utils.screen import calculate_window_size
 from origami.config.config import CONFIG
 from origami.utils.utilities import report_time
@@ -47,7 +49,6 @@ class PanelPeakPicker(MiniFrame):
     plot_window = None
     resize_plot_check = None
     panel_book = None
-    settings_preprocess = None
     settings_native_local = None
     settings_native_differential = None
     settings_small = None
@@ -61,6 +62,7 @@ class PanelPeakPicker(MiniFrame):
     visualize_max_labels = None
     visualize_show_labels_mz_check = None
     visualize_show_labels_int_check = None
+    visualize_show_labels_width_check = None
     display_label = None
     find_peaks_btn = None
     plot_peaks_btn = None
@@ -85,11 +87,18 @@ class PanelPeakPicker(MiniFrame):
     info_btn = None
     preprocess_check = None
     process_btn = None
+    post_filter_choice = None
+    post_score_choice = None
+    post_filter_lower_value = None
+    post_filter_upper_value = None
+    post_filter_btn = None
+    post_apply_btn = None
+    post_refresh_btn = None
 
     def __init__(self, parent, presenter, icons, **kwargs):
         """Initialize panel"""
         MiniFrame.__init__(self, parent, title="Peak picker...", style=wx.DEFAULT_FRAME_STYLE & ~wx.MAXIMIZE_BOX)
-        t_start = ttime()
+        t_start = time.time()
 
         self.parent = parent
         self.presenter = presenter
@@ -101,7 +110,7 @@ class PanelPeakPicker(MiniFrame):
         self._display_size = screen_size
         self._display_resolution = wx.ScreenDC().GetPPI()
 
-        self._window_size = calculate_window_size(self._display_size, [0.7, 0.6])
+        self._window_size = calculate_window_size(self._display_size, [0.7, 0.8])
 
         # pre-allocate parameters#
         self._recompute_peaks = True
@@ -111,6 +120,7 @@ class PanelPeakPicker(MiniFrame):
         self._n_peaks_max = 1000
         self._mz_obj = None
         self._mz_picker = None
+        self._mz_picker_filter = None
 
         # setup kwargs
         self.document_title = kwargs.pop("document_title", None)
@@ -194,7 +204,7 @@ class PanelPeakPicker(MiniFrame):
         self._mz_obj = value
 
     @property
-    def mz_picker(self) -> MassSpectrumObject:
+    def mz_picker(self) -> MassSpectrumBasePicker:
         """Return `MassSpectrumObject` after it was pre-processed"""
         return self._mz_picker
 
@@ -208,8 +218,33 @@ class PanelPeakPicker(MiniFrame):
         ), "Incorrect data type was being set to the `mz_picker` attribute"
         self._mz_picker = value
 
+    @property
+    def mz_picker_tmp(self) -> MassSpectrumBasePicker:
+        """Return `MassSpectrumObject` after it was pre-processed"""
+        return self._mz_picker_filter
+
+    @mz_picker_tmp.setter
+    def mz_picker_tmp(self, value: MassSpectrumBasePicker):
+        """Set `mz_obj_cache`"""
+        if value is None:
+            self._mz_picker_filter = None
+        assert isinstance(
+            value, MassSpectrumBasePicker
+        ), "Incorrect data type was being set to the `mz_picker_tmp` attribute"
+        self._mz_picker_filter = value
+
     def on_close(self, evt):
         """Close window"""
+        if self.mz_picker is not None:
+            dlg = DialogBox(
+                title="Would you like to continue?",
+                msg="There is a cached peak-picker in this window. Closing the window will remove it."
+                "\nWould you like to continue?",
+                kind="Question",
+            )
+            if dlg == wx.ID_NO:
+                return
+
         try:
             if self.PUB_SUBSCRIBE_EVENT:
                 pub.unsubscribe(self.on_process, self.PUB_SUBSCRIBE_EVENT)
@@ -320,15 +355,16 @@ class PanelPeakPicker(MiniFrame):
         self.SetSize(self._window_size)
         self.SetSizer(main_sizer)
         self.Layout()
-        self.CentreOnScreen()
+        self.CenterOnParent()
         self.SetFocus()
 
     def make_notebook(self, split_panel):
         """Make settings notebook"""
-        panel = wx.Panel(split_panel, -1, size=(-1, -1), name="main")
+        panel = wxScrolledPanel.ScrolledPanel(split_panel, -1, size=(-1, -1), name="main")
+        panel.SetupScrolling(scroll_x=False, scroll_y=True)
 
         # make pre-processing panel
-        self.settings_preprocess = self.make_settings_panel_preprocess(panel)
+        preprocess_panel = self.make_settings_panel_preprocess(panel)
 
         self.panel_book = wx.Notebook(panel, wx.ID_ANY, style=wx.NB_NOPAGETHEME)
         self.panel_book.SetBackgroundColour((240, 240, 240))
@@ -344,28 +380,74 @@ class PanelPeakPicker(MiniFrame):
         self.settings_small = self.make_settings_panel_small_molecule(self.panel_book)
         self.panel_book.AddPage(self.settings_small, "Small molecule", False)
 
-        # make common settings panel
-        self.settings_panel = self.make_settings_panel_visualise(panel)
+        btn_sizer = self.make_settings_button(panel)
 
-        # add info button
-        self.info_btn = self.make_info_button(panel)
+        postprocess_panel = self.make_settings_panel_postprocess(panel)
+
+        # make common settings panel
+        visualise_panel = self.make_settings_panel_visualise(panel)
+
+        info_sizer = self.make_statusbar(panel)
 
         # pack settings panel
         settings_sizer = wx.BoxSizer(wx.VERTICAL)
-        settings_sizer.Add(self.settings_preprocess, 0, wx.ALIGN_LEFT | wx.ALL, 10)
+
+        # pre-processing
+        settings_sizer.Add(
+            set_item_font(wx.StaticText(panel, wx.ID_ANY, "Pre-process")), 0, wx.EXPAND | wx.LEFT | wx.TOP, 10
+        )
+        settings_sizer.Add(preprocess_panel, 0, wx.EXPAND | wx.ALL, 10)
         settings_sizer.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND | wx.ALL, 0)
 
+        # peak-picking
+        settings_sizer.Add(
+            set_item_font(wx.StaticText(panel, wx.ID_ANY, "Peak-picking settings")),
+            0,
+            wx.EXPAND | wx.LEFT | wx.BOTTOM,
+            10,
+        )
         settings_sizer.Add(self.panel_book, 0, wx.EXPAND | wx.ALL, 0)
+        settings_sizer.Add(btn_sizer, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
         settings_sizer.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND | wx.ALL, 0)
 
-        settings_sizer.Add(self.settings_panel, 0, wx.ALIGN_LEFT | wx.ALL, 10)
+        # filtering
+        settings_sizer.Add(set_item_font(wx.StaticText(panel, wx.ID_ANY, "Filter peaks")), 0, wx.EXPAND | wx.LEFT, 10)
+        settings_sizer.Add(postprocess_panel, 0, wx.EXPAND | wx.ALL, 10)
+        settings_sizer.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND | wx.ALL, 0)
+
+        # visualisation
+        settings_sizer.Add(
+            set_item_font(wx.StaticText(panel, wx.ID_ANY, "Visualize")), 0, wx.EXPAND | wx.LEFT | wx.TOP, 10
+        )
+        settings_sizer.Add(visualise_panel, 0, wx.EXPAND | wx.ALL, 10)
+
+        # info
         settings_sizer.AddStretchSpacer(1)
-        settings_sizer.Add(self.info_btn, 0, wx.ALIGN_RIGHT, 10)
+        settings_sizer.Add(info_sizer, 0, wx.EXPAND, 10)
         settings_sizer.Fit(panel)
         settings_sizer.SetMinSize((380, -1))
         panel.SetSizerAndFit(settings_sizer)
 
         return panel
+
+    def make_settings_button(self, panel):
+        """Make sub-section that contains the peak-picking button"""
+
+        # make peak-picking button
+        self.find_peaks_btn = wx.Button(panel, wx.ID_OK, "Find peaks", size=(-1, 22))
+        self.find_peaks_btn.Bind(wx.EVT_BUTTON, self.on_find_peaks)
+        self.verbose_check = make_checkbox(
+            panel, "Verbose", tooltip="When checked, more logging information will be printed to the console."
+        )
+        self.verbose_check.SetValue(CONFIG.peak_find_verbose)
+        self.verbose_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
+
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(self.find_peaks_btn, 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer.AddSpacer(5)
+        sizer.Add(self.verbose_check, 0, wx.ALIGN_CENTER_VERTICAL)
+
+        return sizer
 
     # noinspection DuplicatedCode
     def make_settings_panel_preprocess(self, split_panel):
@@ -386,7 +468,7 @@ class PanelPeakPicker(MiniFrame):
         # self.mz_min_value.SetValue(str(self._mz_xrange[0]))
         self.mz_min_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        mz_max_value = wx.StaticText(panel, wx.ID_ANY, "end:")
+        mz_max_value = wx.StaticText(panel, wx.ID_ANY, "-")
         self.mz_max_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
         # self.mz_max_value.SetValue(str(self._mz_xrange[1]))
         self.mz_max_value.Bind(wx.EVT_TEXT, self.on_apply)
@@ -400,23 +482,117 @@ class PanelPeakPicker(MiniFrame):
             panel, -1, self._icons.process_ms, tooltip="Change MS pre-processing parameters"
         )
 
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(self.mz_min_value, 1, wx.EXPAND)
+        sizer.AddSpacer(5)
+        sizer.Add(mz_max_value, 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer.AddSpacer(5)
+        sizer.Add(self.mz_max_value, 1, wx.EXPAND)
+
         # visualize grid
         grid = wx.GridBagSizer(5, 5)
         n = 0
         grid.Add(self.mz_limit_check, (n, 0), (1, 2), flag=wx.EXPAND)
         n += 1
         grid.Add(mz_min_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.mz_min_value, (n, 1), (1, 3), flag=wx.EXPAND)
-        n += 1
-        grid.Add(mz_max_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.mz_max_value, (n, 1), (1, 3), flag=wx.EXPAND)
+        grid.Add(sizer, (n, 1), (1, 3), flag=wx.EXPAND)
         n += 1
         grid.Add(self.preprocess_check, (n, 0), (1, 1), flag=wx.EXPAND)
         grid.Add(self.process_btn, (n, 1), (1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.AddGrowableCol(n, 1)
 
         # fit layout
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(grid, 1, wx.EXPAND, 0)
+        main_sizer.Fit(panel)
+        panel.SetSizerAndFit(main_sizer)
+
+        return panel
+
+    # noinspection DuplicatedCode
+    def make_settings_panel_postprocess(self, split_panel):
+        """Make settings panel that controls post-processing (e.g. peak filtering)"""
+        panel = wx.Panel(split_panel, -1, size=(-1, -1), name="settings")
+
+        filter_value = wx.StaticText(panel, wx.ID_ANY, "Filter-by:")
+        self.post_filter_choice = wx.ComboBox(panel, choices=CONFIG.peak_panel_filter_choices, style=wx.CB_READONLY)
+        self.post_filter_choice.SetStringSelection(CONFIG.peak_panel_filter_choice)
+        self.post_filter_choice.Bind(wx.EVT_COMBOBOX, self.on_toggle_controls)
+        self.post_filter_choice.Bind(wx.EVT_COMBOBOX, self.on_refresh_lower_upper_bounds)
+        set_tooltip(
+            self.post_filter_choice,
+            "Select filtering method. "
+            "\nScores - filter peaks using one of the scoring methods selected below"
+            "\nWidth (Da) - filter peaks using peak widths defined in Da"
+            "\nWidth (no. bins) - filter peaks using peak widths defined in number of points",
+        )
+
+        self.post_refresh_btn = make_bitmap_btn(
+            panel,
+            -1,
+            self._icons.reload,
+            tooltip="Refresh the lower and upper bounds for the currently selected filter method.",
+        )
+        self.post_refresh_btn.Bind(wx.EVT_BUTTON, self.on_refresh_lower_upper_bounds)
+
+        score_value = wx.StaticText(panel, wx.ID_ANY, "Score:")
+        self.post_score_choice = wx.ComboBox(panel, choices=CONFIG.peak_panel_score_choices, style=wx.CB_READONLY)
+        self.post_score_choice.SetStringSelection(CONFIG.peak_panel_score_choice)
+        set_tooltip(
+            self.post_score_choice,
+            "Select scoring method."
+            "\nAsymmetry - measures the peak asymmetricity"
+            "\nTailing - measures the peak tailing"
+            "\nSlopes - measures the left/right side slopes of the peak",
+        )
+
+        lower_value = wx.StaticText(panel, wx.ID_ANY, "criteria:")
+        self.post_filter_lower_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.post_filter_lower_value.Bind(wx.EVT_TEXT, self.on_apply)
+        set_tooltip(self.post_filter_lower_value, "Set lower bound of the selection criteria. Values are inclusive.")
+
+        upper_value = wx.StaticText(panel, wx.ID_ANY, "-")
+        self.post_filter_upper_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.post_filter_upper_value.Bind(wx.EVT_TEXT, self.on_apply)
+        set_tooltip(self.post_filter_upper_value, "Set upper bound of the selection criteria. Values are inclusive.")
+
+        self.post_filter_btn = wx.Button(panel, wx.ID_OK, "View", size=(-1, 22))
+        self.post_filter_btn.Bind(wx.EVT_BUTTON, self.on_view_filter)
+
+        self.post_apply_btn = wx.Button(panel, wx.ID_OK, "Apply", size=(-1, 22))
+        self.post_apply_btn.Bind(wx.EVT_BUTTON, self.on_apply_filter)
+
+        # data grid
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        btn_sizer.Add(self.post_filter_btn, 0, wx.ALIGN_CENTER_VERTICAL)
+        btn_sizer.Add(self.post_apply_btn, 0, wx.ALIGN_CENTER_VERTICAL)
+
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(self.post_filter_lower_value, 1, wx.EXPAND)
+        sizer.AddSpacer(5)
+        sizer.Add(upper_value, 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer.AddSpacer(5)
+        sizer.Add(self.post_filter_upper_value, 1, wx.EXPAND)
+
+        # visualize grid
+        grid = wx.GridBagSizer(5, 5)
+        n = 0
+        grid.Add(filter_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.post_filter_choice, (n, 1), (1, 3), flag=wx.EXPAND)
+        grid.Add(self.post_refresh_btn, (n, 4), (1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        n += 1
+        grid.Add(score_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.post_score_choice, (n, 1), (1, 3), flag=wx.EXPAND)
+        n += 1
+        grid.Add(lower_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(sizer, (n, 1), (1, 3), flag=wx.EXPAND | wx.ALL)
+        grid.AddGrowableCol(1, 1)
+
+        # fit layout
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(grid, 1, wx.EXPAND)
+        main_sizer.AddSpacer(10)
+        main_sizer.Add(btn_sizer, 0, wx.ALIGN_CENTER_HORIZONTAL)
         main_sizer.Fit(panel)
 
         panel.SetSizerAndFit(main_sizer)
@@ -479,6 +655,7 @@ class PanelPeakPicker(MiniFrame):
         )
         self.visualize_show_labels_mz_check.SetValue(CONFIG.peak_panel_labels_mz)
         self.visualize_show_labels_mz_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
+        self.visualize_show_labels_mz_check.Bind(wx.EVT_CHECKBOX, self.on_annotate_spectrum_with_labels)
 
         self.visualize_show_labels_int_check = make_checkbox(
             panel,
@@ -487,33 +664,20 @@ class PanelPeakPicker(MiniFrame):
         )
         self.visualize_show_labels_int_check.SetValue(CONFIG.peak_panel_labels_int)
         self.visualize_show_labels_int_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
+        self.visualize_show_labels_int_check.Bind(wx.EVT_CHECKBOX, self.on_annotate_spectrum_with_labels)
 
         self.visualize_show_labels_width_check = make_checkbox(
             panel, "width", tooltip="When checked, the width value of the found peak will be shown in the label."
         )
         self.visualize_show_labels_width_check.SetValue(CONFIG.peak_panel_labels_width)
         self.visualize_show_labels_width_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-
-        self.display_label = wx.StaticText(panel, wx.ID_ANY, "")
-        self.display_label.SetForegroundColour(wx.BLUE)
-
-        self.find_peaks_btn = wx.Button(panel, wx.ID_OK, "Find peaks", size=(-1, 22))
-        self.find_peaks_btn.Bind(wx.EVT_BUTTON, self.on_find_peaks)
+        self.visualize_show_labels_width_check.Bind(wx.EVT_CHECKBOX, self.on_annotate_spectrum_with_labels)
 
         self.plot_peaks_btn = wx.Button(panel, wx.ID_OK, "Plot peaks", size=(-1, 22))
         self.plot_peaks_btn.Bind(wx.EVT_BUTTON, self.on_annotate_spectrum)
 
         self.action_btn = wx.Button(panel, wx.ID_OK, "Action ▼", size=(-1, 22))
         self.action_btn.Bind(wx.EVT_BUTTON, self.on_action_tools)
-
-        self.close_btn = wx.Button(panel, wx.ID_OK, "Close", size=(-1, 22))
-        self.close_btn.Bind(wx.EVT_BUTTON, self.on_close)
-
-        self.verbose_check = make_checkbox(
-            panel, "Verbose", tooltip="When checked, more logging information will be printed to the console."
-        )
-        self.verbose_check.SetValue(CONFIG.peak_find_verbose)
-        self.verbose_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         # visualize grid
         settings_grid = wx.GridBagSizer(5, 5)
@@ -532,18 +696,15 @@ class PanelPeakPicker(MiniFrame):
 
         # data grid
         btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        btn_sizer.Add(self.find_peaks_btn)
         btn_sizer.Add(self.plot_peaks_btn)
         btn_sizer.Add(self.action_btn)
-        btn_sizer.Add(self.close_btn)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(settings_grid, 0, wx.EXPAND)
         main_sizer.AddSpacer(10)
-        main_sizer.Add(btn_sizer, 0, wx.EXPAND)
-        main_sizer.Add(self.verbose_check, 0, wx.ALIGN_LEFT)
-        main_sizer.AddSpacer(10)
-        main_sizer.Add(self.display_label, 0, wx.EXPAND)
+        main_sizer.Add(btn_sizer, 0, wx.ALIGN_CENTER_HORIZONTAL)
+        # main_sizer.AddSpacer(10)
+        # main_sizer.Add(self.display_label, 0, wx.EXPAND)
 
         main_sizer.Fit(panel)
 
@@ -787,9 +948,12 @@ class PanelPeakPicker(MiniFrame):
             threshold = str2num(self.fit_differential_threshold_value.GetValue())
 
         if self.mz_obj:
-            _, y_max = self.mz_obj.y_limit
+            _, y_max = self.mz_obj_cache.y_limit
 
             # if threshold is below 1, we assume that its meant to be a proportion
+            if threshold is None:
+                return
+
             if threshold <= 1:
                 threshold = y_max * threshold
 
@@ -798,43 +962,29 @@ class PanelPeakPicker(MiniFrame):
         if evt is not None:
             evt.Skip()
 
-    def on_toggle_controls(self, _evt):
+    def on_toggle_controls(self, evt):
         """Event driven GUI updates"""
         # mass range controls
         CONFIG.peak_panel_specify_mz = self.mz_limit_check.GetValue()
-        item_list = [self.mz_min_value, self.mz_max_value]
-        for item in item_list:
-            item.Enable(enable=CONFIG.peak_panel_specify_mz)
+        self.mz_min_value.Enable(CONFIG.peak_panel_specify_mz)
+        self.mz_max_value.Enable(CONFIG.peak_panel_specify_mz)
 
         # labels controls
         CONFIG.peak_panel_labels = self.visualize_show_labels_check.GetValue()
-        item_list = [
-            self.visualize_max_labels,
-            self.visualize_show_labels_int_check,
-            self.visualize_show_labels_mz_check,
-        ]
-        for item in item_list:
-            item.Enable(enable=CONFIG.peak_panel_labels)
+        self.visualize_show_labels_int_check.Enable(CONFIG.peak_panel_labels)
+        self.visualize_show_labels_mz_check.Enable(CONFIG.peak_panel_labels)
+        self.visualize_show_labels_width_check.Enable(CONFIG.peak_panel_labels)
 
-        #         # isotopic controls
-        #         CONFIG.fit_highRes = self.fit_isotopic_check.GetValue()
-        #         item_list = [self.fit_isotopic_show_envelope, self.fit_isotopic_threshold,
-        #                      self.fit_isotopic_width, self.fit_isotopic_window]
-        #         for item in item_list:
-        #             item.Enable(enable=CONFIG.fit_highRes)
+        # filtering
+        CONFIG.peak_panel_filter_choice = self.post_filter_choice.GetStringSelection()
+        self.post_score_choice.Enable(CONFIG.peak_panel_filter_choice == "Score")
 
-        # smooth MS
-        # CONFIG.fit_smoothPeaks = self.fit_local_smooth_check.GetValue()
-        # item_list = [
-        #     self.fit_local_sigma_value,
-        #     #                      self.fit_show_smoothed
-        # ]
-        # for item in item_list:
-        #     item.Enable(enable=CONFIG.fit_smoothPeaks)
+        if evt is not None:
+            evt.Skip()
 
     def on_find_peaks(self, _evt):
         """Detect peaks in the spectrum"""
-        t_start = ttime()
+        t_start = time.time()
         logger.info("Started peak picking...")
         self.display_label.SetLabel("Started peak picking...")
 
@@ -884,6 +1034,7 @@ class PanelPeakPicker(MiniFrame):
 
         # update plot area
         self.on_annotate_spectrum(None)
+        self.on_refresh_lower_upper_bounds(None)
 
     def on_plot(self, _evt):
         """Plot mass spectrum"""
@@ -895,14 +1046,93 @@ class PanelPeakPicker(MiniFrame):
         self.mz_obj_cache = mz_obj
 
         self.plot_view.plot(obj=mz_obj)
+        self.on_show_threshold_line(None)
 
     def on_plot_spectrum_update(self, mz_x, mz_y):
         """Update plot data without changing anything else"""
         self.panel_plot.on_update_plot_1D(mz_x, mz_y, None, plot_obj=self.plot_window)
 
-    def on_annotate_spectrum(self, _evt):
-        """Highlight peaks in the spectrum"""
+    def on_process(self):
+        """Process spectrum"""
+        if CONFIG.peak_panel_preprocess:
+            self.on_plot(None)
+        else:
+            dlg = DialogBox(
+                "Warning",
+                (
+                    "Changing pre-processing parameters has no effect - the setting is disabled. "
+                    "Would you like to turn it on?"
+                ),
+                "Question",
+            )
+            if dlg == wx.ID_YES:
+                self.preprocess_check.SetValue(True)
+                CONFIG.peak_panel_preprocess = True
+
+    def _on_get_filtered_picker(self):
+        """Retrieve filtered picker"""
+        criteria = self.post_filter_choice.GetStringSelection()
+        criteria = {"Score": "score", "Width (no. bins)": "idx_fwhm", "Width (Da)": "x_fwhm"}[criteria]
+        metric = self.post_score_choice.GetStringSelection()
+
         mz_picker = self.mz_picker
+        if mz_picker is None:
+            raise MessageError("Error", "Please pick peaks first! Click on the `Find peaks` button.")
+
+        # score peak values
+        if criteria == "score":
+            mz_picker.score(metric)
+
+        return mz_picker, criteria
+
+    def on_view_filter(self, evt):
+        """View found peaks after they've been filtered"""
+        lower = str2num(self.post_filter_lower_value.GetValue())
+        upper = str2num(self.post_filter_upper_value.GetValue())
+
+        mz_picker, criteria = self._on_get_filtered_picker()
+
+        mz_picker_tmp = mz_picker.filter_by(criteria, [lower, upper])
+        self.mz_picker_tmp = mz_picker_tmp
+        self.on_annotate_spectrum(None, mz_picker_tmp)
+
+        if evt is not None:
+            evt.Skip()
+
+    def on_apply_filter(self, _evt):
+        """Apply filtering and set the filtered peak-picker as the default"""
+        mz_picker_tmp = self.mz_picker_tmp
+        if mz_picker_tmp is None:
+            raise MessageError("Error", "Please filter peaks first. Select criteria and click on `Filter` first.")
+
+        self.mz_picker = mz_picker_tmp
+        self.mz_picker_tmp = None
+
+    def on_refresh_lower_upper_bounds(self, evt):
+        """Update the lower/upper bounds of the filtering step"""
+        mz_picker, criteria = self._on_get_filtered_picker()
+
+        # score peak values
+        if criteria == "score":
+            values = mz_picker.scores
+        elif criteria == "idx_fwhm":
+            values = mz_picker.idx_width
+        else:
+            values = mz_picker.x_width
+
+        min_val = f"{values.min()-0.0001:.4f}"
+        self.post_filter_lower_value.SetValue(min_val)
+
+        max_val = f"{values.max()+0.0001:.4f}"
+        self.post_filter_upper_value.SetValue(max_val)
+
+        if evt is not None:
+            evt.Skip()
+
+    def on_annotate_spectrum(self, _evt, mz_picker: MassSpectrumBasePicker = None):
+        """Highlight peaks in the spectrum"""
+        if mz_picker is None:
+            mz_picker = self.mz_picker
         if mz_picker is None:
             raise MessageError("Error", "Please pick peaks first! Click on the `Find peaks` button.")
 
@@ -910,18 +1140,19 @@ class PanelPeakPicker(MiniFrame):
             self.on_clear_from_plot(None)
             return
 
-        self.on_annotate_spectrum_with_scatter(None, False)
-        self.on_annotate_spectrum_with_patches(None, False)
-        self.on_annotate_spectrum_with_labels(None, False)
+        self.on_annotate_spectrum_with_scatter(None, False, mz_picker)
+        self.on_annotate_spectrum_with_patches(None, False, mz_picker)
+        self.on_annotate_spectrum_with_labels(None, False, mz_picker)
 
         self.plot_view.repaint()
 
-    def on_annotate_spectrum_with_scatter(self, _evt, repaint: bool = True):
+    def on_annotate_spectrum_with_scatter(self, evt, repaint: bool = True, mz_picker: MassSpectrumBasePicker = None):
         """Annotate peaks on spectrum with patches"""
         CONFIG.peak_panel_scatter = self.visualize_scatter_check.GetValue()
-        t_start = ttime()
+        t_start = time.time()
 
-        mz_picker = self.mz_picker
+        if mz_picker is None:
+            mz_picker = self.mz_picker
         if mz_picker is None:
             raise MessageError("Error", "Please pick peaks first! Click on the `Find peaks` button.")
 
@@ -945,12 +1176,16 @@ class PanelPeakPicker(MiniFrame):
 
         logger.info(f"Annotated spectrum with scatter points in {report_time(t_start)}")
 
-    def on_annotate_spectrum_with_patches(self, _evt, repaint: bool = True):
+        if evt is not None:
+            evt.Skip()
+
+    def on_annotate_spectrum_with_patches(self, evt, repaint: bool = True, mz_picker: MassSpectrumBasePicker = None):
         """Annotate peaks on spectrum with patches"""
         CONFIG.peak_panel_highlight = self.visualize_highlight_check.GetValue()
-        t_start = ttime()
+        t_start = time.time()
 
-        mz_picker = self.mz_picker
+        if mz_picker is None:
+            mz_picker = self.mz_picker
         if mz_picker is None:
             raise MessageError("Error", "Please pick peaks first! Click on the `Find peaks` button.")
 
@@ -969,17 +1204,28 @@ class PanelPeakPicker(MiniFrame):
 
         logger.info(f"Annotated spectrum with patches in {report_time(t_start)}")
 
-    def on_annotate_spectrum_with_labels(self, _evt, repaint: bool = True):
+        if evt is not None:
+            evt.Skip()
+
+    # noinspection DuplicatedCode
+    def on_annotate_spectrum_with_labels(self, evt, repaint: bool = True, mz_picker: MassSpectrumBasePicker = None):
         """Annotate peaks on spectrum with labels"""
         CONFIG.peak_panel_labels = self.visualize_show_labels_check.GetValue()
-        t_start = ttime()
+        CONFIG.peak_panel_labels = self.visualize_show_labels_check.GetValue()
+        CONFIG.peak_panel_labels_max_count = str2int(self.visualize_max_labels.GetValue())
+        CONFIG.peak_panel_labels_mz = self.visualize_show_labels_mz_check.GetValue()
+        CONFIG.peak_panel_labels_int = self.visualize_show_labels_int_check.GetValue()
+        CONFIG.peak_panel_labels_width = self.visualize_show_labels_width_check.GetValue()
 
-        mz_picker = self.mz_picker
+        t_start = time.time()
+
+        if mz_picker is None:
+            mz_picker = self.mz_picker
         if mz_picker is None:
             raise MessageError("Error", "Please pick peaks first! Click on the `Find peaks` button.")
 
         if CONFIG.peak_panel_labels:
-            x, y, labels = self.on_generate_labels()
+            x, y, labels = self.on_generate_labels(mz_picker)
             self.plot_view.remove_labels(repaint=False)
             self.plot_view.add_labels(x, y, labels, repaint=False)
         else:
@@ -988,11 +1234,16 @@ class PanelPeakPicker(MiniFrame):
         if repaint:
             self.plot_view.repaint()
 
+        if evt is not None:
+            evt.Skip()
+
         logger.info(f"Annotated spectrum with labels in {report_time(t_start)}")
 
-    def on_generate_labels(self):
+    def on_generate_labels(self, mz_picker: MassSpectrumBasePicker = None):
         """Generate labels that will be added to the plot"""
-        mz_picker = self.mz_picker
+        if mz_picker is None:
+            mz_picker = self.mz_picker
+
         if mz_picker is None:
             raise MessageError("Error", "Please pick peaks first! Click on the `Find peaks` button.")
 
@@ -1011,12 +1262,12 @@ class PanelPeakPicker(MiniFrame):
         return x, y, labels
 
     def on_clear_from_plot(self, _evt):
-        """Clear peaks"""
-        # clean-up previous patches
-        self.plot_window.plot_remove_text_and_lines(False)
-        self.plot_window.plot_remove_patches(False)
-        self.plot_window.plot_remove_markers(False)
+        """Clear peaks and various annotations"""
+        self.plot_view.remove_scatter(repaint=False)
+        self.plot_view.remove_patches(repaint=False)
+        self.plot_view.remove_labels(repaint=False)
         self.on_show_threshold_line(None)
+        self.plot_view.repaint()
 
     def on_add_to_annotations(self, _evt):
         """Add peaks as annotations"""
@@ -1024,7 +1275,7 @@ class PanelPeakPicker(MiniFrame):
         # from origami.utils.labels import sanitize_string
         # from origami.objects.annotations import check_annotation_input
         #
-        # t_start = ttime()
+        # t_start = time.time()
         # logger.info("Adding peaks to annotations...")
         #
         # peaks_dict = self._peaks_dict
@@ -1086,12 +1337,12 @@ class PanelPeakPicker(MiniFrame):
         # )
         #
         # if CONFIG.peak_find_verbose:
-        #     logger.info(f"Adding peaks to annotations object took {ttime()-t_start:.4f} seconds.")
+        #     logger.info(f"Adding peaks to annotations object took {time.time()-t_start:.4f} seconds.")
 
     def on_add_to_peaklist(self, _evt):
         """Add peaks to peaklist"""
         raise NotImplementedError("Must implement method")
-        # t_start = ttime()
+        # t_start = time.time()
         # logger.info("Adding peaks to peaklist...")
         #
         # peaks_dict = self._peaks_dict
@@ -1132,7 +1383,7 @@ class PanelPeakPicker(MiniFrame):
         #         self.ion_panel.on_add_to_table(add_dict)
         #
         # if CONFIG.peak_find_verbose:
-        #     logger.info(f"Adding peaks to peaklist took {ttime()-t_start:.4f} seconds.")
+        #     logger.info(f"Adding peaks to peaklist took {time.time()-t_start:.4f} seconds.")
 
     def on_clear_plot(self, _evt):
         """Clear plot area"""
@@ -1153,30 +1404,14 @@ class PanelPeakPicker(MiniFrame):
 
     def on_customise_plot(self, _evt):
         """Customise plot"""
-        self.panel_plot.on_customise_plot(None, plot="MS...", plot_obj=self.plot_window)
+        raise NotImplementedError("Must implement method")
+        # self.panel_plot.on_customise_plot(None, plot="MS...", plot_obj=self.plot_window)
 
     def on_open_process_ms_settings(self, _evt):
         """Open MS pre-processing panel"""
         self.document_tree.on_open_process_MS_settings(
             disable_plot=True, disable_process=True, update_widget=self.PUB_SUBSCRIBE_EVENT
         )
-
-    def on_process(self):
-        """Process spectrum"""
-        if CONFIG.peak_panel_preprocess:
-            self.on_plot(None)
-        else:
-            dlg = DialogBox(
-                "Warning",
-                (
-                    "Changing pre-processing parameters has no effect - the setting is disabled. "
-                    "Would you like to turn it on?"
-                ),
-                "Question",
-            )
-            if dlg == wx.ID_YES:
-                self.preprocess_check.SetValue(True)
-                CONFIG.peak_panel_preprocess = True
 
 
 def _main():

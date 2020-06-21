@@ -21,7 +21,6 @@ matplotlib.use("WXAgg")
 
 class MPLPanel(wx.Panel):
     def __init__(self, *args, **kwargs):
-
         self.figsize = kwargs.pop("figsize", None)
         if self.figsize is None:
             self.figsize = [8, 2.5]
@@ -54,6 +53,7 @@ class MPLPanel(wx.Panel):
         self.SetSizerAndFit(sizer)
         self.Show()
 
+        self.SetBackgroundColour(wx.WHITE)
         # Create a resizer
         self.Bind(wx.EVT_SIZE, self.on_resize)
 

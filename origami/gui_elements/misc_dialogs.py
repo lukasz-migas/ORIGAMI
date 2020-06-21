@@ -60,10 +60,26 @@ def DialogSimpleAsk(message="", title="", value="", value_type=None):
     if value_type is not None and value_type in ["float", "floatPos", "int", "intPos"]:
         if value is None:
             value = 0
-        dlg = wx.NumberEntryDialog(None, message, "", title, value, -100000, 1000000)
+        dlg = wx.NumberEntryDialog(None, message, title, "", value, -100000, 1000000)
     else:
         dlg = wx.TextEntryDialog(None, message, title, value)
 
+    dlg.CentreOnScreen()
+
+    if dlg.ShowModal() == wx.ID_CANCEL:
+        return None
+
+    result = dlg.GetValue()
+    dlg.Destroy()
+    return result
+
+
+# noinspection PyPep8Naming
+def DialogNumberAsk(message="", title="", value="", parent=None):
+
+    if value is None:
+        value = 0
+    dlg = wx.NumberEntryDialog(parent, message, title, "", value, -100000, 1000000)
     dlg.CentreOnScreen()
 
     if dlg.ShowModal() == wx.ID_CANCEL:

@@ -21,6 +21,7 @@ from origami.utils.ranges import find_limits_all
 from origami.utils.ranges import find_limits_list
 from origami.config.config import CONFIG
 from origami.visuals.mpl.base import PlotBase
+from origami.visuals.mpl.gids import PlotIds
 from origami.visuals.utilities import get_intensity_formatter
 from origami.processing.heatmap import normalize_2D
 from origami.processing.spectra import normalize_1D
@@ -75,6 +76,7 @@ class PlotSpectrum(PlotBase):
             label=label,
             linewidth=kwargs["line_width"],
             linestyle=kwargs["line_style"],
+            gid=PlotIds.PLOT_1D_LINE_GID,
         )
         if kwargs["shade_under"]:
             self.plot_1d_add_under_curve(x, y, **kwargs)
@@ -104,6 +106,117 @@ class PlotSpectrum(PlotBase):
 
         # Setup X-axis getter
         self.store_plot_limits(extent)
+
+    def plot_1d_add_under_curve(self, xvals, yvals, **kwargs):
+
+        color = kwargs.get("shade_under_color", None)
+        if not color:
+            color = kwargs["line_color"]
+
+        shade_kws = dict(
+            facecolor=color,
+            alpha=kwargs.get("shade_under_transparency", 0.25),
+            clip_on=kwargs.get("clip_on", True),
+            zorder=kwargs.get("zorder", 1),
+        )
+        self.plot_base.fill_between(xvals, 0, yvals, gid=PlotIds.PLOT_1D_PATCH_GID, **shade_kws)
+
+    def plot_1d_update_data(self, x, y, x_label="", y_label="", **kwargs):
+        # override parameters
+        _, _, extent = self._compute_xy_limits(x, y, 0, 1.1)
+
+        line = None
+        lines = self.plot_base.get_lines()
+        for line in lines:
+            gid = line.get_gid()
+            if gid == PlotIds.PLOT_1D_LINE_GID:
+                break
+
+        if line is None:
+            raise ValueError("Could not find line to update")
+
+        line.set_xdata(x)
+        line.set_ydata(y)
+        line.set_linewidth(kwargs["line_width"])
+        line.set_color(kwargs["line_color"])
+        line.set_linestyle(kwargs["line_style"])
+        line.set_label(kwargs.get("label", ""))
+
+        for patch in self.plot_base.collections:
+            if patch.get_gid() == PlotIds.PLOT_1D_PATCH_GID:
+                patch.remove()
+                self.plot_1d_add_under_curve(x, y, **kwargs)
+
+        # general plot updates
+        self.set_plot_xlabel(x_label, **kwargs)
+        self.set_plot_ylabel(y_label, **kwargs)
+
+        # update plot limits
+        self.update_extents(extent)
+        self.store_plot_limits(extent)
+
+    #         # remove old lines
+    #         if hasattr(self, "plot_base"):
+    #             lines = self.plot_base.get_lines()
+    #             for line in lines[1:]:
+    #                 line.remove()
+    #
+    #         # remove old shades
+    #         while len(self.plot_base.collections) > 0:
+    #             for shade in self.plot_base.collections:
+    #                 shade.remove()
+    #
+    #         #         if testMax == "yvals":
+    #         #             yvals, ylabel, __ = self._convert_yaxis(yvals, ylabel)
+    #         #
+    #         #         if kwargs.pop("testX", False):
+    #         #             xvals, xlabel, __ = self._convert_xaxis(xvals)
+    #
+    #         lines[0].set_xdata(xvals)
+    #         lines[0].set_ydata(yvals)
+    #         lines[0].set_linewidth(kwargs["line_width"])
+    #         lines[0].set_color(kwargs["line_color"])
+    #         lines[0].set_linestyle(kwargs["line_style"])
+    #         lines[0].set_label(kwargs.get("label", ""))
+    #
+    #         # update limits and extents
+    #         xlimits, ylimits, extent = self._compute_xy_limits(xvals, yvals, 1.1)
+    #
+    #         if kwargs["shade_under"]:
+    #             shade_kws = dict(
+    #                 facecolor=kwargs["shade_under_color"],
+    #                 alpha=kwargs.get("shade_under_transparency", 0.25),
+    #                 clip_on=kwargs.get("clip_on", True),
+    #                 zorder=kwargs.get("zorder", 1),
+    #             )
+    #             self.plot_base.fill_between(xvals, 0, yvals, **shade_kws)
+    #
+    #         # convert weights
+    #         if kwargs["label_weight"]:
+    #             kwargs["label_weight"] = "heavy"
+    #         else:
+    #             kwargs["label_weight"] = "normal"
+    #
+    #         self.plot_base.set_xlim(xlimits)
+    #         self.plot_base.set_ylim(ylimits)
+    #         self.set_plot_xlabel(xlabel, **kwargs)
+    #         self.set_plot_ylabel(ylabel, **kwargs)
+    #
+    #         if kwargs.get("minor_ticks_off", False) or xlabel == "Scans" or xlabel == "Charge":
+    #             self.plot_base.xaxis.set_tick_params(which="minor", bottom="off")
+    #             self.plot_base.xaxis.set_major_locator(MaxNLocator(integer=True))
+    #
+    #         self.update_extents(extent)
+    #         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
+    #
+    #         self.plot_labels.update({"xlabel": xlabel, "ylabel": ylabel})
+    #
+    #         # update legend
+    #         handles, __ = self.plot_base.get_legend_handles_labels()
+    #         self.set_legend_parameters(handles, **self.plot_parameters)
+    #
+    #         # Setup X-axis getter
+    #         self.store_plot_limits(extent)
 
     def plot_1d_compare(
         self, x_top, x_bottom, y_top, y_bottom, x_label="", y_label="", labels=None, title="", **kwargs
@@ -145,7 +258,7 @@ class PlotSpectrum(PlotBase):
             linewidth=kwargs["line_width"],
             linestyle=kwargs["line_style_1"],
             alpha=kwargs["line_transparency_1"],
-            gid=0,
+            gid=PlotIds.PLOT_COMPARE_TOP_GID,
         )
 
         self.plot_base.plot(
@@ -156,7 +269,7 @@ class PlotSpectrum(PlotBase):
             linewidth=kwargs["line_width"],
             linestyle=kwargs["line_style_2"],
             alpha=kwargs["line_transparency_2"],
-            gid=1,
+            gid=PlotIds.PLOT_COMPARE_BOTTOM_GID,
         )
 
         self.plot_base.axhline(linewidth=kwargs["line_width"], color="k")
@@ -196,14 +309,14 @@ class PlotSpectrum(PlotBase):
         lines = self.plot_base.get_lines()
         for line in lines:
             plot_gid = line.get_gid()
-            if plot_gid == 0:
+            if plot_gid == PlotIds.PLOT_COMPARE_TOP_GID:
                 if labels[0] is None:
                     labels[0] = line.get_label()
                 line.set_xdata(x_top)
                 line.set_ydata(y_top)
                 line.set_label(labels[0])
                 line.set_color(kwargs.get("line_colors_1", line.get_color()))
-            elif plot_gid == 1:
+            elif plot_gid == PlotIds.PLOT_COMPARE_BOTTOM_GID:
                 if labels[1] is None:
                     labels[1] = line.get_label()
                 line.set_xdata(x_bottom)
@@ -1071,20 +1184,6 @@ class PlotSpectrum(PlotBase):
             leg.remove()
         except (AttributeError, KeyError):
             pass
-
-    def plot_1d_add_under_curve(self, xvals, yvals, **kwargs):
-
-        color = kwargs.get("shade_under_color", None)
-        if not color:
-            color = kwargs["line_color"]
-
-        shade_kws = dict(
-            facecolor=color,
-            alpha=kwargs.get("shade_under_transparency", 0.25),
-            clip_on=kwargs.get("clip_on", True),
-            zorder=kwargs.get("zorder", 1),
-        )
-        self.plot_base.fill_between(xvals, 0, yvals, **shade_kws)
 
     def plot_1D_waterfall_overlay(
         self,

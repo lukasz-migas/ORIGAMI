@@ -4119,111 +4119,6 @@ class PanelPlots(wx.Panel):
         )
         plot_obj.repaint()
 
-    def plot_compare(
-        self,
-        msX=None,
-        msX_1=None,
-        msX_2=None,
-        msY_1=None,
-        msY_2=None,
-        msY=None,
-        xlimits=None,
-        replot=False,
-        override=True,
-        set_page=True,
-        plot="MS",
-        **kwargs,
-    ):
-
-        if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
-            plot_obj = kwargs.get("plot_obj")
-        else:
-            plot_obj = self.get_plot_from_name(plot)
-
-        if set_page:
-            self._set_page(self.config.panelNames["MS"])
-
-        if replot:
-            data = self.get_replot_data("compare_MS")
-            if data["subtract"]:
-                msX = data["xvals"]
-                msY = data["yvals"]
-                xlimits = data["xlimits"]
-            else:
-                msX = data["xvals"]
-                msX_1 = data["xvals1"]
-                msX_2 = data["xvals2"]
-                msY_1 = data["yvals1"]
-                msY_2 = data["yvals2"]
-                xlimits = data["xlimits"]
-                legend = data["legend"]
-        else:
-            legend = self.config.compare_massSpectrumParams["legend"]
-            subtract = self.config.compare_massSpectrumParams["subtract"]
-
-        # Build kwargs
-        plt_kwargs = self._buildPlotParameters(plotType="1D")
-
-        plot_obj.clear()
-        if subtract:
-            try:
-                plot_obj.plot_1D(
-                    xvals=msX,
-                    yvals=msY,
-                    xlimits=xlimits,
-                    zoom="box",
-                    title="",
-                    xlabel="m/z",
-                    ylabel="Intensity",
-                    label="",
-                    lineWidth=self.config.lineWidth_1D,
-                    axesSize=self.config._plotSettings["MS"]["axes_size"],
-                    plotType="MS",
-                    **plt_kwargs,
-                )
-            except Exception:
-                plot_obj.repaint()
-            if override:
-                self.config.replotData["compare_MS"] = {
-                    "xvals": msX,
-                    "yvals": msY,
-                    "xlimits": xlimits,
-                    "subtract": subtract,
-                }
-        else:
-            try:
-                plot_obj.plot_1D_compare(
-                    xvals1=msX_1,
-                    xvals2=msX_2,
-                    yvals1=msY_1,
-                    yvals2=msY_2,
-                    xlimits=xlimits,
-                    zoom="box",
-                    title="",
-                    xlabel="m/z",
-                    ylabel="Intensity",
-                    label=legend,
-                    lineWidth=self.config.lineWidth_1D,
-                    axesSize=self.config._plotSettings["MS (compare)"]["axes_size"],
-                    plotType="compare_MS",
-                    **plt_kwargs,
-                )
-            except Exception:
-                plot_obj.repaint()
-            if override:
-                self.config.replotData["compare_MS"] = {
-                    "xvals": msX,
-                    "xvals1": msX_1,
-                    "xvals2": msX_2,
-                    "yvals1": msY_1,
-                    "yvals2": msY_2,
-                    "xlimits": xlimits,
-                    "legend": legend,
-                    "subtract": subtract,
-                }
-        # Show the mass spectrum
-        plot_obj.repaint()
-
     def plot_compare_spectra(
         self,
         xvals_1,
@@ -4408,7 +4303,7 @@ class PanelPlots(wx.Panel):
             self._set_page(self.config.panelNames["MS"])
 
         if plot == "MS":
-            self.plot_ms.on_zoom_xy(startX, endX, startY, endY)
+            self.plot_ms.on_zoom_xy_axis(startX, endX, startY, endY)
 
             if repaint:
                 self.plot_ms.repaint()

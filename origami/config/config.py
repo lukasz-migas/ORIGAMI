@@ -14,6 +14,7 @@ import defusedxml.minidom
 from matplotlib.pyplot import colormaps
 
 # Local imports
+from origami.objects.misc import CompareItem
 from origami.utils.random import get_random_int
 from origami.utils.version import __version__
 from origami.utils.converters import str2int
@@ -1003,6 +1004,19 @@ class Config:
             },
         }
 
+        # updated configuration format
+        self.LINE_STYLES_CHOICES = ["solid", "dashed", "dashdot", "dotted"]
+        self.NORMALIZATION_HEATMAP_CHOICES = [
+            "Maximum",
+            "Logarithmic",
+            "Natural log",
+            "Square root",
+            "Least Abs Deviation",
+            "Least Squares",
+        ]
+        self.SMOOTH_LINE_CHOICES = ["None", "Savitzky-Golay", "Gaussian"]
+        self.SMOOTH_HEATMAP_CHOICES = ["None", "Savitzky-Golay", "Gaussian"]
+
         # GUI add-ons
         self.cmap_narrow_choices = [
             "Greys",
@@ -1261,46 +1275,88 @@ class Config:
         self.extract_dt_use_ms = False  # new in v1.3.0.0
 
         # Peak fitting
-        self.fit_addPeaks = True
-        self.fit_addPeaksToAnnotations = False
-        self.fit_xaxis_limit = False
-        self.fit_highlight = True
-        self.fit_show_labels = True
-        self.fit_show_labels_mz = True
-        self.fit_show_labels_int = True
-        self.fit_labels_optimise_position = True
-        self.fit_show_labels_max_count = 100
-        self.fit_type_choices = ["MS", "RT", "MS + RT"]
-        self.fit_type = "MS"
-        self.fit_threshold = 0.10
-        self.fit_window = 500
-        self.fit_width = 1.0
-        self.fit_asymmetric_ratio = 0.6
-        self.fit_smoothPeaks = True
-        self.fit_smooth_sigma = 1.0
-        self.fit_highRes = False
-        self.fit_highRes_threshold = 0.0
-        self.fit_highRes_window = 10
-        self.fit_highRes_width = 1
-        self.fit_highRes_isotopicFit = False
-        self.fit_relative_height = 0.75  # new in v1.3.0.0
+        self.fit_addPeaks = True  # REMOVE
+        self.fit_addPeaksToAnnotations = False  # REMOVE
+        self.fit_xaxis_limit = False  # REMOVE
+        self.fit_highlight = True  # REMOVE
+        self.fit_show_labels = True  # REMOVE
+        self.fit_show_labels_mz = True  # REMOVE
+        self.fit_show_labels_int = True  # REMOVE
+        self.fit_labels_optimise_position = True  # REMOVE
+        self.fit_show_labels_max_count = 100  # REMOVE
+        self.fit_type_choices = ["MS", "RT", "MS + RT"]  # REMOVE
+        self.fit_type = "MS"  # REMOVE
+        self.fit_threshold = 0.10  # REMOVE
+        self.fit_window = 500  # REMOVE
+        self.fit_width = 1.0  # REMOVE
+        self.fit_asymmetric_ratio = 0.6  # REMOVE
+        self.fit_smoothPeaks = True  # REMOVE
+        self.fit_smooth_sigma = 1.0  # REMOVE
+        self.fit_highRes = False  # REMOVE
+        self.fit_highRes_threshold = 0.0  # REMOVE
+        self.fit_highRes_window = 10  # REMOVE
+        self.fit_highRes_width = 1  # REMOVE
+        self.fit_highRes_isotopicFit = False  # REMOVE
+        self.fit_relative_height = 0.75  # new in v1.3.0.0  # REMOVE
 
         # Peak finding/fitting - local + wavelet
-        self.peak_find_method = "small_molecule"
-        self.peak_find_threshold = 250  # new in v1.3.0.0
-        self.peak_find_width = 0  # new in v1.3.0.0
-        self.peak_find_relative_height = 0.5  # new in v1.3.0.0
-        self.peak_find_min_intensity = 0.0  # new in v1.3.0.0
-        self.peak_find_distance = 1  # new in v1.3.0.0
-        self.peak_find_mz_min = None  # new in v1.3.0.0
-        self.peak_find_mz_max = None  # new in v1.3.0.0
-        self.peak_find_mz_limit = False  # new in v1.3.0.0
-        self.peak_find_peak_width_modifier = 1.0  # new in v1.3.0.0
-        self.peak_find_verbose = False  # new in v1.3.0.0
-        self.peak_fit_method = None  # new in v1.3.0.0
+        self.peak_find_method = "small_molecule"  # REMOVE
+        self.peak_find_threshold = 250  # new in v1.3.0.0  # REMOVE
+        self.peak_find_width = 0  # new in v1.3.0.0  # REMOVE
+        self.peak_find_relative_height = 0.5  # new in v1.3.0.0  # REMOVE
+        self.peak_find_min_intensity = 0.0  # new in v1.3.0.0  # REMOVE
+        self.peak_find_distance = 1  # new in v1.3.0.0  # REMOVE
+        self.peak_find_mz_min = None  # new in v1.3.0.0  # REMOVE
+        self.peak_find_mz_max = None  # new in v1.3.0.0  # REMOVE
+        self.peak_find_mz_limit = False  # new in v1.3.0.0  # REMOVE
+        self.peak_find_peak_width_modifier = 1.0  # new in v1.3.0.0  # REMOVE
+        self.peak_find_verbose = False  # new in v1.3.0.0  # REMOVE
+        self.peak_fit_method = None  # new in v1.3.0.0  # REMOVE
+
+        # Annotation parameters
+        # Panel settings
+        self.annotate_panel_highlight = True
+        self.annotate_panel_zoom_in = True
+        self.annotate_panel_zoom_in_window = 5
+        self.annotate_panel_add_to_table = True
+        self.annotate_panel_patch_color = (1, 0, 0)
+        self.annotate_panel_patch_alpha = 0.5
+        self.annotate_panel_label_color = (0, 0, 0)
+
+        # Comparison parameters
+        # Panel settings
+        self.compare_panel_color_top = (0, 0, 0)
+        self.compare_panel_color_bottom = (0, 0, 1)
+        self.compare_panel_style_top = "solid"
+        self.compare_panel_style_bottom = "solid"
+        self.compare_panel_alpha_top = 1.0
+        self.compare_panel_alpha_bottom = 1.0
+        self.compare_panel_inverse = True
+        self.compare_panel_preprocess = True
+        self.compare_panel_normalize = True
+        self.compare_panel_subtract = True
+        self.compare_panel_top_ = CompareItem()
+        self.compare_panel_bottom_ = CompareItem()
+
+        # comparison MS
+        self.lineColour_MS1 = (0, 0, 0)  # REMOVE
+        self.lineTransparency_MS1 = 1.0  # REMOVE
+        self.lineStyle_MS1 = "solid"  # REMOVE
+        self.lineColour_MS2 = (0, 0, 1)  # REMOVE
+        self.lineTransparency_MS2 = 1.0  # REMOVE
+        self.lineStyle_MS2 = "solid"  # REMOVE
+        self.compare_massSpectrum = []  # REMOVE
+        self.compare_massSpectrumParams = {
+            "inverse": True,
+            "preprocess": False,
+            "normalize": False,
+            "subtract": False,
+        }  # REMOVE
 
         # Peak-picking parameters
         # Panel settings
+        self.peak_panel_method_choices = []
+        self.peak_panel_method_choice = ""
         self.peak_panel_specify_mz = False
         self.peak_panel_mz_start = None
         self.peak_panel_mz_end = None
@@ -1315,6 +1371,10 @@ class Config:
         self.peak_panel_labels_width = False
         self.peak_panel_optimise_position = True
         self.peak_panel_labels_max_count = 100
+        self.peak_panel_filter_choices = ["Score", "Width (no. bins)", "Width (Da)"]
+        self.peak_panel_filter_choice = "Width (Da)"
+        self.peak_panel_score_choices = ["asymmetry", "tailing", "slopes"]
+        self.peak_panel_score_choice = "asymmetry"
 
         # Local-max settings
         self.peak_local_threshold = 0.01
@@ -1649,16 +1709,6 @@ class Config:
         self.labelFontWeight_3D = False
         self.titleFontSize_3D = 16
         self.titleFontWeight_3D = False
-
-        # comparison MS
-        self.lineColour_MS1 = (0, 0, 0)
-        self.lineTransparency_MS1 = 1.0
-        self.lineStyle_MS1 = "solid"
-        self.lineColour_MS2 = (0, 0, 1)
-        self.lineTransparency_MS2 = 1.0
-        self.lineStyle_MS2 = "solid"
-        self.compare_massSpectrum = []
-        self.compare_massSpectrumParams = {"inverse": True, "preprocess": False, "normalize": False, "subtract": False}
 
         # Settings Panel
         self.lastDir = None
@@ -2272,13 +2322,13 @@ class Config:
                     "shade_under": self.lineShadeUnder_1D,
                     "shade_under_color": self.lineShadeUnderColour_1D,
                     "shade_under_transparency": self.lineShadeUnderTransparency_1D,
-                    "line_color_1": self.lineColour_MS1,
-                    "line_color_2": self.lineColour_MS2,
-                    "line_transparency_1": self.lineTransparency_MS1,
-                    "line_transparency_2": self.lineTransparency_MS2,
-                    "line_style_1": self.lineStyle_MS1,
-                    "line_style_2": self.lineStyle_MS2,
-                    "inverse": self.compare_massSpectrumParams["inverse"],
+                    "line_color_1": self.compare_panel_color_top,
+                    "line_color_2": self.compare_panel_color_bottom,
+                    "line_transparency_1": self.compare_panel_alpha_top,
+                    "line_transparency_2": self.compare_panel_alpha_bottom,
+                    "line_style_1": self.compare_panel_style_top,
+                    "line_style_2": self.compare_panel_style_bottom,
+                    "inverse": self.compare_panel_inverse,
                     "tick_size": self.tickFontSize_1D,
                     "tick_weight": self.tickFontWeight_1D,
                     "label_size": self.labelFontSize_1D,

@@ -224,6 +224,8 @@ class MPLInteraction:
         self._trigger_extraction = False
         self._is_label = False
         self._is_legend = False
+        self._is_patch = False
+
         self.pick_pos = None
         self._ctrl_key = False
         self._alt_key = False
@@ -299,6 +301,7 @@ class MPLInteraction:
         """Store which text object was picked and were the pick event occurs."""
         self._is_label = False
         self._is_legend = False
+        self._is_patch = False
 
         if isinstance(event.artist, Text):
             self.dragged = event.artist
@@ -307,6 +310,10 @@ class MPLInteraction:
         elif isinstance(event.artist, Legend):
             self.dragged = event.artist
             self._is_legend = True
+        elif isinstance(event.artist, Rectangle):
+            self.dragged = event.artist
+            self.pick_pos = (self.dragged.get_width() / 2, self.dragged.get_height() / 2)
+            self._is_patch = True
 
         return True
 
@@ -630,21 +637,53 @@ class MPLInteraction:
         self.canvas.draw()
         LOGGER.debug("Plot -> Zoom out")
 
-    def _drag_label(self, evt):
+    def _drag_label(self, evt, reset=True):
         """Move label, update its position and reset dragged object"""
-        old_pos = self.dragged.get_position()
-        new_pos = (old_pos[0] + evt.xdata - self.pick_pos[0], old_pos[1] + evt.ydata - self.pick_pos[1])
-        self.dragged.set_position(new_pos)
-        if self.dragged.obj_name is not None:
-            pub.sendMessage("update_text_position", text_obj=self.dragged)
-        self._is_label = False
-        self.dragged = None
+        x, y = evt.xdata, evt.ydata
+
+        if evt.key == "x":
+            _, y = self.dragged.get_position()
+        elif evt.key == "y":
+            x, _ = self.dragged.get_position()
+
+        new_pos = (x, y)
+        if None not in new_pos:
+            self.dragged.set_position(new_pos)
         self.canvas.draw()  # redraw image
+
+        if reset:
+            if self.dragged.obj_name is not None:
+                if self._callbacks["MOVE_LABEL"]:
+                    pub.sendMessage(self._callbacks["MOVE_LABEL"], label_obj=self.dragged)
+                else:
+                    pub.sendMessage("update_text_position", text_obj=self.dragged)
+            self._is_label = False
+            self.dragged = None
 
     def _drag_legend(self, evt):
         """Drag legend post-event"""
         self._is_legend = False
         self.dragged = None
+
+    def _drag_patch(self, evt, reset=True):
+        """Drag patch, update its position and reset dragged object"""
+        width, height = self.pick_pos
+        x = evt.xdata - width
+        y = evt.ydata - height
+        if evt.key == "x":
+            _, y = self.dragged.get_xy()
+        elif evt.key == "y":
+            x, _ = self.dragged.get_xy()
+
+        self.dragged.set_xy((x, y))
+        self.canvas.draw()  # redraw image
+
+        if reset:
+            if self.dragged.obj_name is not None:
+                if self._callbacks["MOVE_PATCH"]:
+                    pub.sendMessage(self._callbacks["MOVE_PATCH"], patch_obj=self.dragged)
+            self._is_patch = False
+            self.dragged = None
 
     def get_labels(self):
         """Collects labels"""
@@ -724,7 +763,7 @@ class MPLInteraction:
         # When the mouse is released we reset the overlay and it restores the former content to the window.
         if not self.retinaFix and self.wxoverlay:
             self.wxoverlay.Reset()
-            del self.wxoverlay
+            self.wxoverlay = None
         else:
             self.savedRetinaImage = None
             if self.prevZoomRect:
@@ -746,6 +785,8 @@ class MPLInteraction:
                 self._drag_label(evt)
             elif self._is_legend:
                 self._drag_legend(evt)
+            elif self._is_patch:
+                self._drag_patch(evt)
             return
 
         # left-click + ctrl OR double left click reset axes
@@ -880,7 +921,13 @@ class MPLInteraction:
         # send event
         pub.sendMessage("motion_xy", xpos=evt.xdata, ypos=evt.ydata, plotname=self.plotName)
 
-        # print(evt.xdata, evt.ydata, evt.key, evt.button)
+        # drag label
+        if self.dragged is not None:
+            if self._is_label:
+                self._drag_label(evt, False)
+            elif self._is_patch:
+                self._drag_patch(evt, False)
+            return
 
         # show rubberband
         # if evt.key in ["x", "y", "ctrl+control"] or evt.button is not None:

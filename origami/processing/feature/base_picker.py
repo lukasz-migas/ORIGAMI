@@ -1,3 +1,4 @@
+"""Base picker for MS peak picker"""
 # Standard library imports
 import os
 import time
@@ -30,9 +31,6 @@ GOOD_COLOR = "#98FB98"
 BAD_COLOR = "#FFCCCB"
 
 LOGGER = logging.getLogger(__name__)
-
-
-# TODO: add iter and next dunders
 
 
 class BasePicker(ABC):
@@ -342,7 +340,7 @@ class BasePicker(ABC):
         self._peaks.reindex(key, order)
 
     def sort_by_x(self):
-        """Sort peaks by the m/z value in an ascending order"""
+        """Sort peaks by the x value in an ascending order"""
         self.sort_by("x", "ascending")
 
     def sort_by_y(self):

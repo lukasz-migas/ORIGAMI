@@ -3,6 +3,7 @@ import logging
 from abc import abstractmethod
 from ast import literal_eval
 from enum import IntEnum
+from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
@@ -31,13 +32,14 @@ class TableColumnIndex(IntEnum):
 
 
 class TableMixin:
+    """Mixin class to add Table controls"""
 
     # must have name, tag, type, show, id, width
     TABLE_DICT = {}
     TABLE_COLUMN_INDEX = TableColumnIndex
     TABLE_RESERVED = {"hide_all": wx.NewIdRef(), "show_all": wx.NewIdRef()}
     TABLE_STYLE = wx.LC_REPORT | wx.LC_VRULES
-    TABLE_ALLOWED_EDIT = []
+    TABLE_KWARGS = dict()
     DUPLICATE_ID_CHECK = []
     KEYWORD_ALIAS = {}
     USE_COLOR = True
@@ -86,7 +88,7 @@ class TableMixin:
     def make_table(self, table_dict, panel=None):
         if panel is None:
             panel = self
-        peaklist = ListCtrl(panel, style=self.TABLE_STYLE, column_info=table_dict, allowed_edit=self.TABLE_ALLOWED_EDIT)
+        peaklist = ListCtrl(panel, style=self.TABLE_STYLE, column_info=table_dict, **self.TABLE_KWARGS)
 
         for order, item in table_dict.items():
             name = item["name"]
@@ -156,12 +158,14 @@ class TableMixin:
                 return color_255
 
     def on_get_color(self, evt):
+        """Convenient method to get new color"""
         dlg = DialogColorPicker(self, CONFIG.customColors)
         if dlg.ShowModal() == "ok":
-            __, color_1, __ = dlg.GetChosenColour()
+            color_255, color_1, font_color = dlg.GetChosenColour()
             CONFIG.customColors = dlg.GetCustomColours()
 
-            return color_1
+            return color_255, color_1, font_color
+        return None, None, None
 
     def on_update_value_in_peaklist(self, item_id, value_type, value):
         if value_type == "color":
@@ -197,7 +201,15 @@ class TableMixin:
     @property
     def n_columns(self):
         """Returns number of columns in the table"""
-        return -1
+        return self.peaklist.GetColumnCount()
+
+    def get_checked_items(self):
+        """Return list of indices of items that are checked"""
+        checked = []
+        for item_id in range(self.n_rows):
+            if self.peaklist.IsChecked(item_id):
+                checked.append(item_id)
+        return checked
 
     def on_get_unique_color(self, color):
         """Retrieves unique color by checking if current color already exists"""
@@ -267,6 +279,15 @@ class TableMixin:
         for item_id in sorted(iterator, reverse=True):
             self.peaklist.DeleteItem(item_id)
 
+    def on_find_item(self, key: str, value: Any):
+        """Find item and return its index"""
+        item_id = self.n_rows - 1
+        for item_id in range(self.n_rows - 1):
+            info = self.on_get_item_information(item_id)
+            if info[key] == value:
+                return item_id
+        return -1
+
     def _parse(self, add_dict):
         """Parse dictionary with key:value pairs so they can be added to the table
 
@@ -283,6 +304,8 @@ class TableMixin:
 
         def convert(value):
             if col_type == "color" and value:
+                if self.peaklist.color_0_to_1:
+                    return round_rgb(value)
                 return round_rgb(convert_rgb_255_to_1(value))
             return str(value)
 
@@ -439,6 +462,14 @@ class TableMixin:
                     self.on_update_document()
                 except TypeError:
                     print("Please select item")
+
+    def on_change_item_value(self, item_id: int, column_id: int, value: str):
+        """Update value in the peaklist"""
+        if item_id >= self.n_rows:
+            raise ValueError("Cannot set value for the selected item")
+        if not isinstance(value, str):
+            raise ValueError("`Value` must be a string")
+        self.peaklist.SetStringItem(item_id, column_id, value)
 
 
 # noinspection DuplicatedCode

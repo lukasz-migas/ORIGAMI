@@ -90,7 +90,7 @@ class ViewSpectrum(ViewBase, ViewSpectrumPanelMixin):
 
         # update plot
         x, y = self.check_input(x, y, obj)
-        self.figure.plot_1D_update_data(x, y, self.x_label, self.y_label, **kwargs)
+        self.figure.plot_1d_update_data(x, y, self.x_label, self.y_label, **kwargs)
         self.figure.repaint()
 
         # set data

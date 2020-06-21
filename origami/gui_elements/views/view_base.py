@@ -170,15 +170,7 @@ class ViewBase(ABC):
         #         if isinstance(color, list):
         #             assert len(color) == len(x), "Number of colors must match the number of markers"
 
-        self.figure.plot_add_markers(
-            xvals=x,
-            yvals=y,
-            color=color,
-            marker=marker,
-            size=size,
-            #             test_yvals=kwargs.pop("test_yvals", False),
-            #             **kwargs,
-        )
+        self.figure.plot_add_markers(xvals=x, yvals=y, color=color, marker=marker, size=size)
         if repaint:
             self.figure.repaint()
 
@@ -189,7 +181,9 @@ class ViewBase(ABC):
         if repaint:
             self.figure.repaint()
 
-    def add_labels(self, x, y, label, optimize_labels: bool = False, repaint: bool = True, **kwargs):
+    def add_labels(
+        self, x, y, label, name=None, color=None, optimize_labels: bool = False, repaint: bool = True, **kwargs
+    ):
         """Add text label to the plot"""
         plt_kwargs = {
             "horizontalalignment": kwargs.pop("horizontal_alignment", "center"),
@@ -200,9 +194,13 @@ class ViewBase(ABC):
             "fontsize": kwargs.pop("font_size", "medium"),
         }
         y_offset = kwargs.get("yoffset", 0.0)
+        if name is None:
+            name = [None] * len(x)
+        if color is None:
+            color = ["k"] * len(x)
 
-        for _x, _y, _label in zip(x, y, label):
-            self.figure.plot_add_text(_x, _y, _label, yoffset=y_offset, **plt_kwargs)
+        for _x, _y, _label, _name, _color in zip(x, y, label, name, color):
+            self.figure.plot_add_text(_x, _y, _label, text_name=_name, color=_color, yoffset=y_offset, **plt_kwargs)
 
         if optimize_labels:
             self.figure._fix_label_positions()
@@ -212,7 +210,7 @@ class ViewBase(ABC):
 
     def remove_labels(self, repaint: bool = True):
         """Remove scatter points from the plot area"""
-        self.figure.plot_remove_text_and_lines(False)
+        self.figure.plot_remove_text(False)
 
         if repaint:
             self.figure.repaint()
@@ -240,11 +238,16 @@ class ViewBase(ABC):
         if repaint:
             self.figure.repaint()
 
-    def add_patches(self, x, y, width, height, repaint: bool = True):
+    def add_patches(self, x, y, width, height, label=None, color=None, repaint: bool = True):
         """Add rectangular patches to the plot"""
         assert len(x) == len(y) == len(width), "Incorrect shape of the data. `x, y, width` must have the same length"
-        for _x, _y, _width, _height in zip(x, y, width, height):
-            self.figure.plot_add_patch(_x, _y, _width, _height)  # , color=color, alpha=alpha, label=label, **kwargs)
+        if label is None:
+            label = [None] * len(x)
+        if color is None:
+            color = ["r"] * len(x)
+        for _x, _y, _width, _height, _label, _color in zip(x, y, width, height, label, color):
+            self.figure.plot_add_patch(_x, _y, _width, _height, label=_label, color=_color)
+            # , color=color, alpha=alpha, label=label, **kwargs)
 
         if repaint:
             self.figure.repaint()
@@ -261,6 +264,21 @@ class ViewBase(ABC):
 
     def add_line(self, x, y, **kwargs):
         """Add text label to the plot"""
+
+    def set_xlim(self, x_min: float, x_max: float):
+        """Set x-axis limits in the plot area"""
+        self.figure.on_zoom_x_axis(x_min, x_max)
+        self.figure.repaint()
+
+    def set_ylim(self, y_min: float, y_max: float):
+        """Set y-axis limits in the plot area"""
+        self.figure.on_zoom_y_axis(y_min, y_max)
+        self.figure.repaint()
+
+    def set_xylim(self, x_min: float, x_max: float, y_min: float, y_max: float):
+        """Set xy-axis limits in the plot area"""
+        self.figure.on_zoom_xy_axis(x_min, x_max, y_min, y_max)
+        self.figure.repaint()
 
     def copy_to_clipboard(self):
         """Copy plot to clipboard"""

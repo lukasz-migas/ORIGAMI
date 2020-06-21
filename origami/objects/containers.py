@@ -11,8 +11,10 @@ from zarr import Group
 import origami.processing.spectra as pr_spectra
 from origami.utils.path import get_duplicate_name
 from origami.utils.ranges import get_min_max
+from origami.processing.utils import find_nearest_index
 from origami.objects.container import ContainerBase
 from origami.processing.heatmap import equalize_heatmap_spacing
+from origami.objects.annotations import Annotations
 
 
 def get_fmt(*arrays: np.ndarray, get_largest: bool = False):
@@ -105,22 +107,27 @@ class DataObject(ContainerBase):
 
     @property
     def x(self):
+        """Return the `x` axis of the dataset"""
         return self._x
 
     @property
     def y(self):
+        """Return the `y` axis of the dataset"""
         return self._y
 
     @property
     def x_limit(self):
+        """Return the min/max values of the x-axis"""
         return get_min_max(self.x)
 
     @property
     def y_limit(self):
+        """Return the min/max values of the y-axis"""
         return get_min_max(self.y)
 
     @property
     def shape(self):
+        """Return the shape of the object"""
         return self.x.shape
 
     def check_kwargs(self, kwargs):
@@ -169,6 +176,17 @@ class DataObject(ContainerBase):
 
     def change_y_label(self, to_label: str, **kwargs):
         """Changes the label and y-axis values to a new format"""
+
+    def get_annotations(self):
+        """Returns instance of the `Annotations` object"""
+
+        annotations = self._metadata.get("annotations", dict())
+        return Annotations(annotations)
+
+    def set_annotations(self, annotations: Annotations):
+        """Set instance of the `Annotations` object"""
+        self._metadata["annotations"] = annotations.to_dict()
+        self.flush()
 
 
 class SpectrumObject(DataObject):
@@ -242,6 +260,14 @@ class SpectrumObject(DataObject):
         assert isinstance(divider, (int, float)), "Division factor must be an integer or a float"
         self._y /= divider
         return self
+
+    def get_intensity_at_loc(self, x_min: float, x_max: float, get_max: bool = True):
+        """Get intensity information for specified x-axis region of interest"""
+        x_idx_min, x_idx_max = find_nearest_index(self.x, [x_min, x_max])
+        y = self.y[x_idx_min : x_idx_max + 1]
+        if get_max:
+            return float(y.max())
+        return y
 
 
 class MassSpectrumObject(SpectrumObject):

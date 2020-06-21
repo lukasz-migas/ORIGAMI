@@ -41,6 +41,7 @@ class ContainerBase:
 
     @property
     def title(self):
+        """Return the title pf the object"""
         if self.owner is not None:
             _, item_name = self.owner
             return item_name

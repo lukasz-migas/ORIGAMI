@@ -643,7 +643,7 @@ class PanelTextlist(TablePanelBase):
                 None, n_colors=check_count, return_colors=True
             )
         elif evt.GetId() == ID_textPanel_changeColorBatch_color:
-            color = self.on_get_color(None)
+            _, color, _ = self.on_get_color(None)
             colors = [color] * check_count
         else:
             colors = self.presenter.view.panelPlots.on_get_colors_from_colormap(n_colors=check_count)
