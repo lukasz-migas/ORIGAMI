@@ -1,12 +1,9 @@
-# Third-party imports
-# Standard library imports
-# Standard library imports
-# Standard library imports
 # Standard library imports
 from typing import List
 from typing import Tuple
 from typing import Union
 
+# Third-party imports
 import numpy as np
 import peakutils
 from scipy.signal import find_peaks
