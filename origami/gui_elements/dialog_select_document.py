@@ -1,11 +1,14 @@
+"""Select document dialog"""
 # Standard library imports
 import logging
+from typing import List
 
 # Third-party imports
 import wx
 
 # Local imports
 from origami.styles import Dialog
+from origami.styles import set_tooltip
 from origami.config.environment import ENV
 
 LOGGER = logging.getLogger(__name__)
@@ -24,24 +27,27 @@ class DialogSelectDocument(Dialog):
     # settable parameters
     current_document = None
 
-    def __init__(self, parent, **kwargs):
+    def __init__(
+        self, parent, document_type: str = "all", document_list: List[str] = None, allow_new_document: bool = True
+    ):
         wx.Dialog.__init__(self, parent, title="Please select document...", size=(400, 300))
 
-        self.parent = parent
-        self.presenter = kwargs.get("presenter", None)
+        if document_list is None:
+            document_list = []
 
-        self._document_type = kwargs.get("document_type", "all")
-        self._document_list = kwargs.get("document_list", [])
-        self._allow_new_document = kwargs.get("allow_new_document", True)
+        self.parent = parent
+        self._document_type = document_type
+        self._document_list = document_list
+        self._allow_new_document = allow_new_document
 
         # make gui items
         self.make_gui()
         self.CentreOnParent()
         self.SetFocus()
 
-        self.Bind(wx.EVT_CLOSE, self.on_close, self)
-
         self.setup()
+
+        self.Bind(wx.EVT_CLOSE, self.on_close, self)
 
     def setup(self):
         """Runs all setup events"""
@@ -65,25 +71,32 @@ class DialogSelectDocument(Dialog):
         """Make main panel"""
         panel = wx.Panel(self, -1)
 
-        document_list_label = wx.StaticText(panel, -1, "Choose document:")
         self.document_list_choice = wx.Choice(panel, -1, choices=self._document_list, size=(300, -1))
         self.document_list_choice.Select(0)
+        set_tooltip(self.document_list_choice, "Select one of the available documents.")
 
         self.ok_btn = wx.Button(panel, wx.ID_OK, "OK", size=(-1, 22))
         self.ok_btn.Bind(wx.EVT_BUTTON, self.on_ok, id=wx.ID_ANY)
+        set_tooltip(self.ok_btn, "Select currently selected document and close the window.")
 
         self.open_btn = wx.Button(panel, wx.ID_ANY, "Open existing...", size=(-1, 22))
         self.open_btn.Bind(wx.EVT_BUTTON, self.on_open, id=wx.ID_ANY)
+        set_tooltip(
+            self.open_btn,
+            "Open another `ORIGAMI` document already present on the PC (must end with .origami extension).",
+        )
 
         self.add_btn = wx.Button(panel, wx.ID_ANY, "Add new document", size=(-1, 22))
         self.add_btn.Bind(wx.EVT_BUTTON, self.on_new_document)
+        set_tooltip(self.add_btn, "Create new document.")
 
         self.cancel_btn = wx.Button(panel, -1, "Cancel", size=(-1, 22))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
+        set_tooltip(self.cancel_btn, "Close the window without making a selection.")
 
         # pack elements
         choice_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        choice_sizer.Add(document_list_label, flag=wx.ALIGN_CENTER_VERTICAL)
+        choice_sizer.Add(wx.StaticText(panel, -1, "Choose document:"), flag=wx.ALIGN_CENTER_VERTICAL)
         choice_sizer.AddSpacer(10)
         choice_sizer.Add(self.document_list_choice, flag=wx.EXPAND)
 
@@ -128,7 +141,7 @@ class DialogSelectDocument(Dialog):
 
         return path
 
-    def on_new_document(self, evt):
+    def on_new_document(self, _evt):
         """Create new document"""
         from origami.gui_elements.dialog_new_document import DialogNewDocument
 
@@ -163,15 +176,13 @@ class DialogSelectDocument(Dialog):
             LOGGER.warning(f"Document `{self.current_document}` is not found in the document list")
 
 
-def main():
-
+def _main():
     app = wx.App()
-    ex = DialogSelectDocument(None)
-    ex._document_type = "Type: Imaging"
+    ex = DialogSelectDocument(None, document_list=["Document 1", "Document 2"], document_type="Type: Imaging")
 
     ex.Show()
     app.MainLoop()
 
 
 if __name__ == "__main__":
-    main()
+    _main()

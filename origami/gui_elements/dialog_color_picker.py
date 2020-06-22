@@ -1,3 +1,4 @@
+"""Dialog to allow for selection new color"""
 # Third-party imports
 import wx
 
@@ -7,9 +8,10 @@ from origami.utils.color import convert_rgb_255_to_1
 
 
 class DialogColorPicker(wx.ColourDialog):
+    """Dialog that allows for selection of new color"""
+
     def __init__(self, parent, colors):
         self.colors = self.GetColours(colors)
-
         wx.ColourDialog.__init__(self, parent, self.colors)
 
         # Ensure the full colour dialog is displayed,
@@ -18,16 +20,10 @@ class DialogColorPicker(wx.ColourDialog):
         self.CentreOnParent()
 
     def ShowModal(self):
-        """ Simplified ShowModal(), returning strings 'ok' or 'cancel'. """
-        result = wx.ColourDialog.ShowModal(self)
+        """ Simplified ShowModal()"""
+        return super(DialogColorPicker, self).ShowModal()
 
-        return_value = "cancel"
-        if result == wx.ID_OK:
-            return_value = "ok"
-
-        return return_value
-
-    def GetChosenColour(self):
+    def GetChosenColour(self):  # noqa
         """ Shorthand... """
         data = self.GetColourData()
         color = data.GetColour().Get()
@@ -36,7 +32,7 @@ class DialogColorPicker(wx.ColourDialog):
         return color, color_255, font_color
 
     @staticmethod
-    def GetColours(colors):
+    def GetColours(colors):  # noqa
         # Restore custom colors
         custom_colors = wx.ColourData()
         for key in colors:
@@ -45,9 +41,22 @@ class DialogColorPicker(wx.ColourDialog):
 
         return custom_colors
 
-    def GetCustomColours(self):
+    def GetCustomColours(self):  # noqa
         data = self.GetColourData()
         custom_colors = dict()
         for i in range(16):
             custom_colors[i] = data.GetCustomColour(i)
         return custom_colors
+
+
+def _main():
+
+    app = wx.App(False)
+    frame = wx.Frame(None, -1)
+    ex = DialogColorPicker(frame, [])
+    ex.ShowModal()
+    app.MainLoop()
+
+
+if __name__ == "__main__":
+    _main()

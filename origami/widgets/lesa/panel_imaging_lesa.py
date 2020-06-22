@@ -386,7 +386,7 @@ class PanelImagingLESAViewer(MiniFrame):
         from origami.gui_elements.dialog_color_picker import DialogColorPicker
 
         dlg = DialogColorPicker(self, self.config.customColors)
-        if dlg.ShowModal() == "ok":
+        if dlg.ShowModal() == wx.ID_OK:
             color_255, __, __ = dlg.GetChosenColour()
             self.config.customColors = dlg.GetCustomColours()
         else:

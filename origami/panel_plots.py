@@ -1211,9 +1211,9 @@ class PanelPlots(wx.Panel):
         self.config.resize = not self.config.resize
 
     def on_customise_smart_zoom(self, evt):
-        from origami.gui_elements.dialog_customise_smart_zoom import dialog_customise_smart_zoom
+        from origami.gui_elements.dialog_customise_smart_zoom import DialogCustomiseSmartZoom
 
-        dlg = dialog_customise_smart_zoom(self, self.presenter, self.config)
+        dlg = DialogCustomiseSmartZoom(self)
         dlg.ShowModal()
 
     def on_customise_plot(self, evt, **kwargs):

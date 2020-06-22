@@ -4,7 +4,9 @@ import time
 import logging
 from enum import IntEnum
 from typing import Dict
+from typing import Union
 from typing import Optional
+from builtins import isinstance
 
 # Third-party imports
 import wx
@@ -149,7 +151,7 @@ class PanelAnnotationEditorUI(MiniFrame, TableMixin):
             "type": "color",
             "width": 100,
             "show": True,
-            "order": 6,
+            "order": 2,
             "id": wx.NewIdRef(),
         },
         3: {
@@ -176,7 +178,7 @@ class PanelAnnotationEditorUI(MiniFrame, TableMixin):
             "type": "color",
             "width": 100,
             "show": True,
-            "order": 6,
+            "order": 5,
             "id": wx.NewIdRef(),
         },
         6: {
@@ -185,7 +187,7 @@ class PanelAnnotationEditorUI(MiniFrame, TableMixin):
             "type": "str",
             "width": 0,
             "show": False,
-            "order": 7,
+            "order": 6,
             "id": wx.NewIdRef(),
             "hidden": True,
         },
@@ -201,8 +203,8 @@ class PanelAnnotationEditorUI(MiniFrame, TableMixin):
     peaklist = None
     name_value = None
     label_value = None
-    position_x = None
-    position_y = None
+    marker_position_x = None
+    marker_position_y = None
     label_position_x = None
     label_position_y = None
     label_color_btn = None
@@ -361,11 +363,11 @@ class PanelAnnotationEditorUI(MiniFrame, TableMixin):
         self.label_value = wx.TextCtrl(panel, -1, "", style=wx.TE_RICH2 | wx.TE_MULTILINE)
         self.label_value.SetToolTip(wx.ToolTip("Label associated with the marked region in the plot area"))
 
-        self.position_x = wx.TextCtrl(panel, -1, "", validator=validator("float"))
-        self.position_x.SetBackgroundColour((255, 230, 239))
+        self.marker_position_x = wx.TextCtrl(panel, -1, "", validator=validator("float"))
+        self.marker_position_x.SetBackgroundColour((255, 230, 239))
 
-        self.position_y = wx.TextCtrl(panel, -1, "", validator=validator("float"))
-        self.position_y.SetBackgroundColour((255, 230, 239))
+        self.marker_position_y = wx.TextCtrl(panel, -1, "", validator=validator("float"))
+        self.marker_position_y.SetBackgroundColour((255, 230, 239))
 
         self.label_position_x = wx.TextCtrl(panel, -1, "", validator=validator("float"))
         self.label_position_x.SetBackgroundColour((255, 230, 239))
@@ -436,8 +438,8 @@ class PanelAnnotationEditorUI(MiniFrame, TableMixin):
         grid.Add(wx.StaticText(panel, -1, "y"), (y, 2), flag=wx.ALIGN_CENTER)
         y += 1
         grid.Add(wx.StaticText(panel, -1, "marker position:"), (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.position_x, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.position_y, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.marker_position_x, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.marker_position_y, (y, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         y += 1
         grid.Add(wx.StaticText(panel, -1, "label position:"), (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.label_position_x, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
@@ -611,7 +613,6 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
     def on_right_click(self, evt):
         """On right-click menu event"""
         menu = wx.Menu()
-
         # ensure that user clicked inside the plot area
         if hasattr(evt.EventObject, "figure"):
             save_figure_menu_item = make_menu_item(
@@ -681,6 +682,7 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
         if evt is not None:
             evt.Skip()
 
+    # noinspection DuplicatedCode
     def on_menu_action_tools(self, _):
         """Create action menu"""
         menu = wx.Menu()
@@ -802,7 +804,7 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
             check_value = not self._menu_show_all
             self._menu_show_all = check_value
 
-    def on_assign_color(self, evt):
+    def on_assign_color(self, evt):  # noqa
         """Change value of `color` for each selected annotation"""
         value = evt.GetEventObject().FindItemById(evt.GetId()).GetItemLabel()
         value = "label_color" if "label color" in value else "patch_color"
@@ -812,7 +814,6 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
             raise MessageError("Error", "Please check at least one annotation in the table")
 
         _, color_1, _ = self.on_get_color(None)
-        print(color_1)
 
         changed = False
         for item_id in checked:
@@ -837,6 +838,7 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
             self.data_obj.set_annotations(self.annotations)
             self.on_plot_annotations()
 
+    # noinspection DuplicatedCode
     def on_assign_arrow(self, evt):
         """Change value of `arrow_show` for each selected annotation"""
         value = evt.GetEventObject().FindItemById(evt.GetId()).GetItemLabel()
@@ -864,6 +866,7 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
             self.data_obj.set_annotations(self.annotations)
             self.on_plot_annotations()
 
+    # noinspection DuplicatedCode
     def on_assign_patch(self, evt):
         """Change value of `patch_show` for each selected annotation"""
         value = evt.GetEventObject().FindItemById(evt.GetId()).GetItemLabel()
@@ -953,9 +956,9 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
         self.on_plot_annotations()
         self.data_obj.set_annotations(self.annotations)
 
-    def on_delete_item(self):
+    def on_delete_item(self, _evt):
         """Delete item from the table and document"""
-        item_information = self.on_get_item_information(None)
+        item_information = self.on_get_item_information(self.peaklist.item_id)
         self.on_delete_annotation(None, item_information["name"], flush=True)
 
     def on_assign_color_button(self, evt):
@@ -1006,8 +1009,8 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
         self.patch_min_y.SetValue("")
         self.patch_width.SetValue("")
         self.patch_height.SetValue("")
-        self.position_x.SetValue("")
-        self.position_y.SetValue("")
+        self.marker_position_x.SetValue("")
+        self.marker_position_y.SetValue("")
 
     def set_annotation_in_gui(self, annotation_obj: Annotation):
         """Set annotation in GUI before it is set in the document"""
@@ -1027,8 +1030,8 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
         self.patch_min_y.SetValue(rounder(annotation_obj.patch_position[1], 4))
         self.patch_width.SetValue(rounder(annotation_obj.patch_position[2], 4))
         self.patch_height.SetValue(rounder(annotation_obj.patch_position[3], 4))
-        self.position_x.SetValue(rounder(annotation_obj.marker_position_x, 4))
-        self.position_y.SetValue(rounder(annotation_obj.marker_position_y, 4))
+        self.marker_position_x.SetValue(rounder(annotation_obj.marker_position_x, 4))
+        self.marker_position_y.SetValue(rounder(annotation_obj.marker_position_y, 4))
 
     def get_annotation_obj_from_data(self, x_min, x_max, y_min, y_max):
         """Pre-calculate parameters based on the data"""
@@ -1050,7 +1053,7 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
                 y_max = self.data_obj.get_intensity_at_loc(x_min, x_max)  # noqa
             except ValueError:
                 logger.warning("Could not get intensity at the position")
-            y_position = y_max
+            y_position = y_max * 1.05
 
         label = f"x={x_position:.4f}\ny={y_position:.2f}"
         width = x_max - x_min
@@ -1066,6 +1069,7 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
             label=label,
             label_show=True,
             label_position=(x_position, y_position),
+            marker_position=(x_position, y_position),
             label_color=CONFIG.annotate_panel_label_color,
             patch_position=(x_min, y_min, width, height),
             patch_color=CONFIG.annotate_panel_patch_color,
@@ -1096,9 +1100,10 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
         annotation_obj.label_position = (x, y)
         self.annotations.add(annotation_obj.name, annotation_obj)
         self.data_obj.set_annotations(self.annotations)
+        self.set_annotation_in_gui(annotation_obj)
 
-        if self.name_value.GetValue() == annotation_obj.name:
-            self.set_annotation_in_gui(annotation_obj)
+        if annotation_obj.arrow_show:
+            self.on_annotate_spectrum_with_arrows(None)
 
     def edit_patch_from_mouse_evt(self, patch_obj):
         """Edit position of the patch object"""
@@ -1109,9 +1114,7 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
         annotation_obj.patch_position = (x_min, y_min, width, height)
         self.annotations.add(annotation_obj.name, annotation_obj)
         self.data_obj.set_annotations(self.annotations)
-
-        if self.name_value.GetValue() == annotation_obj.name:
-            self.set_annotation_in_gui(annotation_obj)
+        self.set_annotation_in_gui(annotation_obj)
 
     def get_annotation_obj_from_gui(self):
         """Return annotation object from the data currently set in the user interface"""
@@ -1122,7 +1125,8 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
             name=name,
             label=self.label_value.GetValue(),
             label_show=True,
-            label_position=(str2num(self.position_x.GetValue()), str2num(self.position_y.GetValue())),
+            label_position=(str2num(self.label_position_x.GetValue()), str2num(self.label_position_y.GetValue())),
+            marker_position=(str2num(self.marker_position_x.GetValue()), str2num(self.marker_position_y.GetValue())),
             label_color=convert_rgb_255_to_1(self.label_color_btn.GetBackgroundColour()),
             patch_position=(
                 str2num(self.patch_min_x.GetValue()),
@@ -1149,12 +1153,15 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
         if self.item_loading_lock:
             return
 
+        item_id = -1
         if annotation_obj is None:
             annotation_obj = self.get_annotation_obj_from_gui()
-            self.on_delete_annotation(None, annotation_obj.name)
+            item_id = self.on_find_item("name", annotation_obj.name)
 
-        add_dict = annotation_obj.to_dict()
-        self.on_add_to_table(add_dict)
+        if item_id == -1:
+            self.on_add_to_table(annotation_obj.to_dict())
+        else:
+            self.on_update_annotation_in_table(item_id, annotation_obj)
         self.annotations.add(annotation_obj.name, annotation_obj)
         self.data_obj.set_annotations(self.annotations)
         self.on_plot_annotations()
@@ -1179,21 +1186,32 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
         if annotation_obj is None:
             return
 
+        print(obj_name)
         if obj_name == "patch_show":
             annotation_obj.patch_show = obj_value
-            self.on_change_item_value(item_id, self.TABLE_COLUMN_INDEX.patch, str(obj_value))
         elif obj_name == "arrow_show":
             annotation_obj.patch_show = obj_value
-            self.on_change_item_value(item_id, self.TABLE_COLUMN_INDEX.arrow, str(obj_value))
         elif obj_name == "label_color":
             annotation_obj.label_color = obj_value
-            self.on_change_item_value(item_id, self.TABLE_COLUMN_INDEX.label_color, str(round_rgb(obj_value)))
         elif obj_name == "patch_color":
             annotation_obj.patch_color = obj_value
-            self.on_change_item_value(item_id, self.TABLE_COLUMN_INDEX.patch_color, str(round_rgb(obj_value)))
 
+        self.on_update_annotation_in_table(item_id, annotation_obj)
+        self.annotations.add(annotation_obj.name, annotation_obj)
         self.data_obj.set_annotations(self.annotations)
         self.on_plot_annotations()
+
+    def on_update_annotation_in_table(self, item_id: int, annotation_obj: Annotation):
+        """Update annotation values in the table"""
+        self.on_change_item_value(item_id, self.TABLE_COLUMN_INDEX.label, str(annotation_obj.label))
+        self.on_change_item_value(item_id, self.TABLE_COLUMN_INDEX.arrow, str(annotation_obj.arrow_show))
+        self.on_change_item_value(item_id, self.TABLE_COLUMN_INDEX.patch, str(annotation_obj.patch_show))
+        self.on_change_item_value(
+            item_id, self.TABLE_COLUMN_INDEX.label_color, str(round_rgb(annotation_obj.label_color))
+        )
+        self.on_change_item_value(
+            item_id, self.TABLE_COLUMN_INDEX.patch_color, str(round_rgb(annotation_obj.patch_color))
+        )
 
     def on_delete_annotation(self, evt, name=None, flush: bool = True, get_next: bool = False):
         """Remove annotation"""
@@ -1305,6 +1323,7 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
 
         self.on_annotate_spectrum_with_labels(None, repaint=False, annotations=annotations)
         self.on_annotate_spectrum_with_patches(None, repaint=False, annotations=annotations)
+        self.on_annotate_spectrum_with_arrows(None, repaint=False, annotations=annotations)
 
         self.plot_view.repaint()
 
@@ -1342,7 +1361,9 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
             evt.Skip()
 
     # noinspection DuplicatedCode
-    def on_annotate_spectrum_with_labels(self, evt, repaint: bool = True, annotations: Annotations = None):
+    def on_annotate_spectrum_with_labels(
+        self, evt, repaint: bool = True, annotations: Union[Annotations, Annotation] = None
+    ):
         """Annotate peaks on spectrum with labels"""
         t_start = time.time()
 
@@ -1350,11 +1371,19 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
             annotations = self.annotations
 
         # get annotations data
-        x = annotations.x
-        y = annotations.y
-        names = annotations.names
-        labels = annotations.labels
-        color = annotations.label_colors
+        if isinstance(annotations, Annotations):
+            x = annotations.label_position_x
+            y = annotations.label_position_y
+            names = annotations.names
+            labels = annotations.labels
+            color = annotations.label_colors
+        else:
+            x = [annotations.label_position_x]
+            y = [annotations.label_position_y]
+            names = [annotations.name]
+            labels = [annotations.label]
+            color = [annotations.label_color]
+
         # plot data
         self.plot_view.remove_labels(repaint=False)
         self.plot_view.add_labels(x, y, labels, names, color=color, repaint=False)
@@ -1367,9 +1396,40 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
 
         logger.info(f"Annotated spectrum with labels in {report_time(t_start)}")
 
+    # noinspection DuplicatedCode
+    def on_annotate_spectrum_with_arrows(
+        self, evt, repaint: bool = True, annotations: Union[Annotations, Annotation] = None
+    ):
+        """Annotate peaks on spectrum with arrows"""
+        t_start = time.time()
+
+        if annotations is None:
+            annotations = self.annotations
+
+        # get annotations data
+        if isinstance(annotations, Annotations):
+            show_arrow = annotations.arrow_show
+            arrow_values = annotations.arrow_positions[show_arrow]
+            names = annotations.names[show_arrow]
+        else:
+            arrow_values = [annotations.arrow_positions]
+            names = [annotations.name]
+
+        # plot data
+        self.plot_view.remove_arrows(repaint=False)
+        self.plot_view.add_arrows(arrow_values, name=names, repaint=False)
+
+        if repaint:
+            self.plot_view.repaint()
+
+        if evt is not None:
+            evt.Skip()
+
+        logger.info(f"Annotated spectrum with labels in {report_time(t_start)}")
+
     def on_clear_from_plot(self, _evt):
         """Clear peaks and various annotations"""
-        self.plot_view.remove_scatter(repaint=False)
+        self.plot_view.remove_arrows(repaint=False)
         self.plot_view.remove_patches(repaint=False)
         self.plot_view.remove_labels(repaint=False)
         self.plot_view.repaint()

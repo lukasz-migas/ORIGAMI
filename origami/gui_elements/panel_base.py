@@ -137,7 +137,7 @@ class TableMixin:
             return
 
         dlg = DialogColorPicker(self, CONFIG.customColors)
-        if dlg.ShowModal() == "ok":
+        if dlg.ShowModal() == wx.ID_OK:
             color_255, color_1, font_color = dlg.GetChosenColour()
             CONFIG.customColors = dlg.GetCustomColours()
             self.on_update_value_in_peaklist(self.peaklist.item_id, "color", [color_255, color_1, font_color])
@@ -160,7 +160,7 @@ class TableMixin:
     def on_get_color(self, evt):
         """Convenient method to get new color"""
         dlg = DialogColorPicker(self, CONFIG.customColors)
-        if dlg.ShowModal() == "ok":
+        if dlg.ShowModal() == wx.ID_OK:
             color_255, color_1, font_color = dlg.GetChosenColour()
             CONFIG.customColors = dlg.GetCustomColours()
 
@@ -281,8 +281,7 @@ class TableMixin:
 
     def on_find_item(self, key: str, value: Any):
         """Find item and return its index"""
-        item_id = self.n_rows - 1
-        for item_id in range(self.n_rows - 1):
+        for item_id in range(self.n_rows):
             info = self.on_get_item_information(item_id)
             if info[key] == value:
                 return item_id

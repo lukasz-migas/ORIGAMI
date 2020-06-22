@@ -393,7 +393,7 @@ class PanelProcessExtractData(MiniFrame):
 
     def on_add_to_document(self, evt):
         """Add data to document. Ask users what data should be added"""
-        from origami.gui_elements.dialog_review_editor import DialogReviewEditor
+        from origami.gui_elements.dialog_review_editor import DialogReviewEditorExtract
 
         # if the list is empty, notify the user
         if not self.extraction_data:
@@ -409,7 +409,7 @@ class PanelProcessExtractData(MiniFrame):
 
         # collect list of items in the clipboard
         item_list = self.generate_extraction_list()
-        dlg = DialogReviewEditor(self, self.presenter, self.config, item_list, review_type="extraction")
+        dlg = DialogReviewEditorExtract(self, item_list)
         dlg.ShowModal()
         add_to_document_list = dlg.output_list
 

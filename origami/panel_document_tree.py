@@ -1,7 +1,6 @@
 # Standard library imports
 import gc
 import os
-import re
 import time
 import logging
 from copy import deepcopy
@@ -1291,7 +1290,6 @@ class DocumentTree(wx.TreeCtrl):
                 "An instance of annotation window is already open. Please close it first before"
                 + " opening another one.",
             )
-
         # get data and annotations
         document_title, dataset_name = self._get_item_info()
         data_obj = self._get_item_object()
@@ -1312,41 +1310,7 @@ class DocumentTree(wx.TreeCtrl):
         )
         self._annotate_panel.Show()
 
-    def on_update_annotation(self, annotations, document_title, dataset_type, dataset_name, set_data_only=False):
-        """
-        Update annotations in specified document/dataset
-
-        Parameters
-        ----------
-        annotations : dict
-            dictionary with annotations
-        document_title : str
-            name of the document
-        dataset_type : str
-            type of the dataset
-        dataset_name : str
-            name of the dataset
-        set_data_only : bool
-            specify whether all annotations should be removed and re-added or if it should simply set data
-        """
-        # get dataset
-        query_info = [document_title, dataset_type, dataset_name]
-        __, dataset = self.data_handling.get_mobility_chromatographic_data(query_info, as_copy=False)
-
-        # get pointer to dataset
-        item = self.get_item_by_data(dataset)
-
-        # update dataset with new annotations
-        document = self.data_handling.set_mobility_chromatographic_keyword_data(query_info, annotations=annotations)
-
-        # update elements in the document tree
-        if item is not False and not set_data_only:
-            self.add_one_to_group(item, annotations, "Annotations", image="annotation")
-            self.data_handling.on_update_document(document, "no_refresh")
-        else:
-            self.data_handling.on_update_document(document, "no_refresh")
-
-    def on_duplicate_annotations(self, evt):
+    def on_duplicate_annotations(self, _evt):
         """Duplicate annotations from one object to another
 
         Parameters
@@ -1356,29 +1320,24 @@ class DocumentTree(wx.TreeCtrl):
         """
         from origami.gui_elements.dialog_select_dataset import DialogSelectDataset
 
-        # get data
-        document_title, dataset_type, dataset_name = self._get_query_info_based_on_indent()
-        __, data = self.data_handling.get_mobility_chromatographic_data([document_title, dataset_type, dataset_name])
-        annotations = deepcopy(data.get("annotations", None))
+        # get data and annotations
+        document_title, dataset_name = self._get_item_info()
+        data_obj = self._get_item_object()
+        annotations_obj = data_obj.get_annotations()
+        plot_type = self._match_plot_type_to_data_obj(data_obj)
 
-        if annotations is None or len(annotations) == 0:
-            raise MessageError("Annotations were not found", "This item has no annotations to duplicate")
-
-        plot_type = self._match_plot_type_to_dataset_type(dataset_type, dataset_name)
-        if plot_type == "annotated":
-            raise MessageError(
-                "Not supported yet", "Duplication of annotations from this data type is not yet supported"
-            )
+        if len(annotations_obj) == 0:
+            raise MessageError("Error", "Annotation object is empty")
 
         document_spectrum_list = self.data_handling.generate_annotation_list(plot_type)
         document_list = list(document_spectrum_list.keys())
 
-        document_spectrum_list[document_title].pop(
-            document_spectrum_list[document_title].index(f"{dataset_type} :: {dataset_name}")
-        )
-
         duplicate_dlg = DialogSelectDataset(
-            self.presenter.view, self, document_list, document_spectrum_list, set_document=document_title
+            self.presenter.view,
+            document_list,
+            document_spectrum_list,
+            set_document=document_title,
+            title="Copy annotations to document/dataset...",
         )
         duplicate_dlg.ShowModal()
         duplicate_document = duplicate_dlg.document
@@ -1387,56 +1346,28 @@ class DocumentTree(wx.TreeCtrl):
         if any(item is None for item in [duplicate_type, duplicate_document]):
             LOGGER.warning("Duplicating annotations was cancelled")
             return
+        if dataset_name == duplicate_type:
+            LOGGER.warning("Tried to copy annotations to the parent object - cancelled.")
+            return
 
-        # split dataset name
-        duplicate_name = duplicate_type
-        if "::" in duplicate_type:
-            duplicate_type, duplicate_name = re.split(" :: ", duplicate_type)
+        # make copy of the annotations
+        annotations_obj_copy = deepcopy(annotations_obj)
 
-        __, data = self.data_handling.get_mobility_chromatographic_data(
-            [duplicate_document, duplicate_type, duplicate_name]
-        )
+        document_copy_to = ENV.on_get_document(duplicate_document)
+        data_obj_copy_to = document_copy_to[duplicate_type, True]
 
-        if data.get("annotations", dict()):
+        annotations_obj = data_obj_copy_to.get_annotations()
+        if len(annotations_obj) > 0:
             dlg = DialogBox(
                 title="Dataset already contains annotations",
                 msg="The selected dataset already contains annotations. Would you like"
-                + " to continue and override present annotations?",
+                + " to continue and overwrite present annotations?",
                 kind="Question",
             )
             if dlg == wx.ID_NO:
                 LOGGER.info("Cancelled adding annotations to a dataset")
                 return
-
-        # get dataset
-        self.on_update_annotation(annotations, duplicate_document, duplicate_type, duplicate_name)
-
-    def on_show_annotations(self, evt):
-        """Show annotations in the currently shown mass spectrum
-
-        Parameters
-        ----------
-        evt : wxPython event
-            unused
-        """
-        # get data
-        document_title, dataset_type, dataset_name = self._get_query_info_based_on_indent()
-        __, data = self.data_handling.get_mobility_chromatographic_data([document_title, dataset_type, dataset_name])
-
-        plot_type = self._match_plot_type_to_dataset_type(dataset_type, dataset_name)
-        annotations_obj = data.get("annotations", {})
-        if not annotations_obj:
-            raise MessageError("Error", "This item has no annotations to display")
-
-        self.panel_plot.on_plot_1D_annotations(
-            annotations_obj,
-            plot=plot_type,
-            label_fmt="all",
-            pin_to_intensity=True,
-            document_title=document_title,
-            dataset_type=dataset_type,
-            dataset_name=dataset_name,
-        )
+        data_obj_copy_to.set_annotations(annotations_obj_copy)
 
     def on_action_origami_ms(self, _, document_title=None):
         from origami.gui_elements.dialog_customise_origami import DialogCustomiseORIGAMI
@@ -1640,15 +1571,15 @@ class DocumentTree(wx.TreeCtrl):
         annotation_menu_show_annotations_panel = make_menu_item(
             parent=_menu, text="Show annotations panel...", bitmap=self._icons.label
         )
-        annotation_menu_show_annotations = make_menu_item(
-            parent=_menu, text="Show annotations on plot", bitmap=self._icons.highlight
-        )
+        #         annotation_menu_show_annotations = make_menu_item(
+        #             parent=_menu, text="Show annotations on plot", bitmap=self._icons.highlight
+        #         )
         annotation_menu_duplicate_annotations = make_menu_item(
             parent=_menu, text="Duplicate annotations...", bitmap=self._icons.duplicate
         )
 
         _menu.Append(annotation_menu_show_annotations_panel)
-        _menu.Append(annotation_menu_show_annotations)
+        #         _menu.Append(annotation_menu_show_annotations)
         _menu.Append(annotation_menu_duplicate_annotations)
 
         if self._item.is_dataset:
@@ -1656,7 +1587,7 @@ class DocumentTree(wx.TreeCtrl):
 
         # bind events
         self.Bind(wx.EVT_MENU, self.on_open_annotation_editor, annotation_menu_show_annotations_panel)
-        self.Bind(wx.EVT_MENU, self.on_show_annotations, annotation_menu_show_annotations)
+        #         self.Bind(wx.EVT_MENU, self.on_show_annotations, annotation_menu_show_annotations)
         self.Bind(wx.EVT_MENU, self.on_duplicate_annotations, annotation_menu_duplicate_annotations)
 
     def _set_menu_actions(self, menu):

@@ -108,8 +108,11 @@ def make_menu_item(parent, text, evt_id=-1, bitmap=None, help_text=None, kind=wx
     return menu_item
 
 
-def set_item_font(parent, size=10, color=wx.BLACK):
-    font = wx.Font(size, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+def set_item_font(
+    parent, size=10, color=wx.BLACK, family=wx.FONTFAMILY_DEFAULT, style=wx.FONTSTYLE_NORMAL, weight=wx.FONTWEIGHT_BOLD
+):
+    """Set item font"""
+    font = wx.Font(size, family, style, weight)
     parent.SetForegroundColour(color)
     parent.SetFont(font)
 
@@ -246,12 +249,10 @@ def mac_app_init():
 class Dialog(wx.Dialog):
     """Proxy of Dialog"""
 
-    def __init__(self, parent, **kwargs):
+    def __init__(self, parent, style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX), **kwargs):
         self.parent = parent
         bind_key_events = kwargs.pop("bind_key_events", True)
-        wx.Dialog.__init__(
-            self, parent, -1, style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX), **kwargs
-        )
+        wx.Dialog.__init__(self, parent, -1, style=style, **kwargs)
 
         self.Bind(wx.EVT_CLOSE, self.on_close)
 
@@ -270,7 +271,10 @@ class Dialog(wx.Dialog):
 
     def on_close(self, evt):
         """Destroy this frame."""
-        self.Destroy()
+        if self.IsModal():
+            self.EndModal(wx.ID_NO)
+        else:
+            self.Destroy()
 
     def make_panel(self):
         """Make panel"""
@@ -288,7 +292,7 @@ class Dialog(wx.Dialog):
 
         # fit layout
         main_sizer.Fit(self)
-        self.SetSizer(main_sizer)
+        self.SetSizerAndFit(main_sizer)
         self.Layout()
 
 

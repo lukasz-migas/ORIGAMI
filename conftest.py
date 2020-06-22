@@ -4,12 +4,9 @@ import os
 import glob
 
 # Third-party imports
-import wx
 import pytest
 
 # Local imports
-from origami.icons.icons import IconContainer
-from origami.config.config import Config
 from origami.utils.download import download_file
 from origami.config.download import Download
 from origami.utils.file_compression import unzip_directory
@@ -87,15 +84,3 @@ def get_text_ms(tmpdir_factory):
         link = dw_config["text_ms"]
         path = download_file(link, output_dir=output_dir)
     return glob.glob(os.path.join(path, "*"))
-
-
-@pytest.fixture(scope="session", autouse=True)
-def get_app():
-    app = wx.App()
-    frame = wx.Frame(None)
-    frame.Show()
-
-    config = Config()
-    icons = IconContainer()
-
-    return app, frame, config, icons

@@ -43,6 +43,7 @@ ALTERNATIVE_NAMES = {
     "Type: Imaging": "imaging",
     "Type: Activation": "activation",
     "Type: ORIGAMI": "origami",
+    "Type: MS": "thermo",  # remove,
 }
 DOCUMENT_TYPES = [
     "Type: ORIGAMI",

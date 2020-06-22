@@ -7,6 +7,8 @@ import time
 import logging
 import threading
 from sys import platform
+from typing import List
+from typing import Callable
 from multiprocessing.pool import ThreadPool
 
 # Third-party imports
@@ -3188,113 +3190,62 @@ class DataHandling(LoadHandler, ExportHandler):
             raise ValueError("Incorrect query arguments")
         data = document[dataset_name, True]
 
-        #         document = self.on_get_document(document_title)
-
-        #         if dataset_type == "Mass Spectrum":
-        #             data = document.massSpectrum
-        #         elif dataset_type == "Mass Spectrum (processed)":
-        #             data = document.smoothMS
-        #         elif dataset_type == "Chromatogram":
-        #             data = document.RT
-        #         elif dataset_type == "Drift time (1D)":
-        #             data = document.DT
-        #         elif dataset_type == "Drift time (2D)":
-        #             data = document.IMS2D
-        #         elif dataset_type == "Drift time (2D, processed)":
-        #             data = document.IMS2Dprocess
-        #         elif dataset_type == "DT/MS":
-        #             data = document.DTMZ
-        #         # MS -
-        #         elif dataset_type == "Mass Spectra":
-        #             data = get_subset_or_all(dataset_type, dataset_name, document.multipleMassSpectrum)
-        #         # 2D - EIC
-        #         elif dataset_type == "Drift time (2D, EIC)":
-        #             data = get_subset_or_all(dataset_type, dataset_name, document.IMS2Dions)
-        #         elif dataset_type == "Drift time (2D, combined voltages, EIC)":
-        #             data = get_subset_or_all(dataset_type, dataset_name, document.IMS2DCombIons)
-        #         # 2D - processed
-        #         elif dataset_type == "Drift time (2D, processed, EIC)":
-        #             data = get_subset_or_all(dataset_type, dataset_name, document.IMS2DionsProcess)
-        #         # 2D - input data
-        #         elif dataset_type == "Input data":
-        #             data = get_subset_or_all(dataset_type, dataset_name, document.IMS2DcompData)
-        #         # RT - combined voltages
-        #         elif dataset_type == "Chromatograms (combined voltages, EIC)":
-        #             data = get_subset_or_all(dataset_type, dataset_name, document.IMSRTCombIons)
-        #         # RT - EIC
-        #         elif dataset_type == "Chromatograms (EIC)":
-        #             data = get_subset_or_all(dataset_type, dataset_name, document.multipleRT)
-        #         # 1D - EIC
-        #         elif dataset_type == "Drift time (1D, EIC)":
-        #             data = get_subset_or_all(dataset_type, dataset_name, document.multipleDT)
-        #         # 1D - EIC - DTIMS
-        #         elif dataset_type == "Drift time (1D, EIC, DT-IMS)":
-        #             data = get_subset_or_all(dataset_type, dataset_name, document.IMS1DdriftTimes)
-        #         # Statistical
-        #         elif dataset_type == "Statistical":
-        #             data = get_subset_or_all(dataset_type, dataset_name, document.IMS2DstatsData)
-        #         # Annotated data
-        #         elif dataset_type == "Annotated data":
-        #             data = get_subset_or_all(dataset_type, dataset_name, document.other_data)
-        #         else:
-        #             raise MessageError(
-        #                 "Not implemented yet", f"Method to handle {dataset_type}, {dataset_name} has not been
-        #                 implemented yet"
-        #             )
-
         if as_copy:
             data = copy.deepcopy(data)
 
         return document, data
 
     def set_mobility_chromatographic_data(self, query_info, data, **kwargs):
+        raise NotImplementedError("Must reimplement method")
 
-        document_title, dataset_type, dataset_name = query_info
-        document = self.on_get_document(document_title)
-
-        if data is not None:
-            # MS data
-            if dataset_type == "Mass Spectrum":
-                self.documentTree.on_update_data(data, "", document, data_type="main.raw.spectrum")
-            elif dataset_type == "Mass Spectrum (processed)":
-                self.documentTree.on_update_data(data, "", document, data_type="main.processed.spectrum")
-            elif dataset_type == "Mass Spectra" and dataset_name is not None:
-                self.documentTree.on_update_data(data, dataset_name, document, data_type="extracted.spectrum")
-            # Drift time (2D) data
-            elif dataset_type == "Drift time (2D)":
-                self.documentTree.on_update_data(data, "", document, data_type="main.raw.heatmap")
-            elif dataset_type == "Drift time (2D, processed)":
-                self.documentTree.on_update_data(data, "", document, data_type="main.processed.heatmap")
-            elif dataset_type == "Drift time (2D, EIC)" and dataset_name is not None:
-                self.documentTree.on_update_data(data, dataset_name, document, data_type="ion.heatmap.raw")
-            elif dataset_type == "Drift time (2D, combined voltages, EIC)" and dataset_name is not None:
-                self.documentTree.on_update_data(data, dataset_name, document, data_type="ion.heatmap.combined")
-            elif dataset_type == "Drift time (2D, processed, EIC)" and dataset_name is not None:
-                self.documentTree.on_update_data(data, dataset_name, document, data_type="ion.heatmap.processed")
-            # overlay input data
-            elif dataset_type == "Input data" and dataset_name is not None:
-                self.documentTree.on_update_data(data, dataset_name, document, data_type="ion.heatmap.comparison")
-            # chromatogram data
-            elif dataset_type == "Chromatogram":
-                self.documentTree.on_update_data(data, "", document, data_type="main.chromatogram")
-            elif dataset_type == "Chromatograms (combined voltages, EIC)" and dataset_name is not None:
-                self.documentTree.on_update_data(data, dataset_name, document, data_type="ion.chromatogram.combined")
-            elif dataset_type == "Chromatograms (EIC)" and dataset_name is not None:
-                self.documentTree.on_update_data(data, dataset_name, document, data_type=" extracted.chromatogram")
-            # mobilogram data
-            elif dataset_type == "Drift time (1D)":
-                self.documentTree.on_update_data(data, "", document, data_type="main.mobilogram")
-            elif dataset_type == "Drift time (1D, EIC)" and dataset_name is not None:
-                self.documentTree.on_update_data(data, dataset_name, document, data_type="ion.mobilogram.raw")
-            elif dataset_type == "Drift time (1D, EIC, DT-IMS)" and dataset_name is not None:
-                self.documentTree.on_update_data(data, dataset_name, document, data_type="ion.mobilogram")
-            else:
-                raise MessageError(
-                    "Not implemented yet",
-                    f"Method to handle {dataset_type}, {dataset_name} has not been implemented yet",
-                )
-
-        return document
+    #         document_title, dataset_type, dataset_name = query_info
+    #         document = self.on_get_document(document_title)
+    #
+    #         if data is not None:
+    #             # MS data
+    #             if dataset_type == "Mass Spectrum":
+    #                 self.documentTree.on_update_data(data, "", document, data_type="main.raw.spectrum")
+    #             elif dataset_type == "Mass Spectrum (processed)":
+    #                 self.documentTree.on_update_data(data, "", document, data_type="main.processed.spectrum")
+    #             elif dataset_type == "Mass Spectra" and dataset_name is not None:
+    #                 self.documentTree.on_update_data(data, dataset_name, document, data_type="extracted.spectrum")
+    #             # Drift time (2D) data
+    #             elif dataset_type == "Drift time (2D)":
+    #                 self.documentTree.on_update_data(data, "", document, data_type="main.raw.heatmap")
+    #             elif dataset_type == "Drift time (2D, processed)":
+    #                 self.documentTree.on_update_data(data, "", document, data_type="main.processed.heatmap")
+    #             elif dataset_type == "Drift time (2D, EIC)" and dataset_name is not None:
+    #                 self.documentTree.on_update_data(data, dataset_name, document, data_type="ion.heatmap.raw")
+    #             elif dataset_type == "Drift time (2D, combined voltages, EIC)" and dataset_name is not None:
+    #                 self.documentTree.on_update_data(data, dataset_name, document, data_type="ion.heatmap.combined")
+    #             elif dataset_type == "Drift time (2D, processed, EIC)" and dataset_name is not None:
+    #                 self.documentTree.on_update_data(data, dataset_name, document, data_type="ion.heatmap.processed")
+    #             # overlay input data
+    #             elif dataset_type == "Input data" and dataset_name is not None:
+    #                 self.documentTree.on_update_data(data, dataset_name, document, data_type="ion.heatmap.comparison")
+    #             # chromatogram data
+    #             elif dataset_type == "Chromatogram":
+    #                 self.documentTree.on_update_data(data, "", document, data_type="main.chromatogram")
+    #             elif dataset_type == "Chromatograms (combined voltages, EIC)" and dataset_name is not None:
+    #                 self.documentTree.on_update_data(data, dataset_name, document,
+    #                 data_type="ion.chromatogram.combined")
+    #             elif dataset_type == "Chromatograms (EIC)" and dataset_name is not None:
+    #                 self.documentTree.on_update_data(data, dataset_name, document,
+    #                 data_type=" extracted.chromatogram")
+    #             # mobilogram data
+    #             elif dataset_type == "Drift time (1D)":
+    #                 self.documentTree.on_update_data(data, "", document, data_type="main.mobilogram")
+    #             elif dataset_type == "Drift time (1D, EIC)" and dataset_name is not None:
+    #                 self.documentTree.on_update_data(data, dataset_name, document, data_type="ion.mobilogram.raw")
+    #             elif dataset_type == "Drift time (1D, EIC, DT-IMS)" and dataset_name is not None:
+    #                 self.documentTree.on_update_data(data, dataset_name, document, data_type="ion.mobilogram")
+    #             else:
+    #                 raise MessageError(
+    #                     "Not implemented yet",
+    #                     f"Method to handle {dataset_type}, {dataset_name} has not been implemented yet",
+    #                 )
+    #
+    #         return document
 
     def set_mobility_chromatographic_keyword_data(self, query_info, **kwargs):
         """Set keyword(s) data for specified query items.
@@ -3310,191 +3261,196 @@ class DataHandling(LoadHandler, ExportHandler):
         -------
         document: document object
         """
+        raise NotImplementedError("Must reimplement method")
 
-        document_title, dataset_type, dataset_name = query_info
-        document = self.on_get_document(document_title)
-
-        for keyword in kwargs:
-            # MS data
-            if dataset_type == "Mass Spectrum":
-                document.massSpectrum[keyword] = kwargs[keyword]
-            elif dataset_type == "Mass Spectrum (processed)":
-                document.smoothMS[keyword] = kwargs[keyword]
-            elif dataset_type == "Mass Spectra" and dataset_name not in [None, "Mass Spectra"]:
-                document.multipleMassSpectrum[dataset_name][keyword] = kwargs[keyword]
-            # Drift time (2D) data
-            elif dataset_type == "Drift time (2D)":
-                document.IMS2D[keyword] = kwargs[keyword]
-            elif dataset_type == "Drift time (2D, processed)":
-                document.IMS2Dprocess[keyword] = kwargs[keyword]
-            elif dataset_type == "Drift time (2D, EIC)" and dataset_name is not None:
-                document.IMS2Dions[dataset_name][keyword] = kwargs[keyword]
-            elif dataset_type == "Drift time (2D, combined voltages, EIC)" and dataset_name is not None:
-                document.IMS2DCombIons[dataset_name][keyword] = kwargs[keyword]
-            elif dataset_type == "Drift time (2D, processed, EIC)" and dataset_name is not None:
-                document.IMS2DionsProcess[dataset_name][keyword] = kwargs[keyword]
-            # overlay input data
-            elif dataset_type == "Input data" and dataset_name is not None:
-                document.IMS2DcompData[dataset_name][keyword] = kwargs[keyword]
-            # chromatogram data
-            elif dataset_type == "Chromatogram":
-                document.RT[keyword] = kwargs[keyword]
-            elif dataset_type == "Chromatograms (combined voltages, EIC)" and dataset_name is not None:
-                document.IMSRTCombIons[dataset_name][keyword] = kwargs[keyword]
-            elif dataset_type == "Chromatograms (EIC)" and dataset_name is not None:
-                document.multipleRT[dataset_name][keyword] = kwargs[keyword]
-            # mobilogram data
-            elif dataset_type == "Drift time (1D)":
-                document.DT[keyword] = kwargs[keyword]
-            elif dataset_type == "Drift time (1D, EIC)" and dataset_name is not None:
-                document.multipleDT[dataset_name][keyword] = kwargs[keyword]
-            elif dataset_type == "Drift time (1D, EIC, DT-IMS)" and dataset_name is not None:
-                document.IMS1DdriftTimes[dataset_name][keyword] = kwargs[keyword]
-            elif dataset_type == "Annotated data" and dataset_name is not None:
-                document.other_data[dataset_name][keyword] = kwargs[keyword]
-            else:
-                raise MessageError(
-                    "Not implemented yet",
-                    f"Method to handle {dataset_type}, {dataset_name} has not been implemented yet",
-                )
-
-        return document
+    #         document_title, dataset_type, dataset_name = query_info
+    #         document = self.on_get_document(document_title)
+    #
+    #         for keyword in kwargs:
+    #             # MS data
+    #             if dataset_type == "Mass Spectrum":
+    #                 document.massSpectrum[keyword] = kwargs[keyword]
+    #             elif dataset_type == "Mass Spectrum (processed)":
+    #                 document.smoothMS[keyword] = kwargs[keyword]
+    #             elif dataset_type == "Mass Spectra" and dataset_name not in [None, "Mass Spectra"]:
+    #                 document.multipleMassSpectrum[dataset_name][keyword] = kwargs[keyword]
+    #             # Drift time (2D) data
+    #             elif dataset_type == "Drift time (2D)":
+    #                 document.IMS2D[keyword] = kwargs[keyword]
+    #             elif dataset_type == "Drift time (2D, processed)":
+    #                 document.IMS2Dprocess[keyword] = kwargs[keyword]
+    #             elif dataset_type == "Drift time (2D, EIC)" and dataset_name is not None:
+    #                 document.IMS2Dions[dataset_name][keyword] = kwargs[keyword]
+    #             elif dataset_type == "Drift time (2D, combined voltages, EIC)" and dataset_name is not None:
+    #                 document.IMS2DCombIons[dataset_name][keyword] = kwargs[keyword]
+    #             elif dataset_type == "Drift time (2D, processed, EIC)" and dataset_name is not None:
+    #                 document.IMS2DionsProcess[dataset_name][keyword] = kwargs[keyword]
+    #             # overlay input data
+    #             elif dataset_type == "Input data" and dataset_name is not None:
+    #                 document.IMS2DcompData[dataset_name][keyword] = kwargs[keyword]
+    #             # chromatogram data
+    #             elif dataset_type == "Chromatogram":
+    #                 document.RT[keyword] = kwargs[keyword]
+    #             elif dataset_type == "Chromatograms (combined voltages, EIC)" and dataset_name is not None:
+    #                 document.IMSRTCombIons[dataset_name][keyword] = kwargs[keyword]
+    #             elif dataset_type == "Chromatograms (EIC)" and dataset_name is not None:
+    #                 document.multipleRT[dataset_name][keyword] = kwargs[keyword]
+    #             # mobilogram data
+    #             elif dataset_type == "Drift time (1D)":
+    #                 document.DT[keyword] = kwargs[keyword]
+    #             elif dataset_type == "Drift time (1D, EIC)" and dataset_name is not None:
+    #                 document.multipleDT[dataset_name][keyword] = kwargs[keyword]
+    #             elif dataset_type == "Drift time (1D, EIC, DT-IMS)" and dataset_name is not None:
+    #                 document.IMS1DdriftTimes[dataset_name][keyword] = kwargs[keyword]
+    #             elif dataset_type == "Annotated data" and dataset_name is not None:
+    #                 document.other_data[dataset_name][keyword] = kwargs[keyword]
+    #             else:
+    #                 raise MessageError(
+    #                     "Not implemented yet",
+    #                     f"Method to handle {dataset_type}, {dataset_name} has not been implemented yet",
+    #                 )
+    #
+    #         return document
 
     def set_parent_mobility_chromatographic_data(self, query_info, data):
+        raise NotImplementedError("Must reimplement method")
 
-        document_title, dataset_type, dataset_name = query_info
-        document = self.on_get_document(document_title)
-
-        if data is None:
-            data = dict()
-
-        # MS data
-        if dataset_type == "Mass Spectrum":
-            document.massSpectrum = data
-            document.gotMS = True if data else False
-        elif dataset_type == "Mass Spectrum (processed)":
-            document.smoothMS = data
-        elif all(item == "Mass Spectra" for item in [dataset_type, dataset_name]):
-            document.multipleMassSpectrum = data
-            document.gotMultipleMS = True if data else False
-        elif dataset_type == "Mass Spectra" and dataset_name not in [None, "Mass Spectra"]:
-            if data:
-                document.multipleMassSpectrum[dataset_name] = data
-            else:
-                del document.multipleMassSpectrum[dataset_name]
-        # Drift time (2D) data
-        elif dataset_type == "Drift time (2D)":
-            document.IMS2D = data
-            document.got2DIMS = True if data else False
-        elif dataset_type == "Drift time (2D, processed)":
-            document.IMS2Dprocess = data
-            document.got2Dprocess = True if data else False
-        elif all(item == "Drift time (2D, EIC)" for item in [dataset_type, dataset_name]):
-            document.IMS2Dions = data
-            document.gotExtractedIons = True if data else False
-        elif dataset_type == "Drift time (2D, EIC)" and dataset_name is not None:
-            if data:
-                document.IMS2Dions[dataset_name] = data
-            else:
-                del document.IMS2Dions[dataset_name]
-        elif all(item == "Drift time (2D, combined voltages, EIC)" for item in [dataset_type, dataset_name]):
-            document.IMS2DCombIons = data
-            document.gotCombinedExtractedIons = True if data else False
-        elif dataset_type == "Drift time (2D, combined voltages, EIC)" and dataset_name is not None:
-            if data:
-                document.IMS2DCombIons[dataset_name] = data
-            else:
-                del document.IMS2DCombIons[dataset_name]
-        elif all(item == "Drift time (2D, processed, EIC)" for item in [dataset_type, dataset_name]):
-            document.IMS2DionsProcess = data
-            document.got2DprocessIons = True if data else False
-        elif dataset_type == "Drift time (2D, processed, EIC)" and dataset_name is not None:
-            if data:
-                document.IMS2DionsProcess[dataset_name] = data
-            else:
-                del document.IMS2DionsProcess[dataset_name]
-        # overlay input data
-        elif all(item == "Input data" for item in [dataset_type, dataset_name]):
-            document.IMS2DcompData = data
-            document.gotComparisonData = True if data else False
-        elif dataset_type == "Input data" and dataset_name is not None:
-            if data:
-                document.IMS2DcompData[dataset_name] = data
-            else:
-                del document.IMS2DcompData[dataset_name]
-        # chromatogram data
-        elif dataset_type == "Chromatogram":
-            document.RT = data
-            document.got1RT = True if data else False
-        elif all(item == "Chromatograms (combined voltages, EIC)" for item in [dataset_type, dataset_name]):
-            document.IMSRTCombIons = data
-            document.gotCombinedExtractedIonsRT = True if data else False
-        elif dataset_type == "Chromatograms (combined voltages, EIC)" and dataset_name is not None:
-            if data:
-                document.IMSRTCombIons[dataset_name] = data
-            else:
-                del document.IMSRTCombIons[dataset_name]
-        elif all(item == "Chromatograms (EIC)" for item in [dataset_type, dataset_name]):
-            document.multipleRT = data
-            document.gotMultipleRT = True if data else False
-        elif dataset_type == "Chromatograms (EIC)" and dataset_name is not None:
-            if data:
-                document.multipleRT[dataset_name] = data
-            else:
-                del document.multipleRT[dataset_name]
-        # mobilogram data
-        elif dataset_type == "Drift time (1D)":
-            document.DT = data
-            document.got1DT = True if data else False
-        elif all(item == "Drift time (1D, EIC)" for item in [dataset_type, dataset_name]):
-            document.multipleDT = data
-            document.gotMultipleDT = True if data else False
-        elif dataset_type == "Drift time (1D, EIC)" and dataset_name is not None:
-            if data:
-                document.multipleDT[dataset_name] = data
-            else:
-                del document.multipleDT[dataset_name]
-        elif all(item == "Drift time (1D, EIC, DT-IMS)" for item in [dataset_type, dataset_name]):
-            if data:
-                document.IMS1DdriftTimes[dataset_name] = data
-            else:
-                del document.IMS1DdriftTimes[dataset_name]
-            document.gotExtractedDriftTimes = True if data else False
-        elif dataset_type == "Drift time (1D, EIC, DT-IMS)" and dataset_name is not None:
-            if data:
-                document.IMS1DdriftTimes[dataset_name] = data
-            else:
-                del document.IMS1DdriftTimes[dataset_name]
-        # annotated data
-        elif all(item == "Annotated data" for item in [dataset_type, dataset_name]):
-            document.other_data = data
-        elif dataset_type == "Annotated data" and dataset_name is not None:
-            if data:
-                document.other_data[dataset_name] = data
-            else:
-                del document.other_data[dataset_name]
-        # DT/MS heatmap data
-        elif dataset_type == "DT/MS":
-            document.DTMZ = data
-            document.gotDTMZ = True if data else False
-        else:
-            raise MessageError(
-                "Not implemented yet", f"Method to handle {dataset_type}, {dataset_name} has not been implemented yet"
-            )
-
-        self.on_update_document(document, "no_refresh")
+    #         document_title, dataset_type, dataset_name = query_info
+    #         document = self.on_get_document(document_title)
+    #
+    #         if data is None:
+    #             data = dict()
+    #
+    #         # MS data
+    #         if dataset_type == "Mass Spectrum":
+    #             document.massSpectrum = data
+    #             document.gotMS = True if data else False
+    #         elif dataset_type == "Mass Spectrum (processed)":
+    #             document.smoothMS = data
+    #         elif all(item == "Mass Spectra" for item in [dataset_type, dataset_name]):
+    #             document.multipleMassSpectrum = data
+    #             document.gotMultipleMS = True if data else False
+    #         elif dataset_type == "Mass Spectra" and dataset_name not in [None, "Mass Spectra"]:
+    #             if data:
+    #                 document.multipleMassSpectrum[dataset_name] = data
+    #             else:
+    #                 del document.multipleMassSpectrum[dataset_name]
+    #         # Drift time (2D) data
+    #         elif dataset_type == "Drift time (2D)":
+    #             document.IMS2D = data
+    #             document.got2DIMS = True if data else False
+    #         elif dataset_type == "Drift time (2D, processed)":
+    #             document.IMS2Dprocess = data
+    #             document.got2Dprocess = True if data else False
+    #         elif all(item == "Drift time (2D, EIC)" for item in [dataset_type, dataset_name]):
+    #             document.IMS2Dions = data
+    #             document.gotExtractedIons = True if data else False
+    #         elif dataset_type == "Drift time (2D, EIC)" and dataset_name is not None:
+    #             if data:
+    #                 document.IMS2Dions[dataset_name] = data
+    #             else:
+    #                 del document.IMS2Dions[dataset_name]
+    #         elif all(item == "Drift time (2D, combined voltages, EIC)" for item in [dataset_type, dataset_name]):
+    #             document.IMS2DCombIons = data
+    #             document.gotCombinedExtractedIons = True if data else False
+    #         elif dataset_type == "Drift time (2D, combined voltages, EIC)" and dataset_name is not None:
+    #             if data:
+    #                 document.IMS2DCombIons[dataset_name] = data
+    #             else:
+    #                 del document.IMS2DCombIons[dataset_name]
+    #         elif all(item == "Drift time (2D, processed, EIC)" for item in [dataset_type, dataset_name]):
+    #             document.IMS2DionsProcess = data
+    #             document.got2DprocessIons = True if data else False
+    #         elif dataset_type == "Drift time (2D, processed, EIC)" and dataset_name is not None:
+    #             if data:
+    #                 document.IMS2DionsProcess[dataset_name] = data
+    #             else:
+    #                 del document.IMS2DionsProcess[dataset_name]
+    #         # overlay input data
+    #         elif all(item == "Input data" for item in [dataset_type, dataset_name]):
+    #             document.IMS2DcompData = data
+    #             document.gotComparisonData = True if data else False
+    #         elif dataset_type == "Input data" and dataset_name is not None:
+    #             if data:
+    #                 document.IMS2DcompData[dataset_name] = data
+    #             else:
+    #                 del document.IMS2DcompData[dataset_name]
+    #         # chromatogram data
+    #         elif dataset_type == "Chromatogram":
+    #             document.RT = data
+    #             document.got1RT = True if data else False
+    #         elif all(item == "Chromatograms (combined voltages, EIC)" for item in [dataset_type, dataset_name]):
+    #             document.IMSRTCombIons = data
+    #             document.gotCombinedExtractedIonsRT = True if data else False
+    #         elif dataset_type == "Chromatograms (combined voltages, EIC)" and dataset_name is not None:
+    #             if data:
+    #                 document.IMSRTCombIons[dataset_name] = data
+    #             else:
+    #                 del document.IMSRTCombIons[dataset_name]
+    #         elif all(item == "Chromatograms (EIC)" for item in [dataset_type, dataset_name]):
+    #             document.multipleRT = data
+    #             document.gotMultipleRT = True if data else False
+    #         elif dataset_type == "Chromatograms (EIC)" and dataset_name is not None:
+    #             if data:
+    #                 document.multipleRT[dataset_name] = data
+    #             else:
+    #                 del document.multipleRT[dataset_name]
+    #         # mobilogram data
+    #         elif dataset_type == "Drift time (1D)":
+    #             document.DT = data
+    #             document.got1DT = True if data else False
+    #         elif all(item == "Drift time (1D, EIC)" for item in [dataset_type, dataset_name]):
+    #             document.multipleDT = data
+    #             document.gotMultipleDT = True if data else False
+    #         elif dataset_type == "Drift time (1D, EIC)" and dataset_name is not None:
+    #             if data:
+    #                 document.multipleDT[dataset_name] = data
+    #             else:
+    #                 del document.multipleDT[dataset_name]
+    #         elif all(item == "Drift time (1D, EIC, DT-IMS)" for item in [dataset_type, dataset_name]):
+    #             if data:
+    #                 document.IMS1DdriftTimes[dataset_name] = data
+    #             else:
+    #                 del document.IMS1DdriftTimes[dataset_name]
+    #             document.gotExtractedDriftTimes = True if data else False
+    #         elif dataset_type == "Drift time (1D, EIC, DT-IMS)" and dataset_name is not None:
+    #             if data:
+    #                 document.IMS1DdriftTimes[dataset_name] = data
+    #             else:
+    #                 del document.IMS1DdriftTimes[dataset_name]
+    #         # annotated data
+    #         elif all(item == "Annotated data" for item in [dataset_type, dataset_name]):
+    #             document.other_data = data
+    #         elif dataset_type == "Annotated data" and dataset_name is not None:
+    #             if data:
+    #                 document.other_data[dataset_name] = data
+    #             else:
+    #                 del document.other_data[dataset_name]
+    #         # DT/MS heatmap data
+    #         elif dataset_type == "DT/MS":
+    #             document.DTMZ = data
+    #             document.gotDTMZ = True if data else False
+    #         else:
+    #             raise MessageError(
+    #                 "Not implemented yet", f"Method to handle {dataset_type}, {dataset_name} has not been
+    #                 implemented yet"
+    #             )
+    #
+    #         self.on_update_document(document, "no_refresh")
 
     def set_overlay_data(self, query_info, data, **kwargs):
-        document_title, dataset_type, dataset_name = query_info
-        document = self.on_get_document(document_title)
+        raise NotImplementedError("Must reimplement method")
 
-        if data is not None:
-            if dataset_type == "Statistical" and dataset_name is not None:
-                self.documentTree.on_update_data(data, dataset_name, document, data_type="overlay.statistical")
-            elif dataset_type == "Overlay" and dataset_name is not None:
-                self.documentTree.on_update_data(data, dataset_name, document, data_type="overlay.overlay")
-
-        return document
+    #         document_title, dataset_type, dataset_name = query_info
+    #         document = self.on_get_document(document_title)
+    #
+    #         if data is not None:
+    #             if dataset_type == "Statistical" and dataset_name is not None:
+    #                 self.documentTree.on_update_data(data, dataset_name, document, data_type="overlay.statistical")
+    #             elif dataset_type == "Overlay" and dataset_name is not None:
+    #                 self.documentTree.on_update_data(data, dataset_name, document, data_type="overlay.overlay")
+    #
+    #         return document
 
     def generate_annotation_list(self, data_type):
         if data_type in ["mass_spectra", "mass_spectrum"]:
@@ -3522,33 +3478,10 @@ class DataHandling(LoadHandler, ExportHandler):
 
         return item_list
 
-    def generate_item_list_mass_spectra(self, output_type="overlay"):
-        """Generate list of items with the correct data type"""
+    def _generate_item_list(
+        self, output_type: str, all_datasets: List[str], get_overlay_data: Callable, cleanup: Callable
+    ):
 
-        def get_overlay_data(data, dataset_name):
-            """Generate overlay data dictionary"""
-            item_out = {
-                "dataset_name": dataset_name,
-                "dataset_type": dataset_type,
-                "document_title": document_title,
-                "shape": data["xvals"].shape,
-                "label": data.get("label", ""),
-                "color": data.get("color", get_random_color(True)),
-                "overlay_order": data.get("overlay_order", ""),
-                "processed": True if "processed" in dataset_type else False,
-            }
-            return item_out
-
-        def cleanup(item_list):
-            document_titles = list(item_list.keys())
-            for document_title in document_titles:
-                if not item_list[document_title]:
-                    item_list.pop(document_title)
-            return item_list
-
-        all_datasets = ["MassSpectra"]
-        #         all_datasets = ["Mass Spectrum", "Mass Spectrum (processed)", "Mass Spectra"]
-        #         singlular_datasets = ["Mass Spectrum", "Mass Spectrum (processed)"]
         all_documents = ENV.get_document_list("all")
 
         item_list = []
@@ -3567,38 +3500,47 @@ class DataHandling(LoadHandler, ExportHandler):
                 for dataset_name in dataset_items:
                     obj = document[dataset_name, True]
                     if output_type == "overlay":
-                        item_list.append(get_overlay_data(obj, dataset_type))
+                        item_list.append(get_overlay_data(obj, dataset_type, dataset_type, document_title))
                     elif output_type in ["annotations", "comparison"]:
                         item_list[document_title].append(dataset_name)
-        #
-        #             for dataset_type in all_datasets:
-        #                 __, data = self.get_spectrum_data([document_title, dataset_type])
-        #                 if dataset_type in singlular_datasets and isinstance(data, dict) and len(data) > 0:
-        #                     if output_type == "overlay":
-        #                         item_list.append(get_overlay_data(data, dataset_type))
-        #                     elif output_type in ["annotations"]:
-        #                         item_list[document_title].append(dataset_type)
-        #                     elif output_type in ["comparison"]:
-        #                         item_list[document_title].append(dataset_type)
-        #                 elif dataset_type not in singlular_datasets and isinstance(data, dict) and len(data) > 0:
-        #                     for key in data:
-        #                         if data[key]:
-        #                             if output_type == "overlay":
-        #                                 item_list.append(get_overlay_data(data[key], key))
-        #                             elif output_type in ["annotations"]:
-        #                                 item_list[document_title].append(f"{dataset_type} :: {key}")
-        #                             elif output_type in ["comparison"]:
-        #                                 item_list[document_title].append(key)
 
         if output_type == "comparison":
             item_list = cleanup(item_list)
 
         return item_list
 
+    def generate_item_list_mass_spectra(self, output_type="overlay"):
+        """Generate list of items with the correct data type"""
+
+        def get_overlay_data(data: DataObject, dataset_name: str, dataset_type: str, document_title: str):
+            """Generate overlay data dictionary"""
+            item_out = {
+                "dataset_name": dataset_name,
+                "dataset_type": dataset_type,
+                "document_title": document_title,
+                "shape": data.shape,
+                "label": data.get("label", ""),
+                "color": data.get("color", get_random_color(True)),
+                "overlay_order": data.get("overlay_order", ""),
+                "processed": True if "processed" in dataset_type else False,
+            }
+            return item_out
+
+        def cleanup(item_list):
+            """Clean-up generated list"""
+            document_titles = list(item_list.keys())
+            for document_title in document_titles:
+                if not item_list[document_title]:
+                    item_list.pop(document_title)
+            return item_list
+
+        all_datasets = ["MassSpectra"]
+        return self._generate_item_list(output_type, all_datasets, get_overlay_data, cleanup)
+
     def generate_item_list_heatmap(self, output_type="overlay"):
         """Generate list of items with the correct data type"""
 
-        def get_overlay_data(data, dataset_name):
+        def get_overlay_data(data: DataObject, dataset_name: str, dataset_type: str, document_title: str):
             """Generate overlay data dictionary"""
             item_dict = {
                 "dataset_name": dataset_name,
@@ -3620,41 +3562,17 @@ class DataHandling(LoadHandler, ExportHandler):
             }
             return item_dict
 
-        all_datasets = [
-            "Drift time (2D)",
-            "Drift time (2D, processed)",
-            "Drift time (2D, EIC)",
-            "Drift time (2D, processed, EIC)",
-            "Drift time (2D, combined voltages, EIC)",
-            "Input data",
-        ]
-        singlular_datasets = ["Drift time (2D)", "Drift time (2D, processed)"]
-        all_documents = ENV.get_document_list("all")
+        def cleanup(item_list):
+            """Clean-up generated list"""
+            return item_list
 
-        item_list = []
-        if output_type == "annotations":
-            item_list = {document_title: list() for document_title in all_documents}
-        for document_title in all_documents:
-            for dataset_type in all_datasets:
-                __, data = self.get_mobility_chromatographic_data([document_title, dataset_type, dataset_type])
-                if dataset_type in singlular_datasets and isinstance(data, dict) and len(data) > 0:
-                    if output_type == "overlay":
-                        item_list.append(get_overlay_data(data, dataset_type))
-                    elif output_type == "annotations":
-                        item_list[document_title].append(dataset_type)
-                else:
-                    for key in data:
-                        if data[key]:
-                            if output_type == "overlay":
-                                item_list.append(get_overlay_data(data[key], key))
-                            elif output_type == "annotations":
-                                item_list[document_title].append(f"{dataset_type} :: {key}")
-        return item_list
+        all_datasets = ["IonHeatmaps"]
+        return self._generate_item_list(output_type, all_datasets, get_overlay_data, cleanup)
 
     def generate_item_list_chromatogram(self, output_type="overlay"):
         """Generate list of items with the correct data type"""
 
-        def get_overlay_data(data, dataset_name):
+        def get_overlay_data(data: DataObject, dataset_name: str, dataset_type: str, document_title: str):
             """Generate overlay data dictionary"""
             item_dict = {
                 "dataset_name": dataset_name,
@@ -3671,34 +3589,17 @@ class DataHandling(LoadHandler, ExportHandler):
             }
             return item_dict
 
-        all_datasets = ["Chromatograms (EIC)", "Chromatograms (combined voltages, EIC)", "Chromatogram"]
-        singlular_datasets = ["Chromatogram"]
-        all_documents = ENV.get_document_list("all")
+        def cleanup(item_list):
+            """Clean-up generated list"""
+            return item_list
 
-        item_list = []
-        if output_type == "annotations":
-            item_list = {document_title: list() for document_title in all_documents}
-        for document_title in all_documents:
-            for dataset_type in all_datasets:
-                __, data = self.get_mobility_chromatographic_data([document_title, dataset_type, dataset_type])
-                if dataset_type in singlular_datasets and isinstance(data, dict) and len(data) > 0:
-                    if output_type == "overlay":
-                        item_list.append(get_overlay_data(data, dataset_type))
-                    elif output_type == "annotations":
-                        item_list[document_title].append(dataset_type)
-                else:
-                    for key in data:
-                        if data[key]:
-                            if output_type == "overlay":
-                                item_list.append(get_overlay_data(data[key], key))
-                            elif output_type == "annotations":
-                                item_list[document_title].append(f"{dataset_type} :: {key}")
-        return item_list
+        all_datasets = ["Chromatograms"]
+        return self._generate_item_list(output_type, all_datasets, get_overlay_data, cleanup)
 
     def generate_item_list_mobilogram(self, output_type="overlay"):
         """Generate list of items with the correct data type"""
 
-        def get_overlay_data(data, dataset_name):
+        def get_overlay_data(data: DataObject, dataset_name: str, dataset_type: str, document_title: str):
             """Generate overlay data dictionary"""
             item_dict = {
                 "dataset_name": dataset_name,
@@ -3715,29 +3616,12 @@ class DataHandling(LoadHandler, ExportHandler):
             }
             return item_dict
 
-        all_datasets = ["Drift time (1D, EIC)", "Drift time (1D, EIC, DT-IMS)", "Drift time (1D)"]
-        singlular_datasets = ["Drift time (1D)"]
-        all_documents = ENV.get_document_list("all")
+        def cleanup(item_list):
+            """Clean-up generated list"""
+            return item_list
 
-        item_list = []
-        if output_type == "annotations":
-            item_list = {document_title: list() for document_title in all_documents}
-        for document_title in all_documents:
-            for dataset_type in all_datasets:
-                __, data = self.get_mobility_chromatographic_data([document_title, dataset_type, dataset_type])
-                if dataset_type in singlular_datasets and isinstance(data, dict) and len(data) > 0:
-                    if output_type == "overlay":
-                        item_list.append(get_overlay_data(data, dataset_type))
-                    elif output_type == "annotations":
-                        item_list[document_title].append(dataset_type)
-                else:
-                    for key in data:
-                        if data[key]:
-                            if output_type == "overlay":
-                                item_list.append(get_overlay_data(data[key], key))
-                            elif output_type == "annotations":
-                                item_list[document_title].append(f"{dataset_type} :: {key}")
-        return item_list
+        all_datasets = ["Mobilograms"]
+        return self._generate_item_list(output_type, all_datasets, get_overlay_data, cleanup)
 
     def on_load_user_list_fcn(self, **kwargs):
         wildcard = (

@@ -3131,7 +3131,7 @@ class PanelCustomiseInteractivePlot(wx.MiniFrame):
         source = evt.GetEventObject().GetName()
 
         dlg = DialogColorPicker(self, self.config.customColors)
-        if dlg.ShowModal() == "ok":
+        if dlg.ShowModal() == wx.ID_OK:
             color_255, color_1, __ = dlg.GetChosenColour()
             self.config.customColors = dlg.GetCustomColours()
 

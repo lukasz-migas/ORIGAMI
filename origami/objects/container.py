@@ -105,3 +105,7 @@ class ContainerBase:
         if self.owner is not None:
             parent, _ = self.owner
             return ENV.on_get_document(parent)
+
+    def get_metadata(self, key, default):
+        """Return metadata"""
+        self._metadata.get(key, default)

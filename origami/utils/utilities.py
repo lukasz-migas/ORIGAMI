@@ -13,6 +13,13 @@ CHUNK_MIN = 256 * 1024  # Soft lower limit (128k)
 CHUNK_MAX = 64 * 1024 * 1024  # Hard upper limit
 
 
+def open_link(link: str):
+    """Open web page"""
+    import webbrowser
+
+    webbrowser.open(link, autoraise=True)
+
+
 def rescale(values, new_min, new_max, dtype=None):
     """Rescale values from one range to another
 

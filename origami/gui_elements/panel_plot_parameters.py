@@ -2734,7 +2734,7 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         evtID = evt.GetId()
 
         dlg = DialogColorPicker(self, self.config.customColors)
-        if dlg.ShowModal() == "ok":
+        if dlg.ShowModal() == wx.ID_OK:
             color_255, color_1, __ = dlg.GetChosenColour()
             self.config.customColors = dlg.GetCustomColours()
         else:

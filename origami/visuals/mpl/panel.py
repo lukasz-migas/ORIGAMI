@@ -140,6 +140,7 @@ class MPLPanel(wx.Panel):
             allow_extraction=allow_extraction,
             allow_wheel=allow_wheel,
             callbacks=callbacks,
+            parent=self.GetParent(),
         )
 
     def setup_zoom(

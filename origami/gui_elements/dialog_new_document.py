@@ -1,3 +1,4 @@
+"""Create new document"""
 # Standard library imports
 import os
 import logging
@@ -7,6 +8,7 @@ import wx
 
 # Local imports
 from origami.styles import Dialog
+from origami.styles import set_tooltip
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
 from origami.config.environment import DOCUMENT_TYPES
@@ -29,12 +31,12 @@ class DialogNewDocument(Dialog):
     # settable parameters
     current_document = None
 
-    def __init__(self, parent, **kwargs):
+    def __init__(self, parent, document_type: str = None):
         wx.Dialog.__init__(self, parent, title="Create new document...", size=(400, 300))
 
         self.parent = parent
 
-        self._document_type = kwargs.get("document_type", None)
+        self._document_type = document_type
 
         # make gui items
         self.make_gui()
@@ -113,26 +115,37 @@ class DialogNewDocument(Dialog):
         self.path_value = wx.TextCtrl(panel, -1, "")
         self.path_value.Bind(wx.EVT_TEXT, self.validate_path)
         self.path_value.Bind(wx.EVT_TEXT, self.update_full_path)
+        set_tooltip(self.path_value, "Base directory where the Document will be created in")
 
         self.directory_btn = wx.Button(panel, wx.ID_OK, "Directory...", size=(-1, 22))
         self.directory_btn.Bind(wx.EVT_BUTTON, self.on_select_directory)
+        set_tooltip(self.directory_btn, "Select base directory")
 
         title_label = wx.StaticText(panel, -1, "Title:")
         self.title_value = wx.TextCtrl(panel, -1, "")
         self.title_value.Bind(wx.EVT_TEXT, self.update_full_path)
+        set_tooltip(self.title_value, "Title of the Document")
 
         full_path_label = wx.StaticText(panel, -1, "Document path:")
         self.full_path_value = wx.StaticText(panel, -1, "")
+        set_tooltip(self.full_path_value, "Full path to the Document (including `path` and `title`")
 
         document_type_label = wx.StaticText(panel, -1, "Document type:")
         self.document_type_choice = wx.Choice(panel, -1, choices=DOCUMENT_TYPES, size=(300, -1))
         self.document_type_choice.Select(0)
+        set_tooltip(
+            self.document_type_choice,
+            "Make selection of which kind of document you would like to create. Most of the time, this option is "
+            "selected for you.",
+        )
 
         self.ok_btn = wx.Button(panel, wx.ID_OK, "OK", size=(-1, 22))
         self.ok_btn.Bind(wx.EVT_BUTTON, self.on_ok, id=wx.ID_ANY)
+        set_tooltip(self.ok_btn, "Make a selection and close the window.")
 
         self.cancel_btn = wx.Button(panel, -1, "Cancel", size=(-1, 22))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
+        set_tooltip(self.cancel_btn, "Close the window without making the selection.")
 
         btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
         btn_sizer.Add(self.ok_btn)

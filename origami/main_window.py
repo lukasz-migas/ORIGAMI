@@ -1808,16 +1808,18 @@ class MainWindow(wx.Frame):
 
         n_documents = len(ENV)
         if n_documents > 0 and not kwargs.get("ignore_warning", False):
-            verb_form = {"1": "is"}.get(str(n_documents), "are")
-            message = (
-                "There {} {} document(s) open.\n".format(verb_form, len(ENV)) + "Are you sure you want to continue?"
+            msg = (
+                f"{len(ENV)} document(s) are still open and you might lose some work if they are not saved. "
+                "\nAre you sure you would want to continue?"
             )
-            msgDialog = DialogNotifyOpenDocuments(self, presenter=self.presenter, message=message)
-            dlg = msgDialog.ShowModal()
+            dlg = DialogNotifyOpenDocuments(self, message=msg)
+            response = dlg.ShowModal()
 
-            if dlg == wx.ID_NO:
+            if response == wx.ID_NO:
                 print("Cancelled operation")
                 return
+            elif response == wx.ID_SAVE:
+                self.presenter.on_save_all_documents()
 
         # Try saving configuration file
         try:
@@ -2023,11 +2025,11 @@ class MainWindow(wx.Frame):
         if self.resized:
             self.resized = False
 
-    def on_open_about_panel(self, evt):
+    def on_open_about_panel(self, _evt):
         """Show About ORIGAMI panel."""
         from origami.gui_elements.panel_about import PanelAbout
 
-        about = PanelAbout(self, self.presenter, "About ORIGAMI", CONFIG, self.icons)
+        about = PanelAbout(self, self.icons)
         about.Centre()
         about.Show()
         about.SetFocus()

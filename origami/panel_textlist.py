@@ -666,41 +666,24 @@ class PanelTextlist(TablePanelBase):
         if rows == 0:
             return
 
+        keyword = None
         if evt.GetId() == ID_textPanel_annotate_charge_state:
-            static_text = "Assign charge state to selected items."
-            ask_kwargs = {"static_text": static_text, "value_text": "", "validator": "integer", "keyword": "charge"}
+            keyword = "charge"
 
         elif evt.GetId() == ID_textPanel_annotate_alpha:
-            static_text = (
-                "Assign new transparency value to selected items \n" + "Typical transparency values: 0.5\nRange 0-1"
-            )
-            ask_kwargs = {"static_text": static_text, "value_text": 0.5, "validator": "float", "keyword": "alpha"}
+            keyword = "alpha"
 
         elif evt.GetId() == ID_textPanel_annotate_mask:
-            static_text = "Assign new mask value to selected items \nTypical mask values: 0.25\nRange 0-1"
-            ask_kwargs = {"static_text": static_text, "value_text": 0.25, "validator": "float", "keyword": "mask"}
+            keyword = "mask"
 
         elif evt.GetId() == ID_textPanel_annotate_min_threshold:
-            static_text = "Assign minimum threshold value to selected items \nTypical mask values: 0.0\nRange 0-1"
-            ask_kwargs = {
-                "static_text": static_text,
-                "value_text": 0.0,
-                "validator": "float",
-                "keyword": "min_threshold",
-            }
-
+            keyword = "min_threshold"
         elif evt.GetId() == ID_textPanel_annotate_max_threshold:
-            static_text = "Assign maximum threshold value to selected items \nTypical mask values: 1.0\nRange 0-1"
-            ask_kwargs = {
-                "static_text": static_text,
-                "value_text": 1.0,
-                "validator": "float",
-                "keyword": "max_threshold",
-            }
+            keyword = "max_threshold"
         else:
             raise ValueError("Not sure what to do...")
 
-        ask = DialogAsk(self, **ask_kwargs)
+        ask = DialogAsk(self, keyword=keyword)
         ask.ShowModal()
         return_value = ask.return_value
         if return_value is None:
@@ -712,14 +695,16 @@ class PanelTextlist(TablePanelBase):
                 itemInfo = self.on_get_item_information(row)
                 document = self.data_handling.on_get_document(itemInfo["document"])
 
-                if not ask_kwargs["keyword"] in ["min_threshold", "max_threshold"]:
-                    self.peaklist.SetItem(row, CONFIG.textlistColNames[ask_kwargs["keyword"]], str(return_value))
+                if keyword not in ["min_threshold", "max_threshold"]:
+                    self.peaklist.SetStringItem(
+                        row, get_font_color(self.TABLE_COLUMN_INDEX, keyword), str(return_value)
+                    )
 
                 # set value in document
                 if document.got2DIMS:
-                    document.IMS2D[ask_kwargs["keyword"]] = return_value
+                    document.IMS2D[keyword] = return_value
                 if document.got2Dprocess:
-                    document.IMS2Dprocess[ask_kwargs["keyword"]] = return_value
+                    document.IMS2Dprocess[keyword] = return_value
 
                 self.data_handling.on_update_document(document, "no_refresh")
 

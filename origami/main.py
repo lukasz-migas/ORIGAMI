@@ -3,7 +3,7 @@ import gc
 import os
 import sys
 import logging
-import warnings
+# import warnings
 import threading
 import webbrowser
 import faulthandler
@@ -38,11 +38,11 @@ from origami.config.environment import ENV
 from origami.help_documentation import OrigamiHelp
 from origami.gui_elements.misc_dialogs import DialogSimpleAsk
 
-# needed to avoid annoying warnings to be printed on console
-warnings.filterwarnings("ignore", category=DeprecationWarning)
-warnings.filterwarnings("ignore", category=RuntimeWarning)
-warnings.filterwarnings("ignore", category=UserWarning)
-warnings.filterwarnings("ignore", category=FutureWarning)
+# # needed to avoid annoying warnings to be printed on console
+# warnings.filterwarnings("ignore", category=DeprecationWarning)
+# warnings.filterwarnings("ignore", category=RuntimeWarning)
+# warnings.filterwarnings("ignore", category=UserWarning)
+# warnings.filterwarnings("ignore", category=FutureWarning)
 
 logger = logging.getLogger(__name__)
 faulthandler.enable()

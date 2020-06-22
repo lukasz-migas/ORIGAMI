@@ -179,10 +179,12 @@ class MPLInteraction:
         allow_wheel=True,
         allow_extraction=True,
         callbacks=None,
+        parent=None,
     ):
         if callbacks is None:
             callbacks = dict()
 
+        self.parent = parent
         self.axes = None
         self.canvas = None
         self.visible = True
@@ -557,8 +559,22 @@ class MPLInteraction:
 
         xy_start = [evt.xdata, evt.ydata]
 
+        # check whether it was a double click
+        if not self._is_inside_axes:
+            # completely un-zoom
+            if evt.dblclick and not self._shift_key:
+                self.reset_axes(axis_pos=self._last_location)
+            # un-zoom along one of the axes
+            elif evt.dblclick and self._shift_key and self._last_location in ["left", "right"]:
+                if self.current_ymax is None:
+                    return
+                for axes in self.axes:
+                    axes.set_ylim(0, self.current_ymax)
+                self.canvas.draw()
+                return
+
         # dragging annotation
-        if self.dragged is not None:
+        if self.dragged is not None and not evt.dblclick:
             if self._is_legend or self._is_label:
                 return
 
@@ -570,20 +586,6 @@ class MPLInteraction:
                 self.savedRetinaImage = self.canvas.copy_from_bbox(evt.inaxes.bbox)
                 self.zoomAxes = evt.inaxes
 
-        # check whether it was a double click
-        if not self._is_inside_axes:
-            # completely unzoom
-            if evt.dblclick and not self._shift_key:
-                self.reset_axes(axis_pos=self._last_location)
-            # unzum along one of the axes
-            elif evt.dblclick and self._shift_key and self._last_location in ["left", "right"]:
-                if self.current_ymax is None:
-                    return
-                for axes in self.axes:
-                    axes.set_ylim(0, self.current_ymax)
-                self.canvas.draw()
-                return
-
         self._button_down = True
         pub.sendMessage("change_x_axis_start", xy_start=xy_start)
 
@@ -592,11 +594,199 @@ class MPLInteraction:
         #     to_draw.set_visible(self.visible)
         return False
 
+    def on_release(self, evt):
+        """Event on button release"""
+        if self.eventpress is None or (self.ignore(evt) and not self._button_down):
+            return
+        self._button_down = False
+        pub.sendMessage("change_x_axis_start", xy_start=[None, None])
+
+        # When the mouse is released we reset the overlay and it restores the former content to the window.
+        if not self.retinaFix and self.wxoverlay:
+            self.wxoverlay.Reset()
+            self.wxoverlay = None
+        else:
+            self.savedRetinaImage = None
+            if self.prevZoomRect:
+                self.prevZoomRect.pop(0).remove()
+                self.prevZoomRect = None
+            if self.zoomAxes:
+                self.zoomAxes = None
+
+        # When shift is pressed, it won't zoom
+        if wx.GetKeyState(wx.WXK_ALT):
+            self.eventpress = None  # reset the variables to their
+            self.eventrelease = None  # inital values
+            self.canvas.draw()  # redraw image
+            return
+
+        # drag label
+        if self.dragged is not None:
+            if self._is_label:
+                self._drag_label(evt)
+            elif self._is_legend:
+                self._drag_legend(evt)
+            elif self._is_patch:
+                self._drag_patch(evt)
+            return
+
+        # left-click + ctrl OR double left click reset axes
+        if self.eventpress.dblclick:
+            self._zoom_out(evt)
+            return
+        # left-click sends data from current point
+        elif self.eventpress.xdata == evt.xdata and self.eventpress.ydata == evt.ydata:
+            if not wx.GetKeyState(wx.WXK_CONTROL):
+                # Ignore the resize if the control key is down
+                if evt.button == 1:
+                    pub.sendMessage("left_click", xpos=evt.xdata, ypos=evt.ydata)
+                self.canvas.draw()
+                return
+
+        # on_release coordinates, button, ...
+        self.eventrelease = evt
+
+        # xmin, ymin = self.eventpress.xdata, self.eventpress.ydata
+        # xmax, ymax = evt.xdata, evt.ydata
+
+        xmin, xmax, ymin, ymax = self.calculate_new_limits(evt)
+
+        if self._trigger_extraction and self.allow_extraction:
+            # A dirty way to prevent users from trying to extract data from the wrong places
+            if not self.mark_annotation:
+                if self._callbacks.get("CTRL", False) and isinstance(self._callbacks["CTRL"], str):
+                    x_labels, y_labels = self.get_labels()
+                    pub.sendMessage(
+                        self._callbacks["CTRL"], rect=[xmin, xmax, ymin, ymax], x_labels=x_labels, y_labels=y_labels
+                    )
+                elif self.plotName in ["MSDT", "2D"] and (
+                    self.eventpress.xdata != evt.xdata and self.eventpress.ydata != evt.ydata
+                ):
+                    pub.sendMessage("extract_from_plot_2D", xy_values=[xmin, xmax, ymin, ymax])
+                # elif self.plotName != "CalibrationDT" and self.eventpress.xdata != evt.xdata:
+                #     pub.sendMessage("extract_from_plot_1D", xmin=xmin, xmax=xmax, ymax=ymax)
+            self.canvas.draw()
+            return
+        elif self._trigger_extraction and not self.allow_extraction:
+            LOGGER.warning("Cannot extract data at this moment...")
+            self.canvas.draw()
+            return
+
+        # send annotation
+        if self._trigger_extraction and not self.allow_extraction and self.mark_annotation:
+            pub.sendMessage("editor.mark.annotation", xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+
+        # zoom in the plot area
+        x, y = evt.x, evt.y
+        for lastx, lasty, a in self._xy_press:
+            # allow cancellation of the zoom-in if the spatial distance is too small (5 pixels)
+            if (abs(x - lastx) < 3 and evt.key != "y") or (abs(y - lasty) < 3 and evt.key != "x"):
+                self._xypress = None
+                self.canvas.draw()
+                return
+            twinx, twiny = False, False
+            a._set_view_from_bbox((lastx, lasty, x, y), "in", evt.key, twinx, twiny)
+        self.canvas.draw()
+
+        #         xmin, xmax, ymin, ymax = self.get_axes_limits(a)
+
+        if self.plotName == "RMSF":
+            pub.sendMessage("change_zoom_rmsd", xmin=xmin, xmax=xmax)
+        elif self.plotName == "MSDT" and not self._trigger_extraction:
+            pub.sendMessage("change_zoom_dtms", xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+
+        # reset triggers
+        if self._trigger_extraction:
+            self._trigger_extraction = False
+
+    def on_motion(self, evt):
+        """Event on motion"""
+        # send event
+        pub.sendMessage("motion_xy", xpos=evt.xdata, ypos=evt.ydata, plotname=self.plotName)
+
+        # drag label
+        if self.dragged is not None:
+            if self._is_label:
+                self._drag_label(evt, False)
+            elif self._is_patch:
+                self._drag_patch(evt, False)
+            return
+
+        # show rubberband
+        # if evt.key in ["x", "y", "ctrl+control"] or evt.button is not None:
+        if evt.button == 1 and self._xy_press:  # and not self.mark_annotation:
+            x, y = evt.x, evt.y
+            lastx, lasty, a = self._xy_press[0]
+            (x1, y1), (x2, y2) = np.clip([[lastx, lasty], [x, y]], a.bbox.min, a.bbox.max)
+            if evt.key is not None:
+                if "x" in evt.key or "alt" in evt.key:
+                    y1, y2 = a.bbox.intervaly
+                elif "y" in evt.key or "shift" in evt.key:
+                    x1, x2 = a.bbox.intervalx
+            self.draw_rubberband(evt, x1, y1, x2, y2)
+
+    def draw_rubberband(self, evt, x0, y0, x1, y1):
+        if self.retinaFix:  # On Macs, use the following code
+            # wx.DCOverlay does not work properly on Retina displays.
+            rubberBandColor = "#C0C0FF"
+            if self.prevZoomRect:
+                self.prevZoomRect.pop(0).remove()
+            self.canvas.restore_region(self.savedRetinaImage)
+            X0, X1 = self.zoomStartX, evt.xdata
+            Y0, Y1 = self.zoomStartY, evt.ydata
+            lineX = (X0, X0, X1, X1, X0)
+            lineY = (Y0, Y1, Y1, Y0, Y0)
+            self.prevZoomRect = self.zoomAxes.plot(lineX, lineY, "-", color=rubberBandColor)
+            self.zoomAxes.draw_artist(self.prevZoomRect[0])
+            self.canvas.blit(self.zoomAxes.bbox)
+            return
+
+        if not hasattr(self, "wxoverlay"):
+            self.wxoverlay = None
+            return
+        if not self.wxoverlay:
+            return
+
+        # Use an Overlay to draw a rubberband-like bounding box.
+        dc = wx.ClientDC(self.canvas)
+        odc = wx.DCOverlay(self.wxoverlay, dc)
+        odc.Clear()
+
+        # Mac's DC is already the same as a GCDC, and it causes
+        # problems with the overlay if we try to use an actual
+        # wx.GCDC so don't try it.
+        if "wxMac" not in wx.PlatformInfo:
+            dc = wx.GCDC(dc)
+
+        height = self.canvas.figure.bbox.height
+        y1 = height - y1
+        y0 = height - y0
+
+        if y1 < y0:
+            y0, y1 = y1, y0
+        if x1 < x0:
+            x0, x1 = x1, x0
+
+        w = x1 - x0
+        h = y1 - y0
+        rect = wx.Rect(x0, y0, w, h)
+
+        rubberBandColor = "#FF00FF"  # or load from config?
+
+        # Set a pen for the border
+        color = wx.Colour(rubberBandColor)
+        dc.SetPen(wx.Pen(color, 1))
+
+        # use the same color, plus alpha for the brush
+        r, g, b, a = color.Get(True)
+        color.Set(r, g, b, 0x60)
+        dc.SetBrush(wx.Brush(color))
+        dc.DrawRectangle(rect)
+
     def _zoom_out(self, evt):
         if self.data_limits is not None:
             xmin, ymin, xmax, ymax = self.data_limits
             xmin, ymin, xmax, ymax = self._check_xy_values(xmin, ymin, xmax, ymax)
-            print(self.data_limits)
 
         # Check if a zoom out is necessary
         zoomout = False
@@ -752,195 +942,6 @@ class MPLInteraction:
                     y1 = Ymax
 
         return x0, x1, y0, y1
-
-    def on_release(self, evt):
-        """Event on button release"""
-        if self.eventpress is None or (self.ignore(evt) and not self._button_down):
-            return
-        self._button_down = False
-        pub.sendMessage("change_x_axis_start", xy_start=[None, None])
-
-        # When the mouse is released we reset the overlay and it restores the former content to the window.
-        if not self.retinaFix and self.wxoverlay:
-            self.wxoverlay.Reset()
-            self.wxoverlay = None
-        else:
-            self.savedRetinaImage = None
-            if self.prevZoomRect:
-                self.prevZoomRect.pop(0).remove()
-                self.prevZoomRect = None
-            if self.zoomAxes:
-                self.zoomAxes = None
-
-        # When shift is pressed, it won't zoom
-        if wx.GetKeyState(wx.WXK_ALT):
-            self.eventpress = None  # reset the variables to their
-            self.eventrelease = None  # inital values
-            self.canvas.draw()  # redraw image
-            return
-
-        # drag label
-        if self.dragged is not None:
-            if self._is_label:
-                self._drag_label(evt)
-            elif self._is_legend:
-                self._drag_legend(evt)
-            elif self._is_patch:
-                self._drag_patch(evt)
-            return
-
-        # left-click + ctrl OR double left click reset axes
-        if self.eventpress.dblclick:
-            self._zoom_out(evt)
-            return
-        # left-click sends data from current point
-        elif self.eventpress.xdata == evt.xdata and self.eventpress.ydata == evt.ydata:
-            if not wx.GetKeyState(wx.WXK_CONTROL):
-                # Ignore the resize if the control key is down
-                if evt.button == 1:
-                    pub.sendMessage("left_click", xpos=evt.xdata, ypos=evt.ydata)
-                self.canvas.draw()
-                return
-
-        # on_release coordinates, button, ...
-        self.eventrelease = evt
-
-        # xmin, ymin = self.eventpress.xdata, self.eventpress.ydata
-        # xmax, ymax = evt.xdata, evt.ydata
-
-        xmin, xmax, ymin, ymax = self.calculate_new_limits(evt)
-
-        if self._trigger_extraction and self.allow_extraction:
-            # A dirty way to prevent users from trying to extract data from the wrong places
-            if not self.mark_annotation:
-                if self._callbacks.get("CTRL", False) and isinstance(self._callbacks["CTRL"], str):
-                    x_labels, y_labels = self.get_labels()
-                    pub.sendMessage(
-                        self._callbacks["CTRL"], rect=[xmin, xmax, ymin, ymax], x_labels=x_labels, y_labels=y_labels
-                    )
-                elif self.plotName in ["MSDT", "2D"] and (
-                    self.eventpress.xdata != evt.xdata and self.eventpress.ydata != evt.ydata
-                ):
-                    pub.sendMessage("extract_from_plot_2D", xy_values=[xmin, xmax, ymin, ymax])
-                # elif self.plotName != "CalibrationDT" and self.eventpress.xdata != evt.xdata:
-                #     pub.sendMessage("extract_from_plot_1D", xmin=xmin, xmax=xmax, ymax=ymax)
-            self.canvas.draw()
-            return
-        elif self._trigger_extraction and not self.allow_extraction:
-            LOGGER.warning("Cannot extract data at this moment...")
-            self.canvas.draw()
-            return
-
-        # send annotation
-        if self._trigger_extraction and not self.allow_extraction and self.mark_annotation:
-            pub.sendMessage("editor.mark.annotation", xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
-
-        # zoom in the plot area
-        x, y = evt.x, evt.y
-        for lastx, lasty, a in self._xy_press:
-            # allow cancellation of the zoom-in if the spatial distance is too small (5 pixels)
-            if (abs(x - lastx) < 3 and evt.key != "y") or (abs(y - lasty) < 3 and evt.key != "x"):
-                self._xypress = None
-                self.canvas.draw()
-                return
-            twinx, twiny = False, False
-            a._set_view_from_bbox((lastx, lasty, x, y), "in", evt.key, twinx, twiny)
-        self.canvas.draw()
-
-        #         xmin, xmax, ymin, ymax = self.get_axes_limits(a)
-
-        if self.plotName == "RMSF":
-            pub.sendMessage("change_zoom_rmsd", xmin=xmin, xmax=xmax)
-        elif self.plotName == "MSDT" and not self._trigger_extraction:
-            pub.sendMessage("change_zoom_dtms", xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
-
-        # reset triggers
-        if self._trigger_extraction:
-            self._trigger_extraction = False
-
-    def draw_rubberband(self, evt, x0, y0, x1, y1):
-        if self.retinaFix:  # On Macs, use the following code
-            # wx.DCOverlay does not work properly on Retina displays.
-            rubberBandColor = "#C0C0FF"
-            if self.prevZoomRect:
-                self.prevZoomRect.pop(0).remove()
-            self.canvas.restore_region(self.savedRetinaImage)
-            X0, X1 = self.zoomStartX, evt.xdata
-            Y0, Y1 = self.zoomStartY, evt.ydata
-            lineX = (X0, X0, X1, X1, X0)
-            lineY = (Y0, Y1, Y1, Y0, Y0)
-            self.prevZoomRect = self.zoomAxes.plot(lineX, lineY, "-", color=rubberBandColor)
-            self.zoomAxes.draw_artist(self.prevZoomRect[0])
-            self.canvas.blit(self.zoomAxes.bbox)
-            return
-
-        if not hasattr(self, "wxoverlay"):
-            self.wxoverlay = None
-            return
-        if not self.wxoverlay:
-            return
-
-        # Use an Overlay to draw a rubberband-like bounding box.
-        dc = wx.ClientDC(self.canvas)
-        odc = wx.DCOverlay(self.wxoverlay, dc)
-        odc.Clear()
-
-        # Mac's DC is already the same as a GCDC, and it causes
-        # problems with the overlay if we try to use an actual
-        # wx.GCDC so don't try it.
-        if "wxMac" not in wx.PlatformInfo:
-            dc = wx.GCDC(dc)
-
-        height = self.canvas.figure.bbox.height
-        y1 = height - y1
-        y0 = height - y0
-
-        if y1 < y0:
-            y0, y1 = y1, y0
-        if x1 < x0:
-            x0, x1 = x1, x0
-
-        w = x1 - x0
-        h = y1 - y0
-        rect = wx.Rect(x0, y0, w, h)
-
-        rubberBandColor = "#FF00FF"  # or load from config?
-
-        # Set a pen for the border
-        color = wx.Colour(rubberBandColor)
-        dc.SetPen(wx.Pen(color, 1))
-
-        # use the same color, plus alpha for the brush
-        r, g, b, a = color.Get(True)
-        color.Set(r, g, b, 0x60)
-        dc.SetBrush(wx.Brush(color))
-        dc.DrawRectangle(rect)
-
-    def on_motion(self, evt):
-        """Event on motion"""
-        # send event
-        pub.sendMessage("motion_xy", xpos=evt.xdata, ypos=evt.ydata, plotname=self.plotName)
-
-        # drag label
-        if self.dragged is not None:
-            if self._is_label:
-                self._drag_label(evt, False)
-            elif self._is_patch:
-                self._drag_patch(evt, False)
-            return
-
-        # show rubberband
-        # if evt.key in ["x", "y", "ctrl+control"] or evt.button is not None:
-        if evt.button == 1 and self._xy_press:  # and not self.mark_annotation:
-            x, y = evt.x, evt.y
-            lastx, lasty, a = self._xy_press[0]
-            (x1, y1), (x2, y2) = np.clip([[lastx, lasty], [x, y]], a.bbox.min, a.bbox.max)
-            if evt.key is not None:
-                if "x" in evt.key or "alt" in evt.key:
-                    y1, y2 = a.bbox.intervaly
-                elif "y" in evt.key or "shift" in evt.key:
-                    x1, x2 = a.bbox.intervalx
-            self.draw_rubberband(evt, x1, y1, x2, y2)
 
     def update(self):
         """draw using newfangled blit or oldfangled draw depending on useblit"""

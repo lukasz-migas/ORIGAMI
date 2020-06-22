@@ -1,5 +1,8 @@
+"""wxPython unit-test support"""
 # Third-party imports
 import wx
+
+INTERVAL = 100
 
 
 class WidgetTestCase:
@@ -10,14 +13,19 @@ class WidgetTestCase:
     created.
     """
 
-    def setup_class(self):
-        self.app = wx.App()
+    @classmethod
+    def setup_class(cls):
+        """Setup"""
+        cls.app = wx.App()
         wx.Log.SetActiveTarget(wx.LogStderr())
-        self.frame = wx.Frame(None, title="WTC: " + self.__class__.__name__)
-        self.frame.Show()
-        self.frame.PostSizeEvent()
+        cls.frame = wx.Frame(None, title="WTC: " + cls.__class__.__name__)
+        cls.frame.Show()
+        cls.frame.PostSizeEvent()
 
-    def teardown_class(self):
+    @classmethod
+    def teardown_class(cls):
+        """Teardown"""
+
         def _cleanup():
             for tlw in wx.GetTopLevelWindows():
                 if tlw:
@@ -30,12 +38,27 @@ class WidgetTestCase:
 
         timer = wx.PyTimer(_cleanup)
         timer.Start(100)
-        self.app.MainLoop()
-        del self.app
+        cls.app.MainLoop()
+        del cls.app
+
+    def run_dialog(self, dlg):
+        """Run dialog"""
+        if "wxMac" not in wx.PlatformInfo:
+            # Something is causing a hang when running one of these tests, so
+            # for now we'll not actually test ShowModal on Macs.
+            # TODO: FIX THIS!!
+            wx.CallLater(250, dlg.EndModal, wx.ID_OK)
+            val = dlg.ShowModal()
+            dlg.Destroy()
+            assert val == wx.ID_OK
+            self.yield_()
+        else:
+            dlg.Show()
+            dlg.Destroy()
+            self.yield_()
 
     # helper methods
-
-    def yield_(self, eventsToProcess=wx.EVT_CATEGORY_ALL):
+    def yield_(self, eventsToProcess=wx.EVT_CATEGORY_ALL):  # noqa
         """
         Since the tests are usually run before MainLoop is called then we
         need to make our own EventLoop for Yield to actually do anything
@@ -56,7 +79,8 @@ class WidgetTestCase:
         window.Update()
         self.yield_()
 
-    def close_dialogs(self):
+    @staticmethod
+    def close_dialogs():
         """
         Close dialogs by calling their EndModal method
         """
@@ -66,7 +90,8 @@ class WidgetTestCase:
                 w.EndModal(wx.ID_CANCEL)
 
     def wait_for(self, milliseconds):
-        INTERVAL = 100
+        """Wait for `milliseconds` ms"""
+
         intervals = milliseconds / INTERVAL
         while True:
             wx.MilliSleep(INTERVAL)
@@ -76,3 +101,11 @@ class WidgetTestCase:
             if intervals <= 0:
                 break
             intervals -= 1
+
+
+class Namespace(object):
+    """Namespace object"""
+
+    def dict(self):
+        """Return dictionary of own namespace"""
+        return self.__dict__

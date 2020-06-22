@@ -259,8 +259,22 @@ class ViewBase(ABC):
         if repaint:
             self.figure.repaint()
 
-    def add_rects(self, coordinates, **kwargs):
-        """Add text label to the plot"""
+    def add_arrows(self, arrow_values, name=None, repaint: bool = True):
+        """Add arrows patches to the plot"""
+        if name is None:
+            name = [None] * len(arrow_values)
+        for _arrow_value, _name in zip(arrow_values, name):
+            self.figure.plot_add_arrow(_arrow_value, text_name=_name)
+
+        if repaint:
+            self.figure.repaint()
+
+    def remove_arrows(self, repaint: bool = True):
+        """Remove arrows patches from the plot"""
+        self.figure.plot_remove_arrows(False)
+
+        if repaint:
+            self.figure.repaint()
 
     def add_line(self, x, y, **kwargs):
         """Add text label to the plot"""

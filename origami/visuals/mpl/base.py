@@ -466,7 +466,7 @@ class PlotBase(MPLPanel):
 
         self.arrows.append(arrow)
 
-    def plot_remove_arrows(self):
+    def plot_remove_arrows(self, repaint: bool = True):
         for arrow in self.arrows:
             try:
                 arrow.remove()
@@ -474,7 +474,8 @@ class PlotBase(MPLPanel):
                 pass
 
         self.arrows = []
-        self.repaint()
+        if repaint:
+            self.repaint()
 
     def plot_add_markers(
         self, xvals, yvals, label="", marker="o", color="r", size=15, test_yvals=False, test_xvals=False, **kwargs

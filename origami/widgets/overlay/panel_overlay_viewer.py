@@ -444,7 +444,7 @@ class PanelOverlayViewer(MiniFrame):
 
     def on_add_to_document(self, evt):
         """Add data to document"""
-        from origami.gui_elements.dialog_review_editor import DialogReviewEditor
+        from origami.gui_elements.dialog_review_editor import DialogReviewEditorOverlay
 
         # data classifiers
         stats_list = ["Mean", "Standard Deviation", "Variance", "RMSD", "RMSF", "RMSD Matrix"]
@@ -484,7 +484,7 @@ class PanelOverlayViewer(MiniFrame):
 
         # collect list of items in the clipboard
         item_list = self.generate_overlay_plot_list()
-        dlg = DialogReviewEditor(self, self.presenter, self.config, item_list, review_type="overlay")
+        dlg = DialogReviewEditorOverlay(self, item_list)
         dlg.ShowModal()
         add_to_document_list = dlg.output_list
 
@@ -533,7 +533,7 @@ class PanelOverlayViewer(MiniFrame):
             return
 
         dlg = DialogColorPicker(self, self.config.customColors)
-        if dlg.ShowModal() == "ok":
+        if dlg.ShowModal() == wx.ID_OK:
             color_255, color_1, font_color = dlg.GetChosenColour()
             self.config.customColors = dlg.GetCustomColours()
             self.on_update_value_in_peaklist(item_id, "color", [color_255, color_1, font_color])
