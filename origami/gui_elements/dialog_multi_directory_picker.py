@@ -1,3 +1,4 @@
+"""Dialog allowing selection of multiple directories"""
 # Standard library imports
 import os
 import logging

@@ -10,7 +10,19 @@ __all__ = [
     "convert_bins_to_ms",
     "convert_mins_to_scans",
     "convert_scans_to_mins",
+    "convert_cm_to_inch",
+    "convert_inch_to_cm",
 ]
+
+
+def convert_cm_to_inch(values):
+    """Convert centimeters to inches"""
+    return [_value / 2.54 for _value in values]
+
+
+def convert_inch_to_cm(values):
+    """Convert centimeters to inches"""
+    return [_value * 2.54 for _value in values]
 
 
 def convert_ms_to_bins(values, pusher_freq):

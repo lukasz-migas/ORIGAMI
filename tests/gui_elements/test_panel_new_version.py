@@ -1,4 +1,4 @@
-"""Test PanelAbout dialog"""
+"""Test PanelNewVersion dialog"""
 # Third-party imports
 import wx
 
@@ -9,7 +9,7 @@ from origami.gui_elements.panel_notify_new_version import PanelNewVersion
 from ..wxtc import WidgetTestCase
 
 
-class TestPanelAbout(WidgetTestCase):
+class TestPanelNewVersion(WidgetTestCase):
     """Test dialog"""
 
     def test_dialog_ok(self):

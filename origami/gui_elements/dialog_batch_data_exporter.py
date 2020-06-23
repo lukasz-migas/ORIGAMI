@@ -1,5 +1,4 @@
-from __future__ import division
-
+"""Dialog to select parameters for data export"""
 # Standard library imports
 import logging
 
@@ -9,6 +8,7 @@ import wx
 # Local imports
 from origami.styles import Dialog
 from origami.utils.path import check_path_exists
+from origami.config.config import CONFIG
 
 logger = logging.getLogger(__name__)
 
@@ -16,17 +16,16 @@ logger = logging.getLogger(__name__)
 class DialogExportData(Dialog):
     """Batch export images"""
 
-    def __init__(self, parent, presenter, config, icons, **kwargs):
+    folder_path = None
+    folder_path_btn = None
+    file_delimiter_choice = None
+    file_extension_label = None
+    save_btn = None
+    cancel_btn = None
+
+    def __init__(self, parent):
         Dialog.__init__(self, parent, title="Export data....")
         self.view = parent
-        self.presenter = presenter
-        self.documentTree = self.view.panelDocuments.documents
-        self.data_handling = presenter.data_handling
-        self.config = config
-        self.icons = icons
-
-        self.data_processing = presenter.data_processing
-        self.data_handling = presenter.data_handling
 
         self.make_gui()
 
@@ -37,32 +36,27 @@ class DialogExportData(Dialog):
 
     def on_close(self, evt):
         """Destroy this frame"""
-        self.EndModal(wx.ID_NO)
+        if self.IsModal():
+            self.EndModal(wx.ID_NO)
+        else:
+            self.Destroy()
 
     def make_panel(self):
+        """Make panel"""
         panel = wx.Panel(self, -1, size=(-1, -1))
 
-        folder_path = wx.StaticText(panel, -1, "Folder path:")
-        self.folder_path = wx.TextCtrl(
-            panel, -1, "", style=wx.TE_READONLY | wx.TE_MULTILINE | wx.TE_CHARWRAP, size=(350, -1)
-        )
-        self.folder_path.SetLabel(str(self.config.data_folder_path))
-        self.folder_path.Disable()
+        self.folder_path = wx.TextCtrl(panel, -1, "", style=wx.TE_CHARWRAP, size=(350, -1))
+        self.folder_path.SetLabel(str(CONFIG.data_folder_path))
+        self.folder_path.Bind(wx.EVT_TEXT, self.on_apply)
 
         self.folder_path_btn = wx.Button(panel, wx.ID_ANY, "...", size=(25, 22))
         self.folder_path_btn.Bind(wx.EVT_BUTTON, self.on_get_path)
 
-        file_delimiter_choice = wx.StaticText(panel, wx.ID_ANY, "Delimiter:")
-        self.file_delimiter_choice = wx.Choice(
-            panel, -1, choices=list(self.config.textOutputDict.keys()), size=(-1, -1)
-        )
-        self.file_delimiter_choice.SetStringSelection(self.config.saveDelimiterTXT)
+        self.file_delimiter_choice = wx.Choice(panel, -1, choices=list(CONFIG.textOutputDict.keys()), size=(-1, -1))
+        self.file_delimiter_choice.SetStringSelection(CONFIG.saveDelimiterTXT)
         self.file_delimiter_choice.Bind(wx.EVT_CHOICE, self.on_apply)
 
-        file_extension_label = wx.StaticText(panel, wx.ID_ANY, "Extension:")
-        self.file_extension_label = wx.StaticText(panel, -1, self.config.saveExtension)
-
-        horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+        self.file_extension_label = wx.StaticText(panel, -1, CONFIG.saveExtension)
 
         self.save_btn = wx.Button(panel, wx.ID_OK, "Save data", size=(-1, 22))
         self.save_btn.Bind(wx.EVT_BUTTON, self.on_save)
@@ -78,22 +72,21 @@ class DialogExportData(Dialog):
         # pack elements
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(folder_path, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(wx.StaticText(panel, -1, "Folder path:"), (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.folder_path, (n, 1), wx.GBSpan(1, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        grid.Add(self.folder_path_btn, (n, 5), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.folder_path_btn, (n, 5), flag=wx.EXPAND)
         n += 1
-        grid.Add(file_delimiter_choice, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(wx.StaticText(panel, wx.ID_ANY, "Delimiter:"), (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.file_delimiter_choice, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
-        grid.Add(file_extension_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(wx.StaticText(panel, wx.ID_ANY, "Extension:"), (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.file_extension_label, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
-        grid.Add(horizontal_line_0, (n, 0), wx.GBSpan(1, 6), flag=wx.EXPAND)
-        n += 1
-        grid.Add(btn_grid, (n, 0), wx.GBSpan(1, 6), flag=wx.ALIGN_CENTER)
+        grid.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), (n, 0), wx.GBSpan(1, 6), flag=wx.EXPAND)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
+        main_sizer.Add(grid, 1, wx.EXPAND | wx.ALL, 5)
+        main_sizer.Add(btn_grid, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
 
         # fit layout
         main_sizer.Fit(panel)
@@ -101,33 +94,52 @@ class DialogExportData(Dialog):
 
         return panel
 
-    def on_save(self, evt):
-        if not check_path_exists(self.config.data_folder_path):
+    def on_save(self, _evt):
+        """Save event"""
+        if not check_path_exists(CONFIG.data_folder_path):
             from origami.gui_elements.misc_dialogs import DialogBox
 
             dlg = DialogBox(
                 "Incorrect input path",
-                f"The folder path is set to `{self.config.data_folder_path}` or does not exist."
+                f"The folder path is set to `{CONFIG.data_folder_path}` or does not exist."
                 + " Are you sure you would like to continue?",
                 kind="Question",
             )
             if dlg == wx.ID_NO:
                 return
 
-        self.EndModal(wx.OK)
+        if self.IsModal():
+            self.EndModal(wx.ID_OK)
+        else:
+            self.Destroy()
 
-    def on_get_path(self, evt):
+    def on_get_path(self, _evt):
+        """Get directory where to save the data"""
         dlg = wx.DirDialog(
             self.view, "Choose a folder where to save images", style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST
         )
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
             self.folder_path.SetLabel(path)
-            self.config.data_folder_path = path
+            CONFIG.data_folder_path = path
 
-    def on_apply(self, evt):
-        self.config.saveDelimiterTXT = self.file_delimiter_choice.GetStringSelection()
-        self.config.saveDelimiter = self.config.textOutputDict[self.config.saveDelimiterTXT]
-        self.config.saveExtension = self.config.textExtensionDict[self.config.saveDelimiterTXT]
+    def on_apply(self, _evt):
+        """Update config"""
+        CONFIG.saveDelimiterTXT = self.file_delimiter_choice.GetStringSelection()
+        CONFIG.saveDelimiter = CONFIG.textOutputDict[CONFIG.saveDelimiterTXT]
+        CONFIG.saveExtension = CONFIG.textExtensionDict[CONFIG.saveDelimiterTXT]
+        CONFIG.data_folder_path = self.folder_path.GetValue()
 
-        self.file_extension_label.SetLabel(self.config.saveExtension)
+        self.file_extension_label.SetLabel(CONFIG.saveExtension)
+
+
+def _main():
+    app = wx.App()
+    ex = DialogExportData(None)
+
+    ex.Show()
+    app.MainLoop()
+
+
+if __name__ == "__main__":
+    _main()

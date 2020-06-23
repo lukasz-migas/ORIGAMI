@@ -15,3 +15,5 @@ defusedxml
 psutil
 zarr
 send2trash
+certify
+urllib3
