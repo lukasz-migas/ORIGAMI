@@ -1338,6 +1338,10 @@ class Config:
         self.compare_panel_top_ = CompareItem()
         self.compare_panel_bottom_ = CompareItem()
 
+        # new version
+        self.new_version_panel_link = r"https://github.com/lukasz-migas/ORIGAMI/releases"
+        self.new_version_panel_do_not_ask = False
+
         # comparison MS
         self.lineColour_MS1 = (0, 0, 0)  # REMOVE
         self.lineTransparency_MS1 = 1.0  # REMOVE

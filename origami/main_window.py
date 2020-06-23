@@ -130,8 +130,6 @@ from origami.ids import ID_load_multiple_origami_masslynx_raw
 from origami.styles import make_menu_item
 from origami.utils.path import clean_directory
 from origami.panel_plots import PanelPlots
-from origami.utils.check import compare_versions
-from origami.utils.check import get_latest_version
 from origami.config.config import CONFIG
 from origami.panel_peaklist import PanelPeaklist
 from origami.panel_textlist import PanelTextlist
@@ -145,7 +143,6 @@ from origami.gui_elements.misc_dialogs import DialogBox
 from origami.handlers.data_visualisation import DataVisualization
 from origami.gui_elements.panel_export_settings import PanelExportSettings
 from origami.gui_elements.panel_plot_parameters import PanelVisualisationSettingsEditor
-from origami.gui_elements.dialog_notify_new_version import DialogNewVersion
 from origami.gui_elements.dialog_notify_open_documents import DialogNotifyOpenDocuments
 from origami.widgets.interactive.panel_interactive_creator import PanelInteractiveCreator
 
@@ -1391,43 +1388,18 @@ class MainWindow(wx.Frame):
         except Exception:
             pass
 
-    def on_check_ORIGAMI_version(self, evt=None):
-        """
-        Simple function to check whether this is the newest version available
-        """
-        try:
-            newVersion = get_latest_version(link=CONFIG.links["newVersion"])
-            update = compare_versions(newVersion, CONFIG.version)
-            if not update:
-                try:
-                    if evt.GetId() == ID_CHECK_VERSION:
-                        DialogBox(
-                            title="ORIGAMI",
-                            msg="You are using the most up to date version {}.".format(CONFIG.version),
-                            kind="Info",
-                        )
-                except Exception:
-                    pass
-            else:
-                webpage = get_latest_version(get_webpage=True)
-                wx.Bell()
-                message = "Version {} is now available for download.\nYou are currently using version {}.".format(
-                    newVersion, CONFIG.version
-                )
-                self.presenter.onThreading(None, (message, 4), action="updateStatusbar")
-                msgDialog = DialogNewVersion(self, presenter=self.presenter, webpage=webpage)
-                msgDialog.ShowModal()
-        except Exception as e:
-            self.presenter.onThreading(None, ("Could not check version number", 4), action="updateStatusbar")
-            logger.error(e)
+    def on_check_ORIGAMI_version(self, _evt):
+        """Simple function to check whether this is the newest version available"""
+        from origami.gui_elements.panel_notify_new_version import check_version
 
-    def on_whats_new(self, evt):
-        try:
-            webpage = get_latest_version(get_webpage=True)
-            msgDialog = DialogNewVersion(self, presenter=self.presenter, webpage=webpage)
-            msgDialog.ShowModal()
-        except Exception:
-            pass
+        check_version(self)
+
+    def on_whats_new(self, _evt):
+        """Check latest version"""
+        from origami.gui_elements.panel_notify_new_version import PanelNewVersion
+
+        dlg = PanelNewVersion(self)
+        dlg.Show()
 
     def onOpenUserGuide(self, evt):
         """Opens link in browser"""

@@ -1,35 +1,4 @@
-#
-# import wx
-# from origami.utils.check import get_latest_version, compare_versions
-#
-#
-# def check_version():
-#     try:
-#         newVersion = get_latest_version(link=self.config.links['newVersion'])
-#         update = compare_versions(newVersion, self.config.version)
-#         if not update:
-#             try:
-#                 if evt.GetId() == ID_CHECK_VERSION:
-#                     DialogBox(exceptionTitle='ORIGAMI',
-#                            exceptionMsg='You are using the most up to date version %s.' % (self.config.version),
-#                            type="Info")
-#             except Exception:
-#                 pass
-#         else:
-#             webpage = get_latest_version(get_webpage=True)
-#             wx.Bell()
-#             message = "Version {} is now available for download.\nYou are currently using version {}.".format(
-#                 newVersion, self.config.version)
-#             self.onThreading(None, (message, 4),
-#                              action='updateStatusbar')
-#             msgDialog = DialogNewVersion(self.view, presenter=self, webpage=webpage)
-#             msgDialog.ShowModal()
-#     except Exception as e:
-#         self.onThreading(None, ('Could not check version number', 4),
-#                          action='updateStatusbar')
-#         logger.error(e)
-
-""" Provide a version for the imimspy library.
+""" Provide a version for the ORIGAMI library.
 
 This module uses `versioneer`_ to manage version strings. During development,
 `versioneer`_ will compute a version string from the current git revision.
@@ -38,7 +7,7 @@ files packaged for distribution.
 
 Attributes:
     __version__:
-        The full version string for this installed imimspy library
+        The full version string for this installed ORIGAMI library
 
 Functions:
     base_version:
@@ -49,25 +18,77 @@ Functions:
 
 """
 # Standard library imports
-import logging
+import json
+from distutils.version import LooseVersion
+
+# Third-party imports
+import certifi
+import urllib3
 
 # Local imports
 from origami._version import get_versions
 
-log = logging.getLogger(__name__)
+__all__ = ("base_version", "get_latest_version", "compare_versions")
 
-__all__ = ("base_version",)
+
+def get_latest_version(user_repo: str = "lukasz-migas/ORIGAMI", username: str = "lukasz-migas"):
+    """Get latest release of ORIGAMI from GitHub
+
+    Parameters
+    ----------
+    user_repo : str
+        name of the user/repository to be queried
+    username : str
+        name of the user to make the required header
+
+    Returns
+    -------
+    latest_version : str
+        latest version that is recorded by the tag
+    url : str
+        url to the latest version
+    failed : bool
+        indicates whether the request was successful - if version could not be retrieved, `False` will be returned
+    """
+    # create safe pool
+    http = urllib3.PoolManager(cert_reqs="CERT_REQUIRED", ca_certs=certifi.where())
+
+    # get latest release
+    response = http.request(
+        "GET",
+        f"https://api.github.com/repos/{user_repo}/releases/latest",
+        headers=urllib3.make_headers(user_agent=username),
+    )
+
+    latest_version = "0.0.0.0"
+    url = None
+    failed = True
+    if response.status == 200:
+        data = response.data.decode()
+        data = json.loads(data)
+        latest_version = data["tag_name"]
+        url = data["html_url"]
+        failed = False
+    del http
+
+    return latest_version, url, failed
+
+
+def compare_versions(new_version: str, old_version: str) -> bool:
+    """Compare current and latest version of the software"""
+    return LooseVersion(new_version) > LooseVersion(old_version)
 
 
 def base_version() -> str:
+    """Return base version of the package"""
     return _base_version_helper(__version__)
 
 
 def _base_version_helper(version: str) -> str:
     import re
 
-    VERSION_PAT = re.compile(r"^(\d+\.\d+\.\d+)((?:dev|rc).*)?")
-    match = VERSION_PAT.search(version)
+    version_pat = re.compile(r"^(\d+\.\d+\.\d+)((?:dev|rc).*)?")
+    match = version_pat.search(version)
     assert match is not None
     return match.group(1)
 
