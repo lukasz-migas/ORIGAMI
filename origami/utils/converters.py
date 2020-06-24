@@ -14,14 +14,21 @@ __all__ = [
     "convert_inch_to_cm",
 ]
 
+from collections import Iterable
+from typing import List
 
-def convert_cm_to_inch(values):
+
+def convert_cm_to_inch(values) -> List[float]:
     """Convert centimeters to inches"""
+    if not isinstance(values, Iterable):
+        values = [values]
     return [_value / 2.54 for _value in values]
 
 
-def convert_inch_to_cm(values):
+def convert_inch_to_cm(values) -> List[float]:
     """Convert centimeters to inches"""
+    if not isinstance(values, Iterable):
+        values = [values]
     return [_value * 2.54 for _value in values]
 
 
