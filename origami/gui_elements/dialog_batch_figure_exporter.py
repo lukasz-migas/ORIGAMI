@@ -198,7 +198,7 @@ class DialogExportFigures(Dialog):
         grid.Add(self.file_format_choice, (n, 1), flag=wx.EXPAND)
         n += 1
         grid.Add(resolution_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.image_resolution, (n, 1),  flag=wx.EXPAND | wx.ALIGN_LEFT)
+        grid.Add(self.image_resolution, (n, 1), flag=wx.EXPAND | wx.ALIGN_LEFT)
         n += 1
         grid.Add(transparency_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.image_transparency_check, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
