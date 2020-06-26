@@ -1,7 +1,4 @@
 """Test PanelAbout dialog"""
-# Third-party imports
-import wx
-
 # Local imports
 from origami.icons.icons import IconContainer
 from origami.gui_elements.panel_about import PanelAbout

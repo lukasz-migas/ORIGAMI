@@ -1,7 +1,4 @@
 """Test PanelAbout dialog"""
-# Third-party imports
-import wx
-
 # Local imports
 from origami.gui_elements.panel_html_viewer import PanelHTMLViewer
 
