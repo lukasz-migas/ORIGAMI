@@ -14,8 +14,9 @@ __all__ = [
     "convert_inch_to_cm",
 ]
 
-from collections import Iterable
+# Standard library imports
 from typing import List
+from collections import Iterable
 
 
 def convert_cm_to_inch(values) -> List[float]:
@@ -35,19 +36,19 @@ def convert_inch_to_cm(values) -> List[float]:
 def convert_ms_to_bins(values, pusher_freq):
     """Converts milliseconds to drift bins"""
 
-    def convert(value):
+    def _convert(value):
         return round(value / pusher_freq)
 
-    return [convert(value) for value in values]
+    return [_convert(value) for value in values]
 
 
 def convert_bins_to_ms(values, pusher_freq):
     """Converts drift bins to milliseconds"""
 
-    def convert(value):
+    def _convert(value):
         return float(value * pusher_freq)
 
-    return [convert(value) for value in values]
+    return [_convert(value) for value in values]
 
 
 def convert_mins_to_scans(values, scan_time):
@@ -62,10 +63,10 @@ def convert_mins_to_scans(values, scan_time):
 def convert_scans_to_mins(values, scan_time):
     """Converts scans to retention time in minutes"""
 
-    def convert(value):
+    def _convert(value):
         return round(value * scan_time) / 60
 
-    return [convert(value) for value in values]
+    return [_convert(value) for value in values]
 
 
 def byte2str(string):

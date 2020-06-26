@@ -2034,11 +2034,6 @@ class DocumentTree(wx.TreeCtrl):
             )
             return
 
-        # dataset_type = query[1]
-        # dataset_name = query[2]
-        # subkey_parent = subkey[0]
-        # subkey_child = subkey[1]
-
         if itemType == "Documents":
             self.on_right_click_short()
             return
@@ -2050,7 +2045,6 @@ class DocumentTree(wx.TreeCtrl):
         # self.Bind(wx.EVT_MENU, self.on_show_plot, id=ID_showPlotRTDocument)
         # self.Bind(wx.EVT_MENU, self.on_show_plot, id=ID_showPlotMSDocument)
         # self.Bind(wx.EVT_MENU, self.onProcess, id=ID_process2DDocument)
-        # self.Bind(wx.EVT_MENU, self.onGoToDirectory, id=ID_goToDirectory)
         # self.Bind(wx.EVT_MENU, self.on_save_csv, id=ID_saveDataCSVDocument)
         # self.Bind(wx.EVT_MENU, self.on_save_csv, id=ID_saveDataCSVDocument1D)
         # self.Bind(wx.EVT_MENU, self.on_save_csv, id=ID_saveAsDataCSVDocument)
@@ -2116,21 +2110,22 @@ class DocumentTree(wx.TreeCtrl):
         #     parent=menu, evt_id=ID_docTree_show_unidec, text="Show UniDec results", bitmap=None
         # )
 
+        menu_action_open_directory = make_menu_item(
+            parent=menu, text="Reveal folder in File Explorer", bitmap=self._icons.duplicate
+        )
         menu_action_duplicate_document = make_menu_item(
             parent=menu, text="Duplicate document", bitmap=self._icons.duplicate
         )
-
         menu_action_remove_document = make_menu_item(parent=menu, text="Close document", bitmap=self._icons.bin)
         menu_action_remove_document_disk = make_menu_item(
             parent=menu, text="Delete document from disk", bitmap=self._icons.bin
         )
 
         # # bind events
-        # self.Bind(wx.EVT_MENU, self.on_save_document_as, menu_action_save_document_as)
-        # self.Bind(wx.EVT_MENU, self.on_save_document, menu_action_save_document)
         self.Bind(wx.EVT_MENU, self.on_duplicate_document, menu_action_duplicate_document)
         self.Bind(wx.EVT_MENU, self.on_remove_document, menu_action_remove_document)
         self.Bind(wx.EVT_MENU, self.on_remove_document_from_disk, menu_action_remove_document_disk)
+        self.Bind(wx.EVT_MENU, self.on_open_directory, menu_action_open_directory)
 
         # self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
         # self.Bind(wx.EVT_MENU, self.on_change_charge_state, menu_action_assign_charge)
@@ -2647,7 +2642,7 @@ class DocumentTree(wx.TreeCtrl):
         #
         #     self.SetFocus()
 
-    def onGoToDirectory(self, evt):
+    def on_open_directory(self, _evt):
         """Go to selected directory"""
         self.data_handling.on_open_directory(None)
 

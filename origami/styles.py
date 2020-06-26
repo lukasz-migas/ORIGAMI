@@ -262,6 +262,7 @@ class Dialog(wx.Dialog):
     def on_key_event(self, evt):
         """Catch key events"""
         key_code = evt.GetKeyCode()
+
         # exit window
         if key_code == wx.WXK_ESCAPE:
             self.on_close(evt=None)
@@ -894,10 +895,20 @@ class PopupBase(wx.PopupTransientWindow):
         self.Bind(wx.EVT_LEFT_DOWN, self.on_mouse_left_down)
         self.Bind(wx.EVT_LEFT_UP, self.on_mouse_left_up)
         self.Bind(wx.EVT_MOTION, self.on_move)
+        self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
 
     def make_panel(self):
         """Make popup window"""
         raise NotImplementedError("Must implement method")
+
+    def on_key_event(self, evt):
+        """Capture keyboard events"""
+        key_code = evt.GetKeyCode()
+
+        if key_code == wx.WXK_ESCAPE:  # key = esc
+            self.Destroy()
+
+        evt.Skip()
 
     def position_on_event(self, evt):
         """Position the window on an event location"""

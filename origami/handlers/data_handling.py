@@ -215,12 +215,13 @@ class DataHandling(LoadHandler, ExportHandler):
 
         self.on_setup_basic_document(ENV.load(path))
 
-    def on_open_directory(self, path):
+    @staticmethod
+    def on_open_directory(path):
         """Open document path"""
 
         # if path is not provided, get one from current document
         if path is None:
-            document = self.on_get_document()
+            document = ENV.on_get_document()
             path = document.path
 
         # check whether the path exist

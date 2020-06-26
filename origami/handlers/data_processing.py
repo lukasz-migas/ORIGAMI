@@ -758,7 +758,7 @@ class DataProcessing:
 
         return xvals, zvals
 
-    def on_process_ms(self, mz_obj, **kwargs):
+    def on_process_ms(self, mz_obj: MassSpectrumObject, **kwargs):
         """Process and modify mass spectrum object"""
         assert isinstance(mz_obj, MassSpectrumObject), "This function takes `MassSpectrumObject` as an argument"
 

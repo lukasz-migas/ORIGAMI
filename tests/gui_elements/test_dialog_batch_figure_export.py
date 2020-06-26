@@ -20,20 +20,47 @@ class TestDialogExportData(WidgetTestCase):
         dlg = DialogExportFigures(self.frame)
         dlg.folder_path.SetValue(os.getcwd())
         assert CONFIG.image_folder_path == dlg.folder_path.GetValue()
-        # dlg.file_delimiter_choice.SetStringSelection("comma")
-        # assert CONFIG.saveDelimiterTXT == "comma"
-        # assert CONFIG.saveDelimiter == ","
-        # assert CONFIG.saveExtension == ".csv"
-        # dlg.file_delimiter_choice.SetStringSelection("tab")
-        # dlg.on_apply(None)
-        # assert CONFIG.saveDelimiterTXT == "tab"
-        # assert CONFIG.saveDelimiter == "\t"
-        # assert CONFIG.saveExtension == ".txt"
-        # dlg.file_delimiter_choice.SetStringSelection("space")
-        # dlg.on_apply(None)
-        # assert CONFIG.saveDelimiterTXT == "space"
-        # assert CONFIG.saveDelimiter == " "
-        # assert CONFIG.saveExtension == ".txt"
+
+        # ensure apply works
+        dlg.file_format_choice.SetStringSelection("svg")
+        dlg.on_apply(None)
+        assert CONFIG.imageFormat == "svg"
+
+        # check conversions work correctly
+        dlg.width_cm_value.SetValue(2.54)
+        dlg.height_cm_value.SetValue(25.4)
+        dlg.on_apply_size_cm(None)
+        assert dlg.width_inch_value.GetValue() == 1
+        assert dlg.height_inch_value.GetValue() == 10
+
+        dlg.width_inch_value.SetValue(10)
+        dlg.height_inch_value.SetValue(2.54)
+        dlg.on_apply_size_cm(None)
+        assert dlg.width_cm_value.GetValue() == 2.54
+        assert dlg.height_cm_value.GetValue() == 25.4
+
+        # check toggles work
+        dlg.image_resize_check.SetValue(False)
+        dlg.on_toggle_controls(None)
+        assert not dlg.left_export_value.IsEnabled()
+        assert not dlg.bottom_export_value.IsEnabled()
+        assert not dlg.width_export_value.IsEnabled()
+        assert not dlg.height_export_value.IsEnabled()
+        assert not dlg.width_inch_value.IsEnabled()
+        assert not dlg.height_inch_value.IsEnabled()
+        assert not dlg.width_cm_value.IsEnabled()
+        assert not dlg.height_cm_value.IsEnabled()
+
+        dlg.image_resize_check.SetValue(True)
+        dlg.on_toggle_controls(None)
+        assert dlg.left_export_value.IsEnabled()
+        assert dlg.bottom_export_value.IsEnabled()
+        assert dlg.width_export_value.IsEnabled()
+        assert dlg.height_export_value.IsEnabled()
+        assert dlg.width_inch_value.IsEnabled()
+        assert dlg.height_inch_value.IsEnabled()
+        assert dlg.width_cm_value.IsEnabled()
+        assert dlg.height_cm_value.IsEnabled()
 
         wx.CallLater(250, dlg.on_save, wx.ID_OK)
         res = dlg.ShowModal()

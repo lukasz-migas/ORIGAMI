@@ -1,7 +1,8 @@
 """Test converters in utils.converters.py"""
-# Local imports
+# Third-party imports
 import pytest
 
+# Local imports
 from origami.utils.converters import num2str
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
@@ -88,4 +89,9 @@ class TestConverters(object):
     @pytest.mark.parametrize("value, expected", ([2.54, [1]], [0, [0]], [254, [100]]))
     def test_convert_cm_to_inch(self, value, expected):
         result = convert_cm_to_inch(value)
+        assert result == expected
+
+    @pytest.mark.parametrize("value, expected", ([1, [2.54]], [0, [0]], [100, [254]]))
+    def test_convert_inch_to_cm(self, value, expected):
+        result = convert_inch_to_cm(value)
         assert result == expected

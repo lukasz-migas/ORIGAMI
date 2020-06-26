@@ -7,8 +7,11 @@ import wx
 
 # Local imports
 from origami.styles import Dialog
+from origami.styles import set_tooltip
 from origami.styles import make_checkbox
+from origami.styles import make_bitmap_btn
 from origami.utils.path import check_path_exists
+from origami.icons.assets import Icons
 from origami.config.config import CONFIG
 from origami.utils.converters import convert_cm_to_inch
 from origami.utils.converters import convert_inch_to_cm
@@ -40,8 +43,10 @@ class DialogExportFigures(Dialog):
 
     def __init__(self, parent, **kwargs):
         Dialog.__init__(self, parent, title="Export figures....")
+
         # get screen dpi
         self.screen_dpi = wx.ScreenDC().GetPPI()
+        self._icons = Icons()
 
         self.make_gui()
         self.on_toggle_controls(None)
@@ -62,6 +67,17 @@ class DialogExportFigures(Dialog):
         else:
             self.Destroy()
 
+    def on_key_event(self, evt):
+        """Catch key events"""
+        key_code = evt.GetKeyCode()
+
+        # exit window
+        if key_code == wx.WXK_ESCAPE:
+            self.on_close(evt=None)
+
+        if evt is not None:
+            evt.Skip()
+
     def make_panel(self):
         """Make panel"""
         panel = wx.Panel(self, -1, size=(-1, -1))
@@ -69,9 +85,11 @@ class DialogExportFigures(Dialog):
         self.folder_path = wx.TextCtrl(panel, -1, "", style=wx.TE_CHARWRAP, size=(350, -1))
         self.folder_path.SetLabel(str(CONFIG.data_folder_path))
         self.folder_path.Bind(wx.EVT_TEXT, self.on_apply)
+        set_tooltip(self.folder_path, "Specify output path.")
 
-        self.folder_path_btn = wx.Button(panel, wx.ID_ANY, "...", size=(25, 22))
+        self.folder_path_btn = make_bitmap_btn(panel, wx.ID_ANY, self._icons.folder)
         self.folder_path_btn.Bind(wx.EVT_BUTTON, self.on_get_path)
+        set_tooltip(self.folder_path_btn, "Select output path.")
 
         file_format_choice = wx.StaticText(panel, wx.ID_ANY, "File format:")
         self.file_format_choice = wx.Choice(panel, -1, choices=CONFIG.imageFormatType, size=(-1, -1))
@@ -89,17 +107,20 @@ class DialogExportFigures(Dialog):
         self.image_transparency_check = make_checkbox(panel, "")
         self.image_transparency_check.SetValue(CONFIG.transparent)
         self.image_transparency_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
+        set_tooltip(self.image_transparency_check, "If checked, the background of the image will be transparent.")
 
         tight_label = wx.StaticText(panel, wx.ID_ANY, "Tight margins:")
         self.image_tight_check = make_checkbox(panel, "")
         self.image_tight_check.SetValue(CONFIG.image_tight)
         self.image_tight_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
+        set_tooltip(self.image_tight_check, "If checked, the white margin around the plot area will be reduced.")
 
         resize_label = wx.StaticText(panel, wx.ID_ANY, "Resize:")
         self.image_resize_check = make_checkbox(panel, "")
         self.image_resize_check.SetValue(CONFIG.resize)
         self.image_resize_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.image_resize_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
+        set_tooltip(self.image_resize_check, "Tightly control the size and shape of the final plot")
 
         plot_size_export_label = wx.StaticText(panel, -1, "Export plot size (proportion)")
         left_export_label = wx.StaticText(panel, -1, "Left")
@@ -164,8 +185,8 @@ class DialogExportFigures(Dialog):
         grid = wx.GridBagSizer(2, 2)
         n = 0
         grid.Add(wx.StaticText(panel, -1, "Folder path:"), (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.folder_path, (n, 1), wx.GBSpan(1, 4), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        grid.Add(self.folder_path_btn, (n, 5), flag=wx.EXPAND)
+        grid.Add(self.folder_path, (n, 1), wx.GBSpan(1, 5), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        grid.Add(self.folder_path_btn, (n, 6), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
         grid.Add(file_format_choice, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.file_format_choice, (n, 1), flag=wx.EXPAND)
@@ -203,11 +224,10 @@ class DialogExportFigures(Dialog):
         grid.Add(plot_size_cm_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         grid.Add(self.width_cm_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         grid.Add(self.height_cm_value, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        n += 1
-        grid.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), (n, 0), wx.GBSpan(1, 6), flag=wx.EXPAND)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(grid, 1, wx.EXPAND | wx.ALL, 5)
+        main_sizer.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND | wx.ALL, 5)
         main_sizer.Add(btn_grid, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
 
         # fit layout

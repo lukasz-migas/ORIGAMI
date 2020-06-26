@@ -1,6 +1,5 @@
 """Test PanelAbout dialog"""
 # Third-party imports
-import pytest
 import wx
 
 # Local imports
@@ -10,7 +9,6 @@ from origami.gui_elements.panel_about import PanelAbout
 from ..wxtc import WidgetTestCase
 
 
-@pytest.mark.xfail
 class TestPanelAbout(WidgetTestCase):
     """Test dialog"""
 
@@ -21,5 +19,4 @@ class TestPanelAbout(WidgetTestCase):
 
         wx.CallLater(250, dlg.on_close, None)
         dlg.Show()
-        dlg.Destroy()
         self.yield_()

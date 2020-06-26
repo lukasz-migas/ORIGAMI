@@ -7,7 +7,10 @@ import wx
 
 # Local imports
 from origami.styles import Dialog
+from origami.styles import set_tooltip
+from origami.styles import make_bitmap_btn
 from origami.utils.path import check_path_exists
+from origami.icons.assets import Icons
 from origami.config.config import CONFIG
 
 logger = logging.getLogger(__name__)
@@ -25,8 +28,7 @@ class DialogExportData(Dialog):
 
     def __init__(self, parent):
         Dialog.__init__(self, parent, title="Export data....")
-        self.view = parent
-
+        self._icons = Icons()
         self.make_gui()
 
         # setup layout
@@ -48,9 +50,11 @@ class DialogExportData(Dialog):
         self.folder_path = wx.TextCtrl(panel, -1, "", style=wx.TE_CHARWRAP, size=(350, -1))
         self.folder_path.SetLabel(str(CONFIG.data_folder_path))
         self.folder_path.Bind(wx.EVT_TEXT, self.on_apply)
+        set_tooltip(self.folder_path, "Specify output path.")
 
-        self.folder_path_btn = wx.Button(panel, wx.ID_ANY, "...", size=(25, 22))
+        self.folder_path_btn = make_bitmap_btn(panel, wx.ID_ANY, self._icons.folder)
         self.folder_path_btn.Bind(wx.EVT_BUTTON, self.on_get_path)
+        set_tooltip(self.folder_path_btn, "Select output path.")
 
         self.file_delimiter_choice = wx.Choice(panel, -1, choices=list(CONFIG.textOutputDict.keys()), size=(-1, -1))
         self.file_delimiter_choice.SetStringSelection(CONFIG.saveDelimiterTXT)
@@ -81,11 +85,10 @@ class DialogExportData(Dialog):
         n += 1
         grid.Add(wx.StaticText(panel, wx.ID_ANY, "Extension:"), (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.file_extension_label, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        n += 1
-        grid.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), (n, 0), wx.GBSpan(1, 6), flag=wx.EXPAND)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(grid, 1, wx.EXPAND | wx.ALL, 5)
+        main_sizer.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND | wx.ALL, 5)
         main_sizer.Add(btn_grid, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
 
         # fit layout
@@ -116,7 +119,7 @@ class DialogExportData(Dialog):
     def on_get_path(self, _evt):
         """Get directory where to save the data"""
         dlg = wx.DirDialog(
-            self.view, "Choose a folder where to save images", style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST
+            self, "Choose a folder where to save images", style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST
         )
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()

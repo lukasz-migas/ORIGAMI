@@ -221,7 +221,7 @@ class Environment(PropertyCallbackManager):
         """Returns current document"""
         if title is None:
             title = self.current
-        return self.documents[title]
+        return self.documents.get(title, None)
 
     def save(self, path: str):
         """Save document - this function should not exist since zarr data is saved as it is added to the document"""

@@ -1,6 +1,5 @@
 """MS pre-processing settings panel"""
 # Standard library imports
-import copy
 import logging
 
 # Third-party imports
@@ -14,6 +13,7 @@ from origami.styles import make_checkbox
 from origami.config.config import CONFIG
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
+from origami.objects.containers import MassSpectrumObject
 
 logger = logging.getLogger(__name__)
 
@@ -55,22 +55,60 @@ class PanelProcessMassSpectrum(MiniFrame):
     add_to_document_btn = None
     cancel_btn = None
 
-    def __init__(self, parent, presenter, **kwargs):
+    def __init__(
+        self,
+        parent,
+        presenter,
+        document=None,
+        document_title: str = None,
+        dataset_name: str = None,
+        mz_obj: MassSpectrumObject = None,
+        disable_plot: bool = False,
+        disable_process: bool = False,
+        process_all: bool = False,
+        update_widget: str = None,
+    ):
         MiniFrame.__init__(
-            self, parent, title="Process mass spectrum...", style=wx.DEFAULT_FRAME_STYLE & ~wx.RESIZE_BORDER
+            self,
+            parent,
+            title="Process mass spectrum...",
+            style=wx.DEFAULT_FRAME_STYLE & ~wx.RESIZE_BORDER | wx.MAXIMIZE_BOX,
         )
+        """Instantiate pre-processing module
+
+        Parameters
+        ----------
+        parent :
+            parent of the object
+        presenter : ORIGAMI instance
+            instance of the presenter/main class
+        document : DocumentStore
+            instance of document
+        document_title : str
+            name of the document
+        mz_obj : MassSpectrumObject
+            instance of the spectrum that should be pre-processed
+        disable_plot : bool
+            disable plotting
+        disable_process : bool
+            disable pre-processing; only allow change of parameters
+        process_all : bool
+            process all elements in a group of mass spectra
+        update_widget : str
+            name of the pubsub event to be triggered when timer runs out
+        """
         self.view = parent
         self.presenter = presenter
 
         # setup kwargs
-        self.document = kwargs.pop("document", None)
-        self.document_title = kwargs.pop("document_title", None)
-        self.dataset_name = kwargs.pop("dataset_name", None)
-        self.mz_data = kwargs.pop("mz_data", None)
-        self.disable_plot = kwargs.get("disable_plot", False)
-        self.disable_process = kwargs.get("disable_process", False)
-        self.process_all = kwargs.get("process_all", False)
-        self.update_widget = kwargs.get("update_widget", False)
+        self.document = document
+        self.document_title = document_title
+        self.dataset_name = dataset_name
+        self.mz_obj = mz_obj
+        self.disable_plot = disable_plot
+        self.disable_process = disable_process
+        self.process_all = process_all
+        self.update_widget = update_widget
 
         # enable on-demand updates using wxTimer
         self._timer = None
@@ -263,13 +301,12 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.cancel_btn = wx.Button(panel, wx.ID_OK, "Close", size=(120, 22))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
-        btn_grid = wx.GridBagSizer(2, 2)
-        n = 0
+        btn_grid = wx.BoxSizer(wx.HORIZONTAL)
         if not self.disable_plot:
-            btn_grid.Add(self.plot_btn, (n, 1), flag=wx.EXPAND)
+            btn_grid.Add(self.plot_btn)
         if not self.disable_process:
-            btn_grid.Add(self.add_to_document_btn, (n, 2), flag=wx.EXPAND)
-        btn_grid.Add(self.cancel_btn, (n, 3), flag=wx.EXPAND)
+            btn_grid.Add(self.add_to_document_btn)
+        btn_grid.Add(self.cancel_btn)
 
         grid = wx.GridBagSizer(2, 2)
         n = 0
@@ -358,14 +395,14 @@ class PanelProcessMassSpectrum(MiniFrame):
         n += 1
         grid.Add(ms_process_normalize, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.ms_process_normalize, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        n += 1
-        grid.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
-        n += 1
-        grid.Add(btn_grid, (n, 0), wx.GBSpan(1, 3), flag=wx.ALIGN_CENTER)
+        grid.AddGrowableCol(0, 1)
 
         # fit layout
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(grid, 1, wx.EXPAND, 5)
+        main_sizer.Add(grid, 1, wx.EXPAND | wx.ALL, 5)
+        main_sizer.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND, 5)
+        main_sizer.Add(btn_grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 5)
+
         main_sizer.Fit(panel)
 
         panel.SetSizerAndFit(main_sizer)
@@ -387,42 +424,39 @@ class PanelProcessMassSpectrum(MiniFrame):
 
     def on_plot(self, _evt):
         """Plot data"""
-        mz_x = copy.deepcopy(self.mz_data["xvals"])
-        mz_y = copy.deepcopy(self.mz_data["yvals"])
-        mz_x, mz_y = self.data_processing.on_process_MS(mz_x, mz_y, return_data=True)
-
-        #         self.panel_plot.on_simple_plot_1D(mz_x, mz_y, xlabel="m/z", ylabel="Intensity", plot="MS")
-        self.panel_plot.on_plot_MS(mz_x, mz_y)
+        raise NotImplementedError("Must implement method")
+        # mz_x = copy.deepcopy(self.mz_data["xvals"])
+        # mz_y = copy.deepcopy(self.mz_data["yvals"])
+        # mz_x, mz_y = self.data_processing.on_process_MS(mz_x, mz_y, return_data=True)
+        #
+        # #         self.panel_plot.on_simple_plot_1D(mz_x, mz_y, xlabel="m/z", ylabel="Intensity", plot="MS")
+        # self.panel_plot.on_plot_MS(mz_x, mz_y)
 
     def on_add_to_document(self, _evt):
         """Add data to document"""
-        if self.process_all:
-            for dataset_name in self.mz_data:
-                self.data_processing.on_process_MS_and_add_data(self.document_title, dataset_name)
-            return
-
-        self.data_processing.on_process_MS_and_add_data(self.document_title, self.dataset_name)
+        raise NotImplementedError("Must implement method")
+        # if self.process_all:
+        #     for dataset_name in self.mz_data:
+        #         self.data_processing.on_process_MS_and_add_data(self.document_title, dataset_name)
+        #     return
+        #
+        # self.data_processing.on_process_MS_and_add_data(self.document_title, self.dataset_name)
 
     def on_toggle_controls(self, evt):
         """Toggle controls based on some other settings"""
 
         # crop
         CONFIG.ms_process_crop = self.ms_process_crop.GetValue()
-        obj_list = [self.crop_min_value, self.crop_max_value]
-        for item in obj_list:
-            item.Enable(enable=CONFIG.ms_process_crop)
+        self.crop_min_value.Enable(enable=CONFIG.ms_process_crop)
+        self.crop_max_value.Enable(enable=CONFIG.ms_process_crop)
 
         # linearize
         CONFIG.ms_process_linearize = self.ms_process_linearize.GetValue()
-        obj_list = [
-            self.bin_linearization_method_choice,
-            self.bin_mzBinSize_value,
-            self.bin_mzStart_value,
-            self.bin_mzEnd_value,
-            self.bin_autoRange_check,
-        ]
-        for item in obj_list:
-            item.Enable(enable=CONFIG.ms_process_linearize)
+        self.bin_linearization_method_choice.Enable(enable=CONFIG.ms_process_linearize)
+        self.bin_mzBinSize_value.Enable(enable=CONFIG.ms_process_linearize)
+        self.bin_mzStart_value.Enable(enable=CONFIG.ms_process_linearize)
+        self.bin_mzEnd_value.Enable(enable=CONFIG.ms_process_linearize)
+        self.bin_autoRange_check.Enable(enable=CONFIG.ms_process_linearize)
 
         CONFIG.ms_auto_range = self.bin_autoRange_check.GetValue()
         if CONFIG.ms_process_linearize:
@@ -543,7 +577,7 @@ class PanelProcessMassSpectrum(MiniFrame):
 
 def _main():
     app = wx.App()
-    ex = PanelProcessMassSpectrum(None, None, debug=True)
+    ex = PanelProcessMassSpectrum(None, None)
 
     ex.Show()
     app.MainLoop()

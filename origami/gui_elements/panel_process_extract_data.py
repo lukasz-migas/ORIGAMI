@@ -10,6 +10,7 @@ from origami.styles import MiniFrame
 from origami.styles import validator
 from origami.styles import make_checkbox
 from origami.styles import make_spin_ctrl_double
+from origami.config.config import CONFIG
 from origami.utils.converters import str2num
 from origami.utils.exceptions import MessageError
 
@@ -21,18 +22,10 @@ logger = logging.getLogger(__name__)
 class PanelProcessExtractData(MiniFrame):
     """Extract data"""
 
-    def __init__(self, parent, presenter, config, icons, **kwargs):
+    def __init__(self, parent, presenter, **kwargs):
         MiniFrame.__init__(self, parent, title="Extract data...", style=wx.DEFAULT_FRAME_STYLE & ~wx.RESIZE_BORDER)
         self.view = parent
         self.presenter = presenter
-        self.documentTree = self.view.panelDocuments.documents
-        self.data_handling = presenter.data_handling
-        self.config = config
-        self.icons = icons
-
-        self.data_processing = presenter.data_processing
-        self.data_handling = presenter.data_handling
-        self.panel_plot = self.view.panelPlots
 
         # setup kwargs
         self.document = kwargs.pop("document", None)
@@ -67,6 +60,26 @@ class PanelProcessExtractData(MiniFrame):
 
         # subscribe to event
         pub.subscribe(self.on_add_data_to_storage, "extract.data.user")
+
+    @property
+    def data_handling(self):
+        """Return handle to `data_handling`"""
+        return self.presenter.data_handling
+
+    @property
+    def data_processing(self):
+        """Return handle to `data_processing`"""
+        return self.presenter.data_processing
+
+    @property
+    def document_tree(self):
+        """Return handle to `document_tree`"""
+        return self.presenter.view.panelDocuments.documents
+
+    @property
+    def panel_plot(self):
+        """Return handle to `panel_plot`"""
+        return self.presenter.view.panelPlots
 
     def on_close(self, evt):
 
@@ -119,26 +132,24 @@ class PanelProcessExtractData(MiniFrame):
         mass_range = self.extraction_ranges.get("mass_range", [0, 99999])
         self.mz_label = wx.StaticText(panel, wx.ID_ANY, "m/z (Da):")
         self.extract_mzStart_value = make_spin_ctrl_double(
-            panel, self.config.extract_mzStart, mass_range[0], mass_range[1], 100
+            panel, CONFIG.extract_mzStart, mass_range[0], mass_range[1], 100
         )
         self.extract_mzStart_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        self.extract_mzEnd_value = make_spin_ctrl_double(
-            panel, self.config.extract_mzEnd, mass_range[0], mass_range[1], 100
-        )
+        self.extract_mzEnd_value = make_spin_ctrl_double(panel, CONFIG.extract_mzEnd, mass_range[0], mass_range[1], 100)
         self.extract_mzEnd_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         self.rt_label = wx.StaticText(panel, wx.ID_ANY, "RT (min): ")
         self.extract_rtStart_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
-        self.extract_rtStart_value.SetValue(str(self.config.extract_rtStart))
+        self.extract_rtStart_value.SetValue(str(CONFIG.extract_rtStart))
         self.extract_rtStart_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         self.extract_rtEnd_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
-        self.extract_rtEnd_value.SetValue(str(self.config.extract_rtEnd))
+        self.extract_rtEnd_value.SetValue(str(CONFIG.extract_rtEnd))
         self.extract_rtEnd_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         self.extract_rt_scans_check = make_checkbox(panel, "In scans")
-        self.extract_rt_scans_check.SetValue(self.config.extract_rt_use_scans)
+        self.extract_rt_scans_check.SetValue(CONFIG.extract_rt_use_scans)
         self.extract_rt_scans_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.extract_rt_scans_check.Bind(wx.EVT_CHECKBOX, self.on_change_validator)
         self.extract_rt_scans_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -150,15 +161,15 @@ class PanelProcessExtractData(MiniFrame):
 
         self.dt_label = wx.StaticText(panel, wx.ID_ANY, "DT (bins):")
         self.extract_dtStart_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
-        self.extract_dtStart_value.SetValue(str(self.config.extract_dtStart))
+        self.extract_dtStart_value.SetValue(str(CONFIG.extract_dtStart))
         self.extract_dtStart_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         self.extract_dtEnd_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
-        self.extract_dtEnd_value.SetValue(str(self.config.extract_dtEnd))
+        self.extract_dtEnd_value.SetValue(str(CONFIG.extract_dtEnd))
         self.extract_dtEnd_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         self.extract_dt_ms_check = make_checkbox(panel, "In ms")
-        self.extract_dt_ms_check.SetValue(self.config.extract_dt_use_ms)
+        self.extract_dt_ms_check.SetValue(CONFIG.extract_dt_use_ms)
         self.extract_dt_ms_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.extract_dt_ms_check.Bind(wx.EVT_CHECKBOX, self.on_change_validator)
         self.extract_dt_ms_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -169,7 +180,7 @@ class PanelProcessExtractData(MiniFrame):
         self.extract_pusherFreq_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         self.extract_extractMS_check = make_checkbox(panel, "Extract mass spectrum")
-        self.extract_extractMS_check.SetValue(self.config.extract_massSpectra)
+        self.extract_extractMS_check.SetValue(CONFIG.extract_massSpectra)
         self.extract_extractMS_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.extract_extractMS_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
@@ -186,7 +197,7 @@ class PanelProcessExtractData(MiniFrame):
         self.extract_extractMS_dt_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         self.extract_extractRT_check = make_checkbox(panel, "Extract chromatogram")
-        self.extract_extractRT_check.SetValue(self.config.extract_chromatograms)
+        self.extract_extractRT_check.SetValue(CONFIG.extract_chromatograms)
         self.extract_extractRT_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.extract_extractRT_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
@@ -199,7 +210,7 @@ class PanelProcessExtractData(MiniFrame):
         self.extract_extractRT_dt_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         self.extract_extractDT_check = make_checkbox(panel, "Extract mobilogram")
-        self.extract_extractDT_check.SetValue(self.config.extract_driftTime1D)
+        self.extract_extractDT_check.SetValue(CONFIG.extract_driftTime1D)
         self.extract_extractDT_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.extract_extractDT_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
@@ -212,7 +223,7 @@ class PanelProcessExtractData(MiniFrame):
         self.extract_extractDT_rt_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         self.extract_extract2D_check = make_checkbox(panel, "Extract heatmap")
-        self.extract_extract2D_check.SetValue(self.config.extract_driftTime2D)
+        self.extract_extract2D_check.SetValue(CONFIG.extract_driftTime2D)
         self.extract_extract2D_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.extract_extract2D_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
@@ -416,85 +427,87 @@ class PanelProcessExtractData(MiniFrame):
         # add data to document while also removing it from the clipboard object
         for key in add_to_document_list:
             dataset = self.extraction_data.pop(key)
-            self.documentTree.on_update_data(dataset["data"], dataset["name"], document, data_type=dataset["data_type"])
+            self.document_tree.on_update_data(
+                dataset["data"], dataset["name"], document, data_type=dataset["data_type"]
+            )
             logger.info(f"Added {dataset['name']} to {self.document_title}")
 
     def on_toggle_controls(self, evt):
-        self.config.extract_massSpectra = self.extract_extractMS_check.GetValue()
+        CONFIG.extract_massSpectra = self.extract_extractMS_check.GetValue()
         obj_list = [self.extract_extractMS_dt_check, self.extract_extractMS_rt_check, self.extract_extractMS_ms_check]
         for item in obj_list:
-            item.Enable(enable=self.config.extract_massSpectra)
+            item.Enable(enable=CONFIG.extract_massSpectra)
 
-        self.config.extract_chromatograms = self.extract_extractRT_check.GetValue()
+        CONFIG.extract_chromatograms = self.extract_extractRT_check.GetValue()
         obj_list = [self.extract_extractRT_dt_check, self.extract_extractRT_ms_check]
         for item in obj_list:
-            item.Enable(enable=self.config.extract_chromatograms)
+            item.Enable(enable=CONFIG.extract_chromatograms)
 
-        self.config.extract_driftTime1D = self.extract_extractDT_check.GetValue()
+        CONFIG.extract_driftTime1D = self.extract_extractDT_check.GetValue()
         obj_list = [self.extract_extractDT_ms_check, self.extract_extractDT_rt_check]
         for item in obj_list:
-            item.Enable(enable=self.config.extract_driftTime1D)
+            item.Enable(enable=CONFIG.extract_driftTime1D)
 
-        self.config.extract_driftTime2D = self.extract_extract2D_check.GetValue()
+        CONFIG.extract_driftTime2D = self.extract_extract2D_check.GetValue()
         obj_list = [self.extract_extract2D_ms_check, self.extract_extract2D_rt_check]
         for item in obj_list:
-            item.Enable(enable=self.config.extract_driftTime2D)
+            item.Enable(enable=CONFIG.extract_driftTime2D)
 
-        self.config.extract_rt_use_scans = self.extract_rt_scans_check.GetValue()
-        self.extract_scanTime_value.Enable(enable=self.config.extract_rt_use_scans)
+        CONFIG.extract_rt_use_scans = self.extract_rt_scans_check.GetValue()
+        self.extract_scanTime_value.Enable(enable=CONFIG.extract_rt_use_scans)
 
-        self.config.extract_dt_use_ms = self.extract_dt_ms_check.GetValue()
-        self.extract_pusherFreq_value.Enable(enable=self.config.extract_dt_use_ms)
+        CONFIG.extract_dt_use_ms = self.extract_dt_ms_check.GetValue()
+        self.extract_pusherFreq_value.Enable(enable=CONFIG.extract_dt_use_ms)
 
         if evt is not None:
             evt.Skip()
 
     def on_apply(self, evt):
         self.on_update_extraction_ranges()
-        self.config.extract_mzStart = str2num(self.extract_mzStart_value.GetValue())
-        self.config.extract_mzEnd = str2num(self.extract_mzEnd_value.GetValue())
-        self.config.extract_rtStart = str2num(self.extract_rtStart_value.GetValue())
-        self.config.extract_rtEnd = str2num(self.extract_rtEnd_value.GetValue())
-        self.config.extract_dtStart = str2num(self.extract_dtStart_value.GetValue())
-        self.config.extract_dtEnd = str2num(self.extract_dtEnd_value.GetValue())
+        CONFIG.extract_mzStart = str2num(self.extract_mzStart_value.GetValue())
+        CONFIG.extract_mzEnd = str2num(self.extract_mzEnd_value.GetValue())
+        CONFIG.extract_rtStart = str2num(self.extract_rtStart_value.GetValue())
+        CONFIG.extract_rtEnd = str2num(self.extract_rtEnd_value.GetValue())
+        CONFIG.extract_dtStart = str2num(self.extract_dtStart_value.GetValue())
+        CONFIG.extract_dtEnd = str2num(self.extract_dtEnd_value.GetValue())
 
-        self.config.extract_massSpectra_use_mz = self.extract_extractMS_ms_check.GetValue()
-        self.config.extract_massSpectra_use_rt = self.extract_extractMS_rt_check.GetValue()
-        self.config.extract_massSpectra_use_dt = self.extract_extractMS_dt_check.GetValue()
+        CONFIG.extract_massSpectra_use_mz = self.extract_extractMS_ms_check.GetValue()
+        CONFIG.extract_massSpectra_use_rt = self.extract_extractMS_rt_check.GetValue()
+        CONFIG.extract_massSpectra_use_dt = self.extract_extractMS_dt_check.GetValue()
 
-        self.config.extract_chromatograms_use_mz = self.extract_extractRT_ms_check.GetValue()
-        self.config.extract_chromatograms_use_dt = self.extract_extractRT_dt_check.GetValue()
+        CONFIG.extract_chromatograms_use_mz = self.extract_extractRT_ms_check.GetValue()
+        CONFIG.extract_chromatograms_use_dt = self.extract_extractRT_dt_check.GetValue()
 
-        self.config.extract_driftTime1D_use_mz = self.extract_extractDT_ms_check.GetValue()
-        self.config.extract_driftTime1D_use_rt = self.extract_extractDT_rt_check.GetValue()
+        CONFIG.extract_driftTime1D_use_mz = self.extract_extractDT_ms_check.GetValue()
+        CONFIG.extract_driftTime1D_use_rt = self.extract_extractDT_rt_check.GetValue()
 
-        self.config.extract_driftTime2D_use_mz = self.extract_extract2D_ms_check.GetValue()
-        self.config.extract_driftTime2D_use_rt = self.extract_extract2D_rt_check.GetValue()
+        CONFIG.extract_driftTime2D_use_mz = self.extract_extract2D_ms_check.GetValue()
+        CONFIG.extract_driftTime2D_use_rt = self.extract_extract2D_rt_check.GetValue()
 
         if evt is not None:
             evt.Skip()
 
     def on_change_validator(self, evt):
 
-        self.config.extract_rt_use_scans = self.extract_rt_scans_check.GetValue()
-        if self.config.extract_rt_use_scans:
+        CONFIG.extract_rt_use_scans = self.extract_rt_scans_check.GetValue()
+        if CONFIG.extract_rt_use_scans:
             self.rt_label.SetLabel("RT (scans):")
             self.extract_rtStart_value.SetValidator(validator("intPos"))
-            self.extract_rtStart_value.SetValue(str(int(self.config.extract_rtStart)))
+            self.extract_rtStart_value.SetValue(str(int(CONFIG.extract_rtStart)))
             self.extract_rtEnd_value.SetValidator(validator("intPos"))
-            self.extract_rtEnd_value.SetValue(str(int(self.config.extract_rtEnd)))
+            self.extract_rtEnd_value.SetValue(str(int(CONFIG.extract_rtEnd)))
         else:
             self.rt_label.SetLabel("RT (mins): ")
             self.extract_rtStart_value.SetValidator(validator("floatPos"))
             self.extract_rtEnd_value.SetValidator(validator("floatPos"))
 
-        self.config.extract_dt_use_ms = self.extract_dt_ms_check.GetValue()
-        if self.config.extract_dt_use_ms:
+        CONFIG.extract_dt_use_ms = self.extract_dt_ms_check.GetValue()
+        if CONFIG.extract_dt_use_ms:
             self.dt_label.SetLabel("DT (ms):")
             self.extract_dtStart_value.SetValidator(validator("intPos"))
-            self.extract_dtStart_value.SetValue(str(int(self.config.extract_dtStart)))
+            self.extract_dtStart_value.SetValue(str(int(CONFIG.extract_dtStart)))
             self.extract_dtEnd_value.SetValidator(validator("intPos"))
-            self.extract_dtEnd_value.SetValue(str(int(self.config.extract_dtEnd)))
+            self.extract_dtEnd_value.SetValue(str(int(CONFIG.extract_dtEnd)))
         else:
             self.dt_label.SetLabel("DT (bins):")
             self.extract_dtStart_value.SetValidator(validator("floatPos"))
@@ -509,47 +522,47 @@ class PanelProcessExtractData(MiniFrame):
         if self.extraction_ranges:
             # check mass range
             mass_range = self.extraction_ranges.get("mass_range")
-            if self.config.extract_mzStart < mass_range[0]:
-                self.config.extract_mzStart = mass_range[0]
-                self.extract_mzStart_value.SetValue(f"{self.config.extract_mzStart}")
-            if self.config.extract_mzEnd > mass_range[1]:
-                self.config.extract_mzEnd = mass_range[1]
-                self.extract_mzEnd_value.SetValue(f"{self.config.extract_mzEnd}")
+            if CONFIG.extract_mzStart < mass_range[0]:
+                CONFIG.extract_mzStart = mass_range[0]
+                self.extract_mzStart_value.SetValue(f"{CONFIG.extract_mzStart}")
+            if CONFIG.extract_mzEnd > mass_range[1]:
+                CONFIG.extract_mzEnd = mass_range[1]
+                self.extract_mzEnd_value.SetValue(f"{CONFIG.extract_mzEnd}")
 
             # check chromatographic range
-            if self.config.extract_rt_use_scans:
+            if CONFIG.extract_rt_use_scans:
                 rt_range = self.extraction_ranges.get("xvals_RT_scans")
             else:
                 rt_range = self.extraction_ranges.get("xvals_RT_mins")
 
-            if self.config.extract_rtStart < rt_range[0]:
-                self.config.extract_rtStart = rt_range[0]
-                self.extract_rtStart_value.SetValue(f"{self.config.extract_rtStart}")
-            if self.config.extract_rtStart > rt_range[1]:
-                self.config.extract_rtStart = rt_range[1]
-                self.extract_rtStart_value.SetValue(f"{self.config.extract_rtStart}")
-            if self.config.extract_rtEnd < rt_range[0]:
-                self.config.extract_rtEnd = rt_range[0]
-                self.extract_rtEnd_value.SetValue(f"{self.config.extract_rtEnd}")
-            if self.config.extract_rtEnd > rt_range[1]:
-                self.config.extract_rtEnd = rt_range[1]
-                self.extract_rtEnd_value.SetValue(f"{self.config.extract_rtEnd}")
+            if CONFIG.extract_rtStart < rt_range[0]:
+                CONFIG.extract_rtStart = rt_range[0]
+                self.extract_rtStart_value.SetValue(f"{CONFIG.extract_rtStart}")
+            if CONFIG.extract_rtStart > rt_range[1]:
+                CONFIG.extract_rtStart = rt_range[1]
+                self.extract_rtStart_value.SetValue(f"{CONFIG.extract_rtStart}")
+            if CONFIG.extract_rtEnd < rt_range[0]:
+                CONFIG.extract_rtEnd = rt_range[0]
+                self.extract_rtEnd_value.SetValue(f"{CONFIG.extract_rtEnd}")
+            if CONFIG.extract_rtEnd > rt_range[1]:
+                CONFIG.extract_rtEnd = rt_range[1]
+                self.extract_rtEnd_value.SetValue(f"{CONFIG.extract_rtEnd}")
 
             # check mobility range
-            if self.config.extract_dt_use_ms:
+            if CONFIG.extract_dt_use_ms:
                 dt_range = self.extraction_ranges.get("xvals_DT_ms")
             else:
                 dt_range = self.extraction_ranges.get("xvals_DT_bins")
 
-            if self.config.extract_dtStart < dt_range[0]:
-                self.config.extract_dtStart = dt_range[0]
-                self.extract_dtStart_value.SetValue(f"{self.config.extract_dtStart}")
-            if self.config.extract_dtStart > dt_range[1]:
-                self.config.extract_dtStart = dt_range[1]
-                self.extract_dtStart_value.SetValue(f"{self.config.extract_dtStart}")
-            if self.config.extract_dtEnd < dt_range[0]:
-                self.config.extract_dtEnd = dt_range[0]
-                self.extract_dtEnd_value.SetValue(f"{self.config.extract_dtEnd}")
-            if self.config.extract_dtEnd > dt_range[1]:
-                self.config.extract_dtEnd = dt_range[1]
-                self.extract_dtEnd_value.SetValue(f"{self.config.extract_dtEnd}")
+            if CONFIG.extract_dtStart < dt_range[0]:
+                CONFIG.extract_dtStart = dt_range[0]
+                self.extract_dtStart_value.SetValue(f"{CONFIG.extract_dtStart}")
+            if CONFIG.extract_dtStart > dt_range[1]:
+                CONFIG.extract_dtStart = dt_range[1]
+                self.extract_dtStart_value.SetValue(f"{CONFIG.extract_dtStart}")
+            if CONFIG.extract_dtEnd < dt_range[0]:
+                CONFIG.extract_dtEnd = dt_range[0]
+                self.extract_dtEnd_value.SetValue(f"{CONFIG.extract_dtEnd}")
+            if CONFIG.extract_dtEnd > dt_range[1]:
+                CONFIG.extract_dtEnd = dt_range[1]
+                self.extract_dtEnd_value.SetValue(f"{CONFIG.extract_dtEnd}")

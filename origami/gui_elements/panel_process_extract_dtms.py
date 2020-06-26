@@ -9,24 +9,34 @@ import numpy as np
 # Local imports
 from origami.styles import MiniFrame
 from origami.styles import validator
+from origami.config.config import CONFIG
 from origami.utils.converters import str2num
+from origami.config.environment import ENV
 
 logger = logging.getLogger(__name__)
 
 
 class PanelProcessExtractDTMS(MiniFrame):
-    """
-    Miniframe enabling extraction of DT/MS heatmap
-    """
+    """Panel enabling extraction of new or additional MS/DT data"""
 
-    def __init__(self, parent, presenter, config, icons):
+    # ui elements
+    mz_min_value = None
+    mz_max_value = None
+    mz_bin_value = None
+    msg_bar = None
+    info_bar = None
+    extract_btn = None
+    add_to_document_btn = None
+    save_to_file_btn = None
+    cancel_btn = None
+
+    # parameters
+    parameters = None
+
+    def __init__(self, parent, presenter):
         MiniFrame.__init__(self, parent, title="Extract DT/MS...")
         self.view = parent
         self.presenter = presenter
-        self.documentTree = self.view.panelDocuments.documents
-        self.data_handling = presenter.data_handling
-        self.config = config
-        self.icons = icons
 
         self.block_update = False
 
@@ -43,9 +53,24 @@ class PanelProcessExtractDTMS(MiniFrame):
         self.CentreOnScreen()
         self.SetFocus()
 
+    @property
+    def data_handling(self):
+        """Return handle to `data_handling`"""
+        return self.presenter.data_handling
+
+    @property
+    def data_processing(self):
+        """Return handle to `data_processing`"""
+        return self.presenter.data_processing
+
+    @property
+    def document_tree(self):
+        """Return handle to `document_tree`"""
+        return self.presenter.view.panelDocuments.documents
+
     def make_panel(self):
-        panel = wx.Panel(self, -1, size=(-1, -1))
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        """Make panel"""
+        panel = wx.Panel(self, -1)
 
         # add extraction controls
         self.info_bar = wx.StaticText(panel, -1, "")
@@ -66,10 +91,6 @@ class PanelProcessExtractDTMS(MiniFrame):
         self.msg_bar = wx.StaticText(panel, -1, "")
         self.msg_bar.SetLabel("")
 
-        horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
-        horizontal_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
-        horizontal_line_3 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
-
         # add buttons
         self.extract_btn = wx.Button(panel, wx.ID_ANY, "Extract", size=(-1, 22))
         self.extract_btn.Bind(wx.EVT_BUTTON, self.on_extract_data)
@@ -83,34 +104,33 @@ class PanelProcessExtractDTMS(MiniFrame):
         self.cancel_btn = wx.Button(panel, wx.ID_ANY, "Cancel", size=(-1, 22))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
+        btn_grid = wx.BoxSizer(wx.HORIZONTAL)
+        btn_grid.Add(self.extract_btn)
+        btn_grid.Add(self.add_to_document_btn)
+        btn_grid.Add(self.save_to_file_btn)
+        btn_grid.Add(self.cancel_btn)
+
         # pack elements
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(self.info_bar, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
-        n += 1
-        grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
-        n += 1
         grid.Add(mz_min_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.mz_min_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.mz_min_value, (n, 1), flag=wx.EXPAND)
         n += 1
         grid.Add(mz_max_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.mz_max_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.mz_max_value, (n, 1), flag=wx.EXPAND)
         n += 1
         grid.Add(mz_bin_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.mz_bin_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL)
-        n += 1
-        grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
-        n += 1
-        grid.Add(self.msg_bar, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
-        n += 1
-        grid.Add(horizontal_line_3, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
-        n += 1
-        grid.Add(self.extract_btn, (n, 0), flag=wx.ALIGN_CENTER)
-        grid.Add(self.add_to_document_btn, (n, 1), flag=wx.ALIGN_CENTER)
-        grid.Add(self.save_to_file_btn, (n, 2), flag=wx.ALIGN_CENTER)
-        grid.Add(self.cancel_btn, (n, 3), flag=wx.ALIGN_CENTER)
+        grid.Add(self.mz_bin_value, (n, 1), flag=wx.EXPAND)
+        grid.AddGrowableCol(1, 1)
 
-        main_sizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(self.info_bar, 0, wx.EXPAND | wx.ALL, 10)
+        main_sizer.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND, 10)
+        main_sizer.Add(grid, 1, wx.EXPAND | wx.ALL, 10)
+        main_sizer.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND, 10)
+        main_sizer.Add(self.msg_bar, 0, wx.EXPAND | wx.ALL, 10)
+        main_sizer.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND, 10)
+        main_sizer.Add(btn_grid, 0, wx.EXPAND, 10)
 
         # fit layout
         main_sizer.Fit(panel)
@@ -119,8 +139,12 @@ class PanelProcessExtractDTMS(MiniFrame):
         return panel
 
     def on_setup_gui(self):
+        """Setup GUI so it matches current document"""
 
-        document, __ = self.on_get_document()
+        document = ENV.on_get_document()
+        if document is None:
+            return
+
         parameters = document.parameters
         self.parameters = parameters
 
@@ -130,20 +154,20 @@ class PanelProcessExtractDTMS(MiniFrame):
         self.info_bar.SetLabel(info)
 
         # check if user has previously defined any values
-        if self.config.extract_dtms_mzStart not in [0, "", None]:
-            mz_min = self.config.extract_dtms_mzStart
+        if CONFIG.extract_dtms_mzStart not in [0, "", None]:
+            mz_min = CONFIG.extract_dtms_mzStart
         else:
             mz_min = self.parameters["startMS"]
         self.mz_min_value.SetValue(str(mz_min))
 
-        if self.config.extract_dtms_mzEnd not in [0, "", None]:
-            mz_max = self.config.extract_dtms_mzEnd
+        if CONFIG.extract_dtms_mzEnd not in [0, "", None]:
+            mz_max = CONFIG.extract_dtms_mzEnd
         else:
             mz_max = self.parameters["endMS"]
         self.mz_max_value.SetValue(str(mz_max))
 
-        if self.config.extract_dtms_mzBinSize not in [0, "", None]:
-            mz_bin_size = self.config.extract_dtms_mzBinSize
+        if CONFIG.extract_dtms_mzBinSize not in [0, "", None]:
+            mz_bin_size = CONFIG.extract_dtms_mzBinSize
         else:
             mz_bin_size = 0.1
         self.mz_bin_value.SetValue(str(mz_bin_size))
@@ -153,8 +177,7 @@ class PanelProcessExtractDTMS(MiniFrame):
             try:
                 n_points = int(
                     math.floor(
-                        (self.config.extract_dtms_mzEnd - self.config.extract_dtms_mzStart)
-                        / self.config.extract_dtms_mzBinSize
+                        (CONFIG.extract_dtms_mzEnd - CONFIG.extract_dtms_mzStart) / CONFIG.extract_dtms_mzBinSize
                     )
                 )
                 if n_points > 0:
@@ -168,32 +191,32 @@ class PanelProcessExtractDTMS(MiniFrame):
     def check_user_input(self):
         """Check user input and if incorrect correct the values"""
         self.block_update = True
-        if self.config.extract_dtms_mzStart in [0, "", None, "None"]:
-            self.config.extract_dtms_mzStart = self.parameters["startMS"]
+        if CONFIG.extract_dtms_mzStart in [0, "", None, "None"]:
+            CONFIG.extract_dtms_mzStart = self.parameters["startMS"]
 
-        if self.config.extract_dtms_mzEnd in [0, "", None, "None"]:
-            self.config.extract_dtms_mzEnd = self.parameters["endMS"]
+        if CONFIG.extract_dtms_mzEnd in [0, "", None, "None"]:
+            CONFIG.extract_dtms_mzEnd = self.parameters["endMS"]
 
         # check values are in correct order
-        if self.config.extract_dtms_mzStart > self.config.extract_dtms_mzEnd:
-            self.config.extract_dtms_mzStart, self.config.extract_dtms_mzEnd = (
-                self.config.extract_dtms_mzEnd,
-                self.config.extract_dtms_mzStart,
+        if CONFIG.extract_dtms_mzStart > CONFIG.extract_dtms_mzEnd:
+            CONFIG.extract_dtms_mzStart, CONFIG.extract_dtms_mzEnd = (
+                CONFIG.extract_dtms_mzEnd,
+                CONFIG.extract_dtms_mzStart,
             )
 
         # check if values are the same
-        if self.config.extract_dtms_mzStart == self.config.extract_dtms_mzEnd:
-            self.config.extract_dtms_mzEnd += 1
+        if CONFIG.extract_dtms_mzStart == CONFIG.extract_dtms_mzEnd:
+            CONFIG.extract_dtms_mzEnd += 1
 
         # check if values are below experimental range
-        if self.config.extract_dtms_mzStart < self.parameters["startMS"]:
-            self.config.extract_dtms_mzStart = self.parameters["startMS"]
+        if CONFIG.extract_dtms_mzStart < self.parameters["startMS"]:
+            CONFIG.extract_dtms_mzStart = self.parameters["startMS"]
 
-        if self.config.extract_dtms_mzEnd > self.parameters["endMS"]:
-            self.config.extract_dtms_mzEnd = self.parameters["endMS"]
+        if CONFIG.extract_dtms_mzEnd > self.parameters["endMS"]:
+            CONFIG.extract_dtms_mzEnd = self.parameters["endMS"]
 
-        if self.config.extract_dtms_mzBinSize in [0, "", None, "None"]:
-            self.config.extract_dtms_mzBinSize = 1
+        if CONFIG.extract_dtms_mzBinSize in [0, "", None, "None"]:
+            CONFIG.extract_dtms_mzBinSize = 1
 
         self.on_setup_gui()
         self.block_update = False
@@ -203,9 +226,9 @@ class PanelProcessExtractDTMS(MiniFrame):
         if self.block_update:
             return
 
-        self.config.extract_dtms_mzStart = str2num(self.mz_min_value.GetValue())
-        self.config.extract_dtms_mzEnd = str2num(self.mz_max_value.GetValue())
-        self.config.extract_dtms_mzBinSize = str2num(self.mz_bin_value.GetValue())
+        CONFIG.extract_dtms_mzStart = str2num(self.mz_min_value.GetValue())
+        CONFIG.extract_dtms_mzEnd = str2num(self.mz_max_value.GetValue())
+        CONFIG.extract_dtms_mzBinSize = str2num(self.mz_bin_value.GetValue())
         self._update_msg_bar()
 
         if evt is not None:
@@ -226,10 +249,7 @@ class PanelProcessExtractDTMS(MiniFrame):
         """
         mz_len = shape[1]
         mz_x = np.linspace(
-            mz_min - self.config.extract_dtms_mzBinSize,
-            mz_max + self.config.extract_dtms_mzBinSize,
-            mz_len,
-            endpoint=True,
+            mz_min - CONFIG.extract_dtms_mzBinSize, mz_max + CONFIG.extract_dtms_mzBinSize, mz_len, endpoint=True
         )
 
         return mz_x
@@ -243,24 +263,19 @@ class PanelProcessExtractDTMS(MiniFrame):
 
         return is_present
 
-    def on_get_document(self):
-        document = self.data_handling.on_get_document()
-
-        return document, document.title
-
-    def on_extract_data(self, evt):
+    def on_extract_data(self, _evt):
         # clear previous msg
         self._update_msg_bar()
 
         # check user input
         self.check_user_input()
 
-        document, __ = self.on_get_document()
+        document = ENV.on_get_document()
         path = document.path
 
         # Extract and load data
         mz_x, dt_y, data = self.data_handling.waters_im_extract_msdt(
-            path, self.config.extract_dtms_mzStart, self.config.extract_dtms_mzEnd, self.config.extract_dtms_mzBinSize
+            path, CONFIG.extract_dtms_mzStart, CONFIG.extract_dtms_mzEnd, CONFIG.extract_dtms_mzBinSize
         )
 
         # Plot
@@ -274,11 +289,11 @@ class PanelProcessExtractDTMS(MiniFrame):
         # notify the user that update was made
         self._update_msg_bar("Data was extracted! It had dimensions {} x {}".format(dt_y.shape[0], mz_x.shape[0]))
 
-    def on_add_to_document(self, evt):
+    def on_add_to_document(self, _evt):
         if not self.on_check_data():
             return
 
-        document, __ = self.on_get_document()
+        document = ENV.on_get_document()
 
         document.gotDTMZ = True
         document.DTMZ = {
@@ -287,21 +302,22 @@ class PanelProcessExtractDTMS(MiniFrame):
             "yvals": self.y_data,
             "xlabels": "m/z",
             "ylabels": "Drift time (bins)",
-            "cmap": self.config.currentCmap,
+            "cmap": CONFIG.currentCmap,
         }
         self.data_handling.on_update_document(document, "document")
 
-    def on_save(self, evt):
+    def on_save(self, _evt):
         if not self.on_check_data():
             return
 
-        __, document_title = self.on_get_document()
+        document = ENV.on_get_document()
+        document_title = document.title
 
         zvals = self.z_data
         xvals = self.x_data
         yvals = self.y_data
 
-        default_name = "MSDT_{}{}".format(document_title, self.config.saveExtension)
+        default_name = "MSDT_{}{}".format(document_title, CONFIG.saveExtension)
 
         saveData = np.vstack((xvals, zvals))
         yvals = list(map(str, yvals.tolist()))
@@ -311,7 +327,7 @@ class PanelProcessExtractDTMS(MiniFrame):
 
         # Save 2D array
         kwargs = {"default_name": default_name}
-        self.documentTree.onSaveData(data=saveData, labels=labels, data_format=fmts, **kwargs)
+        self.document_tree.onSaveData(data=saveData, labels=labels, data_format=fmts, **kwargs)
 
         self._update_msg_bar("Data was saved to file!")
 
@@ -328,3 +344,13 @@ class PanelProcessExtractDTMS(MiniFrame):
 #             self.view.panelPlots.on_plot_MSDT(data, mz_x, self.y_data, 'm/z', 'Drift time (bins)')
 #             data, mz_x = pr_heatmap.bin_mean_array(self.z_data, self.x_data, division_factor)
 #             self.view.panelPlots.on_plot_MSDT(data, mz_x, self.y_data, 'm/z', 'Drift time (bins)')
+def _main():
+    app = wx.App()
+    ex = PanelProcessExtractDTMS(None, None)
+
+    ex.Show()
+    app.MainLoop()
+
+
+if __name__ == "__main__":
+    _main()
