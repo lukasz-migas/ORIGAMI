@@ -98,7 +98,7 @@ class DialogExportFigures(Dialog):
 
         resolution_label = wx.StaticText(panel, wx.ID_ANY, "Resolution (DPI):")
         self.image_resolution = wx.SpinCtrlDouble(
-            panel, -1, value=str(0), min=50, max=600, initial=0, inc=50, size=(73, -1)
+            panel, -1, value=str(0), min=50, max=600, initial=0, inc=50, size=(-1, -1)
         )
         self.image_resolution.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.image_resolution.SetValue(CONFIG.dpi)
@@ -125,50 +125,56 @@ class DialogExportFigures(Dialog):
         plot_size_export_label = wx.StaticText(panel, -1, "Export plot size (proportion)")
         left_export_label = wx.StaticText(panel, -1, "Left")
         self.left_export_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(0), min=0.0, max=1, initial=0, inc=0.01, size=(73, -1)
+            panel, -1, value=str(0), min=0.0, max=1, initial=0, inc=0.01, size=(120, -1)
         )
         self.left_export_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         bottom_export_label = wx.StaticText(panel, -1, "Bottom")
         self.bottom_export_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(0), min=0.0, max=1, initial=0, inc=0.01, size=(73, -1)
+            panel, -1, value=str(0), min=0.0, max=1, initial=0, inc=0.01, size=(120, -1)
         )
         self.bottom_export_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         width_export_label = wx.StaticText(panel, -1, "Width")
         self.width_export_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(0), min=0.0, max=1, initial=0, inc=0.05, size=(73, -1)
+            panel, -1, value=str(0), min=0.0, max=1, initial=0, inc=0.05, size=(120, -1)
         )
         self.width_export_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         height_export_label = wx.StaticText(panel, -1, "Height")
         self.height_export_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(0), min=0.0, max=1, initial=0, inc=0.05, size=(73, -1)
+            panel, -1, value=str(0), min=0.0, max=1, initial=0, inc=0.05, size=(120, -1)
         )
         self.height_export_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
+        # inches
         plot_size_inch_label = wx.StaticText(panel, -1, "Plot size (inch)")
         width_inch_label = wx.StaticText(panel, -1, "Width")
         self.width_inch_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(0), min=0.0, max=20, initial=0, inc=1, size=(73, -1)
+            panel, -1, value=str(0), min=0.0, max=20, initial=0, inc=1, size=(120, -1)
         )
         self.width_inch_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_size_inch)
+        self.width_inch_value.SetDigits(2)
 
         height_inch_label = wx.StaticText(panel, -1, "Height")
         self.height_inch_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(0), min=0.0, max=20, initial=0, inc=1, size=(73, -1)
+            panel, -1, value=str(0), min=0.0, max=20, initial=0, inc=1, size=(120, -1)
         )
         self.height_inch_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_size_inch)
+        self.height_inch_value.SetDigits(2)
+
         plot_size_cm_label = wx.StaticText(panel, -1, "Plot size (cm)")
         self.width_cm_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(0), min=0.0, max=50.8, initial=0, inc=0.5, size=(73, -1)
+            panel, -1, value=str(0), min=0.0, max=50.8, initial=0, inc=0.5, size=(120, -1)
         )
         self.width_cm_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_size_cm)
+        self.width_cm_value.SetDigits(2)
 
         self.height_cm_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(0), min=0.0, max=50.8, initial=0, inc=0.5, size=(73, -1)
+            panel, -1, value=str(0), min=0.0, max=50.8, initial=0, inc=0.5, size=(120, -1)
         )
         self.height_cm_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_size_cm)
+        self.height_cm_value.SetDigits(2)
 
         self.save_btn = wx.Button(panel, wx.ID_OK, "Save figures", size=(-1, 22))
         self.save_btn.Bind(wx.EVT_BUTTON, self.on_save)
@@ -192,7 +198,7 @@ class DialogExportFigures(Dialog):
         grid.Add(self.file_format_choice, (n, 1), flag=wx.EXPAND)
         n += 1
         grid.Add(resolution_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.image_resolution, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        grid.Add(self.image_resolution, (n, 1),  flag=wx.EXPAND | wx.ALIGN_LEFT)
         n += 1
         grid.Add(transparency_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.image_transparency_check, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
