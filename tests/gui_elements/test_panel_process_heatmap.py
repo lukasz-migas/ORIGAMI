@@ -14,7 +14,7 @@ class TestPanelProcessHeatmap(WidgetTestCase):
     def test_dialog_ok(self):
         dlg = PanelProcessHeatmap(self.frame, None)
 
-        wx.CallLater(250, dlg.on_close, None)
+        # wx.CallLater(250, dlg.on_close, None)
         dlg.Show()
         self.yield_()
 
@@ -23,7 +23,7 @@ class TestPanelProcessHeatmap(WidgetTestCase):
 
         assert dlg.plot_btn is None
 
-        wx.CallLater(250, dlg.on_close, None)
+        # wx.CallLater(250, dlg.on_close, None)
         dlg.Show()
         self.yield_()
 
@@ -32,7 +32,7 @@ class TestPanelProcessHeatmap(WidgetTestCase):
 
         assert dlg.add_to_document_btn is None
 
-        wx.CallLater(250, dlg.on_close, None)
+        # wx.CallLater(250, dlg.on_close, None)
         dlg.Show()
         self.yield_()
 
@@ -73,6 +73,6 @@ class TestPanelProcessHeatmap(WidgetTestCase):
         dlg.on_toggle_controls(None)
         assert dlg.normalize_choice.IsEnabled() is toggle
 
-        wx.CallLater(250, dlg.on_close, None)
+        # wx.CallLater(250, dlg.on_close, None)
         dlg.Show()
         self.yield_()

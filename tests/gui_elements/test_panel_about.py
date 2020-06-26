@@ -17,6 +17,6 @@ class TestPanelAbout(WidgetTestCase):
 
         dlg = PanelAbout(self.frame, icons)
 
-        wx.CallLater(250, dlg.on_close, None)
+        # wx.CallLater(250, dlg.on_close, None)
         dlg.Show()
         self.yield_()

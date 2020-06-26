@@ -304,15 +304,15 @@ class DialogExportFigures(Dialog):
         plot_inch_size = [self.width_inch_value.GetValue(), self.height_inch_value.GetValue()]
         plot_cm_size = convert_inch_to_cm(plot_inch_size)
 
-        self.width_cm_value.SetValue(f"{plot_cm_size[0]:.4f}")
-        self.height_cm_value.SetValue(f"{plot_cm_size[1]:.4f}")
-
         CONFIG.image_size_inch = plot_inch_size
         CONFIG.image_size_cm = plot_cm_size
         CONFIG.image_size_px = [
             int(plot_inch_size[0] * self.screen_dpi[0]),
             int(plot_inch_size[1] * self.screen_dpi[1]),
         ]
+
+        self.width_cm_value.SetValue(round(plot_cm_size[0], 2))
+        self.height_cm_value.SetValue(round(plot_cm_size[1], 2))
 
     def on_apply_size_cm(self, _evt):
         """Update plot size in centimeters"""
@@ -325,9 +325,8 @@ class DialogExportFigures(Dialog):
             int(plot_inch_size[0] * self.screen_dpi[0]),
             int(plot_inch_size[1] * self.screen_dpi[1]),
         ]
-
-        self.width_inch_value.SetValue(f"{plot_inch_size[0]:.4f}")
-        self.height_inch_value.SetValue(f"{plot_inch_size[1]:.4f}")
+        self.width_inch_value.SetValue(round(plot_inch_size[0], 2))
+        self.height_inch_value.SetValue(round(plot_inch_size[1], 2))
 
     def on_toggle_controls(self, _evt):
         """Enable/disable controls"""

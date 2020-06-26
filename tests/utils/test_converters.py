@@ -86,12 +86,14 @@ class TestConverters(object):
 
         assert expected_value != return_value
 
+    @staticmethod
     @pytest.mark.parametrize("value, expected", ([2.54, [1]], [0, [0]], [254, [100]]))
-    def test_convert_cm_to_inch(self, value, expected):
+    def test_convert_cm_to_inch(value, expected):
         result = convert_cm_to_inch(value)
         assert result == expected
 
+    @staticmethod
     @pytest.mark.parametrize("value, expected", ([1, [2.54]], [0, [0]], [100, [254]]))
-    def test_convert_inch_to_cm(self, value, expected):
+    def test_convert_inch_to_cm(value, expected):
         result = convert_inch_to_cm(value)
         assert result == expected

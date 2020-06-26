@@ -14,7 +14,7 @@ class TestPanelProcessMassSpectrum(WidgetTestCase):
     def test_dialog_ok(self):
         dlg = PanelProcessMassSpectrum(self.frame, None)
 
-        wx.CallLater(250, dlg.on_close, None)
+        # wx.CallLater(250, dlg.on_close, None)
         dlg.Show()
         self.yield_()
 
@@ -23,7 +23,7 @@ class TestPanelProcessMassSpectrum(WidgetTestCase):
 
         assert dlg.plot_btn is None
 
-        wx.CallLater(250, dlg.on_close, None)
+        # wx.CallLater(250, dlg.on_close, None)
         dlg.Show()
         self.yield_()
 
@@ -32,7 +32,7 @@ class TestPanelProcessMassSpectrum(WidgetTestCase):
 
         assert dlg.add_to_document_btn is None
 
-        wx.CallLater(250, dlg.on_close, None)
+        # wx.CallLater(250, dlg.on_close, None)
         dlg.Show()
         self.yield_()
 
@@ -73,6 +73,6 @@ class TestPanelProcessMassSpectrum(WidgetTestCase):
         assert dlg.ms_baseline_median_window.IsEnabled() is toggle
         assert dlg.ms_baseline_tophat_window.IsEnabled() is toggle
 
-        wx.CallLater(250, dlg.on_close, None)
+        # wx.CallLater(250, dlg.on_close, None)
         dlg.Show()
         self.yield_()

@@ -1,8 +1,15 @@
 engines:
- duplication:
-   exclude_paths:
-     - '**/tests/**'
-     - 'test_**.py'
+  duplication:
+    exclude_paths:
+      - "**/tests/**"
+      - "test_**.py"
+      - "tests/**"
+    bandit:
+      exclude_paths:
+        - "**/tests/**"
+        - "test_**.py"
+        - "tests/**"
 exclude_paths:
-  - '**/tests/**'
-  - 'test_*.py'
+  - "**/tests/**"
+  - "test_**.py"
+  - "tests/**"
