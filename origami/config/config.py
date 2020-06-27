@@ -1398,6 +1398,23 @@ class Config:
         self.peak_property_distance = 1  # new in v1.3.0.0
         self.peak_property_peak_width_modifier = 1.0  # new in v1.3.0.0
 
+        # Main plot events
+        # events in MS panel
+        self.plot_panel_ms_extract_auto = True
+        self.plot_panel_ms_extract_rt = True
+        self.plot_panel_ms_extract_heatmap = True
+        self.plot_panel_ms_extract_mobilogram = True
+
+        # events in RT panel
+        self.plot_panel_rt_extract_auto = True
+        self.plot_panel_rt_extract_ms = True
+        self.plot_panel_rt_extract_mobilogram = True
+
+        # events in DT panel
+        self.plot_panel_dt_extract_auto = True
+        self.plot_panel_dt_extract_ms = True
+        self.plot_panel_dt_extract_rt = True
+
         # UVPD
         self.uvpd_peak_finding_threshold = 0.1  # new in v1.2.1
         self.uvpd_peak_buffer_width = 1  # new in v1.2.1

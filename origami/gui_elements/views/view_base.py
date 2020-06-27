@@ -20,11 +20,15 @@ LOGGER = logging.getLogger(__name__)
 
 
 class ViewBase(ABC):
+    """Viewer base class"""
+
+    DATA_KEYS = []
+    MPL_KEYS = []
+
     def __init__(self, parent, figsize, title="", **kwargs):
         self.parent = parent
         self.figsize = figsize
         self.title = title
-        self.DATA_KEYS = None
 
         # ui elements
         self.panel = None
@@ -119,6 +123,16 @@ class ViewBase(ABC):
 
         if changed:
             self._update()
+
+    def get_data(self, keys=None):
+        """Get plot data"""
+        if keys is None:
+            keys = self.DATA_KEYS
+        data = []
+        for key in keys:
+            data.append(self._data[key])
+
+        return data
 
     def update_data(self, **kwargs):
         """Update data store without invoking plot update"""
@@ -238,7 +252,7 @@ class ViewBase(ABC):
         if repaint:
             self.figure.repaint()
 
-    def add_patches(self, x, y, width, height, label=None, color=None, repaint: bool = True):
+    def add_patches(self, x, y, width, height, label=None, color=None, pickable: bool = True, repaint: bool = True):
         """Add rectangular patches to the plot"""
         assert len(x) == len(y) == len(width), "Incorrect shape of the data. `x, y, width` must have the same length"
         if label is None:
@@ -246,7 +260,7 @@ class ViewBase(ABC):
         if color is None:
             color = ["r"] * len(x)
         for _x, _y, _width, _height, _label, _color in zip(x, y, width, height, label, color):
-            self.figure.plot_add_patch(_x, _y, _width, _height, label=_label, color=_color)
+            self.figure.plot_add_patch(_x, _y, _width, _height, label=_label, color=_color, pickable=pickable)
             # , color=color, alpha=alpha, label=label, **kwargs)
 
         if repaint:

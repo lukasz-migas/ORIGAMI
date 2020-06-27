@@ -2111,7 +2111,7 @@ class DocumentTree(wx.TreeCtrl):
         # )
 
         menu_action_open_directory = make_menu_item(
-            parent=menu, text="Reveal folder in File Explorer", bitmap=self._icons.duplicate
+            parent=menu, text="Reveal folder in File Explorer", bitmap=self._icons.explorer
         )
         menu_action_duplicate_document = make_menu_item(
             parent=menu, text="Duplicate document", bitmap=self._icons.duplicate
@@ -2182,6 +2182,7 @@ class DocumentTree(wx.TreeCtrl):
         # menu.AppendItem(menu_action_save_document_as)
 
         menu.AppendSeparator()
+        menu.AppendItem(menu_action_open_directory)
         menu.AppendItem(menu_action_duplicate_document)
         menu.AppendItem(menu_action_remove_document)
         menu.AppendItem(menu_action_remove_document_disk)
@@ -3443,6 +3444,18 @@ class DocumentTree(wx.TreeCtrl):
         }
         return group_dict.get(parts[0]), parts[0], parts[1]
 
+    def _get_group_title(self, key):
+        """Return formatted groum title"""
+        group_dict = {
+            "MassSpectra": "MassSpectra",
+            "Mass Spectra": "MassSpectra",
+            "IonHeatmaps": "IonHeatmaps",
+            "Heatmaps": "IonHeatmaps",
+            "MSDTHeatmaps": "MSDTHeatmaps",
+            "Heatmaps (MS/DT)": "MSDTHeatmaps",
+        }
+        return group_dict.get(key, key)
+
     def env_update_document(self, evt, metadata):
         """Update document based on event change"""
 
@@ -3458,7 +3471,7 @@ class DocumentTree(wx.TreeCtrl):
             pass
             # print("item", get_document(), name)
 
-    def add_document(self, document: DocumentStore, expandAll=False, expandItem=None):
+    def add_document(self, document: DocumentStore, expandItem=None, expandAll=False):
         """Add document to the document tree"""
         # TODO: add annotations support
         # TODO: add unidec support
@@ -3502,16 +3515,56 @@ class DocumentTree(wx.TreeCtrl):
                 self.SetItemImage(child_item, group_metadata["image"], wx.TreeItemIcon_Normal)
                 self.SetPyData(child_item, (title, key))
         self.on_enable_document(loading_data=True, expand_all=expandAll)
-        #
-        # # If expandItem is not empty, the Tree will expand specified item
-        # if expandItem is not None:
-        #     # Change document tree
-        #     try:
-        #         docItem = self.get_item_by_data(expandItem)
-        #         parent = self.GetItemParent(docItem)
-        #         self.Expand(parent)
-        #     except Exception:
-        #         pass
+
+        # If expandItem is not empty, the Tree will expand specified item
+        if expandItem is not None:
+            try:
+                item = self.get_item_by_label(expandItem, document_item)
+                if item is not None:
+                    self.Expand(item)
+            except Exception:
+                pass
+
+    def _get_document_item(self, document_title: str):
+        """Return the Tree object that is associated with the document"""
+        root = self.GetRootItem()
+        item, cookie = self.GetFirstChild(self.GetRootItem())
+        while item.IsOk():
+            if self.GetItemText(item) == document_title:
+                return item
+            item, cookie = self.GetNextChild(root, cookie)
+        return None
+
+    def on_update_document(self, group_name: str, item_name: str, document_title: str, expand_group: bool = True):
+        """Update document data without resetting currently expanded items"""
+        document_item = self._get_document_item(document_title)
+        if document_item is None:
+            return
+
+        # get proper group title that matches the Document storage options
+        _group_name = self._get_group_title(group_name)
+
+        # get key formatter
+        key = f"{_group_name}/{item_name}"
+        group_metadata, group_key, child_title = self._get_group_metadata(key)
+
+        # expect dictionary with title and image information
+        if group_metadata:
+            group_item = self.get_item_by_label(group_metadata["title"], document_item)
+            # append group item
+            if not group_item:
+                group_item = self.AppendItem(document_item, group_metadata["title"])
+                self.SetItemImage(group_item, group_metadata["image"], wx.TreeItemIcon_Normal)
+                self.SetPyData(group_item, (document_title, group_key))
+
+            # append item
+            child_item = self.AppendItem(group_item, child_title)
+            self.SetItemImage(child_item, group_metadata["image"], wx.TreeItemIcon_Normal)
+            self.SetPyData(child_item, (document_title, key))
+
+        # If expand_group is not empty, the Tree will expand specified item
+        if expand_group:
+            self.Expand(group_item)
 
     def remove_document(self, document_title: str):
         """Remove document from the document tree

@@ -166,6 +166,11 @@ class PanelPeakPicker(MiniFrame):
         return self.presenter.view.panelDocuments.documents
 
     @property
+    def panel_plot(self):
+        """Return handle to `panel_plot`"""
+        return self.presenter.view.panelPlots
+
+    @property
     def ion_panel(self):
         """Return handle to `ion_panel"""
         return self.parent.panelMultipleIons
@@ -174,11 +179,6 @@ class PanelPeakPicker(MiniFrame):
     def ion_list(self):
         """Return handle to `ion_list"""
         return self.ion_panel.peaklist
-
-    @property
-    def panel_plot(self):
-        """Return handle to `panel_plot`"""
-        return self.presenter.view.panelPlots
 
     @property
     def mz_obj(self) -> MassSpectrumObject:

@@ -673,7 +673,18 @@ class PlotBase(MPLPanel):
             self.repaint()
 
     def plot_add_patch(
-        self, xmin, ymin, width, height, color="r", alpha=0.5, linewidth=0, add_temporary=False, label="", **kwargs
+        self,
+        xmin,
+        ymin,
+        width,
+        height,
+        color="r",
+        alpha=0.5,
+        linewidth=0,
+        add_temporary=False,
+        label="",
+        pickable: bool = True,
+        **kwargs,
     ):
 
         if label not in [None, ""]:
@@ -694,7 +705,7 @@ class PlotBase(MPLPanel):
                     color=color,
                     alpha=alpha,
                     linewidth=linewidth,
-                    picker=True,
+                    picker=pickable,
                     edgecolor="k",
                 )
             )

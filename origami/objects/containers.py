@@ -49,6 +49,7 @@ class DataObject(ContainerBase):
     # data attributes
     _x_limit = None
     _y_limit = None
+    DOCUMENT_KEY = None
 
     def __init__(
         self,
@@ -273,6 +274,8 @@ class SpectrumObject(DataObject):
 class MassSpectrumObject(SpectrumObject):
     """Mass spectrum container object"""
 
+    DOCUMENT_KEY = "Mass Spectra"
+
     def __init__(
         self, x, y, name: str = "", metadata=None, extra_data=None, x_label="m/z (Da)", y_label="Intensity", **kwargs
     ):
@@ -453,6 +456,8 @@ class MassSpectrumObject(SpectrumObject):
 
 
 class ChromatogramObject(SpectrumObject):
+    DOCUMENT_KEY = "Chromatograms"
+
     def __init__(
         self, x, y, name: str = "", metadata=None, extra_data=None, x_label="Scans", y_label="Intensity", **kwargs
     ):
@@ -541,6 +546,8 @@ class ChromatogramObject(SpectrumObject):
 
 
 class MobilogramObject(SpectrumObject):
+    DOCUMENT_KEY = "Mobilograms"
+
     def __init__(
         self,
         x,
@@ -736,6 +743,8 @@ class HeatmapObject(DataObject):
 
 
 class IonHeatmapObject(HeatmapObject):
+    DOCUMENT_KEY = "Heatmaps"
+
     def __init__(
         self,
         array,
@@ -965,6 +974,8 @@ class StitchIonHeatmapObject(IonHeatmapObject):
 
 
 class MassSpectrumHeatmapObject(HeatmapObject):
+    DOCUMENT_KEY = "Heatmaps (MS/DT)"
+
     def __init__(
         self,
         array,

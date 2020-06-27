@@ -166,12 +166,12 @@ class WatersIMReader(WatersRawReader):
                 x,
                 y,
                 metadata={
-                    "rt_start": rt_start,
-                    "rt_end": rt_end,
-                    "dt_start": dt_start,
-                    "dt_end": dt_end,
-                    "mz_start": mz_start,
-                    "mz_end": mz_end,
+                    "rt_start": float(rt_start),
+                    "rt_end": float(rt_end),
+                    "dt_start": float(dt_start),
+                    "dt_end": float(dt_end),
+                    "mz_start": float(mz_start),
+                    "mz_end": float(mz_end),
                 },
             )
         return out_path
@@ -260,12 +260,12 @@ class WatersIMReader(WatersRawReader):
                 y,
                 extra_data=dict(x_min=x),
                 metadata={
-                    "rt_start": rt_start,
-                    "rt_end": rt_end,
-                    "dt_start": dt_start,
-                    "dt_end": dt_end,
-                    "mz_start": mz_start,
-                    "mz_end": mz_end,
+                    "rt_start": float(rt_start),
+                    "rt_end": float(rt_end),
+                    "dt_start": float(dt_start),
+                    "dt_end": float(dt_end),
+                    "mz_start": float(mz_start),
+                    "mz_end": float(mz_end),
                 },
             )
         return out_path
@@ -358,12 +358,12 @@ class WatersIMReader(WatersRawReader):
                 y,
                 extra_data=dict(x_ms=self.dt_ms),
                 metadata={
-                    "rt_start": rt_start,
-                    "rt_end": rt_end,
-                    "dt_start": dt_start,
-                    "dt_end": dt_end,
-                    "mz_start": mz_start,
-                    "mz_end": mz_end,
+                    "rt_start": float(rt_start),
+                    "rt_end": float(rt_end),
+                    "dt_start": float(dt_start),
+                    "dt_end": float(dt_end),
+                    "mz_start": float(mz_start),
+                    "mz_end": float(mz_end),
                 },
             )
         return out_path
@@ -461,12 +461,12 @@ class WatersIMReader(WatersRawReader):
                 xy=rt_y,
                 yy=dt_y,
                 metadata={
-                    "rt_start": rt_start,
-                    "rt_end": rt_end,
-                    "dt_start": dt_start,
-                    "dt_end": dt_end,
-                    "mz_start": mz_start,
-                    "mz_end": mz_end,
+                    "rt_start": float(rt_start),
+                    "rt_end": float(rt_end),
+                    "dt_start": float(dt_start),
+                    "dt_end": float(dt_end),
+                    "mz_start": float(mz_start),
+                    "mz_end": float(mz_end),
                 },
             )
         return out_path
@@ -570,11 +570,11 @@ class WatersIMReader(WatersRawReader):
                 xy=mz_y,
                 yy=dt_y,
                 metadata={
-                    "dt_start": dt_start,
-                    "dt_end": dt_end,
-                    "mz_start": mz_start,
-                    "mz_end": mz_end,
-                    "n_points": n_points,
+                    "dt_start": float(dt_start),
+                    "dt_end": float(dt_end),
+                    "mz_start": float(mz_start),
+                    "mz_end": float(mz_end),
+                    "n_points": int(n_points),
                 },
             )
 

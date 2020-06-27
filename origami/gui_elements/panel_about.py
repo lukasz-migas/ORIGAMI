@@ -10,6 +10,17 @@ from origami.config.config import CONFIG
 class PanelAbout(wx.MiniFrame):
     """About panel."""
 
+    EMAIL_ONE = "l.g.migas@tudelft.nl"
+    EMAIL_TWO = "lukas.migas@yahoo.com"
+    INSTITUTION = "University of Manchester / TU Delft"
+    COPYRIGHT = "(c) 2017-present Lukasz G. Migas"
+    DOCS = "https://origami.lukasz-migas.com/"
+    GITHUB = "https://github.com/lukasz-migas/ORIGAMI"
+    CITE = "https://doi.org/10.1016/j.ijms.2017.08.014"
+    AUTHOR = "https://lukasz-migas.com/"
+    NEW_FEATURES = "https://docs.google.com/forms/d/e/1FAIpQLSduN15jzq06QCaacliBg8GkOajDNjWn4cEu_1J-kBhXSKqMHQ/viewform"
+    BUGS = "https://docs.google.com/forms/d/e/1FAIpQLSf7Ahgvt-YFRrA61Pv1S4i8nBK6wfhOpD2O9lGt_E3IA0lhfQ/viewform"
+
     def __init__(self, parent, icons):
         wx.MiniFrame.__init__(
             self,
@@ -51,36 +62,24 @@ class PanelAbout(wx.MiniFrame):
             "If you encounter any problems, have questions or would like to send some feedback, \nplease contact me at"
             # l.g.migas@tudelft.nl or lukas.migas@yahoo.com"
         )
-        link_email_tu = hyperlink.HyperLinkCtrl(panel, -1, "l.g.migas@tudelft.nl", URL="mailto:l.g.migas@tudelft.nl")
-        link_email_yh = hyperlink.HyperLinkCtrl(panel, -1, "lukas.migas@yahoo.com", URL="mailto:lukas.migas@yahoo.com")
+        link_email_tu = hyperlink.HyperLinkCtrl(panel, -1, self.EMAIL_ONE, URL=f"mailto:{self.EMAIL_ONE}")
+        link_email_yh = hyperlink.HyperLinkCtrl(panel, -1, self.EMAIL_TWO, URL=f"mailto:{self.EMAIL_TWO}")
 
         message = wx.StaticText(panel, -1, about_msg, style=wx.ALIGN_CENTRE)
         message.SetFont(wx.NORMAL_FONT)
 
-        university = wx.StaticText(panel, -1, "University of Manchester / TU Delft")
+        university = wx.StaticText(panel, -1, self.INSTITUTION)
         university.SetFont(wx.SMALL_FONT)
 
-        copyright_text = wx.StaticText(panel, -1, "(c) 2017-present Lukasz G. Migas")
+        copyright_text = wx.StaticText(panel, -1, self.COPYRIGHT)
         copyright_text.SetFont(wx.NORMAL_FONT)
 
-        homepage_btn = hyperlink.HyperLinkCtrl(
-            panel, -1, "Homepage/Documentation", URL="https://origami.lukasz-migas.com/"
-        )
-        github_btn = hyperlink.HyperLinkCtrl(panel, -1, "GitHub", URL="https://github.com/lukasz-migas/ORIGAMI")
-        cite_btn = hyperlink.HyperLinkCtrl(panel, -1, "Publication", URL="https://doi.org/10.1016/j.ijms.2017.08.014")
-        new_features_btn = hyperlink.HyperLinkCtrl(
-            panel,
-            -1,
-            "Request New Features",
-            URL="https://docs.google.com/forms/d/e/1FAIpQLSduN15jzq06QCaacliBg8GkOajDNjWn4cEu_1J-kBhXSKqMHQ/viewform",
-        )
-        report_bug_btn = hyperlink.HyperLinkCtrl(
-            panel,
-            -1,
-            "Report Bugs",
-            URL="https://docs.google.com/forms/d/e/1FAIpQLSf7Ahgvt-YFRrA61Pv1S4i8nBK6wfhOpD2O9lGt_E3IA0lhfQ/viewform",
-        )
-        author_btn = hyperlink.HyperLinkCtrl(panel, -1, "About Author", URL="https://lukasz-migas.com/")
+        homepage_btn = hyperlink.HyperLinkCtrl(panel, -1, "Homepage/Documentation", URL=self.DOCS)
+        github_btn = hyperlink.HyperLinkCtrl(panel, -1, "GitHub", URL=self.GITHUB)
+        cite_btn = hyperlink.HyperLinkCtrl(panel, -1, "Publication", URL=self.CITE)
+        new_features_btn = hyperlink.HyperLinkCtrl(panel, -1, "Request New Features", URL=self.NEW_FEATURES)
+        report_bug_btn = hyperlink.HyperLinkCtrl(panel, -1, "Report Bugs", URL=self.BUGS)
+        author_btn = hyperlink.HyperLinkCtrl(panel, -1, "About Author", URL=self.AUTHOR)
 
         email_sizer = wx.BoxSizer(wx.HORIZONTAL)
         email_sizer.Add(link_email_tu, 0)

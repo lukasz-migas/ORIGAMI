@@ -368,7 +368,7 @@ class PanelPlots(wx.Panel):
             self.config._plotSettings["2D"]["gui_size"],
             self.config,
             allow_extraction=True,
-            callbacks=dict(CTRL="extract.heatmap.from.spectrum"),
+            callbacks=dict(CTRL="extract.spectrum.from.heatmap"),
         )
         plot_notebook.AddPage(self.view_heatmap.panel, "Heatmap", False)
         self.plot_heatmap = self.view_heatmap.figure
@@ -385,7 +385,7 @@ class PanelPlots(wx.Panel):
             self.config._plotSettings["DT/MS"]["gui_size"],
             self.config,
             allow_extraction=True,
-            callbacks=dict(CTRL="extract.heatmap.from.spectrum"),
+            callbacks=dict(CTRL="extract.rt.from.heatmap"),
         )
         plot_notebook.AddPage(self.view_msdt.panel, "DT/MS", False)
         self.plot_msdt = self.view_msdt.figure

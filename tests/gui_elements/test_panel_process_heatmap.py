@@ -70,6 +70,24 @@ class TestPanelProcessHeatmap(WidgetTestCase):
         dlg.on_toggle_controls(None)
         assert dlg.normalize_choice.IsEnabled() is toggle
 
-        # wx.CallLater(250, dlg.on_close, None)
+        dlg.Show()
+        self.yield_()
+
+    def test_dialog_ui_extra(self):
+        dlg = PanelProcessHeatmap(self.frame, None)
+
+        # smooth
+        dlg.smooth_check.SetValue(True)
+        dlg.smooth_choice.SetStringSelection("Gaussian")
+        dlg.on_toggle_controls(None)
+        assert dlg.smooth_sigma_value.IsEnabled() is True
+        assert dlg.smooth_poly_order_value.IsEnabled() is False
+        assert dlg.smooth_window_value.IsEnabled() is False
+        dlg.smooth_choice.SetStringSelection("Savitzky-Golay")
+        dlg.on_toggle_controls(None)
+        assert dlg.smooth_sigma_value.IsEnabled() is False
+        assert dlg.smooth_poly_order_value.IsEnabled() is True
+        assert dlg.smooth_window_value.IsEnabled() is True
+
         dlg.Show()
         self.yield_()

@@ -59,6 +59,8 @@ def check_path(path: str, extension: Optional[str] = None):
 
 
 class LoadHandler:
+    """Data load handler"""
+
     def __init__(self):
         """Initialized"""
 
@@ -80,7 +82,7 @@ class LoadHandler:
         -------
         obj_name : str
             name of the data object
-        obj_data : Dict
+        obj_data : MassSpectrumObject
             dictionary containing extracted data
         document : Document
             instance of the document for which data was extracted
@@ -90,12 +92,13 @@ class LoadHandler:
         # setup file reader
         reader = document.get_reader("ion_mobility")
         if reader is None:
-            reader = WatersIMReader(document.path, temp_dir=CONFIG.temporary_data)
+            path = document.get_file_path("main")
+            reader = WatersIMReader(path, temp_dir=CONFIG.temporary_data)
             document.add_reader("ion_mobility", reader)
 
         # extract data
         mz_obj = reader.extract_ms(dt_start=x_min, dt_end=x_max, return_data=True)
-        obj_name = f"Drift time: {x_min}-{x_max}"
+        obj_name = f"DT_{x_min}-{x_max}"
         mz_obj = document.add_spectrum(obj_name, mz_obj)
 
         return obj_name, mz_obj, document
@@ -118,7 +121,7 @@ class LoadHandler:
         -------
         obj_name : str
             name of the data object
-        obj_data : Dict
+        obj_data : MassSpectrumObject
             dictionary containing extracted data
         document : Document
             instance of the document for which data was extracted
@@ -128,11 +131,12 @@ class LoadHandler:
         # setup file reader
         reader = document.get_reader("ion_mobility")
         if reader is None:
-            reader = WatersIMReader(document.path, temp_dir=CONFIG.temporary_data)
+            path = document.get_file_path("main")
+            reader = WatersIMReader(path, temp_dir=CONFIG.temporary_data)
             document.add_reader("ion_mobility", reader)
 
         mz_obj = reader.extract_ms(rt_start=x_min, rt_end=x_max, return_data=True)
-        obj_name = f"Scans: {x_min}-{x_max}"
+        obj_name = f"RT_{x_min:.2f}-{x_max:.2f}"
         mz_obj = document.add_spectrum(obj_name, mz_obj)
 
         return obj_name, mz_obj, document
@@ -169,12 +173,55 @@ class LoadHandler:
         # setup file reader
         reader = document.get_reader("ion_mobility")
         if reader is None:
-            reader = WatersIMReader(document.path, temp_dir=CONFIG.temporary_data)
+            path = document.get_file_path("main")
+            reader = WatersIMReader(path, temp_dir=CONFIG.temporary_data)
             document.add_reader("ion_mobility", reader)
 
         mz_obj = reader.extract_ms(rt_start=x_min, rt_end=x_max, dt_start=y_min, dt_end=y_max, return_data=True)
-        obj_name = f"Scans: {x_min}-{x_max}"
+        obj_name = f"RT_{x_min:.2f}-{x_max:.2f}_DT_{y_min}-{y_max}"
         mz_obj = document.add_spectrum(obj_name, mz_obj)
+
+        return obj_name, mz_obj, document
+
+    @staticmethod
+    @check_os("win32")
+    def waters_extract_rt_from_msdt(x_min: float, x_max: float, y_min: int, y_max: int, title=None):
+        """Extract mass spectrum based on retention time selection
+
+        Parameters
+        ----------
+        x_min : float
+            start m/z value
+        x_max : float
+            end m/z value
+        y_min : int
+            start drift time in bins
+        y_max : int
+            end drift time in bins
+        title: str, optional
+            document title
+
+        Returns
+        -------
+        obj_name : str
+            name of the data object
+        mz_obj : ChromatogramObject
+            dictionary containing extracted data
+        document : Document
+            instance of the document for which data was extracted
+        """
+        document = ENV.on_get_document(title)
+
+        # setup file reader
+        reader = document.get_reader("ion_mobility")
+        if reader is None:
+            path = document.get_file_path("main")
+            reader = WatersIMReader(path, temp_dir=CONFIG.temporary_data)
+            document.add_reader("ion_mobility", reader)
+
+        mz_obj = reader.extract_rt(mz_start=x_min, mz_end=x_max, dt_start=y_min, dt_end=y_max, return_data=True)
+        obj_name = f"MZ_{x_min:.2f}-{x_max:.2f}_DT_{y_min}-{y_max}"
+        mz_obj = document.add_chromatogram(obj_name, mz_obj)
 
         return obj_name, mz_obj, document
 
@@ -206,13 +253,14 @@ class LoadHandler:
         # setup file reader
         reader = document.get_reader("ion_mobility")
         if reader is None:
-            reader = WatersIMReader(document.path, temp_dir=CONFIG.temporary_data)
+            path = document.get_file_path("main")
+            reader = WatersIMReader(path, temp_dir=CONFIG.temporary_data)
             document.add_reader("ion_mobility", reader)
 
         # get heatmap
         heatmap_obj = reader.extract_heatmap(mz_start=x_min, mz_end=x_max, return_data=True)
-        obj_name = f"{x_min:.2f}-{x_max:.2f}"
-        heatmap_obj = document.add_spectrum(obj_name, heatmap_obj)
+        obj_name = f"MZ_{x_min:.2f}-{x_max:.2f}"
+        heatmap_obj = document.add_heatmap(obj_name, heatmap_obj)
 
         return obj_name, heatmap_obj, document
 
@@ -520,7 +568,7 @@ class LoadHandler:
     def load_waters_ms_document(self, path):
         """Load Waters data and set in ORIGAMI document"""
         reader, data = self.load_waters_ms_data(path)
-        document = ENV.get_new_document("waters", path, data=data)
+        document = ENV.get_new_document("waters_ms", path, data=data)
         document.add_reader("data_reader", reader)
         document.add_file_path("main", path)
 
@@ -588,6 +636,7 @@ class LoadHandler:
         data = self.load_multi_file_waters_data(filelist, **proc_kwargs)
         document = ENV.set_document(document, data=data)
         document.add_config("imaging", proc_kwargs)
+        #         document.add_file_path("multi", filelist)
         ImagingNormalizationProcessor(document)
 
         return document
@@ -599,6 +648,7 @@ class LoadHandler:
         filelist = self.check_lesa_document(document, filelist, **proc_kwargs)
         data = self.load_multi_file_waters_data(filelist, **proc_kwargs)
         document = ENV.set_document(document, data=data)
+        #         document.add_file_path("multi", filelist)
         document.add_config("activation", proc_kwargs)
 
         return document

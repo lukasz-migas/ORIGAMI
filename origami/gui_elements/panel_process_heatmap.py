@@ -66,7 +66,7 @@ class PanelProcessHeatmap(MiniFrame):
             self,
             parent,
             title="Process heatmap...",
-            style=wx.DEFAULT_FRAME_STYLE | wx.STAY_ON_TOP & ~wx.RESIZE_BORDER | wx.MAXIMIZE_BOX,
+            style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX),
         )
         """Instantiate pre-processing module
 
@@ -356,7 +356,7 @@ class PanelProcessHeatmap(MiniFrame):
             flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT,
         )
         grid.Add(self.normalize_choice, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        grid.AddGrowableCol(0, 1)
+        grid.AddGrowableCol(1, 1)
 
         # fit layout
         main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -520,7 +520,6 @@ class PanelProcessHeatmap(MiniFrame):
 def _main():
     app = wx.App()
     ex = PanelProcessHeatmap(None, None)
-
     ex.Show()
     app.MainLoop()
 

@@ -15,47 +15,66 @@ from origami.objects.document import DocumentStore
 from origami.objects.callbacks import PropertyCallbackManager
 from origami.objects.containers import DataObject
 
-# ID_showPlotMSDocument
+# Should try to reduce the number of different document types to:
+# Type: MS (Waters/Thermo)
+# Type: Activation (Waters)
+# Type: ORIGAMI (from ORIGAMI-MS)
+# Type: MS/MS (mgf/mzml)
+# Type: Imaging (Waters/Thermo(
+# Type: Comparison (misc)
+# Type: Generic (misc)
 
 LOGGER = logging.getLogger(__name__)
 
 DOCUMENT_TYPE_ATTRIBUTES = dict(
-    overlay=dict(data_type="Type: Comparison", file_format="Format: ORIGAMI"),
-    interactive=dict(data_type="Type: Interactive", file_format="Format: ORIGAMI"),
-    manual=dict(data_type="Type: MANUAL", file_format="Format: MassLynx (.raw)"),
+    # comparison documents
+    overlay=dict(data_type="Type: Comparison", file_format="Format: None"),
+    comparison=dict(data_type="Type: Comparison", file_format="Format: None"),
+    # MS and IM-MS only
     thermo=dict(data_type="Type: MS", file_format="Format: Thermo (.RAW)"),
-    text=dict(data_type="Type: ORIGAMI", file_format="Format: Text (.csv; .txt; .tab)"),
+    waters_ms=dict(data_type="Type: MS", file_format="Format: Waters (.raw)"),
+    # waters_imms=dict(data_type="Type: IM-MS", file_format="Format: Waters (.raw)"),
+    # Activation
+    origami=dict(data_type="Type: ORIGAMI", file_format="Format: MassLynx (.raw)"),
+    activation=dict(data_type="Type: Activation", file_format="Format: Multiple MassLynx (.raw)"),
+    # MS/MS
     mgf=dict(data_type="Type: MS/MS", file_format="Format: .mgf"),
     mzml=dict(data_type="Type: MS/MS", file_format="Format: .mzML"),
-    imaging=dict(data_type="Type: Imaging", file_format="Format: MassLynx (.raw)"),
-    origami=dict(data_type="Type: ORIGAMI", file_format="Format: MassLynx (.raw)"),
-    activation=dict(data_type="Type: Activation", file_format="Format: MassLynx (.raw)"),
-    waters=dict(data_type="Type: MassLynx", file_format="Format: MassLynx (.raw)"),
+    # Imaging
+    imaging=dict(data_type="Type: Imaging", file_format="Format: Multiple MassLynx (.raw)"),
+    imaging_thermo=dict(data_type="Type: Imaging", file_format="Format: Multiple Thermo (.RAW)"),
+    # Generic
+    text=dict(data_type="Type: Generic", file_format="Format: Text (.csv; .txt; .tab)"),
+    #     manual=dict(data_type="Type: MANUAL", file_format="Format: MassLynx (.raw)"),
+    #     interactive=dict(data_type="Type: Interactive", file_format="Format: None"),
+    #     waters=dict(data_type="Type: MassLynx", file_format="Format: MassLynx (.raw)"),
 )
 ALTERNATIVE_NAMES = {
     "compare": "overlay",
     "Type: Comparison": "overlay",
-    "Type: Interactive": "interactive",
-    "Type: MANUAL": "manual",
     "Type: MS/MS": "mgf",
     "mzML": "mzml",
     "Imaging": "imaging",
     "Type: Imaging": "imaging",
     "Type: Activation": "activation",
     "Type: ORIGAMI": "origami",
+    # "Type: IM-MS": "waters_imms",
     "Type: MS": "thermo",  # remove,
+    #     "Type: Interactive": "interactive",
+    #     "Type: MANUAL": "manual",
 }
 DOCUMENT_TYPES = [
     "Type: ORIGAMI",
     "Type: Activation",
-    "Type: MANUAL",  # remove
+    "Type: Comparison",
+    "Type: MS",
+    # "Type: IM-MS",
+    "Type: MS/MS",
+    "Type: Imaging",
+    #     "Type: MANUAL",  # remove
     # "Type: Infrared",  # remove
     # "Type: 2D IM-MS",  # remove
     # "Type: Interactive",  # remove
-    "Type: Comparison",
-    "Type: MS",  # remove
-    "Type: Imaging",
-    "Type: MS/MS",
 ]
 DOCUMENT_DEFAULT = "origami"
 DOCUMENT_KEY_PAIRS = {

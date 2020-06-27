@@ -72,7 +72,7 @@ class PanelProcessMassSpectrum(MiniFrame):
             self,
             parent,
             title="Process mass spectrum...",
-            style=wx.DEFAULT_FRAME_STYLE & ~wx.RESIZE_BORDER | wx.MAXIMIZE_BOX,
+            style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX),
         )
         """Instantiate pre-processing module
 
@@ -395,7 +395,7 @@ class PanelProcessMassSpectrum(MiniFrame):
         n += 1
         grid.Add(ms_process_normalize, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.ms_process_normalize, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        grid.AddGrowableCol(0, 1)
+        grid.AddGrowableCol(1, 1)
 
         # fit layout
         main_sizer = wx.BoxSizer(wx.VERTICAL)

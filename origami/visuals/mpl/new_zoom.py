@@ -313,9 +313,10 @@ class MPLInteraction:
             self.dragged = event.artist
             self._is_legend = True
         elif isinstance(event.artist, Rectangle):
-            self.dragged = event.artist
-            self.pick_pos = (self.dragged.get_width() / 2, self.dragged.get_height() / 2)
-            self._is_patch = True
+            if event.artist.get_picker():
+                self.dragged = event.artist
+                self.pick_pos = (self.dragged.get_width() / 2, self.dragged.get_height() / 2)
+                self._is_patch = True
 
         return True
 
@@ -386,95 +387,101 @@ class MPLInteraction:
 
     def on_mouse_wheel(self, evt):
         """Event on mouse-wheel"""
-        if wx.GetKeyState(wx.WXK_ALT) or not self._is_inside_axes:
-            return
 
-        if not self.allow_wheel:
-            return
+    #         if wx.GetKeyState(wx.WXK_ALT) or not self._is_inside_axes:
+    #             return
 
-        # Update cursor
-        motion_mode = [
-            self._shift_key,
-            self._ctrl_key,
-            self._alt_key,
-            self._trigger_extraction,
-            True,
-            self._button_down,
-            self.dragged,
-        ]
-        pub.sendMessage("motion_mode", dataOut=motion_mode)
+    #         if not self.allow_wheel:
+    #             return
+    #
+    #         # Update cursor
+    #         motion_mode = [
+    #             self._shift_key,
+    #             self._ctrl_key,
+    #             self._alt_key,
+    #             self._trigger_extraction,
+    #             True,
+    #             self._button_down,
+    #             self.dragged,
+    #         ]
+    #         pub.sendMessage("motion_mode", dataOut=motion_mode)
+    #
+    #         # The actual work
+    #         for axes in self.axes:
+    #             x0, x1, y0, y1 = self.get_axes_limits(axes)
+    #
+    # #             x0_diff, x1_diff = evt.xdata - x0, x1 - evt.xdata
+    # #             y0_diff, y1_diff = evt.ydata - x0, x1 - evt.ydata
+    #             print(x0, x1, y0, y1)
+    #             print(dir(evt), evt.xdata, evt.ydata, evt)
 
-        # The actual work
-        for axes in self.axes:
-            x0, x1, y0, y1 = self.get_axes_limits(axes)
-
-            shift_key = wx.GetKeyState(wx.WXK_SHIFT)
-
-            if self.data_limits is not None:
-                xmin, ymin, xmax, ymax = self.data_limits
-            else:
-                xmin, ymin, xmax, ymax = axes.data_limits
-
-            # Zoom in X-axis only
-            if not shift_key:
-                # calculate difference
-                try:
-                    x0_diff, x1_diff = evt.xdata - x0, x1 - evt.xdata
-                    x_sum = x0_diff + x1_diff
-                except Exception:
-                    return
-                stepSize = evt.step * ((x1 - x0) / 50)
-                newXmin = x0 - (stepSize * (x0_diff / x_sum))
-                newXmax = x1 + (stepSize * (x1_diff / x_sum))
-                # Check if the X-values are off the data lims
-                if newXmin < xmin:
-                    newXmin = xmin
-                if newXmax > xmax:
-                    newXmax = xmax
-                axes.set_xlim((newXmin, newXmax))
-                if self.plotName == "MSDT":
-                    pub.sendMessage("change_zoom_dtms", xmin=newXmin, xmax=newXmax, ymin=ymin, ymax=ymax)
-
-            # Zoom in Y-axis only
-            elif shift_key:
-                # Check if its 1D plot
-                if self.plotName in ["1D", "CalibrationDT", "MS"]:
-                    stepSize = evt.step * ((y1 - y0) / 25)
-                    axes.set_ylim((0, y1 + stepSize))
-                elif self.plotName == "MSDT":
-                    try:
-                        y0_diff, y1_diff = evt.ydata - y0, y1 - evt.ydata
-                        y_sum = y0_diff + y1_diff
-                    except Exception:
-                        return
-
-                    stepSize = evt.step * ((y1 - y0) / 50)
-                    newYmin = y0 - (stepSize * (y0_diff / y_sum))
-                    newYmax = y1 + (stepSize * (y1_diff / y_sum))
-                    # Check if the Y-values are off the data lims
-                    if newYmin < ymin:
-                        newYmin = ymin
-                    if newYmax > ymax:
-                        newYmax = ymax
-                    axes.set_ylim((newYmin, newYmax))
-                elif self.plotName != "1D":
-                    try:
-                        y0_diff, y1_diff = evt.xdata - y0, y1 - evt.xdata
-                        y_sum = y0_diff + y1_diff
-                    except Exception:
-                        return
-
-                    stepSize = evt.step * ((y1 - y0) / 50)
-                    newYmin = y0 - (stepSize * (y0_diff / y_sum))
-                    newYmax = y1 + (stepSize * (y1_diff / y_sum))
-                    # Check if the Y-values are off the data lims
-                    if newYmin < ymin:
-                        newYmin = ymin
-                    if newYmax > ymax:
-                        newYmax = ymax
-                    axes.set_ylim((newYmin, newYmax))
-
-            self.canvas.draw()
+    #             shift_key = wx.GetKeyState(wx.WXK_SHIFT)
+    #
+    #             if self.data_limits is not None:
+    #                 xmin, ymin, xmax, ymax = self.data_limits
+    #             else:
+    #                 xmin, ymin, xmax, ymax = axes.data_limits
+    #
+    #             # Zoom in X-axis only
+    #             if not shift_key:
+    #                 # calculate difference
+    #                 try:
+    #                     x0_diff, x1_diff = evt.xdata - x0, x1 - evt.xdata
+    #                     x_sum = x0_diff + x1_diff
+    #                 except Exception:
+    #                     return
+    #                 stepSize = evt.step * ((x1 - x0) / 50)
+    #                 newXmin = x0 - (stepSize * (x0_diff / x_sum))
+    #                 newXmax = x1 + (stepSize * (x1_diff / x_sum))
+    #                 # Check if the X-values are off the data lims
+    #                 if newXmin < xmin:
+    #                     newXmin = xmin
+    #                 if newXmax > xmax:
+    #                     newXmax = xmax
+    #                 axes.set_xlim((newXmin, newXmax))
+    #                 if self.plotName == "MSDT":
+    #                     pub.sendMessage("change_zoom_dtms", xmin=newXmin, xmax=newXmax, ymin=ymin, ymax=ymax)
+    #
+    #             # Zoom in Y-axis only
+    #             elif shift_key:
+    #                 # Check if its 1D plot
+    #                 if self.plotName in ["1D", "CalibrationDT", "MS"]:
+    #                     stepSize = evt.step * ((y1 - y0) / 25)
+    #                     axes.set_ylim((0, y1 + stepSize))
+    #                 elif self.plotName == "MSDT":
+    #                     try:
+    #                         y0_diff, y1_diff = evt.ydata - y0, y1 - evt.ydata
+    #                         y_sum = y0_diff + y1_diff
+    #                     except Exception:
+    #                         return
+    #
+    #                     stepSize = evt.step * ((y1 - y0) / 50)
+    #                     newYmin = y0 - (stepSize * (y0_diff / y_sum))
+    #                     newYmax = y1 + (stepSize * (y1_diff / y_sum))
+    #                     # Check if the Y-values are off the data lims
+    #                     if newYmin < ymin:
+    #                         newYmin = ymin
+    #                     if newYmax > ymax:
+    #                         newYmax = ymax
+    #                     axes.set_ylim((newYmin, newYmax))
+    #                 elif self.plotName != "1D":
+    #                     try:
+    #                         y0_diff, y1_diff = evt.xdata - y0, y1 - evt.xdata
+    #                         y_sum = y0_diff + y1_diff
+    #                     except Exception:
+    #                         return
+    #
+    #                     stepSize = evt.step * ((y1 - y0) / 50)
+    #                     newYmin = y0 - (stepSize * (y0_diff / y_sum))
+    #                     newYmax = y1 + (stepSize * (y1_diff / y_sum))
+    #                     # Check if the Y-values are off the data lims
+    #                     if newYmin < ymin:
+    #                         newYmin = ymin
+    #                     if newYmax > ymax:
+    #                         newYmax = ymax
+    #                     axes.set_ylim((newYmin, newYmax))
+    #
+    #             self.canvas.draw()
 
     def on_key_state(self, evt):
         """Update state of the key"""

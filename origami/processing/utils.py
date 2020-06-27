@@ -161,6 +161,16 @@ def find_nearest_index(data: np.ndarray, value: Union[int, float, np.ndarray, Li
     return np.argmin(np.abs(data - value))
 
 
+def get_maximum_xy(x, y, x_min, x_max):
+    """Get the maximum value in two arrays based on an intensity array"""
+    if len(x) != len(y):
+        raise ValueError("Incorrect array lengths!")
+    x, y = np.asarray(x), np.asarray(y)
+    idx_min, idx_max = find_nearest_index(x, [x_min, x_max])
+    y_idx = y[idx_min : idx_max + 1].argmax()
+    return x[idx_min : idx_max + 1][y_idx], y[idx_min : idx_max + 1][y_idx]
+
+
 def get_narrow_data_range(data, mzRange=None):
     """ Find and return a narrow data range """
     start = find_nearest_index(data[:, 0], mzRange[0])  # np.argmin(np.abs(data[:, 0] - mzRange[0]))

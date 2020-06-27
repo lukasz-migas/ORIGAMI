@@ -57,10 +57,12 @@ class PanelImagingImportDataset(PanelImportManagerBase):
         image_dimension_label = set_item_font(wx.StaticText(panel, wx.ID_ANY, "Imaging details:"))
         image_shape_x = wx.StaticText(panel, -1, "Shape (x-dim):")
         self.image_shape_x = make_spin_ctrl_int(panel, 0, 0, 100, 1, (90, -1), name="shape_x")
+        self.image_shape_x.Bind(wx.EVT_TEXT, self.on_shape)
         self.image_shape_x.SetBackgroundColour((255, 230, 239))
 
         image_shape_y = wx.StaticText(panel, -1, "Shape (y-dim):")
         self.image_shape_y = make_spin_ctrl_int(panel, 0, 0, 100, 1, (90, -1), name="shape_y")
+        self.image_shape_y.Bind(wx.EVT_TEXT, self.on_shape)
         self.image_shape_y.SetBackgroundColour((255, 230, 239))
 
         # import info
@@ -105,6 +107,15 @@ class PanelImagingImportDataset(PanelImportManagerBase):
             raise MessageError("Error", "The number of files does not match image dimensions!")
 
         return dict(x_dim=int(x_dim), y_dim=int(y_dim))
+
+    def on_shape(self, _evt):
+        """Update text box color"""
+        bad_color = (255, 230, 239)
+        good_color = wx.WHITE
+        self.image_shape_x.SetBackgroundColour(good_color if self.image_shape_x.GetValue() else bad_color)
+        self.image_shape_x.Refresh()
+        self.image_shape_y.SetBackgroundColour(good_color if self.image_shape_y.GetValue() else bad_color)
+        self.image_shape_y.Refresh()
 
     def _parse_path(self, path):
         """Parse raw file"""

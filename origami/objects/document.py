@@ -5,6 +5,8 @@ import shutil
 import logging
 from typing import Dict
 from typing import List
+from typing import Tuple
+from typing import Union
 from typing import Optional
 from pathlib import Path
 
@@ -39,6 +41,18 @@ def get_children(o):
     return natsorted([i.path for i in o.values()])
 
 
+def check_path(path: Union[str, List]):
+    """Check whether path(s) exist on the file system"""
+    if isinstance(path, str):
+        if not os.path.exists(path):
+            return False
+    elif isinstance(path, list):
+        for _path in path:
+            if not os.path.exists(_path):
+                return False
+    return True
+
+
 class DocumentStore:
     """DocumentStore object"""
 
@@ -56,6 +70,12 @@ class DocumentStore:
         "Raw",  # any raw file
         "Output",  # any file
         "Tandem",  # pickled dictionary...
+    ]
+    CAN_EXTRACT = [
+        "Format: MassLynx (.raw)",
+        "Format: Thermo (.RAW)",
+        "Format: Multiple MassLynx (.raw)",
+        "Format: Multiple Thermo (.RAW)",
     ]
 
     # attributes that can be set
@@ -229,6 +249,15 @@ class DocumentStore:
         if "Metadata/Parameters" in self:
             return self["Metadata/Parameters"].attrs.asdict()
         return {}
+
+    def can_extract(self) -> Tuple[bool, bool]:
+        """Checks whether this document can be used for data extraction. Returns tuple of bool values to indicate
+        whether data can be extracted and/or the dataset uses multiple raw file"""
+        if self.file_format not in self.CAN_EXTRACT:
+            return False, False
+        if "Multi" in self.file_format:
+            return True, True
+        return True, False
 
     def group(self, key):
         """Retrieve group from the dataset"""
@@ -416,7 +445,8 @@ class DocumentStore:
 
     def add_config(self, name: str, data: Dict):
         """Write or update configuration file in the `Config` directory"""
-        assert isinstance(data, dict), "Configuration file should be a dict object"
+        if not isinstance(data, dict):
+            raise ValueError("Configuration file should be a dictionary object")
         path = self._get_config_path(name)
 
         write_json_data(path, data, check_existing=True)
@@ -507,6 +537,11 @@ class DocumentStore:
         """Return path to a raw file"""
         config = self.get_config("paths")
         return config.get(title, "")
+
+    def get_file_paths(self):
+        """Return the whole configuration object"""
+        config = self.get_config("paths")
+        return config
 
     @property
     def tandem_spectra(self):

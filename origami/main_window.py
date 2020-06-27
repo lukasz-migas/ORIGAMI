@@ -331,7 +331,6 @@ class MainWindow(wx.Frame):
         self.make_shortcuts()
         self.SetSize(1980, 1080)
         #         self.Maximize(True)
-
         # bind events
         self.Bind(wx.aui.EVT_AUI_PANE_CLOSE, self.on_closed_page)
         self.Bind(wx.aui.EVT_AUI_PANE_RESTORE, self.on_restored_page)
@@ -340,6 +339,23 @@ class MainWindow(wx.Frame):
         self.on_update_panel_config()
         self.on_toggle_panel(evt=None)
         self.on_toggle_panel_at_start()
+
+        # when in development, move the app to another display
+        if CONFIG.debug:
+            self._move_app()
+
+    def _move_app(self):
+        """Move application to another window"""
+        try:
+            current_w, _ = self.GetPosition()
+            for idx in range(wx.Display.GetCount()):
+                screen_w, screen_h, _, _ = wx.Display(idx).GetGeometry()
+                if screen_w > current_w:
+                    break
+
+            self.SetPosition((screen_w, screen_h))
+        except Exception:
+            pass
 
     def create_panel(self, which: str, document_title: str):
         """Creates new instance of panel for particular document"""
@@ -502,7 +518,7 @@ class MainWindow(wx.Frame):
         # 5 = tool
         # 6 = process
         # 7 = queue size
-        self.mainStatusbar.SetStatusWidths([250, 80, 80, 200, -1, 50, 50])
+        self.mainStatusbar.SetStatusWidths([250, 80, 80, 200, -1, 80, 50])
         self.mainStatusbar.SetFont(wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
 
     def make_menubar(self):
@@ -1870,24 +1886,24 @@ class MainWindow(wx.Frame):
             self.mode = "Measure"
             cursor = wx.StockCursor(wx.CURSOR_MAGNIFIER)
         elif ctrl:
-            self.mode = "Add data"
+            self.mode = "Extract"
             cursor = wx.StockCursor(wx.CURSOR_CROSS)
         elif add2table:
-            self.mode = "Add data"
+            self.mode = "Extract"
             cursor = wx.StockCursor(wx.CURSOR_CROSS)
-        elif shift:
-            self.mode = "Wheel zoom Y"
-            cursor = wx.StockCursor(wx.CURSOR_SIZENS)
-        elif wheel:
-            self.mode = "Wheel zoom X"
-            cursor = wx.StockCursor(wx.CURSOR_SIZEWE)
+        #         elif shift:
+        #             self.mode = "Vertical wheel"
+        #             cursor = wx.StockCursor(wx.CURSOR_SIZENS)
+        #         elif wheel:
+        #             self.mode = "Horizontal wheel"
+        #             cursor = wx.StockCursor(wx.CURSOR_SIZEWE)
         elif alt and ctrl:
             self.mode = ""
         elif dragged is not None:
-            self.mode = "Dragging"
+            self.mode = "Drag"
             cursor = wx.StockCursor(wx.CURSOR_HAND)
         elif zoom:
-            self.mode = "Zooming"
+            self.mode = "Zoom"
             cursor = wx.StockCursor(wx.CURSOR_MAGNIFIER)
 
         self.SetCursor(cursor)
