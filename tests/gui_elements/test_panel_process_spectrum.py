@@ -13,7 +13,7 @@ class TestPanelProcessMassSpectrum(WidgetTestCase):
 
         # wx.CallLater(250, dlg.on_close, None)
         dlg.Show()
-        self.yield_()
+        # self.yield_()
 
     def test_dialog_no_plot(self):
         dlg = PanelProcessMassSpectrum(self.frame, None, disable_plot=True)
@@ -22,7 +22,7 @@ class TestPanelProcessMassSpectrum(WidgetTestCase):
 
         # wx.CallLater(250, dlg.on_close, None)
         dlg.Show()
-        self.yield_()
+        # self.yield_()
 
     def test_dialog_no_process(self):
         dlg = PanelProcessMassSpectrum(self.frame, None, disable_process=True)
@@ -31,7 +31,7 @@ class TestPanelProcessMassSpectrum(WidgetTestCase):
 
         # wx.CallLater(250, dlg.on_close, None)
         dlg.Show()
-        self.yield_()
+        # self.yield_()
 
     def test_dialog_ui(self):
         dlg = PanelProcessMassSpectrum(self.frame, None)
@@ -150,4 +150,4 @@ class TestPanelProcessMassSpectrum(WidgetTestCase):
 
         # wx.CallLater(250, dlg.on_close, None)
         dlg.Show()
-        self.yield_()
+        # self.yield_()

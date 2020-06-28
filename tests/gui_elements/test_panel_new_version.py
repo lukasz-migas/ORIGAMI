@@ -17,4 +17,4 @@ class TestPanelNewVersion(WidgetTestCase):
 
         # wx.CallLater(250, dlg.on_close, None)
         dlg.Show()
-        self.yield_()
+        # self.yield_()
