@@ -1,4 +1,5 @@
 # Standard library imports
+import logging
 from typing import List
 from typing import Union
 from typing import Optional
@@ -15,6 +16,8 @@ from origami.processing.utils import find_nearest_index
 from origami.objects.container import ContainerBase
 from origami.processing.heatmap import equalize_heatmap_spacing
 from origami.objects.annotations import Annotations
+
+LOGGER = logging.getLogger(__name__)
 
 
 def get_fmt(*arrays: np.ndarray, get_largest: bool = False):
@@ -499,6 +502,15 @@ class ChromatogramObject(SpectrumObject):
             - requires scan time in seconds
             multiply x-axis time * 60 to convert to seconds and then divide by the scan time. Values are rounded
         """
+
+        def _get_scan_time(_scan_time):
+            # no need to change anything
+            if _scan_time is None:
+                _scan_time = self.get_parent().parameters.get("scan_time", None)
+            if _scan_time is None:
+                raise ValueError("Cannot perform conversion due to a missing `scan_time` information.")
+            return _scan_time
+
         # set default label
         if "x_label_default" not in self._metadata:
             self._metadata["x_label_default"] = self.x_label
@@ -507,15 +519,11 @@ class ChromatogramObject(SpectrumObject):
         if to_label == "Restore default":
             to_label = self._metadata["x_label_default"]
 
-        print(to_label, self._metadata)
-
         if to_label not in self.x_label_options:
             raise ValueError(f"Cannot change label to `{to_label}`; \nAllowed labels: {self.x_label_options}")
 
-        # no need to change anything
-        if scan_time is None:
-            scan_time = self.get_parent().parameters.get("scan_time", None)
-        if self.x_label == to_label or scan_time is None:
+        if self.x_label == to_label:
+            LOGGER.warning("The before and after labels are the same")
             return
 
         # create back-up of the bin data
@@ -527,13 +535,13 @@ class ChromatogramObject(SpectrumObject):
                 x = self._extra_data["x_min"]
             else:
                 x = self._extra_data["x_bin"]
-                x = x * (scan_time / 60)
+                x = x * (_get_scan_time(scan_time) / 60)
         elif to_label == "Scans" and self.x_label in ["Time (mins)", "Retention time (mins)"]:
             if "x_bin" in self._extra_data:
                 x = self._extra_data["x_bin"]
             else:
                 x = self.x
-                x = np.round((x * 60) / scan_time).astype(np.int32)
+                x = np.round((x * 60) / _get_scan_time(scan_time)).astype(np.int32)
         elif check_alternative_names(self.x_label, to_label, ["Time (mins)", "Retention time (mins)"]):
             x = self.x
         else:
@@ -591,6 +599,15 @@ class MobilogramObject(SpectrumObject):
             - requires pusher frequency in microseconds
             multiply x-axis time * 1000 and divide by pusher frequency
         """
+
+        def _get_pusher_freq(_pusher_freq):
+            # no need to change anything
+            if _pusher_freq is None:
+                _pusher_freq = self.get_parent().parameters.get("pusher_freq", None)
+            if _pusher_freq is None:
+                raise ValueError("Cannot perform conversion due to a missing `pusher_freq` information.")
+            return _pusher_freq
+
         # set default label
         if "x_label_default" not in self._metadata:
             self._metadata["x_label_default"] = self.x_label
@@ -599,14 +616,12 @@ class MobilogramObject(SpectrumObject):
         if to_label == "Restore default":
             to_label = self._metadata["x_label_default"]
 
-        print(to_label, self._metadata)
-
         if to_label not in self.x_label_options:
             raise ValueError(f"Cannot change label to `{to_label}`; \nAllowed labels: {self.x_label_options}")
 
         # no need to change anything
-        pusher_freq = self.get_parent().parameters.get("pusher_freq", None)
-        if self.x_label == to_label or pusher_freq is None:
+        if self.x_label == to_label:
+            LOGGER.warning("The before and after labels are the same")
             return
 
         # create back-up of the bin data
@@ -618,13 +633,13 @@ class MobilogramObject(SpectrumObject):
                 x = self._extra_data["x_ms"]
             else:
                 x = self._extra_data["x_bin"]
-                x = x * (pusher_freq / 1000)
+                x = x * (_get_pusher_freq(pusher_freq) / 1000)
         elif to_label == "Drift time (bins)" and self.x_label in ["Drift time (ms)", "Arrival time (ms)"]:
             if "x_bin" in self._extra_data:
                 x = self._extra_data["x_bin"]
             else:
                 x = self.x
-                x = np.round((x * 1000) / pusher_freq).astype(np.int32)
+                x = np.round((x * 1000) / _get_pusher_freq(pusher_freq)).astype(np.int32)
         elif check_alternative_names(self.x_label, to_label, ["Drift time (ms)", "Arrival time (ms)"]):
             x = self.x
         else:

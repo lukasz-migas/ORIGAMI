@@ -222,6 +222,7 @@ class ThermoRawReader:
         end_scan: Optional[int] = None,
         centroid: bool = False,
         title: Optional[str] = None,
+        rt_as_scan: bool = True,
     ):
         """Get average mass spectrum for particular scan range
 
@@ -235,9 +236,17 @@ class ThermoRawReader:
             if `True`, centroid mass spectrum will be returned instead of profile
         title : str
             filter title
+        rt_as_scan : bool
+            if `True`, the start/end values are provided as retention time
         """
         if title is None:
             title = DEFAULT_FILTER
+
+        # range was not provided as scans
+        if not rt_as_scan and start_scan is not None and end_scan is not None:
+            start_scan = self.source.ScanNumberFromRetentionTime(start_scan)
+            end_scan = self.source.ScanNumberFromRetentionTime(end_scan)
+
         start_scan, end_scan, title = self._get_scan_parameters(start_scan, end_scan, title)
         average_scan = Extensions.AverageScansInScanRange(self.source, start_scan, end_scan, title)
 
@@ -295,7 +304,7 @@ class ThermoRawReader:
         return ChromatogramObject(
             np.asarray(list(xic_trace.Times)),
             np.asarray(list(xic_trace.Intensities)),
-            x_label="Retention time (min)",
+            x_label="Retention time (mins)",
             metadata={"filter": title, "start_scan": int(start_scan), "end_scan": int(end_scan)},
         )
 

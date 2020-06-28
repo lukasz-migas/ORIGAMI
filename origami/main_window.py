@@ -1793,6 +1793,7 @@ class MainWindow(wx.Frame):
         return panel_dict[panel]
 
     def on_close(self, evt, **kwargs):
+        """Close window"""
 
         n_documents = len(ENV)
         if n_documents > 0 and not kwargs.get("ignore_warning", False):

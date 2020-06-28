@@ -250,14 +250,19 @@ class DocumentStore:
             return self["Metadata/Parameters"].attrs.asdict()
         return {}
 
-    def can_extract(self) -> Tuple[bool, bool]:
+    def can_extract(self) -> Tuple[bool, bool, str]:
         """Checks whether this document can be used for data extraction. Returns tuple of bool values to indicate
         whether data can be extracted and/or the dataset uses multiple raw file"""
         if self.file_format not in self.CAN_EXTRACT:
-            return False, False
+            return False, False, ""
+
+        file_fmt = "waters"
+        if "Thermo" in self.file_format:
+            file_fmt = "thermo"
+
         if "Multi" in self.file_format:
-            return True, True
-        return True, False
+            return True, True, file_fmt
+        return True, False, file_fmt
 
     def group(self, key):
         """Retrieve group from the dataset"""

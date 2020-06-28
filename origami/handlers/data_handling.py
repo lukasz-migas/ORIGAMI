@@ -6,7 +6,6 @@ import math
 import time
 import logging
 import threading
-from sys import platform
 from typing import List
 from typing import Callable
 from multiprocessing.pool import ThreadPool
@@ -42,10 +41,6 @@ from origami.objects.containers import DataObject
 from origami.handlers.queue_handler import QUEUE
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.dialog_multi_directory_picker import DialogMultiDirPicker
-
-# enable on windowsOS only
-if platform == "win32":
-    from origami.readers import io_waters_raw
 
 logger = logging.getLogger(__name__)
 
@@ -300,7 +295,7 @@ class DataHandling(LoadHandler, ExportHandler):
         logger.info(f"It took {time.time()-t_start:.4f} seconds to load {document.title}")
 
     @staticmethod
-    def _parse_mobilogram_range(document, x_label, x_min, x_max):
+    def _parse_mobilogram_range_waters(document, x_label, x_min, x_max):
         """Parse values obtained from mobilogram plot"""
         parameters = document.parameters
         if not parameters:
@@ -319,7 +314,7 @@ class DataHandling(LoadHandler, ExportHandler):
         return x_min, x_max
 
     @staticmethod
-    def _parse_chromatogram_range(document, x_label, x_min, x_max, output="bins"):
+    def _parse_chromatogram_range_waters(document, x_label, x_min, x_max, output="bins"):
         """Parse values obtained from chromatogram plot"""
         parameters = document.parameters
         if not parameters:
@@ -340,6 +335,9 @@ class DataHandling(LoadHandler, ExportHandler):
 
         return x_min, x_max
 
+    def _parse_chromatogram_range_thermo(self, document, x_label, x_min, x_max, output="bins"):
+        """Parse values obtained from chromatogram plot"""
+
     def evt_extract_ms_from_heatmap(self, rect, x_labels, y_labels):
         """Extracts mass spectrum from heatmap"""
         t_start = time.time()
@@ -352,7 +350,7 @@ class DataHandling(LoadHandler, ExportHandler):
         x_min, x_max, y_min, y_max = rect
         document = ENV.on_get_document()
 
-        can_extract, is_mutlfile = document.can_extract()
+        can_extract, is_mutlfile, file_fmt = document.can_extract()
         if not can_extract:
             raise MessageError("Error", "This document type does not allow data extraction")
 
@@ -363,8 +361,8 @@ class DataHandling(LoadHandler, ExportHandler):
         self.panel_plot.view_heatmap.add_patches([x_min], [y_min], [x_max - x_min], [y_max - y_min], pickable=False)
 
         # convert limits to the correct format
-        x_min, x_max = self._parse_chromatogram_range(document, x_label, x_min, x_max, "time")
-        y_min, y_max = self._parse_mobilogram_range(document, y_label, y_min, y_max)
+        x_min, x_max = self._parse_chromatogram_range_waters(document, x_label, x_min, x_max, "time")
+        y_min, y_max = self._parse_mobilogram_range_waters(document, y_label, y_min, y_max)
 
         # get data
         obj_name, mz_obj, document = self.waters_extract_ms_from_heatmap(x_min, x_max, y_min, y_max, document.title)
@@ -387,7 +385,7 @@ class DataHandling(LoadHandler, ExportHandler):
         x_min, x_max, y_min, y_max = rect
         document = ENV.on_get_document()
 
-        can_extract, is_mutlfile = document.can_extract()
+        can_extract, is_mutlfile, file_fmt = document.can_extract()
         if not can_extract:
             raise MessageError("Error", "This document type does not allow data extraction")
 
@@ -398,7 +396,7 @@ class DataHandling(LoadHandler, ExportHandler):
         self.panel_plot.view_msdt.add_patches([x_min], [y_min], [x_max - x_min], [y_max - y_min], pickable=False)
 
         # convert limits to the correct format
-        y_min, y_max = self._parse_mobilogram_range(document, y_label, y_min, y_max)
+        y_min, y_max = self._parse_mobilogram_range_waters(document, y_label, y_min, y_max)
 
         # get data
         obj_name, rt_obj, document = self.waters_extract_rt_from_msdt(x_min, x_max, y_min, y_max, document.title)
@@ -429,7 +427,7 @@ class DataHandling(LoadHandler, ExportHandler):
         if is_multifile:
             raise MessageError("Error", "Multifile data extraction is not supported yet")
 
-        x_min, x_max = self._parse_mobilogram_range(document, x_label, x_min, x_max)
+        x_min, x_max = self._parse_mobilogram_range_waters(document, x_label, x_min, x_max)
 
         # get plot data and calculate maximum values in the arrays
         x, y = self.panel_plot.view_dt_dt.get_data()
@@ -462,7 +460,7 @@ class DataHandling(LoadHandler, ExportHandler):
         x_min, x_max, _, _ = rect
         document = ENV.on_get_document()
 
-        can_extract, is_mutlfile = document.can_extract()
+        can_extract, is_mutlfile, file_fmt = document.can_extract()
         if not can_extract:
             raise MessageError("Error", "This document type does not allow data extraction")
 
@@ -476,10 +474,14 @@ class DataHandling(LoadHandler, ExportHandler):
         # mark on the plot where data is being extracted from
         self.panel_plot.view_rt_rt.add_patches([x_min], [0], [x_max - x_min], [y_val], pickable=False)
 
-        x_min, x_max = self._parse_chromatogram_range(document, x_label, x_min, x_max, "time")
-
-        # get data
-        obj_name, mz_obj, document = self.waters_extract_ms_from_chromatogram(x_min, x_max, document.title)
+        if file_fmt == "waters":
+            x_min, x_max = self._parse_chromatogram_range_waters(document, x_label, x_min, x_max, "time")
+            obj_name, mz_obj, document = self.waters_extract_ms_from_chromatogram(x_min, x_max, document.title)
+        elif file_fmt == "thermo":
+            as_scans = False if "mins" in x_label else True
+            obj_name, mz_obj, document = self.thermo_extract_ms_from_chromatogram(
+                x_min, x_max, as_scans, document.title
+            )
 
         # set data
         self.panel_plot.view_rt_ms.plot(obj=mz_obj)
@@ -495,9 +497,12 @@ class DataHandling(LoadHandler, ExportHandler):
         x_min, x_max, _, _ = rect
         document = ENV.on_get_document()
 
-        can_extract, is_multifile = document.can_extract()
+        can_extract, is_multifile, file_fmt = document.can_extract()
         if not can_extract:
             raise MessageError("Error", "This document type 8does not allow data extraction")
+
+        if file_fmt == "thermo":
+            raise MessageError("Error", "Cannot extract heatmap from Thermo file")
 
         # get plot data and calculate maximum values in the arrays
         x, y = self.panel_plot.view_ms.get_data()
@@ -814,32 +819,6 @@ class DataHandling(LoadHandler, ExportHandler):
             return
 
     # NEED UPDATING \\\\\/////
-
-    def on_extract_RT_from_mzdt(self, mz_start, mz_end, dt_start, dt_end, units_x="m/z", units_y="Drift time (bins)"):
-        """Function to extract RT data for specified MZ/DT region """
-        t_start = time.time()
-        logger.info(f"Extracting chromatogram based DT: {dt_start}-{dt_end} & MS: {mz_start}-{mz_end}...")
-
-        document = self.on_get_document()
-        pusher_freq, __, __ = self._get_spectrum_parameters(document)
-
-        # convert from milliseconds to bins
-        if units_y in ["Drift time (ms)", "Arrival time (ms)"]:
-            dt_start = np.ceil((dt_start / pusher_freq) * 1000).astype(int)
-            dt_end = np.ceil((dt_end / pusher_freq) * 1000).astype(int)
-
-        # Load data
-        reader = io_waters_raw.WatersIMReader(document.path)
-        _, rt_x, rt_y = reader.extract_rt(
-            mz_start=mz_start, mz_end=mz_end, dt_start=dt_start, dt_end=dt_end, return_data=True
-        )
-        self.panel_plot.on_plot_RT(rt_x, rt_y, "Scans")
-
-        obj_name = f"Ion: {mz_start:.2f}-{mz_end:.2f} | Drift time: {dt_start:.2f}-{dt_end:.2f}"
-        chromatogram_data = {"xvals": rt_x, "yvals": rt_y, "xlabels": "Scans"}
-
-        self.document_tree.on_update_data(chromatogram_data, obj_name, document, data_type="extracted.chromatogram")
-        logger.info(f"Extracted chromatogram in{report_time(t_start)}")
 
     def on_get_document(self, document_title=None):
 

@@ -374,6 +374,46 @@ class LoadHandler:
 
     @staticmethod
     @check_os("win32")
+    def thermo_extract_ms_from_chromatogram(x_min: float, x_max: float, as_scan: bool, title=None):
+        """Extract mass spectrum based on retention time selection
+
+        Parameters
+        ----------
+        x_min : float
+            start retention time in minutes
+        x_max : float
+            end retention time in minutes
+        as_scan : bool
+            flag to indicate whether range is provided in correct format
+        title: str, optional
+            document title
+
+        Returns
+        -------
+        obj_name : str
+            name of the data object
+        obj_data : MassSpectrumObject
+            dictionary containing extracted data
+        document : Document
+            instance of the document for which data was extracted
+        """
+        document = ENV.on_get_document(title)
+
+        # setup file reader
+        reader = document.get_reader("data_reader")
+        if reader is None:
+            path = document.get_file_path("main")
+            reader = ThermoRawReader(path)
+            document.add_reader("data_reader", reader)
+
+        mz_obj = reader.get_spectrum(start_scan=x_min, end_scan=x_max, rt_as_scan=as_scan)
+        obj_name = f"RT_{x_min:.2f}-{x_max:.2f}"
+        mz_obj = document.add_spectrum(obj_name, mz_obj)
+
+        return obj_name, mz_obj, document
+
+    @staticmethod
+    @check_os("win32")
     def get_waters_info(path: str):
         """Retrieves information about the file in question"""
         reader = WatersIMReader(path)
