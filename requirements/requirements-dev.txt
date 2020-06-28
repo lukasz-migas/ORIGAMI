@@ -3,6 +3,6 @@ pep8
 autopep8
 isort
 black
-pytest==4.6
+pytest==4.6.11
 pytest-cov
 cython
