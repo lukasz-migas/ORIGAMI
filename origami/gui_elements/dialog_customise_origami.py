@@ -539,7 +539,7 @@ class DialogCustomiseORIGAMI(Dialog):
 
     def on_open_process_ms_settings(self, _evt):
         """Open MS parameters window"""
-        self.document_tree.on_open_process_MS_settings(disable_plot=True, disable_process=True)
+        self.document_tree.on_open_process_ms_settings(disable_plot=True, disable_process=True)
 
     @staticmethod
     def _load_origami_list(path):

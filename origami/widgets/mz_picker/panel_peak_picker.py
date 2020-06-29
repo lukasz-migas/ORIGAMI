@@ -38,6 +38,7 @@ class PanelPeakPicker(MiniFrame):
 
     # module specific parameters
     PUB_SUBSCRIBE_EVENT = "widget.picker.update.spectrum"
+    PUB_DELETE_ITEM_EVENT = "document.delete.item"
     HELP_LINK = "https://origami.lukasz-migas.com/"
 
     # parameters
@@ -149,16 +150,30 @@ class PanelPeakPicker(MiniFrame):
         self.process_btn.Bind(wx.EVT_BUTTON, self.on_open_process_ms_settings)
         if self.PUB_SUBSCRIBE_EVENT:
             pub.subscribe(self.on_process, self.PUB_SUBSCRIBE_EVENT)
+        if self.PUB_DELETE_ITEM_EVENT:
+            pub.subscribe(self._evt_delete_item, self.PUB_DELETE_ITEM_EVENT)
+
+    def _evt_delete_item(self, info):
+        """Triggered when document is deleted"""
+        document_title, dataset_name = info
+
+        if document_title == self.document_title:
+            if dataset_name is not None:
+                if not self.dataset_name.startswith(dataset_name) and dataset_name != self.dataset_name:
+                    return
+
+            DialogBox(
+                title="Dataset was deleted.",
+                msg="The mass spectrum that is shown in this window has been deleted, therefore, "
+                "this window will close too",
+                kind="Error",
+            )
+            self.on_close(None)
 
     @property
     def data_handling(self):
         """Return handle to `data_handling`"""
         return self.presenter.data_handling
-
-    @property
-    def data_processing(self):
-        """Return handle to `data_processing`"""
-        return self.presenter.data_processing
 
     @property
     def document_tree(self):
@@ -248,6 +263,8 @@ class PanelPeakPicker(MiniFrame):
         try:
             if self.PUB_SUBSCRIBE_EVENT:
                 pub.unsubscribe(self.on_process, self.PUB_SUBSCRIBE_EVENT)
+            if self.PUB_DELETE_ITEM_EVENT:
+                pub.unsubscribe(self._evt_delete_item, self.PUB_DELETE_ITEM_EVENT)
         except TopicNameError:
             pass
 
@@ -996,7 +1013,7 @@ class PanelPeakPicker(MiniFrame):
 
         mz_picker = None
         if CONFIG.peak_find_method == "small_molecule":
-            mz_picker = self.data_processing.find_peaks_in_mass_spectrum_peak_properties(
+            mz_picker = self.data_handling.find_peaks_in_mass_spectrum_peak_properties(
                 mz_obj,
                 pick_mz_min=mz_min,
                 pick_mz_max=mz_max,
@@ -1008,7 +1025,7 @@ class PanelPeakPicker(MiniFrame):
                 peak_width_modifier=CONFIG.peak_property_peak_width_modifier,
             )
         elif CONFIG.peak_find_method == "native_differential":
-            mz_picker = self.data_processing.find_peaks_in_mass_spectrum_peakutils(
+            mz_picker = self.data_handling.find_peaks_in_mass_spectrum_peakutils(
                 mz_obj,
                 pick_mz_min=mz_min,
                 pick_mz_max=mz_max,
@@ -1017,7 +1034,7 @@ class PanelPeakPicker(MiniFrame):
                 rel_height=CONFIG.peak_differential_relative_height,
             )
         elif CONFIG.peak_find_method == "native_local":
-            mz_picker = self.data_processing.find_peaks_in_mass_spectrum_local_max(
+            mz_picker = self.data_handling.find_peaks_in_mass_spectrum_local_max(
                 mz_obj,
                 pick_mz_min=mz_min,
                 pick_mz_max=mz_max,
@@ -1042,7 +1059,7 @@ class PanelPeakPicker(MiniFrame):
 
         mz_obj = self.mz_obj
         if CONFIG.peak_panel_preprocess:
-            self.data_processing.on_process_ms(mz_obj)
+            self.data_handling.on_process_ms(mz_obj)
         self.mz_obj_cache = mz_obj
 
         self.plot_view.plot(obj=mz_obj)
@@ -1409,7 +1426,7 @@ class PanelPeakPicker(MiniFrame):
 
     def on_open_process_ms_settings(self, _evt):
         """Open MS pre-processing panel"""
-        self.document_tree.on_open_process_MS_settings(
+        self.document_tree.on_open_process_ms_settings(
             disable_plot=True, disable_process=True, update_widget=self.PUB_SUBSCRIBE_EVENT
         )
 

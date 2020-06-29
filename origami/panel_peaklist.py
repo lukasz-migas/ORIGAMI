@@ -772,7 +772,7 @@ class PanelPeaklist(TablePanelBase):
         raise NotImplementedError("Must implement method")
         # if n_items:
         #     # open-up panel
-        #     self.document_tree.on_open_process_2D_settings(
+        #     self.document_tree.on_open_process_heatmap_settings(
         #         process_all=True, process_list=True, data=process_list, disable_plot=True, disable_process=False
         #     )
 
@@ -852,7 +852,7 @@ class PanelPeaklist(TablePanelBase):
         #         return
         #     # Process data
         #     if evtID == ID_ionPanel_show_process_heatmap:
-        #         xvals, yvals, zvals = self.data_processing.on_process_2D(xvals, yvals, zvals, return_data=True)
+        #         xvals, yvals, zvals = self.data_processing.on_process_heatmap(xvals, yvals, zvals, return_data=True)
         #     # Plot data
         #     self.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, cmap, override=True, set_page=True)
 

@@ -8,6 +8,7 @@ from functools import partial
 
 # Third-party imports
 import wx
+from pubsub import pub
 
 # Local imports
 from origami.ids import ID_saveData_csv
@@ -55,8 +56,12 @@ from origami.ids import ID_ylabel_DTMS_ms_arrival
 from origami.ids import ID_docTree_action_open_extract
 from origami.ids import ID_docTree_action_open_origami_ms
 from origami.ids import ID_docTree_action_open_extractDTMS
+from origami.styles import PopupBase
+from origami.styles import set_tooltip
+from origami.styles import make_checkbox
 from origami.styles import make_menu_item
 from origami.icons.assets import Icons
+from origami.config.config import CONFIG
 from origami.utils.utilities import report_time
 from origami.objects.document import DocumentStore
 from origami.utils.converters import str2int
@@ -67,6 +72,7 @@ from origami.objects.containers import IonHeatmapObject
 from origami.objects.containers import MobilogramObject
 from origami.objects.containers import ChromatogramObject
 from origami.objects.containers import MassSpectrumObject
+from origami.gui_elements._panel import TestPanel
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.misc_dialogs import DialogSimpleAsk
 
@@ -74,6 +80,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Item:
+    """Container object to keep track of which item is selected in the Document Tree"""
+
     def __init__(self):
         self.data = None
         self.title = None
@@ -224,8 +232,120 @@ class Item:
         return f"{stem}_{item}"
 
 
+class PopupDocumentTreeSettings(PopupBase):
+    """Create popup window to modify few uncommon settings"""
+
+    item_delete_ask_document_check = None
+    item_delete_ask_group_check = None
+    item_delete_ask_item_check = None
+    item_highlight_check = None
+    item_auto_plot_check = None
+
+    def __init__(self, parent, style=wx.BORDER_SIMPLE):
+        PopupBase.__init__(self, parent, style)
+
+    def make_panel(self):
+        """Make popup window"""
+        self.item_delete_ask_document_check = make_checkbox(self, "")
+        self.item_delete_ask_document_check.SetValue(CONFIG.tree_panel_delete_document_ask)
+        self.item_delete_ask_document_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
+        set_tooltip(
+            self.item_delete_ask_document_check,
+            "When checked, you will be asked whether you want to continue with deletion of the document. "
+            "(Data will remain on the disk)",
+        )
+
+        self.item_delete_ask_group_check = make_checkbox(self, "")
+        self.item_delete_ask_group_check.SetValue(CONFIG.tree_panel_delete_group_ask)
+        self.item_delete_ask_group_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
+        set_tooltip(
+            self.item_delete_ask_group_check,
+            "When checked, you will be asked whether you want to continue with deletion of the group item and "
+            "all of its contents.",
+        )
+
+        self.item_delete_ask_item_check = make_checkbox(self, "")
+        self.item_delete_ask_item_check.SetValue(CONFIG.tree_panel_delete_item_ask)
+        self.item_delete_ask_item_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
+        set_tooltip(
+            self.item_delete_ask_item_check,
+            "When checked, you will be asked whether you want to continue with deletion of the item.",
+        )
+
+        self.item_highlight_check = make_checkbox(self, "")
+        self.item_highlight_check.SetValue(CONFIG.tree_panel_item_highlight)
+        self.item_highlight_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
+        set_tooltip(self.item_highlight_check, "When checked, currently selected items will be made bold.")
+
+        self.item_auto_plot_check = make_checkbox(self, "")
+        self.item_auto_plot_check.SetValue(CONFIG.tree_panel_item_auto_plot)
+        self.item_auto_plot_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
+        set_tooltip(
+            self.item_auto_plot_check,
+            "When checked, items that can be plotted (e.g. MS) will be automatically plotted. Otherwise, "
+            "just double-click on an item to view it.",
+        )
+
+        grid = wx.GridBagSizer(2, 2)
+        y = 0
+        grid.Add(
+            wx.StaticText(self, -1, "Ask for permission as document is being deleted:"),
+            (y, 0),
+            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT,
+        )
+        grid.Add(self.item_delete_ask_document_check, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        y += 1
+        grid.Add(
+            wx.StaticText(self, -1, "Ask for permission as group item(s) are being deleted:"),
+            (y, 0),
+            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT,
+        )
+        grid.Add(self.item_delete_ask_group_check, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        y += 1
+        grid.Add(
+            wx.StaticText(self, -1, "Ask for permission as item(s) are being deleted:"),
+            (y, 0),
+            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT,
+        )
+        grid.Add(self.item_delete_ask_item_check, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        y += 1
+        grid.Add(
+            wx.StaticText(self, -1, "Highlight items on selection:"),
+            (y, 0),
+            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT,
+        )
+        grid.Add(self.item_highlight_check, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        y += 1
+        grid.Add(
+            wx.StaticText(self, -1, "Auto-plot items on selection:"),
+            (y, 0),
+            flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT,
+        )
+        grid.Add(self.item_auto_plot_check, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(grid, 1, wx.EXPAND | wx.ALL, 5)
+        self.set_info(sizer)
+
+        self.SetSizerAndFit(sizer)
+        self.Layout()
+
+    def on_apply(self, evt):
+        """Update settings"""
+        CONFIG.tree_panel_delete_document_ask = self.item_delete_ask_document_check.GetValue()
+        CONFIG.tree_panel_delete_group_ask = self.item_delete_ask_group_check.GetValue()
+        CONFIG.tree_panel_delete_item_ask = self.item_delete_ask_item_check.GetValue()
+        CONFIG.tree_panel_item_highlight = self.item_highlight_check.GetValue()
+        CONFIG.tree_panel_item_auto_plot = self.item_auto_plot_check.GetValue()
+
+        if evt is not None:
+            evt.Skip()
+
+
 class PanelDocumentTree(wx.Panel):
     """Make documents panel to store all information about open files"""
+
+    HELP_LINK = "www.origami.lukasz-migas.com"
 
     def __init__(self, parent, config, icons, presenter):
         wx.Panel.__init__(
@@ -236,6 +356,7 @@ class PanelDocumentTree(wx.Panel):
         self.config = config
         self.presenter = presenter
         self.icons = icons
+        self._icons = Icons()
 
         self.documents = self.make_ui()
 
@@ -244,12 +365,48 @@ class PanelDocumentTree(wx.Panel):
         self.sizer.Fit(self)
         self.SetSizer(self.sizer)
 
+        self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
+
     def __del__(self):
         pass
+
+    def on_right_click(self, evt):
+        """Right-click menu"""
+        # make main menu
+        menu = wx.Menu()
+
+        menu_info = make_menu_item(
+            parent=menu, evt_id=wx.ID_ANY, text="Learn more about Document Tree...", bitmap=self._icons.info
+        )
+        self.Bind(wx.EVT_MENU, self.on_open_info, menu_info)
+
+        menu.AppendItem(menu_info)
+        menu_settings = make_menu_item(
+            parent=menu, evt_id=wx.ID_ANY, text="Document Tree settings", bitmap=self._icons.gear
+        )
+        self.Bind(wx.EVT_MENU, partial(self.on_open_settings, evt), menu_settings)
+
+        menu.AppendItem(menu_settings)
+        self.PopupMenu(menu)
+        menu.Destroy()
+        self.SetFocus()
 
     def make_ui(self):
         """Instantiate document tree"""
         return DocumentTree(self, self.parent, self.presenter, self.icons, self.config, size=(-1, -1))
+
+    def on_open_info(self, _evt):
+        """Open help window to inform user on how to use this window / panel"""
+        from origami.gui_elements.panel_html_viewer import PanelHTMLViewer
+
+        if self.HELP_LINK:
+            PanelHTMLViewer(self.parent, link=self.HELP_LINK)
+
+    def on_open_settings(self, evt, _evt):
+        """Open settings of the Document Tree"""
+        popup = PopupDocumentTreeSettings(self.parent)
+        popup.position_on_event(evt)
+        popup.Show()
 
 
 class DocumentTree(wx.TreeCtrl):
@@ -479,7 +636,13 @@ class DocumentTree(wx.TreeCtrl):
         """Update `item_id` while item is being selected in the document  tree"""
 
         # Get selected item
+        if self._item_id is not None and self._item_id.IsOk():
+            self.SetItemBold(self._item_id, False)
+
         self._item_id = evt.GetItem()
+
+        if self._item_id is not None and self._item_id.IsOk() and CONFIG.tree_panel_item_highlight:
+            self.SetItemBold(self._item_id)
 
         # Get indent level for selected item
         self._indent = self.get_item_indent(self._item_id)
@@ -507,6 +670,12 @@ class DocumentTree(wx.TreeCtrl):
             self._item.current = self.GetItemText(item)
             self._item.check_data()
             LOGGER.debug(self._item)
+
+            if CONFIG.tree_panel_item_auto_plot:
+                if self._item.is_match(
+                    ["spectrum", "chromatogram", "mobilogram", "heatmap", "msdt", "tandem", "overlay"], False
+                ):
+                    self.on_show_plot(None)
         else:
             self._item.update()
 
@@ -549,11 +718,11 @@ class DocumentTree(wx.TreeCtrl):
             item = self.get_parent_item(selected_item, 1)
 
             # highlight current item
-            if highlight_selected:
+            if highlight_selected and CONFIG.tree_panel_item_highlight:
                 self.SetItemBold(selected_item, True)
 
             # item, try setting it bold
-            if item:
+            if item and CONFIG.tree_panel_item_highlight:
                 self.SetItemBold(item, True)
 
             if loading_data or evt_id == ID_getSelectedDocument:
@@ -700,9 +869,9 @@ class DocumentTree(wx.TreeCtrl):
                 self.on_delete_item(evt=None)
         elif key == 80:
             if self._item.is_match("heatmap"):
-                self.on_process_2D(evt=None)
+                self.on_process_heatmap(evt=None)
             elif self._item.is_match("spectrum"):
-                self.on_process_MS(evt=None)
+                self.on_process_ms(evt=None)
         elif key == 341:  # F2
             self.onRenameItem(None)
 
@@ -793,80 +962,59 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_delete_item(self, evt):
         """Delete selected item from the document tree and the presenter dictionary"""
+        # retrieve current item
+        item = self._item_id
 
-        # # delete document
-        # if self._indent == 1:
-        #     self.removeDocument(None)
-        #     return
+        document_title, item_name = self._get_item_info()
+        document = ENV.on_get_document(document_title)
 
-        # get current item by examining the ident stack
-        query, subkey, dataset_name = self._get_delete_info_based_on_indent()
-        _sub_key_check = all([el == "" for el in subkey])
+        root = self.GetItemParent(item)
 
-        # get data
-        __, data = self.data_handling.get_mobility_chromatographic_data(query, as_copy=False)
-        item_parent = self.GetNextSibling(self._item_id)
-        if item_parent:
-            self.SelectItem(item_parent)
-
-        # check whether subkey exist and if so, get item
-        if subkey and not _sub_key_check:
-            item_child = self.get_item_by_data(self.GetPyData(self._item_id))
-            sub_key_parent, subkey_child = subkey
-            if dataset_name:
-                if subkey_child != "":
-                    del data[dataset_name][sub_key_parent.lower()][subkey_child]
-                else:
-                    data[dataset_name].pop(sub_key_parent.lower(), None)
-            else:
-                if subkey_child != "":
-                    del data[sub_key_parent.lower()][subkey_child]
-                else:
-                    data.pop(sub_key_parent.lower(), None)
-            if item_child:
-                self.Delete(item_child)
-
-            self.data_handling.set_parent_mobility_chromatographic_data(query, data)
-
-        # delete only one item from dataset
-        if dataset_name and _sub_key_check:
-            item_child = self.get_item_by_data(data.get(dataset_name, False))
-            item_parent = self.get_item_by_data(data)
-            if not item_child:
-                raise MessageError(
-                    "Error",
-                    "Could not identify which item should be deleted. Please right-click on an item and"
-                    + " select `Delete item` to delete the item from the document.",
+        if self._item.indent >= 1:
+            if self._item.indent == 1 and CONFIG.tree_panel_delete_document_ask:
+                dlg = DialogBox(
+                    title="Delete item",
+                    msg=f"Are you sure you would like to delete the `{item_name}` document?"
+                    f"\nThis action is irreversible.",
+                    kind="Question",
                 )
-            if data:
-                self.data_handling.set_parent_mobility_chromatographic_data([query[0], query[1], dataset_name], dict())
-                self.Delete(item_child)
-                self.SelectItem(item_parent)
-            else:
-                self.data_handling.set_parent_mobility_chromatographic_data(query, dict())
-                self.Delete(item_parent)
-            # delete parent if its empty
-            __, data = self.data_handling.get_mobility_chromatographic_data(query, as_copy=False)
-
-            if not data:
-                self.Delete(item_parent)
-
-            LOGGER.info(f"Deleted {query[0]} : {query[1]} : {dataset_name}")
-
-        # delete entire dataset
-        if not dataset_name and _sub_key_check:
-            item = self.get_item_by_data(data)
-            if not item:
-                raise MessageError(
-                    "Error",
-                    "Could not identify which item should be deleted. Please right-click on an item and"
-                    + " select `Delete item` to delete the item from the document.",
+                if dlg == wx.ID_NO:
+                    LOGGER.info("Cancelled object deletion")
+                    return
+                self.on_remove_document(evt)
+                return
+            if self._item.indent == 2 and CONFIG.tree_panel_delete_group_ask:
+                dlg = DialogBox(
+                    title="Delete item",
+                    msg=f"Are you sure you would like to delete the `{item_name}` and all of its sub-directories?"
+                    f"\nThis action is irreversible.",
+                    kind="Question",
                 )
-            self.data_handling.set_parent_mobility_chromatographic_data(query, dict())
+                if dlg == wx.ID_NO:
+                    LOGGER.info("Cancelled object deletion")
+                    return
+            elif CONFIG.tree_panel_delete_item_ask:
+                dlg = DialogBox(
+                    title="Delete item",
+                    msg=f"Are you sure you would like to delete `{item_name}` from the document?"
+                    f"\nThis action is irreversible.",
+                    kind="Question",
+                )
+                if dlg == wx.ID_NO:
+                    LOGGER.info("Cancelled object deletion")
+                    return
+
+        del document[item_name]
+        if item.IsOk():
             self.Delete(item)
-            LOGGER.info(f"Deleted {query[0]} : {query[1]}")
 
-        self.on_update_gui(query, subkey, dataset_name)
+        # check whether root object has anything present
+        if not self.ItemHasChildren(root):
+            if root.IsOk():
+                self.Delete(root)
+
+        # send a message to notify of deletion of an object so other UI elements can be updated
+        pub.sendMessage("document.delete.item", info=(document_title, item_name))
 
     def set_document(self, document_old, document_new):
         """Replace old document data with new
@@ -966,79 +1114,7 @@ class DocumentTree(wx.TreeCtrl):
         document = ENV.get(self.title, None)
         if document is None:
             return
-
-        raise NotImplementedError
-
-    #         # set what to plot
-    #         mass_spectrum, chromatogram, mobilogram, heatmap = False, False, False, False
-    #         # check document
-    #         if document.data_type == "Type: ORIGAMI":
-    #             mass_spectrum, chromatogram, mobilogram, heatmap = True, True, True, True
-    #             go_to_page = self.config.panelNames["MS"]
-    #         elif document.data_type == "Type: MANUAL":
-    #             mass_spectrum = True
-    #             go_to_page = self.config.panelNames["MS"]
-    #         elif document.data_type == "Type: Multifield Linear DT":
-    #             mass_spectrum, chromatogram, mobilogram, heatmap = True, True, True, True
-    #             go_to_page = self.config.panelNames["MS"]
-    #         elif document.data_type == "Type: 2D IM-MS":
-    #             heatmap = True
-    #             go_to_page = self.config.panelNames["2D"]
-    #         else:
-    #             return
-    #
-    #         # clear all plots
-    #         self.panel_plot.on_clear_all_plots()
-    #
-    #         if mass_spectrum:
-    #             try:
-    #                 msX = document.massSpectrum["xvals"]
-    #                 msY = document.massSpectrum["yvals"]
-    #                 try:
-    #                     xlimits = document.massSpectrum["xlimits"]
-    #                 except KeyError:
-    #                     xlimits = [document.parameters["start_ms"], document.parameters["end_ms"]]
-    #                 name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
-    #                 self.panel_plot.on_plot_MS(msX, msY, xlimits=xlimits, set_page=False, **name_kwargs)
-    #             except Exception:
-    #                 pass
-    #
-    #         if chromatogram:
-    #             try:
-    #                 rtX = document.RT["xvals"]
-    #                 rtY = document.RT["yvals"]
-    #                 xlabel = document.RT["xlabels"]
-    #                 self.panel_plot.on_plot_RT(rtX, rtY, xlabel, set_page=False)
-    #             except Exception:
-    #                 pass
-    #
-    #         if mobilogram:
-    #             try:
-    #                 dtX = document.DT["xvals"]
-    #                 dtY = document.DT["yvals"]
-    #                 if len(dtY) >= 1:
-    #                     try:
-    #                         dtY = document.DT["yvalsSum"]
-    #                     except KeyError:
-    #                         pass
-    #                 xlabel = document.DT["xlabels"]
-    #                 self.panel_plot.on_plot_1D(dtX, dtY, xlabel, set_page=False)
-    #             except Exception:
-    #                 pass
-    #
-    #         if heatmap:
-    #             try:
-    #                 zvals = document.IMS2D["zvals"]
-    #                 xvals = document.IMS2D["xvals"]
-    #                 yvals = document.IMS2D["yvals"]
-    #                 xlabel = document.IMS2D["xlabels"]
-    #                 ylabel = document.IMS2D["ylabels"]
-    #                 self.panel_plot.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, override=True)
-    #             except Exception:
-    #                 pass
-    #
-    #         # go to page
-    #         self.panel_plot._set_page(go_to_page)
+        self.data_handling.on_setup_basic_document(document)
 
     def on_check_xlabels_rt(self):
         """Check label of the chromatogram dataset"""
@@ -1170,45 +1246,6 @@ class DocumentTree(wx.TreeCtrl):
         document, data = self.data_handling.get_mobility_chromatographic_data(query)
 
         return document, data, query
-
-    #     def onChangePlot(self, evt):
-    #
-    #         # Get selected item
-    #         item = self.GetSelection()
-    #         self._item_id = item
-    #         # Get the current text value for selected item
-    #         itemType = self.GetItemText(item)
-    #         if itemType == "Documents":
-    #             return
-    #
-    #         # Get indent level for selected item
-    #         indent = self.get_item_indent(item)
-    #         if indent > 1:
-    #             parent = self.get_parent_item(item, 1)  # File name
-    #             extract = item  # Specific Ion/file name
-    #             item = self.get_parent_item(item, 2)  # Item type
-    #             itemType = self.GetItemText(item)
-    #         else:
-    #             extract = None
-    #             parent = item
-    #
-    #         # Get the ion/file name from deeper indent
-    #         if extract is None:
-    #             pass
-    #         else:
-    #             self._item_leaf = self.GetItemText(extract)
-    #
-    #         # Check item
-    #         if not item:
-    #             return
-    #         # Get item data for specified item
-    #         self._document_data = self.GetPyData(parent)
-    #         self._document_type = itemType
-    #
-    #         self.on_show_plot(evt=None)
-    #
-    #         if evt is not None:
-    #             evt.Skip()
 
     def _get_query_info_based_on_indent(self, return_subkey=False, evt=None):
         """Generate query_info keywords that are implied from the indentation of the selected item
@@ -1659,10 +1696,11 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_open_peak_picker, menu_show_peak_picker_panel)
         self.Bind(wx.EVT_MENU, self.on_open_spectrum_comparison_viewer, menu_show_comparison_panel)
         self.Bind(wx.EVT_MENU, self.on_open_UniDec, menu_show_unidec_panel)
-        self.Bind(wx.EVT_MENU, self.on_process_MS, menu_action_process_ms)
-        self.Bind(wx.EVT_MENU, self.on_process_MS_all, menu_action_process_ms_all)
+        self.Bind(wx.EVT_MENU, self.on_process_ms, menu_action_process_ms)
+        self.Bind(wx.EVT_MENU, self.on_batch_process_ms, menu_action_process_ms_all)
         self.Bind(wx.EVT_MENU, self.on_save_csv, menu_action_save_data_as)
         self.Bind(wx.EVT_MENU, self.on_save_csv_all, menu_action_save_data_as_all)
+        self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
 
         # append menu
         if self._item.indent == 2:
@@ -1715,6 +1753,7 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_save_csv, menu_action_save_data_as)
         self.Bind(wx.EVT_MENU, partial(self.on_show_plot_chromatogram, True), menu_action_save_chromatogram_image_as)
         self.Bind(wx.EVT_MENU, self.on_save_csv_all, menu_action_save_data_as_all)
+        self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
 
         if self._item.indent == 2:
             menu.AppendItem(menu_action_save_image_as_all)
@@ -1764,6 +1803,7 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, partial(self.on_show_plot_mobilogram, True), menu_action_save_mobilogram_image_as)
         self.Bind(wx.EVT_MENU, self.on_save_csv, menu_action_save_data_as)
         self.Bind(wx.EVT_MENU, self.on_save_csv_all, menu_action_save_data_as_all)
+        self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
 
         # make menu
         if self._item.indent == 2:
@@ -1831,13 +1871,16 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_chromatogram, menu_action_show_plot_as_chromatogram)
         self.Bind(wx.EVT_MENU, self.on_show_zoom_on_ion, menu_action_show_highlights)
         self.Bind(wx.EVT_MENU, partial(self.on_show_plot_heatmap, True), menu_action_save_heatmap_image_as)
-        self.Bind(wx.EVT_MENU, self.on_process_2D, menu_action_process_2d)
-        self.Bind(wx.EVT_MENU, self.on_process_all_2D, menu_action_process_2d_all)
+        self.Bind(wx.EVT_MENU, self.on_process_heatmap, menu_action_process_2d)
+        self.Bind(wx.EVT_MENU, self.on_batch_process_heatmap, menu_action_process_2d_all)
         self.Bind(wx.EVT_MENU, self.on_save_csv, menu_action_save_2d_data_as)
         self.Bind(wx.EVT_MENU, self.on_save_csv_all, menu_action_save_data_as_all)
+        self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
 
         # make menu
         if self._item.indent == 2:
+            menu.AppendItem(menu_action_process_2d_all)
+            menu.AppendSeparator()
             menu.AppendItem(menu_action_save_image_as_all)
             menu.AppendItem(menu_action_save_data_as_all)
             menu.AppendItem(menu_action_delete_item)
@@ -1852,7 +1895,6 @@ class DocumentTree(wx.TreeCtrl):
             menu.AppendItem(menu_action_show_plot_waterfall)
             menu.AppendSeparator()
             menu.AppendItem(menu_action_process_2d)
-            menu.AppendItem(menu_action_process_2d_all)
             menu.AppendSeparator()
             self._set_menu_annotations(menu)
             menu.AppendItem(menu_action_assign_charge)
@@ -1891,10 +1933,11 @@ class DocumentTree(wx.TreeCtrl):
         # bind events
         self.Bind(wx.EVT_MENU, self.on_show_plot_dtms, menu_action_show_plot_2d)
         self.Bind(wx.EVT_MENU, partial(self.on_show_plot_dtms, True), menu_action_save_image_as)
-        self.Bind(wx.EVT_MENU, self.on_process_2D, menu_action_process_2d)
-        self.Bind(wx.EVT_MENU, self.on_process_all_2D, menu_action_process_2d_all)
+        self.Bind(wx.EVT_MENU, self.on_process_heatmap, menu_action_process_2d)
+        self.Bind(wx.EVT_MENU, self.on_batch_process_heatmap, menu_action_process_2d_all)
         self.Bind(wx.EVT_MENU, self.on_save_csv, menu_action_save_data_as)
         self.Bind(wx.EVT_MENU, self.on_save_csv_all, menu_action_save_data_as_all)
+        self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
 
         # make menu
         if self._item.indent == 2:
@@ -2382,90 +2425,95 @@ class DocumentTree(wx.TreeCtrl):
         self._compare_panel = PanelSignalComparisonViewer(self.view, self.presenter, self._icons, **kwargs)
         self._compare_panel.Show()
 
-    def on_process_2D(self, evt):
-        """Process clicked heatmap item"""
-
-        document, data, query = self._on_event_get_mobility_chromatogram_data()
-
-        self.on_open_process_2D_settings(
-            data=data, document=document, document_title=document.title, dataset_type=query[1], dataset_name=query[2]
-        )
-
-    def on_process_2D_plot_only(self, dataset_type, data):
-        self.on_open_process_2D_settings(
-            data=data,
-            document=None,
-            document_title=None,
-            dataset_type=dataset_type,
-            dataset_name=None,
-            disable_plot=False,
-            disable_process=True,
-        )
-
-    def on_process_all_2D(self, evt):
-        """Process all clicked heatmap items"""
-
-        document, data, query = self._on_event_get_mobility_chromatogram_data()
-        self.on_open_process_2D_settings(
-            data=data,
-            document=document,
-            document_title=document.title,
-            dataset_type=query[1],
-            dataset_name=query[2],
-            disable_plot=True,
-            disable_process=False,
-            process_all=True,
-        )
-
-    def on_open_process_2D_settings(self, **kwargs):
+    def on_open_process_heatmap_settings(self, **kwargs):
         """Open heatmap processing settings"""
         from origami.gui_elements.panel_process_heatmap import PanelProcessHeatmap
 
-        panel = PanelProcessHeatmap(self.presenter.view, self.presenter, self.config, self.icons, **kwargs)
+        panel = PanelProcessHeatmap(self.presenter.view, self.presenter, **kwargs)
         panel.Show()
 
-    def on_process_MS(self, evt, **kwargs):
-        """Process clicked mass spectrum item"""
-        document, data, dataset = self._on_event_get_mass_spectrum(**kwargs)
-        self.on_open_process_MS_settings(
-            mz_data=data,
-            document=document,
-            document_title=document.title,
-            dataset_name=dataset,
-            update_widget=kwargs.pop("update_widget", False),
+    def on_process_heatmap(self, evt):
+        """Process clicked heatmap item"""
+        document_title, dataset_name = self._get_item_info()
+        heatmap_obj = self._get_item_object()
+        document = ENV.on_get_document(document_title)
+
+        self.on_open_process_heatmap_settings(
+            document=document, document_title=document_title, dataset_name=dataset_name, heatmap_obj=heatmap_obj
         )
 
-    def on_process_MS_plot_only(self, data):
-        """Process mass spectrum data
+    def on_batch_process_heatmap(self, _evt):
+        """Process all clicked heatmap items"""
+        from origami.gui_elements.dialog_review_editor import DialogReviewProcessHeatmap
 
-        Parameters
-        ----------
-        data : dict
-            dictionary containing `xvals`, `yvals`, `xlabels` and `ylabels` keys with data
-        """
-        self.on_open_process_MS_settings(
-            mz_data=data, document=None, document_title=None, dataset_name=None, disable_process=True
-        )
+        item_list = self.data_handling.generate_item_list_heatmap("simple_list")
+        document_title = ENV.current
 
-    def on_process_MS_all(self, evt, **kwargs):
-        """Process all clicked mass spectra items"""
-        document, data, dataset = self._on_event_get_mass_spectrum(**kwargs)
-        self.on_open_process_MS_settings(
-            mz_data=data,
-            document=document,
-            document_title=document.title,
-            dataset_name=dataset,
-            disable_plot=True,
-            disable_process=False,
-            process_all=True,
-        )
+        dlg = DialogReviewProcessHeatmap(self.view, item_list[ENV.current], document_tree=self)
+        dlg.ShowModal()
 
-    def on_open_process_MS_settings(self, **kwargs):
+        # get list of items that were selected
+        output_list = dlg.output_list
+
+        if not output_list:
+            LOGGER.warning("Processing list was empty")
+            return
+
+        # get document
+        document = ENV.on_get_document(document_title)
+
+        # iterate over each object in the list and process it while also adding it to the document
+        for heatmap_name in output_list:
+            new_name = document.get_new_name(heatmap_name, "processed")
+            new_name, heatmap_obj = document[heatmap_name, True].copy(new_name=new_name)
+            heatmap_obj = self.data_handling.on_process_heatmap(heatmap_obj)
+            heatmap_obj.flush()
+            self.on_update_document(heatmap_obj.DOCUMENT_KEY, new_name.split("/")[-1], document_title)
+
+    def on_open_process_ms_settings(self, **kwargs):
         """Open mass spectrum processing settings"""
         from origami.gui_elements.panel_process_spectrum import PanelProcessMassSpectrum
 
         panel = PanelProcessMassSpectrum(self.presenter.view, self.presenter, **kwargs)
         panel.Show()
+
+    def on_process_ms(self, evt, **kwargs):
+        """Process clicked mass spectrum item"""
+        document_title, dataset_name = self._get_item_info()
+        heatmap_obj = self._get_item_object()
+        document = ENV.on_get_document(document_title)
+
+        self.on_open_process_ms_settings(
+            document=document, document_title=document_title, dataset_name=dataset_name, mz_obj=heatmap_obj
+        )
+
+    def on_batch_process_ms(self, evt, **kwargs):
+        """Process all clicked mass spectra items"""
+        from origami.gui_elements.dialog_review_editor import DialogReviewProcessSpectrum
+
+        item_list = self.data_handling.generate_item_list_mass_spectra("simple_list")
+        document_title = ENV.current
+
+        dlg = DialogReviewProcessSpectrum(self.view, item_list[document_title], document_tree=self)
+        dlg.ShowModal()
+
+        # get list of items that were selected
+        output_list = dlg.output_list
+
+        if not output_list:
+            LOGGER.warning("Processing list was empty")
+            return
+
+        # get document
+        document = ENV.on_get_document(document_title)
+
+        # iterate over each object in the list and process it while also adding it to the document
+        for spectrum_name in output_list:
+            new_name = document.get_new_name(spectrum_name, "processed")
+            new_name, mz_obj = document[spectrum_name, True].copy(new_name=new_name)
+            mz_obj = self.data_handling.on_process_ms(mz_obj)
+            mz_obj.flush()
+            self.on_update_document(mz_obj.DOCUMENT_KEY, new_name.split("/")[-1], document_title)
 
     def onDuplicateItem(self, evt):
         raise NotImplementedError("Must implement method")
@@ -3549,6 +3597,7 @@ class DocumentTree(wx.TreeCtrl):
         group_metadata, group_key, child_title = self._get_group_metadata(key)
 
         # expect dictionary with title and image information
+        group_item, child_item = None, None
         if group_metadata:
             group_item = self.get_item_by_label(group_metadata["title"], document_item)
             # append group item
@@ -3558,13 +3607,22 @@ class DocumentTree(wx.TreeCtrl):
                 self.SetPyData(group_item, (document_title, group_key))
 
             # append item
+            child_item = self.get_item_by_label(child_title, group_item)
+            if child_item.IsOk():
+                self.Delete(child_item)
+
+            # append item
             child_item = self.AppendItem(group_item, child_title)
             self.SetItemImage(child_item, group_metadata["image"], wx.TreeItemIcon_Normal)
             self.SetPyData(child_item, (document_title, key))
 
         # If expand_group is not empty, the Tree will expand specified item
         if expand_group:
-            self.Expand(group_item)
+            if group_item and group_item.IsOk():
+                self.Expand(group_item)
+            if child_item and child_item.IsOk():
+                self.ScrollTo(child_item)
+                self.SelectItem(child_item)
 
     def remove_document(self, document_title: str):
         """Remove document from the document tree
@@ -3593,6 +3651,9 @@ class DocumentTree(wx.TreeCtrl):
                     self.Delete(child)
                     gc.collect()
                     LOGGER.info(f"Deleted document {document_title}")
+
+                    # notify other GUI elements that need to be informed of document being deleted
+                    pub.sendMessage("document.delete.item", info=(document_title, None))
 
     def on_remove_document(self, evt):
         """User-driven removal of a document"""
@@ -3865,522 +3926,6 @@ class DocumentTree(wx.TreeCtrl):
     #     )
     #     self.PanelProcessUniDec.Show()
 
-    # def on_delete_data_ions(self, document, document_title, delete_type, ion_name=None, confirm_deletion=False):
-    #     """
-    #     Delete data from document tree and document
-    #
-    #     Parameters
-    #     ----------
-    #     document: py object
-    #         document object
-    #     document_title: str
-    #         name of the document - also found in document.title
-    #     delete_type: str
-    #         type of deletion. Accepted: `ions.all`, `ions.one`
-    #     ion_name: str
-    #         name of the EIC item to be deleted
-    #     confirm_deletion: bool
-    #         check whether all items should be deleted before performing the task
-    #
-    #
-    #     Returns
-    #     -------
-    #     document: ORIGAMI object
-    #         updated document object
-    #     outcome: bool
-    #         result of positive/negative deletion of document tree object
-    #     """
-    #
-    #     if confirm_deletion:
-    #         msg = "Are you sure you want to continue with this action?" + "\nThis action cannot be undone."
-    #         dlg = DialogBox(msg=msg, kind="Question")
-    #         if dlg == wx.ID_NO:
-    #             logger.info("The operation was cancelled")
-    #             return document, True
-    #
-    #     docItem = False
-    #     main_docItem = self.get_item_by_data(document.ion2Dmaps)
-    #     # delete all ions
-    #     if delete_type == "ions.all":
-    #         docItem = self.get_item_by_data(document.ion2Dmaps)
-    #         self.ionPanel.on_remove_deleted_item(list(document.ion2Dmaps.keys()), document_title)
-    #         document.ion2Dmaps = {}
-    #         document.gotIon2Dmaps = False
-    #     # delete one ion
-    #     elif delete_type == "ions.one":
-    #         self.ionPanel.on_remove_deleted_item([ion_name], document_title)
-    #         docItem = self.get_item_by_data(document.ion2Dmaps[ion_name])
-    #         try:
-    #             del document.ion2Dmaps[ion_name]
-    #         except KeyError:
-    #             msg = (
-    #                 "Failed to delete {} from  2D (EIC) dictionary. ".format(ion_name)
-    #                 + "You probably have reselect it in the document tree"
-    #             )
-    #             logger.warning(msg)
-    #
-    #     if len(document.ion2Dmaps) == 0:
-    #         document.gotIon2Dmaps = False
-    #         try:
-    #             self.Delete(main_docItem)
-    #         except Exception:
-    #             logger.warning("Failed to delete item: 2D (EIC) from the document tree")
-    #
-    #     if docItem is False:
-    #         return document, False
-    #     else:
-    #         self.Delete(docItem)
-    #         return document, True
-    #
-    # def on_delete_data_text(self, document, document_title, delete_type, ion_name=None, confirm_deletion=False):
-    #     """
-    #     Delete data from document tree and document
-    #
-    #     Parameters
-    #     ----------
-    #     document: py object
-    #         document object
-    #     document_title: str
-    #         name of the document - also found in document.title
-    #     delete_type: str
-    #         type of deletion. Accepted: `ions.all`, `ions.one`
-    #     ion_name: str
-    #         name of the EIC item to be deleted
-    #     confirm_deletion: bool
-    #         check whether all items should be deleted before performing the task
-    #
-    #
-    #     Returns
-    #     -------
-    #     document: py object
-    #         updated document object
-    #     outcome: bool
-    #         result of positive/negative deletion of document tree object
-    #     """
-    #
-    #     if confirm_deletion:
-    #         msg = "Are you sure you want to continue with this action?" + "\nThis action cannot be undone."
-    #         dlg = DialogBox(msg=msg, kind="Question")
-    #         if dlg == wx.ID_NO:
-    #             logger.info("The operation was cancelled")
-    #             return document, True
-    #
-    #     docItem = False
-    #     main_docItem = self.get_item_by_data(document.ion2Dmaps)
-    #     # delete all ions
-    #     if delete_type == "text.all":
-    #         docItem = self.get_item_by_data(document.ion2Dmaps)
-    #         self.ionPanel.on_remove_deleted_item(list(document.ion2Dmaps.keys()), document_title)
-    #         document.ion2Dmaps = {}
-    #         document.gotIon2Dmaps = False
-    #     # delete one ion
-    #     elif delete_type == "text.one":
-    #         self.ionPanel.on_remove_deleted_item([ion_name], document_title)
-    #         docItem = self.get_item_by_data(document.ion2Dmaps[ion_name])
-    #         try:
-    #             del document.ion2Dmaps[ion_name]
-    #         except KeyError:
-    #             msg = (
-    #                 "Failed to delete {} from  2D (EIC) dictionary. ".format(ion_name)
-    #                 + "You probably have reselect it in the document tree"
-    #             )
-    #             logger.warning(msg)
-    #
-    #     if len(document.ion2Dmaps) == 0:
-    #         document.gotIon2Dmaps = False
-    #         try:
-    #             self.Delete(main_docItem)
-    #         except Exception:
-    #             logger.warning("Failed to delete item: 2D (EIC) from the document tree")
-    #
-    #     if docItem is False:
-    #         return document, False
-    #     else:
-    #         self.Delete(docItem)
-    #         return document, True
-    #
-    # def on_delete_data_document(self, document_title, ask_permission=True):
-    #     """
-    #     Remove selected document from the document tree
-    #     """
-    #     document = self.data_handling.on_get_document(document_title)
-    #
-    #     if ask_permission:
-    #         dlg = DialogBox(
-    #             title="Are you sure?",
-    #             msg="Are you sure you would like to delete {}".format(document_title),
-    #             kind="Question",
-    #         )
-    #         if dlg == wx.ID_NO:
-    #             self.presenter.onThreading(None, ("Cancelled operation", 4, 5), action="updateStatusbar")
-    #             return
-    #
-    #     main_docItem = self.get_item_by_data(document)
-    #
-    #     # Delete item from the list
-    #     if self.ItemHasChildren(main_docItem):
-    #         child, cookie = self.GetFirstChild(self.GetRootItem())
-    #         title = self.GetItemText(child)
-    #         iters = 0
-    #         while document_title != title and iters < 500:
-    #             child, cookie = self.GetNextChild(self.GetRootItem(), cookie)
-    #             try:
-    #                 title = self.GetItemText(child)
-    #                 iters += 1
-    #             except Exception:
-    #                 pass
-    #
-    #         if document_title == title:
-    #             if child:
-    #                 print("Deleted {}".format(document_title))
-    #                 self.Delete(child)
-    #                 # # make sure to clean-up various tables
-    #                 # try:
-    #                 #     self.presenter.view.panelMultipleIons.on_remove_deleted_item(title)
-    #                 # except Exception:
-    #                 #     pass
-    #                 # try:
-    #                 #     self.presenter.view.panelMultipleText.on_remove_deleted_item(title)
-    #                 # except Exception:
-    #                 #     pass
-    #                 # try:
-    #                 #     self.presenter.view.panelMML.on_remove_deleted_item(title)
-    #                 # except Exception:
-    #                 #     pass
-    #                 # try:
-    #                 #     self.presenter.view.panelLinearDT.topP.on_remove_deleted_item(title)
-    #                 # except Exception:
-    #                 #     pass
-    #                 # try:
-    #                 #     self.presenter.view.panelLinearDT.bottomP.on_remove_deleted_item(title)
-    #                 # except Exception:
-    #                 #     pass
-    #
-    #                 # delete document
-    #                 del ENV[document_title]
-    #                 self.presenter.currentDoc = None
-    #
-    #                 # go to the next document
-    #                 if len(ENV) > 0:
-    #                     self.presenter.currentDoc = list(ENV.keys())[0]
-    #                     self.on_enable_document()
-    #
-    #                 # collect garbage
-    #                 gc.collect()
-    #
-    # def on_delete_data_heatmap(self, document, document_title, delete_type, ion_name=None, confirm_deletion=False):
-    #     """
-    #     Delete data from document tree and document
-    #
-    #     Parameters
-    #     ----------
-    #     document: py object
-    #         document object
-    #     document_title: str
-    #         name of the document - also found in document.title
-    #     delete_type: str
-    #         type of deletion. Accepted: `file.all`, `file.one`
-    #     ion_name: str
-    #         name of the unsupervised item to be deleted
-    #     confirm_deletion: bool
-    #         check whether all items should be deleted before performing the task
-    #
-    #
-    #     Returns
-    #     -------
-    #     document: py object
-    #         updated document object
-    #     outcome: bool
-    #         result of positive/negative deletion of document tree object
-    #     """
-    #
-    #     if confirm_deletion:
-    #         msg = "Are you sure you want to continue with this action?" + "\nThis action cannot be undone."
-    #         dlg = DialogBox(msg=msg, kind="Question")
-    #         if dlg == wx.ID_NO:
-    #             logger.info("The operation was cancelled")
-    #             return document, True
-    #
-    #     docItem = False
-    #     if delete_type == "heatmap.all.one":
-    #         delete_types = [
-    #             "heatmap.raw.one",
-    #             "heatmap.raw.one.processed",
-    #             "heatmap.processed.one",
-    #             "heatmap.combined.one",
-    #             "heatmap.rt.one",
-    #         ]
-    #     elif delete_type == "heatmap.all.all":
-    #         delete_types = ["heatmap.raw.all", "heatmap.processed.all", "heatmap.combined.all", "heatmap.rt.all"]
-    #     else:
-    #         delete_types = [delete_type]
-    #
-    #     if document is None:
-    #         return None, False
-    #
-    #     # delete all classes
-    #     if delete_type.endswith(".all"):
-    #         for delete_type in delete_types:
-    #             if delete_type == "heatmap.raw.all":
-    #                 docItem = self.get_item_by_data(document.IMS2Dions)
-    #                 document.IMS2Dions = {}
-    #                 document.gotExtractedIons = False
-    #             if delete_type == "heatmap.processed.all":
-    #                 docItem = self.get_item_by_data(document.IMS2DionsProcess)
-    #                 document.IMS2DionsProcess = {}
-    #                 document.got2DprocessIons = False
-    #             if delete_type == "heatmap.rt.all":
-    #                 docItem = self.get_item_by_data(document.IMSRTCombIons)
-    #                 document.IMSRTCombIons = {}
-    #                 document.gotCombinedExtractedIonsRT = False
-    #             if delete_type == "heatmap.combined.all":
-    #                 docItem = self.get_item_by_data(document.IMS2DCombIons)
-    #                 document.IMS2DCombIons = {}
-    #                 document.gotCombinedExtractedIons = False
-    #
-    #             try:
-    #                 self.Delete(docItem)
-    #             except Exception:
-    #                 logger.warning("Failed to delete: {}".format(delete_type))
-    #
-    #             if delete_type.startswith("heatmap.raw"):
-    #                 self.ionPanel.delete_row_from_table(delete_item_name=None, delete_document_title=document_title)
-    #                 self.on_update_extracted_patches(document.title, "__all__", None)
-    #
-    #     elif delete_type.endswith(".one"):
-    #         for delete_type in delete_types:
-    #             if delete_type == "heatmap.raw.one":
-    #                 main_docItem = self.get_item_by_data(document.IMS2Dions)
-    #                 docItem = self.get_item_by_data(document.IMS2Dions.get(ion_name, "N/A"))
-    #                 if docItem not in ["N/A", None, False]:
-    #                     try:
-    #                         del document.IMS2Dions[ion_name]
-    #                     except KeyError:
-    #                         logger.warning(
-    #                             "Failed to delete {}: {} from {}.".format(delete_type, ion_name, document_title)
-    #                         )
-    #                     if len(document.IMS2Dions) == 0:
-    #                         document.gotExtractedIons = False
-    #                         try:
-    #                             self.Delete(main_docItem)
-    #                         except Exception:
-    #                             pass
-    #             if delete_type == "heatmap.raw.one.processed":
-    #                 ion_name_processed = f"{ion_name} (processed)"
-    #                 main_docItem = self.get_item_by_data(document.IMS2Dions)
-    #                 docItem = self.get_item_by_data(document.IMS2Dions.get(ion_name_processed, "N/A"))
-    #                 if docItem not in ["N/A", None, False]:
-    #                     try:
-    #                         del document.IMS2Dions[ion_name_processed]
-    #                     except KeyError:
-    #                         logger.warning(
-    #                             "Failed to delete {}: {} from {}.".format(
-    #                                 delete_type, ion_name_processed, document_title
-    #                             )
-    #                         )
-    #                     if len(document.IMS2Dions) == 0:
-    #                         document.gotExtractedIons = False
-    #                         try:
-    #                             self.Delete(main_docItem)
-    #                         except Exception:
-    #                             pass
-    #             if delete_type == "heatmap.processed.one":
-    #                 main_docItem = self.get_item_by_data(document.IMS2DionsProcess)
-    #                 docItem = self.get_item_by_data(document.IMS2DionsProcess.get(ion_name, "N/A"))
-    #                 if docItem not in ["N/A", None, False]:
-    #                     try:
-    #                         del document.IMS2DionsProcess[ion_name]
-    #                     except KeyError:
-    #                         logger.warning(
-    #                             "Failed to delete {}: {} from {}.".format(delete_type, ion_name, document_title)
-    #                         )
-    #                     if len(document.IMS2DionsProcess) == 0:
-    #                         document.got2DprocessIons = False
-    #                         try:
-    #                             self.Delete(main_docItem)
-    #                         except Exception:
-    #                             pass
-    #             if delete_type == "heatmap.rt.one":
-    #                 main_docItem = self.get_item_by_data(document.IMSRTCombIons)
-    #                 docItem = self.get_item_by_data(document.IMSRTCombIons.get(ion_name, "N/A"))
-    #                 if docItem not in ["N/A", None, False]:
-    #                     try:
-    #                         del document.IMSRTCombIons[ion_name]
-    #                     except KeyError:
-    #                         logger.warning(
-    #                             "Failed to delete {}: {} from {}.".format(delete_type, ion_name, document_title)
-    #                         )
-    #                     if len(document.IMSRTCombIons) == 0:
-    #                         document.gotCombinedExtractedIonsRT = False
-    #                         try:
-    #                             self.Delete(main_docItem)
-    #                         except Exception:
-    #                             pass
-    #             if delete_type == "heatmap.combined.one":
-    #                 main_docItem = self.get_item_by_data(document.IMS2DCombIons)
-    #                 docItem = self.get_item_by_data(document.IMS2DCombIons.get(ion_name, "N/A"))
-    #                 if docItem not in ["N/A", None, False]:
-    #                     try:
-    #                         del document.IMS2DCombIons[ion_name]
-    #                     except KeyError:
-    #                         logger.warning(
-    #                             "Failed to delete {}: {} from {}.".format(delete_type, ion_name, document_title)
-    #                         )
-    #                     if len(document.IMS2DCombIons) == 0:
-    #                         document.gotCombinedExtractedIons = False
-    #                         try:
-    #                             self.Delete(main_docItem)
-    #                         except Exception:
-    #                             pass
-    #
-    #             try:
-    #                 self.Delete(docItem)
-    #                 docItem = False
-    #             except Exception:
-    #                 pass
-    #
-    #             if delete_type.startswith("heatmap.raw"):
-    #                 self.ionPanel.delete_row_from_table(delete_item_name=ion_name,
-    #                 delete_document_title=document_title)
-    #                 self.on_update_extracted_patches(document.title, None, ion_name)
-    #
-    #     return document, True
-    #
-    # def on_delete_data_mass_spectra(
-    #     self, document, document_title, delete_type, spectrum_name=None, confirm_deletion=False
-    # ):
-    #     """
-    #     Delete data from document tree and document
-    #
-    #     Parameters
-    #     ----------
-    #     document: py object
-    #         document object
-    #     document_title: str
-    #         name of the document - also found in document.title
-    #     delete_type: str
-    #         type of deletion. Accepted: `file.all`, `file.one`
-    #     spectrum_name: str
-    #         name of the unsupervised item to be deleted
-    #     confirm_deletion: bool
-    #         check whether all items should be deleted before performing the task
-    #
-    #
-    #     Returns
-    #     -------
-    #     document: py object
-    #         updated document object
-    #     outcome: bool
-    #         result of positive/negative deletion of document tree object
-    #     """
-    #
-    #     if confirm_deletion:
-    #         msg = "Are you sure you want to continue with this action?" + "\nThis action cannot be undone."
-    #         dlg = DialogBox(msg=msg, kind="Question")
-    #         if dlg == wx.ID_NO:
-    #             logger.info("The operation was cancelled")
-    #             return document, True
-    #
-    #     docItem = False
-    #     main_docItem = self.get_item_by_data(document.multipleMassSpectrum)
-    #     # delete all classes
-    #     if delete_type == "spectrum.all":
-    #         docItem = self.get_item_by_data(document.multipleMassSpectrum)
-    #         document.multipleMassSpectrum = {}
-    #         document.gotMultipleMS = False
-    #         self.filesPanel.delete_row_from_table(delete_item_name=None, delete_document_title=document_title)
-    #     elif delete_type == "spectrum.one":
-    #         docItem = self.get_item_by_data(document.multipleMassSpectrum[spectrum_name])
-    #         try:
-    #             del document.multipleMassSpectrum[spectrum_name]
-    #         except KeyError:
-    #             msg = (
-    #                 "Failed to delete {} from Fits (Supervised) dictionary. ".format(spectrum_name)
-    #                 + "You probably have reselect it in the document tree"
-    #             )
-    #             logger.warning(msg)
-    #         self.filesPanel.delete_row_from_table(delete_item_name=spectrum_name,
-    #         delete_document_title=document_title)
-    #
-    #     if len(document.multipleMassSpectrum) == 0:
-    #         document.gotMultipleMS = False
-    #         try:
-    #             self.Delete(main_docItem)
-    #         except Exception:
-    #             logger.warning("Failed to delete item: Mass Spectra from the document tree")
-    #
-    #     if docItem is False:
-    #         return document, False
-    #     else:
-    #         self.Delete(docItem)
-    #         return document, True
-    #
-    # def on_delete_data_chromatograms(
-    #     self, document, document_title, delete_type, spectrum_name=None, confirm_deletion=False
-    # ):
-    #     """
-    #     Delete data from document tree and document
-    #
-    #     Parameters
-    #     ----------
-    #     document: py object
-    #         document object
-    #     document_title: str
-    #         name of the document - also found in document.title
-    #     delete_type: str
-    #         type of deletion. Accepted: `file.all`, `file.one`
-    #     spectrum_name: str
-    #         name of the unsupervised item to be deleted
-    #     confirm_deletion: bool
-    #         check whether all items should be deleted before performing the task
-    #
-    #
-    #     Returns
-    #     -------
-    #     document: py object
-    #         updated document object
-    #     outcome: bool
-    #         result of positive/negative deletion of document tree object
-    #     """
-    #
-    #     if confirm_deletion:
-    #         msg = "Are you sure you want to continue with this action?" + "\nThis action cannot be undone."
-    #         dlg = DialogBox(msg=msg, kind="Question")
-    #         if dlg == wx.ID_NO:
-    #             logger.info("The operation was cancelled")
-    #             return document, True
-    #
-    #     docItem = False
-    #     main_docItem = self.get_item_by_data(document.multipleRT)
-    #     # delete all classes
-    #     if delete_type == "chromatogram.all":
-    #         docItem = self.get_item_by_data(document.multipleRT)
-    #         document.multipleMassSpectrum = {}
-    #         document.gotMultipleMS = False
-    #     elif delete_type == "chromatogram.one":
-    #         docItem = self.get_item_by_data(document.multipleRT[spectrum_name])
-    #         try:
-    #             del document.multipleRT[spectrum_name]
-    #         except KeyError:
-    #             msg = (
-    #                 "Failed to delete {} from Fits (Supervised) dictionary. ".format(spectrum_name)
-    #                 + "You probably have reselect it in the document tree"
-    #             )
-    #             logger.warning(msg)
-    #
-    #     if len(document.multipleRT) == 0:
-    #         document.gotMultipleRT = False
-    #         try:
-    #             self.Delete(main_docItem)
-    #         except Exception:
-    #             logger.warning("Failed to delete item: Mass Spectra from the document tree")
-    #
-    #     if docItem is False:
-    #         return document, False
-    #     else:
-    #         self.Delete(docItem)
-    #         return document, True
-
     def on_update_unidec(self, unidec_data, document_title, dataset, set_data_only=False):
         """
         Update annotations in specified document/dataset
@@ -4465,140 +4010,6 @@ class DocumentTree(wx.TreeCtrl):
         if expand:
             self.Expand(unidec_item)
 
-    def on_update_data(self, item_data, item_name, document, data_type, set_data_only=False):
-        """Update document data
-
-        Parameters
-        ----------
-        item_data: list
-            new data to be added to document
-        item_name: str
-            name of the EIC
-        data_type : str
-            which type of data is provided
-        document: py object
-            document object
-        set_data_only: bool
-            specify whether data should be added with full refresh or just set
-        """
-        # item = False
-        #
-        # # spectrum
-        # if data_type == "main.raw.spectrum":
-        #     item = self.get_item_by_data(document.massSpectrum)
-        #     document.gotMS = True
-        #     document.massSpectrum = item_data
-        #
-        # elif data_type == "main.raw.spectrum.unidec":
-        #     item = self.get_item_by_data(document.massSpectrum["unidec"])
-        #     document.gotMS = True
-        #     document.massSpectrum["unidec"] = item_data
-        #
-        # elif data_type == "main.processed.spectrum":
-        #     item = self.get_item_by_data(document.smoothMS)
-        #     document.gotSmoothMS = True
-        #     document.smoothMS = item_data
-        #
-        # elif data_type == "extracted.spectrum":
-        #     item = self.get_item_by_data(document.multipleMassSpectrum)
-        #     document.gotMultipleMS = True
-        #     document.multipleMassSpectrum[item_name] = item_data
-        #
-        # # mobilogram
-        # elif data_type == "main.mobilogram":
-        #     item = self.get_item_by_data(document.DT)
-        #     document.got1DT = True
-        #     document.DT = item_data
-        #
-        # elif data_type == "ion.mobilogram":
-        #     item = self.get_item_by_data(document.IMS1DdriftTimes)
-        #     document.gotExtractedDriftTimes = True
-        #     document.IMS1DdriftTimes[item_name] = item_data
-        #
-        # elif data_type == "ion.mobilogram.raw":
-        #     item = self.get_item_by_data(document.multipleDT)
-        #     document.gotMultipleDT = True
-        #     document.multipleDT[item_name] = item_data
-        #
-        # # chromatogram
-        # elif data_type == "main.chromatogram":
-        #     item = self.get_item_by_data(document.RT)
-        #     document.got1RT = True
-        #     document.RT = item_data
-        #
-        # elif data_type == "extracted.chromatogram":
-        #     item = self.get_item_by_data(document.multipleRT)
-        #     document.gotMultipleRT = True
-        #     document.multipleRT[item_name] = item_data
-        #
-        # elif data_type == "ion.chromatogram.combined":
-        #     item = self.get_item_by_data(document.IMSRTCombIons)
-        #     document.gotCombinedExtractedIonsRT = True
-        #     document.IMSRTCombIons[item_name] = item_data
-        #
-        # # heatmap
-        # elif data_type == "main.raw.heatmap":
-        #     item = self.get_item_by_data(document.IMS2D)
-        #     document.got2DIMS = True
-        #     document.IMS2D = item_data
-        #
-        # elif data_type == "main.processed.heatmap":
-        #     item = self.get_item_by_data(document.IMS2Dprocess)
-        #     document.got2Dprocess = True
-        #     document.IMS2Dprocess = item_data
-        #
-        # elif data_type == "ion.heatmap.raw":
-        #     item = self.get_item_by_data(document.IMS2Dions)
-        #     document.gotExtractedIons = True
-        #     document.IMS2Dions[item_name] = item_data
-        #
-        # elif data_type == "ion.heatmap.combined":
-        #     item = self.get_item_by_data(document.IMS2DCombIons)
-        #     document.gotCombinedExtractedIons = True
-        #     document.IMS2DCombIons[item_name] = item_data
-        #
-        # elif data_type == "ion.heatmap.processed":
-        #     item = self.get_item_by_data(document.IMS2DionsProcess)
-        #     document.got2DprocessIons = True
-        #     document.IMS2DionsProcess[item_name] = item_data
-        #
-        # elif data_type == "ion.heatmap.comparison":
-        #     item = self.get_item_by_data(document.IMS2DcompData)
-        #     document.gotComparisonData = True
-        #     document.IMS2DcompData[item_name] = item_data
-        #
-        # # overlay
-        # elif data_type == "overlay.statistical":
-        #     item = self.get_item_by_data(document.IMS2DstatsData)
-        #     document.gotStatsData = True
-        #     document.IMS2DstatsData[item_name] = item_data
-        #
-        # elif data_type == "overlay.overlay":
-        #     item = self.get_item_by_data(document.IMS2DoverlayData)
-        #     document.gotOverlay = True
-        #     document.IMS2DoverlayData[item_name] = item_data
-        #
-        # # annotated data
-        # elif data_type == "custom.annotated":
-        #     item = self.get_item_by_data(document.other_data)
-        #     document.other_data[item_name] = item_data
-        #
-        # else:
-        #     logger.error(f"Not implemented yet... {item_name}, {data_type}")
-        # if item is not False and not set_data_only:
-        #     # will add to the main root
-        #     if item_name in ["", None]:
-        #         self.update_one_item(item, item_data, image=data_type)
-        #     # will add to the branch
-        #     else:
-        #         self.add_one_to_group(item, item_data, item_name, image=data_type)
-        #
-        #     # add data to document without updating it
-        #     self.data_handling.on_update_document(document, "no_refresh")
-        # else:
-        #     logger.warning("Failed to quietly update document")
-        #     self.data_handling.on_update_document(document, "document")
-
     def get_item_image(self, image_type):
         if image_type in ["main.raw.spectrum", "extracted.spectrum", "main.processed.spectrum", "unidec"]:
             image = self.bullets_dict["mass_spec_on"]
@@ -4621,53 +4032,6 @@ class DocumentTree(wx.TreeCtrl):
             image = self.bullets_dict["heatmap_on"]
 
         return image
-
-    def add_one_to_group(self, item, data, name: str, image: str, expand: bool = True):
-        """
-        Append data to the document
-        ----------
-        Parameters
-        ----------
-        item : wxPython document tree item
-            item in the document tree that should be cleared and re-filled
-        data : dict
-            dictionary with annotations
-        name : str
-            name of the classifier
-        image : str
-            type of image to be associated with the object
-        expand : bool
-            specify if tree item should be expanded
-        """
-        image = self.get_item_image(image)
-        child, cookie = self.GetFirstChild(item)
-        while child.IsOk():
-            if self.GetItemText(child) == name:
-                self.Delete(child)
-            child, cookie = self.GetNextChild(item, cookie)
-
-        if len(data) == 0:
-            return
-
-        itemClass = self.AppendItem(item, name)
-        self.SetPyData(itemClass, data)
-        self.SetItemImage(itemClass, image, wx.TreeItemIcon_Normal)
-
-        # add annotations
-        self._add_unidec_to_object(data, itemClass, check=True)
-        self._add_annotation_to_object(data, itemClass, check=True)
-
-        if expand:
-            self.Expand(itemClass)
-
-    def update_one_item(self, item, data, image):
-        image = self.get_item_image(image)
-        self.SetPyData(item, data)
-        self.SetItemImage(item, image, wx.TreeItemIcon_Normal)
-
-        # add annotations
-        self._add_unidec_to_object(data, item, check=True)
-        self._add_annotation_to_object(data, item, check=True)
 
     def on_update_extracted_patches(self, document_title, data_type, ion_name):
         """
@@ -4693,3 +4057,31 @@ class DocumentTree(wx.TreeCtrl):
             self.panel_plot.plot_remove_patches_with_labels(rect_label, plot_window="MS")
 
         self.panel_plot.plot_repaint(plot_window="MS")
+
+
+class TestPopup(TestPanel):
+    """Test the popup window"""
+
+    def __init__(self, parent):
+        super().__init__(parent)
+
+        self.btn_1.Bind(wx.EVT_BUTTON, self.on_popup)
+
+    def on_popup(self, evt):
+        """Activate popup"""
+        p = PopupDocumentTreeSettings(self)
+        p.position_on_event(evt)
+        p.Show()
+
+
+def _main_popup():
+    app = wx.App()
+
+    dlg = TestPopup(None)
+    dlg.Show()
+
+    app.MainLoop()
+
+
+if __name__ == "__main__":
+    _main_popup()

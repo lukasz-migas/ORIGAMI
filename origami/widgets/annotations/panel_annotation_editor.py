@@ -33,6 +33,7 @@ from origami.utils.converters import rounder
 from origami.utils.converters import str2num
 from origami.utils.exceptions import MessageError
 from origami.objects.containers import DataObject
+from origami.gui_elements._panel import TestPanel
 from origami.objects.annotations import Annotation
 from origami.objects.annotations import Annotations
 from origami.gui_elements.panel_base import TableMixin
@@ -55,7 +56,7 @@ class TableColumnIndex(IntEnum):
     name = 6
 
 
-class PanelAnnotationPopup(PopupBase):
+class PopupAnnotationSettings(PopupBase):
     """Create popup window to modify few uncommon settings"""
 
     highlight_on_selection = None
@@ -101,6 +102,7 @@ class PanelAnnotationPopup(PopupBase):
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(grid, 1, wx.EXPAND | wx.ALL, 5)
+        self.set_info(sizer)
 
         self.SetSizerAndFit(sizer)
         self.Layout()
@@ -194,6 +196,7 @@ class PanelAnnotationEditorUI(MiniFrame, TableMixin):
     }
     TABLE_COLUMN_INDEX = TableColumnIndex
     TABLE_KWARGS = dict(color_0_to_1=True)
+    PUB_DELETE_ITEM_EVENT = "document.delete.item"
     PUB_SUBSCRIBE_MAKE_EVENT = "editor.mark.annotation"
     PUB_SUBSCRIBE_MOVE_LABEL_EVENT = "editor.edit.label"
     PUB_SUBSCRIBE_MOVE_PATCH_EVENT = "editor.edit.patch"
@@ -495,7 +498,7 @@ class PanelAnnotationEditorUI(MiniFrame, TableMixin):
     def on_popup(self, evt):
         """Show popup window"""
 
-        popup = PanelAnnotationPopup(self)
+        popup = PopupAnnotationSettings(self)
         popup.position_on_event(evt)
         popup.Show()
 
@@ -582,6 +585,7 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
         pub.subscribe(self.add_annotation_from_mouse_evt, self.PUB_SUBSCRIBE_MAKE_EVENT)
         pub.subscribe(self.edit_label_from_mouse_evt, self.PUB_SUBSCRIBE_MOVE_LABEL_EVENT)
         pub.subscribe(self.edit_patch_from_mouse_evt, self.PUB_SUBSCRIBE_MOVE_PATCH_EVENT)
+        pub.subscribe(self._evt_delete_item, self.PUB_DELETE_ITEM_EVENT)
 
         # bind buttons
         self.patch_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color_button)
@@ -641,6 +645,21 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
         menu.Destroy()
         self.SetFocus()
 
+    def _evt_delete_item(self, info):
+        """Triggered when document is deleted"""
+        document_title, dataset_name = info
+
+        if document_title == self.document_title:
+            if dataset_name is not None and dataset_name != self.dataset_name:
+                return
+
+            DialogBox(
+                title="Dataset was deleted.",
+                msg="The dataset that is shown in this window has been deleted, therefore, this window will close too",
+                kind="Error",
+            )
+            self.on_close(None)
+
     def update_title(self):
         """Update widget title"""
         self.SetTitle(f"Annotating: {self.document_title} :: {self.dataset_name}")
@@ -663,6 +682,8 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
             pub.unsubscribe(self.add_annotation_from_mouse_evt, self.PUB_SUBSCRIBE_MAKE_EVENT)
             pub.unsubscribe(self.edit_label_from_mouse_evt, self.PUB_SUBSCRIBE_MOVE_LABEL_EVENT)
             pub.unsubscribe(self.edit_patch_from_mouse_evt, self.PUB_SUBSCRIBE_MOVE_PATCH_EVENT)
+            pub.unsubscribe(self._evt_delete_item, self.PUB_DELETE_ITEM_EVENT)
+
         except Exception as err:
             logger.error("Failed to unsubscribe events: %s" % err)
 
@@ -1464,6 +1485,30 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
         dlg.ShowModal()
 
 
+class TestPopup(TestPanel):
+    """Test the popup window"""
+
+    def __init__(self, parent):
+        super().__init__(parent)
+
+        self.btn_1.Bind(wx.EVT_BUTTON, self.on_popup)
+
+    def on_popup(self, evt):
+        """Activate popup"""
+        p = PopupAnnotationSettings(self)
+        p.position_on_event(evt)
+        p.Show()
+
+
+def _main_popup():
+    app = wx.App()
+
+    dlg = TestPopup(None)
+    dlg.Show()
+
+    app.MainLoop()
+
+
 def _main():
     from origami.icons.assets import Icons
 
@@ -1476,4 +1521,4 @@ def _main():
 
 
 if __name__ == "__main__":
-    _main()
+    _main_popup()

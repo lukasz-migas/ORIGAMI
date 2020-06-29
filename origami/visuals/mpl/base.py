@@ -180,7 +180,7 @@ class PlotBase(MPLPanel):
             )
             if "legend_zorder" in kwargs:
                 legend.set_zorder(kwargs.pop("legend_zorder"))
-            legend.draggable()
+            legend.set_draggable(True)
 
     def set_plot_xlabel(self, xlabel, **kwargs):
         kwargs = ut_visuals.check_plot_settings(**kwargs)

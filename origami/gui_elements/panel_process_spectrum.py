@@ -126,14 +126,19 @@ class PanelProcessMassSpectrum(MiniFrame):
         self.SetFocus()
 
     @property
-    def data_processing(self):
+    def data_handling(self):
         """Return handle to `data_processing`"""
-        return self.presenter.data_processing
+        return self.presenter.data_handling
 
     @property
     def panel_plot(self):
-        """Return handle to `data_processing`"""
+        """Return handle to `panel_plot`"""
         return self.view.panelPlots
+
+    @property
+    def document_tree(self):
+        """Return handle to `document_tree`"""
+        return self.presenter.view.panelDocuments.documents
 
     def on_key_event(self, evt):
         """Trigger event based on keyboard input"""
@@ -424,23 +429,27 @@ class PanelProcessMassSpectrum(MiniFrame):
 
     def on_plot(self, _evt):
         """Plot data"""
-        raise NotImplementedError("Must implement method")
-        # mz_x = copy.deepcopy(self.mz_data["xvals"])
-        # mz_y = copy.deepcopy(self.mz_data["yvals"])
-        # mz_x, mz_y = self.data_processing.on_process_MS(mz_x, mz_y, return_data=True)
-        #
-        # #         self.panel_plot.on_simple_plot_1D(mz_x, mz_y, xlabel="m/z", ylabel="Intensity", plot="MS")
-        # self.panel_plot.on_plot_MS(mz_x, mz_y)
+        from copy import deepcopy
+
+        mz_obj = deepcopy(self.mz_obj)
+        self.data_handling.on_process_ms(mz_obj)
+        self.panel_plot.view_ms.plot(obj=mz_obj)
 
     def on_add_to_document(self, _evt):
         """Add data to document"""
-        raise NotImplementedError("Must implement method")
-        # if self.process_all:
-        #     for dataset_name in self.mz_data:
-        #         self.data_processing.on_process_MS_and_add_data(self.document_title, dataset_name)
-        #     return
-        #
-        # self.data_processing.on_process_MS_and_add_data(self.document_title, self.dataset_name)
+        # get new, unique name for the object
+        new_name = self.document.get_new_name(self.dataset_name, "processed")
+
+        # create copy of the object
+        _, mz_obj = self.mz_obj.copy(new_name)
+
+        # process and flush to disk
+        mz_obj = self.data_handling.on_process_ms(mz_obj)
+        self.panel_plot.view_ms.plot(obj=mz_obj)
+        mz_obj.flush()
+
+        # notify document tree of changes
+        self.document_tree.on_update_document(mz_obj.DOCUMENT_KEY, new_name.split("/")[-1], self.document_title)
 
     def on_toggle_controls(self, evt):
         """Toggle controls based on some other settings"""

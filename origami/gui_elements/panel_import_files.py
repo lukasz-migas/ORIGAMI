@@ -482,7 +482,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
     def on_update_settings(self, _):
         """Open data processing window"""
-        self.document_tree.on_open_process_MS_settings(
+        self.document_tree.on_open_process_ms_settings(
             disable_plot=True, disable_process=True, update_widget=self.PUB_SUBSCRIBE_EVENT
         )
 

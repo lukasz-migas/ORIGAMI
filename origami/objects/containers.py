@@ -9,6 +9,7 @@ import numpy as np
 from zarr import Group
 
 # Local imports
+import origami.processing.heatmap as pr_heatmap
 import origami.processing.spectra as pr_spectra
 from origami.utils.path import get_duplicate_name
 from origami.utils.ranges import get_min_max
@@ -157,15 +158,17 @@ class DataObject(ContainerBase):
         """Check input"""
         raise NotImplementedError("Must implement method")
 
-    def copy(self):
+    def copy(self, new_name: str = None, suffix: str = "copy"):
         """Copy object and flush to disk"""
         store = self.get_parent()
         title = self.title
         if store is not None and title is not None:
-            title = get_duplicate_name(title)
+            if new_name is None:
+                new_name = get_duplicate_name(title, suffix=suffix)
+            print("Adding", new_name)
             data, attrs = self.to_zarr()
-            store.add(title, data, attrs)
-            return store[title, True]
+            store.add(new_name, data, attrs)
+            return new_name, store[new_name, True]
 
     def flush(self):
         """Flush current object data to the DocumentStore"""
@@ -459,6 +462,8 @@ class MassSpectrumObject(SpectrumObject):
 
 
 class ChromatogramObject(SpectrumObject):
+    """Chromatogram data object"""
+
     DOCUMENT_KEY = "Chromatograms"
 
     def __init__(
@@ -554,6 +559,8 @@ class ChromatogramObject(SpectrumObject):
 
 
 class MobilogramObject(SpectrumObject):
+    """Mobilogram data object"""
+
     DOCUMENT_KEY = "Mobilograms"
 
     def __init__(
@@ -652,6 +659,8 @@ class MobilogramObject(SpectrumObject):
 
 
 class HeatmapObject(DataObject):
+    """Base heatmap object"""
+
     def __init__(
         self,
         array: np.ndarray,
@@ -756,8 +765,108 @@ class HeatmapObject(DataObject):
     def downsample(self, rate: int = 5, mode: str = "Sub-sample"):
         """Return data at a down-sampled rate"""
 
+    def process(
+        self,
+        crop: bool = False,
+        linearize: bool = False,
+        smooth: bool = False,
+        baseline: bool = False,
+        normalize: bool = False,
+        **kwargs,
+    ):
+        """Perform all processing steps in one go. For correct parameter names, refer to the individual methods
+
+        Parameters
+        ----------
+        crop : bool
+            if `True`, heatmap cropping will occur
+        linearize : bool
+            if `True`, heatmap will be linearized
+        smooth : bool
+            if `True`, heatmap will be smoothed
+        baseline : bool
+            if `True`, baseline will be removed from the heatmap
+        normalize : bool
+            if `True`, heatmap will be normalized
+        kwargs : Dict[Any, Any]
+            dictionary containing processing parameters
+
+        Returns
+        -------
+        self : MassSpectrumObject
+            processed mass spectrum object
+        """
+        if crop:
+            self.crop(**kwargs)
+        if linearize:
+            self.linearize(**kwargs)
+        if smooth:
+            self.smooth(**kwargs)
+        if baseline:
+            self.baseline(**kwargs)
+        if normalize:
+            self.normalize(**kwargs)
+        return self
+
+    def linearize(
+        self,
+        fold: float = 1,
+        linearize_method: str = "linear",
+        x_axis: bool = False,
+        new_x: np.ndarray = None,
+        y_axis: bool = False,
+        new_y: np.ndarray = None,
+        **kwargs,
+    ):
+        """Interpolate the x/y-axis of the array"""
+        self._x, self._y, self._array = pr_heatmap.interpolate_2d(
+            self.x,
+            self.y,
+            self.array,
+            fold=fold,
+            method=linearize_method,
+            x_axis=x_axis,
+            new_x=new_x,
+            y_axis=y_axis,
+            new_y=new_y,
+        )
+        return self
+
+    def crop(
+        self,
+        x_min: Union[int, float],
+        x_max: Union[int, float],
+        y_min: Union[int, float],
+        y_max: Union[int, float],
+        **kwargs,
+    ):
+        """Crop array to desired size and shape"""
+        self._x, self._y, self._array = pr_heatmap.crop_2d(self.x, self.y, self.array, x_min, x_max, y_min, y_max)
+        return self
+
+    def smooth(
+        self, smooth_method: str = "Gaussian", sigma: int = 1, poly_order: int = 1, window_size: int = 3, **kwargs
+    ):
+        """Smooth array"""
+        self._array = pr_heatmap.smooth_2d(
+            self.array, method=smooth_method, sigma=sigma, poly_order=poly_order, window_size=window_size
+        )
+        return self
+
+    def baseline(self, threshold: Union[int, float] = 0, **kwargs):
+        """Remove baseline"""
+        self._array = pr_heatmap.remove_noise_2d(self.array, threshold)
+        return self
+
+    def normalize(self, normalize_method: str = "Maximum", **kwargs):
+        """Normalize heatmap"""
+        self._array = pr_heatmap.normalize_2d(self.array, method=normalize_method)
+        return self
+
 
 class IonHeatmapObject(HeatmapObject):
+    """Ion heatmap data object"""
+
     DOCUMENT_KEY = "Heatmaps"
 
     def __init__(
@@ -944,6 +1053,8 @@ class IonHeatmapObject(HeatmapObject):
 
 
 class StitchIonHeatmapObject(IonHeatmapObject):
+    """Ion heatmap data object that requires joining multiple mobilograms into one heatmap"""
+
     def __init__(
         self,
         data_objects: List[MobilogramObject],
@@ -989,6 +1100,8 @@ class StitchIonHeatmapObject(IonHeatmapObject):
 
 
 class MassSpectrumHeatmapObject(HeatmapObject):
+    """MS/DT heatmap data object"""
+
     DOCUMENT_KEY = "Heatmaps (MS/DT)"
 
     def __init__(
@@ -1031,10 +1144,21 @@ class MassSpectrumHeatmapObject(HeatmapObject):
         """Changes the label and x-axis values to a new format"""
 
 
+def get_extra_data(group: Group, known_keys: List):
+    """Get all additional metadata that has been saved in the group store"""
+    extra_keys = list(set(group.keys()) - set(known_keys))
+    extra_data = dict()
+    for key in extra_keys:
+        extra_data[key] = group[key][:]
+    return extra_data
+
+
 def mass_spectrum_object(group: Group):
     """Instantiate mass spectrum object from mass spectrum group saved in zarr format"""
     metadata = group.attrs.asdict()
-    obj = MassSpectrumObject(group["x"][:], group["y"][:], **metadata)
+    obj = MassSpectrumObject(
+        group["x"][:], group["y"][:], extra_data=get_extra_data(group, ["x", "y"]), **group.attrs.asdict()
+    )
     obj.set_metadata(metadata)
     return obj
 
@@ -1042,7 +1166,10 @@ def mass_spectrum_object(group: Group):
 def chromatogram_object(group: Group):
     """Instantiate chromatogram object from chromatogram group saved in zarr format"""
     metadata = group.attrs.asdict()
-    obj = ChromatogramObject(group["x"][:], group["y"][:], **group.attrs.asdict())
+    get_extra_data(group, ["x", "y"])
+    obj = ChromatogramObject(
+        group["x"][:], group["y"][:], extra_data=get_extra_data(group, ["x", "y"]), **group.attrs.asdict()
+    )
     obj.set_metadata(metadata)
     return obj
 
@@ -1050,7 +1177,9 @@ def chromatogram_object(group: Group):
 def mobilogram_object(group: Group):
     """Instantiate mobilogram object from mobilogram group saved in zarr format"""
     metadata = group.attrs.asdict()
-    obj = MobilogramObject(group["x"][:], group["y"][:], **group.attrs.asdict())
+    obj = MobilogramObject(
+        group["x"][:], group["y"][:], extra_data=get_extra_data(group, ["x", "y"]), **group.attrs.asdict()
+    )
     obj.set_metadata(metadata)
     return obj
 
@@ -1059,7 +1188,13 @@ def ion_heatmap_object(group: Group):
     """Instantiate ion heatmap object from ion heatmap group saved in zarr format"""
     metadata = group.attrs.asdict()
     obj = IonHeatmapObject(
-        group["array"][:], group["x"][:], group["y"][:], group["xy"][:], group["yy"][:], **group.attrs.asdict()
+        group["array"][:],
+        group["x"][:],
+        group["y"][:],
+        group["xy"][:],
+        group["yy"][:],
+        extra_data=get_extra_data(group, ["array", "x", "y", "xy", "yy"]),
+        **group.attrs.asdict(),
     )
     obj.set_metadata(metadata)
     return obj
@@ -1069,7 +1204,13 @@ def stitch_ion_heatmap_object(group: Group):
     """Instantiate stitch ion heatmap object from ion heatmap group saved in zarr format"""
     metadata = group.attrs.asdict()
     obj = StitchIonHeatmapObject(
-        group["array"][:], group["x"][:], group["y"][:], group["xy"][:], group["yy"][:], **group.attrs.asdict()
+        group["array"][:],
+        group["x"][:],
+        group["y"][:],
+        group["xy"][:],
+        group["yy"][:],
+        extra_data=get_extra_data(group, ["array", "x", "y", "xy", "yy"]),
+        **group.attrs.asdict(),
     )
     obj.set_metadata(metadata)
     return obj
@@ -1079,7 +1220,13 @@ def msdt_heatmap_object(group: Group):
     """Instantiate mass heatmap object from ion heatmap group saved in zarr format"""
     metadata = group.attrs.asdict()
     obj = MassSpectrumHeatmapObject(
-        group["array"][:], group["x"][:], group["y"][:], group["xy"][:], group["yy"][:], **group.attrs.asdict()
+        group["array"][:],
+        group["x"][:],
+        group["y"][:],
+        group["xy"][:],
+        group["yy"][:],
+        extra_data=get_extra_data(group, ["array", "x", "y", "xy", "yy"]),
+        **group.attrs.asdict(),
     )
     obj.set_metadata(metadata)
     return obj

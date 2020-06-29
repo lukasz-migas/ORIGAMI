@@ -3,7 +3,7 @@ import numpy as np
 
 # Local imports
 from origami.utils.check import isempty
-from origami.processing.heatmap import normalize_2D
+from origami.processing.heatmap import normalize_2d
 from origami.processing.spectra import normalize_1D
 
 
@@ -19,8 +19,8 @@ def compute_rmsd(array_1, array_2, normalize=True):
         return
 
     if normalize:
-        array_1 = normalize_2D(array_1.copy())
-        array_2 = normalize_2D(array_2.copy())
+        array_1 = normalize_2d(array_1.copy())
+        array_2 = normalize_2d(array_2.copy())
 
     # Before computing RMSD, we need to normalize to 1
     array_sub = array_1 - array_2

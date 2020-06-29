@@ -1,6 +1,7 @@
 """Wrapper around Zarr's file object with functions amenable to ORIGAMI's dataset"""
 # Standard library imports
 import os
+import re
 import shutil
 import logging
 from typing import Dict
@@ -120,9 +121,13 @@ class DocumentStore:
     def __delitem__(self, key):
         """Delete item from the document"""
         item: Group = self[key]
+
         # remove all objects from group
         if hasattr(item, "clear"):
-            item.clear()
+            if item.path not in self.GROUPS:
+                del self.fp[key]
+            else:
+                item.clear()
         else:
             # remove dataset
             del self.fp[key]
@@ -291,7 +296,7 @@ class DocumentStore:
             if group is None:
                 group = self[parts[0]].create_group(parts[1])
         else:
-            raise ValueError("Not sure what to do")
+            raise ValueError(f"Not sure what to do (key={key})")
         return group
 
     def add_attrs(self, key=None, attrs=None):
@@ -411,6 +416,32 @@ class DocumentStore:
             copy = self._get_unique_name(item, 2)
 
         self.add(copy, {k: v[:] for k, v in group.items()}, attrs=group.attrs.asdict())
+
+    def get_new_name(self, name: str, suffix: str):
+        """Return new name for an object"""
+
+        def _new_name(name, n):
+            if n == 0 or f"({suffix})" not in name:
+                name = name + f" ({suffix} %d)" % n
+            else:
+                name = name.replace(f" ({suffix} {n-1})", f" ({suffix} {n})")
+
+            return name
+
+        prev = re.findall(rf"\({suffix} (\d+)", name)  # noqa
+        n = 0
+
+        if prev:
+            n = int(prev[-1])
+
+        while True:
+            _name = _new_name(name, n)
+            if not os.path.exists(os.path.join(self.path, _name)):
+                break
+            n += 1
+        print(name, n)
+        name = _new_name(name, n)
+        return name
 
     def _get_unique_name(self, title: str, n_fill: int = 1):
         """Returns unique name"""

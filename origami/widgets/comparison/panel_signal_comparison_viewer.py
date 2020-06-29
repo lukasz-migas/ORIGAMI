@@ -680,8 +680,8 @@ class PanelSignalComparisonViewer(MiniFrame):
             spectrum_2.normalize()
 
         if CONFIG.compare_panel_preprocess:
-            self.data_processing.on_process_ms(spectrum_1)
-            self.data_processing.on_process_ms(spectrum_2)
+            self.data_handling.on_process_ms(spectrum_1)
+            self.data_handling.on_process_ms(spectrum_2)
 
         x_top, y_top = spectrum_1.x, spectrum_1.y
         x_bottom, y_bottom = spectrum_2.x, spectrum_2.y
@@ -690,7 +690,7 @@ class PanelSignalComparisonViewer(MiniFrame):
             y_bottom = -y_bottom
 
         if CONFIG.compare_panel_subtract:
-            x_top, y_top, x_bottom, y_bottom = self.data_processing.subtract_spectra(x_top, y_top, x_bottom, y_bottom)
+            x_top, y_top, x_bottom, y_bottom = self.data_handling.subtract_spectra(x_top, y_top, x_bottom, y_bottom)
 
         self.plot_view.plot(
             x_top,
@@ -741,7 +741,7 @@ class PanelSignalComparisonViewer(MiniFrame):
 
     def on_open_process_ms_settings(self, _evt):
         """Open MS pre-processing panel"""
-        self.document_tree.on_open_process_MS_settings(
+        self.document_tree.on_open_process_ms_settings(
             disable_plot=True, disable_process=True, update_widget=self.PUB_SUBSCRIBE_EVENT
         )
 

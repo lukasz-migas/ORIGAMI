@@ -1193,6 +1193,21 @@ class MainWindow(wx.Frame):
             menu_dev.AppendItem(menu_dev_widget)
             self.Bind(wx.EVT_MENU, self._dev_add_widget, menu_dev_widget)
 
+            menu_logging = wx.Menu()
+            menu_log_debug = menu_logging.AppendRadioItem(wx.ID_ANY, "Logging: DEBUG")
+            menu_log_info = menu_logging.AppendRadioItem(wx.ID_ANY, "Logging: INFO")
+            menu_log_warning = menu_logging.AppendRadioItem(wx.ID_ANY, "Logging: WARNING")
+            menu_log_error = menu_logging.AppendRadioItem(wx.ID_ANY, "Logging: ERROR")
+            menu_log_critical = menu_logging.AppendRadioItem(wx.ID_ANY, "Logging: CRITICAL")
+
+            self.Bind(wx.EVT_MENU, self._dev_logging, menu_log_debug)
+            self.Bind(wx.EVT_MENU, self._dev_logging, menu_log_info)
+            self.Bind(wx.EVT_MENU, self._dev_logging, menu_log_warning)
+            self.Bind(wx.EVT_MENU, self._dev_logging, menu_log_error)
+            self.Bind(wx.EVT_MENU, self._dev_logging, menu_log_critical)
+
+            menu_dev.AppendMenu(wx.ID_ANY, "Logging", menu_logging)
+
             self.menubar.Append(menu_dev, "&Development")
 
         self.SetMenuBar(self.menubar)
@@ -1343,6 +1358,20 @@ class MainWindow(wx.Frame):
         item = np.random.choice(["ion", "files"], 1, False)[0]
         panel_name = self.create_panel(item, f"TEST_DOC_#{np.random.randint(0, 100, 1)[0]}")
         logger.debug(f"Created random panel - {panel_name}")
+
+    def _dev_logging(self, evt):
+        """Change logger level"""
+        name = evt.GetEventObject().FindItemById(evt.GetId()).GetItemLabel()
+        level = {
+            "Logging: DEBUG": logging.DEBUG,
+            "Logging: INFO": logging.INFO,
+            "Logging: WARNING": logging.WARNING,
+            "Logging: ERROR": logging.ERROR,
+            "Logging: CRITICAL": logging.CRITICAL,
+        }.get(name, logging.DEBUG)
+
+        logging.getLogger("origami").setLevel(level)
+        print(f"Changed logging level to -> {level}")
 
     def on_customise_annotation_plot_parameters(self, evt):
         from origami.gui_elements.dialog_customise_user_annotations import DialogCustomiseUserAnnotations

@@ -29,6 +29,7 @@ from origami.handlers.call import Call
 from origami.handlers.load import LoadHandler
 from origami.handlers.export import ExportHandler
 from origami.utils.utilities import report_time
+from origami.handlers.process import ProcessHandler
 from origami.objects.document import DocumentStore
 from origami.processing.utils import get_maximum_xy
 from origami.utils.converters import byte2str
@@ -50,12 +51,13 @@ logger = logging.getLogger(__name__)
 # and annotations in separate columns
 
 
-class DataHandling(LoadHandler, ExportHandler):
+class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     """General data handling module"""
 
     def __init__(self, presenter, view, config):
         LoadHandler.__init__(self)
         ExportHandler.__init__(self)
+        ProcessHandler.__init__(self)
 
         self.presenter = presenter
         self.view = view
@@ -420,7 +422,7 @@ class DataHandling(LoadHandler, ExportHandler):
         x_min, x_max, _, _ = rect
         document = ENV.on_get_document()
 
-        can_extract, is_multifile = document.can_extract()
+        can_extract, is_multifile, file_fmt = document.can_extract()
         if not can_extract:
             raise MessageError("Error", "This document type does not allow data extraction")
 
@@ -737,6 +739,7 @@ class DataHandling(LoadHandler, ExportHandler):
                 self.add_task(self.on_open_mzml_file, (path,), func_result=self.on_show_tandem_scan)
 
     def on_open_mzml_file(self, path):
+        """Load mzml data and return it"""
         if path is None:
             return None
         t_start = time.time()
@@ -1764,7 +1767,7 @@ class DataHandling(LoadHandler, ExportHandler):
             #             out[idx] = idx
             out[idx] = mz_y.sum()
         out = np.reshape(out, shape)
-        #         out = normalize_2D(out)
+        #         out = normalize_2d(out)
 
         return np.flipud(out)
 
@@ -2335,7 +2338,7 @@ class DataHandling(LoadHandler, ExportHandler):
     #         mz_x, mz_y = self._get_waters_api_spectrum_data(reader, start_scan=start_scan, end_scan=end_scan)
     #         # process each
     #         if self.config.origami_preprocess:
-    #             mz_x, mz_y = self.data_processing.on_process_MS(mz_x, mz_y, return_data=True)
+    #             mz_x, mz_y = self.data_processing.process_spectrum(mz_x, mz_y, return_data=True)
     #
     #         # add to document
     #         spectrum_data = {
@@ -2905,7 +2908,7 @@ class DataHandling(LoadHandler, ExportHandler):
         all_documents = ENV.get_document_list("all")
 
         item_list = []
-        if output_type in ["annotations", "comparison"]:
+        if output_type in ["annotations", "comparison", "simple_list"]:
             item_list = {document_title: list() for document_title in all_documents}
 
         # iterate over all datasets
@@ -2923,6 +2926,8 @@ class DataHandling(LoadHandler, ExportHandler):
                         item_list.append(get_overlay_data(obj, dataset_type, dataset_type, document_title))
                     elif output_type in ["annotations", "comparison"]:
                         item_list[document_title].append(dataset_name)
+                    elif output_type == "simple_list":
+                        item_list[document_title].append((dataset_type, dataset_name))
 
         if output_type == "comparison":
             item_list = cleanup(item_list)

@@ -2,17 +2,17 @@
 import wx
 
 # Local imports
-from origami.styles import PopupBase
+from origami.styles import TransientPopupBase
 from origami.gui_elements._panel import TestPanel
 
 
-class PanelInformationPopup(PopupBase):
+class PanelInformationPopup(TransientPopupBase):
     """Create popup window to modify few uncommon settings"""
 
     information = None
 
     def __init__(self, parent, message: str, style=wx.BORDER_SIMPLE):
-        PopupBase.__init__(self, parent, style)
+        TransientPopupBase.__init__(self, parent, style)
         self.information.SetLabel(message)
 
     def make_panel(self):

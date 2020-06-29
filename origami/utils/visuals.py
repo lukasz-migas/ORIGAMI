@@ -10,7 +10,7 @@ from origami.visuals.utilities import y_tick_fmt
 
 def prettify_tick_format(tick_values):
     """Nicely formats tick labels"""
-    return [y_tick_fmt(value) for value in tick_values]
+    return [y_tick_fmt(value, value) for value in tick_values]
 
 
 def calculate_label_position(xlist, ylist, xy_loc_multiplier=None):

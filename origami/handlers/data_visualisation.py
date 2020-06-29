@@ -908,7 +908,7 @@ class DataVisualization:
 
         # calculate RMSF
         pRMSF_list = pr_activation.compute_rmsf(zlist[0], zlist[1])
-        pRMSF_list = pr_heatmap.smooth_gaussian_2D(pRMSF_list, sigma=1)
+        pRMSF_list = pr_heatmap.smooth_gaussian_2d(pRMSF_list, sigma=1)
 
         # add label
         label_x_pos, label_y_pos = calculate_label_position(xvals, yvals, self.config.rmsd_location)

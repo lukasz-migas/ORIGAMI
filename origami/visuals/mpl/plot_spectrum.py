@@ -23,7 +23,7 @@ from origami.config.config import CONFIG
 from origami.visuals.mpl.base import PlotBase
 from origami.visuals.mpl.gids import PlotIds
 from origami.visuals.utilities import get_intensity_formatter
-from origami.processing.heatmap import normalize_2D
+from origami.processing.heatmap import normalize_2d
 from origami.processing.spectra import normalize_1D
 from origami.gui_elements.misc_dialogs import DialogBox
 
@@ -971,7 +971,7 @@ class PlotSpectrum(PlotBase):
 
             # normalize data if increment is not 0
             if kwargs["increment"] != 0 and kwargs.get("normalize", True):
-                zvals = normalize_2D(zvals)
+                zvals = normalize_2d(zvals)
             else:
                 __, ylabel, __ = self._convert_yaxis(zvals, "Intensity", set_divider=False)
 

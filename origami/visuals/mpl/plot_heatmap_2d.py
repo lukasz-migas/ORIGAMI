@@ -46,7 +46,6 @@ class PlotHeatmap2D(PlotBase):
             origin="lower",
             extent=[*xlimits, *ylimits],
         )
-        #         print(extent)
         # set plot limits
         self.plot_base.set_xlim(xlimits)
         self.plot_base.set_ylim(ylimits)
@@ -68,6 +67,45 @@ class PlotHeatmap2D(PlotBase):
 
         # update normalization
         self.plot_2D_update_normalization(**kwargs)
+
+    def plot_2d_update_data(self, x, y, array, x_label=None, y_label=None, **kwargs):
+
+        xlimits, ylimits, extent = self._compute_xy_limits(x, y, None)
+        # # clear plot in some circumstances
+        # if self._plot_tag in ["rmsd_matrix"]:
+        #     self.clear()
+        #
+        # # rotate data
+        # if self.rotate != 0 and not kwargs.pop("already_rotated", False):
+        #     y, array = self.on_rotate_heatmap_data(y, array)
+        #
+        # # update settings
+        # self._check_and_update_plot_settings(**kwargs)
+        #
+        # # update limits and extents
+        # extent = ut_visuals.extents(x) + ut_visuals.extents(y)
+        self.cax.set_data(array)
+        # self.cax.set_norm(kwargs.get("colormap_norm", None))
+        self.cax.set_extent([*xlimits, *ylimits])
+        self.cax.set_cmap(kwargs["colormap"])
+        self.cax.set_interpolation(kwargs["interpolation"])
+        self.cax.set_clim(vmin=array.min(), vmax=array.max())
+
+        # set plot limits
+        self.plot_base.set_xlim(xlimits)
+        self.plot_base.set_ylim(ylimits)
+        self.set_plot_xlabel(x_label, **kwargs)
+        self.set_plot_ylabel(y_label, **kwargs)
+
+        # update normalization
+        self.plot_2D_update_normalization(**kwargs)
+
+        # add colorbar
+        self.set_colorbar_parameters(array, **kwargs)
+
+        # update plot limits
+        self.update_extents(extent)
+        self.store_plot_limits(extent)
 
     def get_heatmap_normalization(self, zvals, **kwargs):
 
@@ -193,17 +231,20 @@ class PlotHeatmap2D(PlotBase):
 
             # actually add colorbar
             if kwargs["colorbar_position"] in ["left", "right"]:
-                cbar = self.figure.colorbar(self.cax, cax=self.cbar, ticks=ticks, orientation="vertical")
+                cbar = self.figure.colorbar(self.cax, cax=self.cbar, orientation="vertical", ticks=ticks)
                 self.cbar.yaxis.set_ticks_position(kwargs["colorbar_position"])
                 self.cbar.set_yticklabels(tick_labels)
             elif kwargs["colorbar_position"] in ["top", "bottom"]:
-                cbar = self.figure.colorbar(self.cax, cax=self.cbar, ticks=ticks, orientation="horizontal")
+                cbar = self.figure.colorbar(self.cax, cax=self.cbar, orientation="horizontal", ticks=ticks)
                 self.cbar.xaxis.set_ticks_position(kwargs["colorbar_position"])
                 self.cbar.set_xticklabels(tick_labels)
             else:
-                cbar = self.figure.colorbar(self.cax, cax=self.cbar, ticks=ticks, orientation="horizontal")
+                cbar = self.figure.colorbar(self.cax, cax=self.cbar, orientation="horizontal", ticks=ticks)
                 self.cbar.xaxis.set_ticks_position("bottom")
                 self.cbar.set_xticklabels(tick_labels)
+            #             cbar.set_ticklabels(tick_labels)
+            #             cbar.set_ticks(ticks)
+            #             cbar.draw_all()
 
             # set parameters
             cbar.outline.set_edgecolor(kwargs["colorbar_outline_color"])

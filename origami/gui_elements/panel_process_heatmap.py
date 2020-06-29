@@ -23,7 +23,6 @@ class PanelProcessHeatmap(MiniFrame):
 
     # ui elements
     document_info_text = None
-    dataset_type_info_text = None
     dataset_info_text = None
     crop_check = None
     crop_xmin_value = None
@@ -55,7 +54,7 @@ class PanelProcessHeatmap(MiniFrame):
         document=None,
         document_title: str = None,
         dataset_name: str = None,
-        mz_obj: IonHeatmapObject = None,
+        heatmap_obj: IonHeatmapObject = None,
         disable_plot: bool = False,
         disable_process: bool = False,
         process_all: bool = False,
@@ -80,7 +79,7 @@ class PanelProcessHeatmap(MiniFrame):
             instance of document
         document_title : str
             name of the document
-        mz_obj : MassSpectrumObject
+        heatmap_obj : IonHeatmapObject
             instance of the spectrum that should be pre-processed
         disable_plot : bool
             disable plotting
@@ -98,7 +97,7 @@ class PanelProcessHeatmap(MiniFrame):
         self.document = document
         self.document_title = document_title
         self.dataset_name = dataset_name
-        self.mz_obj = mz_obj
+        self.heatmap_obj = heatmap_obj
         self.disable_plot = disable_plot
         self.disable_process = disable_process
         self.process_all = process_all
@@ -115,14 +114,19 @@ class PanelProcessHeatmap(MiniFrame):
         self.SetFocus()
 
     @property
-    def data_processing(self):
+    def data_handling(self):
         """Return handle to `data_processing`"""
-        return self.presenter.data_processing
+        return self.presenter.data_handling
 
     @property
     def panel_plot(self):
-        """Return handle to `data_processing`"""
+        """Return handle to `panel_plot`"""
         return self.view.panelPlots
+
+    @property
+    def document_tree(self):
+        """Return handle to `document_tree`"""
+        return self.presenter.view.panelDocuments.documents
 
     def on_key_event(self, evt):
         """Trigger event based on keyboard input"""
@@ -145,7 +149,6 @@ class PanelProcessHeatmap(MiniFrame):
         panel = wx.Panel(self, -1, size=(-1, -1))
 
         self.document_info_text = wx.StaticText(panel, -1, "")
-        self.dataset_type_info_text = wx.StaticText(panel, -1, "")
 
         self.dataset_info_text = wx.StaticText(panel, -1, "")
 
@@ -253,9 +256,6 @@ class PanelProcessHeatmap(MiniFrame):
         n = 0
         grid.Add(wx.StaticText(panel, -1, "Document:"), (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.document_info_text, (n, 1), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        n += 1
-        grid.Add(wx.StaticText(panel, -1, "Dataset type:"), (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.dataset_type_info_text, (n, 1), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
         grid.Add(wx.StaticText(panel, -1, "Dataset name:"), (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.dataset_info_text, (n, 1), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
@@ -370,59 +370,43 @@ class PanelProcessHeatmap(MiniFrame):
 
     def on_update_info(self, **kwargs):
         """Update information labels"""
-        pass
-        # raise NotImplementedError("Must implement method")
-        # document_title = kwargs.get("document_title", self.document_title)
-        # dataset_type = kwargs.get("dataset_type", self.dataset_type)
-        # dataset_name = kwargs.get("dataset_name", self.dataset_name)
-        #
-        # if document_title is None:
-        #     document_title = "N/A"
-        # if dataset_type is None:
-        #     dataset_type = "N/A"
-        # if dataset_name is None:
-        #     dataset_name = "N/A"
-        #
-        # if self.process_list:
-        #     document_title = dataset_type = dataset_name = "Various"
-        #
-        # self.document_info_text.SetLabel(document_title)
-        # self.dataset_type_info_text.SetLabel(dataset_type)
-        # self.dataset_info_text.SetLabel(dataset_name)
+        document_title = self.document_title
+        dataset_name = self.dataset_name
+
+        if document_title is None:
+            document_title = "N/A"
+        if dataset_name is None:
+            dataset_name = "N/A"
+
+        if self.process_list:
+            document_title = dataset_name = "Various"
+
+        self.document_info_text.SetLabel(document_title)
+        self.dataset_info_text.SetLabel(dataset_name)
 
     def on_plot(self, evt):
         """Plot data"""
-        raise NotImplementedError("Must implement method")
-        # if self.disable_plot:
-        #     return
-        #
-        # xvals = copy.deepcopy(self.data["xvals"])
-        # yvals = copy.deepcopy(self.data["yvals"])
-        # zvals = copy.deepcopy(self.data["zvals"])
-        # xvals, yvals, zvals = self.data_processing.on_process_2D(xvals, yvals, zvals, return_data=True)
-        # if "DT/MS" in self.dataset_type:
-        #     self.panel_plot.on_plot_MSDT(zvals, xvals, yvals, self.data["xlabels"], self.data["ylabels"],
-        #     override=True)
-        # else:
-        #     self.panel_plot.on_plot_2D(zvals, xvals, yvals, self.data["xlabels"], self.data["ylabels"],
-        #     override=False)
+        from copy import deepcopy
+
+        heatmap_obj = deepcopy(self.heatmap_obj)
+        self.data_handling.on_process_heatmap(heatmap_obj)
+        self.panel_plot.view_heatmap.plot(obj=heatmap_obj)
 
     def on_add_to_document(self, evt):
         """Add data to document"""
-        raise NotImplementedError("Must implement method")
-        # process anything that is in dataset
-        # if self.process_all and not self.process_list:
-        #     for dataset_name in self.data:
-        #         self.data_processing.on_process_2D_and_add_data(self.document_title, self.dataset_type, dataset_name)
-        #     return
-        #
-        # # process anything that is in a list
-        # if self.process_list:
-        #     for document_title, dataset_type, dataset_name in self.data:
-        #         self.data_processing.on_process_2D_and_add_data(document_title, dataset_type, dataset_name)
-        #     return
-        #
-        # self.data_processing.on_process_2D_and_add_data(self.document_title, self.dataset_type, self.dataset_name)
+        # get new, unique name for the object
+        new_name = self.document.get_new_name(self.dataset_name, "processed")
+
+        # create copy of the object
+        _, heatmap_obj = self.heatmap_obj.copy(new_name)
+
+        # process and flush to disk
+        heatmap_obj = self.data_handling.on_process_heatmap(heatmap_obj)
+        self.panel_plot.view_heatmap.plot(obj=heatmap_obj)
+        heatmap_obj.flush()
+
+        # notify document tree of changes
+        self.document_tree.on_update_document(heatmap_obj.DOCUMENT_KEY, new_name.split("/")[-1], self.document_title)
 
     def on_toggle_controls(self, evt):
         """Toggle controls based on some other settings"""

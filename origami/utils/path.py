@@ -16,7 +16,7 @@ VALID_FILENAME_CHARACTERS = "-_.() %s%s" % (string.ascii_letters, string.digits)
 CHARACTER_LIMIT = 255
 
 
-def get_duplicate_name(name: str, split_str: str = None):
+def get_duplicate_name(name: str, split_str: str = None, suffix: str = "copy"):
     """Get alternative name for an object
 
     Parameters
@@ -34,19 +34,19 @@ def get_duplicate_name(name: str, split_str: str = None):
     if split_str is not None:
         name = name.split(split_str)[0]
 
-    prev = re.findall(r"\(copy (\d+)", name)
+    prev = re.findall(rf"\({suffix} (\d+)", name)
     n = 0
 
     if prev:
         n = int(prev[-1])
 
-    while " (copy %d)" % n in name:
+    while f" ({suffix} %d)" % n in name:
         n += 1
 
     if n == 0:
-        name = name + " (copy %d)" % n
+        name = name + f" ({suffix} %d)" % n
     else:
-        name = name.replace(f" (copy {n-1})", f" (copy {n})")
+        name = name.replace(f" ({suffix} {n-1})", f" ({suffix} {n})")
 
     if split_str is not None:
         name += split_str

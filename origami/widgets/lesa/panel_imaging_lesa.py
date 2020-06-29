@@ -536,7 +536,7 @@ class PanelImagingLESAViewer(MiniFrame):
         xmin, xmax, ymin, ymax = rect
 
     def on_update_normalization(self, evt):
-        from origami.processing.heatmap import normalize_2D
+        from origami.processing.heatmap import normalize_2d
         from copy import deepcopy
 
         # get method
@@ -556,7 +556,7 @@ class PanelImagingLESAViewer(MiniFrame):
                 xmin, xmax, self.document_title, method
             )
         except KeyError:
-            img_data["zvals"] = normalize_2D(img_data["zvals"], self.normalization_choice.GetStringSelection(), p=0.1)
+            img_data["zvals"] = normalize_2d(img_data["zvals"], self.normalization_choice.GetStringSelection(), p=0.1)
 
         self.on_plot_image(img_data)
         logger.info(f"Updated image with '{method}' normalization")

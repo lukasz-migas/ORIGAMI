@@ -8,7 +8,6 @@ import pytest
 # Local imports
 from origami.handlers.load import LoadHandler
 from origami.objects.document import DocumentStore
-
 # enable on windowsOS only
 from origami.objects.containers import IonHeatmapObject
 from origami.objects.containers import MobilogramObject

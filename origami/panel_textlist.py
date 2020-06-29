@@ -560,7 +560,7 @@ class PanelTextlist(TablePanelBase):
         n_items = len(process_list)
         if n_items > 0:
             # open-up panel
-            self.document_tree.on_open_process_2D_settings(
+            self.document_tree.on_open_process_heatmap_settings(
                 process_all=True, process_list=True, data=process_list, disable_plot=True, disable_process=False
             )
 

@@ -72,13 +72,24 @@ class ViewHeatmap(ViewBase):
             self.figure.repaint()
 
             # set data
-            self._data.update(x=x, y=y)
+            self._data.update(x=x, y=y, array=array)
             self._plt_kwargs = kwargs
             LOGGER.debug("Plotted data")
 
     def update(self, x=None, y=None, array=None, obj=None, **kwargs):
         """Update plot without having to clear it"""
-        raise AttributeError("")
+        self.set_document(obj, **kwargs)
+        self.set_labels(obj, **kwargs)
+
+        # update plot
+        x, y, array = self.check_input(x, y, array, obj)
+        self.figure.plot_2d_update_data(x, y, array, self.x_label, self.y_label, **kwargs)
+        self.figure.repaint()
+
+        # set data
+        self._data.update(x=x, y=y, array=array)
+        self._plt_kwargs = kwargs
+        LOGGER.debug("Updated plot data")
 
     #         self.set_document(obj, **kwargs)
     #         self.set_labels(obj, **kwargs)

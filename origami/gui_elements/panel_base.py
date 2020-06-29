@@ -40,6 +40,7 @@ class TableMixin:
     TABLE_RESERVED = {"hide_all": wx.NewIdRef(), "show_all": wx.NewIdRef()}
     TABLE_STYLE = wx.LC_REPORT | wx.LC_VRULES
     TABLE_KWARGS = dict()
+    TABLE_TEXT_ALIGN = wx.LIST_FORMAT_CENTER
     DUPLICATE_ID_CHECK = []
     KEYWORD_ALIAS = {}
     USE_COLOR = True
@@ -93,7 +94,7 @@ class TableMixin:
         for order, item in table_dict.items():
             name = item["name"]
             width = item["width"] if item["show"] else 0
-            peaklist.InsertColumn(order, name, width=width, format=wx.LIST_FORMAT_CENTER)
+            peaklist.InsertColumn(order, name, width=width, format=self.TABLE_TEXT_ALIGN)
 
         peaklist.Bind(wx.EVT_LEFT_DCLICK, self.on_double_click_on_item)
         peaklist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.on_menu_item_right_click)

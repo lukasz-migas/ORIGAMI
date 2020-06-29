@@ -1415,6 +1415,13 @@ class Config:
         self.plot_panel_dt_extract_ms = True
         self.plot_panel_dt_extract_rt = True
 
+        # Document tree
+        self.tree_panel_delete_item_ask = True
+        self.tree_panel_delete_group_ask = True
+        self.tree_panel_delete_document_ask = True
+        self.tree_panel_item_highlight = True
+        self.tree_panel_item_auto_plot = False
+
         # UVPD
         self.uvpd_peak_finding_threshold = 0.1  # new in v1.2.1
         self.uvpd_peak_buffer_width = 1  # new in v1.2.1

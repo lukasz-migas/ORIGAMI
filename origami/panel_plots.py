@@ -16,6 +16,8 @@ from natsort import natsorted
 
 # Local imports
 import origami.processing.UniDec.utilities as unidec_utils
+
+# from origami.ids import ID_pickMSpeaksDocument
 from origami.ids import ID_save1DImage
 from origami.ids import ID_save2DImage
 from origami.ids import ID_save3DImage
@@ -58,7 +60,6 @@ from origami.ids import ID_saveCompareMSImage
 from origami.ids import ID_saveWaterfallImage
 from origami.ids import ID_clearPlot_UniDec_MS
 from origami.ids import ID_clearPlot_Waterfall
-from origami.ids import ID_pickMSpeaksDocument
 from origami.ids import ID_saveOverlayImageDoc
 from origami.ids import ID_saveRMSDmatrixImage
 from origami.ids import ID_extraSettings_legend
@@ -507,15 +508,15 @@ class PanelPlots(wx.Panel):
         plot_obj.plot_1D_update_data(xvals[0], yvals[0], xlabel, ylabel, label=labels[0], **plt_kwargs)
         plot_obj.repaint()
 
-    def on_process_spectrum(self, evt):
-        plot_obj = self.get_plot_from_name(self.currentPage)
-        try:
-            xvals, yvals, __, xlabel, ylabel = plot_obj.plot_1D_get_data()
-        except AttributeError:
-            raise MessageError("Plot is empty", "There are no signals in the plot to smooth")
-
-        data = {"xvals": xvals[0], "yvals": yvals[0], "xlabels": xlabel, "ylabels": ylabel}
-        self.document_tree.on_process_MS_plot_only(data)
+    # def on_process_spectrum(self, evt):
+    #     plot_obj = self.get_plot_from_name(self.currentPage)
+    #     try:
+    #         xvals, yvals, __, xlabel, ylabel = plot_obj.plot_1D_get_data()
+    #     except AttributeError:
+    #         raise MessageError("Plot is empty", "There are no signals in the plot to smooth")
+    #
+    #     data = {"xvals": xvals[0], "yvals": yvals[0], "xlabels": xlabel, "ylabels": ylabel}
+    #     self.document_tree.on_process_MS_plot_only(data)
 
     def on_process_heatmap(self, evt):
         plot_obj = self.get_plot_from_name(self.currentPage)
@@ -543,7 +544,7 @@ class PanelPlots(wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_smooth_spectrum, id=ID_smooth1DdataRT)
         self.Bind(wx.EVT_MENU, self.on_smooth_spectrum, id=ID_smooth1Ddata1DT)
         #         self.Bind(wx.EVT_MENU, self.data_handling.on_highlight_selected_ions, id=ID_highlightRectAllIons)
-        self.Bind(wx.EVT_MENU, self.data_processing.on_pick_peaks, id=ID_pickMSpeaksDocument)
+        # self.Bind(wx.EVT_MENU, self.data_processing.on_pick_peaks, id=ID_pickMSpeaksDocument)
         self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_MS)
         self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_RT)
         self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_RT_MS)
@@ -656,7 +657,7 @@ class PanelPlots(wx.Panel):
         )
 
         # bind events by item
-        self.Bind(wx.EVT_MENU, self.on_process_spectrum, menu_action_process_MS)
+        # self.Bind(wx.EVT_MENU, self.on_process_spectrum, menu_action_process_MS)
         self.Bind(wx.EVT_MENU, self.on_process_heatmap, menu_action_process_2D)
 
         if self.currentPage == "Mass spectrum":
