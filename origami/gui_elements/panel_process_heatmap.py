@@ -14,11 +14,13 @@ from origami.config.config import CONFIG
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
 from origami.objects.containers import IonHeatmapObject
+from origami.objects.containers import MassSpectrumHeatmapObject
+from origami.gui_elements.panel_base import DatasetMixin
 
 logger = logging.getLogger(__name__)
 
 
-class PanelProcessHeatmap(MiniFrame):
+class PanelProcessHeatmap(MiniFrame, DatasetMixin):
     """Heatmap processing panel"""
 
     # ui elements
@@ -105,8 +107,7 @@ class PanelProcessHeatmap(MiniFrame):
         self.process_list = process_list
 
         self.make_gui()
-        self.on_toggle_controls(None)
-        self.on_update_info()
+        self.setup()
 
         # setup layout
         self.CentreOnScreen()
@@ -128,6 +129,17 @@ class PanelProcessHeatmap(MiniFrame):
         """Return handle to `document_tree`"""
         return self.presenter.view.panelDocuments.documents
 
+    def setup(self):
+        """Setup UI"""
+        self.on_toggle_controls(None)
+        self.on_update_info()
+        self._dataset_mixin_setup()
+
+    def on_close(self, evt, force: bool = False):
+        """Overwrite close"""
+        self._dataset_mixin_teardown()
+        super(PanelProcessHeatmap, self).on_close(evt, force)
+
     def on_key_event(self, evt):
         """Trigger event based on keyboard input"""
         key_code = evt.GetKeyCode()
@@ -148,9 +160,8 @@ class PanelProcessHeatmap(MiniFrame):
         """Make settings panel"""
         panel = wx.Panel(self, -1, size=(-1, -1))
 
-        self.document_info_text = wx.StaticText(panel, -1, "")
-
-        self.dataset_info_text = wx.StaticText(panel, -1, "")
+        self.document_info_text = wx.StaticText(panel, -1, "", style=wx.ST_ELLIPSIZE_START)
+        self.dataset_info_text = wx.StaticText(panel, -1, "", style=wx.ST_ELLIPSIZE_START)
 
         self.crop_check = make_checkbox(panel, "")
         self.crop_check.SetValue(CONFIG.plot2D_process_crop)
@@ -368,7 +379,7 @@ class PanelProcessHeatmap(MiniFrame):
 
         return panel
 
-    def on_update_info(self, **kwargs):
+    def on_update_info(self):
         """Update information labels"""
         document_title = self.document_title
         dataset_name = self.dataset_name
@@ -384,15 +395,19 @@ class PanelProcessHeatmap(MiniFrame):
         self.document_info_text.SetLabel(document_title)
         self.dataset_info_text.SetLabel(dataset_name)
 
-    def on_plot(self, evt):
+    def on_plot(self, _evt):
         """Plot data"""
         from copy import deepcopy
 
         heatmap_obj = deepcopy(self.heatmap_obj)
-        self.data_handling.on_process_heatmap(heatmap_obj)
-        self.panel_plot.view_heatmap.plot(obj=heatmap_obj)
+        heatmap_obj = self.data_handling.on_process_heatmap(heatmap_obj)
 
-    def on_add_to_document(self, evt):
+        if isinstance(heatmap_obj, MassSpectrumHeatmapObject):
+            self.panel_plot.view_msdt.plot(obj=heatmap_obj)
+        else:
+            self.panel_plot.view_heatmap.plot(obj=heatmap_obj)
+
+    def on_add_to_document(self, _evt):
         """Add data to document"""
         # get new, unique name for the object
         new_name = self.document.get_new_name(self.dataset_name, "processed")
@@ -402,7 +417,10 @@ class PanelProcessHeatmap(MiniFrame):
 
         # process and flush to disk
         heatmap_obj = self.data_handling.on_process_heatmap(heatmap_obj)
-        self.panel_plot.view_heatmap.plot(obj=heatmap_obj)
+        if isinstance(heatmap_obj, MassSpectrumHeatmapObject):
+            self.panel_plot.view_msdt.plot(obj=heatmap_obj)
+        else:
+            self.panel_plot.view_heatmap.plot(obj=heatmap_obj)
         heatmap_obj.flush()
 
         # notify document tree of changes
@@ -458,7 +476,7 @@ class PanelProcessHeatmap(MiniFrame):
         CONFIG.plot2D_process_threshold = self.baseline_check.GetValue()
         CONFIG.plot2D_normalize = self.normalize_check.GetValue()
 
-        CONFIG.plot2D_interpolate_fold = str2num(self.interpolate_fold.GetValue())
+        CONFIG.plot2D_interpolate_fold = str2int(self.interpolate_fold.GetValue())
         CONFIG.plot2D_interpolate_mode = self.interpolate_choice.GetStringSelection()
         CONFIG.plot2D_interpolate_xaxis = self.interpolate_xaxis.GetValue()
         CONFIG.plot2D_interpolate_yaxis = self.interpolate_yaxis.GetValue()

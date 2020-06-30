@@ -41,42 +41,40 @@ class DialogExportFigures(Dialog):
     save_btn = None
     cancel_btn = None
 
-    def __init__(self, parent, **kwargs):
+    def __init__(self, parent, image_axes_size=None, image_axes_inch=None, default_path=None):
         Dialog.__init__(self, parent, title="Export figures....")
 
         # get screen dpi
         self.screen_dpi = wx.ScreenDC().GetPPI()
         self._icons = Icons()
 
+        self.default_path = default_path
+
         self.make_gui()
         self.on_toggle_controls(None)
 
         # setup plot sizes
-        self.on_setup_plot_parameters(**kwargs)
+        self.on_setup_plot_parameters(image_axes_size=image_axes_size, image_axes_inch=image_axes_inch)
         self.on_apply_size_inch(None)
+        self.setup()
 
         # setup layout
-        self.CentreOnScreen()
+        self.CenterOnParent()
         self.Show(True)
         self.SetFocus()
 
-    def on_close(self, evt):
+    def setup(self):
+        """Setup GUI"""
+        if isinstance(self.default_path, str) and check_path_exists(self.default_path):
+            self.folder_path.SetLabel(self.default_path)
+
+    def on_close(self, evt, force: bool = False):
         """Destroy this frame"""
+        CONFIG.image_folder_path = None
         if self.IsModal():
             self.EndModal(wx.ID_NO)
         else:
             self.Destroy()
-
-    def on_key_event(self, evt):
-        """Catch key events"""
-        key_code = evt.GetKeyCode()
-
-        # exit window
-        if key_code == wx.WXK_ESCAPE:
-            self.on_close(evt=None)
-
-        if evt is not None:
-            evt.Skip()
 
     def make_panel(self):
         """Make panel"""
@@ -244,14 +242,18 @@ class DialogExportFigures(Dialog):
 
     def on_setup_plot_parameters(self, **kwargs):
         """Setup plot parameters"""
-        image_axes_size = kwargs.get("image_axes_size", CONFIG.image_axes_size)
+        image_axes_size = kwargs.get("image_axes_size", None)
+        if image_axes_size is None:
+            image_axes_size = CONFIG.image_axes_size
 
         self.left_export_value.SetValue(str(image_axes_size[0]))
         self.bottom_export_value.SetValue(str(image_axes_size[1]))
         self.width_export_value.SetValue(str(image_axes_size[2]))
         self.height_export_value.SetValue(str(image_axes_size[3]))
 
-        image_size_inch = kwargs.get("image_size_inch", CONFIG.image_size_inch)
+        image_size_inch = kwargs.get("image_size_inch", None)
+        if image_size_inch is None:
+            image_size_inch = CONFIG.image_size_inch
 
         self.width_inch_value.SetValue(str(image_size_inch[0]))
         self.height_inch_value.SetValue(str(image_size_inch[1]))

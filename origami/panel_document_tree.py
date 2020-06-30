@@ -435,6 +435,7 @@ class DocumentTree(wx.TreeCtrl):
         self._icons = Icons()
 
         self._item = Item()
+        self._item_id = None
         self._indent = None
 
         self.data_processing = None
@@ -1683,11 +1684,11 @@ class DocumentTree(wx.TreeCtrl):
         # export actions
         menu_action_save_image_as = make_menu_item(parent=menu, text="Save image as...", bitmap=self._icons.png)
         menu_action_save_image_as_all = make_menu_item(
-            parent=menu, text="Save images as... (all)", bitmap=self._icons.png
+            parent=menu, text="Batch save images as...", bitmap=self._icons.png
         )
 
         menu_action_save_data_as = make_menu_item(parent=menu, text="Save data as...", bitmap=self._icons.csv)
-        menu_action_save_data_as_all = make_menu_item(parent=menu, text="Save data as... (all)", bitmap=self._icons.csv)
+        menu_action_save_data_as_all = make_menu_item(parent=menu, text="Batch save data as...", bitmap=self._icons.csv)
         menu_action_delete_item = make_menu_item(parent=menu, text="Delete item\tDelete", bitmap=self._icons.delete)
 
         # bind events
@@ -1701,6 +1702,8 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_save_csv, menu_action_save_data_as)
         self.Bind(wx.EVT_MENU, self.on_save_csv_all, menu_action_save_data_as_all)
         self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
+        self.Bind(wx.EVT_MENU, self.on_batch_export_figures, menu_action_save_image_as_all)
+        self.Bind(wx.EVT_MENU, self.on_batch_export_data, menu_action_save_data_as_all)
 
         # append menu
         if self._item.indent == 2:
@@ -1743,9 +1746,9 @@ class DocumentTree(wx.TreeCtrl):
         )
         menu_action_save_data_as = make_menu_item(parent=menu, text="Save data as...", bitmap=self._icons.csv)
         menu_action_save_image_as_all = make_menu_item(
-            parent=menu, text="Save images as... (all)", bitmap=self._icons.png
+            parent=menu, text="Batch save images as...", bitmap=self._icons.png
         )
-        menu_action_save_data_as_all = make_menu_item(parent=menu, text="Save data as... (all)", bitmap=self._icons.csv)
+        menu_action_save_data_as_all = make_menu_item(parent=menu, text="Batch save data as...", bitmap=self._icons.csv)
         menu_action_delete_item = make_menu_item(parent=menu, text="Delete item\tDelete", bitmap=self._icons.delete)
 
         # bind event
@@ -1754,6 +1757,8 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, partial(self.on_show_plot_chromatogram, True), menu_action_save_chromatogram_image_as)
         self.Bind(wx.EVT_MENU, self.on_save_csv_all, menu_action_save_data_as_all)
         self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
+        self.Bind(wx.EVT_MENU, self.on_batch_export_figures, menu_action_save_image_as_all)
+        self.Bind(wx.EVT_MENU, self.on_batch_export_data, menu_action_save_data_as_all)
 
         if self._item.indent == 2:
             menu.AppendItem(menu_action_save_image_as_all)
@@ -1794,9 +1799,9 @@ class DocumentTree(wx.TreeCtrl):
         )
         menu_action_save_data_as = make_menu_item(parent=menu, text="Save data as...", bitmap=self._icons.csv)
         menu_action_save_image_as_all = make_menu_item(
-            parent=menu, text="Save images as... (all)", bitmap=self._icons.png
+            parent=menu, text="Batch save images as...", bitmap=self._icons.png
         )
-        menu_action_save_data_as_all = make_menu_item(parent=menu, text="Save data as... (all)", bitmap=self._icons.csv)
+        menu_action_save_data_as_all = make_menu_item(parent=menu, text="Batch save data as...", bitmap=self._icons.csv)
 
         # bind events
         self.Bind(wx.EVT_MENU, self.on_show_plot_mobilogram, menu_action_show_plot_mobilogram)
@@ -1804,6 +1809,8 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_save_csv, menu_action_save_data_as)
         self.Bind(wx.EVT_MENU, self.on_save_csv_all, menu_action_save_data_as_all)
         self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
+        self.Bind(wx.EVT_MENU, self.on_batch_export_figures, menu_action_save_image_as_all)
+        self.Bind(wx.EVT_MENU, self.on_batch_export_data, menu_action_save_data_as_all)
 
         # make menu
         if self._item.indent == 2:
@@ -1859,9 +1866,9 @@ class DocumentTree(wx.TreeCtrl):
         menu_action_save_heatmap_image_as = make_menu_item(parent=menu, text="Save image as...", bitmap=self._icons.png)
         menu_action_save_2d_data_as = make_menu_item(parent=menu, text="Save data as...", bitmap=self._icons.csv)
         menu_action_save_image_as_all = make_menu_item(
-            parent=menu, text="Save images as... (all)", bitmap=self._icons.png
+            parent=menu, text="Batch save images as...", bitmap=self._icons.png
         )
-        menu_action_save_data_as_all = make_menu_item(parent=menu, text="Save data as... (all)", bitmap=self._icons.csv)
+        menu_action_save_data_as_all = make_menu_item(parent=menu, text="Batch save data as...", bitmap=self._icons.csv)
 
         # bind events
         self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap, menu_action_show_plot_2d)
@@ -1876,6 +1883,8 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_save_csv, menu_action_save_2d_data_as)
         self.Bind(wx.EVT_MENU, self.on_save_csv_all, menu_action_save_data_as_all)
         self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
+        self.Bind(wx.EVT_MENU, self.on_batch_export_figures, menu_action_save_image_as_all)
+        self.Bind(wx.EVT_MENU, self.on_batch_export_data, menu_action_save_data_as_all)
 
         # make menu
         if self._item.indent == 2:
@@ -1926,9 +1935,9 @@ class DocumentTree(wx.TreeCtrl):
         menu_action_save_image_as = make_menu_item(parent=menu, text="Save image as...", bitmap=self._icons.png)
         menu_action_save_data_as = make_menu_item(parent=menu, text="Save data as...", bitmap=self._icons.csv)
         menu_action_save_image_as_all = make_menu_item(
-            parent=menu, text="Save images as... (all)", bitmap=self._icons.png
+            parent=menu, text="Batch save images as...", bitmap=self._icons.png
         )
-        menu_action_save_data_as_all = make_menu_item(parent=menu, text="Save data as... (all)", bitmap=self._icons.csv)
+        menu_action_save_data_as_all = make_menu_item(parent=menu, text="Batch save data as...", bitmap=self._icons.csv)
 
         # bind events
         self.Bind(wx.EVT_MENU, self.on_show_plot_dtms, menu_action_show_plot_2d)
@@ -1938,9 +1947,13 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_save_csv, menu_action_save_data_as)
         self.Bind(wx.EVT_MENU, self.on_save_csv_all, menu_action_save_data_as_all)
         self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
+        self.Bind(wx.EVT_MENU, self.on_batch_export_figures, menu_action_save_image_as_all)
+        self.Bind(wx.EVT_MENU, self.on_batch_export_data, menu_action_save_data_as_all)
 
         # make menu
         if self._item.indent == 2:
+            menu.AppendItem(menu_action_process_2d_all)
+            menu.AppendSeparator()
             menu.AppendItem(menu_action_save_image_as_all)
             menu.AppendItem(menu_action_save_data_as_all)
             menu.AppendItem(menu_action_delete_item)
@@ -1950,7 +1963,6 @@ class DocumentTree(wx.TreeCtrl):
             menu.AppendItem(menu_action_show_plot_2d)
             menu.AppendSeparator()
             menu.AppendItem(menu_action_process_2d)
-            menu.AppendItem(menu_action_process_2d_all)
             menu.AppendSeparator()
             menu.AppendItem(
                 make_menu_item(
@@ -2140,6 +2152,7 @@ class DocumentTree(wx.TreeCtrl):
             self._set_menu_msdt(menu)
 
         # elements that are always present
+        menu.AppendSeparator()
         self._set_menu_actions(menu)
         self._set_menu_load_data(menu)
 
@@ -2446,8 +2459,7 @@ class DocumentTree(wx.TreeCtrl):
         """Process all clicked heatmap items"""
         from origami.gui_elements.dialog_review_editor import DialogReviewProcessHeatmap
 
-        item_list = self.data_handling.generate_item_list_heatmap("simple_list")
-        document_title = ENV.current
+        item_list = self.on_get_item_list()
 
         dlg = DialogReviewProcessHeatmap(self.view, item_list[ENV.current], document_tree=self)
         dlg.ShowModal()
@@ -2460,15 +2472,18 @@ class DocumentTree(wx.TreeCtrl):
             return
 
         # get document
+        document_title = ENV.current
         document = ENV.on_get_document(document_title)
 
         # iterate over each object in the list and process it while also adding it to the document
         for heatmap_name in output_list:
+            t_start = time.time()
             new_name = document.get_new_name(heatmap_name, "processed")
             new_name, heatmap_obj = document[heatmap_name, True].copy(new_name=new_name)
             heatmap_obj = self.data_handling.on_process_heatmap(heatmap_obj)
             heatmap_obj.flush()
             self.on_update_document(heatmap_obj.DOCUMENT_KEY, new_name.split("/")[-1], document_title)
+            LOGGER.info(f"Processed heatmap in {report_time(t_start)} (new={new_name})")
 
     def on_open_process_ms_settings(self, **kwargs):
         """Open mass spectrum processing settings"""
@@ -2499,6 +2514,7 @@ class DocumentTree(wx.TreeCtrl):
 
         # get list of items that were selected
         output_list = dlg.output_list
+        dlg.Destroy()
 
         if not output_list:
             LOGGER.warning("Processing list was empty")
@@ -2509,11 +2525,106 @@ class DocumentTree(wx.TreeCtrl):
 
         # iterate over each object in the list and process it while also adding it to the document
         for spectrum_name in output_list:
+            t_start = time.time()
             new_name = document.get_new_name(spectrum_name, "processed")
             new_name, mz_obj = document[spectrum_name, True].copy(new_name=new_name)
             mz_obj = self.data_handling.on_process_ms(mz_obj)
             mz_obj.flush()
             self.on_update_document(mz_obj.DOCUMENT_KEY, new_name.split("/")[-1], document_title)
+            LOGGER.info(f"Processed mass spectrum {report_time(t_start)} (new={new_name})")
+
+    def on_batch_export_figures(self, _evt):
+        """Export images in batch"""
+        from origami.gui_elements.dialog_review_editor import DialogReviewExportFigures
+        from origami.gui_elements.dialog_batch_figure_exporter import DialogExportFigures
+
+        # get information from the user which files should be exported as figures
+        item_list = self.on_get_item_list()
+        dlg = DialogReviewExportFigures(self.view, item_list[ENV.current], document_tree=self)
+        dlg.ShowModal()
+
+        # get list of items that were selected
+        output_list = dlg.output_list
+        dlg.Destroy()
+
+        if not output_list:
+            LOGGER.warning("Output list was empty - cancelled export action.")
+            return
+
+        # get information from the user about the image export parameters
+        document = ENV.on_get_document()
+        dlg = DialogExportFigures(self.view, default_path=document.output_path)
+        dlg.ShowModal()
+
+        path = CONFIG.image_folder_path
+        if path is None or not os.path.exists(path):
+            LOGGER.error("Export path does not exist")
+            return
+
+        # iterate over each object in the list and process it while also adding it to the document
+        for obj_name in output_list:
+            t_start = time.time()
+            obj = document[obj_name, True]
+            output_path = os.path.join(path, obj_name.split("/")[-1]) + f".{CONFIG.imageFormat}"
+
+            view = self.panel_plot.on_plot_data_object(obj)
+            view.save_figure(path=output_path)
+            LOGGER.info(f"Saved figure in {report_time(t_start)} (path={output_path})")
+
+    def on_batch_export_data(self, _evt):
+        """Export data in batch"""
+        from origami.gui_elements.dialog_review_editor import DialogReviewExportFigures
+        from origami.gui_elements.dialog_batch_data_exporter import DialogExportData
+
+        # get information from the user which files should be exported as figures
+        item_list = self.on_get_item_list()
+        dlg = DialogReviewExportFigures(self.view, item_list[ENV.current], document_tree=self)
+        dlg.ShowModal()
+
+        # get list of items that were selected
+        output_list = dlg.output_list
+        dlg.Destroy()
+
+        if not output_list:
+            LOGGER.warning("Output list was empty - cancelled export action.")
+            return
+
+        # get information from the user about the image export parameters
+        document = ENV.on_get_document()
+        dlg = DialogExportData(self.view, default_path=document.output_path)
+        dlg.ShowModal()
+
+        path = CONFIG.data_folder_path
+        if path is None or not os.path.exists(path):
+            LOGGER.error("Export path does not exist")
+            return
+
+        # iterate over each object in the list and export it to a text file
+        for obj_name in output_list:
+            t_start = time.time()
+            obj = document[obj_name, True]
+            output_path = os.path.join(path, obj_name.split("/")[-1]) + CONFIG.saveExtension
+            obj.to_csv(
+                path=output_path,
+                delimiter=CONFIG.saveDelimiter,
+                # remove_zeros
+            )
+            LOGGER.info(f"Saved data in {report_time(t_start)} (path={output_path})")
+
+    def on_get_item_list(self):
+        """Return list of items that can be inserted in a review panel"""
+        item_list = []
+        if self._item.is_match("heatmap", True):
+            item_list = self.data_handling.generate_item_list_heatmap("simple_list")
+        elif self._item.is_match("spectrum", True):
+            item_list = self.data_handling.generate_item_list_mass_spectra("simple_list")
+        elif self._item.is_match("mobilogram", True):
+            item_list = self.data_handling.generate_item_list_mobilogram("simple_list")
+        elif self._item.is_match("chromatogram", True):
+            item_list = self.data_handling.generate_item_list_chromatogram("simple_list")
+        elif self._item.is_match("msdt", True):
+            item_list = self.data_handling.generate_item_list_msdt("simple_list")
+        return item_list
 
     def onDuplicateItem(self, evt):
         raise NotImplementedError("Must implement method")

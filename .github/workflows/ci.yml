@@ -6,7 +6,7 @@ jobs:
   style:
     runs-on: ubuntu-latest
     name: "Verify code style"
-
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@master
       - name: Set up Python
@@ -31,7 +31,7 @@ jobs:
       matrix:
         python-version: [3.7] #, 3.8]  # wxpython for linux 3.8 is not available yet
         os: [ubuntu-latest, windows-latest] #, macOS-latest]  # some bug in macOS version I don't care to investigate yet
-
+    timeout-minutes: 20
     runs-on: ${{ matrix.os }}
     name: "Tests"
 
@@ -68,6 +68,7 @@ jobs:
   coverage:
     name: "Coverage"
     runs-on: windows-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@master
       - name: Set up Python

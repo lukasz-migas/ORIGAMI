@@ -26,6 +26,7 @@ from origami.utils.converters import str2int
 from origami.utils.converters import str2num
 from origami.utils.exceptions import MessageError
 from origami.objects.containers import MassSpectrumObject
+from origami.gui_elements.panel_base import DatasetMixin
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.processing.feature.mz_picker import MassSpectrumBasePicker
 from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
@@ -33,7 +34,7 @@ from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
 logger = logging.getLogger(__name__)
 
 
-class PanelPeakPicker(MiniFrame):
+class PanelPeakPicker(MiniFrame, DatasetMixin):
     """Peak picking panel"""
 
     # module specific parameters
@@ -150,25 +151,8 @@ class PanelPeakPicker(MiniFrame):
         self.process_btn.Bind(wx.EVT_BUTTON, self.on_open_process_ms_settings)
         if self.PUB_SUBSCRIBE_EVENT:
             pub.subscribe(self.on_process, self.PUB_SUBSCRIBE_EVENT)
-        if self.PUB_DELETE_ITEM_EVENT:
-            pub.subscribe(self._evt_delete_item, self.PUB_DELETE_ITEM_EVENT)
 
-    def _evt_delete_item(self, info):
-        """Triggered when document is deleted"""
-        document_title, dataset_name = info
-
-        if document_title == self.document_title:
-            if dataset_name is not None:
-                if not self.dataset_name.startswith(dataset_name) and dataset_name != self.dataset_name:
-                    return
-
-            DialogBox(
-                title="Dataset was deleted.",
-                msg="The mass spectrum that is shown in this window has been deleted, therefore, "
-                "this window will close too",
-                kind="Error",
-            )
-            self.on_close(None)
+        self._dataset_mixin_setup()
 
     @property
     def data_handling(self):
@@ -248,9 +232,9 @@ class PanelPeakPicker(MiniFrame):
         ), "Incorrect data type was being set to the `mz_picker_tmp` attribute"
         self._mz_picker_filter = value
 
-    def on_close(self, evt):
+    def on_close(self, evt, force: bool = False):
         """Close window"""
-        if self.mz_picker is not None:
+        if self.mz_picker is not None and not force:
             dlg = DialogBox(
                 title="Would you like to continue?",
                 msg="There is a cached peak-picker in this window. Closing the window will remove it."
@@ -263,10 +247,10 @@ class PanelPeakPicker(MiniFrame):
         try:
             if self.PUB_SUBSCRIBE_EVENT:
                 pub.unsubscribe(self.on_process, self.PUB_SUBSCRIBE_EVENT)
-            if self.PUB_DELETE_ITEM_EVENT:
-                pub.unsubscribe(self._evt_delete_item, self.PUB_DELETE_ITEM_EVENT)
         except TopicNameError:
             pass
+
+        self._dataset_mixin_teardown()
 
         try:
             self.document_tree._picker_panel = None

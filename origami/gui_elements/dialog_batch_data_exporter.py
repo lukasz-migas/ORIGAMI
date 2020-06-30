@@ -26,18 +26,28 @@ class DialogExportData(Dialog):
     save_btn = None
     cancel_btn = None
 
-    def __init__(self, parent):
+    def __init__(self, parent, default_path=None):
         Dialog.__init__(self, parent, title="Export data....")
         self._icons = Icons()
+
+        self.default_path = default_path
+
         self.make_gui()
+        self.setup()
 
         # setup layout
-        self.CentreOnScreen()
+        self.CentreOnParent()
         self.Show(True)
         self.SetFocus()
 
-    def on_close(self, evt):
+    def setup(self):
+        """Setup GUI"""
+        if isinstance(self.default_path, str) and check_path_exists(self.default_path):
+            self.folder_path.SetLabel(self.default_path)
+
+    def on_close(self, evt, force: bool = False):
         """Destroy this frame"""
+        CONFIG.data_folder_path = None
         if self.IsModal():
             self.EndModal(wx.ID_NO)
         else:

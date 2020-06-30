@@ -1,8 +1,6 @@
 """Plotting panel"""
 # Standard library imports
-import os
 import math
-import time
 import logging
 
 # Third-party imports
@@ -16,8 +14,6 @@ from natsort import natsorted
 
 # Local imports
 import origami.processing.UniDec.utilities as unidec_utils
-
-# from origami.ids import ID_pickMSpeaksDocument
 from origami.ids import ID_save1DImage
 from origami.ids import ID_save2DImage
 from origami.ids import ID_save3DImage
@@ -29,15 +25,12 @@ from origami.ids import ID_clearPlot_3D
 from origami.ids import ID_clearPlot_MS
 from origami.ids import ID_clearPlot_RT
 from origami.ids import ID_saveMZDTImage
-from origami.ids import ID_saveRMSDImage
-from origami.ids import ID_saveRMSFImage
 from origami.ids import ID_clearPlot_MZDT
 from origami.ids import ID_clearPlot_RMSD
 from origami.ids import ID_clearPlot_RMSF
 from origami.ids import ID_plots_rotate90
 from origami.ids import ID_save1DImageDoc
 from origami.ids import ID_save2DImageDoc
-from origami.ids import ID_save3DImageDoc
 from origami.ids import ID_saveMSImageDoc
 from origami.ids import ID_saveOtherImage
 from origami.ids import ID_saveRTImageDoc
@@ -49,19 +42,13 @@ from origami.ids import ID_smooth1Ddata1DT
 from origami.ids import ID_clearPlot_Matrix
 from origami.ids import ID_plotPanel_resize
 from origami.ids import ID_saveMZDTImageDoc
-from origami.ids import ID_saveOverlayImage
-from origami.ids import ID_saveRMSDImageDoc
-from origami.ids import ID_saveRMSFImageDoc
 from origami.ids import ID_clearPlot_Overlay
-from origami.ids import ID_saveOtherImageDoc
 from origami.ids import ID_clearPlot_Watefall
 from origami.ids import ID_plotPanel_lockPlot
 from origami.ids import ID_saveCompareMSImage
 from origami.ids import ID_saveWaterfallImage
 from origami.ids import ID_clearPlot_UniDec_MS
 from origami.ids import ID_clearPlot_Waterfall
-from origami.ids import ID_saveOverlayImageDoc
-from origami.ids import ID_saveRMSDmatrixImage
 from origami.ids import ID_extraSettings_legend
 from origami.ids import ID_extraSettings_plot1D
 from origami.ids import ID_extraSettings_plot2D
@@ -70,9 +57,7 @@ from origami.ids import ID_extraSettings_violin
 from origami.ids import ID_highlightRectAllIons
 from origami.ids import ID_plots_customise_plot
 from origami.ids import ID_clearPlot_Calibration
-from origami.ids import ID_saveWaterfallImageDoc
 from origami.ids import ID_extraSettings_colorbar
-from origami.ids import ID_saveRMSDmatrixImageDoc
 from origami.ids import ID_clearPlot_UniDec_mwGrid
 from origami.ids import ID_clearPlot_UniDec_mzGrid
 from origami.ids import ID_extraSettings_waterfall
@@ -93,12 +78,19 @@ from origami.utils.color import get_random_color
 from origami.utils.color import convert_rgb_1_to_255
 from origami.utils.color import convert_rgb_1_to_hex
 from origami.utils.exceptions import MessageError
+from origami.objects.containers import DataObject
+from origami.objects.containers import IonHeatmapObject
+from origami.objects.containers import MobilogramObject
+from origami.objects.containers import ChromatogramObject
+from origami.objects.containers import MassSpectrumObject
+from origami.objects.containers import MassSpectrumHeatmapObject
 from origami.visuals.mpl.normalize import MidpointNormalize
 from origami.visuals.mpl.plot_misc import PlotMixed
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.visuals.mpl.plot_spectrum import PlotSpectrum
 from origami.visuals.mpl.plot_heatmap_2d import PlotHeatmap2D
 from origami.visuals.mpl.plot_heatmap_3d import PlotHeatmap3D
+from origami.gui_elements.views.view_base import ViewBase
 from origami.gui_elements.views.view_heatmap import ViewIonHeatmap
 from origami.gui_elements.views.view_heatmap import ViewMassSpectrumHeatmap
 from origami.gui_elements.views.view_spectrum import ViewMobilogram
@@ -991,77 +983,78 @@ class PanelPlots(wx.Panel):
             logger.error(f"Could not find path {path}")
             return
 
+        plotWindow = None
         # Select default name + link to the plot
         if evtID in [ID_saveMSImage, ID_saveMSImageDoc, "ms"]:
             image_name = self.config._plotSettings["MS"]["default_name"]
             resizeName = "MS"
-            plotWindow = self.plot_ms
+            plotWindow = self.view_ms
 
-        # Select default name + link to the plot
-        elif evtID in [ID_saveCompareMSImage]:
-            image_name = self.config._plotSettings["MS (compare)"]["default_name"]
-            resizeName = "MS (compare)"
-            plotWindow = self.plot_ms
+        #         # Select default name + link to the plot
+        #         elif evtID in [ID_saveCompareMSImage]:
+        #             image_name = self.config._plotSettings["MS (compare)"]["default_name"]
+        #             resizeName = "MS (compare)"
+        #             plotWindow = self.plot_ms
 
         elif evtID in [ID_saveRTImage, ID_saveRTImageDoc, "rt", "chromatogram"]:
             image_name = self.config._plotSettings["RT"]["default_name"]
             resizeName = "RT"
-            plotWindow = self.plot_rt_rt
+            plotWindow = self.view_rt_rt
 
         elif evtID in [ID_save1DImage, ID_save1DImageDoc, "1d", "mobilogram"]:
             image_name = self.config._plotSettings["DT"]["default_name"]
             resizeName = "DT"
-            plotWindow = self.plot_dt_dt
+            plotWindow = self.view_dt_dt
 
         elif evtID in [ID_save2DImage, ID_save2DImageDoc, "2d", "heatmap"]:
-            plotWindow = self.plot_heatmap
             image_name = self.config._plotSettings["2D"]["default_name"]
             resizeName = "2D"
+            plotWindow = self.view_heatmap
 
-        elif evtID in [ID_save3DImage, ID_save3DImageDoc, "3d", "heatmap (3d)"]:
-            image_name = self.config._plotSettings["3D"]["default_name"]
-            resizeName = "3D"
-            plotWindow = self.plot_heatmap_3d
-
-        elif evtID in [ID_saveWaterfallImage, ID_saveWaterfallImageDoc, "waterfall"]:
-            plotWindow = self.plot_overlay
-            if plotWindow.plot_name == "Violin":
-                image_name = self.config._plotSettings["Violin"]["default_name"]
-                resizeName = "Violin"
-            else:
-                image_name = self.config._plotSettings["Waterfall"]["default_name"]
-                resizeName = "Waterfall"
+        #         elif evtID in [ID_save3DImage, ID_save3DImageDoc, "3d", "heatmap (3d)"]:
+        #             image_name = self.config._plotSettings["3D"]["default_name"]
+        #             resizeName = "3D"
+        #             plotWindow = self.plot_heatmap_3d
+        #         elif evtID in [ID_saveWaterfallImage, ID_saveWaterfallImageDoc, "waterfall"]:
+        #             plotWindow = self.plot_overlay
+        #             if plotWindow.plot_name == "Violin":
+        #                 image_name = self.config._plotSettings["Violin"]["default_name"]
+        #                 resizeName = "Violin"
+        #             else:
+        #                 image_name = self.config._plotSettings["Waterfall"]["default_name"]
+        #                 resizeName = "Waterfall"
 
         elif evtID in [ID_saveMZDTImage, ID_saveMZDTImageDoc, "ms/dt"]:
             image_name = self.config._plotSettings["DT/MS"]["default_name"]
             resizeName = "DT/MS"
-            plotWindow = self.plot_msdt
+            plotWindow = self.view_msdt
 
-        elif evtID in [ID_saveOverlayImage, ID_saveOverlayImageDoc, "mask", "transparent"]:
-            plotWindow = self.plot_annotated
-            image_name = plotWindow.get_plot_name()
-            resizeName = "Overlay"
+        #         elif evtID in [ID_saveOverlayImage, ID_saveOverlayImageDoc, "mask", "transparent"]:
+        #             plotWindow = self.plot_annotated
+        #             image_name = plotWindow.get_plot_name()
+        #             resizeName = "Overlay"
 
-        elif evtID in [ID_saveRMSDmatrixImage, ID_saveRMSDmatrixImageDoc, "matrix"]:
-            image_name = self.config._plotSettings["Matrix"]["default_name"]
-            resizeName = "Matrix"
-            plotWindow = self.plot_annotated
-
-        elif evtID in [ID_saveRMSDImage, ID_saveRMSDImageDoc, ID_saveRMSFImage, ID_saveRMSFImageDoc, "rmsd", "rmsf"]:
-            plotWindow = self.plot_annotated
-            image_name = self.config._plotSettings["RMSD"]["default_name"]
-            resizeName = plotWindow.get_plot_name()
-
-        elif evtID in [ID_saveOtherImageDoc, ID_saveOtherImage, "overlay", "other"]:
-            image_name = "custom_plot"
-            resizeName = None
-            plotWindow = self.plot_annotated
-
-        elif evtID is None and "plot_obj" in save_kwargs:
-            image_name = save_kwargs.get("image_name")
-            resizeName = None
-            plotWindow = save_kwargs.pop("plot_obj")
-
+        #         elif evtID in [ID_saveRMSDmatrixImage, ID_saveRMSDmatrixImageDoc, "matrix"]:
+        #             image_name = self.config._plotSettings["Matrix"]["default_name"]
+        #             resizeName = "Matrix"
+        #             plotWindow = self.plot_annotated
+        #
+        #         elif evtID in [ID_saveRMSDImage, ID_saveRMSDImageDoc, ID_saveRMSFImage, ID_saveRMSFImageDoc,
+        #         "rmsd", "rmsf"]:
+        #             plotWindow = self.plot_annotated
+        #             image_name = self.config._plotSettings["RMSD"]["default_name"]
+        #             resizeName = plotWindow.get_plot_name()
+        #
+        #         elif evtID in [ID_saveOtherImageDoc, ID_saveOtherImage, "overlay", "other"]:
+        #             image_name = "custom_plot"
+        #             resizeName = None
+        #             plotWindow = self.plot_annotated
+        #
+        #         elif evtID is None and "plot_obj" in save_kwargs:
+        #             image_name = save_kwargs.get("image_name")
+        #             resizeName = None
+        #             plotWindow = save_kwargs.pop("plot_obj")
+        #
         # generate a better default name and remove any silly characters
         if "image_name" in save_kwargs:
             image_name = save_kwargs.pop("image_name")
@@ -1070,55 +1063,60 @@ class PanelPlots(wx.Panel):
         else:
             image_name = "{}_{}".format(title, image_name)
         image_name = clean_filename(image_name)
+        #
+        #         # Setup filename
+        #         wildcard = (
+        #             "SVG Scalable Vector Graphic (*.svg)|*.svg|"
+        #             + "SVGZ Compressed Scalable Vector Graphic (*.svgz)|*.svgz|"
+        #             + "PNG Portable Network Graphic (*.png)|*.png|"
+        #             + "Enhanced Windows Metafile (*.eps)|*.eps|"
+        #             + "JPEG File Interchange Format (*.jpeg)|*.jpeg|"
+        #             + "TIFF Tag Image File Format (*.tiff)|*.tiff|"
+        #             + "RAW Image File Format (*.raw)|*.raw|"
+        #             + "PS PostScript Image File Format (*.ps)|*.ps|"
+        #             + "PDF Portable Document Format (*.pdf)|*.pdf"
+        #         )
+        #
+        #         wildcard_dict = {"svg": 0, "svgz": 1, "png": 2, "eps": 3, "jpeg": 4, "tiff": 5, "raw": 6,
+        #         "ps": 7, "pdf": 8}
+        #
+        #         dlg = wx.FileDialog(self, "Save as...", "", "",
+        #         wildcard=wildcard, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        #         dlg.CentreOnParent()
+        #         dlg.SetFilename(image_name)
+        #         try:
+        #             dlg.SetFilterIndex(wildcard_dict[self.config.imageFormat])
+        #         except Exception:
+        #             logger.error("Could not set image format")
+        #
+        #         if dlg.ShowModal() == wx.ID_OK:
+        #             tstart = time.clock()
+        #             filename = dlg.GetPath()
+        #             __, extension = os.path.splitext(filename)
+        #             self.config.imageFormat = extension[1::]
+        #
+        #             # build kwargs
+        #             kwargs = {
+        #                 "transparent": self.config.transparent,
+        #                 "dpi": self.config.dpi,
+        #                 "format": extension[1::],
+        #                 "compression": "zlib",
+        #                 "resize": None,
+        #                 "tight": self.config.image_tight,
+        #             }
+        #
+        #             if self.config.resize:
+        #                 kwargs["resize"] = resizeName
+        #
+        #             plotWindow.save_figure(path=filename, **kwargs)
+        #
+        #             logger.info(f"Saved figure `{path}` in {ttime()-tstart:.2f}s")
+        #             return
 
-        # Setup filename
-        wildcard = (
-            "SVG Scalable Vector Graphic (*.svg)|*.svg|"
-            + "SVGZ Compressed Scalable Vector Graphic (*.svgz)|*.svgz|"
-            + "PNG Portable Network Graphic (*.png)|*.png|"
-            + "Enhanced Windows Metafile (*.eps)|*.eps|"
-            + "JPEG File Interchange Format (*.jpeg)|*.jpeg|"
-            + "TIFF Tag Image File Format (*.tiff)|*.tiff|"
-            + "RAW Image File Format (*.raw)|*.raw|"
-            + "PS PostScript Image File Format (*.ps)|*.ps|"
-            + "PDF Portable Document Format (*.pdf)|*.pdf"
-        )
+        if plotWindow is None:
+            raise ValueError("Could not save figure")
 
-        wildcard_dict = {"svg": 0, "svgz": 1, "png": 2, "eps": 3, "jpeg": 4, "tiff": 5, "raw": 6, "ps": 7, "pdf": 8}
-
-        dlg = wx.FileDialog(self, "Save as...", "", "", wildcard=wildcard, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-        dlg.CentreOnParent()
-        dlg.SetFilename(image_name)
-        try:
-            dlg.SetFilterIndex(wildcard_dict[self.config.imageFormat])
-        except Exception:
-            logger.error("Could not set image format")
-
-        if dlg.ShowModal() == wx.ID_OK:
-            tstart = time.clock()
-            filename = dlg.GetPath()
-            __, extension = os.path.splitext(filename)
-            self.config.imageFormat = extension[1::]
-
-            # build kwargs
-            kwargs = {
-                "transparent": self.config.transparent,
-                "dpi": self.config.dpi,
-                "format": extension[1::],
-                "compression": "zlib",
-                "resize": None,
-                "tight": self.config.image_tight,
-            }
-
-            if self.config.resize:
-                kwargs["resize"] = resizeName
-
-            plotWindow.save_figure(path=filename, **kwargs)
-
-            logger.info(f"Saved figure `{path}` in {ttime()-tstart:.2f}s")
-            return
-
-        logger.warning("Image saving operation was cancelled")
+        plotWindow.save_figure(image_name)
 
     def on_open_peak_picker(self, evt):
         plot_obj = self.get_plot_from_name("MS")
@@ -4371,3 +4369,36 @@ class PanelPlots(wx.Panel):
                 self.plot_heatmap_3d.repaint()
             except AttributeError:
                 pass
+
+    def on_plot_data_object(self, data_obj: DataObject) -> ViewBase:
+        """Plot data based on which data object it is
+
+        Parameters
+        ----------
+        data_obj : DataObject
+            container object that needs to be plotted
+
+        Returns
+        -------
+        view : ViewBase
+            viewer object
+        """
+        if isinstance(data_obj, MassSpectrumObject):
+            self.view_ms.plot(obj=data_obj)
+            return self.view_ms
+
+        elif isinstance(data_obj, ChromatogramObject):
+            self.view_rt_rt.plot(obj=data_obj)
+            return self.view_rt_rt
+
+        elif isinstance(data_obj, MobilogramObject):
+            self.view_dt_dt.plot(obj=data_obj)
+            return self.view_dt_dt
+
+        elif isinstance(data_obj, MassSpectrumHeatmapObject):
+            self.view_msdt.plot(obj=data_obj)
+            return self.view_msdt
+
+        elif isinstance(data_obj, IonHeatmapObject):
+            self.view_heatmap.plot(obj=data_obj)
+            return self.view_heatmap

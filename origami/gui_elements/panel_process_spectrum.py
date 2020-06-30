@@ -14,11 +14,12 @@ from origami.config.config import CONFIG
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
 from origami.objects.containers import MassSpectrumObject
+from origami.gui_elements.panel_base import DatasetMixin
 
 logger = logging.getLogger(__name__)
 
 
-class PanelProcessMassSpectrum(MiniFrame):
+class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
     """Mass spectrum processing panel"""
 
     # panel settings
@@ -117,8 +118,7 @@ class PanelProcessMassSpectrum(MiniFrame):
             self.Bind(wx.EVT_TIMER, self.on_update_widget, self._timer)
 
         self.make_gui()
-        self.on_toggle_controls(None)
-        self.on_update_info()
+        self.setup()
 
         # setup layout
         self.CentreOnScreen()
@@ -139,6 +139,17 @@ class PanelProcessMassSpectrum(MiniFrame):
     def document_tree(self):
         """Return handle to `document_tree`"""
         return self.presenter.view.panelDocuments.documents
+
+    def setup(self):
+        """Setup UI"""
+        self.on_toggle_controls(None)
+        self.on_update_info()
+        self._dataset_mixin_setup()
+
+    def on_close(self, evt, force: bool = False):
+        """Overwrite close"""
+        self._dataset_mixin_teardown()
+        super(PanelProcessMassSpectrum, self).on_close(evt, force)
 
     def on_key_event(self, evt):
         """Trigger event based on keyboard input"""

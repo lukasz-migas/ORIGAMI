@@ -312,53 +312,62 @@ class ViewBase(ABC):
         """Copy plot to clipboard"""
         return self.figure.copy_to_clipboard()
 
-    def save_figure(self, filename, **kwargs):
+    def save_figure(self, filename="", path=None, **kwargs):
         """Export figure"""
-        # setup file dialog
-        wildcard = (
-            "SVG Scalable Vector Graphic (*.svg)|*.svg|"
-            + "SVGZ Compressed Scalable Vector Graphic (*.svgz)|*.svgz|"
-            + "PNG Portable Network Graphic (*.png)|*.png|"
-            + "Enhanced Windows Metafile (*.eps)|*.eps|"
-            + "JPEG File Interchange Format (*.jpeg)|*.jpeg|"
-            + "TIFF Tag Image File Format (*.tiff)|*.tiff|"
-            + "RAW Image File Format (*.raw)|*.raw|"
-            + "PS PostScript Image File Format (*.ps)|*.ps|"
-            + "PDF Portable Document Format (*.pdf)|*.pdf"
+
+        def _get_path():
+            # setup file dialog
+            wildcard = (
+                "PNG Portable Network Graphic (*.png)|*.png|"
+                + "Enhanced Windows Metafile (*.eps)|*.eps|"
+                + "JPEG File Interchange Format (*.jpeg)|*.jpeg|"
+                + "TIFF Tag Image File Format (*.tiff)|*.tiff|"
+                + "RAW Image File Format (*.raw)|*.raw|"
+                + "PS PostScript Image File Format (*.ps)|*.ps|"
+                + "PDF Portable Document Format (*.pdf)|*.pdf"
+                + "SVG Scalable Vector Graphic (*.svg)|*.svg|"
+                + "SVGZ Compressed Scalable Vector Graphic (*.svgz)|*.svgz|"
+            )
+
+            wildcard_dict = {"png": 0, "eps": 1, "jpeg": 2, "tiff": 3, "raw": 4, "ps": 5, "pdf": 6, "svg": 7, "svgz": 8}
+
+            dlg = wx.FileDialog(
+                self.parent, "Save as...", "", "", wildcard=wildcard, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
+            )
+            dlg.CentreOnParent()
+            dlg.SetFilename(filename)
+            try:
+                dlg.SetFilterIndex(wildcard_dict[CONFIG.imageFormat])
+            except Exception:
+                LOGGER.error("Could not set image format")
+
+            _path = None
+            if dlg.ShowModal() == wx.ID_OK:
+                _path = dlg.GetPath()
+                __, extension = os.path.splitext(_path)
+                CONFIG.imageFormat = extension[1::]
+            dlg.Destroy()
+
+            return _path
+
+        if path is None:
+            path = _get_path()
+
+        if path is None:
+            return
+        t_start = time.time()
+
+        # if CONFIG.resize:
+        #     kwargs["resize"] = resizeName
+
+        self.figure.savefig(
+            path=path,
+            transparent=CONFIG.transparent,
+            dpi=CONFIG.dpi,
+            image_fmt=CONFIG.imageFormat,
+            compression="zlib",
+            resize=None,
+            tight=CONFIG.image_tight,
         )
 
-        wildcard_dict = {"svg": 0, "svgz": 1, "png": 2, "eps": 3, "jpeg": 4, "tiff": 5, "raw": 6, "ps": 7, "pdf": 8}
-
-        dlg = wx.FileDialog(
-            self.parent, "Save as...", "", "", wildcard=wildcard, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
-        )
-        dlg.CentreOnParent()
-        dlg.SetFilename(filename)
-        try:
-            dlg.SetFilterIndex(wildcard_dict[CONFIG.imageFormat])
-        except Exception:
-            LOGGER.error("Could not set image format")
-
-        if dlg.ShowModal() == wx.ID_OK:
-            t_start = time.time()
-            filename = dlg.GetPath()
-            __, extension = os.path.splitext(filename)
-            CONFIG.imageFormat = extension[1::]
-
-            # build kwargs
-            kwargs = {
-                "transparent": CONFIG.transparent,
-                "dpi": CONFIG.dpi,
-                "format": extension[1::],
-                "compression": "zlib",
-                "resize": None,
-                "tight": CONFIG.image_tight,
-            }
-
-            # if CONFIG.resize:
-            #     kwargs["resize"] = resizeName
-
-            self.figure.save_figure(path=filename, **kwargs)
-
-            LOGGER.info(f"Saved figure in {report_time(t_start)}")
-        dlg.Destroy()
+        LOGGER.info(f"Saved figure in {report_time(t_start)}")

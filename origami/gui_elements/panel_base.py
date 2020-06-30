@@ -10,6 +10,8 @@ from typing import Optional
 
 # Third-party imports
 import wx
+from pubsub import pub
+from pubsub.core import TopicNameError
 
 # Local imports
 from origami.styles import ListCtrl
@@ -470,6 +472,48 @@ class TableMixin:
         if not isinstance(value, str):
             raise ValueError("`Value` must be a string")
         self.peaklist.SetStringItem(item_id, column_id, value)
+
+
+class DatasetMixin:
+    """Mixin class that detects whether to close the window"""
+
+    PUB_DELETE_ITEM_EVENT = "document.delete.item"
+    DELETE_ITEM_MSG = "Data object that is shown in this window has been deleted, therefore, this window will close too"
+    document_title = None
+    dataset_name = None
+
+    def _dataset_mixin_setup(self):
+        """Setup mixin class"""
+        pub.subscribe(self._evt_delete_item, self.PUB_DELETE_ITEM_EVENT)
+
+    def _dataset_mixin_teardown(self):
+        """Teardown/cleanup mixin class"""
+        try:
+            pub.unsubscribe(self._evt_delete_item, self.PUB_DELETE_ITEM_EVENT)
+        except TopicNameError:
+            pass
+
+    def _evt_delete_item(self, info):
+        """Triggered when document is deleted"""
+
+        if self._evt_delete_check(info):
+            DialogBox(title="Dataset was deleted.", msg=self.DELETE_ITEM_MSG, kind="Error")
+            self.on_close(None, True)
+
+    def _evt_delete_check(self, info):
+        """Function to check whether window should be closed - can be overwritten to do another kind of check"""
+        document_title, dataset_name = info
+
+        if document_title == self.document_title:
+            if dataset_name is not None:
+                if not self.dataset_name.startswith(dataset_name) and dataset_name != self.dataset_name:
+                    return False
+            return True
+        return False
+
+    def on_close(self, evt, force: bool = False):
+        """On-close event handler"""
+        raise NotImplementedError("Must implement method")
 
 
 # noinspection DuplicatedCode

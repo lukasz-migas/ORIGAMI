@@ -172,7 +172,7 @@ class Config:
             "coolwarm",
         ]
 
-        self.imageFormatType = ["png", "svg", "svgz", "ps", "raw", "eps", "jpeg", "tiff", "pdf"]
+        self.imageFormatType = ["png", "ps", "raw", "eps", "jpeg", "tiff", "pdf", "svg", "svgz"]
         self.styles = [
             "Default",
             "ggplot",

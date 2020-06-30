@@ -265,12 +265,13 @@ class Dialog(wx.Dialog):
 
         # exit window
         if key_code == wx.WXK_ESCAPE:
-            self.on_close(evt=None)
+            self.on_close(None)
+            return
 
         if evt is not None:
             evt.Skip()
 
-    def on_close(self, evt):
+    def on_close(self, evt, force: bool = False):
         """Destroy this frame."""
         if self.IsModal():
             self.EndModal(wx.ID_NO)
@@ -333,7 +334,7 @@ class MiniFrame(wx.MiniFrame):
         """Filter keys"""
         # print(evt)
 
-    def on_close(self, evt):
+    def on_close(self, evt, force: bool = False):
         """Destroy this frame."""
         self.Destroy()
 
@@ -921,7 +922,6 @@ class TransientPopupBase(wx.PopupTransientWindow):
             pos = obj.ClientToScreen((0, 0))  # noqa
         else:
             pos = (0, 0)
-        print(pos)
         self.SetPosition(pos)
 
     def on_mouse_left_down(self, evt):
@@ -1002,7 +1002,7 @@ class PopupBase(wx.PopupWindow):
         """Position the window on an event location"""
         obj = evt.GetEventObject()
         if hasattr(obj, "ClientToScreen"):
-            pos = obj.ClientToScreen((0, 0))  # moqa
+            pos = obj.ClientToScreen((0, 0))  # noqa
         else:
             pos = (0, 0)
         self.SetPosition(pos)

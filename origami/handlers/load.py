@@ -61,9 +61,6 @@ def check_path(path: str, extension: Optional[str] = None):
 class LoadHandler:
     """Data load handler"""
 
-    def __init__(self):
-        """Initialized"""
-
     @staticmethod
     @check_os("win32")
     def waters_extract_ms_from_mobilogram(x_min: int, x_max: int, title=None):

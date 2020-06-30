@@ -92,8 +92,8 @@ class PlotHeatmap2D(PlotBase):
         self.cax.set_clim(vmin=array.min(), vmax=array.max())
 
         # set plot limits
-        self.plot_base.set_xlim(xlimits)
-        self.plot_base.set_ylim(ylimits)
+        #         self.plot_base.set_xlim(xlimits)
+        #         self.plot_base.set_ylim(ylimits)
         self.set_plot_xlabel(x_label, **kwargs)
         self.set_plot_ylabel(y_label, **kwargs)
 

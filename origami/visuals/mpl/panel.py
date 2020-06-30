@@ -1,5 +1,6 @@
 # Standard library imports
 import os
+import logging
 from typing import List
 
 # Third-party imports
@@ -17,6 +18,8 @@ from origami.visuals.mpl.new_zoom import MPLInteraction
 from origami.gui_elements.misc_dialogs import DialogBox
 
 matplotlib.use("WXAgg")
+
+LOGGER = logging.getLogger(__name__)
 
 
 class MPLPanel(wx.Panel):
@@ -331,14 +334,41 @@ class MPLPanel(wx.Panel):
             self.canvas.SetSize(self.GetSize())
         evt.Skip()
 
+    def savefig(
+        self,
+        path,
+        tight: bool = True,
+        dpi: int = 150,
+        transparent: bool = True,
+        compression: str = "zlib",
+        image_fmt: "str" = "png",
+        resize=None,
+    ):
+        """Export figure"""
+        # TODO: add option to resize the plot area
+        if not hasattr(self, "plot_base"):
+            LOGGER.warning("Cannot save a plot that has not been plotted yet")
+            return
+
+        self.figure.savefig(
+            path,
+            transparent=transparent,
+            dpi=dpi,
+            compression=compression,
+            format=image_fmt,
+            optimize=True,
+            quality=95,
+            bbox_inces="tight" if tight else None,
+        )
+
     def save_figure(self, path, **kwargs):
         """
         Saves figures in specified location.
         Transparency and DPI taken from config file
         """
         # check if plot exists
-        if not hasattr(self, "plotMS"):
-            print("Cannot save a plot that does not exist")
+        if not hasattr(self, "plot_base"):
+            LOGGER.warning("Cannot save a plot that does not exist")
             return
 
         if kwargs.pop("tight", True):

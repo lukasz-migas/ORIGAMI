@@ -33,10 +33,11 @@ from origami.utils.converters import rounder
 from origami.utils.converters import str2num
 from origami.utils.exceptions import MessageError
 from origami.objects.containers import DataObject
-from origami.gui_elements._panel import TestPanel
+from origami.gui_elements._panel import TestPanel  # noqa
 from origami.objects.annotations import Annotation
 from origami.objects.annotations import Annotations
 from origami.gui_elements.panel_base import TableMixin
+from origami.gui_elements.panel_base import DatasetMixin
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.visuals.mpl.plot_spectrum import PlotSpectrum
 
@@ -124,7 +125,7 @@ class PopupAnnotationSettings(PopupBase):
             evt.Skip()
 
 
-class PanelAnnotationEditorUI(MiniFrame, TableMixin):
+class PanelAnnotationEditorUI(MiniFrame, TableMixin, DatasetMixin):
     """UI component of the Annotation Editor"""
 
     TABLE_DICT = {
@@ -196,7 +197,6 @@ class PanelAnnotationEditorUI(MiniFrame, TableMixin):
     }
     TABLE_COLUMN_INDEX = TableColumnIndex
     TABLE_KWARGS = dict(color_0_to_1=True)
-    PUB_DELETE_ITEM_EVENT = "document.delete.item"
     PUB_SUBSCRIBE_MAKE_EVENT = "editor.mark.annotation"
     PUB_SUBSCRIBE_MOVE_LABEL_EVENT = "editor.edit.label"
     PUB_SUBSCRIBE_MOVE_PATCH_EVENT = "editor.edit.patch"
@@ -525,12 +525,7 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
         CONFIG.annotation_patch_width = 3
 
         # initialize correct view
-        self.update_title()
-        self.on_populate_table()
-        self.on_toggle_controls(None)
-
-        # bind
-        self.bind_events()
+        self.setup()
 
         # setup
         wx.CallAfter(self.on_setup_plot_on_startup)
@@ -577,6 +572,14 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
         """Return handle to `panel_plot`"""
         return self.presenter.view.panelPlots
 
+    def setup(self):
+        """Setup UI"""
+        self.update_title()
+        self.on_populate_table()
+        self.on_toggle_controls(None)
+        self.bind_events()
+        self._dataset_mixin_setup()
+
     # noinspection DuplicatedCode
     def bind_events(self):
         """Bind events"""
@@ -585,7 +588,6 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
         pub.subscribe(self.add_annotation_from_mouse_evt, self.PUB_SUBSCRIBE_MAKE_EVENT)
         pub.subscribe(self.edit_label_from_mouse_evt, self.PUB_SUBSCRIBE_MOVE_LABEL_EVENT)
         pub.subscribe(self.edit_patch_from_mouse_evt, self.PUB_SUBSCRIBE_MOVE_PATCH_EVENT)
-        pub.subscribe(self._evt_delete_item, self.PUB_DELETE_ITEM_EVENT)
 
         # bind buttons
         self.patch_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color_button)
@@ -645,21 +647,6 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
         menu.Destroy()
         self.SetFocus()
 
-    def _evt_delete_item(self, info):
-        """Triggered when document is deleted"""
-        document_title, dataset_name = info
-
-        if document_title == self.document_title:
-            if dataset_name is not None and dataset_name != self.dataset_name:
-                return
-
-            DialogBox(
-                title="Dataset was deleted.",
-                msg="The dataset that is shown in this window has been deleted, therefore, this window will close too",
-                kind="Error",
-            )
-            self.on_close(None)
-
     def update_title(self):
         """Update widget title"""
         self.SetTitle(f"Annotating: {self.document_title} :: {self.dataset_name}")
@@ -675,17 +662,17 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
         else:
             evt.Skip()
 
-    def on_close(self, _):
+    def on_close(self, _, force: bool = False):
         """Destroy this frame."""
         # unsubscribe
         try:
             pub.unsubscribe(self.add_annotation_from_mouse_evt, self.PUB_SUBSCRIBE_MAKE_EVENT)
             pub.unsubscribe(self.edit_label_from_mouse_evt, self.PUB_SUBSCRIBE_MOVE_LABEL_EVENT)
             pub.unsubscribe(self.edit_patch_from_mouse_evt, self.PUB_SUBSCRIBE_MOVE_PATCH_EVENT)
-            pub.unsubscribe(self._evt_delete_item, self.PUB_DELETE_ITEM_EVENT)
-
         except Exception as err:
             logger.error("Failed to unsubscribe events: %s" % err)
+
+        self._dataset_mixin_teardown()
 
         self.document_tree._annotate_panel = None
         self.Destroy()
@@ -1234,7 +1221,7 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
             item_id, self.TABLE_COLUMN_INDEX.patch_color, str(round_rgb(annotation_obj.patch_color))
         )
 
-    def on_delete_annotation(self, evt, name=None, flush: bool = True, get_next: bool = False):
+    def on_delete_annotation(self, _evt, name=None, flush: bool = True, get_next: bool = False):
         """Remove annotation"""
         if name is None:
             name = self.name_value.GetValue()

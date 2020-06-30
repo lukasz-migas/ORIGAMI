@@ -1,3 +1,4 @@
+"""Container object base class"""
 # Standard library imports
 import os
 
@@ -6,6 +7,8 @@ from origami.utils.path import clean_filename
 
 
 class ContainerBase:
+    """Container object base class"""
+
     def __init__(self, extra_data, metadata, x_label="", y_label="", x_label_options=None, y_label_options=None):
         self._cls = self.__class__.__name__
         self._owner = None

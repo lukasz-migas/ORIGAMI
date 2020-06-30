@@ -2,5 +2,4 @@
 
 
 class ExportHandler:
-    def __init__(self):
-        """Initialized"""
+    """Init"""

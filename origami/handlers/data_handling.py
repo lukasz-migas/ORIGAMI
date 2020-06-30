@@ -55,9 +55,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     """General data handling module"""
 
     def __init__(self, presenter, view, config):
-        LoadHandler.__init__(self)
-        ExportHandler.__init__(self)
-        ProcessHandler.__init__(self)
 
         self.presenter = presenter
         self.view = view
@@ -2992,6 +2989,38 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             return item_list
 
         all_datasets = ["IonHeatmaps"]
+        return self._generate_item_list(output_type, all_datasets, get_overlay_data, cleanup)
+
+    def generate_item_list_msdt(self, output_type="overlay"):
+        """Generate list of items with the correct data type"""
+
+        def get_overlay_data(data: DataObject, dataset_name: str, dataset_type: str, document_title: str):
+            """Generate overlay data dictionary"""
+            item_dict = {
+                "dataset_name": dataset_name,
+                "dataset_type": dataset_type,
+                "document_title": document_title,
+                "shape": data["zvals"].shape,
+                "cmap": data.get("cmap", self.config.currentCmap),
+                "label": data.get("label", ""),
+                "mask": data.get("mask", self.config.overlay_defaultMask),
+                "alpha": data.get("alpha", self.config.overlay_defaultAlpha),
+                "min_threshold": data.get("min_threshold", 0.0),
+                "max_threshold": data.get("max_threshold", 1.0),
+                "color": data.get("color", get_random_color(True)),
+                "overlay_order": data.get("overlay_order", ""),
+                "processed": True if "processed" in dataset_type else False,
+                "title": data.get("title", ""),
+                "header": data.get("header", ""),
+                "footnote": data.get("footnote", ""),
+            }
+            return item_dict
+
+        def cleanup(item_list):
+            """Clean-up generated list"""
+            return item_list
+
+        all_datasets = ["MSDTHeatmaps"]
         return self._generate_item_list(output_type, all_datasets, get_overlay_data, cleanup)
 
     def generate_item_list_chromatogram(self, output_type="overlay"):
