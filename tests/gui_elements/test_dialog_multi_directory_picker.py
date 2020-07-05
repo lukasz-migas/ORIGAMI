@@ -1,5 +1,6 @@
 # Third-party imports
 import wx
+import pytest
 
 # Local imports
 from origami.gui_elements.dialog_multi_directory_picker import DialogMultiDirPicker
@@ -32,6 +33,7 @@ def get_data():
     )
 
 
+@pytest.mark.guitest
 class TestDialogMultiDirPicker(WidgetTestCase):
     """Test dialog"""
 

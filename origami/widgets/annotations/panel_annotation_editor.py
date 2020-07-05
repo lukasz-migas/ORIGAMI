@@ -558,11 +558,6 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
         return self.presenter.data_handling
 
     @property
-    def data_processing(self):
-        """Return handle to `data_processing`"""
-        return self.presenter.data_processing
-
-    @property
     def document_tree(self):
         """Return handle to `document_tree`"""
         return self.presenter.view.panelDocuments.documents

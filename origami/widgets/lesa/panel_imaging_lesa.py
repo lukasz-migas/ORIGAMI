@@ -1,43 +1,110 @@
 """Panel for LESA datasets"""
 # Standard library imports
 import logging
+from enum import IntEnum
+from typing import List
 
 # Third-party imports
 import wx
-import numpy as np
 from pubsub import pub
 
 # Local imports
-from origami.styles import ListCtrl
 from origami.styles import MiniFrame
-from origami.styles import validator
+from origami.styles import set_tooltip
 from origami.styles import make_menu_item
-from origami.utils.check import check_value_order
+from origami.icons.assets import Icons
 from origami.utils.screen import calculate_window_size
-from origami.processing.utils import get_maximum_value_in_range
-from origami.utils.decorators import Timer
+from origami.config.config import CONFIG
+from origami.utils.exceptions import MessageError
+from origami.config.environment import ENV
+from origami.gui_elements.panel_base import TableMixin
+from origami.gui_elements.panel_base import DatasetMixin
+from origami.gui_elements.popup_view import PopupMobilogramView
+from origami.gui_elements.views.view_heatmap import ViewImagingIonHeatmap
+from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
 
 # Module globals
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
-class PanelImagingLESAViewer(MiniFrame):
+class TableColumnIndex(IntEnum):
+    """Table indexer"""
+
+    check = 0
+    ion_name = 1
+    color = 2
+    colormap = 3
+    label = 4
+
+
+class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
     """LESA viewer and editor"""
 
-    _peaklist_peaklist = {
-        0: {"name": "", "tag": "check", "type": "bool", "show": True, "width": 20},
-        1: {"name": "ion name", "tag": "ion_name", "type": "str", "show": True, "width": 120},
-        2: {"name": "z", "tag": "charge", "type": "int", "show": True, "width": 25},
-        3: {"name": "int", "tag": "intensity", "type": "float", "show": True, "width": 75},
-        4: {"name": "color", "tag": "color", "type": "color", "show": True, "width": 80},
-        5: {"name": "colormap", "tag": "colormap", "type": "str", "show": True, "width": 80},
-        6: {"name": "label", "tag": "label", "type": "str", "show": True, "width": 70},
-        7: {"name": "document", "tag": "document", "type": "str", "show": True, "width": 70},
+    TABLE_DICT = {
+        0: {
+            "name": "",
+            "tag": "check",
+            "type": "bool",
+            "show": True,
+            "width": 20,
+            "order": 0,
+            "id": wx.NewIdRef(),
+            "hidden": True,
+        },
+        1: {
+            "name": "ion name",
+            "tag": "ion_name",
+            "type": "str",
+            "show": True,
+            "width": 120,
+            "order": 1,
+            "id": wx.NewIdRef(),
+        },
+        2: {
+            "name": "color",
+            "tag": "color",
+            "type": "color",
+            "show": True,
+            "width": 80,
+            "order": 2,
+            "id": wx.NewIdRef(),
+        },
+        3: {
+            "name": "colormap",
+            "tag": "colormap",
+            "type": "str",
+            "show": True,
+            "width": 80,
+            "order": 3,
+            "id": wx.NewIdRef(),
+        },
+        4: {"name": "label", "tag": "label", "type": "str", "show": True, "width": 70, "order": 4, "id": wx.NewIdRef()},
     }
+    TABLE_COLUMN_INDEX = TableColumnIndex
+    USE_COLOR = False
+    HELP_LINK = r"https://origami.lukasz-migas.com/"
 
-    keyword_alias = {"colormap": "cmap"}
+    # ui elements
+    spectrum_choice = None
+    normalization_choice = None
+    item_name = None
+    label_value = None
+    item_color_btn = None
+    colormap_value = None
+    lock_plot_check = None
+    resize_plot_check = None
+    view_ms = None
+    plot_ms = None
+    panel_top_ms = None
+    view_img = None
+    plot_img = None
+    panel_bottom_img = None
+    _settings_panel_size = None
+    popup = None
 
-    def __init__(self, parent, presenter, config, icons, **kwargs):
+    def __init__(
+        self, parent, presenter, document_title: str = None, spectrum_list: List[str] = None, debug: bool = False
+    ):
         MiniFrame.__init__(
             self,
             parent,
@@ -45,68 +112,66 @@ class PanelImagingLESAViewer(MiniFrame):
             style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX,
             bind_key_events=False,
         )
+        TableMixin.__init__(self)
 
-        self.parent = parent
+        self.view = parent
         self.presenter = presenter
-        self.view = presenter.view
-        self.config = config
-        self.icons = icons
 
-        self.data_handling = presenter.data_handling
-        self.data_processing = presenter.data_processing
-        self.data_visualisation = presenter.data_visualisation
-        self.panel_plot = self.presenter.view.panelPlots
-        self.document_tree = self.presenter.view.panelDocuments.documents
+        # create instance of the icons
+        self._icons = Icons()
 
-        self._display_size = self.parent.GetSize()
+        # view
+        screen_size = wx.GetDisplaySize()
+        if parent is not None:
+            screen_size = self.parent.GetSize()
+        self._display_size = screen_size
         self._display_resolution = wx.ScreenDC().GetPPI()
-        self._window_size = calculate_window_size(self._display_size, 0.9)
+        if parent is None:
+            self._window_size = calculate_window_size(self._display_size, 0.4)
+        else:
+            self._window_size = calculate_window_size(self._display_size, 0.8)
 
         self.item_loading_lock = False
+        self.document_title = document_title
 
         # make gui items
         self.make_gui()
-        self.subscribe()
 
         # load document
-        self.document_title = None
-        self.mz_data = None
-        self.img_data = None
+        self._spectrum_list = spectrum_list
         self.clipboard = dict()
-        self.on_select_document()
-        self.on_select_spectrum(None)
+        self.clipboard_last = None
+        self.setup()
+
+        if not debug:
+            self.on_select_document()
 
         # bind
         self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
 
-    def on_close(self, evt):
-        """Destroy this frame"""
-        n_clipboard_items = len(self.clipboard)
-        if n_clipboard_items > 0:
-            from origami.gui_elements.misc_dialogs import DialogBox
+    @property
+    def data_handling(self):
+        """Return handle to `data_handling`"""
+        return self.presenter.data_handling
 
-            msg = (
-                f"Found {n_clipboard_items} item(s) in the clipboard. Closing this window will lose"
-                + " your extracted data. Would you like to continue?"
-            )
-            dlg = DialogBox(title="Clipboard is not empty", msg=msg, kind="Question")
-            if dlg == wx.ID_NO:
-                msg = "Action was cancelled"
-                return
+    @property
+    def document_tree(self):
+        """Return handle to `document_tree`"""
+        return self.presenter.view.panelDocuments.documents
 
-        pub.unsubscribe(self.on_extract_image_from_spectrum, "widget.imaging.lesa.extract.image.spectrum")
-        pub.unsubscribe(self.on_extract_image_from_mobilogram, "widget.imaging.lesa.extract.image.mobilogram")
-        pub.unsubscribe(self.on_extract_spectrum_from_image, "widget.imaging.lesa.extract.spectrum.image")
-        self.Destroy()
+    @property
+    def panel_plot(self):
+        """Return handle to `panel_plot`"""
+        return self.presenter.view.panelPlots
 
-    def subscribe(self):
-        """Initilize pubsub subscribers"""
-        pub.subscribe(self.on_extract_image_from_spectrum, "widget.imaging.lesa.extract.image.spectrum")
-        pub.subscribe(self.on_extract_image_from_mobilogram, "widget.imaging.lesa.extract.image.mobilogram")
-        pub.subscribe(self.on_extract_spectrum_from_image, "widget.imaging.lesa.extract.spectrum.image")
+    @property
+    def document(self):
+        """Return instance of the document"""
+        if self.document_title is not None:
+            return ENV.on_get_document(self.document_title)
 
     def make_gui(self):
-
+        """Make UI"""
         # make panel
         settings_panel = self.make_settings_panel(self)
         self._settings_panel_size = settings_panel.GetSize()
@@ -115,86 +180,18 @@ class PanelImagingLESAViewer(MiniFrame):
         plot_panel = self.make_plot_panel(self)
 
         # pack elements
-        self.main_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.main_sizer.Add(plot_panel, 1, wx.EXPAND, 0)
-        self.main_sizer.Add(settings_panel, 0, wx.EXPAND, 0)
+        main_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        main_sizer.Add(plot_panel, 1, wx.EXPAND, 0)
+        main_sizer.Add(settings_panel, 0, wx.EXPAND, 0)
 
         # fit layout
-        self.main_sizer.Fit(self)
-        self.SetSizer(self.main_sizer)
+        main_sizer.Fit(self)
+        self.SetSizer(main_sizer)
         self.SetSize(self._window_size)
         self.Layout()
         self.Show(True)
 
-        self.CentreOnScreen()
-        self.SetFocus()
-
-    def on_action_tools(self, evt):
-        """Action tools dropdown menu"""
-        menu = wx.Menu()
-        menu_action_create_blank_document = make_menu_item(
-            parent=menu,
-            text="Create blank IMAGING document",
-            bitmap=self.icons.iconsLib["new_document_16"],
-            help_text="",
-        )
-
-        menu.AppendItem(menu_action_create_blank_document)
-
-        # bind events
-        self.Bind(wx.EVT_MENU, self.on_create_blank_document, menu_action_create_blank_document)
-
-        self.PopupMenu(menu)
-        menu.Destroy()
-        self.SetFocus()
-
-    def on_right_click(self, evt):
-        """Event on right-click"""
-        # ensure that user clicked inside the plot area
-        if not hasattr(evt.EventObject, "figure"):
-            return
-
-        # get plot
-        plot_obj = self.get_plot_obj()
-
-        menu = wx.Menu()
-        menu_action_customise_plot = make_menu_item(
-            parent=menu, text="Customise plot...", bitmap=self.icons.iconsLib["change_xlabels_16"]
-        )
-        menu.AppendItem(menu_action_customise_plot)
-        self.lock_plot_check = menu.AppendCheckItem(wx.ID_ANY, "Lock plot", help="")
-        self.lock_plot_check.Check(plot_obj.lock_plot_from_updating)
-        menu.AppendSeparator()
-        self.resize_plot_check = menu.AppendCheckItem(-1, "Resize on saving")
-        self.resize_plot_check.Check(self.config.resize)
-        save_figure_menu_item = make_menu_item(
-            menu, evt_id=wx.ID_ANY, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
-        )
-        menu.AppendItem(save_figure_menu_item)
-        menu_action_copy_to_clipboard = make_menu_item(
-            parent=menu, evt_id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self.icons.iconsLib["filelist_16"]
-        )
-        menu.AppendItem(menu_action_copy_to_clipboard)
-
-        menu.AppendSeparator()
-        reset_plot_menu_item = make_menu_item(menu, evt_id=wx.ID_ANY, text="Reset plot zoom")
-        menu.AppendItem(reset_plot_menu_item)
-
-        clear_plot_menu_item = make_menu_item(
-            menu, evt_id=wx.ID_ANY, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
-        )
-        menu.AppendItem(clear_plot_menu_item)
-
-        self.Bind(wx.EVT_MENU, self.on_resize_check, self.resize_plot_check)
-        self.Bind(wx.EVT_MENU, self.on_customise_plot, menu_action_customise_plot)
-        self.Bind(wx.EVT_MENU, self.on_save_figure, save_figure_menu_item)
-        self.Bind(wx.EVT_MENU, self.on_copy_to_clipboard, menu_action_copy_to_clipboard)
-        self.Bind(wx.EVT_MENU, self.on_clear_plot, clear_plot_menu_item)
-        self.Bind(wx.EVT_MENU, self.on_reset_plot, reset_plot_menu_item)
-        self.Bind(wx.EVT_MENU, self.on_lock_plot, self.lock_plot_check)
-
-        self.PopupMenu(menu)
-        menu.Destroy()
+        self.CentreOnParent()
         self.SetFocus()
 
     def make_settings_panel(self, split_panel):
@@ -202,88 +199,79 @@ class PanelImagingLESAViewer(MiniFrame):
         panel = wx.Panel(split_panel, -1, size=(-1, -1), name="settings")
 
         # add spectrum controls
-        spectrum_choice = wx.StaticText(panel, -1, "Spectrum:")
         self.spectrum_choice = wx.ComboBox(panel, choices=[], style=wx.CB_READONLY)
         self.spectrum_choice.Bind(wx.EVT_COMBOBOX, self.on_apply)
-        self.spectrum_choice.Bind(wx.EVT_COMBOBOX, self.on_select_spectrum)
+        self.spectrum_choice.Bind(wx.EVT_COMBOBOX, self.on_plot_spectrum)
 
         # add image controls
-        choices = ["None", "Total Intensity", "Root Mean Square", "Median", "L2"]
+        choices = self.get_normalization_list()
 
-        normalization_choice = wx.StaticText(panel, -1, "Normalization:")
         self.normalization_choice = wx.ComboBox(panel, choices=choices, style=wx.CB_READONLY)
         self.normalization_choice.SetStringSelection("None")
         self.normalization_choice.Bind(wx.EVT_COMBOBOX, self.on_apply)
         self.normalization_choice.Bind(wx.EVT_COMBOBOX, self.on_update_normalization)
 
         # add item controls
-        item_name = wx.StaticText(panel, wx.ID_ANY, "Item name:")
-        self.item_name = wx.TextCtrl(panel, wx.ID_ANY, "", style=wx.TE_READONLY)
+        self.item_name = wx.StaticText(panel, wx.ID_ANY)
 
-        label_value = wx.StaticText(panel, -1, "label:")
         self.label_value = wx.TextCtrl(panel, -1, "")
         self.label_value.Bind(wx.EVT_TEXT, self.on_update_item)
+        set_tooltip(self.label_value, "Select label for current item")
 
-        charge_value = wx.StaticText(panel, -1, "charge:")
-        self.charge_value = wx.TextCtrl(panel, -1, "", validator=validator("int"))
-        self.charge_value.Bind(wx.EVT_TEXT, self.on_update_item)
-
-        item_color = wx.StaticText(panel, -1, "color:")
         self.item_color_btn = wx.Button(panel, wx.ID_ANY, "", size=wx.Size(26, 26), name="color.label")
         self.item_color_btn.SetBackgroundColour([0, 0, 0])
-        self.item_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
+        self.item_color_btn.Bind(wx.EVT_BUTTON, self.on_change_color)
+        set_tooltip(self.item_color_btn, "Select color for current item")
 
-        colormap_label = wx.StaticText(panel, -1, "colormap:")
-        self.colormap_value = wx.Choice(panel, -1, choices=self.config.cmaps2, size=(-1, -1))
+        self.colormap_value = wx.Choice(panel, -1, choices=CONFIG.cmaps2, size=(-1, -1))
         self.colormap_value.Bind(wx.EVT_CHOICE, self.on_update_item)
+        set_tooltip(self.colormap_value, "Select colormap for current item")
 
-        # make listctrl
-        self.make_listctrl_panel(panel)
-        self.make_dt_plot_panel(panel)
+        # make peaklist
+        self.peaklist = self.make_table(self.TABLE_DICT, panel)
 
-        horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
-        horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
-        horizontal_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+        # add buttons
+        self.info_btn = self.make_info_button(panel)
+        self.settings_btn = self.make_settings_button(panel)
+
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        btn_sizer.Add(self.settings_btn, 0)
+        btn_sizer.Add(self.info_btn, 0)
 
         # pack heatmap items
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(spectrum_choice, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        grid.Add(self.spectrum_choice, (n, 1), (1, 3), flag=wx.ALIGN_CENTER | wx.EXPAND)
+        grid.Add(wx.StaticText(panel, -1, "Mass spectrum:"), (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.spectrum_choice, (n, 1), (1, 2), flag=wx.EXPAND)
         n += 1
-        grid.Add(horizontal_line_1, (n, 0), (1, 5), flag=wx.ALIGN_CENTER | wx.EXPAND)
+        grid.Add(wx.StaticText(panel, -1, "Normalization:"), (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.normalization_choice, (n, 1), (1, 2), flag=wx.EXPAND)
         n += 1
-        grid.Add(normalization_choice, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        grid.Add(self.normalization_choice, (n, 1), (1, 2), flag=wx.ALIGN_CENTER | wx.EXPAND)
+        grid.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), (n, 0), (1, 3), flag=wx.EXPAND)
         n += 1
-        grid.Add(horizontal_line_2, (n, 0), (1, 5), flag=wx.ALIGN_CENTER | wx.EXPAND)
+        grid.Add(wx.StaticText(panel, wx.ID_ANY, "Item name:"), (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.item_name, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
         n += 1
-        grid.Add(item_name, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.item_name, (n, 1), wx.GBSpan(1, 3), flag=wx.ALIGN_CENTER | wx.EXPAND)
+        grid.Add(wx.StaticText(panel, -1, "Label:"), (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.label_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
         n += 1
-        grid.Add(label_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.label_value, (n, 1), wx.GBSpan(1, 3), flag=wx.ALIGN_CENTER | wx.EXPAND)
-        n += 1
-        grid.Add(charge_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.charge_value, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
-        n += 1
-        grid.Add(item_color, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.item_color_btn, (n, 1), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(colormap_label, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.colormap_value, (n, 3), wx.GBSpan(1, 1), flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(wx.StaticText(panel, -1, "Colormap:"), (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.colormap_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(self.item_color_btn, (n, 2), wx.GBSpan(1, 1), flag=wx.ALIGN_CENTER_VERTICAL)
 
         # setup growable column
-        grid.AddGrowableCol(3)
+        grid.AddGrowableCol(2, 1)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(grid, 0, wx.EXPAND, 5)
-        main_sizer.Add(horizontal_line_0, 0, wx.EXPAND, 10)
-        main_sizer.Add(self.plot_panel_DT, 1, wx.EXPAND, 10)
-        main_sizer.Add(self.peaklist, 1, wx.EXPAND, 10)
-        #
+        main_sizer.Add(grid, 0, wx.EXPAND | wx.ALL, 3)
+        main_sizer.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND | wx.TOP | wx.BOTTOM, 5)
+        main_sizer.Add(self.peaklist, 1, wx.EXPAND, 5)
+        main_sizer.Add(btn_sizer, 0, wx.ALIGN_RIGHT, 5)
+
         # fit layout
         main_sizer.Fit(panel)
         panel.SetSizerAndFit(main_sizer)
+        panel.Layout()
 
         return panel
 
@@ -291,111 +279,249 @@ class PanelImagingLESAViewer(MiniFrame):
         """Make plot panel"""
         panel = wx.SplitterWindow(split_panel, wx.ID_ANY, style=wx.TAB_TRAVERSAL | wx.SP_3DSASH, name="plot")
 
-        self.plot_panel_MS, self.plot_window_MS, __ = self.panel_plot.make_base_plot(
-            panel, self.config._plotSettings["RT"]["gui_size"]
+        self.view_ms = ViewMassSpectrum(
+            panel,
+            (8, 2.5),  # noqa
+            CONFIG,
+            allow_extraction=True,
+            axes_size=(0.15, 0.25, 0.8, 0.6),
+            callbacks=dict(CTRL="widget.imaging.lesa.extract.image.spectrum"),
         )
+        self.panel_top_ms = self.view_ms.panel
+        self.plot_ms = self.view_ms.figure
 
-        self.plot_panel_img, self.plot_window_img, __ = self.panel_plot.make_base_plot(
-            panel, self.config._plotSettings["2D"]["gui_size"]
+        self.view_img = ViewImagingIonHeatmap(
+            panel,
+            (6, 6),
+            CONFIG,
+            allow_extraction=True,
+            axes_size=(0.3, 0.3, 0.6, 0.6),
+            callbacks=dict(CTRL="widget.imaging.lesa.extract.spectrum.image"),
         )
+        self.panel_bottom_img = self.view_img.panel
+        self.plot_img = self.view_img.figure
 
-        panel.SplitHorizontally(self.plot_panel_MS, self.plot_panel_img)
-        panel.SetMinimumPaneSize(400)
+        panel.SplitHorizontally(self.panel_top_ms, self.panel_bottom_img)
+        panel.SetMinimumPaneSize(300)
         panel.SetSashGravity(0.5)
-        panel.SetSashSize(5)
 
         return panel
 
-    def make_listctrl_panel(self, panel):
-        """Initilize table"""
-        self.peaklist = ListCtrl(panel, style=wx.LC_REPORT | wx.LC_VRULES, column_info=self._peaklist_peaklist)
-        for col in range(len(self._peaklist_peaklist)):
-            item = self._peaklist_peaklist[col]
-            order = col
-            name = item["name"]
-            width = 0
-            if item["show"]:
-                width = item["width"]
-            self.peaklist.InsertColumn(order, name, width=width, format=wx.LIST_FORMAT_CENTER)
-            self.peaklist.SetFont(wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
-        max_peaklist_size = (int(self._window_size[0] * 0.3), -1)
-        self.peaklist.SetMaxClientSize(max_peaklist_size)
-        self.peaklist.Bind(wx.EVT_LEFT_DCLICK, self.on_double_click_on_item)
+    def setup(self):
+        """Setup"""
+        # setup spectrum maximum size to prevent it changing size as the user resized the window
+        self.spectrum_choice.SetMaxSize(self.spectrum_choice.GetSize())
 
-    def make_dt_plot_panel(self, panel):
-        """Make DT plot and hide it"""
+        # setup pubsub events
+        pub.subscribe(self.on_extract_image_from_spectrum, "widget.imaging.lesa.extract.image.spectrum")
+        pub.subscribe(self.on_extract_image_from_mobilogram, "widget.imaging.lesa.extract.image.mobilogram")
+        pub.subscribe(self.on_extract_spectrum_from_image, "widget.imaging.lesa.extract.spectrum.image")
 
-        self.plot_panel_DT, self.plot_window_DT, __ = self.panel_plot.make_base_plot(
-            panel, self.config._plotSettings["DT"]["gui_size"]
-        )
-        self.plot_panel_DT.Show(False)
+        # setup dataset mixin
+        self._dataset_mixin_setup()
 
-    def on_update_item(self, evt):
+        # setup listctrl events
+        self.peaklist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_item)
+
+    def on_close(self, evt, force: bool = False):
+        """Destroy this frame"""
+        n_clipboard_items = len(self.clipboard)
+        if n_clipboard_items > 0 and not force:
+            from origami.gui_elements.dialog_review_ask import DialogAskReview
+
+            msg = (
+                f"Found {n_clipboard_items} item(s) in the clipboard. Closing this window will lose"
+                + " your extracted data. \nWould you like to continue?"
+            )
+
+            dlg = DialogAskReview(self.view, msg)
+            res = dlg.ShowModal()
+            if res == wx.ID_SAVE:
+                self.on_review()
+            elif res == wx.ID_NO:
+                LOGGER.warning("Action was cancelled")
+                return
+
+        self._dataset_mixin_teardown()
+        pub.unsubscribe(self.on_extract_image_from_spectrum, "widget.imaging.lesa.extract.image.spectrum")
+        pub.unsubscribe(self.on_extract_image_from_mobilogram, "widget.imaging.lesa.extract.image.mobilogram")
+        pub.unsubscribe(self.on_extract_spectrum_from_image, "widget.imaging.lesa.extract.spectrum.image")
+        self.Destroy()
+
+    def on_review(self):
+        """Review all data that is present in the dataset"""
+        from origami.gui_elements.dialog_review_editor import DialogReviewEditorExtract
+
+        # generate item list
+        item_list = []
+        for name, values in self.clipboard.items():
+            if values.get("mobilogram"):
+                item_list.append(["Mobilogram", "Mobilograms/" + name])
+            if values.get("image"):
+                item_list.append(["Heatmap", "IonHeatmaps/" + name])
+
+        dlg = DialogReviewEditorExtract(self, item_list)
+        dlg.ShowModal()
+
+        output_list = dlg.output_list
+        self.on_add_to_document(output_list)
+
+    def on_add_to_document(self, output_list: List[str]):
+        """Add data to document and update document view"""
+        document = ENV.on_get_document(self.document_title)
+
+        for name in output_list:
+            obj_type, name = name.split("/")
+            values = self.clipboard[name]
+            if obj_type == "Mobilograms":
+                dt_obj = values["mobilogram"]
+                dt_obj = document.add_mobilogram(name, dt_obj)
+                self.document_tree.on_update_document(dt_obj.DOCUMENT_KEY, name, self.document_title)
+            elif obj_type == "IonHeatmaps":
+                heatmap_obj = values["image"]
+                heatmap_obj = document.add_heatmap(name, heatmap_obj)
+                self.document_tree.on_update_document(heatmap_obj.DOCUMENT_KEY, name, self.document_title)
+
+    def on_action_tools(self, evt):
+        """Action tools dropdown menu"""
+        raise NotImplementedError("Must implement method")
+        # menu = wx.Menu()
+        # menu_action_create_blank_document = make_menu_item(
+        #     parent=menu,
+        #     text="Create blank IMAGING document",
+        #     bitmap=self.icons.iconsLib["new_document_16"],
+        #     help_text="",
+        # )
+        #
+        # menu.AppendItem(menu_action_create_blank_document)
+        #
+        # # bind events
+        # self.Bind(wx.EVT_MENU, self.on_create_blank_document, menu_action_create_blank_document)
+        #
+        # self.PopupMenu(menu)
+        # menu.Destroy()
+        # self.SetFocus()
+
+    def on_right_click(self, evt):
+        """Event on right-click"""
+        # ensure that user clicked inside the plot area
+        menu = wx.Menu()
+        if hasattr(evt.EventObject, "figure"):
+
+            # get plot
+            plot_obj = self.get_plot_obj()
+
+            menu_action_customise_plot = make_menu_item(
+                parent=menu, text="Customise plot...", bitmap=self._icons.x_label
+            )
+            menu.AppendItem(menu_action_customise_plot)
+            self.lock_plot_check = menu.AppendCheckItem(wx.ID_ANY, "Lock plot", help="")
+            self.lock_plot_check.Check(plot_obj.figure.lock_plot_from_updating)
+            menu.AppendSeparator()
+            self.resize_plot_check = menu.AppendCheckItem(-1, "Resize on saving")
+            self.resize_plot_check.Check(CONFIG.resize)
+            save_figure_menu_item = make_menu_item(
+                menu, evt_id=wx.ID_ANY, text="Save figure as...", bitmap=self._icons.save
+            )
+            menu.AppendItem(save_figure_menu_item)
+            menu_action_copy_to_clipboard = make_menu_item(
+                parent=menu, evt_id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self._icons.filelist
+            )
+            menu.AppendItem(menu_action_copy_to_clipboard)
+
+            menu.AppendSeparator()
+            reset_plot_menu_item = make_menu_item(menu, evt_id=wx.ID_ANY, text="Reset plot zoom")
+            menu.AppendItem(reset_plot_menu_item)
+
+            clear_plot_menu_item = make_menu_item(menu, evt_id=wx.ID_ANY, text="Clear plot", bitmap=self._icons.clear)
+            menu.AppendItem(clear_plot_menu_item)
+
+            self.Bind(wx.EVT_MENU, self.on_resize_check, self.resize_plot_check)
+            self.Bind(wx.EVT_MENU, self.on_customise_plot, menu_action_customise_plot)
+            self.Bind(wx.EVT_MENU, self.on_save_figure, save_figure_menu_item)
+            self.Bind(wx.EVT_MENU, self.on_copy_to_clipboard, menu_action_copy_to_clipboard)
+            self.Bind(wx.EVT_MENU, self.on_clear_plot, clear_plot_menu_item)
+            self.Bind(wx.EVT_MENU, self.on_reset_plot, reset_plot_menu_item)
+            self.Bind(wx.EVT_MENU, self.on_lock_plot, self.lock_plot_check)
+
+        self.PopupMenu(menu)
+        menu.Destroy()
+        self.SetFocus()
+
+    def on_update_item(self, _evt):
+        """Update info"""
         if self.item_loading_lock:
             return
 
-        print("on_update_item")
+    def get_normalization_list(self):
+        """Get list of normalizations for the currently selected document"""
+        document = self.document
+        normalizations_list = []
+        if document is not None:
+            normalizations_list = document.get_normalization_list()
+        return normalizations_list
 
     def get_plot_obj(self):
-        plot_obj = {"MS": self.plot_window_MS, "2D": self.plot_window_img, "1D": self.plot_window_DT}[
-            self.view.plot_name
-        ]
-        return plot_obj
+        """Return current plot object"""
+        plot_dict = {self.view_ms.NAME: self.view_ms, self.view_img.NAME: self.view_img}
+        return plot_dict[self.view.plot_id]
 
-    def on_clear_plot(self, evt):
+    def on_clear_plot(self, _evt):
         """Clear plot"""
         plot_obj = self.get_plot_obj()
-        plot_obj.clear()
+        plot_obj.figure.clear()
 
-    def on_reset_plot(self, evt):
+    def on_reset_plot(self, _evt):
         """Reset plot"""
         plot_obj = self.get_plot_obj()
-        plot_obj.on_reset_zoom()
+        plot_obj.figure.on_reset_zoom()
 
-    def on_resize_check(self, evt):
+    def on_resize_check(self, _evt):
         """Toggle resize check in the plot"""
         self.panel_plot.on_resize_check(None)
 
-    def on_copy_to_clipboard(self, evt):
+    def on_copy_to_clipboard(self, _evt):
         """Copy plot object to clipboard"""
         plot_obj = self.get_plot_obj()
         plot_obj.copy_to_clipboard()
 
-    def on_customise_plot(self, evt):
+    def on_customise_plot(self, _evt):
+        """Customise plot parameters"""
         plot_obj = self.get_plot_obj()
         self.panel_plot.on_customise_plot(None, plot="Imaging: LESA...", plot_obj=plot_obj)
 
-    def on_save_figure(self, evt):
-        plot_title = "MS" if self.view.plot_name == "MS" else "image"
+    def on_save_figure(self, _evt):
+        """Save figure"""
         plot_obj = self.get_plot_obj()
-        self.panel_plot.save_images(None, None, plot_obj=plot_obj, image_name=plot_title)
+        plot_obj.save_figure()
 
-    def on_lock_plot(self, evt):
+    def on_lock_plot(self, _evt):
         """Lock/unlock plot"""
         plot_obj = self.get_plot_obj()
-        plot_obj.lock_plot_from_updating = not plot_obj.lock_plot_from_updating
+        plot_obj.figure.lock_plot_from_updating = not plot_obj.figure.lock_plot_from_updating
 
     def on_apply(self, evt):
+        """Update config"""
         print("on_apply")
+        print(self)
 
         if evt is not None:
             evt.Skip()
 
-    def on_assign_color(self, evt):
-        """Assign new color to the item"""
-        from origami.gui_elements.dialog_color_picker import DialogColorPicker
+    def on_change_color(self, evt):
+        """Update color"""
+        if self.peaklist.item_id is None:
+            return
 
-        dlg = DialogColorPicker(self, self.config.customColors)
-        if dlg.ShowModal() == wx.ID_OK:
-            color_255, __, __ = dlg.GetChosenColour()
-            self.config.customColors = dlg.GetCustomColours()
-        else:
+        color_255, _, _ = self.on_get_color(evt)
+        if color_255 is None:
             return
 
         # update button
         self.item_color_btn.SetBackgroundColour(color_255)
+        self.on_update_value_in_peaklist(self.peaklist.item_id, "color_text", color_255)
 
-        # update peaklist
+    # update peaklist
 
     #             rows = self.peaklist.GetItemCount()
     #             for row in range(rows):
@@ -408,222 +534,150 @@ class PanelImagingLESAViewer(MiniFrame):
 
     def on_extract_tic_image(self):
         """Load TIC image"""
-        self.on_extract_image_from_spectrum([None, None, None, None])
+        _, img_obj = self.data_handling.document_extract_lesa_image_from_ms(0, 99999, self.document_title)
+        self.on_plot_image(img_obj)
 
-    def on_extract_image_from_mobilogram(self, rect):
-        zvals = self.data_handling.on_extract_LESA_img_from_mobilogram(
-            rect[0], rect[1], self.clipboard[self.img_data]["zvals_dt"]
-        )
+    def on_extract_image_from_mobilogram(self, rect, x_labels, y_labels):  # noqa
+        """Extract mobilogram for particular image"""
+        y_min, y_max, _, _ = rect
+        del rect, x_labels, y_labels
 
-    def on_extract_image_from_spectrum(self, rect):
-        def plot():
-            # update plots
-            self.on_plot_image(self.clipboard[ion_name])
-            self.on_plot_mobilogram(self.clipboard[ion_name])
+        item_info = self.on_get_item_information(None)
+        x_min, x_max = self._get_mz_from_label(item_info["ion_name"])
 
-        xmin, xmax, __, __ = rect
-
-        if xmin is None or xmax is None:
-            xmin, xmax = 0, 99999
-            add_to_table = False
-            ion_name = None
+        # pre-generate name in case data has been previously extracted
+        name = f"MZ_{x_min:.2f}-{x_max:.2f}_DT_{int(y_min)}-{int(y_max)}"
+        if name in self.clipboard:
+            img_obj = self.clipboard[name]["image"]
         else:
-            ion_name = f"{xmin:.2f}-{xmax:.2f}"
-            add_to_table, _ = self.find_item(ion_name)
+            name, img_obj = self.data_handling.document_extract_lesa_image_from_dt(
+                x_min, x_max, y_min, y_max, self.document_title
+            )
+            self.clipboard[name] = dict(image=img_obj, mobilogram=None)
+        self.on_plot_image(img_obj)
 
-        if ion_name in self.clipboard:
-            logger.info("Found item in the clipboard...")
-            plot()
-            return
+    def on_extract_image_from_spectrum(self, rect, x_labels, y_labels):  # noqa
+        """extract image from mass spectrum"""
+        x_min, x_max, _, _ = rect
+        del rect, x_labels, y_labels
+        name = f"MZ_{x_min:.2f}-{x_max:.2f}"
+        if name in self.clipboard:
+            img_obj = self.clipboard[name]["image"]
+        else:
+            name, img_obj = self.data_handling.document_extract_lesa_image_from_ms(x_min, x_max, self.document_title)
+            x_min, x_max = self._get_mz_from_label(name)
+            self.view_ms.add_patch(x_min, 0, (x_max - x_min), None, pickable=False)
 
-        xmin, xmax = check_value_order(xmin, xmax)
-        if self.mz_data is not None:
-            mz_x = self.mz_data["xvals"]
-            mz_y = self.mz_data["yvals"]
-
-            mz_xy = np.transpose([mz_x, mz_y])
-            mz_y_max = np.round(get_maximum_value_in_range(mz_xy, mz_range=(xmin, xmax)) * 100, 2)
-
-            # predict charge state
-            charge = self.data_processing.predict_charge_state(mz_xy[:, 0], mz_xy[:, 1], (xmin - 0, xmax + 3))
-
-            # get color
-            color = next(self.config.custom_color_cycle)
-
-            # add to table
-            if add_to_table and ion_name is not None:
-                self.on_add_to_table(
-                    ion_name=ion_name, charge=charge, intensity=mz_y_max, color=color, label=f"ion={ion_name}"
+            self.on_add_to_table(
+                dict(
+                    ion_name=name,
+                    color=next(CONFIG.custom_color_cycle),
+                    colormap=next(CONFIG.overlay_cmap_cycle),
+                    label=name,
                 )
+            )
+            self.clipboard[name] = dict(image=img_obj, mobilogram=None)
+        self.clipboard_last = name
+        self.on_plot_image(img_obj)
 
-        # get data
-        method = {"Total Intensity": "total", "Root Mean Square": "sqrt", "Median": "median", "L2": "l2"}.get(
-            self.normalization_choice.GetStringSelection(), "None"
-        )
+    def on_extract_spectrum_from_image(self, rect, x_labels, y_labels):
+        """Extract mass spectrum image"""
+        raise MessageError("Error", "Data extraction in the image is currently disabled")
 
-        # get image data
-        zvals = self.data_handling.on_extract_LESA_img_from_mass_range_norm(xmin, xmax, self.document_title, method)
-        xvals = np.arange(zvals.shape[0]) + 1
-        yvals = np.arange(zvals.shape[1]) + 1
+    #         x_min, x_max, y_min, y_max = rect
+    #         self.view_img.add_patch(x_min, y_min, (x_max - x_min), (y_max - y_min))
 
-        self.img_data = ion_name
-        self.clipboard[ion_name] = dict(
-            zvals=zvals, xvals=xvals, yvals=yvals, extract_range=[xmin, xmax], ion_name=ion_name
-        )
-
-        # get mobilogram data
-        # TODO: should check whether IM data exists
-        xvals_dt, yvals_dt, zvals_dt = self.data_handling.on_extract_LESA_mobilogram_from_mass_range(
-            xmin, xmax, self.document_title
-        )
-        self.clipboard[ion_name].update(xvals_dt=xvals_dt, yvals_dt=yvals_dt, zvals_dt=zvals_dt)
-
-        plot()
-
-    def on_plot_image(self, img_data):
-        self.panel_plot.on_plot_image(
-            img_data["zvals"],
-            img_data["xvals"],
-            img_data["yvals"],
-            plot_obj=self.plot_window_img,
-            callbacks=dict(CTRL="widget.imaging.lesa.extract.spectrum.image"),
-        )
-
-    def on_plot_spectrum(self):
-        self.panel_plot.on_plot_MS(
-            self.mz_data["xvals"],
-            self.mz_data["yvals"],
-            show_in_window="LESA",
-            plot_obj=self.plot_window_MS,
-            override=False,
-            callbacks=dict(CTRL="widget.imaging.lesa.extract.image.spectrum"),
-        )
-
-    def on_plot_mobilogram(self, img_data):
-        self.panel_plot.on_plot_1D(
-            img_data["xvals_dt"],
-            img_data["yvals_dt"],
-            xlabel="Drift time (bins)",
-            show_in_window="LESA",
-            plot_obj=self.plot_window_DT,
-            override=False,
-            callbacks=dict(CTRL="widget.imaging.lesa.extract.image.mobilogram"),
-        )
-
-    def on_add_to_table(self, **add_dict):
-        from origami.utils.color import round_rgb
-        from origami.utils.color import convert_rgb_255_to_1
-        from origami.utils.color import get_font_color
-
-        color = add_dict["color"]
-
-        self.peaklist.Append(
-            [
-                "",
-                str(add_dict["ion_name"]),
-                str(add_dict["charge"]),
-                f"{add_dict['intensity']:.2f}",
-                str(round_rgb(convert_rgb_255_to_1(color))),
-                next(self.config.overlay_cmap_cycle),
-                str(add_dict.get("label", "")),
-                self.document_title,
-            ]
-        )
-        self.peaklist.SetItemBackgroundColour(self.peaklist.GetItemCount() - 1, color)
-        self.peaklist.SetItemTextColour(self.peaklist.GetItemCount() - 1, get_font_color(color, return_rgb=True))
-
-    def on_extract_spectrum_from_image(self, rect):
-        xmin, xmax, ymin, ymax = rect
-
-    def on_update_normalization(self, evt):
-        from origami.processing.heatmap import normalize_2d
+    def on_update_normalization(self, _evt):
+        """Update normalization in the plot"""
         from copy import deepcopy
 
-        # get method
-        method = {"Total Intensity": "total", "Root Mean Square": "sqrt", "Median": "median", "L2": "l2"}.get(
-            self.normalization_choice.GetStringSelection(), "None"
+        if self.clipboard_last is None:
+            raise MessageError("Error", "Could not retrieve last ion image - try extracting data first")
+
+        # get image
+        img_obj = self.clipboard[self.clipboard_last]["image"]
+
+        # get normalization object
+        if self.normalization_choice.GetStringSelection() == "None":
+            self.on_plot_image(img_obj)
+        else:
+            self.on_plot_image(deepcopy(img_obj))
+
+    def on_plot_image(self, img_obj):
+        """Plot image"""
+
+        normalization = self.normalization_choice.GetStringSelection()
+        if normalization != "None":
+            normalizer = self.document.get_normalization(normalization)
+            img_obj = normalizer(img_obj=img_obj)
+
+        self.view_img.plot(obj=img_obj)
+
+    def on_plot_spectrum(self, _evt):
+        """Plot mass spectrum"""
+        _, mz_obj = self.data_handling.get_spectrum_data(
+            [self.document_title, self.spectrum_choice.GetStringSelection()]
         )
+        self.view_ms.plot(obj=mz_obj)
 
-        # cancel if no data is available
-        if not self.img_data:
-            logger.warning("No imaging data available!")
-            return
-
-        img_data = deepcopy(self.clipboard[self.img_data])
-        try:
-            xmin, xmax = img_data["extract_range"]
-            img_data["zvals"] = self.data_handling.on_extract_LESA_img_from_mass_range_norm(
-                xmin, xmax, self.document_title, method
+    def on_plot_mobilogram(self, evt, dt_obj, title: str):
+        """Plot mobilogram"""
+        if not self.popup:
+            self.popup = PopupMobilogramView(
+                self, allow_extraction=True, callbacks=dict(CTRL="widget.imaging.lesa.extract.image.mobilogram")
             )
-        except KeyError:
-            img_data["zvals"] = normalize_2d(img_data["zvals"], self.normalization_choice.GetStringSelection(), p=0.1)
-
-        self.on_plot_image(img_data)
-        logger.info(f"Updated image with '{method}' normalization")
-
-    @Timer
-    def on_select_spectrum(self, evt):
-        # get data
-        spectrum_name = self.spectrum_choice.GetStringSelection()
-        __, mz_data = self.data_handling.get_spectrum_data([self.document_title, spectrum_name])
-        self.mz_data = mz_data
-
-        if spectrum_name == "Mass Spectrum":
-            self.on_extract_tic_image()
-
-        # show plot
-        self.on_plot_spectrum()
+            self.popup.position_on_event(evt, 500, 0)
+        self.popup.Show()
+        self.popup.plot(dt_obj)
+        self.popup.set_title(title)
 
     def on_select_document(self):
-        document = self.data_handling._get_document_of_type("Type: Imaging", allow_creation=False)
-        if document:
-            self.document_title = document.title
-            itemlist = self.data_handling.generate_item_list_mass_spectra("comparison")
-            spectrum_list = itemlist.get(document.title, [])
-            if spectrum_list:
-                self.spectrum_choice.SetItems(spectrum_list)
-                self.spectrum_choice.SetStringSelection(spectrum_list[0])
+        """Select document"""
+        if self._spectrum_list:
+            self.spectrum_choice.SetItems(self._spectrum_list)
+            self.spectrum_choice.SetStringSelection(self._spectrum_list[-1])
+            self.on_extract_tic_image()
+            self.on_plot_spectrum(None)
+
+    def on_select_item(self, evt):
+        """Select-event in the list"""
+        # trigger the parent item to sync
+        self.item_loading_lock = True
+
+        self.peaklist.on_select_item(evt)
+        item_info = self.on_get_item_information(None)
+        self.on_populate_item(item_info)
+
+        # already present
+        if item_info["ion_name"] in self.clipboard:
+            img_obj = self.clipboard[item_info["ion_name"]]["image"]
+            self.on_plot_image(img_obj)
+
+        self.item_loading_lock = False
 
     def on_double_click_on_item(self, evt):
         """Select item in list"""
-
-        def get_ion_range(ion_name):
-            # TODO: add dt support
-            mz_min, mz_max = ion_name.split("-")
-            return float(mz_min), float(mz_max)
-
         self.item_loading_lock = True
         item_info = self.on_get_item_information(None)
 
-        # already present
-        if item_info["ion_name"] == self.img_data:
-            self.on_update_normalization(None)
-        # need to retrieve again
+        # get dt data
+        name = item_info["ion_name"]
+        if self.clipboard[name]["mobilogram"] is not None:
+            dt_obj = self.clipboard[name]["mobilogram"]
         else:
-            xmin, xmax = get_ion_range(item_info["ion_name"])
-            self.on_extract_image_from_spectrum([xmin, xmax, None, None])
+            mz_min, mz_max = self._get_mz_from_label(name)
+            _, dt_obj = self.data_handling.document_extract_dt_from_msdt_multifile(mz_min, mz_max, self.document_title)
+            self.clipboard[name].update(mobilogram=dt_obj)
 
-        self.on_populate_item(item_info)
-        self.on_toggle_dt_plot()
-        self.item_loading_lock = True
+        self.on_plot_mobilogram(evt, dt_obj, f"Item: {name}")
+        self.item_loading_lock = False
 
     def on_populate_item(self, item_info):
         """Populate values in the gui"""
-        self.charge_value.SetValue(str(item_info["charge"]))
+        self.item_name.SetLabel(item_info["ion_name"])
         self.label_value.SetValue(item_info["label"])
-        self.item_name.SetValue(item_info["ion_name"])
         self.colormap_value.SetStringSelection(item_info["colormap"])
         self.item_color_btn.SetBackgroundColour(item_info["color"])
-
-    def on_create_blank_document(self, evt):
-        self.data_handling.create_new_document_of_type(document_type="imaging")
-
-    def on_get_item_information(self, item_id):
-        if item_id is None:
-            item_id = self.peaklist.item_id
-
-        information = self.peaklist.on_get_item_information(item_id)
-        return information
 
     def find_item(self, name):
         """Check for duplicate items with the same name"""
@@ -636,7 +690,28 @@ class PanelImagingLESAViewer(MiniFrame):
 
         return True, -1
 
-    def on_toggle_dt_plot(self, show=True):
-        #         show = not self.plot_panel_DT.IsShown()
-        self.plot_panel_DT.Show(show)
-        self.Layout()
+    def on_toggle(self):
+        """Disable objects"""
+        self.label_value.Enable(False)
+        self.colormap_value.Enable(False)
+        self.item_color_btn.Enable(False)
+
+    @staticmethod
+    def _get_mz_from_label(label):
+        """Extract m/z range from current item"""
+        label = label.split("MZ_")[-1]
+        mz_min, mz_max = map(float, label.split("-"))
+        return mz_min, mz_max
+
+
+def _main():
+
+    app = wx.App()
+    ex = PanelImagingLESAViewer(None, None, debug=True)
+
+    ex.Show()
+    app.MainLoop()
+
+
+if __name__ == "__main__":
+    _main()

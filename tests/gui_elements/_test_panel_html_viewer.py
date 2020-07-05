@@ -11,6 +11,4 @@ class TestPanelHTMLViewer(WidgetTestCase):
     def test_dialog_ok(self):
         dlg = PanelHTMLViewer(self.frame, link="www.google.com")
 
-        # wx.CallLater(250, dlg.on_close, None)
         dlg.Show()
-        # self.yield_()

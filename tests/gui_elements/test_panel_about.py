@@ -1,4 +1,7 @@
 """Test PanelAbout dialog"""
+# Third-party imports
+import pytest
+
 # Local imports
 from origami.icons.icons import IconContainer
 from origami.gui_elements.panel_about import PanelAbout
@@ -6,6 +9,7 @@ from origami.gui_elements.panel_about import PanelAbout
 from ..wxtc import WidgetTestCase
 
 
+@pytest.mark.guitest
 class TestPanelAbout(WidgetTestCase):
     """Test dialog"""
 
@@ -14,6 +18,4 @@ class TestPanelAbout(WidgetTestCase):
 
         dlg = PanelAbout(self.frame, icons)
 
-        # wx.CallLater(250, dlg.on_close, None)
         dlg.Show()
-        # self.yield_()

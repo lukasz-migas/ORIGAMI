@@ -1,6 +1,7 @@
 """Test SelectDataset dialog"""
 # Third-party imports
 import wx
+import pytest
 
 # Local imports
 from origami.gui_elements.dialog_select_dataset import DialogSelectDataset
@@ -15,6 +16,7 @@ def get_data():
     return document_list, dataset_list
 
 
+@pytest.mark.guitest
 class TestDialogSelectDataset(WidgetTestCase):
     """Test dialog"""
 

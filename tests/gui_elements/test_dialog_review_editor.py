@@ -4,12 +4,10 @@ import wx
 import pytest
 
 # Local imports
+from origami.gui_elements.dialog_review_editor import DialogReviewExportData
 from origami.gui_elements.dialog_review_editor import DialogReviewEditorExtract
-from origami.gui_elements.dialog_review_editor import (
-    DialogReviewEditorOverlay,
-    DialogReviewExportFigures,
-    DialogReviewExportData,
-)
+from origami.gui_elements.dialog_review_editor import DialogReviewEditorOverlay
+from origami.gui_elements.dialog_review_editor import DialogReviewExportFigures
 
 from ..wxtc import WidgetTestCase
 
@@ -19,6 +17,7 @@ def get_data():
     return [["Item 1", "Data 1"], ["Item 2", "Data 2"]]
 
 
+@pytest.mark.guitest
 class TestDialogReviewEditorOverlay(WidgetTestCase):
     """Test dialog"""
 
@@ -48,21 +47,8 @@ class TestDialogReviewEditorOverlay(WidgetTestCase):
 
         assert len(dlg.output_list) == 0
 
-    def test_dialog_key_exit(self):
-        item_list = get_data()
-        dlg = DialogReviewEditorOverlay(self.frame, item_list)
-        key_input = wx.UIActionSimulator()
 
-        wx.CallLater(250, key_input.Char, wx.WXK_ESCAPE)
-        wx.CallLater(350, dlg.on_close, None)
-        res = dlg.ShowModal()
-        assert res == wx.ID_NO
-        dlg.Destroy()
-        self.yield_()
-
-        assert len(dlg.output_list) == 0
-
-
+@pytest.mark.guitest
 class TestDialogReviewEditorExtract(WidgetTestCase):
     """Test dialog"""
 
@@ -92,21 +78,8 @@ class TestDialogReviewEditorExtract(WidgetTestCase):
 
         assert len(dlg.output_list) == 0
 
-    def test_dialog_key_exit(self):
-        item_list = get_data()
-        dlg = DialogReviewEditorExtract(self.frame, item_list)
-        key_input = wx.UIActionSimulator()
 
-        wx.CallLater(250, key_input.Char, wx.WXK_ESCAPE)
-        wx.CallLater(350, dlg.on_close, None)
-        res = dlg.ShowModal()
-        assert res == wx.ID_NO
-        dlg.Destroy()
-        self.yield_()
-
-        assert len(dlg.output_list) == 0
-
-
+@pytest.mark.guitest
 class TestDialogReviewExportFigures(WidgetTestCase):
     """Test dialog"""
 
@@ -136,21 +109,8 @@ class TestDialogReviewExportFigures(WidgetTestCase):
 
         assert len(dlg.output_list) == 0
 
-    def test_dialog_key_exit(self):
-        item_list = get_data()
-        dlg = DialogReviewExportFigures(self.frame, item_list)
-        key_input = wx.UIActionSimulator()
 
-        wx.CallLater(250, key_input.Char, wx.WXK_ESCAPE)
-        wx.CallLater(350, dlg.on_close, None)
-        res = dlg.ShowModal()
-        assert res == wx.ID_NO
-        dlg.Destroy()
-        self.yield_()
-
-        assert len(dlg.output_list) == 0
-
-
+@pytest.mark.guitest
 class TestDialogReviewExportData(WidgetTestCase):
     """Test dialog"""
 
@@ -173,20 +133,6 @@ class TestDialogReviewExportData(WidgetTestCase):
         dlg = DialogReviewExportData(self.frame, item_list)
 
         wx.CallLater(250, dlg.on_close, None)
-        res = dlg.ShowModal()
-        assert res == wx.ID_NO
-        dlg.Destroy()
-        self.yield_()
-
-        assert len(dlg.output_list) == 0
-
-    def test_dialog_key_exit(self):
-        item_list = get_data()
-        dlg = DialogReviewExportData(self.frame, item_list)
-        key_input = wx.UIActionSimulator()
-
-        wx.CallLater(250, key_input.Char, wx.WXK_ESCAPE)
-        wx.CallLater(350, dlg.on_close, None)
         res = dlg.ShowModal()
         assert res == wx.ID_NO
         dlg.Destroy()

@@ -26,7 +26,7 @@ class MPLPanel(wx.Panel):
     def __init__(self, *args, **kwargs):
         self.figsize = kwargs.pop("figsize", None)
         if self.figsize is None:
-            self.figsize = [8, 2.5]
+            self.figsize = [8, 4]
 
         # ensure minimal figure size
         if self.figsize[0] <= 0:
@@ -34,11 +34,14 @@ class MPLPanel(wx.Panel):
         if self.figsize[1] <= 0:
             self.figsize[1] = 1.0
 
+        axes_size = None
         if "axes_size" in kwargs:
             axes_size = kwargs.pop("axes_size")
-            self._axes = axes_size
-        else:
-            self._axes = [0.15, 0.12, 0.8, 0.8]
+
+        if axes_size is None:
+            axes_size = [0.13, 0.18, 0.8, 0.75]
+        self._axes = axes_size
+        self.plot_id = kwargs.pop("plot_id", "")
 
         self.figure = Figure(figsize=self.figsize)
 
@@ -127,7 +130,15 @@ class MPLPanel(wx.Panel):
         self.getxaxis = GetXValues(plots)
 
     def setup_new_zoom(
-        self, figure, data_limits=None, plot_parameters=None, allow_wheel=True, allow_extraction=True, callbacks=None
+        self,
+        figure,
+        data_limits=None,
+        plot_parameters=None,
+        allow_wheel=True,
+        allow_extraction=True,
+        callbacks=None,
+        is_heatmap: bool = False,
+        plot_id: str = None,
     ):
         """Setup the new-style matplotlib zoom"""
         if callbacks is None:
@@ -144,6 +155,8 @@ class MPLPanel(wx.Panel):
             allow_wheel=allow_wheel,
             callbacks=callbacks,
             parent=self.GetParent(),
+            is_heatmap=is_heatmap,
+            plot_id=self.plot_id,
         )
 
     def setup_zoom(

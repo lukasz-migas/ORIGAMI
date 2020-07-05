@@ -18,7 +18,7 @@ class ImagingNormalizationProcessor:
     def __init__(self, document: DocumentStore):
         self.document = document
 
-        self.n_px = self.generate_metadata()
+        self.n_px, self.x_dim, self.y_dim = self.generate_metadata()
         self.compute_normalizations()
 
     @staticmethod
@@ -45,9 +45,11 @@ class ImagingNormalizationProcessor:
         meta = self.document.get_config("imaging")
 
         # compute parameters
-        n_px = int(meta["x_dim"] * meta["y_dim"])
+        x_dim = int(meta["x_dim"])
+        y_dim = int(meta["y_dim"])
+        n_px = x_dim * y_dim
         LOGGER.debug(f"Document has {n_px} pixels")
-        return n_px
+        return n_px, x_dim, y_dim
 
     def get_spectrum(self):
         """Yields mass spectrum"""
@@ -78,13 +80,30 @@ class ImagingNormalizationProcessor:
                 norm_intensity[i, j] = reduce(mz_obj)
 
         # write to disk
+        norm_median = self.rescale(norm_intensity, np.median)
+        norm_mean = self.rescale(norm_intensity, np.mean)
         for j, name, _ in norm_reduce:
             self.add_normalization(name, norm_intensity[:, j])
+            self.add_normalization(name + " (scale=median)", norm_median[:, j])
+            self.add_normalization(name + " (scale=mean)", norm_mean[:, j])
+
+    def rescale(self, array: np.ndarray, scale_fcn=np.median):
+        """Rescale normalization array"""
+        norm_rescaled = np.zeros_like(array)
+        for i, norm in enumerate(array.T):
+            scale = float(scale_fcn(norm))
+            norm_scale = np.zeros_like(norm)
+            norm_scale.fill(scale)
+            norm_scale = norm / norm_scale
+            norm_rescaled[:, i] = norm_scale
+        return norm_rescaled
 
     def add_normalization(self, name, normalization):
         """Appends normalization to the metadata store"""
         # make sure there is somewhere to add normalization to
         self.document.add_metadata(
-            f"Normalization={name}", data=dict(array=normalization), attrs=dict(normalization=name)
+            f"Normalization={name}",
+            data=dict(array=normalization),
+            attrs=dict(normalization=name, n_px=self.n_px, x_dim=self.x_dim, y_dim=self.y_dim),
         )
         LOGGER.debug(f"Added normalization={name}")

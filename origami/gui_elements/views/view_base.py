@@ -24,10 +24,12 @@ class ViewBase(ABC):
 
     DATA_KEYS = []
     MPL_KEYS = []
+    NAME = None
 
     def __init__(self, parent, figsize, title="", **kwargs):
         self.parent = parent
         self.figsize = figsize
+        self.axes_size = kwargs.pop("axes_size", None)
         self.title = title
 
         # ui elements
@@ -249,6 +251,21 @@ class ViewBase(ABC):
             y_max = _y_max
 
         self.figure.plot_add_line(x_val, x_val, y_min, y_max, "vertical")
+        if repaint:
+            self.figure.repaint()
+
+    def add_patch(
+        self,
+        x: float,
+        y: float,
+        width: float,
+        height: Optional[float],
+        label: str = None,
+        pickable: bool = True,
+        repaint: bool = True,
+    ):
+        """Add rectangular patch to the plot"""
+        self.figure.plot_add_patch(x, y, width, height, label=label, pickable=pickable)
         if repaint:
             self.figure.repaint()
 

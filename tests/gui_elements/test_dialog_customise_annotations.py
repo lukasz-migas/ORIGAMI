@@ -1,6 +1,7 @@
 """Test SelectDataset dialog"""
 # Third-party imports
 import wx
+import pytest
 
 # Local imports
 from origami.gui_elements.dialog_customise_user_annotations import DialogCustomiseUserAnnotations
@@ -8,6 +9,7 @@ from origami.gui_elements.dialog_customise_user_annotations import DialogCustomi
 from ..wxtc import WidgetTestCase
 
 
+@pytest.mark.guitest
 class TestDialogCustomiseUserAnnotations(WidgetTestCase):
     """Test dialog"""
 

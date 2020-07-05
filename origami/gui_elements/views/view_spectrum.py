@@ -6,6 +6,7 @@ import logging
 import wx
 
 # Local imports
+from origami.utils.secret import get_short_hash
 from origami.config.config import CONFIG
 from origami.visuals.mpl.plot_spectrum import PlotSpectrum
 from origami.gui_elements.views.view_base import ViewBase
@@ -17,10 +18,10 @@ class ViewSpectrumPanelMixin:
     """Spectrum panel base"""
 
     @staticmethod
-    def make_panel(parent, figsize):
+    def make_panel(parent, figsize, plot_id, axes_size=None):
         """Initialize plot panel"""
         plot_panel = wx.Panel(parent)
-        plot_window = PlotSpectrum(plot_panel, figsize=figsize)
+        plot_window = PlotSpectrum(plot_panel, figsize=figsize, axes_size=axes_size, plot_id=plot_id)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(plot_window, 1, wx.EXPAND)
@@ -35,10 +36,11 @@ class ViewSpectrum(ViewBase, ViewSpectrumPanelMixin):
 
     DATA_KEYS = ("x", "y")
     MPL_KEYS = ["1D"]
+    NAME = get_short_hash()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.panel, self.figure, self.sizer = self.make_panel(self.parent, self.figsize)
+        self.panel, self.figure, self.sizer = self.make_panel(self.parent, self.figsize, self.NAME, self.axes_size)
 
     def _update(self):
         """Update plot with current data"""
@@ -113,6 +115,8 @@ class ViewSpectrum(ViewBase, ViewSpectrumPanelMixin):
 class ViewMassSpectrum(ViewSpectrum):
     """Specialized viewer for mass spectral data"""
 
+    NAME = get_short_hash()
+
     def __init__(self, parent, figsize, title="MassSpectrum", **kwargs):
         ViewSpectrum.__init__(self, parent, figsize, title, **kwargs)
         self._x_label = kwargs.pop("x_label", "m/z (Da)")
@@ -122,6 +126,8 @@ class ViewMassSpectrum(ViewSpectrum):
 class ViewChromatogram(ViewSpectrum):
     """Specialized viewer for chromatographic data"""
 
+    NAME = get_short_hash()
+
     def __init__(self, parent, figsize, title="Chromatogram", **kwargs):
         ViewSpectrum.__init__(self, parent, figsize, title, **kwargs)
         self._x_label = kwargs.pop("x_label", "Scans")
@@ -130,6 +136,8 @@ class ViewChromatogram(ViewSpectrum):
 
 class ViewMobilogram(ViewSpectrum):
     """Specialized viewer for mobilogram data"""
+
+    NAME = get_short_hash()
 
     def __init__(self, parent, figsize, title="Mobilogram", **kwargs):
         ViewSpectrum.__init__(self, parent, figsize, title, **kwargs)
@@ -142,10 +150,11 @@ class ViewCompareSpectra(ViewBase, ViewSpectrumPanelMixin):
 
     DATA_KEYS = ("x_top", "x_bottom", "y_top", "y_bottom", "labels")
     MPL_KEYS = ["1D"]
+    NAME = get_short_hash()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.panel, self.figure, self.sizer = self.make_panel(self.parent, self.figsize)
+        self.panel, self.figure, self.sizer = self.make_panel(self.parent, self.figsize, self.NAME)
 
     @staticmethod
     def check_input(x_top, x_bottom, y_top, y_bottom, obj_top, obj_bottom):
@@ -242,6 +251,8 @@ class ViewCompareSpectra(ViewBase, ViewSpectrumPanelMixin):
 
 class ViewCompareMassSpectra(ViewCompareSpectra):
     """Specialized viewer for comparison of mass spectral data"""
+
+    NAME = get_short_hash()
 
     def __init__(self, parent, figsize, title="CompareMassSpectra", **kwargs):
         ViewCompareSpectra.__init__(self, parent, figsize, title=title, **kwargs)

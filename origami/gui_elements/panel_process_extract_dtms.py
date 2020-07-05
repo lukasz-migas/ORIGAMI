@@ -1,4 +1,5 @@
 # Standard library imports
+import os
 import math
 import logging
 
@@ -12,11 +13,12 @@ from origami.styles import validator
 from origami.config.config import CONFIG
 from origami.utils.converters import str2num
 from origami.config.environment import ENV
+from origami.gui_elements.panel_base import DatasetMixin
 
 logger = logging.getLogger(__name__)
 
 
-class PanelProcessExtractDTMS(MiniFrame):
+class PanelProcessExtractDTMS(MiniFrame, DatasetMixin):
     """Panel enabling extraction of new or additional MS/DT data"""
 
     # ui elements
@@ -33,7 +35,7 @@ class PanelProcessExtractDTMS(MiniFrame):
     # parameters
     parameters = None
 
-    def __init__(self, parent, presenter):
+    def __init__(self, parent, presenter, document_title: str = None):
         MiniFrame.__init__(self, parent, title="Extract DT/MS...")
         self.view = parent
         self.presenter = presenter
@@ -43,14 +45,15 @@ class PanelProcessExtractDTMS(MiniFrame):
         self.make_gui()
 
         # setup data storage
-        self.x_data = None
-        self.y_data = None
-        self.z_data = None
+        self.document_title = document_title
+        self.dataset_name = None
+        self.msdt_obj = None
+        self.msdt_title = None
 
         # setup gui pview
         self.on_setup_gui()
 
-        self.CentreOnScreen()
+        self.CenterOnParent()
         self.SetFocus()
 
     @property
@@ -59,14 +62,18 @@ class PanelProcessExtractDTMS(MiniFrame):
         return self.presenter.data_handling
 
     @property
-    def data_processing(self):
-        """Return handle to `data_processing`"""
-        return self.presenter.data_processing
+    def panel_plot(self):
+        """Return handle to `panel_plot`"""
+        return self.view.panelPlots
 
     @property
     def document_tree(self):
         """Return handle to `document_tree`"""
         return self.presenter.view.panelDocuments.documents
+
+    def on_close(self, evt, force: bool = False):
+        self._dataset_mixin_teardown()
+        MiniFrame.on_close(self, evt, force=force)
 
     def make_panel(self):
         """Make panel"""
@@ -149,7 +156,7 @@ class PanelProcessExtractDTMS(MiniFrame):
         self.parameters = parameters
 
         info = "Experimental mass range: {:.2f}-{:.2f}".format(
-            parameters.get("startMS", "N/A"), parameters.get("endMS", "N/A")
+            parameters.get("start_ms", -1), parameters.get("end_ms", -1)
         )
         self.info_bar.SetLabel(info)
 
@@ -157,13 +164,13 @@ class PanelProcessExtractDTMS(MiniFrame):
         if CONFIG.extract_dtms_mzStart not in [0, "", None]:
             mz_min = CONFIG.extract_dtms_mzStart
         else:
-            mz_min = self.parameters["startMS"]
+            mz_min = self.parameters["start_ms"]
         self.mz_min_value.SetValue(str(mz_min))
 
         if CONFIG.extract_dtms_mzEnd not in [0, "", None]:
             mz_max = CONFIG.extract_dtms_mzEnd
         else:
-            mz_max = self.parameters["endMS"]
+            mz_max = self.parameters["end_ms"]
         self.mz_max_value.SetValue(str(mz_max))
 
         if CONFIG.extract_dtms_mzBinSize not in [0, "", None]:
@@ -171,6 +178,9 @@ class PanelProcessExtractDTMS(MiniFrame):
         else:
             mz_bin_size = 0.1
         self.mz_bin_value.SetValue(str(mz_bin_size))
+
+        # setup mixins
+        self._dataset_mixin_setup()
 
     def _update_msg_bar(self, info=None):
         if info is None:
@@ -192,10 +202,10 @@ class PanelProcessExtractDTMS(MiniFrame):
         """Check user input and if incorrect correct the values"""
         self.block_update = True
         if CONFIG.extract_dtms_mzStart in [0, "", None, "None"]:
-            CONFIG.extract_dtms_mzStart = self.parameters["startMS"]
+            CONFIG.extract_dtms_mzStart = self.parameters["start_ms"]
 
         if CONFIG.extract_dtms_mzEnd in [0, "", None, "None"]:
-            CONFIG.extract_dtms_mzEnd = self.parameters["endMS"]
+            CONFIG.extract_dtms_mzEnd = self.parameters["end_ms"]
 
         # check values are in correct order
         if CONFIG.extract_dtms_mzStart > CONFIG.extract_dtms_mzEnd:
@@ -209,11 +219,11 @@ class PanelProcessExtractDTMS(MiniFrame):
             CONFIG.extract_dtms_mzEnd += 1
 
         # check if values are below experimental range
-        if CONFIG.extract_dtms_mzStart < self.parameters["startMS"]:
-            CONFIG.extract_dtms_mzStart = self.parameters["startMS"]
+        if CONFIG.extract_dtms_mzStart < self.parameters["start_ms"]:
+            CONFIG.extract_dtms_mzStart = self.parameters["start_ms"]
 
-        if CONFIG.extract_dtms_mzEnd > self.parameters["endMS"]:
-            CONFIG.extract_dtms_mzEnd = self.parameters["endMS"]
+        if CONFIG.extract_dtms_mzEnd > self.parameters["end_ms"]:
+            CONFIG.extract_dtms_mzEnd = self.parameters["end_ms"]
 
         if CONFIG.extract_dtms_mzBinSize in [0, "", None, "None"]:
             CONFIG.extract_dtms_mzBinSize = 1
@@ -234,7 +244,8 @@ class PanelProcessExtractDTMS(MiniFrame):
         if evt is not None:
             evt.Skip()
 
-    def on_check_mass_range(self, mz_min, mz_max, shape):
+    @staticmethod
+    def on_check_mass_range(mz_min, mz_max, shape):
         """Check mass range
 
         Parameters
@@ -255,80 +266,82 @@ class PanelProcessExtractDTMS(MiniFrame):
         return mz_x
 
     def on_check_data(self):
+        """Check whether data was extracted"""
         is_present = True
         # check if data is already extracted
-        if self.x_data is None or self.y_data is None or self.z_data is None:
-            self.msg_bar.SetLabel("Data not present - make sure you extract it first.")
+        if self.msdt_obj is None:
             is_present = False
+            self.msg_bar.SetLabel("Data not present - make sure you extract it first.")
 
         return is_present
 
     def on_extract_data(self, _evt):
+        """Extract data and show on plot"""
         # clear previous msg
         self._update_msg_bar()
 
         # check user input
         self.check_user_input()
 
-        document = ENV.on_get_document()
-        path = document.path
+        document = ENV.on_get_document(self.document_title)
+        path = document.get_file_path("main")
 
-        # Extract and load data
-        mz_x, dt_y, data = self.data_handling.waters_im_extract_msdt(
-            path, CONFIG.extract_dtms_mzStart, CONFIG.extract_dtms_mzEnd, CONFIG.extract_dtms_mzBinSize
+        title = (
+            f"MZ_{CONFIG.extract_dtms_mzStart:.2f}-{CONFIG.extract_dtms_mzEnd:.2f} "
+            f"(bin={CONFIG.extract_dtms_mzBinSize:4f})"
         )
 
-        # Plot
-        self.view.panelPlots.on_plot_MSDT(data, mz_x, dt_y, "m/z", "Drift time (bins)")
+        if self.msdt_obj is None or self.msdt_title != title:
+            msdt_obj = self.data_handling.waters_im_extract_msdt(
+                path, CONFIG.extract_dtms_mzStart, CONFIG.extract_dtms_mzEnd, CONFIG.extract_dtms_mzBinSize
+            )
 
-        # add data
-        self.x_data = mz_x
-        self.y_data = dt_y
-        self.z_data = data
+            self.msdt_obj = msdt_obj
+            self.msdt_title = title
+        else:
+            msdt_obj = self.msdt_obj
+
+        self.panel_plot.view_msdt.plot(obj=msdt_obj)
 
         # notify the user that update was made
-        self._update_msg_bar("Data was extracted! It had dimensions {} x {}".format(dt_y.shape[0], mz_x.shape[0]))
+        self._update_msg_bar(
+            "Data was extracted! It had dimensions {} x {}".format(msdt_obj.shape[0], msdt_obj.shape[0])
+        )
 
     def on_add_to_document(self, _evt):
+        """Extract data and add it to the document"""
         if not self.on_check_data():
             return
+        document = ENV.on_get_document(self.document_title)
+        title = (
+            f"MZ_{CONFIG.extract_dtms_mzStart:.2f}-{CONFIG.extract_dtms_mzEnd:.2f} "
+            f"(bin={CONFIG.extract_dtms_mzBinSize:3f})"
+        )
 
-        document = ENV.on_get_document()
+        if self.msdt_obj is None or self.msdt_title != title:
+            self.on_extract_data(None)
 
-        document.gotDTMZ = True
-        document.DTMZ = {
-            "zvals": self.z_data,
-            "xvals": self.x_data,
-            "yvals": self.y_data,
-            "xlabels": "m/z",
-            "ylabels": "Drift time (bins)",
-            "cmap": CONFIG.currentCmap,
-        }
-        self.data_handling.on_update_document(document, "document")
+        # get extracted object
+        msdt_obj = self.msdt_obj
+
+        # add the object to document
+        document.add_msdt(title, msdt_obj)
+
+        # display object in the window
+
+        # notify document tree of changes
+        self.document_tree.on_update_document(msdt_obj.DOCUMENT_KEY, title, self.document_title)
 
     def on_save(self, _evt):
+        """Export data to a text file"""
         if not self.on_check_data():
             return
 
-        document = ENV.on_get_document()
-        document_title = document.title
-
-        zvals = self.z_data
-        xvals = self.x_data
-        yvals = self.y_data
-
-        default_name = "MSDT_{}{}".format(document_title, CONFIG.saveExtension)
-
-        saveData = np.vstack((xvals, zvals))
-        yvals = list(map(str, yvals.tolist()))
-        labels = ["DT"]
-        labels.extend(yvals)
-        fmts = ["%.4f"] + ["%i"] * len(yvals)
-
-        # Save 2D array
-        kwargs = {"default_name": default_name}
-        self.document_tree.onSaveData(data=saveData, labels=labels, data_format=fmts, **kwargs)
-
+        document = ENV.on_get_document(self.document_title)
+        default_name = f"{self.msdt_title}{CONFIG.saveExtension}"
+        default_path = os.path.join(document.output_path, default_name)
+        filename = self.data_handling.on_get_csv_filename(default_name, default_path)
+        self.msdt_obj.to_csv(filename)
         self._update_msg_bar("Data was saved to file!")
 
 

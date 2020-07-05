@@ -15,6 +15,7 @@ def get_data():
     return document_list
 
 
+@pytest.mark.guitest
 class TestDialogSelectDocument(WidgetTestCase):
     """Test dialog"""
 

@@ -59,11 +59,51 @@ jobs:
       - name: Test with pytest (Linux)
         if: runner.os == 'Linux'
         run: |
-          xvfb-run -a pytest .
+          xvfb-run -a pytest -m "not guitests" .
       - name: Test with pytest (Windows/macOS)
         if: runner.os != 'Linux'
         run: |
-          pytest .
+          pytest  -m "not guitests" .
+
+  guitests:
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: [3.7] #, 3.8]  # wxpython for linux 3.8 is not available yet
+        os: [ubuntu-latest, windows-latest] #, macOS-latest]  # some bug in macOS version I don't care to investigate yet
+    timeout-minutes: 20
+    runs-on: ${{ matrix.os }}
+    name: "Tests"
+
+    steps:
+      - uses: actions/checkout@master
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements/requirements-std.txt
+          pip install -r requirements/requirements-dev.txt
+      - name: Install wxPython (Windows/macOS)
+        if: runner.os != 'Linux'
+        run: |
+          pip install -U wxPython
+          pip install -r requirements/requirements-win32.txt
+      - name: Install wxPython (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get install --assume-yes git curl libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-0 libwebkit2gtk-4.0
+          pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-18.04 wxPython
+      - name: Test with pytest (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          xvfb-run -a pytest  -m guitests .
+      - name: Test with pytest (Windows/macOS)
+        if: runner.os != 'Linux'
+        run: |
+          pytest -m guitests .
 
   coverage:
     name: "Coverage"

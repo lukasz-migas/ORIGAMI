@@ -10,6 +10,7 @@ from origami.gui_elements.dialog_ask import DialogAsk
 from ..wxtc import WidgetTestCase
 
 
+@pytest.mark.guitest
 class TestDialogAsk(WidgetTestCase):
     """Test dialog"""
 

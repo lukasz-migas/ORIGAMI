@@ -27,6 +27,8 @@ warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 
 class PlotBase(MPLPanel):
+    """Generic plot base"""
+
     def __init__(self, *args, **kwargs):
         self._axes = kwargs.get("axes_size", [0.12, 0.12, 0.8, 0.8])  # keep track of axes size
         MPLPanel.__init__(self, *args, **kwargs)
@@ -84,12 +86,16 @@ class PlotBase(MPLPanel):
         return xlimits, ylimits, extent
 
     @staticmethod
-    def _compute_xy_limits(x, y, y_lower_start=0, y_upper_multiplier=1.0):
+    def _compute_xy_limits(x, y, y_lower_start=0, y_upper_multiplier=1.0, is_heatmap: bool = False):
         """Calculate the x/y axis ranges"""
         x = np.asarray(x)
         y = np.asarray(y)
         x_min, x_max = get_min_max(x)
         y_min, y_max = get_min_max(y)
+
+        if is_heatmap:
+            x_min, x_max = x_min - 0.5, x_max + 0.5
+            y_min, y_max = y_min - 0.5, y_max + 0.5
 
         xlimits = [x_min, x_max]
         if y_lower_start is None:
@@ -104,6 +110,32 @@ class PlotBase(MPLPanel):
     def store_plot_limits(self, extent):
         """Setup plot limits"""
         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
+
+    #         self._check_plot_limits(extent)
+
+    #     def _check_plot_limits(self, extent):
+    #         """Check whether current plot limits are way-outside of what the new plot expects"""
+    #         # get current plot limits
+    #         x_min, y_min, x_max, y_max = extent
+    #
+    #         # get new plot limits
+    #         _x_min, _x_max = self.get_xlim()
+    #         _y_min, _y_max = self.get_ylim()
+    # #         _x_min, _x_max, _y_min, _y_max = self.plot_limits
+    #
+    #         # check x-axis
+    # #         if _x_min < x_min:
+    # #             _x_min = x_min
+    #         if _x_max > x_max:
+    #             _x_max = x_max
+    #
+    #         # check y-axis
+    # #         if _y_min < y_min:
+    # #             _y_min = y_min
+    #         if _y_max > y_max:
+    #             _y_max = y_max
+    #
+    #         self.set_xy_limits((_x_min, _x_max, _y_min, _y_max))
 
     def get_xlim(self):
         """Get x-axis limits"""
@@ -689,6 +721,10 @@ class PlotBase(MPLPanel):
 
         if label not in [None, ""]:
             self._remove_existing_patch(label)
+
+        # height can be defined as None to force retrieval of the highest value in the plot
+        if height is None:
+            height = self.get_ylim()[-1]
 
         # check if need to rescale height
         try:

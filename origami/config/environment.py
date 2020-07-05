@@ -86,9 +86,11 @@ DOCUMENT_KEY_PAIRS = {
     "mobilogram": "Mobilograms/Summed Mobilogram",
     "heatmap": "IonHeatmaps/Summed Heatmap",
     "msdt": "MSDTHeatmaps/Summed Heatmap",
+    # whole groups
     "mass_spectra": ("MassSpectra", "*"),
     "chromatograms": ("Chromatograms", "*"),
     "mobilograms": ("Mobilograms", "*"),
+    "msdts": ("MSDTHeatmaps", "*"),
     "parameters": "Metadata/Parameters",
     # "reader": "file_reader",
     # "tandem_spectra": "tandem_spectra",

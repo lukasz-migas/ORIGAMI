@@ -9,6 +9,7 @@ from origami.gui_elements.dialog_notify_open_documents import DialogNotifyOpenDo
 from ..wxtc import WidgetTestCase
 
 
+@pytest.mark.guitest
 class TestDialogNotifyOpenDocuments(WidgetTestCase):
     """Test dialog"""
 

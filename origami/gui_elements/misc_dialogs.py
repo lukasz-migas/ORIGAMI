@@ -48,6 +48,7 @@ def DialogBox(title="", msg="", kind="Error", show_exception=True):
         logger_printer(msg)
 
     dlg = wx.MessageDialog(None, msg, title, style)
+    dlg.Raise()
     result = dlg.ShowModal()
 
     if kind == "Question":

@@ -32,6 +32,7 @@ from origami.objects.containers import ion_heatmap_object
 from origami.objects.containers import chromatogram_object
 from origami.objects.containers import msdt_heatmap_object
 from origami.objects.containers import mass_spectrum_object
+from origami.objects.containers import normalization_object
 
 LOGGER = logging.getLogger(__name__)
 
@@ -181,6 +182,8 @@ class DocumentStore:
             obj = ion_heatmap_object(group)
         elif klass_name == "StitchIonHeatmapObject":
             obj = ion_heatmap_object(group)
+        elif klass_name == "ImagingIonHeatmapObject":
+            obj = ion_heatmap_object(group)
         # elif klass_name == "MassSpectrumGroup":
         #     obj =
 
@@ -255,6 +258,12 @@ class DocumentStore:
             return self["Metadata/Parameters"].attrs.asdict()
         return {}
 
+    def is_imaging(self):
+        """Checks whether the document is a LESA-imaging document"""
+        if "Imaging" not in self.data_type:
+            return False
+        return True
+
     def can_extract(self) -> Tuple[bool, bool, str]:
         """Checks whether this document can be used for data extraction. Returns tuple of bool values to indicate
         whether data can be extracted and/or the dataset uses multiple raw file"""
@@ -324,28 +333,45 @@ class DocumentStore:
         """Adds mass spectrum to the document"""
         if isinstance(data, DataObject):
             data, attrs = data.to_zarr()
-        group = self.add(f"MassSpectra/{title}", data, attrs)
+        if not title.startswith("MassSpectra"):
+            title = f"MassSpectra/{title}"
+        group = self.add(title, data, attrs)
         return self.as_object(group)
 
     def add_chromatogram(self, title: str, data: Optional[Dict] = None, attrs: Optional[Dict] = None):
         """Adds chromatogram to the document"""
         if isinstance(data, DataObject):
             data, attrs = data.to_zarr()
-        group = self.add(f"Chromatograms/{title}", data, attrs)
+        if not title.startswith("Chromatograms"):
+            title = f"Chromatograms/{title}"
+        group = self.add(title, data, attrs)
         return self.as_object(group)
 
     def add_mobilogram(self, title: str, data: Optional[Dict] = None, attrs: Optional[Dict] = None):
         """Adds mobilograms to the document"""
         if isinstance(data, DataObject):
             data, attrs = data.to_zarr()
-        group = self.add(f"Mobilograms/{title}", data, attrs)
+        if not title.startswith("Mobilograms"):
+            title = f"Mobilograms/{title}"
+        group = self.add(title, data, attrs)
         return self.as_object(group)
 
     def add_heatmap(self, title: str, data: Optional[Dict] = None, attrs: Optional[Dict] = None):
         """Adds heatmap to the document"""
         if isinstance(data, DataObject):
             data, attrs = data.to_zarr()
-        group = self.add(f"IonHeatmaps/{title}", data, attrs)
+        if not title.startswith("IonHeatmaps"):
+            title = f"IonHeatmaps/{title}"
+        group = self.add(title, data, attrs)
+        return self.as_object(group)
+
+    def add_msdt(self, title: str, data: Optional[Dict] = None, attrs: Optional[Dict] = None):
+        """Adds heatmap to the document"""
+        if isinstance(data, DataObject):
+            data, attrs = data.to_zarr()
+        if not title.startswith("MSDTHeatmaps"):
+            title = f"MSDTHeatmaps/{title}"
+        group = self.add(title, data, attrs)
         return self.as_object(group)
 
     def add_metadata(self, title: str, data: Optional[Dict] = None, attrs: Optional[Dict] = None):
@@ -588,3 +614,18 @@ class DocumentStore:
     def tandem_spectra(self, value):
         """Set the tandem spectra object"""
         self._tandem_spectra.set_from_dict(value)
+
+    def get_normalization_list(self):
+        """Returns list of normalization(s) available in an imaging document"""
+        normalizations = ["None"]
+        for key in self.Metadata.keys():
+            if key.startswith("Normalization"):
+                normalizations.append(key)
+        return normalizations
+
+    def get_normalization(self, name: str):
+        """Return normalization object"""
+        if name not in self.get_normalization_list():
+            raise ValueError(f"Cannot get {name} as its not present in the Document")
+
+        return normalization_object(self.Metadata[name])

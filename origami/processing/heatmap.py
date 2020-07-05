@@ -201,7 +201,7 @@ def equalize_heatmap_spacing(xvals, yvals, zvals):
     n_bins = len(np.arange(yvals[0], yvals[-1], min(spacing))) + 1
     new_yvals = np.linspace(yvals[0], yvals[-1], n_bins)
 
-    return interpolate_2d(xvals, yvals, zvals, new_xvals=new_xvals, new_yvals=new_yvals)
+    return interpolate_2d(xvals, yvals, zvals, new_x=new_xvals, new_y=new_yvals)
 
 
 def interpolate_2d(

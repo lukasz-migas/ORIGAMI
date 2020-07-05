@@ -170,6 +170,7 @@ class MainWindow(wx.Frame):
         self.plot_data = {}
         self.plot_scale = {}
         self.plot_name = None
+        self.plot_id = None
 
         self._fullscreen = False
 
@@ -182,8 +183,8 @@ class MainWindow(wx.Frame):
 
         # View parameters
         self.mode = None
-        self.xpos = None
-        self.ypos = None
+        self.x_pos = None
+        self.y_pos = None
         self.xy_start = None
         self.resized = False
 
@@ -1306,7 +1307,7 @@ class MainWindow(wx.Frame):
         #         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_MSMS_viewer, id=ID_docTree_plugin_MSMS)
         #         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_overlay_viewer,
         #         menu_widget_overlay_viewer)
-        #         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_lesa_viewer, menu_widget_lesa_viewer)
+        self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_lesa_viewer, menu_widget_lesa_viewer)
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_import_lesa_dataset, menu_widget_lesa_import)
         #         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_interactive_viewer,
         # menu_widget_interactive_viewer)
@@ -1939,25 +1940,26 @@ class MainWindow(wx.Frame):
         self.SetCursor(cursor)
         self.SetStatusText("{}".format(self.mode), number=5)
 
-    def on_motion(self, xpos, ypos, plotname):
+    def on_motion(self, x_pos, y_pos, plot_name, plot_id):
         """Updates the x/y values shown in the window based on where in the plot area the mouse is found
 
         Parameters
         ----------
-        xpos : float
+        x_pos : float
             x-axis position of the mouse in the plot area
-        ypos : float
+        y_pos : float
             y-axis position of the mouse in the plot area
-        plotname : str
+        plot_name : str
             name of the plot from where the action is taking place
         """
 
-        self.plot_name = plotname
+        self.plot_name = plot_name
+        self.plot_id = plot_id
 
-        if xpos is None or ypos is None:
+        if x_pos is None or y_pos is None:
             msg = ""
         else:
-            msg = "x={:.4f} y={:.4f}".format(xpos, ypos)
+            msg = "x={:.4f} y={:.4f}".format(x_pos, y_pos)
         self.SetStatusText(msg, number=0)
 
     #

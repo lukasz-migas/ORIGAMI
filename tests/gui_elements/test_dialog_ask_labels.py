@@ -1,6 +1,7 @@
 """Test SelectDataset dialog"""
 # Third-party imports
 import wx
+import pytest
 
 # Local imports
 from origami.gui_elements.dialog_ask_labels import DialogSelectLabels
@@ -8,6 +9,7 @@ from origami.gui_elements.dialog_ask_labels import DialogSelectLabels
 from ..wxtc import WidgetTestCase
 
 
+@pytest.mark.guitest
 class TestDialogSelectLabels(WidgetTestCase):
     """Test dialog"""
 

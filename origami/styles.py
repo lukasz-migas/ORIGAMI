@@ -307,6 +307,7 @@ class MiniFrame(wx.MiniFrame):
     _icons = None
 
     info_btn = None
+    settings_btn = None
     display_label = None
 
     def __init__(
@@ -322,6 +323,7 @@ class MiniFrame(wx.MiniFrame):
             self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
 
     def on_key_event(self, evt):
+        """Keyboard events"""
         key_code = evt.GetKeyCode()
         # exit window
         if key_code == wx.WXK_ESCAPE:
@@ -338,7 +340,7 @@ class MiniFrame(wx.MiniFrame):
         """Destroy this frame."""
         self.Destroy()
 
-    def on_open_info(self, evt):
+    def on_open_info(self, _evt):
         """Open help window to inform user on how to use this window / panel"""
         from origami.gui_elements.panel_html_viewer import PanelHTMLViewer
 
@@ -347,11 +349,24 @@ class MiniFrame(wx.MiniFrame):
         elif self.HELP_MD:
             PanelHTMLViewer(self, md_msg=self.HELP_MD)
 
+    def on_open_popup_settings(self, evt):
+        """Open settings popup window"""
+
     def make_info_button(self, panel):
         """Make clickable information button"""
         info_btn = make_bitmap_btn(panel, wx.ID_ANY, self._icons.info, style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
+        set_tooltip(info_btn, "Open documentation page about this panel (online)")
         info_btn.Bind(wx.EVT_BUTTON, self.on_open_info)
         return info_btn
+
+    def make_settings_button(self, panel):
+        """Make clickable information button"""
+        settings_btn = make_bitmap_btn(
+            panel, wx.ID_ANY, self._icons.gear, style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
+        )
+        set_tooltip(settings_btn, "Open popup window with settings specific to this panel")
+        settings_btn.Bind(wx.EVT_BUTTON, self.on_open_popup_settings)
+        return settings_btn
 
     def make_statusbar(self, panel):
         """Make make-shift statusbar"""
@@ -421,13 +436,19 @@ class ListCtrl(wx.ListCtrl, listmix.TextEditMixin):
     #     # else:
     #     #     evt.Skip()
 
-    def IsChecked(self, item):
+    def IsChecked(self, item):  # noqa
+        """Check whether an item has been checked"""
         return self.IsItemChecked(item)
 
     def on_select_item(self, evt):
+        """Select item"""
         self.item_id = evt.Index
 
+        if evt is not None:
+            evt.Skip()
+
     def on_activate_item(self, evt):
+        """Activate item"""
         self.item_id = evt.Index
 
         if evt is not None:
@@ -949,6 +970,13 @@ class PopupBase(wx.PopupWindow):
 
     ld_pos = None
     w_pos = None
+    _icons = None
+    title = None
+
+    ENABLE_RIGHT_CLICK_DISMISS = True
+    ENABLE_LEFT_DLICK_DISMISS = True
+    ENABLE_INFO_MESSAGE = True
+    INFO_MESSAGE = "Right-click inside the popup window to close it."
 
     def __init__(self, parent, style=wx.BORDER_SIMPLE):
         wx.PopupWindow.__init__(self, parent, style)
@@ -959,8 +987,11 @@ class PopupBase(wx.PopupWindow):
         self.Bind(wx.EVT_LEFT_UP, self.on_mouse_left_up)
         self.Bind(wx.EVT_MOTION, self.on_move)
         self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
-        self.Bind(wx.EVT_RIGHT_UP, self.on_dismiss)
-        self.Bind(wx.EVT_LEFT_DCLICK, self.on_dismiss)
+
+        if self.ENABLE_RIGHT_CLICK_DISMISS:
+            self.Bind(wx.EVT_RIGHT_UP, self.on_dismiss)
+        if self.ENABLE_LEFT_DLICK_DISMISS:
+            self.Bind(wx.EVT_LEFT_DCLICK, self.on_dismiss)
 
     def on_dismiss(self, _evt):
         """Dismiss window"""
@@ -969,7 +1000,7 @@ class PopupBase(wx.PopupWindow):
 
     def get_info(self):
         """Return text item with information on how to dismiss the window"""
-        text = wx.StaticText(self, -1, "Right-click inside the popup window to close it.")
+        text = wx.StaticText(self, -1, self.INFO_MESSAGE)
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(wx.StaticLine(self, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND)
         sizer.Add(text, 1, wx.EXPAND)
@@ -977,13 +1008,32 @@ class PopupBase(wx.PopupWindow):
 
     def set_info(self, sizer):
         """Set info in the popup"""
+        if not self.ENABLE_INFO_MESSAGE:
+            return
+
         sizer.Add(wx.StaticLine(self, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND)
-        sizer.Add(
-            wx.StaticText(self, -1, "Right-click inside the popup window to close it."),
-            0,
-            wx.ALIGN_CENTER_HORIZONTAL | wx.ALL,
-            2,
-        )
+        sizer.Add(wx.StaticText(self, -1, self.INFO_MESSAGE), 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 2)
+
+    def set_title(self, title: str):
+        """Set title in the popup window"""
+        if self.title is not None:
+            self.title.SetLabel(title)
+
+    def set_close_btn(self, sizer):
+        """Set exit button in the popup window"""
+        if self._icons is None:
+            return
+        close_btn = make_bitmap_btn(self, wx.ID_ANY, self._icons.clear)
+        close_btn.Bind(wx.EVT_BUTTON, self.on_dismiss)
+
+        self.title = wx.StaticText(self, -1, "")
+
+        _sizer = wx.BoxSizer(wx.HORIZONTAL)
+        _sizer.Add(self.title, 1, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 2)
+        _sizer.AddStretchSpacer(1)
+        _sizer.Add(close_btn, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 2)
+
+        sizer.Insert(0, _sizer, 0, wx.EXPAND | wx.ALL, 2)
 
     def make_panel(self):
         """Make popup window"""
@@ -998,13 +1048,24 @@ class PopupBase(wx.PopupWindow):
 
         evt.Skip()
 
-    def position_on_event(self, evt):
-        """Position the window on an event location"""
+    def position_on_event(self, evt, move_h: int = 0, move_v: int = 0):
+        """Position the window on an event location
+
+        Parameters
+        ----------
+        evt : event
+            wxPython event
+        move_h : int
+            horizontal offset to move the popup to the side
+        move_v : int
+            vertical offset to move the popup up or down
+        """
         obj = evt.GetEventObject()
         if hasattr(obj, "ClientToScreen"):
             pos = obj.ClientToScreen((0, 0))  # noqa
         else:
             pos = (0, 0)
+        pos = (pos[0] - move_h, pos[1] - move_v)
         self.SetPosition(pos)
 
     def on_mouse_left_down(self, evt):

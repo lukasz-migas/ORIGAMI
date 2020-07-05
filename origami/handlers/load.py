@@ -31,6 +31,7 @@ from origami.objects.containers import MobilogramObject
 from origami.objects.containers import ChromatogramObject
 from origami.objects.containers import MassSpectrumObject
 from origami.objects.containers import StitchIonHeatmapObject
+from origami.objects.containers import ImagingIonHeatmapObject
 from origami.objects.containers import MassSpectrumHeatmapObject
 from origami.processing.heatmap import equalize_heatmap_spacing
 from origami.processing.imaging import ImagingNormalizationProcessor
@@ -281,7 +282,7 @@ class LoadHandler:
         -------
         obj_name : str
             name of the data object
-        obj_data : Dict
+        obj_data : IonHeatmapObject
             dictionary containing extracted data
         document : Document
             instance of the document for which data was extracted
@@ -409,6 +410,121 @@ class LoadHandler:
 
         return obj_name, mz_obj, document
 
+    def document_extract_lesa_image_from_ms(self, x_min: float, x_max: float, title: str):
+        """Extract image data for LESA document based on extraction range in the mass spectrum window"""
+        from origami.processing.utils import find_nearest_index
+
+        document = ENV.on_get_document(title)
+        metadata = document.get_config("imaging")
+        shape = (metadata["x_dim"], metadata["y_dim"])
+        array = np.zeros(np.dot(*shape))
+        changed = True
+        for spectrum in document.MassSpectra.values():
+            # get variable from the document
+            variable = spectrum.attrs.get("file_info", dict()).get("variable", -1) - 1
+            if variable < 0:
+                continue
+            mz_obj = document.as_object(spectrum)
+            x_idx_min, x_idx_max = find_nearest_index(mz_obj.x, [x_min, x_max])
+            if x_idx_min == x_idx_max:
+                x_idx_min -= 1
+                x_idx_max += 1
+                x_min = mz_obj.x[x_idx_min]
+                x_max = mz_obj.x[x_idx_max]
+                changed = True
+            array[variable] = mz_obj.y[x_idx_min:x_idx_max].sum()
+
+        # notify user that window was widened
+        if changed:
+            LOGGER.warning(f"The m/z range was too narrow so it was widened to {x_min:.2f}-{x_max:.2f}")
+
+        # reshape object
+        array = np.reshape(array, shape)
+        obj = ImagingIonHeatmapObject(np.flipud(array))
+        name = f"MZ_{x_min:.2f}-{x_max:.2f}"
+
+        return name, obj
+
+    def document_extract_lesa_image_from_dt(
+        self, x_min: float, x_max: float, y_min: float, y_max: float, title: str, get_quick: bool = False
+    ):
+        """Extract image data for LESA document based on extraction range in the mass spectrum + drift time window"""
+        from origami.processing.utils import find_nearest_index
+
+        document = ENV.on_get_document(title)
+        metadata = document.get_config("imaging")
+        shape = (metadata["x_dim"], metadata["y_dim"])
+        array = np.zeros(np.dot(*shape))
+        changed = False
+        for heatmap in document.MSDTHeatmaps.values():
+            # get variable from the document
+            variable = heatmap.attrs.get("file_info", dict()).get("variable", -1) - 1
+            if variable < 0:
+                continue
+            msdt_obj = document.as_object(heatmap)
+            x_idx_min, x_idx_max = find_nearest_index(msdt_obj.x, [x_min, x_max])
+            y_idx_min, y_idx_max = find_nearest_index(msdt_obj.y, [y_min, y_max])
+
+            # in some cases, the extraction window is too narrow in which case the window should be widened by 1 bin in
+            # each direction
+            if x_idx_min == x_idx_max:
+                x_idx_min -= 1
+                x_idx_max += 1
+                x_min = msdt_obj.x[x_idx_min]
+                x_max = msdt_obj.x[x_idx_max]
+                changed = True
+            array[variable] = msdt_obj.array[y_idx_min:y_idx_max, x_idx_min:x_idx_max].sum()
+
+        # notify user that window was widened
+        if changed:
+            LOGGER.warning(f"The m/z range was too narrow so it was widened to {x_min:.2f}-{x_max:.2f}")
+
+        # reshape object
+        array = np.reshape(array, shape)
+        obj = ImagingIonHeatmapObject(np.flipud(array))
+        name = f"MZ_{x_min:.2f}-{x_max:.2f}_DT_{int(y_min)}-{int(y_max)}"
+
+        return name, obj
+
+    def document_extract_dt_from_msdt_multifile(self, x_min: float, x_max: float, title: str):
+        """Extract mobilogram from MS/DT dataset based on mass selection"""
+        from origami.processing.utils import find_nearest_index
+
+        document = ENV.on_get_document(title)
+        x, y = None, None
+        changed = False
+        for heatmap in document.MSDTHeatmaps.values():
+            # get variable from the document
+            variable = heatmap.attrs.get("file_info", dict()).get("variable", -1) - 1
+            if variable < 0:
+                continue
+            msdt_obj = document.as_object(heatmap)
+            if x is None:
+                x = msdt_obj.y
+            if y is None:
+                y = np.zeros_like(x, dtype=np.float64)
+            x_idx_min, x_idx_max = find_nearest_index(msdt_obj.x, [x_min, x_max])
+
+            # in some cases, the extraction window is too narrow in which case the window should be widened by 1 bin in
+            # each direction
+            if x_idx_min == x_idx_max:
+                x_idx_min -= 1
+                x_idx_max += 1
+                x_min = msdt_obj.x[x_idx_min]
+                x_max = msdt_obj.x[x_idx_max]
+                changed = True
+
+            y += msdt_obj.array[:, x_idx_min:x_idx_max].sum(axis=1)
+
+        # notify user that window was widened
+        if changed:
+            LOGGER.warning(f"The m/z range was too narrow so it was widened to {x_min:.2f}-{x_max:.2f}")
+
+        # reshape object
+        dt_obj = MobilogramObject(x, y)
+        name = f"MZ_{x_min:.2f}-{x_max:.2f}"
+        return name, dt_obj
+
     @staticmethod
     @check_os("win32")
     def get_waters_info(path: str):
@@ -425,6 +541,7 @@ class LoadHandler:
         return reader.x, reader.y, reader.directory, reader.x_limits, reader.extension
 
     def load_text_mass_spectrum_document(self, path):
+        """Read textual mass spectral data and create new document"""
         x, y, _, _, _ = self.load_text_spectrum_data(path)
         mz_obj = MassSpectrumObject(x, y)
 
@@ -669,14 +786,17 @@ class LoadHandler:
         """Load Waters data and set in ORIGAMI document"""
         document = ENV.get_new_document("imaging", path)
 
-        filelist = self.check_lesa_document(document, filelist, **proc_kwargs)
+        #         filelist = self.check_lesa_document(document, filelist, **proc_kwargs)
         data = self.load_multi_file_waters_data(filelist, **proc_kwargs)
         document = ENV.set_document(document, data=data)
         document.add_config("imaging", proc_kwargs)
-        #         document.add_file_path("multi", filelist)
         ImagingNormalizationProcessor(document)
+        #         document.add_file_path("multi", filelist)
 
         return document
+
+    def load_lesa_document_mt(self, path, filelist: List[FileItem], **proc_kwargs) -> DocumentStore:
+        pass
 
     def load_manual_document(self, path, filelist: List[FileItem], **proc_kwargs) -> DocumentStore:
         """Load Waters data and set in ORIGAMI document"""
@@ -685,46 +805,76 @@ class LoadHandler:
         filelist = self.check_lesa_document(document, filelist, **proc_kwargs)
         data = self.load_multi_file_waters_data(filelist, **proc_kwargs)
         document = ENV.set_document(document, data=data)
-        #         document.add_file_path("multi", filelist)
         document.add_config("activation", proc_kwargs)
+        #         document.add_file_path("multi", filelist)
 
         return document
+
+    #     def load_multi_file_waters_data_mt(self, filelist: List[FileItem], **proc_kwargs):
+    #         from concurrent.futures import wait, ThreadPoolExecutor, ProcessPoolExecutor
+    #         from origami.utils.utilities import as_chunks
+    #
+    #         """Load waters data using multiple cores"""
+    #         executor = ProcessPoolExecutor(4)
+    #
+    #         futures = []
+    #         for start, _filelist in as_chunks(filelist, 3):
+    #             futures.append(executor.submit(_load_multi_file_waters_data, _filelist, **proc_kwargs))
+    #
+    #         done, notdone = wait(futures)
+    #         if len(notdone) > 0:
+    #             raise ValueError("Failed to execute action in multi-core manner")
+    #
+    #         mass_spectra, chromatograms, mobilograms, variables, parameters = {}, {}, {}, {}, {}
+    #         for future in done:
+    #             _mass_spectra, _chromatograms, _mobilograms, _variables, _parameters = future.result()
+    #             mass_spectra.update(**_mass_spectra)
+    #             chromatograms.update(**_chromatograms)
+    #             mobilograms.update(**_mobilograms)
+    #             variables.update(**_variables)
+    #             if _parameters:
+    #                 parameters = _parameters
+    #
+    #         data_out = dict(mass_spectra=mass_spectra, chromatograms=chromatograms, mobilograms=mobilograms)
+    #         data_out.update(**self.finalize_multi_file_waters_data(mass_spectra, mobilograms, variables,
+    #         **proc_kwargs))
+    #         if parameters:
+    #             data_out["parameters"] = parameters
+    #
+    #         return data_out
 
     @check_os("win32")
     def load_multi_file_waters_data(self, filelist: List[FileItem], **proc_kwargs):
         """Vendor agnostic LESA data load"""
-        t_start = time.time()
-        n_items = len(filelist)
+        mass_spectra, chromatograms, mobilograms, msdts, variables, parameters = _load_multi_file_waters_data(
+            filelist, **proc_kwargs
+        )
+        data_out = dict(mass_spectra=mass_spectra, chromatograms=chromatograms, mobilograms=mobilograms, msdts=msdts)
+        data_out.update(**self.finalize_multi_file_waters_data(mass_spectra, mobilograms, variables, **proc_kwargs))
 
-        # iterate over all selected files
-        mass_spectra, chromatograms, mobilograms, parameters = {}, {}, {}, {}
-        variables = []
-        for file_id, file_info in enumerate(filelist):
-            variables.append(file_info.variable)
-            # create item name
-            __, filename = os.path.split(file_info.path)
-            spectrum_name = f"{file_info.variable}={filename}"
+        if parameters:
+            data_out["parameters"] = parameters
 
-            # get item data
-            mz_obj, rt_obj, dt_obj, parameters = self._load_waters_data_chunk(file_info, **deepcopy(proc_kwargs))
-            mass_spectra[spectrum_name] = mz_obj
-            chromatograms[spectrum_name] = rt_obj
-            if dt_obj is not None:
-                mobilograms[spectrum_name] = dt_obj
-            LOGGER.debug(time_loop(t_start, file_id, n_items))
+        return data_out
 
-        data_out = dict(mass_spectra=mass_spectra, chromatograms=chromatograms, mobilograms=mobilograms)
+    @staticmethod
+    def finalize_multi_file_waters_data(
+        mass_spectra: Dict = None, mobilograms: Dict = None, variables: Dict = None, **proc_kwargs
+    ):
+        """Finalize multi-file document by generating average spectra, heatmaps, etc"""
+        data_out = dict()
+
         # average mass spectrum
         if mass_spectra:
             mz_obj = MassSpectrumGroup(mass_spectra).mean(**deepcopy(proc_kwargs))
             data_out["mz"] = mz_obj
 
+        # stitch heatmap together based input variables
         if mobilograms and variables:
-            heatmap_obj = StitchIonHeatmapObject(list(mobilograms.values()), variables)
+            variables = list(variables.values())
+            spectra = list(mobilograms.values())
+            heatmap_obj = StitchIonHeatmapObject(spectra, variables)
             data_out["heatmap"] = heatmap_obj
-
-        if parameters:
-            data_out["parameters"] = parameters
 
         return data_out
 
@@ -769,44 +919,70 @@ class LoadHandler:
 
         return filelist
 
-    @staticmethod
-    @check_os("win32")
-    def _load_waters_data_chunk(file_info: FileItem, **proc_kwargs):
-        """Load waters data for single chunk"""
-        mz_obj, dt_obj, rt_obj = None, None, None
-        reader = WatersIMReader(file_info.path, silent=True)
 
-        # get parameters
-        parameters = reader.get_inf_data()
+def _load_multi_file_waters_data(filelist: List[FileItem], **proc_kwargs):
+    t_start = time.time()
+    n_items = len(filelist)
 
-        # unpack processing kwargs
-        mz_start, mz_end = file_info.mz_range
-        scan_start, scan_end = file_info.scan_range
+    # iterate over all selected files
+    mass_spectra, chromatograms, mobilograms, msdts, variables, parameters = {}, {}, {}, {}, {}, {}
+    for file_id, file_info in enumerate(filelist):
+        # create item name
+        __, filename = os.path.split(file_info.path)
+        spectrum_name = f"{file_info.variable}={filename}"
 
-        # get mass spectrum
-        mz_obj = reader.get_spectrum(scan_start, scan_end)
+        # get item data
+        variables[spectrum_name] = file_info.variable
+        mz_obj, rt_obj, dt_obj, msdt_obj, parameters = _load_waters_data_chunk(file_info, **deepcopy(proc_kwargs))
+        mass_spectra[spectrum_name] = mz_obj
+        chromatograms[spectrum_name] = rt_obj
+        if dt_obj is not None:
+            mobilograms[spectrum_name] = dt_obj
+        if msdt_obj is not None:
+            msdts[spectrum_name] = msdt_obj
+        LOGGER.debug(time_loop(t_start, file_id, n_items))
+    return mass_spectra, chromatograms, mobilograms, msdts, variables, parameters
 
-        # linearization is necessary
-        lin_kwargs = proc_kwargs
-        if "linearize" in proc_kwargs:
-            lin_kwargs = proc_kwargs["linearize"]
-        mz_obj.linearize(**lin_kwargs)
 
-        # but baseline correction is not
-        baseline_kwargs = proc_kwargs
-        if "baseline" in proc_kwargs:
-            baseline_kwargs = proc_kwargs["baseline"]
-        if baseline_kwargs.get("correction", False):
-            mz_obj.baseline(**baseline_kwargs)
+def _load_waters_data_chunk(file_info: FileItem, **proc_kwargs):
+    """Load waters data for single chunk"""
+    dt_obj, msdt_obj = None, None
+    reader = WatersIMReader(file_info.path, silent=True)
 
-        mz_obj.set_metadata(dict(preprocessing=proc_kwargs, file_info=dict(file_info._asdict())))  # noqa
+    # get parameters
+    parameters = reader.get_inf_data()
 
-        # get chromatogram
-        rt_start, rt_end = reader.convert_scan_to_min([scan_start, scan_end])
-        rt_obj = reader.extract_rt(rt_start=rt_start, rt_end=rt_end, mz_start=mz_start, mz_end=mz_end)
+    # unpack processing kwargs
+    mz_start, mz_end = file_info.mz_range
+    scan_start, scan_end = file_info.scan_range
 
-        # get mobilogram
-        if file_info.im_on:
-            dt_obj = reader.extract_dt(rt_start=rt_start, rt_end=rt_end, mz_start=mz_start, mz_end=mz_end)
+    # get mass spectrum
+    mz_obj = reader.get_spectrum(scan_start, scan_end)
 
-        return mz_obj, rt_obj, dt_obj, parameters
+    # linearization is necessary
+    lin_kwargs = proc_kwargs
+    if "linearize" in proc_kwargs:
+        lin_kwargs = proc_kwargs["linearize"]
+    mz_obj.linearize(**lin_kwargs)
+
+    # but baseline correction is not
+    baseline_kwargs = proc_kwargs
+    if "baseline" in proc_kwargs:
+        baseline_kwargs = proc_kwargs["baseline"]
+    if baseline_kwargs.get("correction", False):
+        mz_obj.baseline(**baseline_kwargs)
+
+    mz_obj.set_metadata(dict(preprocessing=proc_kwargs, file_info=dict(file_info._asdict())))  # noqa
+
+    # get chromatogram
+    rt_start, rt_end = reader.convert_scan_to_min([scan_start, scan_end])
+    rt_obj = reader.extract_rt(rt_start=rt_start, rt_end=rt_end, mz_start=mz_start, mz_end=mz_end)
+
+    # get mobilogram
+    if file_info.im_on:
+        dt_obj = reader.extract_dt(rt_start=rt_start, rt_end=rt_end, mz_start=mz_start, mz_end=mz_end)
+
+        msdt_obj = reader.extract_msdt(rt_start=rt_start, rt_end=rt_end, mz_start=mz_start, mz_end=mz_end)
+        msdt_obj.set_metadata(dict(file_info=dict(file_info._asdict())))
+
+    return mz_obj, rt_obj, dt_obj, msdt_obj, parameters

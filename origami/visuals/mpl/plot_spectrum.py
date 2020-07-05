@@ -31,6 +31,8 @@ logger = logging.getLogger(__name__)
 
 
 class PlotSpectrum(PlotBase):
+    """Instantiate plot canvas"""
+
     def __init__(self, *args, **kwargs):
         PlotBase.__init__(self, *args, **kwargs)
 

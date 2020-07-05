@@ -175,11 +175,13 @@ class MPLInteraction:
         button=1,
         data_limits=None,
         plotName=None,
+        plot_id: str = None,
         plot_parameters=None,
         allow_wheel=True,
         allow_extraction=True,
         callbacks=None,
         parent=None,
+        is_heatmap: bool = False,
     ):
         if callbacks is None:
             callbacks = dict()
@@ -190,7 +192,9 @@ class MPLInteraction:
         self.visible = True
         self.cids = []
         self.plotName = plotName
+        self.plot_id = plot_id
         self.allow_extraction = allow_extraction
+        self.is_heatmap = is_heatmap
 
         self.active = True  # for activation / deactivation
         self.to_draw = []
@@ -709,7 +713,7 @@ class MPLInteraction:
     def on_motion(self, evt):
         """Event on motion"""
         # send event
-        pub.sendMessage("motion_xy", xpos=evt.xdata, ypos=evt.ydata, plotname=self.plotName)
+        pub.sendMessage("motion_xy", x_pos=evt.xdata, y_pos=evt.ydata, plot_name=self.plotName, plot_id=self.plot_id)
 
         # drag label
         if self.dragged is not None:
@@ -815,22 +819,16 @@ class MPLInteraction:
                 xmin, ymin, xmax, ymax = self._check_xy_values(xmin, ymin, xmax, ymax)
 
             # reset y-axis
-            if wx.GetKeyState(wx.WXK_SHIFT):
+            if wx.GetKeyState(wx.WXK_SHIFT) or evt.key == "y":
                 axes.set_ylim(ymin, ymax)
             # reset x-axis
-            elif wx.GetKeyState(wx.WXK_CONTROL):
+            elif wx.GetKeyState(wx.WXK_CONTROL) or evt.key == "x":
                 axes.set_xlim(xmin, xmax)
             # reset both axes
             else:
                 axes.set_xlim(xmin, xmax)
                 axes.set_ylim(ymin, ymax)
             reset_visible(axes)
-
-        #     if self.plotName == "RMSF":
-        #         pub.sendMessage("change_zoom_rmsd", xmin=xmin, xmax=xmax)
-        #     elif self.plotName == "MSDT":
-        #         pub.sendMessage("change_zoom_dtms", xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
-        #
         self.canvas.draw()
         LOGGER.debug("Plot -> Zoom out")
 

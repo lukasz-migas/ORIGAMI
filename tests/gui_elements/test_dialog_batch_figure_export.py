@@ -4,6 +4,7 @@ import os
 
 # Third-party imports
 import wx
+import pytest
 
 # Local imports
 from origami.config.config import CONFIG
@@ -12,6 +13,7 @@ from origami.gui_elements.dialog_batch_figure_exporter import DialogExportFigure
 from ..wxtc import WidgetTestCase
 
 
+@pytest.mark.guitest
 class TestDialogExportData(WidgetTestCase):
     """Test dialog"""
 

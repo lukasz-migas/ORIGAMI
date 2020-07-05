@@ -1422,6 +1422,10 @@ class Config:
         self.tree_panel_item_highlight = True
         self.tree_panel_item_auto_plot = False
 
+        # LESA viewer
+        self.lesa_panel_extract_full = False
+        self.lesa_panel_auto_add = False
+
         # UVPD
         self.uvpd_peak_finding_threshold = 0.1  # new in v1.2.1
         self.uvpd_peak_buffer_width = 1  # new in v1.2.1

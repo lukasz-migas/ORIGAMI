@@ -11,27 +11,21 @@ class TestPanelProcessHeatmap(WidgetTestCase):
     def test_dialog_ok(self):
         dlg = PanelProcessHeatmap(self.frame, None)
 
-        # wx.CallLater(250, dlg.on_close, None)
         dlg.Show()
-        # self.yield_()
 
     def test_dialog_no_plot(self):
         dlg = PanelProcessHeatmap(self.frame, None, disable_plot=True)
 
         assert dlg.plot_btn is None
 
-        # wx.CallLater(250, dlg.on_close, None)
         dlg.Show()
-        # self.yield_()
 
     def test_dialog_no_process(self):
         dlg = PanelProcessHeatmap(self.frame, None, disable_process=True)
 
         assert dlg.add_to_document_btn is None
 
-        # wx.CallLater(250, dlg.on_close, None)
         dlg.Show()
-        # self.yield_()
 
     def test_dialog_ui(self):
         dlg = PanelProcessHeatmap(self.frame, None)
@@ -71,7 +65,6 @@ class TestPanelProcessHeatmap(WidgetTestCase):
         assert dlg.normalize_choice.IsEnabled() is toggle
 
         dlg.Show()
-        # self.yield_()
 
     def test_dialog_ui_extra(self):
         dlg = PanelProcessHeatmap(self.frame, None)
@@ -90,4 +83,3 @@ class TestPanelProcessHeatmap(WidgetTestCase):
         assert dlg.smooth_window_value.IsEnabled() is True
 
         dlg.Show()
-        # self.yield_()

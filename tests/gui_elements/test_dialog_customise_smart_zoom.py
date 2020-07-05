@@ -1,6 +1,7 @@
 """Test SelectDataset dialog"""
 # Third-party imports
 import wx
+import pytest
 
 # Local imports
 from origami.gui_elements.dialog_customise_smart_zoom import DialogCustomiseSmartZoom
@@ -8,11 +9,11 @@ from origami.gui_elements.dialog_customise_smart_zoom import DialogCustomiseSmar
 from ..wxtc import WidgetTestCase
 
 
+@pytest.mark.guitest
 class TestDialogCustomiseSmartZoom(WidgetTestCase):
     """Test dialog"""
 
     def test_dialog_ok(self):
-
         dlg = DialogCustomiseSmartZoom(self.frame)
         dlg.smart_zoom_check.SetValue(True)
         assert dlg.smart_zoom_soft_max.IsEnabled() is True
@@ -28,7 +29,6 @@ class TestDialogCustomiseSmartZoom(WidgetTestCase):
         self.yield_()
 
     def test_dialog_cancel(self):
-
         dlg = DialogCustomiseSmartZoom(self.frame)
 
         wx.CallLater(250, dlg.on_close, wx.ID_NO)

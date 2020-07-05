@@ -5,6 +5,7 @@ import logging
 import wx
 
 # Local imports
+from origami.utils.secret import get_short_hash
 from origami.config.config import CONFIG
 from origami.visuals.mpl.plot_heatmap_2d import PlotHeatmap2D
 from origami.gui_elements.views.view_base import ViewBase
@@ -15,6 +16,7 @@ LOGGER = logging.getLogger(__name__)
 class ViewHeatmap(ViewBase):
     DATA_KEYS = ("array", "x", "y")
     MPL_KEYS = ["2D"]
+    NAME = get_short_hash()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -27,7 +29,7 @@ class ViewHeatmap(ViewBase):
     def make_panel(self):
         """Initialize plot panel"""
         plot_panel = wx.Panel(self.parent)
-        plot_window = PlotHeatmap2D(plot_panel, figsize=self.figsize)
+        plot_window = PlotHeatmap2D(plot_panel, figsize=self.figsize, axes_size=self.axes_size, plot_id=self.NAME)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(plot_window, 1, wx.EXPAND)
@@ -118,14 +120,28 @@ class ViewHeatmap(ViewBase):
 
 
 class ViewIonHeatmap(ViewHeatmap):
-    def __init__(self, parent, figsize, title="MassSpectrum", **kwargs):
+
+    NAME = get_short_hash()
+
+    def __init__(self, parent, figsize, title="IonHeatmap", **kwargs):
         ViewHeatmap.__init__(self, parent, figsize, title, **kwargs)
         self._x_label = kwargs.pop("x_label", "Scans")
         self._y_label = kwargs.pop("y_label", "Drift time (bins)")
 
 
+class ViewImagingIonHeatmap(ViewHeatmap):
+    NAME = get_short_hash()
+
+    def __init__(self, parent, figsize, title="ImagingIonHeatmap", **kwargs):
+        ViewHeatmap.__init__(self, parent, figsize, title, **kwargs)
+        self._x_label = kwargs.pop("x_label", "x")
+        self._y_label = kwargs.pop("y_label", "y")
+
+
 class ViewMassSpectrumHeatmap(ViewHeatmap):
-    def __init__(self, parent, figsize, title="MassSpectrum", **kwargs):
+    NAME = get_short_hash()
+
+    def __init__(self, parent, figsize, title="MassSpectrumHeatmap", **kwargs):
         ViewHeatmap.__init__(self, parent, figsize, title, **kwargs)
         self._x_label = kwargs.pop("x_label", "m/z (Da)")
         self._y_label = kwargs.pop("y_label", "Drift time (bins)")

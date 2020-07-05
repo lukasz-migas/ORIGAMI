@@ -208,6 +208,51 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             logger.warning("Failed to execute the operation in threaded mode. Consider switching it off?")
             logger.error(e)
 
+    def on_get_csv_filename(self, default_filename: str = "", default_path: str = None, ask_permission: bool = False):
+        """Get filename where to save text file"""
+        wildcard = (
+            "CSV (Comma delimited) (*.csv)|*.csv|"
+            + "Text (Tab delimited) (*.txt)|*.txt|"
+            + "Text (Space delimited (*.txt)|*.txt"
+        )
+
+        wildcard_dict = {",": 0, "\t": 1, " ": 2}
+
+        if ask_permission:
+            style = wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
+        else:
+            style = wx.FD_SAVE
+
+        dlg = wx.FileDialog(
+            self.presenter.view, "Please select a name for the file", "", "", wildcard=wildcard, style=style
+        )
+        dlg.CentreOnParent()
+
+        # cleanup the name
+        default_filename = (
+            default_filename.replace(" ", "")
+            .replace(":", "")
+            .replace(" ", "")
+            .replace(".csv", "")
+            .replace(".txt", "")
+            .replace(".raw", "")
+            .replace(".d", "")
+            .replace(".", "_")
+        )
+        dlg.SetFilename(default_filename)
+        try:
+            dlg.SetFilterIndex(wildcard_dict[self.config.saveDelimiter])
+        except KeyError:
+            pass
+        if default_path is not None:
+            dlg.SetPath(default_path)
+
+        filename = ""
+        if dlg.ShowModal() == wx.ID_OK:
+            filename = dlg.GetPath()
+
+        return filename
+
     def update_statusbar(self, msg, field):
         self.on_threading(args=(msg, field), action="statusbar.update")
 
@@ -349,11 +394,11 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         x_min, x_max, y_min, y_max = rect
         document = ENV.on_get_document()
 
-        can_extract, is_mutlfile, file_fmt = document.can_extract()
+        can_extract, is_multifile, file_fmt = document.can_extract()
         if not can_extract:
             raise MessageError("Error", "This document type does not allow data extraction")
 
-        if is_mutlfile:
+        if is_multifile:
             raise MessageError("Error", "Multifile data extraction is not supported yet")
 
         # mark on the plot where data is being extracted from
@@ -384,11 +429,11 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         x_min, x_max, y_min, y_max = rect
         document = ENV.on_get_document()
 
-        can_extract, is_mutlfile, file_fmt = document.can_extract()
+        can_extract, is_multifile, file_fmt = document.can_extract()
         if not can_extract:
             raise MessageError("Error", "This document type does not allow data extraction")
 
-        if is_mutlfile:
+        if is_multifile:
             raise MessageError("Error", "Multifile data extraction is not supported yet")
 
         # mark on the plot where data is being extracted from
@@ -459,11 +504,11 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         x_min, x_max, _, _ = rect
         document = ENV.on_get_document()
 
-        can_extract, is_mutlfile, file_fmt = document.can_extract()
+        can_extract, is_multifile, file_fmt = document.can_extract()
         if not can_extract:
             raise MessageError("Error", "This document type does not allow data extraction")
 
-        if is_mutlfile:
+        if is_multifile:
             raise MessageError("Error", "Multifile data extraction is not supported yet")
 
         # get plot data and calculate maximum values in the arrays
@@ -502,6 +547,9 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
         if file_fmt == "thermo":
             raise MessageError("Error", "Cannot extract heatmap from Thermo file")
+
+        if is_multifile:
+            raise MessageError("Error", "Multifile data extraction is not supported yet")
 
         # get plot data and calculate maximum values in the arrays
         x, y = self.panel_plot.view_ms.get_data()
@@ -2905,7 +2953,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         all_documents = ENV.get_document_list("all")
 
         item_list = []
-        if output_type in ["annotations", "comparison", "simple_list"]:
+        if output_type in ["annotations", "comparison", "simple_list", "item_list"]:
             item_list = {document_title: list() for document_title in all_documents}
 
         # iterate over all datasets
@@ -2925,6 +2973,8 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
                         item_list[document_title].append(dataset_name)
                     elif output_type == "simple_list":
                         item_list[document_title].append((dataset_type, dataset_name))
+                    elif output_type == "item_list":
+                        item_list[document_title].append(dataset_name)
 
         if output_type == "comparison":
             item_list = cleanup(item_list)

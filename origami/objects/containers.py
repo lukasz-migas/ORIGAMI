@@ -1234,6 +1234,42 @@ class StitchIonHeatmapObject(IonHeatmapObject):
         return array, x, y
 
 
+class ImagingIonHeatmapObject(HeatmapObject):
+    def __init__(
+        self, array: np.ndarray, name: str = "", metadata=None, extra_data=None, x_label="x", y_label="y", **kwargs
+    ):
+        # pre-process data before setting it up in the container
+        array, x, y = self._preprocess(array)
+
+        super().__init__(
+            array,
+            x=x,
+            y=y,
+            xy=None,
+            yy=None,
+            x_label=x_label,
+            y_label=y_label,
+            metadata=metadata,
+            extra_data=extra_data,
+            name=name,
+            **kwargs,
+        )
+
+    @staticmethod
+    def _preprocess(array: np.ndarray):
+        """"""
+        x = np.arange(array.shape[1])
+        y = np.arange(array.shape[0])
+
+        return array, x, y
+
+    def apply_norm(self, norm):
+        """Normalize array"""
+        self._array = self.array / norm
+
+        return self
+
+
 class MassSpectrumHeatmapObject(HeatmapObject, MobilogramAxesMixin):
     """MS/DT heatmap data object"""
 
@@ -1312,6 +1348,31 @@ class MassSpectrumHeatmapObject(HeatmapObject, MobilogramAxesMixin):
         self.flush()
 
 
+class Normalizer:
+    """Normalization class"""
+
+    def __init__(self, array: np.ndarray, x_dim: int, y_dim: int):
+        self._array = array
+        self.x_dim = x_dim
+        self.y_dim = y_dim
+
+    def __call__(self, array: np.ndarray = None, img_obj: ImagingIonHeatmapObject = None):
+        """Normalize existing array"""
+
+        def _reshape():
+            _array = np.flipud(np.reshape(self._array, (self.x_dim, self.y_dim)))
+            return _array
+
+        if array is not None:
+            if len(array.shape) == 1:
+                array /= self._array
+            else:
+                array /= _reshape()
+            return array
+        elif img_obj is not None:
+            return img_obj.apply_norm(_reshape())
+
+
 def get_extra_data(group: Group, known_keys: List):
     """Get all additional metadata that has been saved in the group store"""
     extra_keys = list(set(group.keys()) - set(known_keys))
@@ -1319,6 +1380,11 @@ def get_extra_data(group: Group, known_keys: List):
     for key in extra_keys:
         extra_data[key] = group[key][:]
     return extra_data
+
+
+def normalization_object(group: Group):
+    """Instantiate normalization object"""
+    return Normalizer(group["array"][:], group.attrs["x_dim"], group.attrs["y_dim"])
 
 
 def mass_spectrum_object(group: Group):

@@ -1,6 +1,7 @@
 """Test SelectDataset dialog"""
 # Third-party imports
 import wx
+import pytest
 
 # Local imports
 from origami.gui_elements.dialog_rename import DialogRenameObject
@@ -8,6 +9,7 @@ from origami.gui_elements.dialog_rename import DialogRenameObject
 from ..wxtc import WidgetTestCase
 
 
+@pytest.mark.guitest
 class TestDialogDialogRenameObject(WidgetTestCase):
     """Test dialog"""
 

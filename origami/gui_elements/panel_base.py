@@ -57,17 +57,14 @@ class TableMixin:
 
         self.peaklist = None
 
-    @abstractmethod
     def on_update_document(self, item_id: Optional[int] = None, item_info: Optional[Dict] = None):
-        raise NotImplementedError("Must implement method")
+        """Update document"""
 
-    @abstractmethod
     def on_double_click_on_item(self, evt):
-        raise NotImplementedError("Must implement method")
+        """Process double-click event in the listctrl"""
 
-    @abstractmethod
     def on_menu_item_right_click(self, evt):
-        raise NotImplementedError("Must implement method")
+        """Process right-click event in the listctrl"""
 
     @staticmethod
     def _check_table(table_dict):
@@ -173,13 +170,15 @@ class TableMixin:
     def on_update_value_in_peaklist(self, item_id, value_type, value):
         if value_type == "color":
             color_255, color_1, font_color = value
-            self.peaklist.SetItemBackgroundColour(item_id, color_255)
             self.peaklist.SetItem(item_id, self.TABLE_COLUMN_INDEX.color, str(color_1))
-            self.peaklist.SetItemTextColour(item_id, font_color)
+            if self.USE_COLOR:
+                self.peaklist.SetItemBackgroundColour(item_id, color_255)
+                self.peaklist.SetItemTextColour(item_id, font_color)
         elif value_type == "color_text":
-            self.peaklist.SetItemBackgroundColour(item_id, value)
             self.peaklist.SetItem(item_id, self.TABLE_COLUMN_INDEX.color, str(convert_rgb_255_to_1(value)))
-            self.peaklist.SetItemTextColour(item_id, get_font_color(value, return_rgb=True))
+            if self.USE_COLOR:
+                self.peaklist.SetItemBackgroundColour(item_id, value)
+                self.peaklist.SetItemTextColour(item_id, get_font_color(value, return_rgb=True))
         else:
             for col_id, col_values in self.TABLE_DICT.items():
                 if col_values["tag"] == value_type:

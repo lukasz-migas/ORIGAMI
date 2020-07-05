@@ -31,10 +31,10 @@ class PlotHeatmap2D(PlotBase):
     def __init__(self, *args, **kwargs):
         PlotBase.__init__(self, *args, **kwargs)
 
-    def plot_2d(self, x, y, array, title="", x_label="", y_label="", axesSize=None, plotName=None, **kwargs):
+    def plot_2d(self, x, y, array, title="", x_label="", y_label="", **kwargs):
         self._set_axes()
 
-        xlimits, ylimits, extent = self._compute_xy_limits(x, y, None)
+        xlimits, ylimits, extent = self._compute_xy_limits(x, y, None, is_heatmap=True)
 
         # add 2d plot
         self.cax = self.plot_base.imshow(
@@ -59,6 +59,7 @@ class PlotHeatmap2D(PlotBase):
             data_limits=extent,
             allow_extraction=kwargs.get("allow_extraction", False),
             callbacks=kwargs.get("callbacks", dict()),
+            is_heatmap=True,
         )
         self.store_plot_limits(extent)
 
@@ -70,7 +71,7 @@ class PlotHeatmap2D(PlotBase):
 
     def plot_2d_update_data(self, x, y, array, x_label=None, y_label=None, **kwargs):
 
-        xlimits, ylimits, extent = self._compute_xy_limits(x, y, None)
+        xlimits, ylimits, extent = self._compute_xy_limits(x, y, None, is_heatmap=True)
         # # clear plot in some circumstances
         # if self._plot_tag in ["rmsd_matrix"]:
         #     self.clear()
@@ -83,7 +84,6 @@ class PlotHeatmap2D(PlotBase):
         # self._check_and_update_plot_settings(**kwargs)
         #
         # # update limits and extents
-        # extent = ut_visuals.extents(x) + ut_visuals.extents(y)
         self.cax.set_data(array)
         # self.cax.set_norm(kwargs.get("colormap_norm", None))
         self.cax.set_extent([*xlimits, *ylimits])
@@ -92,8 +92,6 @@ class PlotHeatmap2D(PlotBase):
         self.cax.set_clim(vmin=array.min(), vmax=array.max())
 
         # set plot limits
-        #         self.plot_base.set_xlim(xlimits)
-        #         self.plot_base.set_ylim(ylimits)
         self.set_plot_xlabel(x_label, **kwargs)
         self.set_plot_ylabel(y_label, **kwargs)
 

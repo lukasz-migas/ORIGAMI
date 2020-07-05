@@ -13,6 +13,12 @@ CHUNK_MIN = 256 * 1024  # Soft lower limit (128k)
 CHUNK_MAX = 64 * 1024 * 1024  # Hard upper limit
 
 
+def as_chunks(item_list, n_items: int):
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(item_list), n_items):
+        yield i, item_list[i : i + n_items]
+
+
 def open_link(link: str):
     """Open web page"""
     import webbrowser

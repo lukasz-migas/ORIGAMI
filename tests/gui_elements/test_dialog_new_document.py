@@ -11,6 +11,7 @@ from origami.gui_elements.dialog_new_document import DialogNewDocument
 from ..wxtc import WidgetTestCase
 
 
+@pytest.mark.guitest
 class TestDialogNewDocument(WidgetTestCase):
     """Test dialog"""
 

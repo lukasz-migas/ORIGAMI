@@ -92,7 +92,7 @@ class DialogMultiDirPicker(Dialog):
         else:
             self.Destroy()
 
-    def on_close(self, evt):
+    def on_close(self, evt, force: bool = False):
         """Destroy this frame"""
         if self.IsModal():
             self.EndModal(wx.ID_NO)
@@ -209,10 +209,10 @@ class DialogMultiDirPicker(Dialog):
             return
 
         # clear previous list
-        self.path_value.SetValue(path)
         self.filelist_all.on_clear_table_all(None, False)
         if path in self._filelist_all:
             self._filelist_all[path] = []
+        self.path_value.SetValue(path)
         LOGGER.info(f"Selected {path}")
 
     def on_add(self, _):
@@ -259,7 +259,7 @@ class DialogMultiDirPicker(Dialog):
         for filename in item_list:
             if filename not in self._filelist_all[self._path]:
                 self.filelist_all.Append(["", filename, self._path])
-                self._filelist_all[self._path].append(filename)
+                # self._filelist_all[self._path].append(filename)
 
     def populate_select_list(self, item_list):
         """Populate filelist (rhs) with items that have been selected on the lhs"""
@@ -295,10 +295,9 @@ class DialogMultiDirPicker(Dialog):
 def _main():
     app = wx.App()
     ex = DialogMultiDirPicker(None)
-    # ex.ShowModal()
-    ex.Show()
+    ex.ShowModal()
+    # ex.Show()
     app.MainLoop()
-    print("ls", ex.get_selected_items())
 
 
 if __name__ == "__main__":

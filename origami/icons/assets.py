@@ -9,7 +9,7 @@ import wx
 # Local imports
 from origami.utils.utilities import is_valid_python_name
 
-ASSETS_PATH = os.path.join(os.path.dirname(__file__), "assets")
+ASSETS_PATH = os.path.join(os.path.dirname(__file__), "icons")
 
 
 class Icons:
@@ -38,10 +38,10 @@ class Icons:
         except KeyError:
             raise AttributeError
 
+    # noinspection PyUnresolvedReferences
     def __dir__(self):
-        # noinspection PyUnresolvedReferences
         base = super().__dir__()
-        keys = sorted(set(base + list(self.icons.keys())))
+        keys = sorted(set(base + list(self.icons.keys())))  # noqa
         keys = [k for k in keys if is_valid_python_name(k)]
         return keys
 
@@ -68,6 +68,8 @@ class Icons:
 
 
 class Example(wx.Frame):
+    """Example app"""
+
     def __init__(self, *args, **kwargs):
         super(Example, self).__init__(*args, **kwargs)
 
@@ -83,7 +85,7 @@ class Example(wx.Frame):
         for i, (key, icon) in enumerate(icons.items()):
             file_item = menu.Append(wx.ID_ANY, key, "Quit application")
             file_item.SetBitmap(icon)
-            self.Bind(wx.EVT_MENU, self.OnQuit, file_item)
+            self.Bind(wx.EVT_MENU, self.on_close, file_item)
             if i % 25 == 0:
                 menu.Break()
 
@@ -94,11 +96,12 @@ class Example(wx.Frame):
         self.SetTitle("Simple menu")
         self.Centre()
 
-    def OnQuit(self, e):
+    def on_close(self, e):
+        """Close application"""
         self.Close()
 
 
-def main():
+def _main():
     app = wx.App()
 
     ex = Example(None)
@@ -107,4 +110,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    _main()

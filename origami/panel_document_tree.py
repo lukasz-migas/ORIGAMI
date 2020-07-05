@@ -543,6 +543,8 @@ class DocumentTree(wx.TreeCtrl):
     def _get_item_info(self):
         """Retrieve information about object"""
         document = ENV.on_get_document()
+        if self._item_id is None:
+            return document.title, None
         _, obj_title = self.GetPyData(self._item_id)
         return document.title, obj_title
 
@@ -1452,7 +1454,17 @@ class DocumentTree(wx.TreeCtrl):
     def on_open_lesa_viewer(self, _):
         from origami.widgets.lesa.panel_imaging_lesa import PanelImagingLESAViewer
 
-        self._lesa_panel = PanelImagingLESAViewer(self.view, self.presenter, self.config, self.icons)
+        # get document title
+        item_list = self.data_handling.generate_item_list_mass_spectra("item_list")
+        document_title = ENV.current
+        if not ENV.on_get_document(document_title).is_imaging():
+            raise MessageError("Error", f"Document `{document_title}` is not an Imaging document.")
+
+        item_list = item_list[document_title]
+
+        self._lesa_panel = PanelImagingLESAViewer(
+            self.view, self.presenter, document_title=document_title, spectrum_list=item_list
+        )
         self._lesa_panel.Show()
 
     def on_import_lesa_dataset(self, _):
@@ -1700,7 +1712,6 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_process_ms, menu_action_process_ms)
         self.Bind(wx.EVT_MENU, self.on_batch_process_ms, menu_action_process_ms_all)
         self.Bind(wx.EVT_MENU, self.on_save_csv, menu_action_save_data_as)
-        self.Bind(wx.EVT_MENU, self.on_save_csv_all, menu_action_save_data_as_all)
         self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
         self.Bind(wx.EVT_MENU, self.on_batch_export_figures, menu_action_save_image_as_all)
         self.Bind(wx.EVT_MENU, self.on_batch_export_data, menu_action_save_data_as_all)
@@ -1755,7 +1766,6 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_show_plot_chromatogram, menu_action_show_plot_chromatogram)
         self.Bind(wx.EVT_MENU, self.on_save_csv, menu_action_save_data_as)
         self.Bind(wx.EVT_MENU, partial(self.on_show_plot_chromatogram, True), menu_action_save_chromatogram_image_as)
-        self.Bind(wx.EVT_MENU, self.on_save_csv_all, menu_action_save_data_as_all)
         self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
         self.Bind(wx.EVT_MENU, self.on_batch_export_figures, menu_action_save_image_as_all)
         self.Bind(wx.EVT_MENU, self.on_batch_export_data, menu_action_save_data_as_all)
@@ -1807,7 +1817,6 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_show_plot_mobilogram, menu_action_show_plot_mobilogram)
         self.Bind(wx.EVT_MENU, partial(self.on_show_plot_mobilogram, True), menu_action_save_mobilogram_image_as)
         self.Bind(wx.EVT_MENU, self.on_save_csv, menu_action_save_data_as)
-        self.Bind(wx.EVT_MENU, self.on_save_csv_all, menu_action_save_data_as_all)
         self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
         self.Bind(wx.EVT_MENU, self.on_batch_export_figures, menu_action_save_image_as_all)
         self.Bind(wx.EVT_MENU, self.on_batch_export_data, menu_action_save_data_as_all)
@@ -1853,6 +1862,9 @@ class DocumentTree(wx.TreeCtrl):
         )
 
         # process actions
+        menu_action_process_as_origami = make_menu_item(
+            parent=menu, text="Apply ORIGAMI-MS parameters", bitmap=self._icons.origami
+        )
         menu_action_process_2d = make_menu_item(parent=menu, text="Process...\tP", bitmap=self._icons.process_heatmap)
         menu_action_process_2d_all = make_menu_item(
             parent=menu, text="Process all...", bitmap=self._icons.process_heatmap
@@ -1881,13 +1893,13 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_process_heatmap, menu_action_process_2d)
         self.Bind(wx.EVT_MENU, self.on_batch_process_heatmap, menu_action_process_2d_all)
         self.Bind(wx.EVT_MENU, self.on_save_csv, menu_action_save_2d_data_as)
-        self.Bind(wx.EVT_MENU, self.on_save_csv_all, menu_action_save_data_as_all)
         self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
         self.Bind(wx.EVT_MENU, self.on_batch_export_figures, menu_action_save_image_as_all)
         self.Bind(wx.EVT_MENU, self.on_batch_export_data, menu_action_save_data_as_all)
 
         # make menu
         if self._item.indent == 2:
+            menu.AppendItem(menu_action_process_as_origami)
             menu.AppendItem(menu_action_process_2d_all)
             menu.AppendSeparator()
             menu.AppendItem(menu_action_save_image_as_all)
@@ -1945,7 +1957,6 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_process_heatmap, menu_action_process_2d)
         self.Bind(wx.EVT_MENU, self.on_batch_process_heatmap, menu_action_process_2d_all)
         self.Bind(wx.EVT_MENU, self.on_save_csv, menu_action_save_data_as)
-        self.Bind(wx.EVT_MENU, self.on_save_csv_all, menu_action_save_data_as_all)
         self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
         self.Bind(wx.EVT_MENU, self.on_batch_export_figures, menu_action_save_image_as_all)
         self.Bind(wx.EVT_MENU, self.on_batch_export_data, menu_action_save_data_as_all)
@@ -2159,9 +2170,6 @@ class DocumentTree(wx.TreeCtrl):
         # menu_action_rename_item = make_menu_item(
         #     parent=menu, evt_id=ID_renameItem, text="Rename\tF2", bitmap=self._icons.edit
         # )
-        # menu_action_add_spectrum_to_panel = make_menu_item(
-        #     parent=menu, evt_id=ID_docTree_addOneToMMLTable, text="Add spectrum to multiple files panel", bitmap=None
-        # )
         # menu_action_show_unidec_results = make_menu_item(
         #     parent=menu, evt_id=ID_docTree_show_unidec, text="Show UniDec results", bitmap=None
         # )
@@ -2177,11 +2185,23 @@ class DocumentTree(wx.TreeCtrl):
             parent=menu, text="Delete document from disk", bitmap=self._icons.bin
         )
 
-        # # bind events
+        # bind events
         self.Bind(wx.EVT_MENU, self.on_duplicate_document, menu_action_duplicate_document)
         self.Bind(wx.EVT_MENU, self.on_remove_document, menu_action_remove_document)
         self.Bind(wx.EVT_MENU, self.on_remove_document_from_disk, menu_action_remove_document_disk)
         self.Bind(wx.EVT_MENU, self.on_open_directory, menu_action_open_directory)
+
+        # add generic iitems
+        if menu.MenuItemCount > 0:
+            menu.AppendSeparator()
+        menu.AppendItem(menu_action_open_directory)
+        menu.AppendItem(menu_action_duplicate_document)
+        menu.AppendItem(menu_action_remove_document)
+        menu.AppendItem(menu_action_remove_document_disk)
+
+        self.PopupMenu(menu)
+        menu.Destroy()
+        self.SetFocus()
 
         # self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
         # self.Bind(wx.EVT_MENU, self.on_change_charge_state, menu_action_assign_charge)
@@ -2193,8 +2213,7 @@ class DocumentTree(wx.TreeCtrl):
 
         #
         #
-        # if menu.MenuItemCount > 0:
-        #     menu.AppendSeparator()
+
         #
         # if self._indent == 1:
         #     menu.Append(ID_docTree_show_refresh_document, "Refresh document")
@@ -2236,16 +2255,6 @@ class DocumentTree(wx.TreeCtrl):
         # )
         # menu.AppendItem(menu_action_save_document)
         # menu.AppendItem(menu_action_save_document_as)
-
-        menu.AppendSeparator()
-        menu.AppendItem(menu_action_open_directory)
-        menu.AppendItem(menu_action_duplicate_document)
-        menu.AppendItem(menu_action_remove_document)
-        menu.AppendItem(menu_action_remove_document_disk)
-
-        self.PopupMenu(menu)
-        menu.Destroy()
-        self.SetFocus()
 
     def on_change_x_values_and_labels(self, evt):
         """Change xy-axis labels"""
@@ -3519,9 +3528,6 @@ class DocumentTree(wx.TreeCtrl):
         filename = self._item.get_name("")
         self.data_handling.on_save_data_as_text(obj, None, None, default_name=filename)
 
-    def on_save_csv_all(self, evt):
-        """Save data in a text format for all elements in a group"""
-
     #     def onOpenDocInfo(self, evt):
     #
     #         self.presenter.currentDoc = self.on_enable_document()
@@ -3831,98 +3837,6 @@ class DocumentTree(wx.TreeCtrl):
         path = os.path.join(path, title)
         ENV.duplicate(document.title, path)
 
-    #     def removeDocument(self, evt, deleteItem="", ask_permission=True):
-    #         """
-    #         Remove selected document from the document tree
-    #         """
-    #         # Find the root first
-    #         root = None
-    #         if root is None:
-    #             root = self.GetRootItem()
-    #
-    #         try:
-    #             evtID = evt.GetId()
-    #         except AttributeError:
-    #             evtID = None
-    #
-    #         if evtID == ID_removeDocument or (evtID is None and deleteItem == ""):
-    #             __, cookie = self.GetFirstChild(self.GetRootItem())
-    #
-    #             if ask_permission:
-    #                 dlg = DialogBox(
-    #                     title="Are you sure?",
-    #                     msg="".join(["Are you sure you would like to delete: ", self._document_data.title, "?"]),
-    #                     kind="Question",
-    #                 )
-    #                 if dlg == wx.ID_NO:
-    #                     self.presenter.onThreading(None, ("Cancelled operation", 4, 5), action="updateStatusbar")
-    #                     return
-    #                 else:
-    #                     deleteItem = self._document_data.title
-    #
-    #             # Clear all plotsf
-    #             if self.presenter.currentDoc == deleteItem:
-    #                 self.panel_plot.on_clear_all_plots()
-    #                 self.presenter.currentDoc = None
-    #
-    #         if deleteItem == "":
-    #             return
-    #
-    #         # Delete item from the list
-    #         if self.ItemHasChildren(root):
-    #             child, cookie = self.GetFirstChild(self.GetRootItem())
-    #             title = self.GetItemText(child)
-    #             iters = 0
-    #             while deleteItem != title and iters < 500:
-    #                 child, cookie = self.GetNextChild(self.GetRootItem(), cookie)
-    #                 try:
-    #                     title = self.GetItemText(child)
-    #                     iters += 1
-    #                 except Exception:
-    #                     pass
-    #
-    #             if deleteItem == title:
-    #                 if child:
-    #                     print("Deleted {}".format(deleteItem))
-    #                     self.Delete(child)
-    #                     # Remove data from dictionary if removing whole document
-    #                     if evtID == ID_removeDocument or evtID is None:
-    #                         # make sure to clean-up various tables
-    #                         # try:
-    #                         #     self.presenter.view.panelMultipleIons.on_remove_deleted_item(title)
-    #                         # except Exception:
-    #                         #     pass
-    #                         # try:
-    #                         #     self.presenter.view.panelMultipleText.on_remove_deleted_item(title)
-    #                         # except Exception:
-    #                         #     pass
-    #                         # try:
-    #                         #     self.presenter.view.panelMML.on_remove_deleted_item(title)
-    #                         # except Exception:
-    #                         #     pass
-    #                         # try:
-    #                         #     self.presenter.view.panelLinearDT.topP.on_remove_deleted_item(title)
-    #                         # except Exception:
-    #                         #     pass
-    #                         # try:
-    #                         #     self.presenter.view.panelLinearDT.bottomP.on_remove_deleted_item(title)
-    #                         # except Exception:
-    #                         #     pass
-    #
-    #                         # delete document
-    #                         del ENV[title]
-    #                         self.presenter.currentDoc = None
-    #                         # go to the next document
-    #                         if len(ENV) > 0:
-    #                             self.presenter.currentDoc = list(ENV.keys())[0]
-    #                             self.on_enable_document()
-    #                         # collect garbage
-    #                         gc.collect()
-    #
-    #                     return True
-    #             else:
-    #                 return False
-
     # def onShowSampleInfo(self, evt=None):
     #
     #     try:
@@ -3951,16 +3865,25 @@ class DocumentTree(wx.TreeCtrl):
     #     self.panelUVPD = PanelUVPDEditor(self.presenter.view, self.presenter, self.config, self.icons, **kwargs)
     #     self.panelUVPD.Show()
     #
-    def on_open_extract_DTMS(self, evt):
-        raise NotImplementedError("Must implement method")
+    def on_open_extract_DTMS(self, _evt):
+        """Open extraction panel"""
+        from origami.gui_elements.panel_process_extract_dtms import PanelProcessExtractDTMS
 
-    #     from origami.gui_elements.panel_process_extract_dtms import PanelProcessExtractDTMS
-    #
-    #     self.PanelProcessExtractDTMS = PanelProcessExtractDTMS(
-    #         self.presenter.view, self.presenter, self.config, self.icons
-    #     )
-    #     self.PanelProcessExtractDTMS.Show()
-    #
+        document_title, _ = self._get_item_info()
+        document = ENV.on_get_document(document_title)
+        can_extract, is_multifile, file_fmt = document.can_extract()
+        if not can_extract:
+            raise MessageError("Error", "Cannot extract data for this document")
+        if is_multifile:
+            raise MessageError(
+                "Error", "Cannot extract MS/DT data for this document as it is composed of multiple raw files"
+            )
+        if file_fmt != "waters":
+            raise MessageError("Error", "Extraction of MS/DT data can only be performed on a Waters-based documents")
+
+        dlg = PanelProcessExtractDTMS(self.view, self.presenter, document_title)
+        dlg.Show()
+
     def on_open_peak_picker(self, evt, **kwargs):
         """Open peak picker"""
         from origami.widgets.mz_picker.panel_peak_picker import PanelPeakPicker

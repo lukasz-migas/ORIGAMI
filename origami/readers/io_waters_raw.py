@@ -515,6 +515,8 @@ class WatersIMReader(WatersRawReader):
         n_points: int = 5000,
         dt_start: int = 1,
         dt_end: int = 200,
+        rt_start: float = 0,
+        rt_end: float = 99999.0,
         return_data=True,
     ):
         """Extract heatmap from ion mobility dataset
@@ -531,6 +533,10 @@ class WatersIMReader(WatersRawReader):
             start drift time, in drift bins
         dt_end : int
             end drift time, in drift bins
+        rt_start : float
+            start retention time, in minutes
+        rt_end : float
+            end retention time, in minutes
         return_data : bool
             if `True`, extracted data will be loaded and returned
 
@@ -545,7 +551,7 @@ class WatersIMReader(WatersRawReader):
         filename = self.get_temp_filename()
         range_file = self.get_filepath(filename + ".in")
         with open(range_file, "w") as f_ptr:
-            f_ptr.write(f"{mz_start} {mz_end} {n_points}\n0.0 9999.0 1\n{dt_start} {dt_end} 200")
+            f_ptr.write(f"{mz_start} {mz_end} {n_points}\n{rt_start} {rt_end} 1\n{dt_start} {dt_end} 200")
 
         # create command
         out_path = self.get_filepath(filename + ".2dDTMZ")

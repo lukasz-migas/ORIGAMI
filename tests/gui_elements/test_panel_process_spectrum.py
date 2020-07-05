@@ -1,37 +1,35 @@
 """Test PanelAbout dialog"""
+# Third-party imports
+import pytest
+
 # Local imports
 from origami.gui_elements.panel_process_spectrum import PanelProcessMassSpectrum
 
 from ..wxtc import WidgetTestCase
 
 
+@pytest.mark.guitest
 class TestPanelProcessMassSpectrum(WidgetTestCase):
     """Test dialog"""
 
     def test_dialog_ok(self):
         dlg = PanelProcessMassSpectrum(self.frame, None)
 
-        # wx.CallLater(250, dlg.on_close, None)
         dlg.Show()
-        # self.yield_()
 
     def test_dialog_no_plot(self):
         dlg = PanelProcessMassSpectrum(self.frame, None, disable_plot=True)
 
         assert dlg.plot_btn is None
 
-        # wx.CallLater(250, dlg.on_close, None)
         dlg.Show()
-        # self.yield_()
 
     def test_dialog_no_process(self):
         dlg = PanelProcessMassSpectrum(self.frame, None, disable_process=True)
 
         assert dlg.add_to_document_btn is None
 
-        # wx.CallLater(250, dlg.on_close, None)
         dlg.Show()
-        # self.yield_()
 
     def test_dialog_ui(self):
         dlg = PanelProcessMassSpectrum(self.frame, None)
@@ -70,9 +68,7 @@ class TestPanelProcessMassSpectrum(WidgetTestCase):
         assert dlg.ms_baseline_median_window.IsEnabled() is toggle
         assert dlg.ms_baseline_tophat_window.IsEnabled() is toggle
 
-        # wx.CallLater(250, dlg.on_close, None)
         dlg.Show()
-        self.yield_()
 
     def test_dialog_ui_extra(self):
         dlg = PanelProcessMassSpectrum(self.frame, None)
@@ -148,6 +144,4 @@ class TestPanelProcessMassSpectrum(WidgetTestCase):
         assert dlg.ms_baseline_median_window.IsEnabled() is False
         assert dlg.ms_baseline_tophat_window.IsEnabled() is True
 
-        # wx.CallLater(250, dlg.on_close, None)
         dlg.Show()
-        # self.yield_()

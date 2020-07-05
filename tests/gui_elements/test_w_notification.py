@@ -11,6 +11,7 @@ from ..wxtc import WidgetTestCase
 # This test suite should be run last to avoid crashing other UI tests
 
 
+@pytest.mark.guitest
 class TestNotification(WidgetTestCase):
     """Test dialog"""
 
