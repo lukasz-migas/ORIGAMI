@@ -32,31 +32,29 @@ class DataProcessing:
         self.view = view
         self.config = config
 
-        # panel links
-        self.documentTree = self.view.panelDocuments.documents
-
-        self.plotsPanel = self.view.panelPlots
-
-        # self.ionPanel = self.view.panelMultipleIons
-        # self.ionList = self.ionPanel.peaklist
-        #
-        # self.textPanel = self.view.panelMultipleText
-        # self.textList = self.textPanel.peaklist
-        #
-        # self.filesPanel = self.view.panelMML
-        # self.filesList = self.filesPanel.peaklist
-
         self.frag_generator = pr_frag.PeptideAnnotation()
 
         # unidec parameters
         self.unidec_dataset = None
         self.unidec_document = None
 
-    def setup_handling_and_processing(self):
-        self.data_handling = self.view.data_handling
+    @property
+    def data_handling(self):
+        """Return handle to `data_processing`"""
+        return self.presenter.data_handling
+
+    @property
+    def document_tree(self):
+        """Return handle to `document_tree`"""
+        return self.view.panelDocuments.documents
+
+    @property
+    def panel_plot(self):
+        """Return handle to `data_processing`"""
+        return self.view.panelPlots
 
     def on_get_document(self):
-        self.presenter.currentDoc = self.documentTree.on_enable_document()
+        self.presenter.currentDoc = self.document_tree.on_enable_document()
         if self.presenter.currentDoc is None or self.presenter.currentDoc == "Documents":
             return None
         document = ENV[self.presenter.currentDoc]
@@ -266,7 +264,7 @@ class DataProcessing:
     #
     #             if len(peakList) > 0:
     #                 self.view.panelPlots.mainBook.SetSelection(self.config.panelNames["RT"])
-    #                 self.view.panelPlots.on_plot_RT(document.RT["xvals"], document.RT["yvals"],
+    #                 self.view.panelPlots.on_plot_rt(document.RT["xvals"], document.RT["yvals"],
     #                 document.RT["xlabels"])
     #                 # Add rectangles (if checked)
     #                 if self.config.fit_highlight:
@@ -437,7 +435,7 @@ class DataProcessing:
     #                     )
     #                 else:
     #                     name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
-    #                     self.view.panelPlots.on_plot_MS(
+    #                     self.view.panelPlots.on_plot_ms(
     #                         msX, msY, xlimits=document.massSpectrum["xlimits"], view_range=mzRange, **name_kwargs
     #                     )
     #                 # clear plots
@@ -855,7 +853,7 @@ class DataProcessing:
     #     if kwargs.get("replot", False):
     #         xvals, yvals, xlabel, ylabel = data[1::]
     #         if kwargs["replot_type"] == "2D":
-    #             self.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, override=False)
+    #             self.view.panelPlots.on_plot_2d(zvals, xvals, yvals, xlabel, ylabel, override=False)
     #             if self.config.waterfall:
     #                 self.view.panelPlots.on_plot_waterfall(
     #                     yvals=xvals, xvals=yvals, zvals=zvals, xlabel=xlabel, ylabel=ylabel
@@ -869,7 +867,7 @@ class DataProcessing:
     #             if not self.config.waterfall:
     #                 self.view.panelPlots.mainBook.SetSelection(self.config.panelNames["2D"])
     #         elif kwargs["replot_type"] == "DT/MS":
-    #             self.view.panelPlots.on_plot_MSDT(zvals, xvals, yvals, xlabel, ylabel, override=False)
+    #             self.view.panelPlots.on_plot_dtms(zvals, xvals, yvals, xlabel, ylabel, override=False)
     #             self.view.panelPlots.mainBook.SetSelection(self.config.panelNames["MZDT"])
     #
     # def on_process_2D_and_add_data(self, document_title, dataset_type, dataset_name):
@@ -921,7 +919,7 @@ class DataProcessing:
     #     __ = self.data_handling.set_mobility_chromatographic_data([document_title, dataset_type, new_dataset], data)
     #
     #     # plot data
-    #     self.view.panelPlots.on_plot_2D(zvals, xvals, yvals, data["xlabels"], data["ylabels"], override=False)
+    #     self.view.panelPlots.on_plot_2d(zvals, xvals, yvals, data["xlabels"], data["ylabels"], override=False)
 
     def on_get_peptide_fragments(self, spectrum_dict, label_format={}, get_lists=False, **kwargs):
         tstart = ttime()
@@ -1374,7 +1372,7 @@ class DataProcessing:
         # store unidec engine - cannot be pickled, so will be deleted when saving document
         data["temporary_unidec"] = self.config.unidec_engine
 
-        self.documentTree.on_update_unidec(data["unidec"], document_title, dataset)
+        self.document_tree.on_update_unidec(data["unidec"], document_title, dataset)
 
     def get_unidec_data(self, data_type="Individual MS", **kwargs):
 

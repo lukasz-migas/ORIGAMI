@@ -554,7 +554,7 @@ class PanelMultiFile(TablePanelBase):
                 return
 
         # Plot data
-        self.presenter.view.panelPlots.on_plot_MS(
+        self.presenter.view.panelPlots.on_plot_ms(
             msX, msY, xlimits=xlimits, full_repaint=True, set_page=True, **name_kwargs
         )
 
@@ -573,7 +573,7 @@ class PanelMultiFile(TablePanelBase):
             dtY = document.multipleMassSpectrum[itemName]["ims1D"]
             xlabel = document.multipleMassSpectrum[itemName]["xlabel"]
 
-            self.presenter.view.panelPlots.on_plot_1D(dtX, dtY, xlabel, full_repaint=True, set_page=True)
+            self.presenter.view.panelPlots.on_plot_1d(dtX, dtY, xlabel, full_repaint=True, set_page=True)
         except KeyError:
             DialogBox(title="Error", msg="No mobility data present for selected item", kind="Error")
             return

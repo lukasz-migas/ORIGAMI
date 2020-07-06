@@ -438,17 +438,6 @@ class DocumentTree(wx.TreeCtrl):
         self._item_id = None
         self._indent = None
 
-        self.data_processing = None
-        self.data_handling = None
-        self.data_visualisation = None
-        self.panel_plot = None
-        self.ionPanel = None
-        self.ionList = None
-        self.textPanel = None
-        self.textList = None
-        self.filesPanel = None
-        self.filesList = None
-
         # widgets
         self._bokeh_panel = None
         self._annotate_panel = None
@@ -478,7 +467,6 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.on_enable_document, id=wx.ID_ANY)
         self.Bind(wx.EVT_TREE_SEL_CHANGING, self.on_item_selecting, id=wx.ID_ANY)
         self.Bind(wx.EVT_TREE_SEL_CHANGED, self.on_enable_document, id=wx.ID_ANY)
-        self.Bind(wx.EVT_TREE_DELETE_ITEM, self.on_item_deleted, id=wx.ID_ANY)
         self.Bind(wx.EVT_CHAR_HOOK, self.on_keyboard_event, id=wx.ID_ANY)
 
         ENV.on_change("change", self.env_update_document)
@@ -615,25 +603,25 @@ class DocumentTree(wx.TreeCtrl):
             "overlay_on": 17,
         }
 
-    def setup_handling_and_processing(self):
-        """Setup objects in the widget after full application initialization"""
-        self.data_processing = self.view.data_processing
-        self.data_handling = self.view.data_handling
-        self.data_visualisation = self.view.data_visualisation
+    @property
+    def data_handling(self):
+        """Return handle to `data_processing`"""
+        return self.presenter.data_handling
 
-        self.panel_plot = self.view.panelPlots
+    @property
+    def data_processing(self):
+        """Return handle to `data_processing`"""
+        return self.presenter.data_processing
 
-        # self.ionPanel = self.view.panelMultipleIons
-        # self.ionList = self.ionPanel.peaklist
-        #
-        # self.textPanel = self.view.panelMultipleText
-        # self.textList = self.textPanel.peaklist
-        #
-        # self.filesPanel = self.view.panelMML
-        # self.filesList = self.filesPanel.peaklist
+    @property
+    def data_visualisation(self):
+        """Return handle to `data_visualisation`"""
+        return self.presenter.data_visualisation
 
-    def on_item_deleted(self, evt):
-        pass
+    @property
+    def panel_plot(self):
+        """Return handle to `data_processing`"""
+        return self.view.panelPlots
 
     def on_item_selecting(self, evt):
         """Update `item_id` while item is being selected in the document  tree"""
@@ -2494,6 +2482,13 @@ class DocumentTree(wx.TreeCtrl):
             self.on_update_document(heatmap_obj.DOCUMENT_KEY, new_name.split("/")[-1], document_title)
             LOGGER.info(f"Processed heatmap in {report_time(t_start)} (new={new_name})")
 
+    def on_open_process_msdt_settings(self, **kwargs):
+        """Open mass spectrum processing settings"""
+        from origami.gui_elements.panel_process_msdt import PanelProcessMSDT
+
+        panel = PanelProcessMSDT(self.presenter.view, self.presenter, **kwargs)
+        panel.Show()
+
     def on_open_process_ms_settings(self, **kwargs):
         """Open mass spectrum processing settings"""
         from origami.gui_elements.panel_process_spectrum import PanelProcessMassSpectrum
@@ -3095,7 +3090,7 @@ class DocumentTree(wx.TreeCtrl):
 
         # get plot data
         ms_obj = self._get_item_object()
-        self.panel_plot.on_plot_MS(obj=ms_obj)
+        self.panel_plot.on_plot_ms(obj=ms_obj, set_page=True)
 
         if save_image:
             filename = self._item.get_name("ms")
@@ -3108,7 +3103,7 @@ class DocumentTree(wx.TreeCtrl):
 
         # get data for selected item
         obj = self._get_item_object()
-        self.panel_plot.on_plot_MSDT(obj=obj, set_page=True)
+        self.panel_plot.on_plot_dtms(obj=obj, set_page=True)
         if save_image:
             filename = self._item.get_name("dtms")
             self.panel_plot.save_images(evt="ms/dt", image_name=filename)
@@ -3118,7 +3113,7 @@ class DocumentTree(wx.TreeCtrl):
             return
 
         dt_obj = self._get_item_object()
-        self.panel_plot.on_plot_1D(obj=dt_obj)
+        self.panel_plot.on_plot_1d(obj=dt_obj, set_page=True)
 
         if save_image:
             filename = self._item.get_name("dt")
@@ -3130,7 +3125,7 @@ class DocumentTree(wx.TreeCtrl):
 
         # get plot data
         rt_obj = self._get_item_object()
-        self.panel_plot.on_plot_RT(obj=rt_obj)
+        self.panel_plot.on_plot_rt(obj=rt_obj)
 
         if save_image:
             filename = self._item.get_name("rt")
@@ -3159,7 +3154,7 @@ class DocumentTree(wx.TreeCtrl):
 
         # get data for selected item
         obj = self._get_item_object()
-        self.panel_plot.on_plot_2D(obj=obj, set_page=True)
+        self.panel_plot.on_plot_2d(obj=obj, set_page=True)
 
         if save_image:
             filename = self._item.get_name("heatmap")
@@ -3171,7 +3166,8 @@ class DocumentTree(wx.TreeCtrl):
 
         # get data for selected item
         obj = self._get_item_object()
-        self.panel_plot.on_plot_RT(obj.x, obj.xy, obj=obj, set_page=True)
+        obj = obj.as_chromatogram()
+        self.panel_plot.on_plot_rt(obj=obj, set_page=True)
 
         if save_image:
             filename = self._item.get_name("heatmap")
@@ -3183,7 +3179,8 @@ class DocumentTree(wx.TreeCtrl):
 
         # get data for selected item
         obj = self._get_item_object()
-        self.panel_plot.on_plot_1D(obj.y, obj.yy, obj=obj, set_page=True)
+        obj = obj.as_mobilogram()
+        self.panel_plot.on_plot_1d(obj=obj, set_page=True)
 
         if save_image:
             filename = self._item.get_name("heatmap")

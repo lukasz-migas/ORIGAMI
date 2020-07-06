@@ -4,7 +4,6 @@ import logging
 from enum import IntEnum
 from typing import Dict
 from typing import List
-from typing import Optional
 
 # Third-party imports
 import wx
@@ -13,8 +12,10 @@ from pubsub import pub
 # Local imports
 # from origami.styles import make_menu_item
 from origami.styles import MiniFrame
+from origami.styles import set_tooltip
 from origami.styles import set_item_font
 from origami.styles import make_menu_item
+from origami.styles import make_bitmap_btn
 from origami.icons.assets import Icons
 from origami.objects.misc import FileItem
 from origami.config.config import CONFIG
@@ -125,8 +126,9 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
     # module specific parameters
     DOCUMENT_TYPE = None
     PUB_SUBSCRIBE_EVENT = None
+    PUB_IN_PROGRESS_EVENT = None
     SUPPORTED_FILE_FORMATS = [".raw"]
-    DIALOG_SIZE = (800, 600)
+    DIALOG_SIZE = (800, 800)
     USE_COLOR = False
     CONFIG_NAME = None
 
@@ -136,8 +138,10 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
     info_btn = None
     import_label = None
     import_btn = None
+    activity_indicator = None
     processing_label = None
-    processing_btn = None
+    processing_ms_btn = None
+    processing_msdt_btn = None
     select_document_btn = None
     select_files_btn = None
     clear_files_btn = None
@@ -173,10 +177,12 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
     @property
     def data_handling(self):
+        """Return handle to `data_handling`"""
         raise NotImplementedError("Must implement method")
 
     @property
     def document_tree(self):
+        """Return handle to `document_tree`"""
         raise NotImplementedError("Must implement method")
 
     def on_update_implementation(self, metadata):
@@ -184,6 +190,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         pass
 
     def make_implementation_panel(self, panel):
+        """Make implementation-specific panel"""
         return None
 
     def on_double_click_on_item(self, evt):
@@ -210,10 +217,8 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         self.peaklist.on_column_click(evt)
         self.on_update_import_info()
 
-    def on_update_document(self, item_id: Optional[int] = None, item_info: Optional[Dict] = None):
-        pass
-
     def on_menu_item_right_click(self, evt):
+        """Handle right-click event in the table"""
         self.peaklist.item_id = evt.GetIndex()
 
         menu = wx.Menu()
@@ -230,16 +235,33 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         menu.Destroy()
         self.SetFocus()
 
-    def on_close(self, evt):
+    def on_progress(self, is_running: bool, message: str):  # noqa
+        """Handle extraction progress"""
+        # show indicator
+        if is_running:
+            self.activity_indicator.Show()
+            self.activity_indicator.Start()
+        else:
+            self.activity_indicator.Hide()
+            self.activity_indicator.Stop()
+
+        # disable import button
+        self.import_btn.Enable(not is_running)
+
+    def on_close(self, evt, force: bool = False):
         """Destroy this frame"""
         if self.PUB_SUBSCRIBE_EVENT:
             pub.unsubscribe(self.on_update_info, self.PUB_SUBSCRIBE_EVENT)
+        if self.PUB_IN_PROGRESS_EVENT:
+            pub.unsubscribe(self.on_progress, self.PUB_IN_PROGRESS_EVENT)
         self.Destroy()
 
     def subscribe(self):
         """Initialize PubSub subscribers"""
         if self.PUB_SUBSCRIBE_EVENT:
             pub.subscribe(self.on_update_info, self.PUB_SUBSCRIBE_EVENT)
+        if self.PUB_IN_PROGRESS_EVENT:
+            pub.subscribe(self.on_progress, self.PUB_IN_PROGRESS_EVENT)
 
     def bind_events(self):
         """Bind extra events"""
@@ -309,14 +331,21 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         self.import_btn = wx.Button(panel, wx.ID_OK, "Import", size=(-1, 22))
         self.import_btn.Bind(wx.EVT_BUTTON, self.on_import)
 
+        self.activity_indicator = wx.ActivityIndicator(self)
+        self.activity_indicator.Hide()
+
         label_sizer = wx.BoxSizer(wx.VERTICAL)
         label_sizer.Add(import_label)
         label_sizer.Add(self.import_label, 1)
 
+        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        btn_sizer.Add(self.import_btn, 0, wx.ALIGN_CENTER_VERTICAL)
+        btn_sizer.Add(self.activity_indicator, wx.ALIGN_CENTER_VERTICAL)
+
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.Add(label_sizer, 1)
         sizer.AddSpacer(20)
-        sizer.Add(self.import_btn, 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(btn_sizer, 0, wx.ALIGN_CENTER_VERTICAL)
 
         return sizer
 
@@ -333,18 +362,27 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         processing_label = set_item_font(wx.StaticText(panel, wx.ID_ANY, "Current pre-processing steps"))
         msg = ""
         self.processing_label = wx.StaticText(panel, wx.ID_ANY, msg)
+        self.processing_label.SetMinSize((-1, 175))
 
         # file selection
         self.select_document_btn = wx.Button(panel, wx.ID_OK, "Select document...", size=(-1, 22))
+        set_tooltip(self.select_document_btn, "Select or create new document where to add data")
         self.select_document_btn.Bind(wx.EVT_BUTTON, self.on_select_document)
 
         self.select_files_btn = wx.Button(panel, wx.ID_OK, "Select files...", size=(-1, 22))
+        set_tooltip(self.select_files_btn, "Select list of files that should belong to the current document")
         self.select_files_btn.Bind(wx.EVT_BUTTON, self.on_select_files)
 
-        self.processing_btn = wx.Button(panel, wx.ID_OK, "Update processing settings...", size=(-1, 22))
-        self.processing_btn.Bind(wx.EVT_BUTTON, self.on_update_settings)
+        self.processing_ms_btn = make_bitmap_btn(panel, wx.ID_ANY, self._icons.process_ms)
+        set_tooltip(self.processing_ms_btn, "Update mass spectrum pre-processing parameters")
+        self.processing_ms_btn.Bind(wx.EVT_BUTTON, self.on_update_ms_settings)
+
+        self.processing_msdt_btn = make_bitmap_btn(panel, wx.ID_ANY, self._icons.process_heatmap)
+        set_tooltip(self.processing_msdt_btn, "Update MS/DT heatmap pre-processing parameters")
+        self.processing_msdt_btn.Bind(wx.EVT_BUTTON, self.on_update_msdt_settings)
 
         self.clear_files_btn = wx.Button(panel, wx.ID_OK, "Clear filelist", size=(-1, 22))
+        set_tooltip(self.clear_files_btn, "Reset list of files")
         self.clear_files_btn.Bind(wx.EVT_BUTTON, self.on_clear_files)
 
         # pack heatmap items
@@ -359,11 +397,12 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         grid.Add(self.processing_label, (n, 0), wx.GBSpan(6, 4), flag=wx.EXPAND)
 
         # pack buttons
-        btn_grid = wx.GridBagSizer(2, 2)
-        btn_grid.Add(self.select_document_btn, (0, 0), flag=wx.ALIGN_CENTER)
-        btn_grid.Add(self.select_files_btn, (0, 1), flag=wx.ALIGN_CENTER)
-        btn_grid.Add(self.processing_btn, (0, 2), flag=wx.ALIGN_CENTER)
-        btn_grid.Add(self.clear_files_btn, (0, 3), flag=wx.ALIGN_CENTER)
+        btn_grid = wx.BoxSizer(wx.HORIZONTAL)
+        btn_grid.Add(self.select_document_btn, 0, wx.ALIGN_CENTER_VERTICAL)
+        btn_grid.Add(self.select_files_btn, 0, wx.ALIGN_CENTER_VERTICAL)
+        btn_grid.Add(self.processing_ms_btn, 0, wx.ALIGN_CENTER_VERTICAL)
+        btn_grid.Add(self.processing_msdt_btn, 0, wx.ALIGN_CENTER_VERTICAL)
+        btn_grid.Add(self.clear_files_btn, 0, wx.ALIGN_CENTER_VERTICAL)
 
         return grid, btn_grid
 
@@ -375,17 +414,21 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
     def on_update_info(self):
         """Update processing parameters"""
         info = ""
+
+        # inform of linearization
         if CONFIG.ms_process_linearize:
-            info += "Linearize \n"
+            info += "<b>Linearize</b>\n"
             info += f"    Mode: {CONFIG.ms_linearization_mode}\n"
-            info += f"    Auto-range: {CONFIG.ms_auto_range}\n"
             if not CONFIG.ms_auto_range:
                 try:
                     info += f"    m/z range: {CONFIG.ms_mzStart:.2f} - {CONFIG.ms_mzEnd:.2f}"
                     info += " (if broader than raw data, it will be cropped appropriately)\n"
                 except TypeError:
                     pass
+            else:
+                info += f"    m/z range: Auto\n"
             info += f"    bin size: {CONFIG.ms_mzBinSize}\n"
+
         if not info:
             info += "By default, ORIGAMI will pick common mass range (by looking at all the m/z range of each file)\n"
             info += "and use modest 0.01 Da bin size with 'Linear interpolation'\n\n"
@@ -393,11 +436,22 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         else:
             self.processing_label.SetForegroundColour(wx.BLACK)
 
-        if CONFIG.ms_process_threshold:
-            info += "Subtract baseline \n"
-            info += f"   Mode: {CONFIG.ms_baseline}"
+        # inform of smoothing
+        if CONFIG.ms_process_smooth:
+            info += "<b>Smooth</b>\n"
+            info += f"    Mode: {CONFIG.ms_smooth_mode}\n"
 
-        self.processing_label.SetLabel(info)
+        # inform of thresholding
+        if CONFIG.ms_process_threshold:
+            info += "<b>Subtract baseline</b>\n"
+            info += f"   Mode: {CONFIG.ms_baseline}\n"
+
+        # inform about MSDT settings
+        info += "\n<b>MS/DT settings </b>\n"
+        info += f"    m/z range: {CONFIG.extract_dtms_mzStart:.2f} - {CONFIG.extract_dtms_mzEnd:.2f}"
+        info += f" (bin size: {CONFIG.extract_dtms_mzBinSize})"
+
+        self.processing_label.SetLabelMarkup(info)
 
     def _on_get_document(self):
         """Get instance of selected document - the dialog also allows the user to load already existing document that
@@ -442,10 +496,19 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
             CONFIG.ms_mzBinSize = linearize_metadata.get("bin_size", CONFIG.ms_mzBinSize)
             CONFIG.ms_auto_range = False
 
+            # smoothing
+            smooth_metadata = metadata.get("smooth", dict())
+            CONFIG.ms_process_smooth = smooth_metadata.get("smooth", CONFIG.ms_process_smooth)
+            CONFIG.ms_smooth_mode = smooth_metadata.get("smooth_method", CONFIG.ms_smooth_mode)
+            CONFIG.ms_smooth_sigma = smooth_metadata.get("sigma", CONFIG.ms_smooth_sigma)
+            CONFIG.ms_smooth_polynomial = smooth_metadata.get("poly_order", CONFIG.ms_smooth_polynomial)
+            CONFIG.ms_smooth_window = smooth_metadata.get("window_size", CONFIG.ms_smooth_window)
+            CONFIG.ms_smooth_moving_window = smooth_metadata.get("N", CONFIG.ms_smooth_moving_window)
+
             # baseline
             baseline_metadata = metadata.get("baseline", dict())
-            CONFIG.ms_baseline = baseline_metadata.get("baseline_method", CONFIG.ms_baseline)
             CONFIG.ms_process_threshold = baseline_metadata.get("correction", CONFIG.ms_process_threshold)
+            CONFIG.ms_baseline = baseline_metadata.get("baseline_method", CONFIG.ms_baseline)
             CONFIG.ms_threshold = baseline_metadata.get("threshold", CONFIG.ms_threshold)
             CONFIG.ms_baseline_polynomial_order = baseline_metadata.get(
                 "poly_order", CONFIG.ms_baseline_polynomial_order
@@ -453,6 +516,14 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
             CONFIG.ms_baseline_curved_window = metadata.get("curved_window", CONFIG.ms_baseline_curved_window)
             CONFIG.ms_baseline_median_window = metadata.get("median_window", CONFIG.ms_baseline_median_window)
             CONFIG.ms_baseline_tophat_window = metadata.get("tophat_window", CONFIG.ms_baseline_tophat_window)
+
+            # msdt
+            smooth_metadata = metadata.get("msdt", dict())
+            CONFIG.extract_dtms_mzStart = metadata.get("x_min", CONFIG.extract_dtms_mzStart)
+            CONFIG.extract_dtms_mzEnd = metadata.get("x_max", CONFIG.extract_dtms_mzEnd)
+            CONFIG.extract_dtms_mzBinSize = metadata.get("bin_size", CONFIG.extract_dtms_mzBinSize)
+
+            # implementation and info
             self.on_update_info()
             self.on_update_implementation(metadata)
 
@@ -480,11 +551,15 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
                 )
             )
 
-    def on_update_settings(self, _):
+    def on_update_ms_settings(self, _):
         """Open data processing window"""
         self.document_tree.on_open_process_ms_settings(
             disable_plot=True, disable_process=True, update_widget=self.PUB_SUBSCRIBE_EVENT
         )
+
+    def on_update_msdt_settings(self, _):
+        """Open data processing window"""
+        self.document_tree.on_open_process_msdt_settings(update_widget=self.PUB_SUBSCRIBE_EVENT)
 
     def on_get_files(self):
         """Collects a list of files from directory"""
@@ -648,6 +723,14 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
             linearize=dict(
                 linearize_method=linearization_mode, x_min=mz_min, x_max=mz_max, bin_size=mz_bin, auto_range=False
             ),
+            smooth=dict(
+                smooth=CONFIG.ms_process_smooth,
+                smooth_method=CONFIG.ms_smooth_mode,
+                sigma=CONFIG.ms_smooth_sigma,
+                poly_order=CONFIG.ms_smooth_polynomial,
+                window_size=CONFIG.ms_smooth_window,
+                N=CONFIG.ms_smooth_moving_window,
+            ),
             baseline=dict(
                 correction=CONFIG.ms_process_threshold,
                 baseline_method=CONFIG.ms_baseline,
@@ -656,6 +739,11 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
                 curved_window=CONFIG.ms_baseline_curved_window,
                 median_window=CONFIG.ms_baseline_median_window,
                 tophat_window=CONFIG.ms_baseline_tophat_window,
+            ),
+            msdt=dict(
+                x_min=CONFIG.extract_dtms_mzStart,
+                x_max=CONFIG.extract_dtms_mzEnd,
+                bin_size=CONFIG.extract_dtms_mzBinSize,
             ),
             **impl_kwargs,
         )

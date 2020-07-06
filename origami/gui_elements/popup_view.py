@@ -10,7 +10,9 @@ from origami.styles import PopupBase
 from origami.styles import make_menu_item
 from origami.icons.assets import Icons
 from origami.gui_elements._panel import TestPanel  # noqa
+from origami.gui_elements.views.view_heatmap import ViewHeatmap
 from origami.gui_elements.views.view_spectrum import ViewMobilogram
+from origami.gui_elements.views.view_spectrum import ViewChromatogram
 from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
 
 
@@ -23,7 +25,7 @@ class PopupViewBase(PopupBase):
     ENABLE_INFO_MESSAGE = True
 
     PLOT_FIGURE_SIZE = (6, 3)
-    PLOT_AXES_SIZE = (0.15, 0.25, 0.8, 0.65)
+    PLOT_AXES_SIZE = (0.15, 0.3, 0.8, 0.65)
     INFO_MESSAGE = "You can click-and-drag in the plot area."
 
     title = None
@@ -122,12 +124,51 @@ class PopupMobilogramView(PopupViewBase):
         return self.plot_panel
 
 
+class PopupChromatogramView(PopupViewBase):
+    """Create popup window that enables visualisation of mobilogram(s)"""
+
+    def make_plot(self):
+        """Make plot panel"""
+        self.plot_view = ViewChromatogram(
+            self,
+            self.PLOT_FIGURE_SIZE,
+            callbacks=self._callbacks,
+            allow_extraction=self._allow_extraction,
+            axes_size=self.PLOT_AXES_SIZE,
+        )
+        self.plot_panel = self.plot_view.panel
+        self.plot_window = self.plot_view.figure
+
+        return self.plot_panel
+
+
 class PopupMassSpectrummView(PopupViewBase):
     """Create popup window that enables visualisation of mass spectrum/a"""
 
     def make_plot(self):
         """Make plot panel"""
         self.plot_view = ViewMassSpectrum(
+            self,
+            self.PLOT_FIGURE_SIZE,
+            callbacks=self._callbacks,
+            allow_extraction=self._allow_extraction,
+            axes_size=self.PLOT_AXES_SIZE,
+        )
+        self.plot_panel = self.plot_view.panel
+        self.plot_window = self.plot_view.figure
+
+        return self.plot_panel
+
+
+class PopupHeatmapView(PopupViewBase):
+    """Create popup window that enables visualisation of mass spectrum/a"""
+
+    PLOT_FIGURE_SIZE = (6, 6)
+    PLOT_AXES_SIZE = (0.25, 0.25, 0.6, 0.6)
+
+    def make_plot(self):
+        """Make plot panel"""
+        self.plot_view = ViewHeatmap(
             self,
             self.PLOT_FIGURE_SIZE,
             callbacks=self._callbacks,

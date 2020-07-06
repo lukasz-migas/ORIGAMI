@@ -2,7 +2,6 @@
 # Standard library imports
 import os
 import copy
-import math
 import time
 import logging
 import threading
@@ -106,18 +105,19 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         """Return handle to `panel_plot`"""
         return self.presenter.view.panelPlots
 
-    # @property
-    # def ion_panel(self):
-    #     """Return handle to `ion_panel"""
-    #     return self.parent.panelMultipleIons
-    #
-    # @property
-    # def ion_list(self):
-    #     """Return handle to `ion_list"""
-    #     return self.ion_panel.peaklist
-
     def add_task(self, func, args, func_pre=None, func_result=None, func_error=None, func_post=None, **kwargs):
-        """Adds task to the queue handler"""
+        """Adds task to the queue handler
+
+        The `Call` handler works by executing consecutive actions.
+        1. First, it executes the `func_pre` with No parameters,
+        2. Second, it executes the `func` with args and kwargs
+            - if action was successful, it will run the `func_result` function with the returned values of the `func`
+            - if action was unsuccessful, it will run the `func_error` with error information
+        3. Third, it executes the `func_post` with `func_post_args` and `func_post_kwargs` arguments
+
+        The `func_result`, `func_error` and `func_post` are called using the `wx.CallAfter` mechanism to ensure thread
+        safety.
+        """
         if func_error is None:
             func_error = self.on_error
         call_obj = Call(
@@ -397,9 +397,10 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         can_extract, is_multifile, file_fmt = document.can_extract()
         if not can_extract:
             raise MessageError("Error", "This document type does not allow data extraction")
-
         if is_multifile:
             raise MessageError("Error", "Multifile data extraction is not supported yet")
+        if file_fmt == "thermo":
+            raise MessageError("Error", "Cannot extract mass spectrum data from heatmap")
 
         # mark on the plot where data is being extracted from
         self.panel_plot.view_heatmap.add_patches([x_min], [y_min], [x_max - x_min], [y_max - y_min], pickable=False)
@@ -413,6 +414,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
         # set data
         self.panel_plot.view_ms.plot(obj=mz_obj)
+        self.panel_plot.popup_ms.plot(obj=mz_obj)
 
         # # Update document
         self.document_tree.on_update_document(mz_obj.DOCUMENT_KEY, obj_name, document.title)
@@ -432,9 +434,10 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         can_extract, is_multifile, file_fmt = document.can_extract()
         if not can_extract:
             raise MessageError("Error", "This document type does not allow data extraction")
-
         if is_multifile:
             raise MessageError("Error", "Multifile data extraction is not supported yet")
+        if file_fmt == "thermo":
+            raise MessageError("Error", "Cannot extract retention time data from heatmap")
 
         # mark on the plot where data is being extracted from
         self.panel_plot.view_msdt.add_patches([x_min], [y_min], [x_max - x_min], [y_max - y_min], pickable=False)
@@ -447,6 +450,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
         # set data
         self.panel_plot.view_rt_rt.plot(obj=rt_obj)
+        self.panel_plot.popup_rt.plot(obj=rt_obj)
 
         # # Update document
         self.document_tree.on_update_document(rt_obj.DOCUMENT_KEY, obj_name, document.title)
@@ -467,9 +471,10 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         can_extract, is_multifile, file_fmt = document.can_extract()
         if not can_extract:
             raise MessageError("Error", "This document type does not allow data extraction")
-
         if is_multifile:
             raise MessageError("Error", "Multifile data extraction is not supported yet")
+        if file_fmt == "thermo":
+            raise MessageError("Error", "Cannot extract heatmap from Thermo file")
 
         x_min, x_max = self._parse_mobilogram_range_waters(document, x_label, x_min, x_max)
 
@@ -484,8 +489,8 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         obj_name, mz_obj, document = self.waters_extract_ms_from_mobilogram(x_min, x_max, document.title)
 
         # set data
-        self.panel_plot.view_dt_ms.plot(obj=mz_obj)
         self.panel_plot.view_ms.plot(obj=mz_obj)
+        self.panel_plot.popup_ms.plot(obj=mz_obj)
 
         # # Update document
         self.document_tree.on_update_document(mz_obj.DOCUMENT_KEY, obj_name, document.title)
@@ -507,7 +512,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         can_extract, is_multifile, file_fmt = document.can_extract()
         if not can_extract:
             raise MessageError("Error", "This document type does not allow data extraction")
-
         if is_multifile:
             raise MessageError("Error", "Multifile data extraction is not supported yet")
 
@@ -528,7 +532,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             )
 
         # set data
-        self.panel_plot.view_rt_ms.plot(obj=mz_obj)
+        self.panel_plot.popup_ms.plot(obj=mz_obj)
         self.panel_plot.view_ms.plot(obj=mz_obj)
 
         # # Update document
@@ -544,12 +548,10 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         can_extract, is_multifile, file_fmt = document.can_extract()
         if not can_extract:
             raise MessageError("Error", "This document type 8does not allow data extraction")
-
-        if file_fmt == "thermo":
-            raise MessageError("Error", "Cannot extract heatmap from Thermo file")
-
         if is_multifile:
             raise MessageError("Error", "Multifile data extraction is not supported yet")
+        if file_fmt == "thermo":
+            raise MessageError("Error", "Cannot extract heatmap from Thermo file")
 
         # get plot data and calculate maximum values in the arrays
         x, y = self.panel_plot.view_ms.get_data()
@@ -565,6 +567,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
         # set data
         self.panel_plot.view_heatmap.plot(obj=heatmap_obj)
+        self.panel_plot.popup_2d.plot(obj=heatmap_obj)
 
         # # Update document
         self.document_tree.on_update_document(heatmap_obj.DOCUMENT_KEY, obj_name, document.title)
@@ -1233,7 +1236,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         #     if mz_kwargs:
         #         logger.info(f"Extracting mass spectrum: {mz_kwargs}")
         #         mz_x, mz_y = self.waters_im_extract_ms(document.path, **mz_kwargs)
-        #         self.panel_plot.on_plot_MS(mz_x, mz_y)
+        #         self.panel_plot.on_plot_ms(mz_x, mz_y)
         #         data = {"xvals": mz_x, "yvals": mz_y, "xlabels": "m/z (Da)", "xlimits": get_min_max(mz_x)}
         #         if add_to_document:
         #             self.document_tree.on_update_data(data, spectrum_name, document, data_type="extracted.spectrum")
@@ -1259,7 +1262,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         #     if rt_kwargs:
         #         logger.info(f"Extracting chromatogram: {rt_kwargs}")
         #         xvals_RT, yvals_RT, __ = self.waters_im_extract_rt(document.path, **rt_kwargs)
-        #         self.panel_plot.on_plot_RT(xvals_RT, yvals_RT, "Scans")
+        #         self.panel_plot.on_plot_rt(xvals_RT, yvals_RT, "Scans")
         #         data = {
         #             "xvals": xvals_RT,
         #             "yvals": yvals_RT,
@@ -1292,7 +1295,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         #     if dt_kwargs:
         #         logger.info(f"Extracting mobilogram: {dt_kwargs}")
         #         xvals_DT, yvals_DT = self.waters_im_extract_dt(document.path, **dt_kwargs)
-        #         self.panel_plot.on_plot_1D(xvals_DT, yvals_DT, "Drift time (bins)")
+        #         self.panel_plot.on_plot_1d(xvals_DT, yvals_DT, "Drift time (bins)")
         #         data = {
         #             "xvals": xvals_DT,
         #             "yvals": yvals_DT,
@@ -1751,7 +1754,8 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     #         self.update_statusbar(f"Extracted: {n_extracted}/{n_items}", 4)
 
     def on_open_manual_file_fcn(self, document_title, filelist, raw_format="waters", **kwargs):
-
+        """Import multi-file ciu/sid document"""
+        pub.sendMessage("widget.manual.import.progress", is_running=True, message="")
         # get document
         document = ENV[document_title]
         if not document:
@@ -1761,11 +1765,18 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             self.on_setup_basic_document(self.load_manual_document(document.path, filelist, **kwargs))
         else:
             self.add_task(
-                self.load_manual_document, (document.path, filelist), func_result=self.on_setup_basic_document, **kwargs
+                self.load_manual_document,
+                (document.path, filelist),
+                func_result=self.on_setup_basic_document,
+                func_post=pub.sendMessage,
+                func_post_args=("widget.manual.import.progress",),
+                func_post_kwargs=dict(is_running=False, message=""),
+                **kwargs,
             )
 
     def on_open_lesa_file_fcn(self, document_title, filelist, raw_format="waters", **kwargs):
-
+        """Import multi-file LESA document"""
+        pub.sendMessage("widget.imaging.import.progress", is_running=True, message="")
         # get document
         document = ENV[document_title]
         if not document:
@@ -1775,112 +1786,14 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             self.on_setup_basic_document(self.load_lesa_document(document.path, filelist, **kwargs))
         else:
             self.add_task(
-                self.load_lesa_document, (document.path, filelist), func_result=self.on_setup_basic_document, **kwargs
+                self.load_lesa_document,
+                (document.path, filelist),
+                func_result=self.on_setup_basic_document,
+                func_post=pub.sendMessage,
+                func_post_args=("widget.imaging.import.progress",),
+                func_post_kwargs=dict(is_running=False, message=""),
+                **kwargs,
             )
-
-    def on_extract_LESA_img_from_mass_range(self, x_min, x_max, document_title):
-        """Extract image data for particular m/z range from multiple MS spectra
-
-        Parameters
-        ----------
-        x_min : float
-            minimum value of m/z window
-        x_max : float
-            maximum value of m/z window
-        document_title: str
-            name of the document to be examined
-
-        Returns
-        -------
-        out : np.array
-            image array
-        """
-        from origami.processing.utils import get_narrow_data_range_1D
-
-        document = self.on_get_document(document_title)
-
-        metadata = document.metadata.get("imaging_lesa", dict())
-        if not metadata:
-            raise MessageError("Error", "Cannot extract LESA data for this document")
-
-        shape = [int(metadata["x_dim"]), int(metadata["y_dim"])]
-        out = np.zeros(np.dot(shape[0], shape[1]).astype(np.int32))
-        for data in document.multipleMassSpectrum.values():
-            idx = int(data["index"] - 1)
-            __, mz_y = get_narrow_data_range_1D(data["xvals"], data["yvals"], [x_min, x_max])
-
-            #             out[idx] = idx
-            out[idx] = mz_y.sum()
-        out = np.reshape(out, shape)
-        #         out = normalize_2d(out)
-
-        return np.flipud(out)
-
-    def on_extract_LESA_img_from_mass_range_norm(self, x_min, x_max, document_title, norm_mode="total"):
-        """Apply normalization factors to the image. By default, values will be collected from the
-        `metadata` store as they should have been pre-calculated
-
-        Parameters
-        ----------
-        x_min : float
-            minimum value of m/z window
-        x_max : float
-            maximum value of m/z window
-        document_title: str
-            name of the document to be examined
-
-        Returns
-        -------
-        out : np.array
-            image array
-        """
-        from origami.processing.utils import get_narrow_data_range_1D
-
-        document = self.on_get_document(document_title)
-
-        metadata = document.metadata.get("imaging_lesa", dict())
-        if not metadata:
-            raise MessageError("Error", "Cannot extract LESA data for this document")
-
-        shape = [int(metadata["x_dim"]), int(metadata["y_dim"])]
-        out = np.zeros(np.dot(shape[0], shape[1]).astype(np.int64))
-        for data in document.multipleMassSpectrum.values():
-            idx = int(data["index"] - 1)
-            __, mz_y = get_narrow_data_range_1D(data["xvals"], data["yvals"], [x_min, x_max])
-
-            out[idx] = mz_y.sum()
-
-        # get division factor
-        if norm_mode in metadata["norm"]:
-            divisor = metadata["norm"][norm_mode]
-            out = np.divide(out, divisor)
-
-        # reshape object
-        out = np.reshape(out, shape)
-
-        return np.flipud(out)
-
-    def on_extract_LESA_mobilogram_from_mass_range(self, xmin, xmax, document_title):
-        document = self.on_get_document(document_title)
-
-        n_items = len(document.multipleMassSpectrum.keys())
-        zvals = np.zeros((200, n_items), dtype=np.int64)
-        for idx, data in enumerate(document.multipleMassSpectrum.values()):
-            tstart = time.time()
-            path = data["path"]
-            xvals, yvals_DT = self.waters_im_extract_dt(path, mz_start=xmin, mz_end=xmax)
-            zvals[:, idx] = yvals_DT
-            logger.debug(
-                f"Extracted mobilogram for ion {xmin:.2f}-{xmax:.2f} in {time.time()-tstart:.2f}s."
-                f" [{idx+1}/{n_items}]"
-            )
-        return xvals, zvals.sum(axis=1), zvals
-
-    def on_extract_LESA_img_from_mobilogram(self, xmin, xmax, zvals):
-        xmin, xmax = math.floor(xmin), math.ceil(xmax)
-        zvals = zvals[xmin:xmax, :]
-
-        return zvals.sum(axis=0)
 
     # def on_open_multiple_ML_files_fcn(self, open_type, pathlist=None):
     #
@@ -2038,7 +1951,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     #     self.document_tree.on_update_data(data, "", document, data_type="main.raw.spectrum")
     #     # Plot
     #     name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
-    #     self.panel_plot.on_plot_MS(ms_x, ms_y_sum, xlimits=xlimits, **name_kwargs)
+    #     self.panel_plot.on_plot_ms(ms_x, ms_y_sum, xlimits=xlimits, **name_kwargs)
     #
     #     # Add info to document
     #     document.parameters = parameters
@@ -2196,7 +2109,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     #         logger.error("You must select wider dt/mz range to continue")
     #         return
     #     # replot
-    #     self.panel_plot.on_plot_MSDT(zvals, xvals, yvals, xlabel, ylabel, override=False, update_extents=False)
+    #     self.panel_plot.on_plot_dtms(zvals, xvals, yvals, xlabel, ylabel, override=False, update_extents=False)
     #     logger.info("Sub-sampling took {:.4f}".format(time.time() - tstart))
     #
     # def on_combine_mass_spectra(self, document_name=None):
@@ -2270,7 +2183,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     #         document.massSpectrum = {"xvals": msDataX, "yvals": msDataY, "xlabels": "m/z (Da)", "xlimits": xlimits}
     #         # Plot
     #         name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
-    #         self.panel_plot.on_plot_MS(msDataX, msDataY, xlimits=xlimits, **name_kwargs)
+    #         self.panel_plot.on_plot_ms(msDataX, msDataY, xlimits=xlimits, **name_kwargs)
     #
     #         # Update status bar with MS range
     #         self.view.SetStatusText("{}-{}".format(document.parameters["start_ms"], document.parameters["end_ms"]), 1)
@@ -2303,7 +2216,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     #     return
 
     # name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
-    # self.panel_plot.on_plot_MS(
+    # self.panel_plot.on_plot_ms(
     #     document.massSpectrum["xvals"],
     #     document.massSpectrum["yvals"],
     #     xlimits=document.massSpectrum["xlimits"],
@@ -2465,15 +2378,15 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     #
     #         # plot data
     #         if plot_type == "heatmap":
-    #             self.panel_plot.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel)
+    #             self.panel_plot.on_plot_2d(zvals, xvals, yvals, xlabel, ylabel)
     #             self.panel_plot.on_save_image("2D", filename, resize_name=resize_alias[plot_type])
     #         elif plot_type == "chromatogram":
     #             yvals_RT = data.get("yvalsRT", zvals.sum(axis=0))
-    #             self.panel_plot.on_plot_RT(xvals, yvals_RT, xlabel)
+    #             self.panel_plot.on_plot_rt(xvals, yvals_RT, xlabel)
     #             self.panel_plot.on_save_image("RT", filename, resize_name=resize_alias[plot_type])
     #         elif plot_type == "mobilogram":
     #             yvals_DT = data.get("yvals1D", zvals.sum(axis=1))
-    #             self.panel_plot.on_plot_1D(yvals, yvals_DT, ylabel)
+    #             self.panel_plot.on_plot_1d(yvals, yvals_DT, ylabel)
     #             self.panel_plot.on_save_image("1D", filename, resize_name=resize_alias[plot_type])
     #         elif plot_type == "waterfall":
     #             self.panel_plot.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals, xlabel=xlabel, ylabel=ylabel)

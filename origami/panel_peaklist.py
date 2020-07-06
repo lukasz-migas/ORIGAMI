@@ -819,13 +819,13 @@ class PanelPeaklist(TablePanelBase):
         #     xvals = data[rangeName]["yvals"]  # normally this would be the y-axis
         #     yvals = data[rangeName]["yvals1D"]
         #     xlabels = data[rangeName]["ylabels"]  # normally this would be x-axis label
-        #     self.view.panelPlots.on_plot_1D(xvals, yvals, xlabels, set_page=True)
+        #     self.view.panelPlots.on_plot_1d(xvals, yvals, xlabels, set_page=True)
         #
         # elif evtID == ID_ionPanel_show_chromatogram:
         #     xvals = data[rangeName]["xvals"]
         #     yvals = data[rangeName]["yvalsRT"]
         #     xlabels = data[rangeName]["xlabels"]  # normally this would be x-axis label
-        #     self.view.panelPlots.on_plot_RT(xvals, yvals, xlabels, set_page=True)
+        #     self.view.panelPlots.on_plot_rt(xvals, yvals, xlabels, set_page=True)
         #
         # elif evtID == ID_ionPanel_show_zoom_in_MS:
         #     mz_start, mz_end = get_ion_name_from_label(rangeName, as_num=True)
@@ -854,7 +854,7 @@ class PanelPeaklist(TablePanelBase):
         #     if evtID == ID_ionPanel_show_process_heatmap:
         #         xvals, yvals, zvals = self.data_processing.on_process_heatmap(xvals, yvals, zvals, return_data=True)
         #     # Plot data
-        #     self.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, cmap, override=True, set_page=True)
+        #     self.view.panelPlots.on_plot_2d(zvals, xvals, yvals, xlabel, ylabel, cmap, override=True, set_page=True)
 
     def on_save_figures(self, plot_type):
         """Save figure(s) for selected item(s)

@@ -1049,10 +1049,6 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         self.plot_view.plot(obj=mz_obj)
         self.on_show_threshold_line(None)
 
-    def on_plot_spectrum_update(self, mz_x, mz_y):
-        """Update plot data without changing anything else"""
-        self.panel_plot.on_update_plot_1D(mz_x, mz_y, None, plot_obj=self.plot_window)
-
     def on_process(self):
         """Process spectrum"""
         if CONFIG.peak_panel_preprocess:

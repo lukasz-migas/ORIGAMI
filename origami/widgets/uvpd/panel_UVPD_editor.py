@@ -951,7 +951,7 @@ class PanelUVPDEditor(wx.MiniFrame):
 
             print("Extracted data for {}-{} ion".format(mzStart, mzEnd))
 
-            self.view.panelPlots.on_plot_2D(zvals, xvals, yvals, "Laser shots", "Drift time (bins)", override=False)
+            self.view.panelPlots.on_plot_2d(zvals, xvals, yvals, "Laser shots", "Drift time (bins)", override=False)
 
         # enable feature extraction
         self.monitor_features.Enable()
@@ -1054,7 +1054,7 @@ class PanelUVPDEditor(wx.MiniFrame):
             return
 
         if evtID == ID_uvpd_laser_on_show_heatmap:
-            self.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, override=False, set_page=True)
+            self.view.panelPlots.on_plot_2d(zvals, xvals, yvals, xlabel, ylabel, override=False, set_page=True)
 
         elif evtID == ID_uvpd_laser_on_show_waterfall:
             self.view.panelPlots.on_plot_waterfall(
@@ -1063,11 +1063,11 @@ class PanelUVPDEditor(wx.MiniFrame):
 
         elif evtID == ID_uvpd_laser_on_show_chromatogram:
             yvalsRT = np.average(zvals, axis=0)
-            self.view.panelPlots.on_plot_RT(xvals, yvalsRT, "Laser shots", "Intensity", set_page=True)
+            self.view.panelPlots.on_plot_rt(xvals, yvalsRT, "Laser shots", "Intensity", set_page=True)
 
         elif evtID == ID_uvpd_laser_on_show_mobilogram:
             yvalsDT = np.average(zvals, axis=1)
-            self.view.panelPlots.on_plot_1D(yvals, yvalsDT, "Drift time (bins)", ylabel, set_page=True)
+            self.view.panelPlots.on_plot_1d(yvals, yvalsDT, "Drift time (bins)", ylabel, set_page=True)
 
         self.SetFocus()
 
@@ -1082,7 +1082,7 @@ class PanelUVPDEditor(wx.MiniFrame):
             return
 
         if evtID == ID_uvpd_laser_off_show_heatmap:
-            self.view.panelPlots.on_plot_2D(zvals, xvals, yvals, xlabel, ylabel, override=False, set_page=True)
+            self.view.panelPlots.on_plot_2d(zvals, xvals, yvals, xlabel, ylabel, override=False, set_page=True)
 
         elif evtID == ID_uvpd_laser_off_show_waterfall:
             self.view.panelPlots.on_plot_waterfall(
@@ -1091,11 +1091,11 @@ class PanelUVPDEditor(wx.MiniFrame):
 
         elif evtID == ID_uvpd_laser_off_show_chromatogram:
             yvalsRT = np.sum(zvals, axis=0)
-            self.view.panelPlots.on_plot_RT(xvals, yvalsRT, "Laser shots", "Intensity", set_page=True)
+            self.view.panelPlots.on_plot_rt(xvals, yvalsRT, "Laser shots", "Intensity", set_page=True)
 
         elif evtID == ID_uvpd_laser_off_show_mobilogram:
             yvalsDT = np.average(zvals, axis=1)
-            self.view.panelPlots.on_plot_1D(yvals, yvalsDT, "Drift time (bins)", ylabel, set_page=True)
+            self.view.panelPlots.on_plot_1d(yvals, yvalsDT, "Drift time (bins)", ylabel, set_page=True)
 
         self.SetFocus()
 
@@ -1335,7 +1335,7 @@ class PanelUVPDEditor(wx.MiniFrame):
 
         # extract dataset 1 mass spectra
         msX_on, msY_on = self._extract_mass_spectrum(document.path, self.laser_on_list, **kwargs)
-        self.view.panelPlots.on_plot_MS(msX_on, msY_on, "m/z", "Intensity", set_page=True)
+        self.view.panelPlots.on_plot_ms(msX_on, msY_on, "m/z", "Intensity", set_page=True)
         document.multipleMassSpectrum["UVPD - dataset 1"] = {
             "xvals": msX_on,
             "yvals": msY_on,
@@ -1346,7 +1346,7 @@ class PanelUVPDEditor(wx.MiniFrame):
 
         # extract dataset 2 mass spectra
         msX_off, msY_off = self._extract_mass_spectrum(document.path, self.laser_off_list, **kwargs)
-        self.view.panelPlots.on_plot_MS(msX_off, msY_off, "m/z", "Intensity", set_page=True)
+        self.view.panelPlots.on_plot_ms(msX_off, msY_off, "m/z", "Intensity", set_page=True)
         document.multipleMassSpectrum["UVPD - dataset 2"] = {
             "xvals": msX_off,
             "yvals": msY_off,

@@ -1,4 +1,5 @@
 # Standard library imports
+import math
 import logging
 import os.path
 from subprocess import CREATE_NEW_CONSOLE
@@ -517,6 +518,7 @@ class WatersIMReader(WatersRawReader):
         dt_end: int = 200,
         rt_start: float = 0,
         rt_end: float = 99999.0,
+        mz_bin_size: float = None,
         return_data=True,
     ):
         """Extract heatmap from ion mobility dataset
@@ -537,6 +539,8 @@ class WatersIMReader(WatersRawReader):
             start retention time, in minutes
         rt_end : float
             end retention time, in minutes
+        mz_bin_size : float
+            bin size in Da
         return_data : bool
             if `True`, extracted data will be loaded and returned
 
@@ -546,6 +550,8 @@ class WatersIMReader(WatersRawReader):
             heatmap object
         """
         mz_start, mz_end = self.check_mz_range(mz_start, mz_end)
+        if mz_bin_size is not None and isinstance(mz_bin_size, float):
+            n_points = math.floor((mz_end - mz_start) / mz_bin_size)
 
         # write output filename first
         filename = self.get_temp_filename()

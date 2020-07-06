@@ -27,29 +27,28 @@ class DataVisualization:
         self.view = view
         self.config = config
 
-        # processing links
-        self.data_processing = self.view.data_processing
-
-        # panel links
-        self.documentTree = self.view.panelDocuments.documents
-
-        self.panelPlots = self.view.panelPlots
-
-        # self.ionPanel = self.view.panelMultipleIons
-        # self.ionList = self.ionPanel.peaklist
-        #
-        # self.textPanel = self.view.panelMultipleText
-        # self.textList = self.textPanel.peaklist
-        #
-        # self.filesPanel = self.view.panelMML
-        # self.filesList = self.filesPanel.peaklist
-
         # add application defaults
         self.plot_page = None
 
-    def setup_handling_and_processing(self):
-        self.data_handling = self.view.data_handling
-        self.data_processing = self.view.data_processing
+    @property
+    def data_handling(self):
+        """Return handle to `data_processing`"""
+        return self.presenter.data_handling
+
+    @property
+    def data_processing(self):
+        """Return handle to `data_processing`"""
+        return self.presenter.data_processing
+
+    @property
+    def document_tree(self):
+        """Return handle to `document_tree`"""
+        return self.view.panelDocuments.documents
+
+    @property
+    def panel_plot(self):
+        """Return handle to `data_processing`"""
+        return self.view.panelPlots
 
     def _check_overlay_count(self, item_list, n_min, n_max):
 

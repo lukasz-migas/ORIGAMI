@@ -24,6 +24,7 @@ class PanelImagingImportDataset(PanelImportManagerBase):
 
     DOCUMENT_TYPE = "Type: Imaging"
     PUB_SUBSCRIBE_EVENT = "widget.imaging.import.update.spectrum"
+    PUB_IN_PROGRESS_EVENT = "widget.imaging.import.progress"
     SUPPORTED_FILE_FORMATS = [".raw"]
     CONFIG_NAME = "imaging"
 

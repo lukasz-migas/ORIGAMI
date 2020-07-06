@@ -745,13 +745,13 @@ class PanelTextlist(TablePanelBase):
             xvals = data["yvals"]  # normally this would be the y-axis
             yvals = data["yvals1D"]
             xlabels = data["ylabels"]  # normally this would be x-axis label
-            self.presenter.view.panelPlots.on_plot_1D(xvals, yvals, xlabels, set_page=True)
+            self.presenter.view.panelPlots.on_plot_1d(xvals, yvals, xlabels, set_page=True)
 
         elif evtID == ID_textPanel_show_chromatogram:
             xvals = data["xvals"]
             yvals = data["yvalsRT"]
             xlabels = data["xlabels"]  # normally this would be x-axis label
-            self.presenter.view.panelPlots.on_plot_RT(xvals, yvals, xlabels, set_page=True)
+            self.presenter.view.panelPlots.on_plot_rt(xvals, yvals, xlabels, set_page=True)
 
         else:
             # Extract 2D data from the document
@@ -772,7 +772,7 @@ class PanelTextlist(TablePanelBase):
                 pass
                 # zvals = self.presenter.process2Ddata(zvals=zvals.copy(), return_data=True)
 
-            self.presenter.view.panelPlots.on_plot_2D(
+            self.presenter.view.panelPlots.on_plot_2d(
                 zvals, xvals, yvals, xlabel, ylabel, cmap, override=True, set_page=True
             )
 

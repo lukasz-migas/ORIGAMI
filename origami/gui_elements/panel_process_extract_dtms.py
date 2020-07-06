@@ -354,9 +354,9 @@ class PanelProcessExtractDTMS(MiniFrame, DatasetMixin):
 #             data, mz_x = pr_heatmap.subsample_array(self.z_data, self.x_data, division_factor)
 #         else:
 #             data, mz_x = pr_heatmap.bin_sum_array(self.z_data, self.x_data, division_factor)
-#             self.view.panelPlots.on_plot_MSDT(data, mz_x, self.y_data, 'm/z', 'Drift time (bins)')
+#             self.view.panelPlots.on_plot_dtms(data, mz_x, self.y_data, 'm/z', 'Drift time (bins)')
 #             data, mz_x = pr_heatmap.bin_mean_array(self.z_data, self.x_data, division_factor)
-#             self.view.panelPlots.on_plot_MSDT(data, mz_x, self.y_data, 'm/z', 'Drift time (bins)')
+#             self.view.panelPlots.on_plot_dtms(data, mz_x, self.y_data, 'm/z', 'Drift time (bins)')
 def _main():
     app = wx.App()
     ex = PanelProcessExtractDTMS(None, None)

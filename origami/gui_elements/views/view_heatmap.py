@@ -14,6 +14,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 class ViewHeatmap(ViewBase):
+    """Viewer class for heatmap-based objects"""
+
     DATA_KEYS = ("array", "x", "y")
     MPL_KEYS = ["2D"]
     NAME = get_short_hash()
@@ -39,13 +41,23 @@ class ViewHeatmap(ViewBase):
         return plot_panel, plot_window, sizer
 
     def check_input(self, x, y, array, obj):
+        """Check user-input"""
         if x is None and y is None and array is None and obj is None:
             raise ValueError("You must provide the x/y/array values or container object")
         if x is None and y is None and array is None and obj is not None:
             x = obj.x
             y = obj.y
-            array = obj.array
         return x, y, obj.array
+
+    def check_kwargs(self, **kwargs):
+        """Check kwargs"""
+        if "allow_extraction" not in kwargs:
+            kwargs["allow_extraction"] = self._allow_extraction
+        #         if "x_label" not in kwargs:
+        #             kwargs["x_label"] = self.x_label
+        #         if "y_label" not in kwargs:
+        #             kwargs["y_label"] = self.y_label
+        return kwargs
 
     def plot(self, x=None, y=None, array=None, obj=None, **kwargs):
         """Simple line plot"""
@@ -54,6 +66,7 @@ class ViewHeatmap(ViewBase):
         self.set_labels(obj, **kwargs)
 
         kwargs.update(**CONFIG.get_mpl_parameters(self.MPL_KEYS))
+        kwargs = self.check_kwargs(**kwargs)
 
         try:
             self.update(x, y, array, obj, **kwargs)
@@ -62,14 +75,7 @@ class ViewHeatmap(ViewBase):
             _ = kwargs.pop("x_label", "?")
             self.figure.clear()
             self.figure.plot_2d(
-                x,
-                y,
-                array,
-                x_label=self.x_label,
-                y_label=self.y_label,
-                callbacks=self._callbacks,
-                allow_extraction=self._allow_extraction,
-                **kwargs,
+                x, y, array, x_label=self.x_label, y_label=self.y_label, callbacks=self._callbacks, **kwargs
             )
             self.figure.repaint()
 
@@ -93,33 +99,24 @@ class ViewHeatmap(ViewBase):
         self._plt_kwargs = kwargs
         LOGGER.debug("Updated plot data")
 
-    #         self.set_document(obj, **kwargs)
-    #         self.set_labels(obj, **kwargs)
-    #
-    #         # update plot
-    #         x, y, array = self.check_input(x, y, array, obj)
-    # #         self.figure.plot_1D_update_data(x, y, self.x_label, self.y_label, **kwargs)
-    # #         self.figure.repaint()
-    #
-    #         # set data
-    #         self._data.update(x=x, y=y)
-    #         self._plt_kwargs = kwargs
-    #         LOGGER.debug("Updated plot data")
-
     def replot(self, **kwargs):
         """Replot the current plot"""
 
     def plot_violin(self):
+        """Plot object as a violin plot"""
         pass
 
     def plot_waterfall(self):
+        """Plot object as a waterfall"""
         pass
 
     def plot_joint(self):
+        """Plot object as a joint-plot with top/side panels"""
         pass
 
 
 class ViewIonHeatmap(ViewHeatmap):
+    """Viewer class for extracted ions"""
 
     NAME = get_short_hash()
 
@@ -130,6 +127,8 @@ class ViewIonHeatmap(ViewHeatmap):
 
 
 class ViewImagingIonHeatmap(ViewHeatmap):
+    """Viewer class for extracted ions - LESA/Imaging documents"""
+
     NAME = get_short_hash()
 
     def __init__(self, parent, figsize, title="ImagingIonHeatmap", **kwargs):
@@ -139,6 +138,8 @@ class ViewImagingIonHeatmap(ViewHeatmap):
 
 
 class ViewMassSpectrumHeatmap(ViewHeatmap):
+    """Viewer class for MS/DT heatmap"""
+
     NAME = get_short_hash()
 
     def __init__(self, parent, figsize, title="MassSpectrumHeatmap", **kwargs):

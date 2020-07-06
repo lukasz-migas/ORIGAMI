@@ -106,14 +106,13 @@ class ORIGAMI:
 
         # Set temporary data path
         temp_data_folder = os.path.join(os.getcwd(), "temporary_data")
-        print(temp_data_folder)
         if not os.path.exists(temp_data_folder):
             os.makedirs(temp_data_folder)
         self.config.temporary_data = temp_data_folder
 
         # Setup plot style
-        self.view.panelPlots.on_change_plot_style(evt=None)
-        self.view.panelPlots.on_change_color_palette(evt=None)
+        #         self.view.panelPlots.on_change_plot_style(evt=None)
+        #         self.view.panelPlots.on_change_color_palette(evt=None)
         self.view.on_update_recent_files()
 
         self.logging = self.config.logging
@@ -142,14 +141,7 @@ class ORIGAMI:
         #             self.initilize_registry()
 
         # add data handling and processing modules
-        self.view.panelDocuments.documents.setup_handling_and_processing()
-        # self.view.panelMultipleIons.setup_handling_and_processing()
-        # self.view.panelMultipleText.setup_handling_and_processing()
-        # self.view.panelMML.setup_handling_and_processing()
-        self.view.panelPlots.setup_handling_and_processing()
         self.view.panelParametersEdit.setup_handling_and_processing()
-        self.data_processing.setup_handling_and_processing()
-        self.data_visualisation.setup_handling_and_processing()
 
         if self.config.testing:
             self._test_()

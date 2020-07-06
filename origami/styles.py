@@ -1068,6 +1068,12 @@ class PopupBase(wx.PopupWindow):
         pos = (pos[0] - move_h, pos[1] - move_v)
         self.SetPosition(pos)
 
+    def position_on_mouse(self, move_h: int = 0, move_v: int = 0):
+        """Position the window on the last mouse position"""
+        pos = wx.GetMousePosition()
+        pos = (pos[0] - move_h, pos[1] - move_v)
+        self.SetPosition(pos)
+
     def on_mouse_left_down(self, evt):
         """On left-click event"""
         self.Refresh()

@@ -28,6 +28,9 @@ class Call:
         self.func_call_post = kwargs.pop("func_post", None)
         self.func_call_pre = kwargs.pop("func_pre", None)
 
+        self.func_post_args = kwargs.pop("func_post_args", ())
+        self.func_post_kwargs = kwargs.pop("func_post_kwargs", dict())
+
         if not callable(fcn):
             raise ValueError("You must provide a callable function as one of the arguments")
 
@@ -56,7 +59,9 @@ class Call:
             return
         finally:
             self.on_result(results)
-        self.on_post(results)
+
+        # post-run trigger
+        self.on_post()
 
     def on_error(self, results):
         """If error does occur, try to return results to error handler"""
@@ -73,10 +78,10 @@ class Call:
         if self.func_call_pre:
             wx.CallAfter(self.func_call_pre, *results)
 
-    def on_post(self, results):
+    def on_post(self):
         """If post-call function was specified, notify it of having finished the task"""
         if self.func_call_post:
-            wx.CallAfter(self.func_call_post, *results)
+            wx.CallAfter(self.func_call_post, *self.func_post_args, **self.func_post_kwargs)
 
     def _wrap_results(self, results):
         if not isinstance(results, (list, tuple)):

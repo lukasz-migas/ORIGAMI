@@ -42,7 +42,6 @@ from origami.ids import ID_openAsConfig
 from origami.ids import ID_openDocument
 from origami.ids import ID_saveAsConfig
 from origami.ids import ID_saveDocument
-from origami.ids import ID_clearAllPlots
 from origami.ids import ID_fileMenu_mzML
 from origami.ids import ID_saveMZDTImage
 from origami.ids import ID_saveRMSDImage
@@ -209,7 +208,7 @@ class MainWindow(wx.Frame):
         # Load panels
         self.panelDocuments = PanelDocumentTree(self, CONFIG, self.icons, self.presenter)
 
-        self.panelPlots = PanelPlots(self, CONFIG, self.presenter)
+        self.panelPlots = PanelPlots(self, self.presenter)
         # self.panelMultipleIons = PanelPeaklist(self, self.icons, self.presenter)
         self.panelMultipleText = PanelTextlist(self, self.icons, self.presenter)
         # self.panelMML = PanelMultiFile(self, self.icons, self.presenter)
@@ -320,7 +319,7 @@ class MainWindow(wx.Frame):
         pub.subscribe(self.on_motion, "motion_xy")
         pub.subscribe(self.motion_range, "motion_range")
         pub.subscribe(self.on_distance, "change_x_axis_start")
-        pub.subscribe(self.panelPlots.on_change_rmsf_zoom, "change_zoom_rmsd")
+        #         pub.subscribe(self.panelPlots.on_change_rmsf_zoom, "change_zoom_rmsd")
         pub.subscribe(self.on_event_mode, "motion_mode")
         #         pub.subscribe(self.data_handling.on_update_DTMS_zoom, "change_zoom_dtms")
         pub.subscribe(self.on_queue_change, "statusbar.update.queue")
@@ -348,7 +347,8 @@ class MainWindow(wx.Frame):
     def _move_app(self):
         """Move application to another window"""
         try:
-            current_w, _ = self.GetPosition()
+            current_w, current_h = self.GetPosition()
+            screen_w, screen_h = current_w, current_h
             for idx in range(wx.Display.GetCount()):
                 screen_w, screen_h, _, _ = wx.Display(idx).GetGeometry()
                 if screen_w > current_w:
@@ -792,14 +792,11 @@ class MainWindow(wx.Frame):
 
         # VIEW
         menu_view = wx.Menu()
-        menu_view.AppendItem(
-            make_menu_item(
-                parent=menu_view,
-                evt_id=ID_clearAllPlots,
-                text="&Clear all plots",
-                bitmap=self.icons.iconsLib["clear_16"],
-            )
+
+        menu_clear_all_plots = make_menu_item(
+            parent=menu_view, text="&Clear all plots", bitmap=self.icons.iconsLib["clear_16"]
         )
+        menu_view.AppendItem(menu_clear_all_plots)
         menu_view.AppendSeparator()
         self.documentsPage = menu_view.Append(ID_window_documentList, "Panel: Documents\tCtrl+1", kind=wx.ITEM_CHECK)
         self.mzTable = menu_view.Append(ID_window_ionList, "Panel: Peak list\tCtrl+2", kind=wx.ITEM_CHECK)
@@ -1341,7 +1338,7 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_set_window_maximize, id=ID_windowMaximize)
         self.Bind(wx.EVT_MENU, self.on_set_window_iconize, id=ID_windowMinimize)
         self.Bind(wx.EVT_MENU, self.on_set_window_fullscreen, id=ID_windowFullscreen)
-        self.Bind(wx.EVT_MENU, self.panelPlots.on_clear_all_plots, id=ID_clearAllPlots)
+        self.Bind(wx.EVT_MENU, self.panelPlots.on_clear_all_plots, menu_clear_all_plots)
         self.Bind(
             wx.EVT_MENU, self.panelDocuments.documents.on_open_spectrum_comparison_viewer, id=ID_docTree_compareMS
         )

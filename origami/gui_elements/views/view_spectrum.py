@@ -56,6 +56,16 @@ class ViewSpectrum(ViewBase, ViewSpectrumPanelMixin):
             y = obj.y
         return x, y
 
+    def check_kwargs(self, **kwargs):
+        """Check kwargs"""
+        if "allow_extraction" not in kwargs:
+            kwargs["allow_extraction"] = self._allow_extraction
+        #         if "x_label" not in kwargs:
+        #             kwargs["x_label"] = self.x_label
+        #         if "y_label" not in kwargs:
+        #             kwargs["y_label"] = self.y_label
+        return kwargs
+
     def plot(self, x=None, y=None, obj=None, **kwargs):
         """Simple line plot"""
         # try to update plot first, as it can be quicker
@@ -63,21 +73,14 @@ class ViewSpectrum(ViewBase, ViewSpectrumPanelMixin):
         self.set_labels(obj, **kwargs)
 
         kwargs.update(**CONFIG.get_mpl_parameters(self.MPL_KEYS))
+        kwargs = self.check_kwargs(**kwargs)
 
         try:
             self.update(x, y, obj, **kwargs)
         except AttributeError:
             x, y = self.check_input(x, y, obj)
             self.figure.clear()
-            self.figure.plot_1d(
-                x,
-                y,
-                x_label=self.x_label,
-                y_label=self.y_label,
-                callbacks=self._callbacks,
-                allow_extraction=self._allow_extraction,
-                **kwargs,
-            )
+            self.figure.plot_1d(x, y, x_label=self.x_label, y_label=self.y_label, callbacks=self._callbacks, **kwargs)
             self.figure.repaint()
 
             # set data

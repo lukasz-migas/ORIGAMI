@@ -1186,6 +1186,14 @@ class IonHeatmapObject(HeatmapObject, MobilogramAxesMixin):
         self._y = y
         self.flush()
 
+    def as_mobilogram(self):
+        """Return instance of MobilogramObject"""
+        return MobilogramObject(self.x, self.xy)
+
+    def as_chromatogram(self):
+        """Return instance of MobilogramObject"""
+        return ChromatogramObject(self.y, self.yy)
+
 
 class StitchIonHeatmapObject(IonHeatmapObject):
     """Ion heatmap data object that requires joining multiple mobilograms into one heatmap"""
@@ -1438,6 +1446,22 @@ def stitch_ion_heatmap_object(group: Group):
     """Instantiate stitch ion heatmap object from ion heatmap group saved in zarr format"""
     metadata = group.attrs.asdict()
     obj = StitchIonHeatmapObject(
+        group["array"][:],
+        group["x"][:],
+        group["y"][:],
+        group["xy"][:],
+        group["yy"][:],
+        extra_data=get_extra_data(group, ["array", "x", "y", "xy", "yy"]),
+        **group.attrs.asdict(),
+    )
+    obj.set_metadata(metadata)
+    return obj
+
+
+def imaging_heatmap_object(group: Group):
+    """Instantiate ion heatmap object from ion heatmap group saved in zarr format"""
+    metadata = group.attrs.asdict()
+    obj = ImagingIonHeatmapObject(
         group["array"][:],
         group["x"][:],
         group["y"][:],

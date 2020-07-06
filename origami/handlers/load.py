@@ -795,9 +795,6 @@ class LoadHandler:
 
         return document
 
-    def load_lesa_document_mt(self, path, filelist: List[FileItem], **proc_kwargs) -> DocumentStore:
-        pass
-
     def load_manual_document(self, path, filelist: List[FileItem], **proc_kwargs) -> DocumentStore:
         """Load Waters data and set in ORIGAMI document"""
         document = ENV.get_new_document("activation", path)
@@ -982,7 +979,19 @@ def _load_waters_data_chunk(file_info: FileItem, **proc_kwargs):
     if file_info.im_on:
         dt_obj = reader.extract_dt(rt_start=rt_start, rt_end=rt_end, mz_start=mz_start, mz_end=mz_end)
 
-        msdt_obj = reader.extract_msdt(rt_start=rt_start, rt_end=rt_end, mz_start=mz_start, mz_end=mz_end)
+    # get msdt
+    if file_info.im_on:
+        msdt_kwargs = dict(x_min=mz_start, x_max=mz_end, bin_size=1)
+        if "msdt" in proc_kwargs:
+            msdt_kwargs = proc_kwargs["msdt"]
+
+        msdt_obj = reader.extract_msdt(
+            rt_start=rt_start,
+            rt_end=rt_end,
+            mz_start=msdt_kwargs["x_min"],
+            mz_end=msdt_kwargs["x_max"],
+            mz_bin_size=msdt_kwargs["bin_size"],
+        )
         msdt_obj.set_metadata(dict(file_info=dict(file_info._asdict())))
 
     return mz_obj, rt_obj, dt_obj, msdt_obj, parameters

@@ -81,7 +81,7 @@ class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
         4: {"name": "label", "tag": "label", "type": "str", "show": True, "width": 70, "order": 4, "id": wx.NewIdRef()},
     }
     TABLE_COLUMN_INDEX = TableColumnIndex
-    USE_COLOR = False
+    USE_COLOR = True
     HELP_LINK = r"https://origami.lukasz-migas.com/"
 
     # ui elements
@@ -200,7 +200,6 @@ class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
 
         # add spectrum controls
         self.spectrum_choice = wx.ComboBox(panel, choices=[], style=wx.CB_READONLY)
-        self.spectrum_choice.Bind(wx.EVT_COMBOBOX, self.on_apply)
         self.spectrum_choice.Bind(wx.EVT_COMBOBOX, self.on_plot_spectrum)
 
         # add image controls
@@ -208,7 +207,6 @@ class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
 
         self.normalization_choice = wx.ComboBox(panel, choices=choices, style=wx.CB_READONLY)
         self.normalization_choice.SetStringSelection("None")
-        self.normalization_choice.Bind(wx.EVT_COMBOBOX, self.on_apply)
         self.normalization_choice.Bind(wx.EVT_COMBOBOX, self.on_update_normalization)
 
         # add item controls
@@ -373,34 +371,22 @@ class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
         for name in output_list:
             obj_type, name = name.split("/")
             values = self.clipboard[name]
+            item_id = self.on_find_item("ion_name", name)
+            item_info = self.on_get_item_information(item_id)
             if obj_type == "Mobilograms":
                 dt_obj = values["mobilogram"]
+                dt_obj.set_metadata(
+                    {"label": item_info["label"], "colormap": item_info["colormap"], "color": item_info["color_255to1"]}
+                )
                 dt_obj = document.add_mobilogram(name, dt_obj)
                 self.document_tree.on_update_document(dt_obj.DOCUMENT_KEY, name, self.document_title)
             elif obj_type == "IonHeatmaps":
                 heatmap_obj = values["image"]
+                heatmap_obj.set_metadata(
+                    {"label": item_info["label"], "colormap": item_info["colormap"], "color": item_info["color_255to1"]}
+                )
                 heatmap_obj = document.add_heatmap(name, heatmap_obj)
                 self.document_tree.on_update_document(heatmap_obj.DOCUMENT_KEY, name, self.document_title)
-
-    def on_action_tools(self, evt):
-        """Action tools dropdown menu"""
-        raise NotImplementedError("Must implement method")
-        # menu = wx.Menu()
-        # menu_action_create_blank_document = make_menu_item(
-        #     parent=menu,
-        #     text="Create blank IMAGING document",
-        #     bitmap=self.icons.iconsLib["new_document_16"],
-        #     help_text="",
-        # )
-        #
-        # menu.AppendItem(menu_action_create_blank_document)
-        #
-        # # bind events
-        # self.Bind(wx.EVT_MENU, self.on_create_blank_document, menu_action_create_blank_document)
-        #
-        # self.PopupMenu(menu)
-        # menu.Destroy()
-        # self.SetFocus()
 
     def on_right_click(self, evt):
         """Event on right-click"""
@@ -447,11 +433,6 @@ class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
-
-    def on_update_item(self, _evt):
-        """Update info"""
-        if self.item_loading_lock:
-            return
 
     def get_normalization_list(self):
         """Get list of normalizations for the currently selected document"""
@@ -500,13 +481,12 @@ class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
         plot_obj = self.get_plot_obj()
         plot_obj.figure.lock_plot_from_updating = not plot_obj.figure.lock_plot_from_updating
 
-    def on_apply(self, evt):
-        """Update config"""
-        print("on_apply")
-        print(self)
-
-        if evt is not None:
-            evt.Skip()
+    def on_populate_item(self, item_info):
+        """Populate values in the gui"""
+        self.item_name.SetLabel(item_info["ion_name"])
+        self.label_value.SetValue(item_info["label"])
+        self.colormap_value.SetStringSelection(item_info["colormap"])
+        self.item_color_btn.SetBackgroundColour(item_info["color"])
 
     def on_change_color(self, evt):
         """Update color"""
@@ -521,16 +501,17 @@ class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
         self.item_color_btn.SetBackgroundColour(color_255)
         self.on_update_value_in_peaklist(self.peaklist.item_id, "color_text", color_255)
 
-    # update peaklist
+    def on_update_item(self, _evt):
+        """Update info"""
+        if self.item_loading_lock:
+            return
 
-    #             rows = self.peaklist.GetItemCount()
-    #             for row in range(rows):
-    #                 if self.peaklist.IsChecked(index=row):
-    # #                     self.on_update_annotation(row, update_item, **update_dict)
-    #
-    #                 # replot annotation after its been altered
-    #                 __, annotation_obj = self.on_get_annotation_obj(row)
-    #                 self.on_add_label_to_plot(annotation_obj)
+        name = self.item_name.GetLabel()
+        # get item index
+        item_id = self.on_find_item("ion_name", name)
+
+        self.on_update_value_in_peaklist(item_id, "label", self.label_value.GetValue())
+        self.on_update_value_in_peaklist(item_id, "colormap", self.colormap_value.GetStringSelection())
 
     def on_extract_tic_image(self):
         """Load TIC image"""
@@ -662,6 +643,8 @@ class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
 
         # get dt data
         name = item_info["ion_name"]
+
+        # check whether there is pre-computed mobilogram
         if self.clipboard[name]["mobilogram"] is not None:
             dt_obj = self.clipboard[name]["mobilogram"]
         else:
@@ -671,30 +654,6 @@ class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
 
         self.on_plot_mobilogram(evt, dt_obj, f"Item: {name}")
         self.item_loading_lock = False
-
-    def on_populate_item(self, item_info):
-        """Populate values in the gui"""
-        self.item_name.SetLabel(item_info["ion_name"])
-        self.label_value.SetValue(item_info["label"])
-        self.colormap_value.SetStringSelection(item_info["colormap"])
-        self.item_color_btn.SetBackgroundColour(item_info["color"])
-
-    def find_item(self, name):
-        """Check for duplicate items with the same name"""
-        count = self.peaklist.GetItemCount()
-        for i in range(count):
-            information = self.on_get_item_information(i)
-
-            if information["ion_name"] == name:
-                return False, i
-
-        return True, -1
-
-    def on_toggle(self):
-        """Disable objects"""
-        self.label_value.Enable(False)
-        self.colormap_value.Enable(False)
-        self.item_color_btn.Enable(False)
 
     @staticmethod
     def _get_mz_from_label(label):

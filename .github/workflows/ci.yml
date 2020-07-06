@@ -63,7 +63,7 @@ jobs:
       - name: Test with pytest (Windows/macOS)
         if: runner.os != 'Linux'
         run: |
-          pytest  -m "not guitests" .
+          pytest  -m "not guitests" . -v
 
   guitests:
     strategy:
@@ -73,7 +73,7 @@ jobs:
         os: [ubuntu-latest, windows-latest] #, macOS-latest]  # some bug in macOS version I don't care to investigate yet
     timeout-minutes: 20
     runs-on: ${{ matrix.os }}
-    name: "Tests"
+    name: "Tests (GUI)"
 
     steps:
       - uses: actions/checkout@master
@@ -103,7 +103,7 @@ jobs:
       - name: Test with pytest (Windows/macOS)
         if: runner.os != 'Linux'
         run: |
-          pytest -m guitests .
+          pytest -m guitests . -v
 
   coverage:
     name: "Coverage"

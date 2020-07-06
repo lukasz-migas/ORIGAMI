@@ -696,7 +696,7 @@ class bottomPanel(wx.Panel):
         self.presenter.view.panelPlots.mainBook.SetSelection(self.config.panelNames["MS"])
 
         name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
-        self.presenter.view.panelPlots.on_plot_MS(msX, msY, xlimits=xlimits, **name_kwargs)
+        self.presenter.view.panelPlots.on_plot_ms(msX, msY, xlimits=xlimits, **name_kwargs)
         if count == 0:
             return
         ymin = 0

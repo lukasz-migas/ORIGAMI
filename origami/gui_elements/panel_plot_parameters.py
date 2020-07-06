@@ -2992,13 +2992,13 @@ class PanelVisualisationSettingsEditor(wx.Panel):
 
         self.on_apply_1D(None)
         if self.panel_plot.window_plot1D == "Mass spectrum":
-            self.panel_plot.on_plot_MS(replot=True)
+            self.panel_plot.on_plot_ms(replot=True)
 
         elif self.panel_plot.window_plot1D == "Chromatogram":
-            self.panel_plot.on_plot_RT(replot=True)
+            self.panel_plot.on_plot_rt(replot=True)
 
         elif self.panel_plot.window_plot1D == "Mobilogram":
-            self.panel_plot.on_plot_1D(replot=True)
+            self.panel_plot.on_plot_1d(replot=True)
 
         if evt is not None:
             evt.Skip()
@@ -3008,10 +3008,10 @@ class PanelVisualisationSettingsEditor(wx.Panel):
 
         self.on_apply_2D(None)
         if self.panel_plot.window_plot2D == "Heatmap":
-            self.panel_plot.on_plot_2D(replot=True, full_repaint=True)
+            self.panel_plot.on_plot_2d(replot=True, full_repaint=True)
 
         elif self.panel_plot.window_plot2D == "DT/MS":
-            self.panel_plot.on_plot_MSDT(replot=True)
+            self.panel_plot.on_plot_dtms(replot=True)
         #
         #         elif self.panel_plot.window_plot2D == "Comparison":
         #             self.panel_plot.on_plot_matrix(replot=True)
@@ -3206,7 +3206,7 @@ class PanelVisualisationSettingsEditor(wx.Panel):
             return
 
         self.config.currentStyle = self.plot_style_value.GetStringSelection()
-        self.panel_plot.on_change_plot_style(evt=None)
+        self.panel_plot.on_change_plot_style()
 
         if self.config.autoSaveSettings:
             self.data_handling.on_export_config_fcn(None, False)
