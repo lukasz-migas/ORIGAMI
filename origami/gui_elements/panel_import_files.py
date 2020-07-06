@@ -426,7 +426,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
                 except TypeError:
                     pass
             else:
-                info += f"    m/z range: Auto\n"
+                info += "    m/z range: Auto\n"
             info += f"    bin size: {CONFIG.ms_mzBinSize}\n"
 
         if not info:

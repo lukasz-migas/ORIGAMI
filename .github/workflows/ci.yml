@@ -59,11 +59,11 @@ jobs:
       - name: Test with pytest (Linux)
         if: runner.os == 'Linux'
         run: |
-          xvfb-run -a pytest -m "not guitests" .
+          xvfb-run -a pytest -m "not guitest" .
       - name: Test with pytest (Windows/macOS)
         if: runner.os != 'Linux'
         run: |
-          pytest  -m "not guitests" . -v
+          pytest  -m "not guitest" . -v
 
   guitests:
     strategy:
@@ -99,11 +99,11 @@ jobs:
       - name: Test with pytest (Linux)
         if: runner.os == 'Linux'
         run: |
-          xvfb-run -a pytest  -m guitests .
+          xvfb-run -a pytest  -m guitest .
       - name: Test with pytest (Windows/macOS)
         if: runner.os != 'Linux'
         run: |
-          pytest -m guitests . -v
+          pytest -m guitest . -v
 
   coverage:
     name: "Coverage"
