@@ -2,6 +2,7 @@
 
 
 # Standard library imports
+import logging
 import itertools
 from ast import literal_eval
 from operator import itemgetter
@@ -21,6 +22,7 @@ from origami.utils.converters import str2num
 from origami.utils.converters import byte2str
 from origami.gui_elements.misc_dialogs import DialogBox
 
+LOGGER = logging.getLogger(__name__)
 # Sizes
 COMBO_SIZE = 120
 COMBO_SIZE_COMPACT = 80
@@ -246,7 +248,88 @@ def mac_app_init():
         SCROLL_DIRECTION = -1
 
 
-class Dialog(wx.Dialog):
+class ActivityIndicatorMixin:
+    """Activity indicator mixin"""
+
+    # ui elements
+    activity_indicator = None
+
+    def on_progress(self, is_running: bool, message: str):  # noqa
+        """Handle extraction progress"""
+        if self.activity_indicator is None:
+            LOGGER.warning("Cannot indicate activity - it has not been instantiated in the window")
+            return
+
+        # show indicator
+        if is_running:
+            self.activity_indicator.Show()
+            self.activity_indicator.Start()
+        else:
+            self.activity_indicator.Hide()
+            self.activity_indicator.Stop()
+        self.Update()  # noqa
+
+
+class DocumentationMixin:
+    """HTML documentation mixin"""
+
+    # documentation attributes
+    HELP_MD = None
+    HELP_LINK = None
+
+    # attributes
+    _icons = None
+
+    # ui elements
+    info_btn = None
+    settings_btn = None
+    display_label = None
+
+    def on_open_info(self, _evt):
+        """Open help window to inform user on how to use this window / panel"""
+        from origami.gui_elements.panel_html_viewer import PanelHTMLViewer
+
+        if self.HELP_LINK:
+            PanelHTMLViewer(self, link=self.HELP_LINK)
+        elif self.HELP_MD:
+            PanelHTMLViewer(self, md_msg=self.HELP_MD)
+
+    def on_open_popup_settings(self, evt):
+        """Open settings popup window"""
+
+    def make_info_button(self, panel):
+        """Make clickable information button"""
+        info_btn = make_bitmap_btn(panel, wx.ID_ANY, self._icons.info, style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
+        set_tooltip(info_btn, "Open documentation page about this panel (online)")
+        info_btn.Bind(wx.EVT_BUTTON, self.on_open_info)
+        return info_btn
+
+    def make_settings_button(self, panel):
+        """Make clickable information button"""
+        settings_btn = make_bitmap_btn(
+            panel, wx.ID_ANY, self._icons.gear, style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
+        )
+        set_tooltip(settings_btn, "Open popup window with settings specific to this panel")
+        settings_btn.Bind(wx.EVT_BUTTON, self.on_open_popup_settings)
+        return settings_btn
+
+    def make_statusbar(self, panel):
+        """Make make-shift statusbar"""
+        # add info button
+        self.info_btn = self.make_info_button(panel)
+
+        self.display_label = wx.StaticText(panel, wx.ID_ANY, "")
+        self.display_label.SetForegroundColour(wx.BLUE)
+
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(self.info_btn, 0, wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+        sizer.AddSpacer(5)
+        sizer.Add(self.display_label, 1, wx.ALIGN_CENTER_VERTICAL)
+
+        return sizer
+
+
+class Dialog(wx.Dialog, ActivityIndicatorMixin, DocumentationMixin):
     """Proxy of Dialog"""
 
     def __init__(self, parent, style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX), **kwargs):
@@ -298,17 +381,8 @@ class Dialog(wx.Dialog):
         self.Layout()
 
 
-class MiniFrame(wx.MiniFrame):
+class MiniFrame(wx.MiniFrame, ActivityIndicatorMixin, DocumentationMixin):
     """Proxy of MiniFrame"""
-
-    HELP_MD = None
-    HELP_LINK = None
-
-    _icons = None
-
-    info_btn = None
-    settings_btn = None
-    display_label = None
 
     def __init__(
         self, parent, style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX | wx.STAY_ON_TOP, **kwargs
@@ -334,54 +408,10 @@ class MiniFrame(wx.MiniFrame):
 
     def filter_keys(self, evt):
         """Filter keys"""
-        # print(evt)
 
     def on_close(self, evt, force: bool = False):
         """Destroy this frame."""
         self.Destroy()
-
-    def on_open_info(self, _evt):
-        """Open help window to inform user on how to use this window / panel"""
-        from origami.gui_elements.panel_html_viewer import PanelHTMLViewer
-
-        if self.HELP_LINK:
-            PanelHTMLViewer(self, link=self.HELP_LINK)
-        elif self.HELP_MD:
-            PanelHTMLViewer(self, md_msg=self.HELP_MD)
-
-    def on_open_popup_settings(self, evt):
-        """Open settings popup window"""
-
-    def make_info_button(self, panel):
-        """Make clickable information button"""
-        info_btn = make_bitmap_btn(panel, wx.ID_ANY, self._icons.info, style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
-        set_tooltip(info_btn, "Open documentation page about this panel (online)")
-        info_btn.Bind(wx.EVT_BUTTON, self.on_open_info)
-        return info_btn
-
-    def make_settings_button(self, panel):
-        """Make clickable information button"""
-        settings_btn = make_bitmap_btn(
-            panel, wx.ID_ANY, self._icons.gear, style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
-        )
-        set_tooltip(settings_btn, "Open popup window with settings specific to this panel")
-        settings_btn.Bind(wx.EVT_BUTTON, self.on_open_popup_settings)
-        return settings_btn
-
-    def make_statusbar(self, panel):
-        """Make make-shift statusbar"""
-        # add info button
-        self.info_btn = self.make_info_button(panel)
-
-        self.display_label = wx.StaticText(panel, wx.ID_ANY, "")
-        self.display_label.SetForegroundColour(wx.BLUE)
-
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(self.info_btn, 0, wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
-        sizer.AddSpacer(5)
-        sizer.Add(self.display_label, 1, wx.ALIGN_CENTER_VERTICAL)
-
-        return sizer
 
     def make_panel(self, *args):
         """Make panel"""
@@ -393,12 +423,12 @@ class MiniFrame(wx.MiniFrame):
         panel = self.make_panel()
 
         # pack element
-        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.main_sizer.Add(panel, 1, wx.EXPAND, 5)
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(panel, 1, wx.EXPAND, 5)
 
         # fit layout
-        self.main_sizer.Fit(self)
-        self.SetSizer(self.main_sizer)
+        main_sizer.Fit(self)
+        self.SetSizer(main_sizer)
         self.Layout()
 
 
@@ -701,100 +731,6 @@ class ListCtrl(wx.ListCtrl, listmix.TextEditMixin):
     @staticmethod
     def _convert_color_to_list(color):
         return list(color)
-
-
-class SimpleListCtrl(wx.ListCtrl):
-    """ListCtrl"""
-
-    def __init__(self, parent, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.LC_REPORT):
-        wx.ListCtrl.__init__(self, parent, id, pos, size, style)
-
-        self.old_column = None
-        self.reverse = False
-        self.check = False
-
-        self.Bind(wx.EVT_LIST_COL_CLICK, self.on_column_click, self)
-
-    def on_column_click(self, evt):
-        column = evt.GetColumn()
-
-        if self.old_column is not None and self.old_column == column:
-            self.reverse = not self.reverse
-        else:
-            self.reverse = False
-
-        self.on_sort(column, self.reverse)
-        self.old_column = column
-
-    def on_sort(self, column, direction):
-        """
-        Sort items based on column and direction
-        """
-        columns = self.GetColumnCount()
-        rows = self.GetItemCount()
-
-        tempData = []
-        # Iterate over row and columns to get data
-        for row in range(rows):
-            tempRow = []
-
-            for col in range(columns):
-                item = self.GetItem(itemIdx=row, col=col)
-                tempRow.append(item.GetText())
-            tempData.append(tempRow)
-
-        # Sort data
-        tempData = natsorted(tempData, key=itemgetter(column), reverse=direction)
-        # Clear table
-        self.DeleteAllItems()
-
-        # Reinstate data
-        for row in tempData:
-            self.Append(row)
-
-    def on_clear_table_selected(self, evt):
-        """
-        This function clears the table without deleting any items from the
-        document tree
-        """
-        rows = self.GetItemCount() - 1
-        while rows >= 0:
-            if self.IsChecked(rows):
-                self.DeleteItem(rows)
-            rows -= 1
-
-    def on_clear_table_all(self, evt):
-        """
-        This function clears the table without deleting any items from the
-        document tree
-        """
-        # Ask if you want to delete all items
-        dlg = DialogBox(msg="Are you sure you would like to clear the table?", kind="Question")
-        if dlg == wx.ID_NO:
-            print("The operation was cancelled")
-            return
-        self.DeleteAllItems()
-
-
-class EditableListCtrl(ListCtrl, listmix.TextEditMixin, listmix.CheckListCtrlMixin, listmix.ColumnSorterMixin):
-    """
-    Editable list
-    """
-
-    def __init__(self, parent, ID=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.DefaultSize, style=0, **kwargs):
-        ListCtrl.__init__(self, parent, ID, pos, size, style)
-        listmix.TextEditMixin.__init__(self)
-        listmix.CheckListCtrlMixin.__init__(self)
-
-        self.block_columns = kwargs.get("block_columns", [0, 2])
-
-        self.Bind(wx.EVT_LIST_BEGIN_LABEL_EDIT, self.OnBeginLabelEdit)
-
-    def OnBeginLabelEdit(self, event):
-        if event.m_col in self.block_columns:
-            event.Veto()
-        else:
-            event.Skip()
 
 
 class bgrPanel(wx.Panel):

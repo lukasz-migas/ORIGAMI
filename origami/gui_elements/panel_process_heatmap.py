@@ -2,9 +2,11 @@
 # Standard library imports
 import logging
 from typing import List
+from typing import Union
 
 # Third-party imports
 import wx
+from pubsub import pub
 
 # Local imports
 from origami.styles import MiniFrame
@@ -15,6 +17,7 @@ from origami.utils.converters import str2int
 from origami.utils.converters import str2num
 from origami.objects.containers import IonHeatmapObject
 from origami.objects.containers import MassSpectrumHeatmapObject
+from origami.handlers.queue_handler import QUEUE
 from origami.gui_elements.panel_base import DatasetMixin
 
 logger = logging.getLogger(__name__)
@@ -22,6 +25,10 @@ logger = logging.getLogger(__name__)
 
 class PanelProcessHeatmap(MiniFrame, DatasetMixin):
     """Heatmap processing panel"""
+
+    # panel settings
+    TIMER_DELAY = 1000  # ms
+    PUB_IN_PROGRESS_EVENT = "widget.process.heatmap"
 
     # ui elements
     document_info_text = None
@@ -56,7 +63,7 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin):
         document=None,
         document_title: str = None,
         dataset_name: str = None,
-        heatmap_obj: IonHeatmapObject = None,
+        heatmap_obj: Union[IonHeatmapObject, MassSpectrumHeatmapObject] = None,
         disable_plot: bool = False,
         disable_process: bool = False,
         process_all: bool = False,
@@ -129,15 +136,29 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin):
         """Return handle to `document_tree`"""
         return self.presenter.view.panelDocuments.documents
 
+    def on_progress(self, is_running: bool, message: str):
+        """Handle extraction progress"""
+        super(PanelProcessHeatmap, self).on_progress(is_running, message)
+
+        # disable import button
+        if self.plot_btn is not None:
+            self.plot_btn.Enable(not is_running)
+        if self.add_to_document_btn is not None:
+            self.add_to_document_btn.Enable(not is_running)
+
     def setup(self):
         """Setup UI"""
         self.on_toggle_controls(None)
         self.on_update_info()
         self._dataset_mixin_setup()
+        if self.PUB_IN_PROGRESS_EVENT:
+            pub.subscribe(self.on_progress, self.PUB_IN_PROGRESS_EVENT)
 
     def on_close(self, evt, force: bool = False):
         """Overwrite close"""
         self._dataset_mixin_teardown()
+        if self.PUB_IN_PROGRESS_EVENT:
+            pub.unsubscribe(self.on_progress, self.PUB_IN_PROGRESS_EVENT)
         super(PanelProcessHeatmap, self).on_close(evt, force)
 
     def on_key_event(self, evt):
@@ -256,12 +277,16 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin):
         self.cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(120, 22))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
+        self.activity_indicator = wx.ActivityIndicator(panel)
+        self.activity_indicator.Hide()
+
         btn_grid = wx.BoxSizer(wx.HORIZONTAL)
         if not self.disable_plot:
             btn_grid.Add(self.plot_btn)
         if not self.disable_process:
             btn_grid.Add(self.add_to_document_btn)
         btn_grid.Add(self.cancel_btn)
+        btn_grid.Add(self.activity_indicator, 0, wx.ALIGN_CENTER_VERTICAL)
 
         grid = wx.GridBagSizer(2, 2)
         n = 0
@@ -397,19 +422,15 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin):
 
     def on_plot(self, _evt):
         """Plot data"""
+        pub.sendMessage(self.PUB_IN_PROGRESS_EVENT, is_running=True, message="")
         from copy import deepcopy
 
         heatmap_obj = deepcopy(self.heatmap_obj)
-        heatmap_obj = self.data_handling.on_process_heatmap(heatmap_obj)
-
-        if isinstance(heatmap_obj, MassSpectrumHeatmapObject):
-            self.panel_plot.view_msdt.plot(obj=heatmap_obj)
-        else:
-            self.panel_plot.view_heatmap.plot(obj=heatmap_obj)
+        QUEUE.add_call(self.data_handling.on_process_heatmap, (heatmap_obj,), func_result=self._on_plot)
 
     def on_add_to_document(self, _evt):
         """Add data to document"""
-        # get new, unique name for the object
+        pub.sendMessage(self.PUB_IN_PROGRESS_EVENT, is_running=True, message="")
         new_name = self.document.get_new_name(self.dataset_name, "processed")
 
         # create copy of the object
@@ -417,6 +438,23 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin):
 
         # process and flush to disk
         heatmap_obj = self.data_handling.on_process_heatmap(heatmap_obj)
+        QUEUE.add_call(
+            self.data_handling.on_process_heatmap,
+            (heatmap_obj,),
+            func_result=self._on_add_to_document,
+            func_result_args=(new_name,),
+        )
+
+    def _on_plot(self, heatmap_obj: Union[MassSpectrumHeatmapObject, IonHeatmapObject]):
+        """Safely plot data"""
+        if isinstance(heatmap_obj, MassSpectrumHeatmapObject):
+            self.panel_plot.view_msdt.plot(obj=heatmap_obj)
+        else:
+            self.panel_plot.view_heatmap.plot(obj=heatmap_obj)
+        pub.sendMessage(self.PUB_IN_PROGRESS_EVENT, is_running=False, message="")
+
+    def _on_add_to_document(self, heatmap_obj: Union[MassSpectrumHeatmapObject, IonHeatmapObject], new_name: str):
+        """Safely add data to document"""
         if isinstance(heatmap_obj, MassSpectrumHeatmapObject):
             self.panel_plot.view_msdt.plot(obj=heatmap_obj)
         else:
@@ -425,6 +463,7 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin):
 
         # notify document tree of changes
         self.document_tree.on_update_document(heatmap_obj.DOCUMENT_KEY, new_name.split("/")[-1], self.document_title)
+        pub.sendMessage(self.PUB_IN_PROGRESS_EVENT, is_running=False, message="")
 
     def on_toggle_controls(self, evt):
         """Toggle controls based on some other settings"""

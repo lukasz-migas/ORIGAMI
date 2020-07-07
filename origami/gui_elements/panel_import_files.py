@@ -1,3 +1,4 @@
+"""Base class few several import panels"""
 # Standard library imports
 import os
 import logging
@@ -138,7 +139,6 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
     info_btn = None
     import_label = None
     import_btn = None
-    activity_indicator = None
     processing_label = None
     processing_ms_btn = None
     processing_msdt_btn = None
@@ -235,15 +235,9 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         menu.Destroy()
         self.SetFocus()
 
-    def on_progress(self, is_running: bool, message: str):  # noqa
+    def on_progress(self, is_running: bool, message: str):
         """Handle extraction progress"""
-        # show indicator
-        if is_running:
-            self.activity_indicator.Show()
-            self.activity_indicator.Start()
-        else:
-            self.activity_indicator.Hide()
-            self.activity_indicator.Stop()
+        super(PanelImportManagerBase, self).on_progress(is_running, message)
 
         # disable import button
         self.import_btn.Enable(not is_running)
@@ -513,15 +507,15 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
             CONFIG.ms_baseline_polynomial_order = baseline_metadata.get(
                 "poly_order", CONFIG.ms_baseline_polynomial_order
             )
-            CONFIG.ms_baseline_curved_window = metadata.get("curved_window", CONFIG.ms_baseline_curved_window)
-            CONFIG.ms_baseline_median_window = metadata.get("median_window", CONFIG.ms_baseline_median_window)
-            CONFIG.ms_baseline_tophat_window = metadata.get("tophat_window", CONFIG.ms_baseline_tophat_window)
+            CONFIG.ms_baseline_curved_window = baseline_metadata.get("curved_window", CONFIG.ms_baseline_curved_window)
+            CONFIG.ms_baseline_median_window = baseline_metadata.get("median_window", CONFIG.ms_baseline_median_window)
+            CONFIG.ms_baseline_tophat_window = baseline_metadata.get("tophat_window", CONFIG.ms_baseline_tophat_window)
 
             # msdt
-            smooth_metadata = metadata.get("msdt", dict())
-            CONFIG.extract_dtms_mzStart = metadata.get("x_min", CONFIG.extract_dtms_mzStart)
-            CONFIG.extract_dtms_mzEnd = metadata.get("x_max", CONFIG.extract_dtms_mzEnd)
-            CONFIG.extract_dtms_mzBinSize = metadata.get("bin_size", CONFIG.extract_dtms_mzBinSize)
+            msdt_metadata = metadata.get("msdt", dict())
+            CONFIG.extract_dtms_mzStart = msdt_metadata.get("x_min", CONFIG.extract_dtms_mzStart)
+            CONFIG.extract_dtms_mzEnd = msdt_metadata.get("x_max", CONFIG.extract_dtms_mzEnd)
+            CONFIG.extract_dtms_mzBinSize = msdt_metadata.get("bin_size", CONFIG.extract_dtms_mzBinSize)
 
             # implementation and info
             self.on_update_info()

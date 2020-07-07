@@ -44,9 +44,18 @@ class QueueHandler:
         self.update()
 
     def add_call(self, func, args, func_pre=None, func_result=None, func_error=None, func_post=None, **kwargs):
-        """Add call but without implicitly specifying it as a call"""
-        # if func_error is None:
-        #     func_error = self.on_error
+        """Adds task to the queue handler
+
+        The `Call` handler works by executing consecutive actions.
+        1. First, it executes the `func_pre` with No parameters,
+        2. Second, it executes the `func` with args and kwargs
+            - if action was successful, it will run the `func_result` function with the returned values of the `func`
+            - if action was unsuccessful, it will run the `func_error` with error information
+        3. Third, it executes the `func_post` with `func_post_args` and `func_post_kwargs` arguments
+
+        The `func_result`, `func_error` and `func_post` are called using the `wx.CallAfter` mechanism to ensure thread
+        safety.
+        """
         call_obj = Call(
             func,
             *args,

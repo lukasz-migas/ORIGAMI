@@ -39,7 +39,9 @@ class DialogReviewEditorBase(Dialog, TableMixin):
     TABLE_COLUMN_INDEX = TableColumnIndex
     TABLE_TEXT_ALIGN = wx.LIST_FORMAT_LEFT
     USE_COLOR = False
-    MSG = "Please review the list of items shown below and select items which you would like to add to the document."
+    REVIEW_MSG = (
+        "Please review the list of items shown below and select items which you would like to add to the document."
+    )
 
     def __init__(self, parent, item_list: List[List[str]], title: str = "Review item(s)..."):
         Dialog.__init__(self, parent, title=title, style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER & ~wx.MAXIMIZE_BOX)
@@ -121,7 +123,7 @@ class DialogReviewEditorBase(Dialog, TableMixin):
         """Make panel"""
         panel = wx.Panel(self, -1, size=(-1, -1))
 
-        info_label = wx.StaticText(panel, -1, self.MSG)
+        info_label = wx.StaticText(panel, -1, self.REVIEW_MSG)
         set_item_font(info_label)
 
         self.peaklist = self.make_table(self.TABLE_DICT, panel)
@@ -209,7 +211,7 @@ class DialogReviewProcessHeatmap(DialogReviewEditorBase):
         1: dict(name="type", tag="type", type="str", width=100, show=True, order=1, id=wx.NewIdRef()),
         2: dict(name="name", tag="name", type="str", width=550, show=True, order=2, id=wx.NewIdRef()),
     }
-    MSG = "Please select item(s) that you would like to process and add to the document"
+    REVIEW_MSG = "Please select item(s) that you would like to process and add to the document"
 
     def __init__(self, parent, item_list, document_tree=None):
         self._icons = Icons()
@@ -255,7 +257,7 @@ class DialogReviewProcessSpectrum(DialogReviewEditorBase):
         1: dict(name="type", tag="type", type="str", width=100, show=True, order=1, id=wx.NewIdRef()),
         2: dict(name="name", tag="name", type="str", width=550, show=True, order=2, id=wx.NewIdRef()),
     }
-    MSG = "Please select item(s) that you would like to process and add to the document"
+    REVIEW_MSG = "Please select item(s) that you would like to process and add to the document"
 
     def __init__(self, parent, item_list, document_tree=None):
         self._icons = Icons()
@@ -299,7 +301,7 @@ class DialogReviewExportFigures(DialogReviewEditorBase):
         1: dict(name="type", tag="type", type="str", width=100, show=True, order=1, id=wx.NewIdRef()),
         2: dict(name="name", tag="name", type="str", width=550, show=True, order=2, id=wx.NewIdRef()),
     }
-    MSG = "Please select item(s) that you would like export as figures"
+    REVIEW_MSG = "Please select item(s) that you would like export as figures"
 
     def __init__(self, parent, item_list, document_tree=None):
         super().__init__(parent, item_list)
@@ -331,7 +333,7 @@ class DialogReviewExportData(DialogReviewEditorBase):
         1: dict(name="type", tag="type", type="str", width=100, show=True, order=1, id=wx.NewIdRef()),
         2: dict(name="name", tag="name", type="str", width=550, show=True, order=2, id=wx.NewIdRef()),
     }
-    MSG = "Please select item(s) that you would like export in a text format"
+    REVIEW_MSG = "Please select item(s) that you would like export in a text format"
 
     def __init__(self, parent, item_list, document_tree=None):
         super().__init__(parent, item_list)

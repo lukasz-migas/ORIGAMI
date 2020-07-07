@@ -14,6 +14,7 @@ from origami.config.config import CONFIG
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
 from origami.objects.containers import MassSpectrumObject
+from origami.handlers.queue_handler import QUEUE
 from origami.gui_elements.panel_base import DatasetMixin
 
 logger = logging.getLogger(__name__)
@@ -24,6 +25,7 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
 
     # panel settings
     TIMER_DELAY = 1000  # ms
+    PUB_IN_PROGRESS_EVENT = "widget.process.spectrum"
 
     # ui elements
     document_info_text = None
@@ -55,6 +57,7 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
     plot_btn = None
     add_to_document_btn = None
     cancel_btn = None
+    activity_indicator = None
 
     def __init__(
         self,
@@ -140,15 +143,29 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
         """Return handle to `document_tree`"""
         return self.presenter.view.panelDocuments.documents
 
+    def on_progress(self, is_running: bool, message: str):  # noqa
+        """Handle extraction progress"""
+        super(PanelProcessMassSpectrum, self).on_progress(is_running, message)
+
+        # disable import button
+        if self.plot_btn is not None:
+            self.plot_btn.Enable(not is_running)
+        if self.add_to_document_btn is not None:
+            self.add_to_document_btn.Enable(not is_running)
+
     def setup(self):
         """Setup UI"""
         self.on_toggle_controls(None)
         self.on_update_info()
         self._dataset_mixin_setup()
+        if self.PUB_IN_PROGRESS_EVENT:
+            pub.subscribe(self.on_progress, self.PUB_IN_PROGRESS_EVENT)
 
     def on_close(self, evt, force: bool = False):
         """Overwrite close"""
         self._dataset_mixin_teardown()
+        if self.PUB_IN_PROGRESS_EVENT:
+            pub.unsubscribe(self.on_progress, self.PUB_IN_PROGRESS_EVENT)
         super(PanelProcessMassSpectrum, self).on_close(evt, force)
 
     def on_key_event(self, evt):
@@ -317,12 +334,16 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
         self.cancel_btn = wx.Button(panel, wx.ID_OK, "Close", size=(120, 22))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
+        self.activity_indicator = wx.ActivityIndicator(panel)
+        self.activity_indicator.Hide()
+
         btn_grid = wx.BoxSizer(wx.HORIZONTAL)
         if not self.disable_plot:
             btn_grid.Add(self.plot_btn)
         if not self.disable_process:
             btn_grid.Add(self.add_to_document_btn)
         btn_grid.Add(self.cancel_btn)
+        btn_grid.Add(self.activity_indicator, 0, wx.ALIGN_CENTER_VERTICAL)
 
         grid = wx.GridBagSizer(2, 2)
         n = 0
@@ -440,27 +461,40 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
 
     def on_plot(self, _evt):
         """Plot data"""
+        pub.sendMessage(self.PUB_IN_PROGRESS_EVENT, is_running=True, message="")
         from copy import deepcopy
 
         mz_obj = deepcopy(self.mz_obj)
-        self.data_handling.on_process_ms(mz_obj)
+        QUEUE.add_call(self.data_handling.on_process_ms, (mz_obj,), func_result=self._on_plot)
+
+    def _on_plot(self, mz_obj: MassSpectrumObject):
+        """Safely plot data"""
         self.panel_plot.view_ms.plot(obj=mz_obj)
+        pub.sendMessage(self.PUB_IN_PROGRESS_EVENT, is_running=False, message="")
 
     def on_add_to_document(self, _evt):
         """Add data to document"""
+        pub.sendMessage(self.PUB_IN_PROGRESS_EVENT, is_running=True, message="")
         # get new, unique name for the object
         new_name = self.document.get_new_name(self.dataset_name, "processed")
 
         # create copy of the object
         _, mz_obj = self.mz_obj.copy(new_name)
+        QUEUE.add_call(
+            self.data_handling.on_process_ms,
+            (mz_obj,),
+            func_result=self._on_add_to_document,
+            func_result_args=(new_name,),
+        )
 
-        # process and flush to disk
-        mz_obj = self.data_handling.on_process_ms(mz_obj)
+    def _on_add_to_document(self, mz_obj: MassSpectrumObject, new_name: str):
+        """Safely add data to document"""
         self.panel_plot.view_ms.plot(obj=mz_obj)
         mz_obj.flush()
 
         # notify document tree of changes
         self.document_tree.on_update_document(mz_obj.DOCUMENT_KEY, new_name.split("/")[-1], self.document_title)
+        pub.sendMessage(self.PUB_IN_PROGRESS_EVENT, is_running=False, message="")
 
     def on_toggle_controls(self, evt):
         """Toggle controls based on some other settings"""

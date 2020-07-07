@@ -31,6 +31,28 @@ class TestPanelProcessMassSpectrum(WidgetTestCase):
 
         dlg.Show()
 
+    def test_dialog_activity(self):
+        dlg = PanelProcessMassSpectrum(self.frame, None)
+
+        # ensure all buttons are present and activity indicator is hidden
+        assert dlg.plot_btn is not None
+        assert dlg.add_to_document_btn is not None
+        assert not dlg.activity_indicator.IsShown()
+
+        # trigger activity ON
+        dlg.on_progress(True, "")
+        assert dlg.activity_indicator.IsShown()
+        assert not dlg.plot_btn.IsEnabled()
+        assert not dlg.add_to_document_btn.IsEnabled()
+
+        # trigger activity OFF
+        dlg.on_progress(False, "")
+        assert not dlg.activity_indicator.IsShown()
+        assert dlg.plot_btn.IsEnabled()
+        assert dlg.add_to_document_btn.IsEnabled()
+
+        dlg.Show()
+
     def test_dialog_ui(self):
         dlg = PanelProcessMassSpectrum(self.frame, None)
 

@@ -22,12 +22,15 @@ class Call:
         kwargs
         """
         # retrieve keyword parameters
-        self.func_call_result = kwargs.pop("func_result", None)
-        self.func_call_result_kwargs = kwargs.pop("func_result_kwargs", dict())
         self.func_call_error = kwargs.pop("func_error", None)
-        self.func_call_post = kwargs.pop("func_post", None)
         self.func_call_pre = kwargs.pop("func_pre", None)
 
+        # results call handler
+        self.func_call_result = kwargs.pop("func_result", None)
+        self.func_call_result_args = kwargs.pop("func_result_args", ())
+        self.func_call_result_kwargs = kwargs.pop("func_result_kwargs", dict())
+
+        self.func_call_post = kwargs.pop("func_post", None)
         self.func_post_args = kwargs.pop("func_post_args", ())
         self.func_post_kwargs = kwargs.pop("func_post_kwargs", dict())
 
@@ -71,7 +74,7 @@ class Call:
     def on_result(self, results):
         """Return results back to the result handler"""
         if self.func_call_result:
-            wx.CallAfter(self.func_call_result, *results)
+            wx.CallAfter(self.func_call_result, *results, *self.func_call_result_args, **self.func_call_result_kwargs)
 
     def on_pre(self, results):
         """If pre-call function was specified, notify it of having started the task"""
