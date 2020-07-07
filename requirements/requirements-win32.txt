@@ -1,1 +1,1 @@
-pythonnet
+pythonnet==2.4.0

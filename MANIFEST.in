@@ -10,6 +10,18 @@ include setup.cfg
 include versioneer.py
 include _setup_utils.py
 
+# include driftscope/thermo/waters
+include origami/readers/driftscope/*.dll
+include origami/readers/driftscope/*.exe
+include origami/readers/thermo/*.dll
+include origami/readers/thermo/*.pdb
+include origami/readers/thermo/*.tlb
+include origami/readers/thermo/*.config
+include origami/readers/waters/*.dll
+include origami/readers/waters/*.lib
+
 # Always include
 global-include *.pyx
 global-include *.c
+global-include *.ico
+global-include *.png

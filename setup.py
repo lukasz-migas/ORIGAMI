@@ -153,6 +153,7 @@ CLASSIFIERS = [
 
 
 def run_setup(include_c_ext=True):
+    """Run setup script"""
     setup(
         name=PACKAGE_NAME,
         author=MAINTAINER,

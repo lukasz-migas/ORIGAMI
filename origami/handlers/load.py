@@ -43,7 +43,6 @@ from origami.readers.io_text_files import AnnotatedDataReader
 if platform == "win32":
     from origami.readers.io_waters_raw_api import WatersRawReader
     from origami.readers.io_waters_raw import WatersIMReader
-    from origami.readers.io_thermo_raw import ThermoRawReader
 
 LOGGER = logging.getLogger(__name__)
 
@@ -395,6 +394,8 @@ class LoadHandler:
         document : Document
             instance of the document for which data was extracted
         """
+        from origami.readers.io_thermo_raw import ThermoRawReader
+
         document = ENV.on_get_document(title)
 
         # setup file reader
@@ -622,6 +623,8 @@ class LoadHandler:
     @check_os("win32")
     def load_thermo_ms_data(path):
         """Load Thermo data"""
+        from origami.readers.io_thermo_raw import ThermoRawReader
+
         t_start = time.time()
         reader = ThermoRawReader(path)
         LOGGER.debug("Created Thermo file reader. Started loading data...")

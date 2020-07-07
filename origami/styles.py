@@ -438,7 +438,8 @@ class ListCtrl(wx.ListCtrl, listmix.TextEditMixin):
     def __init__(self, parent, id=-1, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.LC_REPORT, **kwargs):
         wx.ListCtrl.__init__(self, parent, id, pos, size, style)
 
-        self.EnableCheckBoxes(True)
+        if hasattr(self, "EnableCheckBoxes"):
+            self.EnableCheckBoxes(True)
 
         # specify that simpler sorter should be used to speed things up
         self.use_simple_sorter = kwargs.get("use_simple_sorter", False)

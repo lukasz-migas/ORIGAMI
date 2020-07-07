@@ -74,6 +74,12 @@ class Call:
     def on_result(self, results):
         """Return results back to the result handler"""
         if self.func_call_result:
+            if results is None:
+                results = ()
+            if self.func_call_result_args is None:
+                self.func_call_result_args = ()
+            if self.func_call_result_kwargs is None:
+                self.func_call_result_kwargs = {}
             wx.CallAfter(self.func_call_result, *results, *self.func_call_result_args, **self.func_call_result_kwargs)
 
     def on_pre(self, results):
@@ -84,6 +90,10 @@ class Call:
     def on_post(self):
         """If post-call function was specified, notify it of having finished the task"""
         if self.func_call_post:
+            if self.func_post_args is None:
+                self.func_post_args = ()
+            if self.func_post_kwargs is None:
+                self.func_post_kwargs = {}
             wx.CallAfter(self.func_call_post, *self.func_post_args, **self.func_post_kwargs)
 
     def _wrap_results(self, results):

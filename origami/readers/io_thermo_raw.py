@@ -11,9 +11,6 @@ import numpy as np
 # Local imports
 from origami.objects.containers import ChromatogramObject, MassSpectrumObject
 
-# from origami.utils.path import clean_filename
-# from origami.utils.check import check_value_order
-
 DLL_PATH = os.path.join(os.path.dirname(__file__), "thermo")
 DLL_LIST = [
     "ThermoFisher.CommonCore.Data",

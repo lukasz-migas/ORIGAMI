@@ -259,7 +259,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     def on_get_directory_path(self, title: str):
         """Get path to directory"""
         path = None
-        dlg = wx.DirDialog(self.view, title, style=wx.DD_DEFAULT_STYLE)
+        dlg = wx.DirDialog(wx.GetTopLevelParent(self.view), title, style=wx.DD_DEFAULT_STYLE)
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
         dlg.Destroy()
@@ -268,7 +268,11 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
     def on_open_origami_document(self, evt):
         """Open ORIGAMI document"""
-        path = self.on_get_directory_path("Choose a ORIGAMI (.origami) directory store")
+        path = None
+        dlg = wx.DirDialog(self.view, "Choose a ORIGAMI (.origami) directory store")
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+        dlg.Destroy()
 
         if path is None or not path.endswith(".origami"):
             logger.warning("Operation was cancelled")
