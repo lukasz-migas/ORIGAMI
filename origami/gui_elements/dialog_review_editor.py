@@ -2,9 +2,8 @@
 # Standard library imports
 import logging
 from enum import IntEnum
-from typing import Dict
 from typing import List
-from typing import Optional
+from typing import Union
 
 # Third-party imports
 import wx
@@ -15,6 +14,11 @@ from origami.styles import set_tooltip
 from origami.styles import set_item_font
 from origami.styles import make_bitmap_btn
 from origami.icons.assets import Icons
+from origami.config.environment import ENV
+from origami.objects.containers import IonHeatmapObject
+from origami.objects.containers import MassSpectrumObject
+from origami.objects.containers import MassSpectrumHeatmapObject
+from origami.handlers.queue_handler import QUEUE
 from origami.gui_elements.panel_base import TableMixin
 
 logger = logging.getLogger(__name__)
@@ -161,18 +165,6 @@ class DialogReviewEditorBase(Dialog, TableMixin):
         """Set currently selected items"""
         self._output_list = self.get_selected_items()
 
-    def on_update_document(self, item_id: Optional[int] = None, item_info: Optional[Dict] = None):
-        """Update document"""
-        pass
-
-    def on_menu_item_right_click(self, evt):
-        """Right-click menu"""
-        pass
-
-    def on_double_click_on_item(self, evt):
-        """Double-click event"""
-        pass
-
 
 class DialogReviewEditorOverlay(DialogReviewEditorBase):
     """Dialog enabling review of items from the overlay panel"""
@@ -213,12 +205,18 @@ class DialogReviewProcessHeatmap(DialogReviewEditorBase):
     }
     REVIEW_MSG = "Please select item(s) that you would like to process and add to the document"
 
-    def __init__(self, parent, item_list, document_tree=None):
+    def __init__(self, parent, item_list, document_tree=None, document_title: str = None):
         self._icons = Icons()
 
         super().__init__(parent, item_list)
 
         self.document_tree = document_tree
+        self.document_title = document_title
+
+    @property
+    def data_handling(self):
+        """Return handle to `data_processing`"""
+        return self.document_tree.data_handling
 
     def make_buttons(self):
         """Make buttons"""
@@ -245,6 +243,39 @@ class DialogReviewProcessHeatmap(DialogReviewEditorBase):
         """Open MS pre-processing panel"""
         self.document_tree.on_open_process_heatmap_settings(disable_plot=True, disable_process=True)
 
+    def on_ok(self, _evt):
+        """Override default event"""
+        self._output_list = self.get_selected_items()
+
+        if self.document_title is not None:
+            self.on_process()
+
+        self.EndModal(wx.ID_OK)
+
+    def on_process(self):
+        """Process object"""
+        # get document object
+        document = ENV.on_get_document(self.document_title)
+
+        # iterate over each of the selected items
+        for heatmap_name in self.output_list:
+            new_name = document.get_new_name(heatmap_name, "processed")
+            new_name, heatmap_obj = document[heatmap_name, True].copy(new_name=new_name)
+            QUEUE.add_call(
+                self.data_handling.on_process_heatmap,
+                (heatmap_obj,),
+                func_result=self._on_add_to_document,
+                func_result_args=(new_name,),
+            )
+
+    def _on_add_to_document(self, heatmap_obj: Union[MassSpectrumHeatmapObject, IonHeatmapObject], new_name: str):
+        """Add object to the document tree in a thread-safe manner"""
+        # save data to the document
+        heatmap_obj.flush()
+
+        # add data to the document tree
+        self.document_tree.on_update_document(heatmap_obj.DOCUMENT_KEY, new_name.split("/")[-1], self.document_title)
+
 
 class DialogReviewProcessSpectrum(DialogReviewEditorBase):
     """Dialog enabling review of items from the overlay panel"""
@@ -259,12 +290,18 @@ class DialogReviewProcessSpectrum(DialogReviewEditorBase):
     }
     REVIEW_MSG = "Please select item(s) that you would like to process and add to the document"
 
-    def __init__(self, parent, item_list, document_tree=None):
+    def __init__(self, parent, item_list, document_tree=None, document_title: str = None):
         self._icons = Icons()
 
         super().__init__(parent, item_list)
 
         self.document_tree = document_tree
+        self.document_title = document_title
+
+    @property
+    def data_handling(self):
+        """Return handle to `data_processing`"""
+        return self.document_tree.data_handling
 
     def make_buttons(self):
         """Make buttons"""
@@ -291,6 +328,39 @@ class DialogReviewProcessSpectrum(DialogReviewEditorBase):
     def on_open_process_ms_settings(self, _evt):
         """Open MS pre-processing panel"""
         self.document_tree.on_open_process_ms_settings(disable_plot=True, disable_process=True)
+
+    def on_ok(self, _evt):
+        """Override default event"""
+        self._output_list = self.get_selected_items()
+
+        if self.document_title is not None:
+            self.on_process()
+
+        self.EndModal(wx.ID_OK)
+
+    def on_process(self):
+        """Process object"""
+        # get document object
+        document = ENV.on_get_document(self.document_title)
+
+        # iterate over each of the selected items
+        for spectrum_name in self.output_list:
+            new_name = document.get_new_name(spectrum_name, "processed")
+            new_name, mz_obj = document[spectrum_name, True].copy(new_name=new_name)
+            QUEUE.add_call(
+                self.data_handling.on_process_ms,
+                (mz_obj,),
+                func_result=self._on_add_to_document,
+                func_result_args=(new_name,),
+            )
+
+    def _on_add_to_document(self, mz_obj: MassSpectrumObject, new_name: str):
+        """Add object to the document tree in a thread-safe manner"""
+        # save data to the document
+        mz_obj.flush()
+
+        # add data to the document tree
+        self.document_tree.on_update_document(mz_obj.DOCUMENT_KEY, new_name.split("/")[-1], self.document_title)
 
 
 class DialogReviewExportFigures(DialogReviewEditorBase):

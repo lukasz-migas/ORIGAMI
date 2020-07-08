@@ -2458,29 +2458,11 @@ class DocumentTree(wx.TreeCtrl):
 
         item_list = self.on_get_item_list()
 
-        dlg = DialogReviewProcessHeatmap(self.view, item_list[ENV.current], document_tree=self)
-        dlg.ShowModal()
-
-        # get list of items that were selected
-        output_list = dlg.output_list
-
-        if not output_list:
-            LOGGER.warning("Processing list was empty")
-            return
-
-        # get document
         document_title = ENV.current
-        document = ENV.on_get_document(document_title)
-
-        # iterate over each object in the list and process it while also adding it to the document
-        for heatmap_name in output_list:
-            t_start = time.time()
-            new_name = document.get_new_name(heatmap_name, "processed")
-            new_name, heatmap_obj = document[heatmap_name, True].copy(new_name=new_name)
-            heatmap_obj = self.data_handling.on_process_heatmap(heatmap_obj)
-            heatmap_obj.flush()
-            self.on_update_document(heatmap_obj.DOCUMENT_KEY, new_name.split("/")[-1], document_title)
-            LOGGER.info(f"Processed heatmap in {report_time(t_start)} (new={new_name})")
+        dlg = DialogReviewProcessHeatmap(
+            self.view, item_list[ENV.current], document_tree=self, document_title=document_title
+        )
+        dlg.ShowModal()
 
     def on_open_process_msdt_settings(self, **kwargs):
         """Open mass spectrum processing settings"""
@@ -2513,29 +2495,10 @@ class DocumentTree(wx.TreeCtrl):
         item_list = self.data_handling.generate_item_list_mass_spectra("simple_list")
         document_title = ENV.current
 
-        dlg = DialogReviewProcessSpectrum(self.view, item_list[document_title], document_tree=self)
+        dlg = DialogReviewProcessSpectrum(
+            self.view, item_list[document_title], document_tree=self, document_title=document_title
+        )
         dlg.ShowModal()
-
-        # get list of items that were selected
-        output_list = dlg.output_list
-        dlg.Destroy()
-
-        if not output_list:
-            LOGGER.warning("Processing list was empty")
-            return
-
-        # get document
-        document = ENV.on_get_document(document_title)
-
-        # iterate over each object in the list and process it while also adding it to the document
-        for spectrum_name in output_list:
-            t_start = time.time()
-            new_name = document.get_new_name(spectrum_name, "processed")
-            new_name, mz_obj = document[spectrum_name, True].copy(new_name=new_name)
-            mz_obj = self.data_handling.on_process_ms(mz_obj)
-            mz_obj.flush()
-            self.on_update_document(mz_obj.DOCUMENT_KEY, new_name.split("/")[-1], document_title)
-            LOGGER.info(f"Processed mass spectrum {report_time(t_start)} (new={new_name})")
 
     def on_batch_export_figures(self, _evt):
         """Export images in batch"""

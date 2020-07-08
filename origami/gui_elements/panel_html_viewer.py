@@ -2,6 +2,7 @@
 # Standard library imports
 import os
 import webbrowser
+from typing import Tuple
 
 # Third-party imports
 import wx.html2
@@ -28,14 +29,18 @@ class PanelHTMLViewer(wx.MiniFrame):
     # extra
     DISABLE_SEARCH_BAR = False
 
-    def __init__(self, parent, msg: str = None, html_msg: str = None, md_msg: str = None, link: str = None):
+    def __init__(
+        self,
+        parent,
+        msg: str = None,
+        html_msg: str = None,
+        md_msg: str = None,
+        link: str = None,
+        title: str = "Help & Information Panel",
+        window_size: Tuple[int, int] = None,
+    ):
         wx.MiniFrame.__init__(
-            self,
-            parent,
-            -1,
-            "Help & Information Panel",
-            size=(600, 400),
-            style=(wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE_BOX | wx.CLOSE_BOX),
+            self, parent, -1, title, size=(600, 400), style=(wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE_BOX | wx.CLOSE_BOX)
         )
 
         self.parent = parent
@@ -50,7 +55,7 @@ class PanelHTMLViewer(wx.MiniFrame):
         msg, self._home_link = self.get_text(msg, html_msg, md_msg, link)
 
         self.make_gui()
-        self.setup(msg, self._home_link)
+        self.setup(msg, self._home_link, window_size)
 
         self.CentreOnParent()
         self.Show(True)
@@ -60,7 +65,7 @@ class PanelHTMLViewer(wx.MiniFrame):
         self.Bind(wx.EVT_CLOSE, self.on_close)
         os.chdir(cwd)
 
-    def setup(self, msg, link):
+    def setup(self, msg, link, window_size: Tuple[int, int]):
         """Setup"""
         if msg:
             self.html_view.FirstPage = msg
@@ -70,10 +75,11 @@ class PanelHTMLViewer(wx.MiniFrame):
         else:
             self.html_view.LoadURL(link)
 
-        screen_size = wx.GetDisplaySize()
-        if self.parent is not None:
-            screen_size = self.parent.GetSize()
-        window_size = calculate_window_size(screen_size, [0.4, 0.6])
+        if window_size is None:
+            screen_size = wx.GetDisplaySize()
+            if self.parent is not None:
+                screen_size = self.parent.GetSize()
+            window_size = calculate_window_size(screen_size, [0.4, 0.6])
         self.SetSize(window_size)
 
         if self.DISABLE_SEARCH_BAR:

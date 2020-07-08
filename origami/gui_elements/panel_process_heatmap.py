@@ -437,7 +437,7 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin):
         _, heatmap_obj = self.heatmap_obj.copy(new_name)
 
         # process and flush to disk
-        heatmap_obj = self.data_handling.on_process_heatmap(heatmap_obj)
+        # heatmap_obj = self.data_handling.on_process_heatmap(heatmap_obj)
         QUEUE.add_call(
             self.data_handling.on_process_heatmap,
             (heatmap_obj,),

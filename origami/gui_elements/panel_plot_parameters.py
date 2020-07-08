@@ -128,8 +128,9 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         self.SetFocus()
         logger.info(f"Changed window to `{self.current_page}` in {ttime()-tstart:.2f}")
 
-    def on_set_page(self, **kwargs):
-        self.main_book.SetSelection(self.config.extraParamsWindow[kwargs["window"]])
+    def on_set_page(self, window: str):
+        """Change page"""
+        self.main_book.SetSelection(self.config.extraParamsWindow[window])
         self.on_page_changed(evt=None)
 
     def on_close(self, evt):

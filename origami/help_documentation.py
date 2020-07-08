@@ -578,10 +578,9 @@ class OrigamiHelp:
 
 
 class HTMLHelp:
-    def __init__(self):
-        self.helpPages()
+    """Simply (and obsolete) HTML help"""
 
-    def helpPages(self):
+    def __init__(self):
         fail_msg = """
         <h1>Not implemented yet</h1>
         <p><img src="images/fail.gif" width="404" height="313" /></p>
@@ -718,17 +717,23 @@ class HTMLHelp:
         <p><img src="images/plot_other_data_examples.png" alt="" width="1485" height="1615" /></p>
         <p>&nbsp;</p>
         """.strip()
-        self.page_other_data_info = {"msg": msg, "title": "Learn about: Annotated datasets", "window_size": (1250, 800)}
+        self.page_other_data_info = {
+            "html_msg": msg,
+            "title": "Learn about: Annotated datasets",
+            "window_size": (1250, 800),
+        }
 
         # ignore for now
         self.page_ccs_calibration_info = {
-            "msg": fail_msg,
+            "html_msg": fail_msg,
             "title": "Learn about: CCS calibration",
             "window_size": (1250, 800),
         }
 
         self.page_linear_dt_info = {
-            "msg": fail_msg,
+            "html_msg": fail_msg,
             "title": "Learn about: Linear drift-time analysis",
             "window_size": (1250, 800),
         }
+
+        self.page_UniDec_info = {"msg": fail_msg, "title": "Learn about: UniDec", "window_size": (1250, 800)}

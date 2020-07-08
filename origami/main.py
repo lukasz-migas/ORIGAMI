@@ -4,7 +4,6 @@ import gc
 import os
 import sys
 import logging
-
 # import warnings
 import threading
 import faulthandler
@@ -57,7 +56,7 @@ class ORIGAMI:
         """Reset window"""
         self.view.Destroy()
         self.view = None
-        self.view = MainWindow(self, config=self.config, icons=self.icons, title="ORIGAMI", helpInfo="")
+        self.view = MainWindow(self, icons=self.icons, title="ORIGAMI - %s " % self.config.version)
         self.view.Show()
 
     def quit(self):
@@ -82,9 +81,7 @@ class ORIGAMI:
 
         # Setup variables
         #         self.initialize_state()
-        self.view = MainWindow(
-            self, config=self.config, icons=self.icons, helpInfo=self.help, title="ORIGAMI - %s " % self.config.version
-        )
+        self.view = MainWindow(self, icons=self.icons, title="ORIGAMI - %s " % self.config.version)
         self.__wx_app.SetTopWindow(self.view)
         self.view.Show()
 
