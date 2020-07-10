@@ -102,7 +102,7 @@ class QueueHandler:
 
     def update(self):
         """Sends update to the statusbar"""
-        pub.sendMessage("statusbar.update.queue", msg=f"Queue: ~{self.count()}")
+        pub.sendMessage("statusbar.update.queue", value=self.count())
 
     def __repr__(self):
         return f"Queue<count={self.count()}>"

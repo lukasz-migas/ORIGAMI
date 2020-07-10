@@ -514,7 +514,7 @@ class MPLInteraction:
             self._button_down,
             self.dragged,
         ]
-        pub.sendMessage("motion_mode", dataOut=motion_mode)
+        pub.sendMessage("motion_mode", plot_interaction=motion_mode)
 
     def update_background(self, evt):
         "force an update of the background"

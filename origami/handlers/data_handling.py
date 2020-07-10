@@ -2863,9 +2863,8 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
         return item_list
 
-    def _generate_item_list(
-        self, output_type: str, all_datasets: List[str], get_overlay_data: Callable, cleanup: Callable
-    ):
+    @staticmethod
+    def _generate_item_list(output_type: str, all_datasets: List[str], get_overlay_data: Callable, cleanup: Callable):
 
         all_documents = ENV.get_document_list("all")
 
@@ -2875,7 +2874,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
         # iterate over all datasets
         for document_title in all_documents:
-            document = ENV.on_get_document(document_title)
+            document: DocumentStore = ENV.on_get_document(document_title)
 
             # iterate over all groups
             for dataset_type in all_datasets:
@@ -2883,8 +2882,8 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
                 # iterate over all objects
                 for dataset_name in dataset_items:
-                    obj = document[dataset_name, True]
                     if output_type == "overlay":
+                        obj = document[dataset_name, True]
                         item_list.append(get_overlay_data(obj, dataset_type, dataset_type, document_title))
                     elif output_type in ["annotations", "comparison"]:
                         item_list[document_title].append(dataset_name)

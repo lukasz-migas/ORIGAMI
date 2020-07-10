@@ -4,7 +4,6 @@ import os
 import time
 import logging
 import webbrowser
-from typing import List
 from typing import Optional
 from functools import partial
 
@@ -100,6 +99,7 @@ from origami.panel_textlist import PanelTextlist
 from origami.panel_multi_file import PanelMultiFile
 from origami.config.environment import ENV
 from origami.panel_document_tree import PanelDocumentTree
+from origami.gui_elements.statusbar import Statusbar
 from origami.handlers.data_handling import DataHandling
 from origami.handlers.data_processing import DataProcessing
 from origami.gui_elements.misc_dialogs import DialogBox
@@ -249,13 +249,6 @@ class MainWindow(wx.Frame):
             .Gripper(CONFIG._windowSettings["Plot parameters"]["gripper"]),
         )
 
-        # Setup listeners
-        pub.subscribe(self.on_motion, "motion_xy")
-        pub.subscribe(self.motion_range, "motion_range")
-        pub.subscribe(self.on_distance, "change_x_axis_start")
-        pub.subscribe(self.on_event_mode, "motion_mode")
-        pub.subscribe(self.on_queue_change, "statusbar.update.queue")
-
         # Load other parts
         self.window_mgr.Update()
         self.make_statusbar()
@@ -374,19 +367,10 @@ class MainWindow(wx.Frame):
     def on_update_panel_config():
         """Update configuration for panel(s)"""
         CONFIG._windowSettings["Documents"]["id"] = ID_window_documentList
-        # CONFIG._windowSettings["Peak list"]["id"] = ID_window_ionList
-        # CONFIG._windowSettings["Text files"]["id"] = ID_window_textList
-        # CONFIG._windowSettings["Multiple files"]["id"] = ID_window_multipleMLList
 
     def on_toggle_panel_at_start(self):
         """Toggle panels at the startup of the application"""
-        panel_dict = {
-            "Documents": ID_window_documentList,
-            "Heatmap List": ID_window_textList,
-            # "Multiple files": ID_window_multipleMLList,
-            # "Peak list": ID_window_ionList,
-            # "Text files": ID_window_textList,
-        }
+        panel_dict = {"Documents": ID_window_documentList, "Heatmap List": ID_window_textList}
 
         for panel in [self.panelDocuments, self.panelMultipleText]:  # , self.panelMML, self.panelMultipleIons, ]:
             if self.window_mgr.GetPane(panel).IsShown():
@@ -417,18 +401,8 @@ class MainWindow(wx.Frame):
 
     def make_statusbar(self):
         """Make statusbar"""
-
-        self.statusbar = self.CreateStatusBar(7, wx.STB_SIZEGRIP, wx.ID_ANY)
-        # 0 = current x y pos
-        # 1 = m/z range
-        # 2 = MSMS mass
-        # 3 = status information
-        # 4 = present working file
-        # 5 = tool
-        # 6 = process
-        # 7 = queue size
-        self.statusbar.SetStatusWidths([250, 80, 80, 200, -1, 80, 50])
-        self.statusbar.SetFont(wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
+        self.statusbar = Statusbar(self, self._icons)
+        self.SetStatusBar(self.statusbar)
 
     def make_menubar(self):
         """Create menubar in the main window"""
@@ -1580,155 +1554,6 @@ class MainWindow(wx.Frame):
         """ Unsubscribe from all events """
         pub.unsubAll()
 
-    def on_distance(self, xy_start: List[float]):
-        """Update the start position of when event has started
-
-        Parameters
-        ----------
-        xy_start : List[float]
-            starting position in the x- and y-dimension
-        """
-        self.xy_start = xy_start
-
-    def on_queue_change(self, msg: str):
-        """Update size of the queue
-
-        Parameters
-        ----------
-        msg : str
-            message to be displayed in the queue marker
-        """
-        self.SetStatusText(msg, number=6)
-
-    def on_event_mode(self, dataOut):
-        """Changed cursor based on which key is pressed"""
-        shift, ctrl, alt, add2table, wheel, zoom, dragged = dataOut
-        self.mode = ""
-        cursor = wx.StockCursor(wx.CURSOR_ARROW)
-        if alt:
-            self.mode = "Measure"
-            cursor = wx.StockCursor(wx.CURSOR_MAGNIFIER)
-        elif ctrl:
-            self.mode = "Extract"
-            cursor = wx.StockCursor(wx.CURSOR_CROSS)
-        elif add2table:
-            self.mode = "Extract"
-            cursor = wx.StockCursor(wx.CURSOR_CROSS)
-        #         elif shift:
-        #             self.mode = "Vertical wheel"
-        #             cursor = wx.StockCursor(wx.CURSOR_SIZENS)
-        #         elif wheel:
-        #             self.mode = "Horizontal wheel"
-        #             cursor = wx.StockCursor(wx.CURSOR_SIZEWE)
-        elif alt and ctrl:
-            self.mode = ""
-        elif dragged is not None:
-            self.mode = "Drag"
-            cursor = wx.StockCursor(wx.CURSOR_HAND)
-        elif zoom:
-            self.mode = "Zoom"
-            cursor = wx.StockCursor(wx.CURSOR_MAGNIFIER)
-
-        self.SetCursor(cursor)
-        self.SetStatusText("{}".format(self.mode), number=5)
-
-    def on_motion(self, x_pos, y_pos, plot_name, plot_id):
-        """Updates the x/y values shown in the window based on where in the plot area the mouse is found
-
-        Parameters
-        ----------
-        x_pos : float
-            x-axis position of the mouse in the plot area
-        y_pos : float
-            y-axis position of the mouse in the plot area
-        plot_name : str
-            name of the plot from where the action is taking place
-        """
-
-        self.plot_name = plot_name
-        self.plot_id = plot_id
-
-        if x_pos is None or y_pos is None:
-            msg = ""
-        else:
-            msg = "x={:.4f} y={:.4f}".format(x_pos, y_pos)
-        self.SetStatusText(msg, number=0)
-
-    #
-    #         if xpos is not None and ypos is not None:
-    #             # If measuring distance, additional fields are used to help user
-    #             # make observations
-    #             if self.startX is not None:
-    #                 delta = np.absolute(self.startX - xpos)
-    #                 charge = np.round(1.0 / delta, 1)
-    #                 mass = (xpos + charge) * charge
-    #                 # If inside a plot area with MS, give out charge state
-    #                 if self.mode == "Measure" and self.panelPlots.currentPage in ["MS", "DT/MS"]:
-    #                     self.SetStatusText(
-    #                         f"m/z={xpos:.2f} int={ypos:.2f} Δm/z={delta:.2f} z={charge:.1f} mw={mass:.1f}", number=0
-    #                     )
-    #                 else:
-    #                     if self.panelPlots.currentPage in ["MS"]:
-    #                         self.SetStatusText("m/z={:.4f} int={:.4f} Δm/z={:.2f}".format(xpos, ypos, delta),
-    #                         number=0)
-    #                     elif self.panelPlots.currentPage in ["DT/MS"]:
-    #                         self.SetStatusText("m/z={:.4f} dt={:.4f} Δm/z={:.2f}".format(xpos, ypos, delta), number=0)
-    #                     elif self.panelPlots.currentPage in ["RT"]:
-    #                         self.SetStatusText("scan={:.0f} int={:.4f} Δscans={:.2f}".format(xpos, ypos, delta),
-    #                         number=0)
-    #                     elif self.panelPlots.currentPage in ["1D"]:
-    #                         self.SetStatusText("dt={:.2f} int={:.4f} Δdt={:.2f}".format(xpos, ypos, delta), number=0)
-    #                     elif self.panelPlots.currentPage in ["2D"]:
-    #                         self.SetStatusText("x={:.4f} dt={:.4f} Δx={:.2f}".format(xpos, ypos, delta), number=0)
-    #                     else:
-    #                         self.SetStatusText("x={:.4f} y={:.4f} Δx={:.2f}".format(xpos, ypos, delta), number=0)
-    #             else:
-    #                 if self.panelPlots.currentPage in ["MS"]:
-    #                     self.SetStatusText("m/z={:.4f} int={:.4f}".format(xpos, ypos), number=0)
-    #                 elif self.panelPlots.currentPage in ["DT/MS"]:
-    #                      if self.plot_data["DT/MS"] is not None and len(self.plot_scale["DT/MS"]) == 2:
-    #                                              try:
-    #                                                  yIdx = int(ypos * self.plot_scale["DT/MS"][0]) - 1
-    #                                                  xIdx = int(xpos * self.plot_scale["DT/MS"][1]) - 1
-    #                                                  int_value = self.plot_data["DT/MS"][yIdx, xIdx]
-    #                                              except Exception:
-    #                                              int_value = 0.0
-    #                     self.SetStatusText("m/z={:.4f} dt={:.4f} int={:.2f}".format(xpos, ypos, int_value), number=0)
-    #                     else:
-    #                     self.SetStatusText("m/z={:.4f} dt={:.4f}".format(xpos, ypos), number=0)
-    #                 elif self.panelPlots.currentPage in ["RT"]:
-    #                     self.SetStatusText("scan={:.0f} int={:.2f}".format(xpos, ypos), number=0)
-    #                 elif self.panelPlots.currentPage in ["1D"]:
-    #                     self.SetStatusText("dt={:.2f} int={:.2f}".format(xpos, ypos), number=0)
-    #                 elif self.panelPlots.currentPage in ["2D"]:
-    #                     try:
-    #                         if self.plot_data["2D"] is not None and len(self.plot_scale["2D"]) == 2:
-    #                             try:
-    #                                 yIdx = int(ypos * self.plot_scale["2D"][0]) - 1
-    #                                 xIdx = int(xpos * self.plot_scale["2D"][1]) - 1
-    #                                 int_value = self.plot_data["2D"][yIdx, xIdx]
-    #                             except Exception:
-    #                                 int_value = ""
-    #                             self.SetStatusText("x={:.2f} dt={:.2f} int={:.2f}".format(xpos, ypos, int_value),
-    #                             number=0)
-    #                         else:
-    #                             self.SetStatusText("x={:.2f} dt={:.2f}".format(xpos, ypos), number=0)
-    #                     except Exception:
-    #                         self.SetStatusText("x={:.2f} dt={:.2f}".format(xpos, ypos), number=0)
-    #                 elif plotname == "zGrid":
-    #                     self.SetStatusText("x={:.2f} charge={:.0f}".format(xpos, ypos), number=0)
-    #                 elif plotname == "mwDistribution":
-    #                     self.SetStatusText("MW={:.2f} intensity={:.2f}".format(xpos, ypos), number=0)
-    #                 else:
-    #                     self.SetStatusText("x={:.2f} y={:.2f}".format(xpos, ypos), number=0)
-
-    def motion_range(self, xmin, xmax, ymin, ymax):
-        """Change motion information"""
-        if self.mode == "Add data":
-            self.SetStatusText(f"X={xmin:.3f}:{xmax:.3f} | Y={ymin:.3f}:{ymax:.3f}", number=4)
-        else:
-            self.SetStatusText("", number=4)
-
     def on_size(self, _evt):
         """Toggles the resized attribute when user is changing the size of the window"""
         self.resized = True
@@ -1930,12 +1755,7 @@ class MainWindow(wx.Frame):
         if CONFIG.testing:
             return
 
-        try:
-            self.SetStatusText(msg, number=position)
-            time.sleep(delay)
-            self.SetStatusText("", number=position)
-        except Exception:
-            print(f"Statusbar update: {msg}")
+        self.statusbar.set_message(msg, position, delay * 1000)
 
     @staticmethod
     def on_update_interaction_settings(evt):

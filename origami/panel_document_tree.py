@@ -2457,7 +2457,6 @@ class DocumentTree(wx.TreeCtrl):
         from origami.gui_elements.dialog_review_editor import DialogReviewProcessHeatmap
 
         item_list = self.on_get_item_list()
-
         document_title = ENV.current
         dlg = DialogReviewProcessHeatmap(
             self.view, item_list[ENV.current], document_tree=self, document_title=document_title
@@ -2481,18 +2480,18 @@ class DocumentTree(wx.TreeCtrl):
     def on_process_ms(self, evt, **kwargs):
         """Process clicked mass spectrum item"""
         document_title, dataset_name = self._get_item_info()
-        heatmap_obj = self._get_item_object()
+        mz_obj = self._get_item_object()
         document = ENV.on_get_document(document_title)
 
         self.on_open_process_ms_settings(
-            document=document, document_title=document_title, dataset_name=dataset_name, mz_obj=heatmap_obj
+            document=document, document_title=document_title, dataset_name=dataset_name, mz_obj=mz_obj
         )
 
     def on_batch_process_ms(self, evt, **kwargs):
         """Process all clicked mass spectra items"""
         from origami.gui_elements.dialog_review_editor import DialogReviewProcessSpectrum
 
-        item_list = self.data_handling.generate_item_list_mass_spectra("simple_list")
+        item_list = self.on_get_item_list()
         document_title = ENV.current
 
         dlg = DialogReviewProcessSpectrum(

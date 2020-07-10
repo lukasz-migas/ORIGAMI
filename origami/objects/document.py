@@ -43,6 +43,11 @@ def get_children(o):
     return natsorted([i.path for i in o.values()])
 
 
+def get_children_quick(group_name: str, o):
+    """Return list of children of the group object without ready data"""
+    return natsorted([f"{group_name}/{obj_name}" for obj_name in o])
+
+
 def check_path(path: Union[str, List]):
     """Check whether path(s) exist on the file system"""
     if isinstance(path, str):
@@ -195,7 +200,7 @@ class DocumentStore:
 
             return obj
 
-        raise ValueError(f"Not sure how to handle {klass_name}")
+        raise ValueError(f"Not sure how to handle {klass_name} ({group})")
 
     def _check_version(self):
         """Load document version from disk
@@ -574,7 +579,7 @@ class DocumentStore:
         except KeyError:
             LOGGER.warning(f"Group `{group_name}` does not exist")
             return []
-        return get_children(group)
+        return get_children_quick(group_name, group)
 
     def _extend_group(self, group: Group):
         """Extends the functionality of the `Group` object by adding new attribute"""
