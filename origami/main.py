@@ -4,6 +4,7 @@ import gc
 import os
 import sys
 import logging
+
 # import warnings
 import threading
 import faulthandler
@@ -52,12 +53,17 @@ class ORIGAMI:
         self.view.Show()
         self.__wx_app.MainLoop()
 
-    def on_reboot_origami(self, _evt):
-        """Reset window"""
-        self.view.Destroy()
-        self.view = None
-        self.view = MainWindow(self, icons=self.icons, title="ORIGAMI - %s " % self.config.version)
-        self.view.Show()
+    # def on_reboot_origami(self, _evt):
+    #     """Reset window"""
+    #     dlg = DialogBox("Restart ORIGAMI", "Are you sure you want to restart the application?", kind="Question")
+    #     if dlg == wx.ID_CANCEL:
+    #         return
+    #     self.__wx_app.GetMainLoop().ProcessIdle()
+    #     # self.__wx_app.ExitMainLoop()
+    #     self.view.Destroy()
+    #     self.view = None
+    #     self.view = MainWindow(self, icons=self.icons, title="ORIGAMI - %s " % self.config.version)
+    #     self.view.Show()
 
     def quit(self):
         """Quit application"""
@@ -119,9 +125,6 @@ class ORIGAMI:
 
         # Set unidec directory
         self.config.unidec_path = self.config.unidec_engine.config.UniDecPath
-
-        # check version
-        self.on_check_version()
 
         # only check if on Windows
         if self.config.checkForDriftscopeAtStart and platform == "win32":
@@ -214,14 +217,6 @@ class ORIGAMI:
 
     # TODO: move to data_handling module
     def onAddBlankDocument(self, evt, document_type=None):  # noqa
-        """Legacy function"""
-        logger.info("This function is no longer used")
-
-    def on_open_weblink(self, evt):  # noqa
-        """Open selected webpage."""
-        logger.info("This function is no longer used")
-
-    def on_check_version(self, evt=None):  # noqa
         """Legacy function"""
         logger.info("This function is no longer used")
 

@@ -1,3 +1,4 @@
+"""Data import panel for LESA documents"""
 # Standard library imports
 import os
 import logging
@@ -33,7 +34,7 @@ class PanelImagingImportDataset(PanelImportManagerBase):
     image_shape_y = None
     import_precompute_norm = None
 
-    def __init__(self, parent, presenter, **kwargs):
+    def __init__(self, parent, presenter):
         self._init()
         PanelImportManagerBase.__init__(self, parent, presenter, title="Imaging: Import LESA")
 

@@ -1,6 +1,8 @@
 # Standard library imports
 import logging
 import warnings
+from copy import copy
+from typing import List
 
 # Third-party imports
 import numpy as np
@@ -35,6 +37,13 @@ class PlotBase(MPLPanel):
 
         self._plot_flag = False
         self.plot_base = None
+
+        # only used by the heatmap plots
+        self.cax = None
+
+        # only used by the joint plot
+        self.plot_joint_x = None
+        self.plot_joint_y = None
 
     def _set_axes(self):
         """Add axis to the figure"""
@@ -107,9 +116,19 @@ class PlotBase(MPLPanel):
 
         return xlimits, ylimits, extent
 
-    def store_plot_limits(self, extent):
+    def store_plot_limits(self, extent: List, ax: List = None):
         """Setup plot limits"""
-        self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
+        if ax is None:
+            ax = [self.plot_base]
+
+        if not isinstance(ax, list):
+            ax = list(ax)
+
+        if len(ax) != len(extent):
+            raise ValueError("Could not store plot limits")
+
+        for _ax, _extent in zip(ax, extent):
+            _ax.plot_limits = [_extent[0], _extent[2], _extent[1], _extent[3]]
 
     #         self._check_plot_limits(extent)
 
@@ -923,7 +942,6 @@ class PlotBase(MPLPanel):
             self.plot_base.xaxis.set_major_locator(MaxNLocator(integer=True))
 
         self.update_extents(extent)
-        self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
 
         self.plot_labels.update({"xlabel": xlabel, "ylabel": ylabel})
 
@@ -932,7 +950,7 @@ class PlotBase(MPLPanel):
         self.set_legend_parameters(handles, **self.plot_parameters)
 
         # Setup X-axis getter
-        self.store_plot_limits(extent)
+        self.store_plot_limits([extent], [self.plot_base])
 
     def plot_1D_update_data_by_label(self, xvals, yvals, gid, label):
         """Update plot data without replotting the entire plot
@@ -1359,13 +1377,55 @@ class PlotBase(MPLPanel):
 
         return l, b, 1 - r, 1 - t
 
+    def get_waterfall_colors(self, n_colors: int, **kwargs):
+        """Get list of colors to be used by the waterfall plot"""
+        linecolors, facecolors = [], []
+
+        # check if colors should be a colormap
+        if kwargs["color_scheme"] == "Colormap":
+            facecolors = color_palette(kwargs["colormap"], n_colors)
+        # or color palette
+        elif kwargs["color_scheme"] == "Color palette":
+            if kwargs["palette"] not in ["Spectral", "RdPu"]:
+                kwargs["palette"] = kwargs["palette"].lower()
+            facecolors = color_palette(kwargs["palette"], n_colors)
+        # or same color
+        elif kwargs["color_scheme"] == "Same color":
+            facecolors = [kwargs["shade_color"]] * n_colors
+        # or random color
+        elif kwargs["color_scheme"] == "Random":
+            facecolors = [get_random_color() for _ in range(n_colors)]
+
+        if kwargs["line_color_as_shade"]:
+            linecolors = copy(facecolors)
+        else:
+            linecolors = [kwargs["line_color"]] * n_colors
+
+        # change alpha channel
+        fc = []
+        alpha = kwargs.get("shade_under_transparency", 0.25)
+        for color in copy(facecolors):
+            color = list(color)
+            color.append(alpha)
+            fc.append(color)
+
+        return linecolors, fc
+
+    def get_violin_colors(self, n_colors: int, **kwargs):
+        """Get list of colors to be used by the violin plot"""
+        from itertools import repeat
+
+        lc, fc = self.get_waterfall_colors(n_colors, **kwargs)
+        lc = [x for item in lc for x in repeat(item, 2)]
+        fc = [x for item in fc for x in repeat(item, 2)]
+        return lc, fc
+
     def _get_colorlist(self, colorList, n_colors, which="line", **kwargs):
 
         if colorList is not None and len(colorList) == n_colors:
             colorlist = colorList
         elif kwargs["color_scheme"] == "Colormap":
             colorlist = color_palette(kwargs["colormap"], n_colors)
-
         elif kwargs["color_scheme"] == "Color palette":
             if kwargs["palette"] not in ["Spectral", "RdPu"]:
                 kwargs["palette"] = kwargs["palette"].lower()
@@ -1374,7 +1434,5 @@ class PlotBase(MPLPanel):
             color = [kwargs["line_color"]] if which == "line" else [kwargs["shade_color"]]
             colorlist = color * n_colors
         elif kwargs["color_scheme"] == "Random":
-            colorlist = []
-            for __ in range(n_colors):
-                colorlist.append(get_random_color())
+            colorlist = [get_random_color() for _ in range(n_colors)]
         return colorlist

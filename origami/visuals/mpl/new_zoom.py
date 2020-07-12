@@ -189,7 +189,6 @@ class MPLInteraction:
         self.parent = parent
         self.axes = None
         self.canvas = None
-        self.visible = True
         self.cids = []
         self.plotName = plotName
         self.plot_id = plot_id
@@ -197,10 +196,9 @@ class MPLInteraction:
         self.is_heatmap = is_heatmap
 
         self.active = True  # for activation / deactivation
-        self.to_draw = []
+        # self.to_draw = []
         self.background = None
         self.dragged = None
-        self.span = None
 
         self._is_inside_axes = True
         self._last_location = None
@@ -275,7 +273,6 @@ class MPLInteraction:
                 self.axes[i].data_limits = data_limits[i]
             self.prevent_sync_zoom = True
             self.data_limits = None
-
         # listener to change plot parameters
         pub.subscribe(self.on_update_parameters, "plot_parameters")
 
@@ -354,9 +351,9 @@ class MPLInteraction:
             # draw events
             self.cids.append(self.canvas.mpl_connect("draw_event", self.update_background))
 
-        if patch_kwargs is None:
-            patch_kwargs = dict(facecolor="white", edgecolor="black", alpha=0.5, fill=False)
-        self.patch_kwargs = patch_kwargs
+        # if patch_kwargs is None:
+        #     patch_kwargs = dict(facecolor="white", edgecolor="black", alpha=0.5, fill=False)
+        # self.patch_kwargs = patch_kwargs
 
         # Pre-set keys
         self._shift_key = False
@@ -367,13 +364,13 @@ class MPLInteraction:
         self._trigger_extraction = False
         self._button_down = False
 
-        for _ in self.axes:
-            self.to_draw.append(Rectangle((0, 0), 0, 1, visible=False, **self.patch_kwargs))
+        # for _ in self.axes:
+        #     self.to_draw.append(Rectangle((0, 0), 0, 1, visible=False, **self.patch_kwargs))
 
         self.show_cursor_cross = self.plot_parameters["grid_show"]
 
-        for axes, to_draw in zip(self.axes, self.to_draw):
-            axes.add_patch(to_draw)
+        # for axes, to_draw in zip(self.axes, self.to_draw):
+        #     axes.add_patch(to_draw)
 
     def on_enter_axes(self, evt=None):
         self._last_location = [evt.xdata, evt.ydata]
@@ -517,7 +514,7 @@ class MPLInteraction:
         pub.sendMessage("motion_mode", plot_interaction=motion_mode)
 
     def update_background(self, evt):
-        "force an update of the background"
+        """force an update of the background"""
         if self.useblit:
             self.background = self.canvas.copy_from_bbox(self.canvas.figure.bbox)
 
@@ -884,8 +881,12 @@ class MPLInteraction:
         """Collects labels"""
         x_labels, y_labels = [], []
         for axes in self.axes:
-            x_labels.append(axes.get_xlabel())
-            y_labels.append(axes.get_ylabel())
+            x_label = axes.get_xlabel()
+            if x_label:
+                x_labels.append(x_label)
+            y_label = axes.get_ylabel()
+            if y_label:
+                y_labels.append(y_label)
 
         return list(set(x_labels)), list(set(y_labels))
 
@@ -953,8 +954,8 @@ class MPLInteraction:
         if self.useblit:
             if self.background is not None:
                 self.canvas.restore_region(self.background)
-            for axes, to_draw in zip(self.axes, self.to_draw):
-                axes.draw_artist(to_draw)
+            # for axes, to_draw in zip(self.axes, self.to_draw):
+            #     axes.draw_artist(to_draw)
             self.canvas.blit(self.canvas.figure.bbox)
         else:
             self.canvas.draw_idle()

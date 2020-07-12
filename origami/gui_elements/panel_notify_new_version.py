@@ -9,6 +9,7 @@ import wx
 from origami.styles import set_tooltip
 from origami.styles import make_checkbox
 from origami.config.config import CONFIG
+from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.panel_html_viewer import PanelHTMLViewer
 
 LOGGER = logging.getLogger(__name__)
@@ -74,7 +75,7 @@ class PanelNewVersion(PanelHTMLViewer):
         self.open_in_browser(None, CONFIG.new_version_panel_link)
 
 
-def check_version(parent=None):
+def check_version(parent=None, silent: bool = True):
     """Check whether there is a new version of ORIGAMI available online"""
     from origami.utils.version import get_latest_version, compare_versions
 
@@ -88,6 +89,8 @@ def check_version(parent=None):
         LOGGER.warning("Could not check for latest version of ORIGAMI.")
     else:
         LOGGER.info("Using latest version of ORIGAMI")
+        if not silent:
+            DialogBox("Using latest version of ORIGAMI", "You are using the latest version of ORIGAMI!", "Info")
 
 
 def _main():

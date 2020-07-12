@@ -389,6 +389,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     def evt_extract_ms_from_heatmap(self, rect, x_labels, y_labels):
         """Extracts mass spectrum from heatmap"""
         t_start = time.time()
+
         if len(x_labels) > 1:
             raise ValueError("Cannot handle multiple labels")
 

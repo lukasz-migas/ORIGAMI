@@ -138,7 +138,7 @@ class PanelHTMLViewer(wx.MiniFrame):
 
         return sizer
 
-    def on_toggle_controls(self, evt):
+    def on_toggle_controls(self, _evt):
         """Enable/disable controls while web-page is loading"""
         loading = not self.html_view.IsBusy()
 
@@ -191,7 +191,7 @@ class PanelHTMLViewer(wx.MiniFrame):
         if evt is not None:
             evt.Veto()
 
-    def on_close(self, evt):
+    def on_close(self, _evt):
         """Destroy this frame."""
         self.Destroy()
 

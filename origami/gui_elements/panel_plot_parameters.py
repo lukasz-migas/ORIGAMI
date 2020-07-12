@@ -53,7 +53,6 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         self.presenter = presenter
         self.config = config
         self.icons = icons
-        self.panel_plot = self.view.panelPlots
         self.help = OrigamiHelp()
 
         self.import_evt = True
@@ -94,9 +93,25 @@ class PanelVisualisationSettingsEditor(wx.Panel):
 
         self.import_evt = False
 
-    def setup_handling_and_processing(self):
-        self.data_processing = self.view.data_processing
-        self.data_handling = self.view.data_handling
+    @property
+    def data_handling(self):
+        """Return handle to `data_processing`"""
+        return self.presenter.data_handling
+
+    @property
+    def data_processing(self):
+        """Return handle to `data_processing`"""
+        return self.presenter.data_processing
+
+    @property
+    def panel_plot(self):
+        """Return handle to `panel_plot`"""
+        return self.view.panelPlots
+
+    @property
+    def document_tree(self):
+        """Return handle to `document_tree`"""
+        return self.presenter.view.panelDocuments.documents
 
     def on_key_event(self, evt):
         key_code = evt.GetKeyCode()
@@ -2953,32 +2968,33 @@ class PanelVisualisationSettingsEditor(wx.Panel):
         self.on_apply_1D(None)
         self.on_apply_2D(None)
 
-        source = evt.GetEventObject().GetName()
-
-        # Heatmap-like
-        if self.panel_plot.window_plot2D in ["Heatmap", "DT/MS", "Annotated"]:
-            if source == "colorbar" or "colorbar" in source:
-                self.panel_plot.plot_colorbar_update(self.panel_plot.window_plot2D)
-            elif source == "normalization":
-                self.panel_plot.plot_normalization_update(self.panel_plot.window_plot2D)
-            elif source == "rmsf":
-                self.panel_plot.plot_1D_update(plotName="RMSF")
-            elif source in ["rmsf.spacing", "rmsd_matrix_formatter"]:
-                logger.warning("Quick update not implemented yet - you will have to fully replot the plot")
-            elif source in ["rmsd_matrix", "rmsd_matrix_label"]:
-                self.panel_plot.plot_2D_matrix_update_label()
-            else:
-                self.panel_plot.plot_2D_update(plotName="2D")
-        elif self.panel_plot.window_plot2D == "Waterfall" or self.panel_plot.currentPage == "Annotated":
-
-            if source in ["label.frequency"]:
-                logger.warning("Quick update not implemented yet - you will have to fully replot the plot")
-            else:
-                self.panel_plot.plot_1D_waterfall_update(source)
-
-        logger.debug(f"update {source} in {ttime()-tstart:.4f}s")
-        if evt is not None:
-            evt.Skip()
+    #
+    #         source = evt.GetEventObject().GetName()
+    #
+    #         # Heatmap-like
+    #         if self.panel_plot.window_plot2D in ["Heatmap", "DT/MS", "Annotated"]:
+    #             if source == "colorbar" or "colorbar" in source:
+    #                 self.panel_plot.plot_colorbar_update(self.panel_plot.window_plot2D)
+    #             elif source == "normalization":
+    #                 self.panel_plot.plot_normalization_update(self.panel_plot.window_plot2D)
+    #             elif source == "rmsf":
+    #                 self.panel_plot.plot_1D_update(plotName="RMSF")
+    #             elif source in ["rmsf.spacing", "rmsd_matrix_formatter"]:
+    #                 logger.warning("Quick update not implemented yet - you will have to fully replot the plot")
+    #             elif source in ["rmsd_matrix", "rmsd_matrix_label"]:
+    #                 self.panel_plot.plot_2D_matrix_update_label()
+    #             else:
+    #                 self.panel_plot.plot_2D_update(plotName="2D")
+    #         elif self.panel_plot.window_plot2D == "Waterfall" or self.panel_plot.currentPage == "Annotated":
+    #
+    #             if source in ["label.frequency"]:
+    #                 logger.warning("Quick update not implemented yet - you will have to fully replot the plot")
+    #             else:
+    #                 self.panel_plot.plot_1D_waterfall_update(source)
+    #
+    #         logger.debug(f"update {source} in {ttime()-tstart:.4f}s")
+    #         if evt is not None:
+    #             evt.Skip()
 
     def on_update_3d(self, evt):
 

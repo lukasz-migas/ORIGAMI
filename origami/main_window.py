@@ -14,10 +14,6 @@ import wx.aui
 from pubsub import pub
 
 # Local imports
-from origami.ids import ID_WHATS_NEW
-from origami.ids import ID_SHOW_ABOUT
-from origami.ids import ID_CHECK_VERSION
-from origami.ids import ID_RESET_ORIGAMI
 from origami.ids import ID_helpCite
 from origami.ids import ID_helpGuide
 from origami.ids import ID_helpAuthor
@@ -144,6 +140,8 @@ class MainWindow(wx.Frame):
         self._icons = Icons()
         self.presenter = parent
 
+        self._timer = wx.Timer(self, wx.ID_ANY)
+
         self.plot_data = {}  # remove
         self.plot_scale = {}  # remove
         self.plot_name = None
@@ -268,6 +266,14 @@ class MainWindow(wx.Frame):
         # when in development, move the app to another display
         if CONFIG.debug:
             self._move_app()
+
+        # run action(s) delayed
+        self.run_delayed(self._on_check_latest_version)
+
+    @staticmethod
+    def run_delayed(func, *args, delay: int = 3000, **kwargs):
+        """Run function using a CallLater"""
+        wx.CallLater(delay, func, *args, **kwargs)
 
     def _move_app(self):
         """Move application to another window"""
@@ -726,7 +732,6 @@ class MainWindow(wx.Frame):
 
         # VIEW MENU
         menu_view = wx.Menu()
-
         menu_clear_all_plots = make_menu_item(parent=menu_view, text="&Clear all plots", bitmap=self._icons.erase)
         menu_view.Append(menu_clear_all_plots)
         menu_view.AppendSeparator()
@@ -753,6 +758,10 @@ class MainWindow(wx.Frame):
             parent=menu_view, text="Toggle fullscreen\tAlt+F11", bitmap=self._icons.fullscreen
         )
         menu_view.Append(menu_view_fullscreen)
+        # menu_view.AppendSeparator()
+        # menu_view_restart = make_menu_item(parent=menu_view, text="Restart ORIGAMI", bitmap=self._icons.restart)
+        # menu_view.Append(menu_view_restart)
+
         self.menubar.Append(menu_view, "&View")
 
         # HELP MENU
@@ -842,7 +851,7 @@ class MainWindow(wx.Frame):
                 parent=menu_help_pages,
                 evt_id=ID_help_page_OtherData,
                 text="Learn more: Annotated data",
-                bitmap=self.icons.iconsLib["blank_16"],
+                bitmap=self._icons.blank,
             )
         )
 
@@ -891,28 +900,19 @@ class MainWindow(wx.Frame):
             )
         )
         menu_help.AppendSeparator()
-        menu_help.Append(
-            make_menu_item(
-                parent=menu_help, evt_id=ID_CHECK_VERSION, text="Check for newest version...", bitmap=self._icons.new
-            )
+        menu_help_version = make_menu_item(
+            parent=menu_help, text="Check for newest version...", bitmap=self._icons.bell
         )
-        menu_help.Append(
-            make_menu_item(
-                parent=menu_help,
-                evt_id=ID_WHATS_NEW,
-                text="Whats new in v{}".format(CONFIG.version),
-                bitmap=self.icons.iconsLib["blank_16"],
-            )
+        menu_help.Append(menu_help_version)
+        menu_help_new = make_menu_item(
+            parent=menu_help, text="Whats new in v{}".format(CONFIG.version), bitmap=self._icons.new
         )
+        menu_help.Append(menu_help_new)
         menu_help.AppendSeparator()
-        menu_help.Append(
-            make_menu_item(
-                parent=menu_help,
-                evt_id=ID_SHOW_ABOUT,
-                text="About ORIGAMI\tCtrl+Shift+A",
-                bitmap=self.icons.iconsLib["origamiLogoDark16"],
-            )
+        menu_help_about = make_menu_item(
+            parent=menu_help, text="About ORIGAMI\tCtrl+Shift+A", bitmap=self.icons.iconsLib["origamiLogoDark16"]
         )
+        menu_help.Append(menu_help_about)
         self.menubar.Append(menu_help, "&Help")
         self.SetMenuBar(self.menubar)
 
@@ -950,9 +950,9 @@ class MainWindow(wx.Frame):
 
         # Bind functions to menu
         # HELP MENU
-        self.Bind(wx.EVT_MENU, self.on_open_about_panel, id=ID_SHOW_ABOUT)
-        self.Bind(wx.EVT_MENU, self.on_check_latest_version, id=ID_CHECK_VERSION)
-        self.Bind(wx.EVT_MENU, self.on_whats_new, id=ID_WHATS_NEW)
+        self.Bind(wx.EVT_MENU, self.on_open_about_panel, menu_help_about)
+        self.Bind(wx.EVT_MENU, self.on_check_latest_version, menu_help_version)
+        self.Bind(wx.EVT_MENU, self.on_whats_new, menu_help_new)
         self.Bind(wx.EVT_MENU, self.on_open_link, id=ID_helpGuide)
         self.Bind(wx.EVT_MENU, self.on_open_link, id=ID_helpCite)
         self.Bind(wx.EVT_MENU, self.on_open_link, id=ID_helpYoutube)
@@ -960,7 +960,7 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_open_link, id=ID_helpReportBugs)
         self.Bind(wx.EVT_MENU, self.on_open_link, id=ID_helpNewFeatures)
         self.Bind(wx.EVT_MENU, self.on_open_link, id=ID_helpAuthor)
-        self.Bind(wx.EVT_MENU, self.presenter.on_reboot_origami, id=ID_RESET_ORIGAMI)
+        # self.Bind(wx.EVT_MENU, self.presenter.on_reboot_origami, menu_view_restart)
 
         self.Bind(wx.EVT_MENU, self.on_open_html_guide, id=ID_help_UniDecInfo)
         self.Bind(wx.EVT_MENU, self.on_open_html_guide, id=ID_help_page_gettingStarted)
@@ -1153,10 +1153,14 @@ class MainWindow(wx.Frame):
             logger.warning("Could not open requested link")
 
     def on_check_latest_version(self, _evt):
+        """Manually check for latest version of ORIGAMI"""
+        self._on_check_latest_version(False)
+
+    def _on_check_latest_version(self, silent: bool = True):
         """Simple function to check whether this is the newest version available"""
         from origami.gui_elements.panel_notify_new_version import check_version
 
-        check_version(self)
+        check_version(self, silent)
 
     def on_whats_new(self, _evt):
         """Check latest version"""

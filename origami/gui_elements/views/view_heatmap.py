@@ -1,5 +1,6 @@
 # Standard library imports
 import logging
+from copy import copy
 
 # Third-party imports
 import wx
@@ -102,17 +103,74 @@ class ViewHeatmap(ViewBase):
     def replot(self, **kwargs):
         """Replot the current plot"""
 
-    def plot_violin(self):
+    def plot_violin(self, x=None, y=None, array=None, obj=None, **kwargs):
         """Plot object as a violin plot"""
-        pass
+        MPL_KEYS = copy(self.MPL_KEYS)
+        MPL_KEYS.append("violin")
 
-    def plot_waterfall(self):
+        # try to update plot first, as it can be quicker
+        self.set_document(obj, **kwargs)
+        self.set_labels(obj, **kwargs)
+
+        kwargs.update(**CONFIG.get_mpl_parameters(MPL_KEYS))
+        kwargs = self.check_kwargs(**kwargs)
+        x, y, array = self.check_input(x, y, array, obj)
+        self.figure.clear()
+        self.figure.plot_violin(
+            x, y, array, x_label=self.x_label, y_label=self.y_label, callbacks=self._callbacks, **kwargs
+        )
+        self.figure.repaint()
+
+        # set data
+        self._data.update(x=x, y=y, array=array)
+        self._plt_kwargs = kwargs
+        LOGGER.debug("Plotted data")
+
+    def plot_waterfall(self, x=None, y=None, array=None, obj=None, **kwargs):
         """Plot object as a waterfall"""
-        pass
+        # try to update plot first, as it can be quicker
+        MPL_KEYS = copy(self.MPL_KEYS)
+        MPL_KEYS.append("waterfall")
 
-    def plot_joint(self):
+        self.set_document(obj, **kwargs)
+        self.set_labels(obj, **kwargs)
+
+        kwargs.update(**CONFIG.get_mpl_parameters(MPL_KEYS))
+        kwargs = self.check_kwargs(**kwargs)
+        x, y, array = self.check_input(x, y, array, obj)
+        self.figure.clear()
+        self.figure.plot_waterfall(
+            x, y, array, x_label=self.y_label, y_label="Offset intensity", callbacks=self._callbacks, **kwargs
+        )
+        self.figure.repaint()
+
+        # set data
+        self._data.update(x=x, y=y, array=array)
+        self._plt_kwargs = kwargs
+        LOGGER.debug("Plotted data")
+
+    def plot_joint(self, x=None, y=None, array=None, obj=None, **kwargs):
         """Plot object as a joint-plot with top/side panels"""
-        pass
+        # try to update plot first, as it can be quicker
+        MPL_KEYS = copy(self.MPL_KEYS)
+        MPL_KEYS.append("joint")
+
+        self.set_document(obj, **kwargs)
+        self.set_labels(obj, **kwargs)
+
+        kwargs.update(**CONFIG.get_mpl_parameters(MPL_KEYS))
+        kwargs = self.check_kwargs(**kwargs)
+        x, y, array = self.check_input(x, y, array, obj)
+        self.figure.clear()
+        self.figure.plot_joint(
+            x, y, array, x_label=self.x_label, y_label=self.y_label, callbacks=self._callbacks, **kwargs
+        )
+        self.figure.repaint()
+
+        # set data
+        self._data.update(x=x, y=y, array=array)
+        self._plt_kwargs = kwargs
+        LOGGER.debug("Plotted data")
 
 
 class ViewIonHeatmap(ViewHeatmap):

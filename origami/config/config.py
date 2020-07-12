@@ -2569,6 +2569,8 @@ class Config:
                         "rmsd_matrix_color": self.rmsd_matrix_font_color,
                     }
                 )
+            if _plot_type in "joint":
+                plt_kwargs.update({})
             if _plot_type in "waterfall":
                 plt_kwargs.update(
                     {
@@ -2614,6 +2616,7 @@ class Config:
                     {
                         "min_percentage": self.violin_min_percentage,
                         "spacing": self.violin_spacing,
+                        "orientation": self.violin_orientation,
                         "line_width": self.violin_lineWidth,
                         "line_style": self.violin_lineStyle,
                         "line_color": self.violin_color,

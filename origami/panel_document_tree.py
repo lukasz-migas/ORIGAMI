@@ -3116,7 +3116,9 @@ class DocumentTree(wx.TreeCtrl):
 
         # get data for selected item
         obj = self._get_item_object()
-        self.panel_plot.on_plot_2d(obj=obj, set_page=True)
+        self.panel_plot.view_heatmap.plot_violin(obj=obj)
+        #         self.panel_plot.view_heatmap.plot_joint(obj=obj)
+        #         self.panel_plot.on_plot_2d(obj=obj, set_page=True)
 
         if save_image:
             filename = self._item.get_name("heatmap")
@@ -3148,6 +3150,30 @@ class DocumentTree(wx.TreeCtrl):
             filename = self._item.get_name("heatmap")
             self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
 
+    def on_show_plot_heatmap_violin(self, evt, save_image=False):
+        if self._item.is_match("heatmap", True):
+            return
+
+        # get data for selected item
+        obj = self._get_item_object()
+        self.panel_plot.view_heatmap.plot_violin_quick(obj=obj)
+
+        if save_image:
+            filename = self._item.get_name("heatmap")
+            self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
+
+    def on_show_plot_heatmap_waterfall(self, evt, save_image=False):
+        if self._item.is_match("heatmap", True):
+            return
+
+        # get data for selected item
+        obj = self._get_item_object()
+        self.panel_plot.view_heatmap.plot_waterfall(obj=obj)
+
+        if save_image:
+            filename = self._item.get_name("heatmap")
+            self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
+
     def on_show_zoom_on_ion(self, evt, save_image=False):
         if self._item.is_match("heatmap", True):
             return
@@ -3161,51 +3187,6 @@ class DocumentTree(wx.TreeCtrl):
     #     if save_image:
     #         filename = self._item.get_name("heatmap")
     #         self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
-
-    def on_show_plot_heatmap_violin(self, evt, save_image=False):
-        if self._item.is_match("heatmap", True):
-            return
-
-        # get data for selected item
-        obj = self._get_item_object()
-
-        raise NotImplementedError("Not implemented yet")
-        #             dataOut = self.presenter.get2DdataFromDictionary(dictionary=data, dataType="plot", compact=True)
-        #             self.panel_plot.on_plot_violin(data=dataOut, set_page=True)
-        #             return
-        #
-        # if save_image:
-        #     filename = self._item.get_name("heatmap")
-        #     self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
-
-    def on_show_plot_heatmap_waterfall(self, evt, save_image=False):
-        if self._item.is_match("heatmap", True):
-            return
-
-        # get data for selected item
-        obj = self._get_item_object()
-
-        raise NotImplementedError("Not implemented yet")
-        #             zvals, xvals, xlabel, yvals, ylabel, __ = self.presenter.get2DdataFromDictionary(
-        #                 dictionary=data, dataType="plot", compact=False
-        #             )
-        #             if len(xvals) > 500:
-        #                 msg = (
-        #                     f"There are {len(xvals)} scans in this dataset (this could be slow...). "
-        #                     + "Would you like to continue?"
-        #                 )
-        #                 dlg = DialogBox("Would you like to continue?", msg, type="Question")
-        #                 if dlg == wx.ID_NO:
-        #                     return
-        #
-        #             self.panel_plot.on_plot_waterfall(
-        #                 yvals=xvals, xvals=yvals, zvals=zvals, xlabel=xlabel, ylabel=ylabel, set_page=True
-        #             )
-        #             return
-        #
-        # if save_image:
-        #     filename = self._item.get_name("heatmap")
-        #     self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
 
     def on_show_plot_overlay(self, save_image):
         raise NotImplementedError("Must implement method")

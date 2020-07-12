@@ -107,7 +107,7 @@ class PlotSpectrum(PlotBase):
         )
 
         # Setup X-axis getter
-        self.store_plot_limits(extent)
+        self.store_plot_limits([extent], [self.plot_base])
 
     def plot_1d_add_under_curve(self, xvals, yvals, **kwargs):
 
@@ -155,7 +155,7 @@ class PlotSpectrum(PlotBase):
 
         # update plot limits
         self.update_extents(extent)
-        self.store_plot_limits(extent)
+        self.store_plot_limits([extent], [self.plot_base])
 
     #         # remove old lines
     #         if hasattr(self, "plot_base"):
@@ -218,7 +218,7 @@ class PlotSpectrum(PlotBase):
     #         self.set_legend_parameters(handles, **self.plot_parameters)
     #
     #         # Setup X-axis getter
-    #         self.store_plot_limits(extent)
+    #         self.store_plot_limits([extent], [self.plot_base])
 
     def plot_1d_compare(
         self, x_top, x_bottom, y_top, y_bottom, x_label="", y_label="", labels=None, title="", **kwargs
@@ -294,7 +294,7 @@ class PlotSpectrum(PlotBase):
         )
 
         # Setup X-axis getter
-        self.store_plot_limits(extent)
+        self.store_plot_limits([extent], [self.plot_base])
 
     def plot_1d_compare_update_data(self, x_top, x_bottom, y_top, y_bottom, labels=None, **kwargs):
         # # update settings
@@ -332,7 +332,7 @@ class PlotSpectrum(PlotBase):
 
         # update plot limits
         self.update_extents(extent)
-        self.store_plot_limits(extent)
+        self.store_plot_limits([extent], [self.plot_base])
         self.on_zoom_y_axis(*ylimits)
 
     def plot_1D(
@@ -423,7 +423,7 @@ class PlotSpectrum(PlotBase):
 
         # Setup X-axis getter
         self.setupGetXAxies([self.plot_base])
-        self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
+        self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
         self.plot_labels.update({"xlabel": xlabel, "ylabel": ylabel})
 
     def plot_1D_centroid(
@@ -517,7 +517,7 @@ class PlotSpectrum(PlotBase):
         # Setup X-axis getter
         self.setupGetXAxies([self.plot_base])
         if not adding_on_top:
-            self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
+            self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
 
     def plot_1D_barplot(
         self,
@@ -673,7 +673,7 @@ class PlotSpectrum(PlotBase):
         #
         # Setup X-axis getter
         self.setupGetXAxies([self.plot_base])
-        self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
+        self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
 
         # add legend
         plot_modifiers = kwargs["plot_modifiers"]
@@ -795,7 +795,7 @@ class PlotSpectrum(PlotBase):
 
         # Setup X-axis getter
         self.setupGetXAxies([self.plot_base])
-        self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
+        self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
 
     def plot_1D_overlay(
         self,
@@ -888,7 +888,7 @@ class PlotSpectrum(PlotBase):
         self.setup_zoom([self.plot_base], self.zoomtype, data_lims=extent, plotName=plotType, allowWheel=allowWheel)
         # Setup X-axis getter
         self.setupGetXAxies([self.plot_base])
-        self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
+        self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
 
     def plot_1D_waterfall(
         self,
@@ -1123,7 +1123,7 @@ class PlotSpectrum(PlotBase):
         extent = [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
 
         self.setup_zoom([self.plot_base], self.zoomtype, plotName=plotName, data_lims=extent)
-        self.plot_limits = [xlimits[0], xlimits[1], ylimits[0], ylimits[1]]
+        self.plot_base.plot_limits = [xlimits[0], xlimits[1], ylimits[0], ylimits[1]]
 
         # Setup X-axis getter
         self.plot_base.set_xlim([xlimits[0], xlimits[1]])
@@ -1153,13 +1153,13 @@ class PlotSpectrum(PlotBase):
         extent = [xlimits[0], ylimits[0], xlimits[-1], ylimits[-1] + 0.025]
         if kwargs.get("update_extents", False):
             self.update_extents(extent)
-            self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
+            self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
 
         if setup_zoom:
             self.setup_zoom(
                 [self.plot_base], self.zoomtype, data_lims=extent, plotName=plot_name, allowWheel=allowWheel
             )
-            self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
+            self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
 
         self.on_zoom_x_axis(xmin, xmax)
 
@@ -1333,7 +1333,7 @@ class PlotSpectrum(PlotBase):
         ylimits = [np.min(ydata) - kwargs["offset"], np.max(ydata) + 0.05]
         extent = [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
         self.setup_zoom([self.plot_base], self.zoomtype, plotName=plotName, data_lims=extent)
-        self.plot_limits = [xlimits[0], xlimits[1], ylimits[0], ylimits[1]]
+        self.plot_base.plot_limits = [xlimits[0], xlimits[1], ylimits[0], ylimits[1]]
         # Setup X-axis getter
         self.setupGetXAxies([self.plot_base])
         self.plot_base.set_xlim([xlimits[0], xlimits[1]])
@@ -1476,7 +1476,7 @@ class PlotSpectrum(PlotBase):
 
         # setup zoom and plot limits
         self.setup_zoom([self.plot_base], self.zoomtype, plotName=plotName, data_lims=extent)
-        self.plot_limits = [xlimits[0], xlimits[1], ylimits[0], ylimits[1]]
+        self.plot_base.plot_limits = [xlimits[0], xlimits[1], ylimits[0], ylimits[1]]
 
     def plot_n_grid_1D_overlay(
         self, xvals, yvals, xlabel, ylabel, labels, colors, plotName="Grid_1D", axesSize=None, testMax="yvals", **kwargs
@@ -1900,7 +1900,7 @@ class PlotSpectrum(PlotBase):
 
         extent = [labelsX[0], labelsY[0], labelsX[-1], labelsY[-1]]
         self.setup_zoom([self.plot_base], self.zoomtype, data_lims=extent, plotName=plotName)
-        self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
+        self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
 
         self.set_plot_xlabel(xlabelRMSD, **kwargs)
         self.set_plot_ylabel(ylabelRMSD, **kwargs)
