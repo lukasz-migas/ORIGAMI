@@ -110,10 +110,6 @@ class ViewSpectrum(ViewBase, ViewSpectrumPanelMixin):
 
         self.update(self._data["x"], self._data["y"], **kwargs)
 
-    def smooth(self, **kwargs):
-        """Performs basic smoothing"""
-        pass
-
 
 class ViewMassSpectrum(ViewSpectrum):
     """Specialized viewer for mass spectral data"""

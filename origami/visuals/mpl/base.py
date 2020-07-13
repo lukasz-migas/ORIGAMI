@@ -10,6 +10,7 @@ import matplotlib
 from seaborn import color_palette
 from matplotlib import patches
 from matplotlib.ticker import MaxNLocator
+from matplotlib.collections import LineCollection
 
 # Local imports
 import origami.utils.visuals as ut_visuals
@@ -31,11 +32,14 @@ warnings.filterwarnings("ignore", category=RuntimeWarning)
 class PlotBase(MPLPanel):
     """Generic plot base"""
 
+    PLOT_TYPE = None
+
     def __init__(self, *args, **kwargs):
         self._axes = kwargs.get("axes_size", [0.12, 0.12, 0.8, 0.8])  # keep track of axes size
         MPLPanel.__init__(self, *args, **kwargs)
 
         self._plot_flag = False
+        self.plot_type = None
         self.plot_base = None
 
         # only used by the heatmap plots
@@ -97,8 +101,8 @@ class PlotBase(MPLPanel):
     @staticmethod
     def _compute_xy_limits(x, y, y_lower_start=0, y_upper_multiplier=1.0, is_heatmap: bool = False):
         """Calculate the x/y axis ranges"""
-        x = np.asarray(x)
-        y = np.asarray(y)
+        x = np.nan_to_num(x, 0)
+        y = np.nan_to_num(y, 0)
         x_min, x_max = get_min_max(x)
         y_min, y_max = get_min_max(y)
 
@@ -1436,3 +1440,84 @@ class PlotBase(MPLPanel):
         elif kwargs["color_scheme"] == "Random":
             colorlist = [get_random_color() for _ in range(n_colors)]
         return colorlist
+
+    def _prepare_waterfall(self, x, y, array, **kwargs):
+        """Prepare data for waterfall plotting"""
+        normalize = kwargs.get("normalize", True)
+        y_increment = kwargs["increment"]
+
+        yy, xy = [], []
+        if array is not None:
+            for i, _y in enumerate(array.T):
+                # normalize (to 1) the intensity of signal
+                if normalize:
+                    _y = _y / _y.max()
+
+                # increase the baseline to set the signal apart from the one before it
+                _y += i * y_increment
+                xy.append(np.column_stack([y, _y]))
+                yy.append(_y.max())
+        else:
+            for i, (_x, _y) in enumerate(zip(x, y)):
+                # normalize (to 1) the intensity of signal
+                if normalize:
+                    _y = _y / _y.max()
+
+                # increase the baseline to set the signal apart from the one before it
+                _y += i * y_increment
+                xy.append(np.column_stack([_x, _y]))
+                yy.append(_y.max())
+
+        return yy, xy
+
+    def plot_waterfall(self, x, y, array, x_label=None, y_label=None, **kwargs):
+        """Plot as waterfall"""
+        # TODO: add labels
+        self._set_axes()
+
+        yy, xy = self._prepare_waterfall(x, y, array, **kwargs)
+        n_signals = len(xy)
+
+        # get list of parameters for the plot
+        lc, fc = self.get_waterfall_colors(n_signals, **kwargs)
+
+        # the list of values is reversed to ensure that the zorder of each plot/line is correct
+        coll = LineCollection(xy[::-1])
+        self.plot_base.add_collection(coll)
+
+        # set line style
+        coll.set_edgecolors(lc)
+        coll.set_linestyle(kwargs["line_style"])
+        coll.set_linewidths(kwargs["line_width"])
+
+        # set face style
+        if kwargs["shade_under"]:
+            coll.set_facecolors(fc)
+
+        # in waterfall plot, the horizontal axis is the mobility axis
+        xlimits, ylimits, extent = self._compute_xy_limits(y, yy, None, is_heatmap=False)
+        # set plot limits
+        self.plot_base.set_xlim(xlimits)
+        self.plot_base.set_ylim(ylimits)
+        self.set_plot_xlabel(x_label, **kwargs)
+        self.set_plot_ylabel(y_label, **kwargs)
+        self.set_tick_parameters(**kwargs)
+
+        self.setup_new_zoom(
+            [self.plot_base],
+            data_limits=extent,
+            allow_extraction=kwargs.get("allow_extraction", False),
+            callbacks=kwargs.get("callbacks", dict()),
+            is_heatmap=True,
+        )
+        self.store_plot_limits([extent], [self.plot_base])
+
+    def update_line(self, x, y, gid, ax):
+        """Update line plot"""
+        lines = ax.get_lines()
+        for line in lines:
+            plot_gid = line.get_gid()
+            if plot_gid == gid:
+                line.set_xdata(x)
+                line.set_ydata(y)
+                break

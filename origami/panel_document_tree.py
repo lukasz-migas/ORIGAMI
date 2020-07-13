@@ -1660,12 +1660,12 @@ class DocumentTree(wx.TreeCtrl):
         menu_action_show_plot_spectrum = make_menu_item(
             parent=menu, text="Show mass spectrum\tAlt+S", bitmap=self._icons.ms
         )
-        menu_action_show_plot_spectrum_waterfall = make_menu_item(
-            parent=menu, text="Show mass spectra as waterfall", bitmap=self._icons.ms
-        )
-        menu_action_show_plot_spectrum_heatmap = make_menu_item(
-            parent=menu, text="Show mass spectra as heatmap", bitmap=self._icons.ms
-        )
+        #         menu_action_show_plot_spectrum_waterfall = make_menu_item(
+        #             parent=menu, text="Show mass spectra as waterfall", bitmap=self._icons.ms
+        #         )
+        #         menu_action_show_plot_spectrum_heatmap = make_menu_item(
+        #             parent=menu, text="Show mass spectra as heatmap", bitmap=self._icons.ms
+        #         )
 
         # process actions
         menu_show_peak_picker_panel = make_menu_item(
@@ -1706,9 +1706,9 @@ class DocumentTree(wx.TreeCtrl):
 
         # append menu
         if self._item.indent == 2:
-            menu.AppendItem(menu_action_show_plot_spectrum_waterfall)
-            menu.AppendItem(menu_action_show_plot_spectrum_heatmap)
-            menu.AppendSeparator()
+            #             menu.AppendItem(menu_action_show_plot_spectrum_waterfall)
+            #             menu.AppendItem(menu_action_show_plot_spectrum_heatmap)
+            #             menu.AppendSeparator()
             menu.AppendItem(menu_show_comparison_panel)
             menu.AppendItem(menu_action_process_ms_all)
             menu.AppendSeparator()
@@ -1845,6 +1845,7 @@ class DocumentTree(wx.TreeCtrl):
         menu_action_show_plot_waterfall = make_menu_item(
             parent=menu, text="Show waterfall plot", bitmap=self._icons.waterfall
         )
+        menu_action_show_plot_joint = make_menu_item(parent=menu, text="Show joint plot", bitmap=self._icons.joint)
         menu_action_show_highlights = make_menu_item(
             parent=menu, text="Highlight ion in mass spectrum\tAlt+X", bitmap=self._icons.zoom
         )
@@ -1873,6 +1874,7 @@ class DocumentTree(wx.TreeCtrl):
         # bind events
         self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap, menu_action_show_plot_2d)
         self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_violin, menu_action_show_plot_violin)
+        self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_joint, menu_action_show_plot_joint)
         self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_waterfall, menu_action_show_plot_waterfall)
         self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_mobilogram, menu_action_show_plot_as_mobilogram)
         self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_chromatogram, menu_action_show_plot_as_chromatogram)
@@ -1902,6 +1904,7 @@ class DocumentTree(wx.TreeCtrl):
             menu.AppendItem(menu_action_show_highlights)
             menu.AppendItem(menu_action_show_plot_violin)
             menu.AppendItem(menu_action_show_plot_waterfall)
+            menu.AppendItem(menu_action_show_plot_joint)
             menu.AppendSeparator()
             menu.AppendItem(menu_action_process_2d)
             menu.AppendSeparator()
@@ -1923,7 +1926,7 @@ class DocumentTree(wx.TreeCtrl):
 
         # view actions
         menu_action_show_plot_2d = make_menu_item(parent=menu, text="Show heatmap\tAlt+S", bitmap=self._icons.heatmap)
-
+        menu_action_show_plot_joint = make_menu_item(parent=menu, text="Show joint plot", bitmap=self._icons.joint)
         # process actions
         menu_action_process_2d = make_menu_item(parent=menu, text="Process...\tP", bitmap=self._icons.process_heatmap)
         menu_action_process_2d_all = make_menu_item(
@@ -1941,6 +1944,7 @@ class DocumentTree(wx.TreeCtrl):
 
         # bind events
         self.Bind(wx.EVT_MENU, self.on_show_plot_dtms, menu_action_show_plot_2d)
+        self.Bind(wx.EVT_MENU, self.on_show_plot_dtms_joint, menu_action_show_plot_joint)
         self.Bind(wx.EVT_MENU, partial(self.on_show_plot_dtms, True), menu_action_save_image_as)
         self.Bind(wx.EVT_MENU, self.on_process_heatmap, menu_action_process_2d)
         self.Bind(wx.EVT_MENU, self.on_batch_process_heatmap, menu_action_process_2d_all)
@@ -1960,6 +1964,7 @@ class DocumentTree(wx.TreeCtrl):
             menu_ylabel = self._get_menu_msdt_label()
 
             menu.AppendItem(menu_action_show_plot_2d)
+            menu.AppendItem(menu_action_show_plot_joint)
             menu.AppendSeparator()
             menu.AppendItem(menu_action_process_2d)
             menu.AppendSeparator()
@@ -3045,6 +3050,29 @@ class DocumentTree(wx.TreeCtrl):
             save_kwargs = {"image_name": defaultValue}
             self.panel_plot.save_images(evt="other", **save_kwargs)
 
+    def on_show_zoom_on_ion(self, evt, save_image=False):
+        if self._item.is_match("heatmap", True):
+            return
+
+        # get data for selected item
+        obj = self._get_item_object()
+        _, title = self._get_item_info()
+
+        self.on_show_plot_zoom_on_mass_spectrum(obj, title)
+
+    #
+    #     if save_image:
+    #         filename = self._item.get_name("heatmap")
+    #         self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
+    def on_show_plot_zoom_on_mass_spectrum(self, data, ion_name):
+        """Zoom-in on an ion"""
+        from origami.utils.labels import get_mz_from_label
+
+        mz_min, mz_max = get_mz_from_label(ion_name)
+
+        self.panel_plot.view_ms.set_xlim(mz_min, mz_max)
+        self.panel_plot.set_page("MS")
+
     def on_show_plot_mass_spectra(self, evt, save_image=False):
         """Show mass spectrum in the main viewer"""
         if self._item.is_match("spectrum", True):
@@ -3059,7 +3087,6 @@ class DocumentTree(wx.TreeCtrl):
             self.panel_plot.save_images(evt="ms", image_name=filename)
 
     def on_show_plot_dtms(self, evt, save_image=False):
-
         if self._item.is_match("msdt", True):
             return
 
@@ -3069,6 +3096,20 @@ class DocumentTree(wx.TreeCtrl):
         if save_image:
             filename = self._item.get_name("dtms")
             self.panel_plot.save_images(evt="ms/dt", image_name=filename)
+
+    def on_show_plot_dtms_joint(self, evt, save_image=False):
+        """Show MS/DT plot as a joint plot"""
+        if self._item.is_match("msdt", True):
+            return
+
+        # get data for selected item
+        obj = self._get_item_object()
+        self.panel_plot.view_msdt.plot_joint(obj=obj)
+        self.panel_plot.set_page("DT/MS")
+
+        if save_image:
+            filename = self._item.get_name("joint")
+            self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
 
     def on_show_plot_mobilogram(self, evt, save_image=False):
         if self._item.is_match("mobilogram", True):
@@ -3087,27 +3128,11 @@ class DocumentTree(wx.TreeCtrl):
 
         # get plot data
         rt_obj = self._get_item_object()
-        self.panel_plot.on_plot_rt(obj=rt_obj)
+        self.panel_plot.on_plot_rt(obj=rt_obj, set_page=True)
 
         if save_image:
             filename = self._item.get_name("rt")
             self.panel_plot.save_images(evt="chromatogram", image_name=filename)
-
-    def on_show_plot_zoom_on_mass_spectrum(self, data, ion_name):
-        raise NotImplementedError("Must implement method")
-        # mz_min, mz_max = ut_labels.get_ion_name_from_label(ion_name)
-        # try:
-        #     mz_min = str2num(mz_min) - self.config.zoomWindowX
-        #     mz_max = str2num(mz_max) + self.config.zoomWindowX
-        # except TypeError:
-        #     if "xylimits" in data:
-        #         mz_min = data["xylimits"][0] - self.config.zoomWindowX
-        #         mz_max = data["xylimits"][1] + self.config.zoomWindowX
-        #     else:
-        #         logger.error(f"Could not zoom-in on the selected item: {ion_name}")
-        #         return
-        #
-        # self.panel_plot.on_zoom_1D_x_axis(mz_min, mz_max, set_page=True, plot="MS")
 
     def on_show_plot_heatmap(self, evt, save_image=False):
         """Show heatmap"""
@@ -3116,9 +3141,8 @@ class DocumentTree(wx.TreeCtrl):
 
         # get data for selected item
         obj = self._get_item_object()
-        self.panel_plot.view_heatmap.plot_violin(obj=obj)
-        #         self.panel_plot.view_heatmap.plot_joint(obj=obj)
-        #         self.panel_plot.on_plot_2d(obj=obj, set_page=True)
+        #         self.panel_plot.view_heatmap.plot_waterfall(obj=obj)
+        self.panel_plot.on_plot_2d(obj=obj, set_page=True)
 
         if save_image:
             filename = self._item.get_name("heatmap")
@@ -3156,10 +3180,22 @@ class DocumentTree(wx.TreeCtrl):
 
         # get data for selected item
         obj = self._get_item_object()
-        self.panel_plot.view_heatmap.plot_violin_quick(obj=obj)
+        self.panel_plot.view_heatmap.plot_violin(obj=obj)
 
         if save_image:
-            filename = self._item.get_name("heatmap")
+            filename = self._item.get_name("violin")
+            self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
+
+    def on_show_plot_heatmap_joint(self, evt, save_image=False):
+        if self._item.is_match("heatmap", True):
+            return
+
+        # get data for selected item
+        obj = self._get_item_object()
+        self.panel_plot.view_heatmap.plot_joint(obj=obj)
+
+        if save_image:
+            filename = self._item.get_name("joint")
             self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
 
     def on_show_plot_heatmap_waterfall(self, evt, save_image=False):
@@ -3171,22 +3207,8 @@ class DocumentTree(wx.TreeCtrl):
         self.panel_plot.view_heatmap.plot_waterfall(obj=obj)
 
         if save_image:
-            filename = self._item.get_name("heatmap")
+            filename = self._item.get_name("waterfall")
             self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
-
-    def on_show_zoom_on_ion(self, evt, save_image=False):
-        if self._item.is_match("heatmap", True):
-            return
-
-        # get data for selected item
-        obj = self._get_item_object()
-        raise NotImplementedError("Not implemented yet")
-
-    #             self.on_show_plot_zoom_on_mass_spectrum(data, self._item_leaf)
-    #
-    #     if save_image:
-    #         filename = self._item.get_name("heatmap")
-    #         self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
 
     def on_show_plot_overlay(self, save_image):
         raise NotImplementedError("Must implement method")

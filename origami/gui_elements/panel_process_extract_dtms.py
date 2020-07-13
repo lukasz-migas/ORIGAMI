@@ -305,7 +305,7 @@ class PanelProcessExtractDTMS(MiniFrame, DatasetMixin):
 
         # notify the user that update was made
         self._update_msg_bar(
-            "Data was extracted! It had dimensions {} x {}".format(msdt_obj.shape[0], msdt_obj.shape[0])
+            "Data was extracted! It had dimensions {} x {}".format(msdt_obj.shape[0], msdt_obj.shape[1])
         )
 
     def on_add_to_document(self, _evt):

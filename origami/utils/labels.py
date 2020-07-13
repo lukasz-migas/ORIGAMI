@@ -6,6 +6,15 @@ import re
 from origami.utils.converters import str2num
 
 
+def get_mz_from_label(label: str):
+    """Get m/z value(s) from string"""
+    idx = re.findall("\d+\.\d+", label)
+    if len(idx) != 2:
+        raise ValueError("Expected two strings")
+    mz_min, mz_max = list(map(float, idx))
+    return mz_min, mz_max
+
+
 def sanitize_string(string, replace_with="; "):
     """Removes all new lines from string
 

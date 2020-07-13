@@ -1,5 +1,6 @@
 """Various container objects"""
 # Standard library imports
+import math
 import logging
 from abc import ABC
 from abc import abstractmethod
@@ -917,8 +918,62 @@ class HeatmapObject(DataObject):
         if not isinstance(self._metadata, dict):
             self._metadata = dict()
 
-    def downsample(self, rate: int = 5, mode: str = "Sub-sample"):
+    def downsample(
+        self,
+        max_x_size: int = 1000,
+        mode: str = "Sub-sample",
+        x: np.ndarray = None,
+        y: np.ndarray = None,
+        array: np.ndarray = None,
+    ):
         """Return data at a down-sampled rate"""
+        if x is None:
+            x = self.x
+        if y is None:
+            y = self.y
+        if array is None:
+            array = self.array
+
+        if mode == "Sub-sample":
+            rate = math.ceil(array.shape[1] / max_x_size)
+            x = x[::rate]
+            array = array[:, ::rate]
+        elif mode == "Summed":
+            n_rows, n_cols = array.shape
+            n_cols = n_cols if n_cols <= max_x_size else max_x_size
+            array, _ = pr_heatmap.view_as_blocks(array, n_rows, n_cols)
+            array = array.sum(axis=0)
+            x, _ = pr_heatmap.view_as_blocks(x[np.newaxis, :], 1, n_cols)
+            x = x.mean(axis=0).ravel()
+
+        return x, y, array
+
+    def _get_roi_slice(self, x_max, x_min, y_max, y_min):
+        x_min_idx, x_max_idx = find_nearest_index(self.x, [x_min, x_max])
+        y_min_idx, y_max_idx = find_nearest_index(self.y, [y_min, y_max])
+        array = self._array[y_min_idx : y_max_idx + 1, x_min_idx : x_max_idx + 1]
+        return array, x_min_idx, x_max_idx + 1, y_min_idx, y_max_idx + 1
+
+    def get_x_for_roi(self, x_min: float, x_max: float, y_min: float, y_max: float):
+        """Get array of intensities for particular region of interest along the horizontal axis"""
+        array, x_min_idx, x_max_idx, _, _ = self._get_roi_slice(x_max, x_min, y_max, y_min)
+        y = np.zeros(self.shape[1])
+        y[x_min_idx:x_max_idx] = array.sum(axis=0)
+        return y
+
+    def get_y_for_roi(self, x_min: float, x_max: float, y_min: float, y_max: float):
+        """Get array of intensities for particular region of interest along the horizontal axis"""
+        array, _, _, y_min_idx, y_max_idx = self._get_roi_slice(x_max, x_min, y_max, y_min)
+        y = np.zeros(self.shape[0])
+        y[y_min_idx:y_max_idx] = array.sum(axis=1)
+        return y
+
+    def get_array_for_roi(self, x_min: float, x_max: float, y_min: float, y_max: float):
+        """Get array of intensities for particular region of interest along both dimensions"""
+        array, x_min_idx, x_max_idx, y_min_idx, y_max_idx = self._get_roi_slice(x_max, x_min, y_max, y_min)
+        x = self.x[x_min_idx:x_max_idx]
+        y = self.x[y_min_idx:y_max_idx]
+        return self.downsample(x=x, y=y, array=array)
 
     def process(
         self,

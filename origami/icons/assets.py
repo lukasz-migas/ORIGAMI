@@ -10,6 +10,7 @@ import wx
 from origami.utils.utilities import is_valid_python_name
 
 ASSETS_PATH = os.path.join(os.path.dirname(__file__), "icons")
+COLORMAPS_PATH = os.path.join(os.path.dirname(__file__), "colormaps")
 
 
 class Icons:
@@ -67,29 +68,46 @@ class Icons:
         return icons
 
 
+class Colormaps(Icons):
+    """Loader of colormap images"""
+
+    def __init__(self, fmt="*.png", path=COLORMAPS_PATH):
+        Icons.__init__(self, fmt, path)
+
+
 class Example(wx.Frame):
     """Example app"""
 
     def __init__(self, *args, **kwargs):
         super(Example, self).__init__(*args, **kwargs)
 
-        self.InitUI()
+        self.init()
 
-    def InitUI(self):
+    def init(self):
+        """Initialize menu"""
         icons = Icons()
-        print(dir(icons))
+        colormaps = Colormaps()
 
         menubar = wx.MenuBar()
-        menu = wx.Menu()
 
+        menu_file = wx.Menu()
         for i, (key, icon) in enumerate(icons.items()):
-            file_item = menu.Append(wx.ID_ANY, key, "Quit application")
+            file_item = menu_file.Append(wx.ID_ANY, key, "Quit application")
             file_item.SetBitmap(icon)
             self.Bind(wx.EVT_MENU, self.on_close, file_item)
             if i % 25 == 0:
-                menu.Break()
+                menu_file.Break()
+        menubar.Append(menu_file, "&Icons")
 
-        menubar.Append(menu, "&File")
+        menu_cmap = wx.Menu()
+        for i, (key, icon) in enumerate(colormaps.items()):
+            file_item = menu_cmap.Append(wx.ID_ANY, key, "Quit application")
+            file_item.SetBitmap(icon)
+            self.Bind(wx.EVT_MENU, self.on_close, file_item)
+            if i % 25 == 0:
+                menu_cmap.Break()
+        menubar.Append(menu_cmap, "&Colormaps")
+
         self.SetMenuBar(menubar)
 
         self.SetSize((300, 200))

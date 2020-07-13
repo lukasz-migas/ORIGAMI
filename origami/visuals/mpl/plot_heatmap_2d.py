@@ -12,7 +12,6 @@ from matplotlib import gridspec
 from matplotlib.colors import LogNorm
 from matplotlib.colors import PowerNorm
 from matplotlib.ticker import MaxNLocator
-from matplotlib.collections import LineCollection
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
@@ -23,6 +22,7 @@ from origami.utils.color import convert_rgb_1_to_255
 from origami.config.config import CONFIG
 from origami.utils.visuals import prettify_tick_format
 from origami.visuals.mpl.base import PlotBase
+from origami.visuals.mpl.gids import PlotIds
 from origami.visuals.mpl.normalize import MidpointNormalize
 
 logger = logging.getLogger(__name__)
@@ -32,7 +32,8 @@ class PlotHeatmap2D(PlotBase):
     def __init__(self, *args, **kwargs):
         PlotBase.__init__(self, *args, **kwargs)
 
-    def plot_2d(self, x, y, array, title="", x_label="", y_label="", **kwargs):
+    def plot_2d(self, x, y, array, title="", x_label="", y_label="", obj=None, **kwargs):
+        self.PLOT_TYPE = "heatmap"
         self._set_axes()
 
         xlimits, ylimits, extent = self._compute_xy_limits(x, y, None, is_heatmap=True)
@@ -61,6 +62,7 @@ class PlotHeatmap2D(PlotBase):
             allow_extraction=kwargs.get("allow_extraction", False),
             callbacks=kwargs.get("callbacks", dict()),
             is_heatmap=True,
+            obj=obj,
         )
         self.store_plot_limits([extent], [self.plot_base])
 
@@ -70,21 +72,10 @@ class PlotHeatmap2D(PlotBase):
         # update normalization
         self.plot_2D_update_normalization(**kwargs)
 
-    def plot_2d_update_data(self, x, y, array, x_label=None, y_label=None, **kwargs):
-
+    def plot_2d_update_data(self, x, y, array, x_label=None, y_label=None, obj=None, **kwargs):
         xlimits, ylimits, extent = self._compute_xy_limits(x, y, None, is_heatmap=True)
-        # # clear plot in some circumstances
-        # if self._plot_tag in ["rmsd_matrix"]:
-        #     self.clear()
-        #
-        # # rotate data
-        # if self.rotate != 0 and not kwargs.pop("already_rotated", False):
-        #     y, array = self.on_rotate_heatmap_data(y, array)
-        #
-        # # update settings
-        # self._check_and_update_plot_settings(**kwargs)
-        #
-        # # update limits and extents
+
+        # update limits and extents
         self.cax.set_data(array)
         # self.cax.set_norm(kwargs.get("colormap_norm", None))
         self.cax.set_extent([*xlimits, *ylimits])
@@ -100,68 +91,21 @@ class PlotHeatmap2D(PlotBase):
         self.plot_2D_update_normalization(**kwargs)
 
         # add colorbar
-        self.set_colorbar_parameters(array, **kwargs)
+        if self.PLOT_TYPE in ["heatmap"]:
+            self.set_colorbar_parameters(array, **kwargs)
+        elif self.PLOT_TYPE in ["joint"]:
+            yy = array.sum(axis=1)
+            xy = array.sum(axis=0)
+            self.update_line(x, xy, PlotIds.PLOT_JOINT_X, self.plot_joint_x)
+            self.update_line(yy, y, PlotIds.PLOT_JOINT_Y, self.plot_joint_y)
 
         # update plot limits
-        self.update_extents(extent)
+        self.update_extents(extent, obj=obj)
         self.store_plot_limits([extent], [self.plot_base])
 
-    def plot_waterfall(self, x, y, array, x_label=None, y_label=None, **kwargs):
-        """Plot as waterfall"""
-        # TODO: add labels
-        self._set_axes()
-
-        normalize = kwargs.get("normalize", True)
-        y_increment = kwargs["increment"]
-
-        yy, xy = [], []
-        for i, _y in enumerate(array.T):
-            # normalize (to 1) the intensity of signal
-            if normalize:
-                _y = _y / _y.max()
-
-            # increase the baseline to set the signal apart from the one before it
-            _y += i * y_increment
-            xy.append(np.column_stack([y, _y]))
-            yy.append(_y.max())
-
-        # get list of parameters for the plot
-        lc, fc = self.get_waterfall_colors(i, **kwargs)
-
-        # the list of values is reversed to ensure that the zorder of each plot/line is correct
-        coll = LineCollection(xy[::-1])
-        self.plot_base.add_collection(coll)
-
-        # set line style
-        coll.set_edgecolors(lc)
-        coll.set_linestyle(kwargs["line_style"])
-        coll.set_linewidths(kwargs["line_width"])
-
-        # set face style
-        if kwargs["shade_under"]:
-            coll.set_facecolors(fc)
-
-        # in waterfall plot, the horizontal axis is the mobility axis
-        xlimits, ylimits, extent = self._compute_xy_limits(y, yy, None, is_heatmap=False)
-
-        # set plot limits
-        self.plot_base.set_xlim(xlimits)
-        self.plot_base.set_ylim(ylimits)
-        self.set_plot_xlabel(x_label, **kwargs)
-        self.set_plot_ylabel(y_label, **kwargs)
-        self.set_tick_parameters(**kwargs)
-
-        self.setup_new_zoom(
-            [self.plot_base],
-            data_limits=extent,
-            allow_extraction=kwargs.get("allow_extraction", False),
-            callbacks=kwargs.get("callbacks", dict()),
-            is_heatmap=True,
-        )
-        self.store_plot_limits([extent], [self.plot_base])
-
-    def plot_violin(self, x, y, array, x_label=None, y_label=None, **kwargs):
+    def plot_violin(self, x, y, array, x_label=None, y_label=None, obj=None, **kwargs):
         """Plot as violin"""
+        self.PLOT_TYPE = "violin"
         self._set_axes()
 
         normalize = kwargs.get("normalize", True)
@@ -181,11 +125,14 @@ class PlotHeatmap2D(PlotBase):
             # normalize (to 1) the intensity of signal
             if normalize:
                 _y = (_y / _y.max()).astype(np.float32)
+            _y = np.nan_to_num(_y, 0)
 
             # in order to remove the baseline of the plot, we apply slight filter on the data, reducing the overall
             # number of points
             filter_index = _y > (_y.max() * min_percentage)
             _y = _y[filter_index]
+            if len(_y) == 0:
+                continue
             if orientation == "vertical":
                 self.plot_base.fill_betweenx(
                     y[filter_index],
@@ -196,7 +143,6 @@ class PlotHeatmap2D(PlotBase):
                     facecolor=_fc,
                     clip_on=True,
                 )
-                yy.append(_y.max() + offset)
             else:
                 self.plot_base.fill_between(
                     y[filter_index],
@@ -207,7 +153,8 @@ class PlotHeatmap2D(PlotBase):
                     facecolor=_fc,
                     clip_on=True,
                 )
-                yy.append(_y.max() + offset)
+            # keep track of the maximum values
+            yy.append(_y.max() + offset)
 
             if kwargs["labels_frequency"] != 0:
                 if i % kwargs["labels_frequency"] == 0 or i == n_signals - 1:
@@ -241,89 +188,24 @@ class PlotHeatmap2D(PlotBase):
             allow_extraction=kwargs.get("allow_extraction", False),
             callbacks=kwargs.get("callbacks", dict()),
             is_heatmap=True,
+            obj=obj,
         )
         self.store_plot_limits([extent], [self.plot_base])
 
-    def plot_violin_quick(self, x, y, array, x_label=None, y_label=None, **kwargs):
-        """Plot as violin"""
-        # TODO: add labels
-        self._set_axes()
-
-        normalize = kwargs.get("normalize", True)
-        spacing = kwargs.get("spacing", 0.5)
-        orientation = kwargs.get("orientation", "vertical")
-        min_percentage = kwargs.get("min_percentage", 0.03)
-
-        offset = spacing
-        yy, xy = [], []
-        for i, _y in enumerate(array.T):
-            # normalize (to 1) the intensity of signal
-            if normalize:
-                _y = (_y / _y.max()).astype(np.float32)
-
-            # increase the baseline to set the signal aparxt from the one before it
-            max_value = _y.max()
-            filter_index = _y > (_y.max() * min_percentage)
-            _y = _y[filter_index]
-            if orientation == "vertical":
-                xy.append(np.column_stack([-_y + offset, y[filter_index]]))
-                xy.append(np.column_stack([_y + offset, y[filter_index]]))
-                yy.append(_y.max() + offset)
-            else:
-                xy.append(np.column_stack([y[filter_index], -_y + offset]))
-                xy.append(np.column_stack([y[filter_index], _y + offset]))
-                yy.append(_y.max() + offset)
-
-            offset = offset + (max_value * 2) + spacing
-
-        # in waterfall plot, the horizontal axis is the mobility axis
-        if orientation != "vertical":
-            xlimits, ylimits, extent = self._compute_xy_limits(y, yy, 0, is_heatmap=False)
-        else:
-            xlimits, ylimits, extent = self._compute_xy_limits(yy, y, 0, is_heatmap=False)
-            x_label, y_label = y_label, x_label
-
-        # get list of parameters for the plot
-        lc, fc = self.get_violin_colors(i, **kwargs)
-
-        # the list of values is reversed to ensure that the zorder of each plot/line is correct
-        coll = LineCollection(xy[::-1], antialiased=np.ones(len(xy)))
-        self.plot_base.add_collection(coll)
-
-        # set line style
-        coll.set_edgecolors(lc)
-        coll.set_linestyle(kwargs["line_style"])
-        coll.set_linewidths(kwargs["line_width"])
-
-        # set face style
-        if kwargs["shade_under"]:
-            coll.set_facecolors(fc)
-            coll.set_clip_on(True)
-
-        # set plot limits
-        self.plot_base.set_xlim(xlimits)
-        self.plot_base.set_ylim(ylimits)
-        self.set_plot_xlabel(x_label, **kwargs)
-        self.set_plot_ylabel(y_label, **kwargs)
-        self.set_tick_parameters(**kwargs)
-
-        self.setup_new_zoom(
-            [self.plot_base],
-            data_limits=extent,
-            allow_extraction=kwargs.get("allow_extraction", False),
-            callbacks=kwargs.get("callbacks", dict()),
-            is_heatmap=True,
-        )
-        self.store_plot_limits([extent], [self.plot_base])
-
-    def plot_joint(self, x, y, array, x_label=None, y_label=None, ratio: int = 5, **kwargs):
-        """Plot as violin"""
+    def plot_joint(self, x, y, array, x_label=None, y_label=None, ratio: int = 5, obj=None, **kwargs):
+        """Plot as joint"""
+        self.PLOT_TYPE = "joint"
         gs = gridspec.GridSpec(ratio + 1, ratio + 1, wspace=0.1, hspace=0.1)
         self.plot_base = self.figure.add_subplot(gs[1:, :-1])
-        self.plot_joint_x = self.figure.add_subplot(gs[0, :-1], sharex=self.plot_base)
-        self.plot_joint_y = self.figure.add_subplot(gs[1:, -1], sharey=self.plot_base)
+        self.plot_base.set_gid(PlotIds.PLOT_JOINT_XY)
 
-        xlimits, ylimits, extent = self._compute_xy_limits(x, y, None, is_heatmap=True)
+        self.plot_joint_x = self.figure.add_subplot(gs[0, :-1], sharex=self.plot_base)
+        self.plot_joint_x.set_gid(PlotIds.PLOT_JOINT_X)
+
+        self.plot_joint_y = self.figure.add_subplot(gs[1:, -1], sharey=self.plot_base)
+        self.plot_joint_y.set_gid(PlotIds.PLOT_JOINT_Y)
+
+        xlimits, ylimits, extent = self._compute_xy_limits(x, y, None, is_heatmap=False)
 
         yy = array.sum(axis=1)
         xy = array.sum(axis=0)
@@ -337,11 +219,12 @@ class PlotHeatmap2D(PlotBase):
             aspect="auto",
             origin="lower",
             extent=[*xlimits, *ylimits],
+            gid=PlotIds.PLOT_JOINT_XY,
         )
 
         # set margin plots
-        self.plot_joint_x.plot(x, xy)
-        self.plot_joint_y.plot(yy, y)
+        self.plot_joint_x.plot(x, xy, gid=PlotIds.PLOT_JOINT_X)
+        self.plot_joint_y.plot(yy, y, gid=PlotIds.PLOT_JOINT_Y)
 
         # turn off the ticks on the density axis for the marginal plots
         self._joint_despine(self.plot_joint_x, "horizontal")
@@ -359,12 +242,15 @@ class PlotHeatmap2D(PlotBase):
         _, _, extent_y = self._compute_xy_limits(yy, y, 0, 1, False)
         extent = [extent, extent_x, extent_y]
 
+        # setup zoom
         self.setup_new_zoom(
             [self.plot_base, self.plot_joint_x, self.plot_joint_y],
             data_limits=extent,
             allow_extraction=kwargs.get("allow_extraction", False),
             callbacks=kwargs.get("callbacks", dict()),
             is_heatmap=True,
+            is_joint=True,
+            obj=obj,
         )
         self.store_plot_limits(extent, [self.plot_base, self.plot_joint_x, self.plot_joint_y])
 

@@ -4,7 +4,6 @@ import logging
 # Third-party imports
 import numpy as np
 import matplotlib
-from seaborn import color_palette
 from matplotlib import patches
 from matplotlib import gridspec
 from matplotlib.ticker import MaxNLocator
@@ -14,7 +13,6 @@ from matplotlib.collections import LineCollection
 import origami.utils.visuals as ut_visuals
 from origami.utils.misc import merge_two_dicts
 from origami.utils.misc import remove_nan_from_list
-from origami.utils.color import get_random_color
 from origami.utils.labels import _replace_labels
 from origami.utils.ranges import get_min_max
 from origami.utils.ranges import find_limits_all
@@ -1337,146 +1335,6 @@ class PlotSpectrum(PlotBase):
         # Setup X-axis getter
         self.setupGetXAxies([self.plot_base])
         self.plot_base.set_xlim([xlimits[0], xlimits[1]])
-
-    def plot_1D_violin(
-        self,
-        xvals=None,
-        yvals=None,
-        zvals=None,
-        xlabel="",
-        ylabel="",
-        orientation="vertical",
-        axesSize=None,
-        plotName="Violin",
-        plotType="Violin",
-        **kwargs,
-    ):
-
-        # update settings
-        self._check_and_update_plot_settings(plot_name=plotType, axes_size=axesSize, **kwargs)
-
-        self.plot_base = self.figure.add_axes(self._axes)
-        if kwargs["label_weight"]:
-            kwargs["label_weight"] = "heavy"
-        else:
-            kwargs["label_weight"] = "normal"
-
-        n_count = zvals.shape[1]
-        if kwargs["color_scheme"] == "Colormap":
-            colorlist = color_palette(kwargs["colormap"], n_count)
-        elif kwargs["color_scheme"] == "Color palette":
-            if kwargs["palette"] not in ["Spectral", "RdPu"]:
-                kwargs["palette"] = kwargs["palette"].lower()
-            colorlist = color_palette(kwargs["palette"], n_count)
-        elif kwargs["color_scheme"] == "Same color":
-            colorlist = [kwargs["shade_color"]] * n_count
-        elif kwargs["color_scheme"] == "Random":
-            colorlist = []
-            for __ in range(n_count):
-                colorlist.append(get_random_color())
-
-        tick_labels, tick_position = [], []
-        min_percentage = kwargs.get("min_percentage", 0.03)
-        normalize = kwargs.get("normalize", True)
-        spacing = kwargs.get("spacing", 0.5)
-
-        offset = spacing
-        offset_list = []
-        # precalculate positions
-        for i in range(n_count):
-            yvals_in = zvals[:, i]
-            max_value = np.max(yvals_in)
-            offset_list.append(max_value)
-
-        # select appropriate fcn
-        if orientation == "horizontal":
-            plot_fcn = self.plot_base.fill_between
-        else:
-            plot_fcn = self.plot_base.fill_betweenx
-
-        for i in range(n_count):
-            # get yvals
-            yvals_in = zvals[:, i]
-            if normalize:
-                yvals_in = normalize_1D(yvals_in)
-
-            # calculate offset
-            max_value = np.max(yvals_in)
-
-            if normalize:
-                offset = offset + max_value * 2 + spacing
-            else:
-                if i == 0:
-                    offset = offset + max_value
-                else:
-                    offset = offset + max_value + (offset_list[(i - 1)]) + spacing
-
-            filter_index = yvals_in > (max_value * min_percentage)
-            # minimise number of points
-            xvals_plot = xvals[filter_index]
-            yvals_plot = yvals_in[filter_index]
-
-            if kwargs["line_color_as_shade"]:
-                line_color = colorlist[i]
-            else:
-                line_color = kwargs["line_color"]
-
-            shade_kws = dict(
-                facecolor=colorlist[i],
-                alpha=kwargs.get("shade_under_transparency", 0.25),
-                clip_on=kwargs.get("clip_on", True),
-            )
-
-            plot_fcn(
-                xvals_plot,
-                -yvals_plot + offset,
-                yvals_plot + offset,
-                edgecolor=line_color,
-                linewidth=kwargs["line_width"],
-                **shade_kws,
-            )
-
-            if kwargs["labels_frequency"] != 0:
-                if i % kwargs["labels_frequency"] == 0 or i == n_count - 1:
-                    tick_position.append(offset)
-                    tick_labels.append(ut_visuals.convert_label(yvals[int(i)], label_format=kwargs["labels_format"]))
-
-        xlimits = self.plot_base.get_xlim()
-        ylimits = self.plot_base.get_ylim()
-        extent = [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
-        if orientation == "horizontal":
-            self.plot_base.set_yticks(tick_position)
-            self.plot_base.set_yticklabels(tick_labels)
-            xlabel, ylabel = ylabel, xlabel
-        else:
-            self.plot_base.set_xticks(tick_position)
-            self.plot_base.set_xticklabels(tick_labels)
-
-        handles, __ = self.plot_base.get_legend_handles_labels()
-        self.set_legend_parameters(handles, **kwargs)
-
-        self.set_plot_xlabel(xlabel, **kwargs)
-        self.set_plot_ylabel(ylabel, **kwargs)
-
-        self.set_tick_parameters(**kwargs)
-
-        for __, line in enumerate(self.plot_base.get_lines()):
-            line.set_linewidth(kwargs["line_width"])
-            line.set_linestyle(kwargs["line_style"])
-
-        self.plot_base.spines["left"].set_visible(kwargs["spines_left"])
-        self.plot_base.spines["right"].set_visible(kwargs["spines_right"])
-        self.plot_base.spines["top"].set_visible(kwargs["spines_top"])
-        self.plot_base.spines["bottom"].set_visible(kwargs["spines_bottom"])
-        for i in self.plot_base.spines.values():
-            i.set_linewidth(kwargs["frame_width"])
-
-        # a couple of set values
-        self.n_colors = n_count
-
-        # setup zoom and plot limits
-        self.setup_zoom([self.plot_base], self.zoomtype, plotName=plotName, data_lims=extent)
-        self.plot_base.plot_limits = [xlimits[0], xlimits[1], ylimits[0], ylimits[1]]
 
     def plot_n_grid_1D_overlay(
         self, xvals, yvals, xlabel, ylabel, labels, colors, plotName="Grid_1D", axesSize=None, testMax="yvals", **kwargs

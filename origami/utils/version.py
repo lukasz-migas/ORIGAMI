@@ -50,6 +50,7 @@ def get_latest_version(user_repo: str = "lukasz-migas/ORIGAMI", username: str = 
     failed : bool
         indicates whether the request was successful - if version could not be retrieved, `False` will be returned
     """
+
     # create safe pool
     http = urllib3.PoolManager(cert_reqs="CERT_REQUIRED", ca_certs=certifi.where())
 

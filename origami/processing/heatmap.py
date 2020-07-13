@@ -11,6 +11,7 @@ from sklearn.preprocessing import normalize
 # Local imports
 from origami.utils.check import is_prime
 from origami.utils.check import check_value_order
+from origami.utils.utilities import find_nearest_divisible
 from origami.processing.utils import nthroot
 from origami.processing.utils import find_nearest_index
 from origami.utils.exceptions import MessageError
@@ -324,3 +325,37 @@ def bin_mean_array(data, xvals, division_factor):
 def bin_mean_1D_array(xvals, new_shape):
     xvals = np.reshape(xvals, (1, new_shape[1], new_shape[2])).mean(axis=2)
     return np.reshape(xvals, (new_shape[1],))
+
+
+def view_as_blocks(array, n_rows: int = 200, n_cols: int = 1000):
+    """Return an array of shape (n, n_rows, n_cols) where n * n_rows * n_cols = array.size
+
+    If array is a 2D array, the returned array should look like n sub-blocks with
+    each sub-block preserving the "physical" layout of array.
+
+    Parameters
+    ----------
+    array : np.ndarray
+        input array
+    n_rows : int
+        number of rows in each sub-block
+    n_cols : int
+        number of columns in each sub-block
+
+    References
+    ----------
+    Inspired by a StackOverflow post [1]
+    [1] https://stackoverflow.com/questions/16856788/slice-2d-array-into-smaller-2d-arrays
+    """
+    h, w = array.shape
+    # if the shape is incorrect, pad the array with NaNs at the outer edges
+    if h % n_rows != 0 or w % n_cols != 0:
+        new_height = find_nearest_divisible(h, n_rows)
+        new_width = find_nearest_divisible(w, n_cols)
+        _array = array
+        array = np.full((new_height, new_width), fill_value=np.nan)
+        array[:h, :w] = _array
+        h, w = array.shape
+
+    new_shape = (int(h / n_rows), int(w / n_cols))
+    return array.reshape((h // n_rows, n_rows, -1, n_cols)).swapaxes(1, 2).reshape(-1, n_rows, n_cols), new_shape

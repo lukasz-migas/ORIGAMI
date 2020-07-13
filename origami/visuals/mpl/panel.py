@@ -138,7 +138,8 @@ class MPLPanel(wx.Panel):
         allow_extraction=True,
         callbacks=None,
         is_heatmap: bool = False,
-        plot_id: str = None,
+        is_joint: bool = False,
+        obj=None,
     ):
         """Setup the new-style matplotlib zoom"""
         if callbacks is None:
@@ -156,6 +157,8 @@ class MPLPanel(wx.Panel):
             callbacks=callbacks,
             parent=self.GetParent(),
             is_heatmap=is_heatmap,
+            is_joint=is_joint,
+            obj=obj,
             plot_id=self.plot_id,
         )
 
@@ -168,8 +171,10 @@ class MPLPanel(wx.Panel):
         plotParameters=None,
         allowWheel=True,
         allow_extraction=True,
-        callbacks=dict(),
+        callbacks=None,
     ):
+        if callbacks is None:
+            callbacks = dict()
         if plotParameters is None:
             plotParameters = self._generatePlotParameters()
 
@@ -192,9 +197,9 @@ class MPLPanel(wx.Panel):
         )
         # self.onRebootZoomKeys(evt=None)
 
-    def update_extents(self, extents: List):
+    def update_extents(self, extents: List, obj=None):
         """Update plot extents"""
-        self.zoom.update_extents(extents)
+        self.zoom.update_handler(data_limits=extents, obj=obj)
 
     def update_y_extents(self, y_min: float, y_max: float):
         """Update y-axis plot extents"""

@@ -70,7 +70,6 @@ from origami.utils.color import convert_rgb_1_to_255
 from origami.utils.color import convert_rgb_1_to_hex
 from origami.icons.assets import Icons
 from origami.config.config import CONFIG
-from origami.utils.exceptions import MessageError
 from origami.objects.containers import DataObject
 from origami.objects.containers import IonHeatmapObject
 from origami.objects.containers import MobilogramObject
@@ -254,8 +253,11 @@ class PanelPlots(wx.Panel):
         """Return index to the tab"""
         return {
             "Mass spectrum": 0,
+            "MS": 0,
             "Chromatogram": 1,
+            "RT": 1,
             "Mobilogram": 2,
+            "DT": 2,
             "Heatmap": 3,
             "DT/MS": 4,
             "Waterfall": 5,
@@ -263,7 +265,7 @@ class PanelPlots(wx.Panel):
             "Annotated": 7,
         }.get(tab_name, 0)
 
-    def _set_page(self, page_id: Union[int, str]):
+    def set_page(self, page_id: Union[int, str]):
         """Set current page in the window"""
         # provided string so have to find appropriate window
         if isinstance(page_id, str):
@@ -525,23 +527,9 @@ class PanelPlots(wx.Panel):
 
     def on_process_heatmap(self, _evt):
         """Process heatmap"""
-        plot_obj = self.get_plot_from_name(self.currentPage)
-        data = plot_obj.plot_2D_get_data()
-
-        # ensure correct keys are present
-        if "xlabels" not in data:
-            data["xlabels"] = data["xlabel"]
-        if "ylabels" not in data:
-            data["ylabels"] = data["ylabel"]
-        try:
-            self.document_tree.on_process_2D_plot_only(self.currentPage, data)
-        except ValueError:
-            raise MessageError(
-                "Failed processing",
-                "This error can occur when visually processing DT/MS dataset. It is best to simply"
-                + " right-click on DT/MS item in the Document Tree and select 'Process...'"
-                + " where it should not occur.",
-            )
+        view_obj = self.get_view_from_name(self.currentPage)
+        heatmap_obj = view_obj.get_object()
+        self.document_tree.on_open_process_heatmap_settings(heatmap_obj=heatmap_obj, disable_process=True)
 
     def on_right_click(self, _evt):
         """Right-click event handler"""
@@ -767,38 +755,36 @@ class PanelPlots(wx.Panel):
             menu.AppendItem(
                 make_menu_item(parent=menu, evt_id=ID_clearPlot_2D, text="Clear plot", bitmap=self._icons.clear)
             )
-        # elif self.currentPage == "DT/MS":
-        #     menu.AppendItem(menu_action_process_2D)
-        #     #             menu.AppendItem(menu_action_rotate90)
-        #     menu.AppendSeparator()
-        #     menu.AppendItem(
-        #         make_menu_item(
-        #             parent=menu,
-        #             evt_id=ID_plots_customise_smart_zoom,
-        #             text="Customise smart zoom....",
-        #             bitmap=self._icons.iconsLib["zoom_16"],
-        #         )
-        #     )
-        #     menu.AppendSeparator()
-        #     menu.AppendItem(menu_edit_general)
-        #     menu.AppendItem(menu_edit_plot_2D)
-        #     menu.AppendItem(menu_edit_colorbar)
-        #     self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, "Lock plot", help="")
-        #     self.lock_plot_check.Check(self.plot_msdt.lock_plot_from_updating)
-        #     menu.AppendItem(menu_customise_plot)
-        #     menu.AppendSeparator()
-        #     self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
-        #     self.resize_plot_check.Check(CONFIG.resize)
-        #     menu.AppendItem(
-        #         make_menu_item(parent=menu, evt_id=ID_saveMZDTImage, text="Save figure as...", bitmap=self._icons.png)
-        #     )
-        #     menu.AppendItem(menu_action_copy_to_clipboard)
-        #     menu.AppendSeparator()
-        #     menu.AppendItem(
-        #         make_menu_item(
-        #             parent=menu, evt_id=ID_clearPlot_MZDT, text="Clear plot", bitmap=self._icons.clear
-        #         )
-        #     )
+        elif self.currentPage == "DT/MS":
+            menu.AppendItem(menu_action_process_2d)
+            #             menu.AppendItem(menu_action_rotate90)
+            menu.AppendSeparator()
+            menu.AppendItem(
+                make_menu_item(
+                    parent=menu,
+                    evt_id=ID_plots_customise_smart_zoom,
+                    text="Customise smart zoom....",
+                    bitmap=self._icons.highlight,
+                )
+            )
+            menu.AppendSeparator()
+            menu.AppendItem(menu_edit_general)
+            menu.AppendItem(menu_edit_plot_2d)
+            menu.AppendItem(menu_edit_colorbar)
+            self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, "Lock plot", help="")
+            self.lock_plot_check.Check(self.plot_msdt.lock_plot_from_updating)
+            menu.AppendItem(menu_customise_plot)
+            menu.AppendSeparator()
+            self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
+            self.resize_plot_check.Check(CONFIG.resize)
+            menu.AppendItem(
+                make_menu_item(parent=menu, evt_id=ID_saveMZDTImage, text="Save figure as...", bitmap=self._icons.png)
+            )
+            menu.AppendItem(menu_action_copy_to_clipboard)
+            menu.AppendSeparator()
+            menu.AppendItem(
+                make_menu_item(parent=menu, evt_id=ID_clearPlot_MZDT, text="Clear plot", bitmap=self._icons.clear)
+            )
         elif self.currentPage == "Heatmap (3D)":
             menu.AppendItem(menu_edit_plot_3d)
             menu.AppendSeparator()
@@ -1016,6 +1002,23 @@ class PanelPlots(wx.Panel):
         plot_obj = plot_dict.get(plot_name, None)
         if plot_obj is None:
             logger.error(f"Could not find plot object with name `{plot_name}")
+        return plot_obj
+
+    def get_view_from_name(self, plot_name: str):
+        """Retrieve view from name"""
+        plot_dict = {
+            "mass spectrum": self.view_ms,
+            "chromatogram": self.view_rt_rt,
+            "mobilogram": self.view_dt_dt,
+            "heatmap": self.view_heatmap,
+            "msdt": self.view_msdt,
+            "dt/ms": self.view_msdt,
+            "3d": self.view_heatmap_3d,
+        }
+        plot_name = plot_name.lower()
+        plot_obj = plot_dict.get(plot_name, None)
+        if plot_obj is None:
+            logger.error(f"Could not find view object with name `{plot_name}")
         return plot_obj
 
     def get_plot_from_id(self, id_value):
@@ -1253,35 +1256,35 @@ class PanelPlots(wx.Panel):
         self.view_ms.plot(obj=obj, allow_extraction=allow_extraction)
 
         if set_page:
-            self._set_page("Mass spectrum")
+            self.set_page("Mass spectrum")
 
     def on_plot_1d(self, obj, allow_extraction: bool = True, set_page: bool = False):
         """Plot mobilogram"""
         self.view_dt_dt.plot(obj=obj, allow_extraction=allow_extraction)
 
         if set_page:
-            self._set_page("Mobilogram")
+            self.set_page("Mobilogram")
 
     def on_plot_rt(self, obj, allow_extraction: bool = True, set_page: bool = False):
         """Plot chromatogram"""
         self.view_rt_rt.plot(obj=obj, allow_extraction=allow_extraction)
 
         if set_page:
-            self._set_page("Chromatogram")
+            self.set_page("Chromatogram")
 
     def on_plot_2d(self, obj, allow_extraction: bool = True, set_page: bool = False):
         """Plot heatmap"""
         self.view_heatmap.plot(obj=obj, allow_extraction=allow_extraction)
 
         if set_page:
-            self._set_page("Heatmap")
+            self.set_page("Heatmap")
 
     def on_plot_dtms(self, obj, allow_extraction: bool = True, set_page: bool = False):
         """Plot heatmap"""
         self.view_msdt.plot(obj=obj, allow_extraction=allow_extraction)
 
         if set_page:
-            self._set_page("DT/MS")
+            self.set_page("DT/MS")
 
     # def on_rotate_plot(self, evt):
     #     plot = self.get_plot_from_name(self.currentPage)
@@ -2086,7 +2089,7 @@ class PanelPlots(wx.Panel):
     #     else:
     #         plot_obj = self.get_plot_from_name(plot)
     #         if set_page:
-    #             self._set_page(CONFIG.panelNames["Other"])
+    #             self.set_page(CONFIG.panelNames["Other"])
     #
     #     plt_kwargs = self._buildPlotParameters(plotType="1D")
     #     plt_kwargs = merge_two_dicts(plt_kwargs, kwargs)
@@ -2129,7 +2132,7 @@ class PanelPlots(wx.Panel):
     #     else:
     #         plot_obj = self.get_plot_from_name(plot)
     #         if set_page:
-    #             self._set_page(CONFIG.panelNames["Other"])
+    #             self.set_page(CONFIG.panelNames["Other"])
     #     # Build kwargs
     #     plt_kwargs = self._buildPlotParameters(plotType="1D")
     #     plt_kwargs = merge_two_dicts(plt_kwargs, kwargs)
@@ -2160,7 +2163,7 @@ class PanelPlots(wx.Panel):
     #     else:
     #         plot_obj = self.get_plot_from_name(plot)
     #         if set_page:
-    #             self._set_page(CONFIG.panelNames["Other"])
+    #             self.set_page(CONFIG.panelNames["Other"])
     #
     #     plt_kwargs = self._buildPlotParameters(["1D", "waterfall"])
     #     if "increment" in kwargs:
@@ -2203,7 +2206,7 @@ class PanelPlots(wx.Panel):
     #     else:
     #         plot_obj = self.get_plot_from_name(plot)
     #         if set_page:
-    #             self._set_page(CONFIG.panelNames["Other"])
+    #             self.set_page(CONFIG.panelNames["Other"])
     #
     #     # Build kwargs
     #     plt_kwargs = self._buildPlotParameters(plotType="1D")
@@ -2237,7 +2240,7 @@ class PanelPlots(wx.Panel):
     #     else:
     #         plot_obj = self.get_plot_from_name(plot)
     #         if set_page:
-    #             self._set_page(CONFIG.panelNames["Other"])
+    #             self.set_page(CONFIG.panelNames["Other"])
     #
     #     # Build kwargs
     #     plt_kwargs = self._buildPlotParameters(plotType="1D")
@@ -2269,7 +2272,7 @@ class PanelPlots(wx.Panel):
     #     else:
     #         plot_obj = self.get_plot_from_name(plot)
     #         if set_page:
-    #             self._set_page(CONFIG.panelNames["Other"])
+    #             self.set_page(CONFIG.panelNames["Other"])
     #
     #     # Build kwargs
     #     plt_kwargs = self._buildPlotParameters(plotType="1D")
@@ -2301,7 +2304,7 @@ class PanelPlots(wx.Panel):
     #     else:
     #         plot_obj = self.get_plot_from_name(plot)
     #         if set_page:
-    #             self._set_page(CONFIG.panelNames["Other"])
+    #             self.set_page(CONFIG.panelNames["Other"])
     #
     #     # Build kwargs
     #     plt_kwargs = self._buildPlotParameters(plotType="1D")
@@ -2363,7 +2366,7 @@ class PanelPlots(wx.Panel):
     #     else:
     #         plot_obj = self.get_plot_from_name(plot)
     #         if set_page:
-    #             self._set_page(CONFIG.panelNames["MS"])
+    #             self.set_page(CONFIG.panelNames["MS"])
     #
     #     # Build kwargs
     #     plt_kwargs = self._buildPlotParameters(plotType="1D")
@@ -2430,7 +2433,7 @@ class PanelPlots(wx.Panel):
     #     else:
     #         plot_obj = self.get_plot_from_name(plot)
     #         if set_page:
-    #             self._set_page(CONFIG.panelNames["MS"])
+    #             self.set_page(CONFIG.panelNames["MS"])
     #
     #     # Build kwargs
     #     plt_kwargs = self._buildPlotParameters(plotType="1D")
@@ -2654,7 +2657,7 @@ class PanelPlots(wx.Panel):
     #     else:
     #         plot_obj = self.get_plot_from_name(plot)
     #         if set_page:
-    #             self._set_page(CONFIG.panelNames["Waterfall"])
+    #             self.set_page(CONFIG.panelNames["Waterfall"])
     #
     #     # Unpack data
     #     if len(data) == 5:
@@ -2718,7 +2721,7 @@ class PanelPlots(wx.Panel):
     #     else:
     #         plot_obj = self.get_plot_from_name(plot)
     #         if set_page:
-    #             self._set_page(CONFIG.panelNames[plot])
+    #             self.set_page(CONFIG.panelNames[plot])
     #
     #     # Check that cmap modifier is included
     #     cmapNorm = self.normalize_colormap(
@@ -2787,7 +2790,7 @@ class PanelPlots(wx.Panel):
     #     else:
     #         plot_obj = self.get_plot_from_name(plot)
     #         if set_page:
-    #             self._set_page(CONFIG.panelNames["2D"])
+    #             self.set_page(CONFIG.panelNames["2D"])
     #
     #     plt_kwargs = self._buildPlotParameters(plotType="2D")
     #
@@ -2877,7 +2880,7 @@ class PanelPlots(wx.Panel):
     #
     #     # change page
     #     if set_page:
-    #         self._set_page(CONFIG.panelNames["MZDT"])
+    #         self.set_page(CONFIG.panelNames["MZDT"])
     #
     #     #         # If the user would like to replot data, you can directly unpack it
     #     #         if replot:
@@ -2987,7 +2990,7 @@ class PanelPlots(wx.Panel):
     #
     #     # change page
     #     if set_page:
-    #         self._set_page(CONFIG.panelNames["3D"])
+    #         self.set_page(CONFIG.panelNames["3D"])
     #
     #     plt_kwargs = self._buildPlotParameters(["1D", "3D"])
     #
@@ -3046,7 +3049,7 @@ class PanelPlots(wx.Panel):
     #     else:
     #         plot_obj = self.get_plot_from_name(plot)
     #         if set_page:
-    #             self._set_page(CONFIG.panelNames["Waterfall"])
+    #             self.set_page(CONFIG.panelNames["Waterfall"])
     #
     #     plt_kwargs = self._buildPlotParameters(["1D", "waterfall"])
     #     if "increment" in kwargs:
@@ -3102,7 +3105,7 @@ class PanelPlots(wx.Panel):
     #     else:
     #         plot_obj = self.get_plot_from_name(plot)
     #         if set_page:
-    #             self._set_page(CONFIG.panelNames["Waterfall"])
+    #             self.set_page(CONFIG.panelNames["Waterfall"])
     #
     #     plt_kwargs = self._buildPlotParameters(plotType="1D")
     #     waterfall_kwargs = self._buildPlotParameters(plotType="waterfall")
@@ -3139,7 +3142,7 @@ class PanelPlots(wx.Panel):
     #     else:
     #         plot_obj = self.get_plot_from_name(plot)
     #         if set_page:
-    #             self._set_page(CONFIG.panelNames.get(plot, "RT"))
+    #             self.set_page(CONFIG.panelNames.get(plot, "RT"))
     #
     #     # Build kwargs
     #     plt_kwargs = self._buildPlotParameters(plotType="1D")
@@ -3167,7 +3170,7 @@ class PanelPlots(wx.Panel):
     #     else:
     #         plot_obj = self.get_plot_from_name(plot)
     #         if set_page:
-    #             self._set_page(CONFIG.panelNames.get(plot, "1D"))
+    #             self.set_page(CONFIG.panelNames.get(plot, "1D"))
     #
     #     # Build kwargs
     #     plt_kwargs = self._buildPlotParameters(plotType="1D")
@@ -3215,7 +3218,7 @@ class PanelPlots(wx.Panel):
     #     else:
     #         plot_obj = self.get_plot_from_name(plot)
     #         if set_page:
-    #             self._set_page(CONFIG.panelNames["Overlay"])
+    #             self.set_page(CONFIG.panelNames["Overlay"])
     #
     #     plt_kwargs = self._buildPlotParameters(plotType="2D")
     #     plot_obj.clear()
@@ -3254,7 +3257,7 @@ class PanelPlots(wx.Panel):
     #     else:
     #         plot_obj = self.get_plot_from_name(plot)
     #         if set_page:
-    #             self._set_page(CONFIG.panelNames.get(plot, "2D"))
+    #             self.set_page(CONFIG.panelNames.get(plot, "2D"))
     #
     #     plt_kwargs = self._buildPlotParameters(plotType="2D")
     #
@@ -3299,7 +3302,7 @@ class PanelPlots(wx.Panel):
     #     else:
     #         plot_obj = self.get_plot_from_name(plot)
     #         if set_page:
-    #             self._set_page(CONFIG.panelNames["RMSF"])
+    #             self.set_page(CONFIG.panelNames["RMSF"])
     #
     #     plt_kwargs = self._buildPlotParameters(["2D", "RMSF"])
     #
@@ -3377,7 +3380,7 @@ class PanelPlots(wx.Panel):
     #     else:
     #         plot_obj = self.get_plot_from_name(plot)
     #         if set_page:
-    #             self._set_page(CONFIG.panelNames["RMSF"])
+    #             self.set_page(CONFIG.panelNames["RMSF"])
     #
     #     plot_obj.clear()
     #
@@ -3460,7 +3463,7 @@ class PanelPlots(wx.Panel):
     #
     #     # change page
     #     if set_page:
-    #         self._set_page(CONFIG.panelNames["Calibration"])
+    #         self.set_page(CONFIG.panelNames["Calibration"])
     #
     #     # MS plot
     #     if plotType == "both" or plotType == "MS":
@@ -3505,7 +3508,7 @@ class PanelPlots(wx.Panel):
     #
     #     # change page
     #     if set_page:
-    #         self._set_page(CONFIG.panelNames["Calibration"])
+    #         self.set_page(CONFIG.panelNames["Calibration"])
     #
     #     # Check yaxis labels
     #     ylabel = "Intensity"
@@ -3578,7 +3581,7 @@ class PanelPlots(wx.Panel):
     #     else:
     #         plot_obj = self.get_plot_from_name(plot)
     #         if set_page:
-    #             self._set_page(CONFIG.panelNames["Comparison"])
+    #             self.set_page(CONFIG.panelNames["Comparison"])
     #
     #     # If the user would like to replot data, you can directly unpack it
     #     if replot:
@@ -3628,7 +3631,7 @@ class PanelPlots(wx.Panel):
     #     else:
     #         plot_obj = self.get_plot_from_name(plot)
     #         if set_page:
-    #             self._set_page(CONFIG.panelNames["Overlay"])
+    #             self.set_page(CONFIG.panelNames["Overlay"])
     #
     #     plt_kwargs = self._buildPlotParameters(["2D", "RMSD"])
     #     plt_kwargs["colormap_1"] = cmap_1
@@ -3664,7 +3667,7 @@ class PanelPlots(wx.Panel):
     #     else:
     #         plot_obj = self.get_plot_from_name(plot)
     #         if set_page:
-    #             self._set_page(CONFIG.panelNames["Overlay"])
+    #             self.set_page(CONFIG.panelNames["Overlay"])
     #
     #     plt_kwargs = self._buildPlotParameters(plotType="2D")
     #     plot_obj.clear()
@@ -3849,7 +3852,7 @@ class PanelPlots(wx.Panel):
     #         plot_obj = self.get_plot_from_name(plot)
     #
     #     if set_page:
-    #         self._set_page(CONFIG.panelNames["MS"])
+    #         self.set_page(CONFIG.panelNames["MS"])
     #
     #     if endY is None:
     #         plot_obj.on_zoom_x_axis(startX, endX)
@@ -3862,7 +3865,7 @@ class PanelPlots(wx.Panel):
     # def on_zoom_1D_xy_axis(self, startX, endX, startY, endY, set_page=False, plot="MS", repaint=True):
     #
     #     if set_page:
-    #         self._set_page(CONFIG.panelNames["MS"])
+    #         self.set_page(CONFIG.panelNames["MS"])
     #
     #     if plot == "MS":
     #         self.plot_ms.on_zoom_xy_axis(startX, endX, startY, endY)

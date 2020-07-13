@@ -48,7 +48,8 @@ class ViewHeatmap(ViewBase):
         if x is None and y is None and array is None and obj is not None:
             x = obj.x
             y = obj.y
-        return x, y, obj.array
+            array = obj.array
+        return x, y, array
 
     def check_kwargs(self, **kwargs):
         """Check kwargs"""
@@ -73,10 +74,9 @@ class ViewHeatmap(ViewBase):
             self.update(x, y, array, obj, **kwargs)
         except AttributeError:
             x, y, array = self.check_input(x, y, array, obj)
-            _ = kwargs.pop("x_label", "?")
             self.figure.clear()
             self.figure.plot_2d(
-                x, y, array, x_label=self.x_label, y_label=self.y_label, callbacks=self._callbacks, **kwargs
+                x, y, array, x_label=self.x_label, y_label=self.y_label, callbacks=self._callbacks, obj=obj, **kwargs
             )
             self.figure.repaint()
 
@@ -92,7 +92,7 @@ class ViewHeatmap(ViewBase):
 
         # update plot
         x, y, array = self.check_input(x, y, array, obj)
-        self.figure.plot_2d_update_data(x, y, array, self.x_label, self.y_label, **kwargs)
+        self.figure.plot_2d_update_data(x, y, array, self.x_label, self.y_label, obj=obj, **kwargs)
         self.figure.repaint()
 
         # set data
@@ -117,7 +117,7 @@ class ViewHeatmap(ViewBase):
         x, y, array = self.check_input(x, y, array, obj)
         self.figure.clear()
         self.figure.plot_violin(
-            x, y, array, x_label=self.x_label, y_label=self.y_label, callbacks=self._callbacks, **kwargs
+            x, y, array, x_label=self.x_label, y_label=self.y_label, callbacks=self._callbacks, obj=obj, **kwargs
         )
         self.figure.repaint()
 
@@ -140,7 +140,7 @@ class ViewHeatmap(ViewBase):
         x, y, array = self.check_input(x, y, array, obj)
         self.figure.clear()
         self.figure.plot_waterfall(
-            x, y, array, x_label=self.y_label, y_label="Offset intensity", callbacks=self._callbacks, **kwargs
+            x, y, array, x_label=self.y_label, y_label="Offset intensity", callbacks=self._callbacks, obj=obj, **kwargs
         )
         self.figure.repaint()
 
@@ -163,7 +163,7 @@ class ViewHeatmap(ViewBase):
         x, y, array = self.check_input(x, y, array, obj)
         self.figure.clear()
         self.figure.plot_joint(
-            x, y, array, x_label=self.x_label, y_label=self.y_label, callbacks=self._callbacks, **kwargs
+            x, y, array, x_label=self.x_label, y_label=self.y_label, callbacks=self._callbacks, obj=obj, **kwargs
         )
         self.figure.repaint()
 

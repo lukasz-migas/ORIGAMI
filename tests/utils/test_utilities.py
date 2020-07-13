@@ -9,6 +9,7 @@ from origami.utils.utilities import time_loop
 from origami.utils.utilities import format_size
 from origami.utils.utilities import format_time
 from origami.utils.utilities import time_average
+from origami.utils.utilities import find_nearest_divisible
 
 
 def test_format_size():
@@ -54,3 +55,11 @@ def test_time_loop():
     assert "%" not in result
     assert result.startswith("[")
     assert result.endswith("]")
+
+
+class TestFindNearestDivisible:
+    @staticmethod
+    @pytest.mark.parametrize("value, divisor, expected", ((10, 2, 10), (11, 2, 12), (99, 3, 99)))
+    def test_01(value, divisor, expected):
+        result = find_nearest_divisible(value, divisor)
+        assert result == expected

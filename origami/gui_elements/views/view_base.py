@@ -14,6 +14,7 @@ import wx
 from origami.config.config import CONFIG
 from origami.utils.utilities import report_time
 from origami.visuals.mpl.base import PlotBase
+from origami.config.environment import ENV
 from origami.objects.containers import DataObject
 
 LOGGER = logging.getLogger(__name__)
@@ -114,6 +115,13 @@ class ViewBase(ABC):
         self._z_label = value
         self._update()
 
+    def get_object(self):
+        """Get Data object that is shown in the View"""
+        if self.document_name is None or self.dataset_name is None:
+            return None
+        document = ENV.on_get_document(self.document_name)
+        return document[self.dataset_name, True]
+
     def set_data(self, **kwargs):
         """Update plot data"""
         changed = False
@@ -151,7 +159,7 @@ class ViewBase(ABC):
             dataset = kwargs.pop("dataset", None)
 
         self.document_name = document
-        self.document_name = dataset
+        self.dataset_name = dataset
 
     def set_labels(self, obj: Optional[DataObject] = None, **kwargs):
         """Update plot labels without triggering replot"""

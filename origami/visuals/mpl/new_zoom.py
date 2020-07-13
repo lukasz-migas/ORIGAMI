@@ -1,6 +1,5 @@
 # Standard library imports
 import logging
-from builtins import isinstance
 
 # Third-party imports
 import wx
@@ -9,6 +8,9 @@ from pubsub import pub
 from matplotlib.text import Text
 from matplotlib.legend import Legend
 from matplotlib.patches import Rectangle
+
+# Local imports
+from origami.visuals.mpl.gids import PlotIds
 
 LOGGER = logging.getLogger(__name__)
 
@@ -182,6 +184,8 @@ class MPLInteraction:
         callbacks=None,
         parent=None,
         is_heatmap: bool = False,
+        is_joint: bool = False,
+        obj=None,
     ):
         if callbacks is None:
             callbacks = dict()
@@ -194,6 +198,8 @@ class MPLInteraction:
         self.plot_id = plot_id
         self.allow_extraction = allow_extraction
         self.is_heatmap = is_heatmap
+        self.is_joint = is_joint
+        self.data_object = obj
 
         self.active = True  # for activation / deactivation
         # self.to_draw = []
@@ -217,8 +223,8 @@ class MPLInteraction:
 
         self.useblit = useblit
         self._xy_press = []
-        self.eventpress = None
-        self.eventrelease = None
+        self.evt_press = None
+        self.evt_release = None
 
         if button is None or isinstance(button, list):
             self.validButtons = button
@@ -240,7 +246,7 @@ class MPLInteraction:
         self._callbacks = callbacks
 
         # based on MPL
-        self.wxoverlay = None
+        self.wx_overlay = None
         self.retinaFix = "wxMac" in wx.PlatformInfo
         self.savedRetinaImage = None
         self.zoomStartX = None
@@ -248,7 +254,7 @@ class MPLInteraction:
         self.zoomAxes = None
         self.prevZoomRect = None
 
-        self.create_new_patch(axes, patch_kwargs)
+        self.bind_plot_events(axes)
 
         try:
             if data_limits is None:
@@ -281,6 +287,11 @@ class MPLInteraction:
 
         self.show_cursor_cross = self.plot_parameters["grid_show"]
         self.crossover_percent = self.plot_parameters["zoom_crossover_sensitivity"]
+
+    def update_handler(self, data_limits=None, obj=None):
+        """Update zoom parameters"""
+        self.data_limits = data_limits if data_limits is not None else get_axes_start(self.axes)
+        self.data_object = obj
 
     def update_extents(self, data_limits=None):
         """Update plot extents"""
@@ -321,7 +332,8 @@ class MPLInteraction:
 
         return True
 
-    def create_new_patch(self, axes, patch_kwargs=None):
+    def bind_plot_events(self, axes):
+        """Bind events"""
         self.axes = axes
         if self.canvas is not axes[0].figure.canvas:
             for cid in self.cids:
@@ -351,10 +363,6 @@ class MPLInteraction:
             # draw events
             self.cids.append(self.canvas.mpl_connect("draw_event", self.update_background))
 
-        # if patch_kwargs is None:
-        #     patch_kwargs = dict(facecolor="white", edgecolor="black", alpha=0.5, fill=False)
-        # self.patch_kwargs = patch_kwargs
-
         # Pre-set keys
         self._shift_key = False
         self._ctrl_key = False
@@ -364,125 +372,16 @@ class MPLInteraction:
         self._trigger_extraction = False
         self._button_down = False
 
-        # for _ in self.axes:
-        #     self.to_draw.append(Rectangle((0, 0), 0, 1, visible=False, **self.patch_kwargs))
-
         self.show_cursor_cross = self.plot_parameters["grid_show"]
 
-        # for axes, to_draw in zip(self.axes, self.to_draw):
-        #     axes.add_patch(to_draw)
-
-    def on_enter_axes(self, evt=None):
+    def on_enter_axes(self, evt):
+        """Flag that mouse has entered the axes"""
         self._last_location = [evt.xdata, evt.ydata]
         self._is_inside_axes = True
 
-    def on_leave_axes(self, evt=None):
+    def on_leave_axes(self, _evt):
+        """Flag that mouse has left the axes"""
         self._is_inside_axes = False
-
-    @staticmethod
-    def get_axes_limits(axes):
-        x0, x1 = axes.get_xlim()
-        y0, y1 = axes.get_ylim()
-
-        return x0, x1, y0, y1
-
-    def on_mouse_wheel(self, evt):
-        """Event on mouse-wheel"""
-
-    #         if wx.GetKeyState(wx.WXK_ALT) or not self._is_inside_axes:
-    #             return
-
-    #         if not self.allow_wheel:
-    #             return
-    #
-    #         # Update cursor
-    #         motion_mode = [
-    #             self._shift_key,
-    #             self._ctrl_key,
-    #             self._alt_key,
-    #             self._trigger_extraction,
-    #             True,
-    #             self._button_down,
-    #             self.dragged,
-    #         ]
-    #         pub.sendMessage("motion_mode", dataOut=motion_mode)
-    #
-    #         # The actual work
-    #         for axes in self.axes:
-    #             x0, x1, y0, y1 = self.get_axes_limits(axes)
-    #
-    # #             x0_diff, x1_diff = evt.xdata - x0, x1 - evt.xdata
-    # #             y0_diff, y1_diff = evt.ydata - x0, x1 - evt.ydata
-    #             print(x0, x1, y0, y1)
-    #             print(dir(evt), evt.xdata, evt.ydata, evt)
-
-    #             shift_key = wx.GetKeyState(wx.WXK_SHIFT)
-    #
-    #             if self.data_limits is not None:
-    #                 xmin, ymin, xmax, ymax = self.data_limits
-    #             else:
-    #                 xmin, ymin, xmax, ymax = axes.data_limits
-    #
-    #             # Zoom in X-axis only
-    #             if not shift_key:
-    #                 # calculate difference
-    #                 try:
-    #                     x0_diff, x1_diff = evt.xdata - x0, x1 - evt.xdata
-    #                     x_sum = x0_diff + x1_diff
-    #                 except Exception:
-    #                     return
-    #                 stepSize = evt.step * ((x1 - x0) / 50)
-    #                 newXmin = x0 - (stepSize * (x0_diff / x_sum))
-    #                 newXmax = x1 + (stepSize * (x1_diff / x_sum))
-    #                 # Check if the X-values are off the data lims
-    #                 if newXmin < xmin:
-    #                     newXmin = xmin
-    #                 if newXmax > xmax:
-    #                     newXmax = xmax
-    #                 axes.set_xlim((newXmin, newXmax))
-    #                 if self.plotName == "MSDT":
-    #                     pub.sendMessage("change_zoom_dtms", xmin=newXmin, xmax=newXmax, ymin=ymin, ymax=ymax)
-    #
-    #             # Zoom in Y-axis only
-    #             elif shift_key:
-    #                 # Check if its 1D plot
-    #                 if self.plotName in ["1D", "CalibrationDT", "MS"]:
-    #                     stepSize = evt.step * ((y1 - y0) / 25)
-    #                     axes.set_ylim((0, y1 + stepSize))
-    #                 elif self.plotName == "MSDT":
-    #                     try:
-    #                         y0_diff, y1_diff = evt.ydata - y0, y1 - evt.ydata
-    #                         y_sum = y0_diff + y1_diff
-    #                     except Exception:
-    #                         return
-    #
-    #                     stepSize = evt.step * ((y1 - y0) / 50)
-    #                     newYmin = y0 - (stepSize * (y0_diff / y_sum))
-    #                     newYmax = y1 + (stepSize * (y1_diff / y_sum))
-    #                     # Check if the Y-values are off the data lims
-    #                     if newYmin < ymin:
-    #                         newYmin = ymin
-    #                     if newYmax > ymax:
-    #                         newYmax = ymax
-    #                     axes.set_ylim((newYmin, newYmax))
-    #                 elif self.plotName != "1D":
-    #                     try:
-    #                         y0_diff, y1_diff = evt.xdata - y0, y1 - evt.xdata
-    #                         y_sum = y0_diff + y1_diff
-    #                     except Exception:
-    #                         return
-    #
-    #                     stepSize = evt.step * ((y1 - y0) / 50)
-    #                     newYmin = y0 - (stepSize * (y0_diff / y_sum))
-    #                     newYmax = y1 + (stepSize * (y1_diff / y_sum))
-    #                     # Check if the Y-values are off the data lims
-    #                     if newYmin < ymin:
-    #                         newYmin = ymin
-    #                     if newYmax > ymax:
-    #                         newYmax = ymax
-    #                     axes.set_ylim((newYmin, newYmax))
-    #
-    #             self.canvas.draw()
 
     def on_key_state(self, evt):
         """Update state of the key"""
@@ -537,22 +436,22 @@ class MPLInteraction:
             else:
                 if evt.button == 3:
                     return True
-                elif evt.button == 2 and self.eventrelease is None:
+                elif evt.button == 2 and self.evt_release is None:
                     return True
                 else:
                     return False
 
         # If no button pressed yet or if it was out of the axes, ignore
-        if self.eventpress is None:
+        if self.evt_press is None:
             return evt.inaxes not in self.axes
 
         # If a button pressed, check if the on_release-button is the same
-        return evt.inaxes not in self.axes or evt.button != self.eventpress.button
+        return evt.inaxes not in self.axes or evt.button != self.evt_press.button
 
     def on_press(self, evt):
         """Event on button press"""
 
-        self.eventpress = evt
+        self.evt_press = evt
         # Is the correct button pressed within the correct axes?
         if self.ignore(evt):
             return
@@ -588,7 +487,7 @@ class MPLInteraction:
 
         # set rect for displaying the zoom
         if not self.retinaFix:
-            self.wxoverlay = wx.Overlay()
+            self.wx_overlay = wx.Overlay()
         else:
             if evt.inaxes is not None:
                 self.savedRetinaImage = self.canvas.copy_from_bbox(evt.inaxes.bbox)
@@ -604,15 +503,15 @@ class MPLInteraction:
 
     def on_release(self, evt):
         """Event on button release"""
-        if self.eventpress is None or (self.ignore(evt) and not self._button_down):
+        if self.evt_press is None or (self.ignore(evt) and not self._button_down):
             return
         self._button_down = False
         pub.sendMessage("change_x_axis_start", xy_start=[None, None])
 
         # When the mouse is released we reset the overlay and it restores the former content to the window.
-        if not self.retinaFix and self.wxoverlay:
-            self.wxoverlay.Reset()
-            self.wxoverlay = None
+        if not self.retinaFix and self.wx_overlay:
+            self.wx_overlay.Reset()
+            self.wx_overlay = None
         else:
             self.savedRetinaImage = None
             if self.prevZoomRect:
@@ -623,8 +522,8 @@ class MPLInteraction:
 
         # When shift is pressed, it won't zoom
         if wx.GetKeyState(wx.WXK_ALT):
-            self.eventpress = None  # reset the variables to their
-            self.eventrelease = None  # inital values
+            self.evt_press = None  # reset the variables to their
+            self.evt_release = None  # inital values
             self.canvas.draw()  # redraw image
             return
 
@@ -639,11 +538,11 @@ class MPLInteraction:
             return
 
         # left-click + ctrl OR double left click reset axes
-        if self.eventpress.dblclick:
+        if self.evt_press.dblclick:
             self._zoom_out(evt)
             return
         # left-click sends data from current point
-        elif self.eventpress.xdata == evt.xdata and self.eventpress.ydata == evt.ydata:
+        elif self.evt_press.xdata == evt.xdata and self.evt_press.ydata == evt.ydata:
             if not wx.GetKeyState(wx.WXK_CONTROL):
                 # Ignore the resize if the control key is down
                 if evt.button == 1:
@@ -652,27 +551,12 @@ class MPLInteraction:
                 return
 
         # on_release coordinates, button, ...
-        self.eventrelease = evt
-
-        # xmin, ymin = self.eventpress.xdata, self.eventpress.ydata
-        # xmax, ymax = evt.xdata, evt.ydata
+        self.evt_release = evt
 
         xmin, xmax, ymin, ymax = self.calculate_new_limits(evt)
 
         if self._trigger_extraction and self.allow_extraction:
-            # A dirty way to prevent users from trying to extract data from the wrong places
-            if not self.mark_annotation:
-                if self._callbacks.get("CTRL", False) and isinstance(self._callbacks["CTRL"], str):
-                    x_labels, y_labels = self.get_labels()
-                    pub.sendMessage(
-                        self._callbacks["CTRL"], rect=[xmin, xmax, ymin, ymax], x_labels=x_labels, y_labels=y_labels
-                    )
-                elif self.plotName in ["MSDT", "2D"] and (
-                    self.eventpress.xdata != evt.xdata and self.eventpress.ydata != evt.ydata
-                ):
-                    pub.sendMessage("extract_from_plot_2D", xy_values=[xmin, xmax, ymin, ymax])
-                # elif self.plotName != "CalibrationDT" and self.eventpress.xdata != evt.xdata:
-                #     pub.sendMessage("extract_from_plot_1D", xmin=xmin, xmax=xmax, ymax=ymax)
+            self.on_callback(xmin, xmax, ymin, ymax, evt)
             self.canvas.draw()
             return
         elif self._trigger_extraction and not self.allow_extraction:
@@ -694,6 +578,8 @@ class MPLInteraction:
                 return
             twinx, twiny = False, False
             a._set_view_from_bbox((lastx, lasty, x, y), "in", evt.key, twinx, twiny)
+            if self.is_joint:
+                self._handle_joint(False)
         self.canvas.draw()
 
         #         xmin, xmax, ymin, ymax = self.get_axes_limits(a)
@@ -706,6 +592,40 @@ class MPLInteraction:
         # reset triggers
         if self._trigger_extraction:
             self._trigger_extraction = False
+
+    def on_callback(self, xmin, xmax, ymin, ymax, evt):
+        """Process callback"""
+        # A dirty way to prevent users from trying to extract data from the wrong places
+        if self.mark_annotation:
+            return
+
+        # parse extraction limits through cleanup
+        xmin, xmax, ymin, ymax = self._parse_extraction_limits(xmin, xmax, ymin, ymax, evt)
+
+        # process CTRL callback
+        if self._callbacks.get("CTRL", False) and isinstance(self._callbacks["CTRL"], str):
+            x_labels, y_labels = self.get_labels()
+            pub.sendMessage(
+                self._callbacks["CTRL"], rect=[xmin, xmax, ymin, ymax], x_labels=x_labels, y_labels=y_labels
+            )
+        elif self.plotName in ["MSDT", "2D"] and (
+            self.evt_press.xdata != evt.xdata and self.evt_press.ydata != evt.ydata
+        ):
+            pub.sendMessage("extract_from_plot_2D", xy_values=[xmin, xmax, ymin, ymax])
+
+    def _parse_extraction_limits(self, xmin, xmax, ymin, ymax, evt):
+        """Special parsing of x/y-limits for data extraction that supports multi-plot behaviour"""
+        # special behaviour for joint plots
+        plot_gid = self.evt_press.inaxes.get_gid()
+
+        if self.is_joint:
+            # top plot - need to update y-axis
+            if plot_gid == PlotIds.PLOT_JOINT_X:
+                _, _, ymin, ymax = self.axes[0].plot_limits
+            elif plot_gid == PlotIds.PLOT_JOINT_Y:
+                xmin, xmax, _, _ = self.axes[0].plot_limits
+
+        return xmin, xmax, ymin, ymax
 
     def on_motion(self, evt):
         """Event on motion"""
@@ -734,9 +654,10 @@ class MPLInteraction:
             self.draw_rubberband(evt, x1, y1, x2, y2)
 
     def draw_rubberband(self, evt, x0, y0, x1, y1):
+        """Draw box to highlight the currently selected region"""
         if self.retinaFix:  # On Macs, use the following code
             # wx.DCOverlay does not work properly on Retina displays.
-            rubberBandColor = "#C0C0FF"
+            rubber_band_color = "#C0C0FF"
             if self.prevZoomRect:
                 self.prevZoomRect.pop(0).remove()
             self.canvas.restore_region(self.savedRetinaImage)
@@ -744,20 +665,20 @@ class MPLInteraction:
             Y0, Y1 = self.zoomStartY, evt.ydata
             lineX = (X0, X0, X1, X1, X0)
             lineY = (Y0, Y1, Y1, Y0, Y0)
-            self.prevZoomRect = self.zoomAxes.plot(lineX, lineY, "-", color=rubberBandColor)
+            self.prevZoomRect = self.zoomAxes.plot(lineX, lineY, "-", color=rubber_band_color)
             self.zoomAxes.draw_artist(self.prevZoomRect[0])
             self.canvas.blit(self.zoomAxes.bbox)
             return
 
-        if not hasattr(self, "wxoverlay"):
-            self.wxoverlay = None
+        if not hasattr(self, "wx_overlay"):
+            self.wx_overlay = None
             return
-        if not self.wxoverlay:
+        if not self.wx_overlay:
             return
 
         # Use an Overlay to draw a rubberband-like bounding box.
         dc = wx.ClientDC(self.canvas)
-        odc = wx.DCOverlay(self.wxoverlay, dc)
+        odc = wx.DCOverlay(self.wx_overlay, dc)
         odc.Clear()
 
         # Mac's DC is already the same as a GCDC, and it causes
@@ -779,10 +700,10 @@ class MPLInteraction:
         h = y1 - y0
         rect = wx.Rect(x0, y0, w, h)
 
-        rubberBandColor = "#FF00FF"  # or load from config?
+        rubber_band_color = "#FF00FF"  # or load from config?
 
         # Set a pen for the border
-        color = wx.Colour(rubberBandColor)
+        color = wx.Colour(rubber_band_color)
         dc.SetPen(wx.Pen(color, 1))
 
         # use the same color, plus alpha for the brush
@@ -790,6 +711,38 @@ class MPLInteraction:
         color.Set(r, g, b, 0x60)
         dc.SetBrush(wx.Brush(color))
         dc.DrawRectangle(rect)
+
+    def _handle_joint(self, zoom_out: bool):
+        """Handle joint plot
+
+        This function will automatically update joint plots (x, y) with new data whenever user zooms-in or zooms-out
+        """
+        if self.data_object is None and len(self.axes) == 3 and self.is_joint:
+            return
+
+        # get current limits
+        if not zoom_out:
+            xmin, xmax = self.axes[0].get_xlim()
+            ymin, ymax = self.axes[0].get_ylim()
+            ax_x_y = self.data_object.get_x_for_roi(xmin, xmax, ymin, ymax)
+            ax_y_y = self.data_object.get_y_for_roi(xmin, xmax, ymin, ymax)
+        else:
+            ax_x_y = self.data_object.xy
+            ax_y_y = self.data_object.yy
+
+        for line in self.axes[1].get_lines():
+            gid = line.get_gid()
+            if gid == PlotIds.PLOT_JOINT_X:
+                line.set_ydata(ax_x_y)
+                self.axes[1].set_ylim(0, ax_x_y.max())
+                break
+
+        for line in self.axes[2].get_lines():
+            gid = line.get_gid()
+            if gid == PlotIds.PLOT_JOINT_Y:
+                line.set_xdata(ax_y_y)
+                self.axes[2].set_xlim(0, ax_y_y.max())
+                break
 
     def _zoom_out(self, evt):
         if self.data_limits is not None:
@@ -826,6 +779,9 @@ class MPLInteraction:
                 axes.set_xlim(xmin, xmax)
                 axes.set_ylim(ymin, ymax)
             reset_visible(axes)
+
+            if self.is_joint:
+                self._handle_joint(True)
         self.canvas.draw()
         LOGGER.debug("Plot -> Zoom out")
 
@@ -891,6 +847,7 @@ class MPLInteraction:
         return list(set(x_labels)), list(set(y_labels))
 
     def calculate_new_limits(self, evt):
+        """Calculate new plot limits"""
         # Just grab bounding box
         lastx, lasty, ax = self._xy_press[0]
         x, y = evt.x, evt.y
@@ -994,3 +951,101 @@ class MPLInteraction:
             ymax = ymin * 1.0001
 
         return xmin, ymin, xmax, ymax
+
+    def on_mouse_wheel(self, evt):
+        """Event on mouse-wheel"""
+
+    #         if wx.GetKeyState(wx.WXK_ALT) or not self._is_inside_axes:
+    #             return
+
+    #         if not self.allow_wheel:
+    #             return
+    #
+    #         # Update cursor
+    #         motion_mode = [
+    #             self._shift_key,
+    #             self._ctrl_key,
+    #             self._alt_key,
+    #             self._trigger_extraction,
+    #             True,
+    #             self._button_down,
+    #             self.dragged,
+    #         ]
+    #         pub.sendMessage("motion_mode", dataOut=motion_mode)
+    #
+    #         # The actual work
+    #         for axes in self.axes:
+    #             x0, x1, y0, y1 = self.get_axes_limits(axes)
+    #
+    # #             x0_diff, x1_diff = evt.xdata - x0, x1 - evt.xdata
+    # #             y0_diff, y1_diff = evt.ydata - x0, x1 - evt.ydata
+    #             print(x0, x1, y0, y1)
+    #             print(dir(evt), evt.xdata, evt.ydata, evt)
+
+    #             shift_key = wx.GetKeyState(wx.WXK_SHIFT)
+    #
+    #             if self.data_limits is not None:
+    #                 xmin, ymin, xmax, ymax = self.data_limits
+    #             else:
+    #                 xmin, ymin, xmax, ymax = axes.data_limits
+    #
+    #             # Zoom in X-axis only
+    #             if not shift_key:
+    #                 # calculate difference
+    #                 try:
+    #                     x0_diff, x1_diff = evt.xdata - x0, x1 - evt.xdata
+    #                     x_sum = x0_diff + x1_diff
+    #                 except Exception:
+    #                     return
+    #                 stepSize = evt.step * ((x1 - x0) / 50)
+    #                 newXmin = x0 - (stepSize * (x0_diff / x_sum))
+    #                 newXmax = x1 + (stepSize * (x1_diff / x_sum))
+    #                 # Check if the X-values are off the data lims
+    #                 if newXmin < xmin:
+    #                     newXmin = xmin
+    #                 if newXmax > xmax:
+    #                     newXmax = xmax
+    #                 axes.set_xlim((newXmin, newXmax))
+    #                 if self.plotName == "MSDT":
+    #                     pub.sendMessage("change_zoom_dtms", xmin=newXmin, xmax=newXmax, ymin=ymin, ymax=ymax)
+    #
+    #             # Zoom in Y-axis only
+    #             elif shift_key:
+    #                 # Check if its 1D plot
+    #                 if self.plotName in ["1D", "CalibrationDT", "MS"]:
+    #                     stepSize = evt.step * ((y1 - y0) / 25)
+    #                     axes.set_ylim((0, y1 + stepSize))
+    #                 elif self.plotName == "MSDT":
+    #                     try:
+    #                         y0_diff, y1_diff = evt.ydata - y0, y1 - evt.ydata
+    #                         y_sum = y0_diff + y1_diff
+    #                     except Exception:
+    #                         return
+    #
+    #                     stepSize = evt.step * ((y1 - y0) / 50)
+    #                     newYmin = y0 - (stepSize * (y0_diff / y_sum))
+    #                     newYmax = y1 + (stepSize * (y1_diff / y_sum))
+    #                     # Check if the Y-values are off the data lims
+    #                     if newYmin < ymin:
+    #                         newYmin = ymin
+    #                     if newYmax > ymax:
+    #                         newYmax = ymax
+    #                     axes.set_ylim((newYmin, newYmax))
+    #                 elif self.plotName != "1D":
+    #                     try:
+    #                         y0_diff, y1_diff = evt.xdata - y0, y1 - evt.xdata
+    #                         y_sum = y0_diff + y1_diff
+    #                     except Exception:
+    #                         return
+    #
+    #                     stepSize = evt.step * ((y1 - y0) / 50)
+    #                     newYmin = y0 - (stepSize * (y0_diff / y_sum))
+    #                     newYmax = y1 + (stepSize * (y1_diff / y_sum))
+    #                     # Check if the Y-values are off the data lims
+    #                     if newYmin < ymin:
+    #                         newYmin = ymin
+    #                     if newYmax > ymax:
+    #                         newYmax = ymax
+    #                     axes.set_ylim((newYmin, newYmax))
+    #
+    #             self.canvas.draw()

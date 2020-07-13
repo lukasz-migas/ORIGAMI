@@ -245,3 +245,30 @@ def time_average(t_start: float, n_total: int) -> str:
     t_avg = t_tot / (n_total + 1)
 
     return f"[Avg: {format_time(t_avg)} | Tot: {format_time(t_tot)}]"
+
+
+def find_nearest_divisible(value, divisor, max_iters: int = 1000):
+    """Find nearest value that can be evenly divided by the divisor
+
+    Parameters
+    ----------
+    value : Union[int, float]
+        value to be divided by the divisor
+    divisor : Union[int, float]
+        value by which the `value` is divided
+    max_iters : int
+        maximum number of iterations before the algorithm should give up
+
+    Returns
+    -------
+    value : Union[int, float]
+        new value if the algorithm did not fail to find new value or -1 if it did
+    """
+    n_iter = 0
+    while value % divisor != 0 and n_iter < max_iters:
+        value += 1
+        n_iter += 1
+
+    if value % divisor == 0:
+        return value
+    return -1

@@ -78,19 +78,23 @@ class PanelNewVersion(PanelHTMLViewer):
 def check_version(parent=None, silent: bool = True):
     """Check whether there is a new version of ORIGAMI available online"""
     from origami.utils.version import get_latest_version, compare_versions
+    from urllib3.exceptions import MaxRetryError
 
-    latest, url, failed = get_latest_version()
-    if compare_versions(latest, CONFIG.version):
-        LOGGER.info("New version of ORIGAMI is available online!")
-        if not CONFIG.new_version_panel_do_not_ask:
-            dlg = PanelNewVersion(parent, url)
-            dlg.Show()
-    elif failed:
+    try:
+        latest, url, failed = get_latest_version()
+        if compare_versions(latest, CONFIG.version):
+            LOGGER.info("New version of ORIGAMI is available online!")
+            if not CONFIG.new_version_panel_do_not_ask:
+                dlg = PanelNewVersion(parent, url)
+                dlg.Show()
+        elif failed:
+            LOGGER.warning("Could not check for latest version of ORIGAMI.")
+        else:
+            LOGGER.info("Using latest version of ORIGAMI")
+            if not silent:
+                DialogBox("Using latest version of ORIGAMI", "You are using the latest version of ORIGAMI!", "Info")
+    except MaxRetryError:
         LOGGER.warning("Could not check for latest version of ORIGAMI.")
-    else:
-        LOGGER.info("Using latest version of ORIGAMI")
-        if not silent:
-            DialogBox("Using latest version of ORIGAMI", "You are using the latest version of ORIGAMI!", "Info")
 
 
 def _main():
