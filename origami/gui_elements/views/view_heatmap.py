@@ -1,3 +1,4 @@
+"""View heatmap object"""
 # Standard library imports
 import logging
 from copy import copy
@@ -41,7 +42,8 @@ class ViewHeatmap(ViewBase):
 
         return plot_panel, plot_window, sizer
 
-    def check_input(self, x, y, array, obj):
+    @staticmethod
+    def check_input(x, y, array, obj):
         """Check user-input"""
         if x is None and y is None and array is None and obj is None:
             raise ValueError("You must provide the x/y/array values or container object")
@@ -105,14 +107,14 @@ class ViewHeatmap(ViewBase):
 
     def plot_violin(self, x=None, y=None, array=None, obj=None, **kwargs):
         """Plot object as a violin plot"""
-        MPL_KEYS = copy(self.MPL_KEYS)
-        MPL_KEYS.append("violin")
+        mpl_keys = copy(self.MPL_KEYS)
+        mpl_keys.append("violin")
 
         # try to update plot first, as it can be quicker
         self.set_document(obj, **kwargs)
         self.set_labels(obj, **kwargs)
 
-        kwargs.update(**CONFIG.get_mpl_parameters(MPL_KEYS))
+        kwargs.update(**CONFIG.get_mpl_parameters(mpl_keys))
         kwargs = self.check_kwargs(**kwargs)
         x, y, array = self.check_input(x, y, array, obj)
         self.figure.clear()
@@ -129,13 +131,13 @@ class ViewHeatmap(ViewBase):
     def plot_waterfall(self, x=None, y=None, array=None, obj=None, **kwargs):
         """Plot object as a waterfall"""
         # try to update plot first, as it can be quicker
-        MPL_KEYS = copy(self.MPL_KEYS)
-        MPL_KEYS.append("waterfall")
+        mpl_keys = copy(self.MPL_KEYS)
+        mpl_keys.append("waterfall")
 
         self.set_document(obj, **kwargs)
         self.set_labels(obj, **kwargs)
 
-        kwargs.update(**CONFIG.get_mpl_parameters(MPL_KEYS))
+        kwargs.update(**CONFIG.get_mpl_parameters(mpl_keys))
         kwargs = self.check_kwargs(**kwargs)
         x, y, array = self.check_input(x, y, array, obj)
         self.figure.clear()
@@ -152,13 +154,13 @@ class ViewHeatmap(ViewBase):
     def plot_joint(self, x=None, y=None, array=None, obj=None, **kwargs):
         """Plot object as a joint-plot with top/side panels"""
         # try to update plot first, as it can be quicker
-        MPL_KEYS = copy(self.MPL_KEYS)
-        MPL_KEYS.append("joint")
+        mpl_keys = copy(self.MPL_KEYS)
+        mpl_keys.append("joint")
 
         self.set_document(obj, **kwargs)
         self.set_labels(obj, **kwargs)
 
-        kwargs.update(**CONFIG.get_mpl_parameters(MPL_KEYS))
+        kwargs.update(**CONFIG.get_mpl_parameters(mpl_keys))
         kwargs = self.check_kwargs(**kwargs)
         x, y, array = self.check_input(x, y, array, obj)
         self.figure.clear()

@@ -278,7 +278,7 @@ class DocumentationMixin:
     HELP_LINK = None
 
     # attributes
-    _icons = None
+    _colormaps = None
 
     # ui elements
     info_btn = None
@@ -299,7 +299,9 @@ class DocumentationMixin:
 
     def make_info_button(self, panel):
         """Make clickable information button"""
-        info_btn = make_bitmap_btn(panel, wx.ID_ANY, self._icons.info, style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
+        info_btn = make_bitmap_btn(
+            panel, wx.ID_ANY, self._colormaps.info, style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
+        )
         set_tooltip(info_btn, "Open documentation page about this panel (online)")
         info_btn.Bind(wx.EVT_BUTTON, self.on_open_info)
         return info_btn
@@ -307,7 +309,7 @@ class DocumentationMixin:
     def make_settings_button(self, panel):
         """Make clickable information button"""
         settings_btn = make_bitmap_btn(
-            panel, wx.ID_ANY, self._icons.gear, style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
+            panel, wx.ID_ANY, self._colormaps.gear, style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
         set_tooltip(settings_btn, "Open popup window with settings specific to this panel")
         settings_btn.Bind(wx.EVT_BUTTON, self.on_open_popup_settings)
