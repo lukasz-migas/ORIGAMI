@@ -9,7 +9,7 @@ import numpy as np
 # Local imports
 import origami.processing.origami_ms as pr_origami
 from origami.styles import Dialog
-from origami.styles import validator
+from origami.styles import Validator
 from origami.utils.screen import calculate_window_size
 from origami.config.config import CONFIG
 from origami.utils.converters import str2int
@@ -178,45 +178,45 @@ class DialogCustomiseORIGAMI(Dialog):
         self.origami_method_choice.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
 
         spv_label = wx.StaticText(panel, wx.ID_ANY, "Scans per voltage:")
-        self.origami_scansPerVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("intPos"))
+        self.origami_scansPerVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("intPos"))
         self.origami_scansPerVoltage_value.SetValue(str(self.user_settings["origami_spv"]))
         self.origami_scansPerVoltage_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         scan_label = wx.StaticText(panel, wx.ID_ANY, "First scan:")
-        self.origami_startScan_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("intPos"))
+        self.origami_startScan_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("intPos"))
         self.origami_startScan_value.SetValue(str(self.user_settings["origami_startScan"]))
         self.origami_startScan_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         start_voltage_label = wx.StaticText(panel, wx.ID_ANY, "First voltage:")
-        self.origami_startVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.origami_startVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.origami_startVoltage_value.SetValue(str(self.user_settings["origami_startVoltage"]))
         self.origami_startVoltage_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         end_voltage_label = wx.StaticText(panel, wx.ID_ANY, "Final voltage:")
-        self.origami_endVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.origami_endVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.origami_endVoltage_value.SetValue(str(self.user_settings["origami_endVoltage"]))
         self.origami_endVoltage_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         step_voltage_label = wx.StaticText(panel, wx.ID_ANY, "Voltage step:")
-        self.origami_stepVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.origami_stepVoltage_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.origami_stepVoltage_value.SetValue(str(self.user_settings["origami_stepVoltage"]))
         self.origami_stepVoltage_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         boltzmann_label = wx.StaticText(panel, wx.ID_ANY, "Boltzmann offset:")
-        self.origami_boltzmannOffset_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.origami_boltzmannOffset_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.origami_boltzmannOffset_value.SetValue(str(self.user_settings["origami_boltzmannOffset"]))
         self.origami_boltzmannOffset_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         exponential_percentage_label = wx.StaticText(panel, wx.ID_ANY, "Exponential percentage:")
         self.origami_exponential_percentage_value = wx.TextCtrl(
-            panel, -1, "", size=(-1, -1), validator=validator("floatPos")
+            panel, -1, "", size=(-1, -1), validator=Validator("floatPos")
         )
         self.origami_exponential_percentage_value.SetValue(str(self.user_settings["origami_exponentialPercentage"]))
         self.origami_exponential_percentage_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         exponential_increment_label = wx.StaticText(panel, wx.ID_ANY, "Exponential increment:")
         self.origami_exponential_increment_value = wx.TextCtrl(
-            panel, -1, "", size=(-1, -1), validator=validator("floatPos")
+            panel, -1, "", size=(-1, -1), validator=Validator("floatPos")
         )
         self.origami_exponential_increment_value.SetValue(str(self.user_settings["origami_exponentialIncrement"]))
         self.origami_exponential_increment_value.Bind(wx.EVT_TEXT, self.on_apply)

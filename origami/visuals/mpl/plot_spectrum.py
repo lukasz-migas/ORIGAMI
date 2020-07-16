@@ -85,9 +85,6 @@ class PlotSpectrum(PlotBase):
         y_formatter = get_intensity_formatter()
         self.plot_base.yaxis.set_major_formatter(y_formatter)
 
-        #         x_formatter = get_intensity_formatter()
-        #         self.plot_base.xaxis.set_major_formatter(x_formatter)
-
         # set plot limits
         self.plot_base.set_xlim(xlimits)
         self.plot_base.set_ylim(ylimits)
@@ -108,7 +105,7 @@ class PlotSpectrum(PlotBase):
         self.store_plot_limits([extent], [self.plot_base])
 
     def plot_1d_add_under_curve(self, xvals, yvals, **kwargs):
-
+        """Fill data under the line"""
         color = kwargs.get("shade_under_color", None)
         if not color:
             color = kwargs["line_color"]
@@ -122,6 +119,7 @@ class PlotSpectrum(PlotBase):
         self.plot_base.fill_between(xvals, 0, yvals, gid=PlotIds.PLOT_1D_PATCH_GID, **shade_kws)
 
     def plot_1d_update_data(self, x, y, x_label="", y_label="", **kwargs):
+        """Update plot data"""
         # override parameters
         _, _, extent = self._compute_xy_limits(x, y, 0, 1.1)
 
@@ -154,69 +152,6 @@ class PlotSpectrum(PlotBase):
         # update plot limits
         self.update_extents(extent)
         self.store_plot_limits([extent], [self.plot_base])
-
-    #         # remove old lines
-    #         if hasattr(self, "plot_base"):
-    #             lines = self.plot_base.get_lines()
-    #             for line in lines[1:]:
-    #                 line.remove()
-    #
-    #         # remove old shades
-    #         while len(self.plot_base.collections) > 0:
-    #             for shade in self.plot_base.collections:
-    #                 shade.remove()
-    #
-    #         #         if testMax == "yvals":
-    #         #             yvals, ylabel, __ = self._convert_yaxis(yvals, ylabel)
-    #         #
-    #         #         if kwargs.pop("testX", False):
-    #         #             xvals, xlabel, __ = self._convert_xaxis(xvals)
-    #
-    #         lines[0].set_xdata(xvals)
-    #         lines[0].set_ydata(yvals)
-    #         lines[0].set_linewidth(kwargs["line_width"])
-    #         lines[0].set_color(kwargs["line_color"])
-    #         lines[0].set_linestyle(kwargs["line_style"])
-    #         lines[0].set_label(kwargs.get("label", ""))
-    #
-    #         # update limits and extents
-    #         xlimits, ylimits, extent = self._compute_xy_limits(xvals, yvals, 1.1)
-    #
-    #         if kwargs["shade_under"]:
-    #             shade_kws = dict(
-    #                 facecolor=kwargs["shade_under_color"],
-    #                 alpha=kwargs.get("shade_under_transparency", 0.25),
-    #                 clip_on=kwargs.get("clip_on", True),
-    #                 zorder=kwargs.get("zorder", 1),
-    #             )
-    #             self.plot_base.fill_between(xvals, 0, yvals, **shade_kws)
-    #
-    #         # convert weights
-    #         if kwargs["label_weight"]:
-    #             kwargs["label_weight"] = "heavy"
-    #         else:
-    #             kwargs["label_weight"] = "normal"
-    #
-    #         self.plot_base.set_xlim(xlimits)
-    #         self.plot_base.set_ylim(ylimits)
-    #         self.set_plot_xlabel(xlabel, **kwargs)
-    #         self.set_plot_ylabel(ylabel, **kwargs)
-    #
-    #         if kwargs.get("minor_ticks_off", False) or xlabel == "Scans" or xlabel == "Charge":
-    #             self.plot_base.xaxis.set_tick_params(which="minor", bottom="off")
-    #             self.plot_base.xaxis.set_major_locator(MaxNLocator(integer=True))
-    #
-    #         self.update_extents(extent)
-    #         self.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
-    #
-    #         self.plot_labels.update({"xlabel": xlabel, "ylabel": ylabel})
-    #
-    #         # update legend
-    #         handles, __ = self.plot_base.get_legend_handles_labels()
-    #         self.set_legend_parameters(handles, **self.plot_parameters)
-    #
-    #         # Setup X-axis getter
-    #         self.store_plot_limits([extent], [self.plot_base])
 
     def plot_1d_compare(
         self, x_top, x_bottom, y_top, y_bottom, x_label="", y_label="", labels=None, title="", **kwargs
@@ -295,12 +230,7 @@ class PlotSpectrum(PlotBase):
         self.store_plot_limits([extent], [self.plot_base])
 
     def plot_1d_compare_update_data(self, x_top, x_bottom, y_top, y_bottom, labels=None, **kwargs):
-        # # update settings
-        # self._check_and_update_plot_settings(**kwargs)
-        #
-        # y_top, y_bottom, ylabel = self._plot_1D_compare_prepare_data(y_top, y_bottom, None)
-        # self.set_plot_ylabel(ylabel, **self.plot_parameters)
-
+        """Update comparison data"""
         if labels is None or not isinstance(labels, list):
             labels = ["", ""]
 

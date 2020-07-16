@@ -3,7 +3,7 @@ import wx
 import numpy as np
 
 # Local imports
-from origami.styles import validator
+from origami.styles import Validator
 from origami.styles import make_tooltip
 from origami.visuals.mpl import base
 from origami.processing.utils import get_narrow_data_range
@@ -91,7 +91,7 @@ class PanelPeakWidthTool(wx.MiniFrame):
         self.unidec_peakFcn_choice.Bind(wx.EVT_CHOICE, self.on_fit_peak)
 
         unidec_peakWidth_label = wx.StaticText(panel, wx.ID_ANY, "Peak FWHM (Da):")
-        self.unidec_fit_peakWidth_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.unidec_fit_peakWidth_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.unidec_fit_peakWidth_value.SetToolTip(make_tooltip("Expected peak width at FWHM in Da"))
 
         unidec_error_label = wx.StaticText(panel, wx.ID_ANY, "Error:")

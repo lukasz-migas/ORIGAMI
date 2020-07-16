@@ -177,9 +177,7 @@ class MainWindow(wx.Frame):
         self.panelPlots = PanelPlots(self, self.presenter)
         self.panelMultipleText = PanelTextlist(self, self.icons, self.presenter)
 
-        self.panelParametersEdit = PanelVisualisationSettingsEditor(
-            self, self.presenter, CONFIG, self.icons, window=None
-        )
+        self.panelParametersEdit = PanelVisualisationSettingsEditor(self, self.presenter, window=None)
 
         # add handling, processing and visualisation pipelines
         self.data_processing = DataProcessing(self.presenter, self, CONFIG)

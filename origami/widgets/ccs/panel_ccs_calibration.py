@@ -38,8 +38,8 @@ from origami.ids import ID_removeItemCCSCalibrantPopup
 from origami.ids import ID_processApplyCCScalibrantMenu
 from origami.ids import ID_removeCCScalibrantBottomPanel
 from origami.ids import ID_removeCCScalibrantBottomPanelPopup
+from origami.styles import Validator
 from origami.styles import layout
-from origami.styles import validator
 from origami.utils.check import isnumber
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
@@ -272,27 +272,27 @@ class topPanel(wx.Panel):
         self.selectBtn = wx.Button(self, ID_selectCalibrant, "...", wx.DefaultPosition, wx.Size(25, -1), 0)
 
         ion_label = wx.StaticText(self, -1, "m/z:")
-        self.ion_value = wx.TextCtrl(self, -1, "", size=(TEXT_SIZE_SMALL, -1), validator=validator("float"))
+        self.ion_value = wx.TextCtrl(self, -1, "", size=(TEXT_SIZE_SMALL, -1), validator=Validator("float"))
         ion_label.SetFont(wx.SMALL_FONT)
         self.ion_value.SetFont(wx.SMALL_FONT)
 
         mw_label = wx.StaticText(self, -1, "MW (Da):")
         self.mw_value = wx.TextCtrl(
-            self, -1, "", size=(TEXT_SIZE_SMALL, -1), validator=validator("float"), style=wx.TE_PROCESS_ENTER
+            self, -1, "", size=(TEXT_SIZE_SMALL, -1), validator=Validator("float"), style=wx.TE_PROCESS_ENTER
         )
         mw_label.SetFont(wx.SMALL_FONT)
         self.mw_value.SetFont(wx.SMALL_FONT)
 
         charge_label = wx.StaticText(self, -1, "Charge:")
         self.charge_value = wx.TextCtrl(
-            self, -1, "", size=(TEXT_SIZE_SMALL, -1), validator=validator("int"), style=wx.TE_PROCESS_ENTER
+            self, -1, "", size=(TEXT_SIZE_SMALL, -1), validator=Validator("int"), style=wx.TE_PROCESS_ENTER
         )
         charge_label.SetFont(wx.SMALL_FONT)
         self.charge_value.SetFont(wx.SMALL_FONT)
 
         ccs_label = wx.StaticText(self, -1, "CCS (Å²):")
         self.ccs_value = wx.TextCtrl(
-            self, -1, "", size=(TEXT_SIZE_SMALL, -1), validator=validator("float"), style=wx.TE_PROCESS_ENTER
+            self, -1, "", size=(TEXT_SIZE_SMALL, -1), validator=Validator("float"), style=wx.TE_PROCESS_ENTER
         )
         ccs_label.SetFont(wx.SMALL_FONT)
         self.ccs_value.SetFont(wx.SMALL_FONT)
@@ -303,7 +303,7 @@ class topPanel(wx.Panel):
             ID_calibration_changeTD,
             "",
             size=(TEXT_SIZE_SMALL, -1),
-            validator=validator("float"),
+            validator=Validator("float"),
             style=wx.TE_PROCESS_ENTER,
         )
         tD_label.SetFont(wx.SMALL_FONT)

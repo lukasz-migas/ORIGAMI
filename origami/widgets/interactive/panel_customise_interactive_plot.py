@@ -7,7 +7,7 @@ from time import time as ttime
 import wx
 
 # Local imports
-from origami.styles import validator
+from origami.styles import Validator
 from origami.styles import make_checkbox
 from origami.styles import make_staticbox
 from origami.styles import make_static_text
@@ -376,11 +376,11 @@ class PanelCustomiseInteractivePlot(wx.MiniFrame):
         fontSize_box_sizer.Add(grid, 0, wx.EXPAND, 10)
 
         plot_xmin_label = make_static_text(panel, "X min:")
-        self.plot_xmin_value = wx.TextCtrl(panel, -1, "", size=(80, -1), validator=validator("float"))
+        self.plot_xmin_value = wx.TextCtrl(panel, -1, "", size=(80, -1), validator=Validator("float"))
         self.plot_xmin_value.Bind(wx.EVT_TEXT, self.on_apply_general)
 
         plot_xmax_label = make_static_text(panel, "X max:")
-        self.plot_xmax_value = wx.TextCtrl(panel, -1, "", size=(80, -1), validator=validator("float"))
+        self.plot_xmax_value = wx.TextCtrl(panel, -1, "", size=(80, -1), validator=Validator("float"))
         self.plot_xmax_value.Bind(wx.EVT_TEXT, self.on_apply_general)
 
         if self.kwargs["xlimits"] is not None:
@@ -394,11 +394,11 @@ class PanelCustomiseInteractivePlot(wx.MiniFrame):
                 pass
 
         plot_ymin_label = make_static_text(panel, "Y min:")
-        self.plot_ymin_value = wx.TextCtrl(panel, -1, "", size=(80, -1), validator=validator("float"))
+        self.plot_ymin_value = wx.TextCtrl(panel, -1, "", size=(80, -1), validator=Validator("float"))
         self.plot_ymin_value.Bind(wx.EVT_TEXT, self.on_apply_general)
 
         plot_ymax_label = make_static_text(panel, "Y max:")
-        self.plot_ymax_value = wx.TextCtrl(panel, -1, "", size=(80, -1), validator=validator("float"))
+        self.plot_ymax_value = wx.TextCtrl(panel, -1, "", size=(80, -1), validator=Validator("float"))
         self.plot_ymax_value.Bind(wx.EVT_TEXT, self.on_apply_general)
 
         # set y-mins

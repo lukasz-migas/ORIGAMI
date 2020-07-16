@@ -7,7 +7,7 @@ from pubsub import pub
 
 # Local imports
 from origami.styles import MiniFrame
-from origami.styles import validator
+from origami.styles import Validator
 from origami.styles import make_checkbox
 from origami.styles import make_spin_ctrl_double
 from origami.config.config import CONFIG
@@ -140,11 +140,11 @@ class PanelProcessExtractData(MiniFrame):
         self.extract_mzEnd_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         self.rt_label = wx.StaticText(panel, wx.ID_ANY, "RT (min): ")
-        self.extract_rtStart_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.extract_rtStart_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.extract_rtStart_value.SetValue(str(CONFIG.extract_rtStart))
         self.extract_rtStart_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        self.extract_rtEnd_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.extract_rtEnd_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.extract_rtEnd_value.SetValue(str(CONFIG.extract_rtEnd))
         self.extract_rtEnd_value.Bind(wx.EVT_TEXT, self.on_apply)
 
@@ -155,16 +155,16 @@ class PanelProcessExtractData(MiniFrame):
         self.extract_rt_scans_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
         scanTime_label = wx.StaticText(panel, wx.ID_ANY, "Scan time (s):")
-        self.extract_scanTime_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.extract_scanTime_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.extract_scanTime_value.SetValue(str(self.parameters.get("scanTime", 1)))
         self.extract_scanTime_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         self.dt_label = wx.StaticText(panel, wx.ID_ANY, "DT (bins):")
-        self.extract_dtStart_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.extract_dtStart_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.extract_dtStart_value.SetValue(str(CONFIG.extract_dtStart))
         self.extract_dtStart_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        self.extract_dtEnd_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.extract_dtEnd_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.extract_dtEnd_value.SetValue(str(CONFIG.extract_dtEnd))
         self.extract_dtEnd_value.Bind(wx.EVT_TEXT, self.on_apply)
 
@@ -175,7 +175,7 @@ class PanelProcessExtractData(MiniFrame):
         self.extract_dt_ms_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
         pusherFreq_label = wx.StaticText(panel, wx.ID_ANY, "Pusher frequency (ms):")
-        self.extract_pusherFreq_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.extract_pusherFreq_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.extract_pusherFreq_value.SetValue(str(self.parameters.get("pusherFreq", 1)))
         self.extract_pusherFreq_value.Bind(wx.EVT_TEXT, self.on_apply)
 
@@ -492,26 +492,26 @@ class PanelProcessExtractData(MiniFrame):
         CONFIG.extract_rt_use_scans = self.extract_rt_scans_check.GetValue()
         if CONFIG.extract_rt_use_scans:
             self.rt_label.SetLabel("RT (scans):")
-            self.extract_rtStart_value.SetValidator(validator("intPos"))
+            self.extract_rtStart_value.SetValidator(Validator("intPos"))
             self.extract_rtStart_value.SetValue(str(int(CONFIG.extract_rtStart)))
-            self.extract_rtEnd_value.SetValidator(validator("intPos"))
+            self.extract_rtEnd_value.SetValidator(Validator("intPos"))
             self.extract_rtEnd_value.SetValue(str(int(CONFIG.extract_rtEnd)))
         else:
             self.rt_label.SetLabel("RT (mins): ")
-            self.extract_rtStart_value.SetValidator(validator("floatPos"))
-            self.extract_rtEnd_value.SetValidator(validator("floatPos"))
+            self.extract_rtStart_value.SetValidator(Validator("floatPos"))
+            self.extract_rtEnd_value.SetValidator(Validator("floatPos"))
 
         CONFIG.extract_dt_use_ms = self.extract_dt_ms_check.GetValue()
         if CONFIG.extract_dt_use_ms:
             self.dt_label.SetLabel("DT (ms):")
-            self.extract_dtStart_value.SetValidator(validator("intPos"))
+            self.extract_dtStart_value.SetValidator(Validator("intPos"))
             self.extract_dtStart_value.SetValue(str(int(CONFIG.extract_dtStart)))
-            self.extract_dtEnd_value.SetValidator(validator("intPos"))
+            self.extract_dtEnd_value.SetValidator(Validator("intPos"))
             self.extract_dtEnd_value.SetValue(str(int(CONFIG.extract_dtEnd)))
         else:
             self.dt_label.SetLabel("DT (bins):")
-            self.extract_dtStart_value.SetValidator(validator("floatPos"))
-            self.extract_dtEnd_value.SetValidator(validator("floatPos"))
+            self.extract_dtStart_value.SetValidator(Validator("floatPos"))
+            self.extract_dtEnd_value.SetValidator(Validator("floatPos"))
 
         self.Layout()
 

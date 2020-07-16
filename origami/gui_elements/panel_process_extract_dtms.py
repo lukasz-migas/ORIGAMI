@@ -9,7 +9,7 @@ import numpy as np
 
 # Local imports
 from origami.styles import MiniFrame
-from origami.styles import validator
+from origami.styles import Validator
 from origami.config.config import CONFIG
 from origami.utils.converters import str2num
 from origami.config.environment import ENV
@@ -72,6 +72,7 @@ class PanelProcessExtractDTMS(MiniFrame, DatasetMixin):
         return self.presenter.view.panelDocuments.documents
 
     def on_close(self, evt, force: bool = False):
+        """Close window"""
         self._dataset_mixin_teardown()
         MiniFrame.on_close(self, evt, force=force)
 
@@ -84,15 +85,15 @@ class PanelProcessExtractDTMS(MiniFrame, DatasetMixin):
         self.info_bar.SetLabel("")
 
         mz_min_label = wx.StaticText(panel, wx.ID_ANY, "m/z (min):")
-        self.mz_min_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.mz_min_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.mz_min_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         mz_max_label = wx.StaticText(panel, wx.ID_ANY, "m/z (max): ")
-        self.mz_max_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.mz_max_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.mz_max_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         mz_bin_label = wx.StaticText(panel, wx.ID_ANY, "m/z (bin size): ")
-        self.mz_bin_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.mz_bin_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.mz_bin_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         self.msg_bar = wx.StaticText(panel, -1, "")

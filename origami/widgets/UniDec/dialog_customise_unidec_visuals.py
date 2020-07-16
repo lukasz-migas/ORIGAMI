@@ -6,7 +6,7 @@ from wx.adv import BitmapComboBox
 from origami.ids import ID_unidecPanel_barEdgeColor
 from origami.ids import ID_unidecPanel_fitLineColor
 from origami.styles import Dialog
-from origami.styles import validator
+from origami.styles import Validator
 from origami.styles import make_checkbox
 from origami.styles import make_staticbox
 from origami.utils.color import convert_rgb_1_to_255
@@ -55,12 +55,12 @@ class DialogCustomiseUniDecVisuals(Dialog):
         self.unidec_view_value.Bind(wx.EVT_CHOICE, self.on_view_notification)
 
         unidec_max_iters_label = wx.StaticText(panel, wx.ID_ANY, "No. max iterations:")
-        self.unidec_maxIters_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("intPos"))
+        self.unidec_maxIters_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("intPos"))
         self.unidec_maxIters_value.SetValue(str(self.config.unidec_maxIterations))
         self.unidec_maxIters_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         unidec_max_shown_label = wx.StaticText(panel, wx.ID_ANY, "No. max shown lines:")
-        self.unidec_maxShownLines_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("intPos"))
+        self.unidec_maxShownLines_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("intPos"))
         self.unidec_maxShownLines_value.SetValue(str(self.config.unidec_maxShown_individualLines))
         self.unidec_maxShownLines_value.Bind(wx.EVT_TEXT, self.on_apply)
 

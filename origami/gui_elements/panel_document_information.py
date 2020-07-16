@@ -13,8 +13,8 @@ from origami.ids import ID_documentInfoPlotIMS
 from origami.ids import ID_documentInfoSummary
 from origami.ids import ID_documentInfoSpectrum
 from origami.ids import ID_documentInfoCalibration
+from origami.styles import BackgroundPanel
 from origami.styles import layout
-from origami.styles import bgrPanel
 from origami.styles import make_checkbox
 from origami.utils.converters import num2str
 from origami.utils.converters import str2int
@@ -121,7 +121,7 @@ class PanelDocumentInformation(wx.MiniFrame):
         spacer_l = 20
 
         # init toolbar
-        panel = bgrPanel(self, -1, self.icons.iconsLib["bgrToolbar"], size=(16, 20))
+        panel = BackgroundPanel(self, -1, self.icons.iconsLib["bgrToolbar"], size=(16, 20))
 
         # make buttons
         self.summary_butt = wx.BitmapButton(

@@ -7,7 +7,7 @@ import wx.lib.scrolledpanel
 # Local imports
 import origami.processing.UniDec.utilities as unidec_utils
 from origami.ids import ID_plotPanel_resize
-from origami.styles import validator
+from origami.styles import Validator
 from origami.styles import make_tooltip
 from origami.styles import make_checkbox
 from origami.styles import make_menu_item
@@ -253,30 +253,30 @@ class PanelProcessUniDec(wx.MiniFrame):
         panel = wx.Panel(split_panel, -1, size=(-1, -1), name="preprocess")
 
         unidec_ms_min_label = wx.StaticText(panel, wx.ID_ANY, "m/z start:")
-        self.unidec_mzStart_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE, validator=validator("floatPos"))
+        self.unidec_mzStart_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE, validator=Validator("floatPos"))
         self.unidec_mzStart_value.SetValue(str(self.config.unidec_mzStart))
         self.unidec_mzStart_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         unidec_ms_max_label = wx.StaticText(panel, wx.ID_ANY, "end:")
-        self.unidec_mzEnd_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE, validator=validator("floatPos"))
+        self.unidec_mzEnd_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE, validator=Validator("floatPos"))
         self.unidec_mzEnd_value.SetValue(str(self.config.unidec_mzEnd))
         self.unidec_mzEnd_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         unidec_ms_binsize_label = wx.StaticText(panel, wx.ID_ANY, "m/z bin size:")
-        self.unidec_mzBinSize_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE, validator=validator("floatPos"))
+        self.unidec_mzBinSize_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE, validator=Validator("floatPos"))
         self.unidec_mzBinSize_value.SetValue(str(self.config.unidec_mzBinSize))
         self.unidec_mzBinSize_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         unidec_ms_gaussianFilter_label = wx.StaticText(panel, wx.ID_ANY, "Gaussian filter:")
         self.unidec_gaussianFilter_value = wx.TextCtrl(
-            panel, -1, "", size=TEXTCTRL_SIZE, validator=validator("floatPos")
+            panel, -1, "", size=TEXTCTRL_SIZE, validator=Validator("floatPos")
         )
         self.unidec_gaussianFilter_value.SetValue(str(self.config.unidec_gaussianFilter))
         self.unidec_gaussianFilter_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         unidec_ms_accelerationV_label = wx.StaticText(panel, wx.ID_ANY, "Acceleration voltage (kV):")
         self.unidec_accelerationV_value = wx.TextCtrl(
-            panel, -1, "", size=TEXTCTRL_SIZE, validator=validator("floatPos")
+            panel, -1, "", size=TEXTCTRL_SIZE, validator=Validator("floatPos")
         )
         self.unidec_accelerationV_value.SetValue(str(self.config.unidec_accelerationV))
         self.unidec_accelerationV_value.Bind(wx.EVT_TEXT, self.on_apply)
@@ -332,35 +332,35 @@ class PanelProcessUniDec(wx.MiniFrame):
         panel = wx.Panel(split_panel, -1, size=(-1, -1), name="unidec")
 
         unidec_charge_min_label = wx.StaticText(panel, wx.ID_ANY, "Charge start:")
-        self.unidec_zStart_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE, validator=validator("floatPos"))
+        self.unidec_zStart_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE, validator=Validator("floatPos"))
         self.unidec_zStart_value.SetValue(str(self.config.unidec_zStart))
         self.unidec_zStart_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         unidec_charge_max_label = wx.StaticText(panel, wx.ID_ANY, "end:")
-        self.unidec_zEnd_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE, validator=validator("floatPos"))
+        self.unidec_zEnd_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE, validator=Validator("floatPos"))
         self.unidec_zEnd_value.SetValue(str(self.config.unidec_zEnd))
         self.unidec_zEnd_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         unidec_mw_min_label = wx.StaticText(panel, wx.ID_ANY, "MW start:")
-        self.unidec_mwStart_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE, validator=validator("floatPos"))
+        self.unidec_mwStart_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE, validator=Validator("floatPos"))
         self.unidec_mwStart_value.SetValue(str(self.config.unidec_mwStart))
         self.unidec_mwStart_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         unidec_mw_max_label = wx.StaticText(panel, wx.ID_ANY, "end:")
-        self.unidec_mwEnd_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE, validator=validator("floatPos"))
+        self.unidec_mwEnd_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE, validator=Validator("floatPos"))
         self.unidec_mwEnd_value.SetValue(str(self.config.unidec_mwEnd))
         self.unidec_mwEnd_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         unidec_mw_sampleFrequency_label = wx.StaticText(panel, wx.ID_ANY, "Sample frequency (Da):")
         self.unidec_mw_sampleFrequency_value = wx.TextCtrl(
-            panel, -1, "", size=TEXTCTRL_SIZE, validator=validator("floatPos")
+            panel, -1, "", size=TEXTCTRL_SIZE, validator=Validator("floatPos")
         )
         self.unidec_mw_sampleFrequency_value.SetValue(str(self.config.unidec_mwFrequency))
         self.unidec_mw_sampleFrequency_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         unidec_peakWidth_label = wx.StaticText(panel, wx.ID_ANY, "Peak FWHM (Da):")
         self.unidec_fit_peakWidth_value = wx.TextCtrl(
-            panel, -1, "", size=TEXTCTRL_SIZE, validator=validator("floatPos")
+            panel, -1, "", size=TEXTCTRL_SIZE, validator=Validator("floatPos")
         )
         self.unidec_fit_peakWidth_value.SetValue(str(self.config.unidec_peakWidth))
         self.unidec_fit_peakWidth_value.Bind(wx.EVT_TEXT, self.on_apply)
@@ -431,13 +431,13 @@ class PanelProcessUniDec(wx.MiniFrame):
         panel = wx.Panel(split_panel, -1, size=(-1, -1), name="peaks")
 
         unidec_peak_width_label = wx.StaticText(panel, wx.ID_ANY, "Peak detection window (Da):")
-        self.unidec_peakWidth_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE, validator=validator("floatPos"))
+        self.unidec_peakWidth_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE, validator=Validator("floatPos"))
         self.unidec_peakWidth_value.SetValue(str(self.config.unidec_peakDetectionWidth))
         self.unidec_peakWidth_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         unidec_peak_threshold_label = wx.StaticText(panel, wx.ID_ANY, "Peak detection threshold:")
         self.unidec_peakThreshold_value = wx.TextCtrl(
-            panel, -1, "", size=TEXTCTRL_SIZE, validator=validator("floatPos")
+            panel, -1, "", size=TEXTCTRL_SIZE, validator=Validator("floatPos")
         )
         self.unidec_peakThreshold_value.SetValue(str(self.config.unidec_peakDetectionThreshold))
         self.unidec_peakThreshold_value.Bind(wx.EVT_TEXT, self.on_apply)
@@ -451,7 +451,7 @@ class PanelProcessUniDec(wx.MiniFrame):
 
         unidec_peak_separation_label = wx.StaticText(panel, wx.ID_ANY, "Line separation:")
         self.unidec_lineSeparation_value = wx.TextCtrl(
-            panel, -1, "", size=TEXTCTRL_SIZE, validator=validator("floatPos")
+            panel, -1, "", size=TEXTCTRL_SIZE, validator=Validator("floatPos")
         )
         self.unidec_lineSeparation_value.SetValue(str(self.config.unidec_lineSeparation))
         self.unidec_lineSeparation_value.Bind(wx.EVT_TEXT, self.on_apply)

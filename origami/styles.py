@@ -55,7 +55,7 @@ def make_spin_ctrl_double(parent, value, min_value, max_value, increment_value, 
     return spin_ctrl
 
 
-def make_spin_ctrl_int(parent, value, min_value, max_value, increment_value, size=(-1, -1), evtid=-1, name="name"):
+def make_spin_ctrl_int(parent, value, min_value, max_value, size=(-1, -1), evtid=-1, name="name"):
     """Convenient way to initialize SpinCtrl"""
     spin_ctrl = wx.SpinCtrl(
         parent,
@@ -121,8 +121,9 @@ def set_item_font(
     return parent
 
 
-def make_staticbox(parent, title, size, color, id=-1):
-    static_box = wx.StaticBox(parent, id, title, size=size, style=wx.SB_FLAT)
+def make_staticbox(parent, title, size, color):
+    """Make staticbox"""
+    static_box = wx.StaticBox(parent, wx.ID_ANY, title, size=size, style=wx.SB_FLAT)
     font = wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
     static_box.SetForegroundColour(color)
     static_box.SetFont(font)
@@ -130,25 +131,28 @@ def make_staticbox(parent, title, size, color, id=-1):
     return static_box
 
 
-def make_toggle_btn(parent, text, colorOff, name="other", size=(40, -1)):
+def make_toggle_btn(parent, text, color_off, name="other", size=(40, -1)):
+    """Make toggle button"""
     toggle_btn = wx.ToggleButton(
         parent, wx.ID_ANY, text, wx.DefaultPosition, size, style=wx.ALIGN_CENTER_VERTICAL, name=name
     )
     font = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
     toggle_btn.SetFont(font)
-    toggle_btn.SetForegroundColour(colorOff)
+    toggle_btn.SetForegroundColour(color_off)
 
     return toggle_btn
 
 
 def make_static_text(parent, text):
+    """Make static text"""
     text_box = wx.StaticText(
         parent, wx.ID_ANY, text, wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT
     )
     return text_box
 
 
-def make_text_ctrl(parent, size=(wx.DefaultSize)):
+def make_text_ctrl(parent, size=wx.DefaultSize):
+    """Make text control"""
     text_ctrl = wx.TextCtrl(
         parent, wx.ID_ANY, "", wx.DefaultPosition, size, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT
     )
@@ -156,6 +160,7 @@ def make_text_ctrl(parent, size=(wx.DefaultSize)):
 
 
 def make_slider(parent, value, min_value, max_value):
+    """Make slider"""
     slider = wx.Slider(
         parent, -1, value=value, minValue=min_value, maxValue=max_value, size=(140, -1), style=SLIDER_STYLE
     )
@@ -163,6 +168,7 @@ def make_slider(parent, value, min_value, max_value):
 
 
 def make_checkbox(parent, text, style=wx.ALIGN_LEFT, evt_id=-1, name="", tooltip=None):
+    """Make checkbox"""
     checkbox = wx.CheckBox(parent, evt_id, text, (3, 3), style=style, name=name)
 
     if tooltip:
@@ -178,9 +184,7 @@ def set_tooltip(parent, tooltip):
 
 
 def make_tooltip(text=None, delay=500, reshow=500, auto_pop=3000):
-    """
-    Make tooltips with specified delay time
-    """
+    """Make tooltips with specified delay time"""
     tooltip = wx.ToolTip(text)
     tooltip.SetDelay(delay)
     tooltip.SetReshow(reshow)
@@ -212,6 +216,7 @@ def make_super_tooltip(
     header_img=None,
     **kwargs,
 ):
+    """Make super tooltip"""
 
     if kwargs:
         title = kwargs["help_title"]
@@ -241,10 +246,10 @@ def make_super_tooltip(
 def mac_app_init():
     """Run after application initialize."""
     # set MAC
-    if wx.Platform == "__WXMAC__":
-        wx.SystemOptions.SetOptionInt("mac.listctrl.always_use_generic", True)
+    if wx.Platform == "__WXMAC__":  # noqa
+        wx.SystemOptions.SetOption("mac.listctrl.always_use_generic", True)
         wx.ToolTip.SetDelay(1500)
-        global SCROLL_DIRECTION
+        global SCROLL_DIRECTION  # noqa
         SCROLL_DIRECTION = -1
 
 
@@ -278,7 +283,7 @@ class DocumentationMixin:
     HELP_LINK = None
 
     # attributes
-    _colormaps = None
+    _icons = None
 
     # ui elements
     info_btn = None
@@ -299,9 +304,7 @@ class DocumentationMixin:
 
     def make_info_button(self, panel):
         """Make clickable information button"""
-        info_btn = make_bitmap_btn(
-            panel, wx.ID_ANY, self._colormaps.info, style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
-        )
+        info_btn = make_bitmap_btn(panel, wx.ID_ANY, self._icons.info, style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
         set_tooltip(info_btn, "Open documentation page about this panel (online)")
         info_btn.Bind(wx.EVT_BUTTON, self.on_open_info)
         return info_btn
@@ -309,13 +312,13 @@ class DocumentationMixin:
     def make_settings_button(self, panel):
         """Make clickable information button"""
         settings_btn = make_bitmap_btn(
-            panel, wx.ID_ANY, self._colormaps.gear, style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
+            panel, wx.ID_ANY, self._icons.gear, style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
         )
         set_tooltip(settings_btn, "Open popup window with settings specific to this panel")
         settings_btn.Bind(wx.EVT_BUTTON, self.on_open_popup_settings)
         return settings_btn
 
-    def make_statusbar(self, panel):
+    def make_statusbar(self, panel, position: str = "left"):
         """Make make-shift statusbar"""
         # add info button
         self.info_btn = self.make_info_button(panel)
@@ -324,11 +327,27 @@ class DocumentationMixin:
         self.display_label.SetForegroundColour(wx.BLUE)
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(self.info_btn, 0, wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
-        sizer.AddSpacer(5)
-        sizer.Add(self.display_label, 1, wx.ALIGN_CENTER_VERTICAL)
-
+        if position == "left":
+            sizer.Add(self.info_btn, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT | wx.RIGHT, 5)
+            sizer.Add(self.display_label, 1, wx.ALIGN_CENTER_VERTICAL)
+        else:
+            sizer.Add(self.display_label, 1, wx.ALIGN_CENTER_VERTICAL | wx.LEFT | wx.RIGHT, 5)
+            sizer.Add(self.info_btn, 0, wx.ALIGN_CENTER_VERTICAL)
         return sizer
+
+    def set_message(self, msg: str, duration: int = 5000):
+        """Set message for a period of time
+
+        Parameters
+        ----------
+        msg : str
+            message to be displayed in the statusbar
+        duration : int
+            how long the message should be displayed for
+        """
+        self.display_label.SetLabel(msg)
+        if duration > 0:
+            wx.CallLater(duration, self.display_label.SetLabel, "")
 
 
 class Dialog(wx.Dialog, ActivityIndicatorMixin, DocumentationMixin):
@@ -437,8 +456,8 @@ class MiniFrame(wx.MiniFrame, ActivityIndicatorMixin, DocumentationMixin):
 class ListCtrl(wx.ListCtrl, listmix.TextEditMixin):
     """ListCtrl"""
 
-    def __init__(self, parent, id=-1, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.LC_REPORT, **kwargs):
-        wx.ListCtrl.__init__(self, parent, id, pos, size, style)
+    def __init__(self, parent, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.LC_REPORT, **kwargs):
+        wx.ListCtrl.__init__(self, parent, wx.ID_ANY, pos, size, style)
 
         if hasattr(self, "EnableCheckBoxes"):
             self.EnableCheckBoxes(True)
@@ -460,15 +479,6 @@ class ListCtrl(wx.ListCtrl, listmix.TextEditMixin):
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.on_activate_item, self)
         self.Bind(wx.EVT_LIST_KEY_DOWN, self.on_key_select_item, self)
 
-    #     self.Bind(wx.EVT_LIST_BEGIN_LABEL_EDIT, self.OnBeginLabelEdit, self)
-    #
-    # def OnBeginLabelEdit(self, evt):
-    #     print(self.allowed_edit)
-    #     # if evt.Column not in self.allowed_edit:
-    #     #     evt.Veto()
-    #     # else:
-    #     #     evt.Skip()
-
     def IsChecked(self, item):  # noqa
         """Check whether an item has been checked"""
         return self.IsItemChecked(item)
@@ -488,6 +498,7 @@ class ListCtrl(wx.ListCtrl, listmix.TextEditMixin):
             evt.Skip()
 
     def on_key_select_item(self, evt):
+        """Select item using keyboard"""
         key_code = evt.GetKeyCode()
         if key_code == wx.WXK_UP or key_code == wx.WXK_DOWN:
             self.item_id = evt.GetIndex()
@@ -496,6 +507,7 @@ class ListCtrl(wx.ListCtrl, listmix.TextEditMixin):
             evt.Skip()
 
     def remove_by_key(self, key, value):
+        """Remove item by key"""
         item_id = self.GetItemCount() - 1
         while item_id >= 0:
             item_info = self.on_get_item_information(item_id)
@@ -504,6 +516,7 @@ class ListCtrl(wx.ListCtrl, listmix.TextEditMixin):
             item_id -= 1
 
     def remove_by_keys(self, keys, values):
+        """Remove items by keys"""
         assert len(keys) == len(values)
         item_id = self.GetItemCount() - 1
         while item_id >= 0:
@@ -518,6 +531,7 @@ class ListCtrl(wx.ListCtrl, listmix.TextEditMixin):
             item_id -= 1
 
     def on_get_item_information(self, item_id):
+        """Get information about particular row"""
         if self.column_info is None:
             return dict()
 
@@ -541,6 +555,7 @@ class ListCtrl(wx.ListCtrl, listmix.TextEditMixin):
         return information
 
     def get_all_checked(self):
+        """Return list of items that have been checked"""
         rows = self.GetItemCount()
 
         items = list()
@@ -574,6 +589,7 @@ class ListCtrl(wx.ListCtrl, listmix.TextEditMixin):
         return color_255, color_1
 
     def on_column_click(self, evt):
+        """Interact on column click"""
         column = evt.GetColumn()
 
         if self.old_column is not None and self.old_column == column:
@@ -593,15 +609,14 @@ class ListCtrl(wx.ListCtrl, listmix.TextEditMixin):
         self.old_column = column
 
     def on_check_all(self, check):
+        """Check all rows in the table"""
         rows = self.GetItemCount()
 
         for row in range(rows):
             self.CheckItem(row, check=check)
 
     def on_sort(self, column, direction):
-        """
-        Sort items based on column and direction
-        """
+        """Sort items based on column and direction"""
 
         # get list data
         temp_data = self._get_list_data()
@@ -618,9 +633,7 @@ class ListCtrl(wx.ListCtrl, listmix.TextEditMixin):
         self._set_list_data(temp_data, check_data, bg_rgb, fg_rgb)
 
     def on_simple_sort(self, column, direction):
-        """
-        Sort items based on column and direction
-        """
+        """Sort items based on column and direction"""
         columns = self.GetColumnCount()
         rows = self.GetItemCount()
 
@@ -630,10 +643,10 @@ class ListCtrl(wx.ListCtrl, listmix.TextEditMixin):
             temp_row = []
 
             for col in range(columns):
-                item = self.GetItem(itemIdx=row, col=col)
+                item = self.GetItem(row, col)
                 temp_row.append(item.GetText())
 
-            temp_row.append(self.IsChecked(index=row))
+            temp_row.append(self.IsChecked(row))
             temp_data.append(temp_row)
 
         # Sort data
@@ -652,7 +665,7 @@ class ListCtrl(wx.ListCtrl, listmix.TextEditMixin):
             self.Append(temp_data[row])
             self.CheckItem(row, check)
 
-    def on_clear_table_selected(self, evt):
+    def on_clear_table_selected(self, _evt):
         """
         This function clears the table without deleting any items from the
         document tree
@@ -663,7 +676,7 @@ class ListCtrl(wx.ListCtrl, listmix.TextEditMixin):
                 self.DeleteItem(rows)
             rows -= 1
 
-    def on_clear_table_all(self, evt, ask=True):
+    def on_clear_table_all(self, _evt, ask=True):
         """
         This function clears the table without deleting any items from the
         document tree
@@ -677,7 +690,7 @@ class ListCtrl(wx.ListCtrl, listmix.TextEditMixin):
         self.DeleteAllItems()
 
     def on_remove_duplicates(self):
-
+        """Remove duplicates from the table"""
         # get list data
         temp_data = sorted(self._get_list_data())
         # remove duplicates
@@ -686,33 +699,33 @@ class ListCtrl(wx.ListCtrl, listmix.TextEditMixin):
         # clear table
         self.DeleteAllItems()
 
-        temp_data, checkData, bg_rgb, fg_rgb = self._restructure_list_data(temp_data)
+        temp_data, check_data, bg_rgb, fg_rgb = self._restructure_list_data(temp_data)
 
-        self._set_list_data(temp_data, checkData, bg_rgb, fg_rgb)
+        self._set_list_data(temp_data, check_data, bg_rgb, fg_rgb)
 
-    def _get_list_data(self, include_color=True):
+    def _get_list_data(self, include_color=True):  # noqa
         columns = self.GetColumnCount()
         rows = self.GetItemCount()
 
-        tempData = []
+        temp_data = []
         # Iterate over row and columns to get data
         for row in range(rows):
-            tempRow = []
+            temp_row = []
             for col in range(columns):
                 item = self.GetItem(itemIdx=row, col=col)
-                tempRow.append(item.GetText())
-            tempRow.append(self.IsChecked(row))
-            tempRow.append(self.GetItemBackgroundColour(row))
-            tempRow.append(self.GetItemTextColour(row))
-            tempData.append(tempRow)
+                temp_row.append(item.GetText())
+            temp_row.append(self.IsChecked(row))
+            temp_row.append(self.GetItemBackgroundColour(row))
+            temp_row.append(self.GetItemTextColour(row))
+            temp_data.append(temp_row)
 
-        return tempData
+        return temp_data
 
     @staticmethod
-    def _restructure_list_data(listData):
+    def _restructure_list_data(list_data):
 
         check_list, bg_rgb, fg_rgb = [], [], []
-        for check in listData:
+        for check in list_data:
             fg_rgb.append(check[-1])
             del check[-1]
             bg_rgb.append(check[-1])
@@ -720,13 +733,13 @@ class ListCtrl(wx.ListCtrl, listmix.TextEditMixin):
             check_list.append(check[-1])
             del check[-1]
 
-        return listData, check_list, bg_rgb, fg_rgb
+        return list_data, check_list, bg_rgb, fg_rgb
 
-    def _set_list_data(self, listData, checkData, bg_rgb, fg_rgb):
+    def _set_list_data(self, list_data, check_data, bg_rgb, fg_rgb):
         # Reinstate data
-        rowList = np.arange(len(listData))
-        for row, check, bg_color, fg_color in zip(rowList, checkData, bg_rgb, fg_rgb):
-            self.Append(listData[row])
+        row_list = np.arange(len(list_data))
+        for row, check, bg_color, fg_color in zip(row_list, check_data, bg_rgb, fg_rgb):
+            self.Append(list_data[row])
             self.CheckItem(row, check)
             self.SetItemBackgroundColour(row, bg_color)
             self.SetItemTextColour(row, fg_color)
@@ -736,19 +749,20 @@ class ListCtrl(wx.ListCtrl, listmix.TextEditMixin):
         return list(color)
 
 
-class bgrPanel(wx.Panel):
+class BackgroundPanel(wx.Panel):
     """Simple panel with image background."""
 
-    def __init__(self, parent, id, image, size=(-1, -1)):
-        wx.Panel.__init__(self, parent, id, size=size)
+    def __init__(self, parent, image, size=(-1, -1)):
+        wx.Panel.__init__(self, parent, wx.ID_ANY, size=size)
         self.SetMinSize(size)
 
         self.image = image
 
         # set paint event to tile image
-        wx.EVT_PAINT(self, self._onPaint)
+        wx.EVT_PAINT(self, self.on_paint)
 
-    def _onPaint(self, event=None):
+    def on_paint(self, _evt):
+        """On paint event handler"""
 
         # create paint surface
         dc = wx.PaintDC(self)
@@ -759,30 +773,30 @@ class bgrPanel(wx.Panel):
             dc.DrawBitmap(self.image, x, 0, True)
 
 
-class validator(wx.Validator):
+class Validator(wx.Validator):
     """Text validator."""
 
     def __init__(self, flag):
         wx.Validator.__init__(self)
         self.flag = flag
-        self.Bind(wx.EVT_CHAR, self.OnChar)
+        self.Bind(wx.EVT_CHAR, self.on_key_press)
 
-    def Clone(self):
-        return validator(self.flag)
+    def Clone(self):  # noqa
+        """Clone validator"""
+        return Validator(self.flag)
 
-    def TransferToWindow(self):
+    def TransferToWindow(self):  # noqa
         return True
 
-    def TransferFromWindow(self):
+    def TransferFromWindow(self):  # noqa
         return True
 
-    def OnChar(self, evt):
-        #         ctrl = self.GetWindow()
-        #         value = ctrl.GetValue()
+    def on_key_press(self, evt):
+        """Interact on key press"""
         key = evt.GetKeyCode()
 
         # define navigation keys
-        navKeys = (
+        nav_keys = (
             wx.WXK_HOME,
             wx.WXK_LEFT,
             wx.WXK_UP,
@@ -798,7 +812,7 @@ class validator(wx.Validator):
         )
 
         # navigation keys
-        if key in navKeys or key < wx.WXK_SPACE or key == wx.WXK_DELETE:
+        if key in nav_keys or key < wx.WXK_SPACE or key == wx.WXK_DELETE:
             evt.Skip()
             return
 
@@ -891,7 +905,7 @@ class TransientPopupBase(wx.PopupTransientWindow):
         self.w_pos = self.ClientToScreen((0, 0))
         self.CaptureMouse()
 
-    def on_mouse_left_up(self, evt):
+    def on_mouse_left_up(self, _evt):
         """On left-release event"""
         if self.HasCapture():
             self.ReleaseMouse()
@@ -1020,7 +1034,7 @@ class PopupBase(wx.PopupWindow):
         self.w_pos = self.ClientToScreen((0, 0))
         self.CaptureMouse()
 
-    def on_mouse_left_up(self, evt):
+    def on_mouse_left_up(self, _evt):
         """On left-release event"""
         if self.HasCapture():
             self.ReleaseMouse()

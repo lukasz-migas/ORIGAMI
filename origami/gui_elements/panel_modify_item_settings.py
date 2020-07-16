@@ -3,7 +3,7 @@ import wx
 
 # Local imports
 from origami.styles import MiniFrame
-from origami.styles import validator
+from origami.styles import Validator
 from origami.styles import make_checkbox
 from origami.styles import make_bitmap_btn
 from origami.icons.icons import IconContainer
@@ -129,7 +129,7 @@ class PanelModifyItemSettings(MiniFrame):
 
         if self.show_charge:
             charge_label = wx.StaticText(panel, wx.ID_ANY, "Charge:")
-            self.charge_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("intPos"))
+            self.charge_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("intPos"))
             self.charge_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         if not self.show_simple:

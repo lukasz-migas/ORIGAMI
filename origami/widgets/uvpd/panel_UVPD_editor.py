@@ -31,7 +31,7 @@ from origami.ids import ID_uvpd_laser_off_show_chromatogram
 from origami.ids import ID_uvpd_laser_on_off_compare_mobilogram
 from origami.ids import ID_uvpd_laser_on_off_compare_chromatogam
 from origami.ids import ID_uvpd_laser_on_off_mobilogram_show_chromatogram
-from origami.styles import validator
+from origami.styles import Validator
 from origami.styles import make_checkbox
 from origami.styles import make_menu_item
 from origami.styles import make_staticbox
@@ -534,11 +534,11 @@ class PanelUVPDEditor(wx.MiniFrame):
         detect_grid = self.make_monitor_panel(panel)
 
         min_mz_value = wx.StaticText(panel, wx.ID_ANY, "min m/z:")
-        self.min_mz_value = wx.TextCtrl(panel, -1, "", size=(45, -1), validator=validator("floatPos"))
+        self.min_mz_value = wx.TextCtrl(panel, -1, "", size=(45, -1), validator=Validator("floatPos"))
         self.min_mz_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         max_mz_value = wx.StaticText(panel, wx.ID_ANY, "max m/z:")
-        self.max_mz_value = wx.TextCtrl(panel, -1, "", size=(45, -1), validator=validator("floatPos"))
+        self.max_mz_value = wx.TextCtrl(panel, -1, "", size=(45, -1), validator=Validator("floatPos"))
         self.max_mz_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         frag_add = wx.BitmapButton(
@@ -566,12 +566,12 @@ class PanelUVPDEditor(wx.MiniFrame):
         self.peaklist.Bind(wx.EVT_LIST_COL_CLICK, self.get_column_click_peaklist)
 
         min_dt_value = wx.StaticText(panel, wx.ID_ANY, "min dt:")
-        self.min_dt_value = wx.TextCtrl(panel, -1, "", size=(45, -1), validator=validator("intPos"))
+        self.min_dt_value = wx.TextCtrl(panel, -1, "", size=(45, -1), validator=Validator("intPos"))
         self.min_dt_value.Bind(wx.EVT_TEXT, self.on_apply)
         self.min_dt_value.Disable()
 
         max_dt_value = wx.StaticText(panel, wx.ID_ANY, "max dt:")
-        self.max_dt_value = wx.TextCtrl(panel, -1, "", size=(45, -1), validator=validator("intPos"))
+        self.max_dt_value = wx.TextCtrl(panel, -1, "", size=(45, -1), validator=Validator("intPos"))
         self.max_dt_value.Bind(wx.EVT_TEXT, self.on_apply)
         self.max_dt_value.Disable()
 

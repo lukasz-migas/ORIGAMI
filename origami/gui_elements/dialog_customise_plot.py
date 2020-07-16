@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.ticker as ticker
 
 # Local imports
-from origami.styles import validator
+from origami.styles import Validator
 from origami.styles import make_checkbox
 from origami.utils.labels import _replace_labels
 from origami.utils.converters import str2num
@@ -96,19 +96,19 @@ class DialogCustomisePlot(wx.Dialog):
         minor_tickFreq_label = wx.StaticText(panel, -1, "Minor tick \nfrequency:")
         tick_division_label = wx.StaticText(panel, -1, "Division \nfactor:")
 
-        self.xaxis_min_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=validator("float"))
-        self.xaxis_max_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=validator("float"))
-        self.xaxis_minor_tickreq_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=validator("float"))
-        self.xaxis_major_tickreq_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=validator("float"))
+        self.xaxis_min_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=Validator("float"))
+        self.xaxis_max_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=Validator("float"))
+        self.xaxis_minor_tickreq_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=Validator("float"))
+        self.xaxis_major_tickreq_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=Validator("float"))
 
-        self.yaxis_min_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=validator("float"))
-        self.yaxis_max_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=validator("float"))
-        self.yaxis_minor_tickreq_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=validator("float"))
-        self.yaxis_major_tickreq_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=validator("float"))
+        self.yaxis_min_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=Validator("float"))
+        self.yaxis_max_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=Validator("float"))
+        self.yaxis_minor_tickreq_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=Validator("float"))
+        self.yaxis_major_tickreq_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=Validator("float"))
 
-        self.xaxis_tick_division_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=validator("float"))
+        self.xaxis_tick_division_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=Validator("float"))
         self.xaxis_tick_division_value.Disable()
-        self.yaxis_tick_division_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=validator("float"))
+        self.yaxis_tick_division_value = wx.TextCtrl(panel, -1, "", size=(TEXT_SIZE, -1), validator=Validator("float"))
         self.yaxis_tick_division_value.Disable()
 
         self.override_defaults = make_checkbox(panel, "Override extents")

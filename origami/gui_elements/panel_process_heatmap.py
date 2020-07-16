@@ -10,7 +10,7 @@ from pubsub import pub
 
 # Local imports
 from origami.styles import MiniFrame
-from origami.styles import validator
+from origami.styles import Validator
 from origami.styles import make_checkbox
 from origami.config.config import CONFIG
 from origami.utils.converters import str2int
@@ -189,19 +189,19 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin):
         self.crop_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.crop_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        self.crop_xmin_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.crop_xmin_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.crop_xmin_value.SetValue(str(CONFIG.plot2D_crop_xmin))
         self.crop_xmin_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        self.crop_xmax_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.crop_xmax_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.crop_xmax_value.SetValue(str(CONFIG.plot2D_crop_xmax))
         self.crop_xmax_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        self.crop_ymin_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.crop_ymin_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.crop_ymin_value.SetValue(str(CONFIG.plot2D_crop_ymin))
         self.crop_ymin_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        self.crop_ymax_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.crop_ymax_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.crop_ymax_value.SetValue(str(CONFIG.plot2D_crop_ymax))
         self.crop_ymax_value.Bind(wx.EVT_TEXT, self.on_apply)
 
@@ -214,7 +214,7 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin):
         self.interpolate_choice.SetStringSelection(CONFIG.plot2D_interpolate_mode)
         self.interpolate_choice.Bind(wx.EVT_CHOICE, self.on_apply)
 
-        self.interpolate_fold = wx.TextCtrl(panel, -1, "", size=(65, -1), validator=validator("floatPos"))
+        self.interpolate_fold = wx.TextCtrl(panel, -1, "", size=(65, -1), validator=Validator("floatPos"))
         self.interpolate_fold.SetValue(str(CONFIG.plot2D_interpolate_fold))
         self.interpolate_fold.Bind(wx.EVT_TEXT, self.on_apply)
 
@@ -236,15 +236,15 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin):
         self.smooth_choice.Bind(wx.EVT_CHOICE, self.on_apply)
         self.smooth_choice.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
 
-        self.smooth_poly_order_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("intPos"))
+        self.smooth_poly_order_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("intPos"))
         self.smooth_poly_order_value.SetValue(str(CONFIG.plot2D_smooth_polynomial))
         self.smooth_poly_order_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        self.smooth_window_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("intPos"))
+        self.smooth_window_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("intPos"))
         self.smooth_window_value.SetValue(str(CONFIG.plot2D_smooth_window))
         self.smooth_window_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        self.smooth_sigma_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.smooth_sigma_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.smooth_sigma_value.SetValue(str(CONFIG.plot2D_smooth_sigma))
         self.smooth_sigma_value.Bind(wx.EVT_TEXT, self.on_apply)
 
@@ -253,7 +253,7 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin):
         self.baseline_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.baseline_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        self.baseline_threshold_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.baseline_threshold_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.baseline_threshold_value.SetValue(str(CONFIG.ms_threshold))
         self.baseline_threshold_value.Bind(wx.EVT_TEXT, self.on_apply)
 

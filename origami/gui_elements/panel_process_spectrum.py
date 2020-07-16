@@ -8,7 +8,7 @@ from pubsub import pub
 
 # Local imports
 from origami.styles import MiniFrame
-from origami.styles import validator
+from origami.styles import Validator
 from origami.styles import make_checkbox
 from origami.config.config import CONFIG
 from origami.utils.converters import str2int
@@ -204,12 +204,12 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
         self.ms_process_crop.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
         crop_min_label = wx.StaticText(panel, wx.ID_ANY, "m/z start:")
-        self.crop_min_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.crop_min_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.crop_min_value.SetValue(str(CONFIG.ms_crop_min))
         self.crop_min_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         crop_max_label = wx.StaticText(panel, wx.ID_ANY, "end:")
-        self.crop_max_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.crop_max_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.crop_max_value.SetValue(str(CONFIG.ms_crop_max))
         self.crop_max_value.Bind(wx.EVT_TEXT, self.on_apply)
 
@@ -227,12 +227,12 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
         self.bin_linearization_method_choice.Bind(wx.EVT_CHOICE, self.on_apply)
 
         bin_ms_min_label = wx.StaticText(panel, wx.ID_ANY, "m/z start:")
-        self.bin_mzStart_value = wx.TextCtrl(panel, -1, "", size=(65, -1), validator=validator("floatPos"))
+        self.bin_mzStart_value = wx.TextCtrl(panel, -1, "", size=(65, -1), validator=Validator("floatPos"))
         self.bin_mzStart_value.SetValue(str(CONFIG.ms_mzStart))
         self.bin_mzStart_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         bin_ms_max_label = wx.StaticText(panel, wx.ID_ANY, "end:")
-        self.bin_mzEnd_value = wx.TextCtrl(panel, -1, "", size=(65, -1), validator=validator("floatPos"))
+        self.bin_mzEnd_value = wx.TextCtrl(panel, -1, "", size=(65, -1), validator=Validator("floatPos"))
         self.bin_mzEnd_value.SetValue(str(CONFIG.ms_mzEnd))
         self.bin_mzEnd_value.Bind(wx.EVT_TEXT, self.on_apply)
 
@@ -242,7 +242,7 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
         self.bin_autoRange_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
         bin_ms_bin_size_label = wx.StaticText(panel, wx.ID_ANY, "m/z bin size:")
-        self.bin_mzBinSize_value = wx.TextCtrl(panel, -1, "", size=(65, -1), validator=validator("floatPos"))
+        self.bin_mzBinSize_value = wx.TextCtrl(panel, -1, "", size=(65, -1), validator=Validator("floatPos"))
         self.bin_mzBinSize_value.SetValue(str(CONFIG.ms_mzBinSize))
         self.bin_mzBinSize_value.Bind(wx.EVT_TEXT, self.on_apply)
 
@@ -259,22 +259,22 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
         self.ms_smoothFcn_choice.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
 
         polynomial_label = wx.StaticText(panel, wx.ID_ANY, "Savitzky-Golay polynomial order:")
-        self.ms_polynomial_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("intPos"))
+        self.ms_polynomial_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("intPos"))
         self.ms_polynomial_value.SetValue(str(CONFIG.ms_smooth_polynomial))
         self.ms_polynomial_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         window_label = wx.StaticText(panel, wx.ID_ANY, "Savitzky-Golay window size:")
-        self.ms_window_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("intPos"))
+        self.ms_window_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("intPos"))
         self.ms_window_value.SetValue(str(CONFIG.ms_smooth_window))
         self.ms_window_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         sigma_label = wx.StaticText(panel, wx.ID_ANY, "Gaussian sigma:")
-        self.ms_sigma_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.ms_sigma_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.ms_sigma_value.SetValue(str(CONFIG.ms_smooth_sigma))
         self.ms_sigma_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         ms_smooth_moving_window = wx.StaticText(panel, wx.ID_ANY, "Moving average window size:")
-        self.ms_smooth_moving_window = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("intPos"))
+        self.ms_smooth_moving_window = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("intPos"))
         self.ms_smooth_moving_window.SetValue(str(CONFIG.ms_smooth_moving_window))
         self.ms_smooth_moving_window.Bind(wx.EVT_TEXT, self.on_apply)
 
@@ -293,27 +293,27 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
         self.baseline_warning_msg = wx.StaticText(panel, wx.ID_ANY, "")
 
         threshold_label = wx.StaticText(panel, wx.ID_ANY, "Threshold:")
-        self.ms_threshold_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.ms_threshold_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.ms_threshold_value.SetValue(str(CONFIG.ms_threshold))
         self.ms_threshold_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         ms_baseline_polynomial_order = wx.StaticText(panel, wx.ID_ANY, "Polynomial order:")
-        self.ms_baseline_polynomial_order = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("intPos"))
+        self.ms_baseline_polynomial_order = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("intPos"))
         self.ms_baseline_polynomial_order.SetValue(str(CONFIG.ms_baseline_polynomial_order))
         self.ms_baseline_polynomial_order.Bind(wx.EVT_TEXT, self.on_apply)
 
         ms_baseline_curved_window = wx.StaticText(panel, wx.ID_ANY, "Curved window:")
-        self.ms_baseline_curved_window = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("intPos"))
+        self.ms_baseline_curved_window = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("intPos"))
         self.ms_baseline_curved_window.SetValue(str(CONFIG.ms_baseline_curved_window))
         self.ms_baseline_curved_window.Bind(wx.EVT_TEXT, self.on_apply)
 
         ms_baseline_median_window = wx.StaticText(panel, wx.ID_ANY, "Median window:")
-        self.ms_baseline_median_window = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("intPos"))
+        self.ms_baseline_median_window = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("intPos"))
         self.ms_baseline_median_window.SetValue(str(CONFIG.ms_baseline_median_window))
         self.ms_baseline_median_window.Bind(wx.EVT_TEXT, self.on_apply)
 
         ms_baseline_tophat_window = wx.StaticText(panel, wx.ID_ANY, "Top Hat window:")
-        self.ms_baseline_tophat_window = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("intPos"))
+        self.ms_baseline_tophat_window = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("intPos"))
         self.ms_baseline_tophat_window.SetValue(str(CONFIG.ms_baseline_tophat_window))
         self.ms_baseline_tophat_window.Bind(wx.EVT_TEXT, self.on_apply)
 

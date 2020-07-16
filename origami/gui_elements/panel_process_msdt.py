@@ -8,7 +8,7 @@ from pubsub import pub
 
 # Local imports
 from origami.styles import MiniFrame
-from origami.styles import validator
+from origami.styles import Validator
 from origami.config.config import CONFIG
 from origami.utils.converters import str2num
 from origami.gui_elements.panel_base import DatasetMixin
@@ -92,17 +92,17 @@ class PanelProcessMSDT(MiniFrame, DatasetMixin):
         panel = wx.Panel(self, -1, size=(-1, -1))
 
         mz_min_label = wx.StaticText(panel, wx.ID_ANY, "m/z (min):")
-        self.mz_min_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.mz_min_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.mz_min_value.SetValue(str(CONFIG.extract_dtms_mzStart))
         self.mz_min_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         mz_max_label = wx.StaticText(panel, wx.ID_ANY, "m/z (max): ")
-        self.mz_max_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.mz_max_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.mz_max_value.SetValue(str(CONFIG.extract_dtms_mzEnd))
         self.mz_max_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         mz_bin_label = wx.StaticText(panel, wx.ID_ANY, "m/z (bin size): ")
-        self.mz_bin_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.mz_bin_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.mz_bin_value.SetValue(str(CONFIG.extract_dtms_mzBinSize))
         self.mz_bin_value.Bind(wx.EVT_TEXT, self.on_apply)
 

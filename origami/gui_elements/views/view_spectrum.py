@@ -257,3 +257,32 @@ class ViewCompareMassSpectra(ViewCompareSpectra):
         ViewCompareSpectra.__init__(self, parent, figsize, title=title, **kwargs)
         self._x_label = kwargs.pop("x_label", "m/z (Da)")
         self._y_label = kwargs.pop("y_label", "Intensity")
+
+
+class _TestFrame(wx.Frame):
+    def __init__(self):
+        wx.Frame.__init__(self, None)
+
+        mz_obj = MassSpectrumObject()  # noqa
+        view_ms = ViewMassSpectrum(self, (12, 8))
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(view_ms.panel, 1, wx.EXPAND)
+
+        view_ms.plot([1, 2, 3], [1, 3, 1])
+
+        self.SetSizerAndFit(sizer)
+        self.Layout()
+
+
+def _main():
+
+    app = wx.App()
+
+    ex = _TestFrame()
+
+    ex.Show()
+    app.MainLoop()
+
+
+if __name__ == "__main__":
+    _main()

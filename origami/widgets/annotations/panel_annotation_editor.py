@@ -17,7 +17,7 @@ from pubsub import pub
 # Local imports
 from origami.styles import MiniFrame
 from origami.styles import PopupBase
-from origami.styles import validator
+from origami.styles import Validator
 from origami.styles import make_checkbox
 from origami.styles import make_menu_item
 from origami.styles import make_bitmap_btn
@@ -366,16 +366,16 @@ class PanelAnnotationEditorUI(MiniFrame, TableMixin, DatasetMixin):
         self.label_value = wx.TextCtrl(panel, -1, "", style=wx.TE_RICH2 | wx.TE_MULTILINE)
         self.label_value.SetToolTip(wx.ToolTip("Label associated with the marked region in the plot area"))
 
-        self.marker_position_x = wx.TextCtrl(panel, -1, "", validator=validator("float"))
+        self.marker_position_x = wx.TextCtrl(panel, -1, "", validator=Validator("float"))
         self.marker_position_x.SetBackgroundColour((255, 230, 239))
 
-        self.marker_position_y = wx.TextCtrl(panel, -1, "", validator=validator("float"))
+        self.marker_position_y = wx.TextCtrl(panel, -1, "", validator=Validator("float"))
         self.marker_position_y.SetBackgroundColour((255, 230, 239))
 
-        self.label_position_x = wx.TextCtrl(panel, -1, "", validator=validator("float"))
+        self.label_position_x = wx.TextCtrl(panel, -1, "", validator=Validator("float"))
         self.label_position_x.SetBackgroundColour((255, 230, 239))
 
-        self.label_position_y = wx.TextCtrl(panel, -1, "", validator=validator("float"))
+        self.label_position_y = wx.TextCtrl(panel, -1, "", validator=Validator("float"))
         self.label_position_y.SetBackgroundColour((255, 230, 239))
 
         self.label_color_btn = wx.Button(panel, wx.ID_ANY, "", size=wx.Size(26, 26), name="label_color")
@@ -384,12 +384,12 @@ class PanelAnnotationEditorUI(MiniFrame, TableMixin, DatasetMixin):
         self.add_arrow_to_peak = make_checkbox(panel, "", name="arrow_show")
         self.add_arrow_to_peak.SetValue(False)
 
-        self.patch_min_x = wx.TextCtrl(panel, -1, "", validator=validator("float"))
+        self.patch_min_x = wx.TextCtrl(panel, -1, "", validator=Validator("float"))
         self.patch_min_x.SetBackgroundColour((255, 230, 239))
-        self.patch_min_y = wx.TextCtrl(panel, -1, "", validator=validator("float"))
+        self.patch_min_y = wx.TextCtrl(panel, -1, "", validator=Validator("float"))
         self.patch_min_y.SetBackgroundColour((255, 230, 239))
-        self.patch_width = wx.TextCtrl(panel, -1, "", validator=validator("float"))
-        self.patch_height = wx.TextCtrl(panel, -1, "", validator=validator("float"))
+        self.patch_width = wx.TextCtrl(panel, -1, "", validator=Validator("float"))
+        self.patch_height = wx.TextCtrl(panel, -1, "", validator=Validator("float"))
 
         self.patch_color_btn = wx.Button(panel, wx.ID_ANY, "", size=wx.Size(26, 26), name="patch_color")
         self.patch_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.interactive_ms_annotations_color))

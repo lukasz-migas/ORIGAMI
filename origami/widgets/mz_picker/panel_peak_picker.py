@@ -13,7 +13,7 @@ from pubsub.core.topicexc import TopicNameError
 # Local imports
 from origami.ids import ID_plotPanel_resize
 from origami.styles import MiniFrame
-from origami.styles import validator
+from origami.styles import Validator
 from origami.styles import set_tooltip
 from origami.styles import make_checkbox
 from origami.styles import set_item_font
@@ -465,12 +465,12 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         self.mz_limit_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
         mz_min_value = wx.StaticText(panel, wx.ID_ANY, "m/z start:")
-        self.mz_min_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.mz_min_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         # self.mz_min_value.SetValue(str(self._mz_xrange[0]))
         self.mz_min_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         mz_max_value = wx.StaticText(panel, wx.ID_ANY, "-")
-        self.mz_max_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.mz_max_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         # self.mz_max_value.SetValue(str(self._mz_xrange[1]))
         self.mz_max_value.Bind(wx.EVT_TEXT, self.on_apply)
 
@@ -548,12 +548,12 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         )
 
         lower_value = wx.StaticText(panel, wx.ID_ANY, "criteria:")
-        self.post_filter_lower_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.post_filter_lower_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.post_filter_lower_value.Bind(wx.EVT_TEXT, self.on_apply)
         set_tooltip(self.post_filter_lower_value, "Set lower bound of the selection criteria. Values are inclusive.")
 
         upper_value = wx.StaticText(panel, wx.ID_ANY, "-")
-        self.post_filter_upper_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.post_filter_upper_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.post_filter_upper_value.Bind(wx.EVT_TEXT, self.on_apply)
         set_tooltip(self.post_filter_upper_value, "Set upper bound of the selection criteria. Values are inclusive.")
 
@@ -720,33 +720,33 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         panel = wx.Panel(split_panel, -1, size=(-1, -1), name="small_molecules")
 
         threshold_value = wx.StaticText(panel, wx.ID_ANY, "Threshold:")
-        self.threshold_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.threshold_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.threshold_value.SetValue(str(CONFIG.peak_find_threshold))
         self.threshold_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         width_value = wx.StaticText(panel, wx.ID_ANY, "Minimal width:")
-        self.width_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("intPos"))
+        self.width_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("intPos"))
         self.width_value.SetValue(str(CONFIG.peak_find_width))
         self.width_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         relative_height_value = wx.StaticText(panel, wx.ID_ANY, "Measure peak width at relative height:")
-        self.relative_height_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.relative_height_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.relative_height_value.SetValue(str(CONFIG.peak_find_relative_height))
         self.relative_height_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         min_intensity_value = wx.StaticText(panel, wx.ID_ANY, "Minimal intensity:")
-        self.min_intensity_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.min_intensity_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.min_intensity_value.SetValue(str(CONFIG.peak_find_min_intensity))
         self.min_intensity_value.Bind(wx.EVT_TEXT, self.on_apply)
         self.min_intensity_value.Bind(wx.EVT_TEXT, self.on_show_threshold_line)
 
         min_distance_value = wx.StaticText(panel, wx.ID_ANY, "Minimal distance between peaks:")
-        self.min_distance_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("intPos"))
+        self.min_distance_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("intPos"))
         self.min_distance_value.SetValue(str(CONFIG.peak_find_distance))
         self.min_distance_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         peak_width_modifier_value = wx.StaticText(panel, wx.ID_ANY, "Peak width modifier:")
-        self.peak_width_modifier_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.peak_width_modifier_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.peak_width_modifier_value.SetValue(str(CONFIG.peak_property_peak_width_modifier))
         self.peak_width_modifier_value.Bind(wx.EVT_TEXT, self.on_apply)
 
@@ -787,13 +787,13 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         panel = wx.Panel(split_panel, -1, size=(-1, -1), name="native-local")
 
         threshold_label = wx.StaticText(panel, wx.ID_ANY, "Threshold:")
-        self.fit_local_threshold_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.fit_local_threshold_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.fit_local_threshold_value.SetValue(str(CONFIG.peak_local_threshold))
         self.fit_local_threshold_value.Bind(wx.EVT_TEXT, self.on_apply)
         self.fit_local_threshold_value.Bind(wx.EVT_TEXT, self.on_show_threshold_line)
 
         window_label = wx.StaticText(panel, wx.ID_ANY, "Window size (points):")
-        self.fit_local_window_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("intPos"))
+        self.fit_local_window_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("intPos"))
         self.fit_local_window_value.SetValue(str(CONFIG.peak_local_window))
         self.fit_local_window_value.Bind(wx.EVT_TEXT, self.on_apply)
         self.fit_local_window_value.Bind(wx.EVT_TEXT, self.on_show_window_size_in_mz)
@@ -801,7 +801,7 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         self.fit_local_window_mz_spacing = wx.StaticText(panel, wx.ID_ANY, "")
 
         fit_relative_height = wx.StaticText(panel, wx.ID_ANY, "Measure peak width at relative height:")
-        self.fit_local_relative_height = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("floatPos"))
+        self.fit_local_relative_height = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.fit_local_relative_height.SetValue(str(CONFIG.peak_local_relative_height))
         self.fit_local_relative_height.Bind(wx.EVT_TEXT, self.on_apply)
 
@@ -834,14 +834,14 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
 
         threshold_label = wx.StaticText(panel, wx.ID_ANY, "Threshold:")
         self.fit_differential_threshold_value = wx.TextCtrl(
-            panel, -1, "", size=(-1, -1), validator=validator("floatPos")
+            panel, -1, "", size=(-1, -1), validator=Validator("floatPos")
         )
         self.fit_differential_threshold_value.SetValue(str(CONFIG.peak_differential_threshold))
         self.fit_differential_threshold_value.Bind(wx.EVT_TEXT, self.on_apply)
         self.fit_differential_threshold_value.Bind(wx.EVT_TEXT, self.on_show_threshold_line)
 
         window_label = wx.StaticText(panel, wx.ID_ANY, "Window size (points):")
-        self.fit_differential_window_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=validator("intPos"))
+        self.fit_differential_window_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("intPos"))
         self.fit_differential_window_value.SetValue(str(CONFIG.peak_differential_window))
         self.fit_differential_window_value.Bind(wx.EVT_TEXT, self.on_apply)
         self.fit_differential_window_value.Bind(wx.EVT_TEXT, self.on_show_window_size_in_mz)
@@ -850,7 +850,7 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
 
         fit_relative_height = wx.StaticText(panel, wx.ID_ANY, "Measure peak width at relative height:")
         self.fit_differential_relative_height = wx.TextCtrl(
-            panel, -1, "", size=(-1, -1), validator=validator("floatPos")
+            panel, -1, "", size=(-1, -1), validator=Validator("floatPos")
         )
         self.fit_differential_relative_height.SetValue(str(CONFIG.peak_differential_relative_height))
         self.fit_differential_relative_height.Bind(wx.EVT_TEXT, self.on_apply)
