@@ -184,6 +184,7 @@ class Statusbar(wx.StatusBar):
 
     def set_message(self, message: str, field: int, delay: int = 3000):
         """Set message in the statusbar"""
+        self._clean_field = field
         self.SetStatusText(message, field)
 
         # set timer

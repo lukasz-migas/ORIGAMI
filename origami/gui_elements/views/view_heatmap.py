@@ -74,7 +74,7 @@ class ViewHeatmap(ViewBase):
 
         try:
             self.update(x, y, array, obj, **kwargs)
-        except AttributeError:
+        except AttributeError as er:
             x, y, array = self.check_input(x, y, array, obj)
             self.figure.clear()
             self.figure.plot_2d(
@@ -104,6 +104,29 @@ class ViewHeatmap(ViewBase):
 
     def replot(self, **kwargs):
         """Replot the current plot"""
+
+    def plot_rgb(self, x=None, y=None, array=None, obj=None, **kwargs):
+        """Plot object as a waterfall"""
+
+    def plot_contour(self, x=None, y=None, array=None, obj=None, **kwargs):
+        """Plot object as a waterfall"""
+        # try to update plot first, as it can be quicker
+        self.set_document(obj, **kwargs)
+        self.set_labels(obj, **kwargs)
+
+        kwargs.update(**CONFIG.get_mpl_parameters(self.MPL_KEYS))
+        kwargs = self.check_kwargs(**kwargs)
+        x, y, array = self.check_input(x, y, array, obj)
+        self.figure.clear()
+        self.figure.plot_2d_contour(
+            x, y, array, x_label=self.x_label, y_label=self.y_label, callbacks=self._callbacks, obj=obj, **kwargs
+        )
+        self.figure.repaint()
+
+        # set data
+        self._data.update(x=x, y=y, array=array)
+        self._plt_kwargs = kwargs
+        LOGGER.debug("Plotted data")
 
     def plot_violin(self, x=None, y=None, array=None, obj=None, **kwargs):
         """Plot object as a violin plot"""

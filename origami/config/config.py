@@ -1925,7 +1925,7 @@ class Config:
         # heatmap parameters
         self.heatmap_plot_type_choices = ("Image", "Contour")
         self.heatmap_plot_type = "surface"
-        self.heatmap_n_contour = 250
+        self.heatmap_n_contour = 100
         self.heatmap_colormap = "viridis"
 
         # ===============================================================================
@@ -2515,6 +2515,8 @@ class Config:
                         "colormap_max": self.maxCmap,
                         "colormap_norm_method": self.normalization_2D,
                         "colormap_norm_power_gamma": self.normalization_2D_power_gamma,
+                        "contour_n_levels": self.heatmap_n_contour,
+                        "plot_type": self.plotType,
                     }
                 )
 

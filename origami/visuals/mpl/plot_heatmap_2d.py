@@ -39,12 +39,64 @@ class PlotHeatmap2D(PlotBase):
         xlimits, ylimits, extent = self._compute_xy_limits(x, y, None, is_heatmap=True)
 
         # add 2d plot
-        self.cax = self.plot_base.imshow(
+        if kwargs["plot_type"] == "Image":
+            self.cax = self.plot_base.imshow(
+                array,
+                cmap=kwargs["colormap"],
+                interpolation=kwargs["interpolation"],
+                #             norm=kwargs["colormap_norm"],
+                aspect="auto",
+                origin="lower",
+                extent=[*xlimits, *ylimits],
+            )
+        else:
+            self.cax = self.plot_base.contourf(
+                array,
+                kwargs["contour_n_levels"],
+                cmap=kwargs["colormap"],
+                #               norm=kwargs["colormap_norm"],
+                antialiasing=True,
+                origin="lower",
+                extent=[*xlimits, *ylimits],
+            )
+        # set plot limits
+        self.plot_base.set_xlim(xlimits)
+        self.plot_base.set_ylim(ylimits)
+        self.set_plot_xlabel(x_label, **kwargs)
+        self.set_plot_ylabel(y_label, **kwargs)
+        self.set_plot_title(title, **kwargs)
+        self.set_tick_parameters(**kwargs)
+
+        self.setup_new_zoom(
+            [self.plot_base],
+            data_limits=extent,
+            allow_extraction=kwargs.get("allow_extraction", False),
+            callbacks=kwargs.get("callbacks", dict()),
+            is_heatmap=True,
+            obj=obj,
+        )
+        self.store_plot_limits([extent], [self.plot_base])
+
+        # add colorbar
+        self.set_colorbar_parameters(array, **kwargs)
+
+        # update normalization
+        self.plot_2D_update_normalization(**kwargs)
+
+    def plot_2d_contour(self, x, y, array, title="", x_label="", y_label="", obj=None, **kwargs):
+        """Simple heatmap plot"""
+        self.PLOT_TYPE = "heatmap"
+        self._set_axes()
+
+        xlimits, ylimits, extent = self._compute_xy_limits(x, y, None, is_heatmap=True)
+
+        # add 2d plot
+        self.cax = self.plot_base.contourf(
             array,
+            kwargs["contour_n_levels"],
             cmap=kwargs["colormap"],
-            interpolation=kwargs["interpolation"],
-            #             norm=kwargs["colormap_norm"],
-            aspect="auto",
+            #               norm=kwargs["colormap_norm"],
+            antialiasing=True,
             origin="lower",
             extent=[*xlimits, *ylimits],
         )
@@ -74,6 +126,9 @@ class PlotHeatmap2D(PlotBase):
 
     def plot_2d_update_data(self, x, y, array, x_label=None, y_label=None, obj=None, **kwargs):
         xlimits, ylimits, extent = self._compute_xy_limits(x, y, None, is_heatmap=True)
+
+        if kwargs["plot_type"] == "Contour":
+            raise AttributeError("Contour plot does not have `set_data`")
 
         # update limits and extents
         self.cax.set_data(array)
@@ -835,111 +890,6 @@ class PlotHeatmap2D(PlotBase):
     #     extent = [xmin, ymin, xmax, ymax]
     #     self.setup_zoom([self.plot2D_upper, self.plot2D_lower, self.plot2D_side], self.zoomtype, data_lims=extent)
     #     self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
-    #
-    # def plot_2D_surface(
-    #     self, zvals, xvals, yvals, xlabel, ylabel, legend=False, axesSize=None, plotName=None, **kwargs
-    # ):
-    #     # update settings
-    #     self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
-    #
-    #     # set tick size
-    #     matplotlib.rc("xtick", labelsize=kwargs["tick_size"])
-    #     matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
-    #
-    #     # Plot
-    #     self.plot_base = self.figure.add_axes(self._axes)
-    #     extent = ut_visuals.extents(xvals) + ut_visuals.extents(yvals)
-    #
-    #     # Add imshow
-    #     self.cax = self.plot_base.imshow(
-    #         zvals,
-    #         extent=extent,
-    #         cmap=kwargs["colormap"],
-    #         interpolation=kwargs["interpolation"],
-    #         norm=kwargs["colormap_norm"],
-    #         aspect="auto",
-    #         origin="lower",
-    #     )
-    #     xmin, xmax, ymin, ymax = extent
-    #     self.plot_base.set_xlim(xmin, xmax - 0.5)
-    #     self.plot_base.set_ylim(ymin, ymax - 0.5)
-    #
-    #     # legend
-    #     if legend:
-    #         self.set_legend_parameters(None, **kwargs)
-    #
-    #     # setup zoom
-    #     extent = [xmin, ymin, xmax, ymax]
-    #     self.setup_zoom([self.plot_base], self.zoomtype, data_lims=extent, plotName=plotName)
-    #     self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
-    #
-    #     # labels
-    #     if xlabel in ["None", None, ""]:
-    #         xlabel = ""
-    #     if ylabel in ["None", None, ""]:
-    #         ylabel = ""
-    #
-    #     self.set_plot_xlabel(xlabel, **kwargs)
-    #     self.set_plot_ylabel(ylabel, **kwargs)
-    #
-    #     # add colorbar
-    #     self.set_colorbar_parameters(zvals, **kwargs)
-    #
-    #     self.set_tick_parameters(**kwargs)
-    #
-    #     # add data
-    #     self.plot_data = {"xvals": xvals, "yvals": yvals, "zvals": zvals, "xlabel": xlabel, "ylabel": ylabel}
-    #     self.plot_labels.update({"xlabel": xlabel, "ylabel": ylabel})
-    #
-    # def plot_2D_contour(
-    #     self, zvals, xvals, yvals, xlabel, ylabel, legend=False, axesSize=None, plotName=None, **kwargs
-    # ):
-    #     # update settings
-    #     self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
-    #
-    #     # set tick size
-    #     matplotlib.rc("xtick", labelsize=kwargs["tick_size"])
-    #     matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
-    #
-    #     # Plot
-    #     self.plot_base = self.figure.add_axes(self._axes)
-    #
-    #     extent = ut_visuals.extents(xvals) + ut_visuals.extents(yvals)
-    #
-    #     # Add imshow
-    #     self.cax = self.plot_base.contourf(
-    #         zvals, 300, extent=extent, cmap=kwargs["colormap"], norm=kwargs["colormap_norm"], antialiasing=True
-    #     )
-    #
-    #     xmin, xmax, ymin, ymax = extent
-    #     self.plot_base.set_xlim(xmin, xmax - 0.5)
-    #     self.plot_base.set_ylim(ymin, ymax - 0.5)
-    #
-    #     # legend
-    #     if legend:
-    #         self.set_legend_parameters(None, **kwargs)
-    #
-    #     # setup zoom
-    #     extent = [xmin, ymin, xmax, ymax]
-    #     self.setup_zoom([self.plot_base], self.zoomtype, data_lims=extent)
-    #     self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
-    #
-    #     # labels
-    #     if xlabel in ["None", None, ""]:
-    #         xlabel = ""
-    #     if ylabel in ["None", None, ""]:
-    #         ylabel = ""
-    #
-    #     self.set_plot_xlabel(xlabel, **kwargs)
-    #     self.set_plot_ylabel(ylabel, **kwargs)
-    #
-    #     # add colorbar
-    #     self.set_colorbar_parameters(zvals, **kwargs)
-    #     self.set_tick_parameters(**kwargs)
-    #
-    #     # add data
-    #     self.plot_data = {"xvals": xvals, "yvals": yvals, "zvals": zvals, "xlabel": xlabel, "ylabel": ylabel}
-    #     self.plot_labels.update({"xlabel": xlabel, "ylabel": ylabel})
     #
     # def plot_2D_contour_unidec(
     #     self,

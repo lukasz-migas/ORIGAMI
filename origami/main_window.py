@@ -1757,7 +1757,7 @@ class MainWindow(wx.Frame):
         if CONFIG.testing:
             return
 
-        self.statusbar.set_message(msg, position, delay * 1000)
+        wx.CallAfter(self.statusbar.set_message, msg, position, delay * 1000)
 
     @staticmethod
     def on_update_interaction_settings(evt):

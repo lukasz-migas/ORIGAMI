@@ -1,6 +1,7 @@
 """Test `views`"""
 # Third-party imports
 import wx
+import pytest
 
 # Local imports
 from origami.objects.containers import MobilogramObject
@@ -14,6 +15,7 @@ from origami.gui_elements.views.view_spectrum import ViewCompareMassSpectra
 from ..wxtc import WidgetTestCase
 
 
+@pytest.mark.guitest
 class TestPlotView(WidgetTestCase):
     """Test panel"""
 
@@ -25,6 +27,7 @@ class TestPlotView(WidgetTestCase):
         self.frame.Layout()
 
 
+@pytest.mark.guitest
 class TestPanelViewMassSpectrum(TestPlotView):
     """Test dialog"""
 
@@ -41,6 +44,7 @@ class TestPanelViewMassSpectrum(TestPlotView):
         view.plot(obj=mz_obj)
 
 
+@pytest.mark.guitest
 class TestPanelViewChromatogram(TestPlotView):
     """Test dialog"""
 
@@ -57,6 +61,7 @@ class TestPanelViewChromatogram(TestPlotView):
         view.plot(obj=mz_obj)
 
 
+@pytest.mark.guitest
 class TestPanelViewMobilogram(TestPlotView):
     """Test dialog"""
 
@@ -73,6 +78,7 @@ class TestPanelViewMobilogram(TestPlotView):
         view.plot(obj=mz_obj)
 
 
+@pytest.mark.guitest
 class TestPanelViewCompareMassSpectra(TestPlotView):
     """Test dialog"""
 

@@ -1,10 +1,14 @@
 """Test PanelAbout dialog"""
+# Third-party imports
+import pytest
+
 # Local imports
 from origami.gui_elements.panel_process_heatmap import PanelProcessHeatmap
 
 from ..wxtc import WidgetTestCase
 
 
+@pytest.mark.guitest
 class TestPanelProcessHeatmap(WidgetTestCase):
     """Test dialog"""
 

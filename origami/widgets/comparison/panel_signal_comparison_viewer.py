@@ -1,6 +1,8 @@
 """Signal comparison panel"""
 # Standard library imports
 import logging
+from typing import Dict
+from typing import List
 
 # Third-party imports
 import wx
@@ -81,7 +83,16 @@ class PanelSignalComparisonViewer(MiniFrame):
     cancel_btn = None
     info_btn = None
 
-    def __init__(self, parent, presenter, icons, **kwargs):
+    def __init__(
+        self,
+        parent,
+        presenter,
+        icons,
+        document_title: str,
+        document_list: List = None,
+        document_spectrum_dict: Dict = None,
+        debug: bool = False,
+    ):
         MiniFrame.__init__(
             self, parent, title="Compare mass spectra...", style=wx.DEFAULT_FRAME_STYLE & ~wx.MAXIMIZE_BOX
         )
@@ -90,9 +101,13 @@ class PanelSignalComparisonViewer(MiniFrame):
         self.presenter = presenter
         self._icons = icons
 
-        self.kwargs = kwargs
-        self.current_document = self.kwargs.get("current_document", "")
-        self.document_list = self.kwargs.get("document_list", [])
+        self.document_title = document_title
+        if document_list is None:
+            document_list = []
+        self.document_list = document_list
+        if document_spectrum_dict is None:
+            document_spectrum_dict = dict()
+        self.document_spectrum_dict = document_spectrum_dict
         self.compare_massSpectrum = []
 
         screen_size = wx.GetDisplaySize()
@@ -104,7 +119,7 @@ class PanelSignalComparisonViewer(MiniFrame):
 
         # make gui items
         self.make_gui()
-        if kwargs.get("debug", False):
+        if debug:
             return
 
         self.setup()
@@ -196,7 +211,7 @@ class PanelSignalComparisonViewer(MiniFrame):
         menu.Destroy()
         self.SetFocus()
 
-    def on_close(self, evt):
+    def on_close(self, evt, force: bool = False):
         """Destroy this frame."""
         try:
             if self.PUB_SUBSCRIBE_EVENT:
@@ -209,7 +224,7 @@ class PanelSignalComparisonViewer(MiniFrame):
             self.document_tree._compare_panel = None
         except AttributeError:
             pass
-        self.Destroy()
+        super(PanelSignalComparisonViewer, self).on_close(evt, force)
 
     # noinspection DuplicatedCode
     def make_gui(self):
@@ -459,16 +474,17 @@ class PanelSignalComparisonViewer(MiniFrame):
         refresh = kwargs.pop("refresh", False)
 
         # update items in the widget
-        if "current_document" in kwargs:
-            self.current_document = kwargs["current_document"]
-            self.kwargs["current_document"] = kwargs.pop("current_document")
+        if "document_title" in kwargs:
+            self.document_title = kwargs["document_title"]
+            # self.kwargs["current_document"] = kwargs.pop("current_document")
 
         if "document_list" in kwargs:
             self.document_list = kwargs["document_list"]
-            self.kwargs["document_list"] = kwargs.pop("document_list")
+            # self.kwargs["document_list"] = kwargs.pop("document_list")
 
-        if "document_spectrum_list" in kwargs:
-            self.kwargs["document_spectrum_list"] = kwargs.pop("document_spectrum_list")
+        if "document_spectrum_dict" in kwargs:
+            self.document_spectrum_dict = kwargs["document_spectrum_dict"]
+            # self.kwargs["document_spectrum_list"] = kwargs.pop("document_spectrum_list")
 
         # check document list
         document_1, spectrum_1, spectrum_list_1, document_2, spectrum_2, spectrum_list_2 = self._check_spectrum_list()
@@ -501,7 +517,7 @@ class PanelSignalComparisonViewer(MiniFrame):
 
     def _check_spectrum_list(self):
 
-        spectrum_list_1 = natsorted(self.kwargs["document_spectrum_list"][self.document_list[0]])
+        spectrum_list_1 = natsorted(self.document_spectrum_dict[self.document_list[0]])
         if len(spectrum_list_1) >= 2:
             return (
                 self.document_list[0],
@@ -512,7 +528,7 @@ class PanelSignalComparisonViewer(MiniFrame):
                 spectrum_list_1,
             )
         else:
-            spectrum_list_2 = natsorted(self.kwargs["document_spectrum_list"][self.document_list[1]])
+            spectrum_list_2 = natsorted(self.document_spectrum_dict[self.document_list[1]])
             return (
                 self.document_list[0],
                 spectrum_list_1[0],
@@ -528,13 +544,13 @@ class PanelSignalComparisonViewer(MiniFrame):
         # update document list
         if evt_id == ID_compareMS_MS_1:
             document_1 = self.spectrum_1_document_value.GetStringSelection()
-            spectrum_list_1 = natsorted(self.kwargs["document_spectrum_list"][document_1])
+            spectrum_list_1 = natsorted(self.document_spectrum_dict[document_1])
             self.spectrum_1_spectrum_value.SetItems(spectrum_list_1)
             self.spectrum_1_spectrum_value.SetStringSelection(spectrum_list_1[0])
 
         elif evt_id == ID_compareMS_MS_2:
             document_2 = self.spectrum_2_document_value.GetStringSelection()
-            spectrum_list_2 = natsorted(self.kwargs["document_spectrum_list"][document_2])
+            spectrum_list_2 = natsorted(self.document_spectrum_dict[document_2])
             self.spectrum_2_spectrum_value.SetItems(spectrum_list_2)
             self.spectrum_2_spectrum_value.SetStringSelection(spectrum_list_2[0])
 
@@ -751,7 +767,7 @@ def _main():
 
     app = wx.App()
     icons = Icons()
-    ex = PanelSignalComparisonViewer(None, None, icons, debug=True)
+    ex = PanelSignalComparisonViewer(None, None, icons, "", None, None, debug=True)
 
     ex.Show()
     app.MainLoop()

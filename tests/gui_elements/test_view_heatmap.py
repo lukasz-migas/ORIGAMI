@@ -2,6 +2,7 @@
 # Third-party imports
 import wx
 import numpy as np
+import pytest
 
 # Local imports
 from origami.objects.containers import IonHeatmapObject
@@ -12,6 +13,7 @@ from origami.gui_elements.views.view_heatmap import ViewMassSpectrumHeatmap
 from ..wxtc import WidgetTestCase
 
 
+@pytest.mark.guitest
 class TestPlotView(WidgetTestCase):
     """Test panel"""
 
@@ -23,6 +25,7 @@ class TestPlotView(WidgetTestCase):
         self.frame.Layout()
 
 
+@pytest.mark.guitest
 class TestPanelViewIonHeatmap(TestPlotView):
     """Test dialog"""
 
@@ -35,11 +38,13 @@ class TestPanelViewIonHeatmap(TestPlotView):
 
         # test plot using object
         view.plot(obj=obj)
+        view.plot_contour(obj=obj)
         view.plot_joint(obj=obj)
         view.plot_violin(obj=obj)
         view.plot_waterfall(obj=obj)
 
 
+@pytest.mark.guitest
 class TestPanelViewMassSpectrumHeatmap(TestPlotView):
     """Test dialog"""
 

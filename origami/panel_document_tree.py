@@ -1835,6 +1835,7 @@ class DocumentTree(wx.TreeCtrl):
 
         # view actions
         menu_action_show_plot_2d = make_menu_item(parent=menu, text="Show heatmap\tAlt+S", bitmap=self._icons.heatmap)
+        menu_action_show_plot_contour = make_menu_item(parent=menu, text="Show contour", bitmap=self._icons.heatmap)
         menu_action_show_plot_as_mobilogram = make_menu_item(
             parent=menu, text="Show mobilogram", bitmap=self._icons.mobilogram
         )
@@ -1873,6 +1874,7 @@ class DocumentTree(wx.TreeCtrl):
 
         # bind events
         self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap, menu_action_show_plot_2d)
+        self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_contour, menu_action_show_plot_contour)
         self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_violin, menu_action_show_plot_violin)
         self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_joint, menu_action_show_plot_joint)
         self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_waterfall, menu_action_show_plot_waterfall)
@@ -1899,12 +1901,13 @@ class DocumentTree(wx.TreeCtrl):
             menu_xlabel, menu_ylabel = self._get_menu_heatmap_label()
 
             menu.AppendItem(menu_action_show_plot_2d)
+            menu.AppendItem(menu_action_show_plot_contour)
+            menu.AppendItem(menu_action_show_plot_joint)
+            menu.AppendItem(menu_action_show_plot_waterfall)
+            menu.AppendItem(menu_action_show_plot_violin)
             menu.AppendItem(menu_action_show_plot_as_mobilogram)
             menu.AppendItem(menu_action_show_plot_as_chromatogram)
             menu.AppendItem(menu_action_show_highlights)
-            menu.AppendItem(menu_action_show_plot_violin)
-            menu.AppendItem(menu_action_show_plot_waterfall)
-            menu.AppendItem(menu_action_show_plot_joint)
             menu.AppendSeparator()
             menu.AppendItem(menu_action_process_2d)
             menu.AppendSeparator()
@@ -2418,26 +2421,27 @@ class DocumentTree(wx.TreeCtrl):
         if self._item_id is None:
             return
 
-        document_spectrum_list = self.data_handling.generate_item_list_mass_spectra("comparison")
-        document_list = list(document_spectrum_list.keys())
-        count = sum([len(document_spectrum_list[_title]) for _title in document_spectrum_list])
+        document_spectrum_dict = self.data_handling.generate_item_list_mass_spectra("comparison")
+        document_list = list(document_spectrum_dict.keys())
+        count = sum([len(document_spectrum_dict[_title]) for _title in document_spectrum_dict])
 
         if count < 2:
             LOGGER.error(f"There must be at least 2 items in the list co compare. Current count: {count}")
             return
 
         try:
-            document_title = self._document_data.title
+            document_title, _ = self._get_item_info()
         except AttributeError:
             document_title = document_list[0]
 
-        kwargs = {
-            "current_document": document_title,
-            "document_list": document_list,
-            "document_spectrum_list": document_spectrum_list,
-        }
-
-        self._compare_panel = PanelSignalComparisonViewer(self.view, self.presenter, self._icons, **kwargs)
+        self._compare_panel = PanelSignalComparisonViewer(
+            self.view,
+            self.presenter,
+            self._icons,
+            document_title=document_title,
+            document_list=document_list,
+            document_spectrum_dict=document_spectrum_dict,
+        )
         self._compare_panel.Show()
 
     def on_open_process_heatmap_settings(self, **kwargs):
@@ -3141,8 +3145,21 @@ class DocumentTree(wx.TreeCtrl):
 
         # get data for selected item
         obj = self._get_item_object()
-        #         self.panel_plot.view_heatmap.plot_waterfall(obj=obj)
         self.panel_plot.on_plot_2d(obj=obj, set_page=True)
+
+        if save_image:
+            filename = self._item.get_name("heatmap")
+            self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
+
+    def on_show_plot_heatmap_contour(self, evt, save_image=False):
+        """Show heatmap as a contour plot"""
+        if self._item.is_match("heatmap", True):
+            return
+
+        # get data for selected item
+        obj = self._get_item_object()
+        self.panel_plot.view_heatmap.plot_contour(obj=obj)
+        self.panel_plot.set_page("Heatmap")
 
         if save_image:
             filename = self._item.get_name("heatmap")
@@ -3181,6 +3198,7 @@ class DocumentTree(wx.TreeCtrl):
         # get data for selected item
         obj = self._get_item_object()
         self.panel_plot.view_heatmap.plot_violin(obj=obj)
+        self.panel_plot.set_page("Heatmap")
 
         if save_image:
             filename = self._item.get_name("violin")
@@ -3193,6 +3211,7 @@ class DocumentTree(wx.TreeCtrl):
         # get data for selected item
         obj = self._get_item_object()
         self.panel_plot.view_heatmap.plot_joint(obj=obj)
+        self.panel_plot.set_page("Heatmap")
 
         if save_image:
             filename = self._item.get_name("joint")
@@ -3205,6 +3224,7 @@ class DocumentTree(wx.TreeCtrl):
         # get data for selected item
         obj = self._get_item_object()
         self.panel_plot.view_heatmap.plot_waterfall(obj=obj)
+        self.panel_plot.set_page("Heatmap")
 
         if save_image:
             filename = self._item.get_name("waterfall")
