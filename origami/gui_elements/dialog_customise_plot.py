@@ -594,7 +594,7 @@ class DialogCustomisePlot(wx.Dialog):
         #                     cbar_ticks = [cmap_min, median([cmap_min + cmap_max]), cmap_max]
 
         self.plot.lock_plot_from_updating = False
-        self.plot.plot_2D_colorbar_update(**self.plot.plot_parameters)
+        self.plot.plot_2d_colorbar_update(**self.plot.plot_parameters)
         #         self.plot.lock_plot_from_updating = True
         self.plot.repaint()
 

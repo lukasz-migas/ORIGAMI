@@ -3527,7 +3527,7 @@ class PanelPlots(wx.Panel):
     #     )
     #     self.bottomPlot1DT.repaint()
     #
-    # def plot_2D_update_label(self, plot_name="RMSD", **kwargs):
+    # def plot_2d_update_label(self, plot_name="RMSD", **kwargs):
     #     from origami.utils.visuals import calculate_label_position
     #
     #     if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
@@ -3549,7 +3549,7 @@ class PanelPlots(wx.Panel):
     #         plt_kwargs["rmsd_label_coordinates"] = [label_x_pos, label_y_pos]
     #         plt_kwargs["rmsd_label_color"] = CONFIG.rmsd_color
     #
-    #         plot_obj.plot_2D_update_label(**plt_kwargs)
+    #         plot_obj.plot_2d_update_label(**plt_kwargs)
     #         plot_obj.repaint()
     #     except (AttributeError, KeyError, ValueError):
     #         logger.error("Failed to update RMSD label", exc_info=True)
@@ -3764,7 +3764,7 @@ class PanelPlots(wx.Panel):
     #     plt_kwargs = self._buildPlotParameters(plotType="2D")
     #
     #     # update plot
-    #     plot_obj.plot_2D_colorbar_update(**plt_kwargs)
+    #     plot_obj.plot_2d_colorbar_update(**plt_kwargs)
     #     plot_obj.repaint()
     #
     # def plot_normalization_update(self, plot_window="", **kwargs):

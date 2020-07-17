@@ -26,6 +26,8 @@ logger = logging.getLogger(__name__)
 
 
 class Config:
+    """Configuration file"""
+
     def __init__(self):
         """Initialize config"""
 
@@ -1919,6 +1921,12 @@ class Config:
         # Initilize colormaps
         self.setup_colormaps()
         #         self.setup_paths()
+
+        # heatmap parameters
+        self.heatmap_plot_type_choices = ("Image", "Contour")
+        self.heatmap_plot_type = "surface"
+        self.heatmap_n_contour = 250
+        self.heatmap_colormap = "viridis"
 
         # ===============================================================================
         # # Interactive parameters

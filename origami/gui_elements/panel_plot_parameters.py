@@ -109,7 +109,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin):
     plot1d_marker_shape_value, plot1d_marker_size_value, plot1d_alpha_value = None, None, None
     plot1d_marker_color_btn, plot1d_marker_edge_color_check, plot1d_marker_edge_color_btn = None, None, None
     bar_width_value, bar_alpha_value, bar_line_width_value = None, None, None
-    bar_color_edge_check, bar_edge_color_btn = None, None
+    bar_color_edge_check, bar_edge_color_btn, plot2d_n_contour_value = None, None, None
 
     # UI attributes
     ALL_PANEL_NAMES = [
@@ -158,15 +158,14 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin):
         if window:
             self.on_set_page(window)
 
-        # # fire-up some events
-        # self.on_toggle_controls_1d(evt=None)
-        # self.on_toggle_controls_2d(evt=None)
+        # fire-up some events
+        self.on_toggle_controls_1d(evt=None)
+        self.on_toggle_controls_2d(evt=None)
         self.on_toggle_controls_colorbar(evt=None)
         self.on_toggle_controls_legend(evt=None)
-        # self.on_toggle_controls_waterfall(evt=None)
-        # self.on_toggle_controls_violin(evt=None)
-        # self.on_toggle_controls_rmsd(evt=None)
-        # self.on_toggle_controls_zoom(evt=None)
+        self.on_toggle_controls_waterfall(evt=None)
+        self.on_toggle_controls_violin(evt=None)
+        self.on_toggle_controls_rmsd(evt=None)
 
         # self._recalculate_rmsd_position(evt=None)
         # self.on_update_plot_sizes(evt=None)
@@ -2226,6 +2225,28 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin):
         self.plot2d_plot_type_value.SetStringSelection(CONFIG.plotType)
         self.plot2d_plot_type_value.Bind(wx.EVT_CHOICE, self.on_apply_2d)
         self.plot2d_plot_type_value.Bind(wx.EVT_CHOICE, self.on_replot_2d)
+        self.plot2d_plot_type_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls_2d)
+
+        plot2d_interpolation = wx.StaticText(panel, -1, "Interpolation:")
+        self.plot2d_interpolation_value = wx.Choice(panel, -1, choices=CONFIG.comboInterpSelectChoices, size=(-1, -1))
+        self.plot2d_interpolation_value.SetStringSelection(CONFIG.interpolation)
+        self.plot2d_interpolation_value.Bind(wx.EVT_CHOICE, self.on_apply_2d)
+        self.plot2d_interpolation_value.Bind(wx.EVT_CHOICE, self.on_update_2d)
+
+        plot2d_n_contour = wx.StaticText(panel, -1, "Number of contour levels:")
+        self.plot2d_n_contour_value = wx.SpinCtrlDouble(
+            panel,
+            -1,
+            value=str(CONFIG.heatmap_n_contour),
+            min=50,
+            max=500,
+            initial=0,
+            inc=25,
+            size=(50, -1),
+            name="contour",
+        )
+        self.plot2d_n_contour_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_2d)
+        self.plot2d_n_contour_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
 
         plot2d_colormap = wx.StaticText(panel, -1, "Colormap:")
         self.plot2d_colormap_value = wx.Choice(panel, -1, choices=CONFIG.cmaps2, size=(-1, -1), name="color")
@@ -2237,12 +2258,6 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin):
         self.plot2d_override_colormap_check.SetValue(CONFIG.useCurrentCmap)
         self.plot2d_override_colormap_check.Bind(wx.EVT_CHECKBOX, self.on_apply_2d)
         self.plot2d_override_colormap_check.Bind(wx.EVT_CHOICE, self.on_update_2d)
-
-        plot2d_interpolation = wx.StaticText(panel, -1, "Interpolation:")
-        self.plot2d_interpolation_value = wx.Choice(panel, -1, choices=CONFIG.comboInterpSelectChoices, size=(-1, -1))
-        self.plot2d_interpolation_value.SetStringSelection(CONFIG.interpolation)
-        self.plot2d_interpolation_value.Bind(wx.EVT_CHOICE, self.on_apply_2d)
-        self.plot2d_interpolation_value.Bind(wx.EVT_CHOICE, self.on_update_2d)
 
         plot2d_normalization = wx.StaticText(panel, -1, "Normalization:")
         self.plot2d_normalization_value = wx.Choice(
@@ -2314,16 +2329,19 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin):
         n += 1
         grid.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), (n, 0), wx.GBSpan(1, n_col), flag=wx.EXPAND)
         n += 1
-        grid.Add(plot2d_colormap, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot2d_colormap_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        n += 1
-        grid.Add(self.plot2d_override_colormap_check, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        n += 1
         grid.Add(plot2d_plot_type, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.plot2d_plot_type_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
         n += 1
         grid.Add(plot2d_interpolation, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.plot2d_interpolation_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        n += 1
+        grid.Add(plot2d_n_contour, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot2d_n_contour_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        n += 1
+        grid.Add(plot2d_colormap, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot2d_colormap_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        n += 1
+        grid.Add(self.plot2d_override_colormap_check, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
 
         # normalization controls
         n += 1
@@ -2528,6 +2546,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin):
         CONFIG.midCmap = str2num(self.plot2d_mid_value.GetValue())
         CONFIG.maxCmap = str2num(self.plot2d_max_value.GetValue())
         CONFIG.normalization_2D_power_gamma = str2num(self.plot2d_normalization_gamma_value.GetValue())
+        CONFIG.heatmap_n_contour = str2int(self.plot2d_n_contour_value.GetValue())
 
         # fire events
         # self.on_apply(evt=None)
@@ -2817,7 +2836,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin):
         self.on_apply_rmsd(None)
         self._recalculate_rmsd_position(None)
 
-        self.panel_plot.plot_2D_update_label()
+        self.panel_plot.plot_2d_update_label()
 
         if evt is not None:
             evt.Skip()
@@ -3032,6 +3051,10 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin):
             else:
                 self.plot2d_normalization_gamma_value.Enable(False)
             self.plot2d_mid_value.Enable(False)
+
+        CONFIG.plotType = self.plot2d_plot_type_value.GetStringSelection()
+        self.plot2d_interpolation_value.Enable(CONFIG.plotType == "Image")
+        self.plot2d_n_contour_value.Enable(CONFIG.plotType == "Contour")
 
         if evt is not None:
             evt.Skip()
