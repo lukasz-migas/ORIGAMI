@@ -58,12 +58,12 @@ class PanelImagingImportDataset(PanelImportManagerBase):
         # import
         image_dimension_label = set_item_font(wx.StaticText(panel, wx.ID_ANY, "Imaging details:"))
         image_shape_x = wx.StaticText(panel, -1, "Shape (x-dim):")
-        self.image_shape_x = make_spin_ctrl_int(panel, 0, 0, 100, 1, (90, -1), name="shape_x")
+        self.image_shape_x = make_spin_ctrl_int(panel, 0, 0, 100, (90, -1), name="shape_x")
         self.image_shape_x.Bind(wx.EVT_TEXT, self.on_shape)
         self.image_shape_x.SetBackgroundColour((255, 230, 239))
 
         image_shape_y = wx.StaticText(panel, -1, "Shape (y-dim):")
-        self.image_shape_y = make_spin_ctrl_int(panel, 0, 0, 100, 1, (90, -1), name="shape_y")
+        self.image_shape_y = make_spin_ctrl_int(panel, 0, 0, 100, (90, -1), name="shape_y")
         self.image_shape_y.Bind(wx.EVT_TEXT, self.on_shape)
         self.image_shape_y.SetBackgroundColour((255, 230, 239))
 
@@ -155,3 +155,14 @@ class PanelImagingImportDataset(PanelImportManagerBase):
         self.data_handling.on_open_lesa_file_fcn(self.document_title, filelist, **parameters)
 
     _import.__doc__ = PanelImportManagerBase._import.__doc__
+
+
+def _main():
+    app = wx.App()
+    ex = PanelImagingImportDataset(None, None)
+    ex.Show()
+    app.MainLoop()
+
+
+if __name__ == "__main__":
+    _main()

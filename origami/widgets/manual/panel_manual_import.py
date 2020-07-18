@@ -1,3 +1,4 @@
+"""Manual import manager"""
 # Standard library imports
 import os
 import logging
@@ -43,10 +44,12 @@ class PanelManualImportDataset(PanelImportManagerBase):
 
     @property
     def data_handling(self):
+        """Return handle to `data_handler`"""
         return self.presenter.data_handling
 
     @property
     def document_tree(self):
+        """Return handle to `document_tree`"""
         return self.presenter.view.panelDocuments.documents
 
     def make_implementation_panel(self, panel):
@@ -92,7 +95,7 @@ class PanelManualImportDataset(PanelImportManagerBase):
         return dict(activation_type=activation_type, auto_interpolate=auto_interpolate)
 
     def _parse_path(self, path):
-        def get_file_idx():
+        def _get_file_idx():
             activation_type = self.activation_type_choice.GetStringSelection()
 
             _idx = None
@@ -107,7 +110,7 @@ class PanelManualImportDataset(PanelImportManagerBase):
 
         # get waters metadata without explicitly loading data
         info = self.data_handling.get_waters_info(path)
-        variable = get_file_idx()
+        variable = _get_file_idx()
         is_im = info["is_im"]
         mz_range = info["mz_range"]
         n_scans = info["n_scans"]
@@ -125,3 +128,14 @@ class PanelManualImportDataset(PanelImportManagerBase):
         self.data_handling.on_open_manual_file_fcn(self.document_title, filelist, **parameters)
 
     _import.__doc__ = PanelImportManagerBase._import.__doc__
+
+
+def _main():
+    app = wx.App()
+    ex = PanelManualImportDataset(None, None)
+    ex.Show()
+    app.MainLoop()
+
+
+if __name__ == "__main__":
+    _main()

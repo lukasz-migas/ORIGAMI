@@ -37,7 +37,7 @@ class Icons:
         try:
             return self.icons.get(item, None)
         except KeyError:
-            raise AttributeError
+            return self.icons.get("blank")
 
     # noinspection PyUnresolvedReferences
     def __dir__(self):

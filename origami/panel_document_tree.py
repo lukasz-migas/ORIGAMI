@@ -2176,7 +2176,7 @@ class DocumentTree(wx.TreeCtrl):
         menu_action_duplicate_document = make_menu_item(
             parent=menu, text="Duplicate document", bitmap=self._icons.duplicate
         )
-        menu_action_remove_document = make_menu_item(parent=menu, text="Close document", bitmap=self._icons.bin)
+        menu_action_remove_document = make_menu_item(parent=menu, text="Close document", bitmap=self._icons.close)
         menu_action_remove_document_disk = make_menu_item(
             parent=menu, text="Delete document from disk", bitmap=self._icons.bin
         )
@@ -3072,7 +3072,11 @@ class DocumentTree(wx.TreeCtrl):
         """Zoom-in on an ion"""
         from origami.utils.labels import get_mz_from_label
 
-        mz_min, mz_max = get_mz_from_label(ion_name)
+        try:
+            mz_min, mz_max = get_mz_from_label(ion_name)
+        except ValueError:
+            LOGGER.warning("Could not parse request")
+            return
 
         self.panel_plot.view_ms.set_xlim(mz_min, mz_max)
         self.panel_plot.set_page("MS")
