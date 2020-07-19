@@ -1,11 +1,16 @@
 """Test PanelNewVersion dialog"""
 # Local imports
+import pytest
+import sys
+
 from origami.config.config import CONFIG
 from origami.gui_elements.panel_notify_new_version import PanelNewVersion
 
 from ..wxtc import WidgetTestCase
 
 
+@pytest.mark.guitest
+@pytest.mark.skipif(sys.platform == "win32", reason="Running this test under Windows can sporadically cause errors")
 class TestPanelNewVersion(WidgetTestCase):
     """Test dialog"""
 

@@ -1,5 +1,12 @@
 # ORIGAMI - Software for analysis of MS and IM-MS data
 
+
+
+![Tests](https://github.com/lukasz-migas/ORIGAMI/workflows/Tests/badge.svg)
+[![codecov](https://codecov.io/gh/lukasz-migas/ORIGAMI/branch/dev-py3/graph/badge.svg)](https://codecov.io/gh/lukasz-migas/ORIGAMI)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/ee92e286b9c74ac0aa583df9a3b2daac)](https://www.codacy.com/manual/lukasz-migas/ORIGAMI?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=lukasz-migas/ORIGAMI&amp;utm_campaign=Badge_Grade)
+[![CodeFactor](https://www.codefactor.io/repository/github/lukasz-migas/origami/badge)](https://www.codefactor.io/repository/github/lukasz-migas/origami)
+
 ## Notes
 
 A number of features are still broken in ORIGAMI. I am slowly working through them to make them available again,
@@ -11,7 +18,16 @@ Still broken:
 - Cannot apply ORIGAMI-MS parameters to heatmap objects (difficulty: EASY)
 - Cannot export data in an interactive format (difficulty: HARD)
 - Cannot run UniDec deconvolution (difficulty: HARD)
-- Cannot 
+- Cannot compare data using the `Comparison` visualizer (difficulty: HARD)
+
+
+Features to be implemented:
+
+- Add CCS calculation module
+- Add linear Drift-Tube analysis module
+- Add fast 3D visualisation
+- Add MS/MS visualisation
+- Add UVPD analysis module
 
 
 ## Installation
