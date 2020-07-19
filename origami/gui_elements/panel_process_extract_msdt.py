@@ -19,7 +19,7 @@ from origami.gui_elements.panel_base import DatasetMixin
 logger = logging.getLogger(__name__)
 
 
-class PanelProcessExtractDTMS(MiniFrame, DatasetMixin):
+class PanelProcessExtractMSDT(MiniFrame, DatasetMixin):
     """Panel enabling extraction of new or additional MS/DT data"""
 
     # ui elements
@@ -51,7 +51,7 @@ class PanelProcessExtractDTMS(MiniFrame, DatasetMixin):
         self.msdt_obj = None
         self.msdt_title = None
 
-        # setup gui pview
+        # setup gui view
         self.on_setup_gui()
 
         self.CenterOnParent()
@@ -139,7 +139,7 @@ class PanelProcessExtractDTMS(MiniFrame, DatasetMixin):
         main_sizer.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND, 10)
         main_sizer.Add(self.msg_bar, 0, wx.EXPAND | wx.ALL, 10)
         main_sizer.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND, 10)
-        main_sizer.Add(btn_grid, 0, wx.EXPAND, 10)
+        main_sizer.Add(btn_grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
 
         # fit layout
         main_sizer.Fit(panel)
@@ -361,7 +361,7 @@ class PanelProcessExtractDTMS(MiniFrame, DatasetMixin):
 #             self.view.panelPlots.on_plot_dtms(data, mz_x, self.y_data, 'm/z', 'Drift time (bins)')
 def _main():
     app = wx.App()
-    ex = PanelProcessExtractDTMS(None, None)
+    ex = PanelProcessExtractMSDT(None, None)
 
     ex.Show()
     app.MainLoop()

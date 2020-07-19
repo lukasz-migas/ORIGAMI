@@ -51,14 +51,15 @@ class DialogCustomiseORIGAMI(Dialog):
     preprocess_check = None
     process_btn = None
     origami_extract_btn = None
+    user_settings = dict()
 
-    def __init__(self, parent, presenter, **kwargs):
+    def __init__(self, parent, presenter, document_title: str = None):
         Dialog.__init__(self, parent, title="ORIGAMI-MS settings...")
 
         self.document_tree = parent
         self.presenter = presenter
 
-        self.document_title = kwargs.get("document_title", None)
+        self.document_title = document_title
         if self.document_title is None:
             document = ENV.on_get_document()
             if document is None:
@@ -120,7 +121,7 @@ class DialogCustomiseORIGAMI(Dialog):
 
         return origami_settings
 
-    def on_close(self, evt):
+    def on_close(self, evt, force: bool = False):
         """Destroy this frame"""
 
         if self.user_settings_changed:
@@ -133,7 +134,7 @@ class DialogCustomiseORIGAMI(Dialog):
             if dlg == wx.ID_NO:
                 return
 
-        self.Destroy()
+        super(DialogCustomiseORIGAMI, self).on_close(evt, force)
 
     def on_ok(self, _=None):
         """Close panel with OK event"""
