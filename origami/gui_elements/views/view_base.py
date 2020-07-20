@@ -20,174 +20,10 @@ from origami.objects.containers import DataObject
 LOGGER = logging.getLogger(__name__)
 
 
-class ViewBase(ABC):
-    """Viewer base class"""
+class ViewMPLMixin:
+    """Mixin class for matplotlib based views"""
 
-    DATA_KEYS = []
-    MPL_KEYS = []
-    NAME = None
-
-    def __init__(self, parent, figsize, title="", **kwargs):
-        self.parent = parent
-        self.figsize = figsize
-        self.axes_size = kwargs.pop("axes_size", None)
-        self.title = title
-
-        # ui elements
-        self.panel = None
-        self.sizer = None
-        self.figure: Optional[PlotBase] = None
-
-        # process settings
-        self._allow_extraction = kwargs.pop("allow_extraction", False)
-        self._callbacks = kwargs.pop("callbacks", dict())
-
-        # user settings
-        self._x_label = kwargs.pop("x_label", None)
-        self._y_label = kwargs.pop("y_label", None)
-        self._z_label = kwargs.pop("z_label", None)
-        self._data = dict()
-        self._plt_kwargs = dict()
-        self.document_name = None
-        self.dataset_name = None
-
-    def __repr__(self):
-        return f"{self.__class__.__name__}<title={self.title}>"
-
-    @abstractmethod
-    def plot(self, *args, **kwargs):
-        raise NotImplementedError("Must implement method")
-
-    @abstractmethod
-    def update(self, *args, **kwargs):
-        raise NotImplementedError("Must implement method")
-
-    @abstractmethod
-    def replot(self, **kwargs):
-        raise NotImplementedError("Must implement method")
-
-    @abstractmethod
-    def _update(self):
-        raise NotImplementedError("Must implement method")
-
-    @property
-    def callbacks(self):
-        """Return list of callbacks associated with the figure"""
-        return self._callbacks
-
-    @callbacks.setter
-    def callbacks(self, value):
-        self._callbacks = value
-
-    @property
-    def x_label(self):
-        """Return x-axis label"""
-        return self._x_label
-
-    @x_label.setter
-    def x_label(self, value):
-        if value == self._x_label:
-            return
-        self._x_label = value
-        self._update()
-
-    @property
-    def y_label(self):
-        """Return y-axis label"""
-        return self._y_label
-
-    @y_label.setter
-    def y_label(self, value):
-        if value == self._y_label:
-            return
-        self._y_label = value
-        self._update()
-
-    @property
-    def z_label(self):
-        """Return z-axis label"""
-        return self._z_label
-
-    @z_label.setter
-    def z_label(self, value):
-        if value == self._z_label:
-            return
-        self._z_label = value
-        self._update()
-
-    def get_object(self):
-        """Get Data object that is shown in the View"""
-        if self.document_name is None or self.dataset_name is None:
-            return None
-        document = ENV.on_get_document(self.document_name)
-        return document[self.dataset_name, True]
-
-    def set_data(self, **kwargs):
-        """Update plot data"""
-        changed = False
-        if self.DATA_KEYS is not None:
-            for key, value in kwargs.items():
-                if key in self.DATA_KEYS:
-                    self._data[key] = value
-                    changed = True
-
-        if changed:
-            self._update()
-
-    def get_data(self, keys=None):
-        """Get plot data"""
-        if keys is None:
-            keys = self.DATA_KEYS
-        data = []
-        for key in keys:
-            data.append(self._data[key])
-
-        return data
-
-    def update_data(self, **kwargs):
-        """Update data store without invoking plot update"""
-        for key, value in kwargs.items():
-            self._data[key] = value
-
-    def set_document(self, obj: Optional[DataObject] = None, **kwargs):
-        """Set document information for particular plot"""
-        document, dataset = None, None
-        if obj and obj.owner is not None:
-            document, dataset = obj.owner
-        else:
-            document = kwargs.pop("document", None)
-            dataset = kwargs.pop("dataset", None)
-
-        self.document_name = document
-        self.dataset_name = dataset
-
-    def set_labels(self, obj: Optional[DataObject] = None, **kwargs):
-        """Update plot labels without triggering replot"""
-
-        def remove_keys(key):
-            """Remove key from kwargs"""
-            if key in kwargs:
-                del kwargs[key]
-
-        x_label, y_label, z_label = self._x_label, self._y_label, self._z_label
-        if obj and obj.owner is not None:
-            x_label = obj.x_label
-            y_label = obj.y_label
-            if hasattr(obj, "z_label"):
-                z_label = obj.z_label
-        else:
-            x_label = kwargs.pop("x_label", self._x_label)
-            y_label = kwargs.pop("y_label", self._y_label)
-            z_label = kwargs.pop("z_label", self._z_label)
-
-        self._x_label = x_label
-        self._y_label = y_label
-        self._z_label = z_label
-        remove_keys("x_label"), remove_keys("y_label"), remove_keys("z_label")
-
-    def repaint(self):
-        """Repaint plot"""
-        self.figure.repaint()
+    figure = None
 
     def add_scatter(self, x, y, color="r", marker="o", size=5, repaint: bool = True):
         """Add scatter points to the plot"""
@@ -227,7 +63,7 @@ class ViewBase(ABC):
             self.figure.plot_add_text(_x, _y, _label, text_name=_name, color=_color, yoffset=y_offset, **plt_kwargs)
 
         if optimize_labels:
-            self.figure._fix_label_positions()
+            self.figure._fix_label_positions()  # noqa
 
         if repaint:
             self.figure.repaint()
@@ -333,6 +169,180 @@ class ViewBase(ABC):
         self.figure.on_zoom_xy_axis(x_min, x_max, y_min, y_max)
         self.figure.repaint()
 
+
+class ViewBase(ABC):
+    """Viewer base class"""
+
+    DATA_KEYS = []
+    MPL_KEYS = []
+    NAME = None
+    UPDATE_STYLES = ()
+    SUPPORTED_FILE_FORMATS = ("png", "eps", "jpeg", "tiff", "raw", "ps", "pdf", "svg", "svgz")
+
+    def __init__(self, parent, figsize, title="", **kwargs):
+        self.parent = parent
+        self.figsize = figsize
+        self.axes_size = kwargs.pop("axes_size", None)
+        self.title = title
+
+        # ui elements
+        self.panel = None
+        self.sizer = None
+        self.figure: Optional[PlotBase] = None
+
+        # process settings
+        self._allow_extraction = kwargs.pop("allow_extraction", False)
+        self._callbacks = kwargs.pop("callbacks", dict())
+
+        # user settings
+        self._x_label = kwargs.pop("x_label", None)
+        self._y_label = kwargs.pop("y_label", None)
+        self._z_label = kwargs.pop("z_label", None)
+        self._data = dict()
+        self._plt_kwargs = dict()
+        self.document_name = None
+        self.dataset_name = None
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}<title={self.title}>"
+
+    @abstractmethod
+    def plot(self, *args, **kwargs):
+        """Simple plot"""
+        raise NotImplementedError("Must implement method")
+
+    @abstractmethod
+    def update(self, *args, **kwargs):
+        """Quick update"""
+        raise NotImplementedError("Must implement method")
+
+    @abstractmethod
+    def replot(self, **kwargs):
+        """Full replot"""
+        raise NotImplementedError("Must implement method")
+
+    @abstractmethod
+    def _update(self):
+        raise NotImplementedError("Must implement method")
+
+    @property
+    def callbacks(self):
+        """Return list of callbacks associated with the figure"""
+        return self._callbacks
+
+    @callbacks.setter
+    def callbacks(self, value):
+        self._callbacks = value
+
+    @property
+    def x_label(self):
+        """Return x-axis label"""
+        return self._x_label
+
+    @x_label.setter
+    def x_label(self, value):
+        if value == self._x_label:
+            return
+        self._x_label = value
+        self._update()
+
+    @property
+    def y_label(self):
+        """Return y-axis label"""
+        return self._y_label
+
+    @y_label.setter
+    def y_label(self, value):
+        if value == self._y_label:
+            return
+        self._y_label = value
+        self._update()
+
+    @property
+    def z_label(self):
+        """Return z-axis label"""
+        return self._z_label
+
+    @z_label.setter
+    def z_label(self, value):
+        if value == self._z_label:
+            return
+        self._z_label = value
+        self._update()
+
+    def get_object(self):
+        """Get Data object that is shown in the View"""
+        if self.document_name is None or self.dataset_name is None:
+            return None
+        document = ENV.on_get_document(self.document_name)
+        return document[self.dataset_name, True]
+
+    def set_data(self, **kwargs):
+        """Update plot data"""
+        changed = False
+        if self.DATA_KEYS is not None:
+            for key, value in kwargs.items():
+                if key in self.DATA_KEYS:
+                    self._data[key] = value
+                    changed = True
+
+        if changed:
+            self._update()
+
+    def get_data(self, keys=None):
+        """Get plot data"""
+        if keys is None:
+            keys = self.DATA_KEYS
+        data = []
+        for key in keys:
+            data.append(self._data[key])
+
+        return data
+
+    def update_data(self, **kwargs):
+        """Update data store without invoking plot update"""
+        for key, value in kwargs.items():
+            self._data[key] = value
+
+    def set_document(self, obj: Optional[DataObject] = None, **kwargs):
+        """Set document information for particular plot"""
+        if obj and obj.owner is not None:
+            document, dataset = obj.owner
+        else:
+            document = kwargs.pop("document", None)
+            dataset = kwargs.pop("dataset", None)
+
+        self.document_name = document
+        self.dataset_name = dataset
+
+    def set_labels(self, obj: Optional[DataObject] = None, **kwargs):
+        """Update plot labels without triggering replot"""
+
+        def remove_keys(key):
+            """Remove key from kwargs"""
+            if key in kwargs:
+                del kwargs[key]
+
+        x_label, y_label, z_label = self._x_label, self._y_label, self._z_label
+        if obj and obj.owner is not None:
+            x_label = obj.x_label
+            y_label = obj.y_label
+            if hasattr(obj, "z_label"):
+                z_label = obj.z_label
+        else:
+            x_label = kwargs.pop("x_label", self._x_label)
+            y_label = kwargs.pop("y_label", self._y_label)
+            z_label = kwargs.pop("z_label", self._z_label)
+
+        self._x_label = x_label
+        self._y_label = y_label
+        self._z_label = z_label
+        remove_keys("x_label"), remove_keys("y_label"), remove_keys("z_label")
+
+    def repaint(self):
+        """Repaint plot"""
+        self.figure.repaint()
+
     def copy_to_clipboard(self):
         """Copy plot to clipboard"""
         return self.figure.copy_to_clipboard()
@@ -341,21 +351,7 @@ class ViewBase(ABC):
         """Export figure"""
 
         def _get_path():
-            # setup file dialog
-            wildcard = (
-                "PNG Portable Network Graphic (*.png)|*.png|"
-                + "Enhanced Windows Metafile (*.eps)|*.eps|"
-                + "JPEG File Interchange Format (*.jpeg)|*.jpeg|"
-                + "TIFF Tag Image File Format (*.tiff)|*.tiff|"
-                + "RAW Image File Format (*.raw)|*.raw|"
-                + "PS PostScript Image File Format (*.ps)|*.ps|"
-                + "PDF Portable Document Format (*.pdf)|*.pdf"
-                + "SVG Scalable Vector Graphic (*.svg)|*.svg|"
-                + "SVGZ Compressed Scalable Vector Graphic (*.svgz)|*.svgz|"
-            )
-
-            wildcard_dict = {"png": 0, "eps": 1, "jpeg": 2, "tiff": 3, "raw": 4, "ps": 5, "pdf": 6, "svg": 7, "svgz": 8}
-
+            wildcard, wildcard_dict = build_wildcard(self.SUPPORTED_FILE_FORMATS)
             dlg = wx.FileDialog(
                 self.parent, "Save as...", "", "", wildcard=wildcard, style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
             )
@@ -396,3 +392,31 @@ class ViewBase(ABC):
         )
 
         LOGGER.info(f"Saved figure in {report_time(t_start)}")
+
+
+def build_wildcard(supported_formats):
+    """Build export wildcard"""
+    _wildcards = dict(
+        png="PNG Portable Network Graphic (*.png)|*.png",
+        eps="Enhanced Windows Metafile (*.eps)|*.eps",
+        jpeg="JPEG File Interchange Format (*.jpeg)|*.jpeg",
+        tiff="TIFF Tag Image File Format (*.tiff)|*.tiff",
+        raw="RAW Image File Format (*.raw)|*.raw",
+        ps="PS PostScript Image File Format (*.ps)|*.ps",
+        pdf="PDF Portable Document Format (*.pdf)|*.pdf",
+        svg="SVG Scalable Vector Graphic (*.svg)|*.svg",
+        svgz="SVGZ Compressed Scalable Vector Graphic (*.svgz)|*.svgz",
+    )
+
+    wildcard = ""
+    wildcard_dict = {}
+
+    n_formats = len(supported_formats) - 1
+    for i, fmt in enumerate(supported_formats):
+        value = _wildcards[fmt]
+        if i < n_formats:
+            value += "|"
+        wildcard += value
+        wildcard_dict[fmt] = i
+
+    return wildcard, wildcard_dict

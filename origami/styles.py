@@ -10,17 +10,18 @@ from operator import itemgetter
 # Third-party imports
 import wx
 import numpy as np
-import wx.lib.mixins.listctrl as listmix
 from wx.lib.agw import supertooltip as superTip
 from natsort.natsort import natsorted
 
 # Local imports
 from origami.utils.color import convert_rgb_1_to_255
 from origami.utils.color import convert_rgb_255_to_1
+from origami.config.config import CONFIG
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
 from origami.utils.converters import byte2str
 from origami.gui_elements.misc_dialogs import DialogBox
+from origami.gui_elements.dialog_color_picker import DialogColorPicker
 
 LOGGER = logging.getLogger(__name__)
 # Sizes
@@ -350,6 +351,20 @@ class DocumentationMixin:
             wx.CallLater(duration, self.display_label.SetLabel, "")
 
 
+class ColorGetterMixin:
+    """Mixin class to provide easy retrieval of color(s)"""
+
+    def on_get_color(self, _evt):
+        """Convenient method to get new color"""
+        dlg = DialogColorPicker(self, CONFIG.customColors)
+        if dlg.ShowModal() == wx.ID_OK:
+            color_255, color_1, font_color = dlg.GetChosenColour()
+            CONFIG.customColors = dlg.GetCustomColours()
+
+            return color_255, color_1, font_color
+        return None, None, None
+
+
 class Dialog(wx.Dialog, ActivityIndicatorMixin, DocumentationMixin):
     """Proxy of Dialog"""
 
@@ -453,7 +468,7 @@ class MiniFrame(wx.MiniFrame, ActivityIndicatorMixin, DocumentationMixin):
         self.Layout()
 
 
-class ListCtrl(wx.ListCtrl, listmix.TextEditMixin):
+class ListCtrl(wx.ListCtrl):
     """ListCtrl"""
 
     def __init__(self, parent, pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.LC_REPORT, **kwargs):

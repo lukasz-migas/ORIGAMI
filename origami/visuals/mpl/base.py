@@ -160,6 +160,10 @@ class PlotBase(MPLPanel):
     #
     #         self.set_xy_limits((_x_min, _x_max, _y_min, _y_max))
 
+    def clear(self):
+        """Clear canvas"""
+        self.figure.clear()
+
     def get_xlim(self):
         """Get x-axis limits"""
         return self.plot_limits[0], self.plot_limits[1]

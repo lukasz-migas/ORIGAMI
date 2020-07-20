@@ -30,6 +30,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 class TableColumnIndex(IntEnum):
+    """Table index"""
+
     pass
 
 

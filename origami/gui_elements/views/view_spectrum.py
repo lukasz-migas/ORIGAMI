@@ -10,6 +10,7 @@ from origami.utils.secret import get_short_hash
 from origami.config.config import CONFIG
 from origami.visuals.mpl.plot_spectrum import PlotSpectrum
 from origami.gui_elements.views.view_base import ViewBase
+from origami.gui_elements.views.view_base import ViewMPLMixin
 
 LOGGER = logging.getLogger(__name__)
 
@@ -31,7 +32,7 @@ class ViewSpectrumPanelMixin:
         return plot_panel, plot_window, sizer
 
 
-class ViewSpectrum(ViewBase, ViewSpectrumPanelMixin):
+class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin):
     """Viewer class for spectral data"""
 
     DATA_KEYS = ("x", "y")

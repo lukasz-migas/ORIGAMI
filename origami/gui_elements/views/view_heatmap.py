@@ -11,11 +11,12 @@ from origami.utils.secret import get_short_hash
 from origami.config.config import CONFIG
 from origami.visuals.mpl.plot_heatmap_2d import PlotHeatmap2D
 from origami.gui_elements.views.view_base import ViewBase
+from origami.gui_elements.views.view_base import ViewMPLMixin
 
 LOGGER = logging.getLogger(__name__)
 
 
-class ViewHeatmap(ViewBase):
+class ViewHeatmap(ViewBase, ViewMPLMixin):
     """Viewer class for heatmap-based objects"""
 
     DATA_KEYS = ("array", "x", "y")

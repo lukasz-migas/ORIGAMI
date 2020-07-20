@@ -1928,6 +1928,19 @@ class Config:
         self.heatmap_n_contour = 100
         self.heatmap_colormap = "viridis"
 
+        # heatmap (3d) parmaeters
+        self.heatmap_3d_colormap = "viridis"
+        self.heatmap_3d_axis_color = (1, 1, 1)
+        self.heatmap_3d_background_color = (0, 0, 0)
+        self.heatmap_3d_opacity = 1.0
+        self.heatmap_3d_clim_min = 0.0
+        self.heatmap_3d_clim_max = 1.0
+        self.heatmap_3d_axis_font_size = 16
+        self.heatmap_3d_axis_tick_size = 16
+        self.heatmap_3d_axis_x_margin = 35
+        self.heatmap_3d_axis_y_margin = 75
+        self.heatmap_3d_axis_z_margin = 35
+
         # ===============================================================================
         # # Interactive parameters
         # ===============================================================================

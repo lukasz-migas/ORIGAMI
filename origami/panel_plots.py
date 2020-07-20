@@ -28,6 +28,7 @@ from origami.ids import ID_clearPlot_RMSD
 from origami.ids import ID_clearPlot_RMSF
 from origami.ids import ID_save1DImageDoc
 from origami.ids import ID_save2DImageDoc
+from origami.ids import ID_save3DImageDoc
 from origami.ids import ID_saveMSImageDoc
 from origami.ids import ID_saveOtherImage
 from origami.ids import ID_saveRTImageDoc
@@ -83,13 +84,15 @@ from origami.gui_elements.popup_view import PopupChromatogramView
 from origami.gui_elements.popup_view import PopupMassSpectrummView
 from origami.visuals.mpl.plot_spectrum import PlotSpectrum
 from origami.visuals.mpl.plot_heatmap_2d import PlotHeatmap2D
-from origami.visuals.mpl.plot_heatmap_3d import PlotHeatmap3D
+
+# from origami.visuals.mpl.plot_heatmap_3d import PlotHeatmap3D
 from origami.gui_elements.views.view_base import ViewBase
 from origami.gui_elements.views.view_heatmap import ViewIonHeatmap
 from origami.gui_elements.views.view_heatmap import ViewMassSpectrumHeatmap
 from origami.gui_elements.views.view_spectrum import ViewMobilogram
 from origami.gui_elements.views.view_spectrum import ViewChromatogram
 from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
+from origami.gui_elements.views.view_heatmap_3d import ViewHeatmap3d
 
 logger = logging.getLogger(__name__)
 
@@ -324,7 +327,6 @@ class PanelPlots(wx.Panel):
             self.window_plot2D = self.currentPage
         elif self.currentPage in ["Heatmap (3D)"]:
             self.window_plot3D = self.currentPage
-
         if self.currentPage == "Waterfall":
             self.current_plot = self.plot_overlay
         elif self.currentPage == "Mass spectrum":
@@ -393,7 +395,6 @@ class PanelPlots(wx.Panel):
         self.plot_heatmap = self.view_heatmap.figure
 
         # Setup PLOT DT/MS
-
         self.view_msdt = ViewMassSpectrumHeatmap(
             plot_notebook,
             CONFIG._plotSettings["DT/MS"]["gui_size"],  # noqa
@@ -411,10 +412,19 @@ class PanelPlots(wx.Panel):
         plot_notebook.AddPage(self.panel_overlay, "Waterfall", False)
 
         # Setup PLOT 3D
-        self.panel_heatmap_3d, self.plot_heatmap_3d, __ = self.make_heatmap_3d_plot(
-            plot_notebook, CONFIG._plotSettings["3D"]["gui_size"]  # noqa
+        self.view_heatmap_3d = ViewHeatmap3d(
+            plot_notebook,
+            CONFIG._plotSettings["DT/MS"]["gui_size"],  # noqa
+            CONFIG,
+            allow_extraction=False,
+            callbacks=dict(),
         )
-        plot_notebook.AddPage(self.panel_heatmap_3d, "Heatmap (3D)", False)
+        plot_notebook.AddPage(self.view_heatmap_3d.panel, "Heatmap (3D)", False)
+        self.plot_heatmap_3d = self.view_heatmap_3d.figure
+        # self.panel_heatmap_3d, self.plot_heatmap_3d, __ = self.make_heatmap_3d_plot(
+        #     plot_notebook, CONFIG._plotSettings["3D"]["gui_size"]  # noqa
+        # )
+        plot_notebook.AddPage(self.view_heatmap_3d.panel, "Heatmap (3D)", False)
 
         # Other
         self.panel_annotated, self.plot_annotated, __ = self.make_base_plot(
@@ -468,17 +478,17 @@ class PanelPlots(wx.Panel):
 
         return plot_panel, plot_window, sizer
 
-    @staticmethod
-    def make_heatmap_3d_plot(parent, figsize):
-        """Make 3d heatmap plot"""
-        plot_panel = wx.Panel(parent)
-        plot_window = PlotHeatmap3D(plot_panel, config=CONFIG, figsize=figsize)
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(plot_window, 1, wx.EXPAND)
-        plot_panel.SetSizer(sizer)
-        sizer.Fit(plot_panel)
-
-        return plot_panel, plot_window, sizer
+    # @staticmethod
+    # def make_heatmap_3d_plot(parent, figsize):
+    #     """Make 3d heatmap plot"""
+    #     plot_panel = wx.Panel(parent)
+    #     plot_window = PlotHeatmap3D(plot_panel, config=CONFIG, figsize=figsize)
+    #     sizer = wx.BoxSizer(wx.VERTICAL)
+    #     sizer.Add(plot_window, 1, wx.EXPAND)
+    #     plot_panel.SetSizer(sizer)
+    #     sizer.Fit(plot_panel)
+    #
+    #     return plot_panel, plot_window, sizer
 
     def on_copy_to_clipboard(self, _evt):
         """Copy plot to clipboard"""
@@ -793,6 +803,7 @@ class PanelPlots(wx.Panel):
             menu.AppendItem(
                 make_menu_item(parent=menu, evt_id=ID_save3DImage, text="Save figure as...", bitmap=self._icons.png)
             )
+            menu.AppendItem(menu_action_copy_to_clipboard)
             menu.AppendSeparator()
             menu.AppendItem(
                 make_menu_item(parent=menu, evt_id=ID_clearPlot_3D, text="Clear plot", bitmap=self._icons.clear)
@@ -930,6 +941,11 @@ class PanelPlots(wx.Panel):
         elif evt_id in [ID_saveMZDTImage, ID_saveMZDTImageDoc, "ms/dt"]:
             image_name = CONFIG._plotSettings["DT/MS"]["default_name"]  # noqa
             plot_view = self.view_msdt
+
+        elif evt_id in [ID_save3DImage, ID_save3DImageDoc, "heatmap3d"]:
+            image_name = CONFIG._plotSettings["3D"]["default_name"]  # noqa
+            plot_view = self.view_heatmap_3d
+
         # generate a better default name and remove any silly characters
         if "image_name" in save_kwargs:
             image_name = save_kwargs.pop("image_name")

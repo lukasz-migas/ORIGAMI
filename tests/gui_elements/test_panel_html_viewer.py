@@ -1,9 +1,11 @@
 """Test PanelAbout dialog"""
-# Local imports
+# Standard library imports
 import sys
 
+# Third-party imports
 import pytest
 
+# Local imports
 from origami.gui_elements.panel_html_viewer import PanelHTMLViewer
 
 from ..wxtc import WidgetTestCase

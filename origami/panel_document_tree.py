@@ -1835,7 +1835,7 @@ class DocumentTree(wx.TreeCtrl):
 
         # view actions
         menu_action_show_plot_2d = make_menu_item(parent=menu, text="Show heatmap\tAlt+S", bitmap=self._icons.heatmap)
-        menu_action_show_plot_contour = make_menu_item(parent=menu, text="Show contour", bitmap=self._icons.heatmap)
+        menu_action_show_plot_contour = make_menu_item(parent=menu, text="Show contour", bitmap=self._icons.contour)
         menu_action_show_plot_as_mobilogram = make_menu_item(
             parent=menu, text="Show mobilogram", bitmap=self._icons.mobilogram
         )
@@ -1847,6 +1847,7 @@ class DocumentTree(wx.TreeCtrl):
             parent=menu, text="Show waterfall plot", bitmap=self._icons.waterfall
         )
         menu_action_show_plot_joint = make_menu_item(parent=menu, text="Show joint plot", bitmap=self._icons.joint)
+        menu_action_show_plot_3d = make_menu_item(parent=menu, text="Show heatmap (3D)", bitmap=self._icons.cube)
         menu_action_show_highlights = make_menu_item(
             parent=menu, text="Highlight ion in mass spectrum\tAlt+X", bitmap=self._icons.zoom
         )
@@ -1877,6 +1878,7 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_contour, menu_action_show_plot_contour)
         self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_violin, menu_action_show_plot_violin)
         self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_joint, menu_action_show_plot_joint)
+        self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_3d, menu_action_show_plot_3d)
         self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_waterfall, menu_action_show_plot_waterfall)
         self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_mobilogram, menu_action_show_plot_as_mobilogram)
         self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_chromatogram, menu_action_show_plot_as_chromatogram)
@@ -1903,6 +1905,7 @@ class DocumentTree(wx.TreeCtrl):
             menu.AppendItem(menu_action_show_plot_2d)
             menu.AppendItem(menu_action_show_plot_contour)
             menu.AppendItem(menu_action_show_plot_joint)
+            menu.AppendItem(menu_action_show_plot_3d)
             menu.AppendItem(menu_action_show_plot_waterfall)
             menu.AppendItem(menu_action_show_plot_violin)
             menu.AppendItem(menu_action_show_plot_as_mobilogram)
@@ -3169,7 +3172,22 @@ class DocumentTree(wx.TreeCtrl):
             filename = self._item.get_name("heatmap")
             self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
 
+    def on_show_plot_heatmap_3d(self, evt, save_image=False):
+        """Show heatmap object in 3d"""
+        if self._item.is_match("heatmap", True):
+            return
+
+        # get data for selected item
+        obj = self._get_item_object()
+        self.panel_plot.view_heatmap_3d.plot(obj=obj)
+        self.panel_plot.set_page("Heatmap (3D)")
+
+        if save_image:
+            filename = self._item.get_name("heatmap-3d")
+            self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
+
     def on_show_plot_heatmap_chromatogram(self, evt, save_image=False):
+        """Sum heatmap object along one dimension and show it in a chromatogram plot"""
         if self._item.is_match("heatmap", True):
             return
 
@@ -3183,6 +3201,7 @@ class DocumentTree(wx.TreeCtrl):
             self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
 
     def on_show_plot_heatmap_mobilogram(self, evt, save_image=False):
+        """Sum heatmap object along one dimension and show it in a mobilogram plot"""
         if self._item.is_match("heatmap", True):
             return
 
@@ -3196,6 +3215,7 @@ class DocumentTree(wx.TreeCtrl):
             self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
 
     def on_show_plot_heatmap_violin(self, evt, save_image=False):
+        """Show heatmap object in a violin plot"""
         if self._item.is_match("heatmap", True):
             return
 
@@ -3209,6 +3229,7 @@ class DocumentTree(wx.TreeCtrl):
             self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
 
     def on_show_plot_heatmap_joint(self, evt, save_image=False):
+        """Show heatmap object in a joint plot"""
         if self._item.is_match("heatmap", True):
             return
 
@@ -3222,6 +3243,7 @@ class DocumentTree(wx.TreeCtrl):
             self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
 
     def on_show_plot_heatmap_waterfall(self, evt, save_image=False):
+        """Show heatmap object in a waterfall plot"""
         if self._item.is_match("heatmap", True):
             return
 
