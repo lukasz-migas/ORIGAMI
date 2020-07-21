@@ -9,17 +9,16 @@ import pytest
 # Local imports
 from origami.objects.containers import ChromatogramObject
 from origami.objects.containers import MassSpectrumObject
+from origami.readers.config import DEFAULT_THERMO_FILTER
 
 if sys.platform.startswith("linux") or sys.platform.startswith("darwin"):
     pytest.skip("skipping Linux-only tests", allow_module_level=True)
 
-if sys.platform == "win32":
-    from origami.readers.io_thermo_raw import ThermoRawReader
-    from origami.readers.io_thermo_raw import DEFAULT_FILTER
-
 
 class TestThermoRawReader:
     def test_init(self, get_thermo_ms_small):
+        from origami.readers.io_thermo_raw import ThermoRawReader
+
         reader = ThermoRawReader(get_thermo_ms_small)
         assert reader
         assert reader.mz_min < reader.mz_max
@@ -32,6 +31,8 @@ class TestThermoRawReader:
         assert "m/z range" in str(reader)
 
     def test__getitem__(self, get_thermo_ms_small):
+        from origami.readers.io_thermo_raw import ThermoRawReader
+
         reader = ThermoRawReader(get_thermo_ms_small)
         item_list = [0, 1]
         item_list.extend(reader._unique_filters)
@@ -46,22 +47,28 @@ class TestThermoRawReader:
             _ = reader[3]
 
     def test_get_filter_by_idx(self, get_thermo_ms_small):
+        from origami.readers.io_thermo_raw import ThermoRawReader
+
         reader = ThermoRawReader(get_thermo_ms_small)
         for i in range(reader.n_filters()):
             title = reader.get_filter_by_idx(i)
             assert isinstance(title, str)
-            assert title != DEFAULT_FILTER
+            assert title != DEFAULT_THERMO_FILTER
 
         with pytest.raises(IndexError):
             _ = reader.get_filter_by_idx(3)
 
     def test_get_scan_info(self, get_thermo_ms_small):
+        from origami.readers.io_thermo_raw import ThermoRawReader
+
         reader = ThermoRawReader(get_thermo_ms_small)
         scan_info = reader.get_scan_info()
         assert isinstance(scan_info, dict)
         assert len(scan_info) == reader.n_scans()
 
     def test_get_spectrum_for_each_filter(self, get_thermo_ms_small):
+        from origami.readers.io_thermo_raw import ThermoRawReader
+
         reader = ThermoRawReader(get_thermo_ms_small)
         data = reader.get_spectrum_for_each_filter()
         assert isinstance(data, dict)
@@ -70,6 +77,8 @@ class TestThermoRawReader:
             assert title in data
 
     def test_get_chromatogram_for_each_filter(self, get_thermo_ms_small):
+        from origami.readers.io_thermo_raw import ThermoRawReader
+
         reader = ThermoRawReader(get_thermo_ms_small)
         data = reader.get_chromatogram_for_each_filter()
         assert isinstance(data, dict)
@@ -79,6 +88,8 @@ class TestThermoRawReader:
 
     @pytest.mark.parametrize("centroid", (True, False))
     def test__get_spectrum(self, get_thermo_ms_small, centroid):
+        from origami.readers.io_thermo_raw import ThermoRawReader
+
         reader = ThermoRawReader(get_thermo_ms_small)
         x, y = reader._get_spectrum(1, centroid)
         assert isinstance(x, np.ndarray)
@@ -95,6 +106,8 @@ class TestThermoRawReader:
     @pytest.mark.parametrize("end_scan", (-1, 10))
     @pytest.mark.parametrize("centroid", (True, False))
     def test_get_spectrum(self, get_thermo_ms_small, start_scan, end_scan, centroid):
+        from origami.readers.io_thermo_raw import ThermoRawReader
+
         reader = ThermoRawReader(get_thermo_ms_small)
         obj = reader.get_spectrum(start_scan, end_scan, centroid=centroid)
 
@@ -104,6 +117,8 @@ class TestThermoRawReader:
         assert isinstance(obj.y, np.ndarray)
 
     def test_get_tic(self, get_thermo_ms_small):
+        from origami.readers.io_thermo_raw import ThermoRawReader
+
         reader = ThermoRawReader(get_thermo_ms_small)
         obj = reader.get_tic()
 
@@ -115,6 +130,8 @@ class TestThermoRawReader:
     @pytest.mark.parametrize("mz_start, mz_end", ([-1, -1], [500, 600], [-1, 1000], [500, -1]))
     @pytest.mark.parametrize("rt_start, rt_end", ([-1, -1], [-1, 1.0], [1.0, -1]))
     def test_get_chromatogram(self, get_thermo_ms_small, mz_start, mz_end, rt_start, rt_end):
+        from origami.readers.io_thermo_raw import ThermoRawReader
+
         reader = ThermoRawReader(get_thermo_ms_small)
         obj = reader.get_chromatogram(mz_start, mz_end, rt_start, rt_end)
 

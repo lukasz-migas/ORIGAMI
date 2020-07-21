@@ -10,6 +10,7 @@ import numpy as np
 
 # Local imports
 from origami.objects.containers import ChromatogramObject, MassSpectrumObject
+from origami.readers.config import DEFAULT_THERMO_FILTER
 
 DLL_PATH = os.path.join(os.path.dirname(__file__), "thermo")
 DLL_LIST = [
@@ -46,7 +47,6 @@ from ThermoFisher.CommonCore.RawFileReader import RawFileReaderAdapter  # noqa
 from ThermoFisher.CommonCore.Data.Interfaces import IScanFilter  # noqa
 
 
-DEFAULT_FILTER = "Full MS"
 LOGGER = logging.getLogger(__name__)
 
 
@@ -237,7 +237,7 @@ class ThermoRawReader:
             if `True`, the start/end values are provided as retention time
         """
         if title is None:
-            title = DEFAULT_FILTER
+            title = DEFAULT_THERMO_FILTER
 
         # range was not provided as scans
         if not rt_as_scan and start_scan is not None and end_scan is not None:
@@ -292,7 +292,7 @@ class ThermoRawReader:
         if mz_end == -1:
             mz_end = 99999
         if title is None:
-            title = DEFAULT_FILTER
+            title = DEFAULT_THERMO_FILTER
 
         start_scan, end_scan, title = self._get_scan_parameters(rt_start, rt_end, title)
         settings = ChromatogramTraceSettings(title, [Range.Create(mz_start, mz_end)])
@@ -307,7 +307,7 @@ class ThermoRawReader:
 
     def _check_filter(self, title):
         """Checks whether requested filter exists"""
-        if title != DEFAULT_FILTER and title not in self._unique_filters:
+        if title != DEFAULT_THERMO_FILTER and title not in self._unique_filters:
             filter_fmt = "\n".join(self._unique_filters)
             raise ValueError(f"Filter `{title}` was not recorded. Try any of these instead: \n{filter_fmt}")
 
@@ -335,7 +335,7 @@ class ThermoRawReader:
         if title:
             self._check_filter(title)
             # using default filter so all scans
-            if title == DEFAULT_FILTER:
+            if title == DEFAULT_THERMO_FILTER:
                 _start_scan, _end_scan = self.scan_range
             else:
                 scans = []
