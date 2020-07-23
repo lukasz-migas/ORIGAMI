@@ -15,7 +15,6 @@ from matplotlib.collections import LineCollection
 # Local imports
 import origami.utils.visuals as ut_visuals
 from origami.utils.misc import merge_two_dicts
-from origami.utils.misc import remove_nan_from_list
 from origami.utils.color import get_random_color
 from origami.utils.ranges import get_min_max
 from origami.config.config import CONFIG
@@ -101,8 +100,8 @@ class PlotBase(MPLPanel):
     @staticmethod
     def _compute_xy_limits(x, y, y_lower_start=0, y_upper_multiplier=1.0, is_heatmap: bool = False):
         """Calculate the x/y axis ranges"""
-        x = np.nan_to_num(x, 0)
-        y = np.nan_to_num(y, 0)
+        x = np.nan_to_num(x)
+        y = np.nan_to_num(y)
         x_min, x_max = get_min_max(x)
         y_min, y_max = get_min_max(y)
 
