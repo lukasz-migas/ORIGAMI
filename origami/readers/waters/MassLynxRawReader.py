@@ -245,13 +245,13 @@ class MassLynxRawReader(object):
         # create scan reader from a path
         if isinstance(source, str):
             bytes = str.encode(source)
-            createRawReaderFromPath = MassLynxRawReader.massLynxDll.createRawReaderFromPath
+            createRawReaderFromPath = self.massLynxDll.createRawReaderFromPath
             createRawReaderFromPath.argtypes = [c_char_p, POINTER(c_void_p), c_int]
             self._codeHandler.CheckReturnCode(createRawReaderFromPath(bytes, self._getReader(), mlType))
 
         # create scan reader from a reader
         elif isinstance(source, MassLynxRawReader):
-            createRawReaderFromReader = MassLynxRawReader.massLynxDll.createRawReaderFromReader
+            createRawReaderFromReader = self.massLynxDll.createRawReaderFromReader
             createRawReaderFromReader.argtypes = [c_void_p, POINTER(c_void_p), c_int]
             self._codeHandler.CheckReturnCode(createRawReaderFromReader(source._getReader(), self._getReader(), mlType))
 
@@ -264,7 +264,7 @@ class MassLynxRawReader(object):
     # destroy the reader
     def __del__(self):
         # destroy reader
-        destroyRawReader = MassLynxRawReader.massLynxDll.destroyRawReader
+        destroyRawReader = self.massLynxDll.destroyRawReader
         destroyRawReader.argtypes = [c_void_p]
         destroyRawReader(self._getReader())
 

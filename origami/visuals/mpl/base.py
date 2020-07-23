@@ -168,11 +168,13 @@ class PlotBase(MPLPanel):
 
     def get_xlim(self):
         """Get x-axis limits"""
-        return self.plot_limits[0], self.plot_limits[1]
+        plot_limits = self.get_plot_limits()
+        return plot_limits[0], plot_limits[1]
 
     def get_ylim(self):
         """Get y-axis limits"""
-        return self.plot_limits[2], self.plot_limits[3]
+        plot_limits = self.get_plot_limits()
+        return plot_limits[2], plot_limits[3]
 
     def _update_plot_settings_(self, **kwargs):
         for parameter in kwargs:
@@ -699,17 +701,18 @@ class PlotBase(MPLPanel):
         yval = yval + yoffset
 
         # this will offset the intensity of the label by small value
+        plot_limits = self.get_plot_limits()
         if kwargs.pop("add_arrow_to_low_intensity", False):
             if is_butterfly:
-                if (yval - yoffset) > 0.2 * self.plot_limits[2]:
-                    rand_offset = -np.random.uniform(high=0.75 * self.plot_limits[2])
+                if (yval - yoffset) > 0.2 * plot_limits[2]:
+                    rand_offset = -np.random.uniform(high=0.75 * plot_limits[2])
                     yval_old = yval - yoffset
                     yval -= rand_offset
                     arrow_vals = [xpos, yval_old, 0, yval - yval_old]
                     self.plot_add_arrow(arrow_vals, stick_to_intensity=False)
             else:
-                if (yval - yoffset) < 0.2 * self.plot_limits[3]:
-                    rand_offset = np.random.uniform(high=0.5 * self.plot_limits[3])
+                if (yval - yoffset) < 0.2 * plot_limits[3]:
+                    rand_offset = np.random.uniform(high=0.5 * plot_limits[3])
                     yval_old = yval - yoffset
                     yval += rand_offset
                     arrow_vals = [xpos, yval_old, 0, yval - yval_old]
@@ -1248,14 +1251,14 @@ class PlotBase(MPLPanel):
                 ydata.extend([y_min, y_max])
                 y_offset = y_offset - increment
 
-        # update extents
-        ydata = remove_nan_from_list(ydata)
-        self.plot_limits[2] = np.min(ydata) - offset
-        self.plot_limits[3] = np.max(ydata) + 0.05
-        extent = [self.plot_limits[0], self.plot_limits[2], self.plot_limits[1], self.plot_limits[3]]
-        self.update_extents(extent)
-        self.plot_base.set_xlim((self.plot_limits[0], self.plot_limits[1]))
-        self.plot_base.set_ylim((self.plot_limits[2], self.plot_limits[3]))
+        # # update extents
+        # ydata = remove_nan_from_list(ydata)
+        # self.plot_limits[2] = np.min(ydata) - offset
+        # self.plot_limits[3] = np.max(ydata) + 0.05
+        # extent = [self.plot_limits[0], self.plot_limits[2], self.plot_limits[1], self.plot_limits[3]]
+        # self.update_extents(extent)
+        # self.plot_base.set_xlim((self.plot_limits[0], self.plot_limits[1]))
+        # self.plot_base.set_ylim((self.plot_limits[2], self.plot_limits[3]))
 
     def plot_1d_waterfall_fonts(self, **kwargs):
         # update ticks
