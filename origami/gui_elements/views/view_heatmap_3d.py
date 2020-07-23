@@ -101,7 +101,7 @@ class ViewHeatmap3d(ViewBase):
             )
 
         # set data
-        self._data.update(x=x, y=y, array=array)
+        self._data.update(x=x, y=y, array=array, obj=obj)
         self._plt_kwargs = kwargs
         LOGGER.debug("Plotted data")
 
@@ -116,7 +116,7 @@ class ViewHeatmap3d(ViewBase):
         # self.figure.repaint()
 
         # set data
-        self._data.update(x=x, y=y, array=array)
+        self._data.update(x=x, y=y, array=array, obj=obj)
         self._plt_kwargs = kwargs
         LOGGER.debug("Updated plot data")
 

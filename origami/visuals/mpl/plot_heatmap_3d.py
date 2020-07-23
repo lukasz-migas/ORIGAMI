@@ -241,7 +241,7 @@ class _PlotHeatmap3d(scene.SceneCanvas):
             self.set_z_axis(z_label, scale_ratio)
         self._x_label, self._y_label, self._z_label = x_label, y_label, z_label
 
-    def plot_3d_surface(self, x, y, array, x_label: str = "", y_label: str = "", z_label: str = "", **kwargs):
+    def plot_3d_surface(self, x, y, array, x_label: str = "", y_label: str = "", z_label: str = "", **kwargs):  # noqa
         """Plot data in 3D"""
         # set camera
         self.set_camera((0.5, 0.5, 0))
@@ -259,7 +259,7 @@ class _PlotHeatmap3d(scene.SceneCanvas):
         self.set_colormap(CONFIG.heatmap_3d_colormap)
         self._set_axes(array, x_label, y_label, z_label)
 
-    def plot_3d_update(self, x, y, array, x_label: str = "", y_label: str = "", z_label: str = "", **kwargs):
+    def plot_3d_update(self, x, y, array, x_label: str = "", y_label: str = "", z_label: str = "", **kwargs):  # noqa
         """Update plot data in 3D"""
         if self.base_plot is None or self._array is None:
             raise AttributeError("Base plot does not exist")
@@ -346,7 +346,7 @@ class PlotHeatmap3d(wx.Panel):
         """Check whether plot can be updated"""
         return self.canvas.base_plot is not None
 
-    def savefig(self, path: str, **kwargs):
+    def savefig(self, path: str, **kwargs):  # noqa
         """Save figure"""
         from vispy.io import imsave
 

@@ -69,7 +69,7 @@ class PlotHeatmap2D(PlotBase):
 
         self.setup_new_zoom(
             [self.plot_base],
-            data_limits=extent,
+            data_limits=[extent],
             allow_extraction=kwargs.get("allow_extraction", False),
             callbacks=kwargs.get("callbacks", dict()),
             is_heatmap=True,
@@ -85,7 +85,7 @@ class PlotHeatmap2D(PlotBase):
 
     def plot_2d_contour(self, x, y, array, title="", x_label="", y_label="", obj=None, **kwargs):
         """Simple heatmap plot"""
-        self.PLOT_TYPE = "heatmap"
+        self.PLOT_TYPE = "contour"
         self._set_axes()
 
         xlimits, ylimits, extent = self._compute_xy_limits(x, y, None, is_heatmap=True)
@@ -110,7 +110,7 @@ class PlotHeatmap2D(PlotBase):
 
         self.setup_new_zoom(
             [self.plot_base],
-            data_limits=extent,
+            data_limits=[extent],
             allow_extraction=kwargs.get("allow_extraction", False),
             callbacks=kwargs.get("callbacks", dict()),
             is_heatmap=True,
@@ -125,12 +125,12 @@ class PlotHeatmap2D(PlotBase):
         self.plot_2D_update_normalization(**kwargs)
 
     def plot_2d_update_data(self, x, y, array, x_label=None, y_label=None, obj=None, **kwargs):
-        xlimits, ylimits, extent = self._compute_xy_limits(x, y, None, is_heatmap=True)
-
-        if kwargs["plot_type"] == "Contour":
+        if kwargs["plot_type"] == "contour":
             raise AttributeError("Contour plot does not have `set_data`")
 
         # update limits and extents
+        xlimits, ylimits, extent = self._compute_xy_limits(x, y, None, is_heatmap=True)
+
         self.cax.set_data(array)
         # self.cax.set_norm(kwargs.get("colormap_norm", None))
         self.cax.set_extent([*xlimits, *ylimits])
@@ -148,15 +148,22 @@ class PlotHeatmap2D(PlotBase):
         # add colorbar
         if self.PLOT_TYPE in ["heatmap"]:
             self.set_colorbar_parameters(array, **kwargs)
+            axes = [self.plot_base]
+            extent = [extent]
         elif self.PLOT_TYPE in ["joint"]:
             yy = array.sum(axis=1)
             xy = array.sum(axis=0)
             self.update_line(x, xy, PlotIds.PLOT_JOINT_X, self.plot_joint_x)
             self.update_line(yy, y, PlotIds.PLOT_JOINT_Y, self.plot_joint_y)
+            # add limits of the other plots
+            _, _, extent_x = self._compute_xy_limits(x, xy, 0, 1, False)
+            _, _, extent_y = self._compute_xy_limits(yy, y, 0, 1, False)
+            axes = [self.plot_base, self.plot_joint_x, self.plot_joint_y]
+            extent = [extent, extent_x, extent_y]
 
         # update plot limits
         self.update_extents(extent, obj=obj)
-        self.store_plot_limits([extent], [self.plot_base])
+        self.store_plot_limits(extent, axes)
 
     def plot_violin(self, x, y, array, x_label=None, y_label=None, obj=None, **kwargs):
         """Plot as violin"""
@@ -239,7 +246,7 @@ class PlotHeatmap2D(PlotBase):
 
         self.setup_new_zoom(
             [self.plot_base],
-            data_limits=extent,
+            data_limits=[extent],
             allow_extraction=kwargs.get("allow_extraction", False),
             callbacks=kwargs.get("callbacks", dict()),
             is_heatmap=True,
@@ -295,19 +302,18 @@ class PlotHeatmap2D(PlotBase):
         # add limits of the other plots
         _, _, extent_x = self._compute_xy_limits(x, xy, 0, 1, False)
         _, _, extent_y = self._compute_xy_limits(yy, y, 0, 1, False)
-        extent = [extent, extent_x, extent_y]
 
         # setup zoom
         self.setup_new_zoom(
             [self.plot_base, self.plot_joint_x, self.plot_joint_y],
-            data_limits=extent,
+            data_limits=[extent, extent_x, extent_y],
             allow_extraction=kwargs.get("allow_extraction", False),
             callbacks=kwargs.get("callbacks", dict()),
             is_heatmap=True,
             is_joint=True,
             obj=obj,
         )
-        self.store_plot_limits(extent, [self.plot_base, self.plot_joint_x, self.plot_joint_y])
+        self.store_plot_limits([extent, extent_x, extent_y], [self.plot_base, self.plot_joint_x, self.plot_joint_y])
 
         # update normalization
         self.plot_2D_update_normalization(**kwargs)
@@ -632,7 +638,7 @@ class PlotHeatmap2D(PlotBase):
 
         extent = [xmin, ymin, xmax, ymax]
         if kwargs.get("update_extents", True):
-            self.update_extents(extent)
+            self.update_extents([extent])
             self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
 
         self.set_plot_xlabel(xlabel, **kwargs)
@@ -1112,7 +1118,7 @@ class PlotHeatmap2D(PlotBase):
     #     extent = [xmin, ymin, xmax, ymax]
     #
     #     if kwargs.get("update_extents", True):
-    #         self.update_extents(extent)
+    #         self.update_extents([extent])
     #         self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
     #
     #     # add data

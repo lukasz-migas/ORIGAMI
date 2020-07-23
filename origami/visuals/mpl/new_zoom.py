@@ -74,7 +74,7 @@ def get_axes_limits(axes, xmin=None, xmax=None):
         x, y = t.get_position()
         y = y * 1.01
         if xmin is not None and xmax is not None:
-            if x < xmax and x > xmin:
+            if xmax > x > xmin:
                 t.set_visible(True)
                 yvals.append([y, y])
                 xvals.append([x, x])
@@ -107,6 +107,7 @@ def get_axes_limits(axes, xmin=None, xmax=None):
 
 
 def on_check_x_values(xys, xmin, xmax):
+    """Check x-axis values"""
     ydat = xys[:, 1]
     xdat = xys[:, 0]
     if xmin is not None and xmax is not None:
@@ -117,6 +118,7 @@ def on_check_x_values(xys, xmin, xmax):
 
 
 def reset_visible(axes):
+    """Reset visible axes"""
     for line in axes.lines:
         line.set_clip_on(True)
     for t in axes.texts:
@@ -124,6 +126,7 @@ def reset_visible(axes):
 
 
 def get_axes_start(axes):
+    """Get axes start"""
     outputs = np.array([get_axes_limits(axis) for axis in axes])
     xmin = np.amin(outputs[:, 0])
     ymin = np.amin(outputs[:, 1])
@@ -139,29 +142,7 @@ def get_axes_start(axes):
     if ymin == ymax:
         ymax = ymin * 1.0001
 
-    out = [xmin, ymin, xmax, ymax]
-
-    return out
-
-
-class GetXValues:
-    def __init__(self, axes):
-        """
-        This function retrieves the x-axis info
-        """
-        self.axes = None
-        self.canvas = None
-        self.cids = []
-
-        self.create_new_patch(axes)
-
-    def create_new_patch(self, axes):
-        self.axes = axes
-        if self.canvas is not axes[0].figure.canvas:
-            for cid in self.cids:
-                self.canvas.mpl_disconnect(cid)
-                print("disconnected")
-            self.canvas = axes[0].figure.canvas
+    return [xmin, ymin, xmax, ymax]
 
 
 class MPLInteraction:
@@ -173,7 +154,6 @@ class MPLInteraction:
         self,
         axes,
         useblit=False,
-        patch_kwargs=None,
         button=1,
         data_limits=None,
         plotName=None,
@@ -187,13 +167,10 @@ class MPLInteraction:
         is_joint: bool = False,
         obj=None,
     ):
-        if callbacks is None:
-            callbacks = dict()
-
         self.parent = parent
         self.axes = None
         self.canvas = None
-        self.cids = []
+        self.mpl_events = []
         self.plotName = plotName
         self.plot_id = plot_id
         self.allow_extraction = allow_extraction
@@ -201,16 +178,15 @@ class MPLInteraction:
         self.is_joint = is_joint
         self.data_object = obj
 
+        self.axes, self._callbacks, data_limits = self.validate_input(axes, callbacks, data_limits)
+
         self.active = True  # for activation / deactivation
-        # self.to_draw = []
         self.background = None
         self.dragged = None
-
         self._is_inside_axes = True
         self._last_location = None
         self._last_xy_position = []
         self.current_ymax = None
-
         self.mark_annotation = False
         self.prevent_sync_zoom = False
 
@@ -222,20 +198,22 @@ class MPLInteraction:
         self.n_mouse_wheel_steps = 3
 
         self.useblit = useblit
-        self._xy_press = []
-        self.evt_press = None
-        self.evt_release = None
 
         if button is None or isinstance(button, list):
             self.validButtons = button
         elif isinstance(button, int):
             self.validButtons = [button]
 
+        # flags
         self._trigger_extraction = False
         self._is_label = False
         self._is_legend = False
         self._is_patch = False
 
+        # events
+        self._xy_press = []
+        self.evt_press = None
+        self.evt_release = None
         self.pick_pos = None
         self._ctrl_key = False
         self._alt_key = False
@@ -243,7 +221,6 @@ class MPLInteraction:
         self._button_down = False
         self._key_press = False
         self._mouse_wheel = False
-        self._callbacks = callbacks
 
         # based on MPL
         self.wx_overlay = None
@@ -255,34 +232,58 @@ class MPLInteraction:
         self.prevZoomRect = None
 
         self.bind_plot_events(axes)
+        self.set_data_limits(data_limits)
 
-        try:
-            if data_limits is None:
-                self.data_limits = get_axes_start(self.axes)
-            else:
-                self.data_limits = data_limits
-            xmin, ymin, xmax, ymax = self.data_limits
-            if xmin > xmax:
-                xmin, xmax = xmax, xmin
-            if ymin > ymax:
-                ymin, ymax = ymax, ymin
-            # assure that x and y values are not equal
-            if xmin == xmax:
-                xmax = xmin * 1.0001
-            if ymin == ymax:
-                ymax = ymin * 1.0001
-            for axes in self.axes:
-                axes.set_xlim(xmin, xmax)
-                axes.set_ylim(ymin, ymax)
-        except Exception:
-            for i in range(len(self.axes)):
-                self.axes[i].data_limits = data_limits[i]
-            self.prevent_sync_zoom = True
-            self.data_limits = None
+        # try:
+        #     if data_limits is None:
+        #         self.data_limits = get_axes_start(self.axes)
+        #     else:
+        #         self.data_limits = data_limits
+        #     xmin, ymin, xmax, ymax = self.data_limits
+        #     if xmin > xmax:
+        #         xmin, xmax = xmax, xmin
+        #     if ymin > ymax:
+        #         ymin, ymax = ymax, ymin
+        #     # assure that x and y values are not equal
+        #     if xmin == xmax:
+        #         xmax = xmin * 1.0001
+        #     if ymin == ymax:
+        #         ymax = ymin * 1.0001
+        #     for axes in self.axes:
+        #         axes.set_xlim(xmin, xmax)
+        #         axes.set_ylim(ymin, ymax)
+        # except Exception:
+        #     for i in range(len(self.axes)):
+        #         self.axes[i].data_limits = data_limits[i]
+        #     self.prevent_sync_zoom = True
+        #     self.data_limits = None
         # listener to change plot parameters
         pub.subscribe(self.on_update_parameters, "plot_parameters")
 
+    @staticmethod
+    def validate_input(axes, callbacks, data_limits):
+        """Validate input to ensure correct parameters are being used"""
+        if not isinstance(axes, list):
+            axes = list(axes)
+
+        if callbacks is None:
+            callbacks = dict()
+
+        if not all(isinstance(elem, (list, tuple)) for elem in data_limits):
+            data_limits = [data_limits]
+
+        return axes, callbacks, data_limits
+
+    def set_data_limits(self, data_limits):
+        """Set data limits on the axes object"""
+        if len(data_limits) != len(self.axes):
+            raise ValueError("Incorrect `data_limits` input")
+
+        for i, _ in enumerate(self.axes):
+            self.axes[i].data_limits = data_limits[i]
+
     def on_update_parameters(self, plot_parameters):
+        """Update plotting parameters"""
         self.plot_parameters = plot_parameters
 
         self.show_cursor_cross = self.plot_parameters["grid_show"]
@@ -290,22 +291,25 @@ class MPLInteraction:
 
     def update_handler(self, data_limits=None, obj=None):
         """Update zoom parameters"""
-        self.data_limits = data_limits if data_limits is not None else get_axes_start(self.axes)
+        self.set_data_limits(data_limits)
+        # self.data_limits = data_limits if data_limits is not None else get_axes_start(self.axes)
         self.data_object = obj
 
     def update_extents(self, data_limits=None):
         """Update plot extents"""
-        self.data_limits = data_limits if data_limits is not None else get_axes_start(self.axes)
+        if data_limits is not None:
+            self.set_data_limits(data_limits)
+        # self.data_limits = data_limits if data_limits is not None else get_axes_start(self.axes)
 
-    def update_x_extents(self, x_min, x_max):
-        """Update x-axis extents"""
-        self.data_limits[0] = x_min
-        self.data_limits[2] = x_max
-
-    def update_y_extents(self, y_min, y_max):
-        """Update y-axis extents"""
-        self.data_limits[1] = y_min
-        self.data_limits[3] = y_max
+    # def update_x_extents(self, x_min, x_max):
+    #     """Update x-axis extents"""
+    #     self.data_limits[0] = x_min
+    #     self.data_limits[2] = x_max
+    #
+    # def update_y_extents(self, y_min, y_max):
+    #     """Update y-axis extents"""
+    #     self.data_limits[1] = y_min
+    #     self.data_limits[3] = y_max
 
     def update_mark_state(self, state):
         """Update the state of annotation"""
@@ -334,34 +338,35 @@ class MPLInteraction:
 
     def bind_plot_events(self, axes):
         """Bind events"""
-        self.axes = axes
+        # remove any previous events connected to the canvas
         if self.canvas is not axes[0].figure.canvas:
-            for cid in self.cids:
-                self.canvas.mpl_disconnect(cid)
-            self.canvas = axes[0].figure.canvas
+            for event in self.mpl_events:
+                self.canvas.mpl_disconnect(event)
 
-            # pick events
-            self.cids.append(self.canvas.mpl_connect("pick_event", self.on_pick_event))
+        self.canvas = axes[0].figure.canvas
 
-            # button events
-            self.cids.append(self.canvas.mpl_connect("button_press_event", self.on_press))
-            self.cids.append(self.canvas.mpl_connect("button_release_event", self.on_release))
-            self.cids.append(self.canvas.mpl_connect("key_press_event", self.on_key_state))
-            self.cids.append(self.canvas.mpl_connect("key_release_event", self.on_key_state))
+        # pick events
+        self.mpl_events.append(self.canvas.mpl_connect("pick_event", self.on_pick_event))
 
-            # motion events
-            self.cids.append(self.canvas.mpl_connect("motion_notify_event", self.on_key_state))
-            self.cids.append(self.canvas.mpl_connect("motion_notify_event", self.on_motion))
+        # button events
+        self.mpl_events.append(self.canvas.mpl_connect("button_press_event", self.on_press))
+        self.mpl_events.append(self.canvas.mpl_connect("button_release_event", self.on_release))
+        self.mpl_events.append(self.canvas.mpl_connect("key_press_event", self.on_key_state))
+        self.mpl_events.append(self.canvas.mpl_connect("key_release_event", self.on_key_state))
 
-            # enter events
-            self.cids.append(self.canvas.mpl_connect("axes_enter_event", self.on_enter_axes))
-            self.cids.append(self.canvas.mpl_connect("axes_leave_event", self.on_leave_axes))
+        # motion events
+        self.mpl_events.append(self.canvas.mpl_connect("motion_notify_event", self.on_key_state))
+        self.mpl_events.append(self.canvas.mpl_connect("motion_notify_event", self.on_motion))
 
-            # scroll events
-            self.cids.append(self.canvas.mpl_connect("scroll_event", self.on_mouse_wheel))
+        # enter events
+        self.mpl_events.append(self.canvas.mpl_connect("axes_enter_event", self.on_enter_axes))
+        self.mpl_events.append(self.canvas.mpl_connect("axes_leave_event", self.on_leave_axes))
 
-            # draw events
-            self.cids.append(self.canvas.mpl_connect("draw_event", self.update_background))
+        # scroll events
+        self.mpl_events.append(self.canvas.mpl_connect("scroll_event", self.on_mouse_wheel))
+
+        # draw events
+        self.mpl_events.append(self.canvas.mpl_connect("draw_event", self.update_background))
 
         # Pre-set keys
         self._shift_key = False
@@ -383,7 +388,7 @@ class MPLInteraction:
         """Flag that mouse has left the axes"""
         self._is_inside_axes = False
 
-    def on_key_state(self, evt):
+    def on_key_state(self, _evt):
         """Update state of the key"""
         self._ctrl_key = wx.GetKeyState(wx.WXK_CONTROL)
         self._alt_key = wx.GetKeyState(wx.WXK_ALT)
@@ -412,7 +417,7 @@ class MPLInteraction:
         ]
         pub.sendMessage("motion_mode", plot_interaction=motion_mode)
 
-    def update_background(self, evt):
+    def update_background(self, _evt):
         """force an update of the background"""
         if self.useblit:
             self.background = self.canvas.copy_from_bbox(self.canvas.figure.bbox)
@@ -570,14 +575,14 @@ class MPLInteraction:
 
         # zoom in the plot area
         x, y = evt.x, evt.y
-        for lastx, lasty, a in self._xy_press:
+        for last_x, last_y, a in self._xy_press:
             # allow cancellation of the zoom-in if the spatial distance is too small (5 pixels)
-            if (abs(x - lastx) < 3 and evt.key != "y") or (abs(y - lasty) < 3 and evt.key != "x"):
-                self._xypress = None
+            if (abs(x - last_x) < 3 and evt.key != "y") or (abs(y - last_y) < 3 and evt.key != "x"):
+                self._xy_press = None
                 self.canvas.draw()
                 return
-            twinx, twiny = False, False
-            a._set_view_from_bbox((lastx, lasty, x, y), "in", evt.key, twinx, twiny)
+            twin_x, twin_y = False, False
+            a._set_view_from_bbox((last_x, last_y, x, y), "in", evt.key, twin_x, twin_y)  # noqa
             if self.is_joint:
                 self._handle_joint(False)
         self.canvas.draw()
@@ -613,7 +618,7 @@ class MPLInteraction:
         ):
             pub.sendMessage("extract_from_plot_2D", xy_values=[xmin, xmax, ymin, ymax])
 
-    def _parse_extraction_limits(self, xmin, xmax, ymin, ymax, evt):
+    def _parse_extraction_limits(self, xmin, xmax, ymin, ymax, _evt):
         """Special parsing of x/y-limits for data extraction that supports multi-plot behaviour"""
         # special behaviour for joint plots
         plot_gid = self.evt_press.inaxes.get_gid()
@@ -733,28 +738,28 @@ class MPLInteraction:
         for line in self.axes[1].get_lines():
             gid = line.get_gid()
             if gid == PlotIds.PLOT_JOINT_X:
-                line.set_ydata(ax_x_y)
-                self.axes[1].set_ylim(0, ax_x_y.max())
+                _y = ax_x_y if line.get_xdata().shape == ax_x_y.shape else ax_y_y
+                line.set_ydata(_y)
+                self.axes[1].set_ylim(0, _y.max())
                 break
 
         for line in self.axes[2].get_lines():
             gid = line.get_gid()
             if gid == PlotIds.PLOT_JOINT_Y:
-                line.set_xdata(ax_y_y)
-                self.axes[2].set_xlim(0, ax_y_y.max())
+                _x = ax_y_y if line.get_xdata().shape == ax_y_y.shape else ax_x_y
+                line.set_xdata(_x)
+                self.axes[2].set_xlim(_x.min(), _x.max())
                 break
 
     def _zoom_out(self, evt):
-        if self.data_limits is not None:
-            xmin, ymin, xmax, ymax = self.data_limits
-            xmin, ymin, xmax, ymax = self._check_xy_values(xmin, ymin, xmax, ymax)
+        # if self.data_limits is not None:
+        #     xmin, ymin, xmax, ymax = self.data_limits
+        #     xmin, ymin, xmax, ymax = self._check_xy_values(xmin, ymin, xmax, ymax)
 
         # Check if a zoom out is necessary
         zoomout = False
         for axes in self.axes:
-            if self.data_limits is None:
-                xmin, ymin, xmax, ymax = axes.data_limits
-                xmin, ymin, xmax, ymax = self._check_xy_values(xmin, ymin, xmax, ymax)
+            xmin, ymin, xmax, ymax = self._check_xy_values(*axes.data_limits)
             if axes.get_xlim() != (xmin, xmax) and axes.get_ylim() != (ymin, ymax):
                 zoomout = True
 
@@ -764,9 +769,7 @@ class MPLInteraction:
                 pub.sendMessage("left_click", xpos=evt.xdata, ypos=evt.ydata)
 
         for axes in self.axes:
-            if self.data_limits is None:
-                xmin, ymin, xmax, ymax = axes.data_limits
-                xmin, ymin, xmax, ymax = self._check_xy_values(xmin, ymin, xmax, ymax)
+            xmin, ymin, xmax, ymax = self._check_xy_values(*axes.data_limits)
 
             # reset y-axis
             if wx.GetKeyState(wx.WXK_SHIFT) or evt.key == "y":
@@ -780,8 +783,10 @@ class MPLInteraction:
                 axes.set_ylim(ymin, ymax)
             reset_visible(axes)
 
-            if self.is_joint:
-                self._handle_joint(True)
+        # update axes
+        if self.is_joint:
+            self._handle_joint(True)
+
         self.canvas.draw()
         LOGGER.debug("Plot -> Zoom out")
 
@@ -808,7 +813,7 @@ class MPLInteraction:
             self._is_label = False
             self.dragged = None
 
-    def _drag_legend(self, evt):
+    def _drag_legend(self, _evt):
         """Drag legend post-event"""
         self._is_legend = False
         self.dragged = None
@@ -849,60 +854,60 @@ class MPLInteraction:
     def calculate_new_limits(self, evt):
         """Calculate new plot limits"""
         # Just grab bounding box
-        lastx, lasty, ax = self._xy_press[0]
+        last_x, last_y, ax = self._xy_press[0]
         x, y = evt.x, evt.y
-        twinx, twiny = False, False
+        twin_x, twin_y = False, False
 
-        Xmin, Xmax = ax.get_xlim()
-        Ymin, Ymax = ax.get_ylim()
+        x_min, x_max = ax.get_xlim()
+        y_min, y_max = ax.get_ylim()
 
         # zoom to rect
         inverse = ax.transData.inverted()
-        (lastx, lasty), (x, y) = inverse.transform([(lastx, lasty), (x, y)])
+        (last_x, last_y), (x, y) = inverse.transform([(last_x, last_y), (x, y)])
 
-        if twinx:
-            x0, x1 = Xmin, Xmax
+        if twin_x:
+            x0, x1 = x_min, x_max
         else:
-            if Xmin < Xmax:
-                if x < lastx:
-                    x0, x1 = x, lastx
+            if x_min < x_max:
+                if x < last_x:
+                    x0, x1 = x, last_x
                 else:
-                    x0, x1 = lastx, x
-                if x0 < Xmin:
-                    x0 = Xmin
-                if x1 > Xmax:
-                    x1 = Xmax
+                    x0, x1 = last_x, x
+                if x0 < x_min:
+                    x0 = x_min
+                if x1 > x_max:
+                    x1 = x_max
             else:
-                if x > lastx:
-                    x0, x1 = x, lastx
+                if x > last_x:
+                    x0, x1 = x, last_x
                 else:
-                    x0, x1 = lastx, x
-                if x0 > Xmin:
-                    x0 = Xmin
-                if x1 < Xmax:
-                    x1 = Xmax
+                    x0, x1 = last_x, x
+                if x0 > x_min:
+                    x0 = x_min
+                if x1 < x_max:
+                    x1 = x_max
 
-        if twiny:
-            y0, y1 = Ymin, Ymax
+        if twin_y:
+            y0, y1 = y_min, y_max
         else:
-            if Ymin < Ymax:
-                if y < lasty:
-                    y0, y1 = y, lasty
+            if y_min < y_max:
+                if y < last_y:
+                    y0, y1 = y, last_y
                 else:
-                    y0, y1 = lasty, y
-                if y0 < Ymin:
-                    y0 = Ymin
-                if y1 > Ymax:
-                    y1 = Ymax
+                    y0, y1 = last_y, y
+                if y0 < y_min:
+                    y0 = y_min
+                if y1 > y_max:
+                    y1 = y_max
             else:
-                if y > lasty:
-                    y0, y1 = y, lasty
+                if y > last_y:
+                    y0, y1 = y, last_y
                 else:
-                    y0, y1 = lasty, y
-                if y0 > Ymin:
-                    y0 = Ymin
-                if y1 < Ymax:
-                    y1 = Ymax
+                    y0, y1 = last_y, y
+                if y0 > y_min:
+                    y0 = y_min
+                if y1 < y_max:
+                    y1 = y_max
 
         return x0, x1, y0, y1
 
@@ -919,15 +924,9 @@ class MPLInteraction:
 
     def reset_axes(self, axis_pos):
         """Reset plot limits"""
-        if self.data_limits is not None:
-            xmin, ymin, xmax, ymax = self.data_limits
-            xmin, ymin, xmax, ymax = self._check_xy_values(xmin, ymin, xmax, ymax)
-
         # Register a click if zoomout was not necessary
         for axes in self.axes:
-            if self.data_limits is None:
-                xmin, ymin, xmax, ymax = axes.data_limits
-                xmin, ymin, xmax, ymax = self._check_xy_values(xmin, ymin, xmax, ymax)
+            xmin, ymin, xmax, ymax = self._check_xy_values(*axes.data_limits)
 
             if axis_pos in ["left", "right"]:
                 axes.set_ylim(ymin, ymax)

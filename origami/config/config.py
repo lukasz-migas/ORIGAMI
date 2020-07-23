@@ -2360,6 +2360,24 @@ class Config:
 
         return parameters
 
+    def get_zoom_parameters(self):
+        """Get matplotlib interaction parameters"""
+        parameters = {
+            "grid_show": CONFIG._plots_grid_show,
+            "grid_color": CONFIG._plots_grid_color,
+            "grid_line_width": CONFIG._plots_grid_line_width,
+            "extract_color": CONFIG._plots_extract_color,
+            "extract_line_width": CONFIG._plots_extract_line_width,
+            "extract_crossover_sensitivity_1D": CONFIG._plots_extract_crossover_1D,
+            "extract_crossover_sensitivity_2D": CONFIG._plots_extract_crossover_2D,
+            "zoom_color_vertical": CONFIG._plots_zoom_vertical_color,
+            "zoom_color_horizontal": CONFIG._plots_zoom_horizontal_color,
+            "zoom_color_box": CONFIG._plots_zoom_box_color,
+            "zoom_line_width": CONFIG._plots_zoom_line_width,
+            "zoom_crossover_sensitivity": CONFIG._plots_zoom_crossover,
+        }
+        return parameters
+
     def get_mpl_parameters(self, plot_type, add_frame_width: bool = True):
         """Get plot parameters that can be consumed by plotting classes"""
         plt_kwargs = dict()

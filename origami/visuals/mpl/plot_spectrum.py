@@ -10,6 +10,14 @@ from origami.visuals.utilities import get_intensity_formatter
 logger = logging.getLogger(__name__)
 
 
+class LineMixin:
+    """Mixin providing functionality to plot and update data and style(s) efficiently of line plot"""
+
+
+class LineComparisonMixin:
+    """Mixin providing functionality to plot and update data and style(s) efficiently of line comparison plot"""
+
+
 class PlotSpectrum(PlotBase):
     """Instantiate plot canvas"""
 
@@ -78,7 +86,7 @@ class PlotSpectrum(PlotBase):
 
         self.setup_new_zoom(
             [self.plot_base],
-            data_limits=extent,
+            data_limits=[extent],
             allow_extraction=kwargs.get("allow_extraction", False),
             callbacks=kwargs.get("callbacks", dict()),
         )
@@ -132,7 +140,7 @@ class PlotSpectrum(PlotBase):
         self.set_plot_ylabel(y_label, **kwargs)
 
         # update plot limits
-        self.update_extents(extent)
+        self.update_extents([extent])
         self.store_plot_limits([extent], [self.plot_base])
 
     def plot_1d_compare(
@@ -203,7 +211,7 @@ class PlotSpectrum(PlotBase):
 
         self.setup_new_zoom(
             [self.plot_base],
-            data_limits=extent,
+            data_limits=[extent],
             allow_extraction=kwargs.get("allow_extraction", False),
             callbacks=kwargs.get("callbacks", dict()),
         )
@@ -241,7 +249,7 @@ class PlotSpectrum(PlotBase):
         self.set_legend_parameters(handles, **self.plot_parameters)
 
         # update plot limits
-        self.update_extents(extent)
+        self.update_extents([extent])
         self.store_plot_limits([extent], [self.plot_base])
         self.on_zoom_y_axis(*ylimits)
 
@@ -1060,7 +1068,7 @@ class PlotSpectrum(PlotBase):
     #
     #     extent = [xlimits[0], ylimits[0], xlimits[-1], ylimits[-1] + 0.025]
     #     if kwargs.get("update_extents", False):
-    #         self.update_extents(extent)
+    #         self.update_extents([extent])
     #         self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
     #
     #     if setup_zoom:

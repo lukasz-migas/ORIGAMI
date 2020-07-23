@@ -134,6 +134,12 @@ class PlotBase(MPLPanel):
         for _ax, _extent in zip(ax, extent):
             _ax.plot_limits = [_extent[0], _extent[2], _extent[1], _extent[3]]
 
+    def get_plot_limits(self, ax=None):
+        """Get plot limits"""
+        if ax is None:
+            ax = self.plot_base
+        return ax.plot_limits
+
     #         self._check_plot_limits(extent)
 
     #     def _check_plot_limits(self, extent):
@@ -159,10 +165,6 @@ class PlotBase(MPLPanel):
     #             _y_max = y_max
     #
     #         self.set_xy_limits((_x_min, _x_max, _y_min, _y_max))
-
-    def clear(self):
-        """Clear canvas"""
-        self.figure.clear()
 
     def get_xlim(self):
         """Get x-axis limits"""
@@ -466,8 +468,9 @@ class PlotBase(MPLPanel):
             pass
 
     def on_reset_zoom(self):
-        self.plot_base.set_xlim((self.plot_limits[0], self.plot_limits[1]))
-        self.plot_base.set_ylim((self.plot_limits[2], self.plot_limits[3]))
+        start_x, end_x, start_y, end_y = self.get_plot_limits()
+        self.plot_base.set_xlim(start_x, end_x)
+        self.plot_base.set_ylim(start_y, end_y)
         self.repaint()
 
     def plot_remove_patch_with_label(self, label):

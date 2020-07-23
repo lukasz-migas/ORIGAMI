@@ -169,6 +169,10 @@ class ViewMPLMixin:
         self.figure.on_zoom_xy_axis(x_min, x_max, y_min, y_max)
         self.figure.repaint()
 
+    def reset_zoom(self):
+        """Restore original extents of the plot"""
+        self.figure.on_reset_zoom()
+
 
 class ViewBase(ABC):
     """Viewer base class"""
@@ -274,8 +278,14 @@ class ViewBase(ABC):
         """Get Data object that is shown in the View"""
         if self.document_name is None or self.dataset_name is None:
             return None
-        document = ENV.on_get_document(self.document_name)
-        return document[self.dataset_name, True]
+
+        # check whether object had been cached
+        data_obj = self._data.get("obj", None)
+        if data_obj is None:
+            document = ENV.on_get_document(self.document_name)
+            data_obj = document[self.dataset_name, True]
+
+        return data_obj
 
     def set_data(self, **kwargs):
         """Update plot data"""
@@ -342,6 +352,10 @@ class ViewBase(ABC):
     def repaint(self):
         """Repaint plot"""
         self.figure.repaint()
+
+    def clear(self):
+        """Clear plot"""
+        self.figure.clear()
 
     def copy_to_clipboard(self):
         """Copy plot to clipboard"""

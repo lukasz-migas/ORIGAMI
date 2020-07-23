@@ -290,7 +290,7 @@ class MPLPanel(wx.Panel):
         """
         self.canvas.draw()
 
-    def clear(self, *args):
+    def clear(self):
         """
         Clear the plot and rest some of the parameters.
         :param args: Arguments
@@ -310,35 +310,12 @@ class MPLPanel(wx.Panel):
         self.rotate = 0
 
         # clear plots
-        try:
-            self.cax = None
-        except Exception:
-            pass
-
-        try:
-            self.plot_base = None
-        except Exception:
-            pass
-
-        try:
-            self.plot2D_upper = None
-        except Exception:
-            pass
-
-        try:
-            self.plot2D_lower = None
-        except Exception:
-            pass
-
-        try:
-            self.plot2D_side = None
-        except Exception:
-            pass
-
-        try:
-            self.plotRMSF = None
-        except Exception:
-            pass
+        self.cax = None
+        self.plot_base = None
+        self.plot2D_upper = None
+        self.plot2D_lower = None
+        self.plot2D_side = None
+        self.plotRMSF = None
 
         self.repaint()
 

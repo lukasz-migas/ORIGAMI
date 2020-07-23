@@ -7,9 +7,9 @@ import numpy as np
 import pytest
 
 # Local imports
+from origami.readers.config import DEFAULT_THERMO_FILTER
 from origami.objects.containers import ChromatogramObject
 from origami.objects.containers import MassSpectrumObject
-from origami.readers.config import DEFAULT_THERMO_FILTER
 
 if sys.platform.startswith("linux") or sys.platform.startswith("darwin"):
     pytest.skip("skipping Linux-only tests", allow_module_level=True)

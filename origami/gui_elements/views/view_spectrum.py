@@ -61,10 +61,6 @@ class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin):
         """Check kwargs"""
         if "allow_extraction" not in kwargs:
             kwargs["allow_extraction"] = self._allow_extraction
-        #         if "x_label" not in kwargs:
-        #             kwargs["x_label"] = self.x_label
-        #         if "y_label" not in kwargs:
-        #             kwargs["y_label"] = self.y_label
         return kwargs
 
     def plot(self, x=None, y=None, obj=None, **kwargs):
@@ -85,7 +81,7 @@ class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin):
             self.figure.repaint()
 
             # set data
-            self._data.update(x=x, y=y)
+            self._data.update(x=x, y=y, obj=obj)
             self._plt_kwargs = kwargs
             LOGGER.debug("Plotted data")
 
@@ -100,7 +96,7 @@ class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin):
         self.figure.repaint()
 
         # set data
-        self._data.update(x=x, y=y)
+        self._data.update(x=x, y=y, obj=obj)
         self._plt_kwargs = kwargs
         LOGGER.debug("Updated plot data")
 

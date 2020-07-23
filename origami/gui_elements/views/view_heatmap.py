@@ -58,13 +58,9 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
         """Check kwargs"""
         if "allow_extraction" not in kwargs:
             kwargs["allow_extraction"] = self._allow_extraction
-        #         if "x_label" not in kwargs:
-        #             kwargs["x_label"] = self.x_label
-        #         if "y_label" not in kwargs:
-        #             kwargs["y_label"] = self.y_label
         return kwargs
 
-    def plot(self, x=None, y=None, array=None, obj=None, **kwargs):
+    def plot(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
         """Simple line plot"""
         # try to update plot first, as it can be quicker
         self.set_document(obj, **kwargs)
@@ -74,21 +70,22 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
         kwargs = self.check_kwargs(**kwargs)
 
         try:
-            self.update(x, y, array, obj, **kwargs)
-        except AttributeError as er:
+            self.update(x, y, array, obj, repaint=repaint, **kwargs)
+        except AttributeError:
             x, y, array = self.check_input(x, y, array, obj)
             self.figure.clear()
             self.figure.plot_2d(
                 x, y, array, x_label=self.x_label, y_label=self.y_label, callbacks=self._callbacks, obj=obj, **kwargs
             )
-            self.figure.repaint()
+            if repaint:
+                self.figure.repaint()
 
             # set data
-            self._data.update(x=x, y=y, array=array)
+            self._data.update(x=x, y=y, array=array, obj=obj)
             self._plt_kwargs = kwargs
             LOGGER.debug("Plotted data")
 
-    def update(self, x=None, y=None, array=None, obj=None, **kwargs):
+    def update(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
         """Update plot without having to clear it"""
         self.set_document(obj, **kwargs)
         self.set_labels(obj, **kwargs)
@@ -96,15 +93,21 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
         # update plot
         x, y, array = self.check_input(x, y, array, obj)
         self.figure.plot_2d_update_data(x, y, array, self.x_label, self.y_label, obj=obj, **kwargs)
-        self.figure.repaint()
+        if repaint:
+            self.figure.repaint()
 
         # set data
-        self._data.update(x=x, y=y, array=array)
+        self._data.update(x=x, y=y, array=array, obj=obj)
         self._plt_kwargs = kwargs
         LOGGER.debug("Updated plot data")
 
     def replot(self, **kwargs):
         """Replot the current plot"""
+        raise NotImplementedError("Must implement method")
+
+    def rotate(self, times: int):
+        """Rotate the current plot by 90 degrees"""
+        raise NotImplementedError("Must implement method")
 
     def plot_rgb(self, x=None, y=None, array=None, obj=None, **kwargs):
         """Plot object as a waterfall"""
@@ -125,7 +128,7 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
         self.figure.repaint()
 
         # set data
-        self._data.update(x=x, y=y, array=array)
+        self._data.update(x=x, y=y, array=array, obj=obj)
         self._plt_kwargs = kwargs
         LOGGER.debug("Plotted data")
 
@@ -148,7 +151,7 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
         self.figure.repaint()
 
         # set data
-        self._data.update(x=x, y=y, array=array)
+        self._data.update(x=x, y=y, array=array, obj=obj)
         self._plt_kwargs = kwargs
         LOGGER.debug("Plotted data")
 
@@ -171,7 +174,7 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
         self.figure.repaint()
 
         # set data
-        self._data.update(x=x, y=y, array=array)
+        self._data.update(x=x, y=y, array=array, obj=obj)
         self._plt_kwargs = kwargs
         LOGGER.debug("Plotted data")
 
@@ -194,7 +197,7 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
         self.figure.repaint()
 
         # set data
-        self._data.update(x=x, y=y, array=array)
+        self._data.update(x=x, y=y, array=array, obj=obj)
         self._plt_kwargs = kwargs
         LOGGER.debug("Plotted data")
 

@@ -918,6 +918,60 @@ class HeatmapObject(DataObject):
         if not isinstance(self._metadata, dict):
             self._metadata = dict()
 
+    def _get_roi_slice(self, x_max, x_min, y_max, y_min):
+        x_min_idx, x_max_idx = find_nearest_index(self.x, [x_min, x_max])
+        y_min_idx, y_max_idx = find_nearest_index(self.y, [y_min, y_max])
+        array = self._array[y_min_idx : y_max_idx + 1, x_min_idx : x_max_idx + 1]
+        return array, x_min_idx, x_max_idx + 1, y_min_idx, y_max_idx + 1
+
+    def get_x_for_roi(self, x_min: float, x_max: float, y_min: float, y_max: float):
+        """Get array of intensities for particular region of interest along the horizontal axis"""
+        array, x_min_idx, x_max_idx, _, _ = self._get_roi_slice(x_max, x_min, y_max, y_min)
+        y = np.zeros(self.shape[1])
+        y[x_min_idx:x_max_idx] = array.sum(axis=0)
+        return y
+
+    def get_y_for_roi(self, x_min: float, x_max: float, y_min: float, y_max: float):
+        """Get array of intensities for particular region of interest along the horizontal axis"""
+        array, _, _, y_min_idx, y_max_idx = self._get_roi_slice(x_max, x_min, y_max, y_min)
+        y = np.zeros(self.shape[0])
+        y[y_min_idx:y_max_idx] = array.sum(axis=1)
+        return y
+
+    def get_array_for_roi(self, x_min: float, x_max: float, y_min: float, y_max: float):
+        """Get array of intensities for particular region of interest along both dimensions"""
+        array, x_min_idx, x_max_idx, y_min_idx, y_max_idx = self._get_roi_slice(x_max, x_min, y_max, y_min)
+        x = self.x[x_min_idx:x_max_idx]
+        y = self.x[y_min_idx:y_max_idx]
+        return self.downsample(x=x, y=y, array=array)
+
+    def rotate(self, n_rotations: int = 1):
+        """Rotate the array by 90 degrees
+
+        Parameters
+        ----------
+        n_rotations : int
+            number of times the operation should be repeated
+
+        Returns
+        -------
+        self
+        """
+        _n_rotations = self._metadata.get("n_rotations", 0)
+        _n_rotations += n_rotations
+        # reset the x/y-axis
+        self._x, self._y = self.y, self.x
+        # reset the x/y-labels
+        self._x_label, self._y_label = self.y_label, self.x_label
+        # rotate the array
+        self._array = np.rot90(self._array, n_rotations)
+
+        # set metadata
+        self._metadata["n_rotations"] = _n_rotations
+        print(self.shape)
+
+        return self
+
     def downsample(
         self,
         max_x_size: int = 1000,
@@ -947,33 +1001,6 @@ class HeatmapObject(DataObject):
             x = x.mean(axis=0).ravel()
 
         return x, y, array
-
-    def _get_roi_slice(self, x_max, x_min, y_max, y_min):
-        x_min_idx, x_max_idx = find_nearest_index(self.x, [x_min, x_max])
-        y_min_idx, y_max_idx = find_nearest_index(self.y, [y_min, y_max])
-        array = self._array[y_min_idx : y_max_idx + 1, x_min_idx : x_max_idx + 1]
-        return array, x_min_idx, x_max_idx + 1, y_min_idx, y_max_idx + 1
-
-    def get_x_for_roi(self, x_min: float, x_max: float, y_min: float, y_max: float):
-        """Get array of intensities for particular region of interest along the horizontal axis"""
-        array, x_min_idx, x_max_idx, _, _ = self._get_roi_slice(x_max, x_min, y_max, y_min)
-        y = np.zeros(self.shape[1])
-        y[x_min_idx:x_max_idx] = array.sum(axis=0)
-        return y
-
-    def get_y_for_roi(self, x_min: float, x_max: float, y_min: float, y_max: float):
-        """Get array of intensities for particular region of interest along the horizontal axis"""
-        array, _, _, y_min_idx, y_max_idx = self._get_roi_slice(x_max, x_min, y_max, y_min)
-        y = np.zeros(self.shape[0])
-        y[y_min_idx:y_max_idx] = array.sum(axis=1)
-        return y
-
-    def get_array_for_roi(self, x_min: float, x_max: float, y_min: float, y_max: float):
-        """Get array of intensities for particular region of interest along both dimensions"""
-        array, x_min_idx, x_max_idx, y_min_idx, y_max_idx = self._get_roi_slice(x_max, x_min, y_max, y_min)
-        x = self.x[x_min_idx:x_max_idx]
-        y = self.x[y_min_idx:y_max_idx]
-        return self.downsample(x=x, y=y, array=array)
 
     def process(
         self,

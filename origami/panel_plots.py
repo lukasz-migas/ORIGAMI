@@ -44,26 +44,22 @@ from origami.ids import ID_clearPlot_Overlay
 from origami.ids import ID_clearPlot_Watefall
 from origami.ids import ID_plotPanel_lockPlot
 from origami.ids import ID_saveCompareMSImage
-from origami.ids import ID_saveWaterfallImage
 from origami.ids import ID_clearPlot_UniDec_MS
 from origami.ids import ID_clearPlot_Waterfall
 from origami.ids import ID_extraSettings_legend
 from origami.ids import ID_extraSettings_plot1D
 from origami.ids import ID_extraSettings_plot2D
 from origami.ids import ID_extraSettings_plot3D
-from origami.ids import ID_extraSettings_violin
 from origami.ids import ID_plots_customise_plot
 from origami.ids import ID_clearPlot_Calibration
 from origami.ids import ID_extraSettings_colorbar
 from origami.ids import ID_clearPlot_UniDec_mwGrid
 from origami.ids import ID_clearPlot_UniDec_mzGrid
-from origami.ids import ID_extraSettings_waterfall
 from origami.ids import ID_clearPlot_UniDec_barchart
 from origami.ids import ID_extraSettings_general_plot
 from origami.ids import ID_plots_customise_smart_zoom
 from origami.ids import ID_clearPlot_UniDec_pickedPeaks
 from origami.ids import ID_clearPlot_UniDec_mwDistribution
-from origami.ids import ID_docTree_action_open_peak_picker
 from origami.ids import ID_clearPlot_UniDec_chargeDistribution
 from origami.styles import make_menu_item
 from origami.utils.path import clean_filename
@@ -77,15 +73,10 @@ from origami.objects.containers import MobilogramObject
 from origami.objects.containers import ChromatogramObject
 from origami.objects.containers import MassSpectrumObject
 from origami.objects.containers import MassSpectrumHeatmapObject
-from origami.visuals.mpl.plot_misc import PlotMixed
 from origami.gui_elements.popup_view import PopupHeatmapView
 from origami.gui_elements.popup_view import PopupMobilogramView
 from origami.gui_elements.popup_view import PopupChromatogramView
 from origami.gui_elements.popup_view import PopupMassSpectrummView
-from origami.visuals.mpl.plot_spectrum import PlotSpectrum
-from origami.visuals.mpl.plot_heatmap_2d import PlotHeatmap2D
-
-# from origami.visuals.mpl.plot_heatmap_3d import PlotHeatmap3D
 from origami.gui_elements.views.view_base import ViewBase
 from origami.gui_elements.views.view_heatmap import ViewIonHeatmap
 from origami.gui_elements.views.view_heatmap import ViewMassSpectrumHeatmap
@@ -405,11 +396,11 @@ class PanelPlots(wx.Panel):
         plot_notebook.AddPage(self.view_msdt.panel, "DT/MS", False)
         self.plot_msdt = self.view_msdt.figure
 
-        # Setup PLOT WATERFALL
-        self.panel_overlay, self.plot_overlay, __ = self.make_base_plot(
-            plot_notebook, CONFIG._plotSettings["Waterfall"]["gui_size"]  # noqa
-        )
-        plot_notebook.AddPage(self.panel_overlay, "Waterfall", False)
+        # # Setup PLOT WATERFALL
+        # self.panel_overlay, self.plot_overlay, __ = self.make_base_plot(
+        #     plot_notebook, CONFIG._plotSettings["Waterfall"]["gui_size"]  # noqa
+        # )
+        # plot_notebook.AddPage(self.panel_overlay, "Waterfall", False)
 
         # Setup PLOT 3D
         self.view_heatmap_3d = ViewHeatmap3d(
@@ -421,16 +412,12 @@ class PanelPlots(wx.Panel):
         )
         plot_notebook.AddPage(self.view_heatmap_3d.panel, "Heatmap (3D)", False)
         self.plot_heatmap_3d = self.view_heatmap_3d.figure
-        # self.panel_heatmap_3d, self.plot_heatmap_3d, __ = self.make_heatmap_3d_plot(
-        #     plot_notebook, CONFIG._plotSettings["3D"]["gui_size"]  # noqa
-        # )
-        plot_notebook.AddPage(self.view_heatmap_3d.panel, "Heatmap (3D)", False)
 
-        # Other
-        self.panel_annotated, self.plot_annotated, __ = self.make_base_plot(
-            plot_notebook, CONFIG._plotSettings["2D"]["gui_size"]  # noqa
-        )
-        plot_notebook.AddPage(self.panel_annotated, "Annotated", False)
+        # # Other
+        # self.panel_annotated, self.plot_annotated, __ = self.make_base_plot(
+        #     plot_notebook, CONFIG._plotSettings["2D"]["gui_size"]  # noqa
+        # )
+        # plot_notebook.AddPage(self.panel_annotated, "Annotated", False)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(plot_notebook, 1, wx.EXPAND | wx.ALL, 1)
@@ -442,42 +429,42 @@ class PanelPlots(wx.Panel):
 
         return plot_notebook
 
-    @staticmethod
-    def make_base_plot(parent, figsize):
-        """Make basic plot"""
-        plot_panel = wx.Panel(parent)
-        plot_window = PlotMixed(plot_panel, config=CONFIG, figsize=figsize)
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(plot_window, 1, wx.EXPAND)
-        plot_panel.SetSizer(sizer)
-        sizer.Fit(plot_panel)
-
-        return plot_panel, plot_window, sizer
-
-    @staticmethod
-    def make_1d_plot(parent, figsize):
-        """Make 2d heatmap plot"""
-        plot_panel = wx.Panel(parent)
-        plot_window = PlotSpectrum(plot_panel, config=CONFIG, figsize=figsize)
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(plot_window, 1, wx.EXPAND)
-        plot_panel.SetSizer(sizer)
-        sizer.Fit(plot_panel)
-
-        return plot_panel, plot_window, sizer
-
-    @staticmethod
-    def make_heatmap_2d_plot(parent, figsize):
-        """Make 2d heatmap plot"""
-        plot_panel = wx.Panel(parent)
-        plot_window = PlotHeatmap2D(plot_panel, config=CONFIG, figsize=figsize)
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(plot_window, 1, wx.EXPAND)
-        plot_panel.SetSizer(sizer)
-        sizer.Fit(plot_panel)
-
-        return plot_panel, plot_window, sizer
-
+    # @staticmethod
+    # def make_base_plot(parent, figsize):
+    #     """Make basic plot"""
+    #     plot_panel = wx.Panel(parent)
+    #     plot_window = PlotMixed(plot_panel, config=CONFIG, figsize=figsize)
+    #     sizer = wx.BoxSizer(wx.VERTICAL)
+    #     sizer.Add(plot_window, 1, wx.EXPAND)
+    #     plot_panel.SetSizer(sizer)
+    #     sizer.Fit(plot_panel)
+    #
+    #     return plot_panel, plot_window, sizer
+    #
+    # @staticmethod
+    # def make_1d_plot(parent, figsize):
+    #     """Make 2d heatmap plot"""
+    #     plot_panel = wx.Panel(parent)
+    #     plot_window = PlotSpectrum(plot_panel, config=CONFIG, figsize=figsize)
+    #     sizer = wx.BoxSizer(wx.VERTICAL)
+    #     sizer.Add(plot_window, 1, wx.EXPAND)
+    #     plot_panel.SetSizer(sizer)
+    #     sizer.Fit(plot_panel)
+    #
+    #     return plot_panel, plot_window, sizer
+    #
+    # @staticmethod
+    # def make_heatmap_2d_plot(parent, figsize):
+    #     """Make 2d heatmap plot"""
+    #     plot_panel = wx.Panel(parent)
+    #     plot_window = PlotHeatmap2D(plot_panel, config=CONFIG, figsize=figsize)
+    #     sizer = wx.BoxSizer(wx.VERTICAL)
+    #     sizer.Add(plot_window, 1, wx.EXPAND)
+    #     plot_panel.SetSizer(sizer)
+    #     sizer.Fit(plot_panel)
+    #
+    #     return plot_panel, plot_window, sizer
+    #
     # @staticmethod
     # def make_heatmap_3d_plot(parent, figsize):
     #     """Make 3d heatmap plot"""
@@ -535,11 +522,28 @@ class PanelPlots(wx.Panel):
     #     data = {"xvals": xvals[0], "yvals": yvals[0], "xlabels": xlabel, "ylabels": ylabel}
     #     self.document_tree.on_process_MS_plot_only(data)
 
+    def on_process_mass_spectrum(self, _evt):
+        """Process mass spectrum"""
+        view_obj = self.get_view_from_name(self.currentPage)
+        mz_obj = view_obj.get_object()
+        self.document_tree.on_open_process_ms_settings(mz_obj=mz_obj, disable_process=True)
+
+    def on_open_peak_picker(self, _evt):
+        """Open peak picker"""
+
     def on_process_heatmap(self, _evt):
         """Process heatmap"""
         view_obj = self.get_view_from_name(self.currentPage)
         heatmap_obj = view_obj.get_object()
         self.document_tree.on_open_process_heatmap_settings(heatmap_obj=heatmap_obj, disable_process=True)
+
+    def on_rotate_plot(self, evt):
+        """Rotate heatmap plot"""
+        view_obj = self.get_view_from_name(self.currentPage)
+        heatmap_obj = view_obj.get_object()
+
+        view_obj.plot(obj=heatmap_obj.rotate(1), repaint=False)
+        view_obj.reset_zoom()
 
     def on_right_click(self, _evt):
         """Right-click event handler"""
@@ -574,7 +578,6 @@ class PanelPlots(wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_UniDec_barchart)
         self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_UniDec_chargeDistribution)
         self.Bind(wx.EVT_MENU, self.on_lock_plot, id=ID_plotPanel_lockPlot)
-        # self.Bind(wx.EVT_MENU, self.on_rotate_plot, id=ID_plots_rotate90)
         self.Bind(wx.EVT_MENU, self.on_resize_check, id=ID_plotPanel_resize)
         self.Bind(wx.EVT_MENU, self.on_customise_plot, id=ID_plots_customise_plot)
         self.Bind(wx.EVT_MENU, self.save_images, id=ID_saveOtherImage)
@@ -619,21 +622,20 @@ class PanelPlots(wx.Panel):
         #             text="Edit plot parameters...",
         #             bitmap=self.icons.iconsLib["panel_rmsd_16"],
         #         )
-        menu_edit_waterfall = make_menu_item(
-            parent=menu,
-            evt_id=ID_extraSettings_waterfall,
-            text="Edit waterfall parameters...",
-            bitmap=self._icons.waterfall,
-        )
-        menu_edit_violin = make_menu_item(
-            parent=menu, evt_id=ID_extraSettings_violin, text="Edit violin parameters...", bitmap=self._icons.violin
-        )
+        #         menu_edit_waterfall = make_menu_item(
+        #             parent=menu,
+        #             evt_id=ID_extraSettings_waterfall,
+        #             text="Edit waterfall parameters...",
+        #             bitmap=self._icons.waterfall,
+        #         )
+        #         menu_edit_violin = make_menu_item(
+        #             parent=menu, evt_id=ID_extraSettings_violin, text="Edit violin parameters...",
+        #             bitmap=self._icons.violin
+        #         )
         menu_customise_plot = make_menu_item(
             parent=menu, evt_id=ID_plots_customise_plot, text="Customise plot...", bitmap=self._icons.x_label
         )
-        #         menu_action_rotate90 = make_menu_item(
-        #             parent=menu, id=ID_plots_rotate90, text="Rotate 90°", bitmap=self.icons.iconsLib["blank_16"]
-        #         )
+        menu_action_rotate90 = make_menu_item(parent=menu, text="Rotate 90°", bitmap=self._icons.rotate)
         menu_action_process_2d = make_menu_item(
             parent=menu, text="Process heatmap...", bitmap=self._icons.process_heatmap
         )
@@ -642,24 +644,26 @@ class PanelPlots(wx.Panel):
             parent=menu, text="Process mass spectrum...", bitmap=self._icons.process_ms
         )
 
+        menu_action_process_pick = make_menu_item(parent=menu, text="Open peak picker...", bitmap=self._icons.highlight)
+
         menu_action_copy_to_clipboard = make_menu_item(
-            parent=menu, evt_id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self._icons.filelist
+            parent=menu, text="Copy plot to clipboard", bitmap=self._icons.filelist
         )
 
+        menu_action_clear = make_menu_item(parent=menu, text="Clear plot", bitmap=self._icons.clear)
+        menu_action_save_figure = make_menu_item(parent=menu, text="Save figure as...", bitmap=self._icons.png)
+
         # bind events by item
-        # self.Bind(wx.EVT_MENU, self.on_process_spectrum, menu_action_process_MS)
+        self.Bind(wx.EVT_MENU, self.on_process_mass_spectrum, menu_action_process_ms)
         self.Bind(wx.EVT_MENU, self.on_process_heatmap, menu_action_process_2d)
+        self.Bind(wx.EVT_MENU, self.on_rotate_plot, menu_action_rotate90)
+        self.Bind(wx.EVT_MENU, self.on_open_peak_picker, menu_action_process_pick)
+        self.Bind(wx.EVT_MENU, self.on_clear_plot_, menu_action_clear)
+        self.Bind(wx.EVT_MENU, self.on_save_figure, menu_action_save_figure)
 
         if self.currentPage == "Mass spectrum":
             menu.AppendItem(menu_action_process_ms)
-            menu.AppendItem(
-                make_menu_item(
-                    parent=menu,
-                    evt_id=ID_docTree_action_open_peak_picker,
-                    text="Open peak picker...",
-                    bitmap=self._icons.highlight,
-                )
-            )
+            menu.AppendItem(menu_action_process_pick)
             # menu.AppendItem(
             #     make_menu_item(
             #         parent=menu,
@@ -677,22 +681,10 @@ class PanelPlots(wx.Panel):
             menu.AppendSeparator()
             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
             self.resize_plot_check.Check(CONFIG.resize)
-            if self.view.plot_name == "compare_MS":
-                menu.AppendItem(
-                    make_menu_item(
-                        parent=menu, evt_id=ID_saveCompareMSImage, text="Save figure as...", bitmap=self._icons.png
-                    )
-                )
-            else:
-                menu.AppendItem(
-                    make_menu_item(parent=menu, evt_id=ID_saveMSImage, text="Save figure as...", bitmap=self._icons.png)
-                )
-
+            menu.AppendItem(menu_action_save_figure)
             menu.AppendItem(menu_action_copy_to_clipboard)
             menu.AppendSeparator()
-            menu.AppendItem(
-                make_menu_item(parent=menu, evt_id=ID_clearPlot_MS, text="Clear plot", bitmap=self._icons.clear)
-            )
+            menu.AppendItem(menu_action_clear)
         elif self.currentPage == "Chromatogram":
             if self.view.plot_name == "MS":
                 menu.AppendItem(
@@ -715,9 +707,7 @@ class PanelPlots(wx.Panel):
                 )
                 menu.AppendItem(menu_action_copy_to_clipboard)
                 menu.AppendSeparator()
-                menu.AppendItem(
-                    make_menu_item(parent=menu, evt_id=ID_clearPlot_RT, text="Clear plot", bitmap=self._icons.clear)
-                )
+                menu.AppendItem(menu_action_clear)
         elif self.currentPage == "Mobilogram":
             if self.view.plot_name == "MS":
                 menu.AppendItem(
@@ -735,17 +725,13 @@ class PanelPlots(wx.Panel):
                 menu.AppendSeparator()
                 self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
                 self.resize_plot_check.Check(CONFIG.resize)
-                menu.AppendItem(
-                    make_menu_item(parent=menu, evt_id=ID_save1DImage, text="Save figure as...", bitmap=self._icons.png)
-                )
+                menu.AppendItem(menu_action_save_figure)
                 menu.AppendItem(menu_action_copy_to_clipboard)
                 menu.AppendSeparator()
-                menu.AppendItem(
-                    make_menu_item(parent=menu, evt_id=ID_clearPlot_1D, text="Clear plot", bitmap=self._icons.clear)
-                )
+                menu.AppendItem(menu_action_clear)
         elif self.currentPage == "Heatmap":
             menu.AppendItem(menu_action_process_2d)
-            #             menu.AppendItem(menu_action_rotate90)
+            menu.AppendItem(menu_action_rotate90)
             menu.AppendSeparator()
             menu.AppendItem(menu_edit_general)
             menu.AppendItem(menu_edit_plot_2d)
@@ -757,17 +743,13 @@ class PanelPlots(wx.Panel):
             menu.AppendSeparator()
             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
             self.resize_plot_check.Check(CONFIG.resize)
-            menu.AppendItem(
-                make_menu_item(parent=menu, evt_id=ID_save2DImage, text="Save figure as...", bitmap=self._icons.png)
-            )
+            menu.AppendItem(menu_action_save_figure)
             menu.AppendItem(menu_action_copy_to_clipboard)
             menu.AppendSeparator()
-            menu.AppendItem(
-                make_menu_item(parent=menu, evt_id=ID_clearPlot_2D, text="Clear plot", bitmap=self._icons.clear)
-            )
+            menu.AppendItem(menu_action_clear)
         elif self.currentPage == "DT/MS":
             menu.AppendItem(menu_action_process_2d)
-            #             menu.AppendItem(menu_action_rotate90)
+            menu.AppendItem(menu_action_rotate90)
             menu.AppendSeparator()
             menu.AppendItem(
                 make_menu_item(
@@ -787,14 +769,10 @@ class PanelPlots(wx.Panel):
             menu.AppendSeparator()
             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
             self.resize_plot_check.Check(CONFIG.resize)
-            menu.AppendItem(
-                make_menu_item(parent=menu, evt_id=ID_saveMZDTImage, text="Save figure as...", bitmap=self._icons.png)
-            )
+            menu.AppendItem(menu_action_save_figure)
             menu.AppendItem(menu_action_copy_to_clipboard)
             menu.AppendSeparator()
-            menu.AppendItem(
-                make_menu_item(parent=menu, evt_id=ID_clearPlot_MZDT, text="Clear plot", bitmap=self._icons.clear)
-            )
+            menu.AppendItem(menu_action_clear)
         elif self.currentPage == "Heatmap (3D)":
             menu.AppendItem(menu_edit_plot_3d)
             menu.AppendSeparator()
@@ -805,58 +783,7 @@ class PanelPlots(wx.Panel):
             )
             menu.AppendItem(menu_action_copy_to_clipboard)
             menu.AppendSeparator()
-            menu.AppendItem(
-                make_menu_item(parent=menu, evt_id=ID_clearPlot_3D, text="Clear plot", bitmap=self._icons.clear)
-            )
-        elif self.currentPage == "Waterfall":
-            menu.AppendItem(menu_edit_general)
-            menu.AppendItem(menu_edit_plot_2d)
-            menu.AppendItem(menu_edit_legend)
-            menu.AppendItem(menu_edit_waterfall)
-            menu.AppendItem(menu_edit_violin)
-            self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, "Lock plot", help="")
-            self.lock_plot_check.Check(self.plot_overlay.lock_plot_from_updating)
-            menu.AppendItem(menu_customise_plot)
-            menu.AppendSeparator()
-            self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
-            self.resize_plot_check.Check(CONFIG.resize)
-            menu.AppendItem(
-                make_menu_item(
-                    parent=menu, evt_id=ID_saveWaterfallImage, text="Save figure as...", bitmap=self._icons.png
-                )
-            )
-            menu.AppendItem(menu_action_copy_to_clipboard)
-            menu.AppendSeparator()
-            menu.AppendItem(
-                make_menu_item(parent=menu, evt_id=ID_clearPlot_Waterfall, text="Clear plot", bitmap=self._icons.clear)
-            )
-        elif self.currentPage == "Annotated":
-            menu.AppendItem(menu_edit_general)
-            menu.AppendItem(menu_edit_plot_1d)
-            menu.AppendItem(menu_edit_plot_2d)
-            menu.AppendItem(menu_edit_colorbar)
-            menu.AppendItem(menu_edit_legend)
-            menu.AppendItem(menu_edit_waterfall)
-            menu.AppendItem(menu_edit_violin)
-            menu.AppendSeparator()
-            menu.AppendItem(
-                make_menu_item(
-                    parent=menu, evt_id=ID_plots_customise_plot, text="Customise plot...", bitmap=self._icons.x_label
-                )
-            )
-            menu.AppendSeparator()
-            self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
-            self.resize_plot_check.Check(CONFIG.resize)
-            menu.AppendItem(
-                make_menu_item(parent=menu, evt_id=ID_saveOtherImage, text="Save figure as...", bitmap=self._icons.png)
-            )
-            menu.AppendItem(menu_action_copy_to_clipboard)
-            menu.AppendSeparator()
-            menu.AppendItem(
-                make_menu_item(parent=menu, evt_id=ID_clearPlot_other, text="Clear plot", bitmap=self._icons.clear)
-            )
-
-        self.Bind(wx.EVT_MENU, self.on_copy_to_clipboard, menu_action_copy_to_clipboard)
+            menu.AppendItem(menu_action_clear)
 
         self.PopupMenu(menu)
         menu.Destroy()
@@ -1001,18 +928,8 @@ class PanelPlots(wx.Panel):
             "2d": self.plot_heatmap,
             "heatmap": self.plot_heatmap,
             "dt/ms": self.plot_msdt,
-            "overlay": self.plot_annotated,
-            "rmsf": self.plot_annotated,
-            "rmsd": self.plot_annotated,
-            "grid": self.plot_annotated,
-            "compare": self.plot_annotated,
-            "comparison": self.plot_annotated,
-            "waterfall": self.plot_overlay,
-            "other": self.plot_annotated,
             "3d": self.plot_heatmap_3d,
             "heatmap (3d)": self.plot_heatmap_3d,
-            "matrix": self.plot_annotated,
-            "annotated": self.plot_annotated,
         }
         plot_name = plot_name.lower()
         plot_obj = plot_dict.get(plot_name, None)
@@ -1209,6 +1126,16 @@ class PanelPlots(wx.Panel):
         color_list = sns.color_palette(CONFIG.currentCmap, n_colors)
         return color_list
 
+    def on_clear_plot_(self, _evt):
+        """Clear current plot"""
+        view_obj = self.get_view_from_name(self.currentPage)
+        view_obj.clear()
+
+    def on_save_figure(self, _evt):
+        """Save current plot"""
+        view_obj = self.get_view_from_name(self.currentPage)
+        view_obj.save_figure()
+
     def on_clear_plot(self, evt, plot=None, **kwargs):
         """Clear selected plot
 
@@ -1230,7 +1157,10 @@ class PanelPlots(wx.Panel):
 
         plot_obj = None
         if event_id is None:
-            plot_obj = self.get_plot_from_name(plot)
+            if plot is None:
+                plot_obj = self.get_view_from_name(self.currentPage)
+            else:
+                plot_obj = self.get_plot_from_name(plot)
         elif event_id is not None:
             plot_obj = self.get_plot_from_id(event_id)
         elif "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
@@ -1302,12 +1232,6 @@ class PanelPlots(wx.Panel):
         if set_page:
             self.set_page("DT/MS")
 
-    # def on_rotate_plot(self, evt):
-    #     plot = self.get_plot_from_name(self.currentPage)
-    #
-    #     plot.on_rotate_90()
-    #     plot.repaint()
-    #
     # def on_change_rmsf_zoom(self, xmin, xmax):
     #     """Receives a message about change in RMSF plot"""
     #     try:
