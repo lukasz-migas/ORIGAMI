@@ -105,14 +105,10 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
         """Replot the current plot"""
         raise NotImplementedError("Must implement method")
 
-    def rotate(self, times: int):
-        """Rotate the current plot by 90 degrees"""
-        raise NotImplementedError("Must implement method")
-
-    def plot_rgb(self, x=None, y=None, array=None, obj=None, **kwargs):
+    def plot_rgb(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
         """Plot object as a waterfall"""
 
-    def plot_contour(self, x=None, y=None, array=None, obj=None, **kwargs):
+    def plot_contour(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
         """Plot object as a waterfall"""
         # try to update plot first, as it can be quicker
         self.set_document(obj, **kwargs)
@@ -125,14 +121,15 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
         self.figure.plot_2d_contour(
             x, y, array, x_label=self.x_label, y_label=self.y_label, callbacks=self._callbacks, obj=obj, **kwargs
         )
-        self.figure.repaint()
+        if repaint:
+            self.figure.repaint()
 
         # set data
         self._data.update(x=x, y=y, array=array, obj=obj)
         self._plt_kwargs = kwargs
         LOGGER.debug("Plotted data")
 
-    def plot_violin(self, x=None, y=None, array=None, obj=None, **kwargs):
+    def plot_violin(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
         """Plot object as a violin plot"""
         mpl_keys = copy(self.MPL_KEYS)
         mpl_keys.append("violin")
@@ -148,14 +145,15 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
         self.figure.plot_violin(
             x, y, array, x_label=self.x_label, y_label=self.y_label, callbacks=self._callbacks, obj=obj, **kwargs
         )
-        self.figure.repaint()
+        if repaint:
+            self.figure.repaint()
 
         # set data
         self._data.update(x=x, y=y, array=array, obj=obj)
         self._plt_kwargs = kwargs
         LOGGER.debug("Plotted data")
 
-    def plot_waterfall(self, x=None, y=None, array=None, obj=None, **kwargs):
+    def plot_waterfall(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
         """Plot object as a waterfall"""
         # try to update plot first, as it can be quicker
         mpl_keys = copy(self.MPL_KEYS)
@@ -171,14 +169,15 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
         self.figure.plot_waterfall(
             x, y, array, x_label=self.y_label, y_label="Offset intensity", callbacks=self._callbacks, obj=obj, **kwargs
         )
-        self.figure.repaint()
+        if repaint:
+            self.figure.repaint()
 
         # set data
         self._data.update(x=x, y=y, array=array, obj=obj)
         self._plt_kwargs = kwargs
         LOGGER.debug("Plotted data")
 
-    def plot_joint(self, x=None, y=None, array=None, obj=None, **kwargs):
+    def plot_joint(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
         """Plot object as a joint-plot with top/side panels"""
         # try to update plot first, as it can be quicker
         mpl_keys = copy(self.MPL_KEYS)
@@ -194,7 +193,8 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
         self.figure.plot_joint(
             x, y, array, x_label=self.x_label, y_label=self.y_label, callbacks=self._callbacks, obj=obj, **kwargs
         )
-        self.figure.repaint()
+        if repaint:
+            self.figure.repaint()
 
         # set data
         self._data.update(x=x, y=y, array=array, obj=obj)

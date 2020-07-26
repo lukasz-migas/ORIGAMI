@@ -20,6 +20,3 @@ class TestNotification(WidgetTestCase):
         dlg = Notification("ORIGAMI", "Message", flags=flags, timeout=0.1)
         self.wait_for(300)
         dlg.Close()
-        # wx.CallLater(250, dlg.Close, None)
-        # dlg.Destroy()
-        # self.yield_()

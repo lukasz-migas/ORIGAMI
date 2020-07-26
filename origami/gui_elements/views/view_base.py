@@ -274,13 +274,15 @@ class ViewBase(ABC):
         self._z_label = value
         self._update()
 
-    def get_object(self):
+    def get_object(self, get_cache: bool = True):
         """Get Data object that is shown in the View"""
         if self.document_name is None or self.dataset_name is None:
             return None
 
         # check whether object had been cached
-        data_obj = self._data.get("obj", None)
+        data_obj = None
+        if get_cache:
+            data_obj = self._data.get("obj", None)
         if data_obj is None:
             document = ENV.on_get_document(self.document_name)
             data_obj = document[self.dataset_name, True]

@@ -156,8 +156,8 @@ class PlotHeatmap2D(PlotBase):
             self.update_line(x, xy, PlotIds.PLOT_JOINT_X, self.plot_joint_x)
             self.update_line(yy, y, PlotIds.PLOT_JOINT_Y, self.plot_joint_y)
             # add limits of the other plots
-            _, _, extent_x = self._compute_xy_limits(x, xy, 0, 1, False)
-            _, _, extent_y = self._compute_xy_limits(yy, y, 0, 1, False)
+            _, _, extent_x = self._compute_xy_limits(x, xy, None, 1, False)
+            _, _, extent_y = self._compute_xy_limits(yy, y, None, 1, False)
             axes = [self.plot_base, self.plot_joint_x, self.plot_joint_y]
             extent = [extent, extent_x, extent_y]
 

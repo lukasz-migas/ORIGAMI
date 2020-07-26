@@ -17,33 +17,38 @@ class Call:
 
         Parameters
         ----------
-        fcn : Callable
-        args
-        kwargs
         """
-        # retrieve keyword parameters
-        self.func_call_error = kwargs.pop("func_error", None)
-        self.func_call_pre = kwargs.pop("func_pre", None)
-
-        # results call handler
-        self.func_call_result = kwargs.pop("func_result", None)
-        self.func_call_result_args = kwargs.pop("func_result_args", ())
-        self.func_call_result_kwargs = kwargs.pop("func_result_kwargs", dict())
-
-        self.func_call_post = kwargs.pop("func_post", None)
-        self.func_post_args = kwargs.pop("func_post_args", ())
-        self.func_post_kwargs = kwargs.pop("func_post_kwargs", dict())
-
         if not callable(fcn):
             raise ValueError("You must provide a callable function as one of the arguments")
 
-        # fcn attributes
+        # function to call in case of an error
+        self.func_error = kwargs.pop("func_error", None)
+
+        # function to call before the main function
+        self.func_pre = kwargs.pop("func_pre", None)
+
+        # main function
         self.func = fcn
         self.args = args
         self.kwargs = kwargs
 
+        # function to call with the results
+        self.func_result = kwargs.pop("func_result", None)
+        self.func_result_args = kwargs.pop("func_result_args", ())
+        self.func_result_kwargs = kwargs.pop("func_result_kwargs", dict())
+
+        # function to call after the main function
+        self.func_post = kwargs.pop("func_post", None)
+        self.func_post_args = kwargs.pop("func_post_args", ())
+        self.func_post_kwargs = kwargs.pop("func_post_kwargs", dict())
+
     def __call__(self):
         return self.func(*self.args, **self.kwargs)
+
+    def _wrap_results(self, results):
+        if not isinstance(results, (list, tuple)):
+            return (results,)
+        return results
 
     # noinspection PyBroadException
     def run(self):
@@ -51,7 +56,7 @@ class Call:
         # Retrieve args/kwargs here; and fire processing using them
         results = None
         try:
-            self.on_pre(None)
+            self.on_pre()
             results = self.func(*self.args, **self.kwargs)
             results = self._wrap_results(results)
         except Exception:
@@ -68,35 +73,30 @@ class Call:
 
     def on_error(self, results):
         """If error does occur, try to return results to error handler"""
-        if self.func_call_error:
-            wx.CallAfter(self.func_call_error, *results)
+        if self.func_error:
+            wx.CallAfter(self.func_error, *results)
 
     def on_result(self, results):
         """Return results back to the result handler"""
-        if self.func_call_result:
+        if self.func_result:
             if results is None:
                 results = ()
-            if self.func_call_result_args is None:
-                self.func_call_result_args = ()
-            if self.func_call_result_kwargs is None:
-                self.func_call_result_kwargs = {}
-            wx.CallAfter(self.func_call_result, *results, *self.func_call_result_args, **self.func_call_result_kwargs)
+            if self.func_result_args is None:
+                self.func_result_args = ()
+            if self.func_result_kwargs is None:
+                self.func_result_kwargs = {}
+            wx.CallAfter(self.func_result, *results, *self.func_result_args, **self.func_result_kwargs)
 
-    def on_pre(self, results):
+    def on_pre(self):
         """If pre-call function was specified, notify it of having started the task"""
-        if self.func_call_pre:
-            wx.CallAfter(self.func_call_pre, *results)
+        if self.func_pre:
+            wx.CallAfter(self.func_pre)
 
     def on_post(self):
         """If post-call function was specified, notify it of having finished the task"""
-        if self.func_call_post:
+        if self.func_post:
             if self.func_post_args is None:
                 self.func_post_args = ()
             if self.func_post_kwargs is None:
                 self.func_post_kwargs = {}
-            wx.CallAfter(self.func_call_post, *self.func_post_args, **self.func_post_kwargs)
-
-    def _wrap_results(self, results):
-        if not isinstance(results, (list, tuple)):
-            return (results,)
-        return results
+            wx.CallAfter(self.func_post, *self.func_post_args, **self.func_post_kwargs)

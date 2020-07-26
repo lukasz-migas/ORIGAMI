@@ -32,11 +32,9 @@ from origami.ids import ID_save3DImageDoc
 from origami.ids import ID_saveMSImageDoc
 from origami.ids import ID_saveOtherImage
 from origami.ids import ID_saveRTImageDoc
-from origami.ids import ID_smooth1DdataRT
 from origami.ids import ID_clearPlot_1D_MS
 from origami.ids import ID_clearPlot_other
 from origami.ids import ID_clearPlot_RT_MS
-from origami.ids import ID_smooth1Ddata1DT
 from origami.ids import ID_clearPlot_Matrix
 from origami.ids import ID_plotPanel_resize
 from origami.ids import ID_saveMZDTImageDoc
@@ -76,7 +74,7 @@ from origami.objects.containers import MassSpectrumHeatmapObject
 from origami.gui_elements.popup_view import PopupHeatmapView
 from origami.gui_elements.popup_view import PopupMobilogramView
 from origami.gui_elements.popup_view import PopupChromatogramView
-from origami.gui_elements.popup_view import PopupMassSpectrummView
+from origami.gui_elements.popup_view import PopupMassSpectrumView
 from origami.gui_elements.views.view_base import ViewBase
 from origami.gui_elements.views.view_heatmap import ViewIonHeatmap
 from origami.gui_elements.views.view_heatmap import ViewMassSpectrumHeatmap
@@ -167,11 +165,11 @@ class PanelPlots(wx.Panel):
         self.on_page_changed(None)
 
     @property
-    def popup_ms(self) -> PopupMassSpectrummView:
+    def popup_ms(self) -> PopupMassSpectrumView:
         """Return instance of the popup viewer"""
 
         if not self._popup_ms:
-            self._popup_ms = PopupMassSpectrummView(self.view)
+            self._popup_ms = PopupMassSpectrumView(self.view)
             self._popup_ms.position_on_mouse(-100, -100)
         self._popup_ms.Show()
         return self._popup_ms
@@ -254,9 +252,7 @@ class PanelPlots(wx.Panel):
             "DT": 2,
             "Heatmap": 3,
             "DT/MS": 4,
-            "Waterfall": 5,
-            "Heatmap (3D)": 6,
-            "Annotated": 7,
+            "Heatmap (3D)": 5,
         }.get(tab_name, 0)
 
     def set_page(self, page_id: Union[int, str]):
@@ -429,58 +425,11 @@ class PanelPlots(wx.Panel):
 
         return plot_notebook
 
-    # @staticmethod
-    # def make_base_plot(parent, figsize):
-    #     """Make basic plot"""
-    #     plot_panel = wx.Panel(parent)
-    #     plot_window = PlotMixed(plot_panel, config=CONFIG, figsize=figsize)
-    #     sizer = wx.BoxSizer(wx.VERTICAL)
-    #     sizer.Add(plot_window, 1, wx.EXPAND)
-    #     plot_panel.SetSizer(sizer)
-    #     sizer.Fit(plot_panel)
-    #
-    #     return plot_panel, plot_window, sizer
-    #
-    # @staticmethod
-    # def make_1d_plot(parent, figsize):
-    #     """Make 2d heatmap plot"""
-    #     plot_panel = wx.Panel(parent)
-    #     plot_window = PlotSpectrum(plot_panel, config=CONFIG, figsize=figsize)
-    #     sizer = wx.BoxSizer(wx.VERTICAL)
-    #     sizer.Add(plot_window, 1, wx.EXPAND)
-    #     plot_panel.SetSizer(sizer)
-    #     sizer.Fit(plot_panel)
-    #
-    #     return plot_panel, plot_window, sizer
-    #
-    # @staticmethod
-    # def make_heatmap_2d_plot(parent, figsize):
-    #     """Make 2d heatmap plot"""
-    #     plot_panel = wx.Panel(parent)
-    #     plot_window = PlotHeatmap2D(plot_panel, config=CONFIG, figsize=figsize)
-    #     sizer = wx.BoxSizer(wx.VERTICAL)
-    #     sizer.Add(plot_window, 1, wx.EXPAND)
-    #     plot_panel.SetSizer(sizer)
-    #     sizer.Fit(plot_panel)
-    #
-    #     return plot_panel, plot_window, sizer
-    #
-    # @staticmethod
-    # def make_heatmap_3d_plot(parent, figsize):
-    #     """Make 3d heatmap plot"""
-    #     plot_panel = wx.Panel(parent)
-    #     plot_window = PlotHeatmap3D(plot_panel, config=CONFIG, figsize=figsize)
-    #     sizer = wx.BoxSizer(wx.VERTICAL)
-    #     sizer.Add(plot_window, 1, wx.EXPAND)
-    #     plot_panel.SetSizer(sizer)
-    #     sizer.Fit(plot_panel)
-    #
-    #     return plot_panel, plot_window, sizer
-
     def on_copy_to_clipboard(self, _evt):
         """Copy plot to clipboard"""
         plot_obj = self.get_plot_from_name(self.currentPage)
         plot_obj.copy_to_clipboard()
+        pub.sendMessage("notify.message.success", message="Copied figure to clipboard!")
 
     def on_get_plot_data(self):
         """Get plot data"""
@@ -489,28 +438,22 @@ class PanelPlots(wx.Panel):
 
         return plot_obj, xvals, yvals, labels, xlabel, ylabel
 
-    # def on_smooth_spectrum(self, evt):
-    #     """Smooth plot signal"""
-    #     try:
-    #         plot_obj, xvals, yvals, labels, xlabel, ylabel = self.on_get_plot_data()
-    #     except AttributeError:
-    #         raise MessageError("Plot is empty", "There are no signals in the plot to smooth")
-    #     #         plot_obj = self.get_plot_from_name(self.currentPage)
-    #     #         try:
-    #     #             xs, ys, labels, xlabel, ylabel = plot_obj.plot_1D_get_data()
-    #     #         except AttributeError:
-    #     #             raise MessageError("Plot is empty", "There are no signals in the plot to smooth")
-    #     #         n_signals = len(xs)
-    #     #         if n_signals > 1:
-    #     #             raise MessageError("Not supported yet",
-    #     #                                "At the moment signal smoothing is only supported for plot with one
-    #     #                                signal." +
-    #     #                                f" This one appears to have {n_signals}")
-    #     yvals = self.data_processing.on_smooth_1D_signal(yvals)
-    #
-    #     plt_kwargs = self._buildPlotParameters(plotType="1D")
-    #     plot_obj.plot_1D_update_data(xvals[0], yvals[0], xlabel, ylabel, label=labels[0], **plt_kwargs)
-    #     plot_obj.repaint()
+    def on_smooth_spectrum(self, evt):
+        """Smooth plot signal"""
+        from origami.gui_elements.misc_dialogs import DialogSimpleAsk
+
+        view_obj = self.get_view_from_name(self.currentPage)
+        obj = view_obj.get_object(get_cache=False)
+
+        sigma = DialogSimpleAsk(
+            "Smoothing spectrum using Gaussian Filter. Sigma value:", value=1, value_type="floatPos"
+        )
+        if sigma is None:
+            pub.sendMessage("notify.message.warning", message="Smoothing action was cancelled")
+            return
+        sigma = float(sigma)
+        obj = obj.smooth(smooth_method="Gaussian", sigma=sigma)
+        view_obj.plot(obj=obj)
 
     # def on_process_spectrum(self, evt):
     #     plot_obj = self.get_plot_from_name(self.currentPage)
@@ -528,9 +471,6 @@ class PanelPlots(wx.Panel):
         mz_obj = view_obj.get_object()
         self.document_tree.on_open_process_ms_settings(mz_obj=mz_obj, disable_process=True)
 
-    def on_open_peak_picker(self, _evt):
-        """Open peak picker"""
-
     def on_process_heatmap(self, _evt):
         """Process heatmap"""
         view_obj = self.get_view_from_name(self.currentPage)
@@ -542,15 +482,29 @@ class PanelPlots(wx.Panel):
         view_obj = self.get_view_from_name(self.currentPage)
         heatmap_obj = view_obj.get_object()
 
-        view_obj.plot(obj=heatmap_obj.rotate(1), repaint=False)
+        view_obj.plot(obj=heatmap_obj.transpose(), repaint=False)
         view_obj.reset_zoom()
+
+    def on_open_peak_picker(self, evt):
+        view_obj = self.get_view_from_name(self.currentPage)
+        mz_obj = view_obj.get_object()
+        document_title, dataset_name = mz_obj.owner
+
+        if document_title is None or dataset_name is None:
+            pub.sendMessage(
+                "notify.message.warning",
+                message="Could not find the document/dataset information in the plot metadata."
+                "\nTry right-clicking on a mass spectrum in the document tree and select `Open peak picker`",
+            )
+            return
+
+        self.document_tree.on_open_peak_picker(None, document_title=document_title, dataset_name=dataset_name)
 
     def on_right_click(self, _evt):
         """Right-click event handler"""
         self.currentPage = self.plot_notebook.GetPageText(self.plot_notebook.GetSelection())
 
         # Make bindings
-        # self.Bind(wx.EVT_MENU, self.on_smooth_spectrum, id=ID_smooth1DdataRT)
         # self.Bind(wx.EVT_MENU, self.on_smooth_spectrum, id=ID_smooth1Ddata1DT)
         #         self.Bind(wx.EVT_MENU, self.data_handling.on_highlight_selected_ions, id=ID_highlightRectAllIons)
         # self.Bind(wx.EVT_MENU, self.data_processing.on_pick_peaks, id=ID_pickMSpeaksDocument)
@@ -583,7 +537,6 @@ class PanelPlots(wx.Panel):
         self.Bind(wx.EVT_MENU, self.save_images, id=ID_saveOtherImage)
         self.Bind(wx.EVT_MENU, self.save_images, id=ID_saveCompareMSImage)
         self.Bind(wx.EVT_MENU, self.on_customise_smart_zoom, id=ID_plots_customise_smart_zoom)
-        # self.Bind(wx.EVT_MENU, self.on_open_peak_picker, id=ID_docTree_action_open_peak_picker)
 
         # make main menu
         menu = wx.Menu()
@@ -653,6 +606,10 @@ class PanelPlots(wx.Panel):
         menu_action_clear = make_menu_item(parent=menu, text="Clear plot", bitmap=self._icons.clear)
         menu_action_save_figure = make_menu_item(parent=menu, text="Save figure as...", bitmap=self._icons.png)
 
+        menu_action_smooth_signal = make_menu_item(
+            parent=menu, text="Smooth signal (Gaussian)", bitmap=self._icons.clean
+        )
+
         # bind events by item
         self.Bind(wx.EVT_MENU, self.on_process_mass_spectrum, menu_action_process_ms)
         self.Bind(wx.EVT_MENU, self.on_process_heatmap, menu_action_process_2d)
@@ -660,6 +617,8 @@ class PanelPlots(wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_open_peak_picker, menu_action_process_pick)
         self.Bind(wx.EVT_MENU, self.on_clear_plot_, menu_action_clear)
         self.Bind(wx.EVT_MENU, self.on_save_figure, menu_action_save_figure)
+        self.Bind(wx.EVT_MENU, self.on_copy_to_clipboard, menu_action_copy_to_clipboard)
+        self.Bind(wx.EVT_MENU, self.on_smooth_spectrum, menu_action_smooth_signal)
 
         if self.currentPage == "Mass spectrum":
             menu.AppendItem(menu_action_process_ms)
@@ -691,7 +650,7 @@ class PanelPlots(wx.Panel):
                     make_menu_item(parent=menu, evt_id=ID_clearPlot_RT_MS, text="Clear plot", bitmap=self._icons.clear)
                 )
             else:
-                menu.Append(ID_smooth1DdataRT, "Smooth chromatogram")
+                menu.AppendItem(menu_action_smooth_signal)
                 menu.AppendSeparator()
                 menu.AppendItem(menu_edit_general)
                 menu.AppendItem(menu_edit_plot_1d)
@@ -714,7 +673,7 @@ class PanelPlots(wx.Panel):
                     make_menu_item(parent=menu, evt_id=ID_clearPlot_1D_MS, text="Clear plot", bitmap=self._icons.clear)
                 )
             else:
-                menu.Append(ID_smooth1Ddata1DT, "Smooth mobilogram")
+                menu.AppendItem(menu_action_smooth_signal)
                 menu.AppendSeparator()
                 menu.AppendItem(menu_edit_general)
                 menu.AppendItem(menu_edit_plot_1d)
@@ -886,23 +845,6 @@ class PanelPlots(wx.Panel):
             raise ValueError("Could not save figure")
 
         plot_view.save_figure(image_name)
-
-    # def on_open_peak_picker(self, evt):
-    #     plot_obj = self.get_plot_from_name("MS")
-    #
-    #     document_name = plot_obj.document_name
-    #     dataset_name = plot_obj.dataset_name
-    #     if document_name is None or dataset_name is None:
-    #         raise MessageError(
-    #             "No spectrum information",
-    #             "Document title and/or spectrum title were not recorded for this plot."
-    #             + "\n\nYou can try peak picking by right-clicking in the document tree on the desired mass spectrum"
-    #             + " and clicking on `Open peak picker`",
-    #         )
-    #
-    #     self.view.panelDocuments.documents.on_open_peak_picker(
-    #         None, document_name=document_name, dataset_name=dataset_name
-    #     )
 
     def get_plot_from_name(self, plot_name):
         """Retrieve plot object from name
@@ -1130,6 +1072,7 @@ class PanelPlots(wx.Panel):
         """Clear current plot"""
         view_obj = self.get_view_from_name(self.currentPage)
         view_obj.clear()
+        pub.sendMessage("notify.message.success", message="Cleared figure")
 
     def on_save_figure(self, _evt):
         """Save current plot"""

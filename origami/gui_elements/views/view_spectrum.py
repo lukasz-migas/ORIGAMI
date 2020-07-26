@@ -63,7 +63,7 @@ class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin):
             kwargs["allow_extraction"] = self._allow_extraction
         return kwargs
 
-    def plot(self, x=None, y=None, obj=None, **kwargs):
+    def plot(self, x=None, y=None, obj=None, repaint: bool = True, **kwargs):
         """Simple line plot"""
         # try to update plot first, as it can be quicker
         self.set_document(obj, **kwargs)
@@ -73,19 +73,20 @@ class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin):
         kwargs = self.check_kwargs(**kwargs)
 
         try:
-            self.update(x, y, obj, **kwargs)
+            self.update(x, y, obj, repaint=repaint, **kwargs)
         except AttributeError:
             x, y = self.check_input(x, y, obj)
             self.figure.clear()
             self.figure.plot_1d(x, y, x_label=self.x_label, y_label=self.y_label, callbacks=self._callbacks, **kwargs)
-            self.figure.repaint()
+            if repaint:
+                self.figure.repaint()
 
             # set data
             self._data.update(x=x, y=y, obj=obj)
             self._plt_kwargs = kwargs
             LOGGER.debug("Plotted data")
 
-    def update(self, x=None, y=None, obj=None, **kwargs):
+    def update(self, x=None, y=None, obj=None, repaint: bool = True, **kwargs):
         """Update plot without having to clear it"""
         self.set_document(obj, **kwargs)
         self.set_labels(obj, **kwargs)
@@ -93,7 +94,8 @@ class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin):
         # update plot
         x, y = self.check_input(x, y, obj)
         self.figure.plot_1d_update_data(x, y, self.x_label, self.y_label, **kwargs)
-        self.figure.repaint()
+        if repaint:
+            self.figure.repaint()
 
         # set data
         self._data.update(x=x, y=y, obj=obj)

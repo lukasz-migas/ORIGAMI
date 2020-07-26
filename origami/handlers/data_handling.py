@@ -342,12 +342,25 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         self.on_update_document(document, "document")
         logger.info(f"It took {time.time()-t_start:.4f} seconds to load {document.title}")
 
+    def _parse_mass_spectrum_range_waters(self, document, x_label, x_min, x_max, y_label, y_min, y_max):
+        """Parse values obtained from mass spectrum plot"""
+
+        # check whether data had been rotated
+        if y_label in ["m/z (Da)"]:
+            x_label, x_min, x_max = y_label, y_min, y_max
+
+        return x_min, x_max
+
     @staticmethod
-    def _parse_mobilogram_range_waters(document, x_label, x_min, x_max):
+    def _parse_mobilogram_range_waters(document, x_label, x_min, x_max, y_label, y_min, y_max):
         """Parse values obtained from mobilogram plot"""
         parameters = document.parameters
         if not parameters:
             raise MessageError("Error", "Could not retrieve required data parameters")
+
+        # check whether data had been rotated
+        if y_label in ["Drift time (bins)", "bins", "Drift time (ms)", "Arrival time (ms)", "ms"]:
+            x_label, x_min, x_max = y_label, y_min, y_max
 
         # extracting mass spectrum from mobilogram
         if x_label in ["Drift time (bins)", "bins"]:
@@ -362,11 +375,15 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         return x_min, x_max
 
     @staticmethod
-    def _parse_chromatogram_range_waters(document, x_label, x_min, x_max, output="bins"):
+    def _parse_chromatogram_range_waters(document, x_label, x_min, x_max, y_label, y_min, y_max, output="bins"):
         """Parse values obtained from chromatogram plot"""
         parameters = document.parameters
         if not parameters:
             raise MessageError("Error", "Could not retrieve required data parameters")
+
+        # check whether data had been rotated
+        if y_label in ["Scans", "Time (min)", "Retention time (min)", "min"]:
+            x_label, x_min, x_max = y_label, y_min, y_max
 
         if output == "bins":
             if x_label in ["Scans"]:
@@ -400,6 +417,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         document = ENV.on_get_document()
 
         can_extract, is_multifile, file_fmt = document.can_extract()
+
         if not can_extract:
             raise MessageError("Error", "This document type does not allow data extraction")
         if is_multifile:
@@ -411,11 +429,21 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         self.panel_plot.view_heatmap.add_patches([x_min], [y_min], [x_max - x_min], [y_max - y_min], pickable=False)
 
         # convert limits to the correct format
-        x_min, x_max = self._parse_chromatogram_range_waters(document, x_label, x_min, x_max, "time")
-        y_min, y_max = self._parse_mobilogram_range_waters(document, y_label, y_min, y_max)
+        x_min_rt, x_max_rt = self._parse_chromatogram_range_waters(
+            document, x_label, x_min, x_max, y_label, y_min, y_max, "time"
+        )
+        y_min_dt, y_max_dt = self._parse_mobilogram_range_waters(document, y_label, y_min, y_max, x_label, x_min, x_max)
+
+        # ensure extraction range is broad enough
+        if x_min_rt >= x_max_rt:
+            raise MessageError("Error", "The extraction range in the chromatogram dimension was too narrow!")
+        if y_min_dt >= y_max_dt:
+            raise MessageError("Error", "The extraction range in the mobilogram dimension was too narrow!")
 
         # get data
-        obj_name, mz_obj, document = self.waters_extract_ms_from_heatmap(x_min, x_max, y_min, y_max, document.title)
+        obj_name, mz_obj, document = self.waters_extract_ms_from_heatmap(
+            x_min_rt, x_max_rt, y_min_dt, y_max_dt, document.title
+        )
 
         # set data
         self.panel_plot.view_ms.plot(obj=mz_obj)
@@ -432,6 +460,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             raise ValueError("Cannot handle multiple labels")
 
         # unpack values
+        x_label = x_labels[0]
         y_label = y_labels[0]
         x_min, x_max, y_min, y_max = rect
         document = ENV.on_get_document()
@@ -448,10 +477,21 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         self.panel_plot.view_msdt.add_patches([x_min], [y_min], [x_max - x_min], [y_max - y_min], pickable=False)
 
         # convert limits to the correct format
-        y_min, y_max = self._parse_mobilogram_range_waters(document, y_label, y_min, y_max)
+        x_min_mz, x_max_mz = self._parse_mass_spectrum_range_waters(
+            document, x_label, x_min, x_max, y_label, y_min, y_max
+        )
+        y_min_dt, y_max_dt = self._parse_mobilogram_range_waters(document, y_label, y_min, y_max, x_label, x_min, x_max)
+
+        # ensure extraction range is broad enough
+        if x_min_mz >= x_max_mz:
+            raise MessageError("Error", "The extraction range in the mass spectrum dimension was too narrow!")
+        if y_min_dt >= y_max_dt:
+            raise MessageError("Error", "The extraction range in the mobilogram dimension was too narrow!")
 
         # get data
-        obj_name, rt_obj, document = self.waters_extract_rt_from_msdt(x_min, x_max, y_min, y_max, document.title)
+        obj_name, rt_obj, document = self.waters_extract_rt_from_msdt(
+            x_min_mz, x_max_mz, y_min_dt, y_max_dt, document.title
+        )
 
         # set data
         self.panel_plot.view_rt_rt.plot(obj=rt_obj)
@@ -470,7 +510,8 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
         # unpack values
         x_label = x_labels[0]
-        x_min, x_max, _, _ = rect
+        y_label = y_labels[0]
+        x_min, x_max, y_min, y_max = rect
         document = ENV.on_get_document()
 
         can_extract, is_multifile, file_fmt = document.can_extract()
@@ -481,7 +522,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         if file_fmt == "thermo":
             raise MessageError("Error", "Cannot extract heatmap from Thermo file")
 
-        x_min, x_max = self._parse_mobilogram_range_waters(document, x_label, x_min, x_max)
+        x_min, x_max = self._parse_mobilogram_range_waters(document, x_label, x_min, x_max, y_label, y_min, y_max)
 
         # get plot data and calculate maximum values in the arrays
         x, y = self.panel_plot.view_dt_dt.get_data()
@@ -511,7 +552,8 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
         # unpack values
         x_label = x_labels[0]
-        x_min, x_max, _, _ = rect
+        y_label = y_labels[0]
+        x_min, x_max, y_min, y_max = rect
         document = ENV.on_get_document()
 
         can_extract, is_multifile, file_fmt = document.can_extract()
@@ -528,7 +570,9 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         self.panel_plot.view_rt_rt.add_patches([x_min], [0], [x_max - x_min], [y_val], pickable=False)
 
         if file_fmt == "waters":
-            x_min, x_max = self._parse_chromatogram_range_waters(document, x_label, x_min, x_max, "time")
+            x_min, x_max = self._parse_chromatogram_range_waters(
+                document, x_label, x_min, x_max, y_label, y_min, y_max, "time"
+            )
             obj_name, mz_obj, document = self.waters_extract_ms_from_chromatogram(x_min, x_max, document.title)
         elif file_fmt == "thermo":
             as_scans = False if "mins" in x_label else True
@@ -1979,51 +2023,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         ENV[document.title] = document
         if expand_item == "document":
             self.document_tree.add_document(document, expandItem=document)
-        #         elif expand_item == "ions":
-        #             if expand_item_title is None:
-        #                 self.document_tree.add_document(document, expandItem=document.IMS2Dions)
-        #             else:
-        #                 self.document_tree.add_document(document, expandItem=document.IMS2Dions[expand_item_title])
-        #         elif expand_item == "combined_ions":
-        #             if expand_item_title is None:
-        #                 self.document_tree.add_document(document, expandItem=document.IMS2DCombIons)
-        #             else:
-        #                 self.document_tree.add_document(document, expandItem=document.
-        #                 IMS2DCombIons[expand_item_title])
-        #
-        #         elif expand_item == "processed_ions":
-        #             if expand_item_title is None:
-        #                 self.document_tree.add_document(document, expandItem=document.IMS2DionsProcess)
-        #             else:
-        #                 self.document_tree.add_document(document,
-        #                 expandItem=document.IMS2DionsProcess[expand_item_title])
-        #
-        #         elif expand_item == "ions_1D":
-        #             if expand_item_title is None:
-        #                 self.document_tree.add_document(document, expandItem=document.multipleDT)
-        #             else:
-        #                 self.document_tree.add_document(document, expandItem=document.multipleDT[expand_item_title])
-        #
-        #         elif expand_item == "comparison_data":
-        #             if expand_item_title is None:
-        #                 self.document_tree.add_document(document, expandItem=document.IMS2DcompData)
-        #             else:
-        #                 self.document_tree.add_document(document,
-        #                 expandItem=document.IMS2DcompData[expand_item_title])
-        #
-        #         elif expand_item == "mass_spectra":
-        #             if expand_item_title is None:
-        #                 self.document_tree.add_document(document, expandItem=document.multipleMassSpectrum)
-        #             else:
-        #                 self.document_tree.add_document(document,
-        #                 expandItem=document.multipleMassSpectrum[expand_item_title])
-        #
-        #         elif expand_item == "overlay":
-        #             if expand_item_title is None:
-        #                 self.document_tree.add_document(document, expandItem=document.IMS2DoverlayData)
-        #             else:
-        #                 self.document_tree.add_document(document,
-        #                 expandItem=document.IMS2DoverlayData[expand_item_title])
         # just set data
         elif expand_item == "no_refresh":
             self.document_tree.set_document(document_old=ENV[document.title], document_new=document)

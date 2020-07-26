@@ -97,6 +97,7 @@ from origami.config.environment import ENV
 from origami.panel_document_tree import PanelDocumentTree
 from origami.gui_elements.statusbar import Statusbar
 from origami.handlers.data_handling import DataHandling
+from origami.gui_elements.popup_toast import PopupToastManager
 from origami.handlers.data_processing import DataProcessing
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.handlers.data_visualisation import DataVisualization
@@ -184,6 +185,8 @@ class MainWindow(wx.Frame):
         self.data_handling = DataHandling(self.presenter, self, CONFIG)
         self.data_visualisation = DataVisualization(self.presenter, self, CONFIG)
 
+        self.popup_mgr = PopupToastManager(self)
+
         # make toolbar
         self.make_toolbar()
 
@@ -256,6 +259,12 @@ class MainWindow(wx.Frame):
         self.Bind(wx.aui.EVT_AUI_PANE_CLOSE, self.on_closed_page)
         self.Bind(wx.aui.EVT_AUI_PANE_RESTORE, self.on_restored_page)
 
+        # bind pub subscribers
+        pub.subscribe(self.on_notify_info, "notify.message.info")
+        pub.subscribe(self.on_notify_success, "notify.message.success")
+        pub.subscribe(self.on_notify_warning, "notify.message.warning")
+        pub.subscribe(self.on_notify_error, "notify.message.error")
+
         # Fire up a couple of events
         self.on_update_panel_config()
         self.on_toggle_panel(evt=None)
@@ -272,6 +281,27 @@ class MainWindow(wx.Frame):
     def run_delayed(func, *args, delay: int = 3000, **kwargs):
         """Run function using a CallLater"""
         wx.CallLater(delay, func, *args, **kwargs)
+
+    def on_notify(self, message: str, kind: str = "info", delay: int = 3000):
+        """Notify user of some event"""
+
+        wx.CallAfter(self.popup_mgr.show_popup, message, kind, delay)
+
+    def on_notify_info(self, message: str):
+        """Notify user of event using INFO style"""
+        self.on_notify(message, "info")
+
+    def on_notify_success(self, message: str):
+        """Notify user of event using INFO style"""
+        self.on_notify(message, "success")
+
+    def on_notify_warning(self, message: str):
+        """Notify user of event using INFO style"""
+        self.on_notify(message, "warning")
+
+    def on_notify_error(self, message: str):
+        """Notify user of event using INFO style"""
+        self.on_notify(message, "error")
 
     def _move_app(self):
         """Move application to another window"""

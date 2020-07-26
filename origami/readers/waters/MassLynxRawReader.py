@@ -14,6 +14,7 @@ from ctypes import c_void_p
 MODULE_PATH = os.path.dirname(__file__)
 sys.path.append(MODULE_PATH)
 sys.path.append(os.path.join(MODULE_PATH, r"MassLynxRaw.dll"))
+sys.path.append(os.path.join(MODULE_PATH, r"MassLynxRaw.lib"))
 sys.path.append(os.path.join(MODULE_PATH, r"cdt.dll"))
 
 

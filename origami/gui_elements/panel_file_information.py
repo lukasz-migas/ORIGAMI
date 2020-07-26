@@ -2,7 +2,7 @@
 import wx
 
 # Local imports
-from origami.styles import TransientPopupBase
+from origami.gui_elements.popup import TransientPopupBase
 from origami.gui_elements._panel import TestPanel
 
 

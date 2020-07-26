@@ -158,7 +158,7 @@ class Statusbar(wx.StatusBar):
 
         # set field count
         self.SetFieldsCount(8)
-        self.SetStatusWidths([250, 80, 80, 80, -1, 50, 50, 55])
+        self.SetStatusWidths([250, 100, 100, 80, -1, 50, 50, 55])
 
         # setup font
         self.SetFont(wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))

@@ -6,9 +6,9 @@ from typing import Dict
 import wx
 
 # Local imports
-from origami.styles import PopupBase
 from origami.styles import make_menu_item
 from origami.icons.assets import Icons
+from origami.gui_elements.popup import PopupBase
 from origami.gui_elements._panel import TestPanel  # noqa
 from origami.gui_elements.views.view_heatmap import ViewHeatmap
 from origami.gui_elements.views.view_spectrum import ViewMobilogram
@@ -142,7 +142,7 @@ class PopupChromatogramView(PopupViewBase):
         return self.plot_panel
 
 
-class PopupMassSpectrummView(PopupViewBase):
+class PopupMassSpectrumView(PopupViewBase):
     """Create popup window that enables visualisation of mass spectrum/a"""
 
     def make_plot(self):

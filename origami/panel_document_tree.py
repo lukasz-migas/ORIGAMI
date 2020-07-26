@@ -56,7 +56,6 @@ from origami.ids import ID_ylabel_DTMS_ms_arrival
 from origami.ids import ID_docTree_action_open_extract
 from origami.ids import ID_docTree_action_open_origami_ms
 from origami.ids import ID_docTree_action_open_extractDTMS
-from origami.styles import PopupBase
 from origami.styles import set_tooltip
 from origami.styles import make_checkbox
 from origami.styles import make_menu_item
@@ -68,6 +67,7 @@ from origami.utils.converters import str2int
 from origami.utils.converters import byte2str
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
+from origami.gui_elements.popup import PopupBase
 from origami.objects.containers import IonHeatmapObject
 from origami.objects.containers import MobilogramObject
 from origami.objects.containers import ChromatogramObject
@@ -3892,13 +3892,14 @@ class DocumentTree(wx.TreeCtrl):
         dlg = PanelProcessExtractDTMS(self.view, self.presenter, document_title)
         dlg.Show()
 
-    def on_open_peak_picker(self, evt, **kwargs):
+    def on_open_peak_picker(self, evt, document_title: str = None, dataset_name: str = None):
         """Open peak picker"""
         from origami.widgets.mz_picker.panel_peak_picker import PanelPeakPicker
 
         # get data and annotations
-        _, dataset_type, _ = self._get_query_info_based_on_indent()
-        document_title, dataset_name = self._get_item_info()
+        if document_title is None or dataset_name is None:
+            _, dataset_type, _ = self._get_query_info_based_on_indent()
+            document_title, dataset_name = self._get_item_info()
 
         # permit only single instance of the peak-picker
         if self._picker_panel:
@@ -3907,12 +3908,7 @@ class DocumentTree(wx.TreeCtrl):
 
         # initialize peak picker
         self._picker_panel = PanelPeakPicker(
-            self.presenter.view,
-            self.presenter,
-            self._icons,
-            document_title=document_title,
-            dataset_type=dataset_type,
-            dataset_name=dataset_name,
+            self.presenter.view, self.presenter, self._icons, document_title=document_title, dataset_name=dataset_name
         )
         self._picker_panel.Show()
 

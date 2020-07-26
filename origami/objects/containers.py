@@ -490,22 +490,6 @@ class SpectrumObject(DataObject):
             return float(y.max())
         return y
 
-
-class MassSpectrumObject(SpectrumObject):
-    """Mass spectrum container object"""
-
-    DOCUMENT_KEY = "Mass Spectra"
-
-    def __init__(
-        self, x, y, name: str = "", metadata=None, extra_data=None, x_label="m/z (Da)", y_label="Intensity", **kwargs
-    ):
-        super().__init__(
-            x, y, x_label=x_label, y_label=y_label, name=name, metadata=metadata, extra_data=extra_data, **kwargs
-        )
-
-        # set default options
-        self.options["remove_zeros"] = True
-
     def process(
         self, crop: bool = False, linearize: bool = False, smooth: bool = False, baseline: bool = False, **kwargs
     ):
@@ -673,6 +657,22 @@ class MassSpectrumObject(SpectrumObject):
         )
         self._y = y
         return self
+
+
+class MassSpectrumObject(SpectrumObject):
+    """Mass spectrum container object"""
+
+    DOCUMENT_KEY = "Mass Spectra"
+
+    def __init__(
+        self, x, y, name: str = "", metadata=None, extra_data=None, x_label="m/z (Da)", y_label="Intensity", **kwargs
+    ):
+        super().__init__(
+            x, y, x_label=x_label, y_label=y_label, name=name, metadata=metadata, extra_data=extra_data, **kwargs
+        )
+
+        # set default options
+        self.options["remove_zeros"] = True
 
 
 class ChromatogramObject(SpectrumObject, ChromatogramAxesMixin):
@@ -945,30 +945,20 @@ class HeatmapObject(DataObject):
         y = self.x[y_min_idx:y_max_idx]
         return self.downsample(x=x, y=y, array=array)
 
-    def rotate(self, n_rotations: int = 1):
-        """Rotate the array by 90 degrees
-
-        Parameters
-        ----------
-        n_rotations : int
-            number of times the operation should be repeated
+    def transpose(self):
+        """Transpose array
 
         Returns
         -------
         self
         """
-        _n_rotations = self._metadata.get("n_rotations", 0)
-        _n_rotations += n_rotations
         # reset the x/y-axis
         self._x, self._y = self.y, self.x
         # reset the x/y-labels
         self._x_label, self._y_label = self.y_label, self.x_label
+        self._x_label_options, self._y_label_options = self._y_label_options, self._x_label_options
         # rotate the array
-        self._array = np.rot90(self._array, n_rotations)
-
-        # set metadata
-        self._metadata["n_rotations"] = _n_rotations
-        print(self.shape)
+        self._array = self._array.T
 
         return self
 

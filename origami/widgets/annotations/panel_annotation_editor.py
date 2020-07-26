@@ -16,7 +16,6 @@ from pubsub import pub
 
 # Local imports
 from origami.styles import MiniFrame
-from origami.styles import PopupBase
 from origami.styles import Validator
 from origami.styles import make_checkbox
 from origami.styles import make_menu_item
@@ -32,6 +31,7 @@ from origami.utils.utilities import report_time
 from origami.utils.converters import rounder
 from origami.utils.converters import str2num
 from origami.utils.exceptions import MessageError
+from origami.gui_elements.popup import PopupBase
 from origami.objects.containers import DataObject
 from origami.gui_elements._panel import TestPanel  # noqa
 from origami.objects.annotations import Annotation
