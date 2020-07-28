@@ -98,7 +98,9 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
     post_apply_btn = None
     post_refresh_btn = None
 
-    def __init__(self, parent, presenter, icons, **kwargs):
+    def __init__(
+        self, parent, presenter, icons, document_title: str = None, dataset_name: str = None, debug: bool = False
+    ):
         """Initialize panel"""
         MiniFrame.__init__(self, parent, title="Peak picker...", style=wx.DEFAULT_FRAME_STYLE & ~wx.MAXIMIZE_BOX)
         t_start = time.time()
@@ -126,20 +128,20 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         self._mz_picker_filter = None
 
         # setup kwargs
-        self.document_title = kwargs.pop("document_title", None)
-        self.dataset_name = kwargs.pop("dataset_name", None)
+        self.document_title = document_title
+        self.dataset_name = dataset_name
 
         # initialize gui
         self.make_gui()
         self.on_toggle_controls(None)
 
         # set title
-        self.SetTitle(f"Peak picker: {self.document_title} :: {self.dataset_name}")
+        self.update_window_title()
 
         # bind events
         wx.EVT_CLOSE(self, self.on_close)
         self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
-        if not kwargs.get("debug", False):
+        if not debug:
             # trigger UI events
             self.on_plot(None)
             self.on_update_method(None)
@@ -705,8 +707,6 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         main_sizer.Add(settings_grid, 0, wx.EXPAND)
         main_sizer.AddSpacer(10)
         main_sizer.Add(btn_sizer, 0, wx.ALIGN_CENTER_HORIZONTAL)
-        # main_sizer.AddSpacer(10)
-        # main_sizer.Add(self.display_label, 0, wx.EXPAND)
 
         main_sizer.Fit(panel)
 

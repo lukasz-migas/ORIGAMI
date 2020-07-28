@@ -8,7 +8,7 @@ jobs:
     name: "Verify code style"
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v2
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
@@ -36,7 +36,7 @@ jobs:
     name: "Tests"
 
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v1
         with:
@@ -64,7 +64,7 @@ jobs:
       - name: Test with pytest (Windows/macOS)
         if: runner.os != 'Linux'
         run: |
-          pytest  -m "not guitest" . -v
+          pytest  -m "not guitest" . -v  --tb=long -ra
 
   guitests:
     strategy:
@@ -77,7 +77,7 @@ jobs:
     name: "Tests (GUI)"
 
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v1
         with:
@@ -105,14 +105,14 @@ jobs:
       - name: Test with pytest (Windows/macOS)
         if: runner.os != 'Linux'
         run: |
-          pytest -m guitest . -v
+          pytest -m guitest . -v  --tb=long -ra
 
   coverage:
     name: "Coverage"
     runs-on: windows-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v2
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
@@ -145,7 +145,7 @@ jobs:
     name: "Install & test"
 
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v1
         with:
@@ -163,24 +163,3 @@ jobs:
       - name: Test ORIGAMI
         run: |
           pytest . -v
-
-#   install:
-#     name: "Install and test"
-
-#    strategy:
-#      max-parallel: 4
-#      matrix:
-#        os: [ubuntu-latest, windows-latest, macOS-latest]
-# #
-#    name: "Verify installation on ${{ matrix.os }}."
-#    runs-on: "${{ matrix.os }}"
-#
-#    steps:
-#      - uses: "actions/checkout@v2"
-#      - uses: "actions/setup-python@v1"
-#        with:
-#          python-version: "3.7"
-#      - name: Install
-#        run: |
-#          python setup.py develop
-#          python -c 'import origami; print(origami.__version__)'

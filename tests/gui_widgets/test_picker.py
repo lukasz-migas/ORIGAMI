@@ -16,3 +16,4 @@ class TestPanelPeakPicker(WidgetTestCase):
     def test_panel_create(self):
         icons = Icons()
         _ = PanelPeakPicker(None, None, icons, debug=True)
+        self.wait_for(200)
