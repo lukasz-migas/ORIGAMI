@@ -390,6 +390,13 @@ class Dialog(wx.Dialog, ActivityIndicatorMixin, DocumentationMixin):
         if evt is not None:
             evt.Skip()
 
+    def on_ok(self, evt):
+        """Close the frame gracefully"""
+        if self.IsModal():
+            self.EndModal(wx.ID_OK)
+        else:
+            self.Destroy()
+
     def on_close(self, evt, force: bool = False):
         """Destroy this frame."""
         if self.IsModal():
@@ -447,6 +454,10 @@ class MiniFrame(wx.MiniFrame, ActivityIndicatorMixin, DocumentationMixin):
 
     def on_close(self, evt, force: bool = False):
         """Destroy this frame."""
+        self.Destroy()
+
+    def on_ok(self, evt):
+        """Close the frame gracefully"""
         self.Destroy()
 
     def make_panel(self, *args):

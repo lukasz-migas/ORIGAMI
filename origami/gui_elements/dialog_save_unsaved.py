@@ -213,11 +213,7 @@ class DialogSaveUnsaved(Dialog):
             return
 
         self.new_name = self.full_name
-
-        if self.IsModal():
-            self.EndModal(wx.ID_OK)
-        else:
-            self.Destroy()
+        super(DialogSaveUnsaved, self).on_ok(_evt)
 
 
 def _main():

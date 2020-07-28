@@ -453,7 +453,20 @@ class DocumentStore:
         self.add(copy, {k: v[:] for k, v in group.items()}, attrs=group.attrs.asdict())
 
     def get_new_name(self, name: str, suffix: str):
-        """Return new name for an object"""
+        """Return new name for an object
+
+        Parameters
+        ----------
+        name : str
+            base name of the item
+        suffix : str
+            suffix to be added to the base name (e.g. `copy` will result in (copy 0...)
+
+        Returns
+        -------
+        name : str
+            new name that does not exist on the hard drive
+        """
 
         def _new_name(name, n):
             if n == 0 or f"({suffix})" not in name:

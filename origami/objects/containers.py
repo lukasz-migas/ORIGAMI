@@ -474,7 +474,8 @@ class SpectrumObject(DataObject):
 
     def divide(self, divider: Union[int, float]):
         """Divide intensity array by specified divider"""
-        assert isinstance(divider, (int, float)), "Division factor must be an integer or a float"
+        if not isinstance(divider, (int, float)):
+            raise ValueError("Division factor must be an integer or a float")
         self._y /= divider
         return self
 
@@ -657,7 +658,7 @@ class SpectrumObject(DataObject):
         tophat_window : int
             tophat window size; only used with method being `Top Hat`
         """
-        self._y = pr_spectra.baseline_1D(
+        self._y = pr_spectra.baseline_1d(
             self.y,
             baseline_method=baseline_method,
             threshold=threshold,

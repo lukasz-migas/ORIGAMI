@@ -36,7 +36,6 @@ logging.getLogger("matplotlib").setLevel(logging.ERROR)
 
 
 class App(wx.App):
-
     def InitLocale(self):
         self.ResetLocale()
 

@@ -277,7 +277,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         if path is None or not path.endswith(".origami"):
             logger.warning("Operation was cancelled")
             return
-
         self.on_setup_basic_document(ENV.load(path))
 
     @staticmethod
@@ -298,6 +297,8 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             os.startfile(path)
         except WindowsError:
             raise MessageError("Path does not exist", f"Failed to open {path}")
+
+        pub.sendMessage("notify.message.success", message="Opening directory...")
 
     def on_show_tandem_scan(self, scan_data):
         """Displays scan data in the viewer"""
@@ -641,7 +642,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         data_obj = document.add(obj_name, data_obj, as_object=True)
 
         self.document_tree.on_update_document(data_obj.DOCUMENT_KEY, obj_name, document_title)
-        #         data_obj.set_owner((document_title, obj_name))
         return True, data_obj
 
     def on_open_multiple_text_2d_fcn(self, evt):

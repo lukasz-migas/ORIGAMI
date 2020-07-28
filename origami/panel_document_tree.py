@@ -62,7 +62,6 @@ from origami.icons.assets import Icons
 from origami.config.config import CONFIG
 from origami.utils.utilities import report_time
 from origami.objects.document import DocumentStore
-from origami.utils.converters import str2int
 from origami.utils.converters import byte2str
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
@@ -74,7 +73,6 @@ from origami.objects.containers import MassSpectrumObject
 from origami.objects.containers import MassSpectrumHeatmapObject
 from origami.gui_elements._panel import TestPanel
 from origami.gui_elements.misc_dialogs import DialogBox
-from origami.gui_elements.misc_dialogs import DialogSimpleAsk
 
 LOGGER = logging.getLogger(__name__)
 
@@ -108,16 +106,19 @@ class Item:
 
     @property
     def data_type(self):
+        """Get data type of the document object"""
         self.check_data()
         return self.data.data_type
 
     @property
     def document_title(self):
+        """Get document title of the document object"""
         self.check_data()
         return self.data.title
 
     @property
     def parameters(self):
+        """Get parameters of t he document object"""
         self.check_data()
         if hasattr(self.data, "parameters"):
             return self.data.parameters
@@ -125,6 +126,7 @@ class Item:
 
     @property
     def is_empty(self):
+        """Check where document is empty"""
         return self.data is None
 
     def check_data(self):
@@ -437,6 +439,7 @@ class DocumentTree(wx.TreeCtrl):
         self._item = Item()
         self._item_id = None
         self._indent = None
+        self.title = None
 
         # widgets
         self._bokeh_panel = None
@@ -695,7 +698,7 @@ class DocumentTree(wx.TreeCtrl):
 
         evt_id = None
         if hasattr(evt, "GetId"):
-            evt_id = evt.GetId()
+            evt_id = evt.GetId()  # noqa
 
         while item.IsOk():
             self.SetItemBold(item, False)
@@ -816,12 +819,15 @@ class DocumentTree(wx.TreeCtrl):
     #         return False
 
     def get_item_by_data(self, data, root):
+        """Get DocumentTree item by its data"""
         if root is None:
             root = self.GetRootItem()
         item, cookie = self.GetFirstChild(root)
 
         while item.IsOk():
             if self.GetPyData(item) is data:
+                return item
+            elif self.GetPyData(item) == data:
                 return item
             if self.ItemHasChildren(item):
                 match = self.get_item_by_data(data, item)
@@ -831,6 +837,7 @@ class DocumentTree(wx.TreeCtrl):
         return wx.TreeItemId()
 
     def get_item_by_label(self, search_text, root):
+        """Get DocumentTree item by its label"""
         if root is None:
             root = self.GetRootItem()
         item, cookie = self.GetFirstChild(root)
@@ -864,9 +871,9 @@ class DocumentTree(wx.TreeCtrl):
             elif self._item.is_match("spectrum"):
                 self.on_process_ms(evt=None)
         elif key == 341:  # F2
-            self.onRenameItem(None)
+            self.on_rename_item(None)
 
-        if evt and key not in [wx.WXK_DELETE]:
+        if evt and key not in [wx.WXK_DELETE, 341]:
             evt.Skip()
 
     def on_update_gui(self, query, sub_key, dataset_name):
@@ -1032,8 +1039,8 @@ class DocumentTree(wx.TreeCtrl):
         else:
             self.data_handling.on_update_document(document_new, "document")
 
-    def on_double_click(self, _):
-
+    def on_double_click(self, _evt):
+        """Handle double-click event"""
         t_start = time.time()
         # Get selected item
         item = self.GetSelection()
@@ -1090,18 +1097,21 @@ class DocumentTree(wx.TreeCtrl):
 
         LOGGER.debug(f"It took: {report_time(t_start)} to process double-click.")
 
-    def on_save_document_as(self, evt):
+    def on_save_document_as(self, _evt):
         """Save current document. With asking for path. """
-        document_title = self._document_data.title
-        self.data_handling.on_save_document_fcn(document_title)
+        raise NotImplementedError("This method is no longer valid - documents are automatically saved")
+        # document_title = self._document_data.title
+        # self.data_handling.on_save_document_fcn(document_title)
 
     def on_save_document(self, evt):
         """Save current document. Without asking for path."""
-        if self._document_data is not None:
-            document_title = self._document_data.title
-            wx.CallAfter(self.data_handling.on_save_document_fcn, document_title, save_as=False)
+        raise NotImplementedError("This method is no longer valid - documents are automatically saved")
+        # if self._document_data is not None:
+        #     document_title = self._document_data.title
+        #     wx.CallAfter(self.data_handling.on_save_document_fcn, document_title, save_as=False)
 
-    def on_refresh_document(self, evt=None):
+    def on_refresh_document(self, _evt=None):
+        """Refresh document by replotting all relevant data"""
         document = ENV.get(self.title, None)
         if document is None:
             return
@@ -1178,40 +1188,41 @@ class DocumentTree(wx.TreeCtrl):
 
         TODO: this will not update the ionPanel when assigning charge to Drift time (1D, EIC, DT-IMS)
         """
+        raise NotImplementedError("Must implement method")
 
-        # Check that the user hasn't selected the header
-        if self._document_type in [
-            "Drift time (2D, EIC)",
-            "Drift time (2D, combined voltages, EIC)",
-            "Drift time (2D, processed, EIC)",
-            "Input data",
-        ] and self._item_leaf in [
-            "Drift time (2D, EIC)",
-            "Drift time (2D, combined voltages, EIC)",
-            "Drift time (2D, processed, EIC)",
-            "Input data",
-        ]:
-            raise MessageError("Incorrect data type", "Please select a single ion in the Document panel.\n\n\n")
-
-        __, data, __ = self._on_event_get_mobility_chromatogram_data()
-        current_charge = data.get("charge", None)
-
-        charge = DialogSimpleAsk("Type in new charge state", value=str(current_charge))
-
-        charge = str2int(charge)
-
-        if charge in ["", "None", None]:
-            LOGGER.warning(f"The defined value `{charge}` is not correct")
-            return
-
-        query_info = self._on_event_get_mobility_chromatogram_query()
-        document = self.data_handling.set_mobility_chromatographic_keyword_data(query_info, charge=charge)
-
-        # update data in side panel
-        self.ionPanel.on_find_and_update_values(query_info[2], charge=charge)
-
-        # update document
-        self.data_handling.on_update_document(document, "no_refresh")
+        # # Check that the user hasn't selected the header
+        # if self._document_type in [
+        #     "Drift time (2D, EIC)",
+        #     "Drift time (2D, combined voltages, EIC)",
+        #     "Drift time (2D, processed, EIC)",
+        #     "Input data",
+        # ] and self._item_leaf in [
+        #     "Drift time (2D, EIC)",
+        #     "Drift time (2D, combined voltages, EIC)",
+        #     "Drift time (2D, processed, EIC)",
+        #     "Input data",
+        # ]:
+        #     raise MessageError("Incorrect data type", "Please select a single ion in the Document panel.\n\n\n")
+        #
+        # __, data, __ = self._on_event_get_mobility_chromatogram_data()
+        # current_charge = data.get("charge", None)
+        #
+        # charge = DialogSimpleAsk("Type in new charge state", value=str(current_charge))
+        #
+        # charge = str2int(charge)
+        #
+        # if charge in ["", "None", None]:
+        #     LOGGER.warning(f"The defined value `{charge}` is not correct")
+        #     return
+        #
+        # query_info = self._on_event_get_mobility_chromatogram_query()
+        # document = self.data_handling.set_mobility_chromatographic_keyword_data(query_info, charge=charge)
+        #
+        # # update data in side panel
+        # self.ionPanel.on_find_and_update_values(query_info[2], charge=charge)
+        #
+        # # update document
+        # self.data_handling.on_update_document(document, "no_refresh")
 
     def _on_event_get_mass_spectrum(self, **kwargs):
 
@@ -1279,7 +1290,8 @@ class DocumentTree(wx.TreeCtrl):
 
         return query, subkey, dataset_name
 
-    def _match_plot_type_to_dataset_type(self, dataset_type, dataset_name):
+    @staticmethod
+    def _match_plot_type_to_dataset_type(dataset_type, dataset_name):
         _plot_match = {
             #             "mass_spectrum": ["Mass Spectrum", "Mass Spectrum (processed)",
             #  "Mass Spectra"],
@@ -1297,7 +1309,8 @@ class DocumentTree(wx.TreeCtrl):
                 return key
         raise MessageError("Failed to find appropriate method", "Failed to find appropriate method")
 
-    def _match_plot_type_to_data_obj(self, data_obj):
+    @staticmethod
+    def _match_plot_type_to_data_obj(data_obj):
         """Return type of plot depending on the data object"""
         if isinstance(data_obj, MassSpectrumObject):
             return "mass_spectrum"
@@ -1310,7 +1323,7 @@ class DocumentTree(wx.TreeCtrl):
         elif isinstance(data_obj, MassSpectrumHeatmapObject):
             return "ms_heatmap"
 
-    def on_open_annotation_editor(self, evt, document_title: str = None, dataset_name: str = None, data_obj=None):
+    def on_open_annotation_editor(self, _evt, document_title: str = None, dataset_name: str = None, data_obj=None):
         """Open annotations panel"""
         from origami.widgets.annotations.panel_annotation_editor import PanelAnnotationEditor
 
@@ -1343,13 +1356,7 @@ class DocumentTree(wx.TreeCtrl):
         self._annotate_panel.Show()
 
     def on_duplicate_annotations(self, _evt):
-        """Duplicate annotations from one object to another
-
-        Parameters
-        ----------
-        evt : wxPython event
-            unused
-        """
+        """Duplicate annotations from one object to another"""
         from origami.gui_elements.dialog_select_dataset import DialogSelectDataset
 
         # get data and annotations
@@ -1402,6 +1409,7 @@ class DocumentTree(wx.TreeCtrl):
         data_obj_copy_to.set_annotations(annotations_obj_copy)
 
     def on_action_origami_ms(self, _, document_title=None):
+        """Open a dialog where you can specify ORIGAMI-MS parameters"""
         from origami.gui_elements.dialog_customise_origami import DialogCustomiseORIGAMI
 
         # get document
@@ -1415,6 +1423,7 @@ class DocumentTree(wx.TreeCtrl):
         dlg.ShowModal()
 
     def on_open_interactive_viewer(self, evt):
+        """Open a dialog window where you can export data in an interactive format"""
         raise NotImplementedError("Must implement method")
 
     #         from origami.gui_elements.panel_plot_viewer import PanelPlotViewer
@@ -1438,12 +1447,14 @@ class DocumentTree(wx.TreeCtrl):
     #         self._bokeh_panel.Show()
 
     def on_open_overlay_viewer(self, _):
+        """Open a dialog window where you can overlay and compare objects"""
         from origami.widgets.overlay.panel_overlay_viewer import PanelOverlayViewer
 
         self._overlay_panel = PanelOverlayViewer(self.view, self.presenter, self.config, self.icons)
         self._overlay_panel.Show()
 
     def on_open_lesa_viewer(self, _):
+        """Open a dialog window where you can view LESA data"""
         from origami.widgets.lesa.panel_imaging_lesa import PanelImagingLESAViewer
 
         # get document title
@@ -1460,23 +1471,25 @@ class DocumentTree(wx.TreeCtrl):
         self._lesa_panel.Show()
 
     def on_import_lesa_dataset(self, _):
+        """Open a dialog window where you can specify LESA import parameters"""
         from origami.widgets.lesa.panel_imaging_lesa_import import PanelImagingImportDataset
 
         self._lesa_import_panel = PanelImagingImportDataset(self.view, self.presenter)
         self._lesa_import_panel.Show()
 
     def on_import_manual_dataset(self, activation_type, _):
+        """Open a dialog window where you can specify CIU/SID import parameters"""
         from origami.widgets.manual.panel_manual_import import PanelManualImportDataset
 
         self._manual_import_panel = PanelManualImportDataset(self.view, self.presenter, activation_type=activation_type)
         self._manual_import_panel.Show()
 
     def on_update_ui(self, value, evt):
+        """Update UI element(s)"""
         if value == "menu.load.override":
             self.config.import_duplicate_ask = not self.config.import_duplicate_ask
 
     def _get_menu_heatmap_label(self):
-
         # Change x-axis label (2D)
         menu_xlabel = wx.Menu()
         menu_xlabel.Append(ID_xlabel_2D_scans, "Scans", "", wx.ITEM_RADIO)
@@ -2149,10 +2162,8 @@ class DocumentTree(wx.TreeCtrl):
         # self.Bind(wx.EVT_MENU, self.on_action_origami_ms, id=ID_docTree_action_open_origami_ms)
         # # self.Bind(wx.EVT_MENU, self.on_open_extract_DTMS, id=ID_docTree_action_open_extractDTMS)
         # # self.Bind(wx.EVT_MENU, self.on_open_extract_data, id=ID_docTree_action_open_extract)
-        # #
-        #
-        menu = wx.Menu()
 
+        menu = wx.Menu()
         if self._item.is_match("spectrum"):
             self._set_menu_mass_spectrum(menu)
         elif self._item.is_match("chromatogram"):
@@ -2165,13 +2176,13 @@ class DocumentTree(wx.TreeCtrl):
             self._set_menu_msdt(menu)
 
         # elements that are always present
-        menu.AppendSeparator()
+        if menu.GetMenuItemCount() > 0:
+            menu.AppendSeparator()
         self._set_menu_actions(menu)
         self._set_menu_load_data(menu)
 
-        # menu_action_rename_item = make_menu_item(
-        #     parent=menu, evt_id=ID_renameItem, text="Rename\tF2", bitmap=self._icons.edit
-        # )
+        menu_action_rename_item = make_menu_item(parent=menu, text="Rename\tF2", bitmap=self._icons.edit)
+        menu_action_duplicate_item = make_menu_item(parent=menu, text="Duplicate item", bitmap=self._icons.duplicate)
         # menu_action_show_unidec_results = make_menu_item(
         #     parent=menu, evt_id=ID_docTree_show_unidec, text="Show UniDec results", bitmap=None
         # )
@@ -2192,10 +2203,18 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_remove_document, menu_action_remove_document)
         self.Bind(wx.EVT_MENU, self.on_remove_document_from_disk, menu_action_remove_document_disk)
         self.Bind(wx.EVT_MENU, self.on_open_directory, menu_action_open_directory)
+        self.Bind(wx.EVT_MENU, self.on_rename_item, menu_action_rename_item)
+        self.Bind(wx.EVT_MENU, self.on_duplicate_item, menu_action_duplicate_item)
+
+        if self._item.is_dataset:
+            menu.AppendSeparator()
+            menu.AppendItem(menu_action_rename_item)
+            menu.AppendItem(menu_action_duplicate_item)
 
         # add generic iitems
-        if menu.MenuItemCount > 0:
+        if menu.GetMenuItemCount() > 0:
             menu.AppendSeparator()
+
         menu.AppendItem(menu_action_open_directory)
         menu.AppendItem(menu_action_duplicate_document)
         menu.AppendItem(menu_action_remove_document)
@@ -2607,181 +2626,67 @@ class DocumentTree(wx.TreeCtrl):
             item_list = self.data_handling.generate_item_list_msdt("simple_list")
         return item_list
 
-    def onDuplicateItem(self, evt):
-        raise NotImplementedError("Must implement method")
-        # evtID = evt.GetId()
-        # if evtID == ID_duplicateItem:
-        #     if self._document_type == "Mass Spectra" and self._item_leaf != "Mass Spectra":
-        #         # Change document tree
-        #         title = self._document_data.title
-        #         docItem = self.get_item_by_data(ENV[title].multipleMassSpectrum[self._item_leaf])
-        #         copy_name = "{} - copy".format(self._item_leaf)
-        #         # Change dictionary key
-        #         ENV[title].multipleMassSpectrum[copy_name] = (
-        #             ENV[self.title].multipleMassSpectrum[self._item_leaf].copy()
-        #         )
-        #         document = ENV[title]
-        #         self.data_handling.on_update_document(document, "document")
-        #         self.Expand(docItem)
-        # # duplicate document
-        # elif evtID == ID_docTree_duplicate_document:
-        #     document = self.data_handling.on_duplicate_document()
-        #     document.title = "{} - copy".format(document.title)
-        #     self.data_handling._load_document_data(document)
+    def on_rename_item(self, _evt):
+        """Rename item"""
+        from origami.gui_elements.dialog_rename import DialogRenameObject
 
-    #             self.data_handling.on_update_document(document, "document")
+        if not self._item.is_dataset:
+            pub.sendMessage("notify.message.error", message="Cannot rename currently selected item!")
+            return
 
-    # TODO: should restore items to various side panels
+        # get item metadata
+        document_title, dataset_name = self._get_item_info()
+        data_obj = self._get_item_object()
 
-    def onRenameItem(self, evt):
-        raise NotImplementedError("Must implement method")
-        # TODO: FIXME
-        # from origami.gui_elements.dialog_rename import DialogRenameObject
-        #
-        # if self._item.is_empty:
-        #     return
-        #
-        # current_name = None
-        # prepend_name = False
-        # if self._indent == 1 and self._item_leaf is None:
-        #     prepend_name = False
-        # elif self._document_type == "Statistical" and self._item_leaf != "Statistical":
-        #     prepend_name = True
-        # elif self._document_type == "Overlay" and self._item_leaf != "Overlay":
-        #     prepend_name = True
-        # elif self._document_type == "Mass Spectra" and self._item_leaf != "Mass Spectra":
-        #     current_name = self._item_leaf
-        # elif self._document_data.data_type == "Type: Interactive":
-        #     if self._document_type not in ["Drift time (2D, EIC)"]:
-        #         return
-        #     current_name = self._item_leaf
-        # else:
-        #     return
-        #
-        # if current_name is None:
-        #     try:
-        #         current_name = re.split("-|,|:|__", self._item_leaf.replace(" ", ""))[0]
-        #     except AttributeError:
-        #         current_name = self._document_data.title
-        #
-        # if current_name == "Grid(nxn)":
-        #     current_name = "Grid (n x n)"
-        # elif current_name == "Grid(2":
-        #     current_name = "Grid (2->1)"
-        # elif current_name == "RMSDMatrix":
-        #     current_name = "RMSD Matrix"
-        # elif current_name == "Waterfall(Raw)":
-        #     current_name = "Waterfall (Raw)"
-        # elif current_name == "Waterfall(Processed)":
-        #     current_name = "Waterfall (Processed)"
-        # elif current_name == "Waterfall(Fitted)":
-        #     current_name = "Waterfall (Fitted)"
-        # elif current_name == "Waterfall(DeconvolutedMW)":
-        #     current_name = "Waterfall (Deconvoluted MW)"
-        # elif current_name == "Waterfalloverlay":
-        #     current_name = "Waterfall overlay"
-        #
-        # kwargs = {"current_name": current_name, "prepend_name": prepend_name}
-        # renameDlg = DialogRenameObject(self, self.presenter, self.title, **kwargs)
-        # renameDlg.CentreOnScreen()
-        # renameDlg.ShowModal()
-        # new_name = renameDlg.new_name
-        #
-        # if new_name == current_name:
-        #     print("Names are the same - ignoring")
-        # elif new_name == "" or new_name is None:
-        #     print("Incorrect name")
-        # else:
-        #     # Actual new name, prepended
-        #     if self._indent == 1:
-        #         # Change document tree
-        #         docItem = self.get_item_by_data(ENV[current_name])
-        #         document = ENV[current_name]
-        #         document.title = new_name
-        #         docItem.title = new_name
-        #         parent = self.GetItemParent(docItem)
-        #         del ENV[current_name]
-        #         self.SetItemText(docItem, new_name)
-        #         # Change dictionary key
-        #         self.data_handling.on_update_document(document, "document")
-        #         self.Expand(docItem)
-        #
-        #         # check if item is in other panels
-        #         # TODO: implement for other panels
-        #         # try:
-        #         #     self.presenter.view.panelMML.onRenameItem(current_name, new_name, item_type="document")
-        #         # except Exception:
-        #         #     pass
-        #         # try:
-        #         #     self.presenter.view.panelMultipleIons.onRenameItem(current_name, new_name, item_type="document")
-        #         # except Exception:
-        #         #     pass
-        #     #                 try: self.presenter.view.panelMultipleText.on_remove_deleted_item(title)
-        #     #                 except Exception: pass
-        #     #                 try: self.presenter.view.panelMML.on_remove_deleted_item(title)
-        #     #                 except Exception: pass
-        #     #                 try: self.presenter.view.panelLinearDT.topP.on_remove_deleted_item(title)
-        #     #                 except Exception: pass
-        #     #                 try: self.presenter.view.panelLinearDT.bottomP.on_remove_deleted_item(title)
-        #     #                 except Exception: pass
-        #
-        #     elif self._document_type == "Statistical":
-        #         # Change document tree
-        #         docItem = self.get_item_by_data(ENV[self.title].IMS2DstatsData[self._item_leaf])
-        #         parent = self.GetItemParent(docItem)
-        #         self.SetItemText(docItem, new_name)
-        #         # Change dictionary key
-        #         ENV[self.title].IMS2DstatsData[new_name] = ENV[self.title].IMS2DstatsData.pop(self._item_leaf)
-        #         self.Expand(docItem)
-        #     elif self._document_type == "Overlay":
-        #         # Change document tree
-        #         docItem = self.get_item_by_data(ENV[self.title].IMS2DoverlayData[self._item_leaf])
-        #         parent = self.GetItemParent(docItem)
-        #         self.SetItemText(docItem, new_name)
-        #         # Change dictionary key
-        #         ENV[self.title].IMS2DoverlayData[new_name] = ENV[self.title].IMS2DoverlayData.pop(self._item_leaf)
-        #         self.Expand(docItem)
-        #     # elif self._document_type == "Mass Spectra":
-        #     #     # Change document tree
-        #     #     docItem = self.get_item_by_data(ENV[self.title].multipleMassSpectrum[self._item_leaf])
-        #     #     parent = self.GetItemParent(docItem)
-        #     #     self.SetItemText(docItem, new_name)
-        #     #     # Change dictionary key
-        #     #     ENV[self.title].multipleMassSpectrum[new_name] = ENV[self.title].multipleMassSpectrum.pop(
-        #     #         self._item_leaf
-        #     #     )
-        #     #     self.Expand(docItem)
-        #     #     # check if item is in other panels
-        #     #     try:
-        #     #         self.presenter.view.panelMML.onRenameItem(current_name, new_name, item_type="filename")
-        #     #     except Exception:
-        #     #         pass
-        #     elif self._document_type == "Drift time (2D, EIC)":
-        #         new_name = new_name.replace(": ", " : ")
-        #         # Change document tree
-        #         docItem = self.get_item_by_data(ENV[self.title].IMS2Dions[self._item_leaf])
-        #         parent = self.GetItemParent(docItem)
-        #         self.SetItemText(docItem, new_name)
-        #         # check if ":" found in the new name
-        #
-        #         # TODO: check if iterm is in the peaklist
-        #         # Change dictionary key
-        #         ENV[self.title].IMS2Dions[new_name] = ENV[self.title].IMS2Dions.pop(self._item_leaf)
-        #         self.Expand(docItem)
-        #     else:
-        #         return
-        #
-        #     # just a msg
-        #     args = ("Renamed {} to {}".format(current_name, new_name), 4)
-        #     self.presenter.onThreading(None, args, action="updateStatusbar")
-        #
-        #     # Expand parent
-        #     try:
-        #         self.Expand(parent)
-        #     except Exception:
-        #         pass
-        #
-        #     self.SetFocus()
+        # get item name
+        group_name, item_name = dataset_name.split("/")
+
+        dlg = DialogRenameObject(self.view, item_name)
+        dlg.ShowModal()
+
+        # get new name
+        new_name = dlg.new_name
+        if new_name is None:
+            pub.sendMessage("notify.message.warning", message="Action was cancelled or the name was not valid")
+            return
+        elif new_name == item_name:
+            pub.sendMessage("notify.message.warning", message="New name was the same as the old name")
+            return
+        new_name = f"{group_name}/{new_name}"
+
+        # copy object
+        new_name, data_obj_renamed = data_obj.copy(new_name)
+
+        # get handle of the old object item
+        document = ENV.on_get_document(document_title)
+        del document[dataset_name]
+        item = self.get_item_by_data((document_title, dataset_name), None)
+        if item.IsOk():
+            self.Delete(item)
+
+        # add new object to the document tree
+        self.on_update_document(data_obj_renamed.DOCUMENT_KEY, new_name, document_title)
+        pub.sendMessage("document.rename.item", info=(document_title, dataset_name, new_name))
+        pub.sendMessage("notify.message.success", message=f"Renamed item\nNew name={new_name}")
+
+    def on_duplicate_item(self, _evt):
+        """Duplicate item"""
+        if not self._item.is_dataset:
+            pub.sendMessage("notify.message.error", message="Cannot duplicate currently selected item!")
+            return
+
+        # get document and a new, valid name
+        document_title, dataset_name = self._get_item_info()
+        document = ENV.on_get_document(document_title)
+        dataset_name = document.get_new_name(dataset_name, "copy")
+
+        # get data object and create a copy
+        data_obj = self._get_item_object()
+        dataset_name, data_obj_copy = data_obj.copy(dataset_name)
+        self.on_update_document(data_obj_copy.DOCUMENT_KEY, dataset_name, document_title)
+        pub.sendMessage(
+            "notify.message.success", message=f"Duplicated item\nDocument={document_title}\nDataset={dataset_name}"
+        )
 
     def on_open_directory(self, _evt):
         """Go to selected directory"""
@@ -2964,117 +2869,115 @@ class DocumentTree(wx.TreeCtrl):
     def on_show_unidec_results(self, evt, plot_type="all"):
         raise NotImplementedError("Must implement method")
 
-    def on_show_plot_annotated_data(self, data, save_image=False, **kwargs):
-        """Plot annotate data"""
+    # def on_show_plot_annotated_data(self, data, save_image=False, **kwargs):
+    #     """Plot annotate data"""
+    #
+    #     try:
+    #         plot_type = data["plot_type"]
+    #     except KeyError:
+    #         LOGGER.error("Could not determine plot type from the data")
+    #         return
+    #
+    #     if plot_type in [
+    #         "scatter",
+    #         "waterfall",
+    #         "line",
+    #         "multi-line",
+    #         "grid-scatter",
+    #         "grid-line",
+    #         "vertical-bar",
+    #         "horizontal-bar",
+    #     ]:
+    #         xlabel = data["xlabel"]
+    #         ylabel = data["ylabel"]
+    #         labels = data["labels"]
+    #         colors = data["colors"]
+    #         xvals = data["xvals"]
+    #         yvals = data["yvals"]
+    #         zvals = data["zvals"]
+    #
+    #         plot_obj = kwargs.pop("plot_obj", None)
+    #
+    #         kwargs = {
+    #             "plot_modifiers": data["plot_modifiers"],
+    #             "item_colors": data["itemColors"],
+    #             "item_labels": data["itemLabels"],
+    #             "xerrors": data["xvalsErr"],
+    #             "yerrors": data["yvalsErr"],
+    #             "xlabels": data["xlabels"],
+    #             "ylabels": data["ylabels"],
+    #             "plot_obj": plot_obj,
+    #         }
+    #
+    #     if plot_type == "scatter":
+    #         self.panel_plot.on_plot_other_scatter(
+    #             xvals, yvals, zvals, xlabel, ylabel, colors, labels, set_page=True, **kwargs
+    #         )
+    #     elif plot_type == "waterfall":
+    #         kwargs = {"labels": labels, "plot_obj": plot_obj}
+    #         self.panel_plot.on_plot_other_waterfall(
+    #             xvals, yvals, None, xlabel, ylabel, colors=colors, set_page=True, **kwargs
+    #         )
+    #     elif plot_type == "multi-line":
+    #         self.panel_plot.on_plot_other_overlay(
+    #             xvals, yvals, xlabel, ylabel, colors=colors, set_page=True, labels=labels, **kwargs
+    #         )
+    #     elif plot_type == "line":
+    #         kwargs = {
+    #             "line_color": colors[0],
+    #             "shade_under_color": colors[0],
+    #             "plot_modifiers": data["plot_modifiers"],
+    #             "plot_obj": plot_obj,
+    #         }
+    #         self.panel_plot.on_plot_other_1D(xvals, yvals, xlabel, ylabel, **kwargs)
+    #     elif plot_type == "grid-line":
+    #         self.panel_plot.on_plot_other_grid_1D(
+    #             xvals, yvals, xlabel, ylabel, colors=colors, labels=labels, set_page=True, **kwargs
+    #         )
+    #     elif plot_type == "grid-scatter":
+    #         self.panel_plot.on_plot_other_grid_scatter(
+    #             xvals, yvals, xlabel, ylabel, colors=colors, labels=labels, set_page=True, **kwargs
+    #         )
+    #
+    #     elif plot_type in ["vertical-bar", "horizontal-bar"]:
+    #         kwargs.update(orientation=plot_type)
+    #         self.panel_plot.on_plot_other_bars(
+    #             xvals, data["yvals_min"], data["yvals_max"], xlabel, ylabel, colors, set_page=True, **kwargs
+    #         )
+    #     elif plot_type in ["matrix"]:
+    #         zvals, yxlabels, cmap = self.presenter.get2DdataFromDictionary(
+    #             dictionary=data, plotType="Matrix", compact=False
+    #         )
+    #         self.panel_plot.on_plot_matrix(zvals=zvals, xylabels=yxlabels, cmap=cmap, set_page=True)
+    #     else:
+    #         msg = (
+    #             "Plot: {} is not supported yet. Please contact Lukasz Migas \n".format(plot_type)
+    #             + "if you would like to include a new plot type in ORIGAMI. Currently \n"
+    #             + "supported plots include: line, multi-line, waterfall, scatter and grid."
+    #         )
+    #         DialogBox(title="Plot type not supported", msg=msg, kind="Error")
+    #
+    #     if save_image:
+    #         basename = os.path.splitext(self._document_data.title)[0]
+    #         defaultValue = (
+    #             "Custom_{}_{}".format(basename, os.path.splitext(self._item_leaf)[0]).replace(":", "").replace(" ",
+    #             "")
+    #         )
+    #         save_kwargs = {"image_name": defaultValue}
+    #         self.panel_plot.save_images(evt="other", **save_kwargs)
 
-        try:
-            plot_type = data["plot_type"]
-        except KeyError:
-            LOGGER.error("Could not determine plot type from the data")
-            return
-
-        if plot_type in [
-            "scatter",
-            "waterfall",
-            "line",
-            "multi-line",
-            "grid-scatter",
-            "grid-line",
-            "vertical-bar",
-            "horizontal-bar",
-        ]:
-            xlabel = data["xlabel"]
-            ylabel = data["ylabel"]
-            labels = data["labels"]
-            colors = data["colors"]
-            xvals = data["xvals"]
-            yvals = data["yvals"]
-            zvals = data["zvals"]
-
-            plot_obj = kwargs.pop("plot_obj", None)
-
-            kwargs = {
-                "plot_modifiers": data["plot_modifiers"],
-                "item_colors": data["itemColors"],
-                "item_labels": data["itemLabels"],
-                "xerrors": data["xvalsErr"],
-                "yerrors": data["yvalsErr"],
-                "xlabels": data["xlabels"],
-                "ylabels": data["ylabels"],
-                "plot_obj": plot_obj,
-            }
-
-        if plot_type == "scatter":
-            self.panel_plot.on_plot_other_scatter(
-                xvals, yvals, zvals, xlabel, ylabel, colors, labels, set_page=True, **kwargs
-            )
-        elif plot_type == "waterfall":
-            kwargs = {"labels": labels, "plot_obj": plot_obj}
-            self.panel_plot.on_plot_other_waterfall(
-                xvals, yvals, None, xlabel, ylabel, colors=colors, set_page=True, **kwargs
-            )
-        elif plot_type == "multi-line":
-            self.panel_plot.on_plot_other_overlay(
-                xvals, yvals, xlabel, ylabel, colors=colors, set_page=True, labels=labels, **kwargs
-            )
-        elif plot_type == "line":
-            kwargs = {
-                "line_color": colors[0],
-                "shade_under_color": colors[0],
-                "plot_modifiers": data["plot_modifiers"],
-                "plot_obj": plot_obj,
-            }
-            self.panel_plot.on_plot_other_1D(xvals, yvals, xlabel, ylabel, **kwargs)
-        elif plot_type == "grid-line":
-            self.panel_plot.on_plot_other_grid_1D(
-                xvals, yvals, xlabel, ylabel, colors=colors, labels=labels, set_page=True, **kwargs
-            )
-        elif plot_type == "grid-scatter":
-            self.panel_plot.on_plot_other_grid_scatter(
-                xvals, yvals, xlabel, ylabel, colors=colors, labels=labels, set_page=True, **kwargs
-            )
-
-        elif plot_type in ["vertical-bar", "horizontal-bar"]:
-            kwargs.update(orientation=plot_type)
-            self.panel_plot.on_plot_other_bars(
-                xvals, data["yvals_min"], data["yvals_max"], xlabel, ylabel, colors, set_page=True, **kwargs
-            )
-        elif plot_type in ["matrix"]:
-            zvals, yxlabels, cmap = self.presenter.get2DdataFromDictionary(
-                dictionary=data, plotType="Matrix", compact=False
-            )
-            self.panel_plot.on_plot_matrix(zvals=zvals, xylabels=yxlabels, cmap=cmap, set_page=True)
-        else:
-            msg = (
-                "Plot: {} is not supported yet. Please contact Lukasz Migas \n".format(plot_type)
-                + "if you would like to include a new plot type in ORIGAMI. Currently \n"
-                + "supported plots include: line, multi-line, waterfall, scatter and grid."
-            )
-            DialogBox(title="Plot type not supported", msg=msg, kind="Error")
-
-        if save_image:
-            basename = os.path.splitext(self._document_data.title)[0]
-            defaultValue = (
-                "Custom_{}_{}".format(basename, os.path.splitext(self._item_leaf)[0]).replace(":", "").replace(" ", "")
-            )
-            save_kwargs = {"image_name": defaultValue}
-            self.panel_plot.save_images(evt="other", **save_kwargs)
-
-    def on_show_zoom_on_ion(self, evt, save_image=False):
+    def on_show_zoom_on_ion(self, _evt):
+        """Zoom-in on an ion in a mass spectrum window"""
         if self._item.is_match("heatmap", True):
             return
 
         # get data for selected item
-        obj = self._get_item_object()
+        # obj = self._get_item_object()
         _, title = self._get_item_info()
 
-        self.on_show_plot_zoom_on_mass_spectrum(obj, title)
+        self.on_show_plot_zoom_on_mass_spectrum(title)
 
-    #
-    #     if save_image:
-    #         filename = self._item.get_name("heatmap")
-    #         self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
-    def on_show_plot_zoom_on_mass_spectrum(self, data, ion_name):
+    def on_show_plot_zoom_on_mass_spectrum(self, ion_name):
         """Zoom-in on an ion"""
         from origami.utils.labels import get_mz_from_label
 
@@ -3087,7 +2990,7 @@ class DocumentTree(wx.TreeCtrl):
         self.panel_plot.view_ms.set_xlim(mz_min, mz_max)
         self.panel_plot.set_page("MS")
 
-    def on_show_plot_mass_spectra(self, evt, save_image=False):
+    def on_show_plot_mass_spectra(self, _evt, save_image=False):
         """Show mass spectrum in the main viewer"""
         if self._item.is_match("spectrum", True):
             return
@@ -3100,7 +3003,8 @@ class DocumentTree(wx.TreeCtrl):
             filename = self._item.get_name("ms")
             self.panel_plot.save_images(evt="ms", image_name=filename)
 
-    def on_show_plot_dtms(self, evt, save_image=False):
+    def on_show_plot_dtms(self, _evt, save_image=False):
+        """Show MS/DT plot as heatmap"""
         if self._item.is_match("msdt", True):
             return
 
@@ -3111,7 +3015,7 @@ class DocumentTree(wx.TreeCtrl):
             filename = self._item.get_name("dtms")
             self.panel_plot.save_images(evt="ms/dt", image_name=filename)
 
-    def on_show_plot_dtms_joint(self, evt, save_image=False):
+    def on_show_plot_dtms_joint(self, _evt, save_image=False):
         """Show MS/DT plot as a joint plot"""
         if self._item.is_match("msdt", True):
             return
@@ -3125,7 +3029,8 @@ class DocumentTree(wx.TreeCtrl):
             filename = self._item.get_name("joint")
             self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
 
-    def on_show_plot_mobilogram(self, evt, save_image=False):
+    def on_show_plot_mobilogram(self, _evt, save_image=False):
+        """Show mobilogram"""
         if self._item.is_match("mobilogram", True):
             return
 
@@ -3136,7 +3041,8 @@ class DocumentTree(wx.TreeCtrl):
             filename = self._item.get_name("dt")
             self.panel_plot.save_images(evt="mobilogram", image_name=filename)
 
-    def on_show_plot_chromatogram(self, evt, save_image=False):
+    def on_show_plot_chromatogram(self, _evt, save_image=False):
+        """Show chromatogram"""
         if self._item.is_match("chromatogram", True):
             return
 
@@ -3148,7 +3054,7 @@ class DocumentTree(wx.TreeCtrl):
             filename = self._item.get_name("rt")
             self.panel_plot.save_images(evt="chromatogram", image_name=filename)
 
-    def on_show_plot_heatmap(self, evt, save_image=False):
+    def on_show_plot_heatmap(self, _evt, save_image=False):
         """Show heatmap"""
         if self._item.is_match("heatmap", True):
             return
@@ -3161,7 +3067,7 @@ class DocumentTree(wx.TreeCtrl):
             filename = self._item.get_name("heatmap")
             self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
 
-    def on_show_plot_heatmap_contour(self, evt, save_image=False):
+    def on_show_plot_heatmap_contour(self, _evt, save_image=False):
         """Show heatmap as a contour plot"""
         if self._item.is_match("heatmap", True):
             return
@@ -3175,7 +3081,7 @@ class DocumentTree(wx.TreeCtrl):
             filename = self._item.get_name("heatmap")
             self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
 
-    def on_show_plot_heatmap_3d(self, evt, save_image=False):
+    def on_show_plot_heatmap_3d(self, _evt, save_image=False):
         """Show heatmap object in 3d"""
         if self._item.is_match("heatmap", True):
             return
@@ -3189,7 +3095,7 @@ class DocumentTree(wx.TreeCtrl):
             filename = self._item.get_name("heatmap-3d")
             self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
 
-    def on_show_plot_heatmap_chromatogram(self, evt, save_image=False):
+    def on_show_plot_heatmap_chromatogram(self, _evt, save_image=False):
         """Sum heatmap object along one dimension and show it in a chromatogram plot"""
         if self._item.is_match("heatmap", True):
             return
@@ -3203,7 +3109,7 @@ class DocumentTree(wx.TreeCtrl):
             filename = self._item.get_name("heatmap")
             self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
 
-    def on_show_plot_heatmap_mobilogram(self, evt, save_image=False):
+    def on_show_plot_heatmap_mobilogram(self, _evt, save_image=False):
         """Sum heatmap object along one dimension and show it in a mobilogram plot"""
         if self._item.is_match("heatmap", True):
             return
@@ -3217,7 +3123,7 @@ class DocumentTree(wx.TreeCtrl):
             filename = self._item.get_name("heatmap")
             self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
 
-    def on_show_plot_heatmap_violin(self, evt, save_image=False):
+    def on_show_plot_heatmap_violin(self, _evt, save_image=False):
         """Show heatmap object in a violin plot"""
         if self._item.is_match("heatmap", True):
             return
@@ -3231,7 +3137,7 @@ class DocumentTree(wx.TreeCtrl):
             filename = self._item.get_name("violin")
             self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
 
-    def on_show_plot_heatmap_joint(self, evt, save_image=False):
+    def on_show_plot_heatmap_joint(self, _evt, save_image=False):
         """Show heatmap object in a joint plot"""
         if self._item.is_match("heatmap", True):
             return
@@ -3245,7 +3151,7 @@ class DocumentTree(wx.TreeCtrl):
             filename = self._item.get_name("joint")
             self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
 
-    def on_show_plot_heatmap_waterfall(self, evt, save_image=False):
+    def on_show_plot_heatmap_waterfall(self, _evt, save_image=False):
         """Show heatmap object in a waterfall plot"""
         if self._item.is_match("heatmap", True):
             return
@@ -3620,7 +3526,8 @@ class DocumentTree(wx.TreeCtrl):
         }
         return group_dict.get(parts[0]), parts[0], parts[1]
 
-    def _get_group_title(self, key):
+    @staticmethod
+    def _get_group_title(key):
         """Return formatted groum title"""
         group_dict = {
             "MassSpectra": "MassSpectra",
@@ -3819,7 +3726,7 @@ class DocumentTree(wx.TreeCtrl):
         self.panel_plot.on_clear_all_plots()
         self.on_enable_document()
         pub.sendMessage(
-            "notify.message.warning",
+            "notify.message.success",
             message=f"Document `{self._item.title}` was moved to the recycle bin where you can still recover it.",
         )
 

@@ -39,12 +39,11 @@ from origami.objects.annotations import Annotations
 from origami.gui_elements.panel_base import TableMixin
 from origami.gui_elements.panel_base import DatasetMixin
 from origami.gui_elements.misc_dialogs import DialogBox
-
-from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
-from origami.gui_elements.views.view_spectrum import ViewChromatogram
-from origami.gui_elements.views.view_spectrum import ViewMobilogram
 from origami.gui_elements.views.view_heatmap import ViewIonHeatmap
 from origami.gui_elements.views.view_heatmap import ViewMassSpectrumHeatmap
+from origami.gui_elements.views.view_spectrum import ViewMobilogram
+from origami.gui_elements.views.view_spectrum import ViewChromatogram
+from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
 
 # Module globals
 logger = logging.getLogger(__name__)
@@ -206,6 +205,7 @@ class PanelAnnotationEditorUI(MiniFrame, TableMixin, DatasetMixin):
     PUB_SUBSCRIBE_MOVE_LABEL_EVENT = "editor.edit.label"
     PUB_SUBSCRIBE_MOVE_PATCH_EVENT = "editor.edit.patch"
     USE_COLOR = False
+    PANEL_BASE_TITLE = "Annotations"
 
     # pre-allocate ui controls
     peaklist = None

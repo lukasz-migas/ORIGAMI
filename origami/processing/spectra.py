@@ -144,15 +144,11 @@ def baseline_als(y, lam, p, niter=10):
 
 
 def baseline_linear(data, threshold: float, **kwargs):
-    # value_max = np.max(data)
+    """Subtract baseline using linear method"""
+    if not isinstance(threshold, (int, float)):
+        raise TypeError("Threshold must be a number")
     if threshold < 0:
-        raise MessageError("Incorrect input", "Value should be above 0")
-
-    #     if threshold > value_max:
-    #         raise MessageError(
-    #             "Incorrect input", f"Value {threshold} is above the maximum {value_max} when trying to remove
-    #             baseline"
-    #         )
+        raise ValueError("Value should be above 0")
 
     data[data <= threshold] = 0
 
@@ -174,7 +170,7 @@ def baseline_tophat(data, tophat_window=100, **kwargs):
     return white_tophat(data, tophat_window)
 
 
-def baseline_1D(
+def baseline_1d(
     y,
     baseline_method: str = "Linear",
     threshold: Optional[float] = None,
@@ -380,7 +376,7 @@ def crop_1D_data(x, y, crop_min: Optional[float] = None, crop_max: Optional[floa
 
     min_idx, max_idx = find_nearest_index(x, [crop_min, crop_max])
 
-    return x[min_idx:max_idx], y[min_idx:max_idx]
+    return x[min_idx : max_idx + 1], y[min_idx : max_idx + 1]
 
 
 def sum_1D(data):

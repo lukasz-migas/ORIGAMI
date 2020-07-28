@@ -29,6 +29,7 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin):
     # panel settings
     TIMER_DELAY = 1000  # ms
     PUB_IN_PROGRESS_EVENT = "widget.process.heatmap"
+    PANEL_BASE_TITLE = "Process Heatmap"
 
     # ui elements
     document_info_text = None

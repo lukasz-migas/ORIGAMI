@@ -41,6 +41,7 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
     PUB_SUBSCRIBE_EVENT = "widget.picker.update.spectrum"
     PUB_DELETE_ITEM_EVENT = "document.delete.item"
     HELP_LINK = "https://origami.lukasz-migas.com/"
+    PANEL_BASE_TITLE = "Peak Picker"
 
     # parameters
     _settings_panel_size = None

@@ -83,6 +83,7 @@ class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
     TABLE_COLUMN_INDEX = TableColumnIndex
     USE_COLOR = True
     HELP_LINK = r"https://origami.lukasz-migas.com/"
+    PANEL_BASE_TITLE = "LESA - Viewer"
 
     # ui elements
     spectrum_choice = None

@@ -21,6 +21,7 @@ class PanelProcessMSDT(MiniFrame, DatasetMixin):
 
     # panel settings
     TIMER_DELAY = 1000  # ms
+    PANEL_BASE_TITLE = "MS/DT Extraction Parameters"
 
     # ui elements
     mz_min_value = None

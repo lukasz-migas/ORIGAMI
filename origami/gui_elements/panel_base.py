@@ -479,23 +479,49 @@ class DatasetMixin:
     """Mixin class that detects whether to close the window"""
 
     PUB_DELETE_ITEM_EVENT = "document.delete.item"
+    PUB_RENAME_ITEM_EVENT = "document.rename.item"
     DELETE_ITEM_MSG = "Data object that is shown in this window has been deleted, therefore, this window will close too"
+    PANEL_BASE_TITLE = ""
     document_title = None
     dataset_name = None
 
     def _dataset_mixin_setup(self):
         """Setup mixin class"""
         pub.subscribe(self._evt_delete_item, self.PUB_DELETE_ITEM_EVENT)
+        pub.subscribe(self._evt_rename_item, self.PUB_RENAME_ITEM_EVENT)
 
     def _dataset_mixin_teardown(self):
         """Teardown/cleanup mixin class"""
         try:
             pub.unsubscribe(self._evt_delete_item, self.PUB_DELETE_ITEM_EVENT)
+            pub.unsubscribe(self._evt_rename_item, self.PUB_RENAME_ITEM_EVENT)
         except TopicNameError:
             pass
 
+    def _evt_rename_item(self, info):
+        """Triggered when document or dataset is renamed"""
+        if not isinstance(info, (tuple, list)) and len(info) == 3:
+            return
+
+        if self._evt_rename_check(info):
+            self.document_title = info[0]
+            self.dataset_name = info[2]
+            self.update_window_title()
+            LOGGER.info("Panel dataset information updated!")
+
+    def _evt_rename_check(self, info):
+        """Function to check whether window should be closed - can be overwritten to do another kind of check"""
+        document_title, dataset_name, _ = info
+
+        if document_title == self.document_title:
+            if dataset_name is not None:
+                if not self.dataset_name.startswith(dataset_name) and dataset_name != self.dataset_name:
+                    return False
+            return True
+        return False
+
     def _evt_delete_item(self, info):
-        """Triggered when document is deleted"""
+        """Triggered when document or dataset is deleted"""
 
         if self._evt_delete_check(info):
             DialogBox(title="Dataset was deleted.", msg=self.DELETE_ITEM_MSG, kind="Error")
@@ -515,6 +541,13 @@ class DatasetMixin:
     def on_close(self, evt, force: bool = False):
         """On-close event handler"""
         raise NotImplementedError("Must implement method")
+
+    def update_window_title(self):
+        """Update title"""
+        title = f"{self.PANEL_BASE_TITLE}: {self.document_title}"
+        if self.dataset_name is not None:
+            title += f" :: {self.dataset_name}"
+        self.SetTitle(title)  # noqa
 
 
 # noinspection DuplicatedCode

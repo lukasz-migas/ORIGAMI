@@ -10,5 +10,4 @@ composable classes instead
 - [ ] replace the old-style icons
 - [ ] add controls to specify the number of threads running simultaneously
 - [ ] fix a bug that removes the z-axis and label when updating data in the heatmap-3d plot
-- [ ] add option to rename/move data objects
 - [ ] make usage of the notification toast

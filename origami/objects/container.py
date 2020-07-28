@@ -14,7 +14,7 @@ class ContainerBase:
         self._owner = None
         self._path = None
         self._output_path = None
-        self._unsaved = None
+        self._unsaved = False
 
         self._x_label = x_label
         self._y_label = y_label

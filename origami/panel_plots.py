@@ -1209,21 +1209,18 @@ class PanelPlots(wx.Panel):
         """Clear all plots in the main window"""
 
         # Delete all plots
-        plot_list = [
-            self.plot_ms,
-            self.plot_rt_rt,
-            self.plot_dt_dt,
-            self.plot_heatmap,
-            self.plot_heatmap_3d,
-            self.plot_overlay,
-            self.plot_msdt,
-            self.plot_annotated,
+        view_list = [
+            self.view_ms,
+            self.view_rt_rt,
+            self.view_dt_dt,
+            self.view_heatmap,
+            self.view_msdt,
+            self.view_heatmap_3d,
         ]
 
-        for plot in plot_list:
-            plot.clear()
-            plot.repaint()
-        # Message
+        for view in view_list:
+            view.clear()
+            view.repaint()
         logger.info("Cleared all plots")
 
     def on_plot_ms(self, obj, allow_extraction: bool = True, set_page: bool = False):

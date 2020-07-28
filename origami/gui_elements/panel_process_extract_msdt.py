@@ -22,6 +22,8 @@ logger = logging.getLogger(__name__)
 class PanelProcessExtractMSDT(MiniFrame, DatasetMixin):
     """Panel enabling extraction of new or additional MS/DT data"""
 
+    PANEL_BASE_TITLE = "Extract DT/MS"
+
     # ui elements
     mz_min_value = None
     mz_max_value = None
