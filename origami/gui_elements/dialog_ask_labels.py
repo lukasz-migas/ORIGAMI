@@ -86,10 +86,10 @@ class DialogSelectLabels(Dialog):
         self.y_label_enter = wx.TextCtrl(self, -1, "")
         self.y_label_enter.Bind(wx.EVT_TEXT, self.on_select)
 
-        self.ok_btn = wx.Button(self, wx.ID_OK, "OK", size=(-1, 22))
+        self.ok_btn = wx.Button(self, wx.ID_OK, "OK", size=(-1, -1))
         self.ok_btn.Bind(wx.EVT_BUTTON, self.on_ok)
 
-        self.cancel_btn = wx.Button(self, wx.ID_ANY, "Cancel", size=(-1, 22))
+        self.cancel_btn = wx.Button(self, wx.ID_ANY, "Cancel", size=(-1, -1))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
         btn_grid = wx.BoxSizer(wx.HORIZONTAL)

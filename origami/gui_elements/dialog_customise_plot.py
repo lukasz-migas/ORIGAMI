@@ -113,7 +113,7 @@ class DialogCustomisePlot(wx.Dialog):
 
         self.override_defaults = make_checkbox(panel, "Override extents")
 
-        self.applyBtn = wx.Button(panel, wx.ID_ANY, "Apply scales", size=(-1, 22))
+        self.applyBtn = wx.Button(panel, wx.ID_ANY, "Apply scales", size=(-1, -1))
         self.applyBtn.Bind(wx.EVT_BUTTON, self.on_apply_scales)
 
         scales_grid = wx.GridBagSizer(2, 2)
@@ -429,9 +429,9 @@ class DialogCustomisePlot(wx.Dialog):
         self.lock_plot.SetValue(self.plot.lock_plot_from_updating)
         self.lock_plot.Bind(wx.EVT_CHECKBOX, self.on_lock_plot)
 
-        self.resetBtn = wx.Button(panel, wx.ID_ANY, "Reset", size=(-1, 22))
-        self.cancelBtn = wx.Button(panel, -1, "Cancel", size=(-1, 22))
-        self.saveImageBtn = wx.Button(panel, wx.ID_ANY, "Save image", size=(-1, 22))
+        self.resetBtn = wx.Button(panel, wx.ID_ANY, "Reset", size=(-1, -1))
+        self.cancelBtn = wx.Button(panel, -1, "Cancel", size=(-1, -1))
+        self.saveImageBtn = wx.Button(panel, wx.ID_ANY, "Save image", size=(-1, -1))
 
         # pack elements
         grid = wx.GridBagSizer(5, 5)

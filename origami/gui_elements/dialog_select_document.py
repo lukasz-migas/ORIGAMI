@@ -75,22 +75,22 @@ class DialogSelectDocument(Dialog):
         self.document_list_choice.Select(0)
         set_tooltip(self.document_list_choice, "Select one of the available documents.")
 
-        self.ok_btn = wx.Button(panel, wx.ID_OK, "OK", size=(-1, 22))
+        self.ok_btn = wx.Button(panel, wx.ID_OK, "OK", size=(-1, -1))
         self.ok_btn.Bind(wx.EVT_BUTTON, self.on_ok, id=wx.ID_ANY)
         set_tooltip(self.ok_btn, "Select currently selected document and close the window.")
 
-        self.open_btn = wx.Button(panel, wx.ID_ANY, "Open existing...", size=(-1, 22))
+        self.open_btn = wx.Button(panel, wx.ID_ANY, "Open existing...", size=(-1, -1))
         self.open_btn.Bind(wx.EVT_BUTTON, self.on_open, id=wx.ID_ANY)
         set_tooltip(
             self.open_btn,
             "Open another `ORIGAMI` document already present on the PC (must end with .origami extension).",
         )
 
-        self.add_btn = wx.Button(panel, wx.ID_ANY, "Add new document", size=(-1, 22))
+        self.add_btn = wx.Button(panel, wx.ID_ANY, "Add new document", size=(-1, -1))
         self.add_btn.Bind(wx.EVT_BUTTON, self.on_new_document)
         set_tooltip(self.add_btn, "Create new document.")
 
-        self.cancel_btn = wx.Button(panel, -1, "Cancel", size=(-1, 22))
+        self.cancel_btn = wx.Button(panel, -1, "Cancel", size=(-1, -1))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
         set_tooltip(self.cancel_btn, "Close the window without making a selection.")
 

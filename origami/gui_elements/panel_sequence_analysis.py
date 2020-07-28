@@ -130,9 +130,9 @@ class panelSequenceAnalysis(wx.MiniFrame):
         self.kappa_value = wx.StaticText(panel, -1, "", size=TEXT_SIZE)
 
         # make buttons
-        self.calculateBtn = wx.Button(panel, wx.ID_OK, "Calculate", size=(-1, 22))
-        self.plotBtn = wx.Button(panel, wx.ID_OK, "Plot", size=(-1, 22))
-        self.cancelBtn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, 22))
+        self.calculateBtn = wx.Button(panel, wx.ID_OK, "Calculate", size=(-1, -1))
+        self.plotBtn = wx.Button(panel, wx.ID_OK, "Plot", size=(-1, -1))
+        self.cancelBtn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, -1))
 
         self.calculateBtn.Bind(wx.EVT_BUTTON, self.onSelect)
         self.plotBtn.Bind(wx.EVT_BUTTON, self.onPlot)

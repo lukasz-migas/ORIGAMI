@@ -74,10 +74,10 @@ class PanelModifyManualFilesSettings(MiniFrame):
 
         horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
-        self.showBtn = wx.Button(panel, wx.ID_OK, "Show", size=(-1, 22))
-        self.previousBtn = wx.Button(panel, wx.ID_OK, "Previous", size=(-1, 22))
-        self.nextBtn = wx.Button(panel, wx.ID_OK, "Next", size=(-1, 22))
-        self.cancelBtn = wx.Button(panel, wx.ID_OK, "Close", size=(-1, 22))
+        self.showBtn = wx.Button(panel, wx.ID_OK, "Show", size=(-1, -1))
+        self.previousBtn = wx.Button(panel, wx.ID_OK, "Previous", size=(-1, -1))
+        self.nextBtn = wx.Button(panel, wx.ID_OK, "Next", size=(-1, -1))
+        self.cancelBtn = wx.Button(panel, wx.ID_OK, "Close", size=(-1, -1))
 
         self.showBtn.Bind(wx.EVT_BUTTON, self.on_show)
         self.nextBtn.Bind(wx.EVT_BUTTON, self.on_get_next)

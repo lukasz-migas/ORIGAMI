@@ -72,10 +72,10 @@ class DialogExportData(Dialog):
 
         self.file_extension_label = wx.StaticText(panel, -1, CONFIG.saveExtension)
 
-        self.save_btn = wx.Button(panel, wx.ID_OK, "Save data", size=(-1, 22))
+        self.save_btn = wx.Button(panel, wx.ID_OK, "Save data", size=(-1, -1))
         self.save_btn.Bind(wx.EVT_BUTTON, self.on_save)
 
-        self.cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, 22))
+        self.cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, -1))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
         btn_grid = wx.GridBagSizer(2, 2)

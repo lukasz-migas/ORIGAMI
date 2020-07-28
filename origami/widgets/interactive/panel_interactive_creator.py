@@ -1076,11 +1076,11 @@ class PanelInteractiveCreator(wx.MiniFrame):
 
     def make_dialog_buttons(self, panel):
 
-        pathBtn = wx.Button(panel, -1, "Set Path", size=(-1, 22))
-        saveBtn = wx.Button(panel, -1, "Export HTML", size=(-1, 22))
-        cancelBtn = wx.Button(panel, -1, "Cancel", size=(-1, 22))
+        pathBtn = wx.Button(panel, -1, "Set Path", size=(-1, -1))
+        saveBtn = wx.Button(panel, -1, "Export HTML", size=(-1, -1))
+        cancelBtn = wx.Button(panel, -1, "Cancel", size=(-1, -1))
 
-        openHTMLWebBtn = wx.Button(panel, ID_helpHTMLEditor, "HTML Editor", size=(-1, 22))
+        openHTMLWebBtn = wx.Button(panel, ID_helpHTMLEditor, "HTML Editor", size=(-1, -1))
         openHTMLWebBtn.SetToolTip(wx.ToolTip("Opens a web-based HTML editor"))
 
         itemPath_label = wx.StaticText(panel, -1, "File path:")

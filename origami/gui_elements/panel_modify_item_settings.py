@@ -179,19 +179,19 @@ class PanelModifyItemSettings(MiniFrame):
         horizontal_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
         if self.add_show_button:
-            self.showBtn = wx.Button(panel, wx.ID_OK, "Show", size=(-1, 22))
+            self.showBtn = wx.Button(panel, wx.ID_OK, "Show", size=(-1, -1))
             self.showBtn.Bind(wx.EVT_BUTTON, self.on_show)
 
-        self.applyBtn = wx.Button(panel, wx.ID_OK, "Apply", size=(-1, 22))
+        self.applyBtn = wx.Button(panel, wx.ID_OK, "Apply", size=(-1, -1))
         self.applyBtn.Bind(wx.EVT_BUTTON, self.on_select)
 
-        self.previousBtn = wx.Button(panel, wx.ID_OK, "Previous", size=(-1, 22))
+        self.previousBtn = wx.Button(panel, wx.ID_OK, "Previous", size=(-1, -1))
         self.previousBtn.Bind(wx.EVT_BUTTON, self.on_get_previous)
 
-        self.nextBtn = wx.Button(panel, wx.ID_OK, "Next", size=(-1, 22))
+        self.nextBtn = wx.Button(panel, wx.ID_OK, "Next", size=(-1, -1))
         self.nextBtn.Bind(wx.EVT_BUTTON, self.on_get_next)
 
-        self.cancelBtn = wx.Button(panel, wx.ID_OK, "Close", size=(-1, 22))
+        self.cancelBtn = wx.Button(panel, wx.ID_OK, "Close", size=(-1, -1))
         self.cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
 
         btn_grid = wx.GridBagSizer(2, 2)

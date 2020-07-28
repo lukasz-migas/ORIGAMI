@@ -143,8 +143,8 @@ class DialogAsk(Dialog):
         self.input_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.input_value.SetFocus()
 
-        self.ok_btn = wx.Button(panel, wx.ID_OK, "OK", size=(-1, 22))
-        self.cancel_btn = wx.Button(panel, -1, "Cancel", size=(-1, 22))
+        self.ok_btn = wx.Button(panel, wx.ID_OK, "OK", size=(-1, -1))
+        self.cancel_btn = wx.Button(panel, -1, "Cancel", size=(-1, -1))
 
         btn_grid = wx.BoxSizer(wx.HORIZONTAL)
         btn_grid.Add(self.ok_btn)

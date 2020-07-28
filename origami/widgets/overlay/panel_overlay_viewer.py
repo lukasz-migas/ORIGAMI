@@ -285,16 +285,16 @@ class PanelOverlayViewer(MiniFrame):
         horizontal_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
         horizontal_line_99 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
-        self.action_btn = wx.Button(panel, wx.ID_OK, "Action ▼", size=(-1, 22))
+        self.action_btn = wx.Button(panel, wx.ID_OK, "Action ▼", size=(-1, -1))
         self.action_btn.Bind(wx.EVT_BUTTON, self.on_action_tools)
 
-        self.plot_btn = wx.Button(panel, wx.ID_OK, "Plot", size=(-1, 22))
+        self.plot_btn = wx.Button(panel, wx.ID_OK, "Plot", size=(-1, -1))
         self.plot_btn.Bind(wx.EVT_BUTTON, self.on_overlay)
 
-        self.add_to_document_btn = wx.Button(panel, wx.ID_OK, "Add to document", size=(-1, 22))
+        self.add_to_document_btn = wx.Button(panel, wx.ID_OK, "Add to document", size=(-1, -1))
         self.add_to_document_btn.Bind(wx.EVT_BUTTON, self.on_add_to_document)
 
-        self.cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, 22))
+        self.cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, -1))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
         self.hot_plot_check = make_checkbox(panel, "Hot plot")

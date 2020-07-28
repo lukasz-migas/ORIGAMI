@@ -6,6 +6,7 @@ import logging
 # Third-party imports
 import wx
 import numpy as np
+
 import wx.lib.scrolledpanel as wxScrolledPanel
 from pubsub import pub
 from pubsub.core.topicexc import TopicNameError
@@ -39,7 +40,6 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
 
     # module specific parameters
     PUB_SUBSCRIBE_EVENT = "widget.picker.update.spectrum"
-    PUB_DELETE_ITEM_EVENT = "document.delete.item"
     HELP_LINK = "https://origami.lukasz-migas.com/"
     PANEL_BASE_TITLE = "Peak Picker"
 
@@ -151,10 +151,16 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
 
     def setup(self):
         """Setup various UI elements"""
+        # restrict the widths of the elements
+        self.post_filter_choice.SetMaxSize(self.post_filter_choice.GetSize())
+        self.post_score_choice.SetMaxSize(self.post_score_choice.GetSize())
+        self.post_filter_lower_value.SetMaxSize(self.post_filter_lower_value.GetSize())
+        self.post_filter_upper_value.SetMaxSize(self.post_filter_upper_value.GetSize())
+
+        # bind events
         self.process_btn.Bind(wx.EVT_BUTTON, self.on_open_process_ms_settings)
         if self.PUB_SUBSCRIBE_EVENT:
             pub.subscribe(self.on_process, self.PUB_SUBSCRIBE_EVENT)
-
         self._dataset_mixin_setup()
 
     @property
@@ -344,14 +350,14 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
     # noinspection DuplicatedCode
     def make_gui(self):
         """Make UI"""
-        settings_sizer = self.make_notebook(self)
-        self._settings_panel_size = settings_sizer.GetSize()
+        self.settings_panel = self.make_notebook(self)
+        self._settings_panel_size = self.settings_panel.GetSize()
 
         self.plot_panel = self.make_plot_panel(self)
 
         # pack element
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        main_sizer.Add(settings_sizer, 0, wx.EXPAND, 0)
+        main_sizer.Add(self.settings_panel, 0, wx.EXPAND, 0)
         main_sizer.Add(self.plot_panel, 1, wx.EXPAND, 0)
 
         # fit layout
@@ -365,12 +371,11 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
     def make_notebook(self, split_panel):
         """Make settings notebook"""
         panel = wxScrolledPanel.ScrolledPanel(split_panel, -1, size=(-1, -1), name="main")
-        wx.CallAfter(panel.SetupScrolling, scroll_x=False, scroll_y=True)
 
         # make pre-processing panel
         preprocess_panel = self.make_settings_panel_preprocess(panel)
 
-        self.panel_book = wx.Notebook(panel, wx.ID_ANY, style=wx.NB_NOPAGETHEME)
+        self.panel_book = wx.Choicebook(panel, wx.ID_ANY, style=wx.CHB_DEFAULT)
         self.panel_book.SetBackgroundColour((240, 240, 240))
         self.panel_book.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.on_update_method)
 
@@ -411,6 +416,7 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
             10,
         )
         settings_sizer.Add(self.panel_book, 0, wx.EXPAND | wx.ALL, 0)
+        settings_sizer.AddSpacer(5)
         settings_sizer.Add(btn_sizer, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
         settings_sizer.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND | wx.ALL, 0)
 
@@ -431,6 +437,7 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         settings_sizer.Fit(panel)
         settings_sizer.SetMinSize((380, -1))
         panel.SetSizerAndFit(settings_sizer)
+        panel.SetupScrolling(scroll_x=False, scroll_y=True)
 
         return panel
 
@@ -438,7 +445,7 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         """Make sub-section that contains the peak-picking button"""
 
         # make peak-picking button
-        self.find_peaks_btn = wx.Button(panel, wx.ID_OK, "Find peaks", size=(-1, 22))
+        self.find_peaks_btn = wx.Button(panel, wx.ID_OK, "Find peaks", size=(-1, -1))
         self.find_peaks_btn.Bind(wx.EVT_BUTTON, self.on_find_peaks)
         self.verbose_check = make_checkbox(
             panel, "Verbose", tooltip="When checked, more logging information will be printed to the console."
@@ -550,7 +557,7 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
             "\nSlopes - measures the left/right side slopes of the peak",
         )
 
-        lower_value = wx.StaticText(panel, wx.ID_ANY, "criteria:")
+        criteria_value = wx.StaticText(panel, wx.ID_ANY, "Criteria:")
         self.post_filter_lower_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.post_filter_lower_value.Bind(wx.EVT_TEXT, self.on_apply)
         set_tooltip(self.post_filter_lower_value, "Set lower bound of the selection criteria. Values are inclusive.")
@@ -560,15 +567,16 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         self.post_filter_upper_value.Bind(wx.EVT_TEXT, self.on_apply)
         set_tooltip(self.post_filter_upper_value, "Set upper bound of the selection criteria. Values are inclusive.")
 
-        self.post_filter_btn = wx.Button(panel, wx.ID_OK, "View", size=(-1, 22))
+        self.post_filter_btn = wx.Button(panel, wx.ID_OK, "View", size=(-1, -1))
         self.post_filter_btn.Bind(wx.EVT_BUTTON, self.on_view_filter)
 
-        self.post_apply_btn = wx.Button(panel, wx.ID_OK, "Apply", size=(-1, 22))
+        self.post_apply_btn = wx.Button(panel, wx.ID_OK, "Apply", size=(-1, -1))
         self.post_apply_btn.Bind(wx.EVT_BUTTON, self.on_apply_filter)
 
         # data grid
         btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
         btn_sizer.Add(self.post_filter_btn, 0, wx.ALIGN_CENTER_VERTICAL)
+        btn_sizer.AddSpacer(5)
         btn_sizer.Add(self.post_apply_btn, 0, wx.ALIGN_CENTER_VERTICAL)
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -588,7 +596,7 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         grid.Add(score_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.post_score_choice, (n, 1), (1, 3), flag=wx.EXPAND)
         n += 1
-        grid.Add(lower_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(criteria_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(sizer, (n, 1), (1, 3), flag=wx.EXPAND | wx.ALL)
         grid.AddGrowableCol(1, 1)
 
@@ -677,10 +685,10 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         self.visualize_show_labels_width_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.visualize_show_labels_width_check.Bind(wx.EVT_CHECKBOX, self.on_annotate_spectrum_with_labels)
 
-        self.plot_peaks_btn = wx.Button(panel, wx.ID_OK, "Plot peaks", size=(-1, 22))
+        self.plot_peaks_btn = wx.Button(panel, wx.ID_OK, "Plot peaks", size=(-1, -1))
         self.plot_peaks_btn.Bind(wx.EVT_BUTTON, self.on_annotate_spectrum)
 
-        self.action_btn = wx.Button(panel, wx.ID_OK, "Action ▼", size=(-1, 22))
+        self.action_btn = wx.Button(panel, wx.ID_OK, "Action ▼", size=(-1, -1))
         self.action_btn.Bind(wx.EVT_BUTTON, self.on_action_tools)
 
         # visualize grid
@@ -730,10 +738,15 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         self.width_value.SetValue(str(CONFIG.peak_find_width))
         self.width_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        relative_height_value = wx.StaticText(panel, wx.ID_ANY, "Measure peak width at relative height:")
+        relative_height_value = wx.StaticText(panel, wx.ID_ANY, "Peak width at rel. height:")
         self.relative_height_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.relative_height_value.SetValue(str(CONFIG.peak_find_relative_height))
         self.relative_height_value.Bind(wx.EVT_TEXT, self.on_apply)
+        set_tooltip(
+            self.relative_height_value,
+            "Specify the relative height at which to measure the peak width. The larger the value, the wider the peak "
+            " becomes as width is measured closer to the base.\nValues should be between 0.-1.",
+        )
 
         min_intensity_value = wx.StaticText(panel, wx.ID_ANY, "Minimal intensity:")
         self.min_intensity_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
@@ -741,7 +754,7 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         self.min_intensity_value.Bind(wx.EVT_TEXT, self.on_apply)
         self.min_intensity_value.Bind(wx.EVT_TEXT, self.on_show_threshold_line)
 
-        min_distance_value = wx.StaticText(panel, wx.ID_ANY, "Minimal distance between peaks:")
+        min_distance_value = wx.StaticText(panel, wx.ID_ANY, "Min. distance between peaks:")
         self.min_distance_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("intPos"))
         self.min_distance_value.SetValue(str(CONFIG.peak_find_distance))
         self.min_distance_value.Bind(wx.EVT_TEXT, self.on_apply)
@@ -801,10 +814,15 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
 
         self.fit_local_window_mz_spacing = wx.StaticText(panel, wx.ID_ANY, "")
 
-        fit_relative_height = wx.StaticText(panel, wx.ID_ANY, "Measure peak width at relative height:")
+        fit_relative_height = wx.StaticText(panel, wx.ID_ANY, "Peak width at rel. height:")
         self.fit_local_relative_height = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.fit_local_relative_height.SetValue(str(CONFIG.peak_local_relative_height))
         self.fit_local_relative_height.Bind(wx.EVT_TEXT, self.on_apply)
+        set_tooltip(
+            self.fit_local_relative_height,
+            "Specify the relative height at which to measure the peak width. The larger the value, the wider the peak "
+            " becomes as width is measured closer to the base.\nValues should be between 0.-1.",
+        )
 
         # pack elements
         grid = wx.GridBagSizer(5, 5)
@@ -849,12 +867,17 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
 
         self.fit_differential_window_mz_spacing = wx.StaticText(panel, wx.ID_ANY, "")
 
-        fit_relative_height = wx.StaticText(panel, wx.ID_ANY, "Measure peak width at relative height:")
+        fit_relative_height = wx.StaticText(panel, wx.ID_ANY, "Peak width at rel. height:")
         self.fit_differential_relative_height = wx.TextCtrl(
             panel, -1, "", size=(-1, -1), validator=Validator("floatPos")
         )
         self.fit_differential_relative_height.SetValue(str(CONFIG.peak_differential_relative_height))
         self.fit_differential_relative_height.Bind(wx.EVT_TEXT, self.on_apply)
+        set_tooltip(
+            self.fit_differential_relative_height,
+            "Specify the relative height at which to measure the peak width. The larger the value, the wider the peak "
+            " becomes as width is measured closer to the base.\nValues should be between 0.-1.",
+        )
 
         # pack elements
         grid = wx.GridBagSizer(5, 5)
@@ -1193,7 +1216,7 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
             width = mz_picker.x_width[: CONFIG.peak_panel_labels_max_count]
             y_start = np.zeros_like(x_left)
             self.plot_view.remove_patches(repaint=False)
-            self.plot_view.add_patches(x_left, y_start, width, y, repaint=False)
+            self.plot_view.add_patches(x_left, y_start, width, y, repaint=False, pickable=False)
         else:
             self.plot_view.remove_patches(repaint=False)
 

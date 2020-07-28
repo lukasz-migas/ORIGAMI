@@ -458,10 +458,10 @@ class PanelUVPDEditor(wx.MiniFrame):
         self.show_patches.SetValue(self.config.uvpd_peak_show_patches)
         self.show_patches.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.find_peaks_btn = wx.Button(panel, wx.ID_OK, "Find peaks", size=(-1, 22))
+        self.find_peaks_btn = wx.Button(panel, wx.ID_OK, "Find peaks", size=(-1, -1))
         self.find_peaks_btn.Bind(wx.EVT_BUTTON, self.on_find_peaks)
 
-        self.extract_MS_btn = wx.Button(panel, wx.ID_OK, "Extract spectra", size=(-1, 22))
+        self.extract_MS_btn = wx.Button(panel, wx.ID_OK, "Extract spectra", size=(-1, -1))
         self.extract_MS_btn.Bind(wx.EVT_BUTTON, self.on_extract_mass_spectra)
 
         self.msg_bar = wx.StaticText(panel, -1, "")
@@ -497,7 +497,7 @@ class PanelUVPDEditor(wx.MiniFrame):
 
     def make_extract_panel(self, panel):
 
-        self.extract_features = wx.Button(panel, wx.ID_OK, "Extract mobilograms", size=(-1, 22))
+        self.extract_features = wx.Button(panel, wx.ID_OK, "Extract mobilograms", size=(-1, -1))
         self.extract_features.Bind(wx.EVT_BUTTON, self.on_extract_mobility_for_ions)
         self.extract_features.Disable()
 
@@ -510,11 +510,11 @@ class PanelUVPDEditor(wx.MiniFrame):
 
     def make_monitor_panel(self, panel):
 
-        self.monitor_features = wx.Button(panel, wx.ID_OK, "Monitor features", size=(-1, 22))
+        self.monitor_features = wx.Button(panel, wx.ID_OK, "Monitor features", size=(-1, -1))
         self.monitor_features.Bind(wx.EVT_BUTTON, self.on_monitor_mobility_for_ions)
         self.monitor_features.Disable()
 
-        self.about_button = wx.Button(panel, wx.ID_OK, "About...", size=(-1, 22))
+        self.about_button = wx.Button(panel, wx.ID_OK, "About...", size=(-1, -1))
         self.about_button.Bind(wx.EVT_BUTTON, self.about)
 
         # pack elements

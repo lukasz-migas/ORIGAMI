@@ -121,23 +121,23 @@ class DialogMultiDirPicker(Dialog):
         self.path_value.Bind(wx.EVT_TEXT, self._populate_all_list)
         set_tooltip(self.path_value, "Base directory where to look for other directories.")
 
-        self.directory_btn = wx.Button(panel, wx.ID_OK, "Directory...", size=(-1, 22))
+        self.directory_btn = wx.Button(panel, wx.ID_OK, "Directory...", size=(-1, -1))
         self.directory_btn.Bind(wx.EVT_BUTTON, self.on_select_directory)
         set_tooltip(self.directory_btn, "Click here to select base directory.")
 
-        self.add_btn = wx.Button(panel, wx.ID_OK, ">>>", size=(-1, 22))
+        self.add_btn = wx.Button(panel, wx.ID_OK, ">>>", size=(-1, -1))
         self.add_btn.Bind(wx.EVT_BUTTON, self.on_add)
         set_tooltip(self.add_btn, "Add currently selected directories to the `hold` list.")
 
-        self.remove_btn = wx.Button(panel, wx.ID_OK, "<<<", size=(-1, 22))
+        self.remove_btn = wx.Button(panel, wx.ID_OK, "<<<", size=(-1, -1))
         self.remove_btn.Bind(wx.EVT_BUTTON, self.on_remove)
         set_tooltip(self.remove_btn, "Remove the currently selected directories from the `hold` list.")
 
-        self.ok_btn = wx.Button(panel, wx.ID_OK, "Select", size=(-1, 22))
+        self.ok_btn = wx.Button(panel, wx.ID_OK, "Select", size=(-1, -1))
         self.ok_btn.Bind(wx.EVT_BUTTON, self.on_ok)
         set_tooltip(self.ok_btn, "Select directories (currently selected in the `hold` list and close the window")
 
-        self.cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, 22))
+        self.cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, -1))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
         set_tooltip(self.cancel_btn, "Close the window without making selection")
 

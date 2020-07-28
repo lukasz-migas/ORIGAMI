@@ -2130,9 +2130,6 @@ class DocumentTree(wx.TreeCtrl):
         # self.Bind(wx.EVT_MENU, self.on_save_csv, id=ID_saveDataCSVDocument1D)
         # self.Bind(wx.EVT_MENU, self.on_save_csv, id=ID_saveAsDataCSVDocument)
         # self.Bind(wx.EVT_MENU, self.on_save_csv, id=ID_saveAsDataCSVDocument1D)
-        # self.Bind(wx.EVT_MENU, self.onRenameItem, id=ID_renameItem)
-        # self.Bind(wx.EVT_MENU, self.onDuplicateItem, id=ID_duplicateItem)
-        #
         # # self.Bind(wx.EVT_MENU, self.onShowSampleInfo, id=ID_showSampleInfo)
         # self.Bind(wx.EVT_MENU, self.view.on_open_interactive_output_panel, id=ID_saveAsInteractive)
         # self.Bind(wx.EVT_MENU, self.on_open_spectrum_comparison_viewer, id=ID_docTree_compareMS)
@@ -2143,7 +2140,6 @@ class DocumentTree(wx.TreeCtrl):
         # self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addOneToTextTable)
         # self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addInteractiveToTextTable)
         # self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addOneInteractiveToTextTable)
-        # self.Bind(wx.EVT_MENU, self.onDuplicateItem, id=ID_docTree_duplicate_document)
         # self.Bind(wx.EVT_MENU, self.on_refresh_document, id=ID_docTree_show_refresh_document)
         #
         # # self.Bind(wx.EVT_MENU, self.onOpenDocInfo, id=ID_openDocInfo)

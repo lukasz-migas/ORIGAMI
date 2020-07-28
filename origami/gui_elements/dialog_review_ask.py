@@ -53,15 +53,15 @@ class DialogAskReview(Dialog):
 
         self.msg = wx.StaticText(panel, -1, self._msg, size=(-1, -1))
 
-        self.review_btn = wx.Button(panel, wx.ID_ANY, "Review", size=(-1, 22))
+        self.review_btn = wx.Button(panel, wx.ID_ANY, "Review", size=(-1, -1))
         self.review_btn.Bind(wx.EVT_BUTTON, self.review)
         set_tooltip(self.review_btn, "Review clipboard data before closing the window.")
 
-        self.continue_btn = wx.Button(panel, wx.ID_ANY, "Continue", size=(-1, 22))
+        self.continue_btn = wx.Button(panel, wx.ID_ANY, "Continue", size=(-1, -1))
         self.continue_btn.Bind(wx.EVT_BUTTON, self.ok)
         set_tooltip(self.continue_btn, "Continue without reviewing clipboard data.")
 
-        self.close_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, 22))
+        self.close_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, -1))
         self.close_btn.Bind(wx.EVT_BUTTON, self.on_close)
         set_tooltip(self.close_btn, "Cancel action and come back to the main window.")
 

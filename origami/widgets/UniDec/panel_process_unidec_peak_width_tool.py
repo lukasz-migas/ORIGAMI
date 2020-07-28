@@ -99,11 +99,11 @@ class PanelPeakWidthTool(wx.MiniFrame):
         unidec_resolution_label = wx.StaticText(panel, wx.ID_ANY, "Resolution (M/FWHM):")
         self.unidec_resolution = wx.StaticText(panel, wx.ID_ANY, "")
 
-        self.fitBtn = wx.Button(panel, -1, "Fit", size=(-1, 22))
+        self.fitBtn = wx.Button(panel, -1, "Fit", size=(-1, -1))
         self.fitBtn.SetToolTip(make_tooltip("Fit peak to currently zoomed peak in the spectrum"))
 
-        self.ok_btn = wx.Button(panel, wx.ID_OK, "OK", size=(-1, 22))
-        self.cancel_btn = wx.Button(panel, -1, "Cancel", size=(-1, 22))
+        self.ok_btn = wx.Button(panel, wx.ID_OK, "OK", size=(-1, -1))
+        self.cancel_btn = wx.Button(panel, -1, "Cancel", size=(-1, -1))
 
         peak_grid = wx.GridBagSizer(2, 2)
         n = 0

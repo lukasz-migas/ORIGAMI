@@ -11,6 +11,7 @@ from builtins import isinstance
 # Third-party imports
 import wx
 import numpy as np
+
 import wx.lib.scrolledpanel as wxScrolledPanel
 from pubsub import pub
 
@@ -353,7 +354,6 @@ class PanelAnnotationEditorUI(MiniFrame, TableMixin, DatasetMixin):
     def make_settings_panel(self, split_panel):
         """Make settings panel"""
         panel = wxScrolledPanel.ScrolledPanel(split_panel, -1, size=(-1, -1), name="main")
-        panel.SetupScrolling(scroll_x=False, scroll_y=True)
 
         # statusbar
         statusbar = self.make_statusbar(panel)
@@ -362,7 +362,6 @@ class PanelAnnotationEditorUI(MiniFrame, TableMixin, DatasetMixin):
         self.peaklist = self.make_table(self.TABLE_DICT, panel)
 
         self.name_value = wx.TextCtrl(panel, -1, "", style=wx.TE_RICH2)
-        self.name_value.Disable()
 
         self.label_value = wx.TextCtrl(panel, -1, "", style=wx.TE_RICH2 | wx.TE_MULTILINE)
         self.label_value.SetToolTip(wx.ToolTip("Label associated with the marked region in the plot area"))
@@ -399,10 +398,10 @@ class PanelAnnotationEditorUI(MiniFrame, TableMixin, DatasetMixin):
         self.add_patch_to_peak.SetValue(False)
 
         # make buttons
-        self.add_btn = wx.Button(panel, wx.ID_OK, "Add", size=(-1, 22))
-        self.remove_btn = wx.Button(panel, wx.ID_OK, "Remove", size=(-1, 22))
-        self.show_btn = wx.Button(panel, wx.ID_OK, "Show ▼", size=(-1, 22))
-        self.action_btn = wx.Button(panel, wx.ID_OK, "Action ▼", size=(-1, 22))
+        self.add_btn = wx.Button(panel, wx.ID_OK, "Add", size=(-1, -1))
+        self.remove_btn = wx.Button(panel, wx.ID_OK, "Remove", size=(-1, -1))
+        self.show_btn = wx.Button(panel, wx.ID_OK, "Show ▼", size=(-1, -1))
+        self.action_btn = wx.Button(panel, wx.ID_OK, "Action ▼", size=(-1, -1))
         self.settings_btn = make_bitmap_btn(
             panel,
             wx.ID_ANY,
@@ -487,6 +486,7 @@ class PanelAnnotationEditorUI(MiniFrame, TableMixin, DatasetMixin):
         # fit layout
         main_sizer.Fit(panel)
         panel.SetSizerAndFit(main_sizer)
+        panel.SetupScrolling(scroll_x=False, scroll_y=True)
 
         return panel
 
@@ -679,6 +679,7 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
 
     def on_toggle_controls(self, evt):
         """Toggle various items in the UI based on event triggers"""
+        self.name_value.Disable()
 
         if not CONFIG.annotate_panel_highlight:
             self.plot_window.plot_remove_temporary(True)
@@ -1504,4 +1505,4 @@ def _main():
 
 
 if __name__ == "__main__":
-    _main_popup()
+    _main()

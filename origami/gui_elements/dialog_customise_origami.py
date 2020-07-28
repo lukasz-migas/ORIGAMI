@@ -18,6 +18,7 @@ from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.views.view_spectrum import ViewSpectrum
+from origami.icons.assets import Icons
 
 # TODO: Add limits to some of the parameters as in ORIGAMI-MS GUI
 #    Botlzmann offset: min = 10.0 max = 100
@@ -26,6 +27,10 @@ from origami.gui_elements.views.view_spectrum import ViewSpectrum
 
 class DialogCustomiseORIGAMI(Dialog):
     """Dialog to setup ORIGAMI-MS settings"""
+
+    # panel parameters
+    HELP_LINK = "https://origami.lukasz-migas.com/"
+    PANEL_BASE_TITLE = "Peak Picker"
 
     # private elements
     _settings_panel_size = None
@@ -55,7 +60,7 @@ class DialogCustomiseORIGAMI(Dialog):
 
     def __init__(self, parent, presenter, document_title: str = None):
         Dialog.__init__(self, parent, title="ORIGAMI-MS settings...")
-
+        self._icons = Icons()
         self.document_tree = parent
         self.presenter = presenter
 
@@ -79,8 +84,9 @@ class DialogCustomiseORIGAMI(Dialog):
 
         self.make_gui()
         self.on_toggle_controls(None)
+
         self.Layout()
-        self.CentreOnScreen()
+        self.CenterOnParent()
         self.SetFocus()
         self.SetTitle(f"ORIGAMI-MS settings: {self.document_title}")
 
@@ -142,15 +148,13 @@ class DialogCustomiseORIGAMI(Dialog):
 
     def make_gui(self):
         """Make UI"""
-        #         panel = wx.Panel(self, -1, size=(-1, -1), name="main")
-
         # make panel
         settings_panel = self.make_panel_settings(self)
         self._settings_panel_size = settings_panel.GetSize()
         buttons_panel = self.make_buttons_panel(self)
+        statusbar = self.make_statusbar(self, "left")
 
         plot_panel = self.make_plot_panel(self)
-
         extraction_panel = self.make_spectrum_panel(self)
 
         # pack element
@@ -158,6 +162,7 @@ class DialogCustomiseORIGAMI(Dialog):
         sizer.Add(settings_panel, 1, wx.EXPAND, 10)
         sizer.Add(extraction_panel, 1, wx.EXPAND, 10)
         sizer.Add(buttons_panel, 0, wx.EXPAND, 10)
+        sizer.Add(statusbar, 0, wx.EXPAND, 10)
 
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
         main_sizer.Add(sizer, 0, wx.EXPAND, 10)
@@ -223,16 +228,14 @@ class DialogCustomiseORIGAMI(Dialog):
         self.origami_exponential_increment_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         import_label = wx.StaticText(panel, wx.ID_ANY, "Import list:")
-        self.origami_load_list_btn = wx.Button(panel, wx.ID_ANY, "...", size=(-1, 22))
+        self.origami_load_list_btn = wx.Button(panel, wx.ID_ANY, "...", size=(-1, -1))
         self.origami_load_list_btn.Bind(wx.EVT_BUTTON, self.on_load_origami_list)
 
-        self.origami_calculate_btn = wx.Button(panel, wx.ID_OK, "Calculate", size=(-1, 22))
+        self.origami_calculate_btn = wx.Button(panel, wx.ID_OK, "Calculate", size=(-1, -1))
         self.origami_calculate_btn.Bind(wx.EVT_BUTTON, self.on_plot)
 
         btn_grid = wx.GridBagSizer(2, 2)
         btn_grid.Add(self.origami_calculate_btn, (0, 0), flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL)
-
-        horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
         # pack elements
         grid = wx.GridBagSizer(2, 2)
@@ -270,7 +273,7 @@ class DialogCustomiseORIGAMI(Dialog):
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
         main_sizer.Add(btn_grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
-        main_sizer.Add(horizontal_line, 0, wx.EXPAND, 10)
+        main_sizer.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND, 10)
 
         # fit layout
         main_sizer.Fit(panel)
@@ -285,10 +288,10 @@ class DialogCustomiseORIGAMI(Dialog):
         # pack elements
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        self.origami_apply_btn = wx.Button(panel, wx.ID_OK, "Apply", size=(-1, 22))
+        self.origami_apply_btn = wx.Button(panel, wx.ID_OK, "Apply", size=(-1, -1))
         self.origami_apply_btn.Bind(wx.EVT_BUTTON, self.on_apply_to_document)
 
-        self.origami_cancel_btn = wx.Button(panel, wx.ID_OK, "Close", size=(-1, 22))
+        self.origami_cancel_btn = wx.Button(panel, wx.ID_OK, "Close", size=(-1, -1))
         self.origami_cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
         n += 1
@@ -316,13 +319,13 @@ class DialogCustomiseORIGAMI(Dialog):
         self.preprocess_check.SetValue(CONFIG.origami_preprocess)
         self.preprocess_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        self.process_btn = wx.Button(panel, wx.ID_ANY, "Edit MS processing settings...", size=(-1, 22))
+        self.process_btn = wx.Button(panel, wx.ID_ANY, "Edit MS processing settings...", size=(-1, -1))
         self.process_btn.Bind(wx.EVT_BUTTON, self.on_open_process_ms_settings)
 
         horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
         self.origami_extract_btn = wx.Button(
-            panel, wx.ID_ANY, "Extract mass spectrum for each collision voltage", size=(-1, 22)
+            panel, wx.ID_ANY, "Extract mass spectrum for each collision voltage", size=(-1, -1)
         )
         self.origami_extract_btn.Bind(wx.EVT_BUTTON, self.on_extract_spectra)
 

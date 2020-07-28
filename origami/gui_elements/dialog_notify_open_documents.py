@@ -55,13 +55,13 @@ class DialogNotifyOpenDocuments(Dialog):
 
         panel = wx.Panel(self, -1)
 
-        self.save_all_btn = wx.Button(panel, -1, "Save all", size=(-1, 22))
+        self.save_all_btn = wx.Button(panel, -1, "Save all", size=(-1, -1))
         self.save_all_btn.Bind(wx.EVT_BUTTON, self.on_save_documents)
 
-        self.continue_btn = wx.Button(panel, wx.ID_OK, "Continue without saving", size=(-1, 22))
+        self.continue_btn = wx.Button(panel, wx.ID_OK, "Continue without saving", size=(-1, -1))
         self.continue_btn.Bind(wx.EVT_BUTTON, self.on_ok, id=wx.ID_OK)
 
-        self.cancel_btn = wx.Button(panel, wx.ID_CANCEL, "Cancel", size=(-1, 22))
+        self.cancel_btn = wx.Button(panel, wx.ID_CANCEL, "Cancel", size=(-1, -1))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close, id=wx.ID_CANCEL)
         self.cancel_btn.SetFocus()
 

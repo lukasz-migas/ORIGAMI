@@ -97,11 +97,11 @@ class DialogRenameObject(Dialog):
         self.note_value.Wrap(BOX_SIZE)
         set_tooltip(self.note_value, "Final name of the object after you click on `Rename` button")
 
-        self.ok_btn = wx.Button(panel, wx.ID_OK, "Rename", size=(-1, 22))
+        self.ok_btn = wx.Button(panel, wx.ID_OK, "Rename", size=(-1, -1))
         self.ok_btn.Bind(wx.EVT_BUTTON, self.on_ok)
         set_tooltip(self.ok_btn, "Rename object to the `New name` value.")
 
-        self.cancel_btn = wx.Button(panel, wx.ID_CANCEL, "Cancel", size=(-1, 22))
+        self.cancel_btn = wx.Button(panel, wx.ID_CANCEL, "Cancel", size=(-1, -1))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
         set_tooltip(self.cancel_btn, "Close window and do not rename the object.")
 

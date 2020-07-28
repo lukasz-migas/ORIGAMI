@@ -365,10 +365,10 @@ class PanelSignalComparisonViewer(MiniFrame):
             panel, ID_processSettings_MS, self._icons.process_ms, tooltip="Change MS pre-processing parameters"
         )
 
-        self.plot_btn = wx.Button(panel, wx.ID_OK, "Plot", size=(-1, 22))
+        self.plot_btn = wx.Button(panel, wx.ID_OK, "Plot", size=(-1, -1))
         self.plot_btn.Bind(wx.EVT_BUTTON, self.on_plot)
 
-        self.cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, 22))
+        self.cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, -1))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
         # pack elements

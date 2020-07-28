@@ -12,6 +12,7 @@ import wx
 import numpy as np
 from wx.lib.agw import supertooltip as superTip
 from natsort.natsort import natsorted
+import wx.lib.scrolledpanel as wxScrolledPanel
 
 # Local imports
 from origami.utils.color import convert_rgb_1_to_255
@@ -22,6 +23,7 @@ from origami.utils.converters import str2num
 from origami.utils.converters import byte2str
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.dialog_color_picker import DialogColorPicker
+
 
 LOGGER = logging.getLogger(__name__)
 # Sizes
@@ -282,6 +284,7 @@ class DocumentationMixin:
     # documentation attributes
     HELP_MD = None
     HELP_LINK = None
+    PANEL_STATUSBAR_COLOR = wx.BLUE
 
     # attributes
     _icons = None
@@ -325,7 +328,7 @@ class DocumentationMixin:
         self.info_btn = self.make_info_button(panel)
 
         self.display_label = wx.StaticText(panel, wx.ID_ANY, "")
-        self.display_label.SetForegroundColour(wx.BLUE)
+        self.display_label.SetForegroundColour(self.PANEL_STATUSBAR_COLOR)
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         if position == "left":
@@ -880,3 +883,43 @@ class Validator(wx.Validator):
         else:
             wx.Bell()
             return
+
+
+class ScrolledPanel(wxScrolledPanel.ScrolledPanel):
+    """Slightly modified version of ScrolledPanel"""
+
+    def SetupScrolling(self, scroll_x=True, scroll_y=True, rate_x=20, rate_y=20, scrollToTop=True, scrollIntoView=True):
+        """
+        This function sets up the event handling necessary to handle
+        scrolling properly. It should be called within the `__init__`
+        function of any class that is derived from :class:`ScrolledPanel`,
+        once the controls on the panel have been constructed and
+        thus the size of the scrolling area can be determined.
+
+        :param bool `scroll_x`: ``True`` to allow horizontal scrolling, ``False`` otherwise;
+        :param bool `scroll_y`: ``True`` to allow vertical scrolling, ``False`` otherwise;
+        :param int `rate_x`: the horizontal scroll increment;
+        :param int `rate_y`: the vertical scroll increment;
+        :param bool `scrollToTop`: ``True`` to scroll all way to the top, ``False`` otherwise;
+        :param bool `scrollIntoView`: ``True`` to scroll a focused child into view, ``False`` otherwise.
+        """
+
+        self.scrollIntoView = scrollIntoView
+
+        # The following is all that is needed to integrate the sizer and the scrolled window
+        if not scroll_x:
+            rate_x = 0
+        if not scroll_y:
+            rate_y = 0
+
+        # Round up the virtual size to be a multiple of the scroll rate
+        sizer = self.GetSizer()
+        if sizer:
+            w, h = sizer.GetMinSize()
+            if rate_x:
+                w += rate_x - (w % rate_x)
+            if rate_y:
+                h += rate_y - (h % rate_y)
+            self.SetVirtualSize((w, h))
+        self.SetScrollRate(rate_x, rate_y)
+        # wx.CallAfter(self._SetupAfter, scrollToTop)  # scroll back to top after initial events

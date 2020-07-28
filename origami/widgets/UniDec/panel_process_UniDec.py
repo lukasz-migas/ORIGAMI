@@ -366,7 +366,7 @@ class PanelProcessUniDec(wx.MiniFrame):
         self.unidec_fit_peakWidth_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         self.unidec_peak_width_btn = wx.BitmapButton(
-            panel, -1, self.icons.iconsLib["measure_16"], size=(-1, 22), style=wx.ALIGN_CENTER_VERTICAL
+            panel, -1, self.icons.iconsLib["measure_16"], size=(-1, -1), style=wx.ALIGN_CENTER_VERTICAL
         )
         self.unidec_peak_width_btn.SetToolTip(make_tooltip("Open peak width tool..."))
         self.unidec_peak_width_btn.Bind(wx.EVT_BUTTON, self.on_open_width_tool)
@@ -579,13 +579,13 @@ class PanelProcessUniDec(wx.MiniFrame):
         self.unidec_charges_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.unidec_charges_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_show_charge_states_unidec)
 
-        self.unidec_restoreAll_Btn = wx.Button(panel, -1, "Restore all", size=(-1, 22))
+        self.unidec_restoreAll_Btn = wx.Button(panel, -1, "Restore all", size=(-1, -1))
         self.unidec_restoreAll_Btn.Bind(wx.EVT_BUTTON, self.on_show_peaks_unidec)
 
-        self.unidec_isolateCharges_Btn = wx.Button(panel, -1, "Isolate", size=(-1, 22))
+        self.unidec_isolateCharges_Btn = wx.Button(panel, -1, "Isolate", size=(-1, -1))
         self.unidec_isolateCharges_Btn.Bind(wx.EVT_BUTTON, self.on_isolate_peak_unidec)
 
-        self.unidec_chargeStates_Btn = wx.Button(panel, -1, "Label", size=(-1, 22))
+        self.unidec_chargeStates_Btn = wx.Button(panel, -1, "Label", size=(-1, -1))
         self.unidec_chargeStates_Btn.Bind(wx.EVT_BUTTON, self.on_show_charge_states_unidec)
 
         horizontal_line_0 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
@@ -657,7 +657,7 @@ class PanelProcessUniDec(wx.MiniFrame):
         self.unidec_all_btn.Bind(wx.EVT_BUTTON, self.on_all_unidec)
         self.unidec_all_btn.SetToolTip(make_tooltip("Run all..."))
 
-        self.unidec_cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, 22))
+        self.unidec_cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, -1))
         self.unidec_cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
         self.unidec_cancel_btn.SetToolTip(make_tooltip("Close window..."))
 

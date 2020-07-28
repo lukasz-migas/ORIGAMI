@@ -267,58 +267,58 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
 
         # general
         self._panel_general = wx.lib.scrolledpanel.ScrolledPanel(self.main_book)
-        self._panel_general.SetupScrolling()
         self.main_book.AddPage(self.make_panel_general(self._panel_general), "General", False)
+        self._panel_general.SetupScrolling()
 
         # plot 1D
         self._panel_1d = wx.lib.scrolledpanel.ScrolledPanel(self.main_book)
-        self._panel_1d.SetupScrolling()
         self.main_book.AddPage(self.make_panel_1d(self._panel_1d), "Plot 1D", False)
+        self._panel_1d.SetupScrolling()
 
         # plot 2D
         self._panel_2d = wx.lib.scrolledpanel.ScrolledPanel(self.main_book)
-        self._panel_2d.SetupScrolling()
         self.main_book.AddPage(self.make_panel_2d(self._panel_2d), "Plot 2D", False)
+        self._panel_2d.SetupScrolling()
 
         # plot 3D
         self._panel_3d = wx.lib.scrolledpanel.ScrolledPanel(self.main_book)
-        self._panel_3d.SetupScrolling()
         self.main_book.AddPage(self.make_panel_3d(self._panel_3d), "Plot 3D", False)
+        self._panel_3d.SetupScrolling()
 
         # colorbar
         self._panel_colorbar = wx.lib.scrolledpanel.ScrolledPanel(self.main_book)
-        self._panel_colorbar.SetupScrolling()
         self.main_book.AddPage(self.make_panel_colorbar(self._panel_colorbar), "Colorbar", False)
+        self._panel_colorbar.SetupScrolling()
 
         # legend
         self._panel_legend = wx.lib.scrolledpanel.ScrolledPanel(self.main_book)
-        self._panel_legend.SetupScrolling()
         self.main_book.AddPage(self.make_panel_legend(self._panel_legend), "Legend", False)
+        self._panel_legend.SetupScrolling()
 
         # rmsd
         self._panel_rmsd = wx.lib.scrolledpanel.ScrolledPanel(self.main_book)
-        self._panel_rmsd.SetupScrolling()
         self.main_book.AddPage(self.make_panel_rmsd(self._panel_rmsd), "RMSD", False)
+        self._panel_rmsd.SetupScrolling()
 
         # waterfall
         self._panel_waterfall = wx.lib.scrolledpanel.ScrolledPanel(self.main_book)
-        self._panel_waterfall.SetupScrolling()
         self.main_book.AddPage(self.make_panel_waterfall(self._panel_waterfall), "Waterfall", False)
+        self._panel_waterfall.SetupScrolling()
 
         # violin
         self._panel_violin = wx.lib.scrolledpanel.ScrolledPanel(self.main_book)
-        self._panel_violin.SetupScrolling()
         self.main_book.AddPage(self.make_panel_violin(self._panel_violin), "Violin", False)
+        self._panel_violin.SetupScrolling()
 
         # plot sizes
         self._panel_sizes = wx.lib.scrolledpanel.ScrolledPanel(self.main_book)
-        self._panel_sizes.SetupScrolling()
         self.main_book.AddPage(self.make_panel_plot_sizes(self._panel_sizes), "Plot sizes", False)
+        self._panel_sizes.SetupScrolling()
 
         # ui behaviour
         self._panel_ui = wx.lib.scrolledpanel.ScrolledPanel(self.main_book)
-        self._panel_ui.SetupScrolling()
         self.main_book.AddPage(self.make_panel_ui_behaviour(self._panel_ui), "UI behaviour", False)
+        self._panel_ui.SetupScrolling()
 
         # keep track of pages
         self.PAGES.extend(

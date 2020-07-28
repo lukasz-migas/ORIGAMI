@@ -117,7 +117,7 @@ class DialogNewDocument(Dialog):
         self.path_value.Bind(wx.EVT_TEXT, self.update_full_path)
         set_tooltip(self.path_value, "Base directory where the Document will be created in")
 
-        self.directory_btn = wx.Button(panel, wx.ID_OK, "Directory...", size=(-1, 22))
+        self.directory_btn = wx.Button(panel, wx.ID_OK, "Directory...", size=(-1, -1))
         self.directory_btn.Bind(wx.EVT_BUTTON, self.on_select_directory)
         set_tooltip(self.directory_btn, "Select base directory")
 
@@ -139,11 +139,11 @@ class DialogNewDocument(Dialog):
             "selected for you.",
         )
 
-        self.ok_btn = wx.Button(panel, wx.ID_OK, "OK", size=(-1, 22))
+        self.ok_btn = wx.Button(panel, wx.ID_OK, "OK", size=(-1, -1))
         self.ok_btn.Bind(wx.EVT_BUTTON, self.on_ok, id=wx.ID_ANY)
         set_tooltip(self.ok_btn, "Make a selection and close the window.")
 
-        self.cancel_btn = wx.Button(panel, -1, "Cancel", size=(-1, 22))
+        self.cancel_btn = wx.Button(panel, -1, "Cancel", size=(-1, -1))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
         set_tooltip(self.cancel_btn, "Close the window without making the selection.")
 

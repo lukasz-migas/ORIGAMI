@@ -54,19 +54,19 @@ class DialogAskOverride(Dialog):
 
         self.msg = wx.StaticText(panel, -1, self._msg, size=(-1, -1))
 
-        self.override_btn = wx.Button(panel, wx.ID_ANY, "Override", size=(-1, 22))
+        self.override_btn = wx.Button(panel, wx.ID_ANY, "Override", size=(-1, -1))
         self.override_btn.Bind(wx.EVT_BUTTON, self.overwrite)
         set_tooltip(self.override_btn, "Overwrite current data with new values.")
 
-        self.merge_btn = wx.Button(panel, wx.ID_ANY, "Merge", size=(-1, 22))
+        self.merge_btn = wx.Button(panel, wx.ID_ANY, "Merge", size=(-1, -1))
         self.merge_btn.Bind(wx.EVT_BUTTON, self.merge)
         set_tooltip(self.merge_btn, "Merge current data with new values (if possible).")
 
-        self.copy_btn = wx.Button(panel, wx.ID_OK, "Create copy", size=(-1, 22))
+        self.copy_btn = wx.Button(panel, wx.ID_OK, "Create copy", size=(-1, -1))
         self.copy_btn.Bind(wx.EVT_BUTTON, self.create_copy)
         set_tooltip(self.copy_btn, "Create duplicate entry of current data (if possible).")
 
-        self.close_btn = wx.Button(panel, wx.ID_OK, "Close", size=(-1, 22))
+        self.close_btn = wx.Button(panel, wx.ID_OK, "Close", size=(-1, -1))
         self.close_btn.Bind(wx.EVT_BUTTON, self.on_close)
         set_tooltip(self.close_btn, "Close this window and perform no action.")
 

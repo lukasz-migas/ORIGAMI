@@ -109,10 +109,10 @@ class DialogReviewEditorBase(Dialog, TableMixin):
     def make_buttons(self):
         """Make buttons"""
 
-        self.ok_btn = wx.Button(self, wx.ID_OK, "Select", size=(-1, 22))
+        self.ok_btn = wx.Button(self, wx.ID_OK, "Select", size=(-1, -1))
         self.ok_btn.Bind(wx.EVT_BUTTON, self.on_ok)
 
-        self.cancel_btn = wx.Button(self, wx.ID_OK, "Cancel", size=(-1, 22))
+        self.cancel_btn = wx.Button(self, wx.ID_OK, "Cancel", size=(-1, -1))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
         btn_grid = wx.GridBagSizer(2, 2)
@@ -221,10 +221,10 @@ class DialogReviewProcessHeatmap(DialogReviewEditorBase):
     def make_buttons(self):
         """Make buttons"""
 
-        self.ok_btn = wx.Button(self, wx.ID_OK, "Process", size=(-1, 22))
+        self.ok_btn = wx.Button(self, wx.ID_OK, "Process", size=(-1, -1))
         self.ok_btn.Bind(wx.EVT_BUTTON, self.on_ok)
 
-        self.cancel_btn = wx.Button(self, wx.ID_OK, "Cancel", size=(-1, 22))
+        self.cancel_btn = wx.Button(self, wx.ID_OK, "Cancel", size=(-1, -1))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
         self.process_btn = make_bitmap_btn(
@@ -306,11 +306,11 @@ class DialogReviewProcessSpectrum(DialogReviewEditorBase):
     def make_buttons(self):
         """Make buttons"""
 
-        self.ok_btn = wx.Button(self, wx.ID_OK, "Process", size=(-1, 22))
+        self.ok_btn = wx.Button(self, wx.ID_OK, "Process", size=(-1, -1))
         self.ok_btn.Bind(wx.EVT_BUTTON, self.on_ok)
         set_tooltip(self.ok_btn, "Process selected mass spectra")
 
-        self.cancel_btn = wx.Button(self, wx.ID_OK, "Cancel", size=(-1, 22))
+        self.cancel_btn = wx.Button(self, wx.ID_OK, "Cancel", size=(-1, -1))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
         self.process_btn = make_bitmap_btn(
@@ -381,11 +381,11 @@ class DialogReviewExportFigures(DialogReviewEditorBase):
     def make_buttons(self):
         """Make buttons"""
 
-        self.ok_btn = wx.Button(self, wx.ID_OK, "Select", size=(-1, 22))
+        self.ok_btn = wx.Button(self, wx.ID_OK, "Select", size=(-1, -1))
         self.ok_btn.Bind(wx.EVT_BUTTON, self.on_ok)
         set_tooltip(self.ok_btn, "Export selected item(s) and save to the disk")
 
-        self.cancel_btn = wx.Button(self, wx.ID_OK, "Cancel", size=(-1, 22))
+        self.cancel_btn = wx.Button(self, wx.ID_OK, "Cancel", size=(-1, -1))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
         btn_grid = wx.BoxSizer(wx.HORIZONTAL)
@@ -413,11 +413,11 @@ class DialogReviewExportData(DialogReviewEditorBase):
     def make_buttons(self):
         """Make buttons"""
 
-        self.ok_btn = wx.Button(self, wx.ID_OK, "Select", size=(-1, 22))
+        self.ok_btn = wx.Button(self, wx.ID_OK, "Select", size=(-1, -1))
         self.ok_btn.Bind(wx.EVT_BUTTON, self.on_ok)
         set_tooltip(self.ok_btn, "Export selected item(s) and save to the disk")
 
-        self.cancel_btn = wx.Button(self, wx.ID_OK, "Cancel", size=(-1, 22))
+        self.cancel_btn = wx.Button(self, wx.ID_OK, "Cancel", size=(-1, -1))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
         btn_grid = wx.BoxSizer(wx.HORIZONTAL)

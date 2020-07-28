@@ -322,7 +322,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         import_label = set_item_font(wx.StaticText(panel, wx.ID_ANY, "Import information"))
         self.import_label = wx.StaticText(panel, wx.ID_ANY, "", size=(-1, 60))
 
-        self.import_btn = wx.Button(panel, wx.ID_OK, "Import", size=(-1, 22))
+        self.import_btn = wx.Button(panel, wx.ID_OK, "Import", size=(-1, -1))
         self.import_btn.Bind(wx.EVT_BUTTON, self.on_import)
 
         self.activity_indicator = wx.ActivityIndicator(self)
@@ -359,11 +359,11 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         self.processing_label.SetMinSize((-1, 175))
 
         # file selection
-        self.select_document_btn = wx.Button(panel, wx.ID_OK, "Select document...", size=(-1, 22))
+        self.select_document_btn = wx.Button(panel, wx.ID_OK, "Select document...", size=(-1, -1))
         set_tooltip(self.select_document_btn, "Select or create new document where to add data")
         self.select_document_btn.Bind(wx.EVT_BUTTON, self.on_select_document)
 
-        self.select_files_btn = wx.Button(panel, wx.ID_OK, "Select files...", size=(-1, 22))
+        self.select_files_btn = wx.Button(panel, wx.ID_OK, "Select files...", size=(-1, -1))
         set_tooltip(self.select_files_btn, "Select list of files that should belong to the current document")
         self.select_files_btn.Bind(wx.EVT_BUTTON, self.on_select_files)
 
@@ -375,7 +375,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         set_tooltip(self.processing_msdt_btn, "Update MS/DT heatmap pre-processing parameters")
         self.processing_msdt_btn.Bind(wx.EVT_BUTTON, self.on_update_msdt_settings)
 
-        self.clear_files_btn = wx.Button(panel, wx.ID_OK, "Clear filelist", size=(-1, 22))
+        self.clear_files_btn = wx.Button(panel, wx.ID_OK, "Clear filelist", size=(-1, -1))
         set_tooltip(self.clear_files_btn, "Reset list of files")
         self.clear_files_btn.Bind(wx.EVT_BUTTON, self.on_clear_files)
 

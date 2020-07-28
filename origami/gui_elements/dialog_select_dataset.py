@@ -84,8 +84,8 @@ class DialogSelectDataset(Dialog):
 
         self.dataset_list_choice = wx.ComboBox(panel, -1, choices=[], size=(400, -1), style=wx.CB_READONLY)
 
-        self.ok_btn = wx.Button(panel, wx.ID_OK, "Select", size=(-1, 22))
-        self.cancel_btn = wx.Button(panel, -1, "Cancel", size=(-1, 22))
+        self.ok_btn = wx.Button(panel, wx.ID_OK, "Select", size=(-1, -1))
+        self.cancel_btn = wx.Button(panel, -1, "Cancel", size=(-1, -1))
 
         btn_grid = wx.GridBagSizer(5, 5)
         n = 0

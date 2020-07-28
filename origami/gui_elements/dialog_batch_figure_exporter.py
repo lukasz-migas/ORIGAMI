@@ -174,10 +174,10 @@ class DialogExportFigures(Dialog):
         self.height_cm_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_size_cm)
         self.height_cm_value.SetDigits(2)
 
-        self.save_btn = wx.Button(panel, wx.ID_OK, "Save figures", size=(-1, 22))
+        self.save_btn = wx.Button(panel, wx.ID_OK, "Save figures", size=(-1, -1))
         self.save_btn.Bind(wx.EVT_BUTTON, self.on_save)
 
-        self.cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, 22))
+        self.cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, -1))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
         btn_grid = wx.GridBagSizer(2, 2)

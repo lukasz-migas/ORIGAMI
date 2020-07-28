@@ -15,6 +15,7 @@ from origami.config.config import CONFIG
 from origami.utils.converters import str2num
 from origami.config.environment import ENV
 from origami.gui_elements.panel_base import DatasetMixin
+from origami.icons.assets import Icons
 
 logger = logging.getLogger(__name__)
 
@@ -23,12 +24,13 @@ class PanelProcessExtractMSDT(MiniFrame, DatasetMixin):
     """Panel enabling extraction of new or additional MS/DT data"""
 
     PANEL_BASE_TITLE = "Extract DT/MS"
+    HELP_LINK = "https://origami.lukasz-migas.com/"
+    PANEL_STATUSBAR_COLOR = wx.BLACK
 
     # ui elements
     mz_min_value = None
     mz_max_value = None
     mz_bin_value = None
-    msg_bar = None
     info_bar = None
     extract_btn = None
     add_to_document_btn = None
@@ -40,6 +42,7 @@ class PanelProcessExtractMSDT(MiniFrame, DatasetMixin):
 
     def __init__(self, parent, presenter, document_title: str = None):
         MiniFrame.__init__(self, parent, title="Extract DT/MS...")
+        self._icons = Icons()
         self.view = parent
         self.presenter = presenter
 
@@ -99,20 +102,20 @@ class PanelProcessExtractMSDT(MiniFrame, DatasetMixin):
         self.mz_bin_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
         self.mz_bin_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        self.msg_bar = wx.StaticText(panel, -1, "")
-        self.msg_bar.SetLabel("")
+        # statusbar
+        statusbar = self.make_statusbar(panel, "right")
 
         # add buttons
-        self.extract_btn = wx.Button(panel, wx.ID_ANY, "Extract", size=(-1, 22))
+        self.extract_btn = wx.Button(panel, wx.ID_ANY, "Extract", size=(-1, -1))
         self.extract_btn.Bind(wx.EVT_BUTTON, self.on_extract_data)
 
-        self.add_to_document_btn = wx.Button(panel, wx.ID_ANY, "Add to document...", size=(-1, 22))
+        self.add_to_document_btn = wx.Button(panel, wx.ID_ANY, "Add to document...", size=(-1, -1))
         self.add_to_document_btn.Bind(wx.EVT_BUTTON, self.on_add_to_document)
 
-        self.save_to_file_btn = wx.Button(panel, wx.ID_ANY, "Save as...", size=(-1, 22))
+        self.save_to_file_btn = wx.Button(panel, wx.ID_ANY, "Save as...", size=(-1, -1))
         self.save_to_file_btn.Bind(wx.EVT_BUTTON, self.on_save)
 
-        self.cancel_btn = wx.Button(panel, wx.ID_ANY, "Cancel", size=(-1, 22))
+        self.cancel_btn = wx.Button(panel, wx.ID_ANY, "Cancel", size=(-1, -1))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
         btn_grid = wx.BoxSizer(wx.HORIZONTAL)
@@ -139,9 +142,8 @@ class PanelProcessExtractMSDT(MiniFrame, DatasetMixin):
         main_sizer.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND, 10)
         main_sizer.Add(grid, 1, wx.EXPAND | wx.ALL, 10)
         main_sizer.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND, 10)
-        main_sizer.Add(self.msg_bar, 0, wx.EXPAND | wx.ALL, 10)
-        main_sizer.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND, 10)
         main_sizer.Add(btn_grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
+        main_sizer.Add(statusbar, 0, wx.EXPAND, 5)
 
         # fit layout
         main_sizer.Fit(panel)
@@ -200,7 +202,7 @@ class PanelProcessExtractMSDT(MiniFrame, DatasetMixin):
                     info = ""
             except (ZeroDivisionError, TypeError):
                 info = ""
-        self.msg_bar.SetLabel(info)
+        self.display_label.SetLabel(info)
 
     def check_user_input(self):
         """Check user input and if incorrect correct the values"""
@@ -275,7 +277,7 @@ class PanelProcessExtractMSDT(MiniFrame, DatasetMixin):
         # check if data is already extracted
         if self.msdt_obj is None:
             is_present = False
-            self.msg_bar.SetLabel("Data not present - make sure you extract it first.")
+            self.display_label.SetLabel("Data not present - make sure you extract it first.")
 
         return is_present
 
@@ -345,6 +347,10 @@ class PanelProcessExtractMSDT(MiniFrame, DatasetMixin):
         default_name = f"{self.msdt_title}{CONFIG.saveExtension}"
         default_path = os.path.join(document.output_path, default_name)
         filename = self.data_handling.on_get_csv_filename(default_name, default_path)
+        if filename in ["", None]:
+            self._update_msg_bar("Action was cancelled")
+            return
+
         self.msdt_obj.to_csv(filename)
         self._update_msg_bar("Data was saved to file!")
 

@@ -101,10 +101,10 @@ class PanelCalibrantDatabase(wx.MiniFrame):
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.onItemSelected)
         self.Bind(wx.EVT_LIST_COL_CLICK, self.OnGetColumnClick)
 
-        self.addBtn = wx.Button(panel, wx.ID_OK, "Add", size=(-1, 22))
+        self.addBtn = wx.Button(panel, wx.ID_OK, "Add", size=(-1, -1))
         self.addBtn.Hide()
-        self.selectBtn = wx.Button(panel, wx.ID_OK, "Select", size=(-1, 22))
-        self.cancelBtn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, 22))
+        self.selectBtn = wx.Button(panel, wx.ID_OK, "Select", size=(-1, -1))
+        self.cancelBtn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, -1))
 
         self.selectBtn.Bind(wx.EVT_BUTTON, self.onSelect)
         self.cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)

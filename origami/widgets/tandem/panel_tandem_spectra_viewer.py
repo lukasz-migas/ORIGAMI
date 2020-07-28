@@ -916,7 +916,7 @@ class PanelTandemSpectraViewer(wx.MiniFrame):
         self.butterfly_check.SetValue(self.butterfly_plot)
         self.butterfly_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        self.actionBtn = wx.Button(panel, wx.ID_OK, "Action ▼", size=(-1, 22))
+        self.actionBtn = wx.Button(panel, wx.ID_OK, "Action ▼", size=(-1, -1))
         self.actionBtn.Bind(wx.EVT_BUTTON, self.onActionTool)
 
         btn_grid = wx.GridBagSizer(5, 5)
