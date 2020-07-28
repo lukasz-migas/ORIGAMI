@@ -619,8 +619,30 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         self.panel_plot.popup_2d.plot(obj=heatmap_obj)
 
         # # Update document
+
         self.document_tree.on_update_document(heatmap_obj.DOCUMENT_KEY, obj_name, document.title)
         logger.info(f"Extracted ion heatmap in {report_time(t_start)} - See: {obj_name}")
+
+    def on_save_unsaved_changes(self, data_obj, document_title: str = None, dataset_name: str = None):
+        """Save unchanged changes on an object"""
+        from origami.gui_elements.dialog_save_unsaved import DialogSaveUnsaved
+
+        if document_title is None or dataset_name is None:
+            document_title, dataset_name = data_obj.owner
+
+        dlg = DialogSaveUnsaved(self.view, document_title, dataset_name)
+        dlg.ShowModal()
+        obj_name = dlg.new_name
+        if obj_name is None:
+            return False, None
+
+        # # Update document
+        document = ENV.on_get_document(document_title)
+        data_obj = document.add(obj_name, data_obj, as_object=True)
+
+        self.document_tree.on_update_document(data_obj.DOCUMENT_KEY, obj_name, document_title)
+        #         data_obj.set_owner((document_title, obj_name))
+        return True, data_obj
 
     def on_open_multiple_text_2d_fcn(self, evt):
         """Select list of heatmap text files and load them as documents

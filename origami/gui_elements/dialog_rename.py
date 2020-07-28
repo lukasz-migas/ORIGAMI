@@ -9,7 +9,7 @@ import wx
 from origami.styles import Dialog
 from origami.styles import set_tooltip
 
-FORBIDDEN_NAMES = ("Documents", "")
+FORBIDDEN_NAMES = ["Documents", ""]
 BOX_SIZE = 400
 
 
@@ -23,13 +23,16 @@ class DialogRenameObject(Dialog):
     ok_btn = None
     cancel_btn = None
 
-    def __init__(self, parent, current_name: str, prepend_name: str = "", forbidden: List[str] = FORBIDDEN_NAMES):
+    def __init__(self, parent, current_name: str, prepend_name: str = "", forbidden: List[str] = None):
         Dialog.__init__(self, parent, title="Rename...", size=(400, 300))
 
         self.parent = parent
         self.current_name = current_name
         self.prepend_name = prepend_name
         self.new_name = None
+
+        if forbidden is None:
+            forbidden = FORBIDDEN_NAMES
         self.forbidden = forbidden
 
         # make gui items
@@ -51,13 +54,10 @@ class DialogRenameObject(Dialog):
         if evt is not None:
             evt.Skip()
 
-    def on_close(self, evt):
+    def on_close(self, evt, force: bool = False):
         """Destroy this frame."""
         self.new_name = None
-        if self.IsModal():
-            self.EndModal(wx.ID_NO)
-        else:
-            self.Destroy()
+        super(DialogRenameObject, self).on_close(evt, force)
 
     def make_gui(self):
         """Make UI"""
@@ -136,12 +136,13 @@ class DialogRenameObject(Dialog):
     def on_new_name(self, _evt):
         """Finish editing label"""
         new_name = self.set_new_name
-        self.note_value.SetLabel(new_name)
 
         if new_name in self.forbidden:
             self.new_name_value.SetBackgroundColour((255, 230, 239))
+            self.note_value.SetLabel("This name is not allowed")
         else:
             self.new_name_value.SetBackgroundColour(wx.WHITE)
+            self.note_value.SetLabel(new_name)
         self.new_name_value.Refresh()
 
     @property
@@ -163,6 +164,7 @@ class DialogRenameObject(Dialog):
                 title="Forbidden name",
                 msg=f"The name you've selected {self.new_name} is not allowed! Please type-in another name.",
                 kind="Error",
+                parent=self,
             )
             return
 

@@ -13,7 +13,7 @@ from ..wxtc import WidgetTestCase
 class TestPanelAnnotationEditorUI(WidgetTestCase):
     """Test dialog"""
 
-    @pytest.mark.parametrize("plot_type", ["mass_spectrum", "chromatogram", "mobilogram", "heatmap"])
+    @pytest.mark.parametrize("plot_type", ["mass_spectrum", "chromatogram", "mobilogram", "heatmap", "ms_heatmap"])
     def test_panel_create(self, plot_type):
         icons = Icons()
         _ = PanelAnnotationEditorUI(None, icons, plot_type)

@@ -2,15 +2,13 @@
 
 - [ ] create `mixin` classes for each of the plotting types to separate the plot + update functions and enable 
 composable classes instead
-- [x] add simple notification toast to the application to inform the user if certain action had been completed
 - [ ] add default views of the 3d plot to quickly set the camera orientation
 - [ ] add current ram/cpu usage of the ORIGAMI process to the statusbar
-- [x] fix minor styling issues in the statusbar (incorrect width of few of the boxes)
 - [ ] add update functions to each of the plot classes
 - [ ] tidy-up the plotting classes
 - [ ] add splash screen
 - [ ] replace the old-style icons
 - [ ] add controls to specify the number of threads running simultaneously
-- [x] add repaint option to each of the viewer functions
-- [x] fix a minor issue in the joint plot where the x/y-axis limits are incorrectly set when plotting rotated heatmap
-- [x] fix issue where you cannot extract data if it was previously rotated
+- [ ] fix a bug that removes the z-axis and label when updating data in the heatmap-3d plot
+- [ ] add option to rename/move data objects
+- [ ] make usage of the notification toast

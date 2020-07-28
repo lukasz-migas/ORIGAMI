@@ -39,26 +39,17 @@ from origami.ids import ID_clearPlot_Matrix
 from origami.ids import ID_plotPanel_resize
 from origami.ids import ID_saveMZDTImageDoc
 from origami.ids import ID_clearPlot_Overlay
-from origami.ids import ID_clearPlot_Watefall
 from origami.ids import ID_plotPanel_lockPlot
 from origami.ids import ID_saveCompareMSImage
-from origami.ids import ID_clearPlot_UniDec_MS
 from origami.ids import ID_clearPlot_Waterfall
 from origami.ids import ID_extraSettings_legend
 from origami.ids import ID_extraSettings_plot1D
 from origami.ids import ID_extraSettings_plot2D
 from origami.ids import ID_extraSettings_plot3D
 from origami.ids import ID_plots_customise_plot
-from origami.ids import ID_clearPlot_Calibration
 from origami.ids import ID_extraSettings_colorbar
-from origami.ids import ID_clearPlot_UniDec_mwGrid
-from origami.ids import ID_clearPlot_UniDec_mzGrid
-from origami.ids import ID_clearPlot_UniDec_barchart
 from origami.ids import ID_extraSettings_general_plot
 from origami.ids import ID_plots_customise_smart_zoom
-from origami.ids import ID_clearPlot_UniDec_pickedPeaks
-from origami.ids import ID_clearPlot_UniDec_mwDistribution
-from origami.ids import ID_clearPlot_UniDec_chargeDistribution
 from origami.styles import make_menu_item
 from origami.utils.path import clean_filename
 from origami.utils.color import convert_rgb_1_to_255
@@ -438,12 +429,16 @@ class PanelPlots(wx.Panel):
 
         return plot_obj, xvals, yvals, labels, xlabel, ylabel
 
-    def on_smooth_spectrum(self, evt):
+    def on_smooth_object(self, evt):
         """Smooth plot signal"""
         from origami.gui_elements.misc_dialogs import DialogSimpleAsk
 
         view_obj = self.get_view_from_name(self.currentPage)
         obj = view_obj.get_object(get_cache=False)
+
+        if obj is None:
+            pub.sendMessage("notify.message.warning", message="Cannot smooth object as the plot cache is empty")
+            return
 
         sigma = DialogSimpleAsk(
             "Smoothing spectrum using Gaussian Filter. Sigma value:", value=1, value_type="floatPos"
@@ -500,37 +495,96 @@ class PanelPlots(wx.Panel):
 
         self.document_tree.on_open_peak_picker(None, document_title=document_title, dataset_name=dataset_name)
 
+    def on_open_annotations_panel(self, evt):
+        """Open the annotations panel for particular object"""
+        view_obj = self.get_view_from_name(self.currentPage)
+
+        data_obj = view_obj.get_object()
+        document_title, dataset_name = data_obj.owner
+
+        # check whether data object has document/dataset associated with it
+        if document_title is None or dataset_name is None:
+            pub.sendMessage(
+                "notify.message.warning",
+                message="Could not find the document/dataset information in the plot metadata."
+                "\nTry right-clicking on the object in the document tree and select"
+                "`Annotations...->Show annotations panel...`",
+            )
+            return
+
+        # check whether dataset has been modified and not saved
+        if data_obj.unsaved:
+            is_saved, data_obj = self.data_handling.on_save_unsaved_changes(data_obj, document_title, dataset_name)
+
+            if not is_saved:
+                pub.sendMessage("notify.message.error", message="Cannot annotate object that has unsaved changes.")
+                return
+            # update dataset information
+            document_title, dataset_name = data_obj.owner
+            view_obj.set_object(data_obj)
+
+        self.document_tree.on_open_annotation_editor(
+            None, document_title=document_title, dataset_name=dataset_name, data_obj=data_obj
+        )
+
+    def on_show_as_joint(self, evt):
+        """Show heatmap plot as joint-plot"""
+        view_obj = self.get_view_from_name(self.currentPage)
+        if not hasattr(view_obj, "plot_joint"):
+            pub.sendMessage("notify.message.error", message="Cannot show this view as a joint-plot")
+            return
+
+        data_obj = view_obj.get_object()
+        if not data_obj:
+            pub.sendMessage("notify.message.error", message="Cannot show this view as the plot cache is empty.")
+            return
+
+        view_obj.plot_joint(obj=data_obj)
+
+    def on_show_as_contour(self, evt):
+        """Show heatmap plot as contour-plot"""
+        view_obj = self.get_view_from_name(self.currentPage)
+        if not hasattr(view_obj, "plot_contour"):
+            pub.sendMessage("notify.message.error", message="Cannot show this view as a contour-plot")
+            return
+
+        data_obj = view_obj.get_object()
+        if not data_obj:
+            pub.sendMessage("notify.message.error", message="Cannot show this view as the plot cache is empty.")
+            return
+
+        view_obj.plot_contour(obj=data_obj)
+
+    def on_show_as_waterfall(self, evt):
+        """Show heatmap plot as waterfall-plot"""
+        view_obj = self.get_view_from_name(self.currentPage)
+        if not hasattr(view_obj, "plot_waterfall"):
+            pub.sendMessage("notify.message.error", message="Cannot show this view as a waterfall-plot")
+            return
+
+        data_obj = view_obj.get_object()
+        if not data_obj:
+            pub.sendMessage("notify.message.error", message="Cannot show this view as the plot cache is empty.")
+            return
+
+        view_obj.plot_waterfall(obj=data_obj)
+
+    def on_show_as_heatmap(self, evt):
+        """Show heatmap plot as heatmap-plot"""
+        view_obj = self.get_view_from_name(self.currentPage)
+        data_obj = view_obj.get_object()
+        if not data_obj:
+            pub.sendMessage("notify.message.error", message="Cannot show this view as the plot cache is empty.")
+            return
+
+        view_obj.plot(obj=data_obj)
+
     def on_right_click(self, _evt):
         """Right-click event handler"""
         self.currentPage = self.plot_notebook.GetPageText(self.plot_notebook.GetSelection())
 
         # Make bindings
-        # self.Bind(wx.EVT_MENU, self.on_smooth_spectrum, id=ID_smooth1Ddata1DT)
         #         self.Bind(wx.EVT_MENU, self.data_handling.on_highlight_selected_ions, id=ID_highlightRectAllIons)
-        # self.Bind(wx.EVT_MENU, self.data_processing.on_pick_peaks, id=ID_pickMSpeaksDocument)
-        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_MS)
-        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_RT)
-        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_RT_MS)
-        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_1D)
-        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_1D_MS)
-        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_2D)
-        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_3D)
-        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_RMSF)
-        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_RMSD)
-        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_Matrix)
-        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_Overlay)
-        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_Watefall)
-        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_Calibration)
-        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_MZDT)
-        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_Waterfall)
-        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_other)
-        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_UniDec_MS)
-        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_UniDec_mwDistribution)
-        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_UniDec_mzGrid)
-        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_UniDec_mwGrid)
-        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_UniDec_pickedPeaks)
-        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_UniDec_barchart)
-        self.Bind(wx.EVT_MENU, self.on_clear_plot, id=ID_clearPlot_UniDec_chargeDistribution)
         self.Bind(wx.EVT_MENU, self.on_lock_plot, id=ID_plotPanel_lockPlot)
         self.Bind(wx.EVT_MENU, self.on_resize_check, id=ID_plotPanel_resize)
         self.Bind(wx.EVT_MENU, self.on_customise_plot, id=ID_plots_customise_plot)
@@ -609,6 +663,22 @@ class PanelPlots(wx.Panel):
         menu_action_smooth_signal = make_menu_item(
             parent=menu, text="Smooth signal (Gaussian)", bitmap=self._icons.clean
         )
+        menu_action_smooth_heatmap = make_menu_item(
+            parent=menu, text="Smooth heatmap (Gaussian)", bitmap=self._icons.clean
+        )
+        menu_action_open_annotations = make_menu_item(
+            parent=menu, text="Show annotations panel...", bitmap=self._icons.label
+        )
+        menu_action_show_joint = make_menu_item(parent=menu, text="Show as a joint plot", bitmap=self._icons.joint)
+        menu_action_show_contour = make_menu_item(
+            parent=menu, text="Show as a contour plot", bitmap=self._icons.contour
+        )
+        menu_action_show_waterfall = make_menu_item(
+            parent=menu, text="Show as a waterfall plot", bitmap=self._icons.waterfall
+        )
+        menu_action_show_heatmap = make_menu_item(
+            parent=menu, text="Show as a heatmap plot", bitmap=self._icons.heatmap
+        )
 
         # bind events by item
         self.Bind(wx.EVT_MENU, self.on_process_mass_spectrum, menu_action_process_ms)
@@ -618,11 +688,19 @@ class PanelPlots(wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_clear_plot_, menu_action_clear)
         self.Bind(wx.EVT_MENU, self.on_save_figure, menu_action_save_figure)
         self.Bind(wx.EVT_MENU, self.on_copy_to_clipboard, menu_action_copy_to_clipboard)
-        self.Bind(wx.EVT_MENU, self.on_smooth_spectrum, menu_action_smooth_signal)
+        self.Bind(wx.EVT_MENU, self.on_smooth_object, menu_action_smooth_signal)
+        self.Bind(wx.EVT_MENU, self.on_smooth_object, menu_action_smooth_heatmap)
+        self.Bind(wx.EVT_MENU, self.on_open_annotations_panel, menu_action_open_annotations)
+        self.Bind(wx.EVT_MENU, self.on_show_as_joint, menu_action_show_joint)
+        self.Bind(wx.EVT_MENU, self.on_show_as_contour, menu_action_show_contour)
+        self.Bind(wx.EVT_MENU, self.on_show_as_waterfall, menu_action_show_waterfall)
+        self.Bind(wx.EVT_MENU, self.on_show_as_heatmap, menu_action_show_heatmap)
 
         if self.currentPage == "Mass spectrum":
+            menu.AppendItem(menu_action_smooth_signal)
             menu.AppendItem(menu_action_process_ms)
             menu.AppendItem(menu_action_process_pick)
+            menu.AppendItem(menu_action_open_annotations)
             # menu.AppendItem(
             #     make_menu_item(
             #         parent=menu,
@@ -645,52 +723,51 @@ class PanelPlots(wx.Panel):
             menu.AppendSeparator()
             menu.AppendItem(menu_action_clear)
         elif self.currentPage == "Chromatogram":
-            if self.view.plot_name == "MS":
-                menu.AppendItem(
-                    make_menu_item(parent=menu, evt_id=ID_clearPlot_RT_MS, text="Clear plot", bitmap=self._icons.clear)
-                )
-            else:
-                menu.AppendItem(menu_action_smooth_signal)
-                menu.AppendSeparator()
-                menu.AppendItem(menu_edit_general)
-                menu.AppendItem(menu_edit_plot_1d)
-                menu.AppendItem(menu_edit_legend)
-                self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, "Lock plot", help="")
-                self.lock_plot_check.Check(self.plot_rt_rt.lock_plot_from_updating)
-                menu.AppendItem(menu_customise_plot)
-                menu.AppendSeparator()
-                self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
-                self.resize_plot_check.Check(CONFIG.resize)
-                menu.AppendItem(
-                    make_menu_item(parent=menu, evt_id=ID_saveRTImage, text="Save figure as...", bitmap=self._icons.png)
-                )
-                menu.AppendItem(menu_action_copy_to_clipboard)
-                menu.AppendSeparator()
-                menu.AppendItem(menu_action_clear)
+            menu.AppendItem(menu_action_smooth_signal)
+            menu.AppendItem(menu_action_open_annotations)
+            menu.AppendSeparator()
+            menu.AppendItem(menu_edit_general)
+            menu.AppendItem(menu_edit_plot_1d)
+            menu.AppendItem(menu_edit_legend)
+            self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, "Lock plot", help="")
+            self.lock_plot_check.Check(self.plot_rt_rt.lock_plot_from_updating)
+            menu.AppendItem(menu_customise_plot)
+            menu.AppendSeparator()
+            self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
+            self.resize_plot_check.Check(CONFIG.resize)
+            menu.AppendItem(
+                make_menu_item(parent=menu, evt_id=ID_saveRTImage, text="Save figure as...", bitmap=self._icons.png)
+            )
+            menu.AppendItem(menu_action_copy_to_clipboard)
+            menu.AppendSeparator()
+            menu.AppendItem(menu_action_clear)
         elif self.currentPage == "Mobilogram":
-            if self.view.plot_name == "MS":
-                menu.AppendItem(
-                    make_menu_item(parent=menu, evt_id=ID_clearPlot_1D_MS, text="Clear plot", bitmap=self._icons.clear)
-                )
-            else:
-                menu.AppendItem(menu_action_smooth_signal)
-                menu.AppendSeparator()
-                menu.AppendItem(menu_edit_general)
-                menu.AppendItem(menu_edit_plot_1d)
-                menu.AppendItem(menu_edit_legend)
-                self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, "Lock plot", help="")
-                self.lock_plot_check.Check(self.plot_dt_dt.lock_plot_from_updating)
-                menu.AppendItem(menu_customise_plot)
-                menu.AppendSeparator()
-                self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
-                self.resize_plot_check.Check(CONFIG.resize)
-                menu.AppendItem(menu_action_save_figure)
-                menu.AppendItem(menu_action_copy_to_clipboard)
-                menu.AppendSeparator()
-                menu.AppendItem(menu_action_clear)
+            menu.AppendItem(menu_action_smooth_signal)
+            menu.AppendItem(menu_action_open_annotations)
+            menu.AppendSeparator()
+            menu.AppendItem(menu_edit_general)
+            menu.AppendItem(menu_edit_plot_1d)
+            menu.AppendItem(menu_edit_legend)
+            self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, "Lock plot", help="")
+            self.lock_plot_check.Check(self.plot_dt_dt.lock_plot_from_updating)
+            menu.AppendItem(menu_customise_plot)
+            menu.AppendSeparator()
+            self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
+            self.resize_plot_check.Check(CONFIG.resize)
+            menu.AppendItem(menu_action_save_figure)
+            menu.AppendItem(menu_action_copy_to_clipboard)
+            menu.AppendSeparator()
+            menu.AppendItem(menu_action_clear)
         elif self.currentPage == "Heatmap":
+            menu.AppendItem(menu_action_show_heatmap)
+            menu.AppendItem(menu_action_show_contour)
+            menu.AppendItem(menu_action_show_waterfall)
+            menu.AppendItem(menu_action_show_joint)
+            menu.AppendSeparator()
+            menu.AppendItem(menu_action_smooth_heatmap)
             menu.AppendItem(menu_action_process_2d)
             menu.AppendItem(menu_action_rotate90)
+            menu.AppendItem(menu_action_open_annotations)
             menu.AppendSeparator()
             menu.AppendItem(menu_edit_general)
             menu.AppendItem(menu_edit_plot_2d)
@@ -707,8 +784,14 @@ class PanelPlots(wx.Panel):
             menu.AppendSeparator()
             menu.AppendItem(menu_action_clear)
         elif self.currentPage == "DT/MS":
+            menu.AppendItem(menu_action_show_heatmap)
+            menu.AppendItem(menu_action_show_contour)
+            menu.AppendItem(menu_action_show_joint)
+            menu.AppendSeparator()
+            menu.AppendItem(menu_action_smooth_heatmap)
             menu.AppendItem(menu_action_process_2d)
             menu.AppendItem(menu_action_rotate90)
+            menu.AppendItem(menu_action_open_annotations)
             menu.AppendSeparator()
             menu.AppendItem(
                 make_menu_item(
@@ -733,6 +816,8 @@ class PanelPlots(wx.Panel):
             menu.AppendSeparator()
             menu.AppendItem(menu_action_clear)
         elif self.currentPage == "Heatmap (3D)":
+            menu.AppendItem(menu_action_smooth_heatmap)
+            menu.AppendSeparator()
             menu.AppendItem(menu_edit_plot_3d)
             menu.AppendSeparator()
             self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
@@ -740,7 +825,7 @@ class PanelPlots(wx.Panel):
             menu.AppendItem(
                 make_menu_item(parent=menu, evt_id=ID_save3DImage, text="Save figure as...", bitmap=self._icons.png)
             )
-            menu.AppendItem(menu_action_copy_to_clipboard)
+            #             menu.AppendItem(menu_action_copy_to_clipboard)
             menu.AppendSeparator()
             menu.AppendItem(menu_action_clear)
 
@@ -889,6 +974,7 @@ class PanelPlots(wx.Panel):
             "msdt": self.view_msdt,
             "dt/ms": self.view_msdt,
             "3d": self.view_heatmap_3d,
+            "heatmap (3d)": self.view_heatmap_3d,
         }
         plot_name = plot_name.lower()
         plot_obj = plot_dict.get(plot_name, None)

@@ -55,7 +55,6 @@ from origami.ids import ID_xlabel_2D_massToCharge
 from origami.ids import ID_ylabel_DTMS_ms_arrival
 from origami.ids import ID_docTree_action_open_extract
 from origami.ids import ID_docTree_action_open_origami_ms
-from origami.ids import ID_docTree_action_open_extractDTMS
 from origami.styles import set_tooltip
 from origami.styles import make_checkbox
 from origami.styles import make_menu_item
@@ -72,6 +71,7 @@ from origami.objects.containers import IonHeatmapObject
 from origami.objects.containers import MobilogramObject
 from origami.objects.containers import ChromatogramObject
 from origami.objects.containers import MassSpectrumObject
+from origami.objects.containers import MassSpectrumHeatmapObject
 from origami.gui_elements._panel import TestPanel
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.misc_dialogs import DialogSimpleAsk
@@ -1307,8 +1307,10 @@ class DocumentTree(wx.TreeCtrl):
             return "mobilogram"
         elif isinstance(data_obj, IonHeatmapObject):
             return "heatmap"
+        elif isinstance(data_obj, MassSpectrumHeatmapObject):
+            return "ms_heatmap"
 
-    def on_open_annotation_editor(self, evt):
+    def on_open_annotation_editor(self, evt, document_title: str = None, dataset_name: str = None, data_obj=None):
         """Open annotations panel"""
         from origami.widgets.annotations.panel_annotation_editor import PanelAnnotationEditor
 
@@ -1319,8 +1321,10 @@ class DocumentTree(wx.TreeCtrl):
                 + " opening another one.",
             )
         # get data and annotations
-        document_title, dataset_name = self._get_item_info()
-        data_obj = self._get_item_object()
+        if document_title is None or dataset_name is None or data_obj is None:
+            document_title, dataset_name = self._get_item_info()
+            data_obj = self._get_item_object()
+
         plot_type = self._match_plot_type_to_data_obj(data_obj)
 
         # check plot_type has been specified
@@ -1630,13 +1634,16 @@ class DocumentTree(wx.TreeCtrl):
 
     def _set_menu_actions(self, menu):
         action_menu = wx.Menu()
+
+        menu_action_extract = make_menu_item(parent=action_menu, text="Open DT/MS extraction panel...", bitmap=None)
+
         action_menu.Append(ID_docTree_action_open_origami_ms, "Setup ORIGAMI-MS parameters...")
         action_menu.Append(ID_docTree_action_open_extract, "Open data extraction panel...")
-        action_menu.Append(ID_docTree_action_open_extractDTMS, "Open DT/MS dataset settings...")
+        action_menu.AppendItem(menu_action_extract)
 
         self.Bind(wx.EVT_MENU, self.on_action_origami_ms, id=ID_docTree_action_open_origami_ms)
-        self.Bind(wx.EVT_MENU, self.on_open_extract_DTMS, id=ID_docTree_action_open_extractDTMS)
         self.Bind(wx.EVT_MENU, self.on_open_extract_data, id=ID_docTree_action_open_extract)
+        self.Bind(wx.EVT_MENU, self.on_open_extract_DTMS, menu_action_extract)
 
         menu.AppendMenu(wx.ID_ANY, "Action...", action_menu)
 
@@ -1933,7 +1940,9 @@ class DocumentTree(wx.TreeCtrl):
         # view actions
         menu_action_show_plot_2d = make_menu_item(parent=menu, text="Show heatmap\tAlt+S", bitmap=self._icons.heatmap)
         menu_action_show_plot_joint = make_menu_item(parent=menu, text="Show joint plot", bitmap=self._icons.joint)
+
         # process actions
+        menu_action_extract = make_menu_item(parent=menu, text="Open DT/MS extraction panel...", bitmap=None)
         menu_action_process_2d = make_menu_item(parent=menu, text="Process...\tP", bitmap=self._icons.process_heatmap)
         menu_action_process_2d_all = make_menu_item(
             parent=menu, text="Process all...", bitmap=self._icons.process_heatmap
@@ -1958,9 +1967,11 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
         self.Bind(wx.EVT_MENU, self.on_batch_export_figures, menu_action_save_image_as_all)
         self.Bind(wx.EVT_MENU, self.on_batch_export_data, menu_action_save_data_as_all)
+        self.Bind(wx.EVT_MENU, self.on_open_extract_DTMS, menu_action_extract)
 
         # make menu
         if self._item.indent == 2:
+            menu.AppendItem(menu_action_extract)
             menu.AppendItem(menu_action_process_2d_all)
             menu.AppendSeparator()
             menu.AppendItem(menu_action_save_image_as_all)
@@ -1972,16 +1983,8 @@ class DocumentTree(wx.TreeCtrl):
             menu.AppendItem(menu_action_show_plot_2d)
             menu.AppendItem(menu_action_show_plot_joint)
             menu.AppendSeparator()
+            menu.AppendItem(menu_action_extract)
             menu.AppendItem(menu_action_process_2d)
-            menu.AppendSeparator()
-            menu.AppendItem(
-                make_menu_item(
-                    parent=menu,
-                    evt_id=ID_docTree_action_open_extractDTMS,
-                    text="Open DT/MS extraction panel...",
-                    bitmap=None,
-                )
-            )
             menu.AppendSeparator()
             menu.AppendMenu(wx.ID_ANY, "Set Y-axis label as...", menu_ylabel)
             menu.AppendSeparator()
@@ -3709,7 +3712,19 @@ class DocumentTree(wx.TreeCtrl):
         return None
 
     def on_update_document(self, group_name: str, item_name: str, document_title: str, expand_group: bool = True):
-        """Update document data without resetting currently expanded items"""
+        """Update document data without resetting currently expanded items
+
+        Parameters
+        ----------
+        group_name : str
+            name of the group that needs to be updated (e.g. MassSpectra)
+        item_name : str
+            name of the object that needs to be added to the DocumentTree. The name should not include the group name.
+        document_title : str
+            name of the document that needs to be updated
+        expand_group : bool
+            flag to expand the group upon update
+        """
         document_item = self._get_document_item(document_title)
         if document_item is None:
             return
@@ -3718,8 +3733,9 @@ class DocumentTree(wx.TreeCtrl):
         _group_name = self._get_group_title(group_name)
 
         # get key formatter
-        key = f"{_group_name}/{item_name}"
-        group_metadata, group_key, child_title = self._get_group_metadata(key)
+        if f"{_group_name}/" not in item_name:
+            item_name = f"{_group_name}/{item_name}"
+        group_metadata, group_key, child_title = self._get_group_metadata(item_name)
 
         # expect dictionary with title and image information
         group_item, child_item = None, None
@@ -3739,7 +3755,7 @@ class DocumentTree(wx.TreeCtrl):
             # append item
             child_item = self.AppendItem(group_item, child_title)
             self.SetItemImage(child_item, group_metadata["image"], wx.TreeItemIcon_Normal)
-            self.SetPyData(child_item, (document_title, key))
+            self.SetPyData(child_item, (document_title, item_name))
 
         # If expand_group is not empty, the Tree will expand specified item
         if expand_group:
@@ -3802,6 +3818,10 @@ class DocumentTree(wx.TreeCtrl):
         document.delete()
         self.panel_plot.on_clear_all_plots()
         self.on_enable_document()
+        pub.sendMessage(
+            "notify.message.warning",
+            message=f"Document `{self._item.title}` was moved to the recycle bin where you can still recover it.",
+        )
 
     def on_delete_all_documents(self, evt):
         """ Alternative function to delete documents """
@@ -3875,7 +3895,7 @@ class DocumentTree(wx.TreeCtrl):
     #
     def on_open_extract_DTMS(self, _evt):
         """Open extraction panel"""
-        from origami.gui_elements.panel_process_extract_dtms import PanelProcessExtractDTMS
+        from origami.gui_elements.panel_process_extract_msdt import PanelProcessExtractMSDT
 
         document_title, _ = self._get_item_info()
         document = ENV.on_get_document(document_title)
@@ -3889,7 +3909,7 @@ class DocumentTree(wx.TreeCtrl):
         if file_fmt != "waters":
             raise MessageError("Error", "Extraction of MS/DT data can only be performed on a Waters-based documents")
 
-        dlg = PanelProcessExtractDTMS(self.view, self.presenter, document_title)
+        dlg = PanelProcessExtractMSDT(self.view, self.presenter, document_title)
         dlg.Show()
 
     def on_open_peak_picker(self, evt, document_title: str = None, dataset_name: str = None):
@@ -3898,7 +3918,6 @@ class DocumentTree(wx.TreeCtrl):
 
         # get data and annotations
         if document_title is None or dataset_name is None:
-            _, dataset_type, _ = self._get_query_info_based_on_indent()
             document_title, dataset_name = self._get_item_info()
 
         # permit only single instance of the peak-picker

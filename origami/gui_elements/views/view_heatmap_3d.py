@@ -63,7 +63,10 @@ class ViewHeatmap3d(ViewBase):
 
     def clear(self):
         """Clear canvas"""
-        self.figure.canvas.clear()
+        try:
+            self.figure.canvas.clear()
+        except RuntimeError:
+            pass
 
     @staticmethod
     def check_input(x, y, array, obj):

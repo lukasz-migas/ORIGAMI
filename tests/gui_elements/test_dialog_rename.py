@@ -22,6 +22,7 @@ class TestDialogDialogRenameObject(WidgetTestCase):
         # update name and set it to forbidden value
         dlg.new_name_value.SetValue("")
         assert dlg.new_name_value.GetBackgroundColour() != wx.WHITE
+        assert "This name is not allowed" in dlg.note_value.GetLabel()
 
         # update name
         dlg.new_name_value.SetValue("Hello from Test World")

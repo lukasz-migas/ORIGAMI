@@ -35,6 +35,12 @@ faulthandler.enable()
 logging.getLogger("matplotlib").setLevel(logging.ERROR)
 
 
+class App(wx.App):
+
+    def InitLocale(self):
+        self.ResetLocale()
+
+
 class ORIGAMI:
     """ORIGAMI App instance"""
 
@@ -44,7 +50,7 @@ class ORIGAMI:
     logging = None
 
     def __init__(self, *args, **kwargs):
-        self.__wx_app = wx.App(redirect=False, filename="ORIGAMI")
+        self.__wx_app = App(redirect=False, filename="ORIGAMI")
         self.view = None
         self.initilize_app(*args, **kwargs)
 

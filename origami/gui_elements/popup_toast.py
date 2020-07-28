@@ -3,10 +3,12 @@
 import wx
 
 # Local imports
+from origami.styles import set_item_font
 from origami.icons.assets import Icons
 from origami.gui_elements.popup import PopupBase
 from origami.gui_elements._panel import TestPanel  # noqa
-from origami.styles import set_item_font
+
+POPUP_TOAST_STYLES = ["info", "success", "warning", "error"]
 
 
 class PopupToast(PopupBase):
@@ -28,8 +30,6 @@ class PopupToast(PopupBase):
         self.kind = kind
 
         PopupBase.__init__(self, parent, style)
-
-        #         self.SetMinSize((250, 300))
         self.set_kind(kind)
 
         # setup dismiss timer
@@ -40,10 +40,10 @@ class PopupToast(PopupBase):
     def make_panel(self):
         """Make panel"""
 
-        self.text = wx.StaticText(self, -1, self.message)
-        set_item_font(self.text, weight=wx.FONTWEIGHT_BOLD)
+        self.text = wx.StaticText(self, -1, self.message, style=wx.ALIGN_CENTER_HORIZONTAL)
+        set_item_font(self.text, 12, weight=wx.FONTWEIGHT_BOLD)
         self.text.SetForegroundColour(self.TEXT_COLOR)
-        self.text.Wrap(200)
+        self.text.Wrap(325)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.AddSpacer(5)
@@ -52,7 +52,7 @@ class PopupToast(PopupBase):
 
         sizer.Fit(self)
         self.SetSizerAndFit(sizer)
-        self.SetSize(250, -1)
+        self.SetSize(350, -1)
         self.Layout()
 
     def set_kind(self, kind):
@@ -100,7 +100,6 @@ class PopupToastManager:
         move_h, move_v = self._check_popups()
         p.position_on_window(self.parent, move_h, move_v)
         p.Show()
-        print(p.GetSize())
 
         self.popups.append(p)
         self.counter += 1
@@ -119,10 +118,10 @@ class TestPopup(TestPanel):
 
     def on_popup(self, _evt):
         """Activate popup"""
-        self.manager.show_popup("TEST", "info")
-        self.manager.show_popup("TEST", "success")
-        self.manager.show_popup("TEST", "warning")
-        self.manager.show_popup("TEST", "error")
+        self.manager.show_popup("This is some nice testing text.\nAnd some more text ", "info")
+        self.manager.show_popup("This is some nice testing text.\nAnd some more text ", "success")
+        self.manager.show_popup("This is some nice testing text.\nAnd some more text ", "warning")
+        self.manager.show_popup("This is some nice testing text.\nAnd some more text ", "error")
 
 
 def _main_popup():

@@ -14,6 +14,7 @@ class ContainerBase:
         self._owner = None
         self._path = None
         self._output_path = None
+        self._unsaved = None
 
         self._x_label = x_label
         self._y_label = y_label
@@ -36,6 +37,8 @@ class ContainerBase:
 
     def set_owner(self, value):
         """Sets the owner of the container object"""
+        if not isinstance(value, (list, tuple)):
+            raise ValueError("`set_owner` expects a tuple or list of (DOCUMENT_TITLE, DATASET_NAME)")
         self.owner = value
 
     def set_output_path(self, value):
@@ -48,6 +51,18 @@ class ContainerBase:
         if self.owner is not None:
             _, item_name = self.owner
             return item_name
+
+    @property
+    def unsaved(self):
+        """Returns the flag to indicate that this object has some unsaved changes"""
+        return self._unsaved
+
+    @unsaved.setter
+    def unsaved(self, value: bool):
+        """Sets unsaved instance"""
+        if not isinstance(value, bool):
+            raise ValueError("Trying to set `unsaved` attribute with incorrect value type")
+        self._unsaved = value
 
     @property
     def path(self):

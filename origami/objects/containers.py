@@ -390,6 +390,7 @@ class DataObject(ContainerBase):
         if store is not None and title is not None:
             data, attrs = self.to_zarr()
             store.add(title, data, attrs)
+            self.unsaved = False
 
     def change_x_label(self, to_label: str, **kwargs):
         """Changes the label and x-axis values to a new format"""
@@ -471,11 +472,6 @@ class SpectrumObject(DataObject):
         if not isinstance(self._metadata, dict):
             self._metadata = dict()
 
-    def normalize(self):
-        """Normalize spectrum to 1"""
-        self._y = pr_spectra.normalize_1D(self.y)
-        return self
-
     def divide(self, divider: Union[int, float]):
         """Divide intensity array by specified divider"""
         assert isinstance(divider, (int, float)), "Division factor must be an integer or a float"
@@ -491,7 +487,13 @@ class SpectrumObject(DataObject):
         return y
 
     def process(
-        self, crop: bool = False, linearize: bool = False, smooth: bool = False, baseline: bool = False, **kwargs
+        self,
+        crop: bool = False,
+        linearize: bool = False,
+        smooth: bool = False,
+        baseline: bool = False,
+        normalize: bool = False,
+        **kwargs,
     ):
         """Perform all processing steps in one go. For correct parameter names, refer to the individual methods
 
@@ -505,6 +507,8 @@ class SpectrumObject(DataObject):
             if `True`, spectrum will be smoothed
         baseline : bool
             if `True`, baseline will be removed from the mass spectrum
+        normalize: bool
+            if `True`, spectrum will be normalized to 1
         kwargs : Dict[Any, Any]
             dictionary containing processing parameters
 
@@ -521,6 +525,14 @@ class SpectrumObject(DataObject):
             self.smooth(**kwargs)
         if baseline:
             self.baseline(**kwargs)
+        if normalize:
+            self.normalize()
+        return self
+
+    def normalize(self):
+        """Normalize spectrum to 1"""
+        self._y = pr_spectra.normalize_1D(self.y)
+        self.unsaved = True
         return self
 
     def crop(self, crop_min: Optional[float] = None, crop_max: Optional[float] = None, **kwargs):  # noqa
@@ -535,6 +547,7 @@ class SpectrumObject(DataObject):
         """
         x, y = pr_spectra.crop_1D_data(self.x, self.y, crop_min, crop_max)
         self._x, self._y = x, y
+        self.unsaved = True
         return self
 
     def linearize(
@@ -564,7 +577,7 @@ class SpectrumObject(DataObject):
         x_bin : np.ndarray
             pre-computed x-axis values
         """
-        x, y = pr_spectra.linearize_data(
+        self._x, self._y = pr_spectra.linearize_data(
             self.x,
             self.y,
             bin_size=bin_size,
@@ -574,7 +587,7 @@ class SpectrumObject(DataObject):
             x_max=x_max,
             x_bin=x_bin,
         )
-        self._x, self._y = x, y
+        self.unsaved = True
         return self
 
     def smooth(
@@ -601,10 +614,10 @@ class SpectrumObject(DataObject):
         N : int
             size of the window in moving average; only used with method being `Moving average`
         """
-        y = pr_spectra.smooth_1d(
+        self._y = pr_spectra.smooth_1d(
             self.y, smooth_method=smooth_method, sigma=sigma, window_size=window_size, poly_order=poly_order, N=N
         )
-        self._y = y
+        self.unsaved = True
         return self
 
     def baseline(
@@ -644,7 +657,7 @@ class SpectrumObject(DataObject):
         tophat_window : int
             tophat window size; only used with method being `Top Hat`
         """
-        y = pr_spectra.baseline_1D(
+        self._y = pr_spectra.baseline_1D(
             self.y,
             baseline_method=baseline_method,
             threshold=threshold,
@@ -655,7 +668,7 @@ class SpectrumObject(DataObject):
             curved_window=curved_window,
             tophat_window=tophat_window,
         )
-        self._y = y
+        self.unsaved = True
         return self
 
 
@@ -959,7 +972,7 @@ class HeatmapObject(DataObject):
         self._x_label_options, self._y_label_options = self._y_label_options, self._x_label_options
         # rotate the array
         self._array = self._array.T
-
+        self.unsaved = True
         return self
 
     def downsample(
@@ -989,7 +1002,6 @@ class HeatmapObject(DataObject):
             array = array.sum(axis=0)
             x, _ = pr_heatmap.view_as_blocks(x[np.newaxis, :], 1, n_cols)
             x = x.mean(axis=0).ravel()
-
         return x, y, array
 
     def process(
@@ -1057,6 +1069,7 @@ class HeatmapObject(DataObject):
             y_axis=y_axis,
             new_y=new_y,
         )
+        self.unsaved = True
         return self
 
     def crop(
@@ -1069,6 +1082,7 @@ class HeatmapObject(DataObject):
     ):
         """Crop array to desired size and shape"""
         self._x, self._y, self._array = pr_heatmap.crop_2d(self.x, self.y, self.array, x_min, x_max, y_min, y_max)
+        self.unsaved = True
         return self
 
     def smooth(
@@ -1083,16 +1097,19 @@ class HeatmapObject(DataObject):
         self._array = pr_heatmap.smooth_2d(
             self.array, method=smooth_method, sigma=sigma, poly_order=poly_order, window_size=window_size
         )
+        self.unsaved = True
         return self
 
     def baseline(self, threshold: Union[int, float] = 0, **kwargs):  # noqa
         """Remove baseline"""
         self._array = pr_heatmap.remove_noise_2d(self.array, threshold)
+        self.unsaved = True
         return self
 
     def normalize(self, normalize_method: str = "Maximum", **kwargs):  # noqa
         """Normalize heatmap"""
         self._array = pr_heatmap.normalize_2d(self.array, method=normalize_method)
+        self.unsaved = True
         return self
 
 

@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 # noinspection PyPep8Naming
-def DialogBox(title="", msg="", kind="Error", show_exception=True):
+def DialogBox(title="", msg="", kind="Error", show_exception=True, parent=None):
     """Generic dialog box that displays any kind of message
 
     Parameters
@@ -21,6 +21,8 @@ def DialogBox(title="", msg="", kind="Error", show_exception=True):
         message to be shown to the user
     show_exception : bool
         if `True`, exception will be printed in the logger
+    parent
+        parent of the window object
 
     Returns
     -------
@@ -47,8 +49,9 @@ def DialogBox(title="", msg="", kind="Error", show_exception=True):
     if show_exception:
         logger_printer(msg)
 
-    dlg = wx.MessageDialog(None, msg, title, style)
+    dlg = wx.MessageDialog(parent, msg, title, style)
     dlg.Raise()
+    dlg.CenterOnParent()
     result = dlg.ShowModal()
 
     if kind == "Question":

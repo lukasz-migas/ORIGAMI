@@ -1,5 +1,6 @@
 # Local imports
 # Third-party imports
+# Third-party imports
 from pubsub import pub
 
 from origami.gui_elements.misc_dialogs import DialogBox

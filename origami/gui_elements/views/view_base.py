@@ -274,6 +274,10 @@ class ViewBase(ABC):
         self._z_label = value
         self._update()
 
+    def set_object(self, data_obj):
+        """Set Data object that is associated with the view"""
+        self._data["obj"] = data_obj
+
     def get_object(self, get_cache: bool = True):
         """Get Data object that is shown in the View"""
         if self.document_name is None or self.dataset_name is None:
@@ -358,6 +362,8 @@ class ViewBase(ABC):
     def clear(self):
         """Clear plot"""
         self.figure.clear()
+        if "obj" in self._data:
+            self._data["obj"] = None
 
     def copy_to_clipboard(self):
         """Copy plot to clipboard"""

@@ -39,7 +39,12 @@ from origami.objects.annotations import Annotations
 from origami.gui_elements.panel_base import TableMixin
 from origami.gui_elements.panel_base import DatasetMixin
 from origami.gui_elements.misc_dialogs import DialogBox
-from origami.visuals.mpl.plot_spectrum import PlotSpectrum
+
+from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
+from origami.gui_elements.views.view_spectrum import ViewChromatogram
+from origami.gui_elements.views.view_spectrum import ViewMobilogram
+from origami.gui_elements.views.view_heatmap import ViewIonHeatmap
+from origami.gui_elements.views.view_heatmap import ViewMassSpectrumHeatmap
 
 # Module globals
 logger = logging.getLogger(__name__)
@@ -133,7 +138,7 @@ class PanelAnnotationEditorUI(MiniFrame, TableMixin, DatasetMixin):
             "name": "",
             "tag": "check",
             "type": "bool",
-            "width": 20,
+            "width": 25,
             "show": True,
             "order": 0,
             "id": wx.NewIdRef(),
@@ -242,7 +247,7 @@ class PanelAnnotationEditorUI(MiniFrame, TableMixin, DatasetMixin):
     _settings_panel_size = None
     main_sizer = None
     _plot_types_1d = ["mass_spectrum", "chromatogram", "mobilogram"]
-    _plot_types_2d = ["heatmap"]
+    _plot_types_2d = ["heatmap", "ms_heatmap"]
     _plot_types_misc = ["annotated"]
     PLOT_TYPES = _plot_types_1d + _plot_types_2d + _plot_types_misc
 
@@ -323,28 +328,24 @@ class PanelAnnotationEditorUI(MiniFrame, TableMixin, DatasetMixin):
 
         if self.plot_type in self._plot_types_1d:
             if self.plot_type == "mass_spectrum":
-                from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
-
                 self.plot_view = ViewMassSpectrum(split_panel, figsize, callbacks=callbacks, allow_extraction=True)
             elif self.plot_type == "chromatogram":
-                from origami.gui_elements.views.view_spectrum import ViewChromatogram
-
                 self.plot_view = ViewChromatogram(split_panel, figsize, callbacks=callbacks, allow_extraction=True)
             elif self.plot_type == "mobilogram":
-                from origami.gui_elements.views.view_spectrum import ViewMobilogram
-
                 self.plot_view = ViewMobilogram(split_panel, figsize, callbacks=callbacks, allow_extraction=True)
-        elif self.plot_type in self._plot_types_2d:
-            if self.plot_type == "heatmap":
-                from origami.gui_elements.views.view_heatmap import ViewIonHeatmap
-
-                self.plot_view = ViewIonHeatmap(split_panel, figsize, callbacks=callbacks, allow_extraction=True)
 
             self.plot_panel = self.plot_view.panel
             self.plot_window = self.plot_view.figure
-        else:
-            self.plot_panel = wx.Panel(split_panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
-            self.plot_window = PlotSpectrum(self.plot_panel, figsize=figsize, config=CONFIG)
+        elif self.plot_type in self._plot_types_2d:
+            if self.plot_type == "heatmap":
+                self.plot_view = ViewIonHeatmap(split_panel, figsize, callbacks=callbacks, allow_extraction=True)
+            elif self.plot_type == "ms_heatmap":
+                self.plot_view = ViewMassSpectrumHeatmap(
+                    split_panel, figsize, callbacks=callbacks, allow_extraction=True
+                )
+
+            self.plot_panel = self.plot_view.panel
+            self.plot_window = self.plot_view.figure
 
         return self.plot_view.panel
 

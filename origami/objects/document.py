@@ -386,9 +386,11 @@ class DocumentStore:
         group = self.add(f"Metadata/{title}", data, attrs)
         return group
 
-    def add(self, key, data=None, attrs=None):
+    def add(self, key, data=None, attrs=None, as_object: bool = False):
         """Add data to group"""
         # TODO: add name check so that names are always valid keys
+        if isinstance(data, DataObject):
+            data, attrs = data.to_zarr()
         if data is None:
             data = dict()
         if attrs is None:
@@ -397,6 +399,8 @@ class DocumentStore:
         # get group and add data to it
         group = self._get(key)
         group = self._set_group_data(group, data, attrs)
+        if as_object:
+            return self.as_object(group)
         return group
 
     def get(self, item, default=None):
@@ -470,7 +474,7 @@ class DocumentStore:
             if not os.path.exists(os.path.join(self.path, _name)):
                 break
             n += 1
-        print(name, n)
+
         name = _new_name(name, n)
         return name
 
