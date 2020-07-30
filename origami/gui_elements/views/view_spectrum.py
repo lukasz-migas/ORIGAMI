@@ -35,8 +35,10 @@ class ViewSpectrumPanelMixin:
 class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin):
     """Viewer class for spectral data"""
 
-    DATA_KEYS = ("x", "y")
+    VIEW_TYPE = "1d"
+    DATA_KEYS = ("x", "y", "obj")
     MPL_KEYS = ["1D"]
+    UPDATE_STYLES = ("line", "fill")
     NAME = get_short_hash()
 
     def __init__(self, *args, **kwargs):
@@ -108,6 +110,29 @@ class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin):
             kwargs = self._plt_kwargs
 
         self.update(self._data["x"], self._data["y"], **kwargs)
+
+    def update_style(self, name: str):
+        """Update plot style"""
+        if name.startswith("line"):
+            self.figure.plot_1d_update_style_by_label(
+                gid=None,
+                color=CONFIG.lineColour_1D,
+                line_style=CONFIG.lineStyle_1D,
+                line_width=CONFIG.lineWidth_1D,
+                #                 transparency=CONFIG.XXX,
+            )
+        elif name.startswith("fill"):
+            self.figure.plot_1d_update_patch_style_by_label(
+                gid=None,
+                show=CONFIG.lineShadeUnder_1D,
+                color=CONFIG.lineShadeUnderColour_1D,
+                transparency=CONFIG.lineShadeUnderTransparency_1D,
+                x=self._data["x"],
+                y=self._data["y"],
+                fill_kwargs=CONFIG.get_mpl_parameters(self.MPL_KEYS),
+            )
+
+        self.figure.repaint()
 
 
 class ViewMassSpectrum(ViewSpectrum):
@@ -224,11 +249,6 @@ class ViewCompareSpectra(ViewBase, ViewSpectrumPanelMixin):
         self._plt_kwargs = kwargs
         LOGGER.debug("Updated plot data")
 
-    def update_style(self, *args, **kwargs):
-        """Update plot style"""
-        self.figure.plot_1D_update_style_by_label(*args, **kwargs)
-        self.figure.repaint()
-
     def replot(self, **kwargs):
         """Replot the current plot"""
         if kwargs is None:
@@ -245,6 +265,11 @@ class ViewCompareSpectra(ViewBase, ViewSpectrumPanelMixin):
 
     def _update(self):
         pass
+
+    def update_style(self, *args, **kwargs):
+        """Update plot style"""
+        self.figure.plot_1d_update_style_by_label(*args, **kwargs)
+        self.figure.repaint()
 
 
 class ViewCompareMassSpectra(ViewCompareSpectra):

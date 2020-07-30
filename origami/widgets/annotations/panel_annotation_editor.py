@@ -11,7 +11,6 @@ from builtins import isinstance
 # Third-party imports
 import wx
 import numpy as np
-
 import wx.lib.scrolledpanel as wxScrolledPanel
 from pubsub import pub
 

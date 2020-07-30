@@ -19,8 +19,9 @@ LOGGER = logging.getLogger(__name__)
 class ViewHeatmap(ViewBase, ViewMPLMixin):
     """Viewer class for heatmap-based objects"""
 
-    DATA_KEYS = ("array", "x", "y")
-    MPL_KEYS = ["2D"]
+    VIEW_TYPE = "2d"
+    DATA_KEYS = ("array", "x", "y", "obj")
+    MPL_KEYS = ["2d", "colorbar", "normalization"]
     NAME = get_short_hash()
 
     def __init__(self, *args, **kwargs):
@@ -200,6 +201,40 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
         self._data.update(x=x, y=y, array=array, obj=obj)
         self._plt_kwargs = kwargs
         LOGGER.debug("Plotted data")
+
+    def update_style(self, name: str):
+        """Update plot style"""
+        if name.startswith("heatmap"):
+            self.figure.plot_2d_update_heatmap_style(
+                colormap=CONFIG.currentCmap,
+                interpolation=CONFIG.interpolation,
+                array=self._data["array"],
+                cbar_kwargs=CONFIG.get_mpl_parameters("colorbar"),
+            )
+        elif name.startswith("normalization"):
+            self.figure.plot_2d_update_normalization(
+                array=self._data["array"], **CONFIG.get_mpl_parameters(["normalization"])
+            )
+        elif name.startswith("colorbar"):
+            self.figure.plot_2d_update_colorbar(**CONFIG.get_mpl_parameters(["colorbar"]))
+        elif name.startswith("contour"):
+            print("Updating contour")
+        elif name.startswith("joint"):
+            print("Updating joint")
+        elif name.startswith("waterfall"):
+            # update data - requires full redraw
+            if name.endswith(".data"):
+                # get data and current state of the figure
+                x, y, array, obj = self.get_data(["x", "y", "array", "obj"])
+                #                 _limits = self.figure.get_xy_limits()
+                self.plot_waterfall(x, y, array, obj, repaint=False)
+            #                 self.figure.on_set_zoom_state(*_limits)
+            else:
+                self.figure.plot_waterfall_update(self._data["array"], name, **CONFIG.get_mpl_parameters(["waterfall"]))
+        elif name.startswith("violin"):
+            print("Updating violin")
+        self.figure.repaint()
+        LOGGER.debug(f"Updated plot styles - {name}")
 
 
 class ViewIonHeatmap(ViewHeatmap):

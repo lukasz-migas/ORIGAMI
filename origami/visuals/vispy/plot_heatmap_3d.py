@@ -35,17 +35,6 @@ class _PlotHeatmap3d(scene.SceneCanvas):
         self._array, self._x, self._y = None, None, None
         self._x_label, self._y_label, self._z_label = None, None, None
 
-    #         # testing only
-    #         # make data
-    #         x_size, y_size = 200, 200
-    #         x = np.arange(x_size)
-    #         y = np.arange(y_size)
-    #         array = np.random.normal(size=(x_size, y_size), scale=200)
-    #         array[50, 50] += 50000
-    #         # array = gaussian_filter(array, (10, 10))
-    #
-    #         self.plot_3d_surface(x, y, array)
-
     @staticmethod
     def transform(x: np.ndarray, y: np.ndarray, array: np.ndarray):
         """Transform data to match the expected format"""

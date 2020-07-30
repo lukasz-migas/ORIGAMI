@@ -10,6 +10,7 @@ import numpy as np
 import origami.processing.origami_ms as pr_origami
 from origami.styles import Dialog
 from origami.styles import Validator
+from origami.icons.assets import Icons
 from origami.utils.screen import calculate_window_size
 from origami.config.config import CONFIG
 from origami.utils.converters import str2int
@@ -18,7 +19,6 @@ from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.views.view_spectrum import ViewSpectrum
-from origami.icons.assets import Icons
 
 # TODO: Add limits to some of the parameters as in ORIGAMI-MS GUI
 #    Botlzmann offset: min = 10.0 max = 100

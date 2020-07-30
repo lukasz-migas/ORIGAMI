@@ -8,8 +8,8 @@ import wx
 # Local imports
 from origami.utils.secret import get_short_hash
 from origami.config.config import CONFIG
-from origami.visuals.mpl.plot_heatmap_3d import PlotHeatmap3d
 from origami.gui_elements.views.view_base import ViewBase
+from origami.visuals.vispy.plot_heatmap_3d import PlotHeatmap3d
 
 LOGGER = logging.getLogger(__name__)
 
@@ -17,6 +17,7 @@ LOGGER = logging.getLogger(__name__)
 class ViewHeatmap3d(ViewBase):
     """Viewer class for heatmap-based objects"""
 
+    VIEW_TYPE = "3d"
     DATA_KEYS = ("array", "x", "y")
     MPL_KEYS = ["2D"]
     UPDATE_STYLES = (
@@ -25,8 +26,8 @@ class ViewHeatmap3d(ViewBase):
         "colormap",
         "font",
         "tick",
-        "color.axis",
-        "color.background",
+        "axis.color",
+        "background.color",
         "margin",
         "margin.x",
         "margin.y",
@@ -129,7 +130,7 @@ class ViewHeatmap3d(ViewBase):
     def update_style(self, name: str):
         """Update style of the plot"""
         if name not in self.UPDATE_STYLES:
-            raise ValueError(f"Not sure how to handle `{name}`")
+            raise ValueError(f"Not sure how to handle `{name}`.\nTry any of the following `{self.UPDATE_STYLES}`")
 
         if not self.figure.can_update():
             raise AttributeError("Plot has not been generated yet")
@@ -144,9 +145,9 @@ class ViewHeatmap3d(ViewBase):
             self.figure.canvas.set_axis_font_size(CONFIG.heatmap_3d_axis_font_size)
         elif name == "tick":
             self.figure.canvas.set_axis_tick_size(CONFIG.heatmap_3d_axis_tick_size)
-        elif name == "color.axis":
+        elif name == "axis.color":
             self.figure.canvas.set_axis_color(CONFIG.heatmap_3d_axis_color)
-        elif name == "color.background":
+        elif name == "background.color":
             self.figure.canvas.set_background(CONFIG.heatmap_3d_background_color)
         elif name == "margin":
             self.figure.canvas.set_axis_label_margin(dimensions=("x", "y", "z"))

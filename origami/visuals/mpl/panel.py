@@ -283,12 +283,10 @@ class MPLPanel(wx.Panel):
 
         return divider, expo
 
-    def repaint(self):
-        """
-        Redraw and refresh the plot.
-        :return: None
-        """
-        self.canvas.draw()
+    def repaint(self, repaint: bool = True):
+        """Redraw and refresh the plot"""
+        if repaint:
+            self.canvas.draw()
 
     def clear(self):
         """

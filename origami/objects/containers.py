@@ -1,5 +1,6 @@
 """Various container objects"""
 # Standard library imports
+import os
 import math
 import logging
 from abc import ABC
@@ -81,8 +82,10 @@ class ChromatogramAxesMixin(ABC):
         def _get_scan_time(_scan_time):
             # no need to change anything
             if _scan_time is None:
-                _scan_time = self.get_parent().parameters.get("scan_time", None)
-            if _scan_time is None:
+                parent = self.get_parent()
+                if parent:
+                    _scan_time = parent.parameters.get("scan_time", None)
+            if _scan_time is None or _scan_time <= 0:
                 raise ValueError("Cannot perform conversion due to a missing `scan_time` information.")
             return _scan_time
 
@@ -184,8 +187,10 @@ class MobilogramAxesMixin(ABC):
         def _get_pusher_freq(_pusher_freq):
             # no need to change anything
             if _pusher_freq is None:
-                _pusher_freq = self.get_parent().parameters.get("pusher_freq", None)
-            if _pusher_freq is None:
+                parent = self.get_parent()
+                if parent:
+                    _pusher_freq = parent.parameters.get("pusher_freq", None)
+            if _pusher_freq is None or _pusher_freq <= 0:
                 raise ValueError("Cannot perform conversion due to a missing `pusher_freq` information.")
             return _pusher_freq
 
@@ -250,6 +255,20 @@ def get_fmt(*arrays: np.ndarray, get_largest: bool = False):
             return "%.4f"
         return "%d"
     return fmts
+
+
+def get_output_fmt(delimiter: str) -> str:
+    """Get appropriate file ending for a delimiter"""
+    return {",": ".csv", "\t": ".txt", " ": ".txt"}.get(delimiter, ".csv")
+
+
+def check_output_path(path: str, delimiter: str) -> str:
+    """Check whether output file has appropriate extension"""
+    _, ext = os.path.splitext(path)
+    if not ext or ext not in [".csv", ".txt", ".tab"]:
+        ext = get_output_fmt(delimiter)
+        path = path + ext
+    return path
 
 
 def check_alternative_names(current_label, to_label, alternative_labels):
@@ -419,7 +438,7 @@ class SpectrumObject(DataObject):
     @property
     def x_bin(self):
         """Return x-axis in bins"""
-        return np.arange(len(self.x))
+        return np.arange(len(self.x), dtype=np.int32)
 
     @property
     def x_spacing(self):
@@ -455,15 +474,17 @@ class SpectrumObject(DataObject):
         """Export data in a csv/txt format"""
         x, y = self.x, self.y
         if kwargs.get("remove_zeros", self.options.get("remove_zeros", False)):
-            index = np.where((self.x == 0) | (self.y == 0))
+            index = np.where((self.x != 0) | (self.y != 0))
             x = x[index]
             y = y[index]
 
         # get metadata
         fmt = get_fmt(x, y)
         delimiter = kwargs.get("delimiter", ",")
+        path = check_output_path(path, delimiter)
         header = f"{delimiter}".join([self.x_label, self.y_label])
         np.savetxt(path, np.c_[x, y], delimiter=delimiter, fmt=fmt, header=header)
+        return path
 
     def check(self):
         """Checks whether the provided data has the same size and shape"""
@@ -1333,6 +1354,8 @@ class StitchIonHeatmapObject(IonHeatmapObject):
 
 
 class ImagingIonHeatmapObject(HeatmapObject):
+    """Heatmap object for imaging purposes"""
+
     def __init__(
         self, array: np.ndarray, name: str = "", metadata=None, extra_data=None, x_label="x", y_label="y", **kwargs
     ):

@@ -1570,8 +1570,8 @@ class Config:
         self.waterfall_useColormap = True
         self.waterfall_normalize = True
         self.waterfall_color_choices = ["Same color", "Colormap", "Color palette", "Random"]  # new
-        self.waterfall_colormap = "mako"
-        self.waterfall_color_value = "Same color"
+        self.waterfall_colormap = "viridis"
+        self.waterfall_color_scheme = "Same color"
         self.waterfall_line_sameAsShade = True
         self.waterfall_add_labels = False
         self.waterfall_labels_frequency = 1
@@ -1581,10 +1581,11 @@ class Config:
         self.waterfall_label_fontWeight = True
         self.waterfall_shade_under = True
         self.waterfall_shade_under_color = [0, 0, 0]
-        self.waterfall_shade_under_nlimit = 50
+        self.waterfall_shade_under_nlimit = 1000
         self.waterfall_shade_under_transparency = 0.25
         self.waterfall_label_format_choices = ["String", "Float", "Integer"]
         self.waterfall_label_format = "Float"
+        self.waterfall_palette = "HLS"
 
         # violin
         self.violin_orientation_choices = ["vertical", "horizontal"]
@@ -1596,8 +1597,8 @@ class Config:
         self.violin_color = [0, 0, 0]
         self.violin_normalize = True
         self.violin_color_choices = ["Same color", "Colormap", "Color palette", "Random"]
-        self.violin_colormap = "mako"
-        self.violin_color_value = "Colormap"
+        self.violin_colormap = "viridis"
+        self.violin_color_scheme = "Colormap"
         self.violin_line_sameAsShade = False
         self.violin_shade_under = True
         self.violin_shade_under_color = [0, 0, 0]
@@ -1606,6 +1607,7 @@ class Config:
         self.violin_label_format_choices = ["String", "Float", "Integer"]
         self.violin_label_format = "Integer"
         self.violin_labels_frequency = 1
+        self.violin_palette = "HLS"
 
         # bar
         self.bar_width = 0.1
@@ -1639,6 +1641,7 @@ class Config:
         self.colorbar_edge_color = (0, 0, 0)
         self.colorbar_label_color = (0, 0, 0)
         self.colorbar_edge_width = 1
+        self.colorbar_inset_width = 25
 
         # legend
         self.legend = False
@@ -1860,7 +1863,7 @@ class Config:
         # =========== PLOT PARAMETERS =============
         self.lineColour = (0, 0, 0)
         self.lineWidth = 10
-        self.currentCmap = "inferno"
+        self.currentCmap = "viridis"
         self.interpolation = "None"
         self.overlayMethod = "Transparent"
         self.textOverlayMethod = "Mask"
@@ -2385,7 +2388,8 @@ class Config:
             plot_type = [plot_type]
 
         for _plot_type in plot_type:
-            if _plot_type == "1D":
+            _plot_type = _plot_type.lower()
+            if _plot_type == "1d":
                 plt_kwargs = {
                     "line_width": self.lineWidth_1D,
                     "line_color": self.lineColour_1D,
@@ -2470,7 +2474,7 @@ class Config:
                         "legend_patch_transparency": self.legendPatchAlpha,
                     }
                 )
-            if _plot_type == "UniDec":
+            if _plot_type == "unidec":
                 plt_kwargs.update(
                     {
                         "bar_width": self.unidec_plot_bar_width,
@@ -2491,7 +2495,7 @@ class Config:
                     }
                 )
 
-            if _plot_type == "2D":
+            if _plot_type == "colorbar":
                 plt_kwargs.update(
                     {
                         "colorbar": self.colorbar,
@@ -2505,18 +2509,24 @@ class Config:
                         "colorbar_outline_color": self.colorbar_edge_color,
                         "colorbar_outline_width": self.colorbar_edge_width,
                         "colorbar_label_color": self.colorbar_label_color,
-                        "legend": self.legend,
-                        "legend_transparency": self.legendAlpha,
-                        "legend_position": self.legendPosition,
-                        "legend_num_columns": self.legendColumns,
-                        "legend_font_size": self.legendFontSize,
-                        "legend_frame_on": self.legendFrame,
-                        "legend_fancy_box": self.legendFancyBox,
-                        "legend_marker_first": self.legendMarkerFirst,
-                        "legend_marker_size": self.legendMarkerSize,
-                        "legend_num_markers": self.legendNumberMarkers,
-                        "legend_line_width": self.legendLineWidth,
-                        "legend_patch_transparency": self.legendPatchAlpha,
+                        "colorbar_inset_width": self.colorbar_inset_width,
+                    }
+                )
+
+            if _plot_type == "normalization":
+                plt_kwargs.update(
+                    {
+                        "colormap_min": self.minCmap,
+                        "colormap_mid": self.midCmap,
+                        "colormap_max": self.maxCmap,
+                        "colormap_norm_method": self.normalization_2D,
+                        "colormap_norm_power_gamma": self.normalization_2D_power_gamma,
+                    }
+                )
+
+            if _plot_type == "2d":
+                plt_kwargs.update(
+                    {
                         "interpolation": self.interpolation,
                         "frame_width": self.frameWidth_1D,
                         "axis_onoff": self.axisOnOff_1D,
@@ -2541,17 +2551,12 @@ class Config:
                         "spines_bottom": self.spines_bottom_1D,
                         "override_colormap": self.useCurrentCmap,
                         "colormap": self.currentCmap,
-                        "colormap_min": self.minCmap,
-                        "colormap_mid": self.midCmap,
-                        "colormap_max": self.maxCmap,
-                        "colormap_norm_method": self.normalization_2D,
-                        "colormap_norm_power_gamma": self.normalization_2D_power_gamma,
                         "contour_n_levels": self.heatmap_n_contour,
                         "plot_type": self.plotType,
                     }
                 )
 
-            if _plot_type == "3D":
+            if _plot_type == "3d":
                 plt_kwargs.update(
                     {
                         "label_pad": self.labelPad_1D,
@@ -2574,7 +2579,7 @@ class Config:
                     }
                 )
 
-            if _plot_type in ["RMSD", "RMSF"]:
+            if _plot_type in ["rmsd", "rmsf"]:
                 plt_kwargs.update(
                     {
                         "axis_onoff_1D": self.axisOnOff_1D,
@@ -2625,8 +2630,8 @@ class Config:
                         "shade_color": self.waterfall_shade_under_color,
                         "normalize": self.waterfall_normalize,
                         "colormap": self.waterfall_colormap,
-                        "palette": self.currentPalette,
-                        "color_scheme": self.waterfall_color_value,
+                        "palette": self.waterfall_palette,
+                        "color_scheme": self.waterfall_color_scheme,
                         "line_color_as_shade": self.waterfall_line_sameAsShade,
                         "add_labels": self.waterfall_add_labels,
                         "labels_frequency": self.waterfall_labels_frequency,
@@ -2664,8 +2669,8 @@ class Config:
                         "shade_color": self.violin_shade_under_color,
                         "normalize": self.violin_normalize,
                         "colormap": self.violin_colormap,
-                        "palette": self.currentPalette,
-                        "color_scheme": self.violin_color_value,
+                        "palette": self.violin_palette,
+                        "color_scheme": self.violin_color_scheme,
                         "line_color_as_shade": self.violin_line_sameAsShade,
                         "labels_format": self.violin_label_format,
                         "shade_under": self.violin_shade_under,
@@ -3194,8 +3199,8 @@ class Config:
         buff += '    <param name="waterfall_label_format" value="{}" type="unicode" choices="{}" />\n'.format(
             self.waterfall_label_format, self.waterfall_label_format_choices
         )
-        buff += '    <param name="waterfall_color_value" value="{}" type="unicode" choices="{}" />\n'.format(
-            self.waterfall_color_value, self.waterfall_color_choices
+        buff += '    <param name="waterfall_color_scheme" value="{}" type="unicode" choices="{}" />\n'.format(
+            self.waterfall_color_scheme, self.waterfall_color_choices
         )
         buff += '    <param name="waterfall_add_labels" value="%s" type="bool" />\n' % (bool(self.waterfall_add_labels))
         buff += '    <param name="waterfall_shade_under" value="%s" type="bool" />\n' % (
@@ -3233,8 +3238,8 @@ class Config:
         buff += '    <param name="violin_label_format" value="{}" type="unicode" choices="{}" />\n'.format(
             self.violin_label_format, self.violin_label_format_choices
         )
-        buff += '    <param name="violin_color_value" value="{}" type="unicode" choices="{}" />\n'.format(
-            self.violin_color_value, self.violin_color_choices
+        buff += '    <param name="violin_color_scheme" value="{}" type="unicode" choices="{}" />\n'.format(
+            self.violin_color_scheme, self.violin_color_choices
         )
         buff += '    <param name="violin_line_sameAsShade" value="%s" type="bool" />\n' % (
             bool(self.violin_line_sameAsShade)

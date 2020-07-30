@@ -247,7 +247,7 @@ class DataProcessing:
     #     try:
     #         dataPlot.plot_remove_markers()
     #         dataPlot.plot_remove_patches()
-    #         dataPlot.plot_remove_text()
+    #         dataPlot.plot_remove_label()
     #     except Exception:
     #         pass
     #

@@ -50,7 +50,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
     plot_top_ticks_check, plot_bottom_ticks_check, plot_left_tick_labels_check = None, None, None
     plot_right_tick_labels_check, plot_top_tick_labels_check, plot_bottom_tick_labels_check = None, None, None
     plot_padding_value, plot_frame_width_value, plot_palette_value, plot_style_value = None, None, None, None
-    colorbar_tgl, colorbar_position_value, colorbar_width_value = None, None, None
+    colorbar_tgl, colorbar_position_value, colorbar_width_value, colorbar_width_inset_value = None, None, None, None
     colorbar_pad_value, colorbar_fontsize_value, colorbar_label_format = None, None, None
     colorbar_outline_width_value, colorbar_label_color_btn, colorbar_outline_color_btn = None, None, None
     legend_toggle, legend_position_value, legend_columns_value = None, None, None
@@ -187,6 +187,31 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
     def document_tree(self):
         """Return handle to `document_tree`"""
         return self.presenter.view.panelDocuments.documents
+
+    @staticmethod
+    def _parse_evt(evt):
+        """Parse event"""
+        if evt is not None:
+            evt.Skip()
+
+    def _set_color_palette(self, widget):
+        if not isinstance(widget, BitmapComboBox):
+            raise ValueError("Expected `BitmapComboBox` type of widget")
+        # add choices
+        widget.Append("HLS", bitmap=self._colormaps.cmap_hls)
+        widget.Append("HUSL", bitmap=self._colormaps.cmap_husl)
+        widget.Append("Cubehelix", bitmap=self._colormaps.cmap_cubehelix)
+        widget.Append("Spectral", bitmap=self._colormaps.cmap_spectral)
+        widget.Append("Viridis", bitmap=self._colormaps.cmap_viridis)
+        widget.Append("Rainbow", bitmap=self._colormaps.cmap_rainbow)
+        widget.Append("Inferno", bitmap=self._colormaps.cmap_inferno)
+        widget.Append("Cividis", bitmap=self._colormaps.cmap_cividis)
+        widget.Append("Winter", bitmap=self._colormaps.cmap_winter)
+        widget.Append("Cool", bitmap=self._colormaps.cmap_cool)
+        widget.Append("Gray", bitmap=self._colormaps.cmap_gray)
+        widget.Append("RdPu", bitmap=self._colormaps.cmap_rdpu)
+        widget.Append("Tab20b", bitmap=self._colormaps.cmap_tab20b)
+        widget.Append("Tab20c", bitmap=self._colormaps.cmap_tab20c)
 
     def on_key_event(self, evt):
         """Keyboard event handler"""
@@ -349,7 +374,6 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         main_sizer.Add(panel, 0, wx.EXPAND, 2)
 
         self.main_book.Bind(wx.EVT_CHOICEBOOK_PAGE_CHANGED, self.on_page_changed)
-        # self.main_book.Bind(wx.EVT_CHOICEBOOK_PAGE_CHANGING, self.on_page_changing)
 
         # fit layout
         main_sizer.Fit(self)
@@ -383,7 +407,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         self.plot_top_spines_check = make_checkbox(panel, "Top", name="frame")
         self.plot_top_spines_check.SetValue(CONFIG.spines_top_1D)
         self.plot_top_spines_check.Bind(wx.EVT_CHECKBOX, self.on_apply_general)
-        self.plot_top_spines_check.Bind(wx.EVT_CHECKBOX, self.on_update_1d)
+        self.plot_top_spines_check.Bind(wx.EVT_CHECKBOX, self.on_update)
 
         self.plot_bottom_spines_check = make_checkbox(panel, "Bottom", name="frame")
         self.plot_bottom_spines_check.SetValue(CONFIG.spines_bottom_1D)
@@ -550,23 +574,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
 
         plot_palette = wx.StaticText(panel, -1, "Color palette:")
         self.plot_palette_value = BitmapComboBox(panel, -1, choices=[], size=(160, -1), style=wx.CB_READONLY)
-
-        # add choices
-        self.plot_palette_value.Append("HLS", bitmap=self._colormaps.cmap_hls)
-        self.plot_palette_value.Append("HUSL", bitmap=self._colormaps.cmap_husl)
-        self.plot_palette_value.Append("Cubehelix", bitmap=self._colormaps.cmap_cubehelix)
-        self.plot_palette_value.Append("Spectral", bitmap=self._colormaps.cmap_spectral)
-        self.plot_palette_value.Append("Viridis", bitmap=self._colormaps.cmap_viridis)
-        self.plot_palette_value.Append("Rainbow", bitmap=self._colormaps.cmap_rainbow)
-        self.plot_palette_value.Append("Inferno", bitmap=self._colormaps.cmap_inferno)
-        self.plot_palette_value.Append("Cividis", bitmap=self._colormaps.cmap_cividis)
-        self.plot_palette_value.Append("Winter", bitmap=self._colormaps.cmap_winter)
-        self.plot_palette_value.Append("Cool", bitmap=self._colormaps.cmap_cool)
-        self.plot_palette_value.Append("Gray", bitmap=self._colormaps.cmap_gray)
-        self.plot_palette_value.Append("RdPu", bitmap=self._colormaps.cmap_rdpu)
-        self.plot_palette_value.Append("Tab20b", bitmap=self._colormaps.cmap_tab20b)
-        self.plot_palette_value.Append("Tab20c", bitmap=self._colormaps.cmap_tab20c)
-
+        self._set_color_palette(self.plot_palette_value)
         self.plot_palette_value.SetStringSelection(CONFIG.currentPalette)
         self.plot_palette_value.Bind(wx.EVT_COMBOBOX, self.on_change_color_palette)
 
@@ -1268,7 +1276,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         self.violin_colorScheme_value = wx.Choice(
             panel, -1, choices=CONFIG.waterfall_color_choices, size=(-1, -1), name="color"
         )
-        self.violin_colorScheme_value.SetStringSelection(CONFIG.violin_color_value)
+        self.violin_colorScheme_value.SetStringSelection(CONFIG.violin_color_scheme)
         self.violin_colorScheme_value.Bind(wx.EVT_CHOICE, self.on_apply_violin)
         self.violin_colorScheme_value.Bind(wx.EVT_CHOICE, self.on_update_2d)
         self.violin_colorScheme_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls_violin)
@@ -1280,6 +1288,13 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         self.violin_colormap_value.SetStringSelection(CONFIG.violin_colormap)
         self.violin_colormap_value.Bind(wx.EVT_CHOICE, self.on_apply_violin)
         self.violin_colormap_value.Bind(wx.EVT_CHOICE, self.on_update_2d)
+
+        violin_palette = wx.StaticText(panel, -1, "Color palette:")
+        self.violin_palette_value = BitmapComboBox(panel, -1, choices=[], size=(160, -1), style=wx.CB_READONLY)
+        self._set_color_palette(self.violin_palette_value)
+        self.violin_palette_value.SetStringSelection(CONFIG.violin_palette)
+        self.violin_palette_value.Bind(wx.EVT_CHOICE, self.on_apply_violin)
+        self.violin_palette_value.Bind(wx.EVT_CHOICE, self.on_update_2d)
 
         violin_shade_color_label = wx.StaticText(panel, -1, "Fill color:")
         self.violin_color_fill_btn = wx.Button(
@@ -1371,6 +1386,9 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         grid.Add(violin_colormap_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.violin_colormap_value, (n, 1), flag=wx.EXPAND)
         n += 1
+        grid.Add(violin_palette, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.violin_palette_value, (n, 1), flag=wx.EXPAND)
+        n += 1
         grid.Add(violin_shade_color_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.violin_color_fill_btn, (n, 1), flag=wx.ALIGN_LEFT)
         n += 1
@@ -1416,6 +1434,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         )
         self.waterfall_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_waterfall)
         self.waterfall_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
+        self.waterfall_offset_value.Disable()
 
         waterfall_increment_label = wx.StaticText(panel, -1, "Increment:")
         self.waterfall_increment_value = wx.SpinCtrlDouble(
@@ -1427,29 +1446,32 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             initial=0,
             inc=0.1,
             size=(90, -1),
-            name="data",
+            name="waterfall.data",
         )
         self.waterfall_increment_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_waterfall)
-        self.waterfall_increment_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
+        self.waterfall_increment_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_waterfall)
 
         waterfall_normalize_label = wx.StaticText(panel, -1, "Normalize:")
-        self.waterfall_normalize_check = make_checkbox(panel, "", name="data")
+        self.waterfall_normalize_check = make_checkbox(panel, "", name="waterfall.data")
         self.waterfall_normalize_check.SetValue(CONFIG.waterfall_normalize)
         self.waterfall_normalize_check.Bind(wx.EVT_CHECKBOX, self.on_apply_waterfall)
+        self.waterfall_normalize_check.Bind(wx.EVT_CHECKBOX, self.on_update_waterfall)
         self.waterfall_normalize_check.SetToolTip(
             "Controls whether signals are normalized during plotting. Changing this value will not have immediate"
             " effect until the plot is fully replotted."
         )
 
         waterfall_reverse_label = wx.StaticText(panel, -1, "Reverse order:")
-        self.waterfall_reverse_check = make_checkbox(panel, "", name="data")
+        self.waterfall_reverse_check = make_checkbox(panel, "", name="waterfall.data")
         self.waterfall_reverse_check.SetValue(CONFIG.waterfall_reverse)
         self.waterfall_reverse_check.Bind(wx.EVT_CHECKBOX, self.on_apply_waterfall)
+        self.waterfall_reverse_check.Bind(wx.EVT_CHECKBOX, self.on_update_waterfall)
         self.waterfall_reverse_check.SetToolTip(
             "Controls in which order lines are plotted. Changing this value will not have immediate"
             " effect until the plot is fully replotted."
         )
 
+        # line style
         waterfall_line_width_label = wx.StaticText(panel, -1, "Line width:")
         self.waterfall_line_width_value = wx.SpinCtrlDouble(
             panel,
@@ -1460,59 +1482,67 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             initial=CONFIG.waterfall_lineWidth,
             inc=1,
             size=(90, -1),
-            name="style",
+            name="waterfall.line.style",
         )
         self.waterfall_line_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_waterfall)
-        self.waterfall_line_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
+        self.waterfall_line_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_waterfall)
 
         waterfall_line_style_label = wx.StaticText(panel, -1, "Line style:")
         self.waterfall_line_style_value = wx.Choice(
-            panel, -1, choices=CONFIG.lineStylesList, size=(-1, -1), name="style"
+            panel, -1, choices=CONFIG.lineStylesList, size=(-1, -1), name="waterfall.line.style"
         )
         self.waterfall_line_style_value.SetStringSelection(CONFIG.waterfall_lineStyle)
         self.waterfall_line_style_value.Bind(wx.EVT_CHOICE, self.on_apply_waterfall)
-        self.waterfall_line_style_value.Bind(wx.EVT_CHOICE, self.on_update_2d)
+        self.waterfall_line_style_value.Bind(wx.EVT_CHOICE, self.on_update_waterfall)
 
         waterfall_line_color_label = wx.StaticText(panel, -1, "Line color:")
         self.waterfall_color_line_btn = wx.Button(
-            panel, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="waterfall.color.line"
+            panel, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="waterfall.line.color"
         )
         self.waterfall_color_line_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.waterfall_color))
         self.waterfall_color_line_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
-        self.waterfall_line_sameAsShade_check = make_checkbox(panel, "Same as fill", name="color")
+        self.waterfall_line_sameAsShade_check = make_checkbox(panel, "Same as fill", name="waterfall.color")
         self.waterfall_line_sameAsShade_check.SetValue(CONFIG.waterfall_line_sameAsShade)
         self.waterfall_line_sameAsShade_check.Bind(wx.EVT_CHECKBOX, self.on_apply_waterfall)
         self.waterfall_line_sameAsShade_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls_waterfall)
-        self.waterfall_line_sameAsShade_check.Bind(wx.EVT_CHECKBOX, self.on_update_2d)
+        self.waterfall_line_sameAsShade_check.Bind(wx.EVT_CHECKBOX, self.on_update_waterfall)
 
+        # under-line style
         waterfall_shade_under_label = wx.StaticText(panel, -1, "Fill under the curve:")
-        self.waterfall_fill_under_check = make_checkbox(panel, "", name="shade")
+        self.waterfall_fill_under_check = make_checkbox(panel, "", name="waterfall.fill")
         self.waterfall_fill_under_check.SetValue(CONFIG.waterfall_shade_under)
         self.waterfall_fill_under_check.Bind(wx.EVT_CHECKBOX, self.on_apply_waterfall)
         self.waterfall_fill_under_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls_waterfall)
-        self.waterfall_fill_under_check.Bind(wx.EVT_CHECKBOX, self.on_update_2d)
+        self.waterfall_fill_under_check.Bind(wx.EVT_CHECKBOX, self.on_update_waterfall)
 
         waterfall_color_scheme_label = wx.StaticText(panel, -1, "Color scheme:")
         self.waterfall_colorScheme_value = wx.Choice(
-            panel, -1, choices=CONFIG.waterfall_color_choices, size=(-1, -1), name="color"
+            panel, -1, choices=CONFIG.waterfall_color_choices, size=(-1, -1), name="waterfall.color"
         )
-        self.waterfall_colorScheme_value.SetStringSelection(CONFIG.waterfall_color_value)
+        self.waterfall_colorScheme_value.SetStringSelection(CONFIG.waterfall_color_scheme)
         self.waterfall_colorScheme_value.Bind(wx.EVT_CHOICE, self.on_apply_waterfall)
-        self.waterfall_colorScheme_value.Bind(wx.EVT_CHOICE, self.on_update_2d)
+        self.waterfall_colorScheme_value.Bind(wx.EVT_CHOICE, self.on_update_waterfall)
         self.waterfall_colorScheme_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls_waterfall)
 
         cmap_list = CONFIG.cmaps2[:]
         cmap_list.remove("jet")
         waterfall_colormap_label = wx.StaticText(panel, -1, "Colormap:")
-        self.waterfall_colormap_value = wx.Choice(panel, -1, choices=cmap_list, size=(-1, -1), name="color")
+        self.waterfall_colormap_value = wx.Choice(panel, -1, choices=cmap_list, size=(-1, -1), name="waterfall.color")
         self.waterfall_colormap_value.SetStringSelection(CONFIG.waterfall_colormap)
         self.waterfall_colormap_value.Bind(wx.EVT_CHOICE, self.on_apply_waterfall)
-        self.waterfall_colormap_value.Bind(wx.EVT_CHOICE, self.on_update_2d)
+        self.waterfall_colormap_value.Bind(wx.EVT_CHOICE, self.on_update_waterfall)
+
+        waterfall_palette = wx.StaticText(panel, -1, "Color palette:")
+        self.waterfall_palette_value = BitmapComboBox(panel, -1, choices=[], size=(160, -1), style=wx.CB_READONLY)
+        self._set_color_palette(self.waterfall_palette_value)
+        self.waterfall_palette_value.SetStringSelection(CONFIG.waterfall_palette)
+        self.waterfall_colormap_value.Bind(wx.EVT_CHOICE, self.on_apply_waterfall)
+        self.waterfall_colormap_value.Bind(wx.EVT_CHOICE, self.on_update_waterfall)
 
         waterfall_shade_color_label = wx.StaticText(panel, -1, "Fill color:")
         self.waterfall_color_fill_btn = wx.Button(
-            panel, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="waterfall.color.fill"
+            panel, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="waterfall.color"
         )
         self.waterfall_color_fill_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.waterfall_shade_under_color))
         self.waterfall_color_fill_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
@@ -1527,10 +1557,10 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             initial=CONFIG.waterfall_shade_under_transparency,
             inc=0.25,
             size=(90, -1),
-            name="shade",
+            name="waterfall.fill.style",
         )
         self.waterfall_fill_transparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_waterfall)
-        self.waterfall_fill_transparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
+        self.waterfall_fill_transparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_waterfall)
 
         waterfall_shade_limit_label = wx.StaticText(panel, -1, "Fill limit:")
         self.waterfall_fill_n_limit_value = wx.SpinCtrlDouble(
@@ -1538,11 +1568,11 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             -1,
             value=str(CONFIG.waterfall_shade_under_nlimit),
             min=0,
-            max=100,
+            max=1500,
             initial=CONFIG.waterfall_shade_under_nlimit,
-            inc=25,
+            inc=100,
             size=(90, -1),
-            name="shade",
+            name="waterfall.fill.style",
         )
         self.waterfall_fill_n_limit_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_waterfall)
         self.waterfall_fill_n_limit_value.SetToolTip(
@@ -1554,7 +1584,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         self.waterfall_showLabels_check = make_checkbox(panel, "", name="label")
         self.waterfall_showLabels_check.SetValue(CONFIG.waterfall_add_labels)
         self.waterfall_showLabels_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls_waterfall)
-        self.waterfall_showLabels_check.Bind(wx.EVT_CHECKBOX, self.on_update_2d)
+        self.waterfall_showLabels_check.Bind(wx.EVT_CHECKBOX, self.on_update_waterfall)
 
         waterfall_label_frequency_label = wx.StaticText(panel, -1, "Label frequency:")
         self.waterfall_label_frequency_value = wx.SpinCtrlDouble(
@@ -1566,10 +1596,10 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             initial=CONFIG.waterfall_labels_frequency,
             inc=1,
             size=(45, -1),
-            name="label.frequency",
+            name="waterfall.label.frequency",
         )
         self.waterfall_label_frequency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_waterfall)
-        self.waterfall_label_frequency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
+        self.waterfall_label_frequency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_waterfall)
 
         waterfall_label_format_label = wx.StaticText(panel, -1, "Label format:")
         self.waterfall_label_format_value = wx.Choice(
@@ -1577,7 +1607,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         )
         self.waterfall_label_format_value.SetStringSelection(CONFIG.waterfall_label_format)
         self.waterfall_label_format_value.Bind(wx.EVT_CHOICE, self.on_apply_waterfall)
-        self.waterfall_label_format_value.Bind(wx.EVT_CHOICE, self.on_update_2d)
+        self.waterfall_label_format_value.Bind(wx.EVT_CHOICE, self.on_update_waterfall)
         self.waterfall_label_format_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls_waterfall)
 
         waterfall_label_font_size_label = wx.StaticText(panel, -1, "Font size:")
@@ -1590,15 +1620,15 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             initial=CONFIG.waterfall_label_fontSize,
             inc=2,
             size=(45, -1),
-            name="label",
+            name="waterfall.label",
         )
         self.waterfall_label_font_size_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_waterfall)
-        self.waterfall_label_font_size_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
+        self.waterfall_label_font_size_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_waterfall)
 
         self.waterfall_label_font_weight_check = make_checkbox(panel, "Bold", name="label")
         self.waterfall_label_font_weight_check.SetValue(CONFIG.waterfall_label_fontWeight)
         self.waterfall_label_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_apply_waterfall)
-        self.waterfall_label_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_update_2d)
+        self.waterfall_label_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_update_waterfall)
 
         waterfall_label_x_offset_label = wx.StaticText(panel, -1, "Horizontal offset:")
         self.waterfall_label_x_offset_value = wx.SpinCtrlDouble(
@@ -1610,10 +1640,10 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             initial=CONFIG.waterfall_labels_x_offset,
             inc=0.01,
             size=(45, -1),
-            name="label",
+            name="waterfall.label",
         )
         self.waterfall_label_x_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_waterfall)
-        self.waterfall_label_x_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
+        self.waterfall_label_x_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_waterfall)
 
         waterfall_label_y_offset_label = wx.StaticText(panel, -1, "Vertical offset:")
         self.waterfall_label_y_offset_value = wx.SpinCtrlDouble(
@@ -1625,10 +1655,10 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             initial=CONFIG.waterfall_labels_y_offset,
             inc=0.05,
             size=(45, -1),
-            name="label",
+            name="waterfall.label",
         )
         self.waterfall_label_y_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_waterfall)
-        self.waterfall_label_y_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
+        self.waterfall_label_y_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_waterfall)
 
         plot_parameters_label = wx.StaticText(panel, -1, "Plot parameters")
         set_item_font(plot_parameters_label)
@@ -1674,6 +1704,9 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         n += 1
         grid.Add(waterfall_colormap_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.waterfall_colormap_value, (n, 1), flag=wx.EXPAND)
+        n += 1
+        grid.Add(waterfall_palette, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.waterfall_palette_value, (n, 1), flag=wx.EXPAND)
         n += 1
         grid.Add(waterfall_shade_color_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.waterfall_color_fill_btn, (n, 1), flag=wx.ALIGN_LEFT)
@@ -1725,27 +1758,28 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
 
         # make elements
         colorbar_tgl = wx.StaticText(panel, -1, "Colorbar:")
-        self.colorbar_tgl = make_toggle_btn(panel, "Off", wx.RED, name="colorbar")
+        self.colorbar_tgl = make_toggle_btn(panel, "Off", wx.RED, name="2d.heatmap.colorbar")
         self.colorbar_tgl.SetValue(CONFIG.colorbar)
         self.colorbar_tgl.Bind(wx.EVT_TOGGLEBUTTON, self.on_toggle_controls_colorbar)
         self.colorbar_tgl.Bind(wx.EVT_TOGGLEBUTTON, self.on_apply_colorbar)
-        self.colorbar_tgl.Bind(wx.EVT_TOGGLEBUTTON, self.on_update_2d)
+        self.colorbar_tgl.Bind(wx.EVT_TOGGLEBUTTON, self.on_update_colorbar)
 
         colorbar_label_format = wx.StaticText(panel, -1, "Label format:")
         self.colorbar_label_format = wx.Choice(
-            panel, -1, choices=CONFIG.colorbar_fmt_choices, size=(-1, -1), name="colorbar"
+            panel, -1, choices=CONFIG.colorbar_fmt_choices, size=(-1, -1), name="2d.heatmap.colorbar"
         )
         self.colorbar_label_format.SetStringSelection(CONFIG.colorbar_fmt)
         self.colorbar_label_format.Bind(wx.EVT_CHOICE, self.on_apply_colorbar)
-        self.colorbar_label_format.Bind(wx.EVT_CHOICE, self.on_update_2d)
+        self.colorbar_label_format.Bind(wx.EVT_CHOICE, self.on_update_colorbar)
 
         colorbar_position = wx.StaticText(panel, -1, "Position:")
         self.colorbar_position_value = wx.Choice(
-            panel, -1, choices=CONFIG.colorbar_position_choices, size=(-1, -1), name="colorbar"
+            panel, -1, choices=CONFIG.colorbar_position_choices, size=(-1, -1), name="2d.heatmap.colorbar"
         )
         self.colorbar_position_value.SetStringSelection(CONFIG.colorbarPosition)
         self.colorbar_position_value.Bind(wx.EVT_CHOICE, self.on_apply_colorbar)
-        self.colorbar_position_value.Bind(wx.EVT_CHOICE, self.on_update_2d)
+        self.colorbar_position_value.Bind(wx.EVT_CHOICE, self.on_update_colorbar)
+        self.colorbar_position_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls_colorbar)
 
         colorbar_pad = wx.StaticText(panel, -1, "Distance:")
         self.colorbar_pad_value = wx.SpinCtrlDouble(
@@ -1757,12 +1791,12 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             initial=0,
             inc=0.05,
             size=(90, -1),
-            name="colorbar",
+            name="2d.heatmap.colorbar",
         )
         self.colorbar_pad_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_colorbar)
-        self.colorbar_pad_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
+        self.colorbar_pad_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_colorbar)
 
-        colorbar_width = wx.StaticText(panel, -1, "Width (H) / Height (V) (%):")
+        colorbar_width_height = wx.StaticText(panel, -1, "Width (H) | Height (V) (%):")
         self.colorbar_width_value = wx.SpinCtrlDouble(
             panel,
             -1,
@@ -1772,10 +1806,25 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             initial=0,
             inc=0.5,
             size=(90, -1),
-            name="colorbar",
+            name="2d.heatmap.colorbar",
         )
         self.colorbar_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_colorbar)
-        self.colorbar_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
+        self.colorbar_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_colorbar)
+
+        colorbar_width = wx.StaticText(panel, -1, "Width (inset) (%):")
+        self.colorbar_width_inset_value = wx.SpinCtrlDouble(
+            panel,
+            -1,
+            value=str(CONFIG.colorbar_inset_width),
+            min=0.0,
+            max=100,
+            initial=0,
+            inc=5,
+            size=(90, -1),
+            name="2d.heatmap.colorbar",
+        )
+        self.colorbar_width_inset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_colorbar)
+        self.colorbar_width_inset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_colorbar)
 
         colorbar_fontsize = wx.StaticText(panel, -1, "Label font size:")
         self.colorbar_fontsize_value = wx.SpinCtrlDouble(
@@ -1787,21 +1836,21 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             initial=0,
             inc=2,
             size=(90, -1),
-            name="colorbar",
+            name="2d.heatmap.colorbar",
         )
         self.colorbar_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_colorbar)
-        self.colorbar_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
+        self.colorbar_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_colorbar)
 
         colorbar_label_color = wx.StaticText(panel, -1, "Label color:")
         self.colorbar_label_color_btn = wx.Button(
-            panel, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0.0, name="colorbar.label"
+            panel, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0.0, name="2d.heatmap.colorbar.label"
         )
         self.colorbar_label_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.colorbar_label_color))
         self.colorbar_label_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
         colorbar_outline_color = wx.StaticText(panel, -1, "Outline color:")
         self.colorbar_outline_color_btn = wx.Button(
-            panel, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="colorbar.outline"
+            panel, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="2d.heatmap.colorbar.outline"
         )
         self.colorbar_outline_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.colorbar_edge_color))
         self.colorbar_outline_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
@@ -1816,10 +1865,10 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             initial=CONFIG.colorbar_edge_width,
             inc=1,
             size=(90, -1),
-            name="colorbar.frame",
+            name="2d.heatmap.colorbar",
         )
         self.colorbar_outline_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_colorbar)
-        self.colorbar_outline_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
+        self.colorbar_outline_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_colorbar)
 
         grid = wx.GridBagSizer(2, 2)
         n = 0
@@ -1835,17 +1884,20 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         grid.Add(colorbar_pad, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.colorbar_pad_value, (n, 1), flag=wx.EXPAND)
         n += 1
-        grid.Add(colorbar_width, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(colorbar_width_height, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.colorbar_width_value, (n, 1), flag=wx.EXPAND)
+        n += 1
+        grid.Add(colorbar_width, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.colorbar_width_inset_value, (n, 1), flag=wx.EXPAND)
         n += 1
         grid.Add(colorbar_fontsize, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.colorbar_fontsize_value, (n, 1), flag=wx.EXPAND)
         n += 1
         grid.Add(colorbar_label_color, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.colorbar_label_color_btn, (n, 1), flag=wx.EXPAND)
+        grid.Add(self.colorbar_label_color_btn, (n, 1), flag=wx.ALIGN_LEFT)
         n += 1
         grid.Add(colorbar_outline_color, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.colorbar_outline_color_btn, (n, 1), flag=wx.EXPAND)
+        grid.Add(self.colorbar_outline_color_btn, (n, 1), flag=wx.ALIGN_LEFT)
         n += 1
         grid.Add(colorbar_outline_width, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.colorbar_outline_width_value, (n, 1), flag=wx.EXPAND)
@@ -1969,6 +2021,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
 
     def make_panel_1d(self, panel):
         """Make 1d plot settings panel"""
+        # line controls
         plot1d_line_width = wx.StaticText(panel, -1, "Line width:")
         self.plot1d_line_width_value = wx.SpinCtrlDouble(
             panel,
@@ -1979,23 +2032,26 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             initial=CONFIG.lineWidth_1D * 10,
             inc=10,
             size=(90, -1),
+            name="1d.line.line.width",
         )
         self.plot1d_line_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_1d)
         self.plot1d_line_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_1d)
 
         plot1d_line_color = wx.StaticText(panel, -1, "Line color:")
-        self.plot1d_line_color_btn = wx.Button(panel, wx.ID_ANY, "", size=wx.Size(26, 26), name="1d.line.line")
+        self.plot1d_line_color_btn = wx.Button(panel, wx.ID_ANY, "", size=wx.Size(26, 26), name="1d.line.line.color")
         self.plot1d_line_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.lineColour_1D))
         self.plot1d_line_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
         plot1d_line_style = wx.StaticText(panel, -1, "Line style:")
-        self.plot1d_line_style_value = wx.Choice(panel, -1, choices=CONFIG.lineStylesList, size=(-1, -1))
+        self.plot1d_line_style_value = wx.Choice(
+            panel, -1, choices=CONFIG.lineStylesList, size=(-1, -1), name="1d.line.line.style"
+        )
         self.plot1d_line_style_value.SetStringSelection(CONFIG.lineStyle_1D)
         self.plot1d_line_style_value.Bind(wx.EVT_CHOICE, self.on_apply_1d)
         self.plot1d_line_style_value.Bind(wx.EVT_CHOICE, self.on_update_1d)
 
         plot1d_underline = wx.StaticText(panel, -1, "Fill under:")
-        self.plot1d_underline_check = make_checkbox(panel, "")
+        self.plot1d_underline_check = make_checkbox(panel, "", name="1d.line.fill.show")
         self.plot1d_underline_check.SetValue(CONFIG.lineShadeUnder_1D)
         self.plot1d_underline_check.Bind(wx.EVT_CHECKBOX, self.on_apply_1d)
         self.plot1d_underline_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls_1d)
@@ -2011,17 +2067,19 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             initial=CONFIG.lineShadeUnderTransparency_1D * 100,
             inc=10,
             size=(90, -1),
+            name="1d.line.fill.opacity",
         )
         self.plot1d_underline_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_1d)
         self.plot1d_underline_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_1d)
 
         plot1d_underline_color = wx.StaticText(panel, -1, "Fill color:")
         self.plot1d_underline_color_btn = wx.Button(
-            panel, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="1d.line.fill"
+            panel, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="1d.line.fill.color"
         )
         self.plot1d_underline_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.lineShadeUnderColour_1D))
         self.plot1d_underline_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
+        # markers controls
         plot1d_marker_shape = wx.StaticText(panel, -1, "Marker shape:")
         self.plot1d_marker_shape_value = wx.Choice(
             panel, -1, choices=list(CONFIG.markerShapeDict.keys()), size=(-1, -1)
@@ -2068,6 +2126,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         self.plot1d_marker_edge_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.markerEdgeColor_3D))
         self.plot1d_marker_edge_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
+        # bar plot controls
         bar_width_label = wx.StaticText(panel, -1, "Bar width:")
         self.bar_width_value = wx.SpinCtrlDouble(
             panel, -1, value=str(CONFIG.bar_width), min=0.01, max=10, inc=0.1, initial=CONFIG.bar_width, size=(90, -1)
@@ -2206,14 +2265,18 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
     def make_panel_2d(self, panel):
         """Make 2d plot panel"""
         plot2d_plot_type = wx.StaticText(panel, -1, "Plot type:")
-        self.plot2d_plot_type_value = wx.Choice(panel, -1, choices=CONFIG.imageType2D, size=(-1, -1))
+        self.plot2d_plot_type_value = wx.Choice(
+            panel, -1, choices=CONFIG.imageType2D, size=(-1, -1), name="2d.heatmap.viewtype"
+        )
         self.plot2d_plot_type_value.SetStringSelection(CONFIG.plotType)
         self.plot2d_plot_type_value.Bind(wx.EVT_CHOICE, self.on_apply_2d)
         self.plot2d_plot_type_value.Bind(wx.EVT_CHOICE, self.on_replot_2d)
         self.plot2d_plot_type_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls_2d)
 
         plot2d_interpolation = wx.StaticText(panel, -1, "Interpolation:")
-        self.plot2d_interpolation_value = wx.Choice(panel, -1, choices=CONFIG.comboInterpSelectChoices, size=(-1, -1))
+        self.plot2d_interpolation_value = wx.Choice(
+            panel, -1, choices=CONFIG.comboInterpSelectChoices, size=(-1, -1), name="2d.heatmap.heatmap"
+        )
         self.plot2d_interpolation_value.SetStringSelection(CONFIG.interpolation)
         self.plot2d_interpolation_value.Bind(wx.EVT_CHOICE, self.on_apply_2d)
         self.plot2d_interpolation_value.Bind(wx.EVT_CHOICE, self.on_update_2d)
@@ -2228,13 +2291,15 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             initial=0,
             inc=25,
             size=(50, -1),
-            name="contour",
+            name="2d.heatmap.contour",
         )
         self.plot2d_n_contour_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_2d)
         self.plot2d_n_contour_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
 
         plot2d_colormap = wx.StaticText(panel, -1, "Colormap:")
-        self.plot2d_colormap_value = wx.Choice(panel, -1, choices=CONFIG.cmaps2, size=(-1, -1), name="color")
+        self.plot2d_colormap_value = wx.Choice(
+            panel, -1, choices=CONFIG.cmaps2, size=(-1, -1), name="2d.heatmap.heatmap"
+        )
         self.plot2d_colormap_value.SetStringSelection(CONFIG.currentCmap)
         self.plot2d_colormap_value.Bind(wx.EVT_CHOICE, self.on_apply_2d)
         self.plot2d_colormap_value.Bind(wx.EVT_CHOICE, self.on_update_2d)
@@ -2243,10 +2308,15 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         self.plot2d_override_colormap_check.SetValue(CONFIG.useCurrentCmap)
         self.plot2d_override_colormap_check.Bind(wx.EVT_CHECKBOX, self.on_apply_2d)
         self.plot2d_override_colormap_check.Bind(wx.EVT_CHOICE, self.on_update_2d)
+        self.plot2d_override_colormap_check.Disable()
 
         plot2d_normalization = wx.StaticText(panel, -1, "Normalization:")
         self.plot2d_normalization_value = wx.Choice(
-            panel, -1, choices=["Midpoint", "Logarithmic", "Power"], size=(-1, -1), name="normalization"
+            panel,
+            -1,
+            choices=["MinMax", "Midpoint", "Logarithmic", "Power"],
+            size=(-1, -1),
+            name="2d.heatmap.normalization",
         )
         self.plot2d_normalization_value.SetStringSelection(CONFIG.normalization_2D)
         self.plot2d_normalization_value.Bind(wx.EVT_CHOICE, self.on_apply_2d)
@@ -2255,21 +2325,45 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
 
         plot2d_min = wx.StaticText(panel, -1, "Min %:")
         self.plot2d_min_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(CONFIG.minCmap), min=0, max=100, initial=0, inc=5, size=(50, -1), name="normalization"
+            panel,
+            -1,
+            value=str(CONFIG.minCmap),
+            min=0,
+            max=100,
+            initial=0,
+            inc=5,
+            size=(50, -1),
+            name="2d.heatmap.normalization",
         )
         self.plot2d_min_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_2d)
         self.plot2d_min_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
 
         plot2d_mid = wx.StaticText(panel, -1, "Mid %:")
         self.plot2d_mid_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(CONFIG.midCmap), min=0, max=100, initial=0, inc=5, size=(50, -1), name="normalization"
+            panel,
+            -1,
+            value=str(CONFIG.midCmap),
+            min=0,
+            max=100,
+            initial=0,
+            inc=5,
+            size=(50, -1),
+            name="2d.heatmap.normalization",
         )
         self.plot2d_mid_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_2d)
         self.plot2d_mid_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
 
         plot2d_max = wx.StaticText(panel, -1, "Max %:")
         self.plot2d_max_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(CONFIG.maxCmap), min=0, max=100, initial=0, inc=5, size=(90, -1), name="normalization"
+            panel,
+            -1,
+            value=str(CONFIG.maxCmap),
+            min=0,
+            max=100,
+            initial=0,
+            inc=5,
+            size=(90, -1),
+            name="2d.heatmap.normalization",
         )
         self.plot2d_max_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_2d)
         self.plot2d_max_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
@@ -2284,7 +2378,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             initial=0,
             inc=0.1,
             size=(90, -1),
-            name="normalization",
+            name="2d.heatmap.normalization",
         )
         self.plot2d_normalization_gamma_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_2d)
         self.plot2d_normalization_gamma_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
@@ -2370,7 +2464,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
 
         background_color_label = wx.StaticText(panel, -1, "Background color:")
         self.plot3d_background_color_btn = wx.Button(
-            panel, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="heatmap.3d.color.background"
+            panel, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="heatmap.3d.background.color"
         )
         self.plot3d_background_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.heatmap_3d_background_color))
         self.plot3d_background_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
@@ -2507,7 +2601,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
 
         axis_color_label = wx.StaticText(panel, -1, "Axes color:")
         self.plot3d_axis_color_btn = wx.Button(
-            panel, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="heatmap.3d.color.axis"
+            panel, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="heatmap.3d.axis.color"
         )
         self.plot3d_axis_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.heatmap_3d_axis_color))
         self.plot3d_axis_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
@@ -2720,6 +2814,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         CONFIG.colorbarLabelSize = str2num(self.colorbar_fontsize_value.GetValue())
         CONFIG.colorbar_fmt = self.colorbar_label_format.GetStringSelection()
         CONFIG.colorbar_edge_width = str2num(self.colorbar_outline_width_value.GetValue())
+        CONFIG.colorbar_inset_width = str2num(self.colorbar_width_inset_value.GetValue())
 
         if evt is not None:
             evt.Skip()
@@ -2749,8 +2844,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         CONFIG.violin_lineWidth = self.violin_line_width_value.GetValue()
         CONFIG.violin_lineStyle = self.violin_line_style_value.GetStringSelection()
         CONFIG.violin_color_scheme = self.violin_colorScheme_value.GetStringSelection()
-        if CONFIG.violin_color_scheme == "Color palette":
-            self.set_message("You can change the color palette in the `General` tab")
+        CONFIG.violin_palette = self.violin_palette_value.GetStringSelection()
         CONFIG.violin_colormap = self.violin_colormap_value.GetStringSelection()
         CONFIG.violin_normalize = self.violin_normalize_check.GetValue()
         CONFIG.violin_line_sameAsShade = self.violin_line_same_as_fill_check.GetValue()
@@ -2769,9 +2863,8 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         CONFIG.waterfall_lineWidth = self.waterfall_line_width_value.GetValue()
         CONFIG.waterfall_lineStyle = self.waterfall_line_style_value.GetStringSelection()
         CONFIG.waterfall_reverse = self.waterfall_reverse_check.GetValue()
-        CONFIG.waterfall_color_value = self.waterfall_colorScheme_value.GetStringSelection()
-        if CONFIG.waterfall_color_value == "Color palette":
-            self.set_message("You can change the color palette in the `General` tab")
+        CONFIG.waterfall_color_scheme = self.waterfall_colorScheme_value.GetStringSelection()
+        CONFIG.waterfall_palette = self.waterfall_palette_value.GetStringSelection()
         CONFIG.waterfall_colormap = self.waterfall_colormap_value.GetStringSelection()
         CONFIG.waterfall_normalize = self.waterfall_normalize_check.GetValue()
         CONFIG.waterfall_line_sameAsShade = self.waterfall_line_sameAsShade_check.GetValue()
@@ -2828,11 +2921,11 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         if color_1 is None:
             return
 
-        if source == "heatmap.3d.color.background":
+        if source == "heatmap.3d.background.color":
             CONFIG.heatmap_3d_background_color = color_1
             self.plot3d_background_color_btn.SetBackgroundColour(color_255)
             self.on_update_3d(evt)
-        elif source == "heatmap.3d.color.axis":
+        elif source == "heatmap.3d.axis.color":
             CONFIG.heatmap_3d_axis_color = color_1
             self.plot3d_axis_color_btn.SetBackgroundColour(color_255)
             self.on_update_3d(evt)
@@ -2858,14 +2951,14 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         elif source == "1d.marker.edge":
             CONFIG.markerEdgeColor_1D = color_1
             self.plot1d_marker_edge_color_btn.SetBackgroundColour(color_255)
-        elif source == "1d.line.line":
+        elif source == "1d.line.line.color":
             CONFIG.lineColour_1D = color_1
             self.plot1d_line_color_btn.SetBackgroundColour(color_255)
-            self.on_update_1d(None)
-        elif source == "1d.line.fill":
+            self.on_update_1d(evt)
+        elif source == "1d.line.fill.color":
             CONFIG.lineShadeUnderColour_1D = color_1
             self.plot1d_underline_color_btn.SetBackgroundColour(color_255)
-            self.on_update_1d(None)
+            self.on_update_1d(evt)
         elif source == "zoom.drag.rect":
             CONFIG._plots_zoom_box_color = color_1
             self.zoom_zoom_box_color_btn.SetBackgroundColour(color_255)
@@ -2875,14 +2968,14 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         elif source == "zoom.drag.horizontal":
             CONFIG._plots_zoom_horizontal_color = color_1
             self.zoom_zoom_horizontal_color_btn.SetBackgroundColour(color_255)
-        elif source == "waterfall.color.line":
+        elif source == "waterfall.line.color":
             CONFIG.waterfall_color = color_1
             self.waterfall_color_line_btn.SetBackgroundColour(color_255)
-            self.on_update_2d(evt)
-        elif source == "waterfall.color.fill":
+            self.on_update_waterfall(evt)
+        elif source == "waterfall.fill.color":
             CONFIG.waterfall_shade_under_color = color_1
             self.waterfall_color_fill_btn.SetBackgroundColour(color_255)
-            self.on_update_2d(evt)
+            self.on_update_waterfall(evt)
         elif source == "violin.color.line":
             CONFIG.violin_color = color_1
             self.violin_color_line_btn.SetBackgroundColour(color_255)
@@ -2894,14 +2987,14 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         elif source == "1d.bar.edge":
             CONFIG.bar_edge_color = color_1
             self.bar_edge_color_btn.SetBackgroundColour(color_255)
-        elif source == "colorbar.outline":
+        elif source == "2d.heatmap.colorbar.outline":
             CONFIG.colorbar_edge_color = color_1
             self.colorbar_outline_color_btn.SetBackgroundColour(color_255)
-            self.on_update_2d(evt)
-        elif source == "colorbar.label":
+            self.on_update_colorbar(evt)
+        elif source == "2d.heatmap.colorbar.label":
             CONFIG.colorbar_label_color = color_1
             self.colorbar_label_color_btn.SetBackgroundColour(color_255)
-            self.on_update_2d(evt)
+            self.on_update_colorbar(evt)
 
     def _recalculate_rmsd_position(self, evt):
         if self.import_evt:
@@ -2922,8 +3015,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             self.rmsd_x_position_value.SetValue(CONFIG.rmsd_location[0])
             self.rmsd_y_position_value.SetValue(CONFIG.rmsd_location[1])
 
-        if evt is not None:
-            evt.Skip()
+        self._parse_evt(evt)
 
     def on_update_rmsd_label(self, evt):
         """Update RMSD label"""
@@ -2932,8 +3024,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
 
         self.panel_plot.plot_2d_update_label()
 
-        if evt is not None:
-            evt.Skip()
+        self._parse_evt(evt)
 
     def on_update_label_rmsd_matrix(self, evt):
         """Update RMSD matrix labels"""
@@ -2941,8 +3032,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
 
         self.panel_plot.plot_2D_matrix_update_label()
 
-        if evt is not None:
-            evt.Skip()
+        self._parse_evt(evt)
 
     def on_update(self, evt):
         """General plot update"""
@@ -2995,61 +3085,64 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         #     self.panel_plot.plot_3D_update(plotName="3D")
         #
         # logger.debug(f"update {source} / plot_name {plot_name} in {time.time()-t_start:.4f}s")
-        if evt is not None:
-            evt.Skip()
+        self._parse_evt(evt)
 
     def on_update_1d(self, evt):
         """Update 1d plots"""
-        print(self)
-        # self.on_apply_1d(None)
-        # if self.panel_plot.window_plot1D == "Mass spectrum":
-        #     self.panel_plot.plot_1D_update(plotName="MS")
-        #
-        # elif self.panel_plot.window_plot1D == "Chromatogram":
-        #     self.panel_plot.plot_1D_update(plotName="RT")
-        #
-        # elif self.panel_plot.window_plot1D == "Mobilogram":
-        #     self.panel_plot.plot_1D_update(plotName="1D")
+        # TODO: check whether its correct view!
+        if evt is None:
+            return
+        source = evt.GetEventObject().GetName()
+        if not source.startswith("1d.line"):
+            self._parse_evt(evt)
+            return
+        self.on_apply_1d(None)
+        name = source.split("1d.line.")[-1]
+        view = self.panel_plot.get_view_from_name()
+        view.update_style(name)
+        self._parse_evt(evt)
 
-        if evt is not None:
-            evt.Skip()
+    def on_update_colorbar(self, evt):
+        """Update 2d plots"""
+        if evt is None:
+            return
+        source = evt.GetEventObject().GetName()
+        if not source.startswith("2d.heatmap.colorbar"):
+            self._parse_evt(evt)
+            return
+        self.on_apply_colorbar(None)
+        name = source.split("2d.heatmap.")[-1]
+        view = self.panel_plot.get_view_from_name()
+        view.update_style(name)
+        self._parse_evt(evt)
+
+    def on_update_waterfall(self, evt):
+        """Update waterfall plots"""
+        if evt is None:
+            return
+        source = evt.GetEventObject().GetName()
+        if not source.startswith("waterfall."):
+            self._parse_evt(evt)
+            return
+        self.on_apply_waterfall(None)
+        name = source  # source.split("waterfall.")[-1]
+        view = self.panel_plot.get_view_from_name()
+        view.update_style(name)
+        self._parse_evt(evt)
 
     def on_update_2d(self, evt):
         """Update 2d plots"""
-        print(self)
-        # t_start = time.time()
-        #
-        # # update config values
-        # self.on_apply_1d(None)
-        # self.on_apply_2d(None)
-
-        #
-        #         source = evt.GetEventObject().GetName()
-        #
-        #         # Heatmap-like
-        #         if self.panel_plot.window_plot2D in ["Heatmap", "DT/MS", "Annotated"]:
-        #             if source == "colorbar" or "colorbar" in source:
-        #                 self.panel_plot.plot_colorbar_update(self.panel_plot.window_plot2D)
-        #             elif source == "normalization":
-        #                 self.panel_plot.plot_normalization_update(self.panel_plot.window_plot2D)
-        #             elif source == "rmsf":
-        #                 self.panel_plot.plot_1D_update(plotName="RMSF")
-        #             elif source in ["rmsf.spacing", "rmsd_matrix_formatter"]:
-        #                 logger.warning("Quick update not implemented yet - you will have to fully replot the plot")
-        #             elif source in ["rmsd_matrix", "rmsd.matrix.label"]:
-        #                 self.panel_plot.plot_2D_matrix_update_label()
-        #             else:
-        #                 self.panel_plot.plot_2D_update(plotName="2D")
-        #         elif self.panel_plot.window_plot2D == "Waterfall" or self.panel_plot.currentPage == "Annotated":
-        #
-        #             if source in ["label.frequency"]:
-        #                 logger.warning("Quick update not implemented yet - you will have to fully replot the plot")
-        #             else:
-        #                 self.panel_plot.plot_1D_waterfall_update(source)
-        #
-        #         logger.debug(f"update {source} in {time.time()-t_start:.4f}s")
-        if evt is not None:
-            evt.Skip()
+        if evt is None:
+            return
+        source = evt.GetEventObject().GetName()
+        if not source.startswith("2d.heatmap"):
+            self._parse_evt(evt)
+            return
+        self.on_apply_2d(None)
+        name = source.split("2d.heatmap.")[-1]
+        view = self.panel_plot.get_view_from_name()
+        view.update_style(name)
+        self._parse_evt(evt)
 
     def on_update_3d(self, evt):
         """Update 3d plots"""
@@ -3057,13 +3150,12 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             return
         source = evt.GetEventObject().GetName()
         if not source.startswith("heatmap.3d"):
+            self._parse_evt(evt)
             return
         self.on_apply_3d(None)
         name = source.split("heatmap.3d.")[-1]
         self.panel_plot.view_heatmap_3d.update_style(name)
-
-        if evt is not None:
-            evt.Skip()
+        self._parse_evt(evt)
 
     def on_replot_1d(self, evt):
         """Full replot of the line plot"""
@@ -3094,8 +3186,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         #         elif self.panel_plot.window_plot2D == "Comparison":
         #             self.panel_plot.on_plot_matrix(replot=True)
 
-        if evt is not None:
-            evt.Skip()
+        self._parse_evt(evt)
 
     def on_replot_3d(self, evt):
         """Full replot of 3d heatmap"""
@@ -3111,8 +3202,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         # if self.panel_plot.window_plot3D == "Heatmap (3D)":
         #     self.panel_plot.on_plot_3D(replot=True)
 
-        if evt is not None:
-            evt.Skip()
+        self._parse_evt(evt)
 
     def on_toggle_controls_general(self, evt):
         """Update general controls"""
@@ -3130,8 +3220,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         self.plot_bottom_tick_labels_check.Enable(not CONFIG.axisOnOff_1D)
         self.plot_frame_width_value.Enable(not CONFIG.axisOnOff_1D)
 
-        if evt is not None:
-            evt.Skip()
+        self._parse_evt(evt)
 
     def on_toggle_controls_1d(self, evt):
         """Update line controls"""
@@ -3141,8 +3230,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         self.plot1d_marker_edge_color_btn.Enable(self.plot1d_marker_edge_color_check.GetValue())
         self.plot1d_marker_edge_color_btn.SetBackgroundColour(self.plot1d_marker_color_btn.GetBackgroundColour())
 
-        if evt is not None:
-            evt.Skip()
+        self._parse_evt(evt)
 
     def on_toggle_controls_2d(self, evt):
         """Update heatmap controls"""
@@ -3161,8 +3249,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         self.plot2d_interpolation_value.Enable(CONFIG.plotType == "Image")
         self.plot2d_n_contour_value.Enable(CONFIG.plotType == "Contour")
 
-        if evt is not None:
-            evt.Skip()
+        self._parse_evt(evt)
 
     def on_toggle_controls_colorbar(self, evt):
         """Update colorbar controls"""
@@ -3171,17 +3258,20 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         self.colorbar_tgl.SetForegroundColour(wx.WHITE)
         self.colorbar_tgl.SetBackgroundColour(wx.BLUE if CONFIG.colorbar else wx.RED)
 
+        CONFIG.colorbarPosition = self.colorbar_position_value.GetStringSelection()
+        is_inside = CONFIG.colorbarPosition.startswith("inside")
+        self.colorbar_width_inset_value.Enable(CONFIG.colorbar and is_inside)
+        self.colorbar_pad_value.Enable(CONFIG.colorbar and not is_inside)
+
         self.colorbar_position_value.Enable(CONFIG.colorbar)
         self.colorbar_width_value.Enable(CONFIG.colorbar)
-        self.colorbar_pad_value.Enable(CONFIG.colorbar)
         self.colorbar_fontsize_value.Enable(CONFIG.colorbar)
         self.colorbar_label_format.Enable(CONFIG.colorbar)
         self.colorbar_outline_width_value.Enable(CONFIG.colorbar)
         self.colorbar_label_color_btn.Enable(CONFIG.colorbar)
         self.colorbar_outline_color_btn.Enable(CONFIG.colorbar)
 
-        if evt is not None:
-            evt.Skip()
+        self._parse_evt(evt)
 
     def on_toggle_controls_legend(self, evt):
         """Update legend controls"""
@@ -3201,27 +3291,19 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         self.legend_fancybox_check.Enable(CONFIG.legend)
         self.legend_patch_alpha_value.Enable(CONFIG.legend)
 
-        if evt is not None:
-            evt.Skip()
+        self._parse_evt(evt)
 
     def on_toggle_controls_violin(self, evt):
         """Update violin controls"""
         CONFIG.violin_line_sameAsShade = self.violin_line_same_as_fill_check.GetValue()
         self.violin_color_line_btn.Enable(not CONFIG.violin_line_sameAsShade)
 
-        CONFIG.violin_color_value = self.violin_colorScheme_value.GetStringSelection()
-        if CONFIG.violin_color_value == "Same color":
-            self.violin_colormap_value.Disable()
-            self.violin_color_fill_btn.Enable()
-        elif CONFIG.violin_color_value == "Colormap":
-            self.violin_colormap_value.Enable()
-            self.violin_color_fill_btn.Disable()
-        else:
-            self.violin_colormap_value.Disable()
-            self.violin_color_fill_btn.Disable()
+        CONFIG.violin_color_scheme = self.violin_colorScheme_value.GetStringSelection()
+        self.violin_color_fill_btn.Enable(CONFIG.violin_color_scheme == "Same color")
+        self.violin_colormap_value.Enable(CONFIG.violin_color_scheme == "Colormap")
+        self.violin_palette_value.Enable(CONFIG.violin_color_scheme == "Color palette")
 
-        if evt is not None:
-            evt.Skip()
+        self._parse_evt(evt)
 
     def on_toggle_controls_waterfall(self, evt):
         """Update waterfall controls"""
@@ -3242,16 +3324,12 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         self.waterfall_label_x_offset_value.Enable(CONFIG.waterfall_add_labels)
         self.waterfall_label_y_offset_value.Enable(CONFIG.waterfall_add_labels)
 
-        CONFIG.waterfall_color_value = self.waterfall_colorScheme_value.GetStringSelection()
-        if CONFIG.waterfall_color_value == "Same color" and CONFIG.waterfall:
-            self.waterfall_colormap_value.Disable()
-        elif CONFIG.waterfall_color_value == "Colormap" and CONFIG.waterfall:
-            self.waterfall_colormap_value.Enable()
-        else:
-            self.waterfall_colormap_value.Disable()
+        CONFIG.waterfall_color_scheme = self.waterfall_colorScheme_value.GetStringSelection()
+        self.waterfall_color_fill_btn.Enable(CONFIG.waterfall_color_scheme == "Same color")
+        self.waterfall_colormap_value.Enable(CONFIG.waterfall_color_scheme == "Colormap")
+        self.waterfall_palette_value.Enable(CONFIG.waterfall_color_scheme == "Color palette")
 
-        if evt is not None:
-            evt.Skip()
+        self._parse_evt(evt)
 
     def on_toggle_controls_rmsd(self, evt):
         """Update RMSD settings"""
@@ -3263,8 +3341,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         CONFIG.rmsd_matrix_font_color_choice = self.rmsd_matrix_color_fmt.GetStringSelection()
         self.rmsd_matrix_font_color_btn.Enable(CONFIG.rmsd_matrix_font_color_choice != "auto")
 
-        if evt is not None:
-            evt.Skip()
+        self._parse_evt(evt)
 
     def on_update_plot_sizes(self, evt):
         """Update plot sizes"""
@@ -3287,8 +3364,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         for i, item in enumerate([self.general_width_inch_value, self.general_height_inch_value]):
             item.SetValue(plot_sizes[i])
 
-        if evt is not None:
-            evt.Skip()
+        self._parse_evt(evt)
 
     def on_change_plot_style(self, evt):
         """Change plot sizes"""
@@ -3309,8 +3385,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         CONFIG.currentPalette = self.plot_palette_value.GetStringSelection()
         self.panel_plot.on_change_color_palette(evt=None)
 
-        if evt is not None:
-            evt.Skip()
+        self._parse_evt(evt)
 
     def on_update_states(self, evt):
         """Update states"""
@@ -3332,8 +3407,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             return
 
         logger.info(msg)
-        if evt is not None:
-            evt.Skip()
+        self._parse_evt(evt)
 
 
 class _TestFrame(wx.Frame):

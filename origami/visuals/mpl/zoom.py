@@ -228,9 +228,7 @@ class GetXValues:
 
 
 class ZoomBox:
-    """
-    Main class to enable zoom in 1D, 2D and 3D plots
-    """
+    """Main class to enable zoom in 1D, 2D and 3D plots"""
 
     def __init__(
         self,

@@ -2,20 +2,15 @@
 # Standard library imports
 import logging
 
+# Third-party imports
+import numpy as np
+
 # Local imports
 from origami.visuals.mpl.base import PlotBase
 from origami.visuals.mpl.gids import PlotIds
 from origami.visuals.utilities import get_intensity_formatter
 
 logger = logging.getLogger(__name__)
-
-
-class LineMixin:
-    """Mixin providing functionality to plot and update data and style(s) efficiently of line plot"""
-
-
-class LineComparisonMixin:
-    """Mixin providing functionality to plot and update data and style(s) efficiently of line comparison plot"""
 
 
 class PlotSpectrum(PlotBase):
@@ -253,6 +248,68 @@ class PlotSpectrum(PlotBase):
         self.store_plot_limits([extent], [self.plot_base])
         self.on_zoom_y_axis(*ylimits)
 
+    def plot_1d_update_style_by_label(
+        self,
+        gid: str = None,
+        color=None,
+        line_style: str = None,
+        line_width: float = None,
+        transparency: float = None,
+        label: str = None,
+    ):
+        """Update line style based on a specific group id"""
+        if gid is None:
+            gid = PlotIds.PLOT_1D_LINE_GID
+
+        lines = self.plot_base.get_lines()
+        for line in lines:
+            plot_gid = line.get_gid()
+            if plot_gid == gid:
+                if color is not None:
+                    line.set_color(color)
+                if line_width is not None:
+                    line.set_linewidth(line_width)
+                if line_style is not None:
+                    line.set_linestyle(line_style)
+                if transparency is not None:
+                    line.set_alpha(transparency)
+                if label is not None:
+                    line.set_label(label)
+                break
+
+        handles, __ = self.plot_base.get_legend_handles_labels()
+        self.set_legend_parameters(handles, **self.plot_parameters)
+
+    def plot_1d_update_patch_style_by_label(
+        self,
+        gid: str = None,
+        show: bool = None,
+        color=None,
+        transparency: float = None,
+        x: np.ndarray = None,
+        y: np.ndarray = None,
+        fill_kwargs=None,
+    ):
+        """Update patch style based on a specific group id"""
+        if gid is None:
+            gid = PlotIds.PLOT_1D_PATCH_GID
+
+        found = False
+        for patch in self.plot_base.collections:
+            patch_id = patch.get_gid()
+            if patch_id == PlotIds.PLOT_1D_PATCH_GID:
+                found = True
+                if color is not None:
+                    patch.set_facecolor(color)
+                if transparency is not None:
+                    patch.set_alpha(transparency)
+                if not show:
+                    patch.remove()
+
+        # failed to find patch BUT it needs to be created
+        if not found and show and x is not None and y is not None and fill_kwargs is not None:
+            self.plot_1d_add_under_curve(x, y, **fill_kwargs)
+
     # def plot_1D(
     #     self,
     #     xvals=None,
@@ -401,7 +458,7 @@ class PlotSpectrum(PlotBase):
     #
     #     # update limits and extents
     #     if kwargs.get("butterfly_plot", False):
-    #         xylimits = self.get_xylimits()
+    #         xylimits = self.get_xy_limits()
     #         ylimits = [-xylimits[3], xylimits[3]]
     #     else:
     #         ylimits = (np.min(yvals), np.max(yvals) * 1.1)
@@ -921,7 +978,7 @@ class PlotSpectrum(PlotBase):
     #             if add_labels:
     #                 label = ut_visuals.convert_label(yvals[i], label_format=kwargs["labels_format"])
     #                 if i % kwargs["labels_frequency"] == 0 or i == n_items - 1:
-    #                     self.plot_add_text(
+    #                     self.plot_add_label(
     #                         xpos=label_xposition,
     #                         yval=yOffset + kwargs["labels_y_offset"],
     #                         label=label,
@@ -1011,7 +1068,7 @@ class PlotSpectrum(PlotBase):
     #     #                     if irow % kwargs["labels_frequency"] == 0:
     #     #                         label_kws = dict(fontsize=kwargs["labels_font_size"],
     #     # fontweight=kwargs["labels_font_weight"])
-    #     #                         self.plot_add_text(
+    #     #                         self.plot_add_label(
     #     #                             xpos=label_xposition,
     #     #                             yval=yOffset + kwargs["labels_y_offset"],
     #     #                             label=label,
@@ -1096,14 +1153,6 @@ class PlotSpectrum(PlotBase):
     #     # legend
     #     self.set_legend_parameters(handles, **kwargs)
     #
-    def plot_remove_legend(self):
-        """Remove legend from the plot area"""
-        try:
-            leg = self.plot_base.axes.get_legend()
-            leg.remove()
-        except (AttributeError, KeyError):
-            pass
-
     #
     # def plot_1D_waterfall_overlay(
     #     self,
@@ -1216,7 +1265,7 @@ class PlotSpectrum(PlotBase):
     #                 x_label = ut_visuals.convert_label(yval[irow], label_format=kwargs["labels_format"])
     #                 if irow % kwargs["labels_frequency"] == 0:
     #                     label_kws = dict(fontsize=kwargs["labels_font_size"], fontweight=kwargs["labels_font_weight"])
-    #                     self.plot_add_text(
+    #                     self.plot_add_label(
     #                         xpos=label_xposition,
     #                         yval=yOffset + kwargs["labels_y_offset"],
     #                         label=x_label,

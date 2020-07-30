@@ -11,11 +11,11 @@ import numpy as np
 # Local imports
 from origami.styles import MiniFrame
 from origami.styles import Validator
+from origami.icons.assets import Icons
 from origami.config.config import CONFIG
 from origami.utils.converters import str2num
 from origami.config.environment import ENV
 from origami.gui_elements.panel_base import DatasetMixin
-from origami.icons.assets import Icons
 
 logger = logging.getLogger(__name__)
 

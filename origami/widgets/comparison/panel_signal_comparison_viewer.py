@@ -675,7 +675,7 @@ class PanelSignalComparisonViewer(MiniFrame):
             kwargs["label"] = self.spectrum_2_label_value.GetValue()
 
         self.plot_view.update_style(index, **kwargs)
-        self.panel_plot.plot_1D_update_style_by_label(index, plot=None, plot_obj=self.plot_window, **kwargs)
+        self.panel_plot.plot_1d_update_style_by_label(index, plot=None, plot_obj=self.plot_window, **kwargs)
         logger.info(f"Plot update took {report_time(t_start)}")
 
     def on_plot(self, _evt):

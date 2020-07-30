@@ -422,13 +422,6 @@ class PanelPlots(wx.Panel):
         plot_obj.copy_to_clipboard()
         pub.sendMessage("notify.message.success", message="Copied figure to clipboard!")
 
-    def on_get_plot_data(self):
-        """Get plot data"""
-        plot_obj = self.get_plot_from_name(self.currentPage)
-        xvals, yvals, labels, xlabel, ylabel = plot_obj.plot_1D_get_data()
-
-        return plot_obj, xvals, yvals, labels, xlabel, ylabel
-
     def on_smooth_object(self, evt):
         """Smooth plot signal"""
         from origami.gui_elements.misc_dialogs import DialogSimpleAsk
@@ -449,16 +442,6 @@ class PanelPlots(wx.Panel):
         sigma = float(sigma)
         obj = obj.smooth(smooth_method="Gaussian", sigma=sigma)
         view_obj.plot(obj=obj)
-
-    # def on_process_spectrum(self, evt):
-    #     plot_obj = self.get_plot_from_name(self.currentPage)
-    #     try:
-    #         xvals, yvals, __, xlabel, ylabel = plot_obj.plot_1D_get_data()
-    #     except AttributeError:
-    #         raise MessageError("Plot is empty", "There are no signals in the plot to smooth")
-    #
-    #     data = {"xvals": xvals[0], "yvals": yvals[0], "xlabels": xlabel, "ylabels": ylabel}
-    #     self.document_tree.on_process_MS_plot_only(data)
 
     def on_process_mass_spectrum(self, _evt):
         """Process mass spectrum"""
@@ -964,7 +947,7 @@ class PanelPlots(wx.Panel):
             logger.error(f"Could not find plot object with name `{plot_name}")
         return plot_obj
 
-    def get_view_from_name(self, plot_name: str):
+    def get_view_from_name(self, plot_name: str = None):
         """Retrieve view from name"""
         plot_dict = {
             "mass spectrum": self.view_ms,
@@ -976,6 +959,8 @@ class PanelPlots(wx.Panel):
             "3d": self.view_heatmap_3d,
             "heatmap (3d)": self.view_heatmap_3d,
         }
+        if plot_name is None:
+            plot_name = self.currentPage
         plot_name = plot_name.lower()
         plot_obj = plot_dict.get(plot_name, None)
         if plot_obj is None:
@@ -1401,12 +1386,12 @@ class PanelPlots(wx.Panel):
     #         plot_obj = self.get_plot_from_name(plot)
     #
     #     if plot == "MS":
-    #         plot_obj.plot_add_text(xpos, yval, label, yoffset=kwargs.get("yoffset", 0.0), **plt_kwargs)
+    #         plot_obj.plot_add_label(xpos, yval, label, yoffset=kwargs.get("yoffset", 0.0), **plt_kwargs)
     #     elif plot == "CalibrationMS":
-    #         plot_obj.plot_add_text(xpos, yval, label, **plt_kwargs)
+    #         plot_obj.plot_add_label(xpos, yval, label, **plt_kwargs)
     #
     #     elif "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
-    #         plot_obj.plot_add_text(xpos, yval, label, **plt_kwargs)
+    #         plot_obj.plot_add_label(xpos, yval, label, **plt_kwargs)
     #
     #     if optimise_labels:
     #         plot_obj._fix_label_positions()
@@ -2345,7 +2330,7 @@ class PanelPlots(wx.Panel):
     #         plot_name = "compareMS"
     #         plot_size = CONFIG._plotSettings["MS (compare)"]["axes_size"]
     #
-    #     xylimits = self.plot_ms.get_xylimits()
+    #     xylimits = self.plot_ms.get_xy_limits()
     #     plot_obj.plot_1D_centroid(
     #         xvals=msX,
     #         yvals=msY,
@@ -2382,7 +2367,7 @@ class PanelPlots(wx.Panel):
     #         if CONFIG.msms_show_full_label:
     #             label = full_label
     #
-    #         plot_obj.plot_add_text(
+    #         plot_obj.plot_add_label(
     #             xpos=xval, yval=yval, label=label, yoffset=CONFIG.msms_label_y_offset, **plt_label_kwargs
     #         )
     #
@@ -3710,13 +3695,13 @@ class PanelPlots(wx.Panel):
     #     plot_obj.plot_1D_update_data_by_label(xvals, yvals, gid, label)
     #     plot_obj.repaint()
     #
-    # def plot_1D_update_style_by_label(self, gid, plot, **kwargs):
+    # def plot_1d_update_style_by_label(self, gid, plot, **kwargs):
     #     if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
     #         plot_obj = kwargs.get("plot_obj")
     #     else:
     #         plot_obj = self.get_plot_from_name(plot)
     #
-    #     plot_obj.plot_1D_update_style_by_label(gid, **kwargs)
+    #     plot_obj.plot_1d_update_style_by_label(gid, **kwargs)
     #     plot_obj.repaint()
     #
     # def plot_colorbar_update(self, plot_window="", **kwargs):

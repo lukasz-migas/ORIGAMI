@@ -1,11 +1,11 @@
 # Standard library imports
 import logging
-from copy import deepcopy
 
 # Third-party imports
 import numpy as np
 from matplotlib import gridspec
 from matplotlib.colors import LogNorm
+from matplotlib.colors import Normalize
 from matplotlib.colors import PowerNorm
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
@@ -44,7 +44,6 @@ class PlotHeatmap2D(PlotBase):
                 array,
                 cmap=kwargs["colormap"],
                 interpolation=kwargs["interpolation"],
-                #             norm=kwargs["colormap_norm"],
                 aspect="auto",
                 origin="lower",
                 extent=[*xlimits, *ylimits],
@@ -54,7 +53,6 @@ class PlotHeatmap2D(PlotBase):
                 array,
                 kwargs["contour_n_levels"],
                 cmap=kwargs["colormap"],
-                #               norm=kwargs["colormap_norm"],
                 antialiasing=True,
                 origin="lower",
                 extent=[*xlimits, *ylimits],
@@ -164,6 +162,33 @@ class PlotHeatmap2D(PlotBase):
         # update plot limits
         self.update_extents(extent, obj=obj)
         self.store_plot_limits(extent, axes)
+
+    def plot_2d_update_heatmap_style(
+        self, array: np.ndarray = None, colormap: str = None, interpolation: str = None, cbar_kwargs=None
+    ):
+        """Update style of heatmap plot"""
+        self._is_locked()
+
+        if colormap is not None:
+            self.cax.set_cmap(colormap)
+        if interpolation is not None:
+            self.cax.set_interpolation(interpolation)
+
+        # update colorbar
+        if array is not None and cbar_kwargs is not None:
+            if self.PLOT_TYPE not in ["joint"]:
+                self.set_colorbar_parameters(array, **cbar_kwargs)
+
+    def plot_2d_update_normalization(self, array: np.ndarray, **kwargs):
+        """Update plot normalization"""
+        self._is_locked()
+        cmap_norm, _ = self.get_heatmap_normalization(array, **kwargs)
+        self.cax.set_norm(cmap_norm)
+
+    def plot_2d_update_colorbar(self, **kwargs):
+        """Update colorbar parameters"""
+        self._is_locked()
+        self.plot_2d_colorbar_update(**kwargs)
 
     def plot_violin(self, x, y, array, x_label=None, y_label=None, obj=None, **kwargs):
         """Plot as violin"""
@@ -339,25 +364,39 @@ class PlotHeatmap2D(PlotBase):
             labelbottom=False,
         )
 
-    def get_heatmap_normalization(self, zvals, **kwargs):
+    def get_heatmap_normalization(
+        self,
+        array: np.ndarray,
+        colormap_norm_method: str,
+        colormap_min: float,
+        colormap_mid: float,
+        colormap_max: float,
+        colormap_norm_power_gamma: float,
+        **kwargs,
+    ):
+        # check normalization
+        if colormap_norm_method not in ["Midpoint", "Logarithmic", "Power", "MinMax"]:
+            raise ValueError("Incorrect normalization method")
 
         # normalize
-        zvals_max = np.max(zvals)
-        cmap_min = (zvals_max * kwargs["colormap_min"]) / 100.0
-        cmap_mid = (zvals_max * kwargs["colormap_mid"]) / 100.0
-        cmap_max = (zvals_max * kwargs["colormap_max"]) / 100.0
+        zvals_max = np.max(array)
+        cmap_min = (zvals_max * colormap_min) / 100.0
+        cmap_mid = (zvals_max * colormap_mid) / 100.0
+        cmap_max = (zvals_max * colormap_max) / 100.0
 
         # compute normalization
-        if kwargs["colormap_norm_method"] == "Midpoint":
+        reset_colorbar = False
+        if colormap_norm_method == "Midpoint":
             cmap_norm = MidpointNormalize(midpoint=cmap_mid, v_min=cmap_min, v_max=cmap_max)
-        elif kwargs["colormap_norm_method"] == "Logarithmic":
-            cmap_norm = LogNorm(vmin=cmap_min, vmax=cmap_max)
-        elif kwargs["colormap_norm_method"] == "Power":
-            cmap_norm = PowerNorm(gamma=kwargs["colormap_norm_power_gamma"], vmin=cmap_min, vmax=cmap_max)
-        else:
-            raise ValueError("Incorrect normalization")
+        elif colormap_norm_method == "Logarithmic":
+            cmap_norm = LogNorm(vmin=cmap_min + 0.01, vmax=cmap_max)
+        elif colormap_norm_method == "Power":
+            cmap_norm = PowerNorm(gamma=colormap_norm_power_gamma, vmin=cmap_min, vmax=cmap_max)
+        elif colormap_norm_method == "MinMax":
+            cmap_norm = Normalize(vmin=cmap_min, vmax=cmap_max)
+            reset_colorbar = True
 
-        return cmap_norm
+        return cmap_norm, reset_colorbar
 
     def set_colorbar_parameters(self, zvals, **kwargs):
         """Add colorbar to the plot
@@ -441,7 +480,7 @@ class PlotHeatmap2D(PlotBase):
                 bbox[1] = bbox[1] * (kwargs["colorbar_label_size"] / 10)
                 self.cbar = inset_axes(
                     self.plot_base,
-                    width="50%",
+                    width=f"{kwargs['colorbar_inset_width']}%",
                     height=f"{kwargs['colorbar_width']}%",
                     loc=loc,
                     bbox_to_anchor=bbox,
@@ -476,9 +515,6 @@ class PlotHeatmap2D(PlotBase):
                 cbar = self.figure.colorbar(self.cax, cax=self.cbar, orientation="horizontal", ticks=ticks)
                 self.cbar.xaxis.set_ticks_position("bottom")
                 self.cbar.set_xticklabels(tick_labels)
-            #             cbar.set_ticklabels(tick_labels)
-            #             cbar.set_ticks(ticks)
-            #             cbar.draw_all()
 
             # set parameters
             cbar.outline.set_edgecolor(kwargs["colorbar_outline_color"])
@@ -501,44 +537,6 @@ class PlotHeatmap2D(PlotBase):
                     self.cbar.remove()
                 except KeyError:
                     pass
-
-    def on_rotate_heatmap_data(self, yvals, zvals):
-        """Rotate heatmap"""
-        # rotate zvals
-        zvals = np.rot90(zvals)
-        yvals = yvals[::-1]
-
-        return yvals, zvals
-
-    def on_rotate_90(self):
-        # only works for 2D PlotBase!
-
-        if hasattr(self, "plot_data"):
-            if len(self.plot_data) == 0:
-                return
-
-            self.rotate = self.rotate + 90
-
-            yvals = deepcopy(self.plot_data["xvals"])
-            xvals = deepcopy(self.plot_data["yvals"])
-            ylabel = deepcopy(self.plot_data["xlabel"])
-            xlabel = deepcopy(self.plot_data["ylabel"])
-            zvals = deepcopy(self.plot_data["zvals"])
-
-            yvals, zvals = self.on_rotate_heatmap_data(yvals, zvals)
-            self.plot_2D_update_data(xvals, yvals, xlabel, ylabel, zvals, already_rotated=True, **self.plot_parameters)
-
-            if self.rotate == 360:
-                self.rotate = 0
-
-    # def plot_2D_get_data(self):
-    #
-    #     #         xvals, yvals, zvals = [], [], []
-    #     #         zvals = self.cax.get_array()
-    #     #         xlabel = self.plotMS.get_xlabel()
-    #     #         ylabel = self.plotMS.get_ylabel()
-    #
-    #     return self.plot_data
 
     def plot_2d_update_label(self, **kwargs):
         """Update label"""
@@ -603,7 +601,7 @@ class PlotHeatmap2D(PlotBase):
 
         if hasattr(self, "plot_data"):
             if "zvals" in self.plot_data:
-                cmap_norm = self.get_heatmap_normalization(self.plot_data["zvals"], **kwargs)
+                cmap_norm, _ = self.get_heatmap_normalization(self.plot_data["zvals"], **kwargs)
 
                 self.plot_parameters["colormap_norm"] = cmap_norm
 

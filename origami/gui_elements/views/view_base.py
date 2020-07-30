@@ -30,7 +30,7 @@ class ViewMPLMixin:
         #         if isinstance(color, list):
         #             assert len(color) == len(x), "Number of colors must match the number of markers"
 
-        self.figure.plot_add_markers(xvals=x, yvals=y, color=color, marker=marker, size=size)
+        self.figure.plot_add_markers(x=x, y=y, color=color, marker=marker, size=size)
         if repaint:
             self.figure.repaint()
 
@@ -60,7 +60,7 @@ class ViewMPLMixin:
             color = ["k"] * len(x)
 
         for _x, _y, _label, _name, _color in zip(x, y, label, name, color):
-            self.figure.plot_add_text(_x, _y, _label, text_name=_name, color=_color, yoffset=y_offset, **plt_kwargs)
+            self.figure.plot_add_label(_x, _y, _label, text_name=_name, color=_color, y_offset=y_offset, **plt_kwargs)
 
         if optimize_labels:
             self.figure._fix_label_positions()  # noqa
@@ -70,7 +70,7 @@ class ViewMPLMixin:
 
     def remove_labels(self, repaint: bool = True):
         """Remove scatter points from the plot area"""
-        self.figure.plot_remove_text(False)
+        self.figure.plot_remove_label(False)
 
         if repaint:
             self.figure.repaint()
@@ -122,7 +122,6 @@ class ViewMPLMixin:
             color = ["r"] * len(x)
         for _x, _y, _width, _height, _label, _color in zip(x, y, width, height, label, color):
             self.figure.plot_add_patch(_x, _y, _width, _height, label=_label, color=_color, pickable=pickable)
-            # , color=color, alpha=alpha, label=label, **kwargs)
 
         if repaint:
             self.figure.repaint()
@@ -227,6 +226,10 @@ class ViewBase(ABC):
 
     @abstractmethod
     def _update(self):
+        raise NotImplementedError("Must implement method")
+
+    def update_style(self, name: str):
+        """Update plot style"""
         raise NotImplementedError("Must implement method")
 
     @property
