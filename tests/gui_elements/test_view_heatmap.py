@@ -43,6 +43,44 @@ class TestPanelViewIonHeatmap(TestPlotView):
         view.plot_violin(obj=obj)
         view.plot_waterfall(obj=obj)
 
+    def test_panel_update_heatmap_style(self):
+        view = ViewIonHeatmap(self.frame, None)
+        self.set_plot(view)
+
+        # test plot using x/y
+        obj = IonHeatmapObject(np.random.randint(0, 100, (3, 4)), np.arange(4), np.arange(3))
+
+        # heatmap object
+        view.plot(obj=obj)
+        view.update_style("heatmap")
+        view.update_style("colorbar")
+        view.update_style("normalization")
+
+    def test_panel_update_violin_style(self):
+        view = ViewIonHeatmap(self.frame, None)
+        self.set_plot(view)
+
+        # test plot using x/y
+        obj = IonHeatmapObject(np.random.randint(0, 100, (3, 4)), np.arange(4), np.arange(3))
+        # violin object
+        view.plot_violin(obj=obj)
+        for style in view.UPDATE_STYLES:
+            if not style.startswith("violin"):
+                continue
+            view.update_style(style)
+
+    def test_panel_update_waterfall_style(self):
+        view = ViewIonHeatmap(self.frame, None)
+        self.set_plot(view)
+
+        # test plot using x/y
+        obj = IonHeatmapObject(np.random.randint(0, 100, (3, 4)), np.arange(4), np.arange(3))
+        view.plot_waterfall(obj=obj)
+        for style in view.UPDATE_STYLES:
+            if not style.startswith("waterfall"):
+                continue
+            view.update_style(style)
+
 
 @pytest.mark.guitest
 class TestPanelViewMassSpectrumHeatmap(TestPlotView):
@@ -58,5 +96,3 @@ class TestPanelViewMassSpectrumHeatmap(TestPlotView):
         # test plot using object
         view.plot(obj=obj)
         view.plot_joint(obj=obj)
-        view.plot_violin(obj=obj)
-        view.plot_waterfall(obj=obj)

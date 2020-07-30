@@ -73,6 +73,8 @@ from origami.gui_elements.views.view_spectrum import ViewMobilogram
 from origami.gui_elements.views.view_spectrum import ViewChromatogram
 from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
 from origami.gui_elements.views.view_heatmap_3d import ViewHeatmap3d
+from origami.ids import ID_extraSettings_waterfall
+from origami.ids import ID_extraSettings_violin
 
 logger = logging.getLogger(__name__)
 
@@ -478,7 +480,7 @@ class PanelPlots(wx.Panel):
 
         self.document_tree.on_open_peak_picker(None, document_title=document_title, dataset_name=dataset_name)
 
-    def on_open_annotations_panel(self, evt):
+    def on_open_annotations_panel(self, _evt):
         """Open the annotations panel for particular object"""
         view_obj = self.get_view_from_name(self.currentPage)
 
@@ -510,7 +512,7 @@ class PanelPlots(wx.Panel):
             None, document_title=document_title, dataset_name=dataset_name, data_obj=data_obj
         )
 
-    def on_show_as_joint(self, evt):
+    def on_show_as_joint(self, _evt):
         """Show heatmap plot as joint-plot"""
         view_obj = self.get_view_from_name(self.currentPage)
         if not hasattr(view_obj, "plot_joint"):
@@ -524,7 +526,7 @@ class PanelPlots(wx.Panel):
 
         view_obj.plot_joint(obj=data_obj)
 
-    def on_show_as_contour(self, evt):
+    def on_show_as_contour(self, _evt):
         """Show heatmap plot as contour-plot"""
         view_obj = self.get_view_from_name(self.currentPage)
         if not hasattr(view_obj, "plot_contour"):
@@ -538,7 +540,7 @@ class PanelPlots(wx.Panel):
 
         view_obj.plot_contour(obj=data_obj)
 
-    def on_show_as_waterfall(self, evt):
+    def on_show_as_waterfall(self, _evt):
         """Show heatmap plot as waterfall-plot"""
         view_obj = self.get_view_from_name(self.currentPage)
         if not hasattr(view_obj, "plot_waterfall"):
@@ -552,7 +554,21 @@ class PanelPlots(wx.Panel):
 
         view_obj.plot_waterfall(obj=data_obj)
 
-    def on_show_as_heatmap(self, evt):
+    def on_show_as_violin(self, _evt):
+        """Show heatmap object as violin plot"""
+        view_obj = self.get_view_from_name(self.currentPage)
+        if not hasattr(view_obj, "plot_violin"):
+            pub.sendMessage("notify.message.error", message="Cannot show this view as a violin-plot")
+            return
+
+        data_obj = view_obj.get_object()
+        if not data_obj:
+            pub.sendMessage("notify.message.error", message="Cannot show this view as the plot cache is empty.")
+            return
+
+        view_obj.plot_violin(obj=data_obj)
+
+    def on_show_as_heatmap(self, _evt):
         """Show heatmap plot as heatmap-plot"""
         view_obj = self.get_view_from_name(self.currentPage)
         data_obj = view_obj.get_object()
@@ -612,16 +628,15 @@ class PanelPlots(wx.Panel):
         #             text="Edit plot parameters...",
         #             bitmap=self.icons.iconsLib["panel_rmsd_16"],
         #         )
-        #         menu_edit_waterfall = make_menu_item(
-        #             parent=menu,
-        #             evt_id=ID_extraSettings_waterfall,
-        #             text="Edit waterfall parameters...",
-        #             bitmap=self._icons.waterfall,
-        #         )
-        #         menu_edit_violin = make_menu_item(
-        #             parent=menu, evt_id=ID_extraSettings_violin, text="Edit violin parameters...",
-        #             bitmap=self._icons.violin
-        #         )
+        menu_edit_waterfall = make_menu_item(
+            parent=menu,
+            evt_id=ID_extraSettings_waterfall,
+            text="Edit waterfall parameters...",
+            bitmap=self._icons.waterfall,
+        )
+        menu_edit_violin = make_menu_item(
+            parent=menu, evt_id=ID_extraSettings_violin, text="Edit violin parameters...", bitmap=self._icons.violin
+        )
         menu_customise_plot = make_menu_item(
             parent=menu, evt_id=ID_plots_customise_plot, text="Customise plot...", bitmap=self._icons.x_label
         )
@@ -662,6 +677,7 @@ class PanelPlots(wx.Panel):
         menu_action_show_heatmap = make_menu_item(
             parent=menu, text="Show as a heatmap plot", bitmap=self._icons.heatmap
         )
+        menu_action_show_violin = make_menu_item(parent=menu, text="Show as a violin plot", bitmap=self._icons.violin)
 
         # bind events by item
         self.Bind(wx.EVT_MENU, self.on_process_mass_spectrum, menu_action_process_ms)
@@ -678,6 +694,7 @@ class PanelPlots(wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_show_as_contour, menu_action_show_contour)
         self.Bind(wx.EVT_MENU, self.on_show_as_waterfall, menu_action_show_waterfall)
         self.Bind(wx.EVT_MENU, self.on_show_as_heatmap, menu_action_show_heatmap)
+        self.Bind(wx.EVT_MENU, self.on_show_as_violin, menu_action_show_violin)
 
         if self.currentPage == "Mass spectrum":
             menu.AppendItem(menu_action_smooth_signal)
@@ -745,6 +762,7 @@ class PanelPlots(wx.Panel):
             menu.AppendItem(menu_action_show_heatmap)
             menu.AppendItem(menu_action_show_contour)
             menu.AppendItem(menu_action_show_waterfall)
+            menu.AppendItem(menu_action_show_violin)
             menu.AppendItem(menu_action_show_joint)
             menu.AppendSeparator()
             menu.AppendItem(menu_action_smooth_heatmap)
@@ -755,7 +773,8 @@ class PanelPlots(wx.Panel):
             menu.AppendItem(menu_edit_general)
             menu.AppendItem(menu_edit_plot_2d)
             menu.AppendItem(menu_edit_colorbar)
-            menu.AppendItem(menu_edit_legend)
+            menu.AppendItem(menu_edit_waterfall)
+            menu.AppendItem(menu_edit_violin)
             self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, "Lock plot", help="")
             self.lock_plot_check.Check(self.plot_heatmap.lock_plot_from_updating)
             menu.AppendItem(menu_customise_plot)

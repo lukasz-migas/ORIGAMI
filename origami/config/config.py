@@ -1572,20 +1572,20 @@ class Config:
         self.waterfall_color_choices = ["Same color", "Colormap", "Color palette", "Random"]  # new
         self.waterfall_colormap = "viridis"
         self.waterfall_color_scheme = "Same color"
+        self.waterfall_palette = "HLS"
         self.waterfall_line_sameAsShade = True
+        self.waterfall_shade_under = True
+        self.waterfall_shade_under_color = [0, 0, 0]
+        self.waterfall_shade_under_nlimit = 1000
+        self.waterfall_shade_under_transparency = 0.25
         self.waterfall_add_labels = False
         self.waterfall_labels_frequency = 1
         self.waterfall_labels_x_offset = 0.05
         self.waterfall_labels_y_offset = 0.05
         self.waterfall_label_fontSize = 12
         self.waterfall_label_fontWeight = True
-        self.waterfall_shade_under = True
-        self.waterfall_shade_under_color = [0, 0, 0]
-        self.waterfall_shade_under_nlimit = 1000
-        self.waterfall_shade_under_transparency = 0.25
         self.waterfall_label_format_choices = ["String", "Float", "Integer"]
         self.waterfall_label_format = "Float"
-        self.waterfall_palette = "HLS"
 
         # violin
         self.violin_orientation_choices = ["vertical", "horizontal"]
@@ -1596,6 +1596,8 @@ class Config:
         self.violin_lineStyle = "solid"
         self.violin_color = [0, 0, 0]
         self.violin_normalize = True
+        self.violin_smooth = True
+        self.violin_smooth_sigma = 2
         self.violin_color_choices = ["Same color", "Colormap", "Color palette", "Random"]
         self.violin_colormap = "viridis"
         self.violin_color_scheme = "Colormap"
@@ -2668,6 +2670,8 @@ class Config:
                         "line_color": self.violin_color,
                         "shade_color": self.violin_shade_under_color,
                         "normalize": self.violin_normalize,
+                        "smooth": self.violin_smooth,
+                        "gaussian_sigma": self.violin_smooth_sigma,
                         "colormap": self.violin_colormap,
                         "palette": self.violin_palette,
                         "color_scheme": self.violin_color_scheme,

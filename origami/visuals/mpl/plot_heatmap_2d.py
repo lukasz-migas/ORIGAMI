@@ -9,6 +9,7 @@ from matplotlib.colors import Normalize
 from matplotlib.colors import PowerNorm
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+from matplotlib.collections import LineCollection
 
 # Local imports
 import origami.utils.visuals as ut_visuals
@@ -17,6 +18,7 @@ from origami.utils.visuals import prettify_tick_format
 from origami.visuals.mpl.base import PlotBase
 from origami.visuals.mpl.gids import PlotIds
 from origami.visuals.mpl.normalize import MidpointNormalize
+from origami.processing.spectra import smooth_gaussian_1d
 
 logger = logging.getLogger(__name__)
 
@@ -189,6 +191,147 @@ class PlotHeatmap2D(PlotBase):
         """Update colorbar parameters"""
         self._is_locked()
         self.plot_2d_colorbar_update(**kwargs)
+
+    def _prepare_violin(self, x, y, array, **kwargs):
+        """Prepare violin data"""
+        normalize = kwargs.get("normalize", True)
+        smooth = kwargs.get("smooth", True)
+        sigma = kwargs.get("gaussian_sigma", 2)
+        spacing = kwargs.get("spacing", 0.5)
+        orientation = kwargs.get("orientation", "vertical")
+        min_percentage = kwargs.get("min_percentage", 0.03)
+        offset = spacing
+        n_signals = len(x)
+
+        yy, xy = [], []
+        tick_positions, tick_labels = [], []
+        for i, _y in enumerate(array.T):
+            # normalize (to 1) the intensity of signal
+            if normalize:
+                _y = (_y / _y.max()).astype(np.float32)
+            if smooth:
+                _y = smooth_gaussian_1d(_y, sigma)
+
+            # increase the baseline to set the signal apart from the one before it
+            max_value = _y.max()
+            filter_index = _y > (_y.max() * min_percentage)  # noqa
+            _y = _y[filter_index]
+            if len(_y) == 0:
+                continue
+            # 1) ensure the violin line is created in both directions by appending it going forward and backwards
+            # 2) at the very end, make sure to close it off by inserting the very first value
+            if orientation == "vertical":
+                _intensity = np.append(_y + offset, (-_y + offset)[::-1])
+                _intensity = np.append(_intensity, _intensity[0])
+                _variable = np.append(y[filter_index], y[filter_index][::-1])
+                _variable = np.append(_variable, _variable[0])
+                xy.append(np.column_stack([_intensity, _variable]))
+                yy.append(_y.max() + offset)
+            else:
+                _variable = np.append(_y + offset, (-_y + offset)[::-1])
+                _intensity = np.append(y[filter_index], y[filter_index][::-1])
+                xy.append(np.column_stack([_intensity, _variable]))
+                yy.append(_y.max() + offset)
+            offset = offset + (max_value * 2) + spacing
+
+            if kwargs["labels_frequency"] != 0:
+                if i % kwargs["labels_frequency"] == 0 or i == n_signals - 1:
+                    tick_positions.append(offset)
+                    tick_labels.append(ut_visuals.convert_label(x[i], label_format=kwargs["labels_format"]))
+
+        return xy, yy, tick_positions, tick_labels
+
+    def plot_violin_update(self, x: np.ndarray, y: np.ndarray, array: np.ndarray, name: str, **kwargs):
+        """Generic violin update function"""
+        self._is_locked()
+
+        if name.startswith("violin."):
+            name = name.split("violin.")[-1]
+
+        if name.startswith("line") or name.startswith("fill"):
+            self.plot_violin_update_line_style(array, **kwargs)
+        elif name.startswith("label"):
+            if name.endswith(".reset"):
+                self.plot_violin_reset_label(x, y, array, **kwargs)
+
+    def plot_violin_update_line_style(self, array, **kwargs):
+        """Update violin lines"""
+        n_signals = array.shape[1]
+        lc, fc = self.get_violin_colors(n_signals, **kwargs)
+        for collection in self.plot_base.collections:
+            if isinstance(collection, LineCollection):
+                collection.set_linestyle(kwargs["line_style"])
+                collection.set_linewidth(kwargs["line_width"])
+                collection.set_edgecolors(lc)
+                if kwargs["shade_under"]:
+                    collection.set_facecolors(fc)
+                else:
+                    collection.set_facecolors([])
+
+    def plot_violin_reset_label(self, x, y, array, **kwargs):
+        """Update violin lines"""
+        orientation = kwargs.get("orientation", "vertical")
+        _, _, tick_positions, tick_labels = self._prepare_violin(x, y, array, **kwargs)
+
+        if orientation != "vertical":
+            self.plot_base.set_yticks(tick_positions)
+            self.plot_base.set_yticklabels(tick_labels)
+        else:
+            self.plot_base.set_xticks(tick_positions)
+            self.plot_base.set_xticklabels(tick_labels)
+
+    def plot_violin_quick(self, x, y, array, x_label=None, y_label=None, **kwargs):
+        """Plot as violin"""
+        # TODO: add labels
+        self._set_axes()
+
+        orientation = kwargs.get("orientation", "vertical")
+        xy, yy, tick_positions, tick_labels = self._prepare_violin(x, y, array, **kwargs)
+
+        # get list of parameters for the plot
+        n_signals = len(x)
+        lc, fc = self.get_violin_colors(n_signals, **kwargs)
+
+        # the list of values is reversed to ensure that the zorder of each plot/line is correct
+        coll = LineCollection(xy[::-1], antialiased=np.ones(len(xy)))
+        self.plot_base.add_collection(coll)
+
+        # set line style
+        coll.set_edgecolors(lc)
+        coll.set_linestyle(kwargs["line_style"])
+        coll.set_linewidths(kwargs["line_width"])
+
+        # set face style
+        if kwargs["shade_under"]:
+            coll.set_facecolors(fc)
+            coll.set_clip_on(True)
+
+        # in violin plot, the horizontal axis is the mobility axis
+        if orientation != "vertical":
+            xlimits, ylimits, extent = self._compute_xy_limits(y, yy, 0, is_heatmap=False)
+            self.plot_base.set_yticks(tick_positions)
+            self.plot_base.set_yticklabels(tick_labels)
+            x_label, y_label = y_label, x_label
+        else:
+            xlimits, ylimits, extent = self._compute_xy_limits(yy, y, 0, is_heatmap=False)
+            self.plot_base.set_xticks(tick_positions)
+            self.plot_base.set_xticklabels(tick_labels)
+
+        # set plot limits
+        self.plot_base.set_xlim(xlimits)
+        self.plot_base.set_ylim(ylimits)
+        self.set_plot_xlabel(x_label, **kwargs)
+        self.set_plot_ylabel(y_label, **kwargs)
+        self.set_tick_parameters(**kwargs)
+
+        self.setup_new_zoom(
+            [self.plot_base],
+            data_limits=extent,
+            allow_extraction=kwargs.get("allow_extraction", False),
+            callbacks=kwargs.get("callbacks", dict()),
+            is_heatmap=True,
+        )
+        self.store_plot_limits([extent], [self.plot_base])
 
     def plot_violin(self, x, y, array, x_label=None, y_label=None, obj=None, **kwargs):
         """Plot as violin"""

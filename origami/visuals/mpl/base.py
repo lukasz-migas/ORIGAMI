@@ -708,7 +708,15 @@ class PlotBase(MPLPanel):
     #         self.lines.append(line)
 
     def plot_add_label(
-        self, x: float, y: float, label: str, color="black", y_offset: float = 0.0, zorder: int = 3, **kwargs
+        self,
+        x: float,
+        y: float,
+        label: str,
+        color="black",
+        y_offset: float = 0.0,
+        zorder: int = 3,
+        pickable: bool = True,
+        **kwargs,
     ):
         """Add label to the plot at a specified x and y position"""
         is_butterfly = kwargs.pop("butterfly_plot", False)
@@ -728,14 +736,10 @@ class PlotBase(MPLPanel):
             except Exception:  # noqa
                 pass
 
-        # get custom name tag
-        obj_name = kwargs.pop("text_name", None)
-
         y = y + y_offset
-
         # this will offset the intensity of the label by small value
-        plot_limits = self.get_plot_limits()
         if kwargs.pop("add_arrow_to_low_intensity", False):
+            plot_limits = self.get_plot_limits()
             if is_butterfly:
                 if (y - y_offset) > 0.2 * plot_limits[2]:
                     rand_offset = -np.random.uniform(high=0.75 * plot_limits[2])
@@ -752,10 +756,10 @@ class PlotBase(MPLPanel):
                     self.plot_add_arrow(arrow_vals, stick_to_intensity=False)
 
         text = self.plot_base.text(
-            np.array(x), y + y_offset, label, color=color, clip_on=True, zorder=zorder, picker=True, **kwargs
+            np.array(x), y + y_offset, label, color=color, clip_on=True, zorder=zorder, picker=pickable, **kwargs
         )
         text._yposition = y - kwargs.get("labels_y_offset", CONFIG.waterfall_labels_y_offset)
-        text.obj_name = obj_name  # custom tag
+        text.obj_name = kwargs.pop("text_name", None)  # custom tag
         text.y_divider = self.y_divider
         self.text.append(text)
 
@@ -768,6 +772,13 @@ class PlotBase(MPLPanel):
                 pass
 
         self.text = []
+        self.repaint(repaint)
+
+    def plot_add_labels(self, xs, ys, labels, color="black", pickable: bool = True, repaint: bool = False, **kwargs):
+        """Add multiple labels to the plot"""
+        self.plot_remove_label(repaint)
+        for x, y, label in zip(xs, ys, labels):
+            self.plot_add_label(x, y, label, color=color, pickable=pickable, **kwargs)
         self.repaint(repaint)
 
     def plot_add_patch(
@@ -880,15 +891,20 @@ class PlotBase(MPLPanel):
         self.plot_remove_arrows(False)
         self.repaint(repaint)
 
-    def plot_waterfall_update(self, array, name: str, **kwargs):
+    def plot_waterfall_update(self, x: np.ndarray, y: np.ndarray, array: np.ndarray, name: str, **kwargs):
         """Generic waterfall update function"""
         self._is_locked()
 
         if name.startswith("waterfall."):
             name = name.split("waterfall.")[-1]
 
-        self.plot_waterfall_update_line_style(array, **kwargs)
-        print(name)
+        if name.startswith("line") or name.startswith("fill"):
+            self.plot_waterfall_update_line_style(array, **kwargs)
+        elif name.startswith("label"):
+            if name.endswith(".reset"):
+                self.plot_waterfall_reset_label(x, y, array, **kwargs)
+            else:
+                self.plot_waterfall_update_label(**kwargs)
 
     def plot_waterfall_update_line_style(self, array, **kwargs):
         """Update waterfall lines"""
@@ -904,12 +920,30 @@ class PlotBase(MPLPanel):
                 else:
                     collection.set_facecolors([])
 
-    #         coll.set_linestyle(kwargs["line_style"  ])
-    #         coll.set_linewidths(kwargs["line_width"]   )
-    #
-    #           # set face style
-    #            if kwargs["shade_under"]:
-    #               coll.set_facecolors(fc)
+    def plot_waterfall_reset_label(self, x, y, array, **kwargs):
+        """Update waterfall labels"""
+        _, _, label_x, label_y, label_text = self._prepare_waterfall(x, y, array, **kwargs)
+        if kwargs["add_labels"]:
+            self.plot_add_labels(
+                label_x,
+                label_y,
+                label_text,
+                pickable=False,
+                repaint=False,
+                **self._get_waterfall_label_kwargs(**kwargs),
+            )
+        else:
+            self.plot_remove_label(False)
+
+    def plot_waterfall_update_label(self, **kwargs):
+        """Update waterfall labels"""
+        _kwargs = self._get_waterfall_label_kwargs(**kwargs)
+        for label in self.text:
+            label.set_fontweight(_kwargs["fontweight"])
+            label.set_fontsize(_kwargs["fontsize"])
+            label.set_horizontalalignment(_kwargs["horizontalalignment"])
+            label.set_verticalalignment(_kwargs["verticalalignment"])
+
     # def    plot_1D_waterfall_update(self, which="other", **kwargs):
     #
     #     if self.lock_plot_from_updating:
@@ -1248,7 +1282,6 @@ class PlotBase(MPLPanel):
             color.append(alpha)
             _fc.append(color)
 
-        print(len(lc), len(_fc))
         return lc, _fc
 
     def get_violin_colors(self, n_colors: int, **kwargs):
@@ -1263,17 +1296,30 @@ class PlotBase(MPLPanel):
     @staticmethod
     def _prepare_waterfall(x, y, array, **kwargs):
         """Prepare data for waterfall plotting"""
+
+        def _add_label():
+            if label_frequency:
+                label_x.append(_label_x)
+                label_y.append(_y.min() + label_y_offset)
+                label_text.append(ut_visuals.convert_label(x[i], label_format=kwargs["labels_format"]))
+
         # TODO: add `fix_end` option to prevent incorrect shading
         normalize = kwargs.get("normalize", True)
         y_increment = kwargs["increment"]
+        label_y_offset = kwargs["labels_y_offset"]
+        label_frequency = int(kwargs["labels_frequency"])
         #         fix_end = kwargs.get("fix_end", True)
 
         if kwargs["reverse"]:
             array = np.fliplr(array)
+            x = x[::-1]
+
         array = array.astype(np.float32)
 
         yy, xy = [], []
+        label_x, label_y, label_text = [], [], []
         if array is not None:
+            _label_x = y.max() * kwargs["labels_x_offset"]
             for i, _y in enumerate(array.T):
                 # normalize (to 1) the intensity of signal
                 if normalize:
@@ -1281,9 +1327,16 @@ class PlotBase(MPLPanel):
 
                 # increase the baseline to set the signal apart from the one before it
                 _y += i * y_increment
-
                 xy.append(np.column_stack([y, _y]))
-                yy.append(_y.max())
+                yy.extend([_y.min(), _y.max()])
+
+                _add_label()
+
+        #                 if kwargs["labels_frequency"] != 0:
+        #                     if i % kwargs["labels_frequency"] == 0 or i == n_signals - 1:
+        #                         label_x.append(_label_x)
+        #                         label_y.append(_y.min() + label_y_offset)
+        #                         label_text.append(ut_visuals.convert_label(x[i], label_format=kwargs["labels_format"]))
         else:
             for i, (_x, _y) in enumerate(zip(x, y)):
                 # normalize (to 1) the intensity of signal
@@ -1293,12 +1346,27 @@ class PlotBase(MPLPanel):
                 # increase the baseline to set the signal apart from the one before it
                 _y += i * y_increment
                 xy.append(np.column_stack([_x, _y]))
-                yy.append(_y.max())
+                yy.extend([_y.min(), _y.max()])
 
-        return yy, xy
+        # trim number of labels
+        if label_frequency:
+            label_x = label_x[0::label_frequency]
+            label_y = label_y[0::label_frequency]
+            label_text = label_text[0::label_frequency]
 
-    def _prepare_waterfall_labels(self, x, y, **kwargs):
-        """Prepare data for waterfall labels"""
+        return yy, xy, label_x, label_y, label_text
+
+    @staticmethod
+    def _get_waterfall_label_kwargs(**kwargs):
+        """Get kwargs to be consumed by the labels function"""
+        return {
+            "horizontalalignment": kwargs.pop("horizontal_alignment", "center"),
+            "verticalalignment": kwargs.pop("vertical_alignment", "center"),
+            "check_yscale": kwargs.pop("check_yscale", False),
+            "butterfly_plot": kwargs.pop("butterfly_plot", False),
+            "fontweight": "bold" if kwargs["labels_font_weight"] else "normal",
+            "fontsize": kwargs.pop("labels_font_size", "medium"),
+        }
 
     def plot_waterfall(self, x, y, array, x_label=None, y_label=None, **kwargs):
         """Plot as waterfall"""
@@ -1306,7 +1374,7 @@ class PlotBase(MPLPanel):
         # TODO: add labels
         self._set_axes()
 
-        yy, xy = self._prepare_waterfall(x, y, array, **kwargs)
+        yy, xy, label_x, label_y, label_text = self._prepare_waterfall(x, y, array, **kwargs)
         n_signals = len(xy)
 
         # get list of parameters for the plot
@@ -1324,6 +1392,9 @@ class PlotBase(MPLPanel):
         # set face style
         if kwargs["shade_under"]:
             coll.set_facecolors(fc)
+
+        # set labels
+        self.plot_add_labels(label_x, label_y, label_text, pickable=False, **self._get_waterfall_label_kwargs(**kwargs))
 
         # in waterfall plot, the horizontal axis is the mobility axis
         xlimits, ylimits, extent = self._compute_xy_limits(y, yy, None, is_heatmap=False)

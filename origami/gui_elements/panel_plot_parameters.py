@@ -96,7 +96,8 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
     plot3d_background_color_btn, plot3d_colormap_value, plot3d_opacity_value, = None, None, None
     plot3d_clim_max_value, plot3d_fontsize_value, plot3d_margin_x_value, plot3d_margin_y_value = None, None, None, None
     plot3d_margin_z_value, plot3d_axis_color_btn, plot3d_clim_min_value = None, None, None
-    plot3d_ticksize_value = None
+    plot3d_tick_size_value, violin_smooth_value, violin_smooth_sigma_value = None, None, None
+    waterfall_palette_value, violin_palette_value = None, None
 
     # UI attributes
     ALL_PANEL_NAMES = [
@@ -1196,23 +1197,34 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             initial=CONFIG.violin_nlimit,
             inc=5,
             size=(90, -1),
-            name="shade",
+            name="violin.data",
         )
         self.violin_n_limit_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_violin)
         self.violin_n_limit_value.SetToolTip("Maximum number of signals before we plot the data as a waterfall plot.")
+        self.violin_n_limit_value.Disable()
 
         violin_orientation_label = wx.StaticText(panel, -1, "Violin plot orientation:")
         self.violin_orientation_value = wx.Choice(
-            panel, -1, choices=CONFIG.violin_orientation_choices, size=(-1, -1), name="style"
+            panel, -1, choices=CONFIG.violin_orientation_choices, size=(-1, -1), name="violin.data"
         )
         self.violin_orientation_value.SetStringSelection(CONFIG.violin_orientation)
         self.violin_orientation_value.Bind(wx.EVT_CHOICE, self.on_apply_violin)
+        self.violin_orientation_value.Bind(wx.EVT_CHOICE, self.on_update_violin)
 
         violin_spacing_label = wx.StaticText(panel, -1, "Spacing:")
         self.violin_spacing_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(CONFIG.violin_spacing), min=0.0, max=5, initial=0, inc=0.25, size=(90, -1)
+            panel,
+            -1,
+            value=str(CONFIG.violin_spacing),
+            min=0.0,
+            max=5,
+            initial=0,
+            inc=0.25,
+            size=(90, -1),
+            name="violin.data",
         )
         self.violin_spacing_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_violin)
+        self.violin_spacing_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_violin)
 
         violin_min_percentage_label = wx.StaticText(panel, -1, "Noise threshold:")
         self.violin_min_percentage_value = wx.SpinCtrlDouble(
@@ -1224,19 +1236,42 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             initial=0,
             inc=0.01,
             size=(90, -1),
-            name="data",
+            name="violin.data",
         )
         self.violin_min_percentage_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_violin)
-        self.violin_min_percentage_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
+        self.violin_min_percentage_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_violin)
         self.violin_min_percentage_value.SetToolTip(
             "Minimal intensity of data to be shown on the plot. Low intensity or sparse datasets can lead"
             " to plot distortions"
         )
 
         violin_normalize_label = wx.StaticText(panel, -1, "Normalize:")
-        self.violin_normalize_check = make_checkbox(panel, "")
+        self.violin_normalize_check = make_checkbox(panel, "", name="violin.data")
         self.violin_normalize_check.SetValue(CONFIG.violin_normalize)
         self.violin_normalize_check.Bind(wx.EVT_CHECKBOX, self.on_apply_violin)
+        self.violin_normalize_check.Bind(wx.EVT_CHECKBOX, self.on_update_violin)
+
+        violin_smooth_label = wx.StaticText(panel, -1, "Smooth:")
+        self.violin_smooth_value = make_checkbox(panel, "", name="violin.data")
+        self.violin_smooth_value.SetValue(CONFIG.violin_smooth)
+        self.violin_smooth_value.Bind(wx.EVT_CHECKBOX, self.on_apply_violin)
+        self.violin_smooth_value.Bind(wx.EVT_CHECKBOX, self.on_update_violin)
+        self.violin_smooth_value.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls_violin)
+
+        violin_smooth_sigma = wx.StaticText(panel, -1, "Gaussian smooth:")
+        self.violin_smooth_sigma_value = wx.SpinCtrlDouble(
+            panel,
+            -1,
+            value=str(CONFIG.violin_smooth_sigma),
+            min=1,
+            max=10,
+            initial=CONFIG.violin_smooth_sigma,
+            inc=0.5,
+            size=(90, -1),
+            name="violin.data",
+        )
+        self.violin_smooth_sigma_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_violin)
+        self.violin_smooth_sigma_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_violin)
 
         violin_line_width = wx.StaticText(panel, -1, "Line width:")
         self.violin_line_width_value = wx.SpinCtrlDouble(
@@ -1248,57 +1283,61 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             initial=CONFIG.violin_lineWidth,
             inc=1,
             size=(90, -1),
-            name="style",
+            name="violin.line.style",
         )
         self.violin_line_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_violin)
-        self.violin_line_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
+        self.violin_line_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_violin)
 
         violin_line_style = wx.StaticText(panel, -1, "Line style:")
-        self.violin_line_style_value = wx.Choice(panel, -1, choices=CONFIG.lineStylesList, size=(-1, -1), name="style")
+        self.violin_line_style_value = wx.Choice(
+            panel, -1, choices=CONFIG.lineStylesList, size=(-1, -1), name="violin.line"
+        )
         self.violin_line_style_value.SetStringSelection(CONFIG.violin_lineStyle)
         self.violin_line_style_value.Bind(wx.EVT_CHOICE, self.on_apply_violin)
-        self.violin_line_style_value.Bind(wx.EVT_CHOICE, self.on_update_2d)
+        self.violin_line_style_value.Bind(wx.EVT_CHOICE, self.on_update_violin)
 
         violin_line_color = wx.StaticText(panel, -1, "Line color:")
         self.violin_color_line_btn = wx.Button(
-            panel, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="violin.color.line"
+            panel, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="violin.line.color"
         )
         self.violin_color_line_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.violin_color))
         self.violin_color_line_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
-        self.violin_line_same_as_fill_check = make_checkbox(panel, "Same as fill", name="color")
+        self.violin_line_same_as_fill_check = make_checkbox(panel, "Same as fill", name="violin.line")
         self.violin_line_same_as_fill_check.SetValue(CONFIG.violin_line_sameAsShade)
         self.violin_line_same_as_fill_check.Bind(wx.EVT_CHECKBOX, self.on_apply_violin)
         self.violin_line_same_as_fill_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls_violin)
-        self.violin_line_same_as_fill_check.Bind(wx.EVT_CHECKBOX, self.on_update_2d)
+        self.violin_line_same_as_fill_check.Bind(wx.EVT_CHECKBOX, self.on_update_violin)
 
         violin_color_scheme_label = wx.StaticText(panel, -1, "Color scheme:")
         self.violin_colorScheme_value = wx.Choice(
-            panel, -1, choices=CONFIG.waterfall_color_choices, size=(-1, -1), name="color"
+            panel, -1, choices=CONFIG.waterfall_color_choices, size=(-1, -1), name="violin.fill"
         )
         self.violin_colorScheme_value.SetStringSelection(CONFIG.violin_color_scheme)
         self.violin_colorScheme_value.Bind(wx.EVT_CHOICE, self.on_apply_violin)
-        self.violin_colorScheme_value.Bind(wx.EVT_CHOICE, self.on_update_2d)
+        self.violin_colorScheme_value.Bind(wx.EVT_CHOICE, self.on_update_violin)
         self.violin_colorScheme_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls_violin)
 
         cmap_list = CONFIG.cmaps2[:]
         cmap_list.remove("jet")
         violin_colormap_label = wx.StaticText(panel, -1, "Colormap:")
-        self.violin_colormap_value = wx.Choice(panel, -1, choices=cmap_list, size=(-1, -1), name="color")
+        self.violin_colormap_value = wx.Choice(panel, -1, choices=cmap_list, size=(-1, -1), name="violin.fill")
         self.violin_colormap_value.SetStringSelection(CONFIG.violin_colormap)
         self.violin_colormap_value.Bind(wx.EVT_CHOICE, self.on_apply_violin)
-        self.violin_colormap_value.Bind(wx.EVT_CHOICE, self.on_update_2d)
+        self.violin_colormap_value.Bind(wx.EVT_CHOICE, self.on_update_violin)
 
         violin_palette = wx.StaticText(panel, -1, "Color palette:")
-        self.violin_palette_value = BitmapComboBox(panel, -1, choices=[], size=(160, -1), style=wx.CB_READONLY)
+        self.violin_palette_value = BitmapComboBox(
+            panel, -1, choices=[], size=(160, -1), style=wx.CB_READONLY, name="violin.fill"
+        )
         self._set_color_palette(self.violin_palette_value)
         self.violin_palette_value.SetStringSelection(CONFIG.violin_palette)
-        self.violin_palette_value.Bind(wx.EVT_CHOICE, self.on_apply_violin)
-        self.violin_palette_value.Bind(wx.EVT_CHOICE, self.on_update_2d)
+        self.violin_palette_value.Bind(wx.EVT_COMBOBOX, self.on_apply_violin)
+        self.violin_palette_value.Bind(wx.EVT_COMBOBOX, self.on_update_violin)
 
         violin_shade_color_label = wx.StaticText(panel, -1, "Fill color:")
         self.violin_color_fill_btn = wx.Button(
-            panel, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="violin.color.fill"
+            panel, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="violin.fill.color"
         )
         self.violin_color_fill_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.violin_shade_under_color))
         self.violin_color_fill_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
@@ -1313,19 +1352,10 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             initial=CONFIG.violin_shade_under_transparency,
             inc=0.25,
             size=(90, -1),
-            name="shade",
+            name="violin.fill",
         )
         self.violin_fill_transparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_violin)
-        self.violin_fill_transparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
-
-        violin_label_format_label = wx.StaticText(panel, -1, "Label format:")
-        self.violin_label_format_value = wx.Choice(
-            panel, -1, choices=CONFIG.violin_label_format_choices, size=(-1, -1), name="label"
-        )
-        self.violin_label_format_value.SetStringSelection(CONFIG.waterfall_label_format)
-        self.violin_label_format_value.Bind(wx.EVT_CHOICE, self.on_apply_violin)
-        self.violin_label_format_value.Bind(wx.EVT_CHOICE, self.on_update_2d)
-        self.violin_label_format_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls_violin)
+        self.violin_fill_transparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_violin)
 
         violin_label_frequency_label = wx.StaticText(panel, -1, "Label frequency:")
         self.violin_label_frequency_value = wx.SpinCtrlDouble(
@@ -1337,9 +1367,19 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             initial=CONFIG.violin_labels_frequency,
             inc=1,
             size=(45, -1),
-            name="label",
+            name="violin.label.reset",
         )
         self.violin_label_frequency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_violin)
+        self.violin_label_frequency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_violin)
+
+        violin_label_format_label = wx.StaticText(panel, -1, "Label format:")
+        self.violin_label_format_value = wx.Choice(
+            panel, -1, choices=CONFIG.violin_label_format_choices, size=(-1, -1), name="violin.label.reset"
+        )
+        self.violin_label_format_value.SetStringSelection(CONFIG.waterfall_label_format)
+        self.violin_label_format_value.Bind(wx.EVT_CHOICE, self.on_apply_violin)
+        self.violin_label_format_value.Bind(wx.EVT_CHOICE, self.on_update_violin)
+        self.violin_label_format_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls_violin)
 
         plot_parameters_label = wx.StaticText(panel, -1, "Plot parameters")
         set_item_font(plot_parameters_label)
@@ -1369,6 +1409,12 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         n += 1
         grid.Add(violin_normalize_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.violin_normalize_check, (n, 1), flag=wx.EXPAND)
+        n += 1
+        grid.Add(violin_smooth_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.violin_smooth_value, (n, 1), flag=wx.EXPAND)
+        n += 1
+        grid.Add(violin_smooth_sigma, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.violin_smooth_sigma_value, (n, 1), flag=wx.EXPAND)
         n += 1
         grid.Add(violin_line_width, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.violin_line_width_value, (n, 1), flag=wx.EXPAND)
@@ -1430,7 +1476,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             initial=0,
             inc=0.05,
             size=(90, -1),
-            name="data",
+            name="waterfall.data",
         )
         self.waterfall_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_waterfall)
         self.waterfall_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_2d)
@@ -1482,14 +1528,14 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             initial=CONFIG.waterfall_lineWidth,
             inc=1,
             size=(90, -1),
-            name="waterfall.line.style",
+            name="waterfall.line",
         )
         self.waterfall_line_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_waterfall)
         self.waterfall_line_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_waterfall)
 
         waterfall_line_style_label = wx.StaticText(panel, -1, "Line style:")
         self.waterfall_line_style_value = wx.Choice(
-            panel, -1, choices=CONFIG.lineStylesList, size=(-1, -1), name="waterfall.line.style"
+            panel, -1, choices=CONFIG.lineStylesList, size=(-1, -1), name="waterfall.line"
         )
         self.waterfall_line_style_value.SetStringSelection(CONFIG.waterfall_lineStyle)
         self.waterfall_line_style_value.Bind(wx.EVT_CHOICE, self.on_apply_waterfall)
@@ -1502,7 +1548,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         self.waterfall_color_line_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.waterfall_color))
         self.waterfall_color_line_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
-        self.waterfall_line_sameAsShade_check = make_checkbox(panel, "Same as fill", name="waterfall.color")
+        self.waterfall_line_sameAsShade_check = make_checkbox(panel, "Same as fill", name="waterfall.fill")
         self.waterfall_line_sameAsShade_check.SetValue(CONFIG.waterfall_line_sameAsShade)
         self.waterfall_line_sameAsShade_check.Bind(wx.EVT_CHECKBOX, self.on_apply_waterfall)
         self.waterfall_line_sameAsShade_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls_waterfall)
@@ -1518,7 +1564,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
 
         waterfall_color_scheme_label = wx.StaticText(panel, -1, "Color scheme:")
         self.waterfall_colorScheme_value = wx.Choice(
-            panel, -1, choices=CONFIG.waterfall_color_choices, size=(-1, -1), name="waterfall.color"
+            panel, -1, choices=CONFIG.waterfall_color_choices, size=(-1, -1), name="waterfall.fill"
         )
         self.waterfall_colorScheme_value.SetStringSelection(CONFIG.waterfall_color_scheme)
         self.waterfall_colorScheme_value.Bind(wx.EVT_CHOICE, self.on_apply_waterfall)
@@ -1528,7 +1574,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         cmap_list = CONFIG.cmaps2[:]
         cmap_list.remove("jet")
         waterfall_colormap_label = wx.StaticText(panel, -1, "Colormap:")
-        self.waterfall_colormap_value = wx.Choice(panel, -1, choices=cmap_list, size=(-1, -1), name="waterfall.color")
+        self.waterfall_colormap_value = wx.Choice(panel, -1, choices=cmap_list, size=(-1, -1), name="waterfall.fill")
         self.waterfall_colormap_value.SetStringSelection(CONFIG.waterfall_colormap)
         self.waterfall_colormap_value.Bind(wx.EVT_CHOICE, self.on_apply_waterfall)
         self.waterfall_colormap_value.Bind(wx.EVT_CHOICE, self.on_update_waterfall)
@@ -1537,12 +1583,12 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         self.waterfall_palette_value = BitmapComboBox(panel, -1, choices=[], size=(160, -1), style=wx.CB_READONLY)
         self._set_color_palette(self.waterfall_palette_value)
         self.waterfall_palette_value.SetStringSelection(CONFIG.waterfall_palette)
-        self.waterfall_colormap_value.Bind(wx.EVT_CHOICE, self.on_apply_waterfall)
-        self.waterfall_colormap_value.Bind(wx.EVT_CHOICE, self.on_update_waterfall)
+        self.waterfall_palette_value.Bind(wx.EVT_COMBOBOX, self.on_apply_waterfall)
+        self.waterfall_palette_value.Bind(wx.EVT_COMBOBOX, self.on_update_waterfall)
 
         waterfall_shade_color_label = wx.StaticText(panel, -1, "Fill color:")
         self.waterfall_color_fill_btn = wx.Button(
-            panel, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="waterfall.color"
+            panel, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="waterfall.fill.color"
         )
         self.waterfall_color_fill_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.waterfall_shade_under_color))
         self.waterfall_color_fill_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
@@ -1557,7 +1603,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             initial=CONFIG.waterfall_shade_under_transparency,
             inc=0.25,
             size=(90, -1),
-            name="waterfall.fill.style",
+            name="waterfall.fill",
         )
         self.waterfall_fill_transparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_waterfall)
         self.waterfall_fill_transparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_waterfall)
@@ -1572,7 +1618,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             initial=CONFIG.waterfall_shade_under_nlimit,
             inc=100,
             size=(90, -1),
-            name="waterfall.fill.style",
+            name="waterfall.fill",
         )
         self.waterfall_fill_n_limit_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_waterfall)
         self.waterfall_fill_n_limit_value.SetToolTip(
@@ -1581,29 +1627,28 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         )
 
         waterfall_show_labels_label = wx.StaticText(panel, -1, "Show labels:")
-        self.waterfall_showLabels_check = make_checkbox(panel, "", name="label")
+        self.waterfall_showLabels_check = make_checkbox(panel, "", name="waterfall.label.reset")
         self.waterfall_showLabels_check.SetValue(CONFIG.waterfall_add_labels)
         self.waterfall_showLabels_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls_waterfall)
         self.waterfall_showLabels_check.Bind(wx.EVT_CHECKBOX, self.on_update_waterfall)
 
         waterfall_label_frequency_label = wx.StaticText(panel, -1, "Label frequency:")
-        self.waterfall_label_frequency_value = wx.SpinCtrlDouble(
+        self.waterfall_label_frequency_value = wx.SpinCtrl(
             panel,
             -1,
             value=str(CONFIG.waterfall_labels_frequency),
             min=0,
             max=100,
             initial=CONFIG.waterfall_labels_frequency,
-            inc=1,
             size=(45, -1),
-            name="waterfall.label.frequency",
+            name="waterfall.label.reset",
         )
         self.waterfall_label_frequency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_waterfall)
         self.waterfall_label_frequency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_waterfall)
 
         waterfall_label_format_label = wx.StaticText(panel, -1, "Label format:")
         self.waterfall_label_format_value = wx.Choice(
-            panel, -1, choices=CONFIG.waterfall_label_format_choices, size=(-1, -1), name="label"
+            panel, -1, choices=CONFIG.waterfall_label_format_choices, size=(-1, -1), name="waterfall.label.reset"
         )
         self.waterfall_label_format_value.SetStringSelection(CONFIG.waterfall_label_format)
         self.waterfall_label_format_value.Bind(wx.EVT_CHOICE, self.on_apply_waterfall)
@@ -1625,7 +1670,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         self.waterfall_label_font_size_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_waterfall)
         self.waterfall_label_font_size_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_waterfall)
 
-        self.waterfall_label_font_weight_check = make_checkbox(panel, "Bold", name="label")
+        self.waterfall_label_font_weight_check = make_checkbox(panel, "Bold", name="waterfall.label")
         self.waterfall_label_font_weight_check.SetValue(CONFIG.waterfall_label_fontWeight)
         self.waterfall_label_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_apply_waterfall)
         self.waterfall_label_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_update_waterfall)
@@ -1640,7 +1685,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             initial=CONFIG.waterfall_labels_x_offset,
             inc=0.01,
             size=(45, -1),
-            name="waterfall.label",
+            name="waterfall.label.reset",
         )
         self.waterfall_label_x_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_waterfall)
         self.waterfall_label_x_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_waterfall)
@@ -1655,7 +1700,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             initial=CONFIG.waterfall_labels_y_offset,
             inc=0.05,
             size=(45, -1),
-            name="waterfall.label",
+            name="waterfall.label.reset",
         )
         self.waterfall_label_y_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_waterfall)
         self.waterfall_label_y_offset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_waterfall)
@@ -2266,7 +2311,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         """Make 2d plot panel"""
         plot2d_plot_type = wx.StaticText(panel, -1, "Plot type:")
         self.plot2d_plot_type_value = wx.Choice(
-            panel, -1, choices=CONFIG.imageType2D, size=(-1, -1), name="2d.heatmap.viewtype"
+            panel, -1, choices=CONFIG.imageType2D, size=(-1, -1), name="2d.heatmap.view_type"
         )
         self.plot2d_plot_type_value.SetStringSelection(CONFIG.plotType)
         self.plot2d_plot_type_value.Bind(wx.EVT_CHOICE, self.on_apply_2d)
@@ -2544,7 +2589,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         self.plot3d_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_3d)
 
         tick_size = wx.StaticText(panel, -1, "Tick size (px):")
-        self.plot3d_ticksize_value = wx.SpinCtrlDouble(
+        self.plot3d_tick_size_value = wx.SpinCtrlDouble(
             panel,
             -1,
             value=str(CONFIG.heatmap_3d_axis_tick_size),
@@ -2554,8 +2599,8 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             inc=4,
             name="heatmap.3d.tick",
         )
-        self.plot3d_ticksize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_3d)
-        self.plot3d_ticksize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_3d)
+        self.plot3d_tick_size_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_3d)
+        self.plot3d_tick_size_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_3d)
 
         margin_x = wx.StaticText(panel, -1, "Label margin (x):")
         self.plot3d_margin_x_value = wx.SpinCtrlDouble(
@@ -2648,7 +2693,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         grid.Add(self.plot3d_fontsize_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
         n += 1
         grid.Add(tick_size, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.plot3d_ticksize_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        grid.Add(self.plot3d_tick_size_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
         n += 1
         grid.Add(margin_x, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.plot3d_margin_x_value, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
@@ -2757,7 +2802,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         CONFIG.heatmap_3d_clim_min = self.plot3d_clim_min_value.GetValue()
         CONFIG.heatmap_3d_clim_max = self.plot3d_clim_max_value.GetValue()
         CONFIG.heatmap_3d_axis_font_size = self.plot3d_fontsize_value.GetValue()
-        CONFIG.heatmap_3d_axis_tick_size = self.plot3d_ticksize_value.GetValue()
+        CONFIG.heatmap_3d_axis_tick_size = self.plot3d_tick_size_value.GetValue()
         CONFIG.heatmap_3d_axis_x_margin = self.plot3d_margin_x_value.GetValue()
         CONFIG.heatmap_3d_axis_y_margin = self.plot3d_margin_y_value.GetValue()
         CONFIG.heatmap_3d_axis_z_margin = self.plot3d_margin_z_value.GetValue()
@@ -2847,11 +2892,13 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         CONFIG.violin_palette = self.violin_palette_value.GetStringSelection()
         CONFIG.violin_colormap = self.violin_colormap_value.GetStringSelection()
         CONFIG.violin_normalize = self.violin_normalize_check.GetValue()
+        CONFIG.violin_smooth = self.violin_smooth_value.GetValue()
+        CONFIG.violin_smooth_sigma = self.violin_smooth_sigma_value.GetValue()
         CONFIG.violin_line_sameAsShade = self.violin_line_same_as_fill_check.GetValue()
         CONFIG.violin_shade_under_transparency = self.violin_fill_transparency_value.GetValue()
         CONFIG.violin_nlimit = self.violin_n_limit_value.GetValue()
         CONFIG.violin_label_format = self.violin_label_format_value.GetStringSelection()
-        CONFIG.violin_labels_frequency = self.violin_label_frequency_value.GetValue()
+        CONFIG.violin_labels_frequency = int(self.violin_label_frequency_value.GetValue())
 
         if evt is not None:
             evt.Skip()
@@ -2869,7 +2916,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         CONFIG.waterfall_normalize = self.waterfall_normalize_check.GetValue()
         CONFIG.waterfall_line_sameAsShade = self.waterfall_line_sameAsShade_check.GetValue()
         CONFIG.waterfall_add_labels = self.waterfall_showLabels_check.GetValue()
-        CONFIG.waterfall_labels_frequency = self.waterfall_label_frequency_value.GetValue()
+        CONFIG.waterfall_labels_frequency = int(self.waterfall_label_frequency_value.GetValue())
         CONFIG.waterfall_labels_x_offset = self.waterfall_label_x_offset_value.GetValue()
         CONFIG.waterfall_labels_y_offset = self.waterfall_label_y_offset_value.GetValue()
         CONFIG.waterfall_label_fontSize = self.waterfall_label_font_size_value.GetValue()
@@ -2976,14 +3023,14 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             CONFIG.waterfall_shade_under_color = color_1
             self.waterfall_color_fill_btn.SetBackgroundColour(color_255)
             self.on_update_waterfall(evt)
-        elif source == "violin.color.line":
+        elif source == "violin.line.color":
             CONFIG.violin_color = color_1
             self.violin_color_line_btn.SetBackgroundColour(color_255)
-            self.on_update_2d(evt)
-        elif source == "violin.color.fill":
+            self.on_update_violin(evt)
+        elif source == "violin.fill.color":
             CONFIG.violin_shade_under_color = color_1
             self.violin_color_fill_btn.SetBackgroundColour(color_255)
-            self.on_update_2d(evt)
+            self.on_update_violin(evt)
         elif source == "1d.bar.edge":
             CONFIG.bar_edge_color = color_1
             self.bar_edge_color_btn.SetBackgroundColour(color_255)
@@ -3125,7 +3172,22 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             self._parse_evt(evt)
             return
         self.on_apply_waterfall(None)
-        name = source  # source.split("waterfall.")[-1]
+        name = source
+        view = self.panel_plot.get_view_from_name()
+        view.update_style(name)
+        self._parse_evt(evt)
+
+    def on_update_violin(self, evt):
+        """Update violin plots"""
+        if evt is None:
+            return
+        source = evt.GetEventObject().GetName()
+        print(source)
+        if not source.startswith("violin."):
+            self._parse_evt(evt)
+            return
+        self.on_apply_violin(None)
+        name = source
         view = self.panel_plot.get_view_from_name()
         view.update_style(name)
         self._parse_evt(evt)
@@ -3302,6 +3364,9 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
         self.violin_color_fill_btn.Enable(CONFIG.violin_color_scheme == "Same color")
         self.violin_colormap_value.Enable(CONFIG.violin_color_scheme == "Colormap")
         self.violin_palette_value.Enable(CONFIG.violin_color_scheme == "Color palette")
+
+        CONFIG.violin_smooth = self.violin_smooth_value.GetValue()
+        self.violin_smooth_sigma_value.Enable(CONFIG.violin_smooth)
 
         self._parse_evt(evt)
 

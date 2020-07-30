@@ -42,7 +42,16 @@ class ViewMPLMixin:
             self.figure.repaint()
 
     def add_labels(
-        self, x, y, label, name=None, color=None, optimize_labels: bool = False, repaint: bool = True, **kwargs
+        self,
+        x,
+        y,
+        label,
+        name=None,
+        color=None,
+        optimize_labels: bool = False,
+        pickable: bool = True,
+        repaint: bool = True,
+        **kwargs,
     ):
         """Add text label to the plot"""
         plt_kwargs = {
@@ -60,7 +69,9 @@ class ViewMPLMixin:
             color = ["k"] * len(x)
 
         for _x, _y, _label, _name, _color in zip(x, y, label, name, color):
-            self.figure.plot_add_label(_x, _y, _label, text_name=_name, color=_color, y_offset=y_offset, **plt_kwargs)
+            self.figure.plot_add_label(
+                _x, _y, _label, text_name=_name, color=_color, y_offset=y_offset, pickable=pickable, **plt_kwargs
+            )
 
         if optimize_labels:
             self.figure._fix_label_positions()  # noqa

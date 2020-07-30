@@ -43,6 +43,17 @@ class TestPanelViewMassSpectrum(TestPlotView):
         mz_obj = MassSpectrumObject([1, 2, 3, 4], [2, 3, 1, 4])  # noqa
         view.plot(obj=mz_obj)
 
+    def test_panel_update_style(self):
+        view = ViewMassSpectrum(self.frame, (12, 8))
+        self.set_plot(view)
+
+        # test plot using x/y
+        obj = MassSpectrumObject([1, 2, 3, 4], [2, 3, 1, 4])  # noqa
+        view.plot(obj=obj)
+
+        for style in view.UPDATE_STYLES:
+            view.update_style(style)
+
 
 @pytest.mark.guitest
 class TestPanelViewChromatogram(TestPlotView):
@@ -60,6 +71,17 @@ class TestPanelViewChromatogram(TestPlotView):
         mz_obj = ChromatogramObject([1, 2, 3, 4], [2, 3, 1, 4])  # noqa
         view.plot(obj=mz_obj)
 
+    def test_panel_update_style(self):
+        view = ViewChromatogram(self.frame, (12, 8))
+        self.set_plot(view)
+
+        # test plot using x/y
+        obj = ChromatogramObject([1, 2, 3, 4], [2, 3, 1, 4])  # noqa
+        view.plot(obj=obj)
+
+        for style in view.UPDATE_STYLES:
+            view.update_style(style)
+
 
 @pytest.mark.guitest
 class TestPanelViewMobilogram(TestPlotView):
@@ -76,6 +98,17 @@ class TestPanelViewMobilogram(TestPlotView):
         # test plot using object
         mz_obj = MobilogramObject([1, 2, 3, 4], [2, 3, 1, 4])  # noqa
         view.plot(obj=mz_obj)
+
+    def test_panel_update_style(self):
+        view = ViewMobilogram(self.frame, (12, 8))
+        self.set_plot(view)
+
+        # test plot using x/y
+        obj = MobilogramObject([1, 2, 3, 4], [2, 3, 1, 4])  # noqa
+        view.plot(obj=obj)
+
+        for style in view.UPDATE_STYLES:
+            view.update_style(style)
 
 
 @pytest.mark.guitest
