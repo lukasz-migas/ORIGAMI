@@ -22,6 +22,7 @@ from origami.config.config import CONFIG
 from origami.utils.adjustText import adjust_text
 from origami.utils.exceptions import MessageError
 from origami.visuals.mpl.panel import MPLPanel
+from origami.visuals.utilities import get_intensity_formatter
 
 logger = logging.getLogger(__name__)
 
@@ -1332,11 +1333,6 @@ class PlotBase(MPLPanel):
 
                 _add_label()
 
-        #                 if kwargs["labels_frequency"] != 0:
-        #                     if i % kwargs["labels_frequency"] == 0 or i == n_signals - 1:
-        #                         label_x.append(_label_x)
-        #                         label_y.append(_y.min() + label_y_offset)
-        #                         label_text.append(ut_visuals.convert_label(x[i], label_format=kwargs["labels_format"]))
         else:
             for i, (_x, _y) in enumerate(zip(x, y)):
                 # normalize (to 1) the intensity of signal
@@ -1370,7 +1366,6 @@ class PlotBase(MPLPanel):
 
     def plot_waterfall(self, x, y, array, x_label=None, y_label=None, **kwargs):
         """Plot as waterfall"""
-        self.PLOT_TYPE = "waterfall"
         # TODO: add labels
         self._set_axes()
 
@@ -1399,6 +1394,7 @@ class PlotBase(MPLPanel):
         # in waterfall plot, the horizontal axis is the mobility axis
         xlimits, ylimits, extent = self._compute_xy_limits(y, yy, None, is_heatmap=False)
         # set plot limits
+        self.plot_base.yaxis.set_major_formatter(get_intensity_formatter())
         self.plot_base.set_xlim(xlimits)
         self.plot_base.set_ylim(ylimits)
         self.set_plot_xlabel(x_label, **kwargs)
@@ -1413,6 +1409,7 @@ class PlotBase(MPLPanel):
             is_heatmap=True,
         )
         self.store_plot_limits([extent], [self.plot_base])
+        self.PLOT_TYPE = "waterfall"
 
     @staticmethod
     def update_line(x, y, gid, ax):

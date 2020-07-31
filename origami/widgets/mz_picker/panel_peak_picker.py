@@ -258,6 +258,10 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         except TopicNameError:
             pass
 
+        # unregister view
+        pub.sendMessage("view.unregister", view_id=self.plot_view.PLOT_ID)
+
+        # teardown dataset mixin
         self._dataset_mixin_teardown()
 
         try:

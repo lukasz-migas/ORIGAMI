@@ -6,9 +6,9 @@ import logging
 import numpy as np
 
 # Local imports
-from origami.visuals.mpl.base import PlotBase
 from origami.visuals.mpl.gids import PlotIds
 from origami.visuals.utilities import get_intensity_formatter
+from origami.visuals.mpl.plot_base import PlotBase
 
 logger = logging.getLogger(__name__)
 
@@ -67,10 +67,7 @@ class PlotSpectrum(PlotBase):
             self.plot_1d_add_under_curve(x, y, **kwargs)
 
         # setup axis formatters
-        y_formatter = get_intensity_formatter()
-        self.plot_base.yaxis.set_major_formatter(y_formatter)
-
-        # set plot limits
+        self.plot_base.yaxis.set_major_formatter(get_intensity_formatter())
         self.plot_base.set_xlim(xlimits)
         self.plot_base.set_ylim(ylimits)
         self.set_plot_xlabel(x_label, **kwargs)
@@ -88,6 +85,7 @@ class PlotSpectrum(PlotBase):
 
         # Setup X-axis getter
         self.store_plot_limits([extent], [self.plot_base])
+        self.PLOT_TYPE = "line"
 
     def plot_1d_add_under_curve(self, xvals, yvals, **kwargs):
         """Fill data under the line"""
@@ -195,6 +193,7 @@ class PlotSpectrum(PlotBase):
         self.plot_base.axhline(linewidth=kwargs["line_width"], color="k")
 
         # set plot limits
+        self.plot_base.yaxis.set_major_formatter(get_intensity_formatter())
         self.plot_base.set_xlim(xlimits)
         self.plot_base.set_ylim(ylimits)
         self.set_plot_xlabel(x_label, **kwargs)
@@ -213,6 +212,7 @@ class PlotSpectrum(PlotBase):
 
         # Setup X-axis getter
         self.store_plot_limits([extent], [self.plot_base])
+        self.PLOT_TYPE = "line-compare"
 
     def plot_1d_compare_update_data(self, x_top, x_bottom, y_top, y_bottom, labels=None, **kwargs):
         """Update comparison data"""
@@ -275,7 +275,6 @@ class PlotSpectrum(PlotBase):
                     line.set_alpha(transparency)
                 if label is not None:
                     line.set_label(label)
-                break
 
         handles, __ = self.plot_base.get_legend_handles_labels()
         self.set_legend_parameters(handles, **self.plot_parameters)

@@ -3158,7 +3158,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             self._parse_evt(evt)
             return
         self.on_apply_colorbar(None)
-        name = source.split("2d.heatmap.")[-1]
+        name = source.split("2d.")[-1]
         view = self.panel_plot.get_view_from_name()
         view.update_style(name)
         self._parse_evt(evt)
@@ -3201,7 +3201,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin, ColorGetter
             self._parse_evt(evt)
             return
         self.on_apply_2d(None)
-        name = source.split("2d.heatmap.")[-1]
+        name = source.split("2d.")[-1]
         view = self.panel_plot.get_view_from_name()
         view.update_style(name)
         self._parse_evt(evt)

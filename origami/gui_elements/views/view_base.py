@@ -13,9 +13,11 @@ import wx
 # Local imports
 from origami.config.config import CONFIG
 from origami.utils.utilities import report_time
-from origami.visuals.mpl.base import PlotBase
+from origami.utils.exceptions import IncorrectPlotTypeError
+from origami.utils.exceptions import PlotTypeNotPlottedWarning
 from origami.config.environment import ENV
 from origami.objects.containers import DataObject
+from origami.visuals.mpl.plot_base import PlotBase
 
 LOGGER = logging.getLogger(__name__)
 
@@ -86,7 +88,7 @@ class ViewMPLMixin:
         if repaint:
             self.figure.repaint()
 
-    def add_h_line(self, y_val, x_min: float = None, x_max: float = None, **kwargs):
+    def add_h_line(self, y_val, x_min: float = None, x_max: float = None, **kwargs):  # noqa
         """Add horizontal line to the plot"""
         _x_min, _x_max = self.figure.get_xlim()
         if x_min is None:
@@ -97,7 +99,7 @@ class ViewMPLMixin:
         self.figure.plot_add_line(x_min, x_max, y_val, y_val, "horizontal")
         self.figure.repaint()
 
-    def add_v_line(self, x_val, y_min: float = None, y_max: float = None, repaint: bool = True, **kwargs):
+    def add_v_line(self, x_val, y_min: float = None, y_max: float = None, repaint: bool = True, **kwargs):  # noqa
         """Add vertical line to the plot"""
         _y_min, _y_max = self.figure.get_ylim()
         if y_min is None:
@@ -189,8 +191,9 @@ class ViewBase(ABC):
 
     DATA_KEYS = []
     MPL_KEYS = []
-    NAME = None
+    PLOT_ID = None
     UPDATE_STYLES = ()
+    ALLOWED_PLOTS = ()
     SUPPORTED_FILE_FORMATS = ("png", "eps", "jpeg", "tiff", "raw", "ps", "pdf", "svg", "svgz")
 
     def __init__(self, parent, figsize, title="", **kwargs):
@@ -288,6 +291,27 @@ class ViewBase(ABC):
         self._z_label = value
         self._update()
 
+    def can_plot(self, plot_type: str):
+        """Check whether specified plot can be displayed"""
+        if plot_type in self.ALLOWED_PLOTS:
+            return
+        raise IncorrectPlotTypeError(f"Plot `{plot_type}` cannot be displayed in this view")
+
+    def is_plotted(self, plot_type: str):
+        """Check whether specified plot is plotted"""
+        if self.figure.PLOT_TYPE == plot_type:
+            return
+        raise PlotTypeNotPlottedWarning(f"Plot `{plot_type}` has not been plotted yet")
+
+    def is_plotted_or_plot(self, plot_type: str, plot_func, data_keys):
+        """Check whether specified plot is plotted and if not, plot it afresh"""
+        try:
+            self.is_plotted(plot_type)
+            return True
+        except PlotTypeNotPlottedWarning:
+            plot_func(**self.get_data(data_keys, as_dict=True))
+            return False
+
     def set_object(self, data_obj):
         """Set Data object that is associated with the view"""
         self._data["obj"] = data_obj
@@ -319,13 +343,20 @@ class ViewBase(ABC):
         if changed:
             self._update()
 
-    def get_data(self, keys=None):
+    def get_data(self, keys=None, as_dict: bool = False):
         """Get plot data"""
         if keys is None:
             keys = self.DATA_KEYS
-        data = []
+
+        if as_dict:
+            data = {}
+        else:
+            data = []
         for key in keys:
-            data.append(self._data[key])
+            if as_dict:
+                data[key] = self._data[key]
+            else:
+                data.append(self._data[key])
 
         return data
 
@@ -383,7 +414,7 @@ class ViewBase(ABC):
         """Copy plot to clipboard"""
         return self.figure.copy_to_clipboard()
 
-    def save_figure(self, filename="", path=None, **kwargs):
+    def save_figure(self, filename="", path=None, **kwargs):  # noqa
         """Export figure"""
 
         def _get_path():
@@ -395,7 +426,7 @@ class ViewBase(ABC):
             dlg.SetFilename(filename)
             try:
                 dlg.SetFilterIndex(wildcard_dict[CONFIG.imageFormat])
-            except Exception:
+            except KeyError:
                 LOGGER.error("Could not set image format")
 
             _path = None

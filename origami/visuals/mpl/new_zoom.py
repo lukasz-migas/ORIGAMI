@@ -363,7 +363,7 @@ class MPLInteraction:
         self.mpl_events.append(self.canvas.mpl_connect("axes_leave_event", self.on_leave_axes))
 
         # scroll events
-        self.mpl_events.append(self.canvas.mpl_connect("scroll_event", self.on_mouse_wheel))
+        #         self.mpl_events.append(self.canvas.mpl_connect("scroll_event", self.on_mouse_wheel))
 
         # draw events
         self.mpl_events.append(self.canvas.mpl_connect("draw_event", self.update_background))
@@ -383,6 +383,8 @@ class MPLInteraction:
         """Flag that mouse has entered the axes"""
         self._last_location = [evt.xdata, evt.ydata]
         self._is_inside_axes = True
+
+    #         pub.sendMessage("view.activate", view_id=self.plot_id)
 
     def on_leave_axes(self, _evt):
         """Flag that mouse has left the axes"""
@@ -455,7 +457,7 @@ class MPLInteraction:
 
     def on_press(self, evt):
         """Event on button press"""
-
+        pub.sendMessage("view.activate", view_id=self.plot_id)
         self.evt_press = evt
         # Is the correct button pressed within the correct axes?
         if self.ignore(evt):
@@ -953,6 +955,8 @@ class MPLInteraction:
 
     def on_mouse_wheel(self, evt):
         """Event on mouse-wheel"""
+        #         print(dir(evt))
+        print(evt.step)
 
     #         if wx.GetKeyState(wx.WXK_ALT) or not self._is_inside_axes:
     #             return

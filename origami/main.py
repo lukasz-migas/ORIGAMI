@@ -4,7 +4,6 @@ import gc
 import os
 import sys
 import logging
-
 # import warnings
 import threading
 import faulthandler
@@ -21,6 +20,7 @@ from origami.config.config import CONFIG
 from origami.utils.logging import set_logger
 from origami.utils.logging import set_logger_level
 from origami.help_documentation import OrigamiHelp
+from origami.gui_elements.views.view_register import VIEW_REG  # noqa
 
 # # needed to avoid annoying warnings to be printed on console
 # warnings.filterwarnings("ignore", category=DeprecationWarning)

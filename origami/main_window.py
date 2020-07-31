@@ -97,6 +97,7 @@ from origami.config.environment import ENV
 from origami.panel_document_tree import PanelDocumentTree
 from origami.gui_elements.statusbar import Statusbar
 from origami.handlers.data_handling import DataHandling
+from origami.handlers.queue_handler import QUEUE
 from origami.gui_elements.popup_toast import PopupToastManager
 from origami.handlers.data_processing import DataProcessing
 from origami.gui_elements.misc_dialogs import DialogBox
@@ -1186,9 +1187,9 @@ class MainWindow(wx.Frame):
 
     def _on_check_latest_version(self, silent: bool = True):
         """Simple function to check whether this is the newest version available"""
-        from origami.gui_elements.panel_notify_new_version import check_version
+        from origami.gui_elements.panel_notify_new_version import get_version_information, inform_version
 
-        check_version(self, silent)
+        QUEUE.add_call(get_version_information, args=(), func_result=inform_version, silent=silent, parent=self)
 
     def on_whats_new(self, _evt):
         """Check latest version"""

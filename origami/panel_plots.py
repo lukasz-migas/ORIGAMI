@@ -46,8 +46,10 @@ from origami.ids import ID_extraSettings_legend
 from origami.ids import ID_extraSettings_plot1D
 from origami.ids import ID_extraSettings_plot2D
 from origami.ids import ID_extraSettings_plot3D
+from origami.ids import ID_extraSettings_violin
 from origami.ids import ID_plots_customise_plot
 from origami.ids import ID_extraSettings_colorbar
+from origami.ids import ID_extraSettings_waterfall
 from origami.ids import ID_extraSettings_general_plot
 from origami.ids import ID_plots_customise_smart_zoom
 from origami.styles import make_menu_item
@@ -73,8 +75,6 @@ from origami.gui_elements.views.view_spectrum import ViewMobilogram
 from origami.gui_elements.views.view_spectrum import ViewChromatogram
 from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
 from origami.gui_elements.views.view_heatmap_3d import ViewHeatmap3d
-from origami.ids import ID_extraSettings_waterfall
-from origami.ids import ID_extraSettings_violin
 
 logger = logging.getLogger(__name__)
 
@@ -137,12 +137,8 @@ class PanelPlots(wx.Panel):
         self.figsizeY = (self._display_size_px[1] - 70) / self.displayRes[1]
 
         # used to keep track of what were the last selected pages
-        self.window_plot1D = "MS"
-        self.window_plot2D = "2D"
-        self.window_plot3D = "3D"
         self.plot_notebook = self.make_notebook()
         self.current_plot = self.plot_ms
-        self.plot_objs = dict()
 
         self._resizing = False
         self._timer = wx.Timer(self, True)
@@ -301,12 +297,6 @@ class PanelPlots(wx.Panel):
         self.currentPage = self.plot_notebook.GetPageText(self.plot_notebook.GetSelection())
 
         # keep track of previous pages
-        if self.currentPage in ["Mass spectrum", "Chromatogram", "Mobilogram"]:
-            self.window_plot1D = self.currentPage
-        elif self.currentPage in ["Heatmap", "DT/MS", "Waterfall", "Annotated"]:
-            self.window_plot2D = self.currentPage
-        elif self.currentPage in ["Heatmap (3D)"]:
-            self.window_plot3D = self.currentPage
         if self.currentPage == "Waterfall":
             self.current_plot = self.plot_overlay
         elif self.currentPage == "Mass spectrum":
@@ -424,7 +414,7 @@ class PanelPlots(wx.Panel):
         plot_obj.copy_to_clipboard()
         pub.sendMessage("notify.message.success", message="Copied figure to clipboard!")
 
-    def on_smooth_object(self, evt):
+    def on_smooth_object(self, _evt):
         """Smooth plot signal"""
         from origami.gui_elements.misc_dialogs import DialogSimpleAsk
 
@@ -457,7 +447,7 @@ class PanelPlots(wx.Panel):
         heatmap_obj = view_obj.get_object()
         self.document_tree.on_open_process_heatmap_settings(heatmap_obj=heatmap_obj, disable_process=True)
 
-    def on_rotate_plot(self, evt):
+    def on_rotate_plot(self, _evt):
         """Rotate heatmap plot"""
         view_obj = self.get_view_from_name(self.currentPage)
         heatmap_obj = view_obj.get_object()
@@ -465,7 +455,8 @@ class PanelPlots(wx.Panel):
         view_obj.plot(obj=heatmap_obj.transpose(), repaint=False)
         view_obj.reset_zoom()
 
-    def on_open_peak_picker(self, evt):
+    def on_open_peak_picker(self, _evt):
+        """Open peak picker window"""
         view_obj = self.get_view_from_name(self.currentPage)
         mz_obj = view_obj.get_object()
         document_title, dataset_name = mz_obj.owner

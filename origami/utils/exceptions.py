@@ -6,11 +6,27 @@ from origami.gui_elements.misc_dialogs import DialogBox
 
 
 class IncorrectValueError(Exception):
-    pass
+    """Exception raised if incorrect value was specified"""
 
 
 class NoIonMobilityDatasetError(Exception):
-    pass
+    """Exception raised if dataset has no ion mobility"""
+
+
+class IncorrectPlotTypeError(Exception):
+    """Exception raised if incorrect plot type is being plotted"""
+
+    def __init__(self, message):
+        self.message = message
+        pub.sendMessage("notify.message.error", message=message)
+
+
+class PlotTypeNotPlottedWarning(Warning):
+    """Exception raised if plot of the requested type has not been plotted yet"""
+
+    def __init__(self, message):
+        self.message = message
+        pub.sendMessage("notify.message.warning", message=message)
 
 
 class MessageError(Exception):

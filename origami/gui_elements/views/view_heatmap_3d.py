@@ -4,6 +4,7 @@ import logging
 
 # Third-party imports
 import wx
+from pubsub import pub
 
 # Local imports
 from origami.utils.secret import get_short_hash
@@ -33,7 +34,7 @@ class ViewHeatmap3d(ViewBase):
         "margin.y",
         "margin.z",
     )
-    NAME = get_short_hash()
+    PLOT_ID = get_short_hash()
     SUPPORTED_FILE_FORMATS = ("png", "jpeg", "tiff", "pdf")
 
     def __init__(self, *args, **kwargs):
@@ -42,6 +43,9 @@ class ViewHeatmap3d(ViewBase):
 
         # set args
         self.z_label = "Intensity"
+
+        # register view
+        pub.sendMessage("view.register", view_id=self.PLOT_ID, view=self)
 
     def _update(self):
         """Update plot with current data"""

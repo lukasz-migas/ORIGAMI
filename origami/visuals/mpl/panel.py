@@ -84,6 +84,7 @@ class MPLPanel(wx.Panel):
         self.plot_limits = []
 
         # occasionally used to tag to mark what plot was used previously
+        self.PLOT_TYPE = None
         self._plot_tag = ""
         self.plot_name = ""
         self.plot_data = {}
@@ -305,16 +306,11 @@ class MPLPanel(wx.Panel):
         self.temporary = []
 
         # reset attributes
-        self.rotate = 0
+        self.PLOT_TYPE = None
 
         # clear plots
         self.cax = None
         self.plot_base = None
-        self.plot2D_upper = None
-        self.plot2D_lower = None
-        self.plot2D_side = None
-        self.plotRMSF = None
-
         self.repaint()
 
     def on_resize(self, evt):

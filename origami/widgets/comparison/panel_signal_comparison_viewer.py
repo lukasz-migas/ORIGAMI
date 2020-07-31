@@ -660,22 +660,19 @@ class PanelSignalComparisonViewer(MiniFrame):
         """Update plot style"""
         t_start = ttime()
 
-        index = self._get_dataset_index(source)
-
         kwargs = dict()
         if source.endswith("_1"):
             kwargs["color"] = CONFIG.compare_panel_color_top
             kwargs["line_style"] = CONFIG.compare_panel_style_top
             kwargs["transparency"] = CONFIG.compare_panel_alpha_top
-            kwargs["label"] = self.spectrum_1_label_value.GetValue()
+            kwargs["label"] = CONFIG.compare_panel_top_.legend
         elif source.endswith("_2"):
             kwargs["color"] = CONFIG.compare_panel_color_bottom
             kwargs["line_style"] = CONFIG.compare_panel_style_bottom
             kwargs["transparency"] = CONFIG.compare_panel_alpha_bottom
-            kwargs["label"] = self.spectrum_2_label_value.GetValue()
+            kwargs["label"] = CONFIG.compare_panel_bottom_.legend
 
-        self.plot_view.update_style(index, **kwargs)
-        self.panel_plot.plot_1d_update_style_by_label(index, plot=None, plot_obj=self.plot_window, **kwargs)
+        self.plot_view.update_style(self._get_dataset_index(source), **kwargs)
         logger.info(f"Plot update took {report_time(t_start)}")
 
     def on_plot(self, _evt):

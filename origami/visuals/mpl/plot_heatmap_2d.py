@@ -7,18 +7,18 @@ from matplotlib import gridspec
 from matplotlib.colors import LogNorm
 from matplotlib.colors import Normalize
 from matplotlib.colors import PowerNorm
+from matplotlib.collections import LineCollection
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-from matplotlib.collections import LineCollection
 
 # Local imports
 import origami.utils.visuals as ut_visuals
 from origami.config.config import CONFIG
 from origami.utils.visuals import prettify_tick_format
-from origami.visuals.mpl.base import PlotBase
 from origami.visuals.mpl.gids import PlotIds
-from origami.visuals.mpl.normalize import MidpointNormalize
 from origami.processing.spectra import smooth_gaussian_1d
+from origami.visuals.mpl.normalize import MidpointNormalize
+from origami.visuals.mpl.plot_base import PlotBase
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,6 @@ class PlotHeatmap2D(PlotBase):
 
     def plot_2d(self, x, y, array, title="", x_label="", y_label="", obj=None, **kwargs):
         """Simple heatmap plot"""
-        self.PLOT_TYPE = "heatmap"
         self._set_axes()
 
         xlimits, ylimits, extent = self._compute_xy_limits(x, y, None, is_heatmap=True)
@@ -82,10 +81,10 @@ class PlotHeatmap2D(PlotBase):
 
         # update normalization
         self.plot_2D_update_normalization(**kwargs)
+        self.PLOT_TYPE = "heatmap"
 
     def plot_2d_contour(self, x, y, array, title="", x_label="", y_label="", obj=None, **kwargs):
         """Simple heatmap plot"""
-        self.PLOT_TYPE = "contour"
         self._set_axes()
 
         xlimits, ylimits, extent = self._compute_xy_limits(x, y, None, is_heatmap=True)
@@ -123,6 +122,7 @@ class PlotHeatmap2D(PlotBase):
 
         # update normalization
         self.plot_2D_update_normalization(**kwargs)
+        self.PLOT_TYPE = "contour"
 
     def plot_2d_update_data(self, x, y, array, x_label=None, y_label=None, obj=None, **kwargs):
         if kwargs["plot_type"] == "contour":
@@ -132,7 +132,6 @@ class PlotHeatmap2D(PlotBase):
         xlimits, ylimits, extent = self._compute_xy_limits(x, y, None, is_heatmap=True)
 
         self.cax.set_data(array)
-        # self.cax.set_norm(kwargs.get("colormap_norm", None))
         self.cax.set_extent([*xlimits, *ylimits])
         self.cax.set_cmap(kwargs["colormap"])
         self.cax.set_interpolation(kwargs["interpolation"])
@@ -332,10 +331,10 @@ class PlotHeatmap2D(PlotBase):
             is_heatmap=True,
         )
         self.store_plot_limits([extent], [self.plot_base])
+        self.PLOT_TYPE = "violin"
 
     def plot_violin(self, x, y, array, x_label=None, y_label=None, obj=None, **kwargs):
         """Plot as violin"""
-        self.PLOT_TYPE = "violin"
         self._set_axes()
 
         normalize = kwargs.get("normalize", True)
@@ -421,10 +420,10 @@ class PlotHeatmap2D(PlotBase):
             obj=obj,
         )
         self.store_plot_limits([extent], [self.plot_base])
+        self.PLOT_TYPE = "violin"
 
     def plot_joint(self, x, y, array, x_label=None, y_label=None, ratio: int = 5, obj=None, **kwargs):
         """Plot as joint"""
-        self.PLOT_TYPE = "joint"
         gs = gridspec.GridSpec(ratio + 1, ratio + 1, wspace=0.1, hspace=0.1)
         self.plot_base = self.figure.add_subplot(gs[1:, :-1])
         self.plot_base.set_gid(PlotIds.PLOT_JOINT_XY)
@@ -485,6 +484,7 @@ class PlotHeatmap2D(PlotBase):
 
         # update normalization
         self.plot_2D_update_normalization(**kwargs)
+        self.PLOT_TYPE = "joint"
 
     @staticmethod
     def _joint_despine(ax, orientation: str):

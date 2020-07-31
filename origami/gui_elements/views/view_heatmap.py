@@ -1,19 +1,20 @@
 """View heatmap object"""
 # Standard library imports
-import logging
 import time
+import logging
 from copy import copy
 
 # Third-party imports
 import wx
+from pubsub import pub
 
 # Local imports
 from origami.utils.secret import get_short_hash
 from origami.config.config import CONFIG
+from origami.utils.utilities import report_time
 from origami.visuals.mpl.plot_heatmap_2d import PlotHeatmap2D
 from origami.gui_elements.views.view_base import ViewBase
 from origami.gui_elements.views.view_base import ViewMPLMixin
-from origami.utils.utilities import report_time
 
 LOGGER = logging.getLogger(__name__)
 
@@ -24,7 +25,7 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
     VIEW_TYPE = "2d"
     DATA_KEYS = ("array", "x", "y", "obj")
     MPL_KEYS = ["2d", "colorbar", "normalization"]
-    NAME = get_short_hash()
+    ALLOWED_PLOTS = ("heatmap", "contour", "joint", "waterfall", "violin", "rgb")
     UPDATE_STYLES = (
         "waterfall.line",
         "waterfall.line.color",
@@ -44,7 +45,11 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.PLOT_ID = get_short_hash()
         self.panel, self.figure, self.sizer = self.make_panel()
+
+        # register view
+        pub.sendMessage("view.register", view_id=self.PLOT_ID, view=self)
 
     def _update(self):
         """Update plot with current data"""
@@ -53,7 +58,7 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
     def make_panel(self):
         """Initialize plot panel"""
         plot_panel = wx.Panel(self.parent)
-        plot_window = PlotHeatmap2D(plot_panel, figsize=self.figsize, axes_size=self.axes_size, plot_id=self.NAME)
+        plot_window = PlotHeatmap2D(plot_panel, figsize=self.figsize, axes_size=self.axes_size, plot_id=self.PLOT_ID)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(plot_window, 1, wx.EXPAND)
@@ -82,6 +87,7 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
     def plot(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
         """Simple line plot"""
         t_start = time.time()
+        self.can_plot("heatmap")
         # try to update plot first, as it can be quicker
         self.set_document(obj, **kwargs)
         self.set_labels(obj, **kwargs)
@@ -108,6 +114,7 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
     def update(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
         """Update plot without having to clear it"""
         t_start = time.time()
+        self.can_plot("heatmap")
         self.set_document(obj, **kwargs)
         self.set_labels(obj, **kwargs)
 
@@ -127,10 +134,12 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
 
     def plot_rgb(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
         """Plot object as a waterfall"""
+        self.can_plot("rgb")
 
     def plot_contour(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
         """Plot object as a waterfall"""
         t_start = time.time()
+        self.can_plot("contour")
         self.set_document(obj, **kwargs)
         self.set_labels(obj, **kwargs)
 
@@ -151,6 +160,7 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
 
     def plot_violin(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
         """Plot object as a violin plot"""
+        self.can_plot("violin")
         t_start = time.time()
         mpl_keys = copy(self.MPL_KEYS)
         mpl_keys.append("violin")
@@ -162,10 +172,6 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
         kwargs.update(**CONFIG.get_mpl_parameters(mpl_keys))
         kwargs = self.check_kwargs(**kwargs)
         x, y, array = self.check_input(x, y, array, obj)
-        self.figure.clear()
-        #         self.figure.plot_violin(x, y, array, x_label=self.x_label, y_label=self.y_label, callbacks=self._callbacks, obj=obj, **kwargs)
-        #         self.figure.repaint()
-        #         time.sleep(2)
         self.figure.clear()
         self.figure.plot_violin_quick(
             x, y, array, x_label=self.x_label, y_label=self.y_label, callbacks=self._callbacks, obj=obj, **kwargs
@@ -180,6 +186,7 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
 
     def plot_waterfall(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
         """Plot object as a waterfall"""
+        self.can_plot("waterfall")
         t_start = time.time()
         # try to update plot first, as it can be quicker
         mpl_keys = copy(self.MPL_KEYS)
@@ -206,6 +213,7 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
     def plot_joint(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
         """Plot object as a joint-plot with top/side panels"""
         t_start = time.time()
+        self.can_plot("joint")
         # try to update plot first, as it can be quicker
         mpl_keys = copy(self.MPL_KEYS)
         mpl_keys.append("joint")
@@ -231,20 +239,30 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
     def update_style(self, name: str):
         """Update plot style"""
         t_start = time.time()
+
+        # heatmap-specific updates
         if name.startswith("heatmap"):
-            self.figure.plot_2d_update_heatmap_style(
-                colormap=CONFIG.currentCmap,
-                interpolation=CONFIG.interpolation,
-                array=self._data["array"],
-                cbar_kwargs=CONFIG.get_mpl_parameters("colorbar"),
-            )
-        elif name.startswith("normalization"):
-            self.figure.plot_2d_update_normalization(
-                array=self._data["array"], **CONFIG.get_mpl_parameters(["normalization"])
-            )
-        elif name.startswith("colorbar"):
-            self.figure.plot_2d_update_colorbar(**CONFIG.get_mpl_parameters(["colorbar"]))
+            if not self.is_plotted_or_plot("heatmap", self.plot, self.DATA_KEYS):
+                return
+
+            if name.endswith("normalization"):
+                self.figure.plot_2d_update_normalization(
+                    array=self._data["array"], **CONFIG.get_mpl_parameters(["normalization"])
+                )
+            elif name.endswith("colorbar"):
+                self.figure.plot_2d_update_colorbar(**CONFIG.get_mpl_parameters(["colorbar"]))
+            else:
+                self.figure.plot_2d_update_heatmap_style(
+                    colormap=CONFIG.currentCmap,
+                    interpolation=CONFIG.interpolation,
+                    array=self._data["array"],
+                    cbar_kwargs=CONFIG.get_mpl_parameters("colorbar"),
+                )
+        # waterfall-specific updates
         elif name.startswith("waterfall"):
+            if not self.is_plotted_or_plot("waterfall", self.plot_waterfall, self.DATA_KEYS):
+                return
+
             # update data - requires full redraw
             if name.endswith(".data"):
                 # get data and current state of the figure
@@ -253,7 +271,11 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
             else:
                 x, y, array = self.get_data(["x", "y", "array"])
                 self.figure.plot_waterfall_update(x, y, array, name, **CONFIG.get_mpl_parameters(["waterfall"]))
+        # violin-specific updates
         elif name.startswith("violin"):
+            if not self.is_plotted_or_plot("violin", self.plot_violin, self.DATA_KEYS):
+                return
+
             # update data - requires full redraw
             if name.endswith(".data"):
                 # get data and current state of the figure
@@ -269,8 +291,6 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
 class ViewIonHeatmap(ViewHeatmap):
     """Viewer class for extracted ions"""
 
-    NAME = get_short_hash()
-
     def __init__(self, parent, figsize, title="IonHeatmap", **kwargs):
         ViewHeatmap.__init__(self, parent, figsize, title, **kwargs)
         self._x_label = kwargs.pop("x_label", "Scans")
@@ -279,8 +299,6 @@ class ViewIonHeatmap(ViewHeatmap):
 
 class ViewImagingIonHeatmap(ViewHeatmap):
     """Viewer class for extracted ions - LESA/Imaging documents"""
-
-    NAME = get_short_hash()
 
     def __init__(self, parent, figsize, title="ImagingIonHeatmap", **kwargs):
         ViewHeatmap.__init__(self, parent, figsize, title, **kwargs)
@@ -291,7 +309,8 @@ class ViewImagingIonHeatmap(ViewHeatmap):
 class ViewMassSpectrumHeatmap(ViewHeatmap):
     """Viewer class for MS/DT heatmap"""
 
-    NAME = get_short_hash()
+    PLOT_ID = get_short_hash()
+    ALLOWED_PLOTS = ("heatmap", "contour", "joint")
 
     def __init__(self, parent, figsize, title="MassSpectrumHeatmap", **kwargs):
         ViewHeatmap.__init__(self, parent, figsize, title, **kwargs)
