@@ -818,6 +818,9 @@ class Config:
 
         self._plots_check_axes_size = True  # new in 1.3.0.0
 
+        self.zoom_color_normal = (1, 1, 1)
+        self.zoom_color_extract = (1, 0, 0)
+
         # window parameters
         self.extraParamsWindow_on_off = False
         self.extraParamsWindow = {

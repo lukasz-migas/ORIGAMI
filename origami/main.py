@@ -36,7 +36,10 @@ logging.getLogger("matplotlib").setLevel(logging.ERROR)
 
 
 class App(wx.App):
+    """Slightly modified wxApp"""
+
     def InitLocale(self):
+        """Initialize locale"""
         self.ResetLocale()
 
 
@@ -210,20 +213,6 @@ class ORIGAMI:
             thread_obj.start()
         except Exception:  # noqa
             print("Failed to execute the operation in threaded mode. Consider switching it off?")
-
-    def get2DdataFromDictionary(self, dictionary=None, dataType="plot", compact=False, plotType="2D"):  # noqa
-        """Legacy function"""
-        logger.info("This function is no longer used")
-
-    # TODO: move to data_handling module
-    def OnUpdateDocument(self, document, expand_item="document", expand_item_title=None):  # noqa
-        """Legacy function"""
-        logger.info("This function is no longer used")
-
-    # TODO: move to data_handling module
-    def onAddBlankDocument(self, evt, document_type=None):  # noqa
-        """Legacy function"""
-        logger.info("This function is no longer used")
 
 
 if __name__ == "__main__":

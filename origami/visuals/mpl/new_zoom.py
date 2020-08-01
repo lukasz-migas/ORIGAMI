@@ -192,8 +192,6 @@ class MPLInteraction:
 
         # setup some parameters
         self.plot_parameters = {} if plot_parameters is None else plot_parameters
-        self.crossover_percent = self.plot_parameters["zoom_crossover_sensitivity"]
-        self.show_cursor_cross = self.plot_parameters["grid_show"]
         self.allow_wheel = allow_wheel
         self.n_mouse_wheel_steps = 3
 
@@ -231,34 +229,14 @@ class MPLInteraction:
         self.zoomAxes = None
         self.prevZoomRect = None
 
+        self._color_normal = wx.BLACK
+        self._color_ctrl = wx.RED
+
         self.bind_plot_events(axes)
         self.set_data_limits(data_limits)
 
-        # try:
-        #     if data_limits is None:
-        #         self.data_limits = get_axes_start(self.axes)
-        #     else:
-        #         self.data_limits = data_limits
-        #     xmin, ymin, xmax, ymax = self.data_limits
-        #     if xmin > xmax:
-        #         xmin, xmax = xmax, xmin
-        #     if ymin > ymax:
-        #         ymin, ymax = ymax, ymin
-        #     # assure that x and y values are not equal
-        #     if xmin == xmax:
-        #         xmax = xmin * 1.0001
-        #     if ymin == ymax:
-        #         ymax = ymin * 1.0001
-        #     for axes in self.axes:
-        #         axes.set_xlim(xmin, xmax)
-        #         axes.set_ylim(ymin, ymax)
-        # except Exception:
-        #     for i in range(len(self.axes)):
-        #         self.axes[i].data_limits = data_limits[i]
-        #     self.prevent_sync_zoom = True
-        #     self.data_limits = None
         # listener to change plot parameters
-        pub.subscribe(self.on_update_parameters, "plot_parameters")
+        pub.subscribe(self.on_update_parameters, "zoom.parameters")
 
     @staticmethod
     def validate_input(axes, callbacks, data_limits):
@@ -286,30 +264,20 @@ class MPLInteraction:
         """Update plotting parameters"""
         self.plot_parameters = plot_parameters
 
-        self.show_cursor_cross = self.plot_parameters["grid_show"]
-        self.crossover_percent = self.plot_parameters["zoom_crossover_sensitivity"]
+        if "normal" in plot_parameters:
+            self._color_normal = wx.Colour(plot_parameters["normal"])
+        if "extract" in plot_parameters:
+            self._color_ctrl = wx.Colour(plot_parameters["extract"])
 
     def update_handler(self, data_limits=None, obj=None):
         """Update zoom parameters"""
         self.set_data_limits(data_limits)
-        # self.data_limits = data_limits if data_limits is not None else get_axes_start(self.axes)
         self.data_object = obj
 
     def update_extents(self, data_limits=None):
         """Update plot extents"""
         if data_limits is not None:
             self.set_data_limits(data_limits)
-        # self.data_limits = data_limits if data_limits is not None else get_axes_start(self.axes)
-
-    # def update_x_extents(self, x_min, x_max):
-    #     """Update x-axis extents"""
-    #     self.data_limits[0] = x_min
-    #     self.data_limits[2] = x_max
-    #
-    # def update_y_extents(self, y_min, y_max):
-    #     """Update y-axis extents"""
-    #     self.data_limits[1] = y_min
-    #     self.data_limits[3] = y_max
 
     def update_mark_state(self, state):
         """Update the state of annotation"""
@@ -333,7 +301,6 @@ class MPLInteraction:
                 self.dragged = event.artist
                 self.pick_pos = (self.dragged.get_width() / 2, self.dragged.get_height() / 2)
                 self._is_patch = True
-
         return True
 
     def bind_plot_events(self, axes):
@@ -377,8 +344,6 @@ class MPLInteraction:
         self._trigger_extraction = False
         self._button_down = False
 
-        self.show_cursor_cross = self.plot_parameters["grid_show"]
-
     def on_enter_axes(self, evt):
         """Flag that mouse has entered the axes"""
         self._last_location = [evt.xdata, evt.ydata]
@@ -396,13 +361,6 @@ class MPLInteraction:
         self._alt_key = wx.GetKeyState(wx.WXK_ALT)
         self._shift_key = wx.GetKeyState(wx.WXK_SHIFT)
         self._trigger_extraction = False
-        self.crossover_percent = self.plot_parameters["zoom_crossover_sensitivity"]
-
-        if self._ctrl_key:
-            if self.plotName in ["1D", "MS"]:
-                self.crossover_percent = self.plot_parameters["extract_crossover_sensitivity_1D"]
-            else:
-                self.crossover_percent = self.plot_parameters["extract_crossover_sensitivity_2D"]
 
         self._key_press = False
         if any((self._ctrl_key, self._shift_key, self._alt_key)):
@@ -707,17 +665,22 @@ class MPLInteraction:
         h = y1 - y0
         rect = wx.Rect(x0, y0, w, h)
 
-        rubber_band_color = "#FF00FF"  # or load from config?
-
         # Set a pen for the border
-        color = wx.Colour(rubber_band_color)
+        # color = wx.Colour(rubber_band_color)
+        color = self.get_color(evt)
         dc.SetPen(wx.Pen(color, 1))
 
         # use the same color, plus alpha for the brush
-        r, g, b, a = color.Get(True)
+        r, g, b, a = color.Get()
         color.Set(r, g, b, 0x60)
         dc.SetBrush(wx.Brush(color))
         dc.DrawRectangle(rect)
+
+    def get_color(self, evt):
+        """Get appropriate color"""
+        if self._ctrl_key:
+            return self._color_ctrl
+        return self._color_normal
 
     def _handle_joint(self, zoom_out: bool):
         """Handle joint plot
@@ -754,10 +717,6 @@ class MPLInteraction:
                 break
 
     def _zoom_out(self, evt):
-        # if self.data_limits is not None:
-        #     xmin, ymin, xmax, ymax = self.data_limits
-        #     xmin, ymin, xmax, ymax = self._check_xy_values(xmin, ymin, xmax, ymax)
-
         # Check if a zoom out is necessary
         zoomout = False
         for axes in self.axes:
@@ -956,7 +915,6 @@ class MPLInteraction:
     def on_mouse_wheel(self, evt):
         """Event on mouse-wheel"""
         #         print(dir(evt))
-        print(evt.step)
 
     #         if wx.GetKeyState(wx.WXK_ALT) or not self._is_inside_axes:
     #             return

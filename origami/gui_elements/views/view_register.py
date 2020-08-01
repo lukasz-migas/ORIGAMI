@@ -59,6 +59,8 @@ class ViewRegister:
         if view_id not in self._views:
             LOGGER.warning(f"View `{view_id}` is not in the register")
             return
+        if self.active == view_id:
+            return
         self.active = view_id
         LOGGER.debug(f"Activated `{view_id}`")
 

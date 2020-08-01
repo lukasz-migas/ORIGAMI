@@ -738,6 +738,7 @@ class PlotBase(MPLPanel):
                 pass
 
         y = y + y_offset
+        text_name = kwargs.pop("text_name", None)
         # this will offset the intensity of the label by small value
         if kwargs.pop("add_arrow_to_low_intensity", False):
             plot_limits = self.get_plot_limits()
@@ -760,7 +761,7 @@ class PlotBase(MPLPanel):
             np.array(x), y + y_offset, label, color=color, clip_on=True, zorder=zorder, picker=pickable, **kwargs
         )
         text._yposition = y - kwargs.get("labels_y_offset", CONFIG.waterfall_labels_y_offset)
-        text.obj_name = kwargs.pop("text_name", None)  # custom tag
+        text.obj_name = text_name  # custom tag
         text.y_divider = self.y_divider
         self.text.append(text)
 
