@@ -54,10 +54,10 @@ class ProcessHandler:
 
         if CONFIG.ms_process_linearize:
             mz_obj.linearize(
-                bin_size=CONFIG.ms_mzBinSize,
-                x_min=CONFIG.ms_mzStart,
-                x_max=CONFIG.ms_mzEnd,
-                linearize_method=CONFIG.ms_linearization_mode,
+                bin_size=CONFIG.ms_linearize_mz_bin_size,
+                x_min=CONFIG.ms_linearize_mz_start,
+                x_max=CONFIG.ms_linearize_mz_end,
+                linearize_method=CONFIG.ms_linearize_method,
             )
 
         if CONFIG.ms_process_smooth:
@@ -71,8 +71,8 @@ class ProcessHandler:
 
         if CONFIG.ms_process_threshold:
             mz_obj.baseline(
-                baseline_method=CONFIG.ms_baseline,
-                threshold=CONFIG.ms_threshold,
+                baseline_method=CONFIG.ms_baseline_method,
+                threshold=CONFIG.ms_baseline_linear_threshold,
                 curved_window=CONFIG.ms_baseline_curved_window,
                 median_window=CONFIG.ms_baseline_median_window,
                 tophat_window=CONFIG.ms_baseline_tophat_window,
@@ -100,35 +100,35 @@ class ProcessHandler:
         if not isinstance(heatmap_obj, HeatmapObject):
             raise ValueError("This function takes `HeatmapObject` as an argument")
 
-        if CONFIG.plot2D_process_interpolate:
+        if CONFIG.heatmap_process_interpolate:
             heatmap_obj.linearize(
-                fold=CONFIG.plot2D_interpolate_fold,
-                linearize_method=CONFIG.plot2D_interpolate_mode,
-                x_axis=CONFIG.plot2D_interpolate_xaxis,
-                y_axis=CONFIG.plot2D_interpolate_yaxis,
+                fold=CONFIG.heatmap_interpolate_fold,
+                linearize_method=CONFIG.heatmap_interpolate_mode,
+                x_axis=CONFIG.heatmap_interpolate_xaxis,
+                y_axis=CONFIG.heatmap_interpolate_yaxis,
             )
 
-        if CONFIG.plot2D_process_crop:
+        if CONFIG.heatmap_process_crop:
             heatmap_obj.crop(
-                x_min=CONFIG.plot2D_crop_xmin,
-                x_max=CONFIG.plot2D_crop_xmax,
-                y_min=CONFIG.plot2D_crop_ymin,
-                y_max=CONFIG.plot2D_crop_ymax,
+                x_min=CONFIG.heatmap_crop_xmin,
+                x_max=CONFIG.heatmap_crop_xmax,
+                y_min=CONFIG.heatmap_crop_ymin,
+                y_max=CONFIG.heatmap_crop_ymax,
             )
 
-        if CONFIG.plot2D_process_smooth:
+        if CONFIG.heatmap_process_smooth:
             heatmap_obj.smooth(
                 smooth_method=CONFIG.ms_smooth_mode,
-                sigma=CONFIG.plot2D_smooth_sigma,
-                poly_order=CONFIG.plot2D_smooth_polynomial,
-                window_size=CONFIG.plot2D_smooth_window,
+                sigma=CONFIG.heatmap_smooth_sigma,
+                poly_order=CONFIG.heatmap_smooth_polynomial,
+                window_size=CONFIG.heatmap_smooth_window,
             )
 
-        if CONFIG.plot2D_process_threshold:
-            heatmap_obj.baseline(threshold=CONFIG.plot2D_threshold)
+        if CONFIG.heatmap_process_threshold:
+            heatmap_obj.baseline(threshold=CONFIG.heatmap_threshold)
 
-        if CONFIG.plot2D_normalize:
-            heatmap_obj.normalize(normalize_method=CONFIG.plot2D_normalize_mode)
+        if CONFIG.heatmap_normalize:
+            heatmap_obj.normalize(normalize_method=CONFIG.heatmap_normalize_mode)
 
         return heatmap_obj
 

@@ -23,7 +23,7 @@ class TestDialogAskOverride(WidgetTestCase):
         dlg.Destroy()
         self.yield_()
 
-        assert dlg.action == CONFIG.import_duplicate_action == "override"
+        assert dlg.action == CONFIG.import_duplicate_panel_action == "override"
 
     def test_dialog_merge(self):
 
@@ -34,7 +34,7 @@ class TestDialogAskOverride(WidgetTestCase):
         dlg.Destroy()
         self.yield_()
 
-        assert dlg.action == CONFIG.import_duplicate_action == "merge"
+        assert dlg.action == CONFIG.import_duplicate_panel_action == "merge"
 
     def test_dialog_copy(self):
 
@@ -45,7 +45,7 @@ class TestDialogAskOverride(WidgetTestCase):
         dlg.Destroy()
         self.yield_()
 
-        assert dlg.action == CONFIG.import_duplicate_action == "duplicate"
+        assert dlg.action == CONFIG.import_duplicate_panel_action == "duplicate"
 
     def test_dialog_cancel(self):
 
@@ -57,4 +57,4 @@ class TestDialogAskOverride(WidgetTestCase):
         self.yield_()
 
         assert dlg.action is None
-        assert CONFIG.import_duplicate_action is None
+        assert CONFIG.import_duplicate_panel_action is None

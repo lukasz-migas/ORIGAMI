@@ -49,8 +49,8 @@ class PanelHTMLViewer(wx.MiniFrame):
 
         # get current working directory and temporarily change path
         cwd = os.getcwd()
-        if CONFIG.cwd:
-            os.chdir(CONFIG.cwd)
+        if CONFIG.APP_CWD:
+            os.chdir(CONFIG.APP_CWD)
 
         msg, self._home_link = self.get_text(msg, html_msg, md_msg, link)
 

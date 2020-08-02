@@ -240,15 +240,15 @@ class PlotBase(MPLPanel):
         self.plot_remove_legend()
         if kwargs.get("legend", CONFIG.legend):
             legend = self.plot_base.legend(
-                loc=kwargs.get("legend_position", CONFIG.legendPosition),
-                ncol=kwargs.get("legend_num_columns", CONFIG.legendColumns),
-                fontsize=kwargs.get("legend_font_size", CONFIG.legendFontSize),
-                frameon=kwargs.get("legend_frame_on", CONFIG.legendFrame),
-                framealpha=kwargs.get("legend_transparency", CONFIG.legendAlpha),
-                markerfirst=kwargs.get("legend_marker_first", CONFIG.legendMarkerFirst),
-                markerscale=kwargs.get("legend_marker_size", CONFIG.legendMarkerSize),
-                fancybox=kwargs.get("legend_fancy_box", CONFIG.legendFancyBox),
-                scatterpoints=kwargs.get("legend_num_markers", CONFIG.legendNumberMarkers),
+                loc=kwargs.get("legend_position", CONFIG.legend_position),
+                ncol=kwargs.get("legend_num_columns", CONFIG.legend_columns),
+                fontsize=kwargs.get("legend_font_size", CONFIG.legend_font_size),
+                frameon=kwargs.get("legend_frame_on", CONFIG.legend_frame),
+                framealpha=kwargs.get("legend_transparency", CONFIG.legend_transparency),
+                markerfirst=kwargs.get("legend_marker_first", CONFIG.legend_marker_first),
+                markerscale=kwargs.get("legend_marker_size", CONFIG.legend_marker_size),
+                fancybox=kwargs.get("legend_fancy_box", CONFIG.legend_fancy_box),
+                scatterpoints=kwargs.get("legend_num_markers", CONFIG.legend_n_markers),
                 handles=handles,
             )
             if "legend_zorder" in kwargs:

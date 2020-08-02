@@ -1487,7 +1487,7 @@ class DocumentTree(wx.TreeCtrl):
     def on_update_ui(self, value, evt):
         """Update UI element(s)"""
         if value == "menu.load.override":
-            self.config.import_duplicate_ask = not self.config.import_duplicate_ask
+            self.config.import_duplicate_panel_ask = not self.config.import_duplicate_panel_ask
 
     def _get_menu_heatmap_label(self):
         # Change x-axis label (2D)
@@ -1600,7 +1600,7 @@ class DocumentTree(wx.TreeCtrl):
         menu_action_load_other = load_data_menu.Append(wx.ID_ANY, "Import data with metadata...")
         load_data_menu.AppendSeparator()
         menu_action_load_check_existing = load_data_menu.AppendCheckItem(wx.ID_ANY, "Don't check if file exists")
-        menu_action_load_check_existing.Check(self.config.import_duplicate_ask)
+        menu_action_load_check_existing.Check(self.config.import_duplicate_panel_ask)
 
         # bind events
         self.Bind(wx.EVT_MENU, partial(self.data_handling.on_load_custom_data, "mass_spectra"), menu_action_load_ms)

@@ -6,7 +6,6 @@ import logging
 import wx
 
 # Local imports
-from origami.styles import make_checkbox
 from origami.styles import set_item_font
 from origami.config.config import CONFIG
 from origami.utils.converters import str2int
@@ -20,7 +19,7 @@ class Panel2dSettings(PanelSettingsBase):
     """Violin settings"""
 
     plot2d_colormap_value, plot2d_n_contour_value = None, None
-    plot2d_override_colormap_check, plot2d_plot_type_value, plot2d_interpolation_value = None, None, None
+    plot2d_plot_type_value, plot2d_interpolation_value = None, None
     plot2d_normalization_value, plot2d_min_value, plot2d_mid_value = None, None, None
     plot2d_max_value, plot2d_normalization_gamma_value = None, None
 
@@ -31,18 +30,18 @@ class Panel2dSettings(PanelSettingsBase):
         """Make 2d plot panel"""
         plot2d_plot_type = wx.StaticText(self, -1, "Plot type:")
         self.plot2d_plot_type_value = wx.Choice(
-            self, -1, choices=CONFIG.imageType2D, size=(-1, -1), name="2d.heatmap.view_type"
+            self, -1, choices=CONFIG.heatmap_plot_type_choices, size=(-1, -1), name="2d.heatmap.view_type"
         )
-        self.plot2d_plot_type_value.SetStringSelection(CONFIG.plotType)
+        self.plot2d_plot_type_value.SetStringSelection(CONFIG.heatmap_plot_type)
         self.plot2d_plot_type_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.plot2d_plot_type_value.Bind(wx.EVT_CHOICE, self.on_plot)
         self.plot2d_plot_type_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
 
         plot2d_interpolation = wx.StaticText(self, -1, "Interpolation:")
         self.plot2d_interpolation_value = wx.Choice(
-            self, -1, choices=CONFIG.comboInterpSelectChoices, size=(-1, -1), name="2d.heatmap.heatmap"
+            self, -1, choices=CONFIG.heatmap_interpolation_choices, size=(-1, -1), name="2d.heatmap.heatmap"
         )
-        self.plot2d_interpolation_value.SetStringSelection(CONFIG.interpolation)
+        self.plot2d_interpolation_value.SetStringSelection(CONFIG.heatmap_interpolation)
         self.plot2d_interpolation_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.plot2d_interpolation_value.Bind(wx.EVT_CHOICE, self.on_update)
 
@@ -63,27 +62,17 @@ class Panel2dSettings(PanelSettingsBase):
 
         plot2d_colormap = wx.StaticText(self, -1, "Colormap:")
         self.plot2d_colormap_value = wx.Choice(
-            self, -1, choices=CONFIG.cmaps2, size=(-1, -1), name="2d.heatmap.heatmap"
+            self, -1, choices=CONFIG.colormap_choices, size=(-1, -1), name="2d.heatmap.heatmap"
         )
-        self.plot2d_colormap_value.SetStringSelection(CONFIG.currentCmap)
+        self.plot2d_colormap_value.SetStringSelection(CONFIG.heatmap_colormap)
         self.plot2d_colormap_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.plot2d_colormap_value.Bind(wx.EVT_CHOICE, self.on_update)
 
-        self.plot2d_override_colormap_check = make_checkbox(self, "Always use global colormap")
-        self.plot2d_override_colormap_check.SetValue(CONFIG.useCurrentCmap)
-        self.plot2d_override_colormap_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.plot2d_override_colormap_check.Bind(wx.EVT_CHOICE, self.on_update)
-        self.plot2d_override_colormap_check.Disable()
-
         plot2d_normalization = wx.StaticText(self, -1, "Normalization:")
         self.plot2d_normalization_value = wx.Choice(
-            self,
-            -1,
-            choices=["MinMax", "Midpoint", "Logarithmic", "Power"],
-            size=(-1, -1),
-            name="2d.heatmap.normalization",
+            self, -1, choices=CONFIG.heatmap_normalization_choices, size=(-1, -1), name="2d.heatmap.normalization"
         )
-        self.plot2d_normalization_value.SetStringSelection(CONFIG.normalization_2D)
+        self.plot2d_normalization_value.SetStringSelection(CONFIG.heatmap_normalization)
         self.plot2d_normalization_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.plot2d_normalization_value.Bind(wx.EVT_CHOICE, self.on_update)
         self.plot2d_normalization_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
@@ -92,7 +81,7 @@ class Panel2dSettings(PanelSettingsBase):
         self.plot2d_min_value = wx.SpinCtrlDouble(
             self,
             -1,
-            value=str(CONFIG.minCmap),
+            value=str(CONFIG.heatmap_normalization_min),
             min=0,
             max=100,
             initial=0,
@@ -107,7 +96,7 @@ class Panel2dSettings(PanelSettingsBase):
         self.plot2d_mid_value = wx.SpinCtrlDouble(
             self,
             -1,
-            value=str(CONFIG.midCmap),
+            value=str(CONFIG.heatmap_normalization_mid),
             min=0,
             max=100,
             initial=0,
@@ -122,7 +111,7 @@ class Panel2dSettings(PanelSettingsBase):
         self.plot2d_max_value = wx.SpinCtrlDouble(
             self,
             -1,
-            value=str(CONFIG.maxCmap),
+            value=str(CONFIG.heatmap_normalization_max),
             min=0,
             max=100,
             initial=0,
@@ -137,7 +126,7 @@ class Panel2dSettings(PanelSettingsBase):
         self.plot2d_normalization_gamma_value = wx.SpinCtrlDouble(
             self,
             -1,
-            value=str(CONFIG.normalization_2D_power_gamma),
+            value=str(CONFIG.heatmap_normalization_power_gamma),
             min=0,
             max=3,
             initial=0,
@@ -173,8 +162,6 @@ class Panel2dSettings(PanelSettingsBase):
         n += 1
         grid.Add(plot2d_colormap, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.plot2d_colormap_value, (n, 1), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        n += 1
-        grid.Add(self.plot2d_override_colormap_check, (n, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
 
         # normalization controls
         n += 1
@@ -213,15 +200,14 @@ class Panel2dSettings(PanelSettingsBase):
         """Update 2d parameters"""
         if self.import_evt:
             return
-        CONFIG.normalization_2D = self.plot2d_normalization_value.GetStringSelection()
-        CONFIG.currentCmap = self.plot2d_colormap_value.GetStringSelection()
-        CONFIG.useCurrentCmap = self.plot2d_override_colormap_check.GetValue()
-        CONFIG.plotType = self.plot2d_plot_type_value.GetStringSelection()
-        CONFIG.interpolation = self.plot2d_interpolation_value.GetStringSelection()
-        CONFIG.minCmap = str2num(self.plot2d_min_value.GetValue())
-        CONFIG.midCmap = str2num(self.plot2d_mid_value.GetValue())
-        CONFIG.maxCmap = str2num(self.plot2d_max_value.GetValue())
-        CONFIG.normalization_2D_power_gamma = str2num(self.plot2d_normalization_gamma_value.GetValue())
+        CONFIG.heatmap_normalization = self.plot2d_normalization_value.GetStringSelection()
+        CONFIG.heatmap_colormap = self.plot2d_colormap_value.GetStringSelection()
+        CONFIG.heatmap_plot_type = self.plot2d_plot_type_value.GetStringSelection()
+        CONFIG.heatmap_interpolation = self.plot2d_interpolation_value.GetStringSelection()
+        CONFIG.heatmap_normalization_min = str2num(self.plot2d_min_value.GetValue())
+        CONFIG.heatmap_normalization_mid = str2num(self.plot2d_mid_value.GetValue())
+        CONFIG.heatmap_normalization_max = str2num(self.plot2d_max_value.GetValue())
+        CONFIG.heatmap_normalization_power_gamma = str2num(self.plot2d_normalization_gamma_value.GetValue())
         CONFIG.heatmap_n_contour = str2int(self.plot2d_n_contour_value.GetValue())
 
         # fire events
@@ -232,20 +218,20 @@ class Panel2dSettings(PanelSettingsBase):
 
     def on_toggle_controls(self, evt):
         """Update heatmap controls"""
-        CONFIG.normalization_2D = self.plot2d_normalization_value.GetStringSelection()
-        if CONFIG.normalization_2D == "Midpoint":
-            self.plot2d_mid_value.Enable(True)
+        CONFIG.heatmap_normalization = self.plot2d_normalization_value.GetStringSelection()
+        if CONFIG.heatmap_normalization == "Midpoint":
+            self.plot2d_mid_value.Enable()
             self.plot2d_normalization_gamma_value.Enable(False)
         else:
-            if CONFIG.normalization_2D == "Power":
-                self.plot2d_normalization_gamma_value.Enable(True)
+            if CONFIG.heatmap_normalization == "Power":
+                self.plot2d_normalization_gamma_value.Enable()
             else:
                 self.plot2d_normalization_gamma_value.Enable(False)
             self.plot2d_mid_value.Enable(False)
 
-        CONFIG.plotType = self.plot2d_plot_type_value.GetStringSelection()
-        self.plot2d_interpolation_value.Enable(CONFIG.plotType == "Image")
-        self.plot2d_n_contour_value.Enable(CONFIG.plotType == "Contour")
+        CONFIG.heatmap_plot_type = self.plot2d_plot_type_value.GetStringSelection()
+        self.plot2d_interpolation_value.Enable(CONFIG.heatmap_plot_type == "Image")
+        self.plot2d_n_contour_value.Enable(CONFIG.heatmap_plot_type == "Contour")
 
         self._parse_evt(evt)
 

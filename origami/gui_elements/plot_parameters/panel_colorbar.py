@@ -46,7 +46,7 @@ class PanelColorbarSettings(PanelSettingsBase):
         self.colorbar_position_value = wx.Choice(
             self, -1, choices=CONFIG.colorbar_position_choices, size=(-1, -1), name="2d.heatmap.colorbar"
         )
-        self.colorbar_position_value.SetStringSelection(CONFIG.colorbarPosition)
+        self.colorbar_position_value.SetStringSelection(CONFIG.colorbar_position)
         self.colorbar_position_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.colorbar_position_value.Bind(wx.EVT_CHOICE, self.on_update)
         self.colorbar_position_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
@@ -55,7 +55,7 @@ class PanelColorbarSettings(PanelSettingsBase):
         self.colorbar_pad_value = wx.SpinCtrlDouble(
             self,
             -1,
-            value=str(CONFIG.colorbarPad),
+            value=str(CONFIG.colorbar_pad),
             min=0.0,
             max=2,
             initial=0,
@@ -70,7 +70,7 @@ class PanelColorbarSettings(PanelSettingsBase):
         self.colorbar_width_value = wx.SpinCtrlDouble(
             self,
             -1,
-            value=str(CONFIG.colorbarWidth),
+            value=str(CONFIG.colorbar_width),
             min=0.0,
             max=100,
             initial=0,
@@ -100,7 +100,7 @@ class PanelColorbarSettings(PanelSettingsBase):
         self.colorbar_fontsize_value = wx.SpinCtrlDouble(
             self,
             -1,
-            value=str(CONFIG.colorbarLabelSize),
+            value=str(CONFIG.colorbar_label_size),
             min=0,
             max=32,
             initial=0,
@@ -183,10 +183,10 @@ class PanelColorbarSettings(PanelSettingsBase):
     def on_apply(self, evt):
         """Apply colorbar parameters"""
         CONFIG.colorbar = self.colorbar_tgl.GetValue()
-        CONFIG.colorbarPosition = self.colorbar_position_value.GetStringSelection()
-        CONFIG.colorbarWidth = str2num(self.colorbar_width_value.GetValue())
-        CONFIG.colorbarPad = str2num(self.colorbar_pad_value.GetValue())
-        CONFIG.colorbarLabelSize = str2num(self.colorbar_fontsize_value.GetValue())
+        CONFIG.colorbar_position = self.colorbar_position_value.GetStringSelection()
+        CONFIG.colorbar_width = str2num(self.colorbar_width_value.GetValue())
+        CONFIG.colorbar_pad = str2num(self.colorbar_pad_value.GetValue())
+        CONFIG.colorbar_label_size = str2num(self.colorbar_fontsize_value.GetValue())
         CONFIG.colorbar_fmt = self.colorbar_label_format.GetStringSelection()
         CONFIG.colorbar_edge_width = str2num(self.colorbar_outline_width_value.GetValue())
         CONFIG.colorbar_inset_width = str2num(self.colorbar_width_inset_value.GetValue())
@@ -218,8 +218,8 @@ class PanelColorbarSettings(PanelSettingsBase):
         self.colorbar_tgl.SetForegroundColour(wx.WHITE)
         self.colorbar_tgl.SetBackgroundColour(wx.BLUE if CONFIG.colorbar else wx.RED)
 
-        CONFIG.colorbarPosition = self.colorbar_position_value.GetStringSelection()
-        is_inside = CONFIG.colorbarPosition.startswith("inside")
+        CONFIG.colorbar_position = self.colorbar_position_value.GetStringSelection()
+        is_inside = CONFIG.colorbar_position.startswith("inside")
         self.colorbar_width_inset_value.Enable(CONFIG.colorbar and is_inside)
         self.colorbar_pad_value.Enable(CONFIG.colorbar and not is_inside)
 

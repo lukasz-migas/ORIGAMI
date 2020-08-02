@@ -683,7 +683,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         dlg.Destroy()
 
         self.view.on_toggle_panel(evt="text", check=True)
-        if not self.config.threading:
+        if not self.config.APP_ENABLE_THREADING:
             for filename, filepath in zip(file_list, path_list):
                 self.on_add_text_2d(self.on_load_text_2d(filename, filepath, x_label, y_label))
         else:
@@ -711,14 +711,14 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         heatmap_obj = self.load_text_heatmap_data(filepath)
 
         xlabel_start, xlabel_end = heatmap_obj.x[0], heatmap_obj.x[-1]
-        color = self.text_panel.on_get_unique_color(next(self.config.custom_color_cycle))
+        color = self.text_panel.on_get_unique_color(next(self.config.custom_colors_cycle))
 
         # update heatmap object and its metadata
         heatmap_obj.x_label = x_label
         heatmap_obj.y_label = y_label
         heatmap_obj.set_metadata(
             {
-                "cmap": self.config.currentCmap,
+                "cmap": self.config.heatmap_colormap,
                 "mask": self.config.overlay_defaultMask,
                 "alpha": self.config.overlay_defaultAlpha,
                 "min_threshold": 0,
@@ -770,7 +770,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             path_list = dlg.GetPaths()
         dlg.Destroy()
 
-        if not self.config.threading:
+        if not self.config.APP_ENABLE_THREADING:
             for filepath in path_list:
                 self.on_setup_basic_document(self.on_add_text_ms(filepath))
         else:
@@ -799,7 +799,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             paths = dlg.GetPaths()
         dlg.Destroy()
 
-        if not self.config.threading:
+        if not self.config.APP_ENABLE_THREADING:
             for path in paths:
                 self.on_setup_basic_document(self.load_thermo_ms_document(path))
         else:
@@ -819,7 +819,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         if dlg.ShowModal() == wx.ID_OK:
             paths = dlg.GetPaths()
 
-        if not self.config.threading:
+        if not self.config.APP_ENABLE_THREADING:
             for path in paths:
                 self.on_show_tandem_scan(self.on_open_mgf_file(path))
         else:
@@ -850,7 +850,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             paths = dlg.GetPaths()
         dlg.Destroy()
 
-        if not self.config.threading:
+        if not self.config.APP_ENABLE_THREADING:
             for path in paths:
                 self.on_show_tandem_scan(self.on_open_mzml_file(path))
         else:
@@ -875,7 +875,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             logger.warning("Could not load file")
             return
 
-        if not self.config.threading:
+        if not self.config.APP_ENABLE_THREADING:
             self.on_setup_basic_document(self.load_waters_ms_document(path))
         else:
             self.add_task(self.load_waters_ms_document, (path,), func_result=self.on_setup_basic_document)
@@ -896,12 +896,12 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             if dlg == wx.ID_NO:
                 logger.info("Delete operation was cancelled")
                 return
-            if not self.config.threading:
+            if not self.config.APP_ENABLE_THREADING:
                 self.on_setup_basic_document(self.load_waters_ms_document(path))
             else:
                 self.add_task(self.load_waters_ms_document, (path,), func_result=self.on_setup_basic_document)
         else:
-            if not self.config.threading:
+            if not self.config.APP_ENABLE_THREADING:
                 self.on_setup_basic_document(self.load_waters_im_document(path))
             else:
                 self.add_task(self.load_waters_im_document, (path,), func_result=self.on_setup_basic_document)
@@ -1108,13 +1108,13 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     #         return mz_start, mz_end, rt_start, rt_end, dt_start, dt_end
 
     def on_export_config_fcn(self, evt, verbose=True):
-        cwd = self.config.cwd
+        cwd = self.config.APP_CWD
         if cwd is None:
             return
 
         save_dir = os.path.join(cwd, "configOut.xml")
 
-        if self.config.threading:
+        if self.config.APP_ENABLE_THREADING:
             self.on_threading(action="export.config", args=(save_dir, verbose))
         else:
             try:
@@ -1134,7 +1134,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         if dlg.ShowModal() == wx.ID_OK:
             save_dir = dlg.GetPath()
 
-            if self.config.threading:
+            if self.config.APP_ENABLE_THREADING:
                 self.on_threading(action="export.config", args=(save_dir, verbose))
             else:
                 try:
@@ -1150,9 +1150,9 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             logger.error(err)
 
     def on_import_config_fcn(self, evt):
-        config_path = os.path.join(self.config.cwd, "configOut.xml")
+        config_path = os.path.join(self.config.APP_CWD, "configOut.xml")
 
-        if self.config.threading:
+        if self.config.APP_ENABLE_THREADING:
             self.on_threading(action="import.config", args=(config_path,))
         else:
             self.on_import_config(config_path)
@@ -1167,7 +1167,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         if dlg.ShowModal() == wx.ID_OK:
             config_path = dlg.GetPath()
 
-            if self.config.threading:
+            if self.config.APP_ENABLE_THREADING:
                 self.on_threading(action="import.config", args=(config_path,))
             else:
                 self.on_import_config(config_path)
@@ -1230,7 +1230,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
     def on_extract_data_from_user_input_fcn(self, document_title=None, **kwargs):
 
-        if not self.config.threading:
+        if not self.config.APP_ENABLE_THREADING:
             self.on_extract_data_from_user_input(document_title, **kwargs)
         else:
             self.on_threading(action="extract.data.user", args=(document_title,), kwargs=kwargs)
@@ -1612,7 +1612,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
     def on_add_mzident_file_fcn(self, evt):
         """Load tandem annotation data in mzIdent format"""
-        if not self.config.threading:
+        if not self.config.APP_ENABLE_THREADING:
             self.on_add_mzident_file(evt)
         else:
             self.on_threading(action="load.add.mzidentml", args=(evt,))
@@ -1675,32 +1675,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             self.on_update_document(document, "document")
             logger.info(f"It took {time.time()-t_start:.4f} seconds to annotate {document.title}")
 
-    def extract_from_plot_1D_RT_DT(self, xmin, xmax, document):
-        document_title = document.title
-
-        self.view.window_mgr.GetPane(self.view.panelLinearDT).Show()
-        self.view.window_mgr.Update()
-        xmin = np.ceil(xmin).astype(int)
-        xmax = np.floor(xmax).astype(int)
-
-        # Check if value already present
-        if self.view.panelLinearDT.topP.onCheckForDuplicates(rtStart=str(xmin), rtEnd=str(xmax)):
-            return
-
-        peak_width = xmax - xmin.astype(int)
-        self.view.panelLinearDT.topP.peaklist.Append([xmin, xmax, peak_width, "", document_title])
-
-        self.panel_plot.on_add_patch(
-            xmin,
-            0,
-            (xmax - xmin),
-            100000000000,
-            color=self.config.annotColor,
-            alpha=(self.config.annotTransparency / 100),
-            repaint=True,
-            plot="RT",
-        )
-
     def on_open_multiple_MassLynx_raw_fcn(self, evt):
 
         self._on_check_last_path()
@@ -1717,7 +1691,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
                     msg = "The path ({}) you've selected does not end with .raw"
                     raise MessageError("Please load MassLynx (.raw) file", msg)
 
-                if not self.config.threading:
+                if not self.config.APP_ENABLE_THREADING:
                     self.on_open_single_MassLynx_raw(path, data_type)
                 else:
                     self.on_threading(action="load.raw.masslynx", args=(path, data_type))
@@ -1728,7 +1702,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         """
         evt = extract_type if evt is None else "all"
 
-        if not self.config.threading:
+        if not self.config.APP_ENABLE_THREADING:
             self.on_extract_2D_from_mass_range(evt)
         else:
             args = (evt,)
@@ -1832,7 +1806,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         if not document:
             raise ValueError("Please create new document or select one from the list")
 
-        if not self.config.threading:
+        if not self.config.APP_ENABLE_THREADING:
             self.on_setup_basic_document(self.load_manual_document(document.path, filelist, **kwargs))
         else:
             self.add_task(
@@ -1853,7 +1827,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         if not document:
             raise ValueError("Please create new document or select one from the list")
 
-        if not self.config.threading:
+        if not self.config.APP_ENABLE_THREADING:
             self.on_setup_basic_document(self.load_lesa_document(document.path, filelist, **kwargs))
         else:
             self.add_task(
@@ -2957,7 +2931,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
                 "dataset_type": dataset_type,
                 "document_title": document_title,
                 "shape": data["zvals"].shape,
-                "cmap": data.get("cmap", self.config.currentCmap),
+                "cmap": data.get("cmap", self.config.heatmap_colormap),
                 "label": data.get("label", ""),
                 "mask": data.get("mask", self.config.overlay_defaultMask),
                 "alpha": data.get("alpha", self.config.overlay_defaultAlpha),
@@ -2989,7 +2963,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
                 "dataset_type": dataset_type,
                 "document_title": document_title,
                 "shape": data["zvals"].shape,
-                "cmap": data.get("cmap", self.config.currentCmap),
+                "cmap": data.get("cmap", self.config.heatmap_colormap),
                 "label": data.get("label", ""),
                 "mask": data.get("mask", self.config.overlay_defaultMask),
                 "alpha": data.get("alpha", self.config.overlay_defaultAlpha),
@@ -3104,19 +3078,19 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
         def check_previous_data(dataset, _filename, _data):
             if _filename in dataset:
-                if not self.config.import_duplicate_ask:
+                if not self.config.import_duplicate_panel_ask:
                     dlg_ask = DialogAskOverride(
                         self.view,
                         self.config,
                         f"{_filename} already exists in the document. What would you like to do about it?",
                     )
                     dlg_ask.ShowModal()
-                if self.config.import_duplicate_action == "merge":
+                if self.config.import_duplicate_panel_action == "merge":
                     logger.info("Existing data will be merged with the new dataset...")
                     # retrieve and merge
                     old_data = dataset[_filename]
                     _data = merge_two_dicts(old_data, _data)
-                elif self.config.import_duplicate_action == "duplicate":
+                elif self.config.import_duplicate_panel_action == "duplicate":
                     logger.info("A new dataset with new name will be created...")
                     _filename = f"{_filename} (2)"
             return _filename, _data
@@ -3192,7 +3166,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
                 elif dataset_type == "heatmaps":
                     zvals, xvals, yvals, dt_y, rt_y = self.load_text_heatmap_data(path)
-                    color = convert_rgb_255_to_1(self.config.customColors[get_random_int(0, 15)])
+                    color = convert_rgb_255_to_1(self.config.custom_colors[get_random_int(0, 15)])
                     document.gotExtractedIons = True
                     data = {
                         "zvals": zvals,
@@ -3202,7 +3176,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
                         "ylabels": "Drift time (bins)",
                         "yvals1D": dt_y,
                         "yvalsRT": rt_y,
-                        "cmap": self.config.currentCmap,
+                        "cmap": self.config.heatmap_colormap,
                         "mask": self.config.overlay_defaultMask,
                         "alpha": self.config.overlay_defaultAlpha,
                         "min_threshold": 0,
@@ -3236,7 +3210,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
                     data = {
                         "plot_type": "matrix",
                         "zvals": zvals,
-                        "cmap": self.config.currentCmap,
+                        "cmap": self.config.heatmap_colormap,
                         "matrixLabels": labels,
                         "path": filename,
                         "plot_modifiers": {},

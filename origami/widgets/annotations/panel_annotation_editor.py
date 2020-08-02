@@ -3,15 +3,12 @@
 import time
 import logging
 from enum import IntEnum
-from typing import Dict
 from typing import Union
-from typing import Optional
 from builtins import isinstance
 
 # Third-party imports
 import wx
 import numpy as np
-import wx.lib.scrolledpanel as wxScrolledPanel
 from pubsub import pub
 
 # Local imports
@@ -129,7 +126,7 @@ class PopupAnnotationSettings(PopupBase):
             evt.Skip()
 
 
-class PanelAnnotationEditorUI(MiniFrame, TableMixin, DatasetMixin):
+class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin):
     """UI component of the Annotation Editor"""
 
     TABLE_DICT = {
@@ -251,12 +248,29 @@ class PanelAnnotationEditorUI(MiniFrame, TableMixin, DatasetMixin):
     _plot_types_misc = ["annotated"]
     PLOT_TYPES = _plot_types_1d + _plot_types_2d + _plot_types_misc
 
-    def __init__(self, parent, icons, plot_type):
+    _data_obj = None
+    _annotations = None
+
+    def __init__(
+        self,
+        presenter,
+        parent,
+        icons,
+        plot_type,
+        document_title: str = None,
+        dataset_name: str = None,
+        data_obj: DataObject = None,
+    ):
         MiniFrame.__init__(self, parent, title="Annotations...", style=wx.DEFAULT_FRAME_STYLE & ~wx.MAXIMIZE_BOX)
         TableMixin.__init__(self)
+        self.presenter = presenter
         self.parent = parent
         self._icons = icons
         self.plot_type = plot_type
+
+        # hard code few parameters
+        # CONFIG.annotation_patch_transparency = 0.2
+        # CONFIG.annotation_patch_width = 3
 
         # presets
         self._menu_show_all = True
@@ -278,13 +292,73 @@ class PanelAnnotationEditorUI(MiniFrame, TableMixin, DatasetMixin):
         self.sanity_check()
         self.make_gui()
 
-    def on_update_document(self, item_id: Optional[int] = None, item_info: Optional[Dict] = None):
-        """Update document"""
-        pass
+        # initialize correct view
+        self.setup()
 
-    def on_menu_item_right_click(self, evt):
-        """On right-click menu"""
-        pass
+        # data
+        self.document_title = document_title
+        self.dataset_name = dataset_name
+        if data_obj:
+            self.data_obj = data_obj
+            self.annotations = self.data_obj.get_annotations()
+
+        # setup
+        if self.data_obj:
+            wx.CallAfter(self.on_setup_plot_on_startup)
+
+    @property
+    def data_obj(self) -> DataObject:
+        """Return `DataObject`"""
+        return self._data_obj
+
+    @data_obj.setter
+    def data_obj(self, value: DataObject):
+        """Set `mz_obj_cache`"""
+        if not isinstance(value, DataObject):
+            raise ValueError("Incorrect data-type was being set to the `data_obj` attribute")
+        self._data_obj = value
+
+    @property
+    def annotations(self):
+        """Return annotations object"""
+        return self._annotations
+
+    @annotations.setter
+    def annotations(self, value: Annotations):
+        """Set `mz_obj_cache`"""
+        if not isinstance(value, Annotations):
+            raise ValueError("Incorrect data-type was being set to the `annotations` attribute")
+        self._annotations = value
+
+    @property
+    def data_handling(self):
+        """Return handle to `data_handling`"""
+        return self.presenter.data_handling
+
+    @property
+    def document_tree(self):
+        """Return handle to `document_tree`"""
+        return self.presenter.view.panelDocuments.documents
+
+    @property
+    def panel_plot(self):
+        """Return handle to `panel_plot`"""
+        return self.presenter.view.panelPlots
+
+    def on_popup(self, evt):
+        """Show popup window"""
+
+        popup = PopupAnnotationSettings(self)
+        popup.position_on_event(evt)
+        popup.Show()
+
+    def setup(self):
+        """Setup UI"""
+        self.update_title()
+        self.on_populate_table()
+        self.on_toggle_controls(None)
+        self.bind_events()
+        self._dataset_mixin_setup()
 
     def sanity_check(self):
         """Perform self-check"""
@@ -301,7 +375,7 @@ class PanelAnnotationEditorUI(MiniFrame, TableMixin, DatasetMixin):
         plot_panel = self.make_plot_panel(self)
 
         # pack elements
-        self.main_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.main_sizer = wx.BoxSizer()
         self.main_sizer.Add(settings_panel, 0, wx.EXPAND, 0)
         self.main_sizer.Add(plot_panel, 1, wx.EXPAND, 0)
 
@@ -309,8 +383,10 @@ class PanelAnnotationEditorUI(MiniFrame, TableMixin, DatasetMixin):
         self.main_sizer.Fit(self)
         self.SetSizer(self.main_sizer)
         self.SetSize(self._window_size)
+
+        # show
         self.Layout()
-        self.Show(True)
+        self.Show()
         self.CentreOnScreen()
         self.SetFocus()
 
@@ -352,7 +428,7 @@ class PanelAnnotationEditorUI(MiniFrame, TableMixin, DatasetMixin):
     # noinspection DuplicatedCode
     def make_settings_panel(self, split_panel):
         """Make settings panel"""
-        panel = wxScrolledPanel.ScrolledPanel(split_panel, -1, size=(-1, -1), name="main")
+        panel = wx.Panel(split_panel)
 
         # statusbar
         statusbar = self.make_statusbar(panel)
@@ -360,9 +436,11 @@ class PanelAnnotationEditorUI(MiniFrame, TableMixin, DatasetMixin):
         # make peaklist
         self.peaklist = self.make_table(self.TABLE_DICT, panel)
 
-        self.name_value = wx.TextCtrl(panel, -1, "", style=wx.TE_RICH2)
+        self.name_value = wx.StaticText(panel)
+        # self.name_value = wx.TextCtrl(panel, -1, "", style=wx.TE_RICH)
 
-        self.label_value = wx.TextCtrl(panel, -1, "", style=wx.TE_RICH2 | wx.TE_MULTILINE)
+        # self.label_value = wx.TextCtrl(panel, -1, "", style=wx.TE_RICH | wx.TE_MULTILINE)
+        self.label_value = wx.TextCtrl(panel, -1, "", style=wx.TE_MULTILINE)
         self.label_value.SetToolTip(wx.ToolTip("Label associated with the marked region in the plot area"))
 
         self.marker_position_x = wx.TextCtrl(panel, -1, "", validator=Validator("float"))
@@ -419,7 +497,7 @@ class PanelAnnotationEditorUI(MiniFrame, TableMixin, DatasetMixin):
         self.auto_add_to_table.SetValue(self._auto_add_to_table)
 
         # button grid
-        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        btn_sizer = wx.BoxSizer()
         btn_sizer.Add(self.add_btn, 0, wx.ALIGN_CENTER_VERTICAL)
         btn_sizer.Add(self.remove_btn, 0, wx.ALIGN_CENTER_VERTICAL)
         btn_sizer.Add(self.show_btn, 0, wx.ALIGN_CENTER_VERTICAL)
@@ -485,7 +563,6 @@ class PanelAnnotationEditorUI(MiniFrame, TableMixin, DatasetMixin):
         # fit layout
         main_sizer.Fit(panel)
         panel.SetSizerAndFit(main_sizer)
-        panel.SetupScrolling(scroll_x=False, scroll_y=True)
 
         return panel
 
@@ -494,86 +571,6 @@ class PanelAnnotationEditorUI(MiniFrame, TableMixin, DatasetMixin):
         if self.peaklist.item_id not in [-1, None]:
             check = not self.peaklist.IsChecked(self.peaklist.item_id)
             self.peaklist.CheckItem(self.peaklist.item_id, check)
-
-    def on_popup(self, evt):
-        """Show popup window"""
-
-        popup = PopupAnnotationSettings(self)
-        popup.position_on_event(evt)
-        popup.Show()
-
-
-class PanelAnnotationEditor(PanelAnnotationEditorUI):
-    """Simple GUI to view and annotate plots"""
-
-    _data_obj = None
-    _annotations = None
-
-    def __init__(self, parent, presenter, icons, **kwargs):
-        PanelAnnotationEditorUI.__init__(self, parent, icons, kwargs["plot_type"])
-        self.presenter = presenter
-
-        # data
-        self.document_title = kwargs["document_title"]
-        self.dataset_name = kwargs["dataset_name"]
-        self.data_obj = kwargs.pop("data_obj")
-        self.annotations = self.data_obj.get_annotations()
-        self.kwargs = kwargs
-
-        # hard code few parameters
-        CONFIG.annotation_patch_transparency = 0.2
-        CONFIG.annotation_patch_width = 3
-
-        # initialize correct view
-        self.setup()
-
-        # setup
-        wx.CallAfter(self.on_setup_plot_on_startup)
-
-    @property
-    def data_obj(self) -> DataObject:
-        """Return `DataObject`"""
-        return self._data_obj
-
-    @data_obj.setter
-    def data_obj(self, value: DataObject):
-        """Set `mz_obj_cache`"""
-        assert isinstance(value, DataObject), "Incorrect data-type was being set to the `data_obj` attribute"
-        self._data_obj = value
-
-    @property
-    def annotations(self):
-        """Return annotations object"""
-        return self._annotations
-
-    @annotations.setter
-    def annotations(self, value: Annotations):
-        """Set `mz_obj_cache`"""
-        assert isinstance(value, Annotations), "Incorrect data-type was being set to the `annotations` attribute"
-        self._annotations = value
-
-    @property
-    def data_handling(self):
-        """Return handle to `data_handling`"""
-        return self.presenter.data_handling
-
-    @property
-    def document_tree(self):
-        """Return handle to `document_tree`"""
-        return self.presenter.view.panelDocuments.documents
-
-    @property
-    def panel_plot(self):
-        """Return handle to `panel_plot`"""
-        return self.presenter.view.panelPlots
-
-    def setup(self):
-        """Setup UI"""
-        self.update_title()
-        self.on_populate_table()
-        self.on_toggle_controls(None)
-        self.bind_events()
-        self._dataset_mixin_setup()
 
     # noinspection DuplicatedCode
     def bind_events(self):
@@ -619,12 +616,12 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
             save_figure_menu_item = make_menu_item(
                 menu, evt_id=wx.ID_ANY, text="Save figure as...", bitmap=self._icons.save
             )
-            menu.AppendItem(save_figure_menu_item)
+            menu.Append(save_figure_menu_item)
 
             menu_action_copy_to_clipboard = make_menu_item(
                 parent=menu, evt_id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self._icons.filelist
             )
-            menu.AppendItem(menu_action_copy_to_clipboard)
+            menu.Append(menu_action_copy_to_clipboard)
             menu.AppendSeparator()
             menu_plot_clear_labels = make_menu_item(parent=menu, text="Clear annotations", bitmap=self._icons.clear)
             menu.Append(menu_plot_clear_labels)
@@ -669,7 +666,10 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
 
         self._dataset_mixin_teardown()
 
-        self.document_tree._annotate_panel = None
+        try:
+            self.document_tree._annotate_panel = None
+        except AttributeError:  # debug mode
+            pass
         self.Destroy()
 
     def on_apply(self, _):
@@ -963,7 +963,7 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
     def on_delete_item(self, _evt):
         """Delete item from the table and document"""
         item_information = self.on_get_item_information(self.peaklist.item_id)
-        self.on_delete_annotation(None, item_information["name"], flush=True)
+        self.on_delete_annotation(None, item_information["name"])
 
     def on_assign_color_button(self, evt):
         """Assign new color to the element"""
@@ -1000,12 +1000,15 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
         """Populate table with current annotations"""
         annotations_obj = self.annotations
 
+        if annotations_obj is None:
+            return
+
         for annotation_obj in annotations_obj.values():
             self.on_add_to_table(annotation_obj.to_dict())
 
     def clear_gui(self):
         """Clear all fields in the user interface"""
-        self.name_value.SetValue("")
+        self.name_value.SetLabel("")
         self.label_value.SetValue("")
         self.label_position_x.SetValue("")
         self.label_position_y.SetValue("")
@@ -1022,20 +1025,20 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
             raise ValueError("Incorrect data object")
 
         # set values in GUI
-        self.name_value.SetValue(annotation_obj.name)
+        self.name_value.SetLabel(annotation_obj.name)
         self.label_value.SetValue(annotation_obj.label)
-        self.label_position_x.SetValue(rounder(annotation_obj.label_position_x, 4))
-        self.label_position_y.SetValue(rounder(annotation_obj.label_position_y, 4))
+        self.label_position_x.SetValue(rounder(annotation_obj.label_position_x))
+        self.label_position_y.SetValue(rounder(annotation_obj.label_position_y))
         self.add_arrow_to_peak.SetValue(annotation_obj.arrow_show)
         self.add_patch_to_peak.SetValue(annotation_obj.patch_show)
         self.patch_color_btn.SetBackgroundColour(convert_rgb_1_to_255(annotation_obj.patch_color))
         self.label_color_btn.SetBackgroundColour(convert_rgb_1_to_255(annotation_obj.label_color))
-        self.patch_min_x.SetValue(rounder(annotation_obj.patch_position[0], 4))
-        self.patch_min_y.SetValue(rounder(annotation_obj.patch_position[1], 4))
-        self.patch_width.SetValue(rounder(annotation_obj.patch_position[2], 4))
-        self.patch_height.SetValue(rounder(annotation_obj.patch_position[3], 4))
-        self.marker_position_x.SetValue(rounder(annotation_obj.marker_position_x, 4))
-        self.marker_position_y.SetValue(rounder(annotation_obj.marker_position_y, 4))
+        self.patch_min_x.SetValue(rounder(annotation_obj.patch_position[0]))
+        self.patch_min_y.SetValue(rounder(annotation_obj.patch_position[1]))
+        self.patch_width.SetValue(rounder(annotation_obj.patch_position[2]))
+        self.patch_height.SetValue(rounder(annotation_obj.patch_position[3]))
+        self.marker_position_x.SetValue(rounder(annotation_obj.marker_position_x))
+        self.marker_position_y.SetValue(rounder(annotation_obj.marker_position_y))
 
     def get_annotation_obj_from_data(self, x_min, x_max, y_min, y_max):
         """Pre-calculate parameters based on the data"""
@@ -1122,7 +1125,7 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
 
     def get_annotation_obj_from_gui(self):
         """Return annotation object from the data currently set in the user interface"""
-        name = self.name_value.GetValue()
+        name = self.name_value.GetLabel()
         annotation_obj = self.annotations.get(name)
 
         data = dict(
@@ -1181,7 +1184,7 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
         if obj_name == "":
             return
 
-        name = self.name_value.GetValue()
+        name = self.name_value.GetLabel()
         item_id = self.on_find_item("name", name)
         if item_id == -1:
             return
@@ -1220,7 +1223,7 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
     def on_delete_annotation(self, _evt, name=None, flush: bool = True, get_next: bool = False):
         """Remove annotation"""
         if name is None:
-            name = self.name_value.GetValue()
+            name = self.name_value.GetLabel()
 
         item_id = self.on_find_item("name", name)
         if item_id != -1:
@@ -1319,17 +1322,17 @@ class PanelAnnotationEditor(PanelAnnotationEditorUI):
 
     def on_plot(self, _evt=None):
         """Plot data"""
-        self.plot_view.plot(obj=self.data_obj)
+        if self.data_obj:
+            self.plot_view.plot(obj=self.data_obj)
 
     def on_plot_annotations(self, _evt=None):
         """Annotate plot area with annotations"""
         annotations = self.annotations
-
-        self.on_annotate_spectrum_with_labels(None, repaint=False, annotations=annotations)
-        self.on_annotate_spectrum_with_patches(None, repaint=False, annotations=annotations)
-        self.on_annotate_spectrum_with_arrows(None, repaint=False, annotations=annotations)
-
-        self.plot_view.repaint()
+        if annotations:
+            self.on_annotate_spectrum_with_labels(None, repaint=False, annotations=annotations)
+            self.on_annotate_spectrum_with_patches(None, repaint=False, annotations=annotations)
+            self.on_annotate_spectrum_with_arrows(None, repaint=False, annotations=annotations)
+            self.plot_view.repaint()
 
     def on_setup_plot_on_startup(self):
         """Setup plot on startup of the window"""
@@ -1497,7 +1500,7 @@ def _main():
 
     app = wx.App()
     icons = Icons()
-    ex = PanelAnnotationEditorUI(None, icons, "mass_spectrum")
+    ex = PanelAnnotationEditor(None, None, icons, "mass_spectrum")
 
     ex.Show()
     app.MainLoop()

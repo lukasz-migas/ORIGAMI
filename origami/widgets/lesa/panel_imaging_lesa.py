@@ -222,7 +222,7 @@ class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
         self.item_color_btn.Bind(wx.EVT_BUTTON, self.on_change_color)
         set_tooltip(self.item_color_btn, "Select color for current item")
 
-        self.colormap_value = wx.Choice(panel, -1, choices=CONFIG.cmaps2, size=(-1, -1))
+        self.colormap_value = wx.Choice(panel, -1, choices=CONFIG.colormap_choices, size=(-1, -1))
         self.colormap_value.Bind(wx.EVT_CHOICE, self.on_update_item)
         set_tooltip(self.colormap_value, "Select colormap for current item")
 
@@ -553,7 +553,7 @@ class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
             self.on_add_to_table(
                 dict(
                     ion_name=name,
-                    color=next(CONFIG.custom_color_cycle),
+                    color=next(CONFIG.custom_colors_cycle),
                     colormap=next(CONFIG.overlay_cmap_cycle),
                     label=name,
                 )

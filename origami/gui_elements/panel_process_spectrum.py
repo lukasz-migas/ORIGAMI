@@ -222,29 +222,29 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
 
         linearization_method_label = wx.StaticText(panel, wx.ID_ANY, "Linearization mode:")
         self.bin_linearization_method_choice = wx.Choice(
-            panel, -1, choices=CONFIG.ms_linearization_mode_choices, size=(-1, -1)
+            panel, -1, choices=CONFIG.ms_linearize_method_choices, size=(-1, -1)
         )
-        self.bin_linearization_method_choice.SetStringSelection(CONFIG.ms_linearization_mode)
+        self.bin_linearization_method_choice.SetStringSelection(CONFIG.ms_linearize_method)
         self.bin_linearization_method_choice.Bind(wx.EVT_CHOICE, self.on_apply)
 
         bin_ms_min_label = wx.StaticText(panel, wx.ID_ANY, "m/z start:")
         self.bin_mzStart_value = wx.TextCtrl(panel, -1, "", size=(65, -1), validator=Validator("floatPos"))
-        self.bin_mzStart_value.SetValue(str(CONFIG.ms_mzStart))
+        self.bin_mzStart_value.SetValue(str(CONFIG.ms_linearize_mz_start))
         self.bin_mzStart_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         bin_ms_max_label = wx.StaticText(panel, wx.ID_ANY, "end:")
         self.bin_mzEnd_value = wx.TextCtrl(panel, -1, "", size=(65, -1), validator=Validator("floatPos"))
-        self.bin_mzEnd_value.SetValue(str(CONFIG.ms_mzEnd))
+        self.bin_mzEnd_value.SetValue(str(CONFIG.ms_linearize_mz_end))
         self.bin_mzEnd_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         self.bin_autoRange_check = make_checkbox(panel, "Automatic range")
-        self.bin_autoRange_check.SetValue(CONFIG.ms_auto_range)
+        self.bin_autoRange_check.SetValue(CONFIG.ms_linearize_mz_auto_range)
         self.bin_autoRange_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.bin_autoRange_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
         bin_ms_bin_size_label = wx.StaticText(panel, wx.ID_ANY, "m/z bin size:")
         self.bin_mzBinSize_value = wx.TextCtrl(panel, -1, "", size=(65, -1), validator=Validator("floatPos"))
-        self.bin_mzBinSize_value.SetValue(str(CONFIG.ms_mzBinSize))
+        self.bin_mzBinSize_value.SetValue(str(CONFIG.ms_linearize_mz_bin_size))
         self.bin_mzBinSize_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         ms_process_smooth = wx.StaticText(panel, -1, "Smooth spectrum:")
@@ -286,8 +286,8 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
         self.ms_process_threshold.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
         baseline_label = wx.StaticText(panel, wx.ID_ANY, "Subtraction mode:")
-        self.ms_baseline_choice = wx.Choice(panel, choices=CONFIG.ms_baseline_choices)
-        self.ms_baseline_choice.SetStringSelection(CONFIG.ms_baseline)
+        self.ms_baseline_choice = wx.Choice(panel, choices=CONFIG.ms_baseline_method_choices)
+        self.ms_baseline_choice.SetStringSelection(CONFIG.ms_baseline_method)
         self.ms_baseline_choice.Bind(wx.EVT_CHOICE, self.on_apply)
         self.ms_baseline_choice.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
 
@@ -295,7 +295,7 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
 
         threshold_label = wx.StaticText(panel, wx.ID_ANY, "Threshold:")
         self.ms_threshold_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
-        self.ms_threshold_value.SetValue(str(CONFIG.ms_threshold))
+        self.ms_threshold_value.SetValue(str(CONFIG.ms_baseline_linear_threshold))
         self.ms_threshold_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         ms_baseline_polynomial_order = wx.StaticText(panel, wx.ID_ANY, "Polynomial order:")
@@ -513,10 +513,10 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
         self.bin_mzEnd_value.Enable(enable=CONFIG.ms_process_linearize)
         self.bin_autoRange_check.Enable(enable=CONFIG.ms_process_linearize)
 
-        CONFIG.ms_auto_range = self.bin_autoRange_check.GetValue()
+        CONFIG.ms_linearize_mz_auto_range = self.bin_autoRange_check.GetValue()
         if CONFIG.ms_process_linearize:
-            self.bin_mzStart_value.Enable(enable=not CONFIG.ms_auto_range)
-            self.bin_mzEnd_value.Enable(enable=not CONFIG.ms_auto_range)
+            self.bin_mzStart_value.Enable(enable=not CONFIG.ms_linearize_mz_auto_range)
+            self.bin_mzEnd_value.Enable(enable=not CONFIG.ms_linearize_mz_auto_range)
 
         # smooth
         CONFIG.ms_process_smooth = self.ms_process_smooth.GetValue()
@@ -537,7 +537,7 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
 
         # threshold
         CONFIG.ms_process_threshold = self.ms_process_threshold.GetValue()
-        CONFIG.ms_baseline = self.ms_baseline_choice.GetStringSelection()
+        CONFIG.ms_baseline_method = self.ms_baseline_choice.GetStringSelection()
         obj_list = [
             self.ms_threshold_value,
             self.ms_baseline_choice,
@@ -551,16 +551,16 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
         self.ms_baseline_choice.Enable(enable=CONFIG.ms_process_threshold)
         self.baseline_warning_msg.SetLabel("")
         if CONFIG.ms_process_threshold:
-            if CONFIG.ms_baseline == "Linear":
+            if CONFIG.ms_baseline_method == "Linear":
                 self.ms_threshold_value.Enable()
-            elif CONFIG.ms_baseline == "Polynomial":
+            elif CONFIG.ms_baseline_method == "Polynomial":
                 self.ms_baseline_polynomial_order.Enable()
-            elif CONFIG.ms_baseline == "Curved":
+            elif CONFIG.ms_baseline_method == "Curved":
                 self.ms_baseline_curved_window.Enable()
                 self.baseline_warning_msg.SetLabel("Note: Can be slow!")
-            elif CONFIG.ms_baseline == "Median":
+            elif CONFIG.ms_baseline_method == "Median":
                 self.ms_baseline_median_window.Enable()
-            elif CONFIG.ms_baseline == "Top Hat":
+            elif CONFIG.ms_baseline_method == "Top Hat":
                 self.ms_baseline_tophat_window.Enable()
 
         if evt is not None:
@@ -574,12 +574,12 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
         CONFIG.ms_process_threshold = self.ms_process_threshold.GetValue()
         CONFIG.ms_process_normalize = self.ms_process_normalize.GetValue()
 
-        CONFIG.ms_mzStart = str2num(self.bin_mzStart_value.GetValue())
-        CONFIG.ms_mzEnd = str2num(self.bin_mzEnd_value.GetValue())
-        CONFIG.ms_mzBinSize = str2num(self.bin_mzBinSize_value.GetValue())
+        CONFIG.ms_linearize_mz_start = str2num(self.bin_mzStart_value.GetValue())
+        CONFIG.ms_linearize_mz_end = str2num(self.bin_mzEnd_value.GetValue())
+        CONFIG.ms_linearize_mz_bin_size = str2num(self.bin_mzBinSize_value.GetValue())
 
-        CONFIG.ms_linearization_mode = self.bin_linearization_method_choice.GetStringSelection()
-        CONFIG.ms_auto_range = self.bin_autoRange_check.GetValue()
+        CONFIG.ms_linearize_method = self.bin_linearization_method_choice.GetStringSelection()
+        CONFIG.ms_linearize_mz_auto_range = self.bin_autoRange_check.GetValue()
 
         CONFIG.ms_smooth_mode = self.ms_smoothFcn_choice.GetStringSelection()
         CONFIG.ms_smooth_sigma = str2num(self.ms_sigma_value.GetValue())
@@ -587,8 +587,8 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
         CONFIG.ms_smooth_polynomial = str2int(self.ms_polynomial_value.GetValue())
         CONFIG.ms_smooth_moving_window = str2int(self.ms_smooth_moving_window.GetValue())
 
-        CONFIG.ms_threshold = str2num(self.ms_threshold_value.GetValue())
-        CONFIG.ms_baseline = self.ms_baseline_choice.GetStringSelection()
+        CONFIG.ms_baseline_linear_threshold = str2num(self.ms_threshold_value.GetValue())
+        CONFIG.ms_baseline_method = self.ms_baseline_choice.GetStringSelection()
         CONFIG.ms_baseline_polynomial_order = str2int(self.ms_baseline_polynomial_order.GetValue())
         CONFIG.ms_baseline_curved_window = str2int(self.ms_baseline_curved_window.GetValue())
         CONFIG.ms_baseline_median_window = str2int(self.ms_baseline_median_window.GetValue())

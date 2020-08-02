@@ -167,20 +167,20 @@ class PanelProcessExtractMSDT(MiniFrame, DatasetMixin):
         self.info_bar.SetLabel(info)
 
         # check if user has previously defined any values
-        if CONFIG.extract_dtms_mzStart not in [0, "", None]:
-            mz_min = CONFIG.extract_dtms_mzStart
+        if CONFIG.msdt_panel_extract_mz_start not in [0, "", None]:
+            mz_min = CONFIG.msdt_panel_extract_mz_start
         else:
             mz_min = self.parameters["start_ms"]
         self.mz_min_value.SetValue(str(mz_min))
 
-        if CONFIG.extract_dtms_mzEnd not in [0, "", None]:
-            mz_max = CONFIG.extract_dtms_mzEnd
+        if CONFIG.msdt_panel_extract_mz_end not in [0, "", None]:
+            mz_max = CONFIG.msdt_panel_extract_mz_end
         else:
             mz_max = self.parameters["end_ms"]
         self.mz_max_value.SetValue(str(mz_max))
 
-        if CONFIG.extract_dtms_mzBinSize not in [0, "", None]:
-            mz_bin_size = CONFIG.extract_dtms_mzBinSize
+        if CONFIG.msdt_panel_extract_mz_bin_size not in [0, "", None]:
+            mz_bin_size = CONFIG.msdt_panel_extract_mz_bin_size
         else:
             mz_bin_size = 0.1
         self.mz_bin_value.SetValue(str(mz_bin_size))
@@ -193,7 +193,8 @@ class PanelProcessExtractMSDT(MiniFrame, DatasetMixin):
             try:
                 n_points = int(
                     math.floor(
-                        (CONFIG.extract_dtms_mzEnd - CONFIG.extract_dtms_mzStart) / CONFIG.extract_dtms_mzBinSize
+                        (CONFIG.msdt_panel_extract_mz_end - CONFIG.msdt_panel_extract_mz_start)
+                        / CONFIG.msdt_panel_extract_mz_bin_size
                     )
                 )
                 if n_points > 0:
@@ -207,32 +208,32 @@ class PanelProcessExtractMSDT(MiniFrame, DatasetMixin):
     def check_user_input(self):
         """Check user input and if incorrect correct the values"""
         self.block_update = True
-        if CONFIG.extract_dtms_mzStart in [0, "", None, "None"]:
-            CONFIG.extract_dtms_mzStart = self.parameters["start_ms"]
+        if CONFIG.msdt_panel_extract_mz_start in [0, "", None, "None"]:
+            CONFIG.msdt_panel_extract_mz_start = self.parameters["start_ms"]
 
-        if CONFIG.extract_dtms_mzEnd in [0, "", None, "None"]:
-            CONFIG.extract_dtms_mzEnd = self.parameters["end_ms"]
+        if CONFIG.msdt_panel_extract_mz_end in [0, "", None, "None"]:
+            CONFIG.msdt_panel_extract_mz_end = self.parameters["end_ms"]
 
         # check values are in correct order
-        if CONFIG.extract_dtms_mzStart > CONFIG.extract_dtms_mzEnd:
-            CONFIG.extract_dtms_mzStart, CONFIG.extract_dtms_mzEnd = (
-                CONFIG.extract_dtms_mzEnd,
-                CONFIG.extract_dtms_mzStart,
+        if CONFIG.msdt_panel_extract_mz_start > CONFIG.msdt_panel_extract_mz_end:
+            CONFIG.msdt_panel_extract_mz_start, CONFIG.msdt_panel_extract_mz_end = (
+                CONFIG.msdt_panel_extract_mz_end,
+                CONFIG.msdt_panel_extract_mz_start,
             )
 
         # check if values are the same
-        if CONFIG.extract_dtms_mzStart == CONFIG.extract_dtms_mzEnd:
-            CONFIG.extract_dtms_mzEnd += 1
+        if CONFIG.msdt_panel_extract_mz_start == CONFIG.msdt_panel_extract_mz_end:
+            CONFIG.msdt_panel_extract_mz_end += 1
 
         # check if values are below experimental range
-        if CONFIG.extract_dtms_mzStart < self.parameters["start_ms"]:
-            CONFIG.extract_dtms_mzStart = self.parameters["start_ms"]
+        if CONFIG.msdt_panel_extract_mz_start < self.parameters["start_ms"]:
+            CONFIG.msdt_panel_extract_mz_start = self.parameters["start_ms"]
 
-        if CONFIG.extract_dtms_mzEnd > self.parameters["end_ms"]:
-            CONFIG.extract_dtms_mzEnd = self.parameters["end_ms"]
+        if CONFIG.msdt_panel_extract_mz_end > self.parameters["end_ms"]:
+            CONFIG.msdt_panel_extract_mz_end = self.parameters["end_ms"]
 
-        if CONFIG.extract_dtms_mzBinSize in [0, "", None, "None"]:
-            CONFIG.extract_dtms_mzBinSize = 1
+        if CONFIG.msdt_panel_extract_mz_bin_size in [0, "", None, "None"]:
+            CONFIG.msdt_panel_extract_mz_bin_size = 1
 
         self.on_setup_gui()
         self.block_update = False
@@ -242,9 +243,9 @@ class PanelProcessExtractMSDT(MiniFrame, DatasetMixin):
         if self.block_update:
             return
 
-        CONFIG.extract_dtms_mzStart = str2num(self.mz_min_value.GetValue())
-        CONFIG.extract_dtms_mzEnd = str2num(self.mz_max_value.GetValue())
-        CONFIG.extract_dtms_mzBinSize = str2num(self.mz_bin_value.GetValue())
+        CONFIG.msdt_panel_extract_mz_start = str2num(self.mz_min_value.GetValue())
+        CONFIG.msdt_panel_extract_mz_end = str2num(self.mz_max_value.GetValue())
+        CONFIG.msdt_panel_extract_mz_bin_size = str2num(self.mz_bin_value.GetValue())
         self._update_msg_bar()
 
         if evt is not None:
@@ -266,7 +267,10 @@ class PanelProcessExtractMSDT(MiniFrame, DatasetMixin):
         """
         mz_len = shape[1]
         mz_x = np.linspace(
-            mz_min - CONFIG.extract_dtms_mzBinSize, mz_max + CONFIG.extract_dtms_mzBinSize, mz_len, endpoint=True
+            mz_min - CONFIG.msdt_panel_extract_mz_bin_size,
+            mz_max + CONFIG.msdt_panel_extract_mz_bin_size,
+            mz_len,
+            endpoint=True,
         )
 
         return mz_x
@@ -293,13 +297,16 @@ class PanelProcessExtractMSDT(MiniFrame, DatasetMixin):
         path = document.get_file_path("main")
 
         title = (
-            f"MZ_{CONFIG.extract_dtms_mzStart:.2f}-{CONFIG.extract_dtms_mzEnd:.2f} "
-            f"(bin={CONFIG.extract_dtms_mzBinSize:4f})"
+            f"MZ_{CONFIG.msdt_panel_extract_mz_start:.2f}-{CONFIG.msdt_panel_extract_mz_end:.2f} "
+            f"(bin={CONFIG.msdt_panel_extract_mz_bin_size:4f})"
         )
 
         if self.msdt_obj is None or self.msdt_title != title:
             msdt_obj = self.data_handling.waters_im_extract_msdt(
-                path, CONFIG.extract_dtms_mzStart, CONFIG.extract_dtms_mzEnd, CONFIG.extract_dtms_mzBinSize
+                path,
+                CONFIG.msdt_panel_extract_mz_start,
+                CONFIG.msdt_panel_extract_mz_end,
+                CONFIG.msdt_panel_extract_mz_bin_size,
             )
 
             self.msdt_obj = msdt_obj
@@ -320,8 +327,8 @@ class PanelProcessExtractMSDT(MiniFrame, DatasetMixin):
             return
         document = ENV.on_get_document(self.document_title)
         title = (
-            f"MZ_{CONFIG.extract_dtms_mzStart:.2f}-{CONFIG.extract_dtms_mzEnd:.2f} "
-            f"(bin={CONFIG.extract_dtms_mzBinSize:3f})"
+            f"MZ_{CONFIG.msdt_panel_extract_mz_start:.2f}-{CONFIG.msdt_panel_extract_mz_end:.2f} "
+            f"(bin={CONFIG.msdt_panel_extract_mz_bin_size:3f})"
         )
 
         if self.msdt_obj is None or self.msdt_title != title:

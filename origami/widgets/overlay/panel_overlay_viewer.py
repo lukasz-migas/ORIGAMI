@@ -532,10 +532,10 @@ class PanelOverlayViewer(MiniFrame):
         if item_id is None:
             return
 
-        dlg = DialogColorPicker(self, self.config.customColors)
+        dlg = DialogColorPicker(self, self.config.custom_colors)
         if dlg.ShowModal() == wx.ID_OK:
             color_255, color_1, font_color = dlg.GetChosenColour()
-            self.config.customColors = dlg.GetCustomColours()
+            self.config.custom_colors = dlg.GetCustomColours()
             self.on_update_value_in_peaklist(item_id, "color", [color_255, color_1, font_color])
 
             # update document
@@ -748,7 +748,7 @@ class PanelOverlayViewer(MiniFrame):
         item_list = self.data_handling.generate_item_list(dataset_type)
         self.peaklist.DeleteAllItems()
         for add_dict in item_list:
-            color = add_dict.get("color", self.config.customColors[get_random_int(0, 15)])
+            color = add_dict.get("color", self.config.custom_colors[get_random_int(0, 15)])
             color = check_color_format(color)
 
             self.peaklist.Append(

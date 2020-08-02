@@ -628,10 +628,10 @@ class PanelSignalComparisonViewer(MiniFrame):
         source = evt.GetEventObject().GetName()
 
         # get color
-        dlg = DialogColorPicker(self, CONFIG.customColors)
+        dlg = DialogColorPicker(self, CONFIG.custom_colors)
         if dlg.ShowModal() == wx.ID_OK:
             color_255, color_1, __ = dlg.GetChosenColour()
-            CONFIG.customColors = dlg.GetCustomColours()
+            CONFIG.custom_colors = dlg.GetCustomColours()
         else:
             return
 

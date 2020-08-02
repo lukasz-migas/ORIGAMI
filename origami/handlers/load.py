@@ -90,7 +90,7 @@ class LoadHandler:
         reader = document.get_reader("ion_mobility")
         if reader is None:
             path = document.get_file_path("main")
-            reader = WatersIMReader(path, temp_dir=CONFIG.temporary_data)
+            reader = WatersIMReader(path, temp_dir=CONFIG.APP_TEMP_DATA_PATH)
             document.add_reader("ion_mobility", reader)
 
         # extract data
@@ -129,7 +129,7 @@ class LoadHandler:
         reader = document.get_reader("ion_mobility")
         if reader is None:
             path = document.get_file_path("main")
-            reader = WatersIMReader(path, temp_dir=CONFIG.temporary_data)
+            reader = WatersIMReader(path, temp_dir=CONFIG.APP_TEMP_DATA_PATH)
             document.add_reader("ion_mobility", reader)
 
         mz_obj = reader.extract_ms(rt_start=x_min, rt_end=x_max, return_data=True)
@@ -171,7 +171,7 @@ class LoadHandler:
         reader = document.get_reader("ion_mobility")
         if reader is None:
             path = document.get_file_path("main")
-            reader = WatersIMReader(path, temp_dir=CONFIG.temporary_data)
+            reader = WatersIMReader(path, temp_dir=CONFIG.APP_TEMP_DATA_PATH)
             document.add_reader("ion_mobility", reader)
 
         mz_obj = reader.extract_ms(rt_start=x_min, rt_end=x_max, dt_start=y_min, dt_end=y_max, return_data=True)
@@ -213,7 +213,7 @@ class LoadHandler:
         reader = document.get_reader("ion_mobility")
         if reader is None:
             path = document.get_file_path("main")
-            reader = WatersIMReader(path, temp_dir=CONFIG.temporary_data)
+            reader = WatersIMReader(path, temp_dir=CONFIG.APP_TEMP_DATA_PATH)
             document.add_reader("ion_mobility", reader)
 
         mz_obj = reader.extract_rt(mz_start=x_min, mz_end=x_max, dt_start=y_min, dt_end=y_max, return_data=True)
@@ -251,7 +251,7 @@ class LoadHandler:
         reader = document.get_reader("ion_mobility")
         if reader is None:
             path = document.get_file_path("main")
-            reader = WatersIMReader(path, temp_dir=CONFIG.temporary_data)
+            reader = WatersIMReader(path, temp_dir=CONFIG.APP_TEMP_DATA_PATH)
             document.add_reader("ion_mobility", reader)
 
         # get heatmap
@@ -293,7 +293,7 @@ class LoadHandler:
         array = np.zeros((200, n_files))
         rt_x = []
         for idx, (filepath, value) in enumerate(filelist.items()):
-            reader = WatersIMReader(filepath, temp_dir=CONFIG.temporary_data)
+            reader = WatersIMReader(filepath, temp_dir=CONFIG.APP_TEMP_DATA_PATH)
             dt_obj = reader.extract_dt(mz_start=x_min, mz_end=x_max, return_data=True)
             array[:, idx] = dt_obj.y
             rt_x.append(value)
@@ -317,7 +317,7 @@ class LoadHandler:
     def waters_im_extract_ms(path, **kwargs) -> MassSpectrumObject:
         """Extract chromatographic data"""
         check_path(path)
-        reader = WatersIMReader(path, temp_dir=CONFIG.temporary_data)
+        reader = WatersIMReader(path, temp_dir=CONFIG.APP_TEMP_DATA_PATH)
         mz_obj: MassSpectrumObject = reader.extract_ms(**kwargs)
 
         return mz_obj
@@ -327,7 +327,7 @@ class LoadHandler:
     def waters_im_extract_rt(path, **kwargs) -> ChromatogramObject:
         """Extract chromatographic data"""
         check_path(path)
-        reader = WatersIMReader(path, temp_dir=CONFIG.temporary_data)
+        reader = WatersIMReader(path, temp_dir=CONFIG.APP_TEMP_DATA_PATH)
         rt_obj: ChromatogramObject = reader.extract_rt(**kwargs)
 
         return rt_obj
@@ -337,7 +337,7 @@ class LoadHandler:
     def waters_im_extract_dt(path, **kwargs) -> MobilogramObject:
         """Extract mobility data"""
         check_path(path)
-        reader = WatersIMReader(path, temp_dir=CONFIG.temporary_data)
+        reader = WatersIMReader(path, temp_dir=CONFIG.APP_TEMP_DATA_PATH)
         dt_obj: MobilogramObject = reader.extract_dt(**kwargs)
 
         return dt_obj
@@ -347,7 +347,7 @@ class LoadHandler:
     def waters_im_extract_heatmap(path, **kwargs) -> IonHeatmapObject:
         """Extract mobility data"""
         check_path(path)
-        reader = WatersIMReader(path, temp_dir=CONFIG.temporary_data)
+        reader = WatersIMReader(path, temp_dir=CONFIG.APP_TEMP_DATA_PATH)
         heatmap_obj: IonHeatmapObject = reader.extract_heatmap(**kwargs)
 
         return heatmap_obj
@@ -362,7 +362,7 @@ class LoadHandler:
 
         # calculate number of m/z bins
         n_mz_bins = math.floor((mz_max - mz_min) / mz_bin_size)
-        reader = WatersIMReader(path, temp_dir=CONFIG.temporary_data)
+        reader = WatersIMReader(path, temp_dir=CONFIG.APP_TEMP_DATA_PATH)
         mzdt_obj: MassSpectrumHeatmapObject = reader.extract_msdt(
             mz_start=mz_min, mz_end=mz_max, n_points=n_mz_bins, **kwargs
         )
@@ -745,7 +745,7 @@ class LoadHandler:
     def load_waters_im_data(self, path: str):
         """Load Waters IM-MS data"""
         t_start = time.time()
-        reader = WatersIMReader(path, temp_dir=CONFIG.temporary_data)
+        reader = WatersIMReader(path, temp_dir=CONFIG.APP_TEMP_DATA_PATH)
         LOGGER.debug("Initialized Waters reader")
 
         mz_obj: MassSpectrumObject = reader.extract_ms()

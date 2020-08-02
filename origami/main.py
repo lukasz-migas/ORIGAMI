@@ -17,8 +17,6 @@ import origami.processing.UniDec.unidec as unidec
 from origami.icons.icons import IconContainer
 from origami.main_window import MainWindow
 from origami.config.config import CONFIG
-from origami.utils.logging import set_logger
-from origami.utils.logging import set_logger_level
 from origami.help_documentation import OrigamiHelp
 from origami.gui_elements.views.view_register import VIEW_REG  # noqa
 
@@ -30,6 +28,7 @@ from origami.gui_elements.views.view_register import VIEW_REG  # noqa
 
 logger = logging.getLogger(__name__)
 faulthandler.enable()
+gc.enable()
 
 # disable MPL logger
 logging.getLogger("matplotlib").setLevel(logging.ERROR)
@@ -49,10 +48,9 @@ class ORIGAMI:
     config = None
     icons = None
     help = None
-    logging = None
 
-    def __init__(self, *args, **kwargs):
-        self.__wx_app = App(redirect=False, filename="ORIGAMI")
+    def __init__(self, redirect: bool = False, *args, **kwargs):
+        self.__wx_app = App(redirect=redirect, filename="ORIGAMI")
         self.view = None
         self.initilize_app(*args, **kwargs)
 
@@ -92,6 +90,7 @@ class ORIGAMI:
 
         # Load configuration file
         self.on_import_configuration_on_startup()
+        self.setup_app()
 
         # Setup variables
         #         self.initialize_state()
@@ -103,43 +102,30 @@ class ORIGAMI:
         self.__wx_app.SetVendorName("Lukasz G. Migas")
         self.__wx_app.MainLoop()
 
-        # Assign standard input/output to variable
-        self.config.stdin = sys.stdin
-        self.config.stdout = sys.stdout
-        self.config.stderr = sys.stderr
-
-        # Set current working directory
-        self.config.cwd = os.getcwd()
-
-        # Set temporary data path
-        temp_data_folder = os.path.join(os.getcwd(), "temporary_data")
-        if not os.path.exists(temp_data_folder):
-            os.makedirs(temp_data_folder)
-        self.config.temporary_data = temp_data_folder
-
         # Setup plot style
         #         self.view.panelPlots.on_change_plot_style(evt=None)
         #         self.view.panelPlots.on_change_color_palette(evt=None)
         self.view.on_update_recent_files()
 
-        self.logging = self.config.logging
-        self.config._processID = os.getpid()
+        # Assign standard input/output to variable
+        CONFIG.APP_STDIN = sys.stdin
+        CONFIG.APP_STDOUT = sys.stdout
+        CONFIG.APP_STDERR = sys.stderr
 
-        gc.enable()
-        self.on_start_logging()
+        # get handle of the current process id
+        CONFIG.APP_PROCESS_ID = os.getpid()
 
-        # add binding to UniDec engine
-        self.config.unidec_engine = unidec.UniDec()
+        # setup temporary directory
+        CONFIG.setup_temporary_dir()
+        CONFIG.setup_logging()
 
-        # Set unidec directory
-        self.config.unidec_path = self.config.unidec_engine.config.UniDecPath
+        # setup UniDec paths
+        CONFIG.APP_UNIDEC_PATH = self.config.unidec_engine.config.UniDecPath
+        CONFIG.unidec_engine = unidec.UniDec()
 
-        # only check if on Windows
-        if self.config.checkForDriftscopeAtStart and platform == "win32":
-            self.config.setup_paths()
-
-        # add data handling and processing modules
-        self.view.panelParametersEdit.setup_handling_and_processing()
+        # setup Driftscope paths
+        if CONFIG.APP_CHECK_DRIFTSCOPE_PATH_AT_START and platform == "win32":
+            CONFIG.setup_paths()
 
     #     def initialize_registry(self):
     #         """Update reg keys to allow viewing of JS/HTML inside ORIGAMI windows"""
@@ -149,6 +135,26 @@ class ORIGAMI:
     #         set_ie_emulation_level()
     #         set_ie_lockdown_level()
     #         logger.debug("Initialized registry...")
+    def setup_app(self):
+        # Assign standard input/output to variable
+        CONFIG.APP_STDIN = sys.stdin
+        CONFIG.APP_STDOUT = sys.stdout
+        CONFIG.APP_STDERR = sys.stderr
+
+        # get handle of the current process id
+        CONFIG.APP_PROCESS_ID = os.getpid()
+
+        # setup temporary directory
+        CONFIG.setup_temporary_dir()
+        CONFIG.setup_logging()
+
+        # setup UniDec paths
+        CONFIG.unidec_engine = unidec.UniDec()
+        CONFIG.APP_UNIDEC_PATH = CONFIG.unidec_engine.config.UniDecPath
+
+        # setup Driftscope paths
+        if CONFIG.APP_CHECK_DRIFTSCOPE_PATH_AT_START and platform == "win32":
+            CONFIG.setup_paths()
 
     @property
     def data_handling(self):
@@ -168,26 +174,6 @@ class ORIGAMI:
     def on_import_configuration_on_startup(self):
         """This function imports configuration file"""
         self.config.loadConfigXML(path="configOut.xml")
-
-    def on_start_logging(self):
-        """Setup logger"""
-
-        log_directory = os.path.join(self.config.cwd, "logs")
-        if not os.path.exists(log_directory):
-            print("Directory logs did not exist - created a new one in {}".format(log_directory))
-            os.makedirs(log_directory)
-
-        # Generate filename
-        if self.config.loggingFile_path is None:
-
-            file_path = "origami_{}.log".format(self.config.startTime)
-            self.config.loggingFile_path = os.path.join(log_directory, file_path)
-
-        # setup logger
-        set_logger(file_path=self.config.loggingFile_path)
-        set_logger_level(verbose="DEBUG")
-
-        logger.info("Logs can be found in {}".format(self.config.loggingFile_path))
 
     def onThreading(self, evt, args, action="loadOrigami"):  # noqa
 

@@ -126,7 +126,7 @@ def convert_type(value):
         return str2num(value)
 
 
-def rounder(value, digits=4):
+def rounder(value, digits=4) -> object:
     """Round and return value"""
     value = round(str2num(value), digits)
     return f"{value}"

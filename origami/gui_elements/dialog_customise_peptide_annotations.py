@@ -266,10 +266,10 @@ class DialogCustomisePeptideAnnotations(Dialog):
     def on_apply_color(self, evt):
         source = evt.GetEventObject().GetName()
 
-        dlg = DialogColorPicker(self, self.config.customColors)
+        dlg = DialogColorPicker(self, self.config.custom_colors)
         if dlg.ShowModal() == wx.ID_OK:
             color_255, color_1, __ = dlg.GetChosenColour()
-            self.config.customColors = dlg.GetCustomColours()
+            self.config.custom_colors = dlg.GetCustomColours()
 
             if source == "plot_tandem_labelled":
                 self.plot_tandem_line_labelled_colorBtn.SetBackgroundColour(color_255)

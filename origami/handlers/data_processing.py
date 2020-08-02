@@ -1016,7 +1016,7 @@ class DataProcessing:
 
         file_name = "".join([document_title, "_", dataset])
         file_name = clean_filename(file_name)
-        folder = self.config.temporary_data
+        folder = self.config.APP_TEMP_DATA_PATH
         kwargs = {"clean": True}
         self.config.unidec_engine.open_file(
             file_name=file_name, file_directory=folder, data_in=np.transpose([msX, msY]), **kwargs
@@ -1138,7 +1138,7 @@ class DataProcessing:
         self.config.unidec_engine.config.linflag = self.config.unidec_linearization_choices[
             self.config.unidec_linearization
         ]
-        self.config.unidec_engine.config.cmap = self.config.currentCmap
+        self.config.unidec_engine.config.cmap = self.config.heatmap_colormap
 
         # unidec engine
         self.config.unidec_engine.config.masslb = self.config.unidec_mwStart
@@ -1198,7 +1198,7 @@ class DataProcessing:
         return mw_annotations
 
     def on_run_unidec_fcn(self, dataset, task, **kwargs):
-        if not self.config.threading:
+        if not self.config.APP_ENABLE_THREADING:
             self.on_run_unidec(dataset, task, **kwargs)
         else:
             self.on_threading(action="process.unidec.run", args=(dataset, task), kwargs=kwargs)
@@ -1226,7 +1226,7 @@ class DataProcessing:
             self.config.unidec_engine = data["temporary_unidec"]
         else:
             self.config.unidec_engine = unidec.UniDec()
-            self.config.unidec_engine.config.UniDecPath = self.config.unidec_path
+            self.config.unidec_engine.config.UniDecPath = self.config.APP_UNIDEC_PATH
 
         # check which tasks are carried out
         if task in ["auto_unidec", "load_data_unidec", "run_all_unidec", "load_data_and_preprocess_unidec"]:
@@ -1397,7 +1397,7 @@ class DataProcessing:
                                 list2.append(mztab2[k, 1])
 
                         if self.config.unidec_engine.pks.plen <= 15:
-                            color = convert_rgb_255_to_1(self.config.customColors[i])
+                            color = convert_rgb_255_to_1(self.config.custom_colors[i])
                         else:
                             color = p.color
                         colors.append(color)
@@ -1444,7 +1444,7 @@ class DataProcessing:
                     if p.ignore == 0:
                         yvals.append(p.height)
                         if self.config.unidec_engine.pks.plen <= 15:
-                            color = convert_rgb_255_to_1(self.config.customColors[num])
+                            color = convert_rgb_255_to_1(self.config.custom_colors[num])
                         else:
                             color = p.color
                         markers.append(p.marker)
@@ -1608,9 +1608,9 @@ class DataProcessing:
             # Add x-axis and y-axis labels
             if method != "User-defined":
                 xlabels = np.arange(
-                    self.config.origami_startVoltage,
-                    (self.config.origami_endVoltage + self.config.origami_stepVoltage),
-                    self.config.origami_stepVoltage,
+                    self.config.origami_start_voltage,
+                    (self.config.origami_end_voltage + self.config.origami_step_voltage),
+                    self.config.origami_step_voltage,
                 )
 
             # Y-axis is bins by default
@@ -1621,7 +1621,7 @@ class DataProcessing:
             # Check if item has labels, alpha, charge
             charge = data[ion_name].get("charge", None)
             cmap = data[ion_name].get("cmap", self.config.overlay_cmaps[get_random_int(0, 5)])
-            color = data[ion_name].get("color", self.config.customColors[get_random_int(0, 15)])
+            color = data[ion_name].get("color", self.config.custom_colors[get_random_int(0, 15)])
             label = data[ion_name].get("label", None)
             alpha = data[ion_name].get("alpha", self.config.overlay_defaultAlpha)
             mask = data[ion_name].get("mask", self.config.overlay_defaultMask)
@@ -1694,8 +1694,8 @@ class DataProcessing:
         # Ensure that config is not missing variabels
         if len(self.config.origamiList) == 0:
             msg = "Please load a text file with ORIGAMI parameters"
-        elif not self.config.origami_startScan:
-            msg = "The first scan is incorect (currently: %s)" % self.config.origami_startScan
+        elif not self.config.origami_start_scan:
+            msg = "The first scan is incorect (currently: %s)" % self.config.origami_start_scan
         elif self.config.origamiList[:, 0].shape != self.config.origamiList[:, 1].shape:
             msg = "The collision voltage list is of incorrect shape."
 

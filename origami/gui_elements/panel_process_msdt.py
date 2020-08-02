@@ -94,17 +94,17 @@ class PanelProcessMSDT(MiniFrame, DatasetMixin):
 
         mz_min_label = wx.StaticText(panel, wx.ID_ANY, "m/z (min):")
         self.mz_min_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
-        self.mz_min_value.SetValue(str(CONFIG.extract_dtms_mzStart))
+        self.mz_min_value.SetValue(str(CONFIG.msdt_panel_extract_mz_start))
         self.mz_min_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         mz_max_label = wx.StaticText(panel, wx.ID_ANY, "m/z (max): ")
         self.mz_max_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
-        self.mz_max_value.SetValue(str(CONFIG.extract_dtms_mzEnd))
+        self.mz_max_value.SetValue(str(CONFIG.msdt_panel_extract_mz_end))
         self.mz_max_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         mz_bin_label = wx.StaticText(panel, wx.ID_ANY, "m/z (bin size): ")
         self.mz_bin_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
-        self.mz_bin_value.SetValue(str(CONFIG.extract_dtms_mzBinSize))
+        self.mz_bin_value.SetValue(str(CONFIG.msdt_panel_extract_mz_bin_size))
         self.mz_bin_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         self.cancel_btn = wx.Button(panel, wx.ID_OK, "Close", size=(120, 22))
@@ -137,9 +137,9 @@ class PanelProcessMSDT(MiniFrame, DatasetMixin):
 
     def on_apply(self, evt):
         """Update config values"""
-        CONFIG.extract_dtms_mzStart = str2num(self.mz_min_value.GetValue())
-        CONFIG.extract_dtms_mzEnd = str2num(self.mz_max_value.GetValue())
-        CONFIG.extract_dtms_mzBinSize = str2num(self.mz_bin_value.GetValue())
+        CONFIG.msdt_panel_extract_mz_start = str2num(self.mz_min_value.GetValue())
+        CONFIG.msdt_panel_extract_mz_end = str2num(self.mz_max_value.GetValue())
+        CONFIG.msdt_panel_extract_mz_bin_size = str2num(self.mz_bin_value.GetValue())
 
         if self.update_widget and isinstance(self.update_widget, str):
             self._timer.Stop()

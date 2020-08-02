@@ -285,7 +285,7 @@ class Environment(PropertyCallbackManager):
         # create new document if one was not provided
         if document is None:
             if path is None:
-                path = os.path.join(CONFIG.cwd, self._get_new_name())
+                path = os.path.join(CONFIG.APP_CWD, self._get_new_name())
             if document_type is None:
                 document_type = DOCUMENT_DEFAULT
             document = self.new(document_type, path)

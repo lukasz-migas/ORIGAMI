@@ -253,8 +253,8 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
                 self.figure.plot_2d_update_colorbar(**CONFIG.get_mpl_parameters(["colorbar"]))
             else:
                 self.figure.plot_2d_update_heatmap_style(
-                    colormap=CONFIG.currentCmap,
-                    interpolation=CONFIG.interpolation,
+                    colormap=CONFIG.heatmap_colormap,
+                    interpolation=CONFIG.heatmap_interpolation,
                     array=self._data["array"],
                     cbar_kwargs=CONFIG.get_mpl_parameters("colorbar"),
                 )

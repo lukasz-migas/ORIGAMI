@@ -73,7 +73,7 @@ class PanelModifyItemSettings(MiniFrame):
             self.itemInfo["alpha"] = self.config.overlay_defaultAlpha
 
         if self.itemInfo["colormap"] in ["", None, "None"]:
-            self.itemInfo["colormap"] = self.config.currentCmap
+            self.itemInfo["colormap"] = self.config.heatmap_colormap
 
         if self.itemInfo["color"][0] == -1:
             self.itemInfo["color"] = (1, 1, 1, 255)
@@ -158,7 +158,7 @@ class PanelModifyItemSettings(MiniFrame):
             self.max_threshold_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
             colormap_label = wx.StaticText(panel, -1, "Colormap:")
-            self.colormap_value = wx.Choice(panel, -1, choices=self.config.cmaps2, size=(-1, -1))
+            self.colormap_value = wx.Choice(panel, -1, choices=self.config.colormap_choices, size=(-1, -1))
             self.colormap_value.Bind(wx.EVT_CHOICE, self.on_apply)
 
             self.restrictColormap_value = make_checkbox(panel, "Reduce number of colormaps")
@@ -404,7 +404,7 @@ class PanelModifyItemSettings(MiniFrame):
             self.itemInfo["alpha"] = 1
 
         if self.itemInfo["colormap"] in ["", None, "None"]:
-            self.itemInfo["colormap"] = self.config.currentCmap
+            self.itemInfo["colormap"] = self.config.heatmap_colormap
 
         if self.itemInfo["color"][0] == -1:
             self.itemInfo["color"] = (1, 1, 1, 255)
@@ -445,10 +445,10 @@ class PanelModifyItemSettings(MiniFrame):
         """Reduce number of items in the colormap to pre-selected list of colormaps"""
         currentCmap = self.colormap_value.GetStringSelection()
         if self.restrictColormap_value.GetValue():
-            cmap_list = self.config.narrowCmapList
+            cmap_list = self.config.colormap_narrow_choices
             cmap_list.append(currentCmap)
         else:
-            cmap_list = self.config.cmaps2
+            cmap_list = self.config.colormap_choices
 
         # remove duplicates
         cmap_list = sorted(list(set(cmap_list)))

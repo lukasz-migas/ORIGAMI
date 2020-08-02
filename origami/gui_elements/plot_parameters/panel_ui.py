@@ -43,12 +43,12 @@ class PanelUISettings(PanelSettingsBase):
 
         general_log_to_file_check = wx.StaticText(self, -1, "Log events to file:")
         self.general_log_to_file_check = make_checkbox(self, "", evt_id=ID_extraSettings_logging)
-        self.general_log_to_file_check.SetValue(CONFIG.logging)
+        self.general_log_to_file_check.SetValue(CONFIG.APP_ENABLE_LOGGING)
         self.general_log_to_file_check.Bind(wx.EVT_CHECKBOX, self.on_update_states)
 
         general_auto_save_check = wx.StaticText(self, -1, "Auto-save settings:")
         self.general_auto_save_check = make_checkbox(self, "", evt_id=ID_extraSettings_autoSaveSettings)
-        self.general_auto_save_check.SetValue(CONFIG.autoSaveSettings)
+        self.general_auto_save_check.SetValue(CONFIG.APP_ENABLE_CONFIG_AUTO_SAVE)
         self.general_auto_save_check.Bind(wx.EVT_CHECKBOX, self.on_update_states)
 
         usage_parameters_label = wx.StaticText(self, -1, "In-plot interactivity parameters")
@@ -105,14 +105,14 @@ class PanelUISettings(PanelSettingsBase):
 
         evt_id = evt.GetId()
 
-        CONFIG.logging = self.general_log_to_file_check.GetValue()
-        CONFIG.autoSaveSettings = self.general_auto_save_check.GetValue()
+        CONFIG.APP_ENABLE_LOGGING = self.general_log_to_file_check.GetValue()
+        CONFIG.APP_ENABLE_CONFIG_AUTO_SAVE = self.general_auto_save_check.GetValue()
 
         if evt_id == ID_extraSettings_autoSaveSettings:
-            on_off = "enabled" if CONFIG.autoSaveSettings else "disabled"
+            on_off = "enabled" if CONFIG.APP_ENABLE_CONFIG_AUTO_SAVE else "disabled"
             msg = f"Auto-saving of settings was `{on_off}`"
         elif evt_id == ID_extraSettings_logging:
-            on_off = "enabled" if CONFIG.logging else "disabled"
+            on_off = "enabled" if CONFIG.APP_ENABLE_LOGGING else "disabled"
             msg = f"Logging to file was `{on_off}`"
         else:
             return

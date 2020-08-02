@@ -412,16 +412,16 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         # inform of linearization
         if CONFIG.ms_process_linearize:
             info += "<b>Linearize</b>\n"
-            info += f"    Mode: {CONFIG.ms_linearization_mode}\n"
-            if not CONFIG.ms_auto_range:
+            info += f"    Mode: {CONFIG.ms_linearize_method}\n"
+            if not CONFIG.ms_linearize_mz_auto_range:
                 try:
-                    info += f"    m/z range: {CONFIG.ms_mzStart:.2f} - {CONFIG.ms_mzEnd:.2f}"
+                    info += f"    m/z range: {CONFIG.ms_linearize_mz_start:.2f} - {CONFIG.ms_linearize_mz_end:.2f}"
                     info += " (if broader than raw data, it will be cropped appropriately)\n"
                 except TypeError:
                     pass
             else:
                 info += "    m/z range: Auto\n"
-            info += f"    bin size: {CONFIG.ms_mzBinSize}\n"
+            info += f"    bin size: {CONFIG.ms_linearize_mz_bin_size}\n"
 
         if not info:
             info += "By default, ORIGAMI will pick common mass range (by looking at all the m/z range of each file)\n"
@@ -438,12 +438,12 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         # inform of thresholding
         if CONFIG.ms_process_threshold:
             info += "<b>Subtract baseline</b>\n"
-            info += f"   Mode: {CONFIG.ms_baseline}\n"
+            info += f"   Mode: {CONFIG.ms_baseline_method}\n"
 
         # inform about MSDT settings
         info += "\n<b>MS/DT settings </b>\n"
-        info += f"    m/z range: {CONFIG.extract_dtms_mzStart:.2f} - {CONFIG.extract_dtms_mzEnd:.2f}"
-        info += f" (bin size: {CONFIG.extract_dtms_mzBinSize})"
+        info += f"    m/z range: {CONFIG.msdt_panel_extract_mz_start:.2f} - {CONFIG.msdt_panel_extract_mz_end:.2f}"
+        info += f" (bin size: {CONFIG.msdt_panel_extract_mz_bin_size})"
 
         self.processing_label.SetLabelMarkup(info)
 
@@ -484,11 +484,11 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
             # linearization
             CONFIG.ms_process_linearize = True
-            CONFIG.ms_linearization_mode = linearize_metadata.get("linearize_method", "Linear interpolation")
-            CONFIG.ms_mzStart = linearize_metadata.get("x_min", CONFIG.ms_mzStart)
-            CONFIG.ms_mzEnd = linearize_metadata.get("x_max", CONFIG.ms_mzEnd)
-            CONFIG.ms_mzBinSize = linearize_metadata.get("bin_size", CONFIG.ms_mzBinSize)
-            CONFIG.ms_auto_range = False
+            CONFIG.ms_linearize_method = linearize_metadata.get("linearize_method", "Linear interpolation")
+            CONFIG.ms_linearize_mz_start = linearize_metadata.get("x_min", CONFIG.ms_linearize_mz_start)
+            CONFIG.ms_linearize_mz_end = linearize_metadata.get("x_max", CONFIG.ms_linearize_mz_end)
+            CONFIG.ms_linearize_mz_bin_size = linearize_metadata.get("bin_size", CONFIG.ms_linearize_mz_bin_size)
+            CONFIG.ms_linearize_mz_auto_range = False
 
             # smoothing
             smooth_metadata = metadata.get("smooth", dict())
@@ -502,8 +502,10 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
             # baseline
             baseline_metadata = metadata.get("baseline", dict())
             CONFIG.ms_process_threshold = baseline_metadata.get("correction", CONFIG.ms_process_threshold)
-            CONFIG.ms_baseline = baseline_metadata.get("baseline_method", CONFIG.ms_baseline)
-            CONFIG.ms_threshold = baseline_metadata.get("threshold", CONFIG.ms_threshold)
+            CONFIG.ms_baseline_method = baseline_metadata.get("baseline_method", CONFIG.ms_baseline_method)
+            CONFIG.ms_baseline_linear_threshold = baseline_metadata.get(
+                "threshold", CONFIG.ms_baseline_linear_threshold
+            )
             CONFIG.ms_baseline_polynomial_order = baseline_metadata.get(
                 "poly_order", CONFIG.ms_baseline_polynomial_order
             )
@@ -513,9 +515,9 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
             # msdt
             msdt_metadata = metadata.get("msdt", dict())
-            CONFIG.extract_dtms_mzStart = msdt_metadata.get("x_min", CONFIG.extract_dtms_mzStart)
-            CONFIG.extract_dtms_mzEnd = msdt_metadata.get("x_max", CONFIG.extract_dtms_mzEnd)
-            CONFIG.extract_dtms_mzBinSize = msdt_metadata.get("bin_size", CONFIG.extract_dtms_mzBinSize)
+            CONFIG.msdt_panel_extract_mz_start = msdt_metadata.get("x_min", CONFIG.msdt_panel_extract_mz_start)
+            CONFIG.msdt_panel_extract_mz_end = msdt_metadata.get("x_max", CONFIG.msdt_panel_extract_mz_end)
+            CONFIG.msdt_panel_extract_mz_bin_size = msdt_metadata.get("bin_size", CONFIG.msdt_panel_extract_mz_bin_size)
 
             # implementation and info
             self.on_update_info()
@@ -700,11 +702,11 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
             linearization_mode = "Linear interpolation"
             mz_bin = 0.01
         else:
-            linearization_mode = CONFIG.ms_linearization_mode
-            mz_bin = CONFIG.ms_mzBinSize
+            linearization_mode = CONFIG.ms_linearize_method
+            mz_bin = CONFIG.ms_linearize_mz_bin_size
 
-        mz_min = max([CONFIG.ms_mzStart, mz_min])
-        mz_max = min([CONFIG.ms_mzEnd, mz_max])
+        mz_min = max([CONFIG.ms_linearize_mz_start, mz_min])
+        mz_max = min([CONFIG.ms_linearize_mz_end, mz_max])
 
         # check for ion mobility
         im_on_out = False
@@ -727,17 +729,17 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
             ),
             baseline=dict(
                 correction=CONFIG.ms_process_threshold,
-                baseline_method=CONFIG.ms_baseline,
-                threshold=CONFIG.ms_threshold,
+                baseline_method=CONFIG.ms_baseline_method,
+                threshold=CONFIG.ms_baseline_linear_threshold,
                 poly_order=CONFIG.ms_baseline_polynomial_order,
                 curved_window=CONFIG.ms_baseline_curved_window,
                 median_window=CONFIG.ms_baseline_median_window,
                 tophat_window=CONFIG.ms_baseline_tophat_window,
             ),
             msdt=dict(
-                x_min=CONFIG.extract_dtms_mzStart,
-                x_max=CONFIG.extract_dtms_mzEnd,
-                bin_size=CONFIG.extract_dtms_mzBinSize,
+                x_min=CONFIG.msdt_panel_extract_mz_start,
+                x_max=CONFIG.msdt_panel_extract_mz_end,
+                bin_size=CONFIG.msdt_panel_extract_mz_bin_size,
             ),
             **impl_kwargs,
         )

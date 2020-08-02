@@ -1046,8 +1046,8 @@ class PanelCustomiseInteractivePlot(wx.MiniFrame):
         self.plot_colormap_choice = wx.ComboBox(
             panel,
             -1,
-            choices=self.config.cmaps2,
-            value=self.kwargs.get("plot_properties", {}).get("colormap", self.config.currentCmap),
+            choices=self.config.colormap_choices,
+            value=self.kwargs.get("plot_properties", {}).get("colormap", self.config.heatmap_colormap),
             style=wx.CB_READONLY,
         )
         self.plot_colormap_choice.Bind(wx.EVT_COMBOBOX, self.on_apply_plots)
@@ -1407,7 +1407,7 @@ class PanelCustomiseInteractivePlot(wx.MiniFrame):
             panel,
             -1,
             style=wx.CB_READONLY,
-            choices=self.config.cmaps2,
+            choices=self.config.colormap_choices,
             value=self.kwargs.get("overlay_properties", {}).get("overlay_colormap_1", "Reds"),
         )
         self.overlay_colormap_1.Bind(wx.EVT_COMBOBOX, self.on_apply_overlay)
@@ -1417,7 +1417,7 @@ class PanelCustomiseInteractivePlot(wx.MiniFrame):
             panel,
             -1,
             style=wx.CB_READONLY,
-            choices=self.config.cmaps2,
+            choices=self.config.colormap_choices,
             value=self.kwargs.get("overlay_properties", {}).get("overlay_colormap_2", "Blues"),
         )
         self.overlay_colormap_2.Bind(wx.EVT_COMBOBOX, self.on_apply_overlay)
@@ -1551,7 +1551,7 @@ class PanelCustomiseInteractivePlot(wx.MiniFrame):
             panel,
             -1,
             style=wx.CB_READONLY,
-            choices=self.config.cmaps2,
+            choices=self.config.colormap_choices,
             value=self.kwargs.get("overlay_properties", {}).get("rmsd_matrix_colormap", "coolwarm"),
         )
         self.rmsd_matrix_colormap.Bind(wx.EVT_COMBOBOX, self.on_apply_overlay)
@@ -3130,10 +3130,10 @@ class PanelCustomiseInteractivePlot(wx.MiniFrame):
     def on_apply_color(self, evt):
         source = evt.GetEventObject().GetName()
 
-        dlg = DialogColorPicker(self, self.config.customColors)
+        dlg = DialogColorPicker(self, self.config.custom_colors)
         if dlg.ShowModal() == wx.ID_OK:
             color_255, color_1, __ = dlg.GetChosenColour()
-            self.config.customColors = dlg.GetCustomColours()
+            self.config.custom_colors = dlg.GetCustomColours()
 
             if source == "gridline_color":
                 self.frame_gridline_color.SetBackgroundColour(color_255)

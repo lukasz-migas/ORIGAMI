@@ -53,13 +53,13 @@ class PanelRMSDSettings(PanelSettingsBase):
 
         rmsd_fontsize = wx.StaticText(self, -1, "Label size:")
         self.rmsd_fontsize_value = wx.SpinCtrlDouble(
-            self, -1, value=str(CONFIG.rmsd_fontSize), min=1, max=50, initial=0, inc=1, size=(90, -1)
+            self, -1, value=str(CONFIG.rmsd_font_size), min=1, max=50, initial=0, inc=1, size=(90, -1)
         )
         self.rmsd_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.rmsd_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_rmsd_label)
 
         self.rmsd_font_weight_check = make_checkbox(self, "Bold")
-        self.rmsd_font_weight_check.SetValue(CONFIG.rmsd_fontWeight)
+        self.rmsd_font_weight_check.SetValue(CONFIG.rmsd_font_weight)
         self.rmsd_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.rmsd_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_update_rmsd_label)
 
@@ -72,10 +72,10 @@ class PanelRMSDSettings(PanelSettingsBase):
         self.rmsd_line_width_value = wx.SpinCtrlDouble(
             self,
             -1,
-            value=str(CONFIG.lineWidth_1D * 10),
+            value=str(CONFIG.spectrum_line_width * 10),
             min=1,
             max=100,
-            initial=CONFIG.rmsd_lineWidth * 10,
+            initial=CONFIG.rmsd_line_width * 10,
             inc=5,
             size=(90, -1),
             name="rmsf",
@@ -87,12 +87,12 @@ class PanelRMSDSettings(PanelSettingsBase):
         self.rmsd_color_line_btn = wx.Button(
             self, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="rmsd.line"
         )
-        self.rmsd_color_line_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.rmsd_lineColour))
+        self.rmsd_color_line_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.rmsd_line_colour))
         self.rmsd_color_line_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
         rmsd_line_style = wx.StaticText(self, -1, "Line style:")
         self.rmsd_line_style_value = wx.Choice(self, -1, choices=CONFIG.lineStylesList, size=(-1, -1), name="rmsf")
-        self.rmsd_line_style_value.SetStringSelection(CONFIG.rmsd_lineStyle)
+        self.rmsd_line_style_value.SetStringSelection(CONFIG.rmsd_line_style)
         self.rmsd_line_style_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.rmsd_line_style_value.Bind(wx.EVT_CHOICE, self.on_update)
 
@@ -101,7 +101,7 @@ class PanelRMSDSettings(PanelSettingsBase):
             self, -1, choices=list(CONFIG.lineHatchDict.keys()), size=(-1, -1), name="rmsf"
         )
         self.rmsd_line_hatch_value.SetStringSelection(
-            list(CONFIG.lineHatchDict.keys())[list(CONFIG.lineHatchDict.values()).index(CONFIG.rmsd_lineHatch)]
+            list(CONFIG.lineHatchDict.keys())[list(CONFIG.lineHatchDict.values()).index(CONFIG.rmsd_fill_hatch)]
         )
         self.rmsd_line_hatch_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.rmsd_line_hatch_value.Bind(wx.EVT_CHOICE, self.on_update)
@@ -110,17 +110,17 @@ class PanelRMSDSettings(PanelSettingsBase):
         self.rmsd_underline_color_btn = wx.Button(
             self, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="rmsd.fill"
         )
-        self.rmsd_underline_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.rmsd_underlineColor))
+        self.rmsd_underline_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.rmsd_fill_color))
         self.rmsd_underline_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
         rmsd_alpha_label = wx.StaticText(self, -1, "Fill transparency:")
         self.rmsd_alpha_value = wx.SpinCtrlDouble(
             self,
             -1,
-            value=str(CONFIG.rmsd_underlineTransparency * 100),
+            value=str(CONFIG.rmsd_fill_transparency * 100),
             min=0,
             max=100,
-            initial=CONFIG.rmsd_underlineTransparency * 100,
+            initial=CONFIG.rmsd_fill_transparency * 100,
             inc=5,
             size=(90, -1),
             name="rmsf",
@@ -132,10 +132,10 @@ class PanelRMSDSettings(PanelSettingsBase):
         self.rmsd_vspace_value = wx.SpinCtrlDouble(
             self,
             -1,
-            value=str(CONFIG.rmsd_hspace),
+            value=str(CONFIG.rmsd_space_h),
             min=0,
             max=1,
-            initial=CONFIG.rmsd_hspace,
+            initial=CONFIG.rmsd_space_h,
             inc=0.05,
             size=(90, -1),
             name="rmsf.spacing",
@@ -148,7 +148,7 @@ class PanelRMSDSettings(PanelSettingsBase):
         self.rmsd_x_rotation_value = wx.SpinCtrlDouble(
             self,
             -1,
-            value=str(CONFIG.rmsd_rotation_X),
+            value=str(CONFIG.rmsd_rotation_x),
             min=0,
             max=360,
             initial=0,
@@ -163,7 +163,7 @@ class PanelRMSDSettings(PanelSettingsBase):
         self.rmsd_y_rotation_value = wx.SpinCtrlDouble(
             self,
             -1,
-            value=str(CONFIG.rmsd_rotation_Y),
+            value=str(CONFIG.rmsd_rotation_y),
             min=0,
             max=360,
             initial=0,
@@ -184,10 +184,10 @@ class PanelRMSDSettings(PanelSettingsBase):
         self.rmsd_matrix_fontsize = wx.SpinCtrlDouble(
             self,
             -1,
-            value=str(CONFIG.labelFontSize_1D),
+            value=str(CONFIG.axes_label_font_size),
             min=0,
             max=48,
-            initial=CONFIG.labelFontSize_1D,
+            initial=CONFIG.axes_label_font_size,
             inc=2,
             size=(90, -1),
             name="rmsd_matrix",
@@ -196,7 +196,7 @@ class PanelRMSDSettings(PanelSettingsBase):
         self.rmsd_matrix_fontsize.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
 
         self.rmsd_matrix_font_weight_check = make_checkbox(self, "Bold", name="rmsd_matrix")
-        self.rmsd_matrix_font_weight_check.SetValue(CONFIG.labelFontWeight_1D)
+        self.rmsd_matrix_font_weight_check.SetValue(CONFIG.axes_label_font_weight)
         self.rmsd_matrix_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.rmsd_matrix_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_update)
 
@@ -321,15 +321,15 @@ class PanelRMSDSettings(PanelSettingsBase):
 
         # rmsd
         CONFIG.rmsd_position = self.rmsd_position_value.GetStringSelection()
-        CONFIG.rmsd_fontSize = str2num(self.rmsd_fontsize_value.GetValue())
-        CONFIG.rmsd_fontWeight = self.rmsd_font_weight_check.GetValue()
-        CONFIG.rmsd_rotation_X = str2num(self.rmsd_x_rotation_value.GetValue())
-        CONFIG.rmsd_rotation_Y = str2num(self.rmsd_y_rotation_value.GetValue())
-        CONFIG.rmsd_lineStyle = self.rmsd_line_style_value.GetStringSelection()
-        CONFIG.rmsd_lineHatch = CONFIG.lineHatchDict[self.rmsd_line_hatch_value.GetStringSelection()]
-        CONFIG.rmsd_underlineTransparency = str2num(self.rmsd_alpha_value.GetValue()) / 100
-        CONFIG.rmsd_hspace = str2num(self.rmsd_vspace_value.GetValue())
-        CONFIG.rmsd_lineWidth = self.rmsd_line_width_value.GetValue()
+        CONFIG.rmsd_font_size = str2num(self.rmsd_fontsize_value.GetValue())
+        CONFIG.rmsd_font_weight = self.rmsd_font_weight_check.GetValue()
+        CONFIG.rmsd_rotation_x = str2num(self.rmsd_x_rotation_value.GetValue())
+        CONFIG.rmsd_rotation_y = str2num(self.rmsd_y_rotation_value.GetValue())
+        CONFIG.rmsd_line_style = self.rmsd_line_style_value.GetStringSelection()
+        CONFIG.rmsd_fill_hatch = CONFIG.lineHatchDict[self.rmsd_line_hatch_value.GetStringSelection()]
+        CONFIG.rmsd_fill_transparency = str2num(self.rmsd_alpha_value.GetValue()) / 100
+        CONFIG.rmsd_space_h = str2num(self.rmsd_vspace_value.GetValue())
+        CONFIG.rmsd_line_width = self.rmsd_line_width_value.GetValue()
 
         # rmsd matrix
         CONFIG.rmsd_matrix_add_labels = self.rmsd_add_labels_check.GetValue()
@@ -402,7 +402,7 @@ class PanelRMSDSettings(PanelSettingsBase):
             self.rmsd_color_btn.SetBackgroundColour(color_255)
             self.on_update_rmsd_label(None)
         elif source == "rmsd.line":
-            CONFIG.rmsd_lineColour = color_1
+            CONFIG.rmsd_line_colour = color_1
             self.rmsd_color_line_btn.SetBackgroundColour(color_255)
             self.panel_plot.plot_1D_update(plotName="RMSF")
         elif source == "rmsd.matrix.label":
@@ -410,6 +410,6 @@ class PanelRMSDSettings(PanelSettingsBase):
             self.rmsd_matrix_font_color_btn.SetBackgroundColour(color_255)
             self.on_update(None)
         elif source == "rmsd.fill":
-            CONFIG.rmsd_underlineColor = color_1
+            CONFIG.rmsd_fill_color = color_1
             self.rmsd_underline_color_btn.SetBackgroundColour(color_255)
             self.panel_plot.plot_1D_update(plotName="RMSF")

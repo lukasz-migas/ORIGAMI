@@ -153,7 +153,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin):
 
     def on_close(self, evt, force: bool = False):  # noqa
         """Destroy this frame."""
-        CONFIG._windowSettings["Plot parameters"]["show"] = False  # noqa
+        CONFIG.WINDOW_SETTINGS["Plot parameters"]["show"] = False  # noqa
         CONFIG.extraParamsWindow_on_off = False
         if hasattr(self.view, "window_mgr"):
             self.view.window_mgr.GetPane(self).Hide()  # noqa

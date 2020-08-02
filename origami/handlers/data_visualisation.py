@@ -861,7 +861,7 @@ class DataVisualization:
                 "ylabels": data["ylabels"],
                 "rmsdLabel": f"RMSD: {pRMSD:.2f}",
                 "rmsd_location": [label_x_pos, label_y_pos],
-                "cmap": self.config.currentCmap,
+                "cmap": self.config.heatmap_colormap,
                 "labels": legend,
                 "dataset_info": dataset_info,
             },
@@ -934,7 +934,7 @@ class DataVisualization:
                 "ylabels": data["ylabels"],
                 "rmsdLabel": f"RMSD: {pRMSD:.2f}",
                 "rmsd_location": [label_x_pos, label_y_pos],
-                "cmap": self.config.currentCmap,
+                "cmap": self.config.heatmap_colormap,
                 "labels": legend,
                 "dataset_info": dataset_info,
             },
@@ -999,7 +999,7 @@ class DataVisualization:
                 "cmaps": cmaplist,
                 "rmsdLabel": f"RMSD: {pRMSD:.2f}",
                 "rmsd_location": [label_x_pos, label_y_pos],
-                "cmap": self.config.currentCmap,
+                "cmap": self.config.heatmap_colormap,
                 "labels": legend,
                 "dataset_info": dataset_info,
             },
@@ -1180,7 +1180,7 @@ class DataVisualization:
                 "ylist": ylist,
                 "zlist": zlist,
                 "zvals": zvals,
-                "cmap": self.config.currentCmap,
+                "cmap": self.config.heatmap_colormap,
                 "labels": legend,
                 "dataset_info": dataset_info,
             },
@@ -1243,7 +1243,7 @@ class DataVisualization:
                 "yvals": data["yvals"],
                 "xlabels": data["xlabels"],
                 "ylabels": data["ylabels"],
-                "cmap": self.config.currentCmap,
+                "cmap": self.config.heatmap_colormap,
                 "labels": legend,
                 "dataset_info": dataset_info,
             },
@@ -1332,7 +1332,7 @@ class DataVisualization:
         xvals = data["xvals"]
         yvals = data["yvals"]
         zvals = data["zvals"]
-        cmap = self.config.currentCmap
+        cmap = self.config.heatmap_colormap
 
         # ensure plot is shown in right window
         if "plot_obj" not in kwargs:
@@ -1351,7 +1351,7 @@ class DataVisualization:
         rmsd_label = data["rmsdLabel"]
 
         # plot
-        cmap = self.config.currentCmap
+        cmap = self.config.heatmap_colormap
         self.panelPlots.on_plot_RMSD(zvals, xvals, yvals, xlabel, ylabel, cmap, plotType="RMSD", **kwargs)
 
         # add label
@@ -1371,7 +1371,7 @@ class DataVisualization:
         rmsd_label = data["rmsdLabel"]
 
         # plot
-        cmap = self.config.currentCmap
+        cmap = self.config.heatmap_colormap
         self.panelPlots.on_plot_RMSDF(
             yvalsRMSF=pRMSF_list,
             zvals=zvals,
@@ -1380,7 +1380,7 @@ class DataVisualization:
             xlabelRMSD=xlabel,
             ylabelRMSD=ylabel,
             ylabelRMSF="RMSD (%)",
-            color=self.config.lineColour_1D,
+            color=self.config.spectrum_line_color,
             cmap=cmap,
             **kwargs,
         )
@@ -1396,7 +1396,7 @@ class DataVisualization:
         legend = data["labels"]
 
         # plot
-        cmap = self.config.currentCmap
+        cmap = self.config.heatmap_colormap
         self.panelPlots.on_plot_matrix(zvals=zvals, xylabels=legend, cmap=cmap, **kwargs)
 
     def on_show_overlay_heatmap_rgb(self, data, **kwargs):

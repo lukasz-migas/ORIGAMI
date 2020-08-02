@@ -91,10 +91,10 @@ class PanelWaterfallSettings(PanelSettingsBase):
         self.waterfall_line_width_value = wx.SpinCtrlDouble(
             self,
             -1,
-            value=str(CONFIG.waterfall_lineWidth),
+            value=str(CONFIG.waterfall_line_width),
             min=1,
             max=10,
-            initial=CONFIG.waterfall_lineWidth,
+            initial=CONFIG.waterfall_line_width,
             inc=1,
             size=(90, -1),
             name="waterfall.line",
@@ -106,7 +106,7 @@ class PanelWaterfallSettings(PanelSettingsBase):
         self.waterfall_line_style_value = wx.Choice(
             self, -1, choices=CONFIG.lineStylesList, size=(-1, -1), name="waterfall.line"
         )
-        self.waterfall_line_style_value.SetStringSelection(CONFIG.waterfall_lineStyle)
+        self.waterfall_line_style_value.SetStringSelection(CONFIG.waterfall_line_style)
         self.waterfall_line_style_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.waterfall_line_style_value.Bind(wx.EVT_CHOICE, self.on_update)
 
@@ -114,11 +114,11 @@ class PanelWaterfallSettings(PanelSettingsBase):
         self.waterfall_color_line_btn = wx.Button(
             self, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="waterfall.line.color"
         )
-        self.waterfall_color_line_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.waterfall_color))
+        self.waterfall_color_line_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.waterfall_line_color))
         self.waterfall_color_line_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
         self.waterfall_line_sameAsShade_check = make_checkbox(self, "Same as fill", name="waterfall.fill")
-        self.waterfall_line_sameAsShade_check.SetValue(CONFIG.waterfall_line_sameAsShade)
+        self.waterfall_line_sameAsShade_check.SetValue(CONFIG.waterfall_line_same_as_fill)
         self.waterfall_line_sameAsShade_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.waterfall_line_sameAsShade_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
         self.waterfall_line_sameAsShade_check.Bind(wx.EVT_CHECKBOX, self.on_update)
@@ -126,7 +126,7 @@ class PanelWaterfallSettings(PanelSettingsBase):
         # under-line style
         waterfall_shade_under_label = wx.StaticText(self, -1, "Fill under the curve:")
         self.waterfall_fill_under_check = make_checkbox(self, "", name="waterfall.fill")
-        self.waterfall_fill_under_check.SetValue(CONFIG.waterfall_shade_under)
+        self.waterfall_fill_under_check.SetValue(CONFIG.waterfall_fill_under)
         self.waterfall_fill_under_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.waterfall_fill_under_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
         self.waterfall_fill_under_check.Bind(wx.EVT_CHECKBOX, self.on_update)
@@ -140,7 +140,7 @@ class PanelWaterfallSettings(PanelSettingsBase):
         self.waterfall_colorScheme_value.Bind(wx.EVT_CHOICE, self.on_update)
         self.waterfall_colorScheme_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
 
-        cmap_list = CONFIG.cmaps2[:]
+        cmap_list = CONFIG.colormap_choices[:]
         cmap_list.remove("jet")
         waterfall_colormap_label = wx.StaticText(self, -1, "Colormap:")
         self.waterfall_colormap_value = wx.Choice(self, -1, choices=cmap_list, size=(-1, -1), name="waterfall.fill")
@@ -159,17 +159,17 @@ class PanelWaterfallSettings(PanelSettingsBase):
         self.waterfall_color_fill_btn = wx.Button(
             self, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="waterfall.fill.color"
         )
-        self.waterfall_color_fill_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.waterfall_shade_under_color))
+        self.waterfall_color_fill_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.waterfall_fill_under_color))
         self.waterfall_color_fill_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
         waterfall_shade_transparency_label = wx.StaticText(self, -1, "Fill transparency:")
         self.waterfall_fill_transparency_value = wx.SpinCtrlDouble(
             self,
             -1,
-            value=str(CONFIG.waterfall_shade_under_transparency),
+            value=str(CONFIG.waterfall_fill_under_transparency),
             min=0,
             max=1,
-            initial=CONFIG.waterfall_shade_under_transparency,
+            initial=CONFIG.waterfall_fill_under_transparency,
             inc=0.25,
             size=(90, -1),
             name="waterfall.fill",
@@ -181,10 +181,10 @@ class PanelWaterfallSettings(PanelSettingsBase):
         self.waterfall_fill_n_limit_value = wx.SpinCtrlDouble(
             self,
             -1,
-            value=str(CONFIG.waterfall_shade_under_nlimit),
+            value=str(CONFIG.waterfall_fill_under_nlimit),
             min=0,
             max=1500,
-            initial=CONFIG.waterfall_shade_under_nlimit,
+            initial=CONFIG.waterfall_fill_under_nlimit,
             inc=100,
             size=(90, -1),
             name="waterfall.fill",
@@ -197,7 +197,7 @@ class PanelWaterfallSettings(PanelSettingsBase):
 
         waterfall_show_labels_label = wx.StaticText(self, -1, "Show labels:")
         self.waterfall_showLabels_check = make_checkbox(self, "", name="waterfall.label.reset")
-        self.waterfall_showLabels_check.SetValue(CONFIG.waterfall_add_labels)
+        self.waterfall_showLabels_check.SetValue(CONFIG.waterfall_labels_show)
         self.waterfall_showLabels_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
         self.waterfall_showLabels_check.Bind(wx.EVT_CHECKBOX, self.on_update)
 
@@ -217,9 +217,9 @@ class PanelWaterfallSettings(PanelSettingsBase):
 
         waterfall_label_format_label = wx.StaticText(self, -1, "Label format:")
         self.waterfall_label_format_value = wx.Choice(
-            self, -1, choices=CONFIG.waterfall_label_format_choices, size=(-1, -1), name="waterfall.label.reset"
+            self, -1, choices=CONFIG.waterfall_labels_format_choices, size=(-1, -1), name="waterfall.label.reset"
         )
-        self.waterfall_label_format_value.SetStringSelection(CONFIG.waterfall_label_format)
+        self.waterfall_label_format_value.SetStringSelection(CONFIG.waterfall_labels_format)
         self.waterfall_label_format_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.waterfall_label_format_value.Bind(wx.EVT_CHOICE, self.on_update)
         self.waterfall_label_format_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
@@ -228,10 +228,10 @@ class PanelWaterfallSettings(PanelSettingsBase):
         self.waterfall_label_font_size_value = wx.SpinCtrlDouble(
             self,
             -1,
-            value=str(CONFIG.waterfall_label_fontSize),
+            value=str(CONFIG.waterfall_labels_font_size),
             min=4,
             max=32,
-            initial=CONFIG.waterfall_label_fontSize,
+            initial=CONFIG.waterfall_labels_font_size,
             inc=2,
             size=(45, -1),
             name="waterfall.label",
@@ -240,7 +240,7 @@ class PanelWaterfallSettings(PanelSettingsBase):
         self.waterfall_label_font_size_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
 
         self.waterfall_label_font_weight_check = make_checkbox(self, "Bold", name="waterfall.label")
-        self.waterfall_label_font_weight_check.SetValue(CONFIG.waterfall_label_fontWeight)
+        self.waterfall_label_font_weight_check.SetValue(CONFIG.waterfall_labels_font_weight)
         self.waterfall_label_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.waterfall_label_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_update)
 
@@ -369,45 +369,45 @@ class PanelWaterfallSettings(PanelSettingsBase):
         """Apply waterfall settings"""
         CONFIG.waterfall_offset = str2num(self.waterfall_offset_value.GetValue())
         CONFIG.waterfall_increment = self.waterfall_increment_value.GetValue()
-        CONFIG.waterfall_lineWidth = self.waterfall_line_width_value.GetValue()
-        CONFIG.waterfall_lineStyle = self.waterfall_line_style_value.GetStringSelection()
+        CONFIG.waterfall_line_width = self.waterfall_line_width_value.GetValue()
+        CONFIG.waterfall_line_style = self.waterfall_line_style_value.GetStringSelection()
         CONFIG.waterfall_reverse = self.waterfall_reverse_check.GetValue()
         CONFIG.waterfall_color_scheme = self.waterfall_colorScheme_value.GetStringSelection()
         CONFIG.waterfall_palette = self.waterfall_palette_value.GetStringSelection()
         CONFIG.waterfall_colormap = self.waterfall_colormap_value.GetStringSelection()
         CONFIG.waterfall_normalize = self.waterfall_normalize_check.GetValue()
-        CONFIG.waterfall_line_sameAsShade = self.waterfall_line_sameAsShade_check.GetValue()
-        CONFIG.waterfall_add_labels = self.waterfall_showLabels_check.GetValue()
+        CONFIG.waterfall_line_same_as_fill = self.waterfall_line_sameAsShade_check.GetValue()
+        CONFIG.waterfall_labels_show = self.waterfall_showLabels_check.GetValue()
         CONFIG.waterfall_labels_frequency = int(self.waterfall_label_frequency_value.GetValue())
         CONFIG.waterfall_labels_x_offset = self.waterfall_label_x_offset_value.GetValue()
         CONFIG.waterfall_labels_y_offset = self.waterfall_label_y_offset_value.GetValue()
-        CONFIG.waterfall_label_fontSize = self.waterfall_label_font_size_value.GetValue()
-        CONFIG.waterfall_label_fontWeight = self.waterfall_label_font_weight_check.GetValue()
-        CONFIG.waterfall_shade_under = self.waterfall_fill_under_check.GetValue()
-        CONFIG.waterfall_shade_under_transparency = self.waterfall_fill_transparency_value.GetValue()
-        CONFIG.waterfall_shade_under_nlimit = self.waterfall_fill_n_limit_value.GetValue()
-        CONFIG.waterfall_label_format = self.waterfall_label_format_value.GetStringSelection()
+        CONFIG.waterfall_labels_font_size = self.waterfall_label_font_size_value.GetValue()
+        CONFIG.waterfall_labels_font_weight = self.waterfall_label_font_weight_check.GetValue()
+        CONFIG.waterfall_fill_under = self.waterfall_fill_under_check.GetValue()
+        CONFIG.waterfall_fill_under_transparency = self.waterfall_fill_transparency_value.GetValue()
+        CONFIG.waterfall_fill_under_nlimit = self.waterfall_fill_n_limit_value.GetValue()
+        CONFIG.waterfall_labels_format = self.waterfall_label_format_value.GetStringSelection()
 
         self._parse_evt(evt)
 
     def on_toggle_controls(self, evt):
         """Update waterfall controls"""
-        CONFIG.waterfall_line_sameAsShade = self.waterfall_line_sameAsShade_check.GetValue()
-        self.waterfall_color_line_btn.Enable(not CONFIG.waterfall_line_sameAsShade)
+        CONFIG.waterfall_line_same_as_fill = self.waterfall_line_sameAsShade_check.GetValue()
+        self.waterfall_color_line_btn.Enable(not CONFIG.waterfall_line_same_as_fill)
 
         # update patch coloring
-        CONFIG.waterfall_shade_under = self.waterfall_fill_under_check.GetValue()
-        self.waterfall_fill_transparency_value.Enable(CONFIG.waterfall_shade_under)
-        self.waterfall_fill_n_limit_value.Enable(CONFIG.waterfall_shade_under)
+        CONFIG.waterfall_fill_under = self.waterfall_fill_under_check.GetValue()
+        self.waterfall_fill_transparency_value.Enable(CONFIG.waterfall_fill_under)
+        self.waterfall_fill_n_limit_value.Enable(CONFIG.waterfall_fill_under)
 
         # update labels
-        CONFIG.waterfall_add_labels = self.waterfall_showLabels_check.GetValue()
-        self.waterfall_label_format_value.Enable(CONFIG.waterfall_add_labels)
-        self.waterfall_label_font_size_value.Enable(CONFIG.waterfall_add_labels)
-        self.waterfall_label_font_weight_check.Enable(CONFIG.waterfall_add_labels)
-        self.waterfall_label_frequency_value.Enable(CONFIG.waterfall_add_labels)
-        self.waterfall_label_x_offset_value.Enable(CONFIG.waterfall_add_labels)
-        self.waterfall_label_y_offset_value.Enable(CONFIG.waterfall_add_labels)
+        CONFIG.waterfall_labels_show = self.waterfall_showLabels_check.GetValue()
+        self.waterfall_label_format_value.Enable(CONFIG.waterfall_labels_show)
+        self.waterfall_label_font_size_value.Enable(CONFIG.waterfall_labels_show)
+        self.waterfall_label_font_weight_check.Enable(CONFIG.waterfall_labels_show)
+        self.waterfall_label_frequency_value.Enable(CONFIG.waterfall_labels_show)
+        self.waterfall_label_x_offset_value.Enable(CONFIG.waterfall_labels_show)
+        self.waterfall_label_y_offset_value.Enable(CONFIG.waterfall_labels_show)
 
         CONFIG.waterfall_color_scheme = self.waterfall_colorScheme_value.GetStringSelection()
         self.waterfall_color_fill_btn.Enable(CONFIG.waterfall_color_scheme == "Same color")
@@ -441,10 +441,10 @@ class PanelWaterfallSettings(PanelSettingsBase):
 
         # update configuration and button color
         if source == "waterfall.line.color":
-            CONFIG.waterfall_color = color_1
+            CONFIG.waterfall_line_color = color_1
             self.waterfall_color_line_btn.SetBackgroundColour(color_255)
             self.on_update(evt)
         elif source == "waterfall.fill.color":
-            CONFIG.waterfall_shade_under_color = color_1
+            CONFIG.waterfall_fill_under_color = color_1
             self.waterfall_color_fill_btn.SetBackgroundColour(color_255)
             self.on_update(evt)

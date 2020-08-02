@@ -121,17 +121,17 @@ class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin):
         if name.startswith("line"):
             self.figure.plot_1d_update_style_by_label(
                 gid=None,
-                color=CONFIG.lineColour_1D,
-                line_style=CONFIG.lineStyle_1D,
-                line_width=CONFIG.lineWidth_1D,
+                color=CONFIG.spectrum_line_color,
+                line_style=CONFIG.spectrum_line_style,
+                line_width=CONFIG.spectrum_line_width,
                 #                 transparency=CONFIG.XXX,
             )
         elif name.startswith("fill"):
             self.figure.plot_1d_update_patch_style_by_label(
                 gid=None,
-                show=CONFIG.lineShadeUnder_1D,
-                color=CONFIG.lineShadeUnderColour_1D,
-                transparency=CONFIG.lineShadeUnderTransparency_1D,
+                show=CONFIG.spectrum_line_fill_under,
+                color=CONFIG.spectrum_file_color,
+                transparency=CONFIG.spectrum_fill_transparency,
                 x=self._data["x"],
                 y=self._data["y"],
                 fill_kwargs=CONFIG.get_mpl_parameters(self.MPL_KEYS),

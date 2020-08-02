@@ -189,7 +189,7 @@ class DialogCustomisePlot(wx.Dialog):
         legend_grid.Add(self.legend_frame_check, (n, 4), flag=wx.EXPAND)
 
         colormap_label = wx.StaticText(panel, -1, "Colormap:")
-        self.colormap_value = wx.Choice(panel, -1, choices=self.config.cmaps2, size=(-1, -1), name="color")
+        self.colormap_value = wx.Choice(panel, -1, choices=self.config.colormap_choices, size=(-1, -1), name="color")
         self.colormap_value.Bind(wx.EVT_CHOICE, self.on_apply_colormap)
 
         colormap_min_label = wx.StaticText(panel, -1, "Min:")
@@ -229,7 +229,7 @@ class DialogCustomisePlot(wx.Dialog):
         self.rightSpines_check.Bind(wx.EVT_CHECKBOX, self.on_apply_frame)
 
         self.topSpines_check = make_checkbox(panel, "Top")
-        self.topSpines_check.SetValue(self.config.spines_top_1D)
+        self.topSpines_check.SetValue(self.config.axes_frame_spine_top)
         self.topSpines_check.Bind(wx.EVT_CHECKBOX, self.on_apply_frame)
 
         self.bottomSpines_check = make_checkbox(panel, "Bottom")
@@ -556,9 +556,9 @@ class DialogCustomisePlot(wx.Dialog):
         self.legend_fontSize_value.SetStringSelection(self.plot.plot_parameters.get("legend_font_size", "large"))
         self.legend_frame_check.SetValue(self.plot.plot_parameters.get("legend_frame_on", False))
 
-        colormap = self.plot.plot_parameters.get("colormap", self.config.currentCmap)
-        if colormap not in self.config.cmaps2:
-            colormap = self.config.currentCmap
+        colormap = self.plot.plot_parameters.get("colormap", self.config.heatmap_colormap)
+        if colormap not in self.config.colormap_choices:
+            colormap = self.config.heatmap_colormap
         self.colormap_value.SetStringSelection(colormap)
         self.cmap_min_value.SetValue(self.plot.plot_parameters.get("colormap_min", 0))
         self.cmap_mid_value.SetValue(self.plot.plot_parameters.get("colormap_mid", 50))

@@ -43,7 +43,7 @@ class Panel3dSettings(PanelSettingsBase):
 
         plot3d_colormap = wx.StaticText(self, -1, "Colormap:")
         self.plot3d_colormap_value = wx.Choice(
-            self, -1, choices=CONFIG.cmaps2, size=(-1, -1), name="heatmap.3d.colormap"
+            self, -1, choices=CONFIG.colormap_choices, size=(-1, -1), name="heatmap.3d.colormap"
         )
         self.plot3d_colormap_value.SetStringSelection(CONFIG.heatmap_3d_colormap)
         self.plot3d_colormap_value.Bind(wx.EVT_CHOICE, self.on_apply)

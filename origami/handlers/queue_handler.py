@@ -91,7 +91,7 @@ class QueueHandler:
             # call function
             call_obj.run()
             q.task_done()
-            LOGGER.info("Queue > Completed task")
+            LOGGER.debug("Queue > Completed task")
 
             # update statusbar
             self.update()

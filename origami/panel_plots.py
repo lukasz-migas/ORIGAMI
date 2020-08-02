@@ -1133,7 +1133,7 @@ class PanelPlots(wx.Panel):
 
         if not return_colors:
             for i in range(n_colors):
-                CONFIG.customColors[i] = convert_rgb_1_to_255(new_colors[i])
+                CONFIG.custom_colors[i] = convert_rgb_1_to_255(new_colors[i])
         else:
             if return_hex:
                 new_colors_hex = []
@@ -1146,7 +1146,7 @@ class PanelPlots(wx.Panel):
     @staticmethod
     def on_get_colors_from_colormap(n_colors: int):
         """Return list of colors from colormap"""
-        color_list = sns.color_palette(CONFIG.currentCmap, n_colors)
+        color_list = sns.color_palette(CONFIG.heatmap_colormap, n_colors)
         return color_list
 
     def on_clear_plot_(self, _evt):

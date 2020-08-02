@@ -789,8 +789,8 @@ class PanelUVPDEditor(wx.MiniFrame):
                 xvals=self.laser_on_marker[:, 0],
                 yvals=self.laser_on_marker[:, 1],
                 color=colors[0],
-                marker=self.config.markerShape_1D,
-                size=self.config.markerSize_1D,
+                marker=self.config.marker_shape,
+                size=self.config.marker_size,
                 plot="RT",
                 repaint=False,
             )
@@ -799,8 +799,8 @@ class PanelUVPDEditor(wx.MiniFrame):
                 xvals=self.laser_off_marker[:, 0],
                 yvals=self.laser_off_marker[:, 1],
                 color=colors[1],
-                marker=self.config.markerShape_1D,
-                size=self.config.markerSize_1D,
+                marker=self.config.marker_shape,
+                size=self.config.marker_size,
                 plot="RT",
                 repaint=False,
             )
@@ -915,7 +915,7 @@ class PanelUVPDEditor(wx.MiniFrame):
                 path = self.document.path
                 ion_data = io_waters.driftscope_extract_2D(
                     path=path,
-                    driftscope_path=self.config.driftscopePath,
+                    driftscope_path=self.config.APP_DRIFTSCOPE_PATH,
                     mz_start=mzStart,
                     mz_end=mzEnd,
                     **extract_kwargs,
@@ -1327,10 +1327,10 @@ class PanelUVPDEditor(wx.MiniFrame):
         # prepare mass range and linearization parameters
         xlimits = [document.parameters["startMS"], document.parameters["endMS"]]
         kwargs = {
-            "auto_range": self.config.ms_auto_range,
+            "auto_range": self.config.ms_linearize_mz_auto_range,
             "mz_min": xlimits[0],
             "mz_max": xlimits[1],
-            "linearization_mode": self.config.ms_linearization_mode,
+            "linearization_mode": self.config.ms_linearize_method,
         }
 
         # extract dataset 1 mass spectra
@@ -1374,9 +1374,9 @@ class PanelUVPDEditor(wx.MiniFrame):
                 startScan=item[0],
                 endScan=item[1],
                 binData=self.config.import_binOnImport,
-                mzStart=self.config.ms_mzStart,
-                mzEnd=self.config.ms_mzEnd,
-                binsize=self.config.ms_mzBinSize,
+                mzStart=self.config.ms_linearize_mz_start,
+                mzEnd=self.config.ms_linearize_mz_end,
+                binsize=self.config.ms_linearize_mz_bin_size,
                 **kwargs,
             )
             msX, msY = sum_1D_dictionary(ydict=msDict)

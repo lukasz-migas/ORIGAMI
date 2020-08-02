@@ -6,14 +6,11 @@ from typing import List
 # Third-party imports
 import wx
 import matplotlib
-from numpy import amax
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 
 # Local imports
 from origami.config.config import CONFIG
-from origami.visuals.mpl.zoom import ZoomBox
-from origami.visuals.mpl.zoom import GetXValues
 from origami.visuals.mpl.new_zoom import MPLInteraction
 from origami.gui_elements.misc_dialogs import DialogBox
 
@@ -102,34 +99,6 @@ class MPLPanel(wx.Panel):
     def __repr__(self):
         return f"Plot: {self.plotName} | Window name: {self.window_name} | Axes size: {self._axes}"
 
-    def get_xlimits(self):
-        """Get x-axis limits"""
-
-        return [self.data_limits[0], self.data_limits[2]]
-
-    def get_ylimits(self):
-        return [self.data_limits[1], self.data_limits[3]]
-
-    def _generatePlotParameters(self):
-        plot_parameters = {
-            "grid_show": CONFIG._plots_grid_show,
-            "grid_color": CONFIG._plots_grid_color,
-            "grid_line_width": CONFIG._plots_grid_line_width,
-            "extract_color": CONFIG._plots_extract_color,
-            "extract_line_width": CONFIG._plots_extract_line_width,
-            "extract_crossover_sensitivity_1D": CONFIG._plots_extract_crossover_1D,
-            "extract_crossover_sensitivity_2D": CONFIG._plots_extract_crossover_2D,
-            "zoom_color_vertical": CONFIG._plots_zoom_vertical_color,
-            "zoom_color_horizontal": CONFIG._plots_zoom_horizontal_color,
-            "zoom_color_box": CONFIG._plots_zoom_box_color,
-            "zoom_line_width": CONFIG._plots_zoom_line_width,
-            "zoom_crossover_sensitivity": CONFIG._plots_zoom_crossover,
-        }
-        return plot_parameters
-
-    def setupGetXAxies(self, plots):
-        self.getxaxis = GetXValues(plots)
-
     def setup_new_zoom(
         self,
         figure,
@@ -147,7 +116,7 @@ class MPLPanel(wx.Panel):
             callbacks = dict()
 
         if plot_parameters is None:
-            plot_parameters = self._generatePlotParameters()
+            plot_parameters = CONFIG.get_zoom_parameters()
 
         self.zoom = MPLInteraction(
             figure,
@@ -163,126 +132,9 @@ class MPLPanel(wx.Panel):
             plot_id=self.plot_id,
         )
 
-    def setup_zoom(
-        self,
-        plots,
-        zoom,
-        data_lims=None,
-        plotName=None,
-        plotParameters=None,
-        allowWheel=True,
-        allow_extraction=True,
-        callbacks=None,
-    ):
-        if callbacks is None:
-            callbacks = dict()
-        if plotParameters is None:
-            plotParameters = self._generatePlotParameters()
-
-        self.data_limits = data_lims
-
-        self.zoom = ZoomBox(
-            plots,
-            None,
-            useblit=True,
-            button=1,
-            onmove_callback=None,
-            rectprops=dict(alpha=0.2, facecolor="yellow"),
-            spancoords="data",
-            data_lims=data_lims,
-            plotName=plotName,
-            allow_mouse_wheel=allowWheel,
-            allow_extraction=allow_extraction,
-            plotParameters=plotParameters,
-            callbacks=callbacks,
-        )
-        # self.onRebootZoomKeys(evt=None)
-
     def update_extents(self, extents: List, obj=None):
         """Update plot extents"""
         self.zoom.update_handler(data_limits=extents, obj=obj)
-
-    def update_y_extents(self, y_min: float, y_max: float):
-        """Update y-axis plot extents"""
-        ZoomBox.update_y_extents(self.zoom, y_min, y_max)
-
-    def on_mark_annotation(self, state):
-        try:
-            ZoomBox.update_mark_state(self.zoom, state)
-        except TypeError:
-            pass
-        except AttributeError:
-            MPLInteraction.update_mark_state(self.zoom, state)
-
-    def _convert_xaxis(self, xvals, x_label=""):
-        """
-        Adapted from Unidec/PlottingWindow.py
-
-        Test whether the axis should be normalized to convert mass units from Da to kDa.
-        Will use kDa if: xvals[int(len(xvals) / 2)] > 100000 or xvals[len(xvals) - 1] > 1000000
-
-        If kDa is used, self.kda=True and self.kdnorm=1000. Otherwise, self.kda=False and self.kdnorm=1.
-        :param xvals: mass axis
-        :return: None
-        """
-        try:
-            if xvals[int(len(xvals) / 2)] > 100000 or xvals[len(xvals) - 1] > 1000000:
-                kda_norm_factor = 1000.0
-                x_label = "Mass (kDa)"
-                kda = True
-            elif amax(xvals) > 10000:
-                kda_norm_factor = 1000.0
-                x_label = "Mass (kDa)"
-                kda = True
-            else:
-                x_label = "Mass (Da)"
-                kda = False
-                kda_norm_factor = 1.0
-        except (TypeError, ValueError):
-            try:
-                if xvals > 10000:
-                    kda_norm_factor = 1000.0
-                    x_label = "Mass (kDa)"
-                    kda = True
-            except Exception:
-                x_label = "Mass (Da)"
-                kda_norm_factor = 1.0
-                kda = False
-
-        # convert x-axis
-        xvals = xvals / kda_norm_factor
-
-        return xvals, x_label, kda
-
-    def testXYmaxValsUpdated(self, values=None):
-        """
-        Function to check whether x/y axis labels do not need formatting
-        """
-        baseDiv = 10
-        increment = 10
-        divider = baseDiv
-
-        try:
-            itemShape = values.shape
-        except Exception:
-            from numpy import array
-
-            values = array(values)
-            itemShape = values.shape
-
-        if len(itemShape) > 1:
-            maxValue = amax(values)
-        elif len(itemShape) == 1:
-            maxValue = max(values)
-        else:
-            maxValue = values
-
-        while 10 <= (maxValue / divider) >= 1:
-            divider = divider * increment
-
-        expo = len(str(divider)) - len(str(divider).rstrip("0"))
-
-        return divider, expo
 
     def repaint(self, repaint: bool = True):
         """Redraw and refresh the plot"""
@@ -455,19 +307,6 @@ class MPLPanel(wx.Panel):
             self.plot_base.set_position(old_axes_size)
             self.on_resize()
 
-    def onZoomRMSF(self, startX, endX):
-        x1, x2, y1, y2 = self.plotRMSF.axis()
-        self.plotRMSF.axis([startX, endX, y1, y2])
-
-    def onGetXYvals(self, axes="both"):
-        xvals = self.plot_base.get_xlim()
-        yvals = self.plot_base.get_ylim()
-        if axes == "both":
-            return xvals, yvals
-        elif axes == "x":
-            return xvals
-        elif axes == "y":
-            return yvals
-
     def get_plot_name(self):
+        """Get plot name"""
         return self.plot_name

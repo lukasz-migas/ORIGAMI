@@ -186,85 +186,85 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin):
         self.dataset_info_text = wx.StaticText(panel, -1, "", style=wx.ST_ELLIPSIZE_START)
 
         self.crop_check = make_checkbox(panel, "")
-        self.crop_check.SetValue(CONFIG.plot2D_process_crop)
+        self.crop_check.SetValue(CONFIG.heatmap_process_crop)
         self.crop_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.crop_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
         self.crop_xmin_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
-        self.crop_xmin_value.SetValue(str(CONFIG.plot2D_crop_xmin))
+        self.crop_xmin_value.SetValue(str(CONFIG.heatmap_crop_xmin))
         self.crop_xmin_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         self.crop_xmax_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
-        self.crop_xmax_value.SetValue(str(CONFIG.plot2D_crop_xmax))
+        self.crop_xmax_value.SetValue(str(CONFIG.heatmap_crop_xmax))
         self.crop_xmax_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         self.crop_ymin_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
-        self.crop_ymin_value.SetValue(str(CONFIG.plot2D_crop_ymin))
+        self.crop_ymin_value.SetValue(str(CONFIG.heatmap_crop_ymin))
         self.crop_ymin_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         self.crop_ymax_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
-        self.crop_ymax_value.SetValue(str(CONFIG.plot2D_crop_ymax))
+        self.crop_ymax_value.SetValue(str(CONFIG.heatmap_crop_ymax))
         self.crop_ymax_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         self.interpolate_check = make_checkbox(panel, "")
-        self.interpolate_check.SetValue(CONFIG.plot2D_process_interpolate)
+        self.interpolate_check.SetValue(CONFIG.heatmap_process_interpolate)
         self.interpolate_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.interpolate_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        self.interpolate_choice = wx.Choice(panel, -1, choices=CONFIG.plot2D_interpolate_choices, size=(-1, -1))
-        self.interpolate_choice.SetStringSelection(CONFIG.plot2D_interpolate_mode)
+        self.interpolate_choice = wx.Choice(panel, -1, choices=CONFIG.heatmap_interpolate_choices, size=(-1, -1))
+        self.interpolate_choice.SetStringSelection(CONFIG.heatmap_interpolate_mode)
         self.interpolate_choice.Bind(wx.EVT_CHOICE, self.on_apply)
 
         self.interpolate_fold = wx.TextCtrl(panel, -1, "", size=(65, -1), validator=Validator("floatPos"))
-        self.interpolate_fold.SetValue(str(CONFIG.plot2D_interpolate_fold))
+        self.interpolate_fold.SetValue(str(CONFIG.heatmap_interpolate_fold))
         self.interpolate_fold.Bind(wx.EVT_TEXT, self.on_apply)
 
         self.interpolate_xaxis = make_checkbox(panel, "")
-        self.interpolate_xaxis.SetValue(CONFIG.plot2D_interpolate_xaxis)
+        self.interpolate_xaxis.SetValue(CONFIG.heatmap_interpolate_xaxis)
         self.interpolate_xaxis.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         self.interpolate_yaxis = make_checkbox(panel, "")
-        self.interpolate_yaxis.SetValue(CONFIG.plot2D_interpolate_yaxis)
+        self.interpolate_yaxis.SetValue(CONFIG.heatmap_interpolate_yaxis)
         self.interpolate_yaxis.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         self.smooth_check = make_checkbox(panel, "")
-        self.smooth_check.SetValue(CONFIG.plot2D_process_smooth)
+        self.smooth_check.SetValue(CONFIG.heatmap_process_smooth)
         self.smooth_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.smooth_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        self.smooth_choice = wx.Choice(panel, -1, choices=CONFIG.plot2D_smooth_choices, size=(-1, -1))
+        self.smooth_choice = wx.Choice(panel, -1, choices=CONFIG.heatmap_smooth_choices, size=(-1, -1))
         self.smooth_choice.SetStringSelection(CONFIG.ms_smooth_mode)
         self.smooth_choice.Bind(wx.EVT_CHOICE, self.on_apply)
         self.smooth_choice.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
 
         self.smooth_poly_order_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("intPos"))
-        self.smooth_poly_order_value.SetValue(str(CONFIG.plot2D_smooth_polynomial))
+        self.smooth_poly_order_value.SetValue(str(CONFIG.heatmap_smooth_polynomial))
         self.smooth_poly_order_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         self.smooth_window_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("intPos"))
-        self.smooth_window_value.SetValue(str(CONFIG.plot2D_smooth_window))
+        self.smooth_window_value.SetValue(str(CONFIG.heatmap_smooth_window))
         self.smooth_window_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         self.smooth_sigma_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
-        self.smooth_sigma_value.SetValue(str(CONFIG.plot2D_smooth_sigma))
+        self.smooth_sigma_value.SetValue(str(CONFIG.heatmap_smooth_sigma))
         self.smooth_sigma_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         self.baseline_check = make_checkbox(panel, "")
-        self.baseline_check.SetValue(CONFIG.plot2D_process_threshold)
+        self.baseline_check.SetValue(CONFIG.heatmap_process_threshold)
         self.baseline_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.baseline_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
         self.baseline_threshold_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
-        self.baseline_threshold_value.SetValue(str(CONFIG.ms_threshold))
+        self.baseline_threshold_value.SetValue(str(CONFIG.ms_baseline_linear_threshold))
         self.baseline_threshold_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         self.normalize_check = make_checkbox(panel, "")
-        self.normalize_check.SetValue(CONFIG.plot2D_normalize)
+        self.normalize_check.SetValue(CONFIG.heatmap_normalize)
         self.normalize_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.normalize_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        self.normalize_choice = wx.Choice(panel, -1, choices=CONFIG.plot2D_normalize_choices, size=(-1, -1))
-        self.normalize_choice.SetStringSelection(CONFIG.plot2D_normalize_mode)
+        self.normalize_choice = wx.Choice(panel, -1, choices=CONFIG.heatmap_normalize_choices, size=(-1, -1))
+        self.normalize_choice.SetStringSelection(CONFIG.heatmap_normalize_mode)
         self.normalize_choice.Bind(wx.EVT_CHOICE, self.on_apply)
 
         if not self.disable_plot:
@@ -469,28 +469,28 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin):
     def on_toggle_controls(self, evt):
         """Toggle controls based on some other settings"""
         # crop
-        CONFIG.plot2D_process_crop = self.crop_check.GetValue()
-        self.crop_xmin_value.Enable(CONFIG.plot2D_process_crop)
-        self.crop_xmax_value.Enable(CONFIG.plot2D_process_crop)
-        self.crop_ymin_value.Enable(CONFIG.plot2D_process_crop)
-        self.crop_ymax_value.Enable(CONFIG.plot2D_process_crop)
+        CONFIG.heatmap_process_crop = self.crop_check.GetValue()
+        self.crop_xmin_value.Enable(CONFIG.heatmap_process_crop)
+        self.crop_xmax_value.Enable(CONFIG.heatmap_process_crop)
+        self.crop_ymin_value.Enable(CONFIG.heatmap_process_crop)
+        self.crop_ymax_value.Enable(CONFIG.heatmap_process_crop)
 
         # linearize
-        CONFIG.plot2D_process_interpolate = self.interpolate_check.GetValue()
-        self.interpolate_choice.Enable(CONFIG.plot2D_process_interpolate)
-        self.interpolate_fold.Enable(CONFIG.plot2D_process_interpolate)
-        self.interpolate_xaxis.Enable(CONFIG.plot2D_process_interpolate)
-        self.interpolate_yaxis.Enable(CONFIG.plot2D_process_interpolate)
+        CONFIG.heatmap_process_interpolate = self.interpolate_check.GetValue()
+        self.interpolate_choice.Enable(CONFIG.heatmap_process_interpolate)
+        self.interpolate_fold.Enable(CONFIG.heatmap_process_interpolate)
+        self.interpolate_xaxis.Enable(CONFIG.heatmap_process_interpolate)
+        self.interpolate_yaxis.Enable(CONFIG.heatmap_process_interpolate)
 
         # smooth
-        CONFIG.plot2D_process_smooth = self.smooth_check.GetValue()
+        CONFIG.heatmap_process_smooth = self.smooth_check.GetValue()
         obj_list = [self.smooth_sigma_value, self.smooth_poly_order_value, self.smooth_window_value]
         for item in obj_list:
             item.Enable(enable=False)
-        self.smooth_choice.Enable(CONFIG.plot2D_process_smooth)
+        self.smooth_choice.Enable(CONFIG.heatmap_process_smooth)
 
         CONFIG.ms_smooth_mode = self.smooth_choice.GetStringSelection()
-        if CONFIG.plot2D_process_smooth:
+        if CONFIG.heatmap_process_smooth:
             if CONFIG.ms_smooth_mode == "Gaussian":
                 self.smooth_sigma_value.Enable()
             elif CONFIG.ms_smooth_mode == "Savitzky-Golay":
@@ -498,42 +498,42 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin):
                     item.Enable()
 
         # threshold
-        CONFIG.plot2D_process_threshold = self.baseline_check.GetValue()
-        self.baseline_threshold_value.Enable(CONFIG.plot2D_process_threshold)
+        CONFIG.heatmap_process_threshold = self.baseline_check.GetValue()
+        self.baseline_threshold_value.Enable(CONFIG.heatmap_process_threshold)
 
         # normalize
-        CONFIG.plot2D_normalize = self.normalize_check.GetValue()
-        self.normalize_choice.Enable(CONFIG.plot2D_normalize)
+        CONFIG.heatmap_normalize = self.normalize_check.GetValue()
+        self.normalize_choice.Enable(CONFIG.heatmap_normalize)
 
         if evt is not None:
             evt.Skip()
 
     def on_apply(self, evt):
         """Update config values"""
-        CONFIG.plot2D_process_crop = self.crop_check.GetValue()
-        CONFIG.plot2D_process_interpolate = self.interpolate_check.GetValue()
-        CONFIG.plot2D_process_smooth = self.smooth_check.GetValue()
-        CONFIG.plot2D_process_threshold = self.baseline_check.GetValue()
-        CONFIG.plot2D_normalize = self.normalize_check.GetValue()
+        CONFIG.heatmap_process_crop = self.crop_check.GetValue()
+        CONFIG.heatmap_process_interpolate = self.interpolate_check.GetValue()
+        CONFIG.heatmap_process_smooth = self.smooth_check.GetValue()
+        CONFIG.heatmap_process_threshold = self.baseline_check.GetValue()
+        CONFIG.heatmap_normalize = self.normalize_check.GetValue()
 
-        CONFIG.plot2D_interpolate_fold = str2int(self.interpolate_fold.GetValue())
-        CONFIG.plot2D_interpolate_mode = self.interpolate_choice.GetStringSelection()
-        CONFIG.plot2D_interpolate_xaxis = self.interpolate_xaxis.GetValue()
-        CONFIG.plot2D_interpolate_yaxis = self.interpolate_yaxis.GetValue()
+        CONFIG.heatmap_interpolate_fold = str2int(self.interpolate_fold.GetValue())
+        CONFIG.heatmap_interpolate_mode = self.interpolate_choice.GetStringSelection()
+        CONFIG.heatmap_interpolate_xaxis = self.interpolate_xaxis.GetValue()
+        CONFIG.heatmap_interpolate_yaxis = self.interpolate_yaxis.GetValue()
 
-        CONFIG.plot2D_crop_xmin = str2num(self.crop_xmin_value.GetValue())
-        CONFIG.plot2D_crop_xmax = str2num(self.crop_xmax_value.GetValue())
-        CONFIG.plot2D_crop_ymin = str2num(self.crop_ymin_value.GetValue())
-        CONFIG.plot2D_crop_ymax = str2num(self.crop_ymax_value.GetValue())
+        CONFIG.heatmap_crop_xmin = str2num(self.crop_xmin_value.GetValue())
+        CONFIG.heatmap_crop_xmax = str2num(self.crop_xmax_value.GetValue())
+        CONFIG.heatmap_crop_ymin = str2num(self.crop_ymin_value.GetValue())
+        CONFIG.heatmap_crop_ymax = str2num(self.crop_ymax_value.GetValue())
 
-        CONFIG.plot2D_smooth_mode = self.smooth_choice.GetStringSelection()
-        CONFIG.plot2D_smooth_sigma = str2num(self.smooth_sigma_value.GetValue())
-        CONFIG.plot2D_smooth_window = str2int(self.smooth_window_value.GetValue())
-        CONFIG.plot2D_smooth_polynomial = str2int(self.smooth_poly_order_value.GetValue())
+        CONFIG.heatmap_smooth_mode = self.smooth_choice.GetStringSelection()
+        CONFIG.heatmap_smooth_sigma = str2num(self.smooth_sigma_value.GetValue())
+        CONFIG.heatmap_smooth_window = str2int(self.smooth_window_value.GetValue())
+        CONFIG.heatmap_smooth_polynomial = str2int(self.smooth_poly_order_value.GetValue())
 
-        CONFIG.plot2D_threshold = str2num(self.baseline_threshold_value.GetValue())
+        CONFIG.heatmap_threshold = str2num(self.baseline_threshold_value.GetValue())
 
-        CONFIG.plot2D_normalize_mode = self.normalize_choice.GetStringSelection()
+        CONFIG.heatmap_normalize_mode = self.normalize_choice.GetStringSelection()
 
         if evt is not None:
             evt.Skip()
@@ -541,20 +541,20 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin):
     def on_click_on_setting(self, setting):
         """Change setting value based on keyboard event"""
         if setting == "interpolate":
-            CONFIG.plot2D_process_interpolate = not CONFIG.plot2D_process_interpolate
-            self.interpolate_check.SetValue(CONFIG.plot2D_process_interpolate)
+            CONFIG.heatmap_process_interpolate = not CONFIG.heatmap_process_interpolate
+            self.interpolate_check.SetValue(CONFIG.heatmap_process_interpolate)
         elif setting == "smooth":
-            CONFIG.plot2D_process_smooth = not CONFIG.plot2D_process_smooth
-            self.smooth_check.SetValue(CONFIG.plot2D_process_smooth)
+            CONFIG.heatmap_process_smooth = not CONFIG.heatmap_process_smooth
+            self.smooth_check.SetValue(CONFIG.heatmap_process_smooth)
         elif setting == "crop":
-            CONFIG.plot2D_process_crop = not CONFIG.plot2D_process_crop
-            self.crop_check.SetValue(CONFIG.plot2D_process_crop)
+            CONFIG.heatmap_process_crop = not CONFIG.heatmap_process_crop
+            self.crop_check.SetValue(CONFIG.heatmap_process_crop)
         elif setting == "baseline":
-            CONFIG.plot2D_process_threshold = not CONFIG.plot2D_process_threshold
-            self.baseline_check.SetValue(CONFIG.plot2D_process_threshold)
+            CONFIG.heatmap_process_threshold = not CONFIG.heatmap_process_threshold
+            self.baseline_check.SetValue(CONFIG.heatmap_process_threshold)
         elif setting == "normalize":
-            CONFIG.plot2D_normalize = not CONFIG.plot2D_normalize
-            self.normalize_check.SetValue(CONFIG.plot2D_normalize)
+            CONFIG.heatmap_normalize = not CONFIG.heatmap_normalize
+            self.normalize_check.SetValue(CONFIG.heatmap_normalize)
 
         self.on_toggle_controls(None)
 

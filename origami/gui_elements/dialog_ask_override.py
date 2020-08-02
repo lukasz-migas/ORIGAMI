@@ -96,26 +96,26 @@ class DialogAskOverride(Dialog):
 
     def overwrite(self, _evt):
         """Overwrite existing"""
-        CONFIG.import_duplicate_action = "override"
+        CONFIG.import_duplicate_panel_action = "override"
         self.on_ok(None)
 
     def merge(self, _evt):
         """Merge existing"""
-        CONFIG.import_duplicate_action = "merge"
+        CONFIG.import_duplicate_panel_action = "merge"
         self.on_ok(None)
 
     def create_copy(self, _evt):
         """Create new copy"""
-        CONFIG.import_duplicate_action = "duplicate"
+        CONFIG.import_duplicate_panel_action = "duplicate"
         self.on_ok(None)
 
     def on_apply(self, _evt):
         """Update changes"""
-        CONFIG.import_duplicate_ask = self.not_ask_again_check.GetValue()
+        CONFIG.import_duplicate_panel_ask = self.not_ask_again_check.GetValue()
 
     def on_ok(self, _evt):
         """Close window in tidy manner"""
-        self.action = CONFIG.import_duplicate_action
+        self.action = CONFIG.import_duplicate_panel_action
         if self.IsModal():
             self.EndModal(wx.ID_OK)
         else:
@@ -123,7 +123,7 @@ class DialogAskOverride(Dialog):
 
     def on_close(self, _evt):
         """Close window with ID_NO event"""
-        CONFIG.import_duplicate_action = None
+        CONFIG.import_duplicate_panel_action = None
         self.action = None
 
         if self.IsModal():

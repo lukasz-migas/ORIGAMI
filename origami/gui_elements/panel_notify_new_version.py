@@ -90,7 +90,7 @@ def get_version_information(silent: bool = False, parent=None):
             LOGGER.warning("Could not check for latest version of ORIGAMI.")
         else:
             LOGGER.info("Using latest version of ORIGAMI")
-            return False, None
+            return False, None, silent, parent
     except MaxRetryError:
         LOGGER.warning("Could not check for latest version of ORIGAMI.")
     return False, None, silent, parent
@@ -99,7 +99,7 @@ def get_version_information(silent: bool = False, parent=None):
 def inform_version(new_version: bool, url: str, silent: bool = True, parent=None):
     """Inform the user of a new version"""
     if new_version:
-        dlg = PanelNewVersion(None, url)
+        dlg = PanelNewVersion(parent, url)
         dlg.Show()
     else:
         if not silent:

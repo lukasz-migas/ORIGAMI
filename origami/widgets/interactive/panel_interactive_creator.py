@@ -707,7 +707,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
 
     def on_generate_html_fcn(self, evt):
 
-        if not self.config.threading:
+        if not self.config.APP_ENABLE_THREADING:
             print("Exporting interactive document using a non-threaded process")
             self.on_generate_html(None)
         else:
@@ -989,8 +989,8 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.Bind(wx.EVT_BUTTON, self.on_change_page_for_items, id=ID_assignPageSelected_HTML)
 
         colormap_label = wx.StaticText(panel, -1, "Assign colormap:")
-        self.colormapSelect_toolbar = wx.Choice(panel, -1, choices=self.config.cmaps2, size=(-1, -1))
-        self.colormapSelect_toolbar.SetStringSelection(self.config.currentCmap)
+        self.colormapSelect_toolbar = wx.Choice(panel, -1, choices=self.config.colormap_choices, size=(-1, -1))
+        self.colormapSelect_toolbar.SetStringSelection(self.config.heatmap_colormap)
         self.Bind(wx.EVT_BUTTON, self.on_change_colormap_for_items, id=ID_assignColormapSelected_HTML)
 
         colormap_applyBtn = wx.BitmapButton(
@@ -1777,10 +1777,10 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.bar_lineWidth_value = wx.SpinCtrlDouble(
             panel,
             -1,
-            value=str(self.config.bar_lineWidth),
+            value=str(self.config.bar_line_width),
             min=0,
             max=5,
-            initial=self.config.bar_lineWidth,
+            initial=self.config.bar_line_width,
             inc=1,
             size=(50, -1),
         )
@@ -1794,7 +1794,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.bar_edgeColorBtn.Bind(wx.EVT_BUTTON, self.on_change_color)
 
         self.bar_colorEdge_check = make_checkbox(panel, "Same as fill")
-        self.bar_colorEdge_check.SetValue(self.config.bar_sameAsFill)
+        self.bar_colorEdge_check.SetValue(self.config.bar_edge_same_as_fill)
         self.bar_colorEdge_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         bar_grid = wx.GridBagSizer(2, 2)
@@ -2725,7 +2725,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.config.interactive_line_alpha = self.line_transparency.GetValue()
         self.config.interactive_line_style = self.line_style.GetStringSelection()
 
-        if self.config.autoSaveSettings:
+        if self.config.APP_ENABLE_CONFIG_AUTO_SAVE:
             self.data_handling.on_export_config_fcn(None, False)
 
     def onChangeComboBox(self, evt=None):
@@ -3264,8 +3264,8 @@ class PanelInteractiveCreator(wx.MiniFrame):
         ]:
             # Show dialog and get new colour
             custom = wx.ColourData()
-            for key in range(len(self.config.customColors)):
-                custom.SetCustomColour(key, self.config.customColors[key])
+            for key in range(len(self.config.custom_colors)):
+                custom.SetCustomColour(key, self.config.custom_colors[key])
             dlg = wx.ColourDialog(self, custom)
             dlg.GetColourData().SetChooseFull(True)
 
@@ -3577,7 +3577,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
 
     def linearize_spectrum(self, xvals, yvals, binsize):
         kwargs = {
-            "auto_range": self.config.ms_auto_range,
+            "auto_range": self.config.ms_linearize_mz_auto_range,
             "x_min": np.round(np.min(xvals), 0),
             "x_max": np.round(np.min(yvals), 0),
             "bin_bin": float(binsize),
@@ -4263,7 +4263,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 + "   Execute the script and either restart ORIGAMI or close the Interactive panel and try again OR\n"
                 + "3) Go to https://nodejs.org/en/download/ and download the latest version of JavaScript installer \n"
                 + "   and execute same steps as in the above option.\n\n"
-                + f"ORIGAMI directory: {self.config.cwd}"
+                + f"ORIGAMI directory: {self.config.APP_CWD}"
             )
 
             DialogBox(title="No JavaScript available", msg=msg, kind="Error")
@@ -4324,7 +4324,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 + "   Execute the script and either restart ORIGAMI or close the Interactive panel and try again OR\n"
                 + "3) Go to https://nodejs.org/en/download/ and download the latest version of JavaScript installer \n"
                 + "   and execute same steps as in the above option.\n\n"
-                + "ORIGAMI directory: {}".format(self.config.cwd)
+                + "ORIGAMI directory: {}".format(self.config.APP_CWD)
             )
 
             DialogBox(title="No JavaScript available", msg=msg, kind="Error")
@@ -9022,7 +9022,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
             self.peaklist.item_id = itemID
 
         color = self.peaklist.GetItem(self.peaklist.item_id, self.config.interactiveColNames["color"]).GetText()
-        if color != "" and "(" not in color and "[" not in color and color in self.config.cmaps2:
+        if color != "" and "(" not in color and "[" not in color and color in self.config.colormap_choices:
             self.comboCmapSelect.SetStringSelection(color)
 
         title = self.peaklist.GetItem(self.peaklist.item_id, self.config.interactiveColNames["title"]).GetText()
@@ -9474,9 +9474,9 @@ class PanelInteractiveCreator(wx.MiniFrame):
 
         # heatmaps
         if "colormap" not in data["interactive_params"]["plot_properties"]:
-            color = data.get("cmap", self.config.currentCmap)
+            color = data.get("cmap", self.config.heatmap_colormap)
             if not isinstance(color, str):
-                color = self.config.currentCmap
+                color = self.config.heatmap_colormap
             data["interactive_params"]["plot_properties"]["colormap"] = color
 
         # bar

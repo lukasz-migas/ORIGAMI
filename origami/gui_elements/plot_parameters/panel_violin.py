@@ -36,10 +36,10 @@ class PanelViolinSettings(PanelSettingsBase):
         self.violin_n_limit_value = wx.SpinCtrlDouble(
             self,
             -1,
-            value=str(CONFIG.violin_nlimit),
+            value=str(CONFIG.violin_n_limit),
             min=1,
             max=200,
-            initial=CONFIG.violin_nlimit,
+            initial=CONFIG.violin_n_limit,
             inc=5,
             size=(90, -1),
             name="violin.data",
@@ -122,10 +122,10 @@ class PanelViolinSettings(PanelSettingsBase):
         self.violin_line_width_value = wx.SpinCtrlDouble(
             self,
             -1,
-            value=str(CONFIG.violin_lineWidth),
+            value=str(CONFIG.violin_line_width),
             min=1,
             max=10,
-            initial=CONFIG.violin_lineWidth,
+            initial=CONFIG.violin_line_width,
             inc=1,
             size=(90, -1),
             name="violin.line.style",
@@ -137,7 +137,7 @@ class PanelViolinSettings(PanelSettingsBase):
         self.violin_line_style_value = wx.Choice(
             self, -1, choices=CONFIG.lineStylesList, size=(-1, -1), name="violin.line"
         )
-        self.violin_line_style_value.SetStringSelection(CONFIG.violin_lineStyle)
+        self.violin_line_style_value.SetStringSelection(CONFIG.violin_line_style)
         self.violin_line_style_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.violin_line_style_value.Bind(wx.EVT_CHOICE, self.on_update)
 
@@ -145,11 +145,11 @@ class PanelViolinSettings(PanelSettingsBase):
         self.violin_color_line_btn = wx.Button(
             self, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="violin.line.color"
         )
-        self.violin_color_line_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.violin_color))
+        self.violin_color_line_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.violin_line_color))
         self.violin_color_line_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
         self.violin_line_same_as_fill_check = make_checkbox(self, "Same as fill", name="violin.line")
-        self.violin_line_same_as_fill_check.SetValue(CONFIG.violin_line_sameAsShade)
+        self.violin_line_same_as_fill_check.SetValue(CONFIG.violin_line_same_as_fill)
         self.violin_line_same_as_fill_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.violin_line_same_as_fill_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
         self.violin_line_same_as_fill_check.Bind(wx.EVT_CHECKBOX, self.on_update)
@@ -163,7 +163,7 @@ class PanelViolinSettings(PanelSettingsBase):
         self.violin_colorScheme_value.Bind(wx.EVT_CHOICE, self.on_update)
         self.violin_colorScheme_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
 
-        cmap_list = CONFIG.cmaps2[:]
+        cmap_list = CONFIG.colormap_choices[:]
         cmap_list.remove("jet")
         violin_colormap_label = wx.StaticText(self, -1, "Colormap:")
         self.violin_colormap_value = wx.Choice(self, -1, choices=cmap_list, size=(-1, -1), name="violin.fill")
@@ -184,17 +184,17 @@ class PanelViolinSettings(PanelSettingsBase):
         self.violin_color_fill_btn = wx.Button(
             self, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="violin.fill.color"
         )
-        self.violin_color_fill_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.violin_shade_under_color))
+        self.violin_color_fill_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.violin_fill_under_color))
         self.violin_color_fill_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
         violin_shade_transparency_label = wx.StaticText(self, -1, "Fill transparency:")
         self.violin_fill_transparency_value = wx.SpinCtrlDouble(
             self,
             -1,
-            value=str(CONFIG.violin_shade_under_transparency),
+            value=str(CONFIG.violin_fill_under_transparency),
             min=0,
             max=1,
-            initial=CONFIG.violin_shade_under_transparency,
+            initial=CONFIG.violin_fill_under_transparency,
             inc=0.25,
             size=(90, -1),
             name="violin.fill",
@@ -219,9 +219,9 @@ class PanelViolinSettings(PanelSettingsBase):
 
         violin_label_format_label = wx.StaticText(self, -1, "Label format:")
         self.violin_label_format_value = wx.Choice(
-            self, -1, choices=CONFIG.violin_label_format_choices, size=(-1, -1), name="violin.label.reset"
+            self, -1, choices=CONFIG.violin_labels_format_choices, size=(-1, -1), name="violin.label.reset"
         )
-        self.violin_label_format_value.SetStringSelection(CONFIG.waterfall_label_format)
+        self.violin_label_format_value.SetStringSelection(CONFIG.waterfall_labels_format)
         self.violin_label_format_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.violin_label_format_value.Bind(wx.EVT_CHOICE, self.on_update)
         self.violin_label_format_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
@@ -312,18 +312,18 @@ class PanelViolinSettings(PanelSettingsBase):
         CONFIG.violin_orientation = self.violin_orientation_value.GetStringSelection()
         CONFIG.violin_min_percentage = str2num(self.violin_min_percentage_value.GetValue())
         CONFIG.violin_spacing = str2num(self.violin_spacing_value.GetValue())
-        CONFIG.violin_lineWidth = self.violin_line_width_value.GetValue()
-        CONFIG.violin_lineStyle = self.violin_line_style_value.GetStringSelection()
+        CONFIG.violin_line_width = self.violin_line_width_value.GetValue()
+        CONFIG.violin_line_style = self.violin_line_style_value.GetStringSelection()
         CONFIG.violin_color_scheme = self.violin_colorScheme_value.GetStringSelection()
         CONFIG.violin_palette = self.violin_palette_value.GetStringSelection()
         CONFIG.violin_colormap = self.violin_colormap_value.GetStringSelection()
         CONFIG.violin_normalize = self.violin_normalize_check.GetValue()
         CONFIG.violin_smooth = self.violin_smooth_value.GetValue()
         CONFIG.violin_smooth_sigma = self.violin_smooth_sigma_value.GetValue()
-        CONFIG.violin_line_sameAsShade = self.violin_line_same_as_fill_check.GetValue()
-        CONFIG.violin_shade_under_transparency = self.violin_fill_transparency_value.GetValue()
-        CONFIG.violin_nlimit = self.violin_n_limit_value.GetValue()
-        CONFIG.violin_label_format = self.violin_label_format_value.GetStringSelection()
+        CONFIG.violin_line_same_as_fill = self.violin_line_same_as_fill_check.GetValue()
+        CONFIG.violin_fill_under_transparency = self.violin_fill_transparency_value.GetValue()
+        CONFIG.violin_n_limit = self.violin_n_limit_value.GetValue()
+        CONFIG.violin_labels_format = self.violin_label_format_value.GetStringSelection()
         CONFIG.violin_labels_frequency = int(self.violin_label_frequency_value.GetValue())
 
         self._parse_evt(evt)
@@ -348,8 +348,8 @@ class PanelViolinSettings(PanelSettingsBase):
 
     def on_toggle_controls(self, evt):
         """Update violin controls"""
-        CONFIG.violin_line_sameAsShade = self.violin_line_same_as_fill_check.GetValue()
-        self.violin_color_line_btn.Enable(not CONFIG.violin_line_sameAsShade)
+        CONFIG.violin_line_same_as_fill = self.violin_line_same_as_fill_check.GetValue()
+        self.violin_color_line_btn.Enable(not CONFIG.violin_line_same_as_fill)
 
         CONFIG.violin_color_scheme = self.violin_colorScheme_value.GetStringSelection()
         self.violin_color_fill_btn.Enable(CONFIG.violin_color_scheme == "Same color")
@@ -369,10 +369,10 @@ class PanelViolinSettings(PanelSettingsBase):
 
         # update configuration and button color
         if source == "violin.line.color":
-            CONFIG.violin_color = color_1
+            CONFIG.violin_line_color = color_1
             self.violin_color_line_btn.SetBackgroundColour(color_255)
             self.on_update(evt)
         elif source == "violin.fill.color":
-            CONFIG.violin_shade_under_color = color_1
+            CONFIG.violin_fill_under_color = color_1
             self.violin_color_fill_btn.SetBackgroundColour(color_255)
             self.on_update(evt)

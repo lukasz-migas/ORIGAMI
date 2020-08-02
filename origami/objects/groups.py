@@ -333,10 +333,10 @@ class SpectrumGroup(DataGroup):
             x_max = prev_processing.get("x_max", _x_max)
 
         if not linearization_mode:
-            linearization_mode = prev_processing.get("linearize_method", CONFIG.ms_linearization_mode)
+            linearization_mode = prev_processing.get("linearize_method", CONFIG.ms_linearize_method)
 
         if not bin_size:
-            bin_size = prev_processing.get("bin_size", CONFIG.ms_mzBinSize)
+            bin_size = prev_processing.get("bin_size", CONFIG.ms_linearize_mz_bin_size)
 
         # pre-calculate data for single data object to be able to instantiate numpy array for each spectrum
         obj = self[0]

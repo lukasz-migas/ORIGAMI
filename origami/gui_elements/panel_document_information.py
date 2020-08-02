@@ -594,7 +594,7 @@ class PanelDocumentInformation(wx.MiniFrame):
         self.shape_value.Disable()
 
         colormap_label = wx.StaticText(panel, -1, "Colormap:")
-        self.colormap_value = wx.Choice(panel, -1, choices=self.config.cmaps2, size=(180, -1))
+        self.colormap_value = wx.Choice(panel, -1, choices=self.config.colormap_choices, size=(180, -1))
         self.colormap_value.SetStringSelection(data.get("cmap", "None"))
         self.colormap_value.Bind(wx.EVT_TEXT, self.on_apply)
 

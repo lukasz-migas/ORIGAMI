@@ -138,10 +138,10 @@ class TableMixin:
         if self.peaklist.item_id is None:
             return
 
-        dlg = DialogColorPicker(self, CONFIG.customColors)
+        dlg = DialogColorPicker(self, CONFIG.custom_colors)
         if dlg.ShowModal() == wx.ID_OK:
             color_255, color_1, font_color = dlg.GetChosenColour()
-            CONFIG.customColors = dlg.GetCustomColours()
+            CONFIG.custom_colors = dlg.GetCustomColours()
             self.on_update_value_in_peaklist(self.peaklist.item_id, "color", [color_255, color_1, font_color])
 
             # update document
@@ -153,7 +153,7 @@ class TableMixin:
             try:
                 color_255 = convert_rgb_1_to_255(literal_eval(self.on_get_value(value_type="color")), 3)
             except Exception:
-                color_255 = next(CONFIG.custom_color_cycle)
+                color_255 = next(CONFIG.custom_colors_cycle)
             color_255, color_1, font_color = get_all_color_types(color_255, True)
             self.on_update_value_in_peaklist(self.peaklist.item_id, "color", [color_255, color_1, font_color])
             if give_value:
@@ -161,10 +161,10 @@ class TableMixin:
 
     def on_get_color(self, evt):
         """Convenient method to get new color"""
-        dlg = DialogColorPicker(self, CONFIG.customColors)
+        dlg = DialogColorPicker(self, CONFIG.custom_colors)
         if dlg.ShowModal() == wx.ID_OK:
             color_255, color_1, font_color = dlg.GetChosenColour()
-            CONFIG.customColors = dlg.GetCustomColours()
+            CONFIG.custom_colors = dlg.GetCustomColours()
 
             return color_255, color_1, font_color
         return None, None, None
@@ -223,9 +223,9 @@ class TableMixin:
         """Check whether newly assigned color is already in the table and if so, return a different one"""
         color_list = self.color_list
         if new_color in color_list:
-            color_count = len(CONFIG.custom_color_cycle)
+            color_count = len(CONFIG.custom_colors_cycle)
             while color_count > 0:
-                new_color = next(CONFIG.custom_color_cycle)
+                new_color = next(CONFIG.custom_colors_cycle)
                 if new_color not in color_list:
                     break
                 color_count -= 1
@@ -251,7 +251,7 @@ class TableMixin:
             color of the item in the table
         """
         if self.USE_COLOR:
-            color = add_dict.get("color", next(CONFIG.custom_color_cycle))
+            color = add_dict.get("color", next(CONFIG.custom_colors_cycle))
             if check_color:
                 color = self.on_check_duplicate_colors(color)
 
@@ -449,10 +449,10 @@ class TableMixin:
             if self.peaklist.IsChecked(row):
                 check_count += 1
 
-        if check_count > len(CONFIG.narrowCmapList):
-            colormaps = CONFIG.narrowCmapList
+        if check_count > len(CONFIG.colormap_narrow_choices):
+            colormaps = CONFIG.colormap_narrow_choices
         else:
-            colormaps = CONFIG.narrowCmapList + CONFIG.cmaps2
+            colormaps = CONFIG.colormap_narrow_choices + CONFIG.colormap_choices
 
         for row in range(self.peaklist.GetItemCount()):
             if self.peaklist.IsChecked(row):

@@ -4,7 +4,7 @@ import pytest
 
 # Local imports
 from origami.icons.assets import Icons
-from origami.widgets.annotations.panel_annotation_editor import PanelAnnotationEditorUI
+from origami.widgets.annotations.panel_annotation_editor import PanelAnnotationEditor
 
 from ..wxtc import WidgetTestCase
 
@@ -16,4 +16,4 @@ class TestPanelAnnotationEditorUI(WidgetTestCase):
     @pytest.mark.parametrize("plot_type", ["mass_spectrum", "chromatogram", "mobilogram", "heatmap", "ms_heatmap"])
     def test_panel_create(self, plot_type):
         icons = Icons()
-        _ = PanelAnnotationEditorUI(None, icons, plot_type)
+        _ = PanelAnnotationEditor(None, None, icons, plot_type)

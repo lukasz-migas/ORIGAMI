@@ -112,14 +112,14 @@ class DialogCustomiseORIGAMI(Dialog):
         if origami_settings is None:
             origami_settings = {
                 "origami_acquisition": CONFIG.origami_acquisition,
-                "origami_startScan": CONFIG.origami_startScan,
+                "origami_startScan": CONFIG.origami_start_scan,
                 "origami_spv": CONFIG.origami_spv,
-                "origami_startVoltage": CONFIG.origami_startVoltage,
-                "origami_endVoltage": CONFIG.origami_endVoltage,
-                "origami_stepVoltage": CONFIG.origami_stepVoltage,
-                "origami_boltzmannOffset": CONFIG.origami_boltzmannOffset,
-                "origami_exponentialPercentage": CONFIG.origami_exponentialPercentage,
-                "origami_exponentialIncrement": CONFIG.origami_exponentialIncrement,
+                "origami_startVoltage": CONFIG.origami_start_voltage,
+                "origami_endVoltage": CONFIG.origami_end_voltage,
+                "origami_stepVoltage": CONFIG.origami_step_voltage,
+                "origami_boltzmannOffset": CONFIG.origami_boltzmann_offset,
+                "origami_exponentialPercentage": CONFIG.origami_exponential_percentage,
+                "origami_exponentialIncrement": CONFIG.origami_exponential_increment,
                 "origami_cv_spv_list": [],
             }
             # update document with these global settings

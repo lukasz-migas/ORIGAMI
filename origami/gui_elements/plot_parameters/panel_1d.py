@@ -36,10 +36,10 @@ class Panel1dSettings(PanelSettingsBase):
         self.plot1d_line_width_value = wx.SpinCtrlDouble(
             self,
             -1,
-            value=str(CONFIG.lineWidth_1D),
+            value=str(CONFIG.spectrum_line_width),
             min=1,
             max=100,
-            initial=CONFIG.lineWidth_1D,
+            initial=CONFIG.spectrum_line_width,
             inc=1,
             size=(90, -1),
             name="1d.line.line.width",
@@ -49,20 +49,20 @@ class Panel1dSettings(PanelSettingsBase):
 
         plot1d_line_color = wx.StaticText(self, -1, "Line color:")
         self.plot1d_line_color_btn = wx.Button(self, wx.ID_ANY, "", size=wx.Size(26, 26), name="1d.line.line.color")
-        self.plot1d_line_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.lineColour_1D))
+        self.plot1d_line_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.spectrum_line_color))
         self.plot1d_line_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
         plot1d_line_style = wx.StaticText(self, -1, "Line style:")
         self.plot1d_line_style_value = wx.Choice(
             self, -1, choices=CONFIG.lineStylesList, size=(-1, -1), name="1d.line.line.style"
         )
-        self.plot1d_line_style_value.SetStringSelection(CONFIG.lineStyle_1D)
+        self.plot1d_line_style_value.SetStringSelection(CONFIG.spectrum_line_style)
         self.plot1d_line_style_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.plot1d_line_style_value.Bind(wx.EVT_CHOICE, self.on_update)
 
         plot1d_underline = wx.StaticText(self, -1, "Fill under:")
         self.plot1d_underline_check = make_checkbox(self, "", name="1d.line.fill.show")
-        self.plot1d_underline_check.SetValue(CONFIG.lineShadeUnder_1D)
+        self.plot1d_underline_check.SetValue(CONFIG.spectrum_line_fill_under)
         self.plot1d_underline_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.plot1d_underline_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
         self.plot1d_underline_check.Bind(wx.EVT_CHECKBOX, self.on_update)
@@ -71,10 +71,10 @@ class Panel1dSettings(PanelSettingsBase):
         self.plot1d_underline_alpha_value = wx.SpinCtrlDouble(
             self,
             -1,
-            value=str(CONFIG.lineShadeUnderTransparency_1D),
+            value=str(CONFIG.spectrum_fill_transparency),
             min=0,
             max=100,
-            initial=CONFIG.lineShadeUnderTransparency_1D,
+            initial=CONFIG.spectrum_fill_transparency,
             inc=25,
             size=(90, -1),
             name="1d.line.fill.opacity",
@@ -86,18 +86,18 @@ class Panel1dSettings(PanelSettingsBase):
         self.plot1d_underline_color_btn = wx.Button(
             self, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="1d.line.fill.color"
         )
-        self.plot1d_underline_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.lineShadeUnderColour_1D))
+        self.plot1d_underline_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.spectrum_file_color))
         self.plot1d_underline_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
         # markers controls
         plot1d_marker_shape = wx.StaticText(self, -1, "Marker shape:")
-        self.plot1d_marker_shape_value = wx.Choice(self, -1, choices=list(CONFIG.markerShapeDict.keys()), size=(-1, -1))
-        self.plot1d_marker_shape_value.SetStringSelection(CONFIG.markerShapeTXT_1D)
+        self.plot1d_marker_shape_value = wx.Choice(self, -1, choices=CONFIG.marker_shape_choices, size=(-1, -1))
+        self.plot1d_marker_shape_value.SetStringSelection(CONFIG.marker_shape_txt)
         self.plot1d_marker_shape_value.Bind(wx.EVT_CHOICE, self.on_apply)
 
         plot1d_marker_size = wx.StaticText(self, -1, "Marker size:")
         self.plot1d_marker_size_value = wx.SpinCtrlDouble(
-            self, -1, value=str(CONFIG.markerSize_1D), min=1, max=100, initial=1, inc=10, size=(90, -1)
+            self, -1, value=str(CONFIG.marker_size), min=1, max=100, initial=1, inc=10, size=(90, -1)
         )
         self.plot1d_marker_size_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
@@ -105,10 +105,10 @@ class Panel1dSettings(PanelSettingsBase):
         self.plot1d_alpha_value = wx.SpinCtrlDouble(
             self,
             -1,
-            value=str(CONFIG.markerTransparency_1D),
+            value=str(CONFIG.marker_transparency),
             min=0,
             max=100,
-            initial=CONFIG.markerTransparency_1D,
+            initial=CONFIG.marker_transparency,
             inc=25,
             size=(90, -1),
         )
@@ -118,7 +118,7 @@ class Panel1dSettings(PanelSettingsBase):
         self.plot1d_marker_color_btn = wx.Button(
             self, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="1d.marker.fill"
         )
-        self.plot1d_marker_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.markerColor_1D))
+        self.plot1d_marker_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.marker_fill_color))
         self.plot1d_marker_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
         plot1d_marker_edge_color = wx.StaticText(self, -1, "Marker edge color:")
@@ -127,11 +127,11 @@ class Panel1dSettings(PanelSettingsBase):
         )
 
         self.plot1d_marker_edge_color_check = make_checkbox(self, "Same as fill")
-        self.plot1d_marker_edge_color_check.SetValue(CONFIG.markerEdgeUseSame_1D)
+        self.plot1d_marker_edge_color_check.SetValue(CONFIG.marker_edge_same_as_fill)
         self.plot1d_marker_edge_color_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.plot1d_marker_edge_color_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        self.plot1d_marker_edge_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.markerEdgeColor_3D))
+        self.plot1d_marker_edge_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.marker_edge_color))
         self.plot1d_marker_edge_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
         # bar plot controls
@@ -149,7 +149,14 @@ class Panel1dSettings(PanelSettingsBase):
 
         bar_line_width_label = wx.StaticText(self, -1, "Bar edge line width:")
         self.bar_line_width_value = wx.SpinCtrlDouble(
-            self, -1, value=str(CONFIG.bar_lineWidth), min=0, max=5, initial=CONFIG.bar_lineWidth, inc=1, size=(90, -1)
+            self,
+            -1,
+            value=str(CONFIG.bar_line_width),
+            min=0,
+            max=5,
+            initial=CONFIG.bar_line_width,
+            inc=1,
+            size=(90, -1),
         )
         self.bar_line_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
@@ -161,7 +168,7 @@ class Panel1dSettings(PanelSettingsBase):
         self.bar_edge_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
         self.bar_color_edge_check = make_checkbox(self, "Same as fill")
-        self.bar_color_edge_check.SetValue(CONFIG.bar_sameAsFill)
+        self.bar_color_edge_check.SetValue(CONFIG.bar_edge_same_as_fill)
         self.bar_color_edge_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.bar_color_edge_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
@@ -258,20 +265,20 @@ class Panel1dSettings(PanelSettingsBase):
     def on_apply(self, evt):
         """Update 1d parameters"""
         # plot 1D
-        CONFIG.lineWidth_1D = str2num(self.plot1d_line_width_value.GetValue())
-        CONFIG.lineStyle_1D = self.plot1d_line_style_value.GetStringSelection()
-        CONFIG.markerSize_1D = str2num(self.plot1d_marker_size_value.GetValue())
-        CONFIG.lineShadeUnder_1D = self.plot1d_underline_check.GetValue()
-        CONFIG.lineShadeUnderTransparency_1D = str2num(self.plot1d_underline_alpha_value.GetValue())
-        CONFIG.markerShapeTXT_1D = self.plot1d_marker_shape_value.GetStringSelection()
-        CONFIG.markerShape_1D = CONFIG.markerShapeDict[self.plot1d_marker_shape_value.GetStringSelection()]
-        CONFIG.markerTransparency_1D = str2num(self.plot1d_alpha_value.GetValue())
+        CONFIG.spectrum_line_width = str2num(self.plot1d_line_width_value.GetValue())
+        CONFIG.spectrum_line_style = self.plot1d_line_style_value.GetStringSelection()
+        CONFIG.marker_size = str2num(self.plot1d_marker_size_value.GetValue())
+        CONFIG.spectrum_line_fill_under = self.plot1d_underline_check.GetValue()
+        CONFIG.spectrum_fill_transparency = str2num(self.plot1d_underline_alpha_value.GetValue())
+        CONFIG.marker_shape_txt = self.plot1d_marker_shape_value.GetStringSelection()
+        CONFIG.marker_shape = CONFIG.marker_shape_dict[self.plot1d_marker_shape_value.GetStringSelection()]
+        CONFIG.marker_transparency = str2num(self.plot1d_alpha_value.GetValue())
 
         # bar
         CONFIG.bar_width = self.bar_width_value.GetValue()
         CONFIG.bar_alpha = self.bar_alpha_value.GetValue()
-        CONFIG.bar_sameAsFill = self.bar_color_edge_check.GetValue()
-        CONFIG.bar_lineWidth = self.bar_line_width_value.GetValue()
+        CONFIG.bar_edge_same_as_fill = self.bar_color_edge_check.GetValue()
+        CONFIG.bar_line_width = self.bar_line_width_value.GetValue()
 
         self._parse_evt(evt)
 
@@ -311,17 +318,17 @@ class Panel1dSettings(PanelSettingsBase):
 
         # update configuration and button color
         if source == "1d.marker.fill":
-            CONFIG.markerColor_1D = color_1
+            CONFIG.marker_fill_color = color_1
             self.plot1d_marker_color_btn.SetBackgroundColour(color_255)
         elif source == "1d.marker.edge":
-            CONFIG.markerEdgeColor_1D = color_1
+            CONFIG.marker_edge_color = color_1
             self.plot1d_marker_edge_color_btn.SetBackgroundColour(color_255)
         elif source == "1d.line.line.color":
-            CONFIG.lineColour_1D = color_1
+            CONFIG.spectrum_line_color = color_1
             self.plot1d_line_color_btn.SetBackgroundColour(color_255)
             self.on_update(evt)
         elif source == "1d.line.fill.color":
-            CONFIG.lineShadeUnderColour_1D = color_1
+            CONFIG.spectrum_file_color = color_1
             self.plot1d_underline_color_btn.SetBackgroundColour(color_255)
             self.on_update(evt)
         elif source == "1d.bar.edge":

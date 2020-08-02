@@ -28,7 +28,7 @@ import urllib3
 # Local imports
 from origami._version import get_versions
 
-__all__ = ("base_version", "get_latest_version", "compare_versions")
+__all__ = ("base_version", "get_latest_version", "compare_versions", "__version__")
 
 
 def get_latest_version(user_repo: str = "lukasz-migas/ORIGAMI", username: str = "lukasz-migas"):

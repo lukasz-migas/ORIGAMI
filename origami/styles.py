@@ -356,10 +356,10 @@ class ColorGetterMixin:
 
     def on_get_color(self, _evt):
         """Convenient method to get new color"""
-        dlg = DialogColorPicker(self, CONFIG.customColors)
+        dlg = DialogColorPicker(self, CONFIG.custom_colors)
         if dlg.ShowModal() == wx.ID_OK:
             color_255, color_1, font_color = dlg.GetChosenColour()
-            CONFIG.customColors = dlg.GetCustomColours()
+            CONFIG.custom_colors = dlg.GetCustomColours()
 
             return color_255, color_1, font_color
         return None, None, None

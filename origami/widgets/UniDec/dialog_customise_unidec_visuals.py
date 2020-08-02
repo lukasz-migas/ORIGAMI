@@ -312,7 +312,7 @@ class DialogCustomiseUniDecVisuals(Dialog):
         self.colorScheme_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.colorScheme_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
 
-        cmap_list = self.config.cmaps2[:]
+        cmap_list = self.config.colormap_choices[:]
         cmap_list.remove("jet")
         colormap_label = wx.StaticText(panel, -1, "Colormap:")
         self.colormap_value = wx.Choice(panel, -1, choices=cmap_list, size=(-1, -1), name="color")
@@ -374,10 +374,10 @@ class DialogCustomiseUniDecVisuals(Dialog):
     def on_change_color(self, evt):
         evtID = evt.GetId()
 
-        dlg = DialogColorPicker(self, self.config.customColors)
+        dlg = DialogColorPicker(self, self.config.custom_colors)
         if dlg.ShowModal() == wx.ID_OK:
             color_255, color_1, __ = dlg.GetChosenColour()
-            self.config.customColors = dlg.GetCustomColours()
+            self.config.custom_colors = dlg.GetCustomColours()
         else:
             return
 
