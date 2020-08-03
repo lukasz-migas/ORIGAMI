@@ -1151,8 +1151,8 @@ class Config:
 
         # Peak-picking parameters
         # Panel settings
-        self.peak_panel_method_choices = []
-        self.peak_panel_method_choice = ""
+        self.peak_panel_method_choices = ["small_molecule", "native_local", "native_differential"]
+        self.peak_panel_method_choice = "small_molecule"
         self.peak_panel_specify_mz = False
         self.peak_panel_mz_start = None
         self.peak_panel_mz_end = None

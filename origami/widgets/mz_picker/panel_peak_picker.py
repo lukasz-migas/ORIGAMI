@@ -20,11 +20,14 @@ from origami.styles import set_item_font
 from origami.styles import make_menu_item
 from origami.styles import make_bitmap_btn
 from origami.utils.screen import calculate_window_size
+from origami.utils.system import running_under_pytest
 from origami.config.config import CONFIG
 from origami.utils.utilities import report_time
+from origami.handlers.process import PROCESS_HANDLER
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
 from origami.utils.exceptions import MessageError
+from origami.config.environment import ENV
 from origami.objects.containers import MassSpectrumObject
 from origami.gui_elements.panel_base import DatasetMixin
 from origami.gui_elements.misc_dialogs import DialogBox
@@ -125,6 +128,7 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         self._mz_obj = None
         self._mz_picker = None
         self._mz_picker_filter = None
+        self._debug = debug
 
         # setup kwargs
         self.document_title = document_title
@@ -138,13 +142,19 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         self.update_window_title()
 
         # bind events
-        wx.EVT_CLOSE(self, self.on_close)
+        self.Bind(wx.EVT_CLOSE, self.on_close)
         self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
-        if not debug:
-            # trigger UI events
-            self.on_plot(None)
-            self.on_update_method(None)
-            self.setup()
+
+        # trigger UI events
+        self.on_plot(None)
+        self.on_set_method(CONFIG.peak_panel_method_choice)
+        # self.on_update_method(None)
+        self.setup()
+
+        # setup panel scrolling - this should only be done when running full application rather than when running
+        # under pytest
+        if not running_under_pytest():
+            self.settings_panel.SetupScrolling(scroll_x=False)
 
         logger.info(f"Startup of peak picker took {report_time(t_start)}")
 
@@ -190,7 +200,8 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
     @property
     def mz_obj(self) -> MassSpectrumObject:
         """Return `MassSpectrumObject`"""
-        __, mz_obj = self.data_handling.get_spectrum_data([self.document_title, self.dataset_name])
+        document = ENV[self.document_title]
+        mz_obj = document[self.dataset_name, True]
         return mz_obj
 
     @property
@@ -205,9 +216,8 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         """Set `mz_obj_cache`"""
         if value is None:
             return
-        assert isinstance(
-            value, MassSpectrumObject
-        ), "Incorrect data-type was being set to the `mz_obj_cache` attribute"
+        if not isinstance(value, MassSpectrumObject):
+            raise ValueError("Incorrect data-type was being set to the `mz_obj_cache` attribute")
         self._mz_obj = value
 
     @property
@@ -220,9 +230,8 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         """Set `mz_obj_cache`"""
         if value is None:
             return
-        assert isinstance(
-            value, MassSpectrumBasePicker
-        ), "Incorrect data type was being set to the `mz_picker` attribute"
+        if not isinstance(value, MassSpectrumBasePicker):
+            raise ValueError("Incorrect data type was being set to the `mz_picker` attribute")
         self._mz_picker = value
 
     @property
@@ -235,14 +244,13 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         """Set `mz_obj_cache`"""
         if value is None:
             self._mz_picker_filter = None
-        assert isinstance(
-            value, MassSpectrumBasePicker
-        ), "Incorrect data type was being set to the `mz_picker_tmp` attribute"
+        if not isinstance(value, MassSpectrumBasePicker):
+            raise ValueError("Incorrect data type was being set to the `mz_picker_tmp` attribute")
         self._mz_picker_filter = value
 
     def on_close(self, evt, force: bool = False):
         """Close window"""
-        if self.mz_picker is not None and not force:
+        if self.mz_picker is not None and not force and not self._debug:
             dlg = DialogBox(
                 title="Would you like to continue?",
                 msg="There is a cached peak-picker in this window. Closing the window will remove it."
@@ -337,14 +345,20 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         menu.Destroy()
         self.SetFocus()
 
+    def on_set_method(self, method: str):
+        """Set method"""
+        page_id = {"native_local": 0, "native_differential": 1, "small_molecule": 2}.get(method, 0)
+        self.panel_book.SetSelection(page_id)
+
     def on_update_method(self, _evt):
         """Update pick-picking method"""
         page = self.panel_book.GetPageText(self.panel_book.GetSelection())
-        CONFIG.peak_find_method = {
+        CONFIG.peak_panel_method_choice = {
             "Small molecule": "small_molecule",
             "Native MS (Local)": "native_local",
             "Native MS (Differential)": "native_differential",
         }[page]
+        logger.debug(f"Changed peak picking method to `{CONFIG.peak_panel_method_choice}`")
         try:
             self.on_show_threshold_line(None)
         except IndexError:
@@ -367,6 +381,7 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         main_sizer.Fit(self)
         self.SetSize(self._window_size)
         self.SetSizer(main_sizer)
+
         self.Layout()
         self.CenterOnParent()
         self.SetFocus()
@@ -374,13 +389,14 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
     def make_notebook(self, split_panel):
         """Make settings notebook"""
         panel = wxScrolledPanel.ScrolledPanel(split_panel, size=(-1, -1), name="main")
+        # panel = wx.Panel(split_panel)
 
         # make pre-processing panel
         preprocess_panel = self.make_settings_panel_preprocess(panel)
 
         self.panel_book = wx.Choicebook(panel, wx.ID_ANY, style=wx.CHB_DEFAULT)
         self.panel_book.SetBackgroundColour((240, 240, 240))
-        self.panel_book.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.on_update_method)
+        self.panel_book.Bind(wx.EVT_CHOICEBOOK_PAGE_CHANGED, self.on_update_method)
 
         # add peak-picking methods
         self.settings_native_local = self.make_settings_panel_native_local(self.panel_book)
@@ -440,7 +456,6 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         settings_sizer.Fit(panel)
         settings_sizer.SetMinSize((380, -1))
         panel.SetSizerAndFit(settings_sizer)
-        panel.SetupScrolling(scroll_x=False)
 
         return panel
 
@@ -956,10 +971,10 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
 
     def on_show_window_size_in_mz(self, evt):
         """Display m/z spacing in the UI"""
-        if CONFIG.peak_find_method == "native_local":
+        if CONFIG.peak_panel_method_choice == "native_local":
             mz_bins = str2int(self.fit_local_window_value.GetValue(), 0) * self.mz_obj_cache.x_spacing
             self.fit_local_window_mz_spacing.SetLabel(f"{mz_bins:.4f} Da")
-        elif CONFIG.peak_find_method == "native_differential":
+        elif CONFIG.peak_panel_method_choice == "native_differential":
             mz_bins = str2int(self.fit_differential_window_value.GetValue(), 0) * self.mz_obj_cache.x_spacing
             self.fit_differential_window_mz_spacing.SetLabel(f"{mz_bins:.4f} Da")
 
@@ -968,14 +983,14 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
 
     def on_show_threshold_line(self, evt):
         """Display a horizontal line indicating the minimal intensity that will be picked"""
-        if CONFIG.peak_find_method == "small_molecule":
+        if CONFIG.peak_panel_method_choice == "small_molecule":
             threshold = str2num(self.min_intensity_value.GetValue())
-        elif CONFIG.peak_find_method == "native_local":
+        elif CONFIG.peak_panel_method_choice == "native_local":
             threshold = str2num(self.fit_local_threshold_value.GetValue())
         else:
             threshold = str2num(self.fit_differential_threshold_value.GetValue())
 
-        if self.mz_obj:
+        if self.mz_obj_cache:
             _, y_max = self.mz_obj_cache.y_limit
 
             # if threshold is below 1, we assume that its meant to be a proportion
@@ -1023,8 +1038,11 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
             mz_max = CONFIG.peak_panel_mz_end
 
         mz_picker = None
-        if CONFIG.peak_find_method == "small_molecule":
-            mz_picker = self.data_handling.find_peaks_in_mass_spectrum_peak_properties(
+        if CONFIG.peak_panel_method_choice not in CONFIG.peak_panel_method_choices:
+            raise ValueError(f"Incorrect method - `{CONFIG.peak_panel_method_choice}`")
+
+        if CONFIG.peak_panel_method_choice == "small_molecule":
+            mz_picker = PROCESS_HANDLER.find_peaks_in_mass_spectrum_peak_properties(
                 mz_obj,
                 pick_mz_min=mz_min,
                 pick_mz_max=mz_max,
@@ -1035,8 +1053,8 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
                 min_intensity=CONFIG.peak_property_min_intensity,
                 peak_width_modifier=CONFIG.peak_property_peak_width_modifier,
             )
-        elif CONFIG.peak_find_method == "native_differential":
-            mz_picker = self.data_handling.find_peaks_in_mass_spectrum_peakutils(
+        elif CONFIG.peak_panel_method_choice == "native_differential":
+            mz_picker = PROCESS_HANDLER.find_peaks_in_mass_spectrum_peakutils(
                 mz_obj,
                 pick_mz_min=mz_min,
                 pick_mz_max=mz_max,
@@ -1044,8 +1062,8 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
                 threshold=CONFIG.peak_differential_threshold,
                 rel_height=CONFIG.peak_differential_relative_height,
             )
-        elif CONFIG.peak_find_method == "native_local":
-            mz_picker = self.data_handling.find_peaks_in_mass_spectrum_local_max(
+        elif CONFIG.peak_panel_method_choice == "native_local":
+            mz_picker = PROCESS_HANDLER.find_peaks_in_mass_spectrum_local_max(
                 mz_obj,
                 pick_mz_min=mz_min,
                 pick_mz_max=mz_max,
@@ -1070,7 +1088,7 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
 
         mz_obj = self.mz_obj
         if CONFIG.peak_panel_preprocess:
-            self.data_handling.on_process_ms(mz_obj)
+            PROCESS_HANDLER.on_process_ms(mz_obj)
         self.mz_obj_cache = mz_obj
 
         self.plot_view.plot(obj=mz_obj)
@@ -1143,6 +1161,9 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
             values = mz_picker.idx_width
         else:
             values = mz_picker.x_width
+
+        if len(values) == 0:
+            values = np.asarray([0, 0])
 
         min_val = f"{values.min()-0.0001:.4f}"
         self.post_filter_lower_value.SetValue(min_val)

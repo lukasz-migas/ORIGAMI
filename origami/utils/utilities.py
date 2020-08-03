@@ -23,7 +23,7 @@ def open_link(link: str):
     """Open web page"""
     import webbrowser
 
-    webbrowser.open(link, autoraise=True)
+    webbrowser.open(link)
 
 
 def rescale(values, new_min, new_max, dtype=None):
@@ -61,6 +61,7 @@ def is_valid_python_name(name):
 
 
 def get_chunk_size(chunks, shape, dtype):
+    """Get size of the chunk"""
     dtype, object_codec = normalize_dtype(dtype, None)
     shape = normalize_shape(shape) + dtype.shape
     dtype = dtype.base

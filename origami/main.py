@@ -4,7 +4,6 @@ import gc
 import os
 import sys
 import logging
-# import warnings
 import threading
 import faulthandler
 from sys import platform
@@ -19,12 +18,6 @@ from origami.main_window import MainWindow
 from origami.config.config import CONFIG
 from origami.help_documentation import OrigamiHelp
 from origami.gui_elements.views.view_register import VIEW_REG  # noqa
-
-# # needed to avoid annoying warnings to be printed on console
-# warnings.filterwarnings("ignore", category=DeprecationWarning)
-# warnings.filterwarnings("ignore", category=RuntimeWarning)
-# warnings.filterwarnings("ignore", category=UserWarning)
-# warnings.filterwarnings("ignore", category=FutureWarning)
 
 logger = logging.getLogger(__name__)
 faulthandler.enable()
@@ -59,18 +52,6 @@ class ORIGAMI:
         self.view.Show()
         self.__wx_app.MainLoop()
 
-    # def on_reboot_origami(self, _evt):
-    #     """Reset window"""
-    #     dlg = DialogBox("Restart ORIGAMI", "Are you sure you want to restart the application?", kind="Question")
-    #     if dlg == wx.ID_CANCEL:
-    #         return
-    #     self.__wx_app.GetMainLoop().ProcessIdle()
-    #     # self.__wx_app.ExitMainLoop()
-    #     self.view.Destroy()
-    #     self.view = None
-    #     self.view = MainWindow(self, icons=self.icons, title="ORIGAMI - %s " % self.config.version)
-    #     self.view.Show()
-
     def quit(self):
         """Quit application"""
         self.__wx_app.GetMainLoop().ProcessIdle()
@@ -93,7 +74,6 @@ class ORIGAMI:
         self.setup_app()
 
         # Setup variables
-        #         self.initialize_state()
         self.view = MainWindow(self, icons=self.icons, title="ORIGAMI - %s " % self.config.version)
         self.__wx_app.SetTopWindow(self.view)
         self.view.Show()
@@ -135,7 +115,9 @@ class ORIGAMI:
     #         set_ie_emulation_level()
     #         set_ie_lockdown_level()
     #         logger.debug("Initialized registry...")
-    def setup_app(self):
+    @staticmethod
+    def setup_app():
+        """Setup application"""
         # Assign standard input/output to variable
         CONFIG.APP_STDIN = sys.stdin
         CONFIG.APP_STDOUT = sys.stdout
@@ -176,6 +158,7 @@ class ORIGAMI:
         self.config.loadConfigXML(path="configOut.xml")
 
     def onThreading(self, evt, args, action="loadOrigami"):  # noqa
+        """Start separate thread"""
 
         thread_obj = None
         if action == "saveFigs":
@@ -202,4 +185,4 @@ class ORIGAMI:
 
 
 if __name__ == "__main__":
-    app = ORIGAMI(redirect=False)
+    app = ORIGAMI()

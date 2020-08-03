@@ -4,7 +4,6 @@ import time
 import logging
 from enum import IntEnum
 from typing import Union
-from builtins import isinstance
 
 # Third-party imports
 import wx
@@ -23,6 +22,7 @@ from origami.utils.color import convert_rgb_1_to_255
 from origami.utils.color import convert_rgb_255_to_1
 from origami.utils.screen import calculate_window_size
 from origami.utils.secret import get_short_hash
+from origami.utils.system import running_under_pytest
 from origami.config.config import CONFIG
 from origami.utils.utilities import report_time
 from origami.utils.converters import rounder
@@ -302,8 +302,9 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin):
             self.data_obj = data_obj
             self.annotations = self.data_obj.get_annotations()
 
-        # setup
-        if self.data_obj:
+        # setup panel scrolling - this should only be done when running full application rather than when running
+        # under pytest
+        if not running_under_pytest():
             wx.CallAfter(self.on_setup_plot_on_startup)
 
     @property
@@ -1336,8 +1337,10 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin):
 
     def on_setup_plot_on_startup(self):
         """Setup plot on startup of the window"""
-        self.on_plot()
-        self.on_plot_annotations()
+        if self.data_obj:
+            self.on_plot()
+        if self.annotations:
+            self.on_plot_annotations()
 
     def on_annotate_spectrum_with_patches(self, evt, repaint: bool = True, annotations: Annotations = None):
         """Annotate peaks on spectrum with patches"""

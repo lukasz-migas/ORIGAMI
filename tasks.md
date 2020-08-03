@@ -8,13 +8,11 @@
 - [ ] replace the old-style icons
 - [ ] add controls to specify the number of threads running simultaneously
 - [ ] fix a bug that removes the z-axis and label when updating data in the heatmap-3d plot
-- [ ] make usage of the notification toast
 - [ ] improve how the matplotlib interaction displays user events
     - [ ] 1d plots should use horizontal box to highlight region of extraction
-    - [ ] the box should change color, depending on whether CTRL, SHIFT or other keys is pressed
-    - [ ] the zoom-box should respect user styles set in the configuration
 - [ ] fix configuration file
-- [ ] remove old configurations
 - [ ] remove old IDs
 - [ ] add documentation to each of the finished modules
 - [ ] restructure documentation website
+- [ ] fix a bug that causes plot crash when replotting data and the user is zoomed-in too close (OverflowError) - should
+    basically zoom-out

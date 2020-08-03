@@ -414,15 +414,20 @@ class DocumentStore:
         except (KeyError, AttributeError):
             LOGGER.warning(f"Could not clear `{item}`")
 
-    def duplicate(self, path: str):
+    def duplicate(self, path: str, overwrite: bool = False):
         """Create copy of the document with new name"""
         from origami.utils.path import copy_directory
 
         if path == self.path:
             raise ValueError("Destination path cannot be the same as the DocumentStore path")
 
+        # ensure path ends with ORIGAMI
+        if not path.endswith(".origami"):
+            path += ".origami"
+            LOGGER.warning(f"Path `{path}` should end with `.origami` extension")
+
         try:
-            copy_directory(self.path, path, False)
+            copy_directory(self.path, path, overwrite)
             return DocumentStore(path)
         except OSError:
             LOGGER.error("Could not duplicate directory")

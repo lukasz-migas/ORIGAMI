@@ -6,6 +6,15 @@ Taken and modified from spyder.utils.system
 import os
 
 
+def running_under_pytest():
+    """Return True if currently running under py.test.
+
+    This function is used to do some adjustment for testing. The environment
+    variable ORIGAMI_PYTEST is defined in conftest.py.
+    """
+    return bool(os.environ.get("ORIGAMI_PYTEST"))
+
+
 def get_project_path():
     """Return project path"""
     from pathlib import Path
@@ -14,6 +23,7 @@ def get_project_path():
 
 
 def get_system_info():
+    """Get information about the system"""
     import platform
     import sys
     from origami import __version__
@@ -32,6 +42,8 @@ def windows_memory_usage():
     from ctypes.wintypes import DWORD
 
     class MemoryStatus(Structure):
+        """Memory status"""
+
         _fields_ = [
             ("dwLength", DWORD),
             ("dwMemoryLoad", DWORD),

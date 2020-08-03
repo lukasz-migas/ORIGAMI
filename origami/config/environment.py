@@ -96,10 +96,9 @@ DOCUMENT_KEY_PAIRS = {
     # "tandem_spectra": "tandem_spectra",
 }
 
-# TODO: add `callbacks` section to the  document
-
 
 def get_document_title(path):
+    """Get document title"""
     base_title = "New Document"
     if path in ["", None]:
         return base_title
@@ -109,6 +108,8 @@ def get_document_title(path):
 
 
 class Environment(PropertyCallbackManager):
+    """Document storage container that persists throughout the app"""
+
     ALLOWED_EVENTS = ["add", "change", "rename", "delete"]
 
     def __init__(self):
@@ -116,6 +117,11 @@ class Environment(PropertyCallbackManager):
         self._current = None
         self.documents = dict()
         LOGGER.debug("Instantiated Document Store Environment")
+
+        # set callbacks to automatically handle changes to the document
+        self.on_change("add", self._set_current)
+        self.on_change("rename", self._set_current)
+        self.on_change("delete", self._set_current)
 
     def __repr__(self):
         return f"DocumentStore<{self.n_documents} documents>"
@@ -163,6 +169,7 @@ class Environment(PropertyCallbackManager):
 
     @property
     def current(self):
+        """Get current document"""
         if self.n_documents == 1:
             self._current = self.titles[0]
         return self._current
@@ -181,6 +188,18 @@ class Environment(PropertyCallbackManager):
     def titles(self):
         """Return all document titles"""
         return list(self.keys())
+
+    def _set_current(self, evt, metadata):
+        """Sets current document"""
+        if evt == "add":
+            self.current = metadata
+        if evt == "delete":
+            if self.current == metadata:
+                self.current = None
+        if evt == "rename":
+            old_name, new_name = metadata
+            if self.current == old_name:
+                self.current = new_name
 
     def exists(self, title: Optional[str] = None, path: Optional[str] = None):
         """Checks whether document with the name already exists"""
@@ -265,14 +284,15 @@ class Environment(PropertyCallbackManager):
         """Alias for load"""
         return self.load(path)
 
-    def duplicate(self, title: str, path: str):
+    def duplicate(self, title: str, path: str, overwrite: bool = False):
         """Duplicate document in-place"""
         document = self[title]
-        document_copy = document.duplicate(path)
+        document_copy = document.duplicate(path, overwrite)
 
         # load duplicated document
         if document_copy is not None and isinstance(document_copy, DocumentStore):
             self.add(document_copy)
+        return document_copy
 
     def set_document(
         self,

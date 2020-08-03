@@ -21,7 +21,7 @@ class TestPlotView(WidgetTestCase):
 
     def set_plot(self, view):
         """Set view in the panel"""
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer = wx.BoxSizer()
         sizer.Add(view.panel, 1, wx.EXPAND)
         self.frame.SetSizerAndFit(sizer)
         self.frame.Layout()

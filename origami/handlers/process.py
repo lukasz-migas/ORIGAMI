@@ -226,3 +226,6 @@ class ProcessHandler:
             mz_range=[pick_mz_min, pick_mz_max], min_distance=window, min_intensity=threshold, rel_height=rel_height
         )
         return picker
+
+
+PROCESS_HANDLER = ProcessHandler()

@@ -81,7 +81,7 @@ class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin):
 
         try:
             self.update(x, y, obj, repaint=repaint, **kwargs)
-        except AttributeError:
+        except (AttributeError, OverflowError):
             x, y = self.check_input(x, y, obj)
             self.figure.clear()
             self.figure.plot_1d(x, y, x_label=self.x_label, y_label=self.y_label, callbacks=self._callbacks, **kwargs)
@@ -120,15 +120,12 @@ class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin):
         """Update plot style"""
         if name.startswith("line"):
             self.figure.plot_1d_update_style_by_label(
-                gid=None,
                 color=CONFIG.spectrum_line_color,
                 line_style=CONFIG.spectrum_line_style,
                 line_width=CONFIG.spectrum_line_width,
-                #                 transparency=CONFIG.XXX,
             )
         elif name.startswith("fill"):
             self.figure.plot_1d_update_patch_style_by_label(
-                gid=None,
                 show=CONFIG.spectrum_line_fill_under,
                 color=CONFIG.spectrum_file_color,
                 transparency=CONFIG.spectrum_fill_transparency,
@@ -290,7 +287,7 @@ class _TestFrame(wx.Frame):
 
         mz_obj = MassSpectrumObject()  # noqa
         view_ms = ViewMassSpectrum(self, (12, 8))
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer = wx.BoxSizer()
         sizer.Add(view_ms.panel, 1, wx.EXPAND)
 
         view_ms.plot([1, 2, 3], [1, 3, 1])

@@ -15,6 +15,7 @@ from origami.visuals.mpl.new_zoom import MPLInteraction
 from origami.gui_elements.misc_dialogs import DialogBox
 
 matplotlib.use("WXAgg")
+matplotlib.rcParams["agg.path.chunksize"] = 10000
 
 LOGGER = logging.getLogger(__name__)
 

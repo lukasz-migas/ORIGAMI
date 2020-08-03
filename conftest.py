@@ -24,6 +24,7 @@ DATA_TEXT_HEATMAP = os.path.join(DATA_PATH, "TEXT_HEATMAP.zip")
 DATA_THERMO_MS_SMALL = os.path.join(DATA_PATH, "THERMO_MS_SMALL.zip")
 DATA_MZML_MS_SMALL = os.path.join(DATA_PATH, "MZML_SMALL.zip")
 DATA_MGF_MS_SMALL = os.path.join(DATA_PATH, "MGF_SMALL.zip")
+DATA_ORIGAMI_IM = os.path.join(DATA_PATH, "DOCUMENT.origami.zip")
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -84,3 +85,24 @@ def get_text_ms(tmpdir_factory):
         link = dw_config["text_ms"]
         path = download_file(link, output_dir=output_dir)
     return glob.glob(os.path.join(path, "*"))
+
+
+@pytest.fixture(scope="session", autouse=True)
+def get_origami_document(tmpdir_factory):
+    """Create folder with processed data for testing purposes"""
+    output_dir = str(tmpdir_factory.mktemp("data"))
+    if os.path.exists(DATA_ORIGAMI_IM):
+        path = unzip_directory(DATA_ORIGAMI_IM, output_dir, False)
+    else:
+        link = dw_config["origami_im"]
+        path = download_file(link, output_dir=output_dir)
+    return os.path.abspath(path)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def get_env_with_document(get_origami_document):
+    """Get pre-loaded document"""
+    from origami.config.environment import ENV
+
+    ENV.load(get_origami_document)
+    return ENV
