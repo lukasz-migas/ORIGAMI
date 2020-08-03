@@ -29,6 +29,18 @@ class PanelSettingsBase(wx.lib.scrolledpanel.ScrolledPanel, ColorGetterMixin):
         if evt is not None:
             evt.Skip()
 
+    @staticmethod
+    def _preparse_evt(evt):
+        """Pre-parse event"""
+        source = None
+        if hasattr(evt, "GetEventObject"):
+            source = evt.GetEventObject()
+            if hasattr(source, "GetName"):
+                source = source.GetName()
+        if source is None:
+            source = ""
+        return evt, source
+
     def _set_color_palette(self, widget):
         if not isinstance(widget, BitmapComboBox):
             raise ValueError("Expected `BitmapComboBox` type of widget")

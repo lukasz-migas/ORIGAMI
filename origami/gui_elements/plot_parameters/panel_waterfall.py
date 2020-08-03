@@ -418,9 +418,10 @@ class PanelWaterfallSettings(PanelSettingsBase):
 
     def on_update(self, evt):
         """Update waterfall plots"""
+        evt, source = self._preparse_evt(evt)
         if evt is None:
             return
-        source = evt.GetEventObject().GetName()
+
         if not source.startswith("waterfall."):
             self._parse_evt(evt)
             return

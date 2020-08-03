@@ -196,9 +196,9 @@ class PanelColorbarSettings(PanelSettingsBase):
 
     def on_update(self, evt):
         """Update 2d plots"""
+        evt, source = self._preparse_evt(evt)
         if evt is None:
             return
-        source = evt.GetEventObject().GetName()
         if not source.startswith("2d.heatmap.colorbar"):
             self._parse_evt(evt)
             return

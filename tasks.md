@@ -14,5 +14,3 @@
 - [ ] remove old IDs
 - [ ] add documentation to each of the finished modules
 - [ ] restructure documentation website
-- [ ] fix a bug that causes plot crash when replotting data and the user is zoomed-in too close (OverflowError) - should
-    basically zoom-out

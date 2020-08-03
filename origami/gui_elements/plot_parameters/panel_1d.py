@@ -270,14 +270,17 @@ class Panel1dSettings(PanelSettingsBase):
         CONFIG.marker_size = str2num(self.plot1d_marker_size_value.GetValue())
         CONFIG.spectrum_line_fill_under = self.plot1d_underline_check.GetValue()
         CONFIG.spectrum_fill_transparency = str2num(self.plot1d_underline_alpha_value.GetValue())
+
+        # markers
+        CONFIG.marker_edge_same_as_fill = self.plot1d_marker_edge_color_check.GetValue()
         CONFIG.marker_shape_txt = self.plot1d_marker_shape_value.GetStringSelection()
         CONFIG.marker_shape = CONFIG.marker_shape_dict[self.plot1d_marker_shape_value.GetStringSelection()]
         CONFIG.marker_transparency = str2num(self.plot1d_alpha_value.GetValue())
 
         # bar
+        CONFIG.bar_edge_same_as_fill = self.bar_color_edge_check.GetValue()
         CONFIG.bar_width = self.bar_width_value.GetValue()
         CONFIG.bar_alpha = self.bar_alpha_value.GetValue()
-        CONFIG.bar_edge_same_as_fill = self.bar_color_edge_check.GetValue()
         CONFIG.bar_line_width = self.bar_line_width_value.GetValue()
 
         self._parse_evt(evt)
@@ -294,9 +297,9 @@ class Panel1dSettings(PanelSettingsBase):
 
     def on_update(self, evt):
         """Update 1d plots"""
+        evt, source = self._preparse_evt(evt)
         if evt is None:
             return
-        source = evt.GetEventObject().GetName()
         if not source.startswith("1d.line"):
             self._parse_evt(evt)
             return
@@ -312,7 +315,6 @@ class Panel1dSettings(PanelSettingsBase):
 
     def on_assign_color(self, evt):
         """Update color"""
-
         # get color
         source, color_255, color_1 = self._on_assign_color(evt)
 

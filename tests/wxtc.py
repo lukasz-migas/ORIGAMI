@@ -1,4 +1,7 @@
 """wxPython unit-test support"""
+# Standard library imports
+from typing import Union
+
 # Third-party imports
 import wx
 
@@ -101,6 +104,47 @@ class WidgetTestCase:
             if intervals <= 0:
                 break
             intervals -= 1
+
+    def sim_button_click(self, button):
+        """Simulate button click"""
+        wx.PostEvent(button, wx.PyCommandEvent(wx.EVT_BUTTON.typeId, button.GetId()))
+        self.yield_()
+
+    def sim_checkbox_click(self, checkbox: wx.CheckBox, value: bool):
+        """Simulate wx.CheckBox click"""
+        checkbox.SetValue(value)
+        wx.PostEvent(checkbox, wx.PyCommandEvent(wx.EVT_CHECKBOX.typeId, checkbox.GetId()))
+        self.yield_()
+
+    def sim_toggle_click(self, toggle: wx.ToggleButton, value: bool):
+        """Simulate wx.CheckBox click"""
+        toggle.SetValue(value)
+        wx.PostEvent(toggle, wx.PyCommandEvent(wx.EVT_TOGGLEBUTTON.typeId, toggle.GetId()))
+        self.yield_()
+
+    def sim_combobox_click(self, combobox: Union[wx.ComboBox, wx.Choice], value: Union[int, str]):
+        """Simulate wx.ComboBox click"""
+        if isinstance(value, str):
+            combobox.SetStringSelection(value)
+        else:
+            combobox.SetSelection(value)
+        if isinstance(combobox, wx.ComboBox):
+            wx.PostEvent(combobox, wx.PyCommandEvent(wx.EVT_COMBOBOX.typeId, combobox.GetId()))
+        else:
+            wx.PostEvent(combobox, wx.PyCommandEvent(wx.EVT_CHOICE.typeId, combobox.GetId()))
+        self.yield_()
+
+    def sim_spin_ctrl_click(self, spin_ctrl: wx.SpinCtrl, value: bool):
+        """Simulate wx.SpinCtrl click"""
+        spin_ctrl.SetValue(value)
+        wx.PostEvent(spin_ctrl, wx.PyCommandEvent(wx.EVT_SPINCTRL.typeId, spin_ctrl.GetId()))
+        self.yield_()
+
+    def sim_spin_ctrl_double_click(self, spin_ctrl_dbl: wx.SpinCtrlDouble, value: bool):
+        """Simulate wx.SpinCtrlDouble click"""
+        spin_ctrl_dbl.SetValue(value)
+        wx.PostEvent(spin_ctrl_dbl, wx.PyCommandEvent(wx.EVT_SPINCTRLDOUBLE.typeId, spin_ctrl_dbl.GetId()))
+        self.yield_()
 
 
 class Namespace(object):

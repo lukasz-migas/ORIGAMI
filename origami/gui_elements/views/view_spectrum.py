@@ -85,8 +85,7 @@ class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin):
             x, y = self.check_input(x, y, obj)
             self.figure.clear()
             self.figure.plot_1d(x, y, x_label=self.x_label, y_label=self.y_label, callbacks=self._callbacks, **kwargs)
-            if repaint:
-                self.figure.repaint()
+            self.figure.repaint(repaint)
 
             # set data
             self._data.update(x=x, y=y, obj=obj)
@@ -101,8 +100,8 @@ class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin):
         # update plot
         x, y = self.check_input(x, y, obj)
         self.figure.plot_1d_update_data(x, y, self.x_label, self.y_label, **kwargs)
-        if repaint:
-            self.figure.repaint()
+        self.figure.on_check_zoom_state(x, y)
+        self.figure.repaint(repaint)
 
         # set data
         self._data.update(x=x, y=y, obj=obj)

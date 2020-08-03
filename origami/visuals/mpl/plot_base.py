@@ -19,6 +19,7 @@ from origami.utils.misc import merge_two_dicts
 from origami.utils.color import get_random_color
 from origami.utils.ranges import get_min_max
 from origami.config.config import CONFIG
+from origami.processing.utils import find_nearest_index
 from origami.utils.adjustText import adjust_text
 from origami.utils.exceptions import MessageError
 from origami.visuals.mpl.panel import MPLPanel
@@ -495,6 +496,27 @@ class PlotBase(MPLPanel):
             start_y = _start_y
         self.plot_base.axis([start_x, end_x, start_y, end_y])
 
+    def on_check_zoom_state(self, x: np.ndarray = None, y: np.ndarray = None, max_y_zoom: float = 0.01, ax=None):
+        """Check the state of the zoom to ensure after data is updated, the zoom-level is not too high"""
+        # get min/max ranges in both dimensions
+        start_x, end_x, start_y, end_y = self.get_plot_limits(ax)
+        # get current zoom
+        _start_x, _end_x, _start_y, _end_y = self.get_xy_limits()
+        if _start_y < start_y:
+            _start_y = start_y
+        # zoom is way outside of the expected range (too high)
+        if _end_y > end_y:
+            _end_y = end_y
+        # zoom is way outside of the expected range (too low)
+        if _end_y < end_y * max_y_zoom:
+            _end_y = end_y
+        if x is not None and y is not None:
+            if start_x != _start_x and end_x != _end_x:
+                _start_idx, _end_idx = find_nearest_index(x, [_start_x, _end_x])
+                _end_y = y[_start_idx:_end_idx].max() * 1.1
+
+        self.plot_base.axis([_start_x, _end_x, _start_y, _end_y])
+
     def on_reset_zoom(self):
         """Reset plot zoom"""
         start_x, end_x, start_y, end_y = self.get_plot_limits()
@@ -581,17 +603,6 @@ class PlotBase(MPLPanel):
 
         self.markers = []
         self.repaint(repaint)
-
-    # def plot_remove_lines(self, label_starts_with: str):
-    #     """Remove plot lines from the plot area"""
-    #     try:
-    #         lines = self.plot_base.get_lines()
-    #     except AttributeError:
-    #         raise MessageError("Error", "Please plot something first")
-    #     for line in lines:
-    #         line_label = line.get_label()
-    #         if line_label.startswith(label_starts_with):
-    #             line.remove()
 
     def plot_remove_patch_with_label(self, label: str):
         """Remove patch with specific label
@@ -927,12 +938,7 @@ class PlotBase(MPLPanel):
         _, _, label_x, label_y, label_text = self._prepare_waterfall(x, y, array, **kwargs)
         if kwargs["add_labels"]:
             self.plot_add_labels(
-                label_x,
-                label_y,
-                label_text,
-                pickable=False,
-                repaint=False,
-                **self._get_waterfall_label_kwargs(**kwargs),
+                label_x, label_y, label_text, pickable=False, **self._get_waterfall_label_kwargs(**kwargs)
             )
         else:
             self.plot_remove_label(False)
@@ -946,190 +952,6 @@ class PlotBase(MPLPanel):
             label.set_horizontalalignment(_kwargs["horizontalalignment"])
             label.set_verticalalignment(_kwargs["verticalalignment"])
 
-    # def    plot_1D_waterfall_update(self, which="other", **kwargs):
-    #
-    #     if self.lock_plot_from_updating:
-    #         self._locked()
-    #
-    #     kwargs = ut_visuals.check_plot_settings(**kwargs)
-    #
-    #     if self.plot_name == "Waterfall_overlay" and which in ["color", "data"]:
-    #         return
-    #
-    #     if which in ["other", "style"]:
-    #         self.plot_1d_waterfall_update_style(**kwargs)
-    #
-    #     elif which == "color":
-    #         self.plot_1d_waterfall_update_color(**kwargs)
-    #
-    #     elif which == "shade":
-    #         self.plot_1d_waterfall_update_shade(**kwargs)
-    #
-    #     elif which == "label":
-    #         self.plot_1d_waterfall_update_label(**kwargs)
-    #
-    #     elif which == "data":
-    #         self.plot_1d_waterfall_data(**kwargs)
-    #
-    #     elif which == "frame":
-    #         self.set_tick_parameters(**kwargs)
-    #
-    #     elif which == "fonts":
-    #         self.plot_1d_waterfall_fonts(**kwargs)
-    #
-    #     self.plot_parameters = kwargs
-    #
-    # def plot_1d_waterfall_update_style(self, **kwargs):
-    #     if self.plot_name != "Violin":
-    #         for i, line in enumerate(self.plot_base.get_lines()):
-    #             line.set_linestyle(kwargs["line_style"])
-    #             line.set_linewidth(kwargs["line_width"])
-    #     else:
-    #         for shade in range(len(self.plot_base.collections)):
-    #             self.plot_base.collections[shade].set_linestyle(kwargs["line_style"])
-    #             self.plot_base.collections[shade].set_linewidth(kwargs["line_width"])
-    #
-    # def plot_1d_waterfall_update_color(self, **kwargs):
-    #     n_colors = len(self.plot_base.get_lines())
-    #     n_patch_colors = len(self.plot_base.collections)
-    #     if n_colors != n_patch_colors:
-    #         if n_patch_colors > n_colors:
-    #             n_colors = n_patch_colors
-    #
-    #     # get colorlist
-    #     colorlist = self._get_colorlist(None, n_colors, which="shade", **kwargs)
-    #
-    #     if self.plot_name != "Violin":
-    #         for i, line in enumerate(self.plot_base.get_lines()):
-    #             if kwargs["line_color_as_shade"]:
-    #                 line_color = colorlist[i]
-    #             else:
-    #                 line_color = kwargs["line_color"]
-    #             line.set_color(line_color)
-    #     else:
-    #         for i in range(len(self.plot_base.collections)):
-    #             if kwargs["line_color_as_shade"]:
-    #                 line_color = colorlist[i]
-    #             else:
-    #                 line_color = kwargs["line_color"]
-    #             self.plot_base.collections[i].set_edgecolor(line_color)
-    #
-    #     for shade in range(len(self.plot_base.collections)):
-    #         shade_color = colorlist[shade]
-    #         self.plot_base.collections[shade].set_facecolor(shade_color)
-    #
-    # def plot_1d_waterfall_update_shade(self, **kwargs):
-    #     try:
-    #         for shade in range(len(self.plot_base.collections)):
-    #             self.plot_base.collections[shade].set_alpha(kwargs["shade_under_transparency"])
-    #     except AttributeError:
-    #         logger.warning("Could not update waterfall underlines")
-    #
-    # def plot_1d_waterfall_update_label(self, **kwargs):
-    #
-    #     # calculate new position
-    #     label_xposition = self.text_offset_position["min"] + (
-    #         self.text_offset_position["max"] * kwargs["labels_x_offset"]
-    #     )
-    #
-    #     if not isinstance(self.text, list):
-    #         logger.warning("Could not update waterfall labels - are they plotted?")
-    #         return
-    #
-    #     for text_obj in self.text:
-    #         if not kwargs["add_labels"]:
-    #             text_obj.set_visible(False)
-    #         else:
-    #             text_obj.set_fontweight(kwargs["labels_font_weight"])
-    #             text_obj.set_fontsize(kwargs["labels_font_size"])
-    #             yposition = text_obj._yposition + kwargs["labels_y_offset"]
-    #             text_obj.set_position([label_xposition, yposition])
-    #             text = ut_visuals.convert_label(text_obj.get_text(), label_format=kwargs["labels_format"])
-    #             text_obj.set_text(text)
-    #
-    # def plot_1d_waterfall_data(self, **kwargs):
-    #     # TODO: needs to respect labels
-    #     # TODO: needs to respect shade
-    #     # TODO: fix an issue when there is shade under the curve
-    #     # fix might be here: https://stackoverflow.com/questions/16120801/matplotlib-animate-fill-between-shape
-    #     #         count = 0
-    #     increment = kwargs["increment"] - self.plot_parameters["increment"]
-    #     offset = kwargs["offset"]  # - self.plot_parameters['offset']
-    #
-    #     # some presets
-    #     label_kws = dict(fontsize=kwargs["labels_font_size"], fontweight=kwargs["labels_font_weight"])
-    #     shade_kws = dict(alpha=kwargs.get("shade_under_transparency", 0.25), clip_on=kwargs.get("clip_on", True))
-    #
-    #     # collect information about underlines
-    #     collection_info = dict()
-    #     for i, shade in enumerate(self.plot_base.collections):
-    #         collection_info[i] = [shade.get_zorder(), shade.get_facecolor()]
-    #     self.plot_base.collections.clear()
-    #
-    #     label_info = dict()
-    #     for i, text in enumerate(self.text):
-    #         label_info[i] = [text._text, text.get_zorder(), text.get_position()[0]]
-    #     self.plot_remove_label(False)
-    #
-    #     if kwargs["reverse"] and label_info:
-    #         logger.warning(
-    #             "When 'reverse' is set to True, labels cannot be changed so they are removed. You have to"
-    #             " fully replot the waterfall plot."
-    #         )
-    #         label_info.clear()
-    #
-    #     ydata, y_offset, i_text = [], 0, 0
-    #     n_count = len(self.plot_base.get_lines())
-    #     for i, line in enumerate(self.plot_base.get_lines()):
-    #         xvals = line.get_xdata()
-    #         yvals = line.get_ydata()
-    #         # indication that waterfall plot is actually shown
-    #         if len(yvals) > 5:
-    #             y = yvals + y_offset
-    #             y_min, y_max = get_min_max(y)
-    #             line.set_ydata(y)
-    #
-    #             # update labels
-    #             if label_info:
-    #                 if i % kwargs["labels_frequency"] == 0 or i == n_count - 1:
-    #                     self.plot_add_label(
-    #                         x=label_info[i_text][2],
-    #                         y=y_min + kwargs["labels_y_offset"],
-    #                         label=label_info[i_text][0],
-    #                         zorder=label_info[i_text][1],
-    #                         **label_kws,
-    #                     )
-    #                     i_text += 1
-    #
-    #             # add underline data if present
-    #             if collection_info:
-    #                 shade_kws.update(zorder=collection_info[i][0], facecolor=collection_info[i][1])
-    #                 self.plot_base.fill_between(xvals, y_min, y, **shade_kws)
-    #
-    #             ydata.extend([y_min, y_max])
-    #             y_offset = y_offset - increment
-    #
-    #     # # update extents
-    #     # ydata = remove_nan_from_list(ydata)
-    #     # self.plot_limits[2] = np.min(ydata) - offset
-    #     # self.plot_limits[3] = np.max(ydata) + 0.05
-    #     # extent = [self.plot_limits[0], self.plot_limits[2], self.plot_limits[1], self.plot_limits[3]]
-    #     # self.update_extents(extent)
-    #     # self.plot_base.set_xlim((self.plot_limits[0], self.plot_limits[1]))
-    #     # self.plot_base.set_ylim((self.plot_limits[2], self.plot_limits[3]))
-    #
-    # def plot_1d_waterfall_fonts(self, **kwargs):
-    #     # update ticks
-    #     matplotlib.rc("xtick", labelsize=kwargs["tick_size"])
-    #     matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
-    #
-    #     # update labels
-    #     self.set_plot_xlabel(None, **kwargs)
-    #     self.set_plot_ylabel(None, **kwargs)
-    #
-    #     # Setup font size info
-    #     self.plot_base.tick_params(labelsize=kwargs["tick_size"])
-    #
     # def plot_1D_update(self, **kwargs):
     #     if self.lock_plot_from_updating:
     #         self._locked()
@@ -1393,7 +1215,7 @@ class PlotBase(MPLPanel):
         self.plot_add_labels(label_x, label_y, label_text, pickable=False, **self._get_waterfall_label_kwargs(**kwargs))
 
         # in waterfall plot, the horizontal axis is the mobility axis
-        xlimits, ylimits, extent = self._compute_xy_limits(y, yy, None, is_heatmap=False)
+        xlimits, ylimits, extent = self._compute_xy_limits(y, yy, None)
         # set plot limits
         self.plot_base.yaxis.set_major_formatter(get_intensity_formatter())
         self.plot_base.set_xlim(xlimits)

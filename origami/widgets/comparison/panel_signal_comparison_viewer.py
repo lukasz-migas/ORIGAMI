@@ -13,8 +13,6 @@ from pubsub.core.topicexc import TopicNameError
 # Local imports
 from origami.ids import ID_compareMS_MS_1
 from origami.ids import ID_compareMS_MS_2
-from origami.ids import ID_plotPanel_resize
-from origami.ids import ID_processSettings_MS
 from origami.ids import ID_extraSettings_legend
 from origami.ids import ID_extraSettings_plot1D
 from origami.styles import MiniFrame
@@ -186,7 +184,7 @@ class PanelSignalComparisonViewer(MiniFrame):
         menu_customize = make_menu_item(parent=menu, text="Customise plot...", bitmap=self._icons.x_label)
         menu.AppendItem(menu_customize)
         menu.AppendSeparator()
-        self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving")
+        self.resize_plot_check = menu.AppendCheckItem(wx.ID_ANY, "Resize on saving")
         self.resize_plot_check.Check(CONFIG.resize)
         save_figure_menu_item = make_menu_item(
             menu, evt_id=wx.ID_ANY, text="Save figure as...", bitmap=self._icons.save
@@ -201,7 +199,7 @@ class PanelSignalComparisonViewer(MiniFrame):
         clear_plot_menu_item = make_menu_item(menu, evt_id=wx.ID_ANY, text="Clear plot", bitmap=self._icons.erase)
         menu.AppendItem(clear_plot_menu_item)
 
-        self.Bind(wx.EVT_MENU, self.on_resize_check, id=ID_plotPanel_resize)
+        self.Bind(wx.EVT_MENU, self.on_resize_check, self.resize_plot_check)
         self.Bind(wx.EVT_MENU, self.on_customise_plot, menu_customize)
         self.Bind(wx.EVT_MENU, self.on_save_figure, save_figure_menu_item)
         self.Bind(wx.EVT_MENU, self.on_copy_to_clipboard, menu_action_copy_to_clipboard)
@@ -235,7 +233,7 @@ class PanelSignalComparisonViewer(MiniFrame):
         self.plot_panel = self.make_plot_panel(self)
 
         # pack element
-        main_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        main_sizer = wx.BoxSizer()
         main_sizer.Add(settings_panel, 0, wx.EXPAND, 0)
         main_sizer.Add(self.plot_panel, 1, wx.EXPAND, 0)
 
@@ -362,7 +360,7 @@ class PanelSignalComparisonViewer(MiniFrame):
             panel, ID_extraSettings_legend, self._icons.plot_legend, tooltip="Change legend parameters"
         )
         self.process_btn = make_bitmap_btn(
-            panel, ID_processSettings_MS, self._icons.process_ms, tooltip="Change MS pre-processing parameters"
+            panel, wx.ID_ANY, self._icons.process_ms, tooltip="Change MS pre-processing parameters"
         )
 
         self.plot_btn = wx.Button(panel, wx.ID_OK, "Plot", size=(-1, -1))
@@ -424,12 +422,12 @@ class PanelSignalComparisonViewer(MiniFrame):
         processing_grid.Add(self.inverse_check, 0, wx.EXPAND)
         processing_grid.Add(self.subtract_check, 0, wx.EXPAND)
 
-        view_grid = wx.BoxSizer(wx.HORIZONTAL)
+        view_grid = wx.BoxSizer()
         view_grid.Add(self.settings_btn)
         view_grid.Add(self.legend_btn)
         view_grid.Add(self.process_btn)
 
-        btn_grid = wx.BoxSizer(wx.HORIZONTAL)
+        btn_grid = wx.BoxSizer()
         btn_grid.Add(self.plot_btn)
         btn_grid.AddSpacer(20)
         btn_grid.Add(self.cancel_btn)
@@ -449,7 +447,7 @@ class PanelSignalComparisonViewer(MiniFrame):
         sizer.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND, 10)
         sizer.AddSpacer(5)
         sizer.Add(btn_grid, 0, wx.ALIGN_CENTER_HORIZONTAL, 10)
-        sizer.AddStretchSpacer(1)
+        sizer.AddStretchSpacer()
         sizer.Add(self.info_btn, 0, wx.ALIGN_LEFT, 10)
 
         # fit layout

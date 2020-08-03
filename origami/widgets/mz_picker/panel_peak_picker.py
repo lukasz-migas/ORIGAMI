@@ -587,9 +587,17 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
 
         self.post_filter_btn = wx.Button(panel, wx.ID_OK, "View", size=(-1, -1))
         self.post_filter_btn.Bind(wx.EVT_BUTTON, self.on_view_filter)
+        set_tooltip(
+            self.post_filter_btn,
+            "Click on this button to view the changes. Filter criteria will NOT be applied to the peak picker.",
+        )
 
         self.post_apply_btn = wx.Button(panel, wx.ID_OK, "Apply", size=(-1, -1))
         self.post_apply_btn.Bind(wx.EVT_BUTTON, self.on_apply_filter)
+        set_tooltip(
+            self.post_apply_btn,
+            "Click on this button to view the changes. Filter criteria WILL be applied to the peak picker.",
+        )
 
         # data grid
         btn_sizer = wx.BoxSizer()
@@ -662,7 +670,7 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         self.visualize_show_labels_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
         self.visualize_show_labels_check.Bind(wx.EVT_CHECKBOX, self.on_annotate_spectrum_with_labels)
 
-        visualize_max_labels = wx.StaticText(panel, wx.ID_ANY, "Max no. labels & patches:")
+        visualize_max_labels = wx.StaticText(panel, wx.ID_ANY, "Max no. labels / patches:")
         self.visualize_max_labels = wx.SpinCtrlDouble(
             panel,
             -1,
@@ -1152,23 +1160,27 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
 
     def on_refresh_lower_upper_bounds(self, evt):
         """Update the lower/upper bounds of the filtering step"""
-        mz_picker, criteria = self._on_get_filtered_picker()
+        try:
+            mz_picker, criteria = self._on_get_filtered_picker()
 
-        # score peak values
-        if criteria == "score":
-            values = mz_picker.scores
-        elif criteria == "idx_fwhm":
-            values = mz_picker.idx_width
-        else:
-            values = mz_picker.x_width
+            # score peak values
+            if criteria == "score":
+                values = mz_picker.scores
+            elif criteria == "idx_fwhm":
+                values = mz_picker.idx_width
+            else:
+                values = mz_picker.x_width
+        except ValueError:
+            values = []
+            logger.warning(f"Could not compute filtering ranges.")
 
         if len(values) == 0:
             values = np.asarray([0, 0])
 
-        min_val = f"{values.min()-0.0001:.4f}"
+        min_val = f"{values.min()-0.0001:.4f}"  # noqa
         self.post_filter_lower_value.SetValue(min_val)
 
-        max_val = f"{values.max()+0.0001:.4f}"
+        max_val = f"{values.max()+0.0001:.4f}"  # noqa
         self.post_filter_upper_value.SetValue(max_val)
 
         if evt is not None:

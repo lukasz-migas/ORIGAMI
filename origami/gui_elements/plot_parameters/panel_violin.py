@@ -330,10 +330,10 @@ class PanelViolinSettings(PanelSettingsBase):
 
     def on_update(self, evt):
         """Update violin plots"""
+        evt, source = self._preparse_evt(evt)
         if evt is None:
             return
-        source = evt.GetEventObject().GetName()
-        print(source)
+
         if not source.startswith("violin."):
             self._parse_evt(evt)
             return
