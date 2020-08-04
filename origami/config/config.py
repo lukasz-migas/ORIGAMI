@@ -1084,16 +1084,16 @@ class Config:
         self.unidec_plot_panel_view = "Tabbed view"
 
         # ORIGAMI
-        self.origami_start_scan = 0
-        self.origami_spv = 3
+        self.origami_method_choices = ["Linear", "Exponential", "Boltzmann", "User-defined"]
+        self.origami_method = "Linear"
+        self.origami_scans_per_voltage = 3
         self.origami_start_voltage = 4
+        self.origami_start_scan = 0
         self.origami_end_voltage = 200
         self.origami_step_voltage = 2
         self.origami_boltzmann_offset = 0
         self.origami_exponential_percentage = 0
         self.origami_exponential_increment = 0
-        self.origami_acquisition_choices = ["Linear", "Exponential", "Boltzmann", "User-defined"]
-        self.origami_acquisition = "Linear"
         self.origami_user_defined_list = []
         self.origami_preprocess = True  # new in v1.3.0.0
 
@@ -1820,8 +1820,8 @@ class Config:
 
         if data_type in ["all", "origami"]:
             # ORIGAMI
-            if self.origami_spv == 0:
-                self.origami_spv = 1
+            if self.origami_scans_per_voltage == 0:
+                self.origami_scans_per_voltage = 1
 
             if self.origami_end_voltage < self.origami_start_voltage:
                 self.origami_start_voltage, self.origami_end_voltage = (

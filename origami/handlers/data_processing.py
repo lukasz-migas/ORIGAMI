@@ -1538,9 +1538,7 @@ class DataProcessing:
             zvals = data[ion_name]["zvals"]
 
             if method == "":
-                self.ionList.SetStringItem(
-                    ion_id, self.config.peaklistColNames["method"], self.config.origami_acquisition
-                )
+                self.ionList.SetStringItem(ion_id, self.config.peaklistColNames["method"], self.config.origami_method)
 
             # get origami-ms settings from the metadata
             origami_settings = document.metadata.get("origami_ms", None)
@@ -1663,7 +1661,7 @@ class DataProcessing:
             logger.error("Cannot perform action. Missing fields in the ORIGAMI parameters panel")
             return
 
-        zvals, scan_list, parameters = pr_origami.origami_combine_linear(
+        zvals, scan_list, parameters = pr_origami.convert_origami_ms_linear(
             zvals, startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage
         )
         return zvals, scan_list, parameters
@@ -1675,7 +1673,7 @@ class DataProcessing:
             logger.error("Cannot perform action. Missing fields in the ORIGAMI parameters panel")
             return
 
-        zvals, scan_list, parameters = pr_origami.origami_combine_exponential(
+        zvals, scan_list, parameters = pr_origami.convert_origami_ms_exponential(
             zvals, startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage, expIncrement, expPercentage
         )
         return zvals, scan_list, parameters
@@ -1685,7 +1683,7 @@ class DataProcessing:
             logger.error("Cannot perform action. Missing fields in the ORIGAMI parameters panel")
             return
 
-        zvals, scan_list, parameters = pr_origami.origami_combine_boltzmann(
+        zvals, scan_list, parameters = pr_origami.convert_origami_ms_boltzmann(
             zvals, startScan, startVoltage, endVoltage, stepVoltage, scansPerVoltage, dx
         )
         return zvals, scan_list, parameters
@@ -1703,7 +1701,7 @@ class DataProcessing:
             logger.error(msg)
             return
 
-        zvals, xlabels, scan_list, parameters = pr_origami.origami_combine_user_defined(zvals, startScan, scanList)
+        zvals, xlabels, scan_list, parameters = pr_origami.convert_origami_ms_user_defined(zvals, startScan, scanList)
 
         return zvals, xlabels, scan_list, parameters
 

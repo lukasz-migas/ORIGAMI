@@ -269,6 +269,16 @@ class DocumentStore:
             return False
         return True
 
+    def is_origami_ms(self, check_parameters: bool = False):
+        """Checks whether the document is a ORIGAMI-MS document"""
+        if self.data_type != "Type: ORIGAMI":
+            return False
+        if check_parameters:
+            cfg = self.get_config("origami_ms")
+            if cfg is None:
+                return False
+        return True
+
     def can_extract(self) -> Tuple[bool, bool, str]:
         """Checks whether this document can be used for data extraction. Returns tuple of bool values to indicate
         whether data can be extracted and/or the dataset uses multiple raw file"""

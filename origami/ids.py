@@ -18,6 +18,9 @@ ID_log_clear_window = NewIdRef()
 ID_log_save_log = NewIdRef()
 ID_log_go_to_directory = NewIdRef()
 ID_extraSettings_logging = NewIdRef()
+ID_annotPanel_otherSettings = NewIdRef()
+ID_ionPanel_table_label = NewIdRef()
+ID_ionPanel_table_method = NewIdRef()
 
 # Recent documents
 ID_documentRecent0 = NewIdRef()
@@ -505,6 +508,10 @@ ID_ylabel_DTMS_restore = NewIdRef()
 ID_xlabel_RT_scans = NewIdRef()
 ID_xlabel_RT_time_min = NewIdRef()
 ID_xlabel_RT_retTime_min = NewIdRef()
+ID_xlabel_RT_colVolt = NewIdRef()
+ID_xlabel_RT_actVolt = NewIdRef()
+ID_xlabel_RT_labFrame = NewIdRef()
+ID_xlabel_RT_actLabFrame = NewIdRef()
 ID_xlabel_RT_restore = NewIdRef()
 
 # ===============================================================================

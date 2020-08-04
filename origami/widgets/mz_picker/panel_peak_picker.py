@@ -1172,7 +1172,7 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
                 values = mz_picker.x_width
         except ValueError:
             values = []
-            logger.warning(f"Could not compute filtering ranges.")
+            logger.warning("Could not compute filtering ranges.")
 
         if len(values) == 0:
             values = np.asarray([0, 0])

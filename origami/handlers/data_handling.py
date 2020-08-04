@@ -274,8 +274,13 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             path = dlg.GetPath()
         dlg.Destroy()
 
-        if path is None or not path.endswith(".origami"):
+        if path is None:
             logger.warning("Operation was cancelled")
+            pub.sendMessage("notify.message.warning", message="Operation was cancelled.")
+            return
+        elif not path.endswith(".origami"):
+            logger.error("Operation was cancelled - it was not an ORIGAMI document.")
+            pub.sendMessage("notify.message.error", message="Operation was cancelled - it was not an ORIGAMI document.")
             return
         self.on_setup_basic_document(ENV.load(path))
 
@@ -526,7 +531,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         x_min, x_max = self._parse_mobilogram_range_waters(document, x_label, x_min, x_max, y_label, y_min, y_max)
 
         # get plot data and calculate maximum values in the arrays
-        x, y = self.panel_plot.view_dt_dt.get_data()
+        x, y = self.panel_plot.view_dt_dt.get_data(["x", "y"])
         _, y_val = get_maximum_xy(x, y, x_min, x_max)
 
         # mark on the plot where data is being extracted from
@@ -564,7 +569,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             raise MessageError("Error", "Multifile data extraction is not supported yet")
 
         # get plot data and calculate maximum values in the arrays
-        x, y = self.panel_plot.view_rt_rt.get_data()
+        x, y = self.panel_plot.view_rt_rt.get_data(["x", "y"])
         _, y_val = get_maximum_xy(x, y, x_min, x_max)
 
         # mark on the plot where data is being extracted from
@@ -604,7 +609,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             raise MessageError("Error", "Cannot extract heatmap from Thermo file")
 
         # get plot data and calculate maximum values in the arrays
-        x, y = self.panel_plot.view_ms.get_data()
+        x, y = self.panel_plot.view_ms.get_data(["x", "y"])
         _, y_val = get_maximum_xy(x, y, x_min, x_max)
 
         # mark on the plot where data is being extracted from
@@ -986,126 +991,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             return path, fname
         else:
             return None, None
-
-    # @staticmethod
-    # def _get_waters_api_nearest_RT_in_minutes(reader, rt_start, rt_end):
-    #     x, __ = reader.get_tic(0)
-    #     x = np.asarray(x)
-    #
-    #     rt_start = int(rt_start)
-    #     rt_end = int(rt_end)
-    #
-    #     if rt_start < 0:
-    #         rt_start = 0
-    #     if rt_end > x.shape[0]:
-    #         rt_end = x.shape[0] - 1
-    #     return x[rt_start], x[rt_end]
-    #
-    # @staticmethod
-    # def _get_waters_api_nearest_DT_in_bins(reader, dt_start, dt_end):
-    #     x, __ = reader.get_tic(1)
-    #     x = np.asarray(x)
-    #
-    #     dt_start = find_nearest_index(x, dt_start)
-    #     dt_end = find_nearest_index(x, dt_end)
-    #
-    #     return dt_start, dt_end
-
-    # def _get_document_of_type(self, document_type, allow_creation=True):
-    #     document_list = ENV.get_document_list(document_type=document_type)
-    #
-    #     document = None
-    #
-    #     # if document list is empty it is necessary to create a new document
-    #     if len(document_list) == 0:
-    #         self.update_statusbar("Did not find appropriate document. Creating a new one...", 4)
-    #         if allow_creation:
-    #             document = self.create_new_document_of_type(document_type)
-    #
-    #     #  if only one document is present, lets get it
-    #     elif len(document_list) == 1:
-    #         document = self.on_get_document(document_list[0])
-    #
-    #     # select from a list
-    #     else:
-    #         dlg = DialogSelectDocument(
-    #             self.view, presenter=self.presenter, document_list=document_list, allow_new_document=allow_creation
-    #         )
-    #         if dlg.ShowModal() == wx.ID_OK:
-    #             return
-    #
-    #         document_title = dlg.current_document
-    #         if document_title is None:
-    #             self.update_statusbar("Please select document", 4)
-    #             return
-    #
-    #         document = self.on_get_document(document_title)
-    #         logger.info(f"Will be using {document.title} document")
-    #
-    #     return document
-    #
-    # def _get_waters_extraction_ranges(self, document):
-    #     """Retrieve extraction ranges for specified file
-    #
-    #     Parameters
-    #     ----------
-    #     document : str
-    #         document instance
-    #
-    #     Returns
-    #     -------
-    #     extraction_ranges : dict
-    #         dictionary with all extraction ranges including m/z, RT and DT
-    #     """
-    #     reader = self._get_waters_api_reader(document)
-    #     mass_range = reader.stats_in_functions.get(0, 1)["mass_range"]
-    #
-    #     x_rt_mins, __ = reader.get_tic(0)
-    #     xvals_rt_scans = np.arange(0, len(x_rt_mins))
-    #
-    #     xvals_dt_ms, __ = reader.get_tic(1)
-    #     xvals_dt_bins = np.arange(0, len(xvals_dt_ms))
-    #
-    #     extraction_ranges = dict(
-    #         mass_range=get_min_max(mass_range),
-    #         xvals_RT_mins=get_min_max(x_rt_mins),
-    #         xvals_RT_scans=get_min_max(xvals_rt_scans),
-    #         xvals_DT_ms=get_min_max(xvals_dt_ms),
-    #         xvals_DT_bins=get_min_max(xvals_dt_bins),
-    #     )
-    #
-    #     return extraction_ranges
-    #
-    #     @staticmethod
-    #     def _check_waters_input(reader, mz_start, mz_end, rt_start, rt_end, dt_start, dt_end):
-    #         """Check input for waters files"""
-    #         # check mass range
-    #         mass_range = reader.stats_in_functions.get(0, 1)["mass_range"]
-    #         if mz_start < mass_range[0]:
-    #             mz_start = mass_range[0]
-    #         if mz_end > mass_range[1]:
-    #             mz_end = mass_range[1]
-    #
-    #         # check chromatographic range
-    #         xvals, __ = reader.get_tic(0)
-    #         rt_range = get_min_max(xvals)
-    #         if rt_start < rt_range[0]:
-    #             rt_start = rt_range[0]
-    #         if rt_start > rt_range[1]:
-    #             rt_start = rt_range[1]
-    #         if rt_end > rt_range[1]:
-    #             rt_end = rt_range[1]
-    #
-    #         # check mobility range
-    #         dt_range = [0, 199]
-    #         if dt_start < dt_range[0]:
-    #             dt_start = dt_range[0]
-    #         if dt_start > dt_range[1]:
-    #             dt_start = dt_range[1]
-    #         if dt_end > dt_range[1]:
-    #             dt_end = dt_range[1]
-    #
-    #         return mz_start, mz_end, rt_start, rt_end, dt_start, dt_end
 
     def on_export_config_fcn(self, evt, verbose=True):
         cwd = self.config.APP_CWD
@@ -1840,179 +1725,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
                 **kwargs,
             )
 
-    # def on_open_multiple_ML_files_fcn(self, open_type, pathlist=None):
-    #
-    #     if pathlist is None:
-    #         pathlist = []
-    #     if not check_path_exists(self.config.lastDir):
-    #         self.config.lastDir = os.getcwd()
-    #
-    #     dlg = DialogMultiDirPicker(
-    #         self.view, title="Choose Waters (.raw) files to open...", last_dir=self.config.lastDir
-    #     )
-    #     #
-    #     if dlg.ShowModal() == "ok":
-    #         pathlist = dlg.get_paths()
-    #
-    #     if len(pathlist) == 0:
-    #         self.update_statusbar("Please select at least one file in order to continue.", 4)
-    #         return
-    #
-    #     # update lastdir
-    #     self.config.lastDir = get_base_path(pathlist[0])
-    #
-    #     if open_type == "multiple_files_add":
-    #         document = self._get_document_of_type("Type: MANUAL")
-    #     elif open_type == "multiple_files_new_document":
-    #         document = self.create_new_document()
-    #
-    #     if document is None:
-    #         logger.warning("Document was not selected.")
-    #         return
-    #
-    #     # setup parameters
-    #     document.dataType = "Type: MANUAL"
-    #     document.fileFormat = "Format: MassLynx (.raw)"
-    #
-    #     if not self.config.threading:
-    #         self.on_open_multiple_ML_files(document, open_type, pathlist)
-    #     else:
-    #         self.on_threading(action="load.multiple.raw.masslynx", args=(document, open_type, pathlist))
-    #
-    # def on_open_multiple_ML_files(self, document, open_type, pathlist=None):
-    #     # TODO: cleanup code
-    #     # TODO: add some subsampling method
-    #     # TODO: ensure that each spectrum has the same size
-    #
-    #     if pathlist is None:
-    #         pathlist = []
-    #     tstart = time.time()
-    #
-    #     enumerate_start = 0
-    #     if open_type == "multiple_files_add":
-    #         enumerate_start = len(document.multipleMassSpectrum)
-    #
-    #     data_was_added = False
-    #     ms_x = None
-    #     for i, file_path in enumerate(pathlist, start=enumerate_start):
-    #         tincr = time.time()
-    #         path = check_waters_path(file_path)
-    #         if not check_path_exists(path):
-    #             logger.warning("File with path: {} does not exist".format(path))
-    #             continue
-    #
-    #         __, file_name = os.path.split(path)
-    #
-    #         add_dict = {"filename": file_name, "document": document.title}
-    #         # check if item already exists
-    #         if self.filesPanel._check_item_in_table(add_dict):
-    #             logger.info(
-    #                 "Item {}:{} is already present in the document".format(add_dict["document"], add_dict["filename"])
-    #             )
-    #             continue
-    #
-    #         # add data to document
-    #         parameters = get_waters_inf_data(path)
-    #         xlimits = [parameters["start_ms"], parameters["end_ms"]]
-    #
-    #         reader = io_waters_raw_api.WatersRawReader(path)
-    #         if ms_x is not None:
-    #             reader.mz_x = ms_x
-    #
-    #         ms_x, ms_y = self._get_waters_api_spectrum_data(reader)
-    #
-    #         dt_x, dt_y = self.waters_im_extract_dt(path)
-    #         try:
-    #             color = self.config.customColors[i]
-    #         except KeyError:
-    #             color = get_random_color(return_as_255=True)
-    #
-    #         color = convert_rgb_255_to_1(self.filesPanel.on_check_duplicate_colors(color, d
-    #         ocument_name=document.title))
-    #         label = os.path.splitext(file_name)[0]
-    #
-    #         add_dict.update({"variable": parameters["trapCE"], "label": label, "color": color})
-    #
-    #         self.filesPanel.on_add_to_table(add_dict, check_color=False)
-    #
-    #         data = {
-    #             "trap": parameters["trapCE"],
-    #             "xvals": ms_x,
-    #             "yvals": ms_y,
-    #             "ims1D": dt_y,
-    #             "ims1DX": dt_x,
-    #             "xlabel": "Drift time (bins)",
-    #             "xlabels": "m/z (Da)",
-    #             "path": path,
-    #             "color": color,
-    #             "parameters": parameters,
-    #             "xlimits": xlimits,
-    #         }
-    #
-    #         self.document_tree.on_update_data(data, file_name, document, data_type="extracted.spectrum")
-    #         logger.info(f"Loaded {path} in {time.time()-tincr:.0f}s")
-    #         data_was_added = True
-    #
-    #     # check if any data was added to the document
-    #     if not data_was_added:
-    #         return
-    #
-    #     kwargs = {
-    #         "auto_range": False,
-    #         "mz_min": self.config.ms_mzStart,
-    #         "mz_max": self.config.ms_mzEnd,
-    #         "mz_bin": self.config.ms_mzBinSize,
-    #         "linearization_mode": self.config.ms_linearization_mode,
-    #     }
-    #     msg = "Linearization method: {} | min: {} | max: {} | window: {} | auto-range: {}".format(
-    #         self.config.ms_linearization_mode,
-    #         self.config.ms_mzStart,
-    #         self.config.ms_mzEnd,
-    #         self.config.ms_mzBinSize,
-    #         self.config.ms_auto_range,
-    #     )
-    #     self.update_statusbar(msg, 4)
-    #
-    #     # check the min/max values in the mass spectrum
-    #     if self.config.ms_auto_range:
-    #         mzStart, mzEnd = pr_spectra.check_mass_range(ms_dict=document.multipleMassSpectrum)
-    #         self.config.ms_mzStart = mzStart
-    #         self.config.ms_mzEnd = mzEnd
-    #         kwargs.update(mz_min=mzStart, mz_max=mzEnd)
-    #
-    #     msFilenames = ["m/z"]
-    #     ms_y_sum = None
-    #     for counter, key in enumerate(document.multipleMassSpectrum):
-    #         msFilenames.append(key)
-    #         ms_x, ms_y = pr_spectra.linearize_data(
-    #             document.multipleMassSpectrum[key]["xvals"], document.multipleMassSpectrum[key]["yvals"], **kwargs
-    #         )
-    #         if ms_y_sum is None:
-    #             ms_y_sum = np.zeros_like(ms_y)
-    #         ms_y_sum += ms_y
-    #
-    #     xlimits = [parameters["start_ms"], parameters["end_ms"]]
-    #     data = {"xvals": ms_x, "yvals": ms_y_sum, "xlabels": "m/z (Da)", "xlimits": xlimits}
-    #     self.document_tree.on_update_data(data, "", document, data_type="main.raw.spectrum")
-    #     # Plot
-    #     name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
-    #     self.panel_plot.on_plot_ms(ms_x, ms_y_sum, xlimits=xlimits, **name_kwargs)
-    #
-    #     # Add info to document
-    #     document.parameters = parameters
-    #     self.on_update_document(document, "no_refresh")
-    #
-    #     # Show panel
-    #     self.view.on_toggle_panel(evt="mass_spectra", check=True)
-    #     self.filesList.on_remove_duplicates()
-    #
-    #     # Update status bar with MS range
-    #     self.update_statusbar(
-    #         "Data extraction took {:.4f} seconds for {} files.".format(time.time() - tstart, i + 1), 4
-    #     )
-    #     self.view.SetStatusText("{}-{}".format(parameters["start_ms"], parameters["end_ms"]), 1)
-    #     self.view.SetStatusText("MSMS: {}".format(parameters["set_msms"]), 2)
-
     def on_update_document(self, document, expand_item="document", expand_item_title=None):
 
         # update dictionary
@@ -2197,66 +1909,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     #     # Add info to document
     #     self.on_update_document(document, "document")
 
-    # def on_highlight_selected_ions(self, evt):
-    #     """
-    #     This function adds rectanges and markers to the m/z window
-    #     """
-    #     # TODO: FIXME
-    # document = self.on_get_document()
-    # document_title = self.document_tree.on_enable_document()
-    #
-    # if document.dataType == "Type: ORIGAMI" or document.dataType == "Type: MANUAL":
-    #     peaklist = self.ionList
-    # elif document.dataType == "Type: Multifield Linear DT":
-    #     peaklist = self.view.panelLinearDT.bottomP.peaklist
-    # else:
-    #     return
-    #
-    # if not document.gotMS:
-    #     return
-
-    # name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
-    # self.panel_plot.on_plot_ms(
-    #     document.massSpectrum["xvals"],
-    #     document.massSpectrum["yvals"],
-    #     xlimits=document.massSpectrum["xlimits"],
-    #     **name_kwargs,
-    # )
-    # # Show rectangles
-    # # Need to check whether there were any ions in the table already
-    # last = peaklist.GetItemCount() - 1
-    # ymin = 0
-    # height = 100000000000
-    # repaint = False
-    # for item in range(peaklist.GetItemCount()):
-    #     itemInfo = self.view.panelMultipleIons.on_get_item_information(item_id=item)
-    #     filename = itemInfo["document"]
-    #     if filename != document_title:
-    #         continue
-    #     ion_name = itemInfo["ion_name"]
-    #     label = "{};{}".format(filename, ion_name)
-    #
-    #     # assumes label is made of start-end
-    #     xmin, xmax = ut_labels.get_ion_name_from_label(ion_name)
-    #     xmin, xmax = str2num(xmin), str2num(xmax)
-    #
-    #     width = xmax - xmin
-    #     color = convert_rgb_255_to_1(itemInfo["color"])
-    #     if np.sum(color) <= 0:
-    #         color = self.config.markerColor_1D
-    #     if item == last:
-    #         repaint = True
-    #     self.panel_plot.on_plot_patches(
-    #         xmin,
-    #         ymin,
-    #         width,
-    #         height,
-    #         color=color,
-    #         alpha=self.config.markerTransparency_1D,
-    #         label=label,
-    #         repaint=repaint,
-    #     )
-    #
     # def on_extract_mass_spectrum_for_each_collision_voltage_fcn(self, evt, document_title=None):
     #
     #     if self.config.threading:

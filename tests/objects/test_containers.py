@@ -111,13 +111,21 @@ class TestMassSpectrumObject:
 
 
 class TestChromatogramObject:
-    @staticmethod
-    def _get_obj():
+    @pytest.fixture()
+    def fake_rt(self):
+        """Synthetic chromatogram"""
         x, y = _get_1d_data()
         return ChromatogramObject(x, y)
 
-    def test_init(self):
-        obj = self._get_obj()
+    @pytest.fixture()
+    def real_rt(self, get_env_with_document):
+        """Chromatogram from document"""
+        env = get_env_with_document
+        document = env.on_get_document()
+        return document["Chromatograms/Summed Chromatogram", True]
+
+    def test_init(self, fake_rt):
+        obj = fake_rt
         assert obj.x_label == "Scans"
         assert obj.y_label == "Intensity"
         assert len(obj.x_limit) == 2
@@ -134,17 +142,26 @@ class TestChromatogramObject:
         assert "class" in attrs
 
     @pytest.mark.parametrize("x_label", ("Scans", "Time (mins)", "Retention time (mins)"))
-    def test_change_x_label(self, x_label):
-        obj = self._get_obj()
+    def test_change_x_label(self, fake_rt, x_label):
+        obj = fake_rt
         obj.change_x_label(to_label=x_label, scan_time=1)
         assert obj.x_label == x_label
 
         obj.change_x_label(to_label="Restore default", scan_time=1)
         assert obj.x_label == "Scans"
 
+    @pytest.mark.parametrize("x_label", ("Scans", "Time (mins)", "Retention time (mins)"))
+    def test_change_x_label_doc(self, real_rt, x_label):
+        obj = real_rt
+        obj.change_x_label(to_label=x_label)
+        assert obj.x_label == x_label
+
+        obj.change_x_label(to_label="Restore default")
+        assert obj.x_label == "Scans"
+
     @pytest.mark.parametrize("scan_time", (0, -5, None))
-    def test_change_x_label_fail(self, scan_time):
-        obj = self._get_obj()
+    def test_change_x_label_fail(self, fake_rt, scan_time):
+        obj = fake_rt
         with pytest.raises(ValueError):
             obj.change_x_label(to_label="Time (mins)", scan_time=scan_time)
 
@@ -153,8 +170,8 @@ class TestChromatogramObject:
 
     @pytest.mark.parametrize("x_label", ("Time (mins)", "Retention time (mins)"))
     @pytest.mark.parametrize("scan_time", (0.5, 1, 5.0))
-    def test_change_x_label_to_min(self, x_label, scan_time):
-        obj = self._get_obj()
+    def test_change_x_label_to_min(self, fake_rt, x_label, scan_time):
+        obj = fake_rt
         obj.change_x_label(to_label=x_label, scan_time=scan_time)
         assert obj.x_label == x_label
         assert obj.x[-1] == (99 * scan_time) / 60
@@ -164,17 +181,17 @@ class TestChromatogramObject:
         assert obj.x[-1] == 99
 
     @pytest.mark.parametrize("delimiter", (",", "\t", " "))
-    def test_to_csv_with_zeros(self, tmpdir_factory, delimiter):
+    def test_to_csv_with_zeros(self, fake_rt, tmpdir_factory, delimiter):
         path = str(tmpdir_factory.mktemp("output"))
-        obj = self._get_obj()
+        obj = fake_rt
         path = obj.to_csv(os.path.join(path, "chromatogram"), delimiter=delimiter, remove_zeros=False)
         data = np.loadtxt(path, delimiter=delimiter)
         assert data[0, 0] == 0
 
     @pytest.mark.parametrize("delimiter", (",", "\t", " "))
-    def test_to_csv_without_zeros(self, tmpdir_factory, delimiter):
+    def test_to_csv_without_zeros(self, fake_rt, tmpdir_factory, delimiter):
         path = str(tmpdir_factory.mktemp("output"))
-        obj = self._get_obj()
+        obj = fake_rt
         path = obj.to_csv(os.path.join(path, "chromatogram"), delimiter=delimiter, remove_zeros=True)
         data = np.loadtxt(path, delimiter=delimiter)
         assert data[0, 0] == 1
@@ -185,6 +202,13 @@ class TestMobilogramObject:
     def _get_obj():
         x, y = _get_1d_data()
         return MobilogramObject(x, y)
+
+    @pytest.fixture()
+    def real_dt(self, get_env_with_document):
+        """Mobilogram from document"""
+        env = get_env_with_document
+        document = env.on_get_document()
+        return document["Mobilograms/Summed Mobilogram", True]
 
     def test_init(self):
         obj = self._get_obj()
@@ -213,6 +237,15 @@ class TestMobilogramObject:
         assert obj.x_label == x_label
 
         obj.change_x_label(to_label="Restore default", pusher_freq=100)
+        assert obj.x_label == "Drift time (bins)"
+
+    @pytest.mark.parametrize("x_label", ("Drift time (bins)", "Drift time (ms)", "Arrival time (ms)"))
+    def test_change_x_label_doc(self, real_dt, x_label):
+        obj = real_dt
+        obj.change_x_label(to_label=x_label)
+        assert obj.x_label == x_label
+
+        obj.change_x_label(to_label="Restore default")
         assert obj.x_label == "Drift time (bins)"
 
     @pytest.mark.parametrize("pusher_freq", (0, -5, None))

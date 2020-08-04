@@ -37,11 +37,14 @@ from origami.ids import ID_xlabel_1D_restore
 from origami.ids import ID_xlabel_2D_actVolt
 from origami.ids import ID_xlabel_2D_colVolt
 from origami.ids import ID_xlabel_2D_restore
+from origami.ids import ID_xlabel_RT_actVolt
+from origami.ids import ID_xlabel_RT_colVolt
 from origami.ids import ID_xlabel_RT_restore
 from origami.ids import ID_ylabel_2D_restore
 from origami.ids import ID_removeAllDocuments
 from origami.ids import ID_xlabel_2D_labFrame
 from origami.ids import ID_xlabel_2D_time_min
+from origami.ids import ID_xlabel_RT_labFrame
 from origami.ids import ID_xlabel_RT_time_min
 from origami.ids import ID_getSelectedDocument
 from origami.ids import ID_ylabel_DTMS_restore
@@ -50,6 +53,7 @@ from origami.ids import ID_xlabel_2D_wavenumber
 from origami.ids import ID_ylabel_2D_ms_arrival
 from origami.ids import ID_xlabel_2D_actLabFrame
 from origami.ids import ID_xlabel_2D_retTime_min
+from origami.ids import ID_xlabel_RT_actLabFrame
 from origami.ids import ID_xlabel_RT_retTime_min
 from origami.ids import ID_xlabel_2D_massToCharge
 from origami.ids import ID_ylabel_DTMS_ms_arrival
@@ -524,7 +528,16 @@ class DocumentTree(wx.TreeCtrl):
             self.Bind(wx.EVT_MENU, self.on_change_x_values_and_labels, id=yID)
 
         # RT
-        for yID in [ID_xlabel_RT_scans, ID_xlabel_RT_time_min, ID_xlabel_RT_retTime_min, ID_xlabel_RT_restore]:
+        for yID in [
+            ID_xlabel_RT_scans,
+            ID_xlabel_RT_time_min,
+            ID_xlabel_RT_retTime_min,
+            ID_xlabel_RT_restore,
+            ID_xlabel_RT_colVolt,
+            ID_xlabel_RT_actVolt,
+            ID_xlabel_RT_labFrame,
+            ID_xlabel_RT_actLabFrame,
+        ]:
             self.Bind(wx.EVT_MENU, self.on_change_x_values_and_labels, id=yID)
 
         # DT/MS
@@ -749,7 +762,7 @@ class DocumentTree(wx.TreeCtrl):
             try:
                 self.view.SetStatusText(ms_text, 1)
                 self.view.SetStatusText(msms_text, 2)
-            except wx.PyAssertionError:
+            except Exception:  # noqa
                 pass
 
             # In case we also interested in selected item
@@ -818,7 +831,7 @@ class DocumentTree(wx.TreeCtrl):
     #         # no such item found
     #         return False
 
-    def get_item_by_data(self, data, root):
+    def get_item_by_data(self, data, root=None):
         """Get DocumentTree item by its data"""
         if root is None:
             root = self.GetRootItem()
@@ -867,9 +880,9 @@ class DocumentTree(wx.TreeCtrl):
                 self.on_delete_item(evt=None)
         elif key == 80:
             if self._item.is_match("heatmap"):
-                self.on_process_heatmap(evt=None)
+                self.on_process_heatmap(None)
             elif self._item.is_match("spectrum"):
-                self.on_process_ms(evt=None)
+                self.on_process_ms(None)
         elif key == 341:  # F2
             self.on_rename_item(None)
 
@@ -882,81 +895,81 @@ class DocumentTree(wx.TreeCtrl):
         # TODO: add trigger to update annotations window when something is deleted
         # TODO: add trigger to update interactive window when something is deleted
 
-        document_title, dataset_type, __ = query
-        document = self.data_handling.on_get_document(document_title)
-        document_type = document.data_type
-
-        _sub_key_check = all([el == "" for el in sub_key])
-
-        if not dataset_name:
-            dataset_name = None
-
-        if (
-            dataset_type in ["Drift time (2D, EIC)"]
-            or dataset_type in ["Drift time (2D, combined voltages, EIC)"]
-            and document_type == "Type: MANUAL"
-        ):
-            self.ionPanel.delete_row_from_table(dataset_name, document_title)
-            self.on_update_extracted_patches(document_title, None, dataset_name)
-
-        if dataset_type in ["Drift time (2D)"] and document_type == "Type: 2D IM-MS":
-            self.textPanel.delete_row_from_table(document_title)
-
-        if dataset_type in ["Mass Spectra"]:
-            self.filesPanel.delete_row_from_table(dataset_name, document_title)
-
-        # update comparison viewer
-        if self._compare_panel:
-            document_spectrum_list = self.data_handling.generate_item_list_mass_spectra("comparison")
-            document_list = list(document_spectrum_list.keys())
-            count = sum([len(document_spectrum_list[_title]) for _title in document_spectrum_list])
-            if count >= 2:
-                self._compare_panel._set_item_lists(
-                    document_list=document_list, document_spectrum_list=document_spectrum_list, refresh=True
-                )
-            else:
-                DialogBox(
-                    title="Warning",
-                    msg="The MS comparison window requires at least 2 items to compare."
-                    + f" There are only {count} items in the list. The window will be closed",
-                    kind="Error",
-                    show_exception=True,
-                )
-                self._compare_panel.on_close(None)
-
-        # update peak picker
-        if self._picker_panel and self._picker_panel._check_active([document_title, dataset_type, dataset_name]):
-            DialogBox(
-                title="Warning",
-                msg="The peak picking panel is operating on the same item that was just deleted."
-                + " The window will be closed",
-                kind="Error",
-                show_exception=True,
-            )
-            self._picker_panel.on_close(None)
-
-        # update annotations panel
-        if self._annotate_panel and self._annotate_panel._check_active([document_title, dataset_type, dataset_name]):
-            if not _sub_key_check:
-                self._annotate_panel.on_clear_table()
-            else:
-                DialogBox(
-                    title="Warning",
-                    msg="The annotation panel is operating on the same item that was just deleted."
-                    + " The window will be closed",
-                    kind="Error",
-                    show_exception=True,
-                )
-                self._annotate_panel.on_close(None)
-
-        # delete annotation links
-        if not _sub_key_check:
-            sub_key_parent, __ = sub_key
-
-            if sub_key_parent == "Annotations":
-                print("delete annotations")
-            elif sub_key_parent == "UniDec":
-                print("delete unidec")
+        # document_title, dataset_type, __ = query
+        # document = self.data_handling.on_get_document(document_title)
+        # document_type = document.data_type
+        #
+        # _sub_key_check = all([el == "" for el in sub_key])
+        #
+        # if not dataset_name:
+        #     dataset_name = None
+        #
+        # if (
+        #     dataset_type in ["Drift time (2D, EIC)"]
+        #     or dataset_type in ["Drift time (2D, combined voltages, EIC)"]
+        #     and document_type == "Type: MANUAL"
+        # ):
+        #     self.ionPanel.delete_row_from_table(dataset_name, document_title)
+        #     self.on_update_extracted_patches(document_title, None, dataset_name)
+        #
+        # if dataset_type in ["Drift time (2D)"] and document_type == "Type: 2D IM-MS":
+        #     self.textPanel.delete_row_from_table(document_title)
+        #
+        # if dataset_type in ["Mass Spectra"]:
+        #     self.filesPanel.delete_row_from_table(dataset_name, document_title)
+        #
+        # # update comparison viewer
+        # if self._compare_panel:
+        #     document_spectrum_list = self.data_handling.generate_item_list_mass_spectra("comparison")
+        #     document_list = list(document_spectrum_list.keys())
+        #     count = sum([len(document_spectrum_list[_title]) for _title in document_spectrum_list])
+        #     if count >= 2:
+        #         self._compare_panel._set_item_lists(
+        #             document_list=document_list, document_spectrum_list=document_spectrum_list, refresh=True
+        #         )
+        #     else:
+        #         DialogBox(
+        #             title="Warning",
+        #             msg="The MS comparison window requires at least 2 items to compare."
+        #             + f" There are only {count} items in the list. The window will be closed",
+        #             kind="Error",
+        #             show_exception=True,
+        #         )
+        #         self._compare_panel.on_close(None)
+        #
+        # # update peak picker
+        # if self._picker_panel and self._picker_panel._check_active([document_title, dataset_type, dataset_name]):
+        #     DialogBox(
+        #         title="Warning",
+        #         msg="The peak picking panel is operating on the same item that was just deleted."
+        #         + " The window will be closed",
+        #         kind="Error",
+        #         show_exception=True,
+        #     )
+        #     self._picker_panel.on_close(None)
+        #
+        # # update annotations panel
+        # if self._annotate_panel and self._annotate_panel._check_active([document_title, dataset_type, dataset_name]):
+        #     if not _sub_key_check:
+        #         self._annotate_panel.on_clear_table()
+        #     else:
+        #         DialogBox(
+        #             title="Warning",
+        #             msg="The annotation panel is operating on the same item that was just deleted."
+        #             + " The window will be closed",
+        #             kind="Error",
+        #             show_exception=True,
+        #         )
+        #         self._annotate_panel.on_close(None)
+        #
+        # # delete annotation links
+        # if not _sub_key_check:
+        #     sub_key_parent, __ = sub_key
+        #
+        #     if sub_key_parent == "Annotations":
+        #         print("delete annotations")
+        #     elif sub_key_parent == "UniDec":
+        #         print("delete unidec")
 
     def on_delete_item(self, evt):
         """Delete selected item from the document tree and the presenter dictionary"""
@@ -1224,13 +1237,6 @@ class DocumentTree(wx.TreeCtrl):
         # # update document
         # self.data_handling.on_update_document(document, "no_refresh")
 
-    def _on_event_get_mass_spectrum(self, **kwargs):
-
-        query = self._get_query_info_based_on_indent()
-        document, data = self.data_handling.get_mobility_chromatographic_data(query)
-
-        return document, data, query[2]
-
     def _on_event_get_mobility_chromatogram_query(self, **kwargs):
         if not all([item in kwargs for item in ["document_title", "dataset_type", "dataset_name"]]):
             query = self._get_query_info_based_on_indent()
@@ -1413,13 +1419,13 @@ class DocumentTree(wx.TreeCtrl):
         from origami.gui_elements.dialog_customise_origami import DialogCustomiseORIGAMI
 
         # get document
-        document = self.data_handling.on_get_document(document_title)
-        if document.data_type != "Type: ORIGAMI":
+        document = ENV.on_get_document(document_title)
+        if not document.is_origami_ms():
             raise MessageError(
                 "Incorrect document type", f"Cannot setup ORIGAMI-MS parameters for {document.data_type} document."
             )
 
-        dlg = DialogCustomiseORIGAMI(self, self.presenter, document_title=document_title)
+        dlg = DialogCustomiseORIGAMI(self.view, self.presenter, document_title=document_title)
         dlg.ShowModal()
 
     def on_open_interactive_viewer(self, evt):
@@ -1489,6 +1495,49 @@ class DocumentTree(wx.TreeCtrl):
         if value == "menu.load.override":
             self.config.import_duplicate_panel_ask = not self.config.import_duplicate_panel_ask
 
+    def _get_menu_mobilogram_label(self):
+        # Change x-axis label (1D)
+        menu_xlabel = wx.Menu()
+        menu_xlabel.Append(ID_xlabel_1D_bins, "Drift time (bins)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_1D_ms, "Drift time (ms)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_1D_ms_arrival, "Arrival time (ms)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_1D_ccs, "Collision Cross Section (Å²)", "", wx.ITEM_RADIO)
+        menu_xlabel.AppendSeparator()
+        menu_xlabel.Append(ID_xlabel_1D_restore, "Restore default", "")
+
+        # bind events
+        if self._item.is_match("mobilogram", False):
+            try:
+                item_id = self.on_check_xlabels_dt()
+                menu_xlabel.FindItemById(item_id).Check(True)
+            except (UnboundLocalError, TypeError, KeyError):
+                LOGGER.warning(f"Failed to setup labels for `{self._item.current}` item`")
+
+        return menu_xlabel
+
+    def _get_menu_chromatogram_label(self):
+        # Change x-axis label (RT)
+        menu_xlabel = wx.Menu()
+        menu_xlabel.Append(ID_xlabel_RT_scans, "Scans", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_RT_time_min, "Time (mins)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_RT_retTime_min, "Retention time (mins)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_RT_colVolt, "Collision Voltage (V)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_RT_actVolt, "Activation Energy (V)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_RT_labFrame, "Lab Frame Energy (eV)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_RT_actLabFrame, "Activation Energy (eV)", "", wx.ITEM_RADIO)
+        menu_xlabel.AppendSeparator()
+        menu_xlabel.Append(ID_xlabel_RT_restore, "Restore default", "")
+
+        # bind events
+        if self._item.is_match("chromatogram", False):
+            try:
+                item_id = self.on_check_xlabels_rt()
+                menu_xlabel.FindItemById(item_id).Check(True)
+            except (UnboundLocalError, TypeError, KeyError):
+                LOGGER.warning(f"Failed to setup labels for `{self._item.current}` item`")
+
+        return menu_xlabel
+
     def _get_menu_heatmap_label(self):
         # Change x-axis label (2D)
         menu_xlabel = wx.Menu()
@@ -1519,7 +1568,7 @@ class DocumentTree(wx.TreeCtrl):
         menu_ylabel.Append(ID_ylabel_2D_restore, "Restore default", "")
 
         #         # Check xy axis labels
-        if self._item.is_match("heatmap", False):
+        if self._item.is_match("heatmap"):
             # Check what is the current label for this particular dataset
             try:
                 item_id_x, item_id_y = self.on_check_xy_labels_heatmap()
@@ -1529,45 +1578,6 @@ class DocumentTree(wx.TreeCtrl):
                 LOGGER.warning(f"Failed to setup x/y labels for `{self._item.current}` item`")
 
         return menu_xlabel, menu_ylabel
-
-    def _get_menu_mobilogram_label(self):
-        # Change x-axis label (1D)
-        menu_xlabel = wx.Menu()
-        menu_xlabel.Append(ID_xlabel_1D_bins, "Drift time (bins)", "", wx.ITEM_RADIO)
-        menu_xlabel.Append(ID_xlabel_1D_ms, "Drift time (ms)", "", wx.ITEM_RADIO)
-        menu_xlabel.Append(ID_xlabel_1D_ms_arrival, "Arrival time (ms)", "", wx.ITEM_RADIO)
-        menu_xlabel.Append(ID_xlabel_1D_ccs, "Collision Cross Section (Å²)", "", wx.ITEM_RADIO)
-        menu_xlabel.AppendSeparator()
-        menu_xlabel.Append(ID_xlabel_1D_restore, "Restore default", "")
-
-        # bind events
-        if self._item.is_match("mobilogram", False):
-            try:
-                item_id = self.on_check_xlabels_dt()
-                menu_xlabel.FindItemById(item_id).Check(True)
-            except (UnboundLocalError, TypeError, KeyError):
-                LOGGER.warning(f"Failed to setup labels for `{self._item.current}` item`")
-
-        return menu_xlabel
-
-    def _get_menu_chromatogram_label(self):
-        # Change x-axis label (RT)
-        menu_xlabel = wx.Menu()
-        menu_xlabel.Append(ID_xlabel_RT_scans, "Scans", "", wx.ITEM_RADIO)
-        menu_xlabel.Append(ID_xlabel_RT_time_min, "Time (mins)", "", wx.ITEM_RADIO)
-        menu_xlabel.Append(ID_xlabel_RT_retTime_min, "Retention time (mins)", "", wx.ITEM_RADIO)
-        menu_xlabel.AppendSeparator()
-        menu_xlabel.Append(ID_xlabel_RT_restore, "Restore default", "")
-
-        # bind events
-        if self._item.is_match("chromatogram", False):
-            try:
-                item_id = self.on_check_xlabels_rt()
-                menu_xlabel.FindItemById(item_id).Check(True)
-            except (UnboundLocalError, TypeError, KeyError):
-                LOGGER.warning(f"Failed to setup labels for `{self._item.current}` item`")
-
-        return menu_xlabel
 
     def _get_menu_msdt_label(self):
         # change y-axis label (DT/MS)
@@ -1769,6 +1779,12 @@ class DocumentTree(wx.TreeCtrl):
         )
         menu_action_save_data_as_all = make_menu_item(parent=menu, text="Batch save data as...", bitmap=self._icons.csv)
         menu_action_delete_item = make_menu_item(parent=menu, text="Delete item\tDelete", bitmap=self._icons.delete)
+        menu_action_process_as_origami = make_menu_item(
+            parent=menu, text="Apply ORIGAMI-MS parameters", bitmap=self._icons.sum
+        )
+        menu_action_process_as_origami_all = make_menu_item(
+            parent=menu, text="Apply ORIGAMI-MS parameters", bitmap=self._icons.sum
+        )
 
         # bind event
         self.Bind(wx.EVT_MENU, self.on_show_plot_chromatogram, menu_action_show_plot_chromatogram)
@@ -1777,8 +1793,11 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
         self.Bind(wx.EVT_MENU, self.on_batch_export_figures, menu_action_save_image_as_all)
         self.Bind(wx.EVT_MENU, self.on_batch_export_data, menu_action_save_data_as_all)
+        self.Bind(wx.EVT_MENU, self.on_apply_origami_ms, menu_action_process_as_origami)
+        self.Bind(wx.EVT_MENU, self.on_batch_apply_origami_ms, menu_action_process_as_origami_all)
 
         if self._item.indent == 2:
+            menu.AppendItem(menu_action_process_as_origami_all)
             menu.AppendItem(menu_action_save_image_as_all)
             menu.AppendItem(menu_action_save_data_as_all)
             menu.AppendItem(menu_action_delete_item)
@@ -1788,6 +1807,7 @@ class DocumentTree(wx.TreeCtrl):
             menu.AppendItem(menu_action_show_plot_chromatogram)
             self._set_menu_annotations(menu)
             menu.AppendSeparator()
+            menu.AppendItem(menu_action_process_as_origami)
             menu.AppendMenu(wx.ID_ANY, "Change x-axis to...", menu_xlabel)
             menu.AppendSeparator()
             menu.AppendItem(menu_action_save_chromatogram_image_as)
@@ -1874,7 +1894,10 @@ class DocumentTree(wx.TreeCtrl):
 
         # process actions
         menu_action_process_as_origami = make_menu_item(
-            parent=menu, text="Apply ORIGAMI-MS parameters", bitmap=self._icons.origami
+            parent=menu, text="Apply ORIGAMI-MS parameters", bitmap=self._icons.sum
+        )
+        menu_action_process_as_origami_all = make_menu_item(
+            parent=menu, text="Apply ORIGAMI-MS parameters", bitmap=self._icons.sum
         )
         menu_action_process_2d = make_menu_item(parent=menu, text="Process...\tP", bitmap=self._icons.process_heatmap)
         menu_action_process_2d_all = make_menu_item(
@@ -1905,6 +1928,8 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_show_zoom_on_ion, menu_action_show_highlights)
         self.Bind(wx.EVT_MENU, partial(self.on_show_plot_heatmap, True), menu_action_save_heatmap_image_as)
         self.Bind(wx.EVT_MENU, self.on_process_heatmap, menu_action_process_2d)
+        self.Bind(wx.EVT_MENU, self.on_apply_origami_ms, menu_action_process_as_origami)
+        self.Bind(wx.EVT_MENU, self.on_batch_apply_origami_ms, menu_action_process_as_origami_all)
         self.Bind(wx.EVT_MENU, self.on_batch_process_heatmap, menu_action_process_2d_all)
         self.Bind(wx.EVT_MENU, self.on_save_csv, menu_action_save_2d_data_as)
         self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
@@ -1913,7 +1938,7 @@ class DocumentTree(wx.TreeCtrl):
 
         # make menu
         if self._item.indent == 2:
-            menu.AppendItem(menu_action_process_as_origami)
+            menu.AppendItem(menu_action_process_as_origami_all)
             menu.AppendItem(menu_action_process_2d_all)
             menu.AppendSeparator()
             menu.AppendItem(menu_action_save_image_as_all)
@@ -1935,6 +1960,7 @@ class DocumentTree(wx.TreeCtrl):
             menu.AppendItem(menu_action_process_2d)
             menu.AppendSeparator()
             self._set_menu_annotations(menu)
+            menu.AppendItem(menu_action_process_as_origami)
             menu.AppendItem(menu_action_assign_charge)
             menu.AppendMenu(wx.ID_ANY, "Set X-axis label as...", menu_xlabel)
             menu.AppendMenu(wx.ID_ANY, "Set Y-axis label as...", menu_ylabel)
@@ -2465,6 +2491,38 @@ class DocumentTree(wx.TreeCtrl):
         )
         self._compare_panel.Show()
 
+    def on_apply_origami_ms(self, _evt):
+        """Apply ORIGAMI-MS settings on the object and create a copy"""
+        document_title = ENV.current
+        document = ENV.on_get_document(document_title)
+        if not document.is_origami_ms(True):
+            raise MessageError(
+                "Incorrect document type", f"Cannot setup ORIGAMI-MS parameters for {document.data_type} document."
+            )
+
+        data_obj = self._get_item_object()
+        data_obj = data_obj.apply_origami_ms()
+        if data_obj is not None:
+            self.on_update_document(data_obj.DOCUMENT_KEY, data_obj.title, document_title)
+        self.panel_plot.on_plot_data_object(data_obj)
+
+    def on_batch_apply_origami_ms(self, _evt):
+        """Apply ORIGAMI-MS settings on the object and create a copy"""
+        from origami.gui_elements.dialog_review_editor import DialogReviewApplyOrigamiMs
+
+        document_title = ENV.current
+        document = ENV.on_get_document(document_title)
+        if not document.is_origami_ms(True):
+            raise MessageError(
+                "Incorrect document type", f"Cannot setup ORIGAMI-MS parameters for {document.data_type} document."
+            )
+
+        item_list = self.on_get_item_list()
+        dlg = DialogReviewApplyOrigamiMs(
+            self.view, item_list[ENV.current], document_tree=self, document_title=document_title
+        )
+        dlg.ShowModal()
+
     def on_open_process_heatmap_settings(self, **kwargs):
         """Open heatmap processing settings"""
         from origami.gui_elements.panel_process_heatmap import PanelProcessHeatmap
@@ -2472,7 +2530,7 @@ class DocumentTree(wx.TreeCtrl):
         panel = PanelProcessHeatmap(self.presenter.view, self.presenter, **kwargs)
         panel.Show()
 
-    def on_process_heatmap(self, evt):
+    def on_process_heatmap(self, _evt):
         """Process clicked heatmap item"""
         document_title, dataset_name = self._get_item_info()
         heatmap_obj = self._get_item_object()
@@ -3316,13 +3374,13 @@ class DocumentTree(wx.TreeCtrl):
             if self._item.leaf == "Annotated data":
                 return
 
-            # open annotations
-            if self._item.leaf == "Annotations":
-                self.on_open_annotation_editor(None)
-                return
-
-            data = deepcopy(self.GetPyData(self._item_id))
-            self.on_show_plot_annotated_data(data, save_image)
+            # # open annotations
+            # if self._item.leaf == "Annotations":
+            #     self.on_open_annotation_editor(None)
+            #     return
+            #
+            # data = deepcopy(self.GetPyData(self._item_id))
+            # self.on_show_plot_annotated_data(data, save_image)
 
         # show tandem MS
         # elif _click_obj == "Tandem Mass Spectra":

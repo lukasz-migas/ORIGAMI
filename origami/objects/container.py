@@ -47,10 +47,17 @@ class ContainerBase:
 
     @property
     def title(self):
-        """Return the title pf the object"""
+        """Return the title of the object"""
         if self.owner is not None:
             _, item_name = self.owner
             return item_name
+
+    @title.setter
+    def title(self, value: str):
+        """Set title of the object"""
+        if self.owner is not None:
+            document_title, _ = self.owner
+            self.owner = (document_title, value)
 
     @property
     def unsaved(self):

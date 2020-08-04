@@ -94,7 +94,7 @@ class LoadHandler:
             document.add_reader("ion_mobility", reader)
 
         # extract data
-        mz_obj = reader.extract_ms(dt_start=x_min, dt_end=x_max, return_data=True)
+        mz_obj = reader.extract_ms(dt_start=x_min, dt_end=x_max)
         obj_name = f"DT_{x_min}-{x_max}"
         mz_obj = document.add_spectrum(obj_name, mz_obj)
 
@@ -132,7 +132,7 @@ class LoadHandler:
             reader = WatersIMReader(path, temp_dir=CONFIG.APP_TEMP_DATA_PATH)
             document.add_reader("ion_mobility", reader)
 
-        mz_obj = reader.extract_ms(rt_start=x_min, rt_end=x_max, return_data=True)
+        mz_obj = reader.extract_ms(rt_start=x_min, rt_end=x_max)
         obj_name = f"RT_{x_min:.2f}-{x_max:.2f}"
         mz_obj = document.add_spectrum(obj_name, mz_obj)
 
@@ -174,7 +174,7 @@ class LoadHandler:
             reader = WatersIMReader(path, temp_dir=CONFIG.APP_TEMP_DATA_PATH)
             document.add_reader("ion_mobility", reader)
 
-        mz_obj = reader.extract_ms(rt_start=x_min, rt_end=x_max, dt_start=y_min, dt_end=y_max, return_data=True)
+        mz_obj = reader.extract_ms(rt_start=x_min, rt_end=x_max, dt_start=y_min, dt_end=y_max)
         obj_name = f"RT_{x_min:.2f}-{x_max:.2f}_DT_{y_min}-{y_max}"
         mz_obj = document.add_spectrum(obj_name, mz_obj)
 
@@ -216,7 +216,7 @@ class LoadHandler:
             reader = WatersIMReader(path, temp_dir=CONFIG.APP_TEMP_DATA_PATH)
             document.add_reader("ion_mobility", reader)
 
-        mz_obj = reader.extract_rt(mz_start=x_min, mz_end=x_max, dt_start=y_min, dt_end=y_max, return_data=True)
+        mz_obj = reader.extract_rt(mz_start=x_min, mz_end=x_max, dt_start=y_min, dt_end=y_max)
         obj_name = f"MZ_{x_min:.2f}-{x_max:.2f}_DT_{y_min}-{y_max}"
         mz_obj = document.add_chromatogram(obj_name, mz_obj)
 
@@ -255,7 +255,7 @@ class LoadHandler:
             document.add_reader("ion_mobility", reader)
 
         # get heatmap
-        heatmap_obj = reader.extract_heatmap(mz_start=x_min, mz_end=x_max, return_data=True)
+        heatmap_obj = reader.extract_heatmap(mz_start=x_min, mz_end=x_max)
         obj_name = f"MZ_{x_min:.2f}-{x_max:.2f}"
         heatmap_obj = document.add_heatmap(obj_name, heatmap_obj)
 
@@ -294,7 +294,7 @@ class LoadHandler:
         rt_x = []
         for idx, (filepath, value) in enumerate(filelist.items()):
             reader = WatersIMReader(filepath, temp_dir=CONFIG.APP_TEMP_DATA_PATH)
-            dt_obj = reader.extract_dt(mz_start=x_min, mz_end=x_max, return_data=True)
+            dt_obj = reader.extract_dt(mz_start=x_min, mz_end=x_max)
             array[:, idx] = dt_obj.y
             rt_x.append(value)
 
@@ -311,6 +311,9 @@ class LoadHandler:
         obj_data = IonHeatmapObject(array, x=dt_x, y=rt_x, xy=dt_y, yy=rt_y)
 
         return obj_name, obj_data, None
+
+    def waters_extract_mass_spectra(self, extraction_windows, title: str = None):
+        """Extract multiple mass spectra based on provided extraction windows"""
 
     @staticmethod
     @check_os("win32")
@@ -411,7 +414,8 @@ class LoadHandler:
 
         return obj_name, mz_obj, document
 
-    def document_extract_lesa_image_from_ms(self, x_min: float, x_max: float, title: str):
+    @staticmethod
+    def document_extract_lesa_image_from_ms(x_min: float, x_max: float, title: str):
         """Extract image data for LESA document based on extraction range in the mass spectrum window"""
         from origami.processing.utils import find_nearest_index
 
@@ -446,8 +450,9 @@ class LoadHandler:
 
         return name, obj
 
+    @staticmethod
     def document_extract_lesa_image_from_dt(
-        self, x_min: float, x_max: float, y_min: float, y_max: float, title: str, get_quick: bool = False
+        x_min: float, x_max: float, y_min: float, y_max: float, title: str, get_quick: bool = False
     ):
         """Extract image data for LESA document based on extraction range in the mass spectrum + drift time window"""
         from origami.processing.utils import find_nearest_index
@@ -487,7 +492,8 @@ class LoadHandler:
 
         return name, obj
 
-    def document_extract_dt_from_msdt_multifile(self, x_min: float, x_max: float, title: str):
+    @staticmethod
+    def document_extract_dt_from_msdt_multifile(x_min: float, x_max: float, title: str):
         """Extract mobilogram from MS/DT dataset based on mass selection"""
         from origami.processing.utils import find_nearest_index
 
@@ -654,7 +660,8 @@ class LoadHandler:
 
         return document
 
-    def _parse_clipboard_stream(self, clip_stream):
+    @staticmethod
+    def _parse_clipboard_stream(clip_stream):
         """Parse clipboard stream data"""
         data = []
         for t in clip_stream:
@@ -702,7 +709,7 @@ class LoadHandler:
         mz_obj = reader.get_average_spectrum()
         LOGGER.debug("Loaded spectrum in " + report_time(t_start))
 
-        rt_x, rt_y = reader.get_tic(0)
+        rt_x, rt_y = reader.get_tic()
         LOGGER.debug("Loaded TIC in " + report_time(t_start))
 
         parameters = reader.get_inf_data()
@@ -900,7 +907,7 @@ class LoadHandler:
                     )
                     break
 
-        metadata = document.get_config("imaging", None)
+        metadata = document.get_config("imaging")
 
         if metadata is None:
             return filelist

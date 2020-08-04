@@ -5,9 +5,9 @@ import numpy as np
 # Local imports
 from origami.utils.check import check_value_order
 from origami.config.config import CONFIG
-from origami.objects.containers import HeatmapObject
-from origami.objects.containers import MassSpectrumObject
 from origami.processing.spectra import subtract_spectra
+from origami.objects.containers.heatmap import HeatmapObject
+from origami.objects.containers.spectrum import MassSpectrumObject
 
 
 class ProcessHandler:
