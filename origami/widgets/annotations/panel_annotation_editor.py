@@ -253,8 +253,8 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin):
 
     def __init__(
         self,
-        presenter,
         parent,
+        presenter,
         icons,
         plot_type,
         document_title: str = None,

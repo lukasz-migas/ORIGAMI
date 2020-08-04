@@ -300,6 +300,45 @@ def convert_origami_ms(array, **kwargs):
     return array_comb_cv, x, start_end_cv_list, parameters
 
 
+def calculate_origami_ms(**kwargs):
+    """Combine array data using any of the appropriate methods"""
+    if kwargs["method"] == "Linear":
+        start_end_cv_list, n_voltages, parameters = calculate_scan_list_linear(
+            kwargs["start_scan"],
+            kwargs["start_voltage"],
+            kwargs["end_voltage"],
+            kwargs["step_voltage"],
+            kwargs["scans_per_voltage"],
+        )
+    elif kwargs["method"] == "Exponential":
+        start_end_cv_list, n_voltages, parameters = calculate_scan_list_exponential(
+            kwargs["start_scan"],
+            kwargs["start_voltage"],
+            kwargs["end_voltage"],
+            kwargs["step_voltage"],
+            kwargs["scans_per_voltage"],
+            kwargs["exponential_increment"],
+            kwargs["exponential_percentage"],
+        )
+    elif kwargs["method"] == "Boltzmann":
+        start_end_cv_list, n_voltages, parameters = calculate_scan_list_boltzmann(
+            kwargs["start_scan"],
+            kwargs["start_voltage"],
+            kwargs["end_voltage"],
+            kwargs["step_voltage"],
+            kwargs["scans_per_voltage"],
+            kwargs["boltzmann_offset"],
+        )
+    elif kwargs["method"] == "User-defined":
+        start_end_cv_list, n_voltages, parameters = calculate_scan_list_user_defined(
+            kwargs["start_scan"], kwargs["start_scan_end_scan_cv_list"]
+        )
+    else:
+        raise ValueError("Method not yet supported or is incorrect")
+
+    return start_end_cv_list, n_voltages, parameters
+
+
 def generate_extraction_windows(start_end_cv_list):
     """Generate list of extraction windows"""
     start_end_cv_list = np.asarray(start_end_cv_list)

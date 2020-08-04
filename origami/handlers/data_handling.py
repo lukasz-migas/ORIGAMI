@@ -54,7 +54,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     """General data handling module"""
 
     def __init__(self, presenter, view, config):
-
+        LoadHandler.__init__(self)
         self.presenter = presenter
         self.view = view
         self.config = config

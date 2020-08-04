@@ -1,3 +1,4 @@
+"""Waters Driftscope-based reader"""
 # Standard library imports
 import math
 import logging
@@ -25,8 +26,6 @@ logger = logging.getLogger(__name__)
 # create data holder
 TEMP_DATA_FOLDER = os.path.join(os.getcwd(), "temporary_data")
 
-# TODO: move away from returning individual arrays to wrapping them into MS objects
-
 
 def get_driftscope_path():
     """Searches in the common places for Driftscope path"""
@@ -40,6 +39,8 @@ def get_driftscope_path():
 
 
 class WatersIMReader(WatersRawReader):
+    """Waters IM reader"""
+
     def __init__(self, path, driftscope_path=None, temp_dir=None, silent: bool = False):
         super().__init__(path)
         self.path = check_waters_path(path)
@@ -55,6 +56,7 @@ class WatersIMReader(WatersRawReader):
 
     @property
     def driftscope_path(self):
+        """Return DriftScope path"""
         return os.path.join(self._driftscope, "imextract.exe")
 
     def check_mz_range(self, mz_start, mz_end):
@@ -100,10 +102,16 @@ class WatersIMReader(WatersRawReader):
         x : np.ndarray
             linearly spaced m/z axis with constant bin size
         """
-        return np.linspace(mz_start, mz_end, n_mz_bins, endpoint=True)
+        return np.linspace(mz_start, mz_end, n_mz_bins)
 
     @staticmethod
     def clean(path):
+        """Clean temporary directory
+
+        Parameters
+        ----------
+        path : str
+        """
         # clean-up filepath
         try:
             clean_up(path)
@@ -191,8 +199,6 @@ class WatersIMReader(WatersRawReader):
             m/z values
         y : np.ndarray
             intensity values
-        y_norm : np.ndarray
-            normalized (to 1) intensity values
         """
         # load data
         data = np.fromfile(path, dtype=np.float32)
@@ -236,7 +242,7 @@ class WatersIMReader(WatersRawReader):
         Returns
         -------
         rt_obj : ChromatogramObject
-            chrmatogram object
+            chromatogram object
         """
         mz_start, mz_end = self.check_mz_range(mz_start, mz_end)
 

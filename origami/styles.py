@@ -1,6 +1,7 @@
 """This file creates various styles for the GUI"""
 
 # Standard library imports
+import time
 import logging
 import itertools
 from ast import literal_eval
@@ -16,6 +17,7 @@ from natsort.natsort import natsorted
 from origami.utils.color import convert_rgb_1_to_255
 from origami.utils.color import convert_rgb_255_to_1
 from origami.config.config import CONFIG
+from origami.utils.utilities import report_time
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
 from origami.utils.converters import byte2str
@@ -23,27 +25,13 @@ from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.dialog_color_picker import DialogColorPicker
 
 LOGGER = logging.getLogger(__name__)
-# Sizes
-COMBO_SIZE = 120
-COMBO_SIZE_COMPACT = 80
-BTN_SIZE = 60
-TXTBOX_SIZE = 45
-
-GAUGE_HEIGHT = 15
-GAUGE_SPACE = 10
-PANEL_SPACE_MAIN = 10
-
-LISTCTRL_STYLE_MULTI = wx.LC_REPORT | wx.LC_VRULES | wx.LC_HRULES | wx.SUNKEN_BORDER
-LISTCTRL_SORT = 1
-
-SLIDER_STYLE = wx.SL_HORIZONTAL | wx.SL_MIN_MAX_LABELS | wx.SL_VALUE_LABEL
 
 
-def make_spin_ctrl_double(parent, value, min_value, max_value, increment_value, size=(-1, -1), evtid=-1, name="name"):
+def make_spin_ctrl_double(parent, value, min_value, max_value, increment_value, size=(-1, -1), evt_id=-1, name="name"):
     """Convenient way to initialize SpinCtrlDouble"""
     spin_ctrl = wx.SpinCtrlDouble(
         parent,
-        evtid,
+        evt_id,
         value=str(value),
         min=min_value,
         max=max_value,
@@ -55,11 +43,11 @@ def make_spin_ctrl_double(parent, value, min_value, max_value, increment_value, 
     return spin_ctrl
 
 
-def make_spin_ctrl_int(parent, value, min_value, max_value, size=(-1, -1), evtid=-1, name="name"):
+def make_spin_ctrl_int(parent, value, min_value, max_value, size=(-1, -1), evt_id=-1, name="name"):
     """Convenient way to initialize SpinCtrl"""
     spin_ctrl = wx.SpinCtrl(
         parent,
-        evtid,
+        evt_id,
         value=str(value),
         min=min_value,
         max=max_value,
@@ -162,7 +150,13 @@ def make_text_ctrl(parent, size=wx.DefaultSize):
 def make_slider(parent, value, min_value, max_value):
     """Make slider"""
     slider = wx.Slider(
-        parent, -1, value=value, minValue=min_value, maxValue=max_value, size=(140, -1), style=SLIDER_STYLE
+        parent,
+        -1,
+        value=value,
+        minValue=min_value,
+        maxValue=max_value,
+        size=(140, -1),
+        style=wx.SL_HORIZONTAL | wx.SL_MIN_MAX_LABELS | wx.SL_VALUE_LABEL,
     )
     return slider
 
@@ -227,7 +221,7 @@ def make_super_tooltip(
 
     # You can define your BalloonTip as follows:
     tip = superTip.SuperToolTip(text)
-    tip.SetStartDelay(1)
+    tip.SetStartDelay()
     tip.SetEndDelay(delay)
     tip.SetDrawHeaderLine(header_line)
     tip.SetDrawFooterLine(footer_line)
@@ -327,7 +321,7 @@ class DocumentationMixin:
         self.display_label = wx.StaticText(panel, wx.ID_ANY, "")
         self.display_label.SetForegroundColour(self.PANEL_STATUSBAR_COLOR)
 
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer = wx.BoxSizer()
         if position == "left":
             sizer.Add(self.info_btn, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT | wx.RIGHT, 5)
             sizer.Add(self.display_label, 1, wx.ALIGN_CENTER_VERTICAL)
@@ -486,7 +480,7 @@ class ListCtrl(wx.ListCtrl):
         wx.ListCtrl.__init__(self, parent, wx.ID_ANY, pos, size, style)
 
         if hasattr(self, "EnableCheckBoxes"):
-            self.EnableCheckBoxes(True)
+            self.EnableCheckBoxes()
 
         # specify that simpler sorter should be used to speed things up
         self.use_simple_sorter = kwargs.get("use_simple_sorter", False)
@@ -496,6 +490,7 @@ class ListCtrl(wx.ListCtrl):
         self.old_column = None
         self.reverse = False
         self.check = False
+        self.locked = False
 
         self.column_info = kwargs.get("column_info", None)
         self.color_0_to_1 = kwargs.get("color_0_to_1", False)
@@ -609,13 +604,43 @@ class ListCtrl(wx.ListCtrl):
         # sometimes its convenient to keep colors in the 0-1 range
         if self.color_0_to_1:
             color_1 = color_255
-            color_255 = convert_rgb_1_to_255(color_1, decimals=3)
+            color_255 = convert_rgb_1_to_255(color_1)
         else:
-            color_1 = convert_rgb_255_to_1(color_255, decimals=3)
+            color_1 = convert_rgb_255_to_1(color_255)
         return color_255, color_1
+
+    def _indicate_order(self, column: int):
+        """Indicate whether values are sorted in ascending or descending order"""
+
+        def _parse_column(_col):
+            _col_text = _col.GetText()
+            if "▲" in _col_text:
+                _col_text = _col_text.split("▲ ")[-1]
+            elif "▼" in _col_text:
+                _col_text = _col_text.split("▼ ")[-1]
+            return _col_text
+
+        # clear old column
+        if self.old_column not in [0, None] and self.old_column != column:
+            col = self.GetColumn(self.old_column)
+            col_text = _parse_column(col)
+            col.SetText(col_text)
+            self.SetColumn(self.old_column, col)
+
+        if column == 0:
+            return
+
+        # set new column
+        col = self.GetColumn(column)
+        col_text = _parse_column(col)
+        col_text = "▼ " + col_text if not self.reverse else "▲ " + col_text
+        col.SetText(col_text)
+        self.SetColumn(column, col)
 
     def on_column_click(self, evt):
         """Interact on column click"""
+        t_start = time.time()
+        self.locked = True
         column = evt.GetColumn()
 
         if self.old_column is not None and self.old_column == column:
@@ -623,6 +648,7 @@ class ListCtrl(wx.ListCtrl):
         else:
             self.reverse = False
 
+        self._indicate_order(column)
         if column == 0:
             self.check = not self.check
             self.on_check_all(self.check)
@@ -633,13 +659,18 @@ class ListCtrl(wx.ListCtrl):
                 self.on_sort(column, self.reverse)
 
         self.old_column = column
+        self.locked = False
+        LOGGER.debug(f"Sorted table in {report_time(t_start)}")
 
     def on_check_all(self, check):
         """Check all rows in the table"""
+        self.locked = True
+        t_start = time.time()
         rows = self.GetItemCount()
-
-        for row in range(rows):
-            self.CheckItem(row, check=check)
+        [self.CheckItem(row, check=check) for row in range(rows)]
+        self.check = check
+        self.locked = False
+        LOGGER.debug(f"(Un)checked all items in {report_time(t_start)}")
 
     def on_sort(self, column, direction):
         """Sort items based on column and direction"""
@@ -880,3 +911,40 @@ class Validator(wx.Validator):
         else:
             wx.Bell()
             return
+
+
+class TestListCtrl(wx.Frame):
+    """Test the popup window"""
+
+    def __init__(self, parent):
+        wx.Frame.__init__(self, parent, -1)
+
+        self.list = ListCtrl(self)
+        self.list.InsertColumn(0, "")
+        self.list.InsertColumn(1, "Column 1")
+        self.list.InsertColumn(2, "Column 2")
+
+        for i in range(100):
+            self.list.Append(["", str(i), "COLUMN 2"])
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.list, 1, wx.EXPAND)
+
+        self.SetSizer(sizer)
+        self.SetAutoLayout(True)
+
+        self.SetSize((800, 800))
+
+
+def _main():
+
+    app = wx.App()
+
+    dlg = TestListCtrl(None)
+    dlg.Show()
+
+    app.MainLoop()
+
+
+if __name__ == "__main__":
+    _main()

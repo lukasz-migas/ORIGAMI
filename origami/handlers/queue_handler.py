@@ -29,7 +29,7 @@ class QueueHandler:
             worker.setDaemon(True)
             worker.start()
 
-    def add(self, call_obj):
+    def add(self, call_obj: Call):
         """Add call object to the queue
 
         Parameters

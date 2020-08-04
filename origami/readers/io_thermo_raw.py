@@ -2,7 +2,7 @@
 # Standard library imports
 import os
 import sys
-from typing import Optional
+from typing import Optional, Union
 import logging
 
 import clr
@@ -215,8 +215,8 @@ class ThermoRawReader:
 
     def get_spectrum(
         self,
-        start_scan: Optional[int] = None,
-        end_scan: Optional[int] = None,
+        start_scan: Optional[Union[int, float]] = None,
+        end_scan: Optional[Union[int, float]] = None,
         centroid: bool = False,
         title: Optional[str] = None,
         rt_as_scan: bool = True,
@@ -225,9 +225,9 @@ class ThermoRawReader:
 
         Parameters
         ----------
-        start_scan : int
+        start_scan : int, float
             retention start time in scans
-        end_scan : int
+        end_scan : int, float
             retention end time in scans
         centroid : bool
             if `True`, centroid mass spectrum will be returned instead of profile

@@ -1354,10 +1354,10 @@ class DocumentTree(wx.TreeCtrl):
             self.view,
             self.presenter,
             self._icons,
+            plot_type=plot_type,
             data_obj=data_obj,
             document_title=document_title,
             dataset_name=dataset_name,
-            plot_type=plot_type,
         )
         self._annotate_panel.Show()
 

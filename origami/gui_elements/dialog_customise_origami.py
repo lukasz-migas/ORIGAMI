@@ -1,6 +1,7 @@
 """ORIGAMI parameters dialog"""
 # Standard library imports
 import os
+import logging
 
 # Third-party imports
 import wx
@@ -12,12 +13,15 @@ from origami.styles import Dialog
 from origami.styles import Validator
 from origami.utils.screen import calculate_window_size
 from origami.config.config import CONFIG
+from origami.objects.document import DocumentGroups
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.views.view_spectrum import ViewSpectrum
+
+LOGGER = logging.getLogger(__name__)
 
 # TODO: Add limits to some of the parameters as in ORIGAMI-MS GUI
 #    Botlzmann offset: min = 10.0 max = 100
@@ -70,6 +74,7 @@ class DialogCustomiseORIGAMI(Dialog):
                 )
             self.document_title = document.title
 
+        # load user settings from configuration file
         self.user_settings = self.on_setup_gui()
         self.user_settings_changed = False
 
@@ -85,7 +90,10 @@ class DialogCustomiseORIGAMI(Dialog):
         self.SetTitle(f"ORIGAMI-MS settings: {self.document_title}")
 
         # bind events
-        wx.EVT_CLOSE(self, self.on_close)
+        self.Bind(wx.EVT_CLOSE, self.on_close)
+
+        # instantiate
+        self.on_plot()
 
     @property
     def data_handling(self):
@@ -123,6 +131,7 @@ class DialogCustomiseORIGAMI(Dialog):
             }
             # update document with these global settings
             document.add_config("origami_ms", origami_settings)
+            LOGGER.info("Document did not have any ORIGAMI-MS settings present")
 
         return origami_settings
 
@@ -228,10 +237,10 @@ class DialogCustomiseORIGAMI(Dialog):
         self.origami_exponential_increment_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         import_label = wx.StaticText(panel, wx.ID_ANY, "Import list:")
-        self.origami_load_list_btn = wx.Button(panel, wx.ID_ANY, "...", size=(-1, 22))
+        self.origami_load_list_btn = wx.Button(panel, wx.ID_ANY, "...", size=(-1, -1))
         self.origami_load_list_btn.Bind(wx.EVT_BUTTON, self.on_load_origami_list)
 
-        self.origami_calculate_btn = wx.Button(panel, wx.ID_OK, "Calculate", size=(-1, 22))
+        self.origami_calculate_btn = wx.Button(panel, wx.ID_OK, "Calculate", size=(-1, -1))
         self.origami_calculate_btn.Bind(wx.EVT_BUTTON, self.on_plot)
 
         btn_grid = wx.GridBagSizer(2, 2)
@@ -290,10 +299,10 @@ class DialogCustomiseORIGAMI(Dialog):
         # pack elements
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        self.origami_apply_btn = wx.Button(panel, wx.ID_OK, "Apply", size=(-1, 22))
+        self.origami_apply_btn = wx.Button(panel, wx.ID_OK, "Apply", size=(-1, -1))
         self.origami_apply_btn.Bind(wx.EVT_BUTTON, self.on_apply_to_document)
 
-        self.origami_cancel_btn = wx.Button(panel, wx.ID_OK, "Close", size=(-1, 22))
+        self.origami_cancel_btn = wx.Button(panel, wx.ID_OK, "Close", size=(-1, -1))
         self.origami_cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
         n += 1
@@ -321,13 +330,13 @@ class DialogCustomiseORIGAMI(Dialog):
         self.preprocess_check.SetValue(CONFIG.origami_preprocess)
         self.preprocess_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        self.process_btn = wx.Button(panel, wx.ID_ANY, "Edit MS processing settings...", size=(-1, 22))
+        self.process_btn = wx.Button(panel, wx.ID_ANY, "Edit MS processing settings...", size=(-1, -1))
         self.process_btn.Bind(wx.EVT_BUTTON, self.on_open_process_ms_settings)
 
         horizontal_line = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
 
         self.origami_extract_btn = wx.Button(
-            panel, wx.ID_ANY, "Extract mass spectrum for each collision voltage", size=(-1, 22)
+            panel, wx.ID_ANY, "Extract mass spectrum for each collision voltage", size=(-1, -1)
         )
         self.origami_extract_btn.Bind(wx.EVT_BUTTON, self.on_extract_spectra)
 
@@ -568,7 +577,29 @@ class DialogCustomiseORIGAMI(Dialog):
 
     def on_extract_spectra(self, _evt):
         """Submit spectra extraction"""
-        # self.data_handling.on_extract_mass_spectrum_for_each_collision_voltage_fcn
+        from origami.gui_elements.dialog_batch_data_extract import DialogBatchDataExtract
+        from origami.utils.converters import convert_scans_to_mins
+
+        # get extraction parameters
+        start_end_cv_list = self.calculate_origami_parameters()
+
+        document = ENV.on_get_document(self.document_title)
+        scan_time = document.parameters.get("scan_time", None)
+        if scan_time is None:
+            raise ValueError("Cannot extract mass spectral data")
+
+        # generate list of items to be inserted into the table
+        item_list = []
+        for start_scan, end_scan, cv in start_end_cv_list:
+            rt_start, rt_end = convert_scans_to_mins([start_scan, end_scan], scan_time)
+            item_list.append(
+                [DocumentGroups.MS, f"CV_{cv}_RT_{rt_start:.2f}-{rt_end:.2f}", dict(rt_start=rt_start, rt_end=rt_end)]
+            )
+
+        dlg = DialogBatchDataExtract(
+            self.parent, item_list, document_tree=self.document_tree, document_title=self.document_title
+        )
+        dlg.ShowModal()
 
     def calculate_origami_parameters(self):
         """Calculate ORIGAMI-MS parameters"""
@@ -577,39 +608,7 @@ class DialogCustomiseORIGAMI(Dialog):
         if method not in ["Linear", "Exponential", "Boltzmann", "User-defined"]:
             raise ValueError("Could not identify method")
 
-        if method == "Linear":
-            start_end_cv_list, _, _ = pr_origami.calculate_scan_list_linear(
-                self.user_settings["start_scan"],
-                self.user_settings["start_voltage"],
-                self.user_settings["end_voltage"],
-                self.user_settings["step_voltage"],
-                self.user_settings["scans_per_voltage"],
-            )
-        elif method == "Exponential":
-            start_end_cv_list, _, _ = pr_origami.calculate_scan_list_exponential(
-                self.user_settings["start_scan"],
-                self.user_settings["start_voltage"],
-                self.user_settings["end_voltage"],
-                self.user_settings["step_voltage"],
-                self.user_settings["scans_per_voltage"],
-                self.user_settings["exponential_increment"],
-                self.user_settings["exponential_percentage"],
-            )
-        elif method == "Boltzmann":
-            start_end_cv_list, _, _ = pr_origami.calculate_scan_list_boltzmann(
-                self.user_settings["start_scan"],
-                self.user_settings["start_voltage"],
-                self.user_settings["end_voltage"],
-                self.user_settings["step_voltage"],
-                self.user_settings["scans_per_voltage"],
-                self.user_settings["boltzmann_offset"],
-            )
-        elif method == "User-defined":
-            start_end_cv_list, _, _ = pr_origami.calculate_scan_list_user_defined(
-                self.user_settings["start_scan"], self.user_settings["start_scan_end_scan_cv_list"]
-            )
-        else:
-            raise ValueError("Could not identify method")
+        start_end_cv_list, _, _ = pr_origami.calculate_origami_ms(**self.user_settings)
 
         return start_end_cv_list
 

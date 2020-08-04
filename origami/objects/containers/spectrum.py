@@ -288,7 +288,7 @@ class SpectrumObject(DataObject):
 class MassSpectrumObject(SpectrumObject):
     """Mass spectrum container object"""
 
-    DOCUMENT_KEY = "Mass Spectra"
+    DOCUMENT_KEY = "MassSpectra"
 
     def __init__(
         self, x, y, name: str = "", metadata=None, extra_data=None, x_label="m/z (Da)", y_label="Intensity", **kwargs

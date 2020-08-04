@@ -46,6 +46,7 @@ class DialogReviewEditorBase(Dialog, TableMixin):
     REVIEW_MSG = (
         "Please review the list of items shown below and select items which you would like to add to the document."
     )
+    TABLE_GET_KEYS = ("name",)
 
     def __init__(self, parent, item_list: List[List[str]], title: str = "Review item(s)..."):
         Dialog.__init__(self, parent, title=title, style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER & ~wx.MAXIMIZE_BOX)
@@ -158,11 +159,18 @@ class DialogReviewEditorBase(Dialog, TableMixin):
         for item_id in range(item_count):
             information = self.on_get_item_information(item_id)
             if information["select"]:
-                item_list.append(information["name"])
+                append_items = [information[key] for key in self.TABLE_GET_KEYS]
+                if len(append_items) == 1:
+                    item_list.append(*append_items)
+                else:
+                    item_list.append(append_items)
+
         return item_list
 
     def on_set_items(self, _evt):
         """Set currently selected items"""
+        if self.peaklist.locked:
+            return
         self._output_list = self.get_selected_items()
 
 
@@ -505,97 +513,10 @@ class DialogReviewExportData(DialogReviewEditorBase):
         return btn_grid
 
 
-class DialogReviewExtractData(DialogReviewEditorBase):
-    """Dialog enabling review of items from the overlay panel"""
-
-    # ui elements
-    process_btn = None
-
-    TABLE_DICT = {
-        0: dict(name="", tag="check", type="bool", width=25, show=True, order=0, id=wx.NewIdRef(), hidden=True),
-        1: dict(name="type", tag="type", type="str", width=100, show=True, order=1, id=wx.NewIdRef()),
-        2: dict(name="name", tag="name", type="str", width=150, show=True, order=2, id=wx.NewIdRef()),
-        3: dict(name="parameters", tag="parameters", type="str", width=380, show=True, order=2, id=wx.NewIdRef()),
-    }
-    REVIEW_MSG = "Please select item(s) that you would like extract."
-
-    def __init__(self, parent, item_list, document_tree=None, document_title: str = None):
-        self._icons = Icons()
-
-        super().__init__(parent, item_list)
-
-        self.document_tree = document_tree
-        self.document_title = document_title
-
-    @property
-    def data_handling(self):
-        """Return handle to `data_processing`"""
-        return self.document_tree.data_handling
-
-    def make_buttons(self):
-        """Make buttons"""
-
-        self.ok_btn = wx.Button(self, wx.ID_OK, "Extract", size=(-1, -1))
-        self.ok_btn.Bind(wx.EVT_BUTTON, self.on_ok)
-        set_tooltip(self.ok_btn, "Extract data for selected items")
-
-        self.cancel_btn = wx.Button(self, wx.ID_OK, "Cancel", size=(-1, -1))
-        self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
-
-        self.process_btn = make_bitmap_btn(
-            self, wx.ID_ANY, self._icons.process_ms, tooltip="Change MS pre-processing parameters"
-        )
-        self.process_btn.Bind(wx.EVT_BUTTON, self.on_open_process_ms_settings)
-
-        btn_grid = wx.BoxSizer()
-        btn_grid.Add(self.ok_btn, 0, wx.ALIGN_CENTER_VERTICAL)
-        btn_grid.Add(self.cancel_btn, 0, wx.ALIGN_CENTER_VERTICAL)
-        btn_grid.Add(self.process_btn, 0, wx.ALIGN_CENTER_VERTICAL)
-
-        return btn_grid
-
-    def on_open_process_ms_settings(self, _evt):
-        """Open MS pre-processing panel"""
-        self.document_tree.on_open_process_ms_settings(disable_plot=True, disable_process=True)
-
-    def on_ok(self, _evt):
-        """Override default event"""
-        self._output_list = self.get_selected_items()
-
-        if self.document_title is not None:
-            self.on_process()
-
-        self.EndModal(wx.ID_OK)
-
-    def on_process(self):
-        """Process object"""
-        # get document object
-        # document = ENV.on_get_document(self.document_title)
-
-        # # iterate over each of the selected items
-        # for object_name in self.output_list:
-        #     obj = document[object_name, True]
-        #     QUEUE.add_call(obj.apply_origami_ms, (), func_result=self._on_add_to_document)
-
-    def _on_add_to_document(self, obj):
-        """Add object to the document tree in a thread-safe manner"""
-        # add data to the document tree
-        if obj is not None:
-            self.document_tree.on_update_document(obj.DOCUMENT_KEY, obj.title, self.document_title)
-
-
 def _main():
     app = wx.App()
-    ex = DialogReviewExtractData(
-        None,
-        [
-            ["MassSpectrum", "Data 1", "scan start=3; end scan=7"],
-            ["MassSpectrum", "Data 1", "scan start=3; end scan=7"],
-            ["MassSpectrum", "Data 1", "scan start=3; end scan=7"],
-            ["MassSpectrum", "Data 1", "scan start=3; end scan=7"],
-            ["MassSpectrum", "Data 1", "scan start=3; end scan=7"],
-            ["MassSpectrum", "Data 1", "scan start=3; end scan=7"],
-        ],
+    ex = DialogReviewExportFigures(
+        None, [["MassSpectrum", "Data 1"], ["MassSpectrum", "Data 1"], ["MassSpectrum", "Data 1"]]
     )
 
     ex.ShowModal()

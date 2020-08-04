@@ -61,9 +61,12 @@ def check_path(path: str, extension: Optional[str] = None):
 class LoadHandler:
     """Data load handler"""
 
+    def __init__(self):
+        pass
+
     @staticmethod
     @check_os("win32")
-    def waters_extract_ms_from_mobilogram(x_min: int, x_max: int, title=None):
+    def waters_extract_ms_from_mobilogram(x_min: int, x_max: int, document_title: str = None, obj_name: str = None):
         """Extract mass spectrum based on drift time selection
 
         Parameters
@@ -72,8 +75,10 @@ class LoadHandler:
             start drift time in bins
         x_max : int
             end drift time in bins
-        title: str, optional
+        document_title: str, optional
             document title
+        obj_name : str
+            name of the object
 
         Returns
         -------
@@ -84,7 +89,7 @@ class LoadHandler:
         document : Document
             instance of the document for which data was extracted
         """
-        document = ENV.on_get_document(title)
+        document = ENV.on_get_document(document_title)
 
         # setup file reader
         reader = document.get_reader("ion_mobility")
@@ -95,14 +100,17 @@ class LoadHandler:
 
         # extract data
         mz_obj = reader.extract_ms(dt_start=x_min, dt_end=x_max)
-        obj_name = f"DT_{x_min}-{x_max}"
+        if obj_name is None:
+            obj_name = f"DT_{x_min}-{x_max}"
         mz_obj = document.add_spectrum(obj_name, mz_obj)
 
         return obj_name, mz_obj, document
 
     @staticmethod
     @check_os("win32")
-    def waters_extract_ms_from_chromatogram(x_min: float, x_max: float, title=None):
+    def waters_extract_ms_from_chromatogram(
+        x_min: float, x_max: float, document_title: str = None, obj_name: str = None
+    ):
         """Extract mass spectrum based on retention time selection
 
         Parameters
@@ -111,8 +119,10 @@ class LoadHandler:
             start retention time in minutes
         x_max : float
             end retention time in minutes
-        title: str, optional
+        document_title: str, optional
             document title
+        obj_name : str
+            name of the object
 
         Returns
         -------
@@ -123,7 +133,7 @@ class LoadHandler:
         document : Document
             instance of the document for which data was extracted
         """
-        document = ENV.on_get_document(title)
+        document = ENV.on_get_document(document_title)
 
         # setup file reader
         reader = document.get_reader("ion_mobility")
@@ -133,14 +143,17 @@ class LoadHandler:
             document.add_reader("ion_mobility", reader)
 
         mz_obj = reader.extract_ms(rt_start=x_min, rt_end=x_max)
-        obj_name = f"RT_{x_min:.2f}-{x_max:.2f}"
+        if obj_name is None:
+            obj_name = f"RT_{x_min:.2f}-{x_max:.2f}"
         mz_obj = document.add_spectrum(obj_name, mz_obj)
 
         return obj_name, mz_obj, document
 
     @staticmethod
     @check_os("win32")
-    def waters_extract_ms_from_heatmap(x_min: float, x_max: float, y_min: int, y_max: int, title=None):
+    def waters_extract_ms_from_heatmap(
+        x_min: float, x_max: float, y_min: int, y_max: int, document_title: str = None, obj_name: str = None
+    ):
         """Extract mass spectrum based on retention time selection
 
         Parameters
@@ -153,8 +166,10 @@ class LoadHandler:
             start drift time in bins
         y_max : int
             end drift time in bins
-        title: str, optional
+        document_title: str, optional
             document title
+        obj_name : str
+            name of the object
 
         Returns
         -------
@@ -165,7 +180,7 @@ class LoadHandler:
         document : Document
             instance of the document for which data was extracted
         """
-        document = ENV.on_get_document(title)
+        document = ENV.on_get_document(document_title)
 
         # setup file reader
         reader = document.get_reader("ion_mobility")
@@ -175,14 +190,17 @@ class LoadHandler:
             document.add_reader("ion_mobility", reader)
 
         mz_obj = reader.extract_ms(rt_start=x_min, rt_end=x_max, dt_start=y_min, dt_end=y_max)
-        obj_name = f"RT_{x_min:.2f}-{x_max:.2f}_DT_{y_min}-{y_max}"
+        if obj_name is None:
+            obj_name = f"RT_{x_min:.2f}-{x_max:.2f}_DT_{y_min}-{y_max}"
         mz_obj = document.add_spectrum(obj_name, mz_obj)
 
         return obj_name, mz_obj, document
 
     @staticmethod
     @check_os("win32")
-    def waters_extract_rt_from_msdt(x_min: float, x_max: float, y_min: int, y_max: int, title=None):
+    def waters_extract_rt_from_msdt(
+        x_min: float, x_max: float, y_min: int, y_max: int, document_title: str = None, obj_name: str = None
+    ):
         """Extract mass spectrum based on retention time selection
 
         Parameters
@@ -195,8 +213,10 @@ class LoadHandler:
             start drift time in bins
         y_max : int
             end drift time in bins
-        title: str, optional
+        document_title: str, optional
             document title
+        obj_name : str
+            name of the object
 
         Returns
         -------
@@ -207,7 +227,7 @@ class LoadHandler:
         document : Document
             instance of the document for which data was extracted
         """
-        document = ENV.on_get_document(title)
+        document = ENV.on_get_document(document_title)
 
         # setup file reader
         reader = document.get_reader("ion_mobility")
@@ -217,14 +237,17 @@ class LoadHandler:
             document.add_reader("ion_mobility", reader)
 
         mz_obj = reader.extract_rt(mz_start=x_min, mz_end=x_max, dt_start=y_min, dt_end=y_max)
-        obj_name = f"MZ_{x_min:.2f}-{x_max:.2f}_DT_{y_min}-{y_max}"
+        if obj_name is None:
+            obj_name = f"MZ_{x_min:.2f}-{x_max:.2f}_DT_{y_min}-{y_max}"
         mz_obj = document.add_chromatogram(obj_name, mz_obj)
 
         return obj_name, mz_obj, document
 
     @staticmethod
     @check_os("win32")
-    def waters_extract_heatmap_from_mass_spectrum_one(x_min: float, x_max: float, title=None):
+    def waters_extract_heatmap_from_mass_spectrum_one(
+        x_min: float, x_max: float, document_title: str = None, obj_name: str = None
+    ):
         """Extract heatmap based on mass spectrum range
 
         Parameters
@@ -233,8 +256,10 @@ class LoadHandler:
             start m/z value
         x_max : float
             end m/z value
-        title: str, optional
+        document_title: str, optional
             document title
+        obj_name : str
+            name of the object
 
         Returns
         -------
@@ -245,7 +270,7 @@ class LoadHandler:
         document : Document
             instance of the document for which data was extracted
         """
-        document = ENV.on_get_document(title)
+        document = ENV.on_get_document(document_title)
 
         # setup file reader
         reader = document.get_reader("ion_mobility")
@@ -256,14 +281,17 @@ class LoadHandler:
 
         # get heatmap
         heatmap_obj = reader.extract_heatmap(mz_start=x_min, mz_end=x_max)
-        obj_name = f"MZ_{x_min:.2f}-{x_max:.2f}"
+        if obj_name is None:
+            obj_name = f"MZ_{x_min:.2f}-{x_max:.2f}"
         heatmap_obj = document.add_heatmap(obj_name, heatmap_obj)
 
         return obj_name, heatmap_obj, document
 
     @staticmethod
     @check_os("win32")
-    def waters_extract_heatmap_from_mass_spectrum_many(x_min: float, x_max: float, filelist: Dict, title=None):
+    def waters_extract_heatmap_from_mass_spectrum_many(
+        x_min: float, x_max: float, filelist: Dict, document_title: str = None, obj_name: str = None
+    ):
         """Extract heatmap based on mass spectrum range
 
         Parameters
@@ -274,8 +302,10 @@ class LoadHandler:
             end m/z value
         filelist : Dict
             dictionary with filename : variable mapping
-        title: str, optional
+        document_title: str, optional
             document title
+        obj_name : str
+            name of the object
 
         Returns
         -------
@@ -307,13 +337,11 @@ class LoadHandler:
         rt_y = array.sum(axis=0)
         dt_y = array.sum(axis=1)
 
-        obj_name = f"{x_min:.2f}-{x_max:.2f}"
+        if obj_name is None:
+            obj_name = f"{x_min:.2f}-{x_max:.2f}"
         obj_data = IonHeatmapObject(array, x=dt_x, y=rt_x, xy=dt_y, yy=rt_y)
 
         return obj_name, obj_data, None
-
-    def waters_extract_mass_spectra(self, extraction_windows, title: str = None):
-        """Extract multiple mass spectra based on provided extraction windows"""
 
     @staticmethod
     @check_os("win32")
@@ -415,11 +443,11 @@ class LoadHandler:
         return obj_name, mz_obj, document
 
     @staticmethod
-    def document_extract_lesa_image_from_ms(x_min: float, x_max: float, title: str):
+    def document_extract_lesa_image_from_ms(x_min: float, x_max: float, document_title: str):
         """Extract image data for LESA document based on extraction range in the mass spectrum window"""
         from origami.processing.utils import find_nearest_index
 
-        document = ENV.on_get_document(title)
+        document = ENV.on_get_document(document_title)
         metadata = document.get_config("imaging")
         shape = (metadata["x_dim"], metadata["y_dim"])
         array = np.zeros(np.dot(*shape))
@@ -452,12 +480,12 @@ class LoadHandler:
 
     @staticmethod
     def document_extract_lesa_image_from_dt(
-        x_min: float, x_max: float, y_min: float, y_max: float, title: str, get_quick: bool = False
+        x_min: float, x_max: float, y_min: float, y_max: float, document_title: str
     ):
         """Extract image data for LESA document based on extraction range in the mass spectrum + drift time window"""
         from origami.processing.utils import find_nearest_index
 
-        document = ENV.on_get_document(title)
+        document = ENV.on_get_document(document_title)
         metadata = document.get_config("imaging")
         shape = (metadata["x_dim"], metadata["y_dim"])
         array = np.zeros(np.dot(*shape))
@@ -493,11 +521,11 @@ class LoadHandler:
         return name, obj
 
     @staticmethod
-    def document_extract_dt_from_msdt_multifile(x_min: float, x_max: float, title: str):
+    def document_extract_dt_from_msdt_multifile(x_min: float, x_max: float, document_title: str):
         """Extract mobilogram from MS/DT dataset based on mass selection"""
         from origami.processing.utils import find_nearest_index
 
-        document = ENV.on_get_document(title)
+        document = ENV.on_get_document(document_title)
         x, y = None, None
         changed = False
         for heatmap in document.MSDTHeatmaps.values():
@@ -817,39 +845,6 @@ class LoadHandler:
 
         return document
 
-    #     def load_multi_file_waters_data_mt(self, filelist: List[FileItem], **proc_kwargs):
-    #         from concurrent.futures import wait, ThreadPoolExecutor, ProcessPoolExecutor
-    #         from origami.utils.utilities import as_chunks
-    #
-    #         """Load waters data using multiple cores"""
-    #         executor = ProcessPoolExecutor(4)
-    #
-    #         futures = []
-    #         for start, _filelist in as_chunks(filelist, 3):
-    #             futures.append(executor.submit(_load_multi_file_waters_data, _filelist, **proc_kwargs))
-    #
-    #         done, notdone = wait(futures)
-    #         if len(notdone) > 0:
-    #             raise ValueError("Failed to execute action in multi-core manner")
-    #
-    #         mass_spectra, chromatograms, mobilograms, variables, parameters = {}, {}, {}, {}, {}
-    #         for future in done:
-    #             _mass_spectra, _chromatograms, _mobilograms, _variables, _parameters = future.result()
-    #             mass_spectra.update(**_mass_spectra)
-    #             chromatograms.update(**_chromatograms)
-    #             mobilograms.update(**_mobilograms)
-    #             variables.update(**_variables)
-    #             if _parameters:
-    #                 parameters = _parameters
-    #
-    #         data_out = dict(mass_spectra=mass_spectra, chromatograms=chromatograms, mobilograms=mobilograms)
-    #         data_out.update(**self.finalize_multi_file_waters_data(mass_spectra, mobilograms, variables,
-    #         **proc_kwargs))
-    #         if parameters:
-    #             data_out["parameters"] = parameters
-    #
-    #         return data_out
-
     @check_os("win32")
     def load_multi_file_waters_data(self, filelist: List[FileItem], **proc_kwargs):
         """Vendor agnostic LESA data load"""
@@ -1005,3 +1000,6 @@ def _load_waters_data_chunk(file_info: FileItem, **proc_kwargs):
         msdt_obj.set_metadata(dict(file_info=dict(file_info._asdict())))
 
     return mz_obj, rt_obj, dt_obj, msdt_obj, parameters
+
+
+LOAD_HANDLER = LoadHandler()

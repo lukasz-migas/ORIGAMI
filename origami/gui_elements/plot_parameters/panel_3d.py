@@ -270,8 +270,8 @@ class Panel3dSettings(PanelSettingsBase):
         if source == "heatmap.3d.background.color":
             CONFIG.heatmap_3d_background_color = color_1
             self.plot3d_background_color_btn.SetBackgroundColour(color_255)
-            self.on_update_3d(evt)
+            self.on_update(evt)
         elif source == "heatmap.3d.axis.color":
             CONFIG.heatmap_3d_axis_color = color_1
             self.plot3d_axis_color_btn.SetBackgroundColour(color_255)
-            self.on_update_3d(evt)
+            self.on_update(evt)
