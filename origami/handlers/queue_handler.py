@@ -9,6 +9,7 @@ from pubsub import pub
 
 # Local imports
 from origami.handlers.call import Call
+from origami.utils.utilities import report_time
 
 LOGGER = logging.getLogger(__name__)
 
@@ -89,9 +90,9 @@ class QueueHandler:
             # get object
             call_obj = q.get()
             # call function
-            call_obj.run()
+            t_start = call_obj.run()
             q.task_done()
-            LOGGER.debug("Queue > Completed task")
+            LOGGER.debug(f"Queue > Completed task in {report_time(t_start)}")
 
             # update statusbar
             self.update()

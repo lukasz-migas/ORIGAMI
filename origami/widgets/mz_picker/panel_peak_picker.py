@@ -11,7 +11,6 @@ from pubsub import pub
 from pubsub.core.topicexc import TopicNameError
 
 # Local imports
-from origami.ids import ID_plotPanel_resize
 from origami.styles import MiniFrame
 from origami.styles import Validator
 from origami.styles import set_tooltip

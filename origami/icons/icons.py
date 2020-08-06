@@ -1,5 +1,4 @@
 # Third-party imports
-# Local imports
 import wx
 from wx.lib.embeddedimage import PyEmbeddedImage
 

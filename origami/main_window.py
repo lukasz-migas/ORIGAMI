@@ -647,21 +647,19 @@ class MainWindow(wx.Frame):
             make_menu_item(
                 parent=menu_config,
                 evt_id=ID_saveConfig,
-                text="Export configuration XML file (default location)\tCtrl+S",
+                text="Export configuration file (default location)",
                 bitmap=self._icons.export_db,
             )
         )
         menu_config.Append(
-            make_menu_item(
-                parent=menu_config, evt_id=ID_saveAsConfig, text="Export configuration XML file as...\tCtrl+Shift+S"
-            )
+            make_menu_item(parent=menu_config, evt_id=ID_saveAsConfig, text="Export configuration file as...")
         )
         menu_config.AppendSeparator()
         menu_config.Append(
             make_menu_item(
                 parent=menu_config,
                 evt_id=ID_openConfig,
-                text="Import configuration XML file (default location)\tCtrl+Shift+O",
+                text="Import configuration file (default location)",
                 bitmap=self._icons.import_db,
             )
         )
@@ -1484,8 +1482,8 @@ class MainWindow(wx.Frame):
 
         # Try saving configuration file
         try:
-            path = os.path.join(CONFIG.APP_CWD, "configOut.xml")
-            CONFIG.saveConfigXML(path=path, evt=None)
+            path = os.path.join(CONFIG.APP_CWD, CONFIG.DEFAULT_CONFIG_NAME)
+            CONFIG.save_config(path=path)
         except Exception:
             print("Could not save configuration file")
 
@@ -1644,9 +1642,6 @@ class MainWindow(wx.Frame):
 
         self.menu_recent_files.Append(ID_fileMenu_clearRecent, "Clear Menu", "Clear recent items")
         self.Bind(wx.EVT_MENU, self.on_clear_recent_files, id=ID_fileMenu_clearRecent)
-
-        if CONFIG.APP_ENABLE_CONFIG_AUTO_SAVE:
-            self.data_handling.on_export_config_fcn(None, False)
 
     def on_clear_recent_files(self, _evt):
         """Clear recent items."""

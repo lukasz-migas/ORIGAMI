@@ -557,6 +557,17 @@ class PanelPlots(wx.Panel):
 
         view_obj.plot(obj=data_obj)
 
+    def on_show_as_heatmap_3d(self, _evt):
+        """Show heatmap plot as heatmap-plot"""
+        view_obj = self.get_view_from_name(self.currentPage)
+        data_obj = view_obj.get_object()
+        if not data_obj:
+            pub.sendMessage("notify.message.error", message="Cannot show this view as the plot cache is empty.")
+            return
+
+        self.view_heatmap_3d.plot(obj=data_obj)
+        self.set_page("Heatmap (3D)")
+
     def on_right_click(self, _evt):
         """Right-click event handler"""
         self.currentPage = self.plot_notebook.GetPageText(self.plot_notebook.GetSelection())
@@ -642,6 +653,7 @@ class PanelPlots(wx.Panel):
             parent=menu, text="Show as a heatmap plot", bitmap=self._icons.heatmap
         )
         menu_action_show_violin = make_menu_item(parent=menu, text="Show as a violin plot", bitmap=self._icons.violin)
+        menu_action_show_3d = make_menu_item(parent=menu, text="Show in 3d", bitmap=self._icons.cube)
 
         # bind events by item
         self.Bind(wx.EVT_MENU, self.on_process_mass_spectrum, menu_action_process_ms)
@@ -656,6 +668,7 @@ class PanelPlots(wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_show_as_waterfall, menu_action_show_waterfall)
         self.Bind(wx.EVT_MENU, self.on_show_as_heatmap, menu_action_show_heatmap)
         self.Bind(wx.EVT_MENU, self.on_show_as_violin, menu_action_show_violin)
+        self.Bind(wx.EVT_MENU, self.on_show_as_heatmap_3d, menu_action_show_3d)
 
         if self.currentPage == "Mass spectrum":
             menu.Insert(0, menu_action_smooth_signal)
@@ -685,6 +698,7 @@ class PanelPlots(wx.Panel):
             menu.Insert(2, menu_action_show_waterfall)
             menu.Insert(3, menu_action_show_violin)
             menu.Insert(4, menu_action_show_joint)
+            menu.Insert(4, menu_action_show_3d)
             menu.InsertSeparator(5)
             menu.Insert(6, menu_action_smooth_heatmap)
             menu.Insert(7, menu_action_process_2d)
@@ -940,14 +954,14 @@ class PanelPlots(wx.Panel):
         """Change plot style"""
         # https://tonysyu.github.io/raw_content/matplotlib-style-gallery/gallery.html
 
-        if CONFIG.currentStyle == "Default":
+        if CONFIG.current_style == "Default":
             matplotlib.rcParams.update(matplotlib.rcParamsDefault)
-        elif CONFIG.currentStyle == "ggplot":
+        elif CONFIG.current_style == "ggplot":
             plt.style.use("ggplot")
-        elif CONFIG.currentStyle == "ticks":
+        elif CONFIG.current_style == "ticks":
             sns.set_style("ticks")
         else:
-            plt.style.use(CONFIG.currentStyle)
+            plt.style.use(CONFIG.current_style)
 
     @staticmethod
     def on_change_color_palette(evt, cmap=None, n_colors=16, return_colors=False, return_hex=False):  # noqa
@@ -955,10 +969,10 @@ class PanelPlots(wx.Panel):
         if cmap is not None:
             palette_name = cmap
         else:
-            if CONFIG.currentPalette in ["Spectral", "RdPu"]:
-                palette_name = CONFIG.currentPalette
+            if CONFIG.current_palette in ["Spectral", "RdPu"]:
+                palette_name = CONFIG.current_palette
             else:
-                palette_name = CONFIG.currentPalette.lower()
+                palette_name = CONFIG.current_palette.lower()
 
         new_colors = sns.color_palette(palette_name, n_colors)
 

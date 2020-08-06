@@ -159,6 +159,8 @@ class PlotHeatmap2D(PlotBase):
             _, _, extent_y = self._compute_xy_limits(yy, y, None, 1, False)
             axes = [self.plot_base, self.plot_joint_x, self.plot_joint_y]
             extent = [extent, extent_x, extent_y]
+        else:
+            raise ValueError("Should not have plotted this")
 
         # update plot limits
         self.update_extents(extent, obj=obj)
@@ -757,10 +759,6 @@ class PlotHeatmap2D(PlotBase):
         # clear plot in some circumstances
         if self._plot_tag in ["rmsd_matrix"]:
             self.clear()
-
-        # rotate data
-        if self.rotate != 0 and not kwargs.pop("already_rotated", False):
-            yvals, zvals = self.on_rotate_heatmap_data(yvals, zvals)
 
         # update settings
         self._check_and_update_plot_settings(**kwargs)

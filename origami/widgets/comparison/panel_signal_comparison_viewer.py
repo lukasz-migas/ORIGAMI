@@ -18,7 +18,6 @@ from origami.ids import ID_extraSettings_plot1D
 from origami.styles import MiniFrame
 from origami.styles import make_checkbox
 from origami.styles import make_color_btn
-from origami.styles import make_menu_item
 from origami.styles import make_staticbox
 from origami.styles import make_bitmap_btn
 from origami.styles import make_spin_ctrl_double

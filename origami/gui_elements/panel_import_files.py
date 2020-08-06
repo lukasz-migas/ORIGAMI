@@ -410,7 +410,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         info = ""
 
         # inform of linearization
-        if CONFIG.ms_process_linearize:
+        if CONFIG.ms_linearize:
             info += "<b>Linearize</b>\n"
             info += f"    Mode: {CONFIG.ms_linearize_method}\n"
             if not CONFIG.ms_linearize_mz_auto_range:
@@ -431,12 +431,12 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
             self.processing_label.SetForegroundColour(wx.BLACK)
 
         # inform of smoothing
-        if CONFIG.ms_process_smooth:
+        if CONFIG.ms_smooth:
             info += "<b>Smooth</b>\n"
             info += f"    Mode: {CONFIG.ms_smooth_mode}\n"
 
         # inform of thresholding
-        if CONFIG.ms_process_threshold:
+        if CONFIG.ms_threshold:
             info += "<b>Subtract baseline</b>\n"
             info += f"   Mode: {CONFIG.ms_baseline_method}\n"
 
@@ -483,7 +483,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
             linearize_metadata = metadata.get("linearize", dict())
 
             # linearization
-            CONFIG.ms_process_linearize = True
+            CONFIG.ms_linearize = True
             CONFIG.ms_linearize_method = linearize_metadata.get("linearize_method", "Linear interpolation")
             CONFIG.ms_linearize_mz_start = linearize_metadata.get("x_min", CONFIG.ms_linearize_mz_start)
             CONFIG.ms_linearize_mz_end = linearize_metadata.get("x_max", CONFIG.ms_linearize_mz_end)
@@ -492,7 +492,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
             # smoothing
             smooth_metadata = metadata.get("smooth", dict())
-            CONFIG.ms_process_smooth = smooth_metadata.get("smooth", CONFIG.ms_process_smooth)
+            CONFIG.ms_smooth = smooth_metadata.get("smooth", CONFIG.ms_smooth)
             CONFIG.ms_smooth_mode = smooth_metadata.get("smooth_method", CONFIG.ms_smooth_mode)
             CONFIG.ms_smooth_sigma = smooth_metadata.get("sigma", CONFIG.ms_smooth_sigma)
             CONFIG.ms_smooth_polynomial = smooth_metadata.get("poly_order", CONFIG.ms_smooth_polynomial)
@@ -501,7 +501,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
             # baseline
             baseline_metadata = metadata.get("baseline", dict())
-            CONFIG.ms_process_threshold = baseline_metadata.get("correction", CONFIG.ms_process_threshold)
+            CONFIG.ms_threshold = baseline_metadata.get("correction", CONFIG.ms_threshold)
             CONFIG.ms_baseline_method = baseline_metadata.get("baseline_method", CONFIG.ms_baseline_method)
             CONFIG.ms_baseline_linear_threshold = baseline_metadata.get(
                 "threshold", CONFIG.ms_baseline_linear_threshold
@@ -698,7 +698,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
         mz_min, mz_max = get_min_max(mz_range_out)
 
-        if not CONFIG.ms_process_linearize:
+        if not CONFIG.ms_linearize:
             linearization_mode = "Linear interpolation"
             mz_bin = 0.01
         else:
@@ -720,7 +720,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
                 linearize_method=linearization_mode, x_min=mz_min, x_max=mz_max, bin_size=mz_bin, auto_range=False
             ),
             smooth=dict(
-                smooth=CONFIG.ms_process_smooth,
+                smooth=CONFIG.ms_smooth,
                 smooth_method=CONFIG.ms_smooth_mode,
                 sigma=CONFIG.ms_smooth_sigma,
                 poly_order=CONFIG.ms_smooth_polynomial,
@@ -728,7 +728,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
                 N=CONFIG.ms_smooth_moving_window,
             ),
             baseline=dict(
-                correction=CONFIG.ms_process_threshold,
+                correction=CONFIG.ms_threshold,
                 baseline_method=CONFIG.ms_baseline_method,
                 threshold=CONFIG.ms_baseline_linear_threshold,
                 poly_order=CONFIG.ms_baseline_polynomial_order,

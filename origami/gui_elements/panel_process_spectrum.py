@@ -200,7 +200,7 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
 
         ms_process_crop = wx.StaticText(panel, -1, "Crop spectrum:")
         self.ms_process_crop = make_checkbox(panel, "")
-        self.ms_process_crop.SetValue(CONFIG.ms_process_crop)
+        self.ms_process_crop.SetValue(CONFIG.ms_crop)
         self.ms_process_crop.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.ms_process_crop.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
@@ -216,7 +216,7 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
 
         ms_process_linearize = wx.StaticText(panel, -1, "Linearize spectrum:")
         self.ms_process_linearize = make_checkbox(panel, "")
-        self.ms_process_linearize.SetValue(CONFIG.ms_process_linearize)
+        self.ms_process_linearize.SetValue(CONFIG.ms_linearize)
         self.ms_process_linearize.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.ms_process_linearize.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
@@ -249,7 +249,7 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
 
         ms_process_smooth = wx.StaticText(panel, -1, "Smooth spectrum:")
         self.ms_process_smooth = make_checkbox(panel, "")
-        self.ms_process_smooth.SetValue(CONFIG.ms_process_smooth)
+        self.ms_process_smooth.SetValue(CONFIG.ms_smooth)
         self.ms_process_smooth.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.ms_process_smooth.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
@@ -281,7 +281,7 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
 
         ms_process_threshold = wx.StaticText(panel, -1, "Subtract baseline:")
         self.ms_process_threshold = make_checkbox(panel, "")
-        self.ms_process_threshold.SetValue(CONFIG.ms_process_threshold)
+        self.ms_process_threshold.SetValue(CONFIG.ms_threshold)
         self.ms_process_threshold.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.ms_process_threshold.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
@@ -320,7 +320,7 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
 
         ms_process_normalize = wx.StaticText(panel, -1, "Normalize spectrum:")
         self.ms_process_normalize = make_checkbox(panel, "")
-        self.ms_process_normalize.SetValue(CONFIG.ms_process_normalize)
+        self.ms_process_normalize.SetValue(CONFIG.ms_normalize)
         self.ms_process_normalize.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.ms_process_normalize.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
@@ -501,32 +501,32 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
         """Toggle controls based on some other settings"""
 
         # crop
-        CONFIG.ms_process_crop = self.ms_process_crop.GetValue()
-        self.crop_min_value.Enable(enable=CONFIG.ms_process_crop)
-        self.crop_max_value.Enable(enable=CONFIG.ms_process_crop)
+        CONFIG.ms_crop = self.ms_process_crop.GetValue()
+        self.crop_min_value.Enable(enable=CONFIG.ms_crop)
+        self.crop_max_value.Enable(enable=CONFIG.ms_crop)
 
         # linearize
-        CONFIG.ms_process_linearize = self.ms_process_linearize.GetValue()
-        self.bin_linearization_method_choice.Enable(enable=CONFIG.ms_process_linearize)
-        self.bin_mzBinSize_value.Enable(enable=CONFIG.ms_process_linearize)
-        self.bin_mzStart_value.Enable(enable=CONFIG.ms_process_linearize)
-        self.bin_mzEnd_value.Enable(enable=CONFIG.ms_process_linearize)
-        self.bin_autoRange_check.Enable(enable=CONFIG.ms_process_linearize)
+        CONFIG.ms_linearize = self.ms_process_linearize.GetValue()
+        self.bin_linearization_method_choice.Enable(enable=CONFIG.ms_linearize)
+        self.bin_mzBinSize_value.Enable(enable=CONFIG.ms_linearize)
+        self.bin_mzStart_value.Enable(enable=CONFIG.ms_linearize)
+        self.bin_mzEnd_value.Enable(enable=CONFIG.ms_linearize)
+        self.bin_autoRange_check.Enable(enable=CONFIG.ms_linearize)
 
         CONFIG.ms_linearize_mz_auto_range = self.bin_autoRange_check.GetValue()
-        if CONFIG.ms_process_linearize:
+        if CONFIG.ms_linearize:
             self.bin_mzStart_value.Enable(enable=not CONFIG.ms_linearize_mz_auto_range)
             self.bin_mzEnd_value.Enable(enable=not CONFIG.ms_linearize_mz_auto_range)
 
         # smooth
-        CONFIG.ms_process_smooth = self.ms_process_smooth.GetValue()
+        CONFIG.ms_smooth = self.ms_process_smooth.GetValue()
         obj_list = [self.ms_sigma_value, self.ms_polynomial_value, self.ms_window_value, self.ms_smooth_moving_window]
         for item in obj_list:
             item.Enable(enable=False)
-        self.ms_smoothFcn_choice.Enable(CONFIG.ms_process_smooth)
+        self.ms_smoothFcn_choice.Enable(CONFIG.ms_smooth)
 
         CONFIG.ms_smooth_mode = self.ms_smoothFcn_choice.GetStringSelection()
-        if CONFIG.ms_process_smooth:
+        if CONFIG.ms_smooth:
             if CONFIG.ms_smooth_mode == "Gaussian":
                 self.ms_sigma_value.Enable()
             elif CONFIG.ms_smooth_mode == "Savitzky-Golay":
@@ -536,7 +536,7 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
                 self.ms_smooth_moving_window.Enable()
 
         # threshold
-        CONFIG.ms_process_threshold = self.ms_process_threshold.GetValue()
+        CONFIG.ms_threshold = self.ms_process_threshold.GetValue()
         CONFIG.ms_baseline_method = self.ms_baseline_choice.GetStringSelection()
         obj_list = [
             self.ms_threshold_value,
@@ -548,9 +548,9 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
         ]
         for item in obj_list:
             item.Enable(enable=False)
-        self.ms_baseline_choice.Enable(enable=CONFIG.ms_process_threshold)
+        self.ms_baseline_choice.Enable(enable=CONFIG.ms_threshold)
         self.baseline_warning_msg.SetLabel("")
-        if CONFIG.ms_process_threshold:
+        if CONFIG.ms_threshold:
             if CONFIG.ms_baseline_method == "Linear":
                 self.ms_threshold_value.Enable()
             elif CONFIG.ms_baseline_method == "Polynomial":
@@ -568,11 +568,11 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
 
     def on_apply(self, evt):
         """Update configuration based on changed values"""
-        CONFIG.ms_process_crop = self.ms_process_crop.GetValue()
-        CONFIG.ms_process_linearize = self.ms_process_linearize.GetValue()
-        CONFIG.ms_process_smooth = self.ms_process_smooth.GetValue()
-        CONFIG.ms_process_threshold = self.ms_process_threshold.GetValue()
-        CONFIG.ms_process_normalize = self.ms_process_normalize.GetValue()
+        CONFIG.ms_crop = self.ms_process_crop.GetValue()
+        CONFIG.ms_linearize = self.ms_process_linearize.GetValue()
+        CONFIG.ms_smooth = self.ms_process_smooth.GetValue()
+        CONFIG.ms_threshold = self.ms_process_threshold.GetValue()
+        CONFIG.ms_normalize = self.ms_process_normalize.GetValue()
 
         CONFIG.ms_linearize_mz_start = str2num(self.bin_mzStart_value.GetValue())
         CONFIG.ms_linearize_mz_end = str2num(self.bin_mzEnd_value.GetValue())
@@ -612,20 +612,20 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
     def on_click_on_setting(self, setting):
         """Change setting value based on keyboard event"""
         if setting == "linearize":
-            CONFIG.ms_process_linearize = not CONFIG.ms_process_linearize
-            self.ms_process_linearize.SetValue(CONFIG.ms_process_linearize)
+            CONFIG.ms_linearize = not CONFIG.ms_linearize
+            self.ms_process_linearize.SetValue(CONFIG.ms_linearize)
         elif setting == "smooth":
-            CONFIG.ms_process_smooth = not CONFIG.ms_process_smooth
-            self.ms_process_smooth.SetValue(CONFIG.ms_process_smooth)
+            CONFIG.ms_smooth = not CONFIG.ms_smooth
+            self.ms_process_smooth.SetValue(CONFIG.ms_smooth)
         elif setting == "crop":
-            CONFIG.ms_process_crop = not CONFIG.ms_process_crop
-            self.ms_process_crop.SetValue(CONFIG.ms_process_crop)
+            CONFIG.ms_crop = not CONFIG.ms_crop
+            self.ms_process_crop.SetValue(CONFIG.ms_crop)
         elif setting == "baseline":
-            CONFIG.ms_process_threshold = not CONFIG.ms_process_threshold
-            self.ms_process_threshold.SetValue(CONFIG.ms_process_threshold)
+            CONFIG.ms_threshold = not CONFIG.ms_threshold
+            self.ms_process_threshold.SetValue(CONFIG.ms_threshold)
         elif setting == "normalize":
-            CONFIG.ms_process_normalize = not CONFIG.ms_process_normalize
-            self.ms_process_normalize.SetValue(CONFIG.ms_process_normalize)
+            CONFIG.ms_normalize = not CONFIG.ms_normalize
+            self.ms_process_normalize.SetValue(CONFIG.ms_normalize)
 
         self.on_toggle_controls(None)
 

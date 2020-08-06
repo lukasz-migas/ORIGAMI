@@ -186,7 +186,7 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin):
         self.dataset_info_text = wx.StaticText(panel, -1, "", style=wx.ST_ELLIPSIZE_START)
 
         self.crop_check = make_checkbox(panel, "")
-        self.crop_check.SetValue(CONFIG.heatmap_process_crop)
+        self.crop_check.SetValue(CONFIG.heatmap_crop)
         self.crop_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.crop_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
@@ -207,7 +207,7 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin):
         self.crop_ymax_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         self.interpolate_check = make_checkbox(panel, "")
-        self.interpolate_check.SetValue(CONFIG.heatmap_process_interpolate)
+        self.interpolate_check.SetValue(CONFIG.heatmap_interpolate)
         self.interpolate_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.interpolate_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
@@ -228,7 +228,7 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin):
         self.interpolate_yaxis.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         self.smooth_check = make_checkbox(panel, "")
-        self.smooth_check.SetValue(CONFIG.heatmap_process_smooth)
+        self.smooth_check.SetValue(CONFIG.heatmap_smooth)
         self.smooth_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.smooth_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
@@ -250,7 +250,7 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin):
         self.smooth_sigma_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         self.baseline_check = make_checkbox(panel, "")
-        self.baseline_check.SetValue(CONFIG.heatmap_process_threshold)
+        self.baseline_check.SetValue(CONFIG.heatmap_threshold)
         self.baseline_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.baseline_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
@@ -469,28 +469,28 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin):
     def on_toggle_controls(self, evt):
         """Toggle controls based on some other settings"""
         # crop
-        CONFIG.heatmap_process_crop = self.crop_check.GetValue()
-        self.crop_xmin_value.Enable(CONFIG.heatmap_process_crop)
-        self.crop_xmax_value.Enable(CONFIG.heatmap_process_crop)
-        self.crop_ymin_value.Enable(CONFIG.heatmap_process_crop)
-        self.crop_ymax_value.Enable(CONFIG.heatmap_process_crop)
+        CONFIG.heatmap_crop = self.crop_check.GetValue()
+        self.crop_xmin_value.Enable(CONFIG.heatmap_crop)
+        self.crop_xmax_value.Enable(CONFIG.heatmap_crop)
+        self.crop_ymin_value.Enable(CONFIG.heatmap_crop)
+        self.crop_ymax_value.Enable(CONFIG.heatmap_crop)
 
         # linearize
-        CONFIG.heatmap_process_interpolate = self.interpolate_check.GetValue()
-        self.interpolate_choice.Enable(CONFIG.heatmap_process_interpolate)
-        self.interpolate_fold.Enable(CONFIG.heatmap_process_interpolate)
-        self.interpolate_xaxis.Enable(CONFIG.heatmap_process_interpolate)
-        self.interpolate_yaxis.Enable(CONFIG.heatmap_process_interpolate)
+        CONFIG.heatmap_interpolate = self.interpolate_check.GetValue()
+        self.interpolate_choice.Enable(CONFIG.heatmap_interpolate)
+        self.interpolate_fold.Enable(CONFIG.heatmap_interpolate)
+        self.interpolate_xaxis.Enable(CONFIG.heatmap_interpolate)
+        self.interpolate_yaxis.Enable(CONFIG.heatmap_interpolate)
 
         # smooth
-        CONFIG.heatmap_process_smooth = self.smooth_check.GetValue()
+        CONFIG.heatmap_smooth = self.smooth_check.GetValue()
         obj_list = [self.smooth_sigma_value, self.smooth_poly_order_value, self.smooth_window_value]
         for item in obj_list:
             item.Enable(enable=False)
-        self.smooth_choice.Enable(CONFIG.heatmap_process_smooth)
+        self.smooth_choice.Enable(CONFIG.heatmap_smooth)
 
         CONFIG.ms_smooth_mode = self.smooth_choice.GetStringSelection()
-        if CONFIG.heatmap_process_smooth:
+        if CONFIG.heatmap_smooth:
             if CONFIG.ms_smooth_mode == "Gaussian":
                 self.smooth_sigma_value.Enable()
             elif CONFIG.ms_smooth_mode == "Savitzky-Golay":
@@ -498,8 +498,8 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin):
                     item.Enable()
 
         # threshold
-        CONFIG.heatmap_process_threshold = self.baseline_check.GetValue()
-        self.baseline_threshold_value.Enable(CONFIG.heatmap_process_threshold)
+        CONFIG.heatmap_threshold = self.baseline_check.GetValue()
+        self.baseline_threshold_value.Enable(CONFIG.heatmap_threshold)
 
         # normalize
         CONFIG.heatmap_normalize = self.normalize_check.GetValue()
@@ -510,10 +510,10 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin):
 
     def on_apply(self, evt):
         """Update config values"""
-        CONFIG.heatmap_process_crop = self.crop_check.GetValue()
-        CONFIG.heatmap_process_interpolate = self.interpolate_check.GetValue()
-        CONFIG.heatmap_process_smooth = self.smooth_check.GetValue()
-        CONFIG.heatmap_process_threshold = self.baseline_check.GetValue()
+        CONFIG.heatmap_crop = self.crop_check.GetValue()
+        CONFIG.heatmap_interpolate = self.interpolate_check.GetValue()
+        CONFIG.heatmap_smooth = self.smooth_check.GetValue()
+        CONFIG.heatmap_threshold = self.baseline_check.GetValue()
         CONFIG.heatmap_normalize = self.normalize_check.GetValue()
 
         CONFIG.heatmap_interpolate_fold = str2int(self.interpolate_fold.GetValue())
@@ -531,7 +531,7 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin):
         CONFIG.heatmap_smooth_window = str2int(self.smooth_window_value.GetValue())
         CONFIG.heatmap_smooth_polynomial = str2int(self.smooth_poly_order_value.GetValue())
 
-        CONFIG.heatmap_threshold = str2num(self.baseline_threshold_value.GetValue())
+        CONFIG.heatmap_threshold_lower = str2num(self.baseline_threshold_value.GetValue())
 
         CONFIG.heatmap_normalize_mode = self.normalize_choice.GetStringSelection()
 
@@ -541,17 +541,17 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin):
     def on_click_on_setting(self, setting):
         """Change setting value based on keyboard event"""
         if setting == "interpolate":
-            CONFIG.heatmap_process_interpolate = not CONFIG.heatmap_process_interpolate
-            self.interpolate_check.SetValue(CONFIG.heatmap_process_interpolate)
+            CONFIG.heatmap_interpolate = not CONFIG.heatmap_interpolate
+            self.interpolate_check.SetValue(CONFIG.heatmap_interpolate)
         elif setting == "smooth":
-            CONFIG.heatmap_process_smooth = not CONFIG.heatmap_process_smooth
-            self.smooth_check.SetValue(CONFIG.heatmap_process_smooth)
+            CONFIG.heatmap_smooth = not CONFIG.heatmap_smooth
+            self.smooth_check.SetValue(CONFIG.heatmap_smooth)
         elif setting == "crop":
-            CONFIG.heatmap_process_crop = not CONFIG.heatmap_process_crop
-            self.crop_check.SetValue(CONFIG.heatmap_process_crop)
+            CONFIG.heatmap_crop = not CONFIG.heatmap_crop
+            self.crop_check.SetValue(CONFIG.heatmap_crop)
         elif setting == "baseline":
-            CONFIG.heatmap_process_threshold = not CONFIG.heatmap_process_threshold
-            self.baseline_check.SetValue(CONFIG.heatmap_process_threshold)
+            CONFIG.heatmap_threshold = not CONFIG.heatmap_threshold
+            self.baseline_check.SetValue(CONFIG.heatmap_threshold)
         elif setting == "normalize":
             CONFIG.heatmap_normalize = not CONFIG.heatmap_normalize
             self.normalize_check.SetValue(CONFIG.heatmap_normalize)

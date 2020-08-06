@@ -1,6 +1,7 @@
 """Simple implementation of function caller"""
 # Standard library imports
 import sys
+import time
 import logging
 import traceback
 from builtins import isinstance
@@ -54,6 +55,7 @@ class Call:
     def run(self):
         """Run the object and ensure that results are returned and in case of errors, they are shown to the user"""
         # Retrieve args/kwargs here; and fire processing using them
+        t_start = time.time()
         results = None
         try:
             self.on_pre()
@@ -70,6 +72,7 @@ class Call:
 
         # post-run trigger
         self.on_post()
+        return t_start
 
     def on_error(self, results):
         """If error does occur, try to return results to error handler"""

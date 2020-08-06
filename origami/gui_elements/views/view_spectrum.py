@@ -38,7 +38,7 @@ class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin):
 
     VIEW_TYPE = "1d"
     DATA_KEYS = ("x", "y", "obj")
-    MPL_KEYS = ["1D"]
+    MPL_KEYS = ["1d", "axes", "legend"]
     UPDATE_STYLES = ("line", "fill")
     ALLOWED_PLOTS = ("line", "waterfall")
 
@@ -167,7 +167,7 @@ class ViewCompareSpectra(ViewBase, ViewSpectrumPanelMixin):
     """Viewer class for comparison of spectral data"""
 
     DATA_KEYS = ("x_top", "x_bottom", "y_top", "y_bottom", "labels")
-    MPL_KEYS = ["1D"]
+    MPL_KEYS = ["1d", "axes", "compare"]
     ALLOWED_PLOTS = ("line-compare",)
 
     def __init__(self, *args, **kwargs):

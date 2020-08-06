@@ -211,14 +211,14 @@ class PanelGeneralSettings(PanelSettingsBase):
         self.plot_annotation_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_update)
 
         style_label = wx.StaticText(self, -1, "Style:")
-        self.plot_style_value = wx.Choice(self, -1, choices=CONFIG.styles, size=(-1, -1))
-        self.plot_style_value.SetStringSelection(CONFIG.currentStyle)
+        self.plot_style_value = wx.Choice(self, -1, choices=CONFIG.plot_style_choices, size=(-1, -1))
+        self.plot_style_value.SetStringSelection(CONFIG.current_style)
         self.plot_style_value.Bind(wx.EVT_CHOICE, self.on_change_plot_style)
 
         plot_palette = wx.StaticText(self, -1, "Color palette:")
         self.plot_palette_value = BitmapComboBox(self, -1, choices=[], size=(160, -1), style=wx.CB_READONLY)
         self._set_color_palette(self.plot_palette_value)
-        self.plot_palette_value.SetStringSelection(CONFIG.currentPalette)
+        self.plot_palette_value.SetStringSelection(CONFIG.current_palette)
         self.plot_palette_value.Bind(wx.EVT_COMBOBOX, self.on_change_color_palette)
 
         axis_parameters_label = wx.StaticText(self, -1, "Axis and frame parameters")
@@ -367,7 +367,7 @@ class PanelGeneralSettings(PanelSettingsBase):
         if self.import_evt:
             return
 
-        CONFIG.currentStyle = self.plot_style_value.GetStringSelection()
+        CONFIG.current_style = self.plot_style_value.GetStringSelection()
         self.panel_plot.on_change_plot_style()
 
         self._parse_evt(evt)
@@ -377,7 +377,7 @@ class PanelGeneralSettings(PanelSettingsBase):
         if self.import_evt:
             return
 
-        CONFIG.currentPalette = self.plot_palette_value.GetStringSelection()
+        CONFIG.current_palette = self.plot_palette_value.GetStringSelection()
         self.panel_plot.on_change_color_palette(evt=None)
 
         self._parse_evt(evt)

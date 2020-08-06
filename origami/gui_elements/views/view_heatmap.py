@@ -24,7 +24,7 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
 
     VIEW_TYPE = "2d"
     DATA_KEYS = ("array", "x", "y", "obj")
-    MPL_KEYS = ["2d", "colorbar", "normalization"]
+    MPL_KEYS = ["2d", "colorbar", "normalization", "axes"]
     ALLOWED_PLOTS = ("heatmap", "contour", "joint", "waterfall", "violin", "rgb")
     UPDATE_STYLES = (
         "waterfall.line",

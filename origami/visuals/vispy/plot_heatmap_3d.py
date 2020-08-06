@@ -317,6 +317,9 @@ class PlotHeatmap3d(wx.Panel):
         # ensures size is correct
         self.Bind(wx.EVT_SIZE, self.on_resize)
 
+        self.lock_plot_from_updating = False
+        self.resize = False
+
     def on_resize(self, evt):
         """Resize canvas"""
         w, h = self.GetSize()

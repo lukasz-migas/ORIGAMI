@@ -49,10 +49,10 @@ class ProcessHandler:
         if not isinstance(mz_obj, MassSpectrumObject):
             raise ValueError("This function takes `MassSpectrumObject` as an argument")
 
-        if CONFIG.ms_process_crop:
+        if CONFIG.ms_crop:
             mz_obj.crop(crop_min=CONFIG.ms_crop_min, crop_max=CONFIG.ms_crop_max)
 
-        if CONFIG.ms_process_linearize:
+        if CONFIG.ms_linearize:
             mz_obj.linearize(
                 bin_size=CONFIG.ms_linearize_mz_bin_size,
                 x_min=CONFIG.ms_linearize_mz_start,
@@ -60,7 +60,7 @@ class ProcessHandler:
                 linearize_method=CONFIG.ms_linearize_method,
             )
 
-        if CONFIG.ms_process_smooth:
+        if CONFIG.ms_smooth:
             mz_obj.smooth(
                 smooth_method=CONFIG.ms_smooth_mode,
                 sigma=CONFIG.ms_smooth_sigma,
@@ -69,7 +69,7 @@ class ProcessHandler:
                 N=CONFIG.ms_smooth_moving_window,
             )
 
-        if CONFIG.ms_process_threshold:
+        if CONFIG.ms_threshold:
             mz_obj.baseline(
                 baseline_method=CONFIG.ms_baseline_method,
                 threshold=CONFIG.ms_baseline_linear_threshold,
@@ -78,7 +78,7 @@ class ProcessHandler:
                 tophat_window=CONFIG.ms_baseline_tophat_window,
             )
 
-        if CONFIG.ms_process_normalize:
+        if CONFIG.ms_normalize:
             mz_obj.normalize()
 
         return mz_obj
@@ -100,7 +100,7 @@ class ProcessHandler:
         if not isinstance(heatmap_obj, HeatmapObject):
             raise ValueError("This function takes `HeatmapObject` as an argument")
 
-        if CONFIG.heatmap_process_interpolate:
+        if CONFIG.heatmap_interpolate:
             heatmap_obj.linearize(
                 fold=CONFIG.heatmap_interpolate_fold,
                 linearize_method=CONFIG.heatmap_interpolate_mode,
@@ -108,7 +108,7 @@ class ProcessHandler:
                 y_axis=CONFIG.heatmap_interpolate_yaxis,
             )
 
-        if CONFIG.heatmap_process_crop:
+        if CONFIG.heatmap_crop:
             heatmap_obj.crop(
                 x_min=CONFIG.heatmap_crop_xmin,
                 x_max=CONFIG.heatmap_crop_xmax,
@@ -116,7 +116,7 @@ class ProcessHandler:
                 y_max=CONFIG.heatmap_crop_ymax,
             )
 
-        if CONFIG.heatmap_process_smooth:
+        if CONFIG.heatmap_smooth:
             heatmap_obj.smooth(
                 smooth_method=CONFIG.ms_smooth_mode,
                 sigma=CONFIG.heatmap_smooth_sigma,
@@ -124,8 +124,8 @@ class ProcessHandler:
                 window_size=CONFIG.heatmap_smooth_window,
             )
 
-        if CONFIG.heatmap_process_threshold:
-            heatmap_obj.baseline(threshold=CONFIG.heatmap_threshold)
+        if CONFIG.heatmap_threshold:
+            heatmap_obj.baseline(threshold=CONFIG.heatmap_threshold_lower)
 
         if CONFIG.heatmap_normalize:
             heatmap_obj.normalize(normalize_method=CONFIG.heatmap_normalize_mode)

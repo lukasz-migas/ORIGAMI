@@ -3,6 +3,8 @@ import os
 import time
 import logging
 import platform
+from typing import List
+from typing import Union
 from itertools import cycle
 from collections import OrderedDict
 
@@ -13,6 +15,8 @@ from matplotlib.pyplot import colormaps
 from origami.objects.misc import CompareItem
 from origami.utils.random import get_random_int
 from origami.utils.version import __version__
+from origami.readers.io_json import read_json_data
+from origami.readers.io_json import write_json_data
 
 logger = logging.getLogger(__name__)
 
@@ -44,9 +48,10 @@ class Config:
         self.APP_DRIFTSCOPE_PATH = r"C:\DriftScope\lib"
         self.APP_DRIFTSCOPE_ALT_PATH = "readers/driftscope"
         self.APP_LOAD_CCS_DB_AT_START = True
-
         self.APP_SYSTEM = platform.system()
         self.APP_START_TIME = time.strftime("%Y_%m_%d-%H-%M-%S", time.gmtime())
+
+        self.DEFAULT_CONFIG_NAME = "origami-config.json"
 
         # Configurable
         self.version = __version__
@@ -73,7 +78,6 @@ class Config:
             "about-author": "https://lukasz-migas.com/",
         }
         # fmt: on
-        self.configFile_name = "configOut.xml"
         self.watermark = f"""
         <p>
           <span style="color: #808080;"
@@ -103,19 +107,6 @@ class Config:
             ]
         )
 
-        self.comboAcqTypeSelectChoices = ["Linear", "Exponential", "Fitted", "User-defined"]
-
-        self.normModeChoices = [
-            "Maximum",
-            "Logarithmic",
-            "Natural log",
-            "Square root",
-            "Least Abs Deviation",
-            "Least Squares",
-        ]
-
-        self.detectModeChoices = ["MS", "RT", "MS/RT"]
-        self.comboSmoothSelectChoices = ["None", "Savitzky-Golay", "Gaussian"]
         self.colormap_narrow_choices = [
             "Greys",
             "Purples",
@@ -157,8 +148,8 @@ class Config:
             "coolwarm",
         ]
 
-        self.imageFormatType = ["png", "ps", "raw", "eps", "jpeg", "tiff", "pdf", "svg", "svgz"]
-        self.styles = [
+        self.image_format_choices = ["png", "ps", "raw", "eps", "jpeg", "tiff", "pdf", "svg", "svgz"]
+        self.plot_style_choices = [
             "Default",
             "ggplot",
             "fivethirtyeight",
@@ -170,7 +161,8 @@ class Config:
             "seaborn-dark",
             "seaborn-pastel",
         ]
-        self.currentPalette = "HLS"
+        self.current_style = "Default"
+
         self.color_palettes = {
             "HLS": "hls",
             "HUSL": "husl",
@@ -180,6 +172,7 @@ class Config:
             "Rainbow": "rainbow",
             "Inferno": "Inferno",
         }
+        self.current_palette = "HLS"
 
         self.availablePlotsList = [
             "MS",
@@ -543,20 +536,6 @@ class Config:
 
         self.driftBottomColNames = {"start": 0, "end": 1, "intensity": 2, "charge": 4, "filename": 5}
 
-        self.textlistColNames = {
-            "check": 0,
-            "start": 1,
-            "end": 2,
-            "charge": 3,
-            "color": 4,
-            "colormap": 5,
-            "alpha": 6,
-            "mask": 7,
-            "label": 8,
-            "shape": 9,
-            "filename": 10,
-        }
-
         self.overlay_list_col_names = {
             "check": 0,
             "dataset_name": 1,
@@ -573,31 +552,6 @@ class Config:
             "processed": 12,
             "order": 13,
         }
-
-        self._textlistSettings = [
-            {"name": "", "order": 0, "width": 25, "show": True},
-            {"name": "min (x)", "order": 1, "width": 65, "show": True},
-            {"name": "max (x)", "order": 2, "width": 65, "show": True},
-            {"name": "z", "order": 3, "width": 25, "show": True},
-            {"name": "color", "order": 4, "width": 60, "show": True},
-            {"name": "colormap", "order": 5, "width": 70, "show": True},
-            {"name": "\N{GREEK SMALL LETTER ALPHA}", "order": 6, "width": 35, "show": True},
-            {"name": "mask", "order": 7, "width": 40, "show": True},
-            {"name": "label", "order": 8, "width": 50, "show": True},
-            {"name": "shape", "order": 9, "width": 70, "show": True},
-            {"name": "document", "order": 10, "width": 100, "show": True},
-            {"name": "key", "order": 11, "width": 0, "show": False},
-        ]
-
-        # column name 'energy' was changed to 'variable' as it might be more appropriate
-        self.multipleMLColNames = {"check": 0, "filename": 1, "energy": 2, "document": 3, "label": 4}
-        self._multipleFilesSettings = [
-            {"name": "", "order": 0, "width": 25, "show": True},
-            {"name": "filename", "order": 1, "width": 200, "show": True},
-            {"name": "variable", "order": 2, "width": 50, "show": True},
-            {"name": "document", "order": 3, "width": 80, "show": True},
-            {"name": "label", "order": 4, "width": 100, "show": True},
-        ]
 
         self._interactiveSettings = [
             {"name": "", "order": 0, "width": 25, "show": True},
@@ -637,7 +591,6 @@ class Config:
         }
 
         self.ccsBottomColNames = {"filename": 0, "start": 1, "end": 2, "ion": 3, "protein": 4, "charge": 5, "format": 6}
-
         self.ccsDBColNames = {
             "protein": 0,
             "mw": 1,
@@ -742,10 +695,6 @@ class Config:
             "z-dot": False,
             "z+1/2/3": False,
         }
-
-        # plot parameters
-        self.zoom_color_normal = (1, 1, 1)
-        self.zoom_color_extract = (1, 0, 0)
 
         # window parameters
         self.extraParamsWindow_on_off = False
@@ -993,6 +942,10 @@ class Config:
         self.label_fontweight_list = ["ultralight", "light", "normal", "regular", "medium", "bold", "heavy"]
         self.label_font_orientation_list = ["horizontal", "vertical"]
 
+        # MPL interaction parameters
+        self.zoom_color_normal = (1, 1, 1)
+        self.zoom_color_extract = (1, 0, 0)
+
         # Smart zoom
         self.smart_zoom_enable = True  # new in v1.3.0.0
         self.smart_zoom_soft_max = 15000  # new in v1.3.0.0
@@ -1149,47 +1102,6 @@ class Config:
         self.new_version_panel_link = r"https://github.com/lukasz-migas/ORIGAMI/releases"
         self.new_version_panel_do_not_ask = False
 
-        # Peak-picking parameters
-        # Panel settings
-        self.peak_panel_method_choices = ["small_molecule", "native_local", "native_differential"]
-        self.peak_panel_method_choice = "small_molecule"
-        self.peak_panel_specify_mz = False
-        self.peak_panel_mz_start = None
-        self.peak_panel_mz_end = None
-        self.peak_panel_preprocess = True
-        self.peak_panel_verbose = False
-        self.peak_panel_method = None
-        self.peak_panel_scatter = True
-        self.peak_panel_highlight = True
-        self.peak_panel_labels = True
-        self.peak_panel_labels_mz = True
-        self.peak_panel_labels_int = True
-        self.peak_panel_labels_width = False
-        self.peak_panel_optimise_position = True
-        self.peak_panel_labels_max_count = 100
-        self.peak_panel_filter_choices = ["Score", "Width (no. bins)", "Width (Da)"]
-        self.peak_panel_filter_choice = "Width (Da)"
-        self.peak_panel_score_choices = ["asymmetry", "tailing", "slopes"]
-        self.peak_panel_score_choice = "asymmetry"
-
-        # Local-max settings
-        self.peak_local_threshold = 0.01
-        self.peak_local_window = 10
-        self.peak_local_relative_height = 0.75
-
-        # Differential settings
-        self.peak_differential_threshold = 0.01
-        self.peak_differential_window = 10
-        self.peak_differential_relative_height = 0.75
-
-        # Small-molecule settings
-        self.peak_property_threshold = 250  # new in v1.3.0.0
-        self.peak_property_width = 0  # new in v1.3.0.0
-        self.peak_property_relative_height = 0.5  # new in v1.3.0.0
-        self.peak_property_min_intensity = 0.0  # new in v1.3.0.0
-        self.peak_property_distance = 1  # new in v1.3.0.0
-        self.peak_property_peak_width_modifier = 1.0  # new in v1.3.0.0
-
         # Main plot events
         # events in MS panel
         self.plot_panel_ms_extract_auto = True
@@ -1221,6 +1133,126 @@ class Config:
         # Duplicate panel
         self.import_duplicate_panel_action = "merge"
         self.import_duplicate_panel_ask = False
+
+        # Peak-picking parameters
+        # Panel settings
+        self.peak_panel_method_choices = ["small_molecule", "native_local", "native_differential"]
+        self.peak_panel_method_choice = "small_molecule"
+        self.peak_panel_specify_mz = False
+        self.peak_panel_mz_start = None
+        self.peak_panel_mz_end = None
+        self.peak_panel_preprocess = True
+        self.peak_panel_verbose = False
+        self.peak_panel_method = None
+        self.peak_panel_scatter = True
+        self.peak_panel_highlight = True
+        self.peak_panel_labels = True
+        self.peak_panel_labels_mz = True
+        self.peak_panel_labels_int = True
+        self.peak_panel_labels_width = False
+        self.peak_panel_optimise_position = True
+        self.peak_panel_labels_max_count = 100
+        self.peak_panel_filter_choices = ["Score", "Width (no. bins)", "Width (Da)"]
+        self.peak_panel_filter_choice = "Width (Da)"
+        self.peak_panel_score_choices = ["asymmetry", "tailing", "slopes"]
+        self.peak_panel_score_choice = "asymmetry"
+
+        # Extract DT/MS
+        self.msdt_panel_extract_mz_start = 200
+        self.msdt_panel_extract_mz_end = 5000
+        self.msdt_panel_extract_mz_bin_size = 0.1
+
+        # Process 2D
+        self.heatmap_crop = False  # new in v1.3.0.0
+        self.heatmap_crop_xmin = 0  # new in v1.3.0.0
+        self.heatmap_crop_xmax = 5000  # new in v1.3.0.0
+        self.heatmap_crop_ymin = 0  # new in v1.3.0.0
+        self.heatmap_crop_ymax = 200  # new in v1.3.0.0
+
+        self.heatmap_interpolate = True  # new in v1.3.0.0
+        self.heatmap_interpolate_choices = ["Linear", "Cubic", "Quintic"]  # new in v1.3.0.0s
+        self.heatmap_interpolate_mode = "Linear"  # new in v1.3.0.0
+        self.heatmap_interpolate_xaxis = True  # new in v1.3.0.0
+        self.heatmap_interpolate_yaxis = False  # new in v1.3.0.0
+        self.heatmap_interpolate_fold = 2  # new in v1.3.0.0
+
+        self.heatmap_smooth = True  # new in v1.3.0.0
+        self.heatmap_smooth_choices = ["Gaussian", "Savitzky-Golay"]
+        self.heatmap_smooth_mode = "Gaussian"
+        self.heatmap_smooth_sigma = 1
+        self.heatmap_smooth_window = 3
+        self.heatmap_smooth_polynomial = 1
+
+        self.heatmap_threshold = True  # new in v1.3.0.0
+        self.heatmap_threshold_lower = 0.0
+
+        self.heatmap_normalize = False
+        self.heatmap_normalize_choices = [
+            "Maximum",
+            "Logarithmic",
+            "Natural log",
+            "Square root",
+            "Least Abs Deviation",
+            "Least Squares",
+        ]
+        self.heatmap_normalize_mode = "Maximum"
+
+        # Process MS
+        self.ms_crop = False
+        self.ms_crop_min = 500
+        self.ms_crop_max = 8000
+
+        self.ms_linearize = True
+        self.ms_linearize_mz_start = 500
+        self.ms_linearize_mz_end = 8000
+        self.ms_linearize_mz_auto_range = True
+        self.ms_linearize_mz_bin_size = 1
+        self.ms_linearize_method_choices = [
+            "Linear m/z",
+            "Linear resolution",
+            "Nonlinear",
+            "Linear interpolation",
+            "Linear resolution interpolation",
+            "Binning",
+        ]
+        self.ms_linearize_method = "Linear interpolation"
+
+        self.ms_smooth = True
+        self.ms_smooth_choices = ["Gaussian", "Savitzky-Golay", "Moving average"]  # new in v1.3.0.0
+        self.ms_smooth_mode = "Gaussian"
+        self.ms_smooth_sigma = 1
+        self.ms_smooth_window = 3
+        self.ms_smooth_polynomial = 1
+        self.ms_smooth_moving_window = 5  # new in v1.3.0.0
+
+        self.ms_threshold = True
+        self.ms_baseline_method_choices = ["Linear", "Polynomial", "Curved", "Median", "Top Hat"]  # new in v1.3.0.0
+        self.ms_baseline_method = "Linear"
+        self.ms_baseline_linear_threshold = 0.0  # new in v1.3.0.0
+        self.ms_baseline_polynomial_order = 3  # new in v1.3.0.0
+        self.ms_baseline_curved_window = 500  # new in v1.3.0.0
+        self.ms_baseline_median_window = 5  # new
+        self.ms_baseline_tophat_window = 100  # new
+
+        self.ms_normalize = True
+
+        # Local-max settings
+        self.peak_local_threshold = 0.01
+        self.peak_local_window = 10
+        self.peak_local_relative_height = 0.75
+
+        # Differential settings
+        self.peak_differential_threshold = 0.01
+        self.peak_differential_window = 10
+        self.peak_differential_relative_height = 0.75
+
+        # Small-molecule settings
+        self.peak_property_threshold = 250  # new in v1.3.0.0
+        self.peak_property_width = 0  # new in v1.3.0.0
+        self.peak_property_relative_height = 0.5  # new in v1.3.0.0
+        self.peak_property_min_intensity = 0.0  # new in v1.3.0.0
+        self.peak_property_distance = 1  # new in v1.3.0.0
+        self.peak_property_peak_width_modifier = 1.0  # new in v1.3.0.0
 
         # UVPD
         self.uvpd_peak_finding_threshold = 0.1  # new in v1.2.1
@@ -1255,85 +1287,6 @@ class Config:
         self.rmsd_fill_transparency = 0.4
         self.rmsd_fill_hatch = " "
         self.rmsd_space_h = 0.1
-
-        # Extract DT/MS
-        self.msdt_panel_extract_mz_start = 200
-        self.msdt_panel_extract_mz_end = 5000
-        self.msdt_panel_extract_mz_bin_size = 0.1
-
-        # Process 2D
-        self.heatmap_process_crop = False  # new in v1.3.0.0
-        self.heatmap_crop_xmin = 0  # new in v1.3.0.0
-        self.heatmap_crop_xmax = 5000  # new in v1.3.0.0
-        self.heatmap_crop_ymin = 0  # new in v1.3.0.0
-        self.heatmap_crop_ymax = 200  # new in v1.3.0.0
-
-        self.heatmap_process_interpolate = True  # new in v1.3.0.0
-        self.heatmap_interpolate_choices = ["Linear", "Cubic", "Quintic"]  # new in v1.3.0.0s
-        self.heatmap_interpolate_mode = "Linear"  # new in v1.3.0.0
-        self.heatmap_interpolate_xaxis = True  # new in v1.3.0.0
-        self.heatmap_interpolate_yaxis = False  # new in v1.3.0.0
-        self.heatmap_interpolate_fold = 2  # new in v1.3.0.0
-
-        self.heatmap_process_smooth = True  # new in v1.3.0.0
-        self.heatmap_smooth_choices = ["Gaussian", "Savitzky-Golay"]
-        self.heatmap_smooth_mode = "Gaussian"
-        self.heatmap_smooth_sigma = 1
-        self.heatmap_smooth_window = 3
-        self.heatmap_smooth_polynomial = 1
-
-        self.heatmap_process_threshold = True  # new in v1.3.0.0
-        self.heatmap_threshold = 0.0
-
-        self.heatmap_normalize = False
-        self.heatmap_normalize_choices = [
-            "Maximum",
-            "Logarithmic",
-            "Natural log",
-            "Square root",
-            "Least Abs Deviation",
-            "Least Squares",
-        ]
-        self.heatmap_normalize_mode = "Maximum"
-
-        # Process MS
-        self.ms_process_crop = False
-        self.ms_crop_min = 500
-        self.ms_crop_max = 8000
-
-        self.ms_process_linearize = True
-        self.ms_linearize_mz_start = 500
-        self.ms_linearize_mz_end = 8000
-        self.ms_linearize_mz_auto_range = True
-        self.ms_linearize_mz_bin_size = 1
-        self.ms_linearize_method_choices = [
-            "Linear m/z",
-            "Linear resolution",
-            "Nonlinear",
-            "Linear interpolation",
-            "Linear resolution interpolation",
-            "Binning",
-        ]
-        self.ms_linearize_method = "Linear interpolation"
-
-        self.ms_process_smooth = True
-        self.ms_smooth_choices = ["Gaussian", "Savitzky-Golay", "Moving average"]  # new in v1.3.0.0
-        self.ms_smooth_mode = "Gaussian"
-        self.ms_smooth_sigma = 1
-        self.ms_smooth_window = 3
-        self.ms_smooth_polynomial = 1
-        self.ms_smooth_moving_window = 5  # new in v1.3.0.0
-
-        self.ms_process_threshold = True
-        self.ms_baseline_method_choices = ["Linear", "Polynomial", "Curved", "Median", "Top Hat"]  # new in v1.3.0.0
-        self.ms_baseline_method = "Linear"
-        self.ms_baseline_linear_threshold = 0.0  # new in v1.3.0.0
-        self.ms_baseline_polynomial_order = 3  # new in v1.3.0.0
-        self.ms_baseline_curved_window = 500  # new in v1.3.0.0
-        self.ms_baseline_median_window = 5  # new
-        self.ms_baseline_tophat_window = 100  # new
-
-        self.ms_process_normalize = True
 
         # Importing files
         self.import_binOnImport = True  # REMOVE
@@ -1573,20 +1526,12 @@ class Config:
 
         self.resize = True
         # =========== DOCUMENT TREE PARAMETERS ==========
-        self.loadConfigOnStart = True
-        self.currentPeakFit = "MS"
-        self.overrideCombine = True
-        self.useInternalParamsCombine = False
-        self.overlay_usedProcessed = True
-
         self.ccsDB = None  # REMOVE
         self.proteinData = None  # REMOVE
         self.origamiList = []  # REMOVE
 
         self.overlayMethod = "Transparent"
         self.textOverlayMethod = "Mask"
-
-        self.currentStyle = "Default"
 
         self.dpi = 200
         self.transparent = True
@@ -1856,8 +1801,8 @@ class Config:
                 else:
                     self.heatmap_smooth_window = self.heatmap_smooth_polynomial + 2
 
-            if self.heatmap_threshold is None or self.heatmap_threshold < 0:
-                self.heatmap_threshold = 0
+            if self.heatmap_threshold_lower is None or self.heatmap_threshold_lower < 0:
+                self.heatmap_threshold_lower = 0
 
     def setup_paths(self, return_check: bool = False):
         """Setup paths"""
@@ -1946,84 +1891,97 @@ class Config:
         """Get matplotlib interaction parameters"""
         return {"normal": self.zoom_color_normal, "extract": self.zoom_color_extract}
 
-    def get_mpl_parameters(self, plot_type, add_frame_width: bool = True):
+    def get_mpl_parameters(self, plot_type, add_frame_width: bool = True, get_keys: bool = False):
         """Get plot parameters that can be consumed by plotting classes"""
-        plt_kwargs = dict()
+        if get_keys:
+            return [
+                "compare",
+                "axes",
+                "scatter",
+                "bar",
+                "legend",
+                "scatter",
+                "annotation",
+                "unidec",
+                "colorbar",
+                "normalization",
+                "2d",
+                "1d",
+                "3d",
+                "rmsd",
+                "joint",
+                "waterfall",
+                "violin",
+                "arrow",
+                "label",
+            ]
+
+        config = dict()
         if not isinstance(plot_type, list):
             plot_type = [plot_type]
 
         for _plot_type in plot_type:
             _plot_type = _plot_type.lower()
-            if _plot_type == "1d":
-                plt_kwargs = {
-                    "line_width": self.spectrum_line_width,
-                    "line_color": self.spectrum_line_color,
-                    "line_style": self.spectrum_line_style,
-                    "shade_under": self.spectrum_line_fill_under,
-                    "shade_under_color": self.spectrum_file_color,
-                    "shade_under_transparency": self.spectrum_fill_transparency,
-                    "line_color_1": self.compare_panel_color_top,
-                    "line_color_2": self.compare_panel_color_bottom,
-                    "line_transparency_1": self.compare_panel_alpha_top,
-                    "line_transparency_2": self.compare_panel_alpha_bottom,
-                    "line_style_1": self.compare_panel_style_top,
-                    "line_style_2": self.compare_panel_style_bottom,
-                    "inverse": self.compare_panel_inverse,
-                    "tick_size": self.axes_tick_font_size,
-                    "tick_weight": self.axes_tick_font_weight,
-                    "label_size": self.axes_label_font_size,
-                    "label_weight": self.axes_label_font_weight,
-                    "title_size": self.axes_title_font_size,
-                    "title_weight": self.axes_title_font_weight,
-                    "frame_width": self.axes_frame_width,
-                    "label_pad": self.axes_label_pad,
-                    "axis_onoff": self.axes_frame_show,
-                    "ticks_left": self.axes_frame_ticks_left,
-                    "ticks_right": self.axes_frame_ticks_right,
-                    "ticks_top": self.axes_frame_ticks_top,
-                    "ticks_bottom": self.axes_frame_ticks_bottom,
-                    "tickLabels_left": self.axes_frame_tick_labels_left,
-                    "tickLabels_right": self.axes_frame_tick_labels_right,
-                    "tickLabels_top": self.axes_frame_tick_labels_top,
-                    "tickLabels_bottom": self.axes_frame_tick_labels_bottom,
-                    "spines_left": self.axes_frame_spine_left,
-                    "spines_right": self.axes_frame_spine_right,
-                    "spines_top": self.axes_frame_spine_top,
-                    "spines_bottom": self.axes_frame_spine_bottom,
-                    "scatter_edge_color": self.marker_edge_color,
-                    "scatter_color": self.marker_fill_color,
-                    "scatter_size": self.marker_size,
-                    "scatter_shape": self.marker_shape,
-                    "scatter_alpha": self.marker_transparency,
-                    "legend": self.legend,
-                    "legend_transparency": self.legend_transparency,
-                    "legend_position": self.legend_position,
-                    "legend_num_columns": self.legend_columns,
-                    "legend_font_size": self.legend_font_size,
-                    "legend_frame_on": self.legend_frame,
-                    "legend_fancy_box": self.legend_fancy_box,
-                    "legend_marker_first": self.legend_marker_first,
-                    "legend_marker_size": self.legend_marker_size,
-                    "legend_num_markers": self.legend_n_markers,
-                    "legend_line_width": self.legend_line_width,
-                    "legend_patch_transparency": self.legend_patch_transparency,
-                    "bar_width": self.bar_width,
-                    "bar_alpha": self.bar_alpha,
-                    "bar_edgecolor": self.bar_edge_color,
-                    "bar_edgecolor_sameAsFill": self.bar_edge_same_as_fill,
-                    "bar_linewidth": self.bar_line_width,
-                }
-            if _plot_type == "annotation":
-                plt_kwargs.update(
+            if _plot_type == "compare":
+                config.update(
                     {
-                        "horizontal_alignment": self.annotation_label_horz,
-                        "vertical_alignment": self.annotation_label_vert,
-                        "font_size": self.annotation_label_font_size,
-                        "font_weight": self.annotation_label_font_weight,
+                        "line_color_1": self.compare_panel_color_top,
+                        "line_color_2": self.compare_panel_color_bottom,
+                        "line_transparency_1": self.compare_panel_alpha_top,
+                        "line_transparency_2": self.compare_panel_alpha_bottom,
+                        "line_style_1": self.compare_panel_style_top,
+                        "line_style_2": self.compare_panel_style_bottom,
+                        "inverse": self.compare_panel_inverse,
+                    }
+                )
+            if _plot_type == "axes":
+                config.update(
+                    {
+                        "frame_width": self.axes_frame_width,
+                        "axis_onoff": self.axes_frame_show,
+                        "tick_size": self.axes_tick_font_size,
+                        "tick_weight": self.axes_tick_font_weight,
+                        "label_size": self.axes_label_font_size,
+                        "label_weight": self.axes_label_font_weight,
+                        "title_size": self.axes_title_font_size,
+                        "title_weight": self.axes_title_font_weight,
+                        "label_pad": self.axes_label_pad,
+                        "ticks_left": self.axes_frame_ticks_left,
+                        "ticks_right": self.axes_frame_ticks_right,
+                        "ticks_top": self.axes_frame_ticks_top,
+                        "ticks_bottom": self.axes_frame_ticks_bottom,
+                        "tickLabels_left": self.axes_frame_tick_labels_left,
+                        "tickLabels_right": self.axes_frame_tick_labels_right,
+                        "tickLabels_top": self.axes_frame_tick_labels_top,
+                        "tickLabels_bottom": self.axes_frame_tick_labels_bottom,
+                        "spines_left": self.axes_frame_spine_left,
+                        "spines_right": self.axes_frame_spine_right,
+                        "spines_top": self.axes_frame_spine_top,
+                        "spines_bottom": self.axes_frame_spine_bottom,
+                    }
+                )
+            if _plot_type == "scatter":
+                config.update(
+                    {
+                        "scatter_edge_color": self.marker_edge_color,
+                        "scatter_color": self.marker_fill_color,
+                        "scatter_size": self.marker_size,
+                        "scatter_shape": self.marker_shape,
+                        "scatter_alpha": self.marker_transparency,
+                    }
+                )
+            if _plot_type == "bar":
+                config.update(
+                    {
+                        "bar_width": self.bar_width,
+                        "bar_alpha": self.bar_alpha,
+                        "bar_edgecolor": self.bar_edge_color,
+                        "bar_edgecolor_sameAsFill": self.bar_edge_same_as_fill,
+                        "bar_linewidth": self.bar_line_width,
                     }
                 )
             if _plot_type == "legend":
-                plt_kwargs.update(
+                config.update(
                     {
                         "legend": self.legend,
                         "legend_transparency": self.legend_transparency,
@@ -2039,8 +1997,30 @@ class Config:
                         "legend_patch_transparency": self.legend_patch_transparency,
                     }
                 )
+            if _plot_type == "scatter":
+                config.update({})
+            if _plot_type == "1d":
+                config.update(
+                    {
+                        "line_width": self.spectrum_line_width,
+                        "line_color": self.spectrum_line_color,
+                        "line_style": self.spectrum_line_style,
+                        "shade_under": self.spectrum_line_fill_under,
+                        "shade_under_color": self.spectrum_file_color,
+                        "shade_under_transparency": self.spectrum_fill_transparency,
+                    }
+                )
+            if _plot_type == "annotation":
+                config.update(
+                    {
+                        "horizontal_alignment": self.annotation_label_horz,
+                        "vertical_alignment": self.annotation_label_vert,
+                        "font_size": self.annotation_label_font_size,
+                        "font_weight": self.annotation_label_font_weight,
+                    }
+                )
             if _plot_type == "unidec":
-                plt_kwargs.update(
+                config.update(
                     {
                         "bar_width": self.unidec_plot_bar_width,
                         "bar_alpha": self.unidec_plot_bar_alpha,
@@ -2059,9 +2039,8 @@ class Config:
                         "contour_levels": self.unidec_plot_contour_levels,
                     }
                 )
-
             if _plot_type == "colorbar":
-                plt_kwargs.update(
+                config.update(
                     {
                         "colorbar": self.colorbar,
                         "colorbar_width": self.colorbar_width,
@@ -2078,7 +2057,7 @@ class Config:
                 )
 
             if _plot_type == "normalization":
-                plt_kwargs.update(
+                config.update(
                     {
                         "colormap_min": self.heatmap_normalization_min,
                         "colormap_mid": self.heatmap_normalization_mid,
@@ -2089,30 +2068,9 @@ class Config:
                 )
 
             if _plot_type == "2d":
-                plt_kwargs.update(
+                config.update(
                     {
                         "interpolation": self.heatmap_interpolation,
-                        "frame_width": self.axes_frame_width,
-                        "axis_onoff": self.axes_frame_show,
-                        "label_pad": self.axes_label_pad,
-                        "tick_size": self.axes_tick_font_size,
-                        "tick_weight": self.axes_tick_font_weight,
-                        "label_size": self.axes_label_font_size,
-                        "label_weight": self.axes_label_font_weight,
-                        "title_size": self.axes_title_font_size,
-                        "title_weight": self.axes_title_font_weight,
-                        "ticks_left": self.axes_frame_ticks_left,
-                        "ticks_right": self.axes_frame_ticks_right,
-                        "ticks_top": self.axes_frame_ticks_top,
-                        "ticks_bottom": self.axes_frame_ticks_bottom,
-                        "tickLabels_left": self.axes_frame_tick_labels_left,
-                        "tickLabels_right": self.axes_frame_tick_labels_right,
-                        "tickLabels_top": self.axes_frame_tick_labels_top,
-                        "tickLabels_bottom": self.axes_frame_tick_labels_bottom,
-                        "spines_left": self.axes_frame_spine_left,
-                        "spines_right": self.axes_frame_spine_right,
-                        "spines_top": self.axes_frame_spine_top,
-                        "spines_bottom": self.axes_frame_spine_bottom,
                         "colormap": self.heatmap_colormap,
                         "contour_n_levels": self.heatmap_n_contour,
                         "plot_type": self.heatmap_plot_type,
@@ -2120,7 +2078,7 @@ class Config:
                 )
 
             if _plot_type == "3d":
-                plt_kwargs.update(
+                config.update(
                     {
                         "label_pad": self.axes_label_pad,
                         "tick_size": self.axes_tick_font_size,
@@ -2133,21 +2091,8 @@ class Config:
                 )
 
             if _plot_type in ["rmsd", "rmsf"]:
-                plt_kwargs.update(
+                config.update(
                     {
-                        "axis_onoff_1D": self.axes_frame_show,
-                        "ticks_left_1D": self.axes_frame_ticks_left,
-                        "ticks_right_1D": self.axes_frame_ticks_right,
-                        "ticks_top_1D": self.axes_frame_ticks_top,
-                        "ticks_bottom_1D": self.axes_frame_ticks_bottom,
-                        "tickLabels_left_1D": self.axes_frame_tick_labels_left,
-                        "tickLabels_right_1D": self.axes_frame_tick_labels_right,
-                        "tickLabels_top_1D": self.axes_frame_tick_labels_top,
-                        "tickLabels_bottom_1D": self.axes_frame_tick_labels_bottom,
-                        "spines_left_1D": self.axes_frame_spine_left,
-                        "spines_right_1D": self.axes_frame_spine_right,
-                        "spines_top_1D": self.axes_frame_spine_top,
-                        "spines_bottom_1D": self.axes_frame_spine_bottom,
                         "rmsd_label_position": self.rmsd_position,
                         "rmsd_label_font_size": self.rmsd_font_size,
                         "rmsd_label_font_weight": self.rmsd_font_weight,
@@ -2169,9 +2114,9 @@ class Config:
                     }
                 )
             if _plot_type in "joint":
-                plt_kwargs.update({})
+                config.update({})
             if _plot_type in "waterfall":
-                plt_kwargs.update(
+                config.update(
                     {
                         "increment": self.waterfall_increment,
                         "offset": self.waterfall_offset,
@@ -2195,22 +2140,10 @@ class Config:
                         "shade_under": self.waterfall_fill_under,
                         "shade_under_n_limit": self.waterfall_fill_under_nlimit,
                         "shade_under_transparency": self.waterfall_fill_under_transparency,
-                        "legend": self.legend,
-                        "legend_transparency": self.legend_transparency,
-                        "legend_position": self.legend_position,
-                        "legend_num_columns": self.legend_columns,
-                        "legend_font_size": self.legend_font_size,
-                        "legend_frame_on": self.legend_frame,
-                        "legend_fancy_box": self.legend_fancy_box,
-                        "legend_marker_first": self.legend_marker_first,
-                        "legend_marker_size": self.legend_marker_size,
-                        "legend_num_markers": self.legend_n_markers,
-                        "legend_line_width": self.legend_line_width,
-                        "legend_patch_transparency": self.legend_patch_transparency,
                     }
                 )
             elif _plot_type in ["violin"]:
-                plt_kwargs.update(
+                config.update(
                     {
                         "min_percentage": self.violin_min_percentage,
                         "spacing": self.violin_spacing,
@@ -2234,7 +2167,7 @@ class Config:
                     }
                 )
             if _plot_type in ["arrow"]:
-                plt_kwargs.update(
+                config.update(
                     {
                         "arrow_line_width": self.annotation_arrow_line_width,
                         "arrow_line_style": self.annotation_arrow_line_style,
@@ -2244,7 +2177,7 @@ class Config:
                 )
                 add_frame_width = False
             if _plot_type == "label":
-                plt_kwargs.update(
+                config.update(
                     {
                         "horizontalalignment": self.annotation_label_horz,
                         "verticalalignment": self.annotation_label_vert,
@@ -2255,16 +2188,243 @@ class Config:
                 )
                 add_frame_width = False
 
-        if "frame_width" not in plt_kwargs and add_frame_width:
-            plt_kwargs["frame_width"] = self.axes_frame_width
+        if "frame_width" not in config and add_frame_width:
+            config["frame_width"] = self.axes_frame_width
 
-        return plt_kwargs
+        return config
 
-    def saveConfigXML(self, path, verbose=False):
-        """ Make and save config file in XML format """
+    def get_panel_parameters(self, config_key: Union[List[str], str], get_keys: bool = False):
+        """Get parameters that correspond to panels and UI elements"""
 
-    def loadConfigXML(self, path):
-        """Load configuration"""
+        if get_keys:
+            return [
+                "zoom",
+                "panel_origami_ms",
+                "panel_smart_zoom",
+                "panel_annotate",
+                "panel_compare_ms",
+                "panel_new_version",
+                "panel_duplicate_check",
+                "panel_pick_ms",
+                "panel_extract_msdt",
+                "panel_document_tree",
+                "panel_process_heatmap",
+                "panel_process_ms",
+            ]
+
+        config = dict()
+        if not isinstance(config_key, list):
+            config_key = [config_key]
+
+        for _config_key in config_key:
+            if _config_key == "zoom":
+                config.update(
+                    {"zoom_color_normal": self.zoom_color_normal, "zoom_color_extract": self.zoom_color_extract}
+                )
+            if _config_key == "panel_smart_zoom":
+                config.update(
+                    {
+                        "smart_zoom_enable": self.smart_zoom_enable,
+                        "smart_zoom_soft_max": self.smart_zoom_soft_max,
+                        "smart_zoom_hard_max": self.smart_zoom_hard_max,
+                        "smart_zoom_downsampling_method": self.smart_zoom_downsampling_method,
+                        "smart_zoom_subsample_default": self.smart_zoom_subsample_default,
+                        "smart_zoom_view_mode": self.smart_zoom_view_mode,
+                        "smart_zoom_min_search": self.smart_zoom_min_search,
+                        "smart_zoom_max_search": self.smart_zoom_max_search,
+                    }
+                )
+            if _config_key == "panel_origami_ms":
+                config.update(
+                    {
+                        "origami_method": self.origami_method,
+                        "origami_scans_per_voltage": self.origami_scans_per_voltage,
+                        "origami_start_voltage": self.origami_start_voltage,
+                        "origami_start_scan": self.origami_start_scan,
+                        "origami_end_voltage": self.origami_end_voltage,
+                        "origami_step_voltage": self.origami_step_voltage,
+                        "origami_boltzmann_offset": self.origami_boltzmann_offset,
+                        "origami_exponential_percentage": self.origami_exponential_percentage,
+                        "origami_preprocess": self.origami_preprocess,
+                    }
+                )
+            if _config_key == "panel_annotate":
+                config.update(
+                    {
+                        "annotate_panel_highlight": self.annotate_panel_highlight,
+                        "annotate_panel_zoom_in": self.annotate_panel_zoom_in,
+                        "annotate_panel_zoom_in_window": self.annotate_panel_zoom_in_window,
+                        "annotate_panel_add_to_table": self.annotate_panel_add_to_table,
+                        "annotate_panel_patch_color": self.annotate_panel_patch_color,
+                        "annotate_panel_patch_alpha": self.annotate_panel_patch_alpha,
+                        "annotate_panel_label_color": self.annotate_panel_label_color,
+                    }
+                )
+            if _config_key == "panel_compare_ms":
+                config.update(
+                    {
+                        "compare_panel_color_top": self.compare_panel_color_top,
+                        "compare_panel_color_bottom": self.compare_panel_color_bottom,
+                        "compare_panel_style_top": self.compare_panel_style_top,
+                        "compare_panel_style_bottom": self.compare_panel_style_bottom,
+                        "compare_panel_alpha_top": self.compare_panel_alpha_top,
+                        "compare_panel_alpha_bottom": self.compare_panel_alpha_bottom,
+                        "compare_panel_inverse": self.compare_panel_inverse,
+                        "compare_panel_preprocess": self.compare_panel_preprocess,
+                        "compare_panel_normalize": self.compare_panel_normalize,
+                        "compare_panel_subtract": self.compare_panel_subtract,
+                    }
+                )
+            if _config_key == "panel_new_version":
+                config.update(
+                    {
+                        "new_version_panel_link": self.new_version_panel_link,
+                        "new_version_panel_do_not_ask": self.new_version_panel_do_not_ask,
+                    }
+                )
+            if _config_key == "panel_duplicate_check":
+                config.update(
+                    {
+                        "import_duplicate_panel_action": self.import_duplicate_panel_action,
+                        "import_duplicate_panel_ask": self.import_duplicate_panel_ask,
+                    }
+                )
+            if _config_key == "panel_pick_ms":
+                config.update(
+                    {
+                        "peak_panel_method_choice": self.peak_panel_method_choice,
+                        "peak_panel_specify_mz": self.peak_panel_specify_mz,
+                        "peak_panel_mz_start": self.peak_panel_mz_start,
+                        "peak_panel_mz_end": self.peak_panel_mz_end,
+                        "peak_panel_preprocess": self.peak_panel_preprocess,
+                        "peak_panel_verbose": self.peak_panel_verbose,
+                        "peak_panel_method": self.peak_panel_method,
+                        "peak_panel_scatter": self.peak_panel_scatter,
+                        "peak_panel_highlight": self.peak_panel_highlight,
+                        "peak_panel_labels": self.peak_panel_labels,
+                        "peak_panel_labels_mz": self.peak_panel_labels_mz,
+                        "peak_panel_labels_int": self.peak_panel_labels_int,
+                        "peak_panel_labels_width": self.peak_panel_labels_width,
+                        "peak_panel_optimise_position": self.peak_panel_optimise_position,
+                        "peak_panel_labels_max_count": self.peak_panel_labels_max_count,
+                        "peak_panel_filter_choice": self.peak_panel_filter_choice,
+                        "peak_panel_score_choice": self.peak_panel_score_choice,
+                    }
+                )
+            if _config_key == "panel_extract_msdt":
+                config.update(
+                    {
+                        "msdt_panel_extract_mz_start": self.msdt_panel_extract_mz_start,
+                        "msdt_panel_extract_mz_end": self.msdt_panel_extract_mz_end,
+                        "msdt_panel_extract_mz_bin_size": self.msdt_panel_extract_mz_bin_size,
+                    }
+                )
+            if _config_key == "panel_document_tree":
+                config.update(
+                    {
+                        "tree_panel_delete_item_ask": self.tree_panel_delete_item_ask,
+                        "tree_panel_delete_group_ask": self.tree_panel_delete_group_ask,
+                        "tree_panel_delete_document_ask": self.tree_panel_delete_document_ask,
+                        "tree_panel_item_highlight": self.tree_panel_item_highlight,
+                        "tree_panel_item_auto_plot": self.tree_panel_item_auto_plot,
+                    }
+                )
+            if _config_key == "panel_process_heatmap":
+                config.update(
+                    {
+                        "heatmap_crop": self.heatmap_crop,
+                        "heatmap_crop_xmin": self.heatmap_crop_xmin,
+                        "heatmap_crop_xmax": self.heatmap_crop_xmax,
+                        "heatmap_crop_ymin": self.heatmap_crop_ymin,
+                        "heatmap_crop_ymax": self.heatmap_crop_ymax,
+                        "heatmap_interpolate": self.heatmap_interpolate,
+                        "heatmap_interpolate_mode": self.heatmap_interpolate_mode,
+                        "heatmap_interpolate_xaxis": self.heatmap_interpolate_xaxis,
+                        "heatmap_interpolate_yaxis": self.heatmap_interpolate_yaxis,
+                        "heatmap_interpolate_fold": self.heatmap_interpolate_fold,
+                        "heatmap_smooth": self.heatmap_smooth,
+                        "heatmap_smooth_mode": self.heatmap_smooth_mode,
+                        "heatmap_smooth_sigma": self.heatmap_smooth_sigma,
+                        "heatmap_smooth_window": self.heatmap_smooth_window,
+                        "heatmap_smooth_polynomial": self.heatmap_smooth_polynomial,
+                        "heatmap_threshold": self.heatmap_threshold,
+                        "heatmap_threshold_lower": self.heatmap_threshold_lower,
+                        "heatmap_normalize": self.heatmap_normalize,
+                        "heatmap_normalize_mode": self.heatmap_normalize_mode,
+                    }
+                )
+            if _config_key == "panel_process_ms":
+                config.update(
+                    {
+                        "ms_crop": self.ms_crop,
+                        "ms_crop_min": self.ms_crop_min,
+                        "ms_crop_max": self.ms_crop_max,
+                        "ms_linearize": self.ms_linearize,
+                        "ms_linearize_mz_start": self.ms_linearize_mz_start,
+                        "ms_linearize_mz_end": self.ms_linearize_mz_end,
+                        "ms_linearize_mz_auto_range": self.ms_linearize_mz_auto_range,
+                        "ms_linearize_mz_bin_size": self.ms_linearize_mz_bin_size,
+                        "ms_linearize_method": self.ms_linearize_method,
+                        "ms_smooth": self.ms_smooth,
+                        "ms_smooth_mode": self.ms_smooth_mode,
+                        "ms_smooth_sigma": self.ms_smooth_sigma,
+                        "ms_smooth_window": self.ms_smooth_window,
+                        "ms_smooth_polynomial": self.ms_smooth_polynomial,
+                        "ms_smooth_moving_window": self.ms_smooth_moving_window,
+                        "ms_threshold": self.ms_threshold,
+                        "ms_baseline_method": self.ms_baseline_method,
+                        "ms_baseline_linear_threshold": self.ms_baseline_linear_threshold,
+                        "ms_baseline_polynomial_order": self.ms_baseline_polynomial_order,
+                        "ms_baseline_curved_window": self.ms_baseline_curved_window,
+                        "ms_baseline_median_window": self.ms_baseline_median_window,
+                        "ms_baseline_tophat_window": self.ms_baseline_tophat_window,
+                        "ms_normalize": self.ms_normalize,
+                    }
+                )
+
+        return config
+
+    def save_config(self, path: str):
+        """Export configuration file to JSON file"""
+        config = {}
+
+        # get matplotlib config data
+        mpl_keys = self.get_mpl_parameters("", get_keys=True)
+        config["mpl-settings"] = dict()
+        for key in mpl_keys:
+            config["mpl-settings"][key] = self.get_mpl_parameters([key])
+
+        # get panel config data
+        panel_keys = self.get_panel_parameters("", get_keys=True)
+        config["ui-settings"] = dict()
+        for key in panel_keys:
+            config["ui-settings"][key] = self.get_panel_parameters([key])
+
+        # add recent files
+        config["recent-files"] = dict()
+
+        # write to json file
+        write_json_data(path, config)
+        logger.debug(f"Saved config file to `{path}`")
+
+    def load_config(self, path: str):
+        """Load configuration from JSON file"""
+        config = read_json_data(path)
+
+        if not isinstance(config, dict):
+            logger.error("Configuration file should be a dictionary with key:value pairs")
+            return
+
+        for config_sub in ["mpl-settings", "ui-settings"]:
+            if config_sub in config:
+                _config = config[config_sub]
+                for _, _config_group in _config.items():
+                    for key, value in _config_group.items():
+                        if hasattr(self, key):
+                            setattr(self, key, value)
+                logger.debug(f"Loaded `{config_sub}` settings")
+
+        logger.debug(f"Loaded config file from `{path}`")
 
 
 CONFIG = Config()

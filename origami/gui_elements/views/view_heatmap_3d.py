@@ -20,7 +20,7 @@ class ViewHeatmap3d(ViewBase):
 
     VIEW_TYPE = "3d"
     DATA_KEYS = ("array", "x", "y")
-    MPL_KEYS = ["2D"]
+    MPL_KEYS = ["3d"]
     UPDATE_STYLES = (
         "opacity",
         "clim",

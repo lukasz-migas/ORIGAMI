@@ -90,7 +90,7 @@ class DialogExportFigures(Dialog):
         set_tooltip(self.folder_path_btn, "Select output path.")
 
         file_format_choice = wx.StaticText(panel, wx.ID_ANY, "File format:")
-        self.file_format_choice = wx.Choice(panel, -1, choices=CONFIG.imageFormatType, size=(-1, -1))
+        self.file_format_choice = wx.Choice(panel, -1, choices=CONFIG.image_format_choices, size=(-1, -1))
         self.file_format_choice.SetStringSelection(CONFIG.imageFormat)
         self.file_format_choice.Bind(wx.EVT_CHOICE, self.on_apply)
 

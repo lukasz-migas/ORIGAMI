@@ -24,6 +24,7 @@ from origami.utils.color import get_random_color
 from origami.utils.color import convert_rgb_255_to_1
 from origami.utils.random import get_random_int
 from origami.utils.ranges import get_min_max
+from origami.config.config import CONFIG
 from origami.handlers.call import Call
 from origami.handlers.load import LoadHandler
 from origami.handlers.export import ExportHandler
@@ -57,23 +58,10 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         LoadHandler.__init__(self)
         self.presenter = presenter
         self.view = view
-        self.config = config
-
-        # # processing links
-        # self.data_processing = self.view.data_processing
-
-        # # panel links
-        # self.document_tree = self.view.panelDocuments.documents
-        #
-        # self.panel_plot = self.view.panelPlots
+        self.config = CONFIG
 
         self.text_panel = self.view.panelMultipleText
         self.text_list = self.text_panel.peaklist
-
-        # self.ionPanel = self.view.panelMultipleIons
-        # self.ionList = self.ionPanel.peaklist
-        # self.filesPanel = self.view.panelMML
-        # self.filesList = self.filesPanel.peaklist
 
         # add application defaults
         self.plot_page = None
@@ -87,8 +75,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         pub.subscribe(self.evt_extract_heatmap_from_ms, "extract.heatmap.from.spectrum")
         pub.subscribe(self.evt_extract_ms_from_heatmap, "extract.spectrum.from.heatmap")
         pub.subscribe(self.evt_extract_rt_from_heatmap, "extract.rt.from.heatmap")
-
-    #         pub.subscribe(self.extract_from_plot_2D, "extract_from_plot_2D")
 
     @property
     def data_processing(self):
@@ -178,10 +164,10 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         #     _thread = threading.Thread(target=self.on_open_document, args=args)
         elif action == "extract.data.user":
             _thread = threading.Thread(target=self.on_extract_data_from_user_input, args=args, **kwargs)
-        elif action == "export.config":
-            _thread = threading.Thread(target=self.on_export_config, args=args)
-        elif action == "import.config":
-            _thread = threading.Thread(target=self.on_import_config, args=args)
+        # elif action == "export.config":
+        #     _thread = threading.Thread(target=self.on_export_config, args=args)
+        # elif action == "import.config":
+        #     _thread = threading.Thread(target=self.on_import_config, args=args)
         # elif action == "extract.spectrum.collision.voltage":
         #     _thread = threading.Thread(target=self.on_extract_mass_spectrum_for_each_collision_voltage, args=args)
         elif action == "load.text.peaklist":
@@ -241,7 +227,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         )
         dlg.SetFilename(default_filename)
         try:
-            dlg.SetFilterIndex(wildcard_dict[self.config.saveDelimiter])
+            dlg.SetFilterIndex(wildcard_dict[CONFIG.saveDelimiter])
         except KeyError:
             pass
         if default_path is not None:
@@ -688,7 +674,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         dlg.Destroy()
 
         self.view.on_toggle_panel(evt="text", check=True)
-        if not self.config.APP_ENABLE_THREADING:
+        if not CONFIG.APP_ENABLE_THREADING:
             for filename, filepath in zip(file_list, path_list):
                 self.on_add_text_2d(self.on_load_text_2d(filename, filepath, x_label, y_label))
         else:
@@ -716,16 +702,16 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         heatmap_obj = self.load_text_heatmap_data(filepath)
 
         xlabel_start, xlabel_end = heatmap_obj.x[0], heatmap_obj.x[-1]
-        color = self.text_panel.on_get_unique_color(next(self.config.custom_colors_cycle))
+        color = self.text_panel.on_get_unique_color(next(CONFIG.custom_colors_cycle))
 
         # update heatmap object and its metadata
         heatmap_obj.x_label = x_label
         heatmap_obj.y_label = y_label
         heatmap_obj.set_metadata(
             {
-                "cmap": self.config.heatmap_colormap,
-                "mask": self.config.overlay_defaultMask,
-                "alpha": self.config.overlay_defaultAlpha,
+                "cmap": CONFIG.heatmap_colormap,
+                "mask": CONFIG.overlay_defaultMask,
+                "alpha": CONFIG.overlay_defaultAlpha,
                 "min_threshold": 0,
                 "max_threshold": 1,
                 "color": convert_rgb_255_to_1(color),
@@ -741,9 +727,9 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             "end": xlabel_end,
             "charge": "",
             "color": color,
-            "colormap": next(self.config.overlay_cmap_cycle),
-            "alpha": self.config.overlay_defaultAlpha,
-            "mask": self.config.overlay_defaultMask,
+            "colormap": next(CONFIG.overlay_cmap_cycle),
+            "alpha": CONFIG.overlay_defaultAlpha,
+            "mask": CONFIG.overlay_defaultMask,
             "label": "",
             "shape": heatmap_obj.shape,
             "document": document.title,
@@ -775,7 +761,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             path_list = dlg.GetPaths()
         dlg.Destroy()
 
-        if not self.config.APP_ENABLE_THREADING:
+        if not CONFIG.APP_ENABLE_THREADING:
             for filepath in path_list:
                 self.on_setup_basic_document(self.on_add_text_ms(filepath))
         else:
@@ -804,7 +790,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             paths = dlg.GetPaths()
         dlg.Destroy()
 
-        if not self.config.APP_ENABLE_THREADING:
+        if not CONFIG.APP_ENABLE_THREADING:
             for path in paths:
                 self.on_setup_basic_document(self.load_thermo_ms_document(path))
         else:
@@ -824,7 +810,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         if dlg.ShowModal() == wx.ID_OK:
             paths = dlg.GetPaths()
 
-        if not self.config.APP_ENABLE_THREADING:
+        if not CONFIG.APP_ENABLE_THREADING:
             for path in paths:
                 self.on_show_tandem_scan(self.on_open_mgf_file(path))
         else:
@@ -855,7 +841,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             paths = dlg.GetPaths()
         dlg.Destroy()
 
-        if not self.config.APP_ENABLE_THREADING:
+        if not CONFIG.APP_ENABLE_THREADING:
             for path in paths:
                 self.on_show_tandem_scan(self.on_open_mzml_file(path))
         else:
@@ -880,7 +866,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             logger.warning("Could not load file")
             return
 
-        if not self.config.APP_ENABLE_THREADING:
+        if not CONFIG.APP_ENABLE_THREADING:
             self.on_setup_basic_document(self.load_waters_ms_document(path))
         else:
             self.add_task(self.load_waters_ms_document, (path,), func_result=self.on_setup_basic_document)
@@ -901,12 +887,12 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             if dlg == wx.ID_NO:
                 logger.info("Delete operation was cancelled")
                 return
-            if not self.config.APP_ENABLE_THREADING:
+            if not CONFIG.APP_ENABLE_THREADING:
                 self.on_setup_basic_document(self.load_waters_ms_document(path))
             else:
                 self.add_task(self.load_waters_ms_document, (path,), func_result=self.on_setup_basic_document)
         else:
-            if not self.config.APP_ENABLE_THREADING:
+            if not CONFIG.APP_ENABLE_THREADING:
                 self.on_setup_basic_document(self.load_waters_im_document(path))
             else:
                 self.add_task(self.load_waters_im_document, (path,), func_result=self.on_setup_basic_document)
@@ -975,13 +961,13 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         if not check_path_exists(path):
             logger.warning(f"Document path {path} does not exist on the disk drive.")
             self._on_check_last_path()
-            path = self.config.lastDir
+            path = CONFIG.lastDir
 
         return path, title
 
     def _on_check_last_path(self):
-        if not check_path_exists(self.config.lastDir):
-            self.config.lastDir = os.getcwd()
+        if not check_path_exists(CONFIG.lastDir):
+            CONFIG.lastDir = os.getcwd()
 
     def _on_get_path(self):
         dlg = wx.FileDialog(self.view, "Please select name and path for the document...", "", "", "", wx.FD_SAVE)
@@ -992,81 +978,53 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         else:
             return None, None
 
-    def on_export_config_fcn(self, evt, verbose=True):
-        cwd = self.config.APP_CWD
-        if cwd is None:
-            return
+    def on_import_config_fcn(self, _evt):
+        """Load configuration file from the default path"""
+        config_path = os.path.join(CONFIG.APP_CWD, CONFIG.DEFAULT_CONFIG_NAME)
+        QUEUE.add_call(CONFIG.load_config, (config_path,))
 
-        save_dir = os.path.join(cwd, "configOut.xml")
-
-        if self.config.APP_ENABLE_THREADING:
-            self.on_threading(action="export.config", args=(save_dir, verbose))
-        else:
-            try:
-                self.on_export_config(save_dir, verbose)
-            except TypeError:
-                pass
-
-    def on_export_config_as_fcn(self, evt, verbose=True):
+    def on_import_config_as_fcn(self, _evt):
+        """Load configuration file from the user-defined path"""
         dlg = wx.FileDialog(
             self.view,
-            "Save configuration file as...",
-            wildcard="Extensible Markup Language (.xml) | *.xml",
+            "Load configuration file as...",
+            wildcard="JavaScript Object Notation format (.json) | *.json",
             style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
         )
 
-        dlg.SetFilename("configOut.xml")
-        if dlg.ShowModal() == wx.ID_OK:
-            save_dir = dlg.GetPath()
+        dlg.SetFilename(CONFIG.DEFAULT_CONFIG_NAME)
 
-            if self.config.APP_ENABLE_THREADING:
-                self.on_threading(action="export.config", args=(save_dir, verbose))
-            else:
-                try:
-                    self.on_export_config(save_dir, verbose)
-                except TypeError:
-                    pass
-
-    def on_export_config(self, save_dir, verbose=True):
-        try:
-            self.config.saveConfigXML(path=save_dir, verbose=verbose)
-        except TypeError as err:
-            logger.error(f"Failed to save configuration file: {save_dir}")
-            logger.error(err)
-
-    def on_import_config_fcn(self, evt):
-        config_path = os.path.join(self.config.APP_CWD, "configOut.xml")
-
-        if self.config.APP_ENABLE_THREADING:
-            self.on_threading(action="import.config", args=(config_path,))
-        else:
-            self.on_import_config(config_path)
-
-    def on_import_config_as_fcn(self, evt):
-        dlg = wx.FileDialog(
-            self.view,
-            "Import configuration file...",
-            wildcard="Extensible Markup Language (.xml) | *.xml",
-            style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR,
-        )
+        config_path = None
         if dlg.ShowModal() == wx.ID_OK:
             config_path = dlg.GetPath()
 
-            if self.config.APP_ENABLE_THREADING:
-                self.on_threading(action="import.config", args=(config_path,))
-            else:
-                self.on_import_config(config_path)
+        if config_path is None:
+            return
 
-    def on_import_config(self, config_path):
-        """Load configuration file"""
+        QUEUE.add_call(CONFIG.load_config, (config_path,))
 
-        try:
-            self.config.loadConfigXML(path=config_path)
-            self.view.on_update_recent_files()
-            logger.info(f"Loaded configuration file: {config_path}")
-        except TypeError as err:
-            logger.error(f"Failed to load configuration file: {config_path}")
-            logger.error(err)
+    def on_export_config_fcn(self, _evt):
+        """Import configuration file"""
+        config_path = os.path.join(CONFIG.APP_CWD, CONFIG.DEFAULT_CONFIG_NAME)
+
+        QUEUE.add_call(CONFIG.save_config, (config_path,))
+
+    def on_export_config_as_fcn(self, _evt):
+        """Save configuration file to a user-defined path"""
+        dlg = wx.FileDialog(
+            self.view,
+            "Import configuration file...",
+            wildcard="JavaScript Object Notation format (.json) | *.json",
+            style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR,
+        )
+        config_path = None
+        if dlg.ShowModal() == wx.ID_OK:
+            config_path = dlg.GetPath()
+
+        if config_path is None:
+            return
+
+        QUEUE.add_call(CONFIG.save_config, (config_path,))
 
     def on_save_data_as_text(self, data, labels, data_format, **kwargs):
 
@@ -1089,25 +1047,23 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         dlg.SetFilename(default_name)
 
         try:
-            dlg.SetFilterIndex(wildcard_dict[self.config.saveDelimiter])
+            dlg.SetFilterIndex(wildcard_dict[CONFIG.saveDelimiter])
         except KeyError:
             logger.warning("Could not process wildcard delimiter")
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetPath()
             __, extension = os.path.splitext(filename)
-            self.config.saveExtension = extension
-            self.config.saveDelimiter = list(wildcard_dict.keys())[
-                list(wildcard_dict.values()).index(dlg.GetFilterIndex())
-            ]
+            CONFIG.saveExtension = extension
+            CONFIG.saveDelimiter = list(wildcard_dict.keys())[list(wildcard_dict.values()).index(dlg.GetFilterIndex())]
             if isinstance(data, DataObject):
-                data.to_csv(filename, delimiter=self.config.saveDelimiter)
+                data.to_csv(filename, delimiter=CONFIG.saveDelimiter)
             else:
                 io_text_files.save_data(
                     filename=filename,
                     data=data,
                     fmt=data_format,
-                    delimiter=self.config.saveDelimiter,
-                    header=self.config.saveDelimiter.join(labels),
+                    delimiter=CONFIG.saveDelimiter,
+                    header=CONFIG.saveDelimiter.join(labels),
                     **kwargs,
                 )
             logger.info(f"Saved {filename}")
@@ -1115,7 +1071,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
     def on_extract_data_from_user_input_fcn(self, document_title=None, **kwargs):
 
-        if not self.config.APP_ENABLE_THREADING:
+        if not CONFIG.APP_ENABLE_THREADING:
             self.on_extract_data_from_user_input(document_title, **kwargs)
         else:
             self.on_threading(action="extract.data.user", args=(document_title,), kwargs=kwargs)
@@ -1137,22 +1093,22 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         # data_storage = {}
         #
         # # get m/z limits
-        # mz_start = self.config.extract_mzStart
-        # mz_end = self.config.extract_mzEnd
+        # mz_start = CONFIG.extract_mzStart
+        # mz_end = CONFIG.extract_mzEnd
         # mz_start, mz_end = check_value_order(mz_start, mz_end)
         #
         # # get RT limits
-        # rt_start = self.config.extract_rtStart
-        # rt_end = self.config.extract_rtEnd
+        # rt_start = CONFIG.extract_rtStart
+        # rt_end = CONFIG.extract_rtEnd
         # rt_start, rt_end = check_value_order(rt_start, rt_end)
         #
         # # get DT limits
-        # dt_start = self.config.extract_dtStart
-        # dt_end = self.config.extract_dtEnd
+        # dt_start = CONFIG.extract_dtStart
+        # dt_end = CONFIG.extract_dtEnd
         # dt_start, dt_end = check_value_order(dt_start, dt_end)
         #
         # # convert scans to minutes
-        # if self.config.extract_rt_use_scans:
+        # if CONFIG.extract_rt_use_scans:
         #     if reader is not None:
         #         rt_start, rt_end = self._get_waters_api_nearest_RT_in_minutes(reader, rt_start, rt_end)
         #     else:
@@ -1161,7 +1117,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         #         rt_end = ((rt_end + 1) * scan_time) / 60
         #
         # # convert ms to drift bins
-        # if self.config.extract_dt_use_ms:
+        # if CONFIG.extract_dt_use_ms:
         #     if reader is not None:
         #         dt_start, dt_end = self._get_waters_api_nearest_DT_in_bins(reader, dt_start, dt_end)
         #     else:
@@ -1176,16 +1132,16 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         #     )
         #
         # # extract mass spectrum
-        # if self.config.extract_massSpectra:
+        # if CONFIG.extract_massSpectra:
         #     mz_kwargs = dict()
         #     spectrum_name = ""
-        #     if self.config.extract_massSpectra_use_mz:
+        #     if CONFIG.extract_massSpectra_use_mz:
         #         mz_kwargs.update(mz_start=mz_start, mz_end=mz_end)
         #         spectrum_name += f"ion={mz_start:.2f}-{mz_end:.2f}"
-        #     if self.config.extract_massSpectra_use_rt:
+        #     if CONFIG.extract_massSpectra_use_rt:
         #         mz_kwargs.update(rt_start=rt_start, rt_end=rt_end)
         #         spectrum_name += f" rt={rt_start:.2f}-{rt_end:.2f}"
-        #     if self.config.extract_massSpectra_use_dt:
+        #     if CONFIG.extract_massSpectra_use_dt:
         #         mz_kwargs.update(dt_start=dt_start, dt_end=dt_end)
         #         spectrum_name += f" dt={int(dt_start)}-{int(dt_end)}"
         #     spectrum_name = spectrum_name.lstrip()
@@ -1205,13 +1161,13 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         #             }
         #
         # # extract chromatogram
-        # if self.config.extract_chromatograms:
+        # if CONFIG.extract_chromatograms:
         #     rt_kwargs = dict()
         #     chrom_name = ""
-        #     if self.config.extract_chromatograms_use_mz:
+        #     if CONFIG.extract_chromatograms_use_mz:
         #         rt_kwargs.update(mz_start=mz_start, mz_end=mz_end)
         #         chrom_name += f"ion={mz_start:.2f}-{mz_end:.2f}"
-        #     if self.config.extract_chromatograms_use_dt:
+        #     if CONFIG.extract_chromatograms_use_dt:
         #         rt_kwargs.update(dt_start=dt_start, dt_end=dt_end)
         #         chrom_name += f" rt={rt_start:.2f}-{rt_end:.2f}"
         #     chrom_name = chrom_name.lstrip()
@@ -1237,13 +1193,13 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         #             }
         #
         # # extract mobilogram
-        # if self.config.extract_driftTime1D:
+        # if CONFIG.extract_driftTime1D:
         #     dt_kwargs = dict()
         #     dt_name = ""
-        #     if self.config.extract_driftTime1D_use_mz:
+        #     if CONFIG.extract_driftTime1D_use_mz:
         #         dt_kwargs.update(mz_start=mz_start, mz_end=mz_end)
         #         dt_name += f"ion={mz_start:.2f}-{mz_end:.2f}"
-        #     if self.config.extract_driftTime1D_use_rt:
+        #     if CONFIG.extract_driftTime1D_use_rt:
         #         dt_kwargs.update(rt_start=rt_start, rt_end=rt_end)
         #         dt_name += f" rt={rt_start:.2f}-{rt_end:.2f}"
         #
@@ -1270,13 +1226,13 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         #             }
         #
         # # extract heatmap
-        # if self.config.extract_driftTime2D:
+        # if CONFIG.extract_driftTime2D:
         #     heatmap_kwargs = dict()
         #     dt_name = ""
-        #     if self.config.extract_driftTime2D_use_mz:
+        #     if CONFIG.extract_driftTime2D_use_mz:
         #         heatmap_kwargs.update(mz_start=mz_start, mz_end=mz_end)
         #         dt_name += f"ion={mz_start:.2f}-{mz_end:.2f}"
-        #     if self.config.extract_driftTime2D_use_rt:
+        #     if CONFIG.extract_driftTime2D_use_rt:
         #         heatmap_kwargs.update(rt_start=rt_start, rt_end=rt_end)
         #         dt_name += f" rt={rt_start:.2f}-{rt_end:.2f}"
         #
@@ -1293,14 +1249,14 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         #             "xlabels": "Scans",
         #             "yvals": yvals,
         #             "ylabels": "Drift time (bins)",
-        #             "cmap": self.config.currentCmap,
+        #             "cmap": CONFIG.currentCmap,
         #             "yvals1D": yvals_DT,
         #             "yvalsRT": yvals_RT,
         #             "title": "",
         #             "label": "",
         #             "charge": 1,
-        #             "alpha": self.config.overlay_defaultAlpha,
-        #             "mask": self.config.overlay_defaultMask,
+        #             "alpha": CONFIG.overlay_defaultAlpha,
+        #             "mask": CONFIG.overlay_defaultMask,
         #             "color": get_random_color(),
         #             "min_threshold": 0,
         #             "max_threshold": 1,
@@ -1348,7 +1304,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             "xlabels": "Scans",
             "yvals": yvals,
             "ylabels": "Drift time (bins)",
-            "cmap": item_information.get("colormap", next(self.config.overlay_cmap_cycle)),
+            "cmap": item_information.get("colormap", next(CONFIG.overlay_cmap_cycle)),
             "yvals1D": yvals_DT,
             "yvalsRT": yvals_RT,
             "title": label,
@@ -1376,11 +1332,11 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         # for item in range(self.filesList.GetItemCount()):
         #     # Determine whether the title of the document matches the title of the item in the table
         #     # if it does not, skip the row
-        #     docValue = self.filesList.GetItem(item, self.config.multipleMLColNames["document"]).GetText()
+        #     docValue = self.filesList.GetItem(item, CONFIG.multipleMLColNames["document"]).GetText()
         #     if docValue != document.title:
         #         continue
         #
-        #     nameValue = self.filesList.GetItem(item, self.config.multipleMLColNames["filename"]).GetText()
+        #     nameValue = self.filesList.GetItem(item, CONFIG.multipleMLColNames["filename"]).GetText()
         #     try:
         #         path = document.multipleMassSpectrum[nameValue]["path"]
         #         dt_x, dt_y = self.waters_im_extract_dt(path, mz_start=mz_start, mz_end=mz_end)
@@ -1426,10 +1382,10 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         # for counter, item in enumerate(range(self.filesList.GetItemCount()), 1):
         #     # Determine whether the title of the document matches the title of the item in the table
         #     # if it does not, skip the row
-        #     docValue = self.filesList.GetItem(item, self.config.multipleMLColNames["document"]).GetText()
+        #     docValue = self.filesList.GetItem(item, CONFIG.multipleMLColNames["document"]).GetText()
         #     if docValue != document.title:
         #         continue
-        #     key = self.filesList.GetItem(item, self.config.multipleMLColNames["filename"]).GetText()
+        #     key = self.filesList.GetItem(item, CONFIG.multipleMLColNames["filename"]).GetText()
         #     energy = str2num(document.multipleMassSpectrum[key]["trap"])
         #     if _temp_array is None:
         #         _temp_array = tempDict[key][0]
@@ -1497,7 +1453,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
     def on_add_mzident_file_fcn(self, evt):
         """Load tandem annotation data in mzIdent format"""
-        if not self.config.APP_ENABLE_THREADING:
+        if not CONFIG.APP_ENABLE_THREADING:
             self.on_add_mzident_file(evt)
         else:
             self.on_threading(action="load.add.mzidentml", args=(evt,))
@@ -1564,9 +1520,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
         self._on_check_last_path()
 
-        dlg = DialogMultiDirPicker(
-            self.view, title="Choose Waters (.raw) files to open...", last_dir=self.config.lastDir
-        )
+        dlg = DialogMultiDirPicker(self.view, title="Choose Waters (.raw) files to open...", last_dir=CONFIG.lastDir)
 
         if dlg.ShowModal() == "ok":  # wx.ID_OK:
             path_list = dlg.get_paths()
@@ -1576,7 +1530,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
                     msg = "The path ({}) you've selected does not end with .raw"
                     raise MessageError("Please load MassLynx (.raw) file", msg)
 
-                if not self.config.APP_ENABLE_THREADING:
+                if not CONFIG.APP_ENABLE_THREADING:
                     self.on_open_single_MassLynx_raw(path, data_type)
                 else:
                     self.on_threading(action="load.raw.masslynx", args=(path, data_type))
@@ -1587,7 +1541,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         """
         evt = extract_type if evt is None else "all"
 
-        if not self.config.APP_ENABLE_THREADING:
+        if not CONFIG.APP_ENABLE_THREADING:
             self.on_extract_2D_from_mass_range(evt)
         else:
             args = (evt,)
@@ -1691,7 +1645,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         if not document:
             raise ValueError("Please create new document or select one from the list")
 
-        if not self.config.APP_ENABLE_THREADING:
+        if not CONFIG.APP_ENABLE_THREADING:
             self.on_setup_basic_document(self.load_manual_document(document.path, filelist, **kwargs))
         else:
             self.add_task(
@@ -1712,7 +1666,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         if not document:
             raise ValueError("Please create new document or select one from the list")
 
-        if not self.config.APP_ENABLE_THREADING:
+        if not CONFIG.APP_ENABLE_THREADING:
             self.on_setup_basic_document(self.load_lesa_document(document.path, filelist, **kwargs))
         else:
             self.add_task(
@@ -1795,11 +1749,11 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     #     """
     #     tstart = time.time()
     #     # get data
-    #     xvals = copy.deepcopy(self.config.replotData["DT/MS"].get("xvals", None))
-    #     yvals = copy.deepcopy(self.config.replotData["DT/MS"].get("yvals", None))
-    #     zvals = copy.deepcopy(self.config.replotData["DT/MS"].get("zvals", None))
-    #     xlabel = copy.deepcopy(self.config.replotData["DT/MS"].get("xlabels", None))
-    #     ylabel = copy.deepcopy(self.config.replotData["DT/MS"].get("ylabels", None))
+    #     xvals = copy.deepcopy(CONFIG.replotData["DT/MS"].get("xvals", None))
+    #     yvals = copy.deepcopy(CONFIG.replotData["DT/MS"].get("yvals", None))
+    #     zvals = copy.deepcopy(CONFIG.replotData["DT/MS"].get("zvals", None))
+    #     xlabel = copy.deepcopy(CONFIG.replotData["DT/MS"].get("xlabels", None))
+    #     ylabel = copy.deepcopy(CONFIG.replotData["DT/MS"].get("ylabels", None))
     #     # check if data type is correct
     #     if zvals is None:
     #         logger.error("Cannot complete action as plotting data is empty")
@@ -1813,7 +1767,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     #     yvals = yvals[ymin_idx : ymax_idx + 1]
     #
     #     # check if user enabled smart zoom (ON by default)
-    #     if self.config.smart_zoom_enable:
+    #     if CONFIG.smart_zoom_enable:
     #         xvals, zvals = self.data_processing.downsample_array(xvals, zvals)
     #
     #     # check if selection window is large enough
@@ -1832,26 +1786,26 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     #
     #     kwargs = {
     #         "auto_range": False,
-    #         "mz_min": self.config.ms_mzStart,
-    #         "mz_max": self.config.ms_mzEnd,
-    #         "mz_bin": self.config.ms_mzBinSize,
-    #         "linearization_mode": self.config.ms_linearization_mode,
+    #         "mz_min": CONFIG.ms_mzStart,
+    #         "mz_max": CONFIG.ms_mzEnd,
+    #         "mz_bin": CONFIG.ms_mzBinSize,
+    #         "linearization_mode": CONFIG.ms_linearization_mode,
     #     }
     #     msg = "Linearization method: {} | min: {} | max: {} | window: {} | auto-range: {}".format(
-    #         self.config.ms_linearization_mode,
-    #         self.config.ms_mzStart,
-    #         self.config.ms_mzEnd,
-    #         self.config.ms_mzBinSize,
-    #         self.config.ms_auto_range,
+    #         CONFIG.ms_linearization_mode,
+    #         CONFIG.ms_mzStart,
+    #         CONFIG.ms_mzEnd,
+    #         CONFIG.ms_mzBinSize,
+    #         CONFIG.ms_auto_range,
     #     )
     #     logger.info(msg)
     #
     #     if document.multipleMassSpectrum:
     #         # check the min/max values in the mass spectrum
-    #         if self.config.ms_auto_range:
+    #         if CONFIG.ms_auto_range:
     #             mzStart, mzEnd = pr_spectra.check_mass_range(ms_dict=document.multipleMassSpectrum)
-    #             self.config.ms_mzStart = mzStart
-    #             self.config.ms_mzEnd = mzEnd
+    #             CONFIG.ms_mzStart = mzStart
+    #             CONFIG.ms_mzEnd = mzEnd
     #             kwargs.update(mz_min=mzStart, mz_max=mzEnd)
     #             try:
     #                 self.view.panelProcessData.on_update_GUI(update_what="mass_spectra")
@@ -1911,7 +1865,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
     # def on_extract_mass_spectrum_for_each_collision_voltage_fcn(self, evt, document_title=None):
     #
-    #     if self.config.threading:
+    #     if CONFIG.threading:
     #         self.on_threading(action="extract.spectrum.collision.voltage", args=(document_title,))
     #     else:
     #         self.on_extract_mass_spectrum_for_each_collision_voltage(document_title)
@@ -1947,7 +1901,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     #         # extract spectrum
     #         mz_x, mz_y = self._get_waters_api_spectrum_data(reader, start_scan=start_scan, end_scan=end_scan)
     #         # process each
-    #         if self.config.origami_preprocess:
+    #         if CONFIG.origami_preprocess:
     #             mz_x, mz_y = self.data_processing.process_spectrum(mz_x, mz_y, return_data=True)
     #
     #         # add to document
@@ -1995,7 +1949,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     #         raise MessageError("No items in the list", "Please select at least one item in the panel to export")
     #
     #     # setup output parameters
-    #     dlg_kwargs = {"image_size_inch": self.config._plotSettings[resize_alias[plot_type]]["resize_size"]}
+    #     dlg_kwargs = {"image_size_inch": CONFIG._plotSettings[resize_alias[plot_type]]["resize_size"]}
     #     dlg = DialogExportFigures(self.presenter.view, self.presenter, self.config, self.presenter.icons,
     #     **dlg_kwargs)
     #
@@ -2003,7 +1957,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     #         logger.error("Action was cancelled")
     #         return
     #
-    #     path = self.config.image_folder_path
+    #     path = CONFIG.image_folder_path
     #     if not check_path_exists(path):
     #         logger.error("Action was cancelled because the path does not exist")
     #         return
@@ -2078,13 +2032,13 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     #         logger.error("Action was cancelled")
     #         return
     #
-    #     path = self.config.data_folder_path
+    #     path = CONFIG.data_folder_path
     #     if not check_path_exists(path):
     #         logger.error("Action was cancelled because the path does not exist")
     #         return
     #
-    #     delimiter = self.config.saveDelimiter
-    #     extension = self.config.saveExtension
+    #     delimiter = CONFIG.saveDelimiter
+    #     extension = CONFIG.saveExtension
     #     path = r"D:\Data\ORIGAMI\origami_ms\images"
     #     for document_title, dataset_type, dataset_name in item_list:
     #         tstart = time.time()
@@ -2583,10 +2537,10 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
                 "dataset_type": dataset_type,
                 "document_title": document_title,
                 "shape": data["zvals"].shape,
-                "cmap": data.get("cmap", self.config.heatmap_colormap),
+                "cmap": data.get("cmap", CONFIG.heatmap_colormap),
                 "label": data.get("label", ""),
-                "mask": data.get("mask", self.config.overlay_defaultMask),
-                "alpha": data.get("alpha", self.config.overlay_defaultAlpha),
+                "mask": data.get("mask", CONFIG.overlay_defaultMask),
+                "alpha": data.get("alpha", CONFIG.overlay_defaultAlpha),
                 "min_threshold": data.get("min_threshold", 0.0),
                 "max_threshold": data.get("max_threshold", 1.0),
                 "color": data.get("color", get_random_color(True)),
@@ -2615,10 +2569,10 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
                 "dataset_type": dataset_type,
                 "document_title": document_title,
                 "shape": data["zvals"].shape,
-                "cmap": data.get("cmap", self.config.heatmap_colormap),
+                "cmap": data.get("cmap", CONFIG.heatmap_colormap),
                 "label": data.get("label", ""),
-                "mask": data.get("mask", self.config.overlay_defaultMask),
-                "alpha": data.get("alpha", self.config.overlay_defaultAlpha),
+                "mask": data.get("mask", CONFIG.overlay_defaultMask),
+                "alpha": data.get("alpha", CONFIG.overlay_defaultAlpha),
                 "min_threshold": data.get("min_threshold", 0.0),
                 "max_threshold": data.get("max_threshold", 1.0),
                 "color": data.get("color", get_random_color(True)),
@@ -2730,19 +2684,19 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
         def check_previous_data(dataset, _filename, _data):
             if _filename in dataset:
-                if not self.config.import_duplicate_panel_ask:
+                if not CONFIG.import_duplicate_panel_ask:
                     dlg_ask = DialogAskOverride(
                         self.view,
                         self.config,
                         f"{_filename} already exists in the document. What would you like to do about it?",
                     )
                     dlg_ask.ShowModal()
-                if self.config.import_duplicate_panel_action == "merge":
+                if CONFIG.import_duplicate_panel_action == "merge":
                     logger.info("Existing data will be merged with the new dataset...")
                     # retrieve and merge
                     old_data = dataset[_filename]
                     _data = merge_two_dicts(old_data, _data)
-                elif self.config.import_duplicate_panel_action == "duplicate":
+                elif CONFIG.import_duplicate_panel_action == "duplicate":
                     logger.info("A new dataset with new name will be created...")
                     _filename = f"{_filename} (2)"
             return _filename, _data
@@ -2818,7 +2772,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
                 elif dataset_type == "heatmaps":
                     zvals, xvals, yvals, dt_y, rt_y = self.load_text_heatmap_data(path)
-                    color = convert_rgb_255_to_1(self.config.custom_colors[get_random_int(0, 15)])
+                    color = convert_rgb_255_to_1(CONFIG.custom_colors[get_random_int(0, 15)])
                     document.gotExtractedIons = True
                     data = {
                         "zvals": zvals,
@@ -2828,9 +2782,9 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
                         "ylabels": "Drift time (bins)",
                         "yvals1D": dt_y,
                         "yvalsRT": rt_y,
-                        "cmap": self.config.heatmap_colormap,
-                        "mask": self.config.overlay_defaultMask,
-                        "alpha": self.config.overlay_defaultAlpha,
+                        "cmap": CONFIG.heatmap_colormap,
+                        "mask": CONFIG.overlay_defaultMask,
+                        "alpha": CONFIG.overlay_defaultAlpha,
                         "min_threshold": 0,
                         "max_threshold": 1,
                         "color": color,
@@ -2862,7 +2816,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
                     data = {
                         "plot_type": "matrix",
                         "zvals": zvals,
-                        "cmap": self.config.heatmap_colormap,
+                        "cmap": CONFIG.heatmap_colormap,
                         "matrixLabels": labels,
                         "path": filename,
                         "plot_modifiers": {},

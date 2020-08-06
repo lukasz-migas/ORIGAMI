@@ -9106,10 +9106,10 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.on_annotate_item(None, itemID=self.peaklist.item_id)
 
     def _get_colors(self, n_colors, return_as_hex=True):
-        if self.config.currentPalette not in ["Spectral", "RdPu"]:
-            palette = self.config.currentPalette.lower()
+        if self.config.current_palette not in ["Spectral", "RdPu"]:
+            palette = self.config.current_palette.lower()
         else:
-            palette = self.config.currentPalette
+            palette = self.config.current_palette
         colorlist = color_palette(palette, n_colors)
 
         if return_as_hex:

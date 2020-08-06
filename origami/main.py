@@ -155,7 +155,10 @@ class ORIGAMI:
 
     def on_import_configuration_on_startup(self):
         """This function imports configuration file"""
-        self.config.loadConfigXML(path="configOut.xml")
+        try:
+            self.config.load_config(os.path.join(CONFIG.APP_CWD, CONFIG.DEFAULT_CONFIG_NAME))
+        except Exception:
+            pass
 
     def onThreading(self, evt, args, action="loadOrigami"):  # noqa
         """Start separate thread"""
@@ -172,8 +175,6 @@ class ORIGAMI:
             elif len(args) == 3:
                 msg, position, delay = args
                 thread_obj = threading.Thread(target=self.view.updateStatusbar, args=(msg, position, delay))
-        elif action == "export_settings":
-            thread_obj = threading.Thread(target=self.config.saveConfigXML, args=args)
 
         # Start thread
         if thread_obj is None:

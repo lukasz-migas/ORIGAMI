@@ -76,9 +76,7 @@ def write_json_data(filepath, obj, indent=4, check_existing=False):
 
     if not check_existing or not os.path.exists(filepath):
         with open(filepath, "w") as f_ptr:
-            json.dump(
-                obj, f_ptr, indent=indent, default=default, sort_keys=True, ensure_ascii=True, separators=(",", ": ")
-            )
+            json.dump(obj, f_ptr, indent=indent, default=default, sort_keys=True, separators=(",", ": "))
     else:
         with open(filepath, "r+") as f_ptr:
             data = json.load(f_ptr)
@@ -92,7 +90,5 @@ def write_json_data(filepath, obj, indent=4, check_existing=False):
             data = remove_duplicates(data)
 
             f_ptr.seek(0)  # rewind
-            json.dump(
-                data, f_ptr, indent=indent, default=default, sort_keys=True, ensure_ascii=True, separators=(",", ": ")
-            )
+            json.dump(data, f_ptr, indent=indent, default=default, sort_keys=True, separators=(",", ": "))
             f_ptr.truncate()

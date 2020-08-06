@@ -79,3 +79,4 @@ origami/.vscode/.ropeproject/config.py
 .vscode/
 origami/_data
 origami/c/*.c
+origami/origami-config.json
