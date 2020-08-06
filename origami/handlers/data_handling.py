@@ -1730,12 +1730,12 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         # update dictionary
         ENV[document.title] = document
         if expand_item == "document":
-            self.document_tree.add_document(document, expandItem=document)
+            self.document_tree.add_document(document, expand_item=document)
         # just set data
         elif expand_item == "no_refresh":
             self.document_tree.set_document(document_old=ENV[document.title], document_new=document)
         else:
-            self.document_tree.add_document(document, expandItem=expand_item)
+            self.document_tree.add_document(document, expand_item=expand_item)
 
     def _get_spectrum_parameters(self, document):
         """Get common spectral parameters

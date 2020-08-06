@@ -43,6 +43,9 @@ class TestPanelViewMassSpectrum(TestPlotView):
         mz_obj = MassSpectrumObject([1, 2, 3, 4], [2, 3, 1, 4])  # noqa
         view.plot(obj=mz_obj)
 
+        menu = view.get_right_click_menu(self.frame)
+        assert isinstance(menu, wx.Menu)
+
     def test_panel_update_style(self):
         view = ViewMassSpectrum(self.frame, (12, 8))
         self.set_plot(view)

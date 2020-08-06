@@ -5,12 +5,16 @@ import time
 import logging
 from abc import ABC
 from abc import abstractmethod
+from typing import Union
 from typing import Optional
 
 # Third-party imports
 import wx
+from pubsub import pub
 
 # Local imports
+from origami.styles import make_menu_item
+from origami.icons.assets import Icons
 from origami.config.config import CONFIG
 from origami.utils.utilities import report_time
 from origami.utils.exceptions import IncorrectPlotTypeError
@@ -196,11 +200,17 @@ class ViewBase(ABC):
     ALLOWED_PLOTS = ()
     SUPPORTED_FILE_FORMATS = ("png", "eps", "jpeg", "tiff", "raw", "ps", "pdf", "svg", "svgz")
 
+    # ui elements
+    lock_plot_check = None
+    resize_plot_check = None
+
     def __init__(self, parent, figsize, title="", **kwargs):
         self.parent = parent
         self.figsize = figsize
         self.axes_size = kwargs.pop("axes_size", None)
         self.title = title
+        self.filename = kwargs.pop("filename", "")
+        self._icons = Icons()
 
         # ui elements
         self.panel = None
@@ -417,6 +427,10 @@ class ViewBase(ABC):
     def save_figure(self, filename="", path=None, **kwargs):  # noqa
         """Export figure"""
 
+        # get the default filename that was set on the view
+        if self.filename not in ["", None] and filename != "":
+            filename = self.filename
+
         def _get_path():
             wildcard, wildcard_dict = build_wildcard(self.SUPPORTED_FILE_FORMATS)
             dlg = wx.FileDialog(
@@ -459,6 +473,73 @@ class ViewBase(ABC):
         )
 
         LOGGER.info(f"Saved figure in {report_time(t_start)}")
+
+    def get_right_click_menu(self, parent: Union[wx.Panel, wx.MiniFrame, wx.Frame]):
+        """Get the commonly used right-click menu items
+
+        Once the menu object is instantiated, it can be modified by `Prepend` or `Append` methods to add additional
+        handlers.
+
+        Parameters
+        ----------
+        parent
+            parent object where the events can be bound to
+
+        Returns
+        -------
+        menu : wx.Menu
+            menu object with few of the commonly used events
+        """
+        menu = wx.Menu()
+
+        # create menu items
+        menu_save = make_menu_item(parent=menu, evt_id=wx.ID_ANY, text="Save figure as...", bitmap=self._icons.png)
+        menu_clipboard = make_menu_item(parent=menu, text="Copy plot to clipboard", bitmap=self._icons.filelist)
+        menu_clear = make_menu_item(parent=menu, text="Clear plot", bitmap=self._icons.clear)
+
+        self.lock_plot_check = menu.AppendCheckItem(wx.ID_ANY, "Lock plot", help="")
+        self.lock_plot_check.Check(self.figure.lock_plot_from_updating)
+        menu.AppendSeparator()
+        self.resize_plot_check = menu.AppendCheckItem(wx.ID_ANY, "Resize on saving", help="")
+        self.resize_plot_check.Check(CONFIG.resize)
+        menu.Append(menu_save)
+        menu.Append(menu_clipboard)
+        menu.AppendSeparator()
+        menu.Append(menu_clear)
+
+        # bind menu items to event handlers
+        parent.Bind(wx.EVT_MENU, self.on_copy_to_clipboard, menu_clipboard)
+        parent.Bind(wx.EVT_MENU, self.on_save_figure, menu_save)
+        parent.Bind(wx.EVT_MENU, self.on_clear_plot, menu_clear)
+        parent.Bind(wx.EVT_MENU, self.on_lock_plot, self.lock_plot_check)
+        parent.Bind(wx.EVT_MENU, self.on_resize_check, self.resize_plot_check)
+
+        return menu
+
+    def on_clear_plot(self, _evt):
+        """Clear plot area"""
+        self.figure.clear()
+        pub.sendMessage("notify.message.info", message="Cleared plot area")
+
+    def on_copy_to_clipboard(self, _evt):
+        """Clear plot area"""
+        self.figure.copy_to_clipboard()
+        pub.sendMessage("notify.message.info", message="Copied figure to clipboard")
+
+    def on_save_figure(self, _evt):
+        """Clear plot area"""
+        self.save_figure()
+
+    def on_lock_plot(self, _evt):
+        """Lock/unlock plot"""
+        self.figure.lock_plot_from_updating = not self.figure.lock_plot_from_updating
+        verb = "Locked" if self.figure.lock_plot_from_updating else "Unlocked"
+        pub.sendMessage("notify.message.info", message=f"{verb} figure")
+
+    @staticmethod
+    def on_resize_check(_evt):
+        """Enable/disable plot resizing"""
+        CONFIG.resize = not CONFIG.resize
 
 
 def build_wildcard(supported_formats):

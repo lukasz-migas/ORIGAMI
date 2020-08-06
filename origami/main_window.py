@@ -21,11 +21,6 @@ from origami.ids import ID_openConfig
 from origami.ids import ID_saveConfig
 from origami.ids import ID_window_all
 from origami.ids import ID_helpYoutube
-from origami.ids import ID_save1DImage
-from origami.ids import ID_save2DImage
-from origami.ids import ID_save3DImage
-from origami.ids import ID_saveMSImage
-from origami.ids import ID_saveRTImage
 from origami.ids import ID_fileMenu_MGF
 from origami.ids import ID_helpHomepage
 from origami.ids import ID_openAsConfig
@@ -33,9 +28,6 @@ from origami.ids import ID_openDocument
 from origami.ids import ID_saveAsConfig
 from origami.ids import ID_saveDocument
 from origami.ids import ID_fileMenu_mzML
-from origami.ids import ID_saveMZDTImage
-from origami.ids import ID_saveRMSDImage
-from origami.ids import ID_saveRMSFImage
 from origami.ids import ID_helpHTMLEditor
 from origami.ids import ID_helpNewVersion
 from origami.ids import ID_helpReportBugs
@@ -46,18 +38,15 @@ from origami.ids import ID_selectCalibrant
 from origami.ids import ID_window_controls
 from origami.ids import ID_window_textList
 from origami.ids import ID_help_page_UniDec
-from origami.ids import ID_saveOverlayImage
 from origami.ids import ID_help_page_ORIGAMI
 from origami.ids import ID_help_page_overlay
 from origami.ids import ID_importAtStart_CCS
 from origami.ids import ID_extraSettings_rmsd
 from origami.ids import ID_help_page_linearDT
-from origami.ids import ID_saveWaterfallImage
 from origami.ids import ID_docTree_plugin_MSMS
 from origami.ids import ID_docTree_plugin_UVPD
 from origami.ids import ID_fileMenu_openRecent
 from origami.ids import ID_help_page_OtherData
-from origami.ids import ID_saveRMSDmatrixImage
 from origami.ids import ID_window_documentList
 from origami.ids import ID_extraSettings_legend
 from origami.ids import ID_extraSettings_plot1D
@@ -1018,29 +1007,11 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_customise_unidec_plot_parameters, id=ID_unidecPanel_otherSettings)
 
         # OUTPUT
-        self.Bind(wx.EVT_MENU, self.panelPlots.save_images, id=ID_saveOverlayImage)
-        self.Bind(wx.EVT_MENU, self.panelPlots.save_images, id=ID_saveMSImage)
-        self.Bind(wx.EVT_MENU, self.panelPlots.save_images, id=ID_saveMZDTImage)
-        self.Bind(wx.EVT_MENU, self.panelPlots.save_images, id=ID_saveRTImage)
-        self.Bind(wx.EVT_MENU, self.panelPlots.save_images, id=ID_save1DImage)
-        self.Bind(wx.EVT_MENU, self.panelPlots.save_images, id=ID_save2DImage)
-        self.Bind(wx.EVT_MENU, self.panelPlots.save_images, id=ID_save3DImage)
-        self.Bind(wx.EVT_MENU, self.panelPlots.save_images, id=ID_saveWaterfallImage)
-        self.Bind(wx.EVT_MENU, self.panelPlots.save_images, id=ID_saveRMSDImage)
-        self.Bind(wx.EVT_MENU, self.panelPlots.save_images, id=ID_saveRMSFImage)
-        self.Bind(wx.EVT_MENU, self.panelPlots.save_images, id=ID_saveRMSDmatrixImage)
         self.Bind(wx.EVT_MENU, self.on_open_interactive_output_panel, menu_widget_bokeh)
 
         # UTILITIES
-        #         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_process_UVPD, id=ID_docTree_plugin_UVPD)
-        #         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_MSMS_viewer, id=ID_docTree_plugin_MSMS)
-        #         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_overlay_viewer,
-        #         menu_widget_overlay_viewer)
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_lesa_viewer, menu_widget_lesa_viewer)
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_import_lesa_dataset, menu_widget_lesa_import)
-        #         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_interactive_viewer,
-        # menu_widget_interactive_viewer)
-
         self.Bind(
             wx.EVT_MENU, partial(self.panelDocuments.documents.on_import_manual_dataset, "SID"), menu_widget_sid_import
         )

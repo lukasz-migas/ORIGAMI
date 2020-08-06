@@ -287,28 +287,10 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         """Right-click menu"""
         # ensure that user clicked inside the plot area
         if hasattr(evt.EventObject, "figure"):
-
-            menu = wx.Menu()
-            menu_customize = make_menu_item(parent=menu, text="Customise plot...", bitmap=self._icons.x_label)
-            menu.AppendItem(menu_customize)
-            menu.AppendSeparator()
-            self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving")
-            self.resize_plot_check.Check(CONFIG.resize)
-            save_figure_menu_item = make_menu_item(
-                menu, evt_id=wx.ID_ANY, text="Save figure as...", bitmap=self._icons.save
-            )
-            menu.AppendItem(save_figure_menu_item)
-
-            menu_action_copy_to_clipboard = make_menu_item(
-                parent=menu, evt_id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self._icons.filelist
-            )
-            menu.AppendItem(menu_action_copy_to_clipboard)
+            menu = self.plot_view.get_right_click_menu(self)
             menu.AppendSeparator()
             menu_plot_clear_labels = menu.Append(wx.ID_ANY, "Clear annotations")
 
-            self.Bind(wx.EVT_MENU, self.on_resize_check, id=ID_plotPanel_resize)
-            self.Bind(wx.EVT_MENU, self.on_save_figure, save_figure_menu_item)
-            self.Bind(wx.EVT_MENU, self.on_copy_to_clipboard, menu_action_copy_to_clipboard)
             self.Bind(wx.EVT_MENU, self.on_clear_from_plot, menu_plot_clear_labels)
 
             self.PopupMenu(menu)
@@ -933,7 +915,9 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         pixel_size = [(self._window_size[0] - self._settings_panel_size[0] - 50), (self._window_size[1] - 50)]
         figsize = [pixel_size[0] / self._display_resolution[0], pixel_size[1] / self._display_resolution[1]]
 
-        self.plot_view = ViewMassSpectrum(split_panel, figsize, x_label="m/z (Da)", y_label="Intensity")
+        self.plot_view = ViewMassSpectrum(
+            split_panel, figsize, x_label="m/z (Da)", y_label="Intensity", filename="picked-mass-spectrum"
+        )
         self.plot_window = self.plot_view.figure
 
         return self.plot_view.panel
@@ -1436,28 +1420,6 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         #
         # if CONFIG.peak_find_verbose:
         #     logger.info(f"Adding peaks to peaklist took {time.time()-t_start:.4f} seconds.")
-
-    def on_clear_plot(self, _evt):
-        """Clear plot area"""
-        self.plot_window.clear()
-
-    def on_save_figure(self, _evt):
-        """Save figure"""
-        filename = "picked-mass-spectrum"
-        self.plot_view.save_figure(filename)
-
-    def on_resize_check(self, _evt):
-        """Resize checkbox"""
-        self.panel_plot.on_resize_check(None)
-
-    def on_copy_to_clipboard(self, _evt):
-        """Copy plot to clipboard"""
-        self.plot_window.copy_to_clipboard()
-
-    def on_customise_plot(self, _evt):
-        """Customise plot"""
-        raise NotImplementedError("Must implement method")
-        # self.panel_plot.on_customise_plot(None, plot="MS...", plot_obj=self.plot_window)
 
     def on_open_process_ms_settings(self, _evt):
         """Open MS pre-processing panel"""

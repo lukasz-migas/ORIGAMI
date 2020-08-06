@@ -6,7 +6,6 @@ from typing import Dict
 import wx
 
 # Local imports
-from origami.styles import make_menu_item
 from origami.icons.assets import Icons
 from origami.gui_elements.popup import PopupBase
 from origami.gui_elements._panel import TestPanel  # noqa
@@ -67,35 +66,13 @@ class PopupViewBase(PopupBase):
     # noinspection DuplicatedCode
     def on_right_click(self, evt):
         """On right-click menu event"""
-        menu = wx.Menu()
         # ensure that user clicked inside the plot area
         if hasattr(evt.EventObject, "figure"):
-            save_figure_menu_item = make_menu_item(
-                menu, evt_id=wx.ID_ANY, text="Save figure as...", bitmap=self._icons.save
-            )
-            menu.AppendItem(save_figure_menu_item)
+            menu = self.plot_view.get_right_click_menu(self)
 
-            menu_action_copy_to_clipboard = make_menu_item(
-                parent=menu, evt_id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self._icons.filelist
-            )
-            menu.AppendItem(menu_action_copy_to_clipboard)
-
-            # bind events
-            self.Bind(wx.EVT_MENU, self.on_save_figure, save_figure_menu_item)
-            self.Bind(wx.EVT_MENU, self.on_copy_to_clipboard, menu_action_copy_to_clipboard)
-
-        self.PopupMenu(menu)
-        menu.Destroy()
-        self.SetFocus()
-
-    def on_save_figure(self, _evt):
-        """Save figure"""
-        filename = "popup-plot"
-        self.plot_view.save_figure(filename)
-
-    def on_copy_to_clipboard(self, _evt):
-        """Copy plot to clipboard"""
-        self.plot_window.copy_to_clipboard()
+            self.PopupMenu(menu)
+            menu.Destroy()
+            self.SetFocus()
 
     def plot(self, obj):
         """Update plot"""

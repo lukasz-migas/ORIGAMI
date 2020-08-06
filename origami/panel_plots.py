@@ -12,35 +12,19 @@ import matplotlib.pyplot as plt
 from pubsub import pub
 
 # Local imports
-from origami.ids import ID_save1DImage
-from origami.ids import ID_save2DImage
-from origami.ids import ID_save3DImage
-from origami.ids import ID_saveMSImage
-from origami.ids import ID_saveRTImage
 from origami.ids import ID_clearPlot_1D
 from origami.ids import ID_clearPlot_2D
 from origami.ids import ID_clearPlot_3D
 from origami.ids import ID_clearPlot_MS
 from origami.ids import ID_clearPlot_RT
-from origami.ids import ID_saveMZDTImage
 from origami.ids import ID_clearPlot_MZDT
 from origami.ids import ID_clearPlot_RMSD
 from origami.ids import ID_clearPlot_RMSF
-from origami.ids import ID_save1DImageDoc
-from origami.ids import ID_save2DImageDoc
-from origami.ids import ID_save3DImageDoc
-from origami.ids import ID_saveMSImageDoc
-from origami.ids import ID_saveOtherImage
-from origami.ids import ID_saveRTImageDoc
 from origami.ids import ID_clearPlot_1D_MS
 from origami.ids import ID_clearPlot_other
 from origami.ids import ID_clearPlot_RT_MS
 from origami.ids import ID_clearPlot_Matrix
-from origami.ids import ID_plotPanel_resize
-from origami.ids import ID_saveMZDTImageDoc
 from origami.ids import ID_clearPlot_Overlay
-from origami.ids import ID_plotPanel_lockPlot
-from origami.ids import ID_saveCompareMSImage
 from origami.ids import ID_clearPlot_Waterfall
 from origami.ids import ID_extraSettings_legend
 from origami.ids import ID_extraSettings_plot1D
@@ -51,9 +35,7 @@ from origami.ids import ID_plots_customise_plot
 from origami.ids import ID_extraSettings_colorbar
 from origami.ids import ID_extraSettings_waterfall
 from origami.ids import ID_extraSettings_general_plot
-from origami.ids import ID_plots_customise_smart_zoom
 from origami.styles import make_menu_item
-from origami.utils.path import clean_filename
 from origami.utils.color import convert_rgb_1_to_255
 from origami.utils.color import convert_rgb_1_to_hex
 from origami.icons.assets import Icons
@@ -327,8 +309,9 @@ class PanelPlots(wx.Panel):
             CONFIG,
             allow_extraction=True,
             callbacks=dict(CTRL="extract.heatmap.from.spectrum"),
+            filename="mass-spectrum",
         )
-        plot_notebook.AddPage(self.view_ms.panel, "Mass spectrum", False)
+        plot_notebook.AddPage(self.view_ms.panel, "Mass spectrum")
         self.plot_ms = self.view_ms.figure
 
         # Setup PLOT RT
@@ -338,8 +321,9 @@ class PanelPlots(wx.Panel):
             CONFIG,
             allow_extraction=True,
             callbacks=dict(CTRL="extract.spectrum.from.chromatogram"),
+            filename="chromatogram",
         )
-        plot_notebook.AddPage(self.view_rt_rt.panel, "Chromatogram", False)
+        plot_notebook.AddPage(self.view_rt_rt.panel, "Chromatogram")
         self.plot_rt_rt = self.view_ms.figure
 
         # Setup PLOT 1D
@@ -349,8 +333,9 @@ class PanelPlots(wx.Panel):
             CONFIG,
             allow_extraction=True,
             callbacks=dict(CTRL="extract.spectrum.from.mobilogram"),
+            filename="mobilogram",
         )
-        plot_notebook.AddPage(self.view_dt_dt.panel, "Mobilogram", False)
+        plot_notebook.AddPage(self.view_dt_dt.panel, "Mobilogram")
         self.plot_dt_dt = self.view_ms.figure
 
         # Setup PLOT 2D
@@ -360,8 +345,9 @@ class PanelPlots(wx.Panel):
             CONFIG,
             allow_extraction=True,
             callbacks=dict(CTRL="extract.spectrum.from.heatmap"),
+            filename="heatmap",
         )
-        plot_notebook.AddPage(self.view_heatmap.panel, "Heatmap", False)
+        plot_notebook.AddPage(self.view_heatmap.panel, "Heatmap")
         self.plot_heatmap = self.view_heatmap.figure
 
         # Setup PLOT DT/MS
@@ -371,8 +357,9 @@ class PanelPlots(wx.Panel):
             CONFIG,
             allow_extraction=True,
             callbacks=dict(CTRL="extract.rt.from.heatmap"),
+            filename="ms-heatmap",
         )
-        plot_notebook.AddPage(self.view_msdt.panel, "DT/MS", False)
+        plot_notebook.AddPage(self.view_msdt.panel, "DT/MS")
         self.plot_msdt = self.view_msdt.figure
 
         # # Setup PLOT WATERFALL
@@ -388,8 +375,9 @@ class PanelPlots(wx.Panel):
             CONFIG,
             allow_extraction=False,
             callbacks=dict(),
+            filename="heatmap-3d",
         )
-        plot_notebook.AddPage(self.view_heatmap_3d.panel, "Heatmap (3D)", False)
+        plot_notebook.AddPage(self.view_heatmap_3d.panel, "Heatmap (3D)")
         self.plot_heatmap_3d = self.view_heatmap_3d.figure
 
         # # Other
@@ -402,7 +390,7 @@ class PanelPlots(wx.Panel):
         main_sizer.Add(plot_notebook, 1, wx.EXPAND | wx.ALL, 1)
         self.SetSizer(main_sizer)
         self.Layout()
-        self.Show(True)
+        self.Show()
 
         self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
 
@@ -574,16 +562,11 @@ class PanelPlots(wx.Panel):
         self.currentPage = self.plot_notebook.GetPageText(self.plot_notebook.GetSelection())
 
         # Make bindings
-        #         self.Bind(wx.EVT_MENU, self.data_handling.on_highlight_selected_ions, id=ID_highlightRectAllIons)
-        self.Bind(wx.EVT_MENU, self.on_lock_plot, id=ID_plotPanel_lockPlot)
-        self.Bind(wx.EVT_MENU, self.on_resize_check, id=ID_plotPanel_resize)
         self.Bind(wx.EVT_MENU, self.on_customise_plot, id=ID_plots_customise_plot)
-        self.Bind(wx.EVT_MENU, self.save_images, id=ID_saveOtherImage)
-        self.Bind(wx.EVT_MENU, self.save_images, id=ID_saveCompareMSImage)
-        self.Bind(wx.EVT_MENU, self.on_customise_smart_zoom, id=ID_plots_customise_smart_zoom)
+        #         self.Bind(wx.EVT_MENU, self.on_customise_smart_zoom, id=ID_plots_customise_smart_zoom)
 
-        # make main menu
-        menu = wx.Menu()
+        view = self.get_view_from_name()
+        menu = view.get_right_click_menu(self)
 
         # pre-generate common menu items
         menu_edit_general = make_menu_item(
@@ -628,9 +611,6 @@ class PanelPlots(wx.Panel):
         menu_edit_violin = make_menu_item(
             parent=menu, evt_id=ID_extraSettings_violin, text="Edit violin parameters...", bitmap=self._icons.violin
         )
-        menu_customise_plot = make_menu_item(
-            parent=menu, evt_id=ID_plots_customise_plot, text="Customise plot...", bitmap=self._icons.x_label
-        )
         menu_action_rotate90 = make_menu_item(parent=menu, text="Rotate 90°", bitmap=self._icons.rotate)
         menu_action_process_2d = make_menu_item(
             parent=menu, text="Process heatmap...", bitmap=self._icons.process_heatmap
@@ -641,13 +621,6 @@ class PanelPlots(wx.Panel):
         )
 
         menu_action_process_pick = make_menu_item(parent=menu, text="Open peak picker...", bitmap=self._icons.highlight)
-
-        menu_action_copy_to_clipboard = make_menu_item(
-            parent=menu, text="Copy plot to clipboard", bitmap=self._icons.filelist
-        )
-
-        menu_action_clear = make_menu_item(parent=menu, text="Clear plot", bitmap=self._icons.clear)
-        menu_action_save_figure = make_menu_item(parent=menu, text="Save figure as...", bitmap=self._icons.png)
 
         menu_action_smooth_signal = make_menu_item(
             parent=menu, text="Smooth signal (Gaussian)", bitmap=self._icons.clean
@@ -675,9 +648,6 @@ class PanelPlots(wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_process_heatmap, menu_action_process_2d)
         self.Bind(wx.EVT_MENU, self.on_rotate_plot, menu_action_rotate90)
         self.Bind(wx.EVT_MENU, self.on_open_peak_picker, menu_action_process_pick)
-        self.Bind(wx.EVT_MENU, self.on_clear_plot_, menu_action_clear)
-        self.Bind(wx.EVT_MENU, self.on_save_figure, menu_action_save_figure)
-        self.Bind(wx.EVT_MENU, self.on_copy_to_clipboard, menu_action_copy_to_clipboard)
         self.Bind(wx.EVT_MENU, self.on_smooth_object, menu_action_smooth_signal)
         self.Bind(wx.EVT_MENU, self.on_smooth_object, menu_action_smooth_heatmap)
         self.Bind(wx.EVT_MENU, self.on_open_annotations_panel, menu_action_open_annotations)
@@ -688,139 +658,61 @@ class PanelPlots(wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_show_as_violin, menu_action_show_violin)
 
         if self.currentPage == "Mass spectrum":
-            menu.AppendItem(menu_action_smooth_signal)
-            menu.AppendItem(menu_action_process_ms)
-            menu.AppendItem(menu_action_process_pick)
-            menu.AppendItem(menu_action_open_annotations)
-            # menu.AppendItem(
-            #     make_menu_item(
-            #         parent=menu,
-            #         evt_id=ID_highlightRectAllIons,
-            #         text="Show extracted ions",
-            #         bitmap=self._icons.iconsLib["annotate16"],
-            #     )
-            # )
-            menu.AppendSeparator()
-            menu.AppendItem(menu_edit_general)
-            menu.AppendItem(menu_edit_plot_1d)
-            self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, "Lock plot", help="")
-            self.lock_plot_check.Check(self.plot_ms.lock_plot_from_updating)
-            menu.AppendItem(menu_customise_plot)
-            menu.AppendSeparator()
-            self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
-            self.resize_plot_check.Check(CONFIG.resize)
-            menu.AppendItem(menu_action_save_figure)
-            menu.AppendItem(menu_action_copy_to_clipboard)
-            menu.AppendSeparator()
-            menu.AppendItem(menu_action_clear)
+            menu.Insert(0, menu_action_smooth_signal)
+            menu.Insert(1, menu_action_process_ms)
+            menu.Insert(2, menu_action_process_pick)
+            menu.Insert(3, menu_action_open_annotations)
+            menu.InsertSeparator(4)
+            menu.Insert(5, menu_edit_general)
+            menu.Insert(6, menu_edit_plot_1d)
         elif self.currentPage == "Chromatogram":
-            menu.AppendItem(menu_action_smooth_signal)
-            menu.AppendItem(menu_action_open_annotations)
-            menu.AppendSeparator()
-            menu.AppendItem(menu_edit_general)
-            menu.AppendItem(menu_edit_plot_1d)
-            menu.AppendItem(menu_edit_legend)
-            self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, "Lock plot", help="")
-            self.lock_plot_check.Check(self.plot_rt_rt.lock_plot_from_updating)
-            menu.AppendItem(menu_customise_plot)
-            menu.AppendSeparator()
-            self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
-            self.resize_plot_check.Check(CONFIG.resize)
-            menu.AppendItem(
-                make_menu_item(parent=menu, evt_id=ID_saveRTImage, text="Save figure as...", bitmap=self._icons.png)
-            )
-            menu.AppendItem(menu_action_copy_to_clipboard)
-            menu.AppendSeparator()
-            menu.AppendItem(menu_action_clear)
+            menu.Insert(0, menu_action_smooth_signal)
+            menu.Insert(1, menu_action_open_annotations)
+            menu.InsertSeparator(2)
+            menu.Insert(3, menu_edit_general)
+            menu.Insert(4, menu_edit_plot_1d)
+            menu.Insert(5, menu_edit_legend)
         elif self.currentPage == "Mobilogram":
-            menu.AppendItem(menu_action_smooth_signal)
-            menu.AppendItem(menu_action_open_annotations)
-            menu.AppendSeparator()
-            menu.AppendItem(menu_edit_general)
-            menu.AppendItem(menu_edit_plot_1d)
-            menu.AppendItem(menu_edit_legend)
-            self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, "Lock plot", help="")
-            self.lock_plot_check.Check(self.plot_dt_dt.lock_plot_from_updating)
-            menu.AppendItem(menu_customise_plot)
-            menu.AppendSeparator()
-            self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
-            self.resize_plot_check.Check(CONFIG.resize)
-            menu.AppendItem(menu_action_save_figure)
-            menu.AppendItem(menu_action_copy_to_clipboard)
-            menu.AppendSeparator()
-            menu.AppendItem(menu_action_clear)
+            menu.Insert(0, menu_action_smooth_signal)
+            menu.Insert(1, menu_action_open_annotations)
+            menu.InsertSeparator(2)
+            menu.Insert(3, menu_edit_general)
+            menu.Insert(4, menu_edit_plot_1d)
+            menu.Insert(5, menu_edit_legend)
         elif self.currentPage == "Heatmap":
-            menu.AppendItem(menu_action_show_heatmap)
-            menu.AppendItem(menu_action_show_contour)
-            menu.AppendItem(menu_action_show_waterfall)
-            menu.AppendItem(menu_action_show_violin)
-            menu.AppendItem(menu_action_show_joint)
-            menu.AppendSeparator()
-            menu.AppendItem(menu_action_smooth_heatmap)
-            menu.AppendItem(menu_action_process_2d)
-            menu.AppendItem(menu_action_rotate90)
-            menu.AppendItem(menu_action_open_annotations)
-            menu.AppendSeparator()
-            menu.AppendItem(menu_edit_general)
-            menu.AppendItem(menu_edit_plot_2d)
-            menu.AppendItem(menu_edit_colorbar)
-            menu.AppendItem(menu_edit_waterfall)
-            menu.AppendItem(menu_edit_violin)
-            self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, "Lock plot", help="")
-            self.lock_plot_check.Check(self.plot_heatmap.lock_plot_from_updating)
-            menu.AppendItem(menu_customise_plot)
-            menu.AppendSeparator()
-            self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
-            self.resize_plot_check.Check(CONFIG.resize)
-            menu.AppendItem(menu_action_save_figure)
-            menu.AppendItem(menu_action_copy_to_clipboard)
-            menu.AppendSeparator()
-            menu.AppendItem(menu_action_clear)
+            menu.Insert(0, menu_action_show_heatmap)
+            menu.Insert(1, menu_action_show_contour)
+            menu.Insert(2, menu_action_show_waterfall)
+            menu.Insert(3, menu_action_show_violin)
+            menu.Insert(4, menu_action_show_joint)
+            menu.InsertSeparator(5)
+            menu.Insert(6, menu_action_smooth_heatmap)
+            menu.Insert(7, menu_action_process_2d)
+            menu.Insert(8, menu_action_rotate90)
+            menu.Insert(9, menu_action_open_annotations)
+            menu.InsertSeparator(10)
+            menu.Insert(11, menu_edit_general)
+            menu.Insert(12, menu_edit_plot_2d)
+            menu.Insert(13, menu_edit_colorbar)
+            menu.Insert(14, menu_edit_waterfall)
+            menu.Insert(15, menu_edit_violin)
         elif self.currentPage == "DT/MS":
-            menu.AppendItem(menu_action_show_heatmap)
-            menu.AppendItem(menu_action_show_contour)
-            menu.AppendItem(menu_action_show_joint)
-            menu.AppendSeparator()
-            menu.AppendItem(menu_action_smooth_heatmap)
-            menu.AppendItem(menu_action_process_2d)
-            menu.AppendItem(menu_action_rotate90)
-            menu.AppendItem(menu_action_open_annotations)
-            menu.AppendSeparator()
-            menu.AppendItem(
-                make_menu_item(
-                    parent=menu,
-                    evt_id=ID_plots_customise_smart_zoom,
-                    text="Customise smart zoom....",
-                    bitmap=self._icons.highlight,
-                )
-            )
-            menu.AppendSeparator()
-            menu.AppendItem(menu_edit_general)
-            menu.AppendItem(menu_edit_plot_2d)
-            menu.AppendItem(menu_edit_colorbar)
-            self.lock_plot_check = menu.AppendCheckItem(ID_plotPanel_lockPlot, "Lock plot", help="")
-            self.lock_plot_check.Check(self.plot_msdt.lock_plot_from_updating)
-            menu.AppendItem(menu_customise_plot)
-            menu.AppendSeparator()
-            self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
-            self.resize_plot_check.Check(CONFIG.resize)
-            menu.AppendItem(menu_action_save_figure)
-            menu.AppendItem(menu_action_copy_to_clipboard)
-            menu.AppendSeparator()
-            menu.AppendItem(menu_action_clear)
+            menu.Insert(0, menu_action_show_heatmap)
+            menu.Insert(1, menu_action_show_contour)
+            menu.Insert(2, menu_action_show_joint)
+            menu.InsertSeparator(3)
+            menu.Insert(4, menu_action_smooth_heatmap)
+            menu.Insert(5, menu_action_process_2d)
+            menu.Insert(6, menu_action_rotate90)
+            menu.Insert(7, menu_action_open_annotations)
+            menu.InsertSeparator(8)
+            menu.Insert(9, menu_edit_general)
+            menu.Insert(10, menu_edit_plot_2d)
+            menu.Insert(11, menu_edit_colorbar)
         elif self.currentPage == "Heatmap (3D)":
-            menu.AppendItem(menu_action_smooth_heatmap)
-            menu.AppendSeparator()
-            menu.AppendItem(menu_edit_plot_3d)
-            menu.AppendSeparator()
-            self.resize_plot_check = menu.AppendCheckItem(ID_plotPanel_resize, "Resize on saving", help="")
-            self.resize_plot_check.Check(CONFIG.resize)
-            menu.AppendItem(
-                make_menu_item(parent=menu, evt_id=ID_save3DImage, text="Save figure as...", bitmap=self._icons.png)
-            )
-            #             menu.AppendItem(menu_action_copy_to_clipboard)
-            menu.AppendSeparator()
-            menu.AppendItem(menu_action_clear)
+            menu.Insert(0, menu_action_smooth_heatmap)
+            menu.InsertSeparator(1)
+            menu.Insert(2, menu_edit_plot_3d)
 
         self.PopupMenu(menu)
         menu.Destroy()
@@ -863,66 +755,6 @@ class PanelPlots(wx.Panel):
         plot_obj.save_figure(filename, **kwargs)
 
         logger.info(f"Saved figure {filename} in {time.time()-t_start:.2f} seconds")
-
-    def save_images(self, evt, **save_kwargs):
-        """ Save figure depending on the event ID """
-        self.data_handling.update_statusbar("Saving image...", 4)
-
-        # retrieve event ID
-        if isinstance(evt, int):
-            evt_id = evt
-        elif isinstance(evt, str):
-            evt_id = evt.lower()
-        elif evt is None:
-            evt_id = None
-        else:
-            evt_id = evt.GetId()
-
-        path, title = self.data_handling._on_get_document_path_and_title()
-        if path is None:
-            logger.error(f"Could not find path {path}")
-            return
-
-        image_name = "origami-image"
-        plot_view = None
-        # Select default name + link to the plot
-        if evt_id in [ID_saveMSImage, ID_saveMSImageDoc, "ms"]:
-            image_name = CONFIG._plotSettings["MS"]["default_name"]  # noqa
-            plot_view = self.view_ms
-
-        elif evt_id in [ID_saveRTImage, ID_saveRTImageDoc, "rt", "chromatogram"]:
-            image_name = CONFIG._plotSettings["RT"]["default_name"]  # noqa
-            plot_view = self.view_rt_rt
-
-        elif evt_id in [ID_save1DImage, ID_save1DImageDoc, "1d", "mobilogram"]:
-            image_name = CONFIG._plotSettings["DT"]["default_name"]  # noqa
-            plot_view = self.view_dt_dt
-
-        elif evt_id in [ID_save2DImage, ID_save2DImageDoc, "2d", "heatmap"]:
-            image_name = CONFIG._plotSettings["2D"]["default_name"]  # noqa
-            plot_view = self.view_heatmap
-
-        elif evt_id in [ID_saveMZDTImage, ID_saveMZDTImageDoc, "ms/dt"]:
-            image_name = CONFIG._plotSettings["DT/MS"]["default_name"]  # noqa
-            plot_view = self.view_msdt
-
-        elif evt_id in [ID_save3DImage, ID_save3DImageDoc, "heatmap3d"]:
-            image_name = CONFIG._plotSettings["3D"]["default_name"]  # noqa
-            plot_view = self.view_heatmap_3d
-
-        # generate a better default name and remove any silly characters
-        if "image_name" in save_kwargs:
-            image_name = save_kwargs.pop("image_name")
-            if image_name is None:
-                image_name = "{}_{}".format(title, image_name)
-        else:
-            image_name = "{}_{}".format(title, image_name)
-        image_name = clean_filename(image_name)
-
-        if plot_view is None:
-            raise ValueError("Could not save figure")
-
-        plot_view.save_figure(image_name)
 
     def get_plot_from_name(self, plot_name):
         """Retrieve plot object from name
@@ -1009,12 +841,12 @@ class PanelPlots(wx.Panel):
         """Enable/disable plot resizing"""
         CONFIG.resize = not CONFIG.resize
 
-    def on_customise_smart_zoom(self, _evt):
-        """Customise smart zoom in the MS/DT plot"""
-        from origami.gui_elements.dialog_customise_smart_zoom import DialogCustomiseSmartZoom
-
-        dlg = DialogCustomiseSmartZoom(self)
-        dlg.ShowModal()
+    #     def on_customise_smart_zoom(self, _evt):
+    #         """Customise smart zoom in the MS/DT plot"""
+    #         from origami.gui_elements.dialog_customise_smart_zoom import DialogCustomiseSmartZoom
+    #
+    #         dlg = DialogCustomiseSmartZoom(self)
+    #         dlg.ShowModal()
 
     def on_customise_plot(self, evt, **kwargs):
         """Open customization panel..."""
@@ -1103,7 +935,6 @@ class PanelPlots(wx.Panel):
         # dlg = DialogCustomisePlot(self, self.presenter, CONFIG, **kwargs)
         # dlg.ShowModal()
 
-    #
     @staticmethod
     def on_change_plot_style():
         """Change plot style"""
@@ -1218,40 +1049,86 @@ class PanelPlots(wx.Panel):
             view.repaint()
         logger.info("Cleared all plots")
 
-    def on_plot_ms(self, obj, allow_extraction: bool = True, set_page: bool = False):
+    def on_plot_ms(self, obj, allow_extraction: bool = True, set_page: bool = False) -> ViewMassSpectrum:
         """Plot mass spectrum"""
         self.view_ms.plot(obj=obj, allow_extraction=allow_extraction)
 
         if set_page:
             self.set_page("Mass spectrum")
+        return self.view_ms
 
-    def on_plot_1d(self, obj, allow_extraction: bool = True, set_page: bool = False):
+    def on_plot_1d(self, obj, allow_extraction: bool = True, set_page: bool = False) -> ViewMobilogram:
         """Plot mobilogram"""
         self.view_dt_dt.plot(obj=obj, allow_extraction=allow_extraction)
 
         if set_page:
             self.set_page("Mobilogram")
+        return self.view_dt_dt
 
-    def on_plot_rt(self, obj, allow_extraction: bool = True, set_page: bool = False):
+    def on_plot_rt(self, obj, allow_extraction: bool = True, set_page: bool = False) -> ViewChromatogram:
         """Plot chromatogram"""
         self.view_rt_rt.plot(obj=obj, allow_extraction=allow_extraction)
 
         if set_page:
             self.set_page("Chromatogram")
+        return self.view_rt_rt
 
-    def on_plot_2d(self, obj, allow_extraction: bool = True, set_page: bool = False):
+    def on_plot_2d(self, obj, allow_extraction: bool = True, set_page: bool = False) -> ViewIonHeatmap:
         """Plot heatmap"""
         self.view_heatmap.plot(obj=obj, allow_extraction=allow_extraction)
 
         if set_page:
             self.set_page("Heatmap")
+        return self.view_heatmap
 
-    def on_plot_dtms(self, obj, allow_extraction: bool = True, set_page: bool = False):
+    def on_plot_dtms(self, obj, allow_extraction: bool = True, set_page: bool = False) -> ViewMassSpectrumHeatmap:
         """Plot heatmap"""
         self.view_msdt.plot(obj=obj, allow_extraction=allow_extraction)
 
         if set_page:
             self.set_page("DT/MS")
+        return self.view_msdt
+
+    def on_plot_3d(self, obj, allow_extraction: bool = True, set_page: bool = False) -> ViewHeatmap3d:
+        """Plot heatmap"""
+        self.view_heatmap_3d.plot(obj=obj, allow_extraction=allow_extraction)
+
+        if set_page:
+            self.set_page("Heatmap (3D)")
+        return self.view_heatmap_3d
+
+    def on_plot_data_object(self, data_obj: DataObject) -> ViewBase:
+        """Plot data based on which data object it is
+
+        Parameters
+        ----------
+        data_obj : DataObject
+            container object that needs to be plotted
+
+        Returns
+        -------
+        view : ViewBase
+            viewer object
+        """
+        if isinstance(data_obj, MassSpectrumObject):
+            self.view_ms.plot(obj=data_obj)
+            return self.view_ms
+
+        elif isinstance(data_obj, ChromatogramObject):
+            self.view_rt_rt.plot(obj=data_obj)
+            return self.view_rt_rt
+
+        elif isinstance(data_obj, MobilogramObject):
+            self.view_dt_dt.plot(obj=data_obj)
+            return self.view_dt_dt
+
+        elif isinstance(data_obj, MassSpectrumHeatmapObject):
+            self.view_msdt.plot(obj=data_obj)
+            return self.view_msdt
+
+        elif isinstance(data_obj, IonHeatmapObject):
+            self.view_heatmap.plot(obj=data_obj)
+            return self.view_heatmap
 
     # def on_change_rmsf_zoom(self, xmin, xmax):
     #     """Receives a message about change in RMSF plot"""
@@ -3896,36 +3773,3 @@ class PanelPlots(wx.Panel):
     #             self.plot_heatmap_3d.repaint()
     #         except AttributeError:
     #             pass
-
-    def on_plot_data_object(self, data_obj: DataObject) -> ViewBase:
-        """Plot data based on which data object it is
-
-        Parameters
-        ----------
-        data_obj : DataObject
-            container object that needs to be plotted
-
-        Returns
-        -------
-        view : ViewBase
-            viewer object
-        """
-        if isinstance(data_obj, MassSpectrumObject):
-            self.view_ms.plot(obj=data_obj)
-            return self.view_ms
-
-        elif isinstance(data_obj, ChromatogramObject):
-            self.view_rt_rt.plot(obj=data_obj)
-            return self.view_rt_rt
-
-        elif isinstance(data_obj, MobilogramObject):
-            self.view_dt_dt.plot(obj=data_obj)
-            return self.view_dt_dt
-
-        elif isinstance(data_obj, MassSpectrumHeatmapObject):
-            self.view_msdt.plot(obj=data_obj)
-            return self.view_msdt
-
-        elif isinstance(data_obj, IonHeatmapObject):
-            self.view_heatmap.plot(obj=data_obj)
-            return self.view_heatmap

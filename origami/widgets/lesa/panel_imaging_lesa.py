@@ -11,7 +11,6 @@ from pubsub import pub
 # Local imports
 from origami.styles import MiniFrame
 from origami.styles import set_tooltip
-from origami.styles import make_menu_item
 from origami.icons.assets import Icons
 from origami.utils.screen import calculate_window_size
 from origami.config.config import CONFIG
@@ -22,6 +21,8 @@ from origami.gui_elements.panel_base import DatasetMixin
 from origami.gui_elements.popup_view import PopupMobilogramView
 from origami.gui_elements.views.view_heatmap import ViewImagingIonHeatmap
 from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
+
+# from origami.gui_elements.views.view_register import VIEW_REG
 
 # Module globals
 LOGGER = logging.getLogger(__name__)
@@ -181,7 +182,7 @@ class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
         plot_panel = self.make_plot_panel(self)
 
         # pack elements
-        main_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        main_sizer = wx.BoxSizer()
         main_sizer.Add(plot_panel, 1, wx.EXPAND, 0)
         main_sizer.Add(settings_panel, 0, wx.EXPAND, 0)
 
@@ -190,7 +191,7 @@ class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
         self.SetSizer(main_sizer)
         self.SetSize(self._window_size)
         self.Layout()
-        self.Show(True)
+        self.Show()
 
         self.CentreOnParent()
         self.SetFocus()
@@ -233,7 +234,7 @@ class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
         self.info_btn = self.make_info_button(panel)
         self.settings_btn = self.make_settings_button(panel)
 
-        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        btn_sizer = wx.BoxSizer()
         btn_sizer.Add(self.settings_btn, 0)
         btn_sizer.Add(self.info_btn, 0)
 
@@ -285,6 +286,7 @@ class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
             allow_extraction=True,
             axes_size=(0.15, 0.25, 0.8, 0.6),
             callbacks=dict(CTRL="widget.imaging.lesa.extract.image.spectrum"),
+            filename="mass-spectrum",
         )
         self.panel_top_ms = self.view_ms.panel
         self.plot_ms = self.view_ms.figure
@@ -296,6 +298,7 @@ class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
             allow_extraction=True,
             axes_size=(0.3, 0.3, 0.6, 0.6),
             callbacks=dict(CTRL="widget.imaging.lesa.extract.spectrum.image"),
+            filename="image",
         )
         self.panel_bottom_img = self.view_img.panel
         self.plot_img = self.view_img.figure
@@ -390,50 +393,15 @@ class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
                 self.document_tree.on_update_document(heatmap_obj.DOCUMENT_KEY, name, self.document_title)
 
     def on_right_click(self, evt):
-        """Event on right-click"""
+        """Right-click menu"""
         # ensure that user clicked inside the plot area
-        menu = wx.Menu()
         if hasattr(evt.EventObject, "figure"):
+            plot_view = self.get_plot_obj()
+            menu = plot_view.get_right_click_menu(self)
 
-            # get plot
-            plot_obj = self.get_plot_obj()
-
-            menu_action_customise_plot = make_menu_item(
-                parent=menu, text="Customise plot...", bitmap=self._icons.x_label
-            )
-            menu.AppendItem(menu_action_customise_plot)
-            self.lock_plot_check = menu.AppendCheckItem(wx.ID_ANY, "Lock plot", help="")
-            self.lock_plot_check.Check(plot_obj.figure.lock_plot_from_updating)
-            menu.AppendSeparator()
-            self.resize_plot_check = menu.AppendCheckItem(-1, "Resize on saving")
-            self.resize_plot_check.Check(CONFIG.resize)
-            save_figure_menu_item = make_menu_item(
-                menu, evt_id=wx.ID_ANY, text="Save figure as...", bitmap=self._icons.save
-            )
-            menu.AppendItem(save_figure_menu_item)
-            menu_action_copy_to_clipboard = make_menu_item(
-                parent=menu, evt_id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self._icons.filelist
-            )
-            menu.AppendItem(menu_action_copy_to_clipboard)
-
-            menu.AppendSeparator()
-            reset_plot_menu_item = make_menu_item(menu, evt_id=wx.ID_ANY, text="Reset plot zoom")
-            menu.AppendItem(reset_plot_menu_item)
-
-            clear_plot_menu_item = make_menu_item(menu, evt_id=wx.ID_ANY, text="Clear plot", bitmap=self._icons.clear)
-            menu.AppendItem(clear_plot_menu_item)
-
-            self.Bind(wx.EVT_MENU, self.on_resize_check, self.resize_plot_check)
-            self.Bind(wx.EVT_MENU, self.on_customise_plot, menu_action_customise_plot)
-            self.Bind(wx.EVT_MENU, self.on_save_figure, save_figure_menu_item)
-            self.Bind(wx.EVT_MENU, self.on_copy_to_clipboard, menu_action_copy_to_clipboard)
-            self.Bind(wx.EVT_MENU, self.on_clear_plot, clear_plot_menu_item)
-            self.Bind(wx.EVT_MENU, self.on_reset_plot, reset_plot_menu_item)
-            self.Bind(wx.EVT_MENU, self.on_lock_plot, self.lock_plot_check)
-
-        self.PopupMenu(menu)
-        menu.Destroy()
-        self.SetFocus()
+            self.PopupMenu(menu)
+            menu.Destroy()
+            self.SetFocus()
 
     def get_normalization_list(self):
         """Get list of normalizations for the currently selected document"""
@@ -445,42 +413,13 @@ class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
 
     def get_plot_obj(self):
         """Return current plot object"""
-        plot_dict = {self.view_ms.NAME: self.view_ms, self.view_img.NAME: self.view_img}
+        plot_dict = {self.view_ms.PLOT_ID: self.view_ms, self.view_img.PLOT_ID: self.view_img}
         return plot_dict[self.view.plot_id]
-
-    def on_clear_plot(self, _evt):
-        """Clear plot"""
-        plot_obj = self.get_plot_obj()
-        plot_obj.figure.clear()
 
     def on_reset_plot(self, _evt):
         """Reset plot"""
         plot_obj = self.get_plot_obj()
         plot_obj.figure.on_reset_zoom()
-
-    def on_resize_check(self, _evt):
-        """Toggle resize check in the plot"""
-        self.panel_plot.on_resize_check(None)
-
-    def on_copy_to_clipboard(self, _evt):
-        """Copy plot object to clipboard"""
-        plot_obj = self.get_plot_obj()
-        plot_obj.copy_to_clipboard()
-
-    def on_customise_plot(self, _evt):
-        """Customise plot parameters"""
-        plot_obj = self.get_plot_obj()
-        self.panel_plot.on_customise_plot(None, plot="Imaging: LESA...", plot_obj=plot_obj)
-
-    def on_save_figure(self, _evt):
-        """Save figure"""
-        plot_obj = self.get_plot_obj()
-        plot_obj.save_figure()
-
-    def on_lock_plot(self, _evt):
-        """Lock/unlock plot"""
-        plot_obj = self.get_plot_obj()
-        plot_obj.figure.lock_plot_from_updating = not plot_obj.figure.lock_plot_from_updating
 
     def on_populate_item(self, item_info):
         """Populate values in the gui"""
@@ -524,7 +463,7 @@ class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
         y_min, y_max, _, _ = rect
         del rect, x_labels, y_labels
 
-        item_info = self.on_get_item_information(None)
+        item_info = self.on_get_item_information()
         x_min, x_max = self._get_mz_from_label(item_info["ion_name"])
 
         # pre-generate name in case data has been previously extracted
@@ -608,7 +547,7 @@ class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
             self.popup = PopupMobilogramView(
                 self, allow_extraction=True, callbacks=dict(CTRL="widget.imaging.lesa.extract.image.mobilogram")
             )
-            self.popup.position_on_event(evt, 500, 0)
+            self.popup.position_on_event(evt, 500)
         self.popup.Show()
         self.popup.plot(dt_obj)
         self.popup.set_title(title)
@@ -627,7 +566,7 @@ class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
         self.item_loading_lock = True
 
         self.peaklist.on_select_item(evt)
-        item_info = self.on_get_item_information(None)
+        item_info = self.on_get_item_information()
         self.on_populate_item(item_info)
 
         # already present
@@ -640,7 +579,7 @@ class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
     def on_double_click_on_item(self, evt):
         """Select item in list"""
         self.item_loading_lock = True
-        item_info = self.on_get_item_information(None)
+        item_info = self.on_get_item_information()
 
         # get dt data
         name = item_info["ion_name"]

@@ -176,38 +176,15 @@ class PanelSignalComparisonViewer(MiniFrame):
             return PlotIds.PLOT_COMPARE_BOTTOM_GID
 
     # noinspection DuplicatedCode
-    def on_right_click(self, _evt):
+    def on_right_click(self, evt):
         """Right-click menu"""
+        # ensure that user clicked inside the plot area
+        if hasattr(evt.EventObject, "figure"):
+            menu = self.plot_view.get_right_click_menu(self)
 
-        menu = wx.Menu()
-
-        menu_customize = make_menu_item(parent=menu, text="Customise plot...", bitmap=self._icons.x_label)
-        menu.AppendItem(menu_customize)
-        menu.AppendSeparator()
-        self.resize_plot_check = menu.AppendCheckItem(wx.ID_ANY, "Resize on saving")
-        self.resize_plot_check.Check(CONFIG.resize)
-        save_figure_menu_item = make_menu_item(
-            menu, evt_id=wx.ID_ANY, text="Save figure as...", bitmap=self._icons.save
-        )
-        menu.AppendItem(save_figure_menu_item)
-        menu_action_copy_to_clipboard = make_menu_item(
-            parent=menu, evt_id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self._icons.filelist
-        )
-        menu.AppendItem(menu_action_copy_to_clipboard)
-
-        menu.AppendSeparator()
-        clear_plot_menu_item = make_menu_item(menu, evt_id=wx.ID_ANY, text="Clear plot", bitmap=self._icons.erase)
-        menu.AppendItem(clear_plot_menu_item)
-
-        self.Bind(wx.EVT_MENU, self.on_resize_check, self.resize_plot_check)
-        self.Bind(wx.EVT_MENU, self.on_customise_plot, menu_customize)
-        self.Bind(wx.EVT_MENU, self.on_save_figure, save_figure_menu_item)
-        self.Bind(wx.EVT_MENU, self.on_copy_to_clipboard, menu_action_copy_to_clipboard)
-        self.Bind(wx.EVT_MENU, self.on_clear_plot, clear_plot_menu_item)
-
-        self.PopupMenu(menu)
-        menu.Destroy()
-        self.SetFocus()
+            self.PopupMenu(menu)
+            menu.Destroy()
+            self.SetFocus()
 
     def on_close(self, evt, force: bool = False):
         """Destroy this frame."""
@@ -462,7 +439,9 @@ class PanelSignalComparisonViewer(MiniFrame):
         pixel_size = [(self._window_size[0] - self._settings_panel_size[0] - 50), (self._window_size[1] - 50)]
         figsize = [pixel_size[0] / self._display_resolution[0], pixel_size[1] / self._display_resolution[1]]
 
-        self.plot_view = ViewCompareMassSpectra(split_panel, figsize, x_label="m/z (Da)", y_label="Intensity")
+        self.plot_view = ViewCompareMassSpectra(
+            split_panel, figsize, x_label="m/z (Da)", y_label="Intensity", filename="compare-mass-spectra"
+        )
         self.plot_window = self.plot_view.figure
 
         return self.plot_view.panel
@@ -729,27 +708,6 @@ class PanelSignalComparisonViewer(MiniFrame):
                 self.preprocess_check.SetValue(True)
                 CONFIG.compare_panel_preprocess = True
 
-    def on_clear_plot(self, _evt):
-        """Clear plot area"""
-        self.plot_window.clear()
-
-    def on_save_figure(self, _evt):
-        """Save figure"""
-        filename = "compare-mass-spectra"
-        self.plot_view.save_figure(filename)
-
-    def on_resize_check(self, _evt):
-        """Resize checkbox"""
-        self.panel_plot.on_resize_check(None)
-
-    def on_copy_to_clipboard(self, _evt):
-        """Copy plot to clipboard"""
-        self.plot_window.copy_to_clipboard()
-
-    def on_customise_plot(self, _evt):
-        """Customise plot"""
-        self.panel_plot.on_customise_plot(None, plot="MS...", plot_obj=self.plot_window)
-
     def on_open_process_ms_settings(self, _evt):
         """Open MS pre-processing panel"""
         self.document_tree.on_open_process_ms_settings(
@@ -762,7 +720,7 @@ def _main():
 
     app = wx.App()
     icons = Icons()
-    ex = PanelSignalComparisonViewer(None, None, icons, "", None, None, debug=True)
+    ex = PanelSignalComparisonViewer(None, None, icons, "", debug=True)
 
     ex.Show()
     app.MainLoop()

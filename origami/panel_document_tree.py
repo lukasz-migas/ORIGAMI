@@ -1,3 +1,4 @@
+"""DocumentTree panel"""
 # Standard library imports
 import gc
 import os
@@ -19,7 +20,6 @@ from origami.ids import ID_ylabel_2D_ms
 from origami.ids import ID_xlabel_1D_ccs
 from origami.ids import ID_xlabel_2D_ccs
 from origami.ids import ID_ylabel_2D_ccs
-from origami.ids import ID_save2DImageDoc
 from origami.ids import ID_saveData_excel
 from origami.ids import ID_xlabel_1D_bins
 from origami.ids import ID_ylabel_2D_bins
@@ -75,7 +75,7 @@ from origami.objects.containers import MobilogramObject
 from origami.objects.containers import ChromatogramObject
 from origami.objects.containers import MassSpectrumObject
 from origami.objects.containers import MassSpectrumHeatmapObject
-from origami.gui_elements._panel import TestPanel
+from origami.gui_elements._panel import TestPanel  # noqa
 from origami.gui_elements.misc_dialogs import DialogBox
 
 LOGGER = logging.getLogger(__name__)
@@ -100,6 +100,7 @@ class Item:
         )
 
     def update(self, title=None, root=None, branch=None, leaf=None, indent=None, current=None, data=None):
+        """Update data"""
         self.title = title
         self.root = root
         self.branch = branch
@@ -465,7 +466,7 @@ class DocumentTree(wx.TreeCtrl):
 
         # add root
         root = self.AddRoot("Documents")
-        self.SetItemImage(root, 0, wx.TreeItemIcon_Normal)
+        self.SetItemImage(root, 0)
 
         # Add bindings
         self.Bind(wx.EVT_TREE_KEY_DOWN, self.on_keyboard_event, id=wx.ID_ANY)
@@ -680,7 +681,7 @@ class DocumentTree(wx.TreeCtrl):
 
             if CONFIG.tree_panel_item_auto_plot:
                 if self._item.is_match(
-                    ["spectrum", "chromatogram", "mobilogram", "heatmap", "msdt", "tandem", "overlay"], False
+                    ["spectrum", "chromatogram", "mobilogram", "heatmap", "msdt", "tandem", "overlay"]
                 ):
                     self.on_show_plot(None)
         else:
@@ -726,11 +727,11 @@ class DocumentTree(wx.TreeCtrl):
 
             # highlight current item
             if highlight_selected and CONFIG.tree_panel_item_highlight:
-                self.SetItemBold(selected_item, True)
+                self.SetItemBold(selected_item)
 
             # item, try setting it bold
             if item and CONFIG.tree_panel_item_highlight:
-                self.SetItemBold(item, True)
+                self.SetItemBold(item)
 
             if loading_data or evt_id == ID_getSelectedDocument:
                 self.Expand(item)  # Parent item
@@ -775,6 +776,7 @@ class DocumentTree(wx.TreeCtrl):
             evt.Skip()
 
     def get_item_indent(self, item):
+        """Get indent of the selected item"""
         # Check item first
         if not item.IsOk():
             return False
@@ -801,35 +803,6 @@ class DocumentTree(wx.TreeCtrl):
             return item, item_text
 
         return item
-
-    #     def get_item_by_data(self, data, root=None, cookie=0):
-    #         """Get item by its data."""
-    #
-    #         # get root
-    #         if root is None:
-    #             root = self.GetRootItem()
-    #
-    #         # check children
-    #         if self.ItemHasChildren(root):
-    #             first_child, cookie = self.GetFirstChild(root)
-    #             if self.GetPyData(first_child) is data:
-    #                 return first_child
-    #             matched_item = self.get_item_by_data(data, first_child, cookie)
-    #             if matched_item:
-    #                 return matched_item
-    #
-    #         # check siblings
-    #         child = self.GetNextSibling(root)
-    #         if child and child.IsOk():
-    #             if self.GetPyData(child) is data:
-    #                 return child
-    #
-    #             matched_item = self.get_item_by_data(data, child, cookie)
-    #             if matched_item:
-    #                 return matched_item
-    #
-    #         # no such item found
-    #         return False
 
     def get_item_by_data(self, data, root=None):
         """Get DocumentTree item by its data"""
@@ -1088,7 +1061,7 @@ class DocumentTree(wx.TreeCtrl):
         if self._indent == 1:  # and self._item_leaf is None:
             self.on_refresh_document()
         elif self._item.is_match("spectrum", True):
-            self.on_open_spectrum_comparison_viewer(evt=None)
+            self.on_open_spectrum_comparison_viewer(None)
         elif self._item.is_match("spectrum"):
             if self._item.is_match("spectrum"):
                 self.on_show_plot(evt=ID_showPlotDocument)
@@ -1098,8 +1071,8 @@ class DocumentTree(wx.TreeCtrl):
         #                 self.on_open_UniDec(None)
         #             elif self._item_leaf == "Annotations":
         #                 self.on_open_annotation_editor(None)
-        elif self._item.is_match(["chromatogram", "mobilogram", "heatmap", "msdt", "tandem", "overlay"], False):
-            if self._item.is_match("annotation", False):
+        elif self._item.is_match(["chromatogram", "mobilogram", "heatmap", "msdt", "tandem", "overlay"]):
+            if self._item.is_match("annotation"):
                 self.on_open_annotation_editor(None)
             else:
                 self.on_show_plot(None)
@@ -1133,7 +1106,7 @@ class DocumentTree(wx.TreeCtrl):
     def on_check_xlabels_rt(self):
         """Check label of the chromatogram dataset"""
 
-        xlabel, _ = self._get_item_label(True)
+        xlabel, _ = self._get_item_label(x=True)
 
         xlabel_evt_dict = {
             "Scans": ID_xlabel_RT_scans,
@@ -1167,13 +1140,13 @@ class DocumentTree(wx.TreeCtrl):
             "Collision Cross Section (Å²)": ID_ylabel_2D_ccs,
         }
 
-        xlabel, ylabel = self._get_item_label(True, True)
+        xlabel, ylabel = self._get_item_label(x=True, y=True)
 
         return xlabel_evt_dict.get(xlabel, ID_xlabel_2D_custom), ylabel_evt_dict.get(ylabel, ID_ylabel_2D_custom)
 
     def on_check_xlabels_dt(self):
         """Check labels of the mobilogram dataset"""
-        xlabel, _ = self._get_item_label(True)
+        xlabel, _ = self._get_item_label(x=True)
 
         xlabel_evt_dict = {
             "Drift time (bins)": ID_xlabel_1D_bins,
@@ -1186,7 +1159,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_check_xlabels_dtms(self):
         """Check labels of the DT/MS dataset"""
-        _, ylabel = self._get_item_label(False, True)
+        _, ylabel = self._get_item_label(y=True)
 
         ylabel_evt_dict = {
             "Drift time (bins)": ID_ylabel_DTMS_bins,
@@ -1490,7 +1463,7 @@ class DocumentTree(wx.TreeCtrl):
         self._manual_import_panel = PanelManualImportDataset(self.view, self.presenter, activation_type=activation_type)
         self._manual_import_panel.Show()
 
-    def on_update_ui(self, value, evt):
+    def on_update_ui(self, value, _evt):
         """Update UI element(s)"""
         if value == "menu.load.override":
             self.config.import_duplicate_panel_ask = not self.config.import_duplicate_panel_ask
@@ -1506,7 +1479,7 @@ class DocumentTree(wx.TreeCtrl):
         menu_xlabel.Append(ID_xlabel_1D_restore, "Restore default", "")
 
         # bind events
-        if self._item.is_match("mobilogram", False):
+        if self._item.is_match("mobilogram"):
             try:
                 item_id = self.on_check_xlabels_dt()
                 menu_xlabel.FindItemById(item_id).Check(True)
@@ -1529,7 +1502,7 @@ class DocumentTree(wx.TreeCtrl):
         menu_xlabel.Append(ID_xlabel_RT_restore, "Restore default", "")
 
         # bind events
-        if self._item.is_match("chromatogram", False):
+        if self._item.is_match("chromatogram"):
             try:
                 item_id = self.on_check_xlabels_rt()
                 menu_xlabel.FindItemById(item_id).Check(True)
@@ -1589,7 +1562,7 @@ class DocumentTree(wx.TreeCtrl):
         menu_ylabel.Append(ID_ylabel_DTMS_restore, "Restore default", "")
 
         # bind events
-        if self._item.is_match("msdt", False):
+        if self._item.is_match("msdt"):
             try:
                 item_id = self.on_check_xlabels_dtms()
                 menu_ylabel.FindItemById(item_id).Check(True)
@@ -1658,7 +1631,7 @@ class DocumentTree(wx.TreeCtrl):
     def _set_menu_actions(self, menu):
         action_menu = wx.Menu()
 
-        menu_action_extract = make_menu_item(parent=action_menu, text="Open DT/MS extraction panel...", bitmap=None)
+        menu_action_extract = make_menu_item(parent=action_menu, text="Open DT/MS extraction panel...")
 
         action_menu.Append(ID_docTree_action_open_origami_ms, "Setup ORIGAMI-MS parameters...")
         action_menu.Append(ID_docTree_action_open_extract, "Open data extraction panel...")
@@ -1666,11 +1639,12 @@ class DocumentTree(wx.TreeCtrl):
 
         self.Bind(wx.EVT_MENU, self.on_action_origami_ms, id=ID_docTree_action_open_origami_ms)
         self.Bind(wx.EVT_MENU, self.on_open_extract_data, id=ID_docTree_action_open_extract)
-        self.Bind(wx.EVT_MENU, self.on_open_extract_DTMS, menu_action_extract)
+        self.Bind(wx.EVT_MENU, self.on_open_extract_dtms, menu_action_extract)
 
         menu.AppendMenu(wx.ID_ANY, "Action...", action_menu)
 
-    def _get_menu_save(self):
+    @staticmethod
+    def _get_menu_save():
         # save dataframe
         save_data_submenu = wx.Menu()
         save_data_submenu.Append(ID_saveData_csv, "Save to .csv file")
@@ -1981,7 +1955,7 @@ class DocumentTree(wx.TreeCtrl):
         menu_action_show_plot_joint = make_menu_item(parent=menu, text="Show joint plot", bitmap=self._icons.joint)
 
         # process actions
-        menu_action_extract = make_menu_item(parent=menu, text="Open DT/MS extraction panel...", bitmap=None)
+        menu_action_extract = make_menu_item(parent=menu, text="Open DT/MS extraction panel...")
         menu_action_process_2d = make_menu_item(parent=menu, text="Process...\tP", bitmap=self._icons.process_heatmap)
         menu_action_process_2d_all = make_menu_item(
             parent=menu, text="Process all...", bitmap=self._icons.process_heatmap
@@ -2006,7 +1980,7 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
         self.Bind(wx.EVT_MENU, self.on_batch_export_figures, menu_action_save_image_as_all)
         self.Bind(wx.EVT_MENU, self.on_batch_export_data, menu_action_save_data_as_all)
-        self.Bind(wx.EVT_MENU, self.on_open_extract_DTMS, menu_action_extract)
+        self.Bind(wx.EVT_MENU, self.on_open_extract_dtms, menu_action_extract)
 
         # make menu
         if self._item.indent == 2:
@@ -2030,7 +2004,8 @@ class DocumentTree(wx.TreeCtrl):
             menu.AppendItem(menu_action_save_image_as)
             menu.AppendItem(menu_action_save_data_as)
 
-    def _get_menu_overlay(self, menu):
+    @staticmethod
+    def _get_menu_overlay(menu):
         # # statistical method
         # elif self._document_type == "Statistical":
         #     # Only if clicked on an item and not header
@@ -2130,18 +2105,21 @@ class DocumentTree(wx.TreeCtrl):
         """ Create and show up popup menu"""
 
         # Get the current text value for selected item
-        itemType = self.GetItemText(evt.GetItem())
+        item_type = self.GetItemText(evt.GetItem())
 
-        try:
-            query, subkey = self._get_query_info_based_on_indent(return_subkey=True, evt=evt)
-        except AttributeError:
-            LOGGER.debug(
-                "Could not obtain right-click query key. Please first left-click on an item in the document tree",
-                exc_info=True,
-            )
+        # try:
+        #     query, subkey = self._get_query_info_based_on_indent(return_subkey=True, evt=evt)
+        # except AttributeError:
+        #     LOGGER.debug(
+        #         "Could not obtain right-click query key. Please first left-click on an item in the document tree",
+        #         exc_info=True,
+        #     )
+        #     return
+
+        if wx.GetKeyState(wx.WXK_CONTROL):
+            self.parent.on_right_click(evt)
             return
-
-        if itemType == "Documents":
+        elif item_type == "Documents":
             self.on_right_click_short()
             return
 
@@ -2182,7 +2160,7 @@ class DocumentTree(wx.TreeCtrl):
         # self.Bind(wx.EVT_MENU, self.on_save_unidec_results, id=ID_docTree_save_unidec)
         # self.Bind(wx.EVT_MENU, self.data_handling.on_add_mzident_file_fcn, id=ID_docTree_add_mzIdentML)
         # self.Bind(wx.EVT_MENU, self.on_action_origami_ms, id=ID_docTree_action_open_origami_ms)
-        # # self.Bind(wx.EVT_MENU, self.on_open_extract_DTMS, id=ID_docTree_action_open_extractDTMS)
+        # # self.Bind(wx.EVT_MENU, self.on_open_extract_dtms, id=ID_docTree_action_open_extractDTMS)
         # # self.Bind(wx.EVT_MENU, self.on_open_extract_data, id=ID_docTree_action_open_extract)
 
         menu = wx.Menu()
@@ -2313,155 +2291,7 @@ class DocumentTree(wx.TreeCtrl):
         obj.change_y_label(to_label)
         self.on_show_plot(None)
 
-    def onAddToTable(self, evt):
-        # TODO: FIX ME
-        raise NotImplementedError("Must implement method")
-
-        # evtID = evt.GetId()
-        #
-        # filelist = self.presenter.view.panelMML.peaklist
-        # textlist = self.presenter.view.panelMultipleText.peaklist
-        # if evtID == ID_docTree_addToMMLTable:
-        #     data = self._document_data.multipleMassSpectrum
-        #     document_title = self._document_data.title
-        #     n_rows = len(data)
-        #     colors = self.panel_plot.on_change_color_palette(None, n_colors=n_rows, return_colors=True)
-        #     for i, key in enumerate(data):
-        #         count = filelist.GetItemCount()
-        #         label = data[key].get("label", os.path.splitext(key)[0])
-        #         color = data[key].get("color", colors[i])
-        #         if np.sum(color) > 4:
-        #             color = convert_rgb_255_to_1(color)
-        #         filelist.Append([key, data[key].get("trap", 0), document_title, label])
-        #         color = convert_rgb_1_to_255(color)
-        #         filelist.SetItemBackgroundColour(count, color)
-        #         filelist.SetItemTextColour(count, get_font_color(color, return_rgb=True))
-        #
-        # elif evtID == ID_docTree_addOneToMMLTable:
-        #     data = self._document_data.multipleMassSpectrum
-        #     count = filelist.GetItemCount()
-        #     colors = self.panel_plot.on_change_color_palette(None, n_colors=count + 1, return_colors=True)
-        #     key = self._item_leaf
-        #     document_title = self._document_data.title
-        #     label = data.get("label", key)
-        #     color = data[key].get("color", colors[-1])
-        #     if np.sum(color) > 4:
-        #         color = convert_rgb_255_to_1(color)
-        #     filelist.Append([key, data[key].get("trap", 0), document_title, label])
-        #     color = convert_rgb_1_to_255(color)
-        #     filelist.SetItemBackgroundColour(count, color)
-        #     filelist.SetItemTextColour(count, get_font_color(color, return_rgb=True))
-        #
-        # elif evtID == ID_docTree_addToTextTable:
-        #     data = self._document_data.IMS2DcompData
-        #     document_title = self._document_data.title
-        #     n_rows = len(data)
-        #     colors = self.panel_plot.on_change_color_palette(None, n_colors=n_rows, return_colors=True)
-        #     for i, key in enumerate(data):
-        #         count = textlist.GetItemCount()
-        #         label = data[key].get("label", os.path.splitext(key)[0])
-        #         color = data[key].get("color", colors[i])
-        #         if np.sum(color) > 4:
-        #             color = convert_rgb_255_to_1(color)
-        #         minCE, maxCE = np.min(data[key]["xvals"]), np.max(data[key]["xvals"])
-        #         document_label = "{}: {}".format(document_title, key)
-        #         textlist.Append(
-        #             [
-        #                 minCE,
-        #                 maxCE,
-        #                 data[key]["charge"],
-        #                 color,
-        #                 data[key]["cmap"],
-        #                 data[key]["alpha"],
-        #                 data[key]["mask"],
-        #                 label,
-        #                 data[key]["zvals"].shape,
-        #                 document_label,
-        #             ]
-        #         )
-        #         color = convert_rgb_1_to_255(color)
-        #         textlist.SetItemBackgroundColour(count, color)
-        #         textlist.SetItemTextColour(count, get_font_color(color, return_rgb=True))
-        #
-        # elif evtID == ID_docTree_addInteractiveToTextTable:
-        #     data = self._document_data.IMS2Dions
-        #     document_title = self._document_data.title
-        #     n_rows = len(data)
-        #     colors = self.panel_plot.on_change_color_palette(None, n_colors=n_rows, return_colors=True)
-        #     for i, key in enumerate(data):
-        #         count = textlist.GetItemCount()
-        #         label = data[key].get("label", os.path.splitext(key)[0])
-        #         color = data[key].get("color", colors[i])
-        #         if np.sum(color) > 4:
-        #             color = convert_rgb_255_to_1(color)
-        #         minCE, maxCE = np.min(data[key]["xvals"]), np.max(data[key]["xvals"])
-        #         document_label = "{}: {}".format(document_title, key)
-        #         textlist.Append(
-        #             [
-        #                 "",
-        #                 minCE,
-        #                 maxCE,
-        #                 data[key].get("charge", ""),
-        #                 color,
-        #                 data[key]["cmap"],
-        #                 data[key]["alpha"],
-        #                 data[key]["mask"],
-        #                 label,
-        #                 data[key]["zvals"].shape,
-        #                 document_label,
-        #             ]
-        #         )
-        #     color = convert_rgb_1_to_255(color)
-        #     textlist.SetItemBackgroundColour(count, color)
-        #     textlist.SetItemTextColour(count, get_font_color(color, return_rgb=True))
-        #
-        # if evtID in [ID_docTree_addToMMLTable, ID_docTree_addOneToMMLTable]:
-        #     # sort items
-        #     self.presenter.view.panelMML.OnSortByColumn(column=1, overrideReverse=True)
-        #     self.presenter.view.panelMML.onRemoveDuplicates(None)
-        #     self.presenter.view.on_toggle_panel(evt=ID_window_multipleMLList, check=True)
-        #
-        # elif evtID in [ID_docTree_addToTextTable, ID_docTree_addOneToTextTable, ID_docTree_addInteractiveToTextTable]:
-        #     # sort items
-        #     self.presenter.view.panelMultipleText.onRemoveDuplicates(None)
-        #     self.presenter.view.on_toggle_panel(evt=ID_window_textList, check=True)
-
-    def onShowMassSpectra(self, evt):
-        raise NotImplementedError("Must implement method")
-
-        # data = self._document_data.multipleMassSpectrum
-        # spectra_count = len(list(data.keys()))
-        # if spectra_count > 50:
-        #     dlg = DialogBox(
-        #         title="Would you like to continue?",
-        #         msg="There are {} mass spectra in this document. Would you like to continue?".format(spectra_count),
-        #         kind="Question",
-        #     )
-        #     if dlg == wx.ID_NO:
-        #         msg = "Cancelled was operation"
-        #         self.presenter.view.SetStatusText(msg, 3)
-        #         return
-        #
-        # # Check for energy
-        # energy_name = []
-        # for key in data:
-        #     energy_name.append([key, data[key].get("trap", 0)])
-        # # sort
-        # energy_name.sort(key=itemgetter(1))
-        #
-        # names, xvals_list, yvals_list = [], [], []
-        # for row in energy_name:
-        #     key = row[0]
-        #     xvals_list.append(data[key]["xvals"])
-        #     yvals_list.append(data[key]["yvals"])
-        #     names.append(key)
-        #
-        # kwargs = {"show_y_labels": True, "labels": names}
-        # self.panel_plot.on_plot_waterfall(
-        #     xvals_list, yvals_list, None, colors=[], xlabel="m/z", ylabel="", set_page=True, **kwargs
-        # )
-
-    def on_open_spectrum_comparison_viewer(self, evt):
+    def on_open_spectrum_comparison_viewer(self, _evt):
         """Open panel where user can select mas spectra to compare """
         from origami.widgets.comparison.panel_signal_comparison_viewer import PanelSignalComparisonViewer
 
@@ -2565,7 +2395,7 @@ class DocumentTree(wx.TreeCtrl):
         panel = PanelProcessMassSpectrum(self.presenter.view, self.presenter, **kwargs)
         panel.Show()
 
-    def on_process_ms(self, evt, **kwargs):
+    def on_process_ms(self, _evt, **kwargs):
         """Process clicked mass spectrum item"""
         document_title, dataset_name = self._get_item_info()
         mz_obj = self._get_item_object()
@@ -2575,7 +2405,7 @@ class DocumentTree(wx.TreeCtrl):
             document=document, document_title=document_title, dataset_name=dataset_name, mz_obj=mz_obj
         )
 
-    def on_batch_process_ms(self, evt, **kwargs):
+    def on_batch_process_ms(self, _evt, **kwargs):
         """Process all clicked mass spectra items"""
         from origami.gui_elements.dialog_review_editor import DialogReviewProcessSpectrum
 
@@ -2714,7 +2544,7 @@ class DocumentTree(wx.TreeCtrl):
         # get handle of the old object item
         document = ENV.on_get_document(document_title)
         del document[dataset_name]
-        item = self.get_item_by_data((document_title, dataset_name), None)
+        item = self.get_item_by_data((document_title, dataset_name))
         if item.IsOk():
             self.Delete(item)
 
@@ -2745,280 +2575,6 @@ class DocumentTree(wx.TreeCtrl):
     def on_open_directory(self, _evt):
         """Go to selected directory"""
         self.data_handling.on_open_directory(None)
-
-    def on_save_unidec_results(self, evt, data_type="all"):
-        raise NotImplementedError("Must implement method")
-        # basename = os.path.splitext(self._document_data.title)[0]
-        #
-        # if (self._document_type == "Mass Spectrum" and self._item_leaf == "UniDec") or (
-        #     self._document_type == "UniDec" and self._indent == 2
-        # ):
-        #     unidec_engine_data = self._document_data.massSpectrum["unidec"]
-        #     data_type = "all"
-        # elif self._document_type == "Mass Spectrum" and self._item_branch == "UniDec" and self._indent == 4:
-        #     unidec_engine_data = self._document_data.massSpectrum["unidec"]
-        #     data_type = self._item_leaf
-        # elif self._document_type == "Mass Spectra" and self._item_leaf == "UniDec":
-        #     unidec_engine_data = self._document_data.multipleMassSpectrum[self._item_branch]["unidec"]
-        #     data_type = "all"
-        # elif self._document_type == "Mass Spectra" and self._item_branch == "UniDec":
-        #     unidec_engine_data = self._document_data.multipleMassSpectrum[self._item_root]["unidec"]
-        #     data_type = self._item_leaf
-        #
-        # #         try:
-        # if data_type in ["all", "MW distribution"]:
-        #     data_type_name = "MW distribution"
-        #     defaultValue = "unidec_MW_{}{}".format(basename, self.config.saveExtension)
-        #
-        #     data = unidec_engine_data[data_type_name]
-        #     kwargs = {"default_name": defaultValue}
-        #     data = [data["xvals"], data["yvals"]]
-        #     labels = ["MW(Da)", "Intensity"]
-        #     self.data_handling.on_save_data_as_text(data=data, labels=labels, data_format="%.4f", **kwargs)
-        # #         except Exception:
-        # #             print('Failed to save MW distributions')
-        #
-        # try:
-        #     if data_type in ["all", "m/z with isolated species"]:
-        #         data_type_name = "m/z with isolated species"
-        #         defaultValue = "unidec_mz_species_{}{}".format(basename, self.config.saveExtension)
-        #         data = unidec_engine_data[data_type_name]
-        #
-        #         i, save_data, labels = 0, [], ["m/z"]
-        #         for key in data:
-        #             if key.split(" ")[0] != "MW:":
-        #                 continue
-        #             xvals = data[key]["line_xvals"]
-        #             if i == 0:
-        #                 save_data.append(xvals)
-        #             yvals = data[key]["line_yvals"]
-        #             save_data.append(yvals)
-        #             labels.append(key)
-        #             i = +1
-        #         save_data = np.column_stack(save_data).T
-        #
-        #         kwargs = {"default_name": defaultValue}
-        #         self.data_handling.on_save_data_as_text(data=save_data, labels=labels, data_format="%.4f", **kwargs)
-        # except Exception:
-        #     pass
-        #
-        # try:
-        #     if data_type in ["all", "Fitted"]:
-        #         data_type_name = "Fitted"
-        #         defaultValue = "unidec_fitted_{}{}".format(basename, self.config.saveExtension)
-        #         data = unidec_engine_data[data_type_name]
-        #
-        #         kwargs = {"default_name": defaultValue}
-        #         data = [data["xvals"][0], data["yvals"][0], data["yvals"][1]]
-        #         labels = ["m/z(Da)", "Intensity(raw)", "Intensity(fitted)"]
-        #         self.data_handling.on_save_data_as_text(data=data, labels=labels, data_format="%.4f", **kwargs)
-        # except Exception:
-        #     pass
-        #
-        # try:
-        #     if data_type in ["all", "Processed"]:
-        #         data_type_name = "Processed"
-        #         defaultValue = "unidec_processed_{}{}".format(basename, self.config.saveExtension)
-        #         data = unidec_engine_data[data_type_name]
-        #
-        #         kwargs = {"default_name": defaultValue}
-        #         data = [data["xvals"], data["yvals"]]
-        #         labels = ["m/z(Da)", "Intensity"]
-        #         self.data_handling.on_save_data_as_text(data=data, labels=labels, data_format="%.4f", **kwargs)
-        # except Exception:
-        #     pass
-        #
-        # try:
-        #     if data_type in ["all", "m/z vs Charge"]:
-        #         data_type_name = "m/z vs Charge"
-        #         defaultValue = "unidec_mzVcharge_{}{}".format(basename, self.config.saveExtension)
-        #         data = unidec_engine_data[data_type_name]["grid"]
-        #
-        #         zvals = data[:, 2]
-        #         xvals = np.unique(data[:, 0])
-        #         yvals = np.unique(data[:, 1])
-        #
-        #         # reshape data
-        #         xlen = len(xvals)
-        #         ylen = len(yvals)
-        #         zvals = np.reshape(zvals, (xlen, ylen))
-        #
-        #         # Combine x-axis with data
-        #         save_data = np.column_stack((xvals, zvals)).T
-        #         yvals = list(map(str, yvals.tolist()))
-        #         labels = ["m/z(Da)"]
-        #         for label in yvals:
-        #             labels.append(label)
-        #
-        #         kwargs = {"default_name": defaultValue}
-        #         self.data_handling.on_save_data_as_text(data=save_data, labels=labels, data_format="%.4f", **kwargs)
-        # except Exception:
-        #     pass
-        #
-        # try:
-        #     if data_type in ["all", "MW vs Charge"]:
-        #         data_type_name = "MW vs Charge"
-        #         defaultValue = "unidec_MWvCharge_{}{}".format(basename, self.config.saveExtension)
-        #         data = unidec_engine_data[data_type_name]
-        #
-        #         xvals = data["xvals"]
-        #         yvals = data["yvals"]
-        #         zvals = data["zvals"]
-        #         # reshape data
-        #         xlen = len(xvals)
-        #         ylen = len(yvals)
-        #         zvals = np.reshape(zvals, (xlen, ylen))
-        #
-        #         # Combine x-axis with data
-        #         save_data = np.column_stack((xvals, zvals)).T
-        #         yvals = list(map(str, yvals.tolist()))
-        #         labels = ["MW(Da)"]
-        #         for label in yvals:
-        #             labels.append(label)
-        #
-        #         kwargs = {"default_name": defaultValue}
-        #         self.data_handling.on_save_data_as_text(data=save_data, labels=labels, data_format="%.4f", **kwargs)
-        # except Exception:
-        #     pass
-        #
-        # try:
-        #     if data_type in ["all", "Barchart"]:
-        #         data_type_name = "Barchart"
-        #         defaultValue = "unidec_Barchart_{}{}".format(basename, self.config.saveExtension)
-        #         data = unidec_engine_data[data_type_name]
-        #
-        #         xvals = data["xvals"]
-        #         yvals = data["yvals"]
-        #         legend_text = data["legend_text"]
-        #
-        #         # get labels from legend
-        #         labels = []
-        #         for item in legend_text:
-        #             labels.append(item[1])
-        #
-        #         save_data = [xvals, yvals, labels]
-        #
-        #         kwargs = {"default_name": defaultValue}
-        #         self.data_hafndling.on_save_data_as_text(
-        #             data=save_data, labels=["position", "intensity", "label"], data_format="%s", **kwargs
-        #         )
-        # except Exception:
-        #     pass
-        #
-        # try:
-        #     if data_type in ["all", "Charge information"]:
-        #         data_type_name = "Charge information"
-        #         defaultValue = "unidec_ChargeInformation_{}{}".format(basename, self.config.saveExtension)
-        #         data = unidec_engine_data[data_type_name]
-        #
-        #         save_data = [data[:, 0], data[:, 1]]
-        #
-        #         kwargs = {"default_name": defaultValue}
-        #         self.data_handling.on_save_data_as_text(
-        #             data=save_data, labels=["charge", "intensity"], data_format="%s", **kwargs
-        #         )
-        # except Exception:
-        #     pass
-
-    def on_show_unidec_results(self, evt, plot_type="all"):
-        raise NotImplementedError("Must implement method")
-
-    # def on_show_plot_annotated_data(self, data, save_image=False, **kwargs):
-    #     """Plot annotate data"""
-    #
-    #     try:
-    #         plot_type = data["plot_type"]
-    #     except KeyError:
-    #         LOGGER.error("Could not determine plot type from the data")
-    #         return
-    #
-    #     if plot_type in [
-    #         "scatter",
-    #         "waterfall",
-    #         "line",
-    #         "multi-line",
-    #         "grid-scatter",
-    #         "grid-line",
-    #         "vertical-bar",
-    #         "horizontal-bar",
-    #     ]:
-    #         xlabel = data["xlabel"]
-    #         ylabel = data["ylabel"]
-    #         labels = data["labels"]
-    #         colors = data["colors"]
-    #         xvals = data["xvals"]
-    #         yvals = data["yvals"]
-    #         zvals = data["zvals"]
-    #
-    #         plot_obj = kwargs.pop("plot_obj", None)
-    #
-    #         kwargs = {
-    #             "plot_modifiers": data["plot_modifiers"],
-    #             "item_colors": data["itemColors"],
-    #             "item_labels": data["itemLabels"],
-    #             "xerrors": data["xvalsErr"],
-    #             "yerrors": data["yvalsErr"],
-    #             "xlabels": data["xlabels"],
-    #             "ylabels": data["ylabels"],
-    #             "plot_obj": plot_obj,
-    #         }
-    #
-    #     if plot_type == "scatter":
-    #         self.panel_plot.on_plot_other_scatter(
-    #             xvals, yvals, zvals, xlabel, ylabel, colors, labels, set_page=True, **kwargs
-    #         )
-    #     elif plot_type == "waterfall":
-    #         kwargs = {"labels": labels, "plot_obj": plot_obj}
-    #         self.panel_plot.on_plot_other_waterfall(
-    #             xvals, yvals, None, xlabel, ylabel, colors=colors, set_page=True, **kwargs
-    #         )
-    #     elif plot_type == "multi-line":
-    #         self.panel_plot.on_plot_other_overlay(
-    #             xvals, yvals, xlabel, ylabel, colors=colors, set_page=True, labels=labels, **kwargs
-    #         )
-    #     elif plot_type == "line":
-    #         kwargs = {
-    #             "line_color": colors[0],
-    #             "shade_under_color": colors[0],
-    #             "plot_modifiers": data["plot_modifiers"],
-    #             "plot_obj": plot_obj,
-    #         }
-    #         self.panel_plot.on_plot_other_1D(xvals, yvals, xlabel, ylabel, **kwargs)
-    #     elif plot_type == "grid-line":
-    #         self.panel_plot.on_plot_other_grid_1D(
-    #             xvals, yvals, xlabel, ylabel, colors=colors, labels=labels, set_page=True, **kwargs
-    #         )
-    #     elif plot_type == "grid-scatter":
-    #         self.panel_plot.on_plot_other_grid_scatter(
-    #             xvals, yvals, xlabel, ylabel, colors=colors, labels=labels, set_page=True, **kwargs
-    #         )
-    #
-    #     elif plot_type in ["vertical-bar", "horizontal-bar"]:
-    #         kwargs.update(orientation=plot_type)
-    #         self.panel_plot.on_plot_other_bars(
-    #             xvals, data["yvals_min"], data["yvals_max"], xlabel, ylabel, colors, set_page=True, **kwargs
-    #         )
-    #     elif plot_type in ["matrix"]:
-    #         zvals, yxlabels, cmap = self.presenter.get2DdataFromDictionary(
-    #             dictionary=data, plotType="Matrix", compact=False
-    #         )
-    #         self.panel_plot.on_plot_matrix(zvals=zvals, xylabels=yxlabels, cmap=cmap, set_page=True)
-    #     else:
-    #         msg = (
-    #             "Plot: {} is not supported yet. Please contact Lukasz Migas \n".format(plot_type)
-    #             + "if you would like to include a new plot type in ORIGAMI. Currently \n"
-    #             + "supported plots include: line, multi-line, waterfall, scatter and grid."
-    #         )
-    #         DialogBox(title="Plot type not supported", msg=msg, kind="Error")
-    #
-    #     if save_image:
-    #         basename = os.path.splitext(self._document_data.title)[0]
-    #         defaultValue = (
-    #             "Custom_{}_{}".format(basename, os.path.splitext(self._item_leaf)[0]).replace(":", "").replace(" ",
-    #             "")
-    #         )
-    #         save_kwargs = {"image_name": defaultValue}
-    #         self.panel_plot.save_images(evt="other", **save_kwargs)
 
     def on_show_zoom_on_ion(self, _evt):
         """Zoom-in on an ion in a mass spectrum window"""
@@ -3051,11 +2607,11 @@ class DocumentTree(wx.TreeCtrl):
 
         # get plot data
         ms_obj = self._get_item_object()
-        self.panel_plot.on_plot_ms(obj=ms_obj, set_page=True)
+        view = self.panel_plot.on_plot_ms(obj=ms_obj, set_page=True)
 
         if save_image:
             filename = self._item.get_name("ms")
-            self.panel_plot.save_images(evt="ms", image_name=filename)
+            view.save_figure(filename=filename)
 
     def on_show_plot_dtms(self, _evt, save_image=False):
         """Show MS/DT plot as heatmap"""
@@ -3064,10 +2620,10 @@ class DocumentTree(wx.TreeCtrl):
 
         # get data for selected item
         obj = self._get_item_object()
-        self.panel_plot.on_plot_dtms(obj=obj, set_page=True)
+        view = self.panel_plot.on_plot_dtms(obj=obj, set_page=True)
         if save_image:
             filename = self._item.get_name("dtms")
-            self.panel_plot.save_images(evt="ms/dt", image_name=filename)
+            view.save_figure(filename=filename)
 
     def on_show_plot_dtms_joint(self, _evt, save_image=False):
         """Show MS/DT plot as a joint plot"""
@@ -3081,7 +2637,7 @@ class DocumentTree(wx.TreeCtrl):
 
         if save_image:
             filename = self._item.get_name("joint")
-            self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
+            self.panel_plot.view_msdt.save_figure(filename=filename)
 
     def on_show_plot_mobilogram(self, _evt, save_image=False):
         """Show mobilogram"""
@@ -3089,11 +2645,11 @@ class DocumentTree(wx.TreeCtrl):
             return
 
         dt_obj = self._get_item_object()
-        self.panel_plot.on_plot_1d(obj=dt_obj, set_page=True)
+        view = self.panel_plot.on_plot_1d(obj=dt_obj, set_page=True)
 
         if save_image:
             filename = self._item.get_name("dt")
-            self.panel_plot.save_images(evt="mobilogram", image_name=filename)
+            view.save_figure(filename=filename)
 
     def on_show_plot_chromatogram(self, _evt, save_image=False):
         """Show chromatogram"""
@@ -3102,11 +2658,11 @@ class DocumentTree(wx.TreeCtrl):
 
         # get plot data
         rt_obj = self._get_item_object()
-        self.panel_plot.on_plot_rt(obj=rt_obj, set_page=True)
+        view = self.panel_plot.on_plot_rt(obj=rt_obj, set_page=True)
 
         if save_image:
             filename = self._item.get_name("rt")
-            self.panel_plot.save_images(evt="chromatogram", image_name=filename)
+            view.save_figure(filename=filename)
 
     def on_show_plot_heatmap(self, _evt, save_image=False):
         """Show heatmap"""
@@ -3115,11 +2671,11 @@ class DocumentTree(wx.TreeCtrl):
 
         # get data for selected item
         obj = self._get_item_object()
-        self.panel_plot.on_plot_2d(obj=obj, set_page=True)
+        view = self.panel_plot.on_plot_2d(obj=obj, set_page=True)
 
         if save_image:
             filename = self._item.get_name("heatmap")
-            self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
+            view.save_figure(filename=filename)
 
     def on_show_plot_heatmap_contour(self, _evt, save_image=False):
         """Show heatmap as a contour plot"""
@@ -3133,49 +2689,7 @@ class DocumentTree(wx.TreeCtrl):
 
         if save_image:
             filename = self._item.get_name("heatmap")
-            self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
-
-    def on_show_plot_heatmap_3d(self, _evt, save_image=False):
-        """Show heatmap object in 3d"""
-        if self._item.is_match("heatmap", True):
-            return
-
-        # get data for selected item
-        obj = self._get_item_object()
-        self.panel_plot.view_heatmap_3d.plot(obj=obj)
-        self.panel_plot.set_page("Heatmap (3D)")
-
-        if save_image:
-            filename = self._item.get_name("heatmap-3d")
-            self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
-
-    def on_show_plot_heatmap_chromatogram(self, _evt, save_image=False):
-        """Sum heatmap object along one dimension and show it in a chromatogram plot"""
-        if self._item.is_match("heatmap", True):
-            return
-
-        # get data for selected item
-        obj = self._get_item_object()
-        obj = obj.as_chromatogram()
-        self.panel_plot.on_plot_rt(obj=obj, set_page=True)
-
-        if save_image:
-            filename = self._item.get_name("heatmap")
-            self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
-
-    def on_show_plot_heatmap_mobilogram(self, _evt, save_image=False):
-        """Sum heatmap object along one dimension and show it in a mobilogram plot"""
-        if self._item.is_match("heatmap", True):
-            return
-
-        # get data for selected item
-        obj = self._get_item_object()
-        obj = obj.as_mobilogram()
-        self.panel_plot.on_plot_1d(obj=obj, set_page=True)
-
-        if save_image:
-            filename = self._item.get_name("heatmap")
-            self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
+            self.panel_plot.view_heatmap.save_figure(filename=filename)
 
     def on_show_plot_heatmap_violin(self, _evt, save_image=False):
         """Show heatmap object in a violin plot"""
@@ -3189,7 +2703,7 @@ class DocumentTree(wx.TreeCtrl):
 
         if save_image:
             filename = self._item.get_name("violin")
-            self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
+            self.panel_plot.view_heatmap.save_figure(filename=filename)
 
     def on_show_plot_heatmap_joint(self, _evt, save_image=False):
         """Show heatmap object in a joint plot"""
@@ -3203,7 +2717,7 @@ class DocumentTree(wx.TreeCtrl):
 
         if save_image:
             filename = self._item.get_name("joint")
-            self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
+            self.panel_plot.view_heatmap.save_figure(filename=filename)
 
     def on_show_plot_heatmap_waterfall(self, _evt, save_image=False):
         """Show heatmap object in a waterfall plot"""
@@ -3217,143 +2731,49 @@ class DocumentTree(wx.TreeCtrl):
 
         if save_image:
             filename = self._item.get_name("waterfall")
-            self.panel_plot.save_images(evt=ID_save2DImageDoc, image_name=filename)
+            self.panel_plot.view_heatmap.save_figure(filename=filename)
 
-    def on_show_plot_overlay(self, save_image):
-        raise NotImplementedError("Must implement method")
-        # if self._item_leaf == self._document_type:
-        #     return
-        #
-        # # get filename
-        # method = re.split("-|,|__|:", self._item_leaf)[0]
-        # basename = os.path.splitext(self._document_data.title)[0]
-        # fname_dict = {
-        #     "Grid (n x n)": "overlay_Grid_NxN_{}".format(basename),
-        #     "Grid (2": "overlay_Grid_2to1_{}".format(basename),
-        #     "Mask": "overlay_mask_{}".format(basename),
-        #     "Transparent": "overlay_transparent_{}".format(basename),
-        #     "RMSF": "overlay_RMSF_{}".format(basename),
-        #     "RGB": "overlay_RGB_{}".format(basename),
-        #     "RMSD": "overlay_RMSD_{}".format(basename),
-        #     "Variance": "overlay_variance_{}".format(basename),
-        #     "Mean": "overlay_mean_{}".format(basename),
-        #     "Standard Deviation": "overlay_std_{}".format(basename),
-        #     "RMSD Matrix": "overlay_matrix_{}".format(basename),
-        #     "Waterfall (Raw)": "MS_Waterfall_raw_{}".format(basename),
-        #     "Waterfall (Processed)": "MS_Waterfall_processed_{}".format(basename),
-        #     "Waterfall (Fitted)": "MS_Waterfall_fitted_{}".format(basename),
-        #     "Waterfall (Deconvoluted MW)": "MS_Waterfall_deconvolutedMW_{}".format(basename),
-        #     "Waterfall (Charge states)": "MS_Waterfall_charges_{}".format(basename),
-        #     "Waterfall overlay": "Waterfall_overlay_{}".format(basename),
-        #     "1D": "overlay_DT_1D_{}".format(basename),
-        #     "Overlay (DT)": "overlay_DT_1D_{}".format(basename),
-        #     "RT": "overlay_RT_{}".format(basename),
-        #     "Overlay (RT)": "overlay_RT_{}".format(basename),
-        # }
-        # save_filename = fname_dict.get(method, f"overlay_{basename}")
-        #
-        # # get data
-        # data = self.GetPyData(self._item_id)
-        # if data is None:
-        #     raise MessageError("Data buffer was empty...")
-        #
-        # # plot
-        # if method in [
-        #     "Grid (n x n)",
-        #     "Grid (2",
-        #     "Mask",
-        #     "Transparent",
-        #     "RMSF",
-        #     "RGB",
-        #     "RMSD",
-        #     "Variance",
-        #     "Mean",
-        #     "Standard Deviation",
-        #     "RMSD Matrix",
-        #     "1D",
-        #     "Overlay (DT)",
-        #     "RT",
-        #     "Overlay (RT)",
-        #     "Butterfly (MS)",
-        #     "Butterfly (RT)",
-        #     "Butterfly (DT)",
-        #     "Subtract (MS)",
-        #     "Subtract (RT)",
-        #     "Subtract (DT)",
-        #     "Waterfall (MS)",
-        #     "Waterfall (RT)",
-        #     "Waterfall (DT)",
-        #     "Overlay (MS)",
-        # ]:
-        #
-        #     if method == "Grid (n x n)":
-        #         self.data_visualisation.on_show_overlay_heatmap_grid_nxn(data, set_page=True)
-        #     elif method == "Grid (2":
-        #         self.data_visualisation.on_show_overlay_heatmap_grid_2to1(data, set_page=True)
-        #     elif method == "Mask":
-        #         self.data_visualisation.on_show_overlay_heatmap_mask(data, set_page=True)
-        #     elif method == "Transparent":
-        #         self.data_visualisation.on_show_overlay_heatmap_transparent(data, set_page=True)
-        #     elif method == "RMSF":
-        #         self.data_visualisation.on_show_overlay_heatmap_rmsf(data, set_page=True)
-        #     elif method == "RGB":
-        #         self.data_visualisation.on_show_overlay_heatmap_rgb(data, set_page=True)
-        #     elif method == "RMSD":
-        #         self.data_visualisation.on_show_overlay_heatmap_rmsd(data, set_page=True)
-        #     elif method in ["Variance", "Mean", "Standard Deviation"]:
-        #         self.data_visualisation.on_show_overlay_heatmap_statistical(data, set_page=True)
-        #     elif method == "RMSD Matrix":
-        #         self.data_visualisation.on_show_overlay_heatmap_rmsd_matrix(data, set_page=True)
-        #     # Overlayed 1D data
-        #     elif method in ["1D", "Overlay (DT)"]:
-        #         self.data_visualisation.on_show_overlay_spectrum_overlay(data, "mobilogram", set_page=True)
-        #     elif method in ["RT", "Overlay (RT)"]:
-        #         self.data_visualisation.on_show_overlay_spectrum_overlay(data, "chromatogram", set_page=True)
-        #     elif method in ["Overlay (MS)"]:
-        #         self.data_visualisation.on_show_overlay_spectrum_overlay(data, "mass_spectra", set_page=True)
-        #     elif method in ["Butterfly (MS)", "Butterfly (RT)", "Butterfly (DT)"]:
-        #         self.data_visualisation.on_show_overlay_spectrum_butterfly(data, set_page=True)
-        #     elif method in ["Subtract (MS)", "Subtract (RT)", "Subtract (DT)"]:
-        #         self.data_visualisation.on_show_overlay_spectrum_butterfly(data, set_page=True)
-        #     elif method in ["Waterfall (MS)", "Waterfall (RT)", "Waterfall (DT)"]:
-        #         self.data_visualisation.on_show_overlay_spectrum_waterfall(data, set_page=True)
-        #
-        #     # save plot
-        #     if save_image:
-        #         self.panel_plot.save_images(evt="overlay", image_name=save_filename)
-        #         return
-        #
-        # elif method in [
-        #     "Waterfall (Raw)",
-        #     "Waterfall (Processed)",
-        #     "Waterfall (Fitted)",
-        #     "Waterfall (Deconvoluted MW)",
-        #     "Waterfall (Charge states)",
-        # ]:
-        #     self.panel_plot.on_plot_waterfall(
-        #         data["xvals"],
-        #         data["yvals"],
-        #         None,
-        #         colors=data["colors"],
-        #         xlabel=data["xlabel"],
-        #         ylabel=data["ylabel"],
-        #         set_page=True,
-        #         **data["waterfall_kwargs"],
-        #     )
-        # elif method == "Waterfall overlay":
-        #     self.panel_plot.on_plot_waterfall_overlay(
-        #         data["xvals"],
-        #         data["yvals"],
-        #         data["zvals"],
-        #         data["colors"],
-        #         data["xlabel"],
-        #         data["ylabel"],
-        #         data["labels"],
-        #         set_page=True,
-        #     )
-        #
-        # if save_image:
-        #     self.panel_plot.save_images(evt="waterfall", image_name=save_filename)
+    def on_show_plot_heatmap_3d(self, _evt, save_image=False):
+        """Show heatmap object in 3d"""
+        if self._item.is_match("heatmap", True):
+            return
+
+        # get data for selected item
+        obj = self._get_item_object()
+        self.panel_plot.view_heatmap_3d.plot(obj=obj)
+        self.panel_plot.set_page("Heatmap (3D)")
+
+        if save_image:
+            filename = self._item.get_name("heatmap-3d")
+            self.panel_plot.view_heatmap_3d.save_figure(filename=filename)
+
+    def on_show_plot_heatmap_chromatogram(self, _evt, save_image=False):
+        """Sum heatmap object along one dimension and show it in a chromatogram plot"""
+        if self._item.is_match("heatmap", True):
+            return
+
+        # get data for selected item
+        obj = self._get_item_object()
+        obj = obj.as_chromatogram()
+        view = self.panel_plot.on_plot_rt(obj=obj, set_page=True)
+
+        if save_image:
+            filename = self._item.get_name("heatmap")
+            view.save_figure(filename=filename)
+
+    def on_show_plot_heatmap_mobilogram(self, _evt, save_image=False):
+        """Sum heatmap object along one dimension and show it in a mobilogram plot"""
+        if self._item.is_match("heatmap", True):
+            return
+
+        # get data for selected item
+        obj = self._get_item_object()
+        obj = obj.as_mobilogram()
+        view = self.panel_plot.on_plot_1d(obj=obj, set_page=True)
+
+        if save_image:
+            filename = self._item.get_name("heatmap")
+            view.save_figure(filename=filename)
 
     def on_show_plot(self, evt, save_image=False):
         """ This will send data, plot and change window"""
@@ -3361,11 +2781,11 @@ class DocumentTree(wx.TreeCtrl):
             return
 
         if isinstance(evt, int):
-            evtID = evt
+            evt_id = evt
         elif evt is None:
-            evtID = None
+            evt_id = None
         else:
-            evtID = evt.GetId()
+            evt_id = evt.GetId()
 
         _click_obj = self._item.current  # self._document_type
         # show annotated data
@@ -3374,122 +2794,35 @@ class DocumentTree(wx.TreeCtrl):
             if self._item.leaf == "Annotated data":
                 return
 
-            # # open annotations
-            # if self._item.leaf == "Annotations":
-            #     self.on_open_annotation_editor(None)
-            #     return
-            #
-            # data = deepcopy(self.GetPyData(self._item_id))
-            # self.on_show_plot_annotated_data(data, save_image)
-
-        # show tandem MS
-        # elif _click_obj == "Tandem Mass Spectra":
-        #     if self._item_leaf == "Tandem Mass Spectra":
-        #         data = self._document_data.tandem_spectra
-        #         kwargs = {"document": self._document_data.title, "tandem_spectra": data}
-        #         self.on_open_MSMS_viewer(**kwargs)
-        #         return
-
         # show mass spectrum
         elif _click_obj == "Mass Spectra":
-            self.on_show_plot_mass_spectra(evtID, save_image)
+            self.on_show_plot_mass_spectra(evt_id, save_image)
 
         # show mobilogram
         elif _click_obj == "Mobilograms":
-            self.on_show_plot_mobilogram(evtID, save_image)
+            self.on_show_plot_mobilogram(evt_id, save_image)
 
         # show chromatogram
         elif _click_obj == "Chromatograms":
-            self.on_show_plot_chromatogram(evtID, save_image)
+            self.on_show_plot_chromatogram(evt_id, save_image)
 
         # show heatmap
         elif _click_obj == "Heatmaps":
-            self.on_show_plot_heatmap(evtID, save_image)
+            self.on_show_plot_heatmap(evt_id, save_image)
 
-        # show overlay / statistical plots
-        elif _click_obj in ["Overlay", "Statistical"]:
-            self.on_show_plot_overlay(save_image)
+        # # show overlay / statistical plots
+        # elif _click_obj in ["Overlay", "Statistical"]:
+        #     self.on_show_plot_overlay(save_image)
 
         # show dt/ms plot
-        elif _click_obj == "Heatmaps (MS/DT)" or evtID in [
+        elif _click_obj == "Heatmaps (MS/DT)" or evt_id in [
             ID_ylabel_DTMS_bins,
             ID_ylabel_DTMS_ms,
             ID_ylabel_DTMS_restore,
         ]:
             self.on_show_plot_dtms(save_image)
 
-    def onSaveData(self, data=None, labels=None, data_format="%.4f", **kwargs):
-        """
-        Helper function to save data in consistent manner
-        """
-        raise NotImplementedError("Must implement method")
-        # wildcard = (
-        #     "CSV (Comma delimited) (*.csv)|*.csv|"
-        #     + "Text (Tab delimited) (*.txt)|*.txt|"
-        #     + "Text (Space delimited (*.txt)|*.txt"
-        # )
-        #
-        # wildcard_dict = {",": 0, "\t": 1, " ": 2}
-        #
-        # if kwargs.get("ask_permission", False):
-        #     style = wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
-        # else:
-        #     style = wx.FD_SAVE
-        #
-        # dlg = wx.FileDialog(
-        #     self.presenter.view, "Please select a name for the file", "", "", wildcard=wildcard, style=style
-        # )
-        # dlg.CentreOnParent()
-        #
-        # if "default_name" in kwargs:
-        #     defaultName = kwargs.pop("default_name")
-        # else:
-        #     defaultName = ""
-        # defaultName = (
-        #     defaultName.replace(" ", "")
-        #     .replace(":", "")
-        #     .replace(" ", "")
-        #     .replace(".csv", "")
-        #     .replace(".txt", "")
-        #     .replace(".raw", "")
-        #     .replace(".d", "")
-        #     .replace(".", "_")
-        # )
-        #
-        # dlg.SetFilename(defaultName)
-        #
-        # try:
-        #     dlg.SetFilterIndex(wildcard_dict[self.config.saveDelimiter])
-        # except Exception:
-        #     pass
-        #
-        # if not kwargs.get("return_filename", False):
-        #     if dlg.ShowModal() == wx.ID_OK:
-        #         filename = dlg.GetPath()
-        #         __, extension = os.path.splitext(filename)
-        #         self.config.saveExtension = extension
-        #         self.config.saveDelimiter = list(wildcard_dict.keys())[
-        #             list(wildcard_dict.values()).index(dlg.GetFilterIndex())
-        #         ]
-        #         saveAsText(
-        #             filename=filename,
-        #             data=data,
-        #             format=data_format,
-        #             delimiter=self.config.saveDelimiter,
-        #             header=self.config.saveDelimiter.join(labels),
-        #         )
-        #     else:
-        #         self.presenter.onThreading(None, ("Cancelled operation", 4, 5), action="updateStatusbar")
-        # else:
-        #     if dlg.ShowModal() == wx.ID_OK:
-        #         filename = dlg.GetPath()
-        #         basename, extension = os.path.splitext(filename)
-        #
-        #         return filename, basename, extension
-        #     else:
-        #         return None, None, None
-
-    def on_save_csv(self, evt, save_all: bool = False):
+    def on_save_csv(self, _evt):
         """This function extracts the 1D or 2D data and saves it in a CSV format"""
         obj = self._get_item_object()
         if not hasattr(obj, "to_csv"):
@@ -3550,7 +2883,7 @@ class DocumentTree(wx.TreeCtrl):
         # add annotations
         if "annotations" in data and len(data["annotations"]) > 0:
             branch_item = self.AppendItem(root_obj, "Annotations")
-            self.SetItemImage(branch_item, self.bullets_dict["annot"], wx.TreeItemIcon_Normal)
+            self.SetItemImage(branch_item, self.bullets_dict["annot"])
 
     def _add_unidec_to_object(self, data, root_obj, check=False):
         if check:
@@ -3563,11 +2896,11 @@ class DocumentTree(wx.TreeCtrl):
         # add unidec results
         if "unidec" in data:
             branch_item = self.AppendItem(root_obj, "UniDec")
-            self.SetItemImage(branch_item, self.bullets_dict["mass_spec"], wx.TreeItemIcon_Normal)
+            self.SetItemImage(branch_item, self.bullets_dict["mass_spec"])
             for unidec_name in data["unidec"]:
                 leaf_item = self.AppendItem(branch_item, unidec_name)
                 self.SetPyData(leaf_item, data["unidec"][unidec_name])
-                self.SetItemImage(leaf_item, self.bullets_dict["mass_spec"], wx.TreeItemIcon_Normal)
+                self.SetItemImage(leaf_item, self.bullets_dict["mass_spec"])
 
     def _get_group_metadata(self, key):
         parts = key.split("/")
@@ -3582,7 +2915,7 @@ class DocumentTree(wx.TreeCtrl):
 
     @staticmethod
     def _get_group_title(key):
-        """Return formatted groum title"""
+        """Return formatted group title"""
         group_dict = {
             "MassSpectra": "MassSpectra",
             "Mass Spectra": "MassSpectra",
@@ -3595,23 +2928,21 @@ class DocumentTree(wx.TreeCtrl):
 
     def env_update_document(self, evt, metadata):
         """Update document based on event change"""
+        print(evt, metadata)
+        # def get_document():
+        #     item, cookie = self.GetFirstChild(self.GetRootItem())
+        #     while item.IsOk():
+        #         if self.GetItemText(item) == title:
+        #             return item
+        #         item, cookie = self.GetNextChild(item, cookie)
+        #     return None
+        #
+        # for title, name in metadata:
+        #     pass
+        #     # print("item", get_document(), name)
 
-        def get_document():
-            item, cookie = self.GetFirstChild(self.GetRootItem())
-            while item.IsOk():
-                if self.GetItemText(item) == title:
-                    return item
-                item, cookie = self.GetNextChild(item, cookie)
-            return None
-
-        for title, name in metadata:
-            pass
-            # print("item", get_document(), name)
-
-    def add_document(self, document: DocumentStore, expandItem=None, expandAll=False):
+    def add_document(self, document: DocumentStore, expand_item=None, expand_all=False):
         """Add document to the document tree"""
-        # TODO: add annotations support
-        # TODO: add unidec support
         # check document format
         if not isinstance(document, DocumentStore):
             raise ValueError("Old-style documents are no longer supported - change the method!")
@@ -3632,7 +2963,7 @@ class DocumentTree(wx.TreeCtrl):
 
         # Add document
         document_item = self.AppendItem(self.GetRootItem(), title)
-        self.SetItemImage(document_item, self.bullets_dict["document_on"], wx.TreeItemIcon_Normal)
+        self.SetItemImage(document_item, self.bullets_dict["document_on"])
         self.SetPyData(document_item, (title, ""))
         self.SetFocusedItem(document_item)
 
@@ -3645,18 +2976,18 @@ class DocumentTree(wx.TreeCtrl):
                 group_item = self.get_item_by_label(group_metadata["title"], document_item)
                 if not group_item:
                     group_item = self.AppendItem(document_item, group_metadata["title"])
-                    self.SetItemImage(group_item, group_metadata["image"], wx.TreeItemIcon_Normal)
+                    self.SetItemImage(group_item, group_metadata["image"])
                     self.SetPyData(group_item, (title, group_key))
 
                 child_item = self.AppendItem(group_item, child_title)
-                self.SetItemImage(child_item, group_metadata["image"], wx.TreeItemIcon_Normal)
+                self.SetItemImage(child_item, group_metadata["image"])
                 self.SetPyData(child_item, (title, key))
-        self.on_enable_document(loading_data=True, expand_all=expandAll)
+        self.on_enable_document(loading_data=True, expand_all=expand_all)
 
-        # If expandItem is not empty, the Tree will expand specified item
-        if expandItem is not None:
+        # If expand_item is not empty, the Tree will expand specified item
+        if expand_item is not None:
             try:
-                item = self.get_item_by_label(expandItem, document_item)
+                item = self.get_item_by_label(expand_item, document_item)
                 if item is not None:
                     self.Expand(item)
             except Exception:
@@ -3705,7 +3036,7 @@ class DocumentTree(wx.TreeCtrl):
             # append group item
             if not group_item:
                 group_item = self.AppendItem(document_item, group_metadata["title"])
-                self.SetItemImage(group_item, group_metadata["image"], wx.TreeItemIcon_Normal)
+                self.SetItemImage(group_item, group_metadata["image"])
                 self.SetPyData(group_item, (document_title, group_key))
 
             # append item
@@ -3715,7 +3046,7 @@ class DocumentTree(wx.TreeCtrl):
 
             # append item
             child_item = self.AppendItem(group_item, child_title)
-            self.SetItemImage(child_item, group_metadata["image"], wx.TreeItemIcon_Normal)
+            self.SetItemImage(child_item, group_metadata["image"])
             self.SetPyData(child_item, (document_title, item_name))
 
         # If expand_group is not empty, the Tree will expand specified item
@@ -3757,14 +3088,14 @@ class DocumentTree(wx.TreeCtrl):
                     # notify other GUI elements that need to be informed of document being deleted
                     pub.sendMessage("document.delete.item", info=(document_title, None))
 
-    def on_remove_document(self, evt):
+    def on_remove_document(self, _evt):
         """User-driven removal of a document"""
         if self._item.title is not None:
             ENV.remove(self._item.title)
             self.panel_plot.on_clear_all_plots()
             self.on_enable_document()
 
-    def on_remove_document_from_disk(self, evt):
+    def on_remove_document_from_disk(self, _evt):
         """User-driven removal of the document from ORIGAMI and from disk"""
         dlg = DialogBox(
             title="Are you sure?",
@@ -3784,7 +3115,7 @@ class DocumentTree(wx.TreeCtrl):
             message=f"Document `{self._item.title}` was moved to the recycle bin where you can still recover it.",
         )
 
-    def on_delete_all_documents(self, evt):
+    def on_delete_all_documents(self, _evt):
         """ Alternative function to delete documents """
         titles = ENV.titles
 
@@ -3796,7 +3127,7 @@ class DocumentTree(wx.TreeCtrl):
             self.panel_plot.on_clear_all_plots()
             self.on_enable_document()
 
-    def on_duplicate_document(self, evt):
+    def on_duplicate_document(self, _evt):
         """Duplicate existing document and load it"""
         from origami.utils.path import get_duplicate_name
 
@@ -3807,7 +3138,7 @@ class DocumentTree(wx.TreeCtrl):
             set_path = os.path.dirname(document.path)
 
         path = None
-        dlg = wx.DirDialog(self.view, "Choose an output path", style=wx.DD_DEFAULT_STYLE, defaultPath=set_path)
+        dlg = wx.DirDialog(self.view, "Choose an output path", defaultPath=set_path)
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
         dlg.Destroy()
@@ -3854,7 +3185,7 @@ class DocumentTree(wx.TreeCtrl):
     #     self.panelUVPD = PanelUVPDEditor(self.presenter.view, self.presenter, self.config, self.icons, **kwargs)
     #     self.panelUVPD.Show()
     #
-    def on_open_extract_DTMS(self, _evt):
+    def on_open_extract_dtms(self, _evt):
         """Open extraction panel"""
         from origami.gui_elements.panel_process_extract_msdt import PanelProcessExtractMSDT
 
@@ -3873,7 +3204,7 @@ class DocumentTree(wx.TreeCtrl):
         dlg = PanelProcessExtractMSDT(self.view, self.presenter, document_title)
         dlg.Show()
 
-    def on_open_peak_picker(self, evt, document_title: str = None, dataset_name: str = None):
+    def on_open_peak_picker(self, _evt, document_title: str = None, dataset_name: str = None):
         """Open peak picker"""
         from origami.widgets.mz_picker.panel_peak_picker import PanelPeakPicker
 
@@ -3961,32 +3292,32 @@ class DocumentTree(wx.TreeCtrl):
             we it should simply set data
         """
 
-        document = self.data_handling.on_get_document(document_title)
-        item = False
-        docItem = False
-        if dataset == "Mass Spectrum":
-            item = self.get_item_by_data(document.massSpectrum)
-            document.massSpectrum["unidec"] = unidec_data
-        elif dataset == "Mass Spectrum (processed)":
-            item = self.get_item_by_data(document.smoothMS)
-            document.smoothMS["unidec"] = unidec_data
-        else:
-            item = self.get_item_by_data(document.multipleMassSpectrum[dataset])
-            document.multipleMassSpectrum[dataset]["unidec"] = unidec_data
-
-        if item is not False and not set_data_only:
-            self.append_unidec(item, unidec_data)
-            self.data_handling.on_update_document(document, "no_refresh")
-        else:
-            try:
-                docItem = self.get_item_by_data(document)
-            except Exception:
-                docItem = False
-            if docItem is not False:
-                self.SetPyData(docItem, document)
-                ENV[document.title] = document
-            else:
-                self.data_handling.on_update_document(document, "document")
+        # document = self.data_handling.on_get_document(document_title)
+        # item = False
+        # docItem = False
+        # if dataset == "Mass Spectrum":
+        #     item = self.get_item_by_data(document.massSpectrum)
+        #     document.massSpectrum["unidec"] = unidec_data
+        # elif dataset == "Mass Spectrum (processed)":
+        #     item = self.get_item_by_data(document.smoothMS)
+        #     document.smoothMS["unidec"] = unidec_data
+        # else:
+        #     item = self.get_item_by_data(document.multipleMassSpectrum[dataset])
+        #     document.multipleMassSpectrum[dataset]["unidec"] = unidec_data
+        #
+        # if item is not False and not set_data_only:
+        #     self.append_unidec(item, unidec_data)
+        #     self.data_handling.on_update_document(document, "no_refresh")
+        # else:
+        #     try:
+        #         docItem = self.get_item_by_data(document)
+        #     except Exception:
+        #         docItem = False
+        #     if docItem is not False:
+        #         self.SetPyData(docItem, document)
+        #         ENV[document.title] = document
+        #     else:
+        #         self.data_handling.on_update_document(document, "document")
 
     def append_unidec(self, item, unidec_data, expand=True):
         """
@@ -4018,17 +3349,18 @@ class DocumentTree(wx.TreeCtrl):
 
         unidec_item = self.AppendItem(item, "UniDec")
         self.SetPyData(unidec_item, unidec_data)
-        self.SetItemImage(unidec_item, image, wx.TreeItemIcon_Normal)
+        self.SetItemImage(unidec_item, image)
 
         for key in unidec_data:
             unidec_item_individual = self.AppendItem(unidec_item, key)
             self.SetPyData(unidec_item_individual, unidec_data[key])
-            self.SetItemImage(unidec_item_individual, image, wx.TreeItemIcon_Normal)
+            self.SetItemImage(unidec_item_individual, image)
 
         if expand:
             self.Expand(unidec_item)
 
-    def get_item_image(self, image_type):
+    def get_item_image(self, image_type: str):
+        """Get bullet image that can be used in the DocumentTree"""
         if image_type in ["main.raw.spectrum", "extracted.spectrum", "main.processed.spectrum", "unidec"]:
             image = self.bullets_dict["mass_spec_on"]
         elif image_type == [

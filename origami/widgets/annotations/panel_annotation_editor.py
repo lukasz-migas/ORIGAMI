@@ -403,26 +403,31 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin):
             MOVE_PATCH=self.PUB_SUBSCRIBE_MOVE_PATCH_EVENT,
         )
 
-        if self.plot_type in self._plot_types_1d:
+        if self.plot_type in self.PLOT_TYPES:
             if self.plot_type == "mass_spectrum":
-                self.plot_view = ViewMassSpectrum(split_panel, figsize, callbacks=callbacks, allow_extraction=True)
+                self.plot_view = ViewMassSpectrum(
+                    split_panel, figsize, callbacks=callbacks, allow_extraction=True, filename="annotated-mass-spectrum"
+                )
             elif self.plot_type == "chromatogram":
-                self.plot_view = ViewChromatogram(split_panel, figsize, callbacks=callbacks, allow_extraction=True)
+                self.plot_view = ViewChromatogram(
+                    split_panel, figsize, callbacks=callbacks, allow_extraction=True, filename="annotated-chromatogram"
+                )
             elif self.plot_type == "mobilogram":
-                self.plot_view = ViewMobilogram(split_panel, figsize, callbacks=callbacks, allow_extraction=True)
-
-            self.plot_panel = self.plot_view.panel
-            self.plot_window = self.plot_view.figure
-        elif self.plot_type in self._plot_types_2d:
-            if self.plot_type == "heatmap":
-                self.plot_view = ViewIonHeatmap(split_panel, figsize, callbacks=callbacks, allow_extraction=True)
+                self.plot_view = ViewMobilogram(
+                    split_panel, figsize, callbacks=callbacks, allow_extraction=True, filename="annotated-mobilogram"
+                )
+            elif self.plot_type == "heatmap":
+                self.plot_view = ViewIonHeatmap(
+                    split_panel, figsize, callbacks=callbacks, allow_extraction=True, filename="annotated-heatmap"
+                )
             elif self.plot_type == "ms_heatmap":
                 self.plot_view = ViewMassSpectrumHeatmap(
-                    split_panel, figsize, callbacks=callbacks, allow_extraction=True
+                    split_panel, figsize, callbacks=callbacks, allow_extraction=True, filename="annotated-ms-heatmap"
                 )
 
-            self.plot_panel = self.plot_view.panel
-            self.plot_window = self.plot_view.figure
+        # set handles to the plot and window
+        self.plot_panel = self.plot_view.panel
+        self.plot_window = self.plot_view.figure
 
         return self.plot_view.panel
 
@@ -611,27 +616,17 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin):
     # noinspection DuplicatedCode
     def on_right_click(self, evt):
         """On right-click menu event"""
-        menu = wx.Menu()
         # ensure that user clicked inside the plot area
         if hasattr(evt.EventObject, "figure"):
-            save_figure_menu_item = make_menu_item(
-                menu, evt_id=wx.ID_ANY, text="Save figure as...", bitmap=self._icons.save
-            )
-            menu.Append(save_figure_menu_item)
+            menu = self.plot_view.get_right_click_menu(self)
 
-            menu_action_copy_to_clipboard = make_menu_item(
-                parent=menu, evt_id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self._icons.filelist
-            )
-            menu.Append(menu_action_copy_to_clipboard)
-            menu.AppendSeparator()
             menu_plot_clear_labels = make_menu_item(parent=menu, text="Clear annotations", bitmap=self._icons.clear)
             menu.Append(menu_plot_clear_labels)
 
             # bind events
-            self.Bind(wx.EVT_MENU, self.on_save_figure, save_figure_menu_item)
-            self.Bind(wx.EVT_MENU, self.on_copy_to_clipboard, menu_action_copy_to_clipboard)
             self.Bind(wx.EVT_MENU, self.on_clear_from_plot, menu_plot_clear_labels)
         else:
+            menu = wx.Menu()
             menu_delete_annotation = make_menu_item(parent=menu, text="Delete annotation", bitmap=self._icons.bin)
             menu.Append(menu_delete_annotation)
             self.Bind(wx.EVT_MENU, self.on_delete_item, menu_delete_annotation)
@@ -1443,28 +1438,6 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin):
         self.plot_view.remove_patches(repaint=False)
         self.plot_view.remove_labels(repaint=False)
         self.plot_view.repaint()
-
-    def on_clear_plot(self, _evt):
-        """Clear plot area"""
-        self.plot_window.clear()
-
-    def on_save_figure(self, _evt):
-        """Save figure"""
-        filename = "annotated"
-        self.plot_view.save_figure(filename)
-
-    def on_resize_check(self, _evt):
-        """Resize checkbox"""
-        self.panel_plot.on_resize_check(None)
-
-    def on_copy_to_clipboard(self, _evt):
-        """Copy plot to clipboard"""
-        self.plot_window.copy_to_clipboard()
-
-    def on_customise_plot(self, _evt):
-        """Customise plot"""
-        raise NotImplementedError("Must implement method")
-        # self.panel_plot.on_customise_plot(None, plot="MS...", plot_obj=self.plot_window)
 
     def on_customise_parameters(self, _):
         """Open configuration panel"""

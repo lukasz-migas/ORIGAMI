@@ -87,6 +87,13 @@ class TestViewRegister(TestPlotView):
 
         pub.sendMessage("view.activate", view_id=view_1.PLOT_ID)
         assert view_reg.active == view_1.PLOT_ID
+        assert view_reg.view == view_1
+        assert view_reg.get_view(view_1.PLOT_ID) == view_1
 
         pub.sendMessage("view.activate", view_id=view_2.PLOT_ID)
         assert view_reg.active == view_2.PLOT_ID
+        assert view_reg.view == view_2
+        assert view_reg.get_view(view_2.PLOT_ID) == view_2
+
+        assert view_reg.get_view(view_1.PLOT_ID) == view_1
+        assert view_reg.get_view(view_2.PLOT_ID) == view_2

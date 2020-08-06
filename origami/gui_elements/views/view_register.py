@@ -31,6 +31,21 @@ class ViewRegister:
     def active(self, value):
         self._active = value
 
+    @property
+    def view(self):
+        """Return currently active view"""
+        return self.get_view()
+
+    def get_view(self, view_id: str = None):
+        """Return the view"""
+        if view_id is None:
+            view_id = self.active
+
+        if view_id not in self._views:
+            raise ValueError("Requested view is not in the register")
+
+        return self._views[view_id]
+
     def register(self, view_id: str, view: ViewBase):
         """Register view to keep track of the view"""
         if view_id in self._views:

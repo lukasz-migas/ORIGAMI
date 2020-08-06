@@ -1,9 +1,11 @@
 """Test DialogBatchDataExtract"""
-import pytest
+# Third-party imports
 import wx
+import pytest
 
-from origami.gui_elements.dialog_batch_data_extract import DialogBatchDataExtract
+# Local imports
 from tests.wxtc import WidgetTestCase
+from origami.gui_elements.dialog_batch_data_extract import DialogBatchDataExtract
 
 
 def get_data():
