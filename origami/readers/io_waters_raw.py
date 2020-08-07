@@ -30,12 +30,14 @@ TEMP_DATA_FOLDER = os.path.join(os.getcwd(), "temporary_data")
 def get_driftscope_path():
     """Searches in the common places for Driftscope path"""
     # if installed on the system, Driftscope will be in C:\DriftScope\lib
-    if os.path.exists(r"C:\DriftScope\lib"):
-        return r"C:\DriftScope\lib"
+
+    path = os.path.join(os.path.dirname(__file__), "driftscope")
+    if os.path.exists(path):
+        return path
     else:
-        path = os.path.join(os.path.dirname(__file__), "driftscope")
-        if os.path.exists(path):
-            return path
+        if os.path.exists(r"C:\DriftScope\lib"):
+            return r"C:\DriftScope\lib"
+    return None
 
 
 class WatersIMReader(WatersRawReader):
@@ -53,6 +55,9 @@ class WatersIMReader(WatersRawReader):
         self._dt_ms = None
         if self.n_functions < 2 and not silent:
             raise NoIonMobilityDatasetError(f"Dataset {path} does not have ion mobility dimension")
+
+        if self._driftscope is None:
+            raise ValueError("Cannot extraction IM-data because DriftScope is not setup!")
 
     @property
     def driftscope_path(self):

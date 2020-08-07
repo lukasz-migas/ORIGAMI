@@ -72,7 +72,6 @@ from origami.ids import ID_openCCScalibrationDatabse
 from origami.ids import ID_unidecPanel_otherSettings
 from origami.ids import ID_extraSettings_general_plot
 from origami.ids import ID_help_page_annotatingMassSpectra
-from origami.ids import ID_load_multiple_origami_masslynx_raw
 from origami.styles import make_menu_item
 from origami.utils.path import clean_directory
 from origami.panel_plots import PanelPlots
@@ -944,7 +943,6 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_open_link, id=ID_helpReportBugs)
         self.Bind(wx.EVT_MENU, self.on_open_link, id=ID_helpNewFeatures)
         self.Bind(wx.EVT_MENU, self.on_open_link, id=ID_helpAuthor)
-        # self.Bind(wx.EVT_MENU, self.presenter.on_reboot_origami, menu_view_restart)
 
         self.Bind(wx.EVT_MENU, self.on_open_html_guide, id=ID_help_UniDecInfo)
         self.Bind(wx.EVT_MENU, self.on_open_html_guide, id=ID_help_page_gettingStarted)
@@ -963,28 +961,13 @@ class MainWindow(wx.Frame):
         # FILE MENU
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_origami_document, menu_file_load_origami)
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_multiple_text_2d_fcn, menu_file_text_heatmap)
-
-        #         self.Bind(wx.EVT_MENU, self.data_handling.on_open_MassLynx_raw_fcn, id=ID_openIRRawFile)
-        self.Bind(
-            wx.EVT_MENU, self.data_handling.on_open_multiple_MassLynx_raw_fcn, id=ID_load_multiple_origami_masslynx_raw
-        )
-
-        #         self.Bind(wx.EVT_MENU, self.data_handling.on_open_document_fcn, id=ID_openDocument)
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_save_document, id=ID_saveDocument)
-        #         self.Bind(wx.EVT_MENU, self.data_handling.on_save_all_documents_fcn, id=ID_saveAllDocuments)
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_multiple_text_ms_fcn, menu_file_text_ms)
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_single_clipboard_ms, menu_file_clipboard_ms)
-        # , id=ID_load_clipboard_spectrum)
         self.Bind(wx.EVT_MENU, self.on_close, menu_file_exit)
-        # self.Bind(wx.EVT_MENU, self.on_add_blank_document_interactive, id=ID_addNewInteractiveDoc)
-        # self.Bind(wx.EVT_MENU, self.on_add_blank_document_manual, id=ID_addNewManualDoc)
-        # self.Bind(wx.EVT_MENU, self.on_add_blank_document_overlay, id=ID_addNewOverlayDoc)
-        # self.Bind(wx.EVT_TOOL, self.on_open_multiple_files, menu_open_multiple)
-
         self.Bind(wx.EVT_TOOL, self.data_handling.on_open_mgf_file_fcn, id=ID_fileMenu_MGF)
         self.Bind(wx.EVT_TOOL, self.data_handling.on_open_mzml_file_fcn, id=ID_fileMenu_mzML)
         self.Bind(wx.EVT_TOOL, self.data_handling.on_open_thermo_file_fcn, menu_open_thermo)
-
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_waters_raw_ms_fcn, id=ID_load_masslynx_raw_ms_only)
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_waters_raw_imms_fcn, menu_file_waters_imms)
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_waters_raw_imms_fcn, menu_open_origami)
@@ -1000,7 +983,6 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_open_plot_settings_panel, id=ID_extraSettings_waterfall)
         self.Bind(wx.EVT_MENU, self.on_open_plot_settings_panel, id=ID_extraSettings_violin)
         self.Bind(wx.EVT_MENU, self.on_open_plot_settings_panel, id=ID_extraSettings_general)
-
         self.Bind(wx.EVT_MENU, self.on_customise_annotation_plot_parameters, id=ID_annotPanel_otherSettings)
         self.Bind(wx.EVT_MENU, self.on_customise_unidec_plot_parameters, id=ID_unidecPanel_otherSettings)
 
@@ -1022,7 +1004,6 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.data_handling.on_export_config_as_fcn, id=ID_saveAsConfig)
         self.Bind(wx.EVT_MENU, self.data_handling.on_import_config_fcn, id=ID_openConfig)
         self.Bind(wx.EVT_MENU, self.data_handling.on_import_config_as_fcn, id=ID_openAsConfig)
-        # self.Bind(wx.EVT_MENU, self.on_setup_driftscope, id=ID_setDriftScopeDir)
         self.Bind(wx.EVT_MENU, self.on_check_driftscope_path, menu_config_driftscope)
         self.Bind(wx.EVT_MENU, self.on_check_in_menu, id=ID_checkAtStart_Driftscope)
         self.Bind(wx.EVT_MENU, self.on_check_in_menu, id=ID_importAtStart_CCS)

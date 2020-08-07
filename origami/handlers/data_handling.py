@@ -934,7 +934,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     # NEED UPDATING \\\\\/////
 
     def on_get_document(self, document_title=None):
-
         if document_title is None:
             document_title = self.document_tree.on_enable_document()
         else:
@@ -952,18 +951,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             return None
 
         return document
-
-    def _on_get_document_path_and_title(self, document_title=None):
-        document = self.on_get_document(document_title)
-
-        path = document.path
-        title = document.title
-        if not check_path_exists(path):
-            logger.warning(f"Document path {path} does not exist on the disk drive.")
-            self._on_check_last_path()
-            path = CONFIG.lastDir
-
-        return path, title
 
     def _on_check_last_path(self):
         if not check_path_exists(CONFIG.lastDir):
@@ -1517,25 +1504,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             self.on_update_document(document, "document")
             logger.info(f"It took {time.time()-t_start:.4f} seconds to annotate {document.title}")
 
-    def on_open_multiple_MassLynx_raw_fcn(self, evt):
-
-        self._on_check_last_path()
-
-        dlg = DialogMultiDirPicker(self.view, title="Choose Waters (.raw) files to open...", last_dir=CONFIG.lastDir)
-
-        if dlg.ShowModal() == "ok":  # wx.ID_OK:
-            path_list = dlg.get_paths()
-            data_type = "Type: ORIGAMI"
-            for path in path_list:
-                if not check_waters_path(path):
-                    msg = "The path ({}) you've selected does not end with .raw"
-                    raise MessageError("Please load MassLynx (.raw) file", msg)
-
-                if not CONFIG.APP_ENABLE_THREADING:
-                    self.on_open_single_MassLynx_raw(path, data_type)
-                else:
-                    self.on_threading(action="load.raw.masslynx", args=(path, data_type))
-
     def on_extract_2D_from_mass_range_fcn(self, evt, extract_type="all"):
         """
         Extract 2D array for each m/z range specified in the table
@@ -1692,48 +1660,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         else:
             self.document_tree.add_document(document, expand_item=expand_item)
 
-    def _get_spectrum_parameters(self, document):
-        """Get common spectral parameters
-
-        Parameters
-        ----------
-        document : document.Document
-            ORIGAMI document
-
-        Returns
-        -------
-        pusher_freq : float
-            pusher frequency
-        scan_time : float
-            scan time
-        x_limits : list
-            x-axis limits for MS plot
-        """
-
-        # pusher frequency
-        try:
-            pusher_freq = document.parameters["pusherFreq"]
-        except (KeyError, AttributeError):
-            pusher_freq = 1000
-            logger.warning("Value of `pusher frequency` was missing")
-
-        try:
-            scan_time = document.parameters["scanTime"]
-        except (KeyError, AttributeError):
-            scan_time = None
-            logging.warning("Value of `scan time` was missing")
-
-        try:
-            x_limits = [document.parameters["start_ms"], document.parameters["end_ms"]]
-        except KeyError:
-            try:
-                x_limits = get_min_max(document.massSpectrum["xvals"])
-            except KeyError:
-                logging.warning("Could not set the `xlimits` variable")
-            x_limits = None
-
-        return pusher_freq, scan_time, x_limits
-
     # def on_update_DTMS_zoom(self, xmin, xmax, ymin, ymax):
     #     """Event driven data sub-sampling
     #
@@ -1864,235 +1790,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     #     # Add info to document
     #     self.on_update_document(document, "document")
 
-    # def on_extract_mass_spectrum_for_each_collision_voltage_fcn(self, evt, document_title=None):
-    #
-    #     if CONFIG.threading:
-    #         self.on_threading(action="extract.spectrum.collision.voltage", args=(document_title,))
-    #     else:
-    #         self.on_extract_mass_spectrum_for_each_collision_voltage(document_title)
-    #
-    # def on_extract_mass_spectrum_for_each_collision_voltage(self, document_title):
-    #     """Extract mass spectrum for each collision voltage"""
-    #     document = self.on_get_document(document_title)
-    #
-    #     # Make sure the document is of correct type.
-    #     if not document.dataType == "Type: ORIGAMI":
-    #         self.update_statusbar("Please select correct document type - ORIGAMI", 4)
-    #         return
-    #
-    #     # get origami-ms settings from the metadata
-    #     origami_settings = document.metadata.get("origami_ms", None)
-    #     scan_list = document.combineIonsList
-    #     if origami_settings is None or len(scan_list) == 0:
-    #         raise MessageError(
-    #             "Missing ORIGAMI-MS configuration",
-    #             "Please setup ORIGAMI-MS settings by right-clicking on the document in the"
-    #             + "Document Tree and selecting `Action -> Setup ORIGAMI-MS parameters",
-    #         )
-    #
-    #     reader = self._get_waters_api_reader(document)
-    #
-    #     document.gotMultipleMS = True
-    #     xlimits = [document.parameters["start_ms"], document.parameters["end_ms"]]
-    #     for start_end_cv in scan_list:
-    #         tstart = time.time()
-    #         start_scan, end_scan, cv = start_end_cv
-    #         spectrum_name = f"Scans: {start_scan}-{end_scan} | CV: {cv} V"
-    #
-    #         # extract spectrum
-    #         mz_x, mz_y = self._get_waters_api_spectrum_data(reader, start_scan=start_scan, end_scan=end_scan)
-    #         # process each
-    #         if CONFIG.origami_preprocess:
-    #             mz_x, mz_y = self.data_processing.process_spectrum(mz_x, mz_y, return_data=True)
-    #
-    #         # add to document
-    #         spectrum_data = {
-    #             "xvals": mz_x,
-    #             "yvals": mz_y,
-    #             "range": [start_scan, end_scan],
-    #             "xlabels": "m/z (Da)",
-    #             "xlimits": xlimits,
-    #             "trap": cv,
-    #         }
-    #         self.document_tree.on_update_data(spectrum_data, spectrum_name, document, data_type="extracted.spectrum")
-    #         logger.info(f"Extracted {spectrum_name} in {time.time()-tstart:.2f} seconds.")
-    #
-    # def on_save_heatmap_figures(self, plot_type, item_list):
-    #     """Export heatmap-based data as figures in batch mode
-    #
-    #     Executing this action will open dialog where user can specify various settings and subsequently decide whether
-    #     to continue or cancel the action
-    #
-    #     Parameters
-    #     ----------
-    #     plot_type : str
-    #         type of figure to be plotted
-    #     item_list : list
-    #         list of items to be plotted. Must be constructed to have [document_title, dataset_type, dataset_name]
-    #     """
-    #     from origami.gui_elements.dialog_batch_figure_exporter import DialogExportFigures
-    #
-    #     filename_alias = {
-    #         "Drift time (2D)": "raw",
-    #         "Drift time (2D, processed)": "processed",
-    #         "Drift time (2D, EIC)": "raw",
-    #         "Drift time (2D, processed, EIC)": "processed",
-    #         "Drift time (2D, combined voltages, EIC)": "combined_cv",
-    #         "Input data": "input_data",
-    #     }
-    #     resize_alias = {"heatmap": "2D", "chromatogram": "RT", "mobilogram": "DT", "waterfall": "Waterfall"}
-    #
-    #     # check input is correct
-    #     if plot_type not in ["heatmap", "chromatogram", "mobilogram", "waterfall"]:
-    #         raise MessageError("Incorrect plot type", "This function cannot plot this plot type")
-    #
-    #     if len(item_list) == 0:
-    #         raise MessageError("No items in the list", "Please select at least one item in the panel to export")
-    #
-    #     # setup output parameters
-    #     dlg_kwargs = {"image_size_inch": CONFIG._plotSettings[resize_alias[plot_type]]["resize_size"]}
-    #     dlg = DialogExportFigures(self.presenter.view, self.presenter, self.config, self.presenter.icons,
-    #     **dlg_kwargs)
-    #
-    #     if dlg.ShowModal() == wx.ID_NO:
-    #         logger.error("Action was cancelled")
-    #         return
-    #
-    #     path = CONFIG.image_folder_path
-    #     if not check_path_exists(path):
-    #         logger.error("Action was cancelled because the path does not exist")
-    #         return
-    #
-    #     # save individual images
-    #     for document_title, dataset_type, dataset_name in item_list:
-    #         # generate filename
-    #         filename = f"{plot_type}_{dataset_name}_{filename_alias[dataset_type]}_{document_title}"
-    #         filename = clean_filename(filename)
-    #         filename = os.path.join(path, filename)
-    #         # get data
-    #         try:
-    #             query_info = [document_title, dataset_type, dataset_name]
-    #             __, data = self.get_mobility_chromatographic_data(query_info)
-    #         except KeyError:
-    #             continue
-    #
-    #         # unpack data
-    #         zvals = data["zvals"]
-    #         xvals = data["xvals"]
-    #         yvals = data["yvals"]
-    #         xlabel = data["xlabels"]
-    #         ylabel = data["ylabels"]
-    #
-    #         # plot data
-    #         if plot_type == "heatmap":
-    #             self.panel_plot.on_plot_2d(zvals, xvals, yvals, xlabel, ylabel)
-    #             self.panel_plot.on_save_image("2D", filename, resize_name=resize_alias[plot_type])
-    #         elif plot_type == "chromatogram":
-    #             yvals_RT = data.get("yvalsRT", zvals.sum(axis=0))
-    #             self.panel_plot.on_plot_rt(xvals, yvals_RT, xlabel)
-    #             self.panel_plot.on_save_image("RT", filename, resize_name=resize_alias[plot_type])
-    #         elif plot_type == "mobilogram":
-    #             yvals_DT = data.get("yvals1D", zvals.sum(axis=1))
-    #             self.panel_plot.on_plot_1d(yvals, yvals_DT, ylabel)
-    #             self.panel_plot.on_save_image("1D", filename, resize_name=resize_alias[plot_type])
-    #         elif plot_type == "waterfall":
-    #             self.panel_plot.on_plot_waterfall(yvals=xvals, xvals=yvals, zvals=zvals, xlabel=xlabel, ylabel=ylabel)
-    #             self.panel_plot.on_save_image("Waterfall", filename, resize_name=resize_alias[plot_type])
-    #
-    # def on_save_heatmap_data(self, data_type, item_list):
-    #     """Save heatmap-based figures to file
-    #
-    #     Parameters
-    #     ----------
-    #     data_type : str
-    #         type of data to be saved
-    #     item_list : list
-    #         list of items to be saved. Must be constructed to have [document_title, dataset_type, dataset_name]
-    #     """
-    #     from origami.gui_elements.dialog_batch_data_exporter import DialogExportData
-    #
-    #     if data_type not in ["heatmap", "chromatogram", "mobilogram", "waterfall"]:
-    #         raise MessageError("Incorrect data type", "This function cannot save this data type")
-    #
-    #     fname_alias = {
-    #         "Drift time (2D)": "raw",
-    #         "Drift time (2D, processed)": "processed",
-    #         "Drift time (2D, EIC)": "raw",
-    #         "Drift time (2D, processed, EIC)": "processed",
-    #         "Drift time (2D, combined voltages, EIC)": "combined_cv",
-    #         "Input data": "input_data",
-    #     }
-    #
-    #     if len(item_list) == 0:
-    #         raise MessageError("No items in the list", "Please select at least one item in the panel to export")
-    #
-    #     # setup output parameters
-    #     dlg = DialogExportData(self.presenter.view, self.presenter, self.config, self.presenter.icons)
-    #
-    #     if dlg.ShowModal() == wx.ID_NO:
-    #         logger.error("Action was cancelled")
-    #         return
-    #
-    #     path = CONFIG.data_folder_path
-    #     if not check_path_exists(path):
-    #         logger.error("Action was cancelled because the path does not exist")
-    #         return
-    #
-    #     delimiter = CONFIG.saveDelimiter
-    #     extension = CONFIG.saveExtension
-    #     path = r"D:\Data\ORIGAMI\origami_ms\images"
-    #     for document_title, dataset_type, dataset_name in item_list:
-    #         tstart = time.time()
-    #         # generate filename
-    #         filename = f"{data_type}_{dataset_name}_{fname_alias[dataset_type]}_{document_title}"
-    #         filename = clean_filename(filename)
-    #         filename = os.path.join(path, filename)
-    #
-    #         if not filename.endswith(f"{extension}"):
-    #             filename += f"{extension}"
-    #
-    #         # get data
-    #         try:
-    #             query_info = [document_title, dataset_type, dataset_name]
-    #             __, data = self.get_mobility_chromatographic_data(query_info)
-    #         except KeyError:
-    #             continue
-    #
-    #         # unpack data
-    #         zvals = data["zvals"]
-    #         xvals = data["xvals"]
-    #         yvals = data["yvals"]
-    #         xlabel = data["xlabels"]
-    #         ylabel = data["ylabels"]
-    #
-    #         # plot data
-    #         if data_type == "heatmap":
-    #             save_data, header, data_format = io_text_files.prepare_heatmap_data_for_saving(
-    #                 zvals, xvals, yvals, guess_dtype=True
-    #             )
-    #         elif data_type == "chromatogram":
-    #             yvals_RT = data.get("yvalsRT", zvals.sum(axis=0))
-    #             save_data, header, data_format = io_text_files.prepare_signal_data_for_saving(
-    #                 xvals, yvals_RT, xlabel, "Intensity"
-    #             )
-    #         elif data_type == "mobilogram":
-    #             yvals_DT = data.get("yvals1D", zvals.sum(axis=1))
-    #             save_data, header, data_format = io_text_files.prepare_signal_data_for_saving(
-    #                 yvals, yvals_DT, ylabel, "Intensity"
-    #             )
-    #
-    #         header = delimiter.join(header)
-    #
-    #         io_text_files.save_data(
-    #             filename=filename, data=save_data, fmt=data_format, delimiter=delimiter, header=header
-    #         )
-    #         logger.info(f"Saved {filename} in {time.time()-tstart:.4f} seconds.")
-    #
-    # def get_annotations_data(self, query_info):
-    #
-    #     __, dataset = self.get_mobility_chromatographic_data(query_info)
-    #     return dataset.get("annotations", annotations_obj.Annotations())
-
     def get_spectrum_data(self, query_info, **kwargs):
         """Retrieve data for specified query items.
 
@@ -2119,32 +1816,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
         document, data = self.get_mobility_chromatographic_data([document_title, dataset_type, dataset_name])
         return document, data
-
-    def set_spectrum_data(self, query_info, data, **kwargs):
-        """Set data for specified query items.
-
-        Parameters
-        ----------
-        query_info: list
-             query should be formed as a list containing two elements [document title, dataset title]
-
-        Returns
-        -------
-        document: document object
-        """
-
-        document_title, spectrum_title = query_info
-        document = self.on_get_document(document_title)
-
-        if data is not None:
-            if spectrum_title == "Mass Spectrum":
-                self.document_tree.on_update_data(data, "", document, data_type="main.raw.spectrum")
-            elif spectrum_title == "Mass Spectrum (processed)":
-                self.document_tree.on_update_data(data, "", document, data_type="main.processed.spectrum")
-            else:
-                self.document_tree.on_update_data(data, spectrum_title, document, data_type="extracted.spectrum")
-
-        return document
 
     def get_mobility_chromatographic_data(self, query_info, as_copy=True, **kwargs):
         """Retrieve data for specified query items.
@@ -2181,59 +1852,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             data = copy.deepcopy(data)
 
         return document, data
-
-    def set_mobility_chromatographic_data(self, query_info, data, **kwargs):
-        raise NotImplementedError("Must reimplement method")
-
-    #         document_title, dataset_type, dataset_name = query_info
-    #         document = self.on_get_document(document_title)
-    #
-    #         if data is not None:
-    #             # MS data
-    #             if dataset_type == "Mass Spectrum":
-    #                 self.document_tree.on_update_data(data, "", document, data_type="main.raw.spectrum")
-    #             elif dataset_type == "Mass Spectrum (processed)":
-    #                 self.document_tree.on_update_data(data, "", document, data_type="main.processed.spectrum")
-    #             elif dataset_type == "Mass Spectra" and dataset_name is not None:
-    #                 self.document_tree.on_update_data(data, dataset_name, document, data_type="extracted.spectrum")
-    #             # Drift time (2D) data
-    #             elif dataset_type == "Drift time (2D)":
-    #                 self.document_tree.on_update_data(data, "", document, data_type="main.raw.heatmap")
-    #             elif dataset_type == "Drift time (2D, processed)":
-    #                 self.document_tree.on_update_data(data, "", document, data_type="main.processed.heatmap")
-    #             elif dataset_type == "Drift time (2D, EIC)" and dataset_name is not None:
-    #                 self.document_tree.on_update_data(data, dataset_name, document, data_type="ion.heatmap.raw")
-    #             elif dataset_type == "Drift time (2D, combined voltages, EIC)" and dataset_name is not None:
-    #                 self.document_tree.on_update_data(data, dataset_name, document, data_type="ion.heatmap.combined")
-    #             elif dataset_type == "Drift time (2D, processed, EIC)" and dataset_name is not None:
-    #                 self.document_tree.on_update_data(data, dataset_name, document, data_type="ion.heatmap.processed")
-    #             # overlay input data
-    #             elif dataset_type == "Input data" and dataset_name is not None:
-    #                 self.document_tree.on_update_data(data, dataset_name, document, data_type="ion.heatmap.
-    #                 comparison")
-    #             # chromatogram data
-    #             elif dataset_type == "Chromatogram":
-    #                 self.document_tree.on_update_data(data, "", document, data_type="main.chromatogram")
-    #             elif dataset_type == "Chromatograms (combined voltages, EIC)" and dataset_name is not None:
-    #                 self.document_tree.on_update_data(data, dataset_name, document,
-    #                 data_type="ion.chromatogram.combined")
-    #             elif dataset_type == "Chromatograms (EIC)" and dataset_name is not None:
-    #                 self.document_tree.on_update_data(data, dataset_name, document,
-    #                 data_type=" extracted.chromatogram")
-    #             # mobilogram data
-    #             elif dataset_type == "Drift time (1D)":
-    #                 self.document_tree.on_update_data(data, "", document, data_type="main.mobilogram")
-    #             elif dataset_type == "Drift time (1D, EIC)" and dataset_name is not None:
-    #                 self.document_tree.on_update_data(data, dataset_name, document, data_type="ion.mobilogram.raw")
-    #             elif dataset_type == "Drift time (1D, EIC, DT-IMS)" and dataset_name is not None:
-    #                 self.document_tree.on_update_data(data, dataset_name, document, data_type="ion.mobilogram")
-    #             else:
-    #                 raise MessageError(
-    #                     "Not implemented yet",
-    #                     f"Method to handle {dataset_type}, {dataset_name} has not been implemented yet",
-    #                 )
-    #
-    #         return document
 
     def set_mobility_chromatographic_keyword_data(self, query_info, **kwargs):
         """Set keyword(s) data for specified query items.
@@ -2300,132 +1918,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     #
     #         return document
 
-    def set_parent_mobility_chromatographic_data(self, query_info, data):
-        raise NotImplementedError("Must reimplement method")
-
-    #         document_title, dataset_type, dataset_name = query_info
-    #         document = self.on_get_document(document_title)
-    #
-    #         if data is None:
-    #             data = dict()
-    #
-    #         # MS data
-    #         if dataset_type == "Mass Spectrum":
-    #             document.massSpectrum = data
-    #             document.gotMS = True if data else False
-    #         elif dataset_type == "Mass Spectrum (processed)":
-    #             document.smoothMS = data
-    #         elif all(item == "Mass Spectra" for item in [dataset_type, dataset_name]):
-    #             document.multipleMassSpectrum = data
-    #             document.gotMultipleMS = True if data else False
-    #         elif dataset_type == "Mass Spectra" and dataset_name not in [None, "Mass Spectra"]:
-    #             if data:
-    #                 document.multipleMassSpectrum[dataset_name] = data
-    #             else:
-    #                 del document.multipleMassSpectrum[dataset_name]
-    #         # Drift time (2D) data
-    #         elif dataset_type == "Drift time (2D)":
-    #             document.IMS2D = data
-    #             document.got2DIMS = True if data else False
-    #         elif dataset_type == "Drift time (2D, processed)":
-    #             document.IMS2Dprocess = data
-    #             document.got2Dprocess = True if data else False
-    #         elif all(item == "Drift time (2D, EIC)" for item in [dataset_type, dataset_name]):
-    #             document.IMS2Dions = data
-    #             document.gotExtractedIons = True if data else False
-    #         elif dataset_type == "Drift time (2D, EIC)" and dataset_name is not None:
-    #             if data:
-    #                 document.IMS2Dions[dataset_name] = data
-    #             else:
-    #                 del document.IMS2Dions[dataset_name]
-    #         elif all(item == "Drift time (2D, combined voltages, EIC)" for item in [dataset_type, dataset_name]):
-    #             document.IMS2DCombIons = data
-    #             document.gotCombinedExtractedIons = True if data else False
-    #         elif dataset_type == "Drift time (2D, combined voltages, EIC)" and dataset_name is not None:
-    #             if data:
-    #                 document.IMS2DCombIons[dataset_name] = data
-    #             else:
-    #                 del document.IMS2DCombIons[dataset_name]
-    #         elif all(item == "Drift time (2D, processed, EIC)" for item in [dataset_type, dataset_name]):
-    #             document.IMS2DionsProcess = data
-    #             document.got2DprocessIons = True if data else False
-    #         elif dataset_type == "Drift time (2D, processed, EIC)" and dataset_name is not None:
-    #             if data:
-    #                 document.IMS2DionsProcess[dataset_name] = data
-    #             else:
-    #                 del document.IMS2DionsProcess[dataset_name]
-    #         # overlay input data
-    #         elif all(item == "Input data" for item in [dataset_type, dataset_name]):
-    #             document.IMS2DcompData = data
-    #             document.gotComparisonData = True if data else False
-    #         elif dataset_type == "Input data" and dataset_name is not None:
-    #             if data:
-    #                 document.IMS2DcompData[dataset_name] = data
-    #             else:
-    #                 del document.IMS2DcompData[dataset_name]
-    #         # chromatogram data
-    #         elif dataset_type == "Chromatogram":
-    #             document.RT = data
-    #             document.got1RT = True if data else False
-    #         elif all(item == "Chromatograms (combined voltages, EIC)" for item in [dataset_type, dataset_name]):
-    #             document.IMSRTCombIons = data
-    #             document.gotCombinedExtractedIonsRT = True if data else False
-    #         elif dataset_type == "Chromatograms (combined voltages, EIC)" and dataset_name is not None:
-    #             if data:
-    #                 document.IMSRTCombIons[dataset_name] = data
-    #             else:
-    #                 del document.IMSRTCombIons[dataset_name]
-    #         elif all(item == "Chromatograms (EIC)" for item in [dataset_type, dataset_name]):
-    #             document.multipleRT = data
-    #             document.gotMultipleRT = True if data else False
-    #         elif dataset_type == "Chromatograms (EIC)" and dataset_name is not None:
-    #             if data:
-    #                 document.multipleRT[dataset_name] = data
-    #             else:
-    #                 del document.multipleRT[dataset_name]
-    #         # mobilogram data
-    #         elif dataset_type == "Drift time (1D)":
-    #             document.DT = data
-    #             document.got1DT = True if data else False
-    #         elif all(item == "Drift time (1D, EIC)" for item in [dataset_type, dataset_name]):
-    #             document.multipleDT = data
-    #             document.gotMultipleDT = True if data else False
-    #         elif dataset_type == "Drift time (1D, EIC)" and dataset_name is not None:
-    #             if data:
-    #                 document.multipleDT[dataset_name] = data
-    #             else:
-    #                 del document.multipleDT[dataset_name]
-    #         elif all(item == "Drift time (1D, EIC, DT-IMS)" for item in [dataset_type, dataset_name]):
-    #             if data:
-    #                 document.IMS1DdriftTimes[dataset_name] = data
-    #             else:
-    #                 del document.IMS1DdriftTimes[dataset_name]
-    #             document.gotExtractedDriftTimes = True if data else False
-    #         elif dataset_type == "Drift time (1D, EIC, DT-IMS)" and dataset_name is not None:
-    #             if data:
-    #                 document.IMS1DdriftTimes[dataset_name] = data
-    #             else:
-    #                 del document.IMS1DdriftTimes[dataset_name]
-    #         # annotated data
-    #         elif all(item == "Annotated data" for item in [dataset_type, dataset_name]):
-    #             document.other_data = data
-    #         elif dataset_type == "Annotated data" and dataset_name is not None:
-    #             if data:
-    #                 document.other_data[dataset_name] = data
-    #             else:
-    #                 del document.other_data[dataset_name]
-    #         # DT/MS heatmap data
-    #         elif dataset_type == "DT/MS":
-    #             document.DTMZ = data
-    #             document.gotDTMZ = True if data else False
-    #         else:
-    #             raise MessageError(
-    #                 "Not implemented yet", f"Method to handle {dataset_type}, {dataset_name} has not been
-    #                 implemented yet"
-    #             )
-    #
-    #         self.on_update_document(document, "no_refresh")
-
     def set_overlay_data(self, query_info, data, **kwargs):
         raise NotImplementedError("Must reimplement method")
 
@@ -2453,7 +1945,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         return item_list
 
     def generate_item_list(self, data_type="heatmap"):
-        """Generate list of items with the corrent data type(s)"""
+        """Generate list of items with the current data type(s)"""
 
         if data_type in ["heatmap", "chromatogram", "mobilogram"]:
             item_list = self.generate_item_list_heatmap()

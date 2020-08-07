@@ -34,6 +34,8 @@ class TestWatersIMReader:
         assert len(reader.dt_ms) == 200
         assert len(reader.rt_bin) == reader.n_scans(0)
         assert len(reader.rt_min) == reader.n_scans(0)
+        assert os.path.exists(reader._driftscope)
+        assert os.path.isfile(reader.driftscope_path)
 
     @staticmethod
     def test_get_ms(get_waters_im_small):
