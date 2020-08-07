@@ -1885,7 +1885,7 @@ class Config:
         cmaps = self.colormap_choices
         if narrow:
             cmaps = self.colormap_narrow_choices
-        return cmaps[get_random_int(0, len(cmaps))]
+        return cmaps[get_random_int(0, len(cmaps) - 1)]
 
     def get_zoom_parameters(self):
         """Get matplotlib interaction parameters"""
