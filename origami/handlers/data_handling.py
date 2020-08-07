@@ -978,10 +978,12 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         else:
             return None, None
 
-    def on_import_config_fcn(self, _evt):
+    @staticmethod
+    def on_import_config_fcn(_evt):
         """Load configuration file from the default path"""
         config_path = os.path.join(CONFIG.APP_CWD, CONFIG.DEFAULT_CONFIG_NAME)
         QUEUE.add_call(CONFIG.load_config, (config_path,))
+        pub.sendMessage("config.loaded", complete=True)
 
     def on_import_config_as_fcn(self, _evt):
         """Load configuration file from the user-defined path"""
@@ -1000,13 +1002,13 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
         if config_path is None:
             return
-
         QUEUE.add_call(CONFIG.load_config, (config_path,))
+        pub.sendMessage("config.loaded", complete=True)
 
-    def on_export_config_fcn(self, _evt):
+    @staticmethod
+    def on_export_config_fcn(_evt):
         """Import configuration file"""
         config_path = os.path.join(CONFIG.APP_CWD, CONFIG.DEFAULT_CONFIG_NAME)
-
         QUEUE.add_call(CONFIG.save_config, (config_path,))
 
     def on_export_config_as_fcn(self, _evt):
@@ -1023,7 +1025,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
         if config_path is None:
             return
-
         QUEUE.add_call(CONFIG.save_config, (config_path,))
 
     def on_save_data_as_text(self, data, labels, data_format, **kwargs):

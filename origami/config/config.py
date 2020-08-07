@@ -1835,7 +1835,7 @@ class Config:
         if return_check:
             return found_dir
 
-    def setup_logging(self):
+    def setup_logging(self, verbose: Union[int, str] = "DEBUG"):
         """Setup ORIGAMI logger"""
         from origami.utils.logging import set_logger
         from origami.utils.logging import set_logger_level
@@ -1853,7 +1853,7 @@ class Config:
 
         # setup logger
         set_logger(file_path=self.APP_LOG_PATH)
-        set_logger_level(verbose="DEBUG")
+        set_logger_level(verbose=verbose)
 
         logger.info("Logs can be found in {}".format(self.APP_LOG_PATH))
         print("Logs can be found in {}".format(self.APP_LOG_PATH))
@@ -2407,7 +2407,7 @@ class Config:
         write_json_data(path, config)
         logger.debug(f"Saved config file to `{path}`")
 
-    def load_config(self, path: str):
+    def load_config(self, path: str, check_type: bool = True):
         """Load configuration from JSON file"""
         config = read_json_data(path)
 
@@ -2415,16 +2415,35 @@ class Config:
             logger.error("Configuration file should be a dictionary with key:value pairs")
             return
 
+        # iterate over the major groups of settings
         for config_sub in ["mpl-settings", "ui-settings"]:
-            if config_sub in config:
-                _config = config[config_sub]
-                for _, _config_group in _config.items():
-                    for key, value in _config_group.items():
-                        if hasattr(self, key):
-                            setattr(self, key, value)
-                logger.debug(f"Loaded `{config_sub}` settings")
-
+            _config = config.get(config_sub, dict())
+            for _, _config_group in _config.items():
+                for key, value in _config_group.items():
+                    if hasattr(self, key):
+                        if check_type:
+                            if not self._check_type(key, value):
+                                logger.warning(
+                                    f"Could not set `{key}` as the types were not similar enough to ensure compliance"
+                                )
+                                continue
+                        setattr(self, key, value)
+            logger.debug(f"Loaded `{config_sub}` settings")
         logger.debug(f"Loaded config file from `{path}`")
+
+    def _check_type(self, key, value):
+        """Check whether type of the value matches that of the currently set value"""
+        current_value = getattr(self, key)
+        current_type = type(current_value)
+
+        # simplest case where types match perfectly
+        if current_type == type(value):
+            return True
+        if current_type in [int, float] and value in [int, float]:
+            return True
+        if current_type in [list, tuple] and value in [list, tuple]:
+            return True
+        return False
 
 
 CONFIG = Config()

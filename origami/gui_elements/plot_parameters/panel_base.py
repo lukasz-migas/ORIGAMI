@@ -2,6 +2,7 @@
 # Third-party imports
 import wx
 import wx.lib.scrolledpanel
+from pubsub import pub
 from wx.adv import BitmapComboBox
 
 # Local imports
@@ -22,6 +23,8 @@ class PanelSettingsBase(wx.lib.scrolledpanel.ScrolledPanel, ColorGetterMixin):
         self.on_toggle_controls(evt=None)
         self.SetupScrolling()
         self.import_evt = False
+
+        pub.subscribe(self.on_set_config, "config.loaded")
 
     @staticmethod
     def _parse_evt(evt):
@@ -79,6 +82,9 @@ class PanelSettingsBase(wx.lib.scrolledpanel.ScrolledPanel, ColorGetterMixin):
     def on_toggle_controls(self, evt):
         """Update controls"""
         self._parse_evt(evt)
+
+    def on_set_config(self, complete: bool):
+        """Handle loading of new configuration file"""
 
     def _on_assign_color(self, evt):
         if self.import_evt:

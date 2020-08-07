@@ -1,5 +1,6 @@
 """Test Comparison panel"""
 # Third-party imports
+import wx
 import pytest
 
 # Local imports
@@ -32,9 +33,11 @@ class TestPanelPeakPicker(WidgetTestCase):
         # self.sim_checkbox_click(dlg.preprocess_check, pre_process)
         # assert CONFIG.peak_panel_highlight is dlg.visualize_highlight_check.GetValue()
 
-        dlg.on_set_method(method)
+        wx.CallAfter(dlg.on_set_method, method)
+        # dlg.on_set_method(method)
+        # dlg.on_find_peaks(None)
         self.sim_button_click(dlg.find_peaks_btn)
-        self.sim_button_click(dlg.plot_peaks_btn)
+        # self.sim_button_click(dlg.plot_peaks_btn)
 
         # simulate specify m/z range
         for value in [True, False]:

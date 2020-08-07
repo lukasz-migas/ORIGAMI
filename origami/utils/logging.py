@@ -88,3 +88,5 @@ def set_logger_level(verbose=None):
             logger.setLevel(verbose)
         else:
             raise ValueError("verbose must be in " "{}".format(", ".join(LOGGING_TYPES)))
+    if isinstance(verbose, int):
+        logger.setLevel(verbose)
