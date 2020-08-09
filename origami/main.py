@@ -107,6 +107,9 @@ class ORIGAMI:
         if CONFIG.APP_CHECK_DRIFTSCOPE_PATH_AT_START and platform == "win32":
             CONFIG.setup_paths()
 
+        # setup recent files
+        self.view.on_update_recent_files()
+
     #     def initialize_registry(self):
     #         """Update reg keys to allow viewing of JS/HTML inside ORIGAMI windows"""
     #         from origami.utils.windows_reg_edit import set_ie_emulation_level

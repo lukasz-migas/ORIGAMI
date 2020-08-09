@@ -76,7 +76,7 @@ class PanelImagingImportDataset(PanelImportManagerBase):
         self.import_precompute_norm.Disable()
         self.import_precompute_norm.SetValue(True)
 
-        dim_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        dim_sizer = wx.BoxSizer()
         dim_sizer.Add(image_shape_x, 0, wx.ALIGN_CENTER_VERTICAL)
         dim_sizer.Add(self.image_shape_x, 0, wx.ALIGN_CENTER_VERTICAL)
         dim_sizer.AddSpacer(10)

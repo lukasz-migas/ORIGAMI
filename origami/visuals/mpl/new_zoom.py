@@ -246,6 +246,9 @@ class MPLInteraction:
 
         if callbacks is None:
             callbacks = dict()
+        for key in callbacks:
+            if not isinstance(callbacks[key], (list, tuple)):
+                callbacks[key] = [callbacks[key]]
 
         if not all(isinstance(elem, (list, tuple)) for elem in data_limits):
             data_limits = [data_limits]
@@ -566,13 +569,21 @@ class MPLInteraction:
 
         # parse extraction limits through cleanup
         xmin, xmax, ymin, ymax = self._parse_extraction_limits(xmin, xmax, ymin, ymax, evt)
+        x_labels, y_labels = self.get_labels()
 
-        # process CTRL callback
-        if self._callbacks.get("CTRL", False) and isinstance(self._callbacks["CTRL"], str):
-            x_labels, y_labels = self.get_labels()
-            pub.sendMessage(
-                self._callbacks["CTRL"], rect=[xmin, xmax, ymin, ymax], x_labels=x_labels, y_labels=y_labels
-            )
+        # process CTRL callbacks
+        if self._callbacks.get("CTRL", False) and isinstance(self._callbacks["CTRL"], list):
+            for callback in self._callbacks["CTRL"]:
+                pub.sendMessage(callback, rect=[xmin, xmax, ymin, ymax], x_labels=x_labels, y_labels=y_labels)
+                print(callback)
+        # process SHIFT callbacks
+        elif self._callbacks.get("SHIFT", False) and isinstance(self._callbacks["SHIFT"], list):
+            for callback in self._callbacks["SHIFT"]:
+                pub.sendMessage(callback, rect=[xmin, xmax, ymin, ymax], x_labels=x_labels, y_labels=y_labels)
+        # process ALT callbacks
+        elif self._callbacks.get("ALT", False) and isinstance(self._callbacks["ALT"], list):
+            for callback in self._callbacks["ALT"]:
+                pub.sendMessage(callback, rect=[xmin, xmax, ymin, ymax], x_labels=x_labels, y_labels=y_labels)
         elif self.plotName in ["MSDT", "2D"] and (
             self.evt_press.xdata != evt.xdata and self.evt_press.ydata != evt.ydata
         ):

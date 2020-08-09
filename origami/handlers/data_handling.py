@@ -259,25 +259,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
         return path
 
-    def on_open_origami_document(self, evt):
-        """Open ORIGAMI document"""
-        path = None
-        dlg = wx.DirDialog(self.view, "Choose a ORIGAMI (.origami) directory store")
-        if dlg.ShowModal() == wx.ID_OK:
-            path = dlg.GetPath()
-        dlg.Destroy()
-
-        if path is None:
-            logger.warning("Operation was cancelled")
-            pub.sendMessage("notify.message.warning", message="Operation was cancelled.")
-            return
-        elif not path.endswith(".origami"):
-            logger.error("Operation was cancelled - it was not an ORIGAMI document.")
-            pub.sendMessage("notify.message.error", message="Operation was cancelled - it was not an ORIGAMI document.")
-            return
-        self.on_setup_basic_document(ENV.load(path))
-        pub.sendMessage("file.recent.add", action="origami.document", path=path)
-
     @staticmethod
     def on_open_directory(path):
         """Open document path"""
@@ -298,6 +279,25 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             raise MessageError("Path does not exist", f"Failed to open {path}")
 
         pub.sendMessage("notify.message.success", message="Opening directory...")
+
+    def on_open_origami_document(self, _evt):
+        """Open ORIGAMI document"""
+        path = None
+        dlg = wx.DirDialog(self.view, "Choose a ORIGAMI (.origami) directory store")
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+        dlg.Destroy()
+
+        if path is None:
+            logger.warning("Operation was cancelled")
+            pub.sendMessage("notify.message.warning", message="Operation was cancelled.")
+            return
+        elif not path.endswith(".origami"):
+            logger.error("Operation was cancelled - it was not an ORIGAMI document.")
+            pub.sendMessage("notify.message.error", message="Operation was cancelled - it was not an ORIGAMI document.")
+            return
+        self.on_setup_basic_document(ENV.load(path))
+        pub.sendMessage("file.recent.add", action="origami.document", path=path)
 
     def on_show_tandem_scan(self, scan_data):
         """Displays scan data in the viewer"""
@@ -589,6 +589,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         logger.info(f"Extracted mass spectrum in {report_time(t_start)} - See: {obj_name}")
 
     def evt_extract_heatmap_from_ms(self, rect, x_labels, y_labels):
+        """Extract ion heatmap from mass spectrum"""
         t_start = time.time()
         # unpack values
         x_min, x_max, _, _ = rect
@@ -624,7 +625,37 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         logger.info(f"Extracted ion heatmap in {report_time(t_start)} - See: {obj_name}")
 
     def evt_extract_rt_from_ms(self, rect, x_labels, y_labels):
-        pass
+        """Extract chromatogram from mass spectrum"""
+        t_start = time.time()
+        # unpack values
+        x_min, x_max, _, _ = rect
+        document = ENV.on_get_document()
+
+        can_extract, is_multifile, file_fmt = document.can_extract()
+        if not can_extract:
+            raise MessageError("Error", "This document type 8does not allow data extraction")
+        if is_multifile:
+            raise MessageError("Error", "Multifile data extraction is not supported yet")
+        if file_fmt == "thermo":
+            raise MessageError("Error", "Cannot extract heatmap from Thermo file")
+
+        # get plot data and calculate maximum values in the arrays
+        x, y = self.panel_plot.view_ms.get_data(["x", "y"])
+        _, y_val = get_maximum_xy(x, y, x_min, x_max)
+
+        # mark on the plot where data is being extracted from
+        # self.panel_plot.view_ms.add_patches([x_min], [0], [x_max - x_min], [y_val], pickable=False)
+
+        # get data
+        obj_name, rt_obj, document = self.waters_extract_rt_from_mass_spectrum(x_min, x_max, document.title)
+
+        # set data
+        self.panel_plot.view_rt_rt.plot(obj=rt_obj)
+        self.panel_plot.popup_rt.plot(obj=rt_obj)
+
+        # # Update document
+        self.document_tree.on_update_document(rt_obj.DOCUMENT_KEY, obj_name, document.title)
+        logger.info(f"Extracted ion heatmap in {report_time(t_start)} - See: {obj_name}")
 
     def on_save_unsaved_changes(self, data_obj, document_title: str = None, dataset_name: str = None):
         """Save unchanged changes on an object"""

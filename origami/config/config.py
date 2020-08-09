@@ -1,3 +1,4 @@
+"""Configuration instance"""
 # Standard library imports
 import os
 import time
@@ -29,7 +30,14 @@ class Config:
     """Configuration file"""
 
     def __init__(self):
-        """Initialize config"""
+        """Setup config
+
+        The configuration file contains all (or almost all) of changable variables that are used throughout ORIGAMI.
+        Over the time, their names has changed, however in the current iteration, names are usually separated by an
+        underscore and indicate what sort of action they are used for. For instance, parameters starting with
+        `waterfall_...` will be used to update waterfall-like plots. The value in the configuration file will reflect
+        the name in the `Config` instance since values are set using the `setattr` method.
+        """
 
         # Various app defaults
         self.APP_STDIN = None
@@ -2417,7 +2425,7 @@ class Config:
                     if hasattr(self, key):
                         if check_type:
                             current_value = getattr(self, key)
-                            if not self._check_type(current_value, key, value):
+                            if not self._check_type(current_value, value):
                                 logger.warning(
                                     f"Could not set `{key}` as the types were not similar enough to ensure compliance."
                                     f"\nCurrent value={current_value}; New value={value}"
@@ -2428,11 +2436,14 @@ class Config:
 
         # load recent files
         _recent_files = config.get("recent-files", [])
+        if isinstance(_recent_files, list):
+            self.recent_files = _recent_files
         logger.debug(f"Loaded config file from `{path}`")
 
-        pub.sendMessage("config.loaded", complete=True)
+        pub.sendMessage("config.loaded")
 
-    def _check_type(self, current_value, key, value):
+    @staticmethod
+    def _check_type(current_value, value):
         """Check whether type of the value matches that of the currently set value"""
         current_type = type(current_value)
         new_type = type(value)

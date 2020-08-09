@@ -84,10 +84,8 @@ class PanelSettingsBase(wx.lib.scrolledpanel.ScrolledPanel, ColorGetterMixin):
         """Update controls"""
         self._parse_evt(evt)
 
-    def on_set_config(self, complete: bool):
+    def on_set_config(self):
         """Handle loading of new configuration file"""
-        if not complete:
-            return
         wx.CallAfter(self._on_set_config)
 
     def _on_set_config(self):

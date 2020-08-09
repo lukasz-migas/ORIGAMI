@@ -269,7 +269,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         settings_panel.SetMinSize(self.DIALOG_SIZE)
 
         # pack elements
-        self.main_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.main_sizer = wx.BoxSizer()
         self.main_sizer.Add(settings_panel, 1, wx.EXPAND, 0)
 
         # fit layout
@@ -332,11 +332,11 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         label_sizer.Add(import_label)
         label_sizer.Add(self.import_label, 1)
 
-        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        btn_sizer = wx.BoxSizer()
         btn_sizer.Add(self.import_btn, 0, wx.ALIGN_CENTER_VERTICAL)
         btn_sizer.Add(self.activity_indicator, wx.ALIGN_CENTER_VERTICAL)
 
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer = wx.BoxSizer()
         sizer.Add(label_sizer, 1)
         sizer.AddSpacer(20)
         sizer.Add(btn_sizer, 0, wx.ALIGN_CENTER_VERTICAL)
@@ -356,6 +356,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         processing_label = set_item_font(wx.StaticText(panel, wx.ID_ANY, "Current pre-processing steps"))
         msg = ""
         self.processing_label = wx.StaticText(panel, wx.ID_ANY, msg)
+        self.processing_label = wx.TextCtrl(panel, wx.ID_ANY, msg, style=wx.TE_MULTILINE | wx.TE_RICH2 | wx.TE_READONLY)
         self.processing_label.SetMinSize((-1, 175))
 
         # file selection
@@ -380,18 +381,14 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         self.clear_files_btn.Bind(wx.EVT_BUTTON, self.on_clear_files)
 
         # pack heatmap items
-        grid = wx.GridBagSizer(2, 2)
-        n = 0
-        grid.Add(info_label, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
-        n += 1
-        grid.Add(self.info_label, (n, 0), wx.GBSpan(2, 2), flag=wx.EXPAND)
-        n += 2
-        grid.Add(processing_label, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
-        n += 1
-        grid.Add(self.processing_label, (n, 0), wx.GBSpan(6, 4), flag=wx.EXPAND)
+        grid = wx.BoxSizer(wx.VERTICAL)
+        grid.Add(info_label, 0, wx.EXPAND)
+        grid.Add(self.info_label, 0, wx.EXPAND)
+        grid.Add(processing_label, 0, wx.EXPAND)
+        grid.Add(self.processing_label, 1, wx.EXPAND)
 
         # pack buttons
-        btn_grid = wx.BoxSizer(wx.HORIZONTAL)
+        btn_grid = wx.BoxSizer()
         btn_grid.Add(self.select_document_btn, 0, wx.ALIGN_CENTER_VERTICAL)
         btn_grid.Add(self.select_files_btn, 0, wx.ALIGN_CENTER_VERTICAL)
         btn_grid.Add(self.processing_ms_btn, 0, wx.ALIGN_CENTER_VERTICAL)

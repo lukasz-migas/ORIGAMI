@@ -237,6 +237,7 @@ class MainWindow(wx.Frame):
         pub.subscribe(self.on_notify_warning, "notify.message.warning")
         pub.subscribe(self.on_notify_error, "notify.message.error")
         pub.subscribe(self.on_add_recent_file, "file.recent.add")
+        pub.subscribe(self.on_update_recent_files, "config.loaded")
 
         # Fire up a couple of events
         self.on_update_panel_config()
@@ -1283,27 +1284,22 @@ class MainWindow(wx.Frame):
         self.toolbar.SetToolBitmapSize((16, 16))
 
         tool_open_document = self.toolbar.AddTool(wx.ID_ANY, "", self._icons.open, shortHelp="Open ORIGAMI document...")
-        self.Bind(wx.EVT_TOOL, self.data_handling.on_open_origami_document, tool_open_document)
         self.toolbar.AddSeparator()
 
         tool_config_export = self.toolbar.AddTool(
             wx.ID_ANY, "", self._icons.export_db, shortHelp="Export configuration file..."
         )
-        self.Bind(wx.EVT_TOOL, self.on_export_config_fcn, tool_config_export)
 
         tool_config_import = self.toolbar.AddTool(
             wx.ID_ANY, "", self._icons.export_db, shortHelp="Import configuration file..."
         )
-        self.Bind(wx.EVT_TOOL, self.on_import_config_fcn, tool_config_import)
 
         self.toolbar.AddSeparator()
         tool_open_masslynx = self.toolbar.AddTool(
             wx.ID_ANY, "", self._icons.micromass, shortHelp="Open MassLynx file (.raw)"
         )
-        self.Bind(wx.EVT_TOOL, self.data_handling.on_open_waters_raw_imms_fcn, tool_open_masslynx)
 
         tool_open_thermo = self.toolbar.AddTool(wx.ID_ANY, "", self._icons.thermo, shortHelp="Open Thermo file (.RAW)")
-        self.Bind(wx.EVT_TOOL, self.data_handling.on_open_thermo_file_fcn, tool_open_thermo)
 
         tool_open_multiple = self.toolbar.AddTool(
             wx.ID_ANY, "", self.icons.iconsLib["open_masslynxMany_16"], shortHelp="Open multiple MassLynx files (.raw)"
@@ -1321,8 +1317,6 @@ class MainWindow(wx.Frame):
         tool_open_msms = self.toolbar.AddTool(
             wx.ID_ANY, "", self.icons.iconsLib["ms16"], shortHelp="Open MS/MS files..."
         )
-        self.Bind(wx.EVT_TOOL, self.on_open_source_menu, tool_open_msms)
-        # self.Bind(wx.EVT_MENU, self.data_handling.on_open_thermo_file_fcn, tool_open_multiple)
         self.toolbar.AddSeparator()
         self.toolbar.AddCheckTool(
             ID_window_documentList, "", self.icons.iconsLib["panel_doc_16"], shortHelp="Enable/Disable documents panel"
@@ -1370,8 +1364,15 @@ class MainWindow(wx.Frame):
         tool_action_bokeh = self.toolbar.AddLabelTool(
             wx.ID_ANY, "", self._icons.bokeh, shortHelp="Open interactive output panel"
         )
-        self.Bind(wx.EVT_MENU, self.on_open_interactive_output_panel, tool_action_bokeh)
 
+        # bind actions
+        self.Bind(wx.EVT_TOOL, self.data_handling.on_open_origami_document, tool_open_document)
+        self.Bind(wx.EVT_TOOL, self.on_export_config_fcn, tool_config_export)
+        self.Bind(wx.EVT_TOOL, self.on_import_config_fcn, tool_config_import)
+        self.Bind(wx.EVT_TOOL, self.data_handling.on_open_waters_raw_imms_fcn, tool_open_masslynx)
+        self.Bind(wx.EVT_TOOL, self.data_handling.on_open_thermo_file_fcn, tool_open_thermo)
+        self.Bind(wx.EVT_TOOL, self.on_open_source_menu, tool_open_msms)
+        self.Bind(wx.EVT_MENU, self.on_open_interactive_output_panel, tool_action_bokeh)
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "General"), tool_action_global)
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Plot 1D"), tool_action_1d)
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Plot 2D"), tool_action_2d)
@@ -1387,7 +1388,7 @@ class MainWindow(wx.Frame):
         self.toolbar.Realize()
 
     def on_toggle_panel(self, evt, check=None):
-
+        """Toggle panel"""
         evt_id = None
         if isinstance(evt, int):
             evt_id = evt
@@ -1540,7 +1541,7 @@ class MainWindow(wx.Frame):
         about.Show()
         about.SetFocus()
 
-    def on_open_plot_settings_panel(self, window: str = None, evt=None):
+    def on_open_plot_settings_panel(self, window: str = None, _evt=None):
         """Open plot settings
 
         Parameters
@@ -1548,10 +1549,14 @@ class MainWindow(wx.Frame):
         window : str
             name of the panel that should be displayed. Acceptable values include:
             General, Plot 1D, Plot 2D, Plot 3D, Colorbar, Legend, Waterfall, Violin, UI
+        _evt : wx.Event
+            unused
         """
 
         if isinstance(window, str):
             window = window
+
+        print(CONFIG.recent_files)
 
         if window is None:
             return
@@ -1636,6 +1641,7 @@ class MainWindow(wx.Frame):
         # add an option to clear the menu
         self.menu_recent_files.Append(ID_fileMenu_clearRecent, "Clear Menu", "Clear recent items")
         self.Bind(wx.EVT_MENU, self.on_clear_recent_files, id=ID_fileMenu_clearRecent)
+        logger.debug("Updated list of recent files")
 
     def on_clear_recent_files(self, _evt):
         """Clear recent items."""
@@ -1644,7 +1650,6 @@ class MainWindow(wx.Frame):
 
     def on_open_recent_file(self, evt):
         """Open recent document."""
-        # text.heatmap
         # msms.mgf, msms.mzml
         # get index
         indices = {
@@ -1688,7 +1693,6 @@ class MainWindow(wx.Frame):
 
     def on_open_file_from_dnd(self, path, extension):
         """Open file as it was dropped in the window"""
-        print(path, extension)
         document = None
         if extension == ".origami":
             document = ENV.load(path)
@@ -1783,7 +1787,7 @@ class MainWindow(wx.Frame):
             evt.Skip()
 
     @staticmethod
-    def on_check_driftscope_path(evt=None):
+    def on_check_driftscope_path(_evt):
         """Check Driftscope path"""
         check = CONFIG.setup_paths(return_check=True)
         if check:
@@ -1808,6 +1812,7 @@ class DragAndDrop(wx.FileDropTarget):
     def OnDropFiles(self, x, y, filenames):
         """When files are dropped, write where they were dropped and then the file paths themselves"""
         logger.info(f"Dropped {len(filenames)} file/directory in the window")
+        value = False
         for filename in filenames:
             logger.info(f"Opening {filename} file...")
             __, file_extension = os.path.splitext(filename)

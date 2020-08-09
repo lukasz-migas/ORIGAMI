@@ -308,7 +308,7 @@ class PanelPlots(wx.Panel):
             CONFIG._plotSettings["MS"]["gui_size"],  # noqa
             CONFIG,
             allow_extraction=True,
-            callbacks=dict(CTRL="extract.heatmap.from.spectrum"),
+            callbacks=dict(CTRL=["extract.heatmap.from.spectrum", "extract.chromatogram.from.spectrum"]),
             filename="mass-spectrum",
         )
         plot_notebook.AddPage(self.view_ms.panel, "Mass spectrum")
@@ -320,7 +320,7 @@ class PanelPlots(wx.Panel):
             CONFIG._plotSettings["RT"]["gui_size"],  # noqa
             CONFIG,
             allow_extraction=True,
-            callbacks=dict(CTRL="extract.spectrum.from.chromatogram"),
+            callbacks=dict(CTRL=["extract.spectrum.from.chromatogram"]),
             filename="chromatogram",
         )
         plot_notebook.AddPage(self.view_rt_rt.panel, "Chromatogram")
@@ -332,7 +332,7 @@ class PanelPlots(wx.Panel):
             CONFIG._plotSettings["DT"]["gui_size"],  # noqa
             CONFIG,
             allow_extraction=True,
-            callbacks=dict(CTRL="extract.spectrum.from.mobilogram"),
+            callbacks=dict(CTRL=["extract.spectrum.from.mobilogram"]),
             filename="mobilogram",
         )
         plot_notebook.AddPage(self.view_dt_dt.panel, "Mobilogram")
@@ -344,7 +344,7 @@ class PanelPlots(wx.Panel):
             CONFIG._plotSettings["2D"]["gui_size"],  # noqa
             CONFIG,
             allow_extraction=True,
-            callbacks=dict(CTRL="extract.spectrum.from.heatmap"),
+            callbacks=dict(CTRL=["extract.spectrum.from.heatmap"]),
             filename="heatmap",
         )
         plot_notebook.AddPage(self.view_heatmap.panel, "Heatmap")
@@ -356,17 +356,11 @@ class PanelPlots(wx.Panel):
             CONFIG._plotSettings["DT/MS"]["gui_size"],  # noqa
             CONFIG,
             allow_extraction=True,
-            callbacks=dict(CTRL="extract.rt.from.heatmap"),
+            callbacks=dict(CTRL=["extract.rt.from.heatmap"]),
             filename="ms-heatmap",
         )
         plot_notebook.AddPage(self.view_msdt.panel, "DT/MS")
         self.plot_msdt = self.view_msdt.figure
-
-        # # Setup PLOT WATERFALL
-        # self.panel_overlay, self.plot_overlay, __ = self.make_base_plot(
-        #     plot_notebook, CONFIG._plotSettings["Waterfall"]["gui_size"]  # noqa
-        # )
-        # plot_notebook.AddPage(self.panel_overlay, "Waterfall", False)
 
         # Setup PLOT 3D
         self.view_heatmap_3d = ViewHeatmap3d(
@@ -379,12 +373,6 @@ class PanelPlots(wx.Panel):
         )
         plot_notebook.AddPage(self.view_heatmap_3d.panel, "Heatmap (3D)")
         self.plot_heatmap_3d = self.view_heatmap_3d.figure
-
-        # # Other
-        # self.panel_annotated, self.plot_annotated, __ = self.make_base_plot(
-        #     plot_notebook, CONFIG._plotSettings["2D"]["gui_size"]  # noqa
-        # )
-        # plot_notebook.AddPage(self.panel_annotated, "Annotated", False)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(plot_notebook, 1, wx.EXPAND | wx.ALL, 1)
