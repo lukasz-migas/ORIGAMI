@@ -276,6 +276,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             pub.sendMessage("notify.message.error", message="Operation was cancelled - it was not an ORIGAMI document.")
             return
         self.on_setup_basic_document(ENV.load(path))
+        pub.sendMessage("file.recent.add", action="origami.document", path=path)
 
     @staticmethod
     def on_open_directory(path):
@@ -656,7 +657,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             event that triggered the function
         """
         # TODO: add option to put all files into the same document
-        from origami.gui_elements.dialog_ask_labels import DialogSelectLabels
 
         # get list of files to open
         wildcard = "Text files with axis labels (*.txt, *.csv)| *.txt;*.csv"
@@ -677,21 +677,12 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             return
 
         # get labels for selected items
-        dlg = DialogSelectLabels(self.view)
-        if dlg.ShowModal() == wx.ID_OK:
-            pass
-        x_label, y_label = dlg.xy_labels
-        dlg.Destroy()
+        x_label, y_label = self.view.get_user_text_x_y_label()
 
         self.view.on_toggle_panel(evt="text", check=True)
-        if not CONFIG.APP_ENABLE_THREADING:
-            for filename, filepath in zip(file_list, path_list):
-                self.on_add_text_2d(self.on_load_text_2d(filename, filepath, x_label, y_label))
-        else:
-            for filename, filepath in zip(file_list, path_list):
-                self.add_task(
-                    self.on_load_text_2d, (filename, filepath, x_label, y_label), func_result=self.on_add_text_2d
-                )
+        for filename, filepath in zip(file_list, path_list):
+            self.add_task(self.on_load_text_2d, (filename, filepath, x_label, y_label), func_result=self.on_add_text_2d)
+            pub.sendMessage("file.recent.add", action="text.heatmap", path=filepath)
 
     def on_load_text_2d(
         self, filename: str, filepath: str, x_label: str = "Collision Voltage (V)", y_label: str = "Drift time (bins)"
@@ -754,10 +745,9 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             return
         self.text_panel.on_add_to_table(add_dict, return_color=False)
         self.on_setup_basic_document(document)
-        # self.on_update_document(document, "document")
-        self.view.on_update_recent_files(path={"file_type": "Text", "file_path": filepath})
 
     def on_open_multiple_text_ms_fcn(self, _evt):
+        """Open multiple text-based mass spectra"""
         # get list of files to open
         wildcard = "Text files with axis labels (*.txt, *.csv)| *.txt;*.csv"
         path_list = None
@@ -771,12 +761,9 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             path_list = dlg.GetPaths()
         dlg.Destroy()
 
-        if not CONFIG.APP_ENABLE_THREADING:
-            for filepath in path_list:
-                self.on_setup_basic_document(self.on_add_text_ms(filepath))
-        else:
-            for filepath in path_list:
-                self.add_task(self.on_add_text_ms, (filepath,), func_result=self.on_setup_basic_document)
+        for filepath in path_list:
+            self.add_task(self.on_add_text_ms, (filepath,), func_result=self.on_setup_basic_document)
+            pub.sendMessage("file.recent.add", action="text.ms", path=filepath)
 
     def on_add_text_ms(self, path):
         """Load text mass spectrum"""
@@ -800,16 +787,12 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             paths = dlg.GetPaths()
         dlg.Destroy()
 
-        if not CONFIG.APP_ENABLE_THREADING:
-            for path in paths:
-                self.on_setup_basic_document(self.load_thermo_ms_document(path))
-        else:
-            for path in paths:
-                self.add_task(self.load_thermo_ms_document, (path,), func_result=self.on_setup_basic_document)
+        for path in paths:
+            self.add_task(self.load_thermo_ms_document, (path,), func_result=self.on_setup_basic_document)
+            pub.sendMessage("file.recent.add", action="thermo.ms", path=path)
 
     def on_open_mgf_file_fcn(self, _evt):
         """Load tandem data in MZML format"""
-
         paths = []
         dlg = wx.FileDialog(
             self.presenter.view,
@@ -820,14 +803,12 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         if dlg.ShowModal() == wx.ID_OK:
             paths = dlg.GetPaths()
 
-        if not CONFIG.APP_ENABLE_THREADING:
-            for path in paths:
-                self.on_show_tandem_scan(self.on_open_mgf_file(path))
-        else:
-            for path in paths:
-                self.add_task(self.on_open_mgf_file, (path,), func_result=self.on_show_tandem_scan)
+        for path in paths:
+            self.add_task(self.on_open_mgf_file, (path,), func_result=self.on_show_tandem_scan)
+            pub.sendMessage("file.recent.add", action="msms.mgf", path=path)
 
     def on_open_mgf_file(self, path):
+        """Load tandem data in MGF format"""
         if path is None:
             return None
         t_start = time.time()
@@ -839,7 +820,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
     def on_open_mzml_file_fcn(self, evt):
         """Load tandem data in MZML format"""
-
         paths = []
         dlg = wx.FileDialog(
             self.presenter.view,
@@ -851,12 +831,9 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             paths = dlg.GetPaths()
         dlg.Destroy()
 
-        if not CONFIG.APP_ENABLE_THREADING:
-            for path in paths:
-                self.on_show_tandem_scan(self.on_open_mzml_file(path))
-        else:
-            for path in paths:
-                self.add_task(self.on_open_mzml_file, (path,), func_result=self.on_show_tandem_scan)
+        for path in paths:
+            self.add_task(self.on_open_mzml_file, (path,), func_result=self.on_show_tandem_scan)
+            pub.sendMessage("file.recent.add", action="msms.mzml", path=path)
 
     def on_open_mzml_file(self, path):
         """Load mzml data and return it"""
@@ -876,11 +853,8 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             logger.warning("Could not load file")
             return
 
-        if not CONFIG.APP_ENABLE_THREADING:
-            self.on_setup_basic_document(self.load_waters_ms_document(path))
-        else:
-            self.add_task(self.load_waters_ms_document, (path,), func_result=self.on_setup_basic_document)
-        self.view.on_update_recent_files(path={"file_type": "ORIGAMI", "file_path": path})
+        self.add_task(self.load_waters_ms_document, (path,), func_result=self.on_setup_basic_document)
+        pub.sendMessage("file.recent.add", action="waters.ms", path=path)
 
     def on_open_waters_raw_imms_fcn(self, evt):
         """Open Waters (.raw) file"""
@@ -897,17 +871,10 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             if dlg == wx.ID_NO:
                 logger.info("Delete operation was cancelled")
                 return
-            if not CONFIG.APP_ENABLE_THREADING:
-                self.on_setup_basic_document(self.load_waters_ms_document(path))
-            else:
-                self.add_task(self.load_waters_ms_document, (path,), func_result=self.on_setup_basic_document)
+            self.add_task(self.load_waters_ms_document, (path,), func_result=self.on_setup_basic_document)
         else:
-            if not CONFIG.APP_ENABLE_THREADING:
-                self.on_setup_basic_document(self.load_waters_im_document(path))
-            else:
-                self.add_task(self.load_waters_im_document, (path,), func_result=self.on_setup_basic_document)
-
-        self.view.on_update_recent_files(path={"file_type": "ORIGAMI", "file_path": path})
+            self.add_task(self.load_waters_im_document, (path,), func_result=self.on_setup_basic_document)
+        pub.sendMessage("file.recent.add", action="waters.imms", path=path)
 
     def on_open_single_clipboard_ms(self, _):
         """Get spectrum (n x 2) from clipboard
@@ -944,6 +911,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     # NEED UPDATING \\\\\/////
 
     def on_get_document(self, document_title=None):
+        """Get document"""
         if document_title is None:
             document_title = self.document_tree.on_enable_document()
         else:
@@ -974,53 +942,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             return path, fname
         else:
             return None, None
-
-    @staticmethod
-    def on_import_config_fcn(_evt):
-        """Load configuration file from the default path"""
-        config_path = os.path.join(CONFIG.APP_CWD, CONFIG.DEFAULT_CONFIG_NAME)
-        QUEUE.add_call(CONFIG.load_config, (config_path,))
-
-    def on_import_config_as_fcn(self, _evt):
-        """Load configuration file from the user-defined path"""
-        dlg = wx.FileDialog(
-            self.view,
-            "Load configuration file as...",
-            wildcard="JavaScript Object Notation format (.json) | *.json",
-            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
-        )
-
-        dlg.SetFilename(CONFIG.DEFAULT_CONFIG_NAME)
-
-        config_path = None
-        if dlg.ShowModal() == wx.ID_OK:
-            config_path = dlg.GetPath()
-
-        if config_path is None:
-            return
-        QUEUE.add_call(CONFIG.load_config, (config_path,))
-
-    @staticmethod
-    def on_export_config_fcn(_evt):
-        """Import configuration file"""
-        config_path = os.path.join(CONFIG.APP_CWD, CONFIG.DEFAULT_CONFIG_NAME)
-        QUEUE.add_call(CONFIG.save_config, (config_path,))
-
-    def on_export_config_as_fcn(self, _evt):
-        """Save configuration file to a user-defined path"""
-        dlg = wx.FileDialog(
-            self.view,
-            "Import configuration file...",
-            wildcard="JavaScript Object Notation format (.json) | *.json",
-            style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR,
-        )
-        config_path = None
-        if dlg.ShowModal() == wx.ID_OK:
-            config_path = dlg.GetPath()
-
-        if config_path is None:
-            return
-        QUEUE.add_call(CONFIG.save_config, (config_path,))
 
     def on_save_data_as_text(self, data, labels, data_format, **kwargs):
 

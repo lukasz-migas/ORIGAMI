@@ -17,15 +17,11 @@ from origami.ids import ID_helpCite
 from origami.ids import ID_helpGuide
 from origami.ids import ID_helpAuthor
 from origami.ids import ID_helpGitHub
-from origami.ids import ID_openConfig
-from origami.ids import ID_saveConfig
 from origami.ids import ID_window_all
 from origami.ids import ID_helpYoutube
 from origami.ids import ID_fileMenu_MGF
 from origami.ids import ID_helpHomepage
-from origami.ids import ID_openAsConfig
 from origami.ids import ID_openDocument
-from origami.ids import ID_saveAsConfig
 from origami.ids import ID_saveDocument
 from origami.ids import ID_fileMenu_mzML
 from origami.ids import ID_helpHTMLEditor
@@ -41,27 +37,18 @@ from origami.ids import ID_help_page_UniDec
 from origami.ids import ID_help_page_ORIGAMI
 from origami.ids import ID_help_page_overlay
 from origami.ids import ID_importAtStart_CCS
-from origami.ids import ID_extraSettings_rmsd
 from origami.ids import ID_help_page_linearDT
 from origami.ids import ID_docTree_plugin_MSMS
 from origami.ids import ID_docTree_plugin_UVPD
 from origami.ids import ID_fileMenu_openRecent
 from origami.ids import ID_help_page_OtherData
 from origami.ids import ID_window_documentList
-from origami.ids import ID_extraSettings_legend
-from origami.ids import ID_extraSettings_plot1D
-from origami.ids import ID_extraSettings_plot2D
-from origami.ids import ID_extraSettings_plot3D
-from origami.ids import ID_extraSettings_violin
 from origami.ids import ID_fileMenu_clearRecent
 from origami.ids import ID_plots_showCursorGrid
-from origami.ids import ID_extraSettings_general
 from origami.ids import ID_help_page_dataLoading
 from origami.ids import ID_help_page_Interactive
 from origami.ids import ID_window_multipleMLList
-from origami.ids import ID_extraSettings_colorbar
 from origami.ids import ID_checkAtStart_Driftscope
-from origami.ids import ID_extraSettings_waterfall
 from origami.ids import ID_help_page_multipleFiles
 from origami.ids import ID_annotPanel_otherSettings
 from origami.ids import ID_help_page_CCScalibration
@@ -70,7 +57,6 @@ from origami.ids import ID_help_page_gettingStarted
 from origami.ids import ID_load_masslynx_raw_ms_only
 from origami.ids import ID_openCCScalibrationDatabse
 from origami.ids import ID_unidecPanel_otherSettings
-from origami.ids import ID_extraSettings_general_plot
 from origami.ids import ID_help_page_annotatingMassSpectra
 from origami.styles import make_menu_item
 from origami.utils.path import clean_directory
@@ -79,6 +65,7 @@ from origami.icons.assets import Icons
 from origami.config.config import CONFIG
 from origami.panel_peaklist import PanelPeaklist
 from origami.panel_textlist import PanelTextlist
+from origami.utils.utilities import report_time
 from origami.panel_multi_file import PanelMultiFile
 from origami.config.environment import ENV
 from origami.panel_document_tree import PanelDocumentTree
@@ -130,6 +117,7 @@ class MainWindow(wx.Frame):
         self.presenter = parent
 
         self._timer = wx.Timer(self, wx.ID_ANY)
+        self._timers = []
 
         self.plot_data = {}  # remove
         self.plot_scale = {}  # remove
@@ -248,6 +236,7 @@ class MainWindow(wx.Frame):
         pub.subscribe(self.on_notify_success, "notify.message.success")
         pub.subscribe(self.on_notify_warning, "notify.message.warning")
         pub.subscribe(self.on_notify_error, "notify.message.error")
+        pub.subscribe(self.on_add_recent_file, "file.recent.add")
 
         # Fire up a couple of events
         self.on_update_panel_config()
@@ -260,15 +249,33 @@ class MainWindow(wx.Frame):
 
         # run action(s) delayed
         self.run_delayed(self._on_check_latest_version)
+        self.add_timer_event(self.on_export_config_fcn, 300)
 
     @staticmethod
     def run_delayed(func, *args, delay: int = 3000, **kwargs):
         """Run function using a CallLater"""
         wx.CallLater(delay, func, *args, **kwargs)
+        logger.info(f"Running delayed action...")
+
+    def add_timer_event(self, func, delay: int = 60):
+        """Add an event to the application that will run every `delay` seconds
+
+        Parameters
+        ----------
+        func : Callable
+            function that needs to be updated every `delay` seconds
+        delay : int
+            amount of time between each update
+        """
+        delay = delay * 1000
+        timer = wx.Timer(self, wx.ID_ANY)
+        timer.Start(delay)
+        timer.Bind(wx.EVT_TIMER, func)
+        self._timers.append(timer)
+        logger.info(f"Added timed event that will run every {report_time(delay)}")
 
     def on_notify(self, message: str, kind: str = "info", delay: int = 3000):
         """Notify user of some event"""
-
         wx.CallAfter(self.popup_mgr.show_popup, message, kind, delay)
 
     def on_notify_info(self, message: str):
@@ -449,6 +456,7 @@ class MainWindow(wx.Frame):
             text="Open ORIGAMI Document file (.pickle) [LEGACY]",
             bitmap=self.icons.iconsLib["open_project_16"],
         )
+        menu_file_load_pickle.Enable(False)
         menu_file.Append(menu_file_load_pickle)
         menu_file.AppendSeparator()
         menu_file.Append(
@@ -506,86 +514,47 @@ class MainWindow(wx.Frame):
 
         # PLOT
         menu_plot = wx.Menu()
-        menu_plot.Append(
-            make_menu_item(
-                parent=menu_plot,
-                evt_id=ID_extraSettings_general_plot,
-                text="Settings: Plot &General",
-                bitmap=self._icons.switch_on,
-            )
+        menu_plot_general = make_menu_item(
+            parent=menu_plot, text="Settings: Plot &General", bitmap=self._icons.switch_on
         )
+        menu_plot.Append(menu_plot_general)
 
-        menu_plot.Append(
-            make_menu_item(
-                parent=menu_plot, evt_id=ID_extraSettings_plot1D, text="Settings: Plot &1D", bitmap=self._icons.plot_1d
-            )
-        )
+        menu_plot_1d = make_menu_item(parent=menu_plot, text="Settings: Plot &1D", bitmap=self._icons.plot_1d)
+        menu_plot.Append(menu_plot_1d)
 
-        menu_plot.Append(
-            make_menu_item(
-                parent=menu_plot,
-                evt_id=ID_extraSettings_plot2D,
-                text="Settings: Plot &2D",
-                bitmap=self.icons.iconsLib["panel_plot2D_16"],
-            )
+        menu_plot_2d = make_menu_item(
+            parent=menu_plot, text="Settings: Plot &2D", bitmap=self.icons.iconsLib["panel_plot2D_16"]
         )
+        menu_plot.Append(menu_plot_2d)
 
-        menu_plot.Append(
-            make_menu_item(
-                parent=menu_plot,
-                evt_id=ID_extraSettings_plot3D,
-                text="Settings: Plot &3D",
-                bitmap=self.icons.iconsLib["panel_plot3D_16"],
-            )
+        menu_plot_3d = make_menu_item(
+            parent=menu_plot, text="Settings: Plot &3D", bitmap=self.icons.iconsLib["panel_plot3D_16"]
         )
+        menu_plot.Append(menu_plot_3d)
 
-        menu_plot.Append(
-            make_menu_item(
-                parent=menu_plot,
-                evt_id=ID_extraSettings_colorbar,
-                text="Settings: &Colorbar",
-                bitmap=self._icons.plot_colorbar,
-            )
+        menu_plot_colorbar = make_menu_item(
+            parent=menu_plot, text="Settings: &Colorbar", bitmap=self._icons.plot_colorbar
         )
+        menu_plot.Append(menu_plot_colorbar)
 
-        menu_plot.Append(
-            make_menu_item(
-                parent=menu_plot,
-                evt_id=ID_extraSettings_legend,
-                text="Settings: &Legend",
-                bitmap=self._icons.plot_legend,
-            )
-        )
+        menu_plot_legend = make_menu_item(parent=menu_plot, text="Settings: &Legend", bitmap=self._icons.plot_legend)
+        menu_plot.Append(menu_plot_legend)
 
-        menu_plot.Append(
-            make_menu_item(
-                parent=menu_plot,
-                evt_id=ID_extraSettings_rmsd,
-                text="Settings: &RMSD",
-                bitmap=self.icons.iconsLib["panel_rmsd_16"],
-            )
+        menu_plot_rmsd = make_menu_item(
+            parent=menu_plot, text="Settings: &RMSD", bitmap=self.icons.iconsLib["panel_rmsd_16"]
         )
+        menu_plot.Append(menu_plot_rmsd)
 
-        menu_plot.Append(
-            make_menu_item(
-                parent=menu_plot,
-                evt_id=ID_extraSettings_waterfall,
-                text="Settings: &Waterfall",
-                bitmap=self._icons.waterfall,
-            )
+        menu_plot_waterfall = make_menu_item(
+            parent=menu_plot, text="Settings: &Waterfall", bitmap=self._icons.waterfall
         )
+        menu_plot.Append(menu_plot_waterfall)
 
-        menu_plot.Append(
-            make_menu_item(
-                parent=menu_plot, evt_id=ID_extraSettings_violin, text="Settings: &Violin", bitmap=self._icons.violin
-            )
-        )
+        menu_plot_violin = make_menu_item(parent=menu_plot, text="Settings: &Violin", bitmap=self._icons.violin)
+        menu_plot.Append(menu_plot_violin)
 
-        menu_plot.Append(
-            make_menu_item(
-                parent=menu_plot, evt_id=ID_extraSettings_general, text="Settings: &Extra", bitmap=self._icons.gear
-            )
-        )
+        menu_plot_ui = make_menu_item(parent=menu_plot, text="Settings: &UI", bitmap=self._icons.gear)
+        menu_plot.Append(menu_plot_ui)
 
         menu_plot.AppendSeparator()
         menu_plot.Append(
@@ -642,29 +611,19 @@ class MainWindow(wx.Frame):
 
         # CONFIG MENU
         menu_config = wx.Menu()
-        menu_config.Append(
-            make_menu_item(
-                parent=menu_config,
-                evt_id=ID_saveConfig,
-                text="Export configuration file (default location)",
-                bitmap=self._icons.export_db,
-            )
+        menu_config_export = make_menu_item(
+            parent=menu_config, text="Save configuration file (default location)", bitmap=self._icons.export_db
         )
-        menu_config.Append(
-            make_menu_item(parent=menu_config, evt_id=ID_saveAsConfig, text="Export configuration file as...")
-        )
+        menu_config.Append(menu_config_export)
+        menu_config_export_as = make_menu_item(parent=menu_config, text="Save configuration file as...")
+        menu_config.Append(menu_config_export_as)
         menu_config.AppendSeparator()
-        menu_config.Append(
-            make_menu_item(
-                parent=menu_config,
-                evt_id=ID_openConfig,
-                text="Import configuration file (default location)",
-                bitmap=self._icons.import_db,
-            )
+        menu_config_import = make_menu_item(
+            parent=menu_config, text="Load configuration file (default location)", bitmap=self._icons.import_db
         )
-        menu_config.Append(
-            make_menu_item(parent=menu_config, evt_id=ID_openAsConfig, text="Import configuration XML file from...")
-        )
+        menu_config.Append(menu_config_import)
+        menu_config_import_as = make_menu_item(parent=menu_config, text="Load configuration file from...")
+        menu_config.Append(menu_config_import_as)
         menu_config.AppendSeparator()
         self.menu_config_check_load_ccs_db = menu_config.Append(
             ID_importAtStart_CCS, "Load at start", kind=wx.ITEM_CHECK
@@ -764,9 +723,6 @@ class MainWindow(wx.Frame):
             parent=menu_view, text="Toggle fullscreen\tAlt+F11", bitmap=self._icons.fullscreen
         )
         menu_view.Append(menu_view_fullscreen)
-        # menu_view.AppendSeparator()
-        # menu_view_restart = make_menu_item(parent=menu_view, text="Restart ORIGAMI", bitmap=self._icons.restart)
-        # menu_view.Append(menu_view_restart)
 
         self.menubar.Append(menu_view, "&View")
 
@@ -973,16 +929,17 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_waters_raw_imms_fcn, menu_open_origami)
 
         # PLOT
-        self.Bind(wx.EVT_MENU, self.on_open_plot_settings_panel, id=ID_extraSettings_general_plot)
-        self.Bind(wx.EVT_MENU, self.on_open_plot_settings_panel, id=ID_extraSettings_plot1D)
-        self.Bind(wx.EVT_MENU, self.on_open_plot_settings_panel, id=ID_extraSettings_plot2D)
-        self.Bind(wx.EVT_MENU, self.on_open_plot_settings_panel, id=ID_extraSettings_plot3D)
-        self.Bind(wx.EVT_MENU, self.on_open_plot_settings_panel, id=ID_extraSettings_legend)
-        self.Bind(wx.EVT_MENU, self.on_open_plot_settings_panel, id=ID_extraSettings_colorbar)
-        self.Bind(wx.EVT_MENU, self.on_open_plot_settings_panel, id=ID_extraSettings_rmsd)
-        self.Bind(wx.EVT_MENU, self.on_open_plot_settings_panel, id=ID_extraSettings_waterfall)
-        self.Bind(wx.EVT_MENU, self.on_open_plot_settings_panel, id=ID_extraSettings_violin)
-        self.Bind(wx.EVT_MENU, self.on_open_plot_settings_panel, id=ID_extraSettings_general)
+        self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "General"), menu_plot_general)
+        self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Colorbar"), menu_plot_colorbar)
+        self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Legend"), menu_plot_legend)
+        self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Plot 1D"), menu_plot_1d)
+        self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Plot 2D"), menu_plot_2d)
+        self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Plot 3D"), menu_plot_3d)
+        self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "RMSD"), menu_plot_rmsd)
+        self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Waterfall"), menu_plot_waterfall)
+        self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Violin"), menu_plot_violin)
+        self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "UI"), menu_plot_ui)
+
         self.Bind(wx.EVT_MENU, self.on_customise_annotation_plot_parameters, id=ID_annotPanel_otherSettings)
         self.Bind(wx.EVT_MENU, self.on_customise_unidec_plot_parameters, id=ID_unidecPanel_otherSettings)
 
@@ -1000,10 +957,10 @@ class MainWindow(wx.Frame):
         )
 
         # CONFIG MENU
-        self.Bind(wx.EVT_MENU, self.data_handling.on_export_config_fcn, id=ID_saveConfig)
-        self.Bind(wx.EVT_MENU, self.data_handling.on_export_config_as_fcn, id=ID_saveAsConfig)
-        self.Bind(wx.EVT_MENU, self.data_handling.on_import_config_fcn, id=ID_openConfig)
-        self.Bind(wx.EVT_MENU, self.data_handling.on_import_config_as_fcn, id=ID_openAsConfig)
+        self.Bind(wx.EVT_MENU, self.on_export_config_fcn, menu_config_export)
+        self.Bind(wx.EVT_MENU, self.on_export_config_as_fcn, menu_config_export_as)
+        self.Bind(wx.EVT_MENU, self.on_import_config_fcn, menu_config_import)
+        self.Bind(wx.EVT_MENU, self.on_import_config_as_fcn, menu_config_import_as)
         self.Bind(wx.EVT_MENU, self.on_check_driftscope_path, menu_config_driftscope)
         self.Bind(wx.EVT_MENU, self.on_check_in_menu, id=ID_checkAtStart_Driftscope)
         self.Bind(wx.EVT_MENU, self.on_check_in_menu, id=ID_importAtStart_CCS)
@@ -1070,6 +1027,53 @@ class MainWindow(wx.Frame):
 
         dlg = DialogCustomiseUniDecVisuals(self, CONFIG, self.icons)
         dlg.ShowModal()
+
+    @staticmethod
+    def on_import_config_fcn(_evt):
+        """Load configuration file from the default path"""
+        config_path = os.path.join(CONFIG.APP_CWD, CONFIG.DEFAULT_CONFIG_NAME)
+        QUEUE.add_call(CONFIG.load_config, (config_path,))
+
+    def on_import_config_as_fcn(self, _evt):
+        """Load configuration file from the user-defined path"""
+        dlg = wx.FileDialog(
+            self,
+            "Load configuration file as...",
+            wildcard="JavaScript Object Notation format (.json) | *.json",
+            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+        )
+
+        dlg.SetFilename(CONFIG.DEFAULT_CONFIG_NAME)
+
+        config_path = None
+        if dlg.ShowModal() == wx.ID_OK:
+            config_path = dlg.GetPath()
+
+        if config_path is None:
+            return
+        QUEUE.add_call(CONFIG.load_config, (config_path,))
+
+    @staticmethod
+    def on_export_config_fcn(_evt):
+        """Import configuration file"""
+        config_path = os.path.join(CONFIG.APP_CWD, CONFIG.DEFAULT_CONFIG_NAME)
+        QUEUE.add_call(CONFIG.save_config, (config_path,))
+
+    def on_export_config_as_fcn(self, _evt):
+        """Save configuration file to a user-defined path"""
+        dlg = wx.FileDialog(
+            self,
+            "Import configuration file...",
+            wildcard="JavaScript Object Notation format (.json) | *.json",
+            style=wx.FD_DEFAULT_STYLE | wx.FD_CHANGE_DIR,
+        )
+        config_path = None
+        if dlg.ShowModal() == wx.ID_OK:
+            config_path = dlg.GetPath()
+
+        if config_path is None:
+            return
+        QUEUE.add_call(CONFIG.save_config, (config_path,))
 
     def on_open_link(self, evt):
         """Open selected webpage."""
@@ -1285,12 +1289,12 @@ class MainWindow(wx.Frame):
         tool_config_export = self.toolbar.AddTool(
             wx.ID_ANY, "", self._icons.export_db, shortHelp="Export configuration file..."
         )
-        self.Bind(wx.EVT_TOOL, self.data_handling.on_export_config_fcn, tool_config_export)
+        self.Bind(wx.EVT_TOOL, self.on_export_config_fcn, tool_config_export)
 
         tool_config_import = self.toolbar.AddTool(
             wx.ID_ANY, "", self._icons.export_db, shortHelp="Import configuration file..."
         )
-        self.Bind(wx.EVT_TOOL, self.data_handling.on_import_config_fcn, tool_config_import)
+        self.Bind(wx.EVT_TOOL, self.on_import_config_fcn, tool_config_import)
 
         self.toolbar.AddSeparator()
         tool_open_masslynx = self.toolbar.AddTool(
@@ -1334,41 +1338,50 @@ class MainWindow(wx.Frame):
         )
         self.toolbar.AddSeparator()
         tool_action_global = self.toolbar.AddLabelTool(
-            ID_extraSettings_general_plot, "", self._icons.switch_on, shortHelp="Settings: General plot"
+            wx.ID_ANY, "", self._icons.switch_on, shortHelp="Settings: General plot"
         )
         tool_action_1d = self.toolbar.AddLabelTool(
-            ID_extraSettings_plot1D, "", self._icons.plot_1d, shortHelp="Settings: Plot 1D panel"
+            wx.ID_ANY, "", self._icons.plot_1d, shortHelp="Settings: Plot 1D panel"
         )
         tool_action_2d = self.toolbar.AddLabelTool(
-            ID_extraSettings_plot2D, "", self.icons.iconsLib["panel_plot2D_16"], shortHelp="Settings: Plot 2D panel"
+            wx.ID_ANY, "", self.icons.iconsLib["panel_plot2D_16"], shortHelp="Settings: Plot 2D panel"
         )
         tool_action_3d = self.toolbar.AddLabelTool(
-            ID_extraSettings_plot3D, "", self.icons.iconsLib["panel_plot3D_16"], shortHelp="Settings: Plot 3D panel"
+            wx.ID_ANY, "", self.icons.iconsLib["panel_plot3D_16"], shortHelp="Settings: Plot 3D panel"
         )
         tool_action_colorbar = self.toolbar.AddLabelTool(
-            ID_extraSettings_colorbar, "", self._icons.plot_colorbar, shortHelp="Settings: Colorbar panel"
+            wx.ID_ANY, "", self._icons.plot_colorbar, shortHelp="Settings: Colorbar panel"
         )
         tool_action_legend = self.toolbar.AddLabelTool(
-            ID_extraSettings_legend, "", self._icons.plot_legend, shortHelp="Settings: Legend panel"
+            wx.ID_ANY, "", self._icons.plot_legend, shortHelp="Settings: Legend panel"
         )
         tool_action_rmsd = self.toolbar.AddLabelTool(
-            ID_extraSettings_rmsd, "", self.icons.iconsLib["panel_rmsd_16"], shortHelp="Settings: RMSD panel"
+            wx.ID_ANY, "", self.icons.iconsLib["panel_rmsd_16"], shortHelp="Settings: RMSD panel"
         )
         tool_action_waterfall = self.toolbar.AddLabelTool(
-            ID_extraSettings_waterfall, "", self._icons.waterfall, shortHelp="Settings: Waterfall panel"
+            wx.ID_ANY, "", self._icons.waterfall, shortHelp="Settings: Waterfall panel"
         )
         tool_action_violin = self.toolbar.AddLabelTool(
-            ID_extraSettings_violin, "", self._icons.violin, shortHelp="Settings: Violin panel"
+            wx.ID_ANY, "", self._icons.violin, shortHelp="Settings: Violin panel"
         )
-        tool_action_general = self.toolbar.AddLabelTool(
-            ID_extraSettings_general, "", self._icons.gear, shortHelp="Settings: Extra panel"
-        )
+        tool_action_ui = self.toolbar.AddLabelTool(wx.ID_ANY, "", self._icons.gear, shortHelp="Settings: Extra panel")
         self.toolbar.AddSeparator()
 
         tool_action_bokeh = self.toolbar.AddLabelTool(
             wx.ID_ANY, "", self._icons.bokeh, shortHelp="Open interactive output panel"
         )
         self.Bind(wx.EVT_MENU, self.on_open_interactive_output_panel, tool_action_bokeh)
+
+        self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "General"), tool_action_global)
+        self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Plot 1D"), tool_action_1d)
+        self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Plot 2D"), tool_action_2d)
+        self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Plot 3D"), tool_action_3d)
+        self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Colorbar"), tool_action_colorbar)
+        self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Legend"), tool_action_legend)
+        self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "RMSD"), tool_action_rmsd)
+        self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Waterfall"), tool_action_waterfall)
+        self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Violin"), tool_action_violin)
+        self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "UI"), tool_action_ui)
 
         # Actually realise the toolbar
         self.toolbar.Realize()
@@ -1527,30 +1540,18 @@ class MainWindow(wx.Frame):
         about.Show()
         about.SetFocus()
 
-    def on_open_plot_settings_panel(self, evt):
-        """Open plot settings"""
-        window = None
-        evt_id = evt.GetId()
-        if evt_id == ID_extraSettings_colorbar:
-            window = "Colorbar"
-        elif evt_id == ID_extraSettings_legend:
-            window = "Legend"
-        elif evt_id == ID_extraSettings_plot1D:
-            window = "Plot 1D"
-        elif evt_id == ID_extraSettings_plot2D:
-            window = "Plot 2D"
-        elif evt_id == ID_extraSettings_plot3D:
-            window = "Plot 3D"
-        elif evt_id == ID_extraSettings_rmsd:
-            window = "RMSD"
-        elif evt_id == ID_extraSettings_waterfall:
-            window = "Waterfall"
-        elif evt_id == ID_extraSettings_violin:
-            window = "Violin"
-        elif evt_id == ID_extraSettings_general:
-            window = "Extra"
-        elif evt_id == ID_extraSettings_general_plot:
-            window = "General"
+    def on_open_plot_settings_panel(self, window: str = None, evt=None):
+        """Open plot settings
+
+        Parameters
+        ----------
+        window : str
+            name of the panel that should be displayed. Acceptable values include:
+            General, Plot 1D, Plot 2D, Plot 3D, Colorbar, Legend, Waterfall, Violin, UI
+        """
+
+        if isinstance(window, str):
+            window = window
 
         if window is None:
             return
@@ -1564,8 +1565,7 @@ class MainWindow(wx.Frame):
             self.panelParametersEdit.on_set_page(window)
             self.window_mgr.Update()
         else:
-            args = ("An instance of this panel is already open - changing page to: %s" % window, 4)
-            self.presenter.onThreading(evt, args, action="updateStatusbar")
+            logger.debug(f"An instance of this panel is already open - changing page to {window}")
             self.panelParametersEdit.on_set_page(window)
             return
 
@@ -1591,93 +1591,153 @@ class MainWindow(wx.Frame):
                 logging.error("Failed to startup `Interactive Output` panel", exc_info=True)
                 _startup_module()
 
-    def on_update_recent_files(self, path=None):
-        """
-        path = dictionary {'file_path': path, 'file_type': file type}
-        """
+    def on_add_recent_file(self, action: str, path: str):
+        """Add a file to list of recent files
 
-        if path:
-            if path in CONFIG.previousFiles:
-                del CONFIG.previousFiles[CONFIG.previousFiles.index(path)]
-            CONFIG.previousFiles.insert(0, path)
-            # make sure only 10 items are present in the list
-            while len(CONFIG.previousFiles) > 10:
-                del CONFIG.previousFiles[-1]
+        Parameters
+        ----------
+        action : str
+            name of the action that will be executed when user request recent file
+        path : str
+            path to the file/directory that was recently opened
+        """
+        if len(CONFIG.recent_files) > 9:
+            CONFIG.recent_files = CONFIG.recent_files[-9::]
 
+        # check whether the path and action is already present in the file list
+        present = False
+        for recent_file in CONFIG.recent_files:
+            if path == recent_file["path"] and recent_file["action"] == action:
+                present = True
+
+        if not present:
+            CONFIG.recent_files.append({"path": path, "action": action})
+        self.on_update_recent_files()
+
+    def on_update_recent_files(self):
+        """Update the list of recent files that is shown in the `File` menu"""
         # clear menu
         for item in self.menu_recent_files.GetMenuItems():
             self.menu_recent_files.Delete(item.GetId())
 
         # populate menu
-        for i, __ in enumerate(CONFIG.previousFiles[0:9], start=1):
+        for i, __ in enumerate(CONFIG.recent_files, start=1):
             document_id = eval("wx.ID_FILE" + str(i))
-            path = CONFIG.previousFiles[i]["file_path"]
+            path = CONFIG.recent_files[i - 1]["path"]
             self.menu_recent_files.Insert(i - 1, document_id, path, "Open Document")
             self.Bind(wx.EVT_MENU, self.on_open_recent_file, id=document_id)
             if not os.path.exists(path):
                 self.menu_recent_files.Enable(document_id, False)
 
         # append clear
-        if len(CONFIG.previousFiles) > 0:
+        if len(CONFIG.recent_files) > 0:
             self.menu_recent_files.AppendSeparator()
 
+        # add an option to clear the menu
         self.menu_recent_files.Append(ID_fileMenu_clearRecent, "Clear Menu", "Clear recent items")
         self.Bind(wx.EVT_MENU, self.on_clear_recent_files, id=ID_fileMenu_clearRecent)
 
     def on_clear_recent_files(self, _evt):
         """Clear recent items."""
-
-        CONFIG.previousFiles = []
+        CONFIG.recent_files = []
         self.on_update_recent_files()
 
     def on_open_recent_file(self, evt):
         """Open recent document."""
+        # text.heatmap
+        # msms.mgf, msms.mzml
         # get index
-        # indexes = {
-        #     ID_documentRecent0: 0,
-        #     ID_documentRecent1: 1,
-        #     ID_documentRecent2: 2,
-        #     ID_documentRecent3: 3,
-        #     ID_documentRecent4: 4,
-        #     ID_documentRecent5: 5,
-        #     ID_documentRecent6: 6,
-        #     ID_documentRecent7: 7,
-        #     ID_documentRecent8: 8,
-        #     ID_documentRecent9: 9,
-        # }
-        raise NotImplementedError("Must implement method")
-        # # get file information
-        # documentID = indexes[evt.GetId()]
-        # file_path = CONFIG.previousFiles[documentID]["file_path"]
-        # file_type = CONFIG.previousFiles[documentID]["file_type"]
-        #
-        # # open file
-        # if file_type == "pickle":
-        #     self.data_handling.on_open_document_fcn(None, file_path=file_path)
-        # elif file_type == "MassLynx":
-        #     self.data_handling.on_open_single_MassLynx_raw(file_path, "Type: MassLynx")
-        # elif file_type == "ORIGAMI":
-        #     self.data_handling.on_open_single_MassLynx_raw(file_path, "Type: ORIGAMI")
-        # elif file_type == "Infrared":
-        #     self.data_handling.on_open_single_MassLynx_raw(file_path, "Type: Infrared")
-        # elif file_type == "Text":
-        #     self.data_handling.on_add_text_2d(None, file_path)
-        # elif file_type == "Text_MS":
-        #     self.data_handling.on_add_text_ms(path=file_path)
+        indices = {
+            wx.ID_FILE1: 0,
+            wx.ID_FILE2: 1,
+            wx.ID_FILE3: 2,
+            wx.ID_FILE4: 3,
+            wx.ID_FILE5: 4,
+            wx.ID_FILE6: 5,
+            wx.ID_FILE7: 6,
+            wx.ID_FILE8: 7,
+            wx.ID_FILE9: 8,
+        }
+        idx = indices.get(evt.GetId(), -1)
+        if idx > len(CONFIG.recent_files) - 1:
+            return
 
-    def on_open_file_from_dnd(self, file_path, file_extension):
+        # get information about recent file
+        recent_file = CONFIG.recent_files[idx]
+        action, path = recent_file["action"], recent_file["path"]
+
+        document = None
+        if action == "waters.ms":
+            document = self.data_handling.load_waters_ms_document(path)
+        elif action == "waters.imms":
+            document = self.data_handling.load_waters_im_document(path)
+        elif action == "text.ms":
+            document = self.data_handling.on_add_text_ms(path)
+        elif action == "text.heatmap":
+            x_label, y_label = self.get_user_text_x_y_label()
+            if x_label is None or y_label is None:
+                return
+            document = self.data_handling.on_load_text_2d(None, path, x_label, y_label)  # noqa
+        elif action == "thermo.ms":
+            document = self.data_handling.load_thermo_ms_document(path)
+        elif action == "origami.document":
+            document = ENV.load(path)
+
+        if document is not None:
+            self.data_handling.on_setup_basic_document(document)
+
+    def on_open_file_from_dnd(self, path, extension):
         """Open file as it was dropped in the window"""
-        raise NotImplementedError("Must implement method")
-        # if file_extension in [".pickle", ".pkl"]:
-        #     self.data_handling.on_open_document_fcn(None, file_path)
-        # elif file_extension == ".raw":
-        #     self.data_handling.on_open_single_MassLynx_raw(file_path, "Type: ORIGAMI")
-        # elif file_extension in [".txt", ".csv", ".tab"]:
-        #     file_format = check_file_type(path=file_path)
-        #     if file_format == "2D":
-        #         self.data_handling.on_add_text_2d(None, file_path)
-        #     else:
-        #         self.data_handling.on_add_text_ms(path=file_path)
+        print(path, extension)
+        document = None
+        if extension == ".origami":
+            document = ENV.load(path)
+            pub.sendMessage("file.recent.add", action="origami.document", path=path)
+        if extension == ".raw":
+            try:
+                document = self.data_handling.load_waters_im_document(path)
+                pub.sendMessage("file.recent.add", action="waters.imms", path=path)
+            except Exception:
+                document = self.data_handling.load_waters_ms_document(path)
+                pub.sendMessage("file.recent.add", action="waters.ms", path=path)
+        elif extension == ".RAW":
+            document = self.data_handling.load_thermo_ms_document(path)
+            pub.sendMessage("file.recent.add", action="thermo.ms", path=path)
+        elif extension in [".csv", ".txt", ".tab"]:
+            from origami.gui_elements.dialog_quick_select import DialogQuickSelection
+
+            dlg = DialogQuickSelection(self, ["Mass Spectrum", "Heatmap"])
+            dlg.ShowModal()
+            text_type = dlg.value
+            dlg.Destroy()
+            if text_type == "Mass Spectrum":
+                document = self.data_handling.on_add_text_ms(path)
+            elif text_type == "Heatmap":
+                x_label, y_label = self.get_user_text_x_y_label()
+                if x_label is None or y_label is None:
+                    return
+                _document, add_dict, filepath = self.data_handling.on_load_text_2d(None, path, x_label, y_label)  # noqa
+                self.data_handling.on_add_text_2d(_document, add_dict, filepath)
+
+        value = False
+        if document is not None:
+            self.data_handling.on_setup_basic_document(document)
+            value = True
+
+        return value
+
+    def get_user_text_x_y_label(self):
+        """Get x- and y-axis labels"""
+        from origami.gui_elements.dialog_ask_labels import DialogSelectLabels
+
+        # get labels for selected items
+        dlg = DialogSelectLabels(self)
+        if dlg.ShowModal() == wx.ID_OK:
+            pass
+        x_label, y_label = dlg.xy_labels
+        dlg.Destroy()
+
+        return x_label, y_label
 
     def updateStatusbar(self, msg, position, delay=3, modify_msg=True, print_msg=True):
         """
@@ -1747,17 +1807,19 @@ class DragAndDrop(wx.FileDropTarget):
 
     def OnDropFiles(self, x, y, filenames):
         """When files are dropped, write where they were dropped and then the file paths themselves"""
-        logger.info(f"Dropped {len(filenames)} in the window")
+        logger.info(f"Dropped {len(filenames)} file/directory in the window")
         for filename in filenames:
-            logger.info("Opening {filename} file...")
+            logger.info(f"Opening {filename} file...")
             __, file_extension = os.path.splitext(filename)
+            value = False
             if file_extension in self.SUPPORTED_FORMATS:
                 try:
-                    self.parent.on_open_file_from_dnd(filename, file_extension)
+                    value = self.parent.on_open_file_from_dnd(filename, file_extension)
                 except Exception:
-                    logger.error("Failed to open {}".format(filename))
+                    logger.error(f"Failed to open {filename}", exc_info=True)
                     continue
             elif file_extension in self.LEGACY_FORMATS:
                 logger.warning("Dropped file is no longer supported")
             else:
                 logger.warning("Dropped file is not supported")
+        return value

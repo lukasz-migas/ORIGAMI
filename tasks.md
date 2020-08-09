@@ -11,13 +11,13 @@
 - [ ] fix a bug that removes the z-axis and label when updating data in the heatmap-3d plot
 - [ ] improve how the matplotlib interaction displays user events
     - [ ] 1d plots should use horizontal box to highlight region of extraction
-- [ ] fix configuration file
+- [x] fix configuration file
 - [ ] add documentation to each of the finished modules
 - [ ] restructure documentation website
 - [ ] fix contour plot x-axis scale as it does not display correct range (should start at 0.5)
 - [ ] heatmap violin plot cuts off 1 value
 - [ ] add a fix to the waterfall plot to prevent the erronous highlighting of regions (edge +1 bin)
-- [ ] add the resize/lock attributes to 3d plot
+- [x] add the resize/lock attributes to 3d plot
 
 
 ## New features

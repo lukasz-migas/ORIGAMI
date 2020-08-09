@@ -27,7 +27,6 @@ from origami.ids import ID_ylabel_DTMS_ms
 from origami.ids import ID_saveData_pickle
 from origami.ids import ID_xlabel_2D_scans
 from origami.ids import ID_xlabel_RT_scans
-from origami.ids import ID_saveAllDocuments
 from origami.ids import ID_showPlotDocument
 from origami.ids import ID_xlabel_2D_charge
 from origami.ids import ID_xlabel_2D_custom
@@ -41,7 +40,6 @@ from origami.ids import ID_xlabel_RT_actVolt
 from origami.ids import ID_xlabel_RT_colVolt
 from origami.ids import ID_xlabel_RT_restore
 from origami.ids import ID_ylabel_2D_restore
-from origami.ids import ID_removeAllDocuments
 from origami.ids import ID_xlabel_2D_labFrame
 from origami.ids import ID_xlabel_2D_time_min
 from origami.ids import ID_xlabel_RT_labFrame
@@ -1035,20 +1033,7 @@ class DocumentTree(wx.TreeCtrl):
         # Get the current text value for selected item
         item_type = self.GetItemText(item)
         if item_type == "Documents":
-            menu = wx.Menu()
-            menu.AppendItem(
-                make_menu_item(
-                    parent=menu, evt_id=ID_saveAllDocuments, text="Save all documents", bitmap=self._icons.save
-                )
-            )
-            menu.AppendItem(
-                make_menu_item(
-                    parent=menu, evt_id=ID_removeAllDocuments, text="Delete all documents", bitmap=self._icons.bin
-                )
-            )
-            self.PopupMenu(menu)
-            menu.Destroy()
-            self.SetFocus()
+            self.on_right_click_short()
             return
 
         # Get indent level for selected item

@@ -771,7 +771,7 @@ class Config:
         self.overlay_defaultAlpha = 0.5
 
         # previous files
-        self.previousFiles = []
+        self.recent_files = []
 
         # Open windows
         self.WINDOW_SETTINGS = {
@@ -2395,7 +2395,7 @@ class Config:
             config["ui-settings"][key] = self.get_panel_parameters([key])
 
         # add recent files
-        config["recent-files"] = dict()
+        config["recent-files"] = self.recent_files
 
         # write to json file
         write_json_data(path, config)
@@ -2412,8 +2412,7 @@ class Config:
         # iterate over the major groups of settings
         for config_group_title in ["mpl-settings", "ui-settings"]:
             _config_group = config.get(config_group_title, dict())
-            for group_title, group_config in _config_group.items():
-                print(group_title, type(group_config), len(group_config))
+            for _, group_config in _config_group.items():
                 for key, value in group_config.items():
                     if hasattr(self, key):
                         if check_type:
@@ -2424,9 +2423,11 @@ class Config:
                                     f"\nCurrent value={current_value}; New value={value}"
                                 )
                                 continue
-                        print(group_title, key, value)
                         setattr(self, key, value)
             logger.debug(f"Loaded `{config_group_title}` settings")
+
+        # load recent files
+        _recent_files = config.get("recent-files", [])
         logger.debug(f"Loaded config file from `{path}`")
 
         pub.sendMessage("config.loaded", complete=True)

@@ -70,9 +70,9 @@ class Panel1dSettings(PanelSettingsBase):
             -1,
             value=str(CONFIG.spectrum_fill_transparency),
             min=0,
-            max=100,
+            max=1,
             initial=CONFIG.spectrum_fill_transparency,
-            inc=25,
+            inc=0.25,
             size=(90, -1),
             name="1d.line.fill.opacity",
         )
@@ -102,9 +102,9 @@ class Panel1dSettings(PanelSettingsBase):
             -1,
             value=str(CONFIG.marker_transparency),
             min=0,
-            max=100,
+            max=1,
             initial=CONFIG.marker_transparency,
-            inc=25,
+            inc=0.25,
             size=(90, -1),
         )
         self.marker_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
