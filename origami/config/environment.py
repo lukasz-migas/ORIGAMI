@@ -33,21 +33,17 @@ DOCUMENT_TYPE_ATTRIBUTES = dict(
     # MS and IM-MS only
     thermo=dict(data_type="Type: MS", file_format="Format: Thermo (.RAW)"),
     waters_ms=dict(data_type="Type: MS", file_format="Format: Waters (.raw)"),
-    # waters_imms=dict(data_type="Type: IM-MS", file_format="Format: Waters (.raw)"),
     # Activation
-    origami=dict(data_type="Type: ORIGAMI", file_format="Format: MassLynx (.raw)"),
-    activation=dict(data_type="Type: Activation", file_format="Format: Multiple MassLynx (.raw)"),
+    origami=dict(data_type="Type: ORIGAMI", file_format="Format: Waters (.raw)"),
+    activation=dict(data_type="Type: Activation", file_format="Format: Multiple Waters (.raw)"),
     # MS/MS
     mgf=dict(data_type="Type: MS/MS", file_format="Format: .mgf"),
     mzml=dict(data_type="Type: MS/MS", file_format="Format: .mzML"),
     # Imaging
-    imaging=dict(data_type="Type: Imaging", file_format="Format: Multiple MassLynx (.raw)"),
+    imaging=dict(data_type="Type: Imaging", file_format="Format: Multiple Waters (.raw)"),
     imaging_thermo=dict(data_type="Type: Imaging", file_format="Format: Multiple Thermo (.RAW)"),
     # Generic
     text=dict(data_type="Type: Generic", file_format="Format: Text (.csv; .txt; .tab)"),
-    #     manual=dict(data_type="Type: MANUAL", file_format="Format: MassLynx (.raw)"),
-    #     interactive=dict(data_type="Type: Interactive", file_format="Format: None"),
-    #     waters=dict(data_type="Type: MassLynx", file_format="Format: MassLynx (.raw)"),
 )
 ALTERNATIVE_NAMES = {
     "compare": "overlay",

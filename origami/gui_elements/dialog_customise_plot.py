@@ -485,62 +485,62 @@ class DialogCustomisePlot(wx.Dialog):
         self.xaxis_max_value.SetValue(str(self.kwargs["xmax"]))
         self.yaxis_min_value.SetValue(str(self.kwargs["ymin"]))
         self.yaxis_max_value.SetValue(str(self.kwargs["ymax"]))
-        self.line_width_value.SetValue(self.plot.plot_parameters.get("line_width", 1.0))
+        self.line_width_value.SetValue(self.plot.plot_parameters.get("spectrum_line_width", 1.0))
         try:
             self.line_style_value.SetStringSelection(
-                self.config.lineStylesDict[self.plot.plot_parameters.get("line_style", "-")]
+                self.config.lineStylesDict[self.plot.plot_parameters.get("spectrum_line_style", "-")]
             )
         except Exception:
-            self.line_style_value.SetStringSelection(self.plot.plot_parameters.get("line_style", "-"))
+            self.line_style_value.SetStringSelection(self.plot.plot_parameters.get("spectrum_line_style", "-"))
 
         self.xaxis_tick_division_value.SetValue(str(1))
         self.yaxis_tick_division_value.SetValue(str(1))
 
-        self.leftSpines_check.SetValue(self.plot.plot_parameters["spines_left"])
-        self.rightSpines_check.SetValue(self.plot.plot_parameters["spines_right"])
-        self.topSpines_check.SetValue(self.plot.plot_parameters["spines_top"])
-        self.bottomSpines_check.SetValue(self.plot.plot_parameters["spines_bottom"])
-        self.leftTicks_check.SetValue(self.plot.plot_parameters["ticks_left"])
-        self.rightTicks_check.SetValue(self.plot.plot_parameters["ticks_right"])
-        self.topTicks_check.SetValue(self.plot.plot_parameters["ticks_top"])
-        self.bottomTicks_check.SetValue(self.plot.plot_parameters["ticks_bottom"])
-        self.leftTickLabels_check.SetValue(self.plot.plot_parameters["tickLabels_left"])
-        self.rightTickLabels_check.SetValue(self.plot.plot_parameters["tickLabels_right"])
-        self.topTickLabels_check.SetValue(self.plot.plot_parameters["tickLabels_top"])
-        self.bottomTickLabels_check.SetValue(self.plot.plot_parameters["tickLabels_bottom"])
+        self.leftSpines_check.SetValue(self.plot.plot_parameters["axes_frame_spine_left"])
+        self.rightSpines_check.SetValue(self.plot.plot_parameters["axes_frame_spine_right"])
+        self.topSpines_check.SetValue(self.plot.plot_parameters["axes_frame_spine_top"])
+        self.bottomSpines_check.SetValue(self.plot.plot_parameters["axes_frame_spine_bottom"])
+        self.leftTicks_check.SetValue(self.plot.plot_parameters["axes_frame_ticks_left"])
+        self.rightTicks_check.SetValue(self.plot.plot_parameters["axes_frame_ticks_right"])
+        self.topTicks_check.SetValue(self.plot.plot_parameters["axes_frame_ticks_top"])
+        self.bottomTicks_check.SetValue(self.plot.plot_parameters["axes_frame_ticks_bottom"])
+        self.leftTickLabels_check.SetValue(self.plot.plot_parameters["axes_frame_tick_labels_left"])
+        self.rightTickLabels_check.SetValue(self.plot.plot_parameters["axes_frame_tick_labels_right"])
+        self.topTickLabels_check.SetValue(self.plot.plot_parameters["axes_frame_tick_labels_top"])
+        self.bottomTickLabels_check.SetValue(self.plot.plot_parameters["axes_frame_tick_labels_bottom"])
 
-        self.frame_width_value.SetValue(self.plot.plot_parameters.get("frame_width", 1.0))
+        self.frame_width_value.SetValue(self.plot.plot_parameters.get("axes_frame_width", 1.0))
 
         self.xlabel_value.SetValue(self.kwargs["xlabel"])
         self.ylabel_value.SetValue(self.kwargs["ylabel"])
         self.title_value.SetValue(self.kwargs["title"])
 
-        self.padding_value.SetValue(self.plot.plot_parameters["label_pad"])
-        self.titleFontSize_value.SetValue(self.plot.plot_parameters["title_size"])
-        self.labelFontSize_value.SetValue(self.plot.plot_parameters["label_size"])
-        self.tickFontSize_value.SetValue(self.plot.plot_parameters["tick_size"])
+        self.padding_value.SetValue(self.plot.plot_parameters["axes_label_pad"])
+        self.titleFontSize_value.SetValue(self.plot.plot_parameters["axes_title_font_size"])
+        self.labelFontSize_value.SetValue(self.plot.plot_parameters["axes_tick_font_weight"])
+        self.tickFontSize_value.SetValue(self.plot.plot_parameters["axes_tick_font_size"])
 
-        if not isinstance(self.plot.plot_parameters["title_weight"], bool):
-            if self.plot.plot_parameters["title_weight"] == "normal":
-                self.plot.plot_parameters["title_weight"] = False
+        if not isinstance(self.plot.plot_parameters["axes_title_font_weight"], bool):
+            if self.plot.plot_parameters["axes_title_font_weight"] == "normal":
+                self.plot.plot_parameters["axes_title_font_weight"] = False
             else:
-                self.plot.plot_parameters["title_weight"] = True
+                self.plot.plot_parameters["axes_title_font_weight"] = True
 
-        if not isinstance(self.plot.plot_parameters["label_weight"], bool):
-            if self.plot.plot_parameters["label_weight"] == "normal":
-                self.plot.plot_parameters["label_weight"] = False
+        if not isinstance(self.plot.plot_parameters["axes_label_font_weight"], bool):
+            if self.plot.plot_parameters["axes_label_font_weight"] == "normal":
+                self.plot.plot_parameters["axes_label_font_weight"] = False
             else:
-                self.plot.plot_parameters["label_weight"] = True
+                self.plot.plot_parameters["axes_label_font_weight"] = True
 
-        if not isinstance(self.plot.plot_parameters["tick_weight"], bool):
-            if self.plot.plot_parameters["tick_weight"] == "normal":
-                self.plot.plot_parameters["tick_weight"] = False
+        if not isinstance(self.plot.plot_parameters["axes_tick_font_weight"], bool):
+            if self.plot.plot_parameters["axes_tick_font_weight"] == "normal":
+                self.plot.plot_parameters["axes_tick_font_weight"] = False
             else:
-                self.plot.plot_parameters["tick_weight"] = True
+                self.plot.plot_parameters["axes_tick_font_weight"] = True
 
-        self.titleFontWeight_check.SetValue(self.plot.plot_parameters["title_weight"])
-        self.labelFontWeight_check.SetValue(self.plot.plot_parameters["label_weight"])
-        self.tickFontWeight_check.SetValue(self.plot.plot_parameters["tick_weight"])
+        self.titleFontWeight_check.SetValue(self.plot.plot_parameters["axes_title_font_weight"])
+        self.labelFontWeight_check.SetValue(self.plot.plot_parameters["axes_label_font_weight"])
+        self.tickFontWeight_check.SetValue(self.plot.plot_parameters["axes_tick_font_weight"])
 
         self.width_window_inch_value.SetValue(self.kwargs["plot_size"][0])
         self.height_window_inch_value.SetValue(self.kwargs["plot_size"][1])
@@ -550,22 +550,22 @@ class DialogCustomisePlot(wx.Dialog):
         self.width_value.SetValue(self.kwargs["plot_axes"][2])
         self.height_value.SetValue(self.kwargs["plot_axes"][3])
 
-        self.shade_alpha_value.SetValue(self.plot.plot_parameters.get("shade_under_transparency", 0.25))
+        self.shade_alpha_value.SetValue(self.plot.plot_parameters.get("spectrum_fill_transparency", 0.25))
 
         self.legend_patch_alpha_value.SetValue(self.plot.plot_parameters.get("legend_patch_transparency", 0.25))
         self.legend_fontSize_value.SetStringSelection(self.plot.plot_parameters.get("legend_font_size", "large"))
-        self.legend_frame_check.SetValue(self.plot.plot_parameters.get("legend_frame_on", False))
+        self.legend_frame_check.SetValue(self.plot.plot_parameters.get("legend_frame", False))
 
-        colormap = self.plot.plot_parameters.get("colormap", self.config.heatmap_colormap)
+        colormap = self.plot.plot_parameters.get("heatmap_colormap", self.config.heatmap_colormap)
         if colormap not in self.config.colormap_choices:
             colormap = self.config.heatmap_colormap
         self.colormap_value.SetStringSelection(colormap)
-        self.cmap_min_value.SetValue(self.plot.plot_parameters.get("colormap_min", 0))
-        self.cmap_mid_value.SetValue(self.plot.plot_parameters.get("colormap_mid", 50))
-        self.cmap_max_value.SetValue(self.plot.plot_parameters.get("colormap_max", 100))
+        self.cmap_min_value.SetValue(self.plot.plot_parameters.get("heatmap_normalization_min", 0))
+        self.cmap_mid_value.SetValue(self.plot.plot_parameters.get("heatmap_normalization_mid", 50))
+        self.cmap_max_value.SetValue(self.plot.plot_parameters.get("heatmap_normalization_max", 100))
 
     def on_check_tools(self, check_type="all"):
-        if check_type in ["all", "colormap"]:
+        if check_type in ["all", "heatmap_colormap"]:
             if self.plot.cax is None:
                 disableList = [self.colormap_value, self.cmap_mid_value, self.cmap_min_value, self.cmap_max_value]
                 for item in disableList:
@@ -599,10 +599,10 @@ class DialogCustomisePlot(wx.Dialog):
         self.plot.repaint()
 
         # update kwargs
-        self.plot.plot_parameters["colormap_min"] = self.cmap_min_value.GetValue()
-        self.plot.plot_parameters["colormap_mid"] = self.cmap_mid_value.GetValue()
-        self.plot.plot_parameters["colormap_max"] = self.cmap_max_value.GetValue()
-        self.plot.plot_parameters["colormap"] = colormap
+        self.plot.plot_parameters["heatmap_normalization_min"] = self.cmap_min_value.GetValue()
+        self.plot.plot_parameters["heatmap_normalization_mid"] = self.cmap_mid_value.GetValue()
+        self.plot.plot_parameters["heatmap_normalization_max"] = self.cmap_max_value.GetValue()
+        self.plot.plot_parameters["heatmap_colormap"] = colormap
 
     def on_apply_legend(self, evt):
 
@@ -634,7 +634,7 @@ class DialogCustomisePlot(wx.Dialog):
 
         self.plot.plot_parameters["legend_font_size"] = self.legend_fontSize_value.GetStringSelection()
         self.plot.plot_parameters["legend_patch_transparency"] = self.legend_patch_alpha_value.GetValue()
-        self.plot.plot_parameters["legend_frame_on"] = self.legend_frame_check.GetValue()
+        self.plot.plot_parameters["legend_frame"] = self.legend_frame_check.GetValue()
 
     def on_apply_plot(self, evt):
         if self.loading:
@@ -658,9 +658,9 @@ class DialogCustomisePlot(wx.Dialog):
 
         self.plot.repaint()
 
-        self.plot.plot_parameters["line_width"] = self.line_width_value.GetValue()
-        self.plot.plot_parameters["line_style"] = self.line_style_value.GetStringSelection()
-        self.plot.plot_parameters["shade_under_transparency"] = self.shade_alpha_value.GetValue()
+        self.plot.plot_parameters["spectrum_line_width"] = self.line_width_value.GetValue()
+        self.plot.plot_parameters["spectrum_line_style"] = self.line_style_value.GetStringSelection()
+        self.plot.plot_parameters["spectrum_fill_transparency"] = self.shade_alpha_value.GetValue()
 
     def on_apply_frame(self, evt):
         if self.loading:
@@ -688,19 +688,19 @@ class DialogCustomisePlot(wx.Dialog):
         [i.set_linewidth(frame_width) for i in self.plot.plotMS.spines.values()]
         self.plot.repaint()
 
-        self.plot.plot_parameters["spines_left"] = self.leftSpines_check.GetValue()
-        self.plot.plot_parameters["spines_right"] = self.rightSpines_check.GetValue()
-        self.plot.plot_parameters["spines_top"] = self.topSpines_check.GetValue()
-        self.plot.plot_parameters["spines_bottom"] = self.bottomSpines_check.GetValue()
-        self.plot.plot_parameters["ticks_left"] = self.leftTicks_check.GetValue()
-        self.plot.plot_parameters["ticks_right"] = self.rightTicks_check.GetValue()
-        self.plot.plot_parameters["ticks_top"] = self.topTicks_check.GetValue()
-        self.plot.plot_parameters["ticks_bottom"] = self.bottomTicks_check.GetValue()
-        self.plot.plot_parameters["tickLabels_left"] = self.leftTickLabels_check.GetValue()
-        self.plot.plot_parameters["tickLabels_right"] = self.rightTickLabels_check.GetValue()
-        self.plot.plot_parameters["tickLabels_top"] = self.topTickLabels_check.GetValue()
-        self.plot.plot_parameters["tickLabels_bottom"] = self.bottomTickLabels_check.GetValue()
-        self.plot.plot_parameters["frame_width"] = frame_width
+        self.plot.plot_parameters["axes_frame_spine_left"] = self.leftSpines_check.GetValue()
+        self.plot.plot_parameters["axes_frame_spine_right"] = self.rightSpines_check.GetValue()
+        self.plot.plot_parameters["axes_frame_spine_top"] = self.topSpines_check.GetValue()
+        self.plot.plot_parameters["axes_frame_spine_bottom"] = self.bottomSpines_check.GetValue()
+        self.plot.plot_parameters["axes_frame_ticks_left"] = self.leftTicks_check.GetValue()
+        self.plot.plot_parameters["axes_frame_ticks_right"] = self.rightTicks_check.GetValue()
+        self.plot.plot_parameters["axes_frame_ticks_top"] = self.topTicks_check.GetValue()
+        self.plot.plot_parameters["axes_frame_ticks_bottom"] = self.bottomTicks_check.GetValue()
+        self.plot.plot_parameters["axes_frame_tick_labels_left"] = self.leftTickLabels_check.GetValue()
+        self.plot.plot_parameters["axes_frame_tick_labels_right"] = self.rightTickLabels_check.GetValue()
+        self.plot.plot_parameters["axes_frame_tick_labels_top"] = self.topTickLabels_check.GetValue()
+        self.plot.plot_parameters["axes_frame_tick_labels_bottom"] = self.bottomTickLabels_check.GetValue()
+        self.plot.plot_parameters["axes_frame_width"] = frame_width
 
     def on_apply_fonts(self, evt):
         if self.loading:
@@ -752,13 +752,13 @@ class DialogCustomisePlot(wx.Dialog):
         self.plot.repaint()
 
         # update plot kwargs
-        self.plot.plot_parameters["label_pad"] = self.padding_value.GetValue()
-        self.plot.plot_parameters["label_size"] = self.labelFontSize_value.GetValue()
-        self.plot.plot_parameters["label_weight"] = label_weight
-        self.plot.plot_parameters["tick_size"] = self.tickFontSize_value.GetValue()
-        self.plot.plot_parameters["tick_weight"] = tick_weight
-        self.plot.plot_parameters["title_size"] = self.titleFontSize_value.GetValue()
-        self.plot.plot_parameters["title_weight"] = title_weight
+        self.plot.plot_parameters["axes_label_pad"] = self.padding_value.GetValue()
+        self.plot.plot_parameters["axes_tick_font_size"] = self.labelFontSize_value.GetValue()
+        self.plot.plot_parameters["axes_label_font_weight"] = label_weight
+        self.plot.plot_parameters["axes_tick_font_size"] = self.tickFontSize_value.GetValue()
+        self.plot.plot_parameters["axes_tick_font_weight"] = tick_weight
+        self.plot.plot_parameters["axes_title_font_size"] = self.titleFontSize_value.GetValue()
+        self.plot.plot_parameters["axes_title_font_weight"] = title_weight
 
     def on_apply_size(self, evt):
         if self.loading:

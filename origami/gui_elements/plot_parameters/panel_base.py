@@ -20,6 +20,7 @@ class PanelSettingsBase(wx.lib.scrolledpanel.ScrolledPanel, ColorGetterMixin):
         self.import_evt = True
 
         self.make_panel()
+        self._on_set_config()
         self.on_toggle_controls(evt=None)
         self.SetupScrolling()
         self.import_evt = False
@@ -85,6 +86,12 @@ class PanelSettingsBase(wx.lib.scrolledpanel.ScrolledPanel, ColorGetterMixin):
 
     def on_set_config(self, complete: bool):
         """Handle loading of new configuration file"""
+        if not complete:
+            return
+        wx.CallAfter(self._on_set_config)
+
+    def _on_set_config(self):
+        """Update values from configuration file"""
 
     def _on_assign_color(self, evt):
         if self.import_evt:

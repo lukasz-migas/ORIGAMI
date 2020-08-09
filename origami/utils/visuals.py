@@ -105,16 +105,16 @@ def check_plot_settings(**kwargs):
 
     # convert weights
     if "title" in kwargs:
-        if kwargs["title_weight"] and isbool(kwargs["title_weight"]):
-            kwargs["title_weight"] = "heavy"
+        if kwargs["axes_title_font_weight"] and isbool(kwargs["axes_title_font_weight"]):
+            kwargs["axes_title_font_weight"] = "heavy"
         else:
-            kwargs["title_weight"] = "normal"
+            kwargs["axes_title_font_weight"] = "normal"
 
-    if "label_weight" in kwargs:
-        if kwargs["label_weight"] and isbool(kwargs["label_weight"]):
-            kwargs["label_weight"] = "heavy"
+    if "axes_label_font_weight" in kwargs:
+        if kwargs["axes_label_font_weight"] and isbool(kwargs["axes_label_font_weight"]):
+            kwargs["axes_label_font_weight"] = "heavy"
         else:
-            kwargs["label_weight"] = "normal"
+            kwargs["axes_label_font_weight"] = "normal"
 
     if "rmsd_label_font_weight" in kwargs:
         if kwargs["rmsd_label_font_weight"] and isbool(kwargs["rmsd_label_font_weight"]):
@@ -122,11 +122,11 @@ def check_plot_settings(**kwargs):
         else:
             kwargs["rmsd_label_font_weight"] = "normal"
 
-    if "rmsd_matrix_label_weight" in kwargs:
-        if kwargs["rmsd_matrix_label_weight"] and isbool(kwargs["rmsd_matrix_label_weight"]):
-            kwargs["rmsd_matrix_label_weight"] = "heavy"
+    if "rmsd_matrix_font_weight" in kwargs:
+        if kwargs["rmsd_matrix_font_weight"] and isbool(kwargs["rmsd_matrix_font_weight"]):
+            kwargs["rmsd_matrix_font_weight"] = "heavy"
         else:
-            kwargs["rmsd_matrix_label_weight"] = "normal"
+            kwargs["rmsd_matrix_font_weight"] = "normal"
 
     if "labels_font_weight" in kwargs:
         if kwargs["labels_font_weight"] and isbool(kwargs["labels_font_weight"]):

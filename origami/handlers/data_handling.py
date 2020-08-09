@@ -18,12 +18,10 @@ from pubsub import pub
 from origami.readers import io_text_files
 from origami.utils.path import clean_filename
 from origami.utils.path import check_path_exists
-from origami.utils.path import check_waters_path
 from origami.utils.path import get_path_and_fname
 from origami.utils.color import get_random_color
 from origami.utils.color import convert_rgb_255_to_1
 from origami.utils.random import get_random_int
-from origami.utils.ranges import get_min_max
 from origami.config.config import CONFIG
 from origami.handlers.call import Call
 from origami.handlers.load import LoadHandler
@@ -41,7 +39,6 @@ from origami.config.environment import ENV
 from origami.objects.containers import DataObject
 from origami.handlers.queue_handler import QUEUE
 from origami.gui_elements.misc_dialogs import DialogBox
-from origami.gui_elements.dialog_multi_directory_picker import DialogMultiDirPicker
 
 logger = logging.getLogger(__name__)
 
@@ -70,10 +67,20 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         self.pool_data = None
 
         # Setup listeners
-        pub.subscribe(self.evt_extract_ms_from_mobilogram, "extract.spectrum.from.mobilogram")
+        # events from chromatogram
         pub.subscribe(self.evt_extract_ms_from_chromatogram, "extract.spectrum.from.chromatogram")
+
+        # events from mobilogram
+        pub.subscribe(self.evt_extract_ms_from_mobilogram, "extract.spectrum.from.mobilogram")
+
+        # events from mass spectrum
         pub.subscribe(self.evt_extract_heatmap_from_ms, "extract.heatmap.from.spectrum")
+        pub.subscribe(self.evt_extract_rt_from_ms, "extract.chromatogram.from.spectrum")
+
+        # events from heatmap
         pub.subscribe(self.evt_extract_ms_from_heatmap, "extract.spectrum.from.heatmap")
+
+        # events from ms-heatmap
         pub.subscribe(self.evt_extract_rt_from_heatmap, "extract.rt.from.heatmap")
 
     @property
@@ -615,6 +622,9 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         self.document_tree.on_update_document(heatmap_obj.DOCUMENT_KEY, obj_name, document.title)
         logger.info(f"Extracted ion heatmap in {report_time(t_start)} - See: {obj_name}")
 
+    def evt_extract_rt_from_ms(self, rect, x_labels, y_labels):
+        pass
+
     def on_save_unsaved_changes(self, data_obj, document_title: str = None, dataset_name: str = None):
         """Save unchanged changes on an object"""
         from origami.gui_elements.dialog_save_unsaved import DialogSaveUnsaved
@@ -727,7 +737,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             "end": xlabel_end,
             "charge": "",
             "color": color,
-            "colormap": next(CONFIG.overlay_cmap_cycle),
+            "heatmap_colormap": next(CONFIG.overlay_cmap_cycle),
             "alpha": CONFIG.overlay_defaultAlpha,
             "mask": CONFIG.overlay_defaultMask,
             "label": "",
@@ -970,7 +980,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         """Load configuration file from the default path"""
         config_path = os.path.join(CONFIG.APP_CWD, CONFIG.DEFAULT_CONFIG_NAME)
         QUEUE.add_call(CONFIG.load_config, (config_path,))
-        pub.sendMessage("config.loaded", complete=True)
 
     def on_import_config_as_fcn(self, _evt):
         """Load configuration file from the user-defined path"""
@@ -990,7 +999,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         if config_path is None:
             return
         QUEUE.add_call(CONFIG.load_config, (config_path,))
-        pub.sendMessage("config.loaded", complete=True)
 
     @staticmethod
     def on_export_config_fcn(_evt):
@@ -2307,7 +2315,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
                     filename = "Matrix: {}".format(os.path.basename(filename))
                     data = {
-                        "plot_type": "matrix",
+                        "heatmap_plot_type": "matrix",
                         "zvals": zvals,
                         "cmap": CONFIG.heatmap_colormap,
                         "matrixLabels": labels,

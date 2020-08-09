@@ -32,8 +32,8 @@ class PlotSpectrum(PlotBase):
     def set_line_style(self, **kwargs):
         """Updates line style"""
         for __, line in enumerate(self.plot_base.get_lines()):
-            line.set_linewidth(kwargs["line_width"])
-            line.set_linestyle(kwargs["line_style"])
+            line.set_linewidth(kwargs["spectrum_line_width"])
+            line.set_linestyle(kwargs["spectrum_line_style"])
 
     def plot_1d(self, x, y, title="", x_label="", y_label="", label="", **kwargs):
         """Standard 1d plot
@@ -57,13 +57,13 @@ class PlotSpectrum(PlotBase):
         self.plot_base.plot(
             x,
             y,
-            color=kwargs["line_color"],
+            color=kwargs["spectrum_line_color"],
             label=label,
-            linewidth=kwargs["line_width"],
-            linestyle=kwargs["line_style"],
+            linewidth=kwargs["spectrum_line_width"],
+            linestyle=kwargs["spectrum_line_style"],
             gid=PlotIds.PLOT_1D_LINE_GID,
         )
-        if kwargs["shade_under"]:
+        if kwargs["spectrum_line_fill_under"]:
             self.plot_1d_add_under_curve(x, y, **kwargs)
 
         # setup axis formatters
@@ -89,13 +89,13 @@ class PlotSpectrum(PlotBase):
 
     def plot_1d_add_under_curve(self, xvals, yvals, **kwargs):
         """Fill data under the line"""
-        color = kwargs.get("shade_under_color", None)
+        color = kwargs.get("spectrum_fill_color", None)
         if not color:
-            color = kwargs["line_color"]
+            color = kwargs["spectrum_line_color"]
 
         shade_kws = dict(
             facecolor=color,
-            alpha=kwargs.get("shade_under_transparency", 0.25),
+            alpha=kwargs.get("spectrum_fill_transparency", 0.25),
             clip_on=kwargs.get("clip_on", True),
             zorder=kwargs.get("zorder", 1),
         )
@@ -118,9 +118,9 @@ class PlotSpectrum(PlotBase):
 
         line.set_xdata(x)
         line.set_ydata(y)
-        line.set_linewidth(kwargs["line_width"])
-        line.set_color(kwargs["line_color"])
-        line.set_linestyle(kwargs["line_style"])
+        line.set_linewidth(kwargs["spectrum_line_width"])
+        line.set_color(kwargs["spectrum_line_color"])
+        line.set_linestyle(kwargs["spectrum_line_style"])
         line.set_label(kwargs.get("label", ""))
 
         for patch in self.plot_base.collections:
@@ -171,26 +171,26 @@ class PlotSpectrum(PlotBase):
         self.plot_base.plot(
             x_top,
             y_top,
-            color=kwargs["line_color_1"],
+            color=kwargs["compare_color_top"],
             label=labels[0],
-            linewidth=kwargs["line_width"],
-            linestyle=kwargs["line_style_1"],
-            alpha=kwargs["line_transparency_1"],
+            linewidth=kwargs["spectrum_line_width"],
+            linestyle=kwargs["compare_style_top"],
+            alpha=kwargs["compare_alpha_top"],
             gid=PlotIds.PLOT_COMPARE_TOP_GID,
         )
 
         self.plot_base.plot(
             x_bottom,
             y_bottom,
-            color=kwargs["line_color_2"],
+            color=kwargs["compare_color_bottom"],
             label=labels[1],
-            linewidth=kwargs["line_width"],
-            linestyle=kwargs["line_style_2"],
-            alpha=kwargs["line_transparency_2"],
+            linewidth=kwargs["spectrum_line_width"],
+            linestyle=kwargs["compare_style_bottom"],
+            alpha=kwargs["compare_alpha_bottom"],
             gid=PlotIds.PLOT_COMPARE_BOTTOM_GID,
         )
 
-        self.plot_base.axhline(linewidth=kwargs["line_width"], color="k")
+        self.plot_base.axhline(linewidth=kwargs["spectrum_line_width"], color="k")
 
         # set plot limits
         self.plot_base.yaxis.set_major_formatter(get_intensity_formatter())
@@ -237,7 +237,7 @@ class PlotSpectrum(PlotBase):
                 line.set_xdata(x_bottom)
                 line.set_ydata(y_bottom)
                 line.set_label(labels[1])
-                line.set_color(kwargs.get("line_color_2", line.get_color()))
+                line.set_color(kwargs.get("compare_color_bottom", line.get_color()))
 
         # update legend
         handles, __ = self.plot_base.get_legend_handles_labels()
@@ -251,10 +251,10 @@ class PlotSpectrum(PlotBase):
     def plot_1d_update_style_by_label(
         self,
         gid: str = None,
-        color=None,
-        line_style: str = None,
-        line_width: float = None,
-        transparency: float = None,
+        spectrum_line_color=None,
+        spectrum_line_style: str = None,
+        spectrum_line_width: float = None,
+        spectrum_line_transparency: float = None,
         label: str = None,
     ):
         """Update line style based on a specific group id"""
@@ -265,14 +265,14 @@ class PlotSpectrum(PlotBase):
         for line in lines:
             plot_gid = line.get_gid()
             if plot_gid == gid:
-                if color is not None:
-                    line.set_color(color)
-                if line_width is not None:
-                    line.set_linewidth(line_width)
-                if line_style is not None:
-                    line.set_linestyle(line_style)
-                if transparency is not None:
-                    line.set_alpha(transparency)
+                if spectrum_line_color is not None:
+                    line.set_color(spectrum_line_color)
+                if spectrum_line_width is not None:
+                    line.set_linewidth(spectrum_line_width)
+                if spectrum_line_style is not None:
+                    line.set_linestyle(spectrum_line_style)
+                if spectrum_line_transparency is not None:
+                    line.set_alpha(spectrum_line_transparency)
                 if label is not None:
                     line.set_label(label)
 
@@ -282,9 +282,9 @@ class PlotSpectrum(PlotBase):
     def plot_1d_update_patch_style_by_label(
         self,
         gid: str = None,
-        show: bool = None,
-        color=None,
-        transparency: float = None,
+        spectrum_line_fill_under: bool = None,
+        spectrum_fill_color=None,
+        spectrum_fill_transparency: float = None,
         x: np.ndarray = None,
         y: np.ndarray = None,
         fill_kwargs=None,
@@ -298,15 +298,15 @@ class PlotSpectrum(PlotBase):
             patch_id = patch.get_gid()
             if patch_id == PlotIds.PLOT_1D_PATCH_GID:
                 found = True
-                if color is not None:
-                    patch.set_facecolor(color)
-                if transparency is not None:
-                    patch.set_alpha(transparency)
-                if not show:
+                if spectrum_fill_color is not None:
+                    patch.set_facecolor(spectrum_fill_color)
+                if spectrum_fill_transparency is not None:
+                    patch.set_alpha(spectrum_fill_transparency)
+                if not spectrum_line_fill_under:
                     patch.remove()
 
         # failed to find patch BUT it needs to be created
-        if not found and show and x is not None and y is not None and fill_kwargs is not None:
+        if not found and spectrum_line_fill_under and x is not None and y is not None and fill_kwargs is not None:
             self.plot_1d_add_under_curve(x, y, **fill_kwargs)
 
     # def plot_1D(
@@ -342,12 +342,12 @@ class PlotSpectrum(PlotBase):
     #     self.plot_base.plot(
     #         xvals,
     #         yvals,
-    #         color=kwargs["line_color"],
+    #         color=kwargs["spectrum_line_color"],
     #         label=label,
-    #         linewidth=kwargs["line_width"],
-    #         linestyle=kwargs["line_style"],
+    #         linewidth=kwargs["spectrum_line_width"],
+    #         linestyle=kwargs["spectrum_line_style"],
     #     )
-    #     if kwargs["shade_under"]:
+    #     if kwargs["spectrum_line_fill_under"]:
     #         self.plot_1d_add_under_curve(xvals, yvals, **kwargs)
     #
     #     # Setup parameters
@@ -379,8 +379,8 @@ class PlotSpectrum(PlotBase):
     #     self.set_tick_parameters(**kwargs)
     #
     #     for __, line in enumerate(self.plot_base.get_lines()):
-    #         line.set_linewidth(kwargs["line_width"])
-    #         line.set_linestyle(kwargs["line_style"])
+    #         line.set_linewidth(kwargs["spectrum_line_width"])
+    #         line.set_linestyle(kwargs["spectrum_line_style"])
     #
     #     if title != "":
     #         self.set_plot_title(title, **kwargs)
@@ -433,7 +433,7 @@ class PlotSpectrum(PlotBase):
     #
     #     if kwargs.get("butterfly_plot", False):
     #         yvals = -np.array(yvals)
-    #         self.plot_base.axhline(linewidth=kwargs["line_width"], color="k")
+    #         self.plot_base.axhline(linewidth=kwargs["spectrum_line_width"], color="k")
     #
     #     if update_y_axis:
     #         yvals, ylabel, __ = self._convert_yaxis(yvals, ylabel)
@@ -448,7 +448,8 @@ class PlotSpectrum(PlotBase):
     #         self.plot_base = self.figure.add_axes(self._axes)
     #     else:
     #         self.plot_base.set_position(self._axes)
-    #     line_coll = LineCollection(xyvals, colors=(kwargs["line_color"]), linewidths=(kwargs["line_width"]))
+    #     line_coll = LineCollection(xyvals, colors=(kwargs["spectrum_line_color"]),
+    #     linewidths=(kwargs["spectrum_line_width"]))
     #     self.plot_base.add_collection(line_coll)
     #
     #     # Setup parameters
@@ -480,8 +481,8 @@ class PlotSpectrum(PlotBase):
     #     self.set_tick_parameters(**kwargs)
     #
     #     for __, line in enumerate(self.plot_base.get_lines()):
-    #         line.set_linewidth(kwargs["line_width"])
-    #         line.set_linestyle(kwargs["line_style"])
+    #         line.set_linewidth(kwargs["spectrum_line_width"])
+    #         line.set_linestyle(kwargs["spectrum_line_style"])
     #
     #     if title != "":
     #         self.set_plot_title(title, **kwargs)
@@ -510,8 +511,8 @@ class PlotSpectrum(PlotBase):
     #     # update settings
     #     self._check_and_update_plot_settings(plot_name=plotType, axes_size=axesSize, **kwargs)
     #
-    #     if not kwargs.get("bar_edgecolor_sameAsFill", True):
-    #         edgecolor = kwargs.get("bar_edgecolor", "#000000")
+    #     if not kwargs.get("bar_edge_same_as_fill", True):
+    #         edgecolor = kwargs.get("bar_edge_color", "#000000")
     #     else:
     #         edgecolor = colors
     #
@@ -524,20 +525,20 @@ class PlotSpectrum(PlotBase):
     #         color=colors,
     #         label="Intensities",
     #         alpha=kwargs.get("bar_alpha", 0.5),
-    #         linewidth=kwargs.get("bar_linewidth", 1),
+    #         linewidth=kwargs.get("bar_line_width", 1),
     #         width=kwargs.get("bar_width", 1),
     #         edgecolor=edgecolor,
     #     )
     #
     #     peaklabels = [str(p) for p in labels]
-    #     self.plot_base.set_xticklabels(peaklabels, rotation=90, fontsize=kwargs["label_size"])  # 90
+    #     self.plot_base.set_xticklabels(peaklabels, rotation=90, fontsize=kwargs["axes_tick_font_size"])  # 90
     #     self.set_plot_xlabel(xlabel, **kwargs)
     #     self.set_plot_ylabel(ylabel, **kwargs)
     #     self.set_tick_parameters(**kwargs)
     #
     #     for __, line in enumerate(self.plot_base.get_lines()):
-    #         line.set_linewidth(kwargs["line_width"])
-    #         line.set_linestyle(kwargs["line_style"])
+    #         line.set_linewidth(kwargs["spectrum_line_width"])
+    #         line.set_linestyle(kwargs["spectrum_line_style"])
     #
     #     if title != "":
     #         self.set_plot_title(title, **kwargs)
@@ -555,16 +556,16 @@ class PlotSpectrum(PlotBase):
     #         colors = []
     #     self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
     #
-    #     matplotlib.rc("xtick", labelsize=kwargs["tick_size"])
-    #     matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
+    #     matplotlib.rc("xtick", labelsize=kwargs["axes_tick_font_size"])
+    #     matplotlib.rc("ytick", labelsize=kwargs["axes_tick_font_size"])
     #
     #     # disable ticks on one side
-    #     if kwargs["orientation"] == "horizontal-bar":
-    #         kwargs["ticks_left"] = False
-    #         kwargs["tickLabels_left"] = False
+    #     if kwargs["violin_orientation"] == "horizontal-bar":
+    #         kwargs["axes_frame_ticks_left"] = False
+    #         kwargs["axes_frame_tick_labels_left"] = False
     #     else:
-    #         kwargs["ticks_bottom"] = False
-    #         kwargs["tickLabels_bottom"] = False
+    #         kwargs["axes_frame_ticks_bottom"] = False
+    #         kwargs["axes_frame_tick_labels_bottom"] = False
     #
     #     # Plot
     #     plot_modifiers = kwargs["plot_modifiers"]
@@ -609,12 +610,12 @@ class PlotSpectrum(PlotBase):
     #             colorList = len(xval) * [colors[i]]
     #
     #         self.plot_base = self.figure.add_axes(self._axes)
-    #         if not kwargs.get("bar_edgecolor_sameAsFill", True):
-    #             edgecolor = kwargs.get("bar_edgecolor", "#000000")
+    #         if not kwargs.get("bar_edge_same_as_fill", True):
+    #             edgecolor = kwargs.get("bar_edge_color", "#000000")
     #         else:
     #             edgecolor = colorList
     #
-    #         if kwargs["orientation"] == "vertical-bar":
+    #         if kwargs["violin_orientation"] == "vertical-bar":
     #             self.plot_base.bar(
     #                 xval,
     #                 bottom=yval_min,
@@ -623,7 +624,7 @@ class PlotSpectrum(PlotBase):
     #                 width=kwargs.get("bar_width", 0.1),
     #                 edgecolor=edgecolor,
     #                 alpha=kwargs.get("bar_alpha", 0.5),
-    #                 linewidth=kwargs.get("bar_linewidth", 1),
+    #                 linewidth=kwargs.get("bar_line_width", 1),
     #             )
     #         else:
     #             xlimits, ylimits = ylimits, xlimits
@@ -635,7 +636,7 @@ class PlotSpectrum(PlotBase):
     #                 height=kwargs.get("bar_width", 0.1),
     #                 edgecolor=edgecolor,
     #                 alpha=kwargs.get("bar_alpha", 0.5),
-    #                 linewidth=kwargs.get("bar_linewidth", 1),
+    #                 linewidth=kwargs.get("bar_line_width", 1),
     #             )
     #
     #     self.set_plot_xlabel(xlabel, **kwargs)
@@ -706,9 +707,9 @@ class PlotSpectrum(PlotBase):
     #                         yval,
     #                         edgecolors="k",
     #                         c=color,
-    #                         s=kwargs["scatter_size"],
-    #                         marker=kwargs["scatter_shape"],
-    #                         alpha=kwargs["scatter_alpha"],
+    #                         s=kwargs["marker_size"],
+    #                         marker=kwargs["marker_shape"],
+    #                         alpha=kwargs["marker_transparency"],
     #                         picker=5,
     #                     )
     #                 except Exception:
@@ -718,9 +719,9 @@ class PlotSpectrum(PlotBase):
     #                         yval,
     #                         edgecolors=color,
     #                         color=color,
-    #                         s=kwargs["scatter_size"],
-    #                         marker=kwargs["scatter_shape"],
-    #                         alpha=kwargs["scatter_alpha"],
+    #                         s=kwargs["marker_size"],
+    #                         marker=kwargs["marker_shape"],
+    #                         alpha=kwargs["marker_transparency"],
     #                         picker=5,
     #                     )
     #             else:
@@ -730,9 +731,9 @@ class PlotSpectrum(PlotBase):
     #                     yval,
     #                     edgecolors=color,
     #                     color=color,
-    #                     s=kwargs["scatter_size"],
-    #                     marker=kwargs["scatter_shape"],
-    #                     alpha=kwargs["scatter_alpha"],
+    #                     s=kwargs["marker_size"],
+    #                     marker=kwargs["marker_shape"],
+    #                     alpha=kwargs["marker_transparency"],
     #                     picker=5,
     #                 )
     #
@@ -745,9 +746,9 @@ class PlotSpectrum(PlotBase):
     #                 zvals[:, i],
     #                 edgecolors=color,
     #                 color=color,
-    #                 s=kwargs["scatter_size"],
-    #                 marker=kwargs["scatter_shape"],
-    #                 alpha=kwargs["scatter_alpha"],
+    #                 s=kwargs["marker_size"],
+    #                 marker=kwargs["marker_shape"],
+    #                 alpha=kwargs["marker_transparency"],
     #                 label=labels[i],
     #                 picker=5,
     #             )
@@ -796,8 +797,8 @@ class PlotSpectrum(PlotBase):
     #     if len(xvals) != len(yvals) and len(xvals) == 1:
     #         xvals = xvals * len(yvals)
     #
-    #     matplotlib.rc("xtick", labelsize=kwargs["tick_size"])
-    #     matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
+    #     matplotlib.rc("xtick", labelsize=kwargs["axes_tick_font_size"])
+    #     matplotlib.rc("ytick", labelsize=kwargs["axes_tick_font_size"])
     #
     #     if xlimits is None:
     #         xvals_limit, __ = find_limits_list(xvals, yvals)
@@ -820,23 +821,23 @@ class PlotSpectrum(PlotBase):
     #             yval,
     #             color=color,
     #             label=label,
-    #             linewidth=kwargs["line_width"],
-    #             linestyle=kwargs["line_style"],
+    #             linewidth=kwargs["spectrum_line_width"],
+    #             linestyle=kwargs["spectrum_line_style"],
     #             zorder=zorder,
     #         )
     #
-    #         if kwargs["shade_under"]:
+    #         if kwargs["spectrum_line_fill_under"]:
     #             handles.append(patches.Patch(color=color, label=label, alpha=0.25))
     #             shade_kws = dict(
     #                 facecolor=color,
-    #                 alpha=kwargs.get("shade_under_transparency", 0.25),
+    #                 alpha=kwargs.get("spectrum_fill_transparency", 0.25),
     #                 clip_on=kwargs.get("clip_on", True),
     #                 zorder=zorder - 2,
     #             )
     #             self.plot_base.fill_between(xval, 0, yval, **shade_kws)
     #             zorder = zorder + zorder_offset
     #
-    #     if not kwargs["shade_under"]:
+    #     if not kwargs["spectrum_line_fill_under"]:
     #         handles, labels = self.plot_base.get_legend_handles_labels()
     #
     #     # add legend
@@ -853,8 +854,8 @@ class PlotSpectrum(PlotBase):
     #     self.set_tick_parameters(**kwargs)
     #
     #     for __, line in enumerate(self.plot_base.get_lines()):
-    #         line.set_linewidth(kwargs["line_width"])
-    #         line.set_linestyle(kwargs["line_style"])
+    #         line.set_linewidth(kwargs["spectrum_line_width"])
+    #         line.set_linestyle(kwargs["spectrum_line_style"])
     #
     #     if title != "":
     #         self.set_plot_title(title, **kwargs)
@@ -894,16 +895,16 @@ class PlotSpectrum(PlotBase):
     #         if axesSize is not None:
     #             self._axes = axesSize
     #
-    #         kwargs["ticks_left"] = False
-    #         kwargs["tickLabels_left"] = False
+    #         kwargs["axes_frame_ticks_left"] = False
+    #         kwargs["axes_frame_tick_labels_left"] = False
     #         self.plot_parameters = kwargs
     #     else:
     #         # update ticks
     #         kwargs = merge_two_dicts(kwargs, self.plot_parameters)
     #         self.plot_parameters = kwargs
     #
-    #     matplotlib.rc("xtick", labelsize=kwargs["tick_size"])
-    #     matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
+    #     matplotlib.rc("xtick", labelsize=kwargs["axes_tick_font_size"])
+    #     matplotlib.rc("ytick", labelsize=kwargs["axes_tick_font_size"])
     #
     #     self.plot_base = self.figure.add_axes(self._axes)
     #
@@ -924,17 +925,19 @@ class PlotSpectrum(PlotBase):
     #         item_list = np.linspace(0, n_items - 1, n_items).astype(np.int32)
     #         self.text_offset_position = dict(min=np.min(xvals), max=np.max(xvals), offset=kwargs["labels_x_offset"])
     #         label_xposition = np.min(xvals) + (np.max(xvals) * kwargs["labels_x_offset"])
-    #         yOffset = kwargs["offset"] * (n_items + 1)
+    #         yOffset = kwargs["waterfall_offset"] * (n_items + 1)
     #         label_kws = dict(fontsize=kwargs["labels_font_size"], fontweight=kwargs["labels_font_weight"])
-    #         shade_kws = dict(alpha=kwargs.get("shade_under_transparency", 0.25), clip_on=kwargs.get("clip_on", True))
-    #         add_underline = kwargs["shade_under"] and len(item_list) < kwargs.get("shade_under_n_limit", 50)
+    #         shade_kws = dict(alpha=kwargs.get("spectrum_fill_transparency", 0.25),
+    #         clip_on=kwargs.get("clip_on", True))
+    #         add_underline = kwargs["spectrum_line_fill_under"] and
+    #         len(item_list) < kwargs.get("shade_under_n_limit", 50)
     #         add_labels = kwargs.get("add_labels", True) and kwargs["labels_frequency"] != 0
     #
     #         if len(labels) != n_items:
     #             labels = [""] * n_items
     #
     #         # reverse data
-    #         if kwargs["reverse"]:
+    #         if kwargs["waterfall_reverse"]:
     #             zvals = np.fliplr(zvals)
     #             yvals = yvals[::-1]
     #             labels = labels[::-1]
@@ -943,7 +946,7 @@ class PlotSpectrum(PlotBase):
     #             xlimits = [np.min(xvals), np.max(xvals)]
     #
     #         # normalize data if increment is not 0
-    #         if kwargs["increment"] != 0 and kwargs.get("normalize", True):
+    #         if kwargs["waterfall_increment"] != 0 and kwargs.get("waterfall_normalize", True):
     #             zvals = normalize_2d(zvals)
     #         else:
     #             __, ylabel, __ = self._convert_yaxis(zvals, "Intensity", set_divider=False)
@@ -957,15 +960,15 @@ class PlotSpectrum(PlotBase):
     #             if kwargs["line_color_as_shade"]:
     #                 line_color = colorlist[i]
     #             else:
-    #                 line_color = kwargs["line_color"]
+    #                 line_color = kwargs["spectrum_line_color"]
     #             shade_color = colorlist[i]
     #
     #             self.plot_base.plot(
     #                 xvals,
     #                 y,
     #                 color=line_color,
-    #                 linewidth=kwargs["line_width"],
-    #                 linestyle=kwargs["line_style"],
+    #                 linewidth=kwargs["spectrum_line_width"],
+    #                 linestyle=kwargs["spectrum_line_style"],
     #                 label=labels[i],
     #                 zorder=zorder,
     #             )
@@ -985,7 +988,7 @@ class PlotSpectrum(PlotBase):
     #                         **label_kws,
     #                     )
     #             ydata.extend([y_min, y_max])
-    #             yOffset = yOffset - kwargs["increment"]
+    #             yOffset = yOffset - kwargs["waterfall_increment"]
     #             zorder = zorder + zorder_offset
     #             count += 1
     #     else:
@@ -1001,7 +1004,7 @@ class PlotSpectrum(PlotBase):
     #     #             n_items = len(yvals)
     #     #             if len(labels) == 0:
     #     #                 labels = [""] * n_items
-    #     #             yOffset = kwargs["offset"] * (n_items + 1)
+    #     #             yOffset = kwargs["waterfall_offset"] * (n_items + 1)
     #     #
     #     #             # Find new xlimits
     #     #             xvals_limit, __ = find_limits_list(xvals, yvals)
@@ -1013,7 +1016,7 @@ class PlotSpectrum(PlotBase):
     #     #
     #     #             colorlist = self._get_colorlist(colorList, n_items, **kwargs)
     #     #
-    #     #             if kwargs["reverse"]:
+    #     #             if kwargs["waterfall_reverse"]:
     #     #                 xvals = xvals[::-1]
     #     #                 yvals = yvals[::-1]
     #     #                 colorlist = colorlist[::-1]
@@ -1022,7 +1025,7 @@ class PlotSpectrum(PlotBase):
     #     #             for irow in range(len(xvals)):
     #     #                 # Always normalizes data - otherwise it looks pretty bad
     #     #
-    #     #                 if kwargs["increment"] != 0 and kwargs.get("normalize", True):
+    #     #                 if kwargs["waterfall_increment"] != 0 and kwargs.get("waterfall_normalize", True):
     #     #                     yvals[irow] = normalize_1D(yvals[irow])
     #     #                 else:
     #     #                     ylabel = "Intensity"
@@ -1033,30 +1036,31 @@ class PlotSpectrum(PlotBase):
     #     #                             offset_text = r"x$\mathregular{10^{%d}}$" % expo
     #     #                             ylabel = "".join([ylabel, " [", offset_text, "]"])
     #     #                     except AttributeError:
-    #     #                         kwargs["increment"] = 0.00001
+    #     #                         kwargs["waterfall_increment"] = 0.00001
     #     #                         yvals[irow] = normalize_1D(yvals[irow])
     #     #
     #     #                 item_list = np.linspace(0, n_items - 1, n_items)
     #     #                 if kwargs["line_color_as_shade"]:
     #     #                     line_color = colorlist[irow]
     #     #                 else:
-    #     #                     line_color = kwargs["line_color"]
+    #     #                     line_color = kwargs["spectrum_line_color"]
     #     #                 shade_color = colorlist[int(irow)]
     #     #                 y = yvals[irow]
     #     #                 self.plotMS.plot(
     #     #                     xvals[irow],
     #     #                     (y + yOffset),
     #     #                     color=line_color,
-    #     #                     linewidth=kwargs["line_width"],
-    #     #                     linestyle=kwargs["line_style"],
+    #     #                     linewidth=kwargs["spectrum_line_width"],
+    #     #                     linestyle=kwargs["spectrum_line_style"],
     #     #                     label=labels[irow],
     #     #                     zorder=zorder,
     #     #                 )
     #     #
-    #     #                 if kwargs["shade_under"] and len(item_list) < kwargs.get("shade_under_n_limit", 50):
+    #     #                 if kwargs["spectrum_line_fill_under"] and len(item_list)
+    #     < kwargs.get("shade_under_n_limit", 50):
     #     #                     shade_kws = dict(
     #     #                         facecolor=shade_color,
-    #     #                         alpha=kwargs.get("shade_under_transparency", 0.25),
+    #     #                         alpha=kwargs.get("spectrum_fill_transparency", 0.25),
     #     #                         clip_on=kwargs.get("clip_on", True),
     #     #                         zorder=zorder - 2,
     #     #                     )
@@ -1075,23 +1079,23 @@ class PlotSpectrum(PlotBase):
     #     #                             **label_kws,
     #     #                         )
     #     #                 ydata.extend(y + yOffset)
-    #     #                 yOffset = yOffset - kwargs["increment"]
+    #     #                 yOffset = yOffset - kwargs["waterfall_increment"]
     #     #                 zorder = zorder + zorder_offset
     #
     #     self.set_plot_xlabel(xlabel, **kwargs)
     #     self.set_tick_parameters(**kwargs)
     #
-    #     self.plot_base.spines["left"].set_visible(kwargs["spines_left"])
-    #     self.plot_base.spines["right"].set_visible(kwargs["spines_right"])
-    #     self.plot_base.spines["top"].set_visible(kwargs["spines_top"])
-    #     self.plot_base.spines["bottom"].set_visible(kwargs["spines_bottom"])
+    #     self.plot_base.spines["left"].set_visible(kwargs["axes_frame_spine_left"])
+    #     self.plot_base.spines["right"].set_visible(kwargs["axes_frame_spine_right"])
+    #     self.plot_base.spines["top"].set_visible(kwargs["axes_frame_spine_top"])
+    #     self.plot_base.spines["bottom"].set_visible(kwargs["axes_frame_spine_bottom"])
     #     for i in self.plot_base.spines.values():
-    #         i.set_linewidth(kwargs["frame_width"])
+    #         i.set_linewidth(kwargs["axes_frame_width"])
     #         i.set_zorder(zorder)
     #
     #     # convert to array to remove nan's and figure out limits
     #     ydata = remove_nan_from_list(ydata)
-    #     ylimits = np.min(ydata) - kwargs["offset"], np.max(ydata) + 0.05
+    #     ylimits = np.min(ydata) - kwargs["waterfall_offset"], np.max(ydata) + 0.05
     #     extent = [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
     #
     #     self.setup_zoom([self.plot_base], self.zoomtype, plotName=plotName, data_lims=extent)
@@ -1109,7 +1113,8 @@ class PlotSpectrum(PlotBase):
     #
     #     if plot_name is not None:
     #         self.plot_name = plot_name
-    #     self.plot_base.plot(np.array(xvals), yvals, color=color, label=label, linewidth=kwargs.get("line_width", 2.0))
+    #     self.plot_base.plot(np.array(xvals), yvals, color=color, label=label,
+    #     linewidth=kwargs.get("spectrum_line_width", 2.0))
     #
     #     lines = self.plot_base.get_lines()
     #     yvals_limits = []
@@ -1183,16 +1188,16 @@ class PlotSpectrum(PlotBase):
     #         if axesSize is not None:
     #             self._axes = axesSize
     #
-    #         kwargs["ticks_left"] = False
-    #         kwargs["tickLabels_left"] = False
+    #         kwargs["axes_frame_ticks_left"] = False
+    #         kwargs["axes_frame_tick_labels_left"] = False
     #         self.plot_parameters = kwargs
     #     else:
     #         # update ticks
     #         kwargs = merge_two_dicts(kwargs, self.plot_parameters)
     #         self.plot_parameters = kwargs
     #
-    #     matplotlib.rc("xtick", labelsize=kwargs["tick_size"])
-    #     matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
+    #     matplotlib.rc("xtick", labelsize=kwargs["axes_tick_font_size"])
+    #     matplotlib.rc("ytick", labelsize=kwargs["axes_tick_font_size"])
     #
     #     self.plot_base = self.figure.add_axes(self._axes)
     #     if kwargs["labels_font_weight"]:
@@ -1211,7 +1216,7 @@ class PlotSpectrum(PlotBase):
     #
     #     if len(labels) == 0:
     #         labels = [" "] * count
-    #     yOffset_start = yOffset = kwargs["offset"] * (count + 1)
+    #     yOffset_start = yOffset = kwargs["waterfall_offset"] * (count + 1)
     #
     #     # Find new xlimits
     #     xvals_limit, __ = find_limits_list(xvals, yvals)
@@ -1229,7 +1234,7 @@ class PlotSpectrum(PlotBase):
     #         label = labels[item]
     #
     #         shade_color = colorList[item]
-    #         if not kwargs["reverse"]:
+    #         if not kwargs["waterfall_reverse"]:
     #             yval = yval[::-1]
     #             zval = np.fliplr(zval)
     #
@@ -1238,7 +1243,7 @@ class PlotSpectrum(PlotBase):
     #                 label = ""
     #
     #             zval_one = np.asarray(zval[:, irow])
-    #             if kwargs["increment"] != 0 and kwargs.get("normalize", True):
+    #             if kwargs["waterfall_increment"] != 0 and kwargs.get("waterfall_normalize", True):
     #                 zval_one = normalize_1D(zval_one)
     #
     #             y = zval_one + yOffset
@@ -1246,15 +1251,15 @@ class PlotSpectrum(PlotBase):
     #                 xval,
     #                 y,
     #                 color=line_color,
-    #                 linewidth=kwargs["line_width"],
-    #                 linestyle=kwargs["line_style"],
+    #                 linewidth=kwargs["spectrum_line_width"],
+    #                 linestyle=kwargs["spectrum_line_style"],
     #                 label=label,
     #                 zorder=zorder,
     #             )
-    #             if kwargs["shade_under"] and len(yval) < kwargs.get("shade_under_n_limit", 50):
+    #             if kwargs["spectrum_line_fill_under"] and len(yval) < kwargs.get("shade_under_n_limit", 50):
     #                 shade_kws = dict(
     #                     facecolor=shade_color,
-    #                     alpha=kwargs.get("shade_under_transparency", 0.25),
+    #                     alpha=kwargs.get("spectrum_fill_transparency", 0.25),
     #                     clip_on=kwargs.get("clip_on", True),
     #                     zorder=zorder - 2,
     #                 )
@@ -1272,7 +1277,7 @@ class PlotSpectrum(PlotBase):
     #                         **label_kws,
     #                     )
     #             ydata.extend(y)
-    #             yOffset = yOffset - kwargs["increment"]
+    #             yOffset = yOffset - kwargs["waterfall_increment"]
     #             zorder = zorder + 5
     #         zorder = zorder + (zorder_offset * 5)
     #
@@ -1284,19 +1289,19 @@ class PlotSpectrum(PlotBase):
     #     self.set_tick_parameters(**kwargs)
     #
     #     for __, line in enumerate(self.plot_base.get_lines()):
-    #         line.set_linewidth(kwargs["line_width"])
-    #         line.set_linestyle(kwargs["line_style"])
+    #         line.set_linewidth(kwargs["spectrum_line_width"])
+    #         line.set_linestyle(kwargs["spectrum_line_style"])
     #
-    #     self.plot_base.spines["left"].set_visible(kwargs["spines_left"])
-    #     self.plot_base.spines["right"].set_visible(kwargs["spines_right"])
-    #     self.plot_base.spines["top"].set_visible(kwargs["spines_top"])
-    #     self.plot_base.spines["bottom"].set_visible(kwargs["spines_bottom"])
+    #     self.plot_base.spines["left"].set_visible(kwargs["axes_frame_spine_left"])
+    #     self.plot_base.spines["right"].set_visible(kwargs["axes_frame_spine_right"])
+    #     self.plot_base.spines["top"].set_visible(kwargs["axes_frame_spine_top"])
+    #     self.plot_base.spines["bottom"].set_visible(kwargs["axes_frame_spine_bottom"])
     #     for i in self.plot_base.spines.values():
-    #         i.set_linewidth(kwargs["frame_width"])
+    #         i.set_linewidth(kwargs["axes_frame_width"])
     #         i.set_zorder(zorder)
     #
     #     ydata = remove_nan_from_list(ydata)
-    #     ylimits = [np.min(ydata) - kwargs["offset"], np.max(ydata) + 0.05]
+    #     ylimits = [np.min(ydata) - kwargs["waterfall_offset"], np.max(ydata) + 0.05]
     #     extent = [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
     #     self.setup_zoom([self.plot_base], self.zoomtype, plotName=plotName, data_lims=extent)
     #     self.plot_base.plot_limits = [xlimits[0], xlimits[1], ylimits[0], ylimits[1]]
@@ -1322,8 +1327,8 @@ class PlotSpectrum(PlotBase):
     #     n_rows, n_cols, __, __ = ut_visuals.check_n_grid_dimensions(n_grid)
     #
     #     # set tick size
-    #     matplotlib.rc("xtick", labelsize=kwargs["tick_size"])
-    #     matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
+    #     matplotlib.rc("xtick", labelsize=kwargs["axes_tick_font_size"])
+    #     matplotlib.rc("ytick", labelsize=kwargs["axes_tick_font_size"])
     #
     #     gs = gridspec.GridSpec(nrows=n_rows, ncols=n_cols)
     #
@@ -1370,14 +1375,15 @@ class PlotSpectrum(PlotBase):
     #         extent.append([xmin, ymin, xmax, ymax])
     #         ax = self.figure.add_subplot(gs[row, col], aspect="auto")
     #         ax.plot(
-    #             xval, yval, color=color, label=label, linewidth=kwargs["line_width"], linestyle=kwargs["line_style"]
+    #             xval, yval, color=color, label=label, linewidth=kwargs["spectrum_line_width"],
+    #             linestyle=kwargs["spectrum_line_style"]
     #         )
     #
-    #         if kwargs["shade_under"]:
+    #         if kwargs["spectrum_line_fill_under"]:
     #             handles.append(patches.Patch(color=color, label=label, alpha=0.25))
     #             shade_kws = dict(
     #                 facecolor=color,
-    #                 alpha=kwargs.get("shade_under_transparency", 0.25),
+    #                 alpha=kwargs.get("spectrum_fill_transparency", 0.25),
     #                 clip_on=kwargs.get("clip_on", True),
     #             )
     #             ax.fill_between(xval, 0, yval, **shade_kws)
@@ -1385,49 +1391,51 @@ class PlotSpectrum(PlotBase):
     #         ax.set_ylim(ymin, ymax)
     #         ax.tick_params(
     #             axis="both",
-    #             left=kwargs["ticks_left"],
-    #             right=kwargs["ticks_right"],
-    #             top=kwargs["ticks_top"],
-    #             bottom=kwargs["ticks_bottom"],
-    #             labelleft=kwargs["tickLabels_left"],
-    #             labelright=kwargs["tickLabels_right"],
-    #             labeltop=kwargs["tickLabels_top"],
-    #             labelbottom=kwargs["tickLabels_bottom"],
+    #             left=kwargs["axes_frame_ticks_left"],
+    #             right=kwargs["axes_frame_ticks_right"],
+    #             top=kwargs["axes_frame_ticks_top"],
+    #             bottom=kwargs["axes_frame_ticks_bottom"],
+    #             labelleft=kwargs["axes_frame_tick_labels_left"],
+    #             labelright=kwargs["axes_frame_tick_labels_right"],
+    #             labeltop=kwargs["axes_frame_tick_labels_top"],
+    #             labelbottom=kwargs["axes_frame_tick_labels_bottom"],
     #         )
     #
     #         # spines
-    #         ax.spines["left"].set_visible(kwargs["spines_left"])
-    #         ax.spines["right"].set_visible(kwargs["spines_right"])
-    #         ax.spines["top"].set_visible(kwargs["spines_top"])
-    #         ax.spines["bottom"].set_visible(kwargs["spines_bottom"])
+    #         ax.spines["left"].set_visible(kwargs["axes_frame_spine_left"])
+    #         ax.spines["right"].set_visible(kwargs["axes_frame_spine_right"])
+    #         ax.spines["top"].set_visible(kwargs["axes_frame_spine_top"])
+    #         ax.spines["bottom"].set_visible(kwargs["axes_frame_spine_bottom"])
     #
     #         # update axis frame
-    #         if kwargs["axis_onoff"]:
+    #         if kwargs["axes_frame_show"]:
     #             ax.set_axis_on()
     #         else:
     #             ax.set_axis_off()
     #
-    #         kwargs["label_pad"] = 5
+    #         kwargs["axes_label_pad"] = 5
     #         ax.set_xlabel(
-    #             xlabel, labelpad=kwargs["label_pad"], fontsize=kwargs["label_size"], weight=kwargs["label_weight"]
+    #             xlabel, labelpad=kwargs["axes_label_pad"], fontsize=kwargs["axes_tick_font_size"],
+    #             weight=kwargs["axes_label_font_weight"]
     #         )
     #
     #         ax.set_ylabel(
-    #             ylabel, labelpad=kwargs["label_pad"], fontsize=kwargs["label_size"], weight=kwargs["label_weight"]
+    #             ylabel, labelpad=kwargs["axes_label_pad"], fontsize=kwargs["axes_tick_font_size"],
+    #             weight=kwargs["axes_label_font_weight"]
     #         )
     #
     #         if kwargs.get("legend", CONFIG.legend):
     #             handle, label = ax.get_legend_handles_labels()
     #             ax.legend(
     #                 loc=kwargs.get("legend_position", CONFIG.legendPosition),
-    #                 ncol=kwargs.get("legend_num_columns", CONFIG.legendColumns),
+    #                 ncol=kwargs.get("legend_n_columns", CONFIG.legendColumns),
     #                 fontsize=kwargs.get("legend_font_size", CONFIG.legendFontSize),
-    #                 frameon=kwargs.get("legend_frame_on", CONFIG.legendFrame),
+    #                 frameon=kwargs.get("legend_frame", CONFIG.legendFrame),
     #                 framealpha=kwargs.get("legend_transparency", CONFIG.legendAlpha),
     #                 markerfirst=kwargs.get("legend_marker_first", CONFIG.legendMarkerFirst),
     #                 markerscale=kwargs.get("legend_marker_size", CONFIG.legendMarkerSize),
     #                 fancybox=kwargs.get("legend_fancy_box", CONFIG.legendFancyBox),
-    #                 scatterpoints=kwargs.get("legend_num_markers", CONFIG.legendNumberMarkers),
+    #                 scatterpoints=kwargs.get("legend_n_markers", CONFIG.legendNumberMarkers),
     #                 handles=handle,
     #                 labels=label,
     #             )
@@ -1469,19 +1477,19 @@ class PlotSpectrum(PlotBase):
     #     n_rows, n_cols, __, __ = ut_visuals.check_n_grid_dimensions(n_grid)
     #
     #     # convert weights
-    #     if kwargs["title_weight"]:
-    #         kwargs["title_weight"] = "heavy"
+    #     if kwargs["axes_title_font_weight"]:
+    #         kwargs["axes_title_font_weight"] = "heavy"
     #     else:
-    #         kwargs["title_weight"] = "normal"
+    #         kwargs["axes_title_font_weight"] = "normal"
     #
-    #     if kwargs["label_weight"]:
-    #         kwargs["label_weight"] = "heavy"
+    #     if kwargs["axes_label_font_weight"]:
+    #         kwargs["axes_label_font_weight"] = "heavy"
     #     else:
-    #         kwargs["label_weight"] = "normal"
+    #         kwargs["axes_label_font_weight"] = "normal"
     #
     #     # set tick size
-    #     matplotlib.rc("xtick", labelsize=kwargs["tick_size"])
-    #     matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
+    #     matplotlib.rc("xtick", labelsize=kwargs["axes_tick_font_size"])
+    #     matplotlib.rc("ytick", labelsize=kwargs["axes_tick_font_size"])
     #
     #     gs = gridspec.GridSpec(nrows=n_rows, ncols=n_cols)
     #
@@ -1523,9 +1531,9 @@ class PlotSpectrum(PlotBase):
     #             xval,
     #             yval,
     #             color=color,
-    #             marker=kwargs["scatter_shape"],
-    #             alpha=kwargs["scatter_alpha"],
-    #             s=kwargs["scatter_size"],
+    #             marker=kwargs["marker_shape"],
+    #             alpha=kwargs["marker_transparency"],
+    #             s=kwargs["marker_size"],
     #         )
     #
     #         #                 if plot_modifiers.get("color_items", False) and len(kwargs['item_colors']) > 0:
@@ -1564,49 +1572,51 @@ class PlotSpectrum(PlotBase):
     #         ax.set_ylim(ymin, ymax)
     #         ax.tick_params(
     #             axis="both",
-    #             left=kwargs["ticks_left"],
-    #             right=kwargs["ticks_right"],
-    #             top=kwargs["ticks_top"],
-    #             bottom=kwargs["ticks_bottom"],
-    #             labelleft=kwargs["tickLabels_left"],
-    #             labelright=kwargs["tickLabels_right"],
-    #             labeltop=kwargs["tickLabels_top"],
-    #             labelbottom=kwargs["tickLabels_bottom"],
+    #             left=kwargs["axes_frame_ticks_left"],
+    #             right=kwargs["axes_frame_ticks_right"],
+    #             top=kwargs["axes_frame_ticks_top"],
+    #             bottom=kwargs["axes_frame_ticks_bottom"],
+    #             labelleft=kwargs["axes_frame_tick_labels_left"],
+    #             labelright=kwargs["axes_frame_tick_labels_right"],
+    #             labeltop=kwargs["axes_frame_tick_labels_top"],
+    #             labelbottom=kwargs["axes_frame_tick_labels_bottom"],
     #         )
     #
     #         # spines
-    #         ax.spines["left"].set_visible(kwargs["spines_left"])
-    #         ax.spines["right"].set_visible(kwargs["spines_right"])
-    #         ax.spines["top"].set_visible(kwargs["spines_top"])
-    #         ax.spines["bottom"].set_visible(kwargs["spines_bottom"])
+    #         ax.spines["left"].set_visible(kwargs["axes_frame_spine_left"])
+    #         ax.spines["right"].set_visible(kwargs["axes_frame_spine_right"])
+    #         ax.spines["top"].set_visible(kwargs["axes_frame_spine_top"])
+    #         ax.spines["bottom"].set_visible(kwargs["axes_frame_spine_bottom"])
     #
     #         # update axis frame
-    #         if kwargs["axis_onoff"]:
+    #         if kwargs["axes_frame_show"]:
     #             ax.set_axis_on()
     #         else:
     #             ax.set_axis_off()
     #
-    #         kwargs["label_pad"] = 5
+    #         kwargs["axes_label_pad"] = 5
     #         ax.set_xlabel(
-    #             xlabel, labelpad=kwargs["label_pad"], fontsize=kwargs["label_size"], weight=kwargs["label_weight"]
+    #             xlabel, labelpad=kwargs["axes_label_pad"], fontsize=kwargs["axes_tick_font_size"],
+    #             weight=kwargs["axes_label_font_weight"]
     #         )
     #
     #         ax.set_ylabel(
-    #             ylabel, labelpad=kwargs["label_pad"], fontsize=kwargs["label_size"], weight=kwargs["label_weight"]
+    #             ylabel, labelpad=kwargs["axes_label_pad"], fontsize=kwargs["axes_tick_font_size"],
+    #             weight=kwargs["axes_label_font_weight"]
     #         )
     #
     #         if kwargs.get("legend", CONFIG.legend):
     #             handle, label = ax.get_legend_handles_labels()
     #             ax.legend(
     #                 loc=kwargs.get("legend_position", CONFIG.legendPosition),
-    #                 ncol=kwargs.get("legend_num_columns", CONFIG.legendColumns),
+    #                 ncol=kwargs.get("legend_n_columns", CONFIG.legendColumns),
     #                 fontsize=kwargs.get("legend_font_size", CONFIG.legendFontSize),
-    #                 frameon=kwargs.get("legend_frame_on", CONFIG.legendFrame),
+    #                 frameon=kwargs.get("legend_frame", CONFIG.legendFrame),
     #                 framealpha=kwargs.get("legend_transparency", CONFIG.legendAlpha),
     #                 markerfirst=kwargs.get("legend_marker_first", CONFIG.legendMarkerFirst),
     #                 markerscale=kwargs.get("legend_marker_size", CONFIG.legendMarkerSize),
     #                 fancybox=kwargs.get("legend_fancy_box", CONFIG.legendFancyBox),
-    #                 scatterpoints=kwargs.get("legend_num_markers", CONFIG.legendNumberMarkers),
+    #                 scatterpoints=kwargs.get("legend_n_markers", CONFIG.legendNumberMarkers),
     #                 handles=handle,
     #                 labels=label,
     #             )
@@ -1642,19 +1652,19 @@ class PlotSpectrum(PlotBase):
     #     """
     #     # Setup parameters
     #     gs = gridspec.GridSpec(2, 1, height_ratios=[1, 3])
-    #     gs.update(hspace=kwargs["rmsd_hspace"])
+    #     gs.update(hspace=kwargs["rmsf_h_space"])
     #
     #     # update settings
     #     self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
     #
-    #     if kwargs["label_weight"]:
-    #         kwargs["label_weight"] = "heavy"
+    #     if kwargs["axes_label_font_weight"]:
+    #         kwargs["axes_label_font_weight"] = "heavy"
     #     else:
-    #         kwargs["label_weight"] = "normal"
+    #         kwargs["axes_label_font_weight"] = "normal"
     #
     #     # set tick size
-    #     matplotlib.rc("xtick", labelsize=kwargs["tick_size"])
-    #     matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
+    #     matplotlib.rc("xtick", labelsize=kwargs["axes_tick_font_size"])
+    #     matplotlib.rc("ytick", labelsize=kwargs["axes_tick_font_size"])
     #
     #     # Check if there are any labels attached with the data
     #     if xlabelRMSD == "":
@@ -1682,21 +1692,21 @@ class PlotSpectrum(PlotBase):
     #     self.plotRMSF.plot(
     #         labelsX,
     #         yvalsRMSF,
-    #         color=kwargs["rmsd_line_color"],
-    #         linewidth=kwargs["rmsd_line_width"],
-    #         linestyle=kwargs["rmsd_line_style"],
+    #         color=kwargs["rmsf_line_color"],
+    #         linewidth=kwargs["rmsf_line_width"],
+    #         linestyle=kwargs["rmsf_line_style"],
     #     )
     #
     #     self.plotRMSF.fill_between(
     #         labelsX,
     #         yvalsRMSF,
     #         0,
-    #         edgecolor=kwargs["rmsd_line_color"],
-    #         facecolor=kwargs["rmsd_underline_color"],
-    #         alpha=kwargs["rmsd_underline_transparency"],
-    #         hatch=kwargs["rmsd_underline_hatch"],
-    #         linewidth=kwargs["rmsd_line_width"],
-    #         linestyle=kwargs["rmsd_line_style"],
+    #         edgecolor=kwargs["rmsf_line_color"],
+    #         facecolor=kwargs["rmsf_fill_color"],
+    #         alpha=kwargs["rmsf_fill_transparency"],
+    #         hatch=kwargs["rmsf_fill_hatch"],
+    #         linewidth=kwargs["rmsf_line_width"],
+    #         linestyle=kwargs["rmsf_line_style"],
     #     )
     #
     #     self.plotRMSF.set_xlim([np.min(labelsX), np.max(labelsX)])
@@ -1704,7 +1714,8 @@ class PlotSpectrum(PlotBase):
     #     self.plotRMSF.get_xaxis().set_visible(False)
     #
     #     self.plotRMSF.set_ylabel(
-    #         ylabelRMSF, labelpad=kwargs["label_pad"], fontsize=kwargs["label_size"], weight=kwargs["label_weight"]
+    #         ylabelRMSF, labelpad=kwargs["axes_label_pad"], fontsize=kwargs["axes_tick_font_size"],
+    #         weight=kwargs["axes_label_font_weight"]
     #     )
     #
     #     extent = ut_visuals.extents(labelsX) + ut_visuals.extents(labelsY)
@@ -1713,8 +1724,8 @@ class PlotSpectrum(PlotBase):
     #     self.cax = self.plot_base.imshow(
     #         zvals,
     #         extent=extent,
-    #         cmap=kwargs["colormap"],
-    #         interpolation=kwargs["interpolation"],
+    #         cmap=kwargs["heatmap_colormap"],
+    #         interpolation=kwargs["heatmap_interpolation"],
     #         norm=kwargs["colormap_norm"],
     #         aspect="auto",
     #         origin="lower",
@@ -1735,14 +1746,14 @@ class PlotSpectrum(PlotBase):
     #     # ticks
     #     self.plot_base.tick_params(
     #         axis="both",
-    #         left=kwargs["ticks_left"],
-    #         right=kwargs["ticks_right"],
-    #         top=kwargs["ticks_top"],
-    #         bottom=kwargs["ticks_bottom"],
-    #         labelleft=kwargs["tickLabels_left"],
-    #         labelright=kwargs["tickLabels_right"],
-    #         labeltop=kwargs["tickLabels_top"],
-    #         labelbottom=kwargs["tickLabels_bottom"],
+    #         left=kwargs["axes_frame_ticks_left"],
+    #         right=kwargs["axes_frame_ticks_right"],
+    #         top=kwargs["axes_frame_ticks_top"],
+    #         bottom=kwargs["axes_frame_ticks_bottom"],
+    #         labelleft=kwargs["axes_frame_tick_labels_left"],
+    #         labelright=kwargs["axes_frame_tick_labels_right"],
+    #         labeltop=kwargs["axes_frame_tick_labels_top"],
+    #         labelbottom=kwargs["axes_frame_tick_labels_bottom"],
     #     )
     #
     #     self.plotRMSF.tick_params(
@@ -1758,20 +1769,20 @@ class PlotSpectrum(PlotBase):
     #     )
     #
     #     # spines
-    #     self.plot_base.spines["left"].set_visible(kwargs["spines_left"])
-    #     self.plot_base.spines["right"].set_visible(kwargs["spines_right"])
-    #     self.plot_base.spines["top"].set_visible(kwargs["spines_top"])
-    #     self.plot_base.spines["bottom"].set_visible(kwargs["spines_bottom"])
-    #     [i.set_linewidth(kwargs["frame_width"]) for i in self.plot_base.spines.values()]
+    #     self.plot_base.spines["left"].set_visible(kwargs["axes_frame_spine_left"])
+    #     self.plot_base.spines["right"].set_visible(kwargs["axes_frame_spine_right"])
+    #     self.plot_base.spines["top"].set_visible(kwargs["axes_frame_spine_top"])
+    #     self.plot_base.spines["bottom"].set_visible(kwargs["axes_frame_spine_bottom"])
+    #     [i.set_linewidth(kwargs["axes_frame_width"]) for i in self.plot_base.spines.values()]
     #
     #     self.plotRMSF.spines["left"].set_visible(kwargs["spines_left_1D"])
     #     self.plotRMSF.spines["right"].set_visible(kwargs["spines_right_1D"])
     #     self.plotRMSF.spines["top"].set_visible(kwargs["spines_top_1D"])
     #     self.plotRMSF.spines["bottom"].set_visible(kwargs["spines_bottom_1D"])
-    #     [i.set_linewidth(kwargs["frame_width"]) for i in self.plotRMSF.spines.values()]
+    #     [i.set_linewidth(kwargs["axes_frame_width"]) for i in self.plotRMSF.spines.values()]
     #
     #     # update axis frame
-    #     if kwargs["axis_onoff"]:
+    #     if kwargs["axes_frame_show"]:
     #         self.plot_base.set_axis_on()
     #     else:
     #         self.plot_base.set_axis_off()

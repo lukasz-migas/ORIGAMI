@@ -9,6 +9,7 @@ from itertools import cycle
 from collections import OrderedDict
 
 # Third-party imports
+from pubsub import pub
 from matplotlib.pyplot import colormaps
 
 # Local imports
@@ -1085,13 +1086,13 @@ class Config:
 
         # Comparison parameters
         # Panel settings
-        self.compare_panel_color_top = (0, 0, 0)
-        self.compare_panel_color_bottom = (0, 0, 1)
-        self.compare_panel_style_top = "solid"
-        self.compare_panel_style_bottom = "solid"
-        self.compare_panel_alpha_top = 1.0
-        self.compare_panel_alpha_bottom = 1.0
-        self.compare_panel_inverse = True
+        self.compare_color_top = (0, 0, 0)
+        self.compare_color_bottom = (0, 0, 1)
+        self.compare_style_top = "solid"
+        self.compare_style_bottom = "solid"
+        self.compare_alpha_top = 1.0
+        self.compare_alpha_bottom = 1.0
+        self.compare_inverse = True
         self.compare_panel_preprocess = True
         self.compare_panel_normalize = True
         self.compare_panel_subtract = True
@@ -1266,27 +1267,27 @@ class Config:
 
         # RMSD
         self.rmsd_position_choices = ["bottom left", "bottom right", "top left", "top right", "none", "other"]
-        self.rmsd_position = "bottom left"
+        self.rmsd_label_position = "bottom left"
         self.rmsd_location = (5, 5)
         self.rmsd_color = (1, 1, 1)
-        self.rmsd_font_size = 10
-        self.rmsd_font_weight = True
+        self.rmsd_label_font_size = 10
+        self.rmsd_label_font_weight = True
         self.rmsd_rotation_x = 45
         self.rmsd_rotation_y = 0
         self.rmsd_matrix_add_labels = True
         self.rmsd_matrix_font_size = 12  # new in v2.0.0
         self.rmsd_matrix_font_weight = False  # new in v2.0.0
         self.rmsd_matrix_font_color_choices = ["auto", "user-defined"]  # new in v2.0.0
-        self.rmsd_matrix_font_color_choice = "auto"  # new in v2.0.0
+        self.rmsd_matrix_font_color_fmt = "auto"  # new in v2.0.0
         self.rmsd_matrix_font_color = (0, 0, 0)
-        self.rmsd_line_colour = (0, 0, 0)
-        self.rmsd_line_transparency = 0.4
-        self.rmsd_line_width = 1
-        self.rmsd_line_style = "solid"
-        self.rmsd_fill_color = (0, 0, 0)
-        self.rmsd_fill_transparency = 0.4
-        self.rmsd_fill_hatch = " "
-        self.rmsd_space_h = 0.1
+        self.rmsf_line_color = (0, 0, 0)
+        self.rmsf_line_transparency = 0.4
+        self.rmsf_line_width = 1
+        self.rmsf_line_style = "solid"
+        self.rmsf_fill_color = (0, 0, 0)
+        self.rmsf_fill_transparency = 0.4
+        self.rmsf_fill_hatch = " "
+        self.rmsf_h_space = 0.1
 
         # Importing files
         self.import_binOnImport = True  # REMOVE
@@ -1345,7 +1346,7 @@ class Config:
         # colorbar
         self.colorbar = False
         self.colorbar_fmt_choices = ["0 % 100", "true-values (pretty)", "true-values (raw)"]  # new
-        self.colorbar_fmt = "0 % 100"  # new
+        self.colorbar_label_fmt = "0 % 100"  # new
         self.colorbar_height = 100  # new (%)
         self.colorbar_width = 2
         self.colorbar_pad = 0.03
@@ -1387,7 +1388,7 @@ class Config:
         ]
         self.legend_position = "best"
         self.legend_font_size = "small"
-        self.legend_columns = 1
+        self.legend_n_columns = 1
         self.legend_marker_size = 1
         self.legend_n_markers = 1
         self.legend_transparency = 0.5
@@ -1429,7 +1430,7 @@ class Config:
         self.spectrum_line_width = 1
         self.spectrum_line_style = "solid"
         self.spectrum_line_fill_under = True
-        self.spectrum_file_color = (0, 0, 0)
+        self.spectrum_fill_color = (0, 0, 0)
         self.spectrum_fill_transparency = 0.5
 
         # marker parameters
@@ -1913,7 +1914,7 @@ class Config:
                 "waterfall",
                 "violin",
                 "arrow",
-                "label",
+                # "label",
             ]
 
         config = dict()
@@ -1925,49 +1926,49 @@ class Config:
             if _plot_type == "compare":
                 config.update(
                     {
-                        "line_color_1": self.compare_panel_color_top,
-                        "line_color_2": self.compare_panel_color_bottom,
-                        "line_transparency_1": self.compare_panel_alpha_top,
-                        "line_transparency_2": self.compare_panel_alpha_bottom,
-                        "line_style_1": self.compare_panel_style_top,
-                        "line_style_2": self.compare_panel_style_bottom,
-                        "inverse": self.compare_panel_inverse,
+                        "compare_color_top": self.compare_color_top,
+                        "compare_color_bottom": self.compare_color_bottom,
+                        "compare_style_top": self.compare_style_top,
+                        "compare_style_bottom": self.compare_style_bottom,
+                        "compare_alpha_top": self.compare_alpha_top,
+                        "compare_alpha_bottom": self.compare_alpha_bottom,
+                        "compare_inverse": self.compare_inverse,
                     }
                 )
             if _plot_type == "axes":
                 config.update(
                     {
-                        "frame_width": self.axes_frame_width,
-                        "axis_onoff": self.axes_frame_show,
-                        "tick_size": self.axes_tick_font_size,
-                        "tick_weight": self.axes_tick_font_weight,
-                        "label_size": self.axes_label_font_size,
-                        "label_weight": self.axes_label_font_weight,
-                        "title_size": self.axes_title_font_size,
-                        "title_weight": self.axes_title_font_weight,
-                        "label_pad": self.axes_label_pad,
-                        "ticks_left": self.axes_frame_ticks_left,
-                        "ticks_right": self.axes_frame_ticks_right,
-                        "ticks_top": self.axes_frame_ticks_top,
-                        "ticks_bottom": self.axes_frame_ticks_bottom,
-                        "tickLabels_left": self.axes_frame_tick_labels_left,
-                        "tickLabels_right": self.axes_frame_tick_labels_right,
-                        "tickLabels_top": self.axes_frame_tick_labels_top,
-                        "tickLabels_bottom": self.axes_frame_tick_labels_bottom,
-                        "spines_left": self.axes_frame_spine_left,
-                        "spines_right": self.axes_frame_spine_right,
-                        "spines_top": self.axes_frame_spine_top,
-                        "spines_bottom": self.axes_frame_spine_bottom,
+                        "axes_frame_width": self.axes_frame_width,
+                        "axes_frame_show": self.axes_frame_show,
+                        "axes_tick_font_size": self.axes_tick_font_size,
+                        "axes_tick_font_weight": self.axes_tick_font_weight,
+                        "axes_label_font_size": self.axes_label_font_size,
+                        "axes_label_font_weight": self.axes_label_font_weight,
+                        "axes_title_font_size": self.axes_title_font_size,
+                        "axes_title_font_weight": self.axes_title_font_weight,
+                        "axes_label_pad": self.axes_label_pad,
+                        "axes_frame_ticks_left": self.axes_frame_ticks_left,
+                        "axes_frame_ticks_right": self.axes_frame_ticks_right,
+                        "axes_frame_ticks_top": self.axes_frame_ticks_top,
+                        "axes_frame_ticks_bottom": self.axes_frame_ticks_bottom,
+                        "axes_frame_tick_labels_left": self.axes_frame_tick_labels_left,
+                        "axes_frame_tick_labels_right": self.axes_frame_tick_labels_right,
+                        "axes_frame_tick_labels_top": self.axes_frame_tick_labels_top,
+                        "axes_frame_tick_labels_bottom": self.axes_frame_tick_labels_bottom,
+                        "axes_frame_spine_left": self.axes_frame_spine_left,
+                        "axes_frame_spine_right": self.axes_frame_spine_right,
+                        "axes_frame_spine_top": self.axes_frame_spine_top,
+                        "axes_frame_spine_bottom": self.axes_frame_spine_bottom,
                     }
                 )
             if _plot_type == "scatter":
                 config.update(
                     {
-                        "scatter_edge_color": self.marker_edge_color,
-                        "scatter_color": self.marker_fill_color,
-                        "scatter_size": self.marker_size,
-                        "scatter_shape": self.marker_shape,
-                        "scatter_alpha": self.marker_transparency,
+                        "marker_edge_color": self.marker_edge_color,
+                        "marker_fill_color": self.marker_fill_color,
+                        "marker_size": self.marker_size,
+                        "marker_shape": self.marker_shape,
+                        "marker_transparency": self.marker_transparency,
                     }
                 )
             if _plot_type == "bar":
@@ -1975,9 +1976,9 @@ class Config:
                     {
                         "bar_width": self.bar_width,
                         "bar_alpha": self.bar_alpha,
-                        "bar_edgecolor": self.bar_edge_color,
-                        "bar_edgecolor_sameAsFill": self.bar_edge_same_as_fill,
-                        "bar_linewidth": self.bar_line_width,
+                        "bar_edge_color": self.bar_edge_color,
+                        "bar_edge_same_as_fill": self.bar_edge_same_as_fill,
+                        "bar_line_width": self.bar_line_width,
                     }
                 )
             if _plot_type == "legend":
@@ -1986,13 +1987,13 @@ class Config:
                         "legend": self.legend,
                         "legend_transparency": self.legend_transparency,
                         "legend_position": self.legend_position,
-                        "legend_num_columns": self.legend_columns,
+                        "legend_n_columns": self.legend_n_columns,
                         "legend_font_size": self.legend_font_size,
-                        "legend_frame_on": self.legend_frame,
+                        "legend_frame": self.legend_frame,
                         "legend_fancy_box": self.legend_fancy_box,
                         "legend_marker_first": self.legend_marker_first,
                         "legend_marker_size": self.legend_marker_size,
-                        "legend_num_markers": self.legend_n_markers,
+                        "legend_n_markers": self.legend_n_markers,
                         "legend_line_width": self.legend_line_width,
                         "legend_patch_transparency": self.legend_patch_transparency,
                     }
@@ -2002,21 +2003,21 @@ class Config:
             if _plot_type == "1d":
                 config.update(
                     {
-                        "line_width": self.spectrum_line_width,
-                        "line_color": self.spectrum_line_color,
-                        "line_style": self.spectrum_line_style,
-                        "shade_under": self.spectrum_line_fill_under,
-                        "shade_under_color": self.spectrum_file_color,
-                        "shade_under_transparency": self.spectrum_fill_transparency,
+                        "spectrum_line_width": self.spectrum_line_width,
+                        "spectrum_line_color": self.spectrum_line_color,
+                        "spectrum_line_style": self.spectrum_line_style,
+                        "spectrum_line_fill_under": self.spectrum_line_fill_under,
+                        "spectrum_fill_color": self.spectrum_fill_color,
+                        "spectrum_fill_transparency": self.spectrum_fill_transparency,
                     }
                 )
             if _plot_type == "annotation":
                 config.update(
                     {
-                        "horizontal_alignment": self.annotation_label_horz,
-                        "vertical_alignment": self.annotation_label_vert,
-                        "font_size": self.annotation_label_font_size,
-                        "font_weight": self.annotation_label_font_weight,
+                        "annotation_label_horz": self.annotation_label_horz,
+                        "annotation_label_vert": self.annotation_label_vert,
+                        "annotation_label_font_size": self.annotation_label_font_size,
+                        "annotation_label_font_weight": self.annotation_label_font_weight,
                     }
                 )
             if _plot_type == "unidec":
@@ -2024,16 +2025,16 @@ class Config:
                     {
                         "bar_width": self.unidec_plot_bar_width,
                         "bar_alpha": self.unidec_plot_bar_alpha,
-                        "bar_edgecolor": self.unidec_plot_bar_edge_color,
-                        "bar_edgecolor_sameAsFill": self.unidec_plot_bar_sameAsFill,
-                        "bar_linewidth": self.unidec_plot_bar_lineWidth,
+                        "bar_edge_color": self.unidec_plot_bar_edge_color,
+                        "bar_edge_same_as_fill": self.unidec_plot_bar_sameAsFill,
+                        "bar_line_width": self.unidec_plot_bar_lineWidth,
                         "bar_marker_size": self.unidec_plot_bar_markerSize,
                         "fit_line_color": self.unidec_plot_fit_lineColor,
                         "isolated_marker_size": self.unidec_plot_isolatedMS_markerSize,
                         "MW_marker_size": self.unidec_plot_MW_markerSize,
                         "MW_show_markers": self.unidec_plot_MW_showMarkers,
                         "color_scheme": self.unidec_plot_color_scheme,
-                        "colormap": self.unidec_plot_colormap,
+                        "heatmap_colormap": self.unidec_plot_colormap,
                         "palette": self.unidec_plot_palette,
                         "maximum_shown_items": self.unidec_maxShown_individualLines,
                         "contour_levels": self.unidec_plot_contour_levels,
@@ -2047,10 +2048,10 @@ class Config:
                         "colorbar_pad": self.colorbar_pad,
                         "colorbar_min_points": self.colorbar_min_points,
                         "colorbar_position": self.colorbar_position,
-                        "colorbar_label_fmt": self.colorbar_fmt,
+                        "colorbar_label_fmt": self.colorbar_label_fmt,
                         "colorbar_label_size": self.colorbar_label_size,
-                        "colorbar_outline_color": self.colorbar_edge_color,
-                        "colorbar_outline_width": self.colorbar_edge_width,
+                        "colorbar_edge_color": self.colorbar_edge_color,
+                        "colorbar_edge_width": self.colorbar_edge_width,
                         "colorbar_label_color": self.colorbar_label_color,
                         "colorbar_inset_width": self.colorbar_inset_width,
                     }
@@ -2059,137 +2060,137 @@ class Config:
             if _plot_type == "normalization":
                 config.update(
                     {
-                        "colormap_min": self.heatmap_normalization_min,
-                        "colormap_mid": self.heatmap_normalization_mid,
-                        "colormap_max": self.heatmap_normalization_max,
-                        "colormap_norm_method": self.heatmap_normalization,
-                        "colormap_norm_power_gamma": self.heatmap_normalization_power_gamma,
+                        "heatmap_normalization_min": self.heatmap_normalization_min,
+                        "heatmap_normalization_mid": self.heatmap_normalization_mid,
+                        "heatmap_normalization_max": self.heatmap_normalization_max,
+                        "heatmap_normalization": self.heatmap_normalization,
+                        "heatmap_normalization_power_gamma": self.heatmap_normalization_power_gamma,
                     }
                 )
 
             if _plot_type == "2d":
                 config.update(
                     {
-                        "interpolation": self.heatmap_interpolation,
-                        "colormap": self.heatmap_colormap,
-                        "contour_n_levels": self.heatmap_n_contour,
-                        "plot_type": self.heatmap_plot_type,
+                        "heatmap_interpolation": self.heatmap_interpolation,
+                        "heatmap_colormap": self.heatmap_colormap,
+                        "heatmap_n_contour": self.heatmap_n_contour,
+                        "heatmap_plot_type": self.heatmap_plot_type,
                     }
                 )
 
             if _plot_type == "3d":
                 config.update(
                     {
-                        "label_pad": self.axes_label_pad,
-                        "tick_size": self.axes_tick_font_size,
-                        "tick_weight": self.axes_tick_font_weight,
-                        "label_size": self.axes_label_font_size,
-                        "label_weight": self.axes_label_font_weight,
-                        "title_size": self.axes_title_font_size,
-                        "title_weight": self.axes_title_font_weight,
+                        "axes_label_pad": self.axes_label_pad,
+                        "axes_tick_font_size": self.axes_tick_font_size,
+                        "axes_tick_font_weight": self.axes_tick_font_weight,
+                        "axes_label_font_size": self.axes_label_font_size,
+                        "axes_label_font_weight": self.axes_label_font_weight,
+                        "axes_title_font_size": self.axes_title_font_size,
+                        "axes_title_font_weight": self.axes_title_font_weight,
                     }
                 )
 
             if _plot_type in ["rmsd", "rmsf"]:
                 config.update(
                     {
-                        "rmsd_label_position": self.rmsd_position,
-                        "rmsd_label_font_size": self.rmsd_font_size,
-                        "rmsd_label_font_weight": self.rmsd_font_weight,
-                        "rmsd_hspace": self.rmsd_space_h,
-                        "rmsd_line_color": self.rmsd_line_colour,
-                        "rmsd_line_transparency": self.rmsd_line_transparency,
-                        "rmsd_line_style": self.rmsd_line_style,
-                        "rmsd_line_width": self.rmsd_line_width,
-                        "rmsd_underline_hatch": self.rmsd_fill_hatch,
-                        "rmsd_underline_color": self.rmsd_fill_color,
-                        "rmsd_underline_transparency": self.rmsd_fill_transparency,
-                        "rmsd_matrix_rotX": self.rmsd_rotation_x,
-                        "rmsd_matrix_rotY": self.rmsd_rotation_y,
-                        "rmsd_matrix_labels": self.rmsd_matrix_add_labels,
-                        "rmsd_matrix_label_size": self.rmsd_matrix_font_size,
-                        "rmsd_matrix_label_weight": self.rmsd_matrix_font_weight,
-                        "rmsd_matrix_color_choice": self.rmsd_matrix_font_color_choice,
-                        "rmsd_matrix_color": self.rmsd_matrix_font_color,
+                        "rmsd_label_position": self.rmsd_label_position,
+                        "rmsd_label_font_size": self.rmsd_label_font_size,
+                        "rmsd_label_font_weight": self.rmsd_label_font_weight,
+                        "rmsf_h_space": self.rmsf_h_space,
+                        "rmsf_line_color": self.rmsf_line_color,
+                        "rmsf_line_transparency": self.rmsf_line_transparency,
+                        "rmsf_line_style": self.rmsf_line_style,
+                        "rmsf_line_width": self.rmsf_line_width,
+                        "rmsf_fill_hatch": self.rmsf_fill_hatch,
+                        "rmsf_fill_color": self.rmsf_fill_color,
+                        "rmsf_fill_transparency": self.rmsf_fill_transparency,
+                        "rmsd_rotation_x": self.rmsd_rotation_x,
+                        "rmsd_rotation_y": self.rmsd_rotation_y,
+                        "rmsd_matrix_add_labels": self.rmsd_matrix_add_labels,
+                        "rmsd_matrix_font_size": self.rmsd_matrix_font_size,
+                        "rmsd_matrix_font_weight": self.rmsd_matrix_font_weight,
+                        "rmsd_matrix_font_color_fmt": self.rmsd_matrix_font_color_fmt,
+                        "rmsd_matrix_font_color": self.rmsd_matrix_font_color,
                     }
                 )
             if _plot_type in "joint":
                 config.update({})
-            if _plot_type in "waterfall":
+            if _plot_type in "waterfall":  # FIX ME
                 config.update(
                     {
-                        "increment": self.waterfall_increment,
-                        "offset": self.waterfall_offset,
-                        "line_width": self.waterfall_line_width,
-                        "line_style": self.waterfall_line_style,
-                        "reverse": self.waterfall_reverse,
-                        "line_color": self.waterfall_line_color,
-                        "shade_color": self.waterfall_fill_under_color,
-                        "normalize": self.waterfall_normalize,
-                        "colormap": self.waterfall_colormap,
-                        "palette": self.waterfall_palette,
-                        "color_scheme": self.waterfall_color_scheme,
-                        "line_color_as_shade": self.waterfall_line_same_as_fill,
-                        "add_labels": self.waterfall_labels_show,
-                        "labels_frequency": self.waterfall_labels_frequency,
-                        "labels_x_offset": self.waterfall_labels_x_offset,
-                        "labels_y_offset": self.waterfall_labels_y_offset,
-                        "labels_font_size": self.waterfall_labels_font_size,
-                        "labels_font_weight": self.waterfall_labels_font_weight,
-                        "labels_format": self.waterfall_labels_format,
-                        "shade_under": self.waterfall_fill_under,
-                        "shade_under_n_limit": self.waterfall_fill_under_nlimit,
-                        "shade_under_transparency": self.waterfall_fill_under_transparency,
+                        "waterfall_increment": self.waterfall_increment,
+                        "waterfall_offset": self.waterfall_offset,
+                        "waterfall_line_width": self.waterfall_line_width,
+                        "waterfall_line_style": self.waterfall_line_style,
+                        "waterfall_reverse": self.waterfall_reverse,
+                        "waterfall_line_color": self.waterfall_line_color,
+                        "waterfall_fill_under_color": self.waterfall_fill_under_color,
+                        "waterfall_normalize": self.waterfall_normalize,
+                        "waterfall_colormap": self.waterfall_colormap,
+                        "waterfall_palette": self.waterfall_palette,
+                        "waterfall_color_scheme": self.waterfall_color_scheme,
+                        "waterfall_line_same_as_fill": self.waterfall_line_same_as_fill,
+                        "waterfall_labels_show": self.waterfall_labels_show,
+                        "waterfall_labels_frequency": self.waterfall_labels_frequency,
+                        "waterfall_labels_x_offset": self.waterfall_labels_x_offset,
+                        "waterfall_labels_y_offset": self.waterfall_labels_y_offset,
+                        "waterfall_labels_font_size": self.waterfall_labels_font_size,
+                        "waterfall_labels_font_weight": self.waterfall_labels_font_weight,
+                        "waterfall_labels_format": self.waterfall_labels_format,
+                        "waterfall_fill_under": self.waterfall_fill_under,
+                        "waterfall_fill_under_nlimit": self.waterfall_fill_under_nlimit,
+                        "waterfall_fill_under_transparency": self.waterfall_fill_under_transparency,
                     }
                 )
-            elif _plot_type in ["violin"]:
+            elif _plot_type in ["violin"]:  # FIX ME
                 config.update(
                     {
-                        "min_percentage": self.violin_min_percentage,
-                        "spacing": self.violin_spacing,
-                        "orientation": self.violin_orientation,
-                        "line_width": self.violin_line_width,
-                        "line_style": self.violin_line_style,
-                        "line_color": self.violin_line_color,
-                        "shade_color": self.violin_fill_under_color,
-                        "normalize": self.violin_normalize,
-                        "smooth": self.violin_smooth,
-                        "gaussian_sigma": self.violin_smooth_sigma,
-                        "colormap": self.violin_colormap,
-                        "palette": self.violin_palette,
-                        "color_scheme": self.violin_color_scheme,
-                        "line_color_as_shade": self.violin_line_same_as_fill,
-                        "labels_format": self.violin_labels_format,
-                        "shade_under": self.violin_fill_under,
-                        "violin_nlimit": self.violin_n_limit,
-                        "shade_under_transparency": self.violin_fill_under_transparency,
-                        "labels_frequency": self.violin_labels_frequency,
+                        "violin_min_percentage": self.violin_min_percentage,
+                        "violin_spacing": self.violin_spacing,
+                        "violin_orientation": self.violin_orientation,
+                        "violin_line_width": self.violin_line_width,
+                        "violin_line_style": self.violin_line_style,
+                        "violin_line_color": self.violin_line_color,
+                        "violin_fill_under_color": self.violin_fill_under_color,
+                        "violin_normalize": self.violin_normalize,
+                        "violin_smooth": self.violin_smooth,
+                        "violin_smooth_sigma": self.violin_smooth_sigma,
+                        "violin_colormap": self.violin_colormap,
+                        "violin_palette": self.violin_palette,
+                        "violin_color_scheme": self.violin_color_scheme,
+                        "violin_line_same_as_fill": self.violin_line_same_as_fill,
+                        "violin_labels_format": self.violin_labels_format,
+                        "violin_fill_under": self.violin_fill_under,
+                        "violin_n_limit": self.violin_n_limit,
+                        "violin_fill_under_transparency": self.violin_fill_under_transparency,
+                        "violin_labels_frequency": self.violin_labels_frequency,
                     }
                 )
             if _plot_type in ["arrow"]:
                 config.update(
                     {
-                        "arrow_line_width": self.annotation_arrow_line_width,
-                        "arrow_line_style": self.annotation_arrow_line_style,
-                        "arrow_head_length": self.annotation_arrow_cap_length,
-                        "arrow_head_width": self.annotation_arrow_cap_width,
+                        "annotation_arrow_line_width": self.annotation_arrow_line_width,
+                        "annotation_arrow_line_style": self.annotation_arrow_line_style,
+                        "annotation_arrow_cap_length": self.annotation_arrow_cap_length,
+                        "annotation_arrow_cap_width": self.annotation_arrow_cap_width,
                     }
                 )
                 add_frame_width = False
-            if _plot_type == "label":
-                config.update(
-                    {
-                        "horizontalalignment": self.annotation_label_horz,
-                        "verticalalignment": self.annotation_label_vert,
-                        "fontweight": self.annotation_label_font_weight,
-                        "fontsize": self.annotation_label_font_size,
-                        "rotation": self.annotation_label_font_orientation,
-                    }
-                )
-                add_frame_width = False
+            # if _plot_type == "label":  # FIX ME
+            #     config.update(
+            #         {
+            #             "horizontalalignment": self.annotation_label_horz,
+            #             "verticalalignment": self.annotation_label_vert,
+            #             "fontweight": self.annotation_label_font_weight,
+            #             "fontsize": self.annotation_label_font_size,
+            #             "rotation": self.annotation_label_font_orientation,
+            #         }
+            #     )
+            #     add_frame_width = False
 
-        if "frame_width" not in config and add_frame_width:
-            config["frame_width"] = self.axes_frame_width
+        if "axes_frame_width" not in config and add_frame_width:
+            config["axes_frame_width"] = self.axes_frame_width
 
         return config
 
@@ -2263,13 +2264,6 @@ class Config:
             if _config_key == "panel_compare_ms":
                 config.update(
                     {
-                        "compare_panel_color_top": self.compare_panel_color_top,
-                        "compare_panel_color_bottom": self.compare_panel_color_bottom,
-                        "compare_panel_style_top": self.compare_panel_style_top,
-                        "compare_panel_style_bottom": self.compare_panel_style_bottom,
-                        "compare_panel_alpha_top": self.compare_panel_alpha_top,
-                        "compare_panel_alpha_bottom": self.compare_panel_alpha_bottom,
-                        "compare_panel_inverse": self.compare_panel_inverse,
                         "compare_panel_preprocess": self.compare_panel_preprocess,
                         "compare_panel_normalize": self.compare_panel_normalize,
                         "compare_panel_subtract": self.compare_panel_subtract,
@@ -2416,32 +2410,38 @@ class Config:
             return
 
         # iterate over the major groups of settings
-        for config_sub in ["mpl-settings", "ui-settings"]:
-            _config = config.get(config_sub, dict())
-            for _, _config_group in _config.items():
-                for key, value in _config_group.items():
+        for config_group_title in ["mpl-settings", "ui-settings"]:
+            _config_group = config.get(config_group_title, dict())
+            for group_title, group_config in _config_group.items():
+                print(group_title, type(group_config), len(group_config))
+                for key, value in group_config.items():
                     if hasattr(self, key):
                         if check_type:
-                            if not self._check_type(key, value):
+                            current_value = getattr(self, key)
+                            if not self._check_type(current_value, key, value):
                                 logger.warning(
-                                    f"Could not set `{key}` as the types were not similar enough to ensure compliance"
+                                    f"Could not set `{key}` as the types were not similar enough to ensure compliance."
+                                    f"\nCurrent value={current_value}; New value={value}"
                                 )
                                 continue
+                        print(group_title, key, value)
                         setattr(self, key, value)
-            logger.debug(f"Loaded `{config_sub}` settings")
+            logger.debug(f"Loaded `{config_group_title}` settings")
         logger.debug(f"Loaded config file from `{path}`")
 
-    def _check_type(self, key, value):
+        pub.sendMessage("config.loaded", complete=True)
+
+    def _check_type(self, current_value, key, value):
         """Check whether type of the value matches that of the currently set value"""
-        current_value = getattr(self, key)
         current_type = type(current_value)
+        new_type = type(value)
 
         # simplest case where types match perfectly
-        if current_type == type(value):
+        if current_type == new_type:
             return True
-        if current_type in [int, float] and value in [int, float]:
+        if current_type in [int, float] and new_type in [int, float]:
             return True
-        if current_type in [list, tuple] and value in [list, tuple]:
+        if current_type in [list, tuple] and new_type in [list, tuple]:
             return True
         return False
 

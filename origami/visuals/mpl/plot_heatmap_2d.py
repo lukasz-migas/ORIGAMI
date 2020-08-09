@@ -1,3 +1,4 @@
+"""Heatmap plot"""
 # Standard library imports
 import logging
 
@@ -40,11 +41,11 @@ class PlotHeatmap2D(PlotBase):
         xlimits, ylimits, extent = self._compute_xy_limits(x, y, None, is_heatmap=True)
 
         # add 2d plot
-        if kwargs["plot_type"] == "Image":
+        if kwargs["heatmap_plot_type"] == "Image":
             self.cax = self.plot_base.imshow(
                 array,
-                cmap=kwargs["colormap"],
-                interpolation=kwargs["interpolation"],
+                cmap=kwargs["heatmap_colormap"],
+                interpolation=kwargs["heatmap_interpolation"],
                 aspect="auto",
                 origin="lower",
                 extent=[*xlimits, *ylimits],
@@ -52,8 +53,8 @@ class PlotHeatmap2D(PlotBase):
         else:
             self.cax = self.plot_base.contourf(
                 array,
-                kwargs["contour_n_levels"],
-                cmap=kwargs["colormap"],
+                kwargs["heatmap_n_contour"],
+                cmap=kwargs["heatmap_colormap"],
                 antialiasing=True,
                 origin="lower",
                 extent=[*xlimits, *ylimits],
@@ -92,8 +93,8 @@ class PlotHeatmap2D(PlotBase):
         # add 2d plot
         self.cax = self.plot_base.contourf(
             array,
-            kwargs["contour_n_levels"],
-            cmap=kwargs["colormap"],
+            kwargs["heatmap_n_contour"],
+            cmap=kwargs["heatmap_colormap"],
             #               norm=kwargs["colormap_norm"],
             antialiasing=True,
             origin="lower",
@@ -125,7 +126,8 @@ class PlotHeatmap2D(PlotBase):
         self.PLOT_TYPE = "contour"
 
     def plot_2d_update_data(self, x, y, array, x_label=None, y_label=None, obj=None, **kwargs):
-        if kwargs["plot_type"] == "contour":
+        """Update heatmap data without the need for full replot"""
+        if kwargs["heatmap_plot_type"] == "contour":
             raise AttributeError("Contour plot does not have `set_data`")
 
         # update limits and extents
@@ -133,8 +135,8 @@ class PlotHeatmap2D(PlotBase):
 
         self.cax.set_data(array)
         self.cax.set_extent([*xlimits, *ylimits])
-        self.cax.set_cmap(kwargs["colormap"])
-        self.cax.set_interpolation(kwargs["interpolation"])
+        self.cax.set_cmap(kwargs["heatmap_colormap"])
+        self.cax.set_interpolation(kwargs["heatmap_interpolation"])
         self.cax.set_clim(vmin=array.min(), vmax=array.max())
 
         # set plot limits
@@ -155,8 +157,8 @@ class PlotHeatmap2D(PlotBase):
             self.update_line(x, xy, PlotIds.PLOT_JOINT_X, self.plot_joint_x)
             self.update_line(yy, y, PlotIds.PLOT_JOINT_Y, self.plot_joint_y)
             # add limits of the other plots
-            _, _, extent_x = self._compute_xy_limits(x, xy, None, 1, False)
-            _, _, extent_y = self._compute_xy_limits(yy, y, None, 1, False)
+            _, _, extent_x = self._compute_xy_limits(x, xy, None, 1)
+            _, _, extent_y = self._compute_xy_limits(yy, y, None, 1)
             axes = [self.plot_base, self.plot_joint_x, self.plot_joint_y]
             extent = [extent, extent_x, extent_y]
         else:
@@ -193,14 +195,15 @@ class PlotHeatmap2D(PlotBase):
         self._is_locked()
         self.plot_2d_colorbar_update(**kwargs)
 
-    def _prepare_violin(self, x, y, array, **kwargs):
+    @staticmethod
+    def _prepare_violin(x, y, array, **kwargs):
         """Prepare violin data"""
-        normalize = kwargs.get("normalize", True)
-        smooth = kwargs.get("smooth", True)
-        sigma = kwargs.get("gaussian_sigma", 2)
-        spacing = kwargs.get("spacing", 0.5)
-        orientation = kwargs.get("orientation", "vertical")
-        min_percentage = kwargs.get("min_percentage", 0.03)
+        normalize = kwargs.get("violin_normalize", True)
+        smooth = kwargs.get("violin_smooth", True)
+        sigma = kwargs.get("violin_smooth_sigma", 2)
+        spacing = kwargs.get("violin_spacing", 0.5)
+        orientation = kwargs.get("violin_orientation", "vertical")
+        min_percentage = kwargs.get("violin_min_percentage", 0.03)
         offset = spacing
         n_signals = len(x)
 
@@ -235,10 +238,10 @@ class PlotHeatmap2D(PlotBase):
                 yy.append(_y.max() + offset)
             offset = offset + (max_value * 2) + spacing
 
-            if kwargs["labels_frequency"] != 0:
-                if i % kwargs["labels_frequency"] == 0 or i == n_signals - 1:
+            if kwargs["violin_labels_frequency"] != 0:
+                if i % kwargs["violin_labels_frequency"] == 0 or i == n_signals - 1:
                     tick_positions.append(offset)
-                    tick_labels.append(ut_visuals.convert_label(x[i], label_format=kwargs["labels_format"]))
+                    tick_labels.append(ut_visuals.convert_label(x[i], label_format=kwargs["violin_labels_format"]))
 
         return xy, yy, tick_positions, tick_labels
 
@@ -261,17 +264,17 @@ class PlotHeatmap2D(PlotBase):
         lc, fc = self.get_violin_colors(n_signals, **kwargs)
         for collection in self.plot_base.collections:
             if isinstance(collection, LineCollection):
-                collection.set_linestyle(kwargs["line_style"])
-                collection.set_linewidth(kwargs["line_width"])
+                collection.set_linestyle(kwargs["violin_line_style"])
+                collection.set_linewidth(kwargs["violin_line_width"])
                 collection.set_edgecolors(lc)
-                if kwargs["shade_under"]:
+                if kwargs["violin_fill_under"]:
                     collection.set_facecolors(fc)
                 else:
                     collection.set_facecolors([])
 
     def plot_violin_reset_label(self, x, y, array, **kwargs):
         """Update violin lines"""
-        orientation = kwargs.get("orientation", "vertical")
+        orientation = kwargs.get("violin_orientation", "vertical")
         _, _, tick_positions, tick_labels = self._prepare_violin(x, y, array, **kwargs)
 
         if orientation != "vertical":
@@ -286,7 +289,7 @@ class PlotHeatmap2D(PlotBase):
         # TODO: add labels
         self._set_axes()
 
-        orientation = kwargs.get("orientation", "vertical")
+        orientation = kwargs.get("violin_orientation", "vertical")
         xy, yy, tick_positions, tick_labels = self._prepare_violin(x, y, array, **kwargs)
 
         # get list of parameters for the plot
@@ -299,22 +302,22 @@ class PlotHeatmap2D(PlotBase):
 
         # set line style
         coll.set_edgecolors(lc)
-        coll.set_linestyle(kwargs["line_style"])
-        coll.set_linewidths(kwargs["line_width"])
+        coll.set_linestyle(kwargs["violin_line_style"])
+        coll.set_linewidths(kwargs["violin_line_width"])
 
         # set face style
-        if kwargs["shade_under"]:
+        if kwargs["violin_fill_under"]:
             coll.set_facecolors(fc)
             coll.set_clip_on(True)
 
         # in violin plot, the horizontal axis is the mobility axis
         if orientation != "vertical":
-            xlimits, ylimits, extent = self._compute_xy_limits(y, yy, 0, is_heatmap=False)
+            xlimits, ylimits, extent = self._compute_xy_limits(y, yy)
             self.plot_base.set_yticks(tick_positions)
             self.plot_base.set_yticklabels(tick_labels)
             x_label, y_label = y_label, x_label
         else:
-            xlimits, ylimits, extent = self._compute_xy_limits(yy, y, 0, is_heatmap=False)
+            xlimits, ylimits, extent = self._compute_xy_limits(yy, y)
             self.plot_base.set_xticks(tick_positions)
             self.plot_base.set_xticklabels(tick_labels)
 
@@ -339,10 +342,10 @@ class PlotHeatmap2D(PlotBase):
         """Plot as violin"""
         self._set_axes()
 
-        normalize = kwargs.get("normalize", True)
-        spacing = kwargs.get("spacing", 0.5)
-        orientation = kwargs.get("orientation", "vertical")
-        min_percentage = kwargs.get("min_percentage", 0.03)
+        normalize = kwargs.get("violin_normalize", True)
+        spacing = kwargs.get("violin_spacing", 0.5)
+        orientation = kwargs.get("violin_orientation", "vertical")
+        min_percentage = kwargs.get("violin_min_percentage", 0.03)
 
         offset = spacing
 
@@ -370,7 +373,7 @@ class PlotHeatmap2D(PlotBase):
                     -_y + offset,
                     _y + offset,
                     edgecolor=_lc,
-                    linewidth=kwargs["line_width"],
+                    linewidth=kwargs["violin_line_width"],
                     facecolor=_fc,
                     clip_on=True,
                 )
@@ -380,29 +383,29 @@ class PlotHeatmap2D(PlotBase):
                     -_y + offset,
                     _y + offset,
                     edgecolor=_lc,
-                    linewidth=kwargs["line_width"],
+                    linewidth=kwargs["violin_line_width"],
                     facecolor=_fc,
                     clip_on=True,
                 )
             # keep track of the maximum values
             yy.append(_y.max() + offset)
 
-            if kwargs["labels_frequency"] != 0:
-                if i % kwargs["labels_frequency"] == 0 or i == n_signals - 1:
+            if kwargs["violin_labels_frequency"] != 0:
+                if i % kwargs["violin_labels_frequency"] == 0 or i == n_signals - 1:
                     tick_positions.append(offset)
-                    tick_labels.append(ut_visuals.convert_label(x[int(i)], label_format=kwargs["labels_format"]))
+                    tick_labels.append(ut_visuals.convert_label(x[int(i)], label_format=kwargs["violin_labels_format"]))
 
             # increase the baseline to set the signal aparxt from the one before it
             offset = offset + (_y.max() * 2) + spacing
 
         # in violin plot, the horizontal axis is the mobility axis
         if orientation != "vertical":
-            xlimits, ylimits, extent = self._compute_xy_limits(y, yy, 0, is_heatmap=False)
+            xlimits, ylimits, extent = self._compute_xy_limits(y, yy)
             self.plot_base.set_yticks(tick_positions)
             self.plot_base.set_yticklabels(tick_labels)
             x_label, y_label = y_label, x_label
         else:
-            xlimits, ylimits, extent = self._compute_xy_limits(yy, y, 0, is_heatmap=False)
+            xlimits, ylimits, extent = self._compute_xy_limits(yy, y)
             self.plot_base.set_xticks(tick_positions)
             self.plot_base.set_xticklabels(tick_labels)
 
@@ -436,7 +439,7 @@ class PlotHeatmap2D(PlotBase):
         self.plot_joint_y = self.figure.add_subplot(gs[1:, -1], sharey=self.plot_base)
         self.plot_joint_y.set_gid(PlotIds.PLOT_JOINT_Y)
 
-        xlimits, ylimits, extent = self._compute_xy_limits(x, y, None, is_heatmap=False)
+        xlimits, ylimits, extent = self._compute_xy_limits(x, y, None)
 
         yy = array.sum(axis=1)
         xy = array.sum(axis=0)
@@ -444,8 +447,8 @@ class PlotHeatmap2D(PlotBase):
         # add 2d plot
         self.cax = self.plot_base.imshow(
             array,
-            cmap=kwargs["colormap"],
-            interpolation=kwargs["interpolation"],
+            cmap=kwargs["heatmap_colormap"],
+            interpolation=kwargs["heatmap_interpolation"],
             #             norm=kwargs["colormap_norm"],
             aspect="auto",
             origin="lower",
@@ -469,8 +472,8 @@ class PlotHeatmap2D(PlotBase):
         self.set_tick_parameters(**kwargs)
 
         # add limits of the other plots
-        _, _, extent_x = self._compute_xy_limits(x, xy, 0, 1, False)
-        _, _, extent_y = self._compute_xy_limits(yy, y, 0, 1, False)
+        _, _, extent_x = self._compute_xy_limits(x, xy, 1)
+        _, _, extent_y = self._compute_xy_limits(yy, y, 1)
 
         # setup zoom
         self.setup_new_zoom(
@@ -509,8 +512,8 @@ class PlotHeatmap2D(PlotBase):
             labelbottom=False,
         )
 
+    @staticmethod
     def get_heatmap_normalization(
-        self,
         array: np.ndarray,
         colormap_norm_method: str,
         colormap_min: float,
@@ -519,6 +522,7 @@ class PlotHeatmap2D(PlotBase):
         colormap_norm_power_gamma: float,
         **kwargs,
     ):
+        """Get heatmap normalization"""
         # check normalization
         if colormap_norm_method not in ["Midpoint", "Logarithmic", "Power", "MinMax"]:
             raise ValueError("Incorrect normalization method")
@@ -540,6 +544,8 @@ class PlotHeatmap2D(PlotBase):
         elif colormap_norm_method == "MinMax":
             cmap_norm = Normalize(vmin=cmap_min, vmax=cmap_max)
             reset_colorbar = True
+        else:
+            raise ValueError("Incorrect normalization method")
 
         return cmap_norm, reset_colorbar
 
@@ -662,14 +668,14 @@ class PlotHeatmap2D(PlotBase):
                 self.cbar.set_xticklabels(tick_labels)
 
             # set parameters
-            cbar.outline.set_edgecolor(kwargs["colorbar_outline_color"])
-            cbar.outline.set_linewidth(kwargs["colorbar_outline_width"])
+            cbar.outline.set_edgecolor(kwargs["colorbar_edge_color"])
+            cbar.outline.set_linewidth(kwargs["colorbar_edge_width"])
             self.cbar.ticks = ticks
             self.cbar.tick_labels = tick_labels
             self.cbar.tick_params(
                 labelsize=kwargs["colorbar_label_size"],
                 labelcolor=kwargs["colorbar_label_color"],
-                color=kwargs["colorbar_outline_color"],
+                color=kwargs["colorbar_edge_color"],
             )
         # remove colorbar
         else:
@@ -700,45 +706,45 @@ class PlotHeatmap2D(PlotBase):
         self.text.set_fontsize(kwargs["rmsd_label_font_size"])
         self.text.set_color(kwargs["rmsd_label_color"])
 
-    def plot_2D_update(self, **kwargs):
-        """Update plot data"""
-        if self.lock_plot_from_updating:
-            self._locked()
-
-        if "colormap_norm" in kwargs:
-            self.cax.set_norm(kwargs["colormap_norm"])
-
-        #         kwargs = self._check_colormap(**kwargs)
-        self.cax.set_cmap(kwargs["colormap"])
-
-        try:
-            self.cax.set_interpolation(kwargs["interpolation"])
-        except AttributeError:
-            pass
-
-        # update labels
-        self.set_plot_xlabel(None, **kwargs)
-        self.set_plot_ylabel(None, **kwargs)
-        self.set_tick_parameters(**kwargs)
-        self.plot_2d_colorbar_update(**kwargs)
-
-        self.plot_parameters = kwargs
+    # def plot_2D_update(self, **kwargs):
+    #     """Update plot data"""
+    #     if self.lock_plot_from_updating:
+    #         self._locked()
+    #
+    #     if "colormap_norm" in kwargs:
+    #         self.cax.set_norm(kwargs["colormap_norm"])
+    #
+    #     #         kwargs = self._check_colormap(**kwargs)
+    #     self.cax.set_cmap(kwargs["heatmap_colormap"])
+    #
+    #     try:
+    #         self.cax.set_interpolation(kwargs["heatmap_interpolation"])
+    #     except AttributeError:
+    #         pass
+    #
+    #     # update labels
+    #     self.set_plot_xlabel(**kwargs)
+    #     self.set_plot_ylabel(**kwargs)
+    #     self.set_tick_parameters(**kwargs)
+    #     self.plot_2d_colorbar_update(**kwargs)
+    #
+    #     self.plot_parameters = kwargs
 
     def plot_2D_matrix_update_label(self, **kwargs):
         kwargs = ut_visuals.check_plot_settings(**kwargs)
 
-        self.plot_base.set_xticklabels(self.plot_base.get_xticklabels(), rotation=kwargs["rmsd_matrix_rotX"])
-        self.plot_base.set_yticklabels(self.plot_base.get_xticklabels(), rotation=kwargs["rmsd_matrix_rotY"])
+        self.plot_base.set_xticklabels(self.plot_base.get_xticklabels(), rotation=kwargs["rmsd_rotation_x"])
+        self.plot_base.set_yticklabels(self.plot_base.get_xticklabels(), rotation=kwargs["rmsd_rotation_y"])
 
         if not isinstance(self.text, list):
             return
 
         for text in self.text:
-            text.set_visible(kwargs["rmsd_matrix_labels"])
-            if not kwargs["rmsd_matrix_color_choice"] == "auto":
-                text.set_color(kwargs["rmsd_matrix_color"])
-            text.set_fontsize(kwargs["rmsd_matrix_label_size"])
-            text.set_fontweight(kwargs["rmsd_matrix_label_weight"])
+            text.set_visible(kwargs["rmsd_matrix_add_labels"])
+            if not kwargs["rmsd_matrix_font_color_fmt"] == "auto":
+                text.set_color(kwargs["rmsd_matrix_font_color"])
+            text.set_fontsize(kwargs["rmsd_matrix_font_size"])
+            text.set_fontweight(kwargs["rmsd_matrix_font_weight"])
 
     def plot_2D_update_normalization(self, **kwargs):
         if self.lock_plot_from_updating:
@@ -754,47 +760,47 @@ class PlotHeatmap2D(PlotBase):
                     self.cax.set_norm(self.plot_parameters["colormap_norm"])
                     self.plot_2d_colorbar_update(**kwargs)
 
-    def plot_2D_update_data(self, xvals, yvals, xlabel, ylabel, zvals, **kwargs):
-
-        # clear plot in some circumstances
-        if self._plot_tag in ["rmsd_matrix"]:
-            self.clear()
-
-        # update settings
-        self._check_and_update_plot_settings(**kwargs)
-
-        # update limits and extents
-        extent = ut_visuals.extents(xvals) + ut_visuals.extents(yvals)
-        self.cax.set_data(zvals)
-        self.cax.set_norm(kwargs.get("colormap_norm", None))
-        self.cax.set_extent(extent)
-        self.cax.set_cmap(kwargs["colormap"])
-        self.cax.set_interpolation(kwargs["interpolation"])
-
-        xmin, xmax, ymin, ymax = extent
-        self.plot_base.set_xlim(xmin, xmax)
-        self.plot_base.set_ylim(ymin, ymax)
-
-        extent = [xmin, ymin, xmax, ymax]
-        if kwargs.get("update_extents", True):
-            self.update_extents([extent])
-            self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
-
-        self.set_plot_xlabel(xlabel, **kwargs)
-        self.set_plot_ylabel(ylabel, **kwargs)
-
-        try:
-            leg = self.plot_base.axes.get_legend()
-            leg.remove()
-        except Exception:
-            pass
-
-        # add data
-        self.plot_data = {"xvals": xvals, "yvals": yvals, "zvals": zvals, "xlabel": xlabel, "ylabel": ylabel}
-        self.plot_labels.update({"xlabel": xlabel, "ylabel": ylabel})
-
-        # add colorbar
-        self.set_colorbar_parameters(zvals, **kwargs)
+    # def plot_2D_update_data(self, xvals, yvals, xlabel, ylabel, zvals, **kwargs):
+    #
+    #     # clear plot in some circumstances
+    #     if self._plot_tag in ["rmsd_matrix"]:
+    #         self.clear()
+    #
+    #     # update settings
+    #     self._check_and_update_plot_settings(**kwargs)
+    #
+    #     # update limits and extents
+    #     extent = ut_visuals.extents(xvals) + ut_visuals.extents(yvals)
+    #     self.cax.set_data(zvals)
+    #     self.cax.set_norm(kwargs.get("colormap_norm", None))
+    #     self.cax.set_extent(extent)
+    #     self.cax.set_cmap(kwargs["heatmap_colormap"])
+    #     self.cax.set_interpolation(kwargs["heatmap_interpolation"])
+    #
+    #     xmin, xmax, ymin, ymax = extent
+    #     self.plot_base.set_xlim(xmin, xmax)
+    #     self.plot_base.set_ylim(ymin, ymax)
+    #
+    #     extent = [xmin, ymin, xmax, ymax]
+    #     if kwargs.get("update_extents", True):
+    #         self.update_extents([extent])
+    #         self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
+    #
+    #     self.set_plot_xlabel(xlabel, **kwargs)
+    #     self.set_plot_ylabel(ylabel, **kwargs)
+    #
+    #     try:
+    #         leg = self.plot_base.axes.get_legend()
+    #         leg.remove()
+    #     except Exception:
+    #         pass
+    #
+    #     # add data
+    #     self.plot_data = {"xvals": xvals, "yvals": yvals, "zvals": zvals, "xlabel": xlabel, "ylabel": ylabel}
+    #     self.plot_labels.update({"xlabel": xlabel, "ylabel": ylabel})
+    #
+    #     # add colorbar
+    #     self.set_colorbar_parameters(zvals, **kwargs)
 
     # def plot_n_grid_2D_overlay(
     #     self,
@@ -816,19 +822,19 @@ class PlotHeatmap2D(PlotBase):
     #     n_rows, n_cols, __, __ = ut_visuals.check_n_grid_dimensions(n_grid)
     #
     #     # convert weights
-    #     if kwargs["title_weight"]:
-    #         kwargs["title_weight"] = "heavy"
+    #     if kwargs["axes_title_font_weight"]:
+    #         kwargs["axes_title_font_weight"] = "heavy"
     #     else:
-    #         kwargs["title_weight"] = "normal"
+    #         kwargs["axes_title_font_weight"] = "normal"
     #
-    #     if kwargs["label_weight"]:
-    #         kwargs["label_weight"] = "heavy"
+    #     if kwargs["axes_label_font_weight"]:
+    #         kwargs["axes_label_font_weight"] = "heavy"
     #     else:
-    #         kwargs["label_weight"] = "normal"
+    #         kwargs["axes_label_font_weight"] = "normal"
     #
     #     # set tick size
-    #     matplotlib.rc("xtick", labelsize=kwargs["tick_size"])
-    #     matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
+    #     matplotlib.rc("xtick", labelsize=kwargs["axes_tick_font_size"])
+    #     matplotlib.rc("ytick", labelsize=kwargs["axes_tick_font_size"])
     #
     #     gs = gridspec.GridSpec(nrows=n_rows, ncols=n_cols)
     #     gs.update(hspace=kwargs.get("grid_hspace", 1), wspace=kwargs.get("grid_hspace", 1))
@@ -851,7 +857,7 @@ class PlotHeatmap2D(PlotBase):
     #         extent_list.append([xmin, ymin, xmax, ymax])
     #
     #         if kwargs.get("override_colormap", False):
-    #             cmap = kwargs["colormap"]
+    #             cmap = kwargs["heatmap_colormap"]
     #         else:
     #             cmap = cmap_list[i]
     #
@@ -859,7 +865,7 @@ class PlotHeatmap2D(PlotBase):
     #             n_zvals[i],
     #             extent=extent,
     #             cmap=cmap,
-    #             interpolation=kwargs["interpolation"],
+    #             interpolation=kwargs["heatmap_interpolation"],
     #             aspect="auto",
     #             origin="lower",
     #         )
@@ -868,26 +874,27 @@ class PlotHeatmap2D(PlotBase):
     #         ax.set_ylim(ymin, ymax - 0.5)
     #         ax.tick_params(
     #             axis="both",
-    #             left=kwargs["ticks_left"],
-    #             right=kwargs["ticks_right"],
-    #             top=kwargs["ticks_top"],
-    #             bottom=kwargs["ticks_bottom"],
-    #             labelleft=kwargs["tickLabels_left"],
-    #             labelright=kwargs["tickLabels_right"],
-    #             labeltop=kwargs["tickLabels_top"],
-    #             labelbottom=kwargs["tickLabels_bottom"],
+    #             left=kwargs["axes_frame_ticks_left"],
+    #             right=kwargs["axes_frame_ticks_right"],
+    #             top=kwargs["axes_frame_ticks_top"],
+    #             bottom=kwargs["axes_frame_ticks_bottom"],
+    #             labelleft=kwargs["axes_frame_tick_labels_left"],
+    #             labelright=kwargs["axes_frame_tick_labels_right"],
+    #             labeltop=kwargs["axes_frame_tick_labels_top"],
+    #             labelbottom=kwargs["axes_frame_tick_labels_bottom"],
     #         )
     #
     #         # spines
-    #         ax.spines["left"].set_visible(kwargs["spines_left"])
-    #         ax.spines["right"].set_visible(kwargs["spines_right"])
-    #         ax.spines["top"].set_visible(kwargs["spines_top"])
-    #         ax.spines["bottom"].set_visible(kwargs["spines_bottom"])
+    #         ax.spines["left"].set_visible(kwargs["axes_frame_spine_left"])
+    #         ax.spines["right"].set_visible(kwargs["axes_frame_spine_right"])
+    #         ax.spines["top"].set_visible(kwargs["axes_frame_spine_top"])
+    #         ax.spines["bottom"].set_visible(kwargs["axes_frame_spine_bottom"])
     #
     #         if kwargs.get("grid_show_title", True):
     #             ax.set_title(
     #                 label=title_list[i],
-    #                 fontdict={"fontsize": kwargs["title_size"], "fontweight": kwargs["title_weight"]},
+    #                 fontdict={"fontsize": kwargs["axes_title_font_size"],
+    #                 "fontweight": kwargs["axes_title_font_weight"]},
     #             )
     #
     #         # remove ticks for anything thats not on the outskirts
@@ -901,27 +908,27 @@ class PlotHeatmap2D(PlotBase):
     #             ax.set_xticks([])
     #
     #         # update axis frame
-    #         if kwargs["axis_onoff"]:
+    #         if kwargs["axes_frame_show"]:
     #             ax.set_axis_on()
     #         else:
     #             ax.set_axis_off()
     #         plt_list.append(ax)
     #
     #         if kwargs.get("grid_show_label", False):
-    #             kwargs["label_pad"] = 5
+    #             kwargs["axes_label_pad"] = 5
     #             if col == 0:
     #                 ax.set_ylabel(
     #                     ylabel,
-    #                     labelpad=kwargs["label_pad"],
-    #                     fontsize=kwargs["label_size"],
-    #                     weight=kwargs["label_weight"],
+    #                     labelpad=kwargs["axes_label_pad"],
+    #                     fontsize=kwargs["axes_tick_font_size"],
+    #                     weight=kwargs["axes_label_font_weight"],
     #                 )
     #             if row == n_rows - 1:
     #                 ax.set_xlabel(
     #                     xlabel,
-    #                     labelpad=kwargs["label_pad"],
-    #                     fontsize=kwargs["label_size"],
-    #                     weight=kwargs["label_weight"],
+    #                     labelpad=kwargs["axes_label_pad"],
+    #                     fontsize=kwargs["axes_tick_font_size"],
+    #                     weight=kwargs["axes_label_font_weight"],
     #                 )
     #
     #     try:
@@ -951,7 +958,7 @@ class PlotHeatmap2D(PlotBase):
     #     self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
     #
     #     gs = gridspec.GridSpec(nrows=2, ncols=2, height_ratios=[1, 1], width_ratios=[1, 2])
-    #     gs.update(hspace=kwargs["rmsd_hspace"], wspace=kwargs["rmsd_hspace"])
+    #     gs.update(hspace=kwargs["rmsf_h_space"], wspace=kwargs["rmsf_h_space"])
     #
     #     self.plot2D_upper = self.figure.add_subplot(gs[0, 0], aspect="auto")
     #     self.plot2D_lower = self.figure.add_subplot(gs[1, 0], aspect="auto")
@@ -963,7 +970,7 @@ class PlotHeatmap2D(PlotBase):
     #         zvals_1,
     #         extent=extent,
     #         cmap=kwargs.get("colormap_1", "Reds"),
-    #         interpolation=kwargs["interpolation"],
+    #         interpolation=kwargs["heatmap_interpolation"],
     #         norm=kwargs["cmap_norm_1"],
     #         aspect="auto",
     #         origin="lower",
@@ -973,7 +980,7 @@ class PlotHeatmap2D(PlotBase):
     #         zvals_2,
     #         extent=extent,
     #         cmap=kwargs.get("colormap_2", "Blues"),
-    #         interpolation=kwargs["interpolation"],
+    #         interpolation=kwargs["heatmap_interpolation"],
     #         norm=kwargs["cmap_norm_2"],
     #         aspect="auto",
     #         origin="lower",
@@ -982,8 +989,8 @@ class PlotHeatmap2D(PlotBase):
     #     self.plot2D_side.imshow(
     #         zvals_cum,
     #         extent=extent,
-    #         cmap=kwargs["colormap"],
-    #         interpolation=kwargs["interpolation"],
+    #         cmap=kwargs["heatmap_colormap"],
+    #         interpolation=kwargs["heatmap_interpolation"],
     #         norm=kwargs["cmap_norm_cum"],
     #         aspect="auto",
     #         origin="lower",
@@ -999,35 +1006,37 @@ class PlotHeatmap2D(PlotBase):
     #
     #         plot.tick_params(
     #             axis="both",
-    #             left=kwargs["ticks_left"],
-    #             right=kwargs["ticks_right"],
-    #             top=kwargs["ticks_top"],
-    #             bottom=kwargs["ticks_bottom"],
-    #             labelleft=kwargs["tickLabels_left"],
-    #             labelright=kwargs["tickLabels_right"],
-    #             labeltop=kwargs["tickLabels_top"],
-    #             labelbottom=kwargs["tickLabels_bottom"],
+    #             left=kwargs["axes_frame_ticks_left"],
+    #             right=kwargs["axes_frame_ticks_right"],
+    #             top=kwargs["axes_frame_ticks_top"],
+    #             bottom=kwargs["axes_frame_ticks_bottom"],
+    #             labelleft=kwargs["axes_frame_tick_labels_left"],
+    #             labelright=kwargs["axes_frame_tick_labels_right"],
+    #             labeltop=kwargs["axes_frame_tick_labels_top"],
+    #             labelbottom=kwargs["axes_frame_tick_labels_bottom"],
     #         )
     #
     #         # spines
-    #         plot.spines["left"].set_visible(kwargs["spines_left"])
-    #         plot.spines["right"].set_visible(kwargs["spines_right"])
-    #         plot.spines["top"].set_visible(kwargs["spines_top"])
-    #         plot.spines["bottom"].set_visible(kwargs["spines_bottom"])
-    #         [i.set_linewidth(kwargs["frame_width"]) for i in plot.spines.values()]
+    #         plot.spines["left"].set_visible(kwargs["axes_frame_spine_left"])
+    #         plot.spines["right"].set_visible(kwargs["axes_frame_spine_right"])
+    #         plot.spines["top"].set_visible(kwargs["axes_frame_spine_top"])
+    #         plot.spines["bottom"].set_visible(kwargs["axes_frame_spine_bottom"])
+    #         [i.set_linewidth(kwargs["axes_frame_width"]) for i in plot.spines.values()]
     #
     #         # update axis frame
-    #         if kwargs["axis_onoff"]:
+    #         if kwargs["axes_frame_show"]:
     #             plot.set_axis_on()
     #         else:
     #             plot.set_axis_off()
     #
-    #         kwargs["label_pad"] = 5
+    #         kwargs["axes_label_pad"] = 5
     #         plot.set_xlabel(
-    #             xlabel, labelpad=kwargs["label_pad"], fontsize=kwargs["label_size"], weight=kwargs["label_weight"]
+    #             xlabel, labelpad=kwargs["axes_label_pad"], fontsize=kwargs["axes_tick_font_size"],
+    #             weight=kwargs["axes_label_font_weight"]
     #         )
     #         plot.set_ylabel(
-    #             ylabel, labelpad=kwargs["label_pad"], fontsize=kwargs["label_size"], weight=kwargs["label_weight"]
+    #             ylabel, labelpad=kwargs["axes_label_pad"], fontsize=kwargs["axes_tick_font_size"],
+    #             weight=kwargs["axes_label_font_weight"]
     #         )
     #
     #     gs.tight_layout(self.figure)
@@ -1055,8 +1064,8 @@ class PlotHeatmap2D(PlotBase):
     #     self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
     #
     #     # set tick size
-    #     matplotlib.rc("xtick", labelsize=kwargs["tick_size"])
-    #     matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
+    #     matplotlib.rc("xtick", labelsize=kwargs["axes_tick_font_size"])
+    #     matplotlib.rc("ytick", labelsize=kwargs["axes_tick_font_size"])
     #
     #     # prep data
     #     if xvals is None or yvals is None or zvals is None:
@@ -1080,15 +1089,15 @@ class PlotHeatmap2D(PlotBase):
     #
     #     if not speedy:
     #         self.cax = self.plot_base.contourf(
-    #             xvals, yvals, np.transpose(zvals), kwargs.get("contour_levels", 100), cmap=kwargs["colormap"],
+    #             xvals, yvals, np.transpose(zvals), kwargs.get("contour_levels", 100), cmap=kwargs["heatmap_colormap"],
     #             norm=norm
     #         )
     #     else:
     #         self.cax = self.plot_base.imshow(
     #             np.transpose(zvals),
     #             extent=extent,
-    #             cmap=kwargs["colormap"],
-    #             interpolation=kwargs["interpolation"],
+    #             cmap=kwargs["heatmap_colormap"],
+    #             interpolation=kwargs["heatmap_interpolation"],
     #             norm=norm,
     #             aspect="auto",
     #             origin="lower",
@@ -1135,8 +1144,8 @@ class PlotHeatmap2D(PlotBase):
     #     # update settings
     #     self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
     #
-    #     matplotlib.rc("xtick", labelsize=kwargs["tick_size"])
-    #     matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
+    #     matplotlib.rc("xtick", labelsize=kwargs["axes_tick_font_size"])
+    #     matplotlib.rc("ytick", labelsize=kwargs["axes_tick_font_size"])
     #
     #     # Plot
     #     self.plot_base = self.figure.add_axes(self._axes)
@@ -1154,7 +1163,7 @@ class PlotHeatmap2D(PlotBase):
     #
     #     # Add imshow
     #     self.cax = self.plot_base.imshow(
-    #         zvals, extent=extent, interpolation=kwargs["interpolation"], origin="lower", aspect="auto"
+    #         zvals, extent=extent, interpolation=kwargs["heatmap_interpolation"], origin="lower", aspect="auto"
     #     )
     #
     #     xmin, xmax = self.plot_base.get_xlim()
@@ -1179,8 +1188,8 @@ class PlotHeatmap2D(PlotBase):
     #     # update settings
     #     self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
     #
-    #     matplotlib.rc("xtick", labelsize=kwargs["tick_size"])
-    #     matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
+    #     matplotlib.rc("xtick", labelsize=kwargs["axes_tick_font_size"])
+    #     matplotlib.rc("ytick", labelsize=kwargs["axes_tick_font_size"])
     #
     #     # Plot
     #     self.plot_base = self.figure.add_axes(self._axes)
@@ -1189,17 +1198,17 @@ class PlotHeatmap2D(PlotBase):
     #     xsize = len(zvals)
     #     if xylabels:
     #         self.plot_base.set_xticks(np.arange(1, xsize + 1, 1))
-    #         self.plot_base.set_xticklabels(xylabels, rotation=kwargs["rmsd_matrix_rotX"])
+    #         self.plot_base.set_xticklabels(xylabels, rotation=kwargs["rmsd_rotation_x"])
     #         self.plot_base.set_yticks(np.arange(1, xsize + 1, 1))
-    #         self.plot_base.set_yticklabels(xylabels, rotation=kwargs["rmsd_matrix_rotY"])
+    #         self.plot_base.set_yticklabels(xylabels, rotation=kwargs["rmsd_rotation_y"])
     #
     #     extent = [0.5, xsize + 0.5, 0.5, xsize + 0.5]
     #
     #     # Add imshow
     #     self.cax = self.plot_base.imshow(
     #         zvals,
-    #         cmap=kwargs["colormap"],
-    #         interpolation=kwargs["interpolation"],
+    #         cmap=kwargs["heatmap_colormap"],
+    #         interpolation=kwargs["heatmap_interpolation"],
     #         aspect="auto",
     #         extent=extent,
     #         origin="lower",
@@ -1213,11 +1222,11 @@ class PlotHeatmap2D(PlotBase):
     #
     #     # add labels
     #     self.text = []
-    #     if kwargs["rmsd_matrix_labels"]:
+    #     if kwargs["rmsd_matrix_add_labels"]:
     #         cmap = self.cax.get_cmap()
-    #         color = kwargs["rmsd_matrix_color"]
+    #         color = kwargs["rmsd_matrix_font_color"]
     #         for i, j in itertools.product(list(range(zvals.shape[0])), list(range(zvals.shape[1]))):
-    #             if kwargs["rmsd_matrix_color_choice"] == "auto":
+    #             if kwargs["rmsd_matrix_font_color_fmt"] == "auto":
     #                 color = get_font_color(convert_rgb_1_to_255(cmap(zvals[i, j] / 2)))
     #
     #             label = format(zvals[i, j], ".2f")
@@ -1245,8 +1254,8 @@ class PlotHeatmap2D(PlotBase):
     #     # update limits and extents
     #     self.cax.set_data(zvals)
     #     self.cax.set_norm(kwargs.get("colormap_norm", None))
-    #     self.cax.set_cmap(kwargs["colormap"])
-    #     self.cax.set_interpolation(kwargs["interpolation"])
+    #     self.cax.set_cmap(kwargs["heatmap_colormap"])
+    #     self.cax.set_interpolation(kwargs["heatmap_interpolation"])
     #
     #     xlimit = self.plot_base.get_xlim()
     #     xmin, xmax = xlimit
@@ -1273,8 +1282,8 @@ class PlotHeatmap2D(PlotBase):
     #     self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
     #
     #     # set tick size
-    #     matplotlib.rc("xtick", labelsize=kwargs["tick_size"])
-    #     matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
+    #     matplotlib.rc("xtick", labelsize=kwargs["axes_tick_font_size"])
+    #     matplotlib.rc("ytick", labelsize=kwargs["axes_tick_font_size"])
     #
     #     # Plot
     #     self.plot_base = self.figure.add_axes(self._axes)
@@ -1283,8 +1292,8 @@ class PlotHeatmap2D(PlotBase):
     #     self.cax = self.plot_base.imshow(
     #         zvals,
     #         #             extent=extent,
-    #         cmap=kwargs["colormap"],
-    #         interpolation=kwargs["interpolation"],
+    #         cmap=kwargs["heatmap_colormap"],
+    #         interpolation=kwargs["heatmap_interpolation"],
     #         norm=kwargs["colormap_norm"],
     #         aspect="equal",
     #         origin="lower",
@@ -1311,14 +1320,14 @@ class PlotHeatmap2D(PlotBase):
     #
     #     # remove tick labels
     #     for key in [
-    #         "ticks_left",
-    #         "ticks_right",
-    #         "ticks_top",
-    #         "ticks_bottom",
-    #         "tickLabels_left",
-    #         "tickLabels_right",
-    #         "tickLabels_top",
-    #         "tickLabels_bottom",
+    #         "axes_frame_ticks_left",
+    #         "axes_frame_ticks_right",
+    #         "axes_frame_ticks_top",
+    #         "axes_frame_ticks_bottom",
+    #         "axes_frame_tick_labels_left",
+    #         "axes_frame_tick_labels_right",
+    #         "axes_frame_tick_labels_top",
+    #         "axes_frame_tick_labels_bottom",
     #     ]:
     #         kwargs[key] = False
     #
@@ -1352,8 +1361,8 @@ class PlotHeatmap2D(PlotBase):
     #     self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
     #
     #     # set tick size
-    #     matplotlib.rc("xtick", labelsize=kwargs["tick_size"])
-    #     matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
+    #     matplotlib.rc("xtick", labelsize=kwargs["axes_tick_font_size"])
+    #     matplotlib.rc("ytick", labelsize=kwargs["axes_tick_font_size"])
     #
     #     # Plot
     #     self.plot_base = self.figure.add_axes(self._axes)
@@ -1365,7 +1374,7 @@ class PlotHeatmap2D(PlotBase):
     #         zvalsIon1,
     #         extent=extent,
     #         cmap=cmapIon1,
-    #         interpolation=kwargs["interpolation"],
+    #         interpolation=kwargs["heatmap_interpolation"],
     #         aspect="auto",
     #         origin="lower",
     #         alpha=alphaIon1,
@@ -1374,7 +1383,7 @@ class PlotHeatmap2D(PlotBase):
     #         zvalsIon2,
     #         extent=extent,
     #         cmap=cmapIon2,
-    #         interpolation=kwargs["interpolation"],
+    #         interpolation=kwargs["heatmap_interpolation"],
     #         aspect="auto",
     #         origin="lower",
     #         alpha=alphaIon2,

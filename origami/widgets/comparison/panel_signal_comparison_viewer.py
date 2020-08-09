@@ -245,12 +245,12 @@ class PanelSignalComparisonViewer(MiniFrame):
         self.spectrum_1_label_value.Bind(wx.EVT_TEXT, self.on_update_label)
 
         spectrum_1_color_label = wx.StaticText(panel, -1, "Color:")
-        self.spectrum_1_color_btn = make_color_btn(panel, CONFIG.compare_panel_color_top, name="color_1")
+        self.spectrum_1_color_btn = make_color_btn(panel, CONFIG.compare_color_top, name="color_1")
         self.spectrum_1_color_btn.Bind(wx.EVT_BUTTON, self.on_update_color)
 
         spectrum_1_transparency_label = wx.StaticText(panel, -1, "Transparency:")
         self.spectrum_1_transparency = make_spin_ctrl_double(
-            panel, CONFIG.compare_panel_alpha_top * 100, 0, 100, 10, (90, -1), name="transparency_1"
+            panel, CONFIG.compare_alpha_top * 100, 0, 100, 10, (90, -1), name="transparency_1"
         )
         self.spectrum_1_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
@@ -258,7 +258,7 @@ class PanelSignalComparisonViewer(MiniFrame):
         self.spectrum_1_line_style_value = wx.ComboBox(
             panel, choices=CONFIG.lineStylesList, style=wx.CB_READONLY, name="style_1"
         )
-        self.spectrum_1_line_style_value.SetStringSelection(CONFIG.compare_panel_style_top)
+        self.spectrum_1_line_style_value.SetStringSelection(CONFIG.compare_style_top)
         self.spectrum_1_line_style_value.Bind(wx.EVT_COMBOBOX, self.on_apply)
 
         # MS 2
@@ -281,12 +281,12 @@ class PanelSignalComparisonViewer(MiniFrame):
         self.spectrum_2_label_value.Bind(wx.EVT_TEXT, self.on_update_label)
 
         spectrum_2_color_label = wx.StaticText(panel, -1, "Color:")
-        self.spectrum_2_color_btn = make_color_btn(panel, CONFIG.compare_panel_color_bottom, name="color_2")
+        self.spectrum_2_color_btn = make_color_btn(panel, CONFIG.compare_color_bottom, name="color_2")
         self.spectrum_2_color_btn.Bind(wx.EVT_BUTTON, self.on_update_color)
 
         spectrum_2_transparency_label = wx.StaticText(panel, -1, "Transparency:")
         self.spectrum_2_transparency = make_spin_ctrl_double(
-            panel, CONFIG.compare_panel_alpha_bottom * 100, 0, 100, 10, (90, -1), name="transparency_2"
+            panel, CONFIG.compare_alpha_bottom * 100, 0, 100, 10, (90, -1), name="transparency_2"
         )
         self.spectrum_2_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
@@ -294,7 +294,7 @@ class PanelSignalComparisonViewer(MiniFrame):
         self.spectrum_2_line_style_value = wx.ComboBox(
             panel, choices=CONFIG.lineStylesList, style=wx.CB_READONLY, name="style_2"
         )
-        self.spectrum_2_line_style_value.SetStringSelection(CONFIG.compare_panel_style_bottom)
+        self.spectrum_2_line_style_value.SetStringSelection(CONFIG.compare_style_bottom)
         self.spectrum_2_line_style_value.Bind(wx.EVT_COMBOBOX, self.on_apply)
 
         # Processing
@@ -314,7 +314,7 @@ class PanelSignalComparisonViewer(MiniFrame):
         self.normalize_check.Bind(wx.EVT_CHECKBOX, self.on_plot)
 
         self.inverse_check = make_checkbox(panel, "Inverse", tooltip="Inverse spectra to give a butterfly-like effect")
-        self.inverse_check.SetValue(CONFIG.compare_panel_inverse)
+        self.inverse_check.SetValue(CONFIG.compare_inverse)
         self.inverse_check.Bind(wx.EVT_CHECKBOX, self.update_spectrum)
         self.inverse_check.Bind(wx.EVT_CHECKBOX, self.on_plot)
 
@@ -536,11 +536,11 @@ class PanelSignalComparisonViewer(MiniFrame):
         if evt is not None:
             source = evt.GetEventObject().GetName()
 
-        CONFIG.compare_panel_alpha_top = str2num(self.spectrum_1_transparency.GetValue()) / 100
-        CONFIG.compare_panel_style_top = self.spectrum_1_line_style_value.GetStringSelection()
+        CONFIG.compare_alpha_top = str2num(self.spectrum_1_transparency.GetValue()) / 100
+        CONFIG.compare_style_top = self.spectrum_1_line_style_value.GetStringSelection()
 
-        CONFIG.compare_panel_alpha_bottom = str2num(self.spectrum_2_transparency.GetValue()) / 100
-        CONFIG.compare_panel_style_bottom = self.spectrum_2_line_style_value.GetStringSelection()
+        CONFIG.compare_alpha_bottom = str2num(self.spectrum_2_transparency.GetValue()) / 100
+        CONFIG.compare_style_bottom = self.spectrum_2_line_style_value.GetStringSelection()
 
         if evt is not None:
             self.on_plot_update_style(source)
@@ -567,7 +567,7 @@ class PanelSignalComparisonViewer(MiniFrame):
             title=self.spectrum_2_spectrum_value.GetStringSelection(),
         )
         CONFIG.compare_panel_preprocess = self.preprocess_check.GetValue()
-        CONFIG.compare_panel_inverse = self.inverse_check.GetValue()
+        CONFIG.compare_inverse = self.inverse_check.GetValue()
         CONFIG.compare_panel_normalize = self.normalize_check.GetValue()
         CONFIG.compare_panel_subtract = self.subtract_check.GetValue()
 
@@ -613,10 +613,10 @@ class PanelSignalComparisonViewer(MiniFrame):
 
         # assign color
         if source == "color_1":
-            CONFIG.compare_panel_color_top = color_1
+            CONFIG.compare_color_top = color_1
             self.spectrum_1_color_btn.SetBackgroundColour(color_255)
         elif source == "color_2":
-            CONFIG.compare_panel_color_bottom = color_1
+            CONFIG.compare_color_bottom = color_1
             self.spectrum_2_color_btn.SetBackgroundColour(color_255)
 
         self.on_plot_update_style(source)
@@ -638,14 +638,14 @@ class PanelSignalComparisonViewer(MiniFrame):
 
         kwargs = dict()
         if source.endswith("_1"):
-            kwargs["color"] = CONFIG.compare_panel_color_top
-            kwargs["line_style"] = CONFIG.compare_panel_style_top
-            kwargs["transparency"] = CONFIG.compare_panel_alpha_top
+            kwargs["spectrum_line_color"] = CONFIG.compare_color_top
+            kwargs["spectrum_line_style"] = CONFIG.compare_style_top
+            kwargs["spectrum_line_transparency"] = CONFIG.compare_alpha_top
             kwargs["label"] = CONFIG.compare_panel_top_.legend
         elif source.endswith("_2"):
-            kwargs["color"] = CONFIG.compare_panel_color_bottom
-            kwargs["line_style"] = CONFIG.compare_panel_style_bottom
-            kwargs["transparency"] = CONFIG.compare_panel_alpha_bottom
+            kwargs["spectrum_line_color"] = CONFIG.compare_color_bottom
+            kwargs["spectrum_line_style"] = CONFIG.compare_style_bottom
+            kwargs["spectrum_line_transparency"] = CONFIG.compare_alpha_bottom
             kwargs["label"] = CONFIG.compare_panel_bottom_.legend
 
         self.plot_view.update_style(self._get_dataset_index(source), **kwargs)
@@ -675,7 +675,7 @@ class PanelSignalComparisonViewer(MiniFrame):
         x_top, y_top = spectrum_1.x, spectrum_1.y
         x_bottom, y_bottom = spectrum_2.x, spectrum_2.y
 
-        if CONFIG.compare_panel_inverse and not CONFIG.compare_panel_subtract:
+        if CONFIG.compare_inverse and not CONFIG.compare_panel_subtract:
             y_bottom = -y_bottom
 
         if CONFIG.compare_panel_subtract:

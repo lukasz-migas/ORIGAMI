@@ -1,3 +1,4 @@
+"""Thermo reader"""
 # isort:skip_file
 # Standard library imports
 import os
@@ -51,6 +52,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 class ThermoRawReader:
+    """Thermo reader"""
+
     def __init__(self, path):
         self.path = path
         self.source = self.create_parser()
@@ -95,11 +98,13 @@ class ThermoRawReader:
 
     @property
     def rt_bin(self):
+        """Return the chromatogram x-axis as retention time bins"""
         start_scan, end_scan = self.scan_range
         return np.arange(start_scan, end_scan + 1)
 
     @property
     def rt_min(self):
+        """Return the chromatogram x-axis as retention time"""
         if self._rt_min is None:
             obj = self.get_chromatogram(0, 1)
             self._rt_min = obj.x
@@ -138,12 +143,13 @@ class ThermoRawReader:
         return filters
 
     def get_filter_by_idx(self, index):
+        """Get filter by its index"""
         if index >= self.n_filters():
             raise IndexError(f"Index `{index}` is larger than the maximum number of filters ({self.n_filters()}")
         return self._unique_filters[index]
 
     def get_scan_info(self, rt_start=None, rt_end=None):
-
+        """Get information about scan"""
         _scan_range = self.scan_range
         if rt_start is None:
             rt_start = _scan_range[0]
@@ -170,7 +176,7 @@ class ThermoRawReader:
         return scan_dict
 
     def get_spectrum_for_each_filter(self):
-
+        """Get mass spectrum for each filter in the raw file"""
         unique_filters = set(self._scan_filters)
         data = {}
         for title in unique_filters:
@@ -179,6 +185,7 @@ class ThermoRawReader:
         return data
 
     def get_chromatogram_for_each_filter(self):
+        """Get chromatogram for each filter in the raw file"""
         unique_filters = set(self._scan_filters)
         data = {}
         for title in unique_filters:

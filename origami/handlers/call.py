@@ -66,7 +66,7 @@ class Call:
             exc_type, value = sys.exc_info()[:2]
             self.on_error((exc_type, value, traceback.format_exc()))
             LOGGER.error(f"{exc_type} ; {value} ; {traceback.format_exc()}")
-            return
+            return t_start
         finally:
             self.on_result(results)
 

@@ -31,7 +31,6 @@ class Panel3dSettings(PanelSettingsBase):
         self.plot3d_background_color_btn = wx.Button(
             self, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="heatmap.3d.background.color"
         )
-        self.plot3d_background_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.heatmap_3d_background_color))
         self.plot3d_background_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
         # plot3d_camera = wx.StaticText(self, -1, "Camera:")
@@ -45,7 +44,6 @@ class Panel3dSettings(PanelSettingsBase):
         self.plot3d_colormap_value = wx.Choice(
             self, -1, choices=CONFIG.colormap_choices, size=(-1, -1), name="heatmap.3d.colormap"
         )
-        self.plot3d_colormap_value.SetStringSelection(CONFIG.heatmap_3d_colormap)
         self.plot3d_colormap_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.plot3d_colormap_value.Bind(wx.EVT_CHOICE, self.on_update)
 
@@ -168,7 +166,6 @@ class Panel3dSettings(PanelSettingsBase):
         self.plot3d_axis_color_btn = wx.Button(
             self, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="heatmap.3d.axis.color"
         )
-        self.plot3d_axis_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.heatmap_3d_axis_color))
         self.plot3d_axis_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
         heatmap_parameters_label = wx.StaticText(self, -1, "Heatmap parameters")
@@ -275,3 +272,19 @@ class Panel3dSettings(PanelSettingsBase):
             CONFIG.heatmap_3d_axis_color = color_1
             self.plot3d_axis_color_btn.SetBackgroundColour(color_255)
             self.on_update(evt)
+
+    def _on_set_config(self):
+        """Update values in the application based on config values"""
+        self.import_evt = True
+        # heatmap parameters
+        self.plot3d_background_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.heatmap_3d_background_color))
+        self.plot3d_colormap_value.SetStringSelection(CONFIG.heatmap_3d_colormap)
+        self.plot3d_opacity_value.SetValue(CONFIG.heatmap_3d_opacity)
+        self.plot3d_clim_min_value.SetValue(CONFIG.heatmap_3d_clim_min)
+        self.plot3d_clim_max_value.SetValue(CONFIG.heatmap_3d_clim_max)
+        self.plot3d_tick_size_value.SetValue(CONFIG.heatmap_3d_axis_tick_size)
+        self.plot3d_margin_x_value.SetValue(CONFIG.heatmap_3d_axis_x_margin)
+        self.plot3d_margin_y_value.SetValue(CONFIG.heatmap_3d_axis_y_margin)
+        self.plot3d_margin_z_value.SetValue(CONFIG.heatmap_3d_axis_z_margin)
+        self.plot3d_axis_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.heatmap_3d_axis_color))
+        self.import_evt = False

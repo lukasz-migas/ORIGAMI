@@ -697,7 +697,7 @@ class DataVisualization:
 
             dataset_info.append(query_info)
             zlist.append(data["zvals"])
-            cmaplist.append(item_info["colormap"])
+            cmaplist.append(item_info["heatmap_colormap"])
             masklist.append(item_info["mask"])
             xlist.append(data["xvals"])
             ylist.append(data["yvals"])
@@ -753,7 +753,7 @@ class DataVisualization:
 
             dataset_info.append(query_info)
             zlist.append(data["zvals"])
-            cmaplist.append(item_info["colormap"])
+            cmaplist.append(item_info["heatmap_colormap"])
             alphalist.append(item_info["alpha"])
             xlist.append(data["xvals"])
             ylist.append(data["yvals"])
@@ -966,7 +966,7 @@ class DataVisualization:
             zlist.append(data["zvals"])
             xlist.append(data["xvals"])
             ylist.append(data["yvals"])
-            cmaplist.append(item_info["colormap"])
+            cmaplist.append(item_info["heatmap_colormap"])
             label = item_info["label"]
             if label == "":
                 label = item_info["dataset_name"]
@@ -1029,7 +1029,7 @@ class DataVisualization:
 
             dataset_info.append(query_info)
             zlist.append(data["zvals"])
-            cmaplist.append(item_info["colormap"])
+            cmaplist.append(item_info["heatmap_colormap"])
             xlist.append(data["xvals"])
             ylist.append(data["yvals"])
             label = item_info["label"]
@@ -1152,7 +1152,7 @@ class DataVisualization:
 
             dataset_info.append(query_info)
             zlist.append(data["zvals"])
-            cmaplist.append(item_info["colormap"])
+            cmaplist.append(item_info["heatmap_colormap"])
             xlist.append(data["xvals"])
             ylist.append(data["yvals"])
             label = item_info["label"]
@@ -1211,7 +1211,7 @@ class DataVisualization:
 
             dataset_info.append(query_info)
             zlist.append(data["zvals"])
-            cmaplist.append(item_info["colormap"])
+            cmaplist.append(item_info["heatmap_colormap"])
             xlist.append(data["xvals"])
             ylist.append(data["yvals"])
             label = item_info["label"]

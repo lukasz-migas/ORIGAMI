@@ -62,8 +62,8 @@ class AnnotatedDataReader:
             title = list(df.iloc[idx, 1::])[0]
 
         row_labels = list(df.iloc[:, 0])
-        if "plot_type" in row_labels:
-            idx = row_labels.index("plot_type")
+        if "heatmap_plot_type" in row_labels:
+            idx = row_labels.index("heatmap_plot_type")
             plot_type = list(df.iloc[idx, 1::])[0]
 
         x_label = ""
@@ -281,7 +281,7 @@ class AnnotatedDataReader:
 
         title = "{}: {}".format(_plot_types[plot_type], title)
         other_data = {
-            "plot_type": plot_type,
+            "heatmap_plot_type": plot_type,
             "xvals": xvals,
             "yvals": yvals,
             "zvals": zvals,
@@ -675,7 +675,7 @@ def text_peaklist_open(path, default_mask=0.5, default_alpha=0.5):
     charge_col = find_column_name_in_list(["z", "charge"], columns)
     label_col = find_column_name_in_list(["label", "information"], columns)
     color_col = find_column_name_in_list(["color", "colour"], columns)
-    colormap_col = find_column_name_in_list(["colormap"], columns)
+    colormap_col = find_column_name_in_list(["heatmap_colormap"], columns)
     alpha_col = find_column_name_in_list(["alpha", "transparency"], columns)
     mask_col = find_column_name_in_list(["mask"], columns)
 
@@ -713,7 +713,7 @@ def text_peaklist_open(path, default_mask=0.5, default_alpha=0.5):
             "charge": charge,
             "mz_ymax": intensity,
             "color": color,
-            "colormap": colormap,
+            "heatmap_colormap": colormap,
             "alpha": alpha,
             "mask": mask,
             "label": label,

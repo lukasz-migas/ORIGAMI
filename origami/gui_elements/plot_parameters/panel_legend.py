@@ -26,23 +26,20 @@ class PanelLegendSettings(PanelSettingsBase):
         """Make UI"""
         legend_toggle = wx.StaticText(self, -1, "Legend:")
         self.legend_toggle = make_toggle_btn(self, "Off", wx.RED)
-        self.legend_toggle.SetValue(CONFIG.legend)
         self.legend_toggle.Bind(wx.EVT_TOGGLEBUTTON, self.on_toggle_controls)
 
         legend_position = wx.StaticText(self, -1, "Position:")
         self.legend_position_value = wx.Choice(self, -1, choices=CONFIG.legend_position_choices, size=(-1, -1))
-        self.legend_position_value.SetStringSelection(CONFIG.legend_position)
         self.legend_position_value.Bind(wx.EVT_CHOICE, self.on_apply)
 
         legend_columns = wx.StaticText(self, -1, "Columns:")
         self.legend_columns_value = wx.SpinCtrlDouble(
-            self, -1, value=str(CONFIG.legend_columns), min=1, max=5, initial=0, inc=1, size=(90, -1)
+            self, -1, value=str(CONFIG.legend_n_columns), min=1, max=5, initial=0, inc=1, size=(90, -1)
         )
         self.legend_columns_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         legend_fontsize = wx.StaticText(self, -1, "Font size:")
         self.legend_fontsize_value = wx.Choice(self, -1, choices=CONFIG.legendFontChoice, size=(-1, -1))
-        self.legend_fontsize_value.SetStringSelection(CONFIG.legend_font_size)
         self.legend_fontsize_value.Bind(wx.EVT_CHOICE, self.on_apply)
 
         legend_marker_size = wx.StaticText(self, -1, "Marker size:")
@@ -59,7 +56,6 @@ class PanelLegendSettings(PanelSettingsBase):
 
         legend_marker_before = wx.StaticText(self, -1, "Marker before label:")
         self.legend_marker_before_check = make_checkbox(self, "")
-        self.legend_marker_before_check.SetValue(CONFIG.legend_marker_first)
         self.legend_marker_before_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         legend_alpha = wx.StaticText(self, -1, "Frame transparency:")
@@ -76,12 +72,10 @@ class PanelLegendSettings(PanelSettingsBase):
 
         legend_frame_label = wx.StaticText(self, -1, "Frame:")
         self.legend_frame_check = make_checkbox(self, "")
-        self.legend_frame_check.SetValue(CONFIG.legend_frame)
         self.legend_frame_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         legend_fancy = wx.StaticText(self, -1, "Rounded corners:")
         self.legend_fancybox_check = make_checkbox(self, "")
-        self.legend_fancybox_check.SetValue(CONFIG.legend_fancy_box)
         self.legend_fancybox_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         grid = wx.GridBagSizer(2, 2)
@@ -131,7 +125,7 @@ class PanelLegendSettings(PanelSettingsBase):
         """Apply legend parameters"""
         CONFIG.legend = self.legend_toggle.GetValue()
         CONFIG.legend_position = self.legend_position_value.GetStringSelection()
-        CONFIG.legend_columns = str2int(self.legend_columns_value.GetValue())
+        CONFIG.legend_n_columns = str2int(self.legend_columns_value.GetValue())
         CONFIG.legend_font_size = self.legend_fontsize_value.GetStringSelection()
         CONFIG.legend_frame = self.legend_frame_check.GetValue()
         CONFIG.legend_transparency = str2num(self.legend_alpha_value.GetValue())
@@ -166,6 +160,22 @@ class PanelLegendSettings(PanelSettingsBase):
         self.legend_patch_alpha_value.Enable(CONFIG.legend)
 
         self._parse_evt(evt)
+
+    def _on_set_config(self):
+        """Update values in the application based on config values"""
+        self.import_evt = True
+        self.legend_toggle.SetValue(CONFIG.legend)
+        self.legend_position_value.SetStringSelection(CONFIG.legend_position)
+        self.legend_columns_value.SetValue(CONFIG.legend_n_columns)
+        self.legend_marker_size_value.SetValue(CONFIG.legend_marker_size)
+        self.legend_n_markers_value.SetValue(CONFIG.legend_n_markers)
+        self.legend_marker_before_check.SetValue(CONFIG.legend_marker_first)
+        self.legend_fontsize_value.SetStringSelection(CONFIG.legend_font_size)
+        self.legend_alpha_value.SetValue(CONFIG.legend_transparency)
+        self.legend_patch_alpha_value.SetValue(CONFIG.legend_patch_transparency)
+        self.legend_frame_check.SetValue(CONFIG.legend_frame)
+        self.legend_fancybox_check.SetValue(CONFIG.legend_fancy_box)
+        self.import_evt = False
 
 
 class _TestFrame(wx.Frame):

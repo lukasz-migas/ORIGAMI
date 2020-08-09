@@ -95,8 +95,10 @@ class DocumentStore:
         "Tandem",  # pickled dictionary...
     ]
     CAN_EXTRACT = [
+        "Format: Waters (.raw)",
         "Format: MassLynx (.raw)",
         "Format: Thermo (.RAW)",
+        "Format: Multiple Waters (.raw)",
         "Format: Multiple MassLynx (.raw)",
         "Format: Multiple Thermo (.RAW)",
     ]

@@ -32,7 +32,6 @@ class Panel2dSettings(PanelSettingsBase):
         self.plot2d_plot_type_value = wx.Choice(
             self, -1, choices=CONFIG.heatmap_plot_type_choices, size=(-1, -1), name="2d.heatmap.view_type"
         )
-        self.plot2d_plot_type_value.SetStringSelection(CONFIG.heatmap_plot_type)
         self.plot2d_plot_type_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.plot2d_plot_type_value.Bind(wx.EVT_CHOICE, self.on_plot)
         self.plot2d_plot_type_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
@@ -41,7 +40,6 @@ class Panel2dSettings(PanelSettingsBase):
         self.plot2d_interpolation_value = wx.Choice(
             self, -1, choices=CONFIG.heatmap_interpolation_choices, size=(-1, -1), name="2d.heatmap.heatmap"
         )
-        self.plot2d_interpolation_value.SetStringSelection(CONFIG.heatmap_interpolation)
         self.plot2d_interpolation_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.plot2d_interpolation_value.Bind(wx.EVT_CHOICE, self.on_update)
 
@@ -64,7 +62,6 @@ class Panel2dSettings(PanelSettingsBase):
         self.plot2d_colormap_value = wx.Choice(
             self, -1, choices=CONFIG.colormap_choices, size=(-1, -1), name="2d.heatmap.heatmap"
         )
-        self.plot2d_colormap_value.SetStringSelection(CONFIG.heatmap_colormap)
         self.plot2d_colormap_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.plot2d_colormap_value.Bind(wx.EVT_CHOICE, self.on_update)
 
@@ -72,7 +69,6 @@ class Panel2dSettings(PanelSettingsBase):
         self.plot2d_normalization_value = wx.Choice(
             self, -1, choices=CONFIG.heatmap_normalization_choices, size=(-1, -1), name="2d.heatmap.normalization"
         )
-        self.plot2d_normalization_value.SetStringSelection(CONFIG.heatmap_normalization)
         self.plot2d_normalization_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.plot2d_normalization_value.Bind(wx.EVT_CHOICE, self.on_update)
         self.plot2d_normalization_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
@@ -254,3 +250,20 @@ class Panel2dSettings(PanelSettingsBase):
 
     def on_plot(self, evt):
         """Plot"""
+
+    def _on_set_config(self):
+        """Update values in the application based on config values"""
+        self.import_evt = True
+        # heatmap parameters
+        self.plot2d_plot_type_value.SetStringSelection(CONFIG.heatmap_plot_type)
+        self.plot2d_interpolation_value.SetStringSelection(CONFIG.heatmap_interpolation)
+        self.plot2d_n_contour_value.SetValue(CONFIG.heatmap_n_contour)
+        self.plot2d_colormap_value.SetStringSelection(CONFIG.heatmap_colormap)
+
+        # normalization parameters
+        self.plot2d_normalization_value.SetStringSelection(CONFIG.heatmap_normalization)
+        self.plot2d_min_value.SetValue(CONFIG.heatmap_normalization_min)
+        self.plot2d_mid_value.SetValue(CONFIG.heatmap_normalization_mid)
+        self.plot2d_max_value.SetValue(CONFIG.heatmap_normalization_max)
+        self.plot2d_normalization_gamma_value.SetValue(CONFIG.heatmap_normalization_power_gamma)
+        self.import_evt = False

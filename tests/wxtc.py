@@ -1,11 +1,13 @@
 """wxPython unit-test support"""
 # Standard library imports
+from typing import List
 from typing import Union
 
 # Third-party imports
 import wx
 
 INTERVAL = 100
+WAIT = 50
 
 
 class WidgetTestCase:
@@ -67,9 +69,9 @@ class WidgetTestCase:
         need to make our own EventLoop for Yield to actually do anything
         useful.
         """
-        evtLoop = self.app.GetTraits().CreateEventLoop()
-        activator = wx.EventLoopActivator(evtLoop)  # automatically restores the old one
-        evtLoop.YieldFor(eventsToProcess)
+        evt_loop = self.app.GetTraits().CreateEventLoop()
+        activator = wx.EventLoopActivator(evt_loop)  # automatically restores the old one
+        evt_loop.YieldFor(eventsToProcess)
 
     def update_(self, window):
         """
@@ -110,16 +112,39 @@ class WidgetTestCase:
         wx.PostEvent(button, wx.PyCommandEvent(wx.EVT_BUTTON.typeId, button.GetId()))
         self.yield_()
 
+    def sim_button_click_evt(self, button: wx.Button, handlers: List):
+        """Simulate button click"""
+        evt = wx.PyCommandEvent(wx.EVT_BUTTON.typeId, button.GetId())
+        for handler in handlers:
+            handler(evt)
+        self.yield_()
+
     def sim_checkbox_click(self, checkbox: wx.CheckBox, value: bool):
         """Simulate wx.CheckBox click"""
         checkbox.SetValue(value)
         wx.PostEvent(checkbox, wx.PyCommandEvent(wx.EVT_CHECKBOX.typeId, checkbox.GetId()))
         self.yield_()
 
+    def sim_checkbox_click_evt(self, checkbox: wx.CheckBox, value: bool, handlers: List):
+        """Simulate wx.CheckBox click"""
+        checkbox.SetValue(value)
+        evt = wx.PyCommandEvent(wx.EVT_CHECKBOX.typeId, checkbox.GetId())
+        for handler in handlers:
+            handler(evt)
+        self.yield_()
+
     def sim_toggle_click(self, toggle: wx.ToggleButton, value: bool):
         """Simulate wx.CheckBox click"""
         toggle.SetValue(value)
         wx.PostEvent(toggle, wx.PyCommandEvent(wx.EVT_TOGGLEBUTTON.typeId, toggle.GetId()))
+        self.yield_()
+
+    def sim_toggle_click_evt(self, toggle: wx.ToggleButton, value: bool, handlers: List):
+        """Simulate wx.CheckBox click"""
+        toggle.SetValue(value)
+        evt = wx.PyCommandEvent(wx.EVT_TOGGLEBUTTON.typeId, toggle.GetId())
+        for handler in handlers:
+            handler(evt)
         self.yield_()
 
     def sim_combobox_click(self, combobox: Union[wx.ComboBox, wx.Choice], value: Union[int, str]):
@@ -134,6 +159,21 @@ class WidgetTestCase:
             wx.PostEvent(combobox, wx.PyCommandEvent(wx.EVT_CHOICE.typeId, combobox.GetId()))
         self.yield_()
 
+    def sim_combobox_click_evt(self, combobox: Union[wx.ComboBox, wx.Choice], value: bool, handlers: List):
+        """Simulate wx.CheckBox click"""
+        if isinstance(value, str):
+            combobox.SetStringSelection(value)
+        else:
+            combobox.SetSelection(value)
+
+        if isinstance(combobox, wx.ComboBox):
+            evt = wx.PyCommandEvent(wx.EVT_COMBOBOX.typeId, combobox.GetId())
+        else:
+            evt = wx.PyCommandEvent(wx.EVT_CHOICE.typeId, combobox.GetId())
+        for handler in handlers:
+            handler(evt)
+        self.yield_()
+
     def sim_spin_ctrl_click(self, spin_ctrl: wx.SpinCtrl, value: bool):
         """Simulate wx.SpinCtrl click"""
         spin_ctrl.SetValue(value)
@@ -144,6 +184,19 @@ class WidgetTestCase:
         """Simulate wx.SpinCtrlDouble click"""
         spin_ctrl_dbl.SetValue(value)
         wx.PostEvent(spin_ctrl_dbl, wx.PyCommandEvent(wx.EVT_SPINCTRLDOUBLE.typeId, spin_ctrl_dbl.GetId()))
+        self.yield_()
+
+    def sim_spin_ctrl_click_evt(self, spin_ctrl: Union[wx.SpinCtrlDouble, wx.SpinCtrl], value: bool, handlers: List):
+        """Simulate wx.CheckBox click"""
+        spin_ctrl.SetValue(value)
+
+        if isinstance(spin_ctrl, wx.SpinCtrlDouble):
+            evt = wx.PyCommandEvent(wx.EVT_SPINCTRLDOUBLE.typeId, spin_ctrl.GetId())
+        else:
+            evt = wx.PyCommandEvent(wx.EVT_SPINCTRL.typeId, spin_ctrl.GetId())
+
+        for handler in handlers:
+            handler(evt)
         self.yield_()
 
 

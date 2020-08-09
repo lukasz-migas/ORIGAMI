@@ -61,12 +61,12 @@ class ViewMPLMixin:
     ):
         """Add text label to the plot"""
         plt_kwargs = {
-            "horizontalalignment": kwargs.pop("horizontal_alignment", "center"),
-            "verticalalignment": kwargs.pop("vertical_alignment", "center"),
+            "horizontalalignment": kwargs.pop("annotation_label_horz", "center"),
+            "verticalalignment": kwargs.pop("annotation_label_vert", "center"),
             "check_yscale": kwargs.pop("check_yscale", False),
             "butterfly_plot": kwargs.pop("butterfly_plot", False),
-            "fontweight": kwargs.pop("font_weight", "normal"),
-            "fontsize": kwargs.pop("font_size", "medium"),
+            "fontweight": kwargs.pop("annotation_label_font_weight", "normal"),
+            "fontsize": kwargs.pop("annotation_label_font_size", "medium"),
         }
         y_offset = kwargs.get("yoffset", 0.0)
         if name is None:

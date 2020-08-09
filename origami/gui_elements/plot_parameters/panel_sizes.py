@@ -158,3 +158,8 @@ class PanelSizesSettings(PanelSettingsBase):
             LOGGER.warning("Could not retrieve view - cannot update plot size")
 
         self._parse_evt(evt)
+
+    def _on_set_config(self):
+        """Update values in the application based on config values"""
+        self.import_evt = True
+        self.import_evt = False

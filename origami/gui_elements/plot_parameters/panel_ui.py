@@ -31,24 +31,20 @@ class PanelUISettings(PanelSettingsBase):
         self.zoom_normal_color_btn = wx.Button(
             self, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="zoom.drag.normal"
         )
-        self.zoom_normal_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.zoom_color_normal))  # noqa
         self.zoom_normal_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
         zoom_zoom_horizontal_color_label = wx.StaticText(self, -1, "Drag color (extract):")
         self.zoom_extract_color_btn = wx.Button(
             self, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="zoom.drag.extract"
         )
-        self.zoom_extract_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.zoom_color_extract))  # noqa
         self.zoom_extract_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
         general_log_to_file_check = wx.StaticText(self, -1, "Log events to file:")
         self.general_log_to_file_check = make_checkbox(self, "", evt_id=ID_extraSettings_logging)
-        self.general_log_to_file_check.SetValue(CONFIG.APP_ENABLE_LOGGING)
         self.general_log_to_file_check.Bind(wx.EVT_CHECKBOX, self.on_update_states)
 
         general_auto_save_check = wx.StaticText(self, -1, "Auto-save settings:")
         self.general_auto_save_check = make_checkbox(self, "", evt_id=ID_extraSettings_autoSaveSettings)
-        self.general_auto_save_check.SetValue(CONFIG.APP_ENABLE_CONFIG_AUTO_SAVE)
         self.general_auto_save_check.Bind(wx.EVT_CHECKBOX, self.on_update_states)
 
         usage_parameters_label = wx.StaticText(self, -1, "In-plot interactivity parameters")
@@ -142,3 +138,12 @@ class PanelUISettings(PanelSettingsBase):
                 extract=convert_rgb_1_to_hex(CONFIG.zoom_color_extract),
             ),
         )
+
+    def _on_set_config(self):
+        """Update values in the application based on config values"""
+        self.import_evt = True
+        self.zoom_normal_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.zoom_color_normal))  # noqa
+        self.zoom_extract_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.zoom_color_extract))  # noqa
+        self.general_log_to_file_check.SetValue(CONFIG.APP_ENABLE_LOGGING)
+        self.general_auto_save_check.SetValue(CONFIG.APP_ENABLE_CONFIG_AUTO_SAVE)
+        self.import_evt = False

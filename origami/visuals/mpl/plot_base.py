@@ -242,14 +242,14 @@ class PlotBase(MPLPanel):
         if kwargs.get("legend", CONFIG.legend):
             legend = self.plot_base.legend(
                 loc=kwargs.get("legend_position", CONFIG.legend_position),
-                ncol=kwargs.get("legend_num_columns", CONFIG.legend_columns),
+                ncol=kwargs.get("legend_n_columns", CONFIG.legend_n_columns),
                 fontsize=kwargs.get("legend_font_size", CONFIG.legend_font_size),
-                frameon=kwargs.get("legend_frame_on", CONFIG.legend_frame),
+                frameon=kwargs.get("legend_frame", CONFIG.legend_frame),
                 framealpha=kwargs.get("legend_transparency", CONFIG.legend_transparency),
                 markerfirst=kwargs.get("legend_marker_first", CONFIG.legend_marker_first),
                 markerscale=kwargs.get("legend_marker_size", CONFIG.legend_marker_size),
                 fancybox=kwargs.get("legend_fancy_box", CONFIG.legend_fancy_box),
-                scatterpoints=kwargs.get("legend_num_markers", CONFIG.legend_n_markers),
+                scatterpoints=kwargs.get("legend_n_markers", CONFIG.legend_n_markers),
                 handles=handles,
             )
             if "legend_zorder" in kwargs:
@@ -264,59 +264,67 @@ class PlotBase(MPLPanel):
         except (AttributeError, KeyError):
             logger.warning("Could not remove legend from the plot area - did it exist?")
 
-    def set_plot_xlabel(self, xlabel: str, **kwargs):
+    def set_plot_xlabel(self, xlabel: str = None, **kwargs):
         """Set plot x-axis label"""
         kwargs = ut_visuals.check_plot_settings(**kwargs)
 
         if xlabel is None:
             xlabel = self.plot_base.get_xlabel()
         self.plot_base.set_xlabel(
-            xlabel, labelpad=kwargs["label_pad"], fontsize=kwargs["label_size"], weight=kwargs["label_weight"]
+            xlabel,
+            labelpad=kwargs["axes_label_pad"],
+            fontsize=kwargs["axes_tick_font_size"],
+            weight=kwargs["axes_label_font_weight"],
         )
         self.plot_labels["xlabel"] = xlabel
 
-    def set_plot_ylabel(self, ylabel: str, **kwargs):
+    def set_plot_ylabel(self, ylabel: str = None, **kwargs):
         """Set plot y-axis label"""
         kwargs = ut_visuals.check_plot_settings(**kwargs)
         if ylabel is None:
             ylabel = self.plot_base.get_ylabel()
         self.plot_base.set_ylabel(
-            ylabel, labelpad=kwargs["label_pad"], fontsize=kwargs["label_size"], weight=kwargs["label_weight"]
+            ylabel,
+            labelpad=kwargs["axes_label_pad"],
+            fontsize=kwargs["axes_tick_font_size"],
+            weight=kwargs["axes_label_font_weight"],
         )
         self.plot_labels["ylabel"] = ylabel
 
-    def set_plot_title(self, title: str, **kwargs):
+    def set_plot_title(self, title: str = None, **kwargs):
         """Set plot title"""
         kwargs = ut_visuals.check_plot_settings(**kwargs)
 
         if title is None:
             title = self.plot_base.get_title()
 
-        self.plot_base.set_title(title, fontsize=kwargs["title_size"], weight=kwargs.get("label_weight", "normal"))
+        self.plot_base.set_title(
+            title, fontsize=kwargs["axes_title_font_size"], weight=kwargs.get("axes_label_font_weight", "normal")
+        )
 
     def set_tick_parameters(self, **kwargs):
         """Set tick parameters"""
 
-        matplotlib.rc("xtick", labelsize=kwargs["tick_size"])
-        matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
+        matplotlib.rc("xtick", labelsize=kwargs["axes_tick_font_size"])
+        matplotlib.rc("ytick", labelsize=kwargs["axes_tick_font_size"])
 
         # update axis frame
-        if kwargs["axis_onoff"]:
+        if kwargs["axes_frame_show"]:
             self.plot_base.set_axis_on()
         else:
             self.plot_base.set_axis_off()
 
         self.plot_base.tick_params(
             axis="both",
-            left=kwargs["ticks_left"],
-            right=kwargs["ticks_right"],
-            top=kwargs["ticks_top"],
-            bottom=kwargs["ticks_bottom"],
-            labelleft=kwargs["tickLabels_left"],
-            labelright=kwargs["tickLabels_right"],
-            labeltop=kwargs["tickLabels_top"],
-            labelbottom=kwargs["tickLabels_bottom"],
-            labelsize=kwargs["tick_size"],
+            left=kwargs["axes_frame_ticks_left"],
+            right=kwargs["axes_frame_ticks_right"],
+            top=kwargs["axes_frame_ticks_top"],
+            bottom=kwargs["axes_frame_ticks_bottom"],
+            labelleft=kwargs["axes_frame_tick_labels_left"],
+            labelright=kwargs["axes_frame_tick_labels_right"],
+            labeltop=kwargs["axes_frame_tick_labels_top"],
+            labelbottom=kwargs["axes_frame_tick_labels_bottom"],
+            labelsize=kwargs["axes_tick_font_size"],
         )
 
         # prevent scientific notation
@@ -326,11 +334,11 @@ class PlotBase(MPLPanel):
             logger.warning("Could not fully set label offsets", exc_info=False)
 
         # setup borders
-        self.plot_base.spines["left"].set_visible(kwargs["spines_left"])
-        self.plot_base.spines["right"].set_visible(kwargs["spines_right"])
-        self.plot_base.spines["top"].set_visible(kwargs["spines_top"])
-        self.plot_base.spines["bottom"].set_visible(kwargs["spines_bottom"])
-        [i.set_linewidth(kwargs["frame_width"]) for i in self.plot_base.spines.values()]
+        self.plot_base.spines["left"].set_visible(kwargs["axes_frame_spine_left"])
+        self.plot_base.spines["right"].set_visible(kwargs["axes_frame_spine_right"])
+        self.plot_base.spines["top"].set_visible(kwargs["axes_frame_spine_top"])
+        self.plot_base.spines["bottom"].set_visible(kwargs["axes_frame_spine_bottom"])
+        [i.set_linewidth(kwargs["axes_frame_width"]) for i in self.plot_base.spines.values()]
 
     # def _convert_yaxis(self, values, label, set_divider=True, convert_values=True):
     #     """ Function to check whether x/y axis labels do not need formatting """
@@ -414,8 +422,8 @@ class PlotBase(MPLPanel):
     # def _check_colormap(self, cmap=None, **kwargs):
     #     #         # checking entire dict
     #     #         if cmap is None:
-    #     #             if kwargs["colormap"] in CONFIG.cmocean_cmaps:
-    #     #                 kwargs["colormap"] = eval("cmocean.cm.%s" % kwargs["colormap"])
+    #     #             if kwargs["heatmap_colormap"] in CONFIG.cmocean_cmaps:
+    #     #                 kwargs["heatmap_colormap"] = eval("cmocean.cm.%s" % kwargs["heatmap_colormap"])
     #     #             return kwargs
     #     #
     #     #         # only checking colormap
@@ -551,12 +559,12 @@ class PlotBase(MPLPanel):
             ymin,
             dx,
             dy,
-            head_length=kwargs.get("arrow_head_length", 0),
-            head_width=kwargs.get("arrow_head_width", 0),
+            head_length=kwargs.get("annotation_arrow_cap_length", 0),
+            head_width=kwargs.get("annotation_arrow_cap_width", 0),
             fc=kwargs.get("arrow_face_color", (0.5, 0.5, 0.5)),
             ec=kwargs.get("arrow_edge_color", (0.5, 0.5, 0.5)),
-            lw=kwargs.get("arrow_line_width", 0.5),
-            ls=kwargs.get("arrow_line_style", ":"),
+            lw=kwargs.get("annotation_arrow_line_width", 0.5),
+            ls=kwargs.get("annotation_arrow_line_style", ":"),
         )
         arrow.obj_name = obj_name  # custom tag
         arrow.obj_props = obj_props
@@ -771,7 +779,7 @@ class PlotBase(MPLPanel):
         text = self.plot_base.text(
             np.array(x), y + y_offset, label, color=color, clip_on=True, zorder=zorder, picker=pickable, **kwargs
         )
-        text._yposition = y - kwargs.get("labels_y_offset", CONFIG.waterfall_labels_y_offset)
+        # text._yposition = y - kwargs.get("labels_y_offset", CONFIG.waterfall_labels_y_offset)  # TODO: replace!
         text.obj_name = text_name  # custom tag
         text.y_divider = self.y_divider
         self.text.append(text)
@@ -925,10 +933,10 @@ class PlotBase(MPLPanel):
         lc, fc = self.get_waterfall_colors(n_signals, **kwargs)
         for collection in self.plot_base.collections:
             if isinstance(collection, LineCollection):
-                collection.set_linestyle(kwargs["line_style"])
-                collection.set_linewidth(kwargs["line_width"])
+                collection.set_linestyle(kwargs["waterfall_line_style"])
+                collection.set_linewidth(kwargs["waterfall_line_width"])
                 collection.set_edgecolors(lc)
-                if kwargs["shade_under"]:
+                if kwargs["waterfall_fill_under"]:
                     collection.set_facecolors(fc)
                 else:
                     collection.set_facecolors([])
@@ -936,7 +944,7 @@ class PlotBase(MPLPanel):
     def plot_waterfall_reset_label(self, x, y, array, **kwargs):
         """Update waterfall labels"""
         _, _, label_x, label_y, label_text = self._prepare_waterfall(x, y, array, **kwargs)
-        if kwargs["add_labels"]:
+        if kwargs["waterfall_labels_show"]:
             self.plot_add_labels(
                 label_x, label_y, label_text, pickable=False, **self._get_waterfall_label_kwargs(**kwargs)
             )
@@ -963,21 +971,21 @@ class PlotBase(MPLPanel):
     #
     #     # update line settings
     #     for __, line in enumerate(self.plot_base.get_lines()):
-    #         line.set_linewidth(kwargs["line_width"])
-    #         line.set_linestyle(kwargs["line_style"])
-    #         line.set_color(kwargs["line_color"])
+    #         line.set_linewidth(kwargs["spectrum_line_width"])
+    #         line.set_linestyle(kwargs["spectrum_line_style"])
+    #         line.set_color(kwargs["spectrum_line_color"])
     #
     #     # add shade if it has been previously deleted
-    #     if kwargs["shade_under"] and not self.plot_base.collections:
+    #     if kwargs["spectrum_line_fill_under"] and not self.plot_base.collections:
     #         xvals, yvals, _, _, _ = self.plot_1D_get_data(use_divider=False)
     #         self.plot_1d_add_under_curve(xvals[0], yvals[0], **kwargs)
     #
     #     for __, shade in enumerate(self.plot_base.collections):
-    #         if not kwargs["shade_under"]:
+    #         if not kwargs["spectrum_line_fill_under"]:
     #             shade.remove()
     #         else:
-    #             shade.set_facecolor(kwargs["shade_under_color"])
-    #             shade.set_alpha(kwargs["shade_under_transparency"])
+    #             shade.set_facecolor(kwargs["spectrum_fill_color"])
+    #             shade.set_alpha(kwargs["spectrum_fill_transparency"])
     #
     #     self._update_plot_settings_(**kwargs)
 
@@ -992,58 +1000,58 @@ class PlotBase(MPLPanel):
     #     kwargs = ut_visuals.check_plot_settings(**kwargs)
     #
     #     # update ticks
-    #     matplotlib.rc("xtick", labelsize=kwargs["tick_size"])
-    #     matplotlib.rc("ytick", labelsize=kwargs["tick_size"])
+    #     matplotlib.rc("xtick", labelsize=kwargs["axes_tick_font_size"])
+    #     matplotlib.rc("ytick", labelsize=kwargs["axes_tick_font_size"])
     #
     #     # update labels
     #     for plot_obj in [self.plotRMSF, self.plot_base]:
     #         # Setup font size info
     #         plot_obj.set_ylabel(
     #             plot_obj.get_ylabel(),
-    #             labelpad=kwargs["label_pad"],
-    #             fontsize=kwargs["label_size"],
-    #             weight=kwargs["label_weight"],
+    #             labelpad=kwargs["axes_label_pad"],
+    #             fontsize=kwargs["axes_tick_font_size"],
+    #             weight=kwargs["axes_label_font_weight"],
     #         )
     #         plot_obj.set_ylabel(
     #             plot_obj.get_ylabel(),
-    #             labelpad=kwargs["label_pad"],
-    #             fontsize=kwargs["label_size"],
-    #             weight=kwargs["label_weight"],
+    #             labelpad=kwargs["axes_label_pad"],
+    #             fontsize=kwargs["axes_tick_font_size"],
+    #             weight=kwargs["axes_label_font_weight"],
     #         )
     #
-    #         plot_obj.tick_params(labelsize=kwargs["tick_size"])
+    #         plot_obj.tick_params(labelsize=kwargs["axes_tick_font_size"])
     #
     #         # update axis frame
-    #         plot_obj.set_axis_on() if kwargs["axis_onoff"] else plot_obj.set_axis_off()
+    #         plot_obj.set_axis_on() if kwargs["axes_frame_show"] else plot_obj.set_axis_off()
     #
     #         plot_obj.tick_params(
     #             axis="both",
-    #             left=kwargs["ticks_left"],
-    #             right=kwargs["ticks_right"],
-    #             top=kwargs["ticks_top"],
-    #             bottom=kwargs["ticks_bottom"],
-    #             labelleft=kwargs["tickLabels_left"],
-    #             labelright=kwargs["tickLabels_right"],
-    #             labeltop=kwargs["tickLabels_top"],
-    #             labelbottom=kwargs["tickLabels_bottom"],
+    #             left=kwargs["axes_frame_ticks_left"],
+    #             right=kwargs["axes_frame_ticks_right"],
+    #             top=kwargs["axes_frame_ticks_top"],
+    #             bottom=kwargs["axes_frame_ticks_bottom"],
+    #             labelleft=kwargs["axes_frame_tick_labels_left"],
+    #             labelright=kwargs["axes_frame_tick_labels_right"],
+    #             labeltop=kwargs["axes_frame_tick_labels_top"],
+    #             labelbottom=kwargs["axes_frame_tick_labels_bottom"],
     #         )
     #
-    #         plot_obj.spines["left"].set_visible(kwargs["spines_left"])
-    #         plot_obj.spines["right"].set_visible(kwargs["spines_right"])
-    #         plot_obj.spines["top"].set_visible(kwargs["spines_top"])
-    #         plot_obj.spines["bottom"].set_visible(kwargs["spines_bottom"])
-    #         [i.set_linewidth(kwargs["frame_width"]) for i in plot_obj.spines.values()]
+    #         plot_obj.spines["left"].set_visible(kwargs["axes_frame_spine_left"])
+    #         plot_obj.spines["right"].set_visible(kwargs["axes_frame_spine_right"])
+    #         plot_obj.spines["top"].set_visible(kwargs["axes_frame_spine_top"])
+    #         plot_obj.spines["bottom"].set_visible(kwargs["axes_frame_spine_bottom"])
+    #         [i.set_linewidth(kwargs["axes_frame_width"]) for i in plot_obj.spines.values()]
     #
     #     # update line style, width, etc
     #     for _, line in enumerate(self.plotRMSF.get_lines()):
-    #         line.set_linewidth(kwargs["rmsd_line_width"])
-    #         line.set_linestyle(kwargs["rmsd_line_style"])
-    #         line.set_color(kwargs["rmsd_line_color"])
+    #         line.set_linewidth(kwargs["rmsf_line_width"])
+    #         line.set_linestyle(kwargs["rmsf_line_style"])
+    #         line.set_color(kwargs["rmsf_line_color"])
     #
     #     for __, shade in enumerate(self.plotRMSF.collections):
-    #         shade.set_facecolor(kwargs["rmsd_underline_color"])
-    #         shade.set_alpha(kwargs["rmsd_underline_transparency"])
-    #         shade.set_hatch(kwargs["rmsd_underline_hatch"])
+    #         shade.set_facecolor(kwargs["rmsf_fill_color"])
+    #         shade.set_alpha(kwargs["rmsf_fill_transparency"])
+    #         shade.set_hatch(kwargs["rmsf_fill_hatch"])
 
     def plot_update_axes(self, axes_sizes: List[float]):
         """Update axes position"""
@@ -1078,29 +1086,47 @@ class PlotBase(MPLPanel):
         """Get list of colors to be used by the waterfall plot"""
         lc, fc = [], []
 
+        # get appropriate key for whether it is a waterfall or violin plot
+        color_schema_key = "violin_color_scheme" if "violin_color_scheme" in kwargs else "waterfall_color_scheme"
+        palette_schema_key = "violin_palette" if "violin_palette" in kwargs else "waterfall_palette"
+        colormap_key = "violin_colormap" if "violin_colormap" in kwargs else "waterfall_colormap"
+        fill_color_key = (
+            "violin_fill_under_color" if "violin_fill_under_color" in kwargs else "waterfall_fill_under_color"
+        )
+        line_same_as_fill_key = (
+            "violin_line_same_as_fill" if "violin_line_same_as_fill" in kwargs else "waterfall_line_same_as_fill"
+        )
+        line_color_key = "violin_line_color" if "violin_line_color" in kwargs else "waterfall_line_color"
+        fill_under_transparency_key = (
+            "violin_fill_under_transparency"
+            if "violin_fill_under_transparency" in kwargs
+            else "waterfall_fill_under_transparency"
+        )
+        # fill_under_check = "violin_fill_under" if "violin_fill_under" in kwargs else "waterfall_fill_under"
+
         # check if colors should be a colormap
-        if kwargs["color_scheme"] == "Colormap":
-            fc = color_palette(kwargs["colormap"], n_colors)
+        if kwargs[color_schema_key] == "Colormap":
+            fc = color_palette(kwargs[colormap_key], n_colors)
         # or color palette
-        elif kwargs["color_scheme"] == "Color palette":
-            if kwargs["palette"] not in ["Spectral", "RdPu"]:
-                kwargs["palette"] = kwargs["palette"].lower()
-            fc = color_palette(kwargs["palette"], n_colors)
+        elif kwargs[color_schema_key] == "Color palette":
+            if kwargs[palette_schema_key] not in ["Spectral", "RdPu"]:
+                kwargs[palette_schema_key] = kwargs["palette"].lower()
+            fc = color_palette(kwargs[palette_schema_key], n_colors)
         # or same color
-        elif kwargs["color_scheme"] == "Same color":
-            fc = [kwargs["shade_color"]] * n_colors
+        elif kwargs[color_schema_key] == "Same color":
+            fc = [kwargs[fill_color_key]] * n_colors
         # or random color
-        elif kwargs["color_scheme"] == "Random":
+        elif kwargs[color_schema_key] == "Random":
             fc = [get_random_color() for _ in range(n_colors)]
 
-        if kwargs["line_color_as_shade"]:
+        if kwargs[line_same_as_fill_key]:
             lc = copy(fc)
         else:
-            lc = [kwargs["line_color"]] * n_colors
+            lc = [kwargs[line_color_key]] * n_colors
 
         # change alpha channel
         _fc = []
-        alpha = kwargs.get("shade_under_transparency", 0.25)
+        alpha = kwargs.get(fill_under_transparency_key, 0.25)
         for color in copy(fc):
             color = list(color)
             color.append(alpha)
@@ -1125,16 +1151,16 @@ class PlotBase(MPLPanel):
             if label_frequency:
                 label_x.append(_label_x)
                 label_y.append(_y.min() + label_y_offset)
-                label_text.append(ut_visuals.convert_label(x[i], label_format=kwargs["labels_format"]))
+                label_text.append(ut_visuals.convert_label(x[i], label_format=kwargs["waterfall_labels_format"]))
 
         # TODO: add `fix_end` option to prevent incorrect shading
-        normalize = kwargs.get("normalize", True)
-        y_increment = kwargs["increment"]
-        label_y_offset = kwargs["labels_y_offset"]
-        label_frequency = int(kwargs["labels_frequency"])
+        normalize = kwargs.get("waterfall_normalize", True)
+        y_increment = kwargs["waterfall_increment"]
+        label_y_offset = kwargs["waterfall_labels_y_offset"]
+        label_frequency = int(kwargs["waterfall_labels_frequency"])
         #         fix_end = kwargs.get("fix_end", True)
 
-        if kwargs["reverse"]:
+        if kwargs["waterfall_reverse"]:
             array = np.fliplr(array)
             x = x[::-1]
 
@@ -1143,7 +1169,7 @@ class PlotBase(MPLPanel):
         yy, xy = [], []
         label_x, label_y, label_text = [], [], []
         if array is not None:
-            _label_x = y.max() * kwargs["labels_x_offset"]
+            _label_x = y.max() * kwargs["waterfall_labels_x_offset"]
             for i, _y in enumerate(array.T):
                 # normalize (to 1) the intensity of signal
                 if normalize:
@@ -1179,12 +1205,12 @@ class PlotBase(MPLPanel):
     def _get_waterfall_label_kwargs(**kwargs):
         """Get kwargs to be consumed by the labels function"""
         return {
-            "horizontalalignment": kwargs.pop("horizontal_alignment", "center"),
-            "verticalalignment": kwargs.pop("vertical_alignment", "center"),
+            "horizontalalignment": kwargs.pop("annotation_label_horz", "center"),
+            "verticalalignment": kwargs.pop("annotation_label_vert", "center"),
             "check_yscale": kwargs.pop("check_yscale", False),
             "butterfly_plot": kwargs.pop("butterfly_plot", False),
-            "fontweight": "bold" if kwargs["labels_font_weight"] else "normal",
-            "fontsize": kwargs.pop("labels_font_size", "medium"),
+            "fontweight": "bold" if kwargs["waterfall_labels_font_weight"] else "normal",
+            "fontsize": kwargs.pop("waterfall_labels_font_size", "medium"),
         }
 
     def plot_waterfall(self, x, y, array, x_label=None, y_label=None, **kwargs):
@@ -1204,11 +1230,11 @@ class PlotBase(MPLPanel):
 
         # set line style
         coll.set_edgecolors(lc)
-        coll.set_linestyle(kwargs["line_style"])
-        coll.set_linewidths(kwargs["line_width"])
+        coll.set_linestyle(kwargs["waterfall_line_style"])
+        coll.set_linewidths(kwargs["waterfall_line_width"])
 
         # set face style
-        if kwargs["shade_under"]:
+        if kwargs["waterfall_fill_under"]:
             coll.set_facecolors(fc)
 
         # set labels

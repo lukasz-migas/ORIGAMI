@@ -29,7 +29,6 @@ class PanelColorbarSettings(PanelSettingsBase):
         """Make colorbar controls"""
         colorbar_tgl = wx.StaticText(self, -1, "Colorbar:")
         self.colorbar_tgl = make_toggle_btn(self, "Off", wx.RED, name="2d.heatmap.colorbar")
-        self.colorbar_tgl.SetValue(CONFIG.colorbar)
         self.colorbar_tgl.Bind(wx.EVT_TOGGLEBUTTON, self.on_toggle_controls)
         self.colorbar_tgl.Bind(wx.EVT_TOGGLEBUTTON, self.on_apply)
         self.colorbar_tgl.Bind(wx.EVT_TOGGLEBUTTON, self.on_update)
@@ -38,7 +37,6 @@ class PanelColorbarSettings(PanelSettingsBase):
         self.colorbar_label_format = wx.Choice(
             self, -1, choices=CONFIG.colorbar_fmt_choices, size=(-1, -1), name="2d.heatmap.colorbar"
         )
-        self.colorbar_label_format.SetStringSelection(CONFIG.colorbar_fmt)
         self.colorbar_label_format.Bind(wx.EVT_CHOICE, self.on_apply)
         self.colorbar_label_format.Bind(wx.EVT_CHOICE, self.on_update)
 
@@ -46,7 +44,6 @@ class PanelColorbarSettings(PanelSettingsBase):
         self.colorbar_position_value = wx.Choice(
             self, -1, choices=CONFIG.colorbar_position_choices, size=(-1, -1), name="2d.heatmap.colorbar"
         )
-        self.colorbar_position_value.SetStringSelection(CONFIG.colorbar_position)
         self.colorbar_position_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.colorbar_position_value.Bind(wx.EVT_CHOICE, self.on_update)
         self.colorbar_position_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
@@ -115,14 +112,12 @@ class PanelColorbarSettings(PanelSettingsBase):
         self.colorbar_label_color_btn = wx.Button(
             self, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0.0, name="2d.heatmap.colorbar.label"
         )
-        self.colorbar_label_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.colorbar_label_color))
         self.colorbar_label_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
         colorbar_outline_color = wx.StaticText(self, -1, "Outline color:")
         self.colorbar_outline_color_btn = wx.Button(
             self, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="2d.heatmap.colorbar.outline"
         )
-        self.colorbar_outline_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.colorbar_edge_color))
         self.colorbar_outline_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
         colorbar_outline_width = wx.StaticText(self, -1, "Frame width:")
@@ -187,7 +182,7 @@ class PanelColorbarSettings(PanelSettingsBase):
         CONFIG.colorbar_width = str2num(self.colorbar_width_value.GetValue())
         CONFIG.colorbar_pad = str2num(self.colorbar_pad_value.GetValue())
         CONFIG.colorbar_label_size = str2num(self.colorbar_fontsize_value.GetValue())
-        CONFIG.colorbar_fmt = self.colorbar_label_format.GetStringSelection()
+        CONFIG.colorbar_label_fmt = self.colorbar_label_format.GetStringSelection()
         CONFIG.colorbar_edge_width = str2num(self.colorbar_outline_width_value.GetValue())
         CONFIG.colorbar_inset_width = str2num(self.colorbar_width_inset_value.GetValue())
 
@@ -248,3 +243,18 @@ class PanelColorbarSettings(PanelSettingsBase):
             CONFIG.colorbar_label_color = color_1
             self.colorbar_label_color_btn.SetBackgroundColour(color_255)
             self.on_update(evt)
+
+    def _on_set_config(self):
+        """Update values in the application based on config values"""
+        self.import_evt = True
+        self.colorbar_tgl.SetValue(CONFIG.colorbar)
+        self.colorbar_label_format.SetStringSelection(CONFIG.colorbar_label_fmt)
+        self.colorbar_position_value.SetStringSelection(CONFIG.colorbar_position)
+        self.colorbar_width_value.SetValue(CONFIG.colorbar_width)
+        self.colorbar_width_inset_value.SetValue(CONFIG.colorbar_inset_width)
+        self.colorbar_fontsize_value.SetValue(CONFIG.colorbar_label_size)
+        self.colorbar_label_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.colorbar_label_color))
+        self.colorbar_outline_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.colorbar_edge_color))
+        self.colorbar_outline_width_value.SetValue(CONFIG.colorbar_edge_width)
+        self.colorbar_pad_value.SetValue(CONFIG.colorbar_pad)
+        self.import_evt = False

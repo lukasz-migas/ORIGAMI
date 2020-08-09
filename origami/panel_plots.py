@@ -929,12 +929,12 @@ class PanelPlots(wx.Panel):
         #         "major_yticker": plot.plot_base.yaxis.get_major_locator(),
         #         "minor_xticker": plot.plot_base.xaxis.get_minor_locator(),
         #         "minor_yticker": plot.plot_base.yaxis.get_minor_locator(),
-        #         "tick_size": CONFIG.tickFontSize_1D,
-        #         "tick_weight": CONFIG.tickFontWeight_1D,
-        #         "label_size": CONFIG.labelFontSize_1D,
-        #         "label_weight": CONFIG.labelFontWeight_1D,
-        #         "title_size": CONFIG.titleFontSize_1D,
-        #         "title_weight": CONFIG.titleFontWeight_1D,
+        #         "axes_tick_font_size": CONFIG.tickFontSize_1D,
+        #         "axes_tick_font_weight": CONFIG.tickFontWeight_1D,
+        #         "axes_tick_font_size": CONFIG.labelFontSize_1D,
+        #         "axes_label_font_weight": CONFIG.labelFontWeight_1D,
+        #         "axes_title_font_size": CONFIG.titleFontSize_1D,
+        #         "axes_title_font_weight": CONFIG.titleFontWeight_1D,
         #         "xlabel": plot.plot_base.get_xlabel(),
         #         "ylabel": plot.plot_base.get_ylabel(),
         #         "title": plot.plot_base.get_title(),
@@ -1273,12 +1273,12 @@ class PanelPlots(wx.Panel):
     # def on_plot_labels(self, xpos, yval, label="", plot="MS", repaint=False, optimise_labels=False, **kwargs):
     #
     #     plt_kwargs = {
-    #         "horizontalalignment": kwargs.pop("horizontal_alignment", "center"),
-    #         "verticalalignment": kwargs.pop("vertical_alignment", "center"),
+    #         "horizontalalignment": kwargs.pop("annotation_label_horz", "center"),
+    #         "verticalalignment": kwargs.pop("annotation_label_vert", "center"),
     #         "check_yscale": kwargs.pop("check_yscale", False),
     #         "butterfly_plot": kwargs.pop("butterfly_plot", False),
-    #         "fontweight": kwargs.pop("font_weight", "normal"),
-    #         "fontsize": kwargs.pop("font_size", "medium"),
+    #         "fontweight": kwargs.pop("annotation_label_font_weight", "normal"),
+    #         "fontsize": kwargs.pop("annotation_label_font_size", "medium"),
     #     }
     #
     #     if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
@@ -1350,13 +1350,13 @@ class PanelPlots(wx.Panel):
     #
     #     #         print(kwargs['color_scheme'], n_count, kwargs['colormap'], kwargs['palette'])
     #     if kwargs["color_scheme"] == "Colormap":
-    #         colorlist = sns.color_palette(kwargs["colormap"], n_count)
+    #         colorlist = sns.color_palette(kwargs["heatmap_colormap"], n_count)
     #     elif kwargs["color_scheme"] == "Color palette":
     #         if kwargs["palette"] not in ["Spectral", "RdPu"]:
     #             kwargs["palette"] = kwargs["palette"].lower()
     #         colorlist = sns.color_palette(kwargs["palette"], n_count)
     #     elif kwargs["color_scheme"] == "Same color":
-    #         colorlist = [kwargs["line_color"]] * n_count
+    #         colorlist = [kwargs["spectrum_line_color"]] * n_count
     #     elif kwargs["color_scheme"] == "Random":
     #         colorlist = []
     #         for __ in range(n_count):
@@ -2018,8 +2018,8 @@ class PanelPlots(wx.Panel):
     #             self.set_page(CONFIG.panelNames["Other"])
     #
     #     plt_kwargs = self._buildPlotParameters(["1D", "waterfall"])
-    #     if "increment" in kwargs:
-    #         plt_kwargs["increment"] = kwargs["increment"]
+    #     if "waterfall_increment" in kwargs:
+    #         plt_kwargs["waterfall_increment"] = kwargs["waterfall_increment"]
     #
     #     # reverse labels
     #     xlabel, ylabel = ylabel, xlabel
@@ -2222,7 +2222,7 @@ class PanelPlots(wx.Panel):
     #
     #     # Build kwargs
     #     plt_kwargs = self._buildPlotParameters(plotType="1D")
-    #     plt_kwargs["line_color"] = CONFIG.msms_line_color_labelled
+    #     plt_kwargs["spectrum_line_color"] = CONFIG.msms_line_color_labelled
     #     plt_kwargs["butterfly_plot"] = butterfly_plot
     #
     #     plot_name = "MS"
@@ -2289,7 +2289,7 @@ class PanelPlots(wx.Panel):
     #
     #     # Build kwargs
     #     plt_kwargs = self._buildPlotParameters(plotType="1D")
-    #     plt_kwargs["line_color"] = CONFIG.msms_line_color_unlabelled
+    #     plt_kwargs["spectrum_line_color"] = CONFIG.msms_line_color_unlabelled
     #
     #     plot_obj.clear()
     #     plot_obj.plot_1D_centroid(
@@ -2518,14 +2518,14 @@ class PanelPlots(wx.Panel):
     #         zvals, xvals, xlabel, yvals, ylabel, __ = data
     #
     #     plt_kwargs = self._buildPlotParameters(["1D", "violin"])
-    #     if "increment" in kwargs:
-    #         plt_kwargs["increment"] = kwargs["increment"]
+    #     if "waterfall_increment" in kwargs:
+    #         plt_kwargs["waterfall_increment"] = kwargs["waterfall_increment"]
     #
     #     n_scans = zvals.shape[1]
     #
     #     plot_obj.clear()
     #     try:
-    #         if n_scans < plt_kwargs["violin_nlimit"]:
+    #         if n_scans < plt_kwargs["violin_n_limit"]:
     #             plot_obj.plot_1D_violin(
     #                 xvals=yvals,
     #                 yvals=xvals,
@@ -2564,7 +2564,7 @@ class PanelPlots(wx.Panel):
     #             "zvals": zvals,
     #             "xvals": xvals,
     #             "yvals": yvals,
-    #             "cmap": plt_kwargs["colormap"],
+    #             "cmap": plt_kwargs["heatmap_colormap"],
     #             "cmapNorm": cmapNorm,
     #         }
     #
@@ -2585,7 +2585,7 @@ class PanelPlots(wx.Panel):
     #
     #     # Check if cmap should be overwritten
     #     if CONFIG.useCurrentCmap or kwargs.get("cmap", None) is None:
-    #         plt_kwargs["colormap"] = CONFIG.currentCmap
+    #         plt_kwargs["heatmap_colormap"] = CONFIG.currentCmap
     #     plt_kwargs["colormap_norm"] = kwargs.get("cmapNorm", None)
     #     plt_kwargs["allow_extraction"] = kwargs.pop("allow_extraction", True)
     #
@@ -2633,7 +2633,7 @@ class PanelPlots(wx.Panel):
     #             "yvals": yvals,
     #             "xlabels": xlabel,
     #             "ylabels": ylabel,
-    #             "cmap": plt_kwargs["colormap"],
+    #             "cmap": plt_kwargs["heatmap_colormap"],
     #             "cmapNorm": cmapNorm,
     #         }
     #
@@ -2667,7 +2667,7 @@ class PanelPlots(wx.Panel):
     #
     #     # Check if cmap should be overwritten
     #     if CONFIG.useCurrentCmap or kwargs.get("cmap", None) is None:
-    #         plt_kwargs["colormap"] = CONFIG.currentCmap
+    #         plt_kwargs["heatmap_colormap"] = CONFIG.currentCmap
     #     plt_kwargs["colormap_norm"] = kwargs.get("cmapNorm", None)
     #     plt_kwargs["allow_extraction"] = kwargs.pop("allow_extraction", True)
     #
@@ -2752,7 +2752,7 @@ class PanelPlots(wx.Panel):
     #
     #     # Build kwargs
     #     plt_kwargs = self._buildPlotParameters(plotType="2D")
-    #     #         plt_kwargs["colormap"] = cmap
+    #     #         plt_kwargs["heatmap_colormap"] = cmap
     #     #         plt_kwargs["colormap_norm"] = cmapNorm
     #     #         plt_kwargs["allow_extraction"] = kwargs.pop("allow_extraction", True)
     #     #         plt_kwargs = merge_two_dicts(plt_kwargs, kwargs)
@@ -2861,7 +2861,7 @@ class PanelPlots(wx.Panel):
     #             zvals, min=CONFIG.minCmap, mid=CONFIG.midCmap, max=CONFIG.maxCmap
     #         )
     #     # add to kwargs
-    #     plt_kwargs["colormap"] = cmap
+    #     plt_kwargs["heatmap_colormap"] = cmap
     #     plt_kwargs["colormap_norm"] = cmapNorm
     #
     #     self.plot_heatmap_3d.clear()
@@ -2904,8 +2904,8 @@ class PanelPlots(wx.Panel):
     #             self.set_page(CONFIG.panelNames["Waterfall"])
     #
     #     plt_kwargs = self._buildPlotParameters(["1D", "waterfall"])
-    #     if "increment" in kwargs:
-    #         plt_kwargs["increment"] = kwargs["increment"]
+    #     if "waterfall_increment" in kwargs:
+    #         plt_kwargs["waterfall_increment"] = kwargs["waterfall_increment"]
     #
     #     plot_obj.clear()
     #     plot_obj.plot_1D_waterfall(
@@ -2962,8 +2962,8 @@ class PanelPlots(wx.Panel):
     #     plt_kwargs = self._buildPlotParameters(plotType="1D")
     #     waterfall_kwargs = self._buildPlotParameters(plotType="waterfall")
     #     plt_kwargs = merge_two_dicts(plt_kwargs, waterfall_kwargs)
-    #     if "increment" in kwargs:
-    #         plt_kwargs["increment"] = kwargs["increment"]
+    #     if "waterfall_increment" in kwargs:
+    #         plt_kwargs["waterfall_increment"] = kwargs["waterfall_increment"]
     #
     #     plot_obj.clear()
     #     plot_obj.plot_1D_waterfall_overlay(
@@ -3174,7 +3174,7 @@ class PanelPlots(wx.Panel):
     #         cmapNorm = self.normalize_colormap(zvals, min=-100, mid=0, max=100)
     #
     #     # update kwargs
-    #     plt_kwargs["colormap"] = cmap
+    #     plt_kwargs["heatmap_colormap"] = cmap
     #     plt_kwargs["colormap_norm"] = cmapNorm
     #
     #     plot_obj.clear()
@@ -3255,7 +3255,7 @@ class PanelPlots(wx.Panel):
     #
     #     # Build kwargs
     #     plt_kwargs = self._buildPlotParameters(plotType="2D")
-    #     plt_kwargs["colormap"] = cmap
+    #     plt_kwargs["heatmap_colormap"] = cmap
     #     plt_kwargs["colormap_norm"] = cmapNorm
     #
     #     # Plot 2D dataset
@@ -3446,7 +3446,7 @@ class PanelPlots(wx.Panel):
     #         cmap = CONFIG.currentCmap
     #
     #     plt_kwargs = self._buildPlotParameters(["2D", "RMSF"])
-    #     plt_kwargs["colormap"] = cmap
+    #     plt_kwargs["heatmap_colormap"] = cmap
     #
     #     plot_obj.clear()
     #     plot_obj.plot_2D_matrix(

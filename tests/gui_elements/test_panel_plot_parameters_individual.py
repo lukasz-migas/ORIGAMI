@@ -28,7 +28,7 @@ class TestPanelGeneralSettings(WidgetTestCase):
 
         # update settings
         for value in [True, False]:
-            self.sim_checkbox_click(dlg.plot_axis_on_off_check, value)
+            self.sim_checkbox_click_evt(dlg.plot_axis_on_off_check, value, [dlg.on_apply, dlg.on_toggle_controls])
             assert CONFIG.axes_frame_show is dlg.plot_axis_on_off_check.GetValue() is value
             assert dlg.plot_right_spines_check.IsEnabled() is value
             assert dlg.plot_frame_width_value.IsEnabled() is value
@@ -43,21 +43,21 @@ class TestPanel1dSettings(WidgetTestCase):
 
         # fill parameters
         for value in [True, False]:
-            self.sim_checkbox_click(dlg.plot1d_underline_check, value)
-            assert dlg.plot1d_underline_check.GetValue() is dlg.plot1d_underline_check.GetValue() is value
-            assert dlg.plot1d_underline_alpha_value.IsEnabled() is value
+            self.sim_checkbox_click_evt(dlg.spectrum_line_fill_under, value, [dlg.on_apply, dlg.on_toggle_controls])
+            assert dlg.spectrum_line_fill_under.GetValue() is dlg.spectrum_line_fill_under.GetValue() is value
+            assert dlg.spectrum_fill_transparency.IsEnabled() is value
             assert dlg.plot1d_underline_color_btn.IsEnabled() is value
 
         # marker parameters
         for value in [True, False]:
-            self.sim_checkbox_click(dlg.plot1d_marker_edge_color_check, value)
-            assert CONFIG.marker_edge_same_as_fill is dlg.plot1d_marker_edge_color_check.GetValue() is value
+            self.sim_checkbox_click_evt(dlg.marker_edge_same_as_fill, value, [dlg.on_apply, dlg.on_toggle_controls])
+            assert CONFIG.marker_edge_same_as_fill is dlg.marker_edge_same_as_fill.GetValue() is value
             assert dlg.plot1d_marker_edge_color_btn.IsEnabled() is value
 
         # marker parameters
         for value in [True, False]:
-            self.sim_checkbox_click(dlg.bar_color_edge_check, value)
-            assert CONFIG.bar_edge_same_as_fill is dlg.bar_color_edge_check.GetValue() is value
+            self.sim_checkbox_click_evt(dlg.bar_edge_same_as_fill, value, [dlg.on_apply, dlg.on_toggle_controls])
+            assert CONFIG.bar_edge_same_as_fill is dlg.bar_edge_same_as_fill.GetValue() is value
             assert dlg.bar_edge_color_btn.IsEnabled() is value
 
 
@@ -92,7 +92,7 @@ class TestPanelColorbarSettings(WidgetTestCase):
 
         # update controls
         for value in [True, False]:
-            self.sim_toggle_click(dlg.colorbar_tgl, value)
+            self.sim_toggle_click_evt(dlg.colorbar_tgl, value, [dlg.on_apply, dlg.on_toggle_controls])
             assert CONFIG.colorbar is dlg.colorbar_tgl.GetValue() is value
             assert dlg.colorbar_position_value.IsEnabled() is value
             assert dlg.colorbar_width_value.IsEnabled() is value
@@ -126,18 +126,20 @@ class TestPanelWaterfallSettings(WidgetTestCase):
 
         # update controls
         for value in [True, False]:
-            self.sim_checkbox_click(dlg.waterfall_line_sameAsShade_check, value)
+            self.sim_checkbox_click_evt(
+                dlg.waterfall_line_sameAsShade_check, value, [dlg.on_apply, dlg.on_toggle_controls]
+            )
             assert CONFIG.waterfall_line_same_as_fill is dlg.waterfall_line_sameAsShade_check.GetValue() is value
             assert dlg.waterfall_color_line_btn.IsEnabled() is not value
 
         for value in [True, False]:
-            self.sim_checkbox_click(dlg.waterfall_fill_under_check, value)
+            self.sim_checkbox_click_evt(dlg.waterfall_fill_under_check, value, [dlg.on_apply, dlg.on_toggle_controls])
             assert CONFIG.waterfall_fill_under is dlg.waterfall_fill_under_check.GetValue() is value
             assert dlg.waterfall_fill_transparency_value.IsEnabled() is value
             assert dlg.waterfall_fill_n_limit_value.IsEnabled() is value
 
         for value in [True, False]:
-            self.sim_checkbox_click(dlg.waterfall_showLabels_check, value)
+            self.sim_checkbox_click_evt(dlg.waterfall_showLabels_check, value, [dlg.on_apply, dlg.on_toggle_controls])
             assert CONFIG.waterfall_labels_show is dlg.waterfall_showLabels_check.GetValue() is value
             assert dlg.waterfall_label_format_value.IsEnabled() is value
             assert dlg.waterfall_label_font_size_value.IsEnabled() is value
@@ -156,13 +158,15 @@ class TestPanelViolinSettings(WidgetTestCase):
 
         # update controls
         for value in [True, False]:
-            self.sim_checkbox_click(dlg.violin_line_same_as_fill_check, value)
+            self.sim_checkbox_click_evt(
+                dlg.violin_line_same_as_fill_check, value, [dlg.on_apply, dlg.on_toggle_controls]
+            )
             assert CONFIG.violin_line_same_as_fill is dlg.violin_line_same_as_fill_check.GetValue() is value
             assert dlg.violin_color_line_btn.IsEnabled() is not value
 
         # update controls
         for value in [True, False]:
-            self.sim_checkbox_click(dlg.violin_smooth_value, value)
+            self.sim_checkbox_click_evt(dlg.violin_smooth_value, value, [dlg.on_apply, dlg.on_toggle_controls])
             assert CONFIG.violin_smooth is dlg.violin_smooth_value.GetValue() is value
             assert dlg.violin_smooth_sigma_value.IsEnabled() is value
 
@@ -176,7 +180,7 @@ class TestPanelLegendSettings(WidgetTestCase):
 
         # update controls
         for value in [True, False]:
-            self.sim_toggle_click(dlg.legend_toggle, value)
+            self.sim_toggle_click_evt(dlg.legend_toggle, value, [dlg.on_apply, dlg.on_toggle_controls])
             assert CONFIG.legend is dlg.legend_toggle.GetValue() is value
             assert dlg.legend_position_value.IsEnabled() is value
             assert dlg.legend_columns_value.IsEnabled() is value
@@ -189,7 +193,7 @@ class TestPanelLegendSettings(WidgetTestCase):
             assert dlg.legend_fancybox_check.IsEnabled() is value
             assert dlg.legend_patch_alpha_value.IsEnabled() is value
 
-        self.sim_toggle_click(dlg.legend_toggle, True)
+        self.sim_toggle_click_evt(dlg.legend_toggle, True, [dlg.on_apply, dlg.on_toggle_controls])
 
 
 @pytest.mark.guitest
