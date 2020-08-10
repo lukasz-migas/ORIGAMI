@@ -10,10 +10,10 @@ from subprocess import Popen
 import numpy as np
 
 # Local imports
-from origami.processing.utils import find_nearest_index
 from origami.utils.path import check_waters_path
-from origami.utils.secret import get_short_hash
 from origami.utils.check import check_value_order
+from origami.utils.secret import get_short_hash
+from origami.processing.utils import find_nearest_index
 from origami.readers.io_utils import clean_up
 from origami.utils.exceptions import NoIonMobilityDatasetError
 from origami.objects.containers import IonHeatmapObject

@@ -410,7 +410,7 @@ class PanelDocumentTree(wx.Panel):
     def on_open_settings(self, evt, _evt):
         """Open settings of the Document Tree"""
         popup = PopupDocumentTreeSettings(self.parent)
-        popup.position_on_event(evt)
+        popup.position_on_mouse()
         popup.Show()
 
 

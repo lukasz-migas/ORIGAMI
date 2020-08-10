@@ -718,7 +718,7 @@ class Config:
             "RMSD": 6,
             "Waterfall": 7,
             "Violin": 8,
-            "Extra": 9,
+            "UI": 9,
         }
 
         self.interactiveParamsWindow_on_off = False

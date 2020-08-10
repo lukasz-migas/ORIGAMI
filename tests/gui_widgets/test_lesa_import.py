@@ -14,7 +14,7 @@ class TestPanelImagingImportDataset(WidgetTestCase):
 
     def test_panel_create(self):
         dlg = PanelImagingImportDataset(None, None)
+        self.wait_for(250)
         dlg.Show()
-
         assert dlg
-        self.wait_for(200)
+        self.wait_for(500)

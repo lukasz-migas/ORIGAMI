@@ -545,12 +545,12 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
     def on_update_ms_settings(self, _):
         """Open data processing window"""
         self.document_tree.on_open_process_ms_settings(
-            disable_plot=True, disable_process=True, update_widget=self.PUB_SUBSCRIBE_EVENT
+            disable_plot=True, disable_process=True, update_widget=self.PUB_SUBSCRIBE_EVENT, delay=350
         )
 
     def on_update_msdt_settings(self, _):
         """Open data processing window"""
-        self.document_tree.on_open_process_msdt_settings(update_widget=self.PUB_SUBSCRIBE_EVENT)
+        self.document_tree.on_open_process_msdt_settings(update_widget=self.PUB_SUBSCRIBE_EVENT, delay=350)
 
     def on_get_files(self):
         """Collects a list of files from directory"""

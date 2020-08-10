@@ -8,7 +8,8 @@ from typing import Optional
 
 # Third-party imports
 import numpy as np
-from natsort import order_by_index, index_natsorted
+from natsort import order_by_index
+from natsort import index_natsorted
 
 # Local imports
 from origami.processing import heatmap as pr_heatmap

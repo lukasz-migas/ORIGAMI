@@ -29,7 +29,7 @@ class PanelProcessMSDT(MiniFrame, DatasetMixin):
     mz_bin_value = None
     cancel_btn = None
 
-    def __init__(self, parent, presenter, update_widget: str = None):
+    def __init__(self, parent, presenter, update_widget: str = None, delay: int = 1000):
         MiniFrame.__init__(
             self,
             parent,
@@ -44,26 +44,17 @@ class PanelProcessMSDT(MiniFrame, DatasetMixin):
             parent of the object
         presenter : ORIGAMI instance
             instance of the presenter/main class
-        document : DocumentStore
-            instance of document
-        document_title : str
-            name of the document
-        heatmap_obj : IonHeatmapObject
-            instance of the spectrum that should be pre-processed
-        disable_plot : bool
-            disable plotting
-        disable_process : bool
-            disable pre-processing; only allow change of parameters
-        process_all : bool
-            process all elements in a group of mass spectra
         update_widget : str
             name of the pubsub event to be triggered when timer runs out
+        delay : int
+            amount of time between timed update
         """
         self.view = parent
         self.presenter = presenter
 
         # setup kwargs
         self.update_widget = update_widget
+        self.TIMER_DELAY = delay
 
         # enable on-demand updates using wxTimer
         self._timer = None
@@ -76,7 +67,7 @@ class PanelProcessMSDT(MiniFrame, DatasetMixin):
 
         # setup layout
         self.CentreOnScreen()
-        self.Show(True)
+        self.Show()
         self.SetFocus()
 
     def setup(self):
@@ -86,6 +77,8 @@ class PanelProcessMSDT(MiniFrame, DatasetMixin):
     def on_close(self, evt, force: bool = False):
         """Overwrite close"""
         self._dataset_mixin_teardown()
+        if self.update_widget:
+            pub.sendMessage(self.update_widget)
         super(PanelProcessMSDT, self).on_close(evt, force)
 
     def make_panel(self):
@@ -110,7 +103,7 @@ class PanelProcessMSDT(MiniFrame, DatasetMixin):
         self.cancel_btn = wx.Button(panel, wx.ID_OK, "Close", size=(120, 22))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
-        btn_grid = wx.BoxSizer(wx.HORIZONTAL)
+        btn_grid = wx.BoxSizer()
         btn_grid.Add(self.cancel_btn)
 
         grid = wx.GridBagSizer(2, 2)

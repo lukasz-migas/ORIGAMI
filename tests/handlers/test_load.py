@@ -6,8 +6,8 @@ import numpy as np
 import pytest
 
 # Local imports
-from origami.handlers.load import LoadHandler
 from origami.handlers.load import LOAD_HANDLER
+from origami.handlers.load import LoadHandler
 from origami.objects.document import DocumentStore
 from origami.objects.document import DocumentGroups
 

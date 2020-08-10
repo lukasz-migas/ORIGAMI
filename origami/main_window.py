@@ -65,7 +65,7 @@ from origami.icons.assets import Icons
 from origami.config.config import CONFIG
 from origami.panel_peaklist import PanelPeaklist
 from origami.panel_textlist import PanelTextlist
-from origami.utils.utilities import report_time
+from origami.utils.utilities import format_time
 from origami.panel_multi_file import PanelMultiFile
 from origami.config.environment import ENV
 from origami.panel_document_tree import PanelDocumentTree
@@ -117,7 +117,7 @@ class MainWindow(wx.Frame):
         self.presenter = parent
 
         self._timer = wx.Timer(self, wx.ID_ANY)
-        self._timers = []
+        self._timers = {}
 
         self.plot_data = {}  # remove
         self.plot_scale = {}  # remove
@@ -250,7 +250,7 @@ class MainWindow(wx.Frame):
 
         # run action(s) delayed
         self.run_delayed(self._on_check_latest_version)
-        self.add_timer_event(self.on_export_config_fcn, 300)
+        self.add_timer_event(self.on_export_config_fcn, "save.config", 300)
 
     @staticmethod
     def run_delayed(func, *args, delay: int = 3000, **kwargs):
@@ -258,22 +258,39 @@ class MainWindow(wx.Frame):
         wx.CallLater(delay, func, *args, **kwargs)
         logger.info("Running delayed action...")
 
-    def add_timer_event(self, func, delay: int = 60):
+    def add_timer_event(self, func, name: str, delay: int = 60):
         """Add an event to the application that will run every `delay` seconds
 
         Parameters
         ----------
         func : Callable
             function that needs to be updated every `delay` seconds
+        name: str
+            name of the event so it can be changed at later stage (if necessary)
         delay : int
-            amount of time between each update
+            amount of time between each update in seconds
         """
         delay = delay * 1000
         timer = wx.Timer(self, wx.ID_ANY)
         timer.Start(delay)
-        timer.Bind(wx.EVT_TIMER, func)
-        self._timers.append(timer)
-        logger.info(f"Added timed event that will run every {report_time(delay)}")
+        self.Bind(wx.EVT_TIMER, func, timer)
+        self._timers[name] = timer
+        logger.info(f"Added `{name}` timed event that will run every {format_time(delay/1000)}.")
+
+    def remove_timer_event(self, name: str):
+        """Remove timer event from the application"""
+        if name in self._timers:
+            timer = self._timers.pop(name)
+            timer.Stop()
+            logger.info(f"Removed `{name}` timed event from the application.")
+
+    def update_timer_event(self, name: str, delay: int = 60):
+        """Update frequency of a timer event"""
+        if name in self._timers:
+            delay = delay * 1000
+            if delay == self._timers[name].GetInterval():
+                self._timers[name].Stop()
+                self._timers[name].Start(delay)
 
     def on_notify(self, message: str, kind: str = "info", delay: int = 3000):
         """Notify user of some event"""

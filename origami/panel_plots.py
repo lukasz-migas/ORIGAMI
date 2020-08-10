@@ -2,8 +2,8 @@
 # Standard library imports
 import time
 import logging
-from functools import partial
 from typing import Union
+from functools import partial
 
 # Third-party imports
 import wx
@@ -671,18 +671,18 @@ class PanelPlots(wx.Panel):
             menu.Insert(2, menu_action_show_waterfall)
             menu.Insert(3, menu_action_show_violin)
             menu.Insert(4, menu_action_show_joint)
-            menu.Insert(4, menu_action_show_3d)
-            menu.InsertSeparator(5)
-            menu.Insert(6, menu_action_smooth_heatmap)
-            menu.Insert(7, menu_action_process_2d)
-            menu.Insert(8, menu_action_rotate90)
-            menu.Insert(9, menu_action_open_annotations)
-            menu.InsertSeparator(10)
-            menu.Insert(11, menu_plot_general)
-            menu.Insert(12, menu_plot_2d)
-            menu.Insert(13, menu_plot_colorbar)
-            menu.Insert(14, menu_plot_waterfall)
-            menu.Insert(15, menu_plot_violin)
+            menu.Insert(5, menu_action_show_3d)
+            menu.InsertSeparator(6)
+            menu.Insert(7, menu_action_smooth_heatmap)
+            menu.Insert(8, menu_action_process_2d)
+            menu.Insert(9, menu_action_rotate90)
+            menu.Insert(10, menu_action_open_annotations)
+            menu.InsertSeparator(11)
+            menu.Insert(12, menu_plot_general)
+            menu.Insert(13, menu_plot_2d)
+            menu.Insert(14, menu_plot_colorbar)
+            menu.Insert(15, menu_plot_waterfall)
+            menu.Insert(16, menu_plot_violin)
         elif self.currentPage == "DT/MS":
             menu.Insert(0, menu_action_show_heatmap)
             menu.Insert(1, menu_action_show_contour)

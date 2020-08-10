@@ -1,6 +1,9 @@
+# Third-party imports
 import wx
-from origami.gui_elements.popup import PopupBase
+
+# Local imports
 from origami.styles import set_tooltip
+from origami.gui_elements.popup import PopupBase
 
 
 class ViewAboutPopup(PopupBase):

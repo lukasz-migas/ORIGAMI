@@ -6,6 +6,8 @@ from typing import Dict
 from typing import List
 from typing import Union
 from typing import Optional
+
+# Third-party imports
 from pubsub import pub
 
 # Local imports
@@ -15,7 +17,6 @@ from origami.config.convert import convert_pickle_to_zarr
 from origami.objects.document import DocumentStore
 from origami.objects.callbacks import PropertyCallbackManager
 from origami.objects.containers import DataObject
-from origami.document import document
 
 # Should try to reduce the number of different document types to:
 # Type: MS (Waters/Thermo)

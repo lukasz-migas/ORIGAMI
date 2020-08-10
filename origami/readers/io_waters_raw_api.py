@@ -14,8 +14,8 @@ import origami.readers.waters.MassLynxRawReader as MassLynxRawReader
 import origami.readers.waters.MassLynxRawInfoReader as MassLynxRawInfoReader
 import origami.readers.waters.MassLynxRawScanReader as MassLynxRawScanReader
 import origami.readers.waters.MassLynxRawChromatogramReader as MassLynxRawChromatogramReader
-from origami.processing.utils import find_nearest_index
 from origami.utils.ranges import get_min_max
+from origami.processing.utils import find_nearest_index
 from origami.objects.containers import MassSpectrumObject
 
 

@@ -72,6 +72,7 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
         disable_process: bool = False,
         process_all: bool = False,
         update_widget: str = None,
+        delay: int = 1000,
     ):
         MiniFrame.__init__(
             self,
@@ -101,6 +102,8 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
             process all elements in a group of mass spectra
         update_widget : str
             name of the pubsub event to be triggered when timer runs out
+        delay : int
+            amount of time between timed update
         """
         self.view = parent
         self.presenter = presenter
@@ -114,6 +117,7 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
         self.disable_process = disable_process
         self.process_all = process_all
         self.update_widget = update_widget
+        self.TIMER_DELAY = delay
 
         # enable on-demand updates using wxTimer
         self._timer = None
@@ -167,6 +171,8 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
         self._dataset_mixin_teardown()
         if self.PUB_IN_PROGRESS_EVENT:
             pub.unsubscribe(self.on_progress, self.PUB_IN_PROGRESS_EVENT)
+        if self.update_widget:
+            pub.sendMessage(self.update_widget)
         super(PanelProcessMassSpectrum, self).on_close(evt, force)
 
     def on_key_event(self, evt):
@@ -325,14 +331,14 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin):
         self.ms_process_normalize.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
         if not self.disable_plot:
-            self.plot_btn = wx.Button(panel, wx.ID_OK, "Plot", size=(120, 22))
+            self.plot_btn = wx.Button(panel, wx.ID_OK, "Plot", size=(120, -1))
             self.plot_btn.Bind(wx.EVT_BUTTON, self.on_plot)
 
         if not self.disable_process:
-            self.add_to_document_btn = wx.Button(panel, wx.ID_OK, "Add to document", size=(120, 22))
+            self.add_to_document_btn = wx.Button(panel, wx.ID_OK, "Add to document", size=(120, -1))
             self.add_to_document_btn.Bind(wx.EVT_BUTTON, self.on_add_to_document)
 
-        self.cancel_btn = wx.Button(panel, wx.ID_OK, "Close", size=(120, 22))
+        self.cancel_btn = wx.Button(panel, wx.ID_OK, "Close", size=(120, -1))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
         self.activity_indicator = wx.ActivityIndicator(panel)
