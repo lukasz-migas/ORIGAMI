@@ -36,6 +36,8 @@ class ViewHeatmap3d(ViewBase):
     )
     PLOT_ID = get_short_hash()
     SUPPORTED_FILE_FORMATS = ("png", "jpeg", "tiff", "pdf")
+    DEFAULT_PLOT = "heatmap-3d"
+    ALLOWED_PLOTS = ("heatmap-3d",)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

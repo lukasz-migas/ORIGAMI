@@ -1,49 +1,20 @@
 """File containing all IDs for functions"""
 # Third-party imports
-from wx import ID_EXIT
-from wx import ID_ABOUT
 from wx import NewIdRef
 
-# Common
-ID_quit = ID_EXIT
-ID_about = ID_ABOUT
-ID_SHOW_ABOUT = NewIdRef()
-ID_WHATS_NEW = NewIdRef()
-ID_CHECK_VERSION = NewIdRef()
-ID_RESET_ORIGAMI = NewIdRef()
-ID_quickDisplayDocument = NewIdRef()
-
 # Logging window
-ID_log_clear_window = NewIdRef()
-ID_log_save_log = NewIdRef()
-ID_log_go_to_directory = NewIdRef()
 ID_extraSettings_logging = NewIdRef()
 ID_annotPanel_otherSettings = NewIdRef()
 ID_ionPanel_table_label = NewIdRef()
 ID_ionPanel_table_method = NewIdRef()
-
-# Recent documents
-ID_documentRecent0 = NewIdRef()
-ID_documentRecent1 = NewIdRef()
-ID_documentRecent2 = NewIdRef()
-ID_documentRecent3 = NewIdRef()
-ID_documentRecent4 = NewIdRef()
-ID_documentRecent5 = NewIdRef()
-ID_documentRecent6 = NewIdRef()
-ID_documentRecent7 = NewIdRef()
-ID_documentRecent8 = NewIdRef()
-ID_documentRecent9 = NewIdRef()
 
 # File menu
 ID_fileMenu_openRecent = NewIdRef()
 ID_fileMenu_clearRecent = NewIdRef()
 ID_fileMenu_MGF = NewIdRef()
 ID_fileMenu_mzML = NewIdRef()
-ID_fileMenu_mzIdentML = NewIdRef()
-ID_fileMenu_thermoRAW = NewIdRef()
 
 # Plots
-ID_plots_resetZoom = NewIdRef()
 ID_plots_showCursorGrid = NewIdRef()
 ID_plots_customise_plot = NewIdRef()
 ID_plots_customise_plot_unidec_ms = NewIdRef()
@@ -53,7 +24,6 @@ ID_plots_customise_plot_unidec_isolated_mz = NewIdRef()
 ID_plots_customise_plot_unidec_mw_v_charge = NewIdRef()
 ID_plots_customise_plot_unidec_ms_barchart = NewIdRef()
 ID_plots_customise_plot_unidec_chargeDist = NewIdRef()
-ID_plots_rotate90 = NewIdRef()
 ID_plots_customise_smart_zoom = NewIdRef()
 
 ID_plots_saveImage_unidec_ms = NewIdRef()
@@ -131,26 +101,10 @@ ID_interactivePanel_apply_batch_overlay = NewIdRef()
 ID_interactivePanel_apply_batch_plots = NewIdRef()
 ID_interactivePanel_apply_batch_preprocess = NewIdRef()
 
-# Export settings
-ID_importExportSettings_image = NewIdRef()
-ID_importExportSettings_file = NewIdRef()
-ID_importExportSettings_peaklist = NewIdRef()
-
 # Extra settings
 ID_extraSettings_autoSaveSettings = NewIdRef()
-ID_extraSettings_rmsd = NewIdRef()
-ID_extraSettings_waterfall = NewIdRef()
-ID_extraSettings_colorbar = NewIdRef()
-ID_extraSettings_violin = NewIdRef()
 ID_extraSettings_legend = NewIdRef()
 ID_extraSettings_plot1D = NewIdRef()
-ID_extraSettings_plot2D = NewIdRef()
-ID_extraSettings_plot3D = NewIdRef()
-ID_extraSettings_general = NewIdRef()
-ID_extraSettings_general_plot = NewIdRef()
-
-# Sequence analysis
-ID_sequence_openGUI = NewIdRef()
 
 # Process settings
 ID_docTree_plugin_UVPD = NewIdRef()
@@ -272,7 +226,6 @@ ID_unidecPanel_otherSettings = NewIdRef()
 # interactive
 
 # Plot panel
-ID_plotPanel_lockPlot = NewIdRef()
 ID_plotPanel_resize = NewIdRef()
 
 # Text panel
@@ -353,10 +306,7 @@ ID_OnOff_settingsView = NewIdRef()
 ID_OnOff_docView = NewIdRef()
 
 # Config Menu
-ID_saveConfig = NewIdRef()
 ID_saveAsConfig = NewIdRef()
-ID_openConfig = NewIdRef()
-ID_openAsConfig = NewIdRef()
 ID_setDriftScopeDir = NewIdRef()
 ID_check_Driftscope = NewIdRef()
 ID_checkAtStart_Driftscope = NewIdRef()

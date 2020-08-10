@@ -24,11 +24,13 @@ class QueueHandler:
 
         # initialize queue
         self.q = queue.Queue(maxsize=max_size)
+        self._workers = []
 
         for _ in range(n_threads):
             worker = Thread(target=self.process, args=(self.q,))
             worker.setDaemon(True)
             worker.start()
+            self._workers.append(worker)
 
     def add(self, call_obj: Call):
         """Add call object to the queue

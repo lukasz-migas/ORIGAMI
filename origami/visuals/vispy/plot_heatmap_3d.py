@@ -247,6 +247,7 @@ class _PlotHeatmap3d(scene.SceneCanvas):
         # set colormap
         self.set_colormap(CONFIG.heatmap_3d_colormap)
         self._set_axes(array, x_label, y_label, z_label)
+        self.PLOT_TYPE = "heatmap-3d"
 
     def plot_3d_update(self, x, y, array, x_label: str = "", y_label: str = "", z_label: str = "", **kwargs):  # noqa
         """Update plot data in 3D"""
@@ -319,6 +320,7 @@ class PlotHeatmap3d(wx.Panel):
 
         self.lock_plot_from_updating = False
         self.resize = False
+        self.PLOT_TYPE = None
 
     def on_resize(self, evt):
         """Resize canvas"""

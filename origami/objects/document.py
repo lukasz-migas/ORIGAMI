@@ -101,6 +101,7 @@ class DocumentStore:
         "Raw",  # any raw file
         "Output",  # any file
         "Tandem",  # pickled dictionary...
+        "Views",  # json with information about a specific view
     ]
     CAN_EXTRACT = [
         "Format: Waters (.raw)",
@@ -305,6 +306,11 @@ class DocumentStore:
                 return False
         return True
 
+    def is_multifile(self):
+        """Checks whether the document is a Multifile document"""
+        if "Multi" in self.file_format:
+            return True
+
     def can_extract(self) -> Tuple[bool, bool, str]:
         """Checks whether this document can be used for data extraction. Returns tuple of bool values to indicate
         whether data can be extracted and/or the dataset uses multiple raw file"""
@@ -315,9 +321,28 @@ class DocumentStore:
         if "Thermo" in self.file_format:
             file_fmt = "thermo"
 
-        if "Multi" in self.file_format:
+        if self.is_multifile():
             return True, True, file_fmt
         return True, False, file_fmt
+
+    def get_multifile_filelist(self, keys: List[str] = None):
+        """Return filelist that corresponds to a multi-file object"""
+        if not self.is_multifile():
+            return dict()
+
+        paths = self.get_file_path("multifile")
+        if paths in ["", None]:
+            return dict()
+
+        if keys is None:
+            return paths
+
+        _paths = {}
+        for path, value in paths.items():
+            _paths[path] = []
+            for key in keys:
+                _paths[path].append(value.get(key, ""))
+        return _paths
 
     def group(self, key):
         """Retrieve group from the dataset"""

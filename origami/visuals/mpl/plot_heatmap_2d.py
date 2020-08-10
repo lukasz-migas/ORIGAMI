@@ -515,33 +515,33 @@ class PlotHeatmap2D(PlotBase):
     @staticmethod
     def get_heatmap_normalization(
         array: np.ndarray,
-        colormap_norm_method: str,
-        colormap_min: float,
-        colormap_mid: float,
-        colormap_max: float,
-        colormap_norm_power_gamma: float,
+        heatmap_normalization: str,
+        heatmap_normalization_min: float,
+        heatmap_normalization_mid: float,
+        heatmap_normalization_max: float,
+        heatmap_normalization_power_gamma: float,
         **kwargs,
     ):
         """Get heatmap normalization"""
         # check normalization
-        if colormap_norm_method not in ["Midpoint", "Logarithmic", "Power", "MinMax"]:
+        if heatmap_normalization not in ["Midpoint", "Logarithmic", "Power", "MinMax"]:
             raise ValueError("Incorrect normalization method")
 
         # normalize
         zvals_max = np.max(array)
-        cmap_min = (zvals_max * colormap_min) / 100.0
-        cmap_mid = (zvals_max * colormap_mid) / 100.0
-        cmap_max = (zvals_max * colormap_max) / 100.0
+        cmap_min = (zvals_max * heatmap_normalization_min) / 100.0
+        cmap_mid = (zvals_max * heatmap_normalization_mid) / 100.0
+        cmap_max = (zvals_max * heatmap_normalization_max) / 100.0
 
         # compute normalization
         reset_colorbar = False
-        if colormap_norm_method == "Midpoint":
+        if heatmap_normalization == "Midpoint":
             cmap_norm = MidpointNormalize(midpoint=cmap_mid, v_min=cmap_min, v_max=cmap_max)
-        elif colormap_norm_method == "Logarithmic":
+        elif heatmap_normalization == "Logarithmic":
             cmap_norm = LogNorm(vmin=cmap_min + 0.01, vmax=cmap_max)
-        elif colormap_norm_method == "Power":
-            cmap_norm = PowerNorm(gamma=colormap_norm_power_gamma, vmin=cmap_min, vmax=cmap_max)
-        elif colormap_norm_method == "MinMax":
+        elif heatmap_normalization == "Power":
+            cmap_norm = PowerNorm(gamma=heatmap_normalization_power_gamma, vmin=cmap_min, vmax=cmap_max)
+        elif heatmap_normalization == "MinMax":
             cmap_norm = Normalize(vmin=cmap_min, vmax=cmap_max)
             reset_colorbar = True
         else:

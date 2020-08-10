@@ -6,6 +6,7 @@ from typing import Dict
 from typing import List
 from typing import Union
 from typing import Optional
+from pubsub import pub
 
 # Local imports
 from origami.utils.time import get_current_time
@@ -14,6 +15,7 @@ from origami.config.convert import convert_pickle_to_zarr
 from origami.objects.document import DocumentStore
 from origami.objects.callbacks import PropertyCallbackManager
 from origami.objects.containers import DataObject
+from origami.document import document
 
 # Should try to reduce the number of different document types to:
 # Type: MS (Waters/Thermo)
@@ -119,6 +121,8 @@ class Environment(PropertyCallbackManager):
         self.on_change("rename", self._set_current)
         self.on_change("delete", self._set_current)
 
+        pub.subscribe(self.on_activate_document, "document.activate")
+
     def __repr__(self):
         return f"DocumentStore<{self.n_documents} documents>"
 
@@ -196,6 +200,14 @@ class Environment(PropertyCallbackManager):
             old_name, new_name = metadata
             if self.current == old_name:
                 self.current = new_name
+
+    def on_activate_document(self, document_title: str):
+        """Activate document"""
+        if self.current == document_title:
+            return
+
+        if document_title in self:
+            self.current = document_title
 
     def exists(self, title: Optional[str] = None, path: Optional[str] = None):
         """Checks whether document with the name already exists"""

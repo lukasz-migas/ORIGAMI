@@ -598,8 +598,8 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         can_extract, is_multifile, file_fmt = document.can_extract()
         if not can_extract:
             raise MessageError("Error", "This document type 8does not allow data extraction")
-        if is_multifile:
-            raise MessageError("Error", "Multifile data extraction is not supported yet")
+        #         if is_multifile:
+        #             raise MessageError("Error", "Multifile data extraction is not supported yet")
         if file_fmt == "thermo":
             raise MessageError("Error", "Cannot extract heatmap from Thermo file")
 
@@ -611,16 +611,22 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         self.panel_plot.view_ms.add_patches([x_min], [0], [x_max - x_min], [y_val], pickable=False)
 
         # get data
-        obj_name, heatmap_obj, document = self.waters_extract_heatmap_from_mass_spectrum_one(
-            x_min, x_max, document.title
-        )
+        if is_multifile:
+            filelist = document.get_multifile_filelist(["variable"])
+            obj_name, heatmap_obj, document = self.waters_extract_heatmap_from_mass_spectrum_multifile(
+                x_min, x_max, filelist, document.title
+            )
+        else:
+
+            obj_name, heatmap_obj, document = self.waters_extract_heatmap_from_mass_spectrum_one(
+                x_min, x_max, document.title
+            )
 
         # set data
         self.panel_plot.view_heatmap.plot(obj=heatmap_obj)
         self.panel_plot.popup_2d.plot(obj=heatmap_obj)
 
         # # Update document
-
         self.document_tree.on_update_document(heatmap_obj.DOCUMENT_KEY, obj_name, document.title)
         logger.info(f"Extracted ion heatmap in {report_time(t_start)} - See: {obj_name}")
 
@@ -647,6 +653,12 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         # self.panel_plot.view_ms.add_patches([x_min], [0], [x_max - x_min], [y_val], pickable=False)
 
         # get data
+        #         if is_multifile:
+        #             filelist = document.get_multifile_filelist(["variable"])
+        #             obj_name, heatmap_obj, document = self.waters_extract_rt_from_mass_spectrum_multifile(
+        #                 x_min, x_max, filelist, document.title
+        #             )
+        #         else:
         obj_name, rt_obj, document = self.waters_extract_rt_from_mass_spectrum(x_min, x_max, document.title)
 
         # set data

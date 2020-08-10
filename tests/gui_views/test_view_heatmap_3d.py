@@ -17,7 +17,7 @@ class TestPlotView(WidgetTestCase):
 
     def set_plot(self, view):
         """Set view in the panel"""
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer = wx.BoxSizer()
         sizer.Add(view.panel, 1, wx.EXPAND)
         self.frame.SetSizerAndFit(sizer)
         self.frame.Layout()
@@ -45,6 +45,11 @@ class TestPanelViewHeatmap3d(TestPlotView):
 
         view.clear()
         assert view.figure.canvas.base_plot is None
+
+        # check popup
+        popup = view.on_open_about(None)
+        wx.CallLater(100, popup.on_dismiss, None)
+        assert popup
 
     def test_panel_update_style(self):
         view = ViewHeatmap3d(self.frame, None)

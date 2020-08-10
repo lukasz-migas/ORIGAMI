@@ -59,6 +59,11 @@ class TestPanelViewMassSpectrum(TestPlotView):
         menu = view.get_right_click_menu(self.frame)
         assert isinstance(menu, wx.Menu)
 
+        # check popup
+        popup = view.on_open_about(None)
+        wx.CallLater(100, popup.on_dismiss, None)
+        assert popup
+
     def test_panel_update_style(self):
         view = ViewMassSpectrum(self.frame, (12, 8))
         self.set_plot(view)
@@ -101,6 +106,11 @@ class TestPanelViewChromatogram(TestPlotView):
         # check right-click menu
         menu = view.get_right_click_menu(self.frame)
         assert isinstance(menu, wx.Menu)
+
+        # check popup
+        popup = view.on_open_about(None)
+        wx.CallLater(100, popup.on_dismiss, None)
+        assert popup
 
     def test_panel_update_style(self):
         view = ViewChromatogram(self.frame, (12, 8))
@@ -145,6 +155,11 @@ class TestPanelViewMobilogram(TestPlotView):
         menu = view.get_right_click_menu(self.frame)
         assert isinstance(menu, wx.Menu)
 
+        # check popup
+        popup = view.on_open_about(None)
+        wx.CallLater(100, popup.on_dismiss, None)
+        assert popup
+
     def test_panel_update_style(self):
         view = ViewMobilogram(self.frame, (12, 8))
         self.set_plot(view)
@@ -183,3 +198,8 @@ class TestPanelViewCompareMassSpectra(TestPlotView):
         # check right-click menu
         menu = view.get_right_click_menu(self.frame)
         assert isinstance(menu, wx.Menu)
+
+        # check popup
+        popup = view.on_open_about(None)
+        wx.CallLater(100, popup.on_dismiss, None)
+        assert popup

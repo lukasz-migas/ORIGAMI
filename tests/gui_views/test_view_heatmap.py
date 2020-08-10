@@ -53,6 +53,11 @@ class TestPanelViewIonHeatmap(TestPlotView):
         view.replot(plot_type)
         assert view.figure.PLOT_TYPE == plot_type
 
+        # check popup
+        popup = view.on_open_about(None)
+        wx.CallLater(100, popup.on_dismiss, None)
+        assert popup
+
     def test_panel_update_heatmap_style(self):
         view = ViewIonHeatmap(self.frame, None)
         self.set_plot(view)
@@ -111,3 +116,8 @@ class TestPanelViewMassSpectrumHeatmap(TestPlotView):
         # test plot using object
         view.plot(obj=obj)
         view.plot_joint(obj=obj)
+
+        # check popup
+        popup = view.on_open_about(None)
+        wx.CallLater(100, popup.on_dismiss, None)
+        assert popup

@@ -18,7 +18,13 @@
 - [ ] heatmap violin plot cuts off 1 value
 - [ ] add a fix to the waterfall plot to prevent the erronous highlighting of regions (edge +1 bin)
 - [x] add the resize/lock attributes to 3d plot
-
+- [ ] enable data extraction for multi-file raw files
+- [ ] add support for embedded RAW data
+- [ ] add support for copying RAW data to Document/Raw directory
+- [ ] add option to update RAW directory in case it was moved away
+- [ ] add option to extract mass spectrum from multi-file data when user extracts using heatmap
+- [ ] add option to extract chromatogram from multi-file data when user extracts using ms heatmap plot
+- [ ] 
 
 ## New features
 

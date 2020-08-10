@@ -13,6 +13,7 @@ import wx
 from pubsub import pub
 
 # Local imports
+from origami.gui_elements.views.view_about_popup import ViewAboutPopup
 from origami.styles import make_menu_item
 from origami.icons.assets import Icons
 from origami.config.config import CONFIG
@@ -217,6 +218,7 @@ class ViewBase(ABC):
         self.panel = None
         self.sizer = None
         self.figure: Optional[PlotBase] = None
+        self._tooltip_timer = None
 
         # process settings
         self._allow_extraction = kwargs.pop("allow_extraction", False)
@@ -230,6 +232,8 @@ class ViewBase(ABC):
         self._plt_kwargs = dict()
         self.document_name = None
         self.dataset_name = None
+
+        pub.subscribe(self.on_activate_document, "view.activate")
 
     def __repr__(self):
         return f"{self.__class__.__name__}<title={self.title}>"
@@ -301,6 +305,18 @@ class ViewBase(ABC):
             return
         self._z_label = value
         self._update()
+
+    @property
+    def plot_type(self):
+        """Return currently shown plot type"""
+        return self.figure.PLOT_TYPE
+
+    def on_activate_document(self, view_id: str):
+        """Whenever the event is emitted, the view should send another event to indicate that the current document has
+        been changed"""
+        if view_id != self.PLOT_ID or self.document_name is None:
+            return
+        pub.sendMessage("document.activate", document_title=self.document_name)
 
     def set_plot_parameters(self, **kwargs):
         """Update plot kwargs"""
@@ -480,6 +496,7 @@ class ViewBase(ABC):
             path = _get_path()
 
         if path is None:
+            pub.sendMessage("notify.message.warning", message="Cancelled figure save")
             return
         t_start = time.time()
 
@@ -495,8 +512,8 @@ class ViewBase(ABC):
             resize=None,
             tight=CONFIG.image_tight,
         )
-
         LOGGER.info(f"Saved figure in {report_time(t_start)}")
+        pub.sendMessage("notify.message.info", message=f"Saved figure in {report_time(t_start)}")
 
     def get_right_click_menu(self, parent: Union[wx.Panel, wx.MiniFrame, wx.Frame]):
         """Get the commonly used right-click menu items
@@ -520,16 +537,19 @@ class ViewBase(ABC):
         menu_save = make_menu_item(parent=menu, evt_id=wx.ID_ANY, text="Save figure as...", bitmap=self._icons.png)
         menu_clipboard = make_menu_item(parent=menu, text="Copy plot to clipboard", bitmap=self._icons.filelist)
         menu_clear = make_menu_item(parent=menu, text="Clear plot", bitmap=self._icons.clear)
+        menu_info = make_menu_item(parent=menu, text="About plot...", bitmap=self._icons.info)
 
         self.lock_plot_check = menu.AppendCheckItem(wx.ID_ANY, "Lock plot", help="")
         self.lock_plot_check.Check(self.figure.lock_plot_from_updating)
         menu.AppendSeparator()
         self.resize_plot_check = menu.AppendCheckItem(wx.ID_ANY, "Resize on saving", help="")
-        self.resize_plot_check.Check(CONFIG.resize)
+        self.resize_plot_check.Check(self.figure.resize)
         menu.Append(menu_save)
         menu.Append(menu_clipboard)
         menu.AppendSeparator()
         menu.Append(menu_clear)
+        menu.AppendSeparator()
+        menu.Append(menu_info)
 
         # bind menu items to event handlers
         parent.Bind(wx.EVT_MENU, self.on_copy_to_clipboard, menu_clipboard)
@@ -537,6 +557,7 @@ class ViewBase(ABC):
         parent.Bind(wx.EVT_MENU, self.on_clear_plot, menu_clear)
         parent.Bind(wx.EVT_MENU, self.on_lock_plot, self.lock_plot_check)
         parent.Bind(wx.EVT_MENU, self.on_resize_check, self.resize_plot_check)
+        parent.Bind(wx.EVT_MENU, self.on_open_about, menu_info)
 
         return menu
 
@@ -560,10 +581,18 @@ class ViewBase(ABC):
         verb = "Locked" if self.figure.lock_plot_from_updating else "Unlocked"
         pub.sendMessage("notify.message.info", message=f"{verb} figure")
 
-    @staticmethod
-    def on_resize_check(_evt):
+    def on_resize_check(self, _evt):
         """Enable/disable plot resizing"""
-        CONFIG.resize = not CONFIG.resize
+        self.figure.resize = not self.figure.resize
+        verb = "Enabled" if self.figure.resize else "Disabled"
+        pub.sendMessage("notify.message.info", message=f"{verb} figure resize on save")
+
+    def on_open_about(self, _evt):
+        """Open settings of the Document Tree"""
+        popup = ViewAboutPopup(self.panel, self)
+        popup.position_on_mouse()
+        popup.Show()
+        return popup
 
 
 def build_wildcard(supported_formats):

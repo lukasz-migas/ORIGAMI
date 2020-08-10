@@ -174,6 +174,7 @@ class ViewCompareSpectra(ViewBase, ViewSpectrumPanelMixin):
     MPL_KEYS = ["1d", "axes", "compare"]
     ALLOWED_PLOTS = ("line-compare",)
     DEFAULT_PLOT = "line-compare"
+    VIEW_TYPE = "1d"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

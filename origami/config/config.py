@@ -54,7 +54,8 @@ class Config:
         self.APP_CHECK_UNIDEC_PATH_AT_START = True
         self.APP_UNIDEC_PATH = None
         self.APP_CHECK_DRIFTSCOPE_PATH_AT_START = True
-        self.APP_DRIFTSCOPE_PATH = r"C:\DriftScope\lib"
+        self.APP_DRIFTSCOPE_PATH = ""
+        self.APP_DRIFTSCOPE_C_PATH = r"C:\DriftScope\lib"
         self.APP_DRIFTSCOPE_ALT_PATH = "readers/driftscope"
         self.APP_LOAD_CCS_DB_AT_START = True
         self.APP_SYSTEM = platform.system()
@@ -1830,16 +1831,19 @@ class Config:
         # check driftscope main directory
         found_dir = True
         if not _check_path(self.APP_DRIFTSCOPE_PATH, os.path.join(self.APP_DRIFTSCOPE_PATH, "imextract.exe")):
-            logger.warning("Could not resolve Driftscope path using the default `C:\DriftScope\lib` location")
+            # check alternative path
             alternative_driftscope_path = os.path.join(self.APP_CWD, self.APP_DRIFTSCOPE_ALT_PATH)
-            if not _check_path(alternative_driftscope_path, os.path.join(alternative_driftscope_path, "imextract.exe")):
+            c_driftscope_path = self.APP_DRIFTSCOPE_C_PATH
+            if _check_path(alternative_driftscope_path, os.path.join(alternative_driftscope_path, "imextract.exe")):
+                self.APP_DRIFTSCOPE_PATH = alternative_driftscope_path
+            elif _check_path(c_driftscope_path, os.path.join(c_driftscope_path, "imextract.exe")):
+                self.APP_DRIFTSCOPE_PATH = c_driftscope_path
+            else:
                 logger.warning(
                     "Could not resolve Driftscope path using the alternative `C:\DriftScope\lib` location."
                     " Data extraction will be restricted!"
                 )
                 found_dir = False
-            else:
-                self.APP_DRIFTSCOPE_PATH = alternative_driftscope_path
 
         if found_dir:
             print(f"Driftscope path {self.APP_DRIFTSCOPE_PATH}")

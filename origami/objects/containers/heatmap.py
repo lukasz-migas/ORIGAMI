@@ -8,6 +8,7 @@ from typing import Optional
 
 # Third-party imports
 import numpy as np
+from natsort import order_by_index, index_natsorted
 
 # Local imports
 from origami.processing import heatmap as pr_heatmap
@@ -498,11 +499,11 @@ class IonHeatmapObject(HeatmapObject, ChromatogramAxesMixin, MobilogramAxesMixin
 
     def as_mobilogram(self):
         """Return instance of MobilogramObject"""
-        return MobilogramObject(self.x, self.xy)
+        return MobilogramObject(self.y, self.yy)
 
     def as_chromatogram(self):
         """Return instance of MobilogramObject"""
-        return ChromatogramObject(self.y, self.yy)
+        return ChromatogramObject(self.x, self.xy)
 
 
 class StitchIonHeatmapObject(IonHeatmapObject):
@@ -537,7 +538,15 @@ class StitchIonHeatmapObject(IonHeatmapObject):
     @staticmethod
     def _preprocess(data_objects: List[MobilogramObject], variables: List):
         """"""
-        assert len(data_objects) == len(variables)
+        if not len(data_objects) == len(variables):
+            raise ValueError("The list of data objects and variables must be the same")
+
+        # prepare data by ensuring its sorted first
+        index = index_natsorted(variables)
+        data_objects = order_by_index(data_objects, index)
+        variables = order_by_index(variables, index)
+
+        # get first object
         obj = data_objects[0]
         y = obj.x
         x = np.asarray(variables)

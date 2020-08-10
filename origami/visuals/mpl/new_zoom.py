@@ -575,7 +575,6 @@ class MPLInteraction:
         if self._callbacks.get("CTRL", False) and isinstance(self._callbacks["CTRL"], list):
             for callback in self._callbacks["CTRL"]:
                 pub.sendMessage(callback, rect=[xmin, xmax, ymin, ymax], x_labels=x_labels, y_labels=y_labels)
-                print(callback)
         # process SHIFT callbacks
         elif self._callbacks.get("SHIFT", False) and isinstance(self._callbacks["SHIFT"], list):
             for callback in self._callbacks["SHIFT"]:

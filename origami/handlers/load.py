@@ -14,7 +14,6 @@ from typing import Optional
 import numpy as np
 
 # Local imports
-from origami.utils.check import check_axes_spacing
 from origami.objects.misc import FileItem
 from origami.config.config import CONFIG
 from origami.objects.groups import MassSpectrumGroup
@@ -33,7 +32,6 @@ from origami.objects.containers import MassSpectrumObject
 from origami.objects.containers import StitchIonHeatmapObject
 from origami.objects.containers import ImagingIonHeatmapObject
 from origami.objects.containers import MassSpectrumHeatmapObject
-from origami.processing.heatmap import equalize_heatmap_spacing
 from origami.processing.imaging import ImagingNormalizationProcessor
 from origami.readers.io_text_files import TextHeatmapReader
 from origami.readers.io_text_files import TextSpectrumReader
@@ -345,7 +343,7 @@ class LoadHandler:
 
     @staticmethod
     @check_os("win32")
-    def waters_extract_heatmap_from_mass_spectrum_many(
+    def waters_extract_heatmap_from_mass_spectrum_multifile(
         x_min: float, x_max: float, filelist: Dict, document_title: str = None, obj_name: str = None
     ):
         """Extract heatmap based on mass spectrum range
@@ -372,34 +370,80 @@ class LoadHandler:
         document : Document
             instance of the document for which data was extracted
         """
-        # document = ENV.on_get_document(title)
-        n_files = len(filelist)
-
-        dt_x = np.arange(1, 201)
-        array = np.zeros((200, n_files))
-        rt_x = []
-        for idx, (filepath, value) in enumerate(filelist.items()):
+        document = ENV.on_get_document(document_title)
+        variables, mobilograms = {}, {}
+        for _, (filepath, variable) in enumerate(filelist.items()):
+            if isinstance(variable, (list, tuple)):
+                variable = variable[0]
             reader = WatersIMReader(
                 filepath, temp_dir=CONFIG.APP_TEMP_DATA_PATH, driftscope_path=CONFIG.APP_DRIFTSCOPE_PATH
             )
+            spectrum_name = f"{variable}={filepath}"
             dt_obj = reader.extract_dt(mz_start=x_min, mz_end=x_max)
-            array[:, idx] = dt_obj.y
-            rt_x.append(value)
+            mobilograms[spectrum_name] = dt_obj
+            variables[spectrum_name] = variable
 
-        rt_x = np.asarray(rt_x)
-
-        if not check_axes_spacing(rt_x):
-            rt_x, dt_x, array = equalize_heatmap_spacing(rt_x, dt_x, array)
-
-        # sum retention time and mobilogram
-        rt_y = array.sum(axis=0)
-        dt_y = array.sum(axis=1)
+        # make sure they are a list
+        variables = list(variables.values())
+        mobilograms = list(mobilograms.values())
 
         if obj_name is None:
-            obj_name = f"{x_min:.2f}-{x_max:.2f}"
-        obj_data = IonHeatmapObject(array, x=dt_x, y=rt_x, xy=dt_y, yy=rt_y)
+            obj_name = f"MZ_{x_min:.2f}-{x_max:.2f}"
+        obj_data = StitchIonHeatmapObject(mobilograms, variables, x_label="Collision Voltage (V)")
+        obj_data = document.add_heatmap(obj_name, obj_data)
 
-        return obj_name, obj_data, None
+        return obj_name, obj_data, document
+
+    def waters_extract_rt_from_mass_spectrum_multifile(
+        self, x_min: float, x_max: float, filelist: Dict, document_title: str = None, obj_name: str = None
+    ):
+        """Extract chromatogram based on mass spectrum range
+
+        Parameters
+        ----------
+        x_min : float
+            start m/z value
+        x_max : float
+            end m/z value
+        filelist : Dict
+            dictionary with filename : variable mapping
+        document_title: str, optional
+            document title
+        obj_name : str
+            name of the object
+
+        Returns
+        -------
+        obj_name : str
+            name of the data object
+        obj_data : IonHeatmapObject
+            dictionary containing extracted data
+        document : Document
+            instance of the document for which data was extracted
+        """
+
+    #         document = ENV.on_get_document(document_title)
+    #         variables, mobilograms = {}, {}
+    #         for _, (filepath, variable) in enumerate(filelist.items()):
+    #             if isinstance(variable, (list, tuple)):
+    #                 variable = variable[0]
+    #             reader = WatersIMReader(
+    #                 filepath, temp_dir=CONFIG.APP_TEMP_DATA_PATH, driftscope_path=CONFIG.APP_DRIFTSCOPE_PATH
+    #             )
+    #             spectrum_name = f"{variable}={filepath}"
+    #             dt_obj = reader.extract_rt(mz_start=x_min, mz_end=x_max)
+    #             mobilograms[spectrum_name] = dt_obj
+    #             variables[spectrum_name] = variable
+    #
+    #         # make sure they are a list
+    #         variables = list(variables.values())
+    #         mobilograms = list(mobilograms.values())
+    #
+    #         if obj_name is None:
+    #             obj_name = f"MZ_{x_min:.2f}-{x_max:.2f}"
+    #         obj_data = StitchIonHeatmapObject(mobilograms, variables)
+    #
+    #         return obj_name, obj_data, document
 
     @staticmethod
     @check_os("win32")
@@ -895,22 +939,28 @@ class LoadHandler:
         """Load Waters data and set in ORIGAMI document"""
         document = ENV.get_new_document("activation", path)
 
+        _filedict, _variables = self.get_multifile_filelist(filelist)
         filelist = self.check_lesa_document(document, filelist, **proc_kwargs)
-        data = self.load_multi_file_waters_data(filelist, **proc_kwargs)
+        data = self.load_multi_file_waters_data(filelist, heatmap_x_label="Collision Voltage (V)", **proc_kwargs)
         document = ENV.set_document(document, data=data)
         document.add_config("activation", proc_kwargs)
-        #         document.add_file_path("multi", filelist)
+        document.add_config("variables", _variables)
+        document.add_file_path("multifile", _filedict)
 
         return document
 
     @check_os("win32")
-    def load_multi_file_waters_data(self, filelist: List[FileItem], **proc_kwargs):
+    def load_multi_file_waters_data(self, filelist: List[FileItem], heatmap_x_label: str = "Scans", **proc_kwargs):
         """Vendor agnostic LESA data load"""
         mass_spectra, chromatograms, mobilograms, msdts, variables, parameters = _load_multi_file_waters_data(
             filelist, **proc_kwargs
         )
         data_out = dict(mass_spectra=mass_spectra, chromatograms=chromatograms, mobilograms=mobilograms, msdts=msdts)
-        data_out.update(**self.finalize_multi_file_waters_data(mass_spectra, mobilograms, variables, **proc_kwargs))
+        data_out.update(
+            **self.finalize_multi_file_waters_data(
+                mass_spectra, mobilograms, variables, heatmap_x_label=heatmap_x_label, **proc_kwargs
+            )
+        )
 
         if parameters:
             data_out["parameters"] = parameters
@@ -919,7 +969,11 @@ class LoadHandler:
 
     @staticmethod
     def finalize_multi_file_waters_data(
-        mass_spectra: Dict = None, mobilograms: Dict = None, variables: Dict = None, **proc_kwargs
+        mass_spectra: Dict = None,
+        mobilograms: Dict = None,
+        variables: Dict = None,
+        heatmap_x_label: str = "Scans",
+        **proc_kwargs,
     ):
         """Finalize multi-file document by generating average spectra, heatmaps, etc"""
         data_out = dict()
@@ -933,7 +987,7 @@ class LoadHandler:
         if mobilograms and variables:
             variables = list(variables.values())
             spectra = list(mobilograms.values())
-            heatmap_obj = StitchIonHeatmapObject(spectra, variables)
+            heatmap_obj = StitchIonHeatmapObject(spectra, variables, x_label=heatmap_x_label)
             data_out["heatmap"] = heatmap_obj
 
         return data_out
@@ -978,6 +1032,16 @@ class LoadHandler:
                 remove_item()
 
         return filelist
+
+    def get_multifile_filelist(self, filelist: List[FileItem]):
+        """Get list of files that can be associated with a multi-file document"""
+        _filedict = {}
+        _variables = {}
+        for file_item in filelist:
+            _filedict[file_item.path] = file_item._asdict()
+            _variables[file_item.path] = file_item.variable
+
+        return _filedict, _variables
 
 
 def _load_multi_file_waters_data(filelist: List[FileItem], **proc_kwargs):

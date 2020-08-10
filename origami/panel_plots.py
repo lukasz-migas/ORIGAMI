@@ -2,6 +2,7 @@
 # Standard library imports
 import time
 import logging
+from functools import partial
 from typing import Union
 
 # Third-party imports
@@ -26,15 +27,7 @@ from origami.ids import ID_clearPlot_RT_MS
 from origami.ids import ID_clearPlot_Matrix
 from origami.ids import ID_clearPlot_Overlay
 from origami.ids import ID_clearPlot_Waterfall
-from origami.ids import ID_extraSettings_legend
-from origami.ids import ID_extraSettings_plot1D
-from origami.ids import ID_extraSettings_plot2D
-from origami.ids import ID_extraSettings_plot3D
-from origami.ids import ID_extraSettings_violin
 from origami.ids import ID_plots_customise_plot
-from origami.ids import ID_extraSettings_colorbar
-from origami.ids import ID_extraSettings_waterfall
-from origami.ids import ID_extraSettings_general_plot
 from origami.styles import make_menu_item
 from origami.utils.color import convert_rgb_1_to_255
 from origami.utils.color import convert_rgb_1_to_hex
@@ -435,7 +428,11 @@ class PanelPlots(wx.Panel):
         """Open peak picker window"""
         view_obj = self.get_view_from_name(self.currentPage)
         mz_obj = view_obj.get_object()
-        document_title, dataset_name = mz_obj.owner
+
+        try:
+            document_title, dataset_name = mz_obj.owner
+        except AttributeError:
+            document_title, dataset_name = None, None
 
         if document_title is None or dataset_name is None:
             pub.sendMessage(
@@ -452,7 +449,10 @@ class PanelPlots(wx.Panel):
         view_obj = self.get_view_from_name(self.currentPage)
 
         data_obj = view_obj.get_object()
-        document_title, dataset_name = data_obj.owner
+        try:
+            document_title, dataset_name = data_obj.owner
+        except AttributeError:
+            document_title, dataset_name = None, None
 
         # check whether data object has document/dataset associated with it
         if document_title is None or dataset_name is None:
@@ -568,48 +568,23 @@ class PanelPlots(wx.Panel):
         menu = view.get_right_click_menu(self)
 
         # pre-generate common menu items
-        menu_edit_general = make_menu_item(
-            parent=menu,
-            evt_id=ID_extraSettings_general_plot,
-            text="Edit general parameters...",
-            bitmap=self._icons.gear,
+        menu_plot_general = make_menu_item(parent=menu, text="Edit general parameters...", bitmap=self._icons.gear)
+        menu_plot_1d = make_menu_item(parent=menu, text="Edit plot parameters...", bitmap=self._icons.plot_1d)
+        menu_plot_2d = make_menu_item(parent=menu, text="Edit plot parameters...", bitmap=self._icons.heatmap)
+        menu_plot_3d = make_menu_item(parent=menu, text="Edit plot parameters...", bitmap=self._icons.overlay)
+        menu_plot_colorbar = make_menu_item(
+            parent=menu, text="Edit colorbar parameters...", bitmap=self._icons.plot_colorbar
         )
-        menu_edit_plot_1d = make_menu_item(
-            parent=menu, evt_id=ID_extraSettings_plot1D, text="Edit plot parameters...", bitmap=self._icons.plot_1d
-        )
-        menu_edit_plot_2d = make_menu_item(
-            parent=menu, evt_id=ID_extraSettings_plot2D, text="Edit plot parameters...", bitmap=self._icons.heatmap
-        )
-        menu_edit_plot_3d = make_menu_item(
-            parent=menu, evt_id=ID_extraSettings_plot3D, text="Edit plot parameters...", bitmap=self._icons.overlay
-        )
-        menu_edit_colorbar = make_menu_item(
-            parent=menu,
-            evt_id=ID_extraSettings_colorbar,
-            text="Edit colorbar parameters...",
-            bitmap=self._icons.plot_colorbar,
-        )
-        menu_edit_legend = make_menu_item(
-            parent=menu,
-            evt_id=ID_extraSettings_legend,
-            text="Edit legend parameters...",
-            bitmap=self._icons.plot_legend,
-        )
-        #         menu_edit_rmsd = make_menu_item(
+        menu_plot_legend = make_menu_item(parent=menu, text="Edit legend parameters...", bitmap=self._icons.plot_legend)
+        #         menu_plot_rmsd = make_menu_item(
         #             parent=menu,
-        #             id=ID_extraSettings_rmsd,
         #             text="Edit plot parameters...",
         #             bitmap=self.icons.iconsLib["panel_rmsd_16"],
         #         )
-        menu_edit_waterfall = make_menu_item(
-            parent=menu,
-            evt_id=ID_extraSettings_waterfall,
-            text="Edit waterfall parameters...",
-            bitmap=self._icons.waterfall,
+        menu_plot_waterfall = make_menu_item(
+            parent=menu, text="Edit waterfall parameters...", bitmap=self._icons.waterfall
         )
-        menu_edit_violin = make_menu_item(
-            parent=menu, evt_id=ID_extraSettings_violin, text="Edit violin parameters...", bitmap=self._icons.violin
-        )
+        menu_plot_violin = make_menu_item(parent=menu, text="Edit violin parameters...", bitmap=self._icons.violin)
         menu_action_rotate90 = make_menu_item(parent=menu, text="Rotate 90°", bitmap=self._icons.rotate)
         menu_action_process_2d = make_menu_item(
             parent=menu, text="Process heatmap...", bitmap=self._icons.process_heatmap
@@ -644,6 +619,16 @@ class PanelPlots(wx.Panel):
         menu_action_show_3d = make_menu_item(parent=menu, text="Show in 3d", bitmap=self._icons.cube)
 
         # bind events by item
+        self.Bind(wx.EVT_MENU, partial(self.view.on_open_plot_settings_panel, "General"), menu_plot_general)
+        self.Bind(wx.EVT_MENU, partial(self.view.on_open_plot_settings_panel, "Colorbar"), menu_plot_colorbar)
+        self.Bind(wx.EVT_MENU, partial(self.view.on_open_plot_settings_panel, "Legend"), menu_plot_legend)
+        self.Bind(wx.EVT_MENU, partial(self.view.on_open_plot_settings_panel, "Plot 1D"), menu_plot_1d)
+        self.Bind(wx.EVT_MENU, partial(self.view.on_open_plot_settings_panel, "Plot 2D"), menu_plot_2d)
+        self.Bind(wx.EVT_MENU, partial(self.view.on_open_plot_settings_panel, "Plot 3D"), menu_plot_3d)
+        self.Bind(wx.EVT_MENU, partial(self.view.on_open_plot_settings_panel, "Waterfall"), menu_plot_waterfall)
+        self.Bind(wx.EVT_MENU, partial(self.view.on_open_plot_settings_panel, "Violin"), menu_plot_violin)
+        # self.Bind(wx.EVT_MENU, partial(self.view.on_open_plot_settings_panel, "RMSD"), menu_plot_rmsd)
+
         self.Bind(wx.EVT_MENU, self.on_process_mass_spectrum, menu_action_process_ms)
         self.Bind(wx.EVT_MENU, self.on_process_heatmap, menu_action_process_2d)
         self.Bind(wx.EVT_MENU, self.on_rotate_plot, menu_action_rotate90)
@@ -664,22 +649,22 @@ class PanelPlots(wx.Panel):
             menu.Insert(2, menu_action_process_pick)
             menu.Insert(3, menu_action_open_annotations)
             menu.InsertSeparator(4)
-            menu.Insert(5, menu_edit_general)
-            menu.Insert(6, menu_edit_plot_1d)
+            menu.Insert(5, menu_plot_general)
+            menu.Insert(6, menu_plot_1d)
         elif self.currentPage == "Chromatogram":
             menu.Insert(0, menu_action_smooth_signal)
             menu.Insert(1, menu_action_open_annotations)
             menu.InsertSeparator(2)
-            menu.Insert(3, menu_edit_general)
-            menu.Insert(4, menu_edit_plot_1d)
-            menu.Insert(5, menu_edit_legend)
+            menu.Insert(3, menu_plot_general)
+            menu.Insert(4, menu_plot_1d)
+            menu.Insert(5, menu_plot_legend)
         elif self.currentPage == "Mobilogram":
             menu.Insert(0, menu_action_smooth_signal)
             menu.Insert(1, menu_action_open_annotations)
             menu.InsertSeparator(2)
-            menu.Insert(3, menu_edit_general)
-            menu.Insert(4, menu_edit_plot_1d)
-            menu.Insert(5, menu_edit_legend)
+            menu.Insert(3, menu_plot_general)
+            menu.Insert(4, menu_plot_1d)
+            menu.Insert(5, menu_plot_legend)
         elif self.currentPage == "Heatmap":
             menu.Insert(0, menu_action_show_heatmap)
             menu.Insert(1, menu_action_show_contour)
@@ -693,11 +678,11 @@ class PanelPlots(wx.Panel):
             menu.Insert(8, menu_action_rotate90)
             menu.Insert(9, menu_action_open_annotations)
             menu.InsertSeparator(10)
-            menu.Insert(11, menu_edit_general)
-            menu.Insert(12, menu_edit_plot_2d)
-            menu.Insert(13, menu_edit_colorbar)
-            menu.Insert(14, menu_edit_waterfall)
-            menu.Insert(15, menu_edit_violin)
+            menu.Insert(11, menu_plot_general)
+            menu.Insert(12, menu_plot_2d)
+            menu.Insert(13, menu_plot_colorbar)
+            menu.Insert(14, menu_plot_waterfall)
+            menu.Insert(15, menu_plot_violin)
         elif self.currentPage == "DT/MS":
             menu.Insert(0, menu_action_show_heatmap)
             menu.Insert(1, menu_action_show_contour)
@@ -708,13 +693,13 @@ class PanelPlots(wx.Panel):
             menu.Insert(6, menu_action_rotate90)
             menu.Insert(7, menu_action_open_annotations)
             menu.InsertSeparator(8)
-            menu.Insert(9, menu_edit_general)
-            menu.Insert(10, menu_edit_plot_2d)
-            menu.Insert(11, menu_edit_colorbar)
+            menu.Insert(9, menu_plot_general)
+            menu.Insert(10, menu_plot_2d)
+            menu.Insert(11, menu_plot_colorbar)
         elif self.currentPage == "Heatmap (3D)":
             menu.Insert(0, menu_action_smooth_heatmap)
             menu.InsertSeparator(1)
-            menu.Insert(2, menu_edit_plot_3d)
+            menu.Insert(2, menu_plot_3d)
 
         self.PopupMenu(menu)
         menu.Destroy()
