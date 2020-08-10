@@ -1,3 +1,4 @@
+"""Waters reader"""
 # Standard library imports
 import os
 import glob
@@ -13,11 +14,14 @@ import origami.readers.waters.MassLynxRawReader as MassLynxRawReader
 import origami.readers.waters.MassLynxRawInfoReader as MassLynxRawInfoReader
 import origami.readers.waters.MassLynxRawScanReader as MassLynxRawScanReader
 import origami.readers.waters.MassLynxRawChromatogramReader as MassLynxRawChromatogramReader
+from origami.processing.utils import find_nearest_index
 from origami.utils.ranges import get_min_max
 from origami.objects.containers import MassSpectrumObject
 
 
 class WatersRawReader:
+    """Waters raw file reader"""
+
     def __init__(self, path, mz_spacing: float = 0.01):
         self.path = path
 
@@ -42,10 +46,12 @@ class WatersRawReader:
 
     @property
     def n_functions(self):
+        """Return the number of functions"""
         return self._n_functions
 
     @property
     def mz_x(self):
+        """Return full m/z axis"""
         if self._mz_x is None:
             self._mz_x = self.get_linear_mz(self._mz_spacing)
         return self._mz_x
@@ -74,12 +80,14 @@ class WatersRawReader:
 
     @property
     def rt_min(self):
+        """Return chromatogram axis in minutes"""
         if self._rt_min is None:
-            self._rt_min, _ = self.get_tic(0)
+            self._rt_min, _ = self.get_tic()
         return self._rt_min
 
     @property
     def is_im(self):
+        """Check whether dataset is an ion mobility file"""
         if self.n_functions < 2:
             return False
         if glob.glob(os.path.join(self.path, "*.cdt")):
@@ -88,6 +96,7 @@ class WatersRawReader:
 
     @property
     def info(self):
+        """Return information about the file"""
         if self._info is None:
             self._info = self.get_inf_data()
         return self._info
@@ -96,6 +105,10 @@ class WatersRawReader:
         """Converts scan(s) to minutes"""
         rt_min = self.rt_min
         return [rt_min[scan_id] for scan_id in scans]
+
+    def convert_min_to_scan(self, mins):
+        """Converts minutes to scans"""
+        return find_nearest_index(self.rt_min, mins)
 
     def convert_bin_to_ms(self, bins):
         """Converts scan(s) to minutes"""
@@ -213,7 +226,7 @@ class WatersRawReader:
             start_idx = end_idx
 
         # generate interpolation function
-        f = interpolate.interp1d(x_unique, y_summed, "linear", bounds_error=False, fill_value=0)
+        f = interpolate.interp1d(x_unique, y_summed, bounds_error=False, fill_value=0)
         return f(self.mz_x).astype(np.float32)
 
     def _get_scan_list(self, start_scan, end_scan, scan_list, fcn):

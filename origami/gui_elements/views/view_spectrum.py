@@ -41,6 +41,7 @@ class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin):
     MPL_KEYS = ["1d", "axes", "legend"]
     UPDATE_STYLES = ("line", "fill")
     ALLOWED_PLOTS = ("line", "waterfall")
+    DEFAULT_PLOT = "line"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -89,7 +90,7 @@ class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin):
 
             # set data
             self._data.update(x=x, y=y, obj=obj)
-            self._plt_kwargs = kwargs
+            self.set_plot_parameters(**kwargs)
             LOGGER.debug("Plotted data")
 
     def update(self, x=None, y=None, obj=None, repaint: bool = True, **kwargs):
@@ -105,15 +106,18 @@ class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin):
 
         # set data
         self._data.update(x=x, y=y, obj=obj)
-        self._plt_kwargs = kwargs
+        self.set_plot_parameters(**kwargs)
         LOGGER.debug("Updated plot data")
 
-    def replot(self, **kwargs):
+    def replot(self, plot_type: str = None, repaint: bool = True):
         """Replot the current plot"""
-        if kwargs is None:
-            kwargs = self._plt_kwargs
+        # get plot_type
+        plot_type = self.get_plot_type(plot_type)
 
-        self.update(self._data["x"], self._data["y"], **kwargs)
+        # get replot data
+        x, y, obj = self.get_data(self.DATA_KEYS)
+        if plot_type == "line":
+            self.plot(x, y, obj, repaint=repaint)
 
     def update_style(self, name: str):
         """Update plot style"""
@@ -166,9 +170,10 @@ class ViewMobilogram(ViewSpectrum):
 class ViewCompareSpectra(ViewBase, ViewSpectrumPanelMixin):
     """Viewer class for comparison of spectral data"""
 
-    DATA_KEYS = ("x_top", "x_bottom", "y_top", "y_bottom", "labels")
+    DATA_KEYS = ("x_top", "x_bottom", "y_top", "y_bottom", "obj_top", "obj_bottom", "labels")
     MPL_KEYS = ["1d", "axes", "compare"]
     ALLOWED_PLOTS = ("line-compare",)
+    DEFAULT_PLOT = "line-compare"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -226,8 +231,16 @@ class ViewCompareSpectra(ViewBase, ViewSpectrumPanelMixin):
             self.figure.repaint()
 
             # set data
-            self._data.update(x_top=x_top, x_bottom=x_bottom, y_top=y_top, y_bottom=y_bottom, labels=labels)
-            self._plt_kwargs = kwargs
+            self._data.update(
+                x_top=x_top,
+                x_bottom=x_bottom,
+                y_top=y_top,
+                y_bottom=y_bottom,
+                obj_top=obj_top,
+                obj_bottom=obj_bottom,
+                labels=labels,
+            )
+            self.set_plot_parameters(**kwargs)
             LOGGER.debug("Plotted data")
 
     def update(
@@ -245,22 +258,18 @@ class ViewCompareSpectra(ViewBase, ViewSpectrumPanelMixin):
 
         # set data
         self._data.update(x_top=x_top, x_bottom=x_bottom, y_top=y_top, y_bottom=y_bottom, labels=labels)
-        self._plt_kwargs = kwargs
+        self.set_plot_parameters(**kwargs)
         LOGGER.debug("Updated plot data")
 
-    def replot(self, **kwargs):
+    def replot(self, plot_type: str = None, repaint: bool = True):
         """Replot the current plot"""
-        if kwargs is None:
-            kwargs = self._plt_kwargs
+        # get plot_type
+        plot_type = self.get_plot_type(plot_type)
 
-        self.update(
-            self._data["x_top"],
-            self._data["x_bottom"],
-            self._data["y_top"],
-            self._data["y_bottom"],
-            self._data["labels"],
-            **kwargs,
-        )
+        # get replot data
+        x_top, x_bottom, y_top, y_bottom, obj_top, obj_bottom, labels = self.get_data(self.DATA_KEYS)
+        if plot_type == "line-compare":
+            self.plot(x_top, x_bottom, y_top, y_bottom, obj_top, obj_bottom, labels, repaint=repaint)
 
     def _update(self):
         pass

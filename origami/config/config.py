@@ -1728,6 +1728,9 @@ class Config:
         self.interactive_bar_sameAsFill = True
         self.interactive_bar_lineWidth = 1.0
 
+        # setup paths
+        self.setup_paths()
+
     def on_check_parameters(self, data_type="all"):
         """
         Helper function to fix values that might be inappropriate for certain calculations
@@ -2203,7 +2206,22 @@ class Config:
         return config
 
     def get_panel_parameters(self, config_key: Union[List[str], str], get_keys: bool = False):
-        """Get parameters that correspond to panels and UI elements"""
+        """Get parameters that correspond to panels and UI elements
+
+        Parameters
+        ----------
+        config_key : List[str], str
+            configuration key or list of configuration keys that should be retrieved from the config file
+        get_keys : bool
+            if `True`, return the list of keys of config keys that can be retrieved
+
+        Returns
+        -------
+        config_keys : List[str]
+            if `get_keys` is True
+        config : Dict
+            dictionary with keys
+        """
 
         if get_keys:
             return [

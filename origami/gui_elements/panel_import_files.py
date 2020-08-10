@@ -354,9 +354,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         self.info_label = wx.StaticText(panel, wx.ID_ANY, msg)
 
         processing_label = set_item_font(wx.StaticText(panel, wx.ID_ANY, "Current pre-processing steps"))
-        msg = ""
-        self.processing_label = wx.StaticText(panel, wx.ID_ANY, msg)
-        self.processing_label = wx.TextCtrl(panel, wx.ID_ANY, msg, style=wx.TE_MULTILINE | wx.TE_RICH2 | wx.TE_READONLY)
+        self.processing_label = wx.TextCtrl(panel, wx.ID_ANY, "", style=wx.TE_MULTILINE | wx.TE_RICH2 | wx.TE_READONLY)
         self.processing_label.SetMinSize((-1, 175))
 
         # file selection

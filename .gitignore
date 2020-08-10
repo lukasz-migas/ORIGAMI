@@ -80,3 +80,4 @@ origami/.vscode/.ropeproject/config.py
 origami/_data
 origami/c/*.c
 origami/origami-config.json
+_data/

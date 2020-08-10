@@ -15,4 +15,7 @@ class TestPanelSignalComparisonViewer(WidgetTestCase):
 
     def test_panel_create(self):
         icons = Icons()
-        _ = PanelSignalComparisonViewer(None, None, icons, "", None, None, debug=True)
+        dlg = PanelSignalComparisonViewer(None, None, icons, "", debug=True)
+        dlg.Show()
+        assert dlg
+        self.wait_for(500)

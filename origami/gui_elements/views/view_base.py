@@ -193,6 +193,7 @@ class ViewMPLMixin:
 class ViewBase(ABC):
     """Viewer base class"""
 
+    DEFAULT_PLOT = None
     DATA_KEYS = []
     MPL_KEYS = []
     PLOT_ID = None
@@ -300,6 +301,14 @@ class ViewBase(ABC):
             return
         self._z_label = value
         self._update()
+
+    def set_plot_parameters(self, **kwargs):
+        """Update plot kwargs"""
+        self._plt_kwargs.update(**kwargs)
+
+    def snapshot(self, flush: bool = False):
+        """Take snapshot of current parameters so plot can be reproduced exactly"""
+        return self._plt_kwargs
 
     def can_plot(self, plot_type: str):
         """Check whether specified plot can be displayed"""
@@ -410,6 +419,15 @@ class ViewBase(ABC):
         self._z_label = z_label
         remove_keys("x_label"), remove_keys("y_label"), remove_keys("z_label")
 
+    def get_plot_type(self, plot_type) -> str:
+        """Get current or new plot type"""
+        if plot_type is None:
+            if isinstance(self.figure.PLOT_TYPE, str):
+                plot_type = self.figure.PLOT_TYPE
+            else:
+                plot_type = self.DEFAULT_PLOT
+        return plot_type
+
     def repaint(self):
         """Repaint plot"""
         self.figure.repaint()
@@ -417,8 +435,14 @@ class ViewBase(ABC):
     def clear(self):
         """Clear plot"""
         self.figure.clear()
+
+        # clear old data
+        for key in self.DATA_KEYS:
+            self._data[key] = None
         if "obj" in self._data:
             self._data["obj"] = None
+
+        self.figure.PLOT_TYPE = None
 
     def copy_to_clipboard(self):
         """Copy plot to clipboard"""

@@ -19,7 +19,7 @@ class TestPlotView(WidgetTestCase):
 
     def set_plot(self, view):
         """Set view in the panel"""
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer = wx.BoxSizer()
         sizer.Add(view.panel, 1, wx.EXPAND)
         self.frame.SetSizerAndFit(sizer)
         self.frame.Layout()
@@ -29,7 +29,8 @@ class TestPlotView(WidgetTestCase):
 class TestPanelViewIonHeatmap(TestPlotView):
     """Test dialog"""
 
-    def test_panel_create(self):
+    @pytest.mark.parametrize("plot_type", ("heatmap", "contour", "joint", "waterfall", "violin"))
+    def test_panel_create(self, plot_type):
         view = ViewIonHeatmap(self.frame, (12, 12))
         self.set_plot(view)
 
@@ -38,10 +39,19 @@ class TestPanelViewIonHeatmap(TestPlotView):
 
         # test plot using object
         view.plot(obj=obj)
+        assert view.figure.PLOT_TYPE == "heatmap"
         view.plot_contour(obj=obj)
+        assert view.figure.PLOT_TYPE == "contour"
         view.plot_joint(obj=obj)
+        assert view.figure.PLOT_TYPE == "joint"
         view.plot_violin(obj=obj)
+        assert view.figure.PLOT_TYPE == "violin"
         view.plot_waterfall(obj=obj)
+        assert view.figure.PLOT_TYPE == "waterfall"
+
+        # replot data
+        view.replot(plot_type)
+        assert view.figure.PLOT_TYPE == plot_type
 
     def test_panel_update_heatmap_style(self):
         view = ViewIonHeatmap(self.frame, None)
@@ -52,6 +62,7 @@ class TestPanelViewIonHeatmap(TestPlotView):
 
         # heatmap object
         view.plot(obj=obj)
+        assert view.figure.PLOT_TYPE == "heatmap"
         view.update_style("heatmap")
         view.update_style("colorbar")
         view.update_style("normalization")
@@ -64,6 +75,8 @@ class TestPanelViewIonHeatmap(TestPlotView):
         obj = IonHeatmapObject(np.random.randint(0, 100, (3, 4)), np.arange(4), np.arange(3))
         # violin object
         view.plot_violin(obj=obj)
+        assert view.figure.PLOT_TYPE == "violin"
+
         for style in view.UPDATE_STYLES:
             if not style.startswith("violin"):
                 continue
@@ -76,6 +89,8 @@ class TestPanelViewIonHeatmap(TestPlotView):
         # test plot using x/y
         obj = IonHeatmapObject(np.random.randint(0, 100, (3, 4)), np.arange(4), np.arange(3))
         view.plot_waterfall(obj=obj)
+        assert view.figure.PLOT_TYPE == "waterfall"
+
         for style in view.UPDATE_STYLES:
             if not style.startswith("waterfall"):
                 continue

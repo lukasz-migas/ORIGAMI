@@ -56,6 +56,7 @@ class DialogQuickSelection(Dialog):
 
         self.choice_value = wx.Choice(panel, -1, choices=self.options, size=(-1, -1))
         self.choice_value.SetSelection(0)
+        self.choice_value.Bind(wx.EVT_CHOICE, self.on_apply)
 
         self.ok_btn = wx.Button(panel, wx.ID_OK, "OK", size=(-1, -1))
         self.ok_btn.Bind(wx.EVT_BUTTON, self.on_ok)
@@ -91,6 +92,10 @@ class DialogQuickSelection(Dialog):
         self.value = None
 
         super(DialogQuickSelection, self).on_close(evt, force)
+
+    def on_apply(self, _evt):
+        """Apply changes"""
+        self.value = self.choice_value.GetStringSelection()
 
 
 def _main():

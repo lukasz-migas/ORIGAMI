@@ -22,10 +22,8 @@ LOGGER = logging.getLogger(__name__)
 class ViewHeatmap(ViewBase, ViewMPLMixin):
     """Viewer class for heatmap-based objects"""
 
-    VIEW_TYPE = "2d"
     DATA_KEYS = ("array", "x", "y", "obj")
     MPL_KEYS = ["2d", "colorbar", "normalization", "axes"]
-    ALLOWED_PLOTS = ("heatmap", "contour", "joint", "waterfall", "violin", "rgb")
     UPDATE_STYLES = (
         "waterfall.line",
         "waterfall.line.color",
@@ -42,6 +40,9 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
         "violin.label.reset",
         "violin.data",
     )
+    ALLOWED_PLOTS = ("heatmap", "contour", "joint", "waterfall", "violin", "rgb")
+    DEFAULT_PLOT = "heatmap"
+    VIEW_TYPE = "2d"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -108,7 +109,7 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
 
             # set data
             self._data.update(x=x, y=y, array=array, obj=obj)
-            self._plt_kwargs = kwargs
+            self.set_plot_parameters(**kwargs)
             LOGGER.debug(f"Plotted data in {report_time(t_start)}")
 
     def update(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
@@ -126,11 +127,26 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
 
         # set data
         self._data.update(x=x, y=y, array=array, obj=obj)
-        self._plt_kwargs = kwargs
+        self.set_plot_parameters(**kwargs)
         LOGGER.debug(f"Updated plot data in {report_time(t_start)}")
 
-    def replot(self, **kwargs):
+    def replot(self, plot_type: str = None, repaint: bool = True):
         """Replot the current plot"""
+        # get plot_type
+        plot_type = self.get_plot_type(plot_type)
+
+        # get replot data
+        array, x, y, obj = self.get_data(self.DATA_KEYS)
+        if plot_type == "heatmap":
+            self.plot(x, y, array, obj, repaint=repaint)
+        if plot_type == "contour":
+            self.plot_contour(x, y, array, obj, repaint=repaint)
+        if plot_type == "joint":
+            self.plot_joint(x, y, array, obj, repaint=repaint)
+        if plot_type == "waterfall":
+            self.plot_waterfall(x, y, array, obj, repaint=repaint)
+        elif plot_type == "violin":
+            self.plot_violin(x, y, array, obj, repaint=repaint)
 
     def plot_rgb(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
         """Plot object as a waterfall"""
@@ -155,7 +171,7 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
 
         # set data
         self._data.update(x=x, y=y, array=array, obj=obj)
-        self._plt_kwargs = kwargs
+        self.set_plot_parameters(**kwargs)
         LOGGER.debug(f"Plotted data in {report_time(t_start)}")
 
     def plot_violin(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
@@ -181,7 +197,7 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
 
         # set data
         self._data.update(x=x, y=y, array=array, obj=obj)
-        self._plt_kwargs = kwargs
+        self.set_plot_parameters(**kwargs)
         LOGGER.debug(f"Plotted data in {report_time(t_start)}")
 
     def plot_waterfall(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
@@ -207,7 +223,7 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
 
         # set data
         self._data.update(x=x, y=y, array=array, obj=obj)
-        self._plt_kwargs = kwargs
+        self.set_plot_parameters(**kwargs)
         LOGGER.debug(f"Plotted data in {report_time(t_start)}")
 
     def plot_joint(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
@@ -233,7 +249,7 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
 
         # set data
         self._data.update(x=x, y=y, array=array, obj=obj)
-        self._plt_kwargs = kwargs
+        self.set_plot_parameters(**kwargs)
         LOGGER.debug(f"Plotted data in {report_time(t_start)}")
 
     def update_style(self, name: str):
@@ -241,16 +257,17 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
         t_start = time.time()
 
         # heatmap-specific updates
+        kwargs = dict()
         if name.startswith("heatmap"):
             if not self.is_plotted_or_plot("heatmap", self.plot, self.DATA_KEYS):
                 return
 
             if name.endswith("normalization"):
-                self.figure.plot_2d_update_normalization(
-                    array=self._data["array"], **CONFIG.get_mpl_parameters(["normalization"])
-                )
+                kwargs = CONFIG.get_mpl_parameters(["normalization"])
+                self.figure.plot_2d_update_normalization(array=self._data["array"], **kwargs)
             elif name.endswith("colorbar"):
-                self.figure.plot_2d_update_colorbar(**CONFIG.get_mpl_parameters(["colorbar"]))
+                kwargs = CONFIG.get_mpl_parameters(["colorbar"])
+                self.figure.plot_2d_update_colorbar(**kwargs)
             else:
                 self.figure.plot_2d_update_heatmap_style(
                     colormap=CONFIG.heatmap_colormap,
@@ -265,12 +282,11 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
 
             # update data - requires full redraw
             if name.endswith(".data"):
-                # get data and current state of the figure
-                x, y, array, obj = self.get_data(["x", "y", "array", "obj"])
-                self.plot_waterfall(x, y, array, obj, repaint=False)
+                self.replot("waterfall", False)
             else:
+                kwargs = CONFIG.get_mpl_parameters(["waterfall"])
                 x, y, array = self.get_data(["x", "y", "array"])
-                self.figure.plot_waterfall_update(x, y, array, name, **CONFIG.get_mpl_parameters(["waterfall"]))
+                self.figure.plot_waterfall_update(x, y, array, name, **kwargs)
         # violin-specific updates
         elif name.startswith("violin"):
             if not self.is_plotted_or_plot("violin", self.plot_violin, self.DATA_KEYS):
@@ -278,13 +294,13 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
 
             # update data - requires full redraw
             if name.endswith(".data"):
-                # get data and current state of the figure
-                x, y, array, obj = self.get_data(["x", "y", "array", "obj"])
-                self.plot_violin(x, y, array, obj, repaint=False)
+                self.replot("violin", False)
             else:
+                kwargs = CONFIG.get_mpl_parameters(["violin"])
                 x, y, array = self.get_data(["x", "y", "array"])
-                self.figure.plot_violin_update(x, y, array, name, **CONFIG.get_mpl_parameters(["violin"]))
+                self.figure.plot_violin_update(x, y, array, name, **kwargs)
         self.figure.repaint()
+        self.set_plot_parameters(**kwargs)
         LOGGER.debug(f"Updated plot styles - {name} in {report_time(t_start)}")
 
 

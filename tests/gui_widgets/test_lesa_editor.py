@@ -13,4 +13,7 @@ class TestPanelImagingLESAViewer(WidgetTestCase):
     """Test dialog"""
 
     def test_panel_create(self):
-        _ = PanelImagingLESAViewer(None, None, debug=True)
+        dlg = PanelImagingLESAViewer(None, None, debug=True)
+        dlg.Show()
+        assert dlg
+        self.wait_for(500)

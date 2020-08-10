@@ -63,9 +63,10 @@ def check_path(path: Union[str, List]):
 class DocumentGroups:
     """Enumeration object keeping track of the current names of various folders / groups used by the DocumentStore"""
 
+    # group names
     MS = "MassSpectra"
-    DT = "Mobilograms"
     RT = "Chromatograms"
+    DT = "Mobilograms"
     HEATMAP = "IonHeatmaps"
     MSDT = "MSDTHeatmaps"
     METADATA = "Metadata"
@@ -74,6 +75,13 @@ class DocumentGroups:
     RAW = "Raw"
     OUTPUT = "Output"
     TANDEM = "Tandem"
+
+    # average/summed objects
+    MassSpectrum = "MassSpectra/Summed Spectrum"
+    Chromatogram = "Chromatograms/Summed Chromatogram"
+    Mobilogram = "Mobilograms/Summed Mobilogram"
+    Heatmap = "IonHeatmaps/Summed Heatmap"
+    MassHeatmap = "MSDTHeatmaps/Summed Heatmap"
 
 
 class DocumentStore:

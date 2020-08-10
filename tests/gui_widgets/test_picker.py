@@ -17,8 +17,8 @@ class TestPanelPeakPicker(WidgetTestCase):
     @pytest.mark.parametrize("method", ("native_local", "small_molecule", "native_differential"))
     def test_panel_create(self, get_env_with_document, method):
         # get environment
-        env = get_env_with_document
-        document = env.on_get_document()
+        env, title = get_env_with_document
+        document = env.on_get_document(title)
 
         document_title = document.title
         dataset_name = "MassSpectra/Summed Spectrum"
@@ -27,6 +27,8 @@ class TestPanelPeakPicker(WidgetTestCase):
 
         # setup peak picker
         dlg = PanelPeakPicker(None, None, icons, document_title=document_title, dataset_name=dataset_name, debug=True)
+        dlg.Show()
+        self.wait_for(500)
 
         # simulate pre-processing
         # self.sim_checkbox_click(dlg.preprocess_check, pre_process)

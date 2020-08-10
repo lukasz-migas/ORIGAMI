@@ -10,8 +10,10 @@ from subprocess import Popen
 import numpy as np
 
 # Local imports
+from origami.processing.utils import find_nearest_index
 from origami.utils.path import check_waters_path
 from origami.utils.secret import get_short_hash
+from origami.utils.check import check_value_order
 from origami.readers.io_utils import clean_up
 from origami.utils.exceptions import NoIonMobilityDatasetError
 from origami.objects.containers import IonHeatmapObject
@@ -72,6 +74,41 @@ class WatersIMReader(WatersRawReader):
             mz_end = self.mz_max
 
         return mz_start, mz_end
+
+    def check_rt_range(self, rt_start, rt_end):
+        """Ensure the user-defined retention time range makes sense"""
+        rt_start_bin, rt_end_bin = find_nearest_index(self.rt_min, [rt_start, rt_end])
+        return rt_start_bin, rt_end_bin, self.rt_min[rt_start_bin], self.rt_min[rt_end_bin]
+
+    def check_dt_range(self, dt_start, dt_end):
+        """Ensure the user-defined mobilogram range makes sense"""
+        dt_start_bin, dt_end_bin = find_nearest_index(self.dt_bin, [dt_start, dt_end])
+        return dt_start_bin, dt_end_bin, self.dt_bin[dt_start_bin], self.dt_bin[dt_end_bin]
+
+    @staticmethod
+    def check_value_order(rt_start, rt_end, dt_start, dt_end, mz_start, mz_end):
+        """Check the order of values that has been provided by the user
+
+        Parameters
+        ----------
+        rt_start : float
+            start retention time, in minutes
+        rt_end : float
+            end retention time, in minutes
+        dt_start : int
+            start drift time, in drift bins
+        dt_end : int
+            end drift time, in drift bins
+        mz_start : float
+            start m/z extraction range, in Da
+        mz_end : float
+            end m/z extraction range, in Da
+        """
+        rt_start, rt_end = check_value_order(rt_start, rt_end)
+        dt_start, dt_end = check_value_order(dt_start, dt_end)
+        mz_start, mz_end = check_value_order(mz_start, mz_end)
+
+        return rt_start, rt_end, dt_start, dt_end, mz_start, mz_end
 
     def get_temp_filename(self):
         """Creates temporary filename"""
@@ -154,13 +191,12 @@ class WatersIMReader(WatersRawReader):
             end m/z extraction range, in Da
         return_data : bool
             if `True`, extracted data will be loaded and returned
-
-        Returns
-        -------
-        mz_obj : MassSpectrumObject
-            mass spectrum object
         """
         # write output filename first
+        rt_start, rt_end, dt_start, dt_end, mz_start, mz_end = self.check_value_order(
+            rt_start, rt_end, dt_start, dt_end, mz_start, mz_end
+        )
+
         filename = self.get_temp_filename()
         range_file = self.get_filepath(filename + ".in")
         with open(range_file, "w") as f_ptr:
@@ -243,12 +279,10 @@ class WatersIMReader(WatersRawReader):
             end m/z extraction range, in Da
         return_data : bool
             if `True`, extracted data will be loaded and returned
-
-        Returns
-        -------
-        rt_obj : ChromatogramObject
-            chromatogram object
         """
+        rt_start, rt_end, dt_start, dt_end, mz_start, mz_end = self.check_value_order(
+            rt_start, rt_end, dt_start, dt_end, mz_start, mz_end
+        )
         mz_start, mz_end = self.check_mz_range(mz_start, mz_end)
 
         # write output filename first
@@ -342,12 +376,10 @@ class WatersIMReader(WatersRawReader):
             end m/z extraction range, in Da
         return_data : bool
             if `True`, extracted data will be loaded and returned
-
-        Returns
-        -------
-        dt_obj : MobilogramObject
-            mobilogram object
         """
+        rt_start, rt_end, dt_start, dt_end, mz_start, mz_end = self.check_value_order(
+            rt_start, rt_end, dt_start, dt_end, mz_start, mz_end
+        )
         mz_start, mz_end = self.check_mz_range(mz_start, mz_end)
 
         # write output filename first
@@ -435,13 +467,13 @@ class WatersIMReader(WatersRawReader):
             type of data reduction to be performed when summing interpolated scans
         return_data : bool
             if `True`, extracted data will be loaded and returned
-
-        Returns
-        -------
-        heatmap_obj : IonHeatmapObject
-            heatmap object
         """
+        rt_start, rt_end, dt_start, dt_end, mz_start, mz_end = self.check_value_order(
+            rt_start, rt_end, dt_start, dt_end, mz_start, mz_end
+        )
         mz_start, mz_end = self.check_mz_range(mz_start, mz_end)
+        rt_start_bin, rt_end_bin, rt_start, rt_end = self.check_rt_range(rt_start, rt_end)
+        dt_start_bin, dt_end_bin, dt_start, dt_end = self.check_dt_range(dt_start, dt_end)
 
         # write output filename first
         filename = self.get_temp_filename()
@@ -460,11 +492,16 @@ class WatersIMReader(WatersRawReader):
         self.execute(cmd)
         self.clean(range_file)
 
+        # trim axes
+        rt_bin = self.rt_bin[rt_start_bin : rt_end_bin + 1]
+        dt_bin = self.dt_bin[dt_start_bin : dt_end_bin + 1]
+        dt_ms = self.dt_ms[dt_start_bin : dt_end_bin + 1]
+
         if return_data:
             array = self.load_heatmap(out_path, reduce=reduce)
-            dt_x = self.dt_bin
+            dt_x = dt_bin
             dt_y = array.sum(axis=1)
-            rt_x = self.rt_bin
+            rt_x = rt_bin
             rt_y = array.sum(axis=0)
             return IonHeatmapObject(
                 array,
@@ -480,6 +517,7 @@ class WatersIMReader(WatersRawReader):
                     "mz_start": float(mz_start),
                     "mz_end": float(mz_end),
                 },
+                extra_data=dict(x_ms=dt_ms),
             )
         return out_path
 
@@ -506,8 +544,9 @@ class WatersIMReader(WatersRawReader):
             intensity array
         """
         heatmap = np.fromfile(path, dtype=np.int32)
-        n_rows = int(heatmap[3::].shape[0] / 200)
-        heatmap = heatmap[3::].reshape((200, n_rows), order="F")
+        n_dt_bins = heatmap[2]
+        n_rows = int(heatmap[3::].shape[0] / n_dt_bins)
+        heatmap = heatmap[3::].reshape((n_dt_bins, n_rows), order="F")
         if reduce == "sum":
             heatmap = np.sum(np.hsplit(heatmap, heatmap.shape[1] / 5), axis=2).T
         elif reduce == "mean":
@@ -554,12 +593,10 @@ class WatersIMReader(WatersRawReader):
             bin size in Da
         return_data : bool
             if `True`, extracted data will be loaded and returned
-
-        Returns
-        -------
-        msdt_obj : MassSpectrumHeatmapObject
-            heatmap object
         """
+        rt_start, rt_end, dt_start, dt_end, mz_start, mz_end = self.check_value_order(
+            rt_start, rt_end, dt_start, dt_end, mz_start, mz_end
+        )
         mz_start, mz_end = self.check_mz_range(mz_start, mz_end)
         if mz_bin_size is not None and isinstance(mz_bin_size, float):
             n_points = math.floor((mz_end - mz_start) / mz_bin_size)

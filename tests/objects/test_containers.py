@@ -120,8 +120,8 @@ class TestChromatogramObject:
     @pytest.fixture()
     def real_rt(self, get_env_with_document):
         """Chromatogram from document"""
-        env = get_env_with_document
-        document = env.on_get_document()
+        env, title = get_env_with_document
+        document = env.on_get_document(title)
         return document["Chromatograms/Summed Chromatogram", True]
 
     def test_init(self, fake_rt):
@@ -206,8 +206,8 @@ class TestMobilogramObject:
     @pytest.fixture()
     def real_dt(self, get_env_with_document):
         """Mobilogram from document"""
-        env = get_env_with_document
-        document = env.on_get_document()
+        env, title = get_env_with_document
+        document = env.on_get_document(title)
         return document["Mobilograms/Summed Mobilogram", True]
 
     def test_init(self):

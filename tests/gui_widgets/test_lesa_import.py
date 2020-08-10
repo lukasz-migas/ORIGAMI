@@ -13,4 +13,8 @@ class TestPanelImagingImportDataset(WidgetTestCase):
     """Test dialog"""
 
     def test_panel_create(self):
-        _ = PanelImagingImportDataset(None, None)
+        dlg = PanelImagingImportDataset(None, None)
+        dlg.Show()
+
+        assert dlg
+        self.wait_for(200)

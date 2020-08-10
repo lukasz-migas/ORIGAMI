@@ -105,4 +105,5 @@ def get_env_with_document(get_origami_document):
     from origami.config.environment import ENV
 
     ENV.load(get_origami_document)
-    return ENV
+    title = ENV.current
+    return ENV, title

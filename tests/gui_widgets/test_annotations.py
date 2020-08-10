@@ -16,4 +16,7 @@ class TestPanelAnnotationEditorUI(WidgetTestCase):
     @pytest.mark.parametrize("plot_type", ["mass_spectrum", "chromatogram", "mobilogram", "heatmap", "ms_heatmap"])
     def test_panel_create(self, plot_type):
         icons = Icons()
-        _ = PanelAnnotationEditor(None, None, icons, plot_type)
+        dlg = PanelAnnotationEditor(None, None, icons, plot_type)
+        dlg.Show()
+        assert dlg
+        self.wait_for(500)

@@ -7,7 +7,10 @@ import pytest
 
 # Local imports
 from origami.handlers.load import LoadHandler
+from origami.handlers.load import LOAD_HANDLER
 from origami.objects.document import DocumentStore
+from origami.objects.document import DocumentGroups
+
 # enable on windowsOS only
 from origami.objects.containers import IonHeatmapObject
 from origami.objects.containers import MobilogramObject
@@ -23,6 +26,7 @@ if sys.platform == "win32":
 
 @pytest.fixture
 def load_handler():
+    """Initialize"""
     return LoadHandler()
 
 
@@ -32,24 +36,12 @@ class TestLoadHandler:
         assert _load_handler
 
     @pytest.mark.skipif(sys.platform != "win32", reason="Cannot extract data on MacOSX or Linux")
-    def test_waters_extract_ms_from_mobilogram(self, load_handler, get_waters_im_small):
-        assert True
-
-    @pytest.mark.skipif(sys.platform != "win32", reason="Cannot extract data on MacOSX or Linux")
-    def test_waters_extract_ms_from_chromatogram(self, load_handler, get_waters_im_small):
-        assert True
-
-    @pytest.mark.skipif(sys.platform != "win32", reason="Cannot extract data on MacOSX or Linux")
-    def test_waters_extract_heatmap_from_mass_spectrum_one(self, load_handler, get_waters_im_small):
-        assert True
-
-    @pytest.mark.skipif(sys.platform != "win32", reason="Cannot extract data on MacOSX or Linux")
-    def test_waters_extract_heatmap_from_mass_spectrum_many(self, load_handler, get_waters_im_small):
-        assert True
-
-    @pytest.mark.skipif(sys.platform != "win32", reason="Cannot extract data on MacOSX or Linux")
-    def test_waters_im_extract_ms(self, load_handler, get_waters_im_small):
-        obj = load_handler.waters_im_extract_ms(get_waters_im_small)
+    @pytest.mark.parametrize("dt_start, dt_end", ([0, 50], [20, 150], [150, 20]))
+    @pytest.mark.parametrize("rt_start, rt_end", ([0, 2], [2, 5], [5, 2]))
+    def test_waters_im_extract_ms(self, get_waters_im_small, dt_start, dt_end, rt_start, rt_end):
+        obj = LOAD_HANDLER.waters_im_extract_ms(
+            get_waters_im_small, dt_start=dt_start, dt_end=dt_end, rt_start=rt_start, rt_end=rt_end
+        )
 
         assert isinstance(obj, MassSpectrumObject)
         assert len(obj.x) == len(obj.y)
@@ -57,8 +49,12 @@ class TestLoadHandler:
         assert isinstance(obj.y, np.ndarray)
 
     @pytest.mark.skipif(sys.platform != "win32", reason="Cannot extract data on MacOSX or Linux")
-    def test_waters_im_extract_rt(self, load_handler, get_waters_im_small):
-        obj = load_handler.waters_im_extract_rt(get_waters_im_small)
+    @pytest.mark.parametrize("dt_start, dt_end", ([0, 50], [20, 150], [150, 20]))
+    @pytest.mark.parametrize("mz_start, mz_end", ([500, 750], [1550, 1250]))
+    def test_waters_im_extract_rt(self, get_waters_im_small, dt_start, dt_end, mz_start, mz_end):
+        obj = LOAD_HANDLER.waters_im_extract_rt(
+            get_waters_im_small, dt_start=dt_start, dt_end=dt_end, mz_start=mz_start, mz_end=mz_end
+        )
 
         assert isinstance(obj, ChromatogramObject)
         assert len(obj.x) == len(obj.y)
@@ -66,8 +62,12 @@ class TestLoadHandler:
         assert isinstance(obj.y, np.ndarray)
 
     @pytest.mark.skipif(sys.platform != "win32", reason="Cannot extract data on MacOSX or Linux")
-    def test_waters_im_extract_dt(self, load_handler, get_waters_im_small):
-        obj = load_handler.waters_im_extract_dt(get_waters_im_small)
+    @pytest.mark.parametrize("rt_start, rt_end", ([0, 2], [2, 5], [5, 2]))
+    @pytest.mark.parametrize("mz_start, mz_end", ([500, 750], [1550, 1250]))
+    def test_waters_im_extract_dt(self, get_waters_im_small, rt_start, rt_end, mz_start, mz_end):
+        obj = LOAD_HANDLER.waters_im_extract_dt(
+            get_waters_im_small, rt_start=rt_start, rt_end=rt_end, mz_start=mz_start, mz_end=mz_end
+        )
 
         assert isinstance(obj, MobilogramObject)
         assert len(obj.x) == len(obj.y)
@@ -75,8 +75,19 @@ class TestLoadHandler:
         assert isinstance(obj.y, np.ndarray)
 
     @pytest.mark.skipif(sys.platform != "win32", reason="Cannot extract data on MacOSX or Linux")
-    def test_waters_im_extract_heatmap(self, load_handler, get_waters_im_small):
-        obj = load_handler.waters_im_extract_heatmap(get_waters_im_small)
+    @pytest.mark.parametrize("rt_start, rt_end", ([0, 2], [2, 5], [5, 2]))
+    @pytest.mark.parametrize("mz_start, mz_end", ([500, 750], [1550, 1250]))
+    @pytest.mark.parametrize("dt_start, dt_end", ([0, 200], [50, 150]))
+    def test_waters_im_extract_heatmap(self, get_waters_im_small, rt_start, rt_end, mz_start, mz_end, dt_start, dt_end):
+        obj = LOAD_HANDLER.waters_im_extract_heatmap(
+            get_waters_im_small,
+            rt_start=rt_start,
+            rt_end=rt_end,
+            mz_start=mz_start,
+            mz_end=mz_end,
+            dt_start=dt_start,
+            dt_end=dt_end,
+        )
 
         assert isinstance(obj, IonHeatmapObject)
         assert isinstance(obj.x, np.ndarray)
@@ -91,8 +102,8 @@ class TestLoadHandler:
 
     @pytest.mark.skipif(sys.platform != "win32", reason="Cannot extract data on MacOSX or Linux")
     @pytest.mark.parametrize("mz_min, mz_max, mz_bin_size", ([500, 1000, 1.0], [500, 1000, 0.1]))
-    def test_waters_im_extract_msdt(self, load_handler, get_waters_im_small, mz_min, mz_max, mz_bin_size):
-        obj = load_handler.waters_im_extract_msdt(get_waters_im_small, mz_min, mz_max, mz_bin_size)
+    def test_waters_im_extract_msdt(self, get_waters_im_small, mz_min, mz_max, mz_bin_size):
+        obj = LOAD_HANDLER.waters_im_extract_msdt(get_waters_im_small, mz_min, mz_max, mz_bin_size)
 
         assert isinstance(obj, MassSpectrumHeatmapObject)
         assert isinstance(obj.x, np.ndarray)
@@ -102,38 +113,36 @@ class TestLoadHandler:
         assert obj.y.shape[0] == obj.array.shape[0]
         assert np.diff(obj.x).mean() - mz_bin_size < 0.01
 
-    def test_load_text_mass_spectrum_data(self):
-        assert True
+    def test_load_text_spectrum_data(self, get_text_ms):
+        for path in get_text_ms:
+            x, y, directory, x_limits, extension = LOAD_HANDLER.load_text_spectrum_data(path)
+            assert isinstance(x, np.ndarray)
+            assert isinstance(y, np.ndarray)
+            assert len(x) == len(y)
+            assert isinstance(x_limits, (list, tuple)) and len(x_limits) == 2
+            assert isinstance(directory, str)
+            assert isinstance(extension, str) and extension.startswith(".")
 
-    def test_load_text_annotated_data(self):
-        assert True
+    def test_load_text_spectrum_document(self, get_text_ms):
+        for path in get_text_ms:
+            document = LOAD_HANDLER.load_text_mass_spectrum_document(path)
+            assert isinstance(document, DocumentStore)
 
-    def test_load_text_heatmap_data(self):
-        assert True
-
-    def test_load_mgf_data(self):
-        assert True
-
-    def test_load_mgf_document(self):
-        assert True
-
-    def test_load_mzml_data(self):
-        assert True
-
-    def test_load_mzml_document(self):
-        assert True
+            mz = document[DocumentGroups.MassSpectrum, True]
+            assert isinstance(mz, MassSpectrumObject)
+            assert len(mz.x) == len(mz.y)
 
     @pytest.mark.skipif(sys.platform != "win32", reason="Cannot extract data on MacOSX or Linux")
-    def test_load_thermo_ms_data(self, load_handler, get_thermo_ms_small):
-        reader, data = load_handler.load_thermo_ms_data(get_thermo_ms_small)
+    def test_load_thermo_ms_data(self, get_thermo_ms_small):
+        reader, data = LOAD_HANDLER.load_thermo_ms_data(get_thermo_ms_small)
         assert isinstance(data, dict)
         assert isinstance(reader, ThermoRawReader)
         assert "mz" in data
         assert "rt" in data
 
     @pytest.mark.skipif(sys.platform != "win32", reason="Cannot extract data on MacOSX or Linux")
-    def test_load_thermo_ms_document(self, load_handler, get_thermo_ms_small):
-        document = load_handler.load_thermo_ms_document(get_thermo_ms_small)
+    def test_load_thermo_ms_document(self, get_thermo_ms_small):
+        document = LOAD_HANDLER.load_thermo_ms_document(get_thermo_ms_small)
         assert isinstance(document, DocumentStore)
 
         rt = document["Chromatograms/Summed Chromatogram", True]
@@ -145,8 +154,8 @@ class TestLoadHandler:
         assert len(mz.x) == len(mz.y)
 
     @pytest.mark.skipif(sys.platform != "win32", reason="Cannot extract data on MacOSX or Linux")
-    def test_load_waters_ms_data(self, load_handler, get_waters_im_small):
-        reader, data = load_handler.load_waters_ms_data(get_waters_im_small)
+    def test_load_waters_ms_data(self, get_waters_im_small):
+        reader, data = LOAD_HANDLER.load_waters_ms_data(get_waters_im_small)
         assert isinstance(data, dict)
         assert isinstance(reader, WatersRawReader)
         assert "mz" in data
@@ -155,21 +164,21 @@ class TestLoadHandler:
         assert "parameters" in data
 
     @pytest.mark.skipif(sys.platform != "win32", reason="Cannot extract data on MacOSX or Linux")
-    def test_load_waters_ms_document(self, load_handler, get_waters_im_small):
-        document = load_handler.load_waters_ms_document(get_waters_im_small)
+    def test_load_waters_ms_document(self, get_waters_im_small):
+        document = LOAD_HANDLER.load_waters_ms_document(get_waters_im_small)
         assert isinstance(document, DocumentStore)
 
-        rt = document["Chromatograms/Summed Chromatogram", True]
+        rt = document[DocumentGroups.Chromatogram, True]
         assert isinstance(rt, ChromatogramObject)
         assert len(rt.x) == len(rt.y)
 
-        mz = document["MassSpectra/Summed Spectrum", True]
+        mz = document[DocumentGroups.MassSpectrum, True]
         assert isinstance(mz, MassSpectrumObject)
         assert len(mz.x) == len(mz.y)
 
     @pytest.mark.skipif(sys.platform != "win32", reason="Cannot extract data on MacOSX or Linux")
-    def test_load_waters_im_data(self, load_handler, get_waters_im_small):
-        reader, data = load_handler.load_waters_im_data(get_waters_im_small)
+    def test_load_waters_im_data(self, get_waters_im_small):
+        reader, data = LOAD_HANDLER.load_waters_im_data(get_waters_im_small)
         assert isinstance(data, dict)
         assert isinstance(reader, WatersIMReader)
         assert "mz" in data and isinstance(data["mz"], MassSpectrumObject)
@@ -180,8 +189,8 @@ class TestLoadHandler:
         assert "parameters" in data
 
     @pytest.mark.skipif(sys.platform != "win32", reason="Cannot extract data on MacOSX or Linux")
-    def test_load_waters_im_document(self, load_handler, get_waters_im_small):
-        document = load_handler.load_waters_im_document(get_waters_im_small)
+    def test_load_waters_im_document(self, get_waters_im_small):
+        document = LOAD_HANDLER.load_waters_im_document(get_waters_im_small)
         assert isinstance(document, DocumentStore)
 
         rt = document["Chromatograms/Summed Chromatogram", True]

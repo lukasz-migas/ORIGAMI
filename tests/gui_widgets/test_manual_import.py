@@ -15,5 +15,5 @@ class TestPanelManualImportDataset(WidgetTestCase):
     @pytest.mark.parametrize("activation_type", ("CIU", "SID"))
     def test_panel_create(self, activation_type):
         dlg = PanelManualImportDataset(None, None, activation_type=activation_type)
-
+        dlg.Show()
         assert dlg.activation_type_choice.GetStringSelection() == activation_type
