@@ -256,7 +256,7 @@ class MainWindow(wx.Frame):
     def run_delayed(func, *args, delay: int = 3000, **kwargs):
         """Run function using a CallLater"""
         wx.CallLater(delay, func, *args, **kwargs)
-        logger.info(f"Running delayed action...")
+        logger.info("Running delayed action...")
 
     def add_timer_event(self, func, delay: int = 60):
         """Add an event to the application that will run every `delay` seconds

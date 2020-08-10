@@ -33,7 +33,7 @@ jobs:
         os: [ubuntu-latest, windows-latest] #, macOS-latest]  # some bug in macOS version I don't care to investigate yet
     timeout-minutes: 20
     runs-on: ${{ matrix.os }}
-    name: "Tests"
+    name: "Tests (all)"
 
     steps:
       - uses: actions/checkout@v2
@@ -74,7 +74,7 @@ jobs:
         os: [ubuntu-latest, windows-latest] #, macOS-latest]  # some bug in macOS version I don't care to investigate yet
     timeout-minutes: 20
     runs-on: ${{ matrix.os }}
-    name: "Tests (GUI)"
+    name: "Tests (GUI-only)"
 
     steps:
       - uses: actions/checkout@v2

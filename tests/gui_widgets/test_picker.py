@@ -40,30 +40,30 @@ class TestPanelPeakPicker(WidgetTestCase):
 
         # simulate specify m/z range
         for value in [True, False]:
-            self.sim_checkbox_click(dlg.mz_limit_check, value)
+            self.sim_checkbox_click_evt(dlg.mz_limit_check, value, [dlg.on_toggle_controls, dlg.on_apply])
             assert CONFIG.peak_panel_specify_mz is dlg.mz_limit_check.GetValue() is value
             assert dlg.mz_min_value.IsEnabled() is value
             assert dlg.mz_max_value.IsEnabled() is value
 
         # change filter(s)
         for value in CONFIG.peak_panel_filter_choices:
-            self.sim_combobox_click(dlg.post_filter_choice, value)
+            self.sim_combobox_click_evt(dlg.post_filter_choice, value, [dlg.on_toggle_controls, dlg.on_apply])
             assert CONFIG.peak_panel_filter_choice == dlg.post_filter_choice.GetStringSelection() == value
 
         # # update plot
         # simulate check highlights
         for value in [True, False]:
-            self.sim_checkbox_click(dlg.visualize_highlight_check, value)
+            self.sim_checkbox_click_evt(dlg.visualize_highlight_check, value, [dlg.on_toggle_controls, dlg.on_apply])
             assert CONFIG.peak_panel_highlight is dlg.visualize_highlight_check.GetValue() is value
 
         # simulate check scatter points
         for value in [True, False]:
-            self.sim_checkbox_click(dlg.visualize_scatter_check, value)
+            self.sim_checkbox_click_evt(dlg.visualize_scatter_check, value, [dlg.on_toggle_controls, dlg.on_apply])
             assert CONFIG.peak_panel_scatter is dlg.visualize_scatter_check.GetValue() is value
 
         # simulate check labels
         for value in [True, False]:
-            self.sim_checkbox_click(dlg.visualize_show_labels_check, value)
+            self.sim_checkbox_click_evt(dlg.visualize_show_labels_check, value, [dlg.on_toggle_controls, dlg.on_apply])
             assert CONFIG.peak_panel_labels is dlg.visualize_show_labels_check.GetValue() is value
             assert dlg.visualize_show_labels_int_check.IsEnabled() is value
             assert dlg.visualize_show_labels_mz_check.IsEnabled() is value
