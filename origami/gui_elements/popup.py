@@ -6,8 +6,8 @@ import wx
 from origami.styles import make_bitmap_btn
 
 
-class PopupBase(wx.PopupWindow):
-    """Create popup window to modify few uncommon settings"""
+class PopupMixin:
+    """Mixin class to reduce number of duplicated functions for the popup elements"""
 
     ld_pos = None
     w_pos = None
@@ -21,26 +21,10 @@ class PopupBase(wx.PopupWindow):
     TEXT_COLOR = wx.BLACK
     INFO_MESSAGE = "Right-click inside the popup window to close it."
 
-    def __init__(self, parent, style=wx.BORDER_SIMPLE):
-        wx.PopupWindow.__init__(self, parent, style)
-
-        self.make_panel()
-
-        if self.ENABLE_MOVE:
-            self.Bind(wx.EVT_LEFT_DOWN, self.on_mouse_left_down)
-            self.Bind(wx.EVT_LEFT_UP, self.on_mouse_left_up)
-            self.Bind(wx.EVT_MOTION, self.on_move)
-        self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
-
-        if self.ENABLE_RIGHT_CLICK_DISMISS:
-            self.Bind(wx.EVT_RIGHT_UP, self.on_dismiss)
-        if self.ENABLE_LEFT_DLICK_DISMISS:
-            self.Bind(wx.EVT_LEFT_DCLICK, self.on_dismiss)
-
     def on_dismiss(self, _evt):
         """Dismiss window"""
-        self.Show(False)
-        wx.CallAfter(self.Destroy)
+        self.Show(False)  # noqa
+        wx.CallAfter(self.Destroy)  # noqa
 
     def get_info(self):
         """Return text item with information on how to dismiss the window"""
@@ -75,23 +59,19 @@ class PopupBase(wx.PopupWindow):
 
         self.title = wx.StaticText(self, -1, "")
 
-        _sizer = wx.BoxSizer(wx.HORIZONTAL)
+        _sizer = wx.BoxSizer()
         _sizer.Add(self.title, 1, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 2)
-        _sizer.AddStretchSpacer(1)
+        _sizer.AddStretchSpacer()
         _sizer.Add(close_btn, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 2)
 
         sizer.Insert(0, _sizer, 0, wx.EXPAND | wx.ALL, 2)
-
-    def make_panel(self):
-        """Make popup window"""
-        raise NotImplementedError("Must implement method")
 
     def on_key_event(self, evt):
         """Capture keyboard events"""
         key_code = evt.GetKeyCode()
 
         if key_code == wx.WXK_ESCAPE:  # key = esc
-            self.Destroy()
+            self.Destroy()  # noqa
 
         evt.Skip()
 
@@ -113,11 +93,11 @@ class PopupBase(wx.PopupWindow):
         else:
             pos = (0, 0)
         pos = (pos[0] - move_h, pos[1] - move_v)
-        self.SetPosition(pos)
+        self.SetPosition(pos)  # noqa
 
     def position(self, x, y):
         """Simply set position of the window"""
-        self.SetPosition((x, y))
+        self.SetPosition((x, y))  # noqa
 
     def position_on_window(self, window, move_h: int = 0, move_v: int = 0):
         """Position the window on the window position"""
@@ -126,38 +106,63 @@ class PopupBase(wx.PopupWindow):
         # get current size of the window
         dx, dy = window.GetSize()
         # get current size of the popup
-        px, py = self.GetSize()
+        px, py = self.GetSize()  # noqa
         x = x + dx - px - move_h - 25
         y = y + dy - py - move_v - 25
-        self.SetPosition((x, y))
+        self.SetPosition((x, y))  # noqa
 
     def position_on_mouse(self, move_h: int = 0, move_v: int = 0):
         """Position the window on the last mouse position"""
         pos = wx.GetMousePosition()
         pos = (pos[0] - move_h, pos[1] - move_v)
-        self.SetPosition(pos)
+        self.SetPosition(pos)  # noqa
 
     def on_mouse_left_down(self, evt):
         """On left-click event"""
-        self.Refresh()
+        self.Refresh()  # noqa
         self.ld_pos = evt.GetEventObject().ClientToScreen(evt.GetPosition())
-        self.w_pos = self.ClientToScreen((0, 0))
-        self.CaptureMouse()
+        self.w_pos = self.ClientToScreen((0, 0))  # noqa
+        self.CaptureMouse()  # noqa
 
     def on_mouse_left_up(self, _evt):
         """On left-release event"""
-        if self.HasCapture():
-            self.ReleaseMouse()
+        if self.HasCapture():  # noqa
+            self.ReleaseMouse()  # noqa
 
     def on_move(self, evt):
         """On move event"""
         if evt.Dragging() and evt.LeftIsDown() and self.w_pos is not None and self.ld_pos is not None:
             d_pos = evt.GetEventObject().ClientToScreen(evt.GetPosition())
             new_pos = (self.w_pos.x + (d_pos.x - self.ld_pos.x), self.w_pos.y + (d_pos.y - self.ld_pos.y))
-            self.Move(new_pos)
+            self.Move(new_pos)  # noqa
 
 
-class TransientPopupBase(wx.PopupTransientWindow):
+class PopupBase(wx.PopupWindow, PopupMixin):
+    """Create popup window to modify few uncommon settings"""
+
+    def __init__(self, parent, style=wx.BORDER_SIMPLE, icons=None):
+        wx.PopupWindow.__init__(self, parent, style)
+        if icons:
+            self._icons = icons
+        self.make_panel()
+
+        if self.ENABLE_MOVE:
+            self.Bind(wx.EVT_LEFT_DOWN, self.on_mouse_left_down)
+            self.Bind(wx.EVT_LEFT_UP, self.on_mouse_left_up)
+            self.Bind(wx.EVT_MOTION, self.on_move)
+        self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
+
+        if self.ENABLE_RIGHT_CLICK_DISMISS:
+            self.Bind(wx.EVT_RIGHT_UP, self.on_dismiss)
+        if self.ENABLE_LEFT_DLICK_DISMISS:
+            self.Bind(wx.EVT_LEFT_DCLICK, self.on_dismiss)
+
+    def make_panel(self):
+        """Make popup window"""
+        raise NotImplementedError("Must implement method")
+
+
+class TransientPopupBase(wx.PopupTransientWindow, PopupMixin):
     """Create popup window to modify few uncommon settings"""
 
     ld_pos = None
@@ -168,10 +173,16 @@ class TransientPopupBase(wx.PopupTransientWindow):
 
         self.make_panel()
 
-        self.Bind(wx.EVT_LEFT_DOWN, self.on_mouse_left_down)
-        self.Bind(wx.EVT_LEFT_UP, self.on_mouse_left_up)
-        self.Bind(wx.EVT_MOTION, self.on_move)
+        if self.ENABLE_MOVE:
+            self.Bind(wx.EVT_LEFT_DOWN, self.on_mouse_left_down)
+            self.Bind(wx.EVT_LEFT_UP, self.on_mouse_left_up)
+            self.Bind(wx.EVT_MOTION, self.on_move)
         self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
+
+        if self.ENABLE_RIGHT_CLICK_DISMISS:
+            self.Bind(wx.EVT_RIGHT_UP, self.on_dismiss)
+        if self.ENABLE_LEFT_DLICK_DISMISS:
+            self.Bind(wx.EVT_LEFT_DCLICK, self.on_dismiss)
 
     def Dismiss(self):
         """Dismiss window"""
@@ -180,40 +191,3 @@ class TransientPopupBase(wx.PopupTransientWindow):
     def make_panel(self):
         """Make popup window"""
         raise NotImplementedError("Must implement method")
-
-    def on_key_event(self, evt):
-        """Capture keyboard events"""
-        key_code = evt.GetKeyCode()
-
-        if key_code == wx.WXK_ESCAPE:  # key = esc
-            self.Destroy()
-
-        evt.Skip()
-
-    def position_on_event(self, evt):
-        """Position the window on an event location"""
-        obj = evt.GetEventObject()
-        if hasattr(obj, "ClientToScreen"):
-            pos = obj.ClientToScreen((0, 0))  # noqa
-        else:
-            pos = (0, 0)
-        self.SetPosition(pos)
-
-    def on_mouse_left_down(self, evt):
-        """On left-click event"""
-        self.Refresh()
-        self.ld_pos = evt.GetEventObject().ClientToScreen(evt.GetPosition())
-        self.w_pos = self.ClientToScreen((0, 0))
-        self.CaptureMouse()
-
-    def on_mouse_left_up(self, _evt):
-        """On left-release event"""
-        if self.HasCapture():
-            self.ReleaseMouse()
-
-    def on_move(self, evt):
-        """On move event"""
-        if evt.Dragging() and evt.LeftIsDown() and self.w_pos is not None and self.ld_pos is not None:
-            d_pos = evt.GetEventObject().ClientToScreen(evt.GetPosition())
-            new_pos = (self.w_pos.x + (d_pos.x - self.ld_pos.x), self.w_pos.y + (d_pos.y - self.ld_pos.y))
-            self.Move(new_pos)

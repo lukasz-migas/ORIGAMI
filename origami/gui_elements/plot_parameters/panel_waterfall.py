@@ -11,6 +11,7 @@ from origami.styles import make_checkbox
 from origami.styles import set_item_font
 from origami.utils.color import convert_rgb_1_to_255
 from origami.config.config import CONFIG
+from origami.gui_elements.views.view_register import VIEW_REG
 from origami.gui_elements.plot_parameters.panel_base import PanelSettingsBase
 
 LOGGER = logging.getLogger(__name__)
@@ -394,7 +395,7 @@ class PanelWaterfallSettings(PanelSettingsBase):
         self.on_apply(None)
         name = source
         try:
-            view = self.panel_plot.get_view_from_name()
+            view = VIEW_REG.view
             view.update_style(name)
         except AttributeError:
             LOGGER.warning("Could not retrieve view - cannot update plot style")

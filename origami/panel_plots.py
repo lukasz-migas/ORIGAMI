@@ -101,7 +101,7 @@ class PanelPlots(wx.Panel):
         self.presenter = presenter
         self._icons = Icons()
 
-        self.currentPage = None
+        self.current_page = None
         # Extract size of screen
         self._display_size_px = wx.GetDisplaySize()
         self.SetDimensions(0, 0, self._display_size_px[0] - 320, self._display_size_px[1] - 50)
@@ -113,7 +113,6 @@ class PanelPlots(wx.Panel):
 
         # used to keep track of what were the last selected pages
         self.plot_notebook = self.make_notebook()
-        self.current_plot = self.plot_ms
 
         self._resizing = False
         self._timer = wx.Timer(self, True)
@@ -127,6 +126,7 @@ class PanelPlots(wx.Panel):
 
         # initialise
         self.on_page_changed(None)
+        self.on_change_plot_style()
 
     @property
     def popup_ms(self) -> PopupMassSpectrumView:
@@ -198,11 +198,11 @@ class PanelPlots(wx.Panel):
 
     def on_get_current_page(self):
         """Return current page"""
-        self.currentPage = self.plot_notebook.GetPageText(self.plot_notebook.GetSelection())
+        self.current_page = self.plot_notebook.GetPageText(self.plot_notebook.GetSelection())
 
     def _get_page_text(self):
         self.on_get_current_page()
-        return self.currentPage
+        return self.current_page
 
     @staticmethod
     def _map_name_to_tab_id(tab_name: str) -> int:
@@ -269,25 +269,9 @@ class PanelPlots(wx.Panel):
             unused
         """
         # get current page
-        self.currentPage = self.plot_notebook.GetPageText(self.plot_notebook.GetSelection())
-
-        # keep track of previous pages
-        if self.currentPage == "Waterfall":
-            self.current_plot = self.plot_overlay
-        elif self.currentPage == "Mass spectrum":
-            self.current_plot = self.plot_ms
-        elif self.currentPage == "Mobilogram":
-            self.current_plot = self.plot_dt_dt
-        elif self.currentPage == "Chromatogram":
-            self.current_plot = self.plot_rt_rt
-        elif self.currentPage == "Heatmap":
-            self.current_plot = self.plot_heatmap
-        elif self.currentPage == "DT/MS":
-            self.current_plot = self.plot_msdt
-        elif self.currentPage == "Annotated":
-            self.current_plot = self.plot_annotated
-        elif self.currentPage == "Heatmap (3D)":
-            self.current_plot = self.plot_heatmap_3d
+        self.current_page = self.plot_notebook.GetPageText(self.plot_notebook.GetSelection())
+        view = self.get_view_from_name(self.current_page)
+        pub.sendMessage("view.activate", view_id=view.PLOT_ID)
 
     def make_notebook(self):
         """Make notebook panel"""
@@ -379,7 +363,7 @@ class PanelPlots(wx.Panel):
 
     def on_copy_to_clipboard(self, _evt):
         """Copy plot to clipboard"""
-        plot_obj = self.get_plot_from_name(self.currentPage)
+        plot_obj = self.get_plot_from_name(self.current_page)
         plot_obj.copy_to_clipboard()
         pub.sendMessage("notify.message.success", message="Copied figure to clipboard!")
 
@@ -387,7 +371,7 @@ class PanelPlots(wx.Panel):
         """Smooth plot signal"""
         from origami.gui_elements.misc_dialogs import DialogSimpleAsk
 
-        view_obj = self.get_view_from_name(self.currentPage)
+        view_obj = self.get_view_from_name(self.current_page)
         obj = view_obj.get_object(get_cache=False)
 
         if obj is None:
@@ -406,19 +390,19 @@ class PanelPlots(wx.Panel):
 
     def on_process_mass_spectrum(self, _evt):
         """Process mass spectrum"""
-        view_obj = self.get_view_from_name(self.currentPage)
+        view_obj = self.get_view_from_name(self.current_page)
         mz_obj = view_obj.get_object()
         self.document_tree.on_open_process_ms_settings(mz_obj=mz_obj, disable_process=True)
 
     def on_process_heatmap(self, _evt):
         """Process heatmap"""
-        view_obj = self.get_view_from_name(self.currentPage)
+        view_obj = self.get_view_from_name(self.current_page)
         heatmap_obj = view_obj.get_object()
         self.document_tree.on_open_process_heatmap_settings(heatmap_obj=heatmap_obj, disable_process=True)
 
     def on_rotate_plot(self, _evt):
         """Rotate heatmap plot"""
-        view_obj = self.get_view_from_name(self.currentPage)
+        view_obj = self.get_view_from_name(self.current_page)
         heatmap_obj = view_obj.get_object()
 
         view_obj.plot(obj=heatmap_obj.transpose(), repaint=False)
@@ -426,7 +410,7 @@ class PanelPlots(wx.Panel):
 
     def on_open_peak_picker(self, _evt):
         """Open peak picker window"""
-        view_obj = self.get_view_from_name(self.currentPage)
+        view_obj = self.get_view_from_name(self.current_page)
         mz_obj = view_obj.get_object()
 
         try:
@@ -446,7 +430,7 @@ class PanelPlots(wx.Panel):
 
     def on_open_annotations_panel(self, _evt):
         """Open the annotations panel for particular object"""
-        view_obj = self.get_view_from_name(self.currentPage)
+        view_obj = self.get_view_from_name(self.current_page)
 
         data_obj = view_obj.get_object()
         try:
@@ -481,7 +465,7 @@ class PanelPlots(wx.Panel):
 
     def on_show_as_joint(self, _evt):
         """Show heatmap plot as joint-plot"""
-        view_obj = self.get_view_from_name(self.currentPage)
+        view_obj = self.get_view_from_name(self.current_page)
         if not hasattr(view_obj, "plot_joint"):
             pub.sendMessage("notify.message.error", message="Cannot show this view as a joint-plot")
             return
@@ -495,7 +479,7 @@ class PanelPlots(wx.Panel):
 
     def on_show_as_contour(self, _evt):
         """Show heatmap plot as contour-plot"""
-        view_obj = self.get_view_from_name(self.currentPage)
+        view_obj = self.get_view_from_name(self.current_page)
         if not hasattr(view_obj, "plot_contour"):
             pub.sendMessage("notify.message.error", message="Cannot show this view as a contour-plot")
             return
@@ -509,7 +493,7 @@ class PanelPlots(wx.Panel):
 
     def on_show_as_waterfall(self, _evt):
         """Show heatmap plot as waterfall-plot"""
-        view_obj = self.get_view_from_name(self.currentPage)
+        view_obj = self.get_view_from_name(self.current_page)
         if not hasattr(view_obj, "plot_waterfall"):
             pub.sendMessage("notify.message.error", message="Cannot show this view as a waterfall-plot")
             return
@@ -523,7 +507,7 @@ class PanelPlots(wx.Panel):
 
     def on_show_as_violin(self, _evt):
         """Show heatmap object as violin plot"""
-        view_obj = self.get_view_from_name(self.currentPage)
+        view_obj = self.get_view_from_name(self.current_page)
         if not hasattr(view_obj, "plot_violin"):
             pub.sendMessage("notify.message.error", message="Cannot show this view as a violin-plot")
             return
@@ -537,7 +521,7 @@ class PanelPlots(wx.Panel):
 
     def on_show_as_heatmap(self, _evt):
         """Show heatmap plot as heatmap-plot"""
-        view_obj = self.get_view_from_name(self.currentPage)
+        view_obj = self.get_view_from_name(self.current_page)
         data_obj = view_obj.get_object()
         if not data_obj:
             pub.sendMessage("notify.message.error", message="Cannot show this view as the plot cache is empty.")
@@ -547,7 +531,7 @@ class PanelPlots(wx.Panel):
 
     def on_show_as_heatmap_3d(self, _evt):
         """Show heatmap plot as heatmap-plot"""
-        view_obj = self.get_view_from_name(self.currentPage)
+        view_obj = self.get_view_from_name(self.current_page)
         data_obj = view_obj.get_object()
         if not data_obj:
             pub.sendMessage("notify.message.error", message="Cannot show this view as the plot cache is empty.")
@@ -558,7 +542,7 @@ class PanelPlots(wx.Panel):
 
     def on_right_click(self, _evt):
         """Right-click event handler"""
-        self.currentPage = self.plot_notebook.GetPageText(self.plot_notebook.GetSelection())
+        self.current_page = self.plot_notebook.GetPageText(self.plot_notebook.GetSelection())
 
         # Make bindings
         self.Bind(wx.EVT_MENU, self.on_customise_plot, id=ID_plots_customise_plot)
@@ -643,7 +627,7 @@ class PanelPlots(wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_show_as_violin, menu_action_show_violin)
         self.Bind(wx.EVT_MENU, self.on_show_as_heatmap_3d, menu_action_show_3d)
 
-        if self.currentPage == "Mass spectrum":
+        if self.current_page == "Mass spectrum":
             menu.Insert(0, menu_action_smooth_signal)
             menu.Insert(1, menu_action_process_ms)
             menu.Insert(2, menu_action_process_pick)
@@ -651,21 +635,21 @@ class PanelPlots(wx.Panel):
             menu.InsertSeparator(4)
             menu.Insert(5, menu_plot_general)
             menu.Insert(6, menu_plot_1d)
-        elif self.currentPage == "Chromatogram":
+        elif self.current_page == "Chromatogram":
             menu.Insert(0, menu_action_smooth_signal)
             menu.Insert(1, menu_action_open_annotations)
             menu.InsertSeparator(2)
             menu.Insert(3, menu_plot_general)
             menu.Insert(4, menu_plot_1d)
             menu.Insert(5, menu_plot_legend)
-        elif self.currentPage == "Mobilogram":
+        elif self.current_page == "Mobilogram":
             menu.Insert(0, menu_action_smooth_signal)
             menu.Insert(1, menu_action_open_annotations)
             menu.InsertSeparator(2)
             menu.Insert(3, menu_plot_general)
             menu.Insert(4, menu_plot_1d)
             menu.Insert(5, menu_plot_legend)
-        elif self.currentPage == "Heatmap":
+        elif self.current_page == "Heatmap":
             menu.Insert(0, menu_action_show_heatmap)
             menu.Insert(1, menu_action_show_contour)
             menu.Insert(2, menu_action_show_waterfall)
@@ -683,7 +667,7 @@ class PanelPlots(wx.Panel):
             menu.Insert(14, menu_plot_colorbar)
             menu.Insert(15, menu_plot_waterfall)
             menu.Insert(16, menu_plot_violin)
-        elif self.currentPage == "DT/MS":
+        elif self.current_page == "DT/MS":
             menu.Insert(0, menu_action_show_heatmap)
             menu.Insert(1, menu_action_show_contour)
             menu.Insert(2, menu_action_show_joint)
@@ -696,7 +680,7 @@ class PanelPlots(wx.Panel):
             menu.Insert(9, menu_plot_general)
             menu.Insert(10, menu_plot_2d)
             menu.Insert(11, menu_plot_colorbar)
-        elif self.currentPage == "Heatmap (3D)":
+        elif self.current_page == "Heatmap (3D)":
             menu.Insert(0, menu_action_smooth_heatmap)
             menu.InsertSeparator(1)
             menu.Insert(2, menu_plot_3d)
@@ -789,7 +773,7 @@ class PanelPlots(wx.Panel):
             "heatmap (3d)": self.view_heatmap_3d,
         }
         if plot_name is None:
-            plot_name = self.currentPage
+            plot_name = self.current_page
         plot_name = plot_name.lower()
         plot_obj = plot_dict.get(plot_name, None)
         if plot_obj is None:
@@ -820,7 +804,7 @@ class PanelPlots(wx.Panel):
 
     def on_lock_plot(self, _evt):
         """Lock/unlock plot"""
-        plot_obj = self.get_plot_from_name(self.currentPage)
+        plot_obj = self.get_plot_from_name(self.current_page)
         plot_obj.lock_plot_from_updating = not plot_obj.lock_plot_from_updating
 
     @staticmethod
@@ -969,13 +953,13 @@ class PanelPlots(wx.Panel):
 
     def on_clear_plot_(self, _evt):
         """Clear current plot"""
-        view_obj = self.get_view_from_name(self.currentPage)
+        view_obj = self.get_view_from_name(self.current_page)
         view_obj.clear()
         pub.sendMessage("notify.message.success", message="Cleared figure")
 
     def on_save_figure(self, _evt):
         """Save current plot"""
-        view_obj = self.get_view_from_name(self.currentPage)
+        view_obj = self.get_view_from_name(self.current_page)
         view_obj.save_figure()
 
     def on_clear_plot(self, evt, plot=None, **kwargs):
@@ -1000,7 +984,7 @@ class PanelPlots(wx.Panel):
         plot_obj = None
         if event_id is None:
             if plot is None:
-                plot_obj = self.get_view_from_name(self.currentPage)
+                plot_obj = self.get_view_from_name(self.current_page)
             else:
                 plot_obj = self.get_plot_from_name(plot)
         elif event_id is not None:

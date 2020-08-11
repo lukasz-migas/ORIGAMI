@@ -95,6 +95,7 @@ class MainWindow(wx.Frame):
 
     # ui elements
     menu_recent_files = None
+    tool_recent_files = None
     menubar = None
     toolbar = None
     statusbar = None
@@ -105,6 +106,7 @@ class MainWindow(wx.Frame):
     menu_config_check_driftscope = None
     menu_config_check_load_ccs_db = None
     panel_interactive_output = None
+    _toolbar_horizontal = True
 
     def __init__(self, parent, icons, title: str):
         wx.Frame.__init__(self, None, title=title)
@@ -210,7 +212,7 @@ class MainWindow(wx.Frame):
             wx.aui.AuiPaneInfo()
             .Right()
             .Caption(CONFIG.WINDOW_SETTINGS["Plot parameters"]["title"])
-            .MinSize((320, -1))
+            .MinSize((350, -1))
             .GripperTop()
             .BottomDockable(True)
             .TopDockable(False)
@@ -1222,9 +1224,19 @@ class MainWindow(wx.Frame):
     def on_set_window_fullscreen(self, _evt):
         """Fullscreen app."""
         self._fullscreen = not self._fullscreen
-        self.ShowFullScreen(
-            self._fullscreen, style=wx.FULLSCREEN_ALL & ~(wx.FULLSCREEN_NOMENUBAR | wx.FULLSCREEN_NOSTATUSBAR)
-        )
+        self.ShowFullScreen(self._fullscreen, style=wx.FULLSCREEN_NOBORDER | wx.FULLSCREEN_NOCAPTION)
+
+    def on_rotate_toolbar(self, _evt):
+        """Flip toolbar to be horizontal or vertical"""
+        self._toolbar_horizontal = not self._toolbar_horizontal
+        self.on_set_toolbar()
+
+    def on_set_toolbar(self):
+        """Set toolbar"""
+        if self._toolbar_horizontal:
+            self.on_set_toolbar_horizontal(None)
+        else:
+            self.on_set_toolbar_vertical(None)
 
     def on_set_toolbar_vertical(self, _evt):
         """Destroy the old-toolbar and create a new instance in a vertical position"""
@@ -1270,8 +1282,18 @@ class MainWindow(wx.Frame):
         #
         # self.SetAcceleratorTable(wx.AcceleratorTable(control_list))
 
+    def on_open_recent_files_menu(self, _evt):
+        """Open menu to load MGF/mzML file(s)"""
+
+        menu = wx.Menu()
+        self.set_recent_files_menu(menu)
+        self.PopupMenu(menu)
+        menu.Destroy()
+        self.SetFocus()
+
     def on_open_source_menu(self, _evt):
         """Open menu to load MGF/mzML file(s)"""
+
         menu = wx.Menu()
         menu.Append(
             make_menu_item(
@@ -1299,6 +1321,12 @@ class MainWindow(wx.Frame):
         # Create toolbar
         self.toolbar = self.CreateToolBar(style | wx.NO_BORDER | wx.TB_FLAT)
         self.toolbar.SetToolBitmapSize((16, 16))
+
+        self.tool_recent_files = self.toolbar.AddTool(
+            wx.ID_ANY, "", self._icons.hourglass, shortHelp="Open recent files...", kind=wx.ITEM_DROPDOWN
+        )
+        self.toolbar.SetDropdownMenu(self.tool_recent_files.GetId(), wx.Menu())
+        self.toolbar.AddSeparator()
 
         tool_open_document = self.toolbar.AddTool(wx.ID_ANY, "", self._icons.open, shortHelp="Open ORIGAMI document...")
         self.toolbar.AddSeparator()
@@ -1332,8 +1360,9 @@ class MainWindow(wx.Frame):
         self.toolbar.AddSeparator()
 
         tool_open_msms = self.toolbar.AddTool(
-            wx.ID_ANY, "", self.icons.iconsLib["ms16"], shortHelp="Open MS/MS files..."
+            wx.ID_ANY, "", self.icons.iconsLib["ms16"], shortHelp="Open MS/MS files...", kind=wx.ITEM_DROPDOWN
         )
+        self.toolbar.SetDropdownMenu(tool_open_msms.GetId(), wx.Menu())
         self.toolbar.AddSeparator()
         self.toolbar.AddCheckTool(
             ID_window_documentList, "", self.icons.iconsLib["panel_doc_16"], shortHelp="Enable/Disable documents panel"
@@ -1382,14 +1411,28 @@ class MainWindow(wx.Frame):
             wx.ID_ANY, "", self._icons.bokeh, shortHelp="Open interactive output panel"
         )
 
+        self.toolbar.AddStretchableSpace()
+        tool_action_fullscreen = self.toolbar.AddLabelTool(
+            wx.ID_ANY, "", self._icons.fullscreen, shortHelp="Toggle fullscreen\tAlt+F11"
+        )
+
+        tool_action_rotate = self.toolbar.AddLabelTool(
+            wx.ID_ANY, "", self._icons.rotate, shortHelp="Rotate the toolbar to be horizontal or vertical"
+        )
+
         # bind actions
+        self.Bind(wx.EVT_MENU, self.on_set_window_fullscreen, tool_action_fullscreen)
+        self.Bind(wx.EVT_TOOL, self.on_open_recent_files_menu, self.tool_recent_files)
+        self.Bind(wx.EVT_TOOL_DROPDOWN, self.on_open_recent_files_menu, self.tool_recent_files)
         self.Bind(wx.EVT_TOOL, self.data_handling.on_open_origami_document, tool_open_document)
         self.Bind(wx.EVT_TOOL, self.on_export_config_fcn, tool_config_export)
         self.Bind(wx.EVT_TOOL, self.on_import_config_fcn, tool_config_import)
         self.Bind(wx.EVT_TOOL, self.data_handling.on_open_waters_raw_imms_fcn, tool_open_masslynx)
         self.Bind(wx.EVT_TOOL, self.data_handling.on_open_thermo_file_fcn, tool_open_thermo)
         self.Bind(wx.EVT_TOOL, self.on_open_source_menu, tool_open_msms)
+        self.Bind(wx.EVT_TOOL_DROPDOWN, self.on_open_source_menu, tool_open_msms)
         self.Bind(wx.EVT_MENU, self.on_open_interactive_output_panel, tool_action_bokeh)
+        self.Bind(wx.EVT_MENU, self.on_rotate_toolbar, tool_action_rotate)
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "General"), tool_action_global)
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Plot 1D"), tool_action_1d)
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Plot 2D"), tool_action_2d)
@@ -1573,8 +1616,6 @@ class MainWindow(wx.Frame):
         if isinstance(window, str):
             window = window
 
-        print(CONFIG.recent_files)
-
         if window is None:
             return
 
@@ -1636,28 +1677,51 @@ class MainWindow(wx.Frame):
             CONFIG.recent_files.append({"path": path, "action": action})
         self.on_update_recent_files()
 
-    def on_update_recent_files(self):
-        """Update the list of recent files that is shown in the `File` menu"""
+    def set_recent_files_menu(self, menu):
         # clear menu
-        for item in self.menu_recent_files.GetMenuItems():
-            self.menu_recent_files.Delete(item.GetId())
+        for item in menu.GetMenuItems():
+            menu.Delete(item.GetId())
 
         # populate menu
         for i, __ in enumerate(CONFIG.recent_files, start=1):
             document_id = eval("wx.ID_FILE" + str(i))
             path = CONFIG.recent_files[i - 1]["path"]
-            self.menu_recent_files.Insert(i - 1, document_id, path, "Open Document")
+            menu.Insert(i - 1, document_id, path, "Open Document")
             self.Bind(wx.EVT_MENU, self.on_open_recent_file, id=document_id)
             if not os.path.exists(path):
-                self.menu_recent_files.Enable(document_id, False)
+                menu.Enable(document_id, False)
 
         # append clear
         if len(CONFIG.recent_files) > 0:
-            self.menu_recent_files.AppendSeparator()
+            menu.AppendSeparator()
 
         # add an option to clear the menu
-        self.menu_recent_files.Append(ID_fileMenu_clearRecent, "Clear Menu", "Clear recent items")
+        menu.Append(ID_fileMenu_clearRecent, "Clear Menu", "Clear recent items")
         self.Bind(wx.EVT_MENU, self.on_clear_recent_files, id=ID_fileMenu_clearRecent)
+
+    def on_update_recent_files(self):
+        """Update the list of recent files that is shown in the `File` menu"""
+        self.set_recent_files_menu(self.menu_recent_files)
+        #         # clear menu
+        #         for item in self.menu_recent_files.GetMenuItems():
+        #             self.menu_recent_files.Delete(item.GetId())
+        #
+        #         # populate menu
+        #         for i, __ in enumerate(CONFIG.recent_files, start=1):
+        #             document_id = eval("wx.ID_FILE" + str(i))
+        #             path = CONFIG.recent_files[i - 1]["path"]
+        #             self.menu_recent_files.Insert(i - 1, document_id, path, "Open Document")
+        #             self.Bind(wx.EVT_MENU, self.on_open_recent_file, id=document_id)
+        #             if not os.path.exists(path):
+        #                 self.menu_recent_files.Enable(document_id, False)
+        #
+        #         # append clear
+        #         if len(CONFIG.recent_files) > 0:
+        #             self.menu_recent_files.AppendSeparator()
+        #
+        #         # add an option to clear the menu
+        #         self.menu_recent_files.Append(ID_fileMenu_clearRecent, "Clear Menu", "Clear recent items")
+        #         self.Bind(wx.EVT_MENU, self.on_clear_recent_files, id=ID_fileMenu_clearRecent)
         logger.debug("Updated list of recent files")
 
     def on_clear_recent_files(self, _evt):

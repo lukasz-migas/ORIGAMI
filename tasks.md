@@ -18,7 +18,7 @@
 - [ ] heatmap violin plot cuts off 1 value
 - [ ] add a fix to the waterfall plot to prevent the erronous highlighting of regions (edge +1 bin)
 - [x] add the resize/lock attributes to 3d plot
-- [ ] enable data extraction for multi-file raw files
+- [x] enable data extraction for multi-file raw files
 - [ ] add support for embedded RAW data
 - [ ] add support for copying RAW data to Document/Raw directory
 - [ ] add option to update RAW directory in case it was moved away
@@ -26,7 +26,7 @@
 - [ ] add option to extract chromatogram from multi-file data when user extracts using ms heatmap plot
 - [ ] add about Document popup view
 - [ ] add timer event to update plots whenever user changed settings in MS/heatmap processor
-- [ ] reduced amount of time between user interaction and update frequency in lesa/manual editor
+- [x] reduced amount of time between user interaction and update frequency in lesa/manual editor
 
 ## New features
 

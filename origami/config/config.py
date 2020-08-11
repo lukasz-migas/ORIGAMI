@@ -1929,6 +1929,7 @@ class Config:
                 "waterfall",
                 "violin",
                 "arrow",
+                "style"
                 # "label",
             ]
 
@@ -2015,6 +2016,23 @@ class Config:
                 )
             if _plot_type == "scatter":
                 config.update({})
+            if _plot_type == "line":
+                config.update(
+                    {
+                        "spectrum_line_width": self.spectrum_line_width,
+                        "spectrum_line_color": self.spectrum_line_color,
+                        "spectrum_line_style": self.spectrum_line_style,
+                        "spectrum_line_fill_under": self.spectrum_line_fill_under,
+                    }
+                )
+            if _plot_type == "fill":
+                config.update(
+                    {
+                        "spectrum_line_fill_under": self.spectrum_line_fill_under,
+                        "spectrum_fill_color": self.spectrum_fill_color,
+                        "spectrum_fill_transparency": self.spectrum_fill_transparency,
+                    }
+                )
             if _plot_type == "1d":
                 config.update(
                     {
@@ -2192,6 +2210,8 @@ class Config:
                     }
                 )
                 add_frame_width = False
+            if _plot_type == "style":
+                config.update({"current_style": self.current_style, "current_palette": self.current_palette})
             # if _plot_type == "label":  # FIX ME
             #     config.update(
             #         {

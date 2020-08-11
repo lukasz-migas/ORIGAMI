@@ -1,4 +1,7 @@
 """Legend panel"""
+# Standard library imports
+import logging
+
 # Third-party imports
 import wx
 
@@ -8,7 +11,10 @@ from origami.styles import make_toggle_btn
 from origami.config.config import CONFIG
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
+from origami.gui_elements.views.view_register import VIEW_REG
 from origami.gui_elements.plot_parameters.panel_base import PanelSettingsBase
+
+LOGGER = logging.getLogger(__name__)
 
 
 class PanelLegendSettings(PanelSettingsBase):
@@ -25,58 +31,113 @@ class PanelLegendSettings(PanelSettingsBase):
     def make_panel(self):
         """Make UI"""
         legend_toggle = wx.StaticText(self, -1, "Legend:")
-        self.legend_toggle = make_toggle_btn(self, "Off", wx.RED)
+        self.legend_toggle = make_toggle_btn(self, "Off", wx.RED, name="legend.data")
         self.legend_toggle.Bind(wx.EVT_TOGGLEBUTTON, self.on_toggle_controls)
+        self.legend_toggle.Bind(wx.EVT_TOGGLEBUTTON, self.on_update)
 
         legend_position = wx.StaticText(self, -1, "Position:")
-        self.legend_position_value = wx.Choice(self, -1, choices=CONFIG.legend_position_choices, size=(-1, -1))
+        self.legend_position_value = wx.Choice(
+            self, -1, choices=CONFIG.legend_position_choices, size=(-1, -1), name="legend.style"
+        )
         self.legend_position_value.Bind(wx.EVT_CHOICE, self.on_apply)
+        self.legend_position_value.Bind(wx.EVT_CHOICE, self.on_update)
 
         legend_columns = wx.StaticText(self, -1, "Columns:")
         self.legend_columns_value = wx.SpinCtrlDouble(
-            self, -1, value=str(CONFIG.legend_n_columns), min=1, max=5, initial=0, inc=1, size=(90, -1)
+            self,
+            -1,
+            value=str(CONFIG.legend_n_columns),
+            min=1,
+            max=5,
+            initial=0,
+            inc=1,
+            size=(90, -1),
+            name="legend.data",
         )
         self.legend_columns_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
+        self.legend_columns_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
 
         legend_fontsize = wx.StaticText(self, -1, "Font size:")
-        self.legend_fontsize_value = wx.Choice(self, -1, choices=CONFIG.legendFontChoice, size=(-1, -1))
+        self.legend_fontsize_value = wx.Choice(
+            self, -1, choices=CONFIG.legendFontChoice, size=(-1, -1), name="legend.style"
+        )
         self.legend_fontsize_value.Bind(wx.EVT_CHOICE, self.on_apply)
+        self.legend_fontsize_value.Bind(wx.EVT_CHOICE, self.on_update)
 
         legend_marker_size = wx.StaticText(self, -1, "Marker size:")
         self.legend_marker_size_value = wx.SpinCtrlDouble(
-            self, -1, value=str(CONFIG.legend_marker_size), min=0.5, max=5, initial=0, inc=0.5, size=(90, -1)
+            self,
+            -1,
+            value=str(CONFIG.legend_marker_size),
+            min=0.5,
+            max=5,
+            initial=0,
+            inc=0.5,
+            size=(90, -1),
+            name="legend.style",
         )
         self.legend_marker_size_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
+        self.legend_marker_size_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
 
         legend_n_markers = wx.StaticText(self, -1, "Number of points:")
         self.legend_n_markers_value = wx.SpinCtrlDouble(
-            self, -1, value=str(CONFIG.legend_n_markers), min=1, max=10, initial=1, inc=1, size=(90, -1)
+            self,
+            -1,
+            value=str(CONFIG.legend_n_markers),
+            min=1,
+            max=10,
+            initial=1,
+            inc=1,
+            size=(90, -1),
+            name="legend.data",
         )
         self.legend_n_markers_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
+        self.legend_n_markers_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
 
         legend_marker_before = wx.StaticText(self, -1, "Marker before label:")
-        self.legend_marker_before_check = make_checkbox(self, "")
+        self.legend_marker_before_check = make_checkbox(self, "", name="legend.data")
         self.legend_marker_before_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
+        self.legend_marker_before_check.Bind(wx.EVT_CHECKBOX, self.on_update)
 
         legend_alpha = wx.StaticText(self, -1, "Frame transparency:")
         self.legend_alpha_value = wx.SpinCtrlDouble(
-            self, -1, value=str(CONFIG.legend_transparency), min=0.0, max=1, initial=0, inc=0.05, size=(90, -1)
+            self,
+            -1,
+            value=str(CONFIG.legend_transparency),
+            min=0.0,
+            max=1,
+            initial=0,
+            inc=0.05,
+            size=(90, -1),
+            name="legend.style",
         )
         self.legend_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
+        self.legend_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
 
         legend_patch_alpha = wx.StaticText(self, -1, "Patch transparency:")
         self.legend_patch_alpha_value = wx.SpinCtrlDouble(
-            self, -1, value=str(CONFIG.legend_patch_transparency), min=0.0, max=1, initial=0, inc=0.25, size=(90, -1)
+            self,
+            -1,
+            value=str(CONFIG.legend_patch_transparency),
+            min=0.0,
+            max=1,
+            initial=0,
+            inc=0.25,
+            size=(90, -1),
+            name="legend.style",
         )
         self.legend_patch_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
+        self.legend_patch_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
 
         legend_frame_label = wx.StaticText(self, -1, "Frame:")
-        self.legend_frame_check = make_checkbox(self, "")
+        self.legend_frame_check = make_checkbox(self, "", name="legend.style")
         self.legend_frame_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
+        self.legend_frame_check.Bind(wx.EVT_CHECKBOX, self.on_update)
 
         legend_fancy = wx.StaticText(self, -1, "Rounded corners:")
-        self.legend_fancybox_check = make_checkbox(self, "")
+        self.legend_fancybox_check = make_checkbox(self, "", name="legend.style")
         self.legend_fancybox_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
+        self.legend_fancybox_check.Bind(wx.EVT_CHECKBOX, self.on_update)
 
         grid = wx.GridBagSizer(2, 2)
         n = 0
@@ -138,7 +199,20 @@ class PanelLegendSettings(PanelSettingsBase):
         self._parse_evt(evt)
 
     def on_update(self, evt):
-        """Update plot data"""
+        """Update"""
+        evt, source = self._preparse_evt(evt)
+        if evt is None:
+            return
+        if not source.startswith("legend."):
+            self._parse_evt(evt)
+            return
+        self.on_apply(None)
+        name = source
+        try:
+            view = VIEW_REG.view
+            view.update_style(name)
+        except AttributeError:
+            LOGGER.warning("Could not retrieve view - cannot update plot style")
         self._parse_evt(evt)
 
     def on_toggle_controls(self, evt):

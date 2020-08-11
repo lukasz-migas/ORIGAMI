@@ -15,9 +15,11 @@ class ViewAboutPopup(PopupBase):
     document_title = None
     dataset_name = None
 
+    INFO_MESSAGE = "Right-click or double-click inside the popup window to close it."
+
     def __init__(self, parent, view, style=wx.BORDER_SIMPLE):
         self.view = view
-        PopupBase.__init__(self, parent, style)
+        PopupBase.__init__(self, parent, style, self.view._icons)
 
     def make_panel(self):
         """Make popup window"""
@@ -66,6 +68,8 @@ class ViewAboutPopup(PopupBase):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(grid, 1, wx.EXPAND | wx.ALL, 5)
         self.set_info(sizer)
+        self.set_close_btn(sizer)
+        self.set_title("About view object")
 
         self.SetSizerAndFit(sizer)
         self.Layout()

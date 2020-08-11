@@ -1,5 +1,6 @@
 """Viewer classes for spectral data"""
 # Standard library imports
+import time
 import logging
 
 # Third-party imports
@@ -9,6 +10,7 @@ from pubsub import pub
 # Local imports
 from origami.utils.secret import get_short_hash
 from origami.config.config import CONFIG
+from origami.utils.utilities import report_time
 from origami.visuals.mpl.plot_spectrum import PlotSpectrum
 from origami.gui_elements.views.view_base import ViewBase
 from origami.gui_elements.views.view_base import ViewMPLMixin
@@ -74,6 +76,7 @@ class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin):
     def plot(self, x=None, y=None, obj=None, repaint: bool = True, **kwargs):
         """Simple line plot"""
         # try to update plot first, as it can be quicker
+        t_start = time.time()
         self.set_document(obj, **kwargs)
         self.set_labels(obj, **kwargs)
 
@@ -91,10 +94,11 @@ class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin):
             # set data
             self._data.update(x=x, y=y, obj=obj)
             self.set_plot_parameters(**kwargs)
-            LOGGER.debug("Plotted data")
+            LOGGER.debug(f"Plotted data in {report_time(t_start)}")
 
     def update(self, x=None, y=None, obj=None, repaint: bool = True, **kwargs):
         """Update plot without having to clear it"""
+        t_start = time.time()
         self.set_document(obj, **kwargs)
         self.set_labels(obj, **kwargs)
 
@@ -107,12 +111,15 @@ class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin):
         # set data
         self._data.update(x=x, y=y, obj=obj)
         self.set_plot_parameters(**kwargs)
-        LOGGER.debug("Updated plot data")
+        LOGGER.debug(f"Plotted data in {report_time(t_start)}")
 
-    def replot(self, plot_type: str = None, repaint: bool = True):
+    def replot(self, plot_type: str = None, repaint: bool = True, light_clear: bool = False):
         """Replot the current plot"""
         # get plot_type
         plot_type = self.get_plot_type(plot_type)
+
+        if light_clear:
+            self.light_clear()
 
         # get replot data
         x, y, obj = self.get_data(self.DATA_KEYS)
@@ -121,6 +128,8 @@ class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin):
 
     def update_style(self, name: str):
         """Update plot style"""
+        t_start = time.time()
+        kwargs = dict()
         if name.startswith("line"):
             self.figure.plot_1d_update_style_by_label(
                 spectrum_line_color=CONFIG.spectrum_line_color,
@@ -136,8 +145,18 @@ class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin):
                 y=self._data["y"],
                 fill_kwargs=CONFIG.get_mpl_parameters(self.MPL_KEYS),
             )
-
+        elif name.startswith("axes"):
+            kwargs = CONFIG.get_mpl_parameters(["axes"])
+            if name.endswith(".frame"):
+                self.figure.plot_update_frame(**kwargs)
+            elif name.endswith(".labels"):
+                self.figure.plot_update_labels(**kwargs)
+        elif name.startswith("legend"):
+            kwargs = CONFIG.get_mpl_parameters(["legend"])
+            self.figure.plot_update_legend(**kwargs)
         self.figure.repaint()
+        self.set_plot_parameters(**kwargs)
+        LOGGER.debug(f"Updated plot styles - {name} in {report_time(t_start)}")
 
 
 class ViewMassSpectrum(ViewSpectrum):
@@ -275,10 +294,22 @@ class ViewCompareSpectra(ViewBase, ViewSpectrumPanelMixin):
     def _update(self):
         pass
 
-    def update_style(self, *args, **kwargs):
+    def update_style(self, name: str, gid: int = None, **kwargs):
         """Update plot style"""
-        self.figure.plot_1d_update_style_by_label(*args, **kwargs)
+        t_start = time.time()
+        if name.startswith("legend"):
+            kwargs = CONFIG.get_mpl_parameters(["legend"])
+            self.figure.plot_update_legend(**kwargs)
+        elif name.startswith("axes"):
+            kwargs = CONFIG.get_mpl_parameters(["axes"])
+            if name.endswith(".frame"):
+                self.figure.plot_update_frame(**kwargs)
+            elif name.endswith(".labels"):
+                self.figure.plot_update_labels(**kwargs)
+        else:
+            self.figure.plot_1d_update_style_by_label(gid, **kwargs)
         self.figure.repaint()
+        LOGGER.debug(f"Updated plot styles - {name} in {report_time(t_start)}")
 
 
 class ViewCompareMassSpectra(ViewCompareSpectra):

@@ -130,10 +130,13 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
         self.set_plot_parameters(**kwargs)
         LOGGER.debug(f"Updated plot data in {report_time(t_start)}")
 
-    def replot(self, plot_type: str = None, repaint: bool = True):
+    def replot(self, plot_type: str = None, repaint: bool = True, light_clear: bool = False):
         """Replot the current plot"""
         # get plot_type
         plot_type = self.get_plot_type(plot_type)
+
+        if light_clear:
+            self.light_clear()
 
         # get replot data
         array, x, y, obj = self.get_data(self.DATA_KEYS)
@@ -299,6 +302,12 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
                 kwargs = CONFIG.get_mpl_parameters(["violin"])
                 x, y, array = self.get_data(["x", "y", "array"])
                 self.figure.plot_violin_update(x, y, array, name, **kwargs)
+        elif name.startswith("axes"):
+            kwargs = CONFIG.get_mpl_parameters(["axes"])
+            if name.endswith(".frame"):
+                self.figure.plot_update_frame(**kwargs)
+            elif name.endswith(".labels"):
+                self.figure.plot_update_labels(**kwargs)
         self.figure.repaint()
         self.set_plot_parameters(**kwargs)
         LOGGER.debug(f"Updated plot styles - {name} in {report_time(t_start)}")

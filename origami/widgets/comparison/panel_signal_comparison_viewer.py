@@ -3,6 +3,7 @@
 import logging
 from typing import Dict
 from typing import List
+from functools import partial
 
 # Third-party imports
 import wx
@@ -13,8 +14,6 @@ from pubsub.core.topicexc import TopicNameError
 # Local imports
 from origami.ids import ID_compareMS_MS_1
 from origami.ids import ID_compareMS_MS_2
-from origami.ids import ID_extraSettings_legend
-from origami.ids import ID_extraSettings_plot1D
 from origami.styles import MiniFrame
 from origami.styles import make_checkbox
 from origami.styles import make_color_btn
@@ -135,11 +134,20 @@ class PanelSignalComparisonViewer(MiniFrame):
 
     def setup(self):
         """Setup various UI elements"""
-        self.settings_btn.Bind(wx.EVT_BUTTON, self.presenter.view.on_open_plot_settings_panel)
-        self.legend_btn.Bind(wx.EVT_BUTTON, self.presenter.view.on_open_plot_settings_panel)
+        # restrict size of comboboxes
+        #         self.spectrum_1_document_value.SetMaxSize(self.spectrum_1_document_value.GetSize())
+        #         self.spectrum_2_document_value.SetMaxSize(self.spectrum_2_document_value.GetSize())
+        #         self.spectrum_1_spectrum_value.SetMaxSize(self.spectrum_1_spectrum_value.GetSize())
+        #         self.spectrum_2_spectrum_value.SetMaxSize(self.spectrum_2_spectrum_value.GetSize())
+
+        # bind events
+        self.settings_btn.Bind(wx.EVT_BUTTON, partial(self.presenter.view.on_open_plot_settings_panel, "Plot 1D"))
+        self.legend_btn.Bind(wx.EVT_BUTTON, partial(self.presenter.view.on_open_plot_settings_panel, "Legend"))
         self.process_btn.Bind(wx.EVT_BUTTON, self.on_open_process_ms_settings)
         if self.PUB_SUBSCRIBE_EVENT:
             pub.subscribe(self.on_process, self.PUB_SUBSCRIBE_EVENT)
+
+        pub.sendMessage("view.activate", view_id=self.plot_view.PLOT_ID)
 
     def on_update_widget(self, _evt):
         """Timer-based update"""
@@ -329,12 +337,9 @@ class PanelSignalComparisonViewer(MiniFrame):
         self.subtract_check.Bind(wx.EVT_CHECKBOX, self.on_plot)
         self.subtract_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        self.settings_btn = make_bitmap_btn(
-            panel, ID_extraSettings_plot1D, self._icons.plot_1d, tooltip="Change plot parameters"
-        )
-        self.legend_btn = make_bitmap_btn(
-            panel, ID_extraSettings_legend, self._icons.plot_legend, tooltip="Change legend parameters"
-        )
+        self.settings_btn = make_bitmap_btn(panel, wx.ID_ANY, self._icons.plot_1d, tooltip="Change plot parameters")
+
+        self.legend_btn = make_bitmap_btn(panel, wx.ID_ANY, self._icons.plot_legend, tooltip="Change legend parameters")
         self.process_btn = make_bitmap_btn(
             panel, wx.ID_ANY, self._icons.process_ms, tooltip="Change MS pre-processing parameters"
         )
@@ -648,7 +653,7 @@ class PanelSignalComparisonViewer(MiniFrame):
             kwargs["spectrum_line_transparency"] = CONFIG.compare_alpha_bottom
             kwargs["label"] = CONFIG.compare_panel_bottom_.legend
 
-        self.plot_view.update_style(self._get_dataset_index(source), **kwargs)
+        self.plot_view.update_style("compare", self._get_dataset_index(source), **kwargs)
         logger.info(f"Plot update took {report_time(t_start)}")
 
     def on_plot(self, _evt):

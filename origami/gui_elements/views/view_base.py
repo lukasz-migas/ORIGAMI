@@ -34,9 +34,6 @@ class ViewMPLMixin:
 
     def add_scatter(self, x, y, color="r", marker="o", size=5, repaint: bool = True):
         """Add scatter points to the plot"""
-        #         if isinstance(color, list):
-        #             assert len(color) == len(x), "Number of colors must match the number of markers"
-
         self.figure.plot_add_markers(x=x, y=y, color=color, marker=marker, size=size)
         if repaint:
             self.figure.repaint()
@@ -459,6 +456,10 @@ class ViewBase(ABC):
             self._data["obj"] = None
 
         self.figure.PLOT_TYPE = None
+
+    def light_clear(self):
+        """Surface-only clear of the plot without resetting the data"""
+        self.figure.clear()
 
     def copy_to_clipboard(self):
         """Copy plot to clipboard"""

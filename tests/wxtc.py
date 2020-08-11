@@ -186,7 +186,9 @@ class WidgetTestCase:
         wx.PostEvent(spin_ctrl_dbl, wx.PyCommandEvent(wx.EVT_SPINCTRLDOUBLE.typeId, spin_ctrl_dbl.GetId()))
         self.yield_()
 
-    def sim_spin_ctrl_click_evt(self, spin_ctrl: Union[wx.SpinCtrlDouble, wx.SpinCtrl], value: bool, handlers: List):
+    def sim_spin_ctrl_click_evt(
+        self, spin_ctrl: Union[wx.SpinCtrlDouble, wx.SpinCtrl], value: Union[int, float], handlers: List
+    ):
         """Simulate wx.CheckBox click"""
         spin_ctrl.SetValue(value)
 

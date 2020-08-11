@@ -133,7 +133,8 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin):
             page_id = CONFIG.extraParamsWindow[window]
 
         self.main_book.SetSelection(page_id)
-        self.on_page_changed(None)
+
+    #         self.on_page_changed(None)
 
     def on_page_changed(self, _evt):
         """Change window"""

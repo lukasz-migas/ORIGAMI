@@ -264,6 +264,12 @@ class PlotBase(MPLPanel):
         except (AttributeError, KeyError):
             logger.warning("Could not remove legend from the plot area - did it exist?")
 
+    def plot_update_legend(self, **kwargs):
+        """Update legend parameters"""
+        handles, __ = self.plot_base.get_legend_handles_labels()
+        if handles:
+            self.set_legend_parameters(handles, **kwargs)
+
     def set_plot_xlabel(self, xlabel: str = None, **kwargs):
         """Set plot x-axis label"""
         kwargs = ut_visuals.check_plot_settings(**kwargs)
@@ -273,7 +279,7 @@ class PlotBase(MPLPanel):
         self.plot_base.set_xlabel(
             xlabel,
             labelpad=kwargs["axes_label_pad"],
-            fontsize=kwargs["axes_tick_font_size"],
+            fontsize=kwargs["axes_label_font_size"],
             weight=kwargs["axes_label_font_weight"],
         )
         self.plot_labels["xlabel"] = xlabel
@@ -286,7 +292,7 @@ class PlotBase(MPLPanel):
         self.plot_base.set_ylabel(
             ylabel,
             labelpad=kwargs["axes_label_pad"],
-            fontsize=kwargs["axes_tick_font_size"],
+            fontsize=kwargs["axes_label_font_size"],
             weight=kwargs["axes_label_font_weight"],
         )
         self.plot_labels["ylabel"] = ylabel
@@ -340,96 +346,14 @@ class PlotBase(MPLPanel):
         self.plot_base.spines["bottom"].set_visible(kwargs["axes_frame_spine_bottom"])
         [i.set_linewidth(kwargs["axes_frame_width"]) for i in self.plot_base.spines.values()]
 
-    # def _convert_yaxis(self, values, label, set_divider=True, convert_values=True):
-    #     """ Function to check whether x/y axis labels do not need formatting """
-    #
-    #     increment = 10
-    #     divider = 1
-    #
-    #     try:
-    #         itemShape = values.shape
-    #     except Exception:
-    #         values = np.array(values)
-    #         itemShape = values.shape
-    #
-    #     if len(itemShape) > 1:
-    #         maxValue = np.amax(np.absolute(values))
-    #     elif len(itemShape) == 1:
-    #         maxValue = np.max(np.absolute(values))
-    #     else:
-    #         maxValue = values
-    #
-    #     while 10 <= (maxValue / divider) >= 1:
-    #         divider = divider * increment
-    #
-    #     expo = len(str(divider)) - len(str(divider).rstrip("0"))
-    #
-    #     if expo == 1:
-    #         divider = 1
-    #
-    #     label = ut_visuals.add_exponent_to_label(label, divider)
-    #     if expo > 1:
-    #         if convert_values:
-    #             values = np.divide(values, float(divider))
-    #
-    #     if set_divider:
-    #         self.y_divider = divider
-    #
-    #     return values, label, divider
-    #
-    # def _convert_yaxis_with_preset_divider(self, values, label):
-    #     if self.y_divider is None:
-    #         __, __, __ = self._convert_yaxis(values, label)
-    #
-    #     divider = self.y_divider
-    #     expo = len(str(divider)) - len(str(divider).rstrip("0"))
-    #
-    #     if expo > 1:
-    #         offset_text = r"x$\mathregular{10^{%d}}$" % expo
-    #         label = "".join([label, " [", offset_text, "]"])
-    #
-    #     values = np.divide(values, float(divider))
-    #
-    #     return values, label, divider
-    #
-    # def _get_colors(self, n_colors):
-    #     if CONFIG.currentPalette not in ["Spectral", "RdPu"]:
-    #         palette = CONFIG.currentPalette.lower()
-    #     else:
-    #         palette = CONFIG.currentPalette
-    #     colorlist = color_palette(palette, n_colors)
-    #
-    #     return colorlist
-    #
-    # def _convert_yaxis_list(self, values, label):
-    #
-    #     # compute divider(s)
-    #     _dividers = []
-    #     for _, value in enumerate(values):
-    #         __, __ylabel, divider = self._convert_yaxis(value, label, set_divider=False, convert_values=False)
-    #         _dividers.append(divider)
-    #
-    #     # update divider
-    #     self.y_divider = np.max(_dividers)
-    #
-    #     for i, value in enumerate(values):
-    #         values[i] = np.divide(value, float(divider))
-    #
-    #     label = ut_visuals.add_exponent_to_label(label, self.y_divider)
-    #
-    #     return values, label
-    #
-    # def _check_colormap(self, cmap=None, **kwargs):
-    #     #         # checking entire dict
-    #     #         if cmap is None:
-    #     #             if kwargs["heatmap_colormap"] in CONFIG.cmocean_cmaps:
-    #     #                 kwargs["heatmap_colormap"] = eval("cmocean.cm.%s" % kwargs["heatmap_colormap"])
-    #     #             return kwargs
-    #     #
-    #     #         # only checking colormap
-    #     #         if cmap in CONFIG.cmocean_cmaps:
-    #     #             cmap = eval("cmocean.cm.%s" % cmap)
-    #     return cmap
+    def plot_update_frame(self, **kwargs):
+        """Update plot frame"""
+        self.set_tick_parameters(**kwargs)
+
+    def plot_update_labels(self, **kwargs):
+        """Update labels"""
+        self.set_plot_xlabel(**kwargs)
+        self.set_plot_ylabel(**kwargs)
 
     def _fix_label_positions(self, lim=20):
         """
@@ -664,69 +588,6 @@ class PlotBase(MPLPanel):
                 del self.patch[i]
                 break
 
-    # def add_labels(self, x, y, labels, **kwargs):
-    #     """Add labels to the plot"""
-    #     if not isinstance(x, (list, tuple, np.ndarray)):
-    #         x = [x]
-    #     if not isinstance(y, (list, tuple, np.ndarray)):
-    #         y = [y]
-    #     if not isinstance(labels, (list, tuple, np.ndarray)):
-    #         labels = [labels]
-    #
-    #     pass
-    #
-    # def plot_add_text_and_lines(
-    #     self,
-    #     xpos,
-    #     yval,
-    #     label,
-    #     vline=True,
-    #     vline_position=None,
-    #     color="black",
-    #     yoffset=0.05,
-    #     stick_to_intensity=False,
-    #     **kwargs,
-    # ):
-    #     obj_name = kwargs.pop("text_name", None)
-    #     if obj_name is not None:
-    #         self._remove_existing_label(obj_name)
-    #
-    #     try:
-    #         ymin, ymax = self.plot_base.get_ylim()
-    #     except AttributeError:
-    #         raise MessageError("Error", "Please plot something first")
-    #
-    #     if stick_to_intensity:
-    #         try:
-    #             y_position = np.divide(yval, self.y_divider)
-    #         except Exception:
-    #             y_position = ymax
-    #     else:
-    #         y_position = ymax
-    #
-    #     # get custom name tag
-    #
-    #     text = self.plot_base.text(
-    #         np.array(xpos),
-    #         y_position + yoffset,
-    #         label,
-    #         horizontalalignment=kwargs.pop("horizontalalignment", "center"),
-    #         verticalalignment=kwargs.pop("verticalalignment", "top"),
-    #         color=color,
-    #         clip_on=True,
-    #         picker=True,
-    #         **kwargs,
-    #     )
-    #     text.obj_name = obj_name  # custom tag
-    #     text.y_divider = self.y_divider
-    #     self.text.append(text)
-    #
-    #     if vline:
-    #         if vline_position is not None:
-    #             xpos = vline_position
-    #         line = self.plot_base.axvline(xpos, ymin, yval * 0.8, color=color, linestyle="dashed", alpha=0.4)
-    #         self.lines.append(line)
-
     def plot_add_label(
         self,
         x: float,
@@ -959,35 +820,6 @@ class PlotBase(MPLPanel):
             label.set_fontsize(_kwargs["fontsize"])
             label.set_horizontalalignment(_kwargs["horizontalalignment"])
             label.set_verticalalignment(_kwargs["verticalalignment"])
-
-    # def plot_1D_update(self, **kwargs):
-    #     if self.lock_plot_from_updating:
-    #         self._locked()
-    #
-    #     # update plot labels
-    #     self.set_plot_xlabel(None, **kwargs)
-    #     self.set_plot_ylabel(None, **kwargs)
-    #     self.set_tick_parameters(**kwargs)
-    #
-    #     # update line settings
-    #     for __, line in enumerate(self.plot_base.get_lines()):
-    #         line.set_linewidth(kwargs["spectrum_line_width"])
-    #         line.set_linestyle(kwargs["spectrum_line_style"])
-    #         line.set_color(kwargs["spectrum_line_color"])
-    #
-    #     # add shade if it has been previously deleted
-    #     if kwargs["spectrum_line_fill_under"] and not self.plot_base.collections:
-    #         xvals, yvals, _, _, _ = self.plot_1D_get_data(use_divider=False)
-    #         self.plot_1d_add_under_curve(xvals[0], yvals[0], **kwargs)
-    #
-    #     for __, shade in enumerate(self.plot_base.collections):
-    #         if not kwargs["spectrum_line_fill_under"]:
-    #             shade.remove()
-    #         else:
-    #             shade.set_facecolor(kwargs["spectrum_fill_color"])
-    #             shade.set_alpha(kwargs["spectrum_fill_transparency"])
-    #
-    #     self._update_plot_settings_(**kwargs)
 
     # def plot_1D_update_rmsf(self, **kwargs):
     #     if self.lock_plot_from_updating:
