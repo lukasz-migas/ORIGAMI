@@ -32,11 +32,11 @@ from origami.ids import ID_uvpd_laser_on_off_compare_mobilogram
 from origami.ids import ID_uvpd_laser_on_off_compare_chromatogam
 from origami.ids import ID_uvpd_laser_on_off_mobilogram_show_chromatogram
 from origami.styles import Validator
-from origami.styles import make_checkbox
-from origami.styles import make_menu_item
-from origami.styles import make_staticbox
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
+from origami.gui_elements.helpers import make_checkbox
+from origami.gui_elements.helpers import make_menu_item
+from origami.gui_elements.helpers import make_staticbox
 from origami.readers.io_text_files import saveAsText
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.panel_html_viewer import PanelHTMLViewer

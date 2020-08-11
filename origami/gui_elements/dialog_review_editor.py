@@ -10,14 +10,14 @@ import wx
 
 # Local imports
 from origami.styles import Dialog
-from origami.styles import set_tooltip
-from origami.styles import set_item_font
-from origami.styles import make_bitmap_btn
 from origami.icons.assets import Icons
 from origami.config.environment import ENV
 from origami.objects.containers import IonHeatmapObject
 from origami.objects.containers import MassSpectrumObject
 from origami.objects.containers import MassSpectrumHeatmapObject
+from origami.gui_elements.helpers import set_tooltip
+from origami.gui_elements.helpers import set_item_font
+from origami.gui_elements.helpers import make_bitmap_btn
 from origami.handlers.queue_handler import QUEUE
 from origami.gui_elements.panel_base import TableMixin
 

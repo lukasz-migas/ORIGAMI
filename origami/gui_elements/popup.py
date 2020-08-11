@@ -3,7 +3,7 @@
 import wx
 
 # Local imports
-from origami.styles import make_bitmap_btn
+from origami.gui_elements.helpers import make_bitmap_btn
 
 
 class PopupMixin:

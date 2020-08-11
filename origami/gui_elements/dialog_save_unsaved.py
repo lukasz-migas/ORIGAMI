@@ -8,8 +8,8 @@ import wx
 
 # Local imports
 from origami.styles import Dialog
-from origami.styles import set_tooltip
 from origami.config.environment import ENV
+from origami.gui_elements.helpers import set_tooltip
 
 FORBIDDEN_NAMES = [""]
 BOX_SIZE = 400

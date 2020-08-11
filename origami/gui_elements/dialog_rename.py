@@ -7,7 +7,7 @@ import wx
 
 # Local imports
 from origami.styles import Dialog
-from origami.styles import set_tooltip
+from origami.gui_elements.helpers import set_tooltip
 
 FORBIDDEN_NAMES = ["Documents", ""]
 BOX_SIZE = 400

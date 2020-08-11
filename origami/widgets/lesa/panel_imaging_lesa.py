@@ -10,14 +10,14 @@ from pubsub import pub
 
 # Local imports
 from origami.styles import MiniFrame
-from origami.styles import set_tooltip
 from origami.icons.assets import Icons
 from origami.utils.screen import calculate_window_size
 from origami.config.config import CONFIG
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
+from origami.gui_elements.mixins import DatasetMixin
+from origami.gui_elements.helpers import set_tooltip
 from origami.gui_elements.panel_base import TableMixin
-from origami.gui_elements.panel_base import DatasetMixin
 from origami.gui_elements.popup_view import PopupMobilogramView
 from origami.gui_elements.views.view_heatmap import ViewImagingIonHeatmap
 from origami.gui_elements.views.view_spectrum import ViewMassSpectrum

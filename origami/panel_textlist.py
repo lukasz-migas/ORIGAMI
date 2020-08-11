@@ -33,13 +33,13 @@ from origami.ids import ID_textPanel_annotate_min_threshold
 from origami.ids import ID_textPanel_changeColorBatch_color
 from origami.ids import ID_textPanel_changeColorBatch_palette
 from origami.ids import ID_textPanel_changeColorBatch_colormap
-from origami.styles import make_tooltip
-from origami.styles import make_menu_item
 from origami.utils.check import isempty
 from origami.utils.color import get_font_color
 from origami.utils.color import convert_rgb_1_to_255
 from origami.config.config import CONFIG
 from origami.config.environment import ENV
+from origami.gui_elements.helpers import make_tooltip
+from origami.gui_elements.helpers import make_menu_item
 from origami.gui_elements.dialog_ask import DialogAsk
 from origami.gui_elements.panel_base import TablePanelBase
 from origami.gui_elements.misc_dialogs import DialogBox

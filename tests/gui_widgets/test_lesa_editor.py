@@ -16,4 +16,3 @@ class TestPanelImagingLESAViewer(WidgetTestCase):
         dlg = PanelImagingLESAViewer(None, None, debug=True)
         dlg.Show()
         self.wait_for(500)
-        assert dlg

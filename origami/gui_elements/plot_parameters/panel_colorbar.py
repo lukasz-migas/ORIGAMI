@@ -6,10 +6,10 @@ import logging
 import wx
 
 # Local imports
-from origami.styles import make_toggle_btn
 from origami.utils.color import convert_rgb_1_to_255
 from origami.config.config import CONFIG
 from origami.utils.converters import str2num
+from origami.gui_elements.helpers import make_toggle_btn
 from origami.gui_elements.views.view_register import VIEW_REG
 from origami.gui_elements.plot_parameters.panel_base import PanelSettingsBase
 
@@ -178,6 +178,8 @@ class PanelColorbarSettings(PanelSettingsBase):
 
     def on_apply(self, evt):
         """Apply colorbar parameters"""
+        if self.import_evt:
+            return
         CONFIG.colorbar = self.colorbar_tgl.GetValue()
         CONFIG.colorbar_position = self.colorbar_position_value.GetStringSelection()
         CONFIG.colorbar_width = str2num(self.colorbar_width_value.GetValue())

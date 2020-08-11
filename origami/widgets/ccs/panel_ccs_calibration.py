@@ -39,11 +39,11 @@ from origami.ids import ID_processApplyCCScalibrantMenu
 from origami.ids import ID_removeCCScalibrantBottomPanel
 from origami.ids import ID_removeCCScalibrantBottomPanelPopup
 from origami.styles import Validator
-from origami.styles import layout
 from origami.utils.check import isnumber
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
 from origami.config.environment import ENV
+from origami.gui_elements.helpers import layout
 from origami.gui_elements.misc_dialogs import DialogBox
 
 

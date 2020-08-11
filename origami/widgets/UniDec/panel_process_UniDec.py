@@ -8,15 +8,15 @@ import wx.lib.scrolledpanel
 import origami.processing.UniDec.utilities as unidec_utils
 from origami.ids import ID_plotPanel_resize
 from origami.styles import Validator
-from origami.styles import make_tooltip
-from origami.styles import make_checkbox
-from origami.styles import make_menu_item
 from origami.utils.time import ttime
 from origami.visuals.mpl import base
 from origami.utils.screen import calculate_window_size
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
 from origami.utils.exceptions import MessageError
+from origami.gui_elements.helpers import make_tooltip
+from origami.gui_elements.helpers import make_checkbox
+from origami.gui_elements.helpers import make_menu_item
 
 logger = logging.getLogger(__name__)
 
