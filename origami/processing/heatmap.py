@@ -298,33 +298,54 @@ def subsample_array(data, xvals, division_factor):
     return data[:, ::division_factor], xvals[::division_factor]
 
 
-def bin_sum_array(data, xvals, division_factor):
+def bin_sum_array(array, x, scale):
     """Downsample array by binning and subsequently summing multiple signals"""
-    y_dim, x_dim = data.shape
-    new_shape = (y_dim, int(x_dim / division_factor), division_factor)
-    if np.prod(new_shape) != data.size:
+    y_dim, x_dim = array.shape
+    new_shape = (y_dim, int(x_dim / scale), scale)
+    if np.prod(new_shape) != array.size:
         raise ValueError(
-            "Scale cannot be '{}' as it does will prevent correct reshaping!".format(division_factor)
-            + " Number of items before reshape: {} and after {}".format(data.size, np.prod(new_shape))
+            "Scale cannot be '{}' as it does will prevent correct reshaping!".format(scale)
+            + " Number of items before reshape: {} and after {}".format(array.size, np.prod(new_shape))
         )
-    return np.reshape(data, new_shape).sum(axis=2), bin_mean_1D_array(xvals, new_shape)
+    return np.reshape(array, new_shape).sum(axis=2), bin_mean_1d_array(x, new_shape)
 
 
-def bin_mean_array(data, xvals, division_factor):
+def bin_mean_array(array, x, scale):
     """Downsample array by binning and subsequently averaging multiple signals"""
-    y_dim, x_dim = data.shape
-    new_shape = (y_dim, int(x_dim / division_factor), division_factor)
-    if np.prod(new_shape) != data.size:
+    y_dim, x_dim = array.shape
+    new_shape = (y_dim, int(x_dim / scale), scale)
+    if np.prod(new_shape) != array.size:
         raise ValueError(
-            "Scale cannot be '{}' as it does will prevent correct reshaping!".format(division_factor)
-            + " Number of items before reshape: {} and after {}".format(data.size, np.prod(new_shape))
+            "Scale cannot be '{}' as it does will prevent correct reshaping!".format(scale)
+            + " Number of items before reshape: {} and after {}".format(array.size, np.prod(new_shape))
         )
-    return np.reshape(data, new_shape).mean(axis=2), bin_mean_1D_array(xvals, new_shape)
+    return np.reshape(array, new_shape).mean(axis=2), bin_mean_1d_array(x, new_shape)
 
 
-def bin_mean_1D_array(xvals, new_shape):
-    xvals = np.reshape(xvals, (1, new_shape[1], new_shape[2])).mean(axis=2)
-    return np.reshape(xvals, (new_shape[1],))
+def bin_mean_1d_array(x, new_shape):
+    """Bin 1d array in such a manner as to generate alternative spacing that matches another dimension"""
+    x = np.reshape(x, (1, new_shape[1], new_shape[2])).mean(axis=2)
+    return np.reshape(x, (new_shape[1],))
+
+
+def pyramid_sum(array: np.ndarray, x: np.ndarray, n_scales: int):
+    """Generate pyramid-like scheme for a large array along one dimension"""
+    if not isinstance(n_scales, int) or n_scales <= 1:
+        raise ValueError("Number of scales must be an integer larger than 1")
+    scales = [2 ** n for n in range(n_scales)]
+    for scale in scales:
+        _array, _x = bin_sum_array(array, x, scale)
+        yield _array, _x, scale
+
+
+def pyramid_mean(array: np.ndarray, x: np.ndarray, n_scales: int):
+    """Generate pyramid-like scheme for a large array along one dimension"""
+    if not isinstance(n_scales, int) or n_scales <= 1:
+        raise ValueError("Number of scales must be an integer larger than 1")
+    scales = [2 ** n for n in range(n_scales)]
+    for scale in scales:
+        _array, _x = bin_mean_array(array, x, scale)
+        yield _array, _x, scale
 
 
 def view_as_blocks(array, n_rows: int = 200, n_cols: int = 1000):

@@ -3,6 +3,7 @@
 import math
 import logging
 from typing import List
+from typing import Tuple
 from typing import Union
 from typing import Optional
 
@@ -322,6 +323,46 @@ class HeatmapObject(DataObject):
         self._array = pr_heatmap.normalize_2d(self.array, method=normalize_method)
         self.unsaved = True
         return self
+
+    def make_pyramid(self, n_scales: int = 4, flush: bool = False):
+        """Generate a pyramid-like scheme of a large image"""
+
+        scales = []
+        for _array, _x, scale in pr_heatmap.pyramid_sum(self.array, self.x, n_scales):
+            if scale == 1:
+                continue
+            self._extra_data[f"array_scale_{scale}"] = _array
+            self._extra_data[f"x_scale_{scale}"] = _x
+            scales.append(scale)
+
+        self._metadata["multiscale"] = True
+        self._metadata["scales"] = scales
+
+        if flush:
+            self.flush()
+
+    def is_multiscale(self) -> bool:
+        """Check whether data object has multiple scales"""
+        return self._metadata.get("multiscale", False) or "scales" not in self._metadata["scales"]
+
+    def get_scale(self, scale: int) -> Tuple[np.ndarray, np.ndarray]:
+        """Returns scale if object is a multiscale"""
+        if not self.is_multiscale() or scale <= 1:
+            return self.array, self.x
+        scales = self._metadata["scales"]
+        if scale not in scales:
+            scale = scales[np.searchsorted(scales, scale)]
+        x = self._extra_data.get(f"x_scale_{scale}", None)
+        array = self._extra_data.get(f"array_scale_{scale}", None)
+        if x is None or array is None:
+            return self.array, self.x
+        return array, x
+
+    def get_scale_tile(self, scale: int, x_min: float, x_max: float):
+        """Returns a subset of data at pre-defined resolution for a particular x-axis range"""
+        array, x = self.get_scale(scale)
+        x_min_idx, x_max_idx = np.searchsorted(self.x, [x_min, x_max])
+        return array[:, x_min_idx:x_max_idx], x[x_min_idx:x_max_idx]
 
 
 class IonHeatmapObject(HeatmapObject, ChromatogramAxesMixin, MobilogramAxesMixin, OrigamiMsMixin):

@@ -13,8 +13,6 @@ import matplotlib.pyplot as plt
 from pubsub import pub
 
 # Local imports
-from origami.gui_elements._panel import TestPanel  # noqa
-from origami.gui_elements.popup import PopupBase
 from origami.ids import ID_clearPlot_1D
 from origami.ids import ID_clearPlot_2D
 from origami.ids import ID_clearPlot_3D
@@ -34,13 +32,18 @@ from origami.utils.color import convert_rgb_1_to_255
 from origami.utils.color import convert_rgb_1_to_hex
 from origami.icons.assets import Icons
 from origami.config.config import CONFIG
+from origami.gui_elements.popup import PopupBase
 from origami.objects.containers import DataObject
 from origami.objects.containers import IonHeatmapObject
 from origami.objects.containers import MobilogramObject
 from origami.objects.containers import ChromatogramObject
 from origami.objects.containers import MassSpectrumObject
 from origami.objects.containers import MassSpectrumHeatmapObject
-from origami.gui_elements.helpers import make_checkbox, make_menu_item, set_item_font, set_tooltip
+from origami.gui_elements._panel import TestPanel  # noqa
+from origami.gui_elements.helpers import set_tooltip
+from origami.gui_elements.helpers import make_checkbox
+from origami.gui_elements.helpers import set_item_font
+from origami.gui_elements.helpers import make_menu_item
 from origami.gui_elements.popup_view import PopupHeatmapView
 from origami.gui_elements.popup_view import PopupMobilogramView
 from origami.gui_elements.popup_view import PopupChromatogramView

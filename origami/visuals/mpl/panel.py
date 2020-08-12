@@ -60,6 +60,7 @@ class MPLPanel(wx.Panel):
         self.SetBackgroundColour(wx.WHITE)
         # Create a resizer
         self.Bind(wx.EVT_SIZE, self.on_resize)
+        self.Bind(wx.EVT_MOUSEWHEEL, self.on_wheel)
 
         # Prepare for zoom
         self.zoom = None
@@ -99,6 +100,9 @@ class MPLPanel(wx.Panel):
 
     def __repr__(self):
         return f"Plot: {self.plotName} | Window name: {self.window_name} | Axes size: {self._axes}"
+
+    def on_wheel(self, evt):
+        print(evt)
 
     def setup_new_zoom(
         self,

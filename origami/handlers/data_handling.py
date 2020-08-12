@@ -151,32 +151,10 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
                 _thread = threading.Thread(target=func, args=args)
         elif action == "statusbar.update":
             _thread = threading.Thread(target=self.view.updateStatusbar, args=args)
-        # elif action == "load.raw.masslynx":
-        #     _thread = threading.Thread(target=self.on_open_single_MassLynx_raw, args=args)
-        # elif action == "load.text.heatmap" or action == "load.multiple.text.heatmap":
-        #     _thread = threading.Thread(target=self.on_open_multiple_text_2d, args=args)
         elif action == "load.text.spectrum":
             _thread = threading.Thread(target=self.on_add_text_ms, args=args)
-        # elif action == "load.raw.masslynx.ms_only":
-        #     _thread = threading.Thread(target=self.on_open_MassLynx_raw_MS_only, args=args)
-        # elif action == "extract.heatmap":
-        #     _thread = threading.Thread(target=self.on_extract_2D_from_mass_range, args=args)
-        # elif action == "load.multiple.raw.masslynx":
-        #     _thread = threading.Thread(target=self.on_open_multiple_ML_files, args=args)
-        # elif action == "save.document":
-        #     _thread = threading.Thread(target=self.on_save_document, args=args)
-        # elif action == "save.all.document":
-        #     _thread = threading.Thread(target=self.on_save_all_documents, args=args)
-        # elif action == "load.document":
-        #     _thread = threading.Thread(target=self.on_open_document, args=args)
         elif action == "extract.data.user":
             _thread = threading.Thread(target=self.on_extract_data_from_user_input, args=args, **kwargs)
-        # elif action == "export.config":
-        #     _thread = threading.Thread(target=self.on_export_config, args=args)
-        # elif action == "import.config":
-        #     _thread = threading.Thread(target=self.on_import_config, args=args)
-        # elif action == "extract.spectrum.collision.voltage":
-        #     _thread = threading.Thread(target=self.on_extract_mass_spectrum_for_each_collision_voltage, args=args)
         elif action == "load.text.peaklist":
             _thread = threading.Thread(target=self.on_load_user_list, args=args, **kwargs)
         elif action == "load.raw.mgf":
@@ -185,10 +163,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             _thread = threading.Thread(target=self.on_open_mzml_file, args=args)
         elif action == "load.add.mzidentml":
             _thread = threading.Thread(target=self.on_add_mzident_file, args=args)
-        # elif action == "load.raw.thermo":
-        #     _thread = threading.Thread(target=self.on_open_thermo_file, args=args)
-        # elif action == "load.multiple.raw.lesa":
-        #     _thread = threading.Thread(target=self.on_open_multiple_LESA_files, args=args, **kwargs)
 
         if _thread is None:
             logger.warning("Failed to execute the operation in threaded mode. Consider switching it off?")
@@ -342,9 +316,9 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         self.on_update_document(document, "document")
         logger.info(f"It took {time.time()-t_start:.4f} seconds to load {document.title}")
 
-    def _parse_mass_spectrum_range_waters(self, document, x_label, x_min, x_max, y_label, y_min, y_max):
+    @staticmethod
+    def _parse_mass_spectrum_range_waters(document, x_label, x_min, x_max, y_label, y_min, y_max):
         """Parse values obtained from mass spectrum plot"""
-
         # check whether data had been rotated
         if y_label in ["m/z (Da)"]:
             x_label, x_min, x_max = y_label, y_min, y_max
@@ -403,6 +377,14 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     def _parse_chromatogram_range_thermo(self, document, x_label, x_min, x_max, output="bins"):
         """Parse values obtained from chromatogram plot"""
 
+    @staticmethod
+    def _plot_extraction_disabled():
+        """Inform the user that extraction was disabled and how to enable it again"""
+        pub.sendMessage(
+            "notify.message.warning",
+            "Extraction in this panel was disabled. Hold CTRL + right-click in the plot area to enable it again.",
+        )
+
     def evt_extract_ms_from_heatmap(self, rect, x_labels, y_labels):
         """Extracts mass spectrum from heatmap"""
         t_start = time.time()
@@ -441,17 +423,21 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             raise MessageError("Error", "The extraction range in the mobilogram dimension was too narrow!")
 
         # get data
-        obj_name, mz_obj, document = self.waters_extract_ms_from_heatmap(
-            x_min_rt, x_max_rt, y_min_dt, y_max_dt, document.title
-        )
+        if CONFIG.plot_panel_heatmap_extract_ms:
+            obj_name, mz_obj, document = self.waters_extract_ms_from_heatmap(
+                x_min_rt, x_max_rt, y_min_dt, y_max_dt, document.title
+            )
 
-        # set data
-        self.panel_plot.view_ms.plot(obj=mz_obj)
-        self.panel_plot.popup_ms.plot(obj=mz_obj)
+            # set data
+            self.panel_plot.view_ms.plot(obj=mz_obj)
+            if CONFIG.plot_panel_heatmap_extract_ms_popup:
+                self.panel_plot.popup_ms.plot(obj=mz_obj)
 
-        # # Update document
-        self.document_tree.on_update_document(mz_obj.DOCUMENT_KEY, obj_name, document.title)
-        logger.info(f"Extracted mass spectrum in {report_time(t_start)} - See: {obj_name}")
+            # # Update document
+            self.document_tree.on_update_document(mz_obj.DOCUMENT_KEY, obj_name, document.title)
+            logger.info(f"Extracted mass spectrum in {report_time(t_start)} - See: {obj_name}")
+        else:
+            self._plot_extraction_disabled()
 
     def evt_extract_rt_from_heatmap(self, rect, x_labels, y_labels):
         """Extracts chromatogram from heatmap"""
@@ -488,18 +474,22 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         if y_min_dt >= y_max_dt:
             raise MessageError("Error", "The extraction range in the mobilogram dimension was too narrow!")
 
-        # get data
-        obj_name, rt_obj, document = self.waters_extract_rt_from_msdt(
-            x_min_mz, x_max_mz, y_min_dt, y_max_dt, document.title
-        )
+        if CONFIG.plot_panel_heatmap_extract_rt:
+            # get data
+            obj_name, rt_obj, document = self.waters_extract_rt_from_msdt(
+                x_min_mz, x_max_mz, y_min_dt, y_max_dt, document.title
+            )
 
-        # set data
-        self.panel_plot.view_rt_rt.plot(obj=rt_obj)
-        self.panel_plot.popup_rt.plot(obj=rt_obj)
+            # set data
+            self.panel_plot.view_rt_rt.plot(obj=rt_obj)
+            if CONFIG.plot_panel_heatmap_extract_rt_popup:
+                self.panel_plot.popup_rt.plot(obj=rt_obj)
 
-        # # Update document
-        self.document_tree.on_update_document(rt_obj.DOCUMENT_KEY, obj_name, document.title)
-        logger.info(f"Extracted chromatogram in {report_time(t_start)} - See: {obj_name}")
+            # # Update document
+            self.document_tree.on_update_document(rt_obj.DOCUMENT_KEY, obj_name, document.title)
+            logger.info(f"Extracted chromatogram in {report_time(t_start)} - See: {obj_name}")
+        else:
+            self._plot_extraction_disabled()
 
     def evt_extract_ms_from_mobilogram(self, rect, x_labels, y_labels):
         """Extracts mass spectrum based on selection window in a mobilogram plot"""
@@ -528,19 +518,23 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         x, y = self.panel_plot.view_dt_dt.get_data(["x", "y"])
         _, y_val = get_maximum_xy(x, y, x_min, x_max)
 
-        # mark on the plot where data is being extracted from
-        self.panel_plot.view_dt_dt.add_patches([x_min], [0], [x_max - x_min], [y_val], pickable=False)
+        if CONFIG.plot_panel_dt_extract_ms:
+            # mark on the plot where data is being extracted from
+            self.panel_plot.view_dt_dt.add_patches([x_min], [0], [x_max - x_min], [y_val], pickable=False)
 
-        # get data
-        obj_name, mz_obj, document = self.waters_extract_ms_from_mobilogram(x_min, x_max, document.title)
+            # get data
+            obj_name, mz_obj, document = self.waters_extract_ms_from_mobilogram(x_min, x_max, document.title)
 
-        # set data
-        self.panel_plot.view_ms.plot(obj=mz_obj)
-        self.panel_plot.popup_ms.plot(obj=mz_obj)
+            # set data
+            self.panel_plot.view_ms.plot(obj=mz_obj)
+            if CONFIG.plot_panel_dt_extract_ms_popup:
+                self.panel_plot.popup_ms.plot(obj=mz_obj)
 
-        # # Update document
-        self.document_tree.on_update_document(mz_obj.DOCUMENT_KEY, obj_name, document.title)
-        logger.info(f"Extracted mass spectrum in {report_time(t_start)} - See: {obj_name}")
+            # # Update document
+            self.document_tree.on_update_document(mz_obj.DOCUMENT_KEY, obj_name, document.title)
+            logger.info(f"Extracted mass spectrum in {report_time(t_start)} - See: {obj_name}")
+        else:
+            self._plot_extraction_disabled()
 
     def evt_extract_ms_from_chromatogram(self, rect, x_labels, y_labels):
         """Extracts mass spectrum based on selection window in a mobilogram plot"""
@@ -566,27 +560,33 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         x, y = self.panel_plot.view_rt_rt.get_data(["x", "y"])
         _, y_val = get_maximum_xy(x, y, x_min, x_max)
 
-        # mark on the plot where data is being extracted from
-        self.panel_plot.view_rt_rt.add_patches([x_min], [0], [x_max - x_min], [y_val], pickable=False)
+        if CONFIG.plot_panel_rt_extract_ms:
+            # mark on the plot where data is being extracted from
+            self.panel_plot.view_rt_rt.add_patches([x_min], [0], [x_max - x_min], [y_val], pickable=False)
 
-        if file_fmt == "waters":
-            x_min, x_max = self._parse_chromatogram_range_waters(
-                document, x_label, x_min, x_max, y_label, y_min, y_max, "time"
-            )
-            obj_name, mz_obj, document = self.waters_extract_ms_from_chromatogram(x_min, x_max, document.title)
-        elif file_fmt == "thermo":
-            as_scans = False if "mins" in x_label else True
-            obj_name, mz_obj, document = self.thermo_extract_ms_from_chromatogram(
-                x_min, x_max, as_scans, document.title
-            )
+            if file_fmt == "waters":
+                x_min, x_max = self._parse_chromatogram_range_waters(
+                    document, x_label, x_min, x_max, y_label, y_min, y_max, "time"
+                )
+                obj_name, mz_obj, document = self.waters_extract_ms_from_chromatogram(x_min, x_max, document.title)
+            elif file_fmt == "thermo":
+                as_scans = False if "mins" in x_label else True
+                obj_name, mz_obj, document = self.thermo_extract_ms_from_chromatogram(
+                    x_min, x_max, as_scans, document.title
+                )
+            else:
+                return
 
-        # set data
-        self.panel_plot.popup_ms.plot(obj=mz_obj)
-        self.panel_plot.view_ms.plot(obj=mz_obj)
+            # set data
+            self.panel_plot.popup_ms.plot(obj=mz_obj)
+            if CONFIG.plot_panel_rt_extract_ms_popup:
+                self.panel_plot.view_ms.plot(obj=mz_obj)
 
-        # # Update document
-        self.document_tree.on_update_document(mz_obj.DOCUMENT_KEY, obj_name, document.title)
-        logger.info(f"Extracted mass spectrum in {report_time(t_start)} - See: {obj_name}")
+            # # Update document
+            self.document_tree.on_update_document(mz_obj.DOCUMENT_KEY, obj_name, document.title)
+            logger.info(f"Extracted mass spectrum in {report_time(t_start)} - See: {obj_name}")
+        else:
+            self._plot_extraction_disabled()
 
     def evt_extract_heatmap_from_ms(self, rect, x_labels, y_labels):
         """Extract ion heatmap from mass spectrum"""
@@ -607,28 +607,32 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         x, y = self.panel_plot.view_ms.get_data(["x", "y"])
         _, y_val = get_maximum_xy(x, y, x_min, x_max)
 
-        # mark on the plot where data is being extracted from
-        self.panel_plot.view_ms.add_patches([x_min], [0], [x_max - x_min], [y_val], pickable=False)
+        if CONFIG.plot_panel_ms_extract_heatmap:
+            # mark on the plot where data is being extracted from
+            self.panel_plot.view_ms.add_patches([x_min], [0], [x_max - x_min], [y_val], pickable=False)
 
-        # get data
-        if is_multifile:
-            filelist = document.get_multifile_filelist(["variable"])
-            obj_name, heatmap_obj, document = self.waters_extract_heatmap_from_mass_spectrum_multifile(
-                x_min, x_max, filelist, document.title
-            )
+            # get data
+            if is_multifile:
+                filelist = document.get_multifile_filelist(["variable"])
+                obj_name, heatmap_obj, document = self.waters_extract_heatmap_from_mass_spectrum_multifile(
+                    x_min, x_max, filelist, document.title
+                )
+            else:
+
+                obj_name, heatmap_obj, document = self.waters_extract_heatmap_from_mass_spectrum_one(
+                    x_min, x_max, document.title
+                )
+
+            # set data
+            self.panel_plot.view_heatmap.plot(obj=heatmap_obj)
+            if CONFIG.plot_panel_ms_extract_heatmap_popup:
+                self.panel_plot.popup_2d.plot(obj=heatmap_obj)
+
+            # # Update document
+            self.document_tree.on_update_document(heatmap_obj.DOCUMENT_KEY, obj_name, document.title)
+            logger.info(f"Extracted ion heatmap in {report_time(t_start)} - See: {obj_name}")
         else:
-
-            obj_name, heatmap_obj, document = self.waters_extract_heatmap_from_mass_spectrum_one(
-                x_min, x_max, document.title
-            )
-
-        # set data
-        self.panel_plot.view_heatmap.plot(obj=heatmap_obj)
-        self.panel_plot.popup_2d.plot(obj=heatmap_obj)
-
-        # # Update document
-        self.document_tree.on_update_document(heatmap_obj.DOCUMENT_KEY, obj_name, document.title)
-        logger.info(f"Extracted ion heatmap in {report_time(t_start)} - See: {obj_name}")
+            self._plot_extraction_disabled()
 
     def evt_extract_rt_from_ms(self, rect, x_labels, y_labels):
         """Extract chromatogram from mass spectrum"""
@@ -649,25 +653,29 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         x, y = self.panel_plot.view_ms.get_data(["x", "y"])
         _, y_val = get_maximum_xy(x, y, x_min, x_max)
 
-        # mark on the plot where data is being extracted from
-        # self.panel_plot.view_ms.add_patches([x_min], [0], [x_max - x_min], [y_val], pickable=False)
+        if CONFIG.plot_panel_ms_extract_rt:
+            # mark on the plot where data is being extracted from
+            # self.panel_plot.view_ms.add_patches([x_min], [0], [x_max - x_min], [y_val], pickable=False)
 
-        # get data
-        #         if is_multifile:
-        #             filelist = document.get_multifile_filelist(["variable"])
-        #             obj_name, heatmap_obj, document = self.waters_extract_rt_from_mass_spectrum_multifile(
-        #                 x_min, x_max, filelist, document.title
-        #             )
-        #         else:
-        obj_name, rt_obj, document = self.waters_extract_rt_from_mass_spectrum(x_min, x_max, document.title)
+            # get data
+            #         if is_multifile:
+            #             filelist = document.get_multifile_filelist(["variable"])
+            #             obj_name, heatmap_obj, document = self.waters_extract_rt_from_mass_spectrum_multifile(
+            #                 x_min, x_max, filelist, document.title
+            #             )
+            #         else:
+            obj_name, rt_obj, document = self.waters_extract_rt_from_mass_spectrum(x_min, x_max, document.title)
 
-        # set data
-        self.panel_plot.view_rt_rt.plot(obj=rt_obj)
-        self.panel_plot.popup_rt.plot(obj=rt_obj)
+            # set data
+            self.panel_plot.view_rt_rt.plot(obj=rt_obj)
+            if CONFIG.plot_panel_ms_extract_rt_popup:
+                self.panel_plot.popup_rt.plot(obj=rt_obj)
 
-        # # Update document
-        self.document_tree.on_update_document(rt_obj.DOCUMENT_KEY, obj_name, document.title)
-        logger.info(f"Extracted ion heatmap in {report_time(t_start)} - See: {obj_name}")
+            # # Update document
+            self.document_tree.on_update_document(rt_obj.DOCUMENT_KEY, obj_name, document.title)
+            logger.info(f"Extracted ion heatmap in {report_time(t_start)} - See: {obj_name}")
+        else:
+            self._plot_extraction_disabled()
 
     def on_save_unsaved_changes(self, data_obj, document_title: str = None, dataset_name: str = None):
         """Save unchanged changes on an object"""

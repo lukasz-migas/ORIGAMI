@@ -1,9 +1,9 @@
 """Test helper functions"""
+# Third-party imports
+import wx
 import pytest
 
 # Local imports
-import wx
-
 # from origami.icons.icons import IconContainer
 from origami.gui_elements.helpers import make_spin_ctrl_double
 

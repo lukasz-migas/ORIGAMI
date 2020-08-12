@@ -1132,6 +1132,8 @@ class Config:
         # events in heatmap panel
         self.plot_panel_heatmap_extract_ms = True
         self.plot_panel_heatmap_extract_ms_popup = True
+        self.plot_panel_heatmap_extract_rt = True
+        self.plot_panel_heatmap_extract_rt_popup = True
 
         # events in dt/ms panel
         self.plot_panel_dtms_extract_rt = True

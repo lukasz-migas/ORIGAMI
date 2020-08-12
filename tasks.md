@@ -28,6 +28,11 @@
 - [x] add timer event to update plots whenever user changed settings in MS/heatmap processor
 - [x] reduced amount of time between user interaction and update frequency in lesa/manual editor
 - [x] add mixin to handle config load
+- [ ] add RT/MS panel + plot
+- [ ] add pyramid scheme + live update to improve usability
+- [ ] add wx mouse zoom in/out wheel to zoom
+- [ ] add drag x-/y-axis by holding ALT or clicking on the axes
+
 
 ## New features
 
