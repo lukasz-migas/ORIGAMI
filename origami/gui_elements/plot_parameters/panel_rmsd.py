@@ -3,13 +3,13 @@
 import wx
 
 # Local imports
-from origami.styles import set_tooltip
-from origami.styles import make_checkbox
-from origami.styles import set_item_font
 from origami.utils.color import convert_rgb_1_to_255
 from origami.config.config import CONFIG
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
+from origami.gui_elements.helpers import set_tooltip
+from origami.gui_elements.helpers import make_checkbox
+from origami.gui_elements.helpers import set_item_font
 from origami.gui_elements.plot_parameters.panel_base import PanelSettingsBase
 
 

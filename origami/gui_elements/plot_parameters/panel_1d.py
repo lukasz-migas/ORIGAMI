@@ -6,11 +6,11 @@ import logging
 import wx
 
 # Local imports
-from origami.styles import make_checkbox
-from origami.styles import set_item_font
 from origami.utils.color import convert_rgb_1_to_255
 from origami.config.config import CONFIG
 from origami.utils.converters import str2num
+from origami.gui_elements.helpers import make_checkbox
+from origami.gui_elements.helpers import set_item_font
 from origami.gui_elements.views.view_register import VIEW_REG
 from origami.gui_elements.plot_parameters.panel_base import PanelSettingsBase
 
@@ -254,6 +254,8 @@ class Panel1dSettings(PanelSettingsBase):
 
     def on_apply(self, evt):
         """Update 1d parameters"""
+        if self.import_evt:
+            return
         # plot 1D
         CONFIG.spectrum_line_width = str2num(self.spectrum_line_width.GetValue())
         CONFIG.spectrum_line_style = self.spectrum_line_style.GetStringSelection()

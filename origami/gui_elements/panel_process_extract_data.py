@@ -8,12 +8,12 @@ from pubsub import pub
 # Local imports
 from origami.styles import MiniFrame
 from origami.styles import Validator
-from origami.styles import make_checkbox
-from origami.styles import make_spin_ctrl_double
 from origami.icons.assets import Icons
 from origami.config.config import CONFIG
 from origami.utils.converters import str2num
 from origami.utils.exceptions import MessageError
+from origami.gui_elements.helpers import make_checkbox
+from origami.gui_elements.helpers import make_spin_ctrl_double
 
 logger = logging.getLogger(__name__)
 

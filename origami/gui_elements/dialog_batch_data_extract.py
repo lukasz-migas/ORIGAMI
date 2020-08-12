@@ -9,11 +9,11 @@ from enum import IntEnum
 import wx
 
 # Local imports
-from origami.styles import set_tooltip
 from origami.icons.assets import Icons
 from origami.handlers.load import LOAD_HANDLER
 from origami.objects.document import DocumentGroups
 from origami.config.environment import ENV
+from origami.gui_elements.helpers import set_tooltip
 from origami.handlers.queue_handler import QUEUE
 from origami.gui_elements.dialog_review_editor import DialogReviewEditorBase
 

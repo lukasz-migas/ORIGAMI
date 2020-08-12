@@ -10,8 +10,8 @@ from natsort import natsorted
 # Local imports
 from origami.styles import Dialog
 from origami.styles import ListCtrl
-from origami.styles import set_tooltip
 from origami.utils.path import get_subdirectories
+from origami.gui_elements.helpers import set_tooltip
 
 LOGGER = logging.getLogger(__name__)
 

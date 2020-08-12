@@ -6,8 +6,8 @@ import logging
 import wx
 
 # Local imports
-from origami.styles import set_item_font
 from origami.config.config import CONFIG
+from origami.gui_elements.helpers import set_item_font
 from origami.gui_elements.plot_parameters.panel_base import PanelSettingsBase
 
 LOGGER = logging.getLogger(__name__)

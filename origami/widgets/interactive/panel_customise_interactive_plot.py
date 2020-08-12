@@ -8,12 +8,12 @@ import wx
 
 # Local imports
 from origami.styles import Validator
-from origami.styles import make_checkbox
-from origami.styles import make_staticbox
-from origami.styles import make_static_text
 from origami.utils.color import convert_rgb_1_to_255
 from origami.utils.converters import str2num
 from origami.help_documentation import OrigamiHelp
+from origami.gui_elements.helpers import make_checkbox
+from origami.gui_elements.helpers import make_staticbox
+from origami.gui_elements.helpers import make_static_text
 from origami.gui_elements.dialog_color_picker import DialogColorPicker
 
 

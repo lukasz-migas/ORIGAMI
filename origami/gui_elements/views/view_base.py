@@ -13,7 +13,6 @@ import wx
 from pubsub import pub
 
 # Local imports
-from origami.styles import make_menu_item
 from origami.icons.assets import Icons
 from origami.config.config import CONFIG
 from origami.utils.utilities import report_time
@@ -21,6 +20,7 @@ from origami.utils.exceptions import IncorrectPlotTypeError
 from origami.utils.exceptions import PlotTypeNotPlottedWarning
 from origami.config.environment import ENV
 from origami.objects.containers import DataObject
+from origami.gui_elements.helpers import make_menu_item
 from origami.visuals.mpl.plot_base import PlotBase
 from origami.gui_elements.views.view_about_popup import ViewAboutPopup
 

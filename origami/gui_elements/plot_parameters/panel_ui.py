@@ -9,11 +9,11 @@ from pubsub import pub
 # Local imports
 from origami.ids import ID_extraSettings_logging
 from origami.ids import ID_extraSettings_autoSaveSettings
-from origami.styles import make_checkbox
-from origami.styles import set_item_font
 from origami.utils.color import convert_rgb_1_to_255
 from origami.utils.color import convert_rgb_1_to_hex
 from origami.config.config import CONFIG
+from origami.gui_elements.helpers import make_checkbox
+from origami.gui_elements.helpers import set_item_font
 from origami.gui_elements.plot_parameters.panel_base import PanelSettingsBase
 
 LOGGER = logging.getLogger(__name__)

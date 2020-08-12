@@ -3,9 +3,9 @@ import wx
 
 # Local imports
 from origami.styles import Dialog
-from origami.styles import make_tooltip
-from origami.styles import make_checkbox
 from origami.utils.color import convert_rgb_1_to_255
+from origami.gui_elements.helpers import make_tooltip
+from origami.gui_elements.helpers import make_checkbox
 from origami.gui_elements.dialog_color_picker import DialogColorPicker
 
 

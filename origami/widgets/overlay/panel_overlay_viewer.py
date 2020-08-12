@@ -8,9 +8,6 @@ import wx
 # Local imports
 from origami.styles import ListCtrl
 from origami.styles import MiniFrame
-from origami.styles import make_tooltip
-from origami.styles import make_checkbox
-from origami.styles import make_menu_item
 from origami.utils.color import round_rgb
 from origami.utils.color import get_font_color
 from origami.utils.color import check_color_format
@@ -19,6 +16,9 @@ from origami.visuals.mpl import base
 from origami.utils.random import get_random_int
 from origami.utils.screen import calculate_window_size
 from origami.utils.exceptions import MessageError
+from origami.gui_elements.helpers import make_tooltip
+from origami.gui_elements.helpers import make_checkbox
+from origami.gui_elements.helpers import make_menu_item
 
 # from origami.gui_elements.dialog_color_picker import DialogColorPicker
 logger = logging.getLogger(__name__)

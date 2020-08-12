@@ -2,8 +2,8 @@
 import wx
 
 # Local imports
-from origami.styles import set_tooltip
 from origami.gui_elements.popup import PopupBase
+from origami.gui_elements.helpers import set_tooltip
 
 
 class ViewAboutPopup(PopupBase):

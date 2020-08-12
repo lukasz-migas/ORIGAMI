@@ -7,11 +7,11 @@ import wx
 from wx.adv import BitmapComboBox
 
 # Local imports
-from origami.styles import make_checkbox
-from origami.styles import set_item_font
 from origami.utils.color import convert_rgb_1_to_255
 from origami.config.config import CONFIG
 from origami.utils.converters import str2num
+from origami.gui_elements.helpers import make_checkbox
+from origami.gui_elements.helpers import set_item_font
 from origami.gui_elements.views.view_register import VIEW_REG
 from origami.gui_elements.plot_parameters.panel_base import PanelSettingsBase
 
@@ -299,6 +299,8 @@ class PanelViolinSettings(PanelSettingsBase):
 
     def on_apply(self, evt):
         """Apply violin parameters"""
+        if self.import_evt:
+            return
         CONFIG.violin_orientation = self.violin_orientation_value.GetStringSelection()
         CONFIG.violin_min_percentage = str2num(self.violin_min_percentage_value.GetValue())
         CONFIG.violin_spacing = str2num(self.violin_spacing_value.GetValue())

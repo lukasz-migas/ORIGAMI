@@ -5,9 +5,9 @@ import matplotlib.ticker as ticker
 
 # Local imports
 from origami.styles import Validator
-from origami.styles import make_checkbox
 from origami.utils.labels import _replace_labels
 from origami.utils.converters import str2num
+from origami.gui_elements.helpers import make_checkbox
 from origami.visuals.mpl.normalize import MidpointNormalize
 
 

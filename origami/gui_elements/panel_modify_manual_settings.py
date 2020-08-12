@@ -3,9 +3,9 @@ import wx
 
 # Local imports
 from origami.styles import MiniFrame
-from origami.styles import make_checkbox
 from origami.icons.icons import IconContainer
 from origami.utils.check import check_value
+from origami.gui_elements.helpers import make_checkbox
 
 
 class PanelModifyManualFilesSettings(MiniFrame):

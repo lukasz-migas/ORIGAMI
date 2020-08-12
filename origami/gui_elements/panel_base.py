@@ -10,12 +10,9 @@ from typing import Optional
 
 # Third-party imports
 import wx
-from pubsub import pub
-from pubsub.core import TopicNameError
 
 # Local imports
 from origami.styles import ListCtrl
-from origami.styles import make_menu_item
 from origami.utils.color import round_rgb
 from origami.utils.color import get_font_color
 from origami.utils.color import get_random_color
@@ -23,6 +20,7 @@ from origami.utils.color import get_all_color_types
 from origami.utils.color import convert_rgb_1_to_255
 from origami.utils.color import convert_rgb_255_to_1
 from origami.config.config import CONFIG
+from origami.gui_elements.helpers import make_menu_item
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.dialog_color_picker import DialogColorPicker
 
@@ -473,81 +471,6 @@ class TableMixin:
         if not isinstance(value, str):
             raise ValueError("`Value` must be a string")
         self.peaklist.SetStringItem(item_id, column_id, value)
-
-
-class DatasetMixin:
-    """Mixin class that detects whether to close the window"""
-
-    PUB_DELETE_ITEM_EVENT = "document.delete.item"
-    PUB_RENAME_ITEM_EVENT = "document.rename.item"
-    DELETE_ITEM_MSG = "Data object that is shown in this window has been deleted, therefore, this window will close too"
-    PANEL_BASE_TITLE = ""
-    document_title = None
-    dataset_name = None
-
-    def _dataset_mixin_setup(self):
-        """Setup mixin class"""
-        pub.subscribe(self._evt_delete_item, self.PUB_DELETE_ITEM_EVENT)
-        pub.subscribe(self._evt_rename_item, self.PUB_RENAME_ITEM_EVENT)
-
-    def _dataset_mixin_teardown(self):
-        """Teardown/cleanup mixin class"""
-        try:
-            pub.unsubscribe(self._evt_delete_item, self.PUB_DELETE_ITEM_EVENT)
-            pub.unsubscribe(self._evt_rename_item, self.PUB_RENAME_ITEM_EVENT)
-        except TopicNameError:
-            pass
-
-    def _evt_rename_item(self, info):
-        """Triggered when document or dataset is renamed"""
-        if not isinstance(info, (tuple, list)) and len(info) == 3:
-            return
-
-        if self._evt_rename_check(info):
-            self.document_title = info[0]
-            self.dataset_name = info[2]
-            self.update_window_title()
-            LOGGER.info("Panel dataset information updated!")
-
-    def _evt_rename_check(self, info):
-        """Function to check whether window should be closed - can be overwritten to do another kind of check"""
-        document_title, dataset_name, _ = info
-
-        if document_title == self.document_title:
-            if dataset_name is not None:
-                if not self.dataset_name.startswith(dataset_name) and dataset_name != self.dataset_name:
-                    return False
-            return True
-        return False
-
-    def _evt_delete_item(self, info):
-        """Triggered when document or dataset is deleted"""
-
-        if self._evt_delete_check(info):
-            DialogBox(title="Dataset was deleted.", msg=self.DELETE_ITEM_MSG, kind="Error")
-            self.on_close(None, True)
-
-    def _evt_delete_check(self, info):
-        """Function to check whether window should be closed - can be overwritten to do another kind of check"""
-        document_title, dataset_name = info
-
-        if document_title == self.document_title:
-            if dataset_name is not None:
-                if not self.dataset_name.startswith(dataset_name) and dataset_name != self.dataset_name:
-                    return False
-            return True
-        return False
-
-    def on_close(self, evt, force: bool = False):
-        """On-close event handler"""
-        raise NotImplementedError("Must implement method")
-
-    def update_window_title(self):
-        """Update title"""
-        title = f"{self.PANEL_BASE_TITLE}: {self.document_title}"
-        if self.dataset_name is not None:
-            title += f" :: {self.dataset_name}"
-        self.SetTitle(title)  # noqa
 
 
 # noinspection DuplicatedCode

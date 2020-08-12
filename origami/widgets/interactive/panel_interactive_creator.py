@@ -120,10 +120,6 @@ from origami.ids import ID_interactivePanel_apply_batch_preprocess
 from origami.ids import ID_changeColorBackgroundNotationInteractive
 from origami.ids import ID_interactivePanel_apply_batch_annotations
 from origami.styles import ListCtrl
-from origami.styles import make_checkbox
-from origami.styles import make_menu_item
-from origami.styles import make_staticbox
-from origami.styles import make_static_text
 from origami.utils.misc import merge_two_dicts
 from origami.utils.misc import remove_nan_from_list
 from origami.utils.color import get_font_color
@@ -139,6 +135,10 @@ from origami.config.environment import ENV
 from origami.processing.spectra import crop_1D_data
 from origami.processing.spectra import normalize_1D
 from origami.processing.spectra import linearize_data
+from origami.gui_elements.helpers import make_checkbox
+from origami.gui_elements.helpers import make_menu_item
+from origami.gui_elements.helpers import make_staticbox
+from origami.gui_elements.helpers import make_static_text
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.misc_dialogs import DialogSimpleAsk
 from origami.widgets.interactive.panel_customise_interactive_plot import PanelCustomiseInteractivePlot

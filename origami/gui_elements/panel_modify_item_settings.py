@@ -4,12 +4,12 @@ import wx
 # Local imports
 from origami.styles import MiniFrame
 from origami.styles import Validator
-from origami.styles import make_checkbox
-from origami.styles import make_bitmap_btn
 from origami.icons.icons import IconContainer
 from origami.utils.labels import get_ion_name_from_label
 from origami.utils.converters import num2str
 from origami.utils.converters import str2int
+from origami.gui_elements.helpers import make_checkbox
+from origami.gui_elements.helpers import make_bitmap_btn
 
 
 # TODO: Add possibility to visualise heatmap as false-color image
