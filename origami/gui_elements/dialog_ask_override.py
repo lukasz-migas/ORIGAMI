@@ -4,9 +4,9 @@ import wx
 
 # Local imports
 from origami.styles import Dialog
+from origami.styles import set_tooltip
+from origami.styles import make_checkbox
 from origami.config.config import CONFIG
-from origami.gui_elements.helpers import set_tooltip
-from origami.gui_elements.helpers import make_checkbox
 
 
 class DialogAskOverride(Dialog):

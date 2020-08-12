@@ -8,11 +8,11 @@ from typing import Tuple
 import wx.html2
 
 # Local imports
+from origami.styles import set_tooltip
+from origami.styles import make_bitmap_btn
 from origami.icons.assets import Icons
 from origami.utils.screen import calculate_window_size
 from origami.config.config import CONFIG
-from origami.gui_elements.helpers import set_tooltip
-from origami.gui_elements.helpers import make_bitmap_btn
 
 
 class PanelHTMLViewer(wx.MiniFrame):

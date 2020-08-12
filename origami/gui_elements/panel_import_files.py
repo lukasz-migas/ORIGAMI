@@ -13,6 +13,10 @@ from pubsub import pub
 # Local imports
 # from origami.styles import make_menu_item
 from origami.styles import MiniFrame
+from origami.styles import set_tooltip
+from origami.styles import set_item_font
+from origami.styles import make_menu_item
+from origami.styles import make_bitmap_btn
 from origami.icons.assets import Icons
 from origami.objects.misc import FileItem
 from origami.config.config import CONFIG
@@ -20,10 +24,6 @@ from origami.utils.converters import str2num
 from origami.utils.decorators import signal_blocker
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
-from origami.gui_elements.helpers import set_tooltip
-from origami.gui_elements.helpers import set_item_font
-from origami.gui_elements.helpers import make_menu_item
-from origami.gui_elements.helpers import make_bitmap_btn
 from origami.gui_elements.panel_base import TableMixin
 
 logger = logging.getLogger(__name__)

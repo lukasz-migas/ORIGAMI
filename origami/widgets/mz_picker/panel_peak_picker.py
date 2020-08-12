@@ -13,6 +13,11 @@ from pubsub.core.topicexc import TopicNameError
 # Local imports
 from origami.styles import MiniFrame
 from origami.styles import Validator
+from origami.styles import set_tooltip
+from origami.styles import make_checkbox
+from origami.styles import set_item_font
+from origami.styles import make_menu_item
+from origami.styles import make_bitmap_btn
 from origami.utils.screen import calculate_window_size
 from origami.utils.system import running_under_pytest
 from origami.config.config import CONFIG
@@ -23,12 +28,7 @@ from origami.utils.converters import str2num
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
 from origami.objects.containers import MassSpectrumObject
-from origami.gui_elements.mixins import DatasetMixin
-from origami.gui_elements.helpers import set_tooltip
-from origami.gui_elements.helpers import make_checkbox
-from origami.gui_elements.helpers import set_item_font
-from origami.gui_elements.helpers import make_menu_item
-from origami.gui_elements.helpers import make_bitmap_btn
+from origami.gui_elements.panel_base import DatasetMixin
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.processing.feature.mz_picker import MassSpectrumBasePicker
 from origami.gui_elements.views.view_spectrum import ViewMassSpectrum

@@ -7,11 +7,11 @@ import logging
 import wx
 
 # Local imports
+from origami.styles import DocumentationMixin
 from origami.icons.assets import Icons
 from origami.icons.assets import Colormaps
 from origami.config.config import CONFIG
 from origami.utils.utilities import report_time
-from origami.gui_elements.mixins import DocumentationMixin
 from origami.gui_elements.plot_parameters.panel_1d import Panel1dSettings
 from origami.gui_elements.plot_parameters.panel_2d import Panel2dSettings
 from origami.gui_elements.plot_parameters.panel_3d import Panel3dSettings

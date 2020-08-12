@@ -15,7 +15,7 @@ from origami.icons.assets import Icons
 from origami.config.config import CONFIG
 from origami.utils.converters import str2num
 from origami.config.environment import ENV
-from origami.gui_elements.mixins import DatasetMixin
+from origami.gui_elements.panel_base import DatasetMixin
 
 logger = logging.getLogger(__name__)
 
@@ -118,7 +118,7 @@ class PanelProcessExtractMSDT(MiniFrame, DatasetMixin):
         self.cancel_btn = wx.Button(panel, wx.ID_ANY, "Cancel", size=(-1, -1))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
-        btn_grid = wx.BoxSizer()
+        btn_grid = wx.BoxSizer(wx.HORIZONTAL)
         btn_grid.Add(self.extract_btn)
         btn_grid.Add(self.add_to_document_btn)
         btn_grid.Add(self.save_to_file_btn)
@@ -267,7 +267,10 @@ class PanelProcessExtractMSDT(MiniFrame, DatasetMixin):
         """
         mz_len = shape[1]
         mz_x = np.linspace(
-            mz_min - CONFIG.msdt_panel_extract_mz_bin_size, mz_max + CONFIG.msdt_panel_extract_mz_bin_size, mz_len
+            mz_min - CONFIG.msdt_panel_extract_mz_bin_size,
+            mz_max + CONFIG.msdt_panel_extract_mz_bin_size,
+            mz_len,
+            endpoint=True,
         )
 
         return mz_x

@@ -3,10 +3,10 @@
 import wx
 
 # Local imports
+from origami.styles import set_item_font
 from origami.icons.assets import Icons
 from origami.gui_elements.popup import PopupBase
 from origami.gui_elements._panel import TestPanel  # noqa
-from origami.gui_elements.helpers import set_item_font
 
 POPUP_TOAST_STYLES = ["info", "success", "warning", "error"]
 

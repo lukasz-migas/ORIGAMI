@@ -2,15 +2,15 @@
 # Third-party imports
 import wx
 import wx.lib.scrolledpanel
+from pubsub import pub
 from wx.adv import BitmapComboBox
 
 # Local imports
+from origami.styles import ColorGetterMixin
 from origami.icons.assets import Colormaps
-from origami.gui_elements.mixins import ColorGetterMixin
-from origami.gui_elements.mixins import ConfigUpdateMixin
 
 
-class PanelSettingsBase(wx.lib.scrolledpanel.ScrolledPanel, ColorGetterMixin, ConfigUpdateMixin):
+class PanelSettingsBase(wx.lib.scrolledpanel.ScrolledPanel, ColorGetterMixin):
     """Base panel"""
 
     def __init__(self, parent, view):
@@ -25,7 +25,7 @@ class PanelSettingsBase(wx.lib.scrolledpanel.ScrolledPanel, ColorGetterMixin, Co
         self.SetupScrolling()
         self.import_evt = False
 
-        self._config_mixin_setup()
+        pub.subscribe(self.on_set_config, "config.loaded")
 
     @staticmethod
     def _parse_evt(evt):
@@ -83,6 +83,13 @@ class PanelSettingsBase(wx.lib.scrolledpanel.ScrolledPanel, ColorGetterMixin, Co
     def on_toggle_controls(self, evt):
         """Update controls"""
         self._parse_evt(evt)
+
+    def on_set_config(self):
+        """Handle loading of new configuration file"""
+        wx.CallAfter(self._on_set_config)
+
+    def _on_set_config(self):
+        """Update values from configuration file"""
 
     def _on_assign_color(self, evt):
         if self.import_evt:

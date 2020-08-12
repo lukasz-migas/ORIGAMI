@@ -15,6 +15,11 @@ from pubsub.core.topicexc import TopicNameError
 from origami.ids import ID_compareMS_MS_1
 from origami.ids import ID_compareMS_MS_2
 from origami.styles import MiniFrame
+from origami.styles import make_checkbox
+from origami.styles import make_color_btn
+from origami.styles import make_staticbox
+from origami.styles import make_bitmap_btn
+from origami.styles import make_spin_ctrl_double
 from origami.utils.time import ttime
 from origami.objects.misc import CompareItem
 from origami.utils.screen import calculate_window_size
@@ -22,11 +27,6 @@ from origami.config.config import CONFIG
 from origami.utils.utilities import report_time
 from origami.utils.converters import str2num
 from origami.visuals.mpl.gids import PlotIds
-from origami.gui_elements.helpers import make_checkbox
-from origami.gui_elements.helpers import make_color_btn
-from origami.gui_elements.helpers import make_staticbox
-from origami.gui_elements.helpers import make_bitmap_btn
-from origami.gui_elements.helpers import make_spin_ctrl_double
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.dialog_color_picker import DialogColorPicker
 from origami.gui_elements.views.view_spectrum import ViewCompareMassSpectra

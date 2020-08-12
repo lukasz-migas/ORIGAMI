@@ -23,19 +23,6 @@ def signal_blocker(fcn):
     return wrapped
 
 
-def import_evt_block(fcn):
-    def wrapped(self, *args, **kwargs):
-        if not hasattr(self, "import_evt"):
-            out = fcn(self, *args, **kwargs)
-            return out
-        self.import_evt = True
-        out = fcn(self, *args, **kwargs)
-        self.import_evt = False
-        return out
-
-    return wrapped
-
-
 def check_os(*os):
     """Check whether this function can be executed on the current OS
 

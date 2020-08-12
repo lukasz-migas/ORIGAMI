@@ -14,12 +14,12 @@ from origami.ids import ID_documentInfoSummary
 from origami.ids import ID_documentInfoSpectrum
 from origami.ids import ID_documentInfoCalibration
 from origami.styles import BackgroundPanel
+from origami.styles import layout
+from origami.styles import make_checkbox
 from origami.utils.converters import num2str
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
 from origami.config.environment import ENV
-from origami.gui_elements.helpers import layout
-from origami.gui_elements.helpers import make_checkbox
 
 
 class PanelDocumentInformation(wx.MiniFrame):

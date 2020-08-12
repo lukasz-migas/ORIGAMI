@@ -34,7 +34,6 @@ class _PlotHeatmap3d(scene.SceneCanvas):
         self._xyz_indicator = None
         self._array, self._x, self._y = None, None, None
         self._x_label, self._y_label, self._z_label = None, None, None
-        self.PLOT_TYPE = None
 
     @staticmethod
     def transform(x: np.ndarray, y: np.ndarray, array: np.ndarray):

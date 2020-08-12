@@ -10,7 +10,6 @@ from origami.handlers.load import LOAD_HANDLER
 from origami.handlers.load import LoadHandler
 from origami.objects.document import DocumentStore
 from origami.objects.document import DocumentGroups
-
 # enable on windowsOS only
 from origami.objects.containers import IonHeatmapObject
 from origami.objects.containers import MobilogramObject

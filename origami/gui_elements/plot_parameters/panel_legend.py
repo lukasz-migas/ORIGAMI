@@ -6,11 +6,11 @@ import logging
 import wx
 
 # Local imports
+from origami.styles import make_checkbox
+from origami.styles import make_toggle_btn
 from origami.config.config import CONFIG
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
-from origami.gui_elements.helpers import make_checkbox
-from origami.gui_elements.helpers import make_toggle_btn
 from origami.gui_elements.views.view_register import VIEW_REG
 from origami.gui_elements.plot_parameters.panel_base import PanelSettingsBase
 
@@ -184,9 +184,6 @@ class PanelLegendSettings(PanelSettingsBase):
 
     def on_apply(self, evt):
         """Apply legend parameters"""
-        if self.import_evt:
-            return
-
         CONFIG.legend = self.legend_toggle.GetValue()
         CONFIG.legend_position = self.legend_position_value.GetStringSelection()
         CONFIG.legend_n_columns = str2int(self.legend_columns_value.GetValue())

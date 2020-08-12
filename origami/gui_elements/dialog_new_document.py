@@ -8,10 +8,10 @@ import wx
 
 # Local imports
 from origami.styles import Dialog
+from origami.styles import set_tooltip
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
 from origami.config.environment import DOCUMENT_TYPES
-from origami.gui_elements.helpers import set_tooltip
 
 LOGGER = logging.getLogger(__name__)
 

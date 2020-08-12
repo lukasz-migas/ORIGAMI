@@ -11,10 +11,10 @@ from numbers import Number
 import wx
 
 # Local imports
+from origami.styles import make_checkbox
+from origami.styles import set_item_font
+from origami.styles import make_spin_ctrl_int
 from origami.utils.exceptions import MessageError
-from origami.gui_elements.helpers import make_checkbox
-from origami.gui_elements.helpers import set_item_font
-from origami.gui_elements.helpers import make_spin_ctrl_int
 from origami.gui_elements.panel_import_files import PanelImportManagerBase
 
 logger = logging.getLogger(__name__)

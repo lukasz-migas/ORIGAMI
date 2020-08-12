@@ -58,6 +58,7 @@ from origami.ids import ID_load_masslynx_raw_ms_only
 from origami.ids import ID_openCCScalibrationDatabse
 from origami.ids import ID_unidecPanel_otherSettings
 from origami.ids import ID_help_page_annotatingMassSpectra
+from origami.styles import make_menu_item
 from origami.utils.path import clean_directory
 from origami.panel_plots import PanelPlots
 from origami.icons.assets import Icons
@@ -68,7 +69,6 @@ from origami.utils.utilities import format_time
 from origami.panel_multi_file import PanelMultiFile
 from origami.config.environment import ENV
 from origami.panel_document_tree import PanelDocumentTree
-from origami.gui_elements.helpers import make_menu_item
 from origami.gui_elements.statusbar import Statusbar
 from origami.handlers.data_handling import DataHandling
 from origami.handlers.queue_handler import QUEUE

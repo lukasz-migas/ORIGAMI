@@ -4,11 +4,11 @@ import numpy as np
 
 # Local imports
 from origami.styles import Validator
+from origami.styles import make_tooltip
 from origami.visuals.mpl import base
 from origami.processing.utils import get_narrow_data_range
 from origami.utils.converters import str2num
 from origami.help_documentation import OrigamiHelp
-from origami.gui_elements.helpers import make_tooltip
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.processing.UniDec.unidec_modules.fitting import isolated_peak_fit
 

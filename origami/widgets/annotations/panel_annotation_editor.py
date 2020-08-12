@@ -13,6 +13,9 @@ from pubsub import pub
 # Local imports
 from origami.styles import MiniFrame
 from origami.styles import Validator
+from origami.styles import make_checkbox
+from origami.styles import make_menu_item
+from origami.styles import make_bitmap_btn
 from origami.utils.check import check_value_order
 from origami.utils.color import round_rgb
 from origami.utils.color import convert_rgb_1_to_255
@@ -28,13 +31,10 @@ from origami.utils.exceptions import MessageError
 from origami.gui_elements.popup import PopupBase
 from origami.objects.containers import DataObject
 from origami.gui_elements._panel import TestPanel  # noqa
-from origami.gui_elements.mixins import DatasetMixin
 from origami.objects.annotations import Annotation
 from origami.objects.annotations import Annotations
-from origami.gui_elements.helpers import make_checkbox
-from origami.gui_elements.helpers import make_menu_item
-from origami.gui_elements.helpers import make_bitmap_btn
 from origami.gui_elements.panel_base import TableMixin
+from origami.gui_elements.panel_base import DatasetMixin
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.views.view_heatmap import ViewIonHeatmap
 from origami.gui_elements.views.view_heatmap import ViewMassSpectrumHeatmap

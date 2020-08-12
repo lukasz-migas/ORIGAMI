@@ -7,10 +7,10 @@ import wx
 from wx.adv import BitmapComboBox
 
 # Local imports
+from origami.styles import make_checkbox
+from origami.styles import set_item_font
 from origami.config.config import CONFIG
 from origami.utils.converters import str2num
-from origami.gui_elements.helpers import make_checkbox
-from origami.gui_elements.helpers import set_item_font
 from origami.gui_elements.views.view_register import VIEW_REG
 from origami.gui_elements.plot_parameters.panel_base import PanelSettingsBase
 
@@ -300,8 +300,6 @@ class PanelGeneralSettings(PanelSettingsBase):
 
     def on_apply(self, evt):
         """Update general parameters"""
-        if self.import_evt:
-            return
         CONFIG.axes_tick_font_size = str2num(self.plot_tick_fontsize_value.GetValue())
         CONFIG.axes_tick_font_weight = self.plot_tick_font_weight_check.GetValue()
         CONFIG.axes_label_font_size = str2num(self.plot_label_fontsize_value.GetValue())

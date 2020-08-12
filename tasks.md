@@ -25,9 +25,8 @@
 - [ ] add option to extract mass spectrum from multi-file data when user extracts using heatmap
 - [ ] add option to extract chromatogram from multi-file data when user extracts using ms heatmap plot
 - [ ] add about Document popup view
-- [x] add timer event to update plots whenever user changed settings in MS/heatmap processor
+- [ ] add timer event to update plots whenever user changed settings in MS/heatmap processor
 - [x] reduced amount of time between user interaction and update frequency in lesa/manual editor
-- [x] add mixin to handle config load
 
 ## New features
 

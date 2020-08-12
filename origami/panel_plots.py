@@ -28,6 +28,7 @@ from origami.ids import ID_clearPlot_Matrix
 from origami.ids import ID_clearPlot_Overlay
 from origami.ids import ID_clearPlot_Waterfall
 from origami.ids import ID_plots_customise_plot
+from origami.styles import make_menu_item
 from origami.utils.color import convert_rgb_1_to_255
 from origami.utils.color import convert_rgb_1_to_hex
 from origami.icons.assets import Icons
@@ -38,7 +39,6 @@ from origami.objects.containers import MobilogramObject
 from origami.objects.containers import ChromatogramObject
 from origami.objects.containers import MassSpectrumObject
 from origami.objects.containers import MassSpectrumHeatmapObject
-from origami.gui_elements.helpers import make_menu_item
 from origami.gui_elements.popup_view import PopupHeatmapView
 from origami.gui_elements.popup_view import PopupMobilogramView
 from origami.gui_elements.popup_view import PopupChromatogramView
@@ -375,7 +375,7 @@ class PanelPlots(wx.Panel):
         obj = view_obj.get_object(get_cache=False)
 
         if obj is None:
-            pub.sendMessage("notify.message.error", message="Cannot smooth object as the plot cache is empty")
+            pub.sendMessage("notify.message.warning", message="Cannot smooth object as the plot cache is empty")
             return
 
         sigma = DialogSimpleAsk(
@@ -391,35 +391,21 @@ class PanelPlots(wx.Panel):
     def on_process_mass_spectrum(self, _evt):
         """Process mass spectrum"""
         view_obj = self.get_view_from_name(self.current_page)
-        data_obj = view_obj.get_object()
-
-        if data_obj is None:
-            pub.sendMessage("notify.message.error", message="Cannot process mass spectrum - data object is empty")
-            return
-
-        self.document_tree.on_open_process_ms_settings(mz_obj=data_obj, disable_process=True)
+        mz_obj = view_obj.get_object()
+        self.document_tree.on_open_process_ms_settings(mz_obj=mz_obj, disable_process=True)
 
     def on_process_heatmap(self, _evt):
         """Process heatmap"""
         view_obj = self.get_view_from_name(self.current_page)
-        data_obj = view_obj.get_object()
-
-        if data_obj is None:
-            pub.sendMessage("notify.message.error", message="Cannot process heatmap - data object is empty")
-            return
-
-        self.document_tree.on_open_process_heatmap_settings(heatmap_obj=data_obj, disable_process=True)
+        heatmap_obj = view_obj.get_object()
+        self.document_tree.on_open_process_heatmap_settings(heatmap_obj=heatmap_obj, disable_process=True)
 
     def on_rotate_plot(self, _evt):
         """Rotate heatmap plot"""
         view_obj = self.get_view_from_name(self.current_page)
-        data_obj = view_obj.get_object()
+        heatmap_obj = view_obj.get_object()
 
-        if data_obj is None:
-            pub.sendMessage("notify.message.error", message="Cannot rotate heatmap - data object is empty")
-            return
-
-        view_obj.plot(obj=data_obj.transpose(), repaint=False)
+        view_obj.plot(obj=heatmap_obj.transpose(), repaint=False)
         view_obj.reset_zoom()
 
     def on_open_peak_picker(self, _evt):
@@ -434,7 +420,7 @@ class PanelPlots(wx.Panel):
 
         if document_title is None or dataset_name is None:
             pub.sendMessage(
-                "notify.message.error",
+                "notify.message.warning",
                 message="Could not find the document/dataset information in the plot metadata."
                 "\nTry right-clicking on a mass spectrum in the document tree and select `Open peak picker`",
             )
@@ -455,7 +441,7 @@ class PanelPlots(wx.Panel):
         # check whether data object has document/dataset associated with it
         if document_title is None or dataset_name is None:
             pub.sendMessage(
-                "notify.message.error",
+                "notify.message.warning",
                 message="Could not find the document/dataset information in the plot metadata."
                 "\nTry right-clicking on the object in the document tree and select"
                 "`Annotations...->Show annotations panel...`",

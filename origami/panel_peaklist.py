@@ -37,12 +37,12 @@ from origami.ids import ID_ionPanel_annotate_min_threshold
 from origami.ids import ID_ionPanel_changeColorBatch_color
 from origami.ids import ID_ionPanel_changeColorBatch_palette
 from origami.ids import ID_ionPanel_changeColorBatch_colormap
+from origami.styles import make_tooltip
+from origami.styles import make_menu_item
 from origami.utils.color import convert_rgb_1_to_255
 from origami.config.config import CONFIG
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
-from origami.gui_elements.helpers import make_tooltip
-from origami.gui_elements.helpers import make_menu_item
 from origami.gui_elements.panel_base import TablePanelBase
 
 LOGGER = logging.getLogger(__name__)

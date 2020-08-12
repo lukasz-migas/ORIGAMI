@@ -10,20 +10,353 @@ from operator import itemgetter
 # Third-party imports
 import wx
 import numpy as np
+from wx.lib.agw import supertooltip as superTip
 from natsort.natsort import natsorted
 
 # Local imports
 from origami.utils.color import convert_rgb_1_to_255
 from origami.utils.color import convert_rgb_255_to_1
+from origami.config.config import CONFIG
 from origami.utils.utilities import report_time
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
 from origami.utils.converters import byte2str
-from origami.gui_elements.mixins import DocumentationMixin
-from origami.gui_elements.mixins import ActivityIndicatorMixin
 from origami.gui_elements.misc_dialogs import DialogBox
+from origami.gui_elements.dialog_color_picker import DialogColorPicker
 
 LOGGER = logging.getLogger(__name__)
+
+
+def make_spin_ctrl_double(parent, value, min_value, max_value, increment_value, size=(-1, -1), evt_id=-1, name="name"):
+    """Convenient way to initialize SpinCtrlDouble"""
+    spin_ctrl = wx.SpinCtrlDouble(
+        parent,
+        evt_id,
+        value=str(value),
+        min=min_value,
+        max=max_value,
+        initial=value,
+        inc=increment_value,
+        size=size,
+        name=name,
+    )
+    return spin_ctrl
+
+
+def make_spin_ctrl_int(parent, value, min_value, max_value, size=(-1, -1), evt_id=-1, name="name"):
+    """Convenient way to initialize SpinCtrl"""
+    spin_ctrl = wx.SpinCtrl(
+        parent,
+        evt_id,
+        value=str(value),
+        min=min_value,
+        max=max_value,
+        initial=value,
+        #         inc=increment_value,
+        size=size,
+        name=name,
+    )
+    return spin_ctrl
+
+
+def make_bitmap_btn(
+    parent,
+    evt_id,
+    icon,
+    size=(26, 26),
+    style=wx.BORDER_DEFAULT | wx.ALIGN_CENTER_VERTICAL,
+    bg_color=(240, 240, 240),
+    tooltip: str = None,
+):
+    """Convenient way to initialize bitmap btn"""
+    bitmap_btn = wx.BitmapButton(parent, evt_id, icon, size=size, style=style)
+    bitmap_btn.SetBackgroundColour(bg_color)
+    if tooltip is not None:
+        bitmap_btn.SetToolTip(make_tooltip(tooltip))
+
+    return bitmap_btn
+
+
+def make_color_btn(parent, color, size=(26, 26), name="color", evt_id=-1):
+    """Convenient way to initialize a color btn"""
+
+    color_btn = wx.Button(parent, evt_id, size=size, name=name)
+    color_btn.SetBackgroundColour(convert_rgb_1_to_255(color))
+
+    return color_btn
+
+
+def make_menu_item(parent, text, evt_id=-1, bitmap=None, help_text=None, kind=wx.ITEM_NORMAL):
+    """ Helper function to make a menu item with or without bitmap image """
+    menu_item = wx.MenuItem(parent, evt_id, text, kind=kind)
+    if bitmap is not None:
+        menu_item.SetBitmap(bitmap)
+
+    if help_text is not None:
+        menu_item.SetHelp(help_text)
+
+    return menu_item
+
+
+def set_item_font(
+    parent, size=10, color=wx.BLACK, family=wx.FONTFAMILY_DEFAULT, style=wx.FONTSTYLE_NORMAL, weight=wx.FONTWEIGHT_BOLD
+):
+    """Set item font"""
+    font = wx.Font(size, family, style, weight)
+    parent.SetForegroundColour(color)
+    parent.SetFont(font)
+
+    return parent
+
+
+def make_staticbox(parent, title, size, color):
+    """Make staticbox"""
+    static_box = wx.StaticBox(parent, wx.ID_ANY, title, size=size, style=wx.SB_FLAT)
+    font = wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+    static_box.SetForegroundColour(color)
+    static_box.SetFont(font)
+
+    return static_box
+
+
+def make_toggle_btn(parent, text, color_off, name="other", size=(40, -1)):
+    """Make toggle button"""
+    toggle_btn = wx.ToggleButton(
+        parent, wx.ID_ANY, text, wx.DefaultPosition, size, style=wx.ALIGN_CENTER_VERTICAL, name=name
+    )
+    font = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+    toggle_btn.SetFont(font)
+    toggle_btn.SetForegroundColour(color_off)
+
+    return toggle_btn
+
+
+def make_static_text(parent, text):
+    """Make static text"""
+    text_box = wx.StaticText(
+        parent, wx.ID_ANY, text, wx.DefaultPosition, wx.DefaultSize, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT
+    )
+    return text_box
+
+
+def make_text_ctrl(parent, size=wx.DefaultSize):
+    """Make text control"""
+    text_ctrl = wx.TextCtrl(
+        parent, wx.ID_ANY, "", wx.DefaultPosition, size, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT | wx.LEFT
+    )
+    return text_ctrl
+
+
+def make_slider(parent, value, min_value, max_value):
+    """Make slider"""
+    slider = wx.Slider(
+        parent,
+        -1,
+        value=value,
+        minValue=min_value,
+        maxValue=max_value,
+        size=(140, -1),
+        style=wx.SL_HORIZONTAL | wx.SL_MIN_MAX_LABELS | wx.SL_VALUE_LABEL,
+    )
+    return slider
+
+
+def make_checkbox(parent, text, style=wx.ALIGN_LEFT, evt_id=-1, name="", tooltip=None):
+    """Make checkbox"""
+    checkbox = wx.CheckBox(parent, evt_id, text, (3, 3), style=style, name=name)
+
+    if tooltip:
+        checkbox.SetToolTip(make_tooltip(tooltip))
+    return checkbox
+
+
+def set_tooltip(parent, tooltip):
+    """Set tooltip information on an object"""
+    assert hasattr(parent, "SetToolTip"), "Parent object does not have `SetToolTip` attribute"
+    parent.SetToolTip(make_tooltip(tooltip))
+    return parent
+
+
+def make_tooltip(text=None, delay=500, reshow=500, auto_pop=3000):
+    """Make tooltips with specified delay time"""
+    tooltip = wx.ToolTip(text)
+    tooltip.SetDelay(delay)
+    tooltip.SetReshow(reshow)
+    tooltip.SetAutoPop(auto_pop)
+    return tooltip
+
+
+def layout(parent, sizer, size=None):
+    """Ensure correct panel layout - hack."""
+
+    parent.SetMinSize((-1, -1))
+    sizer.Fit(parent)
+    parent.Layout()
+
+    if size is None:
+        size = parent.GetSize()
+    parent.SetSize((size[0] + 1, size[1] + 1))
+    parent.SetSize(size)
+    parent.SetMinSize(size)
+
+
+def make_super_tooltip(
+    parent,
+    title="Title",
+    text="Insert message",
+    delay=5,
+    header_line=False,
+    footer_line=False,
+    header_img=None,
+    **kwargs,
+):
+    """Make super tooltip"""
+
+    if kwargs:
+        title = kwargs["help_title"]
+        text = kwargs["help_msg"]
+        header_img = kwargs["header_img"]
+        header_line = kwargs["header_line"]
+        footer_line = kwargs["footer_line"]
+
+    # You can define your BalloonTip as follows:
+    tip = superTip.SuperToolTip(text)
+    tip.SetStartDelay()
+    tip.SetEndDelay(delay)
+    tip.SetDrawHeaderLine(header_line)
+    tip.SetDrawFooterLine(footer_line)
+    tip.SetHeader(title)
+    tip.SetTarget(parent)
+    tip.SetTopGradientColour((255, 255, 255, 255))
+    tip.SetMiddleGradientColour((228, 236, 248, 255))
+    tip.SetBottomGradientColour((198, 214, 235, 255))
+
+    if header_img is not None:
+        tip.SetHeaderBitmap(header_img)
+
+    return tip
+
+
+def mac_app_init():
+    """Run after application initialize."""
+    # set MAC
+    if wx.Platform == "__WXMAC__":  # noqa
+        wx.SystemOptions.SetOption("mac.listctrl.always_use_generic", True)
+        wx.ToolTip.SetDelay(1500)
+        global SCROLL_DIRECTION  # noqa
+        SCROLL_DIRECTION = -1
+
+
+class ActivityIndicatorMixin:
+    """Activity indicator mixin"""
+
+    # ui elements
+    activity_indicator = None
+
+    def on_progress(self, is_running: bool, message: str):  # noqa
+        """Handle extraction progress"""
+        if self.activity_indicator is None:
+            LOGGER.warning("Cannot indicate activity - it has not been instantiated in the window")
+            return
+
+        # show indicator
+        if is_running:
+            self.activity_indicator.Show()
+            self.activity_indicator.Start()
+        else:
+            self.activity_indicator.Hide()
+            self.activity_indicator.Stop()
+        self.Update()  # noqa
+
+
+class DocumentationMixin:
+    """HTML documentation mixin"""
+
+    # documentation attributes
+    HELP_MD = None
+    HELP_LINK = None
+    PANEL_STATUSBAR_COLOR = wx.BLUE
+
+    # attributes
+    _icons = None
+
+    # ui elements
+    info_btn = None
+    settings_btn = None
+    display_label = None
+
+    def on_open_info(self, _evt):
+        """Open help window to inform user on how to use this window / panel"""
+        from origami.gui_elements.panel_html_viewer import PanelHTMLViewer
+
+        if self.HELP_LINK:
+            PanelHTMLViewer(self, link=self.HELP_LINK)
+        elif self.HELP_MD:
+            PanelHTMLViewer(self, md_msg=self.HELP_MD)
+
+    def on_open_popup_settings(self, evt):
+        """Open settings popup window"""
+
+    def make_info_button(self, panel):
+        """Make clickable information button"""
+        info_btn = make_bitmap_btn(panel, wx.ID_ANY, self._icons.info, style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
+        set_tooltip(info_btn, "Open documentation page about this panel (online)")
+        info_btn.Bind(wx.EVT_BUTTON, self.on_open_info)
+        return info_btn
+
+    def make_settings_button(self, panel):
+        """Make clickable information button"""
+        settings_btn = make_bitmap_btn(
+            panel, wx.ID_ANY, self._icons.gear, style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
+        )
+        set_tooltip(settings_btn, "Open popup window with settings specific to this panel")
+        settings_btn.Bind(wx.EVT_BUTTON, self.on_open_popup_settings)
+        return settings_btn
+
+    def make_statusbar(self, panel, position: str = "left"):
+        """Make make-shift statusbar"""
+        # add info button
+        self.info_btn = self.make_info_button(panel)
+
+        self.display_label = wx.StaticText(panel, wx.ID_ANY, "")
+        self.display_label.SetForegroundColour(self.PANEL_STATUSBAR_COLOR)
+
+        sizer = wx.BoxSizer()
+        if position == "left":
+            sizer.Add(self.info_btn, 0, wx.ALIGN_CENTER_VERTICAL | wx.LEFT | wx.RIGHT, 5)
+            sizer.Add(self.display_label, 1, wx.ALIGN_CENTER_VERTICAL)
+        else:
+            sizer.Add(self.display_label, 1, wx.ALIGN_CENTER_VERTICAL | wx.LEFT | wx.RIGHT, 5)
+            sizer.Add(self.info_btn, 0, wx.ALIGN_CENTER_VERTICAL)
+        return sizer
+
+    def set_message(self, msg: str, duration: int = 5000):
+        """Set message for a period of time
+
+        Parameters
+        ----------
+        msg : str
+            message to be displayed in the statusbar
+        duration : int
+            how long the message should be displayed for
+        """
+        self.display_label.SetLabel(msg)
+        if duration > 0:
+            wx.CallLater(duration, self.display_label.SetLabel, "")
+
+
+class ColorGetterMixin:
+    """Mixin class to provide easy retrieval of color(s)"""
+
+    def on_get_color(self, _evt):
+        """Convenient method to get new color"""
+        dlg = DialogColorPicker(self, CONFIG.custom_colors)
+        if dlg.ShowModal() == wx.ID_OK:
+            color_255, color_1, font_color = dlg.GetChosenColour()
+            CONFIG.custom_colors = dlg.GetCustomColours()
+
+            return color_255, color_1, font_color
+        return None, None, None
 
 
 class Dialog(wx.Dialog, ActivityIndicatorMixin, DocumentationMixin):

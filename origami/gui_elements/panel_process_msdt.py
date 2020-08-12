@@ -11,7 +11,7 @@ from origami.styles import MiniFrame
 from origami.styles import Validator
 from origami.config.config import CONFIG
 from origami.utils.converters import str2num
-from origami.gui_elements.mixins import DatasetMixin
+from origami.gui_elements.panel_base import DatasetMixin
 
 logger = logging.getLogger(__name__)
 

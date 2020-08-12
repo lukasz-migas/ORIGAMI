@@ -57,6 +57,9 @@ from origami.ids import ID_xlabel_2D_massToCharge
 from origami.ids import ID_ylabel_DTMS_ms_arrival
 from origami.ids import ID_docTree_action_open_extract
 from origami.ids import ID_docTree_action_open_origami_ms
+from origami.styles import set_tooltip
+from origami.styles import make_checkbox
+from origami.styles import make_menu_item
 from origami.icons.assets import Icons
 from origami.config.config import CONFIG
 from origami.utils.utilities import report_time
@@ -71,9 +74,6 @@ from origami.objects.containers import ChromatogramObject
 from origami.objects.containers import MassSpectrumObject
 from origami.objects.containers import MassSpectrumHeatmapObject
 from origami.gui_elements._panel import TestPanel  # noqa
-from origami.gui_elements.helpers import set_tooltip
-from origami.gui_elements.helpers import make_checkbox
-from origami.gui_elements.helpers import make_menu_item
 from origami.gui_elements.misc_dialogs import DialogBox
 
 LOGGER = logging.getLogger(__name__)
