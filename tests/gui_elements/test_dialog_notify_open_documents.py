@@ -27,7 +27,6 @@ class TestDialogNotifyOpenDocuments(WidgetTestCase):
         wx.CallLater(250, dlg.on_ok, None)
         res = dlg.ShowModal()
         assert res == wx.ID_OK
-        dlg.Destroy()
         self.yield_()
 
     @pytest.mark.parametrize("msg", ("Hello", None))
@@ -42,7 +41,6 @@ class TestDialogNotifyOpenDocuments(WidgetTestCase):
         wx.CallLater(250, dlg.on_save_documents, None)
         res = dlg.ShowModal()
         assert res == wx.ID_SAVE
-        dlg.Destroy()
         self.yield_()
 
     def test_dialog_cancel(self):
@@ -52,5 +50,4 @@ class TestDialogNotifyOpenDocuments(WidgetTestCase):
         wx.CallLater(250, dlg.on_close, None)
         res = dlg.ShowModal()
         assert res == wx.ID_NO
-        dlg.Destroy()
         self.yield_()

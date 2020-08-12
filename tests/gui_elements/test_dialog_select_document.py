@@ -28,7 +28,6 @@ class TestDialogSelectDocument(WidgetTestCase):
 
         wx.CallLater(250, dlg.on_ok, None)
         dlg.ShowModal()
-        dlg.Destroy()
         self.yield_()
 
         assert dlg.current_document is not None
@@ -42,7 +41,6 @@ class TestDialogSelectDocument(WidgetTestCase):
 
         wx.CallLater(250, dlg.on_close, None)
         dlg.ShowModal()
-        dlg.Destroy()
         self.yield_()
 
         assert dlg.current_document is None

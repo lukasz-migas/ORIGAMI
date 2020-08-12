@@ -35,7 +35,6 @@ class TestDialogReviewApplyOrigamiMs(WidgetTestCase):
         wx.CallLater(250, dlg.on_ok, None)
         res = dlg.ShowModal()
         assert res == wx.ID_OK
-        dlg.Destroy()
         self.yield_()
 
     def test_dialog_cancel(self):
@@ -45,7 +44,6 @@ class TestDialogReviewApplyOrigamiMs(WidgetTestCase):
         wx.CallLater(250, dlg.on_close, None)
         res = dlg.ShowModal()
         assert res == wx.ID_NO
-        dlg.Destroy()
         self.yield_()
 
         assert len(dlg.output_list) == 0
@@ -66,7 +64,6 @@ class TestDialogReviewProcessSpectrum(WidgetTestCase):
         wx.CallLater(250, dlg.on_ok, None)
         res = dlg.ShowModal()
         assert res == wx.ID_OK
-        dlg.Destroy()
         self.yield_()
 
     def test_dialog_cancel(self):
@@ -76,7 +73,6 @@ class TestDialogReviewProcessSpectrum(WidgetTestCase):
         wx.CallLater(250, dlg.on_close, None)
         res = dlg.ShowModal()
         assert res == wx.ID_NO
-        dlg.Destroy()
         self.yield_()
 
         assert len(dlg.output_list) == 0
@@ -97,7 +93,6 @@ class TestDialogReviewProcessHeatmap(WidgetTestCase):
         wx.CallLater(250, dlg.on_ok, None)
         res = dlg.ShowModal()
         assert res == wx.ID_OK
-        dlg.Destroy()
         self.yield_()
 
     def test_dialog_cancel(self):
@@ -107,7 +102,6 @@ class TestDialogReviewProcessHeatmap(WidgetTestCase):
         wx.CallLater(250, dlg.on_close, None)
         res = dlg.ShowModal()
         assert res == wx.ID_NO
-        dlg.Destroy()
         self.yield_()
 
         assert len(dlg.output_list) == 0
@@ -128,7 +122,6 @@ class TestDialogReviewEditorOverlay(WidgetTestCase):
         wx.CallLater(250, dlg.on_ok, None)
         res = dlg.ShowModal()
         assert res == wx.ID_OK
-        dlg.Destroy()
         self.yield_()
 
     def test_dialog_cancel(self):
@@ -138,7 +131,6 @@ class TestDialogReviewEditorOverlay(WidgetTestCase):
         wx.CallLater(250, dlg.on_close, None)
         res = dlg.ShowModal()
         assert res == wx.ID_NO
-        dlg.Destroy()
         self.yield_()
 
         assert len(dlg.output_list) == 0
@@ -159,7 +151,6 @@ class TestDialogReviewEditorExtract(WidgetTestCase):
         wx.CallLater(250, dlg.on_ok, None)
         res = dlg.ShowModal()
         assert res == wx.ID_OK
-        dlg.Destroy()
         self.yield_()
 
     def test_dialog_cancel(self):
@@ -169,7 +160,6 @@ class TestDialogReviewEditorExtract(WidgetTestCase):
         wx.CallLater(250, dlg.on_close, None)
         res = dlg.ShowModal()
         assert res == wx.ID_NO
-        dlg.Destroy()
         self.yield_()
 
         assert len(dlg.output_list) == 0
@@ -190,7 +180,6 @@ class TestDialogReviewExportFigures(WidgetTestCase):
         wx.CallLater(250, dlg.on_ok, None)
         res = dlg.ShowModal()
         assert res == wx.ID_OK
-        dlg.Destroy()
         self.yield_()
 
     def test_dialog_cancel(self):
@@ -200,7 +189,6 @@ class TestDialogReviewExportFigures(WidgetTestCase):
         wx.CallLater(250, dlg.on_close, None)
         res = dlg.ShowModal()
         assert res == wx.ID_NO
-        dlg.Destroy()
         self.yield_()
 
         assert len(dlg.output_list) == 0
@@ -221,7 +209,6 @@ class TestDialogReviewExportData(WidgetTestCase):
         wx.CallLater(250, dlg.on_ok, None)
         res = dlg.ShowModal()
         assert res == wx.ID_OK
-        dlg.Destroy()
         self.yield_()
 
     def test_dialog_cancel(self):
@@ -231,7 +218,6 @@ class TestDialogReviewExportData(WidgetTestCase):
         wx.CallLater(250, dlg.on_close, None)
         res = dlg.ShowModal()
         assert res == wx.ID_NO
-        dlg.Destroy()
         self.yield_()
 
         assert len(dlg.output_list) == 0

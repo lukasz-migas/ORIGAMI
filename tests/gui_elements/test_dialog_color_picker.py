@@ -20,7 +20,6 @@ class TestDialogColorPicker(WidgetTestCase):
 
         wx.CallLater(250, dlg.Close)
         dlg.Show()
-        dlg.Destroy()
         self.yield_()
 
     def test_dialog_cancel(self):
@@ -28,5 +27,4 @@ class TestDialogColorPicker(WidgetTestCase):
 
         wx.CallLater(250, dlg.Close)
         dlg.Show()
-        dlg.Destroy()
         self.yield_()

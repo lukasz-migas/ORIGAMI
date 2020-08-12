@@ -34,7 +34,6 @@ class TestDialogSelectLabels(WidgetTestCase):
 
         wx.CallLater(250, dlg.on_ok, wx.ID_OK)
         dlg.ShowModal()
-        dlg.Destroy()
         self.yield_()
 
         assert dlg.x_label == "New Label X"
@@ -46,7 +45,6 @@ class TestDialogSelectLabels(WidgetTestCase):
 
         wx.CallLater(250, dlg.on_close, wx.ID_NO)
         dlg.ShowModal()
-        dlg.Destroy()
         self.yield_()
 
         assert dlg.x_label is None

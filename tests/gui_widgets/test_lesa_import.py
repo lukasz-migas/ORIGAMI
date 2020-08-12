@@ -15,7 +15,7 @@ class TestPanelImagingImportDataset(WidgetTestCase):
 
     def test_panel_create(self):
         dlg = PanelImagingImportDataset(None, None)
-        dlg.Show()
+        # dlg.Show()
         self.wait_for(500)
 
         # ensure shape values are of correct color

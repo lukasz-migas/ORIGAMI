@@ -463,7 +463,10 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin, ConfigUpdateMixin):
     def on_update_plot(self, _evt):
         """Timer-based plot update"""
         if not self.disable_plot and not self._plot_timer.IsRunning():
-            self.on_plot(None)
+            try:
+                self.on_plot(None)
+            except AttributeError:
+                pass
 
     def on_plot(self, _evt):
         """Plot data"""

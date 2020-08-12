@@ -25,7 +25,6 @@ class TestDialogCustomiseSmartZoom(WidgetTestCase):
 
         wx.CallLater(250, dlg.on_ok, wx.ID_OK)
         dlg.ShowModal()
-        dlg.Destroy()
         self.yield_()
 
     def test_dialog_cancel(self):
@@ -33,5 +32,4 @@ class TestDialogCustomiseSmartZoom(WidgetTestCase):
 
         wx.CallLater(250, dlg.on_close, wx.ID_NO)
         dlg.ShowModal()
-        dlg.Destroy()
         self.yield_()

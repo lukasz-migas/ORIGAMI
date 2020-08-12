@@ -41,7 +41,6 @@ class TestDialogSaveUnsaved(WidgetTestCase):
 
         wx.CallLater(250, dlg.on_ok, None)
         dlg.ShowModal()
-        dlg.Destroy()
         self.yield_()
 
         assert dlg.new_name == "MassSpectra/Summed Spectrum 2"
@@ -52,7 +51,6 @@ class TestDialogSaveUnsaved(WidgetTestCase):
 
         wx.CallLater(250, dlg.on_close, None)
         dlg.ShowModal()
-        dlg.Destroy()
         self.yield_()
 
         assert dlg.new_name is None

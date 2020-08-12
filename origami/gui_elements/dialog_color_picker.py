@@ -51,7 +51,7 @@ class DialogColorPicker(wx.ColourDialog):
 
 def _main():
 
-    app = wx.App(False)
+    app = wx.App()
     frame = wx.Frame(None, -1)
     ex = DialogColorPicker(frame, [])
     ex.ShowModal()

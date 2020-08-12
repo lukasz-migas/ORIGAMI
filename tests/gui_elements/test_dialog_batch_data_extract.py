@@ -28,7 +28,6 @@ class TestDialogBatchDataExtract(WidgetTestCase):
         wx.CallLater(250, dlg.on_ok, None)
         res = dlg.ShowModal()
         assert res == wx.ID_OK
-        dlg.Destroy()
         self.yield_()
 
     def test_dialog_cancel(self):
@@ -38,7 +37,6 @@ class TestDialogBatchDataExtract(WidgetTestCase):
         wx.CallLater(250, dlg.on_close, None)
         res = dlg.ShowModal()
         assert res == wx.ID_NO
-        dlg.Destroy()
         self.yield_()
 
         assert len(dlg.output_list) == 0

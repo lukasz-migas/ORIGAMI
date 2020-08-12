@@ -42,7 +42,6 @@ class TestDialogMultiDirPicker(WidgetTestCase):
 
         wx.CallLater(250, dlg.on_ok, wx.ID_OK)
         dlg.ShowModal()
-        dlg.Destroy()
         self.yield_()
 
     def test_dialog_cancel(self):
@@ -50,5 +49,4 @@ class TestDialogMultiDirPicker(WidgetTestCase):
 
         wx.CallLater(250, dlg.on_close, wx.ID_CLOSE)
         dlg.ShowModal()
-        dlg.Destroy()
         self.yield_()

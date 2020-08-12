@@ -19,7 +19,6 @@ class TestDialogAskOverride(WidgetTestCase):
 
         wx.CallLater(250, dlg.review, None)
         res = dlg.ShowModal()
-        dlg.Destroy()
         self.yield_()
 
         assert dlg.action == "review"
@@ -31,7 +30,6 @@ class TestDialogAskOverride(WidgetTestCase):
 
         wx.CallLater(250, dlg.ok, None)
         res = dlg.ShowModal()
-        dlg.Destroy()
         self.yield_()
 
         assert dlg.action == "continue"
@@ -43,7 +41,6 @@ class TestDialogAskOverride(WidgetTestCase):
 
         wx.CallLater(250, dlg.on_close, None)
         res = dlg.ShowModal()
-        dlg.Destroy()
         self.yield_()
 
         assert dlg.action is None

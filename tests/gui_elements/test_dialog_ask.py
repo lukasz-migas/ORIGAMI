@@ -22,7 +22,6 @@ class TestDialogAsk(WidgetTestCase):
 
         wx.CallLater(250, dlg.on_ok, None)
         dlg.ShowModal()
-        dlg.Destroy()
         self.yield_()
 
         if dlg.item_validator == "integer":
@@ -39,5 +38,4 @@ class TestDialogAsk(WidgetTestCase):
 
         wx.CallLater(250, dlg.on_close, None)
         dlg.ShowModal()
-        dlg.Destroy()
         self.yield_()

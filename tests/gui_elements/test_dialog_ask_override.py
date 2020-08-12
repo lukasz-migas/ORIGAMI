@@ -20,7 +20,6 @@ class TestDialogAskOverride(WidgetTestCase):
 
         wx.CallLater(250, dlg.overwrite, None)
         dlg.ShowModal()
-        dlg.Destroy()
         self.yield_()
 
         assert dlg.action == CONFIG.import_duplicate_panel_action == "override"
@@ -31,7 +30,6 @@ class TestDialogAskOverride(WidgetTestCase):
 
         wx.CallLater(250, dlg.merge, None)
         dlg.ShowModal()
-        dlg.Destroy()
         self.yield_()
 
         assert dlg.action == CONFIG.import_duplicate_panel_action == "merge"
@@ -42,7 +40,6 @@ class TestDialogAskOverride(WidgetTestCase):
 
         wx.CallLater(250, dlg.create_copy, None)
         dlg.ShowModal()
-        dlg.Destroy()
         self.yield_()
 
         assert dlg.action == CONFIG.import_duplicate_panel_action == "duplicate"

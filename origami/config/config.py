@@ -32,7 +32,7 @@ class Config:
     def __init__(self):
         """Setup config
 
-        The configuration file contains all (or almost all) of changable variables that are used throughout ORIGAMI.
+        The configuration file contains all (or almost all) of changeable variables that are used throughout ORIGAMI.
         Over the time, their names has changed, however in the current iteration, names are usually separated by an
         underscore and indicate what sort of action they are used for. For instance, parameters starting with
         `waterfall_...` will be used to update waterfall-like plots. The value in the configuration file will reflect
@@ -1114,20 +1114,28 @@ class Config:
 
         # Main plot events
         # events in MS panel
-        self.plot_panel_ms_extract_auto = True
-        self.plot_panel_ms_extract_rt = True
         self.plot_panel_ms_extract_heatmap = True
+        self.plot_panel_ms_extract_heatmap_popup = True
+        self.plot_panel_ms_extract_rt = True
+        self.plot_panel_ms_extract_rt_popup = True
         self.plot_panel_ms_extract_mobilogram = True
+        self.plot_panel_ms_extract_mobilogram_popup = True
 
         # events in RT panel
-        self.plot_panel_rt_extract_auto = True
         self.plot_panel_rt_extract_ms = True
-        self.plot_panel_rt_extract_mobilogram = True
+        self.plot_panel_rt_extract_ms_popup = True
 
         # events in DT panel
-        self.plot_panel_dt_extract_auto = True
         self.plot_panel_dt_extract_ms = True
-        self.plot_panel_dt_extract_rt = True
+        self.plot_panel_dt_extract_ms_popup = True
+
+        # events in heatmap panel
+        self.plot_panel_heatmap_extract_ms = True
+        self.plot_panel_heatmap_extract_ms_popup = True
+
+        # events in dt/ms panel
+        self.plot_panel_dtms_extract_rt = True
+        self.plot_panel_dtms_extract_rt_popup = True
 
         # Document tree
         self.tree_panel_delete_item_ask = True
@@ -2261,6 +2269,7 @@ class Config:
                 "panel_document_tree",
                 "panel_process_heatmap",
                 "panel_process_ms",
+                "panel_plot",
             ]
 
         config = dict()
@@ -2373,6 +2382,25 @@ class Config:
                         "tree_panel_item_auto_plot": self.tree_panel_item_auto_plot,
                     }
                 )
+            if _config_key == "panel_plot":
+                config.update(
+                    {
+                        "plot_panel_ms_extract_heatmap": self.plot_panel_ms_extract_heatmap,
+                        "plot_panel_ms_extract_heatmap_popup": self.plot_panel_ms_extract_heatmap_popup,
+                        "plot_panel_ms_extract_rt": self.plot_panel_ms_extract_rt,
+                        "plot_panel_ms_extract_rt_popup": self.plot_panel_ms_extract_rt_popup,
+                        "plot_panel_ms_extract_mobilogram": self.plot_panel_ms_extract_mobilogram,
+                        "plot_panel_ms_extract_mobilogram_popup": self.plot_panel_ms_extract_mobilogram_popup,
+                        "plot_panel_rt_extract_ms": self.plot_panel_rt_extract_ms,
+                        "plot_panel_rt_extract_ms_popup": self.plot_panel_rt_extract_ms_popup,
+                        "plot_panel_dt_extract_ms": self.plot_panel_dt_extract_ms,
+                        "plot_panel_dt_extract_ms_popup": self.plot_panel_dt_extract_ms_popup,
+                        "plot_panel_heatmap_extract_ms": self.plot_panel_heatmap_extract_ms,
+                        "plot_panel_heatmap_extract_ms_popup": self.plot_panel_heatmap_extract_ms_popup,
+                        "plot_panel_dtms_extract_rt": self.plot_panel_dtms_extract_rt,
+                        "plot_panel_dtms_extract_rt_popup": self.plot_panel_dtms_extract_rt_popup,
+                    }
+                )
             if _config_key == "panel_process_heatmap":
                 config.update(
                     {
@@ -2453,7 +2481,11 @@ class Config:
 
     def load_config(self, path: str, check_type: bool = True):
         """Load configuration from JSON file"""
-        config = read_json_data(path)
+        try:
+            config = read_json_data(path)
+        except FileNotFoundError:
+            logger.warning("Configuration file does not exist")
+            return
 
         if not isinstance(config, dict):
             logger.error("Configuration file should be a dictionary with key:value pairs")
@@ -2467,7 +2499,7 @@ class Config:
                     if hasattr(self, key):
                         if check_type:
                             current_value = getattr(self, key)
-                            if not self._check_type(current_value, value):
+                            if not self._check_type(key, current_value, value):
                                 logger.warning(
                                     f"Could not set `{key}` as the types were not similar enough to ensure compliance."
                                     f"\nCurrent value={current_value}; New value={value}"
@@ -2484,14 +2516,16 @@ class Config:
 
         pub.sendMessage("config.loaded")
 
-    @staticmethod
-    def _check_type(current_value, value):
+    def _check_type(self, name, current_value, value):
         """Check whether type of the value matches that of the currently set value"""
         current_type = type(current_value)
         new_type = type(value)
 
         # simplest case where types match perfectly
         if current_type == new_type:
+            if hasattr(self, f"{name}_choices"):
+                if current_type not in getattr(self, f"{name}_choices"):
+                    return False
             return True
         if current_type in [int, float] and new_type in [int, float]:
             return True

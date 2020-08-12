@@ -17,5 +17,4 @@ class TestPanelAbout(WidgetTestCase):
         icons = IconContainer()
 
         dlg = PanelAbout(self.frame, icons)
-
         dlg.Show()

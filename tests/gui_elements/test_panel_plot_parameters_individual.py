@@ -102,16 +102,16 @@ class TestPanelColorbarSettings(WidgetTestCase):
             assert dlg.colorbar_label_color_btn.IsEnabled() is value
             assert dlg.colorbar_outline_color_btn.IsEnabled() is value
 
-        self.sim_toggle_click(dlg.colorbar_tgl, True)
+        self.sim_toggle_click_evt(dlg.colorbar_tgl, True, [dlg.on_apply, dlg.on_toggle_controls])
         # change position
         for value in ["left", "right", "top", "bottom"]:
-            self.sim_combobox_click(dlg.colorbar_position_value, value)
+            self.sim_combobox_click_evt(dlg.colorbar_position_value, value, [dlg.on_apply, dlg.on_toggle_controls])
             assert CONFIG.colorbar_position == dlg.colorbar_position_value.GetStringSelection() == value
             assert dlg.colorbar_pad_value.IsEnabled() is True
             assert dlg.colorbar_width_inset_value.IsEnabled() is False
 
         for value in ["inside (top-left)", "inside (top-right)", "inside (bottom-left)", "inside (bottom-right)"]:
-            self.sim_combobox_click(dlg.colorbar_position_value, value)
+            self.sim_combobox_click_evt(dlg.colorbar_position_value, value, [dlg.on_apply, dlg.on_toggle_controls])
             assert CONFIG.colorbar_position == dlg.colorbar_position_value.GetStringSelection() == value
             assert dlg.colorbar_pad_value.IsEnabled() is False
             assert dlg.colorbar_width_inset_value.IsEnabled() is True

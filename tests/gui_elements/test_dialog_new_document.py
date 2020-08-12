@@ -30,7 +30,6 @@ class TestDialogNewDocument(WidgetTestCase):
 
         wx.CallLater(250, dlg.on_ok, None)
         dlg.ShowModal()
-        dlg.Destroy()
         self.yield_()
 
         assert "TEST_TITLE" in dlg.current_document
@@ -41,14 +40,13 @@ class TestDialogNewDocument(WidgetTestCase):
     def test_dialog_ok_none(self, tmpdir_factory):
         path = str(tmpdir_factory.mktemp("TEST_PATH"))
 
-        dlg = DialogNewDocument(self.frame, document_type=None)
+        dlg = DialogNewDocument(self.frame)
         dlg.title_value.SetValue("TEST_TITLE")
         dlg.path_value.SetValue(path)
         assert dlg.document_type_choice.IsEnabled() is True
 
         wx.CallLater(250, dlg.on_ok, None)
         dlg.ShowModal()
-        dlg.Destroy()
         self.yield_()
 
         assert "TEST_TITLE" in dlg.current_document
@@ -58,14 +56,13 @@ class TestDialogNewDocument(WidgetTestCase):
     def test_dialog_cancel_none(self, tmpdir_factory):
         path = str(tmpdir_factory.mktemp("TEST_PATH"))
 
-        dlg = DialogNewDocument(self.frame, document_type=None)
+        dlg = DialogNewDocument(self.frame)
         dlg.title_value.SetValue("TEST_TITLE")
         dlg.path_value.SetValue(path)
         assert dlg.document_type_choice.IsEnabled() is True
 
         wx.CallLater(250, dlg.on_close, None)
         dlg.ShowModal()
-        dlg.Destroy()
         self.yield_()
 
         assert dlg.current_document is None

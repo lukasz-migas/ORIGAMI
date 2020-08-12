@@ -31,8 +31,8 @@ class TestDialogSelectDataset(WidgetTestCase):
 
         wx.CallLater(250, dlg.document_list_choice.Select, 1)
         wx.CallLater(350, dlg.on_make_selection, wx.ID_OK)
+        wx.CallLater(450, dlg.on_close, None)
         dlg.ShowModal()
-        dlg.Destroy()
         self.yield_()
 
         assert dlg.document is not None
@@ -49,7 +49,6 @@ class TestDialogSelectDataset(WidgetTestCase):
 
         wx.CallLater(250, dlg.on_close, wx.ID_CANCEL)
         dlg.ShowModal()
-        dlg.Destroy()
         self.yield_()
 
         assert dlg.document is None

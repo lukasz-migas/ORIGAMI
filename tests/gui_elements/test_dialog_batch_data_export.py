@@ -40,7 +40,6 @@ class TestDialogExportData(WidgetTestCase):
         wx.CallLater(250, dlg.on_save, wx.ID_OK)
         res = dlg.ShowModal()
         assert res == wx.ID_OK
-        dlg.Destroy()
         self.yield_()
 
     def test_dialog_cancel(self):
@@ -50,5 +49,4 @@ class TestDialogExportData(WidgetTestCase):
         wx.CallLater(250, dlg.on_close, wx.ID_NO)
         res = dlg.ShowModal()
         assert res == wx.ID_NO
-        dlg.Destroy()
         self.yield_()
