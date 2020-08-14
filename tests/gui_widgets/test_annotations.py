@@ -17,6 +17,6 @@ class TestPanelAnnotationEditorUI(WidgetTestCase):
     def test_panel_create(self, plot_type):
         icons = Icons()
         dlg = PanelAnnotationEditor(None, None, icons, plot_type)
-        # dlg.Show()
+        dlg.Hide()
         self.wait_for(500)
         assert dlg

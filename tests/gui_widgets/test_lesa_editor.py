@@ -14,5 +14,5 @@ class TestPanelImagingLESAViewer(WidgetTestCase):
 
     def test_panel_create(self):
         dlg = PanelImagingLESAViewer(None, None, debug=True)
-        # dlg.Show()
+        dlg.Hide()
         self.wait_for(500)

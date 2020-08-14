@@ -5,6 +5,7 @@ import logging
 # Third-party imports
 import wx
 from pubsub import pub
+from wx.adv import BitmapComboBox
 from pubsub.core import TopicNameError
 
 # Local imports
@@ -47,7 +48,11 @@ class DocumentationMixin:
 
     def make_info_button(self, panel):
         """Make clickable information button"""
-        info_btn = make_bitmap_btn(panel, wx.ID_ANY, self._icons.info, style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
+        if self._icons is None:
+            icon = wx.ArtProvider.GetBitmap(wx.ART_INFORMATION, wx.ART_BUTTON, wx.Size(16, 16))
+        else:
+            icon = self._icons.info
+        info_btn = make_bitmap_btn(panel, wx.ID_ANY, icon, style=wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL)
         set_tooltip(info_btn, "Open documentation page about this panel (online)")
         info_btn.Bind(wx.EVT_BUTTON, self.on_open_info)
         return info_btn
@@ -91,6 +96,33 @@ class DocumentationMixin:
         self.display_label.SetLabel(msg)
         if duration > 0:
             wx.CallLater(duration, self.display_label.SetLabel, "")
+
+
+class ColorPaletteMixin:
+    """Mixin class to provide easy setup of color palette combobox"""
+
+    _colormaps = None
+
+    def _set_color_palette(self, widget):
+        if not isinstance(widget, BitmapComboBox):
+            raise ValueError("Expected `BitmapComboBox` type of widget")
+        if self._colormaps is None:
+            raise ValueError("Please load colormaps first")
+        # add choices
+        widget.Append("HLS", bitmap=self._colormaps.cmap_hls)
+        widget.Append("HUSL", bitmap=self._colormaps.cmap_husl)
+        widget.Append("Cubehelix", bitmap=self._colormaps.cmap_cubehelix)
+        widget.Append("Spectral", bitmap=self._colormaps.cmap_spectral)
+        widget.Append("Viridis", bitmap=self._colormaps.cmap_viridis)
+        widget.Append("Rainbow", bitmap=self._colormaps.cmap_rainbow)
+        widget.Append("Inferno", bitmap=self._colormaps.cmap_inferno)
+        widget.Append("Cividis", bitmap=self._colormaps.cmap_cividis)
+        widget.Append("Winter", bitmap=self._colormaps.cmap_winter)
+        widget.Append("Cool", bitmap=self._colormaps.cmap_cool)
+        widget.Append("Gray", bitmap=self._colormaps.cmap_gray)
+        widget.Append("RdPu", bitmap=self._colormaps.cmap_rdpu)
+        widget.Append("Tab20b", bitmap=self._colormaps.cmap_tab20b)
+        widget.Append("Tab20c", bitmap=self._colormaps.cmap_tab20c)
 
 
 class ColorGetterMixin:

@@ -3,7 +3,6 @@
 import wx
 
 # Local imports
-from origami.icons.assets import Icons
 from origami.gui_elements.popup import PopupBase
 from origami.gui_elements._panel import TestPanel  # noqa
 from origami.gui_elements.helpers import set_item_font
@@ -22,10 +21,7 @@ class PopupToast(PopupBase):
 
     text = None
 
-    def __init__(self, parent, message: str, kind: str, timeout: int = 3000, icons: Icons = None, style=wx.BORDER_NONE):
-        if icons is None:
-            icons = Icons()
-        self._icons = icons
+    def __init__(self, parent, message: str, kind: str, timeout: int = 3000, style=wx.BORDER_NONE):
         self.message = message
         self.kind = kind
 
@@ -76,7 +72,6 @@ class PopupToastManager:
 
     def __init__(self, parent):
         self.parent = parent
-        self._icons = Icons()
 
     def _check_popups(self):
         """Check previous popups"""

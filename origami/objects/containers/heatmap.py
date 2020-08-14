@@ -14,6 +14,7 @@ from natsort import index_natsorted
 
 # Local imports
 from origami.processing import heatmap as pr_heatmap
+from origami.utils.ranges import get_min_max
 from origami.processing.utils import find_nearest_index
 from origami.processing.heatmap import equalize_heatmap_spacing
 from origami.objects.containers.base import DataObject
@@ -86,6 +87,11 @@ class HeatmapObject(DataObject):
     def shape(self):
         """Return the shape of the object"""
         return self._array.shape
+
+    @property
+    def z_limit(self):
+        """Return the min/max values of the intensity-axis"""
+        return get_min_max(self.array)
 
     def reset_xy_cache(self):
         """Reset cached summed arrays"""
@@ -343,7 +349,7 @@ class HeatmapObject(DataObject):
 
     def is_multiscale(self) -> bool:
         """Check whether data object has multiple scales"""
-        return self._metadata.get("multiscale", False) or "scales" not in self._metadata["scales"]
+        return self._metadata.get("multiscale", False) or "scales" not in self._metadata
 
     def get_scale(self, scale: int) -> Tuple[np.ndarray, np.ndarray]:
         """Returns scale if object is a multiscale"""

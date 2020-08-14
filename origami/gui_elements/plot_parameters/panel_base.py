@@ -2,15 +2,15 @@
 # Third-party imports
 import wx
 import wx.lib.scrolledpanel
-from wx.adv import BitmapComboBox
 
 # Local imports
 from origami.icons.assets import Colormaps
 from origami.gui_elements.mixins import ColorGetterMixin
+from origami.gui_elements.mixins import ColorPaletteMixin
 from origami.gui_elements.mixins import ConfigUpdateMixin
 
 
-class PanelSettingsBase(wx.lib.scrolledpanel.ScrolledPanel, ColorGetterMixin, ConfigUpdateMixin):
+class PanelSettingsBase(wx.lib.scrolledpanel.ScrolledPanel, ColorGetterMixin, ConfigUpdateMixin, ColorPaletteMixin):
     """Base panel"""
 
     def __init__(self, parent, view):
@@ -44,25 +44,6 @@ class PanelSettingsBase(wx.lib.scrolledpanel.ScrolledPanel, ColorGetterMixin, Co
         if source is None:
             source = ""
         return evt, source
-
-    def _set_color_palette(self, widget):
-        if not isinstance(widget, BitmapComboBox):
-            raise ValueError("Expected `BitmapComboBox` type of widget")
-        # add choices
-        widget.Append("HLS", bitmap=self._colormaps.cmap_hls)
-        widget.Append("HUSL", bitmap=self._colormaps.cmap_husl)
-        widget.Append("Cubehelix", bitmap=self._colormaps.cmap_cubehelix)
-        widget.Append("Spectral", bitmap=self._colormaps.cmap_spectral)
-        widget.Append("Viridis", bitmap=self._colormaps.cmap_viridis)
-        widget.Append("Rainbow", bitmap=self._colormaps.cmap_rainbow)
-        widget.Append("Inferno", bitmap=self._colormaps.cmap_inferno)
-        widget.Append("Cividis", bitmap=self._colormaps.cmap_cividis)
-        widget.Append("Winter", bitmap=self._colormaps.cmap_winter)
-        widget.Append("Cool", bitmap=self._colormaps.cmap_cool)
-        widget.Append("Gray", bitmap=self._colormaps.cmap_gray)
-        widget.Append("RdPu", bitmap=self._colormaps.cmap_rdpu)
-        widget.Append("Tab20b", bitmap=self._colormaps.cmap_tab20b)
-        widget.Append("Tab20c", bitmap=self._colormaps.cmap_tab20c)
 
     @property
     def panel_plot(self):

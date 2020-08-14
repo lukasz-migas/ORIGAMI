@@ -2,16 +2,13 @@
 site_name: ORIGAMI
 site_description: "ORIGAMI is an open-source software for analysis of MS and IM-MS datasets."
 site_author: Lukasz G. Migas
-
 copyright: <a href='http://github.com/lukasz-migas'>Lukasz G. Migas</a>
-
 site_url: https://origami.lukasz-migas.com
 repo_url: https://github.com/lukasz-migas/ORIGAMI
 edit_uri: https://github.com/lukasz-migas/ORIGAMI/tree/master/site-source
 
 use_directory_urls: false
 
-google_analytics: ['UA-130097236-2', 'https://origami.lukasz-migas.com']
 docs_dir: 'site-source'
 site_dir: 'docs'
 
@@ -29,7 +26,7 @@ extra_css:
 # Page layout
 nav:
     - Home: index.md
-    - Installation: main/installation.md
+    - Installation: installation.md
     - User Guide:
       - 'Example files': user-guide/example-files.md
       - 'Opening files': user-guide/loading-data.md
@@ -57,30 +54,31 @@ nav:
     - Changelog:
         - 'v1.2.1.4 - 27/12/2018': changelog/v1.2.1.4-9-1-2019.md
         - 'v1.2.0.3 - 7/11/2018': changelog/v1.2.0.3-5-11-2018.md
-    - Request New Features: main/request.md
-    - Report Bugs: main/bugs.md
-    - Newsletter: main/subscribe.md
-    - Cite: main/cite.md
-    - About: main/about.md
+    - Request New Features: request.md
+    - Report Bugs: bugs.md
+    - Newsletter: subscribe.md
+    - Cite: cite.md
+    - About: about.md
 
 theme:
   name: material
+  features:
+    - tabs
+    - instant
   language: 'en'
-  include_sidebar: true
+#  include_sidebar: true
   palette:
     primary: 'blue grey'
     accent: 'teal'
-  feature:
-    tabs: true
 
 extra:
-  version: 1.2.1.1
+  version: 2.0.0.0
   social:
-    - type: 'youtube'
+    - icon: fontawesome/brands/youtube
       link: 'https://www.youtube.com/playlist?list=PLrPB7zfH4WXMYa5CN9qDtl-G-Ax_L6AK8'
-    - type: 'github'
+    - icon: fontawesome/brands/github
       link: 'https://github.com/lukasz-migas'
-    - type: 'twitter'
+    - icon: fontawesome/brands/twitter
       link: 'https://twitter.com/munieq11'
-    - type: 'link'
+    - icon: fontawesome/solid/link
       link: 'https://lukasz-migas.com'

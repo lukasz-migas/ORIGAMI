@@ -1,79 +1,87 @@
+"""Utility panel for UniDec panel"""
 # Third-party imports
 import wx
-import numpy as np
 
 # Local imports
+from origami.styles import MiniFrame
 from origami.styles import Validator
-from origami.visuals.mpl import base
-from origami.processing.utils import get_narrow_data_range
+from origami.config.config import CONFIG
 from origami.utils.converters import str2num
-from origami.help_documentation import OrigamiHelp
 from origami.gui_elements.helpers import make_tooltip
 from origami.gui_elements.misc_dialogs import DialogBox
-from origami.processing.UniDec.unidec_modules.fitting import isolated_peak_fit
+from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
 
 
-class PanelPeakWidthTool(wx.MiniFrame):
-    """
-    """
+class PanelPeakWidthTool(MiniFrame):
+    """Utility tool to estimate peak width in the mass spectrum"""
 
-    def __init__(self, parent, presenter, config, **kwargs):
-        wx.MiniFrame.__init__(
+    # module specific parameters
+    HELP_LINK = "https://origami.lukasz-migas.com/"
+
+    # ui elements
+    unidec_peak_fcn_choice, unidec_fit_peak_width_value, unidec_error = None, None, None
+    unidec_resolution, fit_btn, ok_btn, cancel_btn = None, None, None, None
+    view_ms = None
+
+    def __init__(self, parent, presenter, view, mz_obj=None):
+        MiniFrame.__init__(
             self,
             parent,
-            -1,
-            "UniDec peak width tool...",
+            title="UniDec peak width tool...",
             size=(600, 500),
             style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX),
         )
-        self.config = config
         self.parent = parent
         self.presenter = presenter
-        self.view = presenter.view
-        self.panel_plot = self.view.panelPlots
+        self.view = view
+        self.mz_obj = mz_obj
 
-        self.kwargs = kwargs
-        self.help = OrigamiHelp()
         # make gui items
         self.make_gui()
-        self.on_plot_MS(kwargs["xvals"], kwargs["yvals"])
         self.SetFocus()
-        wx.EVT_CLOSE(self, self.on_close)
+        self.Bind(wx.EVT_CLOSE, self.on_close)
+        self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
         self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
 
+        if self.mz_obj:
+            self.on_plot_ms(None)
+
+    @property
+    def panel_plot(self):
+        """Return handle to `panel_plot`"""
+        return self.view.panelPlots
+
     def on_key_event(self, evt):
+        """Handle key events"""
         key_code = evt.GetKeyCode()
-        # exit window
-        if key_code == wx.WXK_ESCAPE:
-            self.on_close(evt=None)
-        elif key_code == 70:
+
+        if key_code == 70:
             self.on_fit_peak(evt=None)
+        else:
+            super(PanelPeakWidthTool, self).on_key_event(evt)
 
-    def on_close(self, evt):
-        """Destroy this frame."""
-        self.Destroy()
+    def on_right_click(self, _evt):
+        """Right-click menu"""
 
-    def make_gui(self):
-        # make panel
-        panel = self.make_settings_panel()
+        menu = self.view_ms.get_right_click_menu(self)
+        self.PopupMenu(menu)
+        menu.Destroy()
+        self.SetFocus()
 
-        # pack element
-        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.main_sizer.Add(panel, 0, wx.EXPAND, 0)
-
-        # bind events
-        self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
-        self.fitBtn.Bind(wx.EVT_BUTTON, self.on_fit_peak)
-        self.ok_btn.Bind(wx.EVT_BUTTON, self.on_ok)
-
-        # fit layout
-        self.main_sizer.Fit(self)
-        self.SetSizer(self.main_sizer)
-
-    def make_settings_panel(self):
+    def make_panel(self):
+        """Make settings panel"""
         panel = wx.Panel(self, -1)
 
-        self.plotMS = base.PlotBase(panel, figsize=(6, 3), config=self.config)
+        # mass spectrum
+        self.view_ms = ViewMassSpectrum(
+            panel,
+            CONFIG._plotSettings["MS"]["gui_size"],  # noqa
+            CONFIG,
+            allow_extraction=False,
+            filename="mass-spectrum",
+        )
+
+        # self.plotMS = base.PlotBase(, figsize=(6, 3), config=CONFIG)
 
         msg = (
             "Note:\nIn order to determine peak width, \nplease zoom-in on a desired peak\n"
@@ -81,41 +89,40 @@ class PanelPeakWidthTool(wx.MiniFrame):
         )
         info_txt = wx.StaticText(panel, wx.ID_ANY, msg)
 
-        horizontal_line_1 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+        unidec_peak_shape_label = wx.StaticText(panel, wx.ID_ANY, "Peak Shape:")
+        self.unidec_peak_fcn_choice = wx.Choice(panel, -1, choices=CONFIG.unidec_peakFunction_choices, size=(-1, -1))
+        self.unidec_peak_fcn_choice.SetStringSelection(CONFIG.unidec_peakFunction)
+        self.unidec_peak_fcn_choice.Bind(wx.EVT_CHOICE, self.on_fit_peak)
 
-        unidec_peakShape_label = wx.StaticText(panel, wx.ID_ANY, "Peak Shape:")
-        self.unidec_peakFcn_choice = wx.Choice(
-            panel, -1, choices=list(self.config.unidec_peakFunction_choices.keys()), size=(-1, -1)
-        )
-        self.unidec_peakFcn_choice.SetStringSelection(self.config.unidec_peakFunction)
-        self.unidec_peakFcn_choice.Bind(wx.EVT_CHOICE, self.on_fit_peak)
-
-        unidec_peakWidth_label = wx.StaticText(panel, wx.ID_ANY, "Peak FWHM (Da):")
-        self.unidec_fit_peakWidth_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
-        self.unidec_fit_peakWidth_value.SetToolTip(make_tooltip("Expected peak width at FWHM in Da"))
+        unidec_peak_width_label = wx.StaticText(panel, wx.ID_ANY, "Peak FWHM (Da):")
+        self.unidec_fit_peak_width_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("floatPos"))
+        self.unidec_fit_peak_width_value.SetToolTip(make_tooltip("Expected peak width at FWHM in Da"))
 
         unidec_error_label = wx.StaticText(panel, wx.ID_ANY, "Error:")
         self.unidec_error = wx.StaticText(panel, wx.ID_ANY, "")
         unidec_resolution_label = wx.StaticText(panel, wx.ID_ANY, "Resolution (M/FWHM):")
         self.unidec_resolution = wx.StaticText(panel, wx.ID_ANY, "")
 
-        self.fitBtn = wx.Button(panel, -1, "Fit", size=(-1, -1))
-        self.fitBtn.SetToolTip(make_tooltip("Fit peak to currently zoomed peak in the spectrum"))
+        self.fit_btn = wx.Button(panel, -1, "Fit", size=(-1, -1))
+        self.fit_btn.SetToolTip(make_tooltip("Fit peak to currently zoomed peak in the spectrum"))
+        self.fit_btn.Bind(wx.EVT_BUTTON, self.on_fit_peak)
 
         self.ok_btn = wx.Button(panel, wx.ID_OK, "OK", size=(-1, -1))
+        self.ok_btn.Bind(wx.EVT_BUTTON, self.on_ok)
         self.cancel_btn = wx.Button(panel, -1, "Cancel", size=(-1, -1))
+        self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
         peak_grid = wx.GridBagSizer(2, 2)
         n = 0
         peak_grid.Add(info_txt, (n, 0), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_CENTRE_HORIZONTAL)
         n += 1
-        peak_grid.Add(horizontal_line_1, (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        peak_grid.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), (n, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
         n += 1
-        peak_grid.Add(unidec_peakShape_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        peak_grid.Add(self.unidec_peakFcn_choice, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        peak_grid.Add(unidec_peak_shape_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        peak_grid.Add(self.unidec_peak_fcn_choice, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
-        peak_grid.Add(unidec_peakWidth_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        peak_grid.Add(self.unidec_fit_peakWidth_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        peak_grid.Add(unidec_peak_width_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        peak_grid.Add(self.unidec_fit_peak_width_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
         peak_grid.Add(unidec_error_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         peak_grid.Add(self.unidec_error, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
@@ -123,20 +130,24 @@ class PanelPeakWidthTool(wx.MiniFrame):
         peak_grid.Add(unidec_resolution_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         peak_grid.Add(self.unidec_resolution, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
-        peak_grid.Add(self.fitBtn, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        peak_grid.Add(self.fit_btn, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
 
-        btn_grid = wx.GridBagSizer(2, 2)
-        n = 0
-        btn_grid.Add(self.ok_btn, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
-        btn_grid.Add(self.cancel_btn, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        btn_sizer = wx.BoxSizer()
+        btn_sizer.Add(self.ok_btn, 0, wx.EXPAND)
+        btn_sizer.AddSpacer(5)
+        btn_sizer.Add(self.cancel_btn, 0, wx.EXPAND)
+
+        info_sizer = self.make_statusbar(panel, "right")
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(peak_grid, 0, wx.ALIGN_CENTER | wx.ALL, 10)
-        sizer.Add(btn_grid, 0, wx.ALIGN_CENTER | wx.ALL, 10)
+        sizer.Add(peak_grid, 1, wx.ALIGN_CENTER | wx.ALL, 5)
+        sizer.Add(btn_sizer, 0, wx.ALIGN_CENTER | wx.ALL, 5)
+        sizer.AddStretchSpacer()
+        sizer.Add(info_sizer, 0, wx.EXPAND)
 
-        main_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        main_sizer.Add(self.plotMS, 1, wx.ALIGN_CENTER | wx.EXPAND, 10)
-        main_sizer.Add(sizer, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_TOP, 10)
+        main_sizer = wx.BoxSizer()
+        main_sizer.Add(self.view_ms.panel, 1, wx.EXPAND, 10)
+        main_sizer.Add(sizer, 0, wx.EXPAND, 10)
 
         # fit layout
         main_sizer.Fit(panel)
@@ -145,81 +156,83 @@ class PanelPeakWidthTool(wx.MiniFrame):
         return panel
 
     def on_ok(self, evt):
-        width = self.unidec_fit_peakWidth_value.GetValue()
-        function = self.unidec_peakFcn_choice.GetStringSelection()
+        """Perform normal action"""
+        width = self.unidec_fit_peak_width_value.GetValue()
+        function = self.unidec_peak_fcn_choice.GetStringSelection()
         if width == "" or width is None:
-            DialogBox(title="Error", msg="Could not complete action. `Fit` peaks first", kind="Error")
+            DialogBox(title="Error", msg="Could not complete action. `Fit` peaks first")
             return
 
         width = str2num(width)
-        self.parent.unidec_fit_peakWidth_value.SetValue(f"{width:.4f}")
-        self.parent.unidec_peakFcn_choice.SetStringSelection(function)
+        self.parent.fit_peak_width_value.SetValue(f"{width:.4f}")
+        self.parent.peak_shape_func_choice.SetStringSelection(function)
         self.Destroy()
 
     def on_crop_data(self):
-        xlimits = self.plotMS.plot_base.get_xlim()
-        ms_spectrum = np.transpose([self.kwargs["xvals"], self.kwargs["yvals"]])
-        ms_narrow = get_narrow_data_range(data=ms_spectrum, mzRange=xlimits)
-        return ms_narrow, xlimits
+        """Crop mass spectrum"""
+        # xlimits = self.plotMS.plot_base.get_xlim()
+        # ms_spectrum = np.transpose([self.kwargs["xvals"], self.kwargs["yvals"]])
+        # ms_narrow = get_narrow_data_range(data=ms_spectrum, mzRange=xlimits)
+        # return ms_narrow, xlimits
 
     def on_fit_peak(self, evt):
-        ms_narrow, xlimits = self.on_crop_data()
-        peakfcn = self.config.unidec_peakFunction_choices[self.unidec_peakFcn_choice.GetStringSelection()]
+        """Fit MS peak"""
+        # ms_narrow, xlimits = self.on_crop_data()
+        # peakfcn = CONFIG.unidec_peakFunction_choices[self.unidec_peakFcn_choice.GetStringSelection()]
+        #
+        # try:
+        #     fitout, fit_yvals = isolated_peak_fit(ms_narrow[:, 0], ms_narrow[:, 1], peakfcn)
+        # except RuntimeError:
+        #     print("Failed to fit a peak. Try again in larger window")
+        #     return
+        #
+        # fitout = fitout[:, 0]
+        # width = fitout[0]
+        # resolution = ms_narrow[np.argmax(ms_narrow[:, 1]), 0] / fitout[0]
+        # error = np.sum((fit_yvals - ms_narrow[:, 1]) * (fit_yvals - ms_narrow[:, 1]))
+        #
+        # # setup labels
+        # self.unidec_resolution.SetLabel("{:.4f}".format(resolution))
+        # self.unidec_error.SetLabel("{:.4f}".format(error))
+        # self.unidec_fit_peakWidth_value.SetValue("{:.4f}".format(width))
+        # self.on_plot_ms_with_fit(self.kwargs["xvals"], self.kwargs["yvals"], ms_narrow[:, 0], fit_yvals, xlimits)
 
-        try:
-            fitout, fit_yvals = isolated_peak_fit(ms_narrow[:, 0], ms_narrow[:, 1], peakfcn)
-        except RuntimeError:
-            print("Failed to fit a peak. Try again in larger window")
-            return
+    def on_plot_ms(self, _evt):
+        """Plot mass spectrum"""
+        self.view_ms.plot(obj=self.mz_obj)
 
-        fitout = fitout[:, 0]
-        width = fitout[0]
-        resolution = ms_narrow[np.argmax(ms_narrow[:, 1]), 0] / fitout[0]
-        error = np.sum((fit_yvals - ms_narrow[:, 1]) * (fit_yvals - ms_narrow[:, 1]))
+    def on_plot_ms_with_fit(self, xvals, yvals, fit_xvals, fit_yvals, xlimits=None, **kwargs):  # noqa
+        """Plot mass spectrum with fit"""
+        print(self)
 
-        # setup labels
-        self.unidec_resolution.SetLabel("{:.4f}".format(resolution))
-        self.unidec_error.SetLabel("{:.4f}".format(error))
-        self.unidec_fit_peakWidth_value.SetValue("{:.4f}".format(width))
-        self.on_plot_MS_with_Fit(self.kwargs["xvals"], self.kwargs["yvals"], ms_narrow[:, 0], fit_yvals, xlimits)
+        # # Build kwargs
+        # plt_kwargs = self.presenter.view.panelPlots._buildPlotParameters(plotType="1D")
+        #
+        # # Plot MS
+        # self.plotMS.clear()
+        # self.plotMS.plot_1D(
+        #     xvals=xvals,
+        #     yvals=yvals,
+        #     xlabel="m/z",
+        #     ylabel="Intensity",
+        #     axesSize=[0.1, 0.2, 0.8, 0.75],
+        #     plotType="MS",
+        #     label="Raw",
+        #     allowWheel=False,
+        #     **plt_kwargs,
+        # )
+        # self.plotMS.plot_1D_add(fit_xvals, fit_yvals, color="red", label="Fit", setup_zoom=False)
+        #
+        # self.plotMS.plot_base.set_xlim(xlimits)
+        # self.plotMS.repaint()
 
-    def on_plot_MS(self, msX, msY):
-        # Build kwargs
-        plt_kwargs = self.panel_plot._buildPlotParameters(plotType="1D")
 
-        self.plotMS.clear()
-        self.plotMS.plot_1D(
-            xvals=msX,
-            yvals=msY,
-            xlabel="m/z",
-            #             ylabel='Intensity',
-            axesSize=[0.15, 0.2, 0.7, 0.75],
-            plotType="MS",
-            **plt_kwargs,
-        )
-        self.plotMS.repaint()
+def _main():
+    app = wx.App()
+    ex = PanelPeakWidthTool(None, None, None)
+    ex.Show()
+    app.MainLoop()
 
-    def on_plot_MS_with_Fit(self, xvals, yvals, fit_xvals, fit_yvals, xlimits=None, **kwargs):
-        """
-        """
 
-        # Build kwargs
-        plt_kwargs = self.presenter.view.panelPlots._buildPlotParameters(plotType="1D")
-
-        # Plot MS
-        self.plotMS.clear()
-        self.plotMS.plot_1D(
-            xvals=xvals,
-            yvals=yvals,
-            xlabel="m/z",
-            ylabel="Intensity",
-            axesSize=[0.1, 0.2, 0.8, 0.75],
-            plotType="MS",
-            label="Raw",
-            allowWheel=False,
-            **plt_kwargs,
-        )
-        self.plotMS.plot_1D_add(fit_xvals, fit_yvals, color="red", label="Fit", setup_zoom=False)
-
-        self.plotMS.plot_base.set_xlim(xlimits)
-        self.plotMS.repaint()
+if __name__ == "__main__":
+    _main()

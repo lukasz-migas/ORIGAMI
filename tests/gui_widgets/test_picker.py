@@ -27,7 +27,7 @@ class TestPanelPeakPicker(WidgetTestCase):
 
         # setup peak picker
         dlg = PanelPeakPicker(None, None, icons, document_title=document_title, dataset_name=dataset_name, debug=True)
-        # dlg.Show()
+        dlg.Hide()
         self.wait_for(500)
 
         # simulate pre-processing

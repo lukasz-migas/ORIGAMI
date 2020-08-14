@@ -1,4 +1,7 @@
 """Container base"""
+# Standard library imports
+from typing import Any
+
 # Third-party imports
 import numpy as np
 
@@ -13,8 +16,6 @@ class DataObject(ContainerBase):
     """Generic data object"""
 
     # data attributes
-    _x_limit = None
-    _y_limit = None
     DOCUMENT_KEY = None
 
     def __init__(
@@ -159,3 +160,7 @@ class DataObject(ContainerBase):
         """Set instance of the `Annotations` object"""
         self._metadata["annotations"] = annotations.to_dict()
         self.flush()
+
+    def get(self, key: str, default: Any = None):
+        """Get arbitrary metadata from the object"""
+        return self._metadata.get(key, default)

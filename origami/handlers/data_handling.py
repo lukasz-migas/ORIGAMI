@@ -76,6 +76,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         # events from mass spectrum
         pub.subscribe(self.evt_extract_heatmap_from_ms, "extract.heatmap.from.spectrum")
         pub.subscribe(self.evt_extract_rt_from_ms, "extract.chromatogram.from.spectrum")
+        pub.subscribe(self.evt_extract_dt_from_ms, "extract.mobilogram.from.spectrum")
 
         # events from heatmap
         pub.subscribe(self.evt_extract_ms_from_heatmap, "extract.spectrum.from.heatmap")
@@ -407,23 +408,25 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         if file_fmt == "thermo":
             raise MessageError("Error", "Cannot extract mass spectrum data from heatmap")
 
-        # mark on the plot where data is being extracted from
-        self.panel_plot.view_heatmap.add_patches([x_min], [y_min], [x_max - x_min], [y_max - y_min], pickable=False)
-
-        # convert limits to the correct format
-        x_min_rt, x_max_rt = self._parse_chromatogram_range_waters(
-            document, x_label, x_min, x_max, y_label, y_min, y_max, "time"
-        )
-        y_min_dt, y_max_dt = self._parse_mobilogram_range_waters(document, y_label, y_min, y_max, x_label, x_min, x_max)
-
-        # ensure extraction range is broad enough
-        if x_min_rt >= x_max_rt:
-            raise MessageError("Error", "The extraction range in the chromatogram dimension was too narrow!")
-        if y_min_dt >= y_max_dt:
-            raise MessageError("Error", "The extraction range in the mobilogram dimension was too narrow!")
-
         # get data
         if CONFIG.plot_panel_heatmap_extract_ms:
+            # mark on the plot where data is being extracted from
+            self.panel_plot.view_heatmap.add_patches([x_min], [y_min], [x_max - x_min], [y_max - y_min], pickable=False)
+
+            # convert limits to the correct format
+            x_min_rt, x_max_rt = self._parse_chromatogram_range_waters(
+                document, x_label, x_min, x_max, y_label, y_min, y_max, "time"
+            )
+            y_min_dt, y_max_dt = self._parse_mobilogram_range_waters(
+                document, y_label, y_min, y_max, x_label, x_min, x_max
+            )
+
+            # ensure extraction range is broad enough
+            if x_min_rt >= x_max_rt:
+                raise MessageError("Error", "The extraction range in the chromatogram dimension was too narrow!")
+            if y_min_dt >= y_max_dt:
+                raise MessageError("Error", "The extraction range in the mobilogram dimension was too narrow!")
+
             obj_name, mz_obj, document = self.waters_extract_ms_from_heatmap(
                 x_min_rt, x_max_rt, y_min_dt, y_max_dt, document.title
             )
@@ -459,22 +462,24 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         if file_fmt == "thermo":
             raise MessageError("Error", "Cannot extract retention time data from heatmap")
 
-        # mark on the plot where data is being extracted from
-        self.panel_plot.view_msdt.add_patches([x_min], [y_min], [x_max - x_min], [y_max - y_min], pickable=False)
-
-        # convert limits to the correct format
-        x_min_mz, x_max_mz = self._parse_mass_spectrum_range_waters(
-            document, x_label, x_min, x_max, y_label, y_min, y_max
-        )
-        y_min_dt, y_max_dt = self._parse_mobilogram_range_waters(document, y_label, y_min, y_max, x_label, x_min, x_max)
-
-        # ensure extraction range is broad enough
-        if x_min_mz >= x_max_mz:
-            raise MessageError("Error", "The extraction range in the mass spectrum dimension was too narrow!")
-        if y_min_dt >= y_max_dt:
-            raise MessageError("Error", "The extraction range in the mobilogram dimension was too narrow!")
-
         if CONFIG.plot_panel_heatmap_extract_rt:
+            # mark on the plot where data is being extracted from
+            self.panel_plot.view_msdt.add_patches([x_min], [y_min], [x_max - x_min], [y_max - y_min], pickable=False)
+
+            # convert limits to the correct format
+            x_min_mz, x_max_mz = self._parse_mass_spectrum_range_waters(
+                document, x_label, x_min, x_max, y_label, y_min, y_max
+            )
+            y_min_dt, y_max_dt = self._parse_mobilogram_range_waters(
+                document, y_label, y_min, y_max, x_label, x_min, x_max
+            )
+
+            # ensure extraction range is broad enough
+            if x_min_mz >= x_max_mz:
+                raise MessageError("Error", "The extraction range in the mass spectrum dimension was too narrow!")
+            if y_min_dt >= y_max_dt:
+                raise MessageError("Error", "The extraction range in the mobilogram dimension was too narrow!")
+
             # get data
             obj_name, rt_obj, document = self.waters_extract_rt_from_msdt(
                 x_min_mz, x_max_mz, y_min_dt, y_max_dt, document.title
@@ -512,13 +517,13 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         if file_fmt == "thermo":
             raise MessageError("Error", "Cannot extract heatmap from Thermo file")
 
-        x_min, x_max = self._parse_mobilogram_range_waters(document, x_label, x_min, x_max, y_label, y_min, y_max)
-
-        # get plot data and calculate maximum values in the arrays
-        x, y = self.panel_plot.view_dt_dt.get_data(["x", "y"])
-        _, y_val = get_maximum_xy(x, y, x_min, x_max)
-
         if CONFIG.plot_panel_dt_extract_ms:
+            x_min, x_max = self._parse_mobilogram_range_waters(document, x_label, x_min, x_max, y_label, y_min, y_max)
+
+            # get plot data and calculate maximum values in the arrays
+            x, y = self.panel_plot.view_dt_dt.get_data(["x", "y"])
+            _, y_val = get_maximum_xy(x, y, x_min, x_max)
+
             # mark on the plot where data is being extracted from
             self.panel_plot.view_dt_dt.add_patches([x_min], [0], [x_max - x_min], [y_val], pickable=False)
 
@@ -556,11 +561,11 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         if is_multifile:
             raise MessageError("Error", "Multifile data extraction is not supported yet")
 
-        # get plot data and calculate maximum values in the arrays
-        x, y = self.panel_plot.view_rt_rt.get_data(["x", "y"])
-        _, y_val = get_maximum_xy(x, y, x_min, x_max)
-
         if CONFIG.plot_panel_rt_extract_ms:
+            # get plot data and calculate maximum values in the arrays
+            x, y = self.panel_plot.view_rt_rt.get_data(["x", "y"])
+            _, y_val = get_maximum_xy(x, y, x_min, x_max)
+
             # mark on the plot where data is being extracted from
             self.panel_plot.view_rt_rt.add_patches([x_min], [0], [x_max - x_min], [y_val], pickable=False)
 
@@ -603,11 +608,11 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         if file_fmt == "thermo":
             raise MessageError("Error", "Cannot extract heatmap from Thermo file")
 
-        # get plot data and calculate maximum values in the arrays
-        x, y = self.panel_plot.view_ms.get_data(["x", "y"])
-        _, y_val = get_maximum_xy(x, y, x_min, x_max)
-
         if CONFIG.plot_panel_ms_extract_heatmap:
+            # get plot data and calculate maximum values in the arrays
+            x, y = self.panel_plot.view_ms.get_data(["x", "y"])
+            _, y_val = get_maximum_xy(x, y, x_min, x_max)
+
             # mark on the plot where data is being extracted from
             self.panel_plot.view_ms.add_patches([x_min], [0], [x_max - x_min], [y_val], pickable=False)
 
@@ -649,11 +654,11 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         if file_fmt == "thermo":
             raise MessageError("Error", "Cannot extract heatmap from Thermo file")
 
-        # get plot data and calculate maximum values in the arrays
-        x, y = self.panel_plot.view_ms.get_data(["x", "y"])
-        _, y_val = get_maximum_xy(x, y, x_min, x_max)
-
         if CONFIG.plot_panel_ms_extract_rt:
+            # get plot data and calculate maximum values in the arrays
+            x, y = self.panel_plot.view_ms.get_data(["x", "y"])
+            _, y_val = get_maximum_xy(x, y, x_min, x_max)
+
             # mark on the plot where data is being extracted from
             # self.panel_plot.view_ms.add_patches([x_min], [0], [x_max - x_min], [y_val], pickable=False)
 
@@ -673,6 +678,39 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
             # # Update document
             self.document_tree.on_update_document(rt_obj.DOCUMENT_KEY, obj_name, document.title)
+            logger.info(f"Extracted ion heatmap in {report_time(t_start)} - See: {obj_name}")
+        else:
+            self._plot_extraction_disabled()
+
+    def evt_extract_dt_from_ms(self, rect, x_labels, y_labels):
+        """Extract chromatogram from mass spectrum"""
+        t_start = time.time()
+        # unpack values
+        x_min, x_max, _, _ = rect
+        document = ENV.on_get_document()
+
+        can_extract, is_multifile, file_fmt = document.can_extract()
+        if not can_extract:
+            raise MessageError("Error", "This document type 8does not allow data extraction")
+        if is_multifile:
+            raise MessageError("Error", "Multifile data extraction is not supported yet")
+        if file_fmt == "thermo":
+            raise MessageError("Error", "Cannot extract heatmap from Thermo file")
+
+        if CONFIG.plot_panel_ms_extract_dt:
+            # get plot data and calculate maximum values in the arrays
+            x, y = self.panel_plot.view_ms.get_data(["x", "y"])
+            _, y_val = get_maximum_xy(x, y, x_min, x_max)
+
+            obj_name, dt_obj, document = self.waters_extract_dt_from_mass_spectrum(x_min, x_max, document.title)
+
+            # set data
+            self.panel_plot.view_dt_dt.plot(obj=dt_obj)
+            if CONFIG.plot_panel_ms_extract_dt_popup:
+                self.panel_plot.popup_dt.plot(obj=dt_obj)
+
+            # # Update document
+            self.document_tree.on_update_document(dt_obj.DOCUMENT_KEY, obj_name, document.title)
             logger.info(f"Extracted ion heatmap in {report_time(t_start)} - See: {obj_name}")
         else:
             self._plot_extraction_disabled()
@@ -1484,18 +1522,17 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             self.on_update_document(document, "document")
             logger.info(f"It took {time.time()-t_start:.4f} seconds to annotate {document.title}")
 
-    def on_extract_2D_from_mass_range_fcn(self, evt, extract_type="all"):
-        """
-        Extract 2D array for each m/z range specified in the table
-        """
-        evt = extract_type if evt is None else "all"
-
-        if not CONFIG.APP_ENABLE_THREADING:
-            self.on_extract_2D_from_mass_range(evt)
-        else:
-            args = (evt,)
-            self.on_threading(action="extract.heatmap", args=args)
-
+    # def on_extract_2D_from_mass_range_fcn(self, evt, extract_type="all"):
+    #     """
+    #     Extract 2D array for each m/z range specified in the table
+    #     """
+    #     evt = extract_type if evt is None else "all"
+    #
+    #     if not CONFIG.APP_ENABLE_THREADING:
+    #         self.on_extract_2D_from_mass_range(evt)
+    #     else:
+    #         args = (evt,)
+    #         self.on_threading(action="extract.heatmap", args=args)
     # def on_extract_2D_from_mass_range(self, extract_type="all"):
     #     """ extract multiple ions = threaded """
     #

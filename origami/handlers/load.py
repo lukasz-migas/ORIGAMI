@@ -254,7 +254,7 @@ class LoadHandler:
     def waters_extract_rt_from_mass_spectrum(
         x_min: float, x_max: float, document_title: str = None, obj_name: str = None
     ):
-        """Extract heatmap based on mass spectrum range
+        """Extract chromatogram based on mass spectrum range
 
         Parameters
         ----------
@@ -294,6 +294,52 @@ class LoadHandler:
         rt_obj = document.add_chromatogram(obj_name, rt_obj)
 
         return obj_name, rt_obj, document
+
+    @staticmethod
+    @check_os("win32")
+    def waters_extract_dt_from_mass_spectrum(
+        x_min: float, x_max: float, document_title: str = None, obj_name: str = None
+    ):
+        """Extract mobilogram based on mass spectrum range
+
+        Parameters
+        ----------
+        x_min : float
+            start m/z value
+        x_max : float
+            end m/z value
+        document_title: str, optional
+            document title
+        obj_name : str
+            name of the object
+
+        Returns
+        -------
+        obj_name : str
+            name of the data object
+        dt_obj : MobilogramObject
+            dictionary containing extracted data
+        document : Document
+            instance of the document for which data was extracted
+        """
+        document = ENV.on_get_document(document_title)
+
+        # setup file reader
+        reader = document.get_reader("ion_mobility")
+        if reader is None:
+            path = document.get_file_path("main")
+            reader = WatersIMReader(
+                path, temp_dir=CONFIG.APP_TEMP_DATA_PATH, driftscope_path=CONFIG.APP_DRIFTSCOPE_PATH
+            )
+            document.add_reader("ion_mobility", reader)
+
+        # get heatmap
+        dt_obj = reader.extract_dt(mz_start=x_min, mz_end=x_max)
+        if obj_name is None:
+            obj_name = f"MZ_{x_min:.2f}-{x_max:.2f}"
+        dt_obj = document.add_mobilogram(obj_name, dt_obj)
+
+        return obj_name, dt_obj, document
 
     @staticmethod
     @check_os("win32")

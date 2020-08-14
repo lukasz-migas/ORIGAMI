@@ -548,9 +548,9 @@ class ViewBase(ABC):
         menu.Append(menu_save)
         menu.Append(menu_clipboard)
         menu.AppendSeparator()
-        menu.Append(menu_clear)
-        menu.AppendSeparator()
         menu.Append(menu_info)
+        menu.AppendSeparator()
+        menu.Append(menu_clear)
 
         # bind menu items to event handlers
         parent.Bind(wx.EVT_MENU, self.on_copy_to_clipboard, menu_clipboard)

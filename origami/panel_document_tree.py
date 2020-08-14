@@ -846,7 +846,7 @@ class DocumentTree(wx.TreeCtrl):
             item = self.GetSelection()
             indent = self.get_item_indent(item)
             if indent == 0:
-                self.on_delete_all_documents(evt=None)
+                self.on_delete_all_documents(None)
             else:
                 self.on_delete_item(evt=None)
         elif key == 80:
@@ -2380,7 +2380,7 @@ class DocumentTree(wx.TreeCtrl):
         panel = PanelProcessMassSpectrum(self.presenter.view, self.presenter, **kwargs)
         panel.Show()
 
-    def on_process_ms(self, _evt, **kwargs):
+    def on_process_ms(self, _evt):
         """Process clicked mass spectrum item"""
         document_title, dataset_name = self._get_item_info()
         mz_obj = self._get_item_object()
@@ -2390,7 +2390,7 @@ class DocumentTree(wx.TreeCtrl):
             document=document, document_title=document_title, dataset_name=dataset_name, mz_obj=mz_obj
         )
 
-    def on_batch_process_ms(self, _evt, **kwargs):
+    def on_batch_process_ms(self, _evt):
         """Process all clicked mass spectra items"""
         from origami.gui_elements.dialog_review_editor import DialogReviewProcessSpectrum
 

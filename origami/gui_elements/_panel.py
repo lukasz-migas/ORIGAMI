@@ -15,7 +15,7 @@ class TestPanel(wx.Dialog):
         self.btn_1 = wx.Button(self, -1, "Do action 1", (25, 50))
         self.btn_2 = wx.Button(self, -1, "Do action 2", (25, 50))
 
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer = wx.BoxSizer()
         sizer.Add(self.btn_1)
         sizer.Add(self.btn_2)
 

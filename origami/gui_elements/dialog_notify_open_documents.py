@@ -29,10 +29,6 @@ class DialogNotifyOpenDocuments(Dialog):
         self.make_gui()
         self.CentreOnParent()
 
-    def on_ok(self, _evt):
-        """Politely close window without saving document"""
-        self.EndModal(wx.ID_OK)
-
     def on_save_documents(self, _evt):
         """Save all documents"""
         self.EndModal(wx.ID_SAVE)
@@ -65,7 +61,7 @@ class DialogNotifyOpenDocuments(Dialog):
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close, id=wx.ID_CANCEL)
         self.cancel_btn.SetFocus()
 
-        btn_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        btn_sizer = wx.BoxSizer()
         btn_sizer.Add(self.save_all_btn)
         btn_sizer.AddSpacer(5)
         btn_sizer.Add(self.continue_btn)

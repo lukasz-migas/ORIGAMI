@@ -19,7 +19,7 @@ class ViewAboutPopup(PopupBase):
 
     def __init__(self, parent, view, style=wx.BORDER_SIMPLE):
         self.view = view
-        PopupBase.__init__(self, parent, style, self.view._icons)
+        PopupBase.__init__(self, parent, style)
 
     def make_panel(self):
         """Make popup window"""

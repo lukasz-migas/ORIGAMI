@@ -1,163 +1,129 @@
+"""Extra configuration options of the UniDec panel"""
 # Third-party imports
 import wx
 from wx.adv import BitmapComboBox
 
 # Local imports
-from origami.ids import ID_unidecPanel_barEdgeColor
-from origami.ids import ID_unidecPanel_fitLineColor
 from origami.styles import Dialog
 from origami.styles import Validator
 from origami.utils.color import convert_rgb_1_to_255
+from origami.icons.assets import Colormaps
+from origami.config.config import CONFIG
 from origami.utils.converters import str2int
+from origami.gui_elements.mixins import ColorGetterMixin
+from origami.gui_elements.mixins import ColorPaletteMixin
+from origami.gui_elements.mixins import ConfigUpdateMixin
 from origami.gui_elements.helpers import make_checkbox
-from origami.gui_elements.helpers import make_staticbox
+from origami.gui_elements.helpers import set_item_font
 from origami.gui_elements.misc_dialogs import DialogBox
-from origami.gui_elements.dialog_color_picker import DialogColorPicker
 
 
-class DialogCustomiseUniDecVisuals(Dialog):
-    def __init__(self, parent, config, icons, **kwargs):
-        Dialog.__init__(self, parent, title="Other parameters...")
+class DialogCustomiseUniDecVisuals(Dialog, ConfigUpdateMixin, ColorGetterMixin, ColorPaletteMixin):
+    """Dialog window to customise UniDec visualisations"""
+
+    mw_show_markers_check, mw_marker_size_value, contour_levels_value = None, None, None
+    isolated_ms_marker_size_value, bar_width_value, bar_alpha_value = None, None, None
+    bar_color_edge_check, bar_line_width_value, bar_marker_size_value = None, None, None
+    color_scheme_value, colormap_value, color_palette_value = None, None, None
+    unidec_labels_optimise_position_check, unidec_max_shown_lines_value, speedy_check = None, None, None
+    unidec_maxIters_value, unidec_view_value, bar_edge_color_btn = None, None, None
+    fit_line_color_btn, unidec_settings_value = None, None
+
+    def __init__(self, parent):
+        Dialog.__init__(self, parent, title="UniDec parameters...")
 
         self.parent = parent
-        self.config = config
-        self.icons = icons
+        self._colormaps = Colormaps()
 
         self.make_gui()
-        self.CentreOnParent()
+        self.on_toggle_controls(None)
+        self.Layout()
+        self.CenterOnParent()
+        self.SetFocus()
 
-    def onOK(self, evt):
-        self.EndModal(wx.OK)
+    def setup(self):
+        """Setup mixins"""
+        self._config_mixin_setup()
 
-    def make_gui(self):
-
-        # make panel
-        panel = self.make_panel()
-
-        # pack element
-        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-        self.main_sizer.Add(panel, 0, wx.EXPAND, 10)
-
-        # fit layout
-        self.main_sizer.Fit(self)
-        self.SetSizer(self.main_sizer)
+    def on_close(self, evt, force: bool = False):
+        """Close window"""
+        self._config_mixin_teardown()
+        super(DialogCustomiseUniDecVisuals, self).on_close(evt, force)
 
     def make_panel(self):
+        """Make panel"""
         panel = wx.Panel(self, -1)
 
-        general_staticBox = make_staticbox(panel, "General", size=(-1, -1), color=wx.BLACK)
-        general_staticBox.SetSize((-1, -1))
-        general_box_sizer = wx.StaticBoxSizer(general_staticBox, wx.HORIZONTAL)
+        general_parameters_label = wx.StaticText(panel, -1, "General")
+        set_item_font(general_parameters_label)
+
+        unidec_settings_label = wx.StaticText(panel, -1, "Settings position:")
+        self.unidec_settings_value = wx.Choice(
+            panel, -1, choices=CONFIG.unidec_plot_settings_view_choices, size=(-1, -1)
+        )
+        self.unidec_settings_value.SetStringSelection(CONFIG.unidec_plot_settings_view)
+        self.unidec_settings_value.Bind(wx.EVT_CHOICE, self.on_view_notification)
 
         unidec_view_label = wx.StaticText(panel, -1, "Panel view:")
-        self.unidec_view_value = wx.Choice(panel, -1, choices=["Single page view", "Tabbed view"], size=(-1, -1))
-        self.unidec_view_value.SetStringSelection(self.config.unidec_plot_panel_view)
+        self.unidec_view_value = wx.Choice(panel, -1, choices=CONFIG.unidec_plot_panel_view_choices, size=(-1, -1))
+        self.unidec_view_value.SetStringSelection(CONFIG.unidec_plot_panel_view)
         self.unidec_view_value.Bind(wx.EVT_CHOICE, self.on_view_notification)
 
         unidec_max_iters_label = wx.StaticText(panel, wx.ID_ANY, "No. max iterations:")
         self.unidec_maxIters_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("intPos"))
-        self.unidec_maxIters_value.SetValue(str(self.config.unidec_maxIterations))
+        self.unidec_maxIters_value.SetValue(str(CONFIG.unidec_maxIterations))
         self.unidec_maxIters_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         unidec_max_shown_label = wx.StaticText(panel, wx.ID_ANY, "No. max shown lines:")
-        self.unidec_maxShownLines_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("intPos"))
-        self.unidec_maxShownLines_value.SetValue(str(self.config.unidec_maxShown_individualLines))
-        self.unidec_maxShownLines_value.Bind(wx.EVT_TEXT, self.on_apply)
+        self.unidec_max_shown_lines_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("intPos"))
+        self.unidec_max_shown_lines_value.SetValue(str(CONFIG.unidec_maxShown_individualLines))
+        self.unidec_max_shown_lines_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         remove_label_overlap_label = wx.StaticText(panel, wx.ID_ANY, "Optimise label position:")
         self.unidec_labels_optimise_position_check = make_checkbox(panel, "")
-        self.unidec_labels_optimise_position_check.SetValue(self.config.unidec_optimiseLabelPositions)
+        self.unidec_labels_optimise_position_check.SetValue(CONFIG.unidec_optimiseLabelPositions)
         self.unidec_labels_optimise_position_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        general_grid = wx.GridBagSizer(2, 2)
-        y = 0
-        general_grid.Add(unidec_view_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        general_grid.Add(self.unidec_view_value, (y, 1), flag=wx.EXPAND)
-        y += 1
-        general_grid.Add(unidec_max_iters_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        general_grid.Add(self.unidec_maxIters_value, (y, 1), flag=wx.EXPAND)
-        y += 1
-        general_grid.Add(unidec_max_shown_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        general_grid.Add(self.unidec_maxShownLines_value, (y, 1), flag=wx.EXPAND)
-        y += 1
-        general_grid.Add(remove_label_overlap_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        general_grid.Add(self.unidec_labels_optimise_position_check, (y, 1), flag=wx.EXPAND)
-        general_box_sizer.Add(general_grid, 0, wx.EXPAND, 10)
-
         # MS and MS Fit
-        MS_staticBox = make_staticbox(panel, "MS and UniDec Fit", size=(-1, -1), color=wx.BLACK)
-        MS_staticBox.SetSize((-1, -1))
-        MS_box_sizer = wx.StaticBoxSizer(MS_staticBox, wx.HORIZONTAL)
+        ms_fit_parameters_label = wx.StaticText(panel, -1, "MS and Fit")
+        set_item_font(ms_fit_parameters_label)
 
-        fit_lineColor_label = wx.StaticText(panel, -1, "Line color:")
-        self.fit_lineColor_Btn = wx.Button(
-            panel, ID_unidecPanel_fitLineColor, "", wx.DefaultPosition, wx.Size(26, 26), 0
+        fit_line_color_label = wx.StaticText(panel, -1, "Line color:")
+        self.fit_line_color_btn = wx.Button(
+            panel, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="unidec.fit"
         )
-        self.fit_lineColor_Btn.SetBackgroundColour(convert_rgb_1_to_255(self.config.unidec_plot_fit_lineColor))
-        self.fit_lineColor_Btn.Bind(wx.EVT_BUTTON, self.on_change_color)
-
-        MS_grid = wx.GridBagSizer(2, 2)
-        y = 0
-        MS_grid.Add(fit_lineColor_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        MS_grid.Add(self.fit_lineColor_Btn, (y, 1), flag=wx.EXPAND)
-        MS_box_sizer.Add(MS_grid, 0, wx.EXPAND, 10)
+        self.fit_line_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.unidec_plot_fit_lineColor))
+        self.fit_line_color_btn.Bind(wx.EVT_BUTTON, self.on_change_color)
 
         # m/z vs charge
-        contour_staticBox = make_staticbox(panel, "m/z vs charge | MW vs charge", size=(-1, -1), color=wx.BLACK)
-        contour_staticBox.SetSize((-1, -1))
-        contour_box_sizer = wx.StaticBoxSizer(contour_staticBox, wx.HORIZONTAL)
+        contour_parameters_label = wx.StaticText(panel, -1, "m/z vs charge | MW vs charge")
+        set_item_font(contour_parameters_label)
 
         speedy_label = wx.StaticText(panel, wx.ID_ANY, "Quick plot:")
         self.speedy_check = make_checkbox(panel, "")
-        self.speedy_check.SetValue(self.config.unidec_speedy)
+        self.speedy_check.SetValue(CONFIG.unidec_speedy)
         self.speedy_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         contour_levels_label = wx.StaticText(panel, -1, "Contour levels:")
         self.contour_levels_value = wx.SpinCtrlDouble(
-            panel,
-            -1,
-            value=str(self.config.unidec_plot_contour_levels),
-            min=25,
-            max=200,
-            initial=25,
-            inc=25,
-            size=(90, -1),
+            panel, -1, value=str(CONFIG.unidec_plot_contour_levels), min=25, max=200, initial=25, inc=25, size=(90, -1)
         )
         self.contour_levels_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        contour_grid = wx.GridBagSizer(2, 2)
-        y = 0
-        contour_grid.Add(speedy_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        contour_grid.Add(self.speedy_check, (y, 1), flag=wx.EXPAND)
-        y += 1
-        contour_grid.Add(contour_levels_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        contour_grid.Add(self.contour_levels_value, (y, 1), flag=wx.EXPAND)
-        contour_box_sizer.Add(contour_grid, 0, wx.EXPAND, 10)
-
         # Zero-charge MS
-        MW_staticBox = make_staticbox(panel, "Zero-charge Mass Spectrum", size=(-1, -1), color=wx.BLACK)
-        MW_staticBox.SetSize((-1, -1))
-        MW_box_sizer = wx.StaticBoxSizer(MW_staticBox, wx.HORIZONTAL)
+        zero_charge_parameters_label = wx.StaticText(panel, -1, "Zero-charge MS")
+        set_item_font(zero_charge_parameters_label)
 
-        MW_show_markers = wx.StaticText(panel, -1, "Show markers:")
-        self.MW_show_markers_check = make_checkbox(panel, "")
-        self.MW_show_markers_check.SetValue(self.config.unidec_plot_MW_showMarkers)
-        self.MW_show_markers_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
+        mw_show_markers = wx.StaticText(panel, -1, "Show markers:")
+        self.mw_show_markers_check = make_checkbox(panel, "")
+        self.mw_show_markers_check.SetValue(CONFIG.unidec_plot_MW_showMarkers)
+        self.mw_show_markers_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
-        MW_markerSize_label = wx.StaticText(panel, -1, "Marker size:")
-        self.MW_markerSize_value = wx.SpinCtrlDouble(
-            panel, -1, value=str(self.config.unidec_plot_MW_markerSize), min=1, max=100, initial=1, inc=5, size=(90, -1)
+        mw_marker_size_label = wx.StaticText(panel, -1, "Marker size:")
+        self.mw_marker_size_value = wx.SpinCtrlDouble(
+            panel, -1, value=str(CONFIG.unidec_plot_MW_markerSize), min=1, max=100, initial=1, inc=5, size=(90, -1)
         )
-        self.MW_markerSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-
-        MW_grid = wx.GridBagSizer(2, 2)
-        y = 0
-        MW_grid.Add(MW_show_markers, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        MW_grid.Add(self.MW_show_markers_check, (y, 1), flag=wx.EXPAND)
-        y += 1
-        MW_grid.Add(MW_markerSize_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        MW_grid.Add(self.MW_markerSize_value, (y, 1), flag=wx.EXPAND)
-        MW_box_sizer.Add(MW_grid, 0, wx.EXPAND, 10)
+        self.mw_marker_size_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         #         # Zero-charge MS
         #         MW_staticBox = make_staticbox(panel, "Zero-charge Mass Spectrum", size=(-1, -1), color=wx.BLACK)
@@ -166,76 +132,61 @@ class DialogCustomiseUniDecVisuals(Dialog):
         #
         #         MW_show_markers = wx.StaticText(panel, -1, "Show markers:")
         #         self.MW_show_markers_check = make_checkbox(panel, u"")
-        #         self.MW_show_markers_check.SetValue(self.config.unidec_plot_MW_showMarkers)
+        #         self.MW_show_markers_check.SetValue(CONFIG.unidec_plot_MW_showMarkers)
         #         self.MW_show_markers_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         #
         #         MW_markerSize_label = wx.StaticText(panel, -1, "Marker size:")
         #         self.MW_markerSize_value = wx.SpinCtrlDouble(panel, -1,
-        #                                                value=str(self.config.unidec_plot_MW_markerSize),
+        #                                                value=str(CONFIG.unidec_plot_MW_markerSize),
         #                                                min=1, max=100, initial=1, inc=5,
         #                                                size=(90, -1))
         #         self.MW_markerSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         #
-        #         MW_grid = wx.GridBagSizer(2, 2)
+        #         grid = wx.GridBagSizer(2, 2)
         #         y = 0
-        #         MW_grid.Add(MW_show_markers, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-        #         MW_grid.Add(self.MW_show_markers_check, (y,1), flag=wx.EXPAND)
+        #         grid.Add(MW_show_markers, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+        #         grid.Add(self.MW_show_markers_check, (y,1), flag=wx.EXPAND)
         #         y += 1
-        #         MW_grid.Add(MW_markerSize_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
-        #         MW_grid.Add(self.MW_markerSize_value, (y,1), flag=wx.EXPAND)
-        #         MW_box_sizer.Add(MW_grid, 0, wx.EXPAND, 10)
+        #         grid.Add(MW_markerSize_label, (y,0), flag=wx.ALIGN_CENTER_VERTICAL|wx.ALIGN_RIGHT)
+        #         grid.Add(self.MW_markerSize_value, (y,1), flag=wx.EXPAND)
+        #         MW_box_sizer.Add(grid, 0, wx.EXPAND, 10)
 
         # MS with isolated species
-        isolatedMS_staticBox = make_staticbox(panel, "MS with isolated species", size=(-1, -1), color=wx.BLACK)
-        isolatedMS_staticBox.SetSize((-1, -1))
-        isolatedMS_box_sizer = wx.StaticBoxSizer(isolatedMS_staticBox, wx.HORIZONTAL)
+        isolated_parameters_label = wx.StaticText(panel, -1, "MS with isolated species")
+        set_item_font(isolated_parameters_label)
 
-        isolatedMS_markerSize_label = wx.StaticText(panel, -1, "Marker size:")
-        self.isolatedMS_markerSize_value = wx.SpinCtrlDouble(
+        isolated_ms_marker_size_label = wx.StaticText(panel, -1, "Marker size:")
+        self.isolated_ms_marker_size_value = wx.SpinCtrlDouble(
             panel,
             -1,
-            value=str(self.config.unidec_plot_isolatedMS_markerSize),
+            value=str(CONFIG.unidec_plot_isolatedMS_markerSize),
             min=1,
             max=100,
             initial=1,
             inc=5,
             size=(90, -1),
         )
-        self.isolatedMS_markerSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-
-        isolatedMS_grid = wx.GridBagSizer(2, 2)
-        y = 0
-        isolatedMS_grid.Add(isolatedMS_markerSize_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        isolatedMS_grid.Add(self.isolatedMS_markerSize_value, (y, 1), flag=wx.EXPAND)
-        isolatedMS_box_sizer.Add(isolatedMS_grid, 0, wx.EXPAND, 10)
+        self.isolated_ms_marker_size_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         # Barchart
-        barParameters_staticBox = make_staticbox(panel, "Peak intensities (Barchart)", size=(-1, -1), color=wx.BLACK)
-        barParameters_staticBox.SetSize((-1, -1))
-        bar_box_sizer = wx.StaticBoxSizer(barParameters_staticBox, wx.HORIZONTAL)
+        barchart_parameters_label = wx.StaticText(panel, -1, "Peak intensities (barchart)")
+        set_item_font(barchart_parameters_label)
 
-        bar_markerSize_label = wx.StaticText(panel, -1, "Marker size:")
-        self.bar_markerSize_value = wx.SpinCtrlDouble(
-            panel,
-            -1,
-            value=str(self.config.unidec_plot_bar_markerSize),
-            min=1,
-            max=100,
-            initial=1,
-            inc=5,
-            size=(90, -1),
+        bar_marker_size_label = wx.StaticText(panel, -1, "Marker size:")
+        self.bar_marker_size_value = wx.SpinCtrlDouble(
+            panel, -1, value=str(CONFIG.unidec_plot_bar_markerSize), min=1, max=100, initial=1, inc=5, size=(90, -1)
         )
-        self.bar_markerSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
+        self.bar_marker_size_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         bar_width_label = wx.StaticText(panel, -1, "Bar width:")
         self.bar_width_value = wx.SpinCtrlDouble(
             panel,
             -1,
-            value=str(self.config.unidec_plot_bar_width),
+            value=str(CONFIG.unidec_plot_bar_width),
             min=0.01,
             max=10,
             inc=0.1,
-            initial=self.config.unidec_plot_bar_width,
+            initial=CONFIG.unidec_plot_bar_width,
             size=(90, -1),
         )
         self.bar_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
@@ -244,176 +195,229 @@ class DialogCustomiseUniDecVisuals(Dialog):
         self.bar_alpha_value = wx.SpinCtrlDouble(
             panel,
             -1,
-            value=str(self.config.unidec_plot_bar_alpha),
+            value=str(CONFIG.unidec_plot_bar_alpha),
             min=0,
             max=1,
-            initial=self.config.unidec_plot_bar_alpha,
+            initial=CONFIG.unidec_plot_bar_alpha,
             inc=0.25,
             size=(90, -1),
         )
         self.bar_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        bar_lineWidth_label = wx.StaticText(panel, -1, "Edge line width:")
-        self.bar_lineWidth_value = wx.SpinCtrlDouble(
+        bar_line_width_label = wx.StaticText(panel, -1, "Edge line width:")
+        self.bar_line_width_value = wx.SpinCtrlDouble(
             panel,
             -1,
-            value=str(self.config.unidec_plot_bar_lineWidth),
+            value=str(CONFIG.unidec_plot_bar_lineWidth),
             min=0,
             max=5,
-            initial=self.config.unidec_plot_bar_lineWidth,
+            initial=CONFIG.unidec_plot_bar_lineWidth,
             inc=1,
             size=(90, -1),
         )
-        self.bar_lineWidth_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
+        self.bar_line_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        bar_edgeColor_label = wx.StaticText(panel, -1, "Edge color:")
-        self.bar_edgeColor_Btn = wx.Button(
-            panel, ID_unidecPanel_barEdgeColor, "", wx.DefaultPosition, wx.Size(26, 26), 0
+        bar_edge_color_label = wx.StaticText(panel, -1, "Edge color:")
+        self.bar_edge_color_btn = wx.Button(
+            panel, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="unidec.bar"
         )
-        self.bar_edgeColor_Btn.SetBackgroundColour(convert_rgb_1_to_255(self.config.unidec_plot_bar_edge_color))
-        self.bar_edgeColor_Btn.Bind(wx.EVT_BUTTON, self.on_change_color)
+        self.bar_edge_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.unidec_plot_bar_edge_color))
+        self.bar_edge_color_btn.Bind(wx.EVT_BUTTON, self.on_change_color)
 
-        bar_colorEdge_check_label = wx.StaticText(panel, -1, "Same as fill:")
-        self.bar_colorEdge_check = make_checkbox(panel, "")
-        self.bar_colorEdge_check.SetValue(self.config.unidec_plot_bar_sameAsFill)
-        self.bar_colorEdge_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-
-        bar_grid = wx.GridBagSizer(2, 2)
-        y = 0
-        bar_grid.Add(bar_markerSize_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        bar_grid.Add(self.bar_markerSize_value, (y, 1), flag=wx.EXPAND)
-        y += 1
-        bar_grid.Add(bar_width_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        bar_grid.Add(self.bar_width_value, (y, 1), flag=wx.EXPAND)
-        y += 1
-        bar_grid.Add(bar_alpha_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        bar_grid.Add(self.bar_alpha_value, (y, 1), flag=wx.EXPAND)
-        y += 1
-        bar_grid.Add(bar_lineWidth_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        bar_grid.Add(self.bar_lineWidth_value, (y, 1), flag=wx.EXPAND)
-        y += 1
-        bar_grid.Add(bar_edgeColor_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        bar_grid.Add(self.bar_edgeColor_Btn, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
-        y += 1
-        bar_grid.Add(bar_colorEdge_check_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        bar_grid.Add(self.bar_colorEdge_check, (y, 1), flag=wx.EXPAND)
-        bar_box_sizer.Add(bar_grid, 0, wx.EXPAND, 10)
+        bar_color_edge_check_label = wx.StaticText(panel, -1, "Same as fill:")
+        self.bar_color_edge_check = make_checkbox(panel, "")
+        self.bar_color_edge_check.SetValue(CONFIG.unidec_plot_bar_sameAsFill)
+        self.bar_color_edge_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         # Color
-        color_staticBox = make_staticbox(panel, "Color scheme", size=(-1, -1), color=wx.BLACK)
-        color_staticBox.SetSize((-1, -1))
-        color_box_sizer = wx.StaticBoxSizer(color_staticBox, wx.HORIZONTAL)
+        color_parameters_label = wx.StaticText(panel, -1, "Color scheme")
+        set_item_font(color_parameters_label)
 
         color_scheme_label = wx.StaticText(panel, -1, "Color scheme:")
-        self.colorScheme_value = wx.Choice(
+        self.color_scheme_value = wx.Choice(
             panel, -1, choices=["Color palette", "Colormap"], size=(-1, -1), name="color"
         )
-        self.colorScheme_value.SetStringSelection(self.config.unidec_plot_color_scheme)
-        self.colorScheme_value.Bind(wx.EVT_CHOICE, self.on_apply)
-        self.colorScheme_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
+        self.color_scheme_value.SetStringSelection(CONFIG.unidec_plot_color_scheme)
+        self.color_scheme_value.Bind(wx.EVT_CHOICE, self.on_apply)
+        self.color_scheme_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
 
-        cmap_list = self.config.colormap_choices[:]
+        cmap_list = CONFIG.colormap_choices[:]
         cmap_list.remove("jet")
         colormap_label = wx.StaticText(panel, -1, "Colormap:")
         self.colormap_value = wx.Choice(panel, -1, choices=cmap_list, size=(-1, -1), name="color")
-        self.colormap_value.SetStringSelection(self.config.unidec_plot_colormap)
+        self.colormap_value.SetStringSelection(CONFIG.unidec_plot_colormap)
         self.colormap_value.Bind(wx.EVT_CHOICE, self.on_apply)
 
         palette_label = wx.StaticText(panel, -1, "Color palette:")
         self.color_palette_value = BitmapComboBox(panel, -1, choices=[], size=(160, -1), style=wx.CB_READONLY)
+        self._set_color_palette(self.color_palette_value)
         self.color_palette_value.Bind(wx.EVT_COMBOBOX, self.on_apply)
+        self.color_palette_value.SetStringSelection(CONFIG.unidec_plot_palette)
 
-        # add choices
-        self.color_palette_value.Append("HLS", bitmap=self.icons.iconsLib["cmap_hls"])
-        self.color_palette_value.Append("HUSL", bitmap=self.icons.iconsLib["cmap_husl"])
-        self.color_palette_value.Append("Cubehelix", bitmap=self.icons.iconsLib["cmap_cubehelix"])
-        self.color_palette_value.Append("Spectral", bitmap=self.icons.iconsLib["cmap_spectral"])
-        self.color_palette_value.Append("Viridis", bitmap=self.icons.iconsLib["cmap_viridis"])
-        self.color_palette_value.Append("Rainbow", bitmap=self.icons.iconsLib["cmap_rainbow"])
-        self.color_palette_value.Append("Inferno", bitmap=self.icons.iconsLib["cmap_inferno"])
-        self.color_palette_value.Append("Cividis", bitmap=self.icons.iconsLib["cmap_cividis"])
-        self.color_palette_value.Append("Winter", bitmap=self.icons.iconsLib["cmap_winter"])
-        self.color_palette_value.Append("Cool", bitmap=self.icons.iconsLib["cmap_cool"])
-        self.color_palette_value.Append("Gray", bitmap=self.icons.iconsLib["cmap_gray"])
-        self.color_palette_value.Append("RdPu", bitmap=self.icons.iconsLib["cmap_rdpu"])
-        self.color_palette_value.Append("Tab20b", bitmap=self.icons.iconsLib["cmap_tab20b"])
-        self.color_palette_value.Append("Tab20c", bitmap=self.icons.iconsLib["cmap_tab20c"])
-
-        self.color_palette_value.SetStringSelection(self.config.unidec_plot_palette)
-
-        color_grid = wx.GridBagSizer(2, 2)
+        # general
+        grid = wx.GridBagSizer(2, 2)
         y = 0
-        color_grid.Add(color_scheme_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        color_grid.Add(self.colorScheme_value, (y, 1), flag=wx.EXPAND)
+        grid.Add(general_parameters_label, (y, 0), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER)
         y += 1
-        color_grid.Add(colormap_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        color_grid.Add(self.colormap_value, (y, 1), flag=wx.EXPAND)
+        grid.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
         y += 1
-        color_grid.Add(palette_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        color_grid.Add(self.color_palette_value, (y, 1), flag=wx.EXPAND)
-        color_box_sizer.Add(color_grid, 0, wx.EXPAND, 10)
+        grid.Add(unidec_settings_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_settings_value, (y, 1), flag=wx.EXPAND)
+        y += 1
+        grid.Add(unidec_view_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_view_value, (y, 1), flag=wx.EXPAND)
+        y += 1
+        grid.Add(unidec_max_iters_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_maxIters_value, (y, 1), flag=wx.EXPAND)
+        y += 1
+        grid.Add(unidec_max_shown_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_max_shown_lines_value, (y, 1), flag=wx.EXPAND)
+        y += 1
+        grid.Add(remove_label_overlap_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.unidec_labels_optimise_position_check, (y, 1), flag=wx.EXPAND)
+        y += 1
+        grid.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        y += 1
+        grid.Add(ms_fit_parameters_label, (y, 0), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER)
+        y += 1
+        grid.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        y += 1
+        grid.Add(fit_line_color_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.fit_line_color_btn, (y, 1), flag=wx.EXPAND)
+        # mw
+        y += 1
+        grid.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        y += 1
+        grid.Add(contour_parameters_label, (y, 0), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER)
+        y += 1
+        grid.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        y += 1
+        grid.Add(speedy_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.speedy_check, (y, 1), flag=wx.EXPAND)
+        y += 1
+        grid.Add(contour_levels_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.contour_levels_value, (y, 1), flag=wx.EXPAND)
+        y += 1
+        # zero charge
+        grid.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        y += 1
+        grid.Add(zero_charge_parameters_label, (y, 0), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER)
+        y += 1
+        grid.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        y += 1
+        grid.Add(mw_show_markers, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.mw_show_markers_check, (y, 1), flag=wx.EXPAND)
+        y += 1
+        grid.Add(mw_marker_size_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.mw_marker_size_value, (y, 1), flag=wx.EXPAND)
+        # isolated
+        y += 1
+        grid.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        y += 1
+        grid.Add(isolated_parameters_label, (y, 0), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER)
+        y += 1
+        grid.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        y += 1
+        grid.Add(isolated_ms_marker_size_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.isolated_ms_marker_size_value, (y, 1), flag=wx.EXPAND)
+        # bar chart
+        y += 1
+        grid.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        y += 1
+        grid.Add(barchart_parameters_label, (y, 0), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER)
+        y += 1
+        grid.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        y += 1
+        grid.Add(bar_marker_size_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.bar_marker_size_value, (y, 1), flag=wx.EXPAND)
+        y += 1
+        grid.Add(bar_width_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.bar_width_value, (y, 1), flag=wx.EXPAND)
+        y += 1
+        grid.Add(bar_alpha_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.bar_alpha_value, (y, 1), flag=wx.EXPAND)
+        y += 1
+        grid.Add(bar_line_width_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.bar_line_width_value, (y, 1), flag=wx.EXPAND)
+        y += 1
+        grid.Add(bar_edge_color_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.bar_edge_color_btn, (y, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT)
+        y += 1
+        grid.Add(bar_color_edge_check_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.bar_color_edge_check, (y, 1), flag=wx.EXPAND)
+        # color scheme
+        y += 1
+        grid.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        y += 1
+        grid.Add(color_parameters_label, (y, 0), wx.GBSpan(1, 2), flag=wx.ALIGN_CENTER)
+        y += 1
+        grid.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), (y, 0), wx.GBSpan(1, 2), flag=wx.EXPAND)
+        y += 1
+        grid.Add(color_scheme_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.color_scheme_value, (y, 1), flag=wx.EXPAND)
+        y += 1
+        grid.Add(colormap_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.colormap_value, (y, 1), flag=wx.EXPAND)
+        y += 1
+        grid.Add(palette_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.color_palette_value, (y, 1), flag=wx.EXPAND)
 
+        # pack elements
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(general_box_sizer, 0, wx.EXPAND, 10)
-        main_sizer.Add(MS_box_sizer, 0, wx.EXPAND, 10)
-        main_sizer.Add(contour_box_sizer, 0, wx.EXPAND, 10)
-        main_sizer.Add(MW_box_sizer, 0, wx.EXPAND, 10)
-        main_sizer.Add(isolatedMS_box_sizer, 0, wx.EXPAND, 10)
-        main_sizer.Add(bar_box_sizer, 0, wx.EXPAND, 10)
-        main_sizer.Add(color_box_sizer, 0, wx.EXPAND, 10)
+        main_sizer.Add(grid, 1, wx.EXPAND | wx.ALL, 5)
 
         # fit layout
         main_sizer.Fit(panel)
-        panel.SetSizerAndFit(main_sizer)
+        panel.SetSizer(main_sizer)
 
         return panel
 
     def on_change_color_palette(self, evt):
-        pass
+        """Change color palette"""
 
     def on_change_color(self, evt):
-        evtID = evt.GetId()
+        """Change color"""
+        source = evt.GetEventObject().GetName()
 
-        dlg = DialogColorPicker(self, self.config.custom_colors)
-        if dlg.ShowModal() == wx.ID_OK:
-            color_255, color_1, __ = dlg.GetChosenColour()
-            self.config.custom_colors = dlg.GetCustomColours()
-        else:
-            return
+        color_255, color_1, _ = self.on_get_color(None)
+        if color_1 is None:
+            return None
 
-        if evtID == ID_unidecPanel_barEdgeColor:
-            self.config.unidec_plot_bar_edge_color = color_1
-            self.bar_edgeColor_Btn.SetBackgroundColour(color_255)
-
-        elif evtID == ID_unidecPanel_fitLineColor:
-            self.config.unidec_plot_fit_lineColor = color_1
-            self.fit_lineColor_Btn.SetBackgroundColour(color_255)
+        if source == "unidec.bar":
+            CONFIG.unidec_plot_bar_edge_color = color_1
+            self.bar_edge_color_btn.SetBackgroundColour(color_255)
+        elif source == "unidec.fit":
+            CONFIG.unidec_plot_fit_lineColor = color_1
+            self.fit_line_color_btn.SetBackgroundColour(color_255)
 
     def on_apply(self, evt):
+        """Update configuration"""
 
-        self.config.unidec_plot_MW_showMarkers = self.MW_show_markers_check.GetValue()
-        self.config.unidec_plot_MW_markerSize = self.MW_markerSize_value.GetValue()
-        self.config.unidec_plot_contour_levels = int(self.contour_levels_value.GetValue())
-        self.config.unidec_plot_isolatedMS_markerSize = self.isolatedMS_markerSize_value.GetValue()
-        self.config.unidec_plot_bar_width = self.bar_width_value.GetValue()
-        self.config.unidec_plot_bar_alpha = self.bar_alpha_value.GetValue()
-        self.config.unidec_plot_bar_sameAsFill = self.bar_colorEdge_check.GetValue()
-        self.config.unidec_plot_bar_lineWidth = self.bar_lineWidth_value.GetValue()
-        self.config.unidec_plot_bar_markerSize = self.bar_markerSize_value.GetValue()
-        self.config.unidec_plot_color_scheme = self.colorScheme_value.GetStringSelection()
-        self.config.unidec_plot_colormap = self.colormap_value.GetStringSelection()
-        self.config.unidec_plot_palette = self.color_palette_value.GetStringSelection()
+        CONFIG.unidec_plot_MW_showMarkers = self.mw_show_markers_check.GetValue()
+        CONFIG.unidec_plot_MW_markerSize = self.mw_marker_size_value.GetValue()
+        CONFIG.unidec_plot_contour_levels = int(self.contour_levels_value.GetValue())
+        CONFIG.unidec_plot_isolatedMS_markerSize = self.isolated_ms_marker_size_value.GetValue()
+        CONFIG.unidec_plot_bar_width = self.bar_width_value.GetValue()
+        CONFIG.unidec_plot_bar_alpha = self.bar_alpha_value.GetValue()
+        CONFIG.unidec_plot_bar_sameAsFill = self.bar_color_edge_check.GetValue()
+        CONFIG.unidec_plot_bar_lineWidth = self.bar_line_width_value.GetValue()
+        CONFIG.unidec_plot_bar_markerSize = self.bar_marker_size_value.GetValue()
+        CONFIG.unidec_plot_color_scheme = self.color_scheme_value.GetStringSelection()
+        CONFIG.unidec_plot_colormap = self.colormap_value.GetStringSelection()
+        CONFIG.unidec_plot_palette = self.color_palette_value.GetStringSelection()
 
-        self.config.unidec_optimiseLabelPositions = self.unidec_labels_optimise_position_check.GetValue()
-        self.config.unidec_speedy = self.speedy_check.GetValue()
-        self.config.unidec_maxShown_individualLines = str2int(self.unidec_maxShownLines_value.GetValue())
-        self.config.unidec_maxIterations = str2int(self.unidec_maxIters_value.GetValue())
+        CONFIG.unidec_optimiseLabelPositions = self.unidec_labels_optimise_position_check.GetValue()
+        CONFIG.unidec_speedy = self.speedy_check.GetValue()
+        CONFIG.unidec_maxShown_individualLines = str2int(self.unidec_max_shown_lines_value.GetValue())
+        CONFIG.unidec_maxIterations = str2int(self.unidec_maxIters_value.GetValue())
 
         if evt is not None:
             evt.Skip()
 
-    def on_view_notification(self, evt):
-        self.config.unidec_plot_panel_view = self.unidec_view_value.GetStringSelection()
+    def on_view_notification(self, _evt):
+        """Show notification to the user"""
+        CONFIG.unidec_plot_panel_view = self.unidec_view_value.GetStringSelection()
+        CONFIG.unidec_plot_settings_view = self.unidec_settings_value.GetStringSelection()
 
         DialogBox(
             title="Warning",
@@ -422,8 +426,9 @@ class DialogCustomiseUniDecVisuals(Dialog):
         )
 
     def on_toggle_controls(self, evt):
-        self.config.unidec_plot_color_scheme = self.colorScheme_value.GetStringSelection()
-        if self.config.unidec_plot_color_scheme == "Colormap":
+        """Toggle controls"""
+        CONFIG.unidec_plot_color_scheme = self.color_scheme_value.GetStringSelection()
+        if CONFIG.unidec_plot_color_scheme == "Colormap":
             self.colormap_value.Enable()
             self.color_palette_value.Disable()
         else:
@@ -432,3 +437,15 @@ class DialogCustomiseUniDecVisuals(Dialog):
 
         if evt is not None:
             evt.Skip()
+
+
+def _main():
+    app = wx.App()
+    ex = DialogCustomiseUniDecVisuals(None)
+
+    ex.Show()
+    app.MainLoop()
+
+
+if __name__ == "__main__":
+    _main()

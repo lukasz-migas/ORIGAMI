@@ -1012,12 +1012,15 @@ class Config:
         self.unidec_mwFrequency = 100
         self.unidec_peakWidth = 2.0
         self.unidec_peakWidth_auto = True
-        self.unidec_peakFunction_choices = {"Gaussian": 0, "Lorentzian": 1, "Split G/L": 2}
+        self.unidec_peakFunction_choices = ["Gaussian", "Lorentzian", "Split G/L"]
+        self.unidec_peakFunction_dict = {"Gaussian": 0, "Lorentzian": 1, "Split G/L": 2}
+
         self.unidec_peakFunction = "Lorentzian"
 
         self.unidec_peakDetectionWidth = 500.0
         self.unidec_peakDetectionThreshold = 0.1
-        self.unidec_peakNormalization_choices = {"None": 0, "Max": 1, "Total": 2}
+        self.unidec_peakNormalization_choices = ["None", "Max", "Total"]
+        self.unidec_peakNormalization_dict = {"None": 0, "Max": 1, "Total": 2}
         self.unidec_peakNormalization = "Max"
         self.unidec_lineSeparation = 0.05
         self.unidec_maxIterations = 100
@@ -1044,7 +1047,10 @@ class Config:
         self.unidec_plot_colormap = "viridis"
         self.unidec_plot_palette = "HLS"
         self.unidec_plot_contour_levels = 75
+        self.unidec_plot_panel_view_choices = ["Single page view", "Tabbed view"]
         self.unidec_plot_panel_view = "Tabbed view"
+        self.unidec_plot_settings_view_choices = ["Left-hand side", "Right-hand side"]
+        self.unidec_plot_settings_view = "Left-hand side"
 
         # ORIGAMI
         self.origami_method_choices = ["Linear", "Exponential", "Boltzmann", "User-defined"]
@@ -1118,8 +1124,8 @@ class Config:
         self.plot_panel_ms_extract_heatmap_popup = True
         self.plot_panel_ms_extract_rt = True
         self.plot_panel_ms_extract_rt_popup = True
-        self.plot_panel_ms_extract_mobilogram = True
-        self.plot_panel_ms_extract_mobilogram_popup = True
+        self.plot_panel_ms_extract_dt = True
+        self.plot_panel_ms_extract_dt_popup = True
 
         # events in RT panel
         self.plot_panel_rt_extract_ms = True
@@ -2391,8 +2397,8 @@ class Config:
                         "plot_panel_ms_extract_heatmap_popup": self.plot_panel_ms_extract_heatmap_popup,
                         "plot_panel_ms_extract_rt": self.plot_panel_ms_extract_rt,
                         "plot_panel_ms_extract_rt_popup": self.plot_panel_ms_extract_rt_popup,
-                        "plot_panel_ms_extract_mobilogram": self.plot_panel_ms_extract_mobilogram,
-                        "plot_panel_ms_extract_mobilogram_popup": self.plot_panel_ms_extract_mobilogram_popup,
+                        "plot_panel_ms_extract_mobilogram": self.plot_panel_ms_extract_dt,
+                        "plot_panel_ms_extract_mobilogram_popup": self.plot_panel_ms_extract_dt_popup,
                         "plot_panel_rt_extract_ms": self.plot_panel_rt_extract_ms,
                         "plot_panel_rt_extract_ms_popup": self.plot_panel_rt_extract_ms_popup,
                         "plot_panel_dt_extract_ms": self.plot_panel_dt_extract_ms,
@@ -2526,8 +2532,10 @@ class Config:
         # simplest case where types match perfectly
         if current_type == new_type:
             if hasattr(self, f"{name}_choices"):
-                if current_type not in getattr(self, f"{name}_choices"):
-                    return False
+                choices = getattr(self, f"{name}_choices")
+                if isinstance(choices, (list, tuple)):
+                    if current_type not in choices:
+                        return False
             return True
         if current_type in [int, float] and new_type in [int, float]:
             return True

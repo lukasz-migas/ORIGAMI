@@ -1,6 +1,7 @@
 """Test LESA viewer"""
 # Third-party imports
 import wx
+import sys
 import pytest
 
 # Local imports
@@ -10,12 +11,13 @@ from ..wxtc import WidgetTestCase
 
 
 @pytest.mark.guitest
+@pytest.mark.skipif(sys.platform == "win32", reason="Running this test under Windows can sporadically cause errors")
 class TestPanelImagingImportDataset(WidgetTestCase):
     """Test dialog"""
 
     def test_panel_create(self):
         dlg = PanelImagingImportDataset(None, None)
-        # dlg.Show()
+        dlg.Hide()
         self.wait_for(500)
 
         # ensure shape values are of correct color

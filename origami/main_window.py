@@ -1043,7 +1043,7 @@ class MainWindow(wx.Frame):
 
     def on_customise_unidec_plot_parameters(self, _evt):
         """Open dialog to customise unidec parameters"""
-        from origami.widgets.UniDec.dialog_customise_unidec_visuals import DialogCustomiseUniDecVisuals
+        from origami.widgets.unidec.dialog_customise_unidec_visuals import DialogCustomiseUniDecVisuals
 
         dlg = DialogCustomiseUniDecVisuals(self, CONFIG, self.icons)
         dlg.ShowModal()

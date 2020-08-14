@@ -89,10 +89,14 @@ class MiniFrame(wx.MiniFrame, ActivityIndicatorMixin, DocumentationMixin):
     """Proxy of MiniFrame"""
 
     def __init__(
-        self, parent, style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX | wx.STAY_ON_TOP, **kwargs
+        self,
+        parent,
+        style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX | wx.STAY_ON_TOP,
+        size=(-1, -1),
+        **kwargs,
     ):
         bind_key_events = kwargs.pop("bind_key_events", True)
-        wx.MiniFrame.__init__(self, parent, -1, size=(-1, -1), style=style, **kwargs)
+        wx.MiniFrame.__init__(self, parent, -1, size=size, style=style, **kwargs)
         self.parent = parent
 
         self.Bind(wx.EVT_CLOSE, self.on_close)

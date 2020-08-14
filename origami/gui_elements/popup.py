@@ -11,7 +11,6 @@ class PopupMixin:
 
     ld_pos = None
     w_pos = None
-    _icons = None
     title = None
 
     ENABLE_MOVE = True
@@ -52,9 +51,8 @@ class PopupMixin:
 
     def set_close_btn(self, sizer):
         """Set exit button in the popup window"""
-        if self._icons is None:
-            return
-        close_btn = make_bitmap_btn(self, wx.ID_ANY, self._icons.clear)
+        icon = wx.ArtProvider.GetBitmap(wx.ART_DELETE, wx.ART_BUTTON, wx.Size(24, 24))
+        close_btn = make_bitmap_btn(self, wx.ID_ANY, icon, style=wx.BORDER_NONE)
         close_btn.Bind(wx.EVT_BUTTON, self.on_dismiss)
 
         self.title = wx.StaticText(self, -1, "")
@@ -109,6 +107,7 @@ class PopupMixin:
         px, py = self.GetSize()  # noqa
         x = x + dx - px - move_h - 25
         y = y + dy - py - move_v - 25
+        print(x, y)
         self.SetPosition((x, y))  # noqa
 
     def position_on_mouse(self, move_h: int = 0, move_v: int = 0):
@@ -140,10 +139,8 @@ class PopupMixin:
 class PopupBase(wx.PopupWindow, PopupMixin):
     """Create popup window to modify few uncommon settings"""
 
-    def __init__(self, parent, style=wx.BORDER_SIMPLE, icons=None):
+    def __init__(self, parent, style=wx.BORDER_SIMPLE):
         wx.PopupWindow.__init__(self, parent, style)
-        if icons:
-            self._icons = icons
         self.make_panel()
 
         if self.ENABLE_MOVE:

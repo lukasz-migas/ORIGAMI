@@ -370,7 +370,6 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
     def make_notebook(self, split_panel):
         """Make settings notebook"""
         panel = wxScrolledPanel.ScrolledPanel(split_panel, size=(-1, -1), name="main")
-        # panel = wx.Panel(split_panel)
 
         # make pre-processing panel
         preprocess_panel = self.make_settings_panel_preprocess(panel)

@@ -16,7 +16,7 @@ from origami.config.config import CONFIG
 class _PlotHeatmap3d(scene.SceneCanvas):
     """Canvas class"""
 
-    view = None
+    node = None
     base_plot = None
     base_xaxis = None
     base_yaxis = None
@@ -239,8 +239,7 @@ class _PlotHeatmap3d(scene.SceneCanvas):
         # transform data to show it in correct manner
         x, y, array = self.transform(x, y, array)
 
-        self.base_plot = scene.visuals.SurfacePlot(x=x, y=y, z=array)
-        self.view.add(self.base_plot)
+        self.base_plot = scene.visuals.SurfacePlot(x=x, y=y, z=array, parent=self.view.scene)
 
         # set data
         self._array, self._x, self._y = array, x, y
@@ -249,6 +248,49 @@ class _PlotHeatmap3d(scene.SceneCanvas):
         self.set_colormap(CONFIG.heatmap_3d_colormap)
         self._set_axes(array, x_label, y_label, z_label)
         self.PLOT_TYPE = "heatmap-3d"
+
+    def plot_3d_image(self, x, y, array, x_label: str = "", y_label: str = "", z_label: str = "", **kwargs):  # noqa
+        """Plot data in 3D"""
+        # set camera
+        # self.set_camera((0.5, 0.5, 0))
+
+        # transform data to show it in correct manner
+        x, y, array = self.transform(x, y, array)
+
+        self.base_plot = scene.visuals.Image(array, parent=self.view.scene)
+
+        # set data
+        self._array, self._x, self._y = array, x, y
+
+        # set colormap
+        self.view.camera = scene.PanZoomCamera()
+        # self.view.camera.set_range()
+        # self.set_colormap(CONFIG.heatmap_3d_colormap)
+        self._set_axes(array, x_label, y_label, z_label)
+        self.PLOT_TYPE = "heatmap-2d"
+
+    def plot_3d_waterfall(self, x, y, array, x_label: str = "", y_label: str = "", z_label: str = "", **kwargs):  # noqa
+        """Plot data in 3D"""
+        # set camera
+        # self.set_camera((0.5, 0.5, 0))
+
+        # transform data to show it in correct manner
+        x, y, array = self.transform(x, y, array)
+
+        for i, _y in enumerate(array):
+            line = scene.visuals.Line(np.c_[x, _y + i], parent=self.view.scene)
+            line.transform = scene.transforms.STTransform()
+        # self.base_plot = scene.visuals.Image(array, parent=self.view.scene)
+        #
+        # # set data
+        # self._array, self._x, self._y = array, x, y
+        #
+        # # set colormap
+        self.view.camera = scene.PanZoomCamera()
+        self.view.camera.set_range()
+        # self.set_colormap(CONFIG.heatmap_3d_colormap)
+        # self._set_axes(array, x_label, y_label, z_label)
+        self.PLOT_TYPE = "heatmap-2d"
 
     def plot_3d_update(self, x, y, array, x_label: str = "", y_label: str = "", z_label: str = "", **kwargs):  # noqa
         """Update plot data in 3D"""
@@ -265,9 +307,6 @@ class _PlotHeatmap3d(scene.SceneCanvas):
         # update data
         self.base_plot.set_data(x, y, array)
         self._array, self._x, self._y = array, x, y
-
-        # print(dir(self))
-        # print(dir(self.view))
 
         # set colormap
         self.set_colormap(CONFIG.heatmap_3d_colormap)
@@ -382,3 +421,45 @@ class PlotHeatmap3d(wx.Panel):
 #                 wx.TheClipboard.SetData(bmp_obj)
 #                 wx.TheClipboard.Close()
 #                 wx.TheClipboard.Flush()
+
+
+class TestPanel(wx.Dialog):
+    """Test panel"""
+
+    btn_1 = None
+    btn_2 = None
+
+    def __init__(self, parent):
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, title="TEST DIALOG")
+
+        plot_panel = wx.Panel(self)
+        plot_window = PlotHeatmap3d(plot_panel)  # , plot_id=self.NAME)
+
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(plot_window, 1, wx.EXPAND)
+        plot_panel.SetSizer(main_sizer)
+        main_sizer.Fit(plot_panel)
+
+        main_sizer.Fit(self)
+        self.SetSizerAndFit(main_sizer)
+        self.CenterOnScreen()
+        self.Show()
+
+        array = np.random.randint(0, 1, (200, 200))
+        array = array.astype(np.float32)
+
+        x = np.arange(array.shape[0])
+        y = np.arange(array.shape[1])
+        plot_window.canvas.plot_3d_image(x, y, array)
+
+
+def _main():
+    app = wx.App()
+    frame = wx.Frame(None, -1)
+    panel = TestPanel(frame)
+    panel.ShowModal()
+    app.MainLoop()
+
+
+if __name__ == "__main__":
+    _main()

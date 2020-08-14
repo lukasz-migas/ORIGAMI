@@ -6,7 +6,6 @@ from typing import Dict
 import wx
 
 # Local imports
-from origami.icons.assets import Icons
 from origami.gui_elements.popup import PopupBase
 from origami.gui_elements._panel import TestPanel  # noqa
 from origami.gui_elements.views.view_heatmap import ViewHeatmap
@@ -35,7 +34,6 @@ class PopupViewBase(PopupBase):
     def __init__(
         self, parent, style=wx.BORDER_SIMPLE, obj=None, allow_extraction: bool = False, callbacks: Dict = None
     ):
-        self._icons = Icons()
         self._allow_extraction = allow_extraction
         self._callbacks = callbacks
         if callbacks:

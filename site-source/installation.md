@@ -27,8 +27,7 @@ If, when you double-click on ORIGAMI.exe and a command window pops-up for a frac
 
 5. PyInstallerImportError
 
-A number of Windows 10 users have reported issues opening ORIGAMI.exe. It typically comes with this message:
-
+!!! important "A number of Windows 10 users have reported issues opening ORIGAMI.exe. It typically comes with this message:"
     PyInstallerImportError: Failed to load dynlib/dll 'C:\\Users\\USER\\ORIGAM~1.4\\ORIGAM~1.4\\MassLynxRaw.dll'. Most probably this dynlib/dll was not found when the application was frozen.
     [3428] Failed to execute script ORIGAMI
 
@@ -48,24 +47,30 @@ WxPython==3.0.2
 [List of dependancies](https://github.com/lukasz-migas/ORIGAMI/blob/master/ORIGAMI_ANALYSE/origami/origami_requirements.txt)
 Optional: Waters Driftscope (v2.7+)
 
-### Recomendations
+### Recommendations
 
 You are best of using conda or python environments to keep your Python installation nice and tidy. In order to create a conda environment, open a command window and type-in
 
 ```python
+# create new environment
 conda create -n origami
-```
-
-To activate this environment, type-in
-
-```python
+# activate the environment
 activate origami
-```
-
-To run ORIGAMI from source, type-in
-
-```python
+# install dependencies
+pip install requirements/requirements-std.txt
+# if you are using WindowsOS
+pip install requirements/requirements-wx.txt  # install wxPython dependency
+# if you are using Linux
+pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-18.04 wxPython
+# run
 python origami.py
 ```
 
-If you have installed all dependancies, you should be good! :)
+!!! note "Linux"
+    Installation on Linux machines is only experimental and many features might not work. If you are trying ORIGAMI
+    on Linux, you might have to install several extra libraries. See the list below.
+
+```bash
+sudo apt-get update --assume-yes
+sudo apt-get install --assume-yes git curl libsdl2-mixer-2.0-0 libsdl2-image-2.0-0 libsdl2-2.0-0 libwebkit2gtk-4.0
+```

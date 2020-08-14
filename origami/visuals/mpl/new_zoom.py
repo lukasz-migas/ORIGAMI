@@ -155,8 +155,8 @@ class MPLInteraction:
         axes,
         useblit=False,
         button=1,
-        data_limits=None,
         plotName=None,
+        data_limits=None,
         plot_id: str = None,
         plot_parameters=None,
         allow_wheel=True,
@@ -171,13 +171,13 @@ class MPLInteraction:
         self.axes = None
         self.canvas = None
         self.mpl_events = []
-        self.plotName = plotName
         self.plot_id = plot_id
         self.allow_extraction = allow_extraction
         self.is_heatmap = is_heatmap
         self.is_joint = is_joint
         self.data_object = obj
         self._image_scale = 0
+        self.plotName = plotName
 
         self.axes, self._callbacks, data_limits = self.validate_input(axes, callbacks, data_limits)
 
@@ -217,6 +217,7 @@ class MPLInteraction:
         self._ctrl_key = False
         self._alt_key = False
         self._shift_key = False
+        self._space_key = False
         self._button_down = False
         self._key_press = False
         self._mouse_wheel = False
@@ -372,6 +373,7 @@ class MPLInteraction:
         self._ctrl_key = wx.GetKeyState(wx.WXK_CONTROL)
         self._alt_key = wx.GetKeyState(wx.WXK_ALT)
         self._shift_key = wx.GetKeyState(wx.WXK_SHIFT)
+        self._space_key = wx.GetKeyState(wx.WXK_SPACE)
         self._trigger_extraction = False
 
         self._key_press = False
@@ -428,6 +430,7 @@ class MPLInteraction:
     def on_press(self, evt):
         """Event on button press"""
         pub.sendMessage("view.activate", view_id=self.plot_id)
+
         self.evt_press = evt
         # Is the correct button pressed within the correct axes?
         if self.ignore(evt):
@@ -472,10 +475,6 @@ class MPLInteraction:
 
         self._button_down = True
         pub.sendMessage("change_x_axis_start", xy_start=xy_start)
-
-        # make the box/line visible get the click-coordinates, button, ...
-        # for to_draw in self.to_draw:
-        #     to_draw.set_visible(self.visible)
         return False
 
     def on_release(self, evt):
@@ -560,13 +559,6 @@ class MPLInteraction:
             if self.is_multiscale:
                 self._handle_multiscale(False)
         self.canvas.draw()
-
-        #         xmin, xmax, ymin, ymax = self.get_axes_limits(a)
-
-        if self.plotName == "RMSF":
-            pub.sendMessage("change_zoom_rmsd", xmin=xmin, xmax=xmax)
-        elif self.plotName == "MSDT" and not self._trigger_extraction:
-            pub.sendMessage("change_zoom_dtms", xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
 
         # reset triggers
         if self._trigger_extraction:
