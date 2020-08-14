@@ -21,7 +21,6 @@ from origami.ids import ID_window_all
 from origami.ids import ID_helpYoutube
 from origami.ids import ID_fileMenu_MGF
 from origami.ids import ID_helpHomepage
-from origami.ids import ID_openDocument
 from origami.ids import ID_saveDocument
 from origami.ids import ID_fileMenu_mzML
 from origami.ids import ID_helpHTMLEditor
