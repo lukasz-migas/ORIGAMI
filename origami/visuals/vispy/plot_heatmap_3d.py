@@ -24,7 +24,7 @@ class _PlotHeatmap3d(scene.SceneCanvas):
 
     def __init__(self, plot_id="", *args, **kwargs):
         scene.SceneCanvas.__init__(
-            self, keys="interactive", show=True, bgcolor=CONFIG.heatmap_3d_background_color, *args, **kwargs
+            self, keys="interactive", show=False, bgcolor=CONFIG.heatmap_3d_background_color, *args, **kwargs
         )  # noqa
         self.unfreeze()
         self.view = self.central_widget.add_view()
