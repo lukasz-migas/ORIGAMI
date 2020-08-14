@@ -3,6 +3,7 @@
 import queue
 import logging
 from threading import Thread
+from threading import Event
 
 # Third-party imports
 from pubsub import pub
@@ -10,8 +11,26 @@ from pubsub import pub
 # Local imports
 from origami.handlers.call import Call
 from origami.utils.utilities import report_time
+from origami.utils.system import running_under_pytest
 
 LOGGER = logging.getLogger(__name__)
+
+
+class StoppableThread(Thread):
+    """Thread class with a stop() method. The thread itself has to check
+    regularly for the stopped() condition."""
+
+    def __init__(self, *args, **kwargs):
+        super(StoppableThread, self).__init__(*args, **kwargs)
+        self._stop_event = Event()
+
+    def stop(self):
+        """Stop the thread"""
+        self._stop_event.set()
+
+    def stopped(self):
+        """Check whether thread has been stopped"""
+        return self._stop_event.is_set()
 
 
 class QueueHandler:
@@ -111,4 +130,7 @@ class QueueHandler:
         return f"Queue<count={self.count()}>"
 
 
-QUEUE = QueueHandler(n_threads=4)
+if not running_under_pytest:
+    QUEUE = QueueHandler(n_threads=4)
+else:
+    QUEUE = None

@@ -587,7 +587,6 @@ class PanelPeaklist(TablePanelBase):
 
         # bind events
         self.Bind(wx.EVT_MENU, self.on_process_heatmap_selected, menu_action_process_heatmap)
-        self.Bind(wx.EVT_MENU, self.data_processing.on_combine_origami_collision_voltages, menu_action_combine_voltages)
         self.Bind(wx.EVT_MENU, self.on_open_origami_ms_panel, menu_action_setup_origami_parameters)
         self.Bind(wx.EVT_MENU, self.on_open_origami_ms_panel, menu_action_extract_spectrum)
 
