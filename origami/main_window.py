@@ -470,14 +470,14 @@ class MainWindow(wx.Frame):
         )
         menu_file.Append(menu_file_load_origami)
 
-        menu_file_load_pickle = make_menu_item(
-            parent=menu_file,
-            evt_id=ID_openDocument,
-            text="Open ORIGAMI Document file (.pickle) [LEGACY]",
-            bitmap=self.icons.iconsLib["open_project_16"],
-        )
-        menu_file_load_pickle.Enable(False)
-        menu_file.Append(menu_file_load_pickle)
+        # menu_file_load_pickle = make_menu_item(
+        #     parent=menu_file,
+        #     evt_id=ID_openDocument,
+        #     text="Open ORIGAMI Document file (.pickle) [LEGACY]",
+        #     bitmap=self.icons.iconsLib["open_project_16"],
+        # )
+        # menu_file_load_pickle.Enable(False)
+        # menu_file.Append(menu_file_load_pickle)
         menu_file.AppendSeparator()
         menu_file.Append(
             make_menu_item(
