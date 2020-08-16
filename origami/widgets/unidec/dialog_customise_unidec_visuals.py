@@ -71,17 +71,17 @@ class DialogCustomiseUniDecVisuals(Dialog, ConfigUpdateMixin, ColorGetterMixin, 
 
         unidec_max_iters_label = wx.StaticText(panel, wx.ID_ANY, "No. max iterations:")
         self.unidec_maxIters_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("intPos"))
-        self.unidec_maxIters_value.SetValue(str(CONFIG.unidec_maxIterations))
+        self.unidec_maxIters_value.SetValue(str(CONFIG.unidec_panel_max_iterations))
         self.unidec_maxIters_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         unidec_max_shown_label = wx.StaticText(panel, wx.ID_ANY, "No. max shown lines:")
         self.unidec_max_shown_lines_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("intPos"))
-        self.unidec_max_shown_lines_value.SetValue(str(CONFIG.unidec_maxShown_individualLines))
+        self.unidec_max_shown_lines_value.SetValue(str(CONFIG.unidec_panel_plot_line_max_shown))
         self.unidec_max_shown_lines_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         remove_label_overlap_label = wx.StaticText(panel, wx.ID_ANY, "Optimise label position:")
         self.unidec_labels_optimise_position_check = make_checkbox(panel, "")
-        self.unidec_labels_optimise_position_check.SetValue(CONFIG.unidec_optimiseLabelPositions)
+        self.unidec_labels_optimise_position_check.SetValue(CONFIG.unidec_panel_plot_optimize_label_position)
         self.unidec_labels_optimise_position_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         # MS and MS Fit
@@ -101,7 +101,7 @@ class DialogCustomiseUniDecVisuals(Dialog, ConfigUpdateMixin, ColorGetterMixin, 
 
         speedy_label = wx.StaticText(panel, wx.ID_ANY, "Quick plot:")
         self.speedy_check = make_checkbox(panel, "")
-        self.speedy_check.SetValue(CONFIG.unidec_speedy)
+        self.speedy_check.SetValue(CONFIG.unidec_panel_plot_speed_heatmap)
         self.speedy_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         contour_levels_label = wx.StaticText(panel, -1, "Contour levels:")
@@ -406,10 +406,10 @@ class DialogCustomiseUniDecVisuals(Dialog, ConfigUpdateMixin, ColorGetterMixin, 
         CONFIG.unidec_plot_colormap = self.colormap_value.GetStringSelection()
         CONFIG.unidec_plot_palette = self.color_palette_value.GetStringSelection()
 
-        CONFIG.unidec_optimiseLabelPositions = self.unidec_labels_optimise_position_check.GetValue()
-        CONFIG.unidec_speedy = self.speedy_check.GetValue()
-        CONFIG.unidec_maxShown_individualLines = str2int(self.unidec_max_shown_lines_value.GetValue())
-        CONFIG.unidec_maxIterations = str2int(self.unidec_maxIters_value.GetValue())
+        CONFIG.unidec_panel_plot_optimize_label_position = self.unidec_labels_optimise_position_check.GetValue()
+        CONFIG.unidec_panel_plot_speed_heatmap = self.speedy_check.GetValue()
+        CONFIG.unidec_panel_plot_line_max_shown = str2int(self.unidec_max_shown_lines_value.GetValue())
+        CONFIG.unidec_panel_max_iterations = str2int(self.unidec_maxIters_value.GetValue())
 
         if evt is not None:
             evt.Skip()

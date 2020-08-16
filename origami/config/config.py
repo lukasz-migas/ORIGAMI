@@ -992,46 +992,53 @@ class Config:
         self.annotation_patch_width = 3  # new in v1.2.1
 
         # UniDec
-        self.unidec_mzStart = 500
-        self.unidec_mzEnd = 8000
-        self.unidec_mzBinSize = 0.1
-        self.unidec_gaussianFilter = 0.0
-        self.unidec_linearization_choices = {
-            "Linear m/z": 0,
-            "Linear resolution": 1,
-            "Nonlinear": 2,
-            "Linear interpolation": 3,
-            "Linear resolution interpolation": 4,
-        }
-        self.unidec_linearization = "Linear m/z"
-        self.unidec_accelerationV = 0.0
-        self.unidec_zStart = 1
-        self.unidec_zEnd = 100
-        self.unidec_mwStart = 500
-        self.unidec_mwEnd = 150000
-        self.unidec_mwFrequency = 100
-        self.unidec_peakWidth = 2.0
-        self.unidec_peakWidth_auto = True
-        self.unidec_peakFunction_choices = ["Gaussian", "Lorentzian", "Split G/L"]
-        self.unidec_peakFunction_dict = {"Gaussian": 0, "Lorentzian": 1, "Split G/L": 2}
-
-        self.unidec_peakFunction = "Lorentzian"
-
-        self.unidec_peakDetectionWidth = 500.0
-        self.unidec_peakDetectionThreshold = 0.1
-        self.unidec_peakNormalization_choices = ["None", "Max", "Total"]
-        self.unidec_peakNormalization_dict = {"None": 0, "Max": 1, "Total": 2}
-        self.unidec_peakNormalization = "Max"
-        self.unidec_lineSeparation = 0.05
-        self.unidec_maxIterations = 100
-        self.unidec_charges_label_charges = 0.05
-        self.unidec_charges_offset = 0.01
-        self.unidec_show_individualComponents = True
-        self.unidec_show_markers = True
-        self.unidec_speedy = True
-        self.unidec_show_chargeStates = False
-        self.unidec_maxShown_individualLines = 100
-        self.unidec_optimiseLabelPositions = True
+        # self.unidec_mzStart = 500
+        # self.unidec_mzEnd = 8000
+        # self.unidec_mzBinSize = 0.1
+        # self.unidec_gaussianFilter = 0.0
+        # self.unidec_linearization_choices = {
+        #     "Linear m/z": 0,
+        #     "Linear resolution": 1,
+        #     "Nonlinear": 2,
+        #     "Linear interpolation": 3,
+        #     "Linear resolution interpolation": 4,
+        # }
+        # self.unidec_linearization = "Linear m/z"
+        # self.unidec_accelerationV = 0.0
+        self.unidec_panel_z_start = 1
+        self.unidec_panel_z_end = 100
+        self.unidec_panel_mw_start = 500
+        self.unidec_panel_mw_end = 150000
+        self.unidec_panel_mw_bin_size = 100
+        self.unidec_panel_adduct_mass = 1.007276467
+        self.unidec_panel_softmax_beta = 500  # beta
+        self.unidec_panel_smooth_charge_distribution = 1  # zzsig
+        self.unidec_panel_smooth_nearby_points = 1  # psig
+        self.unidec_panel_smooth_mass_width = 0  # msig
+        self.unidec_panel_peak_width = 2.0
+        self.unidec_panel_peak_width_auto = True
+        self.unidec_panel_peak_func_choices = ["Gaussian", "Lorentzian", "Split G/L"]
+        self.unidec_panel_peak_func_dict = {"Gaussian": 0, "Lorentzian": 1, "Split G/L": 2}
+        self.unidec_panel_peak_func = "Lorentzian"
+        self.unidec_panel_mz_to_mw_transform_choices = ["Integrate", "Interpolate", "Smart"]
+        self.unidec_panel_mz_to_mw_transform_dict = {"Integrate": 0, "Interpolate": 1, "Smart": 2}
+        self.unidec_panel_mz_to_mw_transform = "Smart"
+        self.unidec_panel_negative_mode = False
+        self.unidec_panel_peak_detect_width = 500.0
+        self.unidec_panel_peak_detect_threshold = 0.1
+        self.unidec_panel_peak_detect_norm_choices = ["None", "Max", "Total"]
+        self.unidec_panel_peak_detect_norm_dict = {"None": 0, "Max": 1, "Total": 2}
+        self.unidec_panel_peak_detect_norm = "Max"
+        self.unidec_panel_plot_line_sep = 0.05
+        self.unidec_panel_max_iterations = 100
+        self.unidec_panel_plot_charges_label_threshold = 0.05
+        self.unidec_panel_plot_charges_label_offset = 0.01
+        self.unidec_panel_plot_charges_show = False
+        self.unidec_panel_plot_line_show = True
+        self.unidec_panel_plot_line_max_shown = 100
+        self.unidec_panel_plot_markers_show = True
+        self.unidec_panel_plot_speed_heatmap = True
+        self.unidec_panel_plot_optimize_label_position = True
 
         self.unidec_plot_fit_lineColor = (1.0, 0.0, 0.0)
         self.unidec_plot_MW_showMarkers = True
@@ -1048,7 +1055,7 @@ class Config:
         self.unidec_plot_palette = "HLS"
         self.unidec_plot_contour_levels = 75
         self.unidec_plot_panel_view_choices = ["Single page view", "Tabbed view"]
-        self.unidec_plot_panel_view = "Tabbed view"
+        self.unidec_plot_panel_view = "Single page view"
         self.unidec_plot_settings_view_choices = ["Left-hand side", "Right-hand side"]
         self.unidec_plot_settings_view = "Left-hand side"
 
@@ -1747,6 +1754,7 @@ class Config:
 
         # setup paths
         self.setup_paths()
+        self.setup_temporary_dir()
 
     def on_check_parameters(self, data_type="all"):
         """
@@ -2085,7 +2093,7 @@ class Config:
                         "color_scheme": self.unidec_plot_color_scheme,
                         "heatmap_colormap": self.unidec_plot_colormap,
                         "palette": self.unidec_plot_palette,
-                        "maximum_shown_items": self.unidec_maxShown_individualLines,
+                        "maximum_shown_items": self.unidec_panel_plot_line_max_shown,
                         "contour_levels": self.unidec_plot_contour_levels,
                     }
                 )

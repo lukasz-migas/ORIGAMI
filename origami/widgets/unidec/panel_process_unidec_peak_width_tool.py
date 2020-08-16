@@ -11,6 +11,8 @@ from origami.gui_elements.helpers import make_tooltip
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
 
+# from origami.processing.unidec_.fitting import isolated_peak_fit
+
 
 class PanelPeakWidthTool(MiniFrame):
     """Utility tool to estimate peak width in the mass spectrum"""
@@ -90,8 +92,8 @@ class PanelPeakWidthTool(MiniFrame):
         info_txt = wx.StaticText(panel, wx.ID_ANY, msg)
 
         unidec_peak_shape_label = wx.StaticText(panel, wx.ID_ANY, "Peak Shape:")
-        self.unidec_peak_fcn_choice = wx.Choice(panel, -1, choices=CONFIG.unidec_peakFunction_choices, size=(-1, -1))
-        self.unidec_peak_fcn_choice.SetStringSelection(CONFIG.unidec_peakFunction)
+        self.unidec_peak_fcn_choice = wx.Choice(panel, -1, choices=CONFIG.unidec_panel_peak_func_choices, size=(-1, -1))
+        self.unidec_peak_fcn_choice.SetStringSelection(CONFIG.unidec_panel_peak_func)
         self.unidec_peak_fcn_choice.Bind(wx.EVT_CHOICE, self.on_fit_peak)
 
         unidec_peak_width_label = wx.StaticText(panel, wx.ID_ANY, "Peak FWHM (Da):")

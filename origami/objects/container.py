@@ -60,6 +60,15 @@ class ContainerBase:
             self.owner = (document_title, value)
 
     @property
+    def dataset_name(self):
+        """Return the base title of the object"""
+        title = self.title
+        if title is None or "/" not in title:
+            return ""
+        _, dataset_name = title.split("/")
+        return dataset_name
+
+    @property
     def unsaved(self):
         """Returns the flag to indicate that this object has some unsaved changes"""
         return self._unsaved
@@ -81,6 +90,18 @@ class ContainerBase:
         if not isinstance(metadata, dict):
             raise ValueError("Cannot parse metadata that is not a dictionary")
         self._metadata.update(**metadata)
+
+    def get_metadata(self, key, default):
+        """Return metadata"""
+        return self._metadata.get(key, default)
+
+    def add_metadata(self, key, value):
+        """Add metadata key:value pair"""
+        if not isinstance(key, str):
+            raise ValueError("Metadata `key` must be a string")
+        if not isinstance(value, (bool, str, int, float, list, tuple)):
+            raise ValueError("Metadata `value` must be JSON serializable")
+        self._metadata[key] = value
 
     @property
     def output_path(self):
@@ -130,7 +151,3 @@ class ContainerBase:
         if self.owner is not None:
             parent, _ = self.owner
             return ENV.on_get_document(parent)
-
-    def get_metadata(self, key, default):
-        """Return metadata"""
-        self._metadata.get(key, default)

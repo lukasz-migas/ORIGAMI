@@ -1,7 +1,7 @@
 # Standard library imports
+import time
 import logging
 import threading
-from time import time as ttime
 
 # Third-party imports
 import numpy as np
@@ -11,20 +11,19 @@ import origami.processing.utils as pr_utils
 import origami.processing.heatmap as pr_heatmap
 import origami.processing.spectra as pr_spectra
 import origami.processing.peptide_annotation as pr_frag
-from origami.utils.path import clean_filename
-from origami.utils.check import isempty
-from origami.utils.color import convert_rgb_255_to_1
 from origami.utils.converters import str2num
 from origami.utils.exceptions import MessageError
-from origami.processing.UniDec import unidec
+
+# from misc.code.UniDec import unidec
 from origami.config.environment import ENV
-from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.misc_dialogs import DialogSimpleAsk
 
 logger = logging.getLogger(__name__)
 
 
 class DataProcessing:
+    """Data processing"""
+
     def __init__(self, presenter, view, config, **kwargs):
         self.presenter = presenter
         self.view = view
@@ -33,8 +32,8 @@ class DataProcessing:
         self.frag_generator = pr_frag.PeptideAnnotation()
 
         # unidec parameters
-        self.unidec_dataset = None
-        self.unidec_document = None
+        # self.unidec_dataset = None
+        # self.unidec_document = None
 
     @property
     def data_handling(self):
@@ -68,9 +67,7 @@ class DataProcessing:
             decides which action should be taken
         """
 
-        if action == "process.unidec.run":
-            th = threading.Thread(target=self.on_run_unidec, args=args, **kwargs)
-        elif action == "custom.action":
+        if action == "custom.action":
             fcn = kwargs.pop("fcn")
             th = threading.Thread(target=fcn, args=args, **kwargs)
 
@@ -214,7 +211,7 @@ class DataProcessing:
     #     """
     #     document = self.data_handling.on_get_document()
     #
-    #     tstart = ttime()
+    #     tstart = time.time()
     #     if document.dataType in ["Type: ORIGAMI", "Type: MANUAL", "Type: Infrared", "Type: MassLynx", "Type: MS"]:
     #         panel = self.ionPanel
     #         tempList = self.ionList
@@ -665,7 +662,7 @@ class DataProcessing:
     #                         # Removing duplicates
     #                         self.view.panelCCS.topP.onRemoveDuplicates(evt=None)
     #
-    #         msg = "Found {} peaks in {:.4f} seconds.".format(peak_count, ttime() - tstart)
+    #         msg = "Found {} peaks in {:.4f} seconds.".format(peak_count, time.time() - tstart)
     #         self.presenter.onThreading(None, (msg, 4), action="updateStatusbar")
 
     def get_document_annotations(self):
@@ -753,7 +750,7 @@ class DataProcessing:
         return xvals, zvals
 
     def on_get_peptide_fragments(self, spectrum_dict, label_format={}, get_lists=False, **kwargs):
-        tstart = ttime()
+        tstart = time.time()
         id_num = kwargs.get("id_num", 0)
         if len(label_format) == 0:
             label_format = {"fragment_name": True, "peptide_seq": False, "charge": True, "delta_mz": False}
@@ -812,7 +809,7 @@ class DataProcessing:
         # print info
         if kwargs.get("verbose", False):
             msg = "Matched {} peaks in the spectrum for peptide {}. It took {:.4f}.".format(
-                len(found_peaks), peptide, ttime() - tstart
+                len(found_peaks), peptide, time.time() - tstart
             )
             print(msg)
 
@@ -829,516 +826,6 @@ class DataProcessing:
 
         # return peaks only
         return found_peaks
-
-    def _check_unidec_input(self, **kwargs):
-        if "mz_min" in kwargs and "mz_max" in kwargs:
-            if self.config.unidec_mzStart > kwargs["mz_max"]:
-                self.config.unidec_mzStart = np.round(kwargs["mz_min"], 0)
-
-            if self.config.unidec_mzEnd < kwargs["mz_min"]:
-                self.config.unidec_mzEnd = np.round(kwargs["mz_max"], 0)
-
-        if "mz_max" in kwargs:
-            if self.config.unidec_mzEnd > kwargs["mz_max"]:
-                self.config.unidec_mzEnd = np.round(kwargs["mz_max"], 0)
-
-    def _unidec_initilize(self, document_title, dataset, msX, msY):
-        logger.info("UniDec: Loading data...")
-
-        file_name = "".join([document_title, "_", dataset])
-        file_name = clean_filename(file_name)
-        folder = self.config.APP_TEMP_DATA_PATH
-        kwargs = {"clean": True}
-        self.config.unidec_engine.open_file(
-            file_name=file_name, file_directory=folder, data_in=np.transpose([msX, msY]), **kwargs
-        )
-        logger.info("UniDec: Finished loading data...")
-
-    def _unidec_preprocess(self, dataset):
-        tstart = ttime()
-        logger.info("UniDec: Pre-processing...")
-        # preprocess
-        try:
-            self.config.unidec_engine.process_data()
-        except IndexError:
-            self.on_run_unidec(dataset, task="load_data_unidec")
-            self.presenter.onThreading(
-                None, ("No data was loaded. Trying to load it automatically", 4), action="updateStatusbar"
-            )
-            return
-        except ValueError:
-            msg = (
-                "Interpolation range is above the 'true' data range."
-                + "Consider reducing interpolation range to cover the span of the mass spectrum"
-            )
-            self.presenter.onThreading(None, (msg, 4), action="updateStatusbar")
-            DialogBox(title="Error", msg=msg, kind="Error")
-            return
-        logger.info(f"UniDec: Finished pre-processing in {ttime()-tstart:.2f} seconds")
-
-    def _unidec_run(self):
-        tstart = ttime()
-        logger.info("UniDec: Deconvoluting...")
-
-        if self.config.unidec_peakWidth_auto:
-            self.config.unidec_engine.get_auto_peak_width()
-        else:
-            self.config.unidec_engine.config.mzsig = self.config.unidec_peakWidth
-
-        try:
-            self.config.unidec_engine.run_unidec()
-            self.config.unidec_peakWidth = self.config.unidec_engine.config.mzsig
-        except IndexError:
-            raise MessageError("Error", "Please load and pre-process data first")
-        except ValueError:
-            self.presenter.onThreading(None, ("Could not perform task", 4), action="updateStatusbar")
-            return
-        logger.info(f"UniDec: Finished deconvoluting in {ttime()-tstart:.2f} seconds")
-
-    def _unidec_find_peaks(self):
-        tstart = ttime()
-        logger.info("UniDec: Picking peaks...")
-
-        # check if there is data in the dataset
-        if len(self.config.unidec_engine.data.massdat) == 0:
-            raise MessageError("Incorrect input", "Please `Run UniDec` first as there is missing data")
-
-        # pick peaks
-        try:
-            self.config.unidec_engine.pick_peaks()
-        except (ValueError, ZeroDivisionError) as err:
-            print(err)
-            msg = (
-                "Failed to find peaks. Try increasing the value of 'Peak detection window (Da)'. "
-                + "This value should be >= 'Sample frequency (Da)'"
-            )
-            raise MessageError("Error", msg)
-        except IndexError as err:
-            print(err)
-            raise MessageError("Error", "Index error. Try reducing value of 'Sample frequency (Da)'")
-
-        # convolve peaks
-        logger.info(f"UniDec: Finished picking peaks in {ttime()-tstart:.2f} seconds")
-        logger.info("UniDec: Convolving peaks...")
-        try:
-            self.config.unidec_engine.convolve_peaks()
-        except OverflowError as err:
-            print(err)
-            msg = "Too many peaks! Try again with larger 'Peak detection threshold' or 'Peak detection window (Da).'"
-            raise MessageError("Error", msg)
-        logger.info(f"UniDec: Finished convolving peaks in {ttime()-tstart:.2f} seconds")
-
-    def _unidec_isolate(self):
-        tstart = ttime()
-        logger.info("UniDec: Isolating MW...")
-
-        try:
-            self.config.unidec_engine.pick_peaks()
-        except (ValueError, ZeroDivisionError):
-            msg = (
-                "Failed to find peaks. Try increasing the value of 'Peak detection window (Da)'"
-                + "to be same or larger than 'Sample frequency (Da)'."
-            )
-            DialogBox(title="Error", msg=msg, kind="Error")
-            return
-
-        except IndexError:
-            DialogBox(title="Error", msg="Please run UniDec first", kind="Error")
-            return
-
-        logger.info(f"UniDec: Finished isolating a single MW in {ttime()-tstart:.2f} seconds")
-
-    def _unidec_autorun(self):
-        tstart = ttime()
-        logger.info("UniDec: Started Autorun...")
-        self.config.unidec_engine.autorun()
-        self.config.unidec_engine.convolve_peaks()
-        logger.info(f"UniDec: Finished Autorun in {ttime()-tstart:.2f} seconds")
-
-    def _unidec_setup_parameters(self):
-
-        # set common parameters
-        self.config.unidec_engine.config.numit = self.config.unidec_maxIterations
-
-        # preprocess
-        self.config.unidec_engine.config.minmz = self.config.unidec_mzStart
-        self.config.unidec_engine.config.maxmz = self.config.unidec_mzEnd
-        self.config.unidec_engine.config.mzbins = self.config.unidec_mzBinSize
-        self.config.unidec_engine.config.smooth = self.config.unidec_gaussianFilter
-        self.config.unidec_engine.config.accvol = self.config.unidec_accelerationV
-        self.config.unidec_engine.config.linflag = self.config.unidec_linearization_choices[
-            self.config.unidec_linearization
-        ]
-        self.config.unidec_engine.config.cmap = self.config.heatmap_colormap
-
-        # unidec engine
-        self.config.unidec_engine.config.masslb = self.config.unidec_mwStart
-        self.config.unidec_engine.config.massub = self.config.unidec_mwEnd
-        self.config.unidec_engine.config.massbins = self.config.unidec_mwFrequency
-        self.config.unidec_engine.config.startz = self.config.unidec_zStart
-        self.config.unidec_engine.config.endz = self.config.unidec_zEnd
-        self.config.unidec_engine.config.numz = self.config.unidec_zEnd - self.config.unidec_zStart
-        self.config.unidec_engine.config.psfun = self.config.unidec_peakFunction_choices[
-            self.config.unidec_peakFunction
-        ]
-
-        # peak finding
-        self.config.unidec_engine.config.peaknorm = self.config.unidec_peakNormalization_choices[
-            self.config.unidec_peakNormalization
-        ]
-        self.config.unidec_engine.config.peakwindow = self.config.unidec_peakDetectionWidth
-        self.config.unidec_engine.config.peakthresh = self.config.unidec_peakDetectionThreshold
-        self.config.unidec_engine.separation = self.config.unidec_lineSeparation
-
-    def _calculate_peak_widths(self, chargeList, selectedMW, peakWidth, adductIon="H+"):
-        _adducts = {
-            "H+": 1.007276467,
-            "Na+": 22.989218,
-            "K+": 38.963158,
-            "NH4+": 18.033823,
-            "H-": -1.007276,
-            "Cl-": 34.969402,
-        }
-        min_mz, max_mz = (
-            np.min(self.config.unidec_engine.data.data2[:, 0]),
-            np.max(self.config.unidec_engine.data.data2[:, 0]),
-        )
-        charges = np.array(list(map(int, np.arange(chargeList[0, 0], chargeList[-1, 0] + 1))))
-        peakpos = (float(selectedMW) + charges * _adducts[adductIon]) / charges
-
-        ignore = (peakpos > min_mz) & (peakpos < max_mz)
-        peakpos, charges, intensities = peakpos[ignore], charges[ignore], chargeList[:, 1][ignore]
-
-        # calculate min and max value based on the peak width
-        mw_annotations = {}
-        for peak, charge, intensity in zip(peakpos, charges, intensities):
-            min_value = peak - peakWidth / 2.0
-            max_value = peak + peakWidth / 2.0
-            label_value = "MW: {}".format(selectedMW)
-            annotation_dict = {
-                "min": min_value,
-                "max": max_value,
-                "charge": charge,
-                "intensity": intensity,
-                "label": label_value,
-                "color": self.config.interactive_ms_annotations_color,
-            }
-
-            name = "{} - {}".format(np.round(min_value, 2), np.round(max_value, 2))
-            mw_annotations[name] = annotation_dict
-        return mw_annotations
-
-    def on_run_unidec_fcn(self, dataset, task, **kwargs):
-        if not self.config.APP_ENABLE_THREADING:
-            self.on_run_unidec(dataset, task, **kwargs)
-        else:
-            self.on_threading(action="process.unidec.run", args=(dataset, task), kwargs=kwargs)
-
-    def on_run_unidec(self, dataset, task, **kwargs):
-        """Runner function
-
-        Parameters
-        ----------
-        dataset : str
-            type of data to be analysed using UniDec
-        task : str
-            task that should be carried out. Different tasks spawn different processes
-        call_after : bool
-            will call after function `fcn` with arguments `args` after the main part is executed - takes advantage
-            of the multi-threaded nature of the runner function
-        """
-
-        # retrive dataset and document
-        self.unidec_dataset = dataset
-        data, __, document_title = self.get_unidec_data(data_type="document_all")
-
-        # retrieve unidec object
-        if "temporary_unidec" in data and task not in ["auto_unidec"]:
-            self.config.unidec_engine = data["temporary_unidec"]
-        else:
-            self.config.unidec_engine = unidec.UniDec()
-            self.config.unidec_engine.config.UniDecPath = self.config.APP_UNIDEC_PATH
-
-        # check which tasks are carried out
-        if task in ["auto_unidec", "load_data_unidec", "run_all_unidec", "load_data_and_preprocess_unidec"]:
-            msX = data["xvals"]
-            msY = data["yvals"]
-
-            check_kwargs = {"mz_min": msX[0], "mz_max": msX[-1]}
-            self._check_unidec_input(**check_kwargs)
-
-        # setup parameters
-        if task not in ["auto_unidec"]:
-            self._unidec_setup_parameters()
-
-        # load data
-        if task in ["auto_unidec", "load_data_unidec", "run_all_unidec"]:
-            self._unidec_initilize(document_title, dataset, msX, msY)
-
-        # pre-process
-        if task in ["run_all_unidec", "preprocess_unidec"]:
-            self._unidec_preprocess(dataset)
-
-        # load and pre-process
-        if task in ["load_data_and_preprocess_unidec"]:
-            self._unidec_initilize(document_title, dataset, msX, msY)
-            self._unidec_preprocess(dataset)
-
-        # deconvolute
-        if task in ["run_all_unidec", "run_unidec"]:
-            self._unidec_run()
-
-        # find peaks
-        if task in ["run_all_unidec", "pick_peaks_unidec"]:
-            self._unidec_find_peaks()
-
-        # isolate peak
-        if task in ["isolate_mw_unidec"]:
-            self._unidec_isolate()
-
-        # run auto
-        if task in ["auto_unidec"]:
-            self._unidec_autorun()
-
-        # add data to document
-        self.on_add_unidec_data(task, dataset, document_title=document_title)
-
-        # add call-after
-        if kwargs.get("call_after", False):
-            fcn = kwargs.pop("fcn")
-            args = kwargs.pop("args")
-            fcn(args)
-
-    def on_add_unidec_data(self, task, dataset, document_title=None):
-        """Convenience function to add data to document"""
-
-        document = self.data_handling.on_get_document(document_title)
-
-        # initilise data in the mass spectrum dictionary
-        if dataset == "Mass Spectrum":
-            if "unidec" not in document.massSpectrum:
-                document.massSpectrum["unidec"] = {}
-            data = document.massSpectrum
-        elif dataset == "Mass Spectrum (processed)":
-            data = document.smoothMS
-            if "unidec" not in document.smoothMS:
-                document.smoothMS["unidec"] = {}
-        else:
-            if "unidec" not in document.multipleMassSpectrum[dataset]:
-                document.multipleMassSpectrum[dataset]["unidec"] = {}
-            data = document.multipleMassSpectrum[dataset]
-
-        # clear old data
-        if task in ["auto_unidec", "run_all_unidec", "preprocess_unidec", "load_data_and_preprocess_unidec"]:
-            data["unidec"].clear()
-
-        # add processed data
-        if task in ["auto_unidec", "run_all_unidec", "preprocess_unidec", "load_data_and_preprocess_unidec"]:
-            raw_data = {
-                "xvals": self.config.unidec_engine.data.data2[:, 0],
-                "yvals": self.config.unidec_engine.data.data2[:, 1],
-                "color": [0, 0, 0],
-                "label": "Data",
-                "xlabels": "m/z",
-                "ylabels": "Intensity",
-            }
-            # add data
-            data["unidec"]["Processed"] = raw_data
-
-        # add fitted and deconvolution data
-        if task in ["auto_unidec", "run_all_unidec", "run_unidec"]:
-            fit_data = {
-                "xvals": [self.config.unidec_engine.data.data2[:, 0], self.config.unidec_engine.data.data2[:, 0]],
-                "yvals": [self.config.unidec_engine.data.data2[:, 1], self.config.unidec_engine.data.fitdat],
-                "colors": [[0, 0, 0], [1, 0, 0]],
-                "labels": ["Data", "Fit Data"],
-                "xlabel": "m/z",
-                "ylabel": "Intensity",
-                "xlimits": [
-                    np.min(self.config.unidec_engine.data.data2[:, 0]),
-                    np.max(self.config.unidec_engine.data.data2[:, 0]),
-                ],
-            }
-            mw_distribution_data = {
-                "xvals": self.config.unidec_engine.data.massdat[:, 0],
-                "yvals": self.config.unidec_engine.data.massdat[:, 1],
-                "color": [0, 0, 0],
-                "label": "Data",
-                "xlabels": "Mass (Da)",
-                "ylabels": "Intensity",
-            }
-            mz_grid_data = {
-                "grid": self.config.unidec_engine.data.mzgrid,
-                "xlabels": " m/z (Da)",
-                "ylabels": "Charge",
-                "cmap": self.config.unidec_engine.config.cmap,
-            }
-            mw_v_z_data = {
-                "xvals": self.config.unidec_engine.data.massdat[:, 0],
-                "yvals": self.config.unidec_engine.data.ztab,
-                "zvals": self.config.unidec_engine.data.massgrid,
-                "xlabels": "Mass (Da)",
-                "ylabels": "Charge",
-                "cmap": self.config.unidec_engine.config.cmap,
-            }
-            # set data in the document store
-            data["unidec"]["Fitted"] = fit_data
-            data["unidec"]["MW distribution"] = mw_distribution_data
-            data["unidec"]["m/z vs Charge"] = mz_grid_data
-            data["unidec"]["MW vs Charge"] = mw_v_z_data
-
-        # add aux data
-        if task in ["auto_unidec", "run_all_unidec", "pick_peaks_unidec"]:
-            # individually plotted
-            individual_dict = self.get_unidec_data(data_type="Individual MS")
-            barchart_dict = self.get_unidec_data(data_type="Barchart")
-            massList, massMax = self.get_unidec_data(data_type="MassList")
-            individual_dict["_massList_"] = [massList, massMax]
-
-            # add data
-            data["unidec"]["m/z with isolated species"] = individual_dict
-            data["unidec"]["Barchart"] = barchart_dict
-            data["unidec"]["Charge information"] = self.config.unidec_engine.get_charge_peaks()
-
-        # store unidec engine - cannot be pickled, so will be deleted when saving document
-        data["temporary_unidec"] = self.config.unidec_engine
-
-        self.document_tree.on_update_unidec(data["unidec"], document_title, dataset)
-
-    def get_unidec_data(self, data_type="Individual MS", **kwargs):
-
-        if data_type == "Individual MS":
-            stickmax = 1.0
-            num = 0
-            individual_dict = dict()
-            legend_text = [[[0, 0, 0], "Raw"]]
-            colors, labels = [], []
-            #             charges = self.config.unidec_engine.get_charge_peaks()
-            for i in range(0, self.config.unidec_engine.pks.plen):
-                p = self.config.unidec_engine.pks.peaks[i]
-                if p.ignore == 0:
-                    list1, list2 = [], []
-                    if (not isempty(p.mztab)) and (not isempty(p.mztab2)):
-                        mztab = np.array(p.mztab)
-                        mztab2 = np.array(p.mztab2)
-                        maxval = np.amax(mztab[:, 1])
-                        for k in range(0, len(mztab)):
-                            if mztab[k, 1] > self.config.unidec_engine.config.peakplotthresh * maxval:
-                                list1.append(mztab2[k, 0])
-                                list2.append(mztab2[k, 1])
-
-                        if self.config.unidec_engine.pks.plen <= 15:
-                            color = convert_rgb_255_to_1(self.config.custom_colors[i])
-                        else:
-                            color = p.color
-                        colors.append(color)
-                        labels.append("MW: {:.2f}".format(p.mass))
-                        legend_text.append([color, "MW: {:.2f}".format(p.mass)])
-
-                        individual_dict["MW: {:.2f}".format(p.mass)] = {
-                            "scatter_xvals": np.array(list1),
-                            "scatter_yvals": np.array(list2),
-                            "marker": p.marker,
-                            "color": color,
-                            "label": "MW: {:.2f}".format(p.mass),
-                            "line_xvals": self.config.unidec_engine.data.data2[:, 0],
-                            "line_yvals": np.array(p.stickdat) / stickmax
-                            - (num + 1) * self.config.unidec_engine.config.separation,
-                        }
-                        num += 1
-
-            individual_dict["legend_text"] = legend_text
-            individual_dict["xvals"] = self.config.unidec_engine.data.data2[:, 0]
-            individual_dict["yvals"] = self.config.unidec_engine.data.data2[:, 1]
-            individual_dict["xlabel"] = "m/z (Da)"
-            individual_dict["ylabel"] = "Intensity"
-            individual_dict["colors"] = colors
-            individual_dict["labels"] = labels
-
-            return individual_dict
-
-        elif data_type == "MassList":
-            mwList, heightList = [], []
-            for i in range(0, self.config.unidec_engine.pks.plen):
-                p = self.config.unidec_engine.pks.peaks[i]
-                if p.ignore == 0:
-                    mwList.append("MW: {:.2f} ({:.2f} %)".format(p.mass, p.height))
-                    heightList.append(p.height)
-
-            return mwList, mwList[heightList.index(np.max(heightList))]
-
-        elif data_type == "Barchart":
-            if self.config.unidec_engine.pks.plen > 0:
-                num = 0
-                yvals, colors, labels, legend_text, markers, legend = [], [], [], [], [], []
-                for p in self.config.unidec_engine.pks.peaks:
-                    if p.ignore == 0:
-                        yvals.append(p.height)
-                        if self.config.unidec_engine.pks.plen <= 15:
-                            color = convert_rgb_255_to_1(self.config.custom_colors[num])
-                        else:
-                            color = p.color
-                        markers.append(p.marker)
-                        labels.append(p.label)
-                        colors.append(color)
-                        legend_text.append([color, "MW: {:.2f}".format(p.mass)])
-                        legend.append("MW: {:.2f}".format(p.mass))
-                        num += 1
-                    xvals = list(range(0, num))
-                    barchart_dict = {
-                        "xvals": xvals,
-                        "yvals": yvals,
-                        "labels": labels,
-                        "colors": colors,
-                        "legend": legend,
-                        "legend_text": legend_text,
-                        "markers": markers,
-                    }
-                return barchart_dict
-
-        elif data_type == "document_all":
-            if "document_title" in kwargs:
-                document_title = kwargs["document_title"]
-            else:
-                document = self.data_handling.on_get_document()
-                if document is None:
-                    return
-                document_title = document.title
-
-            if self.unidec_dataset == "Mass Spectrum":
-                data = document.massSpectrum
-            elif self.unidec_dataset == "Mass Spectrum (processed)":
-                data = document.smoothMS
-            else:
-                data = document.multipleMassSpectrum[self.unidec_dataset]
-
-            return data, document, document_title
-
-        elif data_type == "document_info":
-
-            if "document_title" in kwargs:
-                document_title = kwargs["document_title"]
-            else:
-                document = self.data_handling.on_get_document()
-                document_title = document.title
-
-            try:
-                document = ENV[document_title]
-            except KeyError:
-                if kwargs.get("notify_of_error", True):
-                    DialogBox(title="Error", msg="Please create or load a document first", kind="Error")
-                return
-
-            return document, document_title
-
-        elif data_type == "unidec_data":
-
-            data, __, __ = self.get_unidec_data(data_type="document_all")
-            return data["unidec"]
-
-        elif data_type == "mass_list":
-            data, __, __ = self.get_unidec_data(data_type="document_all")
-            return data["unidec"]["m/z with isolated species"]["_massList_"]
 
     def smooth_spectrum(self, mz_y, method="gaussian"):
         if method == "gaussian":

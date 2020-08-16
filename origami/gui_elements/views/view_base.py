@@ -165,9 +165,6 @@ class ViewMPLMixin:
         if repaint:
             self.figure.repaint()
 
-    def add_line(self, x, y, **kwargs):
-        """Add text label to the plot"""
-
     def set_xlim(self, x_min: float, x_max: float):
         """Set x-axis limits in the plot area"""
         self.figure.on_zoom_x_axis(x_min, x_max)

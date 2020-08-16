@@ -113,6 +113,19 @@ class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin):
         self.set_plot_parameters(**kwargs)
         LOGGER.debug(f"Plotted data in {report_time(t_start)}")
 
+    def add_line(self, x=None, y=None, obj=None, label: str = "", gid: str = "", line_color=(1, 0, 0), **kwargs):
+        """Add line to the plot"""
+        kwargs.update(**CONFIG.get_mpl_parameters(self.MPL_KEYS))
+        kwargs = self.check_kwargs(**kwargs)
+
+        x, y = self.check_input(x, y, obj)
+        self.figure.plot_1d_add_line(x, y, label=label, gid=gid, line_color=line_color, **kwargs)
+        self.figure.repaint()
+
+    def remove_line(self, gid: str):
+        """Remove line from the plot"""
+        # self.figure.remove_lin
+
     def replot(self, plot_type: str = None, repaint: bool = True, light_clear: bool = False):
         """Replot the current plot"""
         # get plot_type

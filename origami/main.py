@@ -12,7 +12,6 @@ from sys import platform
 import wx
 
 # Local imports
-import origami.processing.UniDec.unidec as unidec
 from origami.icons.icons import IconContainer
 from origami.main_window import MainWindow
 from origami.config.config import CONFIG
@@ -99,10 +98,6 @@ class ORIGAMI:
         CONFIG.setup_temporary_dir()
         CONFIG.setup_logging()
 
-        # setup UniDec paths
-        CONFIG.APP_UNIDEC_PATH = self.config.unidec_engine.config.UniDecPath
-        CONFIG.unidec_engine = unidec.UniDec()
-
         # setup Driftscope paths
         if CONFIG.APP_CHECK_DRIFTSCOPE_PATH_AT_START and platform == "win32":
             CONFIG.setup_paths()
@@ -132,10 +127,6 @@ class ORIGAMI:
         # setup temporary directory
         CONFIG.setup_temporary_dir()
         CONFIG.setup_logging()
-
-        # setup UniDec paths
-        CONFIG.unidec_engine = unidec.UniDec()
-        CONFIG.APP_UNIDEC_PATH = CONFIG.unidec_engine.config.UniDecPath
 
         # setup Driftscope paths
         if CONFIG.APP_CHECK_DRIFTSCOPE_PATH_AT_START and platform == "win32":

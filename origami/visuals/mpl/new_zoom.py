@@ -586,10 +586,6 @@ class MPLInteraction:
         elif self._callbacks.get("ALT", False) and isinstance(self._callbacks["ALT"], list):
             for callback in self._callbacks["ALT"]:
                 pub.sendMessage(callback, rect=[xmin, xmax, ymin, ymax], x_labels=x_labels, y_labels=y_labels)
-        elif self.plotName in ["MSDT", "2D"] and (
-            self.evt_press.xdata != evt.xdata and self.evt_press.ydata != evt.ydata
-        ):
-            pub.sendMessage("extract_from_plot_2D", xy_values=[xmin, xmax, ymin, ymax])
 
     def _parse_extraction_limits(self, xmin, xmax, ymin, ymax, _evt):
         """Special parsing of x/y-limits for data extraction that supports multi-plot behaviour"""
@@ -625,9 +621,9 @@ class MPLInteraction:
             lastx, lasty, a = self._xy_press[0]
             (x1, y1), (x2, y2) = np.clip([[lastx, lasty], [x, y]], a.bbox.min, a.bbox.max)
             if evt.key is not None:
-                if "x" in evt.key or "alt" in evt.key:
+                if "x" in evt.key:  # or "alt" in evt.key:
                     y1, y2 = a.bbox.intervaly
-                elif "y" in evt.key or "shift" in evt.key:
+                elif "y" in evt.key:  # or "shift" in evt.key:
                     x1, x2 = a.bbox.intervalx
             self.draw_rubberband(evt, x1, y1, x2, y2)
 

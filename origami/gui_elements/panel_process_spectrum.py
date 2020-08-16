@@ -81,7 +81,7 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin, ConfigUpdateMixin):
             self,
             parent,
             title="Process mass spectrum...",
-            style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX),
+            style=wx.DEFAULT_FRAME_STYLE | wx.STAY_ON_TOP & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX),
         )
         """Instantiate pre-processing module
 
@@ -183,7 +183,8 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         if self.PUB_IN_PROGRESS_EVENT:
             pub.unsubscribe(self.on_progress, self.PUB_IN_PROGRESS_EVENT)
         if self.update_widget:
-            pub.sendMessage(self.update_widget)
+            self._timer.Stop()
+            # pub.sendMessage(self.update_widget)
         super(PanelProcessMassSpectrum, self).on_close(evt, force)
 
     def on_key_event(self, evt):

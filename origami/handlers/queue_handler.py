@@ -2,16 +2,16 @@
 # Standard library imports
 import queue
 import logging
-from threading import Thread
 from threading import Event
+from threading import Thread
 
 # Third-party imports
 from pubsub import pub
 
 # Local imports
+from origami.utils.system import running_under_pytest
 from origami.handlers.call import Call
 from origami.utils.utilities import report_time
-from origami.utils.system import running_under_pytest
 
 LOGGER = logging.getLogger(__name__)
 
@@ -130,7 +130,7 @@ class QueueHandler:
         return f"Queue<count={self.count()}>"
 
 
-if not running_under_pytest:
+if not running_under_pytest():
     QUEUE = QueueHandler(n_threads=4)
 else:
     QUEUE = None

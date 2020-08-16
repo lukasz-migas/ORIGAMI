@@ -10,6 +10,7 @@ from typing import Optional
 
 # Third-party imports
 import numpy as np
+from zarr import Array
 from zarr import Group
 
 # Local imports
@@ -430,5 +431,7 @@ def get_extra_data(group: Group, known_keys: List):
     extra_keys = list(set(group.keys()) - set(known_keys))
     extra_data = dict()
     for key in extra_keys:
-        extra_data[key] = group[key][:]
+        _data = group[key]
+        if isinstance(_data, Array):
+            extra_data[key] = _data[:]
     return extra_data

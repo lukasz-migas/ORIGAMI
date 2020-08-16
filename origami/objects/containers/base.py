@@ -1,9 +1,11 @@
 """Container base"""
 # Standard library imports
 from typing import Any
+from typing import Dict
 
 # Third-party imports
 import numpy as np
+from zarr import Group
 
 # Local imports
 from origami.utils.path import get_duplicate_name
@@ -134,6 +136,19 @@ class DataObject(ContainerBase):
             store.add(new_name, data, attrs)
             return new_name, store[new_name, True]
 
+    def duplicate(self):
+        """Duplicate data object without ever setting it in the DocumentStore"""
+        from copy import deepcopy
+
+        data_obj_copy = deepcopy(self)
+        data_obj_copy.owner = None
+        return data_obj_copy
+
+    @property
+    def can_flush(self):
+        """Check whether data can be flushed to disk"""
+        return self.owner is not None
+
     def flush(self, title: str = None):
         """Flush current object data to the DocumentStore"""
         store = self.get_parent()
@@ -164,3 +179,15 @@ class DataObject(ContainerBase):
     def get(self, key: str, default: Any = None):
         """Get arbitrary metadata from the object"""
         return self._metadata.get(key, default)
+
+    def add_group(self, group_name: str, data: Dict, attrs: Dict):
+        """Add Zarr group to base object"""
+        document = self.get_parent()
+        title = "/".join([self.title, group_name])
+        document.add(title, data, attrs)
+
+    def get_group(self, group_name: str) -> Group:
+        """Get Zarr group from the base object"""
+        document = self.get_parent()
+        title = "/".join([self.title, group_name])
+        return document.get(title)

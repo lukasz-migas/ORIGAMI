@@ -1102,3 +1102,14 @@ class PlotBase(MPLPanel):
                 line.set_xdata(x)
                 line.set_ydata(y)
                 break
+
+    @staticmethod
+    def check_line(gid, ax):
+        """Check whether line with specific GID already exists"""
+        if hasattr(ax, "get_lines"):
+            lines = ax.get_lines()
+            for line in lines:
+                plot_gid = line.get_gid()
+                if plot_gid == gid:
+                    return True
+        return False

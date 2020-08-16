@@ -216,8 +216,6 @@ class DocumentStore:
             obj = ion_heatmap_object(group)
         elif klass_name == "ImagingIonHeatmapObject":
             obj = ion_heatmap_object(group)
-        # elif klass_name == "MassSpectrumGroup":
-        #     obj =
 
         # return instantiated objected
         if obj:
@@ -370,6 +368,11 @@ class DocumentStore:
             group = self.get(key)
             if group is None:
                 group = self[parts[0]].create_group(parts[1])
+        elif len(parts) == 3:
+            group = self.get(key)
+            if group is None:
+                # _group = self[parts[0]].create_group(parts[1])
+                group = self[parts[0]][parts[1]].create_group(parts[2])
         else:
             raise ValueError(f"Not sure what to do (key={key})")
         return group

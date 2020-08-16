@@ -1,7 +1,9 @@
 """Test LESA viewer"""
+# Standard library imports
+import sys
+
 # Third-party imports
 import wx
-import sys
 import pytest
 
 # Local imports

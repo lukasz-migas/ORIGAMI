@@ -309,6 +309,52 @@ class PlotSpectrum(PlotBase):
         if not found and spectrum_line_fill_under and x is not None and y is not None and fill_kwargs is not None:
             self.plot_1d_add_under_curve(x, y, **fill_kwargs)
 
+    def plot_1d_add_line(
+        self, x: np.ndarray, y: np.ndarray, label: str, line_color: (1, 0, 0), gid: str = "", **kwargs
+    ):
+        """Add 1d line"""
+        self._set_axes()
+
+        xlimits, ylimits, extent = self._compute_xy_limits(x, y, 0, 1.1)
+        # setup axis formatters
+        y_formatter = get_intensity_formatter()
+
+        if not self.check_line(gid, self.plot_base):
+            self.plot_base = self.figure.add_axes(self._axes)
+            self.plot_base.plot(
+                x,
+                y,
+                color=line_color,
+                label=label,
+                linewidth=kwargs["spectrum_line_width"],
+                linestyle=kwargs["spectrum_line_style"],
+                gid=gid,
+            )
+        else:
+            self.update_line(x, y, gid, self.plot_base)
+            self.plot_1d_update_style_by_label(
+                gid, line_color, kwargs["spectrum_line_style"], kwargs["spectrum_line_width"]
+            )
+
+        # set plot limits
+        self.plot_base.yaxis.set_major_formatter(get_intensity_formatter())
+        # self.plot_base.set_xlim(xlimits)
+        # self.plot_base.set_ylim(ylimits)
+        self.set_tick_parameters(**kwargs)
+        self.set_legend_parameters(None, **kwargs)
+        self.set_line_style(**kwargs)
+
+        self.setup_new_zoom(
+            [self.plot_base],
+            data_limits=[extent],
+            allow_extraction=kwargs.get("allow_extraction", False),
+            callbacks=kwargs.get("callbacks", dict()),
+        )
+
+        # Setup X-axis getter
+        self.store_plot_limits([extent], [self.plot_base])
+        self.PLOT_TYPE = "line"
+
     # def plot_1D(
     #     self,
     #     xvals=None,

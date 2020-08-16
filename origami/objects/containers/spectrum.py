@@ -36,6 +36,11 @@ class SpectrumObject(DataObject):
         """Return the average spacing value for the x-axis"""
         return np.mean(np.diff(self.x))
 
+    @property
+    def xy(self):
+        """Return the x- and y-intensity as two columns"""
+        return np.transpose([self.x, self.y])
+
     def to_dict(self):
         """Outputs data to dictionary"""
         data = {
@@ -127,7 +132,7 @@ class SpectrumObject(DataObject):
 
         Returns
         -------
-        self : MassSpectrumObject
+        self : SpectrumObject
             processed mass spectrum object
         """
         if crop:
@@ -299,6 +304,37 @@ class MassSpectrumObject(SpectrumObject):
 
         # set default options
         self.options["remove_zeros"] = True
+
+    @property
+    def has_unidec_result(self):
+        """Check whether object has UniDec results"""
+        return self.get_metadata("has_unidec", False)
+
+    def set_unidec_result(self, unidec_results_obj, flush: bool = True):
+        """Set UniDec results in the document"""
+        if not hasattr(unidec_results_obj, "to_zarr"):
+            raise ValueError("Could not set UniDec results in the data object")
+        self.add_group("UniDec", *unidec_results_obj.to_zarr())
+        self.add_metadata("has_unidec", True)
+        if flush:
+            self.flush()
+
+    def del_unidec_result(self):
+        """Remove UniDec results from the document"""
+        if not self.has_unidec_result:
+            return
+        self.add_metadata("has_unidec", False)
+
+    def get_unidec_result(self):
+        """Get UniDec results"""
+        from origami.widgets.unidec.processing.containers import unidec_results_object
+
+        if not self.has_unidec_result:
+            return None
+        group = self.get_group("UniDec")
+        if group is None:
+            raise ValueError("Could not UniDec data")
+        return unidec_results_object(self, group)
 
 
 class ChromatogramObject(SpectrumObject, ChromatogramAxesMixin, OrigamiMsMixin):
