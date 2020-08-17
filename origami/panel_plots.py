@@ -769,6 +769,26 @@ class PanelPlots(wx.Panel):
 
         self.document_tree.on_open_peak_picker(None, document_title=document_title, dataset_name=dataset_name)
 
+    def on_open_unidec(self, _evt):
+        """Open UniDec deconvolution panel"""
+        view_obj = self.get_view_from_name(self.current_page)
+        mz_obj = view_obj.get_object()
+
+        try:
+            document_title, dataset_name = mz_obj.owner
+        except AttributeError:
+            document_title, dataset_name = None, None
+
+        if document_title is None or dataset_name is None:
+            pub.sendMessage(
+                "notify.message.error",
+                message="Could not find the document/dataset information in the plot metadata."
+                "\nTry right-clicking on a mass spectrum in the document tree and select `Open peak picker`",
+            )
+            return
+
+        self.document_tree.on_open_UniDec(None, document_title=document_title, dataset_name=dataset_name, mz_obj=mz_obj)
+
     def on_open_annotations_panel(self, _evt):
         """Open the annotations panel for particular object"""
         view_obj = self.get_view_from_name(self.current_page)
@@ -957,6 +977,7 @@ class PanelPlots(wx.Panel):
         )
 
         menu_action_process_pick = make_menu_item(parent=menu, text="Open peak picker...", bitmap=self._icons.highlight)
+        menu_action_unidec = make_menu_item(parent=menu, text="Open UniDec deconvolution...", bitmap=self._icons.unidec)
 
         menu_action_smooth_signal = make_menu_item(
             parent=menu, text="Smooth signal (Gaussian)", bitmap=self._icons.clean
@@ -995,6 +1016,7 @@ class PanelPlots(wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_process_heatmap, menu_action_process_2d)
         self.Bind(wx.EVT_MENU, self.on_rotate_plot, menu_action_rotate90)
         self.Bind(wx.EVT_MENU, self.on_open_peak_picker, menu_action_process_pick)
+        self.Bind(wx.EVT_MENU, self.on_open_unidec, menu_action_unidec)
         self.Bind(wx.EVT_MENU, self.on_smooth_object, menu_action_smooth_signal)
         self.Bind(wx.EVT_MENU, self.on_smooth_object, menu_action_smooth_heatmap)
         self.Bind(wx.EVT_MENU, self.on_open_annotations_panel, menu_action_open_annotations)
@@ -1009,10 +1031,11 @@ class PanelPlots(wx.Panel):
             menu.Insert(0, menu_action_smooth_signal)
             menu.Insert(1, menu_action_process_ms)
             menu.Insert(2, menu_action_process_pick)
-            menu.Insert(3, menu_action_open_annotations)
-            menu.InsertSeparator(4)
-            menu.Insert(5, menu_plot_general)
-            menu.Insert(6, menu_plot_1d)
+            menu.Insert(3, menu_action_unidec)
+            menu.Insert(4, menu_action_open_annotations)
+            menu.InsertSeparator(5)
+            menu.Insert(6, menu_plot_general)
+            menu.Insert(7, menu_plot_1d)
         elif self.current_page == "Chromatogram":
             menu.Insert(0, menu_action_smooth_signal)
             menu.Insert(1, menu_action_open_annotations)
@@ -1699,13 +1722,6 @@ class PanelPlots(wx.Panel):
     #
     #     return colorlist
     #
-    # def _on_change_unidec_page(self, page_id, **kwargs):
-    #     if CONFIG.unidec_plot_panel_view == "Tabbed view" and kwargs.get("set_page", False):
-    #         try:
-    #             self.unidec_notebook.SetSelection(page_id)
-    #         except Exception:
-    #             pass
-    #
     # def on_plot_charge_states(self, position, charges, plot="UniDec_peaks", **kwargs):
     #
     #     if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
@@ -1725,189 +1741,6 @@ class PanelPlots(wx.Panel):
     #
     # def on_add_horizontal_line(self, xmin, xmax, yval, plot_obj):
     #     plot_obj.plot_add_line(xmin, xmax, yval, yval, "horizontal")
-    #     plot_obj.repaint()
-    #
-    # def on_plot_unidec_ChargeDistribution(
-    #     self, xvals=None, yvals=None, replot=None, xlimits=None, plot="UniDec_charge", **kwargs
-    # ):
-    #     """
-    #     Plot simple Mass spectrum before it is pre-processed
-    #     @param unidec_eng_data (object):  reference to unidec engine data structure
-    #     @param xlimits: unused
-    #     """
-    #
-    #     if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
-    #         plot_obj = kwargs.get("plot_obj")
-    #     else:
-    #         plot_obj = self.get_plot_from_name(plot)
-    #         self._on_change_unidec_page(6, **kwargs)
-    #
-    #     if replot is not None:
-    #         xvals = replot[:, 0]
-    #         yvals = replot[:, 1]
-    #
-    #     # Build kwargs
-    #     plt_kwargs = self._buildPlotParameters(plotType="1D")
-    #
-    #     plot_obj.clear()
-    #     plot_obj.plot_1D(
-    #         xvals=xvals,
-    #         yvals=yvals,
-    #         xlimits=xlimits,
-    #         xlabel="Charge",
-    #         ylabel="Intensity",
-    #         testMax=None,
-    #         axesSize=CONFIG._plotSettings["UniDec (Charge Distribution)"]["axes_size"],
-    #         plotType="ChargeDistribution",
-    #         title="Charge State Distribution",
-    #         allowWheel=False,
-    #         **plt_kwargs,
-    #     )
-    #     # Show the mass spectrum
-    #     plot_obj.repaint()
-    #
-    # def on_plot_unidec_MS(self, unidec_eng_data=None, replot=None, xlimits=None, plot="UniDec_MS", **kwargs):
-    #     """
-    #     Plot simple Mass spectrum before it is pre-processed
-    #     @param unidec_eng_data (object):  reference to unidec engine data structure
-    #     @param xlimits: unused
-    #     """
-    #
-    #     if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
-    #         plot_obj = kwargs.get("plot_obj")
-    #     else:
-    #         plot_obj = self.get_plot_from_name(plot)
-    #         self._on_change_unidec_page(0, **kwargs)
-    #
-    #     plt_kwargs = self._buildPlotParameters(plotType="1D")
-    #
-    #     if unidec_eng_data is None and replot is not None:
-    #         xvals = replot["xvals"]
-    #         yvals = replot["yvals"]
-    #
-    #     plot_obj.clear()
-    #     plot_obj.plot_1D(
-    #         xvals=xvals,
-    #         yvals=yvals,
-    #         xlimits=xlimits,
-    #         xlabel="m/z",
-    #         ylabel="Intensity",
-    #         axesSize=CONFIG._plotSettings["UniDec (MS)"]["axes_size"],
-    #         plotType="MS",
-    #         title="MS",
-    #         allowWheel=False,
-    #         **plt_kwargs,
-    #     )
-    #     # Show the mass spectrum
-    #     plot_obj.repaint()
-    #
-    # def on_plot_unidec_MS_v_Fit(self, unidec_eng_data=None, replot=None, xlimits=None, plot="UniDec_MS", **kwargs):
-    #
-    #     if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
-    #         plot_obj = kwargs.get("plot_obj")
-    #     else:
-    #         plot_obj = self.get_plot_from_name(plot)
-    #         self._on_change_unidec_page(0, **kwargs)
-    #
-    #     # Build kwargs
-    #     plt_kwargs = self._buildPlotParameters(["1D", "UniDec"])
-    #
-    #     if unidec_eng_data is None and replot is not None:
-    #         xvals = replot["xvals"]
-    #         yvals = replot["yvals"]
-    #         colors = replot["colors"]
-    #         labels = replot["labels"]
-    #
-    #     colors[1] = plt_kwargs["fit_line_color"]
-    #
-    #     plot_obj.clear()
-    #     plot_obj.plot_1D_overlay(
-    #         xvals=xvals,
-    #         yvals=yvals,
-    #         labels=labels,
-    #         colors=colors,
-    #         xlimits=xlimits,
-    #         xlabel="m/z",
-    #         ylabel="Intensity",
-    #         axesSize=CONFIG._plotSettings["UniDec (MS)"]["axes_size"],
-    #         plotType="MS",
-    #         title="MS and UniDec Fit",
-    #         allowWheel=False,
-    #         **plt_kwargs,
-    #     )
-    #     # Show the mass spectrum
-    #     plot_obj.repaint()
-    #
-    # def on_plot_unidec_mzGrid(self, unidec_eng_data=None, replot=None, plot="UniDec_mz_v_charge", **kwargs):
-    #     """
-    #     Plot simple Mass spectrum before it is pre-processed
-    #     """
-    #
-    #     if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
-    #         plot_obj = kwargs.get("plot_obj")
-    #     else:
-    #         plot_obj = self.get_plot_from_name(plot)
-    #         self._on_change_unidec_page(1, **kwargs)
-    #
-    #     # Build kwargs
-    #     plt_kwargs = self._buildPlotParameters(plotType="2D")
-    #     plt_kwargs["contour_levels"] = CONFIG.unidec_plot_contour_levels
-    #     plt_kwargs["colorbar"] = True
-    #
-    #     if unidec_eng_data is None and replot is not None:
-    #         grid = replot["grid"]
-    #
-    #     plot_obj.clear()
-    #     plot_obj.plot_2D_contour_unidec(
-    #         data=grid,
-    #         xlabel="m/z (Da)",
-    #         ylabel="Charge",
-    #         axesSize=CONFIG._plotSettings["UniDec (m/z vs Charge)"]["axes_size"],
-    #         plotType="2D",
-    #         plotName="mzGrid",
-    #         speedy=kwargs.get("speedy", True),
-    #         title="m/z vs Charge",
-    #         allowWheel=False,
-    #         **plt_kwargs,
-    #     )
-    #     # Show the mass spectrum
-    #     plot_obj.repaint()
-    #
-    # def on_plot_unidec_mwDistribution(
-    #     self, unidec_eng_data=None, replot=None, xlimits=None, plot="UniDec_MW", **kwargs
-    # ):
-    #
-    #     if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
-    #         plot_obj = kwargs.get("plot_obj")
-    #     else:
-    #         plot_obj = self.get_plot_from_name(plot)
-    #         self._on_change_unidec_page(3, **kwargs)
-    #
-    #     # Build kwargs
-    #     plt_kwargs = self._buildPlotParameters(["1D", "UniDec"])
-    #
-    #     if unidec_eng_data is None and replot is not None:
-    #         xvals = replot["xvals"]
-    #         yvals = replot["yvals"]
-    #
-    #     try:
-    #         plot_obj.plot_1D_update_data(xvals, yvals, "Mass Distribution", "Intensity", testX=True, **plt_kwargs)
-    #     except AttributeError:
-    #         plot_obj.clear()
-    #         plot_obj.plot_1D(
-    #             xvals=xvals,
-    #             yvals=yvals,
-    #             xlimits=xlimits,
-    #             xlabel="Mass Distribution",
-    #             ylabel="Intensity",
-    #             axesSize=CONFIG._plotSettings["UniDec (MW)"]["axes_size"],
-    #             plotType="mwDistribution",
-    #             testMax=None,
-    #             testX=True,
-    #             title="Zero-charge Mass Spectrum",
-    #             allowWheel=False,
-    #             **plt_kwargs,
-    #         )
     #     plot_obj.repaint()
     #
     # def on_plot_unidec_MW_add_markers(self, data, mw_data, plot="UniDec_MW", **kwargs):
@@ -2107,56 +1940,6 @@ class PanelPlots(wx.Panel):
     #         legend_text = legend_text[: plt_kwargs["maximum_shown_items"]]
     #
     #     plot_obj.plot_1D_add_legend(legend_text, **plt_kwargs)
-    #     plot_obj.repaint()
-    #
-    # def on_plot_unidec_MW_v_Charge(self, unidec_eng_data=None, replot=None, plot="UniDec_mw_v_charge", **kwargs):
-    #     """
-    #     Plot simple Mass spectrum before it is pre-processed
-    #     @param unidec_eng_data (object):  reference to unidec engine data structure
-    #     """
-    #
-    #     if "plot_obj" in kwargs and kwargs["plot_obj"] is not None:
-    #         plot_obj = kwargs.get("plot_obj")
-    #     else:
-    #         plot_obj = self.get_plot_from_name(plot)
-    #         self._on_change_unidec_page(2, **kwargs)
-    #
-    #     # Build kwargs
-    #     plt_kwargs = self._buildPlotParameters(plotType="2D")
-    #     plt_kwargs["contour_levels"] = CONFIG.unidec_plot_contour_levels
-    #     plt_kwargs["colorbar"] = True
-    #
-    #     if unidec_eng_data is None and replot is not None:
-    #         xvals = replot["xvals"]
-    #         yvals = replot["yvals"]
-    #         zvals = replot["zvals"]
-    #     else:
-    #         xvals = unidec_eng_data.massdat[:, 0]
-    #         yvals = unidec_eng_data.ztab
-    #         zvals = unidec_eng_data.massgrid
-    #
-    #     # Check that cmap modifier is included
-    #     cmapNorm = self.normalize_colormap(
-    #         zvals, min=CONFIG.minCmap, mid=CONFIG.midCmap, max=CONFIG.maxCmap
-    #     )
-    #     plt_kwargs["colormap_norm"] = cmapNorm
-    #
-    #     plot_obj.clear()
-    #     plot_obj.plot_2D_contour_unidec(
-    #         xvals=xvals,
-    #         yvals=yvals,
-    #         zvals=zvals,
-    #         xlabel="Mass (Da)",
-    #         ylabel="Charge",
-    #         axesSize=CONFIG._plotSettings["UniDec (MW vs Charge)"]["axes_size"],
-    #         plotType="MS",
-    #         plotName="mwGrid",
-    #         testX=True,
-    #         speedy=kwargs.get("speedy", True),
-    #         title="Mass vs Charge",
-    #         **plt_kwargs,
-    #     )
-    #     # Show the mass spectrum
     #     plot_obj.repaint()
     #
     # def on_plot_unidec_barChart(self, unidec_eng_data=None, replot=None, show="height", plot="UniDec_bar", **kwargs):

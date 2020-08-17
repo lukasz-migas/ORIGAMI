@@ -1,17 +1,19 @@
 """Utility panel for UniDec panel"""
 # Third-party imports
 import wx
+import numpy as np
 
 # Local imports
 from origami.styles import MiniFrame
 from origami.styles import Validator
 from origami.config.config import CONFIG
 from origami.utils.converters import str2num
+
+from origami.utils.exceptions import MessageError
 from origami.gui_elements.helpers import make_tooltip
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
-
-# from origami.processing.unidec_.fitting import isolated_peak_fit
+from origami.widgets.unidec.processing.fitting import isolated_peak_fit
 
 
 class PanelPeakWidthTool(MiniFrame):
@@ -47,6 +49,8 @@ class PanelPeakWidthTool(MiniFrame):
 
         if self.mz_obj:
             self.on_plot_ms(None)
+            self.on_zoom_on_base_peak()
+            self.on_fit_peak(None)
 
     @property
     def panel_plot(self):
@@ -57,8 +61,8 @@ class PanelPeakWidthTool(MiniFrame):
         """Handle key events"""
         key_code = evt.GetKeyCode()
 
-        if key_code == 70:
-            self.on_fit_peak(evt=None)
+        if key_code == 70:  # F key
+            self.on_fit_peak(None)
         else:
             super(PanelPeakWidthTool, self).on_key_event(evt)
 
@@ -77,13 +81,11 @@ class PanelPeakWidthTool(MiniFrame):
         # mass spectrum
         self.view_ms = ViewMassSpectrum(
             panel,
-            CONFIG._plotSettings["MS"]["gui_size"],  # noqa
+            (6, 4),  # CONFIG._plotSettings["MS"]["gui_size"],  # noqa
             CONFIG,
             allow_extraction=False,
             filename="mass-spectrum",
         )
-
-        # self.plotMS = base.PlotBase(, figsize=(6, 3), config=CONFIG)
 
         msg = (
             "Note:\nIn order to determine peak width, \nplease zoom-in on a desired peak\n"
@@ -165,73 +167,67 @@ class PanelPeakWidthTool(MiniFrame):
             DialogBox(title="Error", msg="Could not complete action. `Fit` peaks first")
             return
 
-        width = str2num(width)
-        self.parent.fit_peak_width_value.SetValue(f"{width:.4f}")
-        self.parent.peak_shape_func_choice.SetStringSelection(function)
-        self.Destroy()
+        if self.parent is not None:
+            width = str2num(width)
+            self.parent.fit_peak_width_value.SetValue(f"{width:.4f}")
+            self.parent.peak_shape_func_choice.SetStringSelection(function)
+        super(PanelPeakWidthTool, self).on_ok(evt)
 
     def on_crop_data(self):
         """Crop mass spectrum"""
-        # xlimits = self.plotMS.plot_base.get_xlim()
-        # ms_spectrum = np.transpose([self.kwargs["xvals"], self.kwargs["yvals"]])
-        # ms_narrow = get_narrow_data_range(data=ms_spectrum, mzRange=xlimits)
-        # return ms_narrow, xlimits
+        x_min, x_max = self.view_ms.get_current_xlim()
+        mz_obj = self.mz_obj.duplicate()
+        mz_obj = mz_obj.crop(x_min, x_max)
+        return mz_obj, (x_min, x_max)
 
-    def on_fit_peak(self, evt):
+    def on_fit_peak(self, _evt):
         """Fit MS peak"""
-        # ms_narrow, xlimits = self.on_crop_data()
-        # peakfcn = CONFIG.unidec_peakFunction_choices[self.unidec_peakFcn_choice.GetStringSelection()]
-        #
-        # try:
-        #     fitout, fit_yvals = isolated_peak_fit(ms_narrow[:, 0], ms_narrow[:, 1], peakfcn)
-        # except RuntimeError:
-        #     print("Failed to fit a peak. Try again in larger window")
-        #     return
-        #
-        # fitout = fitout[:, 0]
-        # width = fitout[0]
-        # resolution = ms_narrow[np.argmax(ms_narrow[:, 1]), 0] / fitout[0]
-        # error = np.sum((fit_yvals - ms_narrow[:, 1]) * (fit_yvals - ms_narrow[:, 1]))
-        #
-        # # setup labels
-        # self.unidec_resolution.SetLabel("{:.4f}".format(resolution))
-        # self.unidec_error.SetLabel("{:.4f}".format(error))
-        # self.unidec_fit_peakWidth_value.SetValue("{:.4f}".format(width))
-        # self.on_plot_ms_with_fit(self.kwargs["xvals"], self.kwargs["yvals"], ms_narrow[:, 0], fit_yvals, xlimits)
+        mz_obj, x_limits = self.on_crop_data()
+        peak_fcn = CONFIG.unidec_panel_peak_func_dict[self.unidec_peak_fcn_choice.GetStringSelection()]
+
+        try:
+            fit_out, fit_y = isolated_peak_fit(mz_obj.x, mz_obj.y, peak_fcn)
+        except RuntimeError:
+            raise MessageError("Error", "Failed to fit peak - try again using larger m/z window")
+
+        fit_out = fit_out[:, 0]
+        width = fit_out[0]
+
+        xy = mz_obj.xy
+        resolution = xy[np.argmax(xy[:, 1]), 0] / fit_out[0]
+        error = np.sum((fit_y - xy[:, 1]) * (fit_y - xy[:, 1]))
+
+        # setup labels
+        self.unidec_resolution.SetLabel("{:.4f}".format(resolution))
+        self.unidec_error.SetLabel("{:.4f}".format(error))
+        self.unidec_fit_peak_width_value.SetValue("{:.4f}".format(width))
+        self.on_plot_ms_with_fit(xy[:, 0], fit_y, x_limits)
 
     def on_plot_ms(self, _evt):
         """Plot mass spectrum"""
         self.view_ms.plot(obj=self.mz_obj)
 
-    def on_plot_ms_with_fit(self, xvals, yvals, fit_xvals, fit_yvals, xlimits=None, **kwargs):  # noqa
+    def on_plot_ms_with_fit(self, fit_x, fit_y, x_limits=None, **kwargs):  # noqa
         """Plot mass spectrum with fit"""
-        print(self)
+        self.view_ms.add_line(fit_x, fit_y, line_color=(1, 0, 0))
 
-        # # Build kwargs
-        # plt_kwargs = self.presenter.view.panelPlots._buildPlotParameters(plotType="1D")
-        #
-        # # Plot MS
-        # self.plotMS.clear()
-        # self.plotMS.plot_1D(
-        #     xvals=xvals,
-        #     yvals=yvals,
-        #     xlabel="m/z",
-        #     ylabel="Intensity",
-        #     axesSize=[0.1, 0.2, 0.8, 0.75],
-        #     plotType="MS",
-        #     label="Raw",
-        #     allowWheel=False,
-        #     **plt_kwargs,
-        # )
-        # self.plotMS.plot_1D_add(fit_xvals, fit_yvals, color="red", label="Fit", setup_zoom=False)
-        #
-        # self.plotMS.plot_base.set_xlim(xlimits)
-        # self.plotMS.repaint()
+    def on_zoom_on_base_peak(self):
+        """Zoom-in on base peak as the panel is loaded"""
+        y_idx = np.argmax(self.mz_obj.y)
+        x_pos = self.mz_obj.x[y_idx]
+        self.view_ms.set_xlim(x_pos - 3, x_pos + 3)
 
 
 def _main():
+    from origami.handlers.load import LoadHandler
+
+    path = r"D:\Data\ORIGAMI\text_files\MS_p27-FL-K31.csv"
+    loader = LoadHandler()
+    document = loader.load_text_mass_spectrum_document(path)
+    mz_obj = document["MassSpectra/Summed Spectrum", True]
+
     app = wx.App()
-    ex = PanelPeakWidthTool(None, None, None)
+    ex = PanelPeakWidthTool(None, None, None, mz_obj)
     ex.Show()
     app.MainLoop()
 

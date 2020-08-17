@@ -110,6 +110,8 @@ class PlotBase(MPLPanel):
         y_lower_start: Optional[float] = 0,
         y_upper_multiplier: float = 1.0,
         is_heatmap: bool = False,
+        x_pad=None,
+        y_pad=None,
     ):
         """Calculate the x/y axis ranges"""
         x = np.nan_to_num(x)
@@ -120,6 +122,12 @@ class PlotBase(MPLPanel):
         if is_heatmap:
             x_min, x_max = x_min - 0.5, x_max + 0.5
             y_min, y_max = y_min - 0.5, y_max + 0.5
+
+        if x_pad is not None:
+            x_min, x_max = x_min - x_pad, x_max + x_pad
+
+        if y_pad is not None:
+            y_min, y_max = y_min - y_pad, y_max + y_pad
 
         xlimits = [x_min, x_max]
         if y_lower_start is None:
@@ -181,6 +189,10 @@ class PlotBase(MPLPanel):
         """Get x-axis limits"""
         plot_limits = self.get_plot_limits()
         return plot_limits[0], plot_limits[1]
+
+    def get_current_xlim(self):
+        """Get current x-axis limits"""
+        return self.plot_base.get_xlim()
 
     def get_ylim(self):
         """Get y-axis limits"""

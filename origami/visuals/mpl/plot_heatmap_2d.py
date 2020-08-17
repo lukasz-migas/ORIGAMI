@@ -39,10 +39,10 @@ class PlotHeatmap2D(PlotBase):
         """Simple heatmap plot"""
         self._set_axes()
 
-        xlimits, ylimits, extent = self._compute_xy_limits(x, y, None, is_heatmap=True)
-
         # add 2d plot
-        if kwargs["heatmap_plot_type"] == "Image":
+        if kwargs["heatmap_plot_type"] == "Image" and not kwargs.get("speedy", False):
+            xlimits, ylimits, extent = self._compute_xy_limits(x, y, None, is_heatmap=True)
+
             self.cax = self.plot_base.imshow(
                 array,
                 cmap=kwargs["heatmap_colormap"],
@@ -51,7 +51,9 @@ class PlotHeatmap2D(PlotBase):
                 origin="lower",
                 extent=[*xlimits, *ylimits],
             )
+            _plot_type = "heatmap"
         else:
+            xlimits, ylimits, extent = self._compute_xy_limits(x, y, None, is_heatmap=True)
             self.cax = self.plot_base.contourf(
                 array,
                 kwargs["heatmap_n_contour"],
@@ -60,6 +62,7 @@ class PlotHeatmap2D(PlotBase):
                 origin="lower",
                 extent=[*xlimits, *ylimits],
             )
+            _plot_type = "contour"
         # set plot limits
         self.plot_base.set_xlim(xlimits)
         self.plot_base.set_ylim(ylimits)
@@ -83,7 +86,7 @@ class PlotHeatmap2D(PlotBase):
 
         # update normalization
         self.plot_2D_update_normalization(**kwargs)
-        self.PLOT_TYPE = "heatmap"
+        self.PLOT_TYPE = _plot_type
 
     def plot_2d_contour(self, x, y, array, title="", x_label="", y_label="", obj=None, **kwargs):
         """Simple heatmap plot"""
@@ -177,7 +180,7 @@ class PlotHeatmap2D(PlotBase):
 
         if colormap is not None:
             self.cax.set_cmap(colormap)
-        if interpolation is not None:
+        if interpolation is not None and hasattr(self, "set_interpolation"):
             self.cax.set_interpolation(interpolation)
 
         # update colorbar
@@ -1045,98 +1048,6 @@ class PlotHeatmap2D(PlotBase):
     #     extent = [xmin, ymin, xmax, ymax]
     #     self.setup_zoom([self.plot2D_upper, self.plot2D_lower, self.plot2D_side], self.zoomtype, data_lims=extent)
     #     self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
-    #
-    # def plot_2D_contour_unidec(
-    #     self,
-    #     data=None,
-    #     zvals=None,
-    #     xvals=None,
-    #     yvals=None,
-    #     xlabel="m/z (Da)",
-    #     ylabel="Charge",
-    #     speedy=True,
-    #     axesSize=None,
-    #     plotName=None,
-    #     testX=False,
-    #     title="",
-    #     **kwargs,
-    # ):
-    #     # update settings
-    #     self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
-    #
-    #     # set tick size
-    #     matplotlib.rc("xtick", labelsize=kwargs["axes_tick_font_size"])
-    #     matplotlib.rc("ytick", labelsize=kwargs["axes_tick_font_size"])
-    #
-    #     # prep data
-    #     if xvals is None or yvals is None or zvals is None:
-    #         zvals = data[:, 2]
-    #         xvals = np.unique(data[:, 0])
-    #         yvals = np.unique(data[:, 1])
-    #     xlen = len(xvals)
-    #     ylen = len(yvals)
-    #     zvals = np.reshape(zvals, (xlen, ylen))
-    #
-    #     # normalize grid
-    #     norm = cm.colors.Normalize(vmax=np.amax(zvals), vmin=np.amin(zvals))
-    #
-    #     # Plot
-    #     self.plot_base = self.figure.add_axes(self._axes)
-    #
-    #     if testX:
-    #         xvals, xlabel, __ = self._convert_xaxis(xvals)
-    #
-    #     extent = ut_visuals.extents(xvals) + ut_visuals.extents(yvals)
-    #
-    #     if not speedy:
-    #         self.cax = self.plot_base.contourf(
-    #             xvals, yvals, np.transpose(zvals), kwargs.get("contour_levels", 100), cmap=kwargs["heatmap_colormap"],
-    #             norm=norm
-    #         )
-    #     else:
-    #         self.cax = self.plot_base.imshow(
-    #             np.transpose(zvals),
-    #             extent=extent,
-    #             cmap=kwargs["heatmap_colormap"],
-    #             interpolation=kwargs["heatmap_interpolation"],
-    #             norm=norm,
-    #             aspect="auto",
-    #             origin="lower",
-    #         )
-    #
-    #     #             if 'colormap_norm' in kwargs:
-    #     #                 self.cax.set_norm(kwargs['colormap_norm'])
-    #
-    #     xmin, xmax = self.plot_base.get_xlim()
-    #     ymin, ymax = self.plot_base.get_ylim()
-    #     self.plot_base.set_xlim(xmin, xmax - 0.5)
-    #     self.plot_base.set_ylim(ymin, ymax - 0.5)
-    #
-    #     if kwargs.get("minor_ticks_off", True):
-    #         self.plot_base.yaxis.set_tick_params(which="minor", bottom="off")
-    #         self.plot_base.yaxis.set_major_locator(MaxNLocator(integer=True))
-    #
-    #     # labels
-    #     if xlabel in ["None", None, ""]:
-    #         xlabel = ""
-    #     if ylabel in ["None", None, ""]:
-    #         ylabel = ""
-    #
-    #     self.set_plot_xlabel(xlabel, **kwargs)
-    #     self.set_plot_ylabel(ylabel, **kwargs)
-    #
-    #     # add colorbar
-    #     self.set_colorbar_parameters(zvals, **kwargs)
-    #     self.set_tick_parameters(**kwargs)
-    #
-    #     if title != "":
-    #         self.set_plot_title(title, **kwargs)
-    #
-    #     # setup zoom
-    #     extent = [xmin, ymin, xmax, ymax]
-    #     self.setup_zoom([self.plot_base], self.zoomtype, data_lims=extent, plotName=plotName, allowWheel=False)
-    #     self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
-    #     self.plot_data = {"xvals": xvals, "yvals": yvals, "zvals": zvals, "xlabel": xlabel, "ylabel": ylabel}
     #
     # def plot_2D_rgb(
     #     self, zvals, xvals, yvals, xlabel, ylabel, zoom="box", axesSize=None, legend_text=None, plotName="RGB",

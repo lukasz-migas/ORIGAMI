@@ -12,7 +12,6 @@ from pubsub.core import TopicNameError
 # Local imports
 from origami.styles import MiniFrame
 from origami.styles import Validator
-from origami.utils.screen import calculate_window_size
 from origami.config.config import CONFIG
 from origami.utils.utilities import report_time
 from origami.utils.converters import str2int
@@ -27,24 +26,24 @@ from origami.gui_elements.helpers import set_item_font
 from origami.gui_elements.helpers import make_menu_item
 from origami.gui_elements.helpers import make_bitmap_btn
 from origami.handlers.queue_handler import QUEUE
-from origami.widgets.unidec.view_unidec import ViewBarchart
+from origami.widgets.unidec.view_unidec import ViewBarChart
+from origami.widgets.unidec.view_unidec import ViewFitMassSpectrum
 from origami.widgets.unidec.view_unidec import ViewIndividualPeaks
 from origami.widgets.unidec.view_unidec import ViewMolecularWeight
 from origami.widgets.unidec.view_unidec import ViewMassSpectrumGrid
 from origami.widgets.unidec.view_unidec import ViewChargeDistribution
 from origami.widgets.unidec.view_unidec import ViewMolecularWeightGrid
+from origami.objects.containers.spectrum import MassSpectrumObject
 from origami.widgets.unidec.unidec_handler import UNIDEC_HANDLER
 from origami.gui_elements.views.view_register import VIEW_REG
-from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
 from origami.widgets.unidec.processing.utilities import unidec_sort_mw_list
 from origami.widgets.unidec.processing.containers import UniDecResultsObject
 
 logger = logging.getLogger(__name__)
 
-TEXTCTRL_SIZE = (60, -1)
+TEXTCTRL_SIZE = (40, -1)
 BTN_SIZE = (100, -1)
 
-# TODO: Improve layout and add new functionality
 # TODO: Add table
 # TODO: Add display difference and FWHM
 # TODO: FIXME: There is an issue with adding markers to MW plot
@@ -59,6 +58,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
     PANEL_BASE_TITLE = "UniDec"
 
     current_page = None
+    _unidec_sort_column = 0
 
     # ui elements
     plot_notebook, view_mz, view_mw, view_mz_grid, main_sizer = None, None, None, None, None
@@ -74,9 +74,17 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
     peak_shape_func_choice, run_unidec_btn, peak_width_auto_check, process_settings_btn = None, None, None, None
     process_btn, smooth_nearby_points, mz_to_mw_transform_choice, adduct_mass_value = None, None, None, None
     softmax_beta_value, smooth_z_distribution, mass_nearby_points, negative_mode_check = None, None, None, None
-    _dlg_width_tool, _dlg_ms_process_tool = None, None
+    _dlg_width_tool, _dlg_ms_process_tool, settings_panel = None, None, None
 
-    def __init__(self, parent, presenter, icons, document_title: str = None, dataset_name: str = None, mz_obj=None):
+    def __init__(
+        self,
+        parent,
+        presenter,
+        icons,
+        document_title: str = None,
+        dataset_name: str = None,
+        mz_obj: MassSpectrumObject = None,
+    ):
         """Initialize panel"""
         MiniFrame.__init__(self, parent, title="UniDec...", style=wx.DEFAULT_FRAME_STYLE)
         t_start = time.time()
@@ -84,10 +92,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         self.presenter = presenter
         self._icons = icons
 
-        self._display_size = wx.GetDisplaySize()
-        self._display_resolution = wx.ScreenDC().GetPPI()
-        self._window_size = calculate_window_size(self._display_size, [0.7, 0.5])
-        self._unidec_sort_column = 0
+        self._window_size = self._get_window_size(parent, [0.9, 0.9])
 
         # initialize gui
         self.make_gui()
@@ -97,6 +102,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         self.document_title = document_title
         self.dataset_name = dataset_name
         self.mz_obj = mz_obj
+        self.unsaved = False
 
         self.setup()
 
@@ -105,8 +111,9 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
         logger.debug(f"Started-up UniDec panel in {report_time(t_start)}")
 
-        self.CentreOnScreen()
+        self.CenterOnParent()
         self.SetFocus()
+        self.SetSize(self._window_size)
 
     def setup(self):
         """Setup window"""
@@ -116,7 +123,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
             pub.subscribe(self.on_process, self.PUB_SUBSCRIBE_EVENT)
 
         if self.mz_obj:
-            self.on_plot_ms(None)
+            self.view_mz.plot(obj=self.mz_obj)
 
     def on_close(self, evt, force: bool = False):
         """Close window"""
@@ -129,72 +136,89 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
             pass
         super(PanelProcessUniDec, self).on_close(evt, force)
 
-    @property
-    def data_handling(self):
-        """Return handle to `data_handling`"""
-        return self.presenter.data_handling
+    # @property
+    # def data_handling(self):
+    #     """Return handle to `data_handling`"""
+    #     return self.presenter.data_handling
+    #
+    # @property
+    # def data_processing(self):
+    #     """Return handle to `data_processing`"""
+    #     return self.presenter.data_processing
+    #
+    # @property
+    # def panel_plot(self):
+    #     """Return handle to `panel_plot`"""
+    #     return self.view.panelPlots
+    #
+    # @property
+    # def document_tree(self):
+    #     """Return handle to `document_tree`"""
+    #     return self.presenter.view.panelDocuments.documents
 
-    @property
-    def data_processing(self):
-        """Return handle to `data_processing`"""
-        return self.presenter.data_processing
+    def set_new_dataset(self, document_title: str, dataset_name: str, mz_obj: MassSpectrumObject):
+        """Set new data in the panel"""
+        self.document_title = document_title
+        self.dataset_name = dataset_name
+        self.mz_obj = mz_obj
+        CONFIG.unidec_engine = None
 
-    @property
-    def panel_plot(self):
-        """Return handle to `panel_plot`"""
-        return self.view.panelPlots
-
-    @property
-    def document_tree(self):
-        """Return handle to `document_tree`"""
-        return self.presenter.view.panelDocuments.documents
-
-    def on_right_click(self, _evt):
+    def on_right_click(self, evt):
         """Right-click menu"""
-        view = VIEW_REG.view
+        if hasattr(evt.EventObject, "figure"):
+            view = VIEW_REG.view
+            menu = view.get_right_click_menu(self)
+            save_all_figures_menu_item = make_menu_item(
+                menu, evt_id=wx.ID_ANY, text="Save all figures as...", bitmap=self._icons.save_all
+            )
+            menu.Insert(4, save_all_figures_menu_item)
 
-        menu = view.get_right_click_menu(self)
-        save_all_figures_menu_item = make_menu_item(
-            menu, evt_id=wx.ID_ANY, text="Save all figures as...", bitmap=self._icons.save_all
-        )
-        menu.Insert(4, save_all_figures_menu_item)
+            self.Bind(wx.EVT_MENU, self.on_save_all_figures, save_all_figures_menu_item)
 
-        self.Bind(wx.EVT_MENU, self.on_save_all_figures, save_all_figures_menu_item)
-
-        self.PopupMenu(menu)
-        menu.Destroy()
-        self.SetFocus()
+            self.PopupMenu(menu)
+            menu.Destroy()
+            self.SetFocus()
 
     def make_gui(self):
         """Make gui"""
-        settings_panel = self.make_settings_panel(self)
-        settings_panel.SetMinSize((420, -1))
+        # make settings controls
+        #         settings_panel = self.make_settings_panel(panel_settings)
+        self.settings_panel = self.make_settings_panel(self)
 
         self.plot_panel = self.make_plot_panel(self)
 
         # pack element
         main_sizer = wx.BoxSizer()
-        main_sizer.Add(self.plot_panel, 1, wx.EXPAND, 0)
+        main_sizer.Add(self.plot_panel, 3, wx.EXPAND, 0)
 
         # add settings panel
         if "Left" in CONFIG.unidec_plot_settings_view:
-            main_sizer.Insert(0, settings_panel, 0, wx.EXPAND, 0)
+            main_sizer.Insert(0, self.settings_panel, 1, wx.EXPAND, 0)
         else:
-            main_sizer.Add(settings_panel, 0, wx.EXPAND, 0)
+            main_sizer.Add(self.settings_panel, 1, wx.EXPAND, 0)
 
         # fit layout
         main_sizer.Fit(self)
         self.SetSizer(main_sizer)
-        # self.SetSizerAndFit(main_sizer)
+        #         self.SetSizerAndFit(main_sizer)
+        self.settings_panel.SetMinSize((450, -1))
+        self.settings_panel.SetSize((450, -1))
+
         self.Layout()
 
     def make_plot_panel(self, split_panel):
         """Make plot panel"""
 
-        # pixel_size = [(self._window_size[0] - self._settings_panel_size[0]), (self._window_size[1] - 50)]
-        # figsize = [pixel_size[0] / self._display_resolution[0], pixel_size[1] / self._display_resolution[1]]
-        # figsize_1D = [figsize[0] / 2.75, figsize[1] / 3]
-        # figsize_2D = [figsize[0] / 2.75, figsize[1] / 1.5]
+        #         _settings_panel_size = self.settings_panel.GetSize()
+        #         pixel_size = [(self._window_size[0] - _settings_panel_size[0]), (self._window_size[1] - 50)]
+        #         figsize = [pixel_size[0] / self._display_resolution[0], pixel_size[1] / self._display_resolution[1]]
+        #         figsize_1d = [figsize[0] / 2.75, figsize[1] / 3]
+        #         figsize_2d = [figsize[0] / 2.75, figsize[1] / 1.5]
+        #         print(figsize_1d, figsize_2d)
+        figsize_1d = (6, 3)
+        figsize_2d = (6, 6)
+
+        CONFIG.unidec_plot_panel_view = "Single page view"
 
         # setup plot base
         if CONFIG.unidec_plot_panel_view == "Single page view":
@@ -205,95 +229,63 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
             plot_parent = wx.Notebook(plot_panel)
 
         # mass spectrum
-        self.view_mz = ViewMassSpectrum(
-            plot_parent,
-            CONFIG._plotSettings["MS"]["gui_size"],  # noqa
-            CONFIG,
-            allow_extraction=False,
-            filename="mass-spectrum",
+        self.view_mz = ViewFitMassSpectrum(
+            plot_parent, figsize_1d, CONFIG, allow_extraction=False, filename="mass-spectrum"
         )
 
         # molecular weight
         self.view_mw = ViewMolecularWeight(
-            plot_parent,
-            CONFIG._plotSettings["MS"]["gui_size"],  # noqa
-            CONFIG,
-            allow_extraction=False,
-            filename="molecular-weight",
+            plot_parent, figsize_1d, CONFIG, allow_extraction=False, filename="molecular-weight"
         )
 
         # molecular weight
         self.view_mz_grid = ViewMassSpectrumGrid(
-            plot_parent,
-            CONFIG._plotSettings["MS"]["gui_size"],  # noqa
-            CONFIG,
-            allow_extraction=False,
-            filename="ms-grid",
+            plot_parent, figsize_2d, CONFIG, allow_extraction=False, filename="ms-grid"
         )
 
         # molecular weight
         self.view_mw_grid = ViewMolecularWeightGrid(
-            plot_parent,
-            CONFIG._plotSettings["MS"]["gui_size"],  # noqa
-            CONFIG,
-            allow_extraction=False,
-            filename="mw-grid",
+            plot_parent, figsize_2d, CONFIG, allow_extraction=False, filename="mw-grid"
         )
 
         # molecular weight
         self.view_peaks = ViewIndividualPeaks(
-            plot_parent,
-            CONFIG._plotSettings["MS"]["gui_size"],  # noqa
-            CONFIG,
-            allow_extraction=False,
-            filename="isolated-peaks",
+            plot_parent, figsize_2d, CONFIG, allow_extraction=False, filename="isolated-peaks"
         )
 
         # molecular weight
-        self.view_barchart = ViewBarchart(
-            plot_parent,
-            CONFIG._plotSettings["MS"]["gui_size"],  # noqa
-            CONFIG,
-            allow_extraction=False,
-            filename="barchart",
-        )
+        self.view_barchart = ViewBarChart(plot_parent, figsize_2d, CONFIG, allow_extraction=False, filename="barchart")
         # molecular weight
         self.view_charge = ViewChargeDistribution(
-            plot_parent,
-            CONFIG._plotSettings["MS"]["gui_size"],  # noqa
-            CONFIG,
-            allow_extraction=False,
-            filename="charge-distribution",
+            plot_parent, figsize_1d, CONFIG, allow_extraction=False, filename="charge-distribution"
         )
 
         if CONFIG.unidec_plot_panel_view == "Single page view":
-            grid = wx.GridBagSizer(10, 10)
-            n = 0
-            grid.Add(self.view_mz.panel, (n, 0), span=(1, 1), flag=wx.EXPAND)
-            grid.Add(self.view_mw.panel, (n, 1), span=(1, 1), flag=wx.EXPAND)
-            n += 1
-            grid.Add(self.view_mz_grid.panel, (n, 0), span=(1, 1), flag=wx.EXPAND)
-            grid.Add(self.view_mw_grid.panel, (n, 1), span=(1, 1), flag=wx.EXPAND)
-            n += 1
-            grid.Add(self.view_peaks.panel, (n, 0), span=(1, 1), flag=wx.EXPAND)
-            grid.Add(self.view_barchart.panel, (n, 1), span=(1, 1), flag=wx.EXPAND)
-            n += 1
-            grid.Add(self.view_charge.panel, (n, 0), span=(1, 1), flag=wx.EXPAND)
+            plot_parent = wx.BoxSizer(wx.VERTICAL)
+
+            _row_0 = wx.BoxSizer()
+            _row_0.Add(self.view_mz.panel, 1, wx.EXPAND)
+            _row_0.Add(self.view_mw.panel, 1, wx.EXPAND)
+
+            _row_1 = wx.BoxSizer()
+            _row_1.Add(self.view_mz_grid.panel, 1, wx.EXPAND)
+            _row_1.Add(self.view_mw_grid.panel, 1, wx.EXPAND)
+
+            _row_2 = wx.BoxSizer()
+            _row_2.Add(self.view_peaks.panel, 1, wx.EXPAND)
+            _row_2.Add(self.view_barchart.panel, 1, wx.EXPAND)
+
+            _row_3 = wx.BoxSizer()
+            _row_3.Add(self.view_charge.panel, 1, wx.EXPAND)
+
+            plot_parent.Add(_row_0, 1, wx.EXPAND)
+            plot_parent.Add(_row_1, 1, wx.EXPAND)
+            plot_parent.Add(_row_2, 1, wx.EXPAND)
+            plot_parent.Add(_row_3, 1, wx.EXPAND)
 
             main_sizer = wx.BoxSizer(wx.VERTICAL)
-            main_sizer.Add(grid, 1, wx.EXPAND, 2)
+            main_sizer.Add(plot_parent, 1, wx.EXPAND, 2)
             self.plot_panel = plot_panel
-
-            # fit layout
-            main_sizer.Fit(self.plot_panel)
-            self.plot_panel.SetSizerAndFit(main_sizer)
-
-            # main_sizer = wx.BoxSizer(wx.VERTICAL)
-            # main_sizer.Add(grid, 1, wx.EXPAND, 2)
-            # # fit layout
-            # self.plot_panel = plot_parent
-            # self.plot_panel.SetSizer(main_sizer)
-            # main_sizer.Fit(self.plot_panel)
 
             # setup scrolling
             plot_panel.SetupScrolling()
@@ -312,12 +304,12 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
             main_sizer = wx.BoxSizer(wx.VERTICAL)
             main_sizer.Add(plot_parent, 1, wx.EXPAND, 2)
             self.plot_panel = plot_panel
-
-            # fit layout
-            main_sizer.Fit(self.plot_panel)
-            self.plot_panel.SetSizerAndFit(main_sizer)
-
             self.on_page_changed(None)
+
+        # fit layout
+        main_sizer.Fit(self.plot_panel)
+        self.plot_panel.SetSizer(main_sizer)
+        #         self.plot_panel.SetSizerAndFit(main_sizer)
 
         return self.plot_panel
 
@@ -524,7 +516,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         self.peak_shape_func_choice.SetStringSelection(CONFIG.unidec_panel_peak_func)
         self.peak_shape_func_choice.Bind(wx.EVT_CHOICE, self.on_apply)
 
-        softmax_beta_value = wx.StaticText(panel, wx.ID_ANY, "Smooth charge state distribution:")
+        softmax_beta_value = wx.StaticText(panel, wx.ID_ANY, "Beta:")
         self.softmax_beta_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE, validator=Validator("floatPos"))
         self.softmax_beta_value.SetValue(str(CONFIG.unidec_panel_softmax_beta))
         self.softmax_beta_value.Bind(wx.EVT_TEXT, self.on_apply)
@@ -534,7 +526,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
             "\n0 will shut it off.",
         )
 
-        smooth_z_distribution = wx.StaticText(panel, wx.ID_ANY, "Smooth charge state distribution:")
+        smooth_z_distribution = wx.StaticText(panel, wx.ID_ANY, "Smooth charge distribution:")
         self.smooth_z_distribution = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE, validator=Validator("floatPos"))
         self.smooth_z_distribution.SetValue(str(CONFIG.unidec_panel_smooth_charge_distribution))
         self.smooth_z_distribution.Bind(wx.EVT_TEXT, self.on_apply)
@@ -630,17 +622,17 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
 
     def make_peaks_settings_panel(self, panel, grid, n: int, n_span: int, n_col: int):  # noqa
         """Make peaks sub-section"""
-        peak_width_value = wx.StaticText(panel, wx.ID_ANY, "Peak detection window (Da):")
+        peak_width_value = wx.StaticText(panel, wx.ID_ANY, "Window (Da):")
         self.peak_width_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE, validator=Validator("floatPos"))
         self.peak_width_value.SetValue(str(CONFIG.unidec_panel_peak_detect_width))
         self.peak_width_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        unidec_peak_threshold_label = wx.StaticText(panel, wx.ID_ANY, "Peak detection threshold:")
+        unidec_peak_threshold_label = wx.StaticText(panel, wx.ID_ANY, "Threshold:")
         self.peak_threshold_value = wx.TextCtrl(panel, -1, "", size=TEXTCTRL_SIZE, validator=Validator("floatPos"))
         self.peak_threshold_value.SetValue(str(CONFIG.unidec_panel_peak_detect_threshold))
         self.peak_threshold_value.Bind(wx.EVT_TEXT, self.on_apply)
 
-        peak_normalization_choice = wx.StaticText(panel, wx.ID_ANY, "Peak normalization:")
+        peak_normalization_choice = wx.StaticText(panel, wx.ID_ANY, "Normalization:")
         self.peak_normalization_choice = wx.Choice(
             panel, -1, choices=CONFIG.unidec_panel_peak_detect_norm_choices, size=(-1, -1)
         )
@@ -658,7 +650,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         self.markers_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.markers_check.Bind(wx.EVT_CHECKBOX, self.on_show_peaks_unidec)
 
-        individual_line_check = wx.StaticText(panel, wx.ID_ANY, "Show individual components:")
+        individual_line_check = wx.StaticText(panel, wx.ID_ANY, "Show individual lines:")
         self.individual_line_check = make_checkbox(panel, "")
         self.individual_line_check.SetValue(CONFIG.unidec_panel_plot_line_show)
         self.individual_line_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
@@ -920,13 +912,6 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         self._dlg_ms_process_tool.Show()
         self._dlg_ms_process_tool.SetFocus()
 
-    def on_get_unidec_data(self):
-        """Convenience function to retrieve UniDec data from the document"""
-        # get data and document
-        __, data = self.data_handling.get_spectrum_data([self.document_title, self.dataset_name])
-
-        return data.get("unidec", None)
-
     def on_sort_unidec_mw(self, _evt):
         """Sort molecular weights"""
         if self._unidec_sort_column == 0:
@@ -950,10 +935,6 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
             wx.CallAfter(self.on_process_unidec, None)
         else:
             logger.warning("UniDec engine has not been initialized yet")
-
-    def on_plot_ms(self, _evt):
-        """Plot mass spectrum"""
-        self.view_mz.plot(obj=self.mz_obj)
 
     def on_plot(self, task):
         """Plot data"""
@@ -1076,7 +1057,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
 
     def on_update_peak_width(self):
         """Update peak width"""
-        self.fit_peak_width_value.SetValue(f"{CONFIG.unidec_engine.config.mzsig:.4f}")
+        self.fit_peak_width_value.SetValue(f"{CONFIG.unidec_panel_peak_width:.4f}")
 
     def on_plot_mw_normalization(self):
         """Trigger replot of the MW plot since the scaling might change"""
@@ -1098,6 +1079,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
             self.view_mz.clear()
 
         if task in ["all", "init", "preprocess", "run"]:
+            self.view_mw.clear()
             self.view_mw_grid.clear()
             self.view_mz_grid.clear()
             self.view_peaks.clear()
@@ -1136,36 +1118,40 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
 
     def on_process_unidec(self, _evt):
         """Process mass spectrum"""
-        if self.check_unidec_engine("init"):
-            QUEUE.add_call(UNIDEC_HANDLER.unidec_preprocess, (), func_result=self.on_show_process_unidec)
-        else:
-            raise MessageError("Error", "UniDec engine has not been instantiated yet - please instantiate it first")
+        self.on_clear_plot_as_task("preprocess")
+        QUEUE.add_call(
+            UNIDEC_HANDLER.unidec_initialize_and_preprocess,
+            (self.mz_obj, None),
+            func_result=self.on_show_process_unidec,
+        )
 
     def on_show_process_unidec(self, unidec_engine: UniDecResultsObject):
         """Show UniDec results"""
-        self.on_clear_plot_as_task("preprocess")
         if CONFIG.ms_normalize:
             self.mz_obj.normalize()
-        self.view_mz.plot(obj=self.mz_obj, label="Raw")
-        self.view_mz.add_line(obj=unidec_engine.mz_processed_obj, label="Fit data")
+        self.view_mz.plot(obj=self.mz_obj, label="Raw", repaint=False)
+        self.view_mz.add_line(
+            obj=unidec_engine.mz_processed_obj, line_color=CONFIG.unidec_plot_fit_lineColor, label="Fit data"
+        )
 
     def on_run_unidec(self, _evt):
         """Run UniDec"""
         if self.check_unidec_engine("preprocessed"):
+            self.on_clear_plot_as_task("run")
             QUEUE.add_call(UNIDEC_HANDLER.unidec_run, (), func_result=self.on_show_run_unidec)
         else:
             raise MessageError("Error", "Mass spectrum has not been pre-processed yet - please pre-process it first")
 
     def on_show_run_unidec(self, unidec_engine: UniDecResultsObject):
         """Show UniDec results"""
-        self.on_clear_plot_as_task("run")
         self.view_mw.plot(obj=unidec_engine.mw_obj)
-        self.view_mw_grid.plot(obj=unidec_engine.mw_grid_obj)
         self.view_mz_grid.plot(obj=unidec_engine.mz_grid_obj)
+        self.view_mw_grid.plot(obj=unidec_engine.mw_grid_obj)
 
     def on_detect_peaks_unidec(self, _evt):
         """Detect features"""
         if self.check_unidec_engine("executed"):
+            self.on_clear_plot_as_task("peaks")
             QUEUE.add_call(UNIDEC_HANDLER.unidec_find_peaks, (), func_result=self.on_show_detect_peaks_unidec)
         else:
             raise MessageError(
@@ -1174,14 +1160,28 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
 
     def on_show_detect_peaks_unidec(self, unidec_engine: UniDecResultsObject):
         """Show UniDec results"""
-        self.on_clear_plot_as_task("peaks")
         # add markers to the MW plot
         self.view_mw.remove_scatter()
         peaks = unidec_engine.peaks
-        for x, y, color, marker in zip(peaks.masses, peaks.intensities, peaks.colors, peaks.markers):
-            self.view_mw.add_scatter(x, y, color, marker, size=20, repaint=False)
-            print(x, y, color, marker)
-        self.view_mw.repaint()
+        mw_obj = unidec_engine.mw_obj
+
+        # update MW plot data
+        self.view_mw.plot(obj=mw_obj)
+
+        # add markers
+        # since the mw can be divided by 1000, we need to ensure that peak position is also transformed
+        masses = mw_obj.x_axis_transform(peaks.masses)
+        for x, y, color, marker, label in zip(masses, peaks.intensities, peaks.colors, peaks.markers, peaks.labels):
+            self.view_mw.add_scatter(
+                x, y, color, marker, size=CONFIG.unidec_plot_MW_markerSize, label=label, repaint=False
+            )
+        self.view_mw.show_legend(True)
+
+        # show barchart
+        self.view_barchart.plot(obj=peaks)
+
+        # show charge states
+        self.view_charge.plot(obj=unidec_engine.z_obj)
 
     def on_all_unidec(self, _evt):
         """Run all"""
@@ -1218,12 +1218,12 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
 
     def on_update_mass_list(self):
         """Update mass list"""
-        data = self.on_get_unidec_data()
-        data = data.get("m/z with isolated species", None)
-        if data:
-            mass_list, mass_max = data["_massList_"]
-            self.weight_list_choice.SetItems(mass_list)
-            self.weight_list_choice.SetStringSelection(mass_max)
+        # data = self.on_get_unidec_data()
+        # data = data.get("m/z with isolated species", None)
+        # if data:
+        #     mass_list, mass_max = data["_massList_"]
+        #     self.weight_list_choice.SetItems(mass_list)
+        #     self.weight_list_choice.SetStringSelection(mass_max)
 
 
 def _main():

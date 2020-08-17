@@ -36,7 +36,7 @@ class PanelColorbarSettings(PanelSettingsBase):
 
         colorbar_label_format = wx.StaticText(self, -1, "Label format:")
         self.colorbar_label_format = wx.Choice(
-            self, -1, choices=CONFIG.colorbar_fmt_choices, size=(-1, -1), name="2d.heatmap.colorbar"
+            self, -1, choices=CONFIG.colorbar_label_fmt_choices, size=(-1, -1), name="2d.heatmap.colorbar"
         )
         self.colorbar_label_format.Bind(wx.EVT_CHOICE, self.on_apply)
         self.colorbar_label_format.Bind(wx.EVT_CHOICE, self.on_update)

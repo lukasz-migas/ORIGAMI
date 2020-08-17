@@ -111,7 +111,7 @@ class PanelWaterfallSettings(PanelSettingsBase):
 
         waterfall_color_scheme_label = wx.StaticText(self, -1, "Color scheme:")
         self.waterfall_colorScheme_value = wx.Choice(
-            self, -1, choices=CONFIG.waterfall_color_choices, size=(-1, -1), name="waterfall.fill"
+            self, -1, choices=CONFIG.waterfall_color_scheme_choices, size=(-1, -1), name="waterfall.fill"
         )
         self.waterfall_colorScheme_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.waterfall_colorScheme_value.Bind(wx.EVT_CHOICE, self.on_update)

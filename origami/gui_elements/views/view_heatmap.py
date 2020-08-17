@@ -94,6 +94,7 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
         self.set_labels(obj, **kwargs)
 
         kwargs.update(**CONFIG.get_mpl_parameters(self.MPL_KEYS))
+        kwargs.update(**self.FORCED_KWARGS)
         kwargs = self.check_kwargs(**kwargs)
 
         try:
@@ -163,6 +164,7 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
         self.set_labels(obj, **kwargs)
 
         kwargs.update(**CONFIG.get_mpl_parameters(self.MPL_KEYS))
+        kwargs.update(**self.FORCED_KWARGS)
         kwargs = self.check_kwargs(**kwargs)
         x, y, array = self.check_input(x, y, array, obj)
         self.figure.clear()
@@ -189,6 +191,7 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
         self.set_labels(obj, **kwargs)
 
         kwargs.update(**CONFIG.get_mpl_parameters(mpl_keys))
+        kwargs.update(**self.FORCED_KWARGS)
         kwargs = self.check_kwargs(**kwargs)
         x, y, array = self.check_input(x, y, array, obj)
         self.figure.clear()
@@ -215,6 +218,7 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
         self.set_labels(obj, **kwargs)
 
         kwargs.update(**CONFIG.get_mpl_parameters(mpl_keys))
+        kwargs.update(**self.FORCED_KWARGS)
         kwargs = self.check_kwargs(**kwargs)
         x, y, array = self.check_input(x, y, array, obj)
         self.figure.clear()
@@ -241,6 +245,7 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
         self.set_labels(obj, **kwargs)
 
         kwargs.update(**CONFIG.get_mpl_parameters(mpl_keys))
+        kwargs.update(**self.FORCED_KWARGS)
         kwargs = self.check_kwargs(**kwargs)
         x, y, array = self.check_input(x, y, array, obj)
         self.figure.clear()

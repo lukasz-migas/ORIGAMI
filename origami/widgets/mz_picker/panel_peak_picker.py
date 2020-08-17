@@ -525,7 +525,7 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
 
         filter_value = wx.StaticText(panel, wx.ID_ANY, "Filter-by:")
         self.post_filter_choice = wx.ComboBox(panel, choices=CONFIG.peak_panel_filter_choices, style=wx.CB_READONLY)
-        self.post_filter_choice.SetStringSelection(CONFIG.peak_panel_filter_choice)
+        self.post_filter_choice.SetStringSelection(CONFIG.peak_panel_filter)
         self.post_filter_choice.Bind(wx.EVT_COMBOBOX, self.on_toggle_controls)
         self.post_filter_choice.Bind(wx.EVT_COMBOBOX, self.on_refresh_lower_upper_bounds)
         set_tooltip(
@@ -546,7 +546,7 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
 
         score_value = wx.StaticText(panel, wx.ID_ANY, "Score:")
         self.post_score_choice = wx.ComboBox(panel, choices=CONFIG.peak_panel_score_choices, style=wx.CB_READONLY)
-        self.post_score_choice.SetStringSelection(CONFIG.peak_panel_score_choice)
+        self.post_score_choice.SetStringSelection(CONFIG.peak_panel_score)
         set_tooltip(
             self.post_score_choice,
             "Select scoring method."
@@ -1009,8 +1009,8 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         self.visualize_show_labels_width_check.Enable(CONFIG.peak_panel_labels)
 
         # filtering
-        CONFIG.peak_panel_filter_choice = self.post_filter_choice.GetStringSelection()
-        self.post_score_choice.Enable(CONFIG.peak_panel_filter_choice == "Score")
+        CONFIG.peak_panel_filter = self.post_filter_choice.GetStringSelection()
+        self.post_score_choice.Enable(CONFIG.peak_panel_filter == "Score")
 
         if evt is not None:
             evt.Skip()

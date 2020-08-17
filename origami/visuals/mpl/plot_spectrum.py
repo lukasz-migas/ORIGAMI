@@ -68,6 +68,8 @@ class PlotSpectrum(PlotBase):
 
         # setup axis formatters
         self.plot_base.yaxis.set_major_formatter(get_intensity_formatter())
+        if kwargs.get("x_axis_formatter", False):
+            self.plot_base.xaxis.set_major_formatter(get_intensity_formatter())
         self.plot_base.set_xlim(xlimits)
         self.plot_base.set_ylim(ylimits)
         self.set_plot_xlabel(x_label, **kwargs)
@@ -214,6 +216,49 @@ class PlotSpectrum(PlotBase):
         self.store_plot_limits([extent], [self.plot_base])
         self.PLOT_TYPE = "line-compare"
 
+    def plot_1d_barplot(self, x, y, labels, colors, x_label="", y_label="", title="", **kwargs):
+        # update settings
+        xlimits, ylimits, extent = self._compute_xy_limits(x, y, 0, 1.1, x_pad=1)
+        print(xlimits)
+
+        if not kwargs.get("bar_edge_same_as_fill", True):
+            edgecolor = kwargs.get("bar_edge_color", "#000000")
+        else:
+            edgecolor = colors
+
+        # Simple hack to reduce size is to use different subplot size
+        xticloc = np.array(x)
+        self.plot_base = self.figure.add_axes(self._axes, xticks=xticloc)
+        self.plot_base.bar(
+            x,
+            y,
+            color=colors,
+            label="Intensities",
+            alpha=kwargs.get("bar_alpha", 0.5),
+            linewidth=kwargs.get("bar_line_width", 1),
+            width=kwargs.get("bar_width", 1),
+            edgecolor=edgecolor,
+        )
+
+        self.plot_base.set_xlim(xlimits)
+        self.plot_base.set_ylim(ylimits)
+        self.set_plot_xlabel(x_label, **kwargs)
+        self.set_plot_ylabel(y_label, **kwargs)
+        self.set_plot_title(title, **kwargs)
+        self.set_tick_parameters(**kwargs)
+        self.set_legend_parameters(None, **kwargs)
+        self.set_line_style(**kwargs)
+
+        peaklabels = [str(p) for p in labels]
+        self.plot_base.set_xticklabels(peaklabels, rotation=90, fontsize=kwargs["axes_tick_font_size"])  # 90
+
+        self.setup_new_zoom(
+            [self.plot_base],
+            data_limits=[extent],
+            allow_extraction=kwargs.get("allow_extraction", False),
+            callbacks=kwargs.get("callbacks", dict()),
+        )
+
     def plot_1d_compare_update_data(self, x_top, x_bottom, y_top, y_bottom, labels=None, **kwargs):
         """Update comparison data"""
         if labels is None or not isinstance(labels, list):
@@ -344,107 +389,17 @@ class PlotSpectrum(PlotBase):
         self.set_legend_parameters(None, **kwargs)
         self.set_line_style(**kwargs)
 
-        self.setup_new_zoom(
-            [self.plot_base],
-            data_limits=[extent],
-            allow_extraction=kwargs.get("allow_extraction", False),
-            callbacks=kwargs.get("callbacks", dict()),
-        )
+        # self.setup_new_zoom(
+        #     [self.plot_base],
+        #     data_limits=[extent],
+        #     allow_extraction=kwargs.get("allow_extraction", False),
+        #     callbacks=kwargs.get("callbacks", dict()),
+        # )
 
         # Setup X-axis getter
-        self.store_plot_limits([extent], [self.plot_base])
+        # self.store_plot_limits([extent], [self.plot_base])
         self.PLOT_TYPE = "line"
 
-    # def plot_1D(
-    #     self,
-    #     xvals=None,
-    #     yvals=None,
-    #     xlabel="",
-    #     ylabel="",
-    #     label="",
-    #     title="",
-    #     xlimits=None,
-    #     plotType=None,
-    #     testMax="yvals",
-    #     testX=False,
-    #     allowWheel=True,
-    #     axesSize=None,
-    #     **kwargs,
-    # ):
-    #     """
-    #     Plots MS and 1DT data
-    #     """
-    #     # update settings
-    #     self._check_and_update_plot_settings(plot_name=plotType, axes_size=axesSize, **kwargs)
-    #
-    #     if testMax == "yvals":
-    #         yvals, ylabel, __ = self._convert_yaxis(yvals, ylabel)
-    #
-    #     if testX:
-    #         xvals, xlabel, __ = self._convert_xaxis(xvals)
-    #
-    #     # Simple hack to reduce size is to use different subplot size
-    #     self.plot_base = self.figure.add_axes(self._axes)
-    #     self.plot_base.plot(
-    #         xvals,
-    #         yvals,
-    #         color=kwargs["spectrum_line_color"],
-    #         label=label,
-    #         linewidth=kwargs["spectrum_line_width"],
-    #         linestyle=kwargs["spectrum_line_style"],
-    #     )
-    #     if kwargs["spectrum_line_fill_under"]:
-    #         self.plot_1d_add_under_curve(xvals, yvals, **kwargs)
-    #
-    #     # Setup parameters
-    #     if xlimits is None or xlimits[0] is None or xlimits[1] is None:
-    #         xlimits = (np.min(xvals), np.max(xvals))
-    #
-    #     # update limits and extents
-    #     ylimits = (np.min(yvals), np.max(yvals) * 1.1)
-    #
-    #     # check if user provided
-    #     if "plot_modifiers" in kwargs:
-    #         plot_modifiers = kwargs["plot_modifiers"]
-    #
-    #         if "xlimits" in plot_modifiers and plot_modifiers["xlimits"] != [None, None]:
-    #             xlimits = plot_modifiers["xlimits"]
-    #         if "ylimits" in plot_modifiers and plot_modifiers["ylimits"] != [None, None]:
-    #             ylimits = plot_modifiers["ylimits"]
-    #
-    #     extent = [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
-    #     self.plot_base.set_xlim(xlimits)
-    #     self.plot_base.set_ylim(ylimits)
-    #
-    #     if kwargs.get("minor_ticks_off", False) or xlabel == "Scans" or xlabel == "Charge":
-    #         self.plot_base.xaxis.set_tick_params(which="minor", bottom="off")
-    #         self.plot_base.xaxis.set_major_locator(MaxNLocator(integer=True))
-    #
-    #     self.set_plot_xlabel(xlabel, **kwargs)
-    #     self.set_plot_ylabel(ylabel, **kwargs)
-    #     self.set_tick_parameters(**kwargs)
-    #
-    #     for __, line in enumerate(self.plot_base.get_lines()):
-    #         line.set_linewidth(kwargs["spectrum_line_width"])
-    #         line.set_linestyle(kwargs["spectrum_line_style"])
-    #
-    #     if title != "":
-    #         self.set_plot_title(title, **kwargs)
-    #
-    #     self.setup_zoom(
-    #         [self.plot_base],
-    #         self.zoomtype,
-    #         data_lims=extent,
-    #         plotName=plotType,
-    #         allowWheel=allowWheel,
-    #         allow_extraction=kwargs.get("allow_extraction", False),
-    #         callbacks=kwargs.get("callbacks", dict()),
-    #     )
-    #
-    #     # Setup X-axis getter
-    #     self.setupGetXAxies([self.plot_base])
-    #     self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
-    #     self.plot_labels.update({"xlabel": xlabel, "ylabel": ylabel})
     #
     # def plot_1D_centroid(
     #     self,
@@ -540,59 +495,6 @@ class PlotSpectrum(PlotBase):
     #     if not adding_on_top:
     #         self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
     #
-    # def plot_1D_barplot(
-    #     self,
-    #     xvals,
-    #     yvals,
-    #     labels,
-    #     colors,
-    #     xlabel="",
-    #     ylabel="",
-    #     title="",
-    #     zoom="box",
-    #     axesSize=None,
-    #     plotType=None,
-    #     **kwargs,
-    # ):
-    #     # update settings
-    #     self._check_and_update_plot_settings(plot_name=plotType, axes_size=axesSize, **kwargs)
-    #
-    #     if not kwargs.get("bar_edge_same_as_fill", True):
-    #         edgecolor = kwargs.get("bar_edge_color", "#000000")
-    #     else:
-    #         edgecolor = colors
-    #
-    #     # Simple hack to reduce size is to use different subplot size
-    #     xticloc = np.array(xvals)
-    #     self.plot_base = self.figure.add_axes(self._axes, xticks=xticloc)
-    #     self.plot_base.bar(
-    #         xvals,
-    #         yvals,
-    #         color=colors,
-    #         label="Intensities",
-    #         alpha=kwargs.get("bar_alpha", 0.5),
-    #         linewidth=kwargs.get("bar_line_width", 1),
-    #         width=kwargs.get("bar_width", 1),
-    #         edgecolor=edgecolor,
-    #     )
-    #
-    #     peaklabels = [str(p) for p in labels]
-    #     self.plot_base.set_xticklabels(peaklabels, rotation=90, fontsize=kwargs["axes_tick_font_size"])  # 90
-    #     self.set_plot_xlabel(xlabel, **kwargs)
-    #     self.set_plot_ylabel(ylabel, **kwargs)
-    #     self.set_tick_parameters(**kwargs)
-    #
-    #     for __, line in enumerate(self.plot_base.get_lines()):
-    #         line.set_linewidth(kwargs["spectrum_line_width"])
-    #         line.set_linestyle(kwargs["spectrum_line_style"])
-    #
-    #     if title != "":
-    #         self.set_plot_title(title, **kwargs)
-    #
-    #     xlimits = self.plot_base.get_xlim()
-    #     ylimits = self.plot_base.get_ylim()
-    #     extent = [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
-    #     self.setup_zoom([self.plot_base], self.zoomtype, plotName=plotType, data_lims=extent)
     #
     # def plot_floating_barplot(
     #     self, xvals, yvals_min, yvals_max, xlabel, ylabel, colors=None, axesSize=None, plotName="bar", **kwargs

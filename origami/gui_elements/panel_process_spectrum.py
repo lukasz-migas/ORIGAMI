@@ -133,6 +133,7 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin, ConfigUpdateMixin):
             self._plot_timer = wx.Timer(self, True)
             self.Bind(wx.EVT_TIMER, self.on_update_plot)
 
+        self.import_evt = True
         self.make_gui()
         self.setup()
 
@@ -262,7 +263,7 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         self.ms_process_smooth.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
         smooth_method_label = wx.StaticText(panel, wx.ID_ANY, "Smooth function:")
-        self.ms_smoothFcn_choice = wx.Choice(panel, -1, choices=CONFIG.ms_smooth_choices, size=(-1, -1))
+        self.ms_smoothFcn_choice = wx.Choice(panel, -1, choices=CONFIG.ms_smooth_mode_choices, size=(-1, -1))
         self.ms_smoothFcn_choice.Bind(wx.EVT_CHOICE, self.on_apply)
         self.ms_smoothFcn_choice.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
 
@@ -507,7 +508,8 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin, ConfigUpdateMixin):
 
     def on_toggle_controls(self, evt):
         """Toggle controls based on some other settings"""
-
+        if self.import_evt:
+            return
         # crop
         CONFIG.ms_crop = self.ms_process_crop.GetValue()
         self.crop_min_value.Enable(enable=CONFIG.ms_crop)
@@ -604,6 +606,7 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         self.ms_baseline_tophat_window.SetValue(str(CONFIG.ms_baseline_tophat_window))
 
         self.ms_process_normalize.SetValue(CONFIG.ms_normalize)
+
         self.import_evt = False
         self.on_toggle_controls(None)
         self.on_apply(None)

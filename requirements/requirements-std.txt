@@ -1,5 +1,4 @@
 bokeh
-h5py
 matplotlib
 natsort
 numpy

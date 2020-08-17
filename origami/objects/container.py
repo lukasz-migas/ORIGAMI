@@ -33,6 +33,8 @@ class ContainerBase:
     @owner.setter
     def owner(self, value):
         """Sets the owner of the container object"""
+        if value is None:
+            value = (None, None)
         self._owner = value
 
     def set_owner(self, value):
@@ -58,6 +60,12 @@ class ContainerBase:
         if self.owner is not None:
             document_title, _ = self.owner
             self.owner = (document_title, value)
+
+    @property
+    def document_title(self):
+        """Return the base title of the object"""
+        document_title, _ = self.owner
+        return document_title
 
     @property
     def dataset_name(self):

@@ -9,6 +9,7 @@ from wx.adv import BitmapComboBox
 from pubsub.core import TopicNameError
 
 # Local imports
+from origami.utils.screen import calculate_window_size
 from origami.config.config import CONFIG
 from origami.gui_elements.helpers import set_tooltip
 from origami.gui_elements.helpers import make_bitmap_btn
@@ -259,3 +260,21 @@ class ConfigUpdateMixin:
 
     def _on_set_config(self):
         """Update values from configuration file"""
+
+
+class ParentSizeMixin:
+    """Mixin class to quickly establish the size of parent window"""
+
+    _display_size = None
+    _display_resolution = None
+    _window_size = None
+
+    def _get_window_size(self, parent, ratio):
+        screen_size = wx.GetDisplaySize()
+        if parent is not None:
+            screen_size = parent.GetSize()
+        self._display_size = screen_size
+        self._display_resolution = wx.ScreenDC().GetPPI()
+        self._window_size = calculate_window_size(self._display_size, ratio)
+
+        return self._window_size

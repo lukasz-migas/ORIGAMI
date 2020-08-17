@@ -9,6 +9,9 @@ from typing import List
 import numpy as np
 import matplotlib.cm as cm
 
+# Local imports
+from origami.config.config import CONFIG
+
 __author__ = "Michael.Marty; Lukasz Migas"
 
 
@@ -101,9 +104,19 @@ class Peaks:
         return len(self.peaks)
 
     @property
+    def x(self):
+        """Return x-axis"""
+        return np.arange(self.n_peaks)
+
+    @property
     def masses(self):
         """Return masses"""
         return np.asarray([p.mass for p in self.peaks])
+
+    @property
+    def y(self):
+        """Return y-axis"""
+        return self.intensities
 
     @property
     def intensities(self):
@@ -161,7 +174,7 @@ class Peaks:
         self.composite = None
         self.mw_bin_size = mw_bin_size
 
-    def default_params(self, cmap: str = "rainbow"):
+    def default_params(self, cmap: str = None):
         """Set default parameters for peaks, such as color, label, and marker
 
         Parameters
@@ -169,6 +182,9 @@ class Peaks:
         cmap: str
             Colormap from matplotlib.cm
         """
+        if cmap is None:
+            cmap = CONFIG.unidec_plot_colormap
+
         self.colormap = cm.get_cmap(cmap, self.n_peaks)
         if self.colormap is None:
             self.colormap = cm.get_cmap("rainbow", self.n_peaks)

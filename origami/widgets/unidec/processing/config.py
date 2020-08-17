@@ -82,10 +82,14 @@ class UniDecConfig:
 
         self.setup_dll_paths()
 
+    def get_full_path(self, part_path: str):
+        """Return full path to the object"""
+        return os.path.join(self.output_dir, self.base_filename + "_unidecfiles", part_path)
+
     @property
     def config_path(self):
         """Return the full directory"""
-        return os.path.join(self.output_dir, self.base_filename + "_unidecfiles", self.config_filename)
+        return self.get_full_path(self.config_filename)
 
     @property
     def out_mw_filename(self):

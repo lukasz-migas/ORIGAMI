@@ -76,7 +76,7 @@ def get_mzml_ms_small(tmpdir_factory):
 
 
 @pytest.fixture(scope="session", autouse=True)
-def get_text_ms(tmpdir_factory):
+def get_text_ms_paths(tmpdir_factory):
     """Create folder with processed data for testing purposes"""
     output_dir = str(tmpdir_factory.mktemp("data"))
     if os.path.exists(DATA_TEXT_MS):

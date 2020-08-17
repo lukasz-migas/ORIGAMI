@@ -27,9 +27,6 @@ from origami.widgets.unidec.processing.containers import UniDecResultsObject
 
 LOGGER = logging.getLogger(__name__)
 
-BASE_PATH = os.path.dirname(__file__)
-UNIDEC_PATH = os.path.join(BASE_PATH, "unidec_bin")
-
 
 class UniDecEngine:
     """UniDec engine"""
@@ -117,7 +114,7 @@ class UniDecEngine:
 
         # set data in the object
         self.data.mz_processed = mz_obj.xy
-        self.config.procflag = 1
+        self.config.procflag = 1  # noqa
 
         # export
         self.data.export(self.config.input_filename, self.data.mz_processed)
@@ -159,7 +156,9 @@ class UniDecEngine:
         # Detect Peaks and Normalize
         peaks = simple_peak_detect(self.data.mw_raw, self.config)
 
-        if self.config.peaknorm == 1:
+        if self.config.peaknorm == 0:  # none
+            pass
+        elif self.config.peaknorm == 1:
             norm = np.divide(np.amax(peaks[:, 1]), 100.0)
             peaks[:, 1] = np.divide(peaks[:, 1], norm)
             self.data.mw_raw[:, 1] = np.divide(self.data.mw_raw[:, 1], norm)
@@ -168,7 +167,7 @@ class UniDecEngine:
             peaks[:, 1] = peaks[:, 1] / norm
             self.data.mw_raw[:, 1] = self.data.mw_raw[:, 1] / norm
         else:
-            norm = np.amax(peaks[:, 1]) / self.config.massdatnormtop
+            norm = np.amax(peaks[:, 1]) / self.data.mw_max
             peaks[:, 1] = peaks[:, 1] / norm
             self.data.mw_raw[:, 1] = self.data.mw_raw[:, 1] / norm
 
@@ -188,6 +187,9 @@ class UniDecEngine:
         if self.config.batchflag == 0:
             make_peaks_mz_tab_spectrum(self.data.mz_grid, self.peaks, self.data.mz_processed, mz_tab)
             self.export_config()
+
+        # calculate charge states
+        self.get_charge_peaks()
 
     def convolve_peaks(self):
         """Convolve Peaks with Peak Shape"""

@@ -29,7 +29,7 @@ class TestConfig:
         cwd_path = str(tmpdir_factory.mktemp("Origami"))
         config.APP_CWD = cwd_path
 
-        assert config.APP_TEMP_DATA_PATH is None
+        assert config.APP_TEMP_DATA_PATH is not None
 
         config.setup_temporary_dir()
         assert config.APP_TEMP_DATA_PATH is not None

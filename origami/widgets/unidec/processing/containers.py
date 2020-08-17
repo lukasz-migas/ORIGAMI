@@ -84,6 +84,14 @@ class ChargeMolecularWeightHeatmap(HeatmapObject):
             **kwargs,
         )
 
+    @property
+    def x(self):
+        """Return x-axis of the object"""
+        x_max = np.max(self._x)
+        if x_max > 100000:
+            return self._x / 1000
+        return self._x
+
 
 class MolecularWeightObject(SpectrumObject):
     """MW data object"""
@@ -112,6 +120,59 @@ class MolecularWeightObject(SpectrumObject):
             y_label=y_label,
             name=name,
             x_label_options=["Mass (kDa)", "Molecular weight (kDa)", "MW (kDa)"],
+            metadata=metadata,
+            extra_data=extra_data,
+            **kwargs,
+        )
+
+    @property
+    def x(self):
+        """Return x-axis of the object"""
+        return self.x_axis_transform(self._x)
+
+    def x_axis_transform(self, x):
+        """Transform values"""
+        x_max = np.max(self._x)
+        if x_max > 100000:
+            return x / 1000
+        return x
+
+
+class ChargeStatesObject(SpectrumObject):
+    """Charge states data object"""
+
+    DOCUMENT_KEY = ""
+
+    def __init__(
+        self,
+        x,
+        y,
+        name: str = "",
+        metadata=None,
+        extra_data=None,
+        x_label="Charge states",
+        y_label="Intensity",
+        **kwargs,
+    ):
+        """
+        Additional data can be stored in the `extra_data` dictionary. The convention should be:
+            data that is most commonly used/displayed should be stored under the x/y attributes
+            alternative x-axis should be stored in the `extra_data` dict. If the extra data is
+            scans, then store it under `x_bin` and if its in time/minutes, store it under `x_min`.
+
+        Data keys:
+            x : x-axis data most commonly used
+            y : y-axis data most commonly used
+            x_bin : x-axis data in scans/bins
+            x_min : x-axis data in minutes/time
+            """
+        super().__init__(
+            x,
+            y,
+            x_label=x_label,
+            y_label=y_label,
+            name=name,
+            x_label_options=["Charge states", "Charges"],
             metadata=metadata,
             extra_data=extra_data,
             **kwargs,
@@ -160,7 +221,7 @@ class UniDecResultsObject:
     @property
     def mw_max(self):
         """Return the maximum value in the MW data"""
-        if self.mw_raw:
+        if self.mw_raw is not None:
             return np.amax(self.mw_raw[:, 1])
         return None
 
@@ -202,7 +263,6 @@ class UniDecResultsObject:
             raise ValueError("Could not load MW from file")
 
         self.charges = np.arange(self.config.startz, self.config.endz + 1)
-
         if not efficiency:
             if os.path.isfile(self.config.out_mw_grid_filename):
                 self.mw_grid = np.fromfile(self.config.out_mw_grid_filename, dtype=float)
@@ -278,6 +338,11 @@ class UniDecResultsObject:
         """Return the `mz_processed` as ORIGAMI object"""
         return MassSpectrumObject(self.mz_processed[:, 0], self.mz_processed[:, 1])
 
+    @property
+    def z_obj(self):
+        """Return the `charge_peaks` as ORIGAMI object"""
+        return ChargeStatesObject(self.charge_peaks.masses, self.charge_peaks.intensities)
+
     @staticmethod
     def _reshape_grid(x, y, z):
         """Reshape array"""
@@ -288,7 +353,7 @@ class UniDecResultsObject:
 
 
 def unidec_results_object(mz_obj: MassSpectrumObject, group: Group) -> UniDecResultsObject:
-    """Instantiate UniDec results group"""
+    """Instantiate UniDec results group from Zarr store"""
     metadata = group.attrs.asdict()
     config = UniDecConfig()
     config.from_dict(metadata.get("config", dict()))

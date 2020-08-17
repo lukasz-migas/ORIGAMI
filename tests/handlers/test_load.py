@@ -113,8 +113,8 @@ class TestLoadHandler:
         assert obj.y.shape[0] == obj.array.shape[0]
         assert np.diff(obj.x).mean() - mz_bin_size < 0.01
 
-    def test_load_text_spectrum_data(self, get_text_ms):
-        for path in get_text_ms:
+    def test_load_text_spectrum_data(self, get_text_ms_paths):
+        for path in get_text_ms_paths:
             x, y, directory, x_limits, extension = LOAD_HANDLER.load_text_spectrum_data(path)
             assert isinstance(x, np.ndarray)
             assert isinstance(y, np.ndarray)
@@ -123,8 +123,8 @@ class TestLoadHandler:
             assert isinstance(directory, str)
             assert isinstance(extension, str) and extension.startswith(".")
 
-    def test_load_text_spectrum_document(self, get_text_ms):
-        for path in get_text_ms:
+    def test_load_text_spectrum_document(self, get_text_ms_paths):
+        for path in get_text_ms_paths:
             document = LOAD_HANDLER.load_text_mass_spectrum_document(path)
             assert isinstance(document, DocumentStore)
 

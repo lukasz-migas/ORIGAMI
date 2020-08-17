@@ -151,7 +151,7 @@ class PanelViolinSettings(PanelSettingsBase):
 
         violin_color_scheme_label = wx.StaticText(self, -1, "Color scheme:")
         self.violin_colorScheme_value = wx.Choice(
-            self, -1, choices=CONFIG.waterfall_color_choices, size=(-1, -1), name="violin.fill"
+            self, -1, choices=CONFIG.waterfall_color_scheme_choices, size=(-1, -1), name="violin.fill"
         )
         self.violin_colorScheme_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.violin_colorScheme_value.Bind(wx.EVT_CHOICE, self.on_update)

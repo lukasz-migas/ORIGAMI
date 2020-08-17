@@ -81,6 +81,7 @@ class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin):
         self.set_labels(obj, **kwargs)
 
         kwargs.update(**CONFIG.get_mpl_parameters(self.MPL_KEYS))
+        kwargs.update(**self.FORCED_KWARGS)
         kwargs = self.check_kwargs(**kwargs)
 
         try:
@@ -116,6 +117,7 @@ class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin):
     def add_line(self, x=None, y=None, obj=None, label: str = "", gid: str = "", line_color=(1, 0, 0), **kwargs):
         """Add line to the plot"""
         kwargs.update(**CONFIG.get_mpl_parameters(self.MPL_KEYS))
+        kwargs.update(**self.FORCED_KWARGS)
         kwargs = self.check_kwargs(**kwargs)
 
         x, y = self.check_input(x, y, obj)
@@ -243,6 +245,7 @@ class ViewCompareSpectra(ViewBase, ViewSpectrumPanelMixin):
         if labels is None:
             labels = ["", ""]
         kwargs.update(**CONFIG.get_mpl_parameters(self.MPL_KEYS))
+        kwargs.update(**self.FORCED_KWARGS)
 
         try:
             self.update(x_top, x_bottom, y_top, y_bottom, obj_top, obj_bottom, labels, **kwargs)

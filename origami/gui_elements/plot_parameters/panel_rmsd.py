@@ -30,7 +30,7 @@ class PanelRMSDSettings(PanelSettingsBase):
     def make_panel(self):
         """Make RMSD/RMSF/Matrix panel"""
         rmsd_position_label = wx.StaticText(self, -1, "Position:")
-        self.rmsd_position_value = wx.Choice(self, -1, choices=CONFIG.rmsd_position_choices, size=(-1, -1))
+        self.rmsd_position_value = wx.Choice(self, -1, choices=CONFIG.rmsd_label_position_choices, size=(-1, -1))
         self.rmsd_position_value.Bind(wx.EVT_CHOICE, self._recalculate_rmsd_position)
         self.rmsd_position_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
         self.rmsd_position_value.Bind(wx.EVT_CHOICE, self.on_apply)
@@ -191,7 +191,7 @@ class PanelRMSDSettings(PanelSettingsBase):
 
         rmsd_matrix_color_fmt = wx.StaticText(self, -1, "Color formatter:")
         self.rmsd_matrix_color_fmt = wx.Choice(
-            self, -1, choices=CONFIG.rmsd_matrix_font_color_choices, size=(-1, -1), name="rmsd_matrix_formatter"
+            self, -1, choices=CONFIG.rmsd_matrix_font_color_fmt_choices, size=(-1, -1), name="rmsd_matrix_formatter"
         )
         self.rmsd_matrix_color_fmt.Bind(wx.EVT_CHOICE, self.on_apply)
         self.rmsd_matrix_color_fmt.Bind(wx.EVT_CHOICE, self.on_toggle_controls)

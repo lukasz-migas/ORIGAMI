@@ -32,9 +32,15 @@ class ViewMPLMixin:
 
     figure = None
 
-    def add_scatter(self, x, y, color="r", marker="o", size=5, repaint: bool = True):
+    def show_legend(self, show=True, repaint: bool = True):
+        """Show legend"""
+        self.figure.set_legend_parameters(None, legend=show)
+        if repaint:
+            self.figure.repaint()
+
+    def add_scatter(self, x, y, color="r", marker="o", size=5, label="", repaint: bool = True):
         """Add scatter points to the plot"""
-        self.figure.plot_add_markers(x=x, y=y, color=color, marker=marker, size=size)
+        self.figure.plot_add_markers(x=x, y=y, color=color, marker=marker, label=label, size=size)
         if repaint:
             self.figure.repaint()
 
@@ -170,6 +176,10 @@ class ViewMPLMixin:
         self.figure.on_zoom_x_axis(x_min, x_max)
         self.figure.repaint()
 
+    def get_current_xlim(self):
+        """Return the x-limit of the plot"""
+        return self.figure.get_current_xlim()
+
     def set_ylim(self, y_min: float, y_max: float):
         """Set y-axis limits in the plot area"""
         self.figure.on_zoom_y_axis(y_min, y_max)
@@ -194,6 +204,7 @@ class ViewBase(ABC):
     PLOT_ID = None
     UPDATE_STYLES = ()
     ALLOWED_PLOTS = ()
+    FORCED_KWARGS = {}
     SUPPORTED_FILE_FORMATS = ("png", "eps", "jpeg", "tiff", "raw", "ps", "pdf", "svg", "svgz")
 
     # ui elements

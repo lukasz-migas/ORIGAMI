@@ -1186,9 +1186,9 @@ class Config:
         self.peak_panel_optimise_position = True
         self.peak_panel_labels_max_count = 100
         self.peak_panel_filter_choices = ["Score", "Width (no. bins)", "Width (Da)"]
-        self.peak_panel_filter_choice = "Width (Da)"
+        self.peak_panel_filter = "Width (Da)"
         self.peak_panel_score_choices = ["asymmetry", "tailing", "slopes"]
-        self.peak_panel_score_choice = "asymmetry"
+        self.peak_panel_score = "asymmetry"
 
         # Extract DT/MS
         self.msdt_panel_extract_mz_start = 200
@@ -1203,14 +1203,14 @@ class Config:
         self.heatmap_crop_ymax = 200  # new in v1.3.0.0
 
         self.heatmap_interpolate = True  # new in v1.3.0.0
-        self.heatmap_interpolate_choices = ["Linear", "Cubic", "Quintic"]  # new in v1.3.0.0s
+        self.heatmap_interpolate_mode_choices = ["Linear", "Cubic", "Quintic"]  # new in v1.3.0.0s
         self.heatmap_interpolate_mode = "Linear"  # new in v1.3.0.0
         self.heatmap_interpolate_xaxis = True  # new in v1.3.0.0
         self.heatmap_interpolate_yaxis = False  # new in v1.3.0.0
         self.heatmap_interpolate_fold = 2  # new in v1.3.0.0
 
         self.heatmap_smooth = True  # new in v1.3.0.0
-        self.heatmap_smooth_choices = ["Gaussian", "Savitzky-Golay"]
+        self.heatmap_smooth_mode_choices = ["Gaussian", "Savitzky-Golay"]
         self.heatmap_smooth_mode = "Gaussian"
         self.heatmap_smooth_sigma = 1
         self.heatmap_smooth_window = 3
@@ -1220,7 +1220,7 @@ class Config:
         self.heatmap_threshold_lower = 0.0
 
         self.heatmap_normalize = False
-        self.heatmap_normalize_choices = [
+        self.heatmap_normalize_mode_choices = [
             "Maximum",
             "Logarithmic",
             "Natural log",
@@ -1251,7 +1251,7 @@ class Config:
         self.ms_linearize_method = "Linear interpolation"
 
         self.ms_smooth = True
-        self.ms_smooth_choices = ["Gaussian", "Savitzky-Golay", "Moving average"]  # new in v1.3.0.0
+        self.ms_smooth_mode_choices = ["Gaussian", "Savitzky-Golay", "Moving average"]  # new in v1.3.0.0
         self.ms_smooth_mode = "Gaussian"
         self.ms_smooth_sigma = 1
         self.ms_smooth_window = 3
@@ -1298,7 +1298,7 @@ class Config:
         self.uvpd_peak_show_labels = False  # new in v1.2.1
 
         # RMSD
-        self.rmsd_position_choices = ["bottom left", "bottom right", "top left", "top right", "none", "other"]
+        self.rmsd_label_position_choices = ["bottom left", "bottom right", "top left", "top right", "none", "other"]
         self.rmsd_label_position = "bottom left"
         self.rmsd_location = (5, 5)
         self.rmsd_color = (1, 1, 1)
@@ -1309,7 +1309,7 @@ class Config:
         self.rmsd_matrix_add_labels = True
         self.rmsd_matrix_font_size = 12  # new in v2.0.0
         self.rmsd_matrix_font_weight = False  # new in v2.0.0
-        self.rmsd_matrix_font_color_choices = ["auto", "user-defined"]  # new in v2.0.0
+        self.rmsd_matrix_font_color_fmt_choices = ["auto", "user-defined"]  # new in v2.0.0
         self.rmsd_matrix_font_color_fmt = "auto"  # new in v2.0.0
         self.rmsd_matrix_font_color = (0, 0, 0)
         self.rmsf_line_color = (0, 0, 0)
@@ -1334,9 +1334,9 @@ class Config:
         self.waterfall_line_style = "solid"
         self.waterfall_line_color = [0, 0, 0]
         self.waterfall_line_same_as_fill = True
-        self.waterfall_color_choices = ["Same color", "Colormap", "Color palette", "Random"]  # new
-        self.waterfall_colormap = "viridis"
+        self.waterfall_color_scheme_choices = ["Same color", "Colormap", "Color palette", "Random"]  # new
         self.waterfall_color_scheme = "Same color"
+        self.waterfall_colormap = "viridis"
         self.waterfall_palette = "HLS"
         self.waterfall_fill_under = True
         self.waterfall_fill_under_color = [0, 0, 0]
@@ -1363,9 +1363,9 @@ class Config:
         self.violin_line_width = 2
         self.violin_line_style = "solid"
         self.violin_line_color = [0, 0, 0]
-        self.violin_color_choices = ["Same color", "Colormap", "Color palette", "Random"]
-        self.violin_colormap = "viridis"
+        self.violin_color_scheme_choices = ["Same color", "Colormap", "Color palette", "Random"]
         self.violin_color_scheme = "Colormap"
+        self.violin_colormap = "viridis"
         self.violin_line_same_as_fill = False
         self.violin_fill_under = True
         self.violin_fill_under_color = [0, 0, 0]
@@ -1377,7 +1377,7 @@ class Config:
 
         # colorbar
         self.colorbar = False
-        self.colorbar_fmt_choices = ["0 % 100", "true-values (pretty)", "true-values (raw)"]  # new
+        self.colorbar_label_fmt_choices = ["0 % 100", "true-values (pretty)", "true-values (raw)"]  # new
         self.colorbar_label_fmt = "0 % 100"  # new
         self.colorbar_height = 100  # new (%)
         self.colorbar_width = 2
@@ -1393,8 +1393,9 @@ class Config:
             "inside (bottom-left)",
             "inside (bottom-right)",
         ]
-        self.colorbar_orientation_choices = ["vertical", "horizontal"]
         self.colorbar_position = "right"
+        self.colorbar_orientation_choices = ["vertical", "horizontal"]
+        self.colorbar_orientation = "vertical"
         self.colorbar_label_size = 12
         self.colorbar_edge_color = (0, 0, 0)
         self.colorbar_label_color = (0, 0, 0)
@@ -1598,8 +1599,8 @@ class Config:
         self.defNumColumns = ""
         self.linkXYaxes = True
         self.hoverVline = True
-        self.interactive_cvd_cmap = "viridis"
         self.interactive_cvd_cmap_choices = ["magma", "viridis", "cividis", "plasma", "magma"]
+        self.interactive_cvd_cmap = "viridis"
 
         self.toolsLocation = "right"
         self.activeDrag = "Box Zoom"
@@ -2376,8 +2377,8 @@ class Config:
                         "peak_panel_labels_width": self.peak_panel_labels_width,
                         "peak_panel_optimise_position": self.peak_panel_optimise_position,
                         "peak_panel_labels_max_count": self.peak_panel_labels_max_count,
-                        "peak_panel_filter_choice": self.peak_panel_filter_choice,
-                        "peak_panel_score_choice": self.peak_panel_score_choice,
+                        "peak_panel_filter_choice": self.peak_panel_filter,
+                        "peak_panel_score_choice": self.peak_panel_score,
                     }
                 )
             if _config_key == "panel_extract_msdt":
@@ -2511,17 +2512,20 @@ class Config:
         for config_group_title in ["mpl-settings", "ui-settings"]:
             _config_group = config.get(config_group_title, dict())
             for _, group_config in _config_group.items():
-                for key, value in group_config.items():
+                for key, new_value in group_config.items():
                     if hasattr(self, key):
                         if check_type:
                             current_value = getattr(self, key)
-                            if not self._check_type(key, current_value, value):
+                            result, _alternative_value = self._check_type(key, current_value, new_value)
+                            if not result:
                                 logger.warning(
                                     f"Could not set `{key}` as the types were not similar enough to ensure compliance."
-                                    f"\nCurrent value={current_value}; New value={value}"
+                                    f"\nCurrent value={current_value}; New value={new_value}"
                                 )
+                                if _alternative_value is not None:
+                                    setattr(self, key, _alternative_value)
                                 continue
-                        setattr(self, key, value)
+                        setattr(self, key, new_value)
             logger.debug(f"Loaded `{config_group_title}` settings")
 
         # load recent files
@@ -2532,24 +2536,24 @@ class Config:
 
         pub.sendMessage("config.loaded")
 
-    def _check_type(self, name, current_value, value):
+    def _check_type(self, name, current_value, new_value):
         """Check whether type of the value matches that of the currently set value"""
         current_type = type(current_value)
-        new_type = type(value)
+        new_type = type(new_value)
 
         # simplest case where types match perfectly
         if current_type == new_type:
             if hasattr(self, f"{name}_choices"):
                 choices = getattr(self, f"{name}_choices")
                 if isinstance(choices, (list, tuple)):
-                    if current_type not in choices:
-                        return False
-            return True
+                    if new_value not in choices:
+                        return False, choices[0]
+            return True, None
         if current_type in [int, float] and new_type in [int, float]:
-            return True
+            return True, None
         if current_type in [list, tuple] and new_type in [list, tuple]:
-            return True
-        return False
+            return True, None
+        return False, None
 
 
 CONFIG = Config()

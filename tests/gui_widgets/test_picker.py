@@ -50,7 +50,7 @@ class TestPanelPeakPicker(WidgetTestCase):
         # change filter(s)
         for value in CONFIG.peak_panel_filter_choices:
             self.sim_combobox_click_evt(dlg.post_filter_choice, value, [dlg.on_toggle_controls, dlg.on_apply])
-            assert CONFIG.peak_panel_filter_choice == dlg.post_filter_choice.GetStringSelection() == value
+            assert CONFIG.peak_panel_filter == dlg.post_filter_choice.GetStringSelection() == value
 
         # # update plot
         # simulate check highlights

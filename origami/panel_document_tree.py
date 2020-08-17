@@ -453,6 +453,7 @@ class DocumentTree(wx.TreeCtrl):
         self._lesa_panel = None
         self._lesa_import_panel = None
         self._manual_import_panel = None
+        self._unidec_panel = None
 
         # set font and colour
         self.SetFont(wx.SMALL_FONT)
@@ -3227,38 +3228,19 @@ class DocumentTree(wx.TreeCtrl):
     #     )
     #     self.PanelProcessExtractData.Show()
     #
-    def on_open_UniDec(self, evt, **kwargs):
+    def on_open_UniDec(self, _evt, document_title: str = None, dataset_name: str = None, mz_obj=None):
         """Open UniDec panel which allows processing and visualisation"""
-        raise NotImplementedError("Must implement method")
+        from origami.widgets.unidec.panel_process_unidec import PanelProcessUniDec
 
-    #     from origami.widgets.UniDec.panel_process_UniDec import PanelProcessUniDec
-    #
-    #     # get data
-    #     document_title, dataset_type, dataset_name = self._get_query_info_based_on_indent()
-    #     __, data = self.data_handling.get_mobility_chromatographic_data([document_title, dataset_type, dataset_name])
-    #
-    #     try:
-    #         if self.PanelProcessUniDec.document_title == document_title:
-    #             logger.warning("An instance of a processing panel is already open")
-    #             self.PanelProcessUniDec.SetFocus()
-    #             self.PanelProcessUniDec.CenterOnParent()
-    #             return
-    #     except (AttributeError, RuntimeError):
-    #         pass
-    #
-    #     # initialize data extraction panel
-    #     self.PanelProcessUniDec = PanelProcessUniDec(
-    #         self.presenter.view,
-    #         self.presenter,
-    #         self.config,
-    #         self.icons,
-    #         mz_data=data,
-    #         document_title=document_title,
-    #         dataset_type=dataset_type,
-    #         dataset_name=dataset_name,
-    #         **kwargs,
-    #     )
-    #     self.PanelProcessUniDec.Show()
+        if document_title is None or dataset_name is None or mz_obj is None:
+            document_title, dataset_name = self._get_item_info()
+            mz_obj = self._get_item_object()
+
+        if not self._unidec_panel:
+            self._unidec_panel = PanelProcessUniDec(
+                self.view, self.presenter, self._icons, document_title, dataset_name, mz_obj
+            )
+        self._unidec_panel.Show()
 
     def on_update_unidec(self, unidec_data, document_title, dataset, set_data_only=False):
         """

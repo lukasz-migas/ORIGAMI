@@ -175,7 +175,7 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         if self.PUB_IN_PROGRESS_EVENT:
             pub.unsubscribe(self.on_progress, self.PUB_IN_PROGRESS_EVENT)
         if self.update_widget:
-            pub.sendMessage(self.update_widget)
+            self._plot_timer.Stop()
         super(PanelProcessHeatmap, self).on_close(evt, force)
 
     def on_key_event(self, evt):
@@ -221,7 +221,7 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         self.interpolate_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.interpolate_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        self.interpolate_choice = wx.Choice(panel, -1, choices=CONFIG.heatmap_interpolate_choices, size=(-1, -1))
+        self.interpolate_choice = wx.Choice(panel, -1, choices=CONFIG.heatmap_interpolate_mode_choices, size=(-1, -1))
         self.interpolate_choice.Bind(wx.EVT_CHOICE, self.on_apply)
 
         self.interpolate_fold = wx.TextCtrl(panel, -1, "", size=(65, -1), validator=Validator("floatPos"))
@@ -237,7 +237,7 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         self.smooth_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.smooth_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        self.smooth_choice = wx.Choice(panel, -1, choices=CONFIG.heatmap_smooth_choices, size=(-1, -1))
+        self.smooth_choice = wx.Choice(panel, -1, choices=CONFIG.heatmap_smooth_mode_choices, size=(-1, -1))
         self.smooth_choice.Bind(wx.EVT_CHOICE, self.on_apply)
         self.smooth_choice.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
 
@@ -261,7 +261,7 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         self.normalize_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.normalize_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
-        self.normalize_choice = wx.Choice(panel, -1, choices=CONFIG.heatmap_normalize_choices, size=(-1, -1))
+        self.normalize_choice = wx.Choice(panel, -1, choices=CONFIG.heatmap_normalize_mode_choices, size=(-1, -1))
         self.normalize_choice.Bind(wx.EVT_CHOICE, self.on_apply)
 
         if not self.disable_plot:
