@@ -2,6 +2,7 @@
 # Standard library imports
 import time
 import logging
+from copy import copy
 
 # Local imports
 from origami.config.config import CONFIG
@@ -102,10 +103,93 @@ class ViewBarChart(ViewSpectrum):
 class ViewIndividualPeaks(ViewSpectrum):
     """Specialized viewer for mass spectral data"""
 
+    # TODO add legend
+
+    ALLOWED_PLOTS = ("waterfall", "line")
+    DATA_KEYS = ("array", "x", "y", "obj")
+
     def __init__(self, parent, figsize, title="Barchart", **kwargs):
         ViewSpectrum.__init__(self, parent, figsize, title, **kwargs)
-        self._x_label = kwargs.pop("x_label", "Charge")
-        self._y_label = kwargs.pop("y_label", "Intensity")
+        self._x_label = kwargs.pop("x_label", "m/z")
+        self._y_label = kwargs.pop("y_label", "Offset intensity")
+
+    @staticmethod
+    def check_input(x, y, array, obj):
+        """Check user-input"""
+        if x is None and y is None and array is None and obj is None:
+            raise ValueError("You must provide the x/y/array values or container object")
+        if x is None and y is None and array is None and obj is not None:
+            x = obj.x
+            y = obj.y
+            array = obj.array
+        return x, y, array
+
+    def plot_waterfall(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
+        """Plot object as a waterfall"""
+        self.can_plot("waterfall")
+        t_start = time.time()
+        # try to update plot first, as it can be quicker
+        mpl_keys = copy(self.MPL_KEYS)
+        mpl_keys.append("waterfall")
+
+        self.set_document(obj, **kwargs)
+        self.set_labels(obj, **kwargs)
+
+        kwargs.update(**CONFIG.get_mpl_parameters(mpl_keys))
+        kwargs.update(**self.FORCED_KWARGS)
+        kwargs = self.check_kwargs(**kwargs)
+        x, y, array = self.check_input(x, y, array, obj)
+        self.figure.clear()
+        self.figure.plot_waterfall(
+            x, y, array, x_label=self.x_label, y_label=self.y_label, callbacks=self._callbacks, obj=obj, **kwargs
+        )
+        if repaint:
+            self.figure.repaint()
+
+        # set data
+        self._data.update(x=x, y=y, array=array, obj=obj)
+        self.set_plot_parameters(**kwargs)
+        LOGGER.debug(f"Plotted data in {report_time(t_start)}")
+
+    def replot(self, plot_type: str = None, repaint: bool = True, light_clear: bool = False):
+        """Replot the current plot"""
+        # get plot_type
+        plot_type = self.get_plot_type(plot_type)
+
+        if light_clear:
+            self.light_clear()
+
+        # get replot data
+        array, x, y, obj = self.get_data(self.DATA_KEYS)
+        if plot_type == "waterfall":
+            self.plot_waterfall(x, y, array, obj, repaint=repaint)
+
+    def update_style(self, name: str):
+        """Update plot style"""
+        t_start = time.time()
+
+        # heatmap-specific updates
+        kwargs = dict()
+        if name.startswith("waterfall"):
+            if not self.is_plotted_or_plot("waterfall", self.plot_waterfall, self.DATA_KEYS):
+                return
+
+            # update data - requires full redraw
+            if name.endswith(".data"):
+                self.replot("waterfall", False)
+            else:
+                kwargs = CONFIG.get_mpl_parameters(["waterfall"])
+                x, y, array = self.get_data(["x", "y", "array"])
+                self.figure.plot_waterfall_update(x, y, array, name, **kwargs)
+        elif name.startswith("axes"):
+            kwargs = CONFIG.get_mpl_parameters(["axes"])
+            if name.endswith(".frame"):
+                self.figure.plot_update_frame(**kwargs)
+            elif name.endswith(".labels"):
+                self.figure.plot_update_labels(**kwargs)
+        self.figure.repaint()
+        self.set_plot_parameters(**kwargs)
+        LOGGER.debug(f"Updated plot styles - {name} in {report_time(t_start)}")
 
 
 class ViewMassSpectrumGrid(ViewHeatmap):

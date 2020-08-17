@@ -38,10 +38,21 @@ class Peak:
         self.error_fwhm = 0
         self.error_mean = -1
         self.mz_tab = []
+        self.mz_tab_alt = []
 
     def __repr__(self):
         """Pretty print"""
         return f"{self.__class__.__name__}<mass={self.mass}; height={self.height}>"
+
+    @property
+    def mass_fmt(self):
+        """Nicely formatted molecular weight"""
+        return f"MW: {self.mass:.2f}"
+
+    @property
+    def mass_int_fmt(self):
+        """Nicely formatted molecular weight"""
+        return f"MW: {self.mass:.2f} ({self.height} %)"
 
     def to_dict(self) -> Dict:
         """Serialize peak"""
@@ -89,6 +100,7 @@ class Peaks:
         self.colormap = []
         self.mw_bin_size = 0
         self.norm = 1
+        self._idx = -1
 
     def __repr__(self):
         """Pretty print"""
@@ -97,6 +109,16 @@ class Peaks:
     def __getitem__(self, item):
         """Return peak"""
         return self.peaks[item]
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        self._idx += 1
+        if self._idx < self.n_peaks:
+            return self.peaks[self._idx]
+        self._idx = -1
+        raise StopIteration
 
     @property
     def n_peaks(self):

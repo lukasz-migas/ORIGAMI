@@ -196,6 +196,19 @@ class MPLPanel(wx.Panel):
             LOGGER.warning("Cannot save a plot that has not been plotted yet")
             return
 
+        #         # get current plot information
+        #         if resize:
+        #             old_px_size, old_axes_size = self.GetSize(), None
+        #             if hasattr(self.plot_base, "get_position"):
+        #                 old_axes_size = self.plot_base.get_position()
+        #
+        #             new_px_size = (1000, 300)
+        #             new_axes_size = (0.2, 0.2, 0.5, 0.5)
+        #
+        #             self.SetSize(new_px_size)
+        #             self.plot_base.set_position(new_axes_size)
+        #             self.canvas.draw()
+
         self.figure.savefig(
             path,
             transparent=transparent,
@@ -206,6 +219,12 @@ class MPLPanel(wx.Panel):
             quality=95,
             bbox_inces="tight" if tight else None,
         )
+
+    #         if resize:
+    #             self.SetSize(old_px_size)
+    #             if old_axes_size is not None and hasattr(self.plot_base, "set_position"):
+    #                 self.plot_base.set_position(old_axes_size)
+    #             self.canvas.draw()
 
     def save_figure(self, path, **kwargs):
         """

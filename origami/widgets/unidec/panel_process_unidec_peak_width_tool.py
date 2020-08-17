@@ -8,7 +8,6 @@ from origami.styles import MiniFrame
 from origami.styles import Validator
 from origami.config.config import CONFIG
 from origami.utils.converters import str2num
-
 from origami.utils.exceptions import MessageError
 from origami.gui_elements.helpers import make_tooltip
 from origami.gui_elements.misc_dialogs import DialogBox

@@ -477,7 +477,7 @@ class ViewBase(ABC):
         """Export figure"""
 
         # get the default filename that was set on the view
-        if self.filename not in ["", None] and filename != "":
+        if self.filename not in ["", None] and filename in ["", None]:
             filename = self.filename
 
         def _get_path():

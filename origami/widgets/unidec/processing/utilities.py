@@ -164,7 +164,7 @@ def nearest(array, target):
 
 
 def make_peaks_mz_tab(mz_grid, peaks, adduct_mass, index=None):
-    """For each peak in pks, get the charge state distribution.
+    """For each peak in peaks, get the charge state distribution.
 
     The intensity at each charge state is determined from mz_grid and stored in a list as peak.mztab.
     An array of the results is also output for help speeding up make_peaks_mz_tab_spectrum
@@ -240,14 +240,14 @@ def make_peaks_mz_tab_spectrum(mz_grid, peaks, mz_processed, mz_tab, index=None)
             [mz_processed[int(peaks.peaks[i].mz_tab[k, 2]), 1] for k in range(0, z_len)] for i in range(0, n_peaks)
         ]
         for i in range(0, n_peaks):
-            peaks.peaks[i].mztab2 = np.array(mz_tab_copy[i])
+            peaks.peaks[i].mz_tab_alt = np.array(mz_tab_copy[i])
     else:
         mz_tab_copy[:, :, 1] = [
             [mz_processed[int(peaks.peaks[i].mz_tab[index][k, 2]), 1] for k in range(0, z_len)]
             for i in range(0, n_peaks)
         ]
         for i in range(0, n_peaks):
-            peaks.peaks[i].mztab2.append(np.array(mz_tab_copy[i]))
+            peaks.peaks[i].mz_tab_alt.append(np.array(mz_tab_copy[i]))
 
     return mz_tab_copy
 

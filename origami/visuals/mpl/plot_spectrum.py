@@ -162,10 +162,6 @@ class PlotSpectrum(PlotBase):
 
         xlimits, ylimits, extent = self._compute_multi_xy_limits([x_top, x_bottom], [y_top, y_bottom], None)
 
-        # setup axis formatters
-        y_formatter = get_intensity_formatter()
-        self.plot_base.yaxis.set_major_formatter(y_formatter)
-
         if x_bottom is None:
             x_bottom = x_top
 
@@ -219,7 +215,6 @@ class PlotSpectrum(PlotBase):
     def plot_1d_barplot(self, x, y, labels, colors, x_label="", y_label="", title="", **kwargs):
         # update settings
         xlimits, ylimits, extent = self._compute_xy_limits(x, y, 0, 1.1, x_pad=1)
-        print(xlimits)
 
         if not kwargs.get("bar_edge_same_as_fill", True):
             edgecolor = kwargs.get("bar_edge_color", "#000000")
@@ -361,8 +356,6 @@ class PlotSpectrum(PlotBase):
         self._set_axes()
 
         xlimits, ylimits, extent = self._compute_xy_limits(x, y, 0, 1.1)
-        # setup axis formatters
-        y_formatter = get_intensity_formatter()
 
         if not self.check_line(gid, self.plot_base):
             self.plot_base = self.figure.add_axes(self._axes)
@@ -813,247 +806,6 @@ class PlotSpectrum(PlotBase):
     #     self.setupGetXAxies([self.plot_base])
     #     self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
     #
-    # def plot_1D_waterfall(
-    #     self,
-    #     xvals=None,
-    #     yvals=None,
-    #     zvals=None,
-    #     label="",
-    #     xlabel="",
-    #     colorList=None,
-    #     ylabel="",
-    #     zoom="box",
-    #     axesSize=None,
-    #     plotName="1D",
-    #     xlimits=None,
-    #     plotType="Waterfall",
-    #     labels=None,
-    #     **kwargs,
-    # ):
-    #     if colorList is None:
-    #         colorList = []
-    #     if labels is None:
-    #         labels = []
-    #     self.zoomtype = zoom
-    #     self.plot_name = plotType
-    #     kwargs = ut_visuals.check_plot_settings(**kwargs)
-    #
-    #     # override parameters
-    #     if not self.lock_plot_from_updating:
-    #         if axesSize is not None:
-    #             self._axes = axesSize
-    #
-    #         kwargs["axes_frame_ticks_left"] = False
-    #         kwargs["axes_frame_tick_labels_left"] = False
-    #         self.plot_parameters = kwargs
-    #     else:
-    #         # update ticks
-    #         kwargs = merge_two_dicts(kwargs, self.plot_parameters)
-    #         self.plot_parameters = kwargs
-    #
-    #     matplotlib.rc("xtick", labelsize=kwargs["axes_tick_font_size"])
-    #     matplotlib.rc("ytick", labelsize=kwargs["axes_tick_font_size"])
-    #
-    #     self.plot_base = self.figure.add_axes(self._axes)
-    #
-    #     zorder, zorder_offset = 5, 5
-    #     count = kwargs["labels_frequency"]
-    #
-    #     # swap labels in some circumstances
-    #     if xlabel not in ["m/z", "Mass (Da)", "Charge"]:
-    #         xlabel, ylabel = ylabel, xlabel
-    #
-    #     xlabel = _replace_labels(xlabel)
-    #     ylabel = _replace_labels(ylabel)
-    #
-    #     # uniform x-axis
-    #     ydata = []
-    #     if zvals is not None:
-    #         n_items = len(zvals[1, :])
-    #         item_list = np.linspace(0, n_items - 1, n_items).astype(np.int32)
-    #         self.text_offset_position = dict(min=np.min(xvals), max=np.max(xvals), offset=kwargs["labels_x_offset"])
-    #         label_xposition = np.min(xvals) + (np.max(xvals) * kwargs["labels_x_offset"])
-    #         yOffset = kwargs["waterfall_offset"] * (n_items + 1)
-    #         label_kws = dict(fontsize=kwargs["labels_font_size"], fontweight=kwargs["labels_font_weight"])
-    #         shade_kws = dict(alpha=kwargs.get("spectrum_fill_transparency", 0.25),
-    #         clip_on=kwargs.get("clip_on", True))
-    #         add_underline = kwargs["spectrum_line_fill_under"] and
-    #         len(item_list) < kwargs.get("shade_under_n_limit", 50)
-    #         add_labels = kwargs.get("add_labels", True) and kwargs["labels_frequency"] != 0
-    #
-    #         if len(labels) != n_items:
-    #             labels = [""] * n_items
-    #
-    #         # reverse data
-    #         if kwargs["waterfall_reverse"]:
-    #             zvals = np.fliplr(zvals)
-    #             yvals = yvals[::-1]
-    #             labels = labels[::-1]
-    #
-    #         if xlimits is None or any([val is None for val in xlimits]):
-    #             xlimits = [np.min(xvals), np.max(xvals)]
-    #
-    #         # normalize data if increment is not 0
-    #         if kwargs["waterfall_increment"] != 0 and kwargs.get("waterfall_normalize", True):
-    #             zvals = normalize_2d(zvals)
-    #         else:
-    #             __, ylabel, __ = self._convert_yaxis(zvals, "Intensity", set_divider=False)
-    #
-    #         colorlist = self._get_colorlist(colorList, n_items, **kwargs)
-    #         # Iterate over the colormap to get the color shading we desire
-    #         for i in item_list[::-1]:
-    #             y = zvals[:, i] + yOffset
-    #             y_min, y_max = get_min_max(y)
-    #
-    #             if kwargs["line_color_as_shade"]:
-    #                 line_color = colorlist[i]
-    #             else:
-    #                 line_color = kwargs["spectrum_line_color"]
-    #             shade_color = colorlist[i]
-    #
-    #             self.plot_base.plot(
-    #                 xvals,
-    #                 y,
-    #                 color=line_color,
-    #                 linewidth=kwargs["spectrum_line_width"],
-    #                 linestyle=kwargs["spectrum_line_style"],
-    #                 label=labels[i],
-    #                 zorder=zorder,
-    #             )
-    #
-    #             if add_underline:
-    #                 shade_kws.update(zorder=zorder - 2, facecolor=shade_color)
-    #                 self.plot_base.fill_between(xvals, y_min, y, **shade_kws)
-    #
-    #             if add_labels:
-    #                 label = ut_visuals.convert_label(yvals[i], label_format=kwargs["labels_format"])
-    #                 if i % kwargs["labels_frequency"] == 0 or i == n_items - 1:
-    #                     self.plot_add_label(
-    #                         xpos=label_xposition,
-    #                         yval=yOffset + kwargs["labels_y_offset"],
-    #                         label=label,
-    #                         zorder=zorder + 3,
-    #                         **label_kws,
-    #                     )
-    #             ydata.extend([y_min, y_max])
-    #             yOffset = yOffset - kwargs["waterfall_increment"]
-    #             zorder = zorder + zorder_offset
-    #             count += 1
-    #     else:
-    #         raise ValueError("This method has been removed temporarily!")
-    #
-    #     #         # non-uniform x-axis
-    #     #         else:
-    #     #             # check in case only one item was passed
-    #     #             # assumes xvals is a list in a list
-    #     #             if len(xvals) != len(yvals) and len(xvals) == 1:
-    #     #                 xvals = xvals * len(yvals)
-    #     #
-    #     #             n_items = len(yvals)
-    #     #             if len(labels) == 0:
-    #     #                 labels = [""] * n_items
-    #     #             yOffset = kwargs["waterfall_offset"] * (n_items + 1)
-    #     #
-    #     #             # Find new xlimits
-    #     #             xvals_limit, __ = find_limits_list(xvals, yvals)
-    #     #             xlimits = (np.min(xvals_limit), np.max(xvals_limit))
-    #     #
-    #     #             label_xposition = xlimits[0] + (xlimits[1] * kwargs["labels_x_offset"])
-    #     #             self.text_offset_position = dict(min=xlimits[0], max=xlimits[1],
-    #     offset=kwargs["labels_x_offset"])
-    #     #
-    #     #             colorlist = self._get_colorlist(colorList, n_items, **kwargs)
-    #     #
-    #     #             if kwargs["waterfall_reverse"]:
-    #     #                 xvals = xvals[::-1]
-    #     #                 yvals = yvals[::-1]
-    #     #                 colorlist = colorlist[::-1]
-    #     #                 labels = labels[::-1]
-    #     #
-    #     #             for irow in range(len(xvals)):
-    #     #                 # Always normalizes data - otherwise it looks pretty bad
-    #     #
-    #     #                 if kwargs["waterfall_increment"] != 0 and kwargs.get("waterfall_normalize", True):
-    #     #                     yvals[irow] = normalize_1D(yvals[irow])
-    #     #                 else:
-    #     #                     ylabel = "Intensity"
-    #     #                     try:
-    #     #                         ydivider, expo = self.testXYmaxValsUpdated(values=yvals[irow])
-    #     #                         if expo > 1:
-    #     #                             yvals[irow] = np.divide(yvals[irow], float(ydivider))
-    #     #                             offset_text = r"x$\mathregular{10^{%d}}$" % expo
-    #     #                             ylabel = "".join([ylabel, " [", offset_text, "]"])
-    #     #                     except AttributeError:
-    #     #                         kwargs["waterfall_increment"] = 0.00001
-    #     #                         yvals[irow] = normalize_1D(yvals[irow])
-    #     #
-    #     #                 item_list = np.linspace(0, n_items - 1, n_items)
-    #     #                 if kwargs["line_color_as_shade"]:
-    #     #                     line_color = colorlist[irow]
-    #     #                 else:
-    #     #                     line_color = kwargs["spectrum_line_color"]
-    #     #                 shade_color = colorlist[int(irow)]
-    #     #                 y = yvals[irow]
-    #     #                 self.plotMS.plot(
-    #     #                     xvals[irow],
-    #     #                     (y + yOffset),
-    #     #                     color=line_color,
-    #     #                     linewidth=kwargs["spectrum_line_width"],
-    #     #                     linestyle=kwargs["spectrum_line_style"],
-    #     #                     label=labels[irow],
-    #     #                     zorder=zorder,
-    #     #                 )
-    #     #
-    #     #                 if kwargs["spectrum_line_fill_under"] and len(item_list)
-    #     < kwargs.get("shade_under_n_limit", 50):
-    #     #                     shade_kws = dict(
-    #     #                         facecolor=shade_color,
-    #     #                         alpha=kwargs.get("spectrum_fill_transparency", 0.25),
-    #     #                         clip_on=kwargs.get("clip_on", True),
-    #     #                         zorder=zorder - 2,
-    #     #                     )
-    #     #                     self.plotMS.fill_between(xvals[irow], np.min(y + yOffset), (y + yOffset), **shade_kws)
-    #     #
-    #     #                 if kwargs.get("add_labels", True) and kwargs["labels_frequency"] != 0:
-    #     #                     label = _replace_labels(labels[irow])
-    #     #                     if irow % kwargs["labels_frequency"] == 0:
-    #     #                         label_kws = dict(fontsize=kwargs["labels_font_size"],
-    #     # fontweight=kwargs["labels_font_weight"])
-    #     #                         self.plot_add_label(
-    #     #                             xpos=label_xposition,
-    #     #                             yval=yOffset + kwargs["labels_y_offset"],
-    #     #                             label=label,
-    #     #                             zorder=zorder + 3,
-    #     #                             **label_kws,
-    #     #                         )
-    #     #                 ydata.extend(y + yOffset)
-    #     #                 yOffset = yOffset - kwargs["waterfall_increment"]
-    #     #                 zorder = zorder + zorder_offset
-    #
-    #     self.set_plot_xlabel(xlabel, **kwargs)
-    #     self.set_tick_parameters(**kwargs)
-    #
-    #     self.plot_base.spines["left"].set_visible(kwargs["axes_frame_spine_left"])
-    #     self.plot_base.spines["right"].set_visible(kwargs["axes_frame_spine_right"])
-    #     self.plot_base.spines["top"].set_visible(kwargs["axes_frame_spine_top"])
-    #     self.plot_base.spines["bottom"].set_visible(kwargs["axes_frame_spine_bottom"])
-    #     for i in self.plot_base.spines.values():
-    #         i.set_linewidth(kwargs["axes_frame_width"])
-    #         i.set_zorder(zorder)
-    #
-    #     # convert to array to remove nan's and figure out limits
-    #     ydata = remove_nan_from_list(ydata)
-    #     ylimits = np.min(ydata) - kwargs["waterfall_offset"], np.max(ydata) + 0.05
-    #     extent = [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
-    #
-    #     self.setup_zoom([self.plot_base], self.zoomtype, plotName=plotName, data_lims=extent)
-    #     self.plot_base.plot_limits = [xlimits[0], xlimits[1], ylimits[0], ylimits[1]]
-    #
-    #     # Setup X-axis getter
-    #     self.plot_base.set_xlim([xlimits[0], xlimits[1]])
-    #
-    #     # a couple of set values
-    #     self.n_colors = n_items
     #
     # def plot_1D_add(self, xvals, yvals, color, label="", setup_zoom=True, allowWheel=False, plot_name=None, **kwargs):
     #     # get current limits

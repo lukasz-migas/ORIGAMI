@@ -336,12 +336,35 @@ class UniDecResultsObject:
     @property
     def mz_processed_obj(self):
         """Return the `mz_processed` as ORIGAMI object"""
-        return MassSpectrumObject(self.mz_processed[:, 0], self.mz_processed[:, 1])
+        return MassSpectrumObject(self.mz_processed[:, 0], self.fit_raw)
+
+    #         return MassSpectrumObject(self.mz_processed[:, 0], self.mz_processed[:, 1])
 
     @property
     def z_obj(self):
         """Return the `charge_peaks` as ORIGAMI object"""
         return ChargeStatesObject(self.charge_peaks.masses, self.charge_peaks.intensities)
+
+    def get_ms_per_mw(self):
+        """Get mass spectrum for each detect molecular weight"""
+        # preset array for each signal
+        array = np.zeros((self.peaks.n_peaks + 1, len(self.mz_processed[:, 0])))
+        array[0] = self.mz_processed[:, 1]
+
+        y, labels, line_colors, face_colors, markers = [0], ["m/z"], [(0, 0, 0, 1)], [(0, 0, 0, 0.5)], [""]
+        for i, peak in enumerate(self.peaks, start=1):
+            array[i] = peak.sticks
+            y.append(i)
+            labels.append(peak.mass_fmt)
+            line_colors.append(peak.color)
+            face_colors.append(peak.color)
+            markers.append(peak.marker)
+
+        return np.asarray(y), self.mz_processed[:, 0], np.flipud(array).T, labels, line_colors, face_colors, markers
+
+    def get_molecular_weights(self):
+        """Get list of molecular weights"""
+        return [peak.mass_fmt for peak in self.peaks]
 
     @staticmethod
     def _reshape_grid(x, y, z):

@@ -1059,7 +1059,6 @@ class PlotBase(MPLPanel):
 
     def plot_waterfall(self, x, y, array, x_label=None, y_label=None, **kwargs):
         """Plot as waterfall"""
-        # TODO: add labels
         self._set_axes()
 
         yy, xy, label_x, label_y, label_text = self._prepare_waterfall(x, y, array, **kwargs)
@@ -1067,6 +1066,17 @@ class PlotBase(MPLPanel):
 
         # get list of parameters for the plot
         lc, fc = self.get_waterfall_colors(n_signals, **kwargs)
+        lw = kwargs["waterfall_line_width"]
+        ls = kwargs["waterfall_line_style"]
+        # override pre-computed values
+        if "line_colors" in kwargs:
+            lc = kwargs.get("line_colors")
+        if "face_colors" in kwargs:
+            fc = kwargs.get("face_colors")
+        if "line_widths" in kwargs:
+            lw = kwargs.get("line_widths")
+        if "line_styles" in kwargs:
+            ls = kwargs.get("line_styles")
 
         # the list of values is reversed to ensure that the zorder of each plot/line is correct
         coll = LineCollection(xy[::-1])
@@ -1074,8 +1084,8 @@ class PlotBase(MPLPanel):
 
         # set line style
         coll.set_edgecolors(lc)
-        coll.set_linestyle(kwargs["waterfall_line_style"])
-        coll.set_linewidths(kwargs["waterfall_line_width"])
+        coll.set_linestyle(ls)
+        coll.set_linewidths(lw)
 
         # set face style
         if kwargs["waterfall_fill_under"]:

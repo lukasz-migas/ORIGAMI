@@ -69,7 +69,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
     restore_all_btn, isolate_charges_btn, label_charges_btn, weight_list_sort = None, None, None, None
     detect_peaks_btn, show_peaks_btn, z_start_value, z_end_value = None, None, None, None
     unidec_auto_btn, unidec_init_btn, unidec_unidec_btn, unidec_peak_btn = None, None, None, None
-    unidec_all_btn, unidec_cancel_btn, unidec_customise_btn, mw_start_value = None, None, None, None
+    unidec_cancel_btn, unidec_customise_btn, mw_start_value = None, None, None
     mw_end_value, mw_sample_frequency_value, fit_peak_width_value, peak_width_btn = None, None, None, None
     peak_shape_func_choice, run_unidec_btn, peak_width_auto_check, process_settings_btn = None, None, None, None
     process_btn, smooth_nearby_points, mz_to_mw_transform_choice, adduct_mass_value = None, None, None, None
@@ -263,25 +263,33 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         if CONFIG.unidec_plot_panel_view == "Single page view":
             plot_parent = wx.BoxSizer(wx.VERTICAL)
 
-            _row_0 = wx.BoxSizer()
-            _row_0.Add(self.view_mz.panel, 1, wx.EXPAND)
-            _row_0.Add(self.view_mw.panel, 1, wx.EXPAND)
+            #             _row_0 = wx.BoxSizer()
+            #             _row_0.Add(self.view_mz.panel, 1, wx.EXPAND)
+            #             _row_0.Add(self.view_mw.panel, 1, wx.EXPAND)
+            #
+            #             _row_1 = wx.BoxSizer()
+            #             _row_1.Add(self.view_mz_grid.panel, 1, wx.EXPAND)
+            #             _row_1.Add(self.view_mw_grid.panel, 1, wx.EXPAND)
+            #
+            #             _row_2 = wx.BoxSizer()
+            #             _row_2.Add(self.view_peaks.panel, 1, wx.EXPAND)
+            #             _row_2.Add(self.view_barchart.panel, 1, wx.EXPAND)
+            #
+            #             _row_3 = wx.BoxSizer()
+            #             _row_3.Add(self.view_charge.panel, 1, wx.EXPAND)
+            #
+            #             plot_parent.Add(_row_0, 1, wx.EXPAND)
+            #             plot_parent.Add(_row_1, 1, wx.EXPAND)
+            #             plot_parent.Add(_row_2, 1, wx.EXPAND)
+            #             plot_parent.Add(_row_3, 1, wx.EXPAND)
 
-            _row_1 = wx.BoxSizer()
-            _row_1.Add(self.view_mz_grid.panel, 1, wx.EXPAND)
-            _row_1.Add(self.view_mw_grid.panel, 1, wx.EXPAND)
-
-            _row_2 = wx.BoxSizer()
-            _row_2.Add(self.view_peaks.panel, 1, wx.EXPAND)
-            _row_2.Add(self.view_barchart.panel, 1, wx.EXPAND)
-
-            _row_3 = wx.BoxSizer()
-            _row_3.Add(self.view_charge.panel, 1, wx.EXPAND)
-
-            plot_parent.Add(_row_0, 1, wx.EXPAND)
-            plot_parent.Add(_row_1, 1, wx.EXPAND)
-            plot_parent.Add(_row_2, 1, wx.EXPAND)
-            plot_parent.Add(_row_3, 1, wx.EXPAND)
+            plot_parent.Add(self.view_mz.panel, 1, wx.EXPAND)
+            plot_parent.Add(self.view_mw.panel, 1, wx.EXPAND)
+            plot_parent.Add(self.view_mz_grid.panel, 1, wx.EXPAND)
+            plot_parent.Add(self.view_mw_grid.panel, 1, wx.EXPAND)
+            plot_parent.Add(self.view_peaks.panel, 1, wx.EXPAND)
+            plot_parent.Add(self.view_barchart.panel, 1, wx.EXPAND)
+            plot_parent.Add(self.view_charge.panel, 1, wx.EXPAND)
 
             main_sizer = wx.BoxSizer(wx.VERTICAL)
             main_sizer.Add(plot_parent, 1, wx.EXPAND, 2)
@@ -386,7 +394,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         """Make buttons sub-section"""
         self.unidec_auto_btn = make_bitmap_btn(panel, -1, self._icons.rocket)
         self.unidec_auto_btn.Bind(wx.EVT_BUTTON, self.on_auto_unidec)
-        self.unidec_auto_btn.SetToolTip(make_tooltip("Autorun..."))
+        self.unidec_auto_btn.SetToolTip(make_tooltip("Run all..."))
 
         self.unidec_init_btn = make_bitmap_btn(panel, -1, self._icons.run)
         self.unidec_init_btn.Bind(wx.EVT_BUTTON, self.on_initialize_unidec)
@@ -399,10 +407,6 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         self.unidec_peak_btn = make_bitmap_btn(panel, -1, self._icons.peak)
         self.unidec_peak_btn.Bind(wx.EVT_BUTTON, self.on_detect_peaks_unidec)
         self.unidec_peak_btn.SetToolTip(make_tooltip("Detect peaks..."))
-
-        self.unidec_all_btn = wx.Button(panel, wx.ID_OK, "All", size=(40, -1))
-        self.unidec_all_btn.Bind(wx.EVT_BUTTON, self.on_all_unidec)
-        self.unidec_all_btn.SetToolTip(make_tooltip("Run all..."))
 
         self.unidec_cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, -1))
         self.unidec_cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
@@ -420,8 +424,6 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         btn_sizer.Add(self.unidec_unidec_btn, 0, wx.EXPAND)
         btn_sizer.AddSpacer(5)
         btn_sizer.Add(self.unidec_peak_btn, 0, wx.EXPAND)
-        btn_sizer.AddSpacer(5)
-        btn_sizer.Add(self.unidec_all_btn, 0, wx.EXPAND)
         btn_sizer.AddSpacer(5)
         btn_sizer.Add(self.unidec_cancel_btn, 0, wx.EXPAND)
         btn_sizer.AddSpacer(5)
@@ -804,8 +806,11 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
 
     def on_update_polarity(self, evt):
         """Update several values after user clicked the `Negative ionisation mode` checkbox"""
-        print("on_update_polarity", self)
-
+        #         negative = self.negative_mode_check.GetValue()
+        #         z_start = self.z_start_value.GetValue().split("-")[-1]
+        #         self.z_start_value.SetValue(f"-{z_start}" if negative else f"{z_start}")
+        #         z_end = self.z_end_value.GetValue().split("-")[-1]
+        #         self.z_end_value.SetValue(f"-{z_end}" if negative else f"{z_end}")
         if evt is not None:
             evt.Skip()
 
@@ -1125,15 +1130,6 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
             func_result=self.on_show_process_unidec,
         )
 
-    def on_show_process_unidec(self, unidec_engine: UniDecResultsObject):
-        """Show UniDec results"""
-        if CONFIG.ms_normalize:
-            self.mz_obj.normalize()
-        self.view_mz.plot(obj=self.mz_obj, label="Raw", repaint=False)
-        self.view_mz.add_line(
-            obj=unidec_engine.mz_processed_obj, line_color=CONFIG.unidec_plot_fit_lineColor, label="Fit data"
-        )
-
     def on_run_unidec(self, _evt):
         """Run UniDec"""
         if self.check_unidec_engine("preprocessed"):
@@ -1141,12 +1137,6 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
             QUEUE.add_call(UNIDEC_HANDLER.unidec_run, (), func_result=self.on_show_run_unidec)
         else:
             raise MessageError("Error", "Mass spectrum has not been pre-processed yet - please pre-process it first")
-
-    def on_show_run_unidec(self, unidec_engine: UniDecResultsObject):
-        """Show UniDec results"""
-        self.view_mw.plot(obj=unidec_engine.mw_obj)
-        self.view_mz_grid.plot(obj=unidec_engine.mz_grid_obj)
-        self.view_mw_grid.plot(obj=unidec_engine.mw_grid_obj)
 
     def on_detect_peaks_unidec(self, _evt):
         """Detect features"""
@@ -1157,6 +1147,25 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
             raise MessageError(
                 "Error", "UniDec has not been executed yet - please execute it before trying peak picking"
             )
+
+    def on_show_process_unidec(self, unidec_engine: UniDecResultsObject):
+        """Show UniDec results"""
+        if CONFIG.ms_normalize:
+            self.mz_obj.normalize()
+        self.view_mz.plot(obj=self.mz_obj, label="Raw", repaint=False)
+        self.view_mz.add_line(
+            obj=unidec_engine.mz_processed_obj, line_color=CONFIG.unidec_plot_fit_lineColor, label="Fit data"
+        )
+
+    def on_auto_unidec(self, _evt):
+        """Auto UniDec"""
+        QUEUE.add_call(UNIDEC_HANDLER.unidec_autorun, (self.mz_obj, None), func_result=self.on_show_autorun_unidec)
+
+    def on_show_run_unidec(self, unidec_engine: UniDecResultsObject):
+        """Show UniDec results"""
+        self.view_mw.plot(obj=unidec_engine.mw_obj)
+        self.view_mz_grid.plot(obj=unidec_engine.mz_grid_obj)
+        self.view_mw_grid.plot(obj=unidec_engine.mw_grid_obj)
 
     def on_show_detect_peaks_unidec(self, unidec_engine: UniDecResultsObject):
         """Show UniDec results"""
@@ -1179,23 +1188,30 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
 
         # show barchart
         self.view_barchart.plot(obj=peaks)
+        for x, y, color, marker, label in zip(peaks.x, peaks.y, peaks.colors, peaks.markers, peaks.labels):
+            self.view_barchart.add_scatter(
+                x, y, color, marker, size=CONFIG.unidec_plot_MW_markerSize, label=label, repaint=False
+            )
+        self.view_barchart.repaint()
 
         # show charge states
         self.view_charge.plot(obj=unidec_engine.z_obj)
 
-    def on_all_unidec(self, _evt):
-        """Run all"""
-        QUEUE.add_call(UNIDEC_HANDLER.unidec_autorun, (self.mz_obj, None), func_result=self.on_show_all_unidec)
+        # show individual lines
+        self.on_show_individual_peaks(unidec_engine)
 
-    def on_show_all_unidec(self, unidec_engine: UniDecResultsObject):
-        """Show UniDec results"""
-        self.on_show_initialize_unidec(unidec_engine)
-        self.on_show_run_unidec(unidec_engine)
-        self.on_show_detect_peaks_unidec(unidec_engine)
+        # update list of masses
+        mw_choices = unidec_engine.get_molecular_weights()
+        if mw_choices:
+            self.weight_list_choice.SetItems(mw_choices)
+            self.weight_list_choice.SetStringSelection(mw_choices[0])
 
-    def on_auto_unidec(self, _evt):
-        """Auto UniDec"""
-        QUEUE.add_call(UNIDEC_HANDLER.unidec_autorun, (self.mz_obj, None), func_result=self.on_show_autorun_unidec)
+    def on_show_individual_peaks(self, unidec_engine):
+        """Plot individual lines"""
+        # self.view_peaks.plot(obj=CONFIG.unidec_engine.data.mz_processed_obj, repaint=False)
+        x, y, array, labels, line_colors, face_colors, markers = unidec_engine.get_ms_per_mw()
+        self.view_peaks.plot_waterfall(x, y, array, line_colors=line_colors, face_colors=face_colors)
+        self.view_mw.show_legend(True)
 
     def on_show_autorun_unidec(self, unidec_engine: UniDecResultsObject):
         """Show UniDec results"""
