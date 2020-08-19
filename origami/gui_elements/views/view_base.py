@@ -89,14 +89,16 @@ class ViewMPLMixin:
         if repaint:
             self.figure.repaint()
 
-    def remove_labels(self, repaint: bool = True):
+    def remove_labels(self, start_with: str = None, repaint: bool = True):
         """Remove scatter points from the plot area"""
-        self.figure.plot_remove_label(False)
+        self.figure.plot_remove_label(start_with, repaint=False)
 
         if repaint:
             self.figure.repaint()
 
-    def add_h_line(self, y_val, x_min: float = None, x_max: float = None, **kwargs):  # noqa
+    def add_h_line(
+        self, y_val, x_min: float = None, x_max: float = None, label=None, repaint: bool = True, **kwargs
+    ):  # noqa
         """Add horizontal line to the plot"""
         _x_min, _x_max = self.figure.get_xlim()
         if x_min is None:
@@ -104,10 +106,20 @@ class ViewMPLMixin:
         if x_max is None:
             x_max = _x_max
 
-        self.figure.plot_add_line(x_min, x_max, y_val, y_val, "horizontal")
-        self.figure.repaint()
+        self.figure.plot_add_line(x_min, x_max, y_val, y_val, "horizontal", label=label)
+        if repaint:
+            self.figure.repaint()
 
-    def add_v_line(self, x_val, y_min: float = None, y_max: float = None, repaint: bool = True, **kwargs):  # noqa
+    def add_v_line(
+        self,
+        x_val,
+        y_min: float = None,
+        y_max: float = None,
+        label=None,
+        color=(1, 0, 0),
+        repaint: bool = True,
+        **kwargs,
+    ):  # noqa
         """Add vertical line to the plot"""
         _y_min, _y_max = self.figure.get_ylim()
         if y_min is None:
@@ -115,7 +127,14 @@ class ViewMPLMixin:
         if y_max is None:
             y_max = _y_max
 
-        self.figure.plot_add_line(x_val, x_val, y_min, y_max, "vertical")
+        self.figure.plot_add_line(x_val, x_val, y_min, y_max, "vertical", label=label, color=color)
+        if repaint:
+            self.figure.repaint()
+
+    def remove_lines(self, repaint: bool = True):
+        """Remove scatter points from the plot area"""
+        self.figure.plot_remove_lines(False)
+
         if repaint:
             self.figure.repaint()
 
@@ -180,10 +199,18 @@ class ViewMPLMixin:
         """Return the x-limit of the plot"""
         return self.figure.get_current_xlim()
 
+    def get_xlim(self):
+        """Return the x-limit of the plot"""
+        return self.figure.get_xlim()
+
     def set_ylim(self, y_min: float, y_max: float):
         """Set y-axis limits in the plot area"""
         self.figure.on_zoom_y_axis(y_min, y_max)
         self.figure.repaint()
+
+    def get_ylim(self):
+        """Return the x-limit of the plot"""
+        return self.figure.get_ylim()
 
     def set_xylim(self, x_min: float, x_max: float, y_min: float, y_max: float):
         """Set xy-axis limits in the plot area"""
@@ -315,6 +342,9 @@ class ViewBase(ABC):
     def plot_type(self):
         """Return currently shown plot type"""
         return self.figure.PLOT_TYPE
+
+    def _set_forced_kwargs(self):
+        """Dynamically update force plot keyword arguments"""
 
     def on_activate_document(self, view_id: str):
         """Whenever the event is emitted, the view should send another event to indicate that the current document has
@@ -449,9 +479,9 @@ class ViewBase(ABC):
                 plot_type = self.DEFAULT_PLOT
         return plot_type
 
-    def repaint(self):
+    def repaint(self, repaint: bool = True):
         """Repaint plot"""
-        self.figure.repaint()
+        self.figure.repaint(repaint)
 
     def clear(self):
         """Clear plot"""

@@ -509,7 +509,14 @@ def unidec_sort_mw_list(mass_list, column_id):
 
 
 def calculate_charge_positions(
-    charge_list, mw: float, x: np.ndarray, adduct_ion: str = "H+", remove_below: float = 0.01
+    charges_x,
+    charges_y,
+    mw: float,
+    mz_min: float,
+    mz_max: float,
+    adduct_ion: str = "H+",
+    remove_below: float = 0.01,
+    normalize: bool = True,
 ):
     """Calculate positions of charges"""
     adducts = {
@@ -525,19 +532,24 @@ def calculate_charge_positions(
         "H-": -1.007276,
         "Cl-": 34.969402,
     }
+    charges_x = np.asarray(charges_x)
+    charges_y = np.asarray(charges_y)
 
     # np.min(self.config.unidec_engine.data.data2[:, 0]), np.max(self.config.unidec_engine.data.data2[:, 0])
-    min_mz, max_mz = np.min(x), np.max(x)
-    charges = np.array(list(map(int, np.arange(charge_list[0, 0], charge_list[-1, 0] + 1))))
+    charges = np.array(list(map(int, np.arange(charges_x[0], charges_x[-1] + 1))))
     peak_pos = (float(mw) + (adducts[adduct_ion])) / charges
 
-    ignore = (peak_pos > min_mz) & (peak_pos < max_mz)
-    peak_pos, charges, intensity = peak_pos[ignore], charges[ignore], charge_list[:, 1][ignore]
+    # filter based molecular weight
+    ignore = (peak_pos > mz_min) & (peak_pos < mz_max)
+    peak_pos, charges, intensity = peak_pos[ignore], charges[ignore], charges_y[ignore]
 
     # remove peaks that are of poor intensity
     max_intensity = np.amax(intensity) * remove_below
     ignore = intensity > max_intensity
     peak_pos, charges, intensity = peak_pos[ignore], charges[ignore], intensity[ignore]
+
+    if normalize:
+        intensity = intensity / 100
 
     return peak_pos, charges, intensity
 

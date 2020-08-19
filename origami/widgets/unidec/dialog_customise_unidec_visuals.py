@@ -76,7 +76,7 @@ class DialogCustomiseUniDecVisuals(Dialog, ConfigUpdateMixin, ColorGetterMixin, 
 
         unidec_max_shown_label = wx.StaticText(panel, wx.ID_ANY, "No. max shown lines:")
         self.unidec_max_shown_lines_value = wx.TextCtrl(panel, -1, "", size=(-1, -1), validator=Validator("intPos"))
-        self.unidec_max_shown_lines_value.SetValue(str(CONFIG.unidec_panel_plot_line_max_shown))
+        self.unidec_max_shown_lines_value.SetValue(str(CONFIG.unidec_panel_plot_individual_line_max_shown))
         self.unidec_max_shown_lines_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         remove_label_overlap_label = wx.StaticText(panel, wx.ID_ANY, "Optimise label position:")
@@ -408,7 +408,7 @@ class DialogCustomiseUniDecVisuals(Dialog, ConfigUpdateMixin, ColorGetterMixin, 
 
         CONFIG.unidec_panel_plot_optimize_label_position = self.unidec_labels_optimise_position_check.GetValue()
         CONFIG.unidec_panel_plot_speed_heatmap = self.speedy_check.GetValue()
-        CONFIG.unidec_panel_plot_line_max_shown = str2int(self.unidec_max_shown_lines_value.GetValue())
+        CONFIG.unidec_panel_plot_individual_line_max_shown = str2int(self.unidec_max_shown_lines_value.GetValue())
         CONFIG.unidec_panel_max_iterations = str2int(self.unidec_maxIters_value.GetValue())
 
         if evt is not None:

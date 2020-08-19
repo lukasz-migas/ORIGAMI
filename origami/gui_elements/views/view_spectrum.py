@@ -14,6 +14,7 @@ from origami.utils.utilities import report_time
 from origami.visuals.mpl.plot_spectrum import PlotSpectrum
 from origami.gui_elements.views.view_base import ViewBase
 from origami.gui_elements.views.view_base import ViewMPLMixin
+from origami.gui_elements.views.view_mixins import ViewAxesMixin
 
 LOGGER = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ class ViewSpectrumPanelMixin:
         return plot_panel, plot_window, sizer
 
 
-class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin):
+class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin, ViewAxesMixin):
     """Viewer class for spectral data"""
 
     VIEW_TYPE = "1d"
@@ -161,11 +162,7 @@ class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin):
                 fill_kwargs=CONFIG.get_mpl_parameters(self.MPL_KEYS),
             )
         elif name.startswith("axes"):
-            kwargs = CONFIG.get_mpl_parameters(["axes"])
-            if name.endswith(".frame"):
-                self.figure.plot_update_frame(**kwargs)
-            elif name.endswith(".labels"):
-                self.figure.plot_update_labels(**kwargs)
+            kwargs = self._update_style_axes(name)
         elif name.startswith("legend"):
             kwargs = CONFIG.get_mpl_parameters(["legend"])
             self.figure.plot_update_legend(**kwargs)

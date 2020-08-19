@@ -2,11 +2,12 @@
 # Standard library imports
 import time
 import logging
-from copy import copy
 
 # Local imports
 from origami.config.config import CONFIG
 from origami.utils.utilities import report_time
+from origami.gui_elements.views.view_mixins import ViewAxesMixin
+from origami.gui_elements.views.view_mixins import ViewWaterfallMixin
 from origami.gui_elements.views.view_heatmap import ViewHeatmap
 from origami.gui_elements.views.view_spectrum import ViewSpectrum
 from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
@@ -32,6 +33,7 @@ class ViewMolecularWeight(ViewSpectrum):
 
     # TODO: ensure legend is always shown
     # TODO: ensure masses always shown in descending order
+    # TODO: ensure the x-axis is correctly labeled as kda when divided by 1k or Da when not (modify `x_label` attribute)
     FORCED_KWARGS = {"legend": True}
 
     def __init__(self, parent, figsize, title="MolecularWeight", **kwargs):
@@ -100,19 +102,20 @@ class ViewBarChart(ViewSpectrum):
         LOGGER.debug(f"Plotted data in {report_time(t_start)}")
 
 
-class ViewIndividualPeaks(ViewSpectrum):
+class ViewIndividualPeaks(ViewSpectrum, ViewWaterfallMixin, ViewAxesMixin):
     """Specialized viewer for mass spectral data"""
 
-    # TODO add legend
+    # TODO: add legend for markers
 
     ALLOWED_PLOTS = ("waterfall", "line")
     DATA_KEYS = ("array", "x", "y", "obj")
 
-    def __init__(self, parent, figsize, title="Barchart", **kwargs):
+    def __init__(self, parent, figsize, title="IndividualPlots", **kwargs):
         ViewSpectrum.__init__(self, parent, figsize, title, **kwargs)
         self._x_label = kwargs.pop("x_label", "m/z")
         self._y_label = kwargs.pop("y_label", "Offset intensity")
 
+    # noinspection PyMethodOverriding
     @staticmethod
     def check_input(x, y, array, obj):
         """Check user-input"""
@@ -124,32 +127,23 @@ class ViewIndividualPeaks(ViewSpectrum):
             array = obj.array
         return x, y, array
 
-    def plot_waterfall(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
-        """Plot object as a waterfall"""
-        self.can_plot("waterfall")
-        t_start = time.time()
-        # try to update plot first, as it can be quicker
-        mpl_keys = copy(self.MPL_KEYS)
-        mpl_keys.append("waterfall")
-
-        self.set_document(obj, **kwargs)
-        self.set_labels(obj, **kwargs)
-
-        kwargs.update(**CONFIG.get_mpl_parameters(mpl_keys))
-        kwargs.update(**self.FORCED_KWARGS)
-        kwargs = self.check_kwargs(**kwargs)
-        x, y, array = self.check_input(x, y, array, obj)
-        self.figure.clear()
-        self.figure.plot_waterfall(
-            x, y, array, x_label=self.x_label, y_label=self.y_label, callbacks=self._callbacks, obj=obj, **kwargs
+    def _set_forced_kwargs(self):
+        """Dynamically update force plot keyword arguments"""
+        # update forced kwargs
+        self.FORCED_KWARGS.update(
+            {
+                "waterfall_increment": CONFIG.unidec_panel_plot_individual_line_sep,
+                "waterfall_reverse": False,
+                "waterfall_normalize": True,
+            }
         )
-        if repaint:
-            self.figure.repaint()
 
-        # set data
-        self._data.update(x=x, y=y, array=array, obj=obj)
-        self.set_plot_parameters(**kwargs)
-        LOGGER.debug(f"Plotted data in {report_time(t_start)}")
+    def plot_waterfall(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
+        """Simple plot"""
+        self._set_forced_kwargs()
+        super(ViewIndividualPeaks, self).plot_waterfall(x, y, array, obj, False, **kwargs)
+        self.figure.plot_waterfall_fix_y_axis()
+        self.repaint(repaint)
 
     def replot(self, plot_type: str = None, repaint: bool = True, light_clear: bool = False):
         """Replot the current plot"""
@@ -168,25 +162,11 @@ class ViewIndividualPeaks(ViewSpectrum):
         """Update plot style"""
         t_start = time.time()
 
-        # heatmap-specific updates
         kwargs = dict()
         if name.startswith("waterfall"):
-            if not self.is_plotted_or_plot("waterfall", self.plot_waterfall, self.DATA_KEYS):
-                return
-
-            # update data - requires full redraw
-            if name.endswith(".data"):
-                self.replot("waterfall", False)
-            else:
-                kwargs = CONFIG.get_mpl_parameters(["waterfall"])
-                x, y, array = self.get_data(["x", "y", "array"])
-                self.figure.plot_waterfall_update(x, y, array, name, **kwargs)
+            kwargs = self._update_style_waterfall(name)
         elif name.startswith("axes"):
-            kwargs = CONFIG.get_mpl_parameters(["axes"])
-            if name.endswith(".frame"):
-                self.figure.plot_update_frame(**kwargs)
-            elif name.endswith(".labels"):
-                self.figure.plot_update_labels(**kwargs)
+            kwargs = self._update_style_axes(name)
         self.figure.repaint()
         self.set_plot_parameters(**kwargs)
         LOGGER.debug(f"Updated plot styles - {name} in {report_time(t_start)}")
@@ -195,6 +175,8 @@ class ViewIndividualPeaks(ViewSpectrum):
 class ViewMassSpectrumGrid(ViewHeatmap):
     """Viewer class for extracted ions"""
 
+    # TODO: fix the issue where the bottom and top have white stripe - need to change the x-axis zoom
+
     def __init__(self, parent, figsize, title="MSGrid", **kwargs):
         ViewHeatmap.__init__(self, parent, figsize, title, **kwargs)
         self._x_label = kwargs.pop("x_label", "m/z (Da)")
@@ -202,11 +184,14 @@ class ViewMassSpectrumGrid(ViewHeatmap):
 
     def plot(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
         """Simple plot"""
-        super(ViewMassSpectrumGrid, self).plot(x, y, array, obj, repaint, speedy=True, **kwargs)
+        speedy = CONFIG.unidec_panel_plot_speed_heatmap
+        super(ViewMassSpectrumGrid, self).plot(x, y, array, obj, repaint, speedy=speedy, **kwargs)
 
 
 class ViewMolecularWeightGrid(ViewHeatmap):
     """Viewer class for extracted ions"""
+
+    # TODO: fix the issue where the bottom and top have white stripe - need to change the x-axis zoom
 
     def __init__(self, parent, figsize, title="MSGrid", **kwargs):
         ViewHeatmap.__init__(self, parent, figsize, title, **kwargs)

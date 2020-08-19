@@ -15,11 +15,14 @@ from origami.utils.utilities import report_time
 from origami.visuals.mpl.plot_heatmap_2d import PlotHeatmap2D
 from origami.gui_elements.views.view_base import ViewBase
 from origami.gui_elements.views.view_base import ViewMPLMixin
+from origami.gui_elements.views.view_mixins import ViewAxesMixin
+from origami.gui_elements.views.view_mixins import ViewViolinMixin
+from origami.gui_elements.views.view_mixins import ViewWaterfallMixin
 
 LOGGER = logging.getLogger(__name__)
 
 
-class ViewHeatmap(ViewBase, ViewMPLMixin):
+class ViewHeatmap(ViewBase, ViewMPLMixin, ViewWaterfallMixin, ViewViolinMixin, ViewAxesMixin):
     """Viewer class for heatmap-based objects"""
 
     DATA_KEYS = ("array", "x", "y", "obj")
@@ -152,7 +155,7 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
         elif plot_type == "violin":
             self.plot_violin(x, y, array, obj, repaint=repaint)
 
-    def plot_rgb(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
+    def plot_rgb(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):  # noqa
         """Plot object as a waterfall"""
         self.can_plot("rgb")
 
@@ -170,60 +173,6 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
         self.figure.clear()
         self.figure.plot_2d_contour(
             x, y, array, x_label=self.x_label, y_label=self.y_label, callbacks=self._callbacks, obj=obj, **kwargs
-        )
-        if repaint:
-            self.figure.repaint()
-
-        # set data
-        self._data.update(x=x, y=y, array=array, obj=obj)
-        self.set_plot_parameters(**kwargs)
-        LOGGER.debug(f"Plotted data in {report_time(t_start)}")
-
-    def plot_violin(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
-        """Plot object as a violin plot"""
-        self.can_plot("violin")
-        t_start = time.time()
-        mpl_keys = copy(self.MPL_KEYS)
-        mpl_keys.append("violin")
-
-        # try to update plot first, as it can be quicker
-        self.set_document(obj, **kwargs)
-        self.set_labels(obj, **kwargs)
-
-        kwargs.update(**CONFIG.get_mpl_parameters(mpl_keys))
-        kwargs.update(**self.FORCED_KWARGS)
-        kwargs = self.check_kwargs(**kwargs)
-        x, y, array = self.check_input(x, y, array, obj)
-        self.figure.clear()
-        self.figure.plot_violin_quick(
-            x, y, array, x_label=self.x_label, y_label=self.y_label, callbacks=self._callbacks, obj=obj, **kwargs
-        )
-        if repaint:
-            self.figure.repaint()
-
-        # set data
-        self._data.update(x=x, y=y, array=array, obj=obj)
-        self.set_plot_parameters(**kwargs)
-        LOGGER.debug(f"Plotted data in {report_time(t_start)}")
-
-    def plot_waterfall(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
-        """Plot object as a waterfall"""
-        self.can_plot("waterfall")
-        t_start = time.time()
-        # try to update plot first, as it can be quicker
-        mpl_keys = copy(self.MPL_KEYS)
-        mpl_keys.append("waterfall")
-
-        self.set_document(obj, **kwargs)
-        self.set_labels(obj, **kwargs)
-
-        kwargs.update(**CONFIG.get_mpl_parameters(mpl_keys))
-        kwargs.update(**self.FORCED_KWARGS)
-        kwargs = self.check_kwargs(**kwargs)
-        x, y, array = self.check_input(x, y, array, obj)
-        self.figure.clear()
-        self.figure.plot_waterfall(
-            x, y, array, x_label=self.y_label, y_label="Offset intensity", callbacks=self._callbacks, obj=obj, **kwargs
         )
         if repaint:
             self.figure.repaint()
@@ -285,34 +234,12 @@ class ViewHeatmap(ViewBase, ViewMPLMixin):
                 )
         # waterfall-specific updates
         elif name.startswith("waterfall"):
-            if not self.is_plotted_or_plot("waterfall", self.plot_waterfall, self.DATA_KEYS):
-                return
-
-            # update data - requires full redraw
-            if name.endswith(".data"):
-                self.replot("waterfall", False)
-            else:
-                kwargs = CONFIG.get_mpl_parameters(["waterfall"])
-                x, y, array = self.get_data(["x", "y", "array"])
-                self.figure.plot_waterfall_update(x, y, array, name, **kwargs)
+            kwargs = self._update_style_waterfall(name)
         # violin-specific updates
         elif name.startswith("violin"):
-            if not self.is_plotted_or_plot("violin", self.plot_violin, self.DATA_KEYS):
-                return
-
-            # update data - requires full redraw
-            if name.endswith(".data"):
-                self.replot("violin", False)
-            else:
-                kwargs = CONFIG.get_mpl_parameters(["violin"])
-                x, y, array = self.get_data(["x", "y", "array"])
-                self.figure.plot_violin_update(x, y, array, name, **kwargs)
+            kwargs = self._update_style_violin(name)
         elif name.startswith("axes"):
-            kwargs = CONFIG.get_mpl_parameters(["axes"])
-            if name.endswith(".frame"):
-                self.figure.plot_update_frame(**kwargs)
-            elif name.endswith(".labels"):
-                self.figure.plot_update_labels(**kwargs)
+            kwargs = self._update_style_axes(name)
         self.figure.repaint()
         self.set_plot_parameters(**kwargs)
         LOGGER.debug(f"Updated plot styles - {name} in {report_time(t_start)}")

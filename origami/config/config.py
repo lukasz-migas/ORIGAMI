@@ -1029,14 +1029,14 @@ class Config:
         self.unidec_panel_peak_detect_norm_choices = ["None", "Max", "Total"]
         self.unidec_panel_peak_detect_norm_dict = {"None": 0, "Max": 1, "Total": 2}
         self.unidec_panel_peak_detect_norm = "Max"
-        self.unidec_panel_plot_line_sep = 0.05
         self.unidec_panel_max_iterations = 100
         self.unidec_panel_plot_charges_label_threshold = 0.05
         self.unidec_panel_plot_charges_label_offset = 0.01
         self.unidec_panel_plot_charges_show = False
-        self.unidec_panel_plot_line_show = True
-        self.unidec_panel_plot_line_max_shown = 100
-        self.unidec_panel_plot_markers_show = True
+        self.unidec_panel_plot_individual_line_show = True
+        self.unidec_panel_plot_individual_line_sep = 0.05
+        self.unidec_panel_plot_individual_line_max_shown = 100
+        self.unidec_panel_plot_individual_markers_show = True
         self.unidec_panel_plot_speed_heatmap = True
         self.unidec_panel_plot_optimize_label_position = True
 
@@ -1054,8 +1054,8 @@ class Config:
         self.unidec_plot_colormap = "viridis"
         self.unidec_plot_palette = "HLS"
         self.unidec_plot_contour_levels = 75
-        self.unidec_plot_panel_view_choices = ["Single page view", "Tabbed view"]
-        self.unidec_plot_panel_view = "Single page view"
+        self.unidec_plot_panel_view_choices = ["Grid page view", "Continuous page view", "Tabbed view"]
+        self.unidec_plot_panel_view = "Continuous page view"
         self.unidec_plot_settings_view_choices = ["Left-hand side", "Right-hand side"]
         self.unidec_plot_settings_view = "Left-hand side"
 
@@ -2094,7 +2094,7 @@ class Config:
                         "color_scheme": self.unidec_plot_color_scheme,
                         "heatmap_colormap": self.unidec_plot_colormap,
                         "palette": self.unidec_plot_palette,
-                        "maximum_shown_items": self.unidec_panel_plot_line_max_shown,
+                        "maximum_shown_items": self.unidec_panel_plot_individual_line_max_shown,
                         "contour_levels": self.unidec_plot_contour_levels,
                     }
                 )
@@ -2287,6 +2287,7 @@ class Config:
                 "panel_process_heatmap",
                 "panel_process_ms",
                 "panel_plot",
+                "panel_unidec",
             ]
 
         config = dict()
@@ -2468,6 +2469,37 @@ class Config:
                         "ms_baseline_median_window": self.ms_baseline_median_window,
                         "ms_baseline_tophat_window": self.ms_baseline_tophat_window,
                         "ms_normalize": self.ms_normalize,
+                    }
+                )
+            if _config_key == "panel_unidec":
+                config.update(
+                    {
+                        "unidec_panel_z_start": self.unidec_panel_z_start,
+                        "unidec_panel_z_end": self.unidec_panel_z_end,
+                        "unidec_panel_mw_start": self.unidec_panel_mw_start,
+                        "unidec_panel_mw_end": self.unidec_panel_mw_end,
+                        "unidec_panel_mw_bin_size": self.unidec_panel_mw_bin_size,
+                        "unidec_panel_adduct_mass": self.unidec_panel_adduct_mass,
+                        "unidec_panel_softmax_beta": self.unidec_panel_softmax_beta,
+                        "unidec_panel_smooth_charge_distribution": self.unidec_panel_smooth_charge_distribution,
+                        "unidec_panel_smooth_nearby_points": self.unidec_panel_smooth_nearby_points,
+                        "unidec_panel_smooth_mass_width": self.unidec_panel_smooth_mass_width,
+                        "unidec_panel_peak_width": self.unidec_panel_peak_width,
+                        "unidec_panel_peak_width_auto": self.unidec_panel_peak_width_auto,
+                        "unidec_panel_peak_func": self.unidec_panel_peak_func,
+                        "unidec_panel_mz_to_mw_transform": self.unidec_panel_mz_to_mw_transform,
+                        "unidec_panel_negative_mode": self.unidec_panel_negative_mode,
+                        "unidec_panel_peak_detect_width": self.unidec_panel_peak_detect_width,
+                        "unidec_panel_peak_detect_threshold": self.unidec_panel_peak_detect_threshold,
+                        "unidec_panel_peak_detect_norm": self.unidec_panel_peak_detect_norm,
+                        "unidec_panel_max_iterations": self.unidec_panel_max_iterations,
+                        "unidec_panel_plot_charges_label_threshold": self.unidec_panel_plot_charges_label_threshold,
+                        "unidec_panel_plot_charges_label_offset": self.unidec_panel_plot_charges_label_offset,
+                        "unidec_panel_plot_charges_show": self.unidec_panel_plot_charges_show,
+                        "unidec_panel_plot_individual_line_show": self.unidec_panel_plot_individual_line_show,
+                        "unidec_panel_plot_individual_line_sep": self.unidec_panel_plot_individual_line_sep,
+                        "unidec_panel_plot_individual_line_max_shown": self.unidec_panel_plot_individual_line_max_shown,
+                        "unidec_panel_plot_individual_markers_show": self.unidec_panel_plot_individual_markers_show,
                     }
                 )
 

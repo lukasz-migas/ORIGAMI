@@ -1680,6 +1680,9 @@ class DocumentTree(wx.TreeCtrl):
         menu_action_save_data_as = make_menu_item(parent=menu, text="Save data as...", bitmap=self._icons.csv)
         menu_action_save_data_as_all = make_menu_item(parent=menu, text="Batch save data as...", bitmap=self._icons.csv)
         menu_action_delete_item = make_menu_item(parent=menu, text="Delete item\tDelete", bitmap=self._icons.delete)
+        menu_action_open_data_directory = make_menu_item(
+            parent=menu, text="Reveal data directory in File Explorer", bitmap=None
+        )
 
         # bind events
         self.Bind(wx.EVT_MENU, self.on_show_plot_mass_spectra, menu_action_show_plot_spectrum)
@@ -1693,6 +1696,7 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
         self.Bind(wx.EVT_MENU, self.on_batch_export_figures, menu_action_save_image_as_all)
         self.Bind(wx.EVT_MENU, self.on_batch_export_data, menu_action_save_data_as_all)
+        self.Bind(wx.EVT_MENU, self.on_open_data_directory, menu_action_open_data_directory)
 
         # append menu
         if self._item.indent == 2:
@@ -1718,6 +1722,7 @@ class DocumentTree(wx.TreeCtrl):
             menu.AppendItem(menu_action_save_image_as)
             menu.AppendItem(menu_action_save_data_as)
             menu.AppendItem(menu_action_delete_item)
+            menu.AppendItem(menu_action_open_data_directory)
 
     def _set_menu_chromatogram(self, menu):
 
@@ -2174,7 +2179,7 @@ class DocumentTree(wx.TreeCtrl):
         # )
 
         menu_action_open_directory = make_menu_item(
-            parent=menu, text="Reveal folder in File Explorer", bitmap=self._icons.explorer
+            parent=menu, text="Reveal Document directory in File Explorer", bitmap=self._icons.explorer
         )
         menu_action_duplicate_document = make_menu_item(
             parent=menu, text="Duplicate document", bitmap=self._icons.duplicate
@@ -2562,13 +2567,18 @@ class DocumentTree(wx.TreeCtrl):
         """Go to selected directory"""
         self.data_handling.on_open_directory(None)
 
+    def on_open_data_directory(self, _evt):
+        """Open data directory of the currently selected object"""
+        data_obj = self._get_item_object()
+        if data_obj:
+            self.data_handling.on_open_directory(data_obj.path)
+
     def on_show_zoom_on_ion(self, _evt):
         """Zoom-in on an ion in a mass spectrum window"""
         if self._item.is_match("heatmap", True):
             return
 
         # get data for selected item
-        # obj = self._get_item_object()
         _, title = self._get_item_info()
 
         self.on_show_plot_zoom_on_mass_spectrum(title)

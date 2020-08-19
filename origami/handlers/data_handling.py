@@ -237,6 +237,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     @staticmethod
     def on_open_directory(path):
         """Open document path"""
+        import webbrowser
 
         # if path is not provided, get one from current document
         if path is None:
@@ -248,10 +249,12 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             raise MessageError("Path does not exist", f"Path {path} does not exist")
 
         # open path
-        try:
-            os.startfile(path)
-        except WindowsError:
-            raise MessageError("Path does not exist", f"Failed to open {path}")
+        webbrowser.open(path)
+
+        # try:
+        #     os.startfile(path)
+        # except WindowsError:
+        #     raise MessageError("Path does not exist", f"Failed to open {path}")
 
         pub.sendMessage("notify.message.success", message="Opening directory...")
 

@@ -52,7 +52,12 @@ class Peak:
     @property
     def mass_int_fmt(self):
         """Nicely formatted molecular weight"""
-        return f"MW: {self.mass:.2f} ({self.height} %)"
+        return f"MW: {self.mass:.2f} ({self.height:.2f} %)"
+
+    @property
+    def mass_int_marker_fmt(self):
+        """Nicely formatted molecular weight"""
+        return f"MW: {self.mass:.2f} ({self.height:.2f} %) [{self.marker_text}]"
 
     def to_dict(self) -> Dict:
         """Serialize peak"""
@@ -119,6 +124,11 @@ class Peaks:
             return self.peaks[self._idx]
         self._idx = -1
         raise StopIteration
+
+    def iter(self):
+        """Iterate over peaks"""
+        for peak in self.peaks:
+            yield peak
 
     @property
     def n_peaks(self):

@@ -7,6 +7,7 @@ import numpy as np
 from zarr import Group
 
 # Local imports
+from origami.config.config import CONFIG
 from origami.objects.containers.heatmap import HeatmapObject
 from origami.objects.containers.spectrum import SpectrumObject
 from origami.objects.containers.spectrum import MassSpectrumObject
@@ -133,7 +134,7 @@ class MolecularWeightObject(SpectrumObject):
     def x_axis_transform(self, x):
         """Transform values"""
         x_max = np.max(self._x)
-        if x_max > 100000:
+        if x_max > 10000:
             return x / 1000
         return x
 
@@ -182,10 +183,14 @@ class ChargeStatesObject(SpectrumObject):
 class UniDecResultsObject:
     """Data container for UniDec results"""
 
-    def __init__(self, mz_obj: MassSpectrumObject, config: UniDecConfig):
+    def __init__(
+        self, mz_obj: MassSpectrumObject, config: UniDecConfig, document_title: str = None, dataset_name: str = None
+    ):
         self._cls = self.__class__.__name__
 
         # settable attributes
+        self.document_title = document_title
+        self.dataset_name = dataset_name
         self.config = config
         self.peaks = None
         self.charge_peaks = None
@@ -224,6 +229,22 @@ class UniDecResultsObject:
         if self.mw_raw is not None:
             return np.amax(self.mw_raw[:, 1])
         return None
+
+    @property
+    def x_limit(self):
+        """Return the x-axis limit of the m/z axis after data was processed"""
+        if self.is_processed:
+            return np.amin(self.mz_processed[:, 0]), np.amax(self.mz_processed[:, 0])
+        return np.amin(self.mz_raw[:, 0]), np.amax(self.mz_raw[:, 0])
+
+    def check_owner(self, document_title: str, dataset_name: str) -> bool:
+        """Check whether the owner of this object matches that of another"""
+        print(self.document_title, document_title)
+        print(self.dataset_name, dataset_name)
+        if self.document_title is not None and self.dataset_name is not None:
+            if self.document_title == document_title and self.dataset_name == dataset_name:
+                return True
+        return False
 
     def to_zarr(self):
         """Outputs data to dictionary composed of `data` and `attributes`"""
@@ -336,35 +357,83 @@ class UniDecResultsObject:
     @property
     def mz_processed_obj(self):
         """Return the `mz_processed` as ORIGAMI object"""
-        return MassSpectrumObject(self.mz_processed[:, 0], self.fit_raw)
-
-    #         return MassSpectrumObject(self.mz_processed[:, 0], self.mz_processed[:, 1])
+        return MassSpectrumObject(self.mz_processed[:, 0], self.mz_processed[:, 1])
 
     @property
     def z_obj(self):
         """Return the `charge_peaks` as ORIGAMI object"""
         return ChargeStatesObject(self.charge_peaks.masses, self.charge_peaks.intensities)
 
+    @property
+    def z_xy(self):
+        """Return the `charges` as data"""
+        return self.charge_peaks.masses, self.charge_peaks.intensities
+
     def get_ms_per_mw(self):
         """Get mass spectrum for each detect molecular weight"""
         # preset array for each signal
-        array = np.zeros((self.peaks.n_peaks + 1, len(self.mz_processed[:, 0])))
-        array[0] = self.mz_processed[:, 1]
+        n_peaks = 2 if not CONFIG.unidec_panel_plot_individual_line_show else self.peaks.n_peaks + 1
+        array = np.zeros((n_peaks, len(self.mz_processed[:, 0])))
+        array[0] = self.mz_processed[:, 1] / self.mz_processed[:, 1].max()
 
-        y, labels, line_colors, face_colors, markers = [0], ["m/z"], [(0, 0, 0, 1)], [(0, 0, 0, 0.5)], [""]
-        for i, peak in enumerate(self.peaks, start=1):
-            array[i] = peak.sticks
-            y.append(i)
-            labels.append(peak.mass_fmt)
-            line_colors.append(peak.color)
-            face_colors.append(peak.color)
-            markers.append(peak.marker)
+        x, labels, line_colors, face_colors, markers = [0], ["m/z"], [(0, 0, 0, 1)], [(0, 0, 0, 0.5)], [""]
+        if CONFIG.unidec_panel_plot_individual_line_show:
+            for i, peak in enumerate(self.peaks, start=1):
+                y = np.asarray(peak.sticks)
+                array[i] = y / y.max()  # noqa
+                x.append(i)
+                labels.append(peak.mass_fmt)
+                line_colors.append(peak.color)
+                face_colors.append(peak.color)
+                markers.append(peak.marker)
+        else:
+            array[-1] = self.peaks.composite
+            x.append(1)
+            labels.append("Composite")
+            line_colors.append((1, 0, 0, 1))
+            face_colors.append((1, 0, 0, 0.5))
 
-        return np.asarray(y), self.mz_processed[:, 0], np.flipud(array).T, labels, line_colors, face_colors, markers
+        return np.asarray(x), self.mz_processed[:, 0], np.flipud(array).T, labels[::-1], line_colors, face_colors
+
+    def get_ms_peaks_per_mw(self):
+        """Get point locations for each detected molecular weight"""
+
+    #     n_peaks = self.peaks.n_peaks
+    #     x, y, colors, markers, labels = [], [], [], [], []
+    #     for peak in self.peaks.iter():
+    #         print(peak.mz_tab_alt)
+    #
+    # #             x.append(peak.mz_tab[:, 0])
+    # #             y.append(peak.mz_tab[:, 1])
+
+    def get_ms_per_mw_isolate(self, mw_label: str):
+        """Get simulated mass spectrum for particular molecular weight
+
+        Parameters
+        ----------
+        mw_label : str
+            label is assumed to have the format "MW: ???? (?? %)
+        """
+        array = np.zeros((2, len(self.mz_processed[:, 0])))
+        array[0] = self.mz_processed[:, 1] / self.mz_processed[:, 1].max()
+
+        mw = mw_label.split()[1]
+        for peak in self.peaks.iter():
+            if mw in peak.mass_int_fmt:
+                y = np.asarray(peak.sticks)
+                array[1] = y / y.max()  # noqa
+                return (
+                    np.asarray([0, 1]),
+                    self.mz_processed[:, 0],
+                    np.flipud(array).T,
+                    [peak.mass_int_fmt, "m/z"],
+                    [(0, 0, 0, 1), (1, 0, 0, 1)],
+                    [(0, 0, 0, 0.5), (1, 0, 0, 0.5)],
+                )
 
     def get_molecular_weights(self):
         """Get list of molecular weights"""
-        return [peak.mass_fmt for peak in self.peaks]
+        return [peak.mass_int_marker_fmt for peak in self.peaks]
 
     @staticmethod
     def _reshape_grid(x, y, z):
@@ -382,7 +451,7 @@ def unidec_results_object(mz_obj: MassSpectrumObject, group: Group) -> UniDecRes
     config.from_dict(metadata.get("config", dict()))
 
     # instantiate object
-    obj = UniDecResultsObject(mz_obj, config)
+    obj = UniDecResultsObject(mz_obj, config, mz_obj.document_title, mz_obj.dataset_name)
 
     # set data
     if group.get("mz_processed", None):

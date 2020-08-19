@@ -8,7 +8,6 @@ from origami.utils.secret import get_short_hash
 from origami.config.config import CONFIG
 from origami.utils.utilities import report_time
 from origami.handlers.process import PROCESS_HANDLER
-from origami.objects.document import DocumentStore
 from origami.objects.containers import MassSpectrumObject
 from origami.widgets.unidec.processing.engine import UniDecEngine
 
@@ -22,12 +21,12 @@ class UniDecHandler:
         pass
 
     @staticmethod
-    def unidec_init_engine():
+    def unidec_init_engine(document_title: str = None, dataset_name: str = None):
         """Initialize UniDec engine"""
         if CONFIG.unidec_engine is None:
-            CONFIG.unidec_engine = UniDecEngine()
+            CONFIG.unidec_engine = UniDecEngine(document_title=document_title, dataset_name=dataset_name)
 
-    def unidec_initialize(self, mz_obj: MassSpectrumObject, document: DocumentStore):
+    def unidec_initialize(self, mz_obj: MassSpectrumObject):
         """Initialize UniDec engine"""
         LOGGER.debug("UniDec: Started loading data...")
 
@@ -61,9 +60,9 @@ class UniDecHandler:
 
         return CONFIG.unidec_engine.data
 
-    def unidec_initialize_and_preprocess(self, mz_obj: MassSpectrumObject, document: DocumentStore):
+    def unidec_initialize_and_preprocess(self, mz_obj: MassSpectrumObject):
         """Initialize UniDec engine and pre-process data"""
-        self.unidec_initialize(mz_obj, document)
+        self.unidec_initialize(mz_obj)
         self.unidec_preprocess()
         return CONFIG.unidec_engine.data
 
@@ -125,35 +124,16 @@ class UniDecHandler:
 
         LOGGER.debug(f"UniDec: Finished isolating MW in {report_time(t_start)}")
 
-    def unidec_autorun(self, mz_obj: MassSpectrumObject, document: DocumentStore):
+    def unidec_autorun(self, mz_obj: MassSpectrumObject):
         """Autorun UniDec"""
         t_start = time.time()
         LOGGER.info("UniDec: Started Autorun...")
-        self.unidec_initialize_and_preprocess(mz_obj, document)
+        self.unidec_initialize_and_preprocess(mz_obj)
         self.unidec_run()
         self.unidec_find_peaks()
         LOGGER.debug(f"UniDec: Finished autorun in {report_time(t_start)}")
         return CONFIG.unidec_engine.data
 
-    # def _unidec_isolate(self):
-    #     tstart = time.time()
-    #     LOGGER.info("UniDec: Isolating MW...")
-    #
-    #     try:
-    #         CONFIG.unidec_engine.pick_peaks()
-    #     except (ValueError, ZeroDivisionError):
-    #         msg = (
-    #             "Failed to find peaks. Try increasing the value of 'Peak detection window (Da)'"
-    #             + "to be same or larger than 'Sample frequency (Da)'."
-    #         )
-    #         raise ValueError(msg)
-    #
-    #     except IndexError:
-    #         raise ValueError("Please run UniDec first")
-    #
-    #     LOGGER.info(f"UniDec: Finished isolating a single MW in {time.time()-tstart:.2f} seconds")
-    #
-    #
     # def _unidec_isolate(self):
     #     tstart = ttime()
     #     LOGGER.info("UniDec: Isolating MW...")

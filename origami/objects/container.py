@@ -44,8 +44,12 @@ class ContainerBase:
         self.owner = value
 
     def set_output_path(self, value):
-        """Sets the owner of the container object"""
+        """Sets the output path where data can be saved"""
         self._output_path = value
+
+    def set_full_path(self, value):
+        """Sets the path of the object"""
+        self._path = value
 
     @property
     def title(self):

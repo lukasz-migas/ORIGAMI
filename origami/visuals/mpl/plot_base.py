@@ -48,6 +48,11 @@ class PlotBase(MPLPanel):
         self.plot_joint_x = None
         self.plot_joint_y = None
 
+        # this dictionary is used to store various information of metadata about the plot and any processing that takes
+        # place. It can be used to store any temporary information that would otherwise be expensive to compute or not
+        # convienient to store in a seperate function
+        self._METADATA = dict()
+
     def _set_axes(self):
         """Add axis to the figure"""
         self.plot_base = self.figure.add_axes(self._axes)
@@ -446,6 +451,8 @@ class PlotBase(MPLPanel):
         start_x, end_x, start_y, end_y = self.get_plot_limits(ax)
         # get current zoom
         _start_x, _end_x, _start_y, _end_y = self.get_xy_limits()
+        #         print("ax", start_x, end_x, start_y, end_y)
+        #         print("limits", _start_x, _end_x, _start_y, _end_y)
         if _start_y < start_y:
             _start_y = start_y
         # zoom is way outside of the expected range (too high)
@@ -457,7 +464,8 @@ class PlotBase(MPLPanel):
         if x is not None and y is not None:
             if start_x != _start_x and end_x != _end_x:
                 _start_idx, _end_idx = find_nearest_index(x, [_start_x, _end_x])
-                _end_y = y[_start_idx:_end_idx].max() * 1.1
+                if _start_idx != _end_idx:
+                    _end_y = y[_start_idx:_end_idx].max() * 1.1
 
         self.plot_base.axis([_start_x, _end_x, _start_y, _end_y])
 
@@ -657,9 +665,19 @@ class PlotBase(MPLPanel):
         text.y_divider = self.y_divider
         self.text.append(text)
 
-    def plot_remove_label(self, repaint: bool = True):
+    def _check_startwith(self, obj, startwith: str):
+        """Checks whether label starts with specific string"""
+        if isinstance(obj.obj_name, str):
+            if obj.obj_name.startswith(startwith):
+                return True
+        return False
+
+    def plot_remove_label(self, start_with: str = None, repaint: bool = True):
         """Remove label from the plot area"""
         for text in self.text:
+            if start_with is not None and hasattr(text, "obj_name"):
+                if not self._check_startwith(text, start_with):
+                    continue
             try:
                 text.remove()
             except Exception:  # noqa
@@ -670,7 +688,7 @@ class PlotBase(MPLPanel):
 
     def plot_add_labels(self, xs, ys, labels, color="black", pickable: bool = True, repaint: bool = False, **kwargs):
         """Add multiple labels to the plot"""
-        self.plot_remove_label(repaint)
+        self.plot_remove_label(repaint=repaint)
         for x, y, label in zip(xs, ys, labels):
             self.plot_add_label(x, y, label, color=color, pickable=pickable, **kwargs)
         self.repaint(repaint)
@@ -741,16 +759,27 @@ class PlotBase(MPLPanel):
         self.patch = []
         self.repaint(repaint)
 
-    def plot_add_line(self, xmin: float, xmax: float, ymin: float, ymax: float, orientation: str, label="temporary"):
+    def plot_add_line(
+        self,
+        xmin: float,
+        xmax: float,
+        ymin: float,
+        ymax: float,
+        orientation: str,
+        label="temporary",
+        color=(1, 0, 0),
+        linestyle="dashed",
+        alpha=0.7,
+    ):
         """Add vertical or horizontal line to the plot area"""
 
         if label is not None:
             self._remove_existing_line(label)
 
         if orientation == "vertical":
-            line = self.plot_base.axvline(xmin, 0, 1, color="r", linestyle="dashed", alpha=0.7)
+            line = self.plot_base.axvline(xmin, 0, 1, color=color, linestyle=linestyle, alpha=alpha)
         else:
-            line = self.plot_base.axhline(ymin / self.y_divider, 0, 1, color="r", linestyle="dashed", alpha=0.7)
+            line = self.plot_base.axhline(ymin / self.y_divider, 0, 1, color=color, linestyle=linestyle, alpha=alpha)
 
         # add name to the line for future removal
         line.obj_name = label
@@ -780,7 +809,7 @@ class PlotBase(MPLPanel):
 
     def plot_remove_text_and_lines(self, repaint: bool = True):
         """Remove labels and lines from the plot area"""
-        self.plot_remove_label(False)
+        self.plot_remove_label(repaint=False)
         self.plot_remove_lines(False)
         self.plot_remove_arrows(False)
         self.repaint(repaint)
@@ -822,7 +851,7 @@ class PlotBase(MPLPanel):
                 label_x, label_y, label_text, pickable=False, **self._get_waterfall_label_kwargs(**kwargs)
             )
         else:
-            self.plot_remove_label(False)
+            self.plot_remove_label(repaint=False)
 
     def plot_waterfall_update_label(self, **kwargs):
         """Update waterfall labels"""
@@ -987,15 +1016,18 @@ class PlotBase(MPLPanel):
         fc = [x for item in fc for x in repeat(item, 2)]
         return lc, fc
 
-    @staticmethod
-    def _prepare_waterfall(x, y, array, **kwargs):
+    def _prepare_waterfall(self, x, y, array, **kwargs):
         """Prepare data for waterfall plotting"""
 
         def _add_label():
             if label_frequency:
                 label_x.append(_label_x)
                 label_y.append(_y.min() + label_y_offset)
-                label_text.append(ut_visuals.convert_label(x[i], label_format=kwargs["waterfall_labels_format"]))
+                if labels is None:
+                    label = ut_visuals.convert_label(x[i], label_format=kwargs["waterfall_labels_format"])
+                else:
+                    label = labels[i]
+                label_text.append(label)
 
         # TODO: add `fix_end` option to prevent incorrect shading
         normalize = kwargs.get("waterfall_normalize", True)
@@ -1003,6 +1035,8 @@ class PlotBase(MPLPanel):
         label_y_offset = kwargs["waterfall_labels_y_offset"]
         label_frequency = int(kwargs["waterfall_labels_frequency"])
         #         fix_end = kwargs.get("fix_end", True)
+
+        labels = kwargs.get("labels", None)
 
         if kwargs["waterfall_reverse"]:
             array = np.fliplr(array)
@@ -1023,7 +1057,6 @@ class PlotBase(MPLPanel):
                 _y += i * y_increment
                 xy.append(np.column_stack([y, _y]))
                 yy.extend([_y.min(), _y.max()])
-
                 _add_label()
 
         else:
@@ -1042,6 +1075,16 @@ class PlotBase(MPLPanel):
             label_x = label_x[0::label_frequency]
             label_y = label_y[0::label_frequency]
             label_text = label_text[0::label_frequency]
+
+        self._METADATA.update(
+            **{
+                "waterfall_label_text": label_text,
+                "waterfall_label_x": label_x,
+                "waterfall_label_y": label_y,
+                "waterfall_last_y_start": yy[-1],
+                "waterfall_last_y_end": yy[-2],
+            }
+        )
 
         return yy, xy, label_x, label_y, label_text
 
@@ -1095,7 +1138,8 @@ class PlotBase(MPLPanel):
         self.plot_add_labels(label_x, label_y, label_text, pickable=False, **self._get_waterfall_label_kwargs(**kwargs))
 
         # in waterfall plot, the horizontal axis is the mobility axis
-        xlimits, ylimits, extent = self._compute_xy_limits(y, yy, None)
+        xlimits, ylimits, extent = self._compute_xy_limits(y, yy, None, y_upper_multiplier=1.1)
+
         # set plot limits
         self.plot_base.yaxis.set_major_formatter(get_intensity_formatter())
         self.plot_base.set_xlim(xlimits)
@@ -1103,6 +1147,8 @@ class PlotBase(MPLPanel):
         self.set_plot_xlabel(x_label, **kwargs)
         self.set_plot_ylabel(y_label, **kwargs)
         self.set_tick_parameters(**kwargs)
+
+        self._METADATA.update(**{"waterfall_line_colors": lc, "waterfall_fill_colors": fc})
 
         self.setup_new_zoom(
             [self.plot_base],
@@ -1113,6 +1159,19 @@ class PlotBase(MPLPanel):
         )
         self.store_plot_limits([extent], [self.plot_base])
         self.PLOT_TYPE = "waterfall"
+
+    def plot_waterfall_fix_y_axis(self):
+        """Fix y-axis tick positions to reflect user-predifined range
+
+        This fix is really only used by the UniDec plot of individual lines where it is useful to restrict the
+        percentage range to only the RAW spectrum
+        """
+        # specially format axes
+        if "waterfall_last_y_start" in self._METADATA and "waterfall_last_y_end" in self._METADATA:
+            self.plot_base.set_yticks(
+                np.linspace(self._METADATA["waterfall_last_y_end"], self._METADATA["waterfall_last_y_start"], 3)
+            )
+            self.plot_base.set_yticklabels(["0", "%", "100"])
 
     @staticmethod
     def update_line(x, y, gid, ax):

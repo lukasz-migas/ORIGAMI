@@ -298,6 +298,8 @@ class MassSpectrumObject(SpectrumObject):
     def __init__(
         self, x, y, name: str = "", metadata=None, extra_data=None, x_label="m/z (Da)", y_label="Intensity", **kwargs
     ):
+        print("x", x)
+        print("y", y)
         super().__init__(
             x, y, x_label=x_label, y_label=y_label, name=name, metadata=metadata, extra_data=extra_data, **kwargs
         )
@@ -321,6 +323,7 @@ class MassSpectrumObject(SpectrumObject):
 
     def del_unidec_result(self):
         """Remove UniDec results from the document"""
+        # TODO: implemente a method to delete existing data
         if not self.has_unidec_result:
             return
         self.add_metadata("has_unidec", False)

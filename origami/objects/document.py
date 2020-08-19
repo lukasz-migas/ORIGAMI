@@ -182,10 +182,6 @@ class DocumentStore:
     def __len__(self):
         return len(self.fp)
 
-    #     def __iter__(self):
-    #         for key in self.fp:
-    #             yield key
-
     def __enter__(self):
         """Return the Group for use as a context manager."""
         return self
@@ -222,6 +218,7 @@ class DocumentStore:
             # associate object with metadata
             obj.set_owner((self.title, group.path))
             obj.set_output_path(self.output_path)
+            obj.set_full_path(os.path.join(self.path, group.path))
 
             return obj
 

@@ -31,7 +31,10 @@ LOGGER = logging.getLogger(__name__)
 class UniDecEngine:
     """UniDec engine"""
 
-    def __init__(self):
+    def __init__(self, document_title: str = None, dataset_name: str = None):
+        self.document_title = document_title
+        self.dataset_name = dataset_name
+
         self.data = None
         self.config = None
         self.peaks = None
@@ -71,7 +74,9 @@ class UniDecEngine:
         self.set_paths(clean)
 
         # instantiate data object
-        self.data: UniDecResultsObject = UniDecResultsObject(mz_obj, self.config)
+        self.data: UniDecResultsObject = UniDecResultsObject(
+            mz_obj, self.config, self.document_title, self.dataset_name
+        )
 
     def set_paths(self, clean: bool = False):
         """Set paths and if necessary, remove old files"""

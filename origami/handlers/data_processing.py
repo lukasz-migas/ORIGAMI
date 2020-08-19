@@ -13,7 +13,6 @@ import origami.processing.spectra as pr_spectra
 import origami.processing.peptide_annotation as pr_frag
 from origami.utils.converters import str2num
 from origami.utils.exceptions import MessageError
-
 # from misc.code.UniDec import unidec
 from origami.config.environment import ENV
 from origami.gui_elements.misc_dialogs import DialogSimpleAsk
