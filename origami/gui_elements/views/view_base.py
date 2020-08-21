@@ -10,6 +10,7 @@ from typing import Optional
 
 # Third-party imports
 import wx
+import numpy as np
 from pubsub import pub
 
 # Local imports
@@ -32,11 +33,10 @@ class ViewMPLMixin:
 
     figure = None
 
-    def show_legend(self, show=True, repaint: bool = True):
+    def show_legend(self, show=True, draggable: bool = True, repaint: bool = True):
         """Show legend"""
-        self.figure.set_legend_parameters(None, legend=show)
-        if repaint:
-            self.figure.repaint()
+        self.figure.set_legend_parameters(None, draggable=draggable, legend=show)
+        self.figure.repaint(repaint)
 
     def add_scatter(self, x, y, color="r", marker="o", size=5, label="", repaint: bool = True):
         """Add scatter points to the plot"""
@@ -47,9 +47,7 @@ class ViewMPLMixin:
     def remove_scatter(self, repaint: bool = True):
         """Remove scatter points from the plot area"""
         self.figure.plot_remove_markers(False)
-
-        if repaint:
-            self.figure.repaint()
+        self.figure.repaint(repaint)
 
     def add_labels(
         self,
@@ -85,16 +83,17 @@ class ViewMPLMixin:
 
         if optimize_labels:
             self.figure._fix_label_positions()  # noqa
-
-        if repaint:
-            self.figure.repaint()
+        self.figure.repaint(repaint)
 
     def remove_labels(self, start_with: str = None, repaint: bool = True):
         """Remove scatter points from the plot area"""
         self.figure.plot_remove_label(start_with, repaint=False)
+        self.figure.repaint(repaint)
 
-        if repaint:
-            self.figure.repaint()
+    def add_slope(self, x_min: np.ndarray, intercept: float, slope: float, label="Slope", repaint: bool = True):
+        """Add slope to the plot"""
+        self.figure.plot_add_slope(x_min, intercept, slope, label=label)
+        self.figure.repaint(repaint)
 
     def add_h_line(
         self, y_val, x_min: float = None, x_max: float = None, label=None, repaint: bool = True, **kwargs
@@ -107,8 +106,7 @@ class ViewMPLMixin:
             x_max = _x_max
 
         self.figure.plot_add_line(x_min, x_max, y_val, y_val, "horizontal", label=label)
-        if repaint:
-            self.figure.repaint()
+        self.figure.repaint(repaint)
 
     def add_v_line(
         self,
@@ -128,8 +126,7 @@ class ViewMPLMixin:
             y_max = _y_max
 
         self.figure.plot_add_line(x_val, x_val, y_min, y_max, "vertical", label=label, color=color)
-        if repaint:
-            self.figure.repaint()
+        self.figure.repaint(repaint)
 
     def remove_lines(self, repaint: bool = True):
         """Remove scatter points from the plot area"""
@@ -150,8 +147,7 @@ class ViewMPLMixin:
     ):
         """Add rectangular patch to the plot"""
         self.figure.plot_add_patch(x, y, width, height, label=label, pickable=pickable)
-        if repaint:
-            self.figure.repaint()
+        self.figure.repaint(repaint)
 
     def add_patches(self, x, y, width, height, label=None, color=None, pickable: bool = True, repaint: bool = True):
         """Add rectangular patches to the plot"""
@@ -162,16 +158,12 @@ class ViewMPLMixin:
             color = ["r"] * len(x)
         for _x, _y, _width, _height, _label, _color in zip(x, y, width, height, label, color):
             self.figure.plot_add_patch(_x, _y, _width, _height, label=_label, color=_color, pickable=pickable)
-
-        if repaint:
-            self.figure.repaint()
+        self.figure.repaint(repaint)
 
     def remove_patches(self, repaint: bool = True):
         """Remove rectangular patches from the plot"""
         self.figure.plot_remove_patches(False)
-
-        if repaint:
-            self.figure.repaint()
+        self.figure.repaint(repaint)
 
     def add_arrows(self, arrow_values, name=None, repaint: bool = True):
         """Add arrows patches to the plot"""
@@ -179,16 +171,12 @@ class ViewMPLMixin:
             name = [None] * len(arrow_values)
         for _arrow_value, _name in zip(arrow_values, name):
             self.figure.plot_add_arrow(_arrow_value, text_name=_name)
-
-        if repaint:
-            self.figure.repaint()
+        self.figure.repaint(repaint)
 
     def remove_arrows(self, repaint: bool = True):
         """Remove arrows patches from the plot"""
         self.figure.plot_remove_arrows(False)
-
-        if repaint:
-            self.figure.repaint()
+        self.figure.repaint(repaint)
 
     def set_xlim(self, x_min: float, x_max: float):
         """Set x-axis limits in the plot area"""

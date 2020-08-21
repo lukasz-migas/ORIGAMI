@@ -26,7 +26,7 @@ class PanelPeakWidthTool(MiniFrame):
     unidec_resolution, fit_btn, ok_btn, cancel_btn = None, None, None, None
     view_ms = None
 
-    def __init__(self, parent, presenter, view, mz_obj=None):
+    def __init__(self, parent, view, mz_obj=None):
         MiniFrame.__init__(
             self,
             parent,
@@ -35,7 +35,6 @@ class PanelPeakWidthTool(MiniFrame):
             style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX),
         )
         self.parent = parent
-        self.presenter = presenter
         self.view = view
         self.mz_obj = mz_obj
 

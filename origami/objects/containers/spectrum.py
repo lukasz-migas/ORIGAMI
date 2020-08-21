@@ -96,13 +96,30 @@ class SpectrumObject(DataObject):
         self._y /= divider
         return self
 
-    def get_intensity_at_loc(self, x_min: float, x_max: float, get_max: bool = True):
+    def get_x_at_loc(self, x_min: float, x_max: float, get_max: bool = True):
+        """Get x-axis value information for specified x-axis region of interest"""
+        x_idx_min, x_idx_max = find_nearest_index(self.x, [x_min, x_max])
+        y = self.y[x_idx_min : x_idx_max + 1]
+        y_idx = y.argmax()
+        x = self.x[x_idx_min : x_idx_max + 1][y_idx]
+        return x, y[y_idx]
+
+    def get_y_at_loc(self, x_min: float, x_max: float, get_max: bool = True):
         """Get intensity information for specified x-axis region of interest"""
         x_idx_min, x_idx_max = find_nearest_index(self.x, [x_min, x_max])
         y = self.y[x_idx_min : x_idx_max + 1]
         if get_max:
             return float(y.max())
         return y
+
+    def get_x_at_max(self):
+        """Get position at maximum intensity value"""
+        return self.get_x_at_loc(*self.x_limit)
+
+    def get_x_window(self, x_min: float, x_max: float):
+        """Crop signal to defined x-axis region without setting it in the object"""
+        x, y = pr_spectra.crop_1D_data(self.x, self.y, x_min, x_max)
+        return x, y
 
     def process(
         self,
@@ -298,8 +315,6 @@ class MassSpectrumObject(SpectrumObject):
     def __init__(
         self, x, y, name: str = "", metadata=None, extra_data=None, x_label="m/z (Da)", y_label="Intensity", **kwargs
     ):
-        print("x", x)
-        print("y", y)
         super().__init__(
             x, y, x_label=x_label, y_label=y_label, name=name, metadata=metadata, extra_data=extra_data, **kwargs
         )

@@ -55,8 +55,6 @@ from origami.ids import ID_xlabel_RT_actLabFrame
 from origami.ids import ID_xlabel_RT_retTime_min
 from origami.ids import ID_xlabel_2D_massToCharge
 from origami.ids import ID_ylabel_DTMS_ms_arrival
-from origami.ids import ID_docTree_action_open_extract
-from origami.ids import ID_docTree_action_open_origami_ms
 from origami.icons.assets import Icons
 from origami.config.config import CONFIG
 from origami.utils.utilities import report_time
@@ -454,6 +452,7 @@ class DocumentTree(wx.TreeCtrl):
         self._lesa_import_panel = None
         self._manual_import_panel = None
         self._unidec_panel = None
+        self._ccs_panel = None
 
         # set font and colour
         self.SetFont(wx.SMALL_FONT)
@@ -549,7 +548,10 @@ class DocumentTree(wx.TreeCtrl):
         document = ENV.on_get_document()
         if self._item_id is None:
             return document.title, None
-        _, obj_title = self.GetPyData(self._item_id)
+        try:
+            _, obj_title = self.GetPyData(self._item_id)
+        except TypeError:
+            return None, None
         return document.title, obj_title
 
     def _get_item_object(self):
@@ -1411,6 +1413,13 @@ class DocumentTree(wx.TreeCtrl):
     #         )
     #         self._bokeh_panel.Show()
 
+    def on_open_ccs_builder(self, _):
+        """Open a dialog window where you can overlay and compare objects"""
+        from origami.widgets.ccs.panel_ccs_calibration import PanelCCSCalibration
+
+        self._ccs_panel = PanelCCSCalibration(self.view)
+        self._ccs_panel.Show()
+
     def on_open_overlay_viewer(self, _):
         """Open a dialog window where you can overlay and compare objects"""
         from origami.widgets.overlay.panel_overlay_viewer import PanelOverlayViewer
@@ -1617,15 +1626,23 @@ class DocumentTree(wx.TreeCtrl):
     def _set_menu_actions(self, menu):
         action_menu = wx.Menu()
 
-        menu_action_extract = make_menu_item(parent=action_menu, text="Open DT/MS extraction panel...")
+        menu_action_origami_ms = action_menu.AppendItem(
+            make_menu_item(parent=action_menu, text="Setup ORIGAMI-MS parameters...")
+        )
+        menu_action_extract_data = action_menu.AppendItem(
+            make_menu_item(parent=action_menu, text="Open data extraction panel...")
+        )
+        menu_action_extract_dtms = action_menu.AppendItem(
+            make_menu_item(parent=action_menu, text="Open DT/MS extraction panel...")
+        )
+        menu_action_ccs = action_menu.AppendItem(
+            make_menu_item(parent=action_menu, text="Open CCS calibration builder...")
+        )
 
-        action_menu.Append(ID_docTree_action_open_origami_ms, "Setup ORIGAMI-MS parameters...")
-        action_menu.Append(ID_docTree_action_open_extract, "Open data extraction panel...")
-        action_menu.AppendItem(menu_action_extract)
-
-        self.Bind(wx.EVT_MENU, self.on_action_origami_ms, id=ID_docTree_action_open_origami_ms)
-        self.Bind(wx.EVT_MENU, self.on_open_extract_data, id=ID_docTree_action_open_extract)
-        self.Bind(wx.EVT_MENU, self.on_open_extract_dtms, menu_action_extract)
+        self.Bind(wx.EVT_MENU, self.on_action_origami_ms, menu_action_origami_ms)
+        self.Bind(wx.EVT_MENU, self.on_open_extract_data, menu_action_extract_data)
+        self.Bind(wx.EVT_MENU, self.on_open_extract_dtms, menu_action_extract_dtms)
+        self.Bind(wx.EVT_MENU, self.on_open_ccs_builder, menu_action_ccs)
 
         menu.AppendMenu(wx.ID_ANY, "Action...", action_menu)
 

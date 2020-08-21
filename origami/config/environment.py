@@ -95,6 +95,18 @@ DOCUMENT_KEY_PAIRS = {
     # "tandem_spectra": "tandem_spectra",
 }
 
+DOCUMENT_FORMATS = [
+    "Format: None",
+    "Format: Thermo (.RAW)",
+    "Format: Waters (.raw)",
+    "Format: Multiple Waters (.raw)",
+    "Format: .mgf",
+    "Format: .mzML",
+    "Format: Multiple Thermo (.RAW)",
+    "Format: Text (.csv; .txt; .tab)",
+]
+DOCUMENT_WATERS_FILE_FORMATS = ["Format: Waters (.raw)", "Format: Multiple Waters (.raw)"]
+
 
 def get_document_title(path):
     """Get document title"""
@@ -423,7 +435,7 @@ class Environment(PropertyCallbackManager):
     def get_document_list(
         self,
         document_types: Union[str, List[str]] = "all",
-        document_format: Optional[str] = None,
+        document_format: Union[str, List[str]] = "all",
         check_path: bool = False,
     ):
         """Get list of currently opened documents based on some requirements
@@ -446,13 +458,18 @@ class Environment(PropertyCallbackManager):
             document_types = DOCUMENT_TYPES
         if isinstance(document_types, str):
             document_types = [document_types]
+        if document_format == "all" or document_format is None:
+            document_format = DOCUMENT_FORMATS
+        if isinstance(document_format, str):
+            document_format = [document_format]
 
         document_list = []
         for document_title, document in self.items():
             if check_path and not os.path.exists(document.path):
                 continue
             if document.data_type in document_types:
-                if document_format is None or document_format == document.file_format:
+                if document.file_format in document_format:
+                    #                 if document_format is None or document_format == document.file_format:
                     document_list.append(document_title)
         return document_list
 

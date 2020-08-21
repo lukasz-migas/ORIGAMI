@@ -59,16 +59,16 @@ def DialogBox(title="", msg="", kind="Error", show_exception=True, parent=None):
 
 
 # noinspection PyPep8Naming
-def DialogSimpleAsk(message="", title="", value="", value_type=None):
+def DialogSimpleAsk(message="", title="", value="", value_type=None, parent=None):
 
     if value_type is not None and value_type in ["float", "floatPos", "int", "intPos"]:
         if value is None:
             value = 0
-        dlg = wx.NumberEntryDialog(None, message, title, "", value, -100000, 1000000)
+        dlg = wx.NumberEntryDialog(parent, message, title, "", value, -100000, 1000000)
     else:
-        dlg = wx.TextEntryDialog(None, message, title, value)
+        dlg = wx.TextEntryDialog(parent, message, title, value)
 
-    dlg.CentreOnScreen()
+    dlg.CenterOnParent()
 
     if dlg.ShowModal() == wx.ID_CANCEL:
         return None
@@ -84,7 +84,7 @@ def DialogNumberAsk(message="", title="", value="", parent=None):
     if value is None:
         value = 0
     dlg = wx.NumberEntryDialog(parent, message, title, "", value, -100000, 1000000)
-    dlg.CentreOnScreen()
+    dlg.CenterOnParent()
 
     if dlg.ShowModal() == wx.ID_CANCEL:
         return None

@@ -7,9 +7,8 @@ import wx
 import pytest
 
 # Local imports
+from tests.wxtc import WidgetTestCase
 from origami.widgets.lesa.panel_imaging_lesa_import import PanelImagingImportDataset
-
-from ..wxtc import WidgetTestCase
 
 
 @pytest.mark.guitest

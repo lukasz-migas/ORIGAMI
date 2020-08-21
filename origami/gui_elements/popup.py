@@ -141,6 +141,7 @@ class PopupBase(wx.PopupWindow, PopupMixin):
 
     def __init__(self, parent, style=wx.BORDER_SIMPLE):
         wx.PopupWindow.__init__(self, parent, style)
+        self.parent = parent
         self.make_panel()
 
         if self.ENABLE_MOVE:

@@ -32,7 +32,7 @@ from origami.objects.containers import ion_heatmap_object
 from origami.objects.containers import chromatogram_object
 from origami.objects.containers import msdt_heatmap_object
 from origami.objects.containers import mass_spectrum_object
-from origami.objects.containers import normalization_object
+from origami.widgets.lesa.processing.containers import normalization_object
 
 LOGGER = logging.getLogger(__name__)
 

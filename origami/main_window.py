@@ -43,7 +43,6 @@ from origami.ids import ID_fileMenu_openRecent
 from origami.ids import ID_help_page_OtherData
 from origami.ids import ID_window_documentList
 from origami.ids import ID_fileMenu_clearRecent
-from origami.ids import ID_plots_showCursorGrid
 from origami.ids import ID_help_page_dataLoading
 from origami.ids import ID_help_page_Interactive
 from origami.ids import ID_window_multipleMLList
@@ -61,6 +60,7 @@ from origami.utils.path import clean_directory
 from origami.panel_plots import PanelPlots
 from origami.icons.assets import Icons
 from origami.config.config import CONFIG
+from origami.config.enabler import APP_ENABLER
 from origami.panel_peaklist import PanelPeaklist
 from origami.panel_textlist import PanelTextlist
 from origami.utils.utilities import format_time
@@ -478,7 +478,7 @@ class MainWindow(wx.Frame):
         # menu_file_load_pickle.Enable(False)
         # menu_file.Append(menu_file_load_pickle)
         menu_file.AppendSeparator()
-        menu_file.Append(
+        menu_file_waters_ms = menu_file.Append(
             make_menu_item(
                 parent=menu_file,
                 evt_id=ID_load_masslynx_raw_ms_only,
@@ -486,19 +486,26 @@ class MainWindow(wx.Frame):
                 bitmap=self._icons.micromass,
             )
         )
+        menu_file_waters_ms.Enable(APP_ENABLER.ALLOW_WATERS_EXTRACTION)
+
         menu_file_waters_imms = menu_file.Append(
             make_menu_item(parent=menu_file, text="Open Waters file (.raw) [IM-MS only]", bitmap=self._icons.micromass)
         )
-        menu_open_origami = make_menu_item(
-            parent=menu_file, text="Open Waters file (.raw) [ORIGAMI-MS; CIU]\tCtrl+R", bitmap=self._icons.micromass
+        menu_file_waters_imms.Enable(APP_ENABLER.ALLOW_WATERS_EXTRACTION)
+
+        menu_open_origami = menu_file.Append(
+            make_menu_item(
+                parent=menu_file, text="Open Waters file (.raw) [ORIGAMI-MS; CIU]\tCtrl+R", bitmap=self._icons.micromass
+            )
         )
-        menu_file.Append(menu_open_origami)
+        menu_open_origami.Enable(APP_ENABLER.ALLOW_WATERS_EXTRACTION)
 
         menu_file.AppendSeparator()
-        menu_open_thermo = make_menu_item(
-            parent=menu_file, text="Open Thermo file (.RAW)\tCtrl+Shift+Y", bitmap=self._icons.thermo
+        menu_open_thermo = menu_file.Append(
+            make_menu_item(parent=menu_file, text="Open Thermo file (.RAW)\tCtrl+Shift+Y", bitmap=self._icons.thermo)
         )
-        menu_file.Append(menu_open_thermo)
+        menu_open_thermo.Enable(APP_ENABLER.ALLOW_THERMO_EXTRACTION)
+
         menu_file.AppendSeparator()
         menu_file_text_ms = make_menu_item(parent=menu_file, text="Open mass spectrum file(s) (.csv; .txt; .tab)")
         menu_file.Append(menu_file_text_ms)
@@ -564,16 +571,15 @@ class MainWindow(wx.Frame):
         )
         menu_plot.Append(menu_plot_rmsd)
 
-        menu_plot_waterfall = make_menu_item(
-            parent=menu_plot, text="Settings: &Waterfall", bitmap=self._icons.waterfall
+        menu_plot_waterfall = menu_plot.Append(
+            make_menu_item(parent=menu_plot, text="Settings: &Waterfall", bitmap=self._icons.waterfall)
         )
-        menu_plot.Append(menu_plot_waterfall)
 
-        menu_plot_violin = make_menu_item(parent=menu_plot, text="Settings: &Violin", bitmap=self._icons.violin)
-        menu_plot.Append(menu_plot_violin)
+        menu_plot_violin = menu_plot.Append(
+            make_menu_item(parent=menu_plot, text="Settings: &Violin", bitmap=self._icons.violin)
+        )
 
-        menu_plot_ui = make_menu_item(parent=menu_plot, text="Settings: &UI", bitmap=self._icons.gear)
-        menu_plot.Append(menu_plot_ui)
+        menu_plot_ui = menu_plot.Append(make_menu_item(parent=menu_plot, text="Settings: &UI", bitmap=self._icons.gear))
 
         menu_plot.AppendSeparator()
         menu_plot.Append(
@@ -582,10 +588,6 @@ class MainWindow(wx.Frame):
         menu_plot.Append(
             make_menu_item(parent=menu_plot, evt_id=ID_unidecPanel_otherSettings, text="Settings: UniDec parameters")
         )
-
-        menu_plot.AppendSeparator()
-        menu_plot.Append(ID_plots_showCursorGrid, "Update plot parameters")
-        # menuPlot.Append(ID_plots_resetZoom, 'Reset zoom tool\tF12')
         self.menubar.Append(menu_plot, "&Plot settings")
 
         # WIDGETS MENU
@@ -594,10 +596,11 @@ class MainWindow(wx.Frame):
             parent=menu_widgets, text="Open &interactive output panel...\tShift+Z", bitmap=self._icons.bokeh
         )
         menu_widgets.Append(menu_widget_bokeh)
-        menu_widget_compare_ms = make_menu_item(
-            parent=menu_widgets, text="Open spectrum comparison window...", bitmap=self._icons.compare_ms
+        menu_widget_compare_ms = menu_widgets.Append(
+            make_menu_item(
+                parent=menu_widgets, text="Open spectrum comparison window...", bitmap=self._icons.compare_ms
+            )
         )
-        menu_widgets.Append(menu_widget_compare_ms)
         menu_widgets.Append(
             make_menu_item(parent=menu_widgets, evt_id=ID_docTree_plugin_UVPD, text="Open UVPD processing window...")
         )
@@ -607,25 +610,37 @@ class MainWindow(wx.Frame):
         menu_widget_overlay_viewer = make_menu_item(parent=menu_widgets, text="Open overlay window...\tShift+O")
         menu_widgets.Append(menu_widget_overlay_viewer)
 
-        #         menu_widget_interactive_viewer = make_menu_item(
-        #             parent=menuWidgets, text="Open interactive window...", bitmap=None
-        #         )
-        #         menuWidgets.Append(menu_widget_interactive_viewer)
+        # add ccs builder menu
+        menu_widgets.AppendSeparator()
+        menu_widget_ccs_builder = menu_widgets.Append(
+            make_menu_item(parent=menu_widgets, text="Open CCS Calibration Builder...")
+        )
+        menu_widget_ccs_builder.Enable(APP_ENABLER.ALLOW_WATERS_EXTRACTION)
 
         # add manual activation sub-menu
         menu_widgets.AppendSeparator()
-        menu_widget_ciu_import = make_menu_item(parent=menu_widgets, text="Open Manual CIU import manager...")
-        menu_widgets.Append(menu_widget_ciu_import)
-        menu_widget_sid_import = make_menu_item(parent=menu_widgets, text="Open Manual SID import manager...")
-        menu_widgets.Append(menu_widget_sid_import)
+        menu_widget_ciu_import = menu_widgets.Append(
+            make_menu_item(parent=menu_widgets, text="Open Manual CIU import manager...")
+        )
+        menu_widget_ciu_import.Enable(APP_ENABLER.ALLOW_WATERS_EXTRACTION)
+
+        menu_widget_sid_import = menu_widgets.Append(
+            make_menu_item(parent=menu_widgets, text="Open Manual SID import manager...")
+        )
+        menu_widget_sid_import.Enable(APP_ENABLER.ALLOW_WATERS_EXTRACTION)
 
         # add lesa activation sub-menu
         menu_widgets.AppendSeparator()
-        menu_widget_lesa_import = make_menu_item(parent=menu_widgets, text="Open LESA import manager...\tCtrl+L")
-        menu_widgets.Append(menu_widget_lesa_import)
+        menu_widget_lesa_import = menu_widgets.Append(
+            make_menu_item(parent=menu_widgets, text="Open LESA import manager...\tCtrl+L")
+        )
+        menu_widget_lesa_import.Enable(APP_ENABLER.ALLOW_WATERS_EXTRACTION)
 
-        menu_widget_lesa_viewer = make_menu_item(parent=menu_widgets, text="Open LESA imaging window...\tShift+L")
-        menu_widgets.Append(menu_widget_lesa_viewer)
+        menu_widget_lesa_viewer = menu_widgets.Append(
+            make_menu_item(parent=menu_widgets, text="Open LESA imaging window...\tShift+L")
+        )
+        menu_widget_lesa_viewer.Enable(APP_ENABLER.ALLOW_WATERS_EXTRACTION)
+
         self.menubar.Append(menu_widgets, "&Widgets")
 
         # CONFIG MENU
@@ -968,6 +983,7 @@ class MainWindow(wx.Frame):
         # UTILITIES
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_lesa_viewer, menu_widget_lesa_viewer)
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_import_lesa_dataset, menu_widget_lesa_import)
+        self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_ccs_builder, menu_widget_ccs_builder)
         self.Bind(
             wx.EVT_MENU, partial(self.panelDocuments.documents.on_import_manual_dataset, "SID"), menu_widget_sid_import
         )
@@ -1044,7 +1060,7 @@ class MainWindow(wx.Frame):
         """Open dialog to customise unidec parameters"""
         from origami.widgets.unidec.dialog_customise_unidec_visuals import DialogCustomiseUniDecVisuals
 
-        dlg = DialogCustomiseUniDecVisuals(self, CONFIG, self.icons)
+        dlg = DialogCustomiseUniDecVisuals(self)
         dlg.ShowModal()
 
     @staticmethod
@@ -1342,13 +1358,15 @@ class MainWindow(wx.Frame):
         tool_open_masslynx = self.toolbar.AddTool(
             wx.ID_ANY, "", self._icons.micromass, shortHelp="Open MassLynx file (.raw)"
         )
+        tool_open_masslynx.Enable(APP_ENABLER.ALLOW_WATERS_EXTRACTION)
 
         tool_open_thermo = self.toolbar.AddTool(wx.ID_ANY, "", self._icons.thermo, shortHelp="Open Thermo file (.RAW)")
+        tool_open_thermo.Enable(APP_ENABLER.ALLOW_THERMO_EXTRACTION)
 
         tool_open_multiple = self.toolbar.AddTool(
             wx.ID_ANY, "", self.icons.iconsLib["open_masslynxMany_16"], shortHelp="Open multiple MassLynx files (.raw)"
         )
-        # self.Bind(wx.EVT_TOOL, self.data_handling.on_open_thermo_file_fcn, tool_open_multiple)
+        tool_open_multiple.Enable(APP_ENABLER.ALLOW_WATERS_EXTRACTION)
 
         self.toolbar.AddSeparator()
         tool_open_text_heatmap = self.toolbar.AddTool(
@@ -1677,6 +1695,7 @@ class MainWindow(wx.Frame):
         self.on_update_recent_files()
 
     def set_recent_files_menu(self, menu):
+        """Set recent files items in a menu or toolbar"""
         # clear menu
         for item in menu.GetMenuItems():
             menu.Delete(item.GetId())

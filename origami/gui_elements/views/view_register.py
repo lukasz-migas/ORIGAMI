@@ -42,7 +42,7 @@ class ViewRegister:
             view_id = self.active
 
         if view_id not in self._views:
-            raise ValueError("Requested view is not in the register")
+            raise ValueError(f"Requested view `{view_id}` is not in the register")
 
         return self._views[view_id]
 

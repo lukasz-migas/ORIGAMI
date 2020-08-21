@@ -30,12 +30,11 @@ from origami.objects.containers import MobilogramObject
 from origami.objects.containers import ChromatogramObject
 from origami.objects.containers import MassSpectrumObject
 from origami.objects.containers import StitchIonHeatmapObject
-from origami.objects.containers import ImagingIonHeatmapObject
 from origami.objects.containers import MassSpectrumHeatmapObject
-from origami.processing.imaging import ImagingNormalizationProcessor
 from origami.readers.io_text_files import TextHeatmapReader
 from origami.readers.io_text_files import TextSpectrumReader
 from origami.readers.io_text_files import AnnotatedDataReader
+from origami.widgets.lesa.processing.containers import ImagingIonHeatmapObject
 
 # enable on windowsOS only
 if platform == "win32":
@@ -490,6 +489,14 @@ class LoadHandler:
     #         obj_data = StitchIonHeatmapObject(mobilograms, variables)
     #
     #         return obj_name, obj_data, document
+
+    @staticmethod
+    @check_os("win32")
+    def waters_metadata(path):
+        """Get file information"""
+        check_path(path)
+        reader = WatersRawReader(path)
+        return reader.get_inf_data()
 
     @staticmethod
     @check_os("win32")
@@ -970,6 +977,8 @@ class LoadHandler:
 
     def load_lesa_document(self, path, filelist: List[FileItem], **proc_kwargs) -> DocumentStore:
         """Load Waters data and set in ORIGAMI document"""
+        from origami.widgets.lesa.processing.normalization import ImagingNormalizationProcessor
+
         document = ENV.get_new_document("imaging", path)
 
         #         filelist = self.check_lesa_document(document, filelist, **proc_kwargs)

@@ -244,7 +244,7 @@ class PlotBase(MPLPanel):
         self.canvas.Copy_to_Clipboard()
         logger.debug("Figure was copied to the clipboard")
 
-    def set_legend_parameters(self, handles=None, **kwargs):
+    def set_legend_parameters(self, handles=None, draggable=True, **kwargs):
         """Add legend to the plot
 
         Parameters
@@ -271,7 +271,7 @@ class PlotBase(MPLPanel):
             )
             if "legend_zorder" in kwargs:
                 legend.set_zorder(kwargs.pop("legend_zorder"))
-            legend.set_draggable(True)
+            legend.set_draggable(draggable)
 
     def plot_remove_legend(self):
         """Remove legend from the plot area"""
@@ -759,6 +759,21 @@ class PlotBase(MPLPanel):
         self.patch = []
         self.repaint(repaint)
 
+    def plot_add_slope(
+        self,
+        x_min: float,
+        intercept: float,
+        slope: float,
+        label="Slope",
+        color=(1, 0, 0),
+        linestyle="dashed",
+        alpha=0.7,
+    ):
+        """Add simple linear slope to the plot"""
+        self.plot_base.plot(
+            x_min, intercept + slope * x_min, color=color, alpha=alpha, linestyle=linestyle, label=label
+        )
+
     def plot_add_line(
         self,
         xmin: float,
@@ -778,7 +793,7 @@ class PlotBase(MPLPanel):
 
         if orientation == "vertical":
             line = self.plot_base.axvline(xmin, 0, 1, color=color, linestyle=linestyle, alpha=alpha)
-        else:
+        elif orientation == "horizontal":
             line = self.plot_base.axhline(ymin / self.y_divider, 0, 1, color=color, linestyle=linestyle, alpha=alpha)
 
         # add name to the line for future removal

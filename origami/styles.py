@@ -105,6 +105,15 @@ class MiniFrame(wx.MiniFrame, ActivityIndicatorMixin, DocumentationMixin, Parent
         if bind_key_events:
             self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
 
+    @staticmethod
+    def _get_icons(icons):
+        """Get Icons"""
+        if icons is None:
+            from origami.icons.assets import Icons
+
+            icons = Icons()
+        return icons
+
     def on_key_event(self, evt):
         """Keyboard events"""
         key_code = evt.GetKeyCode()

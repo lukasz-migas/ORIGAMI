@@ -15,6 +15,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 class ImagingNormalizationProcessor:
+    """Normalization processor"""
+
     def __init__(self, document: DocumentStore):
         self.document = document
 
@@ -42,6 +44,7 @@ class ImagingNormalizationProcessor:
         return np.sqrt(np.sum(np.square(mz_obj.y)))
 
     def generate_metadata(self):
+        """Get metadata from the document"""
         meta = self.document.get_config("imaging")
 
         # compute parameters
@@ -80,14 +83,15 @@ class ImagingNormalizationProcessor:
                 norm_intensity[i, j] = reduce(mz_obj)
 
         # write to disk
-        norm_median = self.rescale(norm_intensity, np.median)
+        norm_median = self.rescale(norm_intensity, np.median)  # noqa
         norm_mean = self.rescale(norm_intensity, np.mean)
         for j, name, _ in norm_reduce:
             self.add_normalization(name, norm_intensity[:, j])
             self.add_normalization(name + " (scale=median)", norm_median[:, j])
             self.add_normalization(name + " (scale=mean)", norm_mean[:, j])
 
-    def rescale(self, array: np.ndarray, scale_fcn=np.median):
+    @staticmethod
+    def rescale(array: np.ndarray, scale_fcn=np.median):
         """Rescale normalization array"""
         norm_rescaled = np.zeros_like(array)
         for i, norm in enumerate(array.T):
@@ -100,7 +104,6 @@ class ImagingNormalizationProcessor:
 
     def add_normalization(self, name, normalization):
         """Appends normalization to the metadata store"""
-        # make sure there is somewhere to add normalization to
         self.document.add_metadata(
             f"Normalization={name}",
             data=dict(array=normalization),

@@ -23,7 +23,7 @@ class ViewFitMassSpectrum(ViewMassSpectrum):
     FORCED_KWARGS = {"legend": True}
 
     def __init__(self, parent, figsize, title="MassSpectrumFit", **kwargs):
-        ViewSpectrum.__init__(self, parent, figsize, title, **kwargs)
+        ViewMassSpectrum.__init__(self, parent, figsize, title, **kwargs)
         self._x_label = kwargs.pop("x_label", "m/z (Da)")
         self._y_label = kwargs.pop("y_label", "Intensity")
 

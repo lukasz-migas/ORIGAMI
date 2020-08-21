@@ -71,8 +71,7 @@ class ViewHeatmap(ViewBase, ViewMPLMixin, ViewWaterfallMixin, ViewViolinMixin, V
 
         return plot_panel, plot_window, sizer
 
-    @staticmethod
-    def check_input(x, y, array, obj):
+    def check_input(self, x, y, array, obj):
         """Check user-input"""
         if x is None and y is None and array is None and obj is None:
             raise ValueError("You must provide the x/y/array values or container object")
@@ -80,6 +79,8 @@ class ViewHeatmap(ViewBase, ViewMPLMixin, ViewWaterfallMixin, ViewViolinMixin, V
             x = obj.x
             y = obj.y
             array = obj.array
+            self._x_label = obj.x_label
+            self._y_label = obj.y_label
         return x, y, array
 
     def check_kwargs(self, **kwargs):

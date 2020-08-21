@@ -4,20 +4,13 @@ from zarr import Group
 
 # Local imports
 from origami.objects.containers.base import DataObject
-from origami.objects.containers.heatmap import Normalizer
 from origami.objects.containers.heatmap import IonHeatmapObject
 from origami.objects.containers.heatmap import StitchIonHeatmapObject
-from origami.objects.containers.heatmap import ImagingIonHeatmapObject
 from origami.objects.containers.heatmap import MassSpectrumHeatmapObject
 from origami.objects.containers.spectrum import MobilogramObject
 from origami.objects.containers.spectrum import ChromatogramObject
 from origami.objects.containers.spectrum import MassSpectrumObject
 from origami.objects.containers.utilities import get_extra_data
-
-
-def normalization_object(group: Group) -> Normalizer:
-    """Instantiate normalization object"""
-    return Normalizer(group["array"][:], group.attrs["x_dim"], group.attrs["y_dim"])
 
 
 def mass_spectrum_object(group: Group) -> DataObject:
@@ -71,22 +64,6 @@ def stitch_ion_heatmap_object(group: Group) -> DataObject:
     """Instantiate stitch ion heatmap object from ion heatmap group saved in zarr format"""
     metadata = group.attrs.asdict()
     obj = StitchIonHeatmapObject(
-        group["array"][:],
-        group["x"][:],
-        group["y"][:],
-        group["xy"][:],
-        group["yy"][:],
-        extra_data=get_extra_data(group, ["array", "x", "y", "xy", "yy"]),
-        **group.attrs.asdict(),
-    )
-    obj.set_metadata(metadata)
-    return obj
-
-
-def imaging_heatmap_object(group: Group) -> DataObject:
-    """Instantiate ion heatmap object from ion heatmap group saved in zarr format"""
-    metadata = group.attrs.asdict()
-    obj = ImagingIonHeatmapObject(
         group["array"][:],
         group["x"][:],
         group["y"][:],

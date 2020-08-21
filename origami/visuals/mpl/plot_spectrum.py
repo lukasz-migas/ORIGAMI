@@ -35,7 +35,9 @@ class PlotSpectrum(PlotBase):
             line.set_linewidth(kwargs["spectrum_line_width"])
             line.set_linestyle(kwargs["spectrum_line_style"])
 
-    def plot_1d(self, x, y, title="", x_label="", y_label="", label="", **kwargs):
+    def plot_1d(
+        self, x, y, title="", x_label="", y_label="", label="", y_lower_start=0, y_upper_multiplier=1.1, **kwargs
+    ):
         """Standard 1d plot
 
         Parameters
@@ -51,7 +53,7 @@ class PlotSpectrum(PlotBase):
         # Simple hack to reduce size is to use different subplot size
         self._set_axes()
 
-        xlimits, ylimits, extent = self._compute_xy_limits(x, y, 0, 1.1)
+        xlimits, ylimits, extent = self._compute_xy_limits(x, y, y_lower_start, y_upper_multiplier)
 
         # add 1d plot
         self.plot_base.plot(
@@ -103,10 +105,10 @@ class PlotSpectrum(PlotBase):
         )
         self.plot_base.fill_between(xvals, 0, yvals, gid=PlotIds.PLOT_1D_PATCH_GID, **shade_kws)
 
-    def plot_1d_update_data(self, x, y, x_label="", y_label="", **kwargs):
+    def plot_1d_update_data(self, x, y, x_label="", y_label="", y_lower_start=0, y_upper_multiplier=1.1, **kwargs):
         """Update plot data"""
         # override parameters
-        _, _, extent = self._compute_xy_limits(x, y, 0, 1.1)
+        _, _, extent = self._compute_xy_limits(x, y, y_lower_start, y_upper_multiplier)
 
         line = None
         lines = self.plot_base.get_lines()
@@ -391,6 +393,76 @@ class PlotSpectrum(PlotBase):
 
         # Setup X-axis getter
         # self.store_plot_limits([extent], [self.plot_base])
+        self.PLOT_TYPE = "line"
+
+    def plot_1d_scatter(
+        self,
+        x,
+        y,
+        title="",
+        x_label="",
+        y_label="",
+        label="",
+        color="b",
+        marker="o",
+        size=20,
+        y_lower_start=0,
+        y_upper_multiplier=1.1,
+        x_pad=0,
+        y_pad=-0,
+        **kwargs,
+    ):
+        """Standard 1d plot
+
+        Parameters
+        ----------
+        x :
+        y :
+        title :
+        x_label :
+        y_label :
+        label :
+        kwargs :
+        """
+        # Simple hack to reduce size is to use different subplot size
+        self._set_axes()
+
+        xlimits, ylimits, extent = self._compute_xy_limits(
+            x, y, y_lower_start, y_upper_multiplier, x_pad=x_pad, y_pad=y_pad
+        )
+
+        self.plot_base.scatter(
+            x,
+            y,
+            color=color,
+            marker=marker,
+            s=size,
+            label=label,
+            edgecolor=kwargs.get("edge_color", "k"),
+            alpha=kwargs.get("marker_alpha", 1.0),
+            zorder=kwargs.get("zorder", 5),
+        )
+
+        # setup axis formatters
+        self.plot_base.yaxis.set_major_formatter(get_intensity_formatter())
+        if kwargs.get("x_axis_formatter", False):
+            self.plot_base.xaxis.set_major_formatter(get_intensity_formatter())
+        self.plot_base.set_xlim(xlimits)
+        self.plot_base.set_ylim(ylimits)
+        self.set_plot_xlabel(x_label, **kwargs)
+        self.set_plot_ylabel(y_label, **kwargs)
+        self.set_plot_title(title, **kwargs)
+        self.set_tick_parameters(**kwargs)
+
+        self.setup_new_zoom(
+            [self.plot_base],
+            data_limits=[extent],
+            allow_extraction=kwargs.get("allow_extraction", False),
+            callbacks=kwargs.get("callbacks", dict()),
+        )
+
+        # Setup X-axis getter
+        self.store_plot_limits([extent], [self.plot_base])
         self.PLOT_TYPE = "line"
 
     #

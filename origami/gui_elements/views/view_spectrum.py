@@ -58,14 +58,15 @@ class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin, ViewAxesMixin
         """Update plot with current data"""
         self.update(self._data["x"], self._data["y"], **self._plt_kwargs)
 
-    @staticmethod
-    def check_input(x, y, obj):
+    def check_input(self, x, y, obj):
         """Ensure that input is correct"""
         if x is None and y is None and obj is None:
             raise ValueError("You must provide the x/y values or container object")
         if x is None and y is None and obj is not None:
             x = obj.x
             y = obj.y
+            self._x_label = obj.x_label
+            self._y_label = obj.y_label
         return x, y
 
     def check_kwargs(self, **kwargs):

@@ -83,7 +83,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         self,
         parent,
         presenter,
-        icons,
+        icons=None,
         document_title: str = None,
         dataset_name: str = None,
         mz_obj: MassSpectrumObject = None,
@@ -94,7 +94,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         t_start = time.time()
         self.view = parent
         self.presenter = presenter
-        self._icons = icons
+        self._icons = self._get_icons(icons)
 
         self._window_size = self._get_window_size(parent, [0.9, 0.9])
 
@@ -228,7 +228,6 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
     def make_gui(self):
         """Make gui"""
         # make settings controls
-        #         settings_panel = self.make_settings_panel(panel_settings)
         self.settings_panel = self.make_settings_panel(self)
 
         self.plot_panel = self.make_plot_panel(self)
@@ -246,7 +245,6 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         # fit layout
         main_sizer.Fit(self)
         self.SetSizer(main_sizer)
-        #         self.SetSizerAndFit(main_sizer)
         self.settings_panel.SetMinSize((450, -1))
         self.settings_panel.SetMaxSize((500, -1))
         self.settings_panel.SetSize((450, -1))
@@ -265,8 +263,6 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         #         print(figsize_1d, figsize_2d)
         figsize_1d = (6, 3)
         figsize_2d = (6, 6)
-
-        CONFIG.unidec_plot_panel_view = "Continuous page view"
 
         # setup plot base
         if CONFIG.unidec_plot_panel_view in ["Single page view", "Continuous page view"]:
@@ -961,7 +957,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         from origami.widgets.unidec.panel_process_unidec_peak_width_tool import PanelPeakWidthTool
 
         if not self._dlg_width_tool:
-            self._dlg_width_tool = PanelPeakWidthTool(self, self.presenter, self.view, self.mz_obj)
+            self._dlg_width_tool = PanelPeakWidthTool(self, self.view, self.mz_obj)
         self._dlg_width_tool.Show()
         self._dlg_width_tool.SetFocus()
 
@@ -1243,12 +1239,13 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
 
 def _main():
     from origami.icons.assets import Icons
-    from origami.handlers.load import LoadHandler
 
-    loader = LoadHandler()
-    document = loader.load_text_mass_spectrum_document(r"D:\Data\ORIGAMI\text_files\MS_p27-FL-K31.csv")
-    mz_obj = document["MassSpectra/Summed Spectrum", True]
-
+    # from origami.handlers.load import LoadHandler
+    #
+    # loader = LoadHandler()
+    # document = loader.load_text_mass_spectrum_document(r"D:\Data\ORIGAMI\text_files\MS_p27-FL-K31.csv")
+    # mz_obj = document["MassSpectra/Summed Spectrum", True]
+    mz_obj = None
     app = wx.App()
     icons = Icons()
     ex = PanelProcessUniDec(None, None, icons, mz_obj=mz_obj, debug=True)

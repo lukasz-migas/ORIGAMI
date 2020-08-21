@@ -25,7 +25,6 @@ from origami.utils.utilities import report_time
 from origami.utils.converters import rounder
 from origami.utils.converters import str2num
 from origami.utils.exceptions import MessageError
-from origami.gui_elements.popup import PopupBase
 from origami.objects.containers import DataObject
 from origami.gui_elements._panel import TestPanel  # noqa
 from origami.gui_elements.mixins import DatasetMixin
@@ -43,6 +42,8 @@ from origami.gui_elements.views.view_spectrum import ViewChromatogram
 from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
 
 # Module globals
+from origami.widgets.annotations.popup_annotations_settings import PopupAnnotationSettings
+
 logger = logging.getLogger(__name__)
 
 
@@ -56,74 +57,6 @@ class TableColumnIndex(IntEnum):
     patch = 4
     patch_color = 5
     name = 6
-
-
-class PopupAnnotationSettings(PopupBase):
-    """Create popup window to modify few uncommon settings"""
-
-    highlight_on_selection = None
-    zoom_on_selection = None
-    zoom_window_size = None
-
-    def __init__(self, parent, style=wx.BORDER_SIMPLE):
-        PopupBase.__init__(self, parent, style)
-
-    def make_panel(self):
-        """Make popup window"""
-        self.highlight_on_selection = make_checkbox(self, "")
-        self.highlight_on_selection.SetValue(CONFIG.annotate_panel_highlight)
-        self.highlight_on_selection.Bind(wx.EVT_CHECKBOX, self.on_apply)
-
-        self.zoom_on_selection = make_checkbox(self, "")
-        self.zoom_on_selection.SetValue(CONFIG.annotate_panel_zoom_in)
-        self.zoom_on_selection.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.zoom_on_selection.Bind(wx.EVT_CHECKBOX, self.on_toggle)
-
-        self.zoom_window_size = wx.SpinCtrlDouble(
-            self,
-            -1,
-            value=str(CONFIG.annotate_panel_zoom_in_window),
-            min=0.0001,
-            max=250,
-            initial=CONFIG.annotate_panel_zoom_in_window,
-            inc=25,
-            size=(90, -1),
-        )
-        self.zoom_window_size.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-
-        grid = wx.GridBagSizer(2, 2)
-        y = 0
-        grid.Add(wx.StaticText(self, -1, "highlight:"), (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.highlight_on_selection, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        y += 1
-        grid.Add(wx.StaticText(self, -1, "zoom-in:"), (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.zoom_on_selection, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-        y += 1
-        grid.Add(wx.StaticText(self, -1, "window size:"), (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.zoom_window_size, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
-
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(grid, 1, wx.EXPAND | wx.ALL, 5)
-        self.set_info(sizer)
-
-        self.SetSizerAndFit(sizer)
-        self.Layout()
-
-    def on_apply(self, evt):
-        """Update settings"""
-        CONFIG.annotate_panel_highlight = self.highlight_on_selection.GetValue()
-        CONFIG.annotate_panel_zoom_in = self.zoom_on_selection.GetValue()
-        CONFIG.annotate_panel_zoom_in_window = float(self.zoom_window_size.GetValue())
-
-        if evt is not None:
-            evt.Skip()
-
-    def on_toggle(self, evt):
-        """Update UI elements"""
-        self.zoom_window_size.Enable(not CONFIG.annotate_panel_zoom_in)
-
-        if evt is not None:
-            evt.Skip()
 
 
 class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin):

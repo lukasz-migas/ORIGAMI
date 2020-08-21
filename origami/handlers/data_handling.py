@@ -227,7 +227,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     def on_get_directory_path(self, title: str):
         """Get path to directory"""
         path = None
-        dlg = wx.DirDialog(wx.GetTopLevelParent(self.view), title, style=wx.DD_DEFAULT_STYLE)
+        dlg = wx.DirDialog(wx.GetTopLevelParent(self.view), title)
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
         dlg.Destroy()
@@ -1021,19 +1021,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             return None
 
         return document
-
-    def _on_check_last_path(self):
-        if not check_path_exists(CONFIG.lastDir):
-            CONFIG.lastDir = os.getcwd()
-
-    def _on_get_path(self):
-        dlg = wx.FileDialog(self.view, "Please select name and path for the document...", "", "", "", wx.FD_SAVE)
-        if dlg.ShowModal() == wx.ID_OK:
-            path, fname = os.path.split(dlg.GetPath())
-
-            return path, fname
-        else:
-            return None, None
 
     def on_save_data_as_text(self, data, labels, data_format, **kwargs):
 

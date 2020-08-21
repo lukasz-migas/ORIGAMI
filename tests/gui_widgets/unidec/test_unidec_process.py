@@ -4,12 +4,11 @@ import wx
 import pytest
 
 # Local imports
+from tests.wxtc import WidgetTestCase
 from origami.icons.assets import Icons
 from origami.widgets.unidec.panel_process_unidec import PanelProcessUniDec
 from origami.widgets.unidec.dialog_customise_unidec_visuals import DialogCustomiseUniDecVisuals
 from origami.widgets.unidec.panel_process_unidec_peak_width_tool import PanelPeakWidthTool
-
-from ..wxtc import WidgetTestCase
 
 
 @pytest.mark.guitest
