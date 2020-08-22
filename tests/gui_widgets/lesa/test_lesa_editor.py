@@ -5,7 +5,7 @@ import pytest
 # Local imports
 from origami.widgets.lesa.panel_imaging_lesa import PanelImagingLESAViewer
 
-from ..wxtc import WidgetTestCase
+from tests.wxtc import WidgetTestCase
 
 
 @pytest.mark.guitest

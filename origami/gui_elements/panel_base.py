@@ -196,12 +196,12 @@ class TableMixin:
         return [self.peaklist.GetItemBackgroundColour(item_id) for item_id in range(self.peaklist.GetItemCount())]
 
     @property
-    def n_rows(self):
+    def n_rows(self) -> int:
         """Returns number of rows/items in the table"""
         return self.peaklist.GetItemCount()
 
     @property
-    def n_columns(self):
+    def n_columns(self) -> int:
         """Returns number of columns in the table"""
         return self.peaklist.GetColumnCount()
 
@@ -325,7 +325,7 @@ class TableMixin:
         item_info = self.on_get_item_information(self.peaklist.item_id)
         if not item_info:
             return
-        msg = "Are you sure you would like to delete {}?\nThis action cannot be undone.".format(item_info["document"])
+        msg = "Are you sure you would like to delete this item?\nThis action cannot be undone."
         dlg = DialogBox(kind="Question", msg=msg)
         if dlg == wx.ID_NO:
             LOGGER.info("Delete operation was cancelled")
@@ -338,9 +338,7 @@ class TableMixin:
         while item_id >= 0:
             if self.peaklist.IsChecked(item_id):
                 item_info = self.on_get_item_information(item_id)
-                msg = "Are you sure you would like to delete {}?\nThis action cannot be undone.".format(
-                    item_info["document"]
-                )
+                msg = "Are you sure you would like to delete this item?\nThis action cannot be undone."
                 dlg = DialogBox(msg=msg, kind="Question")
                 if dlg == wx.ID_NO:
                     LOGGER.info("Delete operation was cancelled")

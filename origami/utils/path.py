@@ -5,7 +5,7 @@ import shutil
 import string
 import logging
 import unicodedata
-from collections import Iterable
+from collections.abc import Iterable
 
 # Local imports
 from origami.utils.converters import byte2str
@@ -14,6 +14,17 @@ logger = logging.getLogger(__name__)
 
 VALID_FILENAME_CHARACTERS = "-_.() %s%s" % (string.ascii_letters, string.digits)
 CHARACTER_LIMIT = 255
+
+
+def get_delimiter_from_filename(path):
+    """Get delimiter based on the filename"""
+    if path.endswith("csv"):
+        return ","
+    if path.endswith("txt"):
+        return " "
+    if path.endswith("tab"):
+        return "\t"
+    return ","
 
 
 def get_duplicate_name(name: str, split_str: str = None, suffix: str = "copy"):

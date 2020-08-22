@@ -58,7 +58,7 @@ class PanelHTMLViewer(wx.MiniFrame):
         self.setup(msg, self._home_link, window_size)
 
         self.CentreOnParent()
-        self.Show(True)
+        self.Show()
         self.SetFocus()
 
         # reset working directory
@@ -80,10 +80,15 @@ class PanelHTMLViewer(wx.MiniFrame):
             if self.parent is not None:
                 screen_size = self.parent.GetSize()
             window_size = calculate_window_size(screen_size, [0.4, 0.6])
+        window_size = (max([window_size[0], 600]), max([window_size[1], 800]))
         self.SetSize(window_size)
 
         if self.DISABLE_SEARCH_BAR:
             self.search_bar.Enable(False)
+
+        # bind additional events
+        self.Bind(wx.EVT_UPDATE_UI, self._check_can_go_forward, self.next_btn)
+        self.Bind(wx.EVT_UPDATE_UI, self._check_can_go_back, self.prev_btn)
 
     def make_gui(self):
         """Make UI"""
@@ -125,7 +130,7 @@ class PanelHTMLViewer(wx.MiniFrame):
         self.html_view.Bind(wx.html2.EVT_WEBVIEW_LOADED, self.on_toggle_controls)
         self.html_view.Bind(wx.html2.EVT_WEBVIEW_NAVIGATED, self.set_title)
 
-        top_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        top_sizer = wx.BoxSizer()
         top_sizer.Add(self.prev_btn, 0, wx.ALIGN_CENTER_VERTICAL)
         top_sizer.Add(self.next_btn, 0, wx.ALIGN_CENTER_VERTICAL)
         top_sizer.Add(self.home_btn, 0, wx.ALIGN_CENTER_VERTICAL)
@@ -162,10 +167,18 @@ class PanelHTMLViewer(wx.MiniFrame):
         if not self.html_view.IsBusy():
             self.html_view.GoBack()
 
+    def _check_can_go_back(self, evt):
+        """Check whether can go forward"""
+        evt.Enable(self.html_view.CanGoBack())
+
     def go_forward(self, _evt):
         """Go forward to location"""
         if not self.html_view.IsBusy():
             self.html_view.GoForward()
+
+    def _check_can_go_forward(self, evt):
+        """Check whether can go forward"""
+        evt.Enable(self.html_view.CanGoForward())
 
     def go_home(self, _evt):
         """Go back to home location"""
@@ -181,7 +194,7 @@ class PanelHTMLViewer(wx.MiniFrame):
         """Open current webpage in browser"""
         if url is None:
             url = self.html_view.GetCurrentURL()
-        webbrowser.open(url, autoraise=True)
+        webbrowser.open(url)
 
     @staticmethod
     def on_url(evt):

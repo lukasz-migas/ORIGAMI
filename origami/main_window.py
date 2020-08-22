@@ -29,13 +29,11 @@ from origami.ids import ID_helpReportBugs
 from origami.ids import ID_window_ionList
 from origami.ids import ID_help_UniDecInfo
 from origami.ids import ID_helpNewFeatures
-from origami.ids import ID_selectCalibrant
 from origami.ids import ID_window_controls
 from origami.ids import ID_window_textList
 from origami.ids import ID_help_page_UniDec
 from origami.ids import ID_help_page_ORIGAMI
 from origami.ids import ID_help_page_overlay
-from origami.ids import ID_importAtStart_CCS
 from origami.ids import ID_help_page_linearDT
 from origami.ids import ID_docTree_plugin_MSMS
 from origami.ids import ID_docTree_plugin_UVPD
@@ -53,7 +51,6 @@ from origami.ids import ID_help_page_CCScalibration
 from origami.ids import ID_help_page_dataExtraction
 from origami.ids import ID_help_page_gettingStarted
 from origami.ids import ID_load_masslynx_raw_ms_only
-from origami.ids import ID_openCCScalibrationDatabse
 from origami.ids import ID_unidecPanel_otherSettings
 from origami.ids import ID_help_page_annotatingMassSpectra
 from origami.utils.path import clean_directory
@@ -103,7 +100,6 @@ class MainWindow(wx.Frame):
     toggle_text_page = None
     toggle_manual_page = None
     menu_config_check_driftscope = None
-    menu_config_check_load_ccs_db = None
     panel_interactive_output = None
     _toolbar_horizontal = True
 
@@ -659,25 +655,8 @@ class MainWindow(wx.Frame):
         menu_config_import_as = make_menu_item(parent=menu_config, text="Load configuration file from...")
         menu_config.Append(menu_config_import_as)
         menu_config.AppendSeparator()
-        self.menu_config_check_load_ccs_db = menu_config.Append(
-            ID_importAtStart_CCS, "Load at start", kind=wx.ITEM_CHECK
-        )
-        self.menu_config_check_load_ccs_db.Check(CONFIG.APP_LOAD_CCS_DB_AT_START)
-        menu_config.Append(
-            make_menu_item(
-                parent=menu_config,
-                evt_id=ID_openCCScalibrationDatabse,
-                text="Import CCS calibration database\tCtrl+Alt+C",
-                bitmap=self._icons.filelist,
-            )
-        )
-        menu_config.Append(
-            make_menu_item(
-                parent=menu_config,
-                evt_id=ID_selectCalibrant,
-                text="Show CCS calibrants\tCtrl+Shift+C",
-                bitmap=self._icons.target,
-            )
+        menu_config_show_ccs_db = menu_config.Append(
+            make_menu_item(parent=menu_config, text="Show CCS calibrants", bitmap=self._icons.target)
         )
         menu_config.AppendSeparator()
         self.menu_config_check_driftscope = menu_config.Append(
@@ -997,8 +976,8 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_import_config_fcn, menu_config_import)
         self.Bind(wx.EVT_MENU, self.on_import_config_as_fcn, menu_config_import_as)
         self.Bind(wx.EVT_MENU, self.on_check_driftscope_path, menu_config_driftscope)
+        self.Bind(wx.EVT_MENU, self.on_show_ccs_database, menu_config_show_ccs_db)
         self.Bind(wx.EVT_MENU, self.on_check_in_menu, id=ID_checkAtStart_Driftscope)
-        self.Bind(wx.EVT_MENU, self.on_check_in_menu, id=ID_importAtStart_CCS)
 
         # VIEW MENU
         self.Bind(wx.EVT_MENU, self.on_toggle_panel, id=ID_window_all)
@@ -1223,10 +1202,6 @@ class MainWindow(wx.Frame):
             check_value = not CONFIG.APP_CHECK_DRIFTSCOPE_PATH_AT_START
             CONFIG.APP_CHECK_DRIFTSCOPE_PATH_AT_START = check_value
             self.menu_config_check_driftscope.Check(check_value)
-        elif evt_id == ID_importAtStart_CCS:
-            check_value = not CONFIG.APP_LOAD_CCS_DB_AT_START
-            CONFIG.APP_LOAD_CCS_DB_AT_START = check_value
-            self.menu_config_check_load_ccs_db.Check(check_value)
 
     def on_set_window_maximize(self, _evt):
         """Maximize app."""
@@ -1670,6 +1645,13 @@ class MainWindow(wx.Frame):
             except (IndexError, ValueError, TypeError, KeyError):
                 logging.error("Failed to startup `Interactive Output` panel", exc_info=True)
                 _startup_module()
+
+    def on_show_ccs_database(self, _evt):
+        """Show CCS database"""
+        from origami.widgets.ccs.panel_ccs_database import PanelCCSDatabase
+
+        dlg = PanelCCSDatabase(self)
+        dlg.Show()
 
     def on_add_recent_file(self, action: str, path: str):
         """Add a file to list of recent files

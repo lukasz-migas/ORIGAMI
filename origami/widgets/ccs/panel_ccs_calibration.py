@@ -8,6 +8,7 @@ from typing import Dict
 
 # Third-party imports
 import wx
+import re
 import numpy as np
 from pubsub import pub
 
@@ -37,6 +38,7 @@ from origami.gui_elements.views.view_register import VIEW_REG
 from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
 from origami.widgets.ccs.processing.containers import CalibrationIndex
 from origami.widgets.ccs.processing.calibration import CCSCalibrationProcessor
+from origami.widgets.ccs.panel_ccs_database import PanelCCSDatabase
 
 LOGGER = logging.getLogger(__name__)
 
@@ -108,13 +110,14 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
 
     PUB_SUBSCRIBE_MZ_GET_EVENT = "ccs.extract.ms"
     PUB_SUBSCRIBE_DT_GET_EVENT = "ccs.extract.dt"
+    PUB_SUBSCRIBE_UPDATE = "ccs.update.quick"
 
     # ui elements
     view_mz, view_dt, view_fit, peaklist, quick_selection_choice, mz_value = None, None, None, None, None, None
     mw_value, charge_value, dt_value, ccs_value, add_calibrant_btn = None, None, None, None, None
     remove_calibrant_btn, gas_choice, reset_btn, save_btn, calculate_ccs_btn = None, None, None, None, None
     file_path_choice, load_file_btn, action_btn, load_document_btn = None, None, None, None
-    auto_process_btn, correction_value, mw_auto_btn = None, None, None
+    auto_process_btn, correction_value, mw_auto_btn, polarity_choice = None, None, None, None
 
     # attributes
     _mz_obj = None
@@ -135,6 +138,7 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         # setup kwargs
         self.unsaved = False
         self._debug = debug
+        self._db = None
 
         # bind events
         self.Bind(wx.EVT_CLOSE, self.on_close)
@@ -204,14 +208,19 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         # add listeners
         pub.subscribe(self.evt_extract_dt_from_ms, self.PUB_SUBSCRIBE_MZ_GET_EVENT)
         pub.subscribe(self.evt_select_conformation, self.PUB_SUBSCRIBE_DT_GET_EVENT)
+        pub.subscribe(self.on_update_quick_selection, self.PUB_SUBSCRIBE_UPDATE)
 
         self.on_validate_input(None)
+
+        # instantiate CCS database
+        self._db = PanelCCSDatabase(self, hide_on_close=True)
 
     def on_close(self, evt, force: bool = False):
         """Close window"""
         try:
             pub.unsubscribe(self.evt_extract_dt_from_ms, self.PUB_SUBSCRIBE_MZ_GET_EVENT)
             pub.unsubscribe(self.evt_select_conformation, self.PUB_SUBSCRIBE_DT_GET_EVENT)
+            pub.unsubscribe(self.on_update_quick_selection, self.PUB_SUBSCRIBE_UPDATE)
         except Exception as err:
             LOGGER.error("Failed to unsubscribe events: %s" % err)
 
@@ -288,11 +297,15 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         gas_choice = wx.StaticText(panel, -1, "Gas:")
         self.gas_choice = wx.Choice(panel, -1, choices=["Nitrogen", "Helium"])
         self.gas_choice.SetStringSelection("Nitrogen")
-        self.gas_choice.Bind(wx.EVT_CHOICE, self.on_apply)
+        self.gas_choice.Bind(wx.EVT_CHOICE, self.on_update_quick_selection)
+
+        polarity_choice = wx.StaticText(panel, -1, "Polarity:")
+        self.polarity_choice = wx.Choice(panel, -1, choices=["Positive", "Negative"])
+        self.polarity_choice.SetStringSelection("Positive")
+        self.polarity_choice.Bind(wx.EVT_CHOICE, self.on_update_quick_selection)
 
         correction_factor = wx.StaticText(panel, -1, "Correction factor:")
         self.correction_value = wx.TextCtrl(panel, -1, "", validator=Validator("floatPos"))
-        self.correction_value.Bind(wx.EVT_TEXT, self.on_apply)
         set_tooltip(
             self.correction_value,
             "Instruments Enhanced Duty Cycle (EDC) delay coefficient. Automatically loaded from the raw file",
@@ -350,6 +363,9 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         n += 1
         grid.Add(correction_factor, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.correction_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        n += 1
+        grid.Add(polarity_choice, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.polarity_choice, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
         grid.Add(gas_choice, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.gas_choice, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
@@ -496,9 +512,22 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
 
     def on_quick_selection(self, _evt):
         """Quick selection to fill-in few common parameters"""
+        quick_selection = self.quick_selection_choice.GetStringSelection()
+        mw, charge, mz, ccs = re.findall(r"=(.*?);", quick_selection)
+        if str2num(mw):
+            self.mw_value.SetValue(mw)
+        if str2int(charge):
+            self.charge_value.SetValue(charge)
+        if str2num(mz):
+            self.mz_value.SetValue(mz)
+        if str2num(ccs):
+            self.ccs_value.SetValue(ccs)
 
     def on_open_calibrant_panel(self, _evt):
         """Open panel where users can create calibration table"""
+        if self._db is None:
+            self._db = PanelCCSDatabase(self)
+        self._db.Show()
 
     def on_auto_process(self, _evt):
         """Auto-process the loaded data"""
@@ -564,8 +593,17 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         if evt is not None:
             evt.Skip()
 
-    def on_apply(self, _evt):
+    def on_update_quick_selection(self, _evt):
         """Make changes to the config"""
+        gas = self.gas_choice.GetStringSelection()
+        polarity = self.polarity_choice.GetStringSelection()
+
+        if self._db:
+            quick_selection = self._db.generate_quick_selection(gas, polarity)
+            self.quick_selection_choice.Clear()
+            if quick_selection:
+                self.quick_selection_choice.SetItems(quick_selection)
+                self.quick_selection_choice.SetStringSelection(quick_selection[0])
 
     def on_select_calibrant_from_table(self, evt):
         """Select calibrant in the table and show the data"""

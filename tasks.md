@@ -32,7 +32,8 @@
 - [ ] add pyramid scheme + live update to improve usability
 - [ ] add wx mouse zoom in/out wheel to zoom
 - [ ] add drag x-/y-axis by holding ALT or clicking on the axes
-
+- [ ] change the annotations popup to dialog since it won't work on linux
+- [ ] make it easier to instantiate tables
 
 ## New features
 
