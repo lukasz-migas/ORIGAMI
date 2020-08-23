@@ -113,10 +113,11 @@ class PlotBase(MPLPanel):
         x: Union[List, np.ndarray],
         y: Union[List, np.ndarray],
         y_lower_start: Optional[float] = 0,
-        y_upper_multiplier: float = 1.0,
+        y_upper_multiplier: float = 1,
         is_heatmap: bool = False,
         x_pad=None,
         y_pad=None,
+        y_lower_multiplier: float = 1,
     ):
         """Calculate the x/y axis ranges"""
         x = np.nan_to_num(x)
@@ -137,7 +138,7 @@ class PlotBase(MPLPanel):
         xlimits = [x_min, x_max]
         if y_lower_start is None:
             y_lower_start = y_min
-        ylimits = [y_lower_start, y_max * y_upper_multiplier]
+        ylimits = [y_lower_start * y_lower_multiplier, y_max * y_upper_multiplier]
 
         # extent is x_min, y_min, x_max, y_max
         extent = [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
@@ -674,16 +675,18 @@ class PlotBase(MPLPanel):
 
     def plot_remove_label(self, start_with: str = None, repaint: bool = True):
         """Remove label from the plot area"""
+        labels = []
         for text in self.text:
             if start_with is not None and hasattr(text, "obj_name"):
                 if not self._check_startwith(text, start_with):
+                    labels.append(text)
                     continue
             try:
                 text.remove()
             except Exception:  # noqa
                 pass
 
-        self.text = []
+        self.text = labels
         self.repaint(repaint)
 
     def plot_add_labels(self, xs, ys, labels, color="black", pickable: bool = True, repaint: bool = False, **kwargs):
@@ -750,17 +753,21 @@ class PlotBase(MPLPanel):
 
     def plot_remove_patches(self, start_with: str = None, repaint: bool = True):
         """Remove patch fr-om the plot area"""
+        patches = []
         for patch in self.patch:
             if start_with is not None and hasattr(patch, "obj_name"):
                 if not self._check_startwith(patch, start_with):
+                    patches.append(patch)
                     continue
+
+            print()
 
             try:
                 patch.remove()
             except Exception:  # noqa
                 pass
 
-        self.patch = []
+        self.patch = patches
         self.repaint(repaint)
 
     def plot_add_slope(

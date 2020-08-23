@@ -32,6 +32,7 @@ from origami.objects.containers import ion_heatmap_object
 from origami.objects.containers import chromatogram_object
 from origami.objects.containers import msdt_heatmap_object
 from origami.objects.containers import mass_spectrum_object
+from origami.widgets.ccs.processing.containers import ccs_calibration_object
 from origami.widgets.lesa.processing.containers import normalization_object
 
 LOGGER = logging.getLogger(__name__)
@@ -75,6 +76,7 @@ class DocumentGroups:
     RAW = "Raw"
     OUTPUT = "Output"
     TANDEM = "Tandem"
+    CALIBRATION = "CCSCalibrations"
 
     # average/summed objects
     MassSpectrum = "MassSpectra/Summed Spectrum"
@@ -102,6 +104,7 @@ class DocumentStore:
         "Output",  # any file
         "Tandem",  # pickled dictionary...
         "Views",  # json with information about a specific view
+        "CCSCalibrations",  # any CCS calibration
     ]
     CAN_EXTRACT = [
         "Format: Waters (.raw)",
@@ -212,6 +215,8 @@ class DocumentStore:
             obj = ion_heatmap_object(group)
         elif klass_name == "ImagingIonHeatmapObject":
             obj = ion_heatmap_object(group)
+        elif klass_name == "CCSCalibrationObject":
+            obj = ccs_calibration_object(group)
 
         # return instantiated objected
         if obj:
@@ -399,8 +404,8 @@ class DocumentStore:
         """Adds mass spectrum to the document"""
         if isinstance(data, DataObject):
             data, attrs = data.to_zarr()
-        if not title.startswith("MassSpectra"):
-            title = f"MassSpectra/{title}"
+        if not title.startswith(DocumentGroups.MS):
+            title = f"{DocumentGroups.MS}/{title}"
         group = self.add(title, data, attrs)
         return self.as_object(group)
 
@@ -408,8 +413,8 @@ class DocumentStore:
         """Adds chromatogram to the document"""
         if isinstance(data, DataObject):
             data, attrs = data.to_zarr()
-        if not title.startswith("Chromatograms"):
-            title = f"Chromatograms/{title}"
+        if not title.startswith(DocumentGroups.RT):
+            title = f"{DocumentGroups.RT}/{title}"
         group = self.add(title, data, attrs)
         return self.as_object(group)
 
@@ -417,8 +422,8 @@ class DocumentStore:
         """Adds mobilograms to the document"""
         if isinstance(data, DataObject):
             data, attrs = data.to_zarr()
-        if not title.startswith("Mobilograms"):
-            title = f"Mobilograms/{title}"
+        if not title.startswith(DocumentGroups.DT):
+            title = f"{DocumentGroups.DT}/{title}"
         group = self.add(title, data, attrs)
         return self.as_object(group)
 
@@ -426,8 +431,8 @@ class DocumentStore:
         """Adds heatmap to the document"""
         if isinstance(data, DataObject):
             data, attrs = data.to_zarr()
-        if not title.startswith("IonHeatmaps"):
-            title = f"IonHeatmaps/{title}"
+        if not title.startswith(DocumentGroups.HEATMAP):
+            title = f"{DocumentGroups.HEATMAP}/{title}"
         group = self.add(title, data, attrs)
         return self.as_object(group)
 
@@ -435,8 +440,17 @@ class DocumentStore:
         """Adds heatmap to the document"""
         if isinstance(data, DataObject):
             data, attrs = data.to_zarr()
-        if not title.startswith("MSDTHeatmaps"):
-            title = f"MSDTHeatmaps/{title}"
+        if not title.startswith(DocumentGroups.MSDT):
+            title = f"{DocumentGroups.MSDT}/{title}"
+        group = self.add(title, data, attrs)
+        return self.as_object(group)
+
+    def add_ccs_calibration(self, title: str, data: Optional[Dict] = None, attrs: Optional[Dict] = None):
+        """Adds ccs calibration to the document"""
+        if isinstance(data, DataObject):
+            data, attrs = data.to_zarr()
+        if not title.startswith(DocumentGroups.CALIBRATION):
+            title = f"{DocumentGroups.CALIBRATION}/{title}"
         group = self.add(title, data, attrs)
         return self.as_object(group)
 
@@ -446,6 +460,13 @@ class DocumentStore:
             data, attrs = data.to_zarr()
         group = self.add(f"Metadata/{title}", data, attrs)
         return group
+
+    def add_group_to_group(self, group: Group, title: str, data: Optional[Dict] = None, attrs: Optional[Dict] = None):
+        """Add sub-group to a non-main group"""
+        if isinstance(data, DataObject):
+            data, attrs = data.to_zarr()
+        sub_group = self.add(f"{group.path}/{title}", data, attrs)
+        return sub_group
 
     def add(self, key, data=None, attrs=None, as_object: bool = False):
         """Add data to group"""
@@ -717,3 +738,8 @@ class DocumentStore:
             raise ValueError(f"Cannot get {name} as its not present in the Document")
 
         return normalization_object(self.Metadata[name])
+
+    def get_ccs_calibration_list(self):
+        """Returns list of CCS calibrations available in the document"""
+        calibrations = self.view_group(DocumentGroups.CALIBRATION)
+        return calibrations

@@ -5,6 +5,7 @@ import wx.lib.scrolledpanel
 
 # Local imports
 from origami.icons.assets import Colormaps
+from origami.utils.system import running_under_pytest
 from origami.gui_elements.mixins import ColorGetterMixin
 from origami.gui_elements.mixins import ColorPaletteMixin
 from origami.gui_elements.mixins import ConfigUpdateMixin
@@ -22,7 +23,8 @@ class PanelSettingsBase(wx.lib.scrolledpanel.ScrolledPanel, ColorGetterMixin, Co
         self.make_panel()
         self._on_set_config()
         self.on_toggle_controls(evt=None)
-        self.SetupScrolling()
+        if not running_under_pytest():
+            self.SetupScrolling()
         self.import_evt = False
 
         self._config_mixin_setup()

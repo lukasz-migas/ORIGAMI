@@ -15,6 +15,7 @@ from pubsub import pub
 # Local imports
 from origami.styles import MiniFrame
 from origami.styles import Validator
+from origami.icons.assets import Icons
 from origami.utils.secret import get_short_hash
 from origami.config.config import CONFIG
 from origami.handlers.load import LOAD_HANDLER
@@ -35,6 +36,7 @@ from origami.gui_elements.helpers import make_bitmap_btn
 from origami.widgets.ccs.view_ccs import ViewCCSFit
 from origami.widgets.ccs.view_ccs import ViewCCSMobilogram
 from origami.gui_elements.panel_base import TableMixin
+from origami.gui_elements.misc_dialogs import DialogBox
 from origami.widgets.ccs.panel_ccs_database import PanelCCSDatabase
 from origami.gui_elements.views.view_register import VIEW_REG
 from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
@@ -43,12 +45,10 @@ from origami.widgets.ccs.processing.calibration import CCSCalibrationProcessor
 
 LOGGER = logging.getLogger(__name__)
 
-# TODO: add table with list of proteins + their molecular weights
-# TODO: add table where users specify preset calibrants
-# TODO: add table which shows all calibration data (editable)
 # TODO: restore calibration data
-# TODO: save dt data alongside calibration data
 # TODO: add __call__ func to calibration
+# TODO: add option to change the fit plot between linear and log
+# TODO: write documentation
 
 
 class TableColumnIndex(IntEnum):
@@ -76,7 +76,7 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
     TABLE_DICT.add("ccs", "ccs", "float", 100)
     TABLE_DICT.add("name", "name", "str", 0, hidden=True)
     TABLE_DICT.add("path", "path", "str", 0, hidden=True)
-
+    TABLE_WIDGET_DICT = dict()
     TABLE_COLUMN_INDEX = TableColumnIndex
     USE_COLOR = False
     PANEL_BASE_TITLE = "CCS Calibration Builder"
@@ -92,7 +92,7 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
     remove_calibrant_btn, gas_choice, reset_btn, save_btn, calculate_ccs_btn = None, None, None, None, None
     file_path_choice, load_file_btn, action_btn, load_document_btn = None, None, None, None
     auto_process_btn, correction_value, mw_auto_btn, polarity_choice = None, None, None, None
-    extract_calibrant_btn = None
+    extract_calibrant_btn, window_size_value, clear_calibrant_btn = None, None, None
 
     # attributes
     _mz_obj = None
@@ -101,19 +101,24 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
     _tmp_cache = dict()
     _ccs_obj = None
 
-    def __init__(self, parent, debug: bool = False):
+    def __init__(self, parent, document_title: str=None, debug: bool=False):
         """Initialize panel"""
         MiniFrame.__init__(self, parent, title="CCS Calibration Builder...", style=wx.DEFAULT_FRAME_STYLE)
         t_start = time.time()
         self.parent = parent
+        self._icons = Icons()
 
         # initialize gui
         self.make_gui()
 
         # setup kwargs
-        self.unsaved = False
-        self._debug = debug
-        self._db = None
+        self.document_title = document_title
+        self.unsaved = False  # indicate that the panel has unsaved changes
+        self._debug = debug  # flag to indicate the application is in debug mode
+        self._db = None  # handle of the CCS database dialog
+        self._showing_quick = False  # flag to indicate that quick selection is being shown rather than user-extracted
+        self._disable_table_update = False  # flag to prevent editing events
+        self._current_item = None  # specifies which is the currently selected item
 
         # bind events
         self.Bind(wx.EVT_CLOSE, self.on_close)
@@ -122,7 +127,7 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
 
         self.CenterOnParent()
         self.SetFocus()
-        self.SetSize((1200, 800))
+        self.SetSize((1200, 1000))
 
         # setup window
         self.setup()
@@ -177,6 +182,9 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
 
     def setup(self):
         """Setup window"""
+        # setup maximum size of quick selection
+        self.quick_selection_choice.SetMaxSize(self.quick_selection_choice.GetSize())
+
         self._config_mixin_setup()
         self._dataset_mixin_setup()
 
@@ -187,12 +195,33 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
 
         self.on_validate_input(None)
 
-        # instantiate CCS database
+        self.TABLE_WIDGET_DICT = {
+            self.mw_value: (TableColumnIndex.mw, "mw"),
+            self.charge_value: (TableColumnIndex.charge, "charge"),
+            self.mz_value: (TableColumnIndex.mz, "mz"),
+            self.dt_value: (TableColumnIndex.dt, "dt"),
+            self.ccs_value: (TableColumnIndex.ccs, "ccs"),
+        }
 
-    #         self._db = PanelCCSDatabase(self, hide_on_close=True)
+        # instantiate CCS database
+        self._db = PanelCCSDatabase(self, icons=self._icons, hide_on_close=True)
+        self.on_update_quick_selection(None)
+
+    def check_existing_calibration(self):
+        """Checks whether existing calibration already exists for a particular document"""
 
     def on_close(self, evt, force: bool = False):
         """Close window"""
+        if self.unsaved and not force and not self._debug:
+            dlg = DialogBox(
+                title="Would you like to continue?",
+                msg="There are unsaved changes in this window. Continuing might lead to loss of calibration data."
+                "\nWould you like to continue?",
+                kind="Question",
+            )
+            if dlg == wx.ID_NO:
+                return
+
         try:
             pub.unsubscribe(self.evt_extract_dt_from_ms, self.PUB_SUBSCRIBE_MZ_GET_EVENT)
             pub.unsubscribe(self.evt_select_conformation, self.PUB_SUBSCRIBE_DT_GET_EVENT)
@@ -263,10 +292,12 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         self.load_file_btn = wx.Button(panel, -1, "Load")
         self.load_file_btn.Bind(wx.EVT_BUTTON, self.on_load_file)
 
-        self.load_document_btn = make_bitmap_btn(
-            panel, -1, wx.ArtProvider.GetBitmap(wx.ART_FOLDER_OPEN, wx.ART_BUTTON, wx.Size(16, 16))
-        )
+        self.load_document_btn = make_bitmap_btn(panel, -1, self._icons.folder)
         self.load_document_btn.Bind(wx.EVT_BUTTON, self.on_open_document)
+        set_tooltip(
+            self.load_document_btn,
+            "If in standalone mode, open ORIGAMI document to which you would like to save the calibration.",
+        )
 
         self.auto_process_btn = wx.Button(panel, -1, "Auto-process")
         self.auto_process_btn.Bind(wx.EVT_BUTTON, self.on_auto_process)
@@ -293,41 +324,57 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         self.quick_selection_choice = wx.Choice(panel, -1)
         self.quick_selection_choice.Bind(wx.EVT_CHOICE, self.on_quick_selection)
 
-        self.action_btn = make_bitmap_btn(
-            panel, -1, wx.ArtProvider.GetBitmap(wx.ART_LIST_VIEW, wx.ART_BUTTON, wx.Size(16, 16))
-        )
+        self.action_btn = make_bitmap_btn(panel, -1, self._icons.list)
         self.action_btn.Bind(wx.EVT_BUTTON, self.on_open_calibrant_panel)
+        set_tooltip(self.action_btn, "Open new panel with currently loaded or available calibrant ions")
 
         mz_value = wx.StaticText(panel, -1, "m/z")
         self.mz_value = wx.TextCtrl(panel, -1, "", validator=Validator("floatPos"))
         self.mz_value.Bind(wx.EVT_TEXT, self.on_validate_input)
+        self.mz_value.Bind(wx.EVT_TEXT, self.on_edit_calibrant)
 
         mw_value = wx.StaticText(panel, -1, "MW (Da)")
         self.mw_value = wx.TextCtrl(panel, -1, "", validator=Validator("floatPos"))
         self.mw_value.Bind(wx.EVT_TEXT, self.on_validate_input)
+        self.mw_value.Bind(wx.EVT_TEXT, self.on_edit_calibrant)
 
-        self.mw_auto_btn = make_bitmap_btn(
-            panel, -1, wx.ArtProvider.GetBitmap(wx.ART_PASTE, wx.ART_BUTTON, wx.Size(16, 16))
-        )
+        self.mw_auto_btn = make_bitmap_btn(panel, -1, self._icons.target)
         self.mw_auto_btn.Bind(wx.EVT_BUTTON, self.on_auto_set_mw)
+        set_tooltip(self.mw_auto_btn, "Auto-set molecular weight based on the m/z and charge values.")
 
         charge_value = wx.StaticText(panel, -1, "Charge (z):")
         self.charge_value = wx.SpinCtrl(panel, -1, "", min=-100, max=100)
         self.charge_value.Bind(wx.EVT_TEXT, self.on_validate_input)
+        self.charge_value.Bind(wx.EVT_TEXT, self.on_edit_calibrant)
 
         dt_value = wx.StaticText(panel, -1, "DT (ms):")
         self.dt_value = wx.TextCtrl(panel, -1, "", validator=Validator("floatPos"))
         self.dt_value.Bind(wx.EVT_TEXT, self.on_validate_input)
+        self.dt_value.Bind(wx.EVT_TEXT, self.on_edit_calibrant)
 
         ccs_value = wx.StaticText(panel, -1, "CCS (Å²):")
         self.ccs_value = wx.TextCtrl(panel, -1, "", validator=Validator("floatPos"))
         self.ccs_value.Bind(wx.EVT_TEXT, self.on_validate_input)
+        self.ccs_value.Bind(wx.EVT_TEXT, self.on_edit_calibrant)
+
+        window_size_value = wx.StaticText(panel, -1, "window (Da):")
+        self.window_size_value = wx.TextCtrl(panel, -1, "25", validator=Validator("floatPos"))
+        set_tooltip(
+            self.window_size_value,
+            "Size of the extraction window when using the quick-selection control. This pads the m/z value with +/-"
+            " window to ensure enough data is extracted to form a mobilogram. This value is ignored when CTRL+drag in"
+            " mass spectrum.",
+        )
+        self.window_size_value.Bind(wx.EVT_TEXT, self.on_update_quick_selection_window)
 
         self.extract_calibrant_btn = wx.Button(panel, -1, "Extract")
         self.extract_calibrant_btn.Bind(wx.EVT_BUTTON, self.on_extract_calibrant)
 
         self.add_calibrant_btn = wx.Button(panel, -1, "Add")
         self.add_calibrant_btn.Bind(wx.EVT_BUTTON, self.on_add_calibrant)
+
+        self.clear_calibrant_btn = wx.Button(panel, -1, "Clear")
+        self.clear_calibrant_btn.Bind(wx.EVT_BUTTON, self.on_clear_calibrant)
 
         self.remove_calibrant_btn = wx.Button(panel, -1, "Remove")
         self.remove_calibrant_btn.Bind(wx.EVT_BUTTON, self.on_remove_calibrant)
@@ -336,6 +383,8 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         btn_sizer_cali.Add(self.extract_calibrant_btn)
         btn_sizer_cali.AddSpacer(5)
         btn_sizer_cali.Add(self.add_calibrant_btn)
+        btn_sizer_cali.AddSpacer(5)
+        btn_sizer_cali.Add(self.clear_calibrant_btn)
         btn_sizer_cali.AddSpacer(5)
         btn_sizer_cali.Add(self.remove_calibrant_btn)
 
@@ -379,8 +428,8 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         n += 1
         grid.Add(ccs_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.ccs_value, (n, 1), flag=wx.EXPAND)
-        #         grid.Add(self.add_calibrant_btn, (n, 2), flag=wx.EXPAND)
-        #         grid.Add(self.remove_calibrant_btn, (n, 3), flag=wx.EXPAND)
+        grid.Add(window_size_value, (n, 2), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.window_size_value, (n, 3), flag=wx.EXPAND)
 
         # calculate settings
         self.calculate_ccs_btn = wx.Button(panel, -1, "Calculate")
@@ -422,6 +471,7 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         side_sizer.AddSpacer(3)
         side_sizer.Add(self.view_fit.panel, 1, wx.EXPAND)
         side_sizer.Add(info_sizer, 0, wx.EXPAND)
+
         # plot sizer
         plot_sizer = wx.BoxSizer(wx.VERTICAL)
         plot_sizer.Add(self.view_mz.panel, 1, wx.EXPAND)
@@ -460,8 +510,7 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         self.ccs_value.SetBackgroundColour(good_color if self.ccs_value.GetValue() else bad_color)
         self.ccs_value.Refresh()
 
-        if evt is not None:
-            evt.Skip()
+        self._parse_evt(evt)
 
     def on_load_file(self, _evt):
         """Select Waters .raw directory"""
@@ -473,7 +522,7 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         dlg.Destroy()
 
         # load data
-        if path is not None:
+        if path is not None and path.endswith(".raw"):
             metadata = LOAD_HANDLER.waters_metadata(path)
             mz_obj = LOAD_HANDLER.waters_im_extract_ms(path)
             self._set_calibration_cache(path, {"mz_obj": mz_obj, "metadata": metadata})
@@ -482,9 +531,14 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         """Automatically set molecular weight based on the m/z value and charge"""
         mz_value = str2num(self.mz_value.GetValue())
         charge_value = str2int(self.charge_value.GetValue())
+        polarity = self.polarity_choice.GetStringSelection()
         if not all([mz_value, charge_value]):
             return
-        mw = (mz_value - charge_value * 1.00784) * charge_value
+
+        if polarity == "Positive":
+            mw = (mz_value - charge_value * 1.00784) * charge_value
+        else:
+            mw = (mz_value + charge_value * 1.00784) * charge_value
         self.mw_value.SetValue(str(mw))
 
     def on_open_document(self, _evt):
@@ -499,34 +553,10 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
             ENV.load(path)
             LOGGER.info(f"Loaded ORIGAMI document - {path}")
 
-    def on_quick_selection(self, _evt):
-        """Quick selection to fill-in few common parameters"""
-        quick_selection = self.quick_selection_choice.GetStringSelection()
-
-        # get values from the selection
-        mw, charge, mz, ccs = re.findall(r"=(.*?);", quick_selection)
-        if str2num(mw):
-            self.mw_value.SetValue(mw)
-        if str2int(charge):
-            self.charge_value.SetValue(charge)
-        if str2num(mz):
-            self.mz_value.SetValue(mz)
-        if str2num(ccs):
-            self.ccs_value.SetValue(ccs)
-
-        # show the peak in the mass spectrum
-        mz_window = 25
-        mz = str2num(mz)
-
-        self.view_mz.remove_patches("temporary_mz", False)
-        self.view_mz.add_patch(mz - mz_window, 0, mz_window * 2, 99999999, label="temporary_mz", repaint=True)
-
-        # extract data
-
     def on_open_calibrant_panel(self, _evt):
         """Open panel where users can create calibration table"""
-        if self._db is None:
-            self._db = PanelCCSDatabase(self)
+        if not self._db:
+            self._db = PanelCCSDatabase(self, icons=self._icons, hide_on_close=True)
         self._db.Show()
 
     def on_auto_process(self, _evt):
@@ -538,13 +568,14 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
 
     def _on_auto_process(self, mw: float, z_start: int, z_end: int, mz_window: float):
         """Auto-process the currently loaded mass spectrum"""
-        self.mw_value.SetValue(str(mw))
-        self.ccs_value.SetValue("1")
         charges = np.arange(z_start, z_end + 1)[::-1]
         mz_values = mw / charges
         for mz, charge in zip(mz_values, charges):
             self.evt_extract_dt_from_ms([mz - mz_window, mz + mz_window, None, None], None, None)
             self.charge_value.SetValue(str(charge))
+            # presets
+            self.mw_value.SetValue(str(mw))
+            self.ccs_value.SetValue("1")
             self.on_add_calibrant(None)
 
     def _simulate_auto_process(self, mw: float, z_start: int, z_end: int, mz_window: float):
@@ -615,8 +646,37 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         path = item_info["path"]
 
         self._tmp_cache[path] = self._cache[path]["calibrants"][name]
-        self._on_show_dt_marker()
         self.dt_obj = self._tmp_cache[path]["dt_obj"]
+        self._on_show_dt_marker()
+
+    def on_edit_calibrant(self, evt):
+        """Edit calibrant in the table"""
+        if self._disable_table_update:
+            self._parse_evt(evt)
+            return
+        # get ui object that created this event
+        obj = evt.GetEventObject()
+
+        # get current item in the table that is being edited
+        item_id = self.on_find_item("name", self._current_item)
+        if item_id == -1:
+            self._parse_evt(evt)
+            return
+
+        # get current column
+        (col_id, key) = self.TABLE_WIDGET_DICT.get(obj, -1)
+        if col_id == -1:
+            self._parse_evt(evt)
+            return
+
+        # update item in the table
+        value = obj.GetValue()
+        self.peaklist.SetItem(item_id, col_id, str(value))
+
+        # update item in the cache
+        value = self._parse_value(key, value)
+        self._cache[self.current_path]["calibrants"][self._current_item][key] = value
+        self._parse_evt(evt)
 
     def on_add_calibrant(self, _evt):
         """Add calibrant to the table and cache"""
@@ -630,15 +690,28 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         charge_value = str2int(self.charge_value.GetValue())
         dt_value = str2num(self.dt_value.GetValue())
         ccs_value = str2num(self.ccs_value.GetValue())
+
         if not all([mz_value, mw_value, charge_value, dt_value, ccs_value]):
             raise MessageError("Error", "Cannot add calibrant to the table as some values are missing")
+        if not all(
+            [
+                v in self._tmp_cache[self.current_path]
+                for v in ["dt_obj", "dt_int", "name", "mz_min", "mz_max", "mz_int"]
+            ]
+        ):
+            raise MessageError(
+                "Error",
+                "Cache data is missing some essential data - please click on the `Extract`"
+                " button so it can be added and try-again",
+            )
 
+        # get index of the present object
         idx = self.on_find_item("mz", mz_value)
         if idx != -1:
             self.remove_from_table(idx)
 
         # add to table
-        name = get_short_hash()
+        name = self._tmp_cache[self.current_path]["name"]
         self.on_add_to_table(
             dict(
                 mz=mz_value,
@@ -657,10 +730,27 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         # add to cache
         self._set_calibration_cache(self.current_path, {"calibrant": self._tmp_cache[self.current_path], "name": name})
         self._on_show_mz_patches()
-        LOGGER.debug("Added calibrant to the cache")
+
+        # reset temporary cache
+        self.on_clear_calibrant(None)
+        self._tmp_cache[self.current_path] = None
+
+        LOGGER.debug("Added calibrant to cache")
+
+    def on_clear_calibrant(self, _evt):
+        """Clear all fields"""
+        item_info = dict().fromkeys(["mz", "mw", "charge", "dt", "ccs", "name"], None)
+        self._on_set_calibrant_metadata(item_info)
 
     def on_extract_calibrant(self, _evt):
         """Extract calibrant data"""
+        # show the peak in the mass spectrum
+        mz_window = str2num(self.window_size_value.GetValue())
+        if mz_window is None:
+            mz_window = 25
+
+        mz = str2num(self.mz_value.GetValue())
+        self.evt_extract_dt_from_ms([mz - mz_window, mz + mz_window, None, None], None, None)
 
     def on_remove_calibrant(self, _evt):
         """Remove calibrant from the table and the cache"""
@@ -672,7 +762,45 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         self.remove_from_table(idx)
         del self._cache[item_info["path"]]["calibrants"][item_info["name"]]
         self._on_show_mz_patches()
+        self.view_dt.clear()
+        self.on_clear_calibrant(None)
         LOGGER.debug("Removed calibrant from the cache")
+
+    def on_quick_selection(self, _evt):
+        """Quick selection to fill-in few common parameters"""
+        self._showing_quick = True
+        self._disable_table_update = True
+        quick_selection = self.quick_selection_choice.GetStringSelection()
+
+        # get values from the selection
+        mw, charge, mz, ccs = re.findall(r"=(.*?);", quick_selection)
+        if str2num(mw):
+            self.mw_value.SetValue(mw)
+        if str2int(charge):
+            self.charge_value.SetValue(charge)
+        if str2num(mz):
+            self.mz_value.SetValue(mz)
+        if str2num(ccs):
+            self.ccs_value.SetValue(ccs)
+        self.dt_value.SetValue("")
+
+        # show the peak in the mass spectrum
+        mz_window = str2num(self.window_size_value.GetValue())
+        if mz_window is None:
+            mz_window = 25
+            LOGGER.warning("The extraction window is not a number!")
+        mz = str2num(mz)
+
+        self.view_mz.remove_patches("temporary_mz", False)
+        self.view_mz.add_patch(mz - mz_window, 0, mz_window * 2, 99999999, label="temporary_mz")
+        self.on_validate_input(None)
+        self._disable_table_update = False
+
+    def on_update_quick_selection_window(self, _evt):
+        """Update the quick selection window"""
+        mz_window = str2num(self.window_size_value.GetValue())
+        if self._showing_quick and mz_window is not None:
+            self.on_quick_selection(_evt)
 
     def evt_extract_dt_from_ms(self, rect, x_labels, y_labels):  # noqa
         """Extract mobilogram from mass spectrum"""
@@ -682,6 +810,7 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         dt_obj = LOAD_HANDLER.waters_im_extract_dt(path, mz_start=mz_min, mz_end=mz_max)
         dt_obj.change_x_label("Drift time (ms)", self.pusher_frequency)
         dt_pos, dt_int = dt_obj.get_x_at_max()
+        name = get_short_hash()
 
         # store information about currently plotted mobility object in temporary cache
         self._tmp_cache[path] = {
@@ -692,12 +821,14 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
             "dt_obj": dt_obj,
             "dt": dt_pos,
             "dt_int": dt_int,
+            "name": name,
         }
 
         # update plot
         self.dt_obj = dt_obj
         self._on_set_calibrant_metadata(self._tmp_cache[path])
         self._on_show_dt_marker()
+        self._showing_quick = False
 
     def evt_select_conformation(self, rect, x_labels, y_labels):  # noqa
         """Set calibrant data"""
@@ -733,16 +864,19 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
 
     def _on_set_calibrant_metadata(self, cache):
         """Set calibration metadata"""
+        self._disable_table_update = True
         if "mz" in cache:
-            self.mz_value.SetValue(f"{cache['mz']:.2f}")
+            self.mz_value.SetValue(f"{cache['mz']:.2f}" if cache["mz"] else "")
         if "mw" in cache:
-            self.mw_value.SetValue(f"{cache['mw']:.2f}")
+            self.mw_value.SetValue(f"{cache['mw']:.2f}" if cache["mw"] else "")
         if "charge" in cache:
-            self.charge_value.SetValue(f"{cache['charge']}")
+            self.charge_value.SetValue(f"{cache['charge']}" if cache["charge"] else "0")
         if "ccs" in cache:
-            self.ccs_value.SetValue(f"{cache['ccs']:.2f}")
+            self.ccs_value.SetValue(f"{cache['ccs']:.2f}" if cache["ccs"] else "")
         if "dt" in cache:
-            self.dt_value.SetValue(f"{cache['dt']:.2f}")
+            self.dt_value.SetValue(f"{cache['dt']:.2f}" if cache["dt"] else "")
+        self._current_item = cache["name"]
+        self._disable_table_update = False
 
     def on_create_calibration(self, _evt):
         """Create calibration curve"""
@@ -753,10 +887,12 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
             )
 
         self._collect_calibration_data(selected_indices)
+        self.unsaved = True
 
     def _collect_calibration_data(self, selected_indices):
         """Collect calibration data"""
         metadata = []
+        extra_data = {}
         array = np.zeros((len(selected_indices), 5), dtype=np.float32)
         for i, item_id in enumerate(selected_indices):
             item_info = self.on_get_item_information(item_id)
@@ -787,8 +923,9 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
                     "ccs": float(calibrant["ccs"]),
                 }
             )
+            extra_data[name] = calibrant["dt_obj"]
 
-        calibration = CCSCalibrationProcessor(metadata)
+        calibration = CCSCalibrationProcessor(metadata, extra_data)
         ccs_obj = calibration.create_calibration(array, self.gas_mw, self.correction_factor)
         self._ccs_obj = calibration
         self.on_show_fit(ccs_obj)
@@ -796,6 +933,23 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
     def on_save_calibration(self, _evt):
         """Save calibration curve in the document"""
         from origami.gui_elements.misc_dialogs import DialogSimpleAsk
+
+        # check whether calibration was created
+        if not self._ccs_obj:
+            raise MessageError("Error", "Please create CCS calibration before trying to save it.")
+
+        # get list of documents to which the calibration should be saved to
+        document_list = ENV.get_document_list(document_format=DOCUMENT_WATERS_FILE_FORMATS)
+        if not document_list:
+            raise MessageError("Error", "List od documents was empty - cannot save calibration data")
+
+        # allow the user to make selection
+        dlg = wx.MultiChoiceDialog(
+            self, "Please select documents where the calibration data should be saved to", "Documents", document_list
+        )
+        if dlg.ShowModal() == wx.ID_CANCEL:
+            LOGGER.debug("Saving of calibration was cancelled")
+            return
 
         # get name under which the calibration data should be loaded
         calibration_name = DialogSimpleAsk(
@@ -805,31 +959,33 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
             LOGGER.debug("Saving of calibration was cancelled")
             return
 
-        document_list = ENV.get_document_list(document_format=DOCUMENT_WATERS_FILE_FORMATS)
-        if not document_list:
-            LOGGER.debug("List od documents was empty - cannot save calibration data")
-            return
-
-        dlg = wx.MultiChoiceDialog(
-            self, "Please select documents where the calibration data should be saved to", "Documents", document_list
-        )
-        if dlg.ShowModal() == wx.ID_CANCEL:
-            LOGGER.debug("Saving of calibration was cancelled")
-            return
-
         indices = dlg.GetSelections()
         document_titles = [document_list[idx] for idx in indices]
         dlg.Destroy()
 
-        # get list of documents to which the calibration should be saved to
         for document_title in document_titles:
-            document = ENV.on_get_document(document_title)
-            self._ccs_obj.export_calibration(document, calibration_name)
-            LOGGER.debug(f"Saved calibration `{calibration_name}` to `{document_title}` document.")
+            self._on_save_calibration(document_title, calibration_name)
+        self.unsaved = False
+
+    def _on_save_calibration(self, document_title, calibration_name):
+        """Save calibration data in the document"""
+        document = ENV.on_get_document(document_title)
+        self._ccs_obj.export_calibration(document, calibration_name)
+        LOGGER.debug(f"Saved calibration `{calibration_name}` to `{document_title}` document.")
 
     def on_reset_calibration(self, _evt):
         """Reset calibration curve"""
-        self.on_show_fit(None)
+        if self._ccs_obj:
+            dlg = DialogBox(
+                "Are you sure?",
+                "Are you sure you want to reset current calibration object?",
+                kind="Question",
+                parent=self,
+            )
+            if dlg == wx.ID_NO:
+                return
+            self._ccs_obj = None
+            self.view_fit.clear()
         LOGGER.debug("Reset calibration data")
 
     def on_show_fit(self, ccs_obj):
@@ -843,6 +999,20 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
             slope, intercept, r2 = ccs_obj.fit_linear_slope
             self.view_fit.add_slope(ccs_obj.x, intercept, slope, label=f"R2={r2:.4f}", repaint=False)
             self.view_fit.show_legend(draggable=False)
+
+    @staticmethod
+    def _parse_evt(evt):
+        """Parse event"""
+        if evt is not None:
+            evt.Skip()
+
+    @staticmethod
+    def _parse_value(key: str, value: str):
+        """Parse value and convert to correct type"""
+        if key in ["charge"]:
+            return str2int(value)
+        else:
+            return str2num(value)
 
 
 def _main():

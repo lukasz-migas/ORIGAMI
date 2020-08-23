@@ -16,13 +16,12 @@ from origami.config.config import CONFIG
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
 from origami.gui_elements.mixins import DatasetMixin
+from origami.gui_elements.helpers import TableConfig
 from origami.gui_elements.helpers import set_tooltip
 from origami.gui_elements.panel_base import TableMixin
 from origami.gui_elements.popup_view import PopupMobilogramView
 from origami.gui_elements.views.view_heatmap import ViewImagingIonHeatmap
 from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
-
-# from origami.gui_elements.views.view_register import VIEW_REG
 
 # Module globals
 LOGGER = logging.getLogger(__name__)
@@ -41,46 +40,12 @@ class TableColumnIndex(IntEnum):
 class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
     """LESA viewer and editor"""
 
-    TABLE_DICT = {
-        0: {
-            "name": "",
-            "tag": "check",
-            "type": "bool",
-            "show": True,
-            "width": 20,
-            "order": 0,
-            "id": wx.NewIdRef(),
-            "hidden": True,
-        },
-        1: {
-            "name": "ion name",
-            "tag": "ion_name",
-            "type": "str",
-            "show": True,
-            "width": 120,
-            "order": 1,
-            "id": wx.NewIdRef(),
-        },
-        2: {
-            "name": "color",
-            "tag": "color",
-            "type": "color",
-            "show": True,
-            "width": 80,
-            "order": 2,
-            "id": wx.NewIdRef(),
-        },
-        3: {
-            "name": "colormap",
-            "tag": "colormap",
-            "type": "str",
-            "show": True,
-            "width": 80,
-            "order": 3,
-            "id": wx.NewIdRef(),
-        },
-        4: {"name": "label", "tag": "label", "type": "str", "show": True, "width": 70, "order": 4, "id": wx.NewIdRef()},
-    }
+    TABLE_DICT = TableConfig()
+    TABLE_DICT.add("", "check", "bool", 25, hidden=True)
+    TABLE_DICT.add("ion name", "ion_name", "str", 120)
+    TABLE_DICT.add("color", "color", "color", 80)
+    TABLE_DICT.add("colormap", "colormap", "str", 80)
+    TABLE_DICT.add("label", "label", "str", 70)
     TABLE_COLUMN_INDEX = TableColumnIndex
     USE_COLOR = True
     HELP_LINK = r"https://origami.lukasz-migas.com/"

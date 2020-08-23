@@ -62,12 +62,13 @@ nav:
 
 theme:
   name: material
+
   features:
     - tabs
     - instant
   language: 'en'
-#  include_sidebar: true
   palette:
+    scheme: slate
     primary: 'blue grey'
     accent: 'teal'
 

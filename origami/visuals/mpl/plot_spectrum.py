@@ -408,8 +408,11 @@ class PlotSpectrum(PlotBase):
         size=20,
         y_lower_start=0,
         y_upper_multiplier=1.1,
+        y_lower_multiplier=1,
         x_pad=0,
-        y_pad=-0,
+        y_pad=0,
+        x_axis_formatter: bool = False,
+        y_axis_formatter: bool = True,
         **kwargs,
     ):
         """Standard 1d plot
@@ -428,7 +431,7 @@ class PlotSpectrum(PlotBase):
         self._set_axes()
 
         xlimits, ylimits, extent = self._compute_xy_limits(
-            x, y, y_lower_start, y_upper_multiplier, x_pad=x_pad, y_pad=y_pad
+            x, y, y_lower_start, y_upper_multiplier, x_pad=x_pad, y_pad=y_pad, y_lower_multiplier=y_lower_multiplier
         )
 
         self.plot_base.scatter(
@@ -444,9 +447,10 @@ class PlotSpectrum(PlotBase):
         )
 
         # setup axis formatters
-        self.plot_base.yaxis.set_major_formatter(get_intensity_formatter())
-        if kwargs.get("x_axis_formatter", False):
+        if x_axis_formatter:
             self.plot_base.xaxis.set_major_formatter(get_intensity_formatter())
+        if y_axis_formatter:
+            self.plot_base.yaxis.set_major_formatter(get_intensity_formatter())
         self.plot_base.set_xlim(xlimits)
         self.plot_base.set_ylim(ylimits)
         self.set_plot_xlabel(x_label, **kwargs)

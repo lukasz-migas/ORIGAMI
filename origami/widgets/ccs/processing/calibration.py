@@ -8,6 +8,7 @@ from scipy.stats import linregress
 
 # Local imports
 from origami.objects.document import DocumentStore
+from origami.widgets.ccs.processing.containers import CCS_TABLE_COLUMNS
 from origami.widgets.ccs.processing.containers import CalibrationIndex
 from origami.widgets.ccs.processing.containers import CCSCalibrationObject
 
@@ -17,8 +18,9 @@ LOGGER = logging.getLogger(__name__)
 class CCSCalibrationProcessor:
     """CCS calibration processor"""
 
-    def __init__(self, metadata):
+    def __init__(self, metadata, extra_data):
         self.metadata = metadata
+        self.extra_data = extra_data
 
         self._calibration = None
         self._fit_linear = None
@@ -63,7 +65,9 @@ class CCSCalibrationProcessor:
     def ccs_obj(self):
         """Return r2 of the log fit"""
         if self._ccs_obj is None and self.calibration is not None:
-            self._ccs_obj = CCSCalibrationObject(self.calibration)
+            self._ccs_obj = CCSCalibrationObject(
+                self.calibration, metadata={"calibrants": self.metadata, "column_names": CCS_TABLE_COLUMNS}
+            )
         return self._ccs_obj
 
     @staticmethod
@@ -128,23 +132,25 @@ class CCSCalibrationProcessor:
         self._fitted = True
         return self.ccs_obj
 
-    def export_calibration(self, document: DocumentStore, name):
+    def export_calibration(self, document: DocumentStore, name: str):
         """Export CCS calibration to the metadata store"""
         # get calibration data
         if not self._fitted:
             raise ValueError("Cannot export data since CCS calibration has not been fitted yet")
 
-        calibration = self.calibration
-        metadata = self.metadata
+        ccs_obj = self.ccs_obj
+        extra_data = self.extra_data
 
-        if not isinstance(calibration, np.ndarray):
-            raise ValueError("Calibration array should be an array")
-        if not isinstance(metadata, list):
-            raise ValueError("Metadata should be a list of parameters that can help recreate the CCS calibration")
+        if not isinstance(ccs_obj, CCSCalibrationObject):
+            raise ValueError("Calibration array should be a `CCSCalibrationObject`")
         if not isinstance(document, DocumentStore):
             raise ValueError("Cannot export calibration data because the document is not present.")
 
-        document.add_metadata(
-            f"CCS_calibration={name}", data=dict(calibration=calibration), attrs=dict(name=name, calibrants=metadata)
-        )
+        ccs_obj = document.add_ccs_calibration(name, ccs_obj)
+
+        # export extra data
+        if isinstance(extra_data, dict):
+            for title, data_obj in extra_data.items():
+                ccs_obj.add_group(title, *data_obj.to_zarr())
+
         LOGGER.debug(f"Added calibration={name} to {document.title}")

@@ -15,6 +15,7 @@ from origami.config.environment import ENV
 from origami.objects.containers import IonHeatmapObject
 from origami.objects.containers import MassSpectrumObject
 from origami.objects.containers import MassSpectrumHeatmapObject
+from origami.gui_elements.helpers import TableConfig
 from origami.gui_elements.helpers import set_tooltip
 from origami.gui_elements.helpers import set_item_font
 from origami.gui_elements.helpers import make_bitmap_btn
@@ -177,11 +178,10 @@ class DialogReviewEditorBase(Dialog, TableMixin):
 class DialogReviewEditorOverlay(DialogReviewEditorBase):
     """Dialog enabling review of items from the overlay panel"""
 
-    TABLE_DICT = {
-        0: dict(name="", tag="check", type="bool", width=25, show=True, order=0, id=wx.NewIdRef(), hidden=True),
-        1: dict(name="visualisation", tag="type", type="str", width=150, show=True, order=1, id=wx.NewIdRef()),
-        2: dict(name="name", tag="name", type="str", width=600, show=True, order=2, id=wx.NewIdRef()),
-    }
+    TABLE_DICT = TableConfig()
+    TABLE_DICT.add("", "check", "bool", 25, hidden=True)
+    TABLE_DICT.add("visualisation", "type", "str", 150)
+    TABLE_DICT.add("name", "name", "str", 600)
 
     def __init__(self, parent, item_list):
         super().__init__(parent, item_list)
@@ -190,11 +190,10 @@ class DialogReviewEditorOverlay(DialogReviewEditorBase):
 class DialogReviewEditorExtract(DialogReviewEditorBase):
     """Dialog enabling review of items from the overlay panel"""
 
-    TABLE_DICT = {
-        0: dict(name="", tag="check", type="bool", width=25, show=True, order=0, id=wx.NewIdRef(), hidden=True),
-        1: dict(name="type", tag="type", type="str", width=150, show=True, order=1, id=wx.NewIdRef()),
-        2: dict(name="name", tag="name", type="str", width=550, show=True, order=2, id=wx.NewIdRef()),
-    }
+    TABLE_DICT = TableConfig()
+    TABLE_DICT.add("", "check", "bool", 25, hidden=True)
+    TABLE_DICT.add("type", "type", "str", 150)
+    TABLE_DICT.add("name", "name", "str", 550)
 
     def __init__(self, parent, item_list):
         super().__init__(parent, item_list)
@@ -206,11 +205,11 @@ class DialogReviewProcessHeatmap(DialogReviewEditorBase):
     # ui elements
     process_btn = None
 
-    TABLE_DICT = {
-        0: dict(name="", tag="check", type="bool", width=25, show=True, order=0, id=wx.NewIdRef(), hidden=True),
-        1: dict(name="type", tag="type", type="str", width=100, show=True, order=1, id=wx.NewIdRef()),
-        2: dict(name="name", tag="name", type="str", width=550, show=True, order=2, id=wx.NewIdRef()),
-    }
+    TABLE_DICT = TableConfig()
+    TABLE_DICT.add("", "check", "bool", 25, hidden=True)
+    TABLE_DICT.add("type", "type", "str", 100)
+    TABLE_DICT.add("name", "name", "str", 550)
+
     REVIEW_MSG = "Please select item(s) that you would like to process and add to the document"
 
     def __init__(self, parent, item_list, document_tree=None, document_title: str = None):
@@ -291,11 +290,11 @@ class DialogReviewProcessSpectrum(DialogReviewEditorBase):
     # ui elements
     process_btn = None
 
-    TABLE_DICT = {
-        0: dict(name="", tag="check", type="bool", width=25, show=True, order=0, id=wx.NewIdRef(), hidden=True),
-        1: dict(name="type", tag="type", type="str", width=100, show=True, order=1, id=wx.NewIdRef()),
-        2: dict(name="name", tag="name", type="str", width=550, show=True, order=2, id=wx.NewIdRef()),
-    }
+    TABLE_DICT = TableConfig()
+    TABLE_DICT.add("", "check", "bool", 25, hidden=True)
+    TABLE_DICT.add("type", "type", "str", 100)
+    TABLE_DICT.add("name", "name", "str", 550)
+
     REVIEW_MSG = "Please select item(s) that you would like to process and add to the document"
 
     def __init__(self, parent, item_list, document_tree=None, document_title: str = None):
@@ -377,11 +376,11 @@ class DialogReviewApplyOrigamiMs(DialogReviewEditorBase):
     # ui elements
     process_btn = None
 
-    TABLE_DICT = {
-        0: dict(name="", tag="check", type="bool", width=25, show=True, order=0, id=wx.NewIdRef(), hidden=True),
-        1: dict(name="type", tag="type", type="str", width=100, show=True, order=1, id=wx.NewIdRef()),
-        2: dict(name="name", tag="name", type="str", width=550, show=True, order=2, id=wx.NewIdRef()),
-    }
+    TABLE_DICT = TableConfig()
+    TABLE_DICT.add("", "check", "bool", 25, hidden=True)
+    TABLE_DICT.add("type", "type", "str", 100)
+    TABLE_DICT.add("name", "name", "str", 550)
+
     REVIEW_MSG = "Please select item(s) that you would like to apply ORIGAMI-MS settings to."
 
     def __init__(self, parent, item_list, document_tree=None, document_title: str = None):
@@ -452,11 +451,11 @@ class DialogReviewApplyOrigamiMs(DialogReviewEditorBase):
 class DialogReviewExportFigures(DialogReviewEditorBase):
     """Dialog enabling review of items from the overlay panel"""
 
-    TABLE_DICT = {
-        0: dict(name="", tag="check", type="bool", width=25, show=True, order=0, id=wx.NewIdRef(), hidden=True),
-        1: dict(name="type", tag="type", type="str", width=100, show=True, order=1, id=wx.NewIdRef()),
-        2: dict(name="name", tag="name", type="str", width=550, show=True, order=2, id=wx.NewIdRef()),
-    }
+    TABLE_DICT = TableConfig()
+    TABLE_DICT.add("", "check", "bool", 25, hidden=True)
+    TABLE_DICT.add("type", "type", "str", 100)
+    TABLE_DICT.add("name", "name", "str", 550)
+
     REVIEW_MSG = "Please select item(s) that you would like export as figures"
 
     def __init__(self, parent, item_list, document_tree=None):
@@ -484,11 +483,11 @@ class DialogReviewExportFigures(DialogReviewEditorBase):
 class DialogReviewExportData(DialogReviewEditorBase):
     """Dialog enabling review of items from the overlay panel"""
 
-    TABLE_DICT = {
-        0: dict(name="", tag="check", type="bool", width=25, show=True, order=0, id=wx.NewIdRef(), hidden=True),
-        1: dict(name="type", tag="type", type="str", width=100, show=True, order=1, id=wx.NewIdRef()),
-        2: dict(name="name", tag="name", type="str", width=550, show=True, order=2, id=wx.NewIdRef()),
-    }
+    TABLE_DICT = TableConfig()
+    TABLE_DICT.add("", "check", "bool", 25, hidden=True)
+    TABLE_DICT.add("type", "type", "str", 100)
+    TABLE_DICT.add("name", "name", "str", 550)
+
     REVIEW_MSG = "Please select item(s) that you would like export in a text format"
 
     def __init__(self, parent, item_list, document_tree=None):

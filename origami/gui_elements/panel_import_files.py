@@ -11,7 +11,6 @@ import wx
 from pubsub import pub
 
 # Local imports
-# from origami.styles import make_menu_item
 from origami.styles import MiniFrame
 from origami.icons.assets import Icons
 from origami.objects.misc import FileItem
@@ -20,6 +19,7 @@ from origami.utils.converters import str2num
 from origami.utils.decorators import signal_blocker
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
+from origami.gui_elements.helpers import TableConfig
 from origami.gui_elements.helpers import set_tooltip
 from origami.gui_elements.helpers import set_item_font
 from origami.gui_elements.helpers import make_menu_item
@@ -46,76 +46,18 @@ class TableColumnIndex(IntEnum):
 class PanelImportManagerBase(MiniFrame, TableMixin):
     """Generic file manager"""
 
-    TABLE_DICT = {
-        0: {"name": "", "tag": "check", "type": "bool", "order": 0, "id": wx.NewIdRef(), "show": True, "width": 20},
-        1: {
-            "name": "filename",
-            "tag": "filename",
-            "type": "str",
-            "order": 1,
-            "id": wx.NewIdRef(),
-            "show": True,
-            "width": 100,
-        },
-        2: {"name": "path", "tag": "path", "type": "str", "order": 2, "id": wx.NewIdRef(), "show": True, "width": 220},
-        3: {
-            "name": "variable",
-            "tag": "variable",
-            "type": "float",
-            "order": 3,
-            "id": wx.NewIdRef(),
-            "show": True,
-            "width": 80,
-        },
-        4: {
-            "name": "m/z range",
-            "tag": "mz_range",
-            "type": "str",
-            "order": 4,
-            "id": wx.NewIdRef(),
-            "show": True,
-            "width": 80,
-        },
-        5: {
-            "name": "# scans",
-            "tag": "n_scans",
-            "type": "str",
-            "order": 5,
-            "id": wx.NewIdRef(),
-            "show": True,
-            "width": 55,
-        },
-        6: {
-            "name": "scan range",
-            "tag": "scan_range",
-            "type": "str",
-            "order": 6,
-            "id": wx.NewIdRef(),
-            "show": True,
-            "width": 80,
-        },
-        7: {
-            "name": "IM",
-            "tag": "ion_mobility",
-            "type": "str",
-            "order": 7,
-            "id": wx.NewIdRef(),
-            "show": True,
-            "width": 40,
-        },
-        8: {
-            "name": "document",
-            "tag": "document",
-            "type": "str",
-            "order": 8,
-            "id": wx.NewIdRef(),
-            "show": True,
-            "width": 100,
-        },
-    }
+    TABLE_DICT = TableConfig()
+    TABLE_DICT.add("", "check", "bool", 25, hidden=True)
+    TABLE_DICT.add("filename", "filename", "str", 100)
+    TABLE_DICT.add("path", "path", "path", 220)
+    TABLE_DICT.add("variable", "variable", "float", 80)
+    TABLE_DICT.add("m/z range", "mz_range", "str", 80)
+    TABLE_DICT.add("# scans", "n_scans", "str", 55)
+    TABLE_DICT.add("scan range", "scan_range", "str", 80)
+    TABLE_DICT.add("IM", "ion_mobility", "str", 40)
+    TABLE_DICT.add("document", "document", "str", 100)
     TABLE_COLUMN_INDEX = TableColumnIndex
     TABLE_STYLE = wx.LC_REPORT | wx.LC_VRULES | wx.LC_HRULES | wx.LC_SINGLE_SEL
-    TABLE_ALLOWED_EDIT = [TABLE_COLUMN_INDEX.variable]
 
     HELP_MD = """## Table controls
 
@@ -248,7 +190,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
             pub.unsubscribe(self.on_update_info, self.PUB_SUBSCRIBE_EVENT)
         if self.PUB_IN_PROGRESS_EVENT:
             pub.unsubscribe(self.on_progress, self.PUB_IN_PROGRESS_EVENT)
-        self.Destroy()
+        super(PanelImportManagerBase, self).on_close(evt, force)
 
     def subscribe(self):
         """Initialize PubSub subscribers"""

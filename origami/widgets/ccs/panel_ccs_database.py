@@ -1,5 +1,6 @@
 """Calibration database"""
 # Standard library imports
+import os
 import time
 import logging
 from enum import IntEnum
@@ -13,11 +14,13 @@ from pubsub import pub
 from origami.styles import MiniFrame
 from origami.styles import Validator
 from origami.utils.secret import get_short_hash
+from origami.config.config import CONFIG
 from origami.utils.utilities import report_time
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
 from origami.gui_elements.helpers import TableConfig
 from origami.gui_elements.helpers import set_tooltip
+from origami.gui_elements.helpers import make_checkbox
 from origami.gui_elements.helpers import make_menu_item
 from origami.gui_elements.helpers import make_bitmap_btn
 from origami.gui_elements.panel_base import TableMixin
@@ -78,13 +81,14 @@ class PanelCCSDatabase(MiniFrame, TableMixin):
     # ui elements
     calibrant_value, mw_value, charge_value, he_pos_ccs_value, he_neg_ccs_value = None, None, None, None, None
     n2_pos_ccs_value, n2_neg_ccs_value, state_value, add_btn, load_btn = None, None, None, None, None
-    save_btn, source_value, mz_value, clear_btn = None, None, None, None
+    save_btn, source_value, mz_value, clear_btn, auto_load_check = None, None, None, None, None
 
-    def __init__(self, parent, hide_on_close: bool = False, debug: bool = False):
+    def __init__(self, parent, icons=None, hide_on_close: bool = False, debug: bool = False):
         """Initialize panel"""
         MiniFrame.__init__(self, parent, title="CCS Database...", style=wx.DEFAULT_FRAME_STYLE)
         t_start = time.time()
         self.parent = parent
+        self._icons = icons
 
         # initialize gui
         self.make_gui()
@@ -102,13 +106,13 @@ class PanelCCSDatabase(MiniFrame, TableMixin):
 
         # bind events
         self.Bind(wx.EVT_CLOSE, self.on_close)
-        LOGGER.debug(f"Started-up CCS Database panel in {report_time(t_start)}")
 
         self.CenterOnParent()
         self.SetFocus()
         self.SetSize((1050, 500))
 
         self.setup()
+        LOGGER.debug(f"Started-up CCS Database panel in {report_time(t_start)}")
 
     def setup(self):
         """Setup widget"""
@@ -124,6 +128,9 @@ class PanelCCSDatabase(MiniFrame, TableMixin):
             self.state_value: TableColumnIndex.state,
             self.source_value: TableColumnIndex.source,
         }
+
+        if CONFIG.ccs_database_panel_load_at_start:
+            self._on_load_calibrants(CONFIG.ccs_database_panel_default_db_path)
 
     def on_close(self, evt, force: bool = False):
         """Close window"""
@@ -242,17 +249,38 @@ class PanelCCSDatabase(MiniFrame, TableMixin):
         self.clear_btn.Bind(wx.EVT_BUTTON, self.on_clear_calibrant)
         set_tooltip(self.clear_btn, "Clear calibrant information from the fields above")
 
-        self.load_btn = make_bitmap_btn(
-            panel, -1, wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_BUTTON, wx.Size(16, 16))
-        )
+        #         icon = wx.ArtProvider.GetBitmap(wx.ART_PLUS, wx.ART_BUTTON, wx.Size(16, 16))
+        #         if self._icons:
+        #             icon = self._icons.add
+        #         self.add_btn = make_bitmap_btn(panel, -1, icon)
+        #         self.add_btn.Bind(wx.EVT_BUTTON, self.on_add_calibrant)
+        #         set_tooltip(self.add_btn, "Add calibrant to the table")
+        #
+        #         # buttons
+        #         icon = wx.ArtProvider.GetBitmap(wx.ART_DELETE, wx.ART_BUTTON, wx.Size(16, 16))
+        #         if self._icons:
+        #             icon = self._icons.clear
+        #         self.clear_btn = make_bitmap_btn(panel, -1, icon)
+        #         self.clear_btn.Bind(wx.EVT_BUTTON, self.on_clear_calibrant)
+        #         set_tooltip(self.clear_btn, "Clear calibrant information from the fields above")
+
+        icon = wx.ArtProvider.GetBitmap(wx.ART_FILE_OPEN, wx.ART_BUTTON, wx.Size(16, 16))
+        if self._icons:
+            icon = self._icons.folder
+        self.load_btn = make_bitmap_btn(panel, -1, icon)
         self.load_btn.Bind(wx.EVT_BUTTON, self.on_load_calibrants)
         set_tooltip(self.load_btn, "Load calibration data from configuration file")
 
-        self.save_btn = make_bitmap_btn(
-            panel, -1, wx.ArtProvider.GetBitmap(wx.ART_FILE_SAVE, wx.ART_BUTTON, wx.Size(16, 16))
-        )
+        icon = wx.ArtProvider.GetBitmap(wx.ART_FILE_SAVE, wx.ART_BUTTON, wx.Size(16, 16))
+        if self._icons:
+            icon = self._icons.save
+        self.save_btn = make_bitmap_btn(panel, -1, icon)
         self.save_btn.Bind(wx.EVT_BUTTON, self.on_save_calibrants)
         set_tooltip(self.save_btn, "Export calibration data to configuration file")
+
+        self.auto_load_check = make_checkbox(panel, "Load default database at start-up")
+        self.auto_load_check.SetValue(CONFIG.ccs_database_panel_load_at_start)
+        self.auto_load_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         btn_sizer = wx.BoxSizer()
         btn_sizer.Add(self.add_btn)
@@ -267,6 +295,7 @@ class PanelCCSDatabase(MiniFrame, TableMixin):
         side_sizer = wx.BoxSizer(wx.VERTICAL)
         side_sizer.Add(grid, 1, wx.EXPAND | wx.ALL, 3)
         side_sizer.Add(btn_sizer, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 3)
+        side_sizer.Add(self.auto_load_check, 0, wx.ALIGN_LEFT)
         side_sizer.Add(info_sizer, 0, wx.EXPAND)
 
         # main sizer
@@ -280,6 +309,13 @@ class PanelCCSDatabase(MiniFrame, TableMixin):
         panel.Layout()
 
         return panel
+
+    def on_apply(self, evt):
+        """Update config"""
+        CONFIG.ccs_database_panel_load_at_start = self.auto_load_check.GetValue()
+
+        if evt is not None:
+            evt.Skip()
 
     def on_add_calibrant(self, _evt):
         """Add new calibrant to the table and config file"""
@@ -337,13 +373,13 @@ class PanelCCSDatabase(MiniFrame, TableMixin):
             matches.append(item_info[key] == _item_info[key])
         return all(matches)
 
-    def on_edit_calibrant(self, _evt):
+    def on_edit_calibrant(self, evt):
         """Edit calibrant that is already in the table"""
         # in certain circumstances, it is better not to update the table
         if self._disable_table_update:
             return
         # get ui object that created this event
-        obj = _evt.GetEventObject()
+        obj = evt.GetEventObject()
 
         # get current item in the table that is being edited
         item_id = self.on_find_item("name", self._current_item)
@@ -381,7 +417,12 @@ class PanelCCSDatabase(MiniFrame, TableMixin):
             path = dlg.GetPath()
         dlg.Destroy()
 
-        if path is None:
+        self._on_load_calibrants(path)
+
+    def _on_load_calibrants(self, path: str):
+        """Load calibrants from configuration file"""
+        if path is None or not os.path.exists(path):
+            LOGGER.warning("Could not load calibration data - does the file exist?")
             return
 
         calibration_dict = CCS_HANDLER.read_calibration_db(path)

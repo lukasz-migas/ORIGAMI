@@ -167,7 +167,6 @@ class DataObject(ContainerBase):
 
     def get_annotations(self):
         """Returns instance of the `Annotations` object"""
-
         annotations = self._metadata.get("annotations", dict())
         return Annotations(annotations)
 

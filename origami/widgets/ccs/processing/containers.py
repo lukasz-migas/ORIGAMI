@@ -2,9 +2,11 @@
 # Third-party imports
 import numpy as np
 from scipy.stats import linregress
+from zarr.hierarchy import Group
 
 # Local imports
 from origami.objects.containers import DataObject
+from origami.objects.containers.utilities import get_fmt
 
 
 class CalibrationIndex:
@@ -23,6 +25,9 @@ class CalibrationIndex:
     tDdd = 10
 
 
+CCS_TABLE_COLUMNS = ["m/z", "MW", "charge", "tD", "CCS", "red_mass", "tDd", "CCSd", "lntDd", "lnCCSd", "tDdd"]
+
+
 class CCSCalibrationObject(DataObject):
     """CCS calibration object"""
 
@@ -39,6 +44,7 @@ class CCSCalibrationObject(DataObject):
         self._array = array
         x = array[:, CalibrationIndex.tDd]
         y = array[:, CalibrationIndex.CCSd]
+
         super().__init__(
             name,
             x,
@@ -93,14 +99,67 @@ class CCSCalibrationObject(DataObject):
         fit = self.fit_log
         return fit[0], fit[1], fit[2] ** 2
 
-    def to_csv(self, *args, **kwargs):
-        pass
+    @property
+    def column_names(self):
+        """Returns list of column names"""
+        if "column_names" in self._metadata:
+            return self._metadata["column_names"]
+        return CCS_TABLE_COLUMNS
+
+    @property
+    def calibrants(self):
+        """Returns all metadata and data about each of the calibrants used to create the calibration curve"""
+        calibrants = self._metadata.get("calibrants")
+        parent = self.get_parent()
+
+        # load data
+        if isinstance(calibrants, list) and parent:
+            for calibrant in calibrants:
+                name = calibrant["name"]
+                calibrant["dt_obj"] = parent[f"{self.title}/{name}", True]
+
+        return calibrants
+
+    def to_csv(self, path, *args, **kwargs):
+        """Save data to csv file format"""
+        array = self.array
+        # get metadata
+        delimiter = kwargs.get("delimiter", ",")
+
+        fmt = get_fmt(array, get_largest=True)
+        labels = self.column_names
+        header = f"{delimiter}".join(labels)
+        np.savetxt(path, array, delimiter=delimiter, fmt=fmt, header=header)  # noqa
 
     def to_dict(self):
-        pass
+        """Export data in a dictionary format"""
+        return {
+            "x": self.x,
+            "y": self.y,
+            "array": self.array,
+            "x_label": self.x_label,
+            "y_label": self.y_label,
+            **self._metadata,
+            **self._extra_data,
+        }
 
     def to_zarr(self):
-        pass
+        """Outputs data to dictionary of `data` and `attributes`"""
+        data = {**self._extra_data, "x": self.x, "y": self.y, "array": self.array}
+        attrs = {**self._metadata, "class": self._cls, "x_label": self.x_label, "y_label": self.y_label}
+        return data, attrs
 
     def check(self):
-        pass
+        """Checks whether the provided data has the same size and shape"""
+        if len(self._array.shape) != 2:
+            raise ValueError("`array` must have two dimensions")
+        if not isinstance(self._metadata, dict):
+            self._metadata = dict()
+
+
+def ccs_calibration_object(group: Group) -> DataObject:
+    """Instantiate CCS calibration group saved in zarr format"""
+    metadata = group.attrs.asdict()
+    obj = CCSCalibrationObject(group["array"][:], **group.attrs.asdict())
+    obj.set_metadata(metadata)
+    return obj

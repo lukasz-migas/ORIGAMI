@@ -1195,6 +1195,10 @@ class Config:
         self.msdt_panel_extract_mz_end = 5000
         self.msdt_panel_extract_mz_bin_size = 0.1
 
+        # CCS database panel
+        self.ccs_database_panel_load_at_start = True
+        self.ccs_database_panel_default_db_path = os.path.join(CWD, "data", "ccs_calibrants.csv")
+
         # Process 2D
         self.heatmap_crop = False  # new in v1.3.0.0
         self.heatmap_crop_xmin = 0  # new in v1.3.0.0
@@ -2288,6 +2292,7 @@ class Config:
                 "panel_process_ms",
                 "panel_plot",
                 "panel_unidec",
+                "panel_ccs_database",
             ]
 
         config = dict()
@@ -2388,6 +2393,13 @@ class Config:
                         "msdt_panel_extract_mz_start": self.msdt_panel_extract_mz_start,
                         "msdt_panel_extract_mz_end": self.msdt_panel_extract_mz_end,
                         "msdt_panel_extract_mz_bin_size": self.msdt_panel_extract_mz_bin_size,
+                    }
+                )
+            if _config_key == "panel_ccs_database":
+                config.update(
+                    {
+                        "ccs_database_panel_load_at_start": self.ccs_database_panel_load_at_start,
+                        "ccs_database_panel_default_db_path": self.ccs_database_panel_default_db_path,
                     }
                 )
             if _config_key == "panel_document_tree":

@@ -20,7 +20,9 @@ class ViewCCSFit(ViewSpectrum):
     FORCED_KWARGS = {
         "spectrum_line_fill_under": False,
         "y_lower_start": None,
-        "y_upper_multiplier": 1,
+        "y_upper_multiplier": 1.02,
+        "y_axis_formatter": False,
+        "y_lower_multiplier": 0.98,
         "x_pad": 1,
         "y_pad": 1,
         "axes_tick_font_size": 12,

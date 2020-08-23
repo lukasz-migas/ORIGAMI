@@ -1,6 +1,5 @@
 """CCS handler"""
 # Standard library imports
-# import pandas as pd
 import logging
 
 # Third-party imports

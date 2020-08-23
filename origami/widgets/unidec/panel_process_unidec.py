@@ -12,6 +12,7 @@ from pubsub.core import TopicNameError
 # Local imports
 from origami.styles import MiniFrame
 from origami.styles import Validator
+from origami.utils.system import running_under_pytest
 from origami.config.config import CONFIG
 from origami.utils.utilities import report_time
 from origami.utils.converters import str2int
@@ -40,7 +41,6 @@ from origami.gui_elements.views.view_register import VIEW_REG
 from origami.widgets.unidec.processing.utilities import unidec_sort_mw_list
 from origami.widgets.unidec.processing.utilities import calculate_charge_positions
 from origami.widgets.unidec.processing.containers import UniDecResultsObject
-from origami.utils.system import running_under_pytest
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +51,7 @@ BTN_SIZE = (100, -1)
 # TODO: Add display difference and FWHM
 # TODO: fix heatmap issues
 # TODO: add action button where you can perform several handy actions
+# TODO: fix plotting style issues
 
 
 class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
@@ -183,7 +184,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
 
     def on_close(self, evt, force: bool = False):
         """Close window"""
-        if self.unsaved is not None and not force and not self._debug:
+        if self.unsaved and not force and not self._debug:
             dlg = DialogBox(
                 title="Would you like to continue?",
                 msg="There are unsaved changes in this window. Continuing might lead to loss of the deconvolution data."

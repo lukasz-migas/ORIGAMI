@@ -9,6 +9,7 @@ import wx
 # Local imports
 from origami.icons.assets import Icons
 from origami.icons.assets import Colormaps
+from origami.utils.system import running_under_pytest
 from origami.config.config import CONFIG
 from origami.utils.utilities import report_time
 from origami.gui_elements.mixins import DocumentationMixin
@@ -168,27 +169,22 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin):
         # general
         self._panel_general = PanelGeneralSettings(self.main_book, self.view)
         self.main_book.AddPage(self._panel_general, "General")
-        self._panel_general.SetupScrolling()
 
         # plot 1D
         self._panel_1d = Panel1dSettings(self.main_book, self.view)
         self.main_book.AddPage(self._panel_1d, "Plot 1D")
-        self._panel_1d.SetupScrolling()
 
         # plot 2D
         self._panel_2d = Panel2dSettings(self.main_book, self.view)
         self.main_book.AddPage(self._panel_2d, "Plot 2D")
-        self._panel_2d.SetupScrolling()
 
         # plot 3D
         self._panel_3d = Panel3dSettings(self.main_book, self.view)
         self.main_book.AddPage(self._panel_3d, "Plot 3D")
-        self._panel_3d.SetupScrolling()
 
         # colorbar
         self._panel_colorbar = PanelColorbarSettings(self.main_book, self.view)
         self.main_book.AddPage(self._panel_colorbar, "Colorbar")
-        self._panel_colorbar.SetupScrolling()
 
         # legend
         self._panel_legend = PanelLegendSettings(self.main_book, self.view)
@@ -197,27 +193,35 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin):
         # rmsd
         self._panel_rmsd = PanelRMSDSettings(self.main_book, self.view)
         self.main_book.AddPage(self._panel_rmsd, "RMSD")
-        self._panel_rmsd.SetupScrolling()
 
         # waterfall
         self._panel_waterfall = PanelWaterfallSettings(self.main_book, self.view)
         self.main_book.AddPage(self._panel_waterfall, "Waterfall")
-        self._panel_waterfall.SetupScrolling()
 
         # violin
         self._panel_violin = PanelViolinSettings(self.main_book, self.view)
         self.main_book.AddPage(self._panel_violin, "Violin")
-        self._panel_violin.SetupScrolling()
 
         # plot sizes
         self._panel_sizes = PanelSizesSettings(self.main_book, self.view)
         self.main_book.AddPage(self._panel_sizes, "Plot sizes")
-        self._panel_sizes.SetupScrolling()
 
         # ui behaviour
         self._panel_ui = PanelUISettings(self.main_book, self.view)
         self.main_book.AddPage(self._panel_ui, "UI behaviour")
-        self._panel_ui.SetupScrolling()
+
+        if not running_under_pytest():
+            self._panel_general.SetupScrolling()
+            self._panel_1d.SetupScrolling()
+            self._panel_2d.SetupScrolling()
+            self._panel_3d.SetupScrolling()
+            self._panel_colorbar.SetupScrolling()
+            self._panel_legend.SetupScrolling()
+            self._panel_rmsd.SetupScrolling()
+            self._panel_waterfall.SetupScrolling()
+            self._panel_violin.SetupScrolling()
+            self._panel_sizes.SetupScrolling()
+            self._panel_ui.SetupScrolling()
 
         # keep track of pages
         self.PAGES.extend(
