@@ -184,6 +184,7 @@ class DatasetMixin:
             pub.unsubscribe(self._evt_rename_item, self.PUB_RENAME_ITEM_EVENT)
         except TopicNameError:
             pass
+        LOGGER.debug("Toredown DatasetMixin")
 
     def _evt_rename_item(self, info):
         """Triggered when document or dataset is renamed"""
@@ -253,6 +254,8 @@ class ConfigUpdateMixin:
             pub.unsubscribe(self.on_set_config, self.PUB_CONFIG_LOAD_EVENT)
         except TopicNameError:
             pass
+
+        LOGGER.debug("Toredown ConfigUpdateMixin")
 
     def on_set_config(self):
         """Handle loading of new configuration file"""

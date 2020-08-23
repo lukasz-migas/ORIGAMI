@@ -748,9 +748,13 @@ class PlotBase(MPLPanel):
         else:
             self.patch.append(patch)
 
-    def plot_remove_patches(self, repaint: bool = True):
+    def plot_remove_patches(self, start_with: str = None, repaint: bool = True):
         """Remove patch fr-om the plot area"""
         for patch in self.patch:
+            if start_with is not None and hasattr(patch, "obj_name"):
+                if not self._check_startwith(patch, start_with):
+                    continue
+
             try:
                 patch.remove()
             except Exception:  # noqa

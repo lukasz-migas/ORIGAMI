@@ -160,9 +160,17 @@ class ViewMPLMixin:
             self.figure.plot_add_patch(_x, _y, _width, _height, label=_label, color=_color, pickable=pickable)
         self.figure.repaint(repaint)
 
-    def remove_patches(self, repaint: bool = True):
-        """Remove rectangular patches from the plot"""
-        self.figure.plot_remove_patches(False)
+    def remove_patches(self, start_with: str = None, repaint: bool = True):
+        """Remove rectangular patches from the plot
+
+        Parameters
+        ----------
+        start_with : str
+            name the desired object starts with
+        repaint : bool
+            flag to repaint (or not) the plot
+        """
+        self.figure.plot_remove_patches(start_with, False)
         self.figure.repaint(repaint)
 
     def add_arrows(self, arrow_values, name=None, repaint: bool = True):

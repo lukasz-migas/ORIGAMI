@@ -1,21 +1,27 @@
 """Calibration database"""
-from typing import List
-
-from origami.gui_elements.helpers import TableConfig, make_bitmap_btn, set_tooltip
-from origami.styles import MiniFrame, Validator
-from origami.gui_elements.panel_base import TableMixin
-from enum import IntEnum
+# Standard library imports
 import time
 import logging
-import wx
+from enum import IntEnum
+from typing import List
 
-from origami.utils.utilities import report_time
+# Third-party imports
+import wx
 from pubsub import pub
-from origami.widgets.ccs.ccs_handler import CCS_HANDLER
+
+# Local imports
+from origami.styles import MiniFrame
+from origami.styles import Validator
 from origami.utils.secret import get_short_hash
+from origami.utils.utilities import report_time
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
+from origami.gui_elements.helpers import TableConfig
+from origami.gui_elements.helpers import set_tooltip
 from origami.gui_elements.helpers import make_menu_item
+from origami.gui_elements.helpers import make_bitmap_btn
+from origami.gui_elements.panel_base import TableMixin
+from origami.widgets.ccs.ccs_handler import CCS_HANDLER
 
 LOGGER = logging.getLogger(__name__)
 
@@ -59,88 +65,8 @@ class PanelCCSDatabase(MiniFrame, TableMixin):
     TABLE_DICT.add("N2-", "n2_neg", "float", 60)
     TABLE_DICT.add("state", "state", "str", 60)
     TABLE_DICT.add("source", "source", "str", 60)
+    TABLE_DICT.add("name", "name", "str", 0, hidden=True)
 
-    # TABLE_DICT = {
-    #     0: {
-    #         "name": "",
-    #         "tag": "check",
-    #         "type": "bool",
-    #         "show": True,
-    #         "width": 25,
-    #         "order": 0,
-    #         "id": wx.NewIdRef(),
-    #         "hidden": True,
-    #     },
-    #     1: {
-    #         "name": "calibrant",
-    #         "tag": "calibrant",
-    #         "type": "str",
-    #         "show": True,
-    #         "width": 150,
-    #         "order": 1,
-    #         "id": wx.NewIdRef(),
-    #     },
-    #     2: {"name": "MW", "tag": "mw", "type": "float", "show": True, "width": 60, "order": 2, "id": wx.NewIdRef()},
-    #     3: {"name": "z", "tag": "charge", "type": "int", "show": True, "width": 50, "order": 3, "id": wx.NewIdRef()},
-    #     4: {"name": "m/z", "tag": "mz", "type": "float", "show": True, "width": 80, "order": 4, "id": wx.NewIdRef()},
-    #     5: {
-    #         "name": "He+",
-    #         "tag": "he_pos",
-    #         "type": "float",
-    #         "show": True,
-    #         "width": 60,
-    #         "order": 5,
-    #         "id": wx.NewIdRef(),
-    #     },
-    #     6: {
-    #         "name": "He-",
-    #         "tag": "he_neg",
-    #         "type": "float",
-    #         "show": True,
-    #         "width": 60,
-    #         "order": 6,
-    #         "id": wx.NewIdRef(),
-    #     },
-    #     7: {
-    #         "name": "N2+",
-    #         "tag": "n2_pos",
-    #         "type": "float",
-    #         "show": True,
-    #         "width": 60,
-    #         "order": 7,
-    #         "id": wx.NewIdRef(),
-    #     },
-    #     8: {
-    #         "name": "N2-",
-    #         "tag": "n2_neg",
-    #         "type": "float",
-    #         "show": True,
-    #         "width": 60,
-    #         "order": 8,
-    #         "id": wx.NewIdRef(),
-    #     },
-    #     9: {"name": "state", "tag": "state", "type": "str", "show": True, "width": 60, "order": 9,
-    #     "id": wx.NewIdRef()},
-    #     10: {
-    #         "name": "source",
-    #         "tag": "source",
-    #         "type": "str",
-    #         "show": True,
-    #         "width": 60,
-    #         "order": 10,
-    #         "id": wx.NewIdRef(),
-    #     },
-    #     11: {
-    #         "name": "name",
-    #         "tag": "name",
-    #         "type": "str",
-    #         "width": 0,
-    #         "show": False,
-    #         "order": 11,
-    #         "id": wx.NewIdRef(),
-    #         "hidden": True,
-    #     },
-    # }
     TABLE_COLUMN_INDEX = TableColumnIndex
     TABLE_WIDGET_DICT = dict()
     USE_COLOR = False
@@ -150,7 +76,7 @@ class PanelCCSDatabase(MiniFrame, TableMixin):
     TIMER_DELAY = 3000  # 3 seconds
 
     # ui elements
-    protein_value, mw_value, charge_value, he_pos_ccs_value, he_neg_ccs_value = None, None, None, None, None
+    calibrant_value, mw_value, charge_value, he_pos_ccs_value, he_neg_ccs_value = None, None, None, None, None
     n2_pos_ccs_value, n2_neg_ccs_value, state_value, add_btn, load_btn = None, None, None, None, None
     save_btn, source_value, mz_value, clear_btn = None, None, None, None
 
@@ -187,7 +113,7 @@ class PanelCCSDatabase(MiniFrame, TableMixin):
     def setup(self):
         """Setup widget"""
         self.TABLE_WIDGET_DICT = {
-            self.protein_value: TableColumnIndex.calibrant,
+            self.calibrant_value: TableColumnIndex.calibrant,
             self.mw_value: TableColumnIndex.mw,
             self.charge_value: TableColumnIndex.charge,
             self.mz_value: TableColumnIndex.mz,
@@ -211,13 +137,9 @@ class PanelCCSDatabase(MiniFrame, TableMixin):
         """Right-click menu in the table"""
         self.peaklist.item_id = evt.GetIndex()
         menu = wx.Menu()
-        menu_remove_calibrant = menu.AppendItem(
-            make_menu_item(parent=menu, evt_id=wx.ID_ANY, text="Remove item", bitmap=None)
-        )
+        menu_remove_calibrant = menu.AppendItem(make_menu_item(parent=menu, evt_id=wx.ID_ANY, text="Remove item"))
         menu.AppendSeparator()
-        menu_remove_selected = menu.AppendItem(
-            make_menu_item(parent=menu, evt_id=wx.ID_ANY, text="Remove selected", bitmap=None)
-        )
+        menu_remove_selected = menu.AppendItem(make_menu_item(parent=menu, evt_id=wx.ID_ANY, text="Remove selected"))
 
         # bind events
         self.Bind(wx.EVT_MENU, self.on_delete_item, menu_remove_calibrant)
@@ -238,9 +160,9 @@ class PanelCCSDatabase(MiniFrame, TableMixin):
         # statusbar
         info_sizer = self.make_statusbar(panel, "right")
 
-        protein_value = wx.StaticText(panel, -1, "Protein:")
-        self.protein_value = wx.TextCtrl(panel, -1, "")
-        self.protein_value.Bind(wx.EVT_TEXT, self.on_edit_calibrant)
+        calibrant_value = wx.StaticText(panel, -1, "Calibrant:")
+        self.calibrant_value = wx.TextCtrl(panel, -1, "")
+        self.calibrant_value.Bind(wx.EVT_TEXT, self.on_edit_calibrant)
 
         mw_value = wx.StaticText(panel, -1, "MW (Da):")
         self.mw_value = wx.TextCtrl(panel, -1, "", validator=Validator("floatPos"))
@@ -280,8 +202,8 @@ class PanelCCSDatabase(MiniFrame, TableMixin):
 
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(protein_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.protein_value, (n, 1), flag=wx.EXPAND)
+        grid.Add(calibrant_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.calibrant_value, (n, 1), flag=wx.EXPAND)
         n += 1
         grid.Add(mw_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.mw_value, (n, 1), flag=wx.EXPAND)
@@ -361,7 +283,7 @@ class PanelCCSDatabase(MiniFrame, TableMixin):
 
     def on_add_calibrant(self, _evt):
         """Add new calibrant to the table and config file"""
-        calibrant = self.protein_value.GetValue()
+        calibrant = self.calibrant_value.GetValue()
         mw = str2num(self.mw_value.GetValue())
         charge = str2int(self.charge_value.GetValue())
         mz = str2num(self.mz_value.GetValue())
@@ -440,7 +362,7 @@ class PanelCCSDatabase(MiniFrame, TableMixin):
         self._timer.StartOnce(self.TIMER_DELAY)
 
     def on_clear_calibrant(self, _evt):
-        """Clear calibrantion info from the text fields"""
+        """Clear calibration info from the text fields"""
         item_info = dict().fromkeys(
             ["calibrant", "mw", "mz", "charge", "he_pos", "he_neg", "n2_pos", "n2_neg", "state", "source", "name"], None
         )
@@ -513,7 +435,7 @@ class PanelCCSDatabase(MiniFrame, TableMixin):
     def _on_set_calibrant_metadata(self, item_info):
         """Set calibration data in the table"""
         self._disable_table_update = True
-        self.protein_value.SetValue(_str_fmt(item_info["calibrant"]))
+        self.calibrant_value.SetValue(_str_fmt(item_info["calibrant"]))
         self.mw_value.SetValue(_str_fmt(item_info["mw"]))
         self.charge_value.SetValue(_str_fmt(item_info["charge"]))
         self.mz_value.SetValue(_str_fmt(item_info["mz"]))

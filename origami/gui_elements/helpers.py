@@ -227,31 +227,16 @@ def mac_app_init():
         SCROLL_DIRECTION = -1
 
 
-class TableConfig:
+class TableConfig(dict):
     """Table configuration object"""
 
-    data = dict()
-    last_idx = -1
-
-    def __getitem__(self, item):
-        return self.data[item]
-
-    def items(self):
-        """Return items"""
-        return self.data.items()
-
-    def values(self):
-        """Return items"""
-        return self.data.values()
-
-    def keys(self):
-        """Return items"""
-        return self.data.values()
+    def __init__(self):
+        self.last_idx = -1
 
     def add(self, name: str, tag: str, dtype: str, width: int, show: bool = True, hidden: bool = False):
         """Add an item to the configuration"""
         self.last_idx += 1
-        self.data[self.last_idx] = {
+        self[self.last_idx] = {
             "name": name,
             "tag": tag,
             "type": dtype,

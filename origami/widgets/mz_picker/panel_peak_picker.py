@@ -199,9 +199,10 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
     @property
     def mz_obj(self) -> MassSpectrumObject:
         """Return `MassSpectrumObject`"""
-        document = ENV[self.document_title]
-        mz_obj = document[self.dataset_name, True]
-        return mz_obj
+        if self.document_title is not None:
+            document = ENV[self.document_title]
+            mz_obj = document[self.dataset_name, True]
+            return mz_obj
 
     @property
     def mz_obj_cache(self) -> MassSpectrumObject:
@@ -1077,6 +1078,8 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         CONFIG.peak_panel_preprocess = self.preprocess_check.GetValue()
 
         mz_obj = self.mz_obj
+        if mz_obj is None:
+            return
         if CONFIG.peak_panel_preprocess:
             PROCESS_HANDLER.on_process_ms(mz_obj)
         self.mz_obj_cache = mz_obj

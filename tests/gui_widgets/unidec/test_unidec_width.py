@@ -1,17 +1,17 @@
-"""Test LESA viewer"""
+"""Test UniDec viewer"""
 # Third-party imports
 import pytest
 
 # Local imports
 from tests.wxtc import WidgetTestCase
-from origami.widgets.lesa.panel_imaging_lesa import PanelImagingLESAViewer
+from origami.widgets.unidec.panel_process_unidec_peak_width_tool import PanelPeakWidthTool
 
 
 @pytest.mark.guitest
-class TestPanelImagingLESAViewer(WidgetTestCase):
+class TestPanelPeakWidthTool(WidgetTestCase):
     """Test dialog"""
 
     def test_panel_create(self):
-        dlg = PanelImagingLESAViewer(None, None, debug=True)
+        dlg = PanelPeakWidthTool(None, None, None)
         dlg.Hide()
         self.wait_for(500)

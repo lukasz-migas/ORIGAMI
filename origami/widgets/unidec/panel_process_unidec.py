@@ -40,6 +40,7 @@ from origami.gui_elements.views.view_register import VIEW_REG
 from origami.widgets.unidec.processing.utilities import unidec_sort_mw_list
 from origami.widgets.unidec.processing.utilities import calculate_charge_positions
 from origami.widgets.unidec.processing.containers import UniDecResultsObject
+from origami.utils.system import running_under_pytest
 
 logger = logging.getLogger(__name__)
 
@@ -137,7 +138,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         if self.mz_obj:
             self.view_mz.plot(obj=self.mz_obj)
 
-        wx.CallAfter(self.check_existing_engine)
+        self.check_existing_engine()
 
     def check_existing_engine(self):
         """Checks whether existing engine is of this particular dataset and if so, plot all the data"""
@@ -341,7 +342,8 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
             self.plot_panel = plot_panel
 
             # setup scrolling
-            plot_panel.SetupScrolling()
+            if not running_under_pytest():
+                plot_panel.SetupScrolling()
         else:
             plot_parent.AddPage(self.view_mz.panel, "MS")
             plot_parent.AddPage(self.view_mw.panel, "MW")
@@ -362,7 +364,6 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         # fit layout
         main_sizer.Fit(self.plot_panel)
         self.plot_panel.SetSizer(main_sizer)
-        #         self.plot_panel.SetSizerAndFit(main_sizer)
 
         return self.plot_panel
 
@@ -431,7 +432,9 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         # fit layout
         settings_sizer.Fit(panel)
         panel.SetSizerAndFit(settings_sizer)
-        panel.SetupScrolling()
+
+        if not running_under_pytest():
+            panel.SetupScrolling()
 
         return panel
 
