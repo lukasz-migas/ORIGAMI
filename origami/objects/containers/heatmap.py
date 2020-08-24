@@ -545,6 +545,9 @@ class IonHeatmapObject(HeatmapObject, ChromatogramAxesMixin, MobilogramAxesMixin
         self.flush()
         return self
 
+    def apply_ccs_calibration(self, calibration, mz: float = None, charge: int = None):
+        """Apply CCS calibration on the object"""
+
     def as_mobilogram(self):
         """Return instance of MobilogramObject"""
         return MobilogramObject(self.y, self.yy)

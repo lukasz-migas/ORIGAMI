@@ -372,9 +372,10 @@ class PlotHeatmap3d(wx.Panel):
         """Clear plot area"""
         self.canvas.clear()
 
-    def repaint(self):
+    def repaint(self, repaint: bool = True):
         """Repaint plot"""
-        self.canvas.update()
+        if repaint:
+            self.canvas.update()
 
     def can_update(self):
         """Check whether plot can be updated"""

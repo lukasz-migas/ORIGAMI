@@ -106,6 +106,12 @@ class MiniFrame(wx.MiniFrame, ActivityIndicatorMixin, DocumentationMixin, Parent
             self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
 
     @staticmethod
+    def _parse_evt(evt):
+        """Parse event"""
+        if evt is not None:
+            evt.Skip()
+
+    @staticmethod
     def _get_icons(icons):
         """Get Icons"""
         if icons is None:

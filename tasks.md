@@ -34,6 +34,7 @@
 - [ ] add drag x-/y-axis by holding ALT or clicking on the axes
 - [ ] change the annotations popup to dialog since it won't work on linux
 - [x] make it easier to instantiate tables
+- [ ] fix various issues with x/y-axis conversions
 
 ## New features
 

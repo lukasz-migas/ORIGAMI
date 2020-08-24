@@ -45,7 +45,6 @@ from origami.widgets.ccs.processing.calibration import CCSCalibrationProcessor
 
 LOGGER = logging.getLogger(__name__)
 
-# TODO: restore calibration data
 # TODO: add option to change the fit plot between linear and log
 # TODO: write documentation
 # TODO: there is a bug
@@ -85,6 +84,7 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
     TABLE_DICT.add("ccs", "ccs", "float", 80)
     TABLE_DICT.add("name", "name", "str", 0, hidden=True)
     TABLE_DICT.add("path", "path", "str", 0, hidden=True)
+
     TABLE_WIDGET_DICT = dict()
     TABLE_COLUMN_INDEX = TableColumnIndex
     USE_COLOR = False
@@ -107,11 +107,10 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
     # attributes
     _mz_obj = None
     _dt_obj = None
-    _cache = dict()
-    _tmp_cache = dict()
     _ccs_obj = None
+    _ccs_proc = None
 
-    def __init__(self, parent, document_title: str = None, debug: bool = False):
+    def __init__(self, parent, document_title: str = None, check_for_existing: bool = False, debug: bool = False):
         """Initialize panel"""
         MiniFrame.__init__(self, parent, title="CCS Calibration Builder...", style=wx.DEFAULT_FRAME_STYLE)
         t_start = time.time()
@@ -123,12 +122,17 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
 
         # setup kwargs
         self.document_title = document_title
+        self.check_for_existing = check_for_existing
         self.unsaved = False  # indicate that the panel has unsaved changes
         self._debug = debug  # flag to indicate the application is in debug mode
         self._db = None  # handle of the CCS database dialog
         self._showing_quick = False  # flag to indicate that quick selection is being shown rather than user-extracted
         self._disable_table_update = False  # flag to prevent editing events
         self._current_item = None  # specifies which is the currently selected item
+
+        # data attributes
+        self._cache = dict()
+        self._tmp_cache = dict()
 
         # bind events
         self.Bind(wx.EVT_CLOSE, self.on_close)
@@ -219,7 +223,8 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         self.on_update_quick_selection(None)
 
         # check existing document
-        self.check_existing_calibration()
+        if self.check_for_existing:
+            self.check_existing_calibration()
 
     def check_existing_calibration(self):
         """Checks whether existing calibration already exists for a particular document"""
@@ -228,9 +233,72 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
 
         # get current document
         document = ENV.on_get_document(self.document_title)
+        calibration_name = None
         if document:
             calibration_list = document.get_ccs_calibration_list()
-            print("EXISTING LIST", calibration_list)
+
+            if calibration_list:
+                if len(calibration_list) > 1:
+                    # allow the user to make selection
+                    dlg = wx.SingleChoiceDialog(
+                        self,
+                        "Calibrations",
+                        "There are existing calibrations in the Document."
+                        "\nPlease select calibration you would like to restore in the panel",
+                        calibration_list,
+                    )
+                    if dlg.ShowModal() == wx.ID_CANCEL:
+                        LOGGER.debug("Restoration of calibration was cancelled.")
+                        return
+
+                    calibration_name = dlg.GetStringSelection()
+                    dlg.Destroy()
+                else:
+                    calibration_name = calibration_list[0]
+
+        if calibration_name:
+            # get ccs object
+            self._ccs_obj = document.get_ccs_calibration(calibration_name)
+            self.on_restore_calibration()
+
+    def on_restore_calibration(self):
+        """Restore calibration"""
+        # restore fit
+        self.on_plot_fit(self._ccs_obj)
+
+        # restore calibrants
+        for calibrant in self._ccs_obj.calibrants:
+            # restore mass spectrum
+            path = calibrant["path"]
+            name = calibrant["name"]
+
+            if not os.path.exists(path):
+                LOGGER.warning("Could not restore calibration data")
+                continue
+
+            if path not in self._cache:
+                self._on_load_file(path)
+
+            # update table
+            idx = self.on_find_item("mz", calibrant["mz"])
+            if idx != -1:
+                self.remove_from_table(idx)
+
+            # add to table
+            self.on_add_to_table(
+                dict(
+                    calibrant=calibrant["calibrant"],
+                    mz=calibrant["mz"],
+                    mw=calibrant["mw"],
+                    charge=calibrant["charge"],
+                    dt=calibrant["dt"],
+                    ccs=calibrant["ccs"],
+                    name=name,
+                    path=path,
+                )
+            )
+
+            self._set_calibration_cache(path, {"calibrant": calibrant, "name": name})
 
     def on_close(self, evt, force: bool = False):
         """Close window"""
@@ -256,23 +324,27 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         self._dataset_mixin_teardown()
         super(PanelCCSCalibration, self).on_close(evt, force)
 
-    def on_plot_ms(self):
-        """Plot mass spectrum"""
-        mz_obj = self.mz_obj
-        if mz_obj:
-            self.view_mz.plot(obj=mz_obj)
-
-    def on_plot_dt(self):
-        """Plot mobilogram"""
-        dt_obj = self.dt_obj
-        if dt_obj:
-            self.view_dt.plot(obj=dt_obj)
-
     def on_right_click(self, evt):
         """Right-click menu"""
+        from origami.gui_elements.helpers import make_menu_item
+        from functools import partial
+
         if hasattr(evt.EventObject, "figure"):
             view = VIEW_REG.view
             menu = view.get_right_click_menu(self)
+
+            # extra controls for fit view
+            if view == self.view_fit:
+                menu_show_fit_linear = menu.Insert(
+                    0, make_menu_item(parent=menu, evt_id=wx.ID_ANY, text="Show calibration fit in Linear scale")
+                )
+                menu_show_fit_log = menu.Insert(
+                    1, make_menu_item(parent=menu, evt_id=wx.ID_ANY, text="Show calibration fit in Log scale")
+                )
+                menu.InsertSeparator(2)
+
+                self.Bind(wx.EVT_MENU, partial(self.on_plot_fit, "linear"), menu_show_fit_linear)
+                self.Bind(wx.EVT_MENU, partial(self.on_plot_fit, "log"), menu_show_fit_log)
 
             self.PopupMenu(menu)
             menu.Destroy()
@@ -563,6 +635,10 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
             path = dlg.GetPath()
         dlg.Destroy()
 
+        self._on_load_file(path)
+
+    def _on_load_file(self, path):
+        """Load Waters data"""
         # load data
         if path is not None and path.endswith(".raw"):
             metadata = LOAD_HANDLER.waters_metadata(path)
@@ -652,7 +728,7 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
 
         # add calibrant to cache
         if "calibrant" in data and "name" in data:
-            self._cache[self.current_path]["calibrants"][data["name"]] = data["calibrant"]
+            self._cache[path]["calibrants"][data["name"]] = data["calibrant"]
 
     def on_select_file(self, evt):
         """Select file from existing list of files"""
@@ -663,8 +739,7 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         self.correction_value.SetValue(str(self.correction_factor))
 
         LOGGER.debug(f"Changed mass spectrum to `{filename}`")
-        if evt is not None:
-            evt.Skip()
+        self._parse_evt(evt)
 
     def on_update_quick_selection(self, _evt):
         """Make changes to the config"""
@@ -932,7 +1007,7 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         if "dt" in cache:
             self.dt_value.SetValue(f"{cache['dt']:.2f}" if cache["dt"] else "")
         if "calibrant" in cache:
-            self.calibrant_value.SetValue(cache["calibrant"])
+            self.calibrant_value.SetValue(cache["calibrant"] if cache["calibrant"] else "")
         self._current_item = cache["name"]
         self._disable_table_update = False
 
@@ -986,18 +1061,18 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
 
         calibration = CCSCalibrationProcessor(metadata, extra_data)
         ccs_obj = calibration.create_calibration(array, self.gas_mw, self.correction_factor)
-        self._ccs_obj = calibration
+        self._ccs_proc = calibration
+        self._ccs_obj = ccs_obj
 
         # update plot data
-        self.on_show_fit(ccs_obj)
-        self.plot_notebook.SetSelection(PlotNotebookPages.calibration)
+        self.on_plot_fit(ccs_obj)
 
     def on_save_calibration(self, _evt):
         """Save calibration curve in the document"""
         from origami.gui_elements.misc_dialogs import DialogSimpleAsk
 
         # check whether calibration was created
-        if not self._ccs_obj:
+        if not self._ccs_proc:
             raise MessageError("Error", "Please create CCS calibration before trying to save it.")
 
         # get list of documents to which the calibration should be saved to
@@ -1013,6 +1088,10 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
             LOGGER.debug("Saving of calibration was cancelled")
             return
 
+        indices = dlg.GetSelections()
+        document_titles = [document_list[idx] for idx in indices]
+        dlg.Destroy()
+
         # get name under which the calibration data should be loaded
         calibration_name = DialogSimpleAsk(
             "Please specify name of the calibration", "Calibration name", "Calibration", self
@@ -1021,10 +1100,6 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
             LOGGER.debug("Saving of calibration was cancelled")
             return
 
-        indices = dlg.GetSelections()
-        document_titles = [document_list[idx] for idx in indices]
-        dlg.Destroy()
-
         for document_title in document_titles:
             self._on_save_calibration(document_title, calibration_name)
         self.unsaved = False
@@ -1032,7 +1107,7 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
     def _on_save_calibration(self, document_title, calibration_name):
         """Save calibration data in the document"""
         document = ENV.on_get_document(document_title)
-        self._ccs_obj.export_calibration(document, calibration_name)
+        self._ccs_proc.export_calibration(document, calibration_name)
         LOGGER.debug(f"Saved calibration `{calibration_name}` to `{document_title}` document.")
 
     def on_reset_calibration(self, _evt):
@@ -1050,23 +1125,43 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
             self.view_fit.clear()
         LOGGER.debug("Reset calibration data")
 
-    def on_show_fit(self, ccs_obj):
+    def on_plot_fit(self, ccs_obj, fit: str = "linear"):
         """Show fit results"""
+        if isinstance(fit, wx.CommandEvent):
+            fit, ccs_obj = ccs_obj, None
+        print(fit, ccs_obj)
         if ccs_obj is None:
-            self.view_fit.plot(x=np.arange(10), y=np.arange(10), repaint=False)
-            self.view_fit.add_slope(np.arange(10), 0, 1, label=f"R2={0.999}", repaint=False)
-            self.view_fit.show_legend(draggable=False)
-        else:
-            self.view_fit.plot(obj=ccs_obj, repaint=False)
-            slope, intercept, r2 = ccs_obj.fit_linear_slope
-            self.view_fit.add_slope(ccs_obj.x, intercept, slope, label=f"R2={r2:.4f}", repaint=False)
-            self.view_fit.show_legend(draggable=False)
+            ccs_obj = self._ccs_obj
 
-    @staticmethod
-    def _parse_evt(evt):
-        """Parse event"""
-        if evt is not None:
-            evt.Skip()
+        # change calibration fit
+        ccs_obj.change_calibration(fit)
+
+        if fit.lower() == "linear":
+            slope, intercept, _ = ccs_obj.fit_linear_slope
+            label = ccs_obj.fit_linear_label
+        else:
+            slope, intercept, _ = ccs_obj.fit_log_slope
+            label = ccs_obj.fit_log_label
+
+        # show fit
+        self.view_fit.plot(obj=ccs_obj, repaint=False)
+        self.view_fit.add_slope(ccs_obj.x, intercept, slope, label=label, repaint=False)
+        self.view_fit.show_legend(draggable=False)
+        self.plot_notebook.SetSelection(PlotNotebookPages.calibration)
+
+    def on_plot_ms(self):
+        """Plot mass spectrum"""
+        mz_obj = self.mz_obj
+        if mz_obj:
+            self.view_mz.plot(obj=mz_obj)
+            self.plot_notebook.SetSelection(PlotNotebookPages.extraction)
+
+    def on_plot_dt(self):
+        """Plot mobilogram"""
+        dt_obj = self.dt_obj
+        if dt_obj:
+            self.view_dt.plot(obj=dt_obj)
+            self.plot_notebook.SetSelection(PlotNotebookPages.extraction)
 
     @staticmethod
     def _parse_value(key: str, value: str):

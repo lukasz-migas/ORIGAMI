@@ -317,7 +317,17 @@ class DocumentStore:
 
     def can_extract(self) -> Tuple[bool, bool, str]:
         """Checks whether this document can be used for data extraction. Returns tuple of bool values to indicate
-        whether data can be extracted and/or the dataset uses multiple raw file"""
+        whether data can be extracted and/or the dataset uses multiple raw file
+
+        Returns
+        -------
+        can_extract : bool
+            specifies whether data can be extracted for the file
+        is_multifile : bool
+            specifies whether the document is based on multiple raw files (e.g. LESA or manual CIU/SID)
+        file_fmt : str
+            specifies whether raw data is in Waters, Thermo or other file format
+        """
         if self.file_format not in self.CAN_EXTRACT:
             return False, False, ""
 
@@ -755,4 +765,7 @@ class DocumentStore:
         if name not in self.get_ccs_calibration_list():
             raise ValueError(f"Cannot get `{name}` calibration as its not present in the Document.")
 
-        return ccs_calibration_object(self.CCSCalibrations[name])
+        if "/" in name or name.startswith(DocumentGroups.CALIBRATION):
+            name = name.split("/")[-1]
+
+        return self.as_object(self.CCSCalibrations[name])

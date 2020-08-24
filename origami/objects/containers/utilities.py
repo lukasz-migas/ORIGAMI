@@ -254,8 +254,8 @@ class OrigamiMsMixin(ABC):
     def get_parent(self):  # noqa
         raise NotImplementedError("Must implement method")
 
+    @staticmethod
     def _change_rt_cv_axis(
-        self,
         to_label: str,
         charge: Optional[int],
         metadata: Dict,
@@ -334,9 +334,10 @@ class OrigamiMsMixin(ABC):
             LOGGER.warning("The before and after labels are the same")
             return current_label, current_values
 
-        # create back-up of the bin data
+        # create back-up of the collision voltage data
         if current_label in ["Collision Voltage (V)", "Activation Voltage (V)"]:
             extra_data[cv_key] = current_values
+        # create backup of the ev data
         elif current_label in ["Lab Frame Energy (eV)", "Activation Voltage (eV)"]:
             extra_data[ev_key] = current_values
 
@@ -384,6 +385,70 @@ class OrigamiMsMixin(ABC):
         array, x, start_end_cv_list, parameters = origami_ms.convert_origami_ms(array, **oms_config)
 
         return array, x, start_end_cv_list, parameters
+
+
+class CCSAxesMixin(ABC):
+    """Mixin class used to convert x/y-axis array to Collision Cross Sections"""
+
+    @staticmethod
+    def _change_dt_ccs_axis(
+        to_label: str,
+        metadata: Dict,
+        label_options: List[str],
+        current_label: str,
+        current_values: np.ndarray,
+        default_label_key: str,
+    ):
+        """Change x/y-axis label and values"""
+        ccs_labels = ["Collision Cross Section (Å²)", "CCS (Å²)"]
+        # set default label
+        if default_label_key not in metadata:
+            metadata[default_label_key] = current_label
+
+        # check whether the new label refers to the default value
+        if to_label == "Restore default":
+            to_label = metadata[default_label_key]
+
+        if to_label not in label_options:
+            raise ValueError(f"Cannot change label to `{to_label}`; \nAllowed labels: {label_options}")
+
+        if current_label == to_label:
+            LOGGER.warning("The before and after labels are the same")
+            return current_label, current_values
+
+        if check_alternative_names(current_label, to_label, ccs_labels):
+            new_values = current_values
+        else:
+            raise ValueError("Cannot convert x-axis")
+
+        # set data
+        return to_label, new_values
+
+    @staticmethod
+    def _apply_ccs_calibration(array: np.ndarray, mz: float, charge: int, calibration, metadata: Dict):
+        def _get_charge(_charge):
+            # no need to change anything
+            if _charge is None:
+                _charge = metadata.get("charge", 1)
+            if _charge is None:
+                raise ValueError("Cannot perform conversion due to a missing `charge` information.")
+            return _charge
+
+        def _get_mz(_mz):
+            # no need to change anything
+            if _mz is None:
+                _mz = metadata.get("mz", 1)
+            if _mz is None:
+                raise ValueError("Cannot perform conversion due to a missing `m/z` information.")
+            return _mz
+
+        # get parameters
+        print(mz, charge, calibration)
+        mz = _get_mz(mz)
+        charge = _get_charge(charge)
+
+        array = calibration(mz, charge, array)
+        return array
 
 
 def get_fmt(*arrays: np.ndarray, get_largest: bool = False):

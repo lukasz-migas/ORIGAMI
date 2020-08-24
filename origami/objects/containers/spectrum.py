@@ -11,6 +11,7 @@ import numpy as np
 from origami.processing import spectra as pr_spectra
 from origami.processing.utils import find_nearest_index
 from origami.objects.containers.base import DataObject
+from origami.objects.containers.utilities import CCSAxesMixin
 from origami.objects.containers.utilities import OrigamiMsMixin
 from origami.objects.containers.utilities import MobilogramAxesMixin
 from origami.objects.containers.utilities import ChromatogramAxesMixin
@@ -411,6 +412,8 @@ class ChromatogramObject(SpectrumObject, ChromatogramAxesMixin, OrigamiMsMixin):
             - requires scan time in seconds
             multiply x-axis time * 60 to convert to seconds and then divide by the scan time. Values are rounded
         """
+        # there are two routes by which conversion can occur. First, conversion in the time domain can occur as
+        # indicated by `x_label_option_1` or alternatively in the energy domain using `x_label_option_2`
         x_label_option_1 = ["Scans", "Time (mins)", "Retention time (mins)", "Restore default"]
         x_label_option_2 = [
             "Collision Voltage (V)",
@@ -451,7 +454,7 @@ class ChromatogramObject(SpectrumObject, ChromatogramAxesMixin, OrigamiMsMixin):
             raise ValueError(
                 f"Cannot convert label from `{self.x_label}` to `{to_label}`. If you are trying to convert"
                 " `Scans` to `Collision Voltage` and this is a ORIGAMI-MS document consider applying"
-                " ORIGAMI-MS settings on this heatmap object."
+                " ORIGAMI-MS settings on this object."
             )
 
         # set data
@@ -483,7 +486,7 @@ class ChromatogramObject(SpectrumObject, ChromatogramAxesMixin, OrigamiMsMixin):
         return self
 
 
-class MobilogramObject(SpectrumObject, MobilogramAxesMixin):
+class MobilogramObject(SpectrumObject, MobilogramAxesMixin, CCSAxesMixin):
     """Mobilogram data object"""
 
     DOCUMENT_KEY = "Mobilograms"
@@ -531,20 +534,65 @@ class MobilogramObject(SpectrumObject, MobilogramAxesMixin):
             - requires pusher frequency in microseconds
             multiply x-axis time * 1000 and divide by pusher frequency
         """
-        to_label, x = self._change_dt_axis(
-            to_label,
-            pusher_freq,
-            self._metadata,
-            self._extra_data,
-            self.x_label_options,
-            self.x_label,
-            self.x,
-            "x_label_default",
-            "x_ms",
-            "x_bin",
-        )
+        x_label_option_1 = ["Drift time (bins)", "Drift time (ms)", "Arrival time (ms)", "Restore default"]
+        x_label_option_2 = ["Collision Cross Section (Å²)", "CCS (Å²)", "Restore default"]
+        if to_label in x_label_option_1 and self.x_label in x_label_option_1:
+            to_label, x = self._change_dt_axis(
+                to_label,
+                pusher_freq,
+                self._metadata,
+                self._extra_data,
+                self.x_label_options,
+                self.x_label,
+                self.x,
+                "x_label_default",
+                "x_ms",
+                "x_bin",
+            )
+        elif to_label in x_label_option_2 and self.x_label in x_label_option_2:
+            to_label, x = self._change_dt_ccs_axis(
+                to_label, self._metadata, self.x_label_options, self.x_label, self.x, "x_label_default"
+            )
+        else:
+            raise ValueError(
+                f"Cannot convert label from `{self.x_label}` to `{to_label}`."
+                #                 If you are trying to convert"
+                #                 " `Scans` to `Collision Voltage` and this is a ORIGAMI-MS document consider applying"
+                #                 " ORIGAMI-MS settings on this object."
+            )
+        # to_label, x = self._change_dt_axis(
+        #     to_label,
+        #     pusher_freq,
+        #     self._metadata,
+        #     self._extra_data,
+        #     self.x_label_options,
+        #     self.x_label,
+        #     self.x,
+        #     "x_label_default",
+        #     "x_ms",
+        #     "x_bin",
+        # )
 
         # set data
         self.x_label = to_label
         self._x = x
         self.flush()
+
+    def apply_ccs_calibration(self, calibration, mz: float = None, charge: int = None):
+        """Apply CCS calibration on the object"""
+        if self.x_label in ["Collision Cross Section (Å²)", "CCS (Å²)"]:
+            LOGGER.warning("Dataset already has Collision Cross Section labels")
+            return self
+        elif self.x_label != "Drift time (bins)" and self.x_label in ["Drift time (ms)", "Arrival time (ms)"]:
+            self.change_x_label("Drift time (bins)")
+        # elif self.x_label != "Scans":
+        #     raise ValueError("Cannot apply ORIGAMI-MS settings on this object")
+
+        # convert data
+        self._x = self._apply_ccs_calibration(self.x, mz, charge, calibration, self._metadata)
+
+        # set extra data
+        self.x_label = "Collision Cross Section (Å²)"
+
+        self.flush()
+        return self

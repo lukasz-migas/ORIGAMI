@@ -1,5 +1,6 @@
 """Calibration container objects"""
 # Standard library imports
+import logging
 from typing import Union
 
 # Third-party imports
@@ -8,10 +9,12 @@ from scipy.stats import linregress
 from zarr.hierarchy import Group
 
 # Local imports
-from origami.objects.containers import DataObject
-from origami.objects.containers import IonHeatmapObject
-from origami.objects.containers import MobilogramObject
+from origami.objects.containers.base import DataObject
+from origami.objects.containers.heatmap import IonHeatmapObject
+from origami.objects.containers.spectrum import MobilogramObject
 from origami.objects.containers.utilities import get_fmt
+
+LOGGER = logging.getLogger(__name__)
 
 
 class CalibrationIndex:
@@ -63,24 +66,21 @@ class CCSCalibrationObject(DataObject):
             **kwargs,
         )
 
+    def change_calibration(self, fit: str):
+        """Change fit to alternative view"""
+        if fit.lower() == "linear":
+            self._x = self.array[:, CalibrationIndex.tDd]
+            self._y = self.array[:, CalibrationIndex.CCSd]
+            self._x_label, self._y_label = "dt'", "Ω'"
+        else:
+            self._x = self.array[:, CalibrationIndex.lntDd]
+            self._y = self.array[:, CalibrationIndex.lnCCSd]
+            self._x_label, self._y_label = "ln(dt')", "ln(Ω')"
+
     @property
     def array(self):
         """Return calibration array"""
         return self._array
-
-    @property
-    def r2_linear(self):
-        """Return r2 of the linear fit"""
-        fit = self.fit_linear
-        if fit:
-            return fit[2] ** 2
-
-    @property
-    def r2_log(self):
-        """Return r2 of the log fit"""
-        fit = self.fit_log
-        if fit:
-            return fit[2] ** 2
 
     @property
     def fit_linear(self):
@@ -94,6 +94,19 @@ class CCSCalibrationObject(DataObject):
         return fit[0], fit[1], fit[2] ** 2
 
     @property
+    def r2_linear(self):
+        """Return r2 of the linear fit"""
+        fit = self.fit_linear
+        if fit:
+            return fit[2] ** 2
+
+    @property
+    def fit_linear_label(self):
+        """Return fit label"""
+        slope, intercept, r2 = self.fit_linear_slope
+        return f"y={slope:.4f}x + {intercept:.4f}\nR²={r2:.4f}"
+
+    @property
     def fit_log(self):
         """Log fit"""
         return linregress(self.array[:, CalibrationIndex.lntDd], self.array[:, CalibrationIndex.lnCCSd])
@@ -103,6 +116,19 @@ class CCSCalibrationObject(DataObject):
         """Return the slope and intercept of the log fit"""
         fit = self.fit_log
         return fit[0], fit[1], fit[2] ** 2
+
+    @property
+    def r2_log(self):
+        """Return r2 of the log fit"""
+        fit = self.fit_log
+        if fit:
+            return fit[2] ** 2
+
+    @property
+    def fit_log_label(self):
+        """Return fit label"""
+        slope, intercept, r2 = self.fit_log_slope
+        return f"y={slope:.4f}x + {intercept:.4f}\nR²={r2:.4f}"
 
     @property
     def column_names(self):

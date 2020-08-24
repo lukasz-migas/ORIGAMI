@@ -1426,6 +1426,14 @@ class DocumentTree(wx.TreeCtrl):
         self._ccs_panel = PanelCCSCalibration(self.view, document_title=document_title)
         self._ccs_panel.Show()
 
+    def on_open_ccs_editor(self, _):
+        from origami.widgets.ccs.panel_ccs_calibration import PanelCCSCalibration
+
+        document_title, _ = self._get_item_info()
+
+        self._ccs_panel = PanelCCSCalibration(self.view, document_title=document_title, check_for_existing=True)
+        self._ccs_panel.Show()
+
     def on_open_overlay_viewer(self, _):
         """Open a dialog window where you can overlay and compare objects"""
         from origami.widgets.overlay.panel_overlay_viewer import PanelOverlayViewer
@@ -1633,32 +1641,41 @@ class DocumentTree(wx.TreeCtrl):
         action_menu = wx.Menu()
 
         document = self._get_item_document()
-        has_ccs_calibration = False
+        has_ccs_calibration, is_origami_ms = False, False
+        can_extract, file_fmt = True, None
         if document:
             has_ccs_calibration = document.has_ccs_calibration()
+            is_origami_ms = document.is_origami_ms(False)
+            can_extract, _, file_fmt = document.can_extract()
 
-        menu_action_origami_ms = action_menu.AppendItem(
-            make_menu_item(parent=action_menu, text="Setup ORIGAMI-MS parameters...")
-        )
-        menu_action_extract_data = action_menu.AppendItem(
-            make_menu_item(parent=action_menu, text="Open data extraction panel...")
-        )
-        menu_action_extract_dtms = action_menu.AppendItem(
-            make_menu_item(parent=action_menu, text="Open DT/MS extraction panel...")
-        )
-        menu_action_ccs = action_menu.AppendItem(
-            make_menu_item(parent=action_menu, text="Open CCS calibration builder...")
-        )
+        if is_origami_ms:
+            menu_action_origami_ms = action_menu.AppendItem(
+                make_menu_item(parent=action_menu, text="Setup ORIGAMI-MS parameters...")
+            )
+            self.Bind(wx.EVT_MENU, self.on_action_origami_ms, menu_action_origami_ms)
+
+        if can_extract:
+            menu_action_extract_data = action_menu.AppendItem(
+                make_menu_item(parent=action_menu, text="Open data extraction panel...")
+            )
+            self.Bind(wx.EVT_MENU, self.on_open_extract_data, menu_action_extract_data)
+
+            menu_action_extract_dtms = action_menu.AppendItem(
+                make_menu_item(parent=action_menu, text="Open DT/MS extraction panel...")
+            )
+            self.Bind(wx.EVT_MENU, self.on_open_extract_dtms, menu_action_extract_dtms)
 
         if has_ccs_calibration:
             menu_action_edit_ccs = action_menu.AppendItem(
                 make_menu_item(parent=action_menu, text="Edit CCS calibration...")
             )
+            self.Bind(wx.EVT_MENU, self.on_open_ccs_editor, menu_action_edit_ccs)
 
-        self.Bind(wx.EVT_MENU, self.on_action_origami_ms, menu_action_origami_ms)
-        self.Bind(wx.EVT_MENU, self.on_open_extract_data, menu_action_extract_data)
-        self.Bind(wx.EVT_MENU, self.on_open_extract_dtms, menu_action_extract_dtms)
-        self.Bind(wx.EVT_MENU, self.on_open_ccs_builder, menu_action_ccs)
+        if file_fmt == "waters":
+            menu_action_ccs = action_menu.AppendItem(
+                make_menu_item(parent=action_menu, text="Create CCS calibration...")
+            )
+            self.Bind(wx.EVT_MENU, self.on_open_ccs_builder, menu_action_ccs)
 
         menu.AppendMenu(wx.ID_ANY, "Action...", action_menu)
 
@@ -1828,6 +1845,7 @@ class DocumentTree(wx.TreeCtrl):
 
         # process actions
         menu_action_delete_item = make_menu_item(parent=menu, text="Delete item\tDelete", bitmap=self._icons.delete)
+        menu_action_process_ccs = make_menu_item(parent=menu, text="Apply CCS calibration", bitmap=self._icons.sum)
 
         # export actions
         menu_action_save_mobilogram_image_as = make_menu_item(
@@ -1846,6 +1864,7 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
         self.Bind(wx.EVT_MENU, self.on_batch_export_figures, menu_action_save_image_as_all)
         self.Bind(wx.EVT_MENU, self.on_batch_export_data, menu_action_save_data_as_all)
+        self.Bind(wx.EVT_MENU, self.on_apply_ccs_calibration, menu_action_process_ccs)
 
         # make menu
         if self._item.indent == 2:
@@ -1858,6 +1877,7 @@ class DocumentTree(wx.TreeCtrl):
             menu.AppendItem(menu_action_show_plot_mobilogram)
             self._set_menu_annotations(menu)
             menu.AppendSeparator()
+            menu.AppendItem(menu_action_process_ccs)
             menu.AppendMenu(wx.ID_ANY, "Change x-axis to...", menu_xlabel)
             menu.AppendSeparator()
             menu.AppendItem(menu_action_save_mobilogram_image_as)
@@ -2315,6 +2335,11 @@ class DocumentTree(wx.TreeCtrl):
         obj.change_y_label(to_label)
         self.on_show_plot(None)
 
+    def _on_get_ccs_calibration(self):
+        """Get CCS calibration"""
+
+    #         Collision Cross Section (Å²)
+
     def on_open_spectrum_comparison_viewer(self, _evt):
         """Open panel where user can select mas spectra to compare """
         from origami.widgets.comparison.panel_signal_comparison_viewer import PanelSignalComparisonViewer
@@ -2344,6 +2369,55 @@ class DocumentTree(wx.TreeCtrl):
             document_spectrum_dict=document_spectrum_dict,
         )
         self._compare_panel.Show()
+
+    def on_get_ccs_calibration(self, document: DocumentStore):
+        """Get CCS calibration from the document"""
+
+        if not document.has_ccs_calibration():
+            return
+
+        calibration_name = None
+        calibration_list = document.get_ccs_calibration_list()
+        if calibration_list:
+            if len(calibration_list) > 1:
+                # allow the user to make selection
+                dlg = wx.SingleChoiceDialog(
+                    self,
+                    "Calibrations",
+                    "There are existing calibrations in the Document."
+                    "\nPlease select calibration you would like to restore in the panel",
+                    calibration_list,
+                )
+                if dlg.ShowModal() == wx.ID_CANCEL:
+                    LOGGER.debug("Restoration of calibration was cancelled.")
+                    return
+
+                calibration_name = dlg.GetStringSelection()
+                dlg.Destroy()
+            else:
+                calibration_name = calibration_list[0]
+        if calibration_name:
+            return document.get_ccs_calibration(calibration_name)
+
+    def on_apply_ccs_calibration(self, _evt):
+        """Apply ORIGAMI-MS settings on the object and create a copy"""
+        document_title = ENV.current
+        document = ENV.on_get_document(document_title)
+        if not document.has_ccs_calibration():
+            raise MessageError(
+                "Missing CCS calibration",
+                "Cannot apply CCS calibration on this document - missing CCS calibration. You can create CCS"
+                "\ncalibration using Widgets -> Open CCS Calibration Builder...",
+            )
+
+        # get data object
+        data_obj = self._get_item_object()
+        calibration = self.on_get_ccs_calibration(document)
+        # check parameters
+        data_obj = data_obj.apply_ccs_calibration(calibration, 500, 1)
+        if data_obj is not None:
+            self.on_update_document(data_obj.DOCUMENT_KEY, data_obj.title, document_title)
+        self.panel_plot.on_plot_data_object(data_obj)
 
     def on_apply_origami_ms(self, _evt):
         """Apply ORIGAMI-MS settings on the object and create a copy"""
