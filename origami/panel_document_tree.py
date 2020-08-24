@@ -554,6 +554,10 @@ class DocumentTree(wx.TreeCtrl):
             return None, None
         return document.title, obj_title
 
+    def _get_item_document(self):
+        """Retrieves the document that is associated with particular data object"""
+        return ENV.on_get_document()
+
     def _get_item_object(self):
         """Retrieves container object for particular dataset"""
         document = ENV.on_get_document()
@@ -1417,7 +1421,9 @@ class DocumentTree(wx.TreeCtrl):
         """Open a dialog window where you can overlay and compare objects"""
         from origami.widgets.ccs.panel_ccs_calibration import PanelCCSCalibration
 
-        self._ccs_panel = PanelCCSCalibration(self.view)
+        document_title, _ = self._get_item_info()
+
+        self._ccs_panel = PanelCCSCalibration(self.view, document_title=document_title)
         self._ccs_panel.Show()
 
     def on_open_overlay_viewer(self, _):
@@ -1626,6 +1632,11 @@ class DocumentTree(wx.TreeCtrl):
     def _set_menu_actions(self, menu):
         action_menu = wx.Menu()
 
+        document = self._get_item_document()
+        has_ccs_calibration = False
+        if document:
+            has_ccs_calibration = document.has_ccs_calibration()
+
         menu_action_origami_ms = action_menu.AppendItem(
             make_menu_item(parent=action_menu, text="Setup ORIGAMI-MS parameters...")
         )
@@ -1638,6 +1649,11 @@ class DocumentTree(wx.TreeCtrl):
         menu_action_ccs = action_menu.AppendItem(
             make_menu_item(parent=action_menu, text="Open CCS calibration builder...")
         )
+
+        if has_ccs_calibration:
+            menu_action_edit_ccs = action_menu.AppendItem(
+                make_menu_item(parent=action_menu, text="Edit CCS calibration...")
+            )
 
         self.Bind(wx.EVT_MENU, self.on_action_origami_ms, menu_action_origami_ms)
         self.Bind(wx.EVT_MENU, self.on_open_extract_data, menu_action_extract_data)

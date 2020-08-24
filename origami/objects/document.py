@@ -290,6 +290,10 @@ class DocumentStore:
             return self["Metadata/Parameters"].attrs.asdict()
         return {}
 
+    def has_ccs_calibration(self):
+        """Checks whether there are any CCS calibrations in the document"""
+        return (len(self.get_ccs_calibration_list())) > 0
+
     def is_imaging(self):
         """Checks whether the document is a LESA-imaging document"""
         if "Imaging" not in self.data_type:
@@ -400,7 +404,7 @@ class DocumentStore:
             _attrs[attr] = group.attrs.get(attr, None)
         return _attrs
 
-    def add_spectrum(self, title: str, data: Optional[Dict] = None, attrs: Optional[Dict] = None):
+    def add_spectrum(self, title: str, data: Union[Dict, DataObject] = None, attrs: Optional[Dict] = None):
         """Adds mass spectrum to the document"""
         if isinstance(data, DataObject):
             data, attrs = data.to_zarr()
@@ -409,7 +413,7 @@ class DocumentStore:
         group = self.add(title, data, attrs)
         return self.as_object(group)
 
-    def add_chromatogram(self, title: str, data: Optional[Dict] = None, attrs: Optional[Dict] = None):
+    def add_chromatogram(self, title: str, data: Union[Dict, DataObject] = None, attrs: Optional[Dict] = None):
         """Adds chromatogram to the document"""
         if isinstance(data, DataObject):
             data, attrs = data.to_zarr()
@@ -418,7 +422,7 @@ class DocumentStore:
         group = self.add(title, data, attrs)
         return self.as_object(group)
 
-    def add_mobilogram(self, title: str, data: Optional[Dict] = None, attrs: Optional[Dict] = None):
+    def add_mobilogram(self, title: str, data: Union[Dict, DataObject] = None, attrs: Optional[Dict] = None):
         """Adds mobilograms to the document"""
         if isinstance(data, DataObject):
             data, attrs = data.to_zarr()
@@ -427,7 +431,7 @@ class DocumentStore:
         group = self.add(title, data, attrs)
         return self.as_object(group)
 
-    def add_heatmap(self, title: str, data: Optional[Dict] = None, attrs: Optional[Dict] = None):
+    def add_heatmap(self, title: str, data: Union[Dict, DataObject] = None, attrs: Optional[Dict] = None):
         """Adds heatmap to the document"""
         if isinstance(data, DataObject):
             data, attrs = data.to_zarr()
@@ -436,7 +440,7 @@ class DocumentStore:
         group = self.add(title, data, attrs)
         return self.as_object(group)
 
-    def add_msdt(self, title: str, data: Optional[Dict] = None, attrs: Optional[Dict] = None):
+    def add_msdt(self, title: str, data: Union[Dict, DataObject] = None, attrs: Optional[Dict] = None):
         """Adds heatmap to the document"""
         if isinstance(data, DataObject):
             data, attrs = data.to_zarr()
@@ -445,7 +449,7 @@ class DocumentStore:
         group = self.add(title, data, attrs)
         return self.as_object(group)
 
-    def add_ccs_calibration(self, title: str, data: Optional[Dict] = None, attrs: Optional[Dict] = None):
+    def add_ccs_calibration(self, title: str, data: Union[Dict, DataObject] = None, attrs: Optional[Dict] = None):
         """Adds ccs calibration to the document"""
         if isinstance(data, DataObject):
             data, attrs = data.to_zarr()
@@ -454,14 +458,16 @@ class DocumentStore:
         group = self.add(title, data, attrs)
         return self.as_object(group)
 
-    def add_metadata(self, title: str, data: Optional[Dict] = None, attrs: Optional[Dict] = None):
+    def add_metadata(self, title: str, data: Union[Dict, DataObject] = None, attrs: Optional[Dict] = None):
         """Adds metadata to the document"""
         if isinstance(data, DataObject):
             data, attrs = data.to_zarr()
         group = self.add(f"Metadata/{title}", data, attrs)
         return group
 
-    def add_group_to_group(self, group: Group, title: str, data: Optional[Dict] = None, attrs: Optional[Dict] = None):
+    def add_group_to_group(
+        self, group: Group, title: str, data: Union[Dict, DataObject] = None, attrs: Optional[Dict] = None
+    ):
         """Add sub-group to a non-main group"""
         if isinstance(data, DataObject):
             data, attrs = data.to_zarr()
@@ -735,7 +741,7 @@ class DocumentStore:
     def get_normalization(self, name: str):
         """Return normalization object"""
         if name not in self.get_normalization_list():
-            raise ValueError(f"Cannot get {name} as its not present in the Document")
+            raise ValueError(f"Cannot get `{name}` normalization as its not present in the Document")
 
         return normalization_object(self.Metadata[name])
 
@@ -743,3 +749,10 @@ class DocumentStore:
         """Returns list of CCS calibrations available in the document"""
         calibrations = self.view_group(DocumentGroups.CALIBRATION)
         return calibrations
+
+    def get_ccs_calibration(self, name: str):
+        """Return CCS calibration object"""
+        if name not in self.get_ccs_calibration_list():
+            raise ValueError(f"Cannot get `{name}` calibration as its not present in the Document.")
+
+        return ccs_calibration_object(self.CCSCalibrations[name])

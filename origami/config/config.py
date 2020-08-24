@@ -2600,4 +2600,4 @@ class Config:
         return False, None
 
 
-CONFIG = Config()
+CONFIG: Config = Config()

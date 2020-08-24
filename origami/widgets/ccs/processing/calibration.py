@@ -27,6 +27,8 @@ class CCSCalibrationProcessor:
         self._fit_log = None
         self._ccs_obj = None
         self._fitted = False
+        self._gas_mw = None
+        self._correction_factor = None
 
     @property
     def calibration(self):
@@ -66,7 +68,13 @@ class CCSCalibrationProcessor:
         """Return r2 of the log fit"""
         if self._ccs_obj is None and self.calibration is not None:
             self._ccs_obj = CCSCalibrationObject(
-                self.calibration, metadata={"calibrants": self.metadata, "column_names": CCS_TABLE_COLUMNS}
+                self.calibration,
+                metadata={
+                    "calibrants": self.metadata,
+                    "column_names": CCS_TABLE_COLUMNS,
+                    "gas_mw": self._gas_mw,
+                    "correction_factor": self._correction_factor,
+                },
             )
         return self._ccs_obj
 
@@ -129,6 +137,8 @@ class CCSCalibrationProcessor:
         self._calibration = calc_array
         self._fit_linear = fit_linear
         self._fit_log = fit_log
+        self._gas_mw = gas_mw
+        self._correction_factor = correction_factor
         self._fitted = True
         return self.ccs_obj
 

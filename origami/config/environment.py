@@ -222,7 +222,7 @@ class Environment(PropertyCallbackManager):
         if document_title in self:
             self.current = document_title
 
-    def exists(self, title: Optional[str] = None, path: Optional[str] = None):
+    def exists(self, title: Optional[str] = None, path: Optional[str] = None) -> bool:
         """Checks whether document with the name already exists"""
         if path is not None:
             title = get_document_title(path)
@@ -235,7 +235,7 @@ class Environment(PropertyCallbackManager):
         self.documents[document.title] = document
         self._trigger("add", document.title)
 
-    def remove(self, key):
+    def remove(self, key) -> DocumentStore:
         """Remove document from the store"""
         document = self.documents.pop(key)
         self._trigger("delete", document.title)
@@ -248,11 +248,11 @@ class Environment(PropertyCallbackManager):
         self.documents[new_name] = document
         self._trigger("rename", [old_name, new_name])
 
-    def get(self, key, alt=None):
+    def get(self, key, alt=None) -> DocumentStore:
         """Get document"""
         return self.documents.get(key, alt)
 
-    def pop(self, key, alt=None):
+    def pop(self, key, alt=None) -> DocumentStore:
         """Pop document"""
         document = self.documents.pop(key, alt)
         if document is not None:
@@ -266,7 +266,7 @@ class Environment(PropertyCallbackManager):
         for title in titles:
             self._trigger("delete", title)
 
-    def keys(self):
+    def keys(self) -> List[str]:
         """Returns document list"""
         return list(self.documents.keys())
 
@@ -278,7 +278,7 @@ class Environment(PropertyCallbackManager):
         """Returns list of tuples of (key, document)"""
         return self.documents.items()
 
-    def on_get_document(self, title=None):
+    def on_get_document(self, title=None) -> DocumentStore:
         """Returns current document"""
         if title is None:
             title = self.current
@@ -301,7 +301,7 @@ class Environment(PropertyCallbackManager):
         self.add(document_obj)
         return document_obj
 
-    def open(self, path: str):
+    def open(self, path: str) -> DocumentStore:
         """Alias for load"""
         return self.load(path)
 
@@ -321,7 +321,7 @@ class Environment(PropertyCallbackManager):
         path: Optional[str] = None,
         document_type: Optional[str] = None,
         data: Optional[Dict] = None,
-    ):
+    ) -> DocumentStore:
         """Set document in the environment"""
         # create new document if one was not provided
         if document is None:
@@ -369,7 +369,7 @@ class Environment(PropertyCallbackManager):
         self[document.title] = document
         return document
 
-    def _get_new_name(self, title: str = "New Document", n_fill: int = 1):
+    def _get_new_name(self, title: str = "New Document", n_fill: int = 1) -> str:
         """Returns unique, document name"""
         n = 0
         while title + " #" + "%d".zfill(n_fill) % n in self:
@@ -437,7 +437,7 @@ class Environment(PropertyCallbackManager):
         document_types: Union[str, List[str]] = "all",
         document_format: Union[str, List[str]] = "all",
         check_path: bool = False,
-    ):
+    ) -> List[str]:
         """Get list of currently opened documents based on some requirements
 
         Parameters
@@ -474,4 +474,4 @@ class Environment(PropertyCallbackManager):
         return document_list
 
 
-ENV = Environment()
+ENV: Environment = Environment()

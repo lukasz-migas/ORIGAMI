@@ -1,4 +1,7 @@
 """Calibration container objects"""
+# Standard library imports
+from typing import Union
+
 # Third-party imports
 import numpy as np
 from scipy.stats import linregress
@@ -6,6 +9,8 @@ from zarr.hierarchy import Group
 
 # Local imports
 from origami.objects.containers import DataObject
+from origami.objects.containers import IonHeatmapObject
+from origami.objects.containers import MobilogramObject
 from origami.objects.containers.utilities import get_fmt
 
 
@@ -107,6 +112,11 @@ class CCSCalibrationObject(DataObject):
         return CCS_TABLE_COLUMNS
 
     @property
+    def gas_mw(self):
+        """Return the gas molecular weight"""
+        return self._metadata["gas_mw"]
+
+    @property
     def calibrants(self):
         """Returns all metadata and data about each of the calibrants used to create the calibration curve"""
         calibrants = self._metadata.get("calibrants")
@@ -120,6 +130,11 @@ class CCSCalibrationObject(DataObject):
 
         return calibrants
 
+    @property
+    def correction_factor(self):
+        """Return the correction factor"""
+        return self._metadata["correction_factor"]
+
     def to_csv(self, path, *args, **kwargs):
         """Save data to csv file format"""
         array = self.array
@@ -130,6 +145,75 @@ class CCSCalibrationObject(DataObject):
         labels = self.column_names
         header = f"{delimiter}".join(labels)
         np.savetxt(path, array, delimiter=delimiter, fmt=fmt, header=header)  # noqa
+
+    def __call__(
+        self,
+        mz: float,
+        charge: int,
+        dt: Union[MobilogramObject, IonHeatmapObject, np.ndarray],
+        adduct_mw: float = 1.00783,
+    ):
+        """Convert ion mobility axis to collision cross sections using the existing calibration
+
+        The conversion is carried out as follows:
+        1. We calculate the corrected drift time using equation: tDd = X - (C * gasMW) * np.sqrt(m/z) / 1000
+        2. We calculate the reduced mass using equation: red_mass = sqrt((mw * gasMW) / (mw + gasMW))
+        3. We calculate the slope and intercept using linear fit (x=lntDd, y=lnCCSd) from the calibration fit
+        4. We calculated new corrected  drift time using equation: tDdd = tDd^slope * charge * red_mass
+        5. We calculate new slope and intercept using linear fit (x=tDdd, y=CCS)
+        6. We finally calculate the CCS using equation: ccs = (tDdd * slope) + intercept
+
+        Parameters
+        ----------
+        mz : float
+            m/z value the ion was recorded at
+        charge : float
+            charge of the ion of interest
+        dt : Union[MobilogramObject, IonHeatmapObject, np.ndarray]
+            array of drift times that should be converted to CCS
+        adduct_mw : float
+            mass of the adduct that will be used to deduce the molecular weight
+
+        Returns
+        -------
+        ccs : np.ndarray
+            array of collision cross sections that was obtained from the drift times
+
+        Notes
+        -----
+        See https://www.nature.com/articles/nprot.2008.78 for more details
+        """
+        # ensure time-axis is correct
+        if isinstance(dt, MobilogramObject):
+            _, x = dt.change_x_label("Drift time (ms)")
+        elif isinstance(dt, IonHeatmapObject):
+            _, x = dt.change_y_label("Drift time (ms)")
+        else:
+            x = dt
+
+        # get fit parameters
+        slope, _, _ = self.fit_log_slope
+
+        # calculate molecular weight
+        mw = (np.full_like(x, fill_value=mz) * charge) - (adduct_mw * charge)
+
+        # calculate corrected drift time
+        xd = x - (self.correction_factor * np.sqrt(mz) / 1000)
+
+        # calculate reduced mass
+        red_mass = np.sqrt((mw * self.gas_mw) / (mw + self.gas_mw))
+
+        # calculate new corrected drift time
+        xdd = np.power(xd, slope) * charge * red_mass
+
+        # calculate the slope and intercept using the new corrected drift time and ccs
+        fit = linregress(self.array[:, CalibrationIndex.tDdd], self.array[:, CalibrationIndex.CCS])
+        slope, intercept = fit[0], fit[1]
+
+        # calculate CCS
+        ccs = (xdd * slope) + intercept
+
+        return ccs
 
     def to_dict(self):
         """Export data in a dictionary format"""
