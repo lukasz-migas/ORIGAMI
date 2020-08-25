@@ -11,6 +11,7 @@ import numpy as np
 from origami.processing import spectra as pr_spectra
 from origami.processing.utils import find_nearest_index
 from origami.objects.containers.base import DataObject
+from origami.objects.containers.utilities import XAxesKeys
 from origami.objects.containers.utilities import CCSAxesMixin
 from origami.objects.containers.utilities import OrigamiMsMixin
 from origami.objects.containers.utilities import MobilogramAxesMixin
@@ -337,13 +338,6 @@ class MassSpectrumObject(SpectrumObject):
         if flush:
             self.flush()
 
-    def del_unidec_result(self):
-        """Remove UniDec results from the document"""
-        # TODO: implemente a method to delete existing data
-        if not self.has_unidec_result:
-            return
-        self.add_metadata("has_unidec", False)
-
     def get_unidec_result(self):
         """Get UniDec results"""
         from origami.widgets.unidec.processing.containers import unidec_results_object
@@ -354,6 +348,13 @@ class MassSpectrumObject(SpectrumObject):
         if group is None:
             raise ValueError("Could not UniDec data")
         return unidec_results_object(self, group)
+
+    def del_unidec_result(self):
+        """Remove UniDec results from the document"""
+        # TODO: implement a method to delete existing data
+        if not self.has_unidec_result:
+            return
+        self.add_metadata("has_unidec", False)
 
 
 class ChromatogramObject(SpectrumObject, ChromatogramAxesMixin, OrigamiMsMixin):
@@ -424,61 +425,60 @@ class ChromatogramObject(SpectrumObject, ChromatogramAxesMixin, OrigamiMsMixin):
             "Activation Energy (eV)",
             "Restore default",
         ]
-        if to_label in x_label_option_1 and self.x_label in x_label_option_1:
-            to_label, x = self._change_rt_axis(
-                to_label,
-                scan_time,
-                self._metadata,
-                self._extra_data,
-                self.x_label_options,
-                self.x_label,
-                self.x,
-                "x_label_default",
-                "x_min",
-                "x_bin",
-            )
-        elif to_label in x_label_option_2 and self.x_label in x_label_option_2:
-            to_label, x = self._change_rt_cv_axis(
-                to_label,
-                scan_time,
-                self._metadata,
-                self._extra_data,
-                self.x_label_options,
-                self.x_label,
-                self.x,
-                "x_label_default",
-                "x_min",
-                "x_bin",
-            )
-        else:
-            raise ValueError(
-                f"Cannot convert label from `{self.x_label}` to `{to_label}`. If you are trying to convert"
-                " `Scans` to `Collision Voltage` and this is a ORIGAMI-MS document consider applying"
-                " ORIGAMI-MS settings on this object."
-            )
+        try:
+            x = self._extra_data[XAxesKeys[to_label]]
+        except KeyError:
+            if to_label in x_label_option_1 and self.x_label in x_label_option_1:
+                to_label, x = self._change_rt_axis(
+                    to_label,
+                    scan_time,
+                    self._metadata,
+                    self._extra_data,
+                    self.x_label_options,
+                    self.x_label,
+                    self.x,
+                    "x_label_default",
+                    XAxesKeys["Time (mins)"],
+                    XAxesKeys["Scans"],
+                )
+            elif to_label in x_label_option_2 and self.x_label in x_label_option_2:
+                to_label, x = self._change_rt_cv_axis(
+                    to_label,
+                    scan_time,
+                    self._metadata,
+                    self._extra_data,
+                    self.x_label_options,
+                    self.x_label,
+                    self.x,
+                    "x_label_default",
+                    XAxesKeys["Time (mins)"],
+                    XAxesKeys["Scans"],
+                )
+            else:
+                msg = f"Cannot convert label from `{self.x_label}` to `{to_label}`."
+                if to_label in x_label_option_2:
+                    msg += "\nTo convert to Collision Voltage you must use the `Apply ORIGAMI-MS parameters` option."
+                raise ValueError(msg)
 
         # set data
         self.x_label = to_label
         self._x = x
+        self._extra_data[XAxesKeys[to_label]] = x
         self.flush()
 
     def apply_origami_ms(self):
         """Apply ORIGAMI-MS settings on the heatmap object"""
-        if self.x_label in ["Collision Voltage (V)", "Activation Voltage (V)", "Lab Frame Energy (eV)"]:
-            LOGGER.warning("Dataset already has Collision Voltage (V) labels")
-            return self
-        elif self.x_label != "Scans" and self.x_label in ["Time (mins)", "Retention time (mins)"]:
+        if self.x_label != "Scans":
             self.change_x_label("Scans")
-        elif self.x_label != "Scans":
-            raise ValueError("Cannot apply ORIGAMI-MS settings on this object")
 
         # convert data
         self._y, self._x, start_end_cv, parameters = self._apply_origami_ms(self.y)
 
         # set extra data
-        self.x_label = "Collision Voltage (V)"
+        self._extra_data[XAxesKeys["Collision Voltage (V)"]] = self._x
         self._extra_data["oms_ss_es_cv"] = start_end_cv
         self._metadata["origami_ms"] = parameters
+        self.x_label = "Collision Voltage (V)"
 
         # get new title
         self.title = self.title + " [CIU]"
@@ -534,64 +534,61 @@ class MobilogramObject(SpectrumObject, MobilogramAxesMixin, CCSAxesMixin):
             - requires pusher frequency in microseconds
             multiply x-axis time * 1000 and divide by pusher frequency
         """
-        x_label_option_1 = ["Drift time (bins)", "Drift time (ms)", "Arrival time (ms)", "Restore default"]
-        x_label_option_2 = ["Collision Cross Section (Å²)", "CCS (Å²)", "Restore default"]
-        if to_label in x_label_option_1 and self.x_label in x_label_option_1:
-            to_label, x = self._change_dt_axis(
-                to_label,
-                pusher_freq,
-                self._metadata,
-                self._extra_data,
-                self.x_label_options,
-                self.x_label,
-                self.x,
-                "x_label_default",
-                "x_ms",
-                "x_bin",
-            )
-        elif to_label in x_label_option_2 and self.x_label in x_label_option_2:
-            to_label, x = self._change_dt_ccs_axis(
-                to_label, self._metadata, self.x_label_options, self.x_label, self.x, "x_label_default"
-            )
-        else:
-            raise ValueError(
-                f"Cannot convert label from `{self.x_label}` to `{to_label}`."
-                #                 If you are trying to convert"
-                #                 " `Scans` to `Collision Voltage` and this is a ORIGAMI-MS document consider applying"
-                #                 " ORIGAMI-MS settings on this object."
-            )
-        # to_label, x = self._change_dt_axis(
-        #     to_label,
-        #     pusher_freq,
-        #     self._metadata,
-        #     self._extra_data,
-        #     self.x_label_options,
-        #     self.x_label,
-        #     self.x,
-        #     "x_label_default",
-        #     "x_ms",
-        #     "x_bin",
-        # )
+        label_option_1 = ["Drift time (bins)", "Drift time (ms)", "Arrival time (ms)", "Restore default"]
+        label_option_2 = ["Collision Cross Section (Å²)", "CCS (Å²)", "Restore default"]
+        try:
+            x = self._extra_data[XAxesKeys[to_label]]
+        except KeyError:
+            if to_label in label_option_1 and self.x_label in label_option_1:
+                to_label, x = self._change_dt_axis(
+                    to_label,
+                    pusher_freq,
+                    self._metadata,
+                    self._extra_data,
+                    self.x_label_options,
+                    self.x_label,
+                    self.x,
+                    "x_label_default",
+                    XAxesKeys["Drift time (ms)"],
+                    XAxesKeys["Drift time (bins)"],
+                )
+            elif to_label in label_option_2 and self.x_label in label_option_2:
+                to_label, x = self._change_dt_ccs_axis(
+                    to_label,
+                    self._metadata,
+                    self._extra_data,
+                    self.x_label_options,
+                    self.x_label,
+                    self.x,
+                    "x_label_default",
+                    XAxesKeys["Drift time (bins)"],
+                    XAxesKeys["Collision Cross Section (Å²)"],
+                )
+            else:
+                msg = f"Cannot convert label from `{self.x_label}` to `{to_label}`."
+                if to_label in label_option_2:
+                    msg += "\nTo convert to CCS you must use the `Apply CCS calibration` option."
+                raise ValueError(msg)
 
         # set data
         self.x_label = to_label
         self._x = x
+        self._extra_data[XAxesKeys[to_label]] = x
         self.flush()
 
     def apply_ccs_calibration(self, calibration, mz: float = None, charge: int = None):
         """Apply CCS calibration on the object"""
-        if self.x_label in ["Collision Cross Section (Å²)", "CCS (Å²)"]:
-            LOGGER.warning("Dataset already has Collision Cross Section labels")
-            return self
-        elif self.x_label != "Drift time (bins)" and self.x_label in ["Drift time (ms)", "Arrival time (ms)"]:
+        if self.x_label != "Drift time (bins)":
             self.change_x_label("Drift time (bins)")
-        # elif self.x_label != "Scans":
-        #     raise ValueError("Cannot apply ORIGAMI-MS settings on this object")
+
+        # make sure to retain the default
+        self._extra_data[XAxesKeys[self.x_label]] = self.x
 
         # convert data
         self._x = self._apply_ccs_calibration(self.x, mz, charge, calibration, self._metadata)
 
         # set extra data
+        self._extra_data[XAxesKeys["Collision Cross Section (Å²)"]] = self._x
         self.x_label = "Collision Cross Section (Å²)"
 
         self.flush()

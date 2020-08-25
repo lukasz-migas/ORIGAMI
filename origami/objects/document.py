@@ -38,7 +38,9 @@ from origami.widgets.lesa.processing.containers import normalization_object
 LOGGER = logging.getLogger(__name__)
 
 
-# TODO: add annotations attribute to group
+# TODO: add option to only flush some of the data to disk (e.g. metadata, extra_data)
+
+
 def get_children(o):
     """Return list of children of the group object"""
     return natsorted([i.path for i in o.values()])

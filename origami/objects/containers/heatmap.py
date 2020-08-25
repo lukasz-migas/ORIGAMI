@@ -20,6 +20,9 @@ from origami.processing.heatmap import equalize_heatmap_spacing
 from origami.objects.containers.base import DataObject
 from origami.objects.containers.spectrum import MobilogramObject
 from origami.objects.containers.spectrum import ChromatogramObject
+from origami.objects.containers.utilities import XAxesKeys
+from origami.objects.containers.utilities import YAxesKeys
+from origami.objects.containers.utilities import CCSAxesMixin
 from origami.objects.containers.utilities import OrigamiMsMixin
 from origami.objects.containers.utilities import MobilogramAxesMixin
 from origami.objects.containers.utilities import ChromatogramAxesMixin
@@ -371,7 +374,7 @@ class HeatmapObject(DataObject):
         return array[:, x_min_idx:x_max_idx], x[x_min_idx:x_max_idx]
 
 
-class IonHeatmapObject(HeatmapObject, ChromatogramAxesMixin, MobilogramAxesMixin, OrigamiMsMixin):
+class IonHeatmapObject(HeatmapObject, ChromatogramAxesMixin, MobilogramAxesMixin, OrigamiMsMixin, CCSAxesMixin):
     """Ion heatmap data object"""
 
     DOCUMENT_KEY = "Heatmaps"
@@ -450,42 +453,45 @@ class IonHeatmapObject(HeatmapObject, ChromatogramAxesMixin, MobilogramAxesMixin
             "Activation Energy (eV)",
             "Restore default",
         ]
-        if to_label in x_label_option_1 and self.x_label in x_label_option_1:
-            to_label, x = self._change_rt_axis(
-                to_label,
-                scan_time,
-                self._metadata,
-                self._extra_data,
-                self.x_label_options,
-                self.x_label,
-                self.x,
-                "x_label_default",
-                "x_min",
-                "x_bin",
-            )
-        elif to_label in x_label_option_2 and self.x_label in x_label_option_2:
-            to_label, x = self._change_rt_cv_axis(
-                to_label,
-                scan_time,
-                self._metadata,
-                self._extra_data,
-                self.x_label_options,
-                self.x_label,
-                self.x,
-                "x_label_default",
-                "x_min",
-                "x_bin",
-            )
-        else:
-            raise ValueError(
-                f"Cannot convert label from `{self.x_label}` to `{to_label}`. If you are trying to convert"
-                " `Scans` to `Collision Voltage` and this is a ORIGAMI-MS document consider applying"
-                " ORIGAMI-MS settings on this heatmap object."
-            )
+        try:
+            x = self._extra_data[XAxesKeys[to_label]]
+        except KeyError:
+            if to_label in x_label_option_1 and self.x_label in x_label_option_1:
+                to_label, x = self._change_rt_axis(
+                    to_label,
+                    scan_time,
+                    self._metadata,
+                    self._extra_data,
+                    self.x_label_options,
+                    self.x_label,
+                    self.x,
+                    "x_label_default",
+                    XAxesKeys["Time (mins)"],
+                    XAxesKeys["Scans"],
+                )
+            elif to_label in x_label_option_2 and self.x_label in x_label_option_2:
+                to_label, x = self._change_rt_cv_axis(
+                    to_label,
+                    scan_time,
+                    self._metadata,
+                    self._extra_data,
+                    self.x_label_options,
+                    self.x_label,
+                    self.x,
+                    "x_label_default",
+                    XAxesKeys["Time (mins)"],
+                    XAxesKeys["Scans"],
+                )
+            else:
+                msg = f"Cannot convert label from `{self.x_label}` to `{to_label}`."
+                if to_label in x_label_option_2:
+                    msg += "\nTo convert to Collision Voltage you must use the `Apply ORIGAMI-MS parameters` option."
+                raise ValueError(msg)
 
         # set data
         self.x_label = to_label
         self._x = x
+        self._extra_data[XAxesKeys[to_label]] = x
         self.flush()
 
     # noinspection DuplicatedCode
@@ -503,42 +509,62 @@ class IonHeatmapObject(HeatmapObject, ChromatogramAxesMixin, MobilogramAxesMixin
             - requires pusher frequency in microseconds
             multiply x-axis time * 1000 and divide by pusher frequency
         """
-        to_label, y = self._change_dt_axis(
-            to_label,
-            pusher_freq,
-            self._metadata,
-            self._extra_data,
-            self.y_label_options,
-            self.y_label,
-            self.y,
-            "y_label_default",
-            "y_ms",
-            "y_bin",
-        )
+        label_option_1 = ["Drift time (bins)", "Drift time (ms)", "Arrival time (ms)", "Restore default"]
+        label_option_2 = ["Collision Cross Section (Å²)", "CCS (Å²)", "Restore default"]
+        try:
+            y = self._extra_data[YAxesKeys[to_label]]
+        except KeyError:
+            if to_label in label_option_1 and self.y_label in label_option_1:
+                to_label, y = self._change_dt_axis(
+                    to_label,
+                    pusher_freq,
+                    self._metadata,
+                    self._extra_data,
+                    self.y_label_options,
+                    self.y_label,
+                    self.y,
+                    "y_label_default",
+                    YAxesKeys["Drift time (ms)"],
+                    YAxesKeys["Drift time (bins)"],
+                )
+            elif to_label in label_option_2 and self.y_label in label_option_2:
+                to_label, y = self._change_dt_ccs_axis(
+                    to_label,
+                    self._metadata,
+                    self._extra_data,
+                    self.y_label_options,
+                    self.y_label,
+                    self.y,
+                    "y_label_default",
+                    YAxesKeys["Drift time (bins)"],
+                    YAxesKeys["Collision Cross Section (Å²)"],
+                )
+            else:
+                msg = f"Cannot convert label from `{self.y_label}` to `{to_label}`."
+                if to_label in label_option_2:
+                    msg += "\nTo convert to CCS you must use the `Apply CCS calibration` option."
+                raise ValueError(msg)
 
         # set data
         self.y_label = to_label
         self._y = y
+        self._extra_data[YAxesKeys[to_label]] = y
         self.flush()
 
     def apply_origami_ms(self):
         """Apply ORIGAMI-MS settings on the heatmap object"""
-        if self.x_label in ["Collision Voltage (V)", "Activation Voltage (V)", "Lab Frame Energy (eV)"]:
-            LOGGER.warning("Dataset already has Collision Voltage (V) labels")
-            return self
-        elif self.x_label != "Scans" and self.x_label in ["Time (mins)", "Retention time (mins)"]:
+        if self.x_label != "Scans":
             self.change_x_label("Scans")
-        elif self.x_label != "Scans":
-            raise ValueError("Cannot apply ORIGAMI-MS settings on this object")
 
         # convert data
         self._array, self._x, start_end_cv, parameters = self._apply_origami_ms(self.array)
         self.reset_xy_cache()
 
         # set extra data
-        self.x_label = "Collision Voltage (V)"
+        self._extra_data[XAxesKeys["Collision Voltage (V)"]] = self._x
         self._extra_data["oms_ss_es_cv"] = start_end_cv
         self._metadata["origami_ms"] = parameters
+        self.x_label = "Collision Voltage (V)"
 
         # get new title
         self.title = self.title + " [CIU]"
@@ -547,6 +573,18 @@ class IonHeatmapObject(HeatmapObject, ChromatogramAxesMixin, MobilogramAxesMixin
 
     def apply_ccs_calibration(self, calibration, mz: float = None, charge: int = None):
         """Apply CCS calibration on the object"""
+        if self.y_label != "Drift time (bins)" and self.y_label in ["Drift time (ms)", "Arrival time (ms)"]:
+            self.change_x_label("Drift time (bins)")
+
+        # convert data
+        self._y = self._apply_ccs_calibration(self.y, mz, charge, calibration, self._metadata)
+
+        # set extra data
+        self._extra_data[YAxesKeys["Collision Cross Section (Å²)"]] = self._y
+        self.y_label = "Collision Cross Section (Å²)"
+
+        self.flush()
+        return self
 
     def as_mobilogram(self):
         """Return instance of MobilogramObject"""

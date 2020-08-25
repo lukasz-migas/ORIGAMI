@@ -103,17 +103,24 @@ class ContainerBase:
             raise ValueError("Cannot parse metadata that is not a dictionary")
         self._metadata.update(**metadata)
 
-    def get_metadata(self, key, default):
+    def get_metadata(self, key, default=None):
         """Return metadata"""
+        if isinstance(key, (list, tuple)):
+            return [self._metadata.get(_key, default) for _key in key]
         return self._metadata.get(key, default)
 
-    def add_metadata(self, key, value):
+    def add_metadata(self, key, value, flush: bool = True):
         """Add metadata key:value pair"""
         if not isinstance(key, str):
             raise ValueError("Metadata `key` must be a string")
         if not isinstance(value, (bool, str, int, float, list, tuple)):
             raise ValueError("Metadata `value` must be JSON serializable")
         self._metadata[key] = value
+        if flush:
+            self.flush()
+
+    def flush(self, title: str = None):
+        """Flush current object data to the DocumentStore"""
 
     @property
     def output_path(self):

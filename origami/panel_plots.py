@@ -787,7 +787,7 @@ class PanelPlots(wx.Panel):
             )
             return
 
-        self.document_tree.on_open_UniDec(None, document_title=document_title, dataset_name=dataset_name, mz_obj=mz_obj)
+        self.document_tree.on_open_unidec(None, document_title=document_title, dataset_name=dataset_name, mz_obj=mz_obj)
 
     def on_open_annotations_panel(self, _evt):
         """Open the annotations panel for particular object"""

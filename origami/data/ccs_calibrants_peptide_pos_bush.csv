@@ -1,0 +1,13 @@
+Protein,MW,Charge,m/z,HePos,N2Pos,HeNeg,N2Neg,State,Source,Subunits
+GRGDS,490,1,491,132,206,,,Peptide,Bush,1
+GRGDS,490,2,246,139,256,,,Peptide,Bush,1
+SDGRG,490,1,491,130,204,,,Peptide,Bush,1
+SDGRG,490,2,246,142,259,,,Peptide,Bush,1
+Angiotensin fragment 1-7,898,2,450,226,334,,,Peptide,Bush,1
+RASG-1,1000,2,501,225,331,,,Peptide,Bush,1
+Angiotensin II,1046,2,524,245,335,,,Peptide,Bush,1
+Bradykinin,1060,2,531,237,344,,,Peptide,Bush,1
+Angiotensin I,1296,3,433,328,474,,,Peptide,Bush,1
+Renin substate,1758,3,587,380,522,,,Peptide,Bush,1
+Enolase T35,1872,3,625,380,519,,,Peptide,Bush,1
+Enolase T37,2827,3,943.3333333,465,,,,Peptide,Bush,1

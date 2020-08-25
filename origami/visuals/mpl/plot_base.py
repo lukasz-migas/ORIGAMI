@@ -470,12 +470,13 @@ class PlotBase(MPLPanel):
 
         self.plot_base.axis([_start_x, _end_x, _start_y, _end_y])
 
-    def on_reset_zoom(self):
+    def on_reset_zoom(self, repaint: bool = True):
         """Reset plot zoom"""
         start_x, end_x, start_y, end_y = self.get_plot_limits()
+        print(start_x, end_x, start_y, end_y)
         self.plot_base.set_xlim(start_x, end_x)
         self.plot_base.set_ylim(start_y, end_y)
-        self.repaint()
+        self.repaint(repaint)
 
     def plot_add_arrow(self, arrow_vals: List[float], stick_to_intensity: bool = True, **kwargs):
         """Add arrow to the plot"""

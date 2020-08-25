@@ -247,7 +247,7 @@ class MainWindow(wx.Frame):
 
         # run action(s) delayed
         self.run_delayed(self._on_check_latest_version)
-        self.add_timer_event(self.on_export_config_fcn, "save.config", 300)
+        self.add_timer_event(self.on_export_config_fcn, "save.config", 120)
 
     @staticmethod
     def run_delayed(func, *args, delay: int = 3000, **kwargs):
@@ -609,9 +609,12 @@ class MainWindow(wx.Frame):
         # add ccs builder menu
         menu_widgets.AppendSeparator()
         menu_widget_ccs_builder = menu_widgets.Append(
-            make_menu_item(parent=menu_widgets, text="Open CCS Calibration Builder...")
+            make_menu_item(parent=menu_widgets, text="Open CCS Calibration Builder...", bitmap=self._icons.target)
         )
         menu_widget_ccs_builder.Enable(APP_ENABLER.ALLOW_WATERS_EXTRACTION)
+        menu_config_show_ccs_db = menu_widgets.Append(
+            make_menu_item(parent=menu_widgets, text="Show CCS calibrants", bitmap=self._icons.list)
+        )
 
         # add manual activation sub-menu
         menu_widgets.AppendSeparator()
@@ -655,10 +658,6 @@ class MainWindow(wx.Frame):
         menu_config_import_as = make_menu_item(parent=menu_config, text="Load configuration file from...")
         menu_config.Append(menu_config_import_as)
         menu_config.AppendSeparator()
-        menu_config_show_ccs_db = menu_config.Append(
-            make_menu_item(parent=menu_config, text="Show CCS calibrants", bitmap=self._icons.target)
-        )
-        menu_config.AppendSeparator()
         self.menu_config_check_driftscope = menu_config.Append(
             ID_checkAtStart_Driftscope, "Look for DriftScope at start", kind=wx.ITEM_CHECK
         )
@@ -667,14 +666,6 @@ class MainWindow(wx.Frame):
             parent=menu_config, text="Check DriftScope path", bitmap=self._icons.driftscope
         )
         menu_config.Append(menu_config_driftscope)
-        # menu_config.Append(
-        #     make_menu_item(
-        #         parent=menu_config,
-        #         id=ID_setDriftScopeDir,
-        #         text="Set DriftScope path...",
-        #         bitmap=self.icons.iconsLib["driftscope_16"],
-        #     )
-        # )
 
         menu_logging = wx.Menu()
         menu_log_open_dir = make_menu_item(parent=menu_config, text="Show Log in Explorer")

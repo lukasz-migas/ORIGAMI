@@ -1,0 +1,73 @@
+Protein,MW,Charge,m/z,HePos,N2Pos,HeNeg,N2Neg,State,Source,Subunits
+melittin,2800,3,934.3333333,581,,,,Native,Bush,1
+melittin,2800,4,701,588,,,,Native,Bush,1
+melittin,2800,5,561,613,,,,Native,Bush,1
+insulin,5800,3,1934.333333,757,,,,Native,Bush,1
+insulin,5800,4,1451,772,,,,Native,Bush,1
+ubiquitin,8600,4,2151,972,,,,Native,Bush,1
+ubiquitin,8600,5,1721,983,,,,Native,Bush,1
+ubiquitin,8600,6,1434.333333,1000,,,,Native,Bush,1
+insulin,12000,5,2401,1260,,,,Native,Bush,2
+insulin,12000,6,2001,1290,,,,Native,Bush,2
+cytochrome c,12000,6,2001,1240,1490,,,Native,Bush,1
+cytochrome c,12000,7,1715.285714,1280,1590,,,Native,Bush,1
+b-lactoglobulin,18000,7,2572.428571,1660,1950,,,Native,Bush,1
+b-lactoglobulin,18000,8,2251,1690,2030,,,Native,Bush,1
+b-lactoglobulin,18000,9,2001,1780,,,,Native,Bush,1
+insulin,36000,9,4001,2440,,,,Native,Bush,6
+insulin,36000,10,3601,2430,,,,Native,Bush,6
+insulin,36000,11,3273.727273,2440,,,,Native,Bush,6
+b-lactoglobulin,37000,11,3364.636364,2850,3230,,,Native,Bush,2
+b-lactoglobulin,37000,12,3084.333333,2900,3310,,,Native,Bush,2
+b-lactoglobulin,37000,13,2847.153846,2960,3430,,,Native,Bush,2
+transthyretin,56000,14,4001,3410,3840,,,Native,Bush,4
+transthyretin,56000,15,3734.333333,3400,3850,,,Native,Bush,4
+transthyretin,56000,16,3501,3380,3880,,,Native,Bush,4
+avidin,64000,15,4267.666667,3640,4150,,,Native,Bush,4
+avidin,64000,16,4001,3640,4150,,,Native,Bush,4
+avidin,64000,17,3765.705882,3640,4160,,,Native,Bush,4
+avidin,64000,18,3556.555556,3640,,,,Native,Bush,4
+serum albumin*,66000,14,4715.285714,4090,4490,,,Native,Bush,1
+serum albumin*,66000,15,4401,4100,4490,,,Native,Bush,1
+serum albumin*,66000,16,4126,4060,4470,,,Native,Bush,1
+serum albumin*,66000,17,3883.352941,4040,4490,,,Native,Bush,1
+concanavalin A,103000,19,5422.052632,,6060,,,Native,Bush,4
+concanavalin A,103000,20,5151,5550,6080,,,Native,Bush,4
+concanavalin A,103000,21,4905.761905,5550,6090,,,Native,Bush,4
+concanavalin A,103000,22,4682.818182,5480,6050,,,Native,Bush,4
+concanavalin A,103000,23,4479.26087,5450,,,,Native,Bush,4
+serum amyloid P,125000,22,5682.818182,7030,7630,,,Native,Bush,5
+serum amyloid P,125000,23,5435.782609,6970,7600,,,Native,Bush,5
+serum amyloid P,125000,24,5209.333333,6930,7460,,,Native,Bush,5
+serum amyloid P,125000,25,5001,6860,7310,,,Native,Bush,5
+serum amyloid P,125000,26,4808.692308,6830,7280,,,Native,Bush,5
+alcohol dehydogenase,143000,23,6218.391304,6940,7420,,,Native,Bush,4
+alcohol dehydogenase,143000,24,5959.333333,6940,7450,,,Native,Bush,4
+alcohol dehydogenase,143000,25,5721,6830,7440,,,Native,Bush,4
+alcohol dehydogenase,143000,26,5501,6720,7500,,,Native,Bush,4
+pyruvate kinase,237000,30,7901,10300,,,,Native,Bush,4
+pyruvate kinase,237000,31,7646.16129,10300,11100,,,Native,Bush,4
+pyruvate kinase,237000,32,7407.25,10300,11100,,,Native,Bush,4
+pyruvate kinase,237000,33,7182.818182,10200,11000,,,Native,Bush,4
+pyruvate kinase,237000,34,6971.588235,10200,11000,,,Native,Bush,4
+pyruvate kinase,237000,35,6772.428571,10000,11000,,,Native,Bush,4
+serum amyloid P,250000,31,8065.516129,10400,11100,,,Native,Bush,10
+serum amyloid P,250000,32,7813.5,10500,11200,,,Native,Bush,10
+serum amyloid P,250000,33,7576.757576,10600,11200,,,Native,Bush,10
+serum amyloid P,250000,34,7353.941176,10500,11100,,,Native,Bush,10
+serum amyloid P,250000,35,7143.857143,10700,,,,Native,Bush,10
+glutamate dehydrogenase,336000,37,9082.081081,,13400,,,Native,Bush,6
+glutamate dehydrogenase,336000,38,8843.105263,12800,13400,,,Native,Bush,6
+glutamate dehydrogenase,336000,39,8616.384615,12800,13400,,,Native,Bush,6
+glutamate dehydrogenase,336000,40,8401,12800,13400,,,Native,Bush,6
+glutamate dehydrogenase,336000,41,8196.121951,12800,13500,,,Native,Bush,6
+glutamate dehydrogenase,336000,42,8001,12800,,,,Native,Bush,6
+glutamate dehydrogenase,336000,43,7814.953488,12800,,,,Native,Bush,6
+GroEL,801000,65,12324.07692,,21800,,,Native,Bush,14
+GroEL,801000,66,12137.36364,,22000,,,Native,Bush,14
+GroEL,801000,67,11956.22388,20900,22000,,,Native,Bush,14
+GroEL,801000,68,11780.41176,20900,21900,,,Native,Bush,14
+GroEL,801000,69,11609.69565,20700,21900,,,Native,Bush,14
+GroEL,801000,70,11443.85714,20700,21800,,,Native,Bush,14
+GroEL,801000,71,11282.69014,20600,21900,,,Native,Bush,14
+GroEL,801000,72,11126,20700,,,,Native,Bush,14

@@ -1,3 +1,4 @@
+"""Utilities to be used by the DataObject classes"""
 # Standard library imports
 import os
 import logging
@@ -17,6 +18,45 @@ from zarr import Group
 from origami.processing import origami_ms
 
 LOGGER = logging.getLogger(__name__)
+
+
+XAxesKeys = {
+    # mobilogram
+    "Drift time (bins)": "x_bin",
+    "Drift time (ms)": "x_ms",
+    "Arrival time (ms)": "x_ms",
+    "Collision Cross Section (Å²)": "x_ccs",
+    "CCS (Å²)": "x_ccs",
+    # chromatogram
+    "Scans": "x_bin",
+    "Time (mins)": "x_min",
+    "Retention time (mins)": "x_min",
+    "Collision Voltage (V)": "x_cv",
+    "Activation Voltage (V)": "x_cv",
+    "Activation Energy (V)": "x_cv",
+    "Lab Frame Energy (eV)": "x_ev",
+    "Activation Voltage (eV)": "x_ev",
+    "Activation Energy (eV)": "x_ev",
+}
+
+YAxesKeys = {
+    # mobilogram
+    "Drift time (bins)": "y_bin",
+    "Drift time (ms)": "y_ms",
+    "Arrival time (ms)": "y_ms",
+    "Collision Cross Section (Å²)": "y_ccs",
+    "CCS (Å²)": "y_ccs",
+    # heatmap
+    "Scans": "y_bin",
+    "Time (mins)": "y_min",
+    "Retention time (mins)": "y_min",
+    "Collision Voltage (V)": "y_cv",
+    "Activation Voltage (V)": "y_cv",
+    "Activation Energy (V)": "y_cv",
+    "Lab Frame Energy (eV)": "y_ev",
+    "Activation Voltage (eV)": "y_ev",
+    "Activation Energy (eV)": "y_ev",
+}
 
 
 class ChromatogramAxesMixin(ABC):
@@ -113,12 +153,14 @@ class ChromatogramAxesMixin(ABC):
             else:
                 new_values = extra_data[bin_key]
                 new_values = new_values * (_get_scan_time(scan_time) / 60)
+                extra_data[min_key] = new_values
         elif to_label == "Scans" and current_label in min_labels:
             if bin_key in extra_data:
                 new_values = extra_data[bin_key]
             else:
                 new_values = current_values
                 new_values = np.round((new_values * 60) / _get_scan_time(scan_time)).astype(np.int32)
+                extra_data[bin_key] = new_values
         elif check_alternative_names(current_label, to_label, min_labels):
             new_values = current_values
         else:
@@ -217,8 +259,8 @@ class MobilogramAxesMixin(ABC):
             return current_label, current_values
 
         # create back-up of the bin data
-        if current_label == "Drift time (bins)":
-            extra_data["x_bin"] = current_values
+        if current_label == "Drift time (bins)" and bin_key not in extra_data:
+            extra_data[bin_key] = current_values
 
         if to_label in ms_labels and current_label == "Drift time (bins)":
             if ms_key in extra_data:
@@ -226,12 +268,14 @@ class MobilogramAxesMixin(ABC):
             else:
                 new_values = extra_data[bin_key]
                 new_values = new_values * (_get_pusher_freq(pusher_freq) / 1000)
+                extra_data[ms_key] = new_values
         elif to_label == "Drift time (bins)" and current_label in ms_labels:
             if bin_key in extra_data:
                 new_values = extra_data[bin_key]
             else:
                 new_values = current_values
                 new_values = np.round((new_values * 1000) / _get_pusher_freq(pusher_freq)).astype(np.int32)
+                extra_data[bin_key] = new_values
         elif check_alternative_names(current_label, to_label, ms_labels):
             new_values = current_values
         else:
@@ -347,12 +391,14 @@ class OrigamiMsMixin(ABC):
             else:
                 new_values = extra_data[cv_key]
                 new_values = new_values * _get_charge(charge)
+                extra_data[ev_key] = new_values
         elif to_label in cv_labels and current_label in ev_labels:
             if cv_key in extra_data:
                 new_values = extra_data[cv_key]
             else:
                 new_values = extra_data[ev_key]
                 new_values = new_values / _get_charge(charge)
+                extra_data[cv_key] = new_values
         elif check_alternative_names(current_label, to_label, cv_labels) or check_alternative_names(
             current_label, to_label, ev_labels
         ):
@@ -394,10 +440,13 @@ class CCSAxesMixin(ABC):
     def _change_dt_ccs_axis(
         to_label: str,
         metadata: Dict,
+        extra_data: Dict,
         label_options: List[str],
         current_label: str,
         current_values: np.ndarray,
         default_label_key: str,
+        bin_key: str,
+        ccs_key: str,
     ):
         """Change x/y-axis label and values"""
         ccs_labels = ["Collision Cross Section (Å²)", "CCS (Å²)"]
@@ -409,8 +458,13 @@ class CCSAxesMixin(ABC):
         if to_label == "Restore default":
             to_label = metadata[default_label_key]
 
+        # check whether the new label is in the allowed labels
         if to_label not in label_options:
             raise ValueError(f"Cannot change label to `{to_label}`; \nAllowed labels: {label_options}")
+
+        # create back-up of the bin data
+        if current_label == "Drift time (bins)":
+            extra_data[bin_key] = current_values
 
         if current_label == to_label:
             LOGGER.warning("The before and after labels are the same")
@@ -418,8 +472,18 @@ class CCSAxesMixin(ABC):
 
         if check_alternative_names(current_label, to_label, ccs_labels):
             new_values = current_values
+        elif to_label in ccs_labels:
+            if ccs_key in extra_data:
+                new_values = extra_data[ccs_key]
+            else:
+                raise ValueError("Could not convert axis")
+        elif to_label == "Drift time (bins)":
+            if bin_key in extra_data:
+                new_values = extra_data[bin_key]
+            else:
+                raise ValueError("Could not convert axis")
         else:
-            raise ValueError("Cannot convert x-axis")
+            raise ValueError("Cannot convert axis")
 
         # set data
         return to_label, new_values
@@ -443,10 +507,10 @@ class CCSAxesMixin(ABC):
             return _mz
 
         # get parameters
-        print(mz, charge, calibration)
         mz = _get_mz(mz)
         charge = _get_charge(charge)
 
+        # convert array to CCS range
         array = calibration(mz, charge, array)
         return array
 

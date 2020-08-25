@@ -35,13 +35,15 @@
 - [ ] change the annotations popup to dialog since it won't work on linux
 - [x] make it easier to instantiate tables
 - [ ] fix various issues with x/y-axis conversions
+- [ ] add specification for DataObjects metadata and extra data to prevent incorrect values being set
+    * m/z value = mz; charge=charge; x_label... etc
 
 ## New features
 
 - [ ] overlay panel overhaul
-- [ ] ccs panel
+- [x] ccs panel
 - [ ] mobility peak picker
-- [ ] batch data extraction
+- [x] batch data extraction
 - [ ] custom data extraction
-- [ ] complete overhaul of UniDec integration (start from scratch...)
+- [x] complete overhaul of UniDec integration (start from scratch...)
 - [ ] add some of the nice features of CIUSuite2

@@ -213,9 +213,9 @@ class ViewMPLMixin:
         self.figure.on_zoom_xy_axis(x_min, x_max, y_min, y_max)
         self.figure.repaint()
 
-    def reset_zoom(self):
+    def reset_zoom(self, repaint: bool = True):
         """Restore original extents of the plot"""
-        self.figure.on_reset_zoom()
+        self.figure.on_reset_zoom(repaint)
 
 
 class ViewBase(ABC):

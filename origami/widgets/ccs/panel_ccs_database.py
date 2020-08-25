@@ -82,6 +82,7 @@ class PanelCCSDatabase(MiniFrame, TableMixin):
     calibrant_value, mw_value, charge_value, he_pos_ccs_value, he_neg_ccs_value = None, None, None, None, None
     n2_pos_ccs_value, n2_neg_ccs_value, state_value, add_btn, load_btn = None, None, None, None, None
     save_btn, source_value, mz_value, clear_btn, auto_load_check = None, None, None, None, None
+    clear_table_btn = None
 
     def __init__(self, parent, icons=None, hide_on_close: bool = False, debug: bool = False):
         """Initialize panel"""
@@ -278,6 +279,13 @@ class PanelCCSDatabase(MiniFrame, TableMixin):
         self.save_btn.Bind(wx.EVT_BUTTON, self.on_save_calibrants)
         set_tooltip(self.save_btn, "Export calibration data to configuration file")
 
+        icon = wx.ArtProvider.GetBitmap(wx.ART_DELETE, wx.ART_BUTTON, wx.Size(16, 16))
+        if self._icons:
+            icon = self._icons.bin
+        self.clear_table_btn = make_bitmap_btn(panel, -1, icon)
+        self.clear_table_btn.Bind(wx.EVT_BUTTON, self.on_delete_all)
+        set_tooltip(self.clear_table_btn, "Clear calibration table")
+
         self.auto_load_check = make_checkbox(panel, "Load default database at start-up")
         self.auto_load_check.SetValue(CONFIG.ccs_database_panel_load_at_start)
         self.auto_load_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
@@ -290,6 +298,8 @@ class PanelCCSDatabase(MiniFrame, TableMixin):
         btn_sizer.Add(self.load_btn)
         btn_sizer.AddSpacer(5)
         btn_sizer.Add(self.save_btn)
+        btn_sizer.AddSpacer(5)
+        btn_sizer.Add(self.clear_table_btn)
 
         # main sizer
         side_sizer = wx.BoxSizer(wx.VERTICAL)

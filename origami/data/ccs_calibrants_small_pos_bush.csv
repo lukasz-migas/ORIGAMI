@@ -1,0 +1,24 @@
+Protein,MW,Charge,m/z,HePos,N2Pos,HeNeg,N2Neg,State,Source,Subunits
+N-ethylaniline,122.1,1,123.1,63,124.5,,,Drug-Like,Bush,1
+acetaminophen,152.1,1,153.1,67,130.4,,,Drug-Like,Bush,1
+alprenolol,250.3,1,251.3,96.9,157.5,,,Drug-Like,Bush,1
+ondansetron,294.2,1,295.2,105.9,172.7,,,Drug-Like,Bush,1
+clozapine N-oxide,343.2,1,344.2,112.5,180.6,,,Drug-Like,Bush,1
+colchicine,400.3,1,401.3,130.8,196.2,,,Drug-Like,Bush,1
+verapamil,455.4,1,456.4,142.6,210,,,Drug-Like,Bush,1
+reserpine,609.4,1,610.4,178.8,254.3,,,Drug-Like,Bush,1
+tetramethylammonium,74.1,1,75.1,48.5,107.4,,,Quarternary Amines,Bush,1
+tetraethylammonium,130.2,1,131.2,65.9,122.2,,,Quarternary Amines,Bush,1
+tetrapropylammonium,186.3,1,187.3,88.9,143.8,,,Quarternary Amines,Bush,1
+tetrabutylammonium,242.4,1,243.4,111.2,166,,,Quarternary Amines,Bush,1
+tetrapentylammonium,298.4,1,299.4,133.5,190.1,,,Quarternary Amines,Bush,1
+tetrahexylammonium,354.5,1,355.5,154.9,214,,,Quarternary Amines,Bush,1
+tetraheptylammonium,410.6,1,411.6,174.5,236.8,,,Quarternary Amines,Bush,1
+tetraoctylammonium,466.7,1,467.7,194,258.3,,,Quarternary Amines,Bush,1
+napthalene,128.1,1,129.1,59.4,115.8,,,Odd-Electron,Bush,1
+anthracene,178.1,1,179.1,73.9,129.6,,,Odd-Electron,Bush,1
+phenanthrene,178.1,1,179.1,71.9,129.1,,,Odd-Electron,Bush,1
+pyrene,202.1,1,203.1,76.4,135,,,Odd-Electron,Bush,1
+triphenylene,228.1,1,229.1,83.8,143.3,,,Odd-Electron,Bush,1
+C60,720,1,721,122.6,213.1,,,Odd-Electron,Bush,1
+C70,840,1,841,135,231.4,,,Odd-Electron,Bush,1

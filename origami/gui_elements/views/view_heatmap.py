@@ -103,7 +103,8 @@ class ViewHeatmap(ViewBase, ViewMPLMixin, ViewWaterfallMixin, ViewViolinMixin, V
 
         try:
             self.update(x, y, array, obj, repaint=repaint, **kwargs)
-        except AttributeError:
+        except AttributeError as err:
+            LOGGER.debug(err)
             x, y, array = self.check_input(x, y, array, obj)
             self.figure.clear()
             self.figure.plot_2d(
@@ -127,8 +128,9 @@ class ViewHeatmap(ViewBase, ViewMPLMixin, ViewWaterfallMixin, ViewViolinMixin, V
         # update plot
         x, y, array = self.check_input(x, y, array, obj)
         self.figure.plot_2d_update_data(x, y, array, self.x_label, self.y_label, obj=obj, **kwargs)
-        if repaint:
-            self.figure.repaint()
+        self.figure.on_reset_zoom(repaint)
+        # if repaint:
+        #     self.figure.repaint()
 
         # set data
         self._data.update(x=x, y=y, array=array, obj=obj)

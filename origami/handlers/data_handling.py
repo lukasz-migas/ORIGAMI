@@ -606,15 +606,13 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         can_extract, is_multifile, file_fmt = document.can_extract()
         if not can_extract:
             raise MessageError("Error", "This document type 8does not allow data extraction")
-        #         if is_multifile:
-        #             raise MessageError("Error", "Multifile data extraction is not supported yet")
         if file_fmt == "thermo":
             raise MessageError("Error", "Cannot extract heatmap from Thermo file")
 
         if CONFIG.plot_panel_ms_extract_heatmap:
             # get plot data and calculate maximum values in the arrays
             x, y = self.panel_plot.view_ms.get_data(["x", "y"])
-            _, y_val = get_maximum_xy(x, y, x_min, x_max)
+            x_pos, y_val = get_maximum_xy(x, y, x_min, x_max)
 
             # mark on the plot where data is being extracted from
             self.panel_plot.view_ms.add_patches([x_min], [0], [x_max - x_min], [y_val], pickable=False)
@@ -630,6 +628,9 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
                 obj_name, heatmap_obj, document = self.waters_extract_heatmap_from_mass_spectrum_one(
                     x_min, x_max, document.title
                 )
+
+            # set metadata
+            heatmap_obj.add_metadata("mz", float(x_pos))
 
             # set data
             self.panel_plot.view_heatmap.plot(obj=heatmap_obj)
@@ -660,7 +661,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         if CONFIG.plot_panel_ms_extract_rt:
             # get plot data and calculate maximum values in the arrays
             x, y = self.panel_plot.view_ms.get_data(["x", "y"])
-            _, y_val = get_maximum_xy(x, y, x_min, x_max)
+            x_pos, y_val = get_maximum_xy(x, y, x_min, x_max)
 
             # mark on the plot where data is being extracted from
             # self.panel_plot.view_ms.add_patches([x_min], [0], [x_max - x_min], [y_val], pickable=False)
@@ -673,6 +674,9 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             #             )
             #         else:
             obj_name, rt_obj, document = self.waters_extract_rt_from_mass_spectrum(x_min, x_max, document.title)
+
+            # set metadata
+            rt_obj.add_metadata("mz", float(x_pos))
 
             # set data
             self.panel_plot.view_rt_rt.plot(obj=rt_obj)
@@ -703,9 +707,12 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         if CONFIG.plot_panel_ms_extract_dt:
             # get plot data and calculate maximum values in the arrays
             x, y = self.panel_plot.view_ms.get_data(["x", "y"])
-            _, y_val = get_maximum_xy(x, y, x_min, x_max)
+            x_pos, y_val = get_maximum_xy(x, y, x_min, x_max)
 
             obj_name, dt_obj, document = self.waters_extract_dt_from_mass_spectrum(x_min, x_max, document.title)
+
+            # set metadata
+            dt_obj.add_metadata("mz", float(x_pos))
 
             # set data
             self.panel_plot.view_dt_dt.plot(obj=dt_obj)

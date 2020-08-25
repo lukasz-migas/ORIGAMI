@@ -1,0 +1,165 @@
+Protein,MW,Charge,m/z,HePos,N2Pos,HeNeg,N2Neg,State,Source,Subunits
+insulin,5810,3,1937.666667,743,,728,,Native,Bush,1
+insulin,5810,4,1453.5,768,,732,,Native,Bush,1
+ubiquitin,8570,4,2143.5,972,,950,,Native,Bush,1
+ubiquitin,8570,5,1715,982,,960,,Native,Bush,1
+insulin,11600,5,2321,1230,,1180,,Native,Bush,2
+insulin,11600,6,1934.333333,1290,,1200,,Native,Bush,2
+cytochrome c,12400,5,2481,,,1240,,Native,Bush,1
+cytochrome c,12400,6,2067.666667,1240,,1250,,Native,Bush,1
+cytochrome c,12400,7,1772.428571,1300,,,,Native,Bush,1
+ribonuclease A,13800,5,2761,,,1300,,Native,Bush,1
+ribonuclease A,13800,6,2301,1290,,1300,,Native,Bush,1
+ribonuclease A,13800,7,1972.428571,1340,,,,Native,Bush,1
+ribonuclease A,13800,8,1726,1390,,,,Native,Bush,1
+a-lactalbumin,14200,5,2841,,,1350,,Native,Bush,1
+a-lactalbumin,14200,6,2367.666667,1360,,1350,,Native,Bush,1
+a-lactalbumin,14200,7,2029.571429,1380,,1380,,Native,Bush,1
+a-lactalbumin,14200,8,1776,1440,,,,Native,Bush,1
+lysozyme,14300,5,2861,,,1350,,Native,Bush,1
+lysozyme,14300,6,2384.333333,1360,,1360,,Native,Bush,1
+lysozyme,14300,7,2043.857143,1370,,1400,,Native,Bush,1
+lysozyme,14300,8,1788.5,1460,,,,Native,Bush,1
+b-lactoglobulin,18400,6,3067.666667,,,1660,,Native,Bush,1
+b-lactoglobulin,18400,7,2629.571429,1670,,1660,,Native,Bush,1
+b-lactoglobulin,18400,8,2301,1710,,,,Native,Bush,1
+b-lactoglobulin,18400,9,2045.444444,1800,,,,Native,Bush,1
+a-chymotrypsinogen A,25700,7,3672.428571,,,2040,,Native,Bush,1
+a-chymotrypsinogen A,25700,8,3213.5,,,2020,,Native,Bush,1
+a-chymotrypsinogen A,25700,9,2856.555556,2020,,2030,,Native,Bush,1
+a-chymotrypsinogen A,25700,10,2571,2030,,,,Native,Bush,1
+a-chymotrypsinogen A,25700,11,2337.363636,2110,,,,Native,Bush,1
+carbonic anhydrase,31500,8,3938.5,,,2490,,Native,Bush,1
+carbonic anhydrase,31500,9,3501,,,2480,,Native,Bush,1
+carbonic anhydrase,31500,10,3151,2430,,2520,,Native,Bush,1
+carbonic anhydrase,31500,11,2864.636364,2430,,,,Native,Bush,1
+carbonic anhydrase,31500,12,2626,2450,,,,Native,Bush,1
+insulin,35300,10,3531,2400,,2370,,Native,Bush,6
+insulin,35300,11,3210.090909,2410,,2370,,Native,Bush,6
+b-lactoglobulin,36800,8,4601,,,2590,,Native,Bush,2
+b-lactoglobulin,36800,9,4089.888889,,,2790,,Native,Bush,2
+b-lactoglobulin,36800,10,3681,,,2790,,Native,Bush,2
+b-lactoglobulin,36800,11,3346.454545,2840,,,,Native,Bush,2
+b-lactoglobulin,36800,12,3067.666667,2900,,,,Native,Bush,2
+b-lactoglobulin,36800,13,2831.769231,2990,,,,Native,Bush,2
+ovalbumin,43300,11,3937.363636,3010,,3050,,Native,Bush,1
+ovalbumin,43300,12,3609.333333,3010,,3050,,Native,Bush,1
+ovalbumin,43300,13,3331.769231,3040,,,,Native,Bush,1
+ovalbumin,43300,14,3093.857143,3050,,,,Native,Bush,1
+avidin,64300,12,5359.333333,,,3620,,Native,Bush,4
+avidin,64300,13,4947.153846,,,3640,,Native,Bush,4
+avidin,64300,14,4593.857143,,,3640,,Native,Bush,4
+avidin,64300,15,4287.666667,3570,,,,Native,Bush,4
+avidin,64300,16,4019.75,3590,,,,Native,Bush,4
+avidin,64300,17,3783.352941,3610,,,,Native,Bush,4
+avidin,64300,18,3573.222222,3620,,,,Native,Bush,4
+albumin,67000,12,5584.333333,,,4000,,Native,Bush,1
+albumin,67000,13,5154.846154,,,4050,,Native,Bush,1
+albumin,67000,14,4786.714286,4010,,4080,,Native,Bush,1
+albumin,67000,15,4467.666667,4030,,4120,,Native,Bush,1
+albumin,67000,16,4188.5,4070,,,,Native,Bush,1
+albumin,67000,17,3942.176471,4110,,,,Native,Bush,1
+holotransferrin,78600,14,5615.285714,,,4410,,Native,Bush,1
+holotransferrin,78600,15,5241,,,4470,,Native,Bush,1
+holotransferrin,78600,16,4913.5,,,4500,,Native,Bush,1
+holotransferrin,78600,17,4624.529412,4420,,4520,,Native,Bush,1
+holotransferrin,78600,18,4367.666667,4500,,,,Native,Bush,1
+holotransferrin,78600,19,4137.842105,4540,,,,Native,Bush,1
+holotransferrin,78600,20,3931,4570,,,,Native,Bush,1
+lactoferrin,81000,15,5401,,,4580,,Native,Bush,1
+lactoferrin,81000,16,5063.5,,,4590,,Native,Bush,1
+lactoferrin,81000,17,4765.705882,,,4630,,Native,Bush,1
+lactoferrin,81000,18,4501,4590,,,,Native,Bush,1
+lactoferrin,81000,19,4264.157895,4640,,,,Native,Bush,1
+lactoferrin,81000,20,4051,4630,,,,Native,Bush,1
+lactoferrin,81000,21,3858.142857,4670,,,,Native,Bush,1
+enolase,93900,15,6261,,,4870,,Native,Bush,2
+enolase,93900,16,5869.75,,,4880,,Native,Bush,2
+enolase,93900,17,5524.529412,,,4870,,Native,Bush,2
+enolase,93900,18,5217.666667,4800,,,,Native,Bush,2
+enolase,93900,19,4943.105263,4830,,,,Native,Bush,2
+enolase,93900,20,4696,4840,,,,Native,Bush,2
+enolase,93900,21,4472.428571,4870,,,,Native,Bush,2
+concanavalin A,103000,16,6438.5,,,5420,,Native,Bush,4
+concanavalin A,103000,17,6059.823529,,,5450,,Native,Bush,4
+concanavalin A,103000,18,5723.222222,,,5460,,Native,Bush,4
+concanavalin A,103000,19,5422.052632,5440,,5460,,Native,Bush,4
+concanavalin A,103000,20,5151,5450,,,,Native,Bush,4
+concanavalin A,103000,21,4905.761905,5460,,,,Native,Bush,4
+concanavalin A,103000,22,4682.818182,5460,,,,Native,Bush,4
+glyceraldehyde-3-phosphate dehydrogenase,145000,20,7251,,,6950,,Native,Bush,4
+glyceraldehyde-3-phosphate dehydrogenase,145000,21,6905.761905,,,7000,,Native,Bush,4
+glyceraldehyde-3-phosphate dehydrogenase,145000,22,6591.909091,,,7000,,Native,Bush,4
+glyceraldehyde-3-phosphate dehydrogenase,145000,23,6305.347826,6860,,7000,,Native,Bush,4
+glyceraldehyde-3-phosphate dehydrogenase,145000,24,6042.666667,6960,,7010,,Native,Bush,4
+glyceraldehyde-3-phosphate dehydrogenase,145000,25,5801,6990,,,,Native,Bush,4
+glyceraldehyde-3-phosphate dehydrogenase,145000,26,5577.923077,7000,,,,Native,Bush,4
+glyceraldehyde-3-phosphate dehydrogenase,145000,27,5371.37037,7060,,,,Native,Bush,4
+alcohol dehydrogenase,148000,19,7790.473684,,,6990,,Native,Bush,4
+alcohol dehydrogenase,148000,20,7401,,,7020,,Native,Bush,4
+alcohol dehydrogenase,148000,21,7048.619048,,,6980,,Native,Bush,4
+alcohol dehydrogenase,148000,22,6728.272727,,,7030,,Native,Bush,4
+alcohol dehydrogenase,148000,23,6435.782609,6990,,7010,,Native,Bush,4
+alcohol dehydrogenase,148000,24,6167.666667,7020,,,,Native,Bush,4
+alcohol dehydrogenase,148000,25,5921,7020,,,,Native,Bush,4
+alcohol dehydrogenase,148000,26,5693.307692,7020,,,,Native,Bush,4
+alcohol dehydrogenase,148000,27,5482.481481,7020,,,,Native,Bush,4
+aldolase,158000,20,7901,,,7800,,Native,Bush,4
+aldolase,158000,21,7524.809524,,,7790,,Native,Bush,4
+aldolase,158000,22,7182.818182,,,7760,,Native,Bush,4
+aldolase,158000,23,6870.565217,,,7770,,Native,Bush,4
+aldolase,158000,24,6584.333333,7610,,,,Native,Bush,4
+aldolase,158000,25,6321,7690,,,,Native,Bush,4
+aldolase,158000,26,6077.923077,7720,,,,Native,Bush,4
+aldolase,158000,27,5852.851852,7730,,,,Native,Bush,4
+phosphorylase b,196000,24,8167.666667,,,9030,,Native,Bush,2
+phosphorylase b,196000,25,7841,,,9060,,Native,Bush,2
+phosphorylase b,196000,26,7539.461538,,,9040,,Native,Bush,2
+phosphorylase b,196000,27,7260.259259,9030,,9060,,Native,Bush,2
+phosphorylase b,196000,28,7001,9070,,,,Native,Bush,2
+phosphorylase b,196000,29,6759.62069,9090,,,,Native,Bush,2
+phosphorylase b,196000,30,6534.333333,9120,,,,Native,Bush,2
+pyruvate kinase,233000,24,9709.333333,,,10300,,Native,Bush,4
+pyruvate kinase,233000,25,9321,,,10400,,Native,Bush,4
+pyruvate kinase,233000,26,8962.538462,,,10400,,Native,Bush,4
+pyruvate kinase,233000,27,8630.62963,,,10300,,Native,Bush,4
+pyruvate kinase,233000,28,8322.428571,,,10300,,Native,Bush,4
+pyruvate kinase,233000,29,8035.482759,,,10200,,Native,Bush,4
+pyruvate kinase,233000,30,7767.666667,10100,,,,Native,Bush,4
+pyruvate kinase,233000,31,7517.129032,10200,,,,Native,Bush,4
+pyruvate kinase,233000,32,7282.25,10200,,,,Native,Bush,4
+pyruvate kinase,233000,33,7061.606061,10200,,,,Native,Bush,4
+pyruvate kinase,233000,34,6853.941176,10200,,,,Native,Bush,4
+pyruvate kinase,233000,35,6658.142857,10200,,,,Native,Bush,4
+catalase,236000,24,9834.333333,,,9030,,Native,Bush,4
+catalase,236000,25,9441,,,9070,,Native,Bush,4
+catalase,236000,26,9077.923077,,,9120,,Native,Bush,4
+catalase,236000,27,8741.740741,,,9100,,Native,Bush,4
+catalase,236000,32,7376,9050,,,,Native,Bush,4
+catalase,236000,33,7152.515152,9060,,,,Native,Bush,4
+catalase,236000,34,6942.176471,9050,,,,Native,Bush,4
+catalase,236000,35,6743.857143,9090,,,,Native,Bush,4
+catalase,236000,35,6743.857143,9050,,,,Native,Bush,4
+glutamate dehydrogenase,337000,31,10871.96774,,,12700,,Native,Bush,6
+glutamate dehydrogenase,337000,32,10532.25,,,12800,,Native,Bush,6
+glutamate dehydrogenase,337000,33,10213.12121,,,12800,,Native,Bush,6
+glutamate dehydrogenase,337000,34,9912.764706,,,12800,,Native,Bush,6
+glutamate dehydrogenase,337000,35,9629.571429,12500,,12800,,Native,Bush,6
+glutamate dehydrogenase,337000,36,9362.111111,12700,,12800,,Native,Bush,6
+glutamate dehydrogenase,337000,37,9109.108108,12700,,12800,,Native,Bush,6
+glutamate dehydrogenase,337000,38,8869.421053,12700,,,,Native,Bush,6
+glutamate dehydrogenase,337000,39,8642.025641,12700,,,,Native,Bush,6
+glutamate dehydrogenase,337000,40,8426,12800,,,,Native,Bush,6
+glutamate dehydrogenase,337000,41,8220.512195,12800,,,,Native,Bush,6
+b-galactosidase,468000,36,13001,,,16300,,Native,Bush,4
+b-galactosidase,468000,37,12649.64865,,,16400,,Native,Bush,4
+b-galactosidase,468000,38,12316.78947,,,16500,,Native,Bush,4
+b-galactosidase,468000,39,12001,,,16600,,Native,Bush,4
+b-galactosidase,468000,40,11701,,,16700,,Native,Bush,4
+b-galactosidase,468000,41,11415.63415,,,16800,,Native,Bush,4
+b-galactosidase,468000,42,11143.85714,,,16900,,Native,Bush,4
+b-galactosidase,468000,47,9958.446809,16500,,,,Native,Bush,4
+b-galactosidase,468000,48,9751,16500,,,,Native,Bush,4
+b-galactosidase,468000,49,9552.020408,16600,,,,Native,Bush,4
+b-galactosidase,468000,50,9361,16500,,,,Native,Bush,4
+b-galactosidase,468000,51,9177.470588,16500,,,,Native,Bush,4

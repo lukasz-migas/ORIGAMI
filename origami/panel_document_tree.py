@@ -15,7 +15,6 @@ from pubsub import pub
 from origami.ids import ID_saveData_csv
 from origami.ids import ID_saveData_hdf
 from origami.ids import ID_xlabel_1D_ms
-from origami.ids import ID_xlabel_2D_mz
 from origami.ids import ID_ylabel_2D_ms
 from origami.ids import ID_xlabel_1D_ccs
 from origami.ids import ID_xlabel_2D_ccs
@@ -28,7 +27,6 @@ from origami.ids import ID_saveData_pickle
 from origami.ids import ID_xlabel_2D_scans
 from origami.ids import ID_xlabel_RT_scans
 from origami.ids import ID_showPlotDocument
-from origami.ids import ID_xlabel_2D_charge
 from origami.ids import ID_xlabel_2D_custom
 from origami.ids import ID_ylabel_2D_custom
 from origami.ids import ID_ylabel_DTMS_bins
@@ -47,13 +45,11 @@ from origami.ids import ID_xlabel_RT_time_min
 from origami.ids import ID_getSelectedDocument
 from origami.ids import ID_ylabel_DTMS_restore
 from origami.ids import ID_xlabel_1D_ms_arrival
-from origami.ids import ID_xlabel_2D_wavenumber
 from origami.ids import ID_ylabel_2D_ms_arrival
 from origami.ids import ID_xlabel_2D_actLabFrame
 from origami.ids import ID_xlabel_2D_retTime_min
 from origami.ids import ID_xlabel_RT_actLabFrame
 from origami.ids import ID_xlabel_RT_retTime_min
-from origami.ids import ID_xlabel_2D_massToCharge
 from origami.ids import ID_ylabel_DTMS_ms_arrival
 from origami.icons.assets import Icons
 from origami.config.config import CONFIG
@@ -73,6 +69,8 @@ from origami.gui_elements.helpers import set_tooltip
 from origami.gui_elements.helpers import make_checkbox
 from origami.gui_elements.helpers import make_menu_item
 from origami.gui_elements.misc_dialogs import DialogBox
+from origami.gui_elements.misc_dialogs import DialogNumberAsk
+from origami.gui_elements.misc_dialogs import DialogSimpleAsk
 
 LOGGER = logging.getLogger(__name__)
 
@@ -494,12 +492,12 @@ class DocumentTree(wx.TreeCtrl):
             ID_xlabel_2D_actVolt,
             ID_xlabel_2D_labFrame,
             ID_xlabel_2D_actLabFrame,
-            ID_xlabel_2D_massToCharge,
-            ID_xlabel_2D_mz,
-            ID_xlabel_2D_wavenumber,
+            #             ID_xlabel_2D_massToCharge,
+            #             ID_xlabel_2D_mz,
+            #             ID_xlabel_2D_wavenumber,
             ID_xlabel_2D_restore,
             ID_xlabel_2D_ccs,
-            ID_xlabel_2D_charge,
+            #             ID_xlabel_2D_charge,
             ID_xlabel_2D_custom,
             ID_xlabel_2D_time_min,
             ID_xlabel_2D_retTime_min,
@@ -554,7 +552,8 @@ class DocumentTree(wx.TreeCtrl):
             return None, None
         return document.title, obj_title
 
-    def _get_item_document(self):
+    @staticmethod
+    def _get_item_document():
         """Retrieves the document that is associated with particular data object"""
         return ENV.on_get_document()
 
@@ -1058,9 +1057,9 @@ class DocumentTree(wx.TreeCtrl):
             if self._item.is_match("spectrum"):
                 self.on_show_plot(evt=ID_showPlotDocument)
             if self._item.is_match("unidec"):
-                self.on_open_UniDec(None)
+                self.on_open_unidec(None)
         #             elif self._item_branch == "UniDec":
-        #                 self.on_open_UniDec(None)
+        #                 self.on_open_unidec(None)
         #             elif self._item_leaf == "Annotations":
         #                 self.on_open_annotation_editor(None)
         elif self._item.is_match(["chromatogram", "mobilogram", "heatmap", "msdt", "tandem", "overlay"]):
@@ -1090,7 +1089,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_refresh_document(self, _evt=None):
         """Refresh document by replotting all relevant data"""
-        document = ENV.get(self.title, None)
+        document = ENV.get(self.title)
         if document is None:
             return
         self.data_handling.on_setup_basic_document(document)
@@ -1104,6 +1103,11 @@ class DocumentTree(wx.TreeCtrl):
             "Scans": ID_xlabel_RT_scans,
             "Time (mins)": ID_xlabel_RT_time_min,
             "Retention time (mins)": ID_xlabel_RT_retTime_min,
+            "Collision Voltage (V)": ID_xlabel_RT_colVolt,
+            "Activation Energy (V)": ID_xlabel_RT_actVolt,
+            #             "Activation Voltage (V)": ID_xlabel_RT_actVolt,
+            "Lab Frame Energy (eV)": ID_xlabel_RT_labFrame,
+            "Activation Energy (eV)": ID_xlabel_RT_actLabFrame,
         }
 
         return xlabel_evt_dict.get(xlabel, None)
@@ -1118,10 +1122,10 @@ class DocumentTree(wx.TreeCtrl):
             "Activation Voltage (V)": ID_xlabel_2D_actVolt,
             "Lab Frame Energy (eV)": ID_xlabel_2D_labFrame,
             "Activation Energy (eV)": ID_xlabel_2D_actLabFrame,
-            "Mass-to-charge (Da)": ID_xlabel_2D_massToCharge,
-            "m/z (Da)": ID_xlabel_2D_mz,
-            "Wavenumber (cm⁻¹)": ID_xlabel_2D_wavenumber,
-            "Charge": ID_xlabel_2D_charge,
+            #             "Mass-to-charge (Da)": ID_xlabel_2D_massToCharge,
+            #             "m/z (Da)": ID_xlabel_2D_mz,
+            #             "Wavenumber (cm⁻¹)": ID_xlabel_2D_wavenumber,
+            #             "Charge": ID_xlabel_2D_charge,
             "Collision Cross Section (Å²)": ID_xlabel_2D_ccs,
         }
 
@@ -1418,7 +1422,7 @@ class DocumentTree(wx.TreeCtrl):
     #         self._bokeh_panel.Show()
 
     def on_open_ccs_builder(self, _):
-        """Open a dialog window where you can overlay and compare objects"""
+        """Open dialog window where CCS calibration can be created"""
         from origami.widgets.ccs.panel_ccs_calibration import PanelCCSCalibration
 
         document_title, _ = self._get_item_info()
@@ -1427,6 +1431,7 @@ class DocumentTree(wx.TreeCtrl):
         self._ccs_panel.Show()
 
     def on_open_ccs_editor(self, _):
+        """Open dialog window where CCS calibration can be edited"""
         from origami.widgets.ccs.panel_ccs_calibration import PanelCCSCalibration
 
         document_title, _ = self._get_item_info()
@@ -1530,10 +1535,10 @@ class DocumentTree(wx.TreeCtrl):
         menu_xlabel.Append(ID_xlabel_2D_actVolt, "Activation Energy (V)", "", wx.ITEM_RADIO)
         menu_xlabel.Append(ID_xlabel_2D_labFrame, "Lab Frame Energy (eV)", "", wx.ITEM_RADIO)
         menu_xlabel.Append(ID_xlabel_2D_actLabFrame, "Activation Energy (eV)", "", wx.ITEM_RADIO)
-        menu_xlabel.Append(ID_xlabel_2D_massToCharge, "Mass-to-charge (Da)", "", wx.ITEM_RADIO)
-        menu_xlabel.Append(ID_xlabel_2D_mz, "m/z (Da)", "", wx.ITEM_RADIO)
-        menu_xlabel.Append(ID_xlabel_2D_wavenumber, "Wavenumber (cm⁻¹)", "", wx.ITEM_RADIO)
-        menu_xlabel.Append(ID_xlabel_2D_charge, "Charge", "", wx.ITEM_RADIO)
+        #         menu_xlabel.Append(ID_xlabel_2D_massToCharge, "Mass-to-charge (Da)", "", wx.ITEM_RADIO)
+        #         menu_xlabel.Append(ID_xlabel_2D_mz, "m/z (Da)", "", wx.ITEM_RADIO)
+        #         menu_xlabel.Append(ID_xlabel_2D_wavenumber, "Wavenumber (cm⁻¹)", "", wx.ITEM_RADIO)
+        #         menu_xlabel.Append(ID_xlabel_2D_charge, "Charge", "", wx.ITEM_RADIO)
         menu_xlabel.Append(ID_xlabel_2D_ccs, "Collision Cross Section (Å²)", "", wx.ITEM_RADIO)
         menu_xlabel.Append(ID_xlabel_2D_custom, "Custom label...", "", wx.ITEM_RADIO)
         menu_xlabel.AppendSeparator()
@@ -1645,7 +1650,7 @@ class DocumentTree(wx.TreeCtrl):
         can_extract, file_fmt = True, None
         if document:
             has_ccs_calibration = document.has_ccs_calibration()
-            is_origami_ms = document.is_origami_ms(False)
+            is_origami_ms = document.is_origami_ms()
             can_extract, _, file_fmt = document.can_extract()
 
         if is_origami_ms:
@@ -1700,6 +1705,8 @@ class DocumentTree(wx.TreeCtrl):
         menu_action_show_plot_spectrum = make_menu_item(
             parent=menu, text="Show mass spectrum\tAlt+S", bitmap=self._icons.ms
         )
+        self.Bind(wx.EVT_MENU, self.on_show_plot_mass_spectra, menu_action_show_plot_spectrum)
+
         #         menu_action_show_plot_spectrum_waterfall = make_menu_item(
         #             parent=menu, text="Show mass spectra as waterfall", bitmap=self._icons.ms
         #         )
@@ -1711,41 +1718,42 @@ class DocumentTree(wx.TreeCtrl):
         menu_show_peak_picker_panel = make_menu_item(
             parent=menu, text="Open peak picker...", bitmap=self._icons.highlight
         )
+        self.Bind(wx.EVT_MENU, self.on_open_peak_picker, menu_show_peak_picker_panel)
+
         menu_action_process_ms = make_menu_item(parent=menu, text="Process...\tP", bitmap=self._icons.process_ms)
+        self.Bind(wx.EVT_MENU, self.on_process_ms, menu_action_process_ms)
+
         menu_action_process_ms_all = make_menu_item(parent=menu, text="Process all...", bitmap=self._icons.process_ms)
+        self.Bind(wx.EVT_MENU, self.on_batch_process_ms, menu_action_process_ms_all)
+
         menu_show_comparison_panel = make_menu_item(
             parent=menu, text="Compare mass spectra...", bitmap=self._icons.compare_ms
         )
+        self.Bind(wx.EVT_MENU, self.on_open_spectrum_comparison_viewer, menu_show_comparison_panel)
 
         menu_show_unidec_panel = make_menu_item(
             parent=menu, text="Deconvolute using UniDec...", bitmap=self._icons.unidec
         )
+        self.Bind(wx.EVT_MENU, self.on_open_unidec, menu_show_unidec_panel)
 
         # export actions
         menu_action_save_image_as = make_menu_item(parent=menu, text="Save image as...", bitmap=self._icons.png)
+        self.Bind(wx.EVT_MENU, partial(self.on_show_plot_mass_spectra, True), menu_action_save_image_as)
+
         menu_action_save_image_as_all = make_menu_item(
             parent=menu, text="Batch save images as...", bitmap=self._icons.png
         )
 
         menu_action_save_data_as = make_menu_item(parent=menu, text="Save data as...", bitmap=self._icons.csv)
-        menu_action_save_data_as_all = make_menu_item(parent=menu, text="Batch save data as...", bitmap=self._icons.csv)
-        menu_action_delete_item = make_menu_item(parent=menu, text="Delete item\tDelete", bitmap=self._icons.delete)
-        menu_action_open_data_directory = make_menu_item(
-            parent=menu, text="Reveal data directory in File Explorer", bitmap=None
-        )
-
-        # bind events
-        self.Bind(wx.EVT_MENU, self.on_show_plot_mass_spectra, menu_action_show_plot_spectrum)
-        self.Bind(wx.EVT_MENU, partial(self.on_show_plot_mass_spectra, True), menu_action_save_image_as)
-        self.Bind(wx.EVT_MENU, self.on_open_peak_picker, menu_show_peak_picker_panel)
-        self.Bind(wx.EVT_MENU, self.on_open_spectrum_comparison_viewer, menu_show_comparison_panel)
-        self.Bind(wx.EVT_MENU, self.on_open_UniDec, menu_show_unidec_panel)
-        self.Bind(wx.EVT_MENU, self.on_process_ms, menu_action_process_ms)
-        self.Bind(wx.EVT_MENU, self.on_batch_process_ms, menu_action_process_ms_all)
         self.Bind(wx.EVT_MENU, self.on_save_csv, menu_action_save_data_as)
-        self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
+
+        menu_action_save_data_as_all = make_menu_item(parent=menu, text="Batch save data as...", bitmap=self._icons.csv)
         self.Bind(wx.EVT_MENU, self.on_batch_export_figures, menu_action_save_image_as_all)
-        self.Bind(wx.EVT_MENU, self.on_batch_export_data, menu_action_save_data_as_all)
+
+        menu_action_delete_item = make_menu_item(parent=menu, text="Delete item\tDelete", bitmap=self._icons.delete)
+        self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
+
+        menu_action_open_data_directory = make_menu_item(parent=menu, text="Reveal data directory in File Explorer")
         self.Bind(wx.EVT_MENU, self.on_open_data_directory, menu_action_open_data_directory)
 
         # append menu
@@ -1783,33 +1791,40 @@ class DocumentTree(wx.TreeCtrl):
         menu_action_show_plot_chromatogram = make_menu_item(
             parent=menu, text="Show chromatogram\tAlt+S", bitmap=self._icons.chromatogram
         )
+        self.Bind(wx.EVT_MENU, self.on_show_plot_chromatogram, menu_action_show_plot_chromatogram)
 
         # export actions
         menu_action_save_chromatogram_image_as = make_menu_item(
             parent=menu, text="Save image as...", bitmap=self._icons.png
         )
+        self.Bind(wx.EVT_MENU, partial(self.on_show_plot_chromatogram, True), menu_action_save_chromatogram_image_as)
+
         menu_action_save_data_as = make_menu_item(parent=menu, text="Save data as...", bitmap=self._icons.csv)
+        self.Bind(wx.EVT_MENU, self.on_save_csv, menu_action_save_data_as)
+
         menu_action_save_image_as_all = make_menu_item(
             parent=menu, text="Batch save images as...", bitmap=self._icons.png
         )
+        self.Bind(wx.EVT_MENU, self.on_batch_export_figures, menu_action_save_image_as_all)
+
         menu_action_save_data_as_all = make_menu_item(parent=menu, text="Batch save data as...", bitmap=self._icons.csv)
+        self.Bind(wx.EVT_MENU, self.on_batch_export_data, menu_action_save_data_as_all)
+
         menu_action_delete_item = make_menu_item(parent=menu, text="Delete item\tDelete", bitmap=self._icons.delete)
+        self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
+
         menu_action_process_as_origami = make_menu_item(
             parent=menu, text="Apply ORIGAMI-MS parameters", bitmap=self._icons.sum
         )
+        self.Bind(wx.EVT_MENU, self.on_apply_origami_ms, menu_action_process_as_origami)
+
         menu_action_process_as_origami_all = make_menu_item(
             parent=menu, text="Apply ORIGAMI-MS parameters", bitmap=self._icons.sum
         )
-
-        # bind event
-        self.Bind(wx.EVT_MENU, self.on_show_plot_chromatogram, menu_action_show_plot_chromatogram)
-        self.Bind(wx.EVT_MENU, self.on_save_csv, menu_action_save_data_as)
-        self.Bind(wx.EVT_MENU, partial(self.on_show_plot_chromatogram, True), menu_action_save_chromatogram_image_as)
-        self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
-        self.Bind(wx.EVT_MENU, self.on_batch_export_figures, menu_action_save_image_as_all)
-        self.Bind(wx.EVT_MENU, self.on_batch_export_data, menu_action_save_data_as_all)
-        self.Bind(wx.EVT_MENU, self.on_apply_origami_ms, menu_action_process_as_origami)
         self.Bind(wx.EVT_MENU, self.on_batch_apply_origami_ms, menu_action_process_as_origami_all)
+
+        menu_action_open_data_directory = make_menu_item(parent=menu, text="Reveal data directory in File Explorer")
+        self.Bind(wx.EVT_MENU, self.on_open_data_directory, menu_action_open_data_directory)
 
         if self._item.indent == 2:
             menu.AppendItem(menu_action_process_as_origami_all)
@@ -1828,10 +1843,7 @@ class DocumentTree(wx.TreeCtrl):
             menu.AppendItem(menu_action_save_chromatogram_image_as)
             menu.AppendItem(menu_action_save_data_as)
             menu.AppendItem(menu_action_delete_item)
-
-        # # chromatograms - all
-
-    #         menu.AppendItem(menu_action_assign_charge)
+            menu.AppendItem(menu_action_open_data_directory)
 
     def _set_menu_mobilogram(self, menu):
 
@@ -1842,29 +1854,41 @@ class DocumentTree(wx.TreeCtrl):
         menu_action_show_plot_mobilogram = make_menu_item(
             parent=menu, text="Show mobilogram\tAlt+S", bitmap=self._icons.mobilogram
         )
+        self.Bind(wx.EVT_MENU, self.on_show_plot_mobilogram, menu_action_show_plot_mobilogram)
+
+        menu_action_assign_charge = make_menu_item(
+            parent=menu, text="Assign charge state...\tAlt+Z", bitmap=self._icons.charge
+        )
+        self.Bind(wx.EVT_MENU, self.on_assign_charge_state, menu_action_assign_charge)
+
+        menu_action_assign_mz = make_menu_item(parent=menu, text="Assign m/z value...")
+        self.Bind(wx.EVT_MENU, self.on_assign_mz, menu_action_assign_mz)
 
         # process actions
         menu_action_delete_item = make_menu_item(parent=menu, text="Delete item\tDelete", bitmap=self._icons.delete)
-        menu_action_process_ccs = make_menu_item(parent=menu, text="Apply CCS calibration", bitmap=self._icons.sum)
+        self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
 
-        # export actions
+        menu_action_process_ccs = make_menu_item(parent=menu, text="Apply CCS calibration", bitmap=self._icons.sum)
+        self.Bind(wx.EVT_MENU, self.on_apply_ccs_calibration, menu_action_process_ccs)
+
         menu_action_save_mobilogram_image_as = make_menu_item(
             parent=menu, text="Save image as...", bitmap=self._icons.png
         )
+        self.Bind(wx.EVT_MENU, partial(self.on_show_plot_mobilogram, True), menu_action_save_mobilogram_image_as)
+
         menu_action_save_data_as = make_menu_item(parent=menu, text="Save data as...", bitmap=self._icons.csv)
+        self.Bind(wx.EVT_MENU, self.on_save_csv, menu_action_save_data_as)
+
         menu_action_save_image_as_all = make_menu_item(
             parent=menu, text="Batch save images as...", bitmap=self._icons.png
         )
-        menu_action_save_data_as_all = make_menu_item(parent=menu, text="Batch save data as...", bitmap=self._icons.csv)
-
-        # bind events
-        self.Bind(wx.EVT_MENU, self.on_show_plot_mobilogram, menu_action_show_plot_mobilogram)
-        self.Bind(wx.EVT_MENU, partial(self.on_show_plot_mobilogram, True), menu_action_save_mobilogram_image_as)
-        self.Bind(wx.EVT_MENU, self.on_save_csv, menu_action_save_data_as)
-        self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
         self.Bind(wx.EVT_MENU, self.on_batch_export_figures, menu_action_save_image_as_all)
+
+        menu_action_save_data_as_all = make_menu_item(parent=menu, text="Batch save data as...", bitmap=self._icons.csv)
         self.Bind(wx.EVT_MENU, self.on_batch_export_data, menu_action_save_data_as_all)
-        self.Bind(wx.EVT_MENU, self.on_apply_ccs_calibration, menu_action_process_ccs)
+
+        menu_action_open_data_directory = make_menu_item(parent=menu, text="Reveal data directory in File Explorer")
+        self.Bind(wx.EVT_MENU, self.on_open_data_directory, menu_action_open_data_directory)
 
         # make menu
         if self._item.indent == 2:
@@ -1877,14 +1901,15 @@ class DocumentTree(wx.TreeCtrl):
             menu.AppendItem(menu_action_show_plot_mobilogram)
             self._set_menu_annotations(menu)
             menu.AppendSeparator()
+            menu.AppendItem(menu_action_assign_charge)
+            menu.AppendItem(menu_action_assign_mz)
             menu.AppendItem(menu_action_process_ccs)
             menu.AppendMenu(wx.ID_ANY, "Change x-axis to...", menu_xlabel)
             menu.AppendSeparator()
             menu.AppendItem(menu_action_save_mobilogram_image_as)
             menu.AppendItem(menu_action_save_data_as)
             menu.AppendItem(menu_action_delete_item)
-
-        #         menu.AppendItem(menu_action_assign_charge)
+            menu.AppendItem(menu_action_open_data_directory)
 
     def _set_menu_heatmap(self, menu):
 
@@ -1893,66 +1918,88 @@ class DocumentTree(wx.TreeCtrl):
 
         # view actions
         menu_action_show_plot_2d = make_menu_item(parent=menu, text="Show heatmap\tAlt+S", bitmap=self._icons.heatmap)
+        self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap, menu_action_show_plot_2d)
+
         menu_action_show_plot_contour = make_menu_item(parent=menu, text="Show contour", bitmap=self._icons.contour)
+        self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_contour, menu_action_show_plot_contour)
+
         menu_action_show_plot_as_mobilogram = make_menu_item(
             parent=menu, text="Show mobilogram", bitmap=self._icons.mobilogram
         )
+        self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_mobilogram, menu_action_show_plot_as_mobilogram)
+
         menu_action_show_plot_as_chromatogram = make_menu_item(
             parent=menu, text="Show chromatogram", bitmap=self._icons.chromatogram
         )
+        self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_chromatogram, menu_action_show_plot_as_chromatogram)
+
         menu_action_show_plot_violin = make_menu_item(parent=menu, text="Show violin plot", bitmap=self._icons.violin)
+        self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_violin, menu_action_show_plot_violin)
+
         menu_action_show_plot_waterfall = make_menu_item(
             parent=menu, text="Show waterfall plot", bitmap=self._icons.waterfall
         )
+        self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_waterfall, menu_action_show_plot_waterfall)
+
         menu_action_show_plot_joint = make_menu_item(parent=menu, text="Show joint plot", bitmap=self._icons.joint)
+        self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_joint, menu_action_show_plot_joint)
+
         menu_action_show_plot_3d = make_menu_item(parent=menu, text="Show heatmap (3D)", bitmap=self._icons.cube)
+        self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_3d, menu_action_show_plot_3d)
+
         menu_action_show_highlights = make_menu_item(
             parent=menu, text="Highlight ion in mass spectrum\tAlt+X", bitmap=self._icons.zoom
         )
+        self.Bind(wx.EVT_MENU, self.on_show_zoom_on_ion, menu_action_show_highlights)
 
-        # process actions
         menu_action_process_as_origami = make_menu_item(
             parent=menu, text="Apply ORIGAMI-MS parameters", bitmap=self._icons.sum
         )
+        self.Bind(wx.EVT_MENU, self.on_apply_origami_ms, menu_action_process_as_origami)
+
         menu_action_process_as_origami_all = make_menu_item(
             parent=menu, text="Apply ORIGAMI-MS parameters", bitmap=self._icons.sum
         )
+        self.Bind(wx.EVT_MENU, self.on_batch_apply_origami_ms, menu_action_process_as_origami_all)
+
         menu_action_process_2d = make_menu_item(parent=menu, text="Process...\tP", bitmap=self._icons.process_heatmap)
+        self.Bind(wx.EVT_MENU, self.on_process_heatmap, menu_action_process_2d)
+
         menu_action_process_2d_all = make_menu_item(
             parent=menu, text="Process all...", bitmap=self._icons.process_heatmap
         )
+        self.Bind(wx.EVT_MENU, self.on_batch_process_heatmap, menu_action_process_2d_all)
+
         menu_action_assign_charge = make_menu_item(
             parent=menu, text="Assign charge state...\tAlt+Z", bitmap=self._icons.charge
         )
-        menu_action_delete_item = make_menu_item(parent=menu, text="Delete item\tDelete", bitmap=self._icons.delete)
+        self.Bind(wx.EVT_MENU, self.on_assign_charge_state, menu_action_assign_charge)
 
+        menu_action_assign_mz = make_menu_item(parent=menu, text="Assign m/z value...")
+        self.Bind(wx.EVT_MENU, self.on_assign_mz, menu_action_assign_mz)
+
+        menu_action_process_ccs = make_menu_item(parent=menu, text="Apply CCS calibration", bitmap=self._icons.sum)
+        self.Bind(wx.EVT_MENU, self.on_apply_ccs_calibration, menu_action_process_ccs)
+
+        menu_action_delete_item = make_menu_item(parent=menu, text="Delete item\tDelete", bitmap=self._icons.delete)
+        self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
         # export actions
         menu_action_save_heatmap_image_as = make_menu_item(parent=menu, text="Save image as...", bitmap=self._icons.png)
+        self.Bind(wx.EVT_MENU, partial(self.on_show_plot_heatmap, True), menu_action_save_heatmap_image_as)
+
         menu_action_save_2d_data_as = make_menu_item(parent=menu, text="Save data as...", bitmap=self._icons.csv)
+        self.Bind(wx.EVT_MENU, self.on_save_csv, menu_action_save_2d_data_as)
+
         menu_action_save_image_as_all = make_menu_item(
             parent=menu, text="Batch save images as...", bitmap=self._icons.png
         )
-        menu_action_save_data_as_all = make_menu_item(parent=menu, text="Batch save data as...", bitmap=self._icons.csv)
-
-        # bind events
-        self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap, menu_action_show_plot_2d)
-        self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_contour, menu_action_show_plot_contour)
-        self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_violin, menu_action_show_plot_violin)
-        self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_joint, menu_action_show_plot_joint)
-        self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_3d, menu_action_show_plot_3d)
-        self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_waterfall, menu_action_show_plot_waterfall)
-        self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_mobilogram, menu_action_show_plot_as_mobilogram)
-        self.Bind(wx.EVT_MENU, self.on_show_plot_heatmap_chromatogram, menu_action_show_plot_as_chromatogram)
-        self.Bind(wx.EVT_MENU, self.on_show_zoom_on_ion, menu_action_show_highlights)
-        self.Bind(wx.EVT_MENU, partial(self.on_show_plot_heatmap, True), menu_action_save_heatmap_image_as)
-        self.Bind(wx.EVT_MENU, self.on_process_heatmap, menu_action_process_2d)
-        self.Bind(wx.EVT_MENU, self.on_apply_origami_ms, menu_action_process_as_origami)
-        self.Bind(wx.EVT_MENU, self.on_batch_apply_origami_ms, menu_action_process_as_origami_all)
-        self.Bind(wx.EVT_MENU, self.on_batch_process_heatmap, menu_action_process_2d_all)
-        self.Bind(wx.EVT_MENU, self.on_save_csv, menu_action_save_2d_data_as)
-        self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
         self.Bind(wx.EVT_MENU, self.on_batch_export_figures, menu_action_save_image_as_all)
+
+        menu_action_save_data_as_all = make_menu_item(parent=menu, text="Batch save data as...", bitmap=self._icons.csv)
         self.Bind(wx.EVT_MENU, self.on_batch_export_data, menu_action_save_data_as_all)
+
+        menu_action_open_data_directory = make_menu_item(parent=menu, text="Reveal data directory in File Explorer")
+        self.Bind(wx.EVT_MENU, self.on_open_data_directory, menu_action_open_data_directory)
 
         # make menu
         if self._item.indent == 2:
@@ -1978,16 +2025,17 @@ class DocumentTree(wx.TreeCtrl):
             menu.AppendItem(menu_action_process_2d)
             menu.AppendSeparator()
             self._set_menu_annotations(menu)
-            menu.AppendItem(menu_action_process_as_origami)
             menu.AppendItem(menu_action_assign_charge)
+            menu.AppendItem(menu_action_assign_mz)
+            menu.AppendItem(menu_action_process_as_origami)
+            menu.AppendItem(menu_action_process_ccs)
             menu.AppendMenu(wx.ID_ANY, "Set X-axis label as...", menu_xlabel)
             menu.AppendMenu(wx.ID_ANY, "Set Y-axis label as...", menu_ylabel)
             menu.AppendSeparator()
             menu.AppendItem(menu_action_save_heatmap_image_as)
             menu.AppendItem(menu_action_save_2d_data_as)
             menu.AppendItem(menu_action_delete_item)
-
-        #         menu.AppendItem(menu_action_assign_charge)
+            menu.AppendItem(menu_action_open_data_directory)
 
     def _set_menu_msdt(self, menu):
 
@@ -1996,35 +2044,43 @@ class DocumentTree(wx.TreeCtrl):
 
         # view actions
         menu_action_show_plot_2d = make_menu_item(parent=menu, text="Show heatmap\tAlt+S", bitmap=self._icons.heatmap)
+        self.Bind(wx.EVT_MENU, self.on_show_plot_dtms, menu_action_show_plot_2d)
+
         menu_action_show_plot_joint = make_menu_item(parent=menu, text="Show joint plot", bitmap=self._icons.joint)
+        self.Bind(wx.EVT_MENU, self.on_show_plot_dtms_joint, menu_action_show_plot_joint)
 
         # process actions
         menu_action_extract = make_menu_item(parent=menu, text="Open DT/MS extraction panel...")
+        self.Bind(wx.EVT_MENU, self.on_open_extract_dtms, menu_action_extract)
+
         menu_action_process_2d = make_menu_item(parent=menu, text="Process...\tP", bitmap=self._icons.process_heatmap)
+        self.Bind(wx.EVT_MENU, self.on_process_heatmap, menu_action_process_2d)
+
         menu_action_process_2d_all = make_menu_item(
             parent=menu, text="Process all...", bitmap=self._icons.process_heatmap
         )
+        self.Bind(wx.EVT_MENU, self.on_batch_process_heatmap, menu_action_process_2d_all)
+
         menu_action_delete_item = make_menu_item(parent=menu, text="Delete item\tDelete", bitmap=self._icons.delete)
+        self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
 
         # export actions
         menu_action_save_image_as = make_menu_item(parent=menu, text="Save image as...", bitmap=self._icons.png)
+        self.Bind(wx.EVT_MENU, partial(self.on_show_plot_dtms, True), menu_action_save_image_as)
+
         menu_action_save_data_as = make_menu_item(parent=menu, text="Save data as...", bitmap=self._icons.csv)
+        self.Bind(wx.EVT_MENU, self.on_save_csv, menu_action_save_data_as)
+
         menu_action_save_image_as_all = make_menu_item(
             parent=menu, text="Batch save images as...", bitmap=self._icons.png
         )
-        menu_action_save_data_as_all = make_menu_item(parent=menu, text="Batch save data as...", bitmap=self._icons.csv)
-
-        # bind events
-        self.Bind(wx.EVT_MENU, self.on_show_plot_dtms, menu_action_show_plot_2d)
-        self.Bind(wx.EVT_MENU, self.on_show_plot_dtms_joint, menu_action_show_plot_joint)
-        self.Bind(wx.EVT_MENU, partial(self.on_show_plot_dtms, True), menu_action_save_image_as)
-        self.Bind(wx.EVT_MENU, self.on_process_heatmap, menu_action_process_2d)
-        self.Bind(wx.EVT_MENU, self.on_batch_process_heatmap, menu_action_process_2d_all)
-        self.Bind(wx.EVT_MENU, self.on_save_csv, menu_action_save_data_as)
-        self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
         self.Bind(wx.EVT_MENU, self.on_batch_export_figures, menu_action_save_image_as_all)
+
+        menu_action_save_data_as_all = make_menu_item(parent=menu, text="Batch save data as...", bitmap=self._icons.csv)
         self.Bind(wx.EVT_MENU, self.on_batch_export_data, menu_action_save_data_as_all)
-        self.Bind(wx.EVT_MENU, self.on_open_extract_dtms, menu_action_extract)
+
+        menu_action_open_data_directory = make_menu_item(parent=menu, text="Reveal data directory in File Explorer")
+        self.Bind(wx.EVT_MENU, self.on_open_data_directory, menu_action_open_data_directory)
 
         # make menu
         if self._item.indent == 2:
@@ -2047,6 +2103,8 @@ class DocumentTree(wx.TreeCtrl):
             menu.AppendSeparator()
             menu.AppendItem(menu_action_save_image_as)
             menu.AppendItem(menu_action_save_data_as)
+            menu.AppendItem(menu_action_delete_item)
+            menu.AppendItem(menu_action_open_data_directory)
 
     @staticmethod
     def _get_menu_overlay(menu):
@@ -2200,7 +2258,7 @@ class DocumentTree(wx.TreeCtrl):
         # self.Bind(wx.EVT_MENU, self.onSaveDF, id=ID_saveData_pickle)
         # self.Bind(wx.EVT_MENU, self.onSaveDF, id=ID_saveData_excel)
         # self.Bind(wx.EVT_MENU, self.onSaveDF, id=ID_saveData_hdf)
-        # # self.Bind(wx.EVT_MENU, self.on_open_UniDec, id=ID_docTree_show_unidec)
+        # # self.Bind(wx.EVT_MENU, self.on_open_unidec, id=ID_docTree_show_unidec)
         # self.Bind(wx.EVT_MENU, self.on_save_unidec_results, id=ID_docTree_save_unidec)
         # self.Bind(wx.EVT_MENU, self.data_handling.on_add_mzident_file_fcn, id=ID_docTree_add_mzIdentML)
         # self.Bind(wx.EVT_MENU, self.on_action_origami_ms, id=ID_docTree_action_open_origami_ms)
@@ -2325,14 +2383,20 @@ class DocumentTree(wx.TreeCtrl):
         """Change xy-axis labels"""
         obj = self._get_item_object()
         to_label = evt.EventObject.GetLabelText(evt.GetId())
-        obj.change_x_label(to_label)
+        try:
+            obj.change_x_label(to_label)
+        except ValueError as err:
+            raise MessageError("Error", err)
         self.on_show_plot(None)
 
     def on_change_y_values_and_labels(self, evt):
         """Change xy-axis labels"""
         obj = self._get_item_object()
         to_label = evt.EventObject.GetLabelText(evt.GetId())
-        obj.change_y_label(to_label)
+        try:
+            obj.change_y_label(to_label)
+        except ValueError as err:
+            raise MessageError("Error", err)
         self.on_show_plot(None)
 
     def _on_get_ccs_calibration(self):
@@ -2399,6 +2463,38 @@ class DocumentTree(wx.TreeCtrl):
         if calibration_name:
             return document.get_ccs_calibration(calibration_name)
 
+    def on_assign_charge_state(self, _evt):
+        """Assign charge state in an object"""
+        data_obj = self._get_item_object()
+        if not data_obj:
+            return
+
+        charge = data_obj.get_metadata("charge", 1)
+
+        charge = DialogNumberAsk(
+            "Please specify charge state of the data object", "Specify charge state", charge, -100, 100, self.view
+        )
+        if charge in ["", None]:
+            return
+        data_obj.add_metadata("charge", charge, True)
+        LOGGER.debug(f"Assigned charge `{charge}` to the data object")
+
+    def on_assign_mz(self, _evt):
+        """Assign charge state in an object"""
+        data_obj = self._get_item_object()
+        if not data_obj:
+            return
+
+        mz = data_obj.get_metadata("mz", 0)
+
+        mz = DialogSimpleAsk(
+            "Please specify m/z value of the data object", "Specify m/z", str(mz), "floatPos", self.view
+        )
+        if mz in ["", None]:
+            return
+        data_obj.add_metadata("mz", mz)
+        LOGGER.debug(f"Assigned m/z value `{mz}` to the data object")
+
     def on_apply_ccs_calibration(self, _evt):
         """Apply ORIGAMI-MS settings on the object and create a copy"""
         document_title = ENV.current
@@ -2413,8 +2509,17 @@ class DocumentTree(wx.TreeCtrl):
         # get data object
         data_obj = self._get_item_object()
         calibration = self.on_get_ccs_calibration(document)
+
         # check parameters
-        data_obj = data_obj.apply_ccs_calibration(calibration, 500, 1)
+        mz, charge = data_obj.get_metadata(["mz", "charge"])
+        if mz is None or charge is None:
+            raise MessageError(
+                "Error", "Cannot apply CCS calibration to the object - missing `m/z` or `charge` information"
+            )
+
+        print(mz, charge)
+        # apply calibration
+        data_obj = data_obj.apply_ccs_calibration(calibration, mz, charge)
         if data_obj is not None:
             self.on_update_document(data_obj.DOCUMENT_KEY, data_obj.title, document_title)
         self.panel_plot.on_plot_data_object(data_obj)
@@ -3345,7 +3450,7 @@ class DocumentTree(wx.TreeCtrl):
     #     )
     #     self.PanelProcessExtractData.Show()
     #
-    def on_open_UniDec(self, _evt, document_title: str = None, dataset_name: str = None, mz_obj=None):
+    def on_open_unidec(self, _evt, document_title: str = None, dataset_name: str = None, mz_obj=None):
         """Open UniDec panel which allows processing and visualisation"""
         from origami.widgets.unidec.panel_process_unidec import PanelProcessUniDec
 
@@ -3358,90 +3463,6 @@ class DocumentTree(wx.TreeCtrl):
                 self.view, self.presenter, self._icons, document_title, dataset_name, mz_obj
             )
         self._unidec_panel.Show()
-
-    def on_update_unidec(self, unidec_data, document_title, dataset, set_data_only=False):
-        """
-        Update annotations in specified document/dataset
-        ----------
-        Parameters
-        ----------
-        unidec_data : dict
-            dictionary with annotations
-        document_title : str
-            name of the document
-        dataset : str
-            name of the dataset
-        set_data_only : bool
-            specify whether all annotations should be removed and readded or if
-            we it should simply set data
-        """
-
-        # document = self.data_handling.on_get_document(document_title)
-        # item = False
-        # docItem = False
-        # if dataset == "Mass Spectrum":
-        #     item = self.get_item_by_data(document.massSpectrum)
-        #     document.massSpectrum["unidec"] = unidec_data
-        # elif dataset == "Mass Spectrum (processed)":
-        #     item = self.get_item_by_data(document.smoothMS)
-        #     document.smoothMS["unidec"] = unidec_data
-        # else:
-        #     item = self.get_item_by_data(document.multipleMassSpectrum[dataset])
-        #     document.multipleMassSpectrum[dataset]["unidec"] = unidec_data
-        #
-        # if item is not False and not set_data_only:
-        #     self.append_unidec(item, unidec_data)
-        #     self.data_handling.on_update_document(document, "no_refresh")
-        # else:
-        #     try:
-        #         docItem = self.get_item_by_data(document)
-        #     except Exception:
-        #         docItem = False
-        #     if docItem is not False:
-        #         self.SetPyData(docItem, document)
-        #         ENV[document.title] = document
-        #     else:
-        #         self.data_handling.on_update_document(document, "document")
-
-    def append_unidec(self, item, unidec_data, expand=True):
-        """
-        Update annotations in the document tree
-        ----------
-        Parameters
-        ----------
-        item : wxPython document tree item
-            item in the document tree that should be cleared and re-filled
-        unidec_data : dict
-            dictionary with UniDec data
-        expand : bool
-            specify if tree item should be expanded
-
-        """
-        image = self.get_item_image("unidec")
-
-        child, cookie = self.GetFirstChild(item)
-        i = 0
-        while child.IsOk():
-            #             print("child", i, self.GetItemText(child))
-            if self.GetItemText(child) == "UniDec":
-                self.Delete(child)
-            child, cookie = self.GetNextChild(item, cookie)
-            i += 1
-
-        if len(unidec_data) == 0:
-            return
-
-        unidec_item = self.AppendItem(item, "UniDec")
-        self.SetPyData(unidec_item, unidec_data)
-        self.SetItemImage(unidec_item, image)
-
-        for key in unidec_data:
-            unidec_item_individual = self.AppendItem(unidec_item, key)
-            self.SetPyData(unidec_item_individual, unidec_data[key])
-            self.SetItemImage(unidec_item_individual, image)
-
-        if expand:
-            self.Expand(unidec_item)
 
     def get_item_image(self, image_type: str):
         """Get bullet image that can be used in the DocumentTree"""

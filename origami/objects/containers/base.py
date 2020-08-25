@@ -151,6 +151,8 @@ class DataObject(ContainerBase):
 
     def flush(self, title: str = None):
         """Flush current object data to the DocumentStore"""
+        if not self.can_flush:
+            return
         store = self.get_parent()
         if title is None:
             title = self.title

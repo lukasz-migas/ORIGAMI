@@ -42,9 +42,9 @@ class MessageError(Exception):
 
     def __init__(self, title, message):
         self.title = title
-        self.message = message
+        self.message = str(message)
 
-        DialogBox(title, message, kind="Error")
+        DialogBox(self.title, self.message, kind="Error")
 
 
 class NotificationError(Exception):

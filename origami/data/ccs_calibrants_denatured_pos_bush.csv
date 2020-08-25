@@ -1,0 +1,28 @@
+Protein,MW,Charge,m/z,HePos,N2Pos,HeNeg,N2Neg,State,Source,Subunits
+ubiquitin (bovine erythrocytes),8000,7,1143.857143,,1910,,,Denatured,Bush,1
+ubiquitin (bovine erythrocytes),8000,8,1001,,1990,,,Denatured,Bush,1
+ubiquitin (bovine erythrocytes),8000,9,889.8888889,1670,2090,,,Denatured,Bush,1
+ubiquitin (bovine erythrocytes),8000,10,801,1730,2200,,,Denatured,Bush,1
+ubiquitin (bovine erythrocytes),8000,11,728.2727273,1800,2340,,,Denatured,Bush,1
+ubiquitin (bovine erythrocytes),8000,12,667.6666667,1890,2480,,,Denatured,Bush,1
+ubiquitin (bovine erythrocytes),8000,13,616.3846154,1980,2600,,,Denatured,Bush,1
+cytochrome c (equine heart),12000,13,924.0769231,,3080,,,Denatured,Bush,1
+cytochrome c (equine heart),12000,14,858.1428571,2520,3200,,,Denatured,Bush,1
+cytochrome c (equine heart),12000,15,801,2600,3330,,,Denatured,Bush,1
+cytochrome c (equine heart),12000,16,751,2670,3450,,,Denatured,Bush,1
+cytochrome c (equine heart),12000,17,706.8823529,2740,3600,,,Denatured,Bush,1
+cytochrome c (equine heart),12000,18,667.6666667,2800,3670,,,Denatured,Bush,1
+cytochrome c (equine heart),12000,19,632.5789474,2870,3790,,,Denatured,Bush,1
+cytochrome c (equine heart),12000,20,601,2920,,,,Denatured,Bush,1
+apo myoglobin (equine heart),17000,15,1134.333333,,4060,,,Denatured,Bush,1
+apo myoglobin (equine heart),17000,16,1063.5,,4180,,,Denatured,Bush,1
+apo myoglobin (equine heart),17000,17,1001,,4310,,,Denatured,Bush,1
+apo myoglobin (equine heart),17000,18,945.4444444,3520,4440,,,Denatured,Bush,1
+apo myoglobin (equine heart),17000,19,895.7368421,3600,4570,,,Denatured,Bush,1
+apo myoglobin (equine heart),17000,20,851,3680,4700,,,Denatured,Bush,1
+apo myoglobin (equine heart),17000,21,810.5238095,3750,4820,,,Denatured,Bush,1
+apo myoglobin (equine heart),17000,22,773.7272727,3820,4920,,,Denatured,Bush,1
+apo myoglobin (equine heart),17000,23,740.1304348,3870,5010,,,Denatured,Bush,1
+apo myoglobin (equine heart),17000,24,709.3333333,3920,5090,,,Denatured,Bush,1
+apo myoglobin (equine heart),17000,25,681,3960,,,,Denatured,Bush,1
+apo myoglobin (equine heart),17000,26,654.8461538,4000,,,,Denatured,Bush,1
