@@ -332,27 +332,30 @@ class TableMixin:
             return
         self.remove_from_table(item_info["id"])
 
-    def on_delete_selected(self, evt):
+    def on_delete_selected(self, _evt, silent: bool = False):
         """Delete checked item(s) from ORIGAMI"""
+        if not silent:
+            msg = "Are you sure you would like to delete all selected items?\nThis action cannot be undone."
+            dlg = DialogBox(msg=msg, kind="Question")
+            if dlg == wx.ID_NO:
+                LOGGER.info("Delete operation was cancelled")
+
         item_id = self.n_rows - 1
         while item_id >= 0:
             if self.peaklist.IsChecked(item_id):
                 item_info = self.on_get_item_information(item_id)
-                msg = "Are you sure you would like to delete this item?\nThis action cannot be undone."
-                dlg = DialogBox(msg=msg, kind="Question")
-                if dlg == wx.ID_NO:
-                    LOGGER.info("Delete operation was cancelled")
-                    continue
                 self.remove_from_table(item_info["id"])
 
             item_id -= 1
 
-    def on_delete_all(self, evt):
-        msg = "Are you sure you would like to delete all elements from the list?\nThis action cannot be undone."
-        dlg = DialogBox(msg=msg, kind="Question")
-        if dlg == wx.ID_NO:
-            LOGGER.info("Delete operation was cancelled")
-            return
+    def on_delete_all(self, _evt, silent: bool = False):
+        """Delete all items from the table"""
+        if not silent:
+            msg = "Are you sure you would like to delete all elements from the list?\nThis action cannot be undone."
+            dlg = DialogBox(msg=msg, kind="Question")
+            if dlg == wx.ID_NO:
+                LOGGER.info("Delete operation was cancelled")
+                return
 
         item_id = self.n_rows - 1
         while item_id >= 0:
@@ -361,20 +364,13 @@ class TableMixin:
             item_id -= 1
 
     def delete_row_from_table(self, delete_document_title=None):
+        """Delete row from the table"""
         item_id = self.n_rows - 1
         while item_id >= 0:
             item_info = self.on_get_item_information(item_id)
 
             if item_info["document"] == delete_document_title:
                 self.peaklist.DeleteItem(item_id)
-            item_id -= 1
-
-    def _on_delete_all_force(self):
-        """Forecfully remove all elements without asking for permission"""
-        item_id = self.n_rows - 1
-        while item_id >= 0:
-            item_info = self.on_get_item_information(item_id)
-            self.remove_from_table(item_info["id"])
             item_id -= 1
 
     # noinspection PyUnresolvedReferences

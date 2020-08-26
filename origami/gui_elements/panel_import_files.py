@@ -409,7 +409,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
         if document:
             logger.info(f"Found document: {document.title}")
-            self._on_delete_all_force()
+            self.on_delete_all(None, True)
 
         # restore pre-processing parameters
         metadata = dict()

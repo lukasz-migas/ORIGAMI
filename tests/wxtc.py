@@ -122,6 +122,15 @@ class WidgetTestCase:
             handler(evt)
         self.yield_()
 
+    def sim_textctrl_click_evt(self, textctrl: wx.TextCtrl, value: Union[str, int, float], handlers: List):
+        """Simulate wx.CheckBox click"""
+        value = str(value)
+        textctrl.SetValue(value)
+        evt = wx.PyCommandEvent(wx.EVT_TEXT.typeId, textctrl.GetId())
+        for handler in handlers:
+            handler(evt)
+        self.yield_()
+
     def sim_toggle_click_evt(self, toggle: wx.ToggleButton, value: bool, handlers: List):
         """Simulate wx.CheckBox click"""
         toggle.SetValue(value)

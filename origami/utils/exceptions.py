@@ -2,6 +2,7 @@
 from pubsub import pub
 
 # Local imports
+from origami.utils.system import running_under_pytest
 from origami.gui_elements.misc_dialogs import DialogBox
 
 
@@ -44,7 +45,8 @@ class MessageError(Exception):
         self.title = title
         self.message = str(message)
 
-        DialogBox(self.title, self.message, kind="Error")
+        if not running_under_pytest():
+            DialogBox(self.title, self.message)
 
 
 class NotificationError(Exception):

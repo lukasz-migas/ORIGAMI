@@ -109,6 +109,11 @@ class DataObject(ContainerBase):
                 elif isinstance(value, (int, float, list, tuple, dict)):
                     self._metadata[key] = value
 
+    def clear_extra_data(self, keys):
+        """Clear extra data by removing certain keys"""
+        for key in keys:
+            self._extra_data.pop(key, None)
+
     def to_csv(self, *args, **kwargs):
         """Export data in a csv format"""
         raise NotImplementedError("Must implement method")

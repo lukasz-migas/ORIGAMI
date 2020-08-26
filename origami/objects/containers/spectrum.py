@@ -98,7 +98,7 @@ class SpectrumObject(DataObject):
         self._y /= divider
         return self
 
-    def get_x_at_loc(self, x_min: float, x_max: float, get_max: bool = True):
+    def get_x_at_loc(self, x_min: float, x_max: float):
         """Get x-axis value information for specified x-axis region of interest"""
         x_idx_min, x_idx_max = find_nearest_index(self.x, [x_min, x_max])
         y = self.y[x_idx_min : x_idx_max + 1]
@@ -451,8 +451,8 @@ class ChromatogramObject(SpectrumObject, ChromatogramAxesMixin, OrigamiMsMixin):
                     self.x_label,
                     self.x,
                     "x_label_default",
-                    XAxesKeys["Time (mins)"],
-                    XAxesKeys["Scans"],
+                    XAxesKeys["Collision Voltage (V)"],
+                    XAxesKeys["Lab Frame Energy (eV)"],
                 )
             else:
                 msg = f"Cannot convert label from `{self.x_label}` to `{to_label}`."
@@ -475,6 +475,8 @@ class ChromatogramObject(SpectrumObject, ChromatogramAxesMixin, OrigamiMsMixin):
         self._y, self._x, start_end_cv, parameters = self._apply_origami_ms(self.y)
 
         # set extra data
+        # it is necessary to remove certain keys from the filesystem since their size and shape will no longer match
+        self.clear_extra_data([XAxesKeys["Scans"], XAxesKeys["Retention time (mins)"]])
         self._extra_data[XAxesKeys["Collision Voltage (V)"]] = self._x
         self._extra_data["oms_ss_es_cv"] = start_end_cv
         self._metadata["origami_ms"] = parameters

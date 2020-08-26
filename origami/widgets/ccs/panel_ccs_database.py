@@ -18,6 +18,7 @@ from origami.config.config import CONFIG
 from origami.utils.utilities import report_time
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
+from origami.utils.exceptions import MessageError
 from origami.gui_elements.helpers import TableConfig
 from origami.gui_elements.helpers import set_tooltip
 from origami.gui_elements.helpers import make_checkbox
@@ -343,9 +344,11 @@ class PanelCCSDatabase(MiniFrame, TableMixin):
 
         # check whether user provided the appropriate data
         if not all([calibrant, mw, charge, mz]):
-            raise ValueError("Cannot add calibrant if the `calibrant, mw, charge and m/z` values are not provided")
+            raise MessageError(
+                "Error", "Cannot add calibrant if the `calibrant, mw, charge and m/z` values are not provided"
+            )
         if not any([he_pos, he_neg, n2_pos, n2_neg]):
-            raise ValueError("Cannot add calibrant if none of the CCS values have been filled-in")
+            raise MessageError("Error", "Cannot add calibrant if none of the CCS values have been filled-in")
 
         # check whether the item already is present in the table
 

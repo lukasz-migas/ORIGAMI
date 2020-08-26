@@ -110,7 +110,14 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
     _ccs_obj = None
     _ccs_proc = None
 
-    def __init__(self, parent, document_title: str = None, check_for_existing: bool = False, debug: bool = False):
+    def __init__(
+        self,
+        parent,
+        document_title: str = None,
+        calibration_name: str = None,
+        check_for_existing: bool = False,
+        debug: bool = False,
+    ):
         """Initialize panel"""
         MiniFrame.__init__(self, parent, title="CCS Calibration Builder...", style=wx.DEFAULT_FRAME_STYLE)
         t_start = time.time()
@@ -122,6 +129,7 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
 
         # setup kwargs
         self.document_title = document_title
+        self.calibration_name = calibration_name
         self.check_for_existing = check_for_existing
         self.unsaved = False  # indicate that the panel has unsaved changes
         self._debug = debug  # flag to indicate the application is in debug mode
@@ -236,9 +244,10 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         calibration_name = None
         if document:
             calibration_list = document.get_ccs_calibration_list()
-
             if calibration_list:
-                if len(calibration_list) > 1:
+                if self.calibration_name in calibration_list:
+                    calibration_name = self.calibration_name
+                elif len(calibration_list) > 1:
                     # allow the user to make selection
                     dlg = wx.SingleChoiceDialog(
                         self,
@@ -797,7 +806,8 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
 
     def on_add_calibrant(self, _evt):
         """Add calibrant to the table and cache"""
-        if self._tmp_cache[self.current_path] is None:
+        path = self.current_path
+        if path is None or self._tmp_cache[path] is None:
             raise MessageError(
                 "Error", "Current cache for this file is empty. Please select new m/z region and ion mobility region."
             )
@@ -813,12 +823,7 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
 
         if not all([mz_value, mw_value, charge_value, dt_value, ccs_value]):
             raise MessageError("Error", "Cannot add calibrant to the table as some values are missing")
-        if not all(
-            [
-                v in self._tmp_cache[self.current_path]
-                for v in ["dt_obj", "dt_int", "name", "mz_min", "mz_max", "mz_int"]
-            ]
-        ):
+        if not all([v in self._tmp_cache[path] for v in ["dt_obj", "dt_int", "name", "mz_min", "mz_max", "mz_int"]]):
             raise MessageError(
                 "Error",
                 "Cache data is missing some essential data - please click on the `Extract`"
@@ -831,7 +836,7 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
             self.remove_from_table(idx)
 
         # add to table
-        name = self._tmp_cache[self.current_path]["name"]
+        name = self._tmp_cache[path]["name"]
         self.on_add_to_table(
             dict(
                 calibrant=calibrant,
@@ -841,10 +846,10 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
                 dt=dt_value,
                 ccs=ccs_value,
                 name=name,
-                path=self.current_path,
+                path=path,
             )
         )
-        self._tmp_cache[self.current_path].update(
+        self._tmp_cache[path].update(
             {
                 "charge": charge_value,
                 "mz": mz_value,
@@ -856,7 +861,7 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         )
 
         # add to cache
-        self._set_calibration_cache(self.current_path, {"calibrant": self._tmp_cache[self.current_path], "name": name})
+        self._set_calibration_cache(path, {"calibrant": self._tmp_cache[path], "name": name})
         self._on_show_mz_patches()
 
         # reset temporary cache
@@ -1129,7 +1134,6 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         """Show fit results"""
         if isinstance(fit, wx.CommandEvent):
             fit, ccs_obj = ccs_obj, None
-        print(fit, ccs_obj)
         if ccs_obj is None:
             ccs_obj = self._ccs_obj
 

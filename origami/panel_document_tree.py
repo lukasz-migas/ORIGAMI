@@ -65,6 +65,7 @@ from origami.objects.containers import ChromatogramObject
 from origami.objects.containers import MassSpectrumObject
 from origami.objects.containers import MassSpectrumHeatmapObject
 from origami.gui_elements._panel import TestPanel  # noqa
+from origami.gui_elements.mixins import DocumentationMixin
 from origami.gui_elements.helpers import set_tooltip
 from origami.gui_elements.helpers import make_checkbox
 from origami.gui_elements.helpers import make_menu_item
@@ -343,7 +344,7 @@ class PopupDocumentTreeSettings(PopupBase):
             evt.Skip()
 
 
-class PanelDocumentTree(wx.Panel):
+class PanelDocumentTree(wx.Panel, DocumentationMixin):
     """Make documents panel to store all information about open files"""
 
     HELP_LINK = "www.origami.lukasz-migas.com"
@@ -395,13 +396,6 @@ class PanelDocumentTree(wx.Panel):
     def make_ui(self):
         """Instantiate document tree"""
         return DocumentTree(self, self.parent, self.presenter, self.icons, self.config, size=(-1, -1))
-
-    def on_open_info(self, _evt):
-        """Open help window to inform user on how to use this window / panel"""
-        from origami.gui_elements.panel_html_viewer import PanelHTMLViewer
-
-        if self.HELP_LINK:
-            PanelHTMLViewer(self.parent, link=self.HELP_LINK)
 
     def on_open_settings(self, evt, _evt):
         """Open settings of the Document Tree"""
@@ -1430,13 +1424,16 @@ class DocumentTree(wx.TreeCtrl):
         self._ccs_panel = PanelCCSCalibration(self.view, document_title=document_title)
         self._ccs_panel.Show()
 
-    def on_open_ccs_editor(self, _):
+    def on_open_ccs_editor(self, _, document_title: str = None, calibration_name: str = None):
         """Open dialog window where CCS calibration can be edited"""
         from origami.widgets.ccs.panel_ccs_calibration import PanelCCSCalibration
 
-        document_title, _ = self._get_item_info()
+        if document_title is None:
+            document_title, _ = self._get_item_info()
 
-        self._ccs_panel = PanelCCSCalibration(self.view, document_title=document_title, check_for_existing=True)
+        self._ccs_panel = PanelCCSCalibration(
+            self.view, document_title=document_title, calibration_name=calibration_name, check_for_existing=True
+        )
         self._ccs_panel.Show()
 
     def on_open_overlay_viewer(self, _):
@@ -1823,6 +1820,11 @@ class DocumentTree(wx.TreeCtrl):
         )
         self.Bind(wx.EVT_MENU, self.on_batch_apply_origami_ms, menu_action_process_as_origami_all)
 
+        menu_action_assign_charge = make_menu_item(
+            parent=menu, text="Assign charge state...\tAlt+Z", bitmap=self._icons.charge
+        )
+        self.Bind(wx.EVT_MENU, self.on_assign_charge_state, menu_action_assign_charge)
+
         menu_action_open_data_directory = make_menu_item(parent=menu, text="Reveal data directory in File Explorer")
         self.Bind(wx.EVT_MENU, self.on_open_data_directory, menu_action_open_data_directory)
 
@@ -1837,6 +1839,7 @@ class DocumentTree(wx.TreeCtrl):
             menu.AppendItem(menu_action_show_plot_chromatogram)
             self._set_menu_annotations(menu)
             menu.AppendSeparator()
+            menu.AppendItem(menu_action_assign_charge)
             menu.AppendItem(menu_action_process_as_origami)
             menu.AppendMenu(wx.ID_ANY, "Change x-axis to...", menu_xlabel)
             menu.AppendSeparator()
@@ -2385,9 +2388,9 @@ class DocumentTree(wx.TreeCtrl):
         to_label = evt.EventObject.GetLabelText(evt.GetId())
         try:
             obj.change_x_label(to_label)
+            self.on_show_plot(None)
         except ValueError as err:
             raise MessageError("Error", err)
-        self.on_show_plot(None)
 
     def on_change_y_values_and_labels(self, evt):
         """Change xy-axis labels"""
@@ -2395,14 +2398,9 @@ class DocumentTree(wx.TreeCtrl):
         to_label = evt.EventObject.GetLabelText(evt.GetId())
         try:
             obj.change_y_label(to_label)
+            self.on_show_plot(None)
         except ValueError as err:
             raise MessageError("Error", err)
-        self.on_show_plot(None)
-
-    def _on_get_ccs_calibration(self):
-        """Get CCS calibration"""
-
-    #         Collision Cross Section (Å²)
 
     def on_open_spectrum_comparison_viewer(self, _evt):
         """Open panel where user can select mas spectra to compare """
@@ -2517,12 +2515,28 @@ class DocumentTree(wx.TreeCtrl):
                 "Error", "Cannot apply CCS calibration to the object - missing `m/z` or `charge` information"
             )
 
-        print(mz, charge)
         # apply calibration
         data_obj = data_obj.apply_ccs_calibration(calibration, mz, charge)
         if data_obj is not None:
             self.on_update_document(data_obj.DOCUMENT_KEY, data_obj.title, document_title)
         self.panel_plot.on_plot_data_object(data_obj)
+
+    def on_batch_apply_ccs_calibration(self, _evt):
+        """Apply CCS calibration to each object"""
+        from origami.gui_elements.dialog_review_editor import DialogReviewApplyOrigamiMs
+
+        document_title = ENV.current
+        document = ENV.on_get_document(document_title)
+        if not document.is_origami_ms(True):
+            raise MessageError(
+                "Incorrect document type", f"Cannot setup ORIGAMI-MS parameters for {document.data_type} document."
+            )
+
+        item_list = self.on_get_item_list()
+        dlg = DialogReviewApplyOrigamiMs(
+            self.view, item_list[ENV.current], document_tree=self, document_title=document_title
+        )
+        dlg.ShowModal()
 
     def on_apply_origami_ms(self, _evt):
         """Apply ORIGAMI-MS settings on the object and create a copy"""

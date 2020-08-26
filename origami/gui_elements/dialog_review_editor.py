@@ -1,7 +1,7 @@
 """Review panel enabling selection of which item(s) should be saved/removed"""
 # Standard library imports
 import logging
-from enum import IntEnum
+from typing import Dict
 from typing import List
 from typing import Union
 
@@ -25,7 +25,7 @@ from origami.gui_elements.panel_base import TableMixin
 logger = logging.getLogger(__name__)
 
 
-class TableColumnIndex(IntEnum):
+class TableColumnIndex:
     """Table indexer"""
 
     check = 0
@@ -47,6 +47,7 @@ class DialogReviewEditorBase(Dialog, TableMixin):
     REVIEW_MSG = (
         "Please review the list of items shown below and select items which you would like to add to the document."
     )
+    EXTRA_MSG = ""
     TABLE_GET_KEYS = ("name",)
 
     def __init__(self, parent, item_list: List[List[str]], title: str = "Review item(s)..."):
@@ -130,12 +131,20 @@ class DialogReviewEditorBase(Dialog, TableMixin):
         panel = wx.Panel(self, -1, size=(-1, -1))
 
         info_label = wx.StaticText(panel, -1, self.REVIEW_MSG)
+        info_label.Wrap(500)
         set_item_font(info_label)
+
+        extra_label = None
+        if self.EXTRA_MSG:
+            extra_label = wx.StaticText(panel, -1, self.EXTRA_MSG)
+            extra_label.Wrap(500)
 
         self.peaklist = self.make_table(self.TABLE_DICT, panel)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(info_label, 0, wx.ALIGN_CENTER | wx.ALL, 10)
+        main_sizer.Add(info_label, 0, wx.ALIGN_CENTER | wx.ALL, 5)
+        if extra_label:
+            main_sizer.Add(extra_label, 0, wx.ALIGN_CENTER | wx.ALL, 0)
         main_sizer.Add(self.peaklist, 1, wx.EXPAND | wx.ALL, 10)
 
         # fit layout
@@ -159,7 +168,7 @@ class DialogReviewEditorBase(Dialog, TableMixin):
         item_list = []
         for item_id in range(item_count):
             information = self.on_get_item_information(item_id)
-            if information["select"]:
+            if information["select"] and self.is_valid(information):
                 append_items = [information[key] for key in self.TABLE_GET_KEYS]
                 if len(append_items) == 1:
                     item_list.append(*append_items)
@@ -173,6 +182,26 @@ class DialogReviewEditorBase(Dialog, TableMixin):
         if self.peaklist.locked:
             return
         self._output_list = self.get_selected_items()
+
+    def invalidate_items(self):
+        """Invalidate items in the list based on predefined conditions"""
+        bad_color, good_color = (255, 230, 239), wx.WHITE
+
+        for item_id in range(self.n_rows):
+            item_info = self.on_get_item_information(item_id)
+            color = good_color if self.is_valid(item_info) else bad_color
+            self.peaklist.SetItemBackgroundColour(item_id, color)
+
+    def invalidate_item(self, item_id: int):
+        """Invalidate item in the table"""
+        item_info = self.on_get_item_information(item_id)
+        color = wx.WHITE if self.is_valid(item_info) else (255, 230, 239)
+        self.peaklist.SetItemBackgroundColour(item_id, color)
+
+    @staticmethod
+    def is_valid(item: Dict) -> bool:
+        """Checks whether item is valid and can be processed"""
+        return True
 
 
 class DialogReviewEditorOverlay(DialogReviewEditorBase):
