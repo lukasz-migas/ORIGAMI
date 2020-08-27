@@ -7,9 +7,9 @@ import numpy as np
 import pytest
 
 # Local imports
-from origami.objects.containers import MobilogramObject
-from origami.objects.containers import ChromatogramObject
-from origami.objects.containers import MassSpectrumObject
+from origami.objects.containers.spectrum import MobilogramObject
+from origami.objects.containers.spectrum import ChromatogramObject
+from origami.objects.containers.spectrum import MassSpectrumObject
 
 
 def _get_1d_data():
@@ -26,11 +26,24 @@ class TestMassSpectrumObject:
 
     def test_init(self):
         obj = self._get_obj()
+        assert len(obj.shape) == 1
         assert obj.x_label == "m/z (Da)"
         assert obj.y_label == "Intensity"
         assert len(obj.x_limit) == 2
         assert len(obj.y_limit) == 2
 
+        # test properties
+        xy = obj.xy
+        assert len(xy.shape) == 2
+        assert xy.shape[0] == obj.shape[0]
+        assert xy.shape[1] == 2
+
+        x_bin = obj.x_bin
+        assert len(x_bin) == len(obj.x)
+
+        assert obj.has_unidec_result is False
+
+        # test exports
         data = obj.to_dict()
         assert isinstance(data, dict)
         assert "x" in data
@@ -38,6 +51,10 @@ class TestMassSpectrumObject:
 
         data, attrs = obj.to_zarr()
         assert isinstance(data, dict)
+        assert isinstance(attrs, dict)
+        assert "class" in attrs
+
+        attrs = obj.to_attrs()
         assert isinstance(attrs, dict)
         assert "class" in attrs
 
@@ -259,7 +276,7 @@ class TestMobilogramObject:
 
     @pytest.mark.parametrize("x_label", ("Drift time (ms)", "Arrival time (ms)"))
     @pytest.mark.parametrize("pusher_freq", (50, 100))
-    def test_change_x_label_to_min(self, x_label, pusher_freq):
+    def test_change_x_label_to_ms(self, x_label, pusher_freq):
         obj = self._get_obj()
         obj.change_x_label(to_label=x_label, pusher_freq=pusher_freq)
         assert obj.x_label == x_label

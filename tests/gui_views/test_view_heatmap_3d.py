@@ -48,9 +48,7 @@ class TestPanelViewHeatmap3d(TestPlotView):
 
         # # check popup
         popup = view.on_open_about(None)
-        # wx.CallLater(100, popup.on_dismiss, None)
         assert popup
-        # self.wait_for(150)
 
     def test_panel_update_style(self):
         view = ViewHeatmap3d(self.frame, None)

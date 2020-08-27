@@ -55,9 +55,7 @@ class TestPanelViewIonHeatmap(TestPlotView):
 
         # check popup
         popup = view.on_open_about(None)
-        # # wx.CallLater(100, popup.on_dismiss, None)
         assert popup
-        # # self.wait_for(150)
 
     def test_panel_update_heatmap_style(self):
         view = ViewIonHeatmap(self.frame, None)
@@ -120,6 +118,4 @@ class TestPanelViewMassSpectrumHeatmap(TestPlotView):
 
         # check popup
         popup = view.on_open_about(None)
-        # wx.CallLater(100, popup.on_dismiss, None)
         assert popup
-        # self.wait_for(150)

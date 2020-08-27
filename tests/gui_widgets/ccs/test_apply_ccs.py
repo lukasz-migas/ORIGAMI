@@ -31,7 +31,7 @@ class TestDialogBatchApplyCCSCalibration(WidgetTestCase):
         assert dlg.mz_value.GetValue() == "500.0000"
 
         self.sim_listctrl_select_evt(dlg.peaklist, 1, [dlg.on_select_item])
-        assert dlg.charge_value.GetValue() == -100
+        assert dlg.charge_value.GetValue() == 0
         assert dlg.mz_value.GetValue() == "750.0000"
 
         self.sim_textctrl_click_evt(dlg.charge_value, 3, [dlg.on_edit_item])

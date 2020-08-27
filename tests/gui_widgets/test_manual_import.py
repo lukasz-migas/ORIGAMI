@@ -1,4 +1,7 @@
 """Test LESA viewer"""
+# Standard library imports
+import sys
+
 # Third-party imports
 import pytest
 
@@ -9,8 +12,8 @@ from ..wxtc import WidgetTestCase
 
 
 @pytest.mark.guitest
-# @pytest.mark.skipif(sys.platform == "win32", reason="Running this test under Windows can sporadically cause errors")
-# @pytest.mark.skipif(sys.platform == "linux", reason="Running this test under Linux can sporadically cause errors")
+@pytest.mark.skipif(sys.platform == "win32", reason="Running this test under Windows can sporadically cause errors")
+@pytest.mark.skipif(sys.platform == "linux", reason="Running this test under Linux can sporadically cause errors")
 class TestPanelManualImportDataset(WidgetTestCase):
     """Test dialog"""
 

@@ -251,6 +251,7 @@ class ViewBase(ABC):
         # process settings
         self._allow_extraction = kwargs.pop("allow_extraction", False)
         self._callbacks = kwargs.pop("callbacks", dict())
+        self.FORCED_KWARGS.update(**kwargs.get("FORCED_KWARGS", dict()))
 
         # user settings
         self._x_label = kwargs.pop("x_label", None)

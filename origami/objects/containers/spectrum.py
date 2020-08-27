@@ -584,8 +584,8 @@ class MobilogramObject(SpectrumObject, MobilogramAxesMixin, CCSAxesMixin):
 
     def apply_ccs_calibration(self, calibration, mz: float = None, charge: int = None):
         """Apply CCS calibration on the object"""
-        if self.x_label != "Drift time (bins)":
-            self.change_x_label("Drift time (bins)")
+        if self.x_label != "Drift time (ms)":
+            self.change_x_label("Drift time (ms)")
 
         # make sure to retain the default
         self._extra_data[XAxesKeys[self.x_label]] = self.x

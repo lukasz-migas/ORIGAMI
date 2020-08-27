@@ -159,6 +159,7 @@ class HeatmapObject(DataObject):
             labels.insert(0, "")
             header = f"{delimiter}".join(labels)
             np.savetxt(path, np.c_[y, array], delimiter=delimiter, fmt=fmt, header=header)
+        return path
 
     def check(self):
         """Checks whether the provided data has the same size and shape"""
@@ -176,9 +177,9 @@ class HeatmapObject(DataObject):
     def get_x_for_roi(self, x_min: float, x_max: float, y_min: float, y_max: float):
         """Get array of intensities for particular region of interest along the horizontal axis"""
         array, x_min_idx, x_max_idx, _, _ = self._get_roi_slice(x_max, x_min, y_max, y_min)
-        y = np.zeros(self.shape[1])
-        y[x_min_idx:x_max_idx] = array.sum(axis=0)
-        return y
+        x = np.zeros(self.shape[1])
+        x[x_min_idx:x_max_idx] = array.sum(axis=0)
+        return x
 
     def get_y_for_roi(self, x_min: float, x_max: float, y_min: float, y_max: float):
         """Get array of intensities for particular region of interest along the horizontal axis"""
@@ -191,7 +192,7 @@ class HeatmapObject(DataObject):
         """Get array of intensities for particular region of interest along both dimensions"""
         array, x_min_idx, x_max_idx, y_min_idx, y_max_idx = self._get_roi_slice(x_max, x_min, y_max, y_min)
         x = self.x[x_min_idx:x_max_idx]
-        y = self.x[y_min_idx:y_max_idx]
+        y = self.y[y_min_idx:y_max_idx]
         return self.downsample(x=x, y=y, array=array)
 
     def transpose(self):
@@ -588,8 +589,8 @@ class IonHeatmapObject(HeatmapObject, ChromatogramAxesMixin, MobilogramAxesMixin
 
     def apply_ccs_calibration(self, calibration, mz: float = None, charge: int = None):
         """Apply CCS calibration on the object"""
-        if self.y_label != "Drift time (bins)" and self.y_label in ["Drift time (ms)", "Arrival time (ms)"]:
-            self.change_x_label("Drift time (bins)")
+        if self.y_label != "Drift time (ms)":
+            self.change_y_label("Drift time (ms)")
 
         # convert data
         self._y = self._apply_ccs_calibration(self.y, mz, charge, calibration, self._metadata)

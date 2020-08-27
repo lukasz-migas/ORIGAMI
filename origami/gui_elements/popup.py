@@ -107,7 +107,6 @@ class PopupMixin:
         px, py = self.GetSize()  # noqa
         x = x + dx - px - move_h - 25
         y = y + dy - py - move_v - 25
-        print(x, y)
         self.SetPosition((x, y))  # noqa
 
     def position_on_mouse(self, move_h: int = 0, move_v: int = 0):

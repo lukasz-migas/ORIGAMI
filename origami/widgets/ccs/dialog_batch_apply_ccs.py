@@ -1,6 +1,7 @@
 """Utility panel to perform batch `Apply CCS calibration`"""
 # Standard library imports
 from typing import Dict
+from typing import Union
 
 # Third-party imports
 import wx
@@ -25,9 +26,9 @@ def is_empty(value):
     return True
 
 
-def _str_fmt(value):
+def _str_fmt(value, default: Union[str, float, int] = ""):
     if value is None:
-        return ""
+        return str(default)
     if isinstance(value, float):
         return f"{value:.4f}"
     return str(value)
@@ -83,6 +84,23 @@ class DialogBatchApplyCCSCalibration(DialogReviewEditorBase):
         document_title: str = None,
         calibration_obj: CCSCalibrationObject = None,
     ):
+        """Dialog used to batch process ion mobility data objects and apply CCS calibration
+
+        Parameters
+        ----------
+        parent : MainWindow
+            main window of the application
+        item_list : List
+            list of items to be inserted in the table. It should have the format of:
+                [(DATASET_TYPE, ITEM_NAME, M/Z, CHARGE, RANDOM-STRING)]
+            the last entry, RANDOM-STRING is essential as it will be used to find items in the table
+        document_tree : DocumentTree
+            instance of the document tree
+        document_title : str
+            name of the document
+        calibration_obj : CCSCalibrationObject
+            calibration object that will be used to apply the CCS conversion
+        """
         self._icons = Icons()
 
         super().__init__(parent, item_list)
@@ -98,17 +116,6 @@ class DialogBatchApplyCCSCalibration(DialogReviewEditorBase):
         """Setup widget"""
         self.TABLE_WIDGET_DICT = {self.charge_value: TableColumnIndex.charge, self.mz_value: TableColumnIndex.mz}
         self.peaklist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_item)
-
-    def on_select_item(self, evt):
-        """Select calibrant from the table and populate fields"""
-        self._disable_table_update = True
-        if hasattr(evt, "GetIndex"):
-            self.peaklist.item_id = evt.GetIndex()
-        item_info = self.on_get_item_information()
-        self.mz_value.SetValue(_str_fmt(item_info["mz"]))
-        self.charge_value.SetValue(_str_fmt(item_info["charge"]))
-        self._current_item = item_info["tag"]
-        self._disable_table_update = False
 
     @property
     def data_handling(self):
@@ -171,6 +178,17 @@ class DialogBatchApplyCCSCalibration(DialogReviewEditorBase):
         sizer.Add(btn_sizer, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
 
         return sizer
+
+    def on_select_item(self, evt):
+        """Select calibrant from the table and populate fields"""
+        self._disable_table_update = True
+        if hasattr(evt, "GetIndex"):
+            self.peaklist.item_id = evt.GetIndex()
+        item_info = self.on_get_item_information()
+        self.mz_value.SetValue(_str_fmt(item_info["mz"]))
+        self.charge_value.SetValue(_str_fmt(item_info["charge"], "0"))
+        self._current_item = item_info["tag"]
+        self._disable_table_update = False
 
     def on_edit_item(self, evt):
         """Edit calibrant that is already in the table"""

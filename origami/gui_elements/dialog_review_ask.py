@@ -116,7 +116,6 @@ def _main():
     ex = DialogAskReview(frame)
     res = ex.ShowModal()
     app.MainLoop()
-    print(res)
 
 
 if __name__ == "__main__":

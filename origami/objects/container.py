@@ -4,8 +4,25 @@ import os
 from typing import List
 from typing import Union
 
+# Third-party imports
+from zarr import Array
+
 # Local imports
 from origami.utils.path import clean_filename
+
+
+class ExtraDataStore(dict):
+    """Class to handle extra data"""
+
+    def __init__(self, *args, **kwargs):
+        super(ExtraDataStore, self).__init__(*args, **kwargs)
+
+    def __getitem__(self, item):
+        """Return the item data, however, first check whether it has been pre-loaded or if its a Zarr array"""
+        data = super(ExtraDataStore, self).__getitem__(item)
+        if isinstance(data, Array):
+            data = data[:]
+        return data
 
 
 class ContainerBase:
@@ -23,7 +40,8 @@ class ContainerBase:
         self._x_label_options = x_label_options
         self._y_label_options = y_label_options
 
-        self._extra_data = dict() if extra_data is None else extra_data
+        self._extra_data = ExtraDataStore()
+        self._extra_data.update(**dict() if extra_data is None else extra_data)
         self._metadata = dict() if metadata is None else metadata
         self.options = dict()
 

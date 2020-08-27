@@ -66,22 +66,6 @@ class ViewCCSFit(ViewSpectrum):
         raise AttributeError
 
 
-#         t_start = time.time()
-#         self.set_document(obj, **kwargs)
-#         self.set_labels(obj, **kwargs)
-#
-#         # update plot
-#         x, y = self.check_input(x, y, obj)
-#         self.figure.plot_1d_update_data(x, y, self.x_label, self.y_label, **kwargs)
-#         self.figure.on_check_zoom_state(x, y)
-#         self.figure.repaint(repaint)
-#
-#         # set data
-#         self._data.update(x=x, y=y, obj=obj)
-#         self.set_plot_parameters(**kwargs)
-#         LOGGER.debug(f"Plotted data in {report_time(t_start)}")
-
-
 class ViewCCSMobilogram(ViewMobilogram):
     """Specialized viewer for mobilogram in CCS panel"""
 

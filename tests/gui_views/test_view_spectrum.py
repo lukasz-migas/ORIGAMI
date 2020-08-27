@@ -52,7 +52,7 @@ class TestPanelViewMassSpectrum(TestPlotView):
         # clear data
         view.clear()
         for key in view.DATA_KEYS:
-            view._data[key] is None  # noqa
+            assert view._data[key] is None
         assert view.figure.PLOT_TYPE is None
 
         # check right-click menu
@@ -61,9 +61,7 @@ class TestPanelViewMassSpectrum(TestPlotView):
 
         # check popup
         popup = view.on_open_about(None)
-        # wx.CallLater(100, popup.on_dismiss, None)
         assert popup
-        # self.wait_for(150)
 
     def test_panel_update_style(self):
         view = ViewMassSpectrum(self.frame, (12, 8))
@@ -101,7 +99,7 @@ class TestPanelViewChromatogram(TestPlotView):
         # clear data
         view.clear()
         for key in view.DATA_KEYS:
-            view._data[key] is None  # noqa
+            assert view._data[key] is None
         assert view.figure.PLOT_TYPE is None
 
         # check right-click menu
@@ -110,9 +108,7 @@ class TestPanelViewChromatogram(TestPlotView):
 
         # # check popup
         popup = view.on_open_about(None)
-        # wx.CallLater(100, popup.on_dismiss, None)
         assert popup
-        # self.wait_for(150)
 
     def test_panel_update_style(self):
         view = ViewChromatogram(self.frame, (12, 8))
@@ -150,7 +146,7 @@ class TestPanelViewMobilogram(TestPlotView):
         # clear data
         view.clear()
         for key in view.DATA_KEYS:
-            view._data[key] is None  # noqa
+            assert view._data[key] is None
         assert view.figure.PLOT_TYPE is None
 
         # check right-click menu
@@ -159,9 +155,7 @@ class TestPanelViewMobilogram(TestPlotView):
 
         # # check popup
         popup = view.on_open_about(None)
-        # wx.CallLater(100, popup.on_dismiss, None)
         assert popup
-        # self.wait_for(150)
 
     def test_panel_update_style(self):
         view = ViewMobilogram(self.frame, (12, 8))
@@ -195,7 +189,7 @@ class TestPanelViewCompareMassSpectra(TestPlotView):
         # clear data
         view.clear()
         for key in view.DATA_KEYS:
-            view._data[key] is None  # noqa
+            assert view._data[key] is None
         assert view.figure.PLOT_TYPE is None
 
         # check right-click menu
@@ -204,6 +198,4 @@ class TestPanelViewCompareMassSpectra(TestPlotView):
 
         # # check popup
         popup = view.on_open_about(None)
-        # wx.CallLater(100, popup.on_dismiss, None)
         assert popup
-        # self.wait_for(150)

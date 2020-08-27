@@ -1973,9 +1973,14 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_apply_origami_ms, menu_action_process_as_origami)
 
         menu_action_process_as_origami_all = make_menu_item(
-            parent=menu, text="Apply ORIGAMI-MS parameters", bitmap=self._icons.sum
+            parent=menu, text="Batch apply ORIGAMI-MS parameters", bitmap=self._icons.sum
         )
         self.Bind(wx.EVT_MENU, self.on_batch_apply_origami_ms, menu_action_process_as_origami_all)
+
+        menu_action_process_ccs_batch = make_menu_item(
+            parent=menu, text="Batch apply CCS calibration", bitmap=self._icons.sum
+        )
+        self.Bind(wx.EVT_MENU, self.on_batch_apply_ccs_calibration, menu_action_process_ccs_batch)
 
         menu_action_process_2d = make_menu_item(parent=menu, text="Process...\tP", bitmap=self._icons.process_heatmap)
         self.Bind(wx.EVT_MENU, self.on_process_heatmap, menu_action_process_2d)
@@ -2018,6 +2023,7 @@ class DocumentTree(wx.TreeCtrl):
 
         # make menu
         if self._item.indent == 2:
+            menu.AppendItem(menu_action_process_ccs_batch)
             menu.AppendItem(menu_action_process_as_origami_all)
             menu.AppendItem(menu_action_process_2d_all)
             menu.AppendSeparator()

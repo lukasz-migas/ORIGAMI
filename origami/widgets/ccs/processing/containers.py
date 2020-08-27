@@ -33,6 +33,7 @@ class CalibrationIndex:
     lntDd = 8
     lnCCSd = 9
     tDdd = 10
+    N_COLUMNS = 11
 
 
 CCS_TABLE_COLUMNS = ["m/z", "MW", "charge", "tD", "CCS", "red_mass", "tDd", "CCSd", "lntDd", "lnCCSd", "tDdd"]
@@ -175,6 +176,7 @@ class CCSCalibrationObject(DataObject):
         labels = self.column_names
         header = f"{delimiter}".join(labels)
         np.savetxt(path, array, delimiter=delimiter, fmt=fmt, header=header)  # noqa
+        return path
 
     def __call__(
         self,
@@ -215,9 +217,11 @@ class CCSCalibrationObject(DataObject):
         """
         # ensure time-axis is correct
         if isinstance(dt, MobilogramObject):
-            _, x = dt.change_x_label("Drift time (ms)")
+            dt.change_x_label("Drift time (ms)")
+            x = dt.x
         elif isinstance(dt, IonHeatmapObject):
-            _, x = dt.change_y_label("Drift time (ms)")
+            dt.change_y_label("Drift time (ms)")
+            x = dt.y
         else:
             x = dt
 

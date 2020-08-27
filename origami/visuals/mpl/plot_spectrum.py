@@ -467,7 +467,7 @@ class PlotSpectrum(PlotBase):
 
         # Setup X-axis getter
         self.store_plot_limits([extent], [self.plot_base])
-        self.PLOT_TYPE = "line"
+        self.PLOT_TYPE = "scatter"
 
     #
     # def plot_1D_centroid(

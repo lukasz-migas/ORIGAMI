@@ -31,18 +31,18 @@ class CCSCalibrationProcessor:
         self._correction_factor = None
 
     @property
-    def calibration(self):
+    def calibration(self) -> np.ndarray:
         """Return calibration array"""
         return self._calibration
 
     @property
-    def r2_linear(self):
+    def r2_linear(self) -> float:
         """Return r2 of the linear fit"""
         if self._fit_linear:
             return self._fit_linear[2] ** 2
 
     @property
-    def r2_log(self):
+    def r2_log(self) -> float:
         """Return r2 of the log fit"""
         if self._fit_log:
             return self._fit_log[2] ** 2
