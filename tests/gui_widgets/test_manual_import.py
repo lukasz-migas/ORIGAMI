@@ -1,7 +1,4 @@
 """Test LESA viewer"""
-# Standard library imports
-import sys
-
 # Third-party imports
 import pytest
 
@@ -12,8 +9,8 @@ from ..wxtc import WidgetTestCase
 
 
 @pytest.mark.guitest
-@pytest.mark.skipif(sys.platform == "win32", reason="Running this test under Windows can sporadically cause errors")
-@pytest.mark.skipif(sys.platform == "linux", reason="Running this test under Linux can sporadically cause errors")
+# @pytest.mark.skipif(sys.platform == "win32", reason="Running this test under Windows can sporadically cause errors")
+# @pytest.mark.skipif(sys.platform == "linux", reason="Running this test under Linux can sporadically cause errors")
 class TestPanelManualImportDataset(WidgetTestCase):
     """Test dialog"""
 
@@ -21,5 +18,4 @@ class TestPanelManualImportDataset(WidgetTestCase):
     def test_panel_create(self, activation_type):
         dlg = PanelManualImportDataset(None, None, activation_type=activation_type)
         dlg.Hide()
-        self.wait_for(500)
         assert dlg.activation_type_choice.GetStringSelection() == activation_type

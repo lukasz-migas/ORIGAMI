@@ -14,6 +14,7 @@ from pathlib import Path
 # Third-party imports
 import zarr
 import numpy as np
+from zarr import Array
 from zarr import Group
 from natsort import natsorted
 from zarr.util import is_valid_python_name
@@ -142,14 +143,17 @@ class DocumentStore:
 
     def __getitem__(self, item):
         """Get item from the store"""
-        as_object = False
+        as_object, quick = False, False
         if isinstance(item, tuple):
-            item, as_object = item
+            if len(item) == 2:
+                item, as_object = item
+            if len(item) == 3:
+                item, as_object, quick = item
         if not isinstance(item, str):
             raise ValueError(f"Expected str and got {type(item)} ({item})")
 
         if as_object:
-            return self.as_object(self.fp[item])
+            return self.as_object(self.fp[item], quick)
         return self.fp[item]
 
     def __contains__(self, item):
@@ -198,27 +202,27 @@ class DocumentStore:
         except AttributeError:
             pass
 
-    def as_object(self, group: Group):
+    def as_object(self, group: Group, quick: bool = False):
         """Returns the group data as an object"""
         klass_name = group.attrs.get("class", None)
         obj = None
 
         if klass_name == "MassSpectrumObject":
-            obj = mass_spectrum_object(group)
+            obj = mass_spectrum_object(group, quick)
         elif klass_name == "ChromatogramObject":
-            obj = chromatogram_object(group)
+            obj = chromatogram_object(group, quick)
         elif klass_name == "MobilogramObject":
-            obj = mobilogram_object(group)
+            obj = mobilogram_object(group, quick)
         elif klass_name == "MassSpectrumHeatmapObject":
-            obj = msdt_heatmap_object(group)
+            obj = msdt_heatmap_object(group, quick)
         elif klass_name == "IonHeatmapObject":
-            obj = ion_heatmap_object(group)
+            obj = ion_heatmap_object(group, quick)
         elif klass_name == "StitchIonHeatmapObject":
-            obj = ion_heatmap_object(group)
+            obj = ion_heatmap_object(group, quick)
         elif klass_name == "ImagingIonHeatmapObject":
-            obj = ion_heatmap_object(group)
+            obj = ion_heatmap_object(group, quick)
         elif klass_name == "CCSCalibrationObject":
-            obj = ccs_calibration_object(group)
+            obj = ccs_calibration_object(group, quick)
 
         # return instantiated objected
         if obj:
@@ -608,6 +612,8 @@ class DocumentStore:
         """Add all components of a group or subgroup"""
         # add datasets
         for key, value in data.items():
+            if isinstance(value, Array):
+                value = value[:]
             assert isinstance(value, np.ndarray)
 
             # rather than using the default chunk size, we override the rather small values preset by the Zarr

@@ -34,9 +34,14 @@
 - [ ] add drag x-/y-axis by holding ALT or clicking on the axes
 - [ ] change the annotations popup to dialog since it won't work on linux
 - [x] make it easier to instantiate tables
-- [ ] fix various issues with x/y-axis conversions
+- [x] fix various issues with x/y-axis conversions
 - [ ] add specification for DataObjects metadata and extra data to prevent incorrect values being set
     * m/z value = mz; charge=charge; x_label... etc
+- [ ] add tools to apply CCS calibration globally
+- [ ] add methods to only read metadata from the disk to speed-up collection of if items that need processing
+- [x] add `as_object` method that does not load data and extra data
+- [ ] add `extra_data` property that checks whether data has been loaded (`isinstance`) or ndarray
+- [ ] 
 
 ## New features
 

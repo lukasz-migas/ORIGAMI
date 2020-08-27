@@ -6,6 +6,7 @@ import time
 import logging
 from enum import IntEnum
 from typing import Dict
+from functools import partial
 
 # Third-party imports
 import wx
@@ -32,6 +33,7 @@ from origami.gui_elements.mixins import ConfigUpdateMixin
 from origami.gui_elements.helpers import TableConfig
 from origami.gui_elements.helpers import set_tooltip
 from origami.gui_elements.helpers import set_item_font
+from origami.gui_elements.helpers import make_menu_item
 from origami.gui_elements.helpers import make_bitmap_btn
 from origami.widgets.ccs.view_ccs import ViewCCSFit
 from origami.widgets.ccs.view_ccs import ViewCCSMobilogram
@@ -41,6 +43,7 @@ from origami.widgets.ccs.panel_ccs_database import PanelCCSDatabase
 from origami.gui_elements.views.view_register import VIEW_REG
 from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
 from origami.widgets.ccs.processing.containers import CalibrationIndex
+from origami.widgets.ccs.processing.containers import CCSCalibrationObject
 from origami.widgets.ccs.processing.calibration import CCSCalibrationProcessor
 
 LOGGER = logging.getLogger(__name__)
@@ -115,6 +118,7 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         parent,
         document_title: str = None,
         calibration_name: str = None,
+        calibration_obj: CCSCalibrationObject = None,
         check_for_existing: bool = False,
         debug: bool = False,
     ):
@@ -130,6 +134,7 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         # setup kwargs
         self.document_title = document_title
         self.calibration_name = calibration_name
+        self._ccs_obj = calibration_obj
         self.check_for_existing = check_for_existing
         self.unsaved = False  # indicate that the panel has unsaved changes
         self._debug = debug  # flag to indicate the application is in debug mode
@@ -335,9 +340,6 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
 
     def on_right_click(self, evt):
         """Right-click menu"""
-        from origami.gui_elements.helpers import make_menu_item
-        from functools import partial
-
         if hasattr(evt.EventObject, "figure"):
             view = VIEW_REG.view
             menu = view.get_right_click_menu(self)
@@ -426,7 +428,7 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
 
         gas_choice = wx.StaticText(panel, -1, "Gas:")
         self.gas_choice = wx.Choice(panel, -1, choices=["Nitrogen", "Helium"])
-        self.gas_choice.SetStringSelection("Nitrogen")
+        self.gas_choice.SetStringSelection("Helium")
         self.gas_choice.Bind(wx.EVT_CHOICE, self.on_update_quick_selection)
 
         polarity_choice = wx.StaticText(panel, -1, "Polarity:")

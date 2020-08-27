@@ -8,10 +8,9 @@ import wx
 import numpy as np
 
 # Local imports
-import origami.processing.origami_ms as pr_origami
+import origami.widgets.origami_ms.processing.origami_ms as pr_origami
 from origami.styles import Dialog
 from origami.styles import Validator
-from origami.utils.screen import calculate_window_size
 from origami.config.config import CONFIG
 from origami.objects.document import DocumentGroups
 from origami.utils.converters import str2int
@@ -28,11 +27,8 @@ LOGGER = logging.getLogger(__name__)
 #    exponential increment < 0.075 and > 0.0
 
 
-class DialogCustomiseORIGAMI(Dialog):
+class DialogOrigamiMsSettings(Dialog):
     """Dialog to setup ORIGAMI-MS settings"""
-
-    # private elements
-    _settings_panel_size = None
 
     # UI elements
     origami_method_choice = None
@@ -48,23 +44,27 @@ class DialogCustomiseORIGAMI(Dialog):
     origami_calculate_btn = None
     origami_apply_btn = None
     origami_cancel_btn = None
-    plot_view = None
+    view_cv = None
     plot_panel = None
-    plot_window = None
     info_value = None
     preprocess_check = None
     process_btn = None
     origami_extract_btn = None
     user_settings = dict()
 
-    def __init__(self, parent, presenter, document_title: str = None):
-        Dialog.__init__(self, parent, title="ORIGAMI-MS settings...")
-
+    def __init__(self, parent, presenter, document_title: str = None, debug: bool = False):
+        Dialog.__init__(
+            self,
+            parent,
+            title="ORIGAMI-MS settings...",
+            style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER & ~wx.MAXIMIZE_BOX,
+        )
         self.view = parent
         self.presenter = presenter
+        self._debug = debug
 
         self.document_title = document_title
-        if self.document_title is None:
+        if self.document_title is None and not self._debug:
             document = ENV.on_get_document()
             if document is None:
                 self.Destroy()
@@ -78,9 +78,7 @@ class DialogCustomiseORIGAMI(Dialog):
         self.user_settings = self.on_setup_gui()
         self.user_settings_changed = False
 
-        self._display_size = wx.GetDisplaySize()
-        self._display_resolution = wx.ScreenDC().GetPPI()
-        self._window_size = calculate_window_size(self._display_size, [0.5, 0.4])
+        self._window_size = self._get_window_size(self.parent, [0.5, 0.4])
 
         self.make_gui()
         self.on_toggle_controls(None)
@@ -91,6 +89,7 @@ class DialogCustomiseORIGAMI(Dialog):
 
         # bind events
         self.Bind(wx.EVT_CLOSE, self.on_close)
+        self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
 
         # instantiate
         self.on_plot()
@@ -101,19 +100,26 @@ class DialogCustomiseORIGAMI(Dialog):
         return self.presenter.data_handling
 
     @property
-    def data_processing(self):
-        """Return handle to `data_processing`"""
-        return self.presenter.data_processing
-
-    @property
     def document_tree(self):
         """Return handle to `document_tree`"""
         return self.presenter.view.panelDocuments.documents
 
+    def on_right_click(self, evt):
+        """Right-click menu"""
+        if hasattr(evt.EventObject, "figure"):
+            menu = self.view_cv.get_right_click_menu(self)
+
+            self.PopupMenu(menu)
+            menu.Destroy()
+            self.SetFocus()
+
     def on_setup_gui(self):
         """Setup UI with correct parameters"""
         document = ENV.on_get_document(self.document_title)
-        origami_settings = document.get_config("origami_ms")
+
+        origami_settings = None
+        if document is not None:
+            origami_settings = document.get_config("origami_ms")
 
         # there are no user specified settings yet, so we preset them with the global settings
         if origami_settings is None:
@@ -130,15 +136,16 @@ class DialogCustomiseORIGAMI(Dialog):
                 "start_scan_end_scan_cv_list": [],
             }
             # update document with these global settings
-            document.add_config("origami_ms", origami_settings)
-            LOGGER.info("Document did not have any ORIGAMI-MS settings present")
+            if document:
+                document.add_config("origami_ms", origami_settings)
+                LOGGER.info("Document did not have any ORIGAMI-MS settings present")
 
         return origami_settings
 
     def on_close(self, evt, force: bool = False):
         """Destroy this frame"""
 
-        if self.user_settings_changed:
+        if self.user_settings_changed and not self._debug and not force:
             dlg = DialogBox(
                 title="Would you like to continue?",
                 msg="You've made some changes to the ORIGAMI-MS settings but have not saved them."
@@ -148,7 +155,7 @@ class DialogCustomiseORIGAMI(Dialog):
             if dlg == wx.ID_NO:
                 return
 
-        super(DialogCustomiseORIGAMI, self).on_close(evt, force)
+        super(DialogOrigamiMsSettings, self).on_close(evt, force)
 
     def on_ok(self, _=None):
         """Close panel with OK event"""
@@ -156,11 +163,8 @@ class DialogCustomiseORIGAMI(Dialog):
 
     def make_gui(self):
         """Make UI"""
-        #         panel = wx.Panel(self, -1, size=(-1, -1), name="main")
-
         # make panel
         settings_panel = self.make_panel_settings(self)
-        self._settings_panel_size = settings_panel.GetSize()
         buttons_panel = self.make_buttons_panel(self)
 
         plot_panel = self.make_plot_panel(self)
@@ -170,7 +174,7 @@ class DialogCustomiseORIGAMI(Dialog):
         # pack element
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(settings_panel, 1, wx.EXPAND, 10)
-        sizer.Add(extraction_panel, 1, wx.EXPAND, 10)
+        sizer.Add(extraction_panel, 0, wx.EXPAND, 10)
         sizer.Add(buttons_panel, 0, wx.EXPAND, 10)
 
         main_sizer = wx.BoxSizer()
@@ -368,13 +372,13 @@ class DialogCustomiseORIGAMI(Dialog):
 
     def make_plot_panel(self, split_panel):
         """Make plot panel"""
-        pixel_size = [(self._window_size[0] - self._settings_panel_size[0] - 50), (self._window_size[1] - 50)]
-        figsize = [pixel_size[0] / self._display_resolution[0], pixel_size[1] / self._display_resolution[1]]
+        figsize = (6, 4)
 
-        self.plot_view = ViewSpectrum(split_panel, figsize, x_label="Scans", y_label="Collision Voltage (V)")
-        self.plot_window = self.plot_view.figure
+        self.view_cv = ViewSpectrum(
+            split_panel, figsize, x_label="Scans", y_label="Collision Voltage (V)", axes_size=(0.15, 0.25, 0.8, 0.65)
+        )
 
-        return self.plot_view.panel
+        return self.view_cv.panel
 
     def on_apply(self, _evt):
         """Update user settings"""
@@ -573,7 +577,7 @@ class DialogCustomiseORIGAMI(Dialog):
         start_end_cv_list = self.calculate_origami_parameters()
         scans, voltages = pr_origami.generate_extraction_windows(start_end_cv_list)
 
-        self.plot_view.plot(scans, voltages)
+        self.view_cv.plot(scans, voltages)
 
     def on_extract_spectra(self, _evt):
         """Submit spectra extraction"""
@@ -616,7 +620,7 @@ class DialogCustomiseORIGAMI(Dialog):
 def _main():
 
     app = wx.App()
-    ex = DialogCustomiseORIGAMI(None, None)
+    ex = DialogOrigamiMsSettings(None, None, debug=True)
 
     ex.Show()
     app.MainLoop()

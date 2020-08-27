@@ -550,7 +550,7 @@ class ViewBase(ABC):
         LOGGER.info(f"Saved figure in {report_time(t_start)}")
         pub.sendMessage("notify.message.info", message=f"Saved figure in {report_time(t_start)}")
 
-    def get_right_click_menu(self, parent: Union[wx.Panel, wx.MiniFrame, wx.Frame]):
+    def get_right_click_menu(self, parent: Union[wx.Panel, wx.MiniFrame, wx.Frame, wx.Dialog]):
         """Get the commonly used right-click menu items
 
         Once the menu object is instantiated, it can be modified by `Prepend` or `Append` methods to add additional

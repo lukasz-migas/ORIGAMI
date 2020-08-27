@@ -52,6 +52,7 @@ from origami.ids import ID_xlabel_RT_actLabFrame
 from origami.ids import ID_xlabel_RT_retTime_min
 from origami.ids import ID_ylabel_DTMS_ms_arrival
 from origami.icons.assets import Icons
+from origami.utils.secret import get_short_hash
 from origami.config.config import CONFIG
 from origami.utils.utilities import report_time
 from origami.objects.document import DocumentStore
@@ -1379,7 +1380,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_action_origami_ms(self, _, document_title=None):
         """Open a dialog where you can specify ORIGAMI-MS parameters"""
-        from origami.gui_elements.dialog_customise_origami import DialogCustomiseORIGAMI
+        from origami.widgets.origami_ms.dialog_origami_ms import DialogOrigamiMsSettings
 
         # get document
         document = ENV.on_get_document(document_title)
@@ -1388,7 +1389,7 @@ class DocumentTree(wx.TreeCtrl):
                 "Incorrect document type", f"Cannot setup ORIGAMI-MS parameters for {document.data_type} document."
             )
 
-        dlg = DialogCustomiseORIGAMI(self.view, self.presenter, document_title=document_title)
+        dlg = DialogOrigamiMsSettings(self.view, self.presenter, document_title=document_title)
         dlg.ShowModal()
 
     def on_open_interactive_viewer(self, evt):
@@ -1424,7 +1425,7 @@ class DocumentTree(wx.TreeCtrl):
         self._ccs_panel = PanelCCSCalibration(self.view, document_title=document_title)
         self._ccs_panel.Show()
 
-    def on_open_ccs_editor(self, _, document_title: str = None, calibration_name: str = None):
+    def on_open_ccs_editor(self, _, document_title: str = None, calibration_name: str = None, calibration_obj=None):
         """Open dialog window where CCS calibration can be edited"""
         from origami.widgets.ccs.panel_ccs_calibration import PanelCCSCalibration
 
@@ -1432,7 +1433,11 @@ class DocumentTree(wx.TreeCtrl):
             document_title, _ = self._get_item_info()
 
         self._ccs_panel = PanelCCSCalibration(
-            self.view, document_title=document_title, calibration_name=calibration_name, check_for_existing=True
+            self.view,
+            document_title=document_title,
+            calibration_name=calibration_name,
+            calibration_obj=calibration_obj,
+            check_for_existing=True,
         )
         self._ccs_panel.Show()
 
@@ -1874,6 +1879,11 @@ class DocumentTree(wx.TreeCtrl):
         menu_action_process_ccs = make_menu_item(parent=menu, text="Apply CCS calibration", bitmap=self._icons.sum)
         self.Bind(wx.EVT_MENU, self.on_apply_ccs_calibration, menu_action_process_ccs)
 
+        menu_action_process_ccs_batch = make_menu_item(
+            parent=menu, text="Batch apply CCS calibration", bitmap=self._icons.sum
+        )
+        self.Bind(wx.EVT_MENU, self.on_batch_apply_ccs_calibration, menu_action_process_ccs_batch)
+
         menu_action_save_mobilogram_image_as = make_menu_item(
             parent=menu, text="Save image as...", bitmap=self._icons.png
         )
@@ -1895,6 +1905,8 @@ class DocumentTree(wx.TreeCtrl):
 
         # make menu
         if self._item.indent == 2:
+            menu.AppendItem(menu_action_process_ccs_batch)
+            menu.AppendSeparator()
             menu.AppendItem(menu_action_save_image_as_all)
             menu.AppendItem(menu_action_save_data_as_all)
             menu.AppendItem(menu_action_delete_item)
@@ -2523,18 +2535,33 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_batch_apply_ccs_calibration(self, _evt):
         """Apply CCS calibration to each object"""
-        from origami.gui_elements.dialog_review_editor import DialogReviewApplyOrigamiMs
+        from origami.widgets.ccs.dialog_batch_apply_ccs import DialogBatchApplyCCSCalibration
 
         document_title = ENV.current
         document = ENV.on_get_document(document_title)
-        if not document.is_origami_ms(True):
+        if not document.has_ccs_calibration():
             raise MessageError(
-                "Incorrect document type", f"Cannot setup ORIGAMI-MS parameters for {document.data_type} document."
+                "Missing CCS calibration",
+                "Cannot apply CCS calibration on this document - missing CCS calibration. You can create CCS"
+                "\ncalibration using Widgets -> Open CCS Calibration Builder...",
             )
 
+        # get calibration object
+        calibration = self.on_get_ccs_calibration(document)
+
+        # get list of items
         item_list = self.on_get_item_list()
-        dlg = DialogReviewApplyOrigamiMs(
-            self.view, item_list[ENV.current], document_tree=self, document_title=document_title
+        item_list = item_list[ENV.current]
+
+        # modify list of items to include m/z and charge information
+        _item_list = []
+        for item in item_list:
+            data_obj = document[item[1], True, True]
+            mz, charge = data_obj.get_metadata(["mz", "charge"])
+            _item_list.append([*item, mz, charge, get_short_hash()])
+
+        dlg = DialogBatchApplyCCSCalibration(
+            self.view, _item_list, document_tree=self, document_title=document_title, calibration_obj=calibration
         )
         dlg.ShowModal()
 
@@ -2547,7 +2574,10 @@ class DocumentTree(wx.TreeCtrl):
                 "Incorrect document type", f"Cannot setup ORIGAMI-MS parameters for {document.data_type} document."
             )
 
+        # get data object
         data_obj = self._get_item_object()
+
+        # apply ORIGAMI-MS settings
         data_obj = data_obj.apply_origami_ms()
         if data_obj is not None:
             self.on_update_document(data_obj.DOCUMENT_KEY, data_obj.title, document_title)
@@ -2555,7 +2585,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_batch_apply_origami_ms(self, _evt):
         """Apply ORIGAMI-MS settings on the object and create a copy"""
-        from origami.gui_elements.dialog_review_editor import DialogReviewApplyOrigamiMs
+        from origami.widgets.origami_ms.dialog_batch_apply_origami_ms import DialogReviewApplyOrigamiMs
 
         document_title = ENV.current
         document = ENV.on_get_document(document_title)

@@ -9,6 +9,7 @@ from typing import Optional
 
 # Third-party imports
 import numpy as np
+from zarr import Array
 from natsort import order_by_index
 from natsort import index_natsorted
 
@@ -58,6 +59,8 @@ class HeatmapObject(DataObject):
         """Return x-axis of the object"""
         if self._x is None:
             self._x = np.arange(1, self.shape[1])
+        if isinstance(self._x, Array):
+            self._x = self._x[:]
         return self._x
 
     @property
@@ -65,6 +68,8 @@ class HeatmapObject(DataObject):
         """Return y-axis of the object"""
         if self._y is None:
             self._y = np.arange(1, self.shape[0])
+        if isinstance(self._y, Array):
+            self._y = self._y[:]
         return self._y
 
     @property
@@ -72,6 +77,8 @@ class HeatmapObject(DataObject):
         """Return intensity values of the x-axis (second dimension)"""
         if self._xy is None:
             self._xy = self.array.sum(axis=0)
+        if isinstance(self._xy, Array):
+            self._xy = self._xy[:]
         return self._xy
 
     @property
@@ -79,11 +86,15 @@ class HeatmapObject(DataObject):
         """Return intensity values of the y-axis (first dimension)"""
         if self._yy is None:
             self._yy = self.array.sum(axis=1)
+        if isinstance(self._yy, Array):
+            self._yy = self._yy[:]
         return self._yy
 
     @property
     def array(self):
         """Return the array object"""
+        if isinstance(self._array, Array):
+            self._array = self._array[:]
         return self._array
 
     @property
@@ -121,6 +132,10 @@ class HeatmapObject(DataObject):
         attrs = {**self._metadata, "class": self._cls, "x_label": self.x_label, "y_label": self.y_label}
         return data, attrs
 
+    def to_attrs(self):
+        """Outputs attributes in a dictionary format"""
+        return {**self._metadata, "class": self._cls, "x_label": self.x_label, "y_label": self.y_label}
+
     def to_csv(self, path, *args, **kwargs):
         """Export data in a csv/txt format"""
         array, x, y = self.array, self.x, self.y
@@ -155,7 +170,7 @@ class HeatmapObject(DataObject):
     def _get_roi_slice(self, x_max, x_min, y_max, y_min):
         x_min_idx, x_max_idx = find_nearest_index(self.x, [x_min, x_max])
         y_min_idx, y_max_idx = find_nearest_index(self.y, [y_min, y_max])
-        array = self._array[y_min_idx : y_max_idx + 1, x_min_idx : x_max_idx + 1]
+        array = self.array[y_min_idx : y_max_idx + 1, x_min_idx : x_max_idx + 1]
         return array, x_min_idx, x_max_idx + 1, y_min_idx, y_max_idx + 1
 
     def get_x_for_roi(self, x_min: float, x_max: float, y_min: float, y_max: float):

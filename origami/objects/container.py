@@ -1,6 +1,8 @@
 """Container object base class"""
 # Standard library imports
 import os
+from typing import List
+from typing import Union
 
 # Local imports
 from origami.utils.path import clean_filename
@@ -109,17 +111,25 @@ class ContainerBase:
             return [self._metadata.get(_key, default) for _key in key]
         return self._metadata.get(key, default)
 
-    def add_metadata(self, key, value, flush: bool = True):
+    def add_metadata(self, key: Union[str, List[str]], value, flush: bool = True):
         """Add metadata key:value pair"""
-        if not isinstance(key, str):
-            raise ValueError("Metadata `key` must be a string")
-        if not isinstance(value, (bool, str, int, float, list, tuple)):
-            raise ValueError("Metadata `value` must be JSON serializable")
-        self._metadata[key] = value
+        if isinstance(key, str):
+            key = [key]
+            value = [value]
+
+        for _key, _value in zip(key, value):
+            if not isinstance(_key, str):
+                raise ValueError("Metadata `key` must be a string")
+            if not isinstance(_value, (bool, str, int, float, list, tuple)):
+                raise ValueError("Metadata `value` must be JSON serializable")
+            self._metadata[_key] = _value
         if flush:
-            self.flush()
+            self.flush_metadata()
 
     def flush(self, title: str = None):
+        """Flush current object data to the DocumentStore"""
+
+    def flush_metadata(self):
         """Flush current object data to the DocumentStore"""
 
     @property

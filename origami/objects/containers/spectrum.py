@@ -68,6 +68,10 @@ class SpectrumObject(DataObject):
         }
         return data, attrs
 
+    def to_attrs(self):
+        """Outputs attributes in a dictionary format"""
+        return {**self._metadata, "class": self._cls, "x_label": self.x_label, "y_label": self.y_label}
+
     def to_csv(self, path, *args, **kwargs):
         """Export data in a csv/txt format"""
         x, y = self.x, self.y

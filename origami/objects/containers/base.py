@@ -2,9 +2,11 @@
 # Standard library imports
 from typing import Any
 from typing import Dict
+from typing import Tuple
 
 # Third-party imports
 import numpy as np
+from zarr import Array
 from zarr import Group
 
 # Local imports
@@ -78,11 +80,15 @@ class DataObject(ContainerBase):
     @property
     def x(self):
         """Return the `x` axis of the dataset"""
+        if isinstance(self._x, Array):
+            self._x = self._x[:]
         return self._x
 
     @property
     def y(self):
         """Return the `y` axis of the dataset"""
+        if isinstance(self._y, Array):
+            self._y = self._y[:]
         return self._y
 
     @property
@@ -118,12 +124,16 @@ class DataObject(ContainerBase):
         """Export data in a csv format"""
         raise NotImplementedError("Must implement method")
 
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         """Export data in a dictionary object"""
         raise NotImplementedError("Must implement method")
 
-    def to_zarr(self):
+    def to_zarr(self) -> Tuple[Dict, Dict]:
         """Outputs data to dictionary of `data` and `attributes`"""
+        raise NotImplementedError("Must implement method")
+
+    def to_attrs(self) -> Dict:
+        """Outputs data `attributes`"""
         raise NotImplementedError("Must implement method")
 
     def check(self):
@@ -150,7 +160,7 @@ class DataObject(ContainerBase):
         return data_obj_copy
 
     @property
-    def can_flush(self):
+    def can_flush(self) -> bool:
         """Check whether data can be flushed to disk"""
         return self.owner is not None
 
@@ -165,6 +175,16 @@ class DataObject(ContainerBase):
             data, attrs = self.to_zarr()
             store.add(title, data, attrs)
             self.unsaved = False
+
+    def flush_metadata(self):
+        """Flush current object metadata to the DocumentStore"""
+        if not self.can_flush:
+            return
+        store = self.get_parent()
+        title = self.title
+        if store is not None and title is not None:
+            attrs = self.to_attrs()
+            store.add_attrs(title, attrs)
 
     def change_x_label(self, to_label: str, **kwargs):
         """Changes the label and x-axis values to a new format"""

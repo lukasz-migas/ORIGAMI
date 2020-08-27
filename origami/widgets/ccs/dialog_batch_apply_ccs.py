@@ -7,12 +7,14 @@ import wx
 
 # Local imports
 from origami.icons.assets import Icons
+from origami.utils.secret import get_short_hash
 from origami.config.environment import ENV
 from origami.gui_elements.helpers import TableConfig
 from origami.gui_elements.helpers import set_tooltip
 from origami.gui_elements.helpers import make_bitmap_btn
 from origami.handlers.queue_handler import QUEUE
 from origami.gui_elements.dialog_review_editor import DialogReviewEditorBase
+from origami.widgets.ccs.processing.containers import CCSCalibrationObject
 
 
 def is_empty(value):
@@ -21,6 +23,14 @@ def is_empty(value):
         if len(value) == 0:
             return False
     return True
+
+
+def _str_fmt(value):
+    if value is None:
+        return ""
+    if isinstance(value, float):
+        return f"{value:.4f}"
+    return str(value)
 
 
 class TableColumnIndex:
@@ -43,7 +53,7 @@ class DialogBatchApplyCCSCalibration(DialogReviewEditorBase):
     TABLE_DICT = TableConfig()
     TABLE_DICT.add("", "check", "bool", 25, hidden=True)
     TABLE_DICT.add("type", "type", "str", 100)
-    TABLE_DICT.add("name", "name", "str", 300)
+    TABLE_DICT.add("name", "name", "str", 275)
     TABLE_DICT.add("m/z", "mz", "float", 100)
     TABLE_DICT.add("z", "charge", "int", 50)
     TABLE_DICT.add("tag", "tag", "str", 0, hidden=True)
@@ -65,14 +75,21 @@ class DialogBatchApplyCCSCalibration(DialogReviewEditorBase):
     # ui elements
     charge_value, mz_value = None, None
 
-    def __init__(self, parent, item_list, document_tree=None, document_title: str = None, calibration_name: str = None):
+    def __init__(
+        self,
+        parent,
+        item_list,
+        document_tree=None,
+        document_title: str = None,
+        calibration_obj: CCSCalibrationObject = None,
+    ):
         self._icons = Icons()
 
         super().__init__(parent, item_list)
 
         self.document_tree = document_tree
         self.document_title = document_title
-        self.calibration_name = calibration_name
+        self.calibration_obj = calibration_obj
 
         self.invalidate_items()
         self.setup()
@@ -88,10 +105,9 @@ class DialogBatchApplyCCSCalibration(DialogReviewEditorBase):
         if hasattr(evt, "GetIndex"):
             self.peaklist.item_id = evt.GetIndex()
         item_info = self.on_get_item_information()
-        self.mz_value.SetValue(str(item_info["mz"]))
-        self.charge_value.SetValue(str(item_info["charge"]))
+        self.mz_value.SetValue(_str_fmt(item_info["mz"]))
+        self.charge_value.SetValue(_str_fmt(item_info["charge"]))
         self._current_item = item_info["tag"]
-        print(self._current_item, item_info)
         self._disable_table_update = False
 
     @property
@@ -100,26 +116,32 @@ class DialogBatchApplyCCSCalibration(DialogReviewEditorBase):
         return self.document_tree.data_handling
 
     @staticmethod
-    def is_valid(item: Dict) -> bool:
+    def is_valid(item_info: Dict) -> bool:
         """Validate input"""
-        mz = item["mz"]
-        charge = item["charge"]
+        mz = item_info["mz"]
+        charge = item_info["charge"]
         if not isinstance(mz, float) or not mz > 0:
             return False
         if not isinstance(charge, int) or charge in [0, None]:
             return False
         return True
 
+    def data_obj(self, item_id: int):
+        """Get current data object"""
+        item_info = self.on_get_item_information(item_id)
+        document = ENV.on_get_document(self.document_title)
+        return document[item_info["name"], True, True]
+
     def make_buttons(self):
         """Make buttons"""
 
         # controls
         charge_value = wx.StaticText(self, -1, "Charge (z):")
-        self.charge_value = wx.SpinCtrl(self, -1, "", min=-100, max=100, size=(60, -1))
+        self.charge_value = wx.SpinCtrl(self, -1, "", min=-100, max=100, size=(100, -1))
         self.charge_value.Bind(wx.EVT_TEXT, self.on_edit_item)
 
         mz_value = wx.StaticText(self, -1, "m/z (Da):")
-        self.mz_value = wx.TextCtrl(self, -1, "", size=(60, -1))
+        self.mz_value = wx.TextCtrl(self, -1, "", size=(100, -1))
         self.mz_value.Bind(wx.EVT_TEXT, self.on_edit_item)
 
         control_sizer = wx.BoxSizer()
@@ -175,19 +197,24 @@ class DialogBatchApplyCCSCalibration(DialogReviewEditorBase):
     def on_open_ccs_calibration_editor(self, _evt):
         """Open MS pre-processing panel"""
         self.document_tree.on_open_ccs_editor(
-            None, document_title=self.document_title, calibration_name=self.calibration_name
+            None, document_title=self.document_title, calibration_obj=self.calibration_obj
         )
 
     def on_ok(self, _evt):
         """Override default event"""
         self._output_list = self.get_selected_items()
 
-        print(self._output_list)
-
-        if self.document_title is not None:
+        if self.document_title is not None and self.calibration_obj is not None:
             self.on_process()
-
         self.EndModal(wx.ID_OK)
+
+    def on_update_data_obj(self):
+        """Update data objects with new metadata"""
+        for item_id in range(self.n_rows - 1):
+            item_info = self.on_get_item_information(item_id)
+            if self.is_valid(item_info):
+                data_obj = self.data_obj(item_id)
+                data_obj.add_metadata(["mz", "charge"], [item_info["mz"], item_info["charge"]])
 
     def on_process(self):
         """Process object"""
@@ -195,9 +222,12 @@ class DialogBatchApplyCCSCalibration(DialogReviewEditorBase):
         document = ENV.on_get_document(self.document_title)
 
         # iterate over each of the selected items
-        for object_name in self.output_list:
-            obj = document[object_name, True]
-            QUEUE.add_call(obj.apply_origami_ms, (), func_result=self._on_add_to_document)
+        for object_name, mz, charge, _ in self.output_list:
+            obj = document[object_name, True, True]
+            obj.add_metadata(["mz", "charge"], [mz, charge])
+            QUEUE.add_call(
+                obj.apply_ccs_calibration, (self.calibration_obj, mz, charge), func_result=self._on_add_to_document
+            )
 
     def _on_add_to_document(self, obj):
         """Add object to the document tree in a thread-safe manner"""
@@ -211,11 +241,11 @@ def _main():
     ex = DialogBatchApplyCCSCalibration(
         None,
         [
-            ["MassSpectrum", "Data 1", "500", "", "123"],
-            ["MassSpectrum", "Data 1", "", "3", "dasd"],
-            ["MassSpectrum", "Data 1", "500", "3", "ada1"],
-            ["MassSpectrum", "Data 1", "500", "", "das1231cd"],
-            ["MassSpectrum", "Data 1", "500", "", "aaqcxg"],
+            ["MassSpectrum", "Data 1", "500", "", get_short_hash()],
+            ["MassSpectrum", "Data 1", "", "3", get_short_hash()],
+            ["MassSpectrum", "Data 1", "500", "3", get_short_hash()],
+            ["MassSpectrum", "Data 1", "500", "", get_short_hash()],
+            ["MassSpectrum", "Data 1", "500", "", get_short_hash()],
         ],
     )
 

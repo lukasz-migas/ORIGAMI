@@ -40,6 +40,7 @@ from origami.gui_elements.views.view_heatmap import ViewMassSpectrumHeatmap
 from origami.gui_elements.views.view_spectrum import ViewMobilogram
 from origami.gui_elements.views.view_spectrum import ViewChromatogram
 from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
+
 # Module globals
 from origami.widgets.annotations.popup_annotations_settings import PopupAnnotationSettings
 

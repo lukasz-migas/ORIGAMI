@@ -6,6 +6,7 @@ from typing import Union
 # Third-party imports
 import numpy as np
 from scipy.stats import linregress
+from zarr.hierarchy import Array
 from zarr.hierarchy import Group
 
 # Local imports
@@ -13,6 +14,7 @@ from origami.objects.containers.base import DataObject
 from origami.objects.containers.heatmap import IonHeatmapObject
 from origami.objects.containers.spectrum import MobilogramObject
 from origami.objects.containers.utilities import get_fmt
+from origami.objects.containers.utilities import get_data
 
 LOGGER = logging.getLogger(__name__)
 
@@ -80,6 +82,8 @@ class CCSCalibrationObject(DataObject):
     @property
     def array(self):
         """Return calibration array"""
+        if isinstance(self._array, Array):
+            self._array = self._array[:]
         return self._array
 
     @property
@@ -259,6 +263,10 @@ class CCSCalibrationObject(DataObject):
         attrs = {**self._metadata, "class": self._cls, "x_label": self.x_label, "y_label": self.y_label}
         return data, attrs
 
+    def to_attrs(self):
+        """Outputs attributes in a dictionary format"""
+        return {**self._metadata, "class": self._cls, "x_label": self.x_label, "y_label": self.y_label}
+
     def check(self):
         """Checks whether the provided data has the same size and shape"""
         if len(self._array.shape) != 2:
@@ -267,9 +275,9 @@ class CCSCalibrationObject(DataObject):
             self._metadata = dict()
 
 
-def ccs_calibration_object(group: Group) -> DataObject:
+def ccs_calibration_object(group: Group, quick: bool) -> DataObject:
     """Instantiate CCS calibration group saved in zarr format"""
     metadata = group.attrs.asdict()
-    obj = CCSCalibrationObject(group["array"][:], **group.attrs.asdict())
+    obj = CCSCalibrationObject(*get_data(group, ["array"], quick), **group.attrs.asdict())
     obj.set_metadata(metadata)
     return obj

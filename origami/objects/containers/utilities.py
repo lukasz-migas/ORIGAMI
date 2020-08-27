@@ -15,7 +15,7 @@ from zarr import Array
 from zarr import Group
 
 # Local imports
-from origami.processing import origami_ms
+from origami.widgets.origami_ms.processing import origami_ms
 
 LOGGER = logging.getLogger(__name__)
 
@@ -555,12 +555,36 @@ def check_alternative_names(current_label, to_label, alternative_labels):
     return False
 
 
-def get_extra_data(group: Group, known_keys: List):
+def get_data(group: Group, keys: List, quick: bool = False):
+    """Get all data that is required to instantiate the group
+
+    Parameters
+    ----------
+    group : Group
+        Zarr group containing all data about the object
+    keys : List[str]
+        list of keys to be retrieved from the group
+    quick : bool
+        flag to return zarr Arrays or numpy arrays
+    """
+    data = []
+    for key in keys:
+        if quick:
+            data.append(group[key])
+        else:
+            data.append(group[key][:])
+    return data
+
+
+def get_extra_data(group: Group, known_keys: List, quick: bool = False):
     """Get all additional metadata that has been saved in the group store"""
     extra_keys = list(set(group.keys()) - set(known_keys))
     extra_data = dict()
     for key in extra_keys:
         _data = group[key]
         if isinstance(_data, Array):
-            extra_data[key] = _data[:]
+            if quick:
+                extra_data[key] = _data
+            else:
+                extra_data[key] = _data[:]
     return extra_data

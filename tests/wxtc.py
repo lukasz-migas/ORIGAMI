@@ -169,6 +169,15 @@ class WidgetTestCase:
             handler(evt)
         self.yield_()
 
+    def sim_listctrl_select_evt(self, listctrl: wx.ListCtrl, index: int, handlers: List):
+        """Simulate selection of item in ListCtrl"""
+        listctrl.Select(index)
+        evt = wx.PyCommandEvent(wx.EVT_LIST_ITEM_SELECTED.typeId, listctrl.GetId())
+
+        for handler in handlers:
+            handler(evt)
+        self.yield_()
+
 
 class Namespace(object):
     """Namespace object"""
