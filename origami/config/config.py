@@ -1125,6 +1125,38 @@ class Config:
         self.new_version_panel_link = r"https://github.com/lukasz-migas/ORIGAMI/releases"
         self.new_version_panel_do_not_ask = False
 
+        # overlay panel
+        self.overlay_panel_1d_method = "Overlay"
+        self.overlay_panel_1d_method_choices = sorted(["Overlay", "Waterfall", "Subtract (n=2)", "Butterfly (n=2)"])
+        self.overlay_panel_1d_type = "Mass Spectra"
+        self.overlay_panel_1d_type_choices = ["Mass Spectra", "Chromatograms", "Mobilograms"]
+        self.overlay_panel_1d_line_style = "solid"
+        self.overlay_panel_1d_line_transparency = 0.25
+        self.overlay_panel_1d_line_color = (1, 0, 0)
+
+        self.overlay_panel_2d_method = "Mask"
+        self.overlay_panel_2d_method_choices = sorted(
+            [
+                "Mask",
+                "Transparent",
+                "RGB",
+                "Mean",
+                "Variance",
+                "Standard Deviation",
+                "RMSD",
+                "RMSF",
+                "RMSD Matrix",
+                "Grid (2->1)",
+                "Grid (n x n)",
+            ]
+        )
+        self.overlay_panel_2d_heatmap_colormap = "Reds"
+        self.overlay_panel_2d_heatmap_transparency = 0.5
+        self.overlay_panel_2d_heatmap_mask = 0.5
+        self.overlay_panel_2d_heatmap_min_threshold = 0.5
+        self.overlay_panel_2d_heatmap_max_threshold = 0.5
+        self.overlay_panel_2d_heatmap_color = (1, 0, 0)
+
         # Main plot events
         # events in MS panel
         self.plot_panel_ms_extract_heatmap = True

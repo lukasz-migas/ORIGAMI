@@ -1,3 +1,4 @@
+"""Various activation functions"""
 # Third-party imports
 import numpy as np
 
@@ -62,16 +63,19 @@ def compute_rmsf(array_1, array_2):
     return rmsf_percent
 
 
-def compute_variance(array):
+def compute_variance(array: np.ndarray) -> np.ndarray:
+    """Calculate variance in an array"""
     output = np.var(array, axis=0)
     return output
 
 
-def compute_mean(array):
+def compute_mean(array: np.ndarray) -> np.ndarray:
+    """Calculate mean in an array"""
     output = np.mean(array, axis=0)
     return output
 
 
-def compute_std_dev(array):
+def compute_std_dev(array: np.ndarray) -> np.ndarray:
+    """Calculate standard deviation in an array"""
     output = np.std(array, axis=0)
     return output

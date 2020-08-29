@@ -1,53 +1,72 @@
+"""Overlay panel"""
 # Standard library imports
 import logging
-from copy import deepcopy
+from typing import Dict
+from typing import List
+from typing import Union
 
 # Third-party imports
 import wx
+import wx.lib.scrolledpanel as wxScrolledPanel
 
 # Local imports
-from origami.styles import ListCtrl
 from origami.styles import MiniFrame
-from origami.utils.color import round_rgb
-from origami.utils.color import get_font_color
-from origami.utils.color import check_color_format
-from origami.utils.color import convert_rgb_255_to_1
-from origami.visuals.mpl import base
-from origami.utils.random import get_random_int
-from origami.utils.screen import calculate_window_size
-from origami.utils.exceptions import MessageError
-from origami.gui_elements.helpers import make_tooltip
+from origami.utils.color import get_random_color
+from origami.utils.color import convert_rgb_1_to_255
+from origami.utils.system import running_under_pytest
+from origami.config.config import CONFIG
+from origami.config.environment import ENV
+from origami.gui_elements.mixins import ColorGetterMixin
+from origami.gui_elements.helpers import TableConfig
 from origami.gui_elements.helpers import make_checkbox
-from origami.gui_elements.helpers import make_menu_item
+from origami.gui_elements.helpers import make_color_btn
+from origami.gui_elements.helpers import make_spin_ctrl_int
+from origami.gui_elements.helpers import make_spin_ctrl_double
+from origami.gui_elements.panel_base import TableMixin
+from origami.widgets.overlay.view_overlay import ViewOverlay
+from origami.widgets.overlay.overlay_handler import OVERLAY_HANDLER
 
-# from origami.gui_elements.dialog_color_picker import DialogColorPicker
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
-class PanelOverlayViewer(MiniFrame):
+def _str_fmt(value, default: Union[str, float, int] = ""):
+    if value is None:
+        return str(default)
+    if isinstance(value, float):
+        return f"{value:.4f}"
+    return str(value)
+
+
+class TableColumnIndex:
+    """Table indexer"""
+
+    check = 0
+    order = 1
+    dataset_name = 2
+    dimensions = 3
+    label = 4
+    document_title = 5
+    COLUMN_COUNT = 6
+
+
+class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
     """Overlay viewer and editor"""
 
     # peaklist list
-    _peaklist_peaklist = {
-        0: {"name": "", "tag": "check", "type": "bool", "width": 20, "show": True},
-        1: {"name": "name", "tag": "dataset_name", "type": "str", "width": 130, "show": True},
-        2: {"name": "type", "tag": "dataset_type", "type": "str", "width": 100, "show": True},
-        3: {"name": "document", "tag": "document", "type": "str", "width": 100, "show": True},
-        4: {"name": "shape", "tag": "shape", "type": "str", "width": 65, "show": True},
-        5: {"name": "color", "tag": "color", "type": "color", "width": 65, "show": True},
-        6: {"name": "colormap", "tag": "colormap", "type": "str", "width": 60, "show": True},
-        7: {"name": "\N{GREEK SMALL LETTER ALPHA}", "tag": "alpha", "type": "float", "width": 35, "show": True},
-        8: {"name": "mask", "tag": "mask", "type": "float", "width": 40, "show": True},
-        9: {"name": "label", "tag": "label", "type": "str", "width": 50, "show": True},
-        10: {"name": "min", "tag": "min_threshold", "type": "float", "width": 50, "show": True},
-        11: {"name": "max", "tag": "max_threshold", "type": "float", "width": 50, "show": True},
-        12: {"name": "processed", "tag": "processed", "type": "str", "width": 65, "show": True},
-        13: {"name": "#", "tag": "order", "type": "int", "width": 25, "show": True},
-    }
-    keyword_alias = {"colormap": "cmap"}
+    TABLE_DICT = TableConfig()
+    TABLE_DICT.add("", "check", "bool", 25, hidden=True)
+    TABLE_DICT.add("#", "order", "int", 50)
+    TABLE_DICT.add("name", "dataset_name", "str", 150)
+    TABLE_DICT.add("dimensions", "dimensions", "str", 100)
+    TABLE_DICT.add("label", "label", "str", 100)
+    TABLE_DICT.add("document", "document_title", "str", 100)
+    TABLE_DICT.add("tag", "tag", "str", 0, hidden=True)
+    TABLE_KWARGS = dict(add_item_color=True)
 
-    overlay_methods_1D = sorted(["Overlay", "Waterfall", "Subtract (n=2)", "Butterfly (n=2)"])
-    overlay_methods_2D = sorted(
+    TABLE_WIDGET_DICT = dict()
+
+    OVERLAY_METHODS_1D = sorted(["Overlay", "Waterfall", "Subtract (n=2)", "Butterfly (n=2)"])
+    OVERLAY_METHODS_2D = sorted(
         [
             "Mask",
             "Transparent",
@@ -63,7 +82,17 @@ class PanelOverlayViewer(MiniFrame):
         ]
     )
 
-    def __init__(self, parent, presenter, config, icons, **kwargs):
+    # ui elements
+    view_overlay, panel_book, action_btn, plot_btn = None, None, None, None
+    add_to_document_btn, cancel_btn, hot_plot_check, overlay_1d_method = None, None, None, None
+    overlay_1d_label, overlay_1d_line_style, overlay_1d_transparency, overlay_1d_color_btn = None, None, None, None
+    overlay_1d_order, overlay_2d_method, overlay_2d_colormap, overlay_2d_label = None, None, None, None
+    overlay_2d_color_btn, overlay_2d_min_threshold, overlay_2d_max_threshold, overlay_2d_mask = None, None, None, None
+    overlay_2d_transparency, overlay_2d_order, settings_spectra, settings_heatmaps = None, None, None, None
+    overlay_1d_name, overlay_2d_name, overlay_1d_document, overlay_2d_document = None, None, None, None
+    overlay_1d_spectrum_type = None
+
+    def __init__(self, parent, presenter, icons=None, item_list=None, debug: bool = False):
         MiniFrame.__init__(
             self,
             parent,
@@ -71,109 +100,95 @@ class PanelOverlayViewer(MiniFrame):
             style=wx.DEFAULT_FRAME_STYLE | wx.RESIZE_BORDER | wx.MAXIMIZE_BOX,
             bind_key_events=False,
         )
-
-        self.parent = parent
+        self.view = parent
         self.presenter = presenter
-        self.view = presenter.view
-        self.config = config
-        self.icons = icons
+        self._icons = self._get_icons(icons)
 
-        self.data_handling = presenter.data_handling
-        self.data_processing = presenter.data_processing
-        self.data_visualisation = presenter.data_visualisation
-
-        self.panel_plot = self.presenter.view.panelPlots
-        self.document_tree = self.presenter.view.panelDocuments.documents
-
-        self._display_size = self.parent.GetSize()
-        self._display_resolution = wx.ScreenDC().GetPPI()
-        self._window_size = calculate_window_size(self._display_size, 0.9)
+        self._window_size = self._get_window_size(self.view, [0.9, 0.8])
 
         # preset
+        self._debug = debug
         self.item_editor = None
         self.dataset_type = None
         self.clipboard = dict()
+        self.item_list = item_list
+        self._disable_table_update = False
+        self._current_item = None
 
         # make gui items
         self.make_gui()
-        self.on_toggle_controls(None)
         self.on_populate_item_list(None)
 
         # bind
         self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
 
+        self.setup()
+
+    def setup(self):
+        """Setup widget"""
+        self.TABLE_WIDGET_DICT = {
+            # 1d overlays
+            self.overlay_1d_label: TableColumnIndex.label,
+            self.overlay_1d_order: TableColumnIndex.order,
+            self.overlay_1d_line_style: "line_style",
+            self.overlay_1d_transparency: "transparency",
+            # 2d overlays
+            self.overlay_2d_label: TableColumnIndex.label,
+            self.overlay_2d_order: TableColumnIndex.order,
+            self.overlay_2d_min_threshold: "min_threshold",
+            self.overlay_2d_max_threshold: "max_threshold",
+            self.overlay_2d_transparency: "transparency",
+            self.overlay_2d_mask: "mask",
+        }
+        self.peaklist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_item)
+
+    @property
+    def current_item(self):
+        """Returns the index of currently selected item in the table"""
+        idx = self.on_find_item("tag", self._current_item)
+        return idx
+
+    @property
+    def data_handling(self):
+        """Return handle to `data_handling`"""
+        return self.presenter.data_handling
+
+    @property
+    def data_processing(self):
+        """Return handle to `data_processing`"""
+        return self.presenter.data_processing
+
+    @property
+    def data_visualisation(self):
+        """Return handle to `data_visualisation`"""
+        return self.presenter.data_visualisation
+
+    @property
+    def document_tree(self):
+        """Return handle to `document_tree`"""
+        return self.presenter.view.panelDocuments.documents
+
+    @property
+    def current_page(self):
+        """Returns index of the current page"""
+        return self.panel_book.GetSelection()
+
     def on_right_click(self, evt):
+        """Right-click event handler"""
         # ensure that user clicked inside the plot area
         if not hasattr(evt.EventObject, "figure"):
             return
 
-        menu = wx.Menu()
-        menu_action_customise_plot = make_menu_item(
-            parent=menu, text="Customise plot...", bitmap=self.icons.iconsLib["change_xlabels_16"]
-        )
-        menu.AppendItem(menu_action_customise_plot)
-        menu.AppendSeparator()
-        self.resize_plot_check = menu.AppendCheckItem(-1, "Resize on saving")
-        self.resize_plot_check.Check(self.config.resize)
-        save_figure_menu_item = make_menu_item(
-            menu, evt_id=wx.ID_ANY, text="Save figure as...", bitmap=self.icons.iconsLib["save16"]
-        )
-        menu.AppendItem(save_figure_menu_item)
-        menu_action_copy_to_clipboard = make_menu_item(
-            parent=menu, evt_id=wx.ID_ANY, text="Copy plot to clipboard", bitmap=self.icons.iconsLib["filelist_16"]
-        )
-        menu.AppendItem(menu_action_copy_to_clipboard)
-
-        menu.AppendSeparator()
-        clear_plot_menu_item = make_menu_item(
-            menu, evt_id=wx.ID_ANY, text="Clear plot", bitmap=self.icons.iconsLib["clear_16"]
-        )
-        menu.AppendItem(clear_plot_menu_item)
-
-        self.Bind(wx.EVT_MENU, self.on_resize_check, self.resize_plot_check)
-        self.Bind(wx.EVT_MENU, self.on_customise_plot, menu_action_customise_plot)
-        self.Bind(wx.EVT_MENU, self.on_save_figure, save_figure_menu_item)
-        self.Bind(wx.EVT_MENU, self.on_copy_to_clipboard, menu_action_copy_to_clipboard)
-        self.Bind(wx.EVT_MENU, self.on_clear_plot, clear_plot_menu_item)
-
+        menu = self.view_overlay.get_right_click_menu(self)
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
 
-    def _get_accepted_keywords_from_dict(self, item_info):
-        keywords = ["color", "colormap", "alpha", "mask", "label", "min_threshold", "max_threshold", "charge", "cmap"]
-        keys = list(item_info.keys())
-        for key in keys:
-            if key not in keywords:
-                item_info.pop(key)
-
-        for bad_key, good_key in self.keyword_alias.items():
-            item_info[good_key] = item_info[bad_key]
-
-        return item_info
-
-    def on_update_document(self, evt, item_info=None):
-
-        # get item info
-        if item_info is None:
-            item_info = self.on_get_item_information(self.peaklist.item_id)
-
-        editor_type = self.dataset_type_choice.GetStringSelection()
-        if editor_type in ["Heatmaps", "Chromatograms", "Mobilograms"]:
-            query = [item_info["document"], item_info["dataset_type"], item_info["dataset_name"]]
-            item_info = self._get_accepted_keywords_from_dict(deepcopy(item_info))
-            document = self.data_handling.set_mobility_chromatographic_keyword_data(query, **item_info)
-            #         elif editor_type == "Mass Spectra":
-            #             pass
-
-            # Update file list
-            self.data_handling.on_update_document(document, "no_refresh")
-
-    def on_close(self, evt):
+    def on_close(self, evt, force: bool = False):
         """Destroy this frame"""
 
         n_clipboard_items = len(self.clipboard)
-        if n_clipboard_items > 0:
+        if n_clipboard_items > 0 and not force and not self._debug:
             from origami.gui_elements.misc_dialogs import DialogBox
 
             msg = (
@@ -182,114 +197,72 @@ class PanelOverlayViewer(MiniFrame):
             )
             dlg = DialogBox(title="Clipboard is not empty", msg=msg, kind="Question")
             if dlg == wx.ID_NO:
-                msg = "Action was cancelled"
+                LOGGER.info("Action was cancelled")
                 return
 
-        self.Destroy()
-
-    def on_clear_plot(self, evt):
-        self.plot_window.clear()
-
-    def on_resize_check(self, evt):
-        self.panel_plot.on_resize_check(None)
-
-    def on_copy_to_clipboard(self, evt):
-        self.plot_window.copy_to_clipboard()
-
-    def on_customise_plot(self, evt):
-        self.panel_plot.on_customise_plot(None, plot="Overlay...", plot_obj=self.plot_window)
-
-    def on_save_figure(self, evt):
-        plot_title = "overlay"
-        self.panel_plot.save_images(None, None, plot_obj=self.plot_window, image_name=plot_title)
+        super(PanelOverlayViewer, self).on_close(evt, force)
 
     def make_gui(self):
-
+        """Make UI"""
         # make panel
-        settings_panel = self.make_settings_panel(self)
-        self._settings_panel_size = settings_panel.GetSize()
+        settings_panel = self.make_side_panel(self)
+        # self._settings_panel_size = settings_panel.GetSize()
 
         plot_panel = self.make_plot_panel(self)
 
         # pack elements
-        self.main_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.main_sizer.Add(settings_panel, 0, wx.EXPAND, 0)
-        self.main_sizer.Add(plot_panel, 1, wx.EXPAND, 0)
+        main_sizer = wx.BoxSizer()
+        main_sizer.Add(settings_panel, 0, wx.EXPAND, 0)
+        main_sizer.Add(plot_panel, 1, wx.EXPAND, 0)
 
         # fit layout
-        self.main_sizer.Fit(self)
-        self.SetSizer(self.main_sizer)
+        main_sizer.Fit(self)
+        self.SetSizer(main_sizer)
         self.SetSize(self._window_size)
         self.Layout()
-        self.Show(True)
 
-        self.CentreOnScreen()
+        self.CenterOnParent()
         self.SetFocus()
+        self.Show()
 
-    def on_toggle_controls(self, evt):
-        editor_type = self.dataset_type_choice.GetStringSelection()
-        heatmap, spectra = False, True
-        if editor_type == "Heatmaps":
-            heatmap, spectra = True, False
+    def make_side_panel(self, split_panel):
+        """Make side panel"""
+        panel = wxScrolledPanel.ScrolledPanel(split_panel, size=(-1, -1), name="main")
 
-        obj_list = []
-        for item in obj_list:
-            item.Enable(enable=heatmap)
-        obj_list = [self.normalize_1D_check]
-        for item in obj_list:
-            item.Enable(enable=spectra)
+        # make settings
+        notebook = self.make_settings_panel(panel)
 
-        if evt is not None:
-            evt.Skip()
-
-    def on_apply(self, evt):
-
-        if evt is not None:
-            evt.Skip()
-
-    def make_settings_panel(self, split_panel):
-
-        panel = wx.Panel(split_panel, -1, size=(-1, -1), name="settings")
-
-        dataset_type_choice = wx.StaticText(panel, -1, "Dataset type:")
-        self.dataset_type_choice = wx.ComboBox(
-            panel, choices=sorted(["Mass spectra", "Chromatograms", "Mobilograms", "Heatmaps"]), style=wx.CB_READONLY
-        )
-        self.dataset_type_choice.SetStringSelection("Heatmaps")
-        self.dataset_type_choice.Bind(wx.EVT_COMBOBOX, self.on_apply)
-        self.dataset_type_choice.Bind(wx.EVT_COMBOBOX, self.on_toggle_controls)
-        self.dataset_type_choice.Bind(wx.EVT_COMBOBOX, self.on_populate_item_list)
-
-        self.refresh_btn = wx.BitmapButton(
-            panel,
-            -1,
-            self.icons.iconsLib["refresh16"],
-            size=(22, 22),
-            style=wx.BORDER_DEFAULT | wx.ALIGN_CENTER_VERTICAL,
-        )
-        self.refresh_btn.Bind(wx.EVT_BUTTON, self.on_populate_item_list)
-        self.refresh_btn.SetToolTip(
-            make_tooltip("Re-populate table for specified dataset. All checkboxes will be erased")
-        )
-
-        overlay_method_choice = wx.StaticText(panel, -1, "Overlay method:")
-        self.overlay_method_choice = wx.ComboBox(panel, choices=self.overlay_methods_2D, style=wx.CB_READONLY)
-        self.overlay_method_choice.SetStringSelection(self.config.overlayMethod)
-
-        self.normalize_1D_check = make_checkbox(panel, "Normalize before plotting")
-        self.normalize_1D_check.SetValue(self.config.compare_massSpectrumParams["normalize"])
+        buttons_sizer = self.make_plot_buttons(panel)
 
         # make listctrl
-        self.make_listctrl_panel(panel)
+        self.peaklist = self.make_table(self.TABLE_DICT, panel)
 
-        horizontal_line_2 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
-        horizontal_line_99 = wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL)
+        # add statusbar
+        info_sizer = self.make_statusbar(panel, "right")
 
+        # set in sizer
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(notebook, 0, wx.EXPAND | wx.ALL, 5)
+        main_sizer.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND | wx.ALL, 1)
+        main_sizer.Add(buttons_sizer, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
+        main_sizer.Add(self.peaklist, 1, wx.EXPAND, 10)
+        main_sizer.Add(info_sizer, 0, wx.EXPAND | wx.ALL, 2)
+
+        # fit layout
+        main_sizer.Fit(panel)
+        panel.SetSizerAndFit(main_sizer)
+        if not running_under_pytest():
+            panel.SetupScrolling()
+
+        return panel
+
+    def make_plot_buttons(self, panel):
+        """Make buttons sizer"""
         self.action_btn = wx.Button(panel, wx.ID_OK, "Action ▼", size=(-1, -1))
         self.action_btn.Bind(wx.EVT_BUTTON, self.on_action_tools)
 
         self.plot_btn = wx.Button(panel, wx.ID_OK, "Plot", size=(-1, -1))
-        self.plot_btn.Bind(wx.EVT_BUTTON, self.on_overlay)
+        self.plot_btn.Bind(wx.EVT_BUTTON, self.on_plot_overlay)
 
         self.add_to_document_btn = wx.Button(panel, wx.ID_OK, "Add to document", size=(-1, -1))
         self.add_to_document_btn.Bind(wx.EVT_BUTTON, self.on_add_to_document)
@@ -301,204 +274,352 @@ class PanelOverlayViewer(MiniFrame):
         self.hot_plot_check.SetValue(False)
         self.hot_plot_check.Disable()
 
-        # pack buttonswx.ALIGN_CENTER
-        btn_grid = wx.GridBagSizer(2, 2)
-        n = 0
-        btn_grid.Add(self.action_btn, (n, 0), flag=wx.ALIGN_CENTER)
-        btn_grid.Add(self.plot_btn, (n, 1), flag=wx.ALIGN_CENTER)
-        btn_grid.Add(self.add_to_document_btn, (n, 2), flag=wx.ALIGN_CENTER)
-        btn_grid.Add(self.cancel_btn, (n, 3), flag=wx.ALIGN_CENTER)
-        btn_grid.Add(self.hot_plot_check, (n, 4), flag=wx.ALIGN_CENTER)
+        sizer = wx.BoxSizer()
+        sizer.Add(self.action_btn, 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer.AddSpacer(5)
+        sizer.Add(self.plot_btn, 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer.AddSpacer(5)
+        sizer.Add(self.add_to_document_btn, 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer.AddSpacer(5)
+        sizer.Add(self.cancel_btn, 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer.AddSpacer(5)
+        sizer.Add(self.hot_plot_check, 0, wx.ALIGN_CENTER_VERTICAL)
+        return sizer
+
+    def make_settings_panel(self, split_panel):
+        """Make settings notebook"""
+        panel = wx.Panel(split_panel, -1, size=(-1, -1), name="settings")
+
+        self.panel_book = wx.Choicebook(panel, wx.ID_ANY, style=wx.CHB_DEFAULT)
+        self.panel_book.SetBackgroundColour((240, 240, 240))
+        self.panel_book.Bind(wx.EVT_CHOICEBOOK_PAGE_CHANGED, self.on_populate_item_list)
+
+        # add settings
+        self.settings_spectra = self.make_settings_panel_mass_spectra(self.panel_book)
+        self.panel_book.AddPage(self.settings_spectra, "Overlay: Spectra")
+
+        self.settings_heatmaps = self.make_settings_panel_heatmaps(self.panel_book)
+        self.panel_book.AddPage(self.settings_heatmaps, "Overlay: Heatmaps")
+
+        settings_sizer = wx.BoxSizer(wx.VERTICAL)
+        settings_sizer.Add(self.panel_book, 1, wx.EXPAND | wx.ALL, 0)
+        settings_sizer.Fit(panel)
+        settings_sizer.SetMinSize((380, -1))
+        panel.SetSizerAndFit(settings_sizer)
+
+        return panel
+
+    # noinspection DuplicatedCode
+    def make_settings_panel_mass_spectra(self, split_panel):
+        """Make settings panel for spectral overlays"""
+        panel = wx.Panel(split_panel, -1, size=(-1, -1), name="mass-spectra")
+
+        overlay_1d_spectrum_type = wx.StaticText(panel, -1, "Spectrum type:")
+        self.overlay_1d_spectrum_type = wx.ComboBox(
+            panel, choices=CONFIG.overlay_panel_1d_type_choices, style=wx.CB_READONLY
+        )
+        self.overlay_1d_spectrum_type.SetStringSelection(CONFIG.overlay_panel_1d_type)
+        self.overlay_1d_spectrum_type.Bind(wx.EVT_COMBOBOX, self.on_populate_item_list)
+
+        overlay_1d_method = wx.StaticText(panel, -1, "Overlay method:")
+        self.overlay_1d_method = wx.ComboBox(
+            panel, choices=CONFIG.overlay_panel_1d_method_choices, style=wx.CB_READONLY
+        )
+        self.overlay_1d_method.SetStringSelection(CONFIG.overlay_panel_1d_method)
+
+        overlay_1d_document = wx.StaticText(panel, -1, "Document title:")
+        self.overlay_1d_document = wx.StaticText(panel, -1, "")
+
+        overlay_1d_name = wx.StaticText(panel, -1, "Dataset name:")
+        self.overlay_1d_name = wx.StaticText(panel, -1, "")
+
+        overlay_1d_label = wx.StaticText(panel, -1, "Label:")
+        self.overlay_1d_label = wx.TextCtrl(panel, -1, "", style=wx.TE_PROCESS_ENTER, name="overlay.1d.label")
+        self.overlay_1d_label.Bind(wx.EVT_TEXT, self.on_edit_item)
+
+        overlay_1d_line_style = wx.StaticText(panel, -1, "Line style:")
+        self.overlay_1d_line_style = wx.ComboBox(
+            panel, choices=CONFIG.lineStylesList, style=wx.CB_READONLY, name="overlay.1d.line"
+        )
+        self.overlay_1d_line_style.SetStringSelection(CONFIG.overlay_panel_1d_line_style)
+        self.overlay_1d_line_style.Bind(wx.EVT_COMBOBOX, self.on_apply)
+        self.overlay_1d_line_style.Bind(wx.EVT_COMBOBOX, self.on_edit_item)
+
+        overlay_1d_transparency = wx.StaticText(panel, -1, "Transparency:")
+        self.overlay_1d_transparency = make_spin_ctrl_double(panel, 0.5, 0, 1, 0.25, (90, -1), name="overlay.1d.line")
+        self.overlay_1d_transparency.SetValue(CONFIG.overlay_panel_1d_line_transparency)
+        self.overlay_1d_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
+        self.overlay_1d_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_edit_item)
+
+        overlay_1d_color_btn = wx.StaticText(panel, -1, "Color:")
+        self.overlay_1d_color_btn = make_color_btn(panel, CONFIG.overlay_panel_1d_line_color, name="overlay.1d.color")
+        self.overlay_1d_color_btn.Bind(wx.EVT_BUTTON, self.on_update_color)
+
+        overlay_1d_order = wx.StaticText(panel, -1, "Order:")
+        self.overlay_1d_order = make_spin_ctrl_int(panel, 0, 0, 100, (90, -1), name="overlay.1d.order")
+        self.overlay_1d_order.Bind(wx.EVT_SPINCTRL, self.on_apply)
+        self.overlay_1d_order.Bind(wx.EVT_SPINCTRL, self.on_edit_item)
 
         # pack heatmap items
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(dataset_type_choice, (n, 0), flag=wx.ALIGN_RIGHT | wx.EXPAND)
-        grid.Add(self.dataset_type_choice, (n, 1), flag=wx.ALIGN_CENTER | wx.EXPAND)
-        grid.Add(self.refresh_btn, (n, 2), flag=wx.ALIGN_CENTER)
+        grid.Add(overlay_1d_spectrum_type, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.overlay_1d_spectrum_type, (n, 1), (1, 3), flag=wx.EXPAND)
         n += 1
-        grid.Add(overlay_method_choice, (n, 0), flag=wx.ALIGN_RIGHT | wx.EXPAND)
-        grid.Add(self.overlay_method_choice, (n, 1), flag=wx.ALIGN_CENTER | wx.EXPAND)
+        grid.Add(overlay_1d_method, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.overlay_1d_method, (n, 1), (1, 3), flag=wx.EXPAND)
         n += 1
-        grid.Add(horizontal_line_2, (n, 0), wx.GBSpan(1, 4), flag=wx.EXPAND)
+        grid.Add(overlay_1d_document, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.overlay_1d_document, (n, 1), (1, 3), flag=wx.EXPAND)
         n += 1
-        grid.Add(self.normalize_1D_check, (n, 1), flag=wx.ALIGN_RIGHT | wx.EXPAND)
+        grid.Add(overlay_1d_name, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.overlay_1d_name, (n, 1), (1, 3), flag=wx.EXPAND)
+        n += 1
+        grid.Add(overlay_1d_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.overlay_1d_label, (n, 1), (1, 3), flag=wx.EXPAND)
+        n += 1
+        grid.Add(overlay_1d_line_style, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.overlay_1d_line_style, (n, 1), flag=wx.EXPAND)
+        grid.Add(overlay_1d_transparency, (n, 2), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.overlay_1d_transparency, (n, 3), flag=wx.EXPAND)
+        n += 1
+        grid.Add(overlay_1d_color_btn, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.overlay_1d_color_btn, (n, 1), flag=wx.EXPAND)
+        grid.Add(overlay_1d_order, (n, 2), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.overlay_1d_order, (n, 3), flag=wx.EXPAND)
 
-        # setup growable column
-        grid.AddGrowableCol(3)
-
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(grid, 0, wx.ALL | wx.EXPAND, 5)
-        main_sizer.Add(horizontal_line_99, 0, wx.EXPAND, 10)
-        main_sizer.Add(btn_grid, 0, wx.ALIGN_CENTRE_HORIZONTAL, 10)
-        main_sizer.Add(self.peaklist, 1, wx.EXPAND, 10)
-
-        # fit layout
-        main_sizer.Fit(panel)
-        panel.SetSizerAndFit(main_sizer)
+        settings_sizer = wx.BoxSizer(wx.VERTICAL)
+        settings_sizer.Add(grid, 1, wx.EXPAND | wx.ALL, 0)
+        settings_sizer.Fit(panel)
+        panel.SetSizerAndFit(settings_sizer)
 
         return panel
 
+    # noinspection DuplicatedCode
+    def make_settings_panel_heatmaps(self, split_panel):
+        """Make settings panel for heatmap overlays"""
+        panel = wx.Panel(split_panel, -1, size=(-1, -1), name="heatmaps")
+
+        overlay_2d_method = wx.StaticText(panel, -1, "Overlay method:")
+        self.overlay_2d_method = wx.ComboBox(panel, choices=self.OVERLAY_METHODS_2D, style=wx.CB_READONLY)
+        self.overlay_2d_method.SetStringSelection(CONFIG.overlay_panel_2d_method)
+
+        overlay_2d_document = wx.StaticText(panel, -1, "Document title:")
+        self.overlay_2d_document = wx.StaticText(panel, -1, "")
+
+        overlay_2d_name = wx.StaticText(panel, -1, "Dataset name:")
+        self.overlay_2d_name = wx.StaticText(panel, -1, "")
+
+        overlay_2d_label = wx.StaticText(panel, -1, "Label:")
+        self.overlay_2d_label = wx.TextCtrl(panel, -1, "", style=wx.TE_PROCESS_ENTER, name="overlay.2d.label")
+        self.overlay_2d_label.Bind(wx.EVT_TEXT, self.on_edit_item)
+
+        overlay_2d_colormap = wx.StaticText(panel, -1, "Colormap:")
+        self.overlay_2d_colormap = wx.ComboBox(
+            panel, choices=CONFIG.colormap_choices, style=wx.CB_READONLY, name="overlay.2d.colormap"
+        )
+        self.overlay_2d_colormap.SetStringSelection(CONFIG.overlay_panel_2d_heatmap_colormap)
+        self.overlay_2d_colormap.Bind(wx.EVT_COMBOBOX, self.on_apply)
+        self.overlay_2d_colormap.Bind(wx.EVT_COMBOBOX, self.on_edit_item)
+
+        overlay_2d_color_btn = wx.StaticText(panel, -1, "Color:")
+        self.overlay_2d_color_btn = make_color_btn(
+            panel, CONFIG.overlay_panel_2d_heatmap_color, name="overlay.2d.color"
+        )
+        self.overlay_2d_color_btn.Bind(wx.EVT_BUTTON, self.on_update_color)
+
+        overlay_2d_min_threshold = wx.StaticText(panel, -1, "Min threshold:")
+        self.overlay_2d_min_threshold = make_spin_ctrl_double(
+            panel, 0.5, 0, 1, 0.25, (90, -1), name="overlay.2d.threshold"
+        )
+        self.overlay_2d_min_threshold.SetValue(CONFIG.overlay_panel_2d_heatmap_min_threshold)
+        self.overlay_2d_min_threshold.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
+        self.overlay_2d_min_threshold.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_edit_item)
+
+        overlay_2d_max_threshold = wx.StaticText(panel, -1, "Max threshold:")
+        self.overlay_2d_max_threshold = make_spin_ctrl_double(
+            panel, 0.5, 0, 1, 0.25, (90, -1), name="overlay.2d.threshold"
+        )
+        self.overlay_2d_max_threshold.SetValue(CONFIG.overlay_panel_2d_heatmap_max_threshold)
+        self.overlay_2d_max_threshold.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
+        self.overlay_2d_max_threshold.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_edit_item)
+
+        overlay_2d_transparency = wx.StaticText(panel, -1, "Transparency:")
+        self.overlay_2d_transparency = make_spin_ctrl_double(
+            panel, 0.5, 0, 1, 0.25, (90, -1), name="overlay.2d.transparency"
+        )
+        self.overlay_2d_transparency.SetValue(CONFIG.overlay_panel_2d_heatmap_transparency)
+        self.overlay_2d_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
+        self.overlay_2d_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_edit_item)
+
+        overlay_2d_mask = wx.StaticText(panel, -1, "Mask:")
+        self.overlay_2d_mask = make_spin_ctrl_double(panel, 0.5, 0, 1, 0.25, (90, -1), name="overlay.2d.mask")
+        self.overlay_2d_mask.SetValue(CONFIG.overlay_panel_2d_heatmap_mask)
+        self.overlay_2d_mask.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
+        self.overlay_2d_mask.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_edit_item)
+
+        overlay_2d_order = wx.StaticText(panel, -1, "Order:")
+        self.overlay_2d_order = make_spin_ctrl_int(panel, 0, 0, 100, (90, -1), name="overlay.2d.order")
+        self.overlay_2d_order.Bind(wx.EVT_SPINCTRL, self.on_apply)
+        self.overlay_2d_order.Bind(wx.EVT_SPINCTRL, self.on_edit_item)
+
+        # pack heatmap items
+        grid = wx.GridBagSizer(2, 2)
+        n = 0
+        grid.Add(overlay_2d_method, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.overlay_2d_method, (n, 1), (1, 3), flag=wx.EXPAND)
+        n += 1
+        grid.Add(overlay_2d_document, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.overlay_2d_document, (n, 1), (1, 3), flag=wx.EXPAND)
+        n += 1
+        grid.Add(overlay_2d_name, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.overlay_2d_name, (n, 1), (1, 3), flag=wx.EXPAND)
+        n += 1
+        grid.Add(overlay_2d_label, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.overlay_2d_label, (n, 1), (1, 3), flag=wx.EXPAND)
+        n += 1
+        grid.Add(overlay_2d_colormap, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.overlay_2d_colormap, (n, 1), flag=wx.EXPAND)
+        grid.Add(overlay_2d_color_btn, (n, 2), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.overlay_2d_color_btn, (n, 3), flag=wx.EXPAND)
+        n += 1
+        grid.Add(overlay_2d_min_threshold, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.overlay_2d_min_threshold, (n, 1), flag=wx.EXPAND)
+        grid.Add(overlay_2d_max_threshold, (n, 2), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.overlay_2d_max_threshold, (n, 3), flag=wx.EXPAND)
+        n += 1
+        grid.Add(overlay_2d_transparency, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.overlay_2d_transparency, (n, 1), flag=wx.EXPAND)
+        grid.Add(overlay_2d_mask, (n, 2), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.overlay_2d_mask, (n, 3), flag=wx.EXPAND)
+        n += 1
+        grid.Add(overlay_2d_order, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.overlay_2d_order, (n, 1), flag=wx.EXPAND)
+
+        settings_sizer = wx.BoxSizer(wx.VERTICAL)
+        settings_sizer.Add(grid, 1, wx.EXPAND | wx.ALL, 0)
+        settings_sizer.Fit(panel)
+        panel.SetSizerAndFit(settings_sizer)
+
+        return panel
+
+    # noinspection DuplicatedCode
     def make_plot_panel(self, split_panel):
+        """Make plot panel"""
+        self.view_overlay = ViewOverlay(split_panel, (10, 10), x_label="x-axis", y_label="y-axis", filename="overlay")
 
-        panel = wx.Panel(split_panel, -1, size=(-1, -1), name="plot")
-        self.plot_panel = wx.Panel(panel, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL)
+        return self.view_overlay.panel
 
-        pixel_size = [(self._window_size[0] - self._settings_panel_size[0]), (self._window_size[1] - 50)]
-        figsize = [pixel_size[0] / self._display_resolution[0], pixel_size[1] / self._display_resolution[1]]
+    def on_apply(self, evt):
+        """Apply settings in config"""
+        # 1d overlays
+        CONFIG.overlay_panel_1d_method = self.overlay_1d_method.GetStringSelection()
+        CONFIG.overlay_panel_1d_line_style = self.overlay_1d_line_style.GetStringSelection()
+        CONFIG.overlay_panel_1d_line_transparency = self.overlay_1d_transparency.GetValue()
 
-        self.plot_window = base.PlotBase(self.plot_panel, figsize=figsize, config=self.config)
+        # 2d overlays
+        CONFIG.overlay_panel_2d_method = self.overlay_2d_method.GetStringSelection()
+        CONFIG.overlay_panel_2d_heatmap_colormap = self.overlay_2d_colormap.GetStringSelection()
+        CONFIG.overlay_panel_2d_heatmap_transparency = self.overlay_2d_transparency.GetValue()
+        CONFIG.overlay_panel_2d_heatmap_mask = self.overlay_2d_mask.GetValue()
+        CONFIG.overlay_panel_2d_heatmap_min_threshold = self.overlay_2d_min_threshold.GetValue()
+        CONFIG.overlay_panel_2d_heatmap_max_threshold = self.overlay_2d_max_threshold.GetValue()
 
-        box = wx.BoxSizer(wx.VERTICAL)
-        box.Add(self.plot_window, 1, wx.EXPAND)
-        box.Fit(self.plot_panel)
-        self.plot_panel.SetSizer(box)
-        self.plot_panel.Layout()
+        self._parse_evt(evt)
 
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(self.plot_panel, 1, wx.EXPAND, 2)
-        # fit layout
-        panel.SetSizer(main_sizer)
-        main_sizer.Fit(panel)
+    #
+    def on_action_tools(self, _evt):
+        """Display action menu"""
+        print(self, "on_action_tools")
 
-        return panel
+    #     menu = wx.Menu()
+    #
+    #     menu_action_create_blank_document = make_menu_item(
+    #         parent=menu,
+    #         text="Create blank COMPARISON document",
+    #         bitmap=self.icons.iconsLib["new_document_16"],
+    #         help_text="",
+    #     )
+    #
+    #     menu.AppendItem(menu_action_create_blank_document)
+    #
+    #     # bind events
+    #     self.Bind(wx.EVT_MENU, self.on_create_blank_document, menu_action_create_blank_document)
+    #
+    #     self.PopupMenu(menu)
+    #     menu.Destroy()
+    #     self.SetFocus()
 
-    def make_listctrl_panel(self, panel):
-
-        self.peaklist = ListCtrl(panel, style=wx.LC_REPORT | wx.LC_VRULES, column_info=self._peaklist_peaklist)
-        for col in range(len(self._peaklist_peaklist)):
-            item = self._peaklist_peaklist[col]
-            order = col
-            name = item["name"]
-            width = 0
-            if item["show"]:
-                width = item["width"]
-            self.peaklist.InsertColumn(order, name, width=width, format=wx.LIST_FORMAT_CENTER)
-            self.peaklist.SetFont(wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
-        max_peaklist_size = (int(self._window_size[0] * 0.3), -1)
-        self.peaklist.SetMaxClientSize(max_peaklist_size)
-
-        #         self.peaklist.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.on_menu_item_right_click)
-        #         self.peaklist.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.menu_column_right_click)
-        self.peaklist.Bind(wx.EVT_LEFT_DCLICK, self.on_double_click_on_item)
-
-    def on_double_click_on_item(self, evt):
-        """Create annotation for activated peak."""
-
-        if self.peaklist.item_id != -1:
-            if not self.item_editor:
-                self.on_open_editor(evt=None)
-            else:
-                self.item_editor.on_update_gui(self.on_get_item_information(self.peaklist.item_id))
-
-    def on_open_editor(self, evt):
-        from origami.gui_elements.panel_modify_item_settings import PanelModifyItemSettings
-
-        if self.peaklist.item_id is None or self.peaklist.item_id < 0:
-            raise MessageError("Error", "Please select an item in the table")
-
-        information = self.on_get_item_information(self.peaklist.item_id)
-        editor_type = self.dataset_type_choice.GetStringSelection()
-        if editor_type in ["Heatmaps", "Chromatograms", "Mobilograms"]:
-            overlay_type = "overlay.full"
-        else:
-            overlay_type = "overlay.simple"
-
-        self.item_editor = PanelModifyItemSettings(
-            self, self.presenter, self.config, alt_parent=self.view, overlay_type=overlay_type, **information
-        )
-        self.item_editor.Centre()
-        self.item_editor.Show()
-
-    def on_action_tools(self, evt):
-
-        menu = wx.Menu()
-
-        menu_action_create_blank_document = make_menu_item(
-            parent=menu,
-            text="Create blank COMPARISON document",
-            bitmap=self.icons.iconsLib["new_document_16"],
-            help_text="",
-        )
-
-        menu.AppendItem(menu_action_create_blank_document)
-
-        # bind events
-        self.Bind(wx.EVT_MENU, self.on_create_blank_document, menu_action_create_blank_document)
-
-        self.PopupMenu(menu)
-        menu.Destroy()
-        self.SetFocus()
-
-    def on_create_blank_document(self, evt):
-        self.data_handling.create_new_document_of_type(document_type="overlay")
-
-    def generate_overlay_plot_list(self):
-
-        item_list = []
-        for key in self.clipboard:
-            method = key.split(": ")[0]
-            item_list.append([method, key])
-
-        return item_list
-
-    def on_add_to_document(self, evt):
+    # def on_create_blank_document(self, evt):
+    #     self.data_handling.create_new_document_of_type(document_type="overlay")
+    #
+    # def generate_overlay_plot_list(self):
+    #     item_list = []
+    #     for key in self.clipboard:
+    #         method = key.split(": ")[0]
+    #         item_list.append([method, key])
+    #
+    #     return item_list
+    #
+    def on_add_to_document(self, _evt):
         """Add data to document"""
-        from origami.gui_elements.dialog_review_editor import DialogReviewEditorOverlay
+        print(self, "on_add_to_document")
 
-        # data classifiers
-        stats_list = ["Mean", "Standard Deviation", "Variance", "RMSD", "RMSF", "RMSD Matrix"]
-        overlay_list = [
-            "Overlay (DT)",
-            "Overlay (MS)",
-            "Overlay (RT)",
-            "Butterfly (DT)",
-            "Butterfly (MS)",
-            "Butterfly (RT)",
-            "Subtract (DT)",
-            "Subtract (MS)",
-            "Subtract (RT)",
-            "Waterfall (DT)",
-            "Waterfall (MS)",
-            "Waterfall (RT)",
-            "Mask",
-            "Transparent",
-            "Grid (2->1)",
-            "Grid (n x n)",
-            "RGB",
-        ]
-
-        # if the list is empty, notify the user
-        if not self.clipboard:
-            raise MessageError(
-                "Clipboard is empty",
-                "There are no items in the clipboard."
-                + " Please plot something first before adding it to the document",
-            )
-        # get document
-        document = self.data_handling._get_document_of_type("Type: Comparison")
-        if document is None:
-            logger.error("Please select valid document title and path")
-            return
-        document_title = document.title
-
-        # collect list of items in the clipboard
-        item_list = self.generate_overlay_plot_list()
-        dlg = DialogReviewEditorOverlay(self, item_list)
-        dlg.ShowModal()
-        add_to_document_list = dlg.output_list
-
-        # add data to document while also removing it from the clipboard object
-        for key in add_to_document_list:
-            data = self.clipboard.pop(key)
-            for method in stats_list:
-                if key.startswith(method):
-                    self.data_handling.set_overlay_data([document_title, "Statistical", key], data)
-                    break
-            for method in overlay_list:
-                if key.startswith(method):
-                    self.data_handling.set_overlay_data([document_title, "Overlay", key], data)
-                    break
+    #     from origami.gui_elements.dialog_review_editor import DialogReviewEditorOverlay
+    #
+    #     # data classifiers
+    #     stats_list = ["Mean", "Standard Deviation", "Variance", "RMSD", "RMSF", "RMSD Matrix"]
+    #     overlay_list = [
+    #         "Overlay (DT)",
+    #         "Overlay (MS)",
+    #         "Overlay (RT)",
+    #         "Butterfly (DT)",
+    #         "Butterfly (MS)",
+    #         "Butterfly (RT)",
+    #         "Subtract (DT)",
+    #         "Subtract (MS)",
+    #         "Subtract (RT)",
+    #         "Waterfall (DT)",
+    #         "Waterfall (MS)",
+    #         "Waterfall (RT)",
+    #         "Mask",
+    #         "Transparent",
+    #         "Grid (2->1)",
+    #         "Grid (n x n)",
+    #         "RGB",
+    #     ]
+    #
+    #     # if the list is empty, notify the user
+    #     if not self.clipboard:
+    #         raise MessageError(
+    #             "Clipboard is empty",
+    #             "There are no items in the clipboard."
+    #             + " Please plot something first before adding it to the document",
+    #         )
+    #     # get document
+    #     document = self.data_handling._get_document_of_type("Type: Comparison")
+    #     if document is None:
+    #         LOGGER.error("Please select valid document title and path")
+    #         return
+    #     document_title = document.title
+    #
+    #     # collect list of items in the clipboard
+    #     item_list = self.generate_overlay_plot_list()
+    #     dlg = DialogReviewEditorOverlay(self, item_list)
+    #     dlg.ShowModal()
+    #     add_to_document_list = dlg.output_list
+    #
+    #     # add data to document while also removing it from the clipboard object
+    #     for key in add_to_document_list:
+    #         data = self.clipboard.pop(key)
+    #         for method in stats_list:
+    #             if key.startswith(method):
+    #                 self.data_handling.set_overlay_data([document_title, "Statistical", key], data)
+    #                 break
+    #         for method in overlay_list:
+    #             if key.startswith(method):
+    #                 self.data_handling.set_overlay_data([document_title, "Overlay", key], data)
+    #                 break
 
     #     def on_double_click_on_item(self, evt):
     #         logger.error("Method not implemented yet")
@@ -509,356 +630,402 @@ class PanelOverlayViewer(MiniFrame):
     #     def menu_column_right_click(self, evt):
     #         logger.error("Method not implemented yet")
 
-    def on_assign_color(self, evt, item_id=None, give_value=False):
-        """Assign new color
+    def on_select_item(self, evt):
+        """Select calibrant from the table and populate fields"""
+        self._disable_table_update = True
+        if hasattr(evt, "GetIndex"):
+            self.peaklist.item_id = evt.GetIndex()
+        item_info = self.on_get_item_information()
+        metadata = self.get_item_metadata(item_info)
+        if self.current_page == 0:
+            self.overlay_1d_name.SetLabel(item_info["dataset_name"])
+            self.overlay_1d_document.SetLabel(item_info["document_title"])
+            self.overlay_1d_order.SetValue(item_info["order"])
+            self.overlay_1d_label.SetValue(_str_fmt(item_info["label"]))
+            self.overlay_1d_color_btn.SetBackgroundColour(item_info["color"])
+            self.overlay_1d_line_style.SetStringSelection(
+                metadata.get("line_style", CONFIG.overlay_panel_1d_line_style)
+            )
+            self.overlay_1d_transparency.SetValue(
+                metadata.get("transparency", CONFIG.overlay_panel_1d_line_transparency)
+            )
+        else:
+            self.overlay_2d_name.SetLabel(item_info["dataset_name"])
+            self.overlay_2d_document.SetLabel(item_info["document_title"])
+            self.overlay_2d_order.SetValue(item_info["order"])
+            self.overlay_2d_label.SetValue(_str_fmt(item_info["label"]))
+            self.overlay_2d_color_btn.SetBackgroundColour(item_info["color"])
+            self.overlay_2d_colormap.SetStringSelection(
+                metadata.get("colormap", CONFIG.overlay_panel_2d_heatmap_colormap)
+            )
+            self.overlay_2d_transparency.SetValue(
+                metadata.get("transparency", CONFIG.overlay_panel_2d_heatmap_transparency)
+            )
+            self.overlay_2d_mask.SetValue(metadata.get("mask", CONFIG.overlay_panel_2d_heatmap_mask))
+            self.overlay_2d_min_threshold.SetValue(
+                metadata.get("min_threshold", CONFIG.overlay_panel_2d_heatmap_min_threshold)
+            )
+            self.overlay_2d_max_threshold.SetValue(
+                metadata.get("max_threshold", CONFIG.overlay_panel_2d_heatmap_max_threshold)
+            )
+        self._current_item = item_info["tag"]
+        self._disable_table_update = False
+        LOGGER.debug(f"Selected `{self._current_item}`")
 
-        Parameters
-        ----------
-        evt : wxPython event
-            unused
-        itemID : int
-            value for item in table
-        give_value : bool
-            should/not return color
-        """
-        from origami.gui_elements.dialog_color_picker import DialogColorPicker
+    def on_edit_item(self, evt):
+        """Edit calibrant that is already in the table"""
+        # in certain circumstances, it is better not to update the table
+        if self._disable_table_update:
+            return
+        # get ui object that created this event
+        obj = evt.GetEventObject()
 
-        if item_id is not None:
-            self.peaklist.item_id = item_id
-
-        if item_id is None:
-            item_id = self.peaklist.item_id
-
-        if item_id is None:
+        # get current item in the table that is being edited
+        item_id = self.on_find_item("tag", self._current_item)
+        if item_id == -1:
             return
 
-        dlg = DialogColorPicker(self, self.config.custom_colors)
-        if dlg.ShowModal() == wx.ID_OK:
-            color_255, color_1, font_color = dlg.GetChosenColour()
-            self.config.custom_colors = dlg.GetCustomColours()
-            self.on_update_value_in_peaklist(item_id, "color", [color_255, color_1, font_color])
+        # get current column
+        col_id = self.TABLE_WIDGET_DICT.get(obj, -1)
+        if col_id == -1:
+            return
 
-            # update document
-            self.on_update_document(evt=None)
+        if isinstance(col_id, str):
+            self.update_item_metadata(item_id)
+            return
 
-            if give_value:
-                return color_255
+        # update item in the table
+        self.peaklist.SetItem(item_id, col_id, str(obj.GetValue()))
+        self.update_item_metadata(item_id)
 
-    def on_update_value_in_peaklist(self, item_id, value_type, value):
-        if value_type == "color":
-            color_255, color_1, font_color = value
+    def on_update_color(self, evt):
+        """Update color in the ui and table"""
+        # get id and source
+        source = evt.GetEventObject().GetName()
+
+        # get color
+        color_255, color_1, font_color = self.on_get_color(None)
+        if color_1 is None:
+            return
+
+        if source == "overlay.1d.color":
+            self.overlay_1d_color_btn.SetBackgroundColour(color_255)
+        elif source == "overlay.2d.color":
+            self.overlay_2d_color_btn.SetBackgroundColour(color_255)
+
+        # update table
+        item_id = self.current_item
+        if item_id >= 0:
             self.peaklist.SetItemBackgroundColour(item_id, color_255)
-            self.peaklist.SetStringItem(item_id, self.config.overlay_list_col_names["color"], str(color_1))
             self.peaklist.SetItemTextColour(item_id, font_color)
-        elif value_type == "color_text":
-            self.peaklist.SetItemBackgroundColour(item_id, value)
-            self.peaklist.SetStringItem(
-                item_id, self.config.overlay_list_col_names["color"], str(convert_rgb_255_to_1(value))
-            )
-            self.peaklist.SetItemTextColour(item_id, get_font_color(value, return_rgb=True))
+            self.update_item_metadata(item_id)
 
-    def on_overlay(self, evt):
-        """Dispatch function"""
-        item_list = self.get_selected_items()
-
-        editor_type = self.dataset_type_choice.GetStringSelection()
-        method = self.overlay_method_choice.GetStringSelection()
-
-        if editor_type == "Chromatograms":
-            self.on_overlay_chromatogram(item_list, method)
-        elif editor_type == "Mobilograms":
-            self.on_overlay_mobilogram(item_list, method)
-        elif editor_type == "Heatmaps":
-            self.on_overlay_heatmap(item_list, method)
-        elif editor_type == "Mass spectra":
-            self.on_overlay_mass_spectra(item_list, method)
-        else:
-            logger.error("Method not implemented yet")
-
-    def on_overlay_heatmap(self, item_list, method):
-        if method == "Transparent":
-            overlay_data = self.data_visualisation.on_overlay_heatmap_transparent(
-                item_list, plot=None, plot_obj=self.plot_window
-            )
-        elif method == "Mask":
-            overlay_data = self.data_visualisation.on_overlay_heatmap_mask(
-                item_list, plot=None, plot_obj=self.plot_window
-            )
-        elif method in ["Mean", "Standard Deviation", "Variance"]:
-            overlay_data = self.data_visualisation.on_overlay_heatmap_statistical(
-                item_list, method, plot=None, plot_obj=self.plot_window
-            )
-        elif method == "RGB":
-            overlay_data = self.data_visualisation.on_overlay_heatmap_rgb(
-                item_list, plot=None, plot_obj=self.plot_window
-            )
-        elif method == "Grid (n x n)":
-            overlay_data = self.data_visualisation.on_overlay_heatmap_grid_nxn(
-                item_list, plot=None, plot_obj=self.plot_window
-            )
-        elif method == "RMSD Matrix":
-            overlay_data = self.data_visualisation.on_overlay_heatmap_rmsd_matrix(
-                item_list, plot=None, plot_obj=self.plot_window
-            )
-        elif method == "RMSD":
-            overlay_data = self.data_visualisation.on_overlay_heatmap_rmsd(
-                item_list, plot=None, plot_obj=self.plot_window
-            )
-        elif method == "RMSF":
-            overlay_data = self.data_visualisation.on_overlay_heatmap_rmsf(
-                item_list, plot=None, plot_obj=self.plot_window
-            )
-        elif method == "Grid (2->1)":
-            overlay_data = self.data_visualisation.on_overlay_heatmap_2to1(
-                item_list, plot=None, plot_obj=self.plot_window
-            )
-        else:
-            logger.error("Method not implemented yet")
+    def update_item_metadata(self, item_id: int):
+        """Update metadata in the DocumentStore"""
+        item_info = self.on_get_item_information(item_id)
+        document = ENV.on_get_document(item_info["document_title"])
+        if document is None:
             return
 
-        self.clipboard[overlay_data.pop("name")] = overlay_data.pop("data")
+        # set data in the document
+        obj = document[item_info["dataset_name"], True, True]
+        obj.add_metadata("overlay", self.get_current_overlay_metadata(item_info))
 
-    def on_overlay_mass_spectra(self, item_list, method):
-        if method == "Overlay":
-            overlay_data = self.data_visualisation.on_overlay_spectrum_overlay(
-                item_list,
-                "mass_spectra",
-                plot=None,
-                plot_obj=self.plot_window,
-                normalize_dataset=self.normalize_1D_check.GetValue(),
-            )
-        elif method == "Butterfly (n=2)":
-            overlay_data = self.data_visualisation.on_overlay_spectrum_butterfly(
-                item_list,
-                "mass_spectra",
-                plot=None,
-                plot_obj=self.plot_window,
-                normalize_dataset=self.normalize_1D_check.GetValue(),
-            )
-        elif method == "Subtract (n=2)":
-            overlay_data = self.data_visualisation.on_overlay_spectrum_subtract(
-                item_list,
-                "mass_spectra",
-                plot=None,
-                plot_obj=self.plot_window,
-                normalize_dataset=self.normalize_1D_check.GetValue(),
-            )
-        elif method == "Waterfall":
-            overlay_data = self.data_visualisation.on_overlay_spectrum_waterfall(
-                item_list,
-                "mass_spectra",
-                plot=None,
-                plot_obj=self.plot_window,
-                normalize_dataset=self.normalize_1D_check.GetValue(),
+    @staticmethod
+    def get_item_metadata(item_info: Dict) -> Dict:
+        """Get metadata from the DocumentStore"""
+        document = ENV.on_get_document(item_info["document_title"])
+        if document is None:
+            return dict()
+
+        # set data in the document
+        obj = document[item_info["dataset_name"], True, True]
+        return obj.get_metadata("overlay", dict())
+
+    def get_current_overlay_metadata(self, item_info: Dict) -> Dict:
+        """Returns dictionary containing metadata that is currently set in the UI"""
+        metadata = dict()
+        if self.current_page == 0:
+            metadata.update(
+                {
+                    "line_style": self.overlay_1d_line_style.GetStringSelection(),
+                    "transparency": float(self.overlay_1d_transparency.GetValue()),
+                }
             )
         else:
-            logger.error("Method not implemented yet")
-            return
-
-        self.clipboard[overlay_data.pop("name")] = overlay_data.pop("data")
-
-    def on_overlay_mobilogram(self, item_list, method):
-        if method == "Overlay":
-            overlay_data = self.data_visualisation.on_overlay_spectrum_overlay(
-                item_list,
-                "mobilogram",
-                plot=None,
-                plot_obj=self.plot_window,
-                normalize_dataset=self.normalize_1D_check.GetValue(),
+            metadata.update(
+                {
+                    "colormap": self.overlay_2d_colormap.GetStringSelection(),
+                    "min_threshold": float(self.overlay_2d_min_threshold.GetValue()),
+                    "max_threshold": float(self.overlay_2d_max_threshold.GetValue()),
+                    "transparency": float(self.overlay_2d_transparency.GetValue()),
+                    "mask": float(self.overlay_2d_mask.GetValue()),
+                }
             )
-        elif method == "Butterfly (n=2)":
-            overlay_data = self.data_visualisation.on_overlay_spectrum_butterfly(
-                item_list,
-                "mobilogram",
-                plot=None,
-                plot_obj=self.plot_window,
-                normalize_dataset=self.normalize_1D_check.GetValue(),
-            )
-        elif method == "Subtract (n=2)":
-            overlay_data = self.data_visualisation.on_overlay_spectrum_subtract(
-                item_list,
-                "mobilogram",
-                plot=None,
-                plot_obj=self.plot_window,
-                normalize_dataset=self.normalize_1D_check.GetValue(),
-            )
-        elif method == "Waterfall":
-            overlay_data = self.data_visualisation.on_overlay_spectrum_waterfall(
-                item_list,
-                "mobilogram",
-                plot=None,
-                plot_obj=self.plot_window,
-                normalize_dataset=self.normalize_1D_check.GetValue(),
-            )
-        else:
-            logger.error("Method not implemented yet")
-            return
-
-        self.clipboard[overlay_data.pop("name")] = overlay_data.pop("data")
-
-    def on_overlay_chromatogram(self, item_list, method):
-        if method == "Overlay":
-            overlay_data = self.data_visualisation.on_overlay_spectrum_overlay(
-                item_list,
-                "chromatogram",
-                plot=None,
-                plot_obj=self.plot_window,
-                normalize_dataset=self.normalize_1D_check.GetValue(),
-            )
-        elif method == "Butterfly (n=2)":
-            overlay_data = self.data_visualisation.on_overlay_spectrum_butterfly(
-                item_list,
-                "chromatogram",
-                plot=None,
-                plot_obj=self.plot_window,
-                normalize_dataset=self.normalize_1D_check.GetValue(),
-            )
-        elif method == "Subtract (n=2)":
-            overlay_data = self.data_visualisation.on_overlay_spectrum_subtract(
-                item_list,
-                "chromatogram",
-                plot=None,
-                plot_obj=self.plot_window,
-                normalize_dataset=self.normalize_1D_check.GetValue(),
-            )
-        elif method == "Waterfall":
-            overlay_data = self.data_visualisation.on_overlay_spectrum_waterfall(
-                item_list,
-                "chromatogram",
-                plot=None,
-                plot_obj=self.plot_window,
-                normalize_dataset=self.normalize_1D_check.GetValue(),
-            )
-        else:
-            logger.error("Method not implemented yet")
-            return
-
-        self.clipboard[overlay_data.pop("name")] = overlay_data.pop("data")
-
-    def on_populate_item_list(self, evt):
-        """Populate table based on the dataset selection"""
-        editor_dict = {
-            "Heatmaps": "heatmap",
-            "Chromatograms": "chromatogram",
-            "Mobilograms": "mobilogram",
-            "Mass spectra": "mass_spectra",
-        }
-        dataset_type = editor_dict[self.dataset_type_choice.GetStringSelection()]
-
-        item_list = self.data_handling.generate_item_list(dataset_type)
-        self.peaklist.DeleteAllItems()
-        for add_dict in item_list:
-            color = add_dict.get("color", self.config.custom_colors[get_random_int(0, 15)])
-            color = check_color_format(color)
-
-            self.peaklist.Append(
-                [
-                    "",
-                    str(add_dict.get("dataset_name", "")),
-                    str(add_dict.get("dataset_type", "")),
-                    str(add_dict.get("document_title", "")),
-                    str(add_dict.get("shape", "")),
-                    str(round_rgb(convert_rgb_255_to_1(color))),
-                    str(add_dict.get("cmap", "")),
-                    str(add_dict.get("alpha", "")),
-                    str(add_dict.get("mask", "")),
-                    str(add_dict.get("label", "")),
-                    str(add_dict.get("min_threshold", "")),
-                    str(add_dict.get("max_threshold", "")),
-                    str(add_dict.get("processed", "")),
-                    str(add_dict.get("overlay_order", "")),
-                ]
-            )
-            item_count = self.peaklist.GetItemCount() - 1
-            self.peaklist.SetItemBackgroundColour(item_count, color)
-            self.peaklist.SetItemTextColour(item_count, get_font_color(color, return_rgb=True))
-
-        self.on_toggle_table_columns(dataset_type)
-        self.on_populate_overlay_methods(dataset_type)
-
-        if evt is not None:
-            evt.Skip()
-
-    def on_toggle_table_columns(self, data_type):
-        """Toggle table columns based on the dataset type"""
-
-        show_columns = [
-            "check",
-            "dataset_name",
-            "dataset_type",
-            "document",
-            "shape",
-            "color",
-            "colormap",
-            "alpha",
-            "mask",
-            "label",
-            "min_threshold",
-            "max_threshold",
-            "processed",
-            "order",
-        ]
-        if data_type in ["mass_spectra", "chromatogram", "mobilogram"]:
-            show_columns = [
-                "check",
-                "dataset_name",
-                "dataset_type",
-                "document",
-                "shape",
-                "color",
-                "label",
-                "processed",
-                "order",
-            ]
-
-        for column_id in self._peaklist_peaklist:
-            width = self._peaklist_peaklist[column_id]["width"]
-            if self._peaklist_peaklist[column_id]["tag"] not in show_columns:
-                width = 0
-            self.peaklist.SetColumnWidth(column_id, width)
-
-    def on_populate_overlay_methods(self, data_type):
-        """Re-populate method selection"""
-        # get current choice
-        current_choice = self.overlay_method_choice.GetStringSelection()
-
-        # clear choices
-        self.overlay_method_choice.Clear()
-
-        choices = self.overlay_methods_2D
-        choice = self.config.overlayMethod
-        if data_type in ["mass_spectra", "chromatogram", "mobilogram"]:
-            choices = self.overlay_methods_1D
-            choice = "Overlay"
-
-        # in case current method is in list of choices
-        if current_choice in choices:
-            choice = current_choice
-
-        # repopulate and set selection
-        self.overlay_method_choice.SetItems(choices)
-        self.overlay_method_choice.SetStringSelection(choice)
+        metadata.update({"color": item_info["color_255to1"], "order": item_info["order"], "label": item_info["label"]})
+        return metadata
 
     def get_selected_items(self):
-        item_count = self.peaklist.GetItemCount()
-
-        # generate list of document_title and dataset_name
+        """Get list of selected items"""
+        indices = self.get_checked_items()
         item_list = []
-        for item_id in range(item_count):
-            information = self.on_get_item_information(item_id)
-            if information["select"]:
-                item_list.append(information)
-
+        for item_id in indices:
+            item_info = self.on_get_item_information(item_id)
+            item_list.append([item_info["document_title"], item_info["dataset_name"]])
+            self.update_item_metadata(item_id)
         return item_list
 
-    def on_get_item_information(self, item_id):
-        information = self.peaklist.on_get_item_information(item_id)
+    def on_plot_overlay(self, _evt):
+        """Plot overlap"""
+        item_list = self.get_selected_items()
 
-        # add additional data
-        information["color_255to1"] = convert_rgb_255_to_1(information["color"], decimals=3)
-        information["color"] = list(information["color"])[0:3]
-        information["item_name"] = "{}::{}::{}".format(
-            information["dataset_name"], information["dataset_type"], information["document"]
-        )
+        current_page = self.current_page
+        # spectra
+        if current_page == 0:
+            self.on_overlay_spectra(item_list)
+        else:
+            self.on_overlay_heatmap(item_list)
 
-        return information
+    def on_overlay_spectra(self, item_list):
+        """Overlay spectra objects"""
+        method = self.overlay_1d_method.GetStringSelection()
+        spectral_type = self.overlay_1d_spectrum_type.GetStringSelection()
+
+        group_obj, valid_x, valid_y = OVERLAY_HANDLER.collect_overlay_1d_spectra(item_list, spectral_type, False)
+        # check the x-axis labels
+        if not valid_x:
+            print("The x-axis label is not valid!")
+        if not valid_y:
+            print("The y-axis label is not valid!")
+        print(group_obj)
+
+    def on_overlay_heatmap(self, item_list):
+        """Overlay heatmap objects"""
+        method = self.overlay_2d_method.GetStringSelection()
+
+        group_obj, valid_x, valid_y = OVERLAY_HANDLER.collect_overlay_2d_heatmap(item_list, False)
+        print(group_obj)
+
+    #     if method == "Transparent":
+    #         overlay_data = self.data_visualisation.on_overlay_heatmap_transparent(
+    #             item_list, plot=None, plot_obj=self.plot_window
+    #         )
+    #     elif method == "Mask":
+    #         overlay_data = self.data_visualisation.on_overlay_heatmap_mask(
+    #             item_list, plot=None, plot_obj=self.plot_window
+    #         )
+    #     elif method in ["Mean", "Standard Deviation", "Variance"]:
+    #         overlay_data = self.data_visualisation.on_overlay_heatmap_statistical(
+    #             item_list, method, plot=None, plot_obj=self.plot_window
+    #         )
+    #     elif method == "RGB":
+    #         overlay_data = self.data_visualisation.on_overlay_heatmap_rgb(
+    #             item_list, plot=None, plot_obj=self.plot_window
+    #         )
+    #     elif method == "Grid (n x n)":
+    #         overlay_data = self.data_visualisation.on_overlay_heatmap_grid_nxn(
+    #             item_list, plot=None, plot_obj=self.plot_window
+    #         )
+    #     elif method == "RMSD Matrix":
+    #         overlay_data = self.data_visualisation.on_overlay_heatmap_rmsd_matrix(
+    #             item_list, plot=None, plot_obj=self.plot_window
+    #         )
+    #     elif method == "RMSD":
+    #         overlay_data = self.data_visualisation.on_overlay_heatmap_rmsd(
+    #             item_list, plot=None, plot_obj=self.plot_window
+    #         )
+    #     elif method == "RMSF":
+    #         overlay_data = self.data_visualisation.on_overlay_heatmap_rmsf(
+    #             item_list, plot=None, plot_obj=self.plot_window
+    #         )
+    #     elif method == "Grid (2->1)":
+    #         overlay_data = self.data_visualisation.on_overlay_heatmap_2to1(
+    #             item_list, plot=None, plot_obj=self.plot_window
+    #         )
+    #     else:
+    #         LOGGER.error("Method not implemented yet")
+    #         return
+    #
+    #     self.clipboard[overlay_data.pop("name")] = overlay_data.pop("data")
+    #
+    # def on_overlay_mass_spectra(self, item_list, method):
+    #     if method == "Overlay":
+    #         overlay_data = self.data_visualisation.on_overlay_spectrum_overlay(
+    #             item_list,
+    #             "mass_spectra",
+    #             plot=None,
+    #             plot_obj=self.plot_window,
+    #             normalize_dataset=self.normalize_1D_check.GetValue(),
+    #         )
+    #     elif method == "Butterfly (n=2)":
+    #         overlay_data = self.data_visualisation.on_overlay_spectrum_butterfly(
+    #             item_list,
+    #             "mass_spectra",
+    #             plot=None,
+    #             plot_obj=self.plot_window,
+    #             normalize_dataset=self.normalize_1D_check.GetValue(),
+    #         )
+    #     elif method == "Subtract (n=2)":
+    #         overlay_data = self.data_visualisation.on_overlay_spectrum_subtract(
+    #             item_list,
+    #             "mass_spectra",
+    #             plot=None,
+    #             plot_obj=self.plot_window,
+    #             normalize_dataset=self.normalize_1D_check.GetValue(),
+    #         )
+    #     elif method == "Waterfall":
+    #         overlay_data = self.data_visualisation.on_overlay_spectrum_waterfall(
+    #             item_list,
+    #             "mass_spectra",
+    #             plot=None,
+    #             plot_obj=self.plot_window,
+    #             normalize_dataset=self.normalize_1D_check.GetValue(),
+    #         )
+    #     else:
+    #         LOGGER.error("Method not implemented yet")
+    #         return
+    #
+    #     self.clipboard[overlay_data.pop("name")] = overlay_data.pop("data")
+    #
+    # def on_overlay_mobilogram(self, item_list, method):
+    #     if method == "Overlay":
+    #         overlay_data = self.data_visualisation.on_overlay_spectrum_overlay(
+    #             item_list,
+    #             "mobilogram",
+    #             plot=None,
+    #             plot_obj=self.plot_window,
+    #             normalize_dataset=self.normalize_1D_check.GetValue(),
+    #         )
+    #     elif method == "Butterfly (n=2)":
+    #         overlay_data = self.data_visualisation.on_overlay_spectrum_butterfly(
+    #             item_list,
+    #             "mobilogram",
+    #             plot=None,
+    #             plot_obj=self.plot_window,
+    #             normalize_dataset=self.normalize_1D_check.GetValue(),
+    #         )
+    #     elif method == "Subtract (n=2)":
+    #         overlay_data = self.data_visualisation.on_overlay_spectrum_subtract(
+    #             item_list,
+    #             "mobilogram",
+    #             plot=None,
+    #             plot_obj=self.plot_window,
+    #             normalize_dataset=self.normalize_1D_check.GetValue(),
+    #         )
+    #     elif method == "Waterfall":
+    #         overlay_data = self.data_visualisation.on_overlay_spectrum_waterfall(
+    #             item_list,
+    #             "mobilogram",
+    #             plot=None,
+    #             plot_obj=self.plot_window,
+    #             normalize_dataset=self.normalize_1D_check.GetValue(),
+    #         )
+    #     else:
+    #         LOGGER.error("Method not implemented yet")
+    #         return
+    #
+    #     self.clipboard[overlay_data.pop("name")] = overlay_data.pop("data")
+    #
+    # def on_overlay_chromatogram(self, item_list, method):
+    #     if method == "Overlay":
+    #         overlay_data = self.data_visualisation.on_overlay_spectrum_overlay(
+    #             item_list,
+    #             "chromatogram",
+    #             plot=None,
+    #             plot_obj=self.plot_window,
+    #             normalize_dataset=self.normalize_1D_check.GetValue(),
+    #         )
+    #     elif method == "Butterfly (n=2)":
+    #         overlay_data = self.data_visualisation.on_overlay_spectrum_butterfly(
+    #             item_list,
+    #             "chromatogram",
+    #             plot=None,
+    #             plot_obj=self.plot_window,
+    #             normalize_dataset=self.normalize_1D_check.GetValue(),
+    #         )
+    #     elif method == "Subtract (n=2)":
+    #         overlay_data = self.data_visualisation.on_overlay_spectrum_subtract(
+    #             item_list,
+    #             "chromatogram",
+    #             plot=None,
+    #             plot_obj=self.plot_window,
+    #             normalize_dataset=self.normalize_1D_check.GetValue(),
+    #         )
+    #     elif method == "Waterfall":
+    #         overlay_data = self.data_visualisation.on_overlay_spectrum_waterfall(
+    #             item_list,
+    #             "chromatogram",
+    #             plot=None,
+    #             plot_obj=self.plot_window,
+    #             normalize_dataset=self.normalize_1D_check.GetValue(),
+    #         )
+    #     else:
+    #         LOGGER.error("Method not implemented yet")
+    #         return
+    #
+    #     self.clipboard[overlay_data.pop("name")] = overlay_data.pop("data")
+
+    def on_populate_item_list(self, _evt):
+        """Populate item list"""
+        item_list = self.item_list
+        if not isinstance(item_list, (list, tuple)):
+            return
+        self.peaklist.DeleteAllItems()
+        self._on_populate_item_list(item_list)
+
+    def _on_populate_item_list(self, item_list: List[str]):
+        """Populate table with items"""
+        idx = self.current_page
+        spectum_type = self.overlay_1d_spectrum_type.GetSelection()
+
+        filter_by = {0: [["MassSpectra/"], ["Chromatograms/"], ["Mobilograms/"]], 1: ["IonHeatmaps/"]}[idx]
+        if idx == 0:
+            filter_by = filter_by[spectum_type]
+
+        for item in item_list:
+            if any([item[0].startswith(_filter_key) for _filter_key in filter_by]):
+                # get document and dataset information
+                dataset_name, document_title = item[0], item[1]
+
+                # retrieve any saved metadata
+                metadata = self.get_item_metadata({"document_title": document_title, "dataset_name": dataset_name})
+                color = metadata.get("color", get_random_color())
+
+                # add to table
+                self.on_add_to_table(
+                    {
+                        "dataset_name": dataset_name,
+                        "document_title": document_title,
+                        "dimensions": str(item[2]),
+                        "label": _str_fmt(item[3]),
+                        "order": _str_fmt(item[4], "0"),
+                        "tag": str(item[5]),
+                        "color": convert_rgb_1_to_255(color),
+                    },
+                    check_color=False,
+                )
+
+
+def _main():
+    from origami.utils.screen import move_to_different_screen
+    from origami.utils.secret import get_short_hash
+
+    item_list = [
+        ["MassSpectra/Summed Spectrum", "Title", "(1000,)", "", None, get_short_hash()],
+        ["MassSpectra/rt=0-15", "Title", "(1000,)", "", 0, get_short_hash()],
+        ["MassSpectra/rt=41-42", "Title", "(1000,)", "label ", 0, get_short_hash()],
+        ["Chromatograms/Summed Chromatogram", "Title", "(513,)", "", 0, get_short_hash()],
+        ["Mobilogram/Summed Mobilogram", "Title", "(200,)", "", 0, get_short_hash()],
+        ["IonHeatmaps/Summed Heatmap", "Title", "(200, 500)", "label 3", 0, get_short_hash()],
+    ]
+
+    app = wx.App()
+    ex = PanelOverlayViewer(None, None, item_list=item_list, debug=True)
+
+    ex.Show()
+    move_to_different_screen(ex)
+    app.MainLoop()
+
+
+if __name__ == "__main__":
+    _main()

@@ -138,8 +138,9 @@ class ContainerBase:
         for _key, _value in zip(key, value):
             if not isinstance(_key, str):
                 raise ValueError("Metadata `key` must be a string")
-            if not isinstance(_value, (bool, str, int, float, list, tuple)):
+            if not isinstance(_value, (bool, str, int, float, list, tuple, dict)):
                 raise ValueError("Metadata `value` must be JSON serializable")
+            # if isinstance(_value, dict):
             self._metadata[_key] = _value
         if flush:
             self.flush_metadata()

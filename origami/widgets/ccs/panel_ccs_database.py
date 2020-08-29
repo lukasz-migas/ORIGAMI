@@ -3,7 +3,6 @@
 import os
 import time
 import logging
-from enum import IntEnum
 from typing import List
 
 # Third-party imports
@@ -36,7 +35,7 @@ def _str_fmt(value):
     return str(value)
 
 
-class TableColumnIndex(IntEnum):
+class TableColumnIndex:
     """Table indexer"""
 
     check = 0

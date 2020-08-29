@@ -930,7 +930,6 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
         CONFIG.peak_property_relative_height = str2num(self.relative_height_value.GetValue())
         CONFIG.peak_property_min_intensity = str2num(self.min_intensity_value.GetValue())
         CONFIG.peak_property_distance = str2int(self.min_distance_value.GetValue())
-
         CONFIG.peak_property_peak_width_modifier = str2num(self.peak_width_modifier_value.GetValue())
 
         # Native local-max

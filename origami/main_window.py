@@ -243,7 +243,9 @@ class MainWindow(wx.Frame):
 
         # when in development, move the app to another display
         if CONFIG.debug:
-            self._move_app()
+            from origami.utils.screen import move_to_different_screen
+
+            move_to_different_screen(self)
 
         # run action(s) delayed
         self.run_delayed(self._on_check_latest_version)
@@ -308,20 +310,6 @@ class MainWindow(wx.Frame):
     def on_notify_error(self, message: str):
         """Notify user of event using INFO style"""
         self.on_notify(message, "error")
-
-    def _move_app(self):
-        """Move application to another window"""
-        try:
-            current_w, current_h = self.GetPosition()
-            screen_w, screen_h = current_w, current_h
-            for idx in range(wx.Display.GetCount()):
-                screen_w, screen_h, _, _ = wx.Display(idx).GetGeometry()
-                if screen_w > current_w:
-                    break
-
-            self.SetPosition((screen_w, screen_h))
-        except Exception:
-            pass
 
     def create_panel(self, which: str, document_title: str):
         """Creates new instance of panel for particular document"""
@@ -960,6 +948,7 @@ class MainWindow(wx.Frame):
         self.Bind(
             wx.EVT_MENU, partial(self.panelDocuments.documents.on_import_manual_dataset, "CIU"), menu_widget_ciu_import
         )
+        self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_overlay_viewer, menu_widget_overlay_viewer)
 
         # CONFIG MENU
         self.Bind(wx.EVT_MENU, self.on_export_config_fcn, menu_config_export)

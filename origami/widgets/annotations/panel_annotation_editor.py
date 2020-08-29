@@ -40,10 +40,14 @@ from origami.gui_elements.views.view_heatmap import ViewMassSpectrumHeatmap
 from origami.gui_elements.views.view_spectrum import ViewMobilogram
 from origami.gui_elements.views.view_spectrum import ViewChromatogram
 from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
-# Module globals
 from origami.widgets.annotations.popup_annotations_settings import PopupAnnotationSettings
 
 logger = logging.getLogger(__name__)
+
+# TODO: replace the TableDict with TableConfig
+# TODO: annotations are not repopulating the table...
+# TODO: add tests!
+# TODO: replace the popup with dialog since it won't work on linux
 
 
 class TableColumnIndex(IntEnum):
@@ -985,7 +989,7 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin):
 
         if self._allow_data_check:
             try:
-                y_max = self.data_obj.get_intensity_at_loc(x_min, x_max)  # noqa
+                y_max = self.data_obj.get_y_at_loc(x_min, x_max)  # noqa
             except ValueError:
                 logger.warning("Could not get intensity at the position")
             y_position = y_max * 1.05
@@ -1121,7 +1125,6 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin):
         if annotation_obj is None:
             return
 
-        print(obj_name)
         if obj_name == "patch_show":
             annotation_obj.patch_show = obj_value
         elif obj_name == "arrow_show":

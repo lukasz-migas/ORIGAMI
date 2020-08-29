@@ -58,6 +58,25 @@ YAxesKeys = {
     "Activation Energy (eV)": "y_ev",
 }
 
+XYAxesLabelAlternatives = {
+    # mobilogram
+    "Drift time (bins)": "Drift time (bins)",
+    "Drift time (ms)": "Drift time (ms)",
+    "Arrival time (ms)": "Drift time (ms)",
+    "Collision Cross Section (Å²)": "Collision Cross Section (Å²)",
+    "CCS (Å²)": "Collision Cross Section (Å²)",
+    # chromatogram
+    "Scans": "Scans",
+    "Time (mins)": "Time (mins)",
+    "Retention time (mins)": "Time (mins)",
+    "Collision Voltage (V)": "Collision Voltage (V)",
+    "Activation Voltage (V)": "Collision Voltage (V)",
+    "Activation Energy (V)": "Collision Voltage (V)",
+    "Lab Frame Energy (eV)": "Lab Frame Energy (eV)",
+    "Activation Voltage (eV)": "Lab Frame Energy (eV)",
+    "Activation Energy (eV)": "Lab Frame Energy (eV)",
+}
+
 
 class ChromatogramAxesMixin(ABC):
     """Mixin class to provide easy conversion of x-axis"""

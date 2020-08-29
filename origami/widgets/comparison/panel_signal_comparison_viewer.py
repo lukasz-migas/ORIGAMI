@@ -22,13 +22,13 @@ from origami.config.config import CONFIG
 from origami.utils.utilities import report_time
 from origami.utils.converters import str2num
 from origami.visuals.mpl.gids import PlotIds
+from origami.gui_elements.mixins import ColorGetterMixin
 from origami.gui_elements.helpers import make_checkbox
 from origami.gui_elements.helpers import make_color_btn
 from origami.gui_elements.helpers import make_staticbox
 from origami.gui_elements.helpers import make_bitmap_btn
 from origami.gui_elements.helpers import make_spin_ctrl_double
 from origami.gui_elements.misc_dialogs import DialogBox
-from origami.gui_elements.dialog_color_picker import DialogColorPicker
 from origami.gui_elements.views.view_spectrum import ViewCompareMassSpectra
 
 logger = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 # TODO: Add key_events for N, P, I, S (except when editing  labels)
 
 
-class PanelSignalComparisonViewer(MiniFrame):
+class PanelSignalComparisonViewer(MiniFrame, ColorGetterMixin):
     """Signal comparison viewer"""
 
     # panel settings
@@ -609,11 +609,8 @@ class PanelSignalComparisonViewer(MiniFrame):
         source = evt.GetEventObject().GetName()
 
         # get color
-        dlg = DialogColorPicker(self, CONFIG.custom_colors)
-        if dlg.ShowModal() == wx.ID_OK:
-            color_255, color_1, __ = dlg.GetChosenColour()
-            CONFIG.custom_colors = dlg.GetCustomColours()
-        else:
+        color_255, color_1, _ = self.on_get_color(evt)
+        if color_255 is None:
             return
 
         # assign color

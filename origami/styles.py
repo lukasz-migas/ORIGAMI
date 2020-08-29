@@ -181,6 +181,7 @@ class ListCtrl(wx.ListCtrl):
 
         self.column_info = kwargs.get("column_info", None)
         self.color_0_to_1 = kwargs.get("color_0_to_1", False)
+        self.add_item_color = kwargs.get("add_item_color", False)
 
         self.Bind(wx.EVT_LIST_COL_CLICK, self.on_column_click, self)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_item, self)
@@ -258,6 +259,13 @@ class ListCtrl(wx.ListCtrl):
             else:
                 item_value = self._convert_type(self.GetItem(item_id, column).GetText(), item_type)
             information[item_tag] = item_value
+
+        # add color regardless whether the color column is present
+        if "color" not in information and self.add_item_color:
+            color_255, color_1 = self._convert_color(self.GetItemBackgroundColour(item_id))
+            information["color_255to1"] = color_1
+            information["color"] = color_255
+
         information["check"] = is_checked
 
         return information

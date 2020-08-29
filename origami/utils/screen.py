@@ -1,5 +1,9 @@
+"""Various utilities that revolve around screens"""
 # Standard library imports
 import math
+
+# Third-party imports
+import wx
 
 
 def calculate_window_size(screen_size, percentage_size):
@@ -33,4 +37,19 @@ def calculate_window_size(screen_size, percentage_size):
     x_size = math.ceil(x_size * percentage_size_x)
     y_size = math.ceil(y_size * percentage_size_y)
 
-    return (x_size, y_size)
+    return x_size, y_size
+
+
+def move_to_different_screen(parent):
+    """Move application to another window"""
+    try:
+        current_w, current_h = parent.GetPosition()
+        screen_w, screen_h = current_w, current_h
+        for idx in range(wx.Display.GetCount()):
+            screen_w, screen_h, _, _ = wx.Display(idx).GetGeometry()
+            if screen_w > current_w:
+                break
+
+        parent.SetPosition((screen_w, screen_h))
+    except AttributeError:
+        pass

@@ -70,6 +70,7 @@ from origami.gui_elements.mixins import DocumentationMixin
 from origami.gui_elements.helpers import set_tooltip
 from origami.gui_elements.helpers import make_checkbox
 from origami.gui_elements.helpers import make_menu_item
+from origami.handlers.query_handler import QUERY_HANDLER
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.misc_dialogs import DialogNumberAsk
 from origami.gui_elements.misc_dialogs import DialogSimpleAsk
@@ -1338,13 +1339,13 @@ class DocumentTree(wx.TreeCtrl):
         if len(annotations_obj) == 0:
             raise MessageError("Error", "Annotation object is empty")
 
-        document_spectrum_list = self.data_handling.generate_annotation_list(plot_type)
-        document_list = list(document_spectrum_list.keys())
+        document_spectrum_dict = QUERY_HANDLER.generate_item_dict(plot_type, "dataset_list")
+        document_list = list(document_spectrum_dict.keys())
 
         duplicate_dlg = DialogSelectDataset(
             self.presenter.view,
             document_list,
-            document_spectrum_list,
+            document_spectrum_dict,
             set_document=document_title,
             title="Copy annotations to document/dataset...",
         )
@@ -1445,7 +1446,11 @@ class DocumentTree(wx.TreeCtrl):
         """Open a dialog window where you can overlay and compare objects"""
         from origami.widgets.overlay.panel_overlay_viewer import PanelOverlayViewer
 
-        self._overlay_panel = PanelOverlayViewer(self.view, self.presenter, self.config, self.icons)
+        # get list of items
+        item_dict = QUERY_HANDLER.generate_item_dict_all("overlay")
+        item_list = QUERY_HANDLER.item_dict_to_list(item_dict)
+
+        self._overlay_panel = PanelOverlayViewer(self.view, self.presenter, self._icons, item_list=item_list)
         self._overlay_panel.Show()
 
     def on_open_lesa_viewer(self, _):
@@ -1453,7 +1458,7 @@ class DocumentTree(wx.TreeCtrl):
         from origami.widgets.lesa.panel_imaging_lesa import PanelImagingLESAViewer
 
         # get document title
-        item_list = self.data_handling.generate_item_list_mass_spectra("item_list")
+        item_list = QUERY_HANDLER.generate_item_dict_mass_spectra("dataset_list")
         document_title = ENV.current
         if not ENV.on_get_document(document_title).is_imaging():
             raise MessageError("Error", f"Document `{document_title}` is not an Imaging document.")
@@ -2427,7 +2432,7 @@ class DocumentTree(wx.TreeCtrl):
         if self._item_id is None:
             return
 
-        document_spectrum_dict = self.data_handling.generate_item_list_mass_spectra("comparison")
+        document_spectrum_dict = QUERY_HANDLER.generate_item_dict_mass_spectra("dataset_list")
         document_list = list(document_spectrum_dict.keys())
         count = sum([len(document_spectrum_dict[_title]) for _title in document_spectrum_dict])
 
@@ -2750,18 +2755,18 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_get_item_list(self):
         """Return list of items that can be inserted in a review panel"""
-        item_list = []
+        item_dict = {}
         if self._item.is_match("heatmap", True):
-            item_list = self.data_handling.generate_item_list_heatmap("simple_list")
+            item_dict = QUERY_HANDLER.generate_item_dict_heatmap("document_dataset_list")
         elif self._item.is_match("spectrum", True):
-            item_list = self.data_handling.generate_item_list_mass_spectra("simple_list")
+            item_dict = QUERY_HANDLER.generate_item_dict_mass_spectra("document_dataset_list")
         elif self._item.is_match("mobilogram", True):
-            item_list = self.data_handling.generate_item_list_mobilogram("simple_list")
+            item_dict = QUERY_HANDLER.generate_item_dict_mobilogram("document_dataset_list")
         elif self._item.is_match("chromatogram", True):
-            item_list = self.data_handling.generate_item_list_chromatogram("simple_list")
+            item_dict = QUERY_HANDLER.generate_item_dict_chromatogram("document_dataset_list")
         elif self._item.is_match("msdt", True):
-            item_list = self.data_handling.generate_item_list_msdt("simple_list")
-        return item_list
+            item_dict = QUERY_HANDLER.generate_item_dict_msdt("document_dataset_list")
+        return item_dict
 
     def on_rename_item(self, _evt):
         """Rename item"""
