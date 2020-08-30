@@ -622,19 +622,111 @@ class PlotHeatmap2D(PlotBase):
         self.plot_2D_update_normalization(**kwargs)
         self.PLOT_TYPE = "line-heatmap"
 
+    def plot_2d_rgb(self, x, y, array, title="", x_label="", y_label="", obj=None, **kwargs):
+        """Simple heatmap plot"""
+        self._set_axes()
+
+        # add 2d plot
+        xlimits, ylimits, extent = self._compute_xy_limits(x, y, None, is_heatmap=True)
+
+        self.cax = self.plot_base.imshow(
+            array,
+            cmap=kwargs["heatmap_colormap"],
+            interpolation=kwargs["heatmap_interpolation"],
+            aspect="auto",
+            origin="lower",
+            extent=[*xlimits, *ylimits],
+        )
+
+        # set plot limits
+        self.plot_base.set_xlim(xlimits)
+        self.plot_base.set_ylim(ylimits)
+        self.set_plot_xlabel(x_label, **kwargs)
+        self.set_plot_ylabel(y_label, **kwargs)
+        self.set_plot_title(title, **kwargs)
+        self.set_tick_parameters(**kwargs)
+
+        self.setup_new_zoom(
+            [self.plot_base],
+            data_limits=[extent],
+            allow_extraction=kwargs.get("allow_extraction", False),
+            callbacks=kwargs.get("callbacks", dict()),
+            is_heatmap=True,
+            obj=obj,
+        )
+        self.store_plot_limits([extent], [self.plot_base])
+
+        # add colorbar
+        self.set_colorbar_parameters(array, **kwargs)
+
+        # update normalization
+        self.plot_2D_update_normalization(**kwargs)
+        self.PLOT_TYPE = "heatmap-rgb"
+
+    # def plot_2D_rgb(
+    #     self, zvals, xvals, yvals, xlabel, ylabel, zoom="box", axesSize=None, legend_text=None, plotName="RGB",
+    #     **kwargs
+    # ):
+    #     # update settings
+    #     self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
+    #
+    #     matplotlib.rc("xtick", labelsize=kwargs["axes_tick_font_size"])
+    #     matplotlib.rc("ytick", labelsize=kwargs["axes_tick_font_size"])
+    #
+    #     # Plot
+    #     self.plot_base = self.figure.add_axes(self._axes)
+    #
+    #     handles = []
+    #     if legend_text is not None:
+    #         for i in range(len(legend_text)):
+    #             handles.append(
+    #                 patches.Patch(
+    #                     color=legend_text[i][0], label=legend_text[i][1], alpha=kwargs["legend_patch_transparency"]
+    #                 )
+    #             )
+    #
+    #     extent = ut_visuals.extents(xvals) + ut_visuals.extents(yvals)
+    #
+    #     # Add imshow
+    #     self.cax = self.plot_base.imshow(
+    #         zvals, extent=extent, interpolation=kwargs["heatmap_interpolation"], origin="lower", aspect="auto"
+    #     )
+    #
+    #     xmin, xmax = self.plot_base.get_xlim()
+    #     ymin, ymax = self.plot_base.get_ylim()
+    #     self.plot_base.set_xlim(xmin, xmax - 0.5)
+    #     self.plot_base.set_ylim(ymin, ymax - 0.5)
+    #     extent = [xmin, ymin, xmax, ymax]
+    #
+    #     # legend
+    #     self.set_legend_parameters(handles, **kwargs)
+    #
+    #     self.set_plot_xlabel(xlabel, **kwargs)
+    #     self.set_plot_ylabel(ylabel, **kwargs)
+    #
+    #     self.set_tick_parameters(**kwargs)
+    #
+    #     self.setup_zoom([self.plot_base], self.zoomtype, data_lims=extent)
+    #     self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
+
     def plot_2d_grid_2_to_1(
         self, x, y, array_top, array_bottom, array, x_label=None, y_label=None, ratio: int = 6, obj=None, **kwargs
     ):
         """Plot heatmap + heatmap => heatmap"""
         gs = gridspec.GridSpec(ratio, ratio, wspace=1, hspace=1)
 
-        self.plot_base = self.figure.add_subplot(gs[:, 2:])
+        self.plot_base = self.figure.add_subplot(gs[:, 0:4])
+        #         self.plot_base = self.figure.add_subplot(gs[:, 2:])
         self.plot_base.set_gid(PlotIds.PLOT_GRID_2_TO_1_RIGHT)
 
-        self.plot_grid_top = self.figure.add_subplot(gs[0:3, 0:2], sharex=self.plot_base, sharey=self.plot_base)
+        self.plot_grid_top = self.figure.add_subplot(gs[0:3, 4:], sharex=self.plot_base, sharey=self.plot_base)
+        #         self.plot_grid_top = self.figure.add_subplot(gs[0:3, 0:2], sharex=self.plot_base,
+        #         sharey=self.plot_base)
         self.plot_grid_top.set_gid(PlotIds.PLOT_GRID_2_TO_1_LEFT_TOP)
 
-        self.plot_grid_bottom = self.figure.add_subplot(gs[3:, 0:2], sharex=self.plot_base, sharey=self.plot_base)
+        self.plot_grid_bottom = self.figure.add_subplot(gs[3:, 4:], sharex=self.plot_base, sharey=self.plot_base)
+        #         self.plot_grid_bottom = self.figure.add_subplot(gs[3:, 0:2], sharex=self.plot_base,
+        #         sharey=self.plot_base)
         self.plot_grid_bottom.set_gid(PlotIds.PLOT_GRID_2_TO_1_LEFT_BOTTOM)
 
         xlimits, ylimits, extent = self._compute_xy_limits(x, y, None)
@@ -698,61 +790,184 @@ class PlotHeatmap2D(PlotBase):
         self.plot_2D_update_normalization(**kwargs)
         self.PLOT_TYPE = "heatmap-grid"
 
-    #     def plot_2d_compare(self, x, y, array_1, array_2, x_label=None, y_label=None, ratio: int=5, obj=None,
-    #     **kwargs):
-    #         """Plot heatmap and line plot"""
-    #         gs = gridspec.GridSpec(ratio, ratio, wspace=0.1, hspace=0.1)
+    def plot_2d_grid_n_x_n(
+        self, x, y, arrays, n_rows: int, n_cols: int, x_label=None, y_label=None, ratio: int = 6, obj=None, **kwargs
+    ):
+        """Plot image grid"""
+        # TODO: customise how x/y-axis labels are shown
+        # TODO: add individual colormaps
+        gs = gridspec.GridSpec(nrows=n_rows, ncols=n_cols, wspace=0.25, hspace=0.25)
+
+        xlimits, ylimits, extent = self._compute_xy_limits(x, y, None)
+
+        self.plot_base = self.figure.add_subplot(gs[0, 0], aspect="auto")
+        self.plot_base.imshow(
+            arrays[0],
+            cmap=kwargs["heatmap_colormap"],
+            interpolation=kwargs["heatmap_interpolation"],
+            aspect="auto",
+            origin="lower",
+            extent=[*xlimits, *ylimits],
+            gid=PlotIds.PLOT_GRID_2_TO_1_RIGHT,
+        )
+        # add 2d plot
+        axes, extents = [self.plot_base], [extent]
+        for i in range(1, len(arrays)):
+            row = int(i // n_cols)
+            col = i % n_cols
+            ax = self.figure.add_subplot(gs[row, col], aspect="auto", sharex=self.plot_base, sharey=self.plot_base)
+
+            array = arrays[i]
+            ax.imshow(
+                array,
+                cmap=kwargs["heatmap_colormap"],
+                interpolation=kwargs["heatmap_interpolation"],
+                aspect="auto",
+                origin="lower",
+                extent=[*xlimits, *ylimits],
+                gid=PlotIds.PLOT_GRID_2_TO_1_RIGHT,
+            )
+            axes.append(ax)
+            extents.append(extent)
+
+        # set plot limits
+        self.plot_base.set_xlim(xlimits)
+        self.plot_base.set_ylim(ylimits)
+        self.set_plot_xlabel(x_label, **kwargs)
+        self.set_plot_ylabel(y_label, **kwargs)
+        self.set_tick_parameters(**kwargs)
+
+        # setup zoom
+        self.setup_new_zoom(
+            axes,
+            data_limits=extents,
+            allow_extraction=kwargs.get("allow_extraction", False),
+            callbacks=kwargs.get("callbacks", dict()),
+            is_heatmap=True,
+            obj=obj,
+        )
+        self.store_plot_limits(extents, axes)
+
+        # update normalization
+        self.plot_2D_update_normalization(**kwargs)
+        self.PLOT_TYPE = "heatmap-grid"
+
+    # def plot_n_grid_2D_overlay(
+    #     self,
+    #     n_zvals,
+    #     cmap_list,
+    #     title_list,
+    #     xvals,
+    #     yvals,
+    #     xlabel,
+    #     ylabel,
+    #     plotName="Overlay_Grid",
+    #     axesSize=None,
+    #     **kwargs,
+    # ):
+    #     gs = gridspec.GridSpec(nrows=n_rows, ncols=n_cols)
+    #     gs.update(hspace=kwargs.get("grid_hspace", 1), wspace=kwargs.get("grid_hspace", 1))
     #
-    #         self.plot_base = self.figure.add_subplot(gs[1:, :])
-    #         self.plot_base.set_gid(PlotIds.PLOT_LH_2D)
+    #     #         extent = ut_visuals.extents(xvals)+ut_visuals.extents(yvals)
+    #     plt_list, extent_list = [], []
+    #     for i in range(n_grid):
+    #         row = int(i // n_cols)
+    #         col = i % n_cols
+    #         ax = self.figure.add_subplot(gs[row, col], aspect="auto")
     #
-    #         self.plot_line_top = self.figure.add_subplot(gs[0:1, :], sharex=self.plot_base)
-    #         self.plot_line_top.set_gid(PlotIds.PLOT_LH_LINE)
+    #         if len(xvals) == n_grid:
+    #             extent = ut_visuals.extents(xvals[i]) + ut_visuals.extents(yvals[i])
+    #             xmin, xmax = np.min(xvals[i]), np.max(xvals[i])
+    #             ymin, ymax = np.min(yvals[i]), np.max(yvals[i])
+    #         else:
+    #             extent = ut_visuals.extents(xvals) + ut_visuals.extents(yvals)
+    #             xmin, xmax = np.min(xvals), np.max(xvals)
+    #             ymin, ymax = np.min(yvals), np.max(yvals)
+    #         extent_list.append([xmin, ymin, xmax, ymax])
     #
-    #         xlimits, ylimits, extent = self._compute_xy_limits(x, y, None)
+    #         if kwargs.get("override_colormap", False):
+    #             cmap = kwargs["heatmap_colormap"]
+    #         else:
+    #             cmap = cmap_list[i]
     #
-    #         # add 2d plot
-    #         self.cax = self.plot_base.imshow(
-    #             array_1,
-    #             cmap=kwargs["heatmap_colormap"],
+    #         ax.imshow(
+    #             n_zvals[i],
+    #             extent=extent,
+    #             cmap=cmap,
     #             interpolation=kwargs["heatmap_interpolation"],
     #             aspect="auto",
     #             origin="lower",
-    #             extent=[*xlimits, *ylimits],
-    #             gid=PlotIds.PLOT_JOINT_XY,
     #         )
     #
-    #         # set margin plots
-    #         self.plot_line_top.plot(x, y_top, gid=PlotIds.PLOT_LH_LINE)
-    #
-    #         # turn off the ticks on the density axis for the marginal plots
-    #         self._joint_despine(self.plot_line_top, "horizontal")
-    #
-    #         # set plot limits
-    #         self.plot_base.set_xlim(xlimits)
-    #         self.plot_base.set_ylim(ylimits)
-    #         self.set_plot_xlabel(x_label, **kwargs)
-    #         self.set_plot_ylabel(y_label, **kwargs)
-    #         self.set_tick_parameters(**kwargs)
-    #
-    #         # add limits of the other plots
-    #         _, _, extent_x = self._compute_xy_limits(x, y_top, 1)
-    #
-    #         # setup zoom
-    #         self.setup_new_zoom(
-    #             [self.plot_base, self.plot_line_top],
-    #             data_limits=[extent, extent_x],
-    #             allow_extraction=kwargs.get("allow_extraction", False),
-    #             callbacks=kwargs.get("callbacks", dict()),
-    #             is_heatmap=True,
-    #             is_joint=True,
-    #             obj=obj,
+    #         ax.set_xlim(xmin, xmax - 0.5)
+    #         ax.set_ylim(ymin, ymax - 0.5)
+    #         ax.tick_params(
+    #             axis="both",
+    #             left=kwargs["axes_frame_ticks_left"],
+    #             right=kwargs["axes_frame_ticks_right"],
+    #             top=kwargs["axes_frame_ticks_top"],
+    #             bottom=kwargs["axes_frame_ticks_bottom"],
+    #             labelleft=kwargs["axes_frame_tick_labels_left"],
+    #             labelright=kwargs["axes_frame_tick_labels_right"],
+    #             labeltop=kwargs["axes_frame_tick_labels_top"],
+    #             labelbottom=kwargs["axes_frame_tick_labels_bottom"],
     #         )
-    #         self.store_plot_limits([extent, extent_x], [self.plot_base, self.plot_line_top])
     #
-    #         # update normalization
-    #         self.plot_2D_update_normalization(**kwargs)
-    #         self.PLOT_TYPE = "line-heatmap"
+    #         # spines
+    #         ax.spines["left"].set_visible(kwargs["axes_frame_spine_left"])
+    #         ax.spines["right"].set_visible(kwargs["axes_frame_spine_right"])
+    #         ax.spines["top"].set_visible(kwargs["axes_frame_spine_top"])
+    #         ax.spines["bottom"].set_visible(kwargs["axes_frame_spine_bottom"])
+    #
+    #         if kwargs.get("grid_show_title", True):
+    #             ax.set_title(
+    #                 label=title_list[i],
+    #                 fontdict={"fontsize": kwargs["axes_title_font_size"],
+    #                 "fontweight": kwargs["axes_title_font_weight"]},
+    #             )
+    #
+    #         # remove ticks for anything thats not on the outskirts
+    #         if kwargs.get("grid_show_tickLabels", True):
+    #             if col != 0:
+    #                 ax.set_yticks([])
+    #             if row != (n_rows - 1):
+    #                 ax.set_xticks([])
+    #         else:
+    #             ax.set_yticks([])
+    #             ax.set_xticks([])
+    #
+    #         # update axis frame
+    #         if kwargs["axes_frame_show"]:
+    #             ax.set_axis_on()
+    #         else:
+    #             ax.set_axis_off()
+    #         plt_list.append(ax)
+    #
+    #         if kwargs.get("grid_show_label", False):
+    #             kwargs["axes_label_pad"] = 5
+    #             if col == 0:
+    #                 ax.set_ylabel(
+    #                     ylabel,
+    #                     labelpad=kwargs["axes_label_pad"],
+    #                     fontsize=kwargs["axes_tick_font_size"],
+    #                     weight=kwargs["axes_label_font_weight"],
+    #                 )
+    #             if row == n_rows - 1:
+    #                 ax.set_xlabel(
+    #                     xlabel,
+    #                     labelpad=kwargs["axes_label_pad"],
+    #                     fontsize=kwargs["axes_tick_font_size"],
+    #                     weight=kwargs["axes_label_font_weight"],
+    #                 )
+    #
+    #     try:
+    #         gs.tight_layout(self.figure, pad=kwargs.get("grid_pad", 1.08))
+    #     except ValueError as e:
+    #         print(e)
+    #     self.figure.tight_layout()
+    #
+    #     #         extent = [xmin, ymin, xmax, ymax]
+    #     self.setup_zoom(plt_list, self.zoomtype, data_lims=extent_list)
 
     @staticmethod
     def get_heatmap_normalization(
@@ -1044,189 +1259,6 @@ class PlotHeatmap2D(PlotBase):
     #     # add colorbar
     #     self.set_colorbar_parameters(zvals, **kwargs)
 
-    # def plot_n_grid_2D_overlay(
-    #     self,
-    #     n_zvals,
-    #     cmap_list,
-    #     title_list,
-    #     xvals,
-    #     yvals,
-    #     xlabel,
-    #     ylabel,
-    #     plotName="Overlay_Grid",
-    #     axesSize=None,
-    #     **kwargs,
-    # ):
-    #     # update settings
-    #     self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
-    #
-    #     n_grid = len(n_zvals)
-    #     n_rows, n_cols, __, __ = ut_visuals.check_n_grid_dimensions(n_grid)
-    #
-    #     # convert weights
-    #     if kwargs["axes_title_font_weight"]:
-    #         kwargs["axes_title_font_weight"] = "heavy"
-    #     else:
-    #         kwargs["axes_title_font_weight"] = "normal"
-    #
-    #     if kwargs["axes_label_font_weight"]:
-    #         kwargs["axes_label_font_weight"] = "heavy"
-    #     else:
-    #         kwargs["axes_label_font_weight"] = "normal"
-    #
-    #     # set tick size
-    #     matplotlib.rc("xtick", labelsize=kwargs["axes_tick_font_size"])
-    #     matplotlib.rc("ytick", labelsize=kwargs["axes_tick_font_size"])
-    #
-    #     gs = gridspec.GridSpec(nrows=n_rows, ncols=n_cols)
-    #     gs.update(hspace=kwargs.get("grid_hspace", 1), wspace=kwargs.get("grid_hspace", 1))
-    #
-    #     #         extent = ut_visuals.extents(xvals)+ut_visuals.extents(yvals)
-    #     plt_list, extent_list = [], []
-    #     for i in range(n_grid):
-    #         row = int(i // n_cols)
-    #         col = i % n_cols
-    #         ax = self.figure.add_subplot(gs[row, col], aspect="auto")
-    #
-    #         if len(xvals) == n_grid:
-    #             extent = ut_visuals.extents(xvals[i]) + ut_visuals.extents(yvals[i])
-    #             xmin, xmax = np.min(xvals[i]), np.max(xvals[i])
-    #             ymin, ymax = np.min(yvals[i]), np.max(yvals[i])
-    #         else:
-    #             extent = ut_visuals.extents(xvals) + ut_visuals.extents(yvals)
-    #             xmin, xmax = np.min(xvals), np.max(xvals)
-    #             ymin, ymax = np.min(yvals), np.max(yvals)
-    #         extent_list.append([xmin, ymin, xmax, ymax])
-    #
-    #         if kwargs.get("override_colormap", False):
-    #             cmap = kwargs["heatmap_colormap"]
-    #         else:
-    #             cmap = cmap_list[i]
-    #
-    #         ax.imshow(
-    #             n_zvals[i],
-    #             extent=extent,
-    #             cmap=cmap,
-    #             interpolation=kwargs["heatmap_interpolation"],
-    #             aspect="auto",
-    #             origin="lower",
-    #         )
-    #
-    #         ax.set_xlim(xmin, xmax - 0.5)
-    #         ax.set_ylim(ymin, ymax - 0.5)
-    #         ax.tick_params(
-    #             axis="both",
-    #             left=kwargs["axes_frame_ticks_left"],
-    #             right=kwargs["axes_frame_ticks_right"],
-    #             top=kwargs["axes_frame_ticks_top"],
-    #             bottom=kwargs["axes_frame_ticks_bottom"],
-    #             labelleft=kwargs["axes_frame_tick_labels_left"],
-    #             labelright=kwargs["axes_frame_tick_labels_right"],
-    #             labeltop=kwargs["axes_frame_tick_labels_top"],
-    #             labelbottom=kwargs["axes_frame_tick_labels_bottom"],
-    #         )
-    #
-    #         # spines
-    #         ax.spines["left"].set_visible(kwargs["axes_frame_spine_left"])
-    #         ax.spines["right"].set_visible(kwargs["axes_frame_spine_right"])
-    #         ax.spines["top"].set_visible(kwargs["axes_frame_spine_top"])
-    #         ax.spines["bottom"].set_visible(kwargs["axes_frame_spine_bottom"])
-    #
-    #         if kwargs.get("grid_show_title", True):
-    #             ax.set_title(
-    #                 label=title_list[i],
-    #                 fontdict={"fontsize": kwargs["axes_title_font_size"],
-    #                 "fontweight": kwargs["axes_title_font_weight"]},
-    #             )
-    #
-    #         # remove ticks for anything thats not on the outskirts
-    #         if kwargs.get("grid_show_tickLabels", True):
-    #             if col != 0:
-    #                 ax.set_yticks([])
-    #             if row != (n_rows - 1):
-    #                 ax.set_xticks([])
-    #         else:
-    #             ax.set_yticks([])
-    #             ax.set_xticks([])
-    #
-    #         # update axis frame
-    #         if kwargs["axes_frame_show"]:
-    #             ax.set_axis_on()
-    #         else:
-    #             ax.set_axis_off()
-    #         plt_list.append(ax)
-    #
-    #         if kwargs.get("grid_show_label", False):
-    #             kwargs["axes_label_pad"] = 5
-    #             if col == 0:
-    #                 ax.set_ylabel(
-    #                     ylabel,
-    #                     labelpad=kwargs["axes_label_pad"],
-    #                     fontsize=kwargs["axes_tick_font_size"],
-    #                     weight=kwargs["axes_label_font_weight"],
-    #                 )
-    #             if row == n_rows - 1:
-    #                 ax.set_xlabel(
-    #                     xlabel,
-    #                     labelpad=kwargs["axes_label_pad"],
-    #                     fontsize=kwargs["axes_tick_font_size"],
-    #                     weight=kwargs["axes_label_font_weight"],
-    #                 )
-    #
-    #     try:
-    #         gs.tight_layout(self.figure, pad=kwargs.get("grid_pad", 1.08))
-    #     except ValueError as e:
-    #         print(e)
-    #     self.figure.tight_layout()
-    #
-    #     #         extent = [xmin, ymin, xmax, ymax]
-    #     self.setup_zoom(plt_list, self.zoomtype, data_lims=extent_list)
-    #
-    # def plot_2D_rgb(
-    #     self, zvals, xvals, yvals, xlabel, ylabel, zoom="box", axesSize=None, legend_text=None, plotName="RGB",
-    #     **kwargs
-    # ):
-    #     # update settings
-    #     self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
-    #
-    #     matplotlib.rc("xtick", labelsize=kwargs["axes_tick_font_size"])
-    #     matplotlib.rc("ytick", labelsize=kwargs["axes_tick_font_size"])
-    #
-    #     # Plot
-    #     self.plot_base = self.figure.add_axes(self._axes)
-    #
-    #     handles = []
-    #     if legend_text is not None:
-    #         for i in range(len(legend_text)):
-    #             handles.append(
-    #                 patches.Patch(
-    #                     color=legend_text[i][0], label=legend_text[i][1], alpha=kwargs["legend_patch_transparency"]
-    #                 )
-    #             )
-    #
-    #     extent = ut_visuals.extents(xvals) + ut_visuals.extents(yvals)
-    #
-    #     # Add imshow
-    #     self.cax = self.plot_base.imshow(
-    #         zvals, extent=extent, interpolation=kwargs["heatmap_interpolation"], origin="lower", aspect="auto"
-    #     )
-    #
-    #     xmin, xmax = self.plot_base.get_xlim()
-    #     ymin, ymax = self.plot_base.get_ylim()
-    #     self.plot_base.set_xlim(xmin, xmax - 0.5)
-    #     self.plot_base.set_ylim(ymin, ymax - 0.5)
-    #     extent = [xmin, ymin, xmax, ymax]
-    #
-    #     # legend
-    #     self.set_legend_parameters(handles, **kwargs)
-    #
-    #     self.set_plot_xlabel(xlabel, **kwargs)
-    #     self.set_plot_ylabel(ylabel, **kwargs)
-    #
-    #     self.set_tick_parameters(**kwargs)
-    #
-    #     self.setup_zoom([self.plot_base], self.zoomtype, data_lims=extent)
-    #     self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
     #
     # def plot_2D_matrix(self, zvals=None, xylabels=None, axesSize=None, plotName=None, **kwargs):
     #     self._plot_tag = "rmsd_matrix"

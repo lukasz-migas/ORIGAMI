@@ -5215,8 +5215,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
         return [bokehPlot, plt_kwargs["plot_width"], plt_kwargs["plot_height"], {}, dict(add_watermark=False)]
 
     def _add_plot_1D(self, data, **bkh_kwargs):
-        """
-        """
+        """"""
         plt_kwargs = self._buildPlotParameters(data)
         user_kwargs = deepcopy(data["interactive_params"])
 
@@ -6893,7 +6892,11 @@ class PanelInteractiveCreator(wx.MiniFrame):
             text_annot_ypos, text_annot_label = [], []
 
         # add plots
-        _lines, _patches, _original_colors, = [], [], []
+        _lines, _patches, _original_colors, = (
+            [],
+            [],
+            [],
+        )
         for xval, yval, color, label in zip(xvals, yvals, colorList, labels):
             try:
                 color = convert_rgb_1_to_hex(color)

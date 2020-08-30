@@ -10,6 +10,7 @@ pyteomics
 scipy
 seaborn
 scikit-learn==0.20.3
+scikit-image
 defusedxml
 psutil
 zarr

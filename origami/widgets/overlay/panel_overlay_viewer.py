@@ -18,8 +18,10 @@ from origami.config.config import CONFIG
 from origami.config.environment import ENV
 from origami.gui_elements.mixins import ColorGetterMixin
 from origami.gui_elements.helpers import TableConfig
+from origami.gui_elements.helpers import set_tooltip
 from origami.gui_elements.helpers import make_checkbox
 from origami.gui_elements.helpers import make_color_btn
+from origami.gui_elements.helpers import make_bitmap_btn
 from origami.gui_elements.helpers import make_spin_ctrl_int
 from origami.gui_elements.helpers import make_spin_ctrl_double
 from origami.gui_elements.panel_base import TableMixin
@@ -37,9 +39,7 @@ def _str_fmt(value, default: Union[str, float, int] = ""):
     return str(value)
 
 
-# TODO: add settings button next to the overlay method to enable better plot controls
 # TODO: add option to reduce number of colormaps
-# TODO: put the overlay method at the very bottom of the grid
 
 
 class TableColumnIndex:
@@ -95,7 +95,7 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
     overlay_2d_color_btn, overlay_2d_min_threshold, overlay_2d_max_threshold, overlay_2d_mask = None, None, None, None
     overlay_2d_transparency, overlay_2d_order, settings_spectra, settings_heatmaps = None, None, None, None
     overlay_1d_name, overlay_2d_name, overlay_1d_document, overlay_2d_document = None, None, None, None
-    overlay_1d_spectrum_type = None
+    overlay_1d_spectrum_type, overlay_1d_method_settings_btn, overlay_2d_method_settings_btn = None, None, None
 
     def __init__(self, parent, presenter, icons=None, item_list=None, debug: bool = False):
         MiniFrame.__init__(
@@ -320,19 +320,6 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
         """Make settings panel for spectral overlays"""
         panel = wx.Panel(split_panel, -1, size=(-1, -1), name="mass-spectra")
 
-        overlay_1d_spectrum_type = wx.StaticText(panel, -1, "Spectrum type:")
-        self.overlay_1d_spectrum_type = wx.ComboBox(
-            panel, choices=CONFIG.overlay_panel_1d_type_choices, style=wx.CB_READONLY
-        )
-        self.overlay_1d_spectrum_type.SetStringSelection(CONFIG.overlay_panel_1d_type)
-        self.overlay_1d_spectrum_type.Bind(wx.EVT_COMBOBOX, self.on_populate_item_list)
-
-        overlay_1d_method = wx.StaticText(panel, -1, "Overlay method:")
-        self.overlay_1d_method = wx.ComboBox(
-            panel, choices=CONFIG.overlay_panel_1d_method_choices, style=wx.CB_READONLY
-        )
-        self.overlay_1d_method.SetStringSelection(CONFIG.overlay_panel_1d_method)
-
         overlay_1d_document = wx.StaticText(panel, -1, "Document title:")
         self.overlay_1d_document = wx.StaticText(panel, -1, "")
 
@@ -366,15 +353,26 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
         self.overlay_1d_order.Bind(wx.EVT_SPINCTRL, self.on_apply)
         self.overlay_1d_order.Bind(wx.EVT_SPINCTRL, self.on_edit_item)
 
+        overlay_1d_spectrum_type = wx.StaticText(panel, -1, "Spectrum type:")
+        self.overlay_1d_spectrum_type = wx.ComboBox(
+            panel, choices=CONFIG.overlay_panel_1d_type_choices, style=wx.CB_READONLY
+        )
+        self.overlay_1d_spectrum_type.SetStringSelection(CONFIG.overlay_panel_1d_type)
+        self.overlay_1d_spectrum_type.Bind(wx.EVT_COMBOBOX, self.on_populate_item_list)
+
+        overlay_1d_method = wx.StaticText(panel, -1, "Overlay method:")
+        self.overlay_1d_method = wx.ComboBox(
+            panel, choices=CONFIG.overlay_panel_1d_method_choices, style=wx.CB_READONLY
+        )
+        self.overlay_1d_method.SetStringSelection(CONFIG.overlay_panel_1d_method)
+
+        self.overlay_1d_method_settings_btn = make_bitmap_btn(panel, -1, self._icons.gear)
+        self.overlay_1d_method_settings_btn.Bind(wx.EVT_BUTTON, self.on_open_method_settings)
+        set_tooltip(self.overlay_1d_method_settings_btn, "Customise overlay plot...")
+
         # pack heatmap items
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(overlay_1d_spectrum_type, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.overlay_1d_spectrum_type, (n, 1), (1, 3), flag=wx.EXPAND)
-        n += 1
-        grid.Add(overlay_1d_method, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.overlay_1d_method, (n, 1), (1, 3), flag=wx.EXPAND)
-        n += 1
         grid.Add(overlay_1d_document, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         grid.Add(self.overlay_1d_document, (n, 1), (1, 3), flag=wx.EXPAND)
         n += 1
@@ -393,6 +391,14 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
         grid.Add(self.overlay_1d_color_btn, (n, 1), flag=wx.EXPAND)
         grid.Add(overlay_1d_order, (n, 2), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         grid.Add(self.overlay_1d_order, (n, 3), flag=wx.EXPAND)
+        n += 1
+        n += 1
+        grid.Add(overlay_1d_spectrum_type, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.overlay_1d_spectrum_type, (n, 1), (1, 3), flag=wx.EXPAND)
+        n += 1
+        grid.Add(overlay_1d_method, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.overlay_1d_method, (n, 1), (1, 3), flag=wx.EXPAND)
+        grid.Add(self.overlay_1d_method_settings_btn, (n, 4), flag=wx.ALIGN_CENTER_VERTICAL)
 
         settings_sizer = wx.BoxSizer(wx.VERTICAL)
         settings_sizer.Add(grid, 1, wx.EXPAND | wx.ALL, 0)
@@ -405,10 +411,6 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
     def make_settings_panel_heatmaps(self, split_panel):
         """Make settings panel for heatmap overlays"""
         panel = wx.Panel(split_panel, -1, size=(-1, -1), name="heatmaps")
-
-        overlay_2d_method = wx.StaticText(panel, -1, "Overlay method:")
-        self.overlay_2d_method = wx.ComboBox(panel, choices=self.OVERLAY_METHODS_2D, style=wx.CB_READONLY)
-        self.overlay_2d_method.SetStringSelection(CONFIG.overlay_panel_2d_method)
 
         overlay_2d_document = wx.StaticText(panel, -1, "Document title:")
         self.overlay_2d_document = wx.StaticText(panel, -1, "")
@@ -469,12 +471,17 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
         self.overlay_2d_order.Bind(wx.EVT_SPINCTRL, self.on_apply)
         self.overlay_2d_order.Bind(wx.EVT_SPINCTRL, self.on_edit_item)
 
+        overlay_2d_method = wx.StaticText(panel, -1, "Overlay method:")
+        self.overlay_2d_method = wx.ComboBox(panel, choices=self.OVERLAY_METHODS_2D, style=wx.CB_READONLY)
+        self.overlay_2d_method.SetStringSelection(CONFIG.overlay_panel_2d_method)
+
+        self.overlay_2d_method_settings_btn = make_bitmap_btn(panel, -1, self._icons.gear)
+        self.overlay_2d_method_settings_btn.Bind(wx.EVT_BUTTON, self.on_open_method_settings)
+        set_tooltip(self.overlay_2d_method_settings_btn, "Customise overlay plot...")
+
         # pack heatmap items
         grid = wx.GridBagSizer(2, 2)
         n = 0
-        grid.Add(overlay_2d_method, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
-        grid.Add(self.overlay_2d_method, (n, 1), (1, 3), flag=wx.EXPAND)
-        n += 1
         grid.Add(overlay_2d_document, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         grid.Add(self.overlay_2d_document, (n, 1), (1, 3), flag=wx.EXPAND)
         n += 1
@@ -501,6 +508,10 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
         n += 1
         grid.Add(overlay_2d_order, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         grid.Add(self.overlay_2d_order, (n, 1), flag=wx.EXPAND)
+        n += 1
+        grid.Add(overlay_2d_method, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(self.overlay_2d_method, (n, 1), (1, 3), flag=wx.EXPAND)
+        grid.Add(self.overlay_2d_method_settings_btn, (n, 4), flag=wx.ALIGN_CENTER_VERTICAL)
 
         settings_sizer = wx.BoxSizer(wx.VERTICAL)
         settings_sizer.Add(grid, 1, wx.EXPAND | wx.ALL, 0)
@@ -772,7 +783,8 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
         metadata.update({"color": item_info["color_255to1"], "order": item_info["order"], "label": item_info["label"]})
         return metadata
 
-    def get_default_overlay_metadata(self, idx: int):
+    @staticmethod
+    def get_default_overlay_metadata(idx: int):
         """Return default overlay type"""
         metadata = dict()
         if idx == 0:
@@ -893,29 +905,23 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
             )
             self.view_overlay.plot_2d_grid_compare_rmsd(x, y, a_1, a_2, array, x_label=x_label, y_label=y_label)
             self.view_overlay.add_labels([25], [25], [rmsd_label])  # FIXME
+        elif method == "Grid (n x n)":
+            arrays, x, y, x_label, y_label, n_rows, n_cols = OVERLAY_HANDLER.prepare_overlay_2d_grid_n_x_n(group_obj)
+            self.view_overlay.plot_2d_grid_n_x_n(x, y, arrays, n_rows, n_cols, x_label=x_label, y_label=y_label)
+        elif method == "RGB":
+            array, x, y, x_label, y_label, forced_kwargs = OVERLAY_HANDLER.prepare_overlay_2d_rgb(group_obj)
+            self.view_overlay.plot_2d_rgb(x, y, array, x_label=x_label, y_label=y_label, forced_kwargs=forced_kwargs)
         else:
             LOGGER.error("Method not implemented yet")
             return
         print(group_obj)
 
-    #     elif method == "RGB":
-    #         overlay_data = self.data_visualisation.on_overlay_heatmap_rgb(
-    #             item_list, plot=None, plot_obj=self.plot_window
-    #         )
-    #     elif method == "Grid (n x n)":
-    #         overlay_data = self.data_visualisation.on_overlay_heatmap_grid_nxn(
-    #             item_list, plot=None, plot_obj=self.plot_window
-    #         )
-    #     elif method == "Grid (2->1)":
-    #         overlay_data = self.data_visualisation.on_overlay_heatmap_2to1(
-    #             item_list, plot=None, plot_obj=self.plot_window
-    #         )
-    #     else:
-    #         LOGGER.error("Method not implemented yet")
-    #         return
-    #
     #     self.clipboard[overlay_data.pop("name")] = overlay_data.pop("data")
     #
+
+    def on_open_method_settings(self, evt):
+        """Open extra settings panel"""
+        print(self, "on_open_method_settings", evt)
 
     def on_populate_item_list(self, _evt):
         """Populate item list"""

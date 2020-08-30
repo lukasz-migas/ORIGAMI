@@ -1,3 +1,8 @@
+"""Conversion utilities"""
+# Standard library imports
+from typing import List
+from collections import Iterable
+
 __all__ = [
     "byte2str",
     "str2num",
@@ -13,10 +18,6 @@ __all__ = [
     "convert_cm_to_inch",
     "convert_inch_to_cm",
 ]
-
-# Standard library imports
-from typing import List
-from collections import Iterable
 
 
 def convert_cm_to_inch(values) -> List[float]:

@@ -13,7 +13,6 @@ from origami.utils.secret import get_short_hash
 from origami.config.config import CONFIG
 from origami.utils.utilities import report_time
 from origami.visuals.mpl.plot_overlay import PlotOverlay
-
 # from origami.visuals.mpl.plot_spectrum import PlotSpectrum
 from origami.gui_elements.views.view_base import ViewBase
 from origami.gui_elements.views.view_base import ViewMPLMixin
@@ -169,8 +168,31 @@ class ViewOverlay(ViewBase, ViewMPLMixin, ViewOverlayPanelMixin, ViewWaterfallMi
         # self.set_plot_parameters(**kwargs)
         LOGGER.debug(f"Plotted data in {report_time(t_start)}")
 
-    def plot_2d_rgb(self):
+    def plot_2d_rgb(self, x, y, array, obj=None, repaint: bool = True, forced_kwargs=None, **kwargs):
         """Overlay multiple heatmaps using RGB overlay"""
+        t_start = time.time()
+        #         self.can_plot("heatmap")
+        # try to update plot first, as it can be quicker
+        self.set_document(obj, **kwargs)
+        self.set_labels(obj, **kwargs)
+
+        kwargs.update(**CONFIG.get_mpl_parameters(["2d", "colorbar", "normalization", "axes"]))
+        kwargs.update(**self.FORCED_KWARGS)
+        if isinstance(forced_kwargs, dict):
+            kwargs.update(**forced_kwargs)
+        kwargs = self.check_kwargs(**kwargs)
+
+        # x, y, array = self.check_input(x, y, array, obj)
+        self.figure.clear()
+        self.figure.plot_2d_rgb(
+            x, y, array, x_label=self.x_label, y_label=self.y_label, callbacks=self._callbacks, obj=obj, **kwargs
+        )
+        self.figure.repaint(repaint)
+
+        # set data
+        # self._data.update(x=x, y=y, array=array, obj=obj)
+        # self.set_plot_parameters(**kwargs)
+        LOGGER.debug(f"Plotted data in {report_time(t_start)}")
 
     def plot_2d_heatmap(self, x, y, array, obj=None, repaint: bool = True, forced_kwargs=None, **kwargs):
         """Overlay heatmap plots : mean, stddev, variance"""
@@ -266,8 +288,39 @@ class ViewOverlay(ViewBase, ViewMPLMixin, ViewOverlayPanelMixin, ViewWaterfallMi
     def plot_2d_rmsd_matrix(self):
         """Generate RMSD matrix plot from multiple heatmaps"""
 
-    def plot_2d_grid_n_x_n(self):
+    def plot_2d_grid_n_x_n(
+        self, x, y, arrays, n_rows, n_cols, obj=None, repaint: bool = True, forced_kwargs=None, **kwargs
+    ):
         """Overlay multiple heatmaps in a grid with linked zooming"""
+        t_start = time.time()
+        # try to update plot first, as it can be quicker
+        self.set_document(obj, **kwargs)
+        self.set_labels(obj, **kwargs)
+
+        kwargs.update(**CONFIG.get_mpl_parameters(["2d", "colorbar", "normalization", "axes"]))
+        kwargs.update(**self.FORCED_KWARGS)
+        if isinstance(forced_kwargs, dict):
+            kwargs.update(**forced_kwargs)
+        kwargs = self.check_kwargs(**kwargs)
+
+        self.figure.clear()
+        self.figure.plot_2d_grid_n_x_n(
+            x,
+            y,
+            arrays,
+            n_rows,
+            n_cols,
+            x_label=self.x_label,
+            y_label=self.y_label,
+            callbacks=self._callbacks,
+            obj=obj,
+            **kwargs,
+        )
+        self.figure.repaint(repaint)
+        # set data
+        # self._data.update(x=x, y=y, array=array, obj=obj)
+        # self.set_plot_parameters(**kwargs)
+        LOGGER.debug(f"Plotted data in {report_time(t_start)}")
 
     def plot(self, *args, **kwargs):
         pass

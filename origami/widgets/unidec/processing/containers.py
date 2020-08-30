@@ -113,7 +113,7 @@ class MolecularWeightObject(SpectrumObject):
             y : y-axis data most commonly used
             x_bin : x-axis data in scans/bins
             x_min : x-axis data in minutes/time
-            """
+        """
         super().__init__(
             x,
             y,
@@ -166,7 +166,7 @@ class ChargeStatesObject(SpectrumObject):
             y : y-axis data most commonly used
             x_bin : x-axis data in scans/bins
             x_min : x-axis data in minutes/time
-            """
+        """
         super().__init__(
             x,
             y,

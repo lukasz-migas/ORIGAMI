@@ -11,7 +11,7 @@ class PropertyCallbackManager:
         self._block_trigger = False
 
     def on_change(self, event, *callbacks):
-        """ Add a callback on this object to trigger when ``attr`` changes.
+        """Add a callback on this object to trigger when ``attr`` changes.
 
         Parameters
         ----------
@@ -49,7 +49,7 @@ class PropertyCallbackManager:
         self._callbacks[event].clear()
 
     def trigger(self, event, metadata):
-        """ Trigger callbacks for ``attr`` on this object.
+        """Trigger callbacks for ``attr`` on this object.
 
         Parameters
         ----------

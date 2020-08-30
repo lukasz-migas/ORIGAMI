@@ -7,7 +7,9 @@ import numpy as np
 
 # Local imports
 import origami.processing.activation as pr_activation
-
+from origami.utils.color import convert_rgb_1_to_hex
+from origami.visuals.rgb import ImageRGBA
+from origami.utils.visuals import check_n_grid_dimensions
 # from origami.config.environment import ENV
 # from origami.config.config import CONFIG
 from origami.objects.groups import IonHeatmapGroup
@@ -48,6 +50,15 @@ class OverlayHandler:
 
         return group_obj, valid_x, valid_y
 
+    def get_group_metadata(self, group_obj, keys: List[str], defaults: List, n_items: int):
+        """Retrieve metadata from the data objects"""
+        metadata = group_obj.get_group_metadata(keys, defaults, "overlay")
+        for key, values in metadata.items():
+            if len(values) != n_items:
+                raise ValueError(f"Expected {n_items} for the {key} data")
+
+        return metadata
+
     def prepare_overlay_1d_butterfly(self, group_obj):
         """Prepare line data for butterfly plot"""
         if not group_obj.validate_size(n_min=2, n_max=2):
@@ -56,7 +67,7 @@ class OverlayHandler:
         y_top, y_bottom = group_obj.ys
 
         # format kwargs
-        metadata = group_obj.get_group_metadata(["line_style", "color", "transparency"], ["solid", "k", 1], "overlay")
+        metadata = self.get_group_metadata(group_obj, ["line_style", "color", "transparency"], ["solid", "k", 1], 2)
         forced_kwargs = dict(
             compare_color_top=metadata["color"][0],
             compare_style_top=metadata["line_style"][0],
@@ -77,7 +88,7 @@ class OverlayHandler:
         x_top, y_top, x_bottom, y_bottom = PROCESS_HANDLER.subtract_spectra(x_top, y_top, x_bottom, y_bottom)
 
         # format kwargs
-        metadata = group_obj.get_group_metadata(["line_style", "color", "transparency"], ["solid", "k", 1], "overlay")
+        metadata = self.get_group_metadata(group_obj, ["line_style", "color", "transparency"], ["solid", "k", 1], 2)
         forced_kwargs = dict(
             compare_color_top=metadata["color"][0],
             compare_style_top=metadata["line_style"][0],
@@ -129,11 +140,12 @@ class OverlayHandler:
         """Prepare heatmap data"""
         if not group_obj.validate_size(n_min=2, n_max=2):
             raise ValueError("This visualisation can only have 2 items selected")
-        array_1, array_2 = group_obj.arrays
-        metadata = group_obj.get_group_metadata(["mask", "colormap"], [0.5, "Reds"], "overlay")
-        if "mask" not in metadata or len(metadata["mask"]) != 2:
-            raise ValueError("Could not retrieve mask data from the metadata")
 
+        # get data
+        array_1, array_2 = group_obj.arrays
+
+        # get metadata
+        metadata = self.get_group_metadata(group_obj, ["mask", "colormap"], [0.5, "Reds"], 2)
         mask_1, mask_2 = metadata["mask"]
         colormap_1, colormap_2 = metadata["colormap"]
         forced_kwargs = dict(heatmap_colormap_1=colormap_1, heatmap_colormap_2=colormap_2)
@@ -147,14 +159,15 @@ class OverlayHandler:
         if not group_obj.validate_size(n_min=2, n_max=2):
             raise ValueError("This visualisation can only have 2 items selected")
 
+        # get data
         array_1, array_2 = group_obj.arrays
-        metadata = group_obj.get_group_metadata(["transparency", "colormap"], [0.5, "Reds"], "overlay")
-        if "transparency" not in metadata or len(metadata["transparency"]) != 2:
-            raise ValueError("Could not retrieve transparency data from the metadata")
 
-        # build forced kwargs
+        # get metadata
+        metadata = self.get_group_metadata(group_obj, ["transparency", "colormap"], [0.5, "Reds"], 2)
         alpha_1, alpha_2 = metadata["transparency"]
         colormap_1, colormap_2 = metadata["colormap"]
+
+        # build forced kwargs
         forced_kwargs = dict(
             heatmap_transparency_1=alpha_1,
             heatmap_transparency_2=alpha_2,
@@ -169,6 +182,8 @@ class OverlayHandler:
         """Prepare heatmap data"""
         if not group_obj.validate_size(n_min=2, n_max=2):
             raise ValueError("This visualisation can only have 2 items selected")
+
+        # get data
         array_1, array_2 = group_obj.arrays
 
         # compute mean array
@@ -191,7 +206,7 @@ class OverlayHandler:
 
     def prepare_overlay_2d_rmsf(self, group_obj):
         """Prepare heatmap data"""
-        if not group_obj.validate_size(n_min=2, n_max=100):
+        if not group_obj.validate_size(n_min=2, n_max=2):
             raise ValueError("This visualisation can only have 2 items selected")
         array_1, array_2 = group_obj.arrays
 
@@ -212,6 +227,36 @@ class OverlayHandler:
         x, y, array = pr_activation.compute_rmsd_matrix(arrays)
 
         return array, x, y, group_obj.x_label, group_obj.y_label
+
+    def prepare_overlay_2d_grid_n_x_n(self, group_obj):
+        """Prepare heatmap data"""
+        if not group_obj.validate_size(n_min=2, n_max=25):
+            raise ValueError("This visualisation must have at least 2 items selected")
+
+        # get data
+        arrays = group_obj.arrays
+        n_rows, n_cols, _, _ = check_n_grid_dimensions(len(arrays))
+
+        return arrays, group_obj.x, group_obj.y, group_obj.x_label, group_obj.y_label, n_rows, n_cols
+
+    def prepare_overlay_2d_rgb(self, group_obj):
+        """Prepare heatmap data"""
+        if not group_obj.validate_size(n_min=1, n_max=4):
+            raise ValueError("This visualisation must have at least 1 items selected")
+        arrays = group_obj.arrays
+
+        # get metadata
+        metadata = self.get_group_metadata(group_obj, ["color"], [(1, 0, 1)], len(arrays))
+        colors = metadata["color"]
+        colors = [convert_rgb_1_to_hex(color) for color in colors]
+
+        rgba = ImageRGBA(arrays, colors)
+        array = rgba.adaptive_histogram(image=rgba.rgba)
+
+        # build forced_kwargs
+        forced_kwargs = dict(colorbar=False)
+
+        return array, group_obj.x, group_obj.y, group_obj.x_label, group_obj.y_label, forced_kwargs
 
 
 OVERLAY_HANDLER = OverlayHandler()

@@ -54,8 +54,7 @@ class EditableListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):
 
 
 class PanelUVPDEditor(wx.MiniFrame):
-    """
-    """
+    """"""
 
     def __init__(self, parent, presenter, config, icons, **kwargs):
         wx.MiniFrame.__init__(

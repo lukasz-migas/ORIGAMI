@@ -128,7 +128,7 @@ class UniDecConfig:
 
     def default_file_names(self):
         """Sets the default file names. For things coming into and out of the program. In theory these can be modified,
-         but it might be risky.
+        but it might be risky.
         """
         if self.base_filename is None or not isinstance(self.base_filename, str):
             raise ValueError("Incorrect base filename")

@@ -29,9 +29,13 @@ class WatersRawReader:
         self.reader, self.info_reader, self.data_reader, self.chrom_reader = self.create_readers()
 
         # get parameters
-        self.stats_in_functions, self._n_functions, self.mz_min, self.mz_max, self.mz_range = (
-            self.get_functions_and_stats()
-        )
+        (
+            self.stats_in_functions,
+            self._n_functions,
+            self.mz_min,
+            self.mz_max,
+            self.mz_range,
+        ) = self.get_functions_and_stats()
         self._mz_spacing = mz_spacing
         self._mz_x = self.get_linear_mz(self._mz_spacing)
         self._rt_min = None

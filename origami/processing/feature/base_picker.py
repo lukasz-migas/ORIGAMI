@@ -758,8 +758,8 @@ class BasePicker(ABC):
         return PeakSet(peak_data)
 
     def set_from_list(self, peak_list: List):
-        """Set peaks and perform various checks. The input is typically a list if dicts with appropriate peak properties
-        """
+        """Set peaks and perform various checks. The input is typically a list if dicts with appropriate peak
+        properties"""
         peak_data = self.get_from_list(peak_list)
 
         self._peaks = peak_data
