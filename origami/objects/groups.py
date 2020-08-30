@@ -198,6 +198,28 @@ class DataGroup(ContainerBase):
             self._processing = dict()
         return self._processing.get(method, dict())
 
+    def get_group_metadata(self, keys: List[str], defaults=None, group_key=None) -> Dict:
+        """Get group metadata"""
+        if isinstance(keys, str):
+            keys = [keys]
+            defaults = [defaults]
+
+        # pre-allocate output dictionary
+        values = dict()
+        for data_obj in self:
+            if group_key:
+                metadata = data_obj.get_metadata(group_key, dict())
+                for i, key in enumerate(keys):
+                    if key not in values:
+                        values[key] = []
+                    values[key].append(metadata.get(key, defaults[i]))
+            else:
+                for key in keys:
+                    for i, key in enumerate(keys):
+                        values[key] = []
+                    values[key].append(data_obj.get_metadata(key, defaults[i]))
+        return values
+
     def mean(self):
         """Mean array"""
         raise NotImplementedError("Must implement method")
@@ -226,6 +248,9 @@ class DataGroup(ContainerBase):
         """Outputs data to dictionary of `data` and `attributes`"""
         attrs = {"class": self._cls, **self._metadata}
         return dict(), attrs
+
+    def export(self, name: str):
+        """Export data in a Zarr format"""
 
     def change_x_label(self, to_label: str):
         """Change x-axis label and values"""
@@ -272,6 +297,10 @@ class DataGroup(ContainerBase):
             return True
         return False
 
+    def validate_size(self, n_min: int = 1, n_max: int = 1):
+        """Validate that the number of items is correct"""
+        return n_min <= self.n_objects <= n_max
+
 
 class SpectrumGroup(DataGroup):
     """Spectrum group object"""
@@ -309,6 +338,12 @@ class SpectrumGroup(DataGroup):
     def y(self):
         """Returns summed intensity array"""
         return self.y_sum
+
+    @property
+    def array(self):
+        """Returns array of y-axes"""
+        ys = self.ys
+        return np.asarray(ys).T
 
     @property
     def y_sum(self):
@@ -569,6 +604,34 @@ class HeatmapGroup(DataGroup):
     def arrays(self):
         """Return list of arrays"""
         return [data_obj.array for data_obj in self]
+
+    @property
+    def x(self):
+        """Returns x-axis array"""
+        if not self.validate_x_labels():
+            raise ValueError("x-axis labels are not the same")
+        return self.xs[0]
+
+    @property
+    def y(self):
+        """Returns x-axis array"""
+        if not self.validate_y_labels():
+            raise ValueError("y-axis labels are not the same")
+        return self.ys[0]
+
+    @property
+    def x_label(self):
+        """Returns x-axis label"""
+        if not self.validate_x_labels():
+            raise ValueError("x-axis labels are not the same")
+        return self.x_labels[0]
+
+    @property
+    def y_label(self):
+        """Returns y-axis label"""
+        if not self.validate_y_labels():
+            raise ValueError("y-axis labels are not the same")
+        return self.y_labels[0]
 
     @property
     def need_resample(self):

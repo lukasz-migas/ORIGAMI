@@ -1,11 +1,34 @@
 """Various activation functions"""
 # Third-party imports
 import numpy as np
+from numpy.ma.core import masked_array
 
 # Local imports
 from origami.utils.check import isempty
 from origami.processing.heatmap import normalize_2d
 from origami.processing.spectra import normalize_1D
+
+
+def mask_arrays(array_1: np.ndarray, array_2: np.ndarray, alpha_1: float, alpha_2: float):
+    """Mask two arrays so they can be overlaid"""
+    array_ma_1 = masked_array(array_1, array_1 < alpha_1)
+    array_ma_2 = masked_array(array_2, array_2 < alpha_2)
+
+    return array_ma_1, array_ma_2
+
+
+def compute_rmsd_matrix(arrays, normalize: bool = True):
+    """Conpute the RMSD for a number of arrays"""
+    n_items = len(arrays)
+
+    #     array = np.zeros((n_items, n_items))
+    array = np.full((n_items, n_items), np.nan)
+    for i in range(n_items):
+        for j in range(i + 1, n_items):
+            p_rmsd, __ = compute_rmsd(arrays[i], arrays[j], normalize)
+            array[i, j] = np.round(p_rmsd, 2)
+
+    return np.arange(n_items), np.arange(n_items), array
 
 
 def compute_rmsd(array_1, array_2, normalize=True):

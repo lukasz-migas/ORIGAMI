@@ -160,11 +160,6 @@ class PanelSignalComparisonViewer(MiniFrame, ColorGetterMixin):
         return self.presenter.data_handling
 
     @property
-    def data_processing(self):
-        """Return handle to `data_processing`"""
-        return self.presenter.data_processing
-
-    @property
     def panel_plot(self):
         """Return handle to `panel_plot`"""
         return self.presenter.view.panelPlots

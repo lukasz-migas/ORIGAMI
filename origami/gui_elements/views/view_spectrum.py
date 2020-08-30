@@ -236,7 +236,7 @@ class ViewCompareSpectra(ViewBase, ViewSpectrumPanelMixin):
     def plot(
         self, x_top=None, x_bottom=None, y_top=None, y_bottom=None, obj_top=None, obj_bottom=None, labels=None, **kwargs
     ):
-        """Simple line plot"""
+        """Overlay two line plots"""
         # try to update plot first, as it can be quicker
         # self.set_document(obj, **kwargs)
         # self.set_labels(obj, **kwargs)

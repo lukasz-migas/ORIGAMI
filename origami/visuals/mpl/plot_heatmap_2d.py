@@ -35,6 +35,56 @@ class PlotHeatmap2D(PlotBase):
         self.tick_labels = None
         self.text = None
 
+    def plot_2d_overlay(self, x, y, array_1, array_2, title="", x_label="", y_label="", obj=None, **kwargs):
+        """Simple heatmap plot"""
+        self._set_axes()
+
+        # add 2d plot
+        xlimits, ylimits, extent = self._compute_xy_limits(x, y, None, is_heatmap=True)
+
+        self.cax = self.plot_base.imshow(
+            array_1,
+            cmap=kwargs.get("heatmap_colormap_1", "Reds"),
+            interpolation=kwargs["heatmap_interpolation"],
+            aspect="auto",
+            origin="lower",
+            extent=[*xlimits, *ylimits],
+            alpha=kwargs.get("heatmap_transparency_1", 1.0),
+        )
+        self.cax = self.plot_base.imshow(
+            array_2,
+            cmap=kwargs.get("heatmap_colormap_2", "Blues"),
+            interpolation=kwargs["heatmap_interpolation"],
+            aspect="auto",
+            origin="lower",
+            extent=[*xlimits, *ylimits],
+            alpha=kwargs.get("heatmap_transparency_2", 1.0),
+        )
+        # set plot limits
+        self.plot_base.set_xlim(xlimits)
+        self.plot_base.set_ylim(ylimits)
+        self.set_plot_xlabel(x_label, **kwargs)
+        self.set_plot_ylabel(y_label, **kwargs)
+        self.set_plot_title(title, **kwargs)
+        self.set_tick_parameters(**kwargs)
+
+        self.setup_new_zoom(
+            [self.plot_base],
+            data_limits=[extent],
+            allow_extraction=kwargs.get("allow_extraction", False),
+            callbacks=kwargs.get("callbacks", dict()),
+            is_heatmap=True,
+            obj=obj,
+        )
+        self.store_plot_limits([extent], [self.plot_base])
+
+        # add colorbar
+        # self.set_colorbar_parameters(array, **kwargs)
+
+        # update normalization
+        # self.plot_2D_update_normalization(**kwargs)
+        self.PLOT_TYPE = "heatmap-overlay"
+
     def plot_2d(self, x, y, array, title="", x_label="", y_label="", obj=None, **kwargs):
         """Simple heatmap plot"""
         self._set_axes()
@@ -516,6 +566,194 @@ class PlotHeatmap2D(PlotBase):
             labelbottom=False,
         )
 
+    def plot_heatmap_line(self, x, y, array, y_top, x_label=None, y_label=None, ratio: int = 5, obj=None, **kwargs):
+        """Plot heatmap and line plot"""
+        gs = gridspec.GridSpec(ratio, ratio, wspace=0.1, hspace=0.1)
+
+        self.plot_base = self.figure.add_subplot(gs[1:, :])
+        self.plot_base.set_gid(PlotIds.PLOT_LH_2D)
+
+        self.plot_line_top = self.figure.add_subplot(gs[0:1, :], sharex=self.plot_base)
+        self.plot_line_top.set_gid(PlotIds.PLOT_LH_LINE)
+
+        xlimits, ylimits, extent = self._compute_xy_limits(x, y, None)
+
+        # add 2d plot
+        self.cax = self.plot_base.imshow(
+            array,
+            cmap=kwargs["heatmap_colormap"],
+            interpolation=kwargs["heatmap_interpolation"],
+            #             norm=kwargs["colormap_norm"],
+            aspect="auto",
+            origin="lower",
+            extent=[*xlimits, *ylimits],
+            gid=PlotIds.PLOT_LH_2D,
+        )
+
+        # set margin plots
+        self.plot_line_top.plot(x, y_top, gid=PlotIds.PLOT_LH_LINE)
+
+        # turn off the ticks on the density axis for the marginal plots
+        self._joint_despine(self.plot_line_top, "horizontal")
+
+        # set plot limits
+        self.plot_base.set_xlim(xlimits)
+        self.plot_base.set_ylim(ylimits)
+        self.set_plot_xlabel(x_label, **kwargs)
+        self.set_plot_ylabel(y_label, **kwargs)
+        self.set_tick_parameters(**kwargs)
+
+        # add limits of the other plots
+        _, _, extent_x = self._compute_xy_limits(x, y_top, 1)
+
+        # setup zoom
+        self.setup_new_zoom(
+            [self.plot_base, self.plot_line_top],
+            data_limits=[extent, extent_x],
+            allow_extraction=kwargs.get("allow_extraction", False),
+            callbacks=kwargs.get("callbacks", dict()),
+            is_heatmap=True,
+            is_joint=False,
+            obj=obj,
+        )
+        self.store_plot_limits([extent, extent_x], [self.plot_base, self.plot_line_top])
+
+        # update normalization
+        self.plot_2D_update_normalization(**kwargs)
+        self.PLOT_TYPE = "line-heatmap"
+
+    def plot_2d_grid_2_to_1(
+        self, x, y, array_top, array_bottom, array, x_label=None, y_label=None, ratio: int = 6, obj=None, **kwargs
+    ):
+        """Plot heatmap + heatmap => heatmap"""
+        gs = gridspec.GridSpec(ratio, ratio, wspace=1, hspace=1)
+
+        self.plot_base = self.figure.add_subplot(gs[:, 2:])
+        self.plot_base.set_gid(PlotIds.PLOT_GRID_2_TO_1_RIGHT)
+
+        self.plot_grid_top = self.figure.add_subplot(gs[0:3, 0:2], sharex=self.plot_base, sharey=self.plot_base)
+        self.plot_grid_top.set_gid(PlotIds.PLOT_GRID_2_TO_1_LEFT_TOP)
+
+        self.plot_grid_bottom = self.figure.add_subplot(gs[3:, 0:2], sharex=self.plot_base, sharey=self.plot_base)
+        self.plot_grid_bottom.set_gid(PlotIds.PLOT_GRID_2_TO_1_LEFT_BOTTOM)
+
+        xlimits, ylimits, extent = self._compute_xy_limits(x, y, None)
+
+        # add 2d plot
+        self.cax = self.plot_base.imshow(
+            array,
+            cmap=kwargs["heatmap_colormap"],
+            interpolation=kwargs["heatmap_interpolation"],
+            #             norm=kwargs["colormap_norm"],
+            aspect="auto",
+            origin="lower",
+            extent=[*xlimits, *ylimits],
+            gid=PlotIds.PLOT_GRID_2_TO_1_RIGHT,
+        )
+
+        self.cax = self.plot_grid_top.imshow(
+            array_top,
+            cmap=kwargs["heatmap_colormap"],
+            interpolation=kwargs["heatmap_interpolation"],
+            #             norm=kwargs["colormap_norm"],
+            aspect="auto",
+            origin="lower",
+            extent=[*xlimits, *ylimits],
+            gid=PlotIds.PLOT_GRID_2_TO_1_LEFT_TOP,
+        )
+
+        self.cax = self.plot_grid_bottom.imshow(
+            array_bottom,
+            cmap=kwargs["heatmap_colormap"],
+            interpolation=kwargs["heatmap_interpolation"],
+            #             norm=kwargs["colormap_norm"],
+            aspect="auto",
+            origin="lower",
+            extent=[*xlimits, *ylimits],
+            gid=PlotIds.PLOT_GRID_2_TO_1_LEFT_BOTTOM,
+        )
+
+        # turn off the ticks on the density axis for the marginal plots
+        #         self._joint_despine(self.plot_line_top, "horizontal")
+        #
+        # set plot limits
+        self.plot_base.set_xlim(xlimits)
+        self.plot_base.set_ylim(ylimits)
+        self.set_plot_xlabel(x_label, **kwargs)
+        self.set_plot_ylabel(y_label, **kwargs)
+        self.set_tick_parameters(**kwargs)
+
+        # setup zoom
+        self.setup_new_zoom(
+            [self.plot_base, self.plot_grid_top, self.plot_grid_bottom],
+            data_limits=[extent, extent, extent],
+            allow_extraction=kwargs.get("allow_extraction", False),
+            callbacks=kwargs.get("callbacks", dict()),
+            is_heatmap=True,
+            obj=obj,
+        )
+        self.store_plot_limits([extent, extent, extent], [self.plot_base, self.plot_grid_top, self.plot_grid_bottom])
+
+        # update normalization
+        self.plot_2D_update_normalization(**kwargs)
+        self.PLOT_TYPE = "heatmap-grid"
+
+    #     def plot_2d_compare(self, x, y, array_1, array_2, x_label=None, y_label=None, ratio: int=5, obj=None,
+    #     **kwargs):
+    #         """Plot heatmap and line plot"""
+    #         gs = gridspec.GridSpec(ratio, ratio, wspace=0.1, hspace=0.1)
+    #
+    #         self.plot_base = self.figure.add_subplot(gs[1:, :])
+    #         self.plot_base.set_gid(PlotIds.PLOT_LH_2D)
+    #
+    #         self.plot_line_top = self.figure.add_subplot(gs[0:1, :], sharex=self.plot_base)
+    #         self.plot_line_top.set_gid(PlotIds.PLOT_LH_LINE)
+    #
+    #         xlimits, ylimits, extent = self._compute_xy_limits(x, y, None)
+    #
+    #         # add 2d plot
+    #         self.cax = self.plot_base.imshow(
+    #             array_1,
+    #             cmap=kwargs["heatmap_colormap"],
+    #             interpolation=kwargs["heatmap_interpolation"],
+    #             aspect="auto",
+    #             origin="lower",
+    #             extent=[*xlimits, *ylimits],
+    #             gid=PlotIds.PLOT_JOINT_XY,
+    #         )
+    #
+    #         # set margin plots
+    #         self.plot_line_top.plot(x, y_top, gid=PlotIds.PLOT_LH_LINE)
+    #
+    #         # turn off the ticks on the density axis for the marginal plots
+    #         self._joint_despine(self.plot_line_top, "horizontal")
+    #
+    #         # set plot limits
+    #         self.plot_base.set_xlim(xlimits)
+    #         self.plot_base.set_ylim(ylimits)
+    #         self.set_plot_xlabel(x_label, **kwargs)
+    #         self.set_plot_ylabel(y_label, **kwargs)
+    #         self.set_tick_parameters(**kwargs)
+    #
+    #         # add limits of the other plots
+    #         _, _, extent_x = self._compute_xy_limits(x, y_top, 1)
+    #
+    #         # setup zoom
+    #         self.setup_new_zoom(
+    #             [self.plot_base, self.plot_line_top],
+    #             data_limits=[extent, extent_x],
+    #             allow_extraction=kwargs.get("allow_extraction", False),
+    #             callbacks=kwargs.get("callbacks", dict()),
+    #             is_heatmap=True,
+    #             is_joint=True,
+    #             obj=obj,
+    #         )
+    #         self.store_plot_limits([extent, extent_x], [self.plot_base, self.plot_line_top])
+    #
+    #         # update normalization
+    #         self.plot_2D_update_normalization(**kwargs)
+    #         self.PLOT_TYPE = "line-heatmap"
+
     @staticmethod
     def get_heatmap_normalization(
         array: np.ndarray,
@@ -944,111 +1182,6 @@ class PlotHeatmap2D(PlotBase):
     #     #         extent = [xmin, ymin, xmax, ymax]
     #     self.setup_zoom(plt_list, self.zoomtype, data_lims=extent_list)
     #
-    # def plot_grid_2D_overlay(
-    #     self,
-    #     zvals_1,
-    #     zvals_2,
-    #     zvals_cum,
-    #     xvals,
-    #     yvals,
-    #     xlabel,
-    #     ylabel,
-    #     plotName="Overlay_Grid",
-    #     axesSize=None,
-    #     **kwargs,
-    # ):
-    #
-    #     # update settings
-    #     self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
-    #
-    #     gs = gridspec.GridSpec(nrows=2, ncols=2, height_ratios=[1, 1], width_ratios=[1, 2])
-    #     gs.update(hspace=kwargs["rmsf_h_space"], wspace=kwargs["rmsf_h_space"])
-    #
-    #     self.plot2D_upper = self.figure.add_subplot(gs[0, 0], aspect="auto")
-    #     self.plot2D_lower = self.figure.add_subplot(gs[1, 0], aspect="auto")
-    #     self.plot2D_side = self.figure.add_subplot(gs[:, 1], aspect="auto")
-    #
-    #     # Calculate extents
-    #     extent = ut_visuals.extents(xvals) + ut_visuals.extents(yvals)
-    #     self.plot2D_upper.imshow(
-    #         zvals_1,
-    #         extent=extent,
-    #         cmap=kwargs.get("colormap_1", "Reds"),
-    #         interpolation=kwargs["heatmap_interpolation"],
-    #         norm=kwargs["cmap_norm_1"],
-    #         aspect="auto",
-    #         origin="lower",
-    #     )
-    #
-    #     self.plot2D_lower.imshow(
-    #         zvals_2,
-    #         extent=extent,
-    #         cmap=kwargs.get("colormap_2", "Blues"),
-    #         interpolation=kwargs["heatmap_interpolation"],
-    #         norm=kwargs["cmap_norm_2"],
-    #         aspect="auto",
-    #         origin="lower",
-    #     )
-    #
-    #     self.plot2D_side.imshow(
-    #         zvals_cum,
-    #         extent=extent,
-    #         cmap=kwargs["heatmap_colormap"],
-    #         interpolation=kwargs["heatmap_interpolation"],
-    #         norm=kwargs["cmap_norm_cum"],
-    #         aspect="auto",
-    #         origin="lower",
-    #     )
-    #
-    #     xmin, xmax = np.min(xvals), np.max(xvals)
-    #     ymin, ymax = np.min(yvals), np.max(yvals)
-    #
-    #     # ticks
-    #     for plot in [self.plot2D_upper, self.plot2D_lower, self.plot2D_side]:
-    #         plot.set_xlim(xmin, xmax - 0.5)
-    #         plot.set_ylim(ymin, ymax - 0.5)
-    #
-    #         plot.tick_params(
-    #             axis="both",
-    #             left=kwargs["axes_frame_ticks_left"],
-    #             right=kwargs["axes_frame_ticks_right"],
-    #             top=kwargs["axes_frame_ticks_top"],
-    #             bottom=kwargs["axes_frame_ticks_bottom"],
-    #             labelleft=kwargs["axes_frame_tick_labels_left"],
-    #             labelright=kwargs["axes_frame_tick_labels_right"],
-    #             labeltop=kwargs["axes_frame_tick_labels_top"],
-    #             labelbottom=kwargs["axes_frame_tick_labels_bottom"],
-    #         )
-    #
-    #         # spines
-    #         plot.spines["left"].set_visible(kwargs["axes_frame_spine_left"])
-    #         plot.spines["right"].set_visible(kwargs["axes_frame_spine_right"])
-    #         plot.spines["top"].set_visible(kwargs["axes_frame_spine_top"])
-    #         plot.spines["bottom"].set_visible(kwargs["axes_frame_spine_bottom"])
-    #         [i.set_linewidth(kwargs["axes_frame_width"]) for i in plot.spines.values()]
-    #
-    #         # update axis frame
-    #         if kwargs["axes_frame_show"]:
-    #             plot.set_axis_on()
-    #         else:
-    #             plot.set_axis_off()
-    #
-    #         kwargs["axes_label_pad"] = 5
-    #         plot.set_xlabel(
-    #             xlabel, labelpad=kwargs["axes_label_pad"], fontsize=kwargs["axes_tick_font_size"],
-    #             weight=kwargs["axes_label_font_weight"]
-    #         )
-    #         plot.set_ylabel(
-    #             ylabel, labelpad=kwargs["axes_label_pad"], fontsize=kwargs["axes_tick_font_size"],
-    #             weight=kwargs["axes_label_font_weight"]
-    #         )
-    #
-    #     gs.tight_layout(self.figure)
-    #     self.figure.tight_layout()
-    #     extent = [xmin, ymin, xmax, ymax]
-    #     self.setup_zoom([self.plot2D_upper, self.plot2D_lower, self.plot2D_side], self.zoomtype, data_lims=extent)
-    #     self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
-    #
     # def plot_2D_rgb(
     #     self, zvals, xvals, yvals, xlabel, ylabel, zoom="box", axesSize=None, legend_text=None, plotName="RGB",
     #     **kwargs
@@ -1158,170 +1291,6 @@ class PlotHeatmap2D(PlotBase):
     #     # setup zoom
     #     self.setup_zoom([self.plot_base], self.zoomtype, data_lims=extent, plotName=plotName)
     #     self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
-    #
-    # def plot_2D_image_update_data(self, xvals, yvals, zvals, xlabel="", ylabel="", **kwargs):
-    #     # update settings
-    #     self._check_and_update_plot_settings(**kwargs)
-    #
-    #     # update limits and extents
-    #     self.cax.set_data(zvals)
-    #     self.cax.set_norm(kwargs.get("colormap_norm", None))
-    #     self.cax.set_cmap(kwargs["heatmap_colormap"])
-    #     self.cax.set_interpolation(kwargs["heatmap_interpolation"])
-    #
-    #     xlimit = self.plot_base.get_xlim()
-    #     xmin, xmax = xlimit
-    #     ylimit = self.plot_base.get_ylim()
-    #     ymin, ymax = ylimit
-    #
-    #     # setup zoom
-    #     extent = [xmin, ymin, xmax, ymax]
-    #
-    #     if kwargs.get("update_extents", True):
-    #         self.update_extents([extent])
-    #         self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
-    #
-    #     # add data
-    #     self.plot_data = {"xvals": xvals, "yvals": yvals, "zvals": zvals, "xlabel": xlabel, "ylabel": ylabel}
-    #     self.plot_labels.update({"xlabel": xlabel, "ylabel": ylabel})
-    #
-    #     # add colorbar
-    #     self.plot_2D_update_normalization(**kwargs)
-    #     self.set_colorbar_parameters(zvals, **kwargs)
-    #
-    # def plot_2D_image(self, zvals, xvals, yvals, xlabel="", ylabel="", axesSize=None, plotName=None, **kwargs):
-    #     # update settings
-    #     self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
-    #
-    #     # set tick size
-    #     matplotlib.rc("xtick", labelsize=kwargs["axes_tick_font_size"])
-    #     matplotlib.rc("ytick", labelsize=kwargs["axes_tick_font_size"])
-    #
-    #     # Plot
-    #     self.plot_base = self.figure.add_axes(self._axes)
-    #
-    #     # Add imshow
-    #     self.cax = self.plot_base.imshow(
-    #         zvals,
-    #         #             extent=extent,
-    #         cmap=kwargs["heatmap_colormap"],
-    #         interpolation=kwargs["heatmap_interpolation"],
-    #         norm=kwargs["colormap_norm"],
-    #         aspect="equal",
-    #         origin="lower",
-    #     )
-    #
-    #     xlimit = self.plot_base.get_xlim()
-    #     xmin, xmax = xlimit
-    #     ylimit = self.plot_base.get_ylim()
-    #     ymin, ymax = ylimit
-    #
-    #     # setup zoom
-    #     extent = [xmin, ymin, xmax, ymax]
-    #     self.setup_zoom(
-    #         [self.plot_base],
-    #         self.zoomtype,
-    #         data_lims=extent,
-    #         plotName=plotName,
-    #         callbacks=kwargs.get("callbacks", dict()),
-    #     )
-    #     self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
-    #
-    #     # add colorbar
-    #     self.set_colorbar_parameters(zvals, **kwargs)
-    #
-    #     # remove tick labels
-    #     for key in [
-    #         "axes_frame_ticks_left",
-    #         "axes_frame_ticks_right",
-    #         "axes_frame_ticks_top",
-    #         "axes_frame_ticks_bottom",
-    #         "axes_frame_tick_labels_left",
-    #         "axes_frame_tick_labels_right",
-    #         "axes_frame_tick_labels_top",
-    #         "axes_frame_tick_labels_bottom",
-    #     ]:
-    #         kwargs[key] = False
-    #
-    #     self.set_tick_parameters(**kwargs)
-    #
-    #     # add data
-    #     self.plot_data = {"xvals": xvals, "yvals": yvals, "zvals": zvals, "xlabel": xlabel, "ylabel": ylabel}
-    #     self.plot_labels.update({"xlabel": xlabel, "ylabel": ylabel})
-    #
-    #     # update normalization
-    #     self.plot_2D_update_normalization(**kwargs)
-    #
-    # def plot_2D_overlay(
-    #     self,
-    #     zvalsIon1=None,
-    #     zvalsIon2=None,
-    #     cmapIon1="Reds",
-    #     cmapIon2="Greens",
-    #     alphaIon1=1,
-    #     alphaIon2=1,
-    #     labelsX=None,
-    #     labelsY=None,
-    #     xlabel="",
-    #     ylabel="",
-    #     axesSize=None,
-    #     plotName=None,
-    #     **kwargs,
-    # ):
-    #
-    #     # update settings
-    #     self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
-    #
-    #     # set tick size
-    #     matplotlib.rc("xtick", labelsize=kwargs["axes_tick_font_size"])
-    #     matplotlib.rc("ytick", labelsize=kwargs["axes_tick_font_size"])
-    #
-    #     # Plot
-    #     self.plot_base = self.figure.add_axes(self._axes)
-    #
-    #     extent = ut_visuals.extents(labelsX) + ut_visuals.extents(labelsY)
-    #
-    #     # Add imshow
-    #     self.cax = self.plot_base.imshow(
-    #         zvalsIon1,
-    #         extent=extent,
-    #         cmap=cmapIon1,
-    #         interpolation=kwargs["heatmap_interpolation"],
-    #         aspect="auto",
-    #         origin="lower",
-    #         alpha=alphaIon1,
-    #     )
-    #     plotMS2 = self.plot_base.imshow(
-    #         zvalsIon2,
-    #         extent=extent,
-    #         cmap=cmapIon2,
-    #         interpolation=kwargs["heatmap_interpolation"],
-    #         aspect="auto",
-    #         origin="lower",
-    #         alpha=alphaIon2,
-    #     )
-    #
-    #     xmin, xmax = self.plot_base.get_xlim()
-    #     ymin, ymax = self.plot_base.get_ylim()
-    #     self.plot_base.set_xlim(xmin, xmax - 0.5)
-    #     self.plot_base.set_ylim(ymin, ymax - 0.5)
-    #
-    #     # legend
-    #     self.set_legend_parameters(None, **kwargs)
-    #     # setup zoom
-    #     extent = [xmin, ymin, xmax, ymax]
-    #     self.setup_zoom([self.plot_base], self.zoomtype, data_lims=extent, plotName=plotName)
-    #     self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
-    #
-    #     # labels
-    #     if xlabel in ["None", None, ""]:
-    #         xlabel = ""
-    #     if ylabel in ["None", None, ""]:
-    #         ylabel = ""
-    #
-    #     self.set_plot_xlabel(xlabel, **kwargs)
-    #     self.set_plot_ylabel(ylabel, **kwargs)
-    #     self.set_tick_parameters(**kwargs)
 
 
 class TestPanel(wx.Dialog):

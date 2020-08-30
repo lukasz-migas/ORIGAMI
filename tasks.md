@@ -41,6 +41,8 @@
 - [x] add methods to only read metadata from the disk to speed-up collection of if items that need processing
 - [x] add `as_object` method that does not load data and extra data
 - [x] add `extra_data` property that checks whether data has been loaded (`isinstance`) or ndarray
+- [ ] speed-up interpolation of m/z axis as it can be super slow!!!
+- [ ] compare MS should do processing in a background thread
 
 ## New features
 

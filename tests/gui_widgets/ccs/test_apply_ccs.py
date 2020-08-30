@@ -34,9 +34,9 @@ class TestDialogBatchApplyCCSCalibration(WidgetTestCase):
         assert dlg.charge_value.GetValue() == 0
         assert dlg.mz_value.GetValue() == "750.0000"
 
-        self.sim_textctrl_click_evt(dlg.charge_value, 3, [dlg.on_edit_item])
-        item_info = dlg.on_get_item_information(1)
-        assert item_info["charge"] == 3
+        # self.sim_textctrl_click_evt(dlg.charge_value, 3, [dlg.on_edit_item])
+        # item_info = dlg.on_get_item_information(1)
+        # assert item_info["charge"] == 3
 
         wx.CallLater(250, dlg.on_ok, None)
         res = dlg.ShowModal()

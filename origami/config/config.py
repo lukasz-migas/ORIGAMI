@@ -1127,7 +1127,7 @@ class Config:
 
         # overlay panel
         self.overlay_panel_1d_method = "Overlay"
-        self.overlay_panel_1d_method_choices = sorted(["Overlay", "Waterfall", "Subtract (n=2)", "Butterfly (n=2)"])
+        self.overlay_panel_1d_method_choices = ["Overlay", "Waterfall", "Subtract (n=2)", "Butterfly (n=2)"]
         self.overlay_panel_1d_type = "Mass Spectra"
         self.overlay_panel_1d_type_choices = ["Mass Spectra", "Chromatograms", "Mobilograms"]
         self.overlay_panel_1d_line_style = "solid"
@@ -1135,21 +1135,21 @@ class Config:
         self.overlay_panel_1d_line_color = (1, 0, 0)
 
         self.overlay_panel_2d_method = "Mask"
-        self.overlay_panel_2d_method_choices = sorted(
-            [
-                "Mask",
-                "Transparent",
-                "RGB",
-                "Mean",
-                "Variance",
-                "Standard Deviation",
-                "RMSD",
-                "RMSF",
-                "RMSD Matrix",
-                "Grid (2->1)",
-                "Grid (n x n)",
-            ]
-        )
+        self.overlay_panel_2d_method_choices = [
+            "Mask",
+            "Transparent",
+            "RGB",
+            "Mean",
+            "Variance",
+            "Standard Deviation",
+            "RMSD",
+            "RMSF",
+            "RMSD Matrix",
+            "RMSD Dot",
+            "Compare side-by-side",
+            "Grid (2->1)",
+            "Grid (n x n)",
+        ]
         self.overlay_panel_2d_heatmap_colormap = "Reds"
         self.overlay_panel_2d_heatmap_transparency = 0.5
         self.overlay_panel_2d_heatmap_mask = 0.5

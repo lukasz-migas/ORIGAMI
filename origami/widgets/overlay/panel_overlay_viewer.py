@@ -37,6 +37,11 @@ def _str_fmt(value, default: Union[str, float, int] = ""):
     return str(value)
 
 
+# TODO: add settings button next to the overlay method to enable better plot controls
+# TODO: add option to reduce number of colormaps
+# TODO: put the overlay method at the very bottom of the grid
+
+
 class TableColumnIndex:
     """Table indexer"""
 
@@ -139,6 +144,7 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
             self.overlay_2d_max_threshold: "max_threshold",
             self.overlay_2d_transparency: "transparency",
             self.overlay_2d_mask: "mask",
+            self.overlay_2d_colormap: "colormap",
         }
         self.peaklist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_item)
 
@@ -506,7 +512,7 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
     # noinspection DuplicatedCode
     def make_plot_panel(self, split_panel):
         """Make plot panel"""
-        self.view_overlay = ViewOverlay(split_panel, (10, 10), x_label="x-axis", y_label="y-axis", filename="overlay")
+        self.view_overlay = ViewOverlay(split_panel, (4, 4), x_label="x-axis", y_label="y-axis", filename="overlay")
 
         return self.view_overlay.panel
 
@@ -724,12 +730,13 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
         """Update metadata in the DocumentStore"""
         item_info = self.on_get_item_information(item_id)
         document = ENV.on_get_document(item_info["document_title"])
-        if document is None:
+        if document is None or item_info["tag"] != self._current_item:
             return
 
         # set data in the document
         obj = document[item_info["dataset_name"], True, True]
         obj.add_metadata("overlay", self.get_current_overlay_metadata(item_info))
+        LOGGER.debug(f"Flushed metadata to disk for `{item_info['tag']}` item")
 
     @staticmethod
     def get_item_metadata(item_info: Dict) -> Dict:
@@ -765,6 +772,30 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
         metadata.update({"color": item_info["color_255to1"], "order": item_info["order"], "label": item_info["label"]})
         return metadata
 
+    def get_default_overlay_metadata(self, idx: int):
+        """Return default overlay type"""
+        metadata = dict()
+        if idx == 0:
+            metadata.update(
+                {
+                    "line_style": CONFIG.overlay_panel_1d_line_style,
+                    "transparency": CONFIG.overlay_panel_1d_line_transparency,
+                    "color": CONFIG.overlay_panel_1d_line_color,
+                }
+            )
+        else:
+            metadata.update(
+                {
+                    "colormap": CONFIG.overlay_panel_2d_heatmap_colormap,
+                    "min_threshold": CONFIG.overlay_panel_2d_heatmap_min_threshold,
+                    "max_threshold": CONFIG.overlay_panel_2d_heatmap_max_threshold,
+                    "transparency": CONFIG.overlay_panel_2d_heatmap_transparency,
+                    "mask": CONFIG.overlay_panel_2d_heatmap_mask,
+                    "color": CONFIG.overlay_panel_2d_heatmap_color,
+                }
+            )
+        metadata.update({"order": 0, "label": ""})
+
     def get_selected_items(self):
         """Get list of selected items"""
         indices = self.get_checked_items()
@@ -772,7 +803,8 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
         for item_id in indices:
             item_info = self.on_get_item_information(item_id)
             item_list.append([item_info["document_title"], item_info["dataset_name"]])
-            self.update_item_metadata(item_id)
+            # FIME: this actually flushes wrong data to disk!
+        #             self.update_item_metadata(item_id)  # flush to hard drive
         return item_list
 
     def on_plot_overlay(self, _evt):
@@ -780,10 +812,9 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
         item_list = self.get_selected_items()
 
         current_page = self.current_page
-        # spectra
-        if current_page == 0:
+        if current_page == 0:  # spectra
             self.on_overlay_spectra(item_list)
-        else:
+        else:  # heatmaps
             self.on_overlay_heatmap(item_list)
 
     def on_overlay_spectra(self, item_list):
@@ -791,51 +822,88 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
         method = self.overlay_1d_method.GetStringSelection()
         spectral_type = self.overlay_1d_spectrum_type.GetStringSelection()
 
-        group_obj, valid_x, valid_y = OVERLAY_HANDLER.collect_overlay_1d_spectra(item_list, spectral_type, False)
+        group_obj, valid_x, valid_y = OVERLAY_HANDLER.collect_overlay_1d_spectra(item_list, spectral_type, True)
         # check the x-axis labels
-        if not valid_x:
-            print("The x-axis label is not valid!")
-        if not valid_y:
-            print("The y-axis label is not valid!")
+        #         if not valid_x:
+        #             raise ValueError("The x-axis label is not valid!")
+        #         if not valid_y:
+        #             raise ValueError("The y-axis label is not valid!")
+
+        if method == "Butterfly (n=2)":
+            x_top, x_bottom, y_top, y_bottom, kwargs = OVERLAY_HANDLER.prepare_overlay_1d_butterfly(group_obj)
+            self.view_overlay.plot_1d_compare(x_top, x_bottom, y_top, y_bottom, forced_kwargs=kwargs)
+        elif method == "Subtract (n=2)":
+            x_top, x_bottom, y_top, y_bottom, kwargs = OVERLAY_HANDLER.prepare_overlay_1d_subtract(group_obj)
+            self.view_overlay.plot_1d_compare(x_top, x_bottom, y_top, y_bottom, forced_kwargs=kwargs)
+        elif method == "Overlay":
+            x, y, array = OVERLAY_HANDLER.prepare_overlay_1d_multiline(group_obj)
+            self.view_overlay.plot_1d_overlay(x, y, array, forced_kwargs=dict(waterfall_increment=0))
+        elif method == "Waterfall":
+            x, y, array = OVERLAY_HANDLER.prepare_overlay_1d_multiline(group_obj)
+            self.view_overlay.plot_1d_overlay(x, y, array)
+        else:
+            LOGGER.error("Method not implemented yet")
+            return
         print(group_obj)
+
+    #     self.clipboard[overlay_data.pop("name")] = overlay_data.pop("data")
 
     def on_overlay_heatmap(self, item_list):
         """Overlay heatmap objects"""
         method = self.overlay_2d_method.GetStringSelection()
 
         group_obj, valid_x, valid_y = OVERLAY_HANDLER.collect_overlay_2d_heatmap(item_list, False)
+
+        if method == "Mean":
+            array, x, y, x_label, y_label = OVERLAY_HANDLER.prepare_overlay_2d_mean(group_obj)
+            self.view_overlay.plot_2d_heatmap(x, y, array, x_label=x_label, y_label=y_label)
+        elif method == "Standard Deviation":
+            array, x, y, x_label, y_label = OVERLAY_HANDLER.prepare_overlay_2d_stddev(group_obj)
+            self.view_overlay.plot_2d_heatmap(x, y, array, x_label=x_label, y_label=y_label)
+        elif method == "Variance":
+            array, x, y, x_label, y_label = OVERLAY_HANDLER.prepare_overlay_2d_variance(group_obj)
+            self.view_overlay.plot_2d_heatmap(x, y, array, x_label=x_label, y_label=y_label)
+        elif method == "RMSD":
+            array, x, y, x_label, y_label, rmsd_label = OVERLAY_HANDLER.prepare_overlay_2d_rmsd(group_obj)
+            self.view_overlay.plot_2d_heatmap(x, y, array, x_label=x_label, y_label=y_label)
+            self.view_overlay.add_labels([25], [25], [rmsd_label])  # FIXME
+        elif method == "RMSF":
+            array, x, y, rmsf_y, x_label, y_label, rmsd_label = OVERLAY_HANDLER.prepare_overlay_2d_rmsf(group_obj)
+            self.view_overlay.plot_2d_rmsf(x, y, array, rmsf_y, x_label=x_label, y_label=y_label)
+            self.view_overlay.add_labels([25], [25], [rmsd_label])  # FIXME
+        elif method == "RMSD Matrix":
+            array, x, y, x_label, y_label = OVERLAY_HANDLER.prepare_overlay_2d_rmsd_matrix(group_obj)
+            self.view_overlay.plot_2d_heatmap(x, y, array, x_label=x_label, y_label=y_label)
+        elif method == "RMSD Dot":
+            array, x, y, x_label, y_label = OVERLAY_HANDLER.prepare_overlay_2d_rmsd_matrix(group_obj)
+            self.view_overlay.plot_2d_heatmap(x, y, array, x_label=x_label, y_label=y_label)
+        elif method == "Mask":
+            array_1, array_2, x, y, x_label, y_label, kwargs = OVERLAY_HANDLER.prepare_overlay_2d_mask(group_obj)
+            self.view_overlay.plot_2d_overlay(
+                x, y, array_1, array_2, x_label=x_label, y_label=y_label, forced_kwargs=kwargs
+            )
+        elif method == "Transparent":
+            array_1, array_2, x, y, x_label, y_label, kwargs = OVERLAY_HANDLER.prepare_overlay_2d_transparent(group_obj)
+            self.view_overlay.plot_2d_overlay(
+                x, y, array_1, array_2, x_label=x_label, y_label=y_label, forced_kwargs=kwargs
+            )
+        elif method == "Grid (2->1)":
+            a_1, a_2, array, x, y, x_label, y_label, rmsd_label = OVERLAY_HANDLER.prepare_overlay_2d_grid_compare_rmsd(
+                group_obj
+            )
+            self.view_overlay.plot_2d_grid_compare_rmsd(x, y, a_1, a_2, array, x_label=x_label, y_label=y_label)
+            self.view_overlay.add_labels([25], [25], [rmsd_label])  # FIXME
+        else:
+            LOGGER.error("Method not implemented yet")
+            return
         print(group_obj)
 
-    #     if method == "Transparent":
-    #         overlay_data = self.data_visualisation.on_overlay_heatmap_transparent(
-    #             item_list, plot=None, plot_obj=self.plot_window
-    #         )
-    #     elif method == "Mask":
-    #         overlay_data = self.data_visualisation.on_overlay_heatmap_mask(
-    #             item_list, plot=None, plot_obj=self.plot_window
-    #         )
-    #     elif method in ["Mean", "Standard Deviation", "Variance"]:
-    #         overlay_data = self.data_visualisation.on_overlay_heatmap_statistical(
-    #             item_list, method, plot=None, plot_obj=self.plot_window
-    #         )
     #     elif method == "RGB":
     #         overlay_data = self.data_visualisation.on_overlay_heatmap_rgb(
     #             item_list, plot=None, plot_obj=self.plot_window
     #         )
     #     elif method == "Grid (n x n)":
     #         overlay_data = self.data_visualisation.on_overlay_heatmap_grid_nxn(
-    #             item_list, plot=None, plot_obj=self.plot_window
-    #         )
-    #     elif method == "RMSD Matrix":
-    #         overlay_data = self.data_visualisation.on_overlay_heatmap_rmsd_matrix(
-    #             item_list, plot=None, plot_obj=self.plot_window
-    #         )
-    #     elif method == "RMSD":
-    #         overlay_data = self.data_visualisation.on_overlay_heatmap_rmsd(
-    #             item_list, plot=None, plot_obj=self.plot_window
-    #         )
-    #     elif method == "RMSF":
-    #         overlay_data = self.data_visualisation.on_overlay_heatmap_rmsf(
     #             item_list, plot=None, plot_obj=self.plot_window
     #         )
     #     elif method == "Grid (2->1)":
@@ -848,122 +916,6 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
     #
     #     self.clipboard[overlay_data.pop("name")] = overlay_data.pop("data")
     #
-    # def on_overlay_mass_spectra(self, item_list, method):
-    #     if method == "Overlay":
-    #         overlay_data = self.data_visualisation.on_overlay_spectrum_overlay(
-    #             item_list,
-    #             "mass_spectra",
-    #             plot=None,
-    #             plot_obj=self.plot_window,
-    #             normalize_dataset=self.normalize_1D_check.GetValue(),
-    #         )
-    #     elif method == "Butterfly (n=2)":
-    #         overlay_data = self.data_visualisation.on_overlay_spectrum_butterfly(
-    #             item_list,
-    #             "mass_spectra",
-    #             plot=None,
-    #             plot_obj=self.plot_window,
-    #             normalize_dataset=self.normalize_1D_check.GetValue(),
-    #         )
-    #     elif method == "Subtract (n=2)":
-    #         overlay_data = self.data_visualisation.on_overlay_spectrum_subtract(
-    #             item_list,
-    #             "mass_spectra",
-    #             plot=None,
-    #             plot_obj=self.plot_window,
-    #             normalize_dataset=self.normalize_1D_check.GetValue(),
-    #         )
-    #     elif method == "Waterfall":
-    #         overlay_data = self.data_visualisation.on_overlay_spectrum_waterfall(
-    #             item_list,
-    #             "mass_spectra",
-    #             plot=None,
-    #             plot_obj=self.plot_window,
-    #             normalize_dataset=self.normalize_1D_check.GetValue(),
-    #         )
-    #     else:
-    #         LOGGER.error("Method not implemented yet")
-    #         return
-    #
-    #     self.clipboard[overlay_data.pop("name")] = overlay_data.pop("data")
-    #
-    # def on_overlay_mobilogram(self, item_list, method):
-    #     if method == "Overlay":
-    #         overlay_data = self.data_visualisation.on_overlay_spectrum_overlay(
-    #             item_list,
-    #             "mobilogram",
-    #             plot=None,
-    #             plot_obj=self.plot_window,
-    #             normalize_dataset=self.normalize_1D_check.GetValue(),
-    #         )
-    #     elif method == "Butterfly (n=2)":
-    #         overlay_data = self.data_visualisation.on_overlay_spectrum_butterfly(
-    #             item_list,
-    #             "mobilogram",
-    #             plot=None,
-    #             plot_obj=self.plot_window,
-    #             normalize_dataset=self.normalize_1D_check.GetValue(),
-    #         )
-    #     elif method == "Subtract (n=2)":
-    #         overlay_data = self.data_visualisation.on_overlay_spectrum_subtract(
-    #             item_list,
-    #             "mobilogram",
-    #             plot=None,
-    #             plot_obj=self.plot_window,
-    #             normalize_dataset=self.normalize_1D_check.GetValue(),
-    #         )
-    #     elif method == "Waterfall":
-    #         overlay_data = self.data_visualisation.on_overlay_spectrum_waterfall(
-    #             item_list,
-    #             "mobilogram",
-    #             plot=None,
-    #             plot_obj=self.plot_window,
-    #             normalize_dataset=self.normalize_1D_check.GetValue(),
-    #         )
-    #     else:
-    #         LOGGER.error("Method not implemented yet")
-    #         return
-    #
-    #     self.clipboard[overlay_data.pop("name")] = overlay_data.pop("data")
-    #
-    # def on_overlay_chromatogram(self, item_list, method):
-    #     if method == "Overlay":
-    #         overlay_data = self.data_visualisation.on_overlay_spectrum_overlay(
-    #             item_list,
-    #             "chromatogram",
-    #             plot=None,
-    #             plot_obj=self.plot_window,
-    #             normalize_dataset=self.normalize_1D_check.GetValue(),
-    #         )
-    #     elif method == "Butterfly (n=2)":
-    #         overlay_data = self.data_visualisation.on_overlay_spectrum_butterfly(
-    #             item_list,
-    #             "chromatogram",
-    #             plot=None,
-    #             plot_obj=self.plot_window,
-    #             normalize_dataset=self.normalize_1D_check.GetValue(),
-    #         )
-    #     elif method == "Subtract (n=2)":
-    #         overlay_data = self.data_visualisation.on_overlay_spectrum_subtract(
-    #             item_list,
-    #             "chromatogram",
-    #             plot=None,
-    #             plot_obj=self.plot_window,
-    #             normalize_dataset=self.normalize_1D_check.GetValue(),
-    #         )
-    #     elif method == "Waterfall":
-    #         overlay_data = self.data_visualisation.on_overlay_spectrum_waterfall(
-    #             item_list,
-    #             "chromatogram",
-    #             plot=None,
-    #             plot_obj=self.plot_window,
-    #             normalize_dataset=self.normalize_1D_check.GetValue(),
-    #         )
-    #     else:
-    #         LOGGER.error("Method not implemented yet")
-    #         return
-    #
-    #     self.clipboard[overlay_data.pop("name")] = overlay_data.pop("data")
 
     def on_populate_item_list(self, _evt):
         """Populate item list"""

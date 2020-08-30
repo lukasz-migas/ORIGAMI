@@ -212,6 +212,14 @@ class PlotSpectrum(PlotBase):
 
         # Setup X-axis getter
         self.store_plot_limits([extent], [self.plot_base])
+
+        # update style
+        self.plot_1d_update_style_by_label(
+            PlotIds.PLOT_COMPARE_TOP_GID, spectrum_line_style=kwargs["compare_style_top"]
+        )
+        self.plot_1d_update_style_by_label(
+            PlotIds.PLOT_COMPARE_BOTTOM_GID, spectrum_line_style=kwargs["compare_style_bottom"]
+        )
         self.PLOT_TYPE = "line-compare"
 
     def plot_1d_barplot(self, x, y, labels, colors, x_label="", y_label="", title="", **kwargs):

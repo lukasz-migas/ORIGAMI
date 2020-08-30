@@ -21,3 +21,16 @@ class PlotIds:
     PLOT_JOINT_XY = "18"
     PLOT_JOINT_X = "19"
     PLOT_JOINT_Y = "20"
+
+    # heatmap / line plots
+    PLOT_LH_LINE = "21"
+    PLOT_LH_2D = "22"
+
+    # heatmap + heatmap => heatmap
+    PLOT_GRID_2_TO_1_LEFT_TOP = "23"
+    PLOT_GRID_2_TO_1_LEFT_BOTTOM = "24"
+    PLOT_GRID_2_TO_1_RIGHT = "25"
+
+    # heatmap | heatmap
+    PLOT_COMPARE_LEFT = "26"
+    PLOT_COMPARE_RIGHT = "27"

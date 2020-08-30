@@ -323,30 +323,32 @@ class MPLInteraction:
             for event in self.mpl_events:
                 self.canvas.mpl_disconnect(event)
 
-        self.canvas = axes[0].figure.canvas
+        for ax in axes:
+            self.canvas = ax.figure.canvas
+            #             self.canvas = axes[0].figure.canvas
 
-        # pick events
-        self.mpl_events.append(self.canvas.mpl_connect("pick_event", self.on_pick_event))
+            # pick events
+            self.mpl_events.append(self.canvas.mpl_connect("pick_event", self.on_pick_event))
 
-        # button events
-        self.mpl_events.append(self.canvas.mpl_connect("button_press_event", self.on_press))
-        self.mpl_events.append(self.canvas.mpl_connect("button_release_event", self.on_release))
-        self.mpl_events.append(self.canvas.mpl_connect("key_press_event", self.on_key_state))
-        self.mpl_events.append(self.canvas.mpl_connect("key_release_event", self.on_key_state))
+            # button events
+            self.mpl_events.append(self.canvas.mpl_connect("button_press_event", self.on_press))
+            self.mpl_events.append(self.canvas.mpl_connect("button_release_event", self.on_release))
+            self.mpl_events.append(self.canvas.mpl_connect("key_press_event", self.on_key_state))
+            self.mpl_events.append(self.canvas.mpl_connect("key_release_event", self.on_key_state))
 
-        # motion events
-        self.mpl_events.append(self.canvas.mpl_connect("motion_notify_event", self.on_key_state))
-        self.mpl_events.append(self.canvas.mpl_connect("motion_notify_event", self.on_motion))
+            # motion events
+            self.mpl_events.append(self.canvas.mpl_connect("motion_notify_event", self.on_key_state))
+            self.mpl_events.append(self.canvas.mpl_connect("motion_notify_event", self.on_motion))
 
-        # enter events
-        self.mpl_events.append(self.canvas.mpl_connect("axes_enter_event", self.on_enter_axes))
-        self.mpl_events.append(self.canvas.mpl_connect("axes_leave_event", self.on_leave_axes))
+            # enter events
+            self.mpl_events.append(self.canvas.mpl_connect("axes_enter_event", self.on_enter_axes))
+            self.mpl_events.append(self.canvas.mpl_connect("axes_leave_event", self.on_leave_axes))
 
-        # scroll events
-        self.mpl_events.append(self.canvas.mpl_connect("scroll_event", self.on_mouse_wheel))
+            # scroll events
+            self.mpl_events.append(self.canvas.mpl_connect("scroll_event", self.on_mouse_wheel))
 
-        # draw events
-        self.mpl_events.append(self.canvas.mpl_connect("draw_event", self.update_background))
+            # draw events
+            self.mpl_events.append(self.canvas.mpl_connect("draw_event", self.update_background))
 
         # Pre-set keys
         self._shift_key = False
@@ -696,7 +698,7 @@ class MPLInteraction:
 
         This function will automatically update joint plots (x, y) with new data whenever user zooms-in or zooms-out
         """
-        if self.data_object is None and len(self.axes) == 3 and self.is_joint:
+        if self.data_object is None or len(self.axes) == 3 and self.is_joint:
             return
 
         # get current limits

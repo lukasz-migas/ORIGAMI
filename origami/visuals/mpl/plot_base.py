@@ -48,9 +48,19 @@ class PlotBase(MPLPanel):
         self.plot_joint_x = None
         self.plot_joint_y = None
 
+        # only used by the heatmap+line plot
+        self.plot_line_top = None
+
+        # only used by the grid
+        self.plot_grid = None
+
+        # only used by the heatmap + heatmap => heatmap
+        self.plot_grid_top = None
+        self.plot_grid_bottom = None
+
         # this dictionary is used to store various information of metadata about the plot and any processing that takes
         # place. It can be used to store any temporary information that would otherwise be expensive to compute or not
-        # convienient to store in a seperate function
+        # convenient to store in a sseparate function
         self._METADATA = dict()
 
     def _set_axes(self):
