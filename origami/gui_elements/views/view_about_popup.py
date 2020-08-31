@@ -4,6 +4,7 @@ import wx
 # Local imports
 from origami.gui_elements.popup import PopupBase
 from origami.gui_elements.helpers import set_tooltip
+from origami.gui_elements.helpers import make_bitmap_btn
 
 
 class ViewAboutPopup(PopupBase):
@@ -14,6 +15,7 @@ class ViewAboutPopup(PopupBase):
     view_type = None
     document_title = None
     dataset_name = None
+    plot_size = None
 
     INFO_MESSAGE = "Right-click or double-click inside the popup window to close it."
 
@@ -37,6 +39,10 @@ class ViewAboutPopup(PopupBase):
             self.plot_type.SetLabel(self.view.plot_type)
         set_tooltip(self.plot_type, "Currently shown plot type.")
 
+        self.plot_size = wx.StaticText(self, wx.ID_ANY)
+        self.plot_size.SetLabel(str(self.view.panel.GetSize()))
+        set_tooltip(self.plot_size, "Current size of the plot in pixels.")
+
         self.document_title = wx.StaticText(self, wx.ID_ANY)
         if self.view.document_name:
             self.document_title.SetLabel(self.view.document_name)
@@ -45,8 +51,24 @@ class ViewAboutPopup(PopupBase):
         self.dataset_name = wx.StaticText(self, wx.ID_ANY)
         if self.view.dataset_name:
             self.dataset_name.SetLabel(self.view.dataset_name)
-
         set_tooltip(self.dataset_name, "Name of the dataset the plot is associated with. Name includes the group name.")
+
+        btn_clipboard = make_bitmap_btn(self, -1, self.view._icons.filelist)  # noqa
+        set_tooltip(btn_clipboard, "Copy figure to clipboard")
+        self.Bind(wx.EVT_BUTTON, self.view.on_copy_to_clipboard, btn_clipboard)
+
+        btn_png = make_bitmap_btn(self, -1, self.view._icons.png)  # noqa
+        set_tooltip(btn_png, "Save figure")
+        self.Bind(wx.EVT_BUTTON, self.view.on_save_figure, btn_png)
+
+        btn_clear = make_bitmap_btn(self, -1, self.view._icons.clear)  # noqa
+        set_tooltip(btn_clear, "Clear figure")
+        self.Bind(wx.EVT_BUTTON, self.view.on_clear_plot, btn_clear)
+
+        btn_sizer = wx.BoxSizer()
+        btn_sizer.Add(btn_clipboard)
+        btn_sizer.Add(btn_png)
+        btn_sizer.Add(btn_clear)
 
         grid = wx.GridBagSizer(2, 2)
         y = 0
@@ -59,6 +81,9 @@ class ViewAboutPopup(PopupBase):
         grid.Add(wx.StaticText(self, -1, "Plot type:"), (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.plot_type, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
         y += 1
+        grid.Add(wx.StaticText(self, -1, "Plot size (px):"), (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.plot_size, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
+        y += 1
         grid.Add(wx.StaticText(self, -1, "Document title:"), (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.document_title, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
         y += 1
@@ -67,9 +92,11 @@ class ViewAboutPopup(PopupBase):
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(grid, 1, wx.EXPAND | wx.ALL, 5)
+        sizer.Add(btn_sizer, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
+
         self.set_info(sizer)
         self.set_close_btn(sizer)
-        self.set_title("About view object")
+        self.set_title("About plot", True)
 
         self.SetSizerAndFit(sizer)
         self.Layout()

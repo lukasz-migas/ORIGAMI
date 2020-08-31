@@ -17,7 +17,6 @@ from origami.gui_elements.plot_parameters.panel_1d import Panel1dSettings
 from origami.gui_elements.plot_parameters.panel_2d import Panel2dSettings
 from origami.gui_elements.plot_parameters.panel_3d import Panel3dSettings
 from origami.gui_elements.plot_parameters.panel_ui import PanelUISettings
-from origami.gui_elements.plot_parameters.panel_rmsd import PanelRMSDSettings
 from origami.gui_elements.plot_parameters.panel_sizes import PanelSizesSettings
 from origami.gui_elements.plot_parameters.panel_legend import PanelLegendSettings
 from origami.gui_elements.plot_parameters.panel_violin import PanelViolinSettings
@@ -40,7 +39,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin):
     # ui elements
     main_book = None
     _panel_general, _panel_1d, _panel_2d, _panel_3d, _panel_colorbar = None, None, None, None, None
-    _panel_legend, _panel_rmsd, _panel_waterfall, _panel_violin = None, None, None, None
+    _panel_legend, _panel_waterfall, _panel_violin = None, None, None
     _panel_sizes, _panel_ui = None, None
 
     # UI attributes
@@ -65,11 +64,10 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin):
         "Plot 3D": 3,
         "Colorbar": 4,
         "Legend": 5,
-        "RMSD": 6,
-        "Waterfall": 7,
-        "Violin": 8,
-        "Plot sizes": 9,
-        "UI behaviour": 10,
+        "Waterfall": 6,
+        "Violin": 7,
+        "Plot sizes": 8,
+        "UI behaviour": 9,
     }
 
     def __init__(self, parent, presenter, window: str = None):
@@ -190,10 +188,6 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin):
         self._panel_legend = PanelLegendSettings(self.main_book, self.view)
         self.main_book.AddPage(self._panel_legend, "Legend")
 
-        # rmsd
-        self._panel_rmsd = PanelRMSDSettings(self.main_book, self.view)
-        self.main_book.AddPage(self._panel_rmsd, "RMSD")
-
         # waterfall
         self._panel_waterfall = PanelWaterfallSettings(self.main_book, self.view)
         self.main_book.AddPage(self._panel_waterfall, "Waterfall")
@@ -217,7 +211,6 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin):
             self._panel_3d.SetupScrolling()
             self._panel_colorbar.SetupScrolling()
             self._panel_legend.SetupScrolling()
-            self._panel_rmsd.SetupScrolling()
             self._panel_waterfall.SetupScrolling()
             self._panel_violin.SetupScrolling()
             self._panel_sizes.SetupScrolling()
@@ -232,7 +225,6 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin):
                 self._panel_3d,
                 self._panel_colorbar,
                 self._panel_legend,
-                self._panel_rmsd,
                 self._panel_waterfall,
                 self._panel_violin,
                 self._panel_sizes,

@@ -613,7 +613,6 @@ class PlotHeatmap2D(PlotBase):
             allow_extraction=kwargs.get("allow_extraction", False),
             callbacks=kwargs.get("callbacks", dict()),
             is_heatmap=True,
-            is_joint=False,
             obj=obj,
         )
         self.store_plot_limits([extent, extent_x], [self.plot_base, self.plot_line_top])
@@ -709,24 +708,44 @@ class PlotHeatmap2D(PlotBase):
     #     self.setup_zoom([self.plot_base], self.zoomtype, data_lims=extent)
     #     self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
 
+    def _prepare_grid_2_to_1(self, **kwargs):
+        """Prepare grid 2->1 layout"""
+        n_rows, n_cols = kwargs["grid_tto_n_rows"], kwargs["grid_tto_n_cols"]
+        main_prop = kwargs["grid_tto_main_x_proportion"]
+
+        # ensure that the number of rows is such that it can be divided in half
+        if n_rows % 2 != 0:
+            n_rows += 1
+        n_row_half = int(n_rows / 2)
+
+        # ensure that the number of colums is such that side plots have at least 2 and main plot is more than 1
+        n_col_main = round(main_prop * n_cols)  # round
+        while n_cols - n_col_main < 2:
+            n_cols += 1
+
+        gs = gridspec.GridSpec(
+            n_rows, n_cols, wspace=kwargs["grid_tto_width_space"], hspace=kwargs["grid_tto_height_space"]
+        )
+
+        gs_main = gs[:, 0:n_col_main]
+        gs_top = gs[0:n_row_half, n_col_main:]
+        gs_bottom = gs[n_row_half:, n_col_main:]
+
+        return gs_main, gs_top, gs_bottom
+
     def plot_2d_grid_2_to_1(
         self, x, y, array_top, array_bottom, array, x_label=None, y_label=None, ratio: int = 6, obj=None, **kwargs
     ):
         """Plot heatmap + heatmap => heatmap"""
-        gs = gridspec.GridSpec(ratio, ratio, wspace=1, hspace=1)
+        gs_main, gs_top, gs_bottom = self._prepare_grid_2_to_1(**kwargs)
 
-        self.plot_base = self.figure.add_subplot(gs[:, 0:4])
-        #         self.plot_base = self.figure.add_subplot(gs[:, 2:])
+        self.plot_base = self.figure.add_subplot(gs_main)
         self.plot_base.set_gid(PlotIds.PLOT_GRID_2_TO_1_RIGHT)
 
-        self.plot_grid_top = self.figure.add_subplot(gs[0:3, 4:], sharex=self.plot_base, sharey=self.plot_base)
-        #         self.plot_grid_top = self.figure.add_subplot(gs[0:3, 0:2], sharex=self.plot_base,
-        #         sharey=self.plot_base)
+        self.plot_grid_top = self.figure.add_subplot(gs_top, sharex=self.plot_base, sharey=self.plot_base)
         self.plot_grid_top.set_gid(PlotIds.PLOT_GRID_2_TO_1_LEFT_TOP)
 
-        self.plot_grid_bottom = self.figure.add_subplot(gs[3:, 4:], sharex=self.plot_base, sharey=self.plot_base)
-        #         self.plot_grid_bottom = self.figure.add_subplot(gs[3:, 0:2], sharex=self.plot_base,
-        #         sharey=self.plot_base)
+        self.plot_grid_bottom = self.figure.add_subplot(gs_bottom, sharex=self.plot_base, sharey=self.plot_base)
         self.plot_grid_bottom.set_gid(PlotIds.PLOT_GRID_2_TO_1_LEFT_BOTTOM)
 
         xlimits, ylimits, extent = self._compute_xy_limits(x, y, None)
@@ -791,12 +810,14 @@ class PlotHeatmap2D(PlotBase):
         self.PLOT_TYPE = "heatmap-grid"
 
     def plot_2d_grid_n_x_n(
-        self, x, y, arrays, n_rows: int, n_cols: int, x_label=None, y_label=None, ratio: int = 6, obj=None, **kwargs
+        self, x, y, arrays, n_rows: int, n_cols: int, x_label=None, y_label=None, obj=None, **kwargs
     ):
         """Plot image grid"""
         # TODO: customise how x/y-axis labels are shown
         # TODO: add individual colormaps
-        gs = gridspec.GridSpec(nrows=n_rows, ncols=n_cols, wspace=0.25, hspace=0.25)
+        gs = gridspec.GridSpec(
+            nrows=n_rows, ncols=n_cols, wspace=kwargs["grid_nxn_width_space"], hspace=kwargs["grid_nxn_height_space"]
+        )
 
         xlimits, ylimits, extent = self._compute_xy_limits(x, y, None)
 

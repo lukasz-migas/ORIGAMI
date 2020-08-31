@@ -8,7 +8,6 @@ from origami.gui_elements.plot_parameters.panel_1d import Panel1dSettings
 from origami.gui_elements.plot_parameters.panel_2d import Panel2dSettings
 from origami.gui_elements.plot_parameters.panel_3d import Panel3dSettings
 from origami.gui_elements.plot_parameters.panel_ui import PanelUISettings
-from origami.gui_elements.plot_parameters.panel_rmsd import PanelRMSDSettings
 from origami.gui_elements.plot_parameters.panel_sizes import PanelSizesSettings
 from origami.gui_elements.plot_parameters.panel_legend import PanelLegendSettings
 from origami.gui_elements.plot_parameters.panel_violin import PanelViolinSettings
@@ -213,17 +212,6 @@ class TestPanelUISettings(WidgetTestCase):
 
     def test_panel_create(self):
         dlg = PanelUISettings(self.frame, None)
-
-        dlg.on_apply(None)
-        dlg.on_toggle_controls(None)
-
-
-@pytest.mark.guitest
-class TestPanelRMSDSettings(WidgetTestCase):
-    """Test dialog"""
-
-    def test_panel_create(self):
-        dlg = PanelRMSDSettings(self.frame, None)
 
         dlg.on_apply(None)
         dlg.on_toggle_controls(None)

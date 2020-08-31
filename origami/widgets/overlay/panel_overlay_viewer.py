@@ -19,7 +19,6 @@ from origami.config.environment import ENV
 from origami.gui_elements.mixins import ColorGetterMixin
 from origami.gui_elements.helpers import TableConfig
 from origami.gui_elements.helpers import set_tooltip
-from origami.gui_elements.helpers import make_checkbox
 from origami.gui_elements.helpers import make_color_btn
 from origami.gui_elements.helpers import make_bitmap_btn
 from origami.gui_elements.helpers import make_spin_ctrl_int
@@ -70,7 +69,6 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
 
     TABLE_WIDGET_DICT = dict()
 
-    OVERLAY_METHODS_1D = sorted(["Overlay", "Waterfall", "Subtract (n=2)", "Butterfly (n=2)"])
     OVERLAY_METHODS_2D = sorted(
         [
             "Mask",
@@ -96,6 +94,8 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
     overlay_2d_transparency, overlay_2d_order, settings_spectra, settings_heatmaps = None, None, None, None
     overlay_1d_name, overlay_2d_name, overlay_1d_document, overlay_2d_document = None, None, None, None
     overlay_1d_spectrum_type, overlay_1d_method_settings_btn, overlay_2d_method_settings_btn = None, None, None
+    _panel_rmsd, _panel_rmsf, _panel_rmsd_matrix, _panel_rgb = None, None, None, None
+    _panel_grid_tto, _panel_grid_nxn, _panel_waterfall = None, None, None
 
     def __init__(self, parent, presenter, icons=None, item_list=None, debug: bool = False):
         MiniFrame.__init__(
@@ -212,14 +212,18 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
         """Make UI"""
         # make panel
         settings_panel = self.make_side_panel(self)
-        # self._settings_panel_size = settings_panel.GetSize()
 
+        # make plot
         plot_panel = self.make_plot_panel(self)
+
+        # make extra
+        plot_settings = self.make_plot_settings_panel(self)
 
         # pack elements
         main_sizer = wx.BoxSizer()
         main_sizer.Add(settings_panel, 0, wx.EXPAND, 0)
         main_sizer.Add(plot_panel, 1, wx.EXPAND, 0)
+        main_sizer.Add(plot_settings, 0, wx.EXPAND, 0)
 
         # fit layout
         main_sizer.Fit(self)
@@ -276,9 +280,9 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
         self.cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, -1))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
-        self.hot_plot_check = make_checkbox(panel, "Hot plot")
-        self.hot_plot_check.SetValue(False)
-        self.hot_plot_check.Disable()
+        #         self.hot_plot_check = make_checkbox(panel, "Hot plot")
+        #         self.hot_plot_check.SetValue(False)
+        #         self.hot_plot_check.Disable()
 
         sizer = wx.BoxSizer()
         sizer.Add(self.action_btn, 0, wx.ALIGN_CENTER_VERTICAL)
@@ -288,9 +292,80 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
         sizer.Add(self.add_to_document_btn, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.AddSpacer(5)
         sizer.Add(self.cancel_btn, 0, wx.ALIGN_CENTER_VERTICAL)
-        sizer.AddSpacer(5)
-        sizer.Add(self.hot_plot_check, 0, wx.ALIGN_CENTER_VERTICAL)
+        #         sizer.AddSpacer(5)
+        #         sizer.Add(self.hot_plot_check, 0, wx.ALIGN_CENTER_VERTICAL)
         return sizer
+
+    def make_plot_settings_panel(self, split_panel):
+        """Make settings notebook"""
+        from origami.widgets.overlay.plot_parameters.panel_rmsd import PanelRMSDSettings
+        from origami.gui_elements.plot_parameters.panel_waterfall import PanelWaterfallSettings
+        from origami.widgets.overlay.plot_parameters.panel_grid_tto import PanelGridTTOSettings
+        from origami.widgets.overlay.plot_parameters.panel_rmsf import PanelRMSFSettings
+        from origami.widgets.overlay.plot_parameters.panel_rmsd_matrix import PanelRMSDMatrixSettings
+
+        # panel = wx.Panel(split_panel, -1, size=(-1, -1), name="plot-settings")
+        panel = wxScrolledPanel.ScrolledPanel(split_panel, size=(-1, -1), name="plot-settings")
+
+        self._panel_rmsd = wx.CollapsiblePane(panel, label="RMSD", style=wx.CP_DEFAULT_STYLE | wx.CP_NO_TLW_RESIZE)
+        _ = PanelRMSDSettings(self._panel_rmsd.GetPane(), self.view)
+        self.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.on_cp_layout, self._panel_rmsd)
+
+        self._panel_rmsf = wx.CollapsiblePane(panel, label="RMSF", style=wx.CP_DEFAULT_STYLE | wx.CP_NO_TLW_RESIZE)
+        _ = PanelRMSFSettings(self._panel_rmsf.GetPane(), self.view)
+        self.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.on_cp_layout, self._panel_rmsf)
+
+        self._panel_rmsd_matrix = wx.CollapsiblePane(
+            panel, label="RMSD Matrix | Dot", style=wx.CP_DEFAULT_STYLE | wx.CP_NO_TLW_RESIZE
+        )
+        _ = PanelRMSDMatrixSettings(self._panel_rmsd_matrix.GetPane(), self.view)
+        self.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.on_cp_layout, self._panel_rmsd_matrix)
+
+        self._panel_rgb = wx.CollapsiblePane(panel, label="RGB", style=wx.CP_DEFAULT_STYLE | wx.CP_NO_TLW_RESIZE)
+        #         _ = PanelWaterfallSettings(self._panel_rgb.GetPane(), self.view)
+        self.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.on_cp_layout, self._panel_rgb)
+
+        self._panel_grid_tto = wx.CollapsiblePane(
+            panel, label="Grid (2->1)", style=wx.CP_DEFAULT_STYLE | wx.CP_NO_TLW_RESIZE
+        )
+        _ = PanelGridTTOSettings(self._panel_grid_tto.GetPane(), self.view)
+        self.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.on_cp_layout, self._panel_grid_tto)
+
+        self._panel_grid_nxn = wx.CollapsiblePane(
+            panel, label="Grid (n x n)", style=wx.CP_DEFAULT_STYLE | wx.CP_NO_TLW_RESIZE
+        )
+        #         _ = PanelWaterfallSettings(self._panel_grid_nxn.GetPane(), self.view)
+        self.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.on_cp_layout, self._panel_grid_nxn)
+
+        self._panel_waterfall = wx.CollapsiblePane(
+            panel, label="Waterfall | Overlay", style=wx.CP_DEFAULT_STYLE | wx.CP_NO_TLW_RESIZE
+        )
+        _ = PanelWaterfallSettings(self._panel_waterfall.GetPane(), self.view)
+        self.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.on_cp_layout, self._panel_waterfall)
+
+        settings_sizer = wx.BoxSizer(wx.VERTICAL)
+        settings_sizer.Add(self._panel_rmsd, 0, wx.EXPAND | wx.ALL, 0)
+        settings_sizer.Add(self._panel_rmsf, 0, wx.EXPAND | wx.ALL, 0)
+        settings_sizer.Add(self._panel_rmsd_matrix, 0, wx.EXPAND | wx.ALL, 0)
+        settings_sizer.Add(self._panel_rgb, 0, wx.EXPAND | wx.ALL, 0)
+        settings_sizer.Add(self._panel_grid_tto, 0, wx.EXPAND | wx.ALL, 0)
+        settings_sizer.Add(self._panel_grid_nxn, 0, wx.EXPAND | wx.ALL, 0)
+        settings_sizer.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND | wx.ALL, 1)
+        settings_sizer.Add(self._panel_waterfall, 0, wx.EXPAND | wx.ALL, 0)
+        settings_sizer.Fit(panel)
+        settings_sizer.SetMinSize((300, -1))
+        panel.SetSizerAndFit(settings_sizer)
+
+        if not running_under_pytest():
+            panel.SetupScrolling()
+
+        return panel
+
+    def on_cp_layout(self, _evt):
+        """Layout"""
+        self.Layout()
+        # print(dir(_evt))
+        # print(_evt.GetEventObject())
 
     def make_settings_panel(self, split_panel):
         """Make settings notebook"""
@@ -472,7 +547,9 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
         self.overlay_2d_order.Bind(wx.EVT_SPINCTRL, self.on_edit_item)
 
         overlay_2d_method = wx.StaticText(panel, -1, "Overlay method:")
-        self.overlay_2d_method = wx.ComboBox(panel, choices=self.OVERLAY_METHODS_2D, style=wx.CB_READONLY)
+        self.overlay_2d_method = wx.ComboBox(
+            panel, choices=CONFIG.overlay_panel_2d_method_choices, style=wx.CB_READONLY
+        )
         self.overlay_2d_method.SetStringSelection(CONFIG.overlay_panel_2d_method)
 
         self.overlay_2d_method_settings_btn = make_bitmap_btn(panel, -1, self._icons.gear)
@@ -903,9 +980,16 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
             a_1, a_2, array, x, y, x_label, y_label, rmsd_label = OVERLAY_HANDLER.prepare_overlay_2d_grid_compare_rmsd(
                 group_obj
             )
-            self.view_overlay.plot_2d_grid_compare_rmsd(x, y, a_1, a_2, array, x_label=x_label, y_label=y_label)
+            self.view_overlay.plot_2d_grid_compare_rmsd(
+                x, y, a_1, a_2, array, x_label=x_label, y_label=y_label, repaint=False
+            )
             self.view_overlay.add_labels([25], [25], [rmsd_label])  # FIXME
         elif method == "Grid (n x n)":
+            arrays, x, y, x_label, y_label, n_rows, n_cols = OVERLAY_HANDLER.prepare_overlay_2d_grid_n_x_n(group_obj)
+            self.view_overlay.plot_2d_grid_n_x_n(x, y, arrays, n_rows, n_cols, x_label=x_label, y_label=y_label)
+        elif method == "Compare side-by-side":
+            if not group_obj.validate_size(n_min=2, n_max=2):
+                raise ValueError("This visualisation must have at most 2 items")
             arrays, x, y, x_label, y_label, n_rows, n_cols = OVERLAY_HANDLER.prepare_overlay_2d_grid_n_x_n(group_obj)
             self.view_overlay.plot_2d_grid_n_x_n(x, y, arrays, n_rows, n_cols, x_label=x_label, y_label=y_label)
         elif method == "RGB":

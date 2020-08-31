@@ -3,6 +3,7 @@
 import wx
 
 # Local imports
+from origami.gui_elements.helpers import set_item_font
 from origami.gui_elements.helpers import make_bitmap_btn
 
 
@@ -44,10 +45,12 @@ class PopupMixin:
         sizer.Add(wx.StaticLine(self, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND)
         sizer.Add(text, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 2)
 
-    def set_title(self, title: str):
+    def set_title(self, title: str, bold: bool = False):
         """Set title in the popup window"""
         if self.title is not None:
             self.title.SetLabel(title)
+            if bold:
+                set_item_font(self.title)
 
     def set_close_btn(self, sizer):
         """Set exit button in the popup window"""

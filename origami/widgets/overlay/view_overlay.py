@@ -257,7 +257,7 @@ class ViewOverlay(ViewBase, ViewMPLMixin, ViewOverlayPanelMixin, ViewWaterfallMi
         self.set_document(obj, **kwargs)
         self.set_labels(obj, **kwargs)
 
-        kwargs.update(**CONFIG.get_mpl_parameters(["2d", "colorbar", "normalization", "axes"]))
+        kwargs.update(**CONFIG.get_mpl_parameters(["2d", "colorbar", "normalization", "axes", "grid"]))
         kwargs.update(**self.FORCED_KWARGS)
         if isinstance(forced_kwargs, dict):
             kwargs.update(**forced_kwargs)

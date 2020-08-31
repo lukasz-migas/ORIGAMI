@@ -100,23 +100,6 @@ class Config:
           >
         </p>
         """
-        # Populate GUI
-        self.overlayChoices = sorted(
-            [
-                "Mask",
-                "Transparent",
-                "RGB",
-                "Mean",
-                "Variance",
-                "Standard Deviation",
-                "RMSD",
-                "RMSF",
-                "RMSD Matrix",
-                "Grid (2->1)",
-                "Grid (n x n)",
-            ]
-        )
-
         self.colormap_narrow_choices = [
             "Greys",
             "Purples",
@@ -183,22 +166,6 @@ class Config:
             "Inferno": "Inferno",
         }
         self.current_palette = "HLS"
-
-        self.availablePlotsList = [
-            "MS",
-            "MS (compare)",
-            "RT",
-            "DT",
-            "2D",
-            "3D",
-            "DT/MS",
-            "Waterfall",
-            "RMSD",
-            "Comparison",
-            "Overlay",
-            "Calibration (MS)",
-            "Calibration (DT)",
-        ]
 
         self.textOutputDict = {"comma": ",", "tab": "\t", "space": " "}
         self.textExtensionDict = {"comma": ".csv", "tab": ".txt", "space": ".txt"}
@@ -715,10 +682,10 @@ class Config:
             "Plot 3D": 3,
             "Colorbar": 4,
             "Legend": 5,
-            "RMSD": 6,
-            "Waterfall": 7,
-            "Violin": 8,
-            "UI": 9,
+            "Waterfall": 6,
+            "Violin": 7,
+            "Plot sizes": 8,
+            "UI behaviour": 9,
         }
 
         self.interactiveParamsWindow_on_off = False
@@ -1340,14 +1307,18 @@ class Config:
         self.rmsd_color = (1, 1, 1)
         self.rmsd_label_font_size = 10
         self.rmsd_label_font_weight = True
-        self.rmsd_rotation_x = 45
-        self.rmsd_rotation_y = 0
+
+        # RMSD-matrix
+        self.rmsd_rotation_x = 45  # FIXME = rename
+        self.rmsd_rotation_y = 0  # FIXME = rename
         self.rmsd_matrix_add_labels = True
         self.rmsd_matrix_font_size = 12  # new in v2.0.0
         self.rmsd_matrix_font_weight = False  # new in v2.0.0
         self.rmsd_matrix_font_color_fmt_choices = ["auto", "user-defined"]  # new in v2.0.0
         self.rmsd_matrix_font_color_fmt = "auto"  # new in v2.0.0
         self.rmsd_matrix_font_color = (0, 0, 0)
+
+        # RMSF
         self.rmsf_line_color = (0, 0, 0)
         self.rmsf_line_transparency = 0.4
         self.rmsf_line_width = 1
@@ -1356,6 +1327,17 @@ class Config:
         self.rmsf_fill_transparency = 0.4
         self.rmsf_fill_hatch = " "
         self.rmsf_h_space = 0.1
+
+        # Grid (2->1)
+        self.grid_tto_width_space = 1.0
+        self.grid_tto_height_space = 1.0
+        self.grid_tto_n_rows = 6
+        self.grid_tto_n_cols = 6
+        self.grid_tto_main_x_proportion = 0.6
+
+        # Grid (NxN)
+        self.grid_nxn_width_space = 0.25
+        self.grid_nxn_height_space = 0.25
 
         # Importing files
         self.import_binOnImport = True  # REMOVE
@@ -1990,7 +1972,7 @@ class Config:
                 "waterfall",
                 "violin",
                 "arrow",
-                "style"
+                "style" "grid"
                 # "label",
             ]
 
@@ -2206,6 +2188,18 @@ class Config:
                         "rmsd_matrix_font_weight": self.rmsd_matrix_font_weight,
                         "rmsd_matrix_font_color_fmt": self.rmsd_matrix_font_color_fmt,
                         "rmsd_matrix_font_color": self.rmsd_matrix_font_color,
+                    }
+                )
+            if _plot_type in ["grid"]:
+                config.update(
+                    {
+                        "grid_tto_width_space": self.grid_tto_width_space,
+                        "grid_tto_height_space": self.grid_tto_height_space,
+                        "grid_tto_n_rows": self.grid_tto_n_rows,
+                        "grid_tto_n_cols": self.grid_tto_n_cols,
+                        "grid_tto_main_x_proportion": self.grid_tto_main_x_proportion,
+                        "grid_nxn_width_space": self.grid_nxn_width_space,
+                        "grid_nxn_height_space": self.grid_nxn_height_space,
                     }
                 )
             if _plot_type in "joint":

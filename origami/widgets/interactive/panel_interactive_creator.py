@@ -6892,11 +6892,11 @@ class PanelInteractiveCreator(wx.MiniFrame):
             text_annot_ypos, text_annot_label = [], []
 
         # add plots
-        _lines, _patches, _original_colors, = (
-            [],
-            [],
-            [],
-        )
+        (
+            _lines,
+            _patches,
+            _original_colors,
+        ) = ([], [], [])
         for xval, yval, color, label in zip(xvals, yvals, colorList, labels):
             try:
                 color = convert_rgb_1_to_hex(color)

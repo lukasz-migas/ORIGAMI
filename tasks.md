@@ -43,6 +43,9 @@
 - [x] add `extra_data` property that checks whether data has been loaded (`isinstance`) or ndarray
 - [ ] speed-up interpolation of m/z axis as it can be super slow!!!
 - [ ] compare MS should do processing in a background thread
+- [ ] made improvements to the view about popup class
+- [ ] add plot updates to the overlaying
+- [ ] remove rmsd from the general settings panel
 
 ## New features
 

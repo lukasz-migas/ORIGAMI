@@ -33,6 +33,8 @@ class PanelWaterfallSettings(PanelSettingsBase):
     def __init__(self, parent, view):
         PanelSettingsBase.__init__(self, parent, view)
 
+        print(self.waterfall_palette_value.GetSize())
+
     def make_panel(self):
         """Make waterfall panel"""
         waterfall_increment_label = wx.StaticText(self, -1, "Increment:")
@@ -103,7 +105,7 @@ class PanelWaterfallSettings(PanelSettingsBase):
         self.waterfall_line_sameAsShade_check.Bind(wx.EVT_CHECKBOX, self.on_update)
 
         # under-line style
-        waterfall_shade_under_label = wx.StaticText(self, -1, "Fill under the curve:")
+        waterfall_shade_under_label = wx.StaticText(self, -1, "Fill under curve:")
         self.waterfall_fill_under_check = make_checkbox(self, "", name="waterfall.fill")
         self.waterfall_fill_under_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.waterfall_fill_under_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
@@ -120,12 +122,12 @@ class PanelWaterfallSettings(PanelSettingsBase):
         cmap_list = CONFIG.colormap_choices[:]
         cmap_list.remove("jet")
         waterfall_colormap_label = wx.StaticText(self, -1, "Colormap:")
-        self.waterfall_colormap_value = wx.Choice(self, -1, choices=cmap_list, size=(-1, -1), name="waterfall.fill")
+        self.waterfall_colormap_value = wx.Choice(self, -1, choices=cmap_list, size=(130, -1), name="waterfall.fill")
         self.waterfall_colormap_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.waterfall_colormap_value.Bind(wx.EVT_CHOICE, self.on_update)
 
         waterfall_palette = wx.StaticText(self, -1, "Color palette:")
-        self.waterfall_palette_value = BitmapComboBox(self, -1, choices=[], size=(160, -1), style=wx.CB_READONLY)
+        self.waterfall_palette_value = BitmapComboBox(self, -1, choices=[], size=(130, -1), style=wx.CB_READONLY)
         self._set_color_palette(self.waterfall_palette_value)
         self.waterfall_palette_value.Bind(wx.EVT_COMBOBOX, self.on_apply)
         self.waterfall_palette_value.Bind(wx.EVT_COMBOBOX, self.on_update)

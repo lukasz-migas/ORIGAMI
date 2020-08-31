@@ -550,11 +550,6 @@ class MainWindow(wx.Frame):
         menu_plot_legend = make_menu_item(parent=menu_plot, text="Settings: &Legend", bitmap=self._icons.plot_legend)
         menu_plot.Append(menu_plot_legend)
 
-        menu_plot_rmsd = make_menu_item(
-            parent=menu_plot, text="Settings: &RMSD", bitmap=self.icons.iconsLib["panel_rmsd_16"]
-        )
-        menu_plot.Append(menu_plot_rmsd)
-
         menu_plot_waterfall = menu_plot.Append(
             make_menu_item(parent=menu_plot, text="Settings: &Waterfall", bitmap=self._icons.waterfall)
         )
@@ -927,7 +922,6 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Plot 1D"), menu_plot_1d)
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Plot 2D"), menu_plot_2d)
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Plot 3D"), menu_plot_3d)
-        self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "RMSD"), menu_plot_rmsd)
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Waterfall"), menu_plot_waterfall)
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Violin"), menu_plot_violin)
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "UI"), menu_plot_ui)
@@ -1367,9 +1361,6 @@ class MainWindow(wx.Frame):
         tool_action_legend = self.toolbar.AddLabelTool(
             wx.ID_ANY, "", self._icons.plot_legend, shortHelp="Settings: Legend panel"
         )
-        tool_action_rmsd = self.toolbar.AddLabelTool(
-            wx.ID_ANY, "", self.icons.iconsLib["panel_rmsd_16"], shortHelp="Settings: RMSD panel"
-        )
         tool_action_waterfall = self.toolbar.AddLabelTool(
             wx.ID_ANY, "", self._icons.waterfall, shortHelp="Settings: Waterfall panel"
         )
@@ -1411,7 +1402,6 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Plot 3D"), tool_action_3d)
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Colorbar"), tool_action_colorbar)
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Legend"), tool_action_legend)
-        self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "RMSD"), tool_action_rmsd)
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Waterfall"), tool_action_waterfall)
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Violin"), tool_action_violin)
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "UI"), tool_action_ui)
