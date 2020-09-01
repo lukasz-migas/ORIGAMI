@@ -133,8 +133,9 @@ class ViewAxesMixin(ABC):
         """Update axes"""
 
         kwargs = CONFIG.get_mpl_parameters(["axes"])
+        repaint = False
         if name.endswith(".frame"):
-            self.figure.plot_update_frame(**kwargs)  # noqa
+            repaint = self.figure.plot_update_frame(**kwargs)  # noqa
         elif name.endswith(".labels"):
-            self.figure.plot_update_labels(**kwargs)  # noqa
-        return kwargs
+            repaint = self.figure.plot_update_labels(**kwargs)  # noqa
+        return kwargs, repaint

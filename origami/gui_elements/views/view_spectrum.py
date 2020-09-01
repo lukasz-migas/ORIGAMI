@@ -148,14 +148,15 @@ class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin, ViewAxesMixin
         """Update plot style"""
         t_start = time.time()
         kwargs = dict()
+        repaint = False
         if name.startswith("line"):
-            self.figure.plot_1d_update_style_by_label(
+            repaint = self.figure.plot_1d_update_style_by_label(
                 spectrum_line_color=CONFIG.spectrum_line_color,
                 spectrum_line_style=CONFIG.spectrum_line_style,
                 spectrum_line_width=CONFIG.spectrum_line_width,
             )
         elif name.startswith("fill"):
-            self.figure.plot_1d_update_patch_style_by_label(
+            repaint = self.figure.plot_1d_update_patch_style_by_label(
                 spectrum_line_fill_under=CONFIG.spectrum_line_fill_under,
                 spectrum_fill_color=CONFIG.spectrum_fill_color,
                 spectrum_fill_transparency=CONFIG.spectrum_fill_transparency,
@@ -164,10 +165,10 @@ class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin, ViewAxesMixin
                 fill_kwargs=CONFIG.get_mpl_parameters(self.MPL_KEYS),
             )
         elif name.startswith("axes"):
-            kwargs = self._update_style_axes(name)
+            kwargs, repaint = self._update_style_axes(name)
         elif name.startswith("legend"):
             kwargs = CONFIG.get_mpl_parameters(["legend"])
-            self.figure.plot_update_legend(**kwargs)
+            repaint = self.figure.plot_update_legend(**kwargs)
         self.figure.repaint()
         self.set_plot_parameters(**kwargs)
         LOGGER.debug(f"Updated plot styles - {name} in {report_time(t_start)}")

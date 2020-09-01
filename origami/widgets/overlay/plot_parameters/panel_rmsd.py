@@ -1,4 +1,7 @@
 """Legend panel"""
+# Standard library imports
+import logging
+
 # Third-party imports
 import wx
 
@@ -8,7 +11,10 @@ from origami.config.config import CONFIG
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
 from origami.gui_elements.helpers import make_checkbox
+from origami.gui_elements.views.view_register import VIEW_REG
 from origami.gui_elements.plot_parameters.panel_base import PanelSettingsBase
+
+LOGGER = logging.getLogger(__name__)
 
 
 class PanelRMSDSettings(PanelSettingsBase):
@@ -23,36 +29,43 @@ class PanelRMSDSettings(PanelSettingsBase):
     def make_panel(self):
         """Make RMSD/RMSF/Matrix panel"""
         rmsd_position_label = wx.StaticText(self, -1, "Position:")
-        self.rmsd_position_value = wx.Choice(self, -1, choices=CONFIG.rmsd_label_position_choices, size=(-1, -1))
-        self.rmsd_position_value.Bind(wx.EVT_CHOICE, self._recalculate_rmsd_position)
+        self.rmsd_position_value = wx.Choice(
+            self, -1, choices=CONFIG.rmsd_label_position_choices, size=(-1, -1), name="rmsd.label"
+        )
         self.rmsd_position_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
         self.rmsd_position_value.Bind(wx.EVT_CHOICE, self.on_apply)
-        self.rmsd_position_value.Bind(wx.EVT_CHOICE, self.on_update_rmsd_label)
+        self.rmsd_position_value.Bind(wx.EVT_CHOICE, self.on_update)
 
-        rmsd_x_position = wx.StaticText(self, -1, "Position X:")
+        rmsd_x_position = wx.StaticText(self, -1, "Position x:")
         self.rmsd_x_position_value = wx.SpinCtrlDouble(
-            self, -1, value=str(), min=0, max=100, initial=0, inc=5, size=(90, -1)
+            self, -1, value=str(), min=0, max=100, initial=0, inc=5, size=(90, -1), name="rmsd.label"
         )
-        self.rmsd_x_position_value.Bind(wx.EVT_SPINCTRLDOUBLE, self._recalculate_rmsd_position)
-        self.rmsd_x_position_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_rmsd_label)
+        self.rmsd_x_position_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
 
-        rmsd_y_position = wx.StaticText(self, -1, "Position Y:")
+        rmsd_y_position = wx.StaticText(self, -1, "Position y:")
         self.rmsd_y_position_value = wx.SpinCtrlDouble(
-            self, -1, value=str(), min=0, max=100, initial=0, inc=5, size=(90, -1)
+            self, -1, value=str(), min=0, max=100, initial=0, inc=5, size=(90, -1), name="rmsd.label"
         )
-        self.rmsd_y_position_value.Bind(wx.EVT_SPINCTRLDOUBLE, self._recalculate_rmsd_position)
-        self.rmsd_y_position_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_rmsd_label)
+        self.rmsd_y_position_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
 
         rmsd_fontsize = wx.StaticText(self, -1, "Label size:")
         self.rmsd_fontsize_value = wx.SpinCtrlDouble(
-            self, -1, value=str(CONFIG.rmsd_label_font_size), min=1, max=50, initial=0, inc=1, size=(90, -1)
+            self,
+            -1,
+            value=str(CONFIG.rmsd_label_font_size),
+            min=1,
+            max=50,
+            initial=0,
+            inc=1,
+            size=(90, -1),
+            name="rmsd.label",
         )
         self.rmsd_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.rmsd_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_rmsd_label)
+        self.rmsd_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
 
-        self.rmsd_font_weight_check = make_checkbox(self, "Bold")
+        self.rmsd_font_weight_check = make_checkbox(self, "Bold", name="rmsd.label")
         self.rmsd_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.rmsd_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_update_rmsd_label)
+        self.rmsd_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_update)
 
         rmsd_color_label = wx.StaticText(self, -1, "Label color:")
         self.rmsd_color_btn = wx.Button(self, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="rmsd.label")
@@ -105,39 +118,21 @@ class PanelRMSDSettings(PanelSettingsBase):
         rmsd_dict = {
             "bottom left": [5, 5],
             "bottom right": [75, 5],
-            "top left": [5, 95],
-            "top right": [75, 95],
-            "none": None,
+            "top left": [5, 90],
+            "top right": [75, 90],
+            "none": (None, None),
             "other": [str2int(self.rmsd_x_position_value.GetValue()), str2int(self.rmsd_y_position_value.GetValue())],
         }
         CONFIG.rmsd_location = rmsd_dict[CONFIG.rmsd_label_position]
 
-        if CONFIG.rmsd_location is not None:
+        if CONFIG.rmsd_location != (None, None):
             self.rmsd_x_position_value.SetValue(CONFIG.rmsd_location[0])
             self.rmsd_y_position_value.SetValue(CONFIG.rmsd_location[1])
 
         self._parse_evt(evt)
 
-    def on_update_rmsd_label(self, evt):
-        """Update RMSD label"""
-        self.on_apply(None)
-        self._recalculate_rmsd_position(None)
-
-        self.panel_plot.plot_2d_update_label()
-
-        self._parse_evt(evt)
-
-    def on_update_label_rmsd_matrix(self, evt):
-        """Update RMSD matrix labels"""
-        self.on_apply(None)
-
-        self.panel_plot.plot_2D_matrix_update_label()
-
-        self._parse_evt(evt)
-
     def on_toggle_controls(self, evt):
         """Update RMSD settings"""
-
         CONFIG.rmsd_label_position = self.rmsd_position_value.GetStringSelection()
         self.rmsd_x_position_value.Enable(CONFIG.rmsd_label_position == "other")
         self.rmsd_y_position_value.Enable(CONFIG.rmsd_label_position == "other")
@@ -154,7 +149,25 @@ class PanelRMSDSettings(PanelSettingsBase):
         if source == "rmsd.label":
             CONFIG.rmsd_color = color_1
             self.rmsd_color_btn.SetBackgroundColour(color_255)
-            self.on_update_rmsd_label(None)
+            self.on_update(evt)
+
+    def on_update(self, evt):
+        """Update 1d plots"""
+        evt, source = self._preparse_evt(evt)
+        if evt is None:
+            return
+        if not source.startswith("rmsd"):
+            self._parse_evt(evt)
+            return
+        self.on_apply(None)
+        self._recalculate_rmsd_position(None)
+
+        try:
+            view = VIEW_REG.view
+            view.update_style(source)
+        except (AttributeError, KeyError):
+            LOGGER.warning("Could not retrieve view - cannot update plot style")
+        self._parse_evt(evt)
 
     def _on_set_config(self):
         """Update values in the application based on config values"""

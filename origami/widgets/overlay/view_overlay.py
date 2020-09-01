@@ -12,6 +12,7 @@ from pubsub import pub
 from origami.utils.secret import get_short_hash
 from origami.config.config import CONFIG
 from origami.utils.utilities import report_time
+from origami.visuals.mpl.gids import PlotIds
 from origami.visuals.mpl.plot_overlay import PlotOverlay
 # from origami.visuals.mpl.plot_spectrum import PlotSpectrum
 from origami.gui_elements.views.view_base import ViewBase
@@ -58,12 +59,10 @@ class ViewOverlay(ViewBase, ViewMPLMixin, ViewOverlayPanelMixin, ViewWaterfallMi
         pub.sendMessage("view.register", view_id=self.PLOT_ID, view=self)
 
     def check_kwargs(self, **kwargs):
+        """Check keyword parameters"""
         self._x_label = kwargs.pop("x_label", self.x_label)
         self._y_label = kwargs.pop("y_label", self.y_label)
         return kwargs
-
-    def check_input(self, *args, **kwargs):
-        return args
 
     def plot_1d_overlay(self, x=None, y=None, array=None, obj=None, repaint: bool = True, forced_kwargs=None, **kwargs):
         """Overlay multiple line plots"""
@@ -220,10 +219,36 @@ class ViewOverlay(ViewBase, ViewMPLMixin, ViewOverlayPanelMixin, ViewWaterfallMi
         # self.set_plot_parameters(**kwargs)
         LOGGER.debug(f"Plotted data in {report_time(t_start)}")
 
-    def plot_2d_rmsd(self):
+    def plot_2d_rmsd(self, x, y, array, rmsd_label, obj=None, repaint: bool = True, forced_kwargs=None, **kwargs):
         """Overlay two heatmaps using RMSD plot"""
+        t_start = time.time()
+        #         self.can_plot("heatmap")
+        # try to update plot first, as it can be quicker
+        self.set_document(obj, **kwargs)
+        self.set_labels(obj, **kwargs)
 
-    def plot_2d_rmsf(self, x, y, array, y_top, obj=None, repaint: bool = True, forced_kwargs=None, **kwargs):
+        kwargs.update(**CONFIG.get_mpl_parameters(["2d", "colorbar", "normalization", "axes", "rmsd"]))
+        kwargs.update(**self.FORCED_KWARGS)
+        if isinstance(forced_kwargs, dict):
+            kwargs.update(**forced_kwargs)
+        kwargs = self.check_kwargs(**kwargs)
+
+        # x, y, array = self.check_input(x, y, array, obj)
+        self.figure.clear()
+        self.figure.plot_2d(
+            x, y, array, x_label=self.x_label, y_label=self.y_label, callbacks=self._callbacks, obj=obj, **kwargs
+        )
+        self.add_rmsd_label(x, y, rmsd_label, repaint=False)
+        self.figure.repaint(repaint)
+
+        # set data
+        # self._data.update(x=x, y=y, array=array, obj=obj)
+        # self.set_plot_parameters(**kwargs)
+        LOGGER.debug(f"Plotted data in {report_time(t_start)}")
+
+    def plot_2d_rmsf(
+        self, x, y, array, y_top, rmsd_label, obj=None, repaint: bool = True, forced_kwargs=None, **kwargs
+    ):
         """Overlay two heatmaps using RMSD + RMSF plot"""
         t_start = time.time()
         #         self.can_plot("heatmap")
@@ -231,7 +256,7 @@ class ViewOverlay(ViewBase, ViewMPLMixin, ViewOverlayPanelMixin, ViewWaterfallMi
         self.set_document(obj, **kwargs)
         self.set_labels(obj, **kwargs)
 
-        kwargs.update(**CONFIG.get_mpl_parameters(["2d", "colorbar", "normalization", "axes"]))
+        kwargs.update(**CONFIG.get_mpl_parameters(["2d", "colorbar", "normalization", "axes", "rmsd"]))
         kwargs.update(**self.FORCED_KWARGS)
         if isinstance(forced_kwargs, dict):
             kwargs.update(**forced_kwargs)
@@ -241,6 +266,7 @@ class ViewOverlay(ViewBase, ViewMPLMixin, ViewOverlayPanelMixin, ViewWaterfallMi
         self.figure.plot_heatmap_line(
             x, y, array, y_top, x_label=self.x_label, y_label=self.y_label, callbacks=self._callbacks, obj=obj, **kwargs
         )
+        self.add_rmsd_label(x, y, rmsd_label, repaint=False)
         self.figure.repaint(repaint)
 
         # set data
@@ -249,7 +275,17 @@ class ViewOverlay(ViewBase, ViewMPLMixin, ViewOverlayPanelMixin, ViewWaterfallMi
         LOGGER.debug(f"Plotted data in {report_time(t_start)}")
 
     def plot_2d_grid_compare_rmsd(
-        self, x, y, array_top, array_bottom, array, obj=None, repaint: bool = True, forced_kwargs=None, **kwargs
+        self,
+        x,
+        y,
+        array_top,
+        array_bottom,
+        array,
+        rmsd_label,
+        obj=None,
+        repaint: bool = True,
+        forced_kwargs=None,
+        **kwargs,
     ):
         """Overlay two heatmaps using individual heatmaps -> RMSD plot"""
         t_start = time.time()
@@ -276,7 +312,9 @@ class ViewOverlay(ViewBase, ViewMPLMixin, ViewOverlayPanelMixin, ViewWaterfallMi
             obj=obj,
             **kwargs,
         )
+        self.add_rmsd_label(x, y, rmsd_label, repaint=False)
         self.figure.repaint(repaint)
+
         # set data
         # self._data.update(x=x, y=y, array=array, obj=obj)
         # self.set_plot_parameters(**kwargs)
@@ -297,7 +335,7 @@ class ViewOverlay(ViewBase, ViewMPLMixin, ViewOverlayPanelMixin, ViewWaterfallMi
         self.set_document(obj, **kwargs)
         self.set_labels(obj, **kwargs)
 
-        kwargs.update(**CONFIG.get_mpl_parameters(["2d", "colorbar", "normalization", "axes"]))
+        kwargs.update(**CONFIG.get_mpl_parameters(["2d", "colorbar", "normalization", "axes", "grid"]))
         kwargs.update(**self.FORCED_KWARGS)
         if isinstance(forced_kwargs, dict):
             kwargs.update(**forced_kwargs)
@@ -322,17 +360,67 @@ class ViewOverlay(ViewBase, ViewMPLMixin, ViewOverlayPanelMixin, ViewWaterfallMi
         # self.set_plot_parameters(**kwargs)
         LOGGER.debug(f"Plotted data in {report_time(t_start)}")
 
-    def plot(self, *args, **kwargs):
-        pass
+    def add_rmsd_label(self, x, y, label: str, repaint: bool = True, forced_kwargs=None, **kwargs):
+        """Add RMSD label to plot"""
+        kwargs.update(**CONFIG.get_mpl_parameters(["rmsd"]))
+        kwargs.update(**self.FORCED_KWARGS)
+        if isinstance(forced_kwargs, dict):
+            kwargs.update(**forced_kwargs)
+        kwargs = self.check_kwargs(**kwargs)
 
-    def update(self, *args, **kwargs):
-        pass
-
-    def replot(self, **kwargs):
-        pass
-
-    def _update(self):
-        pass
+        self.figure.plot_add_rmsd_label(x, y, label, **kwargs)
+        self.figure.repaint(repaint)
 
     def update_style(self, name: str):
-        pass
+        """Update plot style"""
+        t_start = time.time()
+        kwargs = dict()
+        repaint: bool = False
+        if name.startswith("axes"):
+            kwargs = self._update_style_axes(name)
+        elif name.startswith("legend"):
+            kwargs = CONFIG.get_mpl_parameters(["legend"])
+            repaint = self.figure.plot_update_legend(**kwargs)
+        elif name.startswith("rmsd"):
+            kwargs = CONFIG.get_mpl_parameters(["rmsd"])
+            repaint = self.figure.plot_update_rmsd_label(**kwargs)
+        elif name.startswith("rmsf"):
+            if name.endswith(".fill"):
+                repaint = self.figure.plot_1d_update_patch_style_by_label(
+                    spectrum_line_fill_under=True,
+                    spectrum_fill_color=CONFIG.rmsf_fill_color,
+                    spectrum_fill_transparency=CONFIG.rmsf_fill_transparency,
+                    spectrum_fill_hatch=CONFIG.rmsf_fill_hatch,
+                    gid=PlotIds.PLOT_LH_PATCH,
+                    ax=self.figure.plot_line_top,
+                )
+            elif name.endswith(".line"):
+                repaint = self.figure.plot_1d_update_style_by_label(
+                    spectrum_line_color=CONFIG.rmsf_line_color,
+                    spectrum_line_style=CONFIG.rmsf_line_style,
+                    spectrum_line_width=CONFIG.rmsf_line_width,
+                    spectrum_line_transparency=CONFIG.rmsf_line_transparency,
+                    gid=PlotIds.PLOT_LH_LINE,
+                    ax=self.figure.plot_line_top,
+                )
+            elif name.endswith(".grid"):
+                repaint = self.figure.plot_update_grid(self.figure.plot_line_gs, hspace=CONFIG.rmsf_h_space)
+        self.figure.repaint()
+        self.set_plot_parameters(**kwargs)
+        LOGGER.debug(f"Updated plot styles - {name} in {report_time(t_start)}")
+
+    def plot(self, *args, **kwargs):
+        """Simple plot"""
+        raise ValueError("This view does not support simple update - use appropriate method instead")
+
+    def update(self, *args, **kwargs):
+        """Update"""
+        raise ValueError("This view does not support simple update - use appropriate method instead")
+
+    def replot(self, **kwargs):
+        """Full replot"""
+        raise ValueError("This view does not support simple update - use appropriate method instead")
+
+    def _update(self):
+        """Update"""
+        raise ValueError("This view does not support simple update - use appropriate method instead")

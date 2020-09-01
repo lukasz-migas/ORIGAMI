@@ -9,6 +9,7 @@ import numpy as np
 import origami.processing.activation as pr_activation
 from origami.utils.color import convert_rgb_1_to_hex
 from origami.visuals.rgb import ImageRGBA
+from origami.config.config import CONFIG
 from origami.utils.visuals import check_n_grid_dimensions
 # from origami.config.environment import ENV
 # from origami.config.config import CONFIG
@@ -251,7 +252,11 @@ class OverlayHandler:
         colors = [convert_rgb_1_to_hex(color) for color in colors]
 
         rgba = ImageRGBA(arrays, colors)
-        array = rgba.adaptive_histogram(image=rgba.rgba)
+        array = rgba.rgba
+        if CONFIG.rgb_adaptive_hist:
+            array = rgba.adaptive_histogram(
+                clip_limit=CONFIG.rgb_adaptive_hist_clip_limit, n_bins=CONFIG.rgb_adaptive_hist_n_bins, image=array
+            )
 
         # build forced_kwargs
         forced_kwargs = dict(colorbar=False)

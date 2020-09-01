@@ -97,11 +97,14 @@ def check_n_grid_dimensions(n_grid):
         n_rows, n_cols, y_label_pos, x_label_pos = 5, 5, 3, 3
     elif n_grid in list(range(26, 37)):
         n_rows, n_cols, y_label_pos, x_label_pos = 6, 6, 1, 1
+    else:
+        raise ValueError("Could not determine the appropriate grid dimensions")
 
     return n_rows, n_cols, y_label_pos, x_label_pos
 
 
 def check_plot_settings(**kwargs):
+    """Convert font weight that is expressed as `bool` in matplotlib compatible text format"""
 
     # convert weights
     if "title" in kwargs:

@@ -91,7 +91,7 @@ class PlotSpectrum(PlotBase):
         self.store_plot_limits([extent], [self.plot_base])
         self.PLOT_TYPE = "line"
 
-    def plot_1d_add_under_curve(self, xvals, yvals, **kwargs):
+    def plot_1d_add_under_curve(self, xvals, yvals, gid=None, ax=None, **kwargs):
         """Fill data under the line"""
         color = kwargs.get("spectrum_fill_color", None)
         if not color:
@@ -102,16 +102,26 @@ class PlotSpectrum(PlotBase):
             alpha=kwargs.get("spectrum_fill_transparency", 0.25),
             clip_on=kwargs.get("clip_on", True),
             zorder=kwargs.get("zorder", 1),
+            hatch=kwargs.get("spectrum_fill_hatch", None),
         )
-        self.plot_base.fill_between(xvals, 0, yvals, gid=PlotIds.PLOT_1D_PATCH_GID, **shade_kws)
+        if ax is None:
+            ax = self.plot_base
+        if gid is None:
+            gid = PlotIds.PLOT_1D_PATCH_GID
+        ax.fill_between(xvals, 0, yvals, gid=gid, **shade_kws)
 
-    def plot_1d_update_data(self, x, y, x_label="", y_label="", y_lower_start=0, y_upper_multiplier=1.1, **kwargs):
+    def plot_1d_update_data(
+        self, x, y, x_label="", y_label="", y_lower_start=0, y_upper_multiplier=1.1, ax=None, **kwargs
+    ):
         """Update plot data"""
         # override parameters
         _, _, extent = self._compute_xy_limits(x, y, y_lower_start, y_upper_multiplier)
 
+        if ax is None:
+            ax = self.plot_base
+
         line = None
-        lines = self.plot_base.get_lines()
+        lines = ax.get_lines()
         for line in lines:
             gid = line.get_gid()
             if gid == PlotIds.PLOT_1D_LINE_GID:
@@ -127,10 +137,10 @@ class PlotSpectrum(PlotBase):
         line.set_linestyle(kwargs["spectrum_line_style"])
         line.set_label(kwargs.get("label", ""))
 
-        for patch in self.plot_base.collections:
+        for patch in ax.collections:
             if patch.get_gid() == PlotIds.PLOT_1D_PATCH_GID:
                 patch.remove()
-                self.plot_1d_add_under_curve(x, y, **kwargs)
+                self.plot_1d_add_under_curve(x, y, ax=ax, **kwargs)
 
         # general plot updates
         self.set_plot_xlabel(x_label, **kwargs)
@@ -306,12 +316,14 @@ class PlotSpectrum(PlotBase):
         spectrum_line_width: float = None,
         spectrum_line_transparency: float = None,
         label: str = None,
+        ax=None,
     ):
         """Update line style based on a specific group id"""
         if gid is None:
             gid = PlotIds.PLOT_1D_LINE_GID
-
-        lines = self.plot_base.get_lines()
+        if ax is None:
+            ax = self.plot_base
+        lines = ax.get_lines()
         for line in lines:
             plot_gid = line.get_gid()
             if plot_gid == gid:
@@ -326,15 +338,18 @@ class PlotSpectrum(PlotBase):
                 if label is not None:
                     line.set_label(label)
 
-        handles, __ = self.plot_base.get_legend_handles_labels()
+        handles, __ = ax.get_legend_handles_labels()
         self.set_legend_parameters(handles, **self.plot_parameters)
+        return True
 
     def plot_1d_update_patch_style_by_label(
         self,
         gid: str = None,
+        ax=None,
         spectrum_line_fill_under: bool = None,
         spectrum_fill_color=None,
         spectrum_fill_transparency: float = None,
+        spectrum_fill_hatch: str = None,
         x: np.ndarray = None,
         y: np.ndarray = None,
         fill_kwargs=None,
@@ -342,22 +357,27 @@ class PlotSpectrum(PlotBase):
         """Update patch style based on a specific group id"""
         if gid is None:
             gid = PlotIds.PLOT_1D_PATCH_GID
+        if ax is None:
+            ax = self.plot_base
 
         found = False
-        for patch in self.plot_base.collections:
+        for patch in ax.collections:
             patch_id = patch.get_gid()
-            if patch_id == PlotIds.PLOT_1D_PATCH_GID:
+            if patch_id == gid:
                 found = True
                 if spectrum_fill_color is not None:
                     patch.set_facecolor(spectrum_fill_color)
                 if spectrum_fill_transparency is not None:
                     patch.set_alpha(spectrum_fill_transparency)
+                patch.set_hatch(spectrum_fill_hatch)
                 if not spectrum_line_fill_under:
                     patch.remove()
 
         # failed to find patch BUT it needs to be created
         if not found and spectrum_line_fill_under and x is not None and y is not None and fill_kwargs is not None:
-            self.plot_1d_add_under_curve(x, y, **fill_kwargs)
+            self.plot_1d_add_under_curve(x, y, ax=ax, **fill_kwargs)
+            found = True
+        return found
 
     def plot_1d_add_line(
         self, x: np.ndarray, y: np.ndarray, label: str, line_color: (1, 0, 0), gid: str = "", **kwargs

@@ -58,16 +58,16 @@ class MPLPanel(wx.Panel):
         self.Show()
 
         self.SetBackgroundColour(wx.WHITE)
+
         # Create a resizer
         self.Bind(wx.EVT_SIZE, self.on_resize)
-        self.Bind(wx.EVT_MOUSEWHEEL, self.on_wheel)
 
         # Prepare for zoom
         self.zoom = None
-        self.zoomtype = "box"
         self.plotName = None
         self.resize = 1
         self.screen_dpi = wx.ScreenDC().GetPPI()
+        self._repaint = True
 
         # obj containers
         self.text = []
@@ -95,14 +95,22 @@ class MPLPanel(wx.Panel):
         self.document_name = None
         self.dataset_name = None
 
+        # base plot that will be used by default whenever plotting
+        self.plot_base = None
+
+        # only used by the heatmap plots
+        self.cax = None
+
         # plot data
         self.data_limits = []
 
+        # this dictionary is used to store various information of metadata about the plot and any processing that takes
+        # place. It can be used to store any temporary information that would otherwise be expensive to compute or not
+        # convenient to store in a separate function
+        self._METADATA = dict()
+
     def __repr__(self):
         return f"Plot: {self.plotName} | Window name: {self.window_name} | Axes size: {self._axes}"
-
-    def on_wheel(self, evt):
-        print(evt)
 
     def setup_new_zoom(
         self,
@@ -145,13 +153,10 @@ class MPLPanel(wx.Panel):
         """Redraw and refresh the plot"""
         if repaint:
             self.canvas.draw()
+        self._repaint = False
 
     def clear(self):
-        """
-        Clear the plot and rest some of the parameters.
-        :param args: Arguments
-        :return:
-        """
+        """Clear the plot and rest some of the parameters."""
         self.figure.clear()
 
         # clear stores
@@ -164,10 +169,12 @@ class MPLPanel(wx.Panel):
 
         # reset attributes
         self.PLOT_TYPE = None
+        self._METADATA = {}
 
         # clear plots
         self.cax = None
         self.plot_base = None
+
         self.repaint()
 
     def on_resize(self, evt):

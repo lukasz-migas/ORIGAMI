@@ -46,6 +46,8 @@
 - [ ] made improvements to the view about popup class
 - [ ] add plot updates to the overlaying
 - [ ] remove rmsd from the general settings panel
+- [ ] add colormap selection to RMSD plot
+- [ ] add a flag to each function that specifies whether replot is necessary
 
 ## New features
 

@@ -782,10 +782,8 @@ class MPLInteraction:
 
         if reset:
             if self.dragged.obj_name is not None:
-                if self._callbacks["MOVE_LABEL"]:
+                if self._callbacks.get("MOVE_LABEL", None):
                     pub.sendMessage(self._callbacks["MOVE_LABEL"], label_obj=self.dragged)
-                else:
-                    pub.sendMessage("update_text_position", text_obj=self.dragged)
             self._is_label = False
             self.dragged = None
 

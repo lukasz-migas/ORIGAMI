@@ -18,11 +18,7 @@ LOGGER = logging.getLogger(__name__)
 class Panel3dSettings(PanelSettingsBase):
     """Violin settings"""
 
-    (
-        plot3d_background_color_btn,
-        plot3d_colormap_value,
-        plot3d_opacity_value,
-    ) = (None, None, None)
+    (plot3d_background_color_btn, plot3d_colormap_value, plot3d_opacity_value) = (None, None, None)
     plot3d_clim_max_value, plot3d_fontsize_value, plot3d_margin_x_value, plot3d_margin_y_value = None, None, None, None
     plot3d_margin_z_value, plot3d_axis_color_btn, plot3d_clim_min_value = None, None, None
     plot3d_tick_size_value = None

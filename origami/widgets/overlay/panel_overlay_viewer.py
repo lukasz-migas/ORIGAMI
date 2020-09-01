@@ -301,8 +301,10 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
         from origami.widgets.overlay.plot_parameters.panel_rmsd import PanelRMSDSettings
         from origami.gui_elements.plot_parameters.panel_waterfall import PanelWaterfallSettings
         from origami.widgets.overlay.plot_parameters.panel_grid_tto import PanelGridTTOSettings
+        from origami.widgets.overlay.plot_parameters.panel_grid_nxn import PanelGridNxNSettings
         from origami.widgets.overlay.plot_parameters.panel_rmsf import PanelRMSFSettings
         from origami.widgets.overlay.plot_parameters.panel_rmsd_matrix import PanelRMSDMatrixSettings
+        from origami.widgets.overlay.plot_parameters.panel_rgb import PanelRGBSettings
 
         # panel = wx.Panel(split_panel, -1, size=(-1, -1), name="plot-settings")
         panel = wxScrolledPanel.ScrolledPanel(split_panel, size=(-1, -1), name="plot-settings")
@@ -322,7 +324,7 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
         self.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.on_cp_layout, self._panel_rmsd_matrix)
 
         self._panel_rgb = wx.CollapsiblePane(panel, label="RGB", style=wx.CP_DEFAULT_STYLE | wx.CP_NO_TLW_RESIZE)
-        #         _ = PanelWaterfallSettings(self._panel_rgb.GetPane(), self.view)
+        _ = PanelRGBSettings(self._panel_rgb.GetPane(), self.view)
         self.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.on_cp_layout, self._panel_rgb)
 
         self._panel_grid_tto = wx.CollapsiblePane(
@@ -334,7 +336,7 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
         self._panel_grid_nxn = wx.CollapsiblePane(
             panel, label="Grid (n x n)", style=wx.CP_DEFAULT_STYLE | wx.CP_NO_TLW_RESIZE
         )
-        #         _ = PanelWaterfallSettings(self._panel_grid_nxn.GetPane(), self.view)
+        _ = PanelGridNxNSettings(self._panel_grid_nxn.GetPane(), self.view)
         self.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.on_cp_layout, self._panel_grid_nxn)
 
         self._panel_waterfall = wx.CollapsiblePane(
@@ -729,8 +731,14 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
         self._disable_table_update = True
         if hasattr(evt, "GetIndex"):
             self.peaklist.item_id = evt.GetIndex()
+
+        # get metadata contained within the table
         item_info = self.on_get_item_information()
+
+        # get metadata contained within the config file
         metadata = self.get_item_metadata(item_info)
+
+        # update UI based on which page is selected
         if self.current_page == 0:
             self.overlay_1d_name.SetLabel(item_info["dataset_name"])
             self.overlay_1d_document.SetLabel(item_info["document_title"])
@@ -815,8 +823,10 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
             self.update_item_metadata(item_id)
 
     def update_item_metadata(self, item_id: int):
-        """Update metadata in the DocumentStore"""
+        """Update metadata in the DocumentStore based on what is contained within the ui controls"""
         item_info = self.on_get_item_information(item_id)
+
+        # get document
         document = ENV.on_get_document(item_info["document_title"])
         if document is None or item_info["tag"] != self._current_item:
             return
@@ -892,8 +902,11 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
         for item_id in indices:
             item_info = self.on_get_item_information(item_id)
             item_list.append([item_info["document_title"], item_info["dataset_name"]])
-            # FIME: this actually flushes wrong data to disk!
-        #             self.update_item_metadata(item_id)  # flush to hard drive
+
+            # update selection
+            self.peaklist.item_id = item_id
+            self.on_select_item(None)
+            self.update_item_metadata(item_id)  # flush to hard drive
         return item_list
 
     def on_plot_overlay(self, _evt):
@@ -954,12 +967,10 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
             self.view_overlay.plot_2d_heatmap(x, y, array, x_label=x_label, y_label=y_label)
         elif method == "RMSD":
             array, x, y, x_label, y_label, rmsd_label = OVERLAY_HANDLER.prepare_overlay_2d_rmsd(group_obj)
-            self.view_overlay.plot_2d_heatmap(x, y, array, x_label=x_label, y_label=y_label)
-            self.view_overlay.add_labels([25], [25], [rmsd_label])  # FIXME
+            self.view_overlay.plot_2d_rmsd(x, y, array, rmsd_label, x_label=x_label, y_label=y_label)
         elif method == "RMSF":
             array, x, y, rmsf_y, x_label, y_label, rmsd_label = OVERLAY_HANDLER.prepare_overlay_2d_rmsf(group_obj)
-            self.view_overlay.plot_2d_rmsf(x, y, array, rmsf_y, x_label=x_label, y_label=y_label)
-            self.view_overlay.add_labels([25], [25], [rmsd_label])  # FIXME
+            self.view_overlay.plot_2d_rmsf(x, y, array, rmsf_y, rmsd_label, x_label=x_label, y_label=y_label)
         elif method == "RMSD Matrix":
             array, x, y, x_label, y_label = OVERLAY_HANDLER.prepare_overlay_2d_rmsd_matrix(group_obj)
             self.view_overlay.plot_2d_heatmap(x, y, array, x_label=x_label, y_label=y_label)
@@ -981,9 +992,8 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
                 group_obj
             )
             self.view_overlay.plot_2d_grid_compare_rmsd(
-                x, y, a_1, a_2, array, x_label=x_label, y_label=y_label, repaint=False
+                x, y, a_1, a_2, array, rmsd_label, x_label=x_label, y_label=y_label
             )
-            self.view_overlay.add_labels([25], [25], [rmsd_label])  # FIXME
         elif method == "Grid (n x n)":
             arrays, x, y, x_label, y_label, n_rows, n_cols = OVERLAY_HANDLER.prepare_overlay_2d_grid_n_x_n(group_obj)
             self.view_overlay.plot_2d_grid_n_x_n(x, y, arrays, n_rows, n_cols, x_label=x_label, y_label=y_label)

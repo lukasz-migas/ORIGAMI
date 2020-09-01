@@ -1,4 +1,6 @@
 """Plot IDs"""
+# Local imports
+from origami.utils.secret import get_short_hash
 
 
 class PlotIds:
@@ -23,14 +25,15 @@ class PlotIds:
     PLOT_JOINT_Y = "20"
 
     # heatmap / line plots
-    PLOT_LH_LINE = "21"
-    PLOT_LH_2D = "22"
+    PLOT_LH_LINE = get_short_hash()
+    PLOT_LH_PATCH = get_short_hash()
+    PLOT_LH_2D = get_short_hash()
 
     # heatmap + heatmap => heatmap
-    PLOT_GRID_2_TO_1_LEFT_TOP = "23"
-    PLOT_GRID_2_TO_1_LEFT_BOTTOM = "24"
-    PLOT_GRID_2_TO_1_RIGHT = "25"
+    PLOT_GRID_2_TO_1_LEFT_TOP = get_short_hash()
+    PLOT_GRID_2_TO_1_LEFT_BOTTOM = get_short_hash()
+    PLOT_GRID_2_TO_1_RIGHT = get_short_hash()
 
     # heatmap | heatmap
-    PLOT_COMPARE_LEFT = "26"
-    PLOT_COMPARE_RIGHT = "27"
+    PLOT_COMPARE_LEFT = get_short_hash()
+    PLOT_COMPARE_RIGHT = get_short_hash()

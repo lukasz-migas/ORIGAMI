@@ -36,9 +36,9 @@ class PlotBase(MPLPanel):
     def __init__(self, *args, **kwargs):
         self._axes = kwargs.get("axes_size", [0.12, 0.12, 0.8, 0.8])  # keep track of axes size
         MPLPanel.__init__(self, *args, **kwargs)
-
-        self._plot_flag = False
         self.plot_type = None
+
+        # base plot that will be used by default whenever plotting
         self.plot_base = None
 
         # only used by the heatmap plots
@@ -49,19 +49,17 @@ class PlotBase(MPLPanel):
         self.plot_joint_y = None
 
         # only used by the heatmap+line plot
+        self.plot_line_gs = None
         self.plot_line_top = None
 
         # only used by the grid
-        self.plot_grid = None
+        self.plot_grid_nxn_gs = None
+        self.plot_grid_nxn_grid = None
 
         # only used by the heatmap + heatmap => heatmap
-        self.plot_grid_top = None
-        self.plot_grid_bottom = None
-
-        # this dictionary is used to store various information of metadata about the plot and any processing that takes
-        # place. It can be used to store any temporary information that would otherwise be expensive to compute or not
-        # convenient to store in a sseparate function
-        self._METADATA = dict()
+        self.plot_grid_tto_gs = None
+        self.plot_grid_tto_top = None
+        self.plot_grid_tto_bottom = None
 
     def _set_axes(self):
         """Add axis to the figure"""
@@ -255,20 +253,27 @@ class PlotBase(MPLPanel):
         self.canvas.Copy_to_Clipboard()
         logger.debug("Figure was copied to the clipboard")
 
-    def set_legend_parameters(self, handles=None, draggable=True, **kwargs):
+    def set_legend_parameters(self, handles=None, draggable=True, ax=None, **kwargs):
         """Add legend to the plot
 
         Parameters
         ----------
         handles: legend handles
             list of legend handles or None
+        draggable : bool
+            indicates whether legend can be dragged around
+        ax :
+            axes which the legend should be added to
         **kwargs: dict
             dictionary with all plot parameters defined by the user
         """
         # legend
-        self.plot_remove_legend()
+        if ax is None:
+            ax = self.plot_base
+
+        self.plot_remove_legend(ax)
         if kwargs.get("legend", CONFIG.legend):
-            legend = self.plot_base.legend(
+            legend = ax.legend(
                 loc=kwargs.get("legend_position", CONFIG.legend_position),
                 ncol=kwargs.get("legend_n_columns", CONFIG.legend_n_columns),
                 fontsize=kwargs.get("legend_font_size", CONFIG.legend_font_size),
@@ -283,11 +288,15 @@ class PlotBase(MPLPanel):
             if "legend_zorder" in kwargs:
                 legend.set_zorder(kwargs.pop("legend_zorder"))
             legend.set_draggable(draggable)
+            return True
 
-    def plot_remove_legend(self):
+    def plot_remove_legend(self, ax=None):
         """Remove legend from the plot area"""
+        if ax is None:
+            ax = self.plot_base
+
         try:
-            leg = self.plot_base.axes.get_legend()
+            leg = ax.axes.get_legend()
             leg.remove()
         except (AttributeError, KeyError):
             logger.warning("Could not remove legend from the plot area - did it exist?")
@@ -296,15 +305,16 @@ class PlotBase(MPLPanel):
         """Update legend parameters"""
         handles, __ = self.plot_base.get_legend_handles_labels()
         if handles:
-            self.set_legend_parameters(handles, **kwargs)
+            return self.set_legend_parameters(handles, **kwargs)
 
-    def set_plot_xlabel(self, xlabel: str = None, **kwargs):
+    def set_plot_xlabel(self, xlabel: str = None, ax=None, **kwargs):
         """Set plot x-axis label"""
         kwargs = ut_visuals.check_plot_settings(**kwargs)
-
+        if ax is None:
+            ax = self.plot_base
         if xlabel is None:
-            xlabel = self.plot_base.get_xlabel()
-        self.plot_base.set_xlabel(
+            xlabel = ax.get_xlabel()
+        ax.set_xlabel(
             xlabel,
             labelpad=kwargs["axes_label_pad"],
             fontsize=kwargs["axes_label_font_size"],
@@ -312,12 +322,14 @@ class PlotBase(MPLPanel):
         )
         self.plot_labels["xlabel"] = xlabel
 
-    def set_plot_ylabel(self, ylabel: str = None, **kwargs):
+    def set_plot_ylabel(self, ylabel: str = None, ax=None, **kwargs):
         """Set plot y-axis label"""
         kwargs = ut_visuals.check_plot_settings(**kwargs)
+        if ax is None:
+            ax = self.plot_base
         if ylabel is None:
-            ylabel = self.plot_base.get_ylabel()
-        self.plot_base.set_ylabel(
+            ylabel = ax.get_ylabel()
+        ax.set_ylabel(
             ylabel,
             labelpad=kwargs["axes_label_pad"],
             fontsize=kwargs["axes_label_font_size"],
@@ -373,15 +385,18 @@ class PlotBase(MPLPanel):
         self.plot_base.spines["top"].set_visible(kwargs["axes_frame_spine_top"])
         self.plot_base.spines["bottom"].set_visible(kwargs["axes_frame_spine_bottom"])
         [i.set_linewidth(kwargs["axes_frame_width"]) for i in self.plot_base.spines.values()]
+        return True
 
     def plot_update_frame(self, **kwargs):
         """Update plot frame"""
         self.set_tick_parameters(**kwargs)
+        return True
 
     def plot_update_labels(self, **kwargs):
         """Update labels"""
         self.set_plot_xlabel(**kwargs)
         self.set_plot_ylabel(**kwargs)
+        return True
 
     def _fix_label_positions(self, lim=20):
         """
@@ -676,19 +691,27 @@ class PlotBase(MPLPanel):
         text.y_divider = self.y_divider
         self.text.append(text)
 
-    def _check_startwith(self, obj, startwith: str):
+    @staticmethod
+    def _check_start_with(obj, start_with: str):
         """Checks whether label starts with specific string"""
         if isinstance(obj.obj_name, str):
-            if obj.obj_name.startswith(startwith):
+            if obj.obj_name.startswith(start_with):
                 return True
         return False
+
+    def find_object_by_obj_name(self, object_list: List, start_with: str):
+        """Find object by its name"""
+        for obj in object_list:
+            if start_with is not None and hasattr(obj, "obj_name"):
+                if self._check_start_with(obj, start_with):
+                    return obj
 
     def plot_remove_label(self, start_with: str = None, repaint: bool = True):
         """Remove label from the plot area"""
         labels = []
         for text in self.text:
             if start_with is not None and hasattr(text, "obj_name"):
-                if not self._check_startwith(text, start_with):
+                if not self._check_start_with(text, start_with):
                     labels.append(text)
                     continue
             try:
@@ -766,7 +789,7 @@ class PlotBase(MPLPanel):
         patches = []
         for patch in self.patch:
             if start_with is not None and hasattr(patch, "obj_name"):
-                if not self._check_startwith(patch, start_with):
+                if not self._check_start_with(patch, start_with):
                     patches.append(patch)
                     continue
 
@@ -814,7 +837,7 @@ class PlotBase(MPLPanel):
 
         if orientation == "vertical":
             line = self.plot_base.axvline(xmin, 0, 1, color=color, linestyle=linestyle, alpha=alpha)
-        elif orientation == "horizontal":
+        else:
             line = self.plot_base.axhline(ymin / self.y_divider, 0, 1, color=color, linestyle=linestyle, alpha=alpha)
 
         # add name to the line for future removal
@@ -849,54 +872,6 @@ class PlotBase(MPLPanel):
         self.plot_remove_lines(False)
         self.plot_remove_arrows(False)
         self.repaint(repaint)
-
-    def plot_waterfall_update(self, x: np.ndarray, y: np.ndarray, array: np.ndarray, name: str, **kwargs):
-        """Generic waterfall update function"""
-        self._is_locked()
-
-        if name.startswith("waterfall."):
-            name = name.split("waterfall.")[-1]
-
-        if name.startswith("line") or name.startswith("fill"):
-            self.plot_waterfall_update_line_style(array, **kwargs)
-        elif name.startswith("label"):
-            if name.endswith(".reset"):
-                self.plot_waterfall_reset_label(x, y, array, **kwargs)
-            else:
-                self.plot_waterfall_update_label(**kwargs)
-
-    def plot_waterfall_update_line_style(self, array, **kwargs):
-        """Update waterfall lines"""
-        n_signals = array.shape[1]
-        lc, fc = self.get_waterfall_colors(n_signals, **kwargs)
-        for collection in self.plot_base.collections:
-            if isinstance(collection, LineCollection):
-                collection.set_linestyle(kwargs["waterfall_line_style"])
-                collection.set_linewidth(kwargs["waterfall_line_width"])
-                collection.set_edgecolors(lc)
-                if kwargs["waterfall_fill_under"]:
-                    collection.set_facecolors(fc)
-                else:
-                    collection.set_facecolors([])
-
-    def plot_waterfall_reset_label(self, x, y, array, **kwargs):
-        """Update waterfall labels"""
-        _, _, label_x, label_y, label_text = self._prepare_waterfall(x, y, array, **kwargs)
-        if kwargs["waterfall_labels_show"]:
-            self.plot_add_labels(
-                label_x, label_y, label_text, pickable=False, **self._get_waterfall_label_kwargs(**kwargs)
-            )
-        else:
-            self.plot_remove_label(repaint=False)
-
-    def plot_waterfall_update_label(self, **kwargs):
-        """Update waterfall labels"""
-        _kwargs = self._get_waterfall_label_kwargs(**kwargs)
-        for label in self.text:
-            label.set_fontweight(_kwargs["fontweight"])
-            label.set_fontsize(_kwargs["fontsize"])
-            label.set_horizontalalignment(_kwargs["horizontalalignment"])
-            label.set_verticalalignment(_kwargs["verticalalignment"])
 
     # def plot_1D_update_rmsf(self, **kwargs):
     #     if self.lock_plot_from_updating:
@@ -1208,6 +1183,54 @@ class PlotBase(MPLPanel):
                 np.linspace(self._METADATA["waterfall_last_y_end"], self._METADATA["waterfall_last_y_start"], 3)
             )
             self.plot_base.set_yticklabels(["0", "%", "100"])
+
+    def plot_waterfall_update(self, x: np.ndarray, y: np.ndarray, array: np.ndarray, name: str, **kwargs):
+        """Generic waterfall update function"""
+        self._is_locked()
+
+        if name.startswith("waterfall."):
+            name = name.split("waterfall.")[-1]
+
+        if name.startswith("line") or name.startswith("fill"):
+            self.plot_waterfall_update_line_style(array, **kwargs)
+        elif name.startswith("label"):
+            if name.endswith(".reset"):
+                self.plot_waterfall_reset_label(x, y, array, **kwargs)
+            else:
+                self.plot_waterfall_update_label(**kwargs)
+
+    def plot_waterfall_update_line_style(self, array, **kwargs):
+        """Update waterfall lines"""
+        n_signals = array.shape[1]
+        lc, fc = self.get_waterfall_colors(n_signals, **kwargs)
+        for collection in self.plot_base.collections:
+            if isinstance(collection, LineCollection):
+                collection.set_linestyle(kwargs["waterfall_line_style"])
+                collection.set_linewidth(kwargs["waterfall_line_width"])
+                collection.set_edgecolors(lc)
+                if kwargs["waterfall_fill_under"]:
+                    collection.set_facecolors(fc)
+                else:
+                    collection.set_facecolors([])
+
+    def plot_waterfall_reset_label(self, x, y, array, **kwargs):
+        """Update waterfall labels"""
+        _, _, label_x, label_y, label_text = self._prepare_waterfall(x, y, array, **kwargs)
+        if kwargs["waterfall_labels_show"]:
+            self.plot_add_labels(
+                label_x, label_y, label_text, pickable=False, **self._get_waterfall_label_kwargs(**kwargs)
+            )
+        else:
+            self.plot_remove_label(repaint=False)
+
+    def plot_waterfall_update_label(self, **kwargs):
+        """Update waterfall labels"""
+        _kwargs = self._get_waterfall_label_kwargs(**kwargs)
+        for label in self.text:
+            label.set_fontweight(_kwargs["fontweight"])
+            label.set_fontsize(_kwargs["fontsize"])
+            label.set_horizontalalignment(_kwargs["horizontalalignment"])
+            label.set_verticalalignment(_kwargs["verticalalignment"])
 
     @staticmethod
     def update_line(x, y, gid, ax):

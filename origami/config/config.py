@@ -1301,7 +1301,7 @@ class Config:
         self.uvpd_peak_show_labels = False  # new in v1.2.1
 
         # RMSD
-        self.rmsd_label_position_choices = ["bottom left", "bottom right", "top left", "top right", "none", "other"]
+        self.rmsd_label_position_choices = ["bottom left", "bottom right", "top left", "top right", "other", "none"]
         self.rmsd_label_position = "bottom left"
         self.rmsd_location = (5, 5)
         self.rmsd_color = (1, 1, 1)
@@ -1338,6 +1338,16 @@ class Config:
         # Grid (NxN)
         self.grid_nxn_width_space = 0.25
         self.grid_nxn_height_space = 0.25
+        self.grid_nxn_labels_x_first_row = True
+        self.grid_nxn_labels_y_first_col = True
+        self.grid_nxn_ticks_x_each = False
+        self.grid_nxn_ticks_y_each = False
+
+        # RGB
+        self.rgb_adaptive_hist = True
+        self.rgb_adaptive_hist_clip_limit = 0.01
+        self.rgb_adaptive_hist_n_bins = 256
+        self.rgb_show_labels = False
 
         # Importing files
         self.import_binOnImport = True  # REMOVE
@@ -2173,6 +2183,8 @@ class Config:
                         "rmsd_label_position": self.rmsd_label_position,
                         "rmsd_label_font_size": self.rmsd_label_font_size,
                         "rmsd_label_font_weight": self.rmsd_label_font_weight,
+                        "rmsd_color": self.rmsd_color,
+                        "rmsd_location": self.rmsd_location,
                         "rmsf_h_space": self.rmsf_h_space,
                         "rmsf_line_color": self.rmsf_line_color,
                         "rmsf_line_transparency": self.rmsf_line_transparency,
@@ -2200,6 +2212,10 @@ class Config:
                         "grid_tto_main_x_proportion": self.grid_tto_main_x_proportion,
                         "grid_nxn_width_space": self.grid_nxn_width_space,
                         "grid_nxn_height_space": self.grid_nxn_height_space,
+                        "grid_nxn_labels_x_first_row": self.grid_nxn_labels_x_first_row,
+                        "grid_nxn_labels_y_first_col": self.grid_nxn_labels_y_first_col,
+                        "grid_nxn_ticks_x_each": self.grid_nxn_ticks_x_each,
+                        "grid_nxn_ticks_y_each": self.grid_nxn_ticks_y_each,
                     }
                 )
             if _plot_type in "joint":
