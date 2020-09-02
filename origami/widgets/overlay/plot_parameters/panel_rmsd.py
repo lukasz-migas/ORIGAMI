@@ -34,19 +34,19 @@ class PanelRMSDSettings(PanelSettingsBase):
         )
         self.rmsd_position_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
         self.rmsd_position_value.Bind(wx.EVT_CHOICE, self.on_apply)
-        self.rmsd_position_value.Bind(wx.EVT_CHOICE, self.on_update)
+        self.rmsd_position_value.Bind(wx.EVT_CHOICE, self.on_update_style)
 
         rmsd_x_position = wx.StaticText(self, -1, "Position x:")
         self.rmsd_x_position_value = wx.SpinCtrlDouble(
             self, -1, value=str(), min=0, max=100, initial=0, inc=5, size=(90, -1), name="rmsd.label"
         )
-        self.rmsd_x_position_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.rmsd_x_position_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         rmsd_y_position = wx.StaticText(self, -1, "Position y:")
         self.rmsd_y_position_value = wx.SpinCtrlDouble(
             self, -1, value=str(), min=0, max=100, initial=0, inc=5, size=(90, -1), name="rmsd.label"
         )
-        self.rmsd_y_position_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.rmsd_y_position_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         rmsd_fontsize = wx.StaticText(self, -1, "Label size:")
         self.rmsd_fontsize_value = wx.SpinCtrlDouble(
@@ -61,11 +61,11 @@ class PanelRMSDSettings(PanelSettingsBase):
             name="rmsd.label",
         )
         self.rmsd_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.rmsd_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.rmsd_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         self.rmsd_font_weight_check = make_checkbox(self, "Bold", name="rmsd.label")
         self.rmsd_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.rmsd_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_update)
+        self.rmsd_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_update_style)
 
         rmsd_color_label = wx.StaticText(self, -1, "Label color:")
         self.rmsd_color_btn = wx.Button(self, wx.ID_ANY, "", wx.DefaultPosition, wx.Size(26, 26), 0, name="rmsd.label")
@@ -149,9 +149,9 @@ class PanelRMSDSettings(PanelSettingsBase):
         if source == "rmsd.label":
             CONFIG.rmsd_color = color_1
             self.rmsd_color_btn.SetBackgroundColour(color_255)
-            self.on_update(evt)
+            self.on_update_style(evt)
 
-    def on_update(self, evt):
+    def on_update_style(self, evt):
         """Update 1d plots"""
         evt, source = self._preparse_evt(evt)
         if evt is None:

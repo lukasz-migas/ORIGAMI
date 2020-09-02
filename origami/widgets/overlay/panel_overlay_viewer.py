@@ -26,6 +26,7 @@ from origami.gui_elements.helpers import make_spin_ctrl_double
 from origami.gui_elements.panel_base import TableMixin
 from origami.widgets.overlay.view_overlay import ViewOverlay
 from origami.widgets.overlay.overlay_handler import OVERLAY_HANDLER
+from origami.widgets.overlay.panel_plot_parameters import PanelOverlayViewerSettings
 
 LOGGER = logging.getLogger(__name__)
 
@@ -39,6 +40,11 @@ def _str_fmt(value, default: Union[str, float, int] = ""):
 
 
 # TODO: add option to reduce number of colormaps
+# TODO: fix rmsd matrix plot - not working correctly
+# TODO: add rmsd dot plot
+# TODO: add a way to export the Group data to document
+# TODO: add a way to save overlay data
+# TODO: add a way to export the plot config
 
 
 class TableColumnIndex:
@@ -46,11 +52,12 @@ class TableColumnIndex:
 
     check = 0
     order = 1
-    dataset_name = 2
+    name = 2
     dimensions = 3
     label = 4
     document_title = 5
-    COLUMN_COUNT = 6
+    dataset_name = 6
+    color = 7
 
 
 class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
@@ -60,30 +67,21 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
     TABLE_DICT = TableConfig()
     TABLE_DICT.add("", "check", "bool", 25, hidden=True)
     TABLE_DICT.add("#", "order", "int", 50)
-    TABLE_DICT.add("name", "dataset_name", "str", 150)
+    TABLE_DICT.add("name", "name", "str", 150)
     TABLE_DICT.add("dimensions", "dimensions", "str", 100)
     TABLE_DICT.add("label", "label", "str", 100)
     TABLE_DICT.add("document", "document_title", "str", 100)
+    TABLE_DICT.add("full name", "dataset_name", "str", 0, hidden=True)
+    TABLE_DICT.add("color", "color", "color", 0, hidden=True)
     TABLE_DICT.add("tag", "tag", "str", 0, hidden=True)
-    TABLE_KWARGS = dict(add_item_color=True)
-
-    TABLE_WIDGET_DICT = dict()
-
-    OVERLAY_METHODS_2D = sorted(
-        [
-            "Mask",
-            "Transparent",
-            "RGB",
-            "Mean",
-            "Variance",
-            "Standard Deviation",
-            "RMSD",
-            "RMSF",
-            "RMSD Matrix",
-            "Grid (2->1)",
-            "Grid (n x n)",
-        ]
+    TABLE_KWARGS = dict(
+        add_item_color=True,
+        color_in_column=True,
+        color_column_id=TABLE_DICT.find_col_id("color"),
+        color_in_column_255=True,
     )
+    USE_COLOR = False
+    TABLE_WIDGET_DICT = dict()
 
     # ui elements
     view_overlay, panel_book, action_btn, plot_btn = None, None, None, None
@@ -94,8 +92,7 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
     overlay_2d_transparency, overlay_2d_order, settings_spectra, settings_heatmaps = None, None, None, None
     overlay_1d_name, overlay_2d_name, overlay_1d_document, overlay_2d_document = None, None, None, None
     overlay_1d_spectrum_type, overlay_1d_method_settings_btn, overlay_2d_method_settings_btn = None, None, None
-    _panel_rmsd, _panel_rmsf, _panel_rmsd_matrix, _panel_rgb = None, None, None, None
-    _panel_grid_tto, _panel_grid_nxn, _panel_waterfall = None, None, None
+    plot_settings = None
 
     def __init__(self, parent, presenter, icons=None, item_list=None, debug: bool = False):
         MiniFrame.__init__(
@@ -149,7 +146,7 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
         self.peaklist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_item)
 
     @property
-    def current_item(self):
+    def current_item_id(self):
         """Returns the index of currently selected item in the table"""
         idx = self.on_find_item("tag", self._current_item)
         return idx
@@ -160,16 +157,6 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
         return self.presenter.data_handling
 
     @property
-    def data_processing(self):
-        """Return handle to `data_processing`"""
-        return self.presenter.data_processing
-
-    @property
-    def data_visualisation(self):
-        """Return handle to `data_visualisation`"""
-        return self.presenter.data_visualisation
-
-    @property
     def document_tree(self):
         """Return handle to `document_tree`"""
         return self.presenter.view.panelDocuments.documents
@@ -178,6 +165,15 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
     def current_page(self):
         """Returns index of the current page"""
         return self.panel_book.GetSelection()
+
+    @property
+    def current_method(self) -> str:
+        """Returns current method depending on which window is shown"""
+        if self.current_page == 0:
+            method = self.overlay_1d_method.GetStringSelection()
+        else:
+            method = self.overlay_2d_method.GetStringSelection()
+        return method
 
     def on_right_click(self, evt):
         """Right-click event handler"""
@@ -217,13 +213,13 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
         plot_panel = self.make_plot_panel(self)
 
         # make extra
-        plot_settings = self.make_plot_settings_panel(self)
+        self.plot_settings = PanelOverlayViewerSettings(self, self.view)
 
         # pack elements
         main_sizer = wx.BoxSizer()
         main_sizer.Add(settings_panel, 0, wx.EXPAND, 0)
         main_sizer.Add(plot_panel, 1, wx.EXPAND, 0)
-        main_sizer.Add(plot_settings, 0, wx.EXPAND, 0)
+        main_sizer.Add(self.plot_settings, 0, wx.EXPAND, 0)
 
         # fit layout
         main_sizer.Fit(self)
@@ -295,79 +291,6 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
         #         sizer.AddSpacer(5)
         #         sizer.Add(self.hot_plot_check, 0, wx.ALIGN_CENTER_VERTICAL)
         return sizer
-
-    def make_plot_settings_panel(self, split_panel):
-        """Make settings notebook"""
-        from origami.widgets.overlay.plot_parameters.panel_rmsd import PanelRMSDSettings
-        from origami.gui_elements.plot_parameters.panel_waterfall import PanelWaterfallSettings
-        from origami.widgets.overlay.plot_parameters.panel_grid_tto import PanelGridTTOSettings
-        from origami.widgets.overlay.plot_parameters.panel_grid_nxn import PanelGridNxNSettings
-        from origami.widgets.overlay.plot_parameters.panel_rmsf import PanelRMSFSettings
-        from origami.widgets.overlay.plot_parameters.panel_rmsd_matrix import PanelRMSDMatrixSettings
-        from origami.widgets.overlay.plot_parameters.panel_rgb import PanelRGBSettings
-
-        # panel = wx.Panel(split_panel, -1, size=(-1, -1), name="plot-settings")
-        panel = wxScrolledPanel.ScrolledPanel(split_panel, size=(-1, -1), name="plot-settings")
-
-        self._panel_rmsd = wx.CollapsiblePane(panel, label="RMSD", style=wx.CP_DEFAULT_STYLE | wx.CP_NO_TLW_RESIZE)
-        _ = PanelRMSDSettings(self._panel_rmsd.GetPane(), self.view)
-        self.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.on_cp_layout, self._panel_rmsd)
-
-        self._panel_rmsf = wx.CollapsiblePane(panel, label="RMSF", style=wx.CP_DEFAULT_STYLE | wx.CP_NO_TLW_RESIZE)
-        _ = PanelRMSFSettings(self._panel_rmsf.GetPane(), self.view)
-        self.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.on_cp_layout, self._panel_rmsf)
-
-        self._panel_rmsd_matrix = wx.CollapsiblePane(
-            panel, label="RMSD Matrix | Dot", style=wx.CP_DEFAULT_STYLE | wx.CP_NO_TLW_RESIZE
-        )
-        _ = PanelRMSDMatrixSettings(self._panel_rmsd_matrix.GetPane(), self.view)
-        self.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.on_cp_layout, self._panel_rmsd_matrix)
-
-        self._panel_rgb = wx.CollapsiblePane(panel, label="RGB", style=wx.CP_DEFAULT_STYLE | wx.CP_NO_TLW_RESIZE)
-        _ = PanelRGBSettings(self._panel_rgb.GetPane(), self.view)
-        self.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.on_cp_layout, self._panel_rgb)
-
-        self._panel_grid_tto = wx.CollapsiblePane(
-            panel, label="Grid (2->1)", style=wx.CP_DEFAULT_STYLE | wx.CP_NO_TLW_RESIZE
-        )
-        _ = PanelGridTTOSettings(self._panel_grid_tto.GetPane(), self.view)
-        self.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.on_cp_layout, self._panel_grid_tto)
-
-        self._panel_grid_nxn = wx.CollapsiblePane(
-            panel, label="Grid (n x n)", style=wx.CP_DEFAULT_STYLE | wx.CP_NO_TLW_RESIZE
-        )
-        _ = PanelGridNxNSettings(self._panel_grid_nxn.GetPane(), self.view)
-        self.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.on_cp_layout, self._panel_grid_nxn)
-
-        self._panel_waterfall = wx.CollapsiblePane(
-            panel, label="Waterfall | Overlay", style=wx.CP_DEFAULT_STYLE | wx.CP_NO_TLW_RESIZE
-        )
-        _ = PanelWaterfallSettings(self._panel_waterfall.GetPane(), self.view)
-        self.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.on_cp_layout, self._panel_waterfall)
-
-        settings_sizer = wx.BoxSizer(wx.VERTICAL)
-        settings_sizer.Add(self._panel_rmsd, 0, wx.EXPAND | wx.ALL, 0)
-        settings_sizer.Add(self._panel_rmsf, 0, wx.EXPAND | wx.ALL, 0)
-        settings_sizer.Add(self._panel_rmsd_matrix, 0, wx.EXPAND | wx.ALL, 0)
-        settings_sizer.Add(self._panel_rgb, 0, wx.EXPAND | wx.ALL, 0)
-        settings_sizer.Add(self._panel_grid_tto, 0, wx.EXPAND | wx.ALL, 0)
-        settings_sizer.Add(self._panel_grid_nxn, 0, wx.EXPAND | wx.ALL, 0)
-        settings_sizer.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND | wx.ALL, 1)
-        settings_sizer.Add(self._panel_waterfall, 0, wx.EXPAND | wx.ALL, 0)
-        settings_sizer.Fit(panel)
-        settings_sizer.SetMinSize((300, -1))
-        panel.SetSizerAndFit(settings_sizer)
-
-        if not running_under_pytest():
-            panel.SetupScrolling()
-
-        return panel
-
-    def on_cp_layout(self, _evt):
-        """Layout"""
-        self.Layout()
-        # print(dir(_evt))
-        # print(_evt.GetEventObject())
 
     def make_settings_panel(self, split_panel):
         """Make settings notebook"""
@@ -602,7 +525,9 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
     # noinspection DuplicatedCode
     def make_plot_panel(self, split_panel):
         """Make plot panel"""
-        self.view_overlay = ViewOverlay(split_panel, (4, 4), x_label="x-axis", y_label="y-axis", filename="overlay")
+        self.view_overlay = ViewOverlay(
+            split_panel, (0.01, 0.01), x_label="x-axis", y_label="y-axis", filename="overlay"
+        )
 
         return self.view_overlay.panel
 
@@ -816,10 +741,11 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
             self.overlay_2d_color_btn.SetBackgroundColour(color_255)
 
         # update table
-        item_id = self.current_item
+        item_id = self.current_item_id
         if item_id >= 0:
-            self.peaklist.SetItemBackgroundColour(item_id, color_255)
-            self.peaklist.SetItemTextColour(item_id, font_color)
+            self.peaklist.SetItem(item_id, TableColumnIndex.color, str(color_255))
+            # self.peaklist.SetItemBackgroundColour(item_id, color_255)
+            # self.peaklist.SetItemTextColour(item_id, font_color)
             self.update_item_metadata(item_id)
 
     def update_item_metadata(self, item_id: int):
@@ -1013,9 +939,9 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
     #     self.clipboard[overlay_data.pop("name")] = overlay_data.pop("data")
     #
 
-    def on_open_method_settings(self, evt):
+    def on_open_method_settings(self, _evt):
         """Open extra settings panel"""
-        print(self, "on_open_method_settings", evt)
+        self.plot_settings.setup_method_settings(self.current_method)
 
     def on_populate_item_list(self, _evt):
         """Populate item list"""
@@ -1028,16 +954,17 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
     def _on_populate_item_list(self, item_list: List[str]):
         """Populate table with items"""
         idx = self.current_page
-        spectum_type = self.overlay_1d_spectrum_type.GetSelection()
+        spectrum_type = self.overlay_1d_spectrum_type.GetSelection()
 
         filter_by = {0: [["MassSpectra/"], ["Chromatograms/"], ["Mobilograms/"]], 1: ["IonHeatmaps/"]}[idx]
         if idx == 0:
-            filter_by = filter_by[spectum_type]
+            filter_by = filter_by[spectrum_type]
 
         for item in item_list:
             if any([item[0].startswith(_filter_key) for _filter_key in filter_by]):
                 # get document and dataset information
                 dataset_name, document_title = item[0], item[1]
+                _, name = dataset_name.split("/")
 
                 # retrieve any saved metadata
                 metadata = self.get_item_metadata({"document_title": document_title, "dataset_name": dataset_name})
@@ -1046,6 +973,7 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
                 # add to table
                 self.on_add_to_table(
                     {
+                        "name": name,
                         "dataset_name": dataset_name,
                         "document_title": document_title,
                         "dimensions": str(item[2]),

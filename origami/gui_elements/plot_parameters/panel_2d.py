@@ -42,7 +42,7 @@ class Panel2dSettings(PanelSettingsBase):
             self, -1, choices=CONFIG.heatmap_interpolation_choices, size=(-1, -1), name="2d.heatmap.heatmap"
         )
         self.plot2d_interpolation_value.Bind(wx.EVT_CHOICE, self.on_apply)
-        self.plot2d_interpolation_value.Bind(wx.EVT_CHOICE, self.on_update)
+        self.plot2d_interpolation_value.Bind(wx.EVT_CHOICE, self.on_update_style)
 
         plot2d_n_contour = wx.StaticText(self, -1, "Number of contour levels:")
         self.plot2d_n_contour_value = wx.SpinCtrlDouble(
@@ -57,21 +57,21 @@ class Panel2dSettings(PanelSettingsBase):
             name="2d.heatmap.contour",
         )
         self.plot2d_n_contour_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.plot2d_n_contour_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.plot2d_n_contour_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         plot2d_colormap = wx.StaticText(self, -1, "Colormap:")
         self.plot2d_colormap_value = wx.Choice(
             self, -1, choices=CONFIG.colormap_choices, size=(-1, -1), name="2d.heatmap.heatmap"
         )
         self.plot2d_colormap_value.Bind(wx.EVT_CHOICE, self.on_apply)
-        self.plot2d_colormap_value.Bind(wx.EVT_CHOICE, self.on_update)
+        self.plot2d_colormap_value.Bind(wx.EVT_CHOICE, self.on_update_style)
 
         plot2d_normalization = wx.StaticText(self, -1, "Normalization:")
         self.plot2d_normalization_value = wx.Choice(
             self, -1, choices=CONFIG.heatmap_normalization_choices, size=(-1, -1), name="2d.heatmap.normalization"
         )
         self.plot2d_normalization_value.Bind(wx.EVT_CHOICE, self.on_apply)
-        self.plot2d_normalization_value.Bind(wx.EVT_CHOICE, self.on_update)
+        self.plot2d_normalization_value.Bind(wx.EVT_CHOICE, self.on_update_style)
         self.plot2d_normalization_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
 
         plot2d_min = wx.StaticText(self, -1, "Min %:")
@@ -87,7 +87,7 @@ class Panel2dSettings(PanelSettingsBase):
             name="2d.heatmap.normalization",
         )
         self.plot2d_min_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.plot2d_min_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.plot2d_min_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         plot2d_mid = wx.StaticText(self, -1, "Mid %:")
         self.plot2d_mid_value = wx.SpinCtrlDouble(
@@ -102,7 +102,7 @@ class Panel2dSettings(PanelSettingsBase):
             name="2d.heatmap.normalization",
         )
         self.plot2d_mid_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.plot2d_mid_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.plot2d_mid_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         plot2d_max = wx.StaticText(self, -1, "Max %:")
         self.plot2d_max_value = wx.SpinCtrlDouble(
@@ -117,7 +117,7 @@ class Panel2dSettings(PanelSettingsBase):
             name="2d.heatmap.normalization",
         )
         self.plot2d_max_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.plot2d_max_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.plot2d_max_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         plot2d_normalization_gamma = wx.StaticText(self, -1, "Power gamma:")
         self.plot2d_normalization_gamma_value = wx.SpinCtrlDouble(
@@ -132,7 +132,7 @@ class Panel2dSettings(PanelSettingsBase):
             name="2d.heatmap.normalization",
         )
         self.plot2d_normalization_gamma_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.plot2d_normalization_gamma_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.plot2d_normalization_gamma_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         heatmap_parameters_label = wx.StaticText(self, -1, "Heatmap parameters")
         set_item_font(heatmap_parameters_label)
@@ -232,7 +232,7 @@ class Panel2dSettings(PanelSettingsBase):
 
         self._parse_evt(evt)
 
-    def on_update(self, evt):
+    def on_update_style(self, evt):
         """Update 2d plots"""
         if evt is None:
             return

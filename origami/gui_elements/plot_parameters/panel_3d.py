@@ -39,14 +39,14 @@ class Panel3dSettings(PanelSettingsBase):
         # name="heatmap.3d.camera")
         # self.plot3d_camera_value.SetStringSelection(CONFIG.currentCmap)
         # self.plot3d_camera_value.Bind(wx.EVT_CHOICE, self.on_apply)
-        # self.plot3d_camera_value.Bind(wx.EVT_CHOICE, self.on_update)
+        # self.plot3d_camera_value.Bind(wx.EVT_CHOICE, self.on_update_style)
 
         plot3d_colormap = wx.StaticText(self, -1, "Colormap:")
         self.plot3d_colormap_value = wx.Choice(
             self, -1, choices=CONFIG.colormap_choices, size=(-1, -1), name="heatmap.3d.colormap"
         )
         self.plot3d_colormap_value.Bind(wx.EVT_CHOICE, self.on_apply)
-        self.plot3d_colormap_value.Bind(wx.EVT_CHOICE, self.on_update)
+        self.plot3d_colormap_value.Bind(wx.EVT_CHOICE, self.on_update_style)
 
         opacity = wx.StaticText(self, -1, "Opacity:")
         self.plot3d_opacity_value = wx.SpinCtrlDouble(
@@ -61,7 +61,7 @@ class Panel3dSettings(PanelSettingsBase):
             name="heatmap.3d.opacity",
         )
         self.plot3d_opacity_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.plot3d_opacity_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.plot3d_opacity_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         plot3d_min = wx.StaticText(self, -1, "Contrast min:")
         self.plot3d_clim_min_value = wx.SpinCtrlDouble(
@@ -76,7 +76,7 @@ class Panel3dSettings(PanelSettingsBase):
             name="heatmap.3d.clim",
         )
         self.plot3d_clim_min_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.plot3d_clim_min_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.plot3d_clim_min_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         plot3d_max = wx.StaticText(self, -1, "Contrast max:")
         self.plot3d_clim_max_value = wx.SpinCtrlDouble(
@@ -91,7 +91,7 @@ class Panel3dSettings(PanelSettingsBase):
             name="heatmap.3d.clim",
         )
         self.plot3d_clim_max_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.plot3d_clim_max_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.plot3d_clim_max_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         font_size = wx.StaticText(self, -1, "Font size (px):")
         self.plot3d_fontsize_value = wx.SpinCtrlDouble(
@@ -105,7 +105,7 @@ class Panel3dSettings(PanelSettingsBase):
             name="heatmap.3d.font",
         )
         self.plot3d_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.plot3d_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.plot3d_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         tick_size = wx.StaticText(self, -1, "Tick size (px):")
         self.plot3d_tick_size_value = wx.SpinCtrlDouble(
@@ -119,7 +119,7 @@ class Panel3dSettings(PanelSettingsBase):
             name="heatmap.3d.tick",
         )
         self.plot3d_tick_size_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.plot3d_tick_size_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.plot3d_tick_size_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         margin_x = wx.StaticText(self, -1, "Label margin (x):")
         self.plot3d_margin_x_value = wx.SpinCtrlDouble(
@@ -133,7 +133,7 @@ class Panel3dSettings(PanelSettingsBase):
             name="heatmap.3d.margin.x",
         )
         self.plot3d_margin_x_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.plot3d_margin_x_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.plot3d_margin_x_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         margin_y = wx.StaticText(self, -1, "Label margin (y):")
         self.plot3d_margin_y_value = wx.SpinCtrlDouble(
@@ -147,7 +147,7 @@ class Panel3dSettings(PanelSettingsBase):
             name="heatmap.3d.margin.y",
         )
         self.plot3d_margin_y_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.plot3d_margin_y_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.plot3d_margin_y_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         margin_z = wx.StaticText(self, -1, "Label margin (z):")
         self.plot3d_margin_z_value = wx.SpinCtrlDouble(
@@ -161,7 +161,7 @@ class Panel3dSettings(PanelSettingsBase):
             name="heatmap.3d.margin.z",
         )
         self.plot3d_margin_z_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.plot3d_margin_z_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.plot3d_margin_z_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         axis_color_label = wx.StaticText(self, -1, "Axes color:")
         self.plot3d_axis_color_btn = wx.Button(
@@ -241,7 +241,7 @@ class Panel3dSettings(PanelSettingsBase):
         if evt is not None:
             evt.Skip()
 
-    def on_update(self, evt):
+    def on_update_style(self, evt):
         """Update 3d plots"""
         if evt is None:
             return
@@ -268,11 +268,11 @@ class Panel3dSettings(PanelSettingsBase):
         if source == "heatmap.3d.background.color":
             CONFIG.heatmap_3d_background_color = color_1
             self.plot3d_background_color_btn.SetBackgroundColour(color_255)
-            self.on_update(evt)
+            self.on_update_style(evt)
         elif source == "heatmap.3d.axis.color":
             CONFIG.heatmap_3d_axis_color = color_1
             self.plot3d_axis_color_btn.SetBackgroundColour(color_255)
-            self.on_update(evt)
+            self.on_update_style(evt)
 
     def _on_set_config(self):
         """Update values in the application based on config values"""

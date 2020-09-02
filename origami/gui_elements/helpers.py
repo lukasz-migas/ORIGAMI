@@ -246,3 +246,10 @@ class TableConfig(dict):
             "id": wx.NewIdRef(),
             "hidden": hidden,
         }
+
+    def find_col_id(self, tag: str):
+        """Find column id by the tag"""
+        for col_id, col_info in self.items():
+            if col_info["tag"] == tag:
+                return col_id
+        return -1

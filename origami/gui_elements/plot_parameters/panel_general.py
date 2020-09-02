@@ -38,59 +38,59 @@ class PanelGeneralSettings(PanelSettingsBase):
         plot_axis_on_off = wx.StaticText(self, -1, "Show frame:")
         self.plot_axis_on_off_check = make_checkbox(self, "", name="axes.frame")
         self.plot_axis_on_off_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.plot_axis_on_off_check.Bind(wx.EVT_CHECKBOX, self.on_update)
+        self.plot_axis_on_off_check.Bind(wx.EVT_CHECKBOX, self.on_update_style)
         self.plot_axis_on_off_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
         plot_spines = wx.StaticText(self, -1, "Line:")
         self.plot_left_spines_check = make_checkbox(self, "Left", name="axes.frame")
         self.plot_left_spines_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.plot_left_spines_check.Bind(wx.EVT_CHECKBOX, self.on_update)
+        self.plot_left_spines_check.Bind(wx.EVT_CHECKBOX, self.on_update_style)
 
         self.plot_right_spines_check = make_checkbox(self, "Right", name="axes.frame")
         self.plot_right_spines_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.plot_right_spines_check.Bind(wx.EVT_CHECKBOX, self.on_update)
+        self.plot_right_spines_check.Bind(wx.EVT_CHECKBOX, self.on_update_style)
 
         self.plot_top_spines_check = make_checkbox(self, "Top", name="axes.frame")
         self.plot_top_spines_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.plot_top_spines_check.Bind(wx.EVT_CHECKBOX, self.on_update)
+        self.plot_top_spines_check.Bind(wx.EVT_CHECKBOX, self.on_update_style)
 
         self.plot_bottom_spines_check = make_checkbox(self, "Bottom", name="axes.frame")
         self.plot_bottom_spines_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.plot_bottom_spines_check.Bind(wx.EVT_CHECKBOX, self.on_update)
+        self.plot_bottom_spines_check.Bind(wx.EVT_CHECKBOX, self.on_update_style)
 
         plot_ticks_label = wx.StaticText(self, -1, "Ticks:")
         self.plot_left_ticks_check = make_checkbox(self, "Left", name="axes.frame")
         self.plot_left_ticks_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.plot_left_ticks_check.Bind(wx.EVT_CHECKBOX, self.on_update)
+        self.plot_left_ticks_check.Bind(wx.EVT_CHECKBOX, self.on_update_style)
 
         self.plot_right_ticks_check = make_checkbox(self, "Right", name="axes.frame")
         self.plot_right_ticks_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.plot_right_ticks_check.Bind(wx.EVT_CHECKBOX, self.on_update)
+        self.plot_right_ticks_check.Bind(wx.EVT_CHECKBOX, self.on_update_style)
 
         self.plot_top_ticks_check = make_checkbox(self, "Top", name="axes.frame")
         self.plot_top_ticks_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.plot_top_ticks_check.Bind(wx.EVT_CHECKBOX, self.on_update)
+        self.plot_top_ticks_check.Bind(wx.EVT_CHECKBOX, self.on_update_style)
 
         self.plot_bottom_ticks_check = make_checkbox(self, "Bottom", name="axes.frame")
         self.plot_bottom_ticks_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.plot_bottom_ticks_check.Bind(wx.EVT_CHECKBOX, self.on_update)
+        self.plot_bottom_ticks_check.Bind(wx.EVT_CHECKBOX, self.on_update_style)
 
         plot_tick_labels = wx.StaticText(self, -1, "Tick labels:")
         self.plot_left_tick_labels_check = make_checkbox(self, "Left", name="axes.frame")
         self.plot_left_tick_labels_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.plot_left_tick_labels_check.Bind(wx.EVT_CHECKBOX, self.on_update)
+        self.plot_left_tick_labels_check.Bind(wx.EVT_CHECKBOX, self.on_update_style)
 
         self.plot_right_tick_labels_check = make_checkbox(self, "Right", name="axes.frame")
         self.plot_right_tick_labels_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.plot_right_tick_labels_check.Bind(wx.EVT_CHECKBOX, self.on_update)
+        self.plot_right_tick_labels_check.Bind(wx.EVT_CHECKBOX, self.on_update_style)
 
         self.plot_top_tick_labels_check = make_checkbox(self, "Top", name="axes.frame")
         self.plot_top_tick_labels_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.plot_top_tick_labels_check.Bind(wx.EVT_CHECKBOX, self.on_update)
+        self.plot_top_tick_labels_check.Bind(wx.EVT_CHECKBOX, self.on_update_style)
 
         self.plot_bottom_tick_labels_check = make_checkbox(self, "Bottom", name="axes.frame")
         self.plot_bottom_tick_labels_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.plot_bottom_tick_labels_check.Bind(wx.EVT_CHECKBOX, self.on_update)
+        self.plot_bottom_tick_labels_check.Bind(wx.EVT_CHECKBOX, self.on_update_style)
 
         plot_frame_width = wx.StaticText(self, -1, "Frame width:")
         self.plot_frame_width_value = wx.SpinCtrlDouble(
@@ -105,7 +105,7 @@ class PanelGeneralSettings(PanelSettingsBase):
             name="axes.frame",
         )
         self.plot_frame_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.plot_frame_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.plot_frame_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         plot_padding = wx.StaticText(self, -1, "Label pad:")
         self.plot_padding_value = wx.SpinCtrlDouble(
@@ -120,7 +120,7 @@ class PanelGeneralSettings(PanelSettingsBase):
             name="axes.labels",
         )
         self.plot_padding_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.plot_padding_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.plot_padding_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         plot_title_fontsize = wx.StaticText(self, -1, "Title font size:")
         self.plot_title_fontsize_value = wx.SpinCtrlDouble(
@@ -135,11 +135,11 @@ class PanelGeneralSettings(PanelSettingsBase):
             name="axes.labels",
         )
         self.plot_title_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.plot_title_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.plot_title_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         self.plot1d_title_font_weight_check = make_checkbox(self, "Bold", name="axes.labels")
         self.plot1d_title_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.plot1d_title_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_update)
+        self.plot1d_title_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_update_style)
 
         plot_label_fontsize = wx.StaticText(self, -1, "Label font size:")
         self.plot_label_fontsize_value = wx.SpinCtrlDouble(
@@ -154,11 +154,11 @@ class PanelGeneralSettings(PanelSettingsBase):
             name="axes.labels",
         )
         self.plot_label_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.plot_label_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.plot_label_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         self.plot_label_font_weight_check = make_checkbox(self, "Bold", name="axes.labels")
         self.plot_label_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.plot_label_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_update)
+        self.plot_label_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_update_style)
 
         plot_tick_fontsize = wx.StaticText(self, -1, "Tick font size:")
         self.plot_tick_fontsize_value = wx.SpinCtrlDouble(
@@ -173,11 +173,11 @@ class PanelGeneralSettings(PanelSettingsBase):
             name="axes.frame",
         )
         self.plot_tick_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.plot_tick_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.plot_tick_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         self.plot_tick_font_weight_check = make_checkbox(self, "Bold", name="axes.labels")
         self.plot_tick_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.plot_tick_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_update)
+        self.plot_tick_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_update_style)
         self.plot_tick_font_weight_check.Disable()
 
         plot_annotation_fontsize = wx.StaticText(self, -1, "Annotation font size:")
@@ -193,11 +193,11 @@ class PanelGeneralSettings(PanelSettingsBase):
             name="axes.labels",
         )
         self.plot_annotation_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.plot_annotation_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.plot_annotation_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         self.plot_annotation_font_weight_check = make_checkbox(self, "Bold", name="axes.labels")
         self.plot_annotation_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.plot_annotation_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_update)
+        self.plot_annotation_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_update_style)
 
         style_label = wx.StaticText(self, -1, "Style:")
         self.plot_style_value = wx.Choice(self, -1, choices=CONFIG.plot_style_choices, size=(-1, -1))
@@ -347,7 +347,7 @@ class PanelGeneralSettings(PanelSettingsBase):
 
         self._parse_evt(evt)
 
-    def on_update(self, evt):
+    def on_update_style(self, evt):
         """Update"""
         evt, source = self._preparse_evt(evt)
         if evt is None:

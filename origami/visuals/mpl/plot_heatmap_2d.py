@@ -911,69 +911,6 @@ class PlotHeatmap2D(PlotBase):
     #     self.set_colorbar_parameters(zvals, **kwargs)
 
     #
-    # def plot_2D_matrix(self, zvals=None, xylabels=None, axesSize=None, plotName=None, **kwargs):
-    #     self._plot_tag = "rmsd_matrix"
-    #     # update settings
-    #     self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
-    #
-    #     matplotlib.rc("xtick", labelsize=kwargs["axes_tick_font_size"])
-    #     matplotlib.rc("ytick", labelsize=kwargs["axes_tick_font_size"])
-    #
-    #     # Plot
-    #     self.plot_base = self.figure.add_axes(self._axes)
-    #
-    #     # Setup labels
-    #     xsize = len(zvals)
-    #     if xylabels:
-    #         self.plot_base.set_xticks(np.arange(1, xsize + 1, 1))
-    #         self.plot_base.set_xticklabels(xylabels, rotation=kwargs["rmsd_rotation_x"])
-    #         self.plot_base.set_yticks(np.arange(1, xsize + 1, 1))
-    #         self.plot_base.set_yticklabels(xylabels, rotation=kwargs["rmsd_rotation_y"])
-    #
-    #     extent = [0.5, xsize + 0.5, 0.5, xsize + 0.5]
-    #
-    #     # Add imshow
-    #     self.cax = self.plot_base.imshow(
-    #         zvals,
-    #         cmap=kwargs["heatmap_colormap"],
-    #         interpolation=kwargs["heatmap_interpolation"],
-    #         aspect="auto",
-    #         extent=extent,
-    #         origin="lower",
-    #     )
-    #
-    #     xmin, xmax = self.plot_base.get_xlim()
-    #     ymin, ymax = self.plot_base.get_ylim()
-    #     self.plot_base.set_xlim(xmin, xmax - 0.5)
-    #     self.plot_base.set_ylim(ymin, ymax - 0.5)
-    #     extent = [xmin, ymin, xmax, ymax]
-    #
-    #     # add labels
-    #     self.text = []
-    #     if kwargs["rmsd_matrix_add_labels"]:
-    #         cmap = self.cax.get_cmap()
-    #         color = kwargs["rmsd_matrix_font_color"]
-    #         for i, j in itertools.product(list(range(zvals.shape[0])), list(range(zvals.shape[1]))):
-    #             if kwargs["rmsd_matrix_font_color_fmt"] == "auto":
-    #                 color = get_font_color(convert_rgb_1_to_255(cmap(zvals[i, j] / 2)))
-    #
-    #             label = format(zvals[i, j], ".2f")
-    #             obj_name = kwargs.pop("text_name", None)
-    #             text = self.plot_base.text(
-    #                 j + 1, i + 1, label, horizontalalignment="center", color=color, picker=True, clip_on=True
-    #             )
-    #             text.obj_name = obj_name  # custom tag
-    #             text.y_divider = self.y_divider
-    #             self.text.append(text)
-    #
-    #     # add colorbar
-    #     self.set_colorbar_parameters(zvals, **kwargs)
-    #
-    #     self.set_tick_parameters(**kwargs)
-    #
-    #     # setup zoom
-    #     self.setup_zoom([self.plot_base], self.zoomtype, data_lims=extent, plotName=plotName)
-    #     self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
 
 
 class TestPanel(wx.Dialog):

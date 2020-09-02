@@ -70,11 +70,11 @@ class PanelRMSDMatrixSettings(PanelSettingsBase):
             name="rmsd_matrix",
         )
         self.rmsd_matrix_fontsize.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.rmsd_matrix_fontsize.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.rmsd_matrix_fontsize.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         self.rmsd_matrix_font_weight_check = make_checkbox(self, "Bold", name="rmsd_matrix")
         self.rmsd_matrix_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.rmsd_matrix_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_update)
+        self.rmsd_matrix_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_update_style)
 
         rmsd_matrix_color_fmt = wx.StaticText(self, -1, "Color formatter:")
         self.rmsd_matrix_color_fmt = wx.Choice(
@@ -82,7 +82,7 @@ class PanelRMSDMatrixSettings(PanelSettingsBase):
         )
         self.rmsd_matrix_color_fmt.Bind(wx.EVT_CHOICE, self.on_apply)
         self.rmsd_matrix_color_fmt.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
-        self.rmsd_matrix_color_fmt.Bind(wx.EVT_CHOICE, self.on_update)
+        self.rmsd_matrix_color_fmt.Bind(wx.EVT_CHOICE, self.on_update_style)
 
         rmsd_matrix_font_color = wx.StaticText(self, -1, "Labels color:")
         self.rmsd_matrix_font_color_btn = wx.Button(
@@ -161,7 +161,7 @@ class PanelRMSDMatrixSettings(PanelSettingsBase):
         if source == "rmsd.matrix.label":
             CONFIG.rmsd_matrix_font_color = color_1
             self.rmsd_matrix_font_color_btn.SetBackgroundColour(color_255)
-            self.on_update(None)
+            self.on_update_style(None)
 
     def _on_set_config(self):
         """Update values in the application based on config values"""

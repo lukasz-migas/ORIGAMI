@@ -1,11 +1,17 @@
-"""Legend panel"""
+"""RGB panel"""
+# Standard library imports
+import logging
+
 # Third-party imports
 import wx
 
 # Local imports
 from origami.config.config import CONFIG
 from origami.gui_elements.helpers import make_checkbox
+from origami.gui_elements.views.view_register import VIEW_REG
 from origami.gui_elements.plot_parameters.panel_base import PanelSettingsBase
+
+LOGGER = logging.getLogger(__name__)
 
 
 class PanelRGBSettings(PanelSettingsBase):
@@ -22,7 +28,7 @@ class PanelRGBSettings(PanelSettingsBase):
         adaptive_histogram_check = wx.StaticText(self, -1, "Adaptive histogram:")
         self.adaptive_histogram_check = make_checkbox(self, "", name="rgb.data")
         self.adaptive_histogram_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.adaptive_histogram_check.Bind(wx.EVT_CHECKBOX, self.on_update)
+        self.adaptive_histogram_check.Bind(wx.EVT_CHECKBOX, self.on_update_data)
         self.adaptive_histogram_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
         adaptive_histogram_clip = wx.StaticText(self, -1, "No. bins:")
@@ -30,19 +36,19 @@ class PanelRGBSettings(PanelSettingsBase):
             self, -1, value=str(), min=0.005, max=1, initial=0, inc=0.05, size=(90, -1), name="rgb.data"
         )
         self.adaptive_histogram_clip.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.adaptive_histogram_clip.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.adaptive_histogram_clip.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_data)
 
         adaptive_histogram_n_bins = wx.StaticText(self, -1, "No. bins:")
         self.adaptive_histogram_n_bins = wx.SpinCtrlDouble(
             self, -1, value=str(), min=64, max=1024, initial=0, inc=64, size=(90, -1), name="rgb.data"
         )
         self.adaptive_histogram_n_bins.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.adaptive_histogram_n_bins.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.adaptive_histogram_n_bins.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_data)
 
         show_labels = wx.StaticText(self, -1, "Show labels:")
         self.show_labels = make_checkbox(self, "", name="rgb.data")
         self.show_labels.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.show_labels.Bind(wx.EVT_CHECKBOX, self.on_update)
+        self.show_labels.Bind(wx.EVT_CHECKBOX, self.on_update_style)
 
         grid = wx.GridBagSizer(2, 2)
         n = 0
@@ -65,6 +71,24 @@ class PanelRGBSettings(PanelSettingsBase):
         # fit layout
         main_sizer.Fit(self)
         self.SetSizer(main_sizer)
+
+    def on_update_style(self, evt):
+        """Update waterfall plots"""
+        evt, source = self._preparse_evt(evt)
+        if evt is None:
+            return
+
+        if not source.startswith("rgb."):
+            self._parse_evt(evt)
+            return
+        self.on_apply(None)
+        name = source
+        try:
+            view = VIEW_REG.view
+            view.update_style(name)
+        except AttributeError:
+            LOGGER.warning("Could not retrieve view - cannot update plot style")
+        self._parse_evt(evt)
 
     def on_toggle_controls(self, evt):
         """Update controls"""

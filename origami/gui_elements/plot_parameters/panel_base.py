@@ -55,7 +55,11 @@ class PanelSettingsBase(wx.lib.scrolledpanel.ScrolledPanel, ColorGetterMixin, Co
     def make_panel(self):
         """Make UI"""
 
-    def on_update(self, evt):
+    def on_update_style(self, evt):
+        """Update plot style"""
+        self._parse_evt(evt)
+
+    def on_update_data(self, evt):
         """Update plot data"""
         self._parse_evt(evt)
 

@@ -54,7 +54,7 @@ class PanelViolinSettings(PanelSettingsBase):
             self, -1, choices=CONFIG.violin_orientation_choices, size=(-1, -1), name="violin.data"
         )
         self.violin_orientation_value.Bind(wx.EVT_CHOICE, self.on_apply)
-        self.violin_orientation_value.Bind(wx.EVT_CHOICE, self.on_update)
+        self.violin_orientation_value.Bind(wx.EVT_CHOICE, self.on_update_style)
 
         violin_spacing_label = wx.StaticText(self, -1, "Spacing:")
         self.violin_spacing_value = wx.SpinCtrlDouble(
@@ -69,7 +69,7 @@ class PanelViolinSettings(PanelSettingsBase):
             name="violin.data",
         )
         self.violin_spacing_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.violin_spacing_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.violin_spacing_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         violin_min_percentage_label = wx.StaticText(self, -1, "Noise threshold:")
         self.violin_min_percentage_value = wx.SpinCtrlDouble(
@@ -84,7 +84,7 @@ class PanelViolinSettings(PanelSettingsBase):
             name="violin.data",
         )
         self.violin_min_percentage_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.violin_min_percentage_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.violin_min_percentage_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
         self.violin_min_percentage_value.SetToolTip(
             "Minimal intensity of data to be shown on the plot. Low intensity or sparse datasets can lead"
             " to plot distortions"
@@ -93,12 +93,12 @@ class PanelViolinSettings(PanelSettingsBase):
         violin_normalize_label = wx.StaticText(self, -1, "Normalize:")
         self.violin_normalize_check = make_checkbox(self, "", name="violin.data")
         self.violin_normalize_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.violin_normalize_check.Bind(wx.EVT_CHECKBOX, self.on_update)
+        self.violin_normalize_check.Bind(wx.EVT_CHECKBOX, self.on_update_style)
 
         violin_smooth_label = wx.StaticText(self, -1, "Smooth:")
         self.violin_smooth_value = make_checkbox(self, "", name="violin.data")
         self.violin_smooth_value.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.violin_smooth_value.Bind(wx.EVT_CHECKBOX, self.on_update)
+        self.violin_smooth_value.Bind(wx.EVT_CHECKBOX, self.on_update_style)
         self.violin_smooth_value.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
         violin_smooth_sigma = wx.StaticText(self, -1, "Gaussian smooth:")
@@ -114,7 +114,7 @@ class PanelViolinSettings(PanelSettingsBase):
             name="violin.data",
         )
         self.violin_smooth_sigma_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.violin_smooth_sigma_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.violin_smooth_sigma_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         violin_line_width = wx.StaticText(self, -1, "Line width:")
         self.violin_line_width_value = wx.SpinCtrlDouble(
@@ -129,14 +129,14 @@ class PanelViolinSettings(PanelSettingsBase):
             name="violin.line.style",
         )
         self.violin_line_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.violin_line_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.violin_line_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         violin_line_style = wx.StaticText(self, -1, "Line style:")
         self.violin_line_style_value = wx.Choice(
             self, -1, choices=CONFIG.lineStylesList, size=(-1, -1), name="violin.line"
         )
         self.violin_line_style_value.Bind(wx.EVT_CHOICE, self.on_apply)
-        self.violin_line_style_value.Bind(wx.EVT_CHOICE, self.on_update)
+        self.violin_line_style_value.Bind(wx.EVT_CHOICE, self.on_update_style)
 
         violin_line_color = wx.StaticText(self, -1, "Line color:")
         self.violin_color_line_btn = wx.Button(
@@ -147,14 +147,14 @@ class PanelViolinSettings(PanelSettingsBase):
         self.violin_line_same_as_fill_check = make_checkbox(self, "Same as fill", name="violin.line")
         self.violin_line_same_as_fill_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.violin_line_same_as_fill_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
-        self.violin_line_same_as_fill_check.Bind(wx.EVT_CHECKBOX, self.on_update)
+        self.violin_line_same_as_fill_check.Bind(wx.EVT_CHECKBOX, self.on_update_style)
 
         violin_color_scheme_label = wx.StaticText(self, -1, "Color scheme:")
         self.violin_colorScheme_value = wx.Choice(
             self, -1, choices=CONFIG.waterfall_color_scheme_choices, size=(-1, -1), name="violin.fill"
         )
         self.violin_colorScheme_value.Bind(wx.EVT_CHOICE, self.on_apply)
-        self.violin_colorScheme_value.Bind(wx.EVT_CHOICE, self.on_update)
+        self.violin_colorScheme_value.Bind(wx.EVT_CHOICE, self.on_update_style)
         self.violin_colorScheme_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
 
         cmap_list = CONFIG.colormap_choices[:]
@@ -162,7 +162,7 @@ class PanelViolinSettings(PanelSettingsBase):
         violin_colormap_label = wx.StaticText(self, -1, "Colormap:")
         self.violin_colormap_value = wx.Choice(self, -1, choices=cmap_list, size=(-1, -1), name="violin.fill")
         self.violin_colormap_value.Bind(wx.EVT_CHOICE, self.on_apply)
-        self.violin_colormap_value.Bind(wx.EVT_CHOICE, self.on_update)
+        self.violin_colormap_value.Bind(wx.EVT_CHOICE, self.on_update_style)
 
         violin_palette = wx.StaticText(self, -1, "Color palette:")
         self.violin_palette_value = BitmapComboBox(
@@ -170,7 +170,7 @@ class PanelViolinSettings(PanelSettingsBase):
         )
         self._set_color_palette(self.violin_palette_value)
         self.violin_palette_value.Bind(wx.EVT_COMBOBOX, self.on_apply)
-        self.violin_palette_value.Bind(wx.EVT_COMBOBOX, self.on_update)
+        self.violin_palette_value.Bind(wx.EVT_COMBOBOX, self.on_update_style)
 
         violin_shade_color_label = wx.StaticText(self, -1, "Fill color:")
         self.violin_color_fill_btn = wx.Button(
@@ -191,7 +191,7 @@ class PanelViolinSettings(PanelSettingsBase):
             name="violin.fill",
         )
         self.violin_fill_transparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.violin_fill_transparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.violin_fill_transparency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         violin_label_frequency_label = wx.StaticText(self, -1, "Label frequency:")
         self.violin_label_frequency_value = wx.SpinCtrlDouble(
@@ -206,14 +206,14 @@ class PanelViolinSettings(PanelSettingsBase):
             name="violin.label.reset",
         )
         self.violin_label_frequency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.violin_label_frequency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.violin_label_frequency_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         violin_label_format_label = wx.StaticText(self, -1, "Label format:")
         self.violin_label_format_value = wx.Choice(
             self, -1, choices=CONFIG.violin_labels_format_choices, size=(-1, -1), name="violin.label.reset"
         )
         self.violin_label_format_value.Bind(wx.EVT_CHOICE, self.on_apply)
-        self.violin_label_format_value.Bind(wx.EVT_CHOICE, self.on_update)
+        self.violin_label_format_value.Bind(wx.EVT_CHOICE, self.on_update_style)
         self.violin_label_format_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
 
         plot_parameters_label = wx.StaticText(self, -1, "Plot parameters")
@@ -320,7 +320,7 @@ class PanelViolinSettings(PanelSettingsBase):
 
         self._parse_evt(evt)
 
-    def on_update(self, evt):
+    def on_update_style(self, evt):
         """Update violin plots"""
         evt, source = self._preparse_evt(evt)
         if evt is None:
@@ -363,11 +363,11 @@ class PanelViolinSettings(PanelSettingsBase):
         if source == "violin.line.color":
             CONFIG.violin_line_color = color_1
             self.violin_color_line_btn.SetBackgroundColour(color_255)
-            self.on_update(evt)
+            self.on_update_style(evt)
         elif source == "violin.fill.color":
             CONFIG.violin_fill_under_color = color_1
             self.violin_color_fill_btn.SetBackgroundColour(color_255)
-            self.on_update(evt)
+            self.on_update_style(evt)
 
     def _on_set_config(self):
         """Update values in the application based on config values"""

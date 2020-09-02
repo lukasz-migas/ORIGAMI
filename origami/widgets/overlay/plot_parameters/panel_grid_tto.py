@@ -25,31 +25,31 @@ class PanelGridTTOSettings(PanelSettingsBase):
             self, -1, value=str(), min=0, max=2, initial=0, inc=0.25, size=(90, -1)
         )
         self.width_space_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.width_space_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.width_space_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         height_space_value = wx.StaticText(self, -1, "Height space:")
         self.height_space_value = wx.SpinCtrlDouble(
             self, -1, value=str(), min=0, max=2, initial=0, inc=0.25, size=(90, -1)
         )
         self.height_space_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.height_space_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.height_space_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         n_rows_value = wx.StaticText(self, -1, "No. rows:")
         self.n_rows_value = wx.SpinCtrl(self, -1, value=str(), min=2, max=10, initial=0, size=(90, -1))
         self.n_rows_value.Bind(wx.EVT_SPINCTRL, self.on_apply)
-        self.n_rows_value.Bind(wx.EVT_SPINCTRL, self.on_update)
+        self.n_rows_value.Bind(wx.EVT_SPINCTRL, self.on_update_style)
 
         n_cols_value = wx.StaticText(self, -1, "No. columns:")
         self.n_cols_value = wx.SpinCtrl(self, -1, value=str(), min=4, max=10, initial=0, size=(90, -1))
         self.n_cols_value.Bind(wx.EVT_SPINCTRL, self.on_apply)
-        self.n_cols_value.Bind(wx.EVT_SPINCTRL, self.on_update)
+        self.n_cols_value.Bind(wx.EVT_SPINCTRL, self.on_update_style)
 
         main_plot_proportion_value = wx.StaticText(self, -1, "Proportion (main):")
         self.main_plot_proportion_value = wx.SpinCtrlDouble(
             self, -1, value=str(), min=0, max=1, inc=0.2, initial=0, size=(90, -1)
         )
         self.main_plot_proportion_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.main_plot_proportion_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.main_plot_proportion_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
         set_tooltip(
             self.main_plot_proportion_value,
             "Proportion of the `no. columns` used to show the main plot. Values are always rounded and the side plot"

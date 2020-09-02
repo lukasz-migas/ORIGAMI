@@ -32,21 +32,21 @@ class PanelColorbarSettings(PanelSettingsBase):
         self.colorbar_tgl = make_toggle_btn(self, "Off", wx.RED, name="2d.heatmap.colorbar")
         self.colorbar_tgl.Bind(wx.EVT_TOGGLEBUTTON, self.on_toggle_controls)
         self.colorbar_tgl.Bind(wx.EVT_TOGGLEBUTTON, self.on_apply)
-        self.colorbar_tgl.Bind(wx.EVT_TOGGLEBUTTON, self.on_update)
+        self.colorbar_tgl.Bind(wx.EVT_TOGGLEBUTTON, self.on_update_style)
 
         colorbar_label_format = wx.StaticText(self, -1, "Label format:")
         self.colorbar_label_format = wx.Choice(
             self, -1, choices=CONFIG.colorbar_label_fmt_choices, size=(-1, -1), name="2d.heatmap.colorbar"
         )
         self.colorbar_label_format.Bind(wx.EVT_CHOICE, self.on_apply)
-        self.colorbar_label_format.Bind(wx.EVT_CHOICE, self.on_update)
+        self.colorbar_label_format.Bind(wx.EVT_CHOICE, self.on_update_style)
 
         colorbar_position = wx.StaticText(self, -1, "Position:")
         self.colorbar_position_value = wx.Choice(
             self, -1, choices=CONFIG.colorbar_position_choices, size=(-1, -1), name="2d.heatmap.colorbar"
         )
         self.colorbar_position_value.Bind(wx.EVT_CHOICE, self.on_apply)
-        self.colorbar_position_value.Bind(wx.EVT_CHOICE, self.on_update)
+        self.colorbar_position_value.Bind(wx.EVT_CHOICE, self.on_update_style)
         self.colorbar_position_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
 
         colorbar_pad = wx.StaticText(self, -1, "Distance:")
@@ -62,7 +62,7 @@ class PanelColorbarSettings(PanelSettingsBase):
             name="2d.heatmap.colorbar",
         )
         self.colorbar_pad_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.colorbar_pad_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.colorbar_pad_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         colorbar_width_height = wx.StaticText(self, -1, "Width (H) | Height (V) (%):")
         self.colorbar_width_value = wx.SpinCtrlDouble(
@@ -77,7 +77,7 @@ class PanelColorbarSettings(PanelSettingsBase):
             name="2d.heatmap.colorbar",
         )
         self.colorbar_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.colorbar_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.colorbar_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         colorbar_width = wx.StaticText(self, -1, "Width (inset) (%):")
         self.colorbar_width_inset_value = wx.SpinCtrlDouble(
@@ -92,7 +92,7 @@ class PanelColorbarSettings(PanelSettingsBase):
             name="2d.heatmap.colorbar",
         )
         self.colorbar_width_inset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.colorbar_width_inset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.colorbar_width_inset_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         colorbar_fontsize = wx.StaticText(self, -1, "Label font size:")
         self.colorbar_fontsize_value = wx.SpinCtrlDouble(
@@ -107,7 +107,7 @@ class PanelColorbarSettings(PanelSettingsBase):
             name="2d.heatmap.colorbar",
         )
         self.colorbar_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.colorbar_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.colorbar_fontsize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         colorbar_label_color = wx.StaticText(self, -1, "Label color:")
         self.colorbar_label_color_btn = wx.Button(
@@ -134,7 +134,7 @@ class PanelColorbarSettings(PanelSettingsBase):
             name="2d.heatmap.colorbar",
         )
         self.colorbar_outline_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.colorbar_outline_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.colorbar_outline_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         grid = wx.GridBagSizer(2, 2)
         n = 0
@@ -192,7 +192,7 @@ class PanelColorbarSettings(PanelSettingsBase):
         if evt is not None:
             evt.Skip()
 
-    def on_update(self, evt):
+    def on_update_style(self, evt):
         """Update 2d plots"""
         evt, source = self._preparse_evt(evt)
         if evt is None:
@@ -241,11 +241,11 @@ class PanelColorbarSettings(PanelSettingsBase):
         if source == "2d.heatmap.colorbar.outline":
             CONFIG.colorbar_edge_color = color_1
             self.colorbar_outline_color_btn.SetBackgroundColour(color_255)
-            self.on_update(evt)
+            self.on_update_style(evt)
         elif source == "2d.heatmap.colorbar.label":
             CONFIG.colorbar_label_color = color_1
             self.colorbar_label_color_btn.SetBackgroundColour(color_255)
-            self.on_update(evt)
+            self.on_update_style(evt)
 
     def _on_set_config(self):
         """Update values in the application based on config values"""

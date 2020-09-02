@@ -42,7 +42,7 @@ class PanelRMSFSettings(PanelSettingsBase):
             name="rmsf.grid",
         )
         self.rmsd_vspace_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.rmsd_vspace_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.rmsd_vspace_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
         set_tooltip(self.rmsd_vspace_value, "Vertical spacing between RMSF and heatmap plot.")
 
         rmsd_line_width = wx.StaticText(self, -1, "Line width:")
@@ -58,7 +58,7 @@ class PanelRMSFSettings(PanelSettingsBase):
             name="rmsf.line",
         )
         self.rmsd_line_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.rmsd_line_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.rmsd_line_width_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         rmsd_line_color = wx.StaticText(self, -1, "Line color:")
         self.rmsd_color_line_btn = wx.Button(
@@ -69,7 +69,7 @@ class PanelRMSFSettings(PanelSettingsBase):
         rmsd_line_style = wx.StaticText(self, -1, "Line style:")
         self.rmsd_line_style_value = wx.Choice(self, -1, choices=CONFIG.lineStylesList, size=(-1, -1), name="rmsf.line")
         self.rmsd_line_style_value.Bind(wx.EVT_CHOICE, self.on_apply)
-        self.rmsd_line_style_value.Bind(wx.EVT_CHOICE, self.on_update)
+        self.rmsd_line_style_value.Bind(wx.EVT_CHOICE, self.on_update_style)
 
         rmsd_line_alpha_label = wx.StaticText(self, -1, "Line transparency:")
         self.rmsd_line_alpha_label = wx.SpinCtrlDouble(
@@ -84,14 +84,14 @@ class PanelRMSFSettings(PanelSettingsBase):
             name="rmsf.line",
         )
         self.rmsd_line_alpha_label.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.rmsd_line_alpha_label.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.rmsd_line_alpha_label.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         rmsd_line_hatch = wx.StaticText(self, -1, "Fill hatch:")
         self.rmsd_line_hatch_value = wx.Choice(
             self, -1, choices=list(CONFIG.lineHatchDict.keys()), size=(-1, -1), name="rmsf.fill"
         )
         self.rmsd_line_hatch_value.Bind(wx.EVT_CHOICE, self.on_apply)
-        self.rmsd_line_hatch_value.Bind(wx.EVT_CHOICE, self.on_update)
+        self.rmsd_line_hatch_value.Bind(wx.EVT_CHOICE, self.on_update_style)
 
         rmsd_underline_color = wx.StaticText(self, -1, "Fill color:")
         self.rmsd_underline_color_btn = wx.Button(
@@ -112,7 +112,7 @@ class PanelRMSFSettings(PanelSettingsBase):
             name="rmsf.fill",
         )
         self.rmsd_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.rmsd_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.rmsd_alpha_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         grid = wx.GridBagSizer(2, 2)
         n = 0
@@ -164,7 +164,7 @@ class PanelRMSFSettings(PanelSettingsBase):
         if evt is not None:
             evt.Skip()
 
-    def on_update(self, evt):
+    def on_update_style(self, evt):
         """Update 1d plots"""
         evt, source = self._preparse_evt(evt)
         if evt is None:
@@ -190,11 +190,11 @@ class PanelRMSFSettings(PanelSettingsBase):
         if source == "rmsf.line":
             CONFIG.rmsf_line_color = color_1
             self.rmsd_color_line_btn.SetBackgroundColour(color_255)
-            self.on_update(evt)
+            self.on_update_style(evt)
         elif source == "rmsf.fill":
             CONFIG.rmsf_fill_color = color_1
             self.rmsd_underline_color_btn.SetBackgroundColour(color_255)
-            self.on_update(evt)
+            self.on_update_style(evt)
 
     def _on_set_config(self):
         """Update values in the application based on config values"""

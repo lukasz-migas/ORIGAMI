@@ -46,7 +46,7 @@ class Panel1dSettings(PanelSettingsBase):
             name="1d.line.line.width",
         )
         self.spectrum_line_width.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.spectrum_line_width.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.spectrum_line_width.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         plot1d_line_color = wx.StaticText(self, -1, "Line color:")
         self.plot1d_line_color_btn = wx.Button(self, wx.ID_ANY, "", size=wx.Size(26, 26), name="1d.line.line.color")
@@ -57,13 +57,13 @@ class Panel1dSettings(PanelSettingsBase):
             self, -1, choices=CONFIG.lineStylesList, size=(-1, -1), name="1d.line.line.style"
         )
         self.spectrum_line_style.Bind(wx.EVT_CHOICE, self.on_apply)
-        self.spectrum_line_style.Bind(wx.EVT_CHOICE, self.on_update)
+        self.spectrum_line_style.Bind(wx.EVT_CHOICE, self.on_update_style)
 
         plot1d_underline = wx.StaticText(self, -1, "Fill under:")
         self.spectrum_line_fill_under = make_checkbox(self, "", name="1d.line.fill.show")
         self.spectrum_line_fill_under.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.spectrum_line_fill_under.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
-        self.spectrum_line_fill_under.Bind(wx.EVT_CHECKBOX, self.on_update)
+        self.spectrum_line_fill_under.Bind(wx.EVT_CHECKBOX, self.on_update_style)
 
         plot1d_underline_alpha = wx.StaticText(self, -1, "Fill transparency:")
         self.spectrum_fill_transparency = wx.SpinCtrlDouble(
@@ -78,7 +78,7 @@ class Panel1dSettings(PanelSettingsBase):
             name="1d.line.fill.opacity",
         )
         self.spectrum_fill_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.spectrum_fill_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.spectrum_fill_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         plot1d_underline_color = wx.StaticText(self, -1, "Fill color:")
         self.plot1d_underline_color_btn = wx.Button(
@@ -287,7 +287,7 @@ class Panel1dSettings(PanelSettingsBase):
 
         self._parse_evt(evt)
 
-    def on_update(self, evt):
+    def on_update_style(self, evt):
         """Update 1d plots"""
         evt, source = self._preparse_evt(evt)
         if evt is None:
@@ -321,11 +321,11 @@ class Panel1dSettings(PanelSettingsBase):
         elif source == "1d.line.line.color":
             CONFIG.spectrum_line_color = color_1
             self.plot1d_line_color_btn.SetBackgroundColour(color_255)
-            self.on_update(evt)
+            self.on_update_style(evt)
         elif source == "1d.line.fill.color":
             CONFIG.spectrum_fill_color = color_1
             self.plot1d_underline_color_btn.SetBackgroundColour(color_255)
-            self.on_update(evt)
+            self.on_update_style(evt)
         elif source == "1d.bar.edge":
             CONFIG.bar_edge_color = color_1
             self.bar_edge_color_btn.SetBackgroundColour(color_255)

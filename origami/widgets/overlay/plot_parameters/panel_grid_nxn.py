@@ -25,34 +25,34 @@ class PanelGridNxNSettings(PanelSettingsBase):
             self, -1, value=str(), min=0, max=2, initial=0, inc=0.25, size=(90, -1)
         )
         self.width_space_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.width_space_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.width_space_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         height_space_value = wx.StaticText(self, -1, "Height space:")
         self.height_space_value = wx.SpinCtrlDouble(
             self, -1, value=str(), min=0, max=2, initial=0, inc=0.25, size=(90, -1)
         )
         self.height_space_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.height_space_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update)
+        self.height_space_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         label_x_row = wx.StaticText(self, -1, "Labels in bottom row (x)")
         self.label_x_row = make_checkbox(self, "", name="grid.nxn.axes")
         self.label_x_row.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.label_x_row.Bind(wx.EVT_CHECKBOX, self.on_update)
+        self.label_x_row.Bind(wx.EVT_CHECKBOX, self.on_update_style)
 
         label_y_column = wx.StaticText(self, -1, "Labels in left column (y)")
         self.label_y_column = make_checkbox(self, "", name="grid.nxn.axes")
         self.label_y_column.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.label_y_column.Bind(wx.EVT_CHECKBOX, self.on_update)
+        self.label_y_column.Bind(wx.EVT_CHECKBOX, self.on_update_style)
 
         ticks_each_row = wx.StaticText(self, -1, "Tick in each row (x)")
         self.ticks_each_row = make_checkbox(self, "", name="grid.nxn.axes")
         self.ticks_each_row.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.ticks_each_row.Bind(wx.EVT_CHECKBOX, self.on_update)
+        self.ticks_each_row.Bind(wx.EVT_CHECKBOX, self.on_update_style)
 
         ticks_each_column = wx.StaticText(self, -1, "Tick in each column (y)")
         self.ticks_each_column = make_checkbox(self, "", name="grid.nxn.axes")
         self.ticks_each_column.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.ticks_each_column.Bind(wx.EVT_CHECKBOX, self.on_update)
+        self.ticks_each_column.Bind(wx.EVT_CHECKBOX, self.on_update_style)
 
         grid = wx.GridBagSizer(2, 2)
         n = 0

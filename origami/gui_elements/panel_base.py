@@ -307,6 +307,8 @@ class TableMixin:
             if col_type == "color" and value:
                 if self.peaklist.color_0_to_1:
                     return round_rgb(value)
+                if self.peaklist.color_in_column_255:
+                    return value
                 return round_rgb(convert_rgb_255_to_1(value))
             return str(value)
 
