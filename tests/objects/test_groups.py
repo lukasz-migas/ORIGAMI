@@ -2,8 +2,8 @@
 import numpy as np
 
 # Local imports
-from origami.objects.groups.spectrum import SpectrumGroup
 from origami.objects.containers import MassSpectrumObject
+from origami.objects.groups.spectrum import SpectrumGroup
 
 
 def _get_mass_spectrum_data():

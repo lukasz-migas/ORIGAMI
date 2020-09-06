@@ -164,6 +164,8 @@ class Item:
             msdt=["Heatmaps (MS/DT)"],
             annotation=["Annotations"],
             unidec=["UniDec"],
+            calibration=["Calibration (CCS)"],
+            overlay=["Overlays"],
         )
 
         item_list = []
@@ -178,8 +180,6 @@ class Item:
         #         is_branch = self.branch in item_list
         is_leaf = self.leaf in item_list
         is_current = self.current in item_list
-        #
-        # print(is_leaf, is_current, item_list, self.current, self.leaf)
 
         if parent:
             if is_leaf and is_current:
@@ -440,7 +440,8 @@ class DocumentTree(wx.TreeCtrl):
         self._bokeh_panel = None
         self._annotate_panel = None
         self._compare_panel = None
-        self._overlay_panel = None
+        self._overlay_editor_panel = None
+        self._overlay_viewer_panel = None
         self._picker_panel = None
         self._lesa_panel = None
         self._lesa_import_panel = None
@@ -1058,11 +1059,16 @@ class DocumentTree(wx.TreeCtrl):
         #                 self.on_open_unidec(None)
         #             elif self._item_leaf == "Annotations":
         #                 self.on_open_annotation_editor(None)
-        elif self._item.is_match(["chromatogram", "mobilogram", "heatmap", "msdt", "tandem", "overlay"]):
+        elif self._item.is_match(["chromatogram", "mobilogram", "heatmap", "msdt", "tandem"]):
             if self._item.is_match("annotation"):
                 self.on_open_annotation_editor(None)
             else:
                 self.on_show_plot(None)
+        elif self._item.is_match("calibration"):
+            self.on_show_ccs_calibration()
+        elif self._item.is_match("overlay"):
+            self.on_open_overlay_viewer()
+
         # elif self._document_type == "Sample information":
         #     self.onShowSampleInfo(evt=None)
         # elif self._indent == 1:
@@ -1426,6 +1432,11 @@ class DocumentTree(wx.TreeCtrl):
         self._ccs_panel = PanelCCSCalibration(self.view, document_title=document_title)
         self._ccs_panel.Show()
 
+    def on_show_ccs_calibration(self):
+        """Open CCS calibration dialog"""
+        document_title, calibration_name = self._get_item_info()
+        self.on_open_ccs_editor(None, document_title, calibration_name)
+
     def on_open_ccs_editor(self, _, document_title: str = None, calibration_name: str = None, calibration_obj=None):
         """Open dialog window where CCS calibration can be edited"""
         from origami.widgets.ccs.panel_ccs_calibration import PanelCCSCalibration
@@ -1442,16 +1453,26 @@ class DocumentTree(wx.TreeCtrl):
         )
         self._ccs_panel.Show()
 
-    def on_open_overlay_viewer(self, _):
+    def on_open_overlay_editor(self, _):
         """Open a dialog window where you can overlay and compare objects"""
-        from origami.widgets.overlay.panel_overlay_viewer import PanelOverlayViewer
+        from origami.widgets.overlay.panel_overlay_editor import PanelOverlayEditor
 
         # get list of items
         item_dict = QUERY_HANDLER.generate_item_dict_all("overlay")
         item_list = QUERY_HANDLER.item_dict_to_list(item_dict)
 
-        self._overlay_panel = PanelOverlayViewer(self.view, self.presenter, self._icons, item_list=item_list)
-        self._overlay_panel.Show()
+        self._overlay_editor_panel = PanelOverlayEditor(self.view, self.presenter, self._icons, item_list=item_list)
+        self._overlay_editor_panel.Show()
+
+    def on_open_overlay_viewer(self):
+        """Open overlay viewer"""
+        from origami.widgets.overlay.panel_overlay_viewer import PanelOverlayViewer
+
+        # get data object
+        group_obj = self._get_item_object()
+
+        self._overlay_viewer_panel = PanelOverlayViewer(self.view, self.presenter, group_obj=group_obj)
+        self._overlay_viewer_panel.Show()
 
     def on_open_lesa_viewer(self, _):
         """Open a dialog window where you can view LESA data"""
@@ -3173,8 +3194,8 @@ class DocumentTree(wx.TreeCtrl):
             "Mobilograms": {"title": "Mobilograms", "image": self.bullets_dict["drift_time"]},
             "IonHeatmaps": {"title": "Heatmaps", "image": self.bullets_dict["heatmap"]},
             "MSDTHeatmaps": {"title": "Heatmaps (MS/DT)", "image": self.bullets_dict["heatmap"]},
-            "Overlays": {"title": "Overlays", "image": self.bullets_dict["heatmap"]},
-            "CCSCalibrations": {"title": "Calibration (CCS)", "image": self.bullets_dict["heatmap"]},
+            "Overlays": {"title": "Overlays", "image": self.bullets_dict["overlay"]},
+            "CCSCalibrations": {"title": "Calibration (CCS)", "image": self.bullets_dict["calibration"]},
         }
         return group_dict.get(parts[0]), parts[0], parts[1]
 

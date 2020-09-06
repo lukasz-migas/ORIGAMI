@@ -22,6 +22,10 @@ from zarr.util import is_valid_python_name
 # Local imports
 from origami import __version__
 from origami.utils.path import clean_filename
+from origami.objects.groups import mobilogram_group_object
+from origami.objects.groups import ion_heatmap_group_object
+from origami.objects.groups import chromatogram_group_object
+from origami.objects.groups import mass_spectrum_group_object
 from origami.objects.tandem import TandemSpectra
 from origami.readers.io_json import read_json_data
 from origami.readers.io_json import write_json_data
@@ -226,6 +230,14 @@ class DocumentStore:
             obj = ion_heatmap_object(group, quick)
         elif klass_name == "CCSCalibrationObject":
             obj = ccs_calibration_object(group, quick)
+        elif klass_name == "MassSpectrumGroup":
+            obj = mass_spectrum_group_object(self.title, group)
+        elif klass_name == "ChromatogramGroup":
+            obj = chromatogram_group_object(self.title, group)
+        elif klass_name == "MobilogramGroup":
+            obj = mobilogram_group_object(self.title, group)
+        elif klass_name == "IonHeatmapGroup":
+            obj = ion_heatmap_group_object(self.title, group)
 
         # return instantiated objected
         if obj:
@@ -514,9 +526,9 @@ class DocumentStore:
         group = self.add(title, data, attrs)
 
         # iterate over all data objects retained within the group object
-        for data_obj in group_obj:
+        for i, data_obj in enumerate(group_obj):
             dataset_name = data_obj.dataset_name
-            self.add_group_to_group(group, dataset_name, data_obj)
+            self.add_group_to_group(group, f"{i}_{dataset_name}", data_obj)
         return group_obj
 
     def add_group_to_group(
@@ -800,3 +812,18 @@ class DocumentStore:
             name = name.split("/")[-1]
 
         return self.as_object(self.CCSCalibrations[name])
+
+    def get_overlay_list(self):
+        """Returns list of Overlays available in the document"""
+        overlays = self.view_group(DocumentGroups.OVERLAY)
+        return overlays
+
+    def get_overlay(self, name: str):
+        """Return Overlay object"""
+        if name not in self.get_overlay_list():
+            raise ValueError(f"Cannot get `{name}` overlay as its not present in the Document.")
+
+        if "/" in name or name.startswith(DocumentGroups.OVERLAY):
+            name = name.split("/")[-1]
+
+        return self.as_object(self.Overlays[name])

@@ -58,8 +58,10 @@ class OverlayHandler:
             document_titles.append(document_title)
         n_items = len(item_list)
         n_documents = len(set(document_titles))
+        doc = "document" if n_documents == 1 else "documents"
+        item = "item" if n_items == 1 else "items"
 
-        title += f"={n_documents} documents; {n_items} items"
+        title += f"={n_documents} {doc}; {n_items} {item}"
         return title
 
     def get_group_metadata(self, group_obj, keys: List[str], defaults: List, n_items: int):

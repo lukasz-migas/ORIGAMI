@@ -154,7 +154,9 @@ class ViewOverlay(ViewBase, ViewMPLMixin, ViewOverlayPanelMixin, ViewWaterfallMi
         t_start = time.time()
         self.can_plot("heatmap-rgb")
         # get plot parameters
-        kwargs, _kwargs = self.parse_kwargs(["2d", "colorbar", "normalization"], forced_kwargs=forced_kwargs, **kwargs)
+        kwargs, _kwargs = self.parse_kwargs(
+            ["2d", "colorbar", "normalization", "rgb"], forced_kwargs=forced_kwargs, **kwargs
+        )
         self.set_document(obj, **kwargs)
         self.set_labels(obj, **kwargs)
         kwargs = self.check_kwargs(**kwargs)

@@ -13,6 +13,8 @@ import wx.aui
 from pubsub import pub
 
 # Local imports
+# from origami.ids import ID_docTree_plugin_MSMS
+# from origami.ids import ID_docTree_plugin_UVPD
 from origami.ids import ID_helpCite
 from origami.ids import ID_helpGuide
 from origami.ids import ID_helpAuthor
@@ -35,8 +37,6 @@ from origami.ids import ID_help_page_UniDec
 from origami.ids import ID_help_page_ORIGAMI
 from origami.ids import ID_help_page_overlay
 from origami.ids import ID_help_page_linearDT
-from origami.ids import ID_docTree_plugin_MSMS
-from origami.ids import ID_docTree_plugin_UVPD
 from origami.ids import ID_fileMenu_openRecent
 from origami.ids import ID_help_page_OtherData
 from origami.ids import ID_window_documentList
@@ -580,12 +580,15 @@ class MainWindow(wx.Frame):
                 parent=menu_widgets, text="Open spectrum comparison window...", bitmap=self._icons.compare_ms
             )
         )
-        menu_widgets.Append(
-            make_menu_item(parent=menu_widgets, evt_id=ID_docTree_plugin_UVPD, text="Open UVPD processing window...")
-        )
-        menu_widgets.Append(
-            make_menu_item(parent=menu_widgets, evt_id=ID_docTree_plugin_MSMS, text="Open MS/MS window...")
-        )
+        #         menu_widgets.Append(
+        #             make_menu_item(parent=menu_widgets, evt_id=ID_docTree_plugin_UVPD, text="Open UVPD
+        # processing window...")
+        #         )
+        #         menu_widgets.Append(
+        #             make_menu_item(parent=menu_widgets, evt_id=ID_docTree_plugin_MSMS, text="Open MS/MS window...")
+        #         )
+
+        menu_widgets.AppendSeparator()
         menu_widget_overlay_viewer = make_menu_item(parent=menu_widgets, text="Open overlay window...\tShift+O")
         menu_widgets.Append(menu_widget_overlay_viewer)
 
@@ -942,7 +945,7 @@ class MainWindow(wx.Frame):
         self.Bind(
             wx.EVT_MENU, partial(self.panelDocuments.documents.on_import_manual_dataset, "CIU"), menu_widget_ciu_import
         )
-        self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_overlay_viewer, menu_widget_overlay_viewer)
+        self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_overlay_editor, menu_widget_overlay_viewer)
 
         # CONFIG MENU
         self.Bind(wx.EVT_MENU, self.on_export_config_fcn, menu_config_export)

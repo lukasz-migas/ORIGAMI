@@ -230,7 +230,7 @@ def mac_app_init():
 class TableConfig(dict):
     """Table configuration object"""
 
-    def __init__(self):
+    def __init__(self):  # noqa
         self.last_idx = -1
 
     def add(self, name: str, tag: str, dtype: str, width: int, show: bool = True, hidden: bool = False):
