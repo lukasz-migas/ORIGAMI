@@ -9,6 +9,7 @@ from origami.widgets.overlay.plot_parameters.panel_rgb import PanelRGBSettings
 from origami.widgets.overlay.plot_parameters.panel_rmsd import PanelRMSDSettings
 from origami.widgets.overlay.plot_parameters.panel_rmsf import PanelRMSFSettings
 from origami.gui_elements.plot_parameters.panel_waterfall import PanelWaterfallSettings
+from origami.widgets.overlay.plot_parameters.panel_general import PanelGeneralSettings
 from origami.widgets.overlay.plot_parameters.panel_grid_nxn import PanelGridNxNSettings
 from origami.widgets.overlay.plot_parameters.panel_grid_tto import PanelGridTTOSettings
 from origami.widgets.overlay.plot_parameters.panel_rmsd_matrix import PanelRMSDMatrixSettings
@@ -19,7 +20,7 @@ class PanelOverlayViewerSettings(wxScrolledPanel.ScrolledPanel):
 
     # ui elements
     _panel_rmsd, _panel_rmsf, _panel_rmsd_matrix, _panel_rgb = None, None, None, None
-    _panel_grid_tto, _panel_grid_nxn, _panel_waterfall = None, None, None
+    _panel_grid_tto, _panel_grid_nxn, _panel_waterfall, _panel_general = None, None, None, None
 
     # attributes
     block_signal = False
@@ -37,6 +38,12 @@ class PanelOverlayViewerSettings(wxScrolledPanel.ScrolledPanel):
     def make_gui(self):
         """Make GUI"""
         panel = self
+
+        self._panel_general = wx.CollapsiblePane(
+            panel, label="General", style=wx.CP_DEFAULT_STYLE | wx.CP_NO_TLW_RESIZE
+        )
+        _ = PanelGeneralSettings(self._panel_general.GetPane(), self.view)
+        self.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.on_cp_layout, self._panel_general)
 
         self._panel_rmsd = wx.CollapsiblePane(panel, label="RMSD", style=wx.CP_DEFAULT_STYLE | wx.CP_NO_TLW_RESIZE)
         _ = PanelRMSDSettings(self._panel_rmsd.GetPane(), self.view)
@@ -75,6 +82,8 @@ class PanelOverlayViewerSettings(wxScrolledPanel.ScrolledPanel):
         self.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.on_cp_layout, self._panel_waterfall)
 
         settings_sizer = wx.BoxSizer(wx.VERTICAL)
+        settings_sizer.Add(self._panel_general, 0, wx.EXPAND | wx.ALL, 0)
+        settings_sizer.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND | wx.ALL, 1)
         settings_sizer.Add(self._panel_rmsd, 0, wx.EXPAND | wx.ALL, 0)
         settings_sizer.Add(self._panel_rmsf, 0, wx.EXPAND | wx.ALL, 0)
         settings_sizer.Add(self._panel_rmsd_matrix, 0, wx.EXPAND | wx.ALL, 0)
@@ -100,6 +109,7 @@ class PanelOverlayViewerSettings(wxScrolledPanel.ScrolledPanel):
         is_rmsd = method != "RMSD"
         is_rmsf = method != "RMSF"
 
+        self._panel_general.Collapse(False)
         self._panel_rgb.Collapse(method != "RGB")
         self._panel_rmsd.Collapse(is_rmsd or not is_rmsf)
         self._panel_rmsf.Collapse(is_rmsf)

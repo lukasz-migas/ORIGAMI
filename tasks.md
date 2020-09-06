@@ -3,7 +3,7 @@
 ## Bug fixes
 
 - [ ] add default views of the 3d plot to quickly set the camera orientation
-- [ ] add update functions to each of the plot classes
+- [x] add update functions to each of the plot classes
 - [ ] tidy-up the plotting classes
 - [ ] add splash screen
 - [ ] replace the old-style icons
@@ -16,7 +16,7 @@
 - [ ] restructure documentation website
 - [ ] fix contour plot x-axis scale as it does not display correct range (should start at 0.5)
 - [ ] heatmap violin plot cuts off 1 value
-- [ ] add a fix to the waterfall plot to prevent the erronous highlighting of regions (edge +1 bin)
+- [ ] add a fix to the waterfall plot to prevent the erroneous highlighting of regions (edge +1 bin)
 - [x] add the resize/lock attributes to 3d plot
 - [x] enable data extraction for multi-file raw files
 - [ ] add support for embedded RAW data
@@ -43,11 +43,13 @@
 - [x] add `extra_data` property that checks whether data has been loaded (`isinstance`) or ndarray
 - [ ] speed-up interpolation of m/z axis as it can be super slow!!!
 - [ ] compare MS should do processing in a background thread
-- [ ] made improvements to the view about popup class
-- [ ] add plot updates to the overlaying
-- [ ] remove rmsd from the general settings panel
-- [ ] add colormap selection to RMSD plot
+- [x] made improvements to the view about popup class
+- [x] add plot updates to the overlaying
+- [x] remove rmsd from the general settings panel
+- [x] add colormap selection to RMSD plot
 - [ ] add a flag to each function that specifies whether replot is necessary
+- [ ] split some of the APP config to a separate config instance so they are exported separatedly from the rest
+= [ ] subclass config to reduce code duplication
 
 ## New features
 

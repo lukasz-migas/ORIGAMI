@@ -11,13 +11,11 @@ from origami.utils.color import convert_rgb_1_to_hex
 from origami.visuals.rgb import ImageRGBA
 from origami.config.config import CONFIG
 from origami.utils.visuals import check_n_grid_dimensions
-# from origami.config.environment import ENV
-# from origami.config.config import CONFIG
-from origami.objects.groups import IonHeatmapGroup
-from origami.objects.groups import MobilogramGroup
-from origami.objects.groups import ChromatogramGroup
-from origami.objects.groups import MassSpectrumGroup
 from origami.handlers.process import PROCESS_HANDLER
+from origami.objects.groups.heatmap import IonHeatmapGroup
+from origami.objects.groups.spectrum import MobilogramGroup
+from origami.objects.groups.spectrum import ChromatogramGroup
+from origami.objects.groups.spectrum import MassSpectrumGroup
 
 
 class OverlayHandler:
@@ -50,6 +48,19 @@ class OverlayHandler:
         valid_y = group_obj.validate_y_labels()
 
         return group_obj, valid_x, valid_y
+
+    def get_group_title(self, method: str, item_list: str) -> str:
+        """Get group title that reflects the type of visualisation and contents of the group"""
+        title = method
+
+        document_titles = []
+        for document_title, _ in item_list:
+            document_titles.append(document_title)
+        n_items = len(item_list)
+        n_documents = len(set(document_titles))
+
+        title += f"={n_documents} documents; {n_items} items"
+        return title
 
     def get_group_metadata(self, group_obj, keys: List[str], defaults: List, n_items: int):
         """Retrieve metadata from the data objects"""
@@ -227,11 +238,14 @@ class OverlayHandler:
         # compute mean array
         x, y, array = pr_activation.compute_rmsd_matrix(arrays)
 
-        return array, x, y, group_obj.x_label, group_obj.y_label
+        metadata = self.get_group_metadata(group_obj, ["label"], [""], len(arrays))
+        tick_labels = metadata["label"]
 
-    def prepare_overlay_2d_grid_n_x_n(self, group_obj):
+        return array, x, y, tick_labels
+
+    def prepare_overlay_2d_grid_n_x_n(self, group_obj, n_max: int = 25):
         """Prepare heatmap data"""
-        if not group_obj.validate_size(n_min=2, n_max=25):
+        if not group_obj.validate_size(n_min=2, n_max=n_max):
             raise ValueError("This visualisation must have at least 2 items selected")
 
         # get data
@@ -264,4 +278,4 @@ class OverlayHandler:
         return array, group_obj.x, group_obj.y, group_obj.x_label, group_obj.y_label, forced_kwargs
 
 
-OVERLAY_HANDLER = OverlayHandler()
+OVERLAY_HANDLER: OverlayHandler = OverlayHandler()

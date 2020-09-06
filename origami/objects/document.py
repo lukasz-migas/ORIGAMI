@@ -33,6 +33,7 @@ from origami.objects.containers import ion_heatmap_object
 from origami.objects.containers import chromatogram_object
 from origami.objects.containers import msdt_heatmap_object
 from origami.objects.containers import mass_spectrum_object
+from origami.objects.groups.base import DataGroup
 from origami.widgets.ccs.processing.containers import ccs_calibration_object
 from origami.widgets.lesa.processing.containers import normalization_object
 
@@ -94,6 +95,7 @@ class DocumentStore:
 
     VERSION: int = 1
     EXTENSION: str = ".origami"
+    # defines the groups that can be present in a document
     GROUPS = [
         "MassSpectra",
         "Mobilograms",
@@ -109,6 +111,7 @@ class DocumentStore:
         "Views",  # json with information about a specific view
         "CCSCalibrations",  # any CCS calibration
     ]
+    # defines the types of document that can extract data
     CAN_EXTRACT = [
         "Format: Waters (.raw)",
         "Format: MassLynx (.raw)",
@@ -478,13 +481,52 @@ class DocumentStore:
         """Adds metadata to the document"""
         if isinstance(data, DataObject):
             data, attrs = data.to_zarr()
-        group = self.add(f"Metadata/{title}", data, attrs)
+        group = self.add(f"{DocumentGroups.METADATA}/{title}", data, attrs)
         return group
+
+    def add_raw(self, filepath: Union[str, Path]):
+        """Copies raw file to the ORIGAMI directory
+
+        Parameters
+        ----------
+        filepath : str
+            path of the file to be added to the `Raw` directory
+        """
+        filepath = Path(filepath)
+        if not filepath.exists():
+            raise ValueError("Cannot copy data if it does not exist")
+
+        dst_path = os.path.join(str(self.full_path(DocumentGroups.RAW)), filepath.name)
+        if os.path.isdir(filepath):
+            shutil.copytree(filepath, dst_path)
+        else:
+            shutil.copy2(filepath, dst_path)
+        LOGGER.debug(f"Copied {filepath} to {str(dst_path)}")
+
+    def add_overlay(self, title: str, group_obj: DataGroup):
+        """Adds ccs calibration to the document"""
+        if not isinstance(group_obj, DataGroup):
+            raise ValueError("Cannot export object of this type")
+
+        data, attrs = group_obj.to_zarr()
+        if not title.startswith(DocumentGroups.OVERLAY):
+            title = f"{DocumentGroups.OVERLAY}/{title}"
+        group = self.add(title, data, attrs)
+
+        # iterate over all data objects retained within the group object
+        for data_obj in group_obj:
+            dataset_name = data_obj.dataset_name
+            self.add_group_to_group(group, dataset_name, data_obj)
+        return group_obj
 
     def add_group_to_group(
         self, group: Group, title: str, data: Union[Dict, DataObject] = None, attrs: Optional[Dict] = None
     ):
-        """Add sub-group to a non-main group"""
+        """Add sub-group to a non-main group.
+
+        This method should be used whenever adding multi-array data to a
+        child object (e.g. UniDec results data to a MassSpectrum)
+        """
         if isinstance(data, DataObject):
             data, attrs = data.to_zarr()
         sub_group = self.add(f"{group.path}/{title}", data, attrs)
@@ -666,25 +708,6 @@ class DocumentStore:
         if os.path.exists(path):
             return read_json_data(path)
         return default
-
-    def add_raw(self, filepath):
-        """Copies raw file to the ORIGAMI directory
-
-        Parameters
-        ----------
-        filepath : str
-            path of the file to be added to the `Raw` directory
-        """
-        filepath = Path(filepath)
-        if not filepath.exists():
-            raise ValueError("Cannot copy data if it does not exist")
-
-        dst_path = os.path.join(str(self.full_path("Raw")), filepath.name)
-        if os.path.isdir(filepath):
-            shutil.copytree(filepath, dst_path)
-        else:
-            shutil.copy2(filepath, dst_path)
-        LOGGER.debug(f"Copied {filepath} to {str(dst_path)}")
 
     def tree(self):
         """Returns tree representation of the document"""

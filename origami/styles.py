@@ -539,6 +539,22 @@ class BackgroundPanel(wx.Panel):
 class Validator(wx.Validator):
     """Text validator."""
 
+    # define navigation keys
+    NAV_KEYS = (
+        wx.WXK_HOME,
+        wx.WXK_LEFT,
+        wx.WXK_UP,
+        wx.WXK_END,
+        wx.WXK_RIGHT,
+        wx.WXK_DOWN,
+        wx.WXK_NUMPAD_HOME,
+        wx.WXK_NUMPAD_LEFT,
+        wx.WXK_NUMPAD_UP,
+        wx.WXK_NUMPAD_END,
+        wx.WXK_NUMPAD_RIGHT,
+        wx.WXK_NUMPAD_DOWN,
+    )
+
     def __init__(self, flag):
         wx.Validator.__init__(self)
         self.flag = flag
@@ -558,24 +574,8 @@ class Validator(wx.Validator):
         """Interact on key press"""
         key = evt.GetKeyCode()
 
-        # define navigation keys
-        nav_keys = (
-            wx.WXK_HOME,
-            wx.WXK_LEFT,
-            wx.WXK_UP,
-            wx.WXK_END,
-            wx.WXK_RIGHT,
-            wx.WXK_DOWN,
-            wx.WXK_NUMPAD_HOME,
-            wx.WXK_NUMPAD_LEFT,
-            wx.WXK_NUMPAD_UP,
-            wx.WXK_NUMPAD_END,
-            wx.WXK_NUMPAD_RIGHT,
-            wx.WXK_NUMPAD_DOWN,
-        )
-
         # navigation keys
-        if key in nav_keys or key < wx.WXK_SPACE or key == wx.WXK_DELETE:
+        if key in self.NAV_KEYS or key < wx.WXK_SPACE or key == wx.WXK_DELETE:
             evt.Skip()
             return
 
@@ -610,6 +610,10 @@ class Validator(wx.Validator):
 
         # positive floats only
         elif self.flag == "floatPos" and (chr(key) in "0123456789.eE"):
+            evt.Skip()
+            return
+
+        elif self.flag == "path" and (chr(key) not in r'\/:*?!<>|"'):
             evt.Skip()
             return
 

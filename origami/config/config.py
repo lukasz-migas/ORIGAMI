@@ -1113,9 +1113,9 @@ class Config:
             "RMSF",
             "RMSD Matrix",
             "RMSD Dot",
-            "Compare side-by-side",
+            "Side-by-side",
             "Grid (2->1)",
-            "Grid (n x n)",
+            "Grid (NxN)",
         ]
         self.overlay_panel_2d_heatmap_colormap = "Reds"
         self.overlay_panel_2d_heatmap_transparency = 0.5

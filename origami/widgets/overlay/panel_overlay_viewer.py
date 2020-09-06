@@ -1,6 +1,7 @@
 """Overlay panel"""
 # Standard library imports
 import logging
+from copy import deepcopy
 from typing import Dict
 from typing import List
 from typing import Union
@@ -8,24 +9,30 @@ from typing import Union
 # Third-party imports
 import wx
 import wx.lib.scrolledpanel as wxScrolledPanel
+from pubsub import pub
 
 # Local imports
 from origami.styles import MiniFrame
 from origami.utils.color import get_random_color
 from origami.utils.color import convert_rgb_1_to_255
+from origami.utils.random import get_random_int
+from origami.utils.secret import hash_obj
 from origami.utils.system import running_under_pytest
 from origami.config.config import CONFIG
 from origami.config.environment import ENV
 from origami.gui_elements.mixins import ColorGetterMixin
+from origami.objects.groups.base import DataGroup
 from origami.gui_elements.helpers import TableConfig
 from origami.gui_elements.helpers import set_tooltip
 from origami.gui_elements.helpers import make_color_btn
+from origami.gui_elements.helpers import make_menu_item
 from origami.gui_elements.helpers import make_bitmap_btn
 from origami.gui_elements.helpers import make_spin_ctrl_int
 from origami.gui_elements.helpers import make_spin_ctrl_double
 from origami.gui_elements.panel_base import TableMixin
 from origami.widgets.overlay.view_overlay import ViewOverlay
 from origami.widgets.overlay.overlay_handler import OVERLAY_HANDLER
+from origami.gui_elements.dialog_review_cards import DialogCardManager
 from origami.widgets.overlay.panel_plot_parameters import PanelOverlayViewerSettings
 
 LOGGER = logging.getLogger(__name__)
@@ -40,10 +47,6 @@ def _str_fmt(value, default: Union[str, float, int] = ""):
 
 
 # TODO: add option to reduce number of colormaps
-# TODO: fix rmsd matrix plot - not working correctly
-# TODO: add rmsd dot plot
-# TODO: add a way to export the Group data to document
-# TODO: add a way to save overlay data
 # TODO: add a way to export the plot config
 
 
@@ -85,7 +88,7 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
 
     # ui elements
     view_overlay, panel_book, action_btn, plot_btn = None, None, None, None
-    add_to_document_btn, cancel_btn, hot_plot_check, overlay_1d_method = None, None, None, None
+    add_to_document_btn, cancel_btn, overlay_1d_method = None, None, None
     overlay_1d_label, overlay_1d_line_style, overlay_1d_transparency, overlay_1d_color_btn = None, None, None, None
     overlay_1d_order, overlay_2d_method, overlay_2d_colormap, overlay_2d_label = None, None, None, None
     overlay_2d_color_btn, overlay_2d_min_threshold, overlay_2d_max_threshold, overlay_2d_mask = None, None, None, None
@@ -110,12 +113,11 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
 
         # preset
         self._debug = debug
-        self.item_editor = None
-        self.dataset_type = None
         self.clipboard = dict()
         self.item_list = item_list
         self._disable_table_update = False
         self._current_item = None
+        self._document = None
 
         # make gui items
         self.make_gui()
@@ -174,6 +176,13 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
         else:
             method = self.overlay_2d_method.GetStringSelection()
         return method
+
+    @property
+    def document(self):
+        """Return instance of the document"""
+        if self._document is None:
+            self.on_open_document(None)
+        return self._document
 
     def on_right_click(self, evt):
         """Right-click event handler"""
@@ -276,10 +285,6 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
         self.cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, -1))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
-        #         self.hot_plot_check = make_checkbox(panel, "Hot plot")
-        #         self.hot_plot_check.SetValue(False)
-        #         self.hot_plot_check.Disable()
-
         sizer = wx.BoxSizer()
         sizer.Add(self.action_btn, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.AddSpacer(5)
@@ -288,8 +293,6 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
         sizer.Add(self.add_to_document_btn, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.AddSpacer(5)
         sizer.Add(self.cancel_btn, 0, wx.ALIGN_CENTER_VERTICAL)
-        #         sizer.AddSpacer(5)
-        #         sizer.Add(self.hot_plot_check, 0, wx.ALIGN_CENTER_VERTICAL)
         return sizer
 
     def make_settings_panel(self, split_panel):
@@ -548,109 +551,6 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
 
         self._parse_evt(evt)
 
-    #
-    def on_action_tools(self, _evt):
-        """Display action menu"""
-        print(self, "on_action_tools")
-
-    #     menu = wx.Menu()
-    #
-    #     menu_action_create_blank_document = make_menu_item(
-    #         parent=menu,
-    #         text="Create blank COMPARISON document",
-    #         bitmap=self.icons.iconsLib["new_document_16"],
-    #         help_text="",
-    #     )
-    #
-    #     menu.AppendItem(menu_action_create_blank_document)
-    #
-    #     # bind events
-    #     self.Bind(wx.EVT_MENU, self.on_create_blank_document, menu_action_create_blank_document)
-    #
-    #     self.PopupMenu(menu)
-    #     menu.Destroy()
-    #     self.SetFocus()
-
-    # def on_create_blank_document(self, evt):
-    #     self.data_handling.create_new_document_of_type(document_type="overlay")
-    #
-    # def generate_overlay_plot_list(self):
-    #     item_list = []
-    #     for key in self.clipboard:
-    #         method = key.split(": ")[0]
-    #         item_list.append([method, key])
-    #
-    #     return item_list
-    #
-    def on_add_to_document(self, _evt):
-        """Add data to document"""
-        print(self, "on_add_to_document")
-
-    #     from origami.gui_elements.dialog_review_editor import DialogReviewEditorOverlay
-    #
-    #     # data classifiers
-    #     stats_list = ["Mean", "Standard Deviation", "Variance", "RMSD", "RMSF", "RMSD Matrix"]
-    #     overlay_list = [
-    #         "Overlay (DT)",
-    #         "Overlay (MS)",
-    #         "Overlay (RT)",
-    #         "Butterfly (DT)",
-    #         "Butterfly (MS)",
-    #         "Butterfly (RT)",
-    #         "Subtract (DT)",
-    #         "Subtract (MS)",
-    #         "Subtract (RT)",
-    #         "Waterfall (DT)",
-    #         "Waterfall (MS)",
-    #         "Waterfall (RT)",
-    #         "Mask",
-    #         "Transparent",
-    #         "Grid (2->1)",
-    #         "Grid (n x n)",
-    #         "RGB",
-    #     ]
-    #
-    #     # if the list is empty, notify the user
-    #     if not self.clipboard:
-    #         raise MessageError(
-    #             "Clipboard is empty",
-    #             "There are no items in the clipboard."
-    #             + " Please plot something first before adding it to the document",
-    #         )
-    #     # get document
-    #     document = self.data_handling._get_document_of_type("Type: Comparison")
-    #     if document is None:
-    #         LOGGER.error("Please select valid document title and path")
-    #         return
-    #     document_title = document.title
-    #
-    #     # collect list of items in the clipboard
-    #     item_list = self.generate_overlay_plot_list()
-    #     dlg = DialogReviewEditorOverlay(self, item_list)
-    #     dlg.ShowModal()
-    #     add_to_document_list = dlg.output_list
-    #
-    #     # add data to document while also removing it from the clipboard object
-    #     for key in add_to_document_list:
-    #         data = self.clipboard.pop(key)
-    #         for method in stats_list:
-    #             if key.startswith(method):
-    #                 self.data_handling.set_overlay_data([document_title, "Statistical", key], data)
-    #                 break
-    #         for method in overlay_list:
-    #             if key.startswith(method):
-    #                 self.data_handling.set_overlay_data([document_title, "Overlay", key], data)
-    #                 break
-
-    #     def on_double_click_on_item(self, evt):
-    #         logger.error("Method not implemented yet")
-    #
-    #     def on_menu_item_right_click(self, evt):
-    #         logger.error("Method not implemented yet")
-    #
-    #     def menu_column_right_click(self, evt):
-    #         logger.error("Method not implemented yet")
-
     def on_select_item(self, evt):
         """Select calibrant from the table and populate fields"""
         self._disable_table_update = True
@@ -851,96 +751,260 @@ class PanelOverlayViewer(MiniFrame, TableMixin, ColorGetterMixin):
         spectral_type = self.overlay_1d_spectrum_type.GetStringSelection()
 
         group_obj, valid_x, valid_y = OVERLAY_HANDLER.collect_overlay_1d_spectra(item_list, spectral_type, True)
-        # check the x-axis labels
-        #         if not valid_x:
-        #             raise ValueError("The x-axis label is not valid!")
-        #         if not valid_y:
-        #             raise ValueError("The y-axis label is not valid!")
 
-        if method == "Butterfly (n=2)":
-            x_top, x_bottom, y_top, y_bottom, kwargs = OVERLAY_HANDLER.prepare_overlay_1d_butterfly(group_obj)
-            self.view_overlay.plot_1d_compare(x_top, x_bottom, y_top, y_bottom, forced_kwargs=kwargs)
-        elif method == "Subtract (n=2)":
-            x_top, x_bottom, y_top, y_bottom, kwargs = OVERLAY_HANDLER.prepare_overlay_1d_subtract(group_obj)
-            self.view_overlay.plot_1d_compare(x_top, x_bottom, y_top, y_bottom, forced_kwargs=kwargs)
-        elif method == "Overlay":
-            x, y, array = OVERLAY_HANDLER.prepare_overlay_1d_multiline(group_obj)
-            self.view_overlay.plot_1d_overlay(x, y, array, forced_kwargs=dict(waterfall_increment=0))
-        elif method == "Waterfall":
-            x, y, array = OVERLAY_HANDLER.prepare_overlay_1d_multiline(group_obj)
-            self.view_overlay.plot_1d_overlay(x, y, array)
-        else:
+        plt_funcs = {
+            "Butterfly (n=2)": self.on_plot_1d_butterfly,
+            "Subtract (n=2)": self.on_plot_1d_subtract,
+            "Overlay": self.on_plot_1d_overlay,
+            "Waterfall": self.on_plot_1d_waterfall,
+        }
+
+        plt_func = plt_funcs.get(method, None)
+        if plt_func is None:
             LOGGER.error("Method not implemented yet")
             return
-        print(group_obj)
 
-    #     self.clipboard[overlay_data.pop("name")] = overlay_data.pop("data")
+        # plot function
+        kwargs = plt_func(group_obj)  # noqa
+
+        # set metadata
+        group_obj.set_metadata({"overlay": kwargs})
+
+        title = OVERLAY_HANDLER.get_group_title(method, item_list)
+        self.add_to_clipboard(method, title, group_obj, item_list)
+
+    def on_plot_1d_butterfly(self, group_obj):
+        """Heatmap plot"""
+        x_top, x_bottom, y_top, y_bottom, kwargs = OVERLAY_HANDLER.prepare_overlay_1d_butterfly(group_obj)
+        kwargs = self.view_overlay.plot_1d_compare(x_top, x_bottom, y_top, y_bottom, forced_kwargs=kwargs)
+        return kwargs
+
+    def on_plot_1d_subtract(self, group_obj):
+        """Heatmap plot"""
+        x_top, x_bottom, y_top, y_bottom, kwargs = OVERLAY_HANDLER.prepare_overlay_1d_subtract(group_obj)
+        kwargs = self.view_overlay.plot_1d_compare(x_top, x_bottom, y_top, y_bottom, forced_kwargs=kwargs)
+        return kwargs
+
+    def on_plot_1d_overlay(self, group_obj):
+        """Heatmap plot"""
+        x, y, array = OVERLAY_HANDLER.prepare_overlay_1d_multiline(group_obj)
+        kwargs = self.view_overlay.plot_1d_overlay(x, y, array, forced_kwargs=dict(waterfall_increment=0))
+        return kwargs
+
+    def on_plot_1d_waterfall(self, group_obj):
+        """Heatmap plot"""
+        x, y, array = OVERLAY_HANDLER.prepare_overlay_1d_multiline(group_obj)
+        kwargs = self.view_overlay.plot_1d_overlay(x, y, array)
+        return kwargs
 
     def on_overlay_heatmap(self, item_list):
         """Overlay heatmap objects"""
         method = self.overlay_2d_method.GetStringSelection()
-
         group_obj, valid_x, valid_y = OVERLAY_HANDLER.collect_overlay_2d_heatmap(item_list, False)
 
-        if method == "Mean":
-            array, x, y, x_label, y_label = OVERLAY_HANDLER.prepare_overlay_2d_mean(group_obj)
-            self.view_overlay.plot_2d_heatmap(x, y, array, x_label=x_label, y_label=y_label)
-        elif method == "Standard Deviation":
-            array, x, y, x_label, y_label = OVERLAY_HANDLER.prepare_overlay_2d_stddev(group_obj)
-            self.view_overlay.plot_2d_heatmap(x, y, array, x_label=x_label, y_label=y_label)
-        elif method == "Variance":
-            array, x, y, x_label, y_label = OVERLAY_HANDLER.prepare_overlay_2d_variance(group_obj)
-            self.view_overlay.plot_2d_heatmap(x, y, array, x_label=x_label, y_label=y_label)
-        elif method == "RMSD":
-            array, x, y, x_label, y_label, rmsd_label = OVERLAY_HANDLER.prepare_overlay_2d_rmsd(group_obj)
-            self.view_overlay.plot_2d_rmsd(x, y, array, rmsd_label, x_label=x_label, y_label=y_label)
-        elif method == "RMSF":
-            array, x, y, rmsf_y, x_label, y_label, rmsd_label = OVERLAY_HANDLER.prepare_overlay_2d_rmsf(group_obj)
-            self.view_overlay.plot_2d_rmsf(x, y, array, rmsf_y, rmsd_label, x_label=x_label, y_label=y_label)
-        elif method == "RMSD Matrix":
-            array, x, y, x_label, y_label = OVERLAY_HANDLER.prepare_overlay_2d_rmsd_matrix(group_obj)
-            self.view_overlay.plot_2d_heatmap(x, y, array, x_label=x_label, y_label=y_label)
-        elif method == "RMSD Dot":
-            array, x, y, x_label, y_label = OVERLAY_HANDLER.prepare_overlay_2d_rmsd_matrix(group_obj)
-            self.view_overlay.plot_2d_heatmap(x, y, array, x_label=x_label, y_label=y_label)
-        elif method == "Mask":
-            array_1, array_2, x, y, x_label, y_label, kwargs = OVERLAY_HANDLER.prepare_overlay_2d_mask(group_obj)
-            self.view_overlay.plot_2d_overlay(
-                x, y, array_1, array_2, x_label=x_label, y_label=y_label, forced_kwargs=kwargs
-            )
-        elif method == "Transparent":
-            array_1, array_2, x, y, x_label, y_label, kwargs = OVERLAY_HANDLER.prepare_overlay_2d_transparent(group_obj)
-            self.view_overlay.plot_2d_overlay(
-                x, y, array_1, array_2, x_label=x_label, y_label=y_label, forced_kwargs=kwargs
-            )
-        elif method == "Grid (2->1)":
-            a_1, a_2, array, x, y, x_label, y_label, rmsd_label = OVERLAY_HANDLER.prepare_overlay_2d_grid_compare_rmsd(
-                group_obj
-            )
-            self.view_overlay.plot_2d_grid_compare_rmsd(
-                x, y, a_1, a_2, array, rmsd_label, x_label=x_label, y_label=y_label
-            )
-        elif method == "Grid (n x n)":
-            arrays, x, y, x_label, y_label, n_rows, n_cols = OVERLAY_HANDLER.prepare_overlay_2d_grid_n_x_n(group_obj)
-            self.view_overlay.plot_2d_grid_n_x_n(x, y, arrays, n_rows, n_cols, x_label=x_label, y_label=y_label)
-        elif method == "Compare side-by-side":
-            if not group_obj.validate_size(n_min=2, n_max=2):
-                raise ValueError("This visualisation must have at most 2 items")
-            arrays, x, y, x_label, y_label, n_rows, n_cols = OVERLAY_HANDLER.prepare_overlay_2d_grid_n_x_n(group_obj)
-            self.view_overlay.plot_2d_grid_n_x_n(x, y, arrays, n_rows, n_cols, x_label=x_label, y_label=y_label)
-        elif method == "RGB":
-            array, x, y, x_label, y_label, forced_kwargs = OVERLAY_HANDLER.prepare_overlay_2d_rgb(group_obj)
-            self.view_overlay.plot_2d_rgb(x, y, array, x_label=x_label, y_label=y_label, forced_kwargs=forced_kwargs)
-        else:
+        plt_funcs = {
+            "Mean": self.on_plot_2d_mean,
+            "Standard Deviation": self.on_plot_2d_stddev,
+            "Variance": self.on_plot_2d_variance,
+            "RMSD": self.on_plot_2d_rmsd,
+            "RMSF": self.on_plot_2d_rmsf,
+            "RMSD Matrix": self.on_plot_2d_rmsd_matrix,
+            "RMSD Dot": self.on_plot_2d_rmsd_dot,
+            "Mask": self.on_plot_2d_mask,
+            "Transparent": self.on_plot_2d_transparent,
+            "Grid (2->1)": self.on_plot_2d_tto,
+            "Grid (NxN)": self.on_plot_2d_nxn,
+            "Side-by-side": self.on_plot_2d_side_by_side,
+            "RGB": self.on_plot_2d_rgb,
+        }
+
+        plt_func = plt_funcs.get(method, None)
+        if plt_func is None:
             LOGGER.error("Method not implemented yet")
             return
-        print(group_obj)
 
-    #     self.clipboard[overlay_data.pop("name")] = overlay_data.pop("data")
-    #
+        # plot function
+        kwargs = plt_func(group_obj)  # noqa
+
+        # set metadata
+        group_obj.set_metadata({"overlay": kwargs})
+
+        title = OVERLAY_HANDLER.get_group_title(method, item_list)
+        self.add_to_clipboard(method, title, group_obj, item_list)
+
+    def on_plot_2d_mean(self, group_obj):
+        """Heatmap plot"""
+        array, x, y, x_label, y_label = OVERLAY_HANDLER.prepare_overlay_2d_mean(group_obj)
+        kwargs = self.view_overlay.plot_2d_heatmap(x, y, array, x_label=x_label, y_label=y_label)
+        return kwargs
+
+    def on_plot_2d_stddev(self, group_obj):
+        """Heatmap plot"""
+        array, x, y, x_label, y_label = OVERLAY_HANDLER.prepare_overlay_2d_stddev(group_obj)
+        kwargs = self.view_overlay.plot_2d_heatmap(x, y, array, x_label=x_label, y_label=y_label)
+        return kwargs
+
+    def on_plot_2d_variance(self, group_obj):
+        """Heatmap plot"""
+        array, x, y, x_label, y_label = OVERLAY_HANDLER.prepare_overlay_2d_variance(group_obj)
+        kwargs = self.view_overlay.plot_2d_heatmap(x, y, array, x_label=x_label, y_label=y_label)
+        return kwargs
+
+    def on_plot_2d_rmsd(self, group_obj):
+        """Heatmap plot"""
+        array, x, y, x_label, y_label, rmsd_label = OVERLAY_HANDLER.prepare_overlay_2d_rmsd(group_obj)
+        kwargs = self.view_overlay.plot_2d_rmsd(x, y, array, rmsd_label, x_label=x_label, y_label=y_label)
+        return kwargs
+
+    def on_plot_2d_rmsf(self, group_obj):
+        """Heatmap plot"""
+        array, x, y, rmsf_y, x_label, y_label, rmsd_label = OVERLAY_HANDLER.prepare_overlay_2d_rmsf(group_obj)
+        kwargs = self.view_overlay.plot_2d_rmsf(x, y, array, rmsf_y, rmsd_label, x_label=x_label, y_label=y_label)
+        return kwargs
+
+    def on_plot_2d_rmsd_matrix(self, group_obj):
+        """Heatmap plot"""
+        array, x, y, tick_labels = OVERLAY_HANDLER.prepare_overlay_2d_rmsd_matrix(group_obj)
+        kwargs = self.view_overlay.plot_2d_rmsd_matrix(x, y, array, tick_labels)
+        return kwargs
+
+    def on_plot_2d_rmsd_dot(self, group_obj):
+        """Heatmap plot"""
+        array, x, y, tick_labels = OVERLAY_HANDLER.prepare_overlay_2d_rmsd_matrix(group_obj)
+        kwargs = self.view_overlay.plot_2d_rmsd_dot(x, y, array, tick_labels)
+        return kwargs
+
+    def on_plot_2d_mask(self, group_obj):
+        """Heatmap plot"""
+        array_1, array_2, x, y, x_label, y_label, kwargs = OVERLAY_HANDLER.prepare_overlay_2d_mask(group_obj)
+        kwargs = self.view_overlay.plot_2d_overlay(
+            x, y, array_1, array_2, x_label=x_label, y_label=y_label, forced_kwargs=kwargs
+        )
+        return kwargs
+
+    def on_plot_2d_transparent(self, group_obj):
+        """Heatmap plot"""
+        array_1, array_2, x, y, x_label, y_label, kwargs = OVERLAY_HANDLER.prepare_overlay_2d_transparent(group_obj)
+        kwargs = self.view_overlay.plot_2d_overlay(
+            x, y, array_1, array_2, x_label=x_label, y_label=y_label, forced_kwargs=kwargs
+        )
+        return kwargs
+
+    def on_plot_2d_tto(self, group_obj):
+        """Heatmap plot"""
+        a_1, a_2, array, x, y, x_label, y_label, rmsd_label = OVERLAY_HANDLER.prepare_overlay_2d_grid_compare_rmsd(
+            group_obj
+        )
+        kwargs = self.view_overlay.plot_2d_grid_compare_rmsd(
+            x, y, a_1, a_2, array, rmsd_label, x_label=x_label, y_label=y_label
+        )
+        return kwargs
+
+    def on_plot_2d_nxn(self, group_obj):
+        """Heatmap plot"""
+        arrays, x, y, x_label, y_label, n_rows, n_cols = OVERLAY_HANDLER.prepare_overlay_2d_grid_n_x_n(group_obj)
+        kwargs = self.view_overlay.plot_2d_grid_n_x_n(x, y, arrays, n_rows, n_cols, x_label=x_label, y_label=y_label)
+        return kwargs
+
+    def on_plot_2d_side_by_side(self, group_obj):
+        """Heatmap plot"""
+        arrays, x, y, x_label, y_label, n_rows, n_cols = OVERLAY_HANDLER.prepare_overlay_2d_grid_n_x_n(
+            group_obj, n_max=2
+        )
+        kwargs = self.view_overlay.plot_2d_grid_n_x_n(x, y, arrays, n_rows, n_cols, x_label=x_label, y_label=y_label)
+        return kwargs
+
+    def on_plot_2d_rgb(self, group_obj):
+        """Heatmap plot"""
+        array, x, y, x_label, y_label, forced_kwargs = OVERLAY_HANDLER.prepare_overlay_2d_rgb(group_obj)
+        kwargs = self.view_overlay.plot_2d_rgb(
+            x, y, array, x_label=x_label, y_label=y_label, forced_kwargs=forced_kwargs
+        )
+        return kwargs
+
+    def add_to_clipboard(self, method: str, title: str, group: DataGroup, item_list: List):
+        """Add group object to the clipboard"""
+        # keep track of what method is associated with the selected items - this is necessary in case the same objects
+        # are compared but different method is used
+        item_list_ = deepcopy(item_list)
+        item_list_.append(method)
+        item_id = hash_obj(item_list_)
+
+        # check whether there are any objects with the same name and if so, append a number
+        for _item_id, _item in self.clipboard.items():
+            if item_id == _item_id:
+                continue
+            if title == _item["title"]:
+                title += f" #{get_random_int()}"
+
+        # add to clipboard
+        self.clipboard[item_id] = dict(method=method, title=title, group=group, item_id=item_id)
+
+    def on_add_to_document(self, _evt):
+        """Add data to document"""
+        item_list = []
+        for item in self.clipboard.values():
+            method = item["method"]
+            item_list.append(
+                {"item_id": item["item_id"], "title": item["title"], "about": item["group"].pprint(method)}
+            )
+
+        dlg = DialogCardManager(self, item_list)
+        res = dlg.ShowModal()
+        if res == wx.ID_NO:
+            return
+        output_list = dlg.output_list
+        if not output_list:
+            pub.sendMessage("notify.message.warning", "The output list was empty. Action was cancelled")
+            return
+
+        # get document where data can be saved to
+        document = self.document
+        if not document:
+            pub.sendMessage("notify.message.warning", "The Comparison document was not set. Action was cancelled")
+            return
+
+        for item_id, title in output_list:
+            item = self.clipboard.pop(item_id)
+            document.add_overlay(title, item["group"])
+            LOGGER.debug(f"Added {title} to the {document.title} document")
+
+    def on_action_tools(self, _evt):
+        """Display action menu"""
+        menu = wx.Menu()
+
+        menu_action_create_blank_document = make_menu_item(
+            parent=menu, text="Create/open `Comparison` document", bitmap=self._icons.new
+        )
+        self.Bind(wx.EVT_MENU, self.on_open_document, menu_action_create_blank_document)
+        menu.AppendItem(menu_action_create_blank_document)
+
+        self.PopupMenu(menu)
+        menu.Destroy()
+        self.SetFocus()
+
+    def on_open_document(self, _evt):
+        """Open new document where comparison data can be saved"""
+        document = self._on_get_document()
+        self._document = document
+
+    def _on_get_document(self):
+        """Get instance of selected document - the dialog also allows the user to load already existing document that
+        is not found in the environment or create a new one if one does not exist."""
+        from origami.gui_elements.dialog_select_document import DialogSelectDocument
+
+        document_title = None
+
+        dlg = DialogSelectDocument(self, document_type="Type: Comparison")
+        if dlg.ShowModal() == wx.ID_OK:
+            document_title = dlg.current_document
+        dlg.Destroy()
+
+        if document_title is not None:
+            return ENV[document_title]
 
     def on_open_method_settings(self, _evt):
-        """Open extra settings panel"""
+        """Show all relevant parameters for the currently used method"""
         self.plot_settings.setup_method_settings(self.current_method)
 
     def on_populate_item_list(self, _evt):
@@ -991,7 +1055,7 @@ def _main():
     from origami.utils.secret import get_short_hash
 
     item_list = [
-        ["MassSpectra/Summed Spectrum", "Title", "(1000,)", "", None, get_short_hash()],
+        ["MassSpectra/Summed Spectrum", "Title", "(1000,)", "TEST\n\n\nTEST", None, get_short_hash()],
         ["MassSpectra/rt=0-15", "Title", "(1000,)", "", 0, get_short_hash()],
         ["MassSpectra/rt=41-42", "Title", "(1000,)", "label ", 0, get_short_hash()],
         ["Chromatograms/Summed Chromatogram", "Title", "(513,)", "", 0, get_short_hash()],

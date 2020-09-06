@@ -3173,6 +3173,8 @@ class DocumentTree(wx.TreeCtrl):
             "Mobilograms": {"title": "Mobilograms", "image": self.bullets_dict["drift_time"]},
             "IonHeatmaps": {"title": "Heatmaps", "image": self.bullets_dict["heatmap"]},
             "MSDTHeatmaps": {"title": "Heatmaps (MS/DT)", "image": self.bullets_dict["heatmap"]},
+            "Overlays": {"title": "Overlays", "image": self.bullets_dict["heatmap"]},
+            "CCSCalibrations": {"title": "Calibration (CCS)", "image": self.bullets_dict["heatmap"]},
         }
         return group_dict.get(parts[0]), parts[0], parts[1]
 
@@ -3186,6 +3188,8 @@ class DocumentTree(wx.TreeCtrl):
             "Heatmaps": "IonHeatmaps",
             "MSDTHeatmaps": "MSDTHeatmaps",
             "Heatmaps (MS/DT)": "MSDTHeatmaps",
+            "Calibration (CCS)": "CCSCalibrations",
+            "Overlays": "Overlays",
         }
         return group_dict.get(key, key)
 

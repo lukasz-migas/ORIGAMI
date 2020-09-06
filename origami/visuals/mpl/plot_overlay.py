@@ -1,11 +1,20 @@
 """Overlay plot that is a composite of other plots"""
+# Standard library imports
+import itertools
+from typing import List
+
 # Third-party imports
 import numpy as np
+import matplotlib.patches as mpatches
 from matplotlib import gridspec
+from matplotlib.collections import PatchCollection
 
 # Local imports
 import origami.utils.visuals as ut_visuals
+from origami.utils.color import get_font_color
+from origami.utils.color import convert_rgb_1_to_255
 from origami.utils.ranges import get_min_max
+from origami.utils.utilities import rescale
 from origami.visuals.mpl.gids import PlotIds
 from origami.visuals.mpl.plot_spectrum import PlotSpectrum
 from origami.visuals.mpl.plot_heatmap_2d import PlotHeatmap2D
@@ -43,6 +52,56 @@ class PlotOverlay(PlotSpectrum, PlotHeatmap2D):
     def __init__(self, *args, **kwargs):
         PlotSpectrum.__init__(self, *args, **kwargs)
         PlotHeatmap2D.__init__(self, *args, **kwargs)
+
+    def plot_2d_overlay(self, x, y, array_1, array_2, title="", x_label="", y_label="", obj=None, **kwargs):
+        """Simple heatmap plot"""
+        self._set_axes()
+
+        # add 2d plot
+        xlimits, ylimits, extent = self._compute_xy_limits(x, y, None, is_heatmap=True)
+
+        self.cax = self.plot_base.imshow(
+            array_1,
+            cmap=kwargs.get("heatmap_colormap_1", "Reds"),
+            interpolation=kwargs["heatmap_interpolation"],
+            aspect="auto",
+            origin="lower",
+            extent=[*xlimits, *ylimits],
+            alpha=kwargs.get("heatmap_transparency_1", 1.0),
+        )
+        self.cax = self.plot_base.imshow(
+            array_2,
+            cmap=kwargs.get("heatmap_colormap_2", "Blues"),
+            interpolation=kwargs["heatmap_interpolation"],
+            aspect="auto",
+            origin="lower",
+            extent=[*xlimits, *ylimits],
+            alpha=kwargs.get("heatmap_transparency_2", 1.0),
+        )
+        # set plot limits
+        self.plot_base.set_xlim(xlimits)
+        self.plot_base.set_ylim(ylimits)
+        self.set_plot_xlabel(x_label, **kwargs)
+        self.set_plot_ylabel(y_label, **kwargs)
+        self.set_plot_title(title, **kwargs)
+        self.set_tick_parameters(**kwargs)
+
+        self.setup_new_zoom(
+            [self.plot_base],
+            data_limits=[extent],
+            allow_extraction=kwargs.get("allow_extraction", False),
+            callbacks=kwargs.get("callbacks", dict()),
+            is_heatmap=True,
+            obj=obj,
+        )
+        self.store_plot_limits([extent], [self.plot_base])
+
+        # add colorbar
+        # self.set_colorbar_parameters(array, **kwargs)
+
+        # update normalization
+        # self.plot_2D_update_normalization(**kwargs)
+        self.PLOT_TYPE = "heatmap-overlay"
 
     def plot_heatmap_line(self, x, y, array, y_top, x_label=None, y_label=None, ratio: int = 5, obj=None, **kwargs):
         """Plot heatmap and line plot"""
@@ -274,69 +333,194 @@ class PlotOverlay(PlotSpectrum, PlotHeatmap2D):
         self.plot_2D_update_normalization(**kwargs)
         self.PLOT_TYPE = "heatmap-grid"
 
-    # def plot_2D_matrix(self, zvals=None, xylabels=None, axesSize=None, plotName=None, **kwargs):
-    #     self._plot_tag = "rmsd_matrix"
-    #     # update settings
-    #     self._check_and_update_plot_settings(plot_name=plotName, axes_size=axesSize, **kwargs)
-    #
-    #     matplotlib.rc("xtick", labelsize=kwargs["axes_tick_font_size"])
-    #     matplotlib.rc("ytick", labelsize=kwargs["axes_tick_font_size"])
-    #
-    #     # Plot
-    #     self.plot_base = self.figure.add_axes(self._axes)
-    #
-    #     # Setup labels
-    #     xsize = len(zvals)
-    #     if xylabels:
-    #         self.plot_base.set_xticks(np.arange(1, xsize + 1, 1))
-    #         self.plot_base.set_xticklabels(xylabels, rotation=kwargs["rmsd_rotation_x"])
-    #         self.plot_base.set_yticks(np.arange(1, xsize + 1, 1))
-    #         self.plot_base.set_yticklabels(xylabels, rotation=kwargs["rmsd_rotation_y"])
-    #
-    #     extent = [0.5, xsize + 0.5, 0.5, xsize + 0.5]
-    #
-    #     # Add imshow
-    #     self.cax = self.plot_base.imshow(
-    #         zvals,
-    #         cmap=kwargs["heatmap_colormap"],
-    #         interpolation=kwargs["heatmap_interpolation"],
-    #         aspect="auto",
-    #         extent=extent,
-    #         origin="lower",
-    #     )
-    #
-    #     xmin, xmax = self.plot_base.get_xlim()
-    #     ymin, ymax = self.plot_base.get_ylim()
-    #     self.plot_base.set_xlim(xmin, xmax - 0.5)
-    #     self.plot_base.set_ylim(ymin, ymax - 0.5)
-    #     extent = [xmin, ymin, xmax, ymax]
-    #
-    #     # add labels
-    #     self.text = []
-    #     if kwargs["rmsd_matrix_add_labels"]:
-    #         cmap = self.cax.get_cmap()
-    #         color = kwargs["rmsd_matrix_font_color"]
-    #         for i, j in itertools.product(list(range(zvals.shape[0])), list(range(zvals.shape[1]))):
-    #             if kwargs["rmsd_matrix_font_color_fmt"] == "auto":
-    #                 color = get_font_color(convert_rgb_1_to_255(cmap(zvals[i, j] / 2)))
-    #
-    #             label = format(zvals[i, j], ".2f")
-    #             obj_name = kwargs.pop("text_name", None)
-    #             text = self.plot_base.text(
-    #                 j + 1, i + 1, label, horizontalalignment="center", color=color, picker=True, clip_on=True
-    #             )
-    #             text.obj_name = obj_name  # custom tag
-    #             text.y_divider = self.y_divider
-    #             self.text.append(text)
-    #
-    #     # add colorbar
-    #     self.set_colorbar_parameters(zvals, **kwargs)
-    #
-    #     self.set_tick_parameters(**kwargs)
-    #
-    #     # setup zoom
-    #     self.setup_zoom([self.plot_base], self.zoomtype, data_lims=extent, plotName=plotName)
-    #     self.plot_base.plot_limits = [extent[0], extent[2], extent[1], extent[3]]
+    def plot_2d_matrix(
+        self,
+        x: np.ndarray,
+        y: np.ndarray,
+        array: np.ndarray,
+        tick_labels: List[str],
+        title: str = "",
+        x_label: str = "",
+        y_label: str = "",
+        obj=None,
+        **kwargs,
+    ):
+        """Simple heatmap plot"""
+        self._set_axes()
+
+        # add 2d plot
+        xlimits, ylimits, extent = self._compute_xy_limits(x, y, None, is_heatmap=True)
+
+        self.cax = self.plot_base.imshow(
+            array,
+            cmap=kwargs["heatmap_colormap"],
+            interpolation=kwargs["heatmap_interpolation"],
+            aspect="equal",
+            origin="lower",
+            extent=[*xlimits, *ylimits],
+        )
+        # set ticks
+        x_size = len(array)
+        if tick_labels and len(tick_labels) == x_size:
+            self.plot_base.set_xticks(np.arange(0, x_size, 1))
+            self.plot_base.set_xticklabels(tick_labels, rotation=kwargs["rmsd_rotation_x"])
+            self.plot_base.set_yticks(np.arange(0, x_size, 1))
+            self.plot_base.set_yticklabels(tick_labels, rotation=kwargs["rmsd_rotation_y"])
+
+        # set labels
+        self.plot_add_rmsd_matrix_labels(array, **kwargs)
+
+        # set plot limits
+        self.plot_base.set_xlim(xlimits)
+        self.plot_base.set_ylim(ylimits)
+        self.set_plot_xlabel(x_label, **kwargs)
+        self.set_plot_ylabel(y_label, **kwargs)
+        self.set_plot_title(title, **kwargs)
+        self.set_tick_parameters(**kwargs)
+
+        # set zoom
+        self.setup_new_zoom(
+            [self.plot_base],
+            data_limits=[extent],
+            allow_extraction=kwargs.get("allow_extraction", False),
+            callbacks=kwargs.get("callbacks", dict()),
+            is_heatmap=True,
+            obj=obj,
+        )
+        self.store_plot_limits([extent], [self.plot_base])
+
+        # add colorbar
+        self.set_colorbar_parameters(array, **kwargs)
+
+        # update normalization
+        self.plot_2D_update_normalization(**kwargs)
+        self.PLOT_TYPE = "heatmap-matrix"
+
+    def plot_2d_dot(
+        self,
+        x: np.ndarray,
+        y: np.ndarray,
+        array: np.ndarray,
+        tick_labels: List[str],
+        title: str = "",
+        x_label: str = "",
+        y_label: str = "",
+        obj=None,
+        **kwargs,
+    ):
+        """Simple heatmap plot"""
+        self._set_axes()
+
+        # add 2d plot
+        xlimits, ylimits, extent = self._compute_xy_limits(x, y, None, is_heatmap=True)
+
+        self.cax = self._prepare_dots(array.T, **kwargs)
+        self.plot_base.add_collection(self.cax)
+
+        # set ticks
+        x_size = len(array)
+        if tick_labels and len(tick_labels) == x_size:
+            self.plot_base.set_xticks(np.arange(0, x_size, 1))
+            self.plot_base.set_xticklabels(tick_labels, rotation=kwargs["rmsd_rotation_x"])
+            self.plot_base.set_yticks(np.arange(0, x_size, 1))
+            self.plot_base.set_yticklabels(tick_labels, rotation=kwargs["rmsd_rotation_y"])
+
+        # set labels
+        self.plot_add_rmsd_matrix_labels(array, **kwargs)
+
+        # set plot limits
+        self.plot_base.set_xlim(xlimits)
+        self.plot_base.set_ylim(ylimits)
+        self.set_plot_xlabel(x_label, **kwargs)
+        self.set_plot_ylabel(y_label, **kwargs)
+        self.set_plot_title(title, **kwargs)
+        self.set_tick_parameters(**kwargs)
+
+        # set zoom
+        self.setup_new_zoom(
+            [self.plot_base],
+            data_limits=[extent],
+            allow_extraction=kwargs.get("allow_extraction", False),
+            callbacks=kwargs.get("callbacks", dict()),
+            is_heatmap=True,
+            obj=obj,
+        )
+        self.store_plot_limits([extent], [self.plot_base])
+
+        # add colorbar
+        self.set_colorbar_parameters(array, **kwargs)
+
+        # update normalization
+        self.plot_2D_update_normalization(**kwargs)
+        self.PLOT_TYPE = "heatmap-dot"
+
+    def _prepare_dots(self, array, min_scale=0.1, max_scale=1.0, **kwargs):
+        """Prepare RMSD dot data"""
+        patches = []
+
+        array_scale = rescale(array, min_scale, max_scale, old_min=0) / 2
+        v, ec, fc = [], [], []
+        for i, j in itertools.product(list(range(array.shape[0])), list(range(array.shape[1]))):
+            label = format(array[i, j], ".2f")
+            if label == "nan":
+                continue
+            circle = mpatches.Circle((i, j), array_scale[i, j])
+            patches.append(circle)
+            ec.append("k")
+            fc.append("r")
+            v.append(array[i, j])
+
+        collection = PatchCollection(patches)  # , edgecolors=ec, facecolors=fc)
+        collection.set_array(np.asarray(v))
+        collection.set_cmap(kwargs["heatmap_colormap"])
+
+        return collection
+
+    def plot_add_rmsd_matrix_labels(self, array, **kwargs):
+        """Add matrix/dot labels to the plot"""
+        visible = kwargs["rmsd_matrix_add_labels"]
+        font_weight = "bold" if kwargs["rmsd_matrix_font_weight"] else "normal"
+
+        cmap = self.cax.get_cmap()
+        color = kwargs["rmsd_matrix_font_color"]
+        for i, j in itertools.product(list(range(array.shape[0])), list(range(array.shape[1]))):
+            label = format(array[i, j], ".2f")
+            if label == "nan":
+                continue
+            if kwargs["rmsd_matrix_font_color_fmt"] == "auto":
+                color = get_font_color(convert_rgb_1_to_255(cmap(array[i, j]), 1))
+            self.plot_add_label(
+                j,
+                i,
+                label,
+                color,
+                pickable=False,
+                horizontalalignment="center",
+                verticalalignment="center",
+                fontsize=kwargs["rmsd_matrix_font_size"],
+                fontweight=font_weight,
+                text_name="rmsd_matrix",
+                visible=visible,
+            )
+
+    def plot_update_rmsd_matrix_labels(self, **kwargs):
+        """Update matrix labels"""
+        font_weight = "bold" if kwargs["rmsd_matrix_font_weight"] else "normal"
+
+        for text_obj in self.text:
+            if self._check_start_with(text_obj, "rmsd_matrix"):
+                text_obj.set_visible(kwargs["rmsd_matrix_add_labels"])
+                if not kwargs["rmsd_matrix_font_color_fmt"] == "auto":
+                    text_obj.set_color(kwargs["rmsd_matrix_font_color"])
+                text_obj.set_fontsize(kwargs["rmsd_matrix_font_size"])
+                text_obj.set_fontweight(font_weight)
+        return True
+
+    def plot_update_rmsd_matrix_ticks(self, **kwargs):
+        """Update matrix x/y-axis labels"""
+        self.plot_base.set_xticklabels(self.plot_base.get_xticklabels(), rotation=kwargs["rmsd_rotation_x"])
+        self.plot_base.set_yticklabels(self.plot_base.get_xticklabels(), rotation=kwargs["rmsd_rotation_y"])
+        return True
 
     def prepare_rmsd_label(self, x: np.ndarray = None, y: np.ndarray = None, x_max=None, y_max=None, **kwargs):
         """Prepare RMSD label by computing the relative position of the label"""
@@ -399,20 +583,3 @@ class PlotOverlay(PlotSpectrum, PlotHeatmap2D):
         text_obj.set_fontsize(kwargs["rmsd_label_font_size"])
         text_obj.set_color(kwargs["rmsd_color"])
         return True
-
-    def plot_2D_matrix_update_label(self, **kwargs):
-        """Update matrix labels"""
-        kwargs = ut_visuals.check_plot_settings(**kwargs)
-
-        self.plot_base.set_xticklabels(self.plot_base.get_xticklabels(), rotation=kwargs["rmsd_rotation_x"])
-        self.plot_base.set_yticklabels(self.plot_base.get_xticklabels(), rotation=kwargs["rmsd_rotation_y"])
-
-        if not isinstance(self.text, list):
-            return
-
-        for text in self.text:
-            text.set_visible(kwargs["rmsd_matrix_add_labels"])
-            if not kwargs["rmsd_matrix_font_color_fmt"] == "auto":
-                text.set_color(kwargs["rmsd_matrix_font_color"])
-            text.set_fontsize(kwargs["rmsd_matrix_font_size"])
-            text.set_fontweight(kwargs["rmsd_matrix_font_weight"])

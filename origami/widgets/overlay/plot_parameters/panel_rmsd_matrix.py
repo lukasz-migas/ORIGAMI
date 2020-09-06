@@ -1,4 +1,7 @@
 """Legend panel"""
+# Standard library imports
+import logging
+
 # Third-party imports
 import wx
 
@@ -7,7 +10,10 @@ from origami.utils.color import convert_rgb_1_to_255
 from origami.config.config import CONFIG
 from origami.utils.converters import str2num
 from origami.gui_elements.helpers import make_checkbox
+from origami.gui_elements.views.view_register import VIEW_REG
 from origami.gui_elements.plot_parameters.panel_base import PanelSettingsBase
+
+LOGGER = logging.getLogger(__name__)
 
 
 class PanelRMSDMatrixSettings(PanelSettingsBase):
@@ -32,10 +38,10 @@ class PanelRMSDMatrixSettings(PanelSettingsBase):
             initial=0,
             inc=45,
             size=(90, -1),
-            name="rmsd_matrix",
+            name="rmsd_matrix.ticks",
         )
         self.rmsd_x_rotation_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.rmsd_x_rotation_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_label_rmsd_matrix)
+        self.rmsd_x_rotation_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         rmsd_y_rotation = wx.StaticText(self, -1, "Tick rotation (y):")
         self.rmsd_y_rotation_value = wx.SpinCtrlDouble(
@@ -47,15 +53,16 @@ class PanelRMSDMatrixSettings(PanelSettingsBase):
             initial=0,
             inc=45,
             size=(90, -1),
-            name="rmsd_matrix",
+            name="rmsd_matrix.ticks",
         )
         self.rmsd_y_rotation_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
-        self.rmsd_y_rotation_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_label_rmsd_matrix)
+        self.rmsd_y_rotation_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
         rmsd_add_labels_label = wx.StaticText(self, -1, "Show values:")
-        self.rmsd_add_labels_check = make_checkbox(self, "", name="rmsd_matrix")
+        self.rmsd_add_labels_check = make_checkbox(self, "", name="rmsd_matrix.label")
         self.rmsd_add_labels_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
-        self.rmsd_add_labels_check.Bind(wx.EVT_CHECKBOX, self.on_update_label_rmsd_matrix)
+        self.rmsd_add_labels_check.Bind(wx.EVT_CHECKBOX, self.on_update_style)
+        self.rmsd_add_labels_check.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
         rmsd_matrix_fontsize = wx.StaticText(self, -1, "Label font size:")
         self.rmsd_matrix_fontsize = wx.SpinCtrlDouble(
@@ -67,18 +74,18 @@ class PanelRMSDMatrixSettings(PanelSettingsBase):
             initial=CONFIG.axes_label_font_size,
             inc=2,
             size=(90, -1),
-            name="rmsd_matrix",
+            name="rmsd_matrix.label",
         )
         self.rmsd_matrix_fontsize.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
         self.rmsd_matrix_fontsize.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_update_style)
 
-        self.rmsd_matrix_font_weight_check = make_checkbox(self, "Bold", name="rmsd_matrix")
+        self.rmsd_matrix_font_weight_check = make_checkbox(self, "Bold", name="rmsd_matrix.label")
         self.rmsd_matrix_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
         self.rmsd_matrix_font_weight_check.Bind(wx.EVT_CHECKBOX, self.on_update_style)
 
         rmsd_matrix_color_fmt = wx.StaticText(self, -1, "Color formatter:")
         self.rmsd_matrix_color_fmt = wx.Choice(
-            self, -1, choices=CONFIG.rmsd_matrix_font_color_fmt_choices, size=(-1, -1), name="rmsd_matrix_formatter"
+            self, -1, choices=CONFIG.rmsd_matrix_font_color_fmt_choices, size=(-1, -1), name="rmsd_matrix.label"
         )
         self.rmsd_matrix_color_fmt.Bind(wx.EVT_CHOICE, self.on_apply)
         self.rmsd_matrix_color_fmt.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
@@ -86,7 +93,7 @@ class PanelRMSDMatrixSettings(PanelSettingsBase):
 
         rmsd_matrix_font_color = wx.StaticText(self, -1, "Labels color:")
         self.rmsd_matrix_font_color_btn = wx.Button(
-            self, -1, "", wx.DefaultPosition, wx.Size(26, 26), name="rmsd.matrix.label"
+            self, -1, "", wx.DefaultPosition, wx.Size(26, 26), name="rmsd_matrix.label"
         )
         self.rmsd_matrix_font_color_btn.Bind(wx.EVT_BUTTON, self.on_assign_color)
 
@@ -120,12 +127,28 @@ class PanelRMSDMatrixSettings(PanelSettingsBase):
         main_sizer.Fit(self)
         self.SetSizer(main_sizer)
 
+    def on_update_style(self, evt):
+        """Update 1d plots"""
+        evt, source = self._preparse_evt(evt)
+        if evt is None:
+            return
+        if not source.startswith("rmsd_matrix"):
+            self._parse_evt(evt)
+            return
+        self.on_apply(None)
+
+        try:
+            view = VIEW_REG.view
+            view.update_style(source)
+        except (AttributeError, KeyError):
+            LOGGER.warning("Could not retrieve view - cannot update plot style")
+        self._parse_evt(evt)
+
     def on_apply(self, evt):
         """Apply other parameters"""
         if self.import_evt:
             return
 
-        # rmsd
         CONFIG.rmsd_rotation_x = str2num(self.rmsd_x_rotation_value.GetValue())
         CONFIG.rmsd_rotation_y = str2num(self.rmsd_y_rotation_value.GetValue())
         CONFIG.rmsd_matrix_add_labels = self.rmsd_add_labels_check.GetValue()
@@ -135,19 +158,18 @@ class PanelRMSDMatrixSettings(PanelSettingsBase):
 
         self._parse_evt(evt)
 
-    def on_update_label_rmsd_matrix(self, evt):
-        """Update RMSD matrix labels"""
-        self.on_apply(None)
-
-        self.panel_plot.plot_2D_matrix_update_label()
-
-        self._parse_evt(evt)
-
     def on_toggle_controls(self, evt):
         """Update RMSD settings"""
+        CONFIG.rmsd_matrix_add_labels = self.rmsd_add_labels_check.GetValue()
+        self.rmsd_matrix_color_fmt.Enable(CONFIG.rmsd_matrix_add_labels)
+        self.rmsd_matrix_font_weight_check.Enable(CONFIG.rmsd_matrix_add_labels)
+        self.rmsd_matrix_fontsize.Enable(CONFIG.rmsd_matrix_add_labels)
+        self.rmsd_matrix_font_color_btn.Enable(CONFIG.rmsd_matrix_add_labels)
 
         CONFIG.rmsd_matrix_font_color_fmt = self.rmsd_matrix_color_fmt.GetStringSelection()
-        self.rmsd_matrix_font_color_btn.Enable(CONFIG.rmsd_matrix_font_color_fmt != "auto")
+        self.rmsd_matrix_font_color_btn.Enable(
+            CONFIG.rmsd_matrix_font_color_fmt != "auto" and CONFIG.rmsd_matrix_add_labels
+        )
 
         self._parse_evt(evt)
 
@@ -158,10 +180,10 @@ class PanelRMSDMatrixSettings(PanelSettingsBase):
         source, color_255, color_1 = self._on_assign_color(evt)
 
         # update configuration and button color
-        if source == "rmsd.matrix.label":
+        if source == "rmsd_matrix.label":
             CONFIG.rmsd_matrix_font_color = color_1
             self.rmsd_matrix_font_color_btn.SetBackgroundColour(color_255)
-            self.on_update_style(None)
+            self.on_update_style(evt)
 
     def _on_set_config(self):
         """Update values in the application based on config values"""

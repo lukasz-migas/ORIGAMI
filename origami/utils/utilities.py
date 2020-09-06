@@ -26,7 +26,9 @@ def open_link(link: str):
     webbrowser.open(link)
 
 
-def rescale(values, new_min, new_max, dtype=None):
+def rescale(
+    values, new_min, new_max, dtype=None, ignore_nan: bool = True, old_min: float = None, old_max: float = None
+):
     """Rescale values from one range to another
 
     Parameters
@@ -39,6 +41,8 @@ def rescale(values, new_min, new_max, dtype=None):
         new maximum value
     dtype :
         data type
+    ignore_nan : bool
+        if `True` nans will be ignored
 
     Returns
     -------
@@ -48,7 +52,15 @@ def rescale(values, new_min, new_max, dtype=None):
     values = np.asarray(values)
     if dtype is None:
         dtype = values.dtype
-    old_min, old_max = values.min(), values.max()
+    if ignore_nan:
+        _old_min, _old_max = np.nanmin(values), np.nanmax(values)
+    else:
+        _old_min, _old_max = np.min(values), np.max(values)
+    if old_min is None:
+        old_min = _old_min
+    if old_max is None:
+        old_max = _old_max
+
     new_values = ((values - old_min) / (old_max - old_min)) * (new_max - new_min) + new_min
     return new_values.astype(dtype)
 

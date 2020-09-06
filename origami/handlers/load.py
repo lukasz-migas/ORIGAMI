@@ -16,7 +16,6 @@ import numpy as np
 # Local imports
 from origami.objects.misc import FileItem
 from origami.config.config import CONFIG
-from origami.objects.groups import MassSpectrumGroup
 from origami.readers.io_mgf import MGFReader
 from origami.readers.io_mzml import mzMLReader
 from origami.utils.utilities import time_loop
@@ -34,6 +33,7 @@ from origami.objects.containers import MassSpectrumHeatmapObject
 from origami.readers.io_text_files import TextHeatmapReader
 from origami.readers.io_text_files import TextSpectrumReader
 from origami.readers.io_text_files import AnnotatedDataReader
+from origami.objects.groups.spectrum import MassSpectrumGroup
 from origami.widgets.lesa.processing.containers import ImagingIonHeatmapObject
 
 # enable on windowsOS only

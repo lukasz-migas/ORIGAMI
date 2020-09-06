@@ -35,56 +35,6 @@ class PlotHeatmap2D(PlotBase):
         self.tick_labels = None
         self.text = None
 
-    def plot_2d_overlay(self, x, y, array_1, array_2, title="", x_label="", y_label="", obj=None, **kwargs):
-        """Simple heatmap plot"""
-        self._set_axes()
-
-        # add 2d plot
-        xlimits, ylimits, extent = self._compute_xy_limits(x, y, None, is_heatmap=True)
-
-        self.cax = self.plot_base.imshow(
-            array_1,
-            cmap=kwargs.get("heatmap_colormap_1", "Reds"),
-            interpolation=kwargs["heatmap_interpolation"],
-            aspect="auto",
-            origin="lower",
-            extent=[*xlimits, *ylimits],
-            alpha=kwargs.get("heatmap_transparency_1", 1.0),
-        )
-        self.cax = self.plot_base.imshow(
-            array_2,
-            cmap=kwargs.get("heatmap_colormap_2", "Blues"),
-            interpolation=kwargs["heatmap_interpolation"],
-            aspect="auto",
-            origin="lower",
-            extent=[*xlimits, *ylimits],
-            alpha=kwargs.get("heatmap_transparency_2", 1.0),
-        )
-        # set plot limits
-        self.plot_base.set_xlim(xlimits)
-        self.plot_base.set_ylim(ylimits)
-        self.set_plot_xlabel(x_label, **kwargs)
-        self.set_plot_ylabel(y_label, **kwargs)
-        self.set_plot_title(title, **kwargs)
-        self.set_tick_parameters(**kwargs)
-
-        self.setup_new_zoom(
-            [self.plot_base],
-            data_limits=[extent],
-            allow_extraction=kwargs.get("allow_extraction", False),
-            callbacks=kwargs.get("callbacks", dict()),
-            is_heatmap=True,
-            obj=obj,
-        )
-        self.store_plot_limits([extent], [self.plot_base])
-
-        # add colorbar
-        # self.set_colorbar_parameters(array, **kwargs)
-
-        # update normalization
-        # self.plot_2D_update_normalization(**kwargs)
-        self.PLOT_TYPE = "heatmap-overlay"
-
     def plot_2d(self, x, y, array, title="", x_label="", y_label="", obj=None, **kwargs):
         """Simple heatmap plot"""
         self._set_axes()

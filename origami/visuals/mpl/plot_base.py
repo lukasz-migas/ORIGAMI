@@ -686,7 +686,6 @@ class PlotBase(MPLPanel):
         text = self.plot_base.text(
             np.array(x), y + y_offset, label, color=color, clip_on=True, zorder=zorder, picker=pickable, **kwargs
         )
-        # text._yposition = y - kwargs.get("labels_y_offset", CONFIG.waterfall_labels_y_offset)  # TODO: replace!
         text.obj_name = text_name  # custom tag
         text.y_divider = self.y_divider
         self.text.append(text)
@@ -872,70 +871,6 @@ class PlotBase(MPLPanel):
         self.plot_remove_lines(False)
         self.plot_remove_arrows(False)
         self.repaint(repaint)
-
-    # def plot_1D_update_rmsf(self, **kwargs):
-    #     if self.lock_plot_from_updating:
-    #         self._locked()
-    #
-    #     if any([plot is None for plot in [self.plotRMSF, self.plot_base]]):
-    #         return
-    #
-    #     # ensure correct format of kwargs
-    #     kwargs = ut_visuals.check_plot_settings(**kwargs)
-    #
-    #     # update ticks
-    #     matplotlib.rc("xtick", labelsize=kwargs["axes_tick_font_size"])
-    #     matplotlib.rc("ytick", labelsize=kwargs["axes_tick_font_size"])
-    #
-    #     # update labels
-    #     for plot_obj in [self.plotRMSF, self.plot_base]:
-    #         # Setup font size info
-    #         plot_obj.set_ylabel(
-    #             plot_obj.get_ylabel(),
-    #             labelpad=kwargs["axes_label_pad"],
-    #             fontsize=kwargs["axes_tick_font_size"],
-    #             weight=kwargs["axes_label_font_weight"],
-    #         )
-    #         plot_obj.set_ylabel(
-    #             plot_obj.get_ylabel(),
-    #             labelpad=kwargs["axes_label_pad"],
-    #             fontsize=kwargs["axes_tick_font_size"],
-    #             weight=kwargs["axes_label_font_weight"],
-    #         )
-    #
-    #         plot_obj.tick_params(labelsize=kwargs["axes_tick_font_size"])
-    #
-    #         # update axis frame
-    #         plot_obj.set_axis_on() if kwargs["axes_frame_show"] else plot_obj.set_axis_off()
-    #
-    #         plot_obj.tick_params(
-    #             axis="both",
-    #             left=kwargs["axes_frame_ticks_left"],
-    #             right=kwargs["axes_frame_ticks_right"],
-    #             top=kwargs["axes_frame_ticks_top"],
-    #             bottom=kwargs["axes_frame_ticks_bottom"],
-    #             labelleft=kwargs["axes_frame_tick_labels_left"],
-    #             labelright=kwargs["axes_frame_tick_labels_right"],
-    #             labeltop=kwargs["axes_frame_tick_labels_top"],
-    #             labelbottom=kwargs["axes_frame_tick_labels_bottom"],
-    #         )
-    #
-    #         plot_obj.spines["left"].set_visible(kwargs["axes_frame_spine_left"])
-    #         plot_obj.spines["right"].set_visible(kwargs["axes_frame_spine_right"])
-    #         plot_obj.spines["top"].set_visible(kwargs["axes_frame_spine_top"])
-    #         plot_obj.spines["bottom"].set_visible(kwargs["axes_frame_spine_bottom"])
-    #         [i.set_linewidth(kwargs["axes_frame_width"]) for i in plot_obj.spines.values()]
-    #
-    #     # update line style, width, etc
-    #     for _, line in enumerate(self.plotRMSF.get_lines()):
-    #         line.set_linewidth(kwargs["rmsf_line_width"])
-    #         line.set_linestyle(kwargs["rmsf_line_style"])
-    #         line.set_color(kwargs["rmsf_line_color"])
-    #
-    #     for __, shade in enumerate(self.plotRMSF.collections):
-    #         shade.set_facecolor(kwargs["rmsf_fill_color"])
-    #         shade.set_alpha(kwargs["rmsf_fill_transparency"])
-    #         shade.set_hatch(kwargs["rmsf_fill_hatch"])
 
     def plot_update_axes(self, axes_sizes: List[float]):
         """Update axes position"""

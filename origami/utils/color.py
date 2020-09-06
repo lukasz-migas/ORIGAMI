@@ -147,7 +147,6 @@ def get_font_color(rgb, rgb_mode=2, return_rgb=False, convert1to255=False):
         value = 1 - (rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722) / 255
     elif rgb_mode == 2:
         value = 1 - (rgb[0] * 0.299 + rgb[1] * 0.587 + rgb[2] * 0.114) / 255
-
     elif rgb_mode == 3:
         value = 1 - (np.sqrt(rgb[0]) * 0.299 + np.sqrt(rgb[1]) * 0.587 + np.sqrt(rgb[2]) * 0.114) / 255
     if value < 0.5:

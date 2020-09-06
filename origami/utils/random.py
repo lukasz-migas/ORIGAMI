@@ -1,17 +1,15 @@
+"""Get random numbers"""
 # Standard library imports
 import random
-import string
 
-__all__ = ["random_int_0_to_255", "get_random_int", "randomStringGenerator"]
+__all__ = ["random_int_0_to_255", "get_random_int"]
 
 
 def random_int_0_to_255():
+    """Get random number in the range from 0-255"""
     return random.randint(0, 255)
 
 
-def get_random_int(min_int, max_int):
+def get_random_int(min_int: int = 0, max_int: int = 255):
+    """Get random integer"""
     return random.randint(min_int, max_int)
-
-
-def randomStringGenerator(size=5, chars=string.ascii_uppercase + string.digits):
-    return "".join(random.choice(chars) for _x in range(size))

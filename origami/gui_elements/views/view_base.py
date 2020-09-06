@@ -5,6 +5,10 @@ import time
 import logging
 from abc import ABC
 from abc import abstractmethod
+from copy import copy
+from typing import Dict
+from typing import List
+from typing import Tuple
 from typing import Union
 from typing import Optional
 
@@ -342,6 +346,39 @@ class ViewBase(ABC):
 
     def _set_forced_kwargs(self):
         """Dynamically update force plot keyword arguments"""
+
+    def parse_kwargs(
+        self, extra_mpl_keys: Union[str, List[str]], mpl_kwargs=None, forced_kwargs=None, **kwargs
+    ) -> Tuple[Dict, Dict]:
+        """Parse keyword parameters to be consumed by the plotting function
+
+        Keyword parameters are collected in the order:
+        1. User provided parameters in `kwargs`
+        2. kwargs is updated by parameters from CONFIG
+        3. kwargs is updated by `mpl_kwargs`
+        4. kwargs is updated by `self.FORCED_KWARGS`
+        5. kwargs is updated by `forced_kwargs`
+        """
+        # get config kwargs
+        mpl_keys = copy(self.MPL_KEYS)
+        if extra_mpl_keys:
+            if isinstance(extra_mpl_keys, str):
+                mpl_keys.append(extra_mpl_keys)
+            elif isinstance(extra_mpl_keys, list):
+                mpl_keys.extend(extra_mpl_keys)
+        kwargs.update(**CONFIG.get_mpl_parameters(mpl_keys))
+
+        # update by `mpl_kwargs`
+        if isinstance(mpl_kwargs, dict):
+            kwargs.update(**mpl_kwargs)
+
+        # update by default `FORCED_KWARGS`
+        kwargs.update(**self.FORCED_KWARGS)
+
+        # update by default `forced_kwargs`
+        if isinstance(forced_kwargs, dict):
+            kwargs.update(**forced_kwargs)
+        return kwargs, copy(kwargs)
 
     def on_activate_document(self, view_id: str):
         """Whenever the event is emitted, the view should send another event to indicate that the current document has
