@@ -160,9 +160,7 @@ class PanelRMSFSettings(PanelSettingsBase):
         CONFIG.rmsf_fill_transparency = str2num(self.rmsd_alpha_value.GetValue())
 
         CONFIG.rmsf_h_space = str2num(self.rmsd_vspace_value.GetValue())
-
-        if evt is not None:
-            evt.Skip()
+        self._parse_evt(evt)
 
     def on_update_style(self, evt):
         """Update 1d plots"""
@@ -213,18 +211,14 @@ class PanelRMSFSettings(PanelSettingsBase):
         self.import_evt = False
 
 
-class _TestFrame(wx.Frame):
-    def __init__(self):
-        wx.Frame.__init__(self, None, -1, "Frame", size=(300, 300))
-        self.scrolledPanel = PanelRMSFSettings(self, None)
-
-
 def _main():
+    class _TestFrame(wx.Frame):
+        def __init__(self):
+            wx.Frame.__init__(self, None, -1, "Frame", size=(300, 300))
+            self.scrolledPanel = PanelRMSFSettings(self, None)
 
     app = wx.App()
-
     ex = _TestFrame()
-
     ex.Show()
     app.MainLoop()
 

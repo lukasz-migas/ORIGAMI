@@ -80,11 +80,12 @@ class QueryHandler:
         """Actually generate the item dictionary"""
         all_documents = ENV.get_document_list()
 
-        item_dict = dict().fromkeys(all_documents, [])
+        item_dict = dict().fromkeys(all_documents, None)
 
         # iterate over all documents
         for document_title in all_documents:
             document: DocumentStore = ENV.on_get_document(document_title)
+            item_dict[document_title] = []
 
             # iterate over all groups
             for dataset_type in all_datasets:

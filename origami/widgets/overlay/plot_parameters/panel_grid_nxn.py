@@ -104,3 +104,19 @@ class PanelGridNxNSettings(PanelSettingsBase):
         self.ticks_each_row.SetValue(CONFIG.grid_nxn_ticks_x_each)
         self.ticks_each_column.SetValue(CONFIG.grid_nxn_ticks_y_each)
         self.import_evt = False
+
+
+def _main():
+    class _TestFrame(wx.Frame):
+        def __init__(self):
+            wx.Frame.__init__(self, None, -1, "Frame", size=(300, 300))
+            self.scrolledPanel = PanelGridNxNSettings(self, None)
+
+    app = wx.App()
+    ex = _TestFrame()
+    ex.Show()
+    app.MainLoop()
+
+
+if __name__ == "__main__":
+    _main()

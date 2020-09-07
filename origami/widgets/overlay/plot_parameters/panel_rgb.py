@@ -118,3 +118,19 @@ class PanelRGBSettings(PanelSettingsBase):
         self.adaptive_histogram_n_bins.SetValue(CONFIG.rgb_adaptive_hist_n_bins)
         self.show_labels.SetValue(CONFIG.rgb_show_labels)
         self.import_evt = False
+
+
+def _main():
+    class _TestFrame(wx.Frame):
+        def __init__(self):
+            wx.Frame.__init__(self, None, -1, "Frame", size=(300, 300))
+            self.scrolledPanel = PanelRGBSettings(self, None)
+
+    app = wx.App()
+    ex = _TestFrame()
+    ex.Show()
+    app.MainLoop()
+
+
+if __name__ == "__main__":
+    _main()

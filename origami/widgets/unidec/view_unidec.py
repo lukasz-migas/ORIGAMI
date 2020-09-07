@@ -56,7 +56,7 @@ class ViewBarChart(ViewSpectrum):
 
     VIEW_TYPE = "bar"
     DATA_KEYS = ("x", "y", "labels", "colors", "obj")
-    MPL_KEYS = ["bar", "axes", "legend"]
+    MPL_KEYS = ["axes", "legend", "unidec"]
     UPDATE_STYLES = ("bar",)
     ALLOWED_PLOTS = ("bar",)
     DEFAULT_PLOT = "bar"

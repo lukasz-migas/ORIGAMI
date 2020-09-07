@@ -5,6 +5,7 @@ import time
 import logging
 import platform
 from typing import List
+from typing import Dict
 from typing import Union
 from itertools import cycle
 from collections import OrderedDict
@@ -26,7 +27,88 @@ MODULE_PATH = os.path.dirname(__file__)
 CWD = os.path.dirname(MODULE_PATH)
 
 
-class Config:
+class ConfigBase:
+    """Configuration file base"""
+
+    def save_config(self, path: str):
+        """Export configuration file to JSON file"""
+        config = {}
+        config = self._get_config_parameters(config)
+
+        # write to json file
+        write_json_data(path, config)
+        logger.debug(f"Saved config file to `{path}`")
+
+    @staticmethod
+    def _get_config_parameters(config: Dict) -> Dict:
+        """Get configuration parameters"""
+        return config
+
+    def load_config(self, path: str, check_type: bool = True):
+        """Load configuration from JSON file"""
+        try:
+            config = read_json_data(path)
+        except FileNotFoundError:
+            logger.warning("Configuration file does not exist")
+            return
+
+        if not isinstance(config, dict):
+            logger.error("Configuration file should be a dictionary with key:value pairs")
+            return
+
+        # iterate over the major groups of settings
+        for config_group_title in ["mpl-settings", "ui-settings"]:
+            _config_group = config.get(config_group_title, dict())
+            for _, group_config in _config_group.items():
+                for key, new_value in group_config.items():
+                    if hasattr(self, key):
+                        if check_type:
+                            current_value = getattr(self, key)
+                            result, _alternative_value = self._check_type(key, current_value, new_value)
+                            if not result:
+                                logger.warning(
+                                    f"Could not set `{key}` as the types were not similar enough to ensure compliance."
+                                    f"\nCurrent value={current_value}; New value={new_value}"
+                                )
+                                if _alternative_value is not None:
+                                    setattr(self, key, _alternative_value)
+                                continue
+                        setattr(self, key, new_value)
+            logger.debug(f"Loaded `{config_group_title}` settings")
+
+        self._set_config_parameters(config)
+        logger.debug(f"Loaded config file from `{path}`")
+
+        pub.sendMessage("config.loaded")
+
+    def _set_config_parameters(self, config: Dict):
+        """Set configuration parameters"""
+
+    def _check_type(self, name, current_value, new_value):
+        """Check whether type of the value matches that of the currently set value"""
+        current_type = type(current_value)
+        new_type = type(new_value)
+
+        # simplest case where types match perfectly
+        if current_type == new_type:
+            if hasattr(self, f"{name}_choices"):
+                choices = getattr(self, f"{name}_choices")
+                if isinstance(choices, (list, tuple)):
+                    if new_value not in choices:
+                        return False, choices[0]
+            return True, None
+        if current_type in [int, float] and new_type in [int, float]:
+            return True, None
+        if current_type in [list, tuple] and new_type in [list, tuple]:
+            return True, None
+        return False, None
+
+
+class AppConfig(ConfigBase):
+    """Configuration file for the app"""
+
+
+class Config(ConfigBase):
     """Configuration file"""
 
     def __init__(self):
@@ -997,6 +1079,12 @@ class Config:
         self.unidec_panel_peak_detect_norm_dict = {"None": 0, "Max": 1, "Total": 2}
         self.unidec_panel_peak_detect_norm = "Max"
         self.unidec_panel_max_iterations = 100
+
+        self.unidec_panel_view_choices = ["Grid page view", "Continuous page view", "Tabbed view"]
+        self.unidec_panel_view = "Continuous page view"
+        self.unidec_settings_view_choices = ["Left-hand side", "Right-hand side"]
+        self.unidec_settings_view = "Left-hand side"
+
         self.unidec_panel_plot_charges_label_threshold = 0.05
         self.unidec_panel_plot_charges_label_offset = 0.01
         self.unidec_panel_plot_charges_show = False
@@ -1004,27 +1092,22 @@ class Config:
         self.unidec_panel_plot_individual_line_sep = 0.05
         self.unidec_panel_plot_individual_line_max_shown = 100
         self.unidec_panel_plot_individual_markers_show = True
+        self.unidec_panel_plot_individual_markers_size = 50
         self.unidec_panel_plot_speed_heatmap = True
         self.unidec_panel_plot_optimize_label_position = True
-
-        self.unidec_plot_fit_lineColor = (1.0, 0.0, 0.0)
-        self.unidec_plot_MW_showMarkers = True
-        self.unidec_plot_MW_markerSize = 50
-        self.unidec_plot_isolatedMS_markerSize = 50
-        self.unidec_plot_bar_markerSize = 50
-        self.unidec_plot_bar_width = 1
-        self.unidec_plot_bar_alpha = 1.0
-        self.unidec_plot_bar_edge_color = (0.0, 0.0, 0.0)
-        self.unidec_plot_bar_sameAsFill = False
-        self.unidec_plot_bar_lineWidth = 2.0
-        self.unidec_plot_color_scheme = "Color palette"
-        self.unidec_plot_colormap = "viridis"
-        self.unidec_plot_palette = "HLS"
-        self.unidec_plot_contour_levels = 75
-        self.unidec_plot_panel_view_choices = ["Grid page view", "Continuous page view", "Tabbed view"]
-        self.unidec_plot_panel_view = "Continuous page view"
-        self.unidec_plot_settings_view_choices = ["Left-hand side", "Right-hand side"]
-        self.unidec_plot_settings_view = "Left-hand side"
+        self.unidec_panel_plot_fit_line_color = (1.0, 0.0, 0.0)
+        self.unidec_panel_plot_mw_markers_show = True
+        self.unidec_panel_plot_mw_markers_size = 50
+        self.unidec_panel_plot_bar_markers_size = 50
+        self.unidec_panel_plot_bar_width = 1
+        self.unidec_panel_plot_bar_line_color = (0.0, 0.0, 0.0)
+        self.unidec_panel_plot_bar_line_width = 2.0
+        self.unidec_panel_plot_bar_line_same_as_fill = False
+        self.unidec_panel_plot_bar_fill_alpha = 1.0
+        self.unidec_panel_plot_color_scheme = "Color palette"
+        self.unidec_panel_plot_colormap = "viridis"
+        self.unidec_panel_plot_palette = "HLS"
+        self.unidec_panel_plot_contour_levels = 75
 
         # ORIGAMI
         self.origami_method_choices = ["Linear", "Exponential", "Boltzmann", "User-defined"]
@@ -1094,7 +1177,7 @@ class Config:
 
         # overlay panel
         self.overlay_panel_1d_method = "Overlay"
-        self.overlay_panel_1d_method_choices = ["Overlay", "Waterfall", "Subtract (n=2)", "Butterfly (n=2)"]
+        self.overlay_panel_1d_method_choices = ["Overlay", "Waterfall", "Subtract", "Butterfly"]
         self.overlay_panel_1d_type = "Mass Spectra"
         self.overlay_panel_1d_type_choices = ["Mass Spectra", "Chromatograms", "Mobilograms"]
         self.overlay_panel_1d_line_style = "solid"
@@ -1971,7 +2054,7 @@ class Config:
                 "legend",
                 "scatter",
                 "annotation",
-                "unidec",
+                #                 "unidec",
                 "colorbar",
                 "normalization",
                 "2d",
@@ -2109,21 +2192,21 @@ class Config:
             if _plot_type == "unidec":
                 config.update(
                     {
-                        "bar_width": self.unidec_plot_bar_width,
-                        "bar_alpha": self.unidec_plot_bar_alpha,
-                        "bar_edge_color": self.unidec_plot_bar_edge_color,
-                        "bar_edge_same_as_fill": self.unidec_plot_bar_sameAsFill,
-                        "bar_line_width": self.unidec_plot_bar_lineWidth,
-                        "bar_marker_size": self.unidec_plot_bar_markerSize,
-                        "fit_line_color": self.unidec_plot_fit_lineColor,
-                        "isolated_marker_size": self.unidec_plot_isolatedMS_markerSize,
-                        "MW_marker_size": self.unidec_plot_MW_markerSize,
-                        "MW_show_markers": self.unidec_plot_MW_showMarkers,
-                        "color_scheme": self.unidec_plot_color_scheme,
-                        "heatmap_colormap": self.unidec_plot_colormap,
-                        "palette": self.unidec_plot_palette,
-                        "maximum_shown_items": self.unidec_panel_plot_individual_line_max_shown,
-                        "contour_levels": self.unidec_plot_contour_levels,
+                        "unidec_panel_plot_bar_width": self.unidec_panel_plot_bar_width,
+                        "unidec_panel_plot_bar_fill_alpha": self.unidec_panel_plot_bar_fill_alpha,
+                        "unidec_panel_plot_bar_line_color": self.unidec_panel_plot_bar_line_color,
+                        "unidec_panel_plot_bar_line_same_as_fill": self.unidec_panel_plot_bar_line_same_as_fill,
+                        "unidec_panel_plot_bar_line_width": self.unidec_panel_plot_bar_line_width,
+                        "unidec_panel_plot_bar_markers_size": self.unidec_panel_plot_bar_markers_size,
+                        "unidec_panel_plot_fit_line_color": self.unidec_panel_plot_fit_line_color,
+                        "unidec_panel_plot_isolated_markers_size": self.unidec_panel_plot_individual_markers_size,
+                        "unidec_panel_plot_mw_markers_size": self.unidec_panel_plot_mw_markers_size,
+                        "unidec_panel_plot_mw_markers_show": self.unidec_panel_plot_mw_markers_show,
+                        "unidec_panel_plot_color_scheme": self.unidec_panel_plot_color_scheme,
+                        "unidec_panel_plot_colormap": self.unidec_panel_plot_colormap,
+                        "unidec_panel_plot_palette": self.unidec_panel_plot_palette,
+                        "unidec_panel_plot_individual_line_max_shown": self.unidec_panel_plot_individual_line_max_shown,
+                        "unidec_panel_plot_contour_levels": self.unidec_panel_plot_contour_levels,
                     }
                 )
             if _plot_type == "colorbar":
@@ -2559,10 +2642,8 @@ class Config:
 
         return config
 
-    def save_config(self, path: str):
-        """Export configuration file to JSON file"""
-        config = {}
-
+    def _get_config_parameters(self, config: Dict) -> Dict:
+        """Get configuration parameters"""
         # get matplotlib config data
         mpl_keys = self.get_mpl_parameters("", get_keys=True)
         config["mpl-settings"] = dict()
@@ -2573,73 +2654,18 @@ class Config:
         panel_keys = self.get_panel_parameters("", get_keys=True)
         config["ui-settings"] = dict()
         for key in panel_keys:
-            config["ui-settings"][key] = self.get_panel_parameters([key])
+            config["ui-settings"][key] = self.get_panel_parameters([key])  # noqa
 
         # add recent files
         config["recent-files"] = self.recent_files
+        return config
 
-        # write to json file
-        write_json_data(path, config)
-        logger.debug(f"Saved config file to `{path}`")
-
-    def load_config(self, path: str, check_type: bool = True):
-        """Load configuration from JSON file"""
-        try:
-            config = read_json_data(path)
-        except FileNotFoundError:
-            logger.warning("Configuration file does not exist")
-            return
-
-        if not isinstance(config, dict):
-            logger.error("Configuration file should be a dictionary with key:value pairs")
-            return
-
-        # iterate over the major groups of settings
-        for config_group_title in ["mpl-settings", "ui-settings"]:
-            _config_group = config.get(config_group_title, dict())
-            for _, group_config in _config_group.items():
-                for key, new_value in group_config.items():
-                    if hasattr(self, key):
-                        if check_type:
-                            current_value = getattr(self, key)
-                            result, _alternative_value = self._check_type(key, current_value, new_value)
-                            if not result:
-                                logger.warning(
-                                    f"Could not set `{key}` as the types were not similar enough to ensure compliance."
-                                    f"\nCurrent value={current_value}; New value={new_value}"
-                                )
-                                if _alternative_value is not None:
-                                    setattr(self, key, _alternative_value)
-                                continue
-                        setattr(self, key, new_value)
-            logger.debug(f"Loaded `{config_group_title}` settings")
-
+    def _set_config_parameters(self, config: Dict):
+        """Set configuration parameters"""
         # load recent files
         _recent_files = config.get("recent-files", [])
         if isinstance(_recent_files, list):
             self.recent_files = _recent_files
-        logger.debug(f"Loaded config file from `{path}`")
-
-        pub.sendMessage("config.loaded")
-
-    def _check_type(self, name, current_value, new_value):
-        """Check whether type of the value matches that of the currently set value"""
-        current_type = type(current_value)
-        new_type = type(new_value)
-
-        # simplest case where types match perfectly
-        if current_type == new_type:
-            if hasattr(self, f"{name}_choices"):
-                choices = getattr(self, f"{name}_choices")
-                if isinstance(choices, (list, tuple)):
-                    if new_value not in choices:
-                        return False, choices[0]
-            return True, None
-        if current_type in [int, float] and new_type in [int, float]:
-            return True, None
-        if current_type in [list, tuple] and new_type in [list, tuple]:
-            return True, None
-        return False, None
 
 
 CONFIG: Config = Config()

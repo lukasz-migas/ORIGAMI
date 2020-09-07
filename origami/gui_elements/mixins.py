@@ -272,12 +272,12 @@ class ParentSizeMixin:
     _display_resolution = None
     _window_size = None
 
-    def _get_window_size(self, parent, ratio):
+    def _get_window_size(self, parent, ratio, max_window_size=(1920, 1080)):
         screen_size = wx.GetDisplaySize()
         if parent is not None:
             screen_size = parent.GetSize()
         self._display_size = screen_size
         self._display_resolution = wx.ScreenDC().GetPPI()
-        self._window_size = calculate_window_size(self._display_size, ratio)
+        self._window_size = calculate_window_size(self._display_size, ratio, max_window_size)
 
         return self._window_size

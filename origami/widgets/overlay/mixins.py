@@ -9,6 +9,17 @@ class PanelOverlayViewerMixin:
 
     view_overlay = None
 
+    def on_right_click(self, evt):
+        """Right-click event handler"""
+        # ensure that user clicked inside the plot area
+        if not hasattr(evt.EventObject, "figure"):
+            return
+
+        menu = self.view_overlay.get_right_click_menu(self)
+        self.PopupMenu(menu)
+        menu.Destroy()
+        self.SetFocus()
+
     # noinspection DuplicatedCode
     def make_plot_panel(self, split_panel):
         """Make plot panel"""

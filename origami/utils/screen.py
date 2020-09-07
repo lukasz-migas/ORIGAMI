@@ -6,7 +6,7 @@ import math
 import wx
 
 
-def calculate_window_size(screen_size, percentage_size):
+def calculate_window_size(screen_size, percentage_size, max_window_size=None):
     """Calculate size of the window based on the screen size and desired percentage size
 
     Parameters
@@ -15,6 +15,7 @@ def calculate_window_size(screen_size, percentage_size):
         x, y size in pixels
     percentage_size: float, list
         desired size of the window size. Values should be between 0 and 1
+    max_window_size : Tuple[int]
 
     Returns
     -------
@@ -36,6 +37,13 @@ def calculate_window_size(screen_size, percentage_size):
 
     x_size = math.ceil(x_size * percentage_size_x)
     y_size = math.ceil(y_size * percentage_size_y)
+
+    if max_window_size is not None and len(max_window_size) == 2:
+        _max_x_size, _max_y_size = max_window_size
+        if x_size > _max_x_size:
+            x_size = _max_x_size
+        if y_size > _max_y_size:
+            y_size = _max_y_size
 
     return x_size, y_size
 

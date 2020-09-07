@@ -215,7 +215,7 @@ class Peaks:
             Colormap from matplotlib.cm
         """
         if cmap is None:
-            cmap = CONFIG.unidec_plot_colormap
+            cmap = CONFIG.unidec_panel_plot_colormap
 
         self.colormap = cm.get_cmap(cmap, self.n_peaks)
         if self.colormap is None:

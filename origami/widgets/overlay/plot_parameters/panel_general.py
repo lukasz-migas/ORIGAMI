@@ -11,7 +11,7 @@ class PanelGeneralSettings(PanelSettingsBase):
     """General settings"""
 
     # ui elements
-    plot2d_colormap_value, plot2d_colormap, plot2d_colormap, plot2d_colormap = None, None, None, None
+    plot2d_colormap_value, plot2d_colormap = None, None
 
     def __init__(self, parent, view):
         PanelSettingsBase.__init__(self, parent, view)

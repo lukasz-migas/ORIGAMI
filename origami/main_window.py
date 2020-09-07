@@ -575,11 +575,7 @@ class MainWindow(wx.Frame):
             parent=menu_widgets, text="Open &interactive output panel...\tShift+Z", bitmap=self._icons.bokeh
         )
         menu_widgets.Append(menu_widget_bokeh)
-        menu_widget_compare_ms = menu_widgets.Append(
-            make_menu_item(
-                parent=menu_widgets, text="Open spectrum comparison window...", bitmap=self._icons.compare_ms
-            )
-        )
+
         #         menu_widgets.Append(
         #             make_menu_item(parent=menu_widgets, evt_id=ID_docTree_plugin_UVPD, text="Open UVPD
         # processing window...")
@@ -589,6 +585,13 @@ class MainWindow(wx.Frame):
         #         )
 
         menu_widgets.AppendSeparator()
+        # add spectrum comparison
+        menu_widget_compare_ms = menu_widgets.Append(
+            make_menu_item(
+                parent=menu_widgets, text="Open spectrum comparison window...", bitmap=self._icons.compare_ms
+            )
+        )
+        # add overlay sub-menu
         menu_widget_overlay_viewer = make_menu_item(parent=menu_widgets, text="Open overlay window...\tShift+O")
         menu_widgets.Append(menu_widget_overlay_viewer)
 

@@ -23,6 +23,8 @@ class DataGroup(ContainerBase):
     _y_mean = None
     _processing = None
 
+    DOCUMENT_KEY = "Overlays"
+
     def __init__(
         self,
         data_objects: Union[Dict[str, DataObject], Dict[str, str], List[DataObject], List[List[str]]],

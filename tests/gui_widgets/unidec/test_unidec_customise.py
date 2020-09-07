@@ -5,15 +5,15 @@ import pytest
 
 # Local imports
 from tests.wxtc import WidgetTestCase
-from origami.widgets.unidec.dialog_customise_unidec_visuals import DialogCustomiseUniDecVisuals
+from origami.widgets.unidec.panel_unidec_visuals import PanelCustomiseUniDecVisuals
 
 
 @pytest.mark.guitest
-class TestDialogCustomiseUniDecVisuals(WidgetTestCase):
+class TestPanelCustomiseUniDecVisuals(WidgetTestCase):
     """Test dialog"""
 
     def test_panel_create(self):
-        dlg = DialogCustomiseUniDecVisuals(None)
-        wx.CallLater(250, dlg.on_ok, None)
-        dlg.ShowModal()
-        self.yield_()
+        dlg = PanelCustomiseUniDecVisuals(self.frame, None)
+
+        dlg.on_apply(None)
+        dlg.on_toggle_controls(None)

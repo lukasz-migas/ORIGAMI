@@ -41,6 +41,7 @@ from origami.gui_elements.views.view_register import VIEW_REG
 from origami.widgets.unidec.processing.utilities import unidec_sort_mw_list
 from origami.widgets.unidec.processing.utilities import calculate_charge_positions
 from origami.widgets.unidec.processing.containers import UniDecResultsObject
+from origami.widgets.unidec.panel_unidec_visuals import PanelCustomiseUniDecVisuals
 
 logger = logging.getLogger(__name__)
 
@@ -80,6 +81,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
     process_btn, smooth_nearby_points, mz_to_mw_transform_choice, adduct_mass_value = None, None, None, None
     softmax_beta_value, smooth_z_distribution, mass_nearby_points, negative_mode_check = None, None, None, None
     _dlg_width_tool, _dlg_ms_process_tool, settings_panel, unidec_save_btn = None, None, None, None
+    plot_settings = None
 
     def __init__(
         self,
@@ -98,7 +100,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         self.presenter = presenter
         self._icons = self._get_icons(icons)
 
-        self._window_size = self._get_window_size(parent, [0.9, 0.9])
+        self._window_size = self._get_window_size(parent, [0.95, 0.95], (1920, 1080))
 
         # initialize gui
         self.make_gui()
@@ -234,15 +236,21 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
 
         self.plot_panel = self.make_plot_panel(self)
 
+        self.plot_settings = PanelCustomiseUniDecVisuals(self, self.view)
+        self.plot_settings.SetMinSize((300, -1))
+        self.plot_settings.Hide()
+
         # pack element
         main_sizer = wx.BoxSizer()
         main_sizer.Add(self.plot_panel, 2, wx.EXPAND, 0)
 
         # add settings panel
-        if "Left" in CONFIG.unidec_plot_settings_view:
+        if "Left" in CONFIG.unidec_settings_view:
             main_sizer.Insert(0, self.settings_panel, 1, wx.EXPAND, 0)
+            # main_sizer.Add(self.plot_settings, 0, wx.EXPAND, 0)
         else:
             main_sizer.Add(self.settings_panel, 1, wx.EXPAND, 0)
+        main_sizer.Add(self.plot_settings, 0, wx.EXPAND, 0)
 
         # fit layout
         main_sizer.Fit(self)
@@ -267,7 +275,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         figsize_2d = (6, 6)
 
         # setup plot base
-        if CONFIG.unidec_plot_panel_view in ["Single page view", "Continuous page view"]:
+        if CONFIG.unidec_panel_view in ["Single page view", "Continuous page view"]:
             plot_panel = wxScrolledPanel.ScrolledPanel(split_panel)
             plot_parent = plot_panel
         else:
@@ -301,15 +309,16 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
 
         # molecular weight
         self.view_barchart = ViewBarChart(plot_parent, figsize_2d, CONFIG, allow_extraction=False, filename="barchart")
+
         # molecular weight
         self.view_charge = ViewChargeDistribution(
             plot_parent, figsize_1d, CONFIG, allow_extraction=False, filename="charge-distribution"
         )
 
-        if CONFIG.unidec_plot_panel_view in ["Grid page view", "Continuous page view"]:
+        if CONFIG.unidec_panel_view in ["Grid page view", "Continuous page view"]:
             plot_parent = wx.BoxSizer(wx.VERTICAL)
 
-            if CONFIG.unidec_plot_panel_view == "Grid page view":
+            if CONFIG.unidec_panel_view == "Grid page view":
                 _row_0 = wx.BoxSizer()
                 _row_0.Add(self.view_mz.panel, 1, wx.EXPAND)
                 _row_0.Add(self.view_mw.panel, 1, wx.EXPAND)
@@ -951,10 +960,11 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
 
     def on_open_customisation_settings(self, _evt):
         """Open UniDec customisation window"""
-        from origami.widgets.unidec.dialog_customise_unidec_visuals import DialogCustomiseUniDecVisuals
-
-        dlg = DialogCustomiseUniDecVisuals(self)
-        dlg.ShowModal()
+        self.plot_settings.Hide() if self.plot_settings.IsShown() else self.plot_settings.Show()
+        self.Layout()
+        # from origami.widgets.unidec.dialog_customise_unidec_visuals import DialogCustomiseUniDecVisuals
+        # dlg = DialogCustomiseUniDecVisuals(self)
+        # dlg.ShowModal()
 
     def on_open_width_tool(self, _evt):
         """Open UniDec width tool"""
@@ -1102,7 +1112,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
 
         if unidec_result.mz_processed is not None:
             self.view_mz.add_line(
-                obj=unidec_result.mz_processed_obj, line_color=CONFIG.unidec_plot_fit_lineColor, label="Fit data"
+                obj=unidec_result.mz_processed_obj, line_color=CONFIG.unidec_panel_plot_fit_line_color, label="Fit data"
             )
         self.set_engine_owner()
         self.unsaved = True
@@ -1145,7 +1155,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
             masses = mw_obj.x_axis_transform(peaks.masses)
             for x, y, color, marker, label in zip(masses, peaks.intensities, peaks.colors, peaks.markers, peaks.labels):
                 self.view_mw.add_scatter(
-                    x, y, color, marker, size=CONFIG.unidec_plot_MW_markerSize, label=label, repaint=False
+                    x, y, color, marker, size=CONFIG.unidec_panel_plot_mw_markers_size, label=label, repaint=False
                 )
             self.view_mw.show_legend()
         self.unsaved = True
@@ -1158,7 +1168,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
             self.view_barchart.plot(obj=peaks)
             for x, y, color, marker, label in zip(peaks.x, peaks.y, peaks.colors, peaks.markers, peaks.labels):
                 self.view_barchart.add_scatter(
-                    x, y, color, marker, size=CONFIG.unidec_plot_MW_markerSize, label=label, repaint=False
+                    x, y, color, marker, size=CONFIG.unidec_panel_plot_mw_markers_size, label=label, repaint=False
                 )
             self.view_barchart.repaint()
         self.unsaved = True
@@ -1243,6 +1253,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
 
 def _main():
     from origami.icons.assets import Icons
+    from origami.utils.screen import move_to_different_screen
 
     # from origami.handlers.load import LoadHandler
     #
@@ -1253,6 +1264,7 @@ def _main():
     app = wx.App()
     icons = Icons()
     ex = PanelProcessUniDec(None, None, icons, mz_obj=mz_obj, debug=True)
+    move_to_different_screen(ex)
     ex.Show()
     app.MainLoop()
 

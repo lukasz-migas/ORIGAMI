@@ -42,6 +42,9 @@ class PanelOverlayViewer(MiniFrame, PanelOverlayViewerMixin):
         # make gui items
         self.make_gui()
 
+        # bind
+        self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
+
         if self._group_obj:
             self.on_plot_overlay()
         LOGGER.debug(f"Instantiated overlay editor in {report_time(t_start)}")
@@ -81,8 +84,8 @@ class PanelOverlayViewer(MiniFrame, PanelOverlayViewerMixin):
         method, group_obj, forced_kwargs = self.group_obj
 
         plt_funcs = {
-            "Butterfly (n=2)": self.on_plot_1d_butterfly,
-            "Subtract (n=2)": self.on_plot_1d_subtract,
+            "Butterfly": self.on_plot_1d_butterfly,
+            "Subtract": self.on_plot_1d_subtract,
             "Overlay": self.on_plot_1d_overlay,
             "Waterfall": self.on_plot_1d_waterfall,
             "Mean": self.on_plot_2d_mean,

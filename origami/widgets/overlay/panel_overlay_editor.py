@@ -47,7 +47,6 @@ def _str_fmt(value, default: Union[str, float, int] = ""):
 
 
 # TODO: add option to reduce number of colormaps
-# TODO: add a way to export the plot config
 
 
 class TableColumnIndex:
@@ -184,17 +183,6 @@ class PanelOverlayEditor(MiniFrame, TableMixin, ColorGetterMixin, PanelOverlayVi
             self.on_open_document(None)
         return self._document
 
-    def on_right_click(self, evt):
-        """Right-click event handler"""
-        # ensure that user clicked inside the plot area
-        if not hasattr(evt.EventObject, "figure"):
-            return
-
-        menu = self.view_overlay.get_right_click_menu(self)
-        self.PopupMenu(menu)
-        menu.Destroy()
-        self.SetFocus()
-
     def on_close(self, evt, force: bool = False):
         """Destroy this frame"""
 
@@ -236,7 +224,7 @@ class PanelOverlayEditor(MiniFrame, TableMixin, ColorGetterMixin, PanelOverlayVi
         self.SetSize(self._window_size)
         self.Layout()
 
-        self.CenterOnParent()
+        #         self.CenterOnParent()
         self.SetFocus()
         self.Show()
 
@@ -741,11 +729,11 @@ class PanelOverlayEditor(MiniFrame, TableMixin, ColorGetterMixin, PanelOverlayVi
         method = self.overlay_1d_method.GetStringSelection()
         spectral_type = self.overlay_1d_spectrum_type.GetStringSelection()
 
-        group_obj, valid_x, valid_y = OVERLAY_HANDLER.collect_overlay_1d_spectra(item_list, spectral_type, True)
+        group_obj, _valid_x, _valid_y = OVERLAY_HANDLER.collect_overlay_1d_spectra(item_list, spectral_type, True)
 
         plt_funcs = {
-            "Butterfly (n=2)": self.on_plot_1d_butterfly,
-            "Subtract (n=2)": self.on_plot_1d_subtract,
+            "Butterfly": self.on_plot_1d_butterfly,
+            "Subtract": self.on_plot_1d_subtract,
             "Overlay": self.on_plot_1d_overlay,
             "Waterfall": self.on_plot_1d_waterfall,
         }
@@ -767,7 +755,7 @@ class PanelOverlayEditor(MiniFrame, TableMixin, ColorGetterMixin, PanelOverlayVi
     def on_overlay_heatmap(self, item_list):
         """Overlay heatmap objects"""
         method = self.overlay_2d_method.GetStringSelection()
-        group_obj, valid_x, valid_y = OVERLAY_HANDLER.collect_overlay_2d_heatmap(item_list, False)
+        group_obj, _valid_x, _valid_y = OVERLAY_HANDLER.collect_overlay_2d_heatmap(item_list, False)
 
         plt_funcs = {
             "Mean": self.on_plot_2d_mean,
@@ -832,18 +820,24 @@ class PanelOverlayEditor(MiniFrame, TableMixin, ColorGetterMixin, PanelOverlayVi
             return
         output_list = dlg.output_list
         if not output_list:
-            pub.sendMessage("notify.message.warning", "The output list was empty. Action was cancelled")
+            pub.sendMessage("notify.message.warning", message="The output list was empty. Action was cancelled")
             return
 
         # get document where data can be saved to
         document = self.document
         if not document:
-            pub.sendMessage("notify.message.warning", "The Comparison document was not set. Action was cancelled")
+            pub.sendMessage(
+                "notify.message.warning", message="The Comparison document was not set. Action was cancelled"
+            )
             return
 
         for item_id, title in output_list:
             item = self.clipboard.pop(item_id)
-            document.add_overlay(title, item["group"])
+            group_obj = item["group"]
+
+            # add data to document
+            document.add_overlay(title, group_obj)
+            self.document_tree.on_update_document(group_obj.DOCUMENT_KEY, title, document.title)
             LOGGER.debug(f"Added {title} to the {document.title} document")
 
     def on_action_tools(self, _evt):
@@ -871,7 +865,6 @@ class PanelOverlayEditor(MiniFrame, TableMixin, ColorGetterMixin, PanelOverlayVi
         from origami.gui_elements.dialog_select_document import DialogSelectDocument
 
         document_title = None
-
         dlg = DialogSelectDocument(self, document_type="Type: Comparison")
         if dlg.ShowModal() == wx.ID_OK:
             document_title = dlg.current_document
@@ -883,6 +876,8 @@ class PanelOverlayEditor(MiniFrame, TableMixin, ColorGetterMixin, PanelOverlayVi
     def on_open_method_settings(self, _evt):
         """Show all relevant parameters for the currently used method"""
         self.plot_settings.setup_method_settings(self.current_method)
+        # self.plot_settings.Hide() if self.plot_settings.IsShown() else self.plot_settings.Show()
+        # self.Layout()
 
     def on_populate_item_list(self, _evt):
         """Populate item list"""
