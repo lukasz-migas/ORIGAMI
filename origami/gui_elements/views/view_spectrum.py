@@ -75,15 +75,14 @@ class ViewSpectrum(ViewBase, ViewMPLMixin, ViewSpectrumPanelMixin, ViewAxesMixin
             kwargs["allow_extraction"] = self._allow_extraction
         return kwargs
 
-    def plot(self, x=None, y=None, obj=None, repaint: bool = True, **kwargs):
+    def plot(self, x=None, y=None, obj=None, repaint: bool = True, forced_kwargs=None, **kwargs):
         """Simple line plot"""
         # try to update plot first, as it can be quicker
         t_start = time.time()
         self.set_document(obj, **kwargs)
         self.set_labels(obj, **kwargs)
 
-        kwargs.update(**CONFIG.get_mpl_parameters(self.MPL_KEYS))
-        kwargs.update(**self.FORCED_KWARGS)
+        kwargs, _kwargs = self.parse_kwargs(self.MPL_KEYS, forced_kwargs=forced_kwargs, **kwargs)
         kwargs = self.check_kwargs(**kwargs)
 
         try:
@@ -235,7 +234,16 @@ class ViewCompareSpectra(ViewBase, ViewSpectrumPanelMixin):
         return x_top, x_bottom, y_top, y_bottom
 
     def plot(
-        self, x_top=None, x_bottom=None, y_top=None, y_bottom=None, obj_top=None, obj_bottom=None, labels=None, **kwargs
+        self,
+        x_top=None,
+        x_bottom=None,
+        y_top=None,
+        y_bottom=None,
+        obj_top=None,
+        obj_bottom=None,
+        labels=None,
+        forced_kwargs=None,
+        **kwargs,
     ):
         """Overlay two line plots"""
         # try to update plot first, as it can be quicker
@@ -244,8 +252,7 @@ class ViewCompareSpectra(ViewBase, ViewSpectrumPanelMixin):
 
         if labels is None:
             labels = ["", ""]
-        kwargs.update(**CONFIG.get_mpl_parameters(self.MPL_KEYS))
-        kwargs.update(**self.FORCED_KWARGS)
+            kwargs, _kwargs = self.parse_kwargs(self.MPL_KEYS, forced_kwargs=forced_kwargs, **kwargs)
 
         try:
             self.update(x_top, x_bottom, y_top, y_bottom, obj_top, obj_bottom, labels, **kwargs)

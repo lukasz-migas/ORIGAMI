@@ -51,7 +51,6 @@ from origami.ids import ID_help_page_CCScalibration
 from origami.ids import ID_help_page_dataExtraction
 from origami.ids import ID_help_page_gettingStarted
 from origami.ids import ID_load_masslynx_raw_ms_only
-from origami.ids import ID_unidecPanel_otherSettings
 from origami.ids import ID_help_page_annotatingMassSpectra
 from origami.utils.path import clean_directory
 from origami.panel_plots import PanelPlots
@@ -131,6 +130,7 @@ class MainWindow(wx.Frame):
         # keep track of which windows are managed
         self._managed_windows = dict()
         self._n_managed_windows = 0
+        self._notification_level = "success"
 
         # Bind commands to events
         self.Bind(wx.EVT_CLOSE, self.on_close)
@@ -293,7 +293,12 @@ class MainWindow(wx.Frame):
 
     def on_notify(self, message: str, kind: str = "info", delay: int = 3000):
         """Notify user of some event"""
-        wx.CallAfter(self.popup_mgr.show_popup, message, kind, delay)
+        # restricts notifications based on user settings
+        notification_levels = {"success": 10, "info": 20, "warning": 30, "error": 40}
+        app_level = notification_levels[self._notification_level]
+        kind_level = notification_levels[kind.lower()]
+        if kind_level >= app_level:
+            wx.CallAfter(self.popup_mgr.show_popup, message, kind, delay)
 
     def on_notify_info(self, message: str):
         """Notify user of event using INFO style"""
@@ -564,9 +569,6 @@ class MainWindow(wx.Frame):
         menu_plot.Append(
             make_menu_item(parent=menu_plot, evt_id=ID_annotPanel_otherSettings, text="Settings: Annotation parameters")
         )
-        menu_plot.Append(
-            make_menu_item(parent=menu_plot, evt_id=ID_unidecPanel_otherSettings, text="Settings: UniDec parameters")
-        )
         self.menubar.Append(menu_plot, "&Plot settings")
 
         # WIDGETS MENU
@@ -673,8 +675,20 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_log_change_level, menu_log_critical)
         self.Bind(wx.EVT_MENU, self.on_log_open_dir, menu_log_open_dir)
 
+        menu_notifications = wx.Menu()
+        menu_notify_success = menu_notifications.AppendRadioItem(wx.ID_ANY, "Notification: SUCCESS")
+        menu_notify_info = menu_notifications.AppendRadioItem(wx.ID_ANY, "Notification: INFO")
+        menu_notify_warning = menu_notifications.AppendRadioItem(wx.ID_ANY, "Notification: WARNING")
+        menu_notify_error = menu_notifications.AppendRadioItem(wx.ID_ANY, "Notification: ERROR")
+
+        self.Bind(wx.EVT_MENU, self.on_notify_change_level, menu_notify_success)
+        self.Bind(wx.EVT_MENU, self.on_notify_change_level, menu_notify_info)
+        self.Bind(wx.EVT_MENU, self.on_notify_change_level, menu_notify_warning)
+        self.Bind(wx.EVT_MENU, self.on_notify_change_level, menu_notify_error)
+
         menu_config.AppendSeparator()
         menu_config.AppendMenu(wx.ID_ANY, "Logging", menu_logging)
+        menu_config.AppendMenu(wx.ID_ANY, "Notifications", menu_notifications)
 
         self.menubar.Append(menu_config, "&Configuration")
 
@@ -933,7 +947,6 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "UI"), menu_plot_ui)
 
         self.Bind(wx.EVT_MENU, self.on_customise_annotation_plot_parameters, id=ID_annotPanel_otherSettings)
-        self.Bind(wx.EVT_MENU, self.on_customise_unidec_plot_parameters, id=ID_unidecPanel_otherSettings)
 
         # OUTPUT
         self.Bind(wx.EVT_MENU, self.on_open_interactive_output_panel, menu_widget_bokeh)
@@ -1003,6 +1016,18 @@ class MainWindow(wx.Frame):
         logging.getLogger("origami").setLevel(level)
         pub.sendMessage("notify.message.success", message=f"Changed logging level to `{level}`")
 
+    def on_notify_change_level(self, evt):
+        """Change notification level"""
+        name = evt.GetEventObject().FindItemById(evt.GetId()).GetItemLabel()
+        level = {
+            "Notification: SUCCESS": "success",
+            "Notification: INFO": "info",
+            "Notification: WARNING": "warning",
+            "Notification: ERROR": "error",
+        }.get(name, "success")
+        self._notification_level = level
+        self.on_notify(f"Changed notification level so only messages with priority >= `{level}` will be shown", level)
+
     def on_log_open_dir(self, _evt):
         """Open log directory"""
         if CONFIG.APP_LOG_DIR is not None:
@@ -1013,13 +1038,6 @@ class MainWindow(wx.Frame):
         from origami.gui_elements.dialog_customise_user_annotations import DialogCustomiseUserAnnotations
 
         dlg = DialogCustomiseUserAnnotations(self)
-        dlg.ShowModal()
-
-    def on_customise_unidec_plot_parameters(self, _evt):
-        """Open dialog to customise unidec parameters"""
-        from origami.widgets.unidec.dialog_customise_unidec_visuals import DialogCustomiseUniDecVisuals
-
-        dlg = DialogCustomiseUniDecVisuals(self)
         dlg.ShowModal()
 
     @staticmethod
@@ -1660,6 +1678,8 @@ class MainWindow(wx.Frame):
 
         # populate menu
         for i, __ in enumerate(CONFIG.recent_files, start=1):
+            if i > 9:
+                continue
             document_id = eval("wx.ID_FILE" + str(i))
             path = CONFIG.recent_files[i - 1]["path"]
             menu.Insert(i - 1, document_id, path, "Open Document")

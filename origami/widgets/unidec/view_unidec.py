@@ -68,38 +68,50 @@ class ViewBarChart(ViewSpectrum):
 
     # noinspection PyMethodOverriding
     @staticmethod
-    def check_input(x, y, labels, colors, obj):
+    def check_input(obj):
         """Ensure that input is correct"""
-        if x is None and y is None and obj is None:
-            raise ValueError("You must provide the x/y values or container object")
-        if x is None and y is None and obj is not None:
-            x = obj.x
-            y = obj.y
-            labels = obj.labels
-            colors = obj.colors
-        return x, y, labels, colors
+        return obj.x, obj.y, obj.labels, obj.colors, obj.markers
 
-    def plot(self, x=None, y=None, labels=None, colors=None, obj=None, repaint: bool = True, **kwargs):
+    # noinspection PyMethodOverriding
+    def plot(self, obj, repaint: bool = True, forced_kwargs=None, **kwargs):
         """Simple line plot"""
-        # try to update plot first, as it can be quicker
         t_start = time.time()
         #         self.set_document(obj, **kwargs)
         #         self.set_labels(obj, **kwargs)
 
-        kwargs.update(**CONFIG.get_mpl_parameters(self.MPL_KEYS))
+        kwargs, _kwargs = self.parse_kwargs(self.MPL_KEYS, forced_kwargs=forced_kwargs, **kwargs)
         kwargs = self.check_kwargs(**kwargs)
 
-        x, y, labels, colors = self.check_input(x, y, labels, colors, obj)
+        x, y, labels, colors, markers = self.check_input(obj)
         self.figure.clear()
         self.figure.plot_1d_barplot(
             x, y, labels, colors, x_label=self.x_label, y_label=self.y_label, callbacks=self._callbacks, **kwargs
         )
+
+        # add markers to the barchart
+        for x, y, color, marker, label in zip(x, y, colors, markers, labels):
+            self.add_scatter(
+                x, y, color, marker, size=CONFIG.unidec_panel_plot_bar_markers_size, label=label, repaint=False
+            )
         self.figure.repaint(repaint)
 
         # set data
         self._data.update(x=x, y=y, obj=obj)
         self.set_plot_parameters(**kwargs)
         LOGGER.debug(f"Plotted data in {report_time(t_start)}")
+
+    def update_style(self, name: str):
+        """Update plot style"""
+        t_start = time.time()
+        kwargs = dict()
+        if name.startswith("barchart"):
+            kwargs = CONFIG.get_mpl_parameters(["unidec"])
+            self.figure.plot_1d_update_barplot(**kwargs)
+        elif name.startswith("axes"):
+            kwargs = self._update_style_axes(name)
+        self.figure.repaint()
+        self.set_plot_parameters(**kwargs)
+        LOGGER.debug(f"Updated plot styles - {name} in {report_time(t_start)}")
 
 
 class ViewIndividualPeaks(ViewSpectrum, ViewWaterfallMixin, ViewAxesMixin):
@@ -127,21 +139,14 @@ class ViewIndividualPeaks(ViewSpectrum, ViewWaterfallMixin, ViewAxesMixin):
             array = obj.array
         return x, y, array
 
-    def _set_forced_kwargs(self):
-        """Dynamically update force plot keyword arguments"""
-        # update forced kwargs
-        self.FORCED_KWARGS.update(
-            {
-                "waterfall_increment": CONFIG.unidec_panel_plot_individual_line_sep,
-                "waterfall_reverse": False,
-                "waterfall_normalize": True,
-            }
-        )
-
     def plot_waterfall(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
         """Simple plot"""
-        self._set_forced_kwargs()
-        super(ViewIndividualPeaks, self).plot_waterfall(x, y, array, obj, False, **kwargs)
+        forced_kwargs = {
+            "waterfall_increment": CONFIG.unidec_panel_plot_individual_line_sep,
+            "waterfall_reverse": False,
+            "waterfall_normalize": True,
+        }
+        super(ViewIndividualPeaks, self).plot_waterfall(x, y, array, obj, False, forced_kwargs=forced_kwargs, **kwargs)
         self.figure.plot_waterfall_fix_y_axis()
         self.repaint(repaint)
 
@@ -172,32 +177,65 @@ class ViewIndividualPeaks(ViewSpectrum, ViewWaterfallMixin, ViewAxesMixin):
         LOGGER.debug(f"Updated plot styles - {name} in {report_time(t_start)}")
 
 
-class ViewMassSpectrumGrid(ViewHeatmap):
+class ViewUnidecHeatmap(ViewHeatmap):
+    """Viewer class for UniDec heatmaps"""
+
+    MPL_KEYS = ["2d", "colorbar", "normalization", "axes", "unidec"]
+
+    def plot(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
+        """Simple plot"""
+        forced_kwargs = {
+            "speedy": CONFIG.unidec_panel_plot_speed_heatmap,
+            "heatmap_colormap": CONFIG.unidec_panel_plot_heatmap_colormap,
+            "heatmap_n_contour": CONFIG.unidec_panel_plot_contour_levels,
+        }
+        super(ViewUnidecHeatmap, self).plot(x, y, array, obj, repaint, forced_kwargs=forced_kwargs, **kwargs)
+
+    def update_style(self, name: str):
+        """Update plot style"""
+        t_start = time.time()
+        # heatmap-specific updates
+        kwargs = dict()
+        if name.startswith("heatmap"):
+            if not self.is_plotted_or_plot("heatmap", self.plot, self.DATA_KEYS):
+                return
+            if name.endswith("normalization"):
+                kwargs = CONFIG.get_mpl_parameters(["normalization"])
+                self.figure.plot_2d_update_normalization(array=self._data["array"], **kwargs)
+            elif name.endswith("colorbar"):
+                kwargs = CONFIG.get_mpl_parameters(["colorbar"])
+                self.figure.plot_2d_update_colorbar(**kwargs)
+            else:
+                self.figure.plot_2d_update_heatmap_style(
+                    colormap=CONFIG.unidec_panel_plot_heatmap_colormap,
+                    interpolation=CONFIG.heatmap_interpolation,
+                    array=self._data["array"],
+                    cbar_kwargs=CONFIG.get_mpl_parameters("colorbar"),
+                )
+        elif name.startswith("axes"):
+            kwargs = self._update_style_axes(name)
+        self.figure.repaint()
+        self.set_plot_parameters(**kwargs)
+        LOGGER.debug(f"Updated plot styles - {name} in {report_time(t_start)}")
+
+
+class ViewMassSpectrumGrid(ViewUnidecHeatmap):
     """Viewer class for extracted ions"""
 
     # TODO: fix the issue where the bottom and top have white stripe - need to change the x-axis zoom
 
     def __init__(self, parent, figsize, title="MSGrid", **kwargs):
-        ViewHeatmap.__init__(self, parent, figsize, title, **kwargs)
+        ViewUnidecHeatmap.__init__(self, parent, figsize, title, **kwargs)
         self._x_label = kwargs.pop("x_label", "m/z (Da)")
         self._y_label = kwargs.pop("y_label", "Charge)")
 
-    def plot(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
-        """Simple plot"""
-        speedy = CONFIG.unidec_panel_plot_speed_heatmap
-        super(ViewMassSpectrumGrid, self).plot(x, y, array, obj, repaint, speedy=speedy, **kwargs)
 
-
-class ViewMolecularWeightGrid(ViewHeatmap):
+class ViewMolecularWeightGrid(ViewUnidecHeatmap):
     """Viewer class for extracted ions"""
 
     # TODO: fix the issue where the bottom and top have white stripe - need to change the x-axis zoom
 
     def __init__(self, parent, figsize, title="MSGrid", **kwargs):
-        ViewHeatmap.__init__(self, parent, figsize, title, **kwargs)
+        ViewUnidecHeatmap.__init__(self, parent, figsize, title, **kwargs)
         self._x_label = kwargs.pop("x_label", "Mass (kDa)")
         self._y_label = kwargs.pop("y_label", "Charge)")
-
-    def plot(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
-        """Simple plot"""
-        super(ViewMolecularWeightGrid, self).plot(x, y, array, obj, repaint, speedy=True, **kwargs)

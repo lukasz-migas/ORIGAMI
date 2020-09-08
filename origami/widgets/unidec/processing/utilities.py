@@ -11,6 +11,7 @@ from ctypes import cdll
 from ctypes import byref
 from ctypes import c_int
 from ctypes import c_double
+from typing import List
 from operator import itemgetter
 
 # Third-party imports
@@ -492,18 +493,18 @@ def make_peak_shape(x, peak_func, fwhm, mid, norm_area: bool = False):
     return kernel
 
 
-def unidec_sort_mw_list(mass_list, column_id):
+def unidec_sort_mw_list(mass_list: List[str], column_id: int):
     """Sort mass list based on MW or %"""
     _mass_list_sort = []
     for item in mass_list:
         item_split = re.split(r"MW: | \(| %\)", item)
-        _mass_list_sort.append([item_split[1], item_split[2]])
+        _mass_list_sort.append([item_split[1], item_split[2], item_split[3]])
 
     _mass_list_sort = natsorted(_mass_list_sort, key=itemgetter(column_id), reverse=True)
 
     mass_list = []
     for item in _mass_list_sort:
-        mass_list.append("MW: {} ({} %)".format(item[0], item[1]))
+        mass_list.append("MW: {} ({} %){}".format(item[0], item[1], item[2]))
 
     return mass_list
 

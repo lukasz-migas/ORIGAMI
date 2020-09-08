@@ -141,7 +141,6 @@ class PanelRMSDSettings(PanelSettingsBase):
 
     def on_assign_color(self, evt):
         """Update color"""
-
         # get color
         source, color_255, color_1 = self._on_assign_color(evt)
 

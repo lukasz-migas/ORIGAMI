@@ -4,8 +4,8 @@ import os
 import time
 import logging
 import platform
-from typing import List
 from typing import Dict
+from typing import List
 from typing import Union
 from itertools import cycle
 from collections import OrderedDict
@@ -1104,6 +1104,7 @@ class Config(ConfigBase):
         self.unidec_panel_plot_bar_line_width = 2.0
         self.unidec_panel_plot_bar_line_same_as_fill = False
         self.unidec_panel_plot_bar_fill_alpha = 1.0
+        self.unidec_panel_plot_heatmap_colormap = "viridis"
         self.unidec_panel_plot_color_scheme = "Color palette"
         self.unidec_panel_plot_colormap = "viridis"
         self.unidec_panel_plot_palette = "HLS"
@@ -2192,21 +2193,22 @@ class Config(ConfigBase):
             if _plot_type == "unidec":
                 config.update(
                     {
-                        "unidec_panel_plot_bar_width": self.unidec_panel_plot_bar_width,
-                        "unidec_panel_plot_bar_fill_alpha": self.unidec_panel_plot_bar_fill_alpha,
-                        "unidec_panel_plot_bar_line_color": self.unidec_panel_plot_bar_line_color,
-                        "unidec_panel_plot_bar_line_same_as_fill": self.unidec_panel_plot_bar_line_same_as_fill,
-                        "unidec_panel_plot_bar_line_width": self.unidec_panel_plot_bar_line_width,
-                        "unidec_panel_plot_bar_markers_size": self.unidec_panel_plot_bar_markers_size,
-                        "unidec_panel_plot_fit_line_color": self.unidec_panel_plot_fit_line_color,
-                        "unidec_panel_plot_isolated_markers_size": self.unidec_panel_plot_individual_markers_size,
-                        "unidec_panel_plot_mw_markers_size": self.unidec_panel_plot_mw_markers_size,
-                        "unidec_panel_plot_mw_markers_show": self.unidec_panel_plot_mw_markers_show,
-                        "unidec_panel_plot_color_scheme": self.unidec_panel_plot_color_scheme,
-                        "unidec_panel_plot_colormap": self.unidec_panel_plot_colormap,
-                        "unidec_panel_plot_palette": self.unidec_panel_plot_palette,
-                        "unidec_panel_plot_individual_line_max_shown": self.unidec_panel_plot_individual_line_max_shown,
-                        "unidec_panel_plot_contour_levels": self.unidec_panel_plot_contour_levels,
+                        "bar_width": self.unidec_panel_plot_bar_width,
+                        "bar_alpha": self.unidec_panel_plot_bar_fill_alpha,
+                        "bar_edge_color": self.unidec_panel_plot_bar_line_color,
+                        "bar_edge_same_as_fill": self.unidec_panel_plot_bar_line_same_as_fill,
+                        "bar_line_width": self.unidec_panel_plot_bar_line_width,
+                        "bar_markers_size": self.unidec_panel_plot_bar_markers_size,
+                        "fit_line_color": self.unidec_panel_plot_fit_line_color,
+                        "individual_markers_size": self.unidec_panel_plot_individual_markers_size,
+                        "individual_line_max_shown": self.unidec_panel_plot_individual_line_max_shown,
+                        "mw_markers_size": self.unidec_panel_plot_mw_markers_size,
+                        "mw_markers_show": self.unidec_panel_plot_mw_markers_show,
+                        "heatmap_colormap": self.unidec_panel_plot_heatmap_colormap,
+                        "heatmap_n_contour": self.unidec_panel_plot_contour_levels,
+                        "color_scheme": self.unidec_panel_plot_color_scheme,
+                        "color_scheme_colormap": self.unidec_panel_plot_colormap,
+                        "color_scheme_palette": self.unidec_panel_plot_palette,
                     }
                 )
             if _plot_type == "colorbar":

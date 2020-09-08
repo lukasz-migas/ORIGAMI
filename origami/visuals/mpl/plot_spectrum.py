@@ -232,19 +232,26 @@ class PlotSpectrum(PlotBase):
         )
         self.PLOT_TYPE = "line-compare"
 
-    def plot_1d_barplot(self, x, y, labels, colors, x_label="", y_label="", title="", **kwargs):
-        # update settings
-        xlimits, ylimits, extent = self._compute_xy_limits(x, y, 0, 1.1, x_pad=1)
-
+    def prepare_barplot(self, colors, **kwargs):
+        """Prepare barchart"""
         if not kwargs.get("bar_edge_same_as_fill", True):
-            edgecolor = kwargs.get("bar_edge_color", "#000000")
+            edgecolor = kwargs.get("bar_edge_color", (0, 0, 0, 1))
+            edgecolor = [edgecolor] * len(colors)
         else:
             edgecolor = colors
+
+        return edgecolor
+
+    def plot_1d_barplot(self, x, y, labels, colors, x_label="", y_label="", title="", **kwargs):
+        """Basic barchart plot"""
+        # update settings
+        xlimits, ylimits, extent = self._compute_xy_limits(x, y, 0, 1.1, x_pad=1)
+        edgecolor = self.prepare_barplot(colors, **kwargs)
 
         # Simple hack to reduce size is to use different subplot size
         xticloc = np.array(x)
         self.plot_base = self.figure.add_axes(self._axes, xticks=xticloc)
-        self.plot_base.bar(
+        self.cax = self.plot_base.bar(
             x,
             y,
             color=colors,
@@ -273,6 +280,24 @@ class PlotSpectrum(PlotBase):
             allow_extraction=kwargs.get("allow_extraction", False),
             callbacks=kwargs.get("callbacks", dict()),
         )
+
+    def plot_1d_update_barplot(self, **kwargs):
+        """Update barchart"""
+        colors = [patch.get_facecolor() for patch in self.cax.patches]
+        edgecolor = self.prepare_barplot(colors, **kwargs)
+
+        n_width = kwargs["bar_width"] / 2
+        for i, patch in enumerate(self.cax.patches):
+            patch.set_alpha(kwargs["bar_alpha"])
+
+            patch.set_edgecolor(edgecolor[i])
+            patch.set_linewidth(kwargs["bar_line_width"])
+            x, width = patch.get_x(), patch.get_width() / 2
+            x_c = x + width
+            patch.set_x(x_c - n_width)
+            patch.set_width(kwargs["bar_width"])
+
+        print(dir(self.cax.patches[0]))
 
     def plot_1d_compare_update_data(self, x_top, x_bottom, y_top, y_bottom, labels=None, **kwargs):
         """Update comparison data"""

@@ -1,6 +1,5 @@
 """Test UniDec viewer"""
 # Third-party imports
-import wx
 import pytest
 
 # Local imports

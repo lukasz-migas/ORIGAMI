@@ -89,7 +89,7 @@ class ViewHeatmap(ViewBase, ViewMPLMixin, ViewWaterfallMixin, ViewViolinMixin, V
             kwargs["allow_extraction"] = self._allow_extraction
         return kwargs
 
-    def plot(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
+    def plot(self, x=None, y=None, array=None, obj=None, repaint: bool = True, forced_kwargs=None, **kwargs):
         """Simple line plot"""
         t_start = time.time()
         self.can_plot("heatmap")
@@ -97,8 +97,7 @@ class ViewHeatmap(ViewBase, ViewMPLMixin, ViewWaterfallMixin, ViewViolinMixin, V
         self.set_document(obj, **kwargs)
         self.set_labels(obj, **kwargs)
 
-        kwargs.update(**CONFIG.get_mpl_parameters(self.MPL_KEYS))
-        kwargs.update(**self.FORCED_KWARGS)
+        kwargs, _kwargs = self.parse_kwargs(self.MPL_KEYS, forced_kwargs=forced_kwargs, **kwargs)
         kwargs = self.check_kwargs(**kwargs)
 
         try:
@@ -159,16 +158,16 @@ class ViewHeatmap(ViewBase, ViewMPLMixin, ViewWaterfallMixin, ViewViolinMixin, V
         """Plot object as a waterfall"""
         self.can_plot("rgb")
 
-    def plot_contour(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
+    def plot_contour(self, x=None, y=None, array=None, obj=None, repaint: bool = True, forced_kwargs=None, **kwargs):
         """Plot object as a waterfall"""
         t_start = time.time()
         self.can_plot("contour")
         self.set_document(obj, **kwargs)
         self.set_labels(obj, **kwargs)
 
-        kwargs.update(**CONFIG.get_mpl_parameters(self.MPL_KEYS))
-        kwargs.update(**self.FORCED_KWARGS)
+        kwargs, _kwargs = self.parse_kwargs(self.MPL_KEYS, forced_kwargs=forced_kwargs, **kwargs)
         kwargs = self.check_kwargs(**kwargs)
+
         x, y, array = self.check_input(x, y, array, obj)
         self.figure.clear()
         self.figure.plot_2d_contour(
@@ -181,19 +180,17 @@ class ViewHeatmap(ViewBase, ViewMPLMixin, ViewWaterfallMixin, ViewViolinMixin, V
         self.set_plot_parameters(**kwargs)
         LOGGER.debug(f"Plotted data in {report_time(t_start)}")
 
-    def plot_joint(self, x=None, y=None, array=None, obj=None, repaint: bool = True, **kwargs):
+    def plot_joint(self, x=None, y=None, array=None, obj=None, repaint: bool = True, forced_kwargs=None, **kwargs):
         """Plot object as a joint-plot with top/side panels"""
         t_start = time.time()
         self.can_plot("joint")
         # try to update plot first, as it can be quicker
-        mpl_keys = copy(self.MPL_KEYS)
-        mpl_keys.append("joint")
-
         self.set_document(obj, **kwargs)
         self.set_labels(obj, **kwargs)
 
-        kwargs.update(**CONFIG.get_mpl_parameters(mpl_keys))
-        kwargs.update(**self.FORCED_KWARGS)
+        mpl_keys = copy(self.MPL_KEYS)
+        mpl_keys.append("joint")
+        kwargs, _kwargs = self.parse_kwargs(mpl_keys, forced_kwargs=forced_kwargs, **kwargs)
         kwargs = self.check_kwargs(**kwargs)
         x, y, array = self.check_input(x, y, array, obj)
         self.figure.clear()

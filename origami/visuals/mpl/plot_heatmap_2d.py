@@ -35,9 +35,17 @@ class PlotHeatmap2D(PlotBase):
         self.tick_labels = None
         self.text = None
 
+    def _fix_contour_limits(self, xlimits, ylimits):
+        """Fix contour plot y-axis limits"""
+        ylimits = [ylimits[0] + 0.5, ylimits[1] - 0.5]
+        extent = [xlimits[0], ylimits[0], xlimits[1], ylimits[1]]
+        return ylimits, extent
+
     def plot_2d(self, x, y, array, title="", x_label="", y_label="", obj=None, **kwargs):
         """Simple heatmap plot"""
         self._set_axes()
+
+        cmap_norm, _ = self.get_heatmap_normalization(array, **kwargs)
 
         # add 2d plot
         if kwargs["heatmap_plot_type"] == "Image" and not kwargs.get("speedy", False):
@@ -47,6 +55,7 @@ class PlotHeatmap2D(PlotBase):
                 array,
                 cmap=kwargs["heatmap_colormap"],
                 interpolation=kwargs["heatmap_interpolation"],
+                norm=cmap_norm,
                 aspect="auto",
                 origin="lower",
                 extent=[*xlimits, *ylimits],
@@ -58,10 +67,12 @@ class PlotHeatmap2D(PlotBase):
                 array,
                 kwargs["heatmap_n_contour"],
                 cmap=kwargs["heatmap_colormap"],
+                norm=cmap_norm,
                 antialiasing=True,
                 origin="lower",
                 extent=[*xlimits, *ylimits],
             )
+            ylimits, extent = self._fix_contour_limits(xlimits, ylimits)
             _plot_type = "contour"
         # set plot limits
         self.plot_base.set_xlim(xlimits)
@@ -85,7 +96,6 @@ class PlotHeatmap2D(PlotBase):
         self.set_colorbar_parameters(array, **kwargs)
 
         # update normalization
-        self.plot_2D_update_normalization(**kwargs)
         self.PLOT_TYPE = _plot_type
 
     def plot_2d_contour(self, x, y, array, title="", x_label="", y_label="", obj=None, **kwargs):
@@ -93,17 +103,20 @@ class PlotHeatmap2D(PlotBase):
         self._set_axes()
 
         xlimits, ylimits, extent = self._compute_xy_limits(x, y, None, is_heatmap=True)
+        cmap_norm, _ = self.get_heatmap_normalization(array, **kwargs)
 
         # add 2d plot
         self.cax = self.plot_base.contourf(
             array,
             kwargs["heatmap_n_contour"],
             cmap=kwargs["heatmap_colormap"],
-            #               norm=kwargs["colormap_norm"],
+            norm=cmap_norm,
             antialiasing=True,
             origin="lower",
             extent=[*xlimits, *ylimits],
         )
+        ylimits, extent = self._fix_contour_limits(xlimits, ylimits)
+
         # set plot limits
         self.plot_base.set_xlim(xlimits)
         self.plot_base.set_ylim(ylimits)
@@ -126,7 +139,6 @@ class PlotHeatmap2D(PlotBase):
         self.set_colorbar_parameters(array, **kwargs)
 
         # update normalization
-        self.plot_2D_update_normalization(**kwargs)
         self.PLOT_TYPE = "contour"
 
     def plot_2d_update_data(self, x, y, array, x_label=None, y_label=None, obj=None, **kwargs):
@@ -177,7 +189,6 @@ class PlotHeatmap2D(PlotBase):
     ):
         """Update style of heatmap plot"""
         self._is_locked()
-
         if colormap is not None:
             self.cax.set_cmap(colormap)
         if interpolation is not None and hasattr(self, "set_interpolation"):
@@ -492,7 +503,7 @@ class PlotHeatmap2D(PlotBase):
         self.store_plot_limits([extent, extent_x, extent_y], [self.plot_base, self.plot_joint_x, self.plot_joint_y])
 
         # update normalization
-        self.plot_2D_update_normalization(**kwargs)
+        self.plot_2d_update_normalization(array, **kwargs)
         self.PLOT_TYPE = "joint"
 
     @staticmethod
@@ -554,7 +565,7 @@ class PlotHeatmap2D(PlotBase):
         self.set_colorbar_parameters(array, **kwargs)
 
         # update normalization
-        self.plot_2D_update_normalization(**kwargs)
+        self.plot_2d_update_normalization(array, **kwargs)
         self.PLOT_TYPE = "heatmap-rgb"
 
     # def plot_2D_rgb(
@@ -804,19 +815,16 @@ class PlotHeatmap2D(PlotBase):
     #
     #     self.plot_parameters = kwargs
 
-    def plot_2D_update_normalization(self, **kwargs):
-        if self.lock_plot_from_updating:
-            self._locked()
-
-        if hasattr(self, "plot_data"):
-            if "zvals" in self.plot_data:
-                cmap_norm, _ = self.get_heatmap_normalization(self.plot_data["zvals"], **kwargs)
-
-                self.plot_parameters["colormap_norm"] = cmap_norm
-
-                if "colormap_norm" in self.plot_parameters:
-                    self.cax.set_norm(self.plot_parameters["colormap_norm"])
-                    self.plot_2d_colorbar_update(**kwargs)
+    # def plot_2D_update_normalization(self, **kwargs):
+    #     if self.lock_plot_from_updating:
+    #         self._locked()
+    #
+    #     cmap_norm, _ = self.get_heatmap_normalization(self.plot_data["zvals"], **kwargs)
+    #     self.plot_parameters["colormap_norm"] = cmap_norm
+    #
+    #     if "colormap_norm" in self.plot_parameters:
+    #         self.cax.set_norm(self.plot_parameters["colormap_norm"])
+    #         self.plot_2d_colorbar_update(**kwargs)
 
     # def plot_2D_update_data(self, xvals, yvals, xlabel, ylabel, zvals, **kwargs):
     #

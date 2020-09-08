@@ -38,10 +38,10 @@ from origami.widgets.unidec.view_unidec import ViewMolecularWeightGrid
 from origami.objects.containers.spectrum import MassSpectrumObject
 from origami.widgets.unidec.unidec_handler import UNIDEC_HANDLER
 from origami.gui_elements.views.view_register import VIEW_REG
+from origami.widgets.unidec.panel_unidec_visuals import PanelCustomiseUniDecVisuals
 from origami.widgets.unidec.processing.utilities import unidec_sort_mw_list
 from origami.widgets.unidec.processing.utilities import calculate_charge_positions
 from origami.widgets.unidec.processing.containers import UniDecResultsObject
-from origami.widgets.unidec.panel_unidec_visuals import PanelCustomiseUniDecVisuals
 
 logger = logging.getLogger(__name__)
 
@@ -50,9 +50,12 @@ BTN_SIZE = (100, -1)
 
 # TODO: Add table
 # TODO: Add display difference and FWHM
-# TODO: fix heatmap issues
 # TODO: add action button where you can perform several handy actions
-# TODO: fix plotting style issues
+# TODO: fix fit plot so it shows the full data when processed data is shown
+# TODO: fix fit plot so it respects user parameters
+# TODO: add style update to MW plot
+# TODO: add quick normalization update to heatmap plots
+# TODO: add style updates for markers
 
 
 class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
@@ -142,6 +145,15 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
             self.view_mz.plot(obj=self.mz_obj)
 
         self.check_existing_engine()
+
+        # register views
+        self.plot_settings.register_view("fit", self.view_mz)
+        self.plot_settings.register_view("mw", self.view_mw)
+        self.plot_settings.register_view("heatmap", self.view_mz_grid)
+        self.plot_settings.register_view("heatmap", self.view_mw_grid)
+        self.plot_settings.register_view("individual", self.view_peaks)
+        self.plot_settings.register_view("charge", self.view_charge)
+        self.plot_settings.register_view("barchart", self.view_barchart)
 
     def check_existing_engine(self):
         """Checks whether existing engine is of this particular dataset and if so, plot all the data"""
@@ -237,26 +249,27 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         self.plot_panel = self.make_plot_panel(self)
 
         self.plot_settings = PanelCustomiseUniDecVisuals(self, self.view)
-        self.plot_settings.SetMinSize((300, -1))
+        self.plot_settings.SetMinSize((350, -1))
+        self.plot_settings.SetMaxSize((400, -1))
         self.plot_settings.Hide()
 
         # pack element
         main_sizer = wx.BoxSizer()
-        main_sizer.Add(self.plot_panel, 2, wx.EXPAND, 0)
+        main_sizer.Add(self.plot_panel, 4, wx.EXPAND, 0)
 
         # add settings panel
         if "Left" in CONFIG.unidec_settings_view:
-            main_sizer.Insert(0, self.settings_panel, 1, wx.EXPAND, 0)
-            # main_sizer.Add(self.plot_settings, 0, wx.EXPAND, 0)
+            main_sizer.Insert(0, self.settings_panel, 2, wx.EXPAND, 0)
+            main_sizer.Add(self.plot_settings, 1, wx.EXPAND, 0)
         else:
-            main_sizer.Add(self.settings_panel, 1, wx.EXPAND, 0)
-        main_sizer.Add(self.plot_settings, 0, wx.EXPAND, 0)
+            main_sizer.Insert(0, self.plot_settings, 1, wx.EXPAND, 0)
+            main_sizer.Add(self.settings_panel, 2, wx.EXPAND, 0)
 
         # fit layout
         main_sizer.Fit(self)
         self.SetSizer(main_sizer)
         self.settings_panel.SetMinSize((450, -1))
-        self.settings_panel.SetMaxSize((500, -1))
+        self.settings_panel.SetMaxSize((450, -1))
         self.settings_panel.SetSize((450, -1))
         self.settings_panel.Layout()
 
@@ -264,18 +277,10 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
 
     def make_plot_panel(self, split_panel):
         """Make plot panel"""
-
-        #         _settings_panel_size = self.settings_panel.GetSize()
-        #         pixel_size = [(self._window_size[0] - _settings_panel_size[0]), (self._window_size[1] - 50)]
-        #         figsize = [pixel_size[0] / self._display_resolution[0], pixel_size[1] / self._display_resolution[1]]
-        #         figsize_1d = [figsize[0] / 2.75, figsize[1] / 3]
-        #         figsize_2d = [figsize[0] / 2.75, figsize[1] / 1.5]
-        #         print(figsize_1d, figsize_2d)
-        figsize_1d = (6, 3)
-        figsize_2d = (6, 6)
+        figsize_1d, figsize_2d = (4, 2), (4, 4)
 
         # setup plot base
-        if CONFIG.unidec_panel_view in ["Single page view", "Continuous page view"]:
+        if CONFIG.unidec_panel_view in ["Grid page view", "Continuous page view"]:
             plot_panel = wxScrolledPanel.ScrolledPanel(split_panel)
             plot_parent = plot_panel
         else:
@@ -321,30 +326,42 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
             if CONFIG.unidec_panel_view == "Grid page view":
                 _row_0 = wx.BoxSizer()
                 _row_0.Add(self.view_mz.panel, 1, wx.EXPAND)
+                _row_0.Add(wx.StaticLine(split_panel, -1, style=wx.LI_VERTICAL), 0, wx.EXPAND)
                 _row_0.Add(self.view_mw.panel, 1, wx.EXPAND)
 
                 _row_1 = wx.BoxSizer()
                 _row_1.Add(self.view_mz_grid.panel, 1, wx.EXPAND)
+                _row_1.Add(wx.StaticLine(split_panel, -1, style=wx.LI_VERTICAL), 0, wx.EXPAND)
                 _row_1.Add(self.view_mw_grid.panel, 1, wx.EXPAND)
 
                 _row_2 = wx.BoxSizer()
                 _row_2.Add(self.view_peaks.panel, 1, wx.EXPAND)
+                _row_2.Add(wx.StaticLine(split_panel, -1, style=wx.LI_VERTICAL), 0, wx.EXPAND)
                 _row_2.Add(self.view_barchart.panel, 1, wx.EXPAND)
 
                 _row_3 = wx.BoxSizer()
                 _row_3.Add(self.view_charge.panel, 1, wx.EXPAND)
 
                 plot_parent.Add(_row_0, 1, wx.EXPAND)
+                plot_parent.Add(wx.StaticLine(split_panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND)
                 plot_parent.Add(_row_1, 1, wx.EXPAND)
+                plot_parent.Add(wx.StaticLine(split_panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND)
                 plot_parent.Add(_row_2, 1, wx.EXPAND)
+                plot_parent.Add(wx.StaticLine(split_panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND)
                 plot_parent.Add(_row_3, 1, wx.EXPAND)
             else:
                 plot_parent.Add(self.view_mz.panel, 2, wx.EXPAND)
+                plot_parent.Add(wx.StaticLine(split_panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND)
                 plot_parent.Add(self.view_mw.panel, 2, wx.EXPAND)
+                plot_parent.Add(wx.StaticLine(split_panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND)
                 plot_parent.Add(self.view_mz_grid.panel, 4, wx.EXPAND)
+                plot_parent.Add(wx.StaticLine(split_panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND)
                 plot_parent.Add(self.view_mw_grid.panel, 4, wx.EXPAND)
+                plot_parent.Add(wx.StaticLine(split_panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND)
                 plot_parent.Add(self.view_peaks.panel, 3, wx.EXPAND)
+                plot_parent.Add(wx.StaticLine(split_panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND)
                 plot_parent.Add(self.view_barchart.panel, 2, wx.EXPAND)
+                plot_parent.Add(wx.StaticLine(split_panel, -1, style=wx.LI_HORIZONTAL), 0, wx.EXPAND)
                 plot_parent.Add(self.view_charge.panel, 2, wx.EXPAND)
 
             main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -381,10 +398,8 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         """Make settings panel"""
         panel = wxScrolledPanel.ScrolledPanel(split_panel, size=(-1, -1), name="main")
 
-        n_span = 3
-        n_col = 4
+        n_span, n_col = 3, 4
         grid = wx.GridBagSizer(2, 2)
-
         # make buttons
         grid, n = self.make_buttons_settings_panel(panel, grid, 0, n_span, n_col)
         n += 1
@@ -499,7 +514,6 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
 
     def make_preprocess_settings_panel(self, panel, grid, n: int, n_span: int, n_col: int):  # noqa
         """Make pre-processing sub-section"""
-
         process_label = wx.StaticText(
             panel,
             wx.ID_ANY,
@@ -763,7 +777,6 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
             panel, -1, choices=[], size=(150, -1), style=wx.CB_READONLY, name="ChargeStates"
         )
         self.weight_list_choice.Bind(wx.EVT_COMBOBOX, self.on_show_charge_states_unidec)
-        #         self.weight_list_choice.Bind(wx.EVT_COMBOBOX, self.on_isolate_peak_unidec)
 
         self.weight_list_sort = make_bitmap_btn(panel, -1, self._icons.sort)
         self.weight_list_sort.SetBackgroundColour((240, 240, 240))
@@ -861,7 +874,6 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
 
     def on_toggle_controls(self, evt):
         """Event driven GUI updates"""
-
         CONFIG.unidec_panel_peak_width_auto = self.peak_width_auto_check.GetValue()
         obj_list = [self.fit_peak_width_value, self.peak_width_btn]
         for item in obj_list:
@@ -926,6 +938,35 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         view = self.get_view_from_name(self.current_page)
         pub.sendMessage("view.activate", view_id=view.PLOT_ID)
 
+    def on_open_customisation_settings(self, _evt):
+        """Open UniDec customisation window"""
+        self.plot_settings.Hide() if self.plot_settings.IsShown() else self.plot_settings.Show()
+        self.Layout()
+
+    def on_open_width_tool(self, _evt):
+        """Open UniDec width tool"""
+        from origami.widgets.unidec.panel_process_unidec_peak_width_tool import PanelPeakWidthTool
+
+        if not self._dlg_width_tool:
+            self._dlg_width_tool = PanelPeakWidthTool(self, self.view, self.mz_obj)
+        self._dlg_width_tool.Show()
+        self._dlg_width_tool.SetFocus()
+
+    def on_open_process_ms_settings(self, _evt):
+        """Open MS pre-processing panel"""
+        from origami.gui_elements.panel_process_spectrum import PanelProcessMassSpectrum
+
+        if not self._dlg_ms_process_tool:
+            self._dlg_ms_process_tool = PanelProcessMassSpectrum(
+                self.view,
+                self.presenter,
+                disable_plot=True,
+                disable_process=True,
+                update_widget=self.PUB_SUBSCRIBE_EVENT,
+            )
+        self._dlg_ms_process_tool.Show()
+        self._dlg_ms_process_tool.SetFocus()
+
     def get_view_from_name(self, plot_name: str = None):
         """Retrieve view from name"""
         plot_dict = {
@@ -958,44 +999,9 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         ]:
             view.on_save_figure(evt)
 
-    def on_open_customisation_settings(self, _evt):
-        """Open UniDec customisation window"""
-        self.plot_settings.Hide() if self.plot_settings.IsShown() else self.plot_settings.Show()
-        self.Layout()
-        # from origami.widgets.unidec.dialog_customise_unidec_visuals import DialogCustomiseUniDecVisuals
-        # dlg = DialogCustomiseUniDecVisuals(self)
-        # dlg.ShowModal()
-
-    def on_open_width_tool(self, _evt):
-        """Open UniDec width tool"""
-        from origami.widgets.unidec.panel_process_unidec_peak_width_tool import PanelPeakWidthTool
-
-        if not self._dlg_width_tool:
-            self._dlg_width_tool = PanelPeakWidthTool(self, self.view, self.mz_obj)
-        self._dlg_width_tool.Show()
-        self._dlg_width_tool.SetFocus()
-
-    def on_open_process_ms_settings(self, _evt):
-        """Open MS pre-processing panel"""
-        from origami.gui_elements.panel_process_spectrum import PanelProcessMassSpectrum
-
-        if not self._dlg_ms_process_tool:
-            self._dlg_ms_process_tool = PanelProcessMassSpectrum(
-                self.view,
-                self.presenter,
-                disable_plot=True,
-                disable_process=True,
-                update_widget=self.PUB_SUBSCRIBE_EVENT,
-            )
-        self._dlg_ms_process_tool.Show()
-        self._dlg_ms_process_tool.SetFocus()
-
     def on_sort_unidec_mw(self, _evt):
         """Sort molecular weights"""
-        if self._unidec_sort_column == 0:
-            self._unidec_sort_column = 1
-        else:
-            self._unidec_sort_column = 0
+        self._unidec_sort_column = 1 if self._unidec_sort_column == 0 else 0
 
         mass_list = self.weight_list_choice.GetItems()
         mass_list = unidec_sort_mw_list(mass_list, self._unidec_sort_column)
@@ -1164,13 +1170,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         """Show barchart with scatter markers on top"""
         if unidec_result.peaks is not None:
             peaks = unidec_result.peaks
-
             self.view_barchart.plot(obj=peaks)
-            for x, y, color, marker, label in zip(peaks.x, peaks.y, peaks.colors, peaks.markers, peaks.labels):
-                self.view_barchart.add_scatter(
-                    x, y, color, marker, size=CONFIG.unidec_panel_plot_mw_markers_size, label=label, repaint=False
-                )
-            self.view_barchart.repaint()
         self.unsaved = True
 
     def on_show_individual_peaks(self, unidec_result: UniDecResultsObject):

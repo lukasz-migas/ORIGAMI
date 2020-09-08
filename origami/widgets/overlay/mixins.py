@@ -3,6 +3,8 @@
 from origami.widgets.overlay.view_overlay import ViewOverlay
 from origami.widgets.overlay.overlay_handler import OVERLAY_HANDLER
 
+# TODO: fix RGB plot since it does not display labels/colormaps
+
 
 class PanelOverlayViewerMixin:
     """Base components of overlay viewer"""
@@ -15,10 +17,10 @@ class PanelOverlayViewerMixin:
         if not hasattr(evt.EventObject, "figure"):
             return
 
-        menu = self.view_overlay.get_right_click_menu(self)
-        self.PopupMenu(menu)
-        menu.Destroy()
-        self.SetFocus()
+        menu = self.view_overlay.get_right_click_menu(self)  # noqa
+        self.PopupMenu(menu)  # noqa
+        menu.Destroy()  # noqa
+        self.SetFocus()  # noqa
 
     # noinspection DuplicatedCode
     def make_plot_panel(self, split_panel):

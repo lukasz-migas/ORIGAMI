@@ -1,10 +1,13 @@
 """Popup plot settings"""
+# Third-party imports
 import wx
+
+# Local imports
+from origami.config.config import CONFIG
 from origami.gui_elements.popup import PopupBase
 from origami.gui_elements.helpers import set_tooltip
 from origami.gui_elements.helpers import make_checkbox
 from origami.gui_elements.helpers import set_item_font
-from origami.config.config import CONFIG
 
 
 class PopupPlotPanelSettings(PopupBase):
