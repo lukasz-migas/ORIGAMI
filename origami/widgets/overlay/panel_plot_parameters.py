@@ -26,7 +26,7 @@ class PanelOverlayViewerSettings(wxScrolledPanel.ScrolledPanel):
     block_signal = False
 
     def __init__(self, parent, view):
-        wx.lib.scrolledpanel.ScrolledPanel.__init__(self, parent)
+        wxScrolledPanel.ScrolledPanel.__init__(self, parent)
         self.parent = parent
         self.view = view
 
@@ -101,6 +101,8 @@ class PanelOverlayViewerSettings(wxScrolledPanel.ScrolledPanel):
         if self.block_signal:
             return
         self.Layout()
+        if self.parent:
+            self.parent.Layout()
 
     def setup_method_settings(self, method: str):
         """Close all layouts but the methods"""

@@ -250,7 +250,6 @@ class ViewBase(ABC):
         self.panel = None
         self.sizer = None
         self.figure: Optional[PlotBase] = None
-        self._tooltip_timer = None
 
         # process settings
         self._allow_extraction = kwargs.pop("allow_extraction", False)

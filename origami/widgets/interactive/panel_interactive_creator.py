@@ -132,8 +132,8 @@ from origami.utils.ranges import find_limits_list
 from origami.utils.visuals import calculate_label_position
 from origami.utils.converters import str2int
 from origami.config.environment import ENV
-from origami.processing.spectra import crop_1D_data
-from origami.processing.spectra import normalize_1D
+from origami.processing.spectra import crop_1d_data
+from origami.processing.spectra import normalize_1d
 from origami.processing.spectra import linearize_data
 from origami.gui_elements.helpers import make_checkbox
 from origami.gui_elements.helpers import make_menu_item
@@ -5280,7 +5280,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
         if plt_kwargs["_xlimits_"] is not None and bkh_kwargs["plot_type"] != "Other 1D":
             try:
                 kwargs = {"min": xlimits[0], "max": xlimits[1]}
-                xvals, yvals = crop_1D_data(xvals, yvals, **kwargs)
+                xvals, yvals = crop_1d_data(xvals, yvals, **kwargs)
             except Exception:
                 pass
 
@@ -5540,7 +5540,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
             if plt_kwargs["_xlimits_"] is not None:
                 try:
                     kwargs = {"min": xlimits[0], "max": xlimits[1]}
-                    xval, yval = crop_1D_data(xval, yval, **kwargs)
+                    xval, yval = crop_1d_data(xval, yval, **kwargs)
                 except Exception:
                     pass
 
@@ -6912,7 +6912,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
             # normalize data
             normalize = True  # TODO: add to parameters
             if normalize:
-                yval = normalize_1D(yval)
+                yval = normalize_1d(yval)
 
             # create plot source
             source = ColumnDataSource(

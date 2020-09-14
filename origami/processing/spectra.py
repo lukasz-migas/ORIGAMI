@@ -15,7 +15,6 @@ from scipy.interpolate.interpolate import interp1d
 # Local imports
 from origami.utils.ranges import get_min_max
 from origami.processing.utils import find_nearest_index
-from origami.utils.exceptions import MessageError
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +42,8 @@ def baseline_curve(data, window: int, **kwargs):
     """
     window = abs(window)
     if window <= 0:
+        from origami.utils.exceptions import MessageError
+
         raise MessageError("Incorrect input", "Value should be above 0")
 
     return baseline_curve_(data, window)
@@ -51,7 +52,6 @@ def baseline_curve(data, window: int, **kwargs):
 def baseline_curve_(data, window: int):
     length = data.shape[0]
     mins = np.zeros(length, dtype=np.int32)
-
     for i in range(length):
         mins[i] = np.amin(data[int(max([0, i - window])) : int(min([i + window, length]))])
     background = gaussian_filter(mins, window * 2)
@@ -124,7 +124,6 @@ def baseline_polynomial(y: np.ndarray, deg: int = 4, max_iter: int = 100, tol: f
 def baseline_als(y, lam, p, niter=10):
     """Asymmetric Least Squares smoothing. There are two parameters p for asymmetry and lambda for smoothness.
     Values of p should range between 0.001 and 0.1 and lambda between 10^2 to 10^9
-
     """
     from scipy import sparse
     from scipy.sparse.linalg import spsolve
@@ -158,6 +157,8 @@ def baseline_linear(data, threshold: float, **kwargs):
 def baseline_median(data, median_window: int = 5, **kwargs):
     """Median-filter"""
     if median_window % 2 == 0:
+        from origami.utils.exceptions import MessageError
+
         raise MessageError("Incorrect input", "Median window must be an odd number")
 
     data = median_filter(data, median_window)
@@ -165,6 +166,7 @@ def baseline_median(data, median_window: int = 5, **kwargs):
 
 
 def baseline_tophat(data, tophat_window=100, **kwargs):
+    """Top-hat filter"""
     from scipy.ndimage.morphology import white_tophat
 
     return white_tophat(data, tophat_window)
@@ -233,57 +235,19 @@ def baseline_1d(
     return y
 
 
-def normalize_1D(data, mode="Maximum"):
+def normalize_1d(y):
+    """Normalize 1d array"""
     # ensure data is in 64-bit format
-    data = np.array(data, dtype=np.float64)
-
-    #     if mode == 'Maximum':
-    norm_data = np.divide(data, data.max())
-
-    #     elif mode == 'Total Ion Current (TIC)':
-    #         norm_data = np.divide(data, np.sum(data))
-    # #         norm_data = np.divide(norm_data, norm_data.max())
-    #     elif mode == 'Highest peak':
-    #         norm_data = np.divide(data, data[data.argmax()])
-    # #         norm_data = np.divide(norm_data, norm_data.max())
-    #     elif mode == 'Root Mean Square (RMS)':
-    #         norm_data = np.divide(data, np.sqrt(np.mean(data ** 2)))
-    # #         norm_data = np.divide(norm_data, norm_data.max())
-    #     elif mode == 'Log':
-    #         norm_data = np.divide(data, np.sum(np.log(data[np.nonzero(data)])))
-    # #         norm_data = np.divide(norm_data, norm_data.max())
-    #     elif mode == 'Square root':
-    #         norm_data = np.divide(data, np.sum(np.sqrt(data)))
-    # #         norm_data = np.divide(norm_data, norm_data.max())
+    y = np.array(y, dtype=np.float64)
+    norm_data = np.divide(y, np.max(y))
 
     # replace nans
     norm_data = np.nan_to_num(norm_data)
-
     return norm_data
 
 
-def check_mass_range(ms_list=None, ms_dict=None):
-    """
-    Check what is the minimum and maximum value in the list/dictionary of mass spectra
-    to ensure that the linearisation range is correct
-    """
-    mz_min, mz_max = [], []
-    if ms_dict is not None:
-        for key in ms_dict:
-            mz_min.append(ms_dict[key]["xvals"][0])
-            mz_max.append(ms_dict[key]["xvals"][-1])
-
-    if ms_list is not None:
-        for i in range(len(ms_list)):
-            mz_min.append(ms_dict[i]["xvals"][0])
-            mz_max.append(ms_dict[i]["xvals"][-1])
-
-    # determine min and maximum value from the list
-    return np.min(mz_min), np.max(mz_max)
-
-
 def interpolate(x_short, y_short, x_long):
-
+    """Linear interpolate ywo arrays so they have the same length"""
     fcn = interp1d(x_short, y_short, fill_value=0, bounds_error=False)
     new_y_long = fcn(x_long)
     return x_long, new_y_long
@@ -333,8 +297,6 @@ def linearize_data(
     if auto_range or x_min is None or x_max is None:
         x_min = math.ceil(x[0] / bin_size) * bin_size
         x_max = math.floor(x[-1] / bin_size) * bin_size
-    if x_bin is None:
-        x_bin = get_linearization_range(x_min, x_max, bin_size, linearize_method)
 
     x_bin, y_bin = linearize(data=np.transpose([x, y]), bin_size=bin_size, mode=linearize_method, x_bin=x_bin)
     y_bin = np.nan_to_num(y_bin)
@@ -342,7 +304,7 @@ def linearize_data(
     return x_bin, y_bin
 
 
-def crop_1D_data(x, y, crop_min: Optional[float] = None, crop_max: Optional[float] = None):
+def crop_1d_data(x, y, crop_min: Optional[float] = None, crop_max: Optional[float] = None):
     """Crop signal to defined x-axis region
 
     Parameters
@@ -379,53 +341,23 @@ def crop_1D_data(x, y, crop_min: Optional[float] = None, crop_max: Optional[floa
     return x[min_idx : max_idx + 1], y[min_idx : max_idx + 1]
 
 
-def sum_1D(data):
-    """
-    @param data (dict): dictionary with mass spectra [keys: xvals, yvals]
-    """
-    # Retrieve MS data
-    ydata = []
-    # Iterate over the whole dictionary to retrieve y-axis data
-    for idx in range(len(data)):
-        ydata.append(data[idx]["yvals"])
-    # Sum y-axis data
-    msY = np.sum(ydata, axis=0)
-
-    return msY
-
-
-# def sum_1D_dictionary(ydict=None):
-#     """
-#     Sum binned data
-#     Input
-#     -----
-#     ydict : dictionary with binned X/Y values
-#     Output
-#     ------
-#     """
-#     msOut = []
-#     # Extract y-data from dictionary
-#     for key in ydict:
-#         msOut.append(ydict[key][1])
-#     # Sum into one Y-axis list
-#     msSum = np.sum(msOut, axis=0)
-#
-#     return ydict[key][0], msSum
-
-
 def smooth_gaussian_1d(y, sigma: float, **kwargs):
     """Smooth using Gaussian filter"""
     if sigma < 0:
+        from origami.utils.exceptions import MessageError
+
         raise MessageError("Incorrest value of `sigma`", "Value of `sigma` is too low. Value must be larger than 0")
 
-    dataOut = gaussian_filter(y, sigma=sigma, order=0)
-    return dataOut
+    _y = gaussian_filter(y, sigma=sigma)
+    return _y
 
 
 def smooth_moving_average_1d(y, N: int, **kwargs):
     """Smooth using moving average"""
     # get parameters
     if N <= 0:
+        from origami.utils.exceptions import MessageError
+
         raise MessageError(
             "Incorrect value of `window size`", "Value of `window size` is too low. Value must be larger than 0"
         )
@@ -491,23 +423,32 @@ def smooth_1d(
     return y
 
 
-def abline(x_vals, slope, intercept):
+def abline(y, slope: float, intercept: float):
     """
     Calculate xy coords for a line from slope and intercept
     x_vals: tuple of (xmin, xmax) : float
     slope: slope : float
     intercept: float
     """
-    y_vals = intercept + slope * x_vals
-    return x_vals, y_vals
+    y_ = intercept + slope * y
+    return y, y_
 
 
 def nearest(array, target):
     """
     In an sorted array, quickly find the position of the element closest to the target.
-    :param array: Array
-    :param target: Value
-    :return: np.argmin(np.abs(array - target))
+
+    Parameters
+    ----------
+    array: np.ndarray
+        input array
+    target: Any
+        searched value
+
+    Returns
+    -------
+    index : int
+        np.argmin(np.abs(array - target))
     """
     i = bisect_left(array, target)
     if i <= 0:
@@ -541,56 +482,64 @@ def get_linearization_range(x_min: float, x_max: float, bin_size: float, mode: s
     return x
 
 
-def linearize(data, bin_size, mode, x_bin=None):
+def linearize(data: np.ndarray, bin_size: float, mode: str, x_bin=None):
+    """Linearize the array"""
     if x_bin is None:
         x_bin = []
 
     if len(x_bin) == 0:
-        # length = len(data)
-        # firstpoint = math.ceil(data[0, 0] / bin_size) * bin_size
-        # lastpoint = math.floor(data[length - 1, 0] / bin_size) * bin_size
-
         x_bin = get_linearization_range(data[0, 0], data[-1, 0], bin_size, mode)
 
     # perform linearization
     if mode in ["Linear m/z", "Linear resolution"]:
-        xy = lintegrate(data, x_bin)
+        xy = lin_integrate2(data[:, 0], data[:, 1], x_bin)
+    #         xy = lin_integrate(data, x_bin)
     else:
-        xy = linterpolate(data, x_bin)
+        xy = lin_interpolate(data, x_bin)
 
-    # unpact to x and y list
+    # unpack to x and y list
     x = xy[:, 0]
     y = xy[:, 1]
 
     return x, y
 
 
-def nonlinear_axis(start, end, res):
+def nonlinear_axis(start: float, end: float, res: float):
     """
     Creates a nonlinear axis with the m/z values spaced with a defined and constant resolution.
-    :param start: Minimum m/z value
-    :param end: Maximum m/z value
-    :param res: Resolution of the axis ( m / delta m)
-    :return: One dimensional array of the nonlinear axis.
+
+    Parameters
+    ----------
+    start : float
+        minimum m/z value
+    end : float
+        maximum m/z value
+    res : float
+        resolution of the axis (m / delta m)
+
+    Returns
+    -------
+    x : np.ndarray
+        1d array of non-linear axis
     """
-    axis = []
+    res = float(res)
     i = start
-    axis.append(i)
-    i += i / float(res)
+    i += i / res
+    axis = [start]
     while i < end:
         axis.append(i)
-        i += i / float(res)
+        i += i / res
     return np.array(axis)
 
 
 def linear_interpolation(x1, x2, x):
-    """
+    """Linear interpolation
 
     Parameters
     ----------
-    x1 : np.array
-    x2 : np.array
-    x: : np.array
+    x1 : float
+    x2 : float
+    x: : float
 
     Returns
     -------
@@ -599,61 +548,98 @@ def linear_interpolation(x1, x2, x):
     return float(x - x1) / float(x2 - x1)
 
 
-def lintegrate(data, intx):
+def lin_integrate(data: np.ndarray, new_x: np.ndarray):
     """
     Linearize x-axis by integration.
 
     Each intensity value in the old data gets proportionally added into the new x-axis.
-
     The total sum of the intensity values should be constant.
-    :param data: Data array
-    :param intx: New x-axis for data
-    :return: Integration of intensity from original data onto the new x-axis.
-        Same shape as the old data but new length.
+
+    Parameters
+    ----------
+    data: np.ndarray
+        input array of shape [N, 2]
+    new_x : np.ndarray
+        new x-axis
+
+    Returns
+    -------
+    new_xy : np.ndarray
+        output array of new shape [n, 2]
     """
     length = len(data)
-    inty = np.zeros_like(intx)
-    length_x = len(intx)
+    inty = np.zeros_like(new_x)
+    length_x = len(new_x)
     for i in range(0, length):
-        if intx[0] < data[i, 0] < intx[length_x - 1]:
-            index = nearest(intx, data[i, 0])
-            if intx[index] == data[i, 0]:
+        if new_x[0] < data[i, 0] < new_x[length_x - 1]:
+            index = find_nearest_index(new_x, data[i, 0])
+            if new_x[index] == data[i, 0]:
                 inty[index] += data[i, 1]
-            if intx[index] < data[i, 0]:  # and index < length - 1:
+            if new_x[index] < data[i, 0]:  # and index < length - 1:
                 index2 = index + 1
-                interpos = linear_interpolation(intx[index], intx[index2], data[i, 0])
+                interpos = linear_interpolation(new_x[index], new_x[index2], data[i, 0])
                 inty[index] += (1 - interpos) * data[i, 1]
                 inty[index2] += interpos * data[i, 1]
-            if intx[index] > data[i, 0]:  # and index > 0:
+            if new_x[index] > data[i, 0]:  # and index > 0:
                 index2 = index - 1
-                interpos = linear_interpolation(intx[index], intx[index2], data[i, 0])
+                interpos = linear_interpolation(new_x[index], new_x[index2], data[i, 0])
                 inty[index] += (1 - interpos) * data[i, 1]
                 inty[index2] += interpos * data[i, 1]
-    return np.column_stack((intx, inty))
+    return np.column_stack((new_x, inty))
 
 
-def linterpolate(data, intx):
-    """
-    Linearize x-axis by interpolation.
+def lin_integrate2(x: np.ndarray, y: np.ndarray, new_x: np.ndarray):
+    length = len(x)
+    length_x = len(new_x)
+    new_y = np.zeros_like(new_x)
+    for i in range(0, length):
+        if new_x[0] < x[i] < new_x[length_x - 1]:
+            index = nearest(new_x, x[i])
+            if new_x[index] == x[i]:
+                new_y[index] += y[i]
+            if new_x[index] < x[i]:
+                index2 = index + 1
+                interpos = linear_interpolation(new_x[index], new_x[index2], x[i])
+                new_y[index] += (1 - interpos) * y[i]
+                new_y[index2] += interpos * y[i]
+            if new_x[index] > x[i]:
+                index2 = index - 1
+                interpos = linear_interpolation(new_x[index], new_x[index2], x[i])
+                new_y[index] += (1 - interpos) * y[i]
+                new_y[index2] += interpos * y[i]
+    return np.column_stack((new_x, new_y))
+
+
+def lin_interpolate(data: np.ndarray, new_x: np.ndarray):
+    """Linearize x-axis by interpolation.
 
     The new x-axis is interpolated on the old data and the corresponding intensities and picked out.
 
-    :param data: Data array
-    :param intx: New x-axis
-    :return: Interpolation of intensity from original data onto the new x-axis.
-        Same shape as the old data but new length.
+    Parameters
+    ----------
+    data: np.ndarray
+        input array of shape [N, 2]
+    new_x : np.ndarray
+        new x-axis
+
+    Returns
+    -------
+    new_xy : np.ndarray
+        output array of new shape [n, 2]
     """
     f = interp1d(data[:, 0], data[:, 1], fill_value=0, bounds_error=False)
-    inty = f(intx)
-    return np.column_stack((intx, inty))
+    new_y = f(new_x)
+    return np.column_stack((new_x, new_y))
 
 
-def nonlinearize(data, num_compressed):
-    """
-    Compress the data in a simple and nonlinear way.
-    :param data: Data array (N x 2)
-    :param num_compressed:
-    :return:
+def non_linearize(data, num_compressed):
+    """Compress the data in a simple and nonlinear way.
+
+    Parameters
+    ----------
+    data: np.ndarray
+        Data array (N x 2)
+    num_compressed: int
     """
     if num_compressed == 0:
         return data
@@ -664,7 +650,22 @@ def nonlinearize(data, num_compressed):
         )
 
 
-def subtract_spectra(xvals_1, yvals_1, xvals_2, yvals_2, **kwargs):
+def subtract_spectra(xvals_1, yvals_1, xvals_2, yvals_2, **kwargs):  # noqa
+    """Subtract spectrum from another spectrum.
+
+    If the two spectra have different shapes, both will be linearized to ensure identical size
+
+    Returns
+    -------
+    x_1 : np.ndarray
+        x-axis of the first spectrum
+    y_1 : np.ndarray
+        y-axis of the first spectrum
+    x_2 : np.ndarray
+        x-axis of the second spectrum
+    y_2 : np.ndarray
+        y-axis of the second spectrum
+    """
     n_size_1 = len(xvals_1)
     n_size_2 = len(xvals_2)
 
@@ -714,7 +715,11 @@ def seq_ppm(mz_start: float, mz_end: float, ppm: float):
 try:
     has_c = True
     _baseline_curve_ = baseline_curve_
+    _nonlinear_axis = nonlinear_axis
+    _linear_interpolation = linear_interpolation
     from origami.c.spectra import baseline_curve_
+    from origami.c.spectra import nonlinear_axis
+    from origami.c.spectra import linear_interpolation
 except ImportError as e:
     print(e)
     has_c = False

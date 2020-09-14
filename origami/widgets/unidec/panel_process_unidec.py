@@ -56,6 +56,7 @@ BTN_SIZE = (100, -1)
 # TODO: add style update to MW plot
 # TODO: add quick normalization update to heatmap plots
 # TODO: add style updates for markers
+# TODO: speed up pre-processing by cythonizing the binning methods
 
 
 class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
@@ -247,7 +248,6 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         self.settings_panel = self.make_settings_panel(self)
 
         self.plot_panel = self.make_plot_panel(self)
-
         self.plot_settings = PanelCustomiseUniDecVisuals(self, self.view)
         self.plot_settings.SetMinSize((350, -1))
         self.plot_settings.SetMaxSize((400, -1))
@@ -517,11 +517,11 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         process_label = wx.StaticText(
             panel,
             wx.ID_ANY,
-            "Process MS data before running UniDec. You can change the "
-            "\nsettings by clicking on the `Settings` button. Data will be "
-            "\nautomatically plotted as you adjust the parameters",
+            "Process MS data before running UniDec. You can change the settings by clicking on the"
+            "`Settings` button.  Data will be automatically plotted as you adjust the parameters",
             size=(-1, -1),
         )
+        process_label.Wrap(325)
         set_item_font(process_label, weight=wx.FONTWEIGHT_NORMAL)
 
         self.process_settings_btn = make_bitmap_btn(
@@ -538,7 +538,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         btn_sizer.Add(self.process_btn, 0, wx.EXPAND)
 
         n += 1
-        grid.Add(process_label, (n, 0), (1, n_col), flag=wx.ALIGN_CENTER_HORIZONTAL)
+        grid.Add(process_label, (n, 0), (1, n_col), flag=wx.EXPAND | wx.ALIGN_CENTER_HORIZONTAL)
         n += 1
         grid.Add(btn_sizer, (n, 0), (1, n_col), flag=wx.ALIGN_CENTER_HORIZONTAL)
 
@@ -1047,9 +1047,11 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
     @staticmethod
     def check_unidec_engine(state: str):
         """Checks whether UniDec engine has been instantiated"""
+        if state not in ["init", "preprocessed", "executed"]:
+            raise ValueError("Incorrect state was requested")
+
         if CONFIG.unidec_engine is None:
             return False
-
         if state == "init":
             return True
         if state == "preprocessed":
@@ -1064,43 +1066,34 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         CONFIG.unidec_engine.data.document_title = self.document_title
         CONFIG.unidec_engine.data.dataset_name = self.dataset_name
 
+    def on_unidec_error(self, _exc, _v, _tr):
+        """In case an error occurs during the processing, enable all buttons"""
+        self.process_btn.Enable(), self.unidec_init_btn.Enable()
+        self.run_unidec_btn.Enable(), self.unidec_unidec_btn.Enable()
+        self.detect_peaks_btn.Enable(), self.unidec_peak_btn.Enable()
+        self.show_peaks_btn.Enable()
+
     def on_initialize_unidec(self, _evt):
         """Initialize UniDec"""
+        self.on_clear_plot_as_task("run")
+        self.process_btn.Disable(), self.unidec_init_btn.Disable()
         QUEUE.add_call(
-            UNIDEC_HANDLER.unidec_initialize_and_preprocess, (self.mz_obj,), func_result=self.on_show_initialize_unidec
+            UNIDEC_HANDLER.unidec_initialize_and_preprocess,
+            (self.mz_obj,),
+            func_result=self.on_show_initialize_unidec,
+            func_error=self.on_unidec_error,
         )
 
     def on_process_unidec(self, _evt):
         """Process mass spectrum"""
         self.on_clear_plot_as_task("run")
+        self.process_btn.Disable(), self.unidec_init_btn.Disable()
         QUEUE.add_call(
-            UNIDEC_HANDLER.unidec_initialize_and_preprocess, (self.mz_obj,), func_result=self.on_show_process_unidec
+            UNIDEC_HANDLER.unidec_initialize_and_preprocess,
+            (self.mz_obj,),
+            func_result=self.on_show_process_unidec,
+            func_error=self.on_unidec_error,
         )
-
-    def on_run_unidec(self, _evt):
-        """Run UniDec"""
-        if self.check_unidec_engine("preprocessed"):
-            self.on_clear_plot_as_task("peaks")  # clean anything AFTER run
-            QUEUE.add_call(UNIDEC_HANDLER.unidec_run, (), func_result=self.on_show_run_unidec)
-        else:
-            self.on_clear_plot_as_task("run")  # clean CURRENT and AFTER run
-            raise MessageError("Error", "Mass spectrum has not been pre-processed yet - please pre-process it first")
-        self.unsaved = True
-
-    def on_detect_peaks_unidec(self, _evt):
-        """Detect features"""
-        if self.check_unidec_engine("executed"):
-            QUEUE.add_call(UNIDEC_HANDLER.unidec_find_peaks, (), func_result=self.on_show_detect_peaks_unidec)
-        else:
-            self.on_clear_plot_as_task("peaks")
-            raise MessageError(
-                "Error", "UniDec has not been executed yet - please execute it before trying peak picking"
-            )
-        self.unsaved = True
-
-    def on_auto_unidec(self, _evt):
-        """Auto UniDec"""
-        QUEUE.add_call(UNIDEC_HANDLER.unidec_autorun, (self.mz_obj,), func_result=self.on_show_autorun_unidec)
 
     def on_show_initialize_unidec(self, unidec_result: UniDecResultsObject):
         """Show UniDec results"""
@@ -1112,6 +1105,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
     def on_show_process_unidec(self, unidec_result: UniDecResultsObject):
         """Show UniDec results"""
         # this is necessary to ensure that the base object is also normalized...
+        self.process_btn.Enable(), self.unidec_init_btn.Enable()
         if CONFIG.ms_normalize:
             self.mz_obj.normalize()
         self.view_mz.plot(obj=self.mz_obj, label="Raw", repaint=False)
@@ -1123,8 +1117,22 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         self.set_engine_owner()
         self.unsaved = True
 
+    def on_run_unidec(self, _evt):
+        """Run UniDec"""
+        if self.check_unidec_engine("preprocessed"):
+            self.run_unidec_btn.Disable(), self.unidec_unidec_btn.Disable()
+            self.on_clear_plot_as_task("peaks")  # clean anything AFTER run
+            QUEUE.add_call(
+                UNIDEC_HANDLER.unidec_run, (), func_result=self.on_show_run_unidec, func_error=self.on_unidec_error
+            )
+        else:
+            self.on_clear_plot_as_task("run")  # clean CURRENT and AFTER run
+            raise MessageError("Error", "Mass spectrum has not been pre-processed yet - please pre-process it first")
+        self.unsaved = True
+
     def on_show_run_unidec(self, unidec_result: UniDecResultsObject):
         """Show UniDec results"""
+        self.run_unidec_btn.Enable(), self.unidec_unidec_btn.Enable()
         if unidec_result.mw_raw is not None:
             self.view_mw.plot(obj=unidec_result.mw_obj)
         if unidec_result.mz_grid is not None:
@@ -1133,8 +1141,26 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
             self.view_mw_grid.plot(obj=unidec_result.mw_grid_obj)
         self.unsaved = True
 
+    def on_detect_peaks_unidec(self, _evt):
+        """Detect features"""
+        if self.check_unidec_engine("executed"):
+            self.detect_peaks_btn.Disable(), self.show_peaks_btn.Disable()
+            QUEUE.add_call(
+                UNIDEC_HANDLER.unidec_find_peaks,
+                (),
+                func_result=self.on_show_detect_peaks_unidec,
+                func_error=self.on_unidec_error,
+            )
+        else:
+            self.on_clear_plot_as_task("peaks")
+            raise MessageError(
+                "Error", "UniDec has not been executed yet - please execute it before trying peak picking"
+            )
+        self.unsaved = True
+
     def on_show_detect_peaks_unidec(self, unidec_result: UniDecResultsObject):
         """Show UniDec results"""
+        self.detect_peaks_btn.Enable(), self.show_peaks_btn.Enable(), self.unidec_peak_btn.Enable()
         # show markers on MW plot
         self.on_show_mw_markers(unidec_result)
         # show barchart
@@ -1147,6 +1173,15 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         # show individual lines
         self.on_show_individual_peaks(unidec_result)
         self.unsaved = True
+
+    def on_auto_unidec(self, _evt):
+        """Auto UniDec"""
+        QUEUE.add_call(
+            UNIDEC_HANDLER.unidec_autorun,
+            (self.mz_obj,),
+            func_result=self.on_show_autorun_unidec,
+            func_error=self.on_unidec_error,
+        )
 
     def on_show_mw_markers(self, unidec_result: UniDecResultsObject):
         """Show markers on the molecular weight plot"""
@@ -1231,7 +1266,6 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
 
             y_min, y_max = self.view_peaks.get_ylim()
             charge_intensity = [y_max - CONFIG.unidec_panel_plot_charges_label_offset] * len(charge_pos)
-            #         charge_intensity += y_max - 1
 
             # show charge labels
             self.view_peaks.add_labels(

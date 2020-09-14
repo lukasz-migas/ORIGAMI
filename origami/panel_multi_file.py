@@ -8,6 +8,7 @@ import wx
 import numpy as np
 
 # Local imports
+import origami.visuals.utilities
 from origami.ids import ID_mmlPanel_plot_DT
 from origami.ids import ID_mmlPanel_plot_MS
 from origami.ids import ID_mmlPanel_check_all
@@ -481,7 +482,7 @@ class PanelMultiFile(TablePanelBase):
             _, color, _ = self.on_get_color(None)
             colors = [color] * check_count
         else:
-            colors = self.presenter.view.panelPlots.on_get_colors_from_colormap(n_colors=check_count)
+            colors = origami.visuals.utilities.on_get_colors_from_colormap(n_colors=check_count)
 
         for row in range(self.peaklist.GetItemCount()):
             if self.peaklist.IsChecked(index=row):

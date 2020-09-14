@@ -1073,7 +1073,7 @@ class PlotSpectrum(PlotBase):
     #
     #             zval_one = np.asarray(zval[:, irow])
     #             if kwargs["waterfall_increment"] != 0 and kwargs.get("waterfall_normalize", True):
-    #                 zval_one = normalize_1D(zval_one)
+    #                 zval_one = normalize_1d(zval_one)
     #
     #             y = zval_one + yOffset
     #             self.plot_base.plot(

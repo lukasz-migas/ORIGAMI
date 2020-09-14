@@ -9,6 +9,7 @@ import wx
 
 # Local imports
 # from origami.ids import ID_window_ionList
+import origami.visuals.utilities
 from origami.ids import ID_extractNewIon
 from origami.ids import ID_extractAllIons
 from origami.ids import ID_ionPanel_editItem
@@ -1110,7 +1111,7 @@ class PanelPeaklist(TablePanelBase):
                 return
             colors = [color_1] * check_count
         else:
-            colors = self.view.panelPlots.on_get_colors_from_colormap(n_colors=check_count)
+            colors = origami.visuals.utilities.on_get_colors_from_colormap(n_colors=check_count)
 
         check_count = 0
         for row in range(self.peaklist.GetItemCount()):

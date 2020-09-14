@@ -49,7 +49,7 @@
 - [x] add colormap selection to RMSD plot
 - [ ] add a flag to each function that specifies whether replot is necessary
 - [ ] split some of the APP config to a separate config instance so they are exported separatedly from the rest
-= [ ] subclass config to reduce code duplication
+- [x] subclass config to reduce code duplication
 
 ## New features
 

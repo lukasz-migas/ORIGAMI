@@ -6,7 +6,7 @@ from numpy.ma.core import masked_array
 # Local imports
 from origami.utils.check import isempty
 from origami.processing.heatmap import normalize_2d
-from origami.processing.spectra import normalize_1D
+from origami.processing.spectra import normalize_1d
 
 
 def mask_arrays(array_1: np.ndarray, array_2: np.ndarray, alpha_1: float, alpha_2: float):
@@ -72,9 +72,9 @@ def compute_rmsf(array_1, array_2):
     for row in range(0, size, 1):
         # Before computing the value of RMSF, we have to normalize to 1
         # to convert to percentage
-        array_1_norm = normalize_1D(array_1[:, row])
+        array_1_norm = normalize_1d(array_1[:, row])
         np.nan_to_num(array_1_norm, copy=False)
-        array_2_norm = normalize_1D(array_2[:, row])
+        array_2_norm = normalize_1d(array_2[:, row])
         np.nan_to_num(array_2_norm, copy=False)
         # Compute difference
         array_sub = array_1_norm - array_2_norm

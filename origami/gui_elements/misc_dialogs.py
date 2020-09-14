@@ -63,13 +63,17 @@ def DialogBox(title="", msg="", kind="Error", show_exception=True, parent=None):
 
 # noinspection PyPep8Naming
 def DialogSimpleAsk(message="", title="", value="", value_type=None, parent=None):
+    """Simple dialog to ask basic questions of the user"""
+    from origami.styles import Validator
 
     if value_type is not None and value_type in ["int", "intPos"]:
         if value is None:
             value = 0
         dlg = wx.NumberEntryDialog(parent, message, title, "", value, -100000, 1000000)
     else:
-        dlg = wx.TextEntryDialog(parent, message, title, value)
+        dlg = wx.TextEntryDialog(parent, message, title, str(value))
+        if value_type in ["float", "floatPos"]:
+            dlg.SetValidator(Validator(value_type))
 
     dlg.CenterOnParent()
 

@@ -3,22 +3,21 @@
 import wx
 
 # Local imports
-from origami.styles import Dialog
+from origami.styles import MiniFrame
 from origami.styles import Validator
 from origami.utils.converters import str2int
 from origami.utils.converters import str2num
 from origami.utils.exceptions import MessageError
-from origami.gui_elements._panel import TestPanel  # noqa
 from origami.gui_elements.helpers import set_tooltip
 
 
-class DialogAutoGenerateConformers(Dialog):
+class DialogAutoGenerateConformers(MiniFrame):
     """Create popup window to modify few uncommon settings"""
 
     mw_value, charge_start, charge_end, mz_window, ok_btn, simulate_btn = None, None, None, None, None, None
 
     def __init__(self, parent):
-        Dialog.__init__(self, parent, title="Auto-generate calibrants")
+        MiniFrame.__init__(self, parent, title="Auto-generate calibrants")
 
         # make gui items
         self.make_gui()
@@ -59,16 +58,16 @@ class DialogAutoGenerateConformers(Dialog):
 
         grid = wx.GridBagSizer(2, 2)
         y = 0
-        grid.Add(wx.StaticText(self, -1, "MW (Da)"), (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(wx.StaticText(panel, -1, "MW (Da)"), (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.mw_value, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
         y += 1
-        grid.Add(wx.StaticText(self, -1, "m/z window:"), (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(wx.StaticText(panel, -1, "m/z window:"), (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.mz_window, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
         y += 1
-        grid.Add(wx.StaticText(self, -1, "Charge (start):"), (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(wx.StaticText(panel, -1, "Charge (start):"), (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.charge_start, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
         y += 1
-        grid.Add(wx.StaticText(self, -1, "Charge (end):"), (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(wx.StaticText(panel, -1, "Charge (end):"), (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.charge_end, (y, 1), wx.GBSpan(1, 1), flag=wx.EXPAND)
 
         btn_sizer = wx.BoxSizer()
@@ -113,25 +112,24 @@ class DialogAutoGenerateConformers(Dialog):
             self.parent._on_auto_process(mw, z_start, z_end, mz_window)  # noqa
 
 
-class TestPopup(TestPanel):
-    """Test the popup window"""
-
-    def __init__(self, parent):
-        super().__init__(parent)
-
-        self.btn_1.Bind(wx.EVT_BUTTON, self.on_popup)
-
-    def on_popup(self, _evt):
-        """Activate popup"""
-
-        p = DialogAutoGenerateConformers(self)
-        p.Show()
-
-
 def _main_popup():
+    from origami.gui_elements._panel import TestPanel  # noqa
+
+    class TestPopup(TestPanel):
+        """Test the popup window"""
+
+        def __init__(self, parent):
+            super().__init__(parent)
+
+            self.btn_1.Bind(wx.EVT_BUTTON, self.on_popup)
+
+        def on_popup(self, _evt):
+            """Activate popup"""
+
+            p = DialogAutoGenerateConformers(self)
+            p.Show()
 
     app = wx.App()
-
     dlg = TestPopup(None)
     wx.PostEvent(dlg.btn_1, wx.PyCommandEvent(wx.EVT_BUTTON.typeId, dlg.btn_1.GetId()))
     dlg.Show()

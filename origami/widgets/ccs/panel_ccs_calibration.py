@@ -693,7 +693,9 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         from origami.widgets.ccs.misc_windows import DialogAutoGenerateConformers
 
         popup = DialogAutoGenerateConformers(self)
+        popup.position_on_event(_evt)
         popup.Show()
+        popup.SetFocus()
 
     def _on_auto_process(self, mw: float, z_start: int, z_end: int, mz_window: float):
         """Auto-process the currently loaded mass spectrum"""

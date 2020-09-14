@@ -98,9 +98,6 @@ class PlotOverlay(PlotSpectrum, PlotHeatmap2D):
 
         # add colorbar
         # self.set_colorbar_parameters(array, **kwargs)
-
-        # update normalization
-        # self.plot_2D_update_normalization(**kwargs)
         self.PLOT_TYPE = "heatmap-overlay"
 
     def plot_heatmap_line(self, x, y, array, y_top, x_label=None, y_label=None, ratio: int = 5, obj=None, **kwargs):
@@ -116,6 +113,7 @@ class PlotOverlay(PlotSpectrum, PlotHeatmap2D):
         xlimits, ylimits, extent = self._compute_xy_limits(x, y, None)
 
         # add 2d plot
+        cmap_norm, _ = self.get_heatmap_normalization(array, **kwargs)
         self.cax = self.plot_base.imshow(
             array,
             cmap=kwargs["heatmap_colormap"],
@@ -123,6 +121,7 @@ class PlotOverlay(PlotSpectrum, PlotHeatmap2D):
             aspect="auto",
             origin="lower",
             extent=[*xlimits, *ylimits],
+            norm=cmap_norm,
             gid=PlotIds.PLOT_LH_2D,
         )
 
@@ -171,7 +170,6 @@ class PlotOverlay(PlotSpectrum, PlotHeatmap2D):
         self.store_plot_limits([extent, extent_x], [self.plot_base, self.plot_line_top])
 
         # update normalization
-        self.plot_2D_update_normalization(**kwargs)
         self.PLOT_TYPE = "heatmap-line"
 
     def plot_update_grid(self, grid, wspace=None, hspace=None):
@@ -195,6 +193,8 @@ class PlotOverlay(PlotSpectrum, PlotHeatmap2D):
         xlimits, ylimits, extent = self._compute_xy_limits(x, y, None)
 
         # main plot
+        cmap_norm, _ = self.get_heatmap_normalization(array, **kwargs)
+
         self.cax = self.plot_base.imshow(
             array,
             cmap=kwargs["heatmap_colormap"],
@@ -203,9 +203,11 @@ class PlotOverlay(PlotSpectrum, PlotHeatmap2D):
             origin="lower",
             extent=[*xlimits, *ylimits],
             gid=PlotIds.PLOT_GRID_2_TO_1_RIGHT,
+            norm=cmap_norm,
         )
 
         # two-side plots
+        cmap_norm, _ = self.get_heatmap_normalization(array_top, **kwargs)
         self.cax = self.plot_grid_tto_top.imshow(
             array_top,
             cmap=kwargs["heatmap_colormap"],
@@ -214,8 +216,10 @@ class PlotOverlay(PlotSpectrum, PlotHeatmap2D):
             origin="lower",
             extent=[*xlimits, *ylimits],
             gid=PlotIds.PLOT_GRID_2_TO_1_LEFT_TOP,
+            norm=cmap_norm,
         )
 
+        cmap_norm, _ = self.get_heatmap_normalization(array_bottom, **kwargs)
         self.cax = self.plot_grid_tto_bottom.imshow(
             array_bottom,
             cmap=kwargs["heatmap_colormap"],
@@ -224,6 +228,7 @@ class PlotOverlay(PlotSpectrum, PlotHeatmap2D):
             origin="lower",
             extent=[*xlimits, *ylimits],
             gid=PlotIds.PLOT_GRID_2_TO_1_LEFT_BOTTOM,
+            norm=cmap_norm,
         )
 
         # turn off the ticks on the density axis for the marginal plots
@@ -248,9 +253,6 @@ class PlotOverlay(PlotSpectrum, PlotHeatmap2D):
         self.store_plot_limits(
             [extent, extent, extent], [self.plot_base, self.plot_grid_tto_top, self.plot_grid_tto_bottom]
         )
-
-        # update normalization
-        self.plot_2D_update_normalization(**kwargs)
         self.PLOT_TYPE = "heatmap-tto"
 
     def plot_2d_grid_n_x_n(
@@ -280,6 +282,8 @@ class PlotOverlay(PlotSpectrum, PlotHeatmap2D):
 
             array = arrays[i]
             colormap = colormaps[i]
+            cmap_norm, _ = self.get_heatmap_normalization(array, **kwargs)
+
             ax.imshow(
                 array,
                 cmap=colormap,
@@ -287,7 +291,7 @@ class PlotOverlay(PlotSpectrum, PlotHeatmap2D):
                 aspect="auto",
                 origin="lower",
                 extent=[*xlimits, *ylimits],
-                gid=PlotIds.PLOT_GRID_2_TO_1_RIGHT,
+                norm=cmap_norm,
             )
             axes.append(ax)
             extents.append(extent)
@@ -328,9 +332,6 @@ class PlotOverlay(PlotSpectrum, PlotHeatmap2D):
             obj=obj,
         )
         self.store_plot_limits(extents, axes)
-
-        # update normalization
-        self.plot_2D_update_normalization(**kwargs)
         self.PLOT_TYPE = "heatmap-grid"
 
     def plot_2d_matrix(
@@ -351,6 +352,7 @@ class PlotOverlay(PlotSpectrum, PlotHeatmap2D):
         # add 2d plot
         xlimits, ylimits, extent = self._compute_xy_limits(x, y, None, is_heatmap=True)
 
+        cmap_norm, _ = self.get_heatmap_normalization(array, **kwargs)
         self.cax = self.plot_base.imshow(
             array,
             cmap=kwargs["heatmap_colormap"],
@@ -358,6 +360,7 @@ class PlotOverlay(PlotSpectrum, PlotHeatmap2D):
             aspect="equal",
             origin="lower",
             extent=[*xlimits, *ylimits],
+            norm=cmap_norm,
         )
         # set ticks
         x_size = len(array)
@@ -392,8 +395,6 @@ class PlotOverlay(PlotSpectrum, PlotHeatmap2D):
         # add colorbar
         self.set_colorbar_parameters(array, **kwargs)
 
-        # update normalization
-        self.plot_2D_update_normalization(**kwargs)
         self.PLOT_TYPE = "heatmap-matrix"
 
     def plot_2d_dot(
@@ -451,7 +452,6 @@ class PlotOverlay(PlotSpectrum, PlotHeatmap2D):
         self.set_colorbar_parameters(array, **kwargs)
 
         # update normalization
-        self.plot_2D_update_normalization(**kwargs)
         self.PLOT_TYPE = "heatmap-dot"
 
     def _prepare_dots(self, array, min_scale=0.1, max_scale=1.0, **kwargs):

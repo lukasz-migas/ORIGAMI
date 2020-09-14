@@ -9,6 +9,8 @@ from wx.adv import BitmapComboBox
 # Local imports
 from origami.config.config import CONFIG
 from origami.utils.converters import str2num
+from origami.visuals.utilities import on_change_plot_style
+from origami.visuals.utilities import on_change_color_palette
 from origami.gui_elements.helpers import make_checkbox
 from origami.gui_elements.helpers import set_item_font
 from origami.gui_elements.views.view_register import VIEW_REG
@@ -370,7 +372,7 @@ class PanelGeneralSettings(PanelSettingsBase):
             return
 
         CONFIG.current_style = self.plot_style_value.GetStringSelection()
-        self.panel_plot.on_change_plot_style()
+        on_change_plot_style()
         try:
             view = VIEW_REG.view
             view.replot(light_clear=True)
@@ -384,7 +386,7 @@ class PanelGeneralSettings(PanelSettingsBase):
             return
 
         CONFIG.current_palette = self.plot_palette_value.GetStringSelection()
-        self.panel_plot.on_change_color_palette(evt=None)
+        on_change_color_palette()
         self._parse_evt(evt)
 
     def _on_set_config(self):

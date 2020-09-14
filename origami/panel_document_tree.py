@@ -77,6 +77,9 @@ from origami.gui_elements.misc_dialogs import DialogSimpleAsk
 
 LOGGER = logging.getLogger(__name__)
 
+# FIXME: renaming an object removes some of the metadata that is not loaded alongside the main data - fix by simply
+#        renaming the folder
+
 
 class Item:
     """Container object to keep track of which item is selected in the Document Tree"""
@@ -1065,7 +1068,7 @@ class DocumentTree(wx.TreeCtrl):
             else:
                 self.on_show_plot(None)
         elif self._item.is_match("calibration"):
-            self.on_show_ccs_calibration()
+            self.on_show_ccs_calibration(None)
         elif self._item.is_match("overlay"):
             self.on_open_overlay_viewer()
 
@@ -1432,7 +1435,7 @@ class DocumentTree(wx.TreeCtrl):
         self._ccs_panel = PanelCCSCalibration(self.view, document_title=document_title)
         self._ccs_panel.Show()
 
-    def on_show_ccs_calibration(self):
+    def on_show_ccs_calibration(self, _evt):
         """Open CCS calibration dialog"""
         document_title, calibration_name = self._get_item_info()
         self.on_open_ccs_editor(None, document_title, calibration_name)
@@ -2153,6 +2156,39 @@ class DocumentTree(wx.TreeCtrl):
             menu.AppendItem(menu_action_delete_item)
             menu.AppendItem(menu_action_open_data_directory)
 
+    def _set_menu_calibration(self, menu):
+        """Set CCS calibration menu"""
+        if self._item.indent <= 1:
+            return
+
+        # view actions
+        menu_action_show_plot = make_menu_item(parent=menu, text="Show calibration", bitmap=self._icons.heatmap)
+        self.Bind(wx.EVT_MENU, self.on_show_ccs_calibration, menu_action_show_plot)
+
+        menu_action_delete_item = make_menu_item(parent=menu, text="Delete item\tDelete", bitmap=self._icons.delete)
+        self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
+
+        # export actions
+        menu_action_save_data_as = make_menu_item(parent=menu, text="Save data as...", bitmap=self._icons.csv)
+        self.Bind(wx.EVT_MENU, self.on_save_csv, menu_action_save_data_as)
+
+        menu_action_save_data_as_all = make_menu_item(parent=menu, text="Batch save data as...", bitmap=self._icons.csv)
+        self.Bind(wx.EVT_MENU, self.on_batch_export_data, menu_action_save_data_as_all)
+
+        menu_action_open_data_directory = make_menu_item(parent=menu, text="Reveal data directory in File Explorer")
+        self.Bind(wx.EVT_MENU, self.on_open_data_directory, menu_action_open_data_directory)
+
+        # make menu
+        if self._item.indent == 2:
+            menu.AppendItem(menu_action_save_data_as_all)
+            menu.AppendItem(menu_action_delete_item)
+        else:
+            menu.AppendItem(menu_action_show_plot)
+            menu.AppendSeparator()
+            menu.AppendItem(menu_action_save_data_as)
+            menu.AppendItem(menu_action_delete_item)
+            menu.AppendItem(menu_action_open_data_directory)
+
     @staticmethod
     def _get_menu_overlay(menu):
         # # statistical method
@@ -2275,38 +2311,10 @@ class DocumentTree(wx.TreeCtrl):
         # Bind events
         self._bind_change_label_events()
 
-        # self.Bind(wx.EVT_MENU, self.on_show_plot, id=ID_showPlot1DDocument)
-        # self.Bind(wx.EVT_MENU, self.on_show_plot, id=ID_showPlotRTDocument)
-        # self.Bind(wx.EVT_MENU, self.on_show_plot, id=ID_showPlotMSDocument)
-        # self.Bind(wx.EVT_MENU, self.onProcess, id=ID_process2DDocument)
-        # self.Bind(wx.EVT_MENU, self.on_save_csv, id=ID_saveDataCSVDocument)
-        # self.Bind(wx.EVT_MENU, self.on_save_csv, id=ID_saveDataCSVDocument1D)
-        # self.Bind(wx.EVT_MENU, self.on_save_csv, id=ID_saveAsDataCSVDocument)
-        # self.Bind(wx.EVT_MENU, self.on_save_csv, id=ID_saveAsDataCSVDocument1D)
         # # self.Bind(wx.EVT_MENU, self.onShowSampleInfo, id=ID_showSampleInfo)
         # self.Bind(wx.EVT_MENU, self.view.on_open_interactive_output_panel, id=ID_saveAsInteractive)
-        # self.Bind(wx.EVT_MENU, self.on_open_spectrum_comparison_viewer, id=ID_docTree_compareMS)
-        # self.Bind(wx.EVT_MENU, self.onShowMassSpectra, id=ID_docTree_showMassSpectra)
-        # self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addToMMLTable)
-        # self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addOneToMMLTable)
-        # self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addToTextTable)
-        # self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addOneToTextTable)
-        # self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addInteractiveToTextTable)
-        # self.Bind(wx.EVT_MENU, self.onAddToTable, id=ID_docTree_addOneInteractiveToTextTable)
-        # self.Bind(wx.EVT_MENU, self.on_refresh_document, id=ID_docTree_show_refresh_document)
-        #
-        # # self.Bind(wx.EVT_MENU, self.onOpenDocInfo, id=ID_openDocInfo)
-        # self.Bind(wx.EVT_MENU, self.onShow_and_SavePlot, id=ID_saveRTImageDoc)
-        # self.Bind(wx.EVT_MENU, self.onShow_and_SavePlot, id=ID_save1DImageDoc)
-        # self.Bind(wx.EVT_MENU, self.onShow_and_SavePlot, id=ID_save2DImageDoc)
-        # self.Bind(wx.EVT_MENU, self.onShow_and_SavePlot, id=ID_save3DImageDoc)
         # # self.Bind(wx.EVT_MENU, self.on_process_UVPD, id=ID_docTree_plugin_UVPD)
-        # self.Bind(wx.EVT_MENU, self.onSaveDF, id=ID_saveData_csv)
-        # self.Bind(wx.EVT_MENU, self.onSaveDF, id=ID_saveData_pickle)
-        # self.Bind(wx.EVT_MENU, self.onSaveDF, id=ID_saveData_excel)
-        # self.Bind(wx.EVT_MENU, self.onSaveDF, id=ID_saveData_hdf)
         # # self.Bind(wx.EVT_MENU, self.on_open_unidec, id=ID_docTree_show_unidec)
-        # self.Bind(wx.EVT_MENU, self.on_save_unidec_results, id=ID_docTree_save_unidec)
         # self.Bind(wx.EVT_MENU, self.data_handling.on_add_mzident_file_fcn, id=ID_docTree_add_mzIdentML)
         # self.Bind(wx.EVT_MENU, self.on_action_origami_ms, id=ID_docTree_action_open_origami_ms)
         # # self.Bind(wx.EVT_MENU, self.on_open_extract_dtms, id=ID_docTree_action_open_extractDTMS)
@@ -2323,6 +2331,8 @@ class DocumentTree(wx.TreeCtrl):
             self._set_menu_heatmap(menu)
         elif self._item.is_match("msdt"):
             self._set_menu_msdt(menu)
+        elif self._item.is_match("calibration"):
+            self._set_menu_calibration(menu)
 
         # elements that are always present
         if menu.GetMenuItemCount() > 0:
@@ -2476,35 +2486,6 @@ class DocumentTree(wx.TreeCtrl):
         )
         self._compare_panel.Show()
 
-    def on_get_ccs_calibration(self, document: DocumentStore):
-        """Get CCS calibration from the document"""
-
-        if not document.has_ccs_calibration():
-            return
-
-        calibration_name = None
-        calibration_list = document.get_ccs_calibration_list()
-        if calibration_list:
-            if len(calibration_list) > 1:
-                # allow the user to make selection
-                dlg = wx.SingleChoiceDialog(
-                    self,
-                    "Calibrations",
-                    "There are existing calibrations in the Document."
-                    "\nPlease select calibration you would like to restore in the panel",
-                    calibration_list,
-                )
-                if dlg.ShowModal() == wx.ID_CANCEL:
-                    LOGGER.debug("Restoration of calibration was cancelled.")
-                    return
-
-                calibration_name = dlg.GetStringSelection()
-                dlg.Destroy()
-            else:
-                calibration_name = calibration_list[0]
-        if calibration_name:
-            return document.get_ccs_calibration(calibration_name)
-
     def on_assign_charge_state(self, _evt):
         """Assign charge state in an object"""
         data_obj = self._get_item_object()
@@ -2536,6 +2517,35 @@ class DocumentTree(wx.TreeCtrl):
             return
         data_obj.add_metadata("mz", mz)
         LOGGER.debug(f"Assigned m/z value `{mz}` to the data object")
+
+    def on_get_ccs_calibration(self, document: DocumentStore):
+        """Get CCS calibration from the document"""
+
+        if not document.has_ccs_calibration():
+            return
+
+        calibration_name = None
+        calibration_list = document.get_ccs_calibration_list()
+        if calibration_list:
+            if len(calibration_list) > 1:
+                # allow the user to make selection
+                dlg = wx.SingleChoiceDialog(
+                    self,
+                    "Calibrations",
+                    "There are existing calibrations in the Document."
+                    "\nPlease select calibration you would like to restore in the panel",
+                    calibration_list,
+                )
+                if dlg.ShowModal() == wx.ID_CANCEL:
+                    LOGGER.debug("Restoration of calibration was cancelled.")
+                    return
+
+                calibration_name = dlg.GetStringSelection()
+                dlg.Destroy()
+            else:
+                calibration_name = calibration_list[0]
+        if calibration_name:
+            return document.get_ccs_calibration(calibration_name)
 
     def on_apply_ccs_calibration(self, _evt):
         """Apply ORIGAMI-MS settings on the object and create a copy"""
@@ -3094,10 +3104,6 @@ class DocumentTree(wx.TreeCtrl):
         elif _click_obj == "Heatmaps":
             self.on_show_plot_heatmap(evt_id, save_image)
 
-        # # show overlay / statistical plots
-        # elif _click_obj in ["Overlay", "Statistical"]:
-        #     self.on_show_plot_overlay(save_image)
-
         # show dt/ms plot
         elif _click_obj == "Heatmaps (MS/DT)" or evt_id in [
             ID_ylabel_DTMS_bins,
@@ -3210,6 +3216,7 @@ class DocumentTree(wx.TreeCtrl):
             "MSDTHeatmaps": "MSDTHeatmaps",
             "Heatmaps (MS/DT)": "MSDTHeatmaps",
             "Calibration (CCS)": "CCSCalibrations",
+            "CCSCalibrations": "CCSCalibrations",
             "Overlays": "Overlays",
         }
         return group_dict.get(key, key)

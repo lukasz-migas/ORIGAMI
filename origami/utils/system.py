@@ -100,12 +100,5 @@ elif os.name == "nt":
 else:
     raise ImportError("Feature requires psutil 0.3+ on non Windows platforms")
 
-if __name__ == "__main__":
-    print("*" * 80)  # spyder: test-skip
-    print(memory_usage.__doc__)  # spyder: test-skip
-    print(memory_usage())  # spyder: test-skip
-    if os.name == "nt":
-        #  windll can only be imported if os.name = 'nt' or 'ce'
-        print("*" * 80)  # spyder: test-skip
-        print(windows_memory_usage.__doc__)  # spyder: test-skip
-        print(windows_memory_usage())  # spyder: test-skip
+
+RUNNING_UNDER_PYTEST = running_under_pytest()

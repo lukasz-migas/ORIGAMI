@@ -281,3 +281,49 @@ class ParentSizeMixin:
         self._window_size = calculate_window_size(self._display_size, ratio, max_window_size)
 
         return self._window_size
+
+
+class WindowPositionMixin:
+    """Mixin class to provide several convinience classes for positioning of windows"""
+
+    def position_on_event(self, evt, move_h: int = 0, move_v: int = 0):
+        """Position the window on an event location
+
+        Parameters
+        ----------
+        evt : event
+            wxPython event
+        move_h : int
+            horizontal offset to move the popup to the side
+        move_v : int
+            vertical offset to move the popup up or down
+        """
+        obj = evt.GetEventObject()
+        if hasattr(obj, "ClientToScreen"):
+            pos = obj.ClientToScreen((0, 0))  # noqa
+        else:
+            pos = (0, 0)
+        pos = (pos[0] - move_h, pos[1] - move_v)
+        self.SetPosition(pos)  # noqa
+
+    def position(self, x, y):
+        """Simply set position of the window"""
+        self.SetPosition((x, y))  # noqa
+
+    def position_on_window(self, window, move_h: int = 0, move_v: int = 0):
+        """Position the window on the window position"""
+        # get current position of the window
+        x, y = window.GetPosition()
+        # get current size of the window
+        dx, dy = window.GetSize()
+        # get current size of the popup
+        px, py = self.GetSize()  # noqa
+        x = x + dx - px - move_h - 25
+        y = y + dy - py - move_v - 25
+        self.SetPosition((x, y))  # noqa
+
+    def position_on_mouse(self, move_h: int = 0, move_v: int = 0):
+        """Position the window on the last mouse position"""
+        pos = wx.GetMousePosition()
+        pos = (pos[0] - move_h, pos[1] - move_v)
+        self.SetPosition(pos)  # noqa

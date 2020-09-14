@@ -7,6 +7,7 @@ from enum import IntEnum
 import wx
 
 # Local imports
+import origami.visuals.utilities
 from origami.ids import ID_addNewOverlayDoc
 from origami.ids import ID_ionPanel_edit_all
 from origami.ids import ID_textPanel_editItem
@@ -646,7 +647,7 @@ class PanelTextlist(TablePanelBase):
             _, color, _ = self.on_get_color(None)
             colors = [color] * check_count
         else:
-            colors = self.presenter.view.panelPlots.on_get_colors_from_colormap(n_colors=check_count)
+            colors = origami.visuals.utilities.on_get_colors_from_colormap(n_colors=check_count)
 
         check_count = 0
         for row in range(self.peaklist.GetItemCount()):

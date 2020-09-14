@@ -21,13 +21,14 @@ from origami.utils.converters import str2num
 from origami.utils.converters import byte2str
 from origami.gui_elements.mixins import ParentSizeMixin
 from origami.gui_elements.mixins import DocumentationMixin
+from origami.gui_elements.mixins import WindowPositionMixin
 from origami.gui_elements.mixins import ActivityIndicatorMixin
 from origami.gui_elements.misc_dialogs import DialogBox
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Dialog(wx.Dialog, ActivityIndicatorMixin, DocumentationMixin, ParentSizeMixin):
+class Dialog(wx.Dialog, ActivityIndicatorMixin, DocumentationMixin, ParentSizeMixin, WindowPositionMixin):
     """Proxy of Dialog"""
 
     def __init__(self, parent, style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX), **kwargs):
@@ -86,7 +87,7 @@ class Dialog(wx.Dialog, ActivityIndicatorMixin, DocumentationMixin, ParentSizeMi
         self.Layout()
 
 
-class MiniFrame(wx.MiniFrame, ActivityIndicatorMixin, DocumentationMixin, ParentSizeMixin):
+class MiniFrame(wx.MiniFrame, ActivityIndicatorMixin, DocumentationMixin, ParentSizeMixin, WindowPositionMixin):
     """Proxy of MiniFrame"""
 
     def __init__(

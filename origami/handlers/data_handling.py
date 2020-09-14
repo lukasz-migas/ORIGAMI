@@ -1775,7 +1775,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     #
     #         # Sum y-axis data
     #         msDataY = np.sum(combMS, axis=1)
-    #         msDataY = pr_spectra.normalize_1D(msDataY)
+    #         msDataY = pr_spectra.normalize_1d(msDataY)
     #         xlimits = [document.parameters["start_ms"], document.parameters["end_ms"]]
     #
     #         # Form pandas dataframe

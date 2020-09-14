@@ -120,7 +120,6 @@ class Config(ConfigBase):
         `waterfall_...` will be used to update waterfall-like plots. The value in the configuration file will reflect
         the name in the `Config` instance since values are set using the `setattr` method.
         """
-
         # Various app defaults
         self.APP_STDIN = None
         self.APP_STDOUT = None
@@ -142,7 +141,6 @@ class Config(ConfigBase):
         self.APP_LOAD_CCS_DB_AT_START = True
         self.APP_SYSTEM = platform.system()
         self.APP_START_TIME = time.strftime("%Y_%m_%d-%H-%M-%S", time.gmtime())
-
         self.DEFAULT_CONFIG_NAME = "origami-config.json"
 
         # Configurable
@@ -2641,7 +2639,32 @@ class Config(ConfigBase):
                         "unidec_panel_plot_individual_markers_show": self.unidec_panel_plot_individual_markers_show,
                     }
                 )
+        return config
 
+    def get_bokeh_parameters(self, config_key: Union[List[str], str], get_keys: bool = False):
+        """Get parameters that correspond to panels and UI elements
+
+        Parameters
+        ----------
+        config_key : List[str], str
+            configuration key or list of configuration keys that should be retrieved from the config file
+        get_keys : bool
+            if `True`, return the list of keys of config keys that can be retrieved
+
+        Returns
+        -------
+        config_keys : List[str]
+            if `get_keys` is True
+        config : Dict
+            dictionary with keys
+        """
+
+        if get_keys:
+            return []
+
+        config = dict()
+        if not isinstance(config_key, list):
+            config_key = [config_key]
         return config
 
     def _get_config_parameters(self, config: Dict) -> Dict:

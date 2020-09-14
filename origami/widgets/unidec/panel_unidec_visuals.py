@@ -11,6 +11,7 @@ from origami.styles import Validator
 from origami.utils.color import convert_rgb_1_to_255
 from origami.config.config import CONFIG
 from origami.utils.converters import str2int
+from origami.visuals.utilities import on_change_color_palette
 from origami.gui_elements.helpers import set_tooltip
 from origami.gui_elements.helpers import make_checkbox
 from origami.gui_elements.helpers import set_item_font
@@ -385,7 +386,13 @@ class PanelCustomiseUniDecVisuals(PanelSettingsBase):
         return self
 
     def on_change_color_palette(self, evt):
-        """Change color palette"""
+        """Update color palette"""
+        if self.import_evt:
+            return
+
+        CONFIG.current_palette = self.plot_palette_value.GetStringSelection()
+        on_change_color_palette()
+        self._parse_evt(evt)
 
     def on_assign_color(self, evt):
         """Change color"""

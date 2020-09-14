@@ -288,6 +288,7 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin):
         popup = PopupAnnotationSettings(self)
         popup.position_on_event(evt)
         popup.Show()
+        popup.SetFocus()
 
     def setup(self):
         """Setup UI"""

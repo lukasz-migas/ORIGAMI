@@ -253,7 +253,7 @@ class DataVisualization:
 
             # normalize data
             if normalize_dataset:
-                yvals = pr_spectra.normalize_1D(yvals)
+                yvals = pr_spectra.normalize_1d(yvals)
 
             # Append data to list
             xlist.append(xvals)
@@ -349,7 +349,7 @@ class DataVisualization:
                 yvals = data["yvals"]
 
             if normalize_dataset:
-                yvals = pr_spectra.normalize_1D(yvals)
+                yvals = pr_spectra.normalize_1d(yvals)
 
             # Append data to list
             xlist.append(xvals)
@@ -448,7 +448,7 @@ class DataVisualization:
                 yvals = data["yvals"]
 
             if normalize_dataset:
-                yvals = pr_spectra.normalize_1D(yvals)
+                yvals = pr_spectra.normalize_1d(yvals)
 
             # Append data to list
             xlist.append(xvals)
@@ -551,7 +551,7 @@ class DataVisualization:
                 yvals = data["yvals"]
 
             if normalize_dataset:
-                yvals = pr_spectra.normalize_1D(yvals)
+                yvals = pr_spectra.normalize_1d(yvals)
 
             # Append data to list
             xlist.append(xvals)

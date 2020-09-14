@@ -124,7 +124,7 @@ class SpectrumObject(DataObject):
 
     def get_x_window(self, x_min: float, x_max: float):
         """Crop signal to defined x-axis region without setting it in the object"""
-        x, y = pr_spectra.crop_1D_data(self.x, self.y, x_min, x_max)
+        x, y = pr_spectra.crop_1d_data(self.x, self.y, x_min, x_max)
         return x, y
 
     def process(
@@ -172,7 +172,7 @@ class SpectrumObject(DataObject):
 
     def normalize(self):
         """Normalize spectrum to 1"""
-        self._y = pr_spectra.normalize_1D(self.y)
+        self._y = pr_spectra.normalize_1d(self.y)
         self.unsaved = True
         return self
 
@@ -186,7 +186,7 @@ class SpectrumObject(DataObject):
         crop_max : float, optional
             maximum value in the x-axis array to be retained
         """
-        x, y = pr_spectra.crop_1D_data(self.x, self.y, crop_min, crop_max)
+        x, y = pr_spectra.crop_1d_data(self.x, self.y, crop_min, crop_max)
         self._x, self._y = x, y
         self.unsaved = True
         return self

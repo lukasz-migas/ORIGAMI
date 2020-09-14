@@ -2,8 +2,6 @@
 # Standard library imports
 from typing import Dict
 
-# Third-party imports
-
 # Local imports
 from origami.gui_elements.popup import PopupBase
 from origami.gui_elements._panel import TestPanel  # noqa
