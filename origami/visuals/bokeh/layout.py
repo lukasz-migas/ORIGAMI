@@ -1,4 +1,7 @@
 """Layout to be used by individual pages to render HTML content"""
+# Standard library imports
+import math
+
 # Third-party imports
 from bokeh.layouts import row
 from bokeh.layouts import column
@@ -11,23 +14,31 @@ class BaseLayout:
 
     LAYOUT = None
 
-    def __init__(self, plot_objects):
+    def __init__(self, name: str, plot_objects=None):
+        self._name = name
         self._objects = []
         if isinstance(plot_objects, list):
             self._objects.extend(plot_objects)
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}<name={self._name}>"
+
     @property
     def objects(self):
         """Returns properly arranged layout"""
-        return self._objects
+        return [obj.render() for obj in self._objects]
 
-    def add(self, plot_obj):
+    def append(self, plot_obj):
         """Add plot object to the `objects` container"""
         self._objects.append(plot_obj)
 
+    def extend(self, *plot_obj):
+        """Add plot object to the `objects` container"""
+        self._objects.extend(plot_obj)
+
     def render(self):
         """Render layout so it can be displayed in the Document"""
-        self.LAYOUT(children=self._objects, **self._get_layout_kwargs())
+        raise NotImplementedError("Must implement method")
 
     @staticmethod
     def _get_layout_kwargs():
@@ -38,32 +49,39 @@ class BaseLayout:
 class RowLayout(BaseLayout):
     """Row layout"""
 
-    LAYOUT = row
+    def render(self):
+        """Render layout so it can be displayed in the Document"""
+        return row(self.objects, **self._get_layout_kwargs())
 
 
 class ColumnLayout(BaseLayout):
     """Column layout"""
 
-    LAYOUT = column
+    def render(self):
+        """Render layout so it can be displayed in the Document"""
+        return column(self.objects, **self._get_layout_kwargs())
 
 
 class LayoutLayout(BaseLayout):
     """Auto-grid layout"""
 
-    LAYOUT = layout
-
     @property
     def objects(self):
         """Returns properly arranged layout"""
         return self._objects
+
+    def render(self):
+        """Render layout so it can be displayed in the Document"""
+        return layout(self.objects, **self._get_layout_kwargs())
 
 
 class GridLayout(BaseLayout):
     """Grid layout"""
 
-    LAYOUT = gridplot
+    def _get_layout_kwargs(self):
+        n_cols = math.ceil(math.sqrt(len(self._objects)))
+        return {"ncols": n_cols}
 
-    @property
-    def objects(self):
-        """Returns properly arranged layout"""
-        return self._objects
+    def render(self):
+        """Render layout so it can be displayed in the Document"""
+        return gridplot(self.objects, **self._get_layout_kwargs())

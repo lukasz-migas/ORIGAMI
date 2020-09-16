@@ -12,7 +12,6 @@ import numpy as np
 import matplotlib.cm as cm
 import matplotlib.colors as colors
 import wx.lib.scrolledpanel
-from bokeh import events
 from natsort import natsorted
 from seaborn import color_palette
 from bokeh.models import Arrow
@@ -44,7 +43,6 @@ from bokeh.models.tickers import FixedTicker
 from bokeh.models.widgets import Div
 from bokeh.models.widgets import Tabs
 from bokeh.models.widgets import Panel
-from bokeh.models.widgets import RadioButtonGroup
 
 # Local imports
 from origami.ids import ID_helpHTMLEditor
@@ -3614,113 +3612,6 @@ class PanelInteractiveCreator(wx.MiniFrame):
         js_widgets = []
         msg = "Added JS scripts: "
         try:
-            if "label_toggle" in js_type and "labels" in kwargs:
-                labels = kwargs["labels"]
-                js_code = """\
-                if (toggle.active) {
-                    labels.text_alpha = 1;
-                    toggle.label = "Hide labels";
-                    console.log('Showing labels');
-                    }
-                else {
-                    labels.text_alpha = 0;
-                    toggle.label = "Show labels";
-                    console.log('Hiding labels');
-                    }
-                """
-                callback = CustomJS(code=js_code, args={})
-                toggle = Toggle(
-                    label="Hide labels", button_type="success", callback=callback, active=True, width=widget_width
-                )
-                callback.args = {"toggle": toggle, "labels": labels, "figure": bokehPlot}
-                js_widgets.append(toggle)
-                msg = "{} Annotation on/off toggle |".format(msg)
-
-            if "label_size_slider" in js_type and "labels" in kwargs:
-                labels = kwargs["labels"]
-                js_code = """\
-                label_size = slider.value;
-                labels.text_font_size = label_size + 'pt';
-                console.log('Font size: ' + label_size);
-                """
-                callback = CustomJS(code=js_code, args={})
-                slider = Slider(
-                    start=6,
-                    end=16,
-                    step=0.5,
-                    value=self.config.interactive_ms_annotations_fontSize,
-                    callback=callback,
-                    title="Label fontsize",
-                    width=widget_width,
-                )
-                callback.args = {"slider": slider, "labels": labels}
-                js_widgets.append(slider)
-                msg = "{} Annotation font size slider |".format(msg)
-
-            if "label_offset_x" in js_type and "labels" in kwargs:
-                labels = kwargs["labels"]
-                js_code = """\
-                x_offset = slider.value;
-                labels.x_offset = x_offset;
-                console.log('X offset: ' + x_offset);
-                """
-                callback = CustomJS(code=js_code, args={})
-                slider = Slider(
-                    start=-100,
-                    end=100,
-                    step=5,
-                    value=self.config.interactive_ms_annotations_offsetX,
-                    callback=callback,
-                    title="Label x-axis offset",
-                    width=widget_width,
-                )
-                callback.args = {"slider": slider, "labels": labels}
-                js_widgets.append(slider)
-                msg = "{} Annotation x-axis offset slider |".format(msg)
-
-            if "label_offset_y" in js_type and "labels" in kwargs:
-                labels = kwargs["labels"]
-                js_code = """\
-                y_offset = slider.value;
-                labels.y_offset = y_offset;
-                console.log('Y offset: ' + y_offset);
-                """
-                callback = CustomJS(code=js_code, args={})
-                slider = Slider(
-                    start=-100,
-                    end=100,
-                    step=5,
-                    value=self.config.interactive_ms_annotations_offsetY,
-                    callback=callback,
-                    title="Label y-axis offset",
-                    width=widget_width,
-                )
-                callback.args = {"slider": slider, "labels": labels}
-                js_widgets.append(slider)
-                msg = "{} Annotation y-axis offset slider |".format(msg)
-
-            if "label_rotation" in js_type and "labels" in kwargs:
-                labels = kwargs["labels"]
-                js_code = """\
-                angle = slider.value * 0.0174533;
-                labels.angle_units = 'deg';
-                labels.angle = angle;
-                console.log('Angle: ' + angle);
-                """
-                callback = CustomJS(code=js_code, args={})
-                slider = Slider(
-                    start=0,
-                    end=180,
-                    step=10,
-                    value=kwargs.get("label_rotation_angle", self.config.interactive_ms_annotations_rotation),
-                    callback=callback,
-                    title="Label rotation angle",
-                    width=widget_width,
-                )
-                callback.args = {"slider": slider, "labels": labels}
-                js_widgets.append(slider)
-                msg = "{} Annotation rotation slider |".format(msg)
-
             if "slider_zoom" in js_type and "y_range_x1" in kwargs:
                 js_code = """\
                 zoom_value  = slider.value;
@@ -3736,60 +3627,6 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 callback.args = {"slider": slider, "figure": bokehPlot}
                 js_widgets.append(slider)
                 msg = "{} Y-axis range slider |".format(msg)
-
-            if "hover_mode" in js_type and "hover" in kwargs:
-                hover = kwargs["hover"]
-                js_code = """\
-                if (radio.active == 0) {
-                    hover.mode = 'mouse';
-                    console.log('Hover mode: follow mouse');
-                    }
-                else if (radio.active == 1) {
-                    hover.mode = 'vline';
-                    console.log('Hover mode: follow vertical line');
-                    }
-                """
-                callback = CustomJS(code=js_code, args={})
-                if hover.mode == "mouse":
-                    active_mode = 0
-                elif hover.mode == "vline":
-                    active_mode = 1
-                elif hover.mode == "hline":
-                    active_mode = 2
-                group = RadioButtonGroup(
-                    labels=["        Follow mouse        ", "    Follow vertical line    "],
-                    active=active_mode,
-                    callback=callback,
-                    width=widget_width,
-                )
-                callback.args = {"radio": group, "hover": hover}
-                js_widgets.append(group)
-                msg = "{} Hovertool mode toggle |".format(msg)
-
-            if "legend_toggle" in js_type and "legend" in kwargs:
-                legend = kwargs["legend"]
-                js_code = """\
-                if (toggle.active) {
-                    legend.border_line_alpha = 0;
-                    legend.visible = true;
-                    toggle.label = "Hide legend";
-                    console.log('Showing legend');
-                    }
-                else {
-                    legend.border_line_alpha = 0;
-                    legend.visible = false;
-                    toggle.label = "Show legend";
-                    console.log('Hiding legend');
-                    }
-                figure.change.emit();
-                """
-                callback = CustomJS(code=js_code, args={})
-                toggle = Toggle(
-                    label="Hide legend", button_type="success", callback=callback, active=True, width=widget_width
-                )
-                callback.args = {"toggle": toggle, "legend": legend, "figure": bokehPlot}
-                js_widgets.append(toggle)
-                msg = "{} Legend on/off toggle |".format(msg)
 
             if "legend_toggle_multi" in js_type and "legends" in kwargs:
                 legends = kwargs["legends"]
@@ -3821,86 +3658,6 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 callback.args = {"toggle": toggle, "legends": legends, "figures": figures}
                 js_widgets.append(toggle)
                 msg = "{} Legend on/off toggle |".format(msg)
-
-            if "legend_position" in js_type and "legend" in kwargs:
-                legend = kwargs["legend"]
-                js_code = """\
-                position = dropdown.value;
-                legend.location = position;
-                legend.visible = true;
-                figure.change.emit();
-                console.log('Legend position: ' + position);
-                """
-                callback = CustomJS(code=js_code, args={})
-                menu = [
-                    ("Top left", "top_left"),
-                    ("Top right", "top_right"),
-                    ("Bottom left", "bottom_left"),
-                    ("Bottom right", "bottom_right"),
-                ]
-                dropdown = Dropdown(menu=menu, callback=callback, label="Legend position", width=widget_width)
-
-                callback.args = {"dropdown": dropdown, "legend": legend, "figure": bokehPlot}
-                js_widgets.append(dropdown)
-                msg = "{} Legend position dropdown |".format(msg)
-
-            if "legend_orientation" in js_type and "legend" in kwargs:
-                legend = kwargs["legend"]
-                js_code = """\
-                if (radio.active == 0) {
-                    legend.orientation = 'vertical';
-                    console.log('Legend orientation: vertical');
-                    }
-                else if (radio.active == 1) {
-                    legend.orientation = 'horizontal';
-                    console.log('Legend orientation: horizontal');
-                    }
-                figure.change.emit();
-                """
-                callback = CustomJS(code=js_code, args={})
-                if (
-                    user_kwargs["legend_properties"].get(
-                        "legend_orientation", self.config.interactive_legend_orientation
-                    )
-                    == "vertical"
-                ):
-                    active_mode = 0
-                else:
-                    active_mode = 1
-
-                group = RadioButtonGroup(
-                    labels=["      Legend: vertical      ", "     Legend: horizontal    "],
-                    active=active_mode,
-                    callback=callback,
-                    width=widget_width,
-                )
-                callback.args = {"radio": group, "legend": legend, "figure": bokehPlot}
-                js_widgets.append(group)
-                msg = "{} Legend orientation toggle |".format(msg)
-
-            if "legend_transparency" in js_type and "legend" in kwargs:
-                legend = kwargs["legend"]
-                js_code = """\
-                transparency = slider.value;
-                legend.background_fill_alpha = transparency;
-                figure.change.emit();
-                console.log('Legend transparency: ' + transparency);
-                """
-                callback = CustomJS(code=js_code, args={})
-                slider = Slider(
-                    start=0,
-                    end=1,
-                    step=0.1,
-                    value=user_kwargs["legend_properties"].get(
-                        "legend_background_alpha", self.config.interactive_legend_background_alpha
-                    ),
-                    callback=callback,
-                    title="Legend transparency",
-                    width=widget_width,
-                )
-                callback.args = {"slider": slider, "legend": legend, "figure": bokehPlot}
-                js_widgets.append(slider)
-                msg = "{} Legend transparency slider |".format(msg)
 
             if "legend_transparency_multi" in js_type and "legends" in kwargs:
                 legends = kwargs["legends"]
@@ -4167,74 +3924,6 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 js_widgets.append(dropdown)
                 msg = "{} Colormap dropdown |".format(msg)
 
-            if "scatter_size" in js_type and "scatters" in kwargs:
-                scatters = kwargs["scatters"]
-                js_code = """\
-                scatter_size = slider.value;
-                for scatter, i in scatters
-                    scatter.glyph.size = scatter_size;
-                figure.change.emit();
-                console.log 'Scatter size: ' + scatter_size;
-                """
-                callback = CustomJS.from_coffeescript(code=js_code, args={})
-                slider = Slider(
-                    start=1,
-                    end=100,
-                    step=1,
-                    value=self.config.interactive_scatter_size,
-                    callback=callback,
-                    title="Scatter size",
-                    width=widget_width,
-                )
-                callback.args = {"slider": slider, "scatters": scatters, "figure": bokehPlot}
-                js_widgets.append(slider)
-                msg = "{} Scatter size slider |".format(msg)
-
-            if "scatter_transparency" in js_type and "scatters" in kwargs:
-                scatters = kwargs["scatters"]
-                js_code = """\
-                scatter_alpha = slider.value;
-                for scatter, i in scatters
-                    scatter.glyph.line_alpha = scatter_alpha;
-                    scatter.glyph.fill_alpha = scatter_alpha;
-                figure.change.emit();
-                console.log 'Scatter transparency: ' + scatter_alpha;
-                """
-                callback = CustomJS.from_coffeescript(code=js_code, args={})
-                slider = Slider(
-                    start=0,
-                    end=1,
-                    step=0.1,
-                    value=self.config.interactive_scatter_alpha,
-                    callback=callback,
-                    title="Scatter transparency",
-                    width=widget_width,
-                )
-                callback.args = {"slider": slider, "scatters": scatters, "figure": bokehPlot}
-                js_widgets.append(slider)
-                msg = "{} Scatter size slider |".format(msg)
-
-            if "plot_size" in js_type:
-                js_code = """\
-                width = slider_width.value;
-                height = slider_height.value;
-                figure.plot_width = width;
-                figure.plot_height = height;
-                figure.change.emit();
-                console.log 'Plot width: ' + width + ' height: ' + height;
-                """
-                callback = CustomJS.from_coffeescript(code=js_code, args={})
-                slider_width = Slider(
-                    start=100, end=1000, step=50, value=kwargs["plot_width"], callback=callback, title="Plot width"
-                )
-                slider_height = Slider(
-                    start=100, end=1000, step=50, value=kwargs["plot_height"], callback=callback, title="Plot height"
-                )
-                callback.args = {"slider_width": slider_width, "slider_height": slider_height, "figure": bokehPlot}
-                js_widgets.append(slider_width)
-                js_widgets.append(slider_height)
-                msg = "{} Plot size sliders |".format(msg)
-
             # add controls to the plot at specified position
             if position == "right":
                 bokehPlot = row(bokehPlot, widgetbox(js_widgets))
@@ -4294,23 +3983,6 @@ class PanelInteractiveCreator(wx.MiniFrame):
             #                 bokehPlot.js_on_event(events.PanStart, CustomJS.from_coffeescript(code=js_code,
             #                                                                                   args={"figure":bokehPlot,
             #                                                                                         "hover":hover}))
-
-            if "double_tap_unzoom" in js_type:
-                # TODO: add support to programatically disable hover tool
-                # figure.toolbar.active_inspect.active = false;
-                # figure.change.emit()
-                # figure.toolbar.active_inspect.active = true;
-                # look here: https://groups.google.com/a/continuum.io/forum/#!topic/bokeh/_xtHNgab45o
-
-                js_code = """\
-                console.log('Resetting zoom');
-                figure.reset.emit();
-                """
-
-                bokehPlot.js_on_event(
-                    events.DoubleTap, CustomJS.from_coffeescript(code=js_code, args={"figure": bokehPlot})
-                )
-                msg = "{} Double tap = unzoom |".format(msg)
 
             msg = "{}. It took {:.3f} seconds".format(msg[:-2], (time.time() - tstart))
             self.presenter.onThreading(None, (msg, 4), action="updateStatusbar")
