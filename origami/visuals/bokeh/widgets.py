@@ -38,6 +38,7 @@ SCATTER_WIDGET_LIST = ["scatter_size", "scatter_transparency"]
 HOVER_WIDGET_LIST = ["hover_mode"]
 FIGURE_WIDGET_LIST = ["figure_width", "figure_height", "figure_sizing_mode"]
 LEGEND_WIDGET_LIST = []
+AXES_WIDGET_LIST = ["axes_zoom_x_window", "axes_zoom_y_window", "axes_zoom_xy_window"]
 
 
 def add_events(plot_obj, event_list: List[str]):
@@ -47,7 +48,7 @@ def add_events(plot_obj, event_list: List[str]):
             double_tab_zoom_out_event(plot_obj.figure)
 
 
-def add_widgets(plot_obj, widget_list: List[str], widget_width: int = 300):
+def add_widgets(plot_obj, widget_list: List[str], widget_width: int = 300, **kwargs):
     """Add widgets to the plot object"""
     widgets = []
     for widget_name in widget_list:
@@ -61,6 +62,8 @@ def add_widgets(plot_obj, widget_list: List[str], widget_width: int = 300):
             widget = add_hover_widgets(plot_obj, widget_name, widget_width)
         elif widget_name.startswith("figure"):
             widget = add_figure_widgets(plot_obj, widget_name, widget_width)
+        elif widget_name.startswith("axes"):
+            widget = add_axes_widgets(plot_obj, widget_name, widget_width=widget_width, **kwargs)
 
         if widget is not None:
             widgets.append(widget)
@@ -121,6 +124,18 @@ def add_figure_widgets(plot_obj, widget_name: str, widget_width: int = 300):
         return figure_sizing_mode(plot_obj.figure, widget_width)
     else:
         LOGGER.warning(f"Could not parse `{widget_name}` - please use any of the following {FIGURE_WIDGET_LIST}`")
+
+
+def add_axes_widgets(plot_obj, widget_name: str, windows: List[List[float]], widget_width: int = 300):
+    """Add annotation widgets"""
+    if widget_name == "figure_width":
+        return axes_zoom_x_window(plot_obj.figure, windows, widget_width=widget_width)
+    elif widget_name == "figure_height":
+        return axes_zoom_y_window(plot_obj.figure, windows, widget_width=widget_width)
+    elif widget_name == "figure_sizing_mode":
+        return axes_zoom_xy_window(plot_obj.figure, windows, widget_width=widget_width)
+    else:
+        LOGGER.warning(f"Could not parse `{widget_name}` - please use any of the following {AXES_WIDGET_LIST}`")
 
 
 def annotations_toggle(figure: Figure, labels: Union[LabelSet, List[LabelSet]], widget_width: int = 300):
@@ -446,6 +461,64 @@ def figure_sizing_mode(figure: Figure, widget_width: int = 300):
         title="Sizing mode",
         width=widget_width,
     )
+    dropdown.js_on_change("value", callback)
+    return dropdown
+
+
+def axes_zoom_x_window(figure: Figure, windows: List[List[float]], widget_width: int = 300):
+    """Zoom-in on specified window in the x-axis"""
+    js_code = """
+    var value = cb_obj.value;
+    var [_min, _max] = value.split("-")
+    figure.x_range.start = parseFloat(_min);
+    figure.x_range.end = parseFloat(_max);
+    """
+    windows.insert(0, [figure.x_range.start, figure.x_range.end])
+    options = [f"{_min}-{_max}" for (_min, _max) in windows]
+
+    callback = CustomJS(code=js_code, args={"figure": figure})
+    dropdown = Select(options=options, title="Zoom on (x):", width=widget_width)
+    dropdown.js_on_change("value", callback)
+    return dropdown
+
+
+def axes_zoom_y_window(figure: Figure, windows: List[List[float]], widget_width: int = 300):
+    """Zoom-in on specified window in the x-axis"""
+    js_code = """
+    var value = cb_obj.value;
+    var [_min, _max] = value.split("-")
+    figure.y_range.start = parseFloat(_min);
+    figure.y_range.end = parseFloat(_max);
+    """
+    windows.insert(0, [figure.y_range.start, figure.y_range.end])
+    options = [f"{_min}-{_max}" for (_min, _max) in windows]
+
+    callback = CustomJS(code=js_code, args={"figure": figure})
+    dropdown = Select(options=options, title="Zoom on (y):", width=widget_width)
+    dropdown.js_on_change("value", callback)
+    return dropdown
+
+
+def axes_zoom_xy_window(figure: Figure, windows: List[List[float]], widget_width: int = 300):
+    """Zoom-in on specified window in the x-axis"""
+    js_code = """
+    var value = cb_obj.value;
+    var [x, y] = value.split(" ");
+    console.log(x);
+    console.log(y);
+    var [x_min, x_max] = x.split("-");
+    var [y_min, y_max] = y.split("-");
+    console.log(x_min, x_max, y_min, y_max);
+    figure.x_range.start = parseFloat(x_min);
+    figure.x_range.end = parseFloat(x_max);
+    figure.y_range.start = parseFloat(y_min);
+    figure.y_range.end = parseFloat(y_max);
+    """
+    windows.insert(0, [figure.x_range.start, figure.x_range.end, figure.y_range.start, figure.y_range.end])
+    options = [f"{x_min}-{x_max} {y_min}-{y_max}" for (x_min, x_max, y_min, y_max) in windows]
+
+    callback = CustomJS(code=js_code, args={"figure": figure})
+    dropdown = Select(options=options, title="Zoom on (xy):", width=widget_width)
     dropdown.js_on_change("value", callback)
     return dropdown
 

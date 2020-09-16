@@ -38,6 +38,11 @@ class Tab(dict):
     def __repr__(self):
         return f"{self.__class__.__name__}<layouts={len(self)}>"
 
+    @property
+    def n_layouts(self) -> int:
+        """Return the number of layouts present in the Tab"""
+        return len(self)
+
     def _get_unique_name(self, basename: str = "item"):
         """Get unique name for an item in specific tab. Names are made unique by adding #NUMBER+1 itself
 
@@ -206,8 +211,13 @@ class PlotDocument:
     def __repr__(self):
         return f"{self.__class__.__name__} <tabs={len(self._tabs)}>"
 
+    def __contains__(self, item):
+        if isinstance(item, str):
+            return item in self._tabs
+        return item in self._tabs.values()
+
     @property
-    def output_dir(self):
+    def output_dir(self) -> str:
         """Return output directory"""
         output_dir = self._output_dir
         if output_dir is None:
@@ -215,15 +225,28 @@ class PlotDocument:
         return output_dir
 
     @property
+    def filepath(self) -> str:
+        """Returns full path including the filename"""
+        filepath = os.path.join(self.output_dir, self._filename)
+        if not filepath.endswith(".html"):
+            filepath += ".html"
+        return filepath
+
+    @property
     def tab_names(self):
         """Get list of tab names"""
         return list(self._tabs.keys())
+
+    @property
+    def n_tabs(self) -> int:
+        """Return the number of tabs present in the Store"""
+        return len(self._tabs)
 
     def show(self, tab_names=None, always_as_tabs=True):
         """Return HTML representation of the document"""
         return show(self.get_layout(tab_names, always_as_tabs))
 
-    def save(self, filepath=None, display=True, **kwargs):
+    def save(self, filepath=None, display=True, **kwargs) -> str:
         """Save Bokeh document as HTML file
 
         Parameters
@@ -237,13 +260,14 @@ class PlotDocument:
         """
 
         if filepath is None:
-            filepath = os.path.join(self.output_dir, self._filename)
+            filepath = self.filepath
 
         save(self.get_layout(**kwargs), filepath, title=self._title)
 
         # open figure in browser
         if display:
             webbrowser.open_new_tab(filepath)
+        return filepath
 
     def get_layout(self, tab_names=None, always_as_tabs=True):
         """Return fully ordered Bokeh document which can be visualised (using 'show' command) or exported as HTML
@@ -317,25 +341,27 @@ class PlotDocument:
         for tab_name in tab_names:
             self.add_tab(tab_name, force)
 
-    def get_tab(self, tab_name: str, auto_add_tab: bool = True):
+    def get_tab(self, tab: str, auto_add_tab: bool = True):
         """Get tab"""
-        if tab_name not in self._tabs:
+        if isinstance(tab, Tab):
+            return tab
+        if tab not in self._tabs:
             if auto_add_tab:
-                return self.add_tab(tab_name)
-            raise KeyError(f"Tab `{tab_name}` is not present in the Document")
-        return self._tabs[tab_name]
+                return self.add_tab(tab)
+            raise KeyError(f"Tab `{tab}` is not present in the Document")
+        return self._tabs[tab]
 
-    def add_row(self, tab_name: str, name: str = None, auto_add_tab: bool = True):
+    def add_row(self, tab: Union[str, Tab], name: str = None, auto_add_tab: bool = True) -> Tuple[Tab, RowLayout]:
         """Add row to tab"""
-        tab = self.get_tab(tab_name, auto_add_tab)
-        return tab.add_row(name)
+        tab = self.get_tab(tab, auto_add_tab)
+        return tab, tab.add_row(name)
 
-    def add_col(self, tab_name: str, name: str = None, auto_add_tab: bool = True):
+    def add_col(self, tab: Union[str, Tab], name: str = None, auto_add_tab: bool = True) -> Tuple[Tab, ColumnLayout]:
         """Add row to tab"""
-        tab = self.get_tab(tab_name, auto_add_tab)
-        return tab.add_col(name)
+        tab = self.get_tab(tab, auto_add_tab)
+        return tab, tab.add_col(name)
 
-    def add_grid(self, tab_name: str, name: str = None, auto_add_tab: bool = True):
+    def add_grid(self, tab: Union[str, Tab], name: str = None, auto_add_tab: bool = True) -> Tuple[Tab, GridLayout]:
         """Add row to tab"""
-        tab = self.get_tab(tab_name, auto_add_tab)
-        return tab.add_grid(name)
+        tab = self.get_tab(tab, auto_add_tab)
+        return tab, tab.add_grid(name)

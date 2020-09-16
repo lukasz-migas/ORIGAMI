@@ -15,6 +15,7 @@ import numpy as np
 from bokeh.models import Div
 from bokeh.models import Band
 from bokeh.models import Span
+from bokeh.models import Range1d
 from bokeh.models import ColorBar
 from bokeh.models import LabelSet
 from bokeh.models import HoverTool
@@ -217,7 +218,7 @@ class PlotBase:
     @x_limit.setter
     def x_limit(self, value):
         self._x_limit = value
-        self.figure.x_range = value
+        self.figure.x_range = Range1d(*value)
 
     @property
     def y_limit(self):
@@ -227,7 +228,7 @@ class PlotBase:
     @y_limit.setter
     def y_limit(self, value):
         self._y_limit = value
-        self.figure.y_range = value
+        self.figure.y_range = Range1d(*value)
 
     @abstractmethod
     def plot(self, data_obj=None, forced_kwargs=None, **kwargs):
@@ -349,6 +350,9 @@ class PlotBase:
 
         add_events(self, event_list)
 
+    def add_tools(self, tool_list: str):
+        """Add tools to the plot object"""
+
     def get_annotation(self, annotation_type: str):
         """Retrieve annotation of specified type"""
         annotations = []
@@ -405,6 +409,8 @@ class PlotBase:
         location = data["location"]
         if not isinstance(location, Iterable):
             location = [location]
+        if data["dimension"] not in ["width", "height"]:
+            raise ValueError("Dimension should be specified as `width` or `height`")
 
         for loc in location:
             span = Span(location=loc, dimension=data["dimension"], **kwargs)
@@ -426,6 +432,8 @@ class PlotSpectrum(PlotBase):
         """Get data source that can be used by Bokeh to plot the data"""
         data = {"x": data_obj.x, "y": data_obj.y}
         self.validate_data(data)
+        self.x_limit = data_obj.x_limit
+        self.y_limit = data_obj.y_limit
         return ColumnDataSource(data)
 
     def _get_hover_kwargs(self):
@@ -470,6 +478,8 @@ class PlotMultilineSpectrum(PlotBase):
         """Get data source that can be used by Bokeh to plot the data"""
         data = {"xs": data_obj.x, "ys": data_obj.ys}
         self.validate_data(data)
+        self.x_limit = data_obj.x_limit
+        self.y_limit = data_obj.y_limit
         return ColumnDataSource(data)
 
     def _get_hover_kwargs(self):
@@ -512,6 +522,8 @@ class PlotScatter(PlotBase):
         """Get data source that can be used by Bokeh to plot the data"""
         data = {"x": data_obj.x, "y": data_obj.y}
         self.validate_data(data)
+        self.x_limit = data_obj.x_limit
+        self.y_limit = data_obj.y_limit
         return ColumnDataSource(data)
 
     def plot(self, data_obj=None, forced_kwargs=None, **kwargs):
@@ -555,6 +567,8 @@ class PlotHeatmap(PlotBase):
             "image": [data_obj.array],
         }
         self.validate_data(data)
+        self.x_limit = data_obj.x_limit
+        self.y_limit = data_obj.y_limit
         return ColumnDataSource(data)
 
     def _get_hover_kwargs(self):
@@ -576,7 +590,6 @@ class PlotHeatmap(PlotBase):
             source=self._sources[self.DEFAULT_PLOT],
             name=self.PLOT_ID,
             palette=self._data["palette"],
-            # **kwargs,
         )
         self._plots[self.DEFAULT_PLOT].glyph.color_mapper = self._data["colormapper"]
 
