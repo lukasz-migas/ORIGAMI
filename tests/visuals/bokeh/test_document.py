@@ -13,13 +13,13 @@ from origami.visuals.bokeh.layout import RowLayout
 from origami.visuals.bokeh.layout import GridLayout
 from origami.visuals.bokeh.layout import ColumnLayout
 from origami.visuals.bokeh.document import Tab
-from origami.visuals.bokeh.document import PlotDocument
+from origami.visuals.bokeh.document import PlotStore
 
 
 class TestPlotDocument:
     def test_init(self, tmpdir_factory):
         path = str(tmpdir_factory.mktemp("output"))
-        store = PlotDocument(path, filename="TEST")
+        store = PlotStore(path, filename="TEST")
         assert store.output_dir == path
         assert "TEST.html" in store.filepath
 
@@ -34,19 +34,18 @@ class TestPlotDocument:
         _, col_1 = store.add_col(tab)
         _, col_2 = store.add_col("TAB1")
         assert isinstance(col_1, ColumnLayout)
-        assert col_1 != col_2
         assert tab.n_layouts == 2
+        col_1.div_header = "TEST"
+        assert col_1.div_header_str != col_2.div_header_str
 
         _, row_1 = store.add_row(tab)
         _, row_2 = store.add_row("TAB1")
         assert isinstance(row_1, RowLayout)
-        assert row_1 != row_2
         assert tab.n_layouts == 4
 
         _, grid_1 = store.add_grid(tab)
         _, grid_2 = store.add_grid("TAB1")
         assert isinstance(grid_1, GridLayout)
-        assert grid_1 != grid_2
         assert tab.n_layouts == 6
 
         with pytest.raises(ValueError):
@@ -71,7 +70,7 @@ class TestPlotDocument:
         data_obj = MassSpectrumObject(np.arange(100), np.random.randint(0, 100, 100))
 
         path = str(tmpdir_factory.mktemp("output"))
-        store = PlotDocument(path, filename="TEST")
+        store = PlotStore(path, filename="TEST")
 
         tab, col = store.add_col("TAB1")
         plot_obj, _ = tab.add_spectrum(data_obj, col)
@@ -102,7 +101,7 @@ class TestPlotDocument:
         data_obj = MassSpectrumObject(np.arange(100), np.random.randint(0, 100, 100))
 
         path = str(tmpdir_factory.mktemp("output"))
-        store = PlotDocument(path, filename="TEST")
+        store = PlotStore(path, filename="TEST")
 
         tab, col = store.add_col("TAB1")
         plot_obj, _ = tab.add_scatter(data_obj, col)
@@ -140,7 +139,7 @@ class TestPlotDocument:
         data_obj = IonHeatmapObject(np.random.randint(0, 100, (100, 100)), np.arange(100), np.arange(100))
 
         path = str(tmpdir_factory.mktemp("output"))
-        store = PlotDocument(path, filename="TEST")
+        store = PlotStore(path, filename="TEST")
 
         tab, col = store.add_col("TAB1")
         plot_obj, _ = tab.add_heatmap(data_obj, col)

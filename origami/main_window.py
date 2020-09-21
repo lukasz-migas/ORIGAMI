@@ -13,8 +13,6 @@ import wx.aui
 from pubsub import pub
 
 # Local imports
-# from origami.ids import ID_docTree_plugin_MSMS
-# from origami.ids import ID_docTree_plugin_UVPD
 from origami.ids import ID_helpCite
 from origami.ids import ID_helpGuide
 from origami.ids import ID_helpAuthor
@@ -73,7 +71,6 @@ from origami.gui_elements.misc_dialogs import DialogBox
 from origami.handlers.data_visualisation import DataVisualization
 from origami.gui_elements.panel_plot_parameters import PanelVisualisationSettingsEditor
 from origami.gui_elements.dialog_notify_open_documents import DialogNotifyOpenDocuments
-from origami.widgets.interactive.panel_interactive_creator import PanelInteractiveCreator
 
 logger = logging.getLogger(__name__)
 
@@ -107,7 +104,7 @@ class MainWindow(wx.Frame):
 
         # Extract size of screen
         self.display_size = wx.GetDisplaySize()
-        self.SetDimensions(0, 0, self.display_size[0], self.display_size[1] - 50)
+        self.SetSize(0, 0, self.display_size[0], self.display_size[1] - 50)
         self.icons = icons
         self._icons = Icons()
         self.presenter = parent
@@ -123,7 +120,7 @@ class MainWindow(wx.Frame):
 
         self.SetDropTarget(DragAndDrop(self))
 
-        icon = wx.EmptyIcon()
+        icon = wx.Icon()
         icon.CopyFromBitmap(self.icons.iconsLib["origamiLogoDark16"])
         self.SetIcon(icon)
 
@@ -450,7 +447,7 @@ class MainWindow(wx.Frame):
         menu_tandem.Append(ID_fileMenu_mzML, "Open mzML (.mzML) [MS/MS]")
 
         menu_file = wx.Menu()
-        menu_file.AppendMenu(ID_fileMenu_openRecent, "Open Recent", self.menu_recent_files)
+        menu_file.Append(ID_fileMenu_openRecent, "Open Recent", self.menu_recent_files)
         menu_file.AppendSeparator()
 
         menu_file_load_origami = make_menu_item(
@@ -505,7 +502,7 @@ class MainWindow(wx.Frame):
         )
         menu_file.Append(menu_file_text_heatmap)
         menu_file.AppendSeparator()
-        menu_file.AppendMenu(wx.ID_ANY, "Open MS/MS files...", menu_tandem)
+        menu_file.Append(wx.ID_ANY, "Open MS/MS files...", menu_tandem)
         menu_file.AppendSeparator()
         menu_file_clipboard_ms = make_menu_item(
             parent=menu_file,
@@ -577,6 +574,10 @@ class MainWindow(wx.Frame):
             parent=menu_widgets, text="Open &interactive output panel...\tShift+Z", bitmap=self._icons.bokeh
         )
         menu_widgets.Append(menu_widget_bokeh)
+        menu_widget_bokeh_new = make_menu_item(
+            parent=menu_widgets, text="Open &interactive output panel...", bitmap=self._icons.bokeh
+        )
+        menu_widgets.Append(menu_widget_bokeh_new)
 
         #         menu_widgets.Append(
         #             make_menu_item(parent=menu_widgets, evt_id=ID_docTree_plugin_UVPD, text="Open UVPD
@@ -687,8 +688,8 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_notify_change_level, menu_notify_error)
 
         menu_config.AppendSeparator()
-        menu_config.AppendMenu(wx.ID_ANY, "Logging", menu_logging)
-        menu_config.AppendMenu(wx.ID_ANY, "Notifications", menu_notifications)
+        menu_config.Append(wx.ID_ANY, "Logging", menu_logging)
+        menu_config.Append(wx.ID_ANY, "Notifications", menu_notifications)
 
         self.menubar.Append(menu_config, "&Configuration")
 
@@ -818,7 +819,7 @@ class MainWindow(wx.Frame):
 
         # HELP MENU
         menu_help = wx.Menu()
-        menu_help.AppendMenu(wx.ID_ANY, "Help pages...", menu_help_pages)
+        menu_help.Append(wx.ID_ANY, "Help pages...", menu_help_pages)
         menu_help.AppendSeparator()
         menu_help.Append(
             make_menu_item(parent=menu_help, evt_id=ID_helpGuide, text="Open User Guide...", bitmap=self._icons.html)
@@ -845,7 +846,7 @@ class MainWindow(wx.Frame):
             )
         )
         menu_help.AppendSeparator()
-        menu_help.AppendMenu(wx.ID_ANY, "About other software...", menu_software)
+        menu_help.Append(wx.ID_ANY, "About other software...", menu_software)
         menu_help.AppendSeparator()
         menu_help.Append(
             make_menu_item(
@@ -950,6 +951,7 @@ class MainWindow(wx.Frame):
 
         # OUTPUT
         self.Bind(wx.EVT_MENU, self.on_open_interactive_output_panel, menu_widget_bokeh)
+        self.Bind(wx.EVT_MENU, self.on_open_interactive_output_panel_new, menu_widget_bokeh_new)
 
         # UTILITIES
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_lesa_viewer, menu_widget_lesa_viewer)
@@ -1367,43 +1369,39 @@ class MainWindow(wx.Frame):
             ID_window_multipleMLList, "", self.icons.iconsLib["panel_mll__16"], shortHelp="Enable/Disable files panel"
         )
         self.toolbar.AddSeparator()
-        tool_action_global = self.toolbar.AddLabelTool(
+        tool_action_global = self.toolbar.AddTool(
             wx.ID_ANY, "", self._icons.switch_on, shortHelp="Settings: General plot"
         )
-        tool_action_1d = self.toolbar.AddLabelTool(
-            wx.ID_ANY, "", self._icons.plot_1d, shortHelp="Settings: Plot 1D panel"
-        )
-        tool_action_2d = self.toolbar.AddLabelTool(
+        tool_action_1d = self.toolbar.AddTool(wx.ID_ANY, "", self._icons.plot_1d, shortHelp="Settings: Plot 1D panel")
+        tool_action_2d = self.toolbar.AddTool(
             wx.ID_ANY, "", self.icons.iconsLib["panel_plot2D_16"], shortHelp="Settings: Plot 2D panel"
         )
-        tool_action_3d = self.toolbar.AddLabelTool(
+        tool_action_3d = self.toolbar.AddTool(
             wx.ID_ANY, "", self.icons.iconsLib["panel_plot3D_16"], shortHelp="Settings: Plot 3D panel"
         )
-        tool_action_colorbar = self.toolbar.AddLabelTool(
+        tool_action_colorbar = self.toolbar.AddTool(
             wx.ID_ANY, "", self._icons.plot_colorbar, shortHelp="Settings: Colorbar panel"
         )
-        tool_action_legend = self.toolbar.AddLabelTool(
+        tool_action_legend = self.toolbar.AddTool(
             wx.ID_ANY, "", self._icons.plot_legend, shortHelp="Settings: Legend panel"
         )
-        tool_action_waterfall = self.toolbar.AddLabelTool(
+        tool_action_waterfall = self.toolbar.AddTool(
             wx.ID_ANY, "", self._icons.waterfall, shortHelp="Settings: Waterfall panel"
         )
-        tool_action_violin = self.toolbar.AddLabelTool(
-            wx.ID_ANY, "", self._icons.violin, shortHelp="Settings: Violin panel"
-        )
-        tool_action_ui = self.toolbar.AddLabelTool(wx.ID_ANY, "", self._icons.gear, shortHelp="Settings: Extra panel")
+        tool_action_violin = self.toolbar.AddTool(wx.ID_ANY, "", self._icons.violin, shortHelp="Settings: Violin panel")
+        tool_action_ui = self.toolbar.AddTool(wx.ID_ANY, "", self._icons.gear, shortHelp="Settings: Extra panel")
         self.toolbar.AddSeparator()
 
-        tool_action_bokeh = self.toolbar.AddLabelTool(
+        tool_action_bokeh = self.toolbar.AddTool(
             wx.ID_ANY, "", self._icons.bokeh, shortHelp="Open interactive output panel"
         )
 
         self.toolbar.AddStretchableSpace()
-        tool_action_fullscreen = self.toolbar.AddLabelTool(
+        tool_action_fullscreen = self.toolbar.AddTool(
             wx.ID_ANY, "", self._icons.fullscreen, shortHelp="Toggle fullscreen\tAlt+F11"
         )
 
-        tool_action_rotate = self.toolbar.AddLabelTool(
+        tool_action_rotate = self.toolbar.AddTool(
             wx.ID_ANY, "", self._icons.rotate, shortHelp="Rotate the toolbar to be horizontal or vertical"
         )
 
@@ -1620,6 +1618,7 @@ class MainWindow(wx.Frame):
 
     def on_open_interactive_output_panel(self, evt):
         """Open interactive panel"""
+        from origami.widgets.interactive._panel_interactive_creator import PanelInteractiveCreator
 
         def _startup_module():
             """Initialize the panel"""
@@ -1627,18 +1626,45 @@ class MainWindow(wx.Frame):
             self.panel_interactive_output = PanelInteractiveCreator(self, self.icons, self.presenter, CONFIG)
             self.panel_interactive_output.Show()
 
-        if not hasattr(self, "panel_interactive_output"):
-            _startup_module()
-        else:
-            try:
-                if CONFIG.interactiveParamsWindow_on_off:
-                    self.panel_interactive_output.onUpdateList()
-                    args = ("An instance of this panel is already open", 4)
-                    self.presenter.onThreading(evt, args, action="updateStatusbar")
-                    return
-            except (IndexError, ValueError, TypeError, KeyError):
-                logging.error("Failed to startup `Interactive Output` panel", exc_info=True)
-                _startup_module()
+        _startup_module()
+
+    #         if not hasattr(self, "panel_interactive_output"):
+    #             _startup_module()
+    #         else:
+    #             try:
+    #                 if CONFIG.interactiveParamsWindow_on_off:
+    #                     self.panel_interactive_output.onUpdateList()
+    #                     args = ("An instance of this panel is already open", 4)
+    #                     self.presenter.onThreading(evt, args, action="updateStatusbar")
+    #                     return
+    #             except (IndexError, ValueError, TypeError, KeyError):
+    #                 logging.error("Failed to startup `Interactive Output` panel", exc_info=True)
+    #                 _startup_module()
+
+    def on_open_interactive_output_panel_new(self, evt):
+        """Open interactive panel"""
+        from origami.widgets.interactive.panel_interactive_editor import PanelInteractiveEditor
+
+        def _startup_module():
+            """Initialize the panel"""
+            CONFIG.interactiveParamsWindow_on_off = True
+            self.panel_interactive_output = PanelInteractiveEditor(self, self.presenter)
+            self.panel_interactive_output.Show()
+
+        _startup_module()
+
+    #         if not hasattr(self, "panel_interactive_output"):
+    #             _startup_module()
+    #         else:
+    #             try:
+    #                 if CONFIG.interactiveParamsWindow_on_off:
+    #                     self.panel_interactive_output.onUpdateList()
+    #                     args = ("An instance of this panel is already open", 4)
+    #                     self.presenter.onThreading(evt, args, action="updateStatusbar")
+    #                     return
+    #             except (IndexError, ValueError, TypeError, KeyError):
+    #                 logging.error("Failed to startup `Interactive Output` panel", exc_info=True)
+    #                 _startup_module()
 
     def on_show_ccs_database(self, _evt):
         """Show CCS database"""

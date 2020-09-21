@@ -56,7 +56,7 @@ logger = logging.getLogger(__name__)
 
 
 class PanelMultiFile(TablePanelBase):
-    TABLE_DICT = {
+    TABLE_CONFIG = {
         0: {
             "name": "",
             "tag": "check",

@@ -40,7 +40,7 @@ class PanelImagingImportDataset(PanelImportManagerBase):
 
     def _init(self):
         """Modify certain elements before initialization takes place"""
-        self.TABLE_DICT[self.TABLE_COLUMN_INDEX.variable]["type"] = "int"
+        self.TABLE_CONFIG[self.TABLE_COLUMN_INDEX.variable]["type"] = "int"
 
     @property
     def data_handling(self):

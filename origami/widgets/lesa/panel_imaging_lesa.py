@@ -40,14 +40,14 @@ class TableColumnIndex(IntEnum):
 class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
     """LESA viewer and editor"""
 
-    TABLE_DICT = TableConfig()
-    TABLE_DICT.add("", "check", "bool", 25, hidden=True)
-    TABLE_DICT.add("ion name", "ion_name", "str", 120)
-    TABLE_DICT.add("color", "color", "color", 80)
-    TABLE_DICT.add("colormap", "colormap", "str", 80)
-    TABLE_DICT.add("label", "label", "str", 70)
+    TABLE_CONFIG = TableConfig()
+    TABLE_CONFIG.add("", "check", "bool", 25, hidden=True)
+    TABLE_CONFIG.add("ion name", "ion_name", "str", 120)
+    TABLE_CONFIG.add("color", "color", "color", 80)
+    TABLE_CONFIG.add("colormap", "colormap", "str", 80)
+    TABLE_CONFIG.add("label", "label", "str", 70)
     TABLE_COLUMN_INDEX = TableColumnIndex
-    USE_COLOR = True
+    TABLE_USE_COLOR = True
     HELP_LINK = r"https://origami.lukasz-migas.com/"
     PANEL_BASE_TITLE = "LESA - Viewer"
 
@@ -193,7 +193,7 @@ class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
         set_tooltip(self.colormap_value, "Select colormap for current item")
 
         # make peaklist
-        self.peaklist = self.make_table(self.TABLE_DICT, panel)
+        self.peaklist = self.make_table(self.TABLE_CONFIG, panel)
 
         # add buttons
         self.info_btn = self.make_info_button(panel)
@@ -530,7 +530,7 @@ class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
         # trigger the parent item to sync
         self.item_loading_lock = True
 
-        self.peaklist.on_select_item(evt)
+        self.peaklist.on_select_layout(evt)
         item_info = self.on_get_item_information()
         self.on_populate_item(item_info)
 

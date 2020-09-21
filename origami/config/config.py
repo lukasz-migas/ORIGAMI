@@ -1108,6 +1108,14 @@ class Config(ConfigBase):
         self.unidec_panel_plot_palette = "HLS"
         self.unidec_panel_plot_contour_levels = 75
 
+        # Interactive
+        self.interactive_panel_layout_choices = ["Row", "Column", "Row"]
+        self.interactive_panel_layout = "Row"
+        self.interactive_panel_open_in_browser = True
+        self.interactive_panel_add_offline_support = True
+        self.interactive_panel_remove_watermark = False
+        self.interactive_panel_title = "ORIGAMI"
+
         # ORIGAMI
         self.origami_method_choices = ["Linear", "Exponential", "Boltzmann", "User-defined"]
         self.origami_method = "Linear"

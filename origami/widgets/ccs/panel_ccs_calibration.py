@@ -77,20 +77,19 @@ class PlotNotebookPages:
 class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin):
     """CCS panel"""
 
-    TABLE_DICT = TableConfig()
-    TABLE_DICT.add("", "check", "bool", 25, hidden=True)
-    TABLE_DICT.add("calibrant", "calibrant", "str", 80)
-    TABLE_DICT.add("m/z", "mz", "float", 70)
-    TABLE_DICT.add("MW", "mw", "float", 70)
-    TABLE_DICT.add("z", "charge", "int", 40)
-    TABLE_DICT.add("dt", "dt", "float", 70)
-    TABLE_DICT.add("ccs", "ccs", "float", 80)
-    TABLE_DICT.add("name", "name", "str", 0, hidden=True)
-    TABLE_DICT.add("path", "path", "str", 0, hidden=True)
-
-    TABLE_WIDGET_DICT = dict()
+    TABLE_CONFIG = TableConfig()
+    TABLE_CONFIG.add("", "check", "bool", 25, hidden=True)
+    TABLE_CONFIG.add("calibrant", "calibrant", "str", 80)
+    TABLE_CONFIG.add("m/z", "mz", "float", 70)
+    TABLE_CONFIG.add("MW", "mw", "float", 70)
+    TABLE_CONFIG.add("z", "charge", "int", 40)
+    TABLE_CONFIG.add("dt", "dt", "float", 70)
+    TABLE_CONFIG.add("ccs", "ccs", "float", 80)
+    TABLE_CONFIG.add("name", "name", "str", 0, hidden=True)
+    TABLE_CONFIG.add("path", "path", "str", 0, hidden=True)
+    TABLE_WIDGET_DICT = None
     TABLE_COLUMN_INDEX = TableColumnIndex
-    USE_COLOR = False
+    TABLE_USE_COLOR = False
     PANEL_BASE_TITLE = "CCS Calibration Builder"
     HELP_LINK = "https://origami.lukasz-migas.com/"
 
@@ -584,7 +583,7 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         set_item_font(calculate_label)
 
         # make table
-        self.peaklist = self.make_table(self.TABLE_DICT, panel)
+        self.peaklist = self.make_table(self.TABLE_CONFIG, panel)
         self.peaklist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_calibrant_from_table)
 
         # statusbar

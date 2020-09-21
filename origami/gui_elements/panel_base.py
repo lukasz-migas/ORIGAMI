@@ -37,15 +37,15 @@ class TableMixin:
     """Mixin class to add Table controls"""
 
     # must have name, tag, type, show, id, width
-    TABLE_DICT = {}
+    TABLE_CONFIG = {}
     TABLE_COLUMN_INDEX = TableColumnIndex
     TABLE_RESERVED = {"hide_all": wx.NewIdRef(), "show_all": wx.NewIdRef()}
     TABLE_STYLE = wx.LC_REPORT | wx.LC_VRULES
     TABLE_KWARGS = dict()
+    TABLE_USE_COLOR = True
     TABLE_TEXT_ALIGN = wx.LIST_FORMAT_CENTER
-    DUPLICATE_ID_CHECK = []
-    KEYWORD_ALIAS = {}
-    USE_COLOR = True
+    TABLE_DUPLICATE_ID_CHECK = []
+    TABLE_KEYWORD_ALIAS = {}
 
     # ui attributes
     data_processing = None
@@ -171,16 +171,16 @@ class TableMixin:
         if value_type == "color":
             color_255, color_1, font_color = value
             self.peaklist.SetItem(item_id, self.TABLE_COLUMN_INDEX.color, str(color_1))
-            if self.USE_COLOR:
+            if self.TABLE_USE_COLOR:
                 self.peaklist.SetItemBackgroundColour(item_id, color_255)
                 self.peaklist.SetItemTextColour(item_id, font_color)
         elif value_type == "color_text":
             self.peaklist.SetItem(item_id, self.TABLE_COLUMN_INDEX.color, str(convert_rgb_255_to_1(value)))
-            if self.USE_COLOR:
+            if self.TABLE_USE_COLOR:
                 self.peaklist.SetItemBackgroundColour(item_id, value)
                 self.peaklist.SetItemTextColour(item_id, get_font_color(value, return_rgb=True))
         else:
-            for col_id, col_values in self.TABLE_DICT.items():
+            for col_id, col_values in self.TABLE_CONFIG.items():
                 if col_values["tag"] == value_type:
                     self.peaklist.SetItem(item_id, col_id, str(value))
                     break
@@ -248,13 +248,13 @@ class TableMixin:
         color :
             color of the item in the table
         """
-        if self.USE_COLOR:
+        if self.TABLE_USE_COLOR:
             color = add_dict.get("color", next(CONFIG.custom_colors_cycle))
             if check_color:
                 color = self.on_check_duplicate_colors(color)
 
         self.peaklist.Append(self._parse(add_dict))
-        if self.USE_COLOR:
+        if self.TABLE_USE_COLOR:
             self.peaklist.SetItemBackgroundColour(self.peaklist.GetItemCount() - 1, color)  # noqa
             font_color = get_font_color(color, return_rgb=True)
             self.peaklist.SetItemTextColour(self.peaklist.GetItemCount() - 1, font_color)
@@ -313,7 +313,7 @@ class TableMixin:
             return str(value)
 
         item_list = []
-        for column_value in self.TABLE_DICT.values():
+        for column_value in self.TABLE_CONFIG.values():
             col_tag = column_value["tag"]
             col_type = column_value["type"]
             if col_tag in ["check"]:
@@ -380,7 +380,7 @@ class TableMixin:
         """Right-click on column title to show/hide it"""
         menu = wx.Menu()
 
-        for col_id, col_values in self.TABLE_DICT.items():
+        for col_id, col_values in self.TABLE_CONFIG.items():
             # some columns are hidden
             if col_values.get("hidden", False):
                 continue
@@ -421,7 +421,7 @@ class TableMixin:
         elif evt_id == self.TABLE_RESERVED["show_all"]:
             restore_all = True
 
-        for col_id, col_values in self.TABLE_DICT.items():
+        for col_id, col_values in self.TABLE_CONFIG.items():
             if col_values["id"] == evt_id or hide_all or restore_all:
                 if col_values.get("hidden", False):
                     continue
@@ -433,7 +433,7 @@ class TableMixin:
                     col_shown = not col_values["show"]
                 col_width = 0 if not col_shown else col_values["width"]
                 self.peaklist.SetColumnWidth(col_id, col_width)
-                self.TABLE_DICT[col_id]["show"] = col_shown
+                self.TABLE_CONFIG[col_id]["show"] = col_shown
 
     def on_change_item_colormap(self, evt):
         """Update colormap of item(s)"""
@@ -484,7 +484,7 @@ class TablePanelBase(wx.Panel, TableMixin):
 
         self.toolbar = None
 
-        self._check_table(self.TABLE_DICT)
+        self._check_table(self.TABLE_CONFIG)
         self.make_panel_gui()
         self.bind_events()
 
@@ -504,7 +504,7 @@ class TablePanelBase(wx.Panel, TableMixin):
         """ Make panel GUI """
         # make toolbar
         self.toolbar = self.make_toolbar()
-        self.peaklist = self.make_table(self.TABLE_DICT)
+        self.peaklist = self.make_table(self.TABLE_CONFIG)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         if self.toolbar:
@@ -539,7 +539,7 @@ class TableMiniFrameBase(wx.MiniFrame, TableMixin):
 
         self.toolbar = None
 
-        self._check_table(self.TABLE_DICT)
+        self._check_table(self.TABLE_CONFIG)
         self.make_panel_gui()
         self.bind_events()
 
@@ -559,7 +559,7 @@ class TableMiniFrameBase(wx.MiniFrame, TableMixin):
         """ Make panel GUI """
         # make toolbar
         self.toolbar = self.make_toolbar()
-        self.peaklist = self.make_table(self.TABLE_DICT)
+        self.peaklist = self.make_table(self.TABLE_CONFIG)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         if self.toolbar:
@@ -575,7 +575,7 @@ class TableMiniFrameBase(wx.MiniFrame, TableMixin):
 
 
 class TestPanel(TablePanelBase):
-    TABLE_DICT = {
+    TABLE_CONFIG = {
         0: {
             "name": "",
             "order": 0,

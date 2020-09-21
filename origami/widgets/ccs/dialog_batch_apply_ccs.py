@@ -51,13 +51,13 @@ class DialogBatchApplyCCSCalibration(DialogReviewEditorBase):
     # ui elements
     process_btn = None
 
-    TABLE_DICT = TableConfig()
-    TABLE_DICT.add("", "check", "bool", 25, hidden=True)
-    TABLE_DICT.add("type", "type", "str", 100)
-    TABLE_DICT.add("name", "name", "str", 275)
-    TABLE_DICT.add("m/z", "mz", "float", 100)
-    TABLE_DICT.add("z", "charge", "int", 50)
-    TABLE_DICT.add("tag", "tag", "str", 0, hidden=True)
+    TABLE_CONFIG = TableConfig()
+    TABLE_CONFIG.add("", "check", "bool", 25, hidden=True)
+    TABLE_CONFIG.add("type", "type", "str", 100)
+    TABLE_CONFIG.add("name", "name", "str", 275)
+    TABLE_CONFIG.add("m/z", "mz", "float", 100)
+    TABLE_CONFIG.add("z", "charge", "int", 50)
+    TABLE_CONFIG.add("tag", "tag", "str", 0, hidden=True)
     TABLE_COLUMN_INDEX = TableColumnIndex
 
     REVIEW_MSG = "Please select item(s) that you would like to apply CCS calibration settings to."
@@ -68,7 +68,7 @@ class DialogBatchApplyCCSCalibration(DialogReviewEditorBase):
 
     TABLE_GET_KEYS = ("name", "mz", "charge", "tag")
     TABLE_WIDGET_DICT = dict()
-    USE_COLOR = True
+    TABLE_USE_COLOR = True
 
     _disable_table_update = False
     _current_item = None

@@ -65,7 +65,7 @@ class TableColumnIndex(IntEnum):
 class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin):
     """UI component of the Annotation Editor"""
 
-    TABLE_DICT = {
+    TABLE_CONFIG = {
         0: {
             "name": "",
             "tag": "check",
@@ -137,7 +137,7 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin):
     PUB_SUBSCRIBE_MAKE_EVENT = "editor.mark.annotation"
     PUB_SUBSCRIBE_MOVE_LABEL_EVENT = "editor.edit.label"
     PUB_SUBSCRIBE_MOVE_PATCH_EVENT = "editor.edit.patch"
-    USE_COLOR = False
+    TABLE_USE_COLOR = False
     PANEL_BASE_TITLE = "Annotations"
 
     # pre-allocate ui controls
@@ -377,7 +377,7 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin):
         statusbar = self.make_statusbar(panel)
 
         # make peaklist
-        self.peaklist = self.make_table(self.TABLE_DICT, panel)
+        self.peaklist = self.make_table(self.TABLE_CONFIG, panel)
 
         self.name_value = wx.StaticText(panel)
         # self.name_value = wx.TextCtrl(panel, -1, "", style=wx.TE_RICH)

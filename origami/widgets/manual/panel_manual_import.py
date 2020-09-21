@@ -39,7 +39,7 @@ class PanelManualImportDataset(PanelImportManagerBase):
 
     def _init(self, **kwargs):
         """Modify certain elements before initialization takes place"""
-        self.TABLE_DICT[self.TABLE_COLUMN_INDEX.variable]["type"] = "float"
+        self.TABLE_CONFIG[self.TABLE_COLUMN_INDEX.variable]["type"] = "float"
         self.ACTIVATION_TYPE = kwargs.pop("activation_type", "CIU")
 
     @property

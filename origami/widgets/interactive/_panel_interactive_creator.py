@@ -211,26 +211,26 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self._item_style_ = {}
 
         self.make_gui()
-        self.populateTable()
-        self.on_apply(evt=None)
-        self.on_toggle_controls(evt=None)
-
+        # self.populateTable()
+        # self.on_apply(evt=None)
+        # self.on_toggle_controls(evt=None)
+        #
         # fit layout
         self.main_sizer.Fit(self.split_panel)
         self.SetSizer(self.main_sizer)
         self.CenterOnParent()
         self.Layout()
         self.SetFocus()
-
-        print("Startup of interactive panel took {:.3f} seconds".format(time.time() - tstart))
-        # bind
-        wx.EVT_CLOSE(self, self.on_close)
-        wx.EVT_SPLITTER_DCLICK(self, wx.ID_ANY, self._onSash)
-        self.Bind(wx.EVT_CHAR_HOOK, self.on_keyboard_event)
-        self.peaklist.Bind(wx.EVT_LEFT_DCLICK, self.on_customise_item)
-        self.peaklist.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.menu_column_right_click)
-        self.peaklist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_item)
-        self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
+        #
+        # print("Startup of interactive panel took {:.3f} seconds".format(time.time() - tstart))
+        # # bind
+        # wx.EVT_CLOSE(self, self.on_close)
+        # wx.EVT_SPLITTER_DCLICK(self, wx.ID_ANY, self._onSash)
+        # self.Bind(wx.EVT_CHAR_HOOK, self.on_keyboard_event)
+        # self.peaklist.Bind(wx.EVT_LEFT_DCLICK, self.on_customise_item)
+        # self.peaklist.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.menu_column_right_click)
+        # self.peaklist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_layout)
+        # self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
 
     def setup_handling_and_processing(self):
         self.data_processing = self.view.data_processing
@@ -881,7 +881,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
 
         self.split_panel.SplitVertically(self.list_panel, self.settings_panel)
         self.split_panel.SetSashGravity(0.0)
-        self.split_panel.SetSashSize(2)
+        #         self.split_panel.SetSashSize(2)
         self.split_panel.SetSashPosition(size_left + 10)
 
         # pack element
@@ -1127,7 +1127,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
 
         # make bindings
         saveBtn.Bind(wx.EVT_BUTTON, self.on_generate_html_fcn)
-        openHTMLWebBtn.Bind(wx.EVT_BUTTON, self.presenter.on_open_weblink)
+        #         openHTMLWebBtn.Bind(wx.EVT_BUTTON, self.presenter.on_open_weblink)
         cancelBtn.Bind(wx.EVT_BUTTON, self.on_close)
         pathBtn.Bind(wx.EVT_BUTTON, self.on_get_path)
 
@@ -1481,8 +1481,8 @@ class PanelInteractiveCreator(wx.MiniFrame):
 
         # pack elements
         viewSizer = wx.BoxSizer(wx.HORIZONTAL)
-        viewSizer.Add(sizer_1, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
-        viewSizer.Add(sizer_2, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
+        viewSizer.Add(sizer_1, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        viewSizer.Add(sizer_2, 0, wx.ALIGN_CENTER_VERTICAL, 0)
 
         viewSizer.Fit(panel)
         panel.SetSizerAndFit(viewSizer)

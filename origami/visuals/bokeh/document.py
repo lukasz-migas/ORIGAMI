@@ -39,9 +39,31 @@ class Tab(dict):
         return f"{self.__class__.__name__}<layouts={len(self)}>"
 
     @property
+    def name(self) -> str:
+        """Return the name of the tab"""
+        return self._name
+
+    @property
     def n_layouts(self) -> int:
         """Return the number of layouts present in the Tab"""
         return len(self)
+
+    @property
+    def auto_create(self):
+        """Flag to indicate whether layouts should be auto-created"""
+        return self._auto_create
+
+    @auto_create.setter
+    def auto_create(self, value):
+        self._auto_create = value
+
+    @property
+    def layout_list(self) -> List[str]:
+        """Returns a list of objects that are contained within this instance of the tab"""
+        out = []
+        for key, layout in self.items():
+            out.append(f"Tab={self.name}; Name={layout.name}; Tag={key}")
+        return out
 
     def _get_unique_name(self, basename: str = "item"):
         """Get unique name for an item in specific tab. Names are made unique by adding #NUMBER+1 itself
@@ -103,14 +125,27 @@ class Tab(dict):
             raise KeyError(f"Layout `{name}` not in the Tab")
         return self[name]
 
+    def get_plot_obj(self, plot_name: str, layout_name: str = None) -> PlotBase:
+        """Get plot object stored in one of the layouts"""
+        if layout_name is not None:
+            return self.get_layout(layout_name).get(plot_name)
+        for layout in self:
+            if plot_name in layout:
+                return layout[plot_name]
+        raise KeyError("Could not retrieve plot object")
+
     def auto_add(self) -> BaseLayout:
         """Automatically add layout to the Tab"""
-        if self._default_layout == "row":
-            return self.add_row()
-        elif self._default_layout == "col":
-            return self.add_col()
-        elif self._default_layout == "grid":
-            return self.add_grid()
+        return self.add_layout(None, self._default_layout)  # noqa
+
+    def add_layout(self, name: str, layout: str):
+        """Add layout based on the name"""
+        if layout == "row":
+            return self.add_row(name)
+        elif layout in ["col", "column"]:
+            return self.add_col(name)
+        elif layout == "grid":
+            return self.add_grid(name)
 
     def add_row(self, name: str = None) -> BaseLayout:
         """Add row the tab
@@ -157,48 +192,70 @@ class Tab(dict):
         """
         return self._add(name, GridLayout, "grid")
 
+    def change_layout(self, name: str, new_name: str = None, new_layout: str = None):
+        """Change layout configuration, e.g. change from Row -> Column or update the title"""
+
+        # update name
+        if new_name is not None:
+            layout = self.pop(name)
+            self[new_name] = layout
+            name = new_name
+
+        # update type
+        if new_layout is not None:
+            layout = self.get_layout(name)
+            if layout.LAYOUT != new_layout:
+                layout_kwargs = layout.as_dict()
+                if new_layout == "row":
+                    layout = RowLayout(**layout_kwargs)
+                elif new_layout == "grid":
+                    layout = GridLayout(**layout_kwargs)
+                else:
+                    layout = ColumnLayout(**layout_kwargs)
+                self[name] = layout
+
     def add_spectrum(
-        self, data_obj, layout: Union[str, BaseLayout] = None, forced_kwargs=None, **kwargs
+        self, data_obj, layout: Union[str, BaseLayout] = None, plot_name: str = None, forced_kwargs=None, **kwargs
     ) -> Tuple[PlotBase, BaseLayout]:
         """Add spectrum to the Tab"""
         layout = self.get_layout(layout)
         plot_obj = PlotSpectrum(**kwargs)
         plot_obj.plot(data_obj, forced_kwargs=forced_kwargs, **kwargs)
-        layout.append(plot_obj)
+        layout.append(plot_obj, plot_name)
         return plot_obj, layout
 
     def add_scatter(
-        self, data_obj, layout: Union[str, BaseLayout] = None, forced_kwargs=None, **kwargs
+        self, data_obj, layout: Union[str, BaseLayout] = None, plot_name: str = None, forced_kwargs=None, **kwargs
     ) -> Tuple[PlotBase, BaseLayout]:
         """Add scatter to the Tab"""
         layout = self.get_layout(layout)
         plot_obj = PlotScatter(**kwargs)
         plot_obj.plot(data_obj, forced_kwargs=forced_kwargs, **kwargs)
-        layout.append(plot_obj)
+        layout.append(plot_obj, plot_name)
         return plot_obj, layout
 
     def add_heatmap(
-        self, data_obj, layout: Union[str, BaseLayout] = None, forced_kwargs=None, **kwargs
+        self, data_obj, layout: Union[str, BaseLayout] = None, plot_name: str = None, forced_kwargs=None, **kwargs
     ) -> Tuple[PlotBase, BaseLayout]:
         """Add heatmap to the Tab"""
         layout = self.get_layout(layout)
         plot_obj = PlotHeatmap(**kwargs)
         plot_obj.plot(data_obj, forced_kwargs=forced_kwargs, **kwargs)
-        layout.append(plot_obj)
+        layout.append(plot_obj, plot_name)
         return plot_obj, layout
 
     def add_heatmap_rgba(
-        self, data_obj, layout: Union[str, BaseLayout] = None, forced_kwargs=None, **kwargs
+        self, data_obj, layout: Union[str, BaseLayout] = None, plot_name: str = None, forced_kwargs=None, **kwargs
     ) -> Tuple[PlotBase, BaseLayout]:
         """Add RGBA heatmap to the Tab"""
         layout = self.get_layout(layout)
         plot_obj = PlotHeatmapRGBA(**kwargs)
         plot_obj.plot(data_obj, forced_kwargs=forced_kwargs, **kwargs)
-        layout.append(plot_obj)
+        layout.append(plot_obj, plot_name)
         return plot_obj, layout
 
 
-class PlotDocument:
+class PlotStore:
     """Bokeh document responsible for rendering of the various plots and widgets"""
 
     def __init__(self, output_dir: str = None, filename: str = "figure-store.html", title: str = "Document Store"):
@@ -236,6 +293,14 @@ class PlotDocument:
     def tab_names(self):
         """Get list of tab names"""
         return list(self._tabs.keys())
+
+    @property
+    def layout_list(self) -> List[str]:
+        """Returns a list of objects that are contained within this instance of the tab"""
+        out = []
+        for tab in self._tabs.values():
+            out.extend(tab.layout_list)
+        return out
 
     @property
     def n_tabs(self) -> int:
@@ -340,6 +405,10 @@ class PlotDocument:
         """
         for tab_name in tab_names:
             self.add_tab(tab_name, force)
+
+    def remove_tab(self, tab_name: str):
+        """Remove tab from the PlotStore"""
+        del self._tabs[tab_name]
 
     def get_tab(self, tab: str, auto_add_tab: bool = True):
         """Get tab"""

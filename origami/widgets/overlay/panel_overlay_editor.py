@@ -60,30 +60,32 @@ class TableColumnIndex:
     document_title = 5
     dataset_name = 6
     color = 7
+    tag = 8
 
 
 class PanelOverlayEditor(MiniFrame, TableMixin, ColorGetterMixin, PanelOverlayViewerMixin):
     """Overlay viewer and editor"""
 
     # peaklist list
-    TABLE_DICT = TableConfig()
-    TABLE_DICT.add("", "check", "bool", 25, hidden=True)
-    TABLE_DICT.add("#", "order", "int", 50)
-    TABLE_DICT.add("name", "name", "str", 150)
-    TABLE_DICT.add("dimensions", "dimensions", "str", 100)
-    TABLE_DICT.add("label", "label", "str", 100)
-    TABLE_DICT.add("document", "document_title", "str", 100)
-    TABLE_DICT.add("full name", "dataset_name", "str", 0, hidden=True)
-    TABLE_DICT.add("color", "color", "color", 0, hidden=True)
-    TABLE_DICT.add("tag", "tag", "str", 0, hidden=True)
+    TABLE_CONFIG = TableConfig()
+    TABLE_CONFIG.add("", "check", "bool", 25, hidden=True)
+    TABLE_CONFIG.add("#", "order", "int", 50)
+    TABLE_CONFIG.add("name", "name", "str", 150)
+    TABLE_CONFIG.add("dimensions", "dimensions", "str", 100)
+    TABLE_CONFIG.add("label", "label", "str", 100)
+    TABLE_CONFIG.add("document", "document_title", "str", 100)
+    TABLE_CONFIG.add("full name", "dataset_name", "str", 0, hidden=True)
+    TABLE_CONFIG.add("color", "color", "color", 0, hidden=True)
+    TABLE_CONFIG.add("tag", "tag", "str", 0, hidden=True)
+    TABLE_COLUMN_INDEX = TableColumnIndex()
     TABLE_KWARGS = dict(
         add_item_color=True,
         color_in_column=True,
-        color_column_id=TABLE_DICT.find_col_id("color"),
+        color_column_id=TABLE_CONFIG.find_col_id("color"),
         color_in_column_255=True,
     )
-    USE_COLOR = False
-    TABLE_WIDGET_DICT = dict()
+    TABLE_USE_COLOR = False
+    TABLE_WIDGET_DICT = None
 
     # ui elements
     panel_book, action_btn, plot_btn, notebook = None, None, None, None
@@ -238,7 +240,7 @@ class PanelOverlayEditor(MiniFrame, TableMixin, ColorGetterMixin, PanelOverlayVi
         buttons_sizer = self.make_plot_buttons(panel)
 
         # make listctrl
-        self.peaklist = self.make_table(self.TABLE_DICT, panel)
+        self.peaklist = self.make_table(self.TABLE_CONFIG, panel)
 
         # add statusbar
         info_sizer = self.make_statusbar(panel, "right")
@@ -261,16 +263,16 @@ class PanelOverlayEditor(MiniFrame, TableMixin, ColorGetterMixin, PanelOverlayVi
 
     def make_plot_buttons(self, panel):
         """Make buttons sizer"""
-        self.action_btn = wx.Button(panel, wx.ID_OK, "Action ▼", size=(-1, -1))
+        self.action_btn = wx.Button(panel, wx.ID_ANY, "Action ▼", size=(-1, -1))
         self.action_btn.Bind(wx.EVT_BUTTON, self.on_action_tools)
 
-        self.plot_btn = wx.Button(panel, wx.ID_OK, "Plot", size=(-1, -1))
+        self.plot_btn = wx.Button(panel, wx.ID_ANY, "Plot", size=(-1, -1))
         self.plot_btn.Bind(wx.EVT_BUTTON, self.on_plot_overlay)
 
-        self.add_to_document_btn = wx.Button(panel, wx.ID_OK, "Add to document", size=(-1, -1))
+        self.add_to_document_btn = wx.Button(panel, wx.ID_ANY, "Add to document", size=(-1, -1))
         self.add_to_document_btn.Bind(wx.EVT_BUTTON, self.on_add_to_document)
 
-        self.cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, -1))
+        self.cancel_btn = wx.Button(panel, wx.ID_CANCEL, "Cancel", size=(-1, -1))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
         sizer = wx.BoxSizer()
@@ -587,7 +589,7 @@ class PanelOverlayEditor(MiniFrame, TableMixin, ColorGetterMixin, PanelOverlayVi
         obj = evt.GetEventObject()
 
         # get current item in the table that is being edited
-        item_id = self.on_find_item("tag", self._current_item)
+        item_id = self.current_item_id
         if item_id == -1:
             return
 

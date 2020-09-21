@@ -64,8 +64,8 @@ class TableColumnIndex(IntEnum):
 
 
 class PanelTextlist(TablePanelBase):
-    KEYWORD_ALIAS = {"cmap": "colormap"}
-    TABLE_DICT = {
+    TABLE_KEYWORD_ALIAS = {"cmap": "colormap"}
+    TABLE_CONFIG = {
         0: {
             "name": "",
             "tag": "check",
@@ -167,12 +167,12 @@ class PanelTextlist(TablePanelBase):
         ]
         self.SetAcceleratorTable(wx.AcceleratorTable(accelerators))
 
-        wx.EVT_MENU(self, ID_textPanel_editItem, self.on_open_editor)
-        wx.EVT_MENU(self, ID_textPanel_assignColor, self.on_assign_color)
-        wx.EVT_MENU(self, ID_textPanel_show_heatmap, self.on_plot)
-        wx.EVT_MENU(self, ID_textPanel_show_mobilogram, self.on_plot)
-        wx.EVT_MENU(self, ID_textPanel_check_selected, self.on_check_selected)
-        wx.EVT_MENU(self, ID_textPanel_delete_rightClick, self.on_delete_item)
+    #         self.Bind(wx.EVT_MENU, ID_textPanel_editItem, self.on_open_editor)
+    #         self.Bind(wx.EVT_MENU, ID_textPanel_assignColor, self.on_assign_color)
+    #         self.Bind(wx.EVT_MENU, ID_textPanel_show_heatmap, self.on_plot)
+    #         self.Bind(wx.EVT_MENU, ID_textPanel_show_mobilogram, self.on_plot)
+    #         self.Bind(wx.EVT_MENU, ID_textPanel_check_selected, self.on_check_selected)
+    #         self.Bind(wx.EVT_MENU, ID_textPanel_delete_rightClick, self.on_delete_item)
 
     def setup_handling_and_processing(self):
         self.data_processing = self.view.data_processing

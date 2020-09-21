@@ -1,4 +1,4 @@
-"""Simple panel used to rename elements"""
+"""Simple panel used to create new tabs"""
 # Standard library imports
 from typing import List
 
@@ -9,27 +9,25 @@ import wx
 from origami.styles import Dialog
 from origami.gui_elements.helpers import set_tooltip
 
-FORBIDDEN_NAMES = ["Documents", ""]
+FORBIDDEN_NAMES = ["Tab", ""]
 BOX_SIZE = 400
 
 
-class DialogRenameObject(Dialog):
+class DialogNewTab(Dialog):
     """Simple dialog to rename object"""
 
     # ui elements
-    old_name_value = None
     new_name_value = None
     note_value = None
     ok_btn = None
     cancel_btn = None
 
-    def __init__(self, parent, current_name: str, prepend_name: str = "", forbidden: List[str] = None):
-        Dialog.__init__(self, parent, title="Rename...", size=(400, 300))
+    def __init__(self, parent, default_name: str, forbidden: List[str] = None):
+        Dialog.__init__(self, parent, title="New tab...", size=(400, 300))
 
         self.parent = parent
-        self.current_name = current_name
-        self.prepend_name = prepend_name
-        self.new_name = None
+        self.default_name = default_name
+        self.new_name = default_name
 
         if forbidden is None:
             forbidden = FORBIDDEN_NAMES
@@ -57,7 +55,7 @@ class DialogRenameObject(Dialog):
     def on_close(self, evt, force: bool = False):
         """Destroy this frame."""
         self.new_name = None
-        super(DialogRenameObject, self).on_close(evt, force)
+        super(DialogNewTab, self).on_close(evt, force)
 
     def make_gui(self):
         """Make UI"""
@@ -79,12 +77,8 @@ class DialogRenameObject(Dialog):
 
         panel = wx.Panel(self, -1)
 
-        self.old_name_value = wx.StaticText(panel, -1, "", size=(BOX_SIZE, 40))
-        self.old_name_value.SetLabel(self.current_name)
-        set_tooltip(self.old_name_value, "Current name of the object.")
-
         self.new_name_value = wx.TextCtrl(panel, -1, "", size=(BOX_SIZE, -1), style=wx.TE_PROCESS_ENTER)
-        self.new_name_value.SetValue(self.current_name)
+        self.new_name_value.SetValue(self.default_name)
         self.new_name_value.Bind(wx.EVT_TEXT, self.on_new_name)
         self.new_name_value.SetFocus()
         set_tooltip(
@@ -95,15 +89,15 @@ class DialogRenameObject(Dialog):
 
         self.note_value = wx.StaticText(panel, -1, "", size=(BOX_SIZE, 40))
         self.note_value.Wrap(BOX_SIZE)
-        set_tooltip(self.note_value, "Final name of the object after you click on `Rename` button")
+        set_tooltip(self.note_value, "Final name of the object after you click on `Add` button")
 
-        self.ok_btn = wx.Button(panel, wx.ID_OK, "Rename", size=(-1, -1))
+        self.ok_btn = wx.Button(panel, wx.ID_OK, "Add", size=(-1, -1))
         self.ok_btn.Bind(wx.EVT_BUTTON, self.on_ok)
         set_tooltip(self.ok_btn, "Rename object to the `New name` value.")
 
         self.cancel_btn = wx.Button(panel, wx.ID_CANCEL, "Cancel", size=(-1, -1))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
-        set_tooltip(self.cancel_btn, "Close window and do not rename the object.")
+        set_tooltip(self.cancel_btn, "Close window and do add tab to the PlotStore.")
 
         btn_sizer = wx.BoxSizer()
         btn_sizer.Add(self.ok_btn)
@@ -112,15 +106,9 @@ class DialogRenameObject(Dialog):
 
         # pack elements
         grid = wx.GridBagSizer(5, 5)
-        grid.Add(wx.StaticText(panel, -1, "Current name:"), (0, 0), flag=wx.ALIGN_TOP)
-        grid.Add(self.old_name_value, (0, 1), wx.GBSpan(1, 5), flag=wx.EXPAND)
-
-        grid.Add(wx.StaticText(panel, -1, "New name:"), (1, 0), flag=wx.ALIGN_CENTER_VERTICAL)
+        grid.Add(wx.StaticText(panel, -1, "Tab name:"), (1, 0), flag=wx.ALIGN_CENTER_VERTICAL)
         grid.Add(self.new_name_value, (1, 1), wx.GBSpan(1, 5), flag=wx.EXPAND)
-
         grid.Add(wx.StaticLine(panel, wx.SL_HORIZONTAL), (2, 0), (1, 6), flag=wx.EXPAND)
-
-        grid.Add(wx.StaticText(panel, -1, "Final name:"), (3, 0), flag=wx.ALIGN_CENTER_VERTICAL)
         grid.Add(self.note_value, (3, 1), wx.GBSpan(2, 5), flag=wx.EXPAND)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -142,17 +130,13 @@ class DialogRenameObject(Dialog):
             self.note_value.SetLabel("This name is not allowed")
         else:
             self.new_name_value.SetBackgroundColour(wx.WHITE)
-            self.note_value.SetLabel(new_name)
+            self.note_value.SetLabel("")
         self.new_name_value.Refresh()
 
     @property
     def set_new_name(self):
         """Return `new_name`"""
-        if self.prepend_name:
-            self.new_name = "{}: {}".format(self.current_name, self.new_name_value.GetValue())
-        else:
-            self.new_name = "{}".format(self.new_name_value.GetValue())
-
+        self.new_name = "{}".format(self.new_name_value.GetValue())
         return self.new_name
 
     def on_ok(self, _evt):
@@ -175,7 +159,7 @@ class DialogRenameObject(Dialog):
 
 def _main():
     app = wx.App()
-    ex = DialogRenameObject(None, "Current name")
+    ex = DialogNewTab(None, "Tab #1")
 
     ex.Show()
     app.MainLoop()

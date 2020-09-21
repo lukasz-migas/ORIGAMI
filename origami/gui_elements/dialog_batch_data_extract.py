@@ -35,7 +35,7 @@ class DialogBatchDataExtract(DialogReviewEditorBase):
     # ui elements
     process_btn = None
 
-    TABLE_DICT = {
+    TABLE_CONFIG = {
         0: dict(name="", tag="check", type="bool", width=25, show=True, order=0, id=wx.NewIdRef(), hidden=True),
         1: dict(name="type", tag="type", type="str", width=100, show=True, order=1, id=wx.NewIdRef()),
         2: dict(name="name", tag="name", type="str", width=150, show=True, order=2, id=wx.NewIdRef()),

@@ -74,13 +74,10 @@ class DialogAsk(Dialog):
         if evt is not None:
             evt.Skip()
 
-    def on_close(self, evt):
+    def on_close(self, evt, force: bool = False):
         """Destroy this frame."""
         self.parent.ask_value = None
-        if self.IsModal():
-            self.EndModal(wx.ID_NO)
-        else:
-            self.Destroy()
+        super(DialogAsk, self).on_close(evt, force)
 
     def on_ok(self, _evt):
         """Close window politely"""
@@ -146,13 +143,13 @@ class DialogAsk(Dialog):
         self.ok_btn = wx.Button(panel, wx.ID_OK, "OK", size=(-1, -1))
         self.cancel_btn = wx.Button(panel, -1, "Cancel", size=(-1, -1))
 
-        btn_grid = wx.BoxSizer(wx.HORIZONTAL)
+        btn_grid = wx.BoxSizer()
         btn_grid.Add(self.ok_btn)
         btn_grid.AddSpacer(5)
         btn_grid.Add(self.cancel_btn)
 
         # set controls in a sizer
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer = wx.BoxSizer()
         sizer.Add(wx.StaticText(panel, -1, self.item_label), 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 10)
         sizer.Add(self.input_value, 1, wx.EXPAND)
 
@@ -177,8 +174,7 @@ class DialogAsk(Dialog):
 
 
 def _main():
-
-    app = wx.App(False)
+    app = wx.App()
     frame = wx.Frame(None, -1)
     ex = DialogAsk(frame, "Assign new value", "0", "integer")
     ex.ShowModal()

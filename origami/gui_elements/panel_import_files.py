@@ -46,16 +46,16 @@ class TableColumnIndex(IntEnum):
 class PanelImportManagerBase(MiniFrame, TableMixin):
     """Generic file manager"""
 
-    TABLE_DICT = TableConfig()
-    TABLE_DICT.add("", "check", "bool", 25, hidden=True)
-    TABLE_DICT.add("filename", "filename", "str", 100)
-    TABLE_DICT.add("path", "path", "path", 220)
-    TABLE_DICT.add("variable", "variable", "float", 80)
-    TABLE_DICT.add("m/z range", "mz_range", "str", 80)
-    TABLE_DICT.add("# scans", "n_scans", "str", 55)
-    TABLE_DICT.add("scan range", "scan_range", "str", 80)
-    TABLE_DICT.add("IM", "ion_mobility", "str", 40)
-    TABLE_DICT.add("document", "document", "str", 100)
+    TABLE_CONFIG = TableConfig()
+    TABLE_CONFIG.add("", "check", "bool", 25, hidden=True)
+    TABLE_CONFIG.add("filename", "filename", "str", 100)
+    TABLE_CONFIG.add("path", "path", "path", 220)
+    TABLE_CONFIG.add("variable", "variable", "float", 80)
+    TABLE_CONFIG.add("m/z range", "mz_range", "str", 80)
+    TABLE_CONFIG.add("# scans", "n_scans", "str", 55)
+    TABLE_CONFIG.add("scan range", "scan_range", "str", 80)
+    TABLE_CONFIG.add("IM", "ion_mobility", "str", 40)
+    TABLE_CONFIG.add("document", "document", "str", 100)
     TABLE_COLUMN_INDEX = TableColumnIndex
     TABLE_STYLE = wx.LC_REPORT | wx.LC_VRULES | wx.LC_HRULES | wx.LC_SINGLE_SEL
 
@@ -72,7 +72,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
     PUB_IN_PROGRESS_EVENT = None
     SUPPORTED_FILE_FORMATS = [".raw"]
     DIALOG_SIZE = (800, 800)
-    USE_COLOR = False
+    TABLE_USE_COLOR = False
     CONFIG_NAME = None
 
     # UI elements
@@ -231,7 +231,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         grid, btn_grid = self.make_info_panel(panel)
 
         # instantiate table
-        self.peaklist = self.make_table(self.TABLE_DICT, panel)
+        self.peaklist = self.make_table(self.TABLE_CONFIG, panel)
 
         # get implementation panel
         impl_sizer = self.make_implementation_panel(panel)

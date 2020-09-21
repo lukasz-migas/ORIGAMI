@@ -18,10 +18,10 @@ class DialogReviewApplyOrigamiMs(DialogReviewEditorBase):
     # ui elements
     process_btn = None
 
-    TABLE_DICT = TableConfig()
-    TABLE_DICT.add("", "check", "bool", 25, hidden=True)
-    TABLE_DICT.add("type", "type", "str", 100)
-    TABLE_DICT.add("name", "name", "str", 550)
+    TABLE_CONFIG = TableConfig()
+    TABLE_CONFIG.add("", "check", "bool", 25, hidden=True)
+    TABLE_CONFIG.add("type", "type", "str", 100)
+    TABLE_CONFIG.add("name", "name", "str", 550)
 
     REVIEW_MSG = "Please select item(s) that you would like to apply ORIGAMI-MS settings to."
 

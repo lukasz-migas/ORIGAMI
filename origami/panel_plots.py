@@ -102,7 +102,7 @@ class PanelPlots(wx.Panel):
         self.current_page = None
         # Extract size of screen
         self._display_size_px = wx.GetDisplaySize()
-        self.SetDimensions(0, 0, self._display_size_px[0] - 320, self._display_size_px[1] - 50)
+        self.SetSize(0, 0, self._display_size_px[0] - 320, self._display_size_px[1] - 50)
         self._display_size_mm = wx.GetDisplaySizeMM()
 
         self.displayRes = wx.GetDisplayPPI()

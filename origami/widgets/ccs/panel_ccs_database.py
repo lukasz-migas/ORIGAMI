@@ -56,23 +56,23 @@ class TableColumnIndex:
 class PanelCCSDatabase(MiniFrame, TableMixin):
     """CCS database panel"""
 
-    TABLE_DICT = TableConfig()
-    TABLE_DICT.add("", "check", "bool", 25, hidden=True)
-    TABLE_DICT.add("calibrant", "calibrant", "str", 150)
-    TABLE_DICT.add("MW", "mw", "float", 60)
-    TABLE_DICT.add("z", "charge", "int", 50)
-    TABLE_DICT.add("m/z", "mz", "float", 80)
-    TABLE_DICT.add("He+", "he_pos", "float", 60)
-    TABLE_DICT.add("He-", "he_neg", "float", 60)
-    TABLE_DICT.add("N2+", "n2_pos", "float", 60)
-    TABLE_DICT.add("N2-", "n2_neg", "float", 60)
-    TABLE_DICT.add("state", "state", "str", 60)
-    TABLE_DICT.add("source", "source", "str", 60)
-    TABLE_DICT.add("name", "name", "str", 0, hidden=True)
+    TABLE_CONFIG = TableConfig()
+    TABLE_CONFIG.add("", "check", "bool", 25, hidden=True)
+    TABLE_CONFIG.add("calibrant", "calibrant", "str", 150)
+    TABLE_CONFIG.add("MW", "mw", "float", 60)
+    TABLE_CONFIG.add("z", "charge", "int", 50)
+    TABLE_CONFIG.add("m/z", "mz", "float", 80)
+    TABLE_CONFIG.add("He+", "he_pos", "float", 60)
+    TABLE_CONFIG.add("He-", "he_neg", "float", 60)
+    TABLE_CONFIG.add("N2+", "n2_pos", "float", 60)
+    TABLE_CONFIG.add("N2-", "n2_neg", "float", 60)
+    TABLE_CONFIG.add("state", "state", "str", 60)
+    TABLE_CONFIG.add("source", "source", "str", 60)
+    TABLE_CONFIG.add("name", "name", "str", 0, hidden=True)
 
     TABLE_COLUMN_INDEX = TableColumnIndex
     TABLE_WIDGET_DICT = dict()
-    USE_COLOR = False
+    TABLE_USE_COLOR = False
     HELP_LINK = "https://origami.lukasz-migas.com/"
 
     PUB_SUBSCRIBE_UPDATE = "ccs.update.quick"
@@ -162,7 +162,7 @@ class PanelCCSDatabase(MiniFrame, TableMixin):
         panel = wx.Panel(self, -1, size=(-1, -1), name="settings")
 
         # make table
-        self.peaklist = self.make_table(self.TABLE_DICT, panel)
+        self.peaklist = self.make_table(self.TABLE_CONFIG, panel)
         self.peaklist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_calibrant_from_table)
 
         # statusbar

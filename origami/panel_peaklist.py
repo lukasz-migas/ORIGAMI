@@ -70,8 +70,8 @@ class TableColumnIndex(IntEnum):
 class PanelPeaklist(TablePanelBase):
     """Panel showing list of items that are associated with the document"""
 
-    KEYWORD_ALIAS = {"colormap": "cmap"}
-    TABLE_DICT = {
+    TABLE_KEYWORD_ALIAS = {"colormap": "cmap"}
+    TABLE_CONFIG = {
         0: {
             "name": "",
             "tag": "check",

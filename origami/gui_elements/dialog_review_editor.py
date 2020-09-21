@@ -43,7 +43,7 @@ class DialogReviewEditorBase(Dialog, TableMixin):
 
     TABLE_COLUMN_INDEX = TableColumnIndex
     TABLE_TEXT_ALIGN = wx.LIST_FORMAT_LEFT
-    USE_COLOR = False
+    TABLE_USE_COLOR = False
     REVIEW_MSG = (
         "Please review the list of items shown below and select items which you would like to add to the document."
     )
@@ -139,7 +139,7 @@ class DialogReviewEditorBase(Dialog, TableMixin):
             extra_label = wx.StaticText(panel, -1, self.EXTRA_MSG)
             extra_label.Wrap(500)
 
-        self.peaklist = self.make_table(self.TABLE_DICT, panel)
+        self.peaklist = self.make_table(self.TABLE_CONFIG, panel)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(info_label, 0, wx.ALIGN_CENTER | wx.ALL, 5)
@@ -207,10 +207,10 @@ class DialogReviewEditorBase(Dialog, TableMixin):
 class DialogReviewEditorOverlay(DialogReviewEditorBase):
     """Dialog enabling review of items from the overlay panel"""
 
-    TABLE_DICT = TableConfig()
-    TABLE_DICT.add("", "check", "bool", 25, hidden=True)
-    TABLE_DICT.add("visualisation", "type", "str", 150)
-    TABLE_DICT.add("name", "name", "str", 600)
+    TABLE_CONFIG = TableConfig()
+    TABLE_CONFIG.add("", "check", "bool", 25, hidden=True)
+    TABLE_CONFIG.add("visualisation", "type", "str", 150)
+    TABLE_CONFIG.add("name", "name", "str", 600)
 
     def __init__(self, parent, item_list):
         super().__init__(parent, item_list)
@@ -219,10 +219,10 @@ class DialogReviewEditorOverlay(DialogReviewEditorBase):
 class DialogReviewEditorExtract(DialogReviewEditorBase):
     """Dialog enabling review of items from the overlay panel"""
 
-    TABLE_DICT = TableConfig()
-    TABLE_DICT.add("", "check", "bool", 25, hidden=True)
-    TABLE_DICT.add("type", "type", "str", 150)
-    TABLE_DICT.add("name", "name", "str", 550)
+    TABLE_CONFIG = TableConfig()
+    TABLE_CONFIG.add("", "check", "bool", 25, hidden=True)
+    TABLE_CONFIG.add("type", "type", "str", 150)
+    TABLE_CONFIG.add("name", "name", "str", 550)
 
     def __init__(self, parent, item_list):
         super().__init__(parent, item_list)
@@ -234,10 +234,10 @@ class DialogReviewProcessHeatmap(DialogReviewEditorBase):
     # ui elements
     process_btn = None
 
-    TABLE_DICT = TableConfig()
-    TABLE_DICT.add("", "check", "bool", 25, hidden=True)
-    TABLE_DICT.add("type", "type", "str", 100)
-    TABLE_DICT.add("name", "name", "str", 550)
+    TABLE_CONFIG = TableConfig()
+    TABLE_CONFIG.add("", "check", "bool", 25, hidden=True)
+    TABLE_CONFIG.add("type", "type", "str", 100)
+    TABLE_CONFIG.add("name", "name", "str", 550)
 
     REVIEW_MSG = "Please select item(s) that you would like to process and add to the document"
 
@@ -319,10 +319,10 @@ class DialogReviewProcessSpectrum(DialogReviewEditorBase):
     # ui elements
     process_btn = None
 
-    TABLE_DICT = TableConfig()
-    TABLE_DICT.add("", "check", "bool", 25, hidden=True)
-    TABLE_DICT.add("type", "type", "str", 100)
-    TABLE_DICT.add("name", "name", "str", 550)
+    TABLE_CONFIG = TableConfig()
+    TABLE_CONFIG.add("", "check", "bool", 25, hidden=True)
+    TABLE_CONFIG.add("type", "type", "str", 100)
+    TABLE_CONFIG.add("name", "name", "str", 550)
 
     REVIEW_MSG = "Please select item(s) that you would like to process and add to the document"
 
@@ -402,10 +402,10 @@ class DialogReviewProcessSpectrum(DialogReviewEditorBase):
 class DialogReviewExportFigures(DialogReviewEditorBase):
     """Dialog enabling review of items from the overlay panel"""
 
-    TABLE_DICT = TableConfig()
-    TABLE_DICT.add("", "check", "bool", 25, hidden=True)
-    TABLE_DICT.add("type", "type", "str", 100)
-    TABLE_DICT.add("name", "name", "str", 550)
+    TABLE_CONFIG = TableConfig()
+    TABLE_CONFIG.add("", "check", "bool", 25, hidden=True)
+    TABLE_CONFIG.add("type", "type", "str", 100)
+    TABLE_CONFIG.add("name", "name", "str", 550)
 
     REVIEW_MSG = "Please select item(s) that you would like export as figures"
 
@@ -434,10 +434,10 @@ class DialogReviewExportFigures(DialogReviewEditorBase):
 class DialogReviewExportData(DialogReviewEditorBase):
     """Dialog enabling review of items from the overlay panel"""
 
-    TABLE_DICT = TableConfig()
-    TABLE_DICT.add("", "check", "bool", 25, hidden=True)
-    TABLE_DICT.add("type", "type", "str", 100)
-    TABLE_DICT.add("name", "name", "str", 550)
+    TABLE_CONFIG = TableConfig()
+    TABLE_CONFIG.add("", "check", "bool", 25, hidden=True)
+    TABLE_CONFIG.add("type", "type", "str", 100)
+    TABLE_CONFIG.add("name", "name", "str", 550)
 
     REVIEW_MSG = "Please select item(s) that you would like export in a text format"
 
