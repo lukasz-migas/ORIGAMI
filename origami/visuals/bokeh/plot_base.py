@@ -180,7 +180,15 @@ class PlotBase:
         --- to be added in the future ---
         TOOLS - interactive tools added for improved visualisation and control purposes
         """
-        layout = column(self.div_title, self.div_header, self.figure, self.div_footer)
+        content = []
+        if self._div_title:
+            content.append(self.div_title)
+        if self._div_header:
+            content.append(self.div_header)
+        content.append(self.figure)
+        if self._div_footer:
+            content.append(self.div_footer)
+        layout = column(content)
 
         # if a list of widgets is present in the plot object, they should be rendered alongside the plot + annotations
         if len(self._widgets):

@@ -225,10 +225,7 @@ class PanelOverlayEditor(MiniFrame, TableMixin, ColorGetterMixin, PanelOverlayVi
         self.SetSizer(main_sizer)
         self.SetSize(self._window_size)
         self.Layout()
-
-        #         self.CenterOnParent()
         self.SetFocus()
-        self.Show()
 
     def make_side_panel(self, split_panel):
         """Make side panel"""

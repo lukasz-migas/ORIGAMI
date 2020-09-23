@@ -16,6 +16,11 @@ def get_overlay_metadata(data_obj: DataObject, dataset_name: str, document_title
     return [dataset_name, document_title, data_obj.shape, label, order, get_short_hash()]
 
 
+def get_interactive_metadata(dataset_name: str, document_title: str) -> List:
+    """Get data necessary for overlay panel"""
+    return [dataset_name, document_title, get_short_hash()]
+
+
 def cleanup(item_dict) -> Dict:
     """Clean-up generated dict"""
     document_titles = list(item_dict.keys())
@@ -98,6 +103,8 @@ class QueryHandler:
                         item_dict[document_title].append(
                             [*get_overlay_metadata(data_obj, dataset_name, document_title)]
                         )
+                    elif output_fmt == "interactive":
+                        item_dict[document_title].append([*get_interactive_metadata(dataset_name, document_title)])
                     elif output_fmt == "document_dataset_list":  # simple_list
                         item_dict[document_title].append((dataset_type, dataset_name))
                     elif output_fmt == "dataset_list":  # item_list, comparison, annotations

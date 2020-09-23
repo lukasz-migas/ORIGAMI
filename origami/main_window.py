@@ -575,7 +575,7 @@ class MainWindow(wx.Frame):
         )
         menu_widgets.Append(menu_widget_bokeh)
         menu_widget_bokeh_new = make_menu_item(
-            parent=menu_widgets, text="Open &interactive output panel...", bitmap=self._icons.bokeh
+            parent=menu_widgets, text="Open &Interactive Output Builder...", bitmap=self._icons.bokeh
         )
         menu_widgets.Append(menu_widget_bokeh_new)
 
@@ -595,7 +595,7 @@ class MainWindow(wx.Frame):
             )
         )
         # add overlay sub-menu
-        menu_widget_overlay_viewer = make_menu_item(parent=menu_widgets, text="Open overlay window...\tShift+O")
+        menu_widget_overlay_viewer = make_menu_item(parent=menu_widgets, text="Open Overlay Builder...\tShift+O")
         menu_widgets.Append(menu_widget_overlay_viewer)
 
         # add ccs builder menu
@@ -951,7 +951,7 @@ class MainWindow(wx.Frame):
 
         # OUTPUT
         self.Bind(wx.EVT_MENU, self.on_open_interactive_output_panel, menu_widget_bokeh)
-        self.Bind(wx.EVT_MENU, self.on_open_interactive_output_panel_new, menu_widget_bokeh_new)
+        #         self.Bind(wx.EVT_MENU, self.on_open_interactive_output_panel_new, menu_widget_bokeh_new)
 
         # UTILITIES
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_lesa_viewer, menu_widget_lesa_viewer)
@@ -964,6 +964,7 @@ class MainWindow(wx.Frame):
             wx.EVT_MENU, partial(self.panelDocuments.documents.on_import_manual_dataset, "CIU"), menu_widget_ciu_import
         )
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_overlay_editor, menu_widget_overlay_viewer)
+        self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_interactive_editor, menu_widget_bokeh_new)
 
         # CONFIG MENU
         self.Bind(wx.EVT_MENU, self.on_export_config_fcn, menu_config_export)

@@ -256,7 +256,7 @@ class Statusbar(wx.StatusBar):
     def on_event_mode(self, plot_interaction):
         """Changed cursor based on which key is pressed"""
         shift, ctrl, alt, add_to_table, wheel, zoom, dragged = plot_interaction
-        cursor = wx.StockCursor(wx.CURSOR_ARROW)
+        cursor = wx.Cursor(wx.CURSOR_ARROW)
 
         mode = ""
         if alt:

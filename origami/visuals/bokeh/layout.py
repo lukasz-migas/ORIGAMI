@@ -33,7 +33,6 @@ class BaseLayout(dict):
     ):
         super(BaseLayout, self).__init__(*args)
         self._name = name
-        # self._objects = []
         self._div_title = div_title
         self._div_header = div_header
         self._div_footer = div_footer
@@ -131,6 +130,10 @@ class BaseLayout(dict):
         """Set number of columns"""
         self._shared_tools = value
 
+    def layout_repr(self, tab_name: str, tag: str) -> str:
+        """Represent layout in a pre-defined format"""
+        return f"Tab={tab_name}; Name={self.name}; Tag={tag}"
+
     def as_dict(self) -> Dict:
         """Return layout in the form of a dictionary"""
         return {
@@ -159,7 +162,15 @@ class BaseLayout(dict):
 
     def render(self):
         """Render layout so it can be displayed in the Document"""
-        return column([self.div_title, self.div_header, self._render(), self.div_footer])
+        content = []
+        if self.div_title_str:
+            content.append(self.div_title)
+        if self.div_header_str:
+            content.append(self.div_header)
+        content.append(self._render())
+        if self.div_footer_str:
+            content.append(self.div_footer)
+        return column(content)
 
     def _render(self):
         """Render layout so it can be displayed in the Document"""

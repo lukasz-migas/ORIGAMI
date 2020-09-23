@@ -40,9 +40,10 @@ class TableMixin:
     TABLE_CONFIG = {}
     TABLE_COLUMN_INDEX = TableColumnIndex
     TABLE_RESERVED = {"hide_all": wx.NewIdRef(), "show_all": wx.NewIdRef()}
-    TABLE_STYLE = wx.LC_REPORT | wx.LC_VRULES
+    TABLE_STYLE = wx.LC_REPORT | wx.LC_VRULES | wx.LC_SINGLE_SEL
     TABLE_KWARGS = dict()
     TABLE_USE_COLOR = True
+    TABLE_DISABLE_SORT = False
     TABLE_TEXT_ALIGN = wx.LIST_FORMAT_CENTER
     TABLE_DUPLICATE_ID_CHECK = []
     TABLE_KEYWORD_ALIAS = {}
@@ -86,9 +87,16 @@ class TableMixin:
             raise ValueError("Expected tags to be unique")
 
     def make_table(self, table_dict, panel=None):
+        """Make table"""
         if panel is None:
             panel = self
-        peaklist = ListCtrl(panel, style=self.TABLE_STYLE, column_info=table_dict, **self.TABLE_KWARGS)
+        peaklist = ListCtrl(
+            panel,
+            style=self.TABLE_STYLE,
+            column_info=table_dict,
+            disable_sort=self.TABLE_DISABLE_SORT,
+            **self.TABLE_KWARGS,
+        )
 
         for order, item in table_dict.items():
             name = item["name"]
@@ -615,53 +623,51 @@ class TestPanel(TablePanelBase):
         pass
 
 
-class ExampleFrame(wx.MiniFrame):
-    def __init__(self, parent):
-        wx.MiniFrame.__init__(self, parent, style=wx.RESIZE_BORDER | wx.CLOSE_BOX | wx.CAPTION)
-        self.panel = TestPanel(self, None, None)
-        add_btn = wx.Button(self, wx.ID_ANY, "Add")
-        self.Bind(wx.EVT_BUTTON, self.add_item, add_btn)
-
-        remove_btn = wx.Button(self, wx.ID_ANY, "Remove")
-        self.Bind(wx.EVT_BUTTON, self.panel.on_delete_item, remove_btn)
-
-        remove_selected_btn = wx.Button(self, wx.ID_ANY, "Remove selected")
-        self.Bind(wx.EVT_BUTTON, self.panel.on_delete_selected, remove_selected_btn)
-
-        remove_all_btn = wx.Button(self, wx.ID_ANY, "Remove all")
-        self.Bind(wx.EVT_BUTTON, self.panel.on_delete_all, remove_all_btn)
-
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(add_btn)
-        sizer.Add(remove_btn)
-        sizer.Add(remove_selected_btn)
-        sizer.Add(remove_all_btn)
-
-        main_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        main_sizer.Add(self.panel, 1, wx.EXPAND)
-        main_sizer.Add(sizer, 1, wx.EXPAND)
-        self.SetSizer(main_sizer)
-
-        self.panel.on_add_to_table({"c1": 0, "c2": 4})
-        self.panel.on_add_to_table({"c1": 1, "c2": 4})
-        self.panel.on_add_to_table({"c1": 3, "c2": 4})
-        self.panel.on_add_to_table({"c1": 6, "c2": 4})
-        self.panel.on_add_to_table({"c1": 37, "c2": 4})
-        self.Show()
-
-    def add_item(self, evt):
-        from random import randint
-
-        self.panel.on_add_to_table({"c1": randint(0, 1000), "c2": randint(0, 1000)})
-
-    # def remove_item(self, evt):
-    #     self.panel.on_delete_item(None)
-    #
-    # def remove_item(self, evt):
-    #     self.panel.on_delete_item(None)
-
-
 def main():
+    class ExampleFrame(wx.MiniFrame):
+        def __init__(self, parent):
+            wx.MiniFrame.__init__(self, parent, style=wx.RESIZE_BORDER | wx.CLOSE_BOX | wx.CAPTION)
+            self.panel = TestPanel(self, None, None)
+            add_btn = wx.Button(self, wx.ID_ANY, "Add")
+            self.Bind(wx.EVT_BUTTON, self.add_item, add_btn)
+
+            remove_btn = wx.Button(self, wx.ID_ANY, "Remove")
+            self.Bind(wx.EVT_BUTTON, self.panel.on_delete_item, remove_btn)
+
+            remove_selected_btn = wx.Button(self, wx.ID_ANY, "Remove selected")
+            self.Bind(wx.EVT_BUTTON, self.panel.on_delete_selected, remove_selected_btn)
+
+            remove_all_btn = wx.Button(self, wx.ID_ANY, "Remove all")
+            self.Bind(wx.EVT_BUTTON, self.panel.on_delete_all, remove_all_btn)
+
+            sizer = wx.BoxSizer(wx.VERTICAL)
+            sizer.Add(add_btn)
+            sizer.Add(remove_btn)
+            sizer.Add(remove_selected_btn)
+            sizer.Add(remove_all_btn)
+
+            main_sizer = wx.BoxSizer(wx.HORIZONTAL)
+            main_sizer.Add(self.panel, 1, wx.EXPAND)
+            main_sizer.Add(sizer, 1, wx.EXPAND)
+            self.SetSizer(main_sizer)
+
+            self.panel.on_add_to_table({"c1": 0, "c2": 4})
+            self.panel.on_add_to_table({"c1": 1, "c2": 4})
+            self.panel.on_add_to_table({"c1": 3, "c2": 4})
+            self.panel.on_add_to_table({"c1": 6, "c2": 4})
+            self.panel.on_add_to_table({"c1": 37, "c2": 4})
+            self.Show()
+
+        def add_item(self, evt):
+            from random import randint
+
+            self.panel.on_add_to_table({"c1": randint(0, 1000), "c2": randint(0, 1000)})
+
+        # def remove_item(self, evt):
+        #     self.panel.on_delete_item(None)
+        #
+        # def remove_item(self, evt):
+        #     self.panel.on_delete_item(None)
 
     app = wx.App()
     # frame = wx.Frame()

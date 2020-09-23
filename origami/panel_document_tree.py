@@ -65,7 +65,6 @@ from origami.objects.containers import MobilogramObject
 from origami.objects.containers import ChromatogramObject
 from origami.objects.containers import MassSpectrumObject
 from origami.objects.containers import MassSpectrumHeatmapObject
-from origami.gui_elements._panel import TestPanel  # noqa
 from origami.gui_elements.mixins import DocumentationMixin
 from origami.gui_elements.helpers import set_tooltip
 from origami.gui_elements.helpers import make_checkbox
@@ -445,6 +444,7 @@ class DocumentTree(wx.TreeCtrl):
         self._compare_panel = None
         self._overlay_editor_panel = None
         self._overlay_viewer_panel = None
+        self._interactive_editor_panel = None
         self._picker_panel = None
         self._lesa_panel = None
         self._lesa_import_panel = None
@@ -1023,7 +1023,7 @@ class DocumentTree(wx.TreeCtrl):
 
         if doc_item is not False:
             try:
-                self.SetPyData(doc_item, document_new)
+                self.SetItemData(doc_item, document_new)
             except Exception:
                 self.data_handling.on_update_document(document_new, "document")
         else:
@@ -1476,6 +1476,19 @@ class DocumentTree(wx.TreeCtrl):
 
         self._overlay_viewer_panel = PanelOverlayViewer(self.view, self.presenter, group_obj=group_obj)
         self._overlay_viewer_panel.Show()
+
+    def on_open_interactive_editor(self, _):
+        """Open a dialog window where you can overlay and compare objects"""
+        from origami.widgets.interactive.panel_interactive_editor import PanelInteractiveEditor
+
+        # get list of items
+        item_dict = QUERY_HANDLER.generate_item_dict_all("interactive")
+        item_list = QUERY_HANDLER.item_dict_to_list(item_dict)
+
+        self._interactive_editor_panel = PanelInteractiveEditor(
+            self.view, self.presenter, self._icons, item_list=item_list
+        )
+        self._interactive_editor_panel.Show()
 
     def on_open_lesa_viewer(self, _):
         """Open a dialog window where you can view LESA data"""
@@ -3189,7 +3202,7 @@ class DocumentTree(wx.TreeCtrl):
             self.SetItemImage(branch_item, self.bullets_dict["mass_spec"])
             for unidec_name in data["unidec"]:
                 leaf_item = self.AppendItem(branch_item, unidec_name)
-                self.SetPyData(leaf_item, data["unidec"][unidec_name])
+                self.SetItemData(leaf_item, data["unidec"][unidec_name])
                 self.SetItemImage(leaf_item, self.bullets_dict["mass_spec"])
 
     def _get_group_metadata(self, key):
@@ -3259,7 +3272,7 @@ class DocumentTree(wx.TreeCtrl):
         # Add document
         document_item = self.AppendItem(self.GetRootItem(), title)
         self.SetItemImage(document_item, self.bullets_dict["document_on"])
-        self.SetPyData(document_item, (title, ""))
+        self.SetItemData(document_item, (title, ""))
         self.SetFocusedItem(document_item)
 
         tree_view = document.view()
@@ -3272,11 +3285,11 @@ class DocumentTree(wx.TreeCtrl):
                 if not group_item:
                     group_item = self.AppendItem(document_item, group_metadata["title"])
                     self.SetItemImage(group_item, group_metadata["image"])
-                    self.SetPyData(group_item, (title, group_key))
+                    self.SetItemData(group_item, (title, group_key))
 
                 child_item = self.AppendItem(group_item, child_title)
                 self.SetItemImage(child_item, group_metadata["image"])
-                self.SetPyData(child_item, (title, key))
+                self.SetItemData(child_item, (title, key))
         self.on_enable_document(loading_data=True, expand_all=expand_all)
 
         # If expand_item is not empty, the Tree will expand specified item
@@ -3332,7 +3345,7 @@ class DocumentTree(wx.TreeCtrl):
             if not group_item:
                 group_item = self.AppendItem(document_item, group_metadata["title"])
                 self.SetItemImage(group_item, group_metadata["image"])
-                self.SetPyData(group_item, (document_title, group_key))
+                self.SetItemData(group_item, (document_title, group_key))
 
             # append item
             child_item = self.get_item_by_label(child_title, group_item)
@@ -3342,7 +3355,7 @@ class DocumentTree(wx.TreeCtrl):
             # append item
             child_item = self.AppendItem(group_item, child_title)
             self.SetItemImage(child_item, group_metadata["image"])
-            self.SetPyData(child_item, (document_title, item_name))
+            self.SetItemData(child_item, (document_title, item_name))
 
         # If expand_group is not empty, the Tree will expand specified item
         if expand_group:
@@ -3601,22 +3614,23 @@ class DocumentTree(wx.TreeCtrl):
         self.panel_plot.plot_repaint(plot_window="MS")
 
 
-class TestPopup(TestPanel):
-    """Test the popup window"""
-
-    def __init__(self, parent):
-        super().__init__(parent)
-
-        self.btn_1.Bind(wx.EVT_BUTTON, self.on_popup)
-
-    def on_popup(self, evt):
-        """Activate popup"""
-        p = PopupDocumentTreeSettings(self)
-        p.position_on_event(evt)
-        p.Show()
-
-
 def _main_popup():
+    from origami.gui_elements._panel import TestPanel  # noqa
+
+    class TestPopup(TestPanel):
+        """Test the popup window"""
+
+        def __init__(self, parent):
+            super().__init__(parent)
+
+            self.btn_1.Bind(wx.EVT_BUTTON, self.on_popup)
+
+        def on_popup(self, evt):
+            """Activate popup"""
+            p = PopupDocumentTreeSettings(self)
+            p.position_on_event(evt)
+            p.Show()
+
     app = wx.App()
 
     dlg = TestPopup(None)

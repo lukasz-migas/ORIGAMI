@@ -1109,6 +1109,7 @@ class Config(ConfigBase):
         self.unidec_panel_plot_contour_levels = 75
 
         # Interactive
+        self.interactive_panel_html_editor_link = r"https://html-online.com/editor/"
         self.interactive_panel_layout_choices = ["Row", "Column", "Row"]
         self.interactive_panel_layout = "Row"
         self.interactive_panel_open_in_browser = True

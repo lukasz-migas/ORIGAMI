@@ -172,12 +172,16 @@ class DialogCardManager(Dialog):
         for item in self.item_list:
             card = ItemCard(panel, item)
             self.cards.append(card)
-
             main_sizer.Add(card, 0, wx.EXPAND | wx.ALL, 2)
 
         # fit layout
         main_sizer.Fit(panel)
         panel.SetSizer(main_sizer)
+
+        # it = self._sizer.Detach(1)
+        # it = self._sizer.Detach(5)
+        # self._sizer.Layout()
+        # self._sizer.Insert(1, card, 0, wx.EXPAND | wx.ALL, 2)
 
         if not running_under_pytest():
             panel.SetupScrolling()
@@ -196,7 +200,6 @@ class DialogCardManager(Dialog):
         btn_grid = wx.GridBagSizer(2, 2)
         n = 0
         btn_grid.Add(self.ok_btn, (n, 0), flag=wx.ALIGN_CENTER)
-
         btn_grid.Add(self.cancel_btn, (n, 1), flag=wx.ALIGN_CENTER)
 
         return btn_grid

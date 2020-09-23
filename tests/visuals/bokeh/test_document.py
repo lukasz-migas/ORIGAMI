@@ -7,12 +7,12 @@ import numpy as np
 import pytest
 
 # Local imports
+from origami.visuals.bokeh.tab import Tab
 from origami.objects.containers import IonHeatmapObject
 from origami.objects.containers import MassSpectrumObject
 from origami.visuals.bokeh.layout import RowLayout
 from origami.visuals.bokeh.layout import GridLayout
 from origami.visuals.bokeh.layout import ColumnLayout
-from origami.visuals.bokeh.document import Tab
 from origami.visuals.bokeh.document import PlotStore
 
 

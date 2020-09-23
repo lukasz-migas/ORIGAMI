@@ -41,6 +41,21 @@ class Dialog(wx.Dialog, ActivityIndicatorMixin, DocumentationMixin, ParentSizeMi
         if bind_key_events:
             self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
 
+    @staticmethod
+    def _parse_evt(evt):
+        """Parse event"""
+        if evt is not None:
+            evt.Skip()
+
+    @staticmethod
+    def _get_icons(icons):
+        """Get Icons"""
+        if icons is None:
+            from origami.icons.assets import Icons
+
+            icons = Icons()
+        return icons
+
     def on_key_event(self, evt):
         """Catch key events"""
         key_code = evt.GetKeyCode()
@@ -171,6 +186,7 @@ class ListCtrl(wx.ListCtrl):
             self.EnableCheckBoxes()
 
         # specify that simpler sorter should be used to speed things up
+        self.disable_sort = kwargs.get("disable_sort", False)
         self.use_simple_sorter = kwargs.get("use_simple_sorter", False)
 
         self.parent = parent
@@ -191,6 +207,18 @@ class ListCtrl(wx.ListCtrl):
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_item, self)
         self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.on_activate_item, self)
         self.Bind(wx.EVT_LIST_KEY_DOWN, self.on_key_select_item, self)
+
+    def get_text(self, row_id: int, col_id: int) -> str:
+        """Get value of a row/column in the table"""
+        return self.GetItem(row_id, col_id).GetText()
+
+    def set_text(self, row_id: int, col_id: int, value: str):
+        """Get value of a row/column in the table"""
+        return self.SetItem(row_id, col_id, str(value))
+
+    def set_background_color(self, row_id: int, color):
+        """Set background color"""
+        self.SetItemBackgroundColour(row_id, color)
 
     def IsChecked(self, item):  # noqa
         """Check whether an item has been checked"""
@@ -346,6 +374,8 @@ class ListCtrl(wx.ListCtrl):
 
     def on_column_click(self, evt):
         """Interact on column click"""
+        if self.disable_sort:
+            return
         t_start = time.time()
         self.locked = True
         column = evt.GetColumn()
