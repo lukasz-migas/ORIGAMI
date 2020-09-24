@@ -16,14 +16,16 @@ from origami.gui_elements.helpers import make_bitmap_btn
 from origami.gui_elements.helpers import make_spin_ctrl_int
 from origami.visuals.bokeh.document import PlotStore
 from origami.gui_elements.panel_base import TableMixin
+from origami.widgets.interactive.utilities import (
+    DIV_STYLE,
+    PUB_EVENT_LAYOUT_ADD,
+    PUB_EVENT_LAYOUT_REMOVE,
+    PUB_EVENT_LAYOUT_UPDATE,
+    PUB_EVENT_PLOT_ORDER,
+    PUB_EVENT_TAB_REMOVE,
+)
 
 LOGGER = logging.getLogger(__name__)
-
-PUB_EVENT_LAYOUT_ADD = "interactive.layout.new"
-PUB_EVENT_LAYOUT_REMOVE = "interactive.layout.remove"
-PUB_EVENT_LAYOUT_UPDATE = "interactive.layout.update"
-PUB_EVENT_TAB_REMOVE = "interactive.tab.remove"
-PUB_EVENT_PLOT_ORDER = "interactive.plot.order"
 
 
 def check_values(*values):
@@ -406,21 +408,15 @@ class PanelLayoutBuilder(wx.Panel, TableMixin):
         self.layout_choice.Bind(wx.EVT_COMBOBOX, self.on_toggle_controls)
 
         div_title = wx.StaticText(panel, -1, "Title:")
-        self.div_title = wx.TextCtrl(
-            panel, -1, "", size=(-1, -1), style=wx.TE_MULTILINE | wx.TE_WORDWRAP | wx.TE_RICH2, name="div_title"
-        )
+        self.div_title = wx.TextCtrl(panel, -1, "", size=(-1, -1), style=DIV_STYLE, name="div_title")
         self.div_title.Bind(wx.EVT_TEXT, self.on_edit_layout)
 
         div_header = wx.StaticText(panel, -1, "Header:")
-        self.div_header = wx.TextCtrl(
-            panel, -1, "", size=(400, 100), style=wx.TE_MULTILINE | wx.TE_WORDWRAP | wx.TE_RICH2, name="div_header"
-        )
+        self.div_header = wx.TextCtrl(panel, -1, "", size=(400, 100), style=DIV_STYLE, name="div_header")
         self.div_header.Bind(wx.EVT_TEXT, self.on_edit_layout)
 
         div_footer = wx.StaticText(panel, -1, "Footer:")
-        self.div_footer = wx.TextCtrl(
-            panel, -1, "", size=(400, 100), style=wx.TE_MULTILINE | wx.TE_WORDWRAP | wx.TE_RICH2, name="div_footer"
-        )
+        self.div_footer = wx.TextCtrl(panel, -1, "", size=(400, 100), style=DIV_STYLE, name="div_footer")
         self.div_footer.Bind(wx.EVT_TEXT, self.on_edit_layout)
 
         n_columns = wx.StaticText(panel, -1, "No. columns:")

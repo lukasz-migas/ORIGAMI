@@ -34,11 +34,12 @@ from origami.objects.containers.heatmap import IonHeatmapObject
 from origami.objects.containers.spectrum import MobilogramObject
 from origami.objects.containers.spectrum import ChromatogramObject
 from origami.objects.containers.spectrum import MassSpectrumObject
-from origami.widgets.interactive.panel_layout import PUB_EVENT_LAYOUT_ADD
-from origami.widgets.interactive.panel_layout import PUB_EVENT_PLOT_ORDER
-from origami.widgets.interactive.panel_layout import PUB_EVENT_TAB_REMOVE
-from origami.widgets.interactive.panel_layout import PUB_EVENT_LAYOUT_REMOVE
-from origami.widgets.interactive.panel_layout import PUB_EVENT_LAYOUT_UPDATE
+from origami.widgets.interactive.utilities import PUB_EVENT_LAYOUT_ADD
+from origami.widgets.interactive.utilities import PUB_EVENT_PLOT_ORDER
+from origami.widgets.interactive.utilities import PUB_EVENT_TAB_REMOVE
+from origami.widgets.interactive.utilities import PUB_EVENT_LAYOUT_REMOVE
+from origami.widgets.interactive.utilities import PUB_EVENT_LAYOUT_UPDATE
+from origami.widgets.interactive.utilities import DIV_STYLE
 from origami.widgets.interactive.panel_layout import PanelLayoutEditor
 from origami.widgets.interactive.panel_layout import PanelLayoutBuilder
 
@@ -232,21 +233,15 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
         self.dataset_name_value = wx.StaticText(panel, -1, "")
 
         div_title = wx.StaticText(panel, -1, "Title:")
-        self.div_title = wx.TextCtrl(
-            panel, -1, "", size=(-1, -1), style=wx.TE_MULTILINE | wx.TE_WORDWRAP | wx.TE_RICH2, name="div_title"
-        )
+        self.div_title = wx.TextCtrl(panel, -1, "", size=(-1, -1), style=DIV_STYLE, name="div_title")
         self.div_title.Bind(wx.EVT_TEXT, self.on_edit_item)
 
         div_header = wx.StaticText(panel, -1, "Header:")
-        self.div_header = wx.TextCtrl(
-            panel, -1, "", size=(-1, 200), style=wx.TE_MULTILINE | wx.TE_WORDWRAP | wx.TE_RICH2, name="div_header"
-        )
+        self.div_header = wx.TextCtrl(panel, -1, "", size=(-1, 200), style=DIV_STYLE, name="div_header")
         self.div_header.Bind(wx.EVT_TEXT, self.on_edit_item)
 
         div_footer = wx.StaticText(panel, -1, "Footer:")
-        self.div_footer = wx.TextCtrl(
-            panel, -1, "", size=(-1, 200), style=wx.TE_MULTILINE | wx.TE_WORDWRAP | wx.TE_RICH2, name="div_footer"
-        )
+        self.div_footer = wx.TextCtrl(panel, -1, "", size=(-1, 200), style=DIV_STYLE, name="div_footer")
         self.div_footer.Bind(wx.EVT_TEXT, self.on_edit_item)
 
         tab_layout_value = wx.StaticText(panel, -1, "Layout:")
