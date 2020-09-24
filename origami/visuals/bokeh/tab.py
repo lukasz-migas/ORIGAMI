@@ -5,10 +5,12 @@ from typing import Tuple
 from typing import Union
 
 # Third-party imports
+from bokeh.models import Div
 from bokeh.models import Panel
 from bokeh.layouts import column
 
 # Local imports
+from origami.config.config import CONFIG
 from origami.visuals.bokeh.layout import RowLayout
 from origami.visuals.bokeh.layout import BaseLayout
 from origami.visuals.bokeh.layout import GridLayout
@@ -96,11 +98,15 @@ class Tab(dict):
         self._last_layout = name
         return self[name]
 
-    def render(self):
+    def render(self, remove_watermark: bool = False):
         """Render tab object"""
         tab_contents = []
-        for name, layout in self.items():
+        for _, layout in self.items():
             tab_contents.append(layout.render())
+
+        if not remove_watermark:
+            tab_contents.append(Div(text=str(CONFIG.watermark)))
+
         return Panel(child=column(children=tab_contents), title=self._name)
 
     def get_layout(self, name: Union[str, BaseLayout]) -> BaseLayout:

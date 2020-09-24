@@ -9,8 +9,8 @@ edit_uri: https://github.com/lukasz-migas/ORIGAMI/tree/master/site-source
 
 use_directory_urls: false
 
-docs_dir: 'site-source'
-site_dir: 'docs'
+docs_dir: "site-source"
+site_dir: "docs"
 
 markdown_extensions:
   - admonition
@@ -18,6 +18,8 @@ markdown_extensions:
       emoji_generator: !!python/name:pymdownx.emoji.to_svg
   - toc:
       permalink: true
+  - changelog:
+      inline_style: true
 
 # Extra CCS
 extra_css:
@@ -25,40 +27,41 @@ extra_css:
 
 # Page layout
 nav:
-    - Home: index.md
-    - Installation: installation.md
-    - User Guide:
-      - 'Example files': user-guide/example-files.md
-      - 'Opening files': user-guide/loading-data.md
+  - Home: index.md
+  - Installation: installation.md
+  - User Guide:
+      - "Example files": user-guide/example-files.md
+      - "Opening files": user-guide/loading-data.md
       - Data handling:
-        - 'MS and IM-MS files': user-guide/data-handling/ms-and-imms-files.md
-        - 'Text files': user-guide/data-handling/text-files.md
-        - 'Automated CIU datasets (ORIGAMI<sup>MS</sup>)': user-guide/data-handling/automated-ciu.md
-        - 'Manual CIU/SID datasets': user-guide/data-handling/manual-ciu.md
+          - "MS and IM-MS files": user-guide/data-handling/ms-and-imms-files.md
+          - "Text files": user-guide/data-handling/text-files.md
+          - "Automated CIU datasets (ORIGAMI<sup>MS</sup>)": user-guide/data-handling/automated-ciu.md
+          - "Manual CIU/SID datasets": user-guide/data-handling/manual-ciu.md
       - Processing:
-        - 'Annotating mass spectra': user-guide/processing/mass-spectra-annotation.md
-        - 'Mass spectrum': user-guide/processing/mass-spectra.md
-        - 'Heatmap': user-guide/processing/heatmaps.md
+          - "Annotating mass spectra": user-guide/processing/mass-spectra-annotation.md
+          - "Mass spectrum": user-guide/processing/mass-spectra.md
+          - "Heatmap": user-guide/processing/heatmaps.md
       - Deconvolution:
-        - 'UniDec - deconvolution': user-guide/deconvolution/unidec-deconvolution.md
-        - 'UniDec - customising plots ': user-guide/deconvolution/unidec-customise-PlotBase.md
-        - 'UniDec - changing window view ': user-guide/deconvolution/unidec-change-window-view.md
+          - "UniDec - deconvolution": user-guide/deconvolution/unidec-deconvolution.md
+          - "UniDec - customising plots ": user-guide/deconvolution/unidec-customise-PlotBase.md
+          - "UniDec - changing window view ": user-guide/deconvolution/unidec-change-window-view.md
       - Interactive Output:
-        - 'Getting started': user-guide/interactive-output/simple-output.md
-      - 'Video tutorials': user-guide/video-tutorials.html
-    - Interactive Examples:
-        - 'Mass spectrum': interactive-examples/mass-spectrum.md
-        - 'Heatmap': interactive-examples/heatmap.md
-        - 'CCS compendium': interactive-examples/ccs-compendium.md
-        - 'Proteomics - MS/MS': interactive-examples/protemics-scans.md
-    - Changelog:
-        - 'v1.2.1.4 - 27/12/2018': changelog/v1.2.1.4-9-1-2019.md
-        - 'v1.2.0.3 - 7/11/2018': changelog/v1.2.0.3-5-11-2018.md
-    - Request New Features: request.md
-    - Report Bugs: bugs.md
-    - Newsletter: subscribe.md
-    - Cite: cite.md
-    - About: about.md
+          - "Getting started": user-guide/interactive-output/simple-output.md
+      - "Video tutorials": user-guide/video-tutorials.html
+  - Interactive Examples:
+      - "Mass spectrum": interactive-examples/mass-spectrum.md
+      - "Heatmap": interactive-examples/heatmap.md
+      - "CCS compendium": interactive-examples/ccs-compendium.md
+      - "Proteomics - MS/MS": interactive-examples/protemics-scans.md
+  - Changelog:
+      - "v1.2.1.4 - 27/12/2018": changelog/v1.2.1.4-9-1-2019.md
+      - "v1.2.0.3 - 7/11/2018": changelog/v1.2.0.3-5-11-2018.md
+      - "v2.0.0.0 - 10/09/2020": changelog/v2.0.0.0-10-09-2020.md
+  - Request New Features: request.md
+  - Report Bugs: bugs.md
+  - Newsletter: subscribe.md
+  - Cite: cite.md
+  - About: about.md
 
 theme:
   name: material
@@ -66,20 +69,20 @@ theme:
   features:
     - tabs
     - instant
-  language: 'en'
+  language: "en"
   palette:
     scheme: slate
-    primary: 'blue grey'
-    accent: 'teal'
+    primary: "blue grey"
+    accent: "teal"
 
 extra:
   version: 2.0.0.0
   social:
     - icon: fontawesome/brands/youtube
-      link: 'https://www.youtube.com/playlist?list=PLrPB7zfH4WXMYa5CN9qDtl-G-Ax_L6AK8'
+      link: "https://www.youtube.com/playlist?list=PLrPB7zfH4WXMYa5CN9qDtl-G-Ax_L6AK8"
     - icon: fontawesome/brands/github
-      link: 'https://github.com/lukasz-migas'
+      link: "https://github.com/lukasz-migas"
     - icon: fontawesome/brands/twitter
-      link: 'https://twitter.com/munieq11'
+      link: "https://twitter.com/munieq11"
     - icon: fontawesome/solid/link
-      link: 'https://lukasz-migas.com'
+      link: "https://lukasz-migas.com"

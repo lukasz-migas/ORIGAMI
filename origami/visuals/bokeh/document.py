@@ -79,11 +79,13 @@ class PlotStore:
         """Return the number of tabs present in the Store"""
         return len(self._tabs)
 
-    def show(self, tab_names=None, always_as_tabs=True):
+    def show(self, tab_names=None, always_as_tabs=True, remove_watermark: bool = False):
         """Return HTML representation of the document"""
-        return show(self.get_layout(tab_names, always_as_tabs))
+        return show(self.get_layout(tab_names, always_as_tabs, remove_watermark=remove_watermark))
 
-    def save(self, filepath=None, display=True, tab_names=None, always_as_tabs=True) -> str:
+    def save(
+        self, filepath=None, display=True, tab_names=None, always_as_tabs=True, remove_watermark: bool = False
+    ) -> str:
         """Save Bokeh document as HTML file
 
         Parameters
@@ -96,6 +98,8 @@ class PlotStore:
             list of tab names which must be present in the `tabs` container
         always_as_tabs : bool
             if 'True', the resultant HTML document will contain 'Tabs' even if only one tab is present
+        remove_watermark : bool
+            if `True`, the watermark that is normally at the bottom of each tab will be removed
 
         Returns
         -------
@@ -106,14 +110,18 @@ class PlotStore:
         if filepath is None:
             filepath = self.filepath
 
-        save(self.get_layout(tab_names=tab_names, always_as_tabs=always_as_tabs), filepath, title=self._title)
+        save(
+            self.get_layout(tab_names=tab_names, always_as_tabs=always_as_tabs, remove_watermark=remove_watermark),
+            filepath,
+            title=self._title,
+        )
 
         # open figure in browser
         if display:
             webbrowser.open_new_tab(filepath)
         return filepath
 
-    def get_layout(self, tab_names=None, always_as_tabs=True):
+    def get_layout(self, tab_names=None, always_as_tabs: bool = True, remove_watermark: bool = False):
         """Return fully ordered Bokeh document which can be visualised (using 'show' command) or exported as HTML
 
         Parameters
@@ -122,6 +130,8 @@ class PlotStore:
             list of tab names which must be present in the `tabs` container
         always_as_tabs : bool
             if 'True', the resultant HTML document will contain 'Tabs' even if only one tab is present
+        remove_watermark : bool
+            if `True`, the watermark that is normally at the bottom of each tab will be removed
 
         Returns
         -------
@@ -147,7 +157,7 @@ class PlotStore:
         # iterate over each tab
         for tab_name in tab_names:
             tab = self._tabs[tab_name]
-            panel = tab.render()
+            panel = tab.render(remove_watermark)
             if panel is None:
                 continue
             panels.append(panel)

@@ -10,6 +10,7 @@ from collections import namedtuple
 # Third-party imports
 import wx
 from pubsub import pub
+from natsort import natsorted
 from natsort import order_by_index
 from natsort import index_natsorted
 
@@ -46,8 +47,6 @@ LOGGER = logging.getLogger(__name__)
 PlotItem = namedtuple(
     "PlotItem", ["tag", "document_title", "dataset_name", "layout", "order", "div_title", "div_header", "div_footer"]
 )
-
-# TODO: when PlotStore is being exported, it should be created anew
 
 
 class TableColumnIndex:
@@ -267,21 +266,21 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
         self.output_path_btn.Bind(wx.EVT_BUTTON, self.on_get_path)
         set_tooltip(self.output_path_btn, "Select output path of the HTML document.")
 
-        self.html_editor_btn = wx.Button(panel, wx.ID_ANY, "HTML Editor", size=(-1, -1))
-        self.html_editor_btn.Bind(wx.EVT_BUTTON, self.on_open_html_editor_menu)
-        set_tooltip(self.html_editor_btn, "Opens a web-based HTML editor")
-
         self.export_btn = wx.Button(panel, wx.ID_ANY, "Export", size=(-1, -1))
         self.export_btn.Bind(wx.EVT_BUTTON, self.on_export_html)
         set_tooltip(self.export_btn, "Save HTML document")
+
+        self.html_editor_btn = wx.Button(panel, wx.ID_ANY, "HTML Editor", size=(-1, -1))
+        self.html_editor_btn.Bind(wx.EVT_BUTTON, self.on_open_html_editor_menu)
+        set_tooltip(self.html_editor_btn, "Opens a web-based HTML editor")
 
         self.close_btn = wx.Button(panel, wx.ID_ANY, "Close", size=(-1, -1))
         self.close_btn.Bind(wx.EVT_BUTTON, self.on_close)
         set_tooltip(self.close_btn, "Close window")
 
         btn_sizer = wx.BoxSizer()
-        btn_sizer.Add(self.html_editor_btn)
         btn_sizer.Add(self.export_btn)
+        btn_sizer.Add(self.html_editor_btn)
         btn_sizer.Add(self.close_btn)
 
         self.open_in_browser_check = make_checkbox(panel, "Open in browser after saving")
@@ -428,10 +427,15 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
         for item in item_list:
             _, tab_name = self.set_plot_obj(item)
             tab_names.append(tab_name)
+        tab_names = natsorted(set(tab_names))
 
         self.plot_store.title = output_title
         self.plot_store.save(
-            output_path, CONFIG.interactive_panel_open_in_browser, tab_names=tab_names, always_as_tabs=False
+            output_path,
+            CONFIG.interactive_panel_open_in_browser,
+            tab_names=tab_names,
+            always_as_tabs=False,
+            remove_watermark=CONFIG.interactive_panel_remove_watermark,
         )
 
     def set_plot_obj(self, item: PlotItem):
@@ -714,9 +718,6 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
             # get document and dataset information
             dataset_name, document_title, tag = item
             dataset_type, name = dataset_name.split("/")
-
-            # retrieve any saved metadata
-            # metadata = self.get_item_metadata({"document_title": document_title, "dataset_name": dataset_name})
 
             # add to table
             self.on_add_to_table(

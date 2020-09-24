@@ -4,7 +4,6 @@ import wx
 
 # Local imports
 from origami.gui_elements.popup import PopupBase
-from origami.gui_elements._panel import TestPanel  # noqa
 from origami.gui_elements.helpers import set_item_font
 
 POPUP_TOAST_STYLES = ["info", "success", "warning", "error"]
@@ -100,26 +99,26 @@ class PopupToastManager:
         self.counter += 1
 
 
-class TestPopup(TestPanel):
-    """Test the popup window"""
-
-    def __init__(self, parent):
-        super().__init__(parent)
-
-        self.SetSize((800, 800))
-        self.manager = PopupToastManager(self)
-
-        self.btn_1.Bind(wx.EVT_BUTTON, self.on_popup)
-
-    def on_popup(self, _evt):
-        """Activate popup"""
-        self.manager.show_popup("This is some nice testing text.\nAnd some more text ", "info")
-        self.manager.show_popup("This is some nice testing text.\nAnd some more text ", "success")
-        self.manager.show_popup("This is some nice testing text.\nAnd some more text ", "warning")
-        self.manager.show_popup("This is some nice testing text.\nAnd some more text ", "error")
-
-
 def _main_popup():
+    from origami.gui_elements._panel import TestPanel  # noqa
+
+    class TestPopup(TestPanel):
+        """Test the popup window"""
+
+        def __init__(self, parent):
+            super().__init__(parent)
+
+            self.SetSize((800, 800))
+            self.manager = PopupToastManager(self)
+
+            self.btn_1.Bind(wx.EVT_BUTTON, self.on_popup)
+
+        def on_popup(self, _evt):
+            """Activate popup"""
+            self.manager.show_popup("This is some nice testing text.\nAnd some more text ", "info")
+            self.manager.show_popup("This is some nice testing text.\nAnd some more text ", "success")
+            self.manager.show_popup("This is some nice testing text.\nAnd some more text ", "warning")
+            self.manager.show_popup("This is some nice testing text.\nAnd some more text ", "error")
 
     app = wx.App()
 

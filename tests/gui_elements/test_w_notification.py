@@ -18,5 +18,5 @@ class TestNotification(WidgetTestCase):
     @pytest.mark.parametrize("flags", (wx.ICON_INFORMATION, wx.ICON_ERROR, wx.ICON_WARNING))
     def test_dialog_ok(self, flags):
         dlg = Notification("ORIGAMI", "Message", flags=flags, timeout=0.1)
-        self.wait_for(300)
+        self.wait_for(200)
         dlg.Close()

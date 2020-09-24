@@ -21,6 +21,7 @@ class TestPlotView(WidgetTestCase):
         sizer.Add(view.panel, 1, wx.EXPAND)
         self.frame.SetSizerAndFit(sizer)
         self.frame.Layout()
+        self.frame.Hide()
 
 
 @pytest.mark.guitest
@@ -48,6 +49,7 @@ class TestPanelViewHeatmap3d(TestPlotView):
 
         # # check popup
         popup = view.on_open_about(None)
+        popup.Hide()
         assert popup
 
     def test_panel_update_style(self):

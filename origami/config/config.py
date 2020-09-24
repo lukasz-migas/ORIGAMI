@@ -170,7 +170,7 @@ class Config(ConfigBase):
         # fmt: on
         self.watermark = f"""
         <p>
-          <span style="color: #808080;"
+          <span style="color: #808080; text-align: justify; text-justify: inter-word;"
             >This document was generated using ORIGAMI (v. {self.version}) which is an Open-Source
             software for the analysis of MS and IM-MS datasets. If you would like more
             information, have a look
