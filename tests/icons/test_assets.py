@@ -17,7 +17,7 @@ class TestIcons(WidgetTestCase):
         self.icons = Icons()
         for key in self.icons.keys():
             assert isinstance(key, str)
-            assert self.icons[key]
+            assert isinstance(self.icons[key], wx.Bitmap)
 
     def test_values(self):
         self.icons = Icons()

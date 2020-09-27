@@ -220,6 +220,10 @@ class ListCtrl(wx.ListCtrl):
         """Set background color"""
         self.SetItemBackgroundColour(row_id, color)
 
+    def get_all_in_column(self, col_id: int):
+        """Return a list of all items in a particular column"""
+        return [self.GetItem(row_id, col_id).GetText() for row_id in range(self.GetItemCount())]
+
     def IsChecked(self, item):  # noqa
         """Check whether an item has been checked"""
         return self.IsItemChecked(item)

@@ -29,6 +29,5 @@ class TestPanelInteractiveEditor(WidgetTestCase):
     def test_panel_create(self):
         item_list = _get_item_list()
         dlg = PanelInteractiveEditor(None, None, item_list=item_list, debug=True)
-        dlg.Hide()
-
+        dlg.Show()
         self.wait_for(500)

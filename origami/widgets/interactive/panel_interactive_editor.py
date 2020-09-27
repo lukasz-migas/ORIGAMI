@@ -34,12 +34,12 @@ from origami.objects.containers.heatmap import IonHeatmapObject
 from origami.objects.containers.spectrum import MobilogramObject
 from origami.objects.containers.spectrum import ChromatogramObject
 from origami.objects.containers.spectrum import MassSpectrumObject
+from origami.widgets.interactive.utilities import DIV_STYLE
 from origami.widgets.interactive.utilities import PUB_EVENT_LAYOUT_ADD
 from origami.widgets.interactive.utilities import PUB_EVENT_PLOT_ORDER
 from origami.widgets.interactive.utilities import PUB_EVENT_TAB_REMOVE
 from origami.widgets.interactive.utilities import PUB_EVENT_LAYOUT_REMOVE
 from origami.widgets.interactive.utilities import PUB_EVENT_LAYOUT_UPDATE
-from origami.widgets.interactive.utilities import DIV_STYLE
 from origami.widgets.interactive.panel_layout import PanelLayoutEditor
 from origami.widgets.interactive.panel_layout import PanelLayoutBuilder
 
@@ -93,6 +93,7 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
     div_footer, tab_layout_value, output_title_value, output_path_value = None, None, None, None
     output_path_btn, html_editor_btn, export_btn, close_btn = None, None, None, None
     open_in_browser_check, remove_watermark_check, add_offline_support_check = None, None, None
+    batch_check_document_items_btn, batch_check_dataset_type_btn, batch_set_layout_btn = None, None, None
 
     def __init__(self, parent, presenter, icons=None, item_list=None, debug: bool = False):
         MiniFrame.__init__(
@@ -207,12 +208,15 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
         """Make side panel responsible for generating document layouts"""
         panel = wx.Panel(parent, -1, size=(-1, -1))
 
+        btn_sizer = self.make_shortcuts_panel(panel)
+
         self.peaklist = self.make_table(self.TABLE_CONFIG, panel)
         self.peaklist.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_item)
         self.peaklist.Bind(wx.EVT_LIST_ITEM_CHECKED, self.on_validate_item)
         self.peaklist.Bind(wx.EVT_LIST_ITEM_UNCHECKED, self.on_validate_item)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(btn_sizer, 0, wx.EXPAND, 3)
         main_sizer.Add(self.peaklist, 1, wx.EXPAND, 3)
 
         # fit layout
@@ -221,6 +225,30 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
         panel.Layout()
 
         return panel
+
+    def make_shortcuts_panel(self, panel):
+        """Make toolbar-like to quickly apply batch settings"""
+        # panel = wx.Panel(parent, -1, size=(-1, -1))
+        self.batch_check_document_items_btn = make_bitmap_btn(
+            panel, wx.ID_ANY, self._icons.title, name="batch.document"
+        )
+        self.batch_check_document_items_btn.Bind(wx.EVT_BUTTON, self.on_batch_apply)
+        set_tooltip(self.batch_check_document_items_btn, "Select items in the table with the `???` document title...")
+
+        self.batch_check_dataset_type_btn = make_bitmap_btn(panel, wx.ID_ANY, self._icons.tick, name="batch.dataset")
+        self.batch_check_dataset_type_btn.Bind(wx.EVT_BUTTON, self.on_batch_apply)
+        set_tooltip(self.batch_check_dataset_type_btn, "Select items in the table with the `???` data type...")
+
+        self.batch_set_layout_btn = make_bitmap_btn(panel, wx.ID_ANY, self._icons.layout, name="batch.layout")
+        self.batch_set_layout_btn.Bind(wx.EVT_BUTTON, self.on_batch_apply)
+        set_tooltip(self.batch_set_layout_btn, "Apply layout on all selected items")
+
+        sizer = wx.BoxSizer()
+        sizer.Add(self.batch_check_document_items_btn, 0, wx.EXPAND, 3)
+        sizer.Add(self.batch_check_dataset_type_btn, 0, wx.EXPAND, 3)
+        sizer.Add(self.batch_set_layout_btn, 0, wx.EXPAND, 3)
+
+        return sizer
 
     def make_editor_panel(self):
         """Make side panel responsible for editing object metadata"""
@@ -358,6 +386,68 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
         CONFIG.interactive_panel_remove_watermark = self.remove_watermark_check.GetValue()
         self._parse_evt(evt)
 
+    def on_batch_apply(self, evt):
+        """Batch-apply some user-selected restrictions"""
+        source = evt.GetEventObject().GetName()
+        modifiers, item_list = [], []
+        if source.endswith("layout"):
+            modifiers = ["Set layout >"]
+            item_list = self.plot_store.layout_list
+            item_list.extend(["separate", "Clear layout"])
+
+        if source.endswith("document"):
+            modifiers = ["Select document >", "Add document >"]
+            item_list = natsorted(ENV.get_document_list())
+        if source.endswith("dataset"):
+            modifiers = ["Select dataset type >", "Add dataset type >"]
+            item_list = natsorted(list(set(self.peaklist.get_all_in_column(TableColumnIndex.dataset_type))))
+
+        menu = wx.Menu()
+        for i, modifier in enumerate(modifiers):
+            if i > 0:
+                menu.AppendSeparator()
+            for item in item_list:
+                # add separator to the menu
+                if item == "separate":
+                    menu.AppendSeparator()
+                else:
+                    menu_item = make_menu_item(parent=menu, text=f"{modifier} {item}")
+                    menu.Append(menu_item)
+                    self.Bind(wx.EVT_MENU, self.on_batch_apply_process, menu_item)
+
+        self.PopupMenu(menu)
+        menu.Destroy()
+        self.SetFocus()
+
+    def on_batch_apply_process(self, evt):
+        """Actually process user request"""
+        # get label from the menu event
+        label = evt.GetEventObject().FindItemById(evt.GetId()).GetItemLabel()
+        modifier, selection = label.split(" > ")
+
+        # set layout for selected elements
+        if "layout" in modifier:
+            if selection == "Clear layout":
+                selection = ""
+            for item_id in self.get_checked_items():
+                # TODO: This should also set default order for items
+                self.peaklist.set_text(item_id, TableColumnIndex.layout, selection)
+                self._validate_item(item_id)
+        else:
+            if "document" in modifier:
+                column_id = TableColumnIndex.document_title
+            elif "dataset" in modifier:
+                column_id = TableColumnIndex.dataset_type
+            else:
+                return
+            for item_id in range(self.n_rows):
+                value = self.peaklist.get_text(item_id, column_id)
+                if modifier.startswith("Select"):
+                    self.peaklist.CheckItem(item_id, value == selection)
+                else:
+                    if value == selection:
+                        self.peaklist.CheckItem(item_id, True)
+
     def on_get_path(self, _evt):
         """Get directory where to save the data"""
         dlg = wx.FileDialog(self, "Choose an output filename", wildcard="HTML document (*.html)|*.html")
@@ -483,6 +573,10 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
             import webbrowser
 
             webbrowser.open(CONFIG.interactive_panel_html_editor_link)
+
+    def on_serialize(self, _evt):
+        """Serialize the layout for convenient restoration"""
+        # TODO: add a method and logic to export current layouts/document structure in a json format
 
     def on_edit_item(self, evt):
         """Set layout for currently selected object"""

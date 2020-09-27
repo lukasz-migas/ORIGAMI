@@ -16,14 +16,12 @@ from origami.gui_elements.helpers import make_bitmap_btn
 from origami.gui_elements.helpers import make_spin_ctrl_int
 from origami.visuals.bokeh.document import PlotStore
 from origami.gui_elements.panel_base import TableMixin
-from origami.widgets.interactive.utilities import (
-    DIV_STYLE,
-    PUB_EVENT_LAYOUT_ADD,
-    PUB_EVENT_LAYOUT_REMOVE,
-    PUB_EVENT_LAYOUT_UPDATE,
-    PUB_EVENT_PLOT_ORDER,
-    PUB_EVENT_TAB_REMOVE,
-)
+from origami.widgets.interactive.utilities import DIV_STYLE
+from origami.widgets.interactive.utilities import PUB_EVENT_LAYOUT_ADD
+from origami.widgets.interactive.utilities import PUB_EVENT_PLOT_ORDER
+from origami.widgets.interactive.utilities import PUB_EVENT_TAB_REMOVE
+from origami.widgets.interactive.utilities import PUB_EVENT_LAYOUT_REMOVE
+from origami.widgets.interactive.utilities import PUB_EVENT_LAYOUT_UPDATE
 
 LOGGER = logging.getLogger(__name__)
 
@@ -73,7 +71,6 @@ class PanelLayoutEditor(wx.Panel, TableMixin):
 
         self._disable_table_update = None
         self._current_item = None
-        self._tab_list = plot_store.tab_names
 
         self.make_gui()
         self.setup()
@@ -81,7 +78,8 @@ class PanelLayoutEditor(wx.Panel, TableMixin):
         # bind events
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
 
-    def OnDestroy(self, event):
+    def OnDestroy(self, event):  # noqa
+        """Called just before the panel is destroyed so we can cleanup"""
         try:
             pub.unsubscribe(self.evt_layout_choice_add, PUB_EVENT_LAYOUT_ADD)
             pub.unsubscribe(self.evt_layout_choice_remove, PUB_EVENT_LAYOUT_REMOVE)
@@ -333,7 +331,7 @@ class PanelLayoutBuilder(wx.Panel, TableMixin):
 
         self._disable_table_update = None
         self._current_item = None
-        self._tab_list = plot_store.tab_names
+        self._tab_list = plot_store.tab_names if plot_store else []
 
         self.make_gui()
         self.setup()

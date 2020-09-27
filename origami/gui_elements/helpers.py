@@ -47,9 +47,10 @@ def make_bitmap_btn(
     style=wx.BORDER_DEFAULT | wx.ALIGN_CENTER_VERTICAL,
     bg_color=(240, 240, 240),
     tooltip: str = None,
+    name="",
 ):
     """Convenient way to initialize bitmap btn"""
-    bitmap_btn = wx.BitmapButton(parent, evt_id, icon, size=size, style=style)
+    bitmap_btn = wx.BitmapButton(parent, evt_id, icon, size=size, style=style, name=name)
     bitmap_btn.SetBackgroundColour(bg_color)
     if tooltip is not None:
         bitmap_btn.SetToolTip(make_tooltip(tooltip))
