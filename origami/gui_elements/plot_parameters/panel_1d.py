@@ -171,8 +171,7 @@ class Panel1dSettings(PanelSettingsBase):
         barplot_parameters_label = wx.StaticText(self, -1, "Barplot parameters")
         set_item_font(barplot_parameters_label)
 
-        n_col = 3
-        n_span = 2
+        n_col, n_span = 3, 2
         grid = wx.GridBagSizer(2, 2)
         n = 0
         grid.Add(line_parameters_label, (n, 0), wx.GBSpan(1, n_col), flag=wx.ALIGN_CENTER)
@@ -359,21 +358,19 @@ class Panel1dSettings(PanelSettingsBase):
         self.import_evt = False
 
 
-class _TestFrame(wx.Frame):
-    def __init__(self):
-        wx.Frame.__init__(self, None, -1, "Frame", size=(300, 300))
-        self.scrolledPanel = Panel1dSettings(self, None)
-
-
-def _main():
-
-    app = wx.App()
-
-    ex = _TestFrame()
-
-    ex.Show()
-    app.MainLoop()
-
-
 if __name__ == "__main__":
+
+    def _main():
+        class _TestFrame(wx.Frame):
+            def __init__(self):
+                wx.Frame.__init__(self, None, -1, "Frame", size=(300, 300))
+                self.scrolledPanel = Panel1dSettings(self, None)
+
+        app = wx.App()
+
+        ex = _TestFrame()
+
+        ex.Show()
+        app.MainLoop()
+
     _main()

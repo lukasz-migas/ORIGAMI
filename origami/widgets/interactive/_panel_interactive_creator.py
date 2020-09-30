@@ -922,8 +922,6 @@ class PanelInteractiveCreator(wx.MiniFrame):
         main_sizer.Add(buttons, 0, wx.EXPAND, 0)
 
         # pack elements
-        #         main_sizer = wx.BoxSizer( wx.VERTICAL)
-        #         main_sizer.Add(sizer_right, 1, wx.EXPAND |wx.ALL, 0)
         panel.SetSizer(main_sizer)
         panel.Layout()
 
@@ -1500,39 +1498,39 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.titleSlider = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
-            value=str(self.config.interactive_title_fontSize),
+            value=str(self.config.bokeh_frame_title_font_size),
             min=8,
             max=32,
-            initial=self.config.interactive_title_fontSize,
+            initial=self.config.bokeh_frame_title_font_size,
             inc=1,
             size=(50, -1),
         )
         self.titleBoldCheck = make_checkbox(panel, "Bold")
-        self.titleBoldCheck.SetValue(self.config.interactive_title_weight)
+        self.titleBoldCheck.SetValue(self.config.bokeh_frame_title_font_weight)
 
         labelFontSize = make_static_text(panel, "Label font size")
         self.labelSlider = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
-            value=str(self.config.interactive_label_fontSize),
+            value=str(self.config.bokeh_frame_label_font_size),
             min=8,
             max=32,
-            initial=self.config.interactive_label_fontSize,
+            initial=self.config.bokeh_frame_label_font_size,
             inc=1,
             size=(50, -1),
         )
 
         self.labelBoldCheck = make_checkbox(panel, "Bold")
-        self.labelBoldCheck.SetValue(self.config.interactive_label_weight)
+        self.labelBoldCheck.SetValue(self.config.bokeh_frame_label_font_weight)
 
         tickFontSize = make_static_text(panel, "Tick font size")
         self.tickSlider = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
-            value=str(self.config.interactive_tick_fontSize),
+            value=str(self.config.bokeh_frame_tick_font_size),
             min=8,
             max=32,
-            initial=self.config.interactive_tick_fontSize,
+            initial=self.config.bokeh_frame_tick_font_size,
             inc=1,
             size=(50, -1),
         )
@@ -1541,16 +1539,16 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.tickPrecision = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
-            value=str(self.config.interactive_tick_precision),
+            value=str(self.config.bokeh_frame_tick_precision),
             min=0,
             max=5,
-            initial=self.config.interactive_tick_precision,
+            initial=self.config.bokeh_frame_tick_precision,
             inc=1,
             size=(50, -1),
         )
 
         self.tickUseScientific = wx.CheckBox(panel, -1, "Scientific\nnotation", (15, 30))
-        self.tickUseScientific.SetValue(self.config.interactive_tick_useScientific)
+        self.tickUseScientific.SetValue(self.config.bokeh_frame_tick_use_scientific)
         self.tickUseScientific.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
         # Add to grid sizer
@@ -1661,10 +1659,10 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.line_width = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
-            value=str(self.config.interactive_line_width),
+            value=str(self.config.bokeh_line_width),
             min=0.5,
             max=10,
-            initial=self.config.interactive_line_width,
+            initial=self.config.bokeh_line_width,
             inc=0.5,
             size=(50, -1),
         )
@@ -1674,10 +1672,10 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.line_transparency = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
-            value=str(self.config.interactive_line_alpha),
+            value=str(self.config.bokeh_line_alpha),
             min=0,
             max=1,
-            initial=self.config.interactive_line_alpha,
+            initial=self.config.bokeh_line_alpha,
             inc=0.1,
             size=(50, -1),
         )
@@ -1685,9 +1683,9 @@ class PanelInteractiveCreator(wx.MiniFrame):
 
         lineStyle_label = wx.StaticText(panel, -1, "Line style:")
         self.line_style = wx.ComboBox(
-            panel, -1, choices=self.config.interactive_line_style_choices, value="", style=wx.CB_READONLY
+            panel, -1, choices=self.config.bokeh_line_style_choices, value="", style=wx.CB_READONLY
         )
-        self.line_style.SetStringSelection(self.config.interactive_line_style)
+        self.line_style.SetStringSelection(self.config.bokeh_line_style)
         self.line_style.Bind(wx.EVT_COMBOBOX, self.on_apply)
 
         self.hoverVlineCheck = wx.CheckBox(panel, -1, "Link hover to X axis", (15, 30))
@@ -1820,8 +1818,8 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.scatter_marker = wx.ComboBox(
             panel,
             -1,
-            choices=self.config.interactive_scatter_marker_choices,
-            value=self.config.interactive_scatter_marker,
+            choices=self.config.bokeh_scatter_marker_choices,
+            value=self.config.bokeh_scatter_marker,
             style=wx.CB_READONLY,
         )
         self.scatter_marker.Bind(wx.EVT_COMBOBOX, self.on_apply)
@@ -1830,10 +1828,10 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.scatter_marker_size = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
-            value=str(self.config.interactive_scatter_size),
+            value=str(self.config.bokeh_scatter_size),
             min=1,
             max=100,
-            initial=self.config.interactive_scatter_size,
+            initial=self.config.bokeh_scatter_size,
             inc=5,
             size=(50, -1),
         )
@@ -1843,10 +1841,10 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.scatter_marker_alpha = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
-            value=str(self.config.interactive_scatter_alpha),
+            value=str(self.config.bokeh_scatter_alpha),
             min=0,
             max=1,
-            initial=self.config.interactive_scatter_alpha,
+            initial=self.config.bokeh_scatter_alpha,
             inc=0.1,
             size=(50, -1),
         )
@@ -1857,14 +1855,14 @@ class PanelInteractiveCreator(wx.MiniFrame):
             panel, ID_interactivePanel_color_markerEdge, "", wx.DefaultPosition, wx.Size(26, 26), 0
         )
         self.scatter_marker_edge_colorBtn.SetBackgroundColour(
-            convert_rgb_1_to_255(self.config.interactive_scatter_edge_color)
+            convert_rgb_1_to_255(self.config.bokeh_scatter_edge_color)
         )
         self.scatter_marker_edge_colorBtn.Bind(
             wx.EVT_BUTTON, self.on_change_color, id=ID_interactivePanel_color_markerEdge
         )
 
         self.scatter_color_sameAsFill = wx.CheckBox(panel, -1, "Same as fill", (15, 30))
-        self.scatter_color_sameAsFill.SetValue(self.config.interactive_scatter_sameAsFill)
+        self.scatter_color_sameAsFill.SetValue(self.config.bokeh_scatter_edge_same_as_fill)
         self.scatter_color_sameAsFill.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         gridFigure = wx.GridBagSizer(2, 2)
@@ -2037,24 +2035,24 @@ class PanelInteractiveCreator(wx.MiniFrame):
 
         colorbar_label = make_static_text(panel, "Colorbar:")
         self.interactive_colorbar = wx.CheckBox(panel, -1, "", (15, 30))
-        self.interactive_colorbar.SetValue(self.config.interactive_colorbar)
+        self.interactive_colorbar.SetValue(self.config.bokeh_colorbar)
         self.interactive_colorbar.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         precision_label = make_static_text(panel, "Precision")
         self.interactive_colorbar_precision = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
-            value=str(self.config.interactive_colorbar_precision),
+            value=str(self.config.bokeh_colorbar_precision),
             min=0,
             max=5,
-            initial=self.config.interactive_colorbar_precision,
+            initial=self.config.bokeh_colorbar_precision,
             inc=1,
             size=(50, -1),
         )
         self.interactive_colorbar_precision.SetToolTip(wx.ToolTip("Number of decimal places in the colorbar tickers"))
 
         self.interactive_colorbar_useScientific = wx.CheckBox(panel, -1, "Scientific\nnotation", (15, 30))
-        self.interactive_colorbar_useScientific.SetValue(self.config.interactive_colorbar_useScientific)
+        self.interactive_colorbar_useScientific.SetValue(self.config.bokeh_colorbar_use_scientific)
         self.interactive_colorbar_useScientific.SetToolTip(
             wx.ToolTip("Enable/disable scientific notation of colorbar tickers")
         )
@@ -2064,10 +2062,10 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.interactive_colorbar_label_offset = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
-            value=str(self.config.interactive_colorbar_label_offset),
+            value=str(self.config.bokeh_colorbar_label_offset),
             min=0,
             max=100,
-            initial=self.config.interactive_colorbar_label_offset,
+            initial=self.config.bokeh_colorbar_label_offset,
             inc=5,
             size=(50, -1),
         )
@@ -2078,7 +2076,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
             panel,
             -1,
             choices=self.config.interactive_colorbarPosition_choices,
-            value=self.config.interactive_colorbar_location,
+            value=self.config.bokeh_colorbar_location,
             style=wx.CB_READONLY,
         )
         self.interactive_colorbar_location.SetToolTip(
@@ -2089,10 +2087,10 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.interactive_colorbar_offset_x = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
-            value=str(self.config.interactive_colorbar_offset_x),
+            value=str(self.config.bokeh_colorbar_offset_x),
             min=0,
             max=100,
-            initial=self.config.interactive_colorbar_offset_x,
+            initial=self.config.bokeh_colorbar_offset_x,
             inc=5,
             size=(50, -1),
         )
@@ -2106,10 +2104,10 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.interactive_colorbar_offset_y = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
-            value=str(self.config.interactive_colorbar_offset_y),
+            value=str(self.config.bokeh_colorbar_offset_y),
             min=0,
             max=100,
-            initial=self.config.interactive_colorbar_offset_y,
+            initial=self.config.bokeh_colorbar_offset_y,
             inc=5,
             size=(50, -1),
         )
@@ -2123,10 +2121,10 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.colorbarPadding = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
-            value=str(self.config.interactive_colorbar_padding),
+            value=str(self.config.bokeh_colorbar_padding),
             min=0,
             max=100,
-            initial=self.config.interactive_colorbar_padding,
+            initial=self.config.bokeh_colorbar_padding,
             inc=5,
             size=(50, -1),
         )
@@ -2136,10 +2134,10 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.colorbarWidth = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
-            value=str(self.config.interactive_colorbar_width),
+            value=str(self.config.bokeh_colorbar_width),
             min=0,
             max=100,
-            initial=self.config.interactive_colorbar_width,
+            initial=self.config.bokeh_colorbar_width,
             inc=5,
             size=(50, -1),
         )
@@ -2189,15 +2187,15 @@ class PanelInteractiveCreator(wx.MiniFrame):
 
         legend_label = make_static_text(panel, "Legend:")
         self.legend_legend = wx.CheckBox(panel, -1, "", (15, 30))
-        self.legend_legend.SetValue(self.config.interactive_legend)
+        self.legend_legend.SetValue(self.config.bokeh_legend)
         self.legend_legend.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         position_label = make_static_text(panel, "Position")
         self.legend_position = wx.ComboBox(
             panel,
             -1,
-            choices=self.config.interactive_legend_location_choices,
-            value=self.config.interactive_legend_location,
+            choices=self.config.bokeh_legend_location_choices,
+            value=self.config.bokeh_legend_location,
             style=wx.CB_READONLY,
         )
         self.legend_position.Bind(wx.EVT_COMBOBOX, self.on_apply)
@@ -2206,8 +2204,8 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.legend_orientation = wx.ComboBox(
             panel,
             -1,
-            choices=self.config.interactive_legend_orientation_choices,
-            value=self.config.interactive_legend_orientation,
+            choices=self.config.bokeh_legend_orientation_choices,
+            value=self.config.bokeh_legend_orientation,
             style=wx.CB_READONLY,
         )
         self.legend_orientation.Bind(wx.EVT_COMBOBOX, self.on_apply)
@@ -2216,10 +2214,10 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.legend_transparency = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
-            value=str(self.config.interactive_legend_background_alpha),
+            value=str(self.config.bokeh_legend_background_alpha),
             min=0,
             max=1,
-            initial=self.config.interactive_legend_background_alpha,
+            initial=self.config.bokeh_legend_background_alpha,
             inc=0.1,
             size=(50, -1),
         )
@@ -2229,10 +2227,10 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.legend_fontSize = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
-            value=str(self.config.interactive_legend_font_size),
+            value=str(self.config.bokeh_legend_font_size),
             min=0,
             max=32,
-            initial=self.config.interactive_legend_font_size,
+            initial=self.config.bokeh_legend_font_size,
             inc=2,
             size=(50, -1),
         )
@@ -2242,8 +2240,8 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.legend_click_policy = wx.ComboBox(
             panel,
             -1,
-            choices=self.config.interactive_legend_click_policy_choices,
-            value=self.config.interactive_legend_click_policy,
+            choices=self.config.bokeh_legend_click_policy_choices,
+            value=self.config.bokeh_legend_click_policy,
             style=wx.CB_READONLY,
         )
         self.legend_click_policy.Bind(wx.EVT_COMBOBOX, self.on_apply)
@@ -2253,10 +2251,10 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.legend_mute_transparency = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
-            value=str(self.config.interactive_legend_mute_alpha),
+            value=str(self.config.bokeh_legend_mute_alpha),
             min=0,
             max=1,
-            initial=self.config.interactive_legend_mute_alpha,
+            initial=self.config.bokeh_legend_mute_alpha,
             inc=0.1,
             size=(50, -1),
         )
@@ -2406,14 +2404,14 @@ class PanelInteractiveCreator(wx.MiniFrame):
             self.Unbind(wx.EVT_CHAR_HOOK, id=wx.ID_ANY)
 
     def on_toggle_controls(self, evt):
-        self.config.interactive_tick_useScientific = self.tickUseScientific.GetValue()
-        if self.config.interactive_tick_useScientific:
+        self.config.bokeh_frame_tick_use_scientific = self.tickUseScientific.GetValue()
+        if self.config.bokeh_frame_tick_use_scientific:
             self.tickPrecision.Disable()
         else:
             self.tickPrecision.Enable()
 
-        self.config.interactive_colorbar_useScientific = self.interactive_colorbar_useScientific.GetValue()
-        if self.config.interactive_colorbar_useScientific:
+        self.config.bokeh_colorbar_use_scientific = self.interactive_colorbar_useScientific.GetValue()
+        if self.config.bokeh_colorbar_use_scientific:
             self.interactive_colorbar_precision.Disable()
         else:
             self.interactive_colorbar_precision.Enable()
@@ -2631,16 +2629,16 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.config.interactive_sort_before_saving = self.sort_before_saving.GetValue()
 
         # Bar
-        self.config.interactive_bar_width = self.bar_width_value.GetValue()
-        self.config.interactive_bar_alpha = self.bar_alpha_value.GetValue()
-        self.config.interactive_bar_sameAsFill = self.bar_colorEdge_check.GetValue()
-        self.config.interactive_bar_lineWidth = self.bar_lineWidth_value.GetValue()
+        self.config.bokeh_bar_width = self.bar_width_value.GetValue()
+        self.config.bokeh_bar_alpha = self.bar_alpha_value.GetValue()
+        self.config.bokeh_bar_edge_same_as_fill = self.bar_colorEdge_check.GetValue()
+        self.config.bokeh_bar_edge_width = self.bar_lineWidth_value.GetValue()
 
         # Scatter
-        self.config.interactive_scatter_size = self.scatter_marker_size.GetValue()
-        self.config.interactive_scatter_alpha = self.scatter_marker_alpha.GetValue()
-        self.config.interactive_scatter_marker = self.scatter_marker.GetStringSelection()
-        self.config.interactive_scatter_sameAsFill = self.scatter_color_sameAsFill.GetValue()
+        self.config.bokeh_scatter_size = self.scatter_marker_size.GetValue()
+        self.config.bokeh_scatter_alpha = self.scatter_marker_alpha.GetValue()
+        self.config.bokeh_scatter_marker = self.scatter_marker.GetStringSelection()
+        self.config.bokeh_scatter_edge_same_as_fill = self.scatter_color_sameAsFill.GetValue()
 
         # Annotations
         self.config.interactive_ms_annotations_offsetX = self.annot_xpos_value.GetValue()
@@ -2664,18 +2662,18 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.config.hoverVline = self.hoverVlineCheck.GetValue()
 
         # Font
-        self.config.interactive_title_fontSize = self.titleSlider.GetValue()
-        self.config.interactive_title_weight = self.titleBoldCheck.GetValue()
-        self.config.interactive_label_fontSize = self.labelSlider.GetValue()
-        self.config.interactive_label_weight = self.labelBoldCheck.GetValue()
-        self.config.interactive_tick_fontSize = self.tickSlider.GetValue()
+        self.config.bokeh_frame_title_font_size = self.titleSlider.GetValue()
+        self.config.bokeh_frame_title_font_weight = self.titleBoldCheck.GetValue()
+        self.config.bokeh_frame_label_font_size = self.labelSlider.GetValue()
+        self.config.bokeh_frame_label_font_weight = self.labelBoldCheck.GetValue()
+        self.config.bokeh_frame_tick_font_size = self.tickSlider.GetValue()
         self.config.interactive_annotation_fontSize = self.notationSlider.GetValue()
         self.config.interactive_annotation_weight = self.notationBoldCheck.GetValue()
         self.config.interactive_annotation_alpha = self.rmsd_label_transparency.GetValue()
 
         # ticks parameters
-        self.config.interactive_tick_useScientific = self.tickUseScientific.GetValue()
-        self.config.interactive_tick_precision = int(self.tickPrecision.GetValue())
+        self.config.bokeh_frame_tick_use_scientific = self.tickUseScientific.GetValue()
+        self.config.bokeh_frame_tick_precision = int(self.tickPrecision.GetValue())
 
         #         # tools
         #         self.config.toolsLocation = self.location_combo.GetValue()
@@ -2685,20 +2683,20 @@ class PanelInteractiveCreator(wx.MiniFrame):
         #         self.config.interactive_grid_label_weight = self.grid_label_weight.GetValue()
 
         # colorbar
-        self.config.interactive_colorbar = self.interactive_colorbar.GetValue()
-        self.config.interactive_colorbar_precision = str2int(self.interactive_colorbar_precision.GetValue())
-        self.config.interactive_colorbar_useScientific = self.interactive_colorbar_useScientific.GetValue()
-        self.config.interactive_colorbar_offset_x = str2int(self.interactive_colorbar_offset_x.GetValue())
-        self.config.interactive_colorbar_offset_y = str2int(self.interactive_colorbar_offset_y.GetValue())
-        self.config.interactive_colorbar_location = self.interactive_colorbar_location.GetStringSelection()
-        if self.config.interactive_colorbar_location in ("right", "left"):
-            self.config.interactive_colorbar_orientation = "vertical"
+        self.config.bokeh_colorbar = self.interactive_colorbar.GetValue()
+        self.config.bokeh_colorbar_precision = str2int(self.interactive_colorbar_precision.GetValue())
+        self.config.bokeh_colorbar_use_scientific = self.interactive_colorbar_useScientific.GetValue()
+        self.config.bokeh_colorbar_offset_x = str2int(self.interactive_colorbar_offset_x.GetValue())
+        self.config.bokeh_colorbar_offset_y = str2int(self.interactive_colorbar_offset_y.GetValue())
+        self.config.bokeh_colorbar_location = self.interactive_colorbar_location.GetStringSelection()
+        if self.config.bokeh_colorbar_location in ("right", "left"):
+            self.config.bokeh_colorbar_orientation = "vertical"
         else:
-            self.config.interactive_colorbar_orientation = "horizontal"
+            self.config.bokeh_colorbar_orientation = "horizontal"
 
-        self.config.interactive_colorbar_padding = str2int(self.colorbarPadding.GetValue())
-        self.config.interactive_colorbar_width = str2int(self.colorbarWidth.GetValue())
-        self.config.interactive_colorbar_label_offset = str2int(self.interactive_colorbar_label_offset.GetValue())
+        self.config.bokeh_colorbar_padding = str2int(self.colorbarPadding.GetValue())
+        self.config.bokeh_colorbar_width = str2int(self.colorbarWidth.GetValue())
+        self.config.bokeh_colorbar_label_offset = str2int(self.interactive_colorbar_label_offset.GetValue())
 
         #         # Plot parameters
         #         self.config.interactive_outline_width = str2num(self.interactive_outline_width.GetValue())
@@ -2719,9 +2717,9 @@ class PanelInteractiveCreator(wx.MiniFrame):
         #         self.config.interactive_legend_mute_alpha = self.legend_mute_transparency.GetValue()
 
         # line parameters
-        self.config.interactive_line_width = self.line_width.GetValue()
-        self.config.interactive_line_alpha = self.line_transparency.GetValue()
-        self.config.interactive_line_style = self.line_style.GetStringSelection()
+        self.config.bokeh_line_width = self.line_width.GetValue()
+        self.config.bokeh_line_alpha = self.line_transparency.GetValue()
+        self.config.bokeh_line_style = self.line_style.GetStringSelection()
 
         if self.config.APP_ENABLE_CONFIG_AUTO_SAVE:
             self.data_handling.on_export_config_fcn(None, False)
@@ -2785,14 +2783,14 @@ class PanelInteractiveCreator(wx.MiniFrame):
             pass
         else:
             dictionary["interactive_params"] = {
-                "line_width": self.config.interactive_line_width,
-                "line_alpha": self.config.interactive_line_alpha,
-                "line_style": self.config.interactive_line_style,
+                "line_width": self.config.bokeh_line_width,
+                "line_alpha": self.config.bokeh_line_alpha,
+                "line_style": self.config.bokeh_line_style,
                 "line_linkXaxis": self.config.hoverVline,
                 "overlay_layout": self.config.plotLayoutOverlay,
                 "overlay_linkXY": self.config.linkXYaxes,
-                "colorbar": self.config.interactive_colorbar,
-                "legend": self.config.interactive_legend,
+                "colorbar": self.config.bokeh_colorbar,
+                "legend": self.config.bokeh_legend,
             }
 
         dictionary = self._preset_interactive_parameters(dictionary)
@@ -2850,7 +2848,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 if docData.gotMS:
                     data = docData.massSpectrum
                     if data.get("cmap", "") == "":
-                        data["cmap"] = self.config.interactive_line_color
+                        data["cmap"] = self.config.bokeh_line_color
                     kwargs = {"toolset": "MS", "color": (200, 236, 236)}
                     self.append_to_table(data, key, "", "MS", **kwargs)
 
@@ -2866,7 +2864,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                     if docData.gotSmoothMS:
                         data = docData.smoothMS
                         if data.get("cmap", "") == "":
-                            data["cmap"] = self.config.interactive_line_color
+                            data["cmap"] = self.config.bokeh_line_color
                         kwargs = {"toolset": "MS", "color": (116, 185, 255)}
                         self.append_to_table(data, key, "", "Processed MS", **kwargs)
 
@@ -2881,14 +2879,14 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 if docData.got1RT:
                     data = docData.RT
                     if data.get("cmap", "") == "":
-                        data["cmap"] = self.config.interactive_line_color
+                        data["cmap"] = self.config.bokeh_line_color
                     kwargs = {"toolset": "1D", "color": (219, 209, 255)}
                     self.append_to_table(data, key, "", "RT", **kwargs)
 
                 if docData.got1DT:
                     data = docData.DT
                     if data.get("cmap", "") == "":
-                        data["cmap"] = self.config.interactive_line_color
+                        data["cmap"] = self.config.bokeh_line_color
                     kwargs = {"toolset": "1D", "color": (255, 118, 117)}
                     self.append_to_table(data, key, "", "1D", **kwargs)
 
@@ -2912,7 +2910,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                     for innerKey in docData.multipleMassSpectrum:
                         data = docData.multipleMassSpectrum[innerKey]
                         if data.get("cmap", "") == "":
-                            data["cmap"] = self.config.interactive_line_color
+                            data["cmap"] = self.config.bokeh_line_color
                         kwargs = {"toolset": "MS", "color": (200, 236, 236)}
                         self.append_to_table(data, key, innerKey, "MS, multiple", **kwargs)
 
@@ -2929,7 +2927,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                     for innerKey in docData.multipleRT:
                         data = docData.multipleRT[innerKey]
                         if data.get("cmap", "") == "":
-                            data["cmap"] = self.config.interactive_line_color
+                            data["cmap"] = self.config.bokeh_line_color
                         kwargs = {"toolset": "1D", "color": (219, 209, 255)}
                         self.append_to_table(data, key, innerKey, "RT, multiple", **kwargs)
 
@@ -2937,7 +2935,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                     for innerKey in docData.multipleDT:
                         data = docData.multipleDT[innerKey]
                         if data.get("cmap", "") == "":
-                            data["cmap"] = self.config.interactive_line_color
+                            data["cmap"] = self.config.bokeh_line_color
                         kwargs = {"toolset": "1D", "color": (255, 118, 117)}
                         self.append_to_table(data, key, innerKey, "1D, multiple", **kwargs)
 
@@ -2949,7 +2947,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                             tableKey = "DT-IMS"
                         data = docData.IMS1DdriftTimes[innerKey]
                         if data.get("cmap", "") == "":
-                            data["cmap"] = self.config.interactive_line_color
+                            data["cmap"] = self.config.bokeh_line_color
                         kwargs = {"toolset": "1D", "color": (154, 236, 219)}
                         self.append_to_table(data, key, innerKey, tableKey, **kwargs)
 
@@ -2957,7 +2955,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                     for innerKey in docData.IMSRTCombIons:
                         data = docData.IMSRTCombIons[innerKey]
                         if data.get("cmap", "") == "":
-                            data["cmap"] = self.config.interactive_line_color
+                            data["cmap"] = self.config.bokeh_line_color
                         kwargs = {"toolset": "RT", "color": (219, 209, 255)}
                         self.append_to_table(data, key, innerKey, "RT, combined", **kwargs)
 
@@ -3002,7 +3000,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 if len(docData.tandem_spectra) > 0:
                     data = docData.tandem_spectra
                     if data.get("cmap", "") == "":
-                        data["cmap"] = self.config.interactive_line_color
+                        data["cmap"] = self.config.bokeh_line_color
                     kwargs = {"toolset": "1D", "color": (219, 209, 255)}
                     self.append_to_table(data, key, "", "MS/MS", **kwargs)
 
@@ -3296,10 +3294,10 @@ class PanelInteractiveCreator(wx.MiniFrame):
                     self.config.interactive_ms_annotations_label_color = newColour255
                 elif evt.GetId() == ID_interactivePanel_color_markerEdge:
                     self.scatter_marker_edge_colorBtn.SetBackgroundColour(newColour)
-                    self.config.interactive_scatter_edge_color = newColour255
+                    self.config.bokeh_scatter_edge_color = newColour255
                 elif evt.GetId() == ID_interactivePanel_color_barEdge:
                     self.bar_edgeColorBtn.SetBackgroundColour(newColour)
-                    self.config.interactive_bar_edge_color = newColour255
+                    self.config.bokeh_bar_edge_color = newColour255
 
                 self.on_annotate_item(evt=None)
                 dlg.Destroy()
@@ -3677,7 +3675,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                     end=1,
                     step=0.1,
                     value=user_kwargs["legend_properties"].get(
-                        "legend_background_alpha", self.config.interactive_legend_background_alpha
+                        "legend_background_alpha", self.config.bokeh_legend_background_alpha
                     ),
                     callback=callback,
                     title="Legend transparency",
@@ -4221,29 +4219,29 @@ class PanelInteractiveCreator(wx.MiniFrame):
         bokehPlot.title.text_font_size = self._fontSizeConverter(
             data.get("interactive_params", {})
             .get("frame_properties", {})
-            .get("title_fontsize", self.config.interactive_title_fontSize)
+            .get("title_fontsize", self.config.bokeh_frame_title_font_size)
         )
         bokehPlot.title.text_font_style = self._fontWeightConverter(
             data.get("interactive_params", {})
             .get("frame_properties", {})
-            .get("title_fontweight", self.config.interactive_title_weight)
+            .get("title_fontweight", self.config.bokeh_frame_title_font_weight)
         )
 
         if (
             data.get("interactive_params", {})
             .get("frame_properties", {})
-            .get("gridline", self.config.interactive_grid_line)
+            .get("gridline", self.config.bokeh_frame_grid_line)
         ):
             bokehPlot.grid.grid_line_color = convert_rgb_1_to_hex(
                 data.get("interactive_params", {})
                 .get("frame_properties", {})
-                .get("gridline_color", self.config.interactive_grid_line_color)
+                .get("gridline_color", self.config.bokeh_frame_grid_line_color)
             )
 
         bokehPlot.background_fill_color = convert_rgb_1_to_hex(
             data.get("interactive_params", {})
             .get("frame_properties", {})
-            .get("background_color", self.config.interactive_background_color)
+            .get("background_color", self.config.bokeh_frame_background_color)
         )
 
         set_common_parameters = []
@@ -4284,21 +4282,23 @@ class PanelInteractiveCreator(wx.MiniFrame):
             bokehPlot.outline_line_width = (
                 data.get("interactive_params", {})
                 .get("frame_properties", {})
-                .get("outline_width", self.config.interactive_outline_width)
+                .get("outline_width", self.config.bokeh_frame_outline_width)
             )
             bokehPlot.outline_line_alpha = (
                 data.get("interactive_params", {})
                 .get("frame_properties", {})
-                .get("outline_alpha", self.config.interactive_outline_alpha)
+                .get("outline_alpha", self.config.bokeh_frame_outline_alpha)
             )
 
             bokehPlot.outline_line_color = (
                 data.get("interactive_params", {}).get("frame_properties", {}).get("outline_color", "#000000")
             )
             # Y-axis
-            bokehPlot.yaxis.axis_label_text_font_size = self._fontSizeConverter(self.config.interactive_label_fontSize)
-            bokehPlot.yaxis.major_label_text_font_size = self._fontSizeConverter(self.config.interactive_tick_fontSize)
-            bokehPlot.yaxis.axis_label_text_font_style = self._fontWeightConverter(self.config.interactive_label_weight)
+            bokehPlot.yaxis.axis_label_text_font_size = self._fontSizeConverter(self.config.bokeh_frame_label_font_size)
+            bokehPlot.yaxis.major_label_text_font_size = self._fontSizeConverter(self.config.bokeh_frame_tick_font_size)
+            bokehPlot.yaxis.axis_label_text_font_style = self._fontWeightConverter(
+                self.config.bokeh_frame_label_font_weight
+            )
             # X-axis
             bokehPlot.xaxis.axis_label_text_font_size = "0pt"
             bokehPlot.xaxis.major_label_text_font_size = "0pt"
@@ -4309,23 +4309,23 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 bokehPlot.xaxis.axis_label_text_font_size = self._fontSizeConverter(
                     data.get("interactive_params", {})
                     .get("frame_properties", {})
-                    .get("label_xaxis_fontsize", self.config.interactive_label_fontSize)
+                    .get("label_xaxis_fontsize", self.config.bokeh_frame_label_font_size)
                 )
                 bokehPlot.xaxis.axis_label_text_font_style = self._fontWeightConverter(
                     data.get("interactive_params", {})
                     .get("frame_properties", {})
-                    .get("label_fontweight", self.config.interactive_label_weight)
+                    .get("label_fontweight", self.config.bokeh_frame_label_font_weight)
                 )
 
                 bokehPlot.yaxis.axis_label_text_font_size = self._fontSizeConverter(
                     data.get("interactive_params", {})
                     .get("frame_properties", {})
-                    .get("label_yaxis_fontsize", self.config.interactive_label_fontSize)
+                    .get("label_yaxis_fontsize", self.config.bokeh_frame_label_font_size)
                 )
                 bokehPlot.yaxis.axis_label_text_font_style = self._fontWeightConverter(
                     data.get("interactive_params", {})
                     .get("frame_properties", {})
-                    .get("label_fontweight", self.config.interactive_label_weight)
+                    .get("label_fontweight", self.config.bokeh_frame_label_font_weight)
                 )
 
             if param in ["frame", "ticks"]:
@@ -4345,44 +4345,44 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 bokehPlot.xaxis.major_label_text_font_size = self._fontSizeConverter(
                     data.get("interactive_params", {})
                     .get("frame_properties", {})
-                    .get("tick_labels_xaxis_fontsize", self.config.interactive_tick_fontSize)
+                    .get("tick_labels_xaxis_fontsize", self.config.bokeh_frame_tick_font_size)
                 )
                 bokehPlot.yaxis.major_label_text_font_size = self._fontSizeConverter(
                     data.get("interactive_params", {})
                     .get("frame_properties", {})
-                    .get("tick_labels_yaxis_fontsize", self.config.interactive_tick_fontSize)
+                    .get("tick_labels_yaxis_fontsize", self.config.bokeh_frame_tick_font_size)
                 )
 
             if param in ["legend"]:
                 bokehPlot.legend.location = (
                     data.get("interactive_params", {})
                     .get("legend_properties", {})
-                    .get("legend_location", self.config.interactive_legend_location)
+                    .get("legend_location", self.config.bokeh_legend_location)
                 )
                 bokehPlot.legend.click_policy = (
                     data.get("interactive_params", {})
                     .get("legend_properties", {})
-                    .get("legend_click_policy", self.config.interactive_legend_click_policy)
+                    .get("legend_click_policy", self.config.bokeh_legend_click_policy)
                 )
                 bokehPlot.legend.background_fill_alpha = (
                     data.get("interactive_params", {})
                     .get("legend_properties", {})
-                    .get("legend_background_alpha", self.config.interactive_legend_background_alpha)
+                    .get("legend_background_alpha", self.config.bokeh_legend_background_alpha)
                 )
                 bokehPlot.legend.border_line_alpha = (
                     data.get("interactive_params", {})
                     .get("legend_properties", {})
-                    .get("legend_background_alpha", self.config.interactive_legend_background_alpha)
+                    .get("legend_background_alpha", self.config.bokeh_legend_background_alpha)
                 )
                 bokehPlot.legend.label_text_font_size = self._fontSizeConverter(
                     data.get("interactive_params", {})
                     .get("legend_font_size", {})
-                    .get("legend_location", self.config.interactive_legend_font_size)
+                    .get("legend_location", self.config.bokeh_legend_font_size)
                 )
                 bokehPlot.legend.orientation = (
                     data.get("interactive_params", {})
                     .get("legend_properties", {})
-                    .get("legend_orientation", self.config.interactive_legend_orientation)
+                    .get("legend_orientation", self.config.bokeh_legend_orientation)
                 )
                 bokehPlot.legend.border_line_width = 0
 
@@ -4391,13 +4391,13 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 bokehPlot.outline_line_width = (
                     data.get("interactive_params", {})
                     .get("frame_properties", {})
-                    .get("outline_width", self.config.interactive_outline_width)
+                    .get("outline_width", self.config.bokeh_frame_outline_width)
                 )
 
                 bokehPlot.outline_line_alpha = (
                     data.get("interactive_params", {})
                     .get("frame_properties", {})
-                    .get("outline_alpha", self.config.interactive_outline_alpha)
+                    .get("outline_alpha", self.config.bokeh_frame_outline_alpha)
                 )
 
                 bokehPlot.outline_line_color = (
@@ -4408,22 +4408,22 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 bokehPlot.min_border_right = (
                     data.get("interactive_params", {})
                     .get("frame_properties", {})
-                    .get("border_left", self.config.interactive_border_min_right)
+                    .get("border_left", self.config.bokeh_frame_border_min_right)
                 )
                 bokehPlot.min_border_left = (
                     data.get("interactive_params", {})
                     .get("frame_properties", {})
-                    .get("border_right", self.config.interactive_border_min_left)
+                    .get("border_right", self.config.bokeh_frame_border_min_left)
                 )
                 bokehPlot.min_border_top = (
                     data.get("interactive_params", {})
                     .get("frame_properties", {})
-                    .get("border_top", self.config.interactive_border_min_top)
+                    .get("border_top", self.config.bokeh_frame_border_min_top)
                 )
                 bokehPlot.min_border_bottom = (
                     data.get("interactive_params", {})
                     .get("frame_properties", {})
-                    .get("border_bottom", self.config.interactive_border_min_bottom)
+                    .get("border_bottom", self.config.bokeh_frame_border_min_bottom)
                 )
 
                 if kwargs.get("tight_layout", False):
@@ -5019,7 +5019,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 "xvals",
                 "yvals",
                 color=cmap,
-                fill_alpha=user_kwargs["plot_properties"].get("shade_transparency", self.config.interactive_line_alpha),
+                fill_alpha=user_kwargs["plot_properties"].get("shade_transparency", self.config.bokeh_line_alpha),
                 line_alpha=0.0,
                 source=ms_source,
             )
@@ -5243,7 +5243,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 line_dash=user_kwargs["plot_properties"]["line_style"],
                 legend=label,
                 muted_alpha=user_kwargs["legend_properties"].get(
-                    "legend_mute_alpha", self.config.interactive_legend_mute_alpha
+                    "legend_mute_alpha", self.config.bokeh_legend_mute_alpha
                 ),
                 muted_color=color,
                 source=source,
@@ -5426,12 +5426,12 @@ class PanelInteractiveCreator(wx.MiniFrame):
 
             # create edge colors
             if user_kwargs["plot_properties"].get(
-                "scatter_edge_color_sameAsFill", self.config.interactive_scatter_sameAsFill
+                "scatter_edge_color_sameAsFill", self.config.bokeh_scatter_edge_same_as_fill
             ):
                 edge_color = color
             else:
                 edge_color = convert_rgb_1_to_hex(
-                    user_kwargs["plot_properties"].get("scatter_edge_color", self.config.interactive_scatter_edge_color)
+                    user_kwargs["plot_properties"].get("scatter_edge_color", self.config.bokeh_scatter_edge_color)
                 )
 
             # generate color list
@@ -5477,16 +5477,14 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 y="yvals",
                 color="color",
                 line_color="edge_color",
-                marker=user_kwargs["plot_properties"].get("scatter_shape", self.config.interactive_scatter_marker),
-                fill_alpha=user_kwargs["plot_properties"].get(
-                    "scatter_transparency", self.config.interactive_scatter_alpha
-                ),
-                size=user_kwargs["plot_properties"].get("scatter_size", self.config.interactive_scatter_size),
+                marker=user_kwargs["plot_properties"].get("scatter_shape", self.config.bokeh_scatter_marker),
+                fill_alpha=user_kwargs["plot_properties"].get("scatter_transparency", self.config.bokeh_scatter_alpha),
+                size=user_kwargs["plot_properties"].get("scatter_size", self.config.bokeh_scatter_size),
                 line_width=user_kwargs["plot_properties"].get(
-                    "scatter_line_width", self.config.interactive_scatter_lineWidth
+                    "scatter_line_width", self.config.bokeh_scatter_edge_width
                 ),
                 muted_alpha=user_kwargs["legend_properties"].get(
-                    "legend_mute_alpha", self.config.interactive_legend_mute_alpha
+                    "legend_mute_alpha", self.config.bokeh_legend_mute_alpha
                 ),
                 source=source,
                 legend=label,
@@ -5641,7 +5639,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
 
         # add colorbar to the plot
         colorbar = None
-        if user_kwargs["colorbar_properties"].get("colorbar", self.config.interactive_colorbar):
+        if user_kwargs["colorbar_properties"].get("colorbar", self.config.bokeh_colorbar):
             # check if colorbar should be modified
             modify_colorbar = (
                 data.get("interactive_params", {})
@@ -5862,7 +5860,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
         bokehPlot, __ = self._add_plot_labels(bokehPlot, data, label_source, plot_type="waterfall")
 
         # add colorbar
-        if user_kwargs["colorbar_properties"].get("colorbar", self.config.interactive_colorbar):
+        if user_kwargs["colorbar_properties"].get("colorbar", self.config.bokeh_colorbar):
             modify_colorbar = user_kwargs["colorbar_properties"].get(
                 "modify_ticks", bkh_kwargs.get("modify_colorbar", False)
             )
@@ -5922,7 +5920,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
         bokehPlot.image(source=cds, image="image", x="x", y="y", dw="dw", dh="dh", palette=bokehpalette)
 
         # add colorbar
-        if user_kwargs["colorbar_properties"].get("colorbar", self.config.interactive_colorbar):
+        if user_kwargs["colorbar_properties"].get("colorbar", self.config.bokeh_colorbar):
             bokehPlot = self._add_colorbar(
                 bokehPlot,
                 zvals,
@@ -5996,7 +5994,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 "yvals",
                 color=color,
                 fill_alpha=user_kwargs["overlay_properties"].get(
-                    "rmsf_shade_transparency", self.config.interactive_line_alpha
+                    "rmsf_shade_transparency", self.config.bokeh_line_alpha
                 ),
                 line_alpha=0.0,
                 source=rmsf_source,
@@ -6038,7 +6036,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
         bokehPlotRMSD.image(source=cds, image="image", x="x", y="y", dw="dw", dh="dh", palette=bokehpalette)
 
         # add colorbar
-        if user_kwargs["colorbar_properties"].get("colorbar", self.config.interactive_colorbar):
+        if user_kwargs["colorbar_properties"].get("colorbar", self.config.bokeh_colorbar):
             bokehPlotRMSD = self._add_colorbar(
                 bokehPlotRMSD,
                 zvals,
@@ -6147,7 +6145,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
         cds = ColumnDataSource(data=z_data)
         image_2 = rightPlot.image(source=cds, image="image", x="x", y="y", dw="dw", dh="dh", palette=bokehpalette2)
 
-        if user_kwargs["colorbar_properties"].get("colorbar", self.config.interactive_colorbar):
+        if user_kwargs["colorbar_properties"].get("colorbar", self.config.bokeh_colorbar):
             leftPlot = self._add_colorbar(leftPlot, zvals1, colorMapper1, True, True, data=data)
             rightPlot = self._add_colorbar(rightPlot, zvals2, colorMapper2, True, True, data=data)
 
@@ -6239,9 +6237,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
             line_alpha=user_kwargs["plot_properties"]["line_transparency"],
             line_dash=user_kwargs["plot_properties"]["line_style"],
             legend=label,
-            muted_alpha=user_kwargs["legend_properties"].get(
-                "legend_mute_alpha", self.config.interactive_legend_mute_alpha
-            ),
+            muted_alpha=user_kwargs["legend_properties"].get("legend_mute_alpha", self.config.bokeh_legend_mute_alpha),
             muted_color="black",
             source=source,
         )
@@ -6281,7 +6277,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 line_dash=user_kwargs["plot_properties"]["line_style"],
                 legend=label,
                 muted_alpha=user_kwargs["legend_properties"].get(
-                    "legend_mute_alpha", self.config.interactive_legend_mute_alpha
+                    "legend_mute_alpha", self.config.bokeh_legend_mute_alpha
                 ),
                 muted_color=color,
                 source=source,
@@ -6296,20 +6292,18 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 )
             )
 
-            if self.config.interactive_scatter_sameAsFill:
+            if self.config.bokeh_scatter_edge_same_as_fill:
                 edge_color = color
             else:
-                edge_color = convert_rgb_1_to_hex(self.config.interactive_scatter_edge_color)
+                edge_color = convert_rgb_1_to_hex(self.config.bokeh_scatter_edge_color)
             bokehPlot.scatter(
                 "xvals",
                 "yvals",
                 marker=_markers_map[data[key]["marker"]],
-                fill_alpha=user_kwargs["plot_properties"].get(
-                    "scatter_transparency", self.config.interactive_scatter_alpha
-                ),
-                size=user_kwargs["plot_properties"].get("scatter_line_width", self.config.interactive_scatter_size),
+                fill_alpha=user_kwargs["plot_properties"].get("scatter_transparency", self.config.bokeh_scatter_alpha),
+                size=user_kwargs["plot_properties"].get("scatter_line_width", self.config.bokeh_scatter_size),
                 line_width=user_kwargs["plot_properties"].get(
-                    "scatter_line_width", self.config.interactive_scatter_lineWidth
+                    "scatter_line_width", self.config.bokeh_scatter_edge_width
                 ),
                 source=source,
                 legend=label,
@@ -6317,7 +6311,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 fill_color=color,
                 muted_color=color,
                 muted_alpha=user_kwargs["legend_properties"].get(
-                    "legend_mute_alpha", self.config.interactive_legend_mute_alpha
+                    "legend_mute_alpha", self.config.bokeh_legend_mute_alpha
                 ),
             )
 
@@ -6404,7 +6398,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
         colorMapper = self._convert_cmap_to_colormapper(cmap, zvals=zvals)
         bokehPlot.image(source=cds, image="image", x="x", y="y", dw="dw", dh="dh", color_mapper=colorMapper)
 
-        if user_kwargs["colorbar_properties"].get("colorbar", self.config.interactive_colorbar):
+        if user_kwargs["colorbar_properties"].get("colorbar", self.config.bokeh_colorbar):
             bokehPlot = self._add_colorbar(
                 bokehPlot,
                 zvals,
@@ -6610,11 +6604,11 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 y="yvals",
                 line_color=color,
                 line_width=user_kwargs["plot_properties"]["line_width"],
-                line_alpha=user_kwargs["plot_properties"].get("line_transparency", self.config.interactive_line_alpha),
-                line_dash=user_kwargs["plot_properties"].get("line_style", self.config.interactive_line_style),
+                line_alpha=user_kwargs["plot_properties"].get("line_transparency", self.config.bokeh_line_alpha),
+                line_dash=user_kwargs["plot_properties"].get("line_style", self.config.bokeh_line_style),
                 legend=legend_label,
                 muted_alpha=user_kwargs["legend_properties"].get(
-                    "legend_mute_alpha", self.config.interactive_legend_mute_alpha
+                    "legend_mute_alpha", self.config.bokeh_legend_mute_alpha
                 ),
                 muted_color=color,
                 source=source,
@@ -6843,7 +6837,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 )
 
                 # generate legend label
-                if not user_kwargs["legend_properties"].get("legend", self.config.interactive_legend):
+                if not user_kwargs["legend_properties"].get("legend", self.config.bokeh_legend):
                     legend_label = None
                 elif irow == 0:
                     legend_label = dataset
@@ -6859,7 +6853,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                     line_dash=user_kwargs["plot_properties"]["line_style"],
                     legend=legend_label,
                     muted_alpha=user_kwargs["legend_properties"].get(
-                        "legend_mute_alpha", self.config.interactive_legend_mute_alpha
+                        "legend_mute_alpha", self.config.bokeh_legend_mute_alpha
                     ),
                     muted_color=line_color,
                     source=source,
@@ -6913,10 +6907,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 js_code.update(hover=hoverTool)
                 js_type.extend(["hover_mode"])
 
-            if (
-                user_kwargs["legend_properties"].get("legend", self.config.interactive_legend)
-                and len(bokehPlot.legend) > 0
-            ):
+            if user_kwargs["legend_properties"].get("legend", self.config.bokeh_legend) and len(bokehPlot.legend) > 0:
                 js_code.update(legend=bokehPlot.legend[0])
                 if user_kwargs["widgets"].get("legend_toggle", True):
                     js_type.extend(["legend_toggle"])
@@ -7190,10 +7181,10 @@ class PanelInteractiveCreator(wx.MiniFrame):
             else:
                 color = colors_list[i]
 
-            if self.config.interactive_scatter_sameAsFill:
+            if self.config.bokeh_scatter_edge_same_as_fill:
                 edge_color = color
             else:
-                edge_color = convert_rgb_1_to_hex(self.config.interactive_scatter_edge_color)
+                edge_color = convert_rgb_1_to_hex(self.config.bokeh_scatter_edge_color)
 
             # generate color list
             if len(color) != yval_size:
@@ -7253,16 +7244,14 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 y="yvals",
                 color="color",
                 line_color="edge_color",
-                marker=user_kwargs["plot_properties"].get("scatter_shape", self.config.interactive_scatter_marker),
-                fill_alpha=user_kwargs["plot_properties"].get(
-                    "scatter_transparency", self.config.interactive_scatter_alpha
-                ),
-                size=user_kwargs["plot_properties"].get("scatter_line_width", self.config.interactive_scatter_size),
+                marker=user_kwargs["plot_properties"].get("scatter_shape", self.config.bokeh_scatter_marker),
+                fill_alpha=user_kwargs["plot_properties"].get("scatter_transparency", self.config.bokeh_scatter_alpha),
+                size=user_kwargs["plot_properties"].get("scatter_line_width", self.config.bokeh_scatter_size),
                 line_width=user_kwargs["plot_properties"].get(
-                    "scatter_line_width", self.config.interactive_scatter_lineWidth
+                    "scatter_line_width", self.config.bokeh_scatter_edge_width
                 ),
                 muted_alpha=user_kwargs["legend_properties"].get(
-                    "legend_mute_alpha", self.config.interactive_legend_mute_alpha
+                    "legend_mute_alpha", self.config.bokeh_legend_mute_alpha
                 ),
                 source=source,
                 legend=label,
@@ -7369,7 +7358,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 line_alpha=user_kwargs["plot_properties"]["line_transparency"],
                 line_dash=user_kwargs["plot_properties"]["line_style"],
                 muted_alpha=user_kwargs["legend_properties"].get(
-                    "legend_mute_alpha", self.config.interactive_legend_mute_alpha
+                    "legend_mute_alpha", self.config.bokeh_legend_mute_alpha
                 ),
                 muted_color=color,
                 source=source,
@@ -7494,12 +7483,12 @@ class PanelInteractiveCreator(wx.MiniFrame):
             else:
                 colorList = len(xval) * [_colors[i]]
 
-            if user_kwargs["plot_properties"].get("bar_edge_color_sameAsFill", self.config.interactive_bar_sameAsFill):
+            if user_kwargs["plot_properties"].get("bar_edge_color_sameAsFill", self.config.bokeh_bar_edge_same_as_fill):
                 linecolorList = colorList
             else:
                 edgecolor = [
                     convert_rgb_1_to_hex(
-                        user_kwargs["plot_properties"].get("bar_edge_color", self.config.interactive_bar_edge_color)
+                        user_kwargs["plot_properties"].get("bar_edge_color", self.config.bokeh_bar_edge_color)
                     )
                 ]
                 linecolorList = len(xval) * edgecolor
@@ -7517,13 +7506,9 @@ class PanelInteractiveCreator(wx.MiniFrame):
                     source=source,
                     color="colors",
                     line_color="linecolors",
-                    height=user_kwargs["plot_properties"].get("bar_width", self.config.interactive_bar_width),
-                    fill_alpha=user_kwargs["plot_properties"].get(
-                        "bar_transparency", self.config.interactive_bar_alpha
-                    ),
-                    line_width=user_kwargs["plot_properties"].get(
-                        "bar_line_width", self.config.interactive_bar_lineWidth
-                    ),
+                    height=user_kwargs["plot_properties"].get("bar_width", self.config.bokeh_bar_width),
+                    fill_alpha=user_kwargs["plot_properties"].get("bar_transparency", self.config.bokeh_bar_alpha),
+                    line_width=user_kwargs["plot_properties"].get("bar_line_width", self.config.bokeh_bar_edge_width),
                 )
             else:
                 bokehPlot.vbar(
@@ -7533,13 +7518,9 @@ class PanelInteractiveCreator(wx.MiniFrame):
                     source=source,
                     color="colors",
                     line_color="linecolors",
-                    width=user_kwargs["plot_properties"].get("bar_width", self.config.interactive_bar_width),
-                    fill_alpha=user_kwargs["plot_properties"].get(
-                        "bar_transparency", self.config.interactive_bar_alpha
-                    ),
-                    line_width=user_kwargs["plot_properties"].get(
-                        "bar_line_width", self.config.interactive_bar_lineWidth
-                    ),
+                    width=user_kwargs["plot_properties"].get("bar_width", self.config.bokeh_bar_width),
+                    fill_alpha=user_kwargs["plot_properties"].get("bar_transparency", self.config.bokeh_bar_alpha),
+                    line_width=user_kwargs["plot_properties"].get("bar_line_width", self.config.bokeh_bar_edge_width),
                 )
 
         ylimits = [bokehPlot.y_range.start, bokehPlot.y_range.end]
@@ -7631,21 +7612,17 @@ class PanelInteractiveCreator(wx.MiniFrame):
             else:
                 ticker = FixedTicker(ticks=[-1.0, 0.0, 1.0])
                 formatter = BasicTickFormatter(
-                    precision=user_kwargs["colorbar_properties"].get(
-                        "precision", self.config.interactive_colorbar_precision
-                    ),
+                    precision=user_kwargs["colorbar_properties"].get("precision", self.config.bokeh_colorbar_precision),
                     use_scientific=user_kwargs["colorbar_properties"].get(
-                        "use_scientific", self.config.interactive_colorbar_useScientific
+                        "use_scientific", self.config.bokeh_colorbar_use_scientific
                     ),
                 )
         else:
             ticker = AdaptiveTicker()
             formatter = BasicTickFormatter(
-                precision=user_kwargs["colorbar_properties"].get(
-                    "precision", self.config.interactive_colorbar_precision
-                ),
+                precision=user_kwargs["colorbar_properties"].get("precision", self.config.bokeh_colorbar_precision),
                 use_scientific=user_kwargs["colorbar_properties"].get(
-                    "use_scientific", self.config.interactive_colorbar_useScientific
+                    "use_scientific", self.config.bokeh_colorbar_use_scientific
                 ),
             )
 
@@ -7654,27 +7631,25 @@ class PanelInteractiveCreator(wx.MiniFrame):
             ticker=ticker,
             formatter=formatter,
             label_standoff=user_kwargs["colorbar_properties"].get(
-                "label_offset", self.config.interactive_colorbar_label_offset
+                "label_offset", self.config.bokeh_colorbar_label_offset
             ),
             location=(
-                user_kwargs["colorbar_properties"].get("position_offset_x", self.config.interactive_colorbar_offset_x),
-                user_kwargs["colorbar_properties"].get("position_offset_y", self.config.interactive_colorbar_offset_y),
+                user_kwargs["colorbar_properties"].get("position_offset_x", self.config.bokeh_colorbar_offset_x),
+                user_kwargs["colorbar_properties"].get("position_offset_y", self.config.bokeh_colorbar_offset_y),
             ),
-            orientation=user_kwargs["colorbar_properties"].get(
-                "orientation", self.config.interactive_colorbar_orientation
-            ),
+            orientation=user_kwargs["colorbar_properties"].get("orientation", self.config.bokeh_colorbar_orientation),
             width=data.get("interactive_params", {}).get("colorbar_properties", {}).get("width", "auto"),
             height=data.get("interactive_params", {}).get("colorbar_properties", {}).get("height", "auto"),
             padding=data.get("interactive_params", {})
             .get("colorbar_properties", {})
-            .get("pad", self.config.interactive_colorbar_padding),
+            .get("pad", self.config.bokeh_colorbar_padding),
             bar_line_width=data.get("interactive_params", {})
             .get("colorbar_properties", {})
-            .get("edge_width", self.config.interactive_colorbar_edge_width),
+            .get("edge_width", self.config.bokeh_colorbar_edge_width),
             bar_line_color=convert_rgb_1_to_255(
                 data.get("interactive_params", {})
                 .get("colorbar_properties", {})
-                .get("edge_color", self.config.interactive_colorbar_edge_color),
+                .get("edge_color", self.config.bokeh_colorbar_edge_color),
                 as_integer=True,
                 as_tuple=True,
             ),
@@ -7682,40 +7657,40 @@ class PanelInteractiveCreator(wx.MiniFrame):
             major_tick_line_color=convert_rgb_1_to_255(
                 data.get("interactive_params", {})
                 .get("colorbar_properties", {})
-                .get("edge_color", self.config.interactive_colorbar_edge_color),
+                .get("edge_color", self.config.bokeh_colorbar_edge_color),
                 as_integer=True,
                 as_tuple=True,
             ),
             major_tick_line_width=data.get("interactive_params", {})
             .get("colorbar_properties", {})
-            .get("edge_width", self.config.interactive_colorbar_edge_width),
+            .get("edge_width", self.config.bokeh_colorbar_edge_width),
             minor_tick_line_color=convert_rgb_1_to_255(
                 data.get("interactive_params", {})
                 .get("colorbar_properties", {})
-                .get("edge_color", self.config.interactive_colorbar_edge_color),
+                .get("edge_color", self.config.bokeh_colorbar_edge_color),
                 as_integer=True,
                 as_tuple=True,
             ),
             minor_tick_line_width=data.get("interactive_params", {})
             .get("colorbar_properties", {})
-            .get("edge_width", self.config.interactive_colorbar_edge_width),
+            .get("edge_width", self.config.bokeh_colorbar_edge_width),
             major_label_text_align=data.get("interactive_params", {})
             .get("colorbar_properties", {})
             .get("label_align", "left"),
             major_label_text_font_size=self._fontSizeConverter(
                 data.get("interactive_params", {})
                 .get("colorbar_properties", {})
-                .get("label_fontsize", self.config.interactive_colorbar_label_fontSize)
+                .get("label_fontsize", self.config.bokeh_colorbar_label_font_size)
             ),
             major_label_text_font_style=self._fontWeightConverter(
                 data.get("interactive_params", {})
                 .get("colorbar_properties", {})
-                .get("label_fontweight", self.config.interactive_colorbar_label_weight)
+                .get("label_fontweight", self.config.bokeh_colorbar_label_weight)
             ),
         )
 
         bokehPlot.add_layout(
-            colorbar, user_kwargs["colorbar_properties"].get("position", self.config.interactive_colorbar_location)
+            colorbar, user_kwargs["colorbar_properties"].get("position", self.config.bokeh_colorbar_location)
         )
 
         if return_colorbar:
@@ -8970,51 +8945,39 @@ class PanelInteractiveCreator(wx.MiniFrame):
             data["interactive_params"]["colorbar_properties"] = {}
 
         if "colorbar" not in data["interactive_params"]["colorbar_properties"]:
-            data["interactive_params"]["colorbar_properties"]["colorbar"] = self.config.interactive_colorbar
+            data["interactive_params"]["colorbar_properties"]["colorbar"] = self.config.bokeh_colorbar
         if "precision" not in data["interactive_params"]["colorbar_properties"]:
-            data["interactive_params"]["colorbar_properties"]["precision"] = self.config.interactive_colorbar_precision
+            data["interactive_params"]["colorbar_properties"]["precision"] = self.config.bokeh_colorbar_precision
         if "use_scientific" not in data["interactive_params"]["colorbar_properties"]:
             data["interactive_params"]["colorbar_properties"][
                 "use_scientific"
-            ] = self.config.interactive_colorbar_useScientific
+            ] = self.config.bokeh_colorbar_use_scientific
         if "label_offset" not in data["interactive_params"]["colorbar_properties"]:
-            data["interactive_params"]["colorbar_properties"][
-                "label_offset"
-            ] = self.config.interactive_colorbar_label_offset
+            data["interactive_params"]["colorbar_properties"]["label_offset"] = self.config.bokeh_colorbar_label_offset
         if "position" not in data["interactive_params"]["colorbar_properties"]:
-            data["interactive_params"]["colorbar_properties"]["position"] = self.config.interactive_colorbar_location
+            data["interactive_params"]["colorbar_properties"]["position"] = self.config.bokeh_colorbar_location
         if "position_offset_x" not in data["interactive_params"]["colorbar_properties"]:
-            data["interactive_params"]["colorbar_properties"][
-                "position_offset_x"
-            ] = self.config.interactive_colorbar_offset_x
+            data["interactive_params"]["colorbar_properties"]["position_offset_x"] = self.config.bokeh_colorbar_offset_x
         if "position_offset_y" not in data["interactive_params"]["colorbar_properties"]:
-            data["interactive_params"]["colorbar_properties"][
-                "position_offset_y"
-            ] = self.config.interactive_colorbar_offset_y
+            data["interactive_params"]["colorbar_properties"]["position_offset_y"] = self.config.bokeh_colorbar_offset_y
         if "pad" not in data["interactive_params"]["colorbar_properties"]:
-            data["interactive_params"]["colorbar_properties"]["pad"] = self.config.interactive_colorbar_padding
+            data["interactive_params"]["colorbar_properties"]["pad"] = self.config.bokeh_colorbar_padding
         if "width" not in data["interactive_params"]["colorbar_properties"]:
-            data["interactive_params"]["colorbar_properties"]["width"] = self.config.interactive_colorbar_width
+            data["interactive_params"]["colorbar_properties"]["width"] = self.config.bokeh_colorbar_width
         if "edge_width" not in data["interactive_params"]["colorbar_properties"]:
-            data["interactive_params"]["colorbar_properties"][
-                "edge_width"
-            ] = self.config.interactive_colorbar_edge_width
+            data["interactive_params"]["colorbar_properties"]["edge_width"] = self.config.bokeh_colorbar_edge_width
         if "modify_ticks" not in data["interactive_params"]["colorbar_properties"]:
-            data["interactive_params"]["colorbar_properties"][
-                "modify_ticks"
-            ] = self.config.interactive_colorbar_modify_ticks
+            data["interactive_params"]["colorbar_properties"]["modify_ticks"] = self.config.bokeh_colorbar_modify_ticks
         if "label_fontsize" not in data["interactive_params"]["colorbar_properties"]:
             data["interactive_params"]["colorbar_properties"][
                 "label_fontsize"
-            ] = self.config.interactive_colorbar_label_fontSize
+            ] = self.config.bokeh_colorbar_label_font_size
         if "label_fontweight" not in data["interactive_params"]["colorbar_properties"]:
             data["interactive_params"]["colorbar_properties"][
                 "label_fontweight"
-            ] = self.config.interactive_colorbar_label_weight
+            ] = self.config.bokeh_colorbar_label_weight
         if "edge_color" not in data["interactive_params"]["colorbar_properties"]:
-            data["interactive_params"]["colorbar_properties"][
-                "edge_color"
-            ] = self.config.interactive_colorbar_edge_color
+            data["interactive_params"]["colorbar_properties"]["edge_color"] = self.config.bokeh_colorbar_edge_color
 
         if data["interactive_params"]["colorbar_properties"]["position"] in ("right", "left"):
             data["interactive_params"]["colorbar_properties"]["orientation"] = "vertical"
@@ -9022,7 +8985,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
             data["interactive_params"]["colorbar_properties"]["label_align"] = "left"
         else:
             data["interactive_params"]["colorbar_properties"]["orientation"] = "horizontal"
-            data["interactive_params"]["colorbar_properties"]["height"] = self.config.interactive_colorbar_width
+            data["interactive_params"]["colorbar_properties"]["height"] = self.config.bokeh_colorbar_width
             data["interactive_params"]["colorbar_properties"]["width"] = "auto"
             data["interactive_params"]["colorbar_properties"]["label_align"] = "center"
 
@@ -9039,29 +9002,23 @@ class PanelInteractiveCreator(wx.MiniFrame):
             data["interactive_params"]["legend_properties"] = {}
 
         if "legend" not in data["interactive_params"]["legend_properties"]:
-            data["interactive_params"]["legend_properties"]["legend"] = self.config.interactive_legend
+            data["interactive_params"]["legend_properties"]["legend"] = self.config.bokeh_legend
         if "legend_location" not in data["interactive_params"]["legend_properties"]:
-            data["interactive_params"]["legend_properties"]["legend_location"] = self.config.interactive_legend_location
+            data["interactive_params"]["legend_properties"]["legend_location"] = self.config.bokeh_legend_location
         if "legend_click_policy" not in data["interactive_params"]["legend_properties"]:
             data["interactive_params"]["legend_properties"][
                 "legend_click_policy"
-            ] = self.config.interactive_legend_click_policy
+            ] = self.config.bokeh_legend_click_policy
         if "legend_orientation" not in data["interactive_params"]["legend_properties"]:
-            data["interactive_params"]["legend_properties"][
-                "legend_orientation"
-            ] = self.config.interactive_legend_orientation
+            data["interactive_params"]["legend_properties"]["legend_orientation"] = self.config.bokeh_legend_orientation
         if "legend_font_size" not in data["interactive_params"]["legend_properties"]:
-            data["interactive_params"]["legend_properties"][
-                "legend_font_size"
-            ] = self.config.interactive_legend_font_size
+            data["interactive_params"]["legend_properties"]["legend_font_size"] = self.config.bokeh_legend_font_size
         if "legend_background_alpha" not in data["interactive_params"]["legend_properties"]:
             data["interactive_params"]["legend_properties"][
                 "legend_background_alpha"
-            ] = self.config.interactive_legend_background_alpha
+            ] = self.config.bokeh_legend_background_alpha
         if "legend_mute_alpha" not in data["interactive_params"]["legend_properties"]:
-            data["interactive_params"]["legend_properties"][
-                "legend_mute_alpha"
-            ] = self.config.interactive_legend_mute_alpha
+            data["interactive_params"]["legend_properties"]["legend_mute_alpha"] = self.config.bokeh_legend_mute_alpha
 
         return data
 
@@ -9105,21 +9062,19 @@ class PanelInteractiveCreator(wx.MiniFrame):
 
         # line plots
         if "line_width" not in data["interactive_params"]["plot_properties"]:
-            data["interactive_params"]["plot_properties"]["line_width"] = self.config.interactive_line_width
+            data["interactive_params"]["plot_properties"]["line_width"] = self.config.bokeh_line_width
         if "line_transparency" not in data["interactive_params"]["plot_properties"]:
-            data["interactive_params"]["plot_properties"]["line_transparency"] = self.config.interactive_line_alpha
+            data["interactive_params"]["plot_properties"]["line_transparency"] = self.config.bokeh_line_alpha
         if "line_style" not in data["interactive_params"]["plot_properties"]:
-            data["interactive_params"]["plot_properties"]["line_style"] = self.config.interactive_line_style
+            data["interactive_params"]["plot_properties"]["line_style"] = self.config.bokeh_line_style
         if "line_shade_under" not in data["interactive_params"]["plot_properties"]:
-            data["interactive_params"]["plot_properties"]["line_shade_under"] = self.config.interactive_line_shade_under
+            data["interactive_params"]["plot_properties"]["line_shade_under"] = self.config.bokeh_line_fill_under
         if "shade_transparency" not in data["interactive_params"]["plot_properties"]:
-            data["interactive_params"]["plot_properties"][
-                "shade_transparency"
-            ] = self.config.interactive_line_shade_alpha
+            data["interactive_params"]["plot_properties"]["shade_transparency"] = self.config.bokeh_line_fill_alpha
         if "line_color" not in data["interactive_params"]["plot_properties"]:
-            color = data.get("cmap", self.config.interactive_line_color)
+            color = data.get("cmap", self.config.bokeh_line_color)
             if isinstance(color, str):
-                color = self.config.interactive_line_color
+                color = self.config.bokeh_line_color
             data["interactive_params"]["plot_properties"]["line_color"] = color
         if "hover_link_x" not in data["interactive_params"]["plot_properties"]:
             data["interactive_params"]["plot_properties"]["hover_link_x"] = self.config.linkXYaxes
@@ -9152,39 +9107,33 @@ class PanelInteractiveCreator(wx.MiniFrame):
 
         # bar
         if "bar_width" not in data["interactive_params"]["plot_properties"]:
-            data["interactive_params"]["plot_properties"]["bar_width"] = self.config.interactive_bar_width
+            data["interactive_params"]["plot_properties"]["bar_width"] = self.config.bokeh_bar_width
         if "bar_transparency" not in data["interactive_params"]["plot_properties"]:
-            data["interactive_params"]["plot_properties"]["bar_transparency"] = self.config.interactive_bar_alpha
+            data["interactive_params"]["plot_properties"]["bar_transparency"] = self.config.bokeh_bar_alpha
         if "bar_line_width" not in data["interactive_params"]["plot_properties"]:
-            data["interactive_params"]["plot_properties"]["bar_line_width"] = self.config.interactive_bar_lineWidth
+            data["interactive_params"]["plot_properties"]["bar_line_width"] = self.config.bokeh_bar_edge_width
         if "bar_edge_color_sameAsFill" not in data["interactive_params"]["plot_properties"]:
             data["interactive_params"]["plot_properties"][
                 "bar_edge_color_sameAsFill"
-            ] = self.config.interactive_bar_sameAsFill
+            ] = self.config.bokeh_bar_edge_same_as_fill
         if "bar_edge_color" not in data["interactive_params"]["plot_properties"]:
-            data["interactive_params"]["plot_properties"]["bar_edge_color"] = self.config.interactive_bar_edge_color
+            data["interactive_params"]["plot_properties"]["bar_edge_color"] = self.config.bokeh_bar_edge_color
 
         # scatter
         if "scatter_shape" not in data["interactive_params"]["plot_properties"]:
-            data["interactive_params"]["plot_properties"]["scatter_shape"] = self.config.interactive_scatter_marker
+            data["interactive_params"]["plot_properties"]["scatter_shape"] = self.config.bokeh_scatter_marker
         if "scatter_size" not in data["interactive_params"]["plot_properties"]:
-            data["interactive_params"]["plot_properties"]["scatter_size"] = self.config.interactive_scatter_size
+            data["interactive_params"]["plot_properties"]["scatter_size"] = self.config.bokeh_scatter_size
         if "scatter_transparency" not in data["interactive_params"]["plot_properties"]:
-            data["interactive_params"]["plot_properties"][
-                "scatter_transparency"
-            ] = self.config.interactive_scatter_alpha
+            data["interactive_params"]["plot_properties"]["scatter_transparency"] = self.config.bokeh_scatter_alpha
         if "scatter_line_width" not in data["interactive_params"]["plot_properties"]:
-            data["interactive_params"]["plot_properties"][
-                "scatter_line_width"
-            ] = self.config.interactive_scatter_lineWidth
+            data["interactive_params"]["plot_properties"]["scatter_line_width"] = self.config.bokeh_scatter_edge_width
         if "scatter_edge_color_sameAsFill" not in data["interactive_params"]["plot_properties"]:
             data["interactive_params"]["plot_properties"][
                 "scatter_edge_color_sameAsFill"
-            ] = self.config.interactive_scatter_sameAsFill
+            ] = self.config.bokeh_scatter_edge_same_as_fill
         if "scatter_edge_color" not in data["interactive_params"]["plot_properties"]:
-            data["interactive_params"]["plot_properties"][
-                "scatter_edge_color"
-            ] = self.config.interactive_scatter_edge_color
+            data["interactive_params"]["plot_properties"]["scatter_edge_color"] = self.config.bokeh_scatter_edge_color
 
         # tandem
         if "tandem_line_width" not in data["interactive_params"]["plot_properties"]:
@@ -9303,19 +9252,15 @@ class PanelInteractiveCreator(wx.MiniFrame):
 
         # rmsf
         if "rmsf_line_width" not in data["interactive_params"]["overlay_properties"]:
-            data["interactive_params"]["overlay_properties"]["rmsf_line_width"] = self.config.interactive_line_width
+            data["interactive_params"]["overlay_properties"]["rmsf_line_width"] = self.config.bokeh_line_width
         if "rmsf_line_transparency" not in data["interactive_params"]["overlay_properties"]:
-            data["interactive_params"]["overlay_properties"][
-                "rmsf_line_transparency"
-            ] = self.config.interactive_line_alpha
+            data["interactive_params"]["overlay_properties"]["rmsf_line_transparency"] = self.config.bokeh_line_alpha
         if "rmsf_line_style" not in data["interactive_params"]["overlay_properties"]:
-            data["interactive_params"]["overlay_properties"]["rmsf_line_style"] = self.config.interactive_line_style
+            data["interactive_params"]["overlay_properties"]["rmsf_line_style"] = self.config.bokeh_line_style
         if "rmsf_line_shade_under" not in data["interactive_params"]["overlay_properties"]:
             data["interactive_params"]["overlay_properties"]["rmsf_line_shade_under"] = False
         if "rmsf_shade_transparency" not in data["interactive_params"]["overlay_properties"]:
-            data["interactive_params"]["overlay_properties"][
-                "rmsf_shade_transparency"
-            ] = self.config.interactive_line_alpha
+            data["interactive_params"]["overlay_properties"]["rmsf_shade_transparency"] = self.config.bokeh_line_alpha
         if "rmsf_line_color" not in data["interactive_params"]["overlay_properties"]:
             data["interactive_params"]["overlay_properties"]["rmsf_line_color"] = data.get("colorRMSF", (0.0, 0.0, 0.0))
 
@@ -9340,15 +9285,19 @@ class PanelInteractiveCreator(wx.MiniFrame):
 
             # frame parameters
         if "title_fontsize" not in data["interactive_params"]["frame_properties"]:
-            data["interactive_params"]["frame_properties"]["title_fontsize"] = self.config.interactive_title_fontSize
+            data["interactive_params"]["frame_properties"]["title_fontsize"] = self.config.bokeh_frame_title_font_size
         if "title_fontweight" not in data["interactive_params"]["frame_properties"]:
-            data["interactive_params"]["frame_properties"]["title_fontweight"] = self.config.interactive_title_weight
+            data["interactive_params"]["frame_properties"][
+                "title_fontweight"
+            ] = self.config.bokeh_frame_title_font_weight
         if "label_fontsize" not in data["interactive_params"]["frame_properties"]:
-            data["interactive_params"]["frame_properties"]["label_fontsize"] = self.config.interactive_label_fontSize
+            data["interactive_params"]["frame_properties"]["label_fontsize"] = self.config.bokeh_frame_label_font_size
         if "label_fontweight" not in data["interactive_params"]["frame_properties"]:
-            data["interactive_params"]["frame_properties"]["label_fontweight"] = self.config.interactive_label_weight
+            data["interactive_params"]["frame_properties"][
+                "label_fontweight"
+            ] = self.config.bokeh_frame_label_font_weight
         if "tick_fontsize" not in data["interactive_params"]["frame_properties"]:
-            data["interactive_params"]["frame_properties"]["tick_fontsize"] = self.config.interactive_tick_fontSize
+            data["interactive_params"]["frame_properties"]["tick_fontsize"] = self.config.bokeh_frame_tick_font_size
 
         if "label_xaxis" not in data["interactive_params"]["frame_properties"]:
             data["interactive_params"]["frame_properties"]["label_xaxis"] = True
@@ -9392,27 +9341,27 @@ class PanelInteractiveCreator(wx.MiniFrame):
 
             # border parameters
         if "border_left" not in data["interactive_params"]["frame_properties"]:
-            data["interactive_params"]["frame_properties"]["border_left"] = self.config.interactive_border_min_left
+            data["interactive_params"]["frame_properties"]["border_left"] = self.config.bokeh_frame_border_min_left
         if "border_right" not in data["interactive_params"]["frame_properties"]:
-            data["interactive_params"]["frame_properties"]["border_right"] = self.config.interactive_border_min_right
+            data["interactive_params"]["frame_properties"]["border_right"] = self.config.bokeh_frame_border_min_right
         if "border_top" not in data["interactive_params"]["frame_properties"]:
-            data["interactive_params"]["frame_properties"]["border_top"] = self.config.interactive_border_min_top
+            data["interactive_params"]["frame_properties"]["border_top"] = self.config.bokeh_frame_border_min_top
         if "border_bottom" not in data["interactive_params"]["frame_properties"]:
-            data["interactive_params"]["frame_properties"]["border_bottom"] = self.config.interactive_border_min_bottom
+            data["interactive_params"]["frame_properties"]["border_bottom"] = self.config.bokeh_frame_border_min_bottom
         if "outline_width" not in data["interactive_params"]["frame_properties"]:
-            data["interactive_params"]["frame_properties"]["outline_width"] = self.config.interactive_outline_width
+            data["interactive_params"]["frame_properties"]["outline_width"] = self.config.bokeh_frame_outline_width
         if "outline_transparency" not in data["interactive_params"]["frame_properties"]:
             data["interactive_params"]["frame_properties"][
                 "outline_transparency"
-            ] = self.config.interactive_outline_alpha
+            ] = self.config.bokeh_frame_outline_alpha
         if "gridline" not in data["interactive_params"]["frame_properties"]:
-            data["interactive_params"]["frame_properties"]["gridline"] = self.config.interactive_grid_line
+            data["interactive_params"]["frame_properties"]["gridline"] = self.config.bokeh_frame_grid_line
         if "gridline_color" not in data["interactive_params"]["frame_properties"]:
-            data["interactive_params"]["frame_properties"]["gridline_color"] = self.config.interactive_grid_line_color
+            data["interactive_params"]["frame_properties"]["gridline_color"] = self.config.bokeh_frame_grid_line_color
         if "background_color" not in data["interactive_params"]["frame_properties"]:
             data["interactive_params"]["frame_properties"][
                 "background_color"
-            ] = self.config.interactive_background_color
+            ] = self.config.bokeh_frame_background_color
 
         return data
 

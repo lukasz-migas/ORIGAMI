@@ -11,15 +11,12 @@ from typing import Union
 from typing import Iterable
 
 # Third-party imports
-import numpy as np
 from bokeh.models import Div
 from bokeh.models import Band
 from bokeh.models import Span
 from bokeh.models import Range1d
-from bokeh.models import ColorBar
 from bokeh.models import LabelSet
 from bokeh.models import HoverTool
-from bokeh.models import BasicTicker
 from bokeh.models import BoxAnnotation
 from bokeh.models import ColumnDataSource
 from bokeh.layouts import row
@@ -28,10 +25,12 @@ from bokeh.plotting import figure
 from bokeh.io.export import get_layout_html
 
 # Local imports
-from origami.utils.secret import get_short_hash
+from origami.utils.color import convert_rgb_1_to_hex
 from origami.config.config import CONFIG
+from origami.visuals.bokeh.parser import get_param
+from origami.visuals.bokeh.parser import parse_font_size
+from origami.visuals.bokeh.parser import parse_font_weight
 from origami.visuals.bokeh.utilities import check_source
-from origami.visuals.bokeh.utilities import convert_colormap_to_mapper
 
 FORBIDDEN_KWARGS = [
     "div_title",
@@ -243,6 +242,17 @@ class PlotBase:
         """Method responsible for plotting"""
         raise NotImplementedError("Must implement method")
 
+    def _pre_plot(self, data_obj, forced_kwargs, **kwargs):
+        """Sets a few parameters just before plotting"""
+        self.set_plot_labels(data_obj)
+        self._sources[self.DEFAULT_PLOT] = self.get_source(data_obj)
+        kwargs, _kwargs = self.parse_kwargs(self.BOKEH_KEYS, forced_kwargs=forced_kwargs, **kwargs)
+        return kwargs, _kwargs
+
+    def _post_plot(self, **kwargs):
+        """Sets a few parameters after plotting"""
+        self.set_frame(**kwargs)
+
     def render(self):
         """HTML render"""
         # TODO: add support for widgets
@@ -425,220 +435,44 @@ class PlotBase:
             self.figure.add_layout(span)
             self._annotations[span.id] = (span, dict(location=loc, dimension=data["dimension"]), "Span")
 
+    def add_legend(self, **kwargs):
+        """Add legend object to the plot"""
+        self.figure.legend.location = get_param("bokeh_legend_location", **kwargs)
+        self.figure.legend.click_policy = get_param("bokeh_legend_click_policy", **kwargs)
+        self.figure.legend.background_fill_alpha = get_param("bokeh_legend_background_alpha", **kwargs)
+        self.figure.legend.orientation = get_param("bokeh_legend_orientation", **kwargs)
+        self.figure.legend.label_text_font_size = parse_font_size(get_param("bokeh_legend_font_size", **kwargs))
 
-class PlotSpectrum(PlotBase):
-    """Base spectrum plot"""
+    def set_frame(self, **kwargs):
+        """Set frame parameters"""
+        # outline
+        self.figure.outline_line_width = get_param("bokeh_frame_outline_width", **kwargs)
+        self.figure.outline_line_alpha = get_param("bokeh_frame_outline_alpha", **kwargs)
+        self.figure.outline_line_color = "#000000"  # get_param("bokeh_frame_outline_width", **kwargs)
+        self.figure.min_border_right = get_param("bokeh_frame_border_min_right", **kwargs)
+        self.figure.min_border_left = get_param("bokeh_frame_border_min_left", **kwargs)
+        self.figure.min_border_top = get_param("bokeh_frame_border_min_top", **kwargs)
+        self.figure.min_border_bottom = get_param("bokeh_frame_border_min_bottom", **kwargs)
 
-    DATA_KEYS = ["x", "y"]
-    DEFAULT_PLOT = "line"
+        # frame
+        self.figure.background_fill_color = convert_rgb_1_to_hex(get_param("bokeh_frame_background_color", **kwargs))
+        if get_param("bokeh_frame_grid_line", **kwargs):
+            self.figure.grid.background_fill_color = convert_rgb_1_to_hex(
+                get_param("bokeh_frame_grid_line_color", **kwargs)
+            )
 
-    def __init__(self, *args, **kwargs):
-        PlotBase.__init__(self, *args, **kwargs)
-        self.PLOT_ID = get_short_hash()
-
-    def get_source(self, data_obj):
-        """Get data source that can be used by Bokeh to plot the data"""
-        data = {"x": data_obj.x, "y": data_obj.y}
-        self.validate_data(data)
-        self.x_limit = data_obj.x_limit
-        self.y_limit = data_obj.y_limit
-        return ColumnDataSource(data)
-
-    def _get_hover_kwargs(self):
-        return {
-            "show_arrow": True,
-            "tooltips": [(f"{self.x_label}", "@x"), (f"{self.y_label}", "@y")],
-            "mode": "vline",
-            "line_policy": "next",
-            # "names": [self.PLOT_ID],
-        }
-
-    def plot(self, data_obj=None, forced_kwargs=None, **kwargs):
-        """Basic plotting method"""
-        self.set_plot_labels(data_obj)
-        self._sources[self.DEFAULT_PLOT] = self.get_source(data_obj)
-        kwargs, _kwargs = self.parse_kwargs(self.BOKEH_KEYS, forced_kwargs=forced_kwargs, **kwargs)
-
-        self._plots[self.DEFAULT_PLOT] = self.figure.line(
-            x="x", y="y", source=self._sources[self.DEFAULT_PLOT], name=self.PLOT_ID, **kwargs
+        # title
+        self.figure.title.text_font_size = parse_font_size(get_param("bokeh_frame_title_font_size", **kwargs))
+        self.figure.title.text_font_style = parse_font_weight(get_param("bokeh_frame_title_font_weight", **kwargs))
+        self.figure.xaxis.axis_label_text_font_size = parse_font_size(
+            get_param("bokeh_frame_label_font_size", **kwargs)
         )
-
-    def add_line(self, data_obj=None, forced_kwargs=None, **kwargs):
-        """Add line to the plot"""
-        source = self.get_source(data_obj)
-        kwargs, _kwargs = self.parse_kwargs(self.BOKEH_KEYS, forced_kwargs=forced_kwargs, **kwargs)
-        line = self.figure.line(x="x", y="y", source=source, **kwargs)
-        self._sources[line.id] = source
-        self._plots[line.id] = line
-
-
-class PlotMultilineSpectrum(PlotBase):
-    """Multi-line base class"""
-
-    DATA_KEYS = ["xs", "ys"]
-    DEFAULT_PLOT = "multiline"
-
-    def __init__(self, *args, **kwargs):
-        PlotBase.__init__(self, *args, **kwargs)
-        self.PLOT_ID = get_short_hash()
-
-    def get_source(self, data_obj):
-        """Get data source that can be used by Bokeh to plot the data"""
-        data = {"xs": data_obj.x, "ys": data_obj.ys}
-        self.validate_data(data)
-        self.x_limit = data_obj.x_limit
-        self.y_limit = data_obj.y_limit
-        return ColumnDataSource(data)
-
-    def _get_hover_kwargs(self):
-        return {
-            "show_arrow": True,
-            "tooltips": [(f"{self.x_label}", "$data_x"), (f"{self.y_label}", "$data_y")],
-            "line_policy": "next",
-        }
-
-    def plot(self, data_obj=None, forced_kwargs=None, **kwargs):
-        """Basic plotting method"""
-        self.set_plot_labels(data_obj)
-        self._sources[self.DEFAULT_PLOT] = self.get_source(data_obj)
-        kwargs, _kwargs = self.parse_kwargs(self.BOKEH_KEYS, forced_kwargs=forced_kwargs, **kwargs)
-
-        self._plots[self.DEFAULT_PLOT] = self.figure.multi_line(
-            xs="xs", ys="ys", source=self._sources[self.DEFAULT_PLOT], name=self.PLOT_ID, **kwargs
+        self.figure.xaxis.axis_label_text_font_style = parse_font_weight(
+            get_param("bokeh_frame_label_font_weight", **kwargs)
         )
-
-
-class PlotScatter(PlotBase):
-    """Scatter plot base"""
-
-    DATA_KEYS = ["x", "y"]
-    DEFAULT_PLOT = "scatter"
-
-    def __init__(self, *args, plot_width=600, plot_height=600, **kwargs):
-        PlotBase.__init__(self, *args, plot_width=plot_width, plot_height=plot_height, **kwargs)
-        self.PLOT_ID = get_short_hash()
-
-    def _get_hover_kwargs(self):
-        return {
-            "show_arrow": True,
-            "tooltips": [(f"{self.x_label}", "@x"), (f"{self.y_label}", "@y")],
-            "mode": "vline",
-            # "names": [self.PLOT_ID],
-        }
-
-    def get_source(self, data_obj):
-        """Get data source that can be used by Bokeh to plot the data"""
-        data = {"x": data_obj.x, "y": data_obj.y}
-        self.validate_data(data)
-        self.x_limit = data_obj.x_limit
-        self.y_limit = data_obj.y_limit
-        return ColumnDataSource(data)
-
-    def plot(self, data_obj=None, forced_kwargs=None, **kwargs):
-        """Basic plotting method"""
-        self.set_plot_labels(data_obj)
-        self._sources[self.DEFAULT_PLOT] = self.get_source(data_obj)
-        kwargs, _kwargs = self.parse_kwargs(self.BOKEH_KEYS, forced_kwargs=forced_kwargs, **kwargs)
-
-        self._plots[self.DEFAULT_PLOT] = self.figure.scatter(
-            x="x", y="y", source=self._sources[self.DEFAULT_PLOT], name=self.PLOT_ID, **kwargs
+        self.figure.yaxis.axis_label_text_font_size = parse_font_size(
+            get_param("bokeh_frame_label_font_size", **kwargs)
         )
-
-    def add_line(self, data_obj=None, forced_kwargs=None, **kwargs):
-        """Add line to the plot"""
-        source = self.get_source(data_obj)
-        kwargs, _kwargs = self.parse_kwargs(self.BOKEH_KEYS, forced_kwargs=forced_kwargs, **kwargs)
-        line = self.figure.line(x="x", y="y", source=source, **kwargs)
-        self._sources[line.id] = source
-        self._plots[line.id] = line
-
-
-class PlotHeatmap(PlotBase):
-    """Base heatmap plot"""
-
-    DATA_KEYS = ["x", "y", "image", "dw", "dh"]
-    DEFAULT_PLOT = "heatmap"
-    TOOLS = "pan, box_zoom, crosshair, reset"
-    ACTIVE_DRAG = "box_zoom"
-
-    def __init__(self, *args, plot_width=600, plot_height=600, **kwargs):
-        PlotBase.__init__(self, *args, plot_width=plot_width, plot_height=plot_height, **kwargs)
-        self.PLOT_ID = get_short_hash()
-
-    def get_source(self, data_obj):
-        """Get data source that can be used by Bokeh to plot the data"""
-        data = {
-            "x": [data_obj.x[0]],
-            "dw": [data_obj.x[-1]],
-            "y": [data_obj.y[0]],
-            "dh": [data_obj.y[-1]],
-            "image": [data_obj.array],
-        }
-        self.validate_data(data)
-        self.x_limit = data_obj.x_limit
-        self.y_limit = data_obj.y_limit
-        return ColumnDataSource(data)
-
-    def _get_hover_kwargs(self):
-        return {"show_arrow": True, "tooltips": [("x, y", "$x{0.00}, $y{0.00}"), ("intensity", "@image")]}
-
-    def plot(self, data_obj=None, forced_kwargs=None, **kwargs):
-        """Basic plotting method"""
-        self.set_plot_labels(data_obj)
-        self._sources[self.DEFAULT_PLOT] = self.get_source(data_obj)
-        kwargs, _kwargs = self.parse_kwargs(self.BOKEH_KEYS, forced_kwargs=forced_kwargs, **kwargs)
-
-        self._data["palette"], self._data["colormapper"] = self.get_colormapper(data_obj.array, **kwargs)
-        self._plots[self.DEFAULT_PLOT] = self.figure.image(
-            x="x",
-            y="y",
-            dw="dw",
-            dh="dh",
-            image="image",
-            source=self._sources[self.DEFAULT_PLOT],
-            name=self.PLOT_ID,
-            palette=self._data["palette"],
-        )
-        self._plots[self.DEFAULT_PLOT].glyph.color_mapper = self._data["colormapper"]
-
-    @staticmethod
-    def get_colormapper(array: np.ndarray, colormap: str = "viridis", **kwargs):
-        """Get color palette and color mapper"""
-        return convert_colormap_to_mapper(array, colormap, vmin=kwargs.pop("vmin", None), vmax=kwargs.pop("vmax", None))
-
-    def set_colorbar(self):
-        """Add colorbar to the plot area"""
-        self._plots["colorbar"] = ColorBar(
-            color_mapper=self._data["colormapper"],
-            ticker=BasicTicker(),
-            location=(0, 0),
-            major_label_text_font_size="10pt",
-            label_standoff=8,
-        )
-        self.figure.add_layout(self._plots["colorbar"], "right")
-
-
-class PlotHeatmapRGBA(PlotHeatmap):
-    """Base RGBA heatmap plot"""
-
-    DEFAULT_PLOT = "rgba"
-
-    def __init__(self, *args, plot_width=600, plot_height=600, **kwargs):
-        PlotBase.__init__(self, *args, plot_width=plot_width, plot_height=plot_height, **kwargs)
-        self.PLOT_ID = get_short_hash()
-
-    def plot(self, data_obj=None, forced_kwargs=None, **kwargs):
-        """Basic plotting method"""
-        self._sources[self.DEFAULT_PLOT] = self.get_source(data_obj)
-        kwargs, _kwargs = self.parse_kwargs(self.BOKEH_KEYS, forced_kwargs=forced_kwargs, **kwargs)
-
-        self._plots[self.DEFAULT_PLOT] = self.figure.image_rgba(
-            x="x",
-            y="y",
-            dw="dw",
-            dh="dh",
-            image="image",
-            source=self._sources[self.DEFAULT_PLOT],
-            name=self.PLOT_ID,
-            **kwargs,
+        self.figure.yaxis.axis_label_text_font_style = parse_font_weight(
+            get_param("bokeh_frame_label_font_weight", **kwargs)
         )

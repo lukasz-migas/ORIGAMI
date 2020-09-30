@@ -42,6 +42,7 @@ from origami.widgets.interactive.utilities import PUB_EVENT_LAYOUT_REMOVE
 from origami.widgets.interactive.utilities import PUB_EVENT_LAYOUT_UPDATE
 from origami.widgets.interactive.panel_layout import PanelLayoutEditor
 from origami.widgets.interactive.panel_layout import PanelLayoutBuilder
+from origami.widgets.interactive.panel_plot_parameters import PanelVisualisationSettingsEditor
 
 LOGGER = logging.getLogger(__name__)
 
@@ -94,6 +95,7 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
     output_path_btn, html_editor_btn, export_btn, close_btn = None, None, None, None
     open_in_browser_check, remove_watermark_check, add_offline_support_check = None, None, None
     batch_check_document_items_btn, batch_check_dataset_type_btn, batch_set_layout_btn = None, None, None
+    customise_plot_btn, plot_settings = None, None
 
     def __init__(self, parent, presenter, icons=None, item_list=None, debug: bool = False):
         MiniFrame.__init__(
@@ -173,11 +175,14 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
 
         notebook = self.make_builder_panel()
         editor = self.make_editor_panel()
+        self.plot_settings = PanelVisualisationSettingsEditor(self, self.view)
 
         # pack elements
         main_sizer = wx.BoxSizer()
         main_sizer.Add(notebook, 1, wx.EXPAND, 5)
         main_sizer.Add(editor, 1, wx.EXPAND, 5)
+        main_sizer.Add(wx.StaticLine(self, -1, style=wx.LI_VERTICAL), 0, wx.EXPAND | wx.ALL, 1)
+        main_sizer.Add(self.plot_settings, 0, wx.EXPAND, 0)
 
         # fit layout
         main_sizer.Fit(self)
@@ -276,6 +281,10 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
         self.tab_layout_value = wx.ComboBox(panel, choices=[], style=wx.CB_READONLY, name="tab_choice")
         self.tab_layout_value.Bind(wx.EVT_COMBOBOX, self.on_edit_item)
 
+        self.customise_plot_btn = wx.Button(panel, wx.ID_ANY, "Customise...", size=(-1, -1))
+        self.customise_plot_btn.Bind(wx.EVT_BUTTON, self.on_customise_plot)
+        set_tooltip(self.customise_plot_btn, "Customise plot parameters")
+
         # output
         output_title_value = wx.StaticText(panel, -1, "Document title:")
         self.output_title_value = wx.TextCtrl(panel, -1, CONFIG.interactive_panel_title, style=wx.TE_CHARWRAP)
@@ -352,6 +361,8 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
         n += 1
         grid.Add(tab_layout_value, (n, 0), flag=wx.ALIGN_RIGHT | wx.ALIGN_CENTER_VERTICAL)
         grid.Add(self.tab_layout_value, (n, 1), (1, 1), flag=wx.EXPAND)
+        n += 1
+        grid.Add(self.customise_plot_btn, (n, 1), (1, 1), flag=wx.ALIGN_LEFT)
         grid.AddGrowableCol(1, 1)
 
         grid_2 = wx.GridBagSizer(2, 2)
@@ -385,6 +396,12 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
         CONFIG.interactive_panel_add_offline_support = self.add_offline_support_check.GetValue()
         CONFIG.interactive_panel_remove_watermark = self.remove_watermark_check.GetValue()
         self._parse_evt(evt)
+
+    def on_customise_plot(self, _evt):
+        """Customise plot parameters"""
+        show = self.plot_settings.IsShown()
+        self.plot_settings.Show(not show)
+        self.Layout()
 
     def on_batch_apply(self, evt):
         """Batch-apply some user-selected restrictions"""
@@ -824,8 +841,6 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
 def _main():
     from origami.utils.secret import get_short_hash
 
-    app = wx.App()
-
     item_list = [
         ["MassSpectra/Summed Spectrum", "Title", get_short_hash()],
         ["MassSpectra/rt=0-15", "Title", get_short_hash()],
@@ -836,8 +851,8 @@ def _main():
         ["IonHeatmaps/Summed Heatmap", "Title2", get_short_hash()],
     ]
 
+    app = wx.App()
     ex = PanelInteractiveEditor(None, None, item_list=item_list)
-
     ex.Show()
     # move_to_different_screen(ex)
     app.MainLoop()

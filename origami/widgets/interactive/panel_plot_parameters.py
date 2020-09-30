@@ -9,25 +9,30 @@ import wx
 # Local imports
 from origami.icons.assets import Icons
 from origami.icons.assets import Colormaps
-from origami.utils.system import running_under_pytest
+from origami.utils.system import RUNNING_UNDER_PYTEST
 from origami.config.config import CONFIG
 from origami.utils.utilities import report_time
 from origami.gui_elements.mixins import DocumentationMixin
-from origami.gui_elements.plot_parameters.panel_1d import Panel1dSettings
-from origami.gui_elements.plot_parameters.panel_2d import Panel2dSettings
-from origami.gui_elements.plot_parameters.panel_3d import Panel3dSettings
-from origami.gui_elements.plot_parameters.panel_ui import PanelUISettings
-from origami.gui_elements.plot_parameters.panel_sizes import PanelSizesSettings
-from origami.gui_elements.plot_parameters.panel_legend import PanelLegendSettings
-from origami.gui_elements.plot_parameters.panel_violin import PanelViolinSettings
-from origami.gui_elements.plot_parameters.panel_general import PanelGeneralSettings
-from origami.gui_elements.plot_parameters.panel_colorbar import PanelColorbarSettings
-from origami.gui_elements.plot_parameters.panel_waterfall import PanelWaterfallSettings
+from origami.widgets.interactive.plot_parameters.panel_1d import Panel1dSettings
+from origami.widgets.interactive.plot_parameters.panel_2d import Panel2dSettings
+from origami.widgets.interactive.plot_parameters.panel_rmsd import PanelRMSDSettings
+from origami.widgets.interactive.plot_parameters.panel_rmsf import PanelRMSFSettings
+from origami.widgets.interactive.plot_parameters.panel_tools import PanelToolsSettings
+from origami.widgets.interactive.plot_parameters.panel_legend import PanelLegendSettings
+from origami.widgets.interactive.plot_parameters.panel_tandem import PanelTandemSettings
+from origami.widgets.interactive.plot_parameters.panel_general import PanelGeneralSettings
+from origami.widgets.interactive.plot_parameters.panel_widgets import PanelWidgetsSettings
+from origami.widgets.interactive.plot_parameters.panel_colorbar import PanelColorbarSettings
+from origami.widgets.interactive.plot_parameters.panel_waterfall import PanelWaterfallSettings
+from origami.widgets.interactive.plot_parameters.panel_preprocess import PanelPreprocessSettings
+from origami.widgets.interactive.plot_parameters.panel_rmsd_matrix import PanelRMSDMatrixSettings
 
 logger = logging.getLogger(__name__)
 
 CTRL_SIZE = 60
 ALIGN_CV_R = wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT
+
+__all__ = ("PanelVisualisationSettingsEditor",)
 
 
 class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin):
@@ -38,22 +43,25 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin):
 
     # ui elements
     main_book = None
-    _panel_general, _panel_1d, _panel_2d, _panel_3d, _panel_colorbar = None, None, None, None, None
-    _panel_legend, _panel_waterfall, _panel_violin = None, None, None
-    _panel_sizes, _panel_ui = None, None
+    _panel_general, _panel_1d, _panel_2d, _panel_colorbar, _panel_legend = None, None, None, None, None
+    _panel_waterfall, _panel_rmsd, _panel_rmsd_matrix, _panel_rmsf, _panel_tandem = None, None, None, None, None
+    _panel_widgets, _panel_tools, _panel_preprocess = None, None, None
 
     # UI attributes
     ALL_PANEL_NAMES = [
         "General",
         "Plot 1D",
         "Plot 2D",
-        "Plot 3D",
         "Colorbar",
         "Legend",
         "Waterfall",
-        "Violin",
-        "Plot sizes",
-        "UI behaviour",
+        "RMSD",
+        "RMSD Matrix",
+        "RMSF",
+        "Tandem",
+        "Widgets",
+        "Tools",
+        "Pre-processing",
     ]
     CURRENT_PANEL_NAMES = ALL_PANEL_NAMES
     PAGES = []
@@ -61,13 +69,16 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin):
         "General": 0,
         "Plot 1D": 1,
         "Plot 2D": 2,
-        "Plot 3D": 3,
-        "Colorbar": 4,
-        "Legend": 5,
-        "Waterfall": 6,
-        "Violin": 7,
-        "Plot sizes": 8,
-        "UI behaviour": 9,
+        "Colorbar": 3,
+        "Legend": 4,
+        "Waterfall": 5,
+        "RMSD": 6,
+        "RMSD Matrix": 7,
+        "RMSF": 8,
+        "Tandem": 9,
+        "Widgets": 10,
+        "Tools": 11,
+        "Pre-processing": 12,
     }
 
     def __init__(self, parent, presenter, window: str = None):
@@ -176,10 +187,6 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin):
         self._panel_2d = Panel2dSettings(self.main_book, self.view)
         self.main_book.AddPage(self._panel_2d, "Plot 2D")
 
-        # plot 3D
-        self._panel_3d = Panel3dSettings(self.main_book, self.view)
-        self.main_book.AddPage(self._panel_3d, "Plot 3D")
-
         # colorbar
         self._panel_colorbar = PanelColorbarSettings(self.main_book, self.view)
         self.main_book.AddPage(self._panel_colorbar, "Colorbar")
@@ -192,29 +199,48 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin):
         self._panel_waterfall = PanelWaterfallSettings(self.main_book, self.view)
         self.main_book.AddPage(self._panel_waterfall, "Waterfall")
 
-        # violin
-        self._panel_violin = PanelViolinSettings(self.main_book, self.view)
-        self.main_book.AddPage(self._panel_violin, "Violin")
+        # rmsd
+        self._panel_rmsd = PanelRMSDSettings(self.main_book, self.view)
+        self.main_book.AddPage(self._panel_rmsd, "RMSD")
 
-        # plot sizes
-        self._panel_sizes = PanelSizesSettings(self.main_book, self.view)
-        self.main_book.AddPage(self._panel_sizes, "Plot sizes")
+        # rmsd matrix
+        self._panel_rmsd_matrix = PanelRMSDMatrixSettings(self.main_book, self.view)
+        self.main_book.AddPage(self._panel_rmsd_matrix, "RMSD Matrix")
 
-        # ui behaviour
-        self._panel_ui = PanelUISettings(self.main_book, self.view)
-        self.main_book.AddPage(self._panel_ui, "UI behaviour")
+        # rmsf
+        self._panel_rmsf = PanelRMSFSettings(self.main_book, self.view)
+        self.main_book.AddPage(self._panel_rmsf, "RMSF")
 
-        if not running_under_pytest():
+        # tandem
+        self._panel_tandem = PanelTandemSettings(self.main_book, self.view)
+        self.main_book.AddPage(self._panel_tandem, "Tandem")
+
+        # widgets
+        self._panel_widgets = PanelWidgetsSettings(self.main_book, self.view)
+        self.main_book.AddPage(self._panel_widgets, "Widgets")
+
+        # tools
+        self._panel_tools = PanelToolsSettings(self.main_book, self.view)
+        self.main_book.AddPage(self._panel_tools, "Tools")
+
+        # tools
+        self._panel_preprocess = PanelPreprocessSettings(self.main_book, self.view)
+        self.main_book.AddPage(self._panel_preprocess, "Pre-processing")
+
+        if not RUNNING_UNDER_PYTEST:
             self._panel_general.SetupScrolling()
             self._panel_1d.SetupScrolling()
             self._panel_2d.SetupScrolling()
-            self._panel_3d.SetupScrolling()
             self._panel_colorbar.SetupScrolling()
             self._panel_legend.SetupScrolling()
             self._panel_waterfall.SetupScrolling()
-            self._panel_violin.SetupScrolling()
-            self._panel_sizes.SetupScrolling()
-            self._panel_ui.SetupScrolling()
+            self._panel_rmsd.SetupScrolling()
+            self._panel_rmsd_matrix.SetupScrolling()
+            self._panel_rmsf.SetupScrolling()
+            self._panel_tandem.SetupScrolling()
+            self._panel_widgets.SetupScrolling()
+            self._panel_tools.SetupScrolling()
+            self._panel_preprocess.SetupScrolling()
 
         # keep track of pages
         self.PAGES.extend(
@@ -222,26 +248,22 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin):
                 self._panel_general,
                 self._panel_1d,
                 self._panel_2d,
-                self._panel_3d,
                 self._panel_colorbar,
                 self._panel_legend,
                 self._panel_waterfall,
-                self._panel_violin,
-                self._panel_sizes,
-                self._panel_ui,
+                self._panel_rmsd,
+                self._panel_rmsd_matrix,
+                self._panel_rmsf,
+                self._panel_tandem,
+                self._panel_widgets,
+                self._panel_tools,
+                self._panel_preprocess,
             ]
         )
-
-        # add statusbar
-        panel = wx.Panel(self, wx.ID_ANY)
-        info_sizer = self.make_statusbar(panel, "right")
-        info_sizer.Fit(panel)
-        panel.SetSizerAndFit(info_sizer)
 
         # fit sizer
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(self.main_book, 1, wx.EXPAND | wx.ALL, 0)
-        main_sizer.Add(panel, 0, wx.EXPAND, 2)
 
         self.main_book.Bind(wx.EVT_CHOICEBOOK_PAGE_CHANGED, self.on_page_changed)
 
@@ -254,25 +276,25 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin):
         self.Show()
 
 
-def _main():
-    class _TestFrame(wx.Frame):
-        def __init__(self):
-            wx.Frame.__init__(self, None)
-
-            panel = PanelVisualisationSettingsEditor(self, None)
-            sizer = wx.BoxSizer()
-            sizer.Add(panel, 1, wx.EXPAND)
-
-            self.SetSizerAndFit(sizer)
-            self.Layout()
-
-    app = wx.App()
-
-    ex = _TestFrame()
-
-    ex.Show()
-    app.MainLoop()
-
-
 if __name__ == "__main__":
+
+    def _main():
+        class _TestFrame(wx.Frame):
+            def __init__(self):
+                wx.Frame.__init__(self, None)
+
+                panel = PanelVisualisationSettingsEditor(self, None)
+                sizer = wx.BoxSizer()
+                sizer.Add(panel, 1, wx.EXPAND)
+
+                self.SetSizerAndFit(sizer)
+                self.Layout()
+
+        app = wx.App()
+
+        ex = _TestFrame()
+
+        ex.Show()
+        app.MainLoop()
+
     _main()

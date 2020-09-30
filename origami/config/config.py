@@ -948,17 +948,6 @@ class Config(ConfigBase):
             "sinc",
             "lanczos",
         ]
-        self.normalizationMS_choices = ["Maximum"]
-        self.normalization2D_choices = [
-            "Maximum",
-            "Logarithmic",
-            "Natural log",
-            "Square root",
-            "Least Abs Deviation",
-            "Least Squares",
-        ]
-        self.smoothMS_choices = ["None", "Savitzky-Golay", "Gaussian"]
-        self.smooth2D_choices = ["None", "Savitzky-Golay", "Gaussian"]
 
         self.marker_shape_dict = {
             "square": "s",
@@ -1706,12 +1695,10 @@ class Config(ConfigBase):
         # ===============================================================================
 
         self.saveInteractiveOverride = True
-
         self.figHeight = 600
         self.figWidth = 600
         self.figHeight1D = 300
         self.figWidth1D = 800
-
         self.layoutModeDoc = "Individual"
         self.plotLayoutOverlay = "Rows"
         self.defNumRows = ""
@@ -1721,57 +1708,133 @@ class Config(ConfigBase):
         self.interactive_cvd_cmap_choices = ["magma", "viridis", "cividis", "plasma", "magma"]
         self.interactive_cvd_cmap = "viridis"
 
-        self.toolsLocation = "right"
-        self.activeDrag = "Box Zoom"
-        self.activeWheel = "None"
-        self.activeInspect = "Hover"
-
         self.interactive_custom_scripts = True
         self.interactive_custom_events = True
         self.interactive_custom_position = "right"
 
-        # Other
-        self.interactive_override_defaults = True
-        self.openInteractiveOnSave = True
-        self.interactive_add_offline_support = False
-        self.interactive_sort_before_saving = True  # new in v1.2.1
+        # Tools
+        self.bokeh_tools_position = "right"
+        self.bokeh_tools_position_choices = ["right", "left", "top", "bottom"]
+        self.bokeh_tools_active_drag = "Box zoom (both)"
+        self.bokeh_tools_active_drag_choices = [
+            "Box zoom (both)",
+            "Box zoom (horizontal)",
+            "Box zoom (vertical)",
+            "Pan (both)",
+            "Pan (horizontal)",
+            "Pan (vertical)",
+            "auto",
+            "None",
+        ]
+        self.bokeh_tools_active_wheel = "Wheel zoom (both)"
+        self.bokeh_tools_active_wheel_choices = [
+            "Wheel zoom (both)",
+            "Wheel zoom (horizontal)",
+            "Wheel zoom (vertical)",
+            "auto",
+            "None",
+        ]
+        self.bokeh_tools_active_inspect = "Hover"
+        self.bokeh_tools_active_inspect_choices = ["Hover", "Crosshair", "auto", "None"]
 
         # Colorbar
-        self.interactive_colorbar = False
-        self.interactive_colorbar_precision = 1
-        self.interactive_colorbar_label_offset = 2
-        self.interactive_colorbar_useScientific = False
-        self.interactive_colorbar_location = "right"
-        self.interactive_colorbar_orientation = "vertical"
-        self.interactive_colorbar_offset_x = 5
-        self.interactive_colorbar_offset_y = 0
-        self.interactive_colorbar_width = 15
-        self.interactive_colorbar_padding = 10
-        self.interactive_colorbar_edge_color = (0.0, 0.0, 0.0)  # new in v1.2.1
-        self.interactive_colorbar_edge_width = 2  # new in v1.2.1
-        self.interactive_colorbar_modify_ticks = False  # new in v1.2.1
-        self.interactive_colorbar_label_fontSize = 16  # new in v1.2.1
-        self.interactive_colorbar_label_weight = False  # new in v1.2.1
-        self.interactive_colorbar_title_fontSize = 16  # new in v1.2.1
-        self.interactive_colorbar_title_weight = False  # new in v1.2.1
+        self.bokeh_colorbar = False
+        self.bokeh_colorbar_precision = 1
+        self.bokeh_colorbar_label_offset = 2
+        self.bokeh_colorbar_use_scientific = False
+        self.bokeh_colorbar_location = "right"
+        self.bokeh_colorbar_orientation = "vertical"
+        self.bokeh_colorbar_offset_x = 5
+        self.bokeh_colorbar_offset_y = 0
+        self.bokeh_colorbar_width = 15
+        self.bokeh_colorbar_padding = 10
+        self.bokeh_colorbar_edge_color = (0.0, 0.0, 0.0)  # new in v1.2.1
+        self.bokeh_colorbar_edge_width = 2  # new in v1.2.1
+        self.bokeh_colorbar_modify_ticks = False  # new in v1.2.1
+        self.bokeh_colorbar_label_font_size = 16  # new in v1.2.1
+        self.bokeh_colorbar_label_weight = False  # new in v1.2.1
+        self.bokeh_colorbar_title_font_size = 16  # new in v1.2.1
+        self.bokeh_colorbar_title_weight = False  # new in v1.2.1
+
+        # Legend
+        self.bokeh_legend = True
+        self.bokeh_legend_click_policy_choices = ["hide", "mute"]
+        self.bokeh_legend_click_policy = "hide"
+        self.bokeh_legend_location_choices = [
+            "top_left",
+            "top_center",
+            "top_right",
+            "center_right",
+            "bottom_right",
+            "bottom_center",
+            "bottom_left",
+            "center_left",
+            "center",
+        ]
+        self.bokeh_legend_location = "top_left"
+        self.bokeh_legend_mute_alpha = 0.25
+        self.bokeh_legend_background_alpha = 0.5
+        self.bokeh_legend_orientation_choices = ["vertical", "horizontal"]
+        self.bokeh_legend_orientation = "vertical"
+        self.bokeh_legend_font_size = 10
 
         # Frame
-        self.interactive_outline_width = 2
-        self.interactive_outline_alpha = 1
-        self.interactive_border_min_left = 20
-        self.interactive_border_min_right = 20
-        self.interactive_border_min_top = 20
-        self.interactive_border_min_bottom = 20
-        self.interactive_background_color = (1.0, 1.0, 1.0)
-        self.interactive_grid_line = False
-        self.interactive_grid_line_color = (1.0, 1.0, 1.0)
+        self.bokeh_frame_outline_width = 2
+        self.bokeh_frame_outline_alpha = 1
+        self.bokeh_frame_border_min_left = 20
+        self.bokeh_frame_border_min_right = 20
+        self.bokeh_frame_border_min_top = 20
+        self.bokeh_frame_border_min_bottom = 20
+        self.bokeh_frame_background_color = (1.0, 1.0, 1.0)
+        self.bokeh_frame_grid_line = False
+        self.bokeh_frame_grid_line_color = (1.0, 1.0, 1.0)
+        self.bokeh_frame_title_font_size = 16
+        self.bokeh_frame_title_font_weight = False
+        self.bokeh_frame_label_font_size = 14
+        self.bokeh_frame_label_font_weight = False
+        self.bokeh_frame_tick_font_size = 12
+        self.bokeh_frame_tick_use_scientific = True
+        self.bokeh_frame_tick_precision = 1
+
+        # Line
+        self.bokeh_line_style_choices = ["solid", "dashed", "dotted", "dotdash", "dashdot"]
+        self.bokeh_line_style = "solid"
+        self.bokeh_line_width = 2
+        self.bokeh_line_alpha = 1
+        self.bokeh_line_fill_under = False  # new in v1.2.1
+        self.bokeh_line_fill_alpha = 0.25  # new in v1.2.1
+        self.bokeh_line_color = (0.0, 0.0, 0.0)  # new in v1.2.1
+
+        # scatter
+        self.bokeh_scatter_size = 10
+        self.bokeh_scatter_alpha = 1.0
+        self.bokeh_scatter_marker_choices = [
+            "circle",
+            "square",
+            "triangle",
+            "circle_cross",
+            "square_cross",
+            "diamond",
+            "circle_x",
+            "square_x",
+            "inverted_triangle",
+            "cross",
+            "x",
+            "asterisk",
+        ]
+        self.bokeh_scatter_marker = "circle"
+        self.bokeh_scatter_edge_same_as_fill = True
+        self.bokeh_scatter_edge_color = (0.0, 0.0, 0.0)
+        self.bokeh_scatter_edge_width = 1.0  # new in v1.2.1
+
+        # bar
+        self.bokeh_bar_width = 0.1
+        self.bokeh_bar_alpha = 1.0
+        self.bokeh_bar_edge_same_as_fill = True
+        self.bokeh_bar_edge_color = (0.0, 0.0, 0.0)
+        self.bokeh_bar_edge_width = 1.0
 
         # Fonts
-        self.interactive_title_fontSize = 16
-        self.interactive_title_weight = False
-        self.interactive_label_fontSize = 14
-        self.interactive_label_weight = False
-        self.interactive_tick_fontSize = 12
         self.interactive_annotation_fontSize = 12
         self.interactive_annotation_weight = False
         self.interactive_annotation_color = (0, 0, 0)
@@ -1807,70 +1870,6 @@ class Config(ConfigBase):
         self.interactive_ms_annotations_labels = True
         self.interactive_ms_annotations_rotation = 90
         self.interactive_ms_annotations_label_color = (0.0, 0.0, 0.0)
-
-        # Ticks
-        self.interactive_tick_useScientific = True
-        self.interactive_tick_precision = 1
-
-        # Legend
-        self.interactive_legend = True
-        self.interactive_legend_click_policy_choices = ["hide", "mute"]
-        self.interactive_legend_click_policy = "hide"
-        self.interactive_legend_location_choices = [
-            "top_left",
-            "top_center",
-            "top_right",
-            "center_right",
-            "bottom_right",
-            "bottom_center",
-            "bottom_left",
-            "center_left",
-            "center",
-        ]  # , "other"]
-        self.interactive_legend_location = "top_left"
-        self.interactive_legend_mute_alpha = 0.25
-        self.interactive_legend_background_alpha = 0.5
-        self.interactive_legend_orientation_choices = ["vertical", "horizontal"]
-        self.interactive_legend_orientation = "vertical"
-        self.interactive_legend_font_size = 10
-
-        # Line
-        self.interactive_line_style_choices = ["solid", "dashed", "dotted", "dotdash", "dashdot"]
-        self.interactive_line_style = "solid"
-        self.interactive_line_width = 2
-        self.interactive_line_alpha = 1
-        self.interactive_line_shade_under = False  # new in v1.2.1
-        self.interactive_line_shade_alpha = 0.25  # new in v1.2.1
-        self.interactive_line_color = (0.0, 0.0, 0.0)  # new in v1.2.1
-
-        # Scatter
-        self.interactive_scatter_size = 10
-        self.interactive_scatter_alpha = 1.0
-        self.interactive_scatter_marker_choices = [
-            "circle",
-            "square",
-            "triangle",
-            "circle_cross",
-            "square_cross",
-            "diamond",
-            "circle_x",
-            "square_x",
-            "inverted_triangle",
-            "cross",
-            "x",
-            "asterisk",
-        ]
-        self.interactive_scatter_marker = "circle"
-        self.interactive_scatter_sameAsFill = True
-        self.interactive_scatter_edge_color = (0.0, 0.0, 0.0)
-        self.interactive_scatter_lineWidth = 1.0  # new in v1.2.1
-
-        # bar
-        self.interactive_bar_width = 0.1
-        self.interactive_bar_alpha = 1.0
-        self.interactive_bar_edge_color = (0.0, 0.0, 0.0)
-        self.interactive_bar_sameAsFill = True
-        self.interactive_bar_lineWidth = 1.0
 
         # setup paths
         self.setup_paths()
@@ -2674,6 +2673,96 @@ class Config(ConfigBase):
         config = dict()
         if not isinstance(config_key, list):
             config_key = [config_key]
+
+        for _plot_type in config_key:
+            _plot_type = _plot_type.lower()
+            if _plot_type == "legend":
+                config.update(
+                    {
+                        "bokeh_legend": self.bokeh_legend,
+                        "bokeh_legend_click_policy": self.bokeh_legend_click_policy,
+                        "bokeh_legend_location": self.bokeh_legend_location,
+                        "bokeh_legend_mute_alpha": self.bokeh_legend_mute_alpha,
+                        "bokeh_legend_background_alpha": self.bokeh_legend_background_alpha,
+                        "bokeh_legend_orientation": self.bokeh_legend_orientation,
+                        "bokeh_legend_font_size": self.bokeh_legend_font_size,
+                    }
+                )
+            elif _plot_type == "colorbar":
+                config.update(
+                    {
+                        "bokeh_colorbar": self.bokeh_colorbar,
+                        "bokeh_colorbar_precision": self.bokeh_colorbar_precision,
+                        "bokeh_colorbar_label_offset": self.bokeh_colorbar_label_offset,
+                        "bokeh_colorbar_use_scientific": self.bokeh_colorbar_use_scientific,
+                        "bokeh_colorbar_location": self.bokeh_colorbar_location,
+                        "bokeh_colorbar_orientation": self.bokeh_colorbar_orientation,
+                        "bokeh_colorbar_offset_x": self.bokeh_colorbar_offset_x,
+                        "bokeh_colorbar_offset_y": self.bokeh_colorbar_offset_y,
+                        "bokeh_colorbar_width": self.bokeh_colorbar_width,
+                        "bokeh_colorbar_padding": self.bokeh_colorbar_padding,
+                        "bokeh_colorbar_edge_color": self.bokeh_colorbar_edge_color,
+                        "bokeh_colorbar_edge_width": self.bokeh_colorbar_edge_width,
+                        "bokeh_colorbar_modify_ticks": self.bokeh_colorbar_modify_ticks,
+                        "bokeh_colorbar_label_font_size": self.bokeh_colorbar_label_font_size,
+                        "bokeh_colorbar_label_weight": self.bokeh_colorbar_label_weight,
+                        "bokeh_colorbar_title_font_size": self.bokeh_colorbar_title_font_size,
+                        "bokeh_colorbar_title_weight": self.bokeh_colorbar_title_weight,
+                    }
+                )
+            elif _plot_type == "frame":
+                config.update(
+                    {
+                        "bokeh_frame_outline_width": self.bokeh_frame_outline_width,
+                        "bokeh_frame_outline_alpha": self.bokeh_frame_outline_alpha,
+                        "bokeh_frame_border_min_left": self.bokeh_frame_border_min_left,
+                        "bokeh_frame_border_min_right": self.bokeh_frame_border_min_right,
+                        "bokeh_frame_border_min_top": self.bokeh_frame_border_min_top,
+                        "bokeh_frame_border_min_bottom": self.bokeh_frame_border_min_bottom,
+                        "bokeh_frame_background_color": self.bokeh_frame_background_color,
+                        "bokeh_frame_grid_line": self.bokeh_frame_grid_line,
+                        "bokeh_frame_grid_line_color": self.bokeh_frame_grid_line_color,
+                        "bokeh_frame_title_font_size": self.bokeh_frame_title_font_size,
+                        "bokeh_frame_title_font_weight": self.bokeh_frame_title_font_weight,
+                        "bokeh_frame_label_font_size": self.bokeh_frame_label_font_size,
+                        "bokeh_frame_label_font_weight": self.bokeh_frame_label_font_weight,
+                        "bokeh_frame_tick_font_size": self.bokeh_frame_tick_font_size,
+                        "bokeh_frame_tick_use_scientific": self.bokeh_frame_tick_use_scientific,
+                        "bokeh_frame_tick_precision": self.bokeh_frame_tick_precision,
+                    }
+                )
+            elif _plot_type == "scatter":
+                config.update(
+                    {
+                        "bokeh_scatter_size": self.bokeh_scatter_size,
+                        "bokeh_scatter_alpha": self.bokeh_scatter_alpha,
+                        "bokeh_scatter_marker": self.bokeh_scatter_marker,
+                        "bokeh_scatter_edge_same_as_fill": self.bokeh_scatter_edge_same_as_fill,
+                        "bokeh_scatter_edge_color": self.bokeh_scatter_edge_color,
+                        "bokeh_scatter_edge_width": self.bokeh_scatter_edge_width,
+                    }
+                )
+            elif _plot_type == "bar":
+                config.update(
+                    {
+                        "bokeh_bar_width": self.bokeh_bar_width,
+                        "bokeh_bar_alpha": self.bokeh_bar_alpha,
+                        "bokeh_bar_edge_color": self.bokeh_bar_edge_color,
+                        "bokeh_bar_edge_same_as_fill": self.bokeh_bar_edge_same_as_fill,
+                        "bokeh_bar_edge_width": self.bokeh_bar_edge_width,
+                    }
+                )
+            elif _plot_type == "line":
+                config.update(
+                    {
+                        "bokeh_line_style": self.bokeh_line_style,
+                        "bokeh_line_width": self.bokeh_line_width,
+                        "bokeh_line_alpha": self.bokeh_line_alpha,
+                        "bokeh_line_fill_under": self.bokeh_line_fill_under,
+                        "bokeh_line_fill_alpha": self.bokeh_line_fill_alpha,
+                        "bokeh_line_color": self.bokeh_line_color,
+                    }
+                )
         return config
 
     def _get_config_parameters(self, config: Dict) -> Dict:

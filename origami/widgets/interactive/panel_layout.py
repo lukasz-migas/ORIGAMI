@@ -379,7 +379,7 @@ class PanelLayoutBuilder(wx.Panel, TableMixin):
 
     def make_panel(self):
         """Make panel"""
-        panel = wx.Panel(self)
+        panel = wx.Panel(self, -1, size=(-1, -1))
 
         tab_title = wx.StaticText(panel, -1, "Tab title:")
         self.tab_title = wx.ComboBox(panel, choices=self._tab_list, style=wx.CB_READONLY, name="tab_choice")
@@ -720,3 +720,38 @@ class PanelLayoutBuilder(wx.Panel, TableMixin):
             )
             self.remove_from_table([self.current_item_id])
         self._current_item = None
+
+
+if __name__ == "__main__":
+    from origami.utils.screen import move_to_different_screen
+    from origami.icons.assets import Icons
+
+    def _main_builder():
+        class _TestFrame(wx.Frame):
+            def __init__(self):
+                wx.Frame.__init__(self, None, -1, "Frame", size=(300, 300))
+                icons = Icons()
+                panel = PanelLayoutBuilder(self, self, icons)
+
+        app = wx.App()
+        ex = _TestFrame()
+
+        ex.Show()
+        move_to_different_screen(ex)
+        app.MainLoop()
+
+    def _main_editor():
+        class _TestFrame(wx.Frame):
+            def __init__(self):
+                wx.Frame.__init__(self, None, -1, "Frame", size=(300, 300))
+                icons = Icons()
+                panel = PanelLayoutEditor(self, self, icons)
+
+        app = wx.App()
+        ex = _TestFrame()
+
+        ex.Show()
+        move_to_different_screen(ex)
+        app.MainLoop()
+
+    _main_builder()

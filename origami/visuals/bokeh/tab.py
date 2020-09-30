@@ -16,10 +16,10 @@ from origami.visuals.bokeh.layout import BaseLayout
 from origami.visuals.bokeh.layout import GridLayout
 from origami.visuals.bokeh.layout import ColumnLayout
 from origami.visuals.bokeh.plot_base import PlotBase
-from origami.visuals.bokeh.plot_base import PlotHeatmap
-from origami.visuals.bokeh.plot_base import PlotScatter
-from origami.visuals.bokeh.plot_base import PlotSpectrum
-from origami.visuals.bokeh.plot_base import PlotHeatmapRGBA
+from origami.visuals.bokeh.plot_heatmap import PlotHeatmap
+from origami.visuals.bokeh.plot_heatmap import PlotHeatmapRGBA
+from origami.visuals.bokeh.plot_spectrum import PlotScatter
+from origami.visuals.bokeh.plot_spectrum import PlotSpectrum
 
 
 class Tab(dict):

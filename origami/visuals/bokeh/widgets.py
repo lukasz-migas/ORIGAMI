@@ -128,11 +128,11 @@ def add_figure_widgets(plot_obj, widget_name: str, widget_width: int = 300):
 
 def add_axes_widgets(plot_obj, widget_name: str, windows: List[List[float]], widget_width: int = 300):
     """Add annotation widgets"""
-    if widget_name == "figure_width":
+    if widget_name == "axes_zoom_x":
         return axes_zoom_x_window(plot_obj.figure, windows, widget_width=widget_width)
-    elif widget_name == "figure_height":
+    elif widget_name == "axes_zoom_y":
         return axes_zoom_y_window(plot_obj.figure, windows, widget_width=widget_width)
-    elif widget_name == "figure_sizing_mode":
+    elif widget_name == "axes_zoom_xy":
         return axes_zoom_xy_window(plot_obj.figure, windows, widget_width=widget_width)
     else:
         LOGGER.warning(f"Could not parse `{widget_name}` - please use any of the following {AXES_WIDGET_LIST}`")
