@@ -1417,7 +1417,7 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_TOOL, self.data_handling.on_open_thermo_file_fcn, tool_open_thermo)
         self.Bind(wx.EVT_TOOL, self.on_open_source_menu, tool_open_msms)
         self.Bind(wx.EVT_TOOL_DROPDOWN, self.on_open_source_menu, tool_open_msms)
-        self.Bind(wx.EVT_MENU, self.on_open_interactive_output_panel, tool_action_bokeh)
+        self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_interactive_editor, tool_action_bokeh)
         self.Bind(wx.EVT_MENU, self.on_rotate_toolbar, tool_action_rotate)
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "General"), tool_action_global)
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Plot 1D"), tool_action_1d)
@@ -1649,23 +1649,13 @@ class MainWindow(wx.Frame):
         def _startup_module():
             """Initialize the panel"""
             CONFIG.interactiveParamsWindow_on_off = True
-            self.panel_interactive_output = PanelInteractiveEditor(self, self.presenter)
-            self.panel_interactive_output.Show()
+            if self.panel_interactive_output:
+                self.panel_interactive_output.Show()
+            else:
+                self.panel_interactive_output = PanelInteractiveEditor(self, self.presenter)
+                self.panel_interactive_output.Show()
 
         _startup_module()
-
-    #         if not hasattr(self, "panel_interactive_output"):
-    #             _startup_module()
-    #         else:
-    #             try:
-    #                 if CONFIG.interactiveParamsWindow_on_off:
-    #                     self.panel_interactive_output.onUpdateList()
-    #                     args = ("An instance of this panel is already open", 4)
-    #                     self.presenter.onThreading(evt, args, action="updateStatusbar")
-    #                     return
-    #             except (IndexError, ValueError, TypeError, KeyError):
-    #                 logging.error("Failed to startup `Interactive Output` panel", exc_info=True)
-    #                 _startup_module()
 
     def on_show_ccs_database(self, _evt):
         """Show CCS database"""

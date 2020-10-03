@@ -5,6 +5,7 @@ from bokeh.models import ColumnDataSource
 
 # Local imports
 from origami.utils.secret import get_short_hash
+from origami.visuals.bokeh.parser import get_param
 from origami.visuals.bokeh.plot_base import PlotBase
 from origami.visuals.bokeh.utilities import convert_colormap_to_mapper
 
@@ -42,7 +43,10 @@ class PlotHeatmap(PlotBase):
         """Basic plotting method"""
         kwargs, _kwargs = self._pre_plot(data_obj, forced_kwargs, **kwargs)
 
+        # set colorbar
         self._data["palette"], self._data["colormapper"] = self.get_colormapper(data_obj.array, **kwargs)
+
+        # make plot
         self._plots[self.DEFAULT_PLOT] = self.figure.image(
             x="x",
             y="y",
@@ -59,8 +63,9 @@ class PlotHeatmap(PlotBase):
         self._post_plot(**kwargs)
 
     @staticmethod
-    def get_colormapper(array: np.ndarray, colormap: str = "viridis", **kwargs):
+    def get_colormapper(array: np.ndarray, **kwargs):
         """Get color palette and color mapper"""
+        colormap: str = get_param("bokeh_heatmap_colormap", **kwargs)
         return convert_colormap_to_mapper(array, colormap, vmin=kwargs.pop("vmin", None), vmax=kwargs.pop("vmax", None))
 
     def add_colorbar(self, array=None, **kwargs):

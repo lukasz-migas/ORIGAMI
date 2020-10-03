@@ -1693,18 +1693,6 @@ class Config(ConfigBase):
         # ===============================================================================
         # # Interactive parameters
         # ===============================================================================
-
-        self.saveInteractiveOverride = True
-        self.figHeight = 600
-        self.figWidth = 600
-        self.figHeight1D = 300
-        self.figWidth1D = 800
-        self.layoutModeDoc = "Individual"
-        self.plotLayoutOverlay = "Rows"
-        self.defNumRows = ""
-        self.defNumColumns = ""
-        self.linkXYaxes = True
-        self.hoverVline = True
         self.interactive_cvd_cmap_choices = ["magma", "viridis", "cividis", "plasma", "magma"]
         self.interactive_cvd_cmap = "viridis"
 
@@ -1712,37 +1700,14 @@ class Config(ConfigBase):
         self.interactive_custom_events = True
         self.interactive_custom_position = "right"
 
-        # Tools
-        self.bokeh_tools_position = "right"
-        self.bokeh_tools_position_choices = ["right", "left", "top", "bottom"]
-        self.bokeh_tools_active_drag = "Box zoom (both)"
-        self.bokeh_tools_active_drag_choices = [
-            "Box zoom (both)",
-            "Box zoom (horizontal)",
-            "Box zoom (vertical)",
-            "Pan (both)",
-            "Pan (horizontal)",
-            "Pan (vertical)",
-            "auto",
-            "None",
-        ]
-        self.bokeh_tools_active_wheel = "Wheel zoom (both)"
-        self.bokeh_tools_active_wheel_choices = [
-            "Wheel zoom (both)",
-            "Wheel zoom (horizontal)",
-            "Wheel zoom (vertical)",
-            "auto",
-            "None",
-        ]
-        self.bokeh_tools_active_inspect = "Hover"
-        self.bokeh_tools_active_inspect_choices = ["Hover", "Crosshair", "auto", "None"]
-
         # Colorbar
         self.bokeh_colorbar = False
         self.bokeh_colorbar_precision = 1
         self.bokeh_colorbar_label_offset = 2
         self.bokeh_colorbar_use_scientific = False
+        self.bokeh_colorbar_location_choices = ["left", "right", "above", "below"]
         self.bokeh_colorbar_location = "right"
+        self.bokeh_colorbar_orientation_choices = ["vertical", "horizontal"]
         self.bokeh_colorbar_orientation = "vertical"
         self.bokeh_colorbar_offset_x = 5
         self.bokeh_colorbar_offset_y = 0
@@ -1779,6 +1744,8 @@ class Config(ConfigBase):
         self.bokeh_legend_font_size = 10
 
         # Frame
+        self.bokeh_frame_width = 600
+        self.bokeh_frame_height = 400
         self.bokeh_frame_outline_width = 2
         self.bokeh_frame_outline_alpha = 1
         self.bokeh_frame_border_min_left = 20
@@ -1795,6 +1762,12 @@ class Config(ConfigBase):
         self.bokeh_frame_tick_font_size = 12
         self.bokeh_frame_tick_use_scientific = True
         self.bokeh_frame_tick_precision = 1
+        self.bokeh_frame_label_x_axis = True
+        self.bokeh_frame_label_y_axis = True
+        self.bokeh_frame_tick_x_axis = True
+        self.bokeh_frame_tick_y_axis = True
+        self.bokeh_frame_tick_labels_x_axis = True
+        self.bokeh_frame_tick_labels_y_axis = True
 
         # Line
         self.bokeh_line_style_choices = ["solid", "dashed", "dotted", "dotdash", "dashdot"]
@@ -1834,42 +1807,100 @@ class Config(ConfigBase):
         self.bokeh_bar_edge_color = (0.0, 0.0, 0.0)
         self.bokeh_bar_edge_width = 1.0
 
-        # Fonts
-        self.interactive_annotation_fontSize = 12
-        self.interactive_annotation_weight = False
-        self.interactive_annotation_color = (0, 0, 0)
-        self.interactive_annotation_background_color = (1, 1, 1)
-        self.interactive_annotation_alpha = 1
+        # heatmap
+        self.bokeh_heatmap_colormap = "viridis"
 
         # Overlay grid
-        self.interactive_grid_label = True
-        self.interactive_grid_label_size = 12
-        self.interactive_grid_label_weight = False
-        self.interactive_grid_label_color = (0, 0, 0)
-        self.interactive_grid_xpos = 10
-        self.interactive_grid_ypos = 10
+        self.bokeh_grid_label_add = True
+        self.bokeh_grid_label_font_size = 12
+        self.bokeh_grid_label_font_weight = False
+        self.bokeh_grid_label_font_color = (0, 0, 0)
+        self.bokeh_grid_label_x_pos = 10
+        self.bokeh_grid_label_y_pos = 10
 
         # Waterfall
-        self.interactive_waterfall_increment = 0.05  # new in v1.2.1
-        self.interactive_waterfall_shade_under = False  # new in v1.2.1
-        self.interactive_waterfall_shade_alpha = 0.25  # new in v1.2.1
+        self.bokeh_waterfall_increment = 0.05  # new in v1.2.1
+        self.bokeh_waterfall_fill_under = False  # new in v1.2.1
+        self.bokeh_waterfall_fill_alpha = 0.25  # new in v1.2.1
+
+        # Fonts
+        self.bokeh_annotation_show = True
+        self.bokeh_annotation_font_size = 12
+        self.bokeh_annotation_font_weight = False
+        self.bokeh_annotation_font_color = (0, 0, 0)
+        self.bokeh_annotation_font_background_color = (1, 1, 1)
+        self.bokeh_annotation_font_transparency = 1
+
+        # widgets
+        self.bokeh_widgets_position_choices = ["right", "left", "above", "below"]
+        self.bokeh_widgets_position = "right"
+        self.bokeh_widgets_add_js = True
+        self.bokeh_widgets_general_hover = True
+        self.bokeh_widgets_general_width = True
+        self.bokeh_widgets_general_height = True
+        self.bokeh_widgets_color_colorblind = True
+        self.bokeh_widgets_color_colormap = True
+        self.bokeh_widgets_annotation_show = True
+        self.bokeh_widgets_annotation_font_size = True
+        self.bokeh_widgets_annotation_font_rotation = True
+        self.bokeh_widgets_annotation_font_offset_x = True
+        self.bokeh_widgets_annotation_font_offset_y = True
+        self.bokeh_widgets_legend_show = True
+        self.bokeh_widgets_legend_alpha = True
+        self.bokeh_widgets_legend_orientation = True
+        self.bokeh_widgets_legend_position = True
+        self.bokeh_widgets_scatter_size = True
+        self.bokeh_widgets_scatter_alpha = True
+
+        # Tools
+        self.bokeh_tools_position_choices = ["right", "left", "above", "below"]
+        self.bokeh_tools_position = "right"
+        self.bokeh_tools_save = True
+        self.bokeh_tools_reset = True
+        self.bokeh_tools_hover = True
+        self.bokeh_tools_crosshair = True
+        self.bokeh_tools_pan_xy = True
+        self.bokeh_tools_pan_x = True
+        self.bokeh_tools_pan_y = True
+        self.bokeh_tools_boxzoom_xy = True
+        self.bokeh_tools_boxzoom_x = True
+        self.bokeh_tools_boxzoom_y = True
+        self.bokeh_tools_wheel = True
+        self.bokeh_tools_wheel_choices = ["Wheel zoom (xy)", "Wheel zoom (x)", "Wheel zoom (y)"]
+        self.bokeh_tools_wheel_choice = "Wheel zoom (both)"
+        self.bokeh_tools_active_drag_choices = [
+            "Box zoom (xy)",
+            "Box zoom (x)",
+            "Box zoom (y)",
+            "Pan (xy)",
+            "Pan (x)",
+            "Pan (y)",
+            "auto",
+            "None",
+        ]
+        self.bokeh_tools_active_drag = "Box zoom (xy)"
+        self.bokeh_tools_active_wheel_choices = ["Wheel zoom (xy)", "Wheel zoom (x)", "Wheel zoom (y)", "auto", "None"]
+        self.bokeh_tools_active_wheel = "Wheel zoom (xy)"
+        self.bokeh_tools_active_inspect_choices = ["Hover", "Crosshair", "auto", "None"]
+        self.bokeh_tools_active_inspect = "Hover"
 
         # Mass spectra
-        self.interactive_ms_annotations = True
-        self.interactive_ms_annotations_color = (0.18, 0.8, 0.44)
-        self.interactive_ms_annotations_line_color = (0, 0, 0)
-        self.interactive_ms_annotations_transparency = 0.3
         self.interactive_ms_linearize = True
         self.interactive_ms_binSize = 0.1
 
-        self.interactive_ms_annotations_offsetX = 5
-        self.interactive_ms_annotations_offsetY = 5
-        self.interactive_ms_annotations_fontSize = 10
-        self.interactive_ms_annotations_fontWeight = True
-        self.interactive_ms_annotations_highlight = False
-        self.interactive_ms_annotations_labels = True
-        self.interactive_ms_annotations_rotation = 90
-        self.interactive_ms_annotations_label_color = (0.0, 0.0, 0.0)
+        # Labels
+        self.bokeh_labels_show = True
+        self.bokeh_labels_line_color = (0, 0, 0)
+        self.bokeh_labels_label_show = True
+        self.bokeh_labels_label_offset_x = 5
+        self.bokeh_labels_label_offset_y = 5
+        self.bokeh_labels_label_rotation = 90
+        self.bokeh_labels_label_font_size = 10
+        self.bokeh_labels_label_font_weight = True
+        self.bokeh_labels_label_color = (0.0, 0.0, 0.0)
+        self.bokeh_labels_patch_show = False
+        self.bokeh_labels_patch_alpha = 0.3
+        self.bokeh_labels_patch_color = (0.18, 0.8, 0.44)
 
         # setup paths
         self.setup_paths()
@@ -2668,7 +2699,18 @@ class Config(ConfigBase):
         """
 
         if get_keys:
-            return []
+            return [
+                "legend",
+                "colorbar",
+                "frame",
+                "scatter",
+                "bar",
+                "line",
+                "heatmap",
+                "grid",
+                "waterfall",
+                "annotation",
+            ]
 
         config = dict()
         if not isinstance(config_key, list):
@@ -2713,6 +2755,8 @@ class Config(ConfigBase):
             elif _plot_type == "frame":
                 config.update(
                     {
+                        "bokeh_frame_width": self.bokeh_frame_width,
+                        "bokeh_frame_height": self.bokeh_frame_height,
                         "bokeh_frame_outline_width": self.bokeh_frame_outline_width,
                         "bokeh_frame_outline_alpha": self.bokeh_frame_outline_alpha,
                         "bokeh_frame_border_min_left": self.bokeh_frame_border_min_left,
@@ -2726,7 +2770,13 @@ class Config(ConfigBase):
                         "bokeh_frame_title_font_weight": self.bokeh_frame_title_font_weight,
                         "bokeh_frame_label_font_size": self.bokeh_frame_label_font_size,
                         "bokeh_frame_label_font_weight": self.bokeh_frame_label_font_weight,
+                        "bokeh_frame_label_x_axis": self.bokeh_frame_label_x_axis,
+                        "bokeh_frame_label_y_axis": self.bokeh_frame_label_y_axis,
                         "bokeh_frame_tick_font_size": self.bokeh_frame_tick_font_size,
+                        "bokeh_frame_tick_x_axis": self.bokeh_frame_tick_x_axis,
+                        "bokeh_frame_tick_y_axis": self.bokeh_frame_tick_y_axis,
+                        "bokeh_frame_tick_labels_x_axis": self.bokeh_frame_tick_labels_x_axis,
+                        "bokeh_frame_tick_labels_y_axis": self.bokeh_frame_tick_labels_y_axis,
                         "bokeh_frame_tick_use_scientific": self.bokeh_frame_tick_use_scientific,
                         "bokeh_frame_tick_precision": self.bokeh_frame_tick_precision,
                     }
@@ -2763,6 +2813,38 @@ class Config(ConfigBase):
                         "bokeh_line_color": self.bokeh_line_color,
                     }
                 )
+            elif _plot_type == "heatmap":
+                config.update({"bokeh_heatmap_colormap": self.bokeh_heatmap_colormap})
+            elif _plot_type == "grid":
+                config.update(
+                    {
+                        "bokeh_grid_label_add": self.bokeh_grid_label_add,
+                        "bokeh_grid_label_font_size": self.bokeh_grid_label_font_size,
+                        "bokeh_grid_label_font_weight": self.bokeh_grid_label_font_weight,
+                        "bokeh_grid_label_font_color": self.bokeh_grid_label_font_color,
+                        "bokeh_grid_label_x_pos": self.bokeh_grid_label_x_pos,
+                        "bokeh_grid_label_y_pos": self.bokeh_grid_label_y_pos,
+                    }
+                )
+            elif _plot_type == "waterfall":
+                config.update(
+                    {
+                        "bokeh_waterfall_increment": self.bokeh_waterfall_increment,
+                        "bokeh_waterfall_fill_under": self.bokeh_waterfall_fill_under,
+                        "bokeh_waterfall_fill_alpha": self.bokeh_waterfall_fill_alpha,
+                    }
+                )
+            elif _plot_type == "annotation":
+                config.update(
+                    {
+                        "bokeh_annotation_font_size": self.bokeh_annotation_font_size,
+                        "bokeh_annotation_font_weight": self.bokeh_annotation_font_weight,
+                        "bokeh_annotation_font_color": self.bokeh_annotation_font_color,
+                        "bokeh_annotation_font_background_color": self.bokeh_annotation_font_background_color,
+                        "bokeh_annotation_font_transparency": self.bokeh_annotation_font_transparency,
+                    }
+                )
+
         return config
 
     def _get_config_parameters(self, config: Dict) -> Dict:

@@ -38,6 +38,7 @@ from origami.widgets.interactive.utilities import DIV_STYLE
 from origami.widgets.interactive.utilities import PUB_EVENT_LAYOUT_ADD
 from origami.widgets.interactive.utilities import PUB_EVENT_PLOT_ORDER
 from origami.widgets.interactive.utilities import PUB_EVENT_TAB_REMOVE
+from origami.widgets.interactive.utilities import PUB_EVENT_CONFIG_UPDATE
 from origami.widgets.interactive.utilities import PUB_EVENT_LAYOUT_REMOVE
 from origami.widgets.interactive.utilities import PUB_EVENT_LAYOUT_UPDATE
 from origami.widgets.interactive.panel_layout import PanelLayoutEditor
@@ -155,20 +156,27 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
         pub.subscribe(self.evt_tab_choice_remove, PUB_EVENT_TAB_REMOVE)
         pub.subscribe(self.evt_plot_order_update, PUB_EVENT_PLOT_ORDER)
 
-    def on_close(self, evt, force: bool = False):
+    def on_close(self, evt, force: bool = False):  # noqa
         """Close window"""
-        try:
-            pub.unsubscribe(self.evt_layout_choice_add, PUB_EVENT_LAYOUT_ADD)
-            pub.unsubscribe(self.evt_layout_choice_remove, PUB_EVENT_LAYOUT_REMOVE)
-            pub.unsubscribe(self.evt_layout_choice_update, PUB_EVENT_LAYOUT_UPDATE)
-            pub.unsubscribe(self.evt_tab_choice_remove, PUB_EVENT_TAB_REMOVE)
-            pub.unsubscribe(self.evt_plot_order_update, PUB_EVENT_PLOT_ORDER)
-            LOGGER.debug("Unsubscribed from events")
-        except Exception as err:
-            LOGGER.error("Failed to unsubscribe events: %s" % err)
+        self.Hide()
 
-        self._dataset_mixin_teardown()
-        super(PanelInteractiveEditor, self).on_close(evt, force)
+    #         try:
+    #             pub.unsubscribe(self.evt_layout_choice_add, PUB_EVENT_LAYOUT_ADD)
+    #             pub.unsubscribe(self.evt_layout_choice_remove, PUB_EVENT_LAYOUT_REMOVE)
+    #             pub.unsubscribe(self.evt_layout_choice_update, PUB_EVENT_LAYOUT_UPDATE)
+    #             pub.unsubscribe(self.evt_tab_choice_remove, PUB_EVENT_TAB_REMOVE)
+    #             pub.unsubscribe(self.evt_plot_order_update, PUB_EVENT_PLOT_ORDER)
+    #             LOGGER.debug("Unsubscribed from events")
+    #         except Exception as err:
+    #             LOGGER.error("Failed to unsubscribe events: %s" % err)
+    #
+    #         # remove dataset mixins
+    #         self._dataset_mixin_teardown()
+    #
+    #         # remove
+    #         self.plot_settings.OnDestroy(None)
+    #
+    #         super(PanelInteractiveEditor, self).on_close(evt, force)
 
     def make_gui(self):
         """Make UI"""
@@ -399,9 +407,16 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
 
     def on_customise_plot(self, _evt):
         """Customise plot parameters"""
-        show = self.plot_settings.IsShown()
-        self.plot_settings.Show(not show)
+        self.plot_settings.SetMinSize((375, -1))
         self.Layout()
+        return
+        show = not self.plot_settings.IsShown()
+        self.plot_settings.Show(show)
+        self.Layout()
+        if show:
+            item_info = self.on_get_item_information()
+            config = self.on_get_bokeh_config(item_info["document_title"], item_info["dataset_name"])
+            pub.sendMessage(PUB_EVENT_CONFIG_UPDATE, config=config)
 
     def on_batch_apply(self, evt):
         """Batch-apply some user-selected restrictions"""
@@ -615,13 +630,13 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
         """Select item in the table and populate its contents"""
         self._disable_table_update = True
         if hasattr(evt, "GetIndex"):
+            # needs to be before item id is changed
+            if self.peaklist.item_id is not None:
+                self.on_update_bokeh_config()
             self.peaklist.item_id = evt.GetIndex()
 
         # get metadata contained within the table
         item_info = self.on_get_item_information()
-
-        # get metadata contained within the layout file
-        # metadata = self.get_plot_object_metadata(item_info)
 
         # update elements
         self.document_title_value.SetLabel(item_info["document_title"])
@@ -631,6 +646,12 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
         self.div_footer.SetValue(item_info["div_footer"])
         self.tab_layout_value.SetStringSelection(item_info["layout"])
         self._current_item = item_info["tag"]
+
+        # update config
+        if self.plot_settings.IsShown():
+            config = self.on_get_bokeh_config(item_info["document_title"], item_info["dataset_name"])
+            pub.sendMessage(PUB_EVENT_CONFIG_UPDATE, config=config)
+
         self._disable_table_update = False
 
     def get_plots_for_layout(self, layout_name: str) -> List[Dict[str, Any]]:
@@ -673,6 +694,11 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
         self._validate_item(item_id)
         self._parse_evt(evt)
 
+    def on_set_item_list(self, item_list):
+        """Populate item list"""
+        self.item_list = item_list
+        self.on_populate_item_list(None)
+
     def on_populate_item_list(self, _evt):
         """Populate item list"""
         item_list = self.item_list
@@ -696,10 +722,10 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
         return tab_name, tag_name
 
     @staticmethod
-    def get_data_obj(document_title: str, dataset_name: str):
+    def get_data_obj(document_title: str, dataset_name: str, quick: bool = False):
         """Get data object"""
         document = ENV.on_get_document(document_title)
-        return document[dataset_name, True]
+        return document[dataset_name, True, quick]
 
     def get_tab_object(self, item_info: Dict) -> Tab:
         """Get tab object based on what is in the table"""
@@ -817,13 +843,71 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
             if idx != -1:
                 self.peaklist.set_text(idx, TableColumnIndex.order, str(order))
 
+    def on_check_bokeh_config(self, document_title: str, dataset_name: str, config: Dict):
+        """Validate bokeh config"""
+        # get data object
+        data_obj = self.get_data_obj(document_title, dataset_name, True)
+        if data_obj is None:
+            return False
+        _config = self.on_get_bokeh_config(document_title, dataset_name)
+
+        need_update = False
+        for key in config:
+            if key not in _config:
+                _config[key] = config[key]
+                need_update = True
+        if need_update:
+            self.on_set_bokeh_config(document_title, dataset_name, config)
+        return True
+
+    def on_set_bokeh_config(self, document_title: str, dataset_name: str, config: Dict = None):
+        """Validate bokeh config"""
+        # get data object
+        data_obj = self.get_data_obj(document_title, dataset_name, True)
+        if data_obj is None:
+            return
+        if config:
+            config = self._on_get_config()
+        return data_obj.add_metadata("bokeh", config)
+
+    def on_get_bokeh_config(self, document_title: str, dataset_name: str):
+        """Validate bokeh config"""
+        # get data object
+        data_obj = self.get_data_obj(document_title, dataset_name, True)
+        if data_obj is None:
+            return dict()
+        return data_obj.get_metadata("bokeh")
+
+    @staticmethod
+    def _on_get_config():
+        """Get default config"""
+        keys = CONFIG.get_bokeh_parameters(None, get_keys=True)  # noqa
+        config = CONFIG.get_bokeh_parameters(keys)  # noqa
+        return config
+
+    def on_update_bokeh_config(self):
+        """Update bokeh config in the object"""
+        item_info = self.on_get_item_information()
+        data_obj = self.get_data_obj(item_info["document_title"], item_info["dataset_name"], True)
+        if data_obj is None:
+            return
+        config = self.plot_settings.get_config()
+        data_obj.update_metadata("bokeh", config)
+
     def _on_populate_item_list(self, item_list: List[str]):
         """Populate table with items"""
 
+        # get base config - do it here so its more efficient
+        config = self._on_get_config()
         for item in item_list:
             # get document and dataset information
             dataset_name, document_title, tag = item
             dataset_type, name = dataset_name.split("/")
+
+            # set config
+            has_config = self.on_check_bokeh_config(document_title, dataset_name, config)
+            if not has_config:
+                self.on_set_bokeh_config(document_title, dataset_name)
 
             # add to table
             self.on_add_to_table(

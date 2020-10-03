@@ -10,7 +10,6 @@ from origami.widgets.interactive.panel_layout import PanelLayoutBuilder
 
 from ...wxtc import WidgetTestCase
 
-
 # @pytest.mark.guitest
 # class TestPanelLayoutEditor(WidgetTestCase):
 #     """Test dialog"""

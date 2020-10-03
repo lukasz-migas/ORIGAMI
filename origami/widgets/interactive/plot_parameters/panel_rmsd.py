@@ -5,7 +5,7 @@ import wx
 # Local imports
 from origami.gui_elements.helpers import make_checkbox
 from origami.gui_elements.helpers import make_static_text
-from origami.gui_elements.plot_parameters.panel_base import PanelSettingsBase
+from origami.widgets.interactive.plot_parameters.panel_base import PanelSettingsBase
 
 
 class PanelRMSDSettings(PanelSettingsBase):
@@ -81,7 +81,7 @@ class PanelRMSDSettings(PanelSettingsBase):
             return
         self._parse_evt(evt)
 
-    def _on_set_config(self):
+    def _on_set_config(self, config):
         """Update values in the application based on config values"""
         self.import_evt = True
         self.import_evt = False

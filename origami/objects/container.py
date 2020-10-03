@@ -117,11 +117,29 @@ class ContainerBase:
         """Returns the path to the container object data and metadata"""
         return self._path
 
-    def set_metadata(self, metadata):
+    def has_metadata(self, key):
+        """Checks whether key is present in the data object"""
+        return key in self._metadata
+
+    def set_metadata(self, metadata, flush: bool = True):
         """Updates the metadata store"""
         if not isinstance(metadata, dict):
             raise ValueError("Cannot parse metadata that is not a dictionary")
         self._metadata.update(**metadata)
+        if flush:
+            self.flush_metadata()
+
+    def update_metadata(self, key: str, metadata, flush: bool = True):
+        """Updates the metadata store"""
+        if key not in self._metadata:
+            return
+        if isinstance(metadata, dict):
+            self._metadata[key].update(**metadata)
+        else:
+            self._metadata[key] = metadata
+
+        if flush:
+            self.flush_metadata()
 
     def get_metadata(self, key, default=None):
         """Return metadata"""

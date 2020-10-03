@@ -196,11 +196,11 @@ class PanelCustomiseInteractivePlot(wx.MiniFrame):
             size=(50, -1),
             value=str(
                 self.kwargs.get("overlay_properties", {}).get(
-                    "grid_label_fontsize", self.config.interactive_grid_label_size
+                    "grid_label_fontsize", self.config.bokeh_grid_label_font_size
                 )
             ),
             initial=self.kwargs.get("overlay_properties", {}).get(
-                "grid_label_fontsize", self.config.interactive_grid_label_size
+                "grid_label_fontsize", self.config.bokeh_grid_label_font_size
             ),
         )
         self.overlay_grid_fontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_overlay)
@@ -208,7 +208,7 @@ class PanelCustomiseInteractivePlot(wx.MiniFrame):
         self.overlay_grid_fontWeight_value = make_checkbox(panel, "bold")
         self.overlay_grid_fontWeight_value.SetValue(
             self.kwargs.get("overlay_properties", {}).get(
-                "grid_label_fontweight", self.config.interactive_grid_label_weight
+                "grid_label_fontweight", self.config.bokeh_grid_label_font_weight
             )
         )
         self.overlay_grid_fontWeight_value.Bind(wx.EVT_CHECKBOX, self.on_apply_overlay)
@@ -220,7 +220,7 @@ class PanelCustomiseInteractivePlot(wx.MiniFrame):
         self.overlay_grid_label_colorBtn.SetBackgroundColour(
             convert_rgb_1_to_255(
                 self.kwargs.get("overlay_properties", {}).get(
-                    "grid_label_color", self.config.interactive_annotation_color
+                    "grid_label_color", self.config.bokeh_annotation_font_color
                 )
             )
         )
@@ -236,11 +236,11 @@ class PanelCustomiseInteractivePlot(wx.MiniFrame):
             size=(50, -1),
             value=str(
                 self.kwargs.get("overlay_properties", {}).get(
-                    "grid_position_offset_x", self.config.interactive_ms_annotations_offsetX
+                    "grid_position_offset_x", self.config.bokeh_labels_label_offset_x
                 )
             ),
             initial=self.kwargs.get("overlay_properties", {}).get(
-                "grid_position_offset_x", self.config.interactive_ms_annotations_offsetX
+                "grid_position_offset_x", self.config.bokeh_labels_label_offset_x
             ),
         )
         self.overlay_grid_xpos_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_overlay)
@@ -255,11 +255,11 @@ class PanelCustomiseInteractivePlot(wx.MiniFrame):
             size=(50, -1),
             value=str(
                 self.kwargs.get("overlay_properties", {}).get(
-                    "grid_position_offset_y", self.config.interactive_ms_annotations_offsetY
+                    "grid_position_offset_y", self.config.bokeh_labels_label_offset_y
                 )
             ),
             initial=self.kwargs.get("overlay_properties", {}).get(
-                "grid_position_offset_y", self.config.interactive_ms_annotations_offsetY
+                "grid_position_offset_y", self.config.bokeh_labels_label_offset_y
             ),
         )
         self.overlay_grid_ypos_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply_overlay)

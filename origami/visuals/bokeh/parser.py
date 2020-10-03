@@ -67,6 +67,25 @@ MATCHES = {
     "bokeh_line_fill_under": "bokeh_line_fill_under",
     "bokeh_line_fill_alpha": "fill_alpha",
     "bokeh_line_color": "fill_color",
+    # heatmap
+    "bokeh_heatmap_colormap": "colormap",
+    # grid
+    "bokeh_grid_label_add": "bokeh_grid_label_add",
+    "bokeh_grid_label_font_size": "bokeh_grid_label_font_size",
+    "bokeh_grid_label_font_weight": "bokeh_grid_label_font_weight",
+    "bokeh_grid_label_font_color": "bokeh_grid_label_font_color",
+    "bokeh_grid_label_x_pos": "bokeh_grid_label_x_pos",
+    "bokeh_grid_label_y_pos": "bokeh_grid_label_y_pos",
+    # waterfall
+    "bokeh_waterfall_increment": "bokeh_waterfall_increment",
+    "bokeh_waterfall_fill_under": "bokeh_waterfall_fill_under",
+    "bokeh_waterfall_fill_alpha": "bokeh_waterfall_fill_alpha",
+    # waterfall
+    "bokeh_annotation_font_size": "bokeh_annotation_font_size",
+    "bokeh_annotation_font_weight": "bokeh_annotation_font_weight",
+    "bokeh_annotation_font_color": "bokeh_annotation_font_color",
+    "bokeh_annotation_font_background_color": "bokeh_annotation_font_background_color",
+    "bokeh_annotation_font_transparency": "bokeh_annotation_font_transparency",
 }
 
 

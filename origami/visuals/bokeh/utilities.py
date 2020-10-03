@@ -119,6 +119,10 @@ def _add_colorbar(figure, array, color_mapper, modify_ticks=False, as_percentage
             use_scientific=get_param("bokeh_colorbar_use_scientific", **kwargs),
         )
 
+    location, label_align = "right", "left"
+    if orientation == "horizontal":
+        location, label_align = "below", "center"
+
     colorbar = ColorBar(
         color_mapper=color_mapper,
         ticker=ticker,
@@ -142,9 +146,8 @@ def _add_colorbar(figure, array, color_mapper, modify_ticks=False, as_percentage
             get_param("bokeh_colorbar_edge_color", **kwargs), as_integer=True, as_tuple=True
         ),
         minor_tick_line_width=get_param("bokeh_colorbar_edge_width", **kwargs),
-        major_label_text_align="left",  # get_param("bokeh_colorbar_label_offset", **kwargs),  # todo
+        major_label_text_align=label_align,  # get_param("bokeh_colorbar_label_offset", **kwargs),  # todo
         major_label_text_font_size=parse_font_size(get_param("bokeh_colorbar_label_font_size", **kwargs)),
         major_label_text_font_style=parse_font_weight(get_param("bokeh_colorbar_label_weight", **kwargs)),
     )
-
-    figure.add_layout(colorbar, get_param("bokeh_colorbar_location", **kwargs))
+    figure.add_layout(colorbar, location)

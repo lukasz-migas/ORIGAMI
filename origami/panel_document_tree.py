@@ -1484,10 +1484,12 @@ class DocumentTree(wx.TreeCtrl):
         # get list of items
         item_dict = QUERY_HANDLER.generate_item_dict_all("interactive")
         item_list = QUERY_HANDLER.item_dict_to_list(item_dict)
-
-        self._interactive_editor_panel = PanelInteractiveEditor(
-            self.view, self.presenter, self._icons, item_list=item_list
-        )
+        if self._interactive_editor_panel:
+            self._interactive_editor_panel.on_set_item_list(item_list)
+        else:
+            self._interactive_editor_panel = PanelInteractiveEditor(
+                self.view, self.presenter, self._icons, item_list=item_list
+            )
         self._interactive_editor_panel.Show()
 
     def on_open_lesa_viewer(self, _):

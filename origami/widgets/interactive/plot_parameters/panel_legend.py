@@ -1,19 +1,22 @@
 """Legend panel"""
+# Standard library imports
+from typing import Dict
+
 # Third-party imports
 import wx
 
 # Local imports
 from origami.config.config import CONFIG
 from origami.gui_elements.helpers import make_static_text
-from origami.gui_elements.plot_parameters.panel_base import PanelSettingsBase
+from origami.widgets.interactive.plot_parameters.panel_base import PanelSettingsBase
 
 
 class PanelLegendSettings(PanelSettingsBase):
     """General settings"""
 
     # ui elements
-    legend_legend, legend_position, legend_orientation, legend_fontsize = None, None, None, None
-    legend_transparency, legend_click_policy, legend_mute_transparency = None, None, None
+    bokeh_legend, bokeh_legend_location, bokeh_legend_orientation, bokeh_legend_font_size = None, None, None, None
+    bokeh_legend_background_alpha, bokeh_legend_click_policy, bokeh_legend_mute_alpha = None, None, None
 
     def __init__(self, parent, view):
         PanelSettingsBase.__init__(self, parent, view)
@@ -22,59 +25,61 @@ class PanelLegendSettings(PanelSettingsBase):
         """Make RMSD/RMSF/Matrix panel"""
 
         legend_legend = make_static_text(self, "Legend:")
-        self.legend_legend = wx.CheckBox(self, -1, "", (15, 30))
-        self.legend_legend.Bind(wx.EVT_CHECKBOX, self.on_apply)
+        self.bokeh_legend = wx.CheckBox(self, -1, "", (15, 30))
+        self.bokeh_legend.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         legend_position = make_static_text(self, "Position:")
-        self.legend_position = wx.ComboBox(self, -1, style=wx.CB_READONLY, choices=CONFIG.bokeh_legend_location_choices)
-        self.legend_position.Bind(wx.EVT_COMBOBOX, self.on_apply)
+        self.bokeh_legend_location = wx.ComboBox(
+            self, -1, style=wx.CB_READONLY, choices=CONFIG.bokeh_legend_location_choices
+        )
+        self.bokeh_legend_location.Bind(wx.EVT_COMBOBOX, self.on_apply)
 
         legend_orientation = make_static_text(self, "Orientation:")
-        self.legend_orientation = wx.ComboBox(
+        self.bokeh_legend_orientation = wx.ComboBox(
             self, -1, style=wx.CB_READONLY, choices=CONFIG.bokeh_legend_orientation_choices
         )
-        self.legend_orientation.Bind(wx.EVT_COMBOBOX, self.on_apply)
+        self.bokeh_legend_orientation.Bind(wx.EVT_COMBOBOX, self.on_apply)
 
         legend_fontsize = make_static_text(self, "Font size:")
-        self.legend_fontsize = wx.SpinCtrlDouble(self, wx.ID_ANY, min=0, max=32, inc=2, size=(50, -1))
-        self.legend_fontsize.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
+        self.bokeh_legend_font_size = wx.SpinCtrlDouble(self, wx.ID_ANY, min=0, max=32, inc=2, size=(50, -1))
+        self.bokeh_legend_font_size.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         legend_transparency = make_static_text(self, "Legend transparency:")
-        self.legend_transparency = wx.SpinCtrlDouble(self, wx.ID_ANY, min=0, max=1, inc=0.25, size=(50, -1))
-        self.legend_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
+        self.bokeh_legend_background_alpha = wx.SpinCtrlDouble(self, wx.ID_ANY, min=0, max=1, inc=0.25, size=(50, -1))
+        self.bokeh_legend_background_alpha.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         legend_click_policy = make_static_text(self, "Action:")
-        self.legend_click_policy = wx.ComboBox(
+        self.bokeh_legend_click_policy = wx.ComboBox(
             self, -1, choices=CONFIG.bokeh_legend_click_policy_choices, style=wx.CB_READONLY
         )
-        self.legend_click_policy.Bind(wx.EVT_COMBOBOX, self.on_apply)
+        self.bokeh_legend_click_policy.Bind(wx.EVT_COMBOBOX, self.on_apply)
 
         legend_mute_transparency = make_static_text(self, "Line transparency:")
-        self.legend_mute_transparency = wx.SpinCtrlDouble(self, min=0, max=1, inc=0.25, size=(50, -1))
-        self.legend_mute_transparency.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
+        self.bokeh_legend_mute_alpha = wx.SpinCtrlDouble(self, min=0, max=1, inc=0.25, size=(50, -1))
+        self.bokeh_legend_mute_alpha.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         grid = wx.GridBagSizer(2, 2)
         n = 0
         grid.Add(legend_legend, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.legend_legend, (n, 1), flag=wx.ALIGN_LEFT)
+        grid.Add(self.bokeh_legend, (n, 1), flag=wx.ALIGN_LEFT)
         n += 1
         grid.Add(legend_position, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.legend_position, (n, 1), flag=wx.EXPAND)
+        grid.Add(self.bokeh_legend_location, (n, 1), flag=wx.EXPAND)
         n += 1
         grid.Add(legend_orientation, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.legend_orientation, (n, 1), flag=wx.EXPAND)
+        grid.Add(self.bokeh_legend_orientation, (n, 1), flag=wx.EXPAND)
         n += 1
         grid.Add(legend_fontsize, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.legend_fontsize, (n, 1), flag=wx.EXPAND)
+        grid.Add(self.bokeh_legend_font_size, (n, 1), flag=wx.EXPAND)
         n += 1
         grid.Add(legend_transparency, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.legend_transparency, (n, 1), flag=wx.EXPAND)
+        grid.Add(self.bokeh_legend_background_alpha, (n, 1), flag=wx.EXPAND)
         n += 1
         grid.Add(legend_click_policy, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.legend_click_policy, (n, 1), flag=wx.EXPAND)
+        grid.Add(self.bokeh_legend_click_policy, (n, 1), flag=wx.EXPAND)
         n += 1
         grid.Add(legend_mute_transparency, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.legend_mute_transparency, (n, 1), flag=wx.EXPAND)
+        grid.Add(self.bokeh_legend_mute_alpha, (n, 1), flag=wx.EXPAND)
 
         # pack elements
         main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -90,9 +95,38 @@ class PanelLegendSettings(PanelSettingsBase):
             return
         self._parse_evt(evt)
 
-    def _on_set_config(self):
+    def get_config(self) -> Dict:
+        """Get configuration data"""
+        if self.import_evt:
+            return dict()
+        return {
+            "bokeh_legend": self.bokeh_legend.GetValue(),
+            "bokeh_legend_click_policy": self.bokeh_legend_click_policy.GetValue(),
+            "bokeh_legend_location": self.bokeh_legend_location.GetStringSelection(),
+            "bokeh_legend_mute_alpha": self.bokeh_legend_mute_alpha.GetValue(),
+            "bokeh_legend_background_alpha": self.bokeh_legend_background_alpha.GetValue(),
+            "bokeh_legend_orientation": self.bokeh_legend_orientation.GetStringSelection(),
+            "bokeh_legend_font_size": self.bokeh_legend_font_size.GetValue(),
+        }
+
+    def _on_set_config(self, config):
         """Update values in the application based on config values"""
         self.import_evt = True
+
+        # line parameters
+        self.bokeh_legend.SetValue(config.get("bokeh_legend", CONFIG.bokeh_legend))
+        self.bokeh_legend_click_policy.SetStringSelection(
+            config.get("bokeh_legend_click_policy", CONFIG.bokeh_legend_click_policy)
+        )
+        self.bokeh_legend_location.SetStringSelection(config.get("bokeh_legend_location", CONFIG.bokeh_legend_location))
+        self.bokeh_legend_mute_alpha.SetValue(config.get("bokeh_legend_mute_alpha", CONFIG.bokeh_legend_mute_alpha))
+        self.bokeh_legend_background_alpha.SetValue(
+            config.get("bokeh_legend_background_alpha", CONFIG.bokeh_legend_background_alpha)
+        )
+        self.bokeh_legend_orientation.SetStringSelection(
+            config.get("bokeh_legend_orientation", CONFIG.bokeh_legend_orientation)
+        )
+        self.bokeh_legend_font_size.SetValue(config.get("bokeh_legend_font_size", CONFIG.bokeh_legend_font_size))
         self.import_evt = False
 
 

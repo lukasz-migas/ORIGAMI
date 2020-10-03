@@ -412,7 +412,7 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin):
         self.patch_height = wx.TextCtrl(panel, -1, "", validator=Validator("float"))
 
         self.patch_color_btn = wx.Button(panel, wx.ID_ANY, "", size=wx.Size(26, 26), name="patch_color")
-        self.patch_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.interactive_ms_annotations_color))
+        self.patch_color_btn.SetBackgroundColour(convert_rgb_1_to_255(CONFIG.bokeh_labels_patch_color))
 
         self.add_patch_to_peak = make_checkbox(panel, "", name="patch_show")
         self.add_patch_to_peak.SetValue(False)

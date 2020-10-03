@@ -106,6 +106,13 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin):
         self.CenterOnParent()
         logger.info(f"Start-up took {report_time(t_start)}")
 
+    def OnDestroy(self, evt):  # noqa
+        """Called just before the panel is destroyed so we can cleanup"""
+        for panel in self.PAGES:
+            panel.config_mixin_teardown()
+        if evt:
+            evt.Skip()
+
     @property
     def data_handling(self):
         """Return handle to `data_processing`"""
@@ -274,6 +281,13 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin):
         self.Layout()
         self.SetFocus()
         self.Show()
+
+    def get_config(self):
+        """Get configuration data"""
+        config = dict()
+        for panel in self.PAGES:
+            config.update(panel.get_config())
+        return config
 
 
 if __name__ == "__main__":

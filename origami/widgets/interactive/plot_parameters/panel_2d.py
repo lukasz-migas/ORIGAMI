@@ -1,17 +1,21 @@
 """Legend panel"""
+# Standard library imports
+from typing import Dict
+
 # Third-party imports
 import wx
 
 # Local imports
 from origami.config.config import CONFIG
 from origami.gui_elements.helpers import make_static_text
-from origami.gui_elements.plot_parameters.panel_base import PanelSettingsBase
+from origami.widgets.interactive.plot_parameters.panel_base import PanelSettingsBase
 
 
 class Panel2dSettings(PanelSettingsBase):
     """General settings"""
 
     # ui elements
+    heatmap_colormap = None
 
     def __init__(self, parent, view):
         PanelSettingsBase.__init__(self, parent, view)
@@ -36,26 +40,22 @@ class Panel2dSettings(PanelSettingsBase):
         main_sizer.Fit(self)
         self.SetSizer(main_sizer)
 
-    def on_assign_color(self, evt):
-        """Update color"""
-        # get color
-
-        # source, color_255, color_1 = self._on_assign_color(evt)
-
-        # # update configuration and button color
-        # if source == "1d.marker.fill":
-        #     CONFIG.marker_fill_color = color_1
-        #     self.plot1d_marker_color_btn.SetBackgroundColour(color_255)
-
     def on_apply(self, evt):
         """Apply other parameters"""
         if self.import_evt:
             return
         self._parse_evt(evt)
 
-    def _on_set_config(self):
+    def get_config(self) -> Dict:
+        """Get configuration data"""
+        if self.import_evt:
+            return dict()
+        return {"bokeh_heatmap_colormap": self.heatmap_colormap.GetStringSelection()}
+
+    def _on_set_config(self, config):
         """Update values in the application based on config values"""
         self.import_evt = True
+        self.heatmap_colormap.SetStringSelection(config.get("bokeh_heatmap_colormap", CONFIG.bokeh_heatmap_colormap))
         self.import_evt = False
 
 

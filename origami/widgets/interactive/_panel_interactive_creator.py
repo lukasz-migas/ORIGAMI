@@ -1578,22 +1578,22 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.notationSlider = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
-            value=str(self.config.interactive_annotation_fontSize),
+            value=str(self.config.bokeh_annotation_font_size),
             min=8,
             max=32,
-            initial=self.config.interactive_annotation_fontSize,
+            initial=self.config.bokeh_annotation_font_size,
             inc=1,
             size=(50, -1),
         )
         self.notationBoldCheck = make_checkbox(panel, "Bold")
-        self.notationBoldCheck.SetValue(self.config.interactive_annotation_weight)
+        self.notationBoldCheck.SetValue(self.config.bokeh_annotation_font_weight)
 
         interactive_annotation_color_label = make_static_text(panel, "Font")
         self.interactive_annotation_colorBtn = wx.Button(
             panel, ID_changeColorNotationInteractive, "", wx.DefaultPosition, wx.Size(26, 26), 0
         )
         self.interactive_annotation_colorBtn.SetBackgroundColour(
-            convert_rgb_1_to_255(self.config.interactive_annotation_color)
+            convert_rgb_1_to_255(self.config.bokeh_annotation_font_color)
         )
 
         interactive_annotation_background_color_label = make_static_text(panel, "Background")
@@ -1601,17 +1601,17 @@ class PanelInteractiveCreator(wx.MiniFrame):
             panel, ID_changeColorBackgroundNotationInteractive, "", wx.DefaultPosition, wx.Size(26, 26), 0
         )
         self.interactive_annotation_colorBackgroundBtn.SetBackgroundColour(
-            convert_rgb_1_to_255(self.config.interactive_annotation_background_color)
+            convert_rgb_1_to_255(self.config.bokeh_annotation_font_background_color)
         )
 
         interactive_transparency_label = make_static_text(panel, "Transparency")
         self.rmsd_label_transparency = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
-            value=str(self.config.interactive_annotation_alpha),
+            value=str(self.config.bokeh_annotation_font_transparency),
             min=0,
             max=1,
-            initial=self.config.interactive_annotation_alpha,
+            initial=self.config.bokeh_annotation_font_transparency,
             inc=0.1,
             size=(50, -1),
         )
@@ -1790,7 +1790,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.bar_edgeColorBtn.Bind(wx.EVT_BUTTON, self.on_change_color)
 
         self.bar_colorEdge_check = make_checkbox(panel, "Same as fill")
-        self.bar_colorEdge_check.SetValue(self.config.bar_edge_same_as_fill)
+        self.bar_colorEdge_check.SetValue(self.config.bokeh_bar_edge_same_as_fill)
         self.bar_colorEdge_check.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         bar_grid = wx.GridBagSizer(2, 2)
@@ -1935,21 +1935,21 @@ class PanelInteractiveCreator(wx.MiniFrame):
         figSizer = wx.StaticBoxSizer(mainBox, wx.HORIZONTAL)
 
         self.annot_peakLabel = wx.CheckBox(panel, -1, "Label peak", (15, 30))
-        self.annot_peakLabel.SetValue(self.config.interactive_ms_annotations_labels)
+        self.annot_peakLabel.SetValue(self.config.bokeh_labels_label_show)
         self.annot_peakLabel.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         self.annot_peakHighlight = wx.CheckBox(panel, -1, "Highlight peak", (15, 30))
-        self.annot_peakHighlight.SetValue(self.config.interactive_ms_annotations_highlight)
+        self.annot_peakHighlight.SetValue(self.config.bokeh_labels_patch_show)
         self.annot_peakHighlight.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         annot_xpos_label = make_static_text(panel, "Offset X:")
         self.annot_xpos_value = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
-            value=str(self.config.interactive_ms_annotations_offsetX),
+            value=str(self.config.bokeh_labels_label_offset_x),
             min=-100,
             max=100,
-            initial=self.config.interactive_ms_annotations_offsetX,
+            initial=self.config.bokeh_labels_label_offset_x,
             inc=5,
             size=(50, -1),
         )
@@ -1959,10 +1959,10 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.annot_ypos_value = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
-            value=str(self.config.interactive_ms_annotations_offsetY),
+            value=str(self.config.bokeh_labels_label_offset_y),
             min=-100,
             max=100,
-            initial=self.config.interactive_ms_annotations_offsetY,
+            initial=self.config.bokeh_labels_label_offset_y,
             inc=5,
             size=(50, -1),
         )
@@ -1972,10 +1972,10 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.annot_rotation_value = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
-            value=str(self.config.interactive_ms_annotations_rotation),
+            value=str(self.config.bokeh_labels_label_rotation),
             min=0,
             max=180,
-            initial=self.config.interactive_ms_annotations_rotation,
+            initial=self.config.bokeh_labels_label_rotation,
             inc=45,
             size=(50, -1),
         )
@@ -1985,26 +1985,24 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.annot_fontSize_value = wx.SpinCtrlDouble(
             panel,
             wx.ID_ANY,
-            value=str(self.config.interactive_ms_annotations_fontSize),
+            value=str(self.config.bokeh_labels_label_font_size),
             min=0,
             max=32,
-            initial=self.config.interactive_ms_annotations_fontSize,
+            initial=self.config.bokeh_labels_label_font_size,
             inc=2,
             size=(50, -1),
         )
         self.annot_fontSize_value.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
         self.annot_fontWeight_value = make_checkbox(panel, "Bold")
-        self.annot_fontWeight_value.SetValue(self.config.interactive_ms_annotations_fontWeight)
+        self.annot_fontWeight_value.SetValue(self.config.bokeh_labels_label_font_weight)
         self.annot_fontWeight_value.Bind(wx.EVT_CHECKBOX, self.on_apply)
 
         annot_fontColor_label = make_static_text(panel, "Color:")
         self.annot_fontColor_colorBtn = wx.Button(
             panel, ID_changeColorAnnotLabelInteractive, "", wx.DefaultPosition, wx.Size(26, 26), 0
         )
-        self.annot_fontColor_colorBtn.SetBackgroundColour(
-            convert_rgb_1_to_255(self.config.interactive_ms_annotations_label_color)
-        )
+        self.annot_fontColor_colorBtn.SetBackgroundColour(convert_rgb_1_to_255(self.config.bokeh_labels_label_color))
         self.annot_fontColor_colorBtn.Bind(wx.EVT_BUTTON, self.on_change_color, id=ID_changeColorAnnotLabelInteractive)
 
         gridAnnot = wx.GridBagSizer(2, 2)
@@ -2641,13 +2639,13 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.config.bokeh_scatter_edge_same_as_fill = self.scatter_color_sameAsFill.GetValue()
 
         # Annotations
-        self.config.interactive_ms_annotations_offsetX = self.annot_xpos_value.GetValue()
-        self.config.interactive_ms_annotations_offsetY = self.annot_ypos_value.GetValue()
-        self.config.interactive_ms_annotations_highlight = self.annot_peakHighlight.GetValue()
-        self.config.interactive_ms_annotations_labels = self.annot_peakLabel.GetValue()
-        self.config.interactive_ms_annotations_fontSize = self.annot_fontSize_value.GetValue()
-        self.config.interactive_ms_annotations_rotation = self.annot_rotation_value.GetValue()
-        self.config.interactive_ms_annotations_fontWeight = self.annot_fontWeight_value.GetValue()
+        self.config.bokeh_labels_label_offset_x = self.annot_xpos_value.GetValue()
+        self.config.bokeh_labels_label_offset_y = self.annot_ypos_value.GetValue()
+        self.config.bokeh_labels_patch_show = self.annot_peakHighlight.GetValue()
+        self.config.bokeh_labels_label_show = self.annot_peakLabel.GetValue()
+        self.config.bokeh_labels_label_font_size = self.annot_fontSize_value.GetValue()
+        self.config.bokeh_labels_label_rotation = self.annot_rotation_value.GetValue()
+        self.config.bokeh_labels_label_font_weight = self.annot_fontWeight_value.GetValue()
 
         # Figure size
         #         self.config.figHeight = str2int(self.figHeight_value.GetValue())
@@ -2667,9 +2665,9 @@ class PanelInteractiveCreator(wx.MiniFrame):
         self.config.bokeh_frame_label_font_size = self.labelSlider.GetValue()
         self.config.bokeh_frame_label_font_weight = self.labelBoldCheck.GetValue()
         self.config.bokeh_frame_tick_font_size = self.tickSlider.GetValue()
-        self.config.interactive_annotation_fontSize = self.notationSlider.GetValue()
-        self.config.interactive_annotation_weight = self.notationBoldCheck.GetValue()
-        self.config.interactive_annotation_alpha = self.rmsd_label_transparency.GetValue()
+        self.config.bokeh_annotation_font_size = self.notationSlider.GetValue()
+        self.config.bokeh_annotation_font_weight = self.notationBoldCheck.GetValue()
+        self.config.bokeh_annotation_font_transparency = self.rmsd_label_transparency.GetValue()
 
         # ticks parameters
         self.config.bokeh_frame_tick_use_scientific = self.tickUseScientific.GetValue()
@@ -3282,16 +3280,16 @@ class PanelInteractiveCreator(wx.MiniFrame):
                     )
                 elif evt.GetId() == ID_changeColorNotationInteractive:
                     self.interactive_annotation_colorBtn.SetBackgroundColour(newColour)
-                    self.config.interactive_annotation_color = newColour255
+                    self.config.bokeh_annotation_font_color = newColour255
                 elif evt.GetId() == ID_changeColorBackgroundNotationInteractive:
                     self.interactive_annotation_colorBackgroundBtn.SetBackgroundColour(newColour)
-                    self.config.interactive_annotation_background_color = newColour255
+                    self.config.bokeh_annotation_font_background_color = newColour255
                 elif evt.GetId() == ID_changeColorGridLabelInteractive:
                     self.interactive_grid_colorBtn.SetBackgroundColour(newColour)
-                    self.config.interactive_grid_label_color = newColour255
+                    self.config.bokeh_grid_label_font_color = newColour255
                 elif evt.GetId() == ID_changeColorAnnotLabelInteractive:
                     self.annot_fontColor_colorBtn.SetBackgroundColour(newColour)
-                    self.config.interactive_ms_annotations_label_color = newColour255
+                    self.config.bokeh_labels_label_color = newColour255
                 elif evt.GetId() == ID_interactivePanel_color_markerEdge:
                     self.scatter_marker_edge_colorBtn.SetBackgroundColour(newColour)
                     self.config.bokeh_scatter_edge_color = newColour255
@@ -4026,15 +4024,13 @@ class PanelInteractiveCreator(wx.MiniFrame):
         # get color
         label_use_preset_color = user_kwargs["annotation_properties"].get("label_use_preset_color", True)
         label_color = convert_rgb_1_to_hex(
-            user_kwargs["annotation_properties"].get("label_color", self.config.interactive_ms_annotations_line_color)
+            user_kwargs["annotation_properties"].get("label_color", self.config.bokeh_labels_line_color)
         )
 
         # add annotations iteratively
         for __, annotKey in enumerate(data["annotations"]):
             # add patches
-            if user_kwargs["annotation_properties"].get(
-                "show_patches", self.config.interactive_ms_annotations_highlight
-            ):
+            if user_kwargs["annotation_properties"].get("show_patches", self.config.bokeh_labels_patch_show):
                 annot_xmin_list.append(data["annotations"][annotKey]["min"])
                 annot_xmax_list.append(data["annotations"][annotKey]["max"])
                 annot_ymin_list.append(0)
@@ -4045,13 +4041,13 @@ class PanelInteractiveCreator(wx.MiniFrame):
                             "color",
                             data.get("interactive_params", {})
                             .get("annotation_properties", {})
-                            .get("label_color", self.config.interactive_ms_annotations_line_color),
+                            .get("label_color", self.config.bokeh_labels_line_color),
                         )
                     )
                 )
 
             # add labels
-            if user_kwargs["annotation_properties"].get("show_labels", self.config.interactive_ms_annotations_labels):
+            if user_kwargs["annotation_properties"].get("show_labels", self.config.bokeh_labels_label_show):
                 # determine position of the ion/peak
                 if "isotopic_x" in data["annotations"][annotKey]:
                     mz_value = data["annotations"][annotKey]["isotopic_x"]
@@ -4077,7 +4073,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                         data["annotations"][annotKey].get(
                             "color",
                             user_kwargs["annotation_properties"].get(
-                                "label_color", self.config.interactive_ms_annotations_line_color
+                                "label_color", self.config.bokeh_labels_line_color
                             ),
                         )
                     )
@@ -4117,7 +4113,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                     text_annot_xpos_start.append(xpos_start)
                     text_annot_ypos_start.append(ypos_start)
 
-        if user_kwargs["annotation_properties"].get("show_patches", self.config.interactive_ms_annotations_highlight):
+        if user_kwargs["annotation_properties"].get("show_patches", self.config.bokeh_labels_patch_show):
             quad_source = ColumnDataSource(
                 data=dict(
                     top=annot_ymax_list,
@@ -4127,7 +4123,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                     color=color_list,
                 )
             )
-        if user_kwargs["annotation_properties"].get("show_labels", self.config.interactive_ms_annotations_labels):
+        if user_kwargs["annotation_properties"].get("show_labels", self.config.bokeh_labels_label_show):
             ylimits[1] = max(text_annot_ypos) * 2
             label_source = ColumnDataSource(
                 data=dict(xpos=text_annot_xpos, ypos=text_annot_ypos, label=text_annot_label, color=text_annot_color)
@@ -4157,15 +4153,15 @@ class PanelInteractiveCreator(wx.MiniFrame):
         overlay_linkXY = interactive_params["overlay_linkXY"]
         legend = interactive_params["legend"]
         title_label = interactive_params.get("title_label", "")
-        xpos = interactive_params.get("grid_xpos", self.config.interactive_grid_xpos)
-        ypos = interactive_params.get("grid_ypos", self.config.interactive_grid_ypos)
-        waterfall_increment = interactive_params.get("waterfall_increment", self.config.interactive_waterfall_increment)
+        xpos = interactive_params.get("grid_xpos", self.config.bokeh_grid_label_x_pos)
+        ypos = interactive_params.get("grid_ypos", self.config.bokeh_grid_label_y_pos)
+        waterfall_increment = interactive_params.get("waterfall_increment", self.config.bokeh_waterfall_increment)
         waterfall_shade = interactive_params.get("waterfall_shade_under", False)
         waterfall_shade_transparency = interactive_params.get("waterfall_shade_transparency", 0.25)
         overlay_shade = interactive_params.get("overlay_1D_shade_under", False)
         overlay_shade_transparency = interactive_params.get("overlay_1D_shade_transparency", 0.25)
         linearize_spectra = interactive_params.get("linearize_spectra", self.config.interactive_ms_linearize)
-        show_annotations = interactive_params.get("show_annotations", self.config.interactive_ms_annotations)
+        show_annotations = interactive_params.get("show_annotations", self.config.bokeh_labels_show)
         bin_size = interactive_params.get("bin_size", self.config.interactive_ms_binSize)
         plot_width = interactive_params.get("plot_width", self.config.figWidth)
         plot_height = interactive_params.get("plot_height", self.config.figHeight)
@@ -5041,9 +5037,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
             and len(data["annotations"]) > 0
             and user_kwargs["annotation_properties"].get("show_annotations", plt_kwargs["show_annotations"])
         ):
-            if user_kwargs["annotation_properties"].get(
-                "show_patches", self.config.interactive_ms_annotations_highlight
-            ):
+            if user_kwargs["annotation_properties"].get("show_patches", self.config.bokeh_labels_patch_show):
                 bokehPlot.quad(
                     top="top",
                     bottom="bottom",
@@ -5051,13 +5045,13 @@ class PanelInteractiveCreator(wx.MiniFrame):
                     right="right",
                     color="color",
                     fill_alpha=user_kwargs["annotation_properties"].get(
-                        "patch_transparency", self.config.interactive_ms_annotations_transparency
+                        "patch_transparency", self.config.bokeh_labels_patch_alpha
                     ),
                     source=quad_source,
                     name="ignore_hover",
                 )
 
-            if user_kwargs["annotation_properties"].get("show_labels", self.config.interactive_ms_annotations_labels):
+            if user_kwargs["annotation_properties"].get("show_labels", self.config.bokeh_labels_label_show):
                 bokehPlot, labels = self._add_plot_labels(bokehPlot, data, label_source)
 
                 if arrow_source is not None:
@@ -5817,7 +5811,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                     else:
                         label_color = convert_rgb_1_to_hex(
                             user_kwargs["overlay_properties"].get(
-                                "rmsd_matrix_label_color", self.config.interactive_ms_annotations_label_color
+                                "rmsd_matrix_label_color", self.config.bokeh_labels_label_color
                             )
                         )
                     text_color.append(label_color)
@@ -6554,7 +6548,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
         _ydata = []
 
         # create empty label holders
-        if user_kwargs["annotation_properties"].get("show_labels", self.config.interactive_ms_annotations_labels):
+        if user_kwargs["annotation_properties"].get("show_labels", self.config.bokeh_labels_label_show):
             text_annot_ypos, text_annot_label = [], []
 
         # add plots
@@ -6585,9 +6579,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 data=dict(
                     xvals=xval,
                     yvals=yval
-                    + user_kwargs["plot_properties"].get(
-                        "waterfall_increment", self.config.interactive_waterfall_increment
-                    )
+                    + user_kwargs["plot_properties"].get("waterfall_increment", self.config.bokeh_waterfall_increment)
                     * i,
                     label=([_replace_labels(label)] * len(xval)),
                 )
@@ -6615,15 +6607,13 @@ class PanelInteractiveCreator(wx.MiniFrame):
             )
 
             # add underline patch
-            if user_kwargs["plot_properties"].get(
-                "waterfall_shade_under", self.config.interactive_waterfall_shade_under
-            ):
+            if user_kwargs["plot_properties"].get("waterfall_shade_under", self.config.bokeh_waterfall_fill_under):
                 patch = bokehPlot.patch(
                     "xvals",
                     "yvals",
                     color=color,
                     fill_alpha=user_kwargs["plot_properties"].get(
-                        "waterfall_shade_transparency", self.config.interactive_waterfall_shade_alpha
+                        "waterfall_shade_transparency", self.config.bokeh_waterfall_fill_alpha
                     ),
                     line_alpha=0.0,
                     source=source,
@@ -6632,20 +6622,16 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 _patches.append(patch)
 
             # add labels
-            if user_kwargs["annotation_properties"].get("show_labels", self.config.interactive_ms_annotations_labels):
+            if user_kwargs["annotation_properties"].get("show_labels", self.config.bokeh_labels_label_show):
                 text_annot_ypos.append(
-                    user_kwargs["plot_properties"].get(
-                        "waterfall_increment", self.config.interactive_waterfall_increment
-                    )
-                    * i
+                    user_kwargs["plot_properties"].get("waterfall_increment", self.config.bokeh_waterfall_increment) * i
                 )
                 text_annot_label.append(_replace_labels(label))
 
             # collect plot data for limit determination
             _ydata.extend(
                 yval
-                + user_kwargs["plot_properties"].get("waterfall_increment", self.config.interactive_waterfall_increment)
-                * i
+                + user_kwargs["plot_properties"].get("waterfall_increment", self.config.bokeh_waterfall_increment) * i
             )
             _lines.append(line)
             _original_colors.append(color)
@@ -6671,14 +6657,12 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 data,
                 yvals,
                 y_offset=user_kwargs["plot_properties"].get(
-                    "waterfall_increment", self.config.interactive_waterfall_increment
+                    "waterfall_increment", self.config.bokeh_waterfall_increment
                 )
                 * len(xvals),
             )
 
-            if user_kwargs["annotation_properties"].get(
-                "show_patches", self.config.interactive_ms_annotations_highlight
-            ):
+            if user_kwargs["annotation_properties"].get("show_patches", self.config.bokeh_labels_patch_show):
                 bokehPlot.quad(
                     top="top",
                     bottom="bottom",
@@ -6686,13 +6670,13 @@ class PanelInteractiveCreator(wx.MiniFrame):
                     right="right",
                     color="color",
                     fill_alpha=user_kwargs["annotation_properties"].get(
-                        "patch_transparency", self.config.interactive_ms_annotations_transparency
+                        "patch_transparency", self.config.bokeh_labels_patch_alpha
                     ),
                     source=quad_source,
                     name="ignore_hover",
                 )
 
-            if user_kwargs["annotation_properties"].get("show_labels", self.config.interactive_ms_annotations_labels):
+            if user_kwargs["annotation_properties"].get("show_labels", self.config.bokeh_labels_label_show):
                 bokehPlot, labels = self._add_plot_labels(bokehPlot, data, label_source, plot_type="waterfall")
 
         # setup labels
@@ -6824,9 +6808,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
                     label = ""
 
                 yOffset = (
-                    user_kwargs["plot_properties"].get(
-                        "waterfall_increment", self.config.interactive_waterfall_increment
-                    )
+                    user_kwargs["plot_properties"].get("waterfall_increment", self.config.bokeh_waterfall_increment)
                     * irow
                 )
                 label = str(yval[irow])
@@ -6860,15 +6842,13 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 )
 
                 # add underline patch
-                if user_kwargs["plot_properties"].get(
-                    "waterfall_shade_under", self.config.interactive_waterfall_shade_under
-                ):
+                if user_kwargs["plot_properties"].get("waterfall_shade_under", self.config.bokeh_waterfall_fill_under):
                     patch = bokehPlot.patch(
                         "xvals",
                         "yvals",
                         color=shade_color,
                         fill_alpha=user_kwargs["plot_properties"].get(
-                            "waterfall_shade_transparency", self.config.interactive_waterfall_shade_alpha
+                            "waterfall_shade_transparency", self.config.bokeh_waterfall_fill_alpha
                         ),
                         line_alpha=0.0,
                         source=source,
@@ -7723,26 +7703,26 @@ class PanelInteractiveCreator(wx.MiniFrame):
             text_color=convert_rgb_1_to_hex(
                 data.get("interactive_params", {})
                 .get("overlay_properties", {})
-                .get("rmsd_label_color", self.config.interactive_annotation_color)
+                .get("rmsd_label_color", self.config.bokeh_annotation_font_color)
             ),
             background_fill_color=convert_rgb_1_to_hex(
                 data.get("interactive_params", {})
                 .get("overlay_properties", {})
-                .get("rmsd_background_color", self.config.interactive_annotation_background_color)
+                .get("rmsd_background_color", self.config.bokeh_annotation_font_background_color)
             ),
             text_font_size=self._fontSizeConverter(
                 data.get("interactive_params", {})
                 .get("overlay_properties", {})
-                .get("rmsd_label_fontsize", self.config.interactive_annotation_fontSize)
+                .get("rmsd_label_fontsize", self.config.bokeh_annotation_font_size)
             ),
             text_font_style=self._fontWeightConverter(
                 data.get("interactive_params", {})
                 .get("overlay_properties", {})
-                .get("rmsd_label_fontweight", self.config.interactive_annotation_weight)
+                .get("rmsd_label_fontweight", self.config.bokeh_annotation_font_weight)
             ),
             background_fill_alpha=data.get("interactive_params", {})
             .get("overlay_properties", {})
-            .get("rmsd_background_transparency", self.config.interactive_annotation_alpha),
+            .get("rmsd_background_transparency", self.config.bokeh_annotation_font_transparency),
         )
         bokehPlot.add_layout(rmsdAnnot)
 
@@ -7756,9 +7736,9 @@ class PanelInteractiveCreator(wx.MiniFrame):
             y_units="data",
             text=label,
             render_mode="canvas",
-            text_color=convert_rgb_1_to_hex(self.config.interactive_grid_label_color),
-            text_font_size=self._fontSizeConverter(self.config.interactive_grid_label_size),
-            text_font_style=self._fontWeightConverter(self.config.interactive_grid_label_weight),
+            text_color=convert_rgb_1_to_hex(self.config.bokeh_grid_label_font_color),
+            text_font_size=self._fontSizeConverter(self.config.bokeh_grid_label_font_size),
+            text_font_style=self._fontWeightConverter(self.config.bokeh_grid_label_font_weight),
             background_fill_alpha=0,
         )
         bokehPlot.add_layout(titleAnnot)
@@ -7774,31 +7754,27 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 text="label",
                 level="glyph",
                 x_offset=user_kwargs["annotation_properties"].get(
-                    "position_offset_x", self.config.interactive_ms_annotations_offsetX
+                    "position_offset_x", self.config.bokeh_labels_label_offset_x
                 ),
                 y_offset=user_kwargs["annotation_properties"].get(
-                    "position_offset_y", self.config.interactive_ms_annotations_offsetY
+                    "position_offset_y", self.config.bokeh_labels_label_offset_y
                 ),
                 text_align="center",
                 text_font_size=self._fontSizeConverter(
-                    user_kwargs["annotation_properties"].get(
-                        "label_fontsize", self.config.interactive_ms_annotations_fontSize
-                    )
+                    user_kwargs["annotation_properties"].get("label_fontsize", self.config.bokeh_labels_label_font_size)
                 ),
                 text_font_style=self._fontWeightConverter(
                     user_kwargs["annotation_properties"].get(
-                        "label_fontweight", self.config.interactive_ms_annotations_fontWeight
+                        "label_fontweight", self.config.bokeh_labels_label_font_weight
                     )
                 ),
                 text_color=convert_rgb_1_to_255(
-                    user_kwargs["annotation_properties"].get(
-                        "label_color", self.config.interactive_ms_annotations_label_color
-                    ),
+                    user_kwargs["annotation_properties"].get("label_color", self.config.bokeh_labels_label_color),
                     as_integer=True,
                     as_tuple=True,
                 ),
                 angle=user_kwargs["annotation_properties"].get(
-                    "label_rotation", self.config.interactive_ms_annotations_rotation
+                    "label_rotation", self.config.bokeh_labels_label_rotation
                 ),
                 angle_units="deg",
                 source=label_source,
@@ -7811,25 +7787,23 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 text="label",
                 level="glyph",
                 x_offset=user_kwargs["annotation_properties"].get(
-                    "position_offset_x", self.config.interactive_ms_annotations_offsetX
+                    "position_offset_x", self.config.bokeh_labels_label_offset_x
                 ),
                 y_offset=user_kwargs["annotation_properties"].get(
-                    "position_offset_y", self.config.interactive_ms_annotations_offsetY
+                    "position_offset_y", self.config.bokeh_labels_label_offset_y
                 ),
                 text_align="center",
                 text_font_size=self._fontSizeConverter(
-                    user_kwargs["annotation_properties"].get(
-                        "label_fontsize", self.config.interactive_ms_annotations_fontSize
-                    )
+                    user_kwargs["annotation_properties"].get("label_fontsize", self.config.bokeh_labels_label_font_size)
                 ),
                 text_font_style=self._fontWeightConverter(
                     data.get("interactive_params", {})
                     .get("annotation_properties", {})
-                    .get("label_fontweight", self.config.interactive_ms_annotations_fontWeight)
+                    .get("label_fontweight", self.config.bokeh_labels_label_font_weight)
                 ),
                 text_color="color",
                 angle=user_kwargs["annotation_properties"].get(
-                    "label_rotation", self.config.interactive_ms_annotations_rotation
+                    "label_rotation", self.config.bokeh_labels_label_rotation
                 ),
                 angle_units="deg",
                 source=label_source,
@@ -7846,12 +7820,12 @@ class PanelInteractiveCreator(wx.MiniFrame):
                 y_offset=user_kwargs["overlay_properties"].get("rmsd_matrix_position_offset_y", 0),
                 text_font_size=self._fontSizeConverter(
                     user_kwargs["overlay_properties"].get(
-                        "rmsd_matrix_label_fontsize", self.config.interactive_ms_annotations_fontSize
+                        "rmsd_matrix_label_fontsize", self.config.bokeh_labels_label_font_size
                     )
                 ),
                 text_font_style=self._fontWeightConverter(
                     user_kwargs["overlay_properties"].get(
-                        "rmsd_matrix_label_fontweight", self.config.interactive_ms_annotations_fontWeight
+                        "rmsd_matrix_label_fontweight", self.config.bokeh_labels_label_font_weight
                     )
                 ),
                 text_color="text_color",
@@ -9086,17 +9060,15 @@ class PanelInteractiveCreator(wx.MiniFrame):
 
         # waterfall plots
         if "waterfall_increment" not in data["interactive_params"]["plot_properties"]:
-            data["interactive_params"]["plot_properties"][
-                "waterfall_increment"
-            ] = self.config.interactive_waterfall_increment
+            data["interactive_params"]["plot_properties"]["waterfall_increment"] = self.config.bokeh_waterfall_increment
         if "waterfall_shade_under" not in data["interactive_params"]["plot_properties"]:
             data["interactive_params"]["plot_properties"][
                 "waterfall_shade_under"
-            ] = self.config.interactive_waterfall_shade_under
+            ] = self.config.bokeh_waterfall_fill_under
         if "waterfall_shade_transparency" not in data["interactive_params"]["plot_properties"]:
             data["interactive_params"]["plot_properties"][
                 "waterfall_shade_transparency"
-            ] = self.config.interactive_waterfall_shade_alpha
+            ] = self.config.bokeh_waterfall_fill_alpha
 
         # heatmaps
         if "colormap" not in data["interactive_params"]["plot_properties"]:
@@ -9159,47 +9131,47 @@ class PanelInteractiveCreator(wx.MiniFrame):
         if "rmsd_label_fontsize" not in data["interactive_params"]["overlay_properties"]:
             data["interactive_params"]["overlay_properties"][
                 "rmsd_label_fontsize"
-            ] = self.config.interactive_annotation_fontSize
+            ] = self.config.bokeh_annotation_font_size
         if "rmsd_label_fontweight" not in data["interactive_params"]["overlay_properties"]:
             data["interactive_params"]["overlay_properties"][
                 "rmsd_label_fontweight"
-            ] = self.config.interactive_annotation_weight
+            ] = self.config.bokeh_annotation_font_weight
         if "rmsd_background_transparency" not in data["interactive_params"]["overlay_properties"]:
             data["interactive_params"]["overlay_properties"][
                 "rmsd_background_transparency"
-            ] = self.config.interactive_annotation_alpha
+            ] = self.config.bokeh_annotation_font_transparency
         if "rmsd_label_color" not in data["interactive_params"]["overlay_properties"]:
             data["interactive_params"]["overlay_properties"][
                 "rmsd_label_color"
-            ] = self.config.interactive_annotation_color
+            ] = self.config.bokeh_annotation_font_color
         if "rmsd_background_color" not in data["interactive_params"]["overlay_properties"]:
             data["interactive_params"]["overlay_properties"][
                 "rmsd_background_color"
-            ] = self.config.interactive_annotation_background_color
+            ] = self.config.bokeh_annotation_font_background_color
 
         # rmsd matrix
         if "rmsd_matrix_position_offset_x" not in data["interactive_params"]["overlay_properties"]:
             data["interactive_params"]["overlay_properties"][
                 "rmsd_matrix_position_offset_x"
-            ] = self.config.interactive_ms_annotations_offsetX
+            ] = self.config.bokeh_labels_label_offset_x
         if "rmsd_matrix_position_offset_y" not in data["interactive_params"]["overlay_properties"]:
             data["interactive_params"]["overlay_properties"][
                 "rmsd_matrix_position_offset_y"
-            ] = self.config.interactive_ms_annotations_offsetY
+            ] = self.config.bokeh_labels_label_offset_y
         if "rmsd_matrix_label_fontsize" not in data["interactive_params"]["overlay_properties"]:
             data["interactive_params"]["overlay_properties"][
                 "rmsd_matrix_label_fontsize"
-            ] = self.config.interactive_ms_annotations_fontSize
+            ] = self.config.bokeh_labels_label_font_size
         if "rmsd_matrix_label_fontweight" not in data["interactive_params"]["overlay_properties"]:
             data["interactive_params"]["overlay_properties"][
                 "rmsd_matrix_label_fontweight"
-            ] = self.config.interactive_ms_annotations_fontWeight
+            ] = self.config.bokeh_labels_label_font_weight
         if "rmsd_matrix_xaxis_rotation" not in data["interactive_params"]["overlay_properties"]:
             data["interactive_params"]["overlay_properties"]["rmsd_matrix_xaxis_rotation"] = 120
         if "rmsd_matrix_label_color" not in data["interactive_params"]["overlay_properties"]:
             data["interactive_params"]["overlay_properties"][
                 "rmsd_matrix_label_color"
-            ] = self.config.interactive_ms_annotations_label_color
+            ] = self.config.bokeh_labels_label_color
         if "rmsd_matrix_colormap" not in data["interactive_params"]["overlay_properties"]:
             color = data.get("cmap", "coolwarm")
             if not isinstance(color, str):
@@ -9232,23 +9204,23 @@ class PanelInteractiveCreator(wx.MiniFrame):
         if "grid_label_fontsize" not in data["interactive_params"]["overlay_properties"]:
             data["interactive_params"]["overlay_properties"][
                 "grid_label_fontsize"
-            ] = self.config.interactive_grid_label_size
+            ] = self.config.bokeh_grid_label_font_size
         if "grid_label_fontweight" not in data["interactive_params"]["overlay_properties"]:
             data["interactive_params"]["overlay_properties"][
                 "grid_label_fontweight"
-            ] = self.config.interactive_grid_label_weight
+            ] = self.config.bokeh_grid_label_font_weight
         if "grid_position_offset_x" not in data["interactive_params"]["overlay_properties"]:
             data["interactive_params"]["overlay_properties"][
                 "grid_position_offset_x"
-            ] = self.config.interactive_ms_annotations_offsetX
+            ] = self.config.bokeh_labels_label_offset_x
         if "grid_position_offset_y" not in data["interactive_params"]["overlay_properties"]:
             data["interactive_params"]["overlay_properties"][
                 "grid_position_offset_y"
-            ] = self.config.interactive_ms_annotations_offsetY
+            ] = self.config.bokeh_labels_label_offset_y
         if "grid_label_color" not in data["interactive_params"]["overlay_properties"]:
             data["interactive_params"]["overlay_properties"][
                 "grid_label_color"
-            ] = self.config.interactive_annotation_color
+            ] = self.config.bokeh_annotation_font_color
 
         # rmsf
         if "rmsf_line_width" not in data["interactive_params"]["overlay_properties"]:
@@ -9378,41 +9350,35 @@ class PanelInteractiveCreator(wx.MiniFrame):
         if "show_annotations" not in data["interactive_params"]["annotation_properties"]:
             data["interactive_params"]["annotation_properties"]["show_annotations"] = True
         if "show_labels" not in data["interactive_params"]["annotation_properties"]:
-            data["interactive_params"]["annotation_properties"][
-                "show_labels"
-            ] = self.config.interactive_ms_annotations_labels
+            data["interactive_params"]["annotation_properties"]["show_labels"] = self.config.bokeh_labels_label_show
         if "position_offset_x" not in data["interactive_params"]["annotation_properties"]:
             data["interactive_params"]["annotation_properties"][
                 "position_offset_x"
-            ] = self.config.interactive_ms_annotations_offsetX
+            ] = self.config.bokeh_labels_label_offset_x
         if "position_offset_y" not in data["interactive_params"]["annotation_properties"]:
             data["interactive_params"]["annotation_properties"][
                 "position_offset_y"
-            ] = self.config.interactive_ms_annotations_offsetY
+            ] = self.config.bokeh_labels_label_offset_y
         if "label_rotation" not in data["interactive_params"]["annotation_properties"]:
             data["interactive_params"]["annotation_properties"][
                 "label_rotation"
-            ] = self.config.interactive_ms_annotations_rotation
+            ] = self.config.bokeh_labels_label_rotation
         if "label_fontsize" not in data["interactive_params"]["annotation_properties"]:
             data["interactive_params"]["annotation_properties"][
                 "label_fontsize"
-            ] = self.config.interactive_ms_annotations_fontSize
+            ] = self.config.bokeh_labels_label_font_size
         if "label_fontweight" not in data["interactive_params"]["annotation_properties"]:
             data["interactive_params"]["annotation_properties"][
                 "label_fontweight"
-            ] = self.config.interactive_ms_annotations_fontWeight
+            ] = self.config.bokeh_labels_label_font_weight
         if "label_color" not in data["interactive_params"]["annotation_properties"]:
-            data["interactive_params"]["annotation_properties"][
-                "label_color"
-            ] = self.config.interactive_ms_annotations_label_color
+            data["interactive_params"]["annotation_properties"]["label_color"] = self.config.bokeh_labels_label_color
         if "show_patches" not in data["interactive_params"]["annotation_properties"]:
-            data["interactive_params"]["annotation_properties"][
-                "show_patches"
-            ] = self.config.interactive_ms_annotations_highlight
+            data["interactive_params"]["annotation_properties"]["show_patches"] = self.config.bokeh_labels_patch_show
         if "patch_transparency" not in data["interactive_params"]["annotation_properties"]:
             data["interactive_params"]["annotation_properties"][
                 "patch_transparency"
-            ] = self.config.interactive_ms_annotations_transparency
+            ] = self.config.bokeh_labels_patch_alpha
         if "label_use_preset_color" not in data["interactive_params"]["annotation_properties"]:
             data["interactive_params"]["annotation_properties"]["label_use_preset_color"] = True
 
