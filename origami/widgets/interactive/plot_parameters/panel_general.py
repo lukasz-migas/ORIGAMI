@@ -23,7 +23,7 @@ class PanelGeneralSettings(PanelSettingsBase):
 
     # ui elements
     bokeh_frame_height, bokeh_frame_width, bokeh_frame_title_font_size = None, None, None
-    bokeh_frame_label_font_size, bokeh_frame_label_font_weight, bokeh_frame_tick_font_size, = (None, None, None)
+    bokeh_frame_label_font_size, bokeh_frame_label_font_weight, bokeh_frame_tick_font_size = None, None, None
     bokeh_frame_label_y_axis, bokeh_frame_tick_labels_x_axis, bokeh_frame_border_min_top = None, None, None
     bokeh_frame_tick_labels_y_axis, bokeh_frame_tick_x_axis, bokeh_frame_border_min_bottom = None, None, None
     bokeh_frame_tick_y_axis, bokeh_frame_border_min_left, bokeh_frame_border_min_right = None, None, None

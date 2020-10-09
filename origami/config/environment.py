@@ -118,6 +118,13 @@ def get_document_title(path):
     return base_title
 
 
+# events
+PUB_EVENT_ENV_ADD = "environment.document.add"
+PUB_EVENT_ENV_REMOVE = "environment.document.remove"
+PUB_EVENT_ENV_CHANGE = "environment.document.change"
+PUB_EVENT_ENV_RENAME = "environment.document.rename"
+
+
 class Environment(PropertyCallbackManager):
     """Document storage container that persists throughout the app"""
 
@@ -157,6 +164,7 @@ class Environment(PropertyCallbackManager):
         self.documents[key] = value
         self.current = value.title
         self._trigger("add", value.title)
+        pub.sendMessage(PUB_EVENT_ENV_ADD, document_title=value.title)
 
     def __delitem__(self, key):
         """Delete document object"""
@@ -234,6 +242,7 @@ class Environment(PropertyCallbackManager):
         """Add document to the store"""
         self.documents[document.title] = document
         self._trigger("add", document.title)
+        pub.sendMessage(PUB_EVENT_ENV_ADD, document_title=document.title)
 
     def remove(self, key) -> DocumentStore:
         """Remove document from the store"""

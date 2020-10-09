@@ -762,7 +762,7 @@ class PlotBase(MPLPanel):
                     (xmin, ymin),
                     width,
                     height,
-                    color=color,
+                    facecolor=color,
                     alpha=alpha,
                     linewidth=linewidth,
                     picker=pickable,
@@ -791,9 +791,6 @@ class PlotBase(MPLPanel):
                 if not self._check_start_with(patch, start_with):
                     patches.append(patch)
                     continue
-
-            print()
-
             try:
                 patch.remove()
             except Exception:  # noqa

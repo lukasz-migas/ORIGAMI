@@ -356,8 +356,8 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
 
         # pack element
         main_sizer = wx.BoxSizer()
-        main_sizer.Add(self.settings_panel, 0, wx.EXPAND, 0)
-        main_sizer.Add(self.plot_panel, 1, wx.EXPAND, 0)
+        main_sizer.Add(self.settings_panel, 1, wx.EXPAND, 0)
+        main_sizer.Add(self.plot_panel, 2, wx.EXPAND, 0)
 
         # fit layout
         main_sizer.Fit(self)
@@ -1140,7 +1140,8 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
             raise MessageError("Error", "Please filter peaks first. Select criteria and click on `Filter` first.")
 
         self.mz_picker = mz_picker_tmp
-        self.mz_picker_tmp = None
+
+    #         self.mz_picker_tmp = None
 
     def on_refresh_lower_upper_bounds(self, evt):
         """Update the lower/upper bounds of the filtering step"""
@@ -1202,7 +1203,12 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
             y = mz_picker.y
             self.plot_view.remove_scatter(repaint=False)
             self.plot_view.add_scatter(
-                x, y, color=CONFIG.marker_fill_color, marker=CONFIG.marker_shape, size=CONFIG.marker_size, repaint=False
+                x,
+                y,
+                color=CONFIG.marker_fill_color,
+                marker=CONFIG.marker_shape_mpl_,
+                size=CONFIG.marker_size,
+                repaint=False,
             )
         else:
             self.plot_view.remove_scatter(repaint=False)

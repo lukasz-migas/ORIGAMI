@@ -424,37 +424,36 @@ class PlotHeatmap3d(wx.Panel):
 #                 wx.TheClipboard.Flush()
 
 
-class TestPanel(wx.Dialog):
-    """Test panel"""
-
-    btn_1 = None
-    btn_2 = None
-
-    def __init__(self, parent):
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, title="TEST DIALOG")
-
-        plot_panel = wx.Panel(self)
-        plot_window = PlotHeatmap3d(plot_panel)  # , plot_id=self.NAME)
-
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(plot_window, 1, wx.EXPAND)
-        plot_panel.SetSizer(main_sizer)
-        main_sizer.Fit(plot_panel)
-
-        main_sizer.Fit(self)
-        self.SetSizerAndFit(main_sizer)
-        self.CenterOnScreen()
-        self.Show()
-
-        array = np.random.randint(0, 1, (200, 200))
-        array = array.astype(np.float32)
-
-        x = np.arange(array.shape[0])
-        y = np.arange(array.shape[1])
-        plot_window.canvas.plot_3d_image(x, y, array)
-
-
 def _main():
+    class TestPanel(wx.Dialog):
+        """Test panel"""
+
+        btn_1 = None
+        btn_2 = None
+
+        def __init__(self, parent):
+            wx.Dialog.__init__(self, parent, wx.ID_ANY, title="TEST DIALOG")
+
+            plot_panel = wx.Panel(self)
+            plot_window = PlotHeatmap3d(plot_panel)  # , plot_id=self.NAME)
+
+            main_sizer = wx.BoxSizer(wx.VERTICAL)
+            main_sizer.Add(plot_window, 1, wx.EXPAND)
+            plot_panel.SetSizer(main_sizer)
+            main_sizer.Fit(plot_panel)
+
+            main_sizer.Fit(self)
+            self.SetSizerAndFit(main_sizer)
+            self.CenterOnScreen()
+            self.Show()
+
+            array = np.random.randint(0, 1, (200, 200))
+            array = array.astype(np.float32)
+
+            x = np.arange(array.shape[0])
+            y = np.arange(array.shape[1])
+            plot_window.canvas.plot_3d_image(x, y, array)
+
     app = wx.App()
     frame = wx.Frame(None, -1)
     panel = TestPanel(frame)

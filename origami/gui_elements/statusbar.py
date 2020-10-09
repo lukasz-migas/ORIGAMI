@@ -261,19 +261,19 @@ class Statusbar(wx.StatusBar):
         mode = ""
         if alt:
             mode = "Measure"
-            cursor = wx.StockCursor(wx.CURSOR_MAGNIFIER)
+            cursor = wx.Cursor(wx.CURSOR_MAGNIFIER)
         elif ctrl:
             mode = "Extract"
-            cursor = wx.StockCursor(wx.CURSOR_CROSS)
+            cursor = wx.Cursor(wx.CURSOR_CROSS)
         elif add_to_table:
             mode = "Extract"
-            cursor = wx.StockCursor(wx.CURSOR_CROSS)
+            cursor = wx.Cursor(wx.CURSOR_CROSS)
         elif dragged is not None:
             mode = "Drag"
-            cursor = wx.StockCursor(wx.CURSOR_HAND)
+            cursor = wx.Cursor(wx.CURSOR_HAND)
         elif zoom:
             mode = "Zoom"
-            cursor = wx.StockCursor(wx.CURSOR_MAGNIFIER)
+            cursor = wx.Cursor(wx.CURSOR_MAGNIFIER)
 
         self.parent.mode = mode
         self.parent.SetCursor(cursor)

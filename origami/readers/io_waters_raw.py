@@ -211,19 +211,27 @@ class WatersIMReader(WatersRawReader):
         self.clean(range_file)
 
         if return_data:
-            x, y = self.load_ms(out_path)
-            return MassSpectrumObject(
-                x,
-                y,
-                metadata={
-                    "rt_start": float(rt_start),
-                    "rt_end": float(rt_end),
-                    "dt_start": float(dt_start),
-                    "dt_end": float(dt_end),
-                    "mz_start": float(mz_start),
-                    "mz_end": float(mz_end),
-                },
-            )
+            try:
+                x, y = self.load_ms(out_path)
+                return MassSpectrumObject(
+                    x,
+                    y,
+                    metadata={
+                        "rt_start": float(rt_start),
+                        "rt_end": float(rt_end),
+                        "dt_start": float(dt_start),
+                        "dt_end": float(dt_end),
+                        "mz_start": float(mz_start),
+                        "mz_end": float(mz_end),
+                    },
+                )
+            except IndexError:
+                return self.get_drift_spectrum(
+                    start_scan=self.convert_min_to_scan(rt_start),
+                    end_scan=self.convert_min_to_scan(rt_end),
+                    start_drift=dt_start,
+                    end_drift=dt_end,
+                )
         return out_path
 
     def load_ms(self, path):

@@ -112,8 +112,6 @@ class PanelLegendSettings(PanelSettingsBase):
     def _on_set_config(self, config):
         """Update values in the application based on config values"""
         self.import_evt = True
-
-        # line parameters
         self.bokeh_legend.SetValue(config.get("bokeh_legend", CONFIG.bokeh_legend))
         self.bokeh_legend_click_policy.SetStringSelection(
             config.get("bokeh_legend_click_policy", CONFIG.bokeh_legend_click_policy)

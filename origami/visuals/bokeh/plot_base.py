@@ -62,7 +62,7 @@ class PlotBase:
     FORCED_KWARGS = {}
     DATA_KEYS = []
     PLOT_ID = None
-    TOOLS = "pan, xpan, xbox_zoom, box_zoom, crosshair, reset"
+    TOOLS = ""  # "pan, xpan, xbox_zoom, box_zoom, crosshair, reset"
     ACTIVE_DRAG = "xbox_zoom"
 
     def __init__(
@@ -104,7 +104,10 @@ class PlotBase:
         self._data = dict()
 
         self.figure = figure(
-            tools=self.TOOLS, active_drag=self.ACTIVE_DRAG, plot_width=self.plot_width, plot_height=self.plot_height
+            # tools=self.TOOLS,
+            # active_drag=self.ACTIVE_DRAG,
+            plot_width=self.plot_width,
+            plot_height=self.plot_height,
         )
 
     @property
@@ -252,6 +255,7 @@ class PlotBase:
     def _post_plot(self, **kwargs):
         """Sets a few parameters after plotting"""
         self.set_frame(**kwargs)
+        self.add_tools(**kwargs)
 
     def render(self):
         """HTML render"""
@@ -368,8 +372,11 @@ class PlotBase:
 
         add_events(self, event_list)
 
-    def add_tools(self, tool_list: str):
+    def add_tools(self, **kwargs: Dict):
         """Add tools to the plot object"""
+        from origami.visuals.bokeh.parser import parse_tools
+
+        parse_tools(self, self.figure, **kwargs)
 
     def get_annotation(self, annotation_type: str):
         """Retrieve annotation of specified type"""
@@ -437,11 +444,12 @@ class PlotBase:
 
     def add_legend(self, **kwargs):
         """Add legend object to the plot"""
-        self.figure.legend.location = get_param("bokeh_legend_location", **kwargs)
-        self.figure.legend.click_policy = get_param("bokeh_legend_click_policy", **kwargs)
-        self.figure.legend.background_fill_alpha = get_param("bokeh_legend_background_alpha", **kwargs)
-        self.figure.legend.orientation = get_param("bokeh_legend_orientation", **kwargs)
-        self.figure.legend.label_text_font_size = parse_font_size(get_param("bokeh_legend_font_size", **kwargs))
+        if self.figure.legend:
+            self.figure.legend.location = get_param("bokeh_legend_location", **kwargs)
+            self.figure.legend.click_policy = get_param("bokeh_legend_click_policy", **kwargs)
+            self.figure.legend.background_fill_alpha = get_param("bokeh_legend_background_alpha", **kwargs)
+            self.figure.legend.orientation = get_param("bokeh_legend_orientation", **kwargs)
+            self.figure.legend.label_text_font_size = parse_font_size(get_param("bokeh_legend_font_size", **kwargs))
 
     def set_frame(self, **kwargs):
         """Set frame parameters"""

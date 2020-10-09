@@ -49,7 +49,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     """General data handling module"""
 
     def __init__(self, presenter, view, config):
-        LoadHandler.__init__(self)
         self.presenter = presenter
         self.view = view
         self.config = CONFIG
@@ -182,11 +181,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         )
 
         wildcard_dict = {",": 0, "\t": 1, " ": 2}
-
-        if ask_permission:
-            style = wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT
-        else:
-            style = wx.FD_SAVE
+        style = wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT if ask_permission else wx.FD_SAVE
 
         dlg = wx.FileDialog(
             self.presenter.view, "Please select a name for the file", "", "", wildcard=wildcard, style=style
@@ -742,7 +737,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         self.document_tree.on_update_document(data_obj.DOCUMENT_KEY, obj_name, document_title)
         return True, data_obj
 
-    def on_open_multiple_text_2d_fcn(self, evt):
+    def on_open_multiple_text_2d_fcn(self, evt, one_file: bool = False):
         """Select list of heatmap text files and load them as documents
 
         If multi-threading is enabled, the action will be executed in a non-blocking manner
@@ -751,18 +746,16 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         ----------
         evt : wx.Event
             event that triggered the function
+        one_file : bool
+            only allow selection of one file
         """
         # TODO: add option to put all files into the same document
 
         # get list of files to open
         wildcard = "Text files with axis labels (*.txt, *.csv)| *.txt;*.csv"
+        style = wx.FD_CHANGE_DIR if one_file else wx.FD_MULTIPLE | wx.FD_CHANGE_DIR
         path_list, file_list = None, None
-        dlg = wx.FileDialog(
-            self.view,
-            "Choose heatmap text file(s) to load...",
-            wildcard=wildcard,
-            style=wx.FD_MULTIPLE | wx.FD_CHANGE_DIR,
-        )
+        dlg = wx.FileDialog(self.view, "Choose heatmap text file(s) to load...", wildcard=wildcard, style=style)
         if dlg.ShowModal() == wx.ID_OK:
             path_list = dlg.GetPaths()
             file_list = dlg.GetFilenames()
@@ -777,6 +770,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
         self.view.on_toggle_panel(evt="text", check=True)
         for filename, filepath in zip(file_list, path_list):
+            pub.sendMessage("file.dataset.import", path=filepath)
             self.add_task(self.on_load_text_2d, (filename, filepath, x_label, y_label), func_result=self.on_add_text_2d)
             pub.sendMessage("file.recent.add", action="text.heatmap", path=filepath)
 
@@ -842,22 +836,19 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         self.text_panel.on_add_to_table(add_dict, return_color=False)
         self.on_setup_basic_document(document)
 
-    def on_open_multiple_text_ms_fcn(self, _evt):
+    def on_open_multiple_text_ms_fcn(self, _evt, one_file: bool = False):
         """Open multiple text-based mass spectra"""
         # get list of files to open
+        style = wx.FD_CHANGE_DIR if one_file else wx.FD_MULTIPLE | wx.FD_CHANGE_DIR
         wildcard = "Text files with axis labels (*.txt, *.csv)| *.txt;*.csv"
         path_list = None
-        dlg = wx.FileDialog(
-            self.view,
-            "Choose heatmap text file(s) to load...",
-            wildcard=wildcard,
-            style=wx.FD_MULTIPLE | wx.FD_CHANGE_DIR,
-        )
+        dlg = wx.FileDialog(self.view, "Choose heatmap text file(s) to load...", wildcard=wildcard, style=style)
         if dlg.ShowModal() == wx.ID_OK:
             path_list = dlg.GetPaths()
         dlg.Destroy()
 
         for filepath in path_list:
+            pub.sendMessage("file.dataset.import", path=filepath)
             self.add_task(self.on_add_text_ms, (filepath,), func_result=self.on_setup_basic_document)
             pub.sendMessage("file.recent.add", action="text.ms", path=filepath)
 
@@ -884,6 +875,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         dlg.Destroy()
 
         for path in paths:
+            pub.sendMessage("file.dataset.import", path=path)
             self.add_task(self.load_thermo_ms_document, (path,), func_result=self.on_setup_basic_document)
             pub.sendMessage("file.recent.add", action="thermo.ms", path=path)
 
@@ -949,6 +941,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             logger.warning("Could not load file")
             return
 
+        pub.sendMessage("file.dataset.import", path=path)
         self.add_task(self.load_waters_ms_document, (path,), func_result=self.on_setup_basic_document)
         pub.sendMessage("file.recent.add", action="waters.ms", path=path)
 
@@ -959,6 +952,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             logger.warning("Could not load file")
             return
 
+        pub.sendMessage("file.dataset.import", path=path)
         if not self.check_waters_im(path):
             dlg = DialogBox(
                 kind="Question",

@@ -230,8 +230,11 @@ class WatersRawReader:
             start_idx = end_idx
 
         # generate interpolation function
-        f = interpolate.interp1d(x_unique, y_summed, bounds_error=False, fill_value=0)
-        return f(self.mz_x).astype(np.float32)
+        try:
+            f = interpolate.interp1d(x_unique, y_summed, bounds_error=False, fill_value=0)
+            return f(self.mz_x).astype(np.float32)
+        except ValueError:
+            return np.zeros_like(self.mz_x, dtype=np.float32)
 
     def _get_scan_list(self, start_scan, end_scan, scan_list, fcn):
         """Process user-defined parameters and return iterable object of scans or drift scans"""

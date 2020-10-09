@@ -27,6 +27,8 @@ class PanelSettingsBase(wx.lib.scrolledpanel.ScrolledPanel, ColorGetterMixin, Co
         self.view = view
         self._colormaps = Colormaps()
         self.import_evt = True
+        self.document_title = None
+        self.dataset_name = None
 
         self.make_panel()
         self.on_toggle_controls(evt=None)
@@ -95,8 +97,11 @@ class PanelSettingsBase(wx.lib.scrolledpanel.ScrolledPanel, ColorGetterMixin, Co
 
         return source, color_255, color_1
 
-    def on_set_config(self, config):
+    def on_set_config(self, document_title: str, dataset_name: str, config: Dict):
         """Handle loading of new configuration file"""
+        if self.document_title == document_title and self.dataset_name == dataset_name:
+            LOGGER.debug("No need to update configuration data - item already set")
+            return
         wx.CallAfter(self._on_set_config, config)
 
     def _on_set_config(self, config):

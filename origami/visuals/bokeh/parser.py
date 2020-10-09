@@ -1,6 +1,13 @@
 """Parameter parser"""
 # Standard library imports
 from typing import Any
+from typing import Dict
+from typing import List
+from typing import Union
+
+# Third-party imports
+from bokeh.models import Plot
+from bokeh.models import BoxZoomTool
 
 # Local imports
 from origami.config.config import CONFIG
@@ -87,6 +94,165 @@ MATCHES = {
     "bokeh_annotation_font_background_color": "bokeh_annotation_font_background_color",
     "bokeh_annotation_font_transparency": "bokeh_annotation_font_transparency",
 }
+DEFAULT_BOKEH_TOOLS = [
+    "save",
+    "reset",
+    "hover",
+    "crosshair",
+    "pan",
+    "xpan",
+    "ypan",
+    "box_zoom",
+    "wheel_zoom",
+    "xwheel_zoom",
+    "ywheel_zoom",
+]
+EXTRA_BOKEH_TOOLS = ["xbox_zoom", "ybox_zoom"]
+TOOLS = {
+    "bokeh_tools_save": "save",
+    "bokeh_tools_reset": "reset",
+    "bokeh_tools_hover": "hover",
+    "bokeh_tools_crosshair": "crosshair",
+    "bokeh_tools_pan_xy": "pan",
+    "bokeh_tools_pan_x": "xpan",
+    "bokeh_tools_pan_y": "ypan",
+    "bokeh_tools_boxzoom_xy": "box_zoom",
+    # "bokeh_tools_active_drag": "active_drag",
+    # "bokeh_tools_active_wheel": "active_wheel",
+    # "bokeh_tools_active_inspect": "active_inspect",
+}
+TOOLS_STANDARD = [
+    "bokeh_tools_save",
+    "bokeh_tools_reset",
+    "bokeh_tools_crosshair",
+    "bokeh_tools_pan_xy",
+    "bokeh_tools_pan_x",
+    "bokeh_tools_pan_y",
+    "bokeh_tools_boxzoom_xy",
+]
+TOOLS_BOXZOOM = ["bokeh_tools_boxzoom_x", "bokeh_tools_boxzoom_y"]
+WHEEL_TOOLS = {"Wheel zoom (xy)": "wheel_zoom", "Wheel zoom (x)": "xwheel_zoom", "Wheel zoom (y)": "ywheel_zoom"}
+HOVER_TOOLS = {
+    "bokeh_tools_boxzoom_x": "xbox_zoom",
+    "bokeh_tools_boxzoom_y": "ybox_zoom",
+    "xbox_zoom": "xbox_zoom",
+    "ybox_zoom": "ybox_zoom",
+}
+ACTIVE_DRAG_TOOLS = {
+    "Box zoom (xy)": "box_zoom",
+    "Box zoom (x)": "xbox_zoom",
+    "Box zoom (y)": "ybox_zoom",
+    "Pan (xy)": "pan",
+    "Pan (x)": "xpan",
+    "Pan (y)": "ypan",
+    "auto": "auto",
+    "None": None,
+}
+ACTIVE_WHEEL_TOOLS = {
+    "Wheel zoom (xy)": "wheel_zoom",
+    "Wheel zoom (x)": "xwheel_zoom",
+    "Wheel zoom (y)": "ywheel_zoom",
+    "auto": "auto",
+    "None": None,
+}
+ACTIVE_INSPECT_TOOLS = {"Hover": "hover", "Crosshair": "crosshair", "auto": "auto", "None": None}
+
+
+def parse_active_drag(key: str, tools: List[Union[str, BoxZoomTool]]):
+    """Add active drag"""
+    if key in ACTIVE_DRAG_TOOLS:
+        tool = ACTIVE_DRAG_TOOLS[key]
+        if tool in DEFAULT_BOKEH_TOOLS:
+            if tool not in tools:
+                tools.append(tool)
+            return tool
+        elif tool in EXTRA_BOKEH_TOOLS:
+            if tool == "xbox_zoom":
+                tool = BoxZoomTool(dimensions="width")
+            else:
+                tool = BoxZoomTool(dimensions="height")
+            tools.append(tool)
+            return tool
+    elif key in HOVER_TOOLS:
+        tool = parse_boxzoom(key)
+        if tool not in tools:
+            tools.append(tool)
+        return tool
+
+
+def parse_active_wheel(key: str, tools: List[Union[str, BoxZoomTool]]):
+    """Add active wheel"""
+    if key in ACTIVE_WHEEL_TOOLS:
+        tool = ACTIVE_WHEEL_TOOLS[key]
+        if tool not in tools:
+            tools.append(tool)
+        return tool
+
+
+def parse_active_inspect(key: str, tools: List[Union[str, BoxZoomTool]]):
+    """Add active inspect"""
+    if key in ACTIVE_INSPECT_TOOLS:
+        tool = ACTIVE_INSPECT_TOOLS[key]
+        if tool not in tools:
+            tools.append(tool)
+        return tool
+
+
+def parse_boxzoom(key: str):
+    """Parse boxzoom tools"""
+    tool = HOVER_TOOLS.get(key, None)
+    if tool == "xbox_zoom":
+        return BoxZoomTool(dimensions="width")
+    elif tool == "ybox_zoom":
+        return BoxZoomTool(dimensions="height")
+
+
+def add_boxzoom(key: str, tools: List[Union[str, BoxZoomTool]]):
+    """Add tools"""
+    tool = parse_boxzoom(key)
+    if tool:
+        tools.append(tool)
+
+
+def clean_tools(tools):
+    """Remove all disallowed tools"""
+    _tools = []
+    for tool in tools:
+        if tool not in [None, "None", "", "auto"]:
+            _tools.append(tool)
+    return _tools
+
+
+def parse_tools(plot_base, plot: Plot, **kwargs: Dict):
+    """Parse tools"""
+
+    def _add_tool(key):
+        """Add basic tool"""
+        if key in kwargs and kwargs[key]:
+            tools.append(TOOLS[key])
+
+    tools: List[Union[str, BoxZoomTool]] = []
+    for tool in TOOLS_STANDARD:
+        _add_tool(tool)
+
+    # append boxzoom tools
+    for tool in TOOLS_BOXZOOM:
+        add_boxzoom(tool, tools)
+
+    # append wheel tools
+    if kwargs.get("bokeh_tools_wheel", False):
+        tool = kwargs.get("bokeh_tools_wheel_choice", "Wheel zoom (xy)")
+        tools.append(WHEEL_TOOLS.get(tool, "wheel_zoom"))
+
+    # append hover tool
+    if kwargs.get("bokeh_tools_hover", False) and hasattr(plot_base, "set_hover_tool"):
+        plot_base.set_hover_tool()
+
+    # add active tools
+    plot.toolbar.active_drag = parse_active_drag(kwargs.get("bokeh_tools_active_drag", "auto"), tools)
+    plot.toolbar.active_scroll = parse_active_wheel(kwargs.get("bokeh_tools_active_wheel", "auto"), tools)
+    plot.toolbar.active_inspect = parse_active_inspect(kwargs.get("bokeh_tools_active_inspect", "auto"), tools)
+    plot.toolbar.tools = clean_tools(tools)
 
 
 def get_param(origami_key: str, **kwargs) -> Any:

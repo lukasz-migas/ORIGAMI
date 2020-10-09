@@ -386,13 +386,13 @@ class PanelDocumentTree(wx.Panel, DocumentationMixin):
         )
         self.Bind(wx.EVT_MENU, self.on_open_info, menu_info)
 
-        menu.AppendItem(menu_info)
+        menu.Append(menu_info)
         menu_settings = make_menu_item(
             parent=menu, evt_id=wx.ID_ANY, text="Document Tree settings", bitmap=self._icons.gear
         )
         self.Bind(wx.EVT_MENU, partial(self.on_open_settings, evt), menu_settings)
 
-        menu.AppendItem(menu_settings)
+        menu.Append(menu_settings)
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -1654,7 +1654,7 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, partial(self.data_handling.on_load_custom_data, "annotated"), menu_action_load_other)
         self.Bind(wx.EVT_MENU, partial(self.on_update_ui, "menu.load.override"), menu_action_load_check_existing)
 
-        menu.AppendMenu(wx.ID_ANY, "Import data...", load_data_menu)
+        menu.Append(wx.ID_ANY, "Import data...", load_data_menu)
 
     def _set_menu_annotations(self, menu):
         # annotations sub menu
@@ -1700,35 +1700,33 @@ class DocumentTree(wx.TreeCtrl):
             can_extract, _, file_fmt = document.can_extract()
 
         if is_origami_ms:
-            menu_action_origami_ms = action_menu.AppendItem(
+            menu_action_origami_ms = action_menu.Append(
                 make_menu_item(parent=action_menu, text="Setup ORIGAMI-MS parameters...")
             )
             self.Bind(wx.EVT_MENU, self.on_action_origami_ms, menu_action_origami_ms)
 
         if can_extract:
-            menu_action_extract_data = action_menu.AppendItem(
+            menu_action_extract_data = action_menu.Append(
                 make_menu_item(parent=action_menu, text="Open data extraction panel...")
             )
             self.Bind(wx.EVT_MENU, self.on_open_extract_data, menu_action_extract_data)
 
-            menu_action_extract_dtms = action_menu.AppendItem(
+            menu_action_extract_dtms = action_menu.Append(
                 make_menu_item(parent=action_menu, text="Open DT/MS extraction panel...")
             )
             self.Bind(wx.EVT_MENU, self.on_open_extract_dtms, menu_action_extract_dtms)
 
         if has_ccs_calibration:
-            menu_action_edit_ccs = action_menu.AppendItem(
+            menu_action_edit_ccs = action_menu.Append(
                 make_menu_item(parent=action_menu, text="Edit CCS calibration...")
             )
             self.Bind(wx.EVT_MENU, self.on_open_ccs_editor, menu_action_edit_ccs)
 
         if file_fmt == "waters":
-            menu_action_ccs = action_menu.AppendItem(
-                make_menu_item(parent=action_menu, text="Create CCS calibration...")
-            )
+            menu_action_ccs = action_menu.Append(make_menu_item(parent=action_menu, text="Create CCS calibration..."))
             self.Bind(wx.EVT_MENU, self.on_open_ccs_builder, menu_action_ccs)
 
-        menu.AppendMenu(wx.ID_ANY, "Action...", action_menu)
+        menu.Append(wx.ID_ANY, "Action...", action_menu)
 
     @staticmethod
     def _get_menu_save():
@@ -1804,29 +1802,29 @@ class DocumentTree(wx.TreeCtrl):
 
         # append menu
         if self._item.indent == 2:
-            #             menu.AppendItem(menu_action_show_plot_spectrum_waterfall)
-            #             menu.AppendItem(menu_action_show_plot_spectrum_heatmap)
+            #             menu.Append(menu_action_show_plot_spectrum_waterfall)
+            #             menu.Append(menu_action_show_plot_spectrum_heatmap)
             #             menu.AppendSeparator()
-            menu.AppendItem(menu_show_comparison_panel)
-            menu.AppendItem(menu_action_process_ms_all)
+            menu.Append(menu_show_comparison_panel)
+            menu.Append(menu_action_process_ms_all)
             menu.AppendSeparator()
-            menu.AppendItem(menu_action_save_image_as_all)
-            menu.AppendItem(menu_action_save_data_as_all)
-            menu.AppendItem(menu_action_delete_item)
+            menu.Append(menu_action_save_image_as_all)
+            menu.Append(menu_action_save_data_as_all)
+            menu.Append(menu_action_delete_item)
         else:
-            menu.AppendItem(menu_action_show_plot_spectrum)
+            menu.Append(menu_action_show_plot_spectrum)
             menu.AppendSeparator()
-            menu.AppendItem(menu_show_peak_picker_panel)
-            menu.AppendItem(menu_show_comparison_panel)
+            menu.Append(menu_show_peak_picker_panel)
+            menu.Append(menu_show_comparison_panel)
             self._set_menu_annotations(menu)
-            menu.AppendItem(menu_action_process_ms)
-            menu.AppendItem(menu_action_process_ms_all)
-            menu.AppendItem(menu_show_unidec_panel)
+            menu.Append(menu_action_process_ms)
+            menu.Append(menu_action_process_ms_all)
+            menu.Append(menu_show_unidec_panel)
             menu.AppendSeparator()
-            menu.AppendItem(menu_action_save_image_as)
-            menu.AppendItem(menu_action_save_data_as)
-            menu.AppendItem(menu_action_delete_item)
-            menu.AppendItem(menu_action_open_data_directory)
+            menu.Append(menu_action_save_image_as)
+            menu.Append(menu_action_save_data_as)
+            menu.Append(menu_action_delete_item)
+            menu.Append(menu_action_open_data_directory)
 
     def _set_menu_chromatogram(self, menu):
 
@@ -1878,24 +1876,24 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_open_data_directory, menu_action_open_data_directory)
 
         if self._item.indent == 2:
-            menu.AppendItem(menu_action_process_as_origami_all)
-            menu.AppendItem(menu_action_save_image_as_all)
-            menu.AppendItem(menu_action_save_data_as_all)
-            menu.AppendItem(menu_action_delete_item)
+            menu.Append(menu_action_process_as_origami_all)
+            menu.Append(menu_action_save_image_as_all)
+            menu.Append(menu_action_save_data_as_all)
+            menu.Append(menu_action_delete_item)
         else:
             menu_xlabel = self._get_menu_chromatogram_label()
 
-            menu.AppendItem(menu_action_show_plot_chromatogram)
+            menu.Append(menu_action_show_plot_chromatogram)
             self._set_menu_annotations(menu)
             menu.AppendSeparator()
-            menu.AppendItem(menu_action_assign_charge)
-            menu.AppendItem(menu_action_process_as_origami)
-            menu.AppendMenu(wx.ID_ANY, "Change x-axis to...", menu_xlabel)
+            menu.Append(menu_action_assign_charge)
+            menu.Append(menu_action_process_as_origami)
+            menu.Append(wx.ID_ANY, "Change x-axis to...", menu_xlabel)
             menu.AppendSeparator()
-            menu.AppendItem(menu_action_save_chromatogram_image_as)
-            menu.AppendItem(menu_action_save_data_as)
-            menu.AppendItem(menu_action_delete_item)
-            menu.AppendItem(menu_action_open_data_directory)
+            menu.Append(menu_action_save_chromatogram_image_as)
+            menu.Append(menu_action_save_data_as)
+            menu.Append(menu_action_delete_item)
+            menu.Append(menu_action_open_data_directory)
 
     def _set_menu_mobilogram(self, menu):
 
@@ -1949,26 +1947,26 @@ class DocumentTree(wx.TreeCtrl):
 
         # make menu
         if self._item.indent == 2:
-            menu.AppendItem(menu_action_process_ccs_batch)
+            menu.Append(menu_action_process_ccs_batch)
             menu.AppendSeparator()
-            menu.AppendItem(menu_action_save_image_as_all)
-            menu.AppendItem(menu_action_save_data_as_all)
-            menu.AppendItem(menu_action_delete_item)
+            menu.Append(menu_action_save_image_as_all)
+            menu.Append(menu_action_save_data_as_all)
+            menu.Append(menu_action_delete_item)
         else:
             menu_xlabel = self._get_menu_mobilogram_label()
 
-            menu.AppendItem(menu_action_show_plot_mobilogram)
+            menu.Append(menu_action_show_plot_mobilogram)
             self._set_menu_annotations(menu)
             menu.AppendSeparator()
-            menu.AppendItem(menu_action_assign_charge)
-            menu.AppendItem(menu_action_assign_mz)
-            menu.AppendItem(menu_action_process_ccs)
-            menu.AppendMenu(wx.ID_ANY, "Change x-axis to...", menu_xlabel)
+            menu.Append(menu_action_assign_charge)
+            menu.Append(menu_action_assign_mz)
+            menu.Append(menu_action_process_ccs)
+            menu.Append(wx.ID_ANY, "Change x-axis to...", menu_xlabel)
             menu.AppendSeparator()
-            menu.AppendItem(menu_action_save_mobilogram_image_as)
-            menu.AppendItem(menu_action_save_data_as)
-            menu.AppendItem(menu_action_delete_item)
-            menu.AppendItem(menu_action_open_data_directory)
+            menu.Append(menu_action_save_mobilogram_image_as)
+            menu.Append(menu_action_save_data_as)
+            menu.Append(menu_action_delete_item)
+            menu.Append(menu_action_open_data_directory)
 
     def _set_menu_heatmap(self, menu):
 
@@ -2067,40 +2065,40 @@ class DocumentTree(wx.TreeCtrl):
 
         # make menu
         if self._item.indent == 2:
-            menu.AppendItem(menu_action_process_ccs_batch)
-            menu.AppendItem(menu_action_process_as_origami_all)
-            menu.AppendItem(menu_action_process_2d_all)
+            menu.Append(menu_action_process_ccs_batch)
+            menu.Append(menu_action_process_as_origami_all)
+            menu.Append(menu_action_process_2d_all)
             menu.AppendSeparator()
-            menu.AppendItem(menu_action_save_image_as_all)
-            menu.AppendItem(menu_action_save_data_as_all)
-            menu.AppendItem(menu_action_delete_item)
+            menu.Append(menu_action_save_image_as_all)
+            menu.Append(menu_action_save_data_as_all)
+            menu.Append(menu_action_delete_item)
         else:
             menu_xlabel, menu_ylabel = self._get_menu_heatmap_label()
 
-            menu.AppendItem(menu_action_show_plot_2d)
-            menu.AppendItem(menu_action_show_plot_contour)
-            menu.AppendItem(menu_action_show_plot_joint)
-            menu.AppendItem(menu_action_show_plot_3d)
-            menu.AppendItem(menu_action_show_plot_waterfall)
-            menu.AppendItem(menu_action_show_plot_violin)
-            menu.AppendItem(menu_action_show_plot_as_mobilogram)
-            menu.AppendItem(menu_action_show_plot_as_chromatogram)
-            menu.AppendItem(menu_action_show_highlights)
+            menu.Append(menu_action_show_plot_2d)
+            menu.Append(menu_action_show_plot_contour)
+            menu.Append(menu_action_show_plot_joint)
+            menu.Append(menu_action_show_plot_3d)
+            menu.Append(menu_action_show_plot_waterfall)
+            menu.Append(menu_action_show_plot_violin)
+            menu.Append(menu_action_show_plot_as_mobilogram)
+            menu.Append(menu_action_show_plot_as_chromatogram)
+            menu.Append(menu_action_show_highlights)
             menu.AppendSeparator()
-            menu.AppendItem(menu_action_process_2d)
+            menu.Append(menu_action_process_2d)
             menu.AppendSeparator()
             self._set_menu_annotations(menu)
-            menu.AppendItem(menu_action_assign_charge)
-            menu.AppendItem(menu_action_assign_mz)
-            menu.AppendItem(menu_action_process_as_origami)
-            menu.AppendItem(menu_action_process_ccs)
-            menu.AppendMenu(wx.ID_ANY, "Set X-axis label as...", menu_xlabel)
-            menu.AppendMenu(wx.ID_ANY, "Set Y-axis label as...", menu_ylabel)
+            menu.Append(menu_action_assign_charge)
+            menu.Append(menu_action_assign_mz)
+            menu.Append(menu_action_process_as_origami)
+            menu.Append(menu_action_process_ccs)
+            menu.Append(wx.ID_ANY, "Set X-axis label as...", menu_xlabel)
+            menu.Append(wx.ID_ANY, "Set Y-axis label as...", menu_ylabel)
             menu.AppendSeparator()
-            menu.AppendItem(menu_action_save_heatmap_image_as)
-            menu.AppendItem(menu_action_save_2d_data_as)
-            menu.AppendItem(menu_action_delete_item)
-            menu.AppendItem(menu_action_open_data_directory)
+            menu.Append(menu_action_save_heatmap_image_as)
+            menu.Append(menu_action_save_2d_data_as)
+            menu.Append(menu_action_delete_item)
+            menu.Append(menu_action_open_data_directory)
 
     def _set_menu_msdt(self, menu):
 
@@ -2149,27 +2147,27 @@ class DocumentTree(wx.TreeCtrl):
 
         # make menu
         if self._item.indent == 2:
-            menu.AppendItem(menu_action_extract)
-            menu.AppendItem(menu_action_process_2d_all)
+            menu.Append(menu_action_extract)
+            menu.Append(menu_action_process_2d_all)
             menu.AppendSeparator()
-            menu.AppendItem(menu_action_save_image_as_all)
-            menu.AppendItem(menu_action_save_data_as_all)
-            menu.AppendItem(menu_action_delete_item)
+            menu.Append(menu_action_save_image_as_all)
+            menu.Append(menu_action_save_data_as_all)
+            menu.Append(menu_action_delete_item)
         else:
             menu_ylabel = self._get_menu_msdt_label()
 
-            menu.AppendItem(menu_action_show_plot_2d)
-            menu.AppendItem(menu_action_show_plot_joint)
+            menu.Append(menu_action_show_plot_2d)
+            menu.Append(menu_action_show_plot_joint)
             menu.AppendSeparator()
-            menu.AppendItem(menu_action_extract)
-            menu.AppendItem(menu_action_process_2d)
+            menu.Append(menu_action_extract)
+            menu.Append(menu_action_process_2d)
             menu.AppendSeparator()
-            menu.AppendMenu(wx.ID_ANY, "Set Y-axis label as...", menu_ylabel)
+            menu.Append(wx.ID_ANY, "Set Y-axis label as...", menu_ylabel)
             menu.AppendSeparator()
-            menu.AppendItem(menu_action_save_image_as)
-            menu.AppendItem(menu_action_save_data_as)
-            menu.AppendItem(menu_action_delete_item)
-            menu.AppendItem(menu_action_open_data_directory)
+            menu.Append(menu_action_save_image_as)
+            menu.Append(menu_action_save_data_as)
+            menu.Append(menu_action_delete_item)
+            menu.Append(menu_action_open_data_directory)
 
     def _set_menu_calibration(self, menu):
         """Set CCS calibration menu"""
@@ -2195,14 +2193,14 @@ class DocumentTree(wx.TreeCtrl):
 
         # make menu
         if self._item.indent == 2:
-            menu.AppendItem(menu_action_save_data_as_all)
-            menu.AppendItem(menu_action_delete_item)
+            menu.Append(menu_action_save_data_as_all)
+            menu.Append(menu_action_delete_item)
         else:
-            menu.AppendItem(menu_action_show_plot)
+            menu.Append(menu_action_show_plot)
             menu.AppendSeparator()
-            menu.AppendItem(menu_action_save_data_as)
-            menu.AppendItem(menu_action_delete_item)
-            menu.AppendItem(menu_action_open_data_directory)
+            menu.Append(menu_action_save_data_as)
+            menu.Append(menu_action_delete_item)
+            menu.Append(menu_action_open_data_directory)
 
     @staticmethod
     def _get_menu_overlay(menu):
@@ -2210,17 +2208,17 @@ class DocumentTree(wx.TreeCtrl):
         # elif self._document_type == "Statistical":
         #     # Only if clicked on an item and not header
         #     if self._item_leaf != self._document_type:
-        #         menu.AppendItem(menu_action_show_plot_2D)
+        #         menu.Append(menu_action_show_plot_2D)
         #         menu.AppendSeparator()
-        #         menu.AppendItem(menu_action_save_image_as)
-        #         menu.AppendItem(menu_action_save_data_as)
-        #         menu.AppendItem(menu_action_delete_item)
+        #         menu.Append(menu_action_save_image_as)
+        #         menu.Append(menu_action_save_data_as)
+        #         menu.Append(menu_action_delete_item)
         #         menu.AppendSeparator()
-        #         menu.AppendItem(menu_action_rename_item)
+        #         menu.Append(menu_action_rename_item)
         #     # Only if on a header
         #     else:
-        #         menu.AppendItem(menu_action_save_data_as)
-        #         menu.AppendItem(menu_action_delete_item)
+        #         menu.Append(menu_action_save_data_as)
+        #         menu.Append(menu_action_delete_item)
         #
         # # overlay
         # elif self._document_type == "Overlay":
@@ -2233,11 +2231,11 @@ class DocumentTree(wx.TreeCtrl):
         #             "Waterfall (Deconvoluted MW)",
         #             "Waterfall (Charge states)",
         #         ]:
-        #             menu.AppendItem(menu_action_show_plot)
+        #             menu.Append(menu_action_show_plot)
         #             if plot_type in ["Waterfall (Raw)", "Waterfall (Processed)"]:
-        #                 menu.AppendItem(menu_show_annotations_panel)
+        #                 menu.Append(menu_show_annotations_panel)
         #         else:
-        #             menu.AppendItem(menu_action_show_plot)
+        #             menu.Append(menu_action_show_plot)
         #         menu.AppendSeparator()
         #         if self.splitText[0] in [
         #             "Waterfall (Raw)",
@@ -2248,12 +2246,12 @@ class DocumentTree(wx.TreeCtrl):
         #         ]:
         #             menu.Append(ID_saveWaterfallImageDoc, "Save image as...")
         #         else:
-        #             menu.AppendItem(menu_action_save_image_as)
-        #         menu.AppendItem(menu_action_delete_item)
+        #             menu.Append(menu_action_save_image_as)
+        #         menu.Append(menu_action_delete_item)
         #         menu.AppendSeparator()
-        #         menu.AppendItem(menu_action_rename_item)
+        #         menu.Append(menu_action_rename_item)
         #     else:
-        #         menu.AppendItem(menu_action_delete_item)
+        #         menu.Append(menu_action_delete_item)
         return None
 
     def _set_menu_annotated(self, menu):
@@ -2263,20 +2261,20 @@ class DocumentTree(wx.TreeCtrl):
         #     if dataset_type == dataset_name:
         #         menu.AppendMenu(wx.ID_ANY, "Import data...", load_data_menu)
         #     else:
-        #         menu.AppendItem(menu_action_show_plot)
+        #         menu.Append(menu_action_show_plot)
         #         if dataset_type != dataset_name and any(
         #             [ok_item in dataset_name for ok_item in accepted_annotated_items]
         #         ):
         #             menu.AppendSubMenu(annotation_menu, "Annotations...")
         #         menu.AppendSeparator()
-        #         menu.AppendItem(menu_action_save_image_as)
-        #         menu.AppendItem(menu_action_delete_item)
+        #         menu.Append(menu_action_save_image_as)
+        #         menu.Append(menu_action_delete_item)
 
     def _set_menu_tandem(self, menu):
         pass
         # # tandem MS
         # elif itemType == "Tandem Mass Spectra" and self._indent == 2:
-        #     menu.AppendItem(
+        #     menu.Append(
         #         make_menu_item(
         #             parent=menu,
         #             evt_id=ID_docTree_add_mzIdentML,
@@ -2295,8 +2293,8 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_delete_all_documents, menu_delete_all)
 
         # make menu
-        # menu.AppendItem(menu_save_all)
-        menu.AppendItem(menu_delete_all)
+        # menu.Append(menu_save_all)
+        menu.Append(menu_delete_all)
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
@@ -2382,17 +2380,17 @@ class DocumentTree(wx.TreeCtrl):
 
         if self._item.is_dataset:
             menu.AppendSeparator()
-            menu.AppendItem(menu_action_rename_item)
-            menu.AppendItem(menu_action_duplicate_item)
+            menu.Append(menu_action_rename_item)
+            menu.Append(menu_action_duplicate_item)
 
         # add generic iitems
         if menu.GetMenuItemCount() > 0:
             menu.AppendSeparator()
 
-        menu.AppendItem(menu_action_open_directory)
-        menu.AppendItem(menu_action_duplicate_document)
-        menu.AppendItem(menu_action_remove_document)
-        menu.AppendItem(menu_action_remove_document_disk)
+        menu.Append(menu_action_open_directory)
+        menu.Append(menu_action_duplicate_document)
+        menu.Append(menu_action_remove_document)
+        menu.Append(menu_action_remove_document_disk)
 
         self.PopupMenu(menu)
         menu.Destroy()
@@ -2412,7 +2410,7 @@ class DocumentTree(wx.TreeCtrl):
         #
         # if self._indent == 1:
         #     menu.Append(ID_docTree_show_refresh_document, "Refresh document")
-        #     menu.AppendItem(
+        #     menu.Append(
         #         make_menu_item(
         #             parent=menu,
         #             evt_id=ID_docTree_duplicate_document,
@@ -2420,11 +2418,11 @@ class DocumentTree(wx.TreeCtrl):
         #             bitmap=self._icons.duplicate,
         #         )
         #     )
-        #     menu.AppendItem(menu_action_rename_item)
+        #     menu.Append(menu_action_rename_item)
         #     menu.AppendSeparator()
         # menu.AppendMenu(wx.ID_ANY, "Action...", action_menu)
         # menu.AppendSeparator()
-        # menu.AppendItem(
+        # menu.Append(
         #     make_menu_item(
         #         parent=menu,
         #         evt_id=ID_openDocInfo,
@@ -2432,7 +2430,7 @@ class DocumentTree(wx.TreeCtrl):
         #         bitmap=self._icons.info,
         #     )
         # )
-        # menu.AppendItem(
+        # menu.Append(
         #     make_menu_item(
         #         parent=menu,
         #         evt_id=ID_goToDirectory,
@@ -2440,7 +2438,7 @@ class DocumentTree(wx.TreeCtrl):
         #         bitmap=self._icons.folder,
         #     )
         # )
-        # menu.AppendItem(
+        # menu.Append(
         #     make_menu_item(
         #         parent=menu,
         #         evt_id=ID_saveAsInteractive,
@@ -2448,8 +2446,8 @@ class DocumentTree(wx.TreeCtrl):
         #         bitmap=self._icons.bokeh,
         #     )
         # )
-        # menu.AppendItem(menu_action_save_document)
-        # menu.AppendItem(menu_action_save_document_as)
+        # menu.Append(menu_action_save_document)
+        # menu.Append(menu_action_save_document_as)
 
     def on_change_x_values_and_labels(self, evt):
         """Change xy-axis labels"""

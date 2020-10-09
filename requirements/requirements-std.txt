@@ -18,3 +18,4 @@ send2trash
 certifi
 urllib3
 vispy
+appdirs

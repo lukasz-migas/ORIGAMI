@@ -25,7 +25,7 @@ class PanelAbout(wx.MiniFrame):
         wx.MiniFrame.__init__(
             self,
             parent,
-            -1,
+            wx.ID_ANY,
             "ORIGAMI",
             style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX),
         )
@@ -50,38 +50,38 @@ class PanelAbout(wx.MiniFrame):
     def make_gui(self):
         """Make panel gui."""
         # make elements
-        panel = wx.Panel(self, -1)
+        panel = wx.Panel(self, wx.ID_ANY)
 
-        image = wx.StaticBitmap(panel, -1, self.icons.getLogo)
+        image = wx.StaticBitmap(panel, wx.ID_ANY, self.icons.getLogo)
 
         version_label = "Version %s" % CONFIG.version
-        version = wx.StaticText(panel, -1, version_label, style=wx.ALIGN_CENTRE)
+        version = wx.StaticText(panel, wx.ID_ANY, version_label, style=wx.ALIGN_CENTRE)
         version.SetFont(wx.NORMAL_FONT)
 
         about_msg = (
             "If you encounter any problems, have questions or would like to send some feedback, \nplease contact me at"
             # l.g.migas@tudelft.nl or lukas.migas@yahoo.com"
         )
-        link_email_tu = hyperlink.HyperLinkCtrl(panel, -1, self.EMAIL_ONE, URL=f"mailto:{self.EMAIL_ONE}")
-        link_email_yh = hyperlink.HyperLinkCtrl(panel, -1, self.EMAIL_TWO, URL=f"mailto:{self.EMAIL_TWO}")
+        link_email_tu = hyperlink.HyperLinkCtrl(panel, wx.ID_ANY, self.EMAIL_ONE, URL=f"mailto:{self.EMAIL_ONE}")
+        link_email_yh = hyperlink.HyperLinkCtrl(panel, wx.ID_ANY, self.EMAIL_TWO, URL=f"mailto:{self.EMAIL_TWO}")
 
-        message = wx.StaticText(panel, -1, about_msg, style=wx.ALIGN_CENTRE)
+        message = wx.StaticText(panel, wx.ID_ANY, about_msg, style=wx.ALIGN_CENTRE)
         message.SetFont(wx.NORMAL_FONT)
 
-        university = wx.StaticText(panel, -1, self.INSTITUTION)
+        university = wx.StaticText(panel, wx.ID_ANY, self.INSTITUTION)
         university.SetFont(wx.SMALL_FONT)
 
-        copyright_text = wx.StaticText(panel, -1, self.COPYRIGHT)
+        copyright_text = wx.StaticText(panel, wx.ID_ANY, self.COPYRIGHT)
         copyright_text.SetFont(wx.NORMAL_FONT)
 
-        homepage_btn = hyperlink.HyperLinkCtrl(panel, -1, "Homepage/Documentation", URL=self.DOCS)
-        github_btn = hyperlink.HyperLinkCtrl(panel, -1, "GitHub", URL=self.GITHUB)
-        cite_btn = hyperlink.HyperLinkCtrl(panel, -1, "Publication", URL=self.CITE)
-        new_features_btn = hyperlink.HyperLinkCtrl(panel, -1, "Request New Features", URL=self.NEW_FEATURES)
-        report_bug_btn = hyperlink.HyperLinkCtrl(panel, -1, "Report Bugs", URL=self.BUGS)
-        author_btn = hyperlink.HyperLinkCtrl(panel, -1, "About Author", URL=self.AUTHOR)
+        homepage_btn = hyperlink.HyperLinkCtrl(panel, wx.ID_ANY, "Homepage/Documentation", URL=self.DOCS)
+        github_btn = hyperlink.HyperLinkCtrl(panel, wx.ID_ANY, "GitHub", URL=self.GITHUB)
+        cite_btn = hyperlink.HyperLinkCtrl(panel, wx.ID_ANY, "Publication", URL=self.CITE)
+        new_features_btn = hyperlink.HyperLinkCtrl(panel, wx.ID_ANY, "Request New Features", URL=self.NEW_FEATURES)
+        report_bug_btn = hyperlink.HyperLinkCtrl(panel, wx.ID_ANY, "Report Bugs", URL=self.BUGS)
+        author_btn = hyperlink.HyperLinkCtrl(panel, wx.ID_ANY, "About Author", URL=self.AUTHOR)
 
-        email_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        email_sizer = wx.BoxSizer()
         email_sizer.Add(link_email_tu, 0)
         email_sizer.AddSpacer(20)
         email_sizer.Add(link_email_yh, 0)
@@ -120,16 +120,16 @@ class PanelAbout(wx.MiniFrame):
         self.Destroy()
 
 
-def _main():
-    from origami.icons.icons import IconContainer
-
-    app = wx.App()
-    icons = IconContainer()
-    ex = PanelAbout(None, icons)
-
-    ex.Show()
-    app.MainLoop()
-
-
 if __name__ == "__main__":
+
+    def _main():
+        from origami.icons.icons import IconContainer
+
+        app = wx.App()
+        icons = IconContainer()
+        ex = PanelAbout(None, icons)
+
+        ex.Show()
+        app.MainLoop()
+
     _main()

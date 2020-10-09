@@ -160,36 +160,18 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
         """Close window"""
         self.Hide()
 
-    #         try:
-    #             pub.unsubscribe(self.evt_layout_choice_add, PUB_EVENT_LAYOUT_ADD)
-    #             pub.unsubscribe(self.evt_layout_choice_remove, PUB_EVENT_LAYOUT_REMOVE)
-    #             pub.unsubscribe(self.evt_layout_choice_update, PUB_EVENT_LAYOUT_UPDATE)
-    #             pub.unsubscribe(self.evt_tab_choice_remove, PUB_EVENT_TAB_REMOVE)
-    #             pub.unsubscribe(self.evt_plot_order_update, PUB_EVENT_PLOT_ORDER)
-    #             LOGGER.debug("Unsubscribed from events")
-    #         except Exception as err:
-    #             LOGGER.error("Failed to unsubscribe events: %s" % err)
-    #
-    #         # remove dataset mixins
-    #         self._dataset_mixin_teardown()
-    #
-    #         # remove
-    #         self.plot_settings.OnDestroy(None)
-    #
-    #         super(PanelInteractiveEditor, self).on_close(evt, force)
-
     def make_gui(self):
         """Make UI"""
 
         notebook = self.make_builder_panel()
         editor = self.make_editor_panel()
         self.plot_settings = PanelVisualisationSettingsEditor(self, self.view)
+        self.plot_settings.SetMinSize((375, -1))
 
         # pack elements
         main_sizer = wx.BoxSizer()
         main_sizer.Add(notebook, 1, wx.EXPAND, 5)
         main_sizer.Add(editor, 1, wx.EXPAND, 5)
-        main_sizer.Add(wx.StaticLine(self, -1, style=wx.LI_VERTICAL), 0, wx.EXPAND | wx.ALL, 1)
         main_sizer.Add(self.plot_settings, 0, wx.EXPAND, 0)
 
         # fit layout
@@ -202,8 +184,6 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
 
     def make_builder_panel(self):
         """Make side panel responsible for generating layouts"""
-        # panel = wx.Panel(self, -1, size=(-1, -1), name="settings")
-
         notebook = wx.Notebook(self)
 
         panel_document = self.make_document_panel(notebook)
@@ -407,16 +387,17 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
 
     def on_customise_plot(self, _evt):
         """Customise plot parameters"""
-        self.plot_settings.SetMinSize((375, -1))
-        self.Layout()
-        return
         show = not self.plot_settings.IsShown()
         self.plot_settings.Show(show)
         self.Layout()
         if show:
             item_info = self.on_get_item_information()
-            config = self.on_get_bokeh_config(item_info["document_title"], item_info["dataset_name"])
-            pub.sendMessage(PUB_EVENT_CONFIG_UPDATE, config=config)
+            if item_info:
+                document_title, dataset_name = item_info["document_title"], item_info["dataset_name"]
+                config = self.on_get_bokeh_config(document_title, dataset_name)
+                pub.sendMessage(
+                    PUB_EVENT_CONFIG_UPDATE, config=config, document_title=document_title, dataset_name=dataset_name
+                )
 
     def on_batch_apply(self, evt):
         """Batch-apply some user-selected restrictions"""
@@ -649,8 +630,11 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
 
         # update config
         if self.plot_settings.IsShown():
-            config = self.on_get_bokeh_config(item_info["document_title"], item_info["dataset_name"])
-            pub.sendMessage(PUB_EVENT_CONFIG_UPDATE, config=config)
+            document_title, dataset_name = item_info["document_title"], item_info["dataset_name"]
+            config = self.on_get_bokeh_config(document_title, dataset_name)
+            pub.sendMessage(
+                PUB_EVENT_CONFIG_UPDATE, config=config, document_title=document_title, dataset_name=dataset_name
+            )
 
         self._disable_table_update = False
 

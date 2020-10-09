@@ -56,7 +56,8 @@ class PanelColorbarSettings(PanelSettingsBase):
         self.bokeh_colorbar_precision.SetToolTip(wx.ToolTip("Number of decimal places in the colorbar tickers"))
         self.bokeh_colorbar_precision.Bind(wx.EVT_SPINCTRLDOUBLE, self.on_apply)
 
-        self.bokeh_colorbar_use_scientific = wx.CheckBox(self, -1, "Scientific notation", (-1, -1))
+        bokeh_colorbar_use_scientific = make_static_text(self, "Scientific notation:")
+        self.bokeh_colorbar_use_scientific = wx.CheckBox(self, -1, "", (-1, -1))
         self.bokeh_colorbar_use_scientific.SetToolTip(
             wx.ToolTip("Enable/disable scientific notation of colorbar tickers")
         )
@@ -136,7 +137,9 @@ class PanelColorbarSettings(PanelSettingsBase):
         n += 1
         grid.Add(colorbar_precision, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.bokeh_colorbar_precision, (n, 1), flag=wx.EXPAND)
-        grid.Add(self.bokeh_colorbar_use_scientific, (n, 2), flag=wx.EXPAND)
+        n += 1
+        grid.Add(bokeh_colorbar_use_scientific, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.bokeh_colorbar_use_scientific, (n, 1), flag=wx.EXPAND)
         n += 1
         grid.Add(colorbar_edge_color, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.bokeh_colorbar_edge_color, (n, 1), flag=wx.EXPAND)

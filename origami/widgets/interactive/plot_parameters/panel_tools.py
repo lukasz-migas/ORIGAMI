@@ -71,6 +71,7 @@ class PanelToolsSettings(PanelSettingsBase):
         self.bokeh_tools_wheel = make_checkbox(self, "Wheel", name="wheel_zoom")
         self.bokeh_tools_wheel.Bind(wx.EVT_CHECKBOX, self.on_toggle_controls)
 
+        bokeh_tools_wheel_choice = make_static_text(self, "Wheel:")
         self.bokeh_tools_wheel_choice = wx.ComboBox(
             self, style=wx.CB_READONLY, choices=CONFIG.bokeh_tools_wheel_choices
         )
@@ -118,7 +119,9 @@ class PanelToolsSettings(PanelSettingsBase):
         grid.Add(self.bokeh_tools_boxzoom_y, (n, 2), flag=wx.EXPAND)
         n += 1
         grid.Add(self.bokeh_tools_wheel, (n, 1), flag=wx.EXPAND)
-        grid.Add(self.bokeh_tools_wheel_choice, (n, 2), flag=wx.EXPAND)
+        n += 1
+        grid.Add(bokeh_tools_wheel_choice, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.bokeh_tools_wheel_choice, (n, 1), (1, 2), flag=wx.EXPAND)
         n += 1
         grid.Add(tools_active_wheel_choice, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.bokeh_tools_active_wheel, (n, 1), (1, 2), flag=wx.EXPAND)

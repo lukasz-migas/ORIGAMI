@@ -92,7 +92,7 @@ class DialogSelectLabels(Dialog):
         self.cancel_btn = wx.Button(self, wx.ID_ANY, "Cancel", size=(-1, -1))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
-        btn_grid = wx.BoxSizer(wx.HORIZONTAL)
+        btn_grid = wx.BoxSizer()
         btn_grid.Add(self.ok_btn)
         btn_grid.AddSpacer(5)
         btn_grid.Add(self.cancel_btn)
@@ -138,7 +138,7 @@ class DialogSelectLabels(Dialog):
         else:
             self.Destroy()
 
-    def on_close(self, _):
+    def on_close(self, _evt, force: bool = False):
         """Close window"""
         self._x_label_value = None
         self._y_label_value = None
@@ -182,14 +182,13 @@ class DialogSelectLabels(Dialog):
         return x_label_value, y_label_value
 
 
-def _main():
-
-    app = wx.App(False)
-    frame = wx.Frame(None, -1)
-    ex = DialogSelectLabels(frame)
-    ex.ShowModal()
-    app.MainLoop()
-
-
 if __name__ == "__main__":
+
+    def _main():
+        app = wx.App(False)
+        frame = wx.Frame(None, -1)
+        ex = DialogSelectLabels(frame)
+        ex.ShowModal()
+        app.MainLoop()
+
     _main()

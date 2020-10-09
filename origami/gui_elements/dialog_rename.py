@@ -173,13 +173,13 @@ class DialogRenameObject(Dialog):
             self.Destroy()
 
 
-def _main():
-    app = wx.App()
-    ex = DialogRenameObject(None, "Current name")
-
-    ex.Show()
-    app.MainLoop()
-
-
 if __name__ == "__main__":
+
+    def _main():
+        app = wx.App()
+        ex = DialogRenameObject(None, "Current name")
+
+        ex.Show()
+        app.MainLoop()
+
     _main()

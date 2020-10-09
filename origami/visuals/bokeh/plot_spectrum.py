@@ -46,7 +46,9 @@ class PlotSpectrum(PlotBase):
             source=self._sources[self.DEFAULT_PLOT],
             name=self.PLOT_ID,
             muted_alpha=get_param("bokeh_legend_mute_alpha", **kwargs),
-            **kwargs,
+            line_dash=get_param("bokeh_line_style", **kwargs),
+            line_width=get_param("bokeh_line_width", **kwargs),
+            line_alpha=get_param("bokeh_line_alpha", **kwargs),
         )
         # add legend
         if kwargs.get("legend", False):
@@ -131,7 +133,16 @@ class PlotScatter(PlotBase):
         kwargs, _kwargs = self._pre_plot(data_obj, forced_kwargs, **kwargs)
 
         self._plots[self.DEFAULT_PLOT] = self.figure.scatter(
-            x="x", y="y", source=self._sources[self.DEFAULT_PLOT], name=self.PLOT_ID, **kwargs
+            x="x",
+            y="y",
+            source=self._sources[self.DEFAULT_PLOT],
+            name=self.PLOT_ID,
+            muted_alpha=get_param("bokeh_legend_mute_alpha", **kwargs),
+            size=get_param("bokeh_scatter_size", **kwargs),
+            marker=get_param("bokeh_scatter_marker", **kwargs),
+            fill_alpha=get_param("bokeh_scatter_alpha", **kwargs),
+            line_color=get_param("bokeh_scatter_edge_color", **kwargs),
+            line_width=get_param("bokeh_scatter_edge_width", **kwargs),
         )
         # add legend
         if kwargs.get("legend", False):

@@ -48,7 +48,6 @@ from origami.ids import ID_annotPanel_otherSettings
 from origami.ids import ID_help_page_CCScalibration
 from origami.ids import ID_help_page_dataExtraction
 from origami.ids import ID_help_page_gettingStarted
-from origami.ids import ID_load_masslynx_raw_ms_only
 from origami.ids import ID_help_page_annotatingMassSpectra
 from origami.utils.path import clean_directory
 from origami.panel_plots import PanelPlots
@@ -464,18 +463,19 @@ class MainWindow(wx.Frame):
         # menu_file_load_pickle.Enable(False)
         # menu_file.Append(menu_file_load_pickle)
         menu_file.AppendSeparator()
+        menu_file_import_data = menu_file.Append(
+            make_menu_item(parent=menu_file, text="Open any allowed file", bitmap=self._icons.wand)
+        )
+
         menu_file_waters_ms = menu_file.Append(
             make_menu_item(
-                parent=menu_file,
-                evt_id=ID_load_masslynx_raw_ms_only,
-                text="Open Waters file (.raw) [MS only]\tCtrl+Shift+M",
-                bitmap=self._icons.micromass,
+                parent=menu_file, text="Open Waters file (.raw) [MS only]\tCtrl+Shift+M", bitmap=self._icons.micromass
             )
         )
         menu_file_waters_ms.Enable(APP_ENABLER.ALLOW_WATERS_EXTRACTION)
 
         menu_file_waters_imms = menu_file.Append(
-            make_menu_item(parent=menu_file, text="Open Waters file (.raw) [IM-MS only]", bitmap=self._icons.micromass)
+            make_menu_item(parent=menu_file, text="Open Waters file (.raw) [IM-MS]", bitmap=self._icons.micromass)
         )
         menu_file_waters_imms.Enable(APP_ENABLER.ALLOW_WATERS_EXTRACTION)
 
@@ -640,15 +640,20 @@ class MainWindow(wx.Frame):
             parent=menu_config, text="Save configuration file (default location)", bitmap=self._icons.export_db
         )
         menu_config.Append(menu_config_export)
+
         menu_config_export_as = make_menu_item(parent=menu_config, text="Save configuration file as...")
         menu_config.Append(menu_config_export_as)
-        menu_config.AppendSeparator()
+
         menu_config_import = make_menu_item(
             parent=menu_config, text="Load configuration file (default location)", bitmap=self._icons.import_db
         )
         menu_config.Append(menu_config_import)
+
         menu_config_import_as = make_menu_item(parent=menu_config, text="Load configuration file from...")
         menu_config.Append(menu_config_import_as)
+
+        menu_config_open_dir = make_menu_item(parent=menu_config, text="Show Configs in Explorer")
+        menu_config.Append(menu_config_open_dir)
         menu_config.AppendSeparator()
         self.menu_config_check_driftscope = menu_config.Append(
             ID_checkAtStart_Driftscope, "Look for DriftScope at start", kind=wx.ITEM_CHECK
@@ -907,6 +912,7 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_open_link, id=ID_helpReportBugs)
         self.Bind(wx.EVT_MENU, self.on_open_link, id=ID_helpNewFeatures)
         self.Bind(wx.EVT_MENU, self.on_open_link, id=ID_helpAuthor)
+        self.Bind(wx.EVT_MENU, self.on_close, menu_file_exit)
 
         self.Bind(wx.EVT_MENU, self.on_open_html_guide, id=ID_help_UniDecInfo)
         self.Bind(wx.EVT_MENU, self.on_open_html_guide, id=ID_help_page_gettingStarted)
@@ -928,13 +934,13 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_save_document, id=ID_saveDocument)
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_multiple_text_ms_fcn, menu_file_text_ms)
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_single_clipboard_ms, menu_file_clipboard_ms)
-        self.Bind(wx.EVT_MENU, self.on_close, menu_file_exit)
-        self.Bind(wx.EVT_TOOL, self.data_handling.on_open_mgf_file_fcn, id=ID_fileMenu_MGF)
-        self.Bind(wx.EVT_TOOL, self.data_handling.on_open_mzml_file_fcn, id=ID_fileMenu_mzML)
-        self.Bind(wx.EVT_TOOL, self.data_handling.on_open_thermo_file_fcn, menu_open_thermo)
-        self.Bind(wx.EVT_MENU, self.data_handling.on_open_waters_raw_ms_fcn, id=ID_load_masslynx_raw_ms_only)
+        self.Bind(wx.EVT_MENU, self.data_handling.on_open_mgf_file_fcn, id=ID_fileMenu_MGF)
+        self.Bind(wx.EVT_MENU, self.data_handling.on_open_mzml_file_fcn, id=ID_fileMenu_mzML)
+        self.Bind(wx.EVT_MENU, self.data_handling.on_open_thermo_file_fcn, menu_open_thermo)
+        self.Bind(wx.EVT_MENU, self.data_handling.on_open_waters_raw_ms_fcn, menu_file_waters_ms)
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_waters_raw_imms_fcn, menu_file_waters_imms)
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_waters_raw_imms_fcn, menu_open_origami)
+        self.Bind(wx.EVT_MENU, self.on_open_new_file, menu_file_import_data)
 
         # PLOT
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "General"), menu_plot_general)
@@ -945,7 +951,7 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Plot 3D"), menu_plot_3d)
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Waterfall"), menu_plot_waterfall)
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Violin"), menu_plot_violin)
-        self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "UI"), menu_plot_ui)
+        self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "UI behaviour"), menu_plot_ui)
 
         self.Bind(wx.EVT_MENU, self.on_customise_annotation_plot_parameters, id=ID_annotPanel_otherSettings)
 
@@ -971,6 +977,7 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_export_config_as_fcn, menu_config_export_as)
         self.Bind(wx.EVT_MENU, self.on_import_config_fcn, menu_config_import)
         self.Bind(wx.EVT_MENU, self.on_import_config_as_fcn, menu_config_import_as)
+        self.Bind(wx.EVT_MENU, self.on_config_open_dir, menu_config_open_dir)
         self.Bind(wx.EVT_MENU, self.on_check_driftscope_path, menu_config_driftscope)
         self.Bind(wx.EVT_MENU, self.on_show_ccs_database, menu_config_show_ccs_db)
         self.Bind(wx.EVT_MENU, self.on_check_in_menu, id=ID_checkAtStart_Driftscope)
@@ -1036,6 +1043,18 @@ class MainWindow(wx.Frame):
         if CONFIG.APP_LOG_DIR is not None:
             self.data_handling.on_open_directory(CONFIG.APP_LOG_DIR)
 
+    def on_config_open_dir(self, _evt):
+        """Open config directory"""
+        if CONFIG.APP_CONFIG_DIR is not None:
+            self.data_handling.on_open_directory(CONFIG.APP_CONFIG_DIR)
+
+    def on_open_new_file(self, _evt):
+        """Import dataset"""
+        from origami.gui_elements.panel_data_import import PanelDataImport
+
+        dlg = PanelDataImport(self, self._icons, self.presenter)
+        dlg.Show()
+
     def on_customise_annotation_plot_parameters(self, _evt):
         """Open dialog to customise user annotations parameters"""
         from origami.gui_elements.dialog_customise_user_annotations import DialogCustomiseUserAnnotations
@@ -1071,7 +1090,7 @@ class MainWindow(wx.Frame):
     @staticmethod
     def on_export_config_fcn(_evt):
         """Import configuration file"""
-        config_path = os.path.join(CONFIG.APP_CWD, CONFIG.DEFAULT_CONFIG_NAME)
+        config_path = os.path.join(CONFIG.APP_CONFIG_DIR, CONFIG.DEFAULT_CONFIG_NAME)
         QUEUE.add_call(CONFIG.save_config, (config_path,))
 
     def on_export_config_as_fcn(self, _evt):
@@ -1331,6 +1350,10 @@ class MainWindow(wx.Frame):
         )
 
         self.toolbar.AddSeparator()
+
+        tool_import_data = self.toolbar.AddTool(wx.ID_ANY, "", self._icons.wand, shortHelp="Open any allowed file")
+        self.Bind(wx.EVT_TOOL, self.on_open_new_file, tool_import_data)
+
         tool_open_masslynx = self.toolbar.AddTool(
             wx.ID_ANY, "", self._icons.micromass, shortHelp="Open MassLynx file (.raw)"
         )
@@ -1414,6 +1437,7 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_TOOL, self.on_export_config_fcn, tool_config_export)
         self.Bind(wx.EVT_TOOL, self.on_import_config_fcn, tool_config_import)
         self.Bind(wx.EVT_TOOL, self.data_handling.on_open_waters_raw_imms_fcn, tool_open_masslynx)
+        self.Bind(wx.EVT_TOOL, self.on_open_new_file, tool_import_data)
         self.Bind(wx.EVT_TOOL, self.data_handling.on_open_thermo_file_fcn, tool_open_thermo)
         self.Bind(wx.EVT_TOOL, self.on_open_source_menu, tool_open_msms)
         self.Bind(wx.EVT_TOOL_DROPDOWN, self.on_open_source_menu, tool_open_msms)
@@ -1427,7 +1451,7 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Legend"), tool_action_legend)
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Waterfall"), tool_action_waterfall)
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Violin"), tool_action_violin)
-        self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "UI"), tool_action_ui)
+        self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "UI behaviour"), tool_action_ui)
 
         # Actually realise the toolbar
         self.toolbar.Realize()
@@ -1522,7 +1546,7 @@ class MainWindow(wx.Frame):
 
         # Try saving configuration file
         try:
-            path = os.path.join(CONFIG.APP_CWD, CONFIG.DEFAULT_CONFIG_NAME)
+            path = os.path.join(CONFIG.APP_CONFIG_DIR, CONFIG.DEFAULT_CONFIG_NAME)
             CONFIG.save_config(path=path)
         except Exception:
             print("Could not save configuration file")

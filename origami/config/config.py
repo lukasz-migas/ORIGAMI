@@ -15,13 +15,17 @@ from pubsub import pub
 from matplotlib.pyplot import colormaps
 
 # Local imports
+from origami.objects.misc import User
 from origami.objects.misc import CompareItem
 from origami.utils.random import get_random_int
+from origami.utils.appdirs import USER_LOG_DIR
+from origami.utils.appdirs import USER_CACHE_DIR
+from origami.utils.appdirs import USER_CONFIG_DIR
 from origami.utils.version import __version__
 from origami.readers.io_json import read_json_data
 from origami.readers.io_json import write_json_data
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 MODULE_PATH = os.path.dirname(__file__)
 CWD = os.path.dirname(MODULE_PATH)
@@ -30,6 +34,13 @@ CWD = os.path.dirname(MODULE_PATH)
 class ConfigBase:
     """Configuration file base"""
 
+    DEFAULT_CONFIG_NAME = "config.json"
+
+    @property
+    def output_path(self) -> str:
+        """Get default output path"""
+        return os.path.join(USER_CONFIG_DIR, self.DEFAULT_CONFIG_NAME)
+
     def save_config(self, path: str):
         """Export configuration file to JSON file"""
         config = {}
@@ -37,7 +48,7 @@ class ConfigBase:
 
         # write to json file
         write_json_data(path, config)
-        logger.debug(f"Saved config file to `{path}`")
+        LOGGER.debug(f"Saved config file to `{path}`")
 
     @staticmethod
     def _get_config_parameters(config: Dict) -> Dict:
@@ -49,11 +60,11 @@ class ConfigBase:
         try:
             config = read_json_data(path)
         except FileNotFoundError:
-            logger.warning("Configuration file does not exist")
+            LOGGER.warning("Configuration file does not exist")
             return
 
         if not isinstance(config, dict):
-            logger.error("Configuration file should be a dictionary with key:value pairs")
+            LOGGER.error("Configuration file should be a dictionary with key:value pairs")
             return
 
         # iterate over the major groups of settings
@@ -66,7 +77,7 @@ class ConfigBase:
                             current_value = getattr(self, key)
                             result, _alternative_value = self._check_type(key, current_value, new_value)
                             if not result:
-                                logger.warning(
+                                LOGGER.warning(
                                     f"Could not set `{key}` as the types were not similar enough to ensure compliance."
                                     f"\nCurrent value={current_value}; New value={new_value}"
                                 )
@@ -74,10 +85,10 @@ class ConfigBase:
                                     setattr(self, key, _alternative_value)
                                 continue
                         setattr(self, key, new_value)
-            logger.debug(f"Loaded `{config_group_title}` settings")
+            LOGGER.debug(f"Loaded `{config_group_title}` settings")
 
         self._set_config_parameters(config)
-        logger.debug(f"Loaded config file from `{path}`")
+        LOGGER.debug(f"Loaded config file from `{path}`")
 
         pub.sendMessage("config.loaded")
 
@@ -104,12 +115,79 @@ class ConfigBase:
         return False, None
 
 
-class AppConfig(ConfigBase):
-    """Configuration file for the app"""
+class UserConfig(ConfigBase):
+    """Configuration file for users"""
+
+    DEFAULT_CONFIG_NAME = "origami-users-config.json"
+
+    def __init__(self):
+        """Setup config"""
+        self.users: List[User] = []
+
+        self.load_config(os.path.join(USER_CONFIG_DIR, self.DEFAULT_CONFIG_NAME))
+
+    @property
+    def user_list(self) -> List[str]:
+        """Returns a list of users"""
+        users = []
+        for user in self.users:
+            users.append(user.user_details)
+        return users
+
+    def add_user(self, full_name: str, email: str, institution: str):
+        """Add user to the user list"""
+        from origami.objects.misc import User
+
+        for user in self.users:
+            if user.full_name == full_name:
+                LOGGER.debug(f"User with the name {user.full_name} already exists")
+                return
+
+        self.users.append(User(full_name, email, institution))
+        self.save_config(os.path.join(USER_CONFIG_DIR, self.DEFAULT_CONFIG_NAME))
+        pub.sendMessage("config.user.added")
+
+    def remove_user(self, full_name: str):
+        """Remove user from the user list"""
+        for i, user in enumerate(self.users):
+            if user.full_name == full_name:
+                del self.users[i]
+                break
+        self.save_config(os.path.join(USER_CONFIG_DIR, self.DEFAULT_CONFIG_NAME))
+        pub.sendMessage("config.user.removed")
+
+    def get_user(self, full_name: str) -> Dict:
+        """Return user based on full name"""
+        for user in self.users:
+            if user.full_name == full_name:
+                return user.to_dict()
+        return dict()
+
+    def _get_config_parameters(self, config: Dict) -> Dict:
+        """Get configuration parameters"""
+        config["users"] = [user.to_dict() for user in self.users]
+        return config
+
+    def load_config(self, path: str, check_type: bool = True):
+        """Load configuration data"""
+        from origami.objects.misc import User
+
+        try:
+            config = read_json_data(path)
+        except FileNotFoundError:
+            LOGGER.warning("Configuration file does not exist")
+            return
+
+        if "users" in config:
+            for user in config["users"]:
+                self.users.append(User(**user))
+        pub.sendMessage("config.user.loaded")
 
 
 class Config(ConfigBase):
     """Configuration file"""
+
+    DEFAULT_CONFIG_NAME = "origami-config.json"
 
     def __init__(self):
         """Setup config
@@ -130,6 +208,7 @@ class Config(ConfigBase):
         self.APP_ENABLE_LOGGING = False
         self.APP_LOG_PATH = None
         self.APP_LOG_DIR = None
+        self.APP_CONFIG_DIR = USER_CONFIG_DIR
         self.APP_ENABLE_THREADING = True
         self.APP_ENABLE_CONFIG_AUTO_SAVE = True
         self.APP_CHECK_UNIDEC_PATH_AT_START = True
@@ -141,7 +220,6 @@ class Config(ConfigBase):
         self.APP_LOAD_CCS_DB_AT_START = True
         self.APP_SYSTEM = platform.system()
         self.APP_START_TIME = time.strftime("%Y_%m_%d-%H-%M-%S", time.gmtime())
-        self.DEFAULT_CONFIG_NAME = "origami-config.json"
 
         # Configurable
         self.version = __version__
@@ -1906,6 +1984,13 @@ class Config(ConfigBase):
         self.setup_paths()
         self.setup_temporary_dir()
 
+    @property
+    def marker_shape_mpl_(self) -> str:
+        """Return marker shape that is appropriate for MPL plots"""
+        if self.marker_shape in self.marker_shape_dict.values():
+            return self.marker_shape
+        return self.marker_shape_dict[self.marker_shape]
+
     def on_check_parameters(self, data_type="all"):
         """
         Helper function to fix values that might be inappropriate for certain calculations
@@ -2013,7 +2098,7 @@ class Config(ConfigBase):
             elif _check_path(c_driftscope_path, os.path.join(c_driftscope_path, "imextract.exe")):
                 self.APP_DRIFTSCOPE_PATH = c_driftscope_path
             else:
-                logger.warning(
+                LOGGER.warning(
                     "Could not resolve Driftscope path using the alternative `C:\DriftScope\lib` location."
                     " Data extraction will be restricted!"
                 )
@@ -2030,7 +2115,8 @@ class Config(ConfigBase):
         from origami.utils.logging import set_logger
         from origami.utils.logging import set_logger_level
 
-        log_directory = os.path.join(self.APP_CWD, "logs")
+        log_directory = USER_LOG_DIR
+        # log_directory = os.path.join(self.APP_CWD, "logs")
         if not os.path.exists(log_directory):
             print("Directory logs did not exist - created a new one in {}".format(log_directory))
             os.makedirs(log_directory)
@@ -2045,15 +2131,15 @@ class Config(ConfigBase):
         set_logger(file_path=self.APP_LOG_PATH)
         set_logger_level(verbose=verbose)
 
-        logger.info("Logs can be found in {}".format(self.APP_LOG_PATH))
+        LOGGER.info("Logs can be found in {}".format(self.APP_LOG_PATH))
         print("Logs can be found in {}".format(self.APP_LOG_PATH))
 
     def setup_temporary_dir(self):
         """Setup temporary directory"""
         if self.APP_CWD is None:
-            logger.warning("Could not setup temporary directory")
+            LOGGER.warning("Could not setup temporary directory")
             return
-        temp_data_folder = os.path.join(self.APP_CWD, "temporary_data")
+        temp_data_folder = USER_CACHE_DIR
         if not os.path.exists(temp_data_folder):
             os.makedirs(temp_data_folder)
         self.APP_TEMP_DATA_PATH = temp_data_folder
@@ -2874,3 +2960,4 @@ class Config(ConfigBase):
 
 
 CONFIG: Config = Config()
+USERS: UserConfig = UserConfig()
