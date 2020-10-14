@@ -8,9 +8,12 @@ from ast import literal_eval
 from operator import itemgetter
 
 # Third-party imports
+from typing import List
+
 import wx
 import numpy as np
 from natsort.natsort import natsorted
+import wx.html
 
 # Local imports
 from origami.utils.color import convert_rgb_1_to_255
@@ -545,6 +548,70 @@ class ListCtrl(wx.ListCtrl):
     @staticmethod
     def _convert_color_to_list(color):
         return list(color)
+
+
+class VListBox(wx.ListBox):
+    """VListBox widget"""
+
+    items = None
+
+    def __init__(self, *args, style=wx.LB_DEFAULT | wx.LB_OWNERDRAW, **kwargs):
+        super(VListBox, self).__init__(*args, style=style, **kwargs)
+        self.setup()
+
+    def setup(self):
+        """Additional setup"""
+
+    def set_items(self, item_list: List[str]):
+        """Set items in the VListBox"""
+        self.AppendItems(item_list)
+
+    def update_item(self, item_id: int, value: str):
+        """Update value in the table"""
+        self.SetString(item_id, value)
+
+    # def set_items(self, path_list: List[str]):
+    #     """Set items in the VListBox"""
+    #     self.items = path_list
+    #     self.SetItemCount(len(path_list))
+    #
+    # def OnGetItem(self, n: int):
+    #     """Return the item"""
+    #     return self._get_item_text(n)
+
+    # def OnDrawItem(self, dc, rect, n):  # noqa
+    #     """Draw item in the ui"""
+    #     if self.GetSelection() == n:
+    #         c = wx.SystemSettings.GetColour(wx.SYS_COLOUR_HIGHLIGHTTEXT)
+    #     else:
+    #         c = self.GetForegroundColour()
+    #     dc.SetFont(self.GetFont())
+    #     dc.SetTextForeground(c)
+    #     dc.DrawLabel(self._get_item_text(n), rect, wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
+    #
+    # # This method must be overridden.  It should return the height
+    # # required to draw the n'th item.
+    # def OnMeasureItem(self, n):
+    #     """Measure the size of the item"""
+    #     height = 0
+    #     for line in self._get_item_text(n).split("\n"):
+    #         w, h = self.GetTextExtent(line)
+    #         height += h
+    #     return height + 5
+
+    # These are also overridable:
+    #
+    # OnDrawSeparator(dc, rect, n)
+    #   Draw a separator between items.  Note that rect may be reduced
+    #   in size if desired so OnDrawItem gets a smaller rect.
+    #
+    # OnDrawBackground(dc, rect, n)
+    #   Draw the background and maybe a border if desired.
+
+    def _get_item_text(self, item):
+        if self.items:
+            return self.items[item]
+        return ""
 
 
 class BackgroundPanel(wx.Panel):

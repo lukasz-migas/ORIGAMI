@@ -418,7 +418,6 @@ class Environment(PropertyCallbackManager):
                 "date": get_current_time(),
             }
         )
-        document.add_config("user-parameters", CONFIG.userParameters)
 
         # add data to document
         if data is not None:

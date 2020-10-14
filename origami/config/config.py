@@ -31,6 +31,11 @@ MODULE_PATH = os.path.dirname(__file__)
 CWD = os.path.dirname(MODULE_PATH)
 
 
+PUB_EVENT_USER_ADD = "config.user.added"
+PUB_EVENT_USER_REMOVE = "config.user.removed"
+PUB_EVENT_USER_LOADED = "config.user.loaded"
+
+
 class ConfigBase:
     """Configuration file base"""
 
@@ -123,6 +128,7 @@ class UserConfig(ConfigBase):
     def __init__(self):
         """Setup config"""
         self.users: List[User] = []
+        self._current_user = None
 
         self.load_config(os.path.join(USER_CONFIG_DIR, self.DEFAULT_CONFIG_NAME))
 
@@ -133,6 +139,13 @@ class UserConfig(ConfigBase):
         for user in self.users:
             users.append(user.user_details)
         return users
+
+    @property
+    def current_user(self) -> str:
+        """Get current user"""
+        current_user = self._current_user
+        if current_user in self.users:
+            return current_user
 
     def add_user(self, full_name: str, email: str, institution: str):
         """Add user to the user list"""
@@ -145,7 +158,7 @@ class UserConfig(ConfigBase):
 
         self.users.append(User(full_name, email, institution))
         self.save_config(os.path.join(USER_CONFIG_DIR, self.DEFAULT_CONFIG_NAME))
-        pub.sendMessage("config.user.added")
+        pub.sendMessage(PUB_EVENT_USER_ADD)
 
     def remove_user(self, full_name: str):
         """Remove user from the user list"""
@@ -154,7 +167,7 @@ class UserConfig(ConfigBase):
                 del self.users[i]
                 break
         self.save_config(os.path.join(USER_CONFIG_DIR, self.DEFAULT_CONFIG_NAME))
-        pub.sendMessage("config.user.removed")
+        pub.sendMessage(PUB_EVENT_USER_REMOVE)
 
     def get_user(self, full_name: str) -> Dict:
         """Return user based on full name"""
@@ -166,6 +179,7 @@ class UserConfig(ConfigBase):
     def _get_config_parameters(self, config: Dict) -> Dict:
         """Get configuration parameters"""
         config["users"] = [user.to_dict() for user in self.users]
+        config["current_user"] = self._current_user
         return config
 
     def load_config(self, path: str, check_type: bool = True):
@@ -181,7 +195,7 @@ class UserConfig(ConfigBase):
         if "users" in config:
             for user in config["users"]:
                 self.users.append(User(**user))
-        pub.sendMessage("config.user.loaded")
+        pub.sendMessage(PUB_EVENT_USER_LOADED)
 
 
 class Config(ConfigBase):

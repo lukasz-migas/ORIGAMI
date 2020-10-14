@@ -1,49 +1,89 @@
-"""Panel used to import new data into ORIGAMI"""
+"""Dialog about dataset"""
 # Standard library imports
 import os
 import logging
-from functools import partial
 
 # Third-party imports
+from typing import List
+
 import wx
 from pubsub import pub
 from pubsub.core import TopicNameError
 
 # Local imports
-from origami.styles import MiniFrame
+from origami.styles import MiniFrame, VListBox
 from origami.config.config import PUB_EVENT_USER_ADD, PUB_EVENT_USER_REMOVE, USERS
-from origami.config.enabler import APP_ENABLER
 from origami.config.environment import ENV
-from origami.config.environment import PUB_EVENT_ENV_ADD
 from origami.gui_elements.helpers import set_tooltip
-from origami.gui_elements.helpers import make_menu_item
 from origami.gui_elements.helpers import make_bitmap_btn
 from origami.gui_elements.helpers import make_static_text
 
 LOGGER = logging.getLogger(__name__)
 
 
-class PanelDatasetImport(MiniFrame):
-    """Import dataset."""
+def is_dir(path: str) -> bool:
+    """Determines whether we should look for file or directory"""
+    if path.endswith(".raw") or path.endswith(".origami"):  # waters
+        return True
+    elif path.endswith(".RAW"):  # thermo
+        return False
+    return True
 
-    path_value, output_value, notes_value, users_value, ok_btn, cancel_btn = None, None, None, None, None, None
-    import_btn, add_btn, output_path_btn, base_dir_value, file_dir_value = None, None, None, None, None
 
-    def __init__(self, parent, icons, presenter, debug: bool = False):
+class PathsVListBox(VListBox):
+    """VListBox responsible for informing the user of all paths in the Document"""
+
+    GOOD_COLOR = "#98FB98"
+    BAD_COLOR = "#FFCCCB"
+
+    def setup(self):
+        """Additional setup"""
+
+    def set_items(self, item_list: List[str]):
+        """Set items in the listbox"""
+        super(PathsVListBox, self).set_items(item_list)
+        self.validate_items(item_list)
+
+    def validate_items(self, items: List[str]):
+        """Validate items"""
+        for item_id, value in enumerate(items):
+            color = self.GOOD_COLOR if os.path.exists(value) else self.BAD_COLOR
+            self.SetItemBackgroundColour(item_id, color)
+
+    def update_item(self, item_id: int, value: str):
+        """Update value in the ui"""
+        super(PathsVListBox, self).update_item(item_id, value)
+        color = self.GOOD_COLOR if os.path.exists(value) else self.BAD_COLOR
+        self.SetItemBackgroundColour(item_id, color)
+
+
+class PanelDatasetInformation(MiniFrame):
+    """Dataset information"""
+
+    # ui elements
+    output_value, notes_value, users_value, ok_btn, cancel_btn = None, None, None, None, None
+    add_btn, output_path_btn, base_dir_value, file_dir_value, document_value = None, None, None, None, None
+    paths_value, fix_btn, locate_btn = None, None, None
+
+    def __init__(self, parent, icons, presenter, document_title: str, debug: bool = False):
         MiniFrame.__init__(self, parent, title="Import Dataset...", style=wx.DEFAULT_FRAME_STYLE & ~wx.MAXIMIZE_BOX)
         self.parent = parent
         self.presenter = presenter
         self._icons = self._get_icons(icons)
         self._debug = debug
+        self.document_title = document_title
 
         # make ui
         self.make_gui()
-        self.SetSize((800, 400))
+        self.SetSize((800, -1))
         self.CenterOnParent()
 
         # bind events
         self.Bind(wx.EVT_CLOSE, self.on_close)
         self.setup()
+
+        if document_title:
+            self.setup_document(document_title)
 
     @property
     def data_handling(self):
@@ -69,8 +109,6 @@ class PanelDatasetImport(MiniFrame):
         """Setup"""
         pub.subscribe(self.on_update_user_list, PUB_EVENT_USER_ADD)
         pub.subscribe(self.on_update_user_list, PUB_EVENT_USER_REMOVE)
-        pub.subscribe(self.on_import_dataset, "file.dataset.import")
-        pub.subscribe(self.on_load_dataset, PUB_EVENT_ENV_ADD)
         self.output_path_btn.Enable(False)
 
     def on_close(self, evt, force: bool = False):
@@ -78,25 +116,19 @@ class PanelDatasetImport(MiniFrame):
         try:
             pub.unsubscribe(self.on_update_user_list, PUB_EVENT_USER_ADD)
             pub.unsubscribe(self.on_update_user_list, PUB_EVENT_USER_REMOVE)
-            pub.unsubscribe(self.on_import_dataset, "file.dataset.import")
-            pub.unsubscribe(self.on_load_dataset, PUB_EVENT_ENV_ADD)
         except TopicNameError:
             pass
         LOGGER.debug("Toredown dialog")
-        super(PanelDatasetImport, self).on_close(evt, force)
+        super(PanelDatasetInformation, self).on_close(evt, force)
 
     def make_panel(self):
         """Make panel gui."""
         # make elements
         panel = wx.Panel(self, wx.ID_ANY)
 
-        path_value = make_static_text(panel, "File path:")
-        self.path_value = wx.TextCtrl(panel, wx.ID_ANY, "", style=wx.TE_READONLY)
-        set_tooltip(self.path_value, "Path to the dataset")
-
-        self.import_btn = make_bitmap_btn(panel, wx.ID_ANY, self._icons.wand)
-        self.import_btn.Bind(wx.EVT_BUTTON, self.on_show_menu)
-        set_tooltip(self.import_btn, "Select directory/file to import")
+        document_value = make_static_text(panel, "Document title:")
+        self.document_value = make_static_text(panel, "")
+        set_tooltip(self.document_value, "Title of the document")
 
         base_dir_value = make_static_text(panel, "Base output directory:")
         self.base_dir_value = wx.TextCtrl(panel, wx.ID_ANY, "", style=wx.TE_READONLY)
@@ -121,13 +153,32 @@ class PanelDatasetImport(MiniFrame):
             self.output_value, "Full output directory - combination of `base output directory` and `dataset directory`"
         )
 
-        notes_value = make_static_text(panel, "Notes:")
-        self.notes_value = wx.TextCtrl(panel, wx.ID_ANY, "", size=(-1, 100))
-        set_tooltip(self.notes_value, "Notes about the dataset")
-
         users_value = make_static_text(panel, "Users:")
         self.users_value = wx.ComboBox(panel, -1, choices=USERS.user_list, style=wx.CB_READONLY)
         set_tooltip(self.users_value, "Select user you would like to associate with the dataset")
+
+        notes_value = make_static_text(panel, "Notes:")
+        self.notes_value = wx.TextCtrl(panel, wx.ID_ANY, "", size=(-1, 75))
+        set_tooltip(self.notes_value, "Notes about the dataset")
+
+        paths_value = make_static_text(panel, "Paths:")
+        self.paths_value = PathsVListBox(panel, wx.ID_ANY, size=(-1, 100))
+        self.Bind(wx.EVT_LISTBOX_DCLICK, self.on_path_click, self.paths_value)
+        set_tooltip(
+            paths_value, "List of paths associated with this document. Paths that are missing are highlighted in red."
+        )
+
+        self.locate_btn = make_bitmap_btn(panel, wx.ID_ANY, self._icons.locate)
+        self.locate_btn.Bind(wx.EVT_BUTTON, self.on_locate_path)
+        set_tooltip(self.locate_btn, "Locate currently selected item somewhere on your hard drive")
+
+        self.fix_btn = make_bitmap_btn(panel, wx.ID_ANY, self._icons.fix)
+        self.fix_btn.Bind(wx.EVT_BUTTON, self.on_fix_path)
+        set_tooltip(
+            self.fix_btn,
+            "Fix any/all paths in the list by selecting base path. Paths will be searched within the directory and if "
+            "found, updated in the document.",
+        )
 
         self.add_btn = make_bitmap_btn(panel, wx.ID_ANY, self._icons.add)
         self.add_btn.Bind(wx.EVT_BUTTON, self.on_add_user_account)
@@ -141,15 +192,12 @@ class PanelDatasetImport(MiniFrame):
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
         set_tooltip(self.cancel_btn, "Close window")
 
+        info_btn = self.make_info_button(panel)
+
         btn_sizer = wx.BoxSizer()
         btn_sizer.Add(self.ok_btn)
         btn_sizer.AddSpacer(5)
         btn_sizer.Add(self.cancel_btn)
-
-        path_sizer = wx.BoxSizer()
-        path_sizer.Add(self.path_value, 1, wx.EXPAND)
-        path_sizer.AddSpacer(5)
-        path_sizer.Add(self.import_btn)
 
         output_sizer = wx.BoxSizer()
         output_sizer.Add(self.base_dir_value, 1, wx.EXPAND)
@@ -161,11 +209,21 @@ class PanelDatasetImport(MiniFrame):
         add_sizer.AddSpacer(5)
         add_sizer.Add(self.add_btn)
 
+        _paths_btn_sizer = wx.BoxSizer(wx.VERTICAL)
+        _paths_btn_sizer.Add(self.locate_btn)
+        _paths_btn_sizer.AddSpacer(5)
+        _paths_btn_sizer.Add(self.fix_btn)
+
+        paths_sizer = wx.BoxSizer()
+        paths_sizer.Add(self.paths_value, 1, wx.EXPAND)
+        paths_sizer.AddSpacer(5)
+        paths_sizer.Add(_paths_btn_sizer, 0, wx.ALIGN_TOP)
+
         # pack elements
         grid = wx.GridBagSizer(5, 5)
         n = 0
-        grid.Add(path_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(path_sizer, (n, 1), flag=wx.EXPAND)
+        grid.Add(document_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.document_value, (n, 1), flag=wx.EXPAND)
         n += 1
         grid.Add(base_dir_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(output_sizer, (n, 1), flag=wx.EXPAND)
@@ -181,12 +239,17 @@ class PanelDatasetImport(MiniFrame):
         n += 1
         grid.Add(notes_value, (n, 0), flag=wx.ALIGN_TOP | wx.ALIGN_RIGHT)
         grid.Add(self.notes_value, (n, 1), flag=wx.EXPAND)
-        grid.AddGrowableCol(1, 1)
         grid.AddGrowableRow(n, 1)
+        n += 1
+        grid.Add(paths_value, (n, 0), flag=wx.ALIGN_TOP | wx.ALIGN_RIGHT)
+        grid.Add(paths_sizer, (n, 1), flag=wx.EXPAND)
+        grid.AddGrowableRow(n, 1)
+        grid.AddGrowableCol(1, 1)
 
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         main_sizer.Add(grid, 1, wx.EXPAND | wx.ALL, 5)
         main_sizer.Add(btn_sizer, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
+        main_sizer.Add(info_btn, 0, wx.ALIGN_RIGHT | wx.ALL, 3)
 
         # fit layout
         main_sizer.Fit(panel)
@@ -194,71 +257,64 @@ class PanelDatasetImport(MiniFrame):
 
         return panel
 
-    def on_show_menu(self, _evt):
-        """Show import menu"""
-        menu = wx.Menu()
-        menu_file_waters_ms = make_menu_item(
-            parent=menu, text="Open Waters file (.raw) [MS only]", bitmap=self._icons.micromass
-        )
-        menu_file_waters_ms.Enable(APP_ENABLER.ALLOW_WATERS_EXTRACTION)
-
-        menu_file_waters_imms = make_menu_item(
-            parent=menu, text="Open Waters file (.raw) [IM-MS]", bitmap=self._icons.micromass
-        )
-        menu_file_waters_imms.Enable(APP_ENABLER.ALLOW_WATERS_EXTRACTION)
-
-        menu_file_waters_origami = make_menu_item(
-            parent=menu, text="Open Waters file (.raw) [ORIGAMI-MS; CIU]", bitmap=self._icons.micromass
-        )
-        menu_file_waters_origami.Enable(APP_ENABLER.ALLOW_WATERS_EXTRACTION)
-
-        menu_file_thermo = make_menu_item(parent=menu, text="Open Thermo file (.RAW)", bitmap=self._icons.thermo)
-        menu_file_thermo.Enable(APP_ENABLER.ALLOW_THERMO_EXTRACTION)
-
-        menu_file_text_ms = make_menu_item(
-            parent=menu, text="Open mass spectrum file(s) (.csv; .txt; .tab)", bitmap=self._icons.csv
-        )
-        menu_file_text_heatmap = make_menu_item(
-            parent=menu, text="Open heatmap file(s) (.csv; .txt; .tab)", bitmap=self._icons.csv
-        )
-
-        # bind events
-        if not self._debug:
-            self.Bind(wx.EVT_MENU, partial(self.data_handling.on_open_multiple_text_ms_fcn, True), menu_file_text_ms)
-            self.Bind(
-                wx.EVT_MENU, partial(self.data_handling.on_open_multiple_text_2d_fcn, True), menu_file_text_heatmap
+    def _on_get_dlg_handle(self, path: str):
+        """Get file or directory handle"""
+        exists = os.path.exists(path)
+        if is_dir(path):
+            dlg = wx.DirDialog(
+                wx.GetTopLevelParent(self),
+                "Please select new location of the directory",
+                style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST,
             )
-            self.Bind(wx.EVT_MENU, self.data_handling.on_open_thermo_file_fcn, menu_file_thermo)
-            self.Bind(wx.EVT_MENU, self.data_handling.on_open_waters_raw_ms_fcn, menu_file_waters_ms)
-            self.Bind(wx.EVT_MENU, self.data_handling.on_open_waters_raw_imms_fcn, menu_file_waters_imms)
-            self.Bind(wx.EVT_MENU, self.data_handling.on_open_waters_raw_imms_fcn, menu_file_waters_origami)
+            if exists:
+                dlg.SetPath(path)
+        else:
+            dlg = wx.FileDialog(
+                wx.GetTopLevelParent(self),
+                "Please select new location of the file",
+                style=wx.FD_DEFAULT_STYLE | wx.FD_FILE_MUST_EXIST,
+            )
+            if exists:
+                dlg.SetPath(path)
+        return dlg
 
-        # make menu
-        menu.Append(menu_file_waters_ms)
-        menu.Append(menu_file_waters_imms)
-        menu.Append(menu_file_waters_origami)
-        menu.AppendSeparator()
-        menu.Append(menu_file_thermo)
-        menu.AppendSeparator()
-        menu.Append(menu_file_text_ms)
-        menu.Append(menu_file_text_heatmap)
+    def on_path_click(self, evt):
+        """Select path on the listbox"""
+        path = evt.GetString()
 
-        self.PopupMenu(menu)
-        menu.Destroy()
-        self.SetFocus()
+        new_path = None
 
-    def on_import_dataset(self, path: str):
-        """Import dataset"""
-        self.path_value.SetValue(path)
+        # get dialog and new path
+        dlg = self._on_get_dlg_handle(path)
+        if dlg.ShowModal() == wx.ID_OK:
+            new_path = dlg.GetPath()
+        dlg.Destroy()
 
-    def on_load_dataset(self, document_title: str):
-        """Dataset was imported"""
+        # update path in the UI
+        if new_path is not None:
+            self.paths_value.update_item(evt.GetInt(), new_path)
+
+    def on_locate_path(self, _evt):
+        """Locate currently selected item on the hard drive"""
+        print("on_locate_path")
+
+    def on_auto_fix_path(self, _evt):
+        """Locate currently selected item on the hard drive"""
+        print("on_auto_fix_path")
+
+    def on_fix_path(self, _evt):
+        """Fix path"""
+        print("on_fix_path")
+
+    def setup_document(self, document_title: str):
+        """Setup document"""
         document = ENV.on_get_document(document_title)
-        base_dir, out_dir = os.path.split(document.path)
-        self.file_dir_value.SetValue(out_dir)
-        self.base_dir_value.SetValue(base_dir)
-        self.output_value.SetValue(document.path)
-        self.output_path_btn.Enable()
+        if document:
+            base_dir, out_dir = os.path.split(document.path)
+            self.file_dir_value.SetValue(out_dir)
+            self.base_dir_value.SetValue(base_dir)
+            self.output_value.SetValue(document.path)
+            self.output_path_btn.Enable()
 
     def on_select_output(self, _evt):
         """Select directory where the dataset should be moved to"""
@@ -298,7 +354,7 @@ class PanelDatasetImport(MiniFrame):
         if document.path != path:
             document.move(path)
 
-        super(PanelDatasetImport, self).on_ok(evt)
+        super(PanelDatasetInformation, self).on_ok(evt)
 
     def on_update_user_list(self):
         """Update list of users"""
@@ -323,7 +379,10 @@ if __name__ == "__main__":
     def _main():
 
         app = wx.App()
-        ex = PanelDatasetImport(None, None, None, debug=True)
+        ex = PanelDatasetInformation(None, None, None, None, debug=True)
+        ex.paths_value.set_items(
+            ["D:\surfdrive\Shared\Lab-PCs", "D:\surfdrive\Shared\Lab-PCs.raw", "D:\surfdrive\Shared\Lab-PCs"]
+        )
 
         ex.Show()
         app.MainLoop()

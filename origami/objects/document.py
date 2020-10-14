@@ -572,6 +572,27 @@ class DocumentStore:
         except (KeyError, AttributeError):
             LOGGER.warning(f"Could not clear `{item}`")
 
+    def move(self, to_path: str):
+        """Move document and all its contents to a new location
+
+        Parameters
+        ----------
+        to_path : str
+            path to where the dataset should be moved to. The path must contain the `filename` of the dataset (e.g.
+            FILENAME.origami)
+        """
+        from origami.utils.path import copy_directory
+
+        if not to_path.endswith(".origami"):
+            raise ValueError("The output directory should end in `.origami`")
+        if os.path.exists(to_path):
+            if os.listdir(to_path):
+                raise ValueError("Directory already exists and its not empty")
+
+        copy_directory(self.path, to_path, True)
+        self.delete()
+        self.path = to_path
+
     def duplicate(self, path: str, overwrite: bool = False):
         """Create copy of the document with new name"""
         from origami.utils.path import copy_directory
@@ -727,7 +748,6 @@ class DocumentStore:
 
     def view(self) -> List[str]:
         """Returns tree-like representation of the dataset"""
-
         out = []
         for o in self.fp.values():
             if hasattr(o, "values"):

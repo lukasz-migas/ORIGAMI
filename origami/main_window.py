@@ -1050,9 +1050,9 @@ class MainWindow(wx.Frame):
 
     def on_open_new_file(self, _evt):
         """Import dataset"""
-        from origami.gui_elements.panel_data_import import PanelDataImport
+        from origami.gui_elements.panel_data_import import PanelDatasetImport
 
-        dlg = PanelDataImport(self, self._icons, self.presenter)
+        dlg = PanelDatasetImport(self, self._icons, self.presenter)
         dlg.Show()
 
     def on_customise_annotation_plot_parameters(self, _evt):

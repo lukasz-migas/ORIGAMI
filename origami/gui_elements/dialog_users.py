@@ -155,6 +155,7 @@ class DialogAddUser(Dialog):
         user = user.split("::")
         if user:
             self.full_name, self.email, self.institution = user
+            USERS.current_user = self.full_name
 
     def on_add_user_account(self, _evt):
         """Add user account"""

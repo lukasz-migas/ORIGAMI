@@ -16,6 +16,10 @@ VALID_FILENAME_CHARACTERS = "-_.() %s%s" % (string.ascii_letters, string.digits)
 CHARACTER_LIMIT = 255
 
 
+def move_directory_contents(path):
+    """Recursively move files to a new location"""
+
+
 def get_delimiter_from_filename(path):
     """Get delimiter based on the filename"""
     if path.endswith("csv"):
