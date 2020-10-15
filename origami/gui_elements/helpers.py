@@ -7,6 +7,24 @@ from wx.lib.agw import supertooltip as superTip
 from origami.utils.color import convert_rgb_1_to_255
 
 
+def get_name_from_evt(evt) -> str:
+    """Get widget name"""
+    source = ""
+    if hasattr(evt, "GetEventObject"):
+        source = evt.GetEventObject()
+        if hasattr(source, "GetName"):
+            source = source.GetName()
+    return source
+
+
+def get_widget_from_evt(evt) -> str:
+    """Get widget name"""
+    widget = None
+    if hasattr(evt, "GetEventObject"):
+        widget = evt.GetEventObject()
+    return widget
+
+
 def make_spin_ctrl_double(parent, value, min_value, max_value, increment_value, size=(-1, -1), evt_id=-1, name="name"):
     """Convenient way to initialize SpinCtrlDouble"""
     spin_ctrl = wx.SpinCtrlDouble(

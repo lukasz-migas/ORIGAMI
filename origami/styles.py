@@ -5,15 +5,14 @@ import time
 import logging
 import itertools
 from ast import literal_eval
+from typing import List
 from operator import itemgetter
 
 # Third-party imports
-from typing import List
-
 import wx
 import numpy as np
-from natsort.natsort import natsorted
 import wx.html
+from natsort.natsort import natsorted
 
 # Local imports
 from origami.utils.color import convert_rgb_1_to_255

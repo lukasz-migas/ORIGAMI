@@ -11,7 +11,9 @@ from pubsub.core import TopicNameError
 
 # Local imports
 from origami.styles import MiniFrame
-from origami.config.config import PUB_EVENT_USER_ADD, PUB_EVENT_USER_REMOVE, USERS
+from origami.config.config import USERS
+from origami.config.config import PUB_EVENT_USER_ADD
+from origami.config.config import PUB_EVENT_USER_REMOVE
 from origami.config.enabler import APP_ENABLER
 from origami.config.environment import ENV
 from origami.config.environment import PUB_EVENT_ENV_ADD

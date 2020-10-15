@@ -2,21 +2,25 @@
 # Standard library imports
 import os
 import logging
+from typing import List
+from typing import Tuple
 
 # Third-party imports
-from typing import List
-
 import wx
 from pubsub import pub
 from pubsub.core import TopicNameError
 
 # Local imports
-from origami.styles import MiniFrame, VListBox
-from origami.config.config import PUB_EVENT_USER_ADD, PUB_EVENT_USER_REMOVE, USERS
+from origami.styles import VListBox
+from origami.styles import MiniFrame
+from origami.config.config import USERS
+from origami.config.config import PUB_EVENT_USER_ADD
+from origami.config.config import PUB_EVENT_USER_REMOVE
 from origami.config.environment import ENV
 from origami.gui_elements.helpers import set_tooltip
 from origami.gui_elements.helpers import make_bitmap_btn
 from origami.gui_elements.helpers import make_static_text
+from origami.gui_elements.helpers import get_name_from_evt
 
 LOGGER = logging.getLogger(__name__)
 
@@ -56,6 +60,11 @@ class PathsVListBox(VListBox):
         color = self.GOOD_COLOR if os.path.exists(value) else self.BAD_COLOR
         self.SetItemBackgroundColour(item_id, color)
 
+    def iter(self) -> Tuple[int, str]:
+        """Iterate over all items in the widget"""
+        for item_id in range(self.GetCount()):
+            yield item_id, self.GetString(item_id)
+
 
 class PanelDatasetInformation(MiniFrame):
     """Dataset information"""
@@ -65,7 +74,7 @@ class PanelDatasetInformation(MiniFrame):
     add_btn, output_path_btn, base_dir_value, file_dir_value, document_value = None, None, None, None, None
     paths_value, fix_btn, locate_btn = None, None, None
 
-    def __init__(self, parent, icons, presenter, document_title: str, debug: bool = False):
+    def __init__(self, parent, icons, presenter, document_title: str = None, debug: bool = False):
         MiniFrame.__init__(self, parent, title="Import Dataset...", style=wx.DEFAULT_FRAME_STYLE & ~wx.MAXIMIZE_BOX)
         self.parent = parent
         self.presenter = presenter
@@ -163,17 +172,17 @@ class PanelDatasetInformation(MiniFrame):
 
         paths_value = make_static_text(panel, "Paths:")
         self.paths_value = PathsVListBox(panel, wx.ID_ANY, size=(-1, 100))
-        self.Bind(wx.EVT_LISTBOX_DCLICK, self.on_path_click, self.paths_value)
+        self.Bind(wx.EVT_LISTBOX_DCLICK, self.on_locate_path, self.paths_value)
         set_tooltip(
             paths_value, "List of paths associated with this document. Paths that are missing are highlighted in red."
         )
 
-        self.locate_btn = make_bitmap_btn(panel, wx.ID_ANY, self._icons.locate)
+        self.locate_btn = make_bitmap_btn(panel, wx.ID_ANY, self._icons.locate, name="locate_btn")
         self.locate_btn.Bind(wx.EVT_BUTTON, self.on_locate_path)
         set_tooltip(self.locate_btn, "Locate currently selected item somewhere on your hard drive")
 
         self.fix_btn = make_bitmap_btn(panel, wx.ID_ANY, self._icons.fix)
-        self.fix_btn.Bind(wx.EVT_BUTTON, self.on_fix_path)
+        self.fix_btn.Bind(wx.EVT_BUTTON, self.on_auto_fix_path)
         set_tooltip(
             self.fix_btn,
             "Fix any/all paths in the list by selecting base path. Paths will be searched within the directory and if "
@@ -278,12 +287,19 @@ class PanelDatasetInformation(MiniFrame):
                 dlg.SetPath(path)
         return dlg
 
-    def on_path_click(self, evt):
+    def on_locate_path(self, evt):
         """Select path on the listbox"""
-        path = evt.GetString()
+        source = get_name_from_evt(evt)
+        if source == "locate_btn":
+            path = self.paths_value.GetStringSelection()
+        else:
+            path = evt.GetString()
+
+        if path in ["", None]:
+            LOGGER.info("No item has been selected in the list view")
+            return
 
         new_path = None
-
         # get dialog and new path
         dlg = self._on_get_dlg_handle(path)
         if dlg.ShowModal() == wx.ID_OK:
@@ -294,17 +310,48 @@ class PanelDatasetInformation(MiniFrame):
         if new_path is not None:
             self.paths_value.update_item(evt.GetInt(), new_path)
 
-    def on_locate_path(self, _evt):
-        """Locate currently selected item on the hard drive"""
-        print("on_locate_path")
-
     def on_auto_fix_path(self, _evt):
         """Locate currently selected item on the hard drive"""
-        print("on_auto_fix_path")
+        dlg = wx.DirDialog(
+            wx.GetTopLevelParent(self),
+            "Please select new location of the directory",
+            style=wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST,
+        )
+        base_dir = None
+        if dlg.ShowModal() == wx.ID_OK:
+            base_dir = dlg.GetPath()
+        dlg.Destroy()
 
-    def on_fix_path(self, _evt):
-        """Fix path"""
-        print("on_fix_path")
+        if base_dir is None:
+            LOGGER.warning("No base directory has been selected")
+            return
+
+        for item_id, path in self.paths_value.iter():
+            if os.path.exists(path):
+                continue
+            _, basename = os.path.split(path)
+            new_path = os.path.join(base_dir, basename)
+            if os.path.exists(new_path):
+                self.paths_value.update_item(item_id, new_path)
+                LOGGER.info(f"Fixed location of `{path}`. New location => {new_path}")
+
+    def save_config(self):
+        """Output config for the current document"""
+        document = ENV.on_get_document(self.document_title)
+        if document is None:
+            return
+
+        # get data
+        output_path = self.output_dir
+        user = USERS.get_user(self.full_name)
+        notes = self.notes_value.GetValue()
+
+        # add metadata
+        document.add_config("about", dict(user=user, notes=notes))
+
+        # move directory
+        if document.path != output_path:
+            document.move(output_path)
 
     def setup_document(self, document_title: str):
         """Setup document"""
@@ -338,22 +385,7 @@ class PanelDatasetInformation(MiniFrame):
 
     def on_ok(self, evt):
         """Close window gracefully"""
-        document = ENV.on_get_document()
-        if document is None:
-            return
-
-        # get data
-        path = self.output_dir
-        user = USERS.get_user(self.full_name)
-        notes = self.notes_value.GetValue()
-
-        # add metadata
-        document.add_config("about", dict(user=user, notes=notes))
-
-        # move directory
-        if document.path != path:
-            document.move(path)
-
+        self.save_config()
         super(PanelDatasetInformation, self).on_ok(evt)
 
     def on_update_user_list(self):
@@ -379,9 +411,13 @@ if __name__ == "__main__":
     def _main():
 
         app = wx.App()
-        ex = PanelDatasetInformation(None, None, None, None, debug=True)
+        ex = PanelDatasetInformation(None, None, None, debug=True)
         ex.paths_value.set_items(
-            ["D:\surfdrive\Shared\Lab-PCs", "D:\surfdrive\Shared\Lab-PCs.raw", "D:\surfdrive\Shared\Lab-PCs"]
+            [
+                r"D:\Data\ORIGAMI\LESA MSI for ORIGAMI\2019_04_26_013_MOUSE_BRAIN_001.raw",
+                r"D:\Data\ORIGAMI\LESA MSI for ORIGAMI\2019_04_26_014_MOUSE_BRAIN_002.raw",
+                r"D:\surfdrive\Shared\2019_04_26_015_MOUSE_BRAIN_003.raw",
+            ]
         )
 
         ex.Show()

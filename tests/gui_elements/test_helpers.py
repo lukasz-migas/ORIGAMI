@@ -4,8 +4,9 @@ import wx
 import pytest
 
 # Local imports
-# from origami.icons.icons import IconContainer
 from origami.gui_elements.helpers import make_spin_ctrl_double
+from origami.gui_elements.helpers import make_spin_ctrl_int
+from origami.gui_elements.helpers import make_checkbox
 
 from ..wxtc import WidgetTestCase
 
@@ -20,3 +21,9 @@ class TestHelpers(WidgetTestCase):
 
         control = make_spin_ctrl_double(panel, 3, 100, 200, 0.5)
         assert isinstance(control, wx.SpinCtrlDouble)
+
+        control = make_spin_ctrl_int(panel, 0, 0, 100)
+        assert isinstance(control, wx.SpinCtrl)
+
+        control = make_checkbox(panel, "")
+        assert isinstance(control, wx.CheckBox)
