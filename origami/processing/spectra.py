@@ -712,6 +712,25 @@ def seq_ppm(mz_start: float, mz_end: float, ppm: float):
     return mz
 
 
+def trim_ppm(x: np.ndarray, y: np.ndarray, x_ppm: np.ndarray):
+    """Trim arrays based on user settings"""
+    x_idx = np.where((x > x_ppm[0]) & (x < x_ppm[-1]))
+    return x[x_idx], y[x_idx]
+
+
+def linearize_ppm(x: np.ndarray, y: np.ndarray, x_ppm: np.ndarray):
+    """Linearize spectrum based on ppm"""
+    x, y = trim_ppm(x, y, x_ppm)
+    y_ppm = np.zeros_like(x_ppm)
+    idx = np.digitize(x, x_ppm, True)
+    for i, _idx in enumerate(idx):
+        try:
+            y_ppm[_idx] += y[i]
+        except IndexError:
+            pass
+    return y_ppm
+
+
 try:
     has_c = True
     _baseline_curve_ = baseline_curve_

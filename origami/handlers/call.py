@@ -46,7 +46,8 @@ class Call:
     def __call__(self):
         return self.func(*self.args, **self.kwargs)
 
-    def _wrap_results(self, results):
+    @staticmethod
+    def _wrap_results(results):
         if not isinstance(results, (list, tuple)):
             return (results,)
         return results

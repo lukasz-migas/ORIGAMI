@@ -11,20 +11,30 @@ from natsort import natsorted
 from origami.styles import Dialog
 from origami.styles import ListCtrl
 from origami.utils.path import get_subdirectories
+from origami.gui_elements.helpers import TableConfig
 from origami.gui_elements.helpers import set_tooltip
 
 LOGGER = logging.getLogger(__name__)
+
+
+class TableColumnIndex:
+    """Table indexer"""
+
+    check = 0
+    filename = 1
+    path = 2
 
 
 class DialogMultiDirPicker(Dialog):
     """Select multiple directories dialog"""
 
     # lists
-    FILELIST_ALL = FILELIST_SELECT = {
-        0: {"name": "", "tag": "check", "type": "bool", "width": 20, "show": True},
-        1: {"name": "filename", "tag": "filename", "type": "str", "width": 300, "show": True},
-        2: {"name": "path", "tag": "path", "type": "str", "width": 0, "show": False},
-    }
+    FILELIST_ALL_CONFIG = TableConfig()
+    FILELIST_ALL_CONFIG.add("", "check", "bool", 25)
+    FILELIST_ALL_CONFIG.add("filename", "filename", "str", 300)
+    FILELIST_ALL_CONFIG.add("path", "path", "str", 0, hidden=True)
+    FILELIST_SELECT_CONFIG = FILELIST_ALL_CONFIG
+    TABLE_COLUMN_INDEX = TableColumnIndex
 
     # ui elements
     path_value = None
@@ -63,7 +73,7 @@ class DialogMultiDirPicker(Dialog):
 
     def setup(self):
         """Setup UI before displayed to the user"""
-        self._populate_all_list(None)
+        self._populate_all_list()
 
     def ShowModal(self):
         """Simplified ShowModal(), returning strings 'ok' or 'cancel'. """
@@ -150,12 +160,12 @@ class DialogMultiDirPicker(Dialog):
         btn_grid.Add(self.ok_btn, (n, 0), flag=wx.ALIGN_CENTER)
         btn_grid.Add(self.cancel_btn, (n, 1), flag=wx.ALIGN_CENTER)
 
-        path_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        path_sizer = wx.BoxSizer()
         path_sizer.Add(path_label, 0, wx.ALIGN_CENTER_VERTICAL, 0)
         path_sizer.Add(self.path_value, 1, wx.EXPAND, 0)
         path_sizer.Add(self.directory_btn, 0, wx.ALIGN_CENTER_VERTICAL, 0)
 
-        table_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        table_sizer = wx.BoxSizer()
         table_sizer.Add(self.filelist_all, 1, wx.EXPAND, 0)
         table_sizer.Add(table_control_grid, 0, wx.ALIGN_CENTER, 0)
         table_sizer.Add(self.filelist_select, 1, wx.EXPAND, 0)
@@ -187,14 +197,14 @@ class DialogMultiDirPicker(Dialog):
             return filelist
 
         # initialize filelist with all files/directories in the folder
-        self.filelist_all = _make_table(self.FILELIST_ALL)
-        self.filelist_select = _make_table(self.FILELIST_SELECT)
+        self.filelist_all = _make_table(self.FILELIST_ALL_CONFIG)
+        self.filelist_select = _make_table(self.FILELIST_SELECT_CONFIG)
 
         LOGGER.debug("Initialized file lists")
 
     def on_select_directory(self, _):
         """Select directory where to start searching for files/directories"""
-        dlg = wx.DirDialog(self.view, "Choose directory", style=wx.DD_DEFAULT_STYLE)
+        dlg = wx.DirDialog(self.view, "Choose directory")
 
         path = None
         if dlg.ShowModal() == wx.ID_OK:
@@ -247,7 +257,7 @@ class DialogMultiDirPicker(Dialog):
         if self._path not in self._filelist_select:
             self._filelist_select[self._path] = []
 
-        directories = get_subdirectories(self._path, self._extension, as_short=True)
+        directories = get_subdirectories(self._path, self._extension)
         self.populate_all_list(directories)
 
     def populate_all_list(self, item_list):

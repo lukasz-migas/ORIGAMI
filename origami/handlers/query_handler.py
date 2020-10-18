@@ -81,11 +81,11 @@ class QueryHandler:
         return self._generate_item_dict(output_fmt, ["MSDTHeatmaps"])
 
     @staticmethod
-    def _generate_item_dict(output_fmt: str, all_datasets: List[str]):
+    def _generate_item_dict(output_fmt: str, all_datasets: List[str]) -> Dict[str, List]:
         """Actually generate the item dictionary"""
         all_documents = ENV.get_document_list()
 
-        item_dict = dict().fromkeys(all_documents, None)
+        item_dict: Dict[str, List] = dict().fromkeys(all_documents)
 
         # iterate over all documents
         for document_title in all_documents:

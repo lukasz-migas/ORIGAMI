@@ -18,6 +18,7 @@ from origami.config.config import PUB_EVENT_USER_ADD
 from origami.config.config import PUB_EVENT_USER_REMOVE
 from origami.config.environment import ENV
 from origami.gui_elements.helpers import set_tooltip
+from origami.gui_elements.helpers import get_item_font
 from origami.gui_elements.helpers import make_bitmap_btn
 from origami.gui_elements.helpers import make_static_text
 from origami.gui_elements.helpers import get_name_from_evt
@@ -42,6 +43,7 @@ class PathsVListBox(VListBox):
 
     def setup(self):
         """Additional setup"""
+        self.FONT = get_item_font(8, weight=wx.FONTWEIGHT_NORMAL)
 
     def set_items(self, item_list: List[str]):
         """Set items in the listbox"""
@@ -73,6 +75,7 @@ class PanelDatasetInformation(MiniFrame):
     output_value, notes_value, users_value, ok_btn, cancel_btn = None, None, None, None, None
     add_btn, output_path_btn, base_dir_value, file_dir_value, document_value = None, None, None, None, None
     paths_value, fix_btn, locate_btn = None, None, None
+    path_or_paths = None
 
     def __init__(self, parent, icons, presenter, document_title: str = None, debug: bool = False):
         MiniFrame.__init__(self, parent, title="Import Dataset...", style=wx.DEFAULT_FRAME_STYLE & ~wx.MAXIMIZE_BOX)
@@ -211,7 +214,7 @@ class PanelDatasetInformation(MiniFrame):
         output_sizer = wx.BoxSizer()
         output_sizer.Add(self.base_dir_value, 1, wx.EXPAND)
         output_sizer.AddSpacer(5)
-        output_sizer.Add(self.output_path_btn)
+        output_sizer.Add(self.output_path_btn, 0, wx.EXPAND)
 
         add_sizer = wx.BoxSizer()
         add_sizer.Add(self.users_value, 1, wx.EXPAND)
@@ -226,7 +229,7 @@ class PanelDatasetInformation(MiniFrame):
         paths_sizer = wx.BoxSizer()
         paths_sizer.Add(self.paths_value, 1, wx.EXPAND)
         paths_sizer.AddSpacer(5)
-        paths_sizer.Add(_paths_btn_sizer, 0, wx.ALIGN_TOP)
+        paths_sizer.Add(_paths_btn_sizer, 0, wx.ALIGN_TOP | wx.EXPAND)
 
         # pack elements
         grid = wx.GridBagSizer(5, 5)
@@ -349,6 +352,10 @@ class PanelDatasetInformation(MiniFrame):
         # add metadata
         document.add_config("about", dict(user=user, notes=notes))
 
+        # add paths
+        path_key, path_or_paths = self.get_paths(document)
+        document.add_file_path(path_key, path_or_paths)
+
         # move directory
         if document.path != output_path:
             document.move(output_path)
@@ -356,12 +363,46 @@ class PanelDatasetInformation(MiniFrame):
     def setup_document(self, document_title: str):
         """Setup document"""
         document = ENV.on_get_document(document_title)
+        self.document_title = document_title
         if document:
             base_dir, out_dir = os.path.split(document.path)
             self.file_dir_value.SetValue(out_dir)
             self.base_dir_value.SetValue(base_dir)
             self.output_value.SetValue(document.path)
             self.output_path_btn.Enable()
+
+            # get paths
+            title = "multifile" if document.is_multifile() else "main"
+            paths = document.get_file_path(title)
+            self.set_paths(paths)
+
+    def set_paths(self, path_or_paths):
+        """Set paths"""
+        self.path_or_paths = {}
+        _path_or_paths = None
+        if isinstance(path_or_paths, str):
+            _path_or_paths = [path_or_paths]
+        elif isinstance(path_or_paths, dict):
+            _path_or_paths = []
+            for i, (k, v) in enumerate(path_or_paths.items()):
+                _path_or_paths.append(v)
+                self.path_or_paths[i] = k
+
+        if _path_or_paths:
+            self.paths_value.set_items(_path_or_paths)
+
+    def get_paths(self, document):
+        """Get paths"""
+        path_key = "multifile" if document.is_multifile() else "main"
+        item_list = self.paths_value.get_items()
+        _item_list = None
+        if path_key != "multifile":
+            _item_list = item_list[0]
+        else:
+            _item_list = {}
+            for i, path in enumerate(item_list):
+                _item_list[self.path_or_paths[i]] = path
+        return path_key, _item_list
 
     def on_select_output(self, _evt):
         """Select directory where the dataset should be moved to"""

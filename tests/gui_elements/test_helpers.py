@@ -4,9 +4,9 @@ import wx
 import pytest
 
 # Local imports
-from origami.gui_elements.helpers import make_spin_ctrl_double
-from origami.gui_elements.helpers import make_spin_ctrl_int
 from origami.gui_elements.helpers import make_checkbox
+from origami.gui_elements.helpers import make_spin_ctrl_int
+from origami.gui_elements.helpers import make_spin_ctrl_double
 
 from ..wxtc import WidgetTestCase
 

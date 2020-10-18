@@ -108,6 +108,12 @@ def set_item_font(
     return parent
 
 
+def get_item_font(size=10, family=wx.FONTFAMILY_DEFAULT, style=wx.FONTSTYLE_NORMAL, weight=wx.FONTWEIGHT_BOLD):
+    """Get item font"""
+    font = wx.Font(size, family, style, weight)
+    return font
+
+
 def make_staticbox(parent, title, size, color):
     """Make staticbox"""
     static_box = wx.StaticBox(parent, wx.ID_ANY, title, size=size, style=wx.SB_FLAT)

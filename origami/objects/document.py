@@ -652,13 +652,13 @@ class DocumentStore:
             new name that does not exist on the hard drive
         """
 
-        def _new_name(name, n):
-            if n == 0 or f"({suffix})" not in name:
-                name = name + f" ({suffix} %d)" % n
+        def _new_name(name_, n_):
+            if n_ == 0 or f"({suffix})" not in name_:
+                name_ = name_ + f" ({suffix} %d)" % n_
             else:
-                name = name.replace(f" ({suffix} {n-1})", f" ({suffix} {n})")
+                name_ = name_.replace(f" ({suffix} {n_ - 1})", f" ({suffix} {n_})")
 
-            return name
+            return name_
 
         prev = re.findall(rf"\({suffix} (\d+)", name)  # noqa
         n = 0
@@ -777,16 +777,26 @@ class DocumentStore:
         if title in self.file_reader:
             return self.file_reader[title]
 
-    def add_file_path(self, title: str, path: str):
-        """Add file path associated with the document"""
+    def add_file_path(self, title: str, path_or_paths: Union[str, Dict]):
+        """Add file path associated with the document
+
+        Parameters
+        ----------
+        title: str
+            title of the config - usually `main` or `multifile`
+        path_or_paths : str, dict
+            path or paths to be retained in the config
+        """
         config = self.get_config("paths")
-        config[title] = path
+        if not check_config_path(title, path_or_paths):
+            raise ValueError("Config path should be a string or a dict of strings")
+        config[title] = path_or_paths
         self.add_config("paths", config)
 
     def get_file_path(self, title: str):
         """Return path to a raw file"""
         config = self.get_config("paths")
-        return config.get(title, "")
+        return config.get(title, get_config_path(title))
 
     def get_file_paths(self):
         """Return the whole configuration object"""
@@ -847,3 +857,21 @@ class DocumentStore:
             name = name.split("/")[-1]
 
         return self.as_object(self.Overlays[name])
+
+
+def check_config_path(key, path_or_paths):
+    """Check configuration paths"""
+    if key == "main":
+        return isinstance(path_or_paths, str)
+    elif key == "multifile":
+        return isinstance(path_or_paths, dict)
+    return isinstance(path_or_paths, str)
+
+
+def get_config_path(key):
+    """Get default paths"""
+    if key == "main":
+        return ""
+    elif key == "multifile":
+        return {}
+    return ""

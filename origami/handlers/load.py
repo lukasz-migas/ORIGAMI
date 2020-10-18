@@ -8,6 +8,7 @@ from sys import platform
 from copy import deepcopy
 from typing import Dict
 from typing import List
+from typing import Tuple
 from typing import Optional
 
 # Third-party imports
@@ -86,13 +87,13 @@ class LoadHandler:
         document = ENV.on_get_document(document_title)
 
         # setup file reader
-        reader = document.get_reader("ion_mobility")
+        reader = document.get_reader("main")
         if reader is None:
             path = document.get_file_path("main")
             reader = WatersIMReader(
                 path, temp_dir=CONFIG.APP_TEMP_DATA_PATH, driftscope_path=CONFIG.APP_DRIFTSCOPE_PATH
             )
-            document.add_reader("ion_mobility", reader)
+            document.add_reader("main", reader)
 
         # extract data
         mz_obj = reader.extract_ms(dt_start=x_min, dt_end=x_max)
@@ -132,13 +133,13 @@ class LoadHandler:
         document = ENV.on_get_document(document_title)
 
         # setup file reader
-        reader = document.get_reader("ion_mobility")
+        reader = document.get_reader("main")
         if reader is None:
             path = document.get_file_path("main")
             reader = WatersIMReader(
                 path, temp_dir=CONFIG.APP_TEMP_DATA_PATH, driftscope_path=CONFIG.APP_DRIFTSCOPE_PATH
             )
-            document.add_reader("ion_mobility", reader)
+            document.add_reader("main", reader)
 
         mz_obj = reader.extract_ms(rt_start=x_min, rt_end=x_max)
         if obj_name is None:
@@ -181,13 +182,13 @@ class LoadHandler:
         document = ENV.on_get_document(document_title)
 
         # setup file reader
-        reader = document.get_reader("ion_mobility")
+        reader = document.get_reader("main")
         if reader is None:
             path = document.get_file_path("main")
             reader = WatersIMReader(
                 path, temp_dir=CONFIG.APP_TEMP_DATA_PATH, driftscope_path=CONFIG.APP_DRIFTSCOPE_PATH
             )
-            document.add_reader("ion_mobility", reader)
+            document.add_reader("main", reader)
 
         mz_obj = reader.extract_ms(rt_start=x_min, rt_end=x_max, dt_start=y_min, dt_end=y_max)
         if obj_name is None:
@@ -230,13 +231,13 @@ class LoadHandler:
         document = ENV.on_get_document(document_title)
 
         # setup file reader
-        reader = document.get_reader("ion_mobility")
+        reader = document.get_reader("main")
         if reader is None:
             path = document.get_file_path("main")
             reader = WatersIMReader(
                 path, temp_dir=CONFIG.APP_TEMP_DATA_PATH, driftscope_path=CONFIG.APP_DRIFTSCOPE_PATH
             )
-            document.add_reader("ion_mobility", reader)
+            document.add_reader("main", reader)
 
         mz_obj = reader.extract_rt(mz_start=x_min, mz_end=x_max, dt_start=y_min, dt_end=y_max)
         if obj_name is None:
@@ -275,13 +276,13 @@ class LoadHandler:
         document = ENV.on_get_document(document_title)
 
         # setup file reader
-        reader = document.get_reader("ion_mobility")
+        reader = document.get_reader("main")
         if reader is None:
             path = document.get_file_path("main")
             reader = WatersIMReader(
                 path, temp_dir=CONFIG.APP_TEMP_DATA_PATH, driftscope_path=CONFIG.APP_DRIFTSCOPE_PATH
             )
-            document.add_reader("ion_mobility", reader)
+            document.add_reader("main", reader)
 
         # get heatmap
         rt_obj = reader.extract_rt(mz_start=x_min, mz_end=x_max)
@@ -321,13 +322,13 @@ class LoadHandler:
         document = ENV.on_get_document(document_title)
 
         # setup file reader
-        reader = document.get_reader("ion_mobility")
+        reader = document.get_reader("main")
         if reader is None:
             path = document.get_file_path("main")
             reader = WatersIMReader(
                 path, temp_dir=CONFIG.APP_TEMP_DATA_PATH, driftscope_path=CONFIG.APP_DRIFTSCOPE_PATH
             )
-            document.add_reader("ion_mobility", reader)
+            document.add_reader("main", reader)
 
         # get heatmap
         dt_obj = reader.extract_dt(mz_start=x_min, mz_end=x_max)
@@ -367,13 +368,13 @@ class LoadHandler:
         document = ENV.on_get_document(document_title)
 
         # setup file reader
-        reader = document.get_reader("ion_mobility")
+        reader = document.get_reader("main")
         if reader is None:
             path = document.get_file_path("main")
             reader = WatersIMReader(
                 path, temp_dir=CONFIG.APP_TEMP_DATA_PATH, driftscope_path=CONFIG.APP_DRIFTSCOPE_PATH
             )
-            document.add_reader("ion_mobility", reader)
+            document.add_reader("main", reader)
 
         # get heatmap
         heatmap_obj = reader.extract_heatmap(mz_start=x_min, mz_end=x_max)
@@ -582,11 +583,11 @@ class LoadHandler:
         document = ENV.on_get_document(title)
 
         # setup file reader
-        reader = document.get_reader("data_reader")
+        reader = document.get_reader("main")
         if reader is None:
             path = document.get_file_path("main")
             reader = ThermoRawReader(path)
-            document.add_reader("data_reader", reader)
+            document.add_reader("main", reader)
 
         mz_obj = reader.get_spectrum(start_scan=x_min, end_scan=x_max, rt_as_scan=as_scan)
         obj_name = f"RT_{x_min:.2f}-{x_max:.2f}"
@@ -775,7 +776,7 @@ class LoadHandler:
         document = ENV.get_new_document("mgf", path)
         # set data
         document.tandem_spectra = data
-        document.add_reader("data_reader", reader)
+        document.add_reader("main", reader)
         document.add_file_path("main", path)
 
         return document
@@ -800,8 +801,7 @@ class LoadHandler:
         document = ENV.get_new_document("mzml", path)
         # set data
         document.tandem_spectra = data
-        document.add_reader("data_reader", reader)
-        document.add_file_path("main", path)
+        document.add_reader("main", reader)
 
         return document
 
@@ -835,8 +835,7 @@ class LoadHandler:
         reader, data = self.load_thermo_ms_data(path)
 
         document = ENV.get_new_document("thermo", path, data=data)
-        document.add_reader("data_reader", reader)
-        document.add_file_path("main", path)
+        document.add_reader("main", reader)
 
         return document
 
@@ -913,8 +912,7 @@ class LoadHandler:
         """Load Waters data and set in ORIGAMI document"""
         reader, data = self.load_waters_ms_data(path)
         document = ENV.get_new_document("waters_ms", path, data=data)
-        document.add_reader("data_reader", reader)
-        document.add_file_path("main", path)
+        document.add_reader("main", reader)
 
         return document
 
@@ -967,37 +965,57 @@ class LoadHandler:
         """Load Waters data and set in ORIGAMI document"""
         reader, data = self.load_waters_im_data(path)
         document = ENV.get_new_document("origami", path, data=data)
-        document.add_reader("data_reader", reader)
-        document.add_file_path("main", path)
+        document.add_reader("main", reader)
 
         return document
 
-    def load_lesa_document(self, path, filelist: List[FileItem], **proc_kwargs) -> DocumentStore:
+    def load_lesa_document(
+        self, path, filelist: List[FileItem], document: DocumentStore = None, **proc_kwargs
+    ) -> DocumentStore:
         """Load Waters data and set in ORIGAMI document"""
         from origami.widgets.lesa.processing.normalization import ImagingNormalizationProcessor
 
-        document = ENV.get_new_document("imaging", path)
+        if document is None:
+            document = ENV.get_new_document("imaging", path)
 
-        #         filelist = self.check_lesa_document(document, filelist, **proc_kwargs)
+        # check paths and get metadata
+        _path_dict = get_multifile_pathlist(filelist)
+        _file_dict, _ = self.get_multifile_filelist(filelist)
+        filelist = self.check_lesa_document(document, filelist, **proc_kwargs)
+
+        # process raw data
         data = self.load_multi_file_waters_data(filelist, **proc_kwargs)
+        proc_kwargs["path_list"] = _file_dict
+
+        # add data to the document
         document = ENV.set_document(document, data=data)
         document.add_config("imaging", proc_kwargs)
+        document.add_file_path("multifile", _path_dict)
         ImagingNormalizationProcessor(document)
-        #         document.add_file_path("multi", filelist)
 
         return document
 
-    def load_manual_document(self, path, filelist: List[FileItem], **proc_kwargs) -> DocumentStore:
+    def load_manual_document(
+        self, path, filelist: List[FileItem], document: DocumentStore = None, **proc_kwargs
+    ) -> DocumentStore:
         """Load Waters data and set in ORIGAMI document"""
-        document = ENV.get_new_document("activation", path)
+        if document:
+            document = ENV.get_new_document("activation", path)
 
-        _filedict, _variables = self.get_multifile_filelist(filelist)
+        # check paths and get metadata
+        _file_dict, _variables = self.get_multifile_filelist(filelist)
+        _path_dict = get_multifile_pathlist(filelist)
         filelist = self.check_lesa_document(document, filelist, **proc_kwargs)
+
+        # process raw data
         data = self.load_multi_file_waters_data(filelist, heatmap_x_label="Collision Voltage (V)", **proc_kwargs)
+        proc_kwargs["path_list"] = _file_dict
+
+        # add data to the document
         document = ENV.set_document(document, data=data)
         document.add_config("activation", proc_kwargs)
         document.add_config("variables", _variables)
-        document.add_file_path("multifile", _filedict)
+        document.add_file_path("multifile", _path_dict)
 
         return document
 
@@ -1085,15 +1103,24 @@ class LoadHandler:
 
         return filelist
 
-    def get_multifile_filelist(self, filelist: List[FileItem]):
+    @staticmethod
+    def get_multifile_filelist(filelist: List[FileItem]) -> Tuple[Dict, Dict]:
         """Get list of files that can be associated with a multi-file document"""
-        _filedict = {}
-        _variables = {}
+        _file_dict, _variables = {}, {}
         for file_item in filelist:
-            _filedict[file_item.path] = file_item._asdict()
-            _variables[file_item.path] = file_item.variable
+            filename = os.path.basename(file_item.path)
+            _file_dict[filename] = file_item._asdict()  # noqa
+            _variables[filename] = file_item.variable
+        return _file_dict, _variables
 
-        return _filedict, _variables
+
+def get_multifile_pathlist(filelist: List[FileItem]) -> Dict[str, str]:
+    """Get list of files"""
+    _path_dict = {}
+    for file_item in filelist:
+        filename = os.path.basename(file_item.path)
+        _path_dict[filename] = file_item.path
+    return _path_dict
 
 
 def _load_multi_file_waters_data(filelist: List[FileItem], **proc_kwargs):

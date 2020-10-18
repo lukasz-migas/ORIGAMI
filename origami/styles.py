@@ -553,6 +553,7 @@ class VListBox(wx.ListBox):
     """VListBox widget"""
 
     items = None
+    FONT = None
 
     def __init__(self, *args, style=wx.LB_DEFAULT | wx.LB_OWNERDRAW, **kwargs):
         super(VListBox, self).__init__(*args, style=style, **kwargs)
@@ -564,6 +565,15 @@ class VListBox(wx.ListBox):
     def set_items(self, item_list: List[str]):
         """Set items in the VListBox"""
         self.AppendItems(item_list)
+        if self.FONT:
+            self.SetFont(self.FONT)
+
+    def get_items(self):
+        """Get items"""
+        item_list = []
+        for item_id in range(self.GetCount()):
+            item_list.append(self.GetString(item_id))
+        return item_list
 
     def update_item(self, item_id: int, value: str):
         """Update value in the table"""

@@ -440,6 +440,9 @@ class Environment(PropertyCallbackManager):
         LOGGER.debug(f"Created new document: {document.path}")
         return document
 
+    #     def get_or_add_document(self, document_type: str, path: str):
+    #         """Get already existing document"""
+
     def get_document_list(
         self,
         document_types: Union[str, List[str]] = "all",

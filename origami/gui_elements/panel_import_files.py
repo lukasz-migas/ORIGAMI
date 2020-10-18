@@ -316,8 +316,8 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         set_tooltip(self.processing_msdt_btn, "Update MS/DT heatmap pre-processing parameters")
         self.processing_msdt_btn.Bind(wx.EVT_BUTTON, self.on_update_msdt_settings)
 
-        self.clear_files_btn = wx.Button(panel, wx.ID_OK, "Clear filelist", size=(-1, -1))
-        set_tooltip(self.clear_files_btn, "Reset list of files")
+        self.clear_files_btn = wx.Button(panel, wx.ID_OK, "Clear selected", size=(-1, -1))
+        set_tooltip(self.clear_files_btn, "Remove selected items from the list")
         self.clear_files_btn.Bind(wx.EVT_BUTTON, self.on_clear_files)
 
         # pack heatmap items

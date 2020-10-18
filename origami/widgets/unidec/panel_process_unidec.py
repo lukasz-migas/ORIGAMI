@@ -1285,23 +1285,23 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
             evt.Skip()
 
 
-def _main():
-    from origami.icons.assets import Icons
-    from origami.utils.screen import move_to_different_screen
-
-    # from origami.handlers.load import LoadHandler
-    #
-    # loader = LoadHandler()
-    # document = loader.load_text_mass_spectrum_document(r"D:\Data\ORIGAMI\text_files\MS_p27-FL-K31.csv")
-    # mz_obj = document["MassSpectra/Summed Spectrum", True]
-    mz_obj = None
-    app = wx.App()
-    icons = Icons()
-    ex = PanelProcessUniDec(None, None, icons, mz_obj=mz_obj, debug=True)
-    move_to_different_screen(ex)
-    ex.Show()
-    app.MainLoop()
-
-
 if __name__ == "__main__":
+
+    def _main():
+        from origami.icons.assets import Icons
+        from origami.utils.screen import move_to_different_screen
+
+        # from origami.handlers.load import LoadHandler
+        #
+        # loader = LoadHandler()
+        # document = loader.load_text_mass_spectrum_document(r"D:\Data\ORIGAMI\text_files\MS_p27-FL-K31.csv")
+        # mz_obj = document["MassSpectra/Summed Spectrum", True]
+        mz_obj = None
+        app = wx.App()
+        icons = Icons()
+        ex = PanelProcessUniDec(None, None, icons, mz_obj=mz_obj, debug=True)
+        move_to_different_screen(ex)
+        ex.Show()
+        app.MainLoop()
+
     _main()

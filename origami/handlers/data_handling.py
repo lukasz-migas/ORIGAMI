@@ -1641,7 +1641,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             raise ValueError("Please create new document or select one from the list")
 
         if not CONFIG.APP_ENABLE_THREADING:
-            self.on_setup_basic_document(self.load_lesa_document(document.path, filelist, **kwargs))
+            self.on_setup_basic_document(self.load_lesa_document(document.path, filelist, document=document, **kwargs))
         else:
             self.add_task(
                 self.load_lesa_document,
@@ -1650,6 +1650,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
                 func_post=pub.sendMessage,
                 func_post_args=("widget.imaging.import.progress",),
                 func_post_kwargs=dict(is_running=False, message=""),
+                document=document,
                 **kwargs,
             )
 

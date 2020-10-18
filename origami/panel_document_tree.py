@@ -2369,6 +2369,7 @@ class DocumentTree(wx.TreeCtrl):
         menu_action_remove_document_disk = make_menu_item(
             parent=menu, text="Delete document from disk", bitmap=self._icons.bin
         )
+        menu_action_about_dataset = make_menu_item(parent=menu, text="About dataset...", bitmap=self._icons.info)
 
         # bind events
         self.Bind(wx.EVT_MENU, self.on_duplicate_document, menu_action_duplicate_document)
@@ -2377,6 +2378,7 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_open_directory, menu_action_open_directory)
         self.Bind(wx.EVT_MENU, self.on_rename_item, menu_action_rename_item)
         self.Bind(wx.EVT_MENU, self.on_duplicate_item, menu_action_duplicate_item)
+        self.Bind(wx.EVT_MENU, self.on_about_dataset, menu_action_about_dataset)
 
         if self._item.is_dataset:
             menu.AppendSeparator()
@@ -2387,6 +2389,7 @@ class DocumentTree(wx.TreeCtrl):
         if menu.GetMenuItemCount() > 0:
             menu.AppendSeparator()
 
+        menu.Append(menu_action_about_dataset)
         menu.Append(menu_action_open_directory)
         menu.Append(menu_action_duplicate_document)
         menu.Append(menu_action_remove_document)
@@ -3422,6 +3425,14 @@ class DocumentTree(wx.TreeCtrl):
             "notify.message.success",
             message=f"Document `{self._item.title}` was moved to the recycle bin where you can still recover it.",
         )
+
+    def on_about_dataset(self, _evt):
+        """Get information about the dataset"""
+        from origami.gui_elements.panel_dataset_information import PanelDatasetInformation
+
+        document_title = ENV.current
+        dlg = PanelDatasetInformation(self, self._icons, self.presenter, document_title)
+        dlg.Show()
 
     def on_delete_all_documents(self, _evt):
         """ Alternative function to delete documents """
