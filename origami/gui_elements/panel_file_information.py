@@ -26,22 +26,21 @@ class PanelInformationPopup(TransientPopupBase):
         self.Layout()
 
 
-class TestInformation(TestPanel):
-    """Test the popup window"""
-
-    def __init__(self, parent):
-        super().__init__(parent)
-
-        self.btn_1.Bind(wx.EVT_BUTTON, self.on_popup)
-
-    def on_popup(self, evt):
-        """Activate popup"""
-        p = PanelInformationPopup(self, "Document: Document 1\nRaw file: PATH")
-        p.position_on_event(evt)
-        p.Show()
-
-
 def _main():
+    class TestInformation(TestPanel):
+        """Test the popup window"""
+
+        def __init__(self, parent):
+            super().__init__(parent)
+
+            self.btn_1.Bind(wx.EVT_BUTTON, self.on_popup)
+
+        def on_popup(self, evt):
+            """Activate popup"""
+            p = PanelInformationPopup(self, "Document: Document 1\nRaw file: PATH")
+            p.position_on_event(evt)
+            p.Show()
+
     app = wx.App()
 
     dlg = TestInformation(None)

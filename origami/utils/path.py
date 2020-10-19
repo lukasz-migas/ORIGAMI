@@ -159,6 +159,7 @@ def clean_up_MDD_path(path):
 
 
 def get_base_path(filepath):
+    """Get base path of the filepath"""
     return os.path.dirname(filepath)
 
 
@@ -170,6 +171,12 @@ def copy_directory(from_path, to_path, overwrite: bool = False):
         else:
             raise OSError("Cannot copy directory to this location because the destination directory is not empty!")
     shutil.copytree(from_path, to_path)
+
+
+def move_directory(from_path, to_path, overwrite: bool = False):
+    """Move directory to new location"""
+    copy_directory(from_path, to_path, overwrite)
+    shutil.rmtree(from_path)
 
 
 # def clean_filename(filename):

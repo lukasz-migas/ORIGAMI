@@ -633,8 +633,21 @@ class DocumentStore:
         group = self._get(item)
         if copy is None:
             copy = self._get_unique_name(item, 2)
-
         self.add(copy, {k: v[:] for k, v in group.items()}, attrs=group.attrs.asdict())
+
+    def move_group(self, group_name: str, new_name: str):
+        """Move group from one location to another
+
+        Parameters
+        ----------
+        group_name : str
+            current group name - it should include the group base and dataset name
+        new_name : str
+            new group name - it should include the group base and dataset name
+        """
+        from origami.utils.path import move_directory
+
+        move_directory(os.path.join(self.path, group_name), os.path.join(self.path, new_name))
 
     def get_new_name(self, name: str, suffix: str):
         """Return new name for an object

@@ -76,9 +76,6 @@ from origami.gui_elements.misc_dialogs import DialogSimpleAsk
 
 LOGGER = logging.getLogger(__name__)
 
-# FIXME: renaming an object removes some of the metadata that is not loaded alongside the main data - fix by simply
-#        renaming the folder
-
 
 class Item:
     """Container object to keep track of which item is selected in the Document Tree"""
@@ -2844,11 +2841,10 @@ class DocumentTree(wx.TreeCtrl):
         new_name = f"{group_name}/{new_name}"
 
         # copy object
-        new_name, data_obj_renamed = data_obj.copy(new_name)
+        data_obj_renamed = data_obj.rename(new_name)
+        # new_name, data_obj_renamed = data_obj.copy(new_name)
 
         # get handle of the old object item
-        document = ENV.on_get_document(document_title)
-        del document[dataset_name]
         item = self.get_item_by_data((document_title, dataset_name))
         if item.IsOk():
             self.Delete(item)
@@ -3476,20 +3472,6 @@ class DocumentTree(wx.TreeCtrl):
         path = os.path.join(path, title)
         ENV.duplicate(document.title, path)
 
-    # def onShowSampleInfo(self, evt=None):
-    #
-    #     try:
-    #         sample_information = self._document_data.fileInformation.get("SampleDescription", "None")
-    #     except AttributeError:
-    #         sample_information = "N/A"
-    #
-    #     kwargs = {"title": "Sample information...", "information": sample_information}
-    #
-    #     from origami.gui_elements.panel_file_information import PanelInformation
-    #
-    #     info = PanelInformation(self, **kwargs)
-    #     info.Show()
-    #
     # def on_open_MSMS_viewer(self, evt=None, **kwargs):
     #     from origami.widgets.tandem.panel_tandem_spectra_viewer import PanelTandemSpectraViewer
     #

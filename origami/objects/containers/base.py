@@ -1,5 +1,6 @@
 """Container base"""
 # Standard library imports
+import logging
 from typing import Any
 from typing import Dict
 from typing import Tuple
@@ -14,6 +15,8 @@ from origami.utils.path import get_duplicate_name
 from origami.utils.ranges import get_min_max
 from origami.objects.container import ContainerBase
 from origami.objects.annotations import Annotations
+
+LOGGER = logging.getLogger(__name__)
 
 
 class DataObject(ContainerBase):
@@ -185,6 +188,21 @@ class DataObject(ContainerBase):
         if store is not None and title is not None:
             attrs = self.to_attrs()
             store.add_attrs(title, attrs)
+
+    def rename(self, new_name: str):
+        """Rename object
+
+        This operation works by moving directory to a new location (assuming its not occupied)
+        """
+        if self.dataset_name == new_name:
+            LOGGER.debug("The new name is the same as the old")
+            return
+        if self.DOCUMENT_KEY not in new_name:
+            new_name = f"{self.DOCUMENT_KEY}/{new_name}"
+        document = self.get_parent()
+        document.move_group(self.title, new_name)
+        self.title = new_name
+        return self
 
     def change_x_label(self, to_label: str, **kwargs):
         """Changes the label and x-axis values to a new format"""
