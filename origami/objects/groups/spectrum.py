@@ -132,7 +132,9 @@ class SpectrumGroup(DataGroup):
         y_sum = ys.sum(axis=0, dtype=np.float64)
         return x, y_sum
 
-    def resample(self, x_min=None, x_max=None, bin_size=None, linearization_mode=None, auto_range=False, **kwargs):
+    def resample(
+        self, x_min=None, x_max=None, bin_size=None, linearization_mode=None, auto_range=False, ppm=None, **kwargs
+    ):
         """Resample dataset so it has consistent size and shape"""
 
         def _resample_obj():
@@ -145,6 +147,7 @@ class SpectrumGroup(DataGroup):
                     x_max=x_max,
                     linearize_method=linearization_mode,
                     bin_size=bin_size,
+                    ppm=ppm,
                     auto_range=False,
                 )
             else:

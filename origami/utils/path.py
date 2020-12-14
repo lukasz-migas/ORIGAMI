@@ -40,6 +40,8 @@ def get_duplicate_name(name: str, split_str: str = None, suffix: str = "copy"):
         initial name to be checked
     split_str : str, optional
         value by which the name should be split, e.g. can be file extension such as `.origami`
+    suffix : str
+        suffix to be added to the filename
 
     Returns
     -------
@@ -123,6 +125,7 @@ def get_path_and_extension(path):
 
 
 def clean_up_folder(filepath):
+    """Clean-up folder"""
     try:
         os.remove(filepath)
     except Exception as e:
@@ -130,6 +133,7 @@ def clean_up_folder(filepath):
 
 
 def check_waters_path(filepath):
+    """Check if is waters path"""
     if not filepath.endswith(".raw"):
         filepath = filepath + ".raw"
 
@@ -137,12 +141,14 @@ def check_waters_path(filepath):
 
 
 def check_path_exists(path):
+    """Checks whether directory exists"""
     if path is None:
         return False
     return os.path.isdir(path)
 
 
 def check_file_exists(path):
+    """Checks whether file exists"""
     return os.path.isfile(path)
 
 
@@ -179,32 +185,10 @@ def move_directory(from_path, to_path, overwrite: bool = False):
     shutil.rmtree(from_path)
 
 
-# def clean_filename(filename):
-#     filename = (
-#         filename.replace(".csv", "")
-#         .replace(".txt", "")
-#         .replace(".raw", "")
-#         .replace(".tab", "")
-#         .replace(".RAW", "")
-#         .replace(".mgf", "")
-#         .replace(".mzML", "")
-#         .replace(".mzIdentML", "")
-#         .replace(":", "")
-#         .replace("/", "")
-#         .replace("~", "")
-#         .replace("@", "at")
-#         .replace("[", "_")
-#         .replace("]", "_")
-#         .replace(" ", "_")
-#     )
-#
-#     return filename
-
-
-def clean_directory(dirpath):
+def clean_directory(dir_path):
     """Iterate over specified directory and delete all files and directories"""
-    for filename in os.listdir(dirpath):
-        filepath = os.path.join(dirpath, filename)
+    for filename in os.listdir(dir_path):
+        filepath = os.path.join(dir_path, filename)
         # remove directory
         try:
             shutil.rmtree(filepath)
@@ -219,7 +203,7 @@ def clean_directory(dirpath):
 def get_subdirectories(path, extensions=None, as_short=True):
     """Get list of directories"""
 
-    def append():
+    def _append():
         if as_short:
             subdirectories.append(dirpath)
         else:
@@ -238,7 +222,7 @@ def get_subdirectories(path, extensions=None, as_short=True):
             if extensions is not None:
                 for extension in extensions:
                     if _dirpath.endswith(extension):
-                        append()
+                        _append()
             else:
-                append()
+                _append()
     return subdirectories

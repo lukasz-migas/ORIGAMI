@@ -238,14 +238,14 @@ class PanelGeneralSettings(PanelSettingsBase):
         if self.import_evt:
             return dict()
         return {
-            "bokeh_frame_width": self.bokeh_frame_width.GetValue(),
-            "bokeh_frame_height": self.bokeh_frame_height.GetValue(),
+            "bokeh_frame_width": int(self.bokeh_frame_width.GetValue()),
+            "bokeh_frame_height": int(self.bokeh_frame_height.GetValue()),
             "bokeh_frame_outline_width": self.bokeh_frame_outline_width.GetValue(),
             "bokeh_frame_outline_alpha": self.bokeh_frame_outline_alpha.GetValue(),
-            "bokeh_frame_border_min_left": self.bokeh_frame_border_min_left.GetValue(),
-            "bokeh_frame_border_min_right": self.bokeh_frame_border_min_right.GetValue(),
-            "bokeh_frame_border_min_top": self.bokeh_frame_border_min_top.GetValue(),
-            "bokeh_frame_border_min_bottom": self.bokeh_frame_border_min_bottom.GetValue(),
+            "bokeh_frame_border_min_left": int(self.bokeh_frame_border_min_left.GetValue()),
+            "bokeh_frame_border_min_right": int(self.bokeh_frame_border_min_right.GetValue()),
+            "bokeh_frame_border_min_top": int(self.bokeh_frame_border_min_top.GetValue()),
+            "bokeh_frame_border_min_bottom": int(self.bokeh_frame_border_min_bottom.GetValue()),
             "bokeh_frame_background_color": convert_rgb_255_to_1(
                 self.bokeh_frame_background_color.GetBackgroundColour()
             ),

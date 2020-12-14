@@ -85,7 +85,7 @@ class PanelManualImportDataset(PanelImportManagerBase):
     def on_update_implementation(self, metadata):
         """Update UI elements of the implementation"""
         self.activation_type_choice.SetStringSelection(str(metadata.get("activation_type", "CIU")))
-        self.auto_interpolate_check.SetValidator(metadata.get("auto_interpolate", True))
+        self.auto_interpolate_check.SetValue(metadata.get("auto_interpolate", True))
 
     def get_parameters_implementation(self):
         """Retrieve processing parameters that are specific for the implementation"""

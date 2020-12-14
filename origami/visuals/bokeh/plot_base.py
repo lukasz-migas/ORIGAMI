@@ -457,10 +457,10 @@ class PlotBase:
         self.figure.outline_line_width = get_param("bokeh_frame_outline_width", **kwargs)
         self.figure.outline_line_alpha = get_param("bokeh_frame_outline_alpha", **kwargs)
         self.figure.outline_line_color = "#000000"  # get_param("bokeh_frame_outline_width", **kwargs)
-        self.figure.min_border_right = get_param("bokeh_frame_border_min_right", **kwargs)
-        self.figure.min_border_left = get_param("bokeh_frame_border_min_left", **kwargs)
-        self.figure.min_border_top = get_param("bokeh_frame_border_min_top", **kwargs)
-        self.figure.min_border_bottom = get_param("bokeh_frame_border_min_bottom", **kwargs)
+        self.figure.min_border_right = int(get_param("bokeh_frame_border_min_right", **kwargs))
+        self.figure.min_border_left = int(get_param("bokeh_frame_border_min_left", **kwargs))
+        self.figure.min_border_top = int(get_param("bokeh_frame_border_min_top", **kwargs))
+        self.figure.min_border_bottom = int(get_param("bokeh_frame_border_min_bottom", **kwargs))
 
         # frame
         self.figure.background_fill_color = convert_rgb_1_to_hex(get_param("bokeh_frame_background_color", **kwargs))

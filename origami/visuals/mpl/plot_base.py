@@ -926,7 +926,7 @@ class PlotBase(MPLPanel):
         # or color palette
         elif kwargs[color_schema_key] == "Color palette":
             if kwargs[palette_schema_key] not in ["Spectral", "RdPu"]:
-                kwargs[palette_schema_key] = kwargs["palette"].lower()
+                kwargs[palette_schema_key] = kwargs[palette_schema_key].lower()
             fc = color_palette(kwargs[palette_schema_key], n_colors)
         # or same color
         elif kwargs[color_schema_key] == "Same color":

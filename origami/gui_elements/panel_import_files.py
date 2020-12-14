@@ -20,11 +20,11 @@ from origami.utils.decorators import signal_blocker
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
 from origami.gui_elements.helpers import TableConfig
-from origami.gui_elements.helpers import set_tooltip
-from origami.gui_elements.helpers import set_item_font
 from origami.gui_elements.helpers import make_menu_item
-from origami.gui_elements.helpers import make_bitmap_btn
 from origami.gui_elements.panel_base import TableMixin
+from origami.styles import Dialog, Validator
+from origami.gui_elements.helpers import make_static_text, set_tooltip
+from origami.gui_elements.helpers import set_item_font, make_bitmap_btn
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +43,171 @@ class TableColumnIndex(IntEnum):
     document = 8
 
 
+class DialogUpdateParameter(Dialog):
+    """Panel to enable update of few of the finer details during import"""
+
+    import_evt = False
+    index_value, variable_value, scan_min_value, scan_max_value = None, None, None, None
+    prev_btn, next_btn, ok_btn, cancel_btn = None, None, None, None
+
+    def __init__(self, parent, item_id: int, item_info: Dict):
+        Dialog.__init__(self, parent)
+        self._icons = self._get_icons(None)
+        self.item_id = item_id
+        self.item_info = item_info
+
+        # make gui items
+        self.make_gui()
+        self.Centre()
+        self.Layout()
+
+        self.set_item()
+
+    def set_item(self):
+        """Update values in the UI"""
+        if not self.item_info:
+            return
+
+        self.import_evt = True
+        item_info = self.item_info
+
+        self.index_value.SetLabel(str(self.item_id))
+        if "variable" in item_info:
+            self.variable_value.SetValue(str(item_info["variable"]))
+        if "scan_range" in item_info:
+            scan_start, scan_end = item_info["scan_range"].split("-")
+            item_info["scan_start"], item_info["scan_end"] = int(scan_start), int(scan_end)
+            self.scan_min_value.SetValue(str(item_info["scan_start"]))
+            self.scan_max_value.SetValue(str(item_info["scan_end"]))
+        self.import_evt = False
+
+    def make_panel(self):
+        """Make panel"""
+        panel = wx.Panel(self, -1)
+
+        index_value = make_static_text(panel, "Index:")
+        self.index_value = make_static_text(panel, "")
+
+        variable_value = make_static_text(panel, "Variable:")
+        self.variable_value = wx.TextCtrl(panel, wx.ID_ANY, "", validator=Validator("floatPos"))
+        self.variable_value.Bind(wx.EVT_TEXT, self.on_update_item)
+
+        scan_range_value = make_static_text(panel, "Scan range:")
+        self.scan_min_value = wx.TextCtrl(panel, wx.ID_ANY, "", validator=Validator("intPos"))
+        self.scan_min_value.Bind(wx.EVT_TEXT, self.on_update_item)
+
+        self.scan_max_value = wx.TextCtrl(panel, wx.ID_ANY, "", validator=Validator("intPos"))
+        self.scan_max_value.Bind(wx.EVT_TEXT, self.on_update_item)
+
+        # pack elements
+        grid = wx.GridBagSizer(5, 5)
+        n = 0
+        grid.Add(index_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.index_value, (n, 1), (1, 2), flag=wx.EXPAND)
+        n += 1
+        grid.Add(variable_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.variable_value, (n, 1), (1, 2), flag=wx.EXPAND)
+        n += 1
+        grid.Add(scan_range_value, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        grid.Add(self.scan_min_value, (n, 1), flag=wx.EXPAND)
+        grid.Add(self.scan_max_value, (n, 2), flag=wx.EXPAND)
+
+        self.prev_btn = make_bitmap_btn(panel, -1, self._icons.previous)
+        self.prev_btn.Bind(wx.EVT_BUTTON, self.on_prev)
+        set_tooltip(self.prev_btn, "Get previous item in the table.")
+
+        self.next_btn = make_bitmap_btn(panel, -1, self._icons.next)
+        self.next_btn.Bind(wx.EVT_BUTTON, self.on_next)
+        set_tooltip(self.next_btn, "Get next item in the table.")
+
+        self.ok_btn = wx.Button(panel, wx.ID_OK, "Ok", size=(-1, -1))
+        self.ok_btn.Bind(wx.EVT_BUTTON, self.on_ok)
+
+        self.cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, -1))
+        self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
+
+        btn_sizer = wx.BoxSizer()
+        btn_sizer.Add(self.prev_btn)
+        btn_sizer.AddSpacer(5)
+        btn_sizer.Add(self.next_btn)
+        btn_sizer.AddSpacer(5)
+        btn_sizer.Add(self.ok_btn)
+        btn_sizer.AddSpacer(5)
+        btn_sizer.Add(self.cancel_btn)
+
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(grid, 1, wx.EXPAND | wx.ALL, 5)
+        main_sizer.Add(btn_sizer, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
+
+        # fit layout
+        main_sizer.Fit(panel)
+        panel.SetSizerAndFit(main_sizer)
+
+        return panel
+
+    def get_item_index(self, increment: int) -> int:
+        """Get item id"""
+        n_rows = 0
+        item_id = self.item_id
+        if hasattr(self.parent, "n_rows"):
+            n_rows = self.parent.n_rows
+
+        item_id += increment
+        if item_id >= n_rows:
+            item_id = 0
+        elif item_id < 0:
+            item_id = n_rows - 1
+
+        return item_id
+
+    def on_update_item(self, _evt):
+        """Update item"""
+        if self.import_evt:
+            return
+
+        if not hasattr(self.parent, "peaklist"):
+            return
+
+        variable = self.variable_value.GetValue()
+        scan_min = self.scan_min_value.GetValue()
+        scan_max = self.scan_max_value.GetValue()
+
+        if variable:
+            variable = int(variable)
+        if scan_min:
+            scan_min = int(scan_min)
+        if scan_max:
+            scan_max = int(scan_max)
+
+        if variable != "" and variable < 1:
+            variable = 1
+            self.variable_value.SetValue("1")
+        if scan_min and scan_min < self.item_info["scan_start"]:
+            scan_min = self.item_info["scan_start"]
+            self.scan_min_value.SetValue(str(self.item_info["scan_start"]))
+        if scan_max and scan_max > self.item_info["scan_end"]:
+            scan_max = self.item_info["scan_end"]
+            self.scan_max_value.SetValue(str(self.item_info["scan_end"]))
+
+        self.parent.peaklist.set_text(self.item_id, TableColumnIndex.variable, str(variable))
+        self.parent.peaklist.set_text(self.item_id, TableColumnIndex.scan_range, f"{scan_min}-{scan_max}")
+        self.parent.peaklist.set_text(self.item_id, TableColumnIndex.n_scans, f"{scan_max-scan_min+1}")
+
+    def on_prev(self, _evt):
+        """Get previous item"""
+        if hasattr(self.parent, "on_get_item_information"):
+            self.item_id = self.get_item_index(-1)
+            self.item_info = self.parent.on_get_item_information(self.item_id)
+            self.set_item()
+
+    def on_next(self, _evt):
+        """Get previous item"""
+        if hasattr(self.parent, "on_get_item_information"):
+            self.item_id = self.get_item_index(1)
+            self.item_info = self.parent.on_get_item_information(self.item_id)
+            self.set_item()
+
+
 class PanelImportManagerBase(MiniFrame, TableMixin):
     """Generic file manager"""
 
@@ -50,11 +215,11 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
     TABLE_CONFIG.add("", "check", "bool", 25, hidden=True)
     TABLE_CONFIG.add("filename", "filename", "str", 100)
     TABLE_CONFIG.add("path", "path", "path", 220)
-    TABLE_CONFIG.add("variable", "variable", "float", 80)
-    TABLE_CONFIG.add("m/z range", "mz_range", "str", 80)
-    TABLE_CONFIG.add("# scans", "n_scans", "str", 55)
-    TABLE_CONFIG.add("scan range", "scan_range", "str", 80)
-    TABLE_CONFIG.add("IM", "ion_mobility", "str", 40)
+    TABLE_CONFIG.add("variable", "variable", "float", 120)
+    TABLE_CONFIG.add("m/z range", "mz_range", "str", 120)
+    TABLE_CONFIG.add("# scans", "n_scans", "str", 100)
+    TABLE_CONFIG.add("scan range", "scan_range", "str", 100)
+    TABLE_CONFIG.add("IM", "ion_mobility", "str", 80)
     TABLE_CONFIG.add("document", "document", "str", 100)
     TABLE_COLUMN_INDEX = TableColumnIndex
     TABLE_STYLE = wx.LC_REPORT | wx.LC_VRULES | wx.LC_HRULES | wx.LC_SINGLE_SEL
@@ -71,7 +236,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
     PUB_SUBSCRIBE_EVENT = None
     PUB_IN_PROGRESS_EVENT = None
     SUPPORTED_FILE_FORMATS = [".raw"]
-    DIALOG_SIZE = (800, 800)
+    DIALOG_SIZE = (1000, 800)
     TABLE_USE_COLOR = False
     CONFIG_NAME = None
 
@@ -137,17 +302,13 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
     def on_double_click_on_item(self, evt):
         """Process double-click event"""
-        from origami.gui_elements.misc_dialogs import DialogSimpleAsk
 
         info = self.on_get_item_information()
         if hasattr(evt, "ControlDown") and evt.ControlDown():  # noqa
             self.peaklist.CheckItem(self.peaklist.item_id, not info["check"])
         else:
-            value = DialogSimpleAsk(
-                "Please specify index value", "Please specify index value", info["variable"], "float"
-            )
-            if value is not None:
-                self.on_update_value_in_peaklist(self.peaklist.item_id, "variable", value)
+            dlg = DialogUpdateParameter(self, self.peaklist.item_id, info)
+            dlg.ShowModal()
 
     def get_parameters_implementation(self):
         """Retrieve processing parameters that are specific for the implementation"""
@@ -344,38 +505,13 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
     def on_update_info(self):
         """Update processing parameters"""
-        info = ""
-
-        # inform of linearization
-        if CONFIG.ms_linearize:
-            info += "<b>Linearize</b>\n"
-            info += f"    Mode: {CONFIG.ms_linearize_method}\n"
-            if not CONFIG.ms_linearize_mz_auto_range:
-                try:
-                    info += f"    m/z range: {CONFIG.ms_linearize_mz_start:.2f} - {CONFIG.ms_linearize_mz_end:.2f}"
-                    info += " (if broader than raw data, it will be cropped appropriately)\n"
-                except TypeError:
-                    pass
-            else:
-                info += "    m/z range: Auto\n"
-            info += f"    bin size: {CONFIG.ms_linearize_mz_bin_size}\n"
-
-        if not info:
-            info += "By default, ORIGAMI will pick common mass range (by looking at all the m/z range of each file)\n"
+        info = CONFIG.ms_settings_to_str()
+        if "Linearize" not in info:
+            info += "\nBy default, ORIGAMI will pick common mass range (by looking at all the m/z range of each file)\n"
             info += "and use modest 0.01 Da bin size with 'Linear interpolation'\n\n"
             self.processing_label.SetForegroundColour(wx.RED)
         else:
             self.processing_label.SetForegroundColour(wx.BLACK)
-
-        # inform of smoothing
-        if CONFIG.ms_smooth:
-            info += "<b>Smooth</b>\n"
-            info += f"    Mode: {CONFIG.ms_smooth_mode}\n"
-
-        # inform of thresholding
-        if CONFIG.ms_threshold:
-            info += "<b>Subtract baseline</b>\n"
-            info += f"   Mode: {CONFIG.ms_baseline_method}\n"
 
         # inform about MSDT settings
         info += "\n<b>MS/DT settings </b>\n"
@@ -425,6 +561,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
             CONFIG.ms_linearize_mz_start = linearize_metadata.get("x_min", CONFIG.ms_linearize_mz_start)
             CONFIG.ms_linearize_mz_end = linearize_metadata.get("x_max", CONFIG.ms_linearize_mz_end)
             CONFIG.ms_linearize_mz_bin_size = linearize_metadata.get("bin_size", CONFIG.ms_linearize_mz_bin_size)
+            CONFIG.ms_linearize_mz_ppm = linearize_metadata.get("ppm", CONFIG.ms_linearize_mz_ppm)
             CONFIG.ms_linearize_mz_auto_range = False
 
             # smoothing
@@ -637,10 +774,11 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
         if not CONFIG.ms_linearize:
             linearization_mode = "Linear interpolation"
-            mz_bin = 0.01
+            mz_bin, ppm = 0.01, 5
         else:
             linearization_mode = CONFIG.ms_linearize_method
             mz_bin = CONFIG.ms_linearize_mz_bin_size
+            ppm = CONFIG.ms_linearize_mz_ppm
 
         mz_min = max([CONFIG.ms_linearize_mz_start, mz_min])
         mz_max = min([CONFIG.ms_linearize_mz_end, mz_max])
@@ -654,7 +792,12 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         kwargs = dict(
             im_on=im_on_out,
             linearize=dict(
-                linearize_method=linearization_mode, x_min=mz_min, x_max=mz_max, bin_size=mz_bin, auto_range=False
+                linearize_method=linearization_mode,
+                x_min=mz_min,
+                x_max=mz_max,
+                bin_size=mz_bin,
+                ppm=ppm,
+                auto_range=False,
             ),
             smooth=dict(
                 smooth=CONFIG.ms_smooth,
@@ -726,16 +869,21 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         return info, color
 
 
-def _main():
-
-    app = wx.App()
-    ex = PanelImportManagerBase(None, None)
-    ex.on_add_to_table({"variable": 1})
-    ex.on_add_to_table({"variable": 4})
-
-    ex.Show()
-    app.MainLoop()
-
-
 if __name__ == "__main__":
+
+    def _main():
+        app = wx.App()
+        ex = PanelImportManagerBase(None, None)
+        ex.on_add_to_table({"variable": 1, "scan_range": "1-13"})
+        ex.on_add_to_table({"variable": 4, "scan_range": "1-25"})
+
+        ex.Show()
+        app.MainLoop()
+
+    def _dialog():
+        app = wx.App()
+        dlg = DialogUpdateParameter(None, 0, {"variable": 13, "scan_range": "1-13"})
+        dlg.Show()
+        app.MainLoop()
+
     _main()

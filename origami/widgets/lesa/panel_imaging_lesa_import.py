@@ -11,6 +11,7 @@ from numbers import Number
 import wx
 
 # Local imports
+
 from origami.utils.exceptions import MessageError
 from origami.gui_elements.helpers import make_checkbox
 from origami.gui_elements.helpers import set_item_font
@@ -136,7 +137,7 @@ class PanelImagingImportDataset(PanelImportManagerBase):
         except TypeError:
             logger.warning(f"Could not identify the index of {path}")
 
-        # get waters metadata without explicitly loading data
+        # get waters metadata without explicitly loading it
         info = self.data_handling.get_waters_info(path)
         is_im = info["is_im"]
         mz_range = info["mz_range"]
@@ -151,18 +152,17 @@ class PanelImagingImportDataset(PanelImportManagerBase):
             raise MessageError(
                 "Incorrect document", "Please specify document by clicking on the `Select document...` " "button"
             )
-
         self.data_handling.on_open_lesa_file_fcn(self.document_title, filelist, **parameters)
 
     _import.__doc__ = PanelImportManagerBase._import.__doc__
 
 
-def _main():
-    app = wx.App()
-    ex = PanelImagingImportDataset(None, None)
-    ex.Show()
-    app.MainLoop()
-
-
 if __name__ == "__main__":
+
+    def _main():
+        app = wx.App()
+        ex = PanelImagingImportDataset(None, None)
+        ex.Show()
+        app.MainLoop()
+
     _main()

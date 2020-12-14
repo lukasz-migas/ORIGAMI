@@ -70,6 +70,7 @@ from origami.gui_elements.misc_dialogs import DialogBox
 from origami.handlers.data_visualisation import DataVisualization
 from origami.gui_elements.panel_plot_parameters import PanelVisualisationSettingsEditor
 from origami.gui_elements.dialog_notify_open_documents import DialogNotifyOpenDocuments
+from origami import events
 
 logger = logging.getLogger(__name__)
 
@@ -225,12 +226,12 @@ class MainWindow(wx.Frame):
         self.Bind(wx.aui.EVT_AUI_PANE_RESTORE, self.on_restored_page)
 
         # bind pub subscribers
-        pub.subscribe(self.on_notify_info, "notify.message.info")
-        pub.subscribe(self.on_notify_success, "notify.message.success")
-        pub.subscribe(self.on_notify_warning, "notify.message.warning")
-        pub.subscribe(self.on_notify_error, "notify.message.error")
-        pub.subscribe(self.on_add_recent_file, "file.recent.add")
-        pub.subscribe(self.on_update_recent_files, "config.loaded")
+        pub.subscribe(self.on_notify_info, events.EVENT_NOTIFY_INFO)
+        pub.subscribe(self.on_notify_success, events.EVENT_NOTIFY_SUCCESS)
+        pub.subscribe(self.on_notify_warning, events.EVENT_NOTIFY_WARNING)
+        pub.subscribe(self.on_notify_error, events.EVENT_NOTIFY_ERROR)
+        pub.subscribe(self.on_add_recent_file, events.EVENT_RECENT_FILE)
+        pub.subscribe(self.on_update_recent_files, events.EVENT_CONFIG_LOAD)
 
         # Fire up a couple of events
         self.on_update_panel_config()

@@ -7,7 +7,7 @@ from typing import Union
 
 # Third-party imports
 from bokeh.models import Plot
-from bokeh.models import BoxZoomTool
+from bokeh.models import BoxZoomTool, SaveTool, ResetTool, CrosshairTool, PanTool, WheelZoomTool
 
 # Local imports
 from origami.config.config import CONFIG
@@ -116,6 +116,8 @@ TOOLS = {
     "bokeh_tools_pan_xy": "pan",
     "bokeh_tools_pan_x": "xpan",
     "bokeh_tools_pan_y": "ypan",
+    "bokeh_tools_boxzoom_x": "xbox_zoom",
+    "bokeh_tools_boxzoom_y": "ybox_zoom",
     "bokeh_tools_boxzoom_xy": "box_zoom",
     # "bokeh_tools_active_drag": "active_drag",
     # "bokeh_tools_active_wheel": "active_wheel",
@@ -156,6 +158,17 @@ ACTIVE_WHEEL_TOOLS = {
     "None": None,
 }
 ACTIVE_INSPECT_TOOLS = {"Hover": "hover", "Crosshair": "crosshair", "auto": "auto", "None": None}
+TOOLS_DICT = {
+    "save": SaveTool,
+    "reset": ResetTool,
+    "crosshair": CrosshairTool,
+    "pan": PanTool,
+    "xpan": (PanTool, {"dimensions": "width"}),
+    "ypan": (PanTool, {"dimensions": "height"}),
+    "box_zoom": BoxZoomTool,
+    "wheel_zoom": WheelZoomTool,
+    "auto": "auto",
+}
 
 
 def parse_active_drag(key: str, tools: List[Union[str, BoxZoomTool]]):
@@ -223,6 +236,34 @@ def clean_tools(tools):
     return _tools
 
 
+def parse_tool(tool: str):
+    _tool = TOOLS_DICT.get(tool, None)
+    if _tool is None:
+        return None
+    if _tool == "auto":
+        return tool
+    if isinstance(_tool, tuple):
+        _tool, kwargs = _tool
+        _tool = _tool(**kwargs)
+    else:
+        _tool = _tool()
+    return _tool
+
+
+def tools_str_to_tool(tools):
+    """Parse tools"""
+    _tools = []
+    for tool in tools:
+        if isinstance(tool, str):
+            _tool = parse_tool(tool)
+            if _tool in ["auto", None]:
+                continue
+            _tools.append(_tool)
+        else:
+            _tools.append(tool)
+    return _tools
+
+
 def parse_tools(plot_base, plot: Plot, **kwargs: Dict):
     """Parse tools"""
 
@@ -231,28 +272,38 @@ def parse_tools(plot_base, plot: Plot, **kwargs: Dict):
         if key in kwargs and kwargs[key]:
             tools.append(TOOLS[key])
 
+    # parse tools
     tools: List[Union[str, BoxZoomTool]] = []
     for tool in TOOLS_STANDARD:
         _add_tool(tool)
 
     # append boxzoom tools
-    for tool in TOOLS_BOXZOOM:
+    for tool in tools:
         add_boxzoom(tool, tools)
 
     # append wheel tools
+    print("?", tools)
     if kwargs.get("bokeh_tools_wheel", False):
         tool = kwargs.get("bokeh_tools_wheel_choice", "Wheel zoom (xy)")
         tools.append(WHEEL_TOOLS.get(tool, "wheel_zoom"))
 
     # append hover tool
     if kwargs.get("bokeh_tools_hover", False) and hasattr(plot_base, "set_hover_tool"):
-        plot_base.set_hover_tool()
+        hover = plot_base.set_hover_tool()
+        tools.append(hover)
 
     # add active tools
-    plot.toolbar.active_drag = parse_active_drag(kwargs.get("bokeh_tools_active_drag", "auto"), tools)
-    plot.toolbar.active_scroll = parse_active_wheel(kwargs.get("bokeh_tools_active_wheel", "auto"), tools)
-    plot.toolbar.active_inspect = parse_active_inspect(kwargs.get("bokeh_tools_active_inspect", "auto"), tools)
-    plot.toolbar.tools = clean_tools(tools)
+    plot.toolbar.active_drag = parse_tool(parse_active_drag(kwargs.get("bokeh_tools_active_drag", "auto"), tools))
+    scroll_tool = parse_tool(parse_active_wheel(kwargs.get("bokeh_tools_active_wheel", "auto"), tools))
+    plot.toolbar.active_scroll = scroll_tool
+    plot.toolbar.active_inspect = parse_tool(
+        parse_active_inspect(kwargs.get("bokeh_tools_active_inspect", "auto"), tools)
+    )
+
+    # add tools
+    _tools = tools_str_to_tool(clean_tools(tools))
+    print("TOOLS", _tools)
+    plot.toolbar.tools = _tools
 
 
 def get_param(origami_key: str, **kwargs) -> Any:

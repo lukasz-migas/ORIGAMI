@@ -145,11 +145,11 @@ class ViewHeatmap(ViewBase, ViewMPLMixin, ViewWaterfallMixin, ViewViolinMixin, V
         array, x, y, obj = self.get_data(self.DATA_KEYS)
         if plot_type == "heatmap":
             self.plot(x, y, array, obj, repaint=repaint)
-        if plot_type == "contour":
+        elif plot_type == "contour":
             self.plot_contour(x, y, array, obj, repaint=repaint)
-        if plot_type == "joint":
+        elif plot_type == "joint":
             self.plot_joint(x, y, array, obj, repaint=repaint)
-        if plot_type == "waterfall":
+        elif plot_type == "waterfall":
             self.plot_waterfall(x, y, array, obj, repaint=repaint)
         elif plot_type == "violin":
             self.plot_violin(x, y, array, obj, repaint=repaint)

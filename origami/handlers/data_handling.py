@@ -18,12 +18,11 @@ from origami.utils.path import clean_filename
 from origami.utils.path import check_path_exists
 from origami.utils.path import get_path_and_fname
 from origami.utils.color import convert_rgb_255_to_1
-from origami.utils.random import get_random_int
 from origami.config.config import CONFIG
 from origami.handlers.call import Call
 from origami.handlers.load import LoadHandler
 from origami.handlers.export import ExportHandler
-from origami.utils.utilities import report_time
+from origami.utils.utilities import notify_error, notify_success, notify_warning, report_time
 from origami.handlers.process import ProcessHandler
 from origami.objects.document import DocumentStore
 from origami.processing.utils import get_maximum_xy
@@ -36,6 +35,7 @@ from origami.config.environment import ENV
 from origami.objects.containers import DataObject
 from origami.handlers.queue_handler import QUEUE
 from origami.gui_elements.misc_dialogs import DialogBox
+
 
 logger = logging.getLogger(__name__)
 
@@ -248,7 +248,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         # except WindowsError:
         #     raise MessageError("Path does not exist", f"Failed to open {path}")
 
-        pub.sendMessage("notify.message.success", message="Opening directory...")
+        notify_success("Opening directory...")
 
     def on_open_origami_document(self, _evt):
         """Open ORIGAMI document"""
@@ -259,12 +259,10 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         dlg.Destroy()
 
         if path is None:
-            logger.warning("Operation was cancelled")
-            pub.sendMessage("notify.message.warning", message="Operation was cancelled.")
+            notify_warning("Operation was cancelled.")
             return
         elif not path.endswith(".origami"):
-            logger.error("Operation was cancelled - it was not an ORIGAMI document.")
-            pub.sendMessage("notify.message.error", message="Operation was cancelled - it was not an ORIGAMI document.")
+            notify_error("Operation was cancelled - it was not an ORIGAMI document.")
             return
         self.on_setup_basic_document(ENV.load(path))
         pub.sendMessage("file.recent.add", action="origami.document", path=path)
@@ -397,11 +395,14 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         can_extract, is_multifile, file_fmt = document.can_extract()
 
         if not can_extract:
-            raise MessageError("Error", "This document type does not allow data extraction")
+            notify_error("This document type does not allow data extraction")
+            return
         if is_multifile:
-            raise MessageError("Error", "Multifile data extraction is not supported yet")
+            notify_error("Multifile data extraction is not supported yet")
+            return
         if file_fmt == "thermo":
-            raise MessageError("Error", "Cannot extract mass spectrum data from heatmap")
+            notify_error("Cannot extract mass spectrum data from heatmap")
+            return
 
         # get data
         if CONFIG.plot_panel_heatmap_extract_ms:
@@ -418,9 +419,11 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
             # ensure extraction range is broad enough
             if x_min_rt >= x_max_rt:
-                raise MessageError("Error", "The extraction range in the chromatogram dimension was too narrow!")
+                notify_error("The extraction range in the chromatogram dimension was too narrow!")
+                return
             if y_min_dt >= y_max_dt:
-                raise MessageError("Error", "The extraction range in the mobilogram dimension was too narrow!")
+                notify_error("The extraction range in the mobilogram dimension was too narrow!")
+                return
 
             obj_name, mz_obj, document = self.waters_extract_ms_from_heatmap(
                 x_min_rt, x_max_rt, y_min_dt, y_max_dt, document.title
@@ -451,11 +454,14 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
         can_extract, is_multifile, file_fmt = document.can_extract()
         if not can_extract:
-            raise MessageError("Error", "This document type does not allow data extraction")
+            notify_error("This document type does not allow data extraction")
+            return
         if is_multifile:
-            raise MessageError("Error", "Multifile data extraction is not supported yet")
+            notify_error("Multifile data extraction is not supported yet")
+            return
         if file_fmt == "thermo":
-            raise MessageError("Error", "Cannot extract retention time data from heatmap")
+            notify_error("Cannot extract retention time data from heatmap")
+            return
 
         if CONFIG.plot_panel_heatmap_extract_rt:
             # mark on the plot where data is being extracted from
@@ -506,11 +512,14 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
         can_extract, is_multifile, file_fmt = document.can_extract()
         if not can_extract:
-            raise MessageError("Error", "This document type does not allow data extraction")
+            notify_error("This document type does not allow data extraction")
+            return
         if is_multifile:
-            raise MessageError("Error", "Multifile data extraction is not supported yet")
+            notify_error("Multifile data extraction is not supported yet")
+            return
         if file_fmt == "thermo":
-            raise MessageError("Error", "Cannot extract heatmap from Thermo file")
+            notify_error("Cannot extract heatmap from Thermo file")
+            return
 
         if CONFIG.plot_panel_dt_extract_ms:
             x_min, x_max = self._parse_mobilogram_range_waters(document, x_label, x_min, x_max, y_label, y_min, y_max)
@@ -552,9 +561,11 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
         can_extract, is_multifile, file_fmt = document.can_extract()
         if not can_extract:
-            raise MessageError("Error", "This document type does not allow data extraction")
+            notify_error("This document type does not allow data extraction")
+            return
         if is_multifile:
-            raise MessageError("Error", "Multifile data extraction is not supported yet")
+            notify_error("Multifile data extraction is not supported yet")
+            return
 
         if CONFIG.plot_panel_rt_extract_ms:
             # get plot data and calculate maximum values in the arrays
@@ -597,9 +608,11 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
         can_extract, is_multifile, file_fmt = document.can_extract()
         if not can_extract:
-            raise MessageError("Error", "This document type 8does not allow data extraction")
+            raise MessageError("Error", "This document type does not allow data extraction")
         if file_fmt == "thermo":
             raise MessageError("Error", "Cannot extract heatmap from Thermo file")
+        if document.is_imaging():
+            raise MessageError("Error", "Cannot extract heatmap from imaging file")
 
         if CONFIG.plot_panel_ms_extract_heatmap:
             # get plot data and calculate maximum values in the arrays
@@ -611,16 +624,16 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
             # get data
             if is_multifile:
-                filelist = document.get_multifile_filelist(["variable"])
+                # retrieve a dictionary of {path : variable}
+                filelist = document.get_multifile_order()
                 obj_name, heatmap_obj, document = self.waters_extract_heatmap_from_mass_spectrum_multifile(
-                    x_min, x_max, filelist, document.title
+                    x_min, x_max, filelist, document.title, x_label="Scans" if document.is_imaging() else None
                 )
             else:
 
                 obj_name, heatmap_obj, document = self.waters_extract_heatmap_from_mass_spectrum_one(
                     x_min, x_max, document.title
                 )
-
             # set metadata
             heatmap_obj.add_metadata("mz", float(x_pos))
 
@@ -644,7 +657,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
         can_extract, is_multifile, file_fmt = document.can_extract()
         if not can_extract:
-            raise MessageError("Error", "This document type 8does not allow data extraction")
+            raise MessageError("Error", "This document type does not allow data extraction")
         if is_multifile:
             raise MessageError("Error", "Multifile data extraction is not supported yet")
         if file_fmt == "thermo":
@@ -690,7 +703,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
         can_extract, is_multifile, file_fmt = document.can_extract()
         if not can_extract:
-            raise MessageError("Error", "This document type 8does not allow data extraction")
+            raise MessageError("Error", "This document type does not allow data extraction")
         if is_multifile:
             raise MessageError("Error", "Multifile data extraction is not supported yet")
         if file_fmt == "thermo":
@@ -902,11 +915,11 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         t_start = time.time()
         document = self.load_mgf_document(path)
         data = document.tandem_spectra["Scan 1"]
-        self.on_update_document(document, "document")
+        self.on_update_document(document)
         logger.info(f"It took {time.time()-t_start:.4f} seconds to load {document.title}")
         return data
 
-    def on_open_mzml_file_fcn(self, evt):
+    def on_open_mzml_file_fcn(self, _evt):
         """Load tandem data in MZML format"""
         paths = []
         dlg = wx.FileDialog(
@@ -988,17 +1001,19 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
                 style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
             )
             dlg.SetFilename("spectrum-from-clipboard")
+            path = None
             if dlg.ShowModal() == wx.ID_OK:
                 path = dlg.GetPath()
             dlg.Destroy()
+
+            if path is None:
+                return
 
             document = self.load_clipboard_ms_document(path, clip_stream)
             self.on_setup_basic_document(document)
         except Exception:
             logger.warning("Failed to get spectrum from the clipboard", exc_info=True)
             return
-
-    # NEED UPDATING \\\\\/////
 
     def on_get_document(self, document_title=None):
         """Get document"""
@@ -1021,7 +1036,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         return document
 
     def on_save_data_as_text(self, data, labels, data_format, **kwargs):
-
+        """Save data in text format"""
         wildcard = (
             "CSV (Comma delimited) (*.csv)|*.csv|"
             + "Text (Tab delimited) (*.txt)|*.txt|"
@@ -1271,180 +1286,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         #     pub.sendMessage("extract.data.user", data=data_storage)
         #     return data_storage
 
-    def on_add_ion_ORIGAMI(self, item_information, document, path, mz_start, mz_end, mz_y_max, ion_name, label, charge):
-        kwargs = dict(mz_start=mz_start, mz_end=mz_end)
-        # 1D
-        try:
-            __, yvals_DT = self.waters_im_extract_dt(path, **kwargs)
-        except IOError:
-            msg = (
-                "Failed to open the file - most likely because this file no longer exists"
-                + " or has been moved. You can change the document path by right-clicking\n"
-                + " on the document in the Document Tree and \n"
-                + " selecting Notes, Information, Labels..."
-            )
-            raise MessageError("Missing folder", msg)
-
-        # RT
-        __, yvals_RT, __ = self.waters_im_extract_rt(path, **kwargs)
-
-        # 2D
-        xvals, yvals, zvals = self.waters_im_extract_heatmap(path, **kwargs)
-
-        # Add data to document object
-        ion_data = {
-            "zvals": zvals,
-            "xvals": xvals,
-            "xlabels": "Scans",
-            "yvals": yvals,
-            "ylabels": "Drift time (bins)",
-            "cmap": item_information.get("colormap", next(CONFIG.overlay_cmap_cycle)),
-            "yvals1D": yvals_DT,
-            "yvalsRT": yvals_RT,
-            "title": label,
-            "label": label,
-            "charge": charge,
-            "alpha": item_information["alpha"],
-            "mask": item_information["mask"],
-            "color": item_information["color"],
-            "min_threshold": item_information["min_threshold"],
-            "max_threshold": item_information["max_threshold"],
-            "xylimits": [mz_start, mz_end, mz_y_max],
-        }
-
-        self.document_tree.on_update_data(ion_data, ion_name, document, data_type="ion.heatmap.raw")
-
-    def on_add_ion_MANUAL(
-        self, item_information, document, mz_start, mz_end, mz_y_max, ion_name, ion_id, charge, label
-    ):
-        # TODO: FIXME
-        # TODO: add checks for paths
-        # TODO: cleanup this function to reduce complexity
-        pass
-        # self.filesList.on_sort(2, False)
-        # tempDict = {}
-        # for item in range(self.filesList.GetItemCount()):
-        #     # Determine whether the title of the document matches the title of the item in the table
-        #     # if it does not, skip the row
-        #     docValue = self.filesList.GetItem(item, CONFIG.multipleMLColNames["document"]).GetText()
-        #     if docValue != document.title:
-        #         continue
-        #
-        #     nameValue = self.filesList.GetItem(item, CONFIG.multipleMLColNames["filename"]).GetText()
-        #     try:
-        #         path = document.multipleMassSpectrum[nameValue]["path"]
-        #         dt_x, dt_y = self.waters_im_extract_dt(path, mz_start=mz_start, mz_end=mz_end)
-        #     # if the files were moved, we can at least try to with the document path
-        #     except IOError:
-        #         try:
-        #             path = os.path.join(document.path, nameValue)
-        #             dt_x, dt_y = self.waters_im_extract_dt(path, mz_start=mz_start, mz_end=mz_end)
-        #             document.multipleMassSpectrum[nameValue]["path"] = path
-        #         except Exception:
-        #             msg = (
-        #                 "It would appear ORIGAMI cannot find the file on your disk. You can try to fix this issue\n"
-        #                 + "by updating the document path by right-clicking on the document and selecting\n"
-        #                 + "'Notes, Information, Labels...' and updating the path to where the dataset is found.\n"
-        #                 + "After that, try again and ORIGAMI will try to stitch the new"
-        #                 + " document path with the file name.\n"
-        #             )
-        #             raise MessageError("Error", msg)
-        #
-        #     # Get height of the peak
-        #     self.ionPanel.on_update_value_in_peaklist(ion_id, "method", "Manual")
-        #
-        #     # Create temporary dictionary for all IMS data
-        #     tempDict[nameValue] = [dt_y]
-        #     # Add 1D data to 1D data container
-        #     newName = "{}, File: {}".format(ion_name, nameValue)
-        #
-        #     ion_data = {
-        #         "xvals": dt_x,
-        #         "yvals": dt_y,
-        #         "xlabels": "Drift time (bins)",
-        #         "ylabels": "Intensity",
-        #         "charge": charge,
-        #         "xylimits": [mz_start, mz_end, mz_y_max],
-        #         "filename": nameValue,
-        #     }
-        #     self.document_tree.on_update_data(ion_data, newName, document, data_type="ion.mobilogram")
-        #
-        # # Combine the contents in the dictionary - assumes they are ordered!
-        # counter = 0  # needed to start off
-        # x_labels_actual = []
-        # _temp_array = None
-        # for counter, item in enumerate(range(self.filesList.GetItemCount()), 1):
-        #     # Determine whether the title of the document matches the title of the item in the table
-        #     # if it does not, skip the row
-        #     docValue = self.filesList.GetItem(item, CONFIG.multipleMLColNames["document"]).GetText()
-        #     if docValue != document.title:
-        #         continue
-        #     key = self.filesList.GetItem(item, CONFIG.multipleMLColNames["filename"]).GetText()
-        #     energy = str2num(document.multipleMassSpectrum[key]["trap"])
-        #     if _temp_array is None:
-        #         _temp_array = tempDict[key][0]
-        #     imsList = tempDict[key][0]
-        #     _temp_array = np.concatenate((_temp_array, imsList), axis=0)
-        #     x_labels_actual.append(energy)
-        #
-        # # Reshape data to form a 2D array of size 200 x number of files
-        # zvals = _temp_array.reshape((200, counter), order="F")
-        #
-        # try:
-        #     x_label_high = np.max(x_labels_actual)
-        #     x_label_low = np.min(x_labels_actual)
-        # except Exception:
-        #     x_label_low, x_label_high = None, None
-        #
-        # # Get the x-axis labels
-        # if x_label_low in [None, "None"] or x_label_high in [None, "None"]:
-        #     msg = (
-        #         "The user-specified labels appear to be 'None'. Rather than failing to generate x-axis labels"
-        #         + " a list of 1-n values is created."
-        #     )
-        #     logger.warning(msg)
-        #     xvals = np.arange(1, counter)
-        # else:
-        #     xvals = x_labels_actual  # np.linspace(xLabelLow, xLabelHigh, num=counter)
-        #
-        # yvals = 1 + np.arange(200)
-        # if not check_axes_spacing(xvals):
-        #     msg = (
-        #         "The spacing between the energy variables is not even. Linear interpolation will be performed to"
-        #         + " ensure even spacing between values."
-        #     )
-        #     self.update_statusbar(msg, field=4)
-        #     logger.warning(msg)
-        #
-        #     xvals, yvals, zvals = pr_heatmap.equalize_heatmap_spacing(xvals, yvals, zvals)
-        #
-        # # Combine 2D array into 1D
-        # rt_y = np.sum(zvals, axis=0)
-        # dt_y = np.sum(zvals, axis=1).T
-        #
-        # # Add data to the document
-        # ion_data = {
-        #     "zvals": zvals,
-        #     "xvals": xvals,
-        #     "xlabels": "Collision Voltage (V)",
-        #     "yvals": yvals,
-        #     "ylabels": "Drift time (bins)",
-        #     "yvals1D": dt_y,
-        #     "yvalsRT": rt_y,
-        #     "cmap": document.colormap,
-        #     "title": label,
-        #     "label": label,
-        #     "charge": charge,
-        #     "alpha": item_information["alpha"],
-        #     "mask": item_information["mask"],
-        #     "color": item_information["color"],
-        #     "min_threshold": item_information["min_threshold"],
-        #     "max_threshold": item_information["max_threshold"],
-        #     "xylimits": [mz_start, mz_end, mz_y_max],
-        # }
-        #
-        # self.document_tree.on_update_data(ion_data, ion_name, document, data_type="ion.heatmap.combined")
-
     def on_add_mzident_file_fcn(self, evt):
         """Load tandem annotation data in mzIdent format"""
         if not CONFIG.APP_ENABLE_THREADING:
@@ -1452,7 +1293,8 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         else:
             self.on_threading(action="load.add.mzidentml", args=(evt,))
 
-    def on_add_mzident_file(self, evt):
+    def on_add_mzident_file(self, _evt):
+        """Load mz indent file"""
         from origami.readers import io_mzid
 
         document = self.on_get_document()
@@ -1483,12 +1325,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
                     document.file_reader["data_reader"] = io_mzml.mzMLReader(filename=document.path)
                 else:
-                    DialogBox(
-                        title="Error",
-                        msg="{} not supported yet!".format(document.fileFormat),
-                        kind="Error",
-                        show_exception=True,
-                    )
+                    DialogBox(title="Error", msg="{} not supported yet!".format(document.fileFormat))
                     return
                 try:
                     index_dict = document.file_reader["data_reader"].create_title_map(document.tandem_spectra)
@@ -1496,8 +1333,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
                     DialogBox(
                         title="Error",
                         msg="Cannot add identification information to {} yet!".format(document.fileFormat),
-                        kind="Error",
-                        show_exception=True,
                     )
                     return
 
@@ -1506,8 +1341,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             )
 
             document.tandem_spectra = tandem_spectra
-
-            self.on_update_document(document, "document")
+            self.on_update_document(document)
             logger.info(f"It took {time.time()-t_start:.4f} seconds to annotate {document.title}")
 
     # def on_extract_2D_from_mass_range_fcn(self, evt, extract_type="all"):
@@ -1655,9 +1489,9 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             )
 
     def on_update_document(self, document, expand_item="document", expand_item_title=None):
-
+        """Update document"""
         # update dictionary
-        ENV[document.title] = document
+        ENV.add(document)
         if expand_item == "document":
             self.document_tree.add_document(document, expand_item=document)
         # just set data
@@ -1711,90 +1545,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     #     self.panel_plot.on_plot_dtms(zvals, xvals, yvals, xlabel, ylabel, override=False, update_extents=False)
     #     logger.info("Sub-sampling took {:.4f}".format(time.time() - tstart))
     #
-    # def on_combine_mass_spectra(self, document_name=None):
-    #
-    #     document = self.on_get_document(document_name)
-    #     if document is None:
-    #         raise ValueError("Did not get document")
-    #
-    #     kwargs = {
-    #         "auto_range": False,
-    #         "mz_min": CONFIG.ms_mzStart,
-    #         "mz_max": CONFIG.ms_mzEnd,
-    #         "mz_bin": CONFIG.ms_mzBinSize,
-    #         "linearization_mode": CONFIG.ms_linearization_mode,
-    #     }
-    #     msg = "Linearization method: {} | min: {} | max: {} | window: {} | auto-range: {}".format(
-    #         CONFIG.ms_linearization_mode,
-    #         CONFIG.ms_mzStart,
-    #         CONFIG.ms_mzEnd,
-    #         CONFIG.ms_mzBinSize,
-    #         CONFIG.ms_auto_range,
-    #     )
-    #     logger.info(msg)
-    #
-    #     if document.multipleMassSpectrum:
-    #         # check the min/max values in the mass spectrum
-    #         if CONFIG.ms_auto_range:
-    #             mzStart, mzEnd = pr_spectra.check_mass_range(ms_dict=document.multipleMassSpectrum)
-    #             CONFIG.ms_mzStart = mzStart
-    #             CONFIG.ms_mzEnd = mzEnd
-    #             kwargs.update(mz_min=mzStart, mz_max=mzEnd)
-    #             try:
-    #                 self.view.panelProcessData.on_update_GUI(update_what="mass_spectra")
-    #             except Exception:
-    #                 pass
-    #
-    #         msFilenames = ["m/z"]
-    #         counter = 0
-    #         for key in document.multipleMassSpectrum:
-    #             msFilenames.append(key)
-    #             if counter == 0:
-    #                 msDataX, tempArray = pr_spectra.linearize_data(
-    #                     document.multipleMassSpectrum[key]["xvals"],
-    #                     document.multipleMassSpectrum[key]["yvals"],
-    #                     **kwargs,
-    #                 )
-    #                 msList = tempArray
-    #             else:
-    #                 msDataX, msList = pr_spectra.linearize_data(
-    #                     document.multipleMassSpectrum[key]["xvals"],
-    #                     document.multipleMassSpectrum[key]["yvals"],
-    #                     **kwargs,
-    #                 )
-    #                 tempArray = np.concatenate((tempArray, msList), axis=0)
-    #             counter += 1
-    #
-    #         # Reshape the list
-    #         combMS = tempArray.reshape((len(msList), int(counter)), order="F")
-    #
-    #         # Sum y-axis data
-    #         msDataY = np.sum(combMS, axis=1)
-    #         msDataY = pr_spectra.normalize_1d(msDataY)
-    #         xlimits = [document.parameters["start_ms"], document.parameters["end_ms"]]
-    #
-    #         # Form pandas dataframe
-    #         combMSOut = np.concatenate((msDataX, tempArray), axis=0)
-    #         combMSOut = combMSOut.reshape((len(msList), int(counter + 1)), order="F")
-    #
-    #         # Add data
-    #         document.gotMS = True
-    #         document.massSpectrum = {"xvals": msDataX, "yvals": msDataY, "xlabels": "m/z (Da)", "xlimits": xlimits}
-    #         # Plot
-    #         name_kwargs = {"document": document.title, "dataset": "Mass Spectrum"}
-    #         self.panel_plot.on_plot_ms(msDataX, msDataY, xlimits=xlimits, **name_kwargs)
-    #
-    #         # Update status bar with MS range
-    #         self.view.SetStatusText("{}-{}".format(document.parameters["start_ms"], document.parameters["end_ms"]), 1)
-    #         self.view.SetStatusText("MSMS: {}".format(document.parameters["set_msms"]), 2)
-    #     else:
-    #         document.gotMS = False
-    #         document.massSpectrum = {}
-    #         self.view.SetStatusText("", 1)
-    #         self.view.SetStatusText("", 2)
-    #
-    #     # Add info to document
-    #     self.on_update_document(document, "document")
 
     def get_spectrum_data(self, query_info, **kwargs):
         """Retrieve data for specified query items.
@@ -1859,20 +1609,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
         return document, data
 
-    def set_overlay_data(self, query_info, data, **kwargs):
-        raise NotImplementedError("Must reimplement method")
-
-    #         document_title, dataset_type, dataset_name = query_info
-    #         document = self.on_get_document(document_title)
-    #
-    #         if data is not None:
-    #             if dataset_type == "Statistical" and dataset_name is not None:
-    #                 self.document_tree.on_update_data(data, dataset_name, document, data_type="overlay.statistical")
-    #             elif dataset_type == "Overlay" and dataset_name is not None:
-    #                 self.document_tree.on_update_data(data, dataset_name, document, data_type="overlay.overlay")
-    #
-    #         return document
-
     def on_load_user_list_fcn(self, **kwargs):
         wildcard = (
             "CSV (Comma delimited) (*.csv)|*.csv|"
@@ -1894,7 +1630,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             peaklist = io_text_files.text_peaklist_open(file_path)
         elif data_type == "annotations":
             raise MessageError("Not implemented yet", "Method is not implemented yet")
-
         return peaklist
 
     def on_load_custom_data(self, dataset_type, evt):
@@ -1907,153 +1642,154 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         evt : wx.Event
             unused
         """
-        from origami.gui_elements.dialog_ask_override import DialogAskOverride
-        from origami.utils.misc import merge_two_dicts
-
-        def check_previous_data(dataset, _filename, _data):
-            if _filename in dataset:
-                if not CONFIG.import_duplicate_panel_ask:
-                    dlg_ask = DialogAskOverride(
-                        self.view,
-                        self.config,
-                        f"{_filename} already exists in the document. What would you like to do about it?",
-                    )
-                    dlg_ask.ShowModal()
-                if CONFIG.import_duplicate_panel_action == "merge":
-                    logger.info("Existing data will be merged with the new dataset...")
-                    # retrieve and merge
-                    old_data = dataset[_filename]
-                    _data = merge_two_dicts(old_data, _data)
-                elif CONFIG.import_duplicate_panel_action == "duplicate":
-                    logger.info("A new dataset with new name will be created...")
-                    _filename = f"{_filename} (2)"
-            return _filename, _data
-
-        # get document
-        dlg = wx.FileDialog(
-            self.view,
-            "Choose data [MS, RT, DT, Heatmap, other]...",
-            wildcard="Text file (*.txt, *.csv, *.tab)| *.txt;*.csv;*.tab",
-            style=wx.FD_MULTIPLE | wx.FD_CHANGE_DIR,
-        )
-        if dlg.ShowModal() == wx.ID_OK:
-            path_list = dlg.GetPaths()
-            file_list = dlg.GetFilenames()
-
-            # get document
-            document = self.on_get_document()
-
-            if not path_list:
-                logger.warning("The filelist was empty")
-                return
-
-            logger.info(f"{len(path_list)} item(s) in the list")
-            for path, filename in zip(path_list, file_list):
-                data_type = None
-                if dataset_type == "mass_spectra":
-                    mz_x, mz_y, __, xlimits, extension = self.load_text_spectrum_data(path=path)
-                    document.gotMultipleMS = True
-                    data = {
-                        "xvals": mz_x,
-                        "yvals": mz_y,
-                        "xlabels": "m/z (Da)",
-                        "xlimits": xlimits,
-                        "file_path": path,
-                        "file_extension": extension,
-                    }
-                    filename, data = check_previous_data(document.multipleMassSpectrum, filename, data)
-                    document.multipleMassSpectrum[filename] = data
-                    data_type = "extracted.spectrum"
-
-                elif dataset_type == "chromatograms":
-                    rt_x, rt_y, __, xlimits, extension = self.load_text_spectrum_data(path=path)
-                    document.gotMultipleRT = True
-                    data = {
-                        "xvals": rt_x,
-                        "yvals": rt_y,
-                        "xlabels": "Scans",
-                        "ylabels": "Intensity",
-                        "xlimits": xlimits,
-                        "file_path": path,
-                        "file_extension": extension,
-                    }
-
-                    filename, data = check_previous_data(document.multipleRT, filename, data)
-                    document.multipleRT[filename] = data
-                    data_type = "extracted.chromatogram"
-
-                elif dataset_type == "mobilogram":
-                    dt_x, dt_y, __, xlimits, extension = self.load_text_spectrum_data(path=path)
-                    data = {
-                        "xvals": dt_x,
-                        "yvals": dt_y,
-                        "xlabels": "Drift time (bins)",
-                        "ylabels": "Intensity",
-                        "xlimits": xlimits,
-                        "file_path": path,
-                        "file_extension": extension,
-                    }
-
-                    filename, data = check_previous_data(document.multipleDT, filename, data)
-                    document.multipleDT[filename] = data
-                    data_type = "ion.mobilogram.raw"
-
-                elif dataset_type == "heatmaps":
-                    zvals, xvals, yvals, dt_y, rt_y = self.load_text_heatmap_data(path)
-                    color = convert_rgb_255_to_1(CONFIG.custom_colors[get_random_int(0, 15)])
-                    document.gotExtractedIons = True
-                    data = {
-                        "zvals": zvals,
-                        "xvals": xvals,
-                        "xlabels": "Scans",
-                        "yvals": yvals,
-                        "ylabels": "Drift time (bins)",
-                        "yvals1D": dt_y,
-                        "yvalsRT": rt_y,
-                        "cmap": CONFIG.heatmap_colormap,
-                        "mask": CONFIG.overlay_defaultMask,
-                        "alpha": CONFIG.overlay_defaultAlpha,
-                        "min_threshold": 0,
-                        "max_threshold": 1,
-                        "color": color,
-                    }
-                    filename, data = check_previous_data(document.multipleDT, filename, data)
-                    document.IMS2Dions[filename] = data
-                    data_type = "ion.heatmap.raw"
-
-                elif dataset_type == "annotated":
-                    try:
-                        filename, data = self.load_text_annotated_data(path)
-                        if filename is None or data is None:
-                            continue
-
-                        filename, data = check_previous_data(document.other_data, filename, data)
-                        document.other_data[filename] = data
-                        data_type = "custom.annotated"
-                    except Exception:
-                        logger.error(f"Failed to load `{path}` data", exc_info=True)
-
-                elif dataset_type == "matrix":
-                    from pandas import read_csv
-
-                    df = read_csv(filename, sep="\t|,", engine="python", header=None)
-                    labels = list(df.iloc[:, 0].dropna())
-                    zvals = df.iloc[1::, 1::].astype("float32").as_matrix()
-
-                    filename = "Matrix: {}".format(os.path.basename(filename))
-                    data = {
-                        "heatmap_plot_type": "matrix",
-                        "zvals": zvals,
-                        "cmap": CONFIG.heatmap_colormap,
-                        "matrixLabels": labels,
-                        "path": filename,
-                        "plot_modifiers": {},
-                    }
-                    filename, data = check_previous_data(document.other_data, filename, data)
-                    document.other_data[filename] = data
-                    data_type = "custom.annotated"
-
-                self.document_tree.on_update_data(data, filename, document, data_type=data_type)
-                # log
-                logger.info(f"{dataset_type}: Loaded {path}")
-            dlg.Destroy()
+        raise NotImplementedError("Must implement method")
+        # from origami.gui_elements.dialog_ask_override import DialogAskOverride
+        # from origami.utils.misc import merge_two_dicts
+        #
+        # def check_previous_data(dataset, _filename, _data):
+        #     if _filename in dataset:
+        #         if not CONFIG.import_duplicate_panel_ask:
+        #             dlg_ask = DialogAskOverride(
+        #                 self.view,
+        #                 self.config,
+        #                 f"{_filename} already exists in the document. What would you like to do about it?",
+        #             )
+        #             dlg_ask.ShowModal()
+        #         if CONFIG.import_duplicate_panel_action == "merge":
+        #             logger.info("Existing data will be merged with the new dataset...")
+        #             # retrieve and merge
+        #             old_data = dataset[_filename]
+        #             _data = merge_two_dicts(old_data, _data)
+        #         elif CONFIG.import_duplicate_panel_action == "duplicate":
+        #             logger.info("A new dataset with new name will be created...")
+        #             _filename = f"{_filename} (2)"
+        #     return _filename, _data
+        #
+        # # get document
+        # dlg = wx.FileDialog(
+        #     self.view,
+        #     "Choose data [MS, RT, DT, Heatmap, other]...",
+        #     wildcard="Text file (*.txt, *.csv, *.tab)| *.txt;*.csv;*.tab",
+        #     style=wx.FD_MULTIPLE | wx.FD_CHANGE_DIR,
+        # )
+        # if dlg.ShowModal() == wx.ID_OK:
+        #     path_list = dlg.GetPaths()
+        #     file_list = dlg.GetFilenames()
+        #
+        #     # get document
+        #     document = self.on_get_document()
+        #
+        #     if not path_list:
+        #         logger.warning("The filelist was empty")
+        #         return
+        #
+        #     logger.info(f"{len(path_list)} item(s) in the list")
+        #     for path, filename in zip(path_list, file_list):
+        #         data_type = None
+        #         if dataset_type == "mass_spectra":
+        #             mz_x, mz_y, __, xlimits, extension = self.load_text_spectrum_data(path=path)
+        #             document.gotMultipleMS = True
+        #             data = {
+        #                 "xvals": mz_x,
+        #                 "yvals": mz_y,
+        #                 "xlabels": "m/z (Da)",
+        #                 "xlimits": xlimits,
+        #                 "file_path": path,
+        #                 "file_extension": extension,
+        #             }
+        #             filename, data = check_previous_data(document.multipleMassSpectrum, filename, data)
+        #             document.multipleMassSpectrum[filename] = data
+        #             data_type = "extracted.spectrum"
+        #
+        #         elif dataset_type == "chromatograms":
+        #             rt_x, rt_y, __, xlimits, extension = self.load_text_spectrum_data(path=path)
+        #             document.gotMultipleRT = True
+        #             data = {
+        #                 "xvals": rt_x,
+        #                 "yvals": rt_y,
+        #                 "xlabels": "Scans",
+        #                 "ylabels": "Intensity",
+        #                 "xlimits": xlimits,
+        #                 "file_path": path,
+        #                 "file_extension": extension,
+        #             }
+        #
+        #             filename, data = check_previous_data(document.multipleRT, filename, data)
+        #             document.multipleRT[filename] = data
+        #             data_type = "extracted.chromatogram"
+        #
+        #         elif dataset_type == "mobilogram":
+        #             dt_x, dt_y, __, xlimits, extension = self.load_text_spectrum_data(path=path)
+        #             data = {
+        #                 "xvals": dt_x,
+        #                 "yvals": dt_y,
+        #                 "xlabels": "Drift time (bins)",
+        #                 "ylabels": "Intensity",
+        #                 "xlimits": xlimits,
+        #                 "file_path": path,
+        #                 "file_extension": extension,
+        #             }
+        #
+        #             filename, data = check_previous_data(document.multipleDT, filename, data)
+        #             document.multipleDT[filename] = data
+        #             data_type = "ion.mobilogram.raw"
+        #
+        #         elif dataset_type == "heatmaps":
+        #             zvals, xvals, yvals, dt_y, rt_y = self.load_text_heatmap_data(path)
+        #             color = convert_rgb_255_to_1(CONFIG.custom_colors[get_random_int(0, 15)])
+        #             document.gotExtractedIons = True
+        #             data = {
+        #                 "zvals": zvals,
+        #                 "xvals": xvals,
+        #                 "xlabels": "Scans",
+        #                 "yvals": yvals,
+        #                 "ylabels": "Drift time (bins)",
+        #                 "yvals1D": dt_y,
+        #                 "yvalsRT": rt_y,
+        #                 "cmap": CONFIG.heatmap_colormap,
+        #                 "mask": CONFIG.overlay_defaultMask,
+        #                 "alpha": CONFIG.overlay_defaultAlpha,
+        #                 "min_threshold": 0,
+        #                 "max_threshold": 1,
+        #                 "color": color,
+        #             }
+        #             filename, data = check_previous_data(document.multipleDT, filename, data)
+        #             document.IMS2Dions[filename] = data
+        #             data_type = "ion.heatmap.raw"
+        #
+        #         elif dataset_type == "annotated":
+        #             try:
+        #                 filename, data = self.load_text_annotated_data(path)
+        #                 if filename is None or data is None:
+        #                     continue
+        #
+        #                 filename, data = check_previous_data(document.other_data, filename, data)
+        #                 document.other_data[filename] = data
+        #                 data_type = "custom.annotated"
+        #             except Exception:
+        #                 logger.error(f"Failed to load `{path}` data", exc_info=True)
+        #
+        #         elif dataset_type == "matrix":
+        #             from pandas import read_csv
+        #
+        #             df = read_csv(filename, sep="\t|,", engine="python", header=None)
+        #             labels = list(df.iloc[:, 0].dropna())
+        #             zvals = df.iloc[1::, 1::].astype("float32").as_matrix()
+        #
+        #             filename = "Matrix: {}".format(os.path.basename(filename))
+        #             data = {
+        #                 "heatmap_plot_type": "matrix",
+        #                 "zvals": zvals,
+        #                 "cmap": CONFIG.heatmap_colormap,
+        #                 "matrixLabels": labels,
+        #                 "path": filename,
+        #                 "plot_modifiers": {},
+        #             }
+        #             filename, data = check_previous_data(document.other_data, filename, data)
+        #             document.other_data[filename] = data
+        #             data_type = "custom.annotated"
+        #
+        #         self.document_tree.on_update_data(data, filename, document, data_type=data_type)
+        #         # log
+        #         logger.info(f"{dataset_type}: Loaded {path}")
+        #     dlg.Destroy()

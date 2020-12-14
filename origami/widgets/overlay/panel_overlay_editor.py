@@ -269,11 +269,16 @@ class PanelOverlayEditor(MiniFrame, TableMixin, ColorGetterMixin, PanelOverlayVi
         self.add_to_document_btn = wx.Button(panel, wx.ID_ANY, "Add to document", size=(-1, -1))
         self.add_to_document_btn.Bind(wx.EVT_BUTTON, self.on_add_to_document)
 
+        self.settings_btn = make_bitmap_btn(panel, -1, self._icons.gear)
+        self.settings_btn.Bind(wx.EVT_BUTTON, self.on_show_settings)
+
         self.cancel_btn = wx.Button(panel, wx.ID_CANCEL, "Cancel", size=(-1, -1))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
 
         sizer = wx.BoxSizer()
         sizer.Add(self.action_btn, 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer.AddSpacer(5)
+        sizer.Add(self.settings_btn, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.AddSpacer(5)
         sizer.Add(self.plot_btn, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.AddSpacer(5)
@@ -356,7 +361,7 @@ class PanelOverlayEditor(MiniFrame, TableMixin, ColorGetterMixin, PanelOverlayVi
         )
         self.overlay_1d_method.SetStringSelection(CONFIG.overlay_panel_1d_method)
 
-        self.overlay_1d_method_settings_btn = make_bitmap_btn(panel, -1, self._icons.gear)
+        self.overlay_1d_method_settings_btn = make_bitmap_btn(panel, -1, self._icons.edit)
         self.overlay_1d_method_settings_btn.Bind(wx.EVT_BUTTON, self.on_open_method_settings)
         set_tooltip(self.overlay_1d_method_settings_btn, "Customise overlay plot...")
 
@@ -746,7 +751,7 @@ class PanelOverlayEditor(MiniFrame, TableMixin, ColorGetterMixin, PanelOverlayVi
         kwargs = plt_func(group_obj)  # noqa
 
         # set metadata
-        group_obj.set_metadata({"overlay": kwargs})
+        group_obj.set_metadata({"method": method, "overlay": kwargs})
 
         title = OVERLAY_HANDLER.get_group_title(method, item_list)
         self.add_to_clipboard(method, title, group_obj, item_list)
@@ -872,11 +877,16 @@ class PanelOverlayEditor(MiniFrame, TableMixin, ColorGetterMixin, PanelOverlayVi
         if document_title is not None:
             return ENV[document_title]
 
+    def on_show_settings(self, _evt):
+        """Show/hide side settings"""
+        self.plot_settings.Hide() if self.plot_settings.IsShown() else self.plot_settings.Show()
+        self.Layout()
+
     def on_open_method_settings(self, _evt):
         """Show all relevant parameters for the currently used method"""
+        if not self.plot_settings.IsShown():
+            self.plot_settings.Show()
         self.plot_settings.setup_method_settings(self.current_method)
-        # self.plot_settings.Hide() if self.plot_settings.IsShown() else self.plot_settings.Show()
-        # self.Layout()
 
     def on_populate_item_list(self, _evt):
         """Populate item list"""

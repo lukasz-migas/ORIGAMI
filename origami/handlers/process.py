@@ -58,6 +58,7 @@ class ProcessHandler:
                 x_min=CONFIG.ms_linearize_mz_start,
                 x_max=CONFIG.ms_linearize_mz_end,
                 linearize_method=CONFIG.ms_linearize_method,
+                ppm=CONFIG.ms_linearize_mz_ppm,
             )
 
         if CONFIG.ms_smooth:

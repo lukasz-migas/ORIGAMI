@@ -147,7 +147,26 @@ class PanelToolsSettings(PanelSettingsBase):
         # wheel
         check_wheel = self.bokeh_tools_wheel.GetValue()
         self.bokeh_tools_wheel_choice.Enable(check_wheel)
-        self.bokeh_tools_active_wheel.Enable(check_wheel)
+        self._parse_evt(evt)
+
+    def on_apply(self, evt):
+        """Apply changes"""
+        #         if self.bokeh_tools_wheel_choice.GetStringSelection() not in ["auto", "None"]:
+        #             self.bokeh_tools_wheel.SetValue(True)
+        #         drag_value = self.bokeh_tools_active_drag.GetStringSelection()
+        #         if drag_value not in ["auto", "None"]:
+        #             if drag_value == "Box zoom (xy)":
+        #                 self.bokeh_tools_boxzoom_xy.SetValue(True)
+        #             if drag_value == "Box zoom (x)":
+        #                 self.bokeh_tools_boxzoom_x.SetValue(True)
+        #             if drag_value == "Box zoom (y)":
+        #                 self.bokeh_tools_boxzoom_y.SetValue(True)
+        #             if drag_value == "Pan (xy)":
+        #                 self.bokeh_tools_pan_xy.SetValue(True)
+        #             if drag_value == "Pan(x)":
+        #                 self.bokeh_tools_pan_x.SetValue(True)
+        #             if drag_value == "Pan (y)":
+        #                 self.bokeh_tools_pan_y.SetValue(True)
         self._parse_evt(evt)
 
     def on_check_defaults(self, _evt):

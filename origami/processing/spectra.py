@@ -261,6 +261,7 @@ def linearize_data(
     auto_range: bool = True,
     x_min: Optional[float] = None,
     x_max: Optional[float] = None,
+    ppm: Optional[float] = None,
     x_bin: Optional[np.ndarray] = None,
     **kwargs,
 ):
@@ -282,6 +283,8 @@ def linearize_data(
         starting value of the linearization method
     x_max : float
         ending value of the linearization method
+    ppm : float
+        parts-per million at which the spectrum should be resampled
     x_bin : np.ndarray
         pre-computed x-axis values
 
@@ -298,7 +301,7 @@ def linearize_data(
         x_min = math.ceil(x[0] / bin_size) * bin_size
         x_max = math.floor(x[-1] / bin_size) * bin_size
 
-    x_bin, y_bin = linearize(data=np.transpose([x, y]), bin_size=bin_size, mode=linearize_method, x_bin=x_bin)
+    x_bin, y_bin = linearize(data=np.transpose([x, y]), bin_size=bin_size, mode=linearize_method, ppm=ppm, x_bin=x_bin)
     y_bin = np.nan_to_num(y_bin)
 
     return x_bin, y_bin
@@ -482,10 +485,15 @@ def get_linearization_range(x_min: float, x_max: float, bin_size: float, mode: s
     return x
 
 
-def linearize(data: np.ndarray, bin_size: float, mode: str, x_bin=None):
+def linearize(data: np.ndarray, bin_size: float, mode: str, ppm: float, x_bin=None):
     """Linearize the array"""
     if x_bin is None:
         x_bin = []
+
+    if mode == "Parts-per-million":
+        x = seq_ppm(data[0, 0], data[-1, 0], ppm)
+        y = linearize_ppm(data[:, 0], data[:, 1], x)
+        return x, y
 
     if len(x_bin) == 0:
         x_bin = get_linearization_range(data[0, 0], data[-1, 0], bin_size, mode)

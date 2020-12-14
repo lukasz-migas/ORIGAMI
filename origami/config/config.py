@@ -65,7 +65,7 @@ class ConfigBase:
         try:
             config = read_json_data(path)
         except FileNotFoundError:
-            LOGGER.warning("Configuration file does not exist")
+            LOGGER.warning(f"Configuration file does not exist : {path}")
             return
 
         if not isinstance(config, dict):
@@ -189,7 +189,7 @@ class UserConfig(ConfigBase):
         try:
             config = read_json_data(path)
         except FileNotFoundError:
-            LOGGER.warning("Configuration file does not exist")
+            LOGGER.warning(f"Configuration file does not exist : {path}")
             return
 
         if "users" in config:
@@ -1415,6 +1415,7 @@ class Config(ConfigBase):
         self.ms_linearize_mz_end = 8000
         self.ms_linearize_mz_auto_range = True
         self.ms_linearize_mz_bin_size = 1
+        self.ms_linearize_mz_ppm = 5
         self.ms_linearize_method_choices = [
             "Linear m/z",
             "Linear resolution",
@@ -1422,6 +1423,7 @@ class Config(ConfigBase):
             "Linear interpolation",
             "Linear resolution interpolation",
             "Binning",
+            #             "Parts-per-million",
         ]
         self.ms_linearize_method = "Linear interpolation"
 
@@ -2004,6 +2006,40 @@ class Config(ConfigBase):
         if self.marker_shape in self.marker_shape_dict.values():
             return self.marker_shape
         return self.marker_shape_dict[self.marker_shape]
+
+    def ms_settings_to_str(self) -> str:
+        """Parse MS pre-processing steps to string format"""
+        info = ""
+        # inform of cropping
+        if self.ms_crop:
+            info += "Crop:\n"
+            info += f"    m/z range: {self.ms_crop_min}-{self.ms_crop_max}\n"
+
+        # inform of linearization
+        if self.ms_linearize:
+            info += "Linearize:\n"
+            if not self.ms_linearize_mz_auto_range:
+                info += f"    m/z range: {self.ms_linearize_mz_start:.2f} - {self.ms_linearize_mz_end:.2f}"
+                info += " (if broader than raw data, it will be cropped appropriately)\n"
+            else:
+                info += "    m/z range: Auto\n"
+            info += f"    Mode: {self.ms_linearize_method}\n"
+            if self.ms_linearize_method == "Parts-per-million":
+                info += f"    ppm: {self.ms_linearize_mz_ppm}\n"
+            else:
+                info += f"    bin size: {self.ms_linearize_mz_bin_size}\n"
+
+        # inform of smoothing
+        if self.ms_smooth:
+            info += "<b>Smooth</b>\n"
+            info += f"    Mode: {self.ms_smooth_mode}\n"
+
+        # inform of thresholding
+        if self.ms_threshold:
+            info += "<b>Subtract baseline</b>\n"
+            info += f"   Mode: {self.ms_baseline_method}\n"
+
+        return info
 
     def on_check_parameters(self, data_type="all"):
         """

@@ -17,6 +17,7 @@ from origami.config.convert import convert_pickle_to_zarr
 from origami.objects.document import DocumentStore
 from origami.objects.callbacks import PropertyCallbackManager
 from origami.objects.containers import DataObject
+from origami.config.utilities import parse_document_title, clean_document
 
 # Should try to reduce the number of different document types to:
 # Type: MS (Waters/Thermo)
@@ -152,25 +153,23 @@ class Environment(PropertyCallbackManager):
     def __getitem__(self, item):
         """Get document object"""
         if item not in self.documents:
-            raise ValueError(f"Document `{item}` does not exist")
+            item = parse_document_title(item)
+            if item not in self.document:
+                raise ValueError(f"Document `{item}` does not exist")
         self.current = item
         LOGGER.debug(f"Retrieved `{item}`")
         return self.documents[item]
 
     def __setitem__(self, key, value):
         """Set document object"""
-        #         if key.endswith(".origami"):
-        #             key, _ = key[::-8]
         self.documents[key] = value
         self.current = value.title
-        self._trigger("add", value.title)
         pub.sendMessage(PUB_EVENT_ENV_ADD, document_title=value.title)
 
     def __delitem__(self, key):
         """Delete document object"""
         self.documents.pop(key)
         self.current = None
-        self._trigger("delete", key)
         LOGGER.debug(f"Deleted `{key}`")
 
     def __contains__(self, item):
@@ -240,14 +239,15 @@ class Environment(PropertyCallbackManager):
 
     def add(self, document: DocumentStore):
         """Add document to the store"""
+        document = clean_document(document)
         self.documents[document.title] = document
-        self._trigger("add", document.title)
         pub.sendMessage(PUB_EVENT_ENV_ADD, document_title=document.title)
 
     def remove(self, key) -> DocumentStore:
         """Remove document from the store"""
         document = self.documents.pop(key)
-        self._trigger("delete", document.title)
+        self.current = None
+        pub.sendMessage(PUB_EVENT_ENV_REMOVE, document_title=document.title)
         return document
 
     def rename(self, old_name, new_name):
@@ -255,7 +255,7 @@ class Environment(PropertyCallbackManager):
         document = self.documents.pop(old_name)
         document.title = new_name
         self.documents[new_name] = document
-        self._trigger("rename", [old_name, new_name])
+        pub.sendMessage(PUB_EVENT_ENV_RENAME, old_title=old_name, new_title=new_name)
 
     def get(self, key, alt=None) -> DocumentStore:
         """Get document"""
@@ -265,7 +265,7 @@ class Environment(PropertyCallbackManager):
         """Pop document"""
         document = self.documents.pop(key, alt)
         if document is not None:
-            self._trigger("delete", document.title)
+            pub.sendMessage(PUB_EVENT_ENV_REMOVE, document_title=document.title)
         return document
 
     def clear(self):
@@ -273,7 +273,7 @@ class Environment(PropertyCallbackManager):
         titles = self.titles
         self.documents.clear()
         for title in titles:
-            self._trigger("delete", title)
+            pub.sendMessage(PUB_EVENT_ENV_REMOVE, document_title=title)
 
     def keys(self) -> List[str]:
         """Returns document list"""
@@ -404,7 +404,6 @@ class Environment(PropertyCallbackManager):
 
         if not title:
             title = get_document_title(path)
-
         if check_unique:
             title = self._get_new_name(title)
 
@@ -440,8 +439,22 @@ class Environment(PropertyCallbackManager):
         LOGGER.debug(f"Created new document: {document.path}")
         return document
 
-    #     def get_or_add_document(self, document_type: str, path: str):
-    #         """Get already existing document"""
+    def get_or_add_document(
+        self,
+        document_type: str,
+        path: str,
+        data: Optional[Dict] = None,
+        title: Optional[str] = None,
+        check_unique: bool = False,
+    ):
+        """Get already existing document"""
+        if not title:
+            title = get_document_title(path)
+        if check_unique:
+            title = self._get_new_name(title)
+        if title in self:
+            return self[title]
+        return self.new(document_type, path, data, title=title)
 
     def get_document_list(
         self,

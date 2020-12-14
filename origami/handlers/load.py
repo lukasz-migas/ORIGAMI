@@ -387,12 +387,17 @@ class LoadHandler:
     @staticmethod
     @check_os("win32")
     def waters_extract_heatmap_from_mass_spectrum_multifile(
-        x_min: float, x_max: float, filelist: Dict, document_title: str = None, obj_name: str = None
+        x_min: float,
+        x_max: float,
+        filelist: Dict,
+        document_title: str = None,
+        obj_name: str = None,
+        x_label: str = None,
     ):
         """Extract heatmap based on mass spectrum range
 
         Parameters
-        ----------
+        ----------l
         x_min : float
             start m/z value
         x_max : float
@@ -413,6 +418,8 @@ class LoadHandler:
         document : Document
             instance of the document for which data was extracted
         """
+        if x_label is None:
+            x_label = "Collision Voltage (V)"
         document = ENV.on_get_document(document_title)
         variables, mobilograms = {}, {}
         for _, (filepath, variable) in enumerate(filelist.items()):
@@ -432,7 +439,7 @@ class LoadHandler:
 
         if obj_name is None:
             obj_name = f"MZ_{x_min:.2f}-{x_max:.2f}"
-        obj_data = StitchIonHeatmapObject(mobilograms, variables, x_label="Collision Voltage (V)")
+        obj_data = StitchIonHeatmapObject(mobilograms, variables, x_label=x_label)
         obj_data = document.add_heatmap(obj_name, obj_data)
 
         return obj_name, obj_data, document
@@ -976,11 +983,11 @@ class LoadHandler:
         from origami.widgets.lesa.processing.normalization import ImagingNormalizationProcessor
 
         if document is None:
-            document = ENV.get_new_document("imaging", path)
+            document = ENV.get_or_add_document("imaging", path)
 
         # check paths and get metadata
         _path_dict = get_multifile_pathlist(filelist)
-        _file_dict, _ = self.get_multifile_filelist(filelist)
+        _file_dict, _variables = self.get_multifile_filelist(filelist)
         filelist = self.check_lesa_document(document, filelist, **proc_kwargs)
 
         # process raw data
@@ -990,21 +997,21 @@ class LoadHandler:
         # add data to the document
         document = ENV.set_document(document, data=data)
         document.add_config("imaging", proc_kwargs)
+        document.add_config("variables", _variables)
         document.add_file_path("multifile", _path_dict)
         ImagingNormalizationProcessor(document)
-
         return document
 
     def load_manual_document(
         self, path, filelist: List[FileItem], document: DocumentStore = None, **proc_kwargs
     ) -> DocumentStore:
         """Load Waters data and set in ORIGAMI document"""
-        if document:
-            document = ENV.get_new_document("activation", path)
+        if document is None:
+            document = ENV.get_or_add_document("activation", path)
 
         # check paths and get metadata
-        _file_dict, _variables = self.get_multifile_filelist(filelist)
         _path_dict = get_multifile_pathlist(filelist)
+        _file_dict, _variables = self.get_multifile_filelist(filelist)
         filelist = self.check_lesa_document(document, filelist, **proc_kwargs)
 
         # process raw data
@@ -1016,7 +1023,6 @@ class LoadHandler:
         document.add_config("activation", proc_kwargs)
         document.add_config("variables", _variables)
         document.add_file_path("multifile", _path_dict)
-
         return document
 
     @check_os("win32")

@@ -44,6 +44,7 @@ from origami.widgets.interactive.utilities import PUB_EVENT_LAYOUT_UPDATE
 from origami.widgets.interactive.panel_layout import PanelLayoutEditor
 from origami.widgets.interactive.panel_layout import PanelLayoutBuilder
 from origami.widgets.interactive.panel_plot_parameters import PanelVisualisationSettingsEditor
+from origami.utils.exceptions import MessageError
 
 LOGGER = logging.getLogger(__name__)
 
@@ -514,12 +515,16 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
         output_path = self.output_path
         output_title = self.output_title
         if output_path in ["", None]:
-            raise ValueError("Cannot export data with this path")
+            raise MessageError("Error", "Cannot export data with this path. Please fill-in the `Path` field")
         if output_title in ["", None]:
-            raise ValueError("Cannot export data with this path")
+            raise MessageError("Cannot export data with this path")
 
         # this ensures that layouts do not contain any old plot objects
         self.plot_store.reset_layouts()
+
+        # export current item
+        if self.peaklist.item_id is not None:
+            self.on_update_bokeh_config()
 
         tab_names = []
         for item in item_list:
@@ -539,13 +544,14 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
     def set_plot_obj(self, item: PlotItem):
         """Set plot data in the document"""
         data_obj = self.get_data_obj(item.document_title, item.dataset_name)
+        kwargs = data_obj.get_metadata("bokeh", dict())
         tab_name, layout_name = self.parse_tab(item.layout)
         tab = self.plot_store.get_tab(tab_name, False)
 
         if isinstance(data_obj, (MassSpectrumObject, ChromatogramObject, MobilogramObject)):
-            plot_obj, _ = tab.add_spectrum(data_obj, layout_name, item.tag)
+            plot_obj, _ = tab.add_spectrum(data_obj, layout_name, item.tag, forced_kwargs=kwargs)
         elif isinstance(data_obj, (IonHeatmapObject,)):
-            plot_obj, _ = tab.add_heatmap(data_obj, layout_name, item.tag)
+            plot_obj, _ = tab.add_heatmap(data_obj, layout_name, item.tag, forced_kwargs=kwargs)
         else:
             raise ValueError("Could not parse data object")
 
@@ -860,7 +866,7 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
         data_obj = self.get_data_obj(document_title, dataset_name, True)
         if data_obj is None:
             return dict()
-        return data_obj.get_metadata("bokeh")
+        return data_obj.get_metadata("bokeh", dict())
 
     @staticmethod
     def _on_get_config():

@@ -49,6 +49,7 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin, ConfigUpdateMixin):
     ms_baseline_median_window = None
     ms_baseline_tophat_window = None
     bin_linearization_method_choice = None
+    bin_ppm_value = None
     bin_mzStart_value = None
     bin_mzEnd_value = None
     bin_autoRange_check = None
@@ -240,6 +241,7 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin, ConfigUpdateMixin):
             panel, -1, choices=CONFIG.ms_linearize_method_choices, size=(-1, -1)
         )
         self.bin_linearization_method_choice.Bind(wx.EVT_CHOICE, self.on_apply)
+        self.bin_linearization_method_choice.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
 
         bin_ms_min_label = wx.StaticText(panel, wx.ID_ANY, "m/z start:")
         self.bin_mzStart_value = wx.TextCtrl(panel, -1, "", size=(65, -1), validator=Validator("floatPos"))
@@ -256,6 +258,10 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         bin_ms_bin_size_label = wx.StaticText(panel, wx.ID_ANY, "m/z bin size:")
         self.bin_mzBinSize_value = wx.TextCtrl(panel, -1, "", size=(65, -1), validator=Validator("floatPos"))
         self.bin_mzBinSize_value.Bind(wx.EVT_TEXT, self.on_apply)
+
+        # bin_ms_ppm_label = wx.StaticText(panel, wx.ID_ANY, "Parts-per-million:")
+        # self.bin_ppm_value = wx.TextCtrl(panel, -1, "", size=(65, -1), validator=Validator("floatPos"))
+        # self.bin_ppm_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         ms_process_smooth = wx.StaticText(panel, -1, "Smooth spectrum:")
         self.ms_process_smooth = make_checkbox(panel, "")
@@ -381,6 +387,9 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         n += 1
         grid.Add(bin_ms_bin_size_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.bin_mzBinSize_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
+        # n += 1
+        # grid.Add(bin_ms_ppm_label, (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
+        # grid.Add(self.bin_ppm_value, (n, 1), flag=wx.ALIGN_CENTER_VERTICAL | wx.EXPAND)
         n += 1
         grid.Add(wx.StaticLine(panel, -1, style=wx.LI_HORIZONTAL), (n, 0), wx.GBSpan(1, 3), flag=wx.EXPAND)
         n += 1
@@ -522,6 +531,10 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         self.bin_mzStart_value.Enable(enable=CONFIG.ms_linearize)
         self.bin_mzEnd_value.Enable(enable=CONFIG.ms_linearize)
         self.bin_autoRange_check.Enable(enable=CONFIG.ms_linearize)
+        # self.bin_ppm_value.Enable(enable=CONFIG.ms_linearize)
+        #
+        # CONFIG.ms_linearize_method = self.bin_linearization_method_choice.GetStringSelection()
+        # self.bin_ppm_value.Enable(enable=CONFIG.ms_linearize_method == "Parts-per-million")
 
         CONFIG.ms_linearize_mz_auto_range = self.bin_autoRange_check.GetValue()
         if CONFIG.ms_linearize:
@@ -589,6 +602,7 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         self.bin_mzEnd_value.SetValue(str(CONFIG.ms_linearize_mz_end))
         self.bin_autoRange_check.SetValue(CONFIG.ms_linearize_mz_auto_range)
         self.bin_mzBinSize_value.SetValue(str(CONFIG.ms_linearize_mz_bin_size))
+        # self.bin_ppm_value.SetValue(str(CONFIG.ms_linearize_mz_ppm))
 
         self.ms_process_smooth.SetValue(CONFIG.ms_smooth)
         self.ms_smoothFcn_choice.SetStringSelection(CONFIG.ms_smooth_mode)
@@ -624,6 +638,7 @@ class PanelProcessMassSpectrum(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         CONFIG.ms_linearize_mz_start = str2num(self.bin_mzStart_value.GetValue())
         CONFIG.ms_linearize_mz_end = str2num(self.bin_mzEnd_value.GetValue())
         CONFIG.ms_linearize_mz_bin_size = str2num(self.bin_mzBinSize_value.GetValue())
+        # CONFIG.ms_linearize_mz_ppm = str2num(self.bin_ppm_value.GetValue())
 
         CONFIG.ms_linearize_method = self.bin_linearization_method_choice.GetStringSelection()
         CONFIG.ms_linearize_mz_auto_range = self.bin_autoRange_check.GetValue()

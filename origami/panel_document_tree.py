@@ -58,7 +58,7 @@ from origami.utils.utilities import report_time
 from origami.objects.document import DocumentStore
 from origami.utils.converters import byte2str
 from origami.utils.exceptions import MessageError
-from origami.config.environment import ENV
+from origami.config.environment import ENV, PUB_EVENT_ENV_RENAME, PUB_EVENT_ENV_REMOVE, PUB_EVENT_ENV_ADD
 from origami.gui_elements.popup import PopupBase
 from origami.objects.containers import IonHeatmapObject
 from origami.objects.containers import MobilogramObject
@@ -470,17 +470,23 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_TREE_SEL_CHANGED, self.on_enable_document, id=wx.ID_ANY)
         self.Bind(wx.EVT_CHAR_HOOK, self.on_keyboard_event, id=wx.ID_ANY)
 
-        ENV.on_change("change", self.env_update_document)
-        ENV.on_change("add", self._env_on_change)
-        ENV.on_change("rename", self._env_on_change)
-        ENV.on_change("delete", self._env_on_change)
+        # bind events
+        pub.subscribe(self.evt_add_document, PUB_EVENT_ENV_ADD)
+        pub.subscribe(self.evt_rename_document, PUB_EVENT_ENV_RENAME)
+        pub.subscribe(self.evt_remove_document, PUB_EVENT_ENV_REMOVE)
 
-    def _env_on_change(self, evt, metadata):
-        print(evt, metadata)
-        if evt == "add":
-            self.add_document(ENV[metadata])
-        elif evt == "delete":
-            self.remove_document(metadata)
+    def evt_rename_document(self, old_title: str, new_title: str):
+        """Rename document"""
+        print("EVT.OLD.TITLE", old_title)
+        print("EVT.NEW.TITLE", new_title)
+
+    def evt_remove_document(self, document_title: str):
+        """Remove document"""
+        print("EVT.REMOVE", document_title)
+
+    def evt_add_document(self, document_title: str):
+        """Add document"""
+        self.add_document(ENV[document_title])
 
     def _bind_change_label_events(self):
         for xID in [
@@ -3256,6 +3262,7 @@ class DocumentTree(wx.TreeCtrl):
 
         # Get title for added data
         title = byte2str(document.title)
+        print("TITLE", title)
 
         if not title:
             title = "Document"

@@ -30,18 +30,8 @@ from origami.gui_elements.misc_dialogs import DialogBox
 LOGGER = logging.getLogger(__name__)
 
 
-class Dialog(wx.Dialog, ActivityIndicatorMixin, DocumentationMixin, ParentSizeMixin, WindowPositionMixin):
-    """Proxy of Dialog"""
-
-    def __init__(self, parent, style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX), **kwargs):
-        self.parent = parent
-        bind_key_events = kwargs.pop("bind_key_events", True)
-        wx.Dialog.__init__(self, parent, -1, style=style, **kwargs)
-
-        self.Bind(wx.EVT_CLOSE, self.on_close)
-
-        if bind_key_events:
-            self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
+class UIBase:
+    """Base class for Dialog and MiniFrame"""
 
     @staticmethod
     def _parse_evt(evt):
@@ -70,21 +60,7 @@ class Dialog(wx.Dialog, ActivityIndicatorMixin, DocumentationMixin, ParentSizeMi
         if evt is not None:
             evt.Skip()
 
-    def on_ok(self, evt):
-        """Close the frame gracefully"""
-        if self.IsModal():
-            self.EndModal(wx.ID_OK)
-        else:
-            self.Destroy()
-
-    def on_close(self, evt, force: bool = False):
-        """Destroy this frame."""
-        if self.IsModal():
-            self.EndModal(wx.ID_NO)
-        else:
-            self.Destroy()
-
-    def make_panel(self):
+    def make_panel(self, *args):
         """Make panel"""
         pass
 
@@ -100,11 +76,56 @@ class Dialog(wx.Dialog, ActivityIndicatorMixin, DocumentationMixin, ParentSizeMi
 
         # fit layout
         main_sizer.Fit(self)
-        self.SetSizerAndFit(main_sizer)
-        self.Layout()
+        self.SetSizerAndFit(main_sizer)  # noqa
+        self.Layout()  # noqa
+
+    def on_close(self, evt, force: bool = False):
+        """Destroy this frame."""
+        raise NotImplementedError("Must implement method")
+
+    def ask(self, title: str, msg: str):
+        """Ask question and return value"""
+        dlg = DialogBox(title, msg, kind="Question", parent=self)
+        return dlg
+
+    def warn(self, title: str, msg: str):
+        """Ask question and return value"""
+        _ = DialogBox(title, msg, kind="Warning", parent=self)
+
+    def error(self, title: str, msg: str):
+        """Ask question and return value"""
+        _ = DialogBox(title, msg, parent=self)
 
 
-class MiniFrame(wx.MiniFrame, ActivityIndicatorMixin, DocumentationMixin, ParentSizeMixin, WindowPositionMixin):
+class Dialog(wx.Dialog, UIBase, ActivityIndicatorMixin, DocumentationMixin, ParentSizeMixin, WindowPositionMixin):
+    """Proxy of Dialog"""
+
+    def __init__(self, parent, style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX), **kwargs):
+        self.parent = parent
+        bind_key_events = kwargs.pop("bind_key_events", True)
+        wx.Dialog.__init__(self, parent, -1, style=style, **kwargs)
+
+        self.Bind(wx.EVT_CLOSE, self.on_close)
+
+        if bind_key_events:
+            self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
+
+    def on_ok(self, evt):
+        """Close the frame gracefully"""
+        if self.IsModal():
+            self.EndModal(wx.ID_OK)
+        else:
+            self.Destroy()
+
+    def on_close(self, evt, force: bool = False):
+        """Destroy this frame."""
+        if self.IsModal():
+            self.EndModal(wx.ID_NO)
+        else:
+            self.Destroy()
+
+
+class MiniFrame(wx.MiniFrame, UIBase, ActivityIndicatorMixin, DocumentationMixin, ParentSizeMixin, WindowPositionMixin):
     """Proxy of MiniFrame"""
 
     def __init__(
@@ -123,31 +144,6 @@ class MiniFrame(wx.MiniFrame, ActivityIndicatorMixin, DocumentationMixin, Parent
         if bind_key_events:
             self.Bind(wx.EVT_CHAR_HOOK, self.on_key_event)
 
-    @staticmethod
-    def _parse_evt(evt):
-        """Parse event"""
-        if evt is not None:
-            evt.Skip()
-
-    @staticmethod
-    def _get_icons(icons):
-        """Get Icons"""
-        if icons is None:
-            from origami.icons.assets import Icons
-
-            icons = Icons()
-        return icons
-
-    def on_key_event(self, evt):
-        """Keyboard events"""
-        key_code = evt.GetKeyCode()
-        # exit window
-        if key_code == wx.WXK_ESCAPE:
-            self.on_close(None)
-
-        if evt is not None:
-            evt.Skip()
-
     def filter_keys(self, evt):
         """Filter keys"""
 
@@ -158,24 +154,6 @@ class MiniFrame(wx.MiniFrame, ActivityIndicatorMixin, DocumentationMixin, Parent
     def on_ok(self, _evt):
         """Close the frame gracefully"""
         self.Destroy()
-
-    def make_panel(self, *args):
-        """Make panel"""
-        pass
-
-    def make_gui(self):
-        """Make and arrange main panel"""
-        # make panel
-        panel = self.make_panel()
-
-        # pack element
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(panel, 1, wx.EXPAND, 5)
-
-        # fit layout
-        main_sizer.Fit(self)
-        self.SetSizer(main_sizer)
-        self.Layout()
 
 
 class ListCtrl(wx.ListCtrl):
@@ -758,7 +736,6 @@ class TestListCtrl(wx.Frame):
 
 
 def _main():
-
     app = wx.App()
 
     dlg = TestListCtrl(None)

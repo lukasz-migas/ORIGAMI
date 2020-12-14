@@ -198,6 +198,7 @@ class SpectrumObject(DataObject):
         auto_range: bool = True,
         x_min: Optional[float] = None,
         x_max: Optional[float] = None,
+        ppm: Optional[float] = None,
         x_bin: Optional[np.ndarray] = None,
         **kwargs,  # noqa
     ):
@@ -215,6 +216,8 @@ class SpectrumObject(DataObject):
             starting value of the linearization method
         x_max : float
             ending value of the linearization method
+        ppm : float
+            parts-per million at which the spectrum should be resampled
         x_bin : np.ndarray
             pre-computed x-axis values
         """
@@ -224,6 +227,7 @@ class SpectrumObject(DataObject):
             bin_size=bin_size,
             linearize_method=linearize_method,
             auto_range=auto_range,
+            ppm=ppm,
             x_min=x_min,
             x_max=x_max,
             x_bin=x_bin,

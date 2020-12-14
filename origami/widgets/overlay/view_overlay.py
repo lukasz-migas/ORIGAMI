@@ -88,6 +88,7 @@ class ViewOverlay(ViewBase, ViewMPLMixin, ViewOverlayPanelMixin, ViewWaterfallMi
             x, y, array, x_label=self.y_label, y_label="Offset intensity", callbacks=self._callbacks, obj=obj, **kwargs
         )
         self.figure.repaint(repaint)
+        self._data.update(x=x, y=y, array=array, obj=obj)  # noqa
         self.set_plot_parameters(**kwargs)
         LOGGER.debug(f"Plotted data in {report_time(t_start)}")
         return _kwargs
@@ -370,6 +371,8 @@ class ViewOverlay(ViewBase, ViewMPLMixin, ViewOverlayPanelMixin, ViewWaterfallMi
         repaint: bool = False
         if name.startswith("axes"):
             kwargs = self._update_style_axes(name)
+        elif name.startswith("waterfall"):
+            kwargs = self._update_style_waterfall(name)
         elif name.startswith("legend"):
             kwargs = CONFIG.get_mpl_parameters(["legend"])
             repaint = self.figure.plot_update_legend(**kwargs)
@@ -415,9 +418,19 @@ class ViewOverlay(ViewBase, ViewMPLMixin, ViewOverlayPanelMixin, ViewWaterfallMi
         """Update"""
         raise ValueError("This view does not support simple update - use appropriate method instead")
 
-    def replot(self, **kwargs):
+    def replot(self, plot_type: str = None, repaint: bool = True, light_clear: bool = False):
         """Full replot"""
-        raise ValueError("This view does not support simple update - use appropriate method instead")
+        # get plot_type
+        plot_type = self.get_plot_type(plot_type)
+
+        if light_clear:
+            self.light_clear()
+
+        if plot_type == "waterfall":
+            array, x, y = self.get_data(self.DATA_KEYS)
+            self.plot_waterfall(x, y, array, None, repaint=repaint)
+        else:
+            raise ValueError("This view does not support simple update - use appropriate method instead")
 
     def _update(self):
         """Update"""

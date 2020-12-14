@@ -252,7 +252,7 @@ class ViewCompareSpectra(ViewBase, ViewSpectrumPanelMixin):
 
         if labels is None:
             labels = ["", ""]
-            kwargs, _kwargs = self.parse_kwargs(self.MPL_KEYS, forced_kwargs=forced_kwargs, **kwargs)
+        kwargs, _kwargs = self.parse_kwargs(self.MPL_KEYS, forced_kwargs=forced_kwargs, **kwargs)
 
         try:
             self.update(x_top, x_bottom, y_top, y_bottom, obj_top, obj_bottom, labels, **kwargs)

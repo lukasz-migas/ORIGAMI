@@ -4,6 +4,9 @@ import time
 import numbers
 
 # Third-party imports
+from pubsub import pub
+
+from origami import events
 import numpy as np
 from zarr.util import normalize_dtype
 from zarr.util import normalize_shape
@@ -11,6 +14,26 @@ from zarr.util import normalize_shape
 CHUNK_BASE = 2 * 1024 * 1024  # Multiplier by which chunks are adjusted
 CHUNK_MIN = 256 * 1024  # Soft lower limit (128k)
 CHUNK_MAX = 64 * 1024 * 1024  # Hard upper limit
+
+
+def notify_info(message: str):
+    """Send notification to the user"""
+    pub.sendMessage(events.EVENT_NOTIFY_INFO, message=message)
+
+
+def notify_success(message: str):
+    """Send notification to the user"""
+    pub.sendMessage(events.EVENT_NOTIFY_SUCCESS, message=message)
+
+
+def notify_warning(message: str):
+    """Send notification to the user"""
+    pub.sendMessage(events.EVENT_NOTIFY_WARNING, message=message)
+
+
+def notify_error(message: str):
+    """Send notification to the user"""
+    pub.sendMessage(events.EVENT_NOTIFY_ERROR, message=message)
 
 
 def as_chunks(item_list, n_items: int):

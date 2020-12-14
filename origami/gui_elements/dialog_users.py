@@ -209,7 +209,6 @@ if __name__ == "__main__":
     def _main():
         app = wx.App()
         ex = DialogAddUser(None)
-
         ex.Show()
         app.MainLoop()
 

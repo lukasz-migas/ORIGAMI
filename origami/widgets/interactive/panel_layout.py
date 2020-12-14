@@ -22,6 +22,7 @@ from origami.widgets.interactive.utilities import PUB_EVENT_PLOT_ORDER
 from origami.widgets.interactive.utilities import PUB_EVENT_TAB_REMOVE
 from origami.widgets.interactive.utilities import PUB_EVENT_LAYOUT_REMOVE
 from origami.widgets.interactive.utilities import PUB_EVENT_LAYOUT_UPDATE
+from origami.utils.utilities import notify_error
 
 LOGGER = logging.getLogger(__name__)
 
@@ -231,7 +232,8 @@ class PanelLayoutEditor(wx.Panel, TableMixin):
 
         layout_name = self.tab_layout_value.GetStringSelection()
         if not hasattr(self.parent, "get_plots_for_layout"):
-            raise ValueError("Cannot retrieve list of plot items")
+            notify_error("Cannot retrieve list of plot items")
+            return
         item_list = self.parent.get_plots_for_layout(layout_name)
         self.peaklist.DeleteAllItems()
         plot_id = 0
@@ -600,7 +602,8 @@ class PanelLayoutBuilder(wx.Panel, TableMixin):
         name = self.layout_name.GetValue()
         layout_type = self.layout_choice.GetStringSelection()
         if not check_values(tab_name, layout_type, name):
-            raise ValueError("You must provide `tab title`, `layout type` and  `name`")
+            notify_error("You must provide `tab title`, `layout type` and  `name`")
+            return
         # add layout
         self._on_add_layout(tab_name=tab_name, layout_type=layout_type, name=name)
         self.on_clear_ui(None)

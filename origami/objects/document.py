@@ -40,11 +40,9 @@ from origami.objects.containers import mass_spectrum_object
 from origami.objects.groups.base import DataGroup
 from origami.widgets.ccs.processing.containers import ccs_calibration_object
 from origami.widgets.lesa.processing.containers import normalization_object
+from origami.config.utilities import parse_document_title
 
 LOGGER = logging.getLogger(__name__)
-
-
-# TODO: add option to only flush some of the data to disk (e.g. metadata, extra_data)
 
 
 def get_children(o):
@@ -292,6 +290,7 @@ class DocumentStore:
 
     @title.setter
     def title(self, value):
+        value = parse_document_title(value)
         self._title = byte2str(value)
 
     @property
@@ -377,6 +376,34 @@ class DocumentStore:
             _paths[path] = []
             for key in keys:
                 _paths[path].append(value.get(key, ""))
+        return _paths
+
+    def get_multifile_order(self):
+        """Returns filelist:variable that corresponds to multi-file object"""
+        if not self.is_multifile():
+            return dict()
+        paths = self.get_file_path("multifile")
+        config = self.get_config("variables")
+        _paths = {}
+        for filename, path in paths.items():
+            _paths[path] = config[filename]
+        return _paths
+
+    def get_imaging_config(self, keys: List[str], paths: List[str] = None):
+        """Return config that corresponds to an imaging object"""
+        if not self.is_multifile():
+            return dict()
+        if paths is None:
+            paths = self.get_file_path("multifile")
+        config = self.get_config("imaging")
+        if config is None or "path_list" not in config:
+            return dict()
+        config = config["path_list"]
+        _paths = {}
+        for filename, path in paths.items():
+            _paths[path] = []
+            for key in keys:
+                _paths[path].append(config[filename].get(key, ""))
         return _paths
 
     def group(self, key):
