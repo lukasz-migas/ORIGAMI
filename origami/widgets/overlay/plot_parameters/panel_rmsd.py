@@ -179,12 +179,15 @@ class PanelRMSDSettings(PanelSettingsBase):
 
 
 def _main():
+    # Local imports
+    from origami.app import App
+
     class _TestFrame(wx.Frame):
         def __init__(self):
             wx.Frame.__init__(self, None, -1, "Frame", size=(300, 300))
             self.scrolledPanel = PanelRMSDSettings(self, None)
 
-    app = wx.App()
+    app = App()
     ex = _TestFrame()
     ex.Show()
     app.MainLoop()

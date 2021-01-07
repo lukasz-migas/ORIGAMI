@@ -3,9 +3,8 @@
 import pytest
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.widgets.overlay.panel_overlay_viewer import PanelOverlayViewer
-
-from ...wxtc import WidgetTestCase
 
 
 @pytest.mark.guitest

@@ -50,8 +50,10 @@ class DialogColorPicker(wx.ColourDialog):
 
 
 def _main():
+    # Local imports
+    from origami.app import App
 
-    app = wx.App()
+    app = App()
     frame = wx.Frame(None, -1)
     ex = DialogColorPicker(frame, [])
     ex.ShowModal()

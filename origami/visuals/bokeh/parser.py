@@ -7,7 +7,12 @@ from typing import Union
 
 # Third-party imports
 from bokeh.models import Plot
-from bokeh.models import BoxZoomTool, SaveTool, ResetTool, CrosshairTool, PanTool, WheelZoomTool
+from bokeh.models import PanTool
+from bokeh.models import SaveTool
+from bokeh.models import ResetTool
+from bokeh.models import BoxZoomTool
+from bokeh.models import CrosshairTool
+from bokeh.models import WheelZoomTool
 
 # Local imports
 from origami.config.config import CONFIG

@@ -12,10 +12,10 @@ from sys import platform
 import wx
 
 # Local imports
+from origami.app import App
 from origami.icons.icons import IconContainer
 from origami.main_window import MainWindow
 from origami.config.config import CONFIG
-from origami.help_documentation import OrigamiHelp
 from origami.gui_elements.views.view_register import VIEW_REG  # noqa
 
 logger = logging.getLogger(__name__)
@@ -24,14 +24,6 @@ gc.enable()
 
 # disable MPL logger
 logging.getLogger("matplotlib").setLevel(logging.ERROR)
-
-
-class App(wx.App):
-    """Slightly modified wxApp"""
-
-    def InitLocale(self):
-        """Initialize locale"""
-        self.ResetLocale()
 
 
 class ORIGAMI:
@@ -66,7 +58,6 @@ class ORIGAMI:
         """Initialize app"""
         self.config = CONFIG
         self.icons = IconContainer()
-        self.help = OrigamiHelp()
 
         # Load configuration file
         self.on_import_configuration_on_startup()

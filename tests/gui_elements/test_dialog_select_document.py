@@ -4,9 +4,8 @@ import wx
 import pytest
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.gui_elements.dialog_users import DialogAddUser
-
-from ..wxtc import WidgetTestCase
 
 
 @pytest.mark.guitest

@@ -11,7 +11,7 @@ class IconContainer:
 
         self.load_logos()
         self.load_bullets()
-        self.load_icons()
+        # self.load_icons()
 
     def load_logos(self):
 
@@ -294,7 +294,7 @@ class IconContainer:
             "IYQQkgSKkhBCCEkCRUkIIYQkgaIkhBBCkkBREkIIIUmgKAkhhJAkUJSEEEJIEihKQgghJAkU"
             "JSGEEDImIv8fYJkezyZa7LkAAAAASUVORK5CYII="
         )
-        self.getLogo = origamiLogo.GetBitmap()
+        # self.getLogo = origamiLogo.GetBitmap()
 
         # ----------------------------------------------------------------------
         bullets = PyEmbeddedImage(

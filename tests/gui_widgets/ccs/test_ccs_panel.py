@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 # Local imports
-from tests.wxtc import WidgetTestCase
+from origami.utils.test import WidgetTestCase
 from origami.utils.exceptions import MessageError
 from origami.objects.containers.spectrum import MobilogramObject
 from origami.objects.containers.spectrum import MassSpectrumObject

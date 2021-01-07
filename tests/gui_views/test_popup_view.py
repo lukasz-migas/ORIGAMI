@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.objects.containers import IonHeatmapObject
 from origami.objects.containers import MobilogramObject
 from origami.objects.containers import ChromatogramObject
@@ -12,8 +13,6 @@ from origami.gui_elements.popup_view import PopupHeatmapView
 from origami.gui_elements.popup_view import PopupMobilogramView
 from origami.gui_elements.popup_view import PopupChromatogramView
 from origami.gui_elements.popup_view import PopupMassSpectrumView
-
-from ..wxtc import WidgetTestCase
 
 # This test suite should be run last to avoid crashing other UI tests
 

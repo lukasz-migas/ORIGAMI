@@ -4,11 +4,10 @@ import wx
 import pytest
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.objects.containers import MobilogramObject
 from origami.widgets.ccs.view_ccs import ViewCCSFit
 from origami.widgets.ccs.view_ccs import ViewCCSMobilogram
-
-from ...wxtc import WidgetTestCase
 
 
 @pytest.mark.guitest

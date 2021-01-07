@@ -73,7 +73,7 @@ class topPanel(wx.Panel):
         wx.Panel.__init__(self, parent=parent)
 
         self.config = config
-        self.presenter = presenter  # wx.App
+        self.presenter = presenter
         self.icons = icons
         self.make_toolbar()
         self.makeListCtrl()
@@ -377,7 +377,7 @@ class bottomPanel(wx.Panel):
         wx.Panel.__init__(self, parent=parent)
 
         self.config = config
-        self.presenter = presenter  # wx.App
+        self.presenter = presenter
         self.icons = icons
         self.make_toolbar()
         self.makeListCtrl()

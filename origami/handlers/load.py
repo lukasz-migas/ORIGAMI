@@ -39,8 +39,9 @@ from origami.widgets.lesa.processing.containers import ImagingIonHeatmapObject
 
 # enable on windowsOS only
 if platform == "win32":
-    from origami.readers.io_waters_raw_api import WatersRawReader
+    # Local imports
     from origami.readers.io_waters_raw import WatersIMReader
+    from origami.readers.io_waters_raw_api import WatersRawReader
 
 LOGGER = logging.getLogger(__name__)
 
@@ -585,6 +586,7 @@ class LoadHandler:
         document : Document
             instance of the document for which data was extracted
         """
+        # Local imports
         from origami.readers.io_thermo_raw import ThermoRawReader
 
         document = ENV.on_get_document(title)
@@ -605,6 +607,7 @@ class LoadHandler:
     @staticmethod
     def document_extract_lesa_image_from_ms(x_min: float, x_max: float, document_title: str):
         """Extract image data for LESA document based on extraction range in the mass spectrum window"""
+        # Local imports
         from origami.processing.utils import find_nearest_index
 
         document = ENV.on_get_document(document_title)
@@ -643,6 +646,7 @@ class LoadHandler:
         x_min: float, x_max: float, y_min: float, y_max: float, document_title: str
     ):
         """Extract image data for LESA document based on extraction range in the mass spectrum + drift time window"""
+        # Local imports
         from origami.processing.utils import find_nearest_index
 
         document = ENV.on_get_document(document_title)
@@ -683,6 +687,7 @@ class LoadHandler:
     @staticmethod
     def document_extract_dt_from_msdt_multifile(x_min: float, x_max: float, document_title: str):
         """Extract mobilogram from MS/DT dataset based on mass selection"""
+        # Local imports
         from origami.processing.utils import find_nearest_index
 
         document = ENV.on_get_document(document_title)
@@ -816,6 +821,7 @@ class LoadHandler:
     @check_os("win32")
     def load_thermo_ms_data(path):
         """Load Thermo data"""
+        # Local imports
         from origami.readers.io_thermo_raw import ThermoRawReader
 
         t_start = time.time()
@@ -980,6 +986,7 @@ class LoadHandler:
         self, path, filelist: List[FileItem], document: DocumentStore = None, **proc_kwargs
     ) -> DocumentStore:
         """Load Waters data and set in ORIGAMI document"""
+        # Local imports
         from origami.widgets.lesa.processing.normalization import ImagingNormalizationProcessor
 
         if document is None:

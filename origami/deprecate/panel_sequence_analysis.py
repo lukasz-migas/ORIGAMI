@@ -1,9 +1,6 @@
 # Third-party imports
 import wx
 
-# Local imports
-from origami.help_documentation import OrigamiHelp
-
 
 class panelSequenceAnalysis(wx.MiniFrame):
     """
@@ -19,8 +16,6 @@ class panelSequenceAnalysis(wx.MiniFrame):
         self.presenter = presenter
         self.config = config
         self.icons = icons
-
-        self.help = OrigamiHelp()
 
         # make gui items
         self.make_gui()

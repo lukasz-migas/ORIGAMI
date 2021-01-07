@@ -147,6 +147,7 @@ class ProcessHandler:
         pick_mz_max=None,
     ):
         """Find peaks in mass spectrum using peak properties"""
+        # Local imports
         from origami.processing.feature.mz_picker import PropertyPeakPicker
 
         mz_min, mz_max = mz_obj.x_limit
@@ -179,6 +180,7 @@ class ProcessHandler:
         pick_mz_max=None,
     ):
         """Find peaks in mass spectrum using local-maximum algorithm"""
+        # Local imports
         from origami.processing.feature.mz_picker import LocalMaxPeakPicker
 
         mz_min, mz_max = mz_obj.x_limit
@@ -209,6 +211,7 @@ class ProcessHandler:
         pick_mz_max=None,
     ):
         """Find peaks in the mass spectrum using differential algorithm"""
+        # Local imports
         from origami.processing.feature.mz_picker import DifferentialPeakPicker
 
         mz_min, mz_max = mz_obj.x_limit

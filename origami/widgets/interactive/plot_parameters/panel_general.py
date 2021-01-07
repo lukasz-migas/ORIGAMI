@@ -8,7 +8,6 @@ import wx
 # Local imports
 from origami.utils.color import convert_rgb_1_to_255
 from origami.utils.color import convert_rgb_255_to_1
-
 # from origami.config.config import CONFIG
 from origami.config.config import CONFIG
 from origami.gui_elements.helpers import set_tooltip
@@ -333,12 +332,15 @@ class PanelGeneralSettings(PanelSettingsBase):
 if __name__ == "__main__":
 
     def _main():
+        # Local imports
+        from origami.app import App
+
         class _TestFrame(wx.Frame):
             def __init__(self):
                 wx.Frame.__init__(self, None, -1, "Frame", size=(300, 300))
                 self.scrolledPanel = PanelGeneralSettings(self, None)
 
-        app = wx.App()
+        app = App()
 
         ex = _TestFrame()
 

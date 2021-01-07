@@ -5,10 +5,9 @@ import numpy as np
 import pytest
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.objects.containers import IonHeatmapObject
 from origami.gui_elements.views.view_heatmap_3d import ViewHeatmap3d
-
-from ..wxtc import WidgetTestCase
 
 
 @pytest.mark.guitest

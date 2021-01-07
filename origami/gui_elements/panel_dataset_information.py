@@ -441,6 +441,7 @@ class PanelDatasetInformation(MiniFrame):
 
     def on_add_user_account(self, _evt):
         """Add user account"""
+        # Local imports
         from origami.gui_elements.dialog_users import DialogAddUser
 
         dlg = DialogAddUser(self)
@@ -450,8 +451,10 @@ class PanelDatasetInformation(MiniFrame):
 if __name__ == "__main__":
 
     def _main():
+        # Local imports
+        from origami.app import App
 
-        app = wx.App()
+        app = App()
         ex = PanelDatasetInformation(None, None, None, debug=True)
         ex.paths_value.set_items(
             [

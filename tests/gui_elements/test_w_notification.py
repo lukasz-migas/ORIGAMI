@@ -4,9 +4,8 @@ import wx
 import pytest
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.gui_elements.misc_notification import Notification
-
-from ..wxtc import WidgetTestCase
 
 # This test suite should be run last to avoid crashing other UI tests
 

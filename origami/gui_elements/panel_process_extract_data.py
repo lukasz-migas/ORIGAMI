@@ -99,6 +99,7 @@ class PanelProcessExtractData(MiniFrame):
         """Close window"""
         n_extracted_items = len(self.extraction_data)
         if n_extracted_items > 0:
+            # Local imports
             from origami.gui_elements.misc_dialogs import DialogBox
 
             msg = (
@@ -424,6 +425,7 @@ class PanelProcessExtractData(MiniFrame):
 
     def on_add_to_document(self, _evt):
         """Add data to document. Ask users what data should be added"""
+        # Local imports
         from origami.gui_elements.dialog_review_editor import DialogReviewEditorExtract
 
         # if the list is empty, notify the user
@@ -589,7 +591,10 @@ class PanelProcessExtractData(MiniFrame):
 
 
 def _main():
-    app = wx.App()
+    # Local imports
+    from origami.app import App
+
+    app = App()
     ex = PanelProcessExtractData(None, None)
     ex.Show()
     app.MainLoop()

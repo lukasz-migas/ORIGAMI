@@ -3,8 +3,13 @@
 #cython: nonecheck=False
 #cython: language_level=3
 
+# Third-party imports
 import numpy as np
+
+# Third-party imports
 cimport numpy as np
+
+# Third-party imports
 from scipy.ndimage import gaussian_filter
 
 

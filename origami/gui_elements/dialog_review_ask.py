@@ -110,8 +110,10 @@ class DialogAskReview(Dialog):
 
 
 def _main():
+    # Local imports
+    from origami.app import App
 
-    app = wx.App(False)
+    app = App()
     frame = wx.Frame(None, -1)
     ex = DialogAskReview(frame)
     res = ex.ShowModal()

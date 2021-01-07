@@ -4,9 +4,8 @@ import wx
 import pytest
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.widgets.origami_ms.dialog_batch_apply_origami_ms import DialogReviewApplyOrigamiMs
-
-from ...wxtc import WidgetTestCase
 
 
 def get_data():

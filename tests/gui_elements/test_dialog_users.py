@@ -4,9 +4,8 @@ import wx
 import pytest
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.gui_elements.dialog_select_document import DialogSelectDocument
-
-from ..wxtc import WidgetTestCase
 
 
 def get_data():

@@ -245,6 +245,7 @@ def interpolate_2d(
     new_y : np.array
     new_array : np.array
     """
+    # Third-party imports
     from scipy.interpolate.interpolate import interp2d
 
     method = method.lower()

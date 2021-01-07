@@ -9,7 +9,7 @@ pymzml
 pyteomics
 scipy
 seaborn
-scikit-learn==0.20.3
+scikit-learn
 scikit-image
 defusedxml
 psutil

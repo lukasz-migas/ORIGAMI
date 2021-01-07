@@ -581,8 +581,9 @@ class DialogOrigamiMsSettings(Dialog):
 
     def on_extract_spectra(self, _evt):
         """Submit spectra extraction"""
-        from origami.gui_elements.dialog_batch_data_extract import DialogBatchDataExtract
+        # Local imports
         from origami.utils.converters import convert_scans_to_mins
+        from origami.gui_elements.dialog_batch_data_extract import DialogBatchDataExtract
 
         # get extraction parameters
         start_end_cv_list = self.calculate_origami_parameters()
@@ -618,8 +619,10 @@ class DialogOrigamiMsSettings(Dialog):
 
 
 def _main():
+    # Local imports
+    from origami.app import App
 
-    app = wx.App()
+    app = App()
     ex = DialogOrigamiMsSettings(None, None, debug=True)
 
     ex.Show()

@@ -10,6 +10,7 @@ from pubsub import pub
 # Local imports
 from origami.styles import Validator
 from origami.utils.secret import get_short_hash
+from origami.utils.utilities import notify_error
 from origami.gui_elements.helpers import TableConfig
 from origami.gui_elements.helpers import set_tooltip
 from origami.gui_elements.helpers import make_bitmap_btn
@@ -22,7 +23,6 @@ from origami.widgets.interactive.utilities import PUB_EVENT_PLOT_ORDER
 from origami.widgets.interactive.utilities import PUB_EVENT_TAB_REMOVE
 from origami.widgets.interactive.utilities import PUB_EVENT_LAYOUT_REMOVE
 from origami.widgets.interactive.utilities import PUB_EVENT_LAYOUT_UPDATE
-from origami.utils.utilities import notify_error
 
 LOGGER = logging.getLogger(__name__)
 
@@ -487,6 +487,7 @@ class PanelLayoutBuilder(wx.Panel, TableMixin):
 
     def on_add_tab(self, _evt):
         """Add tab to the PlotStore"""
+        # Local imports
         from origami.widgets.interactive.dialog_new_tab import DialogNewTab
 
         tabs = self.plot_store.tab_names
@@ -506,6 +507,7 @@ class PanelLayoutBuilder(wx.Panel, TableMixin):
 
     def on_remove_tab(self, _evt):
         """Remove tab from the PlotStore"""
+        # Local imports
         from origami.gui_elements.misc_dialogs import DialogBox
 
         tab_name = self.tab_title.GetStringSelection()
@@ -726,17 +728,21 @@ class PanelLayoutBuilder(wx.Panel, TableMixin):
 
 
 if __name__ == "__main__":
-    from origami.utils.screen import move_to_different_screen
+    # Local imports
     from origami.icons.assets import Icons
+    from origami.utils.screen import move_to_different_screen
 
     def _main_builder():
+        # Local imports
+        from origami.app import App
+
         class _TestFrame(wx.Frame):
             def __init__(self):
                 wx.Frame.__init__(self, None, -1, "Frame", size=(300, 300))
                 icons = Icons()
                 panel = PanelLayoutBuilder(self, self, icons)
 
-        app = wx.App()
+        app = App()
         ex = _TestFrame()
 
         ex.Show()
@@ -744,13 +750,16 @@ if __name__ == "__main__":
         app.MainLoop()
 
     def _main_editor():
+        # Local imports
+        from origami.app import App
+
         class _TestFrame(wx.Frame):
             def __init__(self):
                 wx.Frame.__init__(self, None, -1, "Frame", size=(300, 300))
                 icons = Icons()
                 panel = PanelLayoutEditor(self, self, icons)
 
-        app = wx.App()
+        app = App()
         ex = _TestFrame()
 
         ex.Show()

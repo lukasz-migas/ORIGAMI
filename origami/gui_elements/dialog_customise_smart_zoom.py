@@ -216,8 +216,10 @@ class DialogCustomiseSmartZoom(Dialog):
 
 
 def _main():
+    # Local imports
+    from origami.app import App
 
-    app = wx.App()
+    app = App()
     ex = DialogCustomiseSmartZoom(None)
 
     ex.Show()

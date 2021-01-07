@@ -4,6 +4,7 @@ import wx
 import pytest
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.objects.containers import MobilogramObject
 from origami.objects.containers import ChromatogramObject
 from origami.objects.containers import MassSpectrumObject
@@ -11,8 +12,6 @@ from origami.gui_elements.views.view_spectrum import ViewMobilogram
 from origami.gui_elements.views.view_spectrum import ViewChromatogram
 from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
 from origami.gui_elements.views.view_spectrum import ViewCompareMassSpectra
-
-from ..wxtc import WidgetTestCase
 
 
 @pytest.mark.guitest

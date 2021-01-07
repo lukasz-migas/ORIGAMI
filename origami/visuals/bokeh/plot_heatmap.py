@@ -70,6 +70,7 @@ class PlotHeatmap(PlotBase):
 
     def add_colorbar(self, array=None, **kwargs):
         """Add colorbar to the plot area"""
+        # Local imports
         from origami.visuals.bokeh.utilities import _add_colorbar
 
         if array is None:

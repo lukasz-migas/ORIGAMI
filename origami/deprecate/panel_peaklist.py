@@ -1056,7 +1056,8 @@ class PanelPeaklist(TablePanelBase):
     #         self.peaklist.SetStringItem(item_id, CONFIG.peaklistColNames["filename"], str(value))
 
     def on_open_editor(self, evt):
-        from origami.gui_elements.panel_modify_item_settings import PanelModifyItemSettings
+        # Local imports
+        from origami.deprecate.panel_modify_item_settings import PanelModifyItemSettings
 
         if self.peaklist.item_id is None:
             LOGGER.warning("Please select an item")

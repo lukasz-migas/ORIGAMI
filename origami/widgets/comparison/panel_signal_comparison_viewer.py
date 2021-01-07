@@ -712,9 +712,11 @@ class PanelSignalComparisonViewer(MiniFrame, ColorGetterMixin):
 
 
 def _main():
+    # Local imports
+    from origami.app import App
     from origami.icons.assets import Icons
 
-    app = wx.App()
+    app = App()
     icons = Icons()
     ex = PanelSignalComparisonViewer(None, None, icons, "", debug=True)
 

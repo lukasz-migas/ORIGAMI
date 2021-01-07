@@ -266,8 +266,10 @@ class DialogCustomiseUserAnnotations(Dialog):
 
 
 def _main():
+    # Local imports
+    from origami.app import App
 
-    app = wx.App()
+    app = App()
     ex = DialogCustomiseUserAnnotations(None)
 
     ex.Show()

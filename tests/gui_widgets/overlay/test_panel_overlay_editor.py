@@ -3,10 +3,9 @@
 import pytest
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.utils.secret import get_short_hash
 from origami.widgets.overlay.panel_overlay_editor import PanelOverlayEditor
-
-from ...wxtc import WidgetTestCase
 
 
 def _get_item_list():

@@ -216,6 +216,7 @@ class PanelHTMLViewer(wx.MiniFrame):
         if html_msg is not None:
             msg = html_msg
         elif md_msg is not None:
+            # Third-party imports
             from markdown2 import markdown
 
             msg = markdown(md_msg, extras=["smarty-pants", "tables"])
@@ -247,7 +248,10 @@ You will like those projects!
 
 
 def _main():
-    app = wx.App()
+    # Local imports
+    from origami.app import App
+
+    app = App()
     ex = PanelHTMLViewer(None, link=r"https://origami.lukasz-migas.com/")  # md_msg=MARKDOWN_EXAMPLE)
 
     ex.Show()

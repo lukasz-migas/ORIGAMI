@@ -6,10 +6,9 @@ import sys
 import pytest
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.config.config import CONFIG
 from origami.gui_elements.panel_notify_new_version import PanelNewVersion
-
-from ..wxtc import WidgetTestCase
 
 
 @pytest.mark.guitest

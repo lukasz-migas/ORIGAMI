@@ -212,6 +212,7 @@ class ContainerBase:
     def get_parent(self):
         """Returns the DocumentStore object that is associated with the container"""
         # environment must be imported here since it might cause circular reference if imported at the top
+        # Local imports
         from origami.config.environment import ENV
 
         if self.owner is not None:

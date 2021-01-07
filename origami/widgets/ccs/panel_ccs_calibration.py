@@ -689,6 +689,7 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
 
     def on_auto_process(self, _evt):
         """Auto-process the loaded data"""
+        # Local imports
         from origami.widgets.ccs.misc_windows import DialogAutoGenerateConformers
 
         popup = DialogAutoGenerateConformers(self)
@@ -1077,6 +1078,7 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
 
     def on_save_calibration(self, _evt):
         """Save calibration curve in the document"""
+        # Local imports
         from origami.gui_elements.misc_dialogs import DialogSimpleAsk
 
         # check whether calibration was created
@@ -1180,8 +1182,10 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
 
 
 def _main():
+    # Local imports
+    from origami.app import App
 
-    app = wx.App()
+    app = App()
     ex = PanelCCSCalibration(None, debug=True)
 
     ex.Show()

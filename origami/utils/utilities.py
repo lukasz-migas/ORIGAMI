@@ -4,12 +4,13 @@ import time
 import numbers
 
 # Third-party imports
-from pubsub import pub
-
-from origami import events
 import numpy as np
+from pubsub import pub
 from zarr.util import normalize_dtype
 from zarr.util import normalize_shape
+
+# Local imports
+from origami import events
 
 CHUNK_BASE = 2 * 1024 * 1024  # Multiplier by which chunks are adjusted
 CHUNK_MIN = 256 * 1024  # Soft lower limit (128k)
@@ -44,6 +45,7 @@ def as_chunks(item_list, n_items: int):
 
 def open_link(link: str):
     """Open web page"""
+    # Standard library imports
     import webbrowser
 
     webbrowser.open(link)
@@ -90,6 +92,7 @@ def rescale(
 
 def is_valid_python_name(name):
     """Check whether name is a valid keyword, usually meaning it has no spacing or hyphen"""
+    # Standard library imports
     from keyword import iskeyword
 
     return name.isidentifier() and not iskeyword(name)

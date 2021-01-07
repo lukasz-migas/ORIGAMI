@@ -30,6 +30,7 @@ from origami.objects.tandem import TandemSpectra
 from origami.readers.io_json import read_json_data
 from origami.readers.io_json import write_json_data
 from origami.utils.utilities import get_chunk_size
+from origami.config.utilities import parse_document_title
 from origami.utils.converters import byte2str
 from origami.objects.containers import DataObject
 from origami.objects.containers import mobilogram_object
@@ -40,7 +41,6 @@ from origami.objects.containers import mass_spectrum_object
 from origami.objects.groups.base import DataGroup
 from origami.widgets.ccs.processing.containers import ccs_calibration_object
 from origami.widgets.lesa.processing.containers import normalization_object
-from origami.config.utilities import parse_document_title
 
 LOGGER = logging.getLogger(__name__)
 
@@ -608,6 +608,7 @@ class DocumentStore:
             path to where the dataset should be moved to. The path must contain the `filename` of the dataset (e.g.
             FILENAME.origami)
         """
+        # Local imports
         from origami.utils.path import copy_directory
 
         if not to_path.endswith(".origami"):
@@ -622,6 +623,7 @@ class DocumentStore:
 
     def duplicate(self, path: str, overwrite: bool = False):
         """Create copy of the document with new name"""
+        # Local imports
         from origami.utils.path import copy_directory
 
         if path == self.path:
@@ -647,7 +649,9 @@ class DocumentStore:
 
     def delete(self):
         """Delete DocumentStore from the disk"""
-        from send2trash import send2trash, TrashPermissionError
+        # Third-party imports
+        from send2trash import TrashPermissionError
+        from send2trash import send2trash
 
         try:
             send2trash(self.path)
@@ -672,6 +676,7 @@ class DocumentStore:
         new_name : str
             new group name - it should include the group base and dataset name
         """
+        # Local imports
         from origami.utils.path import move_directory
 
         move_directory(os.path.join(self.path, group_name), os.path.join(self.path, new_name))

@@ -149,6 +149,7 @@ class UserConfig(ConfigBase):
 
     def add_user(self, full_name: str, email: str, institution: str):
         """Add user to the user list"""
+        # Local imports
         from origami.objects.misc import User
 
         for user in self.users:
@@ -184,6 +185,7 @@ class UserConfig(ConfigBase):
 
     def load_config(self, path: str, check_type: bool = True):
         """Load configuration data"""
+        # Local imports
         from origami.objects.misc import User
 
         try:
@@ -2162,6 +2164,7 @@ class Config(ConfigBase):
 
     def setup_logging(self, verbose: Union[int, str] = "DEBUG"):
         """Setup ORIGAMI logger"""
+        # Local imports
         from origami.utils.logging import set_logger
         from origami.utils.logging import set_logger_level
 

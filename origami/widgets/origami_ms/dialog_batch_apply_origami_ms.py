@@ -91,7 +91,10 @@ class DialogReviewApplyOrigamiMs(DialogReviewEditorBase):
 
 
 def _main():
-    app = wx.App()
+    # Local imports
+    from origami.app import App
+
+    app = App()
     ex = DialogReviewApplyOrigamiMs(
         None, [["MassSpectrum", "Data 1"], ["MassSpectrum", "Data 1"], ["MassSpectrum", "Data 1"]]
     )

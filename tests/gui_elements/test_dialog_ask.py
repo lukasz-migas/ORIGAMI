@@ -4,10 +4,9 @@ import wx
 import pytest
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.gui_elements.dialog_ask import KEYWORDS
 from origami.gui_elements.dialog_ask import DialogAsk
-
-from ..wxtc import WidgetTestCase
 
 
 @pytest.mark.guitest

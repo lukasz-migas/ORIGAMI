@@ -4,14 +4,13 @@ import wx
 import pytest
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.gui_elements.dialog_review_editor import DialogReviewExportData
 from origami.gui_elements.dialog_review_editor import DialogReviewEditorExtract
 from origami.gui_elements.dialog_review_editor import DialogReviewEditorOverlay
 from origami.gui_elements.dialog_review_editor import DialogReviewExportFigures
 from origami.gui_elements.dialog_review_editor import DialogReviewProcessHeatmap
 from origami.gui_elements.dialog_review_editor import DialogReviewProcessSpectrum
-
-from ..wxtc import WidgetTestCase
 
 
 def get_data():

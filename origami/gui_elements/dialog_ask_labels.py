@@ -185,7 +185,10 @@ class DialogSelectLabels(Dialog):
 if __name__ == "__main__":
 
     def _main():
-        app = wx.App(False)
+        # Local imports
+        from origami.app import App
+
+        app = App()
         frame = wx.Frame(None, -1)
         ex = DialogSelectLabels(frame)
         ex.ShowModal()

@@ -3,7 +3,7 @@
 # import pytest
 #
 # # Local imports
-# from tests.wxtc import WidgetTestCase
+# from origami.utils.test import WidgetTestCase
 # from origami.icons.assets import Icons
 # from origami.widgets.unidec.panel_process_unidec import PanelProcessUniDec
 #

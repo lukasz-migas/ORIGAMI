@@ -3,11 +3,10 @@
 import pytest
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.icons.assets import Icons
 from origami.config.config import CONFIG
 from origami.widgets.mz_picker.panel_peak_picker import PanelPeakPicker
-
-from ..wxtc import WidgetTestCase
 
 
 @pytest.mark.guitest

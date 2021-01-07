@@ -361,6 +361,7 @@ class PlotBase:
 
     def add_widgets(self, widget_list: List[str], widget_width: int = 250):
         """Add widgets to the plot object"""
+        # Local imports
         from origami.visuals.bokeh.widgets import add_widgets
 
         widgets = add_widgets(self, widget_list, widget_width)
@@ -368,12 +369,14 @@ class PlotBase:
 
     def add_events(self, event_list: List[str]):
         """Add events to the plot object"""
+        # Local imports
         from origami.visuals.bokeh.widgets import add_events
 
         add_events(self, event_list)
 
     def add_tools(self, **kwargs: Dict):
         """Add tools to the plot object"""
+        # Local imports
         from origami.visuals.bokeh.parser import parse_tools
 
         parse_tools(self, self.figure, **kwargs)

@@ -47,7 +47,7 @@ from origami.gui_elements.helpers import make_tooltip
 from origami.gui_elements.helpers import make_menu_item
 from origami.gui_elements.panel_base import TablePanelBase
 from origami.gui_elements.misc_dialogs import DialogBox
-from origami.gui_elements.panel_modify_manual_settings import PanelModifyManualFilesSettings
+from origami.deprecate.panel_modify_manual_settings import PanelModifyManualFilesSettings
 
 logger = logging.getLogger(__name__)
 # TODO: Move opening files to new function and check if files are on a network drive (process locally maybe?)

@@ -43,6 +43,7 @@ class UIBase:
     def _get_icons(icons):
         """Get Icons"""
         if icons is None:
+            # Local imports
             from origami.icons.assets import Icons
 
             icons = Icons()
@@ -736,7 +737,10 @@ class TestListCtrl(wx.Frame):
 
 
 def _main():
-    app = wx.App()
+    # Local imports
+    from origami.app import App
+
+    app = App()
 
     dlg = TestListCtrl(None)
     dlg.Show()

@@ -131,8 +131,10 @@ class DialogSelectDataset(Dialog):
 
 
 def _main():
+    # Local imports
+    from origami.app import App
 
-    app = wx.App()
+    app = App()
     ex = DialogSelectDataset(None, ["TEST", "TEST2"], dict(TEST=["Spectrum 1", "Spectrum 2"], TEST2=["Spec 3"]))
 
     ex.ShowModal()

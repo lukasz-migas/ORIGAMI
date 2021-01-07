@@ -217,6 +217,8 @@ class PanelPeakWidthTool(MiniFrame):
 
 
 def _main():
+    # Local imports
+    from origami.app import App
     from origami.handlers.load import LoadHandler
 
     path = r"D:\Data\ORIGAMI\text_files\MS_p27-FL-K31.csv"
@@ -224,7 +226,7 @@ def _main():
     document = loader.load_text_mass_spectrum_document(path)
     mz_obj = document["MassSpectra/Summed Spectrum", True]
 
-    app = wx.App()
+    app = App()
     ex = PanelPeakWidthTool(None, None, None, mz_obj)
     ex.Show()
     app.MainLoop()

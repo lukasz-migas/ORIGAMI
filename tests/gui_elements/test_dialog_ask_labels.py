@@ -4,9 +4,8 @@ import wx
 import pytest
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.gui_elements.dialog_ask_labels import DialogSelectLabels
-
-from ..wxtc import WidgetTestCase
 
 
 @pytest.mark.guitest

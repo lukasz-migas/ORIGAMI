@@ -206,8 +206,10 @@ class DialogCardManager(Dialog):
 
 
 def _main():
+    # Local imports
+    from origami.app import App
 
-    app = wx.App()
+    app = App()
 
     item_list = [
         {"item_id": "1231231233", "title": "Title", "about": "LINE 1"},

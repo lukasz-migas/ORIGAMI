@@ -303,7 +303,10 @@ class DialogMultiDirPicker(Dialog):
 
 
 def _main():
-    app = wx.App()
+    # Local imports
+    from origami.app import App
+
+    app = App()
     ex = DialogMultiDirPicker(None)
     ex.ShowModal()
     # ex.Show()

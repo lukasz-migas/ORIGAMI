@@ -246,6 +246,7 @@ def find_peaks_local_max(x: np.ndarray, y: np.ndarray, window: int, threshold: f
 try:
     has_c = True
     _find_peaks_local_max = find_peaks_local_max
+    # Local imports
     from origami.c.peaks import find_peaks_local_max
 except ImportError as e:
     print(e)

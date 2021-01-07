@@ -181,6 +181,7 @@ class BasePicker(ABC):
 
     def copy(self):
         """Return copy of self"""
+        # Standard library imports
         from copy import deepcopy
 
         return deepcopy(self)

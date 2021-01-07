@@ -262,8 +262,10 @@ class _TestFrame(wx.Frame):
 
 
 def _main():
+    # Local imports
+    from origami.app import App
 
-    app = wx.App()
+    app = App()
 
     ex = _TestFrame()
 

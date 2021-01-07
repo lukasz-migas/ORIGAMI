@@ -14,10 +14,11 @@ from pubsub import pub
 from origami.utils.time import get_current_time
 from origami.config.config import CONFIG
 from origami.config.convert import convert_pickle_to_zarr
+from origami.config.utilities import clean_document
+from origami.config.utilities import parse_document_title
 from origami.objects.document import DocumentStore
 from origami.objects.callbacks import PropertyCallbackManager
 from origami.objects.containers import DataObject
-from origami.config.utilities import parse_document_title, clean_document
 
 # Should try to reduce the number of different document types to:
 # Type: MS (Waters/Thermo)

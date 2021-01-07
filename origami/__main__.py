@@ -22,6 +22,7 @@ ALLOWED_WIDGETS = ("ccs", "unidec")
 
 def run_origami():
     """Execute main function"""
+    # Local imports
     from origami.main import ORIGAMI
 
     app = ORIGAMI()
@@ -30,12 +31,11 @@ def run_origami():
 
 def run_ccs():
     """Run CCS calibration panel"""
+    # Local imports
     from origami.main import App
-
-    app = App()
-
     from origami.widgets.ccs.panel_ccs_calibration import PanelCCSCalibration
 
+    app = App()
     dlg = PanelCCSCalibration(None)
     dlg.Show()
     app.MainLoop()
@@ -43,12 +43,11 @@ def run_ccs():
 
 def run_unidec():
     """Run UniDec deconvolution panel"""
+    # Local imports
     from origami.main import App
-
-    app = App()
-
     from origami.widgets.unidec.panel_process_unidec import PanelProcessUniDec
 
+    app = App()
     dlg = PanelProcessUniDec(None, None)
     dlg.Show()
     app.MainLoop()

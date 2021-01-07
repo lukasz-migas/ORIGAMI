@@ -623,7 +623,10 @@ class TestPanel(TablePanelBase):
         pass
 
 
-def main():
+def _main():
+    # Local imports
+    from origami.app import App
+
     class ExampleFrame(wx.MiniFrame):
         def __init__(self, parent):
             wx.MiniFrame.__init__(self, parent, style=wx.RESIZE_BORDER | wx.CLOSE_BOX | wx.CAPTION)
@@ -659,6 +662,7 @@ def main():
             self.Show()
 
         def add_item(self, evt):
+            # Standard library imports
             from random import randint
 
             self.panel.on_add_to_table({"c1": randint(0, 1000), "c2": randint(0, 1000)})
@@ -669,7 +673,7 @@ def main():
         # def remove_item(self, evt):
         #     self.panel.on_delete_item(None)
 
-    app = wx.App()
+    app = App()
     # frame = wx.Frame()
     ex = ExampleFrame(None)
 
@@ -678,4 +682,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    _main()

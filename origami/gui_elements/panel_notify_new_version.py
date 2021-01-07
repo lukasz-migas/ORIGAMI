@@ -77,8 +77,12 @@ class PanelNewVersion(PanelHTMLViewer):
 
 def get_version_information(silent: bool = False, parent=None):
     """Check whether there is a new version of ORIGAMI available online"""
-    from origami.utils.version import get_latest_version, compare_versions
+    # Third-party imports
     from urllib3.exceptions import MaxRetryError
+
+    # Local imports
+    from origami.utils.version import compare_versions
+    from origami.utils.version import get_latest_version
 
     try:
         latest, url, failed = get_latest_version()
@@ -108,8 +112,12 @@ def inform_version(new_version: bool, url: str, silent: bool = True, parent=None
 
 def check_version(parent=None, silent: bool = True):
     """Check whether there is a new version of ORIGAMI available online"""
-    from origami.utils.version import get_latest_version, compare_versions
+    # Third-party imports
     from urllib3.exceptions import MaxRetryError
+
+    # Local imports
+    from origami.utils.version import compare_versions
+    from origami.utils.version import get_latest_version
 
     try:
         latest, url, failed = get_latest_version()
@@ -129,7 +137,10 @@ def check_version(parent=None, silent: bool = True):
 
 
 def _main():
-    app = wx.App()
+    # Local imports
+    from origami.app import App
+
+    app = App()
     # check_version()
     ex = PanelNewVersion(None)
     ex.Show()

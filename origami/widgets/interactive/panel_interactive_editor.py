@@ -17,6 +17,7 @@ from natsort import index_natsorted
 # Local imports
 from origami.styles import MiniFrame
 from origami.config.config import CONFIG
+from origami.utils.exceptions import MessageError
 from origami.visuals.bokeh.tab import Tab
 from origami.config.environment import ENV
 from origami.gui_elements.mixins import DatasetMixin
@@ -44,7 +45,6 @@ from origami.widgets.interactive.utilities import PUB_EVENT_LAYOUT_UPDATE
 from origami.widgets.interactive.panel_layout import PanelLayoutEditor
 from origami.widgets.interactive.panel_layout import PanelLayoutBuilder
 from origami.widgets.interactive.panel_plot_parameters import PanelVisualisationSettingsEditor
-from origami.utils.exceptions import MessageError
 
 LOGGER = logging.getLogger(__name__)
 
@@ -584,11 +584,13 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
     def on_open_html_editor(self, browser, _evt):
         """Export data in HTML format"""
         if browser == "builtin":
+            # Local imports
             from origami.gui_elements.panel_html_viewer import PanelHTMLViewer
 
             html = PanelHTMLViewer(self, link=CONFIG.interactive_panel_html_editor_link, window_size=(1200, -1))
             html.Show()
         else:
+            # Standard library imports
             import webbrowser
 
             webbrowser.open(CONFIG.interactive_panel_html_editor_link)
@@ -913,6 +915,8 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
 
 
 def _main():
+    # Local imports
+    from origami.app import App
     from origami.utils.secret import get_short_hash
 
     item_list = [
@@ -925,7 +929,7 @@ def _main():
         ["IonHeatmaps/Summed Heatmap", "Title2", get_short_hash()],
     ]
 
-    app = wx.App()
+    app = App()
     ex = PanelInteractiveEditor(None, None, item_list=item_list)
     ex.Show()
     # move_to_different_screen(ex)

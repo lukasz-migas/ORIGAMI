@@ -123,7 +123,10 @@ class DialogBatchDataExtract(DialogReviewEditorBase):
 
 
 def _main():
-    app = wx.App()
+    # Local imports
+    from origami.app import App
+
+    app = App()
     ex = DialogBatchDataExtract(
         None,
         [

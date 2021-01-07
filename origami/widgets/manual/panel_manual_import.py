@@ -131,7 +131,10 @@ class PanelManualImportDataset(PanelImportManagerBase):
 
 
 def _main():
-    app = wx.App()
+    # Local imports
+    from origami.app import App
+
+    app = App()
     ex = PanelManualImportDataset(None, None)
     ex.Show()
     app.MainLoop()

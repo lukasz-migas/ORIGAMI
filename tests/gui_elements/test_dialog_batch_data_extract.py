@@ -4,7 +4,7 @@ import wx
 import pytest
 
 # Local imports
-from tests.wxtc import WidgetTestCase
+from origami.utils.test import WidgetTestCase
 from origami.gui_elements.dialog_batch_data_extract import DialogBatchDataExtract
 
 

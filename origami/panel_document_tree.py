@@ -58,7 +58,10 @@ from origami.utils.utilities import report_time
 from origami.objects.document import DocumentStore
 from origami.utils.converters import byte2str
 from origami.utils.exceptions import MessageError
-from origami.config.environment import ENV, PUB_EVENT_ENV_RENAME, PUB_EVENT_ENV_REMOVE, PUB_EVENT_ENV_ADD
+from origami.config.environment import ENV
+from origami.config.environment import PUB_EVENT_ENV_ADD
+from origami.config.environment import PUB_EVENT_ENV_REMOVE
+from origami.config.environment import PUB_EVENT_ENV_RENAME
 from origami.gui_elements.popup import PopupBase
 from origami.objects.containers import IonHeatmapObject
 from origami.objects.containers import MobilogramObject
@@ -1308,6 +1311,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_annotation_editor(self, _evt, document_title: str = None, dataset_name: str = None, data_obj=None):
         """Open annotations panel"""
+        # Local imports
         from origami.widgets.annotations.panel_annotation_editor import PanelAnnotationEditor
 
         if self._annotate_panel is not None:
@@ -1340,6 +1344,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_duplicate_annotations(self, _evt):
         """Duplicate annotations from one object to another"""
+        # Local imports
         from origami.gui_elements.dialog_select_dataset import DialogSelectDataset
 
         # get data and annotations
@@ -1393,6 +1398,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_action_origami_ms(self, _, document_title=None):
         """Open a dialog where you can specify ORIGAMI-MS parameters"""
+        # Local imports
         from origami.widgets.origami_ms.dialog_origami_ms import DialogOrigamiMsSettings
 
         # get document
@@ -1431,6 +1437,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_ccs_builder(self, _):
         """Open dialog window where CCS calibration can be created"""
+        # Local imports
         from origami.widgets.ccs.panel_ccs_calibration import PanelCCSCalibration
 
         document_title, _ = self._get_item_info()
@@ -1445,6 +1452,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_ccs_editor(self, _, document_title: str = None, calibration_name: str = None, calibration_obj=None):
         """Open dialog window where CCS calibration can be edited"""
+        # Local imports
         from origami.widgets.ccs.panel_ccs_calibration import PanelCCSCalibration
 
         if document_title is None:
@@ -1461,6 +1469,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_overlay_editor(self, _):
         """Open a dialog window where you can overlay and compare objects"""
+        # Local imports
         from origami.widgets.overlay.panel_overlay_editor import PanelOverlayEditor
 
         # get list of items
@@ -1472,6 +1481,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_overlay_viewer(self):
         """Open overlay viewer"""
+        # Local imports
         from origami.widgets.overlay.panel_overlay_viewer import PanelOverlayViewer
 
         # get data object
@@ -1482,6 +1492,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_interactive_editor(self, _):
         """Open a dialog window where you can overlay and compare objects"""
+        # Local imports
         from origami.widgets.interactive.panel_interactive_editor import PanelInteractiveEditor
 
         # get list of items
@@ -1497,6 +1508,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_lesa_viewer(self, _):
         """Open a dialog window where you can view LESA data"""
+        # Local imports
         from origami.widgets.lesa.panel_imaging_lesa import PanelImagingLESAViewer
 
         # get document title
@@ -1514,6 +1526,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_import_lesa_dataset(self, _):
         """Open a dialog window where you can specify LESA import parameters"""
+        # Local imports
         from origami.widgets.lesa.panel_imaging_lesa_import import PanelImagingImportDataset
 
         self._lesa_import_panel = PanelImagingImportDataset(self.view, self.presenter)
@@ -1521,6 +1534,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_import_manual_dataset(self, activation_type, _):
         """Open a dialog window where you can specify CIU/SID import parameters"""
+        # Local imports
         from origami.widgets.manual.panel_manual_import import PanelManualImportDataset
 
         self._manual_import_panel = PanelManualImportDataset(self.view, self.presenter, activation_type=activation_type)
@@ -2477,6 +2491,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_spectrum_comparison_viewer(self, _evt):
         """Open panel where user can select mas spectra to compare """
+        # Local imports
         from origami.widgets.comparison.panel_signal_comparison_viewer import PanelSignalComparisonViewer
 
         if self._item_id is None:
@@ -2596,6 +2611,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_batch_apply_ccs_calibration(self, _evt):
         """Apply CCS calibration to each object"""
+        # Local imports
         from origami.widgets.ccs.dialog_batch_apply_ccs import DialogBatchApplyCCSCalibration
 
         document_title = ENV.current
@@ -2646,6 +2662,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_batch_apply_origami_ms(self, _evt):
         """Apply ORIGAMI-MS settings on the object and create a copy"""
+        # Local imports
         from origami.widgets.origami_ms.dialog_batch_apply_origami_ms import DialogReviewApplyOrigamiMs
 
         document_title = ENV.current
@@ -2663,6 +2680,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_process_heatmap_settings(self, **kwargs):
         """Open heatmap processing settings"""
+        # Local imports
         from origami.gui_elements.panel_process_heatmap import PanelProcessHeatmap
 
         panel = PanelProcessHeatmap(self.presenter.view, self.presenter, **kwargs)
@@ -2680,6 +2698,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_batch_process_heatmap(self, _evt):
         """Process all clicked heatmap items"""
+        # Local imports
         from origami.gui_elements.dialog_review_editor import DialogReviewProcessHeatmap
 
         item_list = self.on_get_item_list()
@@ -2691,6 +2710,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_process_msdt_settings(self, **kwargs):
         """Open mass spectrum processing settings"""
+        # Local imports
         from origami.gui_elements.panel_process_msdt import PanelProcessMSDT
 
         panel = PanelProcessMSDT(self.presenter.view, self.presenter, **kwargs)
@@ -2698,6 +2718,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_process_ms_settings(self, **kwargs):
         """Open mass spectrum processing settings"""
+        # Local imports
         from origami.gui_elements.panel_process_spectrum import PanelProcessMassSpectrum
 
         panel = PanelProcessMassSpectrum(self.presenter.view, self.presenter, **kwargs)
@@ -2715,6 +2736,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_batch_process_ms(self, _evt):
         """Process all clicked mass spectra items"""
+        # Local imports
         from origami.gui_elements.dialog_review_editor import DialogReviewProcessSpectrum
 
         item_list = self.on_get_item_list()
@@ -2727,6 +2749,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_batch_export_figures(self, _evt):
         """Export images in batch"""
+        # Local imports
         from origami.gui_elements.dialog_review_editor import DialogReviewExportFigures
         from origami.gui_elements.dialog_batch_figure_exporter import DialogExportFigures
 
@@ -2765,6 +2788,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_batch_export_data(self, _evt):
         """Export data in batch"""
+        # Local imports
         from origami.gui_elements.dialog_review_editor import DialogReviewExportFigures
         from origami.gui_elements.dialog_batch_data_exporter import DialogExportData
 
@@ -2820,6 +2844,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_rename_item(self, _evt):
         """Rename item"""
+        # Local imports
         from origami.gui_elements.dialog_rename import DialogRenameObject
 
         if not self._item.is_dataset:
@@ -2901,6 +2926,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_show_plot_zoom_on_mass_spectrum(self, ion_name):
         """Zoom-in on an ion"""
+        # Local imports
         from origami.utils.labels import get_mz_from_label
 
         try:
@@ -3431,6 +3457,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_about_dataset(self, _evt):
         """Get information about the dataset"""
+        # Local imports
         from origami.gui_elements.panel_dataset_information import PanelDatasetInformation
 
         document_title = ENV.current
@@ -3451,6 +3478,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_duplicate_document(self, _evt):
         """Duplicate existing document and load it"""
+        # Local imports
         from origami.utils.path import get_duplicate_name
 
         document = ENV.on_get_document(self._item.title)
@@ -3495,6 +3523,7 @@ class DocumentTree(wx.TreeCtrl):
     #
     def on_open_extract_dtms(self, _evt):
         """Open extraction panel"""
+        # Local imports
         from origami.gui_elements.panel_process_extract_msdt import PanelProcessExtractMSDT
 
         document_title, _ = self._get_item_info()
@@ -3514,6 +3543,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_peak_picker(self, _evt, document_title: str = None, dataset_name: str = None):
         """Open peak picker"""
+        # Local imports
         from origami.widgets.mz_picker.panel_peak_picker import PanelPeakPicker
 
         # get data and annotations
@@ -3552,6 +3582,7 @@ class DocumentTree(wx.TreeCtrl):
     #
     def on_open_unidec(self, _evt, document_title: str = None, dataset_name: str = None, mz_obj=None):
         """Open UniDec panel which allows processing and visualisation"""
+        # Local imports
         from origami.widgets.unidec.panel_process_unidec import PanelProcessUniDec
 
         if document_title is None or dataset_name is None or mz_obj is None:
@@ -3615,6 +3646,8 @@ class DocumentTree(wx.TreeCtrl):
 
 
 def _main_popup():
+    # Local imports
+    from origami.app import App
     from origami.gui_elements._panel import TestPanel  # noqa
 
     class TestPopup(TestPanel):
@@ -3631,7 +3664,7 @@ def _main_popup():
             p.position_on_event(evt)
             p.Show()
 
-    app = wx.App()
+    app = App()
 
     dlg = TestPopup(None)
     dlg.Show()

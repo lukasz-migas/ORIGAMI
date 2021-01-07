@@ -841,7 +841,8 @@ class PanelTextlist(TablePanelBase):
     #         self.data_handling.on_update_document(document, "no_refresh")
 
     def on_open_editor(self, evt):
-        from origami.gui_elements.panel_modify_item_settings import PanelModifyItemSettings
+        # Local imports
+        from origami.deprecate.panel_modify_item_settings import PanelModifyItemSettings
 
         if evt is None:
             evtID = ID_textPanel_editItem

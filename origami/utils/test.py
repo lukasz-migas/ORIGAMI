@@ -6,6 +6,9 @@ from typing import Union
 # Third-party imports
 import wx
 
+# Local imports
+from origami.app import App
+
 INTERVAL = 100
 WAIT = 50
 
@@ -21,7 +24,7 @@ class WidgetTestCase:
     @classmethod
     def setup_class(cls):
         """Setup"""
-        cls.app = wx.App()
+        cls.app = App()
         wx.Log.SetActiveTarget(wx.LogStderr())
         cls.frame = wx.Frame(None, title="WTC: " + cls.__class__.__name__)
         cls.frame.Show()

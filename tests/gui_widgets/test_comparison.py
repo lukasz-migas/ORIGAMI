@@ -3,10 +3,9 @@
 import pytest
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.icons.assets import Icons
 from origami.widgets.comparison.panel_signal_comparison_viewer import PanelSignalComparisonViewer
-
-from ..wxtc import WidgetTestCase
 
 
 @pytest.mark.guitest

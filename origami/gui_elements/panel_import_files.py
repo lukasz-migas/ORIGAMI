@@ -11,7 +11,9 @@ import wx
 from pubsub import pub
 
 # Local imports
+from origami.styles import Dialog
 from origami.styles import MiniFrame
+from origami.styles import Validator
 from origami.icons.assets import Icons
 from origami.objects.misc import FileItem
 from origami.config.config import CONFIG
@@ -20,11 +22,12 @@ from origami.utils.decorators import signal_blocker
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
 from origami.gui_elements.helpers import TableConfig
+from origami.gui_elements.helpers import set_tooltip
+from origami.gui_elements.helpers import set_item_font
 from origami.gui_elements.helpers import make_menu_item
+from origami.gui_elements.helpers import make_bitmap_btn
+from origami.gui_elements.helpers import make_static_text
 from origami.gui_elements.panel_base import TableMixin
-from origami.styles import Dialog, Validator
-from origami.gui_elements.helpers import make_static_text, set_tooltip
-from origami.gui_elements.helpers import set_item_font, make_bitmap_btn
 
 logger = logging.getLogger(__name__)
 
@@ -523,6 +526,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
     def _on_get_document(self):
         """Get instance of selected document - the dialog also allows the user to load already existing document that
         is not found in the environment or create a new one if one does not exist."""
+        # Local imports
         from origami.gui_elements.dialog_select_document import DialogSelectDocument
 
         document_title = None
@@ -633,6 +637,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
     def on_get_files(self):
         """Collects a list of files from directory"""
+        # Local imports
         from origami.gui_elements.dialog_multi_directory_picker import DialogMultiDirPicker
 
         dlg = DialogMultiDirPicker(self, extension=self.SUPPORTED_FILE_FORMATS, last_dir=self._last_dir)
@@ -722,6 +727,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
     def get_extraction_filelist(self) -> List[FileItem]:
         """Retrieve list parameters for data extraction"""
+        # Local imports
         from origami.utils.converters import str2int
 
         filelist = []
@@ -749,9 +755,10 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
     def get_parameters(self):
         """Retrieve processing parameters"""
+        # Local imports
+        from origami.utils.ranges import get_min_max
         from origami.utils.converters import str2num
         from origami.utils.converters import str2bool
-        from origami.utils.ranges import get_min_max
 
         n_checked, mz_range, im_on, __ = self.get_list_parameters()
         if not n_checked:
@@ -872,7 +879,10 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 if __name__ == "__main__":
 
     def _main():
-        app = wx.App()
+        # Local imports
+        from origami.app import App
+
+        app = App()
         ex = PanelImportManagerBase(None, None)
         ex.on_add_to_table({"variable": 1, "scan_range": "1-13"})
         ex.on_add_to_table({"variable": 4, "scan_range": "1-25"})
@@ -881,7 +891,10 @@ if __name__ == "__main__":
         app.MainLoop()
 
     def _dialog():
-        app = wx.App()
+        # Local imports
+        from origami.app import App
+
+        app = App()
         dlg = DialogUpdateParameter(None, 0, {"variable": 13, "scan_range": "1-13"})
         dlg.Show()
         app.MainLoop()

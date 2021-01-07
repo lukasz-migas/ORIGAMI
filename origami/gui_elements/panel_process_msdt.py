@@ -148,7 +148,10 @@ class PanelProcessMSDT(MiniFrame, DatasetMixin):
 
 
 def _main():
-    app = wx.App()
+    # Local imports
+    from origami.app import App
+
+    app = App()
     ex = PanelProcessMSDT(None, None)
     ex.Show()
     app.MainLoop()

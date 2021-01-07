@@ -239,6 +239,7 @@ class AnnotatedDataReader:
 
         # create combination of x y columns
         if len(xyvals) > 0:
+            # Standard library imports
             from itertools import product
 
             xyproduct = list(product(xyvals, xyvals))

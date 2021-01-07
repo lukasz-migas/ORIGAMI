@@ -3,9 +3,8 @@ import wx
 import pytest
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.gui_elements.dialog_multi_directory_picker import DialogMultiDirPicker
-
-from ..wxtc import WidgetTestCase
 
 
 def get_data():

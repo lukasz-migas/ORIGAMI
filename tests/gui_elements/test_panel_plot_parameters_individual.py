@@ -3,6 +3,7 @@
 import pytest
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.config.config import CONFIG
 from origami.gui_elements.plot_parameters.panel_1d import Panel1dSettings
 from origami.gui_elements.plot_parameters.panel_2d import Panel2dSettings
@@ -14,8 +15,6 @@ from origami.gui_elements.plot_parameters.panel_violin import PanelViolinSetting
 from origami.gui_elements.plot_parameters.panel_general import PanelGeneralSettings
 from origami.gui_elements.plot_parameters.panel_colorbar import PanelColorbarSettings
 from origami.gui_elements.plot_parameters.panel_waterfall import PanelWaterfallSettings
-
-from ..wxtc import WidgetTestCase
 
 
 @pytest.mark.guitest

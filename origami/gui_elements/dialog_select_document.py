@@ -143,6 +143,7 @@ class DialogSelectDocument(Dialog):
 
     def on_new_document(self, _evt):
         """Create new document"""
+        # Local imports
         from origami.gui_elements.dialog_new_document import DialogNewDocument
 
         dlg = DialogNewDocument(self, document_type=self._document_type)
@@ -177,7 +178,10 @@ class DialogSelectDocument(Dialog):
 
 
 def _main():
-    app = wx.App()
+    # Local imports
+    from origami.app import App
+
+    app = App()
     ex = DialogSelectDocument(None, document_list=["Document 1", "Document 2"], document_type="Type: Imaging")
 
     ex.Show()

@@ -37,9 +37,9 @@ class PopupTableFilter(PopupBase):
 #
 #
 # def _main_popup():
+#     from origami.app import App
 #
-#     app = wx.App()
-#
+#     app = App()
 #     dlg = TestPopup(None)
 #     wx.PostEvent(dlg.btn_1, wx.PyCommandEvent(wx.EVT_BUTTON.typeId, dlg.btn_1.GetId()))
 #     dlg.Show()

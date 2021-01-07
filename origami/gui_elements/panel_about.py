@@ -4,6 +4,7 @@ import wx
 from wx.lib.agw import hyperlink
 
 # Local imports
+from origami.icons.assets import Images
 from origami.config.config import CONFIG
 
 
@@ -21,7 +22,7 @@ class PanelAbout(wx.MiniFrame):
     NEW_FEATURES = "https://docs.google.com/forms/d/e/1FAIpQLSduN15jzq06QCaacliBg8GkOajDNjWn4cEu_1J-kBhXSKqMHQ/viewform"
     BUGS = "https://docs.google.com/forms/d/e/1FAIpQLSf7Ahgvt-YFRrA61Pv1S4i8nBK6wfhOpD2O9lGt_E3IA0lhfQ/viewform"
 
-    def __init__(self, parent, icons):
+    def __init__(self, parent):
         wx.MiniFrame.__init__(
             self,
             parent,
@@ -30,7 +31,7 @@ class PanelAbout(wx.MiniFrame):
             style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX),
         )
         self.parent = parent
-        self.icons = icons
+        self.images = Images()
 
         # make gui items
         sizer = self.make_gui()
@@ -52,7 +53,8 @@ class PanelAbout(wx.MiniFrame):
         # make elements
         panel = wx.Panel(self, wx.ID_ANY)
 
-        image = wx.StaticBitmap(panel, wx.ID_ANY, self.icons.getLogo)
+        image = wx.StaticBitmap(panel, wx.ID_ANY, self.images.logo)
+        print(dir(image))
 
         version_label = "Version %s" % CONFIG.version
         version = wx.StaticText(panel, wx.ID_ANY, version_label, style=wx.ALIGN_CENTRE)
@@ -60,7 +62,6 @@ class PanelAbout(wx.MiniFrame):
 
         about_msg = (
             "If you encounter any problems, have questions or would like to send some feedback, \nplease contact me at"
-            # l.g.migas@tudelft.nl or lukas.migas@yahoo.com"
         )
         link_email_tu = hyperlink.HyperLinkCtrl(panel, wx.ID_ANY, self.EMAIL_ONE, URL=f"mailto:{self.EMAIL_ONE}")
         link_email_yh = hyperlink.HyperLinkCtrl(panel, wx.ID_ANY, self.EMAIL_TWO, URL=f"mailto:{self.EMAIL_TWO}")
@@ -123,11 +124,11 @@ class PanelAbout(wx.MiniFrame):
 if __name__ == "__main__":
 
     def _main():
-        from origami.icons.icons import IconContainer
+        # Local imports
+        from origami.app import App
 
-        app = wx.App()
-        icons = IconContainer()
-        ex = PanelAbout(None, icons)
+        app = App()
+        ex = PanelAbout(None)
 
         ex.Show()
         app.MainLoop()

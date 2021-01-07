@@ -4,11 +4,10 @@ import wx
 import pytest
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.config.environment import ENV
 from origami.config.environment import DOCUMENT_TYPES
 from origami.gui_elements.dialog_new_document import DialogNewDocument
-
-from ..wxtc import WidgetTestCase
 
 
 @pytest.mark.guitest

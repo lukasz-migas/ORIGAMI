@@ -38,6 +38,7 @@ def group_by(array: np.ndarray, window: float):
 try:
     has_c = True
     _group_by = group_by
+    # Local imports
     from origami.c.utilities import group_by
 except ImportError as e:
     print(e)

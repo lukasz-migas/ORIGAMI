@@ -163,6 +163,7 @@ class DialogAddUser(Dialog):
         email = self.email
         institution = self.institution
         if not full_name:
+            # Local imports
             from origami.gui_elements.misc_dialogs import DialogBox
 
             DialogBox(
@@ -207,7 +208,10 @@ class DialogAddUser(Dialog):
 if __name__ == "__main__":
 
     def _main():
-        app = wx.App()
+        # Local imports
+        from origami.app import App
+
+        app = App()
         ex = DialogAddUser(None)
         ex.Show()
         app.MainLoop()

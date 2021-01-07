@@ -4,9 +4,8 @@ import wx
 import pytest
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.widgets.ccs.dialog_batch_apply_ccs import DialogBatchApplyCCSCalibration
-
-from ...wxtc import WidgetTestCase
 
 
 def get_data():

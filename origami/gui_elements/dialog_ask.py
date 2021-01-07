@@ -174,7 +174,10 @@ class DialogAsk(Dialog):
 
 
 def _main():
-    app = wx.App()
+    # Local imports
+    from origami.app import App
+
+    app = App()
     frame = wx.Frame(None, -1)
     ex = DialogAsk(frame, "Assign new value", "0", "integer")
     ex.ShowModal()

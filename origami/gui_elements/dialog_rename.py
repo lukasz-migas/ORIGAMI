@@ -158,6 +158,7 @@ class DialogRenameObject(Dialog):
     def on_ok(self, _evt):
         """ change label of the selected item """
         if self.new_name in self.forbidden:
+            # Local imports
             from origami.gui_elements.misc_dialogs import DialogBox
 
             DialogBox(
@@ -176,7 +177,10 @@ class DialogRenameObject(Dialog):
 if __name__ == "__main__":
 
     def _main():
-        app = wx.App()
+        # Local imports
+        from origami.app import App
+
+        app = App()
         ex = DialogRenameObject(None, "Current name")
 
         ex.Show()

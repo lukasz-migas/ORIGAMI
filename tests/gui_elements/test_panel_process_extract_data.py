@@ -3,9 +3,8 @@
 import pytest
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.gui_elements.panel_process_extract_data import PanelProcessExtractData
-
-from ..wxtc import WidgetTestCase
 
 
 @pytest.mark.guitest

@@ -102,6 +102,7 @@ def get_origami_document(tmpdir_factory):
 @pytest.fixture(scope="session", autouse=True)
 def get_env_with_document(get_origami_document):
     """Get pre-loaded document"""
+    # Local imports
     from origami.config.environment import ENV
 
     ENV.load(get_origami_document)

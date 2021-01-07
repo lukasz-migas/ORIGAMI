@@ -68,12 +68,15 @@ class PanelPreprocessSettings(PanelSettingsBase):
 if __name__ == "__main__":
 
     def _main():
+        # Local imports
+        from origami.app import App
+
         class _TestFrame(wx.Frame):
             def __init__(self):
                 wx.Frame.__init__(self, None, -1, "Frame", size=(300, 300))
                 self.scrolledPanel = PanelPreprocessSettings(self, None)
 
-        app = wx.App()
+        app = App()
 
         ex = _TestFrame()
 

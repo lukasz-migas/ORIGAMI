@@ -5,12 +5,11 @@ import numpy as np
 import pytest
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.objects.containers import IonHeatmapObject
 from origami.objects.containers import MassSpectrumHeatmapObject
 from origami.gui_elements.views.view_heatmap import ViewIonHeatmap
 from origami.gui_elements.views.view_heatmap import ViewMassSpectrumHeatmap
-
-from ..wxtc import WidgetTestCase
 
 
 @pytest.mark.guitest

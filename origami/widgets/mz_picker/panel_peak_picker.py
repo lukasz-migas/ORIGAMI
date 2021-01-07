@@ -1435,9 +1435,11 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
 
 
 def _main():
+    # Local imports
+    from origami.app import App
     from origami.icons.assets import Icons
 
-    app = wx.App()
+    app = App()
     icons = Icons()
     ex = PanelPeakPicker(None, None, icons, debug=True)
 

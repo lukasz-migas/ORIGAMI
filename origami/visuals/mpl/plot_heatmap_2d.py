@@ -904,7 +904,10 @@ class TestPanel(wx.Dialog):
 
 
 def _main():
-    app = wx.App()
+    # Local imports
+    from origami.app import App
+
+    app = App()
     frame = wx.Frame(None, -1)
     panel = TestPanel(frame)
     panel.ShowModal()

@@ -8,7 +8,7 @@
 # # from origami.widgets.interactive.panel_layout import PanelLayoutEditor
 # from origami.widgets.interactive.panel_layout import PanelLayoutBuilder
 #
-# from ...wxtc import WidgetTestCase
+# from origami.utils.test import WidgetTestCase
 
 # @pytest.mark.guitest
 # class TestPanelLayoutEditor(WidgetTestCase):

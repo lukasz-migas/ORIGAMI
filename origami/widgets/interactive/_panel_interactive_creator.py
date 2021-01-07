@@ -4485,6 +4485,7 @@ class PanelInteractiveCreator(wx.MiniFrame):
         return item_colors, labels, details
 
     def _prepare_protein_sequence(self, sequence):
+        # Standard library imports
         from textwrap import wrap
 
         seq = wrap(sequence, 80)

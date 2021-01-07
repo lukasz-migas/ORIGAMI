@@ -82,6 +82,8 @@ class PopupAnnotationSettings(MiniFrame):
 
 
 def _main_popup():
+    # Local imports
+    from origami.app import App
     from origami.gui_elements._panel import TestPanel  # noqa
 
     class TestPopup(TestPanel):
@@ -99,7 +101,7 @@ def _main_popup():
             p.position_on_event(_evt)
             p.Show()
 
-    app = wx.App()
+    app = App()
     dlg = TestPopup(None)
     wx.PostEvent(dlg.btn_1, wx.PyCommandEvent(wx.EVT_BUTTON.typeId, dlg.btn_1.GetId()))
     dlg.Show()

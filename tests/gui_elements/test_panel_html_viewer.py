@@ -6,9 +6,8 @@ import sys
 import pytest
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.gui_elements.panel_html_viewer import PanelHTMLViewer
-
-from ..wxtc import WidgetTestCase
 
 
 @pytest.mark.guitest

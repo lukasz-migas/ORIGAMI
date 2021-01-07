@@ -255,7 +255,10 @@ class DialogBatchApplyCCSCalibration(DialogReviewEditorBase):
 
 
 def _main():
-    app = wx.App()
+    # Local imports
+    from origami.app import App
+
+    app = App()
     ex = DialogBatchApplyCCSCalibration(
         None,
         [

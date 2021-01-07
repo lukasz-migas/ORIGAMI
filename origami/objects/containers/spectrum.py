@@ -348,6 +348,7 @@ class MassSpectrumObject(SpectrumObject):
 
     def get_unidec_result(self):
         """Get UniDec results"""
+        # Local imports
         from origami.widgets.unidec.processing.containers import unidec_results_object
 
         if not self.has_unidec_result:

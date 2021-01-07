@@ -464,7 +464,10 @@ class DialogReviewExportData(DialogReviewEditorBase):
 
 
 def _main():
-    app = wx.App()
+    # Local imports
+    from origami.app import App
+
+    app = App()
     ex = DialogReviewExportFigures(
         None, [["MassSpectrum", "Data 1"], ["MassSpectrum", "Data 1"], ["MassSpectrum", "Data 1"]]
     )

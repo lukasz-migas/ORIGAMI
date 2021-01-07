@@ -22,7 +22,10 @@ from origami.config.config import CONFIG
 from origami.handlers.call import Call
 from origami.handlers.load import LoadHandler
 from origami.handlers.export import ExportHandler
-from origami.utils.utilities import notify_error, notify_success, notify_warning, report_time
+from origami.utils.utilities import report_time
+from origami.utils.utilities import notify_error
+from origami.utils.utilities import notify_success
+from origami.utils.utilities import notify_warning
 from origami.handlers.process import ProcessHandler
 from origami.objects.document import DocumentStore
 from origami.processing.utils import get_maximum_xy
@@ -35,7 +38,6 @@ from origami.config.environment import ENV
 from origami.objects.containers import DataObject
 from origami.handlers.queue_handler import QUEUE
 from origami.gui_elements.misc_dialogs import DialogBox
-
 
 logger = logging.getLogger(__name__)
 
@@ -229,6 +231,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     @staticmethod
     def on_open_directory(path):
         """Open document path"""
+        # Standard library imports
         import webbrowser
 
         # if path is not provided, get one from current document
@@ -732,6 +735,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
     def on_save_unsaved_changes(self, data_obj, document_title: str = None, dataset_name: str = None):
         """Save unchanged changes on an object"""
+        # Local imports
         from origami.gui_elements.dialog_save_unsaved import DialogSaveUnsaved
 
         if document_title is None or dataset_name is None:
@@ -1295,6 +1299,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
     def on_add_mzident_file(self, _evt):
         """Load mz indent file"""
+        # Local imports
         from origami.readers import io_mzid
 
         document = self.on_get_document()
@@ -1317,10 +1322,12 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             except KeyError:
                 logger.warning("Missing file reader. Creating a new instance of the reader...")
                 if document.fileFormat == "Format: .mgf":
+                    # Local imports
                     from origami.readers import io_mgf
 
                     document.file_reader["data_reader"] = io_mgf.MGFReader(filename=document.path)
                 elif document.fileFormat == "Format: .mzML":
+                    # Local imports
                     from origami.readers import io_mzml
 
                     document.file_reader["data_reader"] = io_mzml.mzMLReader(filename=document.path)

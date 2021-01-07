@@ -2,5 +2,5 @@
 * text=auto
 
 # Linguist settings
-site-source/* linguist-documentation
+documentation/* linguist-documentation
 docs/* linguist-documentation

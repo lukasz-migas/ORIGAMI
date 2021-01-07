@@ -37,6 +37,7 @@ force_cythonize = has_option("force-cythonize")
 def make_extensions():
     is_ci = bool(os.getenv("CI", ""))
     try:
+        # Third-party imports
         import numpy
     except ImportError:
         print("Installation requires `numpy`")
@@ -44,6 +45,7 @@ def make_extensions():
 
     macros = []
     try:
+        # Third-party imports
         from Cython.Build import cythonize
 
         cython_directives = {"embedsignature": True, "profile": include_diagnostics}

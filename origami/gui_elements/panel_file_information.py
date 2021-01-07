@@ -27,6 +27,9 @@ class PanelInformationPopup(TransientPopupBase):
 
 
 def _main():
+    # Local imports
+    from origami.app import App
+
     class TestInformation(TestPanel):
         """Test the popup window"""
 
@@ -41,7 +44,7 @@ def _main():
             p.position_on_event(evt)
             p.Show()
 
-    app = wx.App()
+    app = App()
 
     dlg = TestInformation(None)
     dlg.Show()

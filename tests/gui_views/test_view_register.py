@@ -5,10 +5,9 @@ import pytest
 from pubsub import pub
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.gui_elements.views.view_register import ViewRegister
 from origami.gui_elements.views.view_spectrum import ViewSpectrum
-
-from ..wxtc import WidgetTestCase
 
 
 @pytest.mark.guitest

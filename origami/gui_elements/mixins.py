@@ -37,6 +37,7 @@ class DocumentationMixin:
 
     def on_open_info(self, _evt):
         """Open help window to inform user on how to use this window / panel"""
+        # Local imports
         from origami.gui_elements.panel_html_viewer import PanelHTMLViewer
 
         if self.HELP_LINK:

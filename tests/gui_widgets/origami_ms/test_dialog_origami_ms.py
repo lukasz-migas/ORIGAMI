@@ -3,9 +3,8 @@
 import pytest
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.widgets.origami_ms.dialog_origami_ms import DialogOrigamiMsSettings
-
-from ...wxtc import WidgetTestCase
 
 
 @pytest.mark.guitest

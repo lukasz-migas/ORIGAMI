@@ -11,7 +11,6 @@ from numbers import Number
 import wx
 
 # Local imports
-
 from origami.utils.exceptions import MessageError
 from origami.gui_elements.helpers import make_checkbox
 from origami.gui_elements.helpers import set_item_font
@@ -160,7 +159,10 @@ class PanelImagingImportDataset(PanelImportManagerBase):
 if __name__ == "__main__":
 
     def _main():
-        app = wx.App()
+        # Local imports
+        from origami.app import App
+
+        app = App()
         ex = PanelImagingImportDataset(None, None)
         ex.Show()
         app.MainLoop()

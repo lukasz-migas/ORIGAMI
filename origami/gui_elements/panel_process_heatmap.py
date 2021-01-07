@@ -601,7 +601,10 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin, ConfigUpdateMixin):
 
 
 def _main():
-    app = wx.App()
+    # Local imports
+    from origami.app import App
+
+    app = App()
     ex = PanelProcessHeatmap(None, None)
     ex.Show()
     app.MainLoop()

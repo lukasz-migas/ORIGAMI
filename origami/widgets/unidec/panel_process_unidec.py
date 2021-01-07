@@ -945,6 +945,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
 
     def on_open_width_tool(self, _evt):
         """Open UniDec width tool"""
+        # Local imports
         from origami.widgets.unidec.panel_process_unidec_peak_width_tool import PanelPeakWidthTool
 
         if not self._dlg_width_tool:
@@ -954,6 +955,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
 
     def on_open_process_ms_settings(self, _evt):
         """Open MS pre-processing panel"""
+        # Local imports
         from origami.gui_elements.panel_process_spectrum import PanelProcessMassSpectrum
 
         if not self._dlg_ms_process_tool:
@@ -1288,6 +1290,8 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
 if __name__ == "__main__":
 
     def _main():
+        # Local imports
+        from origami.app import App
         from origami.icons.assets import Icons
         from origami.utils.screen import move_to_different_screen
 
@@ -1297,7 +1301,7 @@ if __name__ == "__main__":
         # document = loader.load_text_mass_spectrum_document(r"D:\Data\ORIGAMI\text_files\MS_p27-FL-K31.csv")
         # mz_obj = document["MassSpectra/Summed Spectrum", True]
         mz_obj = None
-        app = wx.App()
+        app = App()
         icons = Icons()
         ex = PanelProcessUniDec(None, None, icons, mz_obj=mz_obj, debug=True)
         move_to_different_screen(ex)

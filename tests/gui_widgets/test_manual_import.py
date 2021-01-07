@@ -6,9 +6,8 @@ import sys
 import pytest
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.widgets.manual.panel_manual_import import PanelManualImportDataset
-
-from ..wxtc import WidgetTestCase
 
 
 @pytest.mark.guitest

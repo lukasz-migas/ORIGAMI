@@ -13,6 +13,7 @@ import wx.aui
 from pubsub import pub
 
 # Local imports
+from origami import events
 from origami.ids import ID_helpCite
 from origami.ids import ID_helpGuide
 from origami.ids import ID_helpAuthor
@@ -54,10 +55,7 @@ from origami.panel_plots import PanelPlots
 from origami.icons.assets import Icons
 from origami.config.config import CONFIG
 from origami.config.enabler import APP_ENABLER
-from origami.panel_peaklist import PanelPeaklist
-from origami.panel_textlist import PanelTextlist
 from origami.utils.utilities import format_time
-from origami.panel_multi_file import PanelMultiFile
 from origami.config.environment import ENV
 from origami.panel_document_tree import PanelDocumentTree
 from origami.gui_elements.helpers import make_menu_item
@@ -70,7 +68,6 @@ from origami.gui_elements.misc_dialogs import DialogBox
 from origami.handlers.data_visualisation import DataVisualization
 from origami.gui_elements.panel_plot_parameters import PanelVisualisationSettingsEditor
 from origami.gui_elements.dialog_notify_open_documents import DialogNotifyOpenDocuments
-from origami import events
 
 logger = logging.getLogger(__name__)
 
@@ -120,8 +117,7 @@ class MainWindow(wx.Frame):
 
         self.SetDropTarget(DragAndDrop(self))
 
-        icon = wx.Icon()
-        icon.CopyFromBitmap(self.icons.iconsLib["origamiLogoDark16"])
+        icon = self._icons.load_ico()
         self.SetIcon(icon)
 
         # keep track of which windows are managed
@@ -140,10 +136,7 @@ class MainWindow(wx.Frame):
 
         # Load panels
         self.panelDocuments = PanelDocumentTree(self, CONFIG, self.icons, self.presenter)
-
         self.panelPlots = PanelPlots(self, self.presenter)
-        self.panelMultipleText = PanelTextlist(self, self.icons, self.presenter)
-
         self.panelParametersEdit = PanelVisualisationSettingsEditor(self, self.presenter)
 
         # add handling, processing and visualisation pipelines
@@ -181,22 +174,6 @@ class MainWindow(wx.Frame):
             .CloseButton(CONFIG.WINDOW_SETTINGS["Plots"]["close_button"])
             .CaptionVisible(CONFIG.WINDOW_SETTINGS["Plots"]["caption"])
             .Gripper(CONFIG.WINDOW_SETTINGS["Plots"]["gripper"]),
-        )
-
-        # Panel to operate on multiple text files
-        self.window_mgr.AddPane(
-            self.panelMultipleText,
-            wx.aui.AuiPaneInfo()
-            .Right()
-            .Caption("Heatmap List")
-            .MinSize((300, -1))
-            .GripperTop()
-            .BottomDockable(True)
-            .TopDockable(False)
-            .Show(CONFIG.WINDOW_SETTINGS["Text files"]["show"])
-            .CloseButton(CONFIG.WINDOW_SETTINGS["Text files"]["close_button"])
-            .CaptionVisible(CONFIG.WINDOW_SETTINGS["Text files"]["caption"])
-            .Gripper(CONFIG.WINDOW_SETTINGS["Text files"]["gripper"]),
         )
 
         self.window_mgr.AddPane(
@@ -240,6 +217,7 @@ class MainWindow(wx.Frame):
 
         # when in development, move the app to another display
         if CONFIG.debug:
+            # Local imports
             from origami.utils.screen import move_to_different_screen
 
             move_to_different_screen(self)
@@ -315,6 +293,9 @@ class MainWindow(wx.Frame):
 
     def create_panel(self, which: str, document_title: str):
         """Creates new instance of panel for particular document"""
+        # Local imports
+        from origami.deprecate.panel_peaklist import PanelPeaklist
+        from origami.deprecate.panel_multi_file import PanelMultiFile
 
         def _show_panel(_name, klass):
             panel = self.get_panel(_name)
@@ -402,7 +383,7 @@ class MainWindow(wx.Frame):
         """Toggle panels at the startup of the application"""
         panel_dict = {"Documents": ID_window_documentList, "Heatmap List": ID_window_textList}
 
-        for panel in [self.panelDocuments, self.panelMultipleText]:  # , self.panelMML, self.panelMultipleIons, ]:
+        for panel in [self.panelDocuments]:
             if self.window_mgr.GetPane(panel).IsShown():
                 self.on_find_toggle_by_id(find_id=panel_dict[self.window_mgr.GetPane(panel).caption], check=True)
 
@@ -497,9 +478,7 @@ class MainWindow(wx.Frame):
         menu_file_text_ms = make_menu_item(parent=menu_file, text="Open mass spectrum file(s) (.csv; .txt; .tab)")
         menu_file.Append(menu_file_text_ms)
         menu_file_text_heatmap = make_menu_item(
-            parent=menu_file,
-            text="Open heatmap file(s) (.csv; .txt; .tab)\tCtrl+Shift+T",
-            bitmap=self.icons.iconsLib["open_textMany_16"],
+            parent=menu_file, text="Open heatmap file(s) (.csv; .txt; .tab)\tCtrl+Shift+T", bitmap=self._icons.csv
         )
         menu_file.Append(menu_file_text_heatmap)
         menu_file.AppendSeparator()
@@ -521,7 +500,7 @@ class MainWindow(wx.Frame):
         )
         menu_file.AppendSeparator()
 
-        menu_file_exit = make_menu_item(parent=menu_file, text="Quit\tCtrl+Q", bitmap=self.icons.iconsLib["exit_16"])
+        menu_file_exit = make_menu_item(parent=menu_file, text="Quit\tCtrl+Q", bitmap=self._icons.exit)
         menu_file.Append(menu_file_exit)
         self.menubar.Append(menu_file, "&File")
 
@@ -535,14 +514,10 @@ class MainWindow(wx.Frame):
         menu_plot_1d = make_menu_item(parent=menu_plot, text="Settings: Plot &1D", bitmap=self._icons.plot_1d)
         menu_plot.Append(menu_plot_1d)
 
-        menu_plot_2d = make_menu_item(
-            parent=menu_plot, text="Settings: Plot &2D", bitmap=self.icons.iconsLib["panel_plot2D_16"]
-        )
+        menu_plot_2d = make_menu_item(parent=menu_plot, text="Settings: Plot &2D", bitmap=self._icons.plot_2d)
         menu_plot.Append(menu_plot_2d)
 
-        menu_plot_3d = make_menu_item(
-            parent=menu_plot, text="Settings: Plot &3D", bitmap=self.icons.iconsLib["panel_plot3D_16"]
-        )
+        menu_plot_3d = make_menu_item(parent=menu_plot, text="Settings: Plot &3D", bitmap=self._icons.plot_3d)
         menu_plot.Append(menu_plot_3d)
 
         menu_plot_colorbar = make_menu_item(
@@ -774,18 +749,18 @@ class MainWindow(wx.Frame):
                 parent=menu_help_pages,
                 evt_id=ID_help_page_ORIGAMI,
                 text="Learn more: ORIGAMI-MS (Automated CIU)",
-                bitmap=self.icons.iconsLib["origamiLogoDark16"],
+                bitmap=self._icons.origami,
             )
         )
 
-        menu_help_pages.Append(
-            make_menu_item(
-                parent=menu_help_pages,
-                evt_id=ID_help_page_multipleFiles,
-                text="Learn more: Multiple files (Manual CIU)",
-                bitmap=self.icons.iconsLib["panel_mll__16"],
-            )
-        )
+        #         menu_help_pages.Append(
+        #             make_menu_item(
+        #                 parent=menu_help_pages,
+        #                 evt_id=ID_help_page_multipleFiles,
+        #                 text="Learn more: Multiple files (Manual CIU)",
+        #                 bitmap=self.icons.iconsLib["panel_mll__16"],
+        #             )
+        #         )
 
         menu_help_pages.Append(
             make_menu_item(
@@ -878,7 +853,7 @@ class MainWindow(wx.Frame):
         menu_help.Append(menu_help_new)
         menu_help.AppendSeparator()
         menu_help_about = make_menu_item(
-            parent=menu_help, text="About ORIGAMI\tCtrl+Shift+A", bitmap=self.icons.iconsLib["origamiLogoDark16"]
+            parent=menu_help, text="About ORIGAMI\tCtrl+Shift+A", bitmap=self._icons.origami
         )
         menu_help.Append(menu_help_about)
         self.menubar.Append(menu_help, "&Help")
@@ -1001,6 +976,7 @@ class MainWindow(wx.Frame):
     @staticmethod
     def _dev_open_wxpython_inspector(_evt):
         """Opens wxpython inspector"""
+        # Third-party imports
         import wx.lib.inspection
 
         wx.lib.inspection.InspectionTool().Show()
@@ -1051,6 +1027,7 @@ class MainWindow(wx.Frame):
 
     def on_open_new_file(self, _evt):
         """Import dataset"""
+        # Local imports
         from origami.gui_elements.panel_data_import import PanelDatasetImport
 
         dlg = PanelDatasetImport(self, self._icons, self.presenter)
@@ -1058,6 +1035,7 @@ class MainWindow(wx.Frame):
 
     def on_customise_annotation_plot_parameters(self, _evt):
         """Open dialog to customise user annotations parameters"""
+        # Local imports
         from origami.gui_elements.dialog_customise_user_annotations import DialogCustomiseUserAnnotations
 
         dlg = DialogCustomiseUserAnnotations(self)
@@ -1148,12 +1126,15 @@ class MainWindow(wx.Frame):
 
     def _on_check_latest_version(self, silent: bool = True):
         """Simple function to check whether this is the newest version available"""
-        from origami.gui_elements.panel_notify_new_version import get_version_information, inform_version
+        # Local imports
+        from origami.gui_elements.panel_notify_new_version import inform_version
+        from origami.gui_elements.panel_notify_new_version import get_version_information
 
         QUEUE.add_call(get_version_information, args=(), func_result=inform_version, silent=silent, parent=self)
 
     def on_whats_new(self, _evt):
         """Check latest version"""
+        # Local imports
         from origami.gui_elements.panel_notify_new_version import PanelNewVersion
 
         dlg = PanelNewVersion(self)
@@ -1161,10 +1142,9 @@ class MainWindow(wx.Frame):
 
     def on_open_html_guide(self, evt):
         """Open HTML page"""
+        # Local imports
         from origami.gui_elements.panel_html_viewer import PanelHTMLViewer
-        from origami.help_documentation import HTMLHelp
 
-        html_pages = HTMLHelp()
         evt_id = evt.GetId()
         link, kwargs = None, {}
         if evt_id == ID_help_UniDecInfo:
@@ -1188,11 +1168,11 @@ class MainWindow(wx.Frame):
         elif evt_id == ID_help_page_multipleFiles:
             link = r"https://origami.lukasz-migas.com/user-guide/data-handling/manual-ciu"
 
-        elif evt_id == ID_help_page_linearDT:
-            kwargs = html_pages.page_linear_dt_info
+        # elif evt_id == ID_help_page_linearDT:
+        #     kwargs = html_pages.page_linear_dt_info
 
-        elif evt_id == ID_help_page_CCScalibration:
-            kwargs = html_pages.page_ccs_calibration_info
+        # elif evt_id == ID_help_page_CCScalibration:
+        #     kwargs = html_pages.page_ccs_calibration_info
 
         elif evt_id == ID_help_page_dataExtraction:
             link = r"https://origami.lukasz-migas.com/user-guide/data-handling/ms-and-imms-files"
@@ -1200,8 +1180,8 @@ class MainWindow(wx.Frame):
         elif evt_id == ID_help_page_Interactive:
             link = r"https://origami.lukasz-migas.com/user-guide/interactive-output/simple-output"
 
-        elif evt_id == ID_help_page_OtherData:
-            kwargs = html_pages.page_other_data_info
+        # elif evt_id == ID_help_page_OtherData:
+        #     kwargs = html_pages.page_other_data_info
 
         elif evt_id == ID_help_page_annotatingMassSpectra:
             link = r"https://origami.lukasz-migas.com/user-guide/processing/mass-spectra-annotation"
@@ -1311,7 +1291,7 @@ class MainWindow(wx.Frame):
                 parent=menu,
                 evt_id=ID_fileMenu_MGF,
                 text="Open Mascot Generic Format file (.mgf) [MS/MS]",
-                bitmap=self.icons.iconsLib["blank_16"],
+                # bitmap=self.icons.iconsLib["blank_16"],
             )
         )
         menu.Append(
@@ -1319,7 +1299,7 @@ class MainWindow(wx.Frame):
                 parent=menu,
                 evt_id=ID_fileMenu_mzML,
                 text="Open mzML (.mzML) [MS/MS]",
-                bitmap=self.icons.iconsLib["blank_16"],
+                # bitmap=self.icons.iconsLib["blank_16"],
             )
         )
         self.PopupMenu(menu)
@@ -1363,47 +1343,29 @@ class MainWindow(wx.Frame):
         tool_open_thermo = self.toolbar.AddTool(wx.ID_ANY, "", self._icons.thermo, shortHelp="Open Thermo file (.RAW)")
         tool_open_thermo.Enable(APP_ENABLER.ALLOW_THERMO_EXTRACTION)
 
-        tool_open_multiple = self.toolbar.AddTool(
-            wx.ID_ANY, "", self.icons.iconsLib["open_masslynxMany_16"], shortHelp="Open multiple MassLynx files (.raw)"
-        )
-        tool_open_multiple.Enable(APP_ENABLER.ALLOW_WATERS_EXTRACTION)
-
         self.toolbar.AddSeparator()
         tool_open_text_heatmap = self.toolbar.AddTool(
-            wx.ID_ANY, "", self.icons.iconsLib["open_textMany_16"], shortHelp="Open one (or more) heatmap text file"
+            wx.ID_ANY, "", self._icons.csv, shortHelp="Open one (or more) heatmap text file"
         )
         self.Bind(wx.EVT_TOOL, self.data_handling.on_open_multiple_text_2d_fcn, tool_open_text_heatmap)
 
         self.toolbar.AddSeparator()
 
         tool_open_msms = self.toolbar.AddTool(
-            wx.ID_ANY, "", self.icons.iconsLib["ms16"], shortHelp="Open MS/MS files...", kind=wx.ITEM_DROPDOWN
+            wx.ID_ANY, "", self._icons.ms, shortHelp="Open MS/MS files...", kind=wx.ITEM_DROPDOWN
         )
         self.toolbar.SetDropdownMenu(tool_open_msms.GetId(), wx.Menu())
         self.toolbar.AddSeparator()
         self.toolbar.AddCheckTool(
-            ID_window_documentList, "", self.icons.iconsLib["panel_doc_16"], shortHelp="Enable/Disable documents panel"
-        )
-        self.toolbar.AddCheckTool(
-            ID_window_ionList, "", self.icons.iconsLib["panel_ion_16"], shortHelp="Enable/Disable peak list panel"
-        )
-        self.toolbar.AddCheckTool(
-            ID_window_textList, "", self.icons.iconsLib["panel_text_16"], shortHelp="Enable/Disable text list panel"
-        )
-        self.toolbar.AddCheckTool(
-            ID_window_multipleMLList, "", self.icons.iconsLib["panel_mll__16"], shortHelp="Enable/Disable files panel"
+            ID_window_documentList, "", self._icons.panel_document, shortHelp="Enable/Disable documents panel"
         )
         self.toolbar.AddSeparator()
         tool_action_global = self.toolbar.AddTool(
             wx.ID_ANY, "", self._icons.switch_on, shortHelp="Settings: General plot"
         )
         tool_action_1d = self.toolbar.AddTool(wx.ID_ANY, "", self._icons.plot_1d, shortHelp="Settings: Plot 1D panel")
-        tool_action_2d = self.toolbar.AddTool(
-            wx.ID_ANY, "", self.icons.iconsLib["panel_plot2D_16"], shortHelp="Settings: Plot 2D panel"
-        )
-        tool_action_3d = self.toolbar.AddTool(
-            wx.ID_ANY, "", self.icons.iconsLib["panel_plot3D_16"], shortHelp="Settings: Plot 3D panel"
-        )
+        tool_action_2d = self.toolbar.AddTool(wx.ID_ANY, "", self._icons.plot_2d, shortHelp="Settings: Plot 2D panel")
+        tool_action_3d = self.toolbar.AddTool(wx.ID_ANY, "", self._icons.plot_3d, shortHelp="Settings: Plot 3D panel")
         tool_action_colorbar = self.toolbar.AddTool(
             wx.ID_ANY, "", self._icons.plot_colorbar, shortHelp="Settings: Colorbar panel"
         )
@@ -1484,7 +1446,7 @@ class MainWindow(wx.Frame):
 
                 self.on_find_toggle_by_id(check_all=True)
 
-                for panel in [self.panelDocuments]:  # , self.panelMML, self.panelMultipleIons, self.panelMultipleText]:
+                for panel in [self.panelDocuments]:
                     self.window_mgr.GetPane(panel).Show()
 
                 self.toggle_document_page.Check(CONFIG.WINDOW_SETTINGS["Documents"]["show"])
@@ -1604,9 +1566,10 @@ class MainWindow(wx.Frame):
 
     def on_open_about_panel(self, _evt):
         """Show About ORIGAMI panel."""
+        # Local imports
         from origami.gui_elements.panel_about import PanelAbout
 
-        about = PanelAbout(self, self.icons)
+        about = PanelAbout(self)
         about.Centre()
         about.Show()
         about.SetFocus()
@@ -1625,7 +1588,6 @@ class MainWindow(wx.Frame):
 
         if isinstance(window, str):
             window = window
-
         if window is None:
             return
 
@@ -1644,6 +1606,7 @@ class MainWindow(wx.Frame):
 
     def on_open_interactive_output_panel(self, evt):
         """Open interactive panel"""
+        # Local imports
         from origami.widgets.interactive._panel_interactive_creator import PanelInteractiveCreator
 
         def _startup_module():
@@ -1669,6 +1632,7 @@ class MainWindow(wx.Frame):
 
     def on_open_interactive_output_panel_new(self, evt):
         """Open interactive panel"""
+        # Local imports
         from origami.widgets.interactive.panel_interactive_editor import PanelInteractiveEditor
 
         def _startup_module():
@@ -1684,6 +1648,7 @@ class MainWindow(wx.Frame):
 
     def on_show_ccs_database(self, _evt):
         """Show CCS database"""
+        # Local imports
         from origami.widgets.ccs.panel_ccs_database import PanelCCSDatabase
 
         dlg = PanelCCSDatabase(self)
@@ -1827,6 +1792,7 @@ class MainWindow(wx.Frame):
             document = self.data_handling.load_thermo_ms_document(path)
             pub.sendMessage("file.recent.add", action="thermo.ms", path=path)
         elif extension in [".csv", ".txt", ".tab"]:
+            # Local imports
             from origami.gui_elements.dialog_quick_select import DialogQuickSelection
 
             dlg = DialogQuickSelection(self, ["Mass Spectrum", "Heatmap"])
@@ -1851,6 +1817,7 @@ class MainWindow(wx.Frame):
 
     def get_user_text_x_y_label(self):
         """Get x- and y-axis labels"""
+        # Local imports
         from origami.gui_elements.dialog_ask_labels import DialogSelectLabels
 
         # get labels for selected items

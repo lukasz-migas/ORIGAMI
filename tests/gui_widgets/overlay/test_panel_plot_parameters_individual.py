@@ -3,14 +3,13 @@
 import pytest
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.widgets.overlay.plot_parameters.panel_rgb import PanelRGBSettings
 from origami.widgets.overlay.plot_parameters.panel_rmsd import PanelRMSDSettings
 from origami.widgets.overlay.plot_parameters.panel_rmsf import PanelRMSFSettings
 from origami.widgets.overlay.plot_parameters.panel_grid_nxn import PanelGridNxNSettings
 from origami.widgets.overlay.plot_parameters.panel_grid_tto import PanelGridTTOSettings
 from origami.widgets.overlay.plot_parameters.panel_rmsd_matrix import PanelRMSDMatrixSettings
-
-from ...wxtc import WidgetTestCase
 
 
 @pytest.mark.guitest

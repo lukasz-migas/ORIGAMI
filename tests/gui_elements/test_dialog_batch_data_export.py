@@ -7,10 +7,9 @@ import wx
 import pytest
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.config.config import CONFIG
 from origami.gui_elements.dialog_batch_data_exporter import DialogExportData
-
-from ..wxtc import WidgetTestCase
 
 
 @pytest.mark.guitest

@@ -2,9 +2,8 @@
 import wx
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.icons.assets import Icons
-
-from ..wxtc import WidgetTestCase
 
 
 class TestIcons(WidgetTestCase):

@@ -8,7 +8,6 @@ import wx
 
 # Local imports
 from origami.utils.color import convert_rgb_1_to_255
-from origami.help_documentation import OrigamiHelp
 from origami.gui_elements.helpers import make_checkbox
 from origami.gui_elements.helpers import make_staticbox
 from origami.gui_elements.helpers import make_static_text
@@ -34,7 +33,6 @@ class PanelCustomiseInteractivePlot(wx.MiniFrame):
         self.parent = parent
         self.config = config
         self.icons = icons
-        self.help = OrigamiHelp()
 
         # retrieve data from kwargs
         self.data = kwargs.pop("data")

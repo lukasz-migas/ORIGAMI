@@ -100,6 +100,8 @@ class PopupToastManager:
 
 
 def _main_popup():
+    # Local imports
+    from origami.app import App
     from origami.gui_elements._panel import TestPanel  # noqa
 
     class TestPopup(TestPanel):
@@ -120,7 +122,7 @@ def _main_popup():
             self.manager.show_popup("This is some nice testing text.\nAnd some more text ", "warning")
             self.manager.show_popup("This is some nice testing text.\nAnd some more text ", "error")
 
-    app = wx.App()
+    app = App()
 
     dlg = TestPopup(None)
     wx.PostEvent(dlg.btn_1, wx.PyCommandEvent(wx.EVT_BUTTON.typeId, dlg.btn_1.GetId()))

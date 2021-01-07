@@ -2,8 +2,12 @@
 #cython: wraparound=False
 #cython: nonecheck=False
 #cython: language_level=3
+# Third-party imports
 cimport numpy as np
+
+# Third-party imports
 import numpy as np
+
 
 cpdef find_peaks_local_max(x, y, int window, float threshold):
     cdef:

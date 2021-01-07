@@ -10,7 +10,6 @@ from origami.handlers.load import LOAD_HANDLER
 from origami.handlers.load import LoadHandler
 from origami.objects.document import DocumentStore
 from origami.objects.document import DocumentGroups
-
 # enable on windowsOS only
 from origami.objects.containers import IonHeatmapObject
 from origami.objects.containers import MobilogramObject
@@ -19,9 +18,10 @@ from origami.objects.containers import MassSpectrumObject
 from origami.objects.containers import MassSpectrumHeatmapObject
 
 if sys.platform == "win32":
+    # Local imports
+    from origami.readers.io_thermo_raw import ThermoRawReader
     from origami.readers.io_waters_raw import WatersIMReader
     from origami.readers.io_waters_raw_api import WatersRawReader
-    from origami.readers.io_thermo_raw import ThermoRawReader
 
 
 @pytest.fixture

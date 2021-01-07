@@ -99,8 +99,10 @@ class DialogQuickSelection(Dialog):
 
 
 def _main():
+    # Local imports
+    from origami.app import App
 
-    app = wx.App()
+    app = App()
     frame = wx.Frame(None, -1)
     ex = DialogQuickSelection(frame, ["Option 1", "Option 2"])
     ex.ShowModal()

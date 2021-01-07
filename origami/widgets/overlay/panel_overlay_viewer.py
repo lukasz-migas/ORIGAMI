@@ -116,9 +116,11 @@ class PanelOverlayViewer(MiniFrame, PanelOverlayViewerMixin):
 
 
 def _main():
+    # Local imports
+    from origami.app import App
     from origami.utils.screen import move_to_different_screen
 
-    app = wx.App()
+    app = App()
     ex = PanelOverlayViewer(None, None, debug=True)
 
     ex.Show()

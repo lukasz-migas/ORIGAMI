@@ -3,10 +3,9 @@
 import pytest
 
 # Local imports
+from origami.utils.test import WidgetTestCase
 from origami.icons.icons import IconContainer
 from origami.gui_elements.panel_about import PanelAbout
-
-from ..wxtc import WidgetTestCase
 
 
 @pytest.mark.guitest

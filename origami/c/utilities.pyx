@@ -3,9 +3,15 @@
 # cython: boundscheck = False
 # cython: wraparound=False
 #cython: language_level=3
+# Third-party imports
 import cython
+
+# Third-party imports
 cimport numpy as np
+
+# Third-party imports
 import numpy as np
+
 
 cpdef double ppm_error(double x, double y):
     return (x - y) / y

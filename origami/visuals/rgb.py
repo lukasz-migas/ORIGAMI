@@ -469,6 +469,7 @@ class ImageRGBA:
         colormap : ListedColormap
             colormap
         """
+        # Third-party imports
         from matplotlib.colors import ListedColormap
 
         if image_id > len(self._images) - 1:
