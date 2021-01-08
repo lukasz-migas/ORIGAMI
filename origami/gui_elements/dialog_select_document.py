@@ -143,7 +143,7 @@ class DialogSelectDocument(Dialog):
 
     def on_new_document(self, _evt):
         """Create new document"""
-        # Local imports
+
         from origami.gui_elements.dialog_new_document import DialogNewDocument
 
         dlg = DialogNewDocument(self, document_type=self._document_type)
@@ -178,7 +178,7 @@ class DialogSelectDocument(Dialog):
 
 
 def _main():
-    # Local imports
+
     from origami.app import App
 
     app = App()

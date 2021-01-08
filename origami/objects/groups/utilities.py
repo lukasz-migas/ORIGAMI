@@ -20,7 +20,7 @@ class DataObjectsContainer:
 
     def __getitem__(self, item):
         """Retrieve object from the internal store"""
-        # Local imports
+
         from origami.config.environment import ENV
 
         if isinstance(item, int):

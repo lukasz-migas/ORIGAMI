@@ -18,6 +18,12 @@ os.environ["ORIGAMI_PYTEST"] = "True"
 dw_config = Download()
 
 DATA_PATH = os.path.join(os.path.split(__file__)[0], "_data")
+if not os.path.exists(DATA_PATH):
+    from origami.utils.path import make_directory
+
+    make_directory(DATA_PATH)
+
+# data paths
 DATA_WATERS_IM_SMALL = os.path.join(DATA_PATH, "WATERS_IM_SMALL.raw.zip")
 DATA_TEXT_MS = os.path.join(DATA_PATH, "TEXT_MS.zip")
 DATA_TEXT_HEATMAP = os.path.join(DATA_PATH, "TEXT_HEATMAP.zip")
@@ -35,7 +41,7 @@ def get_waters_im_small(tmpdir_factory):
         path = unzip_directory(DATA_WATERS_IM_SMALL, output_dir, False)
     else:
         link = dw_config["waters_raw_im"]
-        path = download_file(link, output_dir=output_dir)
+        path = download_file(link, output_dir=output_dir, copy_to_dir=DATA_PATH)
     return os.path.abspath(path)
 
 
@@ -47,7 +53,7 @@ def get_thermo_ms_small(tmpdir_factory):
         path = unzip_directory(DATA_THERMO_MS_SMALL, output_dir, False)
     else:
         link = dw_config["thermo_raw_ms"]
-        path = download_file(link, output_dir=output_dir)
+        path = download_file(link, output_dir=output_dir, copy_to_dir=DATA_PATH)
     return os.path.abspath(path)
 
 
@@ -59,7 +65,7 @@ def get_mgf_ms_small(tmpdir_factory):
         path = unzip_directory(DATA_MGF_MS_SMALL, output_dir, False)
     else:
         link = dw_config["mgf_ms"]
-        path = download_file(link, output_dir=output_dir)
+        path = download_file(link, output_dir=output_dir, copy_to_dir=DATA_PATH)
     return os.path.abspath(path)
 
 
@@ -71,7 +77,7 @@ def get_mzml_ms_small(tmpdir_factory):
         path = unzip_directory(DATA_MZML_MS_SMALL, output_dir, False)
     else:
         link = dw_config["mzml_ms"]
-        path = download_file(link, output_dir=output_dir)
+        path = download_file(link, output_dir=output_dir, copy_to_dir=DATA_PATH)
     return os.path.abspath(path)
 
 
@@ -83,7 +89,7 @@ def get_text_ms_paths(tmpdir_factory):
         path = unzip_directory(DATA_TEXT_MS, output_dir, False)
     else:
         link = dw_config["text_ms"]
-        path = download_file(link, output_dir=output_dir)
+        path = download_file(link, output_dir=output_dir, copy_to_dir=DATA_PATH)
     return glob.glob(os.path.join(path, "*"))
 
 
@@ -95,14 +101,13 @@ def get_origami_document(tmpdir_factory):
         path = unzip_directory(DATA_ORIGAMI_IM, output_dir, False)
     else:
         link = dw_config["origami_im"]
-        path = download_file(link, output_dir=output_dir)
+        path = download_file(link, output_dir=output_dir, copy_to_dir=DATA_PATH)
     return os.path.abspath(path)
 
 
 @pytest.fixture(scope="session", autouse=True)
 def get_env_with_document(get_origami_document):
     """Get pre-loaded document"""
-    # Local imports
     from origami.config.environment import ENV
 
     ENV.load(get_origami_document)

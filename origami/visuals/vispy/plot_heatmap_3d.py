@@ -383,7 +383,7 @@ class PlotHeatmap3d(wx.Panel):
 
     def savefig(self, path: str, **kwargs):  # noqa
         """Save figure"""
-        # Third-party imports
+
         from vispy.io import imsave
 
         image = self.canvas.render()
@@ -426,7 +426,7 @@ class PlotHeatmap3d(wx.Panel):
 
 
 def _main():
-    # Local imports
+
     from origami.app import App
 
     class TestPanel(wx.Dialog):

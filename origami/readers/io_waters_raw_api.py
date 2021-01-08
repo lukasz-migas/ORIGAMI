@@ -157,7 +157,7 @@ class WatersRawReader:
 
     def get_inf_data(self):
         """Read metadata data"""
-        # Local imports
+
         from origami.readers.io_utils import get_waters_inf_data
 
         return get_waters_inf_data(self.path)

@@ -77,10 +77,9 @@ class PanelNewVersion(PanelHTMLViewer):
 
 def get_version_information(silent: bool = False, parent=None):
     """Check whether there is a new version of ORIGAMI available online"""
-    # Third-party imports
+
     from urllib3.exceptions import MaxRetryError
 
-    # Local imports
     from origami.utils.version import compare_versions
     from origami.utils.version import get_latest_version
 
@@ -112,10 +111,9 @@ def inform_version(new_version: bool, url: str, silent: bool = True, parent=None
 
 def check_version(parent=None, silent: bool = True):
     """Check whether there is a new version of ORIGAMI available online"""
-    # Third-party imports
+
     from urllib3.exceptions import MaxRetryError
 
-    # Local imports
     from origami.utils.version import compare_versions
     from origami.utils.version import get_latest_version
 
@@ -137,7 +135,7 @@ def check_version(parent=None, silent: bool = True):
 
 
 def _main():
-    # Local imports
+
     from origami.app import App
 
     app = App()

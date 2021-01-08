@@ -487,7 +487,7 @@ class PanelLayoutBuilder(wx.Panel, TableMixin):
 
     def on_add_tab(self, _evt):
         """Add tab to the PlotStore"""
-        # Local imports
+
         from origami.widgets.interactive.dialog_new_tab import DialogNewTab
 
         tabs = self.plot_store.tab_names
@@ -507,7 +507,7 @@ class PanelLayoutBuilder(wx.Panel, TableMixin):
 
     def on_remove_tab(self, _evt):
         """Remove tab from the PlotStore"""
-        # Local imports
+
         from origami.gui_elements.misc_dialogs import DialogBox
 
         tab_name = self.tab_title.GetStringSelection()
@@ -728,12 +728,12 @@ class PanelLayoutBuilder(wx.Panel, TableMixin):
 
 
 if __name__ == "__main__":
-    # Local imports
+
     from origami.icons.assets import Icons
     from origami.utils.screen import move_to_different_screen
 
     def _main_builder():
-        # Local imports
+
         from origami.app import App
 
         class _TestFrame(wx.Frame):
@@ -750,7 +750,7 @@ if __name__ == "__main__":
         app.MainLoop()
 
     def _main_editor():
-        # Local imports
+
         from origami.app import App
 
         class _TestFrame(wx.Frame):

@@ -42,7 +42,7 @@ def baseline_curve(data, window: int, **kwargs):
     """
     window = abs(window)
     if window <= 0:
-        # Local imports
+
         from origami.utils.exceptions import MessageError
 
         raise MessageError("Incorrect input", "Value should be above 0")
@@ -126,7 +126,7 @@ def baseline_als(y, lam, p, niter=10):
     """Asymmetric Least Squares smoothing. There are two parameters p for asymmetry and lambda for smoothness.
     Values of p should range between 0.001 and 0.1 and lambda between 10^2 to 10^9
     """
-    # Third-party imports
+
     from scipy import sparse
     from scipy.sparse.linalg import spsolve
 
@@ -159,7 +159,7 @@ def baseline_linear(data, threshold: float, **kwargs):
 def baseline_median(data, median_window: int = 5, **kwargs):
     """Median-filter"""
     if median_window % 2 == 0:
-        # Local imports
+
         from origami.utils.exceptions import MessageError
 
         raise MessageError("Incorrect input", "Median window must be an odd number")
@@ -170,7 +170,7 @@ def baseline_median(data, median_window: int = 5, **kwargs):
 
 def baseline_tophat(data, tophat_window=100, **kwargs):
     """Top-hat filter"""
-    # Third-party imports
+
     from scipy.ndimage.morphology import white_tophat
 
     return white_tophat(data, tophat_window)
@@ -351,7 +351,7 @@ def crop_1d_data(x, y, crop_min: Optional[float] = None, crop_max: Optional[floa
 def smooth_gaussian_1d(y, sigma: float, **kwargs):
     """Smooth using Gaussian filter"""
     if sigma < 0:
-        # Local imports
+
         from origami.utils.exceptions import MessageError
 
         raise MessageError("Incorrest value of `sigma`", "Value of `sigma` is too low. Value must be larger than 0")
@@ -364,7 +364,7 @@ def smooth_moving_average_1d(y, N: int, **kwargs):
     """Smooth using moving average"""
     # get parameters
     if N <= 0:
-        # Local imports
+
         from origami.utils.exceptions import MessageError
 
         raise MessageError(
@@ -750,7 +750,7 @@ try:
     _baseline_curve_ = baseline_curve_
     _nonlinear_axis = nonlinear_axis
     _linear_interpolation = linear_interpolation
-    # Local imports
+
     from origami.c.spectra import nonlinear_axis
     from origami.c.spectra import baseline_curve_
     from origami.c.spectra import linear_interpolation

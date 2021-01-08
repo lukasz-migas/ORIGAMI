@@ -526,7 +526,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
     def _on_get_document(self):
         """Get instance of selected document - the dialog also allows the user to load already existing document that
         is not found in the environment or create a new one if one does not exist."""
-        # Local imports
+
         from origami.gui_elements.dialog_select_document import DialogSelectDocument
 
         document_title = None
@@ -637,7 +637,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
     def on_get_files(self):
         """Collects a list of files from directory"""
-        # Local imports
+
         from origami.gui_elements.dialog_multi_directory_picker import DialogMultiDirPicker
 
         dlg = DialogMultiDirPicker(self, extension=self.SUPPORTED_FILE_FORMATS, last_dir=self._last_dir)
@@ -727,7 +727,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
     def get_extraction_filelist(self) -> List[FileItem]:
         """Retrieve list parameters for data extraction"""
-        # Local imports
+
         from origami.utils.converters import str2int
 
         filelist = []
@@ -755,7 +755,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 
     def get_parameters(self):
         """Retrieve processing parameters"""
-        # Local imports
+
         from origami.utils.ranges import get_min_max
         from origami.utils.converters import str2num
         from origami.utils.converters import str2bool
@@ -879,7 +879,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
 if __name__ == "__main__":
 
     def _main():
-        # Local imports
+
         from origami.app import App
 
         app = App()
@@ -891,7 +891,7 @@ if __name__ == "__main__":
         app.MainLoop()
 
     def _dialog():
-        # Local imports
+
         from origami.app import App
 
         app = App()

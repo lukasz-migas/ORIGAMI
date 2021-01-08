@@ -7,18 +7,16 @@ def pause():
 def register_interfaces():
     print("Checking for access to MS data formats...")
 
-    # Standard library imports
     import ctypes
 
     assert ctypes.windll.shell32.IsUserAnAdmin(), "register_interfaces() must be run with administrator privileges!"
-    # Standard library imports
+
     import os
     import sys
     import glob
     import subprocess
     from collections import defaultdict
 
-    # Third-party imports
     from win32com.client import Dispatch
 
     interface_module = {"RawReader.dll": "RAW"}

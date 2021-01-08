@@ -1435,7 +1435,7 @@ class PanelPeakPicker(MiniFrame, DatasetMixin):
 
 
 def _main():
-    # Local imports
+
     from origami.app import App
     from origami.icons.assets import Icons
 

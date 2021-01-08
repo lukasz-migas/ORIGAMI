@@ -27,7 +27,7 @@ class PanelInformationPopup(TransientPopupBase):
 
 
 def _main():
-    # Local imports
+
     from origami.app import App
 
     class TestInformation(TestPanel):

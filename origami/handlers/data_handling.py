@@ -55,8 +55,8 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         self.view = view
         self.config = CONFIG
 
-        self.text_panel = self.view.panelMultipleText
-        self.text_list = self.text_panel.peaklist
+        #         self.text_panel = self.view.panelMultipleText
+        #         self.text_list = self.text_panel.peaklist
 
         # add application defaults
         self.plot_page = None
@@ -231,7 +231,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
     @staticmethod
     def on_open_directory(path):
         """Open document path"""
-        # Standard library imports
+
         import webbrowser
 
         # if path is not provided, get one from current document
@@ -735,7 +735,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
     def on_save_unsaved_changes(self, data_obj, document_title: str = None, dataset_name: str = None):
         """Save unchanged changes on an object"""
-        # Local imports
+
         from origami.gui_elements.dialog_save_unsaved import DialogSaveUnsaved
 
         if document_title is None or dataset_name is None:
@@ -802,15 +802,18 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         _, filename = get_path_and_fname(filepath, simple=True)
         filepath = byte2str(filepath)
 
-        if self.text_panel.on_check_existing(filename) or ENV.exists(path=filepath):
-            logger.warning(f"Dataset {filename} already exists")
-            return None, None, None
+        # TODO: check whether file already exists
+
+        #         if self.text_panel.on_check_existing(filename) or ENV.exists(path=filepath):
+        #             logger.warning(f"Dataset {filename} already exists")
+        #             return None, None, None
 
         # load heatmap information and split into individual components
         heatmap_obj = self.load_text_heatmap_data(filepath)
 
         xlabel_start, xlabel_end = heatmap_obj.x[0], heatmap_obj.x[-1]
-        color = self.text_panel.on_get_unique_color(next(CONFIG.custom_colors_cycle))
+        color = (255, 255, 0)  # TODO: change color
+        #         color = self.text_panel.on_get_unique_color(next(CONFIG.custom_colors_cycle))
 
         # update heatmap object and its metadata
         heatmap_obj.x_label = x_label
@@ -850,7 +853,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         if any([_ is None for _ in [document, add_dict, filepath]]):
             logger.warning("Could not update GUI")
             return
-        self.text_panel.on_add_to_table(add_dict, return_color=False)
+        # self.text_panel.on_add_to_table(add_dict, return_color=False)
         self.on_setup_basic_document(document)
 
     def on_open_multiple_text_ms_fcn(self, _evt, one_file: bool = False):
@@ -1299,7 +1302,7 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
 
     def on_add_mzident_file(self, _evt):
         """Load mz indent file"""
-        # Local imports
+
         from origami.readers import io_mzid
 
         document = self.on_get_document()
@@ -1322,12 +1325,12 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
             except KeyError:
                 logger.warning("Missing file reader. Creating a new instance of the reader...")
                 if document.fileFormat == "Format: .mgf":
-                    # Local imports
+
                     from origami.readers import io_mgf
 
                     document.file_reader["data_reader"] = io_mgf.MGFReader(filename=document.path)
                 elif document.fileFormat == "Format: .mzML":
-                    # Local imports
+
                     from origami.readers import io_mzml
 
                     document.file_reader["data_reader"] = io_mzml.mzMLReader(filename=document.path)

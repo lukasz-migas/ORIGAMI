@@ -712,7 +712,7 @@ class PanelSignalComparisonViewer(MiniFrame, ColorGetterMixin):
 
 
 def _main():
-    # Local imports
+
     from origami.app import App
     from origami.icons.assets import Icons
 

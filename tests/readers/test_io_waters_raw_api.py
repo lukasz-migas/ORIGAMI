@@ -13,7 +13,7 @@ if sys.platform.startswith("linux") or sys.platform.startswith("darwin"):
     pytest.skip("skipping Linux-only tests", allow_module_level=True)
 
 if sys.platform == "win32":
-    # Local imports
+
     from origami.readers.io_waters_raw_api import WatersRawReader
 
 

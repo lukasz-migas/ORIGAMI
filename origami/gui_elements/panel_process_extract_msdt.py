@@ -372,7 +372,7 @@ class PanelProcessExtractMSDT(MiniFrame, DatasetMixin):
 #             data, mz_x = pr_heatmap.bin_mean_array(self.z_data, self.x_data, division_factor)
 #             self.view.panelPlots.on_plot_dtms(data, mz_x, self.y_data, 'm/z', 'Drift time (bins)')
 def _main():
-    # Local imports
+
     from origami.app import App
 
     app = App()

@@ -64,7 +64,7 @@ def DialogBox(title="", msg="", kind="Error", show_exception=True, parent=None):
 # noinspection PyPep8Naming
 def DialogSimpleAsk(message="", title="", value="", value_type=None, parent=None):
     """Simple dialog to ask basic questions of the user"""
-    # Local imports
+
     from origami.styles import Validator
 
     if value_type is not None and value_type in ["int", "intPos"]:

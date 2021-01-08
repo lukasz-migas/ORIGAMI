@@ -125,7 +125,7 @@ class PanelOverlayViewerSettings(wxScrolledPanel.ScrolledPanel):
 
 
 def _main():
-    # Local imports
+
     from origami.app import App
     from origami.utils.screen import move_to_different_screen
 

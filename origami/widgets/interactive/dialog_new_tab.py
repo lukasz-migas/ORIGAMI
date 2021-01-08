@@ -142,7 +142,7 @@ class DialogNewTab(Dialog):
     def on_ok(self, _evt):
         """ change label of the selected item """
         if self.new_name in self.forbidden:
-            # Local imports
+
             from origami.gui_elements.misc_dialogs import DialogBox
 
             DialogBox(
@@ -159,7 +159,7 @@ class DialogNewTab(Dialog):
 
 
 def _main():
-    # Local imports
+
     from origami.app import App
 
     app = App()

@@ -45,7 +45,7 @@ def as_chunks(item_list, n_items: int):
 
 def open_link(link: str):
     """Open web page"""
-    # Standard library imports
+
     import webbrowser
 
     webbrowser.open(link)
@@ -92,7 +92,7 @@ def rescale(
 
 def is_valid_python_name(name):
     """Check whether name is a valid keyword, usually meaning it has no spacing or hyphen"""
-    # Standard library imports
+
     from keyword import iskeyword
 
     return name.isidentifier() and not iskeyword(name)

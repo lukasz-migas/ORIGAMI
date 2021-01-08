@@ -47,7 +47,7 @@ def open_py_object(filename):
                 except Exception as err:
                     # try loading as python 2 with wxPython2 support
                     try:
-                        # Third-party imports
+
                         from wx import _core
 
                         sys.modules["wx._gdi"] = _core

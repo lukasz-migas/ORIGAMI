@@ -581,7 +581,7 @@ class DialogOrigamiMsSettings(Dialog):
 
     def on_extract_spectra(self, _evt):
         """Submit spectra extraction"""
-        # Local imports
+
         from origami.utils.converters import convert_scans_to_mins
         from origami.gui_elements.dialog_batch_data_extract import DialogBatchDataExtract
 
@@ -619,7 +619,7 @@ class DialogOrigamiMsSettings(Dialog):
 
 
 def _main():
-    # Local imports
+
     from origami.app import App
 
     app = App()

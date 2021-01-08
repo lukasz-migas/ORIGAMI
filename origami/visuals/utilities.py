@@ -20,10 +20,12 @@ __all__ = (
 )
 
 
-def compute_divider(value):
+def compute_divider(value: float) -> float:
     """Compute divider"""
     divider = 1000000000
     value = abs(value)
+    if value == 0:
+        return 1
     while value == value % divider:
         divider = divider / 1000
     return len(str(int(divider))) - len(str(int(divider)).rstrip("0"))
@@ -35,18 +37,18 @@ def y_tick_fmt(x, pos):  # noqa
     def _convert_divider_to_str(value, exp_value):
         value = float(value)
         if exp_value in [0, 1, 2]:
-            if value <= 1:
+            if abs(value) <= 1:
                 return f"{value:.2G}"
-            elif value <= 1000:
+            elif abs(value) <= 1000:
                 if value.is_integer():
                     return f"{value:.0F}"
                 return f"{value:.1F}"
         elif exp_value in [3, 4, 5]:
             return f"{value / 1000:.1f}k"
         elif exp_value in [6, 7, 8]:
-            return f"{value / 1000000:.0f}M"
+            return f"{value / 1000000:.1f}M"
         elif exp_value in [9, 10, 11, 12]:
-            return f"{value / 1000000000:.0f}B"
+            return f"{value / 1000000000:.1f}B"
 
     return _convert_divider_to_str(x, compute_divider(x))
 

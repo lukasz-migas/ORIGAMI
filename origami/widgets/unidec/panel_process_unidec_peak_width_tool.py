@@ -217,7 +217,7 @@ class PanelPeakWidthTool(MiniFrame):
 
 
 def _main():
-    # Local imports
+
     from origami.app import App
     from origami.handlers.load import LoadHandler
 

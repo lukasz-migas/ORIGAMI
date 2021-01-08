@@ -69,7 +69,7 @@ def remove_nan_from_list(data_list):
 
 def removeListDuplicates(input, columnsIn=None, limitedCols=None):
     """ remove duplicates from list based on columns """
-    # Third-party imports
+
     import pandas as pd
 
     df = pd.DataFrame(input, columns=columnsIn)

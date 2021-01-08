@@ -124,7 +124,7 @@ class PanelAbout(wx.MiniFrame):
 if __name__ == "__main__":
 
     def _main():
-        # Local imports
+
         from origami.app import App
 
         app = App()

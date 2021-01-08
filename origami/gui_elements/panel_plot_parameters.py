@@ -255,7 +255,7 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin):
 
 
 def _main():
-    # Local imports
+
     from origami.app import App
 
     class _TestFrame(wx.Frame):

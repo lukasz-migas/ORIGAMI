@@ -26,7 +26,7 @@ def Notification(title: str, message: str, parent=None, flags=wx.ICON_INFORMATIO
 
 
 def _main():
-    # Local imports
+
     from origami.app import App
 
     app = App()

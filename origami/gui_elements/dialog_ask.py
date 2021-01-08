@@ -173,16 +173,15 @@ class DialogAsk(Dialog):
             evt.Skip()
 
 
-def _main():
-    # Local imports
-    from origami.app import App
-
-    app = App()
-    frame = wx.Frame(None, -1)
-    ex = DialogAsk(frame, "Assign new value", "0", "integer")
-    ex.ShowModal()
-    app.MainLoop()
-
-
 if __name__ == "__main__":
+
+    def _main():
+        from origami.app import App
+
+        app = App()
+        frame = wx.Frame(None, -1)
+        ex = DialogAsk(frame, "Assign new value", "0", "integer")
+        ex.ShowModal()
+        app.MainLoop()
+
     _main()

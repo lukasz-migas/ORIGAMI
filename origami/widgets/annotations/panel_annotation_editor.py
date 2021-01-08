@@ -1187,10 +1187,9 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin):
     def on_copy_annotations(self, _):
         """Copy annotations by duplicating existing annotations and giving them new name - this allows for quick
         creation of many instances of annotations"""
-        # Standard library imports
+
         from copy import deepcopy
 
-        # Local imports
         from origami.gui_elements.misc_dialogs import DialogNumberAsk
 
         checked = self.get_checked_items()
@@ -1380,7 +1379,7 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin):
 
     def on_customise_parameters(self, _):
         """Open configuration panel"""
-        # Local imports
+
         from origami.gui_elements.dialog_customise_user_annotations import DialogCustomiseUserAnnotations
 
         dlg = DialogCustomiseUserAnnotations(self)
@@ -1403,7 +1402,7 @@ class TestPopup(TestPanel):
 
 
 def _main_popup():
-    # Local imports
+
     from origami.app import App
 
     app = App()
@@ -1414,7 +1413,7 @@ def _main_popup():
 
 
 def _main():
-    # Local imports
+
     from origami.app import App
     from origami.icons.assets import Icons
 

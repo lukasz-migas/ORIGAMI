@@ -8,6 +8,7 @@ import wx
 # Local imports
 from origami.utils.color import convert_rgb_1_to_255
 from origami.utils.color import convert_rgb_255_to_1
+
 # from origami.config.config import CONFIG
 from origami.config.config import CONFIG
 from origami.gui_elements.helpers import set_tooltip
@@ -332,7 +333,7 @@ class PanelGeneralSettings(PanelSettingsBase):
 if __name__ == "__main__":
 
     def _main():
-        # Local imports
+
         from origami.app import App
 
         class _TestFrame(wx.Frame):

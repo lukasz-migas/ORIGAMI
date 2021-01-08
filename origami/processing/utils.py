@@ -129,7 +129,7 @@ def get_narrow_data_range(data, mzRange=None):
 try:
     has_c = True
     _ppm_error = ppm_error
-    # Local imports
+
     from origami.c.utilities import ppm_error
 except ImportError as e:
     print(e)

@@ -34,10 +34,7 @@ from origami.ids import ID_window_controls
 from origami.ids import ID_window_textList
 from origami.ids import ID_help_page_UniDec
 from origami.ids import ID_help_page_ORIGAMI
-from origami.ids import ID_help_page_overlay
-from origami.ids import ID_help_page_linearDT
 from origami.ids import ID_fileMenu_openRecent
-from origami.ids import ID_help_page_OtherData
 from origami.ids import ID_window_documentList
 from origami.ids import ID_fileMenu_clearRecent
 from origami.ids import ID_help_page_dataLoading
@@ -46,7 +43,6 @@ from origami.ids import ID_window_multipleMLList
 from origami.ids import ID_checkAtStart_Driftscope
 from origami.ids import ID_help_page_multipleFiles
 from origami.ids import ID_annotPanel_otherSettings
-from origami.ids import ID_help_page_CCScalibration
 from origami.ids import ID_help_page_dataExtraction
 from origami.ids import ID_help_page_gettingStarted
 from origami.ids import ID_help_page_annotatingMassSpectra
@@ -217,7 +213,7 @@ class MainWindow(wx.Frame):
 
         # when in development, move the app to another display
         if CONFIG.debug:
-            # Local imports
+
             from origami.utils.screen import move_to_different_screen
 
             move_to_different_screen(self)
@@ -293,7 +289,7 @@ class MainWindow(wx.Frame):
 
     def create_panel(self, which: str, document_title: str):
         """Creates new instance of panel for particular document"""
-        # Local imports
+
         from origami.deprecate.panel_peaklist import PanelPeaklist
         from origami.deprecate.panel_multi_file import PanelMultiFile
 
@@ -398,7 +394,7 @@ class MainWindow(wx.Frame):
             try:
                 evt_id = self.on_get_toggle_id(panel=evt.GetPane().caption)
                 self.on_toggle_panel(evt=evt_id)
-            except Exception:
+            except Exception:  # noqa
                 pass
 
     def on_restored_page(self, evt):
@@ -415,6 +411,7 @@ class MainWindow(wx.Frame):
         self.statusbar = Statusbar(self, self._icons)
         self.SetStatusBar(self.statusbar)
 
+    # noinspection DuplicatedCode
     def make_menubar(self):
         """Create menubar in the main window"""
         self.menubar = wx.MenuBar()
@@ -725,7 +722,6 @@ class MainWindow(wx.Frame):
                 bitmap=self._icons.folder,
             )
         )
-
         menu_help_pages.Append(
             make_menu_item(
                 parent=menu_help_pages,
@@ -734,7 +730,6 @@ class MainWindow(wx.Frame):
                 bitmap=self._icons.extract,
             )
         )
-
         menu_help_pages.Append(
             make_menu_item(
                 parent=menu_help_pages,
@@ -743,7 +738,6 @@ class MainWindow(wx.Frame):
                 bitmap=self._icons.unidec,
             )
         )
-
         menu_help_pages.Append(
             make_menu_item(
                 parent=menu_help_pages,
@@ -752,25 +746,6 @@ class MainWindow(wx.Frame):
                 bitmap=self._icons.origami,
             )
         )
-
-        #         menu_help_pages.Append(
-        #             make_menu_item(
-        #                 parent=menu_help_pages,
-        #                 evt_id=ID_help_page_multipleFiles,
-        #                 text="Learn more: Multiple files (Manual CIU)",
-        #                 bitmap=self.icons.iconsLib["panel_mll__16"],
-        #             )
-        #         )
-
-        menu_help_pages.Append(
-            make_menu_item(
-                parent=menu_help_pages,
-                evt_id=ID_help_page_overlay,
-                text="Learn more: Overlay documents",
-                bitmap=self._icons.overlay,
-            )
-        )
-
         menu_help_pages.Append(
             make_menu_item(
                 parent=menu_help_pages,
@@ -779,22 +754,12 @@ class MainWindow(wx.Frame):
                 bitmap=self._icons.bokeh,
             )
         )
-
         menu_help_pages.Append(
             make_menu_item(
                 parent=menu_help_pages,
                 evt_id=ID_help_page_annotatingMassSpectra,
                 text="Learn more: Annotating mass spectra",
                 bitmap=self._icons.tag,
-            )
-        )
-
-        menu_help_pages.Append(
-            make_menu_item(
-                parent=menu_help_pages,
-                evt_id=ID_help_page_OtherData,
-                text="Learn more: Annotated data",
-                bitmap=self._icons.blank,
             )
         )
 
@@ -895,13 +860,9 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_open_html_guide, id=ID_help_page_dataLoading)
         self.Bind(wx.EVT_MENU, self.on_open_html_guide, id=ID_help_page_UniDec)
         self.Bind(wx.EVT_MENU, self.on_open_html_guide, id=ID_help_page_ORIGAMI)
-        self.Bind(wx.EVT_MENU, self.on_open_html_guide, id=ID_help_page_overlay)
         self.Bind(wx.EVT_MENU, self.on_open_html_guide, id=ID_help_page_multipleFiles)
-        self.Bind(wx.EVT_MENU, self.on_open_html_guide, id=ID_help_page_linearDT)
-        self.Bind(wx.EVT_MENU, self.on_open_html_guide, id=ID_help_page_CCScalibration)
         self.Bind(wx.EVT_MENU, self.on_open_html_guide, id=ID_help_page_dataExtraction)
         self.Bind(wx.EVT_MENU, self.on_open_html_guide, id=ID_help_page_Interactive)
-        self.Bind(wx.EVT_MENU, self.on_open_html_guide, id=ID_help_page_OtherData)
         self.Bind(wx.EVT_MENU, self.on_open_html_guide, id=ID_help_page_annotatingMassSpectra)
 
         # FILE MENU
@@ -976,7 +937,7 @@ class MainWindow(wx.Frame):
     @staticmethod
     def _dev_open_wxpython_inspector(_evt):
         """Opens wxpython inspector"""
-        # Third-party imports
+
         import wx.lib.inspection
 
         wx.lib.inspection.InspectionTool().Show()
@@ -1027,7 +988,7 @@ class MainWindow(wx.Frame):
 
     def on_open_new_file(self, _evt):
         """Import dataset"""
-        # Local imports
+
         from origami.gui_elements.panel_data_import import PanelDatasetImport
 
         dlg = PanelDatasetImport(self, self._icons, self.presenter)
@@ -1035,7 +996,7 @@ class MainWindow(wx.Frame):
 
     def on_customise_annotation_plot_parameters(self, _evt):
         """Open dialog to customise user annotations parameters"""
-        # Local imports
+
         from origami.gui_elements.dialog_customise_user_annotations import DialogCustomiseUserAnnotations
 
         dlg = DialogCustomiseUserAnnotations(self)
@@ -1126,7 +1087,7 @@ class MainWindow(wx.Frame):
 
     def _on_check_latest_version(self, silent: bool = True):
         """Simple function to check whether this is the newest version available"""
-        # Local imports
+
         from origami.gui_elements.panel_notify_new_version import inform_version
         from origami.gui_elements.panel_notify_new_version import get_version_information
 
@@ -1134,7 +1095,7 @@ class MainWindow(wx.Frame):
 
     def on_whats_new(self, _evt):
         """Check latest version"""
-        # Local imports
+
         from origami.gui_elements.panel_notify_new_version import PanelNewVersion
 
         dlg = PanelNewVersion(self)
@@ -1142,47 +1103,25 @@ class MainWindow(wx.Frame):
 
     def on_open_html_guide(self, evt):
         """Open HTML page"""
-        # Local imports
+
         from origami.gui_elements.panel_html_viewer import PanelHTMLViewer
 
         evt_id = evt.GetId()
         link, kwargs = None, {}
-        if evt_id == ID_help_UniDecInfo:
-            kwargs = html_pages.page_UniDec_info
-
-        elif evt_id == ID_help_page_dataLoading:
+        if evt_id == ID_help_page_dataLoading:
             link = r"https://origami.lukasz-migas.com/user-guide/loading-data"
-
         elif evt_id == ID_help_page_gettingStarted:
             link = r"https://origami.lukasz-migas.com/user-guide/example-files"
-
         elif evt_id == ID_help_page_UniDec:
             link = r"https://origami.lukasz-migas.com/user-guide/deconvolution/unidec-deconvolution"
-
         elif evt_id == ID_help_page_ORIGAMI:
             link = r"https://origami.lukasz-migas.com/user-guide/data-handling/automated-ciu"
-
-        elif evt_id == ID_help_page_overlay:
-            kwargs = html_pages.page_overlay_info
-
         elif evt_id == ID_help_page_multipleFiles:
             link = r"https://origami.lukasz-migas.com/user-guide/data-handling/manual-ciu"
-
-        # elif evt_id == ID_help_page_linearDT:
-        #     kwargs = html_pages.page_linear_dt_info
-
-        # elif evt_id == ID_help_page_CCScalibration:
-        #     kwargs = html_pages.page_ccs_calibration_info
-
         elif evt_id == ID_help_page_dataExtraction:
             link = r"https://origami.lukasz-migas.com/user-guide/data-handling/ms-and-imms-files"
-
         elif evt_id == ID_help_page_Interactive:
             link = r"https://origami.lukasz-migas.com/user-guide/interactive-output/simple-output"
-
-        # elif evt_id == ID_help_page_OtherData:
-        #     kwargs = html_pages.page_other_data_info
-
         elif evt_id == ID_help_page_annotatingMassSpectra:
             link = r"https://origami.lukasz-migas.com/user-guide/processing/mass-spectra-annotation"
 
@@ -1209,7 +1148,7 @@ class MainWindow(wx.Frame):
         self.Maximize()
 
     def on_set_window_iconize(self, _evt):
-        """Iconize app."""
+        """Turn app into icon"""
         self.Iconize()
 
     def on_set_window_fullscreen(self, _evt):
@@ -1419,7 +1358,7 @@ class MainWindow(wx.Frame):
         # Actually realise the toolbar
         self.toolbar.Realize()
 
-    def on_toggle_panel(self, evt, check=None):
+    def on_toggle_panel(self, evt):
         """Toggle panel"""
         evt_id = None
         if isinstance(evt, int):
@@ -1511,7 +1450,7 @@ class MainWindow(wx.Frame):
         try:
             path = os.path.join(CONFIG.APP_CONFIG_DIR, CONFIG.DEFAULT_CONFIG_NAME)
             CONFIG.save_config(path=path)
-        except Exception:
+        except Exception:  # noqa
             print("Could not save configuration file")
 
         # Clear-up dictionary
@@ -1530,7 +1469,7 @@ class MainWindow(wx.Frame):
         try:
             self.window_mgr.UnInit()
         except Exception as err:
-            print(f"Could not uninitilize window manager: {err}")
+            print(f"Could not un-initialize window manager: {err}")
 
         # Clear-up temporary data directory
         try:
@@ -1540,7 +1479,7 @@ class MainWindow(wx.Frame):
         except Exception as err:
             print(err)
 
-        # Aggressive way to kill the ORIGAMI process (grrr)
+        # Aggressive way to kill the ORIGAMI process (grr)
         if not kwargs.get("clean_exit", False):
             try:
                 p = psutil.Process(CONFIG.APP_PROCESS_ID)
@@ -1566,7 +1505,7 @@ class MainWindow(wx.Frame):
 
     def on_open_about_panel(self, _evt):
         """Show About ORIGAMI panel."""
-        # Local imports
+
         from origami.gui_elements.panel_about import PanelAbout
 
         about = PanelAbout(self)
@@ -1604,10 +1543,10 @@ class MainWindow(wx.Frame):
             self.panelParametersEdit.on_set_page(window)
             return
 
-    def on_open_interactive_output_panel(self, evt):
+    def on_open_interactive_output_panel(self, _evt):
         """Open interactive panel"""
-        # Local imports
-        from origami.widgets.interactive._panel_interactive_creator import PanelInteractiveCreator
+        # TODO: remove
+        from origami.widgets.interactive._panel_interactive_creator import PanelInteractiveCreator  # noqa
 
         def _startup_module():
             """Initialize the panel"""
@@ -1617,22 +1556,8 @@ class MainWindow(wx.Frame):
 
         _startup_module()
 
-    #         if not hasattr(self, "panel_interactive_output"):
-    #             _startup_module()
-    #         else:
-    #             try:
-    #                 if CONFIG.interactiveParamsWindow_on_off:
-    #                     self.panel_interactive_output.onUpdateList()
-    #                     args = ("An instance of this panel is already open", 4)
-    #                     self.presenter.onThreading(evt, args, action="updateStatusbar")
-    #                     return
-    #             except (IndexError, ValueError, TypeError, KeyError):
-    #                 logging.error("Failed to startup `Interactive Output` panel", exc_info=True)
-    #                 _startup_module()
-
-    def on_open_interactive_output_panel_new(self, evt):
+    def on_open_interactive_output_panel_new(self, _evt):
         """Open interactive panel"""
-        # Local imports
         from origami.widgets.interactive.panel_interactive_editor import PanelInteractiveEditor
 
         def _startup_module():
@@ -1648,7 +1573,6 @@ class MainWindow(wx.Frame):
 
     def on_show_ccs_database(self, _evt):
         """Show CCS database"""
-        # Local imports
         from origami.widgets.ccs.panel_ccs_database import PanelCCSDatabase
 
         dlg = PanelCCSDatabase(self)
@@ -1785,14 +1709,14 @@ class MainWindow(wx.Frame):
             try:
                 document = self.data_handling.load_waters_im_document(path)
                 pub.sendMessage("file.recent.add", action="waters.imms", path=path)
-            except Exception:
+            except Exception:  # noqa
                 document = self.data_handling.load_waters_ms_document(path)
                 pub.sendMessage("file.recent.add", action="waters.ms", path=path)
         elif extension == ".RAW":
             document = self.data_handling.load_thermo_ms_document(path)
             pub.sendMessage("file.recent.add", action="thermo.ms", path=path)
         elif extension in [".csv", ".txt", ".tab"]:
-            # Local imports
+
             from origami.gui_elements.dialog_quick_select import DialogQuickSelection
 
             dlg = DialogQuickSelection(self, ["Mass Spectrum", "Heatmap"])
@@ -1817,7 +1741,7 @@ class MainWindow(wx.Frame):
 
     def get_user_text_x_y_label(self):
         """Get x- and y-axis labels"""
-        # Local imports
+
         from origami.gui_elements.dialog_ask_labels import DialogSelectLabels
 
         # get labels for selected items
@@ -1829,7 +1753,7 @@ class MainWindow(wx.Frame):
 
         return x_label, y_label
 
-    def updateStatusbar(self, msg, position, delay=3, modify_msg=True, print_msg=True):
+    def updateStatusbar(self, msg, position, delay=3, modify_msg=True, print_msg=True):  # noqa
         """
         Out of thread statusbar display
 
@@ -1846,6 +1770,7 @@ class MainWindow(wx.Frame):
         print_msg: bool
             determines whether message should be printed to console
         """
+        # TODO: rename function
         # modify message
         if modify_msg:
             msg = f">> {msg} <<"
@@ -1906,7 +1831,7 @@ class DragAndDrop(wx.FileDropTarget):
             if file_extension in self.SUPPORTED_FORMATS:
                 try:
                     value = self.parent.on_open_file_from_dnd(filename, file_extension)
-                except Exception:
+                except Exception:  # noqa
                     logger.error(f"Failed to open {filename}", exc_info=True)
                     continue
             elif file_extension in self.LEGACY_FORMATS:

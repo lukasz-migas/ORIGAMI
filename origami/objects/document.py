@@ -286,7 +286,7 @@ class DocumentStore:
         """Returns the title of the document"""
         if self._title is None:
             self._title = os.path.splitext(os.path.split(self.path)[1])[0]
-        return self._title
+        return byte2str(self._title)
 
     @title.setter
     def title(self, value):
@@ -608,7 +608,7 @@ class DocumentStore:
             path to where the dataset should be moved to. The path must contain the `filename` of the dataset (e.g.
             FILENAME.origami)
         """
-        # Local imports
+
         from origami.utils.path import copy_directory
 
         if not to_path.endswith(".origami"):
@@ -623,7 +623,7 @@ class DocumentStore:
 
     def duplicate(self, path: str, overwrite: bool = False):
         """Create copy of the document with new name"""
-        # Local imports
+
         from origami.utils.path import copy_directory
 
         if path == self.path:
@@ -649,7 +649,7 @@ class DocumentStore:
 
     def delete(self):
         """Delete DocumentStore from the disk"""
-        # Third-party imports
+
         from send2trash import TrashPermissionError
         from send2trash import send2trash
 
@@ -676,7 +676,7 @@ class DocumentStore:
         new_name : str
             new group name - it should include the group base and dataset name
         """
-        # Local imports
+
         from origami.utils.path import move_directory
 
         move_directory(os.path.join(self.path, group_name), os.path.join(self.path, new_name))

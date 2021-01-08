@@ -99,37 +99,36 @@ class PopupToastManager:
         self.counter += 1
 
 
-def _main_popup():
-    # Local imports
-    from origami.app import App
-    from origami.gui_elements._panel import TestPanel  # noqa
-
-    class TestPopup(TestPanel):
-        """Test the popup window"""
-
-        def __init__(self, parent):
-            super().__init__(parent)
-
-            self.SetSize((800, 800))
-            self.manager = PopupToastManager(self)
-
-            self.btn_1.Bind(wx.EVT_BUTTON, self.on_popup)
-
-        def on_popup(self, _evt):
-            """Activate popup"""
-            self.manager.show_popup("This is some nice testing text.\nAnd some more text ", "info")
-            self.manager.show_popup("This is some nice testing text.\nAnd some more text ", "success")
-            self.manager.show_popup("This is some nice testing text.\nAnd some more text ", "warning")
-            self.manager.show_popup("This is some nice testing text.\nAnd some more text ", "error")
-
-    app = App()
-
-    dlg = TestPopup(None)
-    wx.PostEvent(dlg.btn_1, wx.PyCommandEvent(wx.EVT_BUTTON.typeId, dlg.btn_1.GetId()))
-    dlg.Show()
-
-    app.MainLoop()
-
-
 if __name__ == "__main__":
+
+    def _main_popup():
+        from origami.app import App
+        from origami.gui_elements._panel import TestPanel  # noqa
+
+        class TestPopup(TestPanel):
+            """Test the popup window"""
+
+            def __init__(self, parent):
+                super().__init__(parent)
+
+                self.SetSize((800, 800))
+                self.manager = PopupToastManager(self)
+
+                self.btn_1.Bind(wx.EVT_BUTTON, self.on_popup)
+
+            def on_popup(self, _evt):
+                """Activate popup"""
+                self.manager.show_popup("This is some nice testing text.\nAnd some more text ", "info")
+                self.manager.show_popup("This is some nice testing text.\nAnd some more text ", "success")
+                self.manager.show_popup("This is some nice testing text.\nAnd some more text ", "warning")
+                self.manager.show_popup("This is some nice testing text.\nAnd some more text ", "error")
+
+        app = App()
+
+        dlg = TestPopup(None)
+        wx.PostEvent(dlg.btn_1, wx.PyCommandEvent(wx.EVT_BUTTON.typeId, dlg.btn_1.GetId()))
+        dlg.Show()
+
+        app.MainLoop()
+
     _main_popup()

@@ -190,7 +190,7 @@ class PanelOverlayEditor(MiniFrame, TableMixin, ColorGetterMixin, PanelOverlayVi
 
         n_clipboard_items = len(self.clipboard)
         if n_clipboard_items > 0 and not force and not self._debug:
-            # Local imports
+
             from origami.gui_elements.misc_dialogs import DialogBox
 
             msg = (
@@ -867,7 +867,7 @@ class PanelOverlayEditor(MiniFrame, TableMixin, ColorGetterMixin, PanelOverlayVi
     def _on_get_document(self):
         """Get instance of selected document - the dialog also allows the user to load already existing document that
         is not found in the environment or create a new one if one does not exist."""
-        # Local imports
+
         from origami.gui_elements.dialog_select_document import DialogSelectDocument
 
         document_title = None
@@ -934,7 +934,7 @@ class PanelOverlayEditor(MiniFrame, TableMixin, ColorGetterMixin, PanelOverlayVi
 
 
 def _main():
-    # Local imports
+
     from origami.app import App
     from origami.utils.screen import move_to_different_screen
     from origami.utils.secret import get_short_hash

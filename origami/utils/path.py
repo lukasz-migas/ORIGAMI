@@ -10,10 +10,18 @@ from collections.abc import Iterable
 # Local imports
 from origami.utils.converters import byte2str
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 VALID_FILENAME_CHARACTERS = "-_.() %s%s" % (string.ascii_letters, string.digits)
 CHARACTER_LIMIT = 255
+
+
+def make_directory(path):
+    """Make directory"""
+    try:
+        os.mkdir(path)
+    except FileExistsError:
+        LOGGER.debug("Could not create directory")
 
 
 def move_directory_contents(path):
@@ -129,7 +137,7 @@ def clean_up_folder(filepath):
     try:
         os.remove(filepath)
     except Exception as e:
-        logger.warning(e)
+        LOGGER.warning(e)
 
 
 def check_waters_path(filepath):
@@ -167,6 +175,11 @@ def clean_up_MDD_path(path):
 def get_base_path(filepath):
     """Get base path of the filepath"""
     return os.path.dirname(filepath)
+
+
+def copy_file(from_file: str, to_path: str):
+    """Copy file to new location"""
+    shutil.copyfile(from_file, to_path)
 
 
 def copy_directory(from_path, to_path, overwrite: bool = False):

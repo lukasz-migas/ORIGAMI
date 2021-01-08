@@ -294,7 +294,7 @@ class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
         """Destroy this frame"""
         n_clipboard_items = len(self.clipboard)
         if n_clipboard_items > 0 and not force:
-            # Local imports
+
             from origami.gui_elements.dialog_review_ask import DialogAskReview
 
             msg = (
@@ -318,7 +318,7 @@ class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
 
     def on_review(self):
         """Review all data that is present in the dataset"""
-        # Local imports
+
         from origami.gui_elements.dialog_review_editor import DialogReviewEditorExtract
 
         # generate item list
@@ -477,7 +477,7 @@ class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
 
     def on_update_normalization(self, _evt):
         """Update normalization in the plot"""
-        # Standard library imports
+
         from copy import deepcopy
 
         if self.clipboard_last is None:
@@ -572,7 +572,7 @@ class PanelImagingLESAViewer(MiniFrame, TableMixin, DatasetMixin):
 
 
 def _main():
-    # Local imports
+
     from origami.app import App
 
     app = App()

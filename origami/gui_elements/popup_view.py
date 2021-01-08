@@ -166,10 +166,7 @@ class TestPopup(TestPanel):
 
     def on_popup(self, evt):
         """Activate popup"""
-        # Third-party imports
         import numpy as np
-
-        # Local imports
         from origami.objects.containers import MobilogramObject
 
         obj = MobilogramObject(np.arange(100), np.arange(100))
@@ -178,18 +175,17 @@ class TestPopup(TestPanel):
         p.Show()
 
 
-def _main_popup():
-    # Local imports
-    from origami.app import App
-
-    app = App()
-
-    dlg = TestPopup(None)
-    wx.PostEvent(dlg.btn_1, wx.PyCommandEvent(wx.EVT_BUTTON.typeId, dlg.btn_1.GetId()))
-    dlg.Show()
-
-    app.MainLoop()
-
-
 if __name__ == "__main__":
+
+    def _main_popup():
+        from origami.app import App
+
+        app = App()
+
+        dlg = TestPopup(None)
+        wx.PostEvent(dlg.btn_1, wx.PyCommandEvent(wx.EVT_BUTTON.typeId, dlg.btn_1.GetId()))
+        dlg.Show()
+
+        app.MainLoop()
+
     _main_popup()

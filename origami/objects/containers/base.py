@@ -156,7 +156,7 @@ class DataObject(ContainerBase):
 
     def duplicate(self):
         """Duplicate data object without ever setting it in the DocumentStore"""
-        # Standard library imports
+
         from copy import deepcopy
 
         data_obj_copy = deepcopy(self)

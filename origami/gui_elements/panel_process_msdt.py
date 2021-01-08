@@ -148,7 +148,7 @@ class PanelProcessMSDT(MiniFrame, DatasetMixin):
 
 
 def _main():
-    # Local imports
+
     from origami.app import App
 
     app = App()

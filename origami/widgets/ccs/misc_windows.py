@@ -113,7 +113,7 @@ class DialogAutoGenerateConformers(MiniFrame):
 
 
 def _main_popup():
-    # Local imports
+
     from origami.app import App
     from origami.gui_elements._panel import TestPanel  # noqa
 

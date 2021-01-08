@@ -261,7 +261,7 @@ class DialogExportFigures(Dialog):
     def on_save(self, _evt):
         """Save event"""
         if not check_path_exists(CONFIG.image_folder_path):
-            # Local imports
+
             from origami.gui_elements.misc_dialogs import DialogBox
 
             dlg = DialogBox(
@@ -354,7 +354,7 @@ class DialogExportFigures(Dialog):
 
 
 def _main():
-    # Local imports
+
     from origami.app import App
 
     app = App()

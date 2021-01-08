@@ -255,7 +255,7 @@ class DialogBatchApplyCCSCalibration(DialogReviewEditorBase):
 
 
 def _main():
-    # Local imports
+
     from origami.app import App
 
     app = App()

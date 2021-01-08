@@ -601,7 +601,7 @@ class PanelProcessHeatmap(MiniFrame, DatasetMixin, ConfigUpdateMixin):
 
 
 def _main():
-    # Local imports
+
     from origami.app import App
 
     app = App()

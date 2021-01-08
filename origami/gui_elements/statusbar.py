@@ -94,7 +94,7 @@ class MemoryStatusWidget(StatusbarTimerWidget):
 
     def get_value(self):
         """Return value"""
-        # Local imports
+
         from origami.utils.system import memory_usage
 
         text = "%d%%" % memory_usage()
@@ -111,7 +111,7 @@ class CPUStatusWidget(StatusbarTimerWidget):
 
     def get_value(self):
         """Return value"""
-        # Third-party imports
+
         import psutil
 
         value = psutil.cpu_percent(interval=0)
@@ -327,7 +327,7 @@ class TestCustomStatusBar(wx.Frame):
 
 
 def _main():
-    # Local imports
+
     from origami.app import App
     from origami.icons.assets import Icons
 

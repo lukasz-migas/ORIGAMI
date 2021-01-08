@@ -1313,7 +1313,7 @@ class PanelUVPDEditor(wx.MiniFrame):
         )
 
     def on_extract_mass_spectra(self, evt):
-        # Standard library imports
+
         import gc
 
         tstart = ttime()
@@ -1365,7 +1365,7 @@ class PanelUVPDEditor(wx.MiniFrame):
         print("In total, it took {:.4f} seconds.".format(ttime() - tstart))
 
     def _extract_mass_spectrum(self, document_path, scan_list, **kwargs):
-        # Local imports
+
         from origami.processing.spectra import sum_1D_dictionary
 
         for counter, item in enumerate(scan_list):

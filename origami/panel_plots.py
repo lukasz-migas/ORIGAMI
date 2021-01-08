@@ -340,7 +340,7 @@ class PanelPlots(wx.Panel):
 
     def on_smooth_object(self, _evt):
         """Smooth plot signal"""
-        # Local imports
+
         from origami.gui_elements.misc_dialogs import DialogSimpleAsk
 
         view_obj = self.get_view_from_name(self.current_page)
@@ -554,7 +554,7 @@ class PanelPlots(wx.Panel):
 
     def on_open_info(self, _evt):
         """Open help window to inform user on how to use this window / panel"""
-        # Local imports
+
         from origami.gui_elements.panel_html_viewer import PanelHTMLViewer
 
         if self.HELP_LINK:
@@ -1468,7 +1468,7 @@ class PanelPlots(wx.Panel):
 
 
 def _main_popup():
-    # Local imports
+
     from origami.app import App
     from origami.gui_elements._panel import TestPanel  # noqa
 

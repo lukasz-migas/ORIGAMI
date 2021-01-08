@@ -425,7 +425,7 @@ class PanelModifyItemSettings(MiniFrame):
             evt.Skip()
 
     def on_assign_random_color(self, evt):
-        # Local imports
+
         from origami.utils.color import get_random_color
 
         color = get_random_color(True)

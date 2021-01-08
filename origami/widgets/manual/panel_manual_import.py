@@ -131,7 +131,7 @@ class PanelManualImportDataset(PanelImportManagerBase):
 
 
 def _main():
-    # Local imports
+
     from origami.app import App
 
     app = App()

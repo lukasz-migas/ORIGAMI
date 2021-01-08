@@ -284,10 +284,10 @@ import errno
 import subprocess
 
 try:
-    # Standard library imports
+
     import configparser
 except ImportError:
-    # Third-party imports
+
     import ConfigParser as configparser
 
 
@@ -1515,7 +1515,7 @@ def get_cmdclass():
     cmds = {}
 
     # we add "version" to both distutils and setuptools
-    # Standard library imports
+
     from distutils.core import Command
 
     class cmd_version(Command):
@@ -1557,10 +1557,10 @@ def get_cmdclass():
 
     # we override different "build_py" commands for both environments
     if "setuptools" in sys.modules:
-        # Third-party imports
+
         from setuptools.command.build_py import build_py as _build_py
     else:
-        # Standard library imports
+
         from distutils.command.build_py import build_py as _build_py
 
     class cmd_build_py(_build_py):
@@ -1579,7 +1579,7 @@ def get_cmdclass():
     cmds["build_py"] = cmd_build_py
 
     if "cx_Freeze" in sys.modules:  # cx_freeze enabled?
-        # Third-party imports
+
         from cx_Freeze.dist import build_exe as _build_exe
 
         # nczeczulin reports that py2exe won't like the pep440-style string
@@ -1618,10 +1618,10 @@ def get_cmdclass():
 
     if "py2exe" in sys.modules:  # py2exe enabled?
         try:
-            # Third-party imports
+
             from py2exe.distutils_buildexe import py2exe as _py2exe  # py3
         except ImportError:
-            # Third-party imports
+
             from py2exe.build_exe import py2exe as _py2exe  # py2
 
         class cmd_py2exe(_py2exe):
@@ -1652,10 +1652,10 @@ def get_cmdclass():
 
     # we override different "sdist" commands for both environments
     if "setuptools" in sys.modules:
-        # Third-party imports
+
         from setuptools.command.sdist import sdist as _sdist
     else:
-        # Standard library imports
+
         from distutils.command.sdist import sdist as _sdist
 
     class cmd_sdist(_sdist):

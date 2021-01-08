@@ -624,7 +624,7 @@ class TestPanel(TablePanelBase):
 
 
 def _main():
-    # Local imports
+
     from origami.app import App
 
     class ExampleFrame(wx.MiniFrame):
@@ -662,7 +662,7 @@ def _main():
             self.Show()
 
         def add_item(self, evt):
-            # Standard library imports
+
             from random import randint
 
             self.panel.on_add_to_table({"c1": randint(0, 1000), "c2": randint(0, 1000)})

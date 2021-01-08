@@ -17,7 +17,7 @@ def running_under_pytest():
 
 def get_project_path():
     """Return project path"""
-    # Standard library imports
+
     from pathlib import Path
 
     return str(Path(__file__).parent.parent)
@@ -25,11 +25,10 @@ def get_project_path():
 
 def get_system_info():
     """Get information about the system"""
-    # Standard library imports
+
     import sys
     import platform
 
-    # Local imports
     from origami import __version__
 
     info = "--- System information ---\n"
@@ -42,7 +41,7 @@ def get_system_info():
 def windows_memory_usage():
     """Return physical memory usage (float)
     Works on Windows platforms only"""
-    # Standard library imports
+
     from ctypes import Structure
     from ctypes import byref
     from ctypes import sizeof
@@ -80,7 +79,7 @@ def psutil_phymem_usage():  # noqa
     Requires the cross-platform psutil (>=v0.3) library
     (https://github.com/giampaolo/psutil)
     """
-    # Third-party imports
+
     import psutil
 
     # This is needed to avoid a deprecation warning error with
@@ -94,7 +93,7 @@ def psutil_phymem_usage():  # noqa
 
 def import_check(module):
     """Check imports"""
-    # Standard library imports
+
     import importlib.util
 
     module_loader = importlib.util.find_spec(module)

@@ -584,13 +584,13 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
     def on_open_html_editor(self, browser, _evt):
         """Export data in HTML format"""
         if browser == "builtin":
-            # Local imports
+
             from origami.gui_elements.panel_html_viewer import PanelHTMLViewer
 
             html = PanelHTMLViewer(self, link=CONFIG.interactive_panel_html_editor_link, window_size=(1200, -1))
             html.Show()
         else:
-            # Standard library imports
+
             import webbrowser
 
             webbrowser.open(CONFIG.interactive_panel_html_editor_link)
@@ -915,7 +915,7 @@ class PanelInteractiveEditor(MiniFrame, TableMixin, ColorGetterMixin, DatasetMix
 
 
 def _main():
-    # Local imports
+
     from origami.app import App
     from origami.utils.secret import get_short_hash
 

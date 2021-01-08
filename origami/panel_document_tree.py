@@ -76,6 +76,7 @@ from origami.handlers.query_handler import QUERY_HANDLER
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.misc_dialogs import DialogNumberAsk
 from origami.gui_elements.misc_dialogs import DialogSimpleAsk
+from origami.icons.assets import Bullets
 
 LOGGER = logging.getLogger(__name__)
 
@@ -456,9 +457,8 @@ class DocumentTree(wx.TreeCtrl):
         self.SetFont(wx.SMALL_FONT)
 
         # init bullets
-        self.bullets = wx.ImageList(13, 12)
-        self.SetImageList(self.bullets)
-        self.bullets_dict = self.reset_document_tree_bullets()
+        self.bullets = Bullets()
+        self.SetImageList(self.bullets.image_list)
 
         # add root
         root = self.AddRoot("Documents")
@@ -480,12 +480,12 @@ class DocumentTree(wx.TreeCtrl):
 
     def evt_rename_document(self, old_title: str, new_title: str):
         """Rename document"""
-        print("EVT.OLD.TITLE", old_title)
-        print("EVT.NEW.TITLE", new_title)
+        # print("EVT.OLD.TITLE", old_title)
+        # print("EVT.NEW.TITLE", new_title)
 
     def evt_remove_document(self, document_title: str):
         """Remove document"""
-        print("EVT.REMOVE", document_title)
+        # print("EVT.REMOVE", document_title)
 
     def evt_add_document(self, document_title: str):
         """Add document"""
@@ -566,7 +566,7 @@ class DocumentTree(wx.TreeCtrl):
     def _get_item_object(self):
         """Retrieves container object for particular dataset"""
         document = ENV.on_get_document()
-        _, obj_title = self.GetPyData(self._item_id)
+        _, obj_title = self.GetItemData(self._item_id)
         return document[obj_title, True]
 
     def _get_item_objects(self):
@@ -586,49 +586,6 @@ class DocumentTree(wx.TreeCtrl):
             y_label = obj.y_label
 
         return x_label, y_label
-
-    def reset_document_tree_bullets(self):
-        """Erase all bullets and make defaults."""
-        self.bullets.RemoveAll()
-        self.bullets.Add(self.icons.bulletsLib["bulletsDoc"])
-        self.bullets.Add(self.icons.bulletsLib["bulletsMS"])
-        self.bullets.Add(self.icons.bulletsLib["bulletsDT"])
-        self.bullets.Add(self.icons.bulletsLib["bulletsRT"])
-        self.bullets.Add(self.icons.bulletsLib["bulletsDot"])
-        self.bullets.Add(self.icons.bulletsLib["bulletsAnnot"])
-        self.bullets.Add(self.icons.bulletsLib["bullets2DT"])
-        self.bullets.Add(self.icons.bulletsLib["bulletsCalibration"])
-        self.bullets.Add(self.icons.bulletsLib["bulletsOverlay"])
-        self.bullets.Add(self.icons.bulletsLib["bulletsDocOn"])
-        self.bullets.Add(self.icons.bulletsLib["bulletsMSIon"])
-        self.bullets.Add(self.icons.bulletsLib["bulletsDTIon"])
-        self.bullets.Add(self.icons.bulletsLib["bulletsRTIon"])
-        self.bullets.Add(self.icons.bulletsLib["bulletsDotOn"])
-        self.bullets.Add(self.icons.bulletsLib["bulletsAnnotIon"])
-        self.bullets.Add(self.icons.bulletsLib["bullets2DTIon"])
-        self.bullets.Add(self.icons.bulletsLib["bulletsCalibrationIon"])
-        self.bullets.Add(self.icons.bulletsLib["bulletsOverlayIon"])
-
-        return {
-            "document": 0,
-            "mass_spec": 1,
-            "drift_time": 2,
-            "rt": 3,
-            "dots": 4,
-            "annot": 5,
-            "heatmap": 6,
-            "calibration": 7,
-            "overlay": 8,
-            "document_on": 9,
-            "mass_spec_on": 10,
-            "drift_time_on": 11,
-            "rt_on": 12,
-            "dots_on": 13,
-            "annot_on": 14,
-            "heatmap_on": 15,
-            "calibration_on": 16,
-            "overlay_on": 17,
-        }
 
     @property
     def data_handling(self):
@@ -751,7 +708,7 @@ class DocumentTree(wx.TreeCtrl):
             # update window table
             try:
                 document_title = self.GetItemText(item)
-            except Exception:
+            except Exception:  # noqa
                 document_title = "Documents"
 
             title = f"ORIGAMI (v{self.config.version})"
@@ -1024,13 +981,13 @@ class DocumentTree(wx.TreeCtrl):
         # try to get dataset object
         try:
             doc_item = self.get_item_by_data(document_old)
-        except Exception:
+        except Exception:  # noqa
             doc_item = False
 
         if doc_item is not False:
             try:
                 self.SetItemData(doc_item, document_new)
-            except Exception:
+            except Exception:  # noqa
                 self.data_handling.on_update_document(document_new, "document")
         else:
             self.data_handling.on_update_document(document_new, "document")
@@ -1064,10 +1021,6 @@ class DocumentTree(wx.TreeCtrl):
                 self.on_show_plot(evt=ID_showPlotDocument)
             if self._item.is_match("unidec"):
                 self.on_open_unidec(None)
-        #             elif self._item_branch == "UniDec":
-        #                 self.on_open_unidec(None)
-        #             elif self._item_leaf == "Annotations":
-        #                 self.on_open_annotation_editor(None)
         elif self._item.is_match(["chromatogram", "mobilogram", "heatmap", "msdt", "tandem"]):
             if self._item.is_match("annotation"):
                 self.on_open_annotation_editor(None)
@@ -1077,11 +1030,6 @@ class DocumentTree(wx.TreeCtrl):
             self.on_show_ccs_calibration(None)
         elif self._item.is_match("overlay"):
             self.on_open_overlay_viewer()
-
-        # elif self._document_type == "Sample information":
-        #     self.onShowSampleInfo(evt=None)
-        # elif self._indent == 1:
-        #     self.onOpenDocInfo(evt=None)
 
         LOGGER.debug(f"It took: {report_time(t_start)} to process double-click.")
 
@@ -1109,7 +1057,6 @@ class DocumentTree(wx.TreeCtrl):
         """Check label of the chromatogram dataset"""
 
         xlabel, _ = self._get_item_label(x=True)
-
         xlabel_evt_dict = {
             "Scans": ID_xlabel_RT_scans,
             "Time (mins)": ID_xlabel_RT_time_min,
@@ -1120,7 +1067,6 @@ class DocumentTree(wx.TreeCtrl):
             "Lab Frame Energy (eV)": ID_xlabel_RT_labFrame,
             "Activation Energy (eV)": ID_xlabel_RT_actLabFrame,
         }
-
         return xlabel_evt_dict.get(xlabel, None)
 
     def on_check_xy_labels_heatmap(self):
@@ -1139,35 +1085,29 @@ class DocumentTree(wx.TreeCtrl):
             #             "Charge": ID_xlabel_2D_charge,
             "Collision Cross Section (Å²)": ID_xlabel_2D_ccs,
         }
-
         ylabel_evt_dict = {
             "Drift time (bins)": ID_ylabel_2D_bins,
             "Drift time (ms)": ID_ylabel_2D_ms,
             "Arrival time (ms)": ID_ylabel_2D_ms_arrival,
             "Collision Cross Section (Å²)": ID_ylabel_2D_ccs,
         }
-
         xlabel, ylabel = self._get_item_label(x=True, y=True)
-
         return xlabel_evt_dict.get(xlabel, ID_xlabel_2D_custom), ylabel_evt_dict.get(ylabel, ID_ylabel_2D_custom)
 
     def on_check_xlabels_dt(self):
         """Check labels of the mobilogram dataset"""
         xlabel, _ = self._get_item_label(x=True)
-
         xlabel_evt_dict = {
             "Drift time (bins)": ID_xlabel_1D_bins,
             "Drift time (ms)": ID_xlabel_1D_ms,
             "Arrival time (ms)": ID_xlabel_1D_ms_arrival,
             "Collision Cross Section (Å²)": ID_xlabel_1D_ccs,
         }
-
         return xlabel_evt_dict.get(xlabel, ID_ylabel_2D_bins)
 
     def on_check_xlabels_dtms(self):
         """Check labels of the DT/MS dataset"""
         _, ylabel = self._get_item_label(y=True)
-
         ylabel_evt_dict = {
             "Drift time (bins)": ID_ylabel_DTMS_bins,
             "Drift time (ms)": ID_ylabel_DTMS_ms,
@@ -1230,9 +1170,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def _on_event_get_mobility_chromatogram_data(self, **kwargs):
         query = self._on_event_get_mobility_chromatogram_query(**kwargs)
-
         document, data = self.data_handling.get_mobility_chromatographic_data(query)
-
         return document, data, query
 
     def _get_query_info_based_on_indent(self, return_subkey=False, evt=None):
@@ -1251,12 +1189,11 @@ class DocumentTree(wx.TreeCtrl):
         """
         if self._item.is_empty is None and evt is not None:
             self.on_item_selecting(evt)
-
         return self._item.get_query(return_subkey)
 
     def _get_delete_info_based_on_indent(self):
         """Generate query_info keywords that are implied from the indentation of the selected item and modify it to
-        enable eaesier determination which items need to be fully deleted (eg. parent) or partial)
+        enable easier determination which items need to be fully deleted (eg. parent) or partial)
 
         Returns
         query_info : list
@@ -1311,7 +1248,6 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_annotation_editor(self, _evt, document_title: str = None, dataset_name: str = None, data_obj=None):
         """Open annotations panel"""
-        # Local imports
         from origami.widgets.annotations.panel_annotation_editor import PanelAnnotationEditor
 
         if self._annotate_panel is not None:
@@ -1344,7 +1280,6 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_duplicate_annotations(self, _evt):
         """Duplicate annotations from one object to another"""
-        # Local imports
         from origami.gui_elements.dialog_select_dataset import DialogSelectDataset
 
         # get data and annotations
@@ -1398,7 +1333,6 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_action_origami_ms(self, _, document_title=None):
         """Open a dialog where you can specify ORIGAMI-MS parameters"""
-        # Local imports
         from origami.widgets.origami_ms.dialog_origami_ms import DialogOrigamiMsSettings
 
         # get document
@@ -1437,7 +1371,6 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_ccs_builder(self, _):
         """Open dialog window where CCS calibration can be created"""
-        # Local imports
         from origami.widgets.ccs.panel_ccs_calibration import PanelCCSCalibration
 
         document_title, _ = self._get_item_info()
@@ -1452,7 +1385,6 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_ccs_editor(self, _, document_title: str = None, calibration_name: str = None, calibration_obj=None):
         """Open dialog window where CCS calibration can be edited"""
-        # Local imports
         from origami.widgets.ccs.panel_ccs_calibration import PanelCCSCalibration
 
         if document_title is None:
@@ -1469,7 +1401,6 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_overlay_editor(self, _):
         """Open a dialog window where you can overlay and compare objects"""
-        # Local imports
         from origami.widgets.overlay.panel_overlay_editor import PanelOverlayEditor
 
         # get list of items
@@ -1481,7 +1412,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_overlay_viewer(self):
         """Open overlay viewer"""
-        # Local imports
+
         from origami.widgets.overlay.panel_overlay_viewer import PanelOverlayViewer
 
         # get data object
@@ -1492,7 +1423,6 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_interactive_editor(self, _):
         """Open a dialog window where you can overlay and compare objects"""
-        # Local imports
         from origami.widgets.interactive.panel_interactive_editor import PanelInteractiveEditor
 
         # get list of items
@@ -1508,7 +1438,6 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_lesa_viewer(self, _):
         """Open a dialog window where you can view LESA data"""
-        # Local imports
         from origami.widgets.lesa.panel_imaging_lesa import PanelImagingLESAViewer
 
         # get document title
@@ -1526,7 +1455,6 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_import_lesa_dataset(self, _):
         """Open a dialog window where you can specify LESA import parameters"""
-        # Local imports
         from origami.widgets.lesa.panel_imaging_lesa_import import PanelImagingImportDataset
 
         self._lesa_import_panel = PanelImagingImportDataset(self.view, self.presenter)
@@ -1534,7 +1462,6 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_import_manual_dataset(self, activation_type, _):
         """Open a dialog window where you can specify CIU/SID import parameters"""
-        # Local imports
         from origami.widgets.manual.panel_manual_import import PanelManualImportDataset
 
         self._manual_import_panel = PanelManualImportDataset(self.view, self.presenter, activation_type=activation_type)
@@ -1675,7 +1602,6 @@ class DocumentTree(wx.TreeCtrl):
 
     def _set_menu_annotations(self, menu):
         # annotations sub menu
-
         if self._item.is_dataset:
             _menu = wx.Menu()
         elif self._item.is_annotation:
@@ -1768,13 +1694,6 @@ class DocumentTree(wx.TreeCtrl):
         )
         self.Bind(wx.EVT_MENU, self.on_show_plot_mass_spectra, menu_action_show_plot_spectrum)
 
-        #         menu_action_show_plot_spectrum_waterfall = make_menu_item(
-        #             parent=menu, text="Show mass spectra as waterfall", bitmap=self._icons.ms
-        #         )
-        #         menu_action_show_plot_spectrum_heatmap = make_menu_item(
-        #             parent=menu, text="Show mass spectra as heatmap", bitmap=self._icons.ms
-        #         )
-
         # process actions
         menu_show_peak_picker_panel = make_menu_item(
             parent=menu, text="Open peak picker...", bitmap=self._icons.highlight
@@ -1819,9 +1738,6 @@ class DocumentTree(wx.TreeCtrl):
 
         # append menu
         if self._item.indent == 2:
-            #             menu.Append(menu_action_show_plot_spectrum_waterfall)
-            #             menu.Append(menu_action_show_plot_spectrum_heatmap)
-            #             menu.AppendSeparator()
             menu.Append(menu_show_comparison_panel)
             menu.Append(menu_action_process_ms_all)
             menu.AppendSeparator()
@@ -1844,7 +1760,6 @@ class DocumentTree(wx.TreeCtrl):
             menu.Append(menu_action_open_data_directory)
 
     def _set_menu_chromatogram(self, menu):
-
         if self._item.indent <= 1:
             return
 
@@ -1913,7 +1828,6 @@ class DocumentTree(wx.TreeCtrl):
             menu.Append(menu_action_open_data_directory)
 
     def _set_menu_mobilogram(self, menu):
-
         if self._item.indent <= 1:
             return
 
@@ -1986,7 +1900,6 @@ class DocumentTree(wx.TreeCtrl):
             menu.Append(menu_action_open_data_directory)
 
     def _set_menu_heatmap(self, menu):
-
         if self._item.indent <= 1:
             return
 
@@ -2118,7 +2031,6 @@ class DocumentTree(wx.TreeCtrl):
             menu.Append(menu_action_open_data_directory)
 
     def _set_menu_msdt(self, menu):
-
         if self._item.indent <= 1:
             return
 
@@ -2302,7 +2214,6 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_right_click_short(self):
         """Right-click menu when clicked on the `Documents` item in the documents tree"""
-
         menu = wx.Menu()
         menu_delete_all = make_menu_item(parent=menu, text="Close all documents", bitmap=self._icons.bin)
 
@@ -2318,18 +2229,8 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_right_click(self, evt):
         """ Create and show up popup menu"""
-
         # Get the current text value for selected item
         item_type = self.GetItemText(evt.GetItem())
-
-        # try:
-        #     query, subkey = self._get_query_info_based_on_indent(return_subkey=True, evt=evt)
-        # except AttributeError:
-        #     LOGGER.debug(
-        #         "Could not obtain right-click query key. Please first left-click on an item in the document tree",
-        #         exc_info=True,
-        #     )
-        #     return
 
         if wx.GetKeyState(wx.WXK_CONTROL):
             self.parent.on_right_click(evt)
@@ -2340,15 +2241,6 @@ class DocumentTree(wx.TreeCtrl):
 
         # Bind events
         self._bind_change_label_events()
-
-        # # self.Bind(wx.EVT_MENU, self.onShowSampleInfo, id=ID_showSampleInfo)
-        # self.Bind(wx.EVT_MENU, self.view.on_open_interactive_output_panel, id=ID_saveAsInteractive)
-        # # self.Bind(wx.EVT_MENU, self.on_process_UVPD, id=ID_docTree_plugin_UVPD)
-        # # self.Bind(wx.EVT_MENU, self.on_open_unidec, id=ID_docTree_show_unidec)
-        # self.Bind(wx.EVT_MENU, self.data_handling.on_add_mzident_file_fcn, id=ID_docTree_add_mzIdentML)
-        # self.Bind(wx.EVT_MENU, self.on_action_origami_ms, id=ID_docTree_action_open_origami_ms)
-        # # self.Bind(wx.EVT_MENU, self.on_open_extract_dtms, id=ID_docTree_action_open_extractDTMS)
-        # # self.Bind(wx.EVT_MENU, self.on_open_extract_data, id=ID_docTree_action_open_extract)
 
         menu = wx.Menu()
         if self._item.is_match("spectrum"):
@@ -2402,7 +2294,7 @@ class DocumentTree(wx.TreeCtrl):
             menu.Append(menu_action_rename_item)
             menu.Append(menu_action_duplicate_item)
 
-        # add generic iitems
+        # add generic items
         if menu.GetMenuItemCount() > 0:
             menu.AppendSeparator()
 
@@ -2415,59 +2307,6 @@ class DocumentTree(wx.TreeCtrl):
         self.PopupMenu(menu)
         menu.Destroy()
         self.SetFocus()
-
-        # self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
-        # self.Bind(wx.EVT_MENU, self.on_change_charge_state, menu_action_assign_charge)
-        # self.Bind(wx.EVT_MENU, self.onShow_and_SavePlot, menu_action_save_image_as)
-
-        # # Sample information
-        # elif itemType == "Sample information":
-        #     menu.Append(ID_showSampleInfo, "Show sample information")
-
-        #
-        #
-
-        #
-        # if self._indent == 1:
-        #     menu.Append(ID_docTree_show_refresh_document, "Refresh document")
-        #     menu.Append(
-        #         make_menu_item(
-        #             parent=menu,
-        #             evt_id=ID_docTree_duplicate_document,
-        #             text="Duplicate document\tShift+D",
-        #             bitmap=self._icons.duplicate,
-        #         )
-        #     )
-        #     menu.Append(menu_action_rename_item)
-        #     menu.AppendSeparator()
-        # menu.AppendMenu(wx.ID_ANY, "Action...", action_menu)
-        # menu.AppendSeparator()
-        # menu.Append(
-        #     make_menu_item(
-        #         parent=menu,
-        #         evt_id=ID_openDocInfo,
-        #         text="Notes, Information, Labels...\tCtrl+I",
-        #         bitmap=self._icons.info,
-        #     )
-        # )
-        # menu.Append(
-        #     make_menu_item(
-        #         parent=menu,
-        #         evt_id=ID_goToDirectory,
-        #         text="Go to folder...\tCtrl+G",
-        #         bitmap=self._icons.folder,
-        #     )
-        # )
-        # menu.Append(
-        #     make_menu_item(
-        #         parent=menu,
-        #         evt_id=ID_saveAsInteractive,
-        #         text="Open interactive output panel...\tShift+Z",
-        #         bitmap=self._icons.bokeh,
-        #     )
-        # )
-        # menu.Append(menu_action_save_document)
-        # menu.Append(menu_action_save_document_as)
 
     def on_change_x_values_and_labels(self, evt):
         """Change xy-axis labels"""
@@ -2491,7 +2330,6 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_spectrum_comparison_viewer(self, _evt):
         """Open panel where user can select mas spectra to compare """
-        # Local imports
         from origami.widgets.comparison.panel_signal_comparison_viewer import PanelSignalComparisonViewer
 
         if self._item_id is None:
@@ -2554,7 +2392,6 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_get_ccs_calibration(self, document: DocumentStore):
         """Get CCS calibration from the document"""
-
         if not document.has_ccs_calibration():
             return
 
@@ -2611,7 +2448,6 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_batch_apply_ccs_calibration(self, _evt):
         """Apply CCS calibration to each object"""
-        # Local imports
         from origami.widgets.ccs.dialog_batch_apply_ccs import DialogBatchApplyCCSCalibration
 
         document_title = ENV.current
@@ -2662,7 +2498,6 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_batch_apply_origami_ms(self, _evt):
         """Apply ORIGAMI-MS settings on the object and create a copy"""
-        # Local imports
         from origami.widgets.origami_ms.dialog_batch_apply_origami_ms import DialogReviewApplyOrigamiMs
 
         document_title = ENV.current
@@ -2680,7 +2515,6 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_process_heatmap_settings(self, **kwargs):
         """Open heatmap processing settings"""
-        # Local imports
         from origami.gui_elements.panel_process_heatmap import PanelProcessHeatmap
 
         panel = PanelProcessHeatmap(self.presenter.view, self.presenter, **kwargs)
@@ -2698,7 +2532,6 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_batch_process_heatmap(self, _evt):
         """Process all clicked heatmap items"""
-        # Local imports
         from origami.gui_elements.dialog_review_editor import DialogReviewProcessHeatmap
 
         item_list = self.on_get_item_list()
@@ -2710,7 +2543,6 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_process_msdt_settings(self, **kwargs):
         """Open mass spectrum processing settings"""
-        # Local imports
         from origami.gui_elements.panel_process_msdt import PanelProcessMSDT
 
         panel = PanelProcessMSDT(self.presenter.view, self.presenter, **kwargs)
@@ -2718,7 +2550,6 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_process_ms_settings(self, **kwargs):
         """Open mass spectrum processing settings"""
-        # Local imports
         from origami.gui_elements.panel_process_spectrum import PanelProcessMassSpectrum
 
         panel = PanelProcessMassSpectrum(self.presenter.view, self.presenter, **kwargs)
@@ -2736,7 +2567,6 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_batch_process_ms(self, _evt):
         """Process all clicked mass spectra items"""
-        # Local imports
         from origami.gui_elements.dialog_review_editor import DialogReviewProcessSpectrum
 
         item_list = self.on_get_item_list()
@@ -2749,7 +2579,6 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_batch_export_figures(self, _evt):
         """Export images in batch"""
-        # Local imports
         from origami.gui_elements.dialog_review_editor import DialogReviewExportFigures
         from origami.gui_elements.dialog_batch_figure_exporter import DialogExportFigures
 
@@ -2788,7 +2617,6 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_batch_export_data(self, _evt):
         """Export data in batch"""
-        # Local imports
         from origami.gui_elements.dialog_review_editor import DialogReviewExportFigures
         from origami.gui_elements.dialog_batch_data_exporter import DialogExportData
 
@@ -2844,7 +2672,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_rename_item(self, _evt):
         """Rename item"""
-        # Local imports
+
         from origami.gui_elements.dialog_rename import DialogRenameObject
 
         if not self._item.is_dataset:
@@ -2926,7 +2754,7 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_show_plot_zoom_on_mass_spectrum(self, ion_name):
         """Zoom-in on an ion"""
-        # Local imports
+
         from origami.utils.labels import get_mz_from_label
 
         try:
@@ -3206,46 +3034,70 @@ class DocumentTree(wx.TreeCtrl):
     #
     #         self.panelInfo.Show()
 
-    def _add_annotation_to_object(self, data, root_obj, check=False):
-        if check:
-            child, cookie = self.GetFirstChild(root_obj)
-            while child.IsOk():
-                if self.GetItemText(child) == "Annotations":
-                    self.Delete(child)
-                child, cookie = self.GetNextChild(root_obj, cookie)
-
-        # add annotations
-        if "annotations" in data and len(data["annotations"]) > 0:
-            branch_item = self.AppendItem(root_obj, "Annotations")
-            self.SetItemImage(branch_item, self.bullets_dict["annot"])
-
-    def _add_unidec_to_object(self, data, root_obj, check=False):
-        if check:
-            child, cookie = self.GetFirstChild(root_obj)
-            while child.IsOk():
-                if self.GetItemText(child) == "UniDec":
-                    self.Delete(child)
-                child, cookie = self.GetNextChild(root_obj, cookie)
-
-        # add unidec results
-        if "unidec" in data:
-            branch_item = self.AppendItem(root_obj, "UniDec")
-            self.SetItemImage(branch_item, self.bullets_dict["mass_spec"])
-            for unidec_name in data["unidec"]:
-                leaf_item = self.AppendItem(branch_item, unidec_name)
-                self.SetItemData(leaf_item, data["unidec"][unidec_name])
-                self.SetItemImage(leaf_item, self.bullets_dict["mass_spec"])
+    #     def _add_annotation_to_object(self, data, root_obj, check=False):
+    #         if check:
+    #             child, cookie = self.GetFirstChild(root_obj)
+    #             while child.IsOk():
+    #                 if self.GetItemText(child) == "Annotations":
+    #                     self.Delete(child)
+    #                 child, cookie = self.GetNextChild(root_obj, cookie)
+    #
+    #         # add annotations
+    #         if "annotations" in data and len(data["annotations"]) > 0:
+    #             branch_item = self.AppendItem(root_obj, "Annotations")
+    #             self.SetItemImage(branch_item, self.bullets["annotation"])
+    #
+    #     def _add_unidec_to_object(self, data, root_obj, check=False):
+    #         if check:
+    #             child, cookie = self.GetFirstChild(root_obj)
+    #             while child.IsOk():
+    #                 if self.GetItemText(child) == "UniDec":
+    #                     self.Delete(child)
+    #                 child, cookie = self.GetNextChild(root_obj, cookie)
+    #
+    #         # add unidec results
+    #         if "unidec" in data:
+    #             branch_item = self.AppendItem(root_obj, "UniDec")
+    #             self.SetItemImage(branch_item, self.bullets["ms_off"])
+    #             for unidec_name in data["unidec"]:
+    #                 leaf_item = self.AppendItem(branch_item, unidec_name)
+    #                 self.SetItemData(leaf_item, data["unidec"][unidec_name])
+    #                 self.SetItemImage(leaf_item, self.bullets["ms_off"])
 
     def _get_group_metadata(self, key):
         parts = key.split("/")
         group_dict = {
-            "MassSpectra": {"title": "Mass Spectra", "image": self.bullets_dict["mass_spec"]},
-            "Chromatograms": {"title": "Chromatograms", "image": self.bullets_dict["rt"]},
-            "Mobilograms": {"title": "Mobilograms", "image": self.bullets_dict["drift_time"]},
-            "IonHeatmaps": {"title": "Heatmaps", "image": self.bullets_dict["heatmap"]},
-            "MSDTHeatmaps": {"title": "Heatmaps (MS/DT)", "image": self.bullets_dict["heatmap"]},
-            "Overlays": {"title": "Overlays", "image": self.bullets_dict["overlay"]},
-            "CCSCalibrations": {"title": "Calibration (CCS)", "image": self.bullets_dict["calibration"]},
+            "MassSpectra": {
+                "title": "Mass Spectra",
+                "image": self.bullets["ms_on"],
+                "image_off": self.bullets["ms_off"],
+            },
+            "Chromatograms": {
+                "title": "Chromatograms",
+                "image": self.bullets["rt_on"],
+                "image_off": self.bullets["rt_off"],
+            },
+            "Mobilograms": {
+                "title": "Mobilograms",
+                "image": self.bullets["dt_on"],
+                "image_off": self.bullets["dt_off"],
+            },
+            "IonHeatmaps": {
+                "title": "Heatmaps",
+                "image": self.bullets["heatmap_on"],
+                "image_off": self.bullets["heatmap_off"],
+            },
+            "MSDTHeatmaps": {
+                "title": "Heatmaps (MS/DT)",
+                "image": self.bullets["msdt_on"],
+                "image_off": self.bullets["msdt_off"],
+            },
+            "Overlays": {"title": "Overlays", "image": self.bullets["overlay"], "image_off": self.bullets["overlay"]},
+            "CCSCalibrations": {
+                "title": "Calibration (CCS)",
+                "image": self.bullets["calibration"],
+                "image_off": self.bullets["calibration"],
+            },
         }
         return group_dict.get(parts[0]), parts[0], parts[1]
 
@@ -3265,20 +3117,20 @@ class DocumentTree(wx.TreeCtrl):
         }
         return group_dict.get(key, key)
 
-    def env_update_document(self, evt, metadata):
-        """Update document based on event change"""
-        print(evt, metadata)
-        # def get_document():
-        #     item, cookie = self.GetFirstChild(self.GetRootItem())
-        #     while item.IsOk():
-        #         if self.GetItemText(item) == title:
-        #             return item
-        #         item, cookie = self.GetNextChild(item, cookie)
-        #     return None
-        #
-        # for title, name in metadata:
-        #     pass
-        #     # print("item", get_document(), name)
+    # def env_update_document(self, evt, metadata):
+    #     """Update document based on event change"""
+    #     print(evt, metadata)
+    #     # def get_document():
+    #     #     item, cookie = self.GetFirstChild(self.GetRootItem())
+    #     #     while item.IsOk():
+    #     #         if self.GetItemText(item) == title:
+    #     #             return item
+    #     #         item, cookie = self.GetNextChild(item, cookie)
+    #     #     return None
+    #     #
+    #     # for title, name in metadata:
+    #     #     pass
+    #     #     # print("item", get_document(), name)
 
     def add_document(self, document: DocumentStore, expand_item=None, expand_all=False):
         """Add document to the document tree"""
@@ -3287,8 +3139,7 @@ class DocumentTree(wx.TreeCtrl):
             raise ValueError("Old-style documents are no longer supported - change the method!")
 
         # Get title for added data
-        title = byte2str(document.title)
-        print("TITLE", title)
+        title = document.title
 
         if not title:
             title = "Document"
@@ -3303,7 +3154,7 @@ class DocumentTree(wx.TreeCtrl):
 
         # Add document
         document_item = self.AppendItem(self.GetRootItem(), title)
-        self.SetItemImage(document_item, self.bullets_dict["document_on"])
+        self.SetItemImage(document_item, self.bullets["document_on"])
         self.SetItemData(document_item, (title, ""))
         self.SetFocusedItem(document_item)
 
@@ -3316,7 +3167,7 @@ class DocumentTree(wx.TreeCtrl):
                 group_item = self.get_item_by_label(group_metadata["title"], document_item)
                 if not group_item:
                     group_item = self.AppendItem(document_item, group_metadata["title"])
-                    self.SetItemImage(group_item, group_metadata["image"])
+                    self.SetItemImage(group_item, group_metadata["image_off"])
                     self.SetItemData(group_item, (title, group_key))
 
                 child_item = self.AppendItem(group_item, child_title)
@@ -3330,7 +3181,7 @@ class DocumentTree(wx.TreeCtrl):
                 item = self.get_item_by_label(expand_item, document_item)
                 if item is not None:
                     self.Expand(item)
-            except Exception:
+            except Exception:  # noqa
                 pass
 
     def _get_document_item(self, document_title: str):
@@ -3457,7 +3308,6 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_about_dataset(self, _evt):
         """Get information about the dataset"""
-        # Local imports
         from origami.gui_elements.panel_dataset_information import PanelDatasetInformation
 
         document_title = ENV.current
@@ -3478,7 +3328,6 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_duplicate_document(self, _evt):
         """Duplicate existing document and load it"""
-        # Local imports
         from origami.utils.path import get_duplicate_name
 
         document = ENV.on_get_document(self._item.title)
@@ -3523,7 +3372,6 @@ class DocumentTree(wx.TreeCtrl):
     #
     def on_open_extract_dtms(self, _evt):
         """Open extraction panel"""
-        # Local imports
         from origami.gui_elements.panel_process_extract_msdt import PanelProcessExtractMSDT
 
         document_title, _ = self._get_item_info()
@@ -3543,7 +3391,6 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_open_peak_picker(self, _evt, document_title: str = None, dataset_name: str = None):
         """Open peak picker"""
-        # Local imports
         from origami.widgets.mz_picker.panel_peak_picker import PanelPeakPicker
 
         # get data and annotations
@@ -3582,7 +3429,6 @@ class DocumentTree(wx.TreeCtrl):
     #
     def on_open_unidec(self, _evt, document_title: str = None, dataset_name: str = None, mz_obj=None):
         """Open UniDec panel which allows processing and visualisation"""
-        # Local imports
         from origami.widgets.unidec.panel_process_unidec import PanelProcessUniDec
 
         if document_title is None or dataset_name is None or mz_obj is None:
@@ -3595,58 +3441,57 @@ class DocumentTree(wx.TreeCtrl):
             )
         self._unidec_panel.Show()
 
-    def get_item_image(self, image_type: str):
-        """Get bullet image that can be used in the DocumentTree"""
-        if image_type in ["main.raw.spectrum", "extracted.spectrum", "main.processed.spectrum", "unidec"]:
-            image = self.bullets_dict["mass_spec_on"]
-        elif image_type == [
-            "ion.heatmap.combined",
-            "ion.heatmap.raw",
-            "ion.heatmap.processed",
-            "main.raw.heatmap",
-            "main.processed.heatmap",
-            "ion.heatmap.comparison",
-        ]:
-            image = self.bullets_dict["heatmap_on"]
-        elif image_type == ["ion.mobilogram", "ion.mobilogram.raw"]:
-            image = self.bullets_dict["drift_time_on"]
-        elif image_type in ["main.chromatogram", "extracted.chromatogram", "ion.chromatogram.combined"]:
-            image = self.bullets_dict["rt_on"]
-        elif image_type in ["annotation"]:
-            image = self.bullets_dict["annot"]
-        else:
-            image = self.bullets_dict["heatmap_on"]
 
-        return image
+#     def get_item_image(self, image_type: str):
+#         """Get bullet image that can be used in the DocumentTree"""
+#         if image_type in ["main.raw.spectrum", "extracted.spectrum", "main.processed.spectrum", "unidec"]:
+#             image = self.bullets["ms_on"]
+#         elif image_type == [
+#             "ion.heatmap.combined",
+#             "ion.heatmap.raw",
+#             "ion.heatmap.processed",
+#             "main.raw.heatmap",
+#             "main.processed.heatmap",
+#             "ion.heatmap.comparison",
+#         ]:
+#             image = self.bullets["heatmap_on"]
+#         elif image_type == ["ion.mobilogram", "ion.mobilogram.raw"]:
+#             image = self.bullets["dt_on"]
+#         elif image_type in ["main.chromatogram", "extracted.chromatogram", "ion.chromatogram.combined"]:
+#             image = self.bullets["rt_on"]
+#         elif image_type in ["annotation"]:
+#             image = self.bullets["annotation"]
+#         else:
+#             image = self.bullets["heatmap_on"]
+#         return image
 
-    def on_update_extracted_patches(self, document_title, data_type, ion_name):
-        """
-        Remove rectangles/patches from plot area. Triggered upon deletion of item
-        from the 'classes' subtree.
-
-        Parameters
-        ----------
-        document_title: str
-            name of document
-        data_type: str
-            name of dataset
-        ion_name: str
-            name of item
-        """
-
-        # remove all patches
-        if data_type == "__all__" or ion_name is None:
-            self.panel_plot.on_clear_patches(plot="MS")
-        # remove specific patch
-        else:
-            rect_label = "{};{}".format(document_title, ion_name)
-            self.panel_plot.plot_remove_patches_with_labels(rect_label, plot_window="MS")
-
-        self.panel_plot.plot_repaint(plot_window="MS")
+#     def on_update_extracted_patches(self, document_title, data_type, ion_name):
+#         """
+#         Remove rectangles/patches from plot area. Triggered upon deletion of item
+#         from the 'classes' subtree.
+#
+#         Parameters
+#         ----------
+#         document_title: str
+#             name of document
+#         data_type: str
+#             name of dataset
+#         ion_name: str
+#             name of item
+#         """
+#
+#         # remove all patches
+#         if data_type == "__all__" or ion_name is None:
+#             self.panel_plot.on_clear_patches(plot="MS")
+#         # remove specific patch
+#         else:
+#             rect_label = "{};{}".format(document_title, ion_name)
+#             self.panel_plot.plot_remove_patches_with_labels(rect_label, plot_window="MS")
+#         self.panel_plot.plot_repaint(plot_window="MS")
 
 
 def _main_popup():
-    # Local imports
+
     from origami.app import App
     from origami.gui_elements._panel import TestPanel  # noqa
 

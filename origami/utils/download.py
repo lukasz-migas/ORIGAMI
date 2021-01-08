@@ -3,9 +3,11 @@
 import os
 import sys
 import logging
+from typing import Optional
 from urllib import request
 
 # Local imports
+from origami.utils.path import copy_file
 from origami.utils.file_compression import unzip_directory
 
 LOGGER = logging.getLogger(__name__)
@@ -29,25 +31,35 @@ def reporthook(block_num, block_size, total_size):
         sys.stderr.write("\rread %d" % (read_size,))
 
 
-def download_file(name, filename=None, output_dir=None, unzip=True, remove_archive=False, use_pwd=True):
+def download_file(
+    name,
+    filename=None,
+    output_dir=None,
+    unzip=True,
+    remove_archive=False,
+    use_pwd=True,
+    copy_to_dir: Optional[str] = None,
+):
     """Download a file.
 
     By default this function download a file to ~/explorer_data.
 
     Parameters
     ----------
-    name : string
+    name : str
         Name of the file to download or url.
-    filename : string | None
+    filename : str
         Name of the file to be saved in case of url.
-    output_dir : string | None
+    output_dir : str
         Download file to the path specified.
-    unzip : bool | False
+    unzip : bool
         Unzip archive if needed.
-    remove_archive : bool | False
+    remove_archive : bool
         Remove archive after unzip.
-    use_pwd : bool | False
+    use_pwd : bool
         Download the file to the current directory.
+    copy_to_dir : str, optional
+        directory where to copy the zipped file
 
     Returns
     -------
@@ -80,7 +92,12 @@ def download_file(name, filename=None, output_dir=None, unzip=True, remove_archi
         # Download file :
         _, _ = request.urlretrieve(url, path_to_file, reporthook=reporthook)
     else:
-        LOGGER.info("File already dowloaded (%s)." % path_to_file)
+        LOGGER.info("File already downloaded (%s)." % path_to_file)
+
+    # copy
+    if copy_to_dir:
+        basename = os.path.basename(path_to_file)
+        copy_file(path_to_file, os.path.join(copy_to_dir, basename))
 
     # Unzip file :
     if unzip:
@@ -89,7 +106,3 @@ def download_file(name, filename=None, output_dir=None, unzip=True, remove_archi
     LOGGER.info("Downloaded (%s)." % path_to_file)
 
     return path_to_file
-
-
-if __name__ == "__main__":
-    download_file("example", astype="test_data")

@@ -107,7 +107,7 @@ class PanelGridNxNSettings(PanelSettingsBase):
 
 
 def _main():
-    # Local imports
+
     from origami.app import App
 
     class _TestFrame(wx.Frame):
