@@ -1,6 +1,7 @@
 """Various mixin classes used by the GUI elements"""
 # Standard library imports
 import logging
+import webbrowser
 
 # Third-party imports
 import wx
@@ -37,11 +38,11 @@ class DocumentationMixin:
 
     def on_open_info(self, _evt):
         """Open help window to inform user on how to use this window / panel"""
-
         from origami.gui_elements.panel_html_viewer import PanelHTMLViewer
 
         if self.HELP_LINK:
-            PanelHTMLViewer(self, link=self.HELP_LINK)
+            webbrowser.open_new_tab(self.HELP_LINK)
+        #             PanelHTMLViewer(self, link=self.HELP_LINK)
         elif self.HELP_MD:
             PanelHTMLViewer(self, md_msg=self.HELP_MD)
 
@@ -264,6 +265,47 @@ class ConfigUpdateMixin:
 
     def _on_set_config(self):
         """Update values from configuration file"""
+
+
+class PopupNotificationMixin:
+    """Mixin class to enable creation of popups directly on widget"""
+
+    popup_mgr = None
+
+    def _popup_mixin_setup(self):
+        """Setup mixin class"""
+        from origami.gui_elements.popup_toast import PopupToastManager
+
+        self.popup_mgr = PopupToastManager(self)
+
+    def _popup_mixin_teardown(self):
+        """Teardown/cleanup mixin class"""
+        del self.popup_mgr
+
+    def on_notify(self, message: str, kind: str = "info", delay: int = 3000):
+        """Notify user of some event"""
+        # restricts notifications based on user settings
+        notification_levels = {"success": 10, "info": 20, "warning": 30, "error": 40}
+        app_level = notification_levels[CONFIG.APP_NOTIFICATION_LEVEL]
+        kind_level = notification_levels[kind.lower()]
+        if kind_level >= app_level:
+            wx.CallAfter(self.popup_mgr.show_popup, message, kind, delay)
+
+    def on_notify_info(self, message: str):
+        """Notify user of event using INFO style"""
+        self.on_notify(message)
+
+    def on_notify_success(self, message: str):
+        """Notify user of event using INFO style"""
+        self.on_notify(message, "success")
+
+    def on_notify_warning(self, message: str):
+        """Notify user of event using INFO style"""
+        self.on_notify(message, "warning")
+
+    def on_notify_error(self, message: str):
+        """Notify user of event using INFO style"""
+        self.on_notify(message, "error")
 
 
 class ParentSizeMixin:

@@ -65,7 +65,8 @@ class ConfigBase:
         try:
             config = read_json_data(path)
         except FileNotFoundError:
-            LOGGER.warning(f"Configuration file does not exist : {path}")
+            LOGGER.warning(f"Configuration file does not exist: {path}")
+            self.save_config(path)
             return
 
         if not isinstance(config, dict):
@@ -236,6 +237,7 @@ class Config(ConfigBase):
         self.APP_LOAD_CCS_DB_AT_START = True
         self.APP_SYSTEM = platform.system()
         self.APP_START_TIME = time.strftime("%Y_%m_%d-%H-%M-%S", time.gmtime())
+        self.APP_NOTIFICATION_LEVEL: str = "success"
 
         # Configurable
         self.version = __version__

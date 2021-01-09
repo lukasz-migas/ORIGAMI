@@ -20,10 +20,8 @@ from origami.ids import ID_helpAuthor
 from origami.ids import ID_helpGitHub
 from origami.ids import ID_window_all
 from origami.ids import ID_helpYoutube
-from origami.ids import ID_fileMenu_MGF
 from origami.ids import ID_helpHomepage
 from origami.ids import ID_saveDocument
-from origami.ids import ID_fileMenu_mzML
 from origami.ids import ID_helpHTMLEditor
 from origami.ids import ID_helpNewVersion
 from origami.ids import ID_helpReportBugs
@@ -119,7 +117,6 @@ class MainWindow(wx.Frame):
         # keep track of which windows are managed
         self._managed_windows = dict()
         self._n_managed_windows = 0
-        self._notification_level = "success"
 
         # Bind commands to events
         self.Bind(wx.EVT_CLOSE, self.on_close)
@@ -213,14 +210,13 @@ class MainWindow(wx.Frame):
 
         # when in development, move the app to another display
         if CONFIG.debug:
-
             from origami.utils.screen import move_to_different_screen
 
             move_to_different_screen(self)
 
         # run action(s) delayed
         self.run_delayed(self._on_check_latest_version)
-        self.add_timer_event(self.on_export_config_fcn, "save.config", 120)
+        self.add_timer_event(self.on_export_config_fcn, "save.config", 180)
 
     @staticmethod
     def run_delayed(func, *args, delay: int = 3000, **kwargs):
@@ -266,7 +262,7 @@ class MainWindow(wx.Frame):
         """Notify user of some event"""
         # restricts notifications based on user settings
         notification_levels = {"success": 10, "info": 20, "warning": 30, "error": 40}
-        app_level = notification_levels[self._notification_level]
+        app_level = notification_levels[CONFIG.APP_NOTIFICATION_LEVEL]
         kind_level = notification_levels[kind.lower()]
         if kind_level >= app_level:
             wx.CallAfter(self.popup_mgr.show_popup, message, kind, delay)
@@ -420,9 +416,9 @@ class MainWindow(wx.Frame):
         self.menu_recent_files = wx.Menu()
         self.on_update_recent_files()
 
-        menu_tandem = wx.Menu()
-        menu_tandem.Append(ID_fileMenu_MGF, "Open Mascot Generic Format file (.mgf) [MS/MS]")
-        menu_tandem.Append(ID_fileMenu_mzML, "Open mzML (.mzML) [MS/MS]")
+        #         menu_tandem = wx.Menu()
+        #         menu_tandem.Append(ID_fileMenu_MGF, "Open Mascot Generic Format file (.mgf) [MS/MS]")
+        #         menu_tandem.Append(ID_fileMenu_mzML, "Open mzML (.mzML) [MS/MS]")
 
         menu_file = wx.Menu()
         menu_file.Append(ID_fileMenu_openRecent, "Open Recent", self.menu_recent_files)
@@ -471,15 +467,15 @@ class MainWindow(wx.Frame):
         )
         menu_open_thermo.Enable(APP_ENABLER.ALLOW_THERMO_EXTRACTION)
 
-        menu_file.AppendSeparator()
+        #         menu_file.AppendSeparator()
         menu_file_text_ms = make_menu_item(parent=menu_file, text="Open mass spectrum file(s) (.csv; .txt; .tab)")
         menu_file.Append(menu_file_text_ms)
         menu_file_text_heatmap = make_menu_item(
             parent=menu_file, text="Open heatmap file(s) (.csv; .txt; .tab)\tCtrl+Shift+T", bitmap=self._icons.csv
         )
         menu_file.Append(menu_file_text_heatmap)
-        menu_file.AppendSeparator()
-        menu_file.Append(wx.ID_ANY, "Open MS/MS files...", menu_tandem)
+        #         menu_file.AppendSeparator()
+        #         menu_file.Append(wx.ID_ANY, "Open MS/MS files...", menu_tandem)
         menu_file.AppendSeparator()
         menu_file_clipboard_ms = make_menu_item(
             parent=menu_file,
@@ -871,8 +867,8 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_save_document, id=ID_saveDocument)
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_multiple_text_ms_fcn, menu_file_text_ms)
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_single_clipboard_ms, menu_file_clipboard_ms)
-        self.Bind(wx.EVT_MENU, self.data_handling.on_open_mgf_file_fcn, id=ID_fileMenu_MGF)
-        self.Bind(wx.EVT_MENU, self.data_handling.on_open_mzml_file_fcn, id=ID_fileMenu_mzML)
+        #         self.Bind(wx.EVT_MENU, self.data_handling.on_open_mgf_file_fcn, id=ID_fileMenu_MGF)
+        #         self.Bind(wx.EVT_MENU, self.data_handling.on_open_mzml_file_fcn, id=ID_fileMenu_mzML)
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_thermo_file_fcn, menu_open_thermo)
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_waters_raw_ms_fcn, menu_file_waters_ms)
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_waters_raw_imms_fcn, menu_file_waters_imms)
@@ -937,7 +933,6 @@ class MainWindow(wx.Frame):
     @staticmethod
     def _dev_open_wxpython_inspector(_evt):
         """Opens wxpython inspector"""
-
         import wx.lib.inspection
 
         wx.lib.inspection.InspectionTool().Show()
@@ -973,7 +968,7 @@ class MainWindow(wx.Frame):
             "Notification: WARNING": "warning",
             "Notification: ERROR": "error",
         }.get(name, "success")
-        self._notification_level = level
+        CONFIG.APP_NOTIFICATION_LEVEL = level
         self.on_notify(f"Changed notification level so only messages with priority >= `{level}` will be shown", level)
 
     def on_log_open_dir(self, _evt):
@@ -1005,7 +1000,7 @@ class MainWindow(wx.Frame):
     @staticmethod
     def on_import_config_fcn(_evt):
         """Load configuration file from the default path"""
-        config_path = os.path.join(CONFIG.APP_CWD, CONFIG.DEFAULT_CONFIG_NAME)
+        config_path = os.path.join(CONFIG.APP_CONFIG_DIR, CONFIG.DEFAULT_CONFIG_NAME)
         QUEUE.add_call(CONFIG.load_config, (config_path,))
 
     def on_import_config_as_fcn(self, _evt):
@@ -1221,29 +1216,29 @@ class MainWindow(wx.Frame):
         menu.Destroy()
         self.SetFocus()
 
-    def on_open_source_menu(self, _evt):
-        """Open menu to load MGF/mzML file(s)"""
-
-        menu = wx.Menu()
-        menu.Append(
-            make_menu_item(
-                parent=menu,
-                evt_id=ID_fileMenu_MGF,
-                text="Open Mascot Generic Format file (.mgf) [MS/MS]",
-                # bitmap=self.icons.iconsLib["blank_16"],
-            )
-        )
-        menu.Append(
-            make_menu_item(
-                parent=menu,
-                evt_id=ID_fileMenu_mzML,
-                text="Open mzML (.mzML) [MS/MS]",
-                # bitmap=self.icons.iconsLib["blank_16"],
-            )
-        )
-        self.PopupMenu(menu)
-        menu.Destroy()
-        self.SetFocus()
+    #     def on_open_source_menu(self, _evt):
+    #         """Open menu to load MGF/mzML file(s)"""
+    #
+    #         menu = wx.Menu()
+    #         menu.Append(
+    #             make_menu_item(
+    #                 parent=menu,
+    #                 evt_id=ID_fileMenu_MGF,
+    #                 text="Open Mascot Generic Format file (.mgf) [MS/MS]",
+    #                 # bitmap=self.icons.iconsLib["blank_16"],
+    #             )
+    #         )
+    #         menu.Append(
+    #             make_menu_item(
+    #                 parent=menu,
+    #                 evt_id=ID_fileMenu_mzML,
+    #                 text="Open mzML (.mzML) [MS/MS]",
+    #                 # bitmap=self.icons.iconsLib["blank_16"],
+    #             )
+    #         )
+    #         self.PopupMenu(menu)
+    #         menu.Destroy()
+    #         self.SetFocus()
 
     def make_toolbar(self, style=wx.TB_HORIZONTAL):
         """Make toolbar"""
@@ -1341,8 +1336,8 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_TOOL, self.data_handling.on_open_waters_raw_imms_fcn, tool_open_masslynx)
         self.Bind(wx.EVT_TOOL, self.on_open_new_file, tool_import_data)
         self.Bind(wx.EVT_TOOL, self.data_handling.on_open_thermo_file_fcn, tool_open_thermo)
-        self.Bind(wx.EVT_TOOL, self.on_open_source_menu, tool_open_msms)
-        self.Bind(wx.EVT_TOOL_DROPDOWN, self.on_open_source_menu, tool_open_msms)
+        #         self.Bind(wx.EVT_TOOL, self.on_open_source_menu, tool_open_msms)
+        #         self.Bind(wx.EVT_TOOL_DROPDOWN, self.on_open_source_menu, tool_open_msms)
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_interactive_editor, tool_action_bokeh)
         self.Bind(wx.EVT_MENU, self.on_rotate_toolbar, tool_action_rotate)
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "General"), tool_action_global)
@@ -1550,7 +1545,6 @@ class MainWindow(wx.Frame):
 
         def _startup_module():
             """Initialize the panel"""
-            CONFIG.interactiveParamsWindow_on_off = True
             self.panel_interactive_output = PanelInteractiveCreator(self, self.icons, self.presenter, CONFIG)
             self.panel_interactive_output.Show()
 
@@ -1562,7 +1556,6 @@ class MainWindow(wx.Frame):
 
         def _startup_module():
             """Initialize the panel"""
-            CONFIG.interactiveParamsWindow_on_off = True
             if self.panel_interactive_output:
                 self.panel_interactive_output.Show()
             else:
@@ -1629,26 +1622,6 @@ class MainWindow(wx.Frame):
     def on_update_recent_files(self):
         """Update the list of recent files that is shown in the `File` menu"""
         self.set_recent_files_menu(self.menu_recent_files)
-        #         # clear menu
-        #         for item in self.menu_recent_files.GetMenuItems():
-        #             self.menu_recent_files.Delete(item.GetId())
-        #
-        #         # populate menu
-        #         for i, __ in enumerate(CONFIG.recent_files, start=1):
-        #             document_id = eval("wx.ID_FILE" + str(i))
-        #             path = CONFIG.recent_files[i - 1]["path"]
-        #             self.menu_recent_files.Insert(i - 1, document_id, path, "Open Document")
-        #             self.Bind(wx.EVT_MENU, self.on_open_recent_file, id=document_id)
-        #             if not os.path.exists(path):
-        #                 self.menu_recent_files.Enable(document_id, False)
-        #
-        #         # append clear
-        #         if len(CONFIG.recent_files) > 0:
-        #             self.menu_recent_files.AppendSeparator()
-        #
-        #         # add an option to clear the menu
-        #         self.menu_recent_files.Append(ID_fileMenu_clearRecent, "Clear Menu", "Clear recent items")
-        #         self.Bind(wx.EVT_MENU, self.on_clear_recent_files, id=ID_fileMenu_clearRecent)
         logger.debug("Updated list of recent files")
 
     def on_clear_recent_files(self, _evt):

@@ -20,6 +20,7 @@ from origami.utils.converters import str2num
 from origami.utils.exceptions import MessageError
 from origami.gui_elements.mixins import DatasetMixin
 from origami.gui_elements.mixins import ConfigUpdateMixin
+from origami.gui_elements.mixins import PopupNotificationMixin
 from origami.gui_elements.helpers import set_tooltip
 from origami.gui_elements.helpers import make_tooltip
 from origami.gui_elements.helpers import make_checkbox
@@ -46,7 +47,7 @@ from origami.widgets.unidec.processing.containers import UniDecResultsObject
 logger = logging.getLogger(__name__)
 
 TEXTCTRL_SIZE = (40, -1)
-BTN_SIZE = (100, -1)
+BTN_SIZE = (-1, -1)
 
 # TODO: Add table
 # TODO: Add display difference and FWHM
@@ -59,7 +60,7 @@ BTN_SIZE = (100, -1)
 # TODO: speed up pre-processing by cythonizing the binning methods
 
 
-class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
+class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin, PopupNotificationMixin):
     """UniDec panel"""
 
     # module specific parameters
@@ -139,6 +140,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         """Setup window"""
         self._config_mixin_setup()
         self._dataset_mixin_setup()
+        self._popup_mixin_setup()
         if self.PUB_SUBSCRIBE_EVENT:
             pub.subscribe(self.on_process, self.PUB_SUBSCRIBE_EVENT)
 
@@ -195,7 +197,9 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
             )
             return
         self.mz_obj.set_unidec_result(unidec_result)
+        self.unsaved = False
         logger.info(f"Saved UniDec results in {report_time(t_start)}")
+        self.on_notify_info(f"Saved UniDec results in {report_time(t_start)}")
 
     def on_close(self, evt, force: bool = False):
         """Close window"""
@@ -211,6 +215,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
 
         self._config_mixin_teardown()
         self._dataset_mixin_teardown()
+        self._popup_mixin_teardown()
         try:
             if self.PUB_SUBSCRIBE_EVENT:
                 pub.unsubscribe(self.on_process, self.PUB_SUBSCRIBE_EVENT)
@@ -249,8 +254,8 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
 
         self.plot_panel = self.make_plot_panel(self)
         self.plot_settings = PanelCustomiseUniDecVisuals(self, self.view)
-        self.plot_settings.SetMinSize((350, -1))
-        self.plot_settings.SetMaxSize((400, -1))
+        self.plot_settings.SetMinSize((375, -1))
+        self.plot_settings.SetMaxSize((425, -1))
         self.plot_settings.Hide()
 
         # pack element
@@ -465,19 +470,19 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
 
     def make_buttons_settings_panel(self, panel, grid, n: int, n_span: int, n_col: int):  # noqa
         """Make buttons sub-section"""
-        self.unidec_auto_btn = make_bitmap_btn(panel, -1, self._icons.rocket)
+        self.unidec_auto_btn = make_bitmap_btn(panel, -1, self._icons.rocket, flat=True)
         self.unidec_auto_btn.Bind(wx.EVT_BUTTON, self.on_auto_unidec)
         self.unidec_auto_btn.SetToolTip(make_tooltip("Run all..."))
 
-        self.unidec_init_btn = make_bitmap_btn(panel, -1, self._icons.run)
+        self.unidec_init_btn = make_bitmap_btn(panel, -1, self._icons.run, flat=True)
         self.unidec_init_btn.Bind(wx.EVT_BUTTON, self.on_initialize_unidec)
         self.unidec_init_btn.SetToolTip(make_tooltip("Initialize and pre-process..."))
 
-        self.unidec_unidec_btn = make_bitmap_btn(panel, -1, self._icons.unidec)
+        self.unidec_unidec_btn = make_bitmap_btn(panel, -1, self._icons.unidec, flat=True)
         self.unidec_unidec_btn.Bind(wx.EVT_BUTTON, self.on_run_unidec)
         self.unidec_unidec_btn.SetToolTip(make_tooltip("Run UniDec..."))
 
-        self.unidec_peak_btn = make_bitmap_btn(panel, -1, self._icons.peak)
+        self.unidec_peak_btn = make_bitmap_btn(panel, -1, self._icons.peak, flat=True)
         self.unidec_peak_btn.Bind(wx.EVT_BUTTON, self.on_detect_peaks_unidec)
         self.unidec_peak_btn.SetToolTip(make_tooltip("Detect peaks..."))
 
@@ -485,11 +490,11 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         self.unidec_save_btn.Bind(wx.EVT_BUTTON, self.on_save)
         self.unidec_save_btn.SetToolTip(make_tooltip("Save currently present data..."))
 
-        self.unidec_cancel_btn = wx.Button(panel, wx.ID_OK, "Cancel", size=(-1, -1))
+        self.unidec_cancel_btn = wx.Button(panel, wx.ID_OK, "Close", size=(-1, -1))
         self.unidec_cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
         self.unidec_cancel_btn.SetToolTip(make_tooltip("Close window..."))
 
-        self.unidec_customise_btn = make_bitmap_btn(panel, -1, self._icons.gear)
+        self.unidec_customise_btn = make_bitmap_btn(panel, -1, self._icons.gear, flat=True)
         self.unidec_customise_btn.SetToolTip(make_tooltip("Open customisation window..."))
         self.unidec_customise_btn.Bind(wx.EVT_BUTTON, self.on_open_customisation_settings)
 
@@ -1006,6 +1011,9 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         self._unidec_sort_column = 1 if self._unidec_sort_column == 0 else 0
 
         mass_list = self.weight_list_choice.GetItems()
+        if not mass_list:
+            logger.debug("Mass list is empty")
+            return
         mass_list = unidec_sort_mw_list(mass_list, self._unidec_sort_column)
 
         self.weight_list_choice.SetItems(mass_list)
@@ -1014,9 +1022,10 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
     def on_show_peaks_unidec(self, evt):
         """Show peaks"""
         self.on_apply(None)
-        self.on_show_individual_peaks(CONFIG.unidec_engine.data)
-        if evt is not None:
-            evt.Skip()
+        if CONFIG.unidec_engine is not None:
+            self.on_show_individual_peaks(CONFIG.unidec_engine.data)
+            if evt is not None:
+                evt.Skip()
 
     def on_process(self):
         """Process mass spectrum"""
@@ -1243,6 +1252,9 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
     def on_isolate_peak_unidec(self, _evt):
         """Isolate peaks"""
         mw = self.weight_list_choice.GetStringSelection()
+        if not mw:
+            self.on_notify_error("Could not determine molecular weight from the selection")
+            return
         x, y, array, labels, line_colors, face_colors = CONFIG.unidec_engine.data.get_ms_per_mw_isolate(mw)
         self.view_peaks.plot_waterfall(x, y, array, line_colors=line_colors, face_colors=face_colors, labels=labels)
         self.on_show_charge_states_unidec(None)
@@ -1252,7 +1264,11 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin):
         self.on_apply(None)
         self.view_peaks.remove_labels(start_with="charge", repaint=False)
         self.view_peaks.remove_lines(repaint=False)
-        mol_weight = float(self.weight_list_choice.GetStringSelection().split()[1])
+        mol_weight = self.weight_list_choice.GetStringSelection()
+        if not mol_weight:
+            self.on_notify_error("Could not determine molecular weight from the selection")
+            return
+        mol_weight = float(mol_weight.split()[1])
         adduct_ion = self.adduct_choice.GetStringSelection()
         unidec_result = CONFIG.unidec_engine.data
 

@@ -54,9 +54,8 @@ from origami.ids import ID_ylabel_DTMS_ms_arrival
 from origami.icons.assets import Icons
 from origami.utils.secret import get_short_hash
 from origami.config.config import CONFIG
-from origami.utils.utilities import report_time
+from origami.utils.utilities import report_time, notify_warning
 from origami.objects.document import DocumentStore
-from origami.utils.converters import byte2str
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
 from origami.config.environment import PUB_EVENT_ENV_ADD
@@ -553,7 +552,7 @@ class DocumentTree(wx.TreeCtrl):
         if self._item_id is None:
             return document.title, None
         try:
-            _, obj_title = self.GetPyData(self._item_id)
+            _, obj_title = self.GetItemData(self._item_id)
         except TypeError:
             return None, None
         return document.title, obj_title
@@ -622,7 +621,7 @@ class DocumentTree(wx.TreeCtrl):
         # Get indent level for selected item
         self._indent = self.get_item_indent(self._item_id)
         if self._indent >= 1:
-            title, _ = self.GetPyData(self._item_id)
+            title, _ = self.GetItemData(self._item_id)
             if self._indent == 1:
                 root = self.GetItemText(self.GetItemParent(self._item_id))
             else:
@@ -778,9 +777,9 @@ class DocumentTree(wx.TreeCtrl):
         item, cookie = self.GetFirstChild(root)
 
         while item.IsOk():
-            if self.GetPyData(item) is data:
+            if self.GetItemData(item) is data:
                 return item
-            elif self.GetPyData(item) == data:
+            elif self.GetItemData(item) == data:
                 return item
             if self.ItemHasChildren(item):
                 match = self.get_item_by_data(data, item)
@@ -1299,7 +1298,8 @@ class DocumentTree(wx.TreeCtrl):
             document_list,
             document_spectrum_dict,
             set_document=document_title,
-            title="Copy annotations to document/dataset...",
+            title="Copy annotations to document/dataset",
+            message="Please select the document and dataset to which the annotations should be copied to.",
         )
         duplicate_dlg.ShowModal()
         duplicate_document = duplicate_dlg.document
@@ -1307,9 +1307,11 @@ class DocumentTree(wx.TreeCtrl):
 
         if any(item is None for item in [duplicate_type, duplicate_document]):
             LOGGER.warning("Duplicating annotations was cancelled")
+            notify_warning("Duplicating annotations was cancelled")
             return
         if dataset_name == duplicate_type:
             LOGGER.warning("Tried to copy annotations to the parent object - cancelled.")
+            notify_warning("Tried to copy annotations to the parent object - cancelled.")
             return
 
         # make copy of the annotations
@@ -2133,6 +2135,7 @@ class DocumentTree(wx.TreeCtrl):
 
     @staticmethod
     def _get_menu_overlay(menu):
+        """Get menu for overlay items"""
         # # statistical method
         # elif self._document_type == "Statistical":
         #     # Only if clicked on an item and not header
@@ -2181,10 +2184,9 @@ class DocumentTree(wx.TreeCtrl):
         #         menu.Append(menu_action_rename_item)
         #     else:
         #         menu.Append(menu_action_delete_item)
-        return None
 
     def _set_menu_annotated(self, menu):
-        pass
+        """Set menu for annotations"""
         # # annotated data
         # elif dataset_type == "Annotated data":
         #     if dataset_type == dataset_name:
@@ -2221,7 +2223,6 @@ class DocumentTree(wx.TreeCtrl):
         self.Bind(wx.EVT_MENU, self.on_delete_all_documents, menu_delete_all)
 
         # make menu
-        # menu.Append(menu_save_all)
         menu.Append(menu_delete_all)
         self.PopupMenu(menu)
         menu.Destroy()
@@ -2264,9 +2265,6 @@ class DocumentTree(wx.TreeCtrl):
 
         menu_action_rename_item = make_menu_item(parent=menu, text="Rename\tF2", bitmap=self._icons.edit)
         menu_action_duplicate_item = make_menu_item(parent=menu, text="Duplicate item", bitmap=self._icons.duplicate)
-        # menu_action_show_unidec_results = make_menu_item(
-        #     parent=menu, evt_id=ID_docTree_show_unidec, text="Show UniDec results", bitmap=None
-        # )
 
         menu_action_open_directory = make_menu_item(
             parent=menu, text="Reveal Document directory in File Explorer", bitmap=self._icons.explorer

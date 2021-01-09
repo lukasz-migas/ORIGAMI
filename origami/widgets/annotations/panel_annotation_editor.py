@@ -28,9 +28,10 @@ from origami.utils.exceptions import MessageError
 from origami.objects.containers import DataObject
 from origami.gui_elements._panel import TestPanel  # noqa
 from origami.gui_elements.mixins import DatasetMixin
+from origami.gui_elements.mixins import PopupNotificationMixin
 from origami.objects.annotations import Annotation
 from origami.objects.annotations import Annotations
-from origami.gui_elements.helpers import make_checkbox
+from origami.gui_elements.helpers import make_checkbox, set_tooltip
 from origami.gui_elements.helpers import make_menu_item
 from origami.gui_elements.helpers import make_bitmap_btn
 from origami.gui_elements.panel_base import TableMixin
@@ -41,6 +42,7 @@ from origami.gui_elements.views.view_spectrum import ViewMobilogram
 from origami.gui_elements.views.view_spectrum import ViewChromatogram
 from origami.gui_elements.views.view_spectrum import ViewMassSpectrum
 from origami.widgets.annotations.popup_annotations_settings import PopupAnnotationSettings
+from origami.gui_elements.helpers import TableConfig
 
 logger = logging.getLogger(__name__)
 
@@ -62,76 +64,18 @@ class TableColumnIndex(IntEnum):
     name = 6
 
 
-class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin):
+class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin, PopupNotificationMixin):
     """UI component of the Annotation Editor"""
 
-    TABLE_CONFIG = {
-        0: {
-            "name": "",
-            "tag": "check",
-            "type": "bool",
-            "width": 25,
-            "show": True,
-            "order": 0,
-            "id": wx.NewIdRef(),
-            "hidden": True,
-        },
-        1: {
-            "name": "label",
-            "tag": "label",
-            "type": "str",
-            "width": 200,
-            "show": True,
-            "order": 1,
-            "id": wx.NewIdRef(),
-        },
-        2: {
-            "name": "label color",
-            "tag": "label_color",
-            "type": "color",
-            "width": 100,
-            "show": True,
-            "order": 2,
-            "id": wx.NewIdRef(),
-        },
-        3: {
-            "name": "arrow",
-            "tag": "arrow_show",
-            "type": "str",
-            "width": 45,
-            "show": True,
-            "order": 3,
-            "id": wx.NewIdRef(),
-        },
-        4: {
-            "name": "patch",
-            "tag": "patch_show",
-            "type": "str",
-            "width": 45,
-            "show": True,
-            "order": 4,
-            "id": wx.NewIdRef(),
-        },
-        5: {
-            "name": "patch color",
-            "tag": "patch_color",
-            "type": "color",
-            "width": 100,
-            "show": True,
-            "order": 5,
-            "id": wx.NewIdRef(),
-        },
-        6: {
-            "name": "name",
-            "tag": "name",
-            "type": "str",
-            "width": 0,
-            "show": False,
-            "order": 6,
-            "id": wx.NewIdRef(),
-            "hidden": True,
-        },
-    }
+    TABLE_CONFIG = TableConfig()
+    TABLE_CONFIG.add("", "check", "bool", 25, hidden=True)
+    TABLE_CONFIG.add("label", "label", "str", 250)
+    TABLE_CONFIG.add("label color", "label_color", "color", 120)
+    TABLE_CONFIG.add("arrow", "arrow_show", "str", 65)
+    TABLE_CONFIG.add("patch", "patch_show", "str", 65)
+    TABLE_CONFIG.add("patch color", "patch_color", "color", 120)
+    TABLE_CONFIG.add("name", "name", "str", 0, hidden=True)
+
     TABLE_COLUMN_INDEX = TableColumnIndex
     TABLE_KWARGS = dict(color_0_to_1=True)
     PUB_SUBSCRIBE_MAKE_EVENT = "editor.mark.annotation"
@@ -228,15 +172,15 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin):
         self.sanity_check()
         self.make_gui()
 
-        # initialize correct view
-        self.setup()
-
         # data
         self.document_title = document_title
         self.dataset_name = dataset_name
         if data_obj:
             self.data_obj = data_obj
             self.annotations = self.data_obj.get_annotations()
+
+        # initialize correct view
+        self.setup()
 
         # setup panel scrolling - this should only be done when running full application rather than when running
         # under pytest
@@ -297,6 +241,7 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin):
         self.on_toggle_controls(None)
         self.bind_events()
         self._dataset_mixin_setup()
+        self._popup_mixin_setup()
 
     def sanity_check(self):
         """Perform self-check"""
@@ -325,7 +270,7 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin):
         # show
         self.Layout()
         self.Show()
-        self.CentreOnScreen()
+        self.CenterOnParent()
         self.SetFocus()
 
     def make_plot_panel(self, split_panel):
@@ -419,9 +364,14 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin):
 
         # make buttons
         self.add_btn = wx.Button(panel, wx.ID_OK, "Add", size=(-1, -1))
+        set_tooltip(self.add_btn, "Add current item to table. If item is already present, its values will be updated.")
         self.remove_btn = wx.Button(panel, wx.ID_OK, "Remove", size=(-1, -1))
+        set_tooltip(self.remove_btn, "Remove currently selected item.")
         self.show_btn = wx.Button(panel, wx.ID_OK, "Show ▼", size=(-1, -1))
+        set_tooltip(self.show_btn, "Modify the way item(s) are shown in the image.")
         self.action_btn = wx.Button(panel, wx.ID_OK, "Action ▼", size=(-1, -1))
+        set_tooltip(self.action_btn, "Perform some actions in batch mode.")
+
         self.settings_btn = make_bitmap_btn(
             panel,
             wx.ID_ANY,
@@ -596,8 +546,8 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin):
             pub.unsubscribe(self.edit_patch_from_mouse_evt, self.PUB_SUBSCRIBE_MOVE_PATCH_EVENT)
         except Exception as err:
             logger.error("Failed to unsubscribe events: %s" % err)
-
         self._dataset_mixin_teardown()
+        self._popup_mixin_teardown()
 
         try:
             self.document_tree._annotate_panel = None
@@ -851,7 +801,7 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin):
             x_max = annotation_obj.span_x_max
 
             try:
-                y_max = self.data_obj.get_intensity_at_loc(x_min, x_max)  # noqa
+                y_max = self.data_obj.get_y_at_loc(x_min, x_max)  # noqa
             except ValueError:
                 logger.warning("Could not get intensity at the position")
                 continue
@@ -1129,7 +1079,7 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin):
         if obj_name == "patch_show":
             annotation_obj.patch_show = obj_value
         elif obj_name == "arrow_show":
-            annotation_obj.patch_show = obj_value
+            annotation_obj.arrow_show = obj_value
         elif obj_name == "label_color":
             annotation_obj.label_color = obj_value
         elif obj_name == "patch_color":

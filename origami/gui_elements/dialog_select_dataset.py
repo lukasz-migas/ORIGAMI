@@ -29,11 +29,13 @@ class DialogSelectDataset(Dialog):
         document_list: List,
         dataset_list: Dict[str, List[str]],
         set_document: str = None,
-        title="Select document/dataset pair",
+        title: str = "Select document/dataset pair",
+        message: str = "",
     ):
         Dialog.__init__(self, parent, title=title, size=(500, 300))
         self._document_list = document_list
         self._dataset_list = dataset_list
+        self._message = message if message else title
 
         # make gui items
         self.make_gui()
@@ -75,6 +77,8 @@ class DialogSelectDataset(Dialog):
         """Make panel"""
 
         panel = wx.Panel(self, -1)
+        msg = wx.StaticText(panel, -1, self._message)
+        msg.Wrap(500)
 
         self.document_list_choice = wx.ComboBox(
             panel, -1, choices=self._document_list, size=(400, -1), style=wx.CB_READONLY
@@ -94,7 +98,8 @@ class DialogSelectDataset(Dialog):
 
         # pack elements
         grid = wx.GridBagSizer(5, 5)
-        n = 0
+        grid.Add(msg, (n, 0), wx.GBSpan(1, 4), flag=wx.ALIGN_CENTER)
+        n += 1
         grid.Add(wx.StaticText(panel, -1, "Document:"), (n, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.document_list_choice, (n, 1), wx.GBSpan(1, 3))
         n += 1

@@ -130,10 +130,9 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin):
             page_id = window
         else:
             page_id = CONFIG.extraParamsWindow[window]
-
         self.main_book.SetSelection(page_id)
-
-    #         self.on_page_changed(None)
+        if CONFIG.WINDOW_SETTINGS["Plot parameters"]["floating"]:
+            self.on_page_changed(None)
 
     def on_page_changed(self, _evt):
         """Change window"""
@@ -143,6 +142,10 @@ class PanelVisualisationSettingsEditor(wx.Panel, DocumentationMixin):
         # when the window is changed, the layout can be incorrect, hence we have to "reset it" on each occasion
         # basically a hack that kind of works...
         _size = self.GetSize()
+        if _size[0] <= 400:
+            _size[0] = 400
+        if _size[1] <= 300:
+            _size[1] = 300
         self._switch = 1 if self._switch == -1 else -1
         self.SetSize((_size[0] + self._switch, _size[1] + self._switch))
         self.SetSize(_size)

@@ -63,7 +63,8 @@ class PlotBase(MPLPanel):
 
     def _set_axes(self):
         """Add axis to the figure"""
-        self.plot_base = self.figure.add_axes(self._axes)
+        if self.plot_base is None:
+            self.plot_base = self.figure.add_axes(self._axes)
 
     def _is_locked(self):
         """Check whether plot is locked"""

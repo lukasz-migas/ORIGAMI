@@ -61,7 +61,7 @@ class DialogUpdateParameter(Dialog):
 
         # make gui items
         self.make_gui()
-        self.Centre()
+        self.CenterOnParent()
         self.Layout()
 
         self.set_item()
@@ -526,7 +526,6 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
     def _on_get_document(self):
         """Get instance of selected document - the dialog also allows the user to load already existing document that
         is not found in the environment or create a new one if one does not exist."""
-
         from origami.gui_elements.dialog_select_document import DialogSelectDocument
 
         document_title = None
@@ -757,7 +756,6 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         """Retrieve processing parameters"""
 
         from origami.utils.ranges import get_min_max
-        from origami.utils.converters import str2num
         from origami.utils.converters import str2bool
 
         n_checked, mz_range, im_on, __ = self.get_list_parameters()

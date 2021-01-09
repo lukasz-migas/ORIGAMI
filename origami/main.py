@@ -17,6 +17,9 @@ from origami.icons.icons import IconContainer
 from origami.main_window import MainWindow
 from origami.config.config import CONFIG
 from origami.gui_elements.views.view_register import VIEW_REG  # noqa
+from origami.utils.appdirs import USER_CONFIG_DIR
+from origami.gui_elements.splash_screen import SplashScreenView
+
 
 logger = logging.getLogger(__name__)
 faulthandler.enable()
@@ -58,6 +61,10 @@ class ORIGAMI:
         """Initialize app"""
         self.config = CONFIG
         self.icons = IconContainer()
+
+        # show splash screen
+        splash = SplashScreenView()
+        splash.Show()
 
         # Load configuration file
         self.on_import_configuration_on_startup()
@@ -141,7 +148,7 @@ class ORIGAMI:
     def on_import_configuration_on_startup(self):
         """This function imports configuration file"""
         try:
-            self.config.load_config(os.path.join(CONFIG.APP_CWD, CONFIG.DEFAULT_CONFIG_NAME))
+            self.config.load_config(os.path.join(USER_CONFIG_DIR, CONFIG.DEFAULT_CONFIG_NAME))
         except Exception:
             pass
 

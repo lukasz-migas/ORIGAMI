@@ -5,6 +5,12 @@ from wx.lib.agw import supertooltip as superTip
 
 # Local imports
 from origami.utils.color import convert_rgb_1_to_255
+from typing import Union
+
+
+def make_h_line(parent):
+    """Make horizontal line"""
+    return wx.StaticLine(parent, -1, style=wx.LI_HORIZONTAL)
 
 
 def get_name_from_evt(evt) -> str:
@@ -66,8 +72,11 @@ def make_bitmap_btn(
     bg_color=(240, 240, 240),
     tooltip: str = None,
     name="",
+    flat: bool = False,
 ):
     """Convenient way to initialize bitmap btn"""
+    if flat:
+        style = wx.BORDER_NONE | wx.ALIGN_CENTER_VERTICAL
     bitmap_btn = wx.BitmapButton(parent, evt_id, icon, size=size, style=style, name=name)
     bitmap_btn.SetBackgroundColour(bg_color)
     if tooltip is not None:
@@ -258,6 +267,23 @@ class TableConfig(dict):
     def __init__(self):  # noqa
         self.last_idx = -1
 
+    #     def __getitem__(self, tag: Union[int, str]):
+    #         """Get item id"""
+    #         if isinstance(tag, int):
+    #             val = self[tag]
+    #         else:
+    #             val = self.find_col_id(tag)
+    #         if val == -1:
+    #             raise KeyError("Could not retrieve value")
+    #         return val
+
+    def __getattr__(self, item: Union[int, str]):
+        # allow access to group members via dot notation
+        try:
+            return self.__getitem__(item)
+        except KeyError:
+            raise AttributeError
+
     def add(self, name: str, tag: str, dtype: str, width: int, show: bool = True, hidden: bool = False):
         """Add an item to the configuration"""
         self.last_idx += 1
@@ -271,6 +297,7 @@ class TableConfig(dict):
             "id": wx.NewIdRef(),
             "hidden": hidden,
         }
+        return self
 
     def find_col_id(self, tag: str):
         """Find column id by the tag"""

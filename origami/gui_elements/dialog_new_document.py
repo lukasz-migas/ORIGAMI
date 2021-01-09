@@ -28,7 +28,7 @@ class DialogNewDocument(Dialog):
     full_path_value = None
     directory_btn = None
 
-    # settable parameters
+    # parameters
     current_document = None
 
     def __init__(self, parent, document_type: str = None):

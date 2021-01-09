@@ -24,14 +24,13 @@ class DialogSelectDocument(Dialog):
     cancel_btn = None
     document_list_choice = None
 
-    # settable parameters
+    # parameters
     current_document = None
 
     def __init__(
         self, parent, document_type: str = "all", document_list: List[str] = None, allow_new_document: bool = True
     ):
         wx.Dialog.__init__(self, parent, title="Please select document...", size=(400, 300))
-
         if document_list is None:
             document_list = []
 
