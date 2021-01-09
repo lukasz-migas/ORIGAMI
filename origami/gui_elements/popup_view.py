@@ -175,7 +175,7 @@ class TestPopup(TestPanel):
         p.Show()
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
 
     def _main_popup():
         from origami.app import App

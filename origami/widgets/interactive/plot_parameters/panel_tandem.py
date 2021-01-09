@@ -76,7 +76,7 @@ class PanelTandemSettings(PanelSettingsBase):
         self.import_evt = False
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
 
     def _main():
 

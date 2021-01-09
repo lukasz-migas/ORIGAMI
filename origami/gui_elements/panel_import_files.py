@@ -874,7 +874,7 @@ class PanelImportManagerBase(MiniFrame, TableMixin):
         return info, color
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
 
     def _main():
 

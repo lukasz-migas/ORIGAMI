@@ -101,7 +101,9 @@ DOCUMENT_FORMATS = [
     "Format: None",
     "Format: Thermo (.RAW)",
     "Format: Waters (.raw)",
+    "Format: MassLynx (.raw)",  # legacy
     "Format: Multiple Waters (.raw)",
+    "Format: Multiple MassLynx (.raw)",  # legacy
     "Format: .mgf",
     "Format: .mzML",
     "Format: Multiple Thermo (.RAW)",
@@ -191,6 +193,8 @@ class Environment(PropertyCallbackManager):
     @property
     def current(self):
         """Get current document"""
+        if self.n_documents == 0:
+            self._current = None
         if self.n_documents == 1:
             self._current = self.titles[0]
         return self._current
@@ -242,6 +246,7 @@ class Environment(PropertyCallbackManager):
         """Add document to the store"""
         document = clean_document(document)
         self.documents[document.title] = document
+        self.current = document.title
         pub.sendMessage(PUB_EVENT_ENV_ADD, document_title=document.title)
 
     def remove(self, key) -> DocumentStore:
@@ -307,7 +312,6 @@ class Environment(PropertyCallbackManager):
             raise ValueError(f"Not sure how to handle document store `{path}`")
 
         document_obj = DocumentStore(path)
-
         self.add(document_obj)
         return document_obj
 
@@ -494,7 +498,6 @@ class Environment(PropertyCallbackManager):
                 continue
             if document.data_type in document_types:
                 if document.file_format in document_format:
-                    #                 if document_format is None or document_format == document.file_format:
                     document_list.append(document_title)
         return document_list
 

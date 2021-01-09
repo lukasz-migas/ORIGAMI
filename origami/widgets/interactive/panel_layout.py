@@ -727,7 +727,7 @@ class PanelLayoutBuilder(wx.Panel, TableMixin):
         self._current_item = None
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
 
     from origami.icons.assets import Icons
     from origami.utils.screen import move_to_different_screen

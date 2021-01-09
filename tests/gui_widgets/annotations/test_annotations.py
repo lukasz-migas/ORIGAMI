@@ -6,6 +6,7 @@ import pytest
 from origami.utils.test import WidgetTestCase
 from origami.icons.assets import Icons
 from origami.widgets.annotations.panel_annotation_editor import PanelAnnotationEditor
+from origami.widgets.annotations.popup_annotations_settings import PopupAnnotationSettings
 
 
 @pytest.mark.guitest
@@ -19,3 +20,12 @@ class TestPanelAnnotationEditorUI(WidgetTestCase):
         dlg.Hide()
         self.wait_for(500)
         assert dlg
+
+
+@pytest.mark.guitest
+class TestPopupAnnotationSettings(WidgetTestCase):
+    def test_init(self):
+        popup = PopupAnnotationSettings(None)
+        popup.Show()
+        self.wait_for(200)
+        assert popup

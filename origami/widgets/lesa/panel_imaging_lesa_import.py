@@ -156,7 +156,7 @@ class PanelImagingImportDataset(PanelImportManagerBase):
     _import.__doc__ = PanelImportManagerBase._import.__doc__
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
 
     def _main():
 

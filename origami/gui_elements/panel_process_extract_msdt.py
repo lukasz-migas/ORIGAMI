@@ -382,5 +382,5 @@ def _main():
     app.MainLoop()
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     _main()

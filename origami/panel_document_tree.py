@@ -1614,15 +1614,11 @@ class DocumentTree(wx.TreeCtrl):
         annotation_menu_show_annotations_panel = make_menu_item(
             parent=_menu, text="Show annotations panel...", bitmap=self._icons.label
         )
-        #         annotation_menu_show_annotations = make_menu_item(
-        #             parent=_menu, text="Show annotations on plot", bitmap=self._icons.highlight
-        #         )
         annotation_menu_duplicate_annotations = make_menu_item(
             parent=_menu, text="Duplicate annotations...", bitmap=self._icons.duplicate
         )
 
         _menu.Append(annotation_menu_show_annotations_panel)
-        #         _menu.Append(annotation_menu_show_annotations)
         _menu.Append(annotation_menu_duplicate_annotations)
 
         if self._item.is_dataset:
@@ -1630,7 +1626,6 @@ class DocumentTree(wx.TreeCtrl):
 
         # bind events
         self.Bind(wx.EVT_MENU, self.on_open_annotation_editor, annotation_menu_show_annotations_panel)
-        #         self.Bind(wx.EVT_MENU, self.on_show_annotations, annotation_menu_show_annotations)
         self.Bind(wx.EVT_MENU, self.on_duplicate_annotations, annotation_menu_duplicate_annotations)
 
     def _set_menu_actions(self, menu):
@@ -2092,6 +2087,8 @@ class DocumentTree(wx.TreeCtrl):
             menu.AppendSeparator()
             menu.Append(menu_action_extract)
             menu.Append(menu_action_process_2d)
+            menu.AppendSeparator()
+            self._set_menu_annotations(menu)
             menu.AppendSeparator()
             menu.Append(wx.ID_ANY, "Set Y-axis label as...", menu_ylabel)
             menu.AppendSeparator()
@@ -3515,5 +3512,5 @@ def _main_popup():
     app.MainLoop()
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     _main_popup()

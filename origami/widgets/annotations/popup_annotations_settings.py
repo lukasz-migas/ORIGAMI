@@ -75,39 +75,38 @@ class PopupAnnotationSettings(MiniFrame):
 
     def on_toggle(self, evt):
         """Update UI elements"""
-        self.zoom_window_size.Enable(not CONFIG.annotate_panel_zoom_in)
+        self.zoom_window_size.Enable(not self.zoom_on_selection.GetValue())
 
         if evt is not None:
             evt.Skip()
 
 
-def _main_popup():
+if __name__ == "__main__":  # pragma: no cover
 
-    from origami.app import App
-    from origami.gui_elements._panel import TestPanel  # noqa
+    def _main_popup():
+        from origami.app import App
+        from origami.gui_elements._panel import TestPanel  # noqa
 
-    class TestPopup(TestPanel):
-        """Test the popup window"""
+        class TestPopup(TestPanel):
+            """Test the popup window"""
 
-        def __init__(self, parent):
-            super().__init__(parent)
+            def __init__(self, parent):
+                super().__init__(parent)
 
-            self.btn_1.Bind(wx.EVT_BUTTON, self.on_popup)
+                self.btn_1.Bind(wx.EVT_BUTTON, self.on_popup)
 
-        def on_popup(self, _evt):
-            """Activate popup"""
+            def on_popup(self, _evt):
+                """Activate popup"""
 
-            p = PopupAnnotationSettings(self)
-            p.position_on_event(_evt)
-            p.Show()
+                p = PopupAnnotationSettings(self)
+                p.position_on_event(_evt)
+                p.Show()
 
-    app = App()
-    dlg = TestPopup(None)
-    wx.PostEvent(dlg.btn_1, wx.PyCommandEvent(wx.EVT_BUTTON.typeId, dlg.btn_1.GetId()))
-    dlg.Show()
+        app = App()
+        dlg = TestPopup(None)
+        wx.PostEvent(dlg.btn_1, wx.PyCommandEvent(wx.EVT_BUTTON.typeId, dlg.btn_1.GetId()))
+        dlg.Show()
 
-    app.MainLoop()
+        app.MainLoop()
 
-
-if __name__ == "__main__":
     _main_popup()

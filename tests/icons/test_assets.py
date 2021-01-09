@@ -1,5 +1,6 @@
 # Third-party imports
 import wx
+import pytest
 
 # Local imports
 from origami.utils.test import WidgetTestCase
@@ -11,9 +12,19 @@ from origami.icons.assets import Bullets
 
 class TestBullets(WidgetTestCase):
     def test_init(self):
-        self.bullets = Bullets()
-        assert len(self.bullets.image_names) > 0
-        assert len(self.bullets.image_list) > 0
+        bullets = Bullets()
+        assert len(bullets.image_names) > 0
+        assert bullets.image_list.GetImageCount() > 0
+        assert bullets.image_list.GetImageCount() == len(bullets.image_names)
+
+        # try access
+        for value in bullets.image_names:
+            assert isinstance(bullets[value], int)
+            assert isinstance(getattr(bullets, value), int)
+            assert value in dir(bullets)
+
+        with pytest.raises(ValueError):
+            Bullets(path="NOT A PATH")
 
 
 class TestIcons(WidgetTestCase):
@@ -22,11 +33,22 @@ class TestIcons(WidgetTestCase):
         assert self.icons.n_icons > 0
         assert self.icons.n_icons == len(self.icons._filelist)
 
+        icon = self.icons.load_ico()
+        assert isinstance(icon, wx.Icon)
+
+        with pytest.raises(ValueError):
+            Icons(path="NOT A PATH")
+
     def test_keys(self):
         self.icons = Icons()
         for key in self.icons.keys():
             assert isinstance(key, str)
             assert isinstance(self.icons[key], wx.Bitmap)
+            assert isinstance(getattr(self.icons, key), wx.Bitmap)
+            assert key in dir(self.icons)
+
+        v = self.icons["NOT A KET"]
+        assert v is None
 
     def test_values(self):
         self.icons = Icons()

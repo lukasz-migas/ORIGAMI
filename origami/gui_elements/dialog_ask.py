@@ -173,7 +173,7 @@ class DialogAsk(Dialog):
             evt.Skip()
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
 
     def _main():
         from origami.app import App

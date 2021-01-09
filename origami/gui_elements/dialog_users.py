@@ -205,7 +205,7 @@ class DialogAddUser(Dialog):
         super(DialogAddUser, self).on_ok(_evt)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
 
     def _main():
 

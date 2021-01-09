@@ -33,5 +33,5 @@ def _main():
     Notification("ORIGAMI", "Here is a notification from ORIGAMI")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     _main()

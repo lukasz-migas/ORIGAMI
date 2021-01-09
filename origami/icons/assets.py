@@ -128,7 +128,7 @@ class Bullets:
             self.image_names[filename] = i
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover  # pragma: no cover
 
     def _main():
         from origami.app import App

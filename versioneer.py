@@ -1846,7 +1846,7 @@ def scan_setup_py():
     return errors
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     cmd = sys.argv[1]
     if cmd == "setup":
         errors = do_setup()

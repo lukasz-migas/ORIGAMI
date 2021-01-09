@@ -226,5 +226,5 @@ def _main():
     print(ex.output_list)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     _main()

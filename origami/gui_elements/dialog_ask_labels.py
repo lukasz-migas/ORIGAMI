@@ -182,7 +182,7 @@ class DialogSelectLabels(Dialog):
         return x_label_value, y_label_value
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
 
     def _main():
 

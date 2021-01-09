@@ -177,5 +177,5 @@ class ORIGAMI:
             print("Failed to execute the operation in threaded mode. Consider switching it off?")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     app = ORIGAMI()

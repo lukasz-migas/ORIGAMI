@@ -54,28 +54,30 @@ class TestEnvironment:
         env = Environment()
         env.load(path)
         assert env.n_documents == 1
+        with pytest.raises(ValueError):
+            env.load("path._origami")
 
-    # def test_duplicate(self, get_origami_document, tmpdir_factory):
-    #     path = get_origami_document
-    #     env = Environment()
-    #     env.open(path)
-    #     assert env.n_documents == 1
-    #     assert env.current == "DOCUMENT"
-    #
-    #     # with overwrite
-    #     path2 = str(tmpdir_factory.mktemp("another-document-path", False))
-    #     document = env.duplicate("DOCUMENT", path2, True)
-    #     assert isinstance(document, DocumentStore)
-    #     assert env.n_documents == 2
-    #
-    #     doc_list = env.get_document_list()
-    #     assert len(doc_list) == 2
-    #
-    #     # without overwrite
-    #     path3 = str(tmpdir_factory.mktemp("another-document-path-2w31.origami", False))
-    #     document = env.duplicate("DOCUMENT", path3)
-    #     assert isinstance(document, DocumentStore) is False
-    #     assert env.n_documents == 2
+    def test_duplicate(self, get_origami_document, tmpdir_factory):
+        path = get_origami_document
+        env = Environment()
+        env.open(path)
+        assert env.n_documents == 1
+        assert env.current == "DOCUMENT"
+
+        # with overwrite
+        path2 = str(tmpdir_factory.mktemp("another-document-path", False))
+        document = env.duplicate("DOCUMENT", path2, True)
+        assert isinstance(document, DocumentStore)
+        assert env.n_documents == 2
+
+        doc_list = env.get_document_list()
+        assert len(doc_list) == 2
+
+        # without overwrite
+        path3 = str(tmpdir_factory.mktemp("another-document-path-2w31.origami", False))
+        document = env.duplicate("DOCUMENT", path3)
+        assert isinstance(document, DocumentStore) is False
+        assert env.n_documents == 2
 
     def test_dict_funcs(self, get_origami_document):
         path = get_origami_document

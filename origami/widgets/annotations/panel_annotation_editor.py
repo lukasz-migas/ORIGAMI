@@ -148,10 +148,6 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin, PopupNotificati
         self._icons = icons
         self.plot_type = plot_type
 
-        # hard code few parameters
-        # CONFIG.annotation_patch_transparency = 0.2
-        # CONFIG.annotation_patch_width = 3
-
         # presets
         self._menu_show_all = True
         self._menu_pin_label_to_intensity = True
@@ -228,7 +224,6 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin, PopupNotificati
 
     def on_popup(self, evt):
         """Show popup window"""
-
         popup = PopupAnnotationSettings(self)
         popup.position_on_event(evt)
         popup.Show()
@@ -325,9 +320,6 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin, PopupNotificati
         self.peaklist = self.make_table(self.TABLE_CONFIG, panel)
 
         self.name_value = wx.StaticText(panel)
-        # self.name_value = wx.TextCtrl(panel, -1, "", style=wx.TE_RICH)
-
-        # self.label_value = wx.TextCtrl(panel, -1, "", style=wx.TE_RICH | wx.TE_MULTILINE)
         self.label_value = wx.TextCtrl(panel, -1, "", style=wx.TE_MULTILINE)
         self.label_value.SetToolTip(wx.ToolTip("Label associated with the marked region in the plot area"))
 
@@ -1336,44 +1328,17 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin, PopupNotificati
         dlg.ShowModal()
 
 
-class TestPopup(TestPanel):
-    """Test the popup window"""
+if __name__ == "__main__":  # pragma: no cover
 
-    def __init__(self, parent):
-        super().__init__(parent)
+    def _main():
+        from origami.app import App
+        from origami.icons.assets import Icons
 
-        self.btn_1.Bind(wx.EVT_BUTTON, self.on_popup)
+        app = App()
+        icons = Icons()
+        ex = PanelAnnotationEditor(None, None, icons, "mass_spectrum")
 
-    def on_popup(self, evt):
-        """Activate popup"""
-        p = PopupAnnotationSettings(self)
-        p.position_on_event(evt)
-        p.Show()
+        ex.Show()
+        app.MainLoop()
 
-
-def _main_popup():
-
-    from origami.app import App
-
-    app = App()
-    dlg = TestPopup(None)
-    dlg.Show()
-
-    app.MainLoop()
-
-
-def _main():
-
-    from origami.app import App
-    from origami.icons.assets import Icons
-
-    app = App()
-    icons = Icons()
-    ex = PanelAnnotationEditor(None, None, icons, "mass_spectrum")
-
-    ex.Show()
-    app.MainLoop()
-
-
-if __name__ == "__main__":
     _main()
