@@ -16,10 +16,10 @@ VALID_FILENAME_CHARACTERS = "-_.() %s%s" % (string.ascii_letters, string.digits)
 CHARACTER_LIMIT = 255
 
 
-def make_directory(path):
+def make_directory(path: str):
     """Make directory"""
     try:
-        os.mkdir(path)
+        os.makedirs(path)
     except FileExistsError:
         LOGGER.debug("Could not create directory")
 

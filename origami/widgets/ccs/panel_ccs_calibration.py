@@ -151,9 +151,8 @@ class PanelCCSCalibration(MiniFrame, TableMixin, DatasetMixin, ConfigUpdateMixin
         self.Bind(wx.EVT_CONTEXT_MENU, self.on_right_click)
         LOGGER.debug(f"Started-up CCS panel in {report_time(t_start)}")
 
-        self.CenterOnParent()
-        self.SetFocus()
         self.SetSize((1200, 1000))
+        self.CenterOnParent()
 
         # setup window
         self.setup()
