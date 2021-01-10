@@ -24,7 +24,7 @@ from origami.gui_elements.helpers import make_checkbox
 from origami.gui_elements.helpers import make_menu_item
 from origami.gui_elements.helpers import make_staticbox
 from origami.gui_elements.misc_dialogs import DialogBox
-from origami.gui_elements.dialog_customise_peptide_annotations import DialogCustomisePeptideAnnotations
+from origami.deprecate.dialog_customise_peptide_annotations import DialogCustomisePeptideAnnotations
 
 logger = logging.getLogger(__name__)
 

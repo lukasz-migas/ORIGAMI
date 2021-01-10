@@ -40,7 +40,7 @@ from origami.gui_elements.helpers import make_staticbox
 from origami.readers.io_text_files import saveAsText
 from origami.gui_elements.misc_dialogs import DialogBox
 from origami.gui_elements.panel_html_viewer import PanelHTMLViewer
-from origami.gui_elements.dialog_customise_peptide_annotations import DialogCustomisePeptideAnnotations
+from origami.deprecate.dialog_customise_peptide_annotations import DialogCustomisePeptideAnnotations
 
 
 class EditableListCtrl(wx.ListCtrl, listmix.CheckListCtrlMixin):

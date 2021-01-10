@@ -53,6 +53,7 @@ class DialogExportData(Dialog):
         else:
             self.Destroy()
 
+    # noinspection DuplicatedCode
     def make_panel(self):
         """Make panel"""
         panel = wx.Panel(self, -1, size=(-1, -1))
@@ -104,9 +105,9 @@ class DialogExportData(Dialog):
         # fit layout
         main_sizer.Fit(panel)
         panel.SetSizerAndFit(main_sizer)
-
         return panel
 
+    # noinspection DuplicatedCode
     def on_save(self, _evt):
         """Save event"""
         if not check_path_exists(CONFIG.data_folder_path):
@@ -147,16 +148,15 @@ class DialogExportData(Dialog):
         self.file_extension_label.SetLabel(CONFIG.saveExtension)
 
 
-def _main():
-
-    from origami.app import App
-
-    app = App()
-    ex = DialogExportData(None)
-
-    ex.Show()
-    app.MainLoop()
-
-
 if __name__ == "__main__":  # pragma: no cover
+
+    def _main():
+        from origami.app import App
+
+        app = App()
+        ex = DialogExportData(None)
+
+        ex.Show()
+        app.MainLoop()
+
     _main()

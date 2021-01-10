@@ -1,4 +1,4 @@
-"""Test PanelAbout dialog"""
+"""Test PanelDatasetInformation dialog"""
 # Third-party imports
 import pytest
 

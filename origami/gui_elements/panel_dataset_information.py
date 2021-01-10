@@ -133,6 +133,7 @@ class PanelDatasetInformation(MiniFrame):
         LOGGER.debug("Toredown dialog")
         super(PanelDatasetInformation, self).on_close(evt, force)
 
+    # noinspection DuplicatedCode
     def make_panel(self):
         """Make panel gui."""
         # make elements
@@ -404,6 +405,7 @@ class PanelDatasetInformation(MiniFrame):
                 _item_list[self.path_or_paths[i]] = path
         return path_key, _item_list
 
+    # noinspection DuplicatedCode
     def on_select_output(self, _evt):
         """Select directory where the dataset should be moved to"""
         path = self.base_dir_value.GetValue()
@@ -429,6 +431,7 @@ class PanelDatasetInformation(MiniFrame):
         self.save_config()
         super(PanelDatasetInformation, self).on_ok(evt)
 
+    # noinspection DuplicatedCode
     def on_update_user_list(self):
         """Update list of users"""
         user_list = USERS.user_list

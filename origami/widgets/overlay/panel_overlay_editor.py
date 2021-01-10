@@ -264,14 +264,14 @@ class PanelOverlayEditor(MiniFrame, TableMixin, ColorGetterMixin, PanelOverlayVi
         self.action_btn = wx.Button(panel, wx.ID_ANY, "Action ▼", size=(-1, -1))
         self.action_btn.Bind(wx.EVT_BUTTON, self.on_action_tools)
 
+        self.settings_btn = make_bitmap_btn(panel, -1, self._icons.gear, flat=True)
+        self.settings_btn.Bind(wx.EVT_BUTTON, self.on_show_settings)
+
         self.plot_btn = wx.Button(panel, wx.ID_ANY, "Plot", size=(-1, -1))
         self.plot_btn.Bind(wx.EVT_BUTTON, self.on_plot_overlay)
 
         self.add_to_document_btn = wx.Button(panel, wx.ID_ANY, "Add to document", size=(-1, -1))
         self.add_to_document_btn.Bind(wx.EVT_BUTTON, self.on_add_to_document)
-
-        self.settings_btn = make_bitmap_btn(panel, -1, self._icons.gear)
-        self.settings_btn.Bind(wx.EVT_BUTTON, self.on_show_settings)
 
         self.cancel_btn = wx.Button(panel, wx.ID_CANCEL, "Cancel", size=(-1, -1))
         self.cancel_btn.Bind(wx.EVT_BUTTON, self.on_close)
@@ -279,7 +279,7 @@ class PanelOverlayEditor(MiniFrame, TableMixin, ColorGetterMixin, PanelOverlayVi
         sizer = wx.BoxSizer()
         sizer.Add(self.action_btn, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.AddSpacer(5)
-        sizer.Add(self.settings_btn, 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer.Add(self.settings_btn, 0, wx.EXPAND)
         sizer.AddSpacer(5)
         sizer.Add(self.plot_btn, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer.AddSpacer(5)
@@ -362,7 +362,7 @@ class PanelOverlayEditor(MiniFrame, TableMixin, ColorGetterMixin, PanelOverlayVi
         )
         self.overlay_1d_method.SetStringSelection(CONFIG.overlay_panel_1d_method)
 
-        self.overlay_1d_method_settings_btn = make_bitmap_btn(panel, -1, self._icons.edit)
+        self.overlay_1d_method_settings_btn = make_bitmap_btn(panel, -1, self._icons.gear, flat=True)
         self.overlay_1d_method_settings_btn.Bind(wx.EVT_BUTTON, self.on_open_method_settings)
         set_tooltip(self.overlay_1d_method_settings_btn, "Customise overlay plot...")
 
@@ -473,7 +473,7 @@ class PanelOverlayEditor(MiniFrame, TableMixin, ColorGetterMixin, PanelOverlayVi
         )
         self.overlay_2d_method.SetStringSelection(CONFIG.overlay_panel_2d_method)
 
-        self.overlay_2d_method_settings_btn = make_bitmap_btn(panel, -1, self._icons.gear)
+        self.overlay_2d_method_settings_btn = make_bitmap_btn(panel, -1, self._icons.gear, flat=True)
         self.overlay_2d_method_settings_btn.Bind(wx.EVT_BUTTON, self.on_open_method_settings)
         set_tooltip(self.overlay_2d_method_settings_btn, "Customise overlay plot...")
 

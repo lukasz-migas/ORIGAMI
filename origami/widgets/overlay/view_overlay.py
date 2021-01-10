@@ -47,8 +47,10 @@ class ViewOverlay(ViewBase, ViewMPLMixin, ViewOverlayPanelMixin, ViewWaterfallMi
     UPDATE_STYLES = ("line", "fill")
     ALLOWED_PLOTS = (
         "line",
+        "line-compare",
         "multi-line",
         "waterfall",
+        "heatmap",
         "heatmap-line",
         "heatmap-tto",
         "heatmap-grid",

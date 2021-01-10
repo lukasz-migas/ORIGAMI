@@ -20,9 +20,9 @@ class PanelPlotViewer(MiniFrame):
     """Interactive plot panel"""
 
     def __init__(self, parent, presenter, config, icons, **kwargs):
-        """Initlize panel"""
+        """Initialize panel"""
         MiniFrame.__init__(self, parent, title="Plot viewer...", style=wx.DEFAULT_FRAME_STYLE & ~(wx.MAXIMIZE_BOX))
-        tstart = ttime()
+        t_start = ttime()
 
         self.parent = parent
         self.presenter = presenter
@@ -60,10 +60,10 @@ class PanelPlotViewer(MiniFrame):
         # set title
         self.SetTitle(f"Plot viewer: {self.document_title} :: {self.dataset_type} :: {self.dataset_name}")
 
-        # initilize gui
+        # initialize gui
         self.make_gui()
 
-        # initilize plot
+        # initialize plot
         if self.mz_data is not None:
             self._mz_xrange = get_min_max(self.mz_data["xvals"])
             self._mz_yrange = get_min_max(self.mz_data["yvals"])
@@ -73,7 +73,7 @@ class PanelPlotViewer(MiniFrame):
         # bind events
         wx.EVT_CLOSE(self, self.on_close)
 
-        logger.info(f"Startup of peak picker took {ttime()-tstart:.2f} seconds")
+        logger.info(f"Startup of peak picker took {ttime()-t_start:.2f} seconds")
 
     @property
     def mz_data(self):

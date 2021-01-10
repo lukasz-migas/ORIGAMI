@@ -26,6 +26,11 @@ class TestPanelAnnotationEditorUI(WidgetTestCase):
 class TestPopupAnnotationSettings(WidgetTestCase):
     def test_init(self):
         popup = PopupAnnotationSettings(None)
-        popup.Show()
+        # check values
+        self.sim_checkbox_click_evt(popup.zoom_on_selection, True, [popup.on_toggle, popup.on_apply])
+        assert popup.zoom_window_size.IsEnabled()
+        self.sim_checkbox_click_evt(popup.zoom_on_selection, False, [popup.on_toggle, popup.on_apply])
+        assert popup.zoom_window_size.IsEnabled() is False
+
         self.wait_for(200)
         assert popup

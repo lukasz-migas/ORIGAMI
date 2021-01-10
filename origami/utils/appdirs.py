@@ -16,8 +16,9 @@ USER_DATA_DIR = appdirs.user_data_dir(APP_NAME, APP_AUTHOR, __version__)
 USER_CACHE_DIR = os.path.join(USER_DATA_DIR, "Cache")
 USER_CONFIG_DIR = os.path.join(USER_DATA_DIR, "Configs")
 USER_LOG_DIR = os.path.join(USER_DATA_DIR, "Logs")
+USER_EXAMPLE_DIR = os.path.join(USER_DATA_DIR, "Data")
 
 # ensure all of these exist
-for path in [USER_DATA_DIR, USER_CACHE_DIR, USER_CONFIG_DIR, USER_LOG_DIR]:
+for path in [USER_DATA_DIR, USER_CACHE_DIR, USER_CONFIG_DIR, USER_LOG_DIR, USER_EXAMPLE_DIR]:
     if not os.path.exists(path):
         make_directory(path)

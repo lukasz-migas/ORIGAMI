@@ -36,7 +36,7 @@ class PopupToast(PopupBase):
         """Make panel"""
 
         self.text = wx.StaticText(self, -1, self.message, style=wx.ALIGN_CENTER_HORIZONTAL)
-        set_item_font(self.text, 12)
+        set_item_font(self.text, 11)
         self.text.SetForegroundColour(self.TEXT_COLOR)
         self.text.Wrap(325)
 

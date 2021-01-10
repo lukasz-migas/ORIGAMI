@@ -59,11 +59,10 @@ class WidgetTestCase:
             val = dlg.ShowModal()
             dlg.Destroy()
             assert val == wx.ID_OK
-            self.yield_()
         else:
             dlg.Show()
             dlg.Destroy()
-            self.yield_()
+        self.yield_()
 
     # helper methods
     def yield_(self, eventsToProcess=wx.EVT_CATEGORY_ALL):  # noqa
@@ -89,9 +88,7 @@ class WidgetTestCase:
 
     @staticmethod
     def close_dialogs():
-        """
-        Close dialogs by calling their EndModal method
-        """
+        """Close dialogs by calling their EndModal method"""
         # self.yield_()
         for w in wx.GetTopLevelWindows():
             if isinstance(w, wx.Dialog):
@@ -99,7 +96,6 @@ class WidgetTestCase:
 
     def wait_for(self, milliseconds):
         """Wait for `milliseconds` ms"""
-
         intervals = milliseconds / INTERVAL
         while True:
             wx.MilliSleep(INTERVAL)

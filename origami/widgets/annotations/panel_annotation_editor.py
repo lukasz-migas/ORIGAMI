@@ -46,11 +46,6 @@ from origami.gui_elements.helpers import TableConfig
 
 logger = logging.getLogger(__name__)
 
-# TODO: replace the TableDict with TableConfig
-# TODO: annotations are not repopulating the table...
-# TODO: add tests!
-# TODO: replace the popup with dialog since it won't work on linux
-
 
 class TableColumnIndex(IntEnum):
     """Table indexer"""
@@ -109,6 +104,7 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin, PopupNotificati
     show_btn = None
     action_btn = None
     settings_btn = None
+    main_sizer = None
 
     # plot
     plot_view = None
@@ -122,7 +118,6 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin, PopupNotificati
 
     # misc
     _settings_panel_size = None
-    main_sizer = None
     _plot_types_1d = ["mass_spectrum", "chromatogram", "mobilogram"]
     _plot_types_2d = ["heatmap", "ms_heatmap"]
     _plot_types_misc = ["annotated"]
@@ -604,12 +599,12 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin, PopupNotificati
         arrow_submenu = wx.Menu()
         menu_action_edit_arrow_true = arrow_submenu.Append(wx.ID_ANY, "True")
         menu_action_edit_arrow_false = arrow_submenu.Append(wx.ID_ANY, "False")
-        menu.AppendMenu(wx.ID_ANY, "Set `show arrow` to... (selected)", arrow_submenu)
+        menu.Append(wx.ID_ANY, "Set `show arrow` to... (selected)", arrow_submenu)
 
         patch_submenu = wx.Menu()
         menu_action_edit_patch_true = patch_submenu.Append(wx.ID_ANY, "True")
         menu_action_edit_patch_false = patch_submenu.Append(wx.ID_ANY, "False")
-        menu.AppendMenu(wx.ID_ANY, "Set `show patch` to... (selected)", patch_submenu)
+        menu.Append(wx.ID_ANY, "Set `show patch` to... (selected)", patch_submenu)
 
         menu_action_delete = make_menu_item(parent=menu, text="Delete (selected)", bitmap=self._icons.delete)
         menu.AppendSeparator()
@@ -1001,6 +996,9 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin, PopupNotificati
     def get_annotation_obj_from_gui(self):
         """Return annotation object from the data currently set in the user interface"""
         name = self.name_value.GetLabel()
+        if self.annotations is None:
+            self.on_notify_error("Cannot add annotation")
+            return
         annotation_obj = self.annotations.get(name)
 
         data = dict(
@@ -1098,6 +1096,10 @@ class PanelAnnotationEditor(MiniFrame, TableMixin, DatasetMixin, PopupNotificati
         """Remove annotation"""
         if name is None:
             name = self.name_value.GetLabel()
+
+        if self.data_obj is None:
+            self.on_notify_error("Cannot remove annotation")
+            return
 
         item_id = self.on_find_item("name", name)
         if item_id != -1:

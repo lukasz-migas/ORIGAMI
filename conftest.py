@@ -10,6 +10,7 @@ import pytest
 from origami.utils.download import download_file
 from origami.config.download import Download
 from origami.utils.file_compression import unzip_directory
+import origami.utils.appdirs  # noqa
 
 # To activate/deactivate certain things for pytest's only
 # NOTE: Please leave this before any other import here!!

@@ -87,6 +87,7 @@ class PanelDatasetImport(MiniFrame):
         LOGGER.debug("Toredown dialog")
         super(PanelDatasetImport, self).on_close(evt, force)
 
+    # noinspection DuplicatedCode
     def make_panel(self):
         """Make panel gui."""
         # make elements
@@ -262,6 +263,7 @@ class PanelDatasetImport(MiniFrame):
         self.output_value.SetValue(document.path)
         self.output_path_btn.Enable()
 
+    # noinspection DuplicatedCode
     def on_select_output(self, _evt):
         """Select directory where the dataset should be moved to"""
         path = self.base_dir_value.GetValue()
@@ -299,9 +301,9 @@ class PanelDatasetImport(MiniFrame):
         # move directory
         if document.path != path:
             document.move(path)
-
         super(PanelDatasetImport, self).on_ok(evt)
 
+    # noinspection DuplicatedCode
     def on_update_user_list(self):
         """Update list of users"""
         user_list = USERS.user_list
@@ -314,7 +316,6 @@ class PanelDatasetImport(MiniFrame):
 
     def on_add_user_account(self, _evt):
         """Add user account"""
-
         from origami.gui_elements.dialog_users import DialogAddUser
 
         dlg = DialogAddUser(self)

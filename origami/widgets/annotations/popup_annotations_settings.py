@@ -75,7 +75,7 @@ class PopupAnnotationSettings(MiniFrame):
 
     def on_toggle(self, evt):
         """Update UI elements"""
-        self.zoom_window_size.Enable(not self.zoom_on_selection.GetValue())
+        self.zoom_window_size.Enable(self.zoom_on_selection.GetValue())
 
         if evt is not None:
             evt.Skip()

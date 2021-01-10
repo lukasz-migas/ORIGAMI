@@ -17,4 +17,4 @@ class AppEnabler:
         self.ALLOW_UNIDEC = self.IS_WINDOWS
 
 
-APP_ENABLER = AppEnabler()
+APP_ENABLER: AppEnabler = AppEnabler()

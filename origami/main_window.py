@@ -564,7 +564,9 @@ class MainWindow(wx.Frame):
             )
         )
         # add overlay sub-menu
-        menu_widget_overlay_viewer = make_menu_item(parent=menu_widgets, text="Open Overlay Builder...\tShift+O")
+        menu_widget_overlay_viewer = make_menu_item(
+            parent=menu_widgets, text="Open Overlay Builder...\tShift+O", bitmap=self._icons.overlay
+        )
         menu_widgets.Append(menu_widget_overlay_viewer)
 
         # add ccs builder menu
@@ -1285,13 +1287,22 @@ class MainWindow(wx.Frame):
 
         self.toolbar.AddSeparator()
 
-        tool_open_msms = self.toolbar.AddTool(
-            wx.ID_ANY, "", self._icons.ms, shortHelp="Open MS/MS files...", kind=wx.ITEM_DROPDOWN
-        )
-        self.toolbar.SetDropdownMenu(tool_open_msms.GetId(), wx.Menu())
-        self.toolbar.AddSeparator()
+        # tool_open_msms = self.toolbar.AddTool(
+        #     wx.ID_ANY, "", self._icons.ms, shortHelp="Open MS/MS files...", kind=wx.ITEM_DROPDOWN
+        # )
+        # self.toolbar.SetDropdownMenu(tool_open_msms.GetId(), wx.Menu())
+        # self.toolbar.AddSeparator()
         self.toolbar.AddCheckTool(
             ID_window_documentList, "", self._icons.panel_document, shortHelp="Enable/Disable documents panel"
+        )
+        tool_action_ms_compare = self.toolbar.AddTool(
+            wx.ID_ANY, "", self._icons.compare_ms, shortHelp="Open Spectrum Comparison Window..."
+        )
+        tool_action_overlay = self.toolbar.AddTool(
+            wx.ID_ANY, "", self._icons.overlay, shortHelp="Open Overlay Builder...\tShift+O"
+        )
+        tool_action_ccs = self.toolbar.AddTool(
+            wx.ID_ANY, "", self._icons.target, shortHelp="Open CCS Calibration Builder..."
         )
         self.toolbar.AddSeparator()
         tool_action_global = self.toolbar.AddTool(
@@ -1349,6 +1360,10 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Waterfall"), tool_action_waterfall)
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "Violin"), tool_action_violin)
         self.Bind(wx.EVT_MENU, partial(self.on_open_plot_settings_panel, "UI behaviour"), tool_action_ui)
+
+        self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_spectrum_comparison_viewer, tool_action_ms_compare)
+        self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_ccs_builder, tool_action_ccs)
+        self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_overlay_editor, tool_action_overlay)
 
         # Actually realise the toolbar
         self.toolbar.Realize()

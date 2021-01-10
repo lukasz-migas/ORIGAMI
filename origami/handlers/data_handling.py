@@ -785,7 +785,6 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         # get labels for selected items
         x_label, y_label = self.view.get_user_text_x_y_label()
 
-        self.view.on_toggle_panel(evt="text", check=True)
         for filename, filepath in zip(file_list, path_list):
             pub.sendMessage("file.dataset.import", path=filepath)
             self.add_task(self.on_load_text_2d, (filename, filepath, x_label, y_label), func_result=self.on_add_text_2d)

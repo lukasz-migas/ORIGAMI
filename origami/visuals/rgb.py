@@ -9,7 +9,7 @@ from itertools import cycle
 # Third-party imports
 import numpy as np
 from skimage import exposure
-from skimage.color import gray2rgb
+from skimage.color import gray2rgb, gray2rgba
 
 # Local imports
 from origami.utils.color import convert_hex_to_rgb_1
@@ -197,7 +197,10 @@ class ImageRGBA:
             3/4-dimensional image array remapped to the `color`
 
         """
-        image = gray2rgb(rescale(np.nan_to_num(image), 0, max_value), alpha=add_alpha)
+        if add_alpha:
+            image = gray2rgba(rescale(np.nan_to_num(image), 0, max_value))
+        else:
+            image = gray2rgb(rescale(np.nan_to_num(image), 0, max_value))
 
         if add_alpha and len(color) == 3:
             color.append(1.0)
