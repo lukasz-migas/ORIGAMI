@@ -2989,76 +2989,6 @@ class DocumentTree(wx.TreeCtrl):
         filename = self._item.get_name("")
         self.data_handling.on_save_data_as_text(obj, None, None, default_name=filename)
 
-    #     def onOpenDocInfo(self, evt):
-    #
-    #         self.presenter.currentDoc = self.on_enable_document()
-    #         document_title = self.on_enable_document()
-    #         if self.presenter.currentDoc == "Documents":
-    #             return
-    #         document = ENV.get(document_title, None)
-    #
-    #         if document is None:
-    #             return
-    #
-    #         for key in ENV:
-    #             print(ENV[key].title)
-    #
-    #         if self._indent == 2 and any(
-    #             self._document_type in itemType for itemType in ["Drift time (2D)", "Drift time (2D, processed)"]
-    #         ):
-    #             kwargs = {"currentTool": "plot2D", "itemType": self._document_type, "extractData": None}
-    #             self.panelInfo = PanelDocumentInformation(self, self.presenter, self.config, self.icons, document,
-    #             **kwargs)
-    #         elif self._indent == 3 and any(
-    #             self._document_type in itemType
-    #             for itemType in [
-    #                 "Drift time (2D, EIC)",
-    #                 "Drift time (2D, combined voltages, EIC)",
-    #                 "Drift time (2D, processed, EIC)",
-    #                 "Input data",
-    #             ]
-    #         ):
-    #             kwargs = {"currentTool": "plot2D", "itemType": self._document_type, "extractData": self._item_leaf}
-    #             self.panelInfo = PanelDocumentInformation(self, self.presenter, self.config, self.icons, document,
-    #             **kwargs)
-    #         else:
-    #
-    #             kwargs = {"currentTool": "summary", "itemType": None, "extractData": None}
-    #             self.panelInfo = PanelDocumentInformation(self, self.presenter, self.config, self.icons, document,
-    #             **kwargs)
-    #
-    #         self.panelInfo.Show()
-
-    #     def _add_annotation_to_object(self, data, root_obj, check=False):
-    #         if check:
-    #             child, cookie = self.GetFirstChild(root_obj)
-    #             while child.IsOk():
-    #                 if self.GetItemText(child) == "Annotations":
-    #                     self.Delete(child)
-    #                 child, cookie = self.GetNextChild(root_obj, cookie)
-    #
-    #         # add annotations
-    #         if "annotations" in data and len(data["annotations"]) > 0:
-    #             branch_item = self.AppendItem(root_obj, "Annotations")
-    #             self.SetItemImage(branch_item, self.bullets["annotation"])
-    #
-    #     def _add_unidec_to_object(self, data, root_obj, check=False):
-    #         if check:
-    #             child, cookie = self.GetFirstChild(root_obj)
-    #             while child.IsOk():
-    #                 if self.GetItemText(child) == "UniDec":
-    #                     self.Delete(child)
-    #                 child, cookie = self.GetNextChild(root_obj, cookie)
-    #
-    #         # add unidec results
-    #         if "unidec" in data:
-    #             branch_item = self.AppendItem(root_obj, "UniDec")
-    #             self.SetItemImage(branch_item, self.bullets["ms_off"])
-    #             for unidec_name in data["unidec"]:
-    #                 leaf_item = self.AppendItem(branch_item, unidec_name)
-    #                 self.SetItemData(leaf_item, data["unidec"][unidec_name])
-    #                 self.SetItemImage(leaf_item, self.bullets["ms_off"])
-
     def _get_group_metadata(self, key):
         parts = key.split("/")
         group_dict = {
@@ -3111,21 +3041,6 @@ class DocumentTree(wx.TreeCtrl):
             "Overlays": "Overlays",
         }
         return group_dict.get(key, key)
-
-    # def env_update_document(self, evt, metadata):
-    #     """Update document based on event change"""
-    #     print(evt, metadata)
-    #     # def get_document():
-    #     #     item, cookie = self.GetFirstChild(self.GetRootItem())
-    #     #     while item.IsOk():
-    #     #         if self.GetItemText(item) == title:
-    #     #             return item
-    #     #         item, cookie = self.GetNextChild(item, cookie)
-    #     #     return None
-    #     #
-    #     # for title, name in metadata:
-    #     #     pass
-    #     #     # print("item", get_document(), name)
 
     def add_document(self, document: DocumentStore, expand_item=None, expand_all=False):
         """Add document to the document tree"""
@@ -3435,54 +3350,6 @@ class DocumentTree(wx.TreeCtrl):
                 self.view, self.presenter, self._icons, document_title, dataset_name, mz_obj
             )
         self._unidec_panel.Show()
-
-
-#     def get_item_image(self, image_type: str):
-#         """Get bullet image that can be used in the DocumentTree"""
-#         if image_type in ["main.raw.spectrum", "extracted.spectrum", "main.processed.spectrum", "unidec"]:
-#             image = self.bullets["ms_on"]
-#         elif image_type == [
-#             "ion.heatmap.combined",
-#             "ion.heatmap.raw",
-#             "ion.heatmap.processed",
-#             "main.raw.heatmap",
-#             "main.processed.heatmap",
-#             "ion.heatmap.comparison",
-#         ]:
-#             image = self.bullets["heatmap_on"]
-#         elif image_type == ["ion.mobilogram", "ion.mobilogram.raw"]:
-#             image = self.bullets["dt_on"]
-#         elif image_type in ["main.chromatogram", "extracted.chromatogram", "ion.chromatogram.combined"]:
-#             image = self.bullets["rt_on"]
-#         elif image_type in ["annotation"]:
-#             image = self.bullets["annotation"]
-#         else:
-#             image = self.bullets["heatmap_on"]
-#         return image
-
-#     def on_update_extracted_patches(self, document_title, data_type, ion_name):
-#         """
-#         Remove rectangles/patches from plot area. Triggered upon deletion of item
-#         from the 'classes' subtree.
-#
-#         Parameters
-#         ----------
-#         document_title: str
-#             name of document
-#         data_type: str
-#             name of dataset
-#         ion_name: str
-#             name of item
-#         """
-#
-#         # remove all patches
-#         if data_type == "__all__" or ion_name is None:
-#             self.panel_plot.on_clear_patches(plot="MS")
-#         # remove specific patch
-#         else:
-#             rect_label = "{};{}".format(document_title, ion_name)
-#             self.panel_plot.plot_remove_patches_with_labels(rect_label, plot_window="MS")
-#         self.panel_plot.plot_repaint(plot_window="MS")
 
 
 def _main_popup():

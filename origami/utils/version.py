@@ -1,22 +1,4 @@
-""" Provide a version for the ORIGAMI library.
-
-This module uses `versioneer`_ to manage version strings. During development,
-`versioneer`_ will compute a version string from the current git revision.
-For packaged releases based off tags, the version string is hard coded in the
-files packaged for distribution.
-
-Attributes:
-    __version__:
-        The full version string for this installed ORIGAMI library
-
-Functions:
-    base_version:
-        Return the base version string, without any "dev", "rc" or local build
-        information appended.
-
-.. _versioneer: https://github.com/warner/python-versioneer
-
-"""
+""" Provide a version for the ORIGAMI library."""
 # Standard library imports
 import json
 from distutils.version import LooseVersion
@@ -25,10 +7,10 @@ from distutils.version import LooseVersion
 import certifi
 import urllib3
 
-# Local imports
-from origami._version import get_versions
-
-__all__ = ("base_version", "get_latest_version", "compare_versions", "__version__")
+__all__ = (
+    "get_latest_version",
+    "compare_versions",
+)
 
 
 def get_latest_version(user_repo: str = "lukasz-migas/ORIGAMI", username: str = "lukasz-migas"):
@@ -78,22 +60,3 @@ def get_latest_version(user_repo: str = "lukasz-migas/ORIGAMI", username: str = 
 def compare_versions(new_version: str, old_version: str) -> bool:
     """Compare current and latest version of the software"""
     return LooseVersion(new_version) > LooseVersion(old_version)
-
-
-def base_version() -> str:
-    """Return base version of the package"""
-    return _base_version_helper(__version__)
-
-
-def _base_version_helper(version: str) -> str:
-
-    import re
-
-    version_pat = re.compile(r"^(\d+\.\d+\.\d+)((?:dev|rc).*)?")
-    match = version_pat.search(version)
-    assert match is not None
-    return match.group(1)
-
-
-__version__ = get_versions()["version"]
-del get_versions

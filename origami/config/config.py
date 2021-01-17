@@ -21,7 +21,7 @@ from origami.utils.random import get_random_int
 from origami.utils.appdirs import USER_LOG_DIR
 from origami.utils.appdirs import USER_CACHE_DIR
 from origami.utils.appdirs import USER_CONFIG_DIR
-from origami.utils.version import __version__
+from origami import __version__
 from origami.readers.io_json import read_json_data
 from origami.readers.io_json import write_json_data
 

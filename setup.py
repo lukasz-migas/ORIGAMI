@@ -1,3 +1,4 @@
+"""Setup"""
 # Standard library imports
 import os
 import sys
@@ -5,7 +6,7 @@ import traceback
 from distutils.errors import CCompilerError
 from distutils.errors import DistutilsExecError
 from distutils.errors import DistutilsPlatformError
-from distutils.command.build_ext import build_ext
+from distutils.command.build_ext import build_ext  # noqa
 
 # Third-party imports
 from setuptools import Extension
@@ -13,11 +14,12 @@ from setuptools import setup
 from setuptools import find_packages
 
 # Local imports
-from _setup_utils import get_version
+from _setup_utils import find_meta
 from _setup_utils import get_requirements_and_links
 
 
 def has_option(name):
+    """Check if has option"""
     try:
         sys.argv.remove("--%s" % name)
         return True
@@ -35,6 +37,7 @@ force_cythonize = has_option("force-cythonize")
 
 
 def make_extensions():
+    """Make extension"""
     is_ci = bool(os.getenv("CI", ""))
     try:
 
@@ -46,7 +49,7 @@ def make_extensions():
     macros = []
     try:
 
-        from Cython.Build import cythonize
+        from Cython.Build import cythonize  # noqa
 
         cython_directives = {"embedsignature": True, "profile": include_diagnostics}
         if include_diagnostics:
@@ -86,6 +89,8 @@ if sys.platform == "win32":
 
 
 class BuildFailed(Exception):
+    """Failed run"""
+
     def __init__(self):
         self.cause = sys.exc_info()[1]  # work around py 2/3 different syntax
 
@@ -93,10 +98,14 @@ class BuildFailed(Exception):
         return str(self.cause)
 
 
+# noinspection PyPep8Naming
 class ve_build_ext(build_ext):
+    """Allow failed extensions"""
+
     # This class allows C extension building to fail.
 
     def run(self):
+        """Run"""
         try:
             build_ext.run(self)
         except DistutilsPlatformError:
@@ -104,6 +113,7 @@ class ve_build_ext(build_ext):
             raise BuildFailed()
 
     def build_extension(self, ext):
+        """Build extension"""
         try:
             build_ext.build_extension(self, ext)
         except ext_errors:
@@ -121,23 +131,24 @@ CMD_CLASS = {"build_ext": ve_build_ext}
 
 
 def status_msgs(*msgs):
+    """Print message"""
     print("*" * 75)
     for msg in msgs:
         print(msg)
     print("*" * 75)
 
 
-VERSION = get_version()
-DESCRIPTION = "ORIGAMI: ion mobility mass spectrometry analysis software"
+VERSION = find_meta("version")
+DESCRIPTION = find_meta("description")
 
 with open("README.md") as f:
     LONG_DESCRIPTION = f.read()
 
 PACKAGE_NAME = "origami"
-MAINTAINER = "Lukasz G. Migas"
-MAINTAINER_EMAIL = "lukas.migas@yahoo.com"
-URL = "https://github.com/lukasz-migas/origami"
-LICENSE = "Apache license 2.0"
+MAINTAINER = find_meta("author")
+MAINTAINER_EMAIL = find_meta("email")
+URL = find_meta("url")
+LICENSE = find_meta("copyright")
 DOWNLOAD_URL = "https://github.com/lukasz-migas/origami"
 INSTALL_REQUIRES, DEPENDENCY_LINKS = get_requirements_and_links("requirements/requirements-std.txt")
 PACKAGES = [package for package in find_packages()]
@@ -149,6 +160,7 @@ CLASSIFIERS = [
     "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
     "Operating System :: Microsoft :: Windows",
     "Natural Language :: English",
 ]

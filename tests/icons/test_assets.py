@@ -10,6 +10,7 @@ from origami.icons.assets import Images
 from origami.icons.assets import Bullets
 
 
+@pytest.mark.guitest
 class TestBullets(WidgetTestCase):
     def test_init(self):
         bullets = Bullets()
@@ -27,6 +28,7 @@ class TestBullets(WidgetTestCase):
             Bullets(path="NOT A PATH")
 
 
+@pytest.mark.guitest
 class TestIcons(WidgetTestCase):
     def test_n_icons(self):
         self.icons = Icons()
@@ -62,6 +64,7 @@ class TestIcons(WidgetTestCase):
             assert isinstance(value, wx.Bitmap)
 
 
+@pytest.mark.guitest
 class TestColormaps(WidgetTestCase):
     def test_n_icons(self):
         self.icons = Colormaps()
@@ -86,6 +89,7 @@ class TestColormaps(WidgetTestCase):
             assert isinstance(value, wx.Bitmap)
 
 
+@pytest.mark.guitest
 class TestImages(WidgetTestCase):
     def test_n_icons(self):
         self.icons = Images()

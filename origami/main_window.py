@@ -548,20 +548,16 @@ class MainWindow(wx.Frame):
         )
         menu_widgets.Append(menu_widget_bokeh_new)
 
-        #         menu_widgets.Append(
-        #             make_menu_item(parent=menu_widgets, evt_id=ID_docTree_plugin_UVPD, text="Open UVPD
-        # processing window...")
-        #         )
-        #         menu_widgets.Append(
-        #             make_menu_item(parent=menu_widgets, evt_id=ID_docTree_plugin_MSMS, text="Open MS/MS window...")
-        #         )
-
         menu_widgets.AppendSeparator()
+        menu_widget_unidec = menu_widgets.Append(
+            make_menu_item(parent=menu_widgets, text="Open UniDec Analysis Window...", bitmap=self._icons.unidec)
+        )
+        menu_widgets.Append(menu_widget_unidec)
+        menu_widgets.AppendSeparator()
+
         # add spectrum comparison
         menu_widget_compare_ms = menu_widgets.Append(
-            make_menu_item(
-                parent=menu_widgets, text="Open spectrum comparison window...", bitmap=self._icons.compare_ms
-            )
+            make_menu_item(parent=menu_widgets, text="Open MS Comparison Window...", bitmap=self._icons.compare_ms)
         )
         # add overlay sub-menu
         menu_widget_overlay_viewer = make_menu_item(
@@ -1100,7 +1096,6 @@ class MainWindow(wx.Frame):
 
     def on_open_html_guide(self, evt):
         """Open HTML page"""
-
         from origami.gui_elements.panel_html_viewer import PanelHTMLViewer
 
         evt_id = evt.GetId()
@@ -1121,6 +1116,10 @@ class MainWindow(wx.Frame):
             link = r"https://origami.lukasz-migas.com/user-guide/interactive-output/simple-output"
         elif evt_id == ID_help_page_annotatingMassSpectra:
             link = r"https://origami.lukasz-migas.com/user-guide/processing/mass-spectra-annotation"
+        elif evt_id == ID_help_UniDecInfo:
+            from origami.widgets.unidec.utilities import get_uri
+
+            link = get_uri()
 
         if link is None:
             html_viewer = PanelHTMLViewer(self, **kwargs)
@@ -1304,6 +1303,9 @@ class MainWindow(wx.Frame):
         tool_action_ccs = self.toolbar.AddTool(
             wx.ID_ANY, "", self._icons.target, shortHelp="Open CCS Calibration Builder..."
         )
+        tool_action_unidec = self.toolbar.AddTool(
+            wx.ID_ANY, "", self._icons.unidec, shortHelp="Open UniDec Analysis Window..."
+        )
         self.toolbar.AddSeparator()
         tool_action_global = self.toolbar.AddTool(
             wx.ID_ANY, "", self._icons.switch_on, shortHelp="Settings: General plot"
@@ -1364,6 +1366,7 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_spectrum_comparison_viewer, tool_action_ms_compare)
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_ccs_builder, tool_action_ccs)
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_overlay_editor, tool_action_overlay)
+        self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_open_unidec, tool_action_unidec)
 
         # Actually realise the toolbar
         self.toolbar.Realize()

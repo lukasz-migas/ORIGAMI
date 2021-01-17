@@ -2,18 +2,34 @@
 # Standard library imports
 from typing import List
 from typing import Tuple
+import os
+import codecs
+import re
 
-# Local imports
-import versioneer
+META_PATH = os.path.join("src", "imimspy", "__init__.py")
+HERE = os.path.abspath(os.path.dirname(__file__))
 
 
-def get_version() -> str:
-    """The version of ORIGAMI currently checked out
-
-    Returns:
-        version : str
+def read(*parts):
     """
-    return versioneer.get_version()
+    Build an absolute path from *parts* and return the contents of the
+    resulting file.  Assume UTF-8 encoding.
+    """
+    with codecs.open(os.path.join(HERE, *parts), "rb", "utf-8") as f:
+        return f.read()
+
+
+META_FILE = read(META_PATH)
+
+
+def find_meta(meta):
+    """
+    Extract __*meta*__ from META_FILE.
+    """
+    meta_match = re.search(r"^__{meta}__ = ['\"]([^'\"]*)['\"]".format(meta=meta), META_FILE, re.M)
+    if meta_match:
+        return meta_match.group(1)
+    raise RuntimeError("Unable to find __{meta}__ string.".format(meta=meta))
 
 
 def get_requirements_and_links(path: str) -> Tuple[List, List]:

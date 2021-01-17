@@ -5,7 +5,7 @@ import logging
 
 # Third-party imports
 import wx
-import wx.lib.scrolledpanel as wxScrolledPanel
+import wx.lib.scrolledpanel as wxScrolledPanel  # noqa
 from pubsub import pub
 from pubsub.core import TopicNameError
 
@@ -60,6 +60,7 @@ BTN_SIZE = (-1, -1)
 # TODO: speed up pre-processing by cythonizing the binning methods
 
 
+# noinspection DuplicatedCode
 class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin, PopupNotificationMixin):
     """UniDec panel"""
 
@@ -80,7 +81,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin, PopupNotifi
     restore_all_btn, isolate_charges_btn, label_charges_btn, weight_list_sort = None, None, None, None
     detect_peaks_btn, show_peaks_btn, z_start_value, z_end_value = None, None, None, None
     unidec_auto_btn, unidec_init_btn, unidec_unidec_btn, unidec_peak_btn = None, None, None, None
-    unidec_cancel_btn, unidec_customise_btn, mw_start_value = None, None, None
+    unidec_cancel_btn, unidec_customise_btn, unidec_about_btn, mw_start_value = None, None, None, None
     mw_end_value, mw_sample_frequency_value, fit_peak_width_value, peak_width_btn = None, None, None, None
     peak_shape_func_choice, run_unidec_btn, peak_width_auto_check, process_settings_btn = None, None, None, None
     process_btn, smooth_nearby_points, mz_to_mw_transform_choice, adduct_mass_value = None, None, None, None
@@ -498,6 +499,10 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin, PopupNotifi
         self.unidec_customise_btn.SetToolTip(make_tooltip("Open customisation window..."))
         self.unidec_customise_btn.Bind(wx.EVT_BUTTON, self.on_open_customisation_settings)
 
+        self.unidec_about_btn = make_bitmap_btn(panel, -1, self._icons.about, flat=True)
+        self.unidec_about_btn.SetToolTip(make_tooltip("About UniDec engine..."))
+        self.unidec_about_btn.Bind(wx.EVT_BUTTON, self.on_open_about)
+
         btn_sizer = wx.BoxSizer()
         btn_sizer.Add(self.unidec_auto_btn, 0, wx.EXPAND)
         btn_sizer.AddSpacer(5)
@@ -512,6 +517,8 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin, PopupNotifi
         btn_sizer.Add(self.unidec_cancel_btn, 0, wx.EXPAND)
         btn_sizer.AddSpacer(5)
         btn_sizer.Add(self.unidec_customise_btn, 0, wx.EXPAND)
+        btn_sizer.AddSpacer(5)
+        btn_sizer.Add(self.unidec_about_btn, 0, wx.EXPAND)
 
         grid.Add(btn_sizer, (n, 0), (1, n_col), flag=wx.ALIGN_CENTER_HORIZONTAL)
 
@@ -948,9 +955,14 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin, PopupNotifi
         self.plot_settings.Hide() if self.plot_settings.IsShown() else self.plot_settings.Show()
         self.Layout()
 
+    def on_open_about(self, _evt):
+        """About UniDec"""
+        from origami.widgets.unidec.utilities import about_unidec
+
+        about_unidec(self)
+
     def on_open_width_tool(self, _evt):
         """Open UniDec width tool"""
-
         from origami.widgets.unidec.panel_process_unidec_peak_width_tool import PanelPeakWidthTool
 
         if not self._dlg_width_tool:
@@ -960,7 +972,6 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin, PopupNotifi
 
     def on_open_process_ms_settings(self, _evt):
         """Open MS pre-processing panel"""
-
         from origami.gui_elements.panel_process_spectrum import PanelProcessMassSpectrum
 
         if not self._dlg_ms_process_tool:

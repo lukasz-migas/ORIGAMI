@@ -73,7 +73,8 @@ class PanelHTMLViewer(wx.MiniFrame):
             self.html_view.Bind(wx.html2.EVT_WEBVIEW_NAVIGATING, self.on_url)
             self.html_view.Bind(wx.html2.EVT_WEBVIEW_NEWWINDOW, self.on_url)
         else:
-            self.html_view.LoadURL(link)
+            if link:
+                self.html_view.LoadURL(link)
 
         if window_size is None:
             screen_size = wx.GetDisplaySize()
@@ -99,7 +100,6 @@ class PanelHTMLViewer(wx.MiniFrame):
         self.Layout()
 
     # noinspection DuplicatedCode
-
     def make_panel(self):
         """Make UI"""
         # search bar
@@ -131,10 +131,10 @@ class PanelHTMLViewer(wx.MiniFrame):
         self.html_view.Bind(wx.html2.EVT_WEBVIEW_NAVIGATED, self.set_title)
 
         top_sizer = wx.BoxSizer()
-        top_sizer.Add(self.prev_btn, 0, wx.ALIGN_CENTER_VERTICAL)
-        top_sizer.Add(self.next_btn, 0, wx.ALIGN_CENTER_VERTICAL)
-        top_sizer.Add(self.home_btn, 0, wx.ALIGN_CENTER_VERTICAL)
-        top_sizer.Add(self.browser_btn, 0, wx.ALIGN_CENTER_VERTICAL)
+        top_sizer.Add(self.prev_btn, 0, wx.EXPAND)
+        top_sizer.Add(self.next_btn, 0, wx.EXPAND)
+        top_sizer.Add(self.home_btn, 0, wx.EXPAND)
+        top_sizer.Add(self.browser_btn, 0, wx.EXPAND)
         top_sizer.Add(self.search_bar, 1, wx.EXPAND)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -216,7 +216,6 @@ class PanelHTMLViewer(wx.MiniFrame):
         if html_msg is not None:
             msg = html_msg
         elif md_msg is not None:
-
             from markdown2 import markdown
 
             msg = markdown(md_msg, extras=["smarty-pants", "tables"])
@@ -225,38 +224,35 @@ class PanelHTMLViewer(wx.MiniFrame):
         return msg, link
 
 
-MARKDOWN_EXAMPLE = """
----
-__Advertisement :)__
-
-- __[pica](https://nodeca.github.io/pica/demo/)__ - high quality and fast image
-  resize in browser.
-- __[babelfish](https://github.com/nodeca/babelfish/)__ - developer friendly
-  i18n with plurals support and easy syntax.
-
-You will like those projects!
-
----
-
-# h1 Heading 8-)
-## h2 Heading
-### h3 Heading
-#### h4 Heading
-##### h5 Heading
-###### h6 Heading
-"""
-
-
-def _main():
-
-    from origami.app import App
-
-    app = App()
-    ex = PanelHTMLViewer(None, link=r"https://origami.lukasz-migas.com/")  # md_msg=MARKDOWN_EXAMPLE)
-
-    ex.Show()
-    app.MainLoop()
-
-
 if __name__ == "__main__":  # pragma: no cover
+    MARKDOWN_EXAMPLE = """
+    ---
+    __Advertisement :)__
+
+    - __[pica](https://nodeca.github.io/pica/demo/)__ - high quality and fast image
+      resize in browser.
+    - __[babelfish](https://github.com/nodeca/babelfish/)__ - developer friendly
+      i18n with plurals support and easy syntax.
+
+    You will like those projects!
+
+    ---
+
+    # h1 Heading 8-)
+    ## h2 Heading
+    ### h3 Heading
+    #### h4 Heading
+    ##### h5 Heading
+    ###### h6 Heading
+    """
+
+    def _main():
+        from origami.app import App
+
+        app = App()
+        ex = PanelHTMLViewer(None, link=r"https://origami.lukasz-migas.com/")  # md_msg=MARKDOWN_EXAMPLE)
+
+        ex.Show()
+        app.MainLoop()
+
     _main()
