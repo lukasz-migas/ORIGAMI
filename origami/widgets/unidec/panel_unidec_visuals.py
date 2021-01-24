@@ -29,7 +29,7 @@ class PanelCustomiseUniDecVisuals(PanelSettingsBase):
     bar_color_edge_check, bar_line_width_value, bar_marker_size_value = None, None, None
     color_scheme_value, colormap_value, color_palette_value = None, None, None
     unidec_labels_optimise_position_check, unidec_max_shown_lines_value, speedy_check = None, None, None
-    unidec_maxIters_value, unidec_view_value, bar_edge_color_btn = None, None, None
+    unidec_max_iters_value, unidec_view_value, bar_edge_color_btn = None, None, None
     fit_line_color_btn, unidec_settings_value, heatmap_colormap = None, None, None
 
     def __init__(self, parent, view=None):
@@ -59,9 +59,9 @@ class PanelCustomiseUniDecVisuals(PanelSettingsBase):
         self.unidec_view_value.Bind(wx.EVT_CHOICE, self.on_view_notification)
 
         unidec_max_iters_label = wx.StaticText(self, wx.ID_ANY, "No. max iterations:")
-        self.unidec_maxIters_value = wx.TextCtrl(self, -1, "", size=(-1, -1), validator=Validator("intPos"))
-        self.unidec_maxIters_value.SetValue(str(CONFIG.unidec_panel_max_iterations))
-        self.unidec_maxIters_value.Bind(wx.EVT_TEXT, self.on_apply)
+        self.unidec_max_iters_value = wx.TextCtrl(self, -1, "", size=(-1, -1), validator=Validator("intPos"))
+        self.unidec_max_iters_value.SetValue(str(CONFIG.unidec_panel_max_iterations))
+        self.unidec_max_iters_value.Bind(wx.EVT_TEXT, self.on_apply)
 
         unidec_max_shown_label = wx.StaticText(self, wx.ID_ANY, "No. max shown lines:")
         self.unidec_max_shown_lines_value = wx.TextCtrl(self, -1, "", size=(-1, -1), validator=Validator("intPos"))
@@ -83,10 +83,10 @@ class PanelCustomiseUniDecVisuals(PanelSettingsBase):
         self.color_scheme_value.Bind(wx.EVT_CHOICE, self.on_apply)
         self.color_scheme_value.Bind(wx.EVT_CHOICE, self.on_toggle_controls)
 
-        cmap_list = CONFIG.colormap_choices[:]
-        cmap_list.remove("jet")
+        colormap_list = CONFIG.colormap_choices[:]
+        colormap_list.remove("jet")
         colormap_label = wx.StaticText(self, -1, "Colormap:")
-        self.colormap_value = wx.Choice(self, -1, choices=cmap_list, size=(-1, -1), name="unidec.color_scheme")
+        self.colormap_value = wx.Choice(self, -1, choices=colormap_list, size=(-1, -1), name="unidec.color_scheme")
         self.colormap_value.SetStringSelection(CONFIG.unidec_panel_plot_colormap)
         self.colormap_value.Bind(wx.EVT_CHOICE, self.on_apply)
 
@@ -262,7 +262,7 @@ class PanelCustomiseUniDecVisuals(PanelSettingsBase):
         grid.Add(self.unidec_view_value, (y, 1), flag=wx.EXPAND)
         y += 1
         grid.Add(unidec_max_iters_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
-        grid.Add(self.unidec_maxIters_value, (y, 1), flag=wx.EXPAND)
+        grid.Add(self.unidec_max_iters_value, (y, 1), flag=wx.EXPAND)
         y += 1
         grid.Add(unidec_max_shown_label, (y, 0), flag=wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_RIGHT)
         grid.Add(self.unidec_max_shown_lines_value, (y, 1), flag=wx.EXPAND)
@@ -452,7 +452,7 @@ class PanelCustomiseUniDecVisuals(PanelSettingsBase):
         CONFIG.unidec_panel_plot_optimize_label_position = self.unidec_labels_optimise_position_check.GetValue()
         CONFIG.unidec_panel_plot_speed_heatmap = self.speedy_check.GetValue()
         CONFIG.unidec_panel_plot_individual_line_max_shown = str2int(self.unidec_max_shown_lines_value.GetValue())
-        CONFIG.unidec_panel_max_iterations = str2int(self.unidec_maxIters_value.GetValue())
+        CONFIG.unidec_panel_max_iterations = str2int(self.unidec_max_iters_value.GetValue())
         self._parse_evt(evt)
 
     def _on_set_config(self):
@@ -469,7 +469,7 @@ class PanelCustomiseUniDecVisuals(PanelSettingsBase):
         self.unidec_labels_optimise_position_check.SetValue(CONFIG.unidec_panel_plot_optimize_label_position)
         self.speedy_check.SetValue(CONFIG.unidec_panel_plot_speed_heatmap)
         self.unidec_max_shown_lines_value.SetValue(str(CONFIG.unidec_panel_plot_individual_line_max_shown))
-        self.unidec_maxIters_value.SetValue(str(CONFIG.unidec_panel_max_iterations))
+        self.unidec_max_iters_value.SetValue(str(CONFIG.unidec_panel_max_iterations))
         self.color_scheme_value.SetStringSelection(CONFIG.unidec_panel_plot_color_scheme)
         self.colormap_value.SetStringSelection(CONFIG.unidec_panel_plot_colormap)
         self.color_palette_value.SetStringSelection(CONFIG.unidec_panel_plot_palette)

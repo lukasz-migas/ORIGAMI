@@ -29,6 +29,8 @@ from origami.gui_elements.helpers import make_menu_item
 from origami.gui_elements.helpers import make_bitmap_btn
 from origami.handlers.queue_handler import QUEUE
 from origami.gui_elements.misc_dialogs import DialogBox
+from origami.gui_elements.views.view_register import VIEW_REG
+from origami.objects.containers.spectrum import MassSpectrumObject
 from origami.widgets.unidec.view_unidec import ViewBarChart
 from origami.widgets.unidec.view_unidec import ViewFitMassSpectrum
 from origami.widgets.unidec.view_unidec import ViewIndividualPeaks
@@ -36,9 +38,7 @@ from origami.widgets.unidec.view_unidec import ViewMolecularWeight
 from origami.widgets.unidec.view_unidec import ViewMassSpectrumGrid
 from origami.widgets.unidec.view_unidec import ViewChargeDistribution
 from origami.widgets.unidec.view_unidec import ViewMolecularWeightGrid
-from origami.objects.containers.spectrum import MassSpectrumObject
 from origami.widgets.unidec.unidec_handler import UNIDEC_HANDLER
-from origami.gui_elements.views.view_register import VIEW_REG
 from origami.widgets.unidec.panel_unidec_visuals import PanelCustomiseUniDecVisuals
 from origami.widgets.unidec.processing.utilities import unidec_sort_mw_list
 from origami.widgets.unidec.processing.utilities import calculate_charge_positions
@@ -57,7 +57,6 @@ BTN_SIZE = (-1, -1)
 # TODO: add style update to MW plot
 # TODO: add quick normalization update to heatmap plots
 # TODO: add style updates for markers
-# TODO: speed up pre-processing by cythonizing the binning methods
 
 
 # noinspection DuplicatedCode
@@ -185,7 +184,7 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin, PopupNotifi
             )
 
     def on_save(self, _evt):
-        """Save UniDec data in a Zarr format"""
+        """Save UniDec data in a zarr format"""
         t_start = time.time()
         unidec_result = self.unidec_result
         if unidec_result is None:
@@ -959,7 +958,8 @@ class PanelProcessUniDec(MiniFrame, DatasetMixin, ConfigUpdateMixin, PopupNotifi
         """About UniDec"""
         from origami.widgets.unidec.utilities import about_unidec
 
-        about_unidec(self)
+        dlg = about_unidec(self)
+        dlg.Show()
 
     def on_open_width_tool(self, _evt):
         """Open UniDec width tool"""

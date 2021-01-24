@@ -41,14 +41,14 @@ class UniDecEngine:
         self.charge_peaks = None
 
     @property
-    def is_processed(self):
+    def is_processed(self) -> bool:
         """Flag to indicate whether data has been pre-processed"""
         if self.data:
             return self.data.is_processed
         return False
 
     @property
-    def is_executed(self):
+    def is_executed(self) -> bool:
         """Flag to indicated whether UniDec has been executed"""
         if self.data:
             return self.data.is_executed

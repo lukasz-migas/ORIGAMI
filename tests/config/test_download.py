@@ -15,7 +15,7 @@ class TestDownload:
         assert dw._loaded is True
         assert len(dw.links) > 0
 
-        path = dw["text_ms"]
+        path = dw["text_one_ms"]
         assert isinstance(path, str)
 
         with pytest.raises(KeyError):
@@ -29,7 +29,7 @@ class TestDownload:
         assert dw._loaded is True
         assert len(dw.links) > 0
 
-        path = dw["text_ms"]
+        path = dw["text_one_ms"]
         assert isinstance(path, str)
 
         with pytest.raises(KeyError):

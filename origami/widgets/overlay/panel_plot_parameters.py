@@ -5,10 +5,10 @@ import wx.lib.scrolledpanel as wxScrolledPanel
 
 # Local imports
 from origami.utils.system import running_under_pytest
+from origami.gui_elements.plot_parameters.panel_waterfall import PanelWaterfallSettings
 from origami.widgets.overlay.plot_parameters.panel_rgb import PanelRGBSettings
 from origami.widgets.overlay.plot_parameters.panel_rmsd import PanelRMSDSettings
 from origami.widgets.overlay.plot_parameters.panel_rmsf import PanelRMSFSettings
-from origami.gui_elements.plot_parameters.panel_waterfall import PanelWaterfallSettings
 from origami.widgets.overlay.plot_parameters.panel_general import PanelGeneralSettings
 from origami.widgets.overlay.plot_parameters.panel_grid_nxn import PanelGridNxNSettings
 from origami.widgets.overlay.plot_parameters.panel_grid_tto import PanelGridTTOSettings
@@ -124,23 +124,22 @@ class PanelOverlayViewerSettings(wxScrolledPanel.ScrolledPanel):
         self.on_cp_layout(None)
 
 
-def _main():
-
-    from origami.app import App
-    from origami.utils.screen import move_to_different_screen
-
-    class _TestFrame(wx.Frame):
-        def __init__(self):
-            wx.Frame.__init__(self, None, -1, "Frame", size=(300, 300))
-            self.scrolledPanel = PanelOverlayViewerSettings(self, None)
-
-    app = App()
-    ex = _TestFrame()
-
-    ex.Show()
-    move_to_different_screen(ex)
-    app.MainLoop()
-
-
 if __name__ == "__main__":  # pragma: no cover
+
+    def _main():
+        from origami.app import App
+        from origami.utils.screen import move_to_different_screen
+
+        class _TestFrame(wx.Frame):
+            def __init__(self):
+                wx.Frame.__init__(self, None, -1, "Frame", size=(300, 300))
+                self.scrolledPanel = PanelOverlayViewerSettings(self, None)
+
+        app = App()
+        ex = _TestFrame()
+
+        ex.Show()
+        move_to_different_screen(ex)
+        app.MainLoop()
+
     _main()

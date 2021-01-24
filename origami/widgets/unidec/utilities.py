@@ -18,4 +18,4 @@ def about_unidec(parent):
     html_link = get_uri()
     dlg = PanelHTMLViewer(parent, link=html_link)
     dlg.CenterOnParent()
-    dlg.Show()
+    return dlg

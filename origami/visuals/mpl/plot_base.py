@@ -953,7 +953,6 @@ class PlotBase(MPLPanel):
 
     def get_violin_colors(self, n_colors: int, **kwargs):
         """Get list of colors to be used by the violin plot"""
-
         from itertools import repeat
 
         lc, fc = self.get_waterfall_colors(n_colors, **kwargs)

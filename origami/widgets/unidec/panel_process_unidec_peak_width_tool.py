@@ -216,21 +216,20 @@ class PanelPeakWidthTool(MiniFrame):
         self.view_ms.set_xlim(x_pos - 3, x_pos + 3)
 
 
-def _main():
-
-    from origami.app import App
-    from origami.handlers.load import LoadHandler
-
-    path = r"D:\Data\ORIGAMI\text_files\MS_p27-FL-K31.csv"
-    loader = LoadHandler()
-    document = loader.load_text_mass_spectrum_document(path)
-    mz_obj = document["MassSpectra/Summed Spectrum", True]
-
-    app = App()
-    ex = PanelPeakWidthTool(None, None, None, mz_obj)
-    ex.Show()
-    app.MainLoop()
-
-
 if __name__ == "__main__":  # pragma: no cover
+
+    def _main():
+        from origami.app import App
+        from origami.handlers.load import LoadHandler
+
+        path = r"D:\Data\ORIGAMI\text_files\MS_p27-FL-K31.csv"
+        loader = LoadHandler()
+        document = loader.load_text_mass_spectrum_document(path)
+        mz_obj = document["MassSpectra/Summed Spectrum", True]
+
+        app = App()
+        ex = PanelPeakWidthTool(None, None, mz_obj)
+        ex.Show()
+        app.MainLoop()
+
     _main()

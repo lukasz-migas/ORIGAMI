@@ -736,17 +736,16 @@ class TestListCtrl(wx.Frame):
         self.SetSize((800, 800))
 
 
-def _main():
-
-    from origami.app import App
-
-    app = App()
-
-    dlg = TestListCtrl(None)
-    dlg.Show()
-
-    app.MainLoop()
-
-
 if __name__ == "__main__":  # pragma: no cover
+
+    def _main():
+        from origami.app import App
+
+        app = App()
+
+        dlg = TestListCtrl(None)
+        dlg.Show()
+
+        app.MainLoop()
+
     _main()

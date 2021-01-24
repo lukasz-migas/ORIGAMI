@@ -3,6 +3,8 @@
 import os
 
 # Third-party imports
+from typing import Tuple
+
 import numpy as np
 from zarr import Group
 
@@ -231,7 +233,7 @@ class UniDecResultsObject:
         return None
 
     @property
-    def x_limit(self):
+    def x_limit(self) -> Tuple[float, float]:
         """Return the x-axis limit of the m/z axis after data was processed"""
         if self.is_processed:
             return np.amin(self.mz_processed[:, 0]), np.amax(self.mz_processed[:, 0])
@@ -239,8 +241,6 @@ class UniDecResultsObject:
 
     def check_owner(self, document_title: str, dataset_name: str) -> bool:
         """Check whether the owner of this object matches that of another"""
-        print(self.document_title, document_title)
-        print(self.dataset_name, dataset_name)
         if self.document_title is not None and self.dataset_name is not None:
             if self.document_title == document_title and self.dataset_name == dataset_name:
                 return True
@@ -317,7 +317,7 @@ class UniDecResultsObject:
                     self.mz_grid = np.c_[xv, mz_grid]
 
     @property
-    def mz_grid_2d(self):
+    def mz_grid_2d(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Return the `mz_grid` as two-dimensional array"""
         x = np.unique(self.mz_grid[:, 0])
         y = np.unique(self.mz_grid[:, 1])
@@ -325,13 +325,13 @@ class UniDecResultsObject:
         return x, y, self._reshape_grid(x, y, z).T
 
     @property
-    def mz_grid_obj(self):
+    def mz_grid_obj(self) -> ChargeMassSpectrumHeatmap:
         """Return the `mz_grid` as ORIGAMI object"""
         x, y, array = self.mz_grid_2d
         return ChargeMassSpectrumHeatmap(array, x, y)
 
     @property
-    def mw_grid_2d(self):
+    def mw_grid_2d(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Return the `mw_grid` as two-dimensional array"""
         x = self.mw_raw[:, 0]
         y = self.charges
@@ -339,13 +339,13 @@ class UniDecResultsObject:
         return x, y, self._reshape_grid(x, y, z).T
 
     @property
-    def mw_grid_obj(self):
+    def mw_grid_obj(self) -> ChargeMolecularWeightHeatmap:
         """Return the `mw_grid` as ORIGAMI object"""
         x, y, array = self.mw_grid_2d
         return ChargeMolecularWeightHeatmap(array, x, y)
 
     @property
-    def mw_obj(self):
+    def mw_obj(self) -> MolecularWeightObject:
         """Return the `mw_raw` as ORIGAMI object"""
         return MolecularWeightObject(self.mw_raw[:, 0], self.mw_raw[:, 1])
 
@@ -355,12 +355,12 @@ class UniDecResultsObject:
         return self.mz_obj
 
     @property
-    def mz_processed_obj(self):
+    def mz_processed_obj(self) -> MassSpectrumObject:
         """Return the `mz_processed` as ORIGAMI object"""
         return MassSpectrumObject(self.mz_processed[:, 0], self.mz_processed[:, 1])
 
     @property
-    def z_obj(self):
+    def z_obj(self) -> ChargeStatesObject:
         """Return the `charge_peaks` as ORIGAMI object"""
         return ChargeStatesObject(self.charge_peaks.masses, self.charge_peaks.intensities)
 

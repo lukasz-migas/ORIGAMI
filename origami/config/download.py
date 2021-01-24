@@ -15,6 +15,8 @@ LINKS = {
 
 
 class Download:
+    """Download"""
+
     def __init__(self):
         path = os.path.dirname(os.path.abspath(__file__))
         self._json_path = os.path.join(path, "download.json")

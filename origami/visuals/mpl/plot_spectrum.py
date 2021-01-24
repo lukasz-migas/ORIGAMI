@@ -19,15 +19,14 @@ class PlotSpectrum(PlotBase):
     def __init__(self, *args, **kwargs):
         PlotBase.__init__(self, *args, **kwargs)
 
-    def transform(self, x, y, x_label, y_label, transform_x, transform_y):
-        """Performs basic transformation on the x/y axis data to ensure it is nicely displayed to the user"""
-        if transform_x:
-            x, y_label, __ = self._convert_xaxis(x, x_label)
-
-        if transform_y:
-            y, y_label, __ = self._convert_yaxis(x, y_label)
-
-        return x, y, x_label, y_label
+    # def transform(self, x, y, x_label, y_label, transform_x, transform_y):
+    #     """Performs basic transformation on the x/y axis data to ensure it is nicely displayed to the user"""
+    #     if transform_x:
+    #         x, x_label, __ = self._convert_xaxis(x, x_label)
+    #     if transform_y:
+    #         y, y_label, __ = self._convert_yaxis(x, y_label)
+    #
+    #     return x, y, x_label, y_label
 
     def set_line_style(self, **kwargs):
         """Updates line style"""
@@ -38,18 +37,7 @@ class PlotSpectrum(PlotBase):
     def plot_1d(
         self, x, y, title="", x_label="", y_label="", label="", y_lower_start=0, y_upper_multiplier=1.1, **kwargs
     ):
-        """Standard 1d plot
-
-        Parameters
-        ----------
-        x :
-        y :
-        title :
-        x_label :
-        y_label :
-        label :
-        kwargs :
-        """
+        """Standard 1d plot"""
         # Simple hack to reduce size is to use different subplot size
         self._set_axes()
 
@@ -177,7 +165,6 @@ class PlotSpectrum(PlotBase):
         if x_bottom is None:
             x_bottom = x_top
 
-        self.plot_base = self.figure.add_axes(self._axes)
         self.plot_base.plot(
             x_top,
             y_top,
@@ -413,7 +400,6 @@ class PlotSpectrum(PlotBase):
         xlimits, ylimits, extent = self._compute_xy_limits(x, y, 0, 1.1)
 
         if not self.check_line(gid, self.plot_base):
-            self.plot_base = self.figure.add_axes(self._axes)
             self.plot_base.plot(
                 x,
                 y,
@@ -468,18 +454,7 @@ class PlotSpectrum(PlotBase):
         y_axis_formatter: bool = True,
         **kwargs,
     ):
-        """Standard 1d plot
-
-        Parameters
-        ----------
-        x :
-        y :
-        title :
-        x_label :
-        y_label :
-        label :
-        kwargs :
-        """
+        """Standard 1d plot"""
         # Simple hack to reduce size is to use different subplot size
         self._set_axes()
 

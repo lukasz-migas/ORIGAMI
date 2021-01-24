@@ -39,7 +39,6 @@ from origami.widgets.lesa.processing.containers import ImagingIonHeatmapObject
 
 # enable on windowsOS only
 if platform == "win32":
-
     from origami.readers.io_waters_raw import WatersIMReader
     from origami.readers.io_waters_raw_api import WatersRawReader
 
@@ -734,13 +733,13 @@ class LoadHandler:
         return info
 
     @staticmethod
-    def load_text_spectrum_data(path):
+    def load_text_spectrum_data(path) -> Tuple[np.ndarray, np.ndarray, str, Tuple, str]:
         """Read mass spectrum data from text file"""
         reader = TextSpectrumReader(path)
 
         return reader.x, reader.y, reader.directory, reader.x_limits, reader.extension
 
-    def load_text_mass_spectrum_document(self, path):
+    def load_text_mass_spectrum_document(self, path: str) -> DocumentStore:
         """Read textual mass spectral data and create new document"""
         x, y, _, _, _ = self.load_text_spectrum_data(path)
         mz_obj = MassSpectrumObject(x, y)
@@ -756,13 +755,13 @@ class LoadHandler:
         return reader.dataset_title, reader.data
 
     @staticmethod
-    def load_text_heatmap_data(path):
+    def load_text_heatmap_data(path) -> IonHeatmapObject:
         """Read heatmap data from text file"""
         reader = TextHeatmapReader(path)
 
         return IonHeatmapObject(reader.array, x=reader.x, y=reader.y, xy=reader.xy, yy=reader.yy)
 
-    def load_text_heatmap_document(self, path):
+    def load_text_heatmap_document(self, path: str) -> DocumentStore:
         """Load heatmap data from text file and instantiate it as a document"""
         heatmap_obj = self.load_text_heatmap_data(path)
         document = ENV.get_new_document("origami", path, data=dict(heatmap=heatmap_obj))
@@ -821,7 +820,6 @@ class LoadHandler:
     @check_os("win32")
     def load_thermo_ms_data(path):
         """Load Thermo data"""
-
         from origami.readers.io_thermo_raw import ThermoRawReader
 
         t_start = time.time()
@@ -843,7 +841,7 @@ class LoadHandler:
         return reader, data
 
     @check_os("win32")
-    def load_thermo_ms_document(self, path):
+    def load_thermo_ms_document(self, path) -> DocumentStore:
         """Load Thermo data and set in ORIGAMI document"""
         reader, data = self.load_thermo_ms_data(path)
 
@@ -853,7 +851,7 @@ class LoadHandler:
         return document
 
     @staticmethod
-    def _parse_clipboard_stream(clip_stream):
+    def _parse_clipboard_stream(clip_stream) -> Optional[np.ndarray]:
         """Parse clipboard stream data"""
         data = []
         for t in clip_stream:
@@ -877,7 +875,7 @@ class LoadHandler:
         data = np.asarray(data)
         return data
 
-    def load_clipboard_ms_document(self, path, clip_stream):
+    def load_clipboard_ms_document(self, path, clip_stream) -> DocumentStore:
         """Load clipboard data and instantiate new document"""
         # process clipboard stream
         data = self._parse_clipboard_stream(clip_stream)
@@ -892,7 +890,7 @@ class LoadHandler:
 
     @staticmethod
     @check_os("win32")
-    def load_waters_ms_data(path):
+    def load_waters_ms_data(path: str) -> Tuple[WatersRawReader, Dict]:
         """Load Waters mass spectrometry and chromatographic data"""
         t_start = time.time()
         reader = WatersRawReader(path)
@@ -921,7 +919,7 @@ class LoadHandler:
         return reader, data
 
     @check_os("win32")
-    def load_waters_ms_document(self, path):
+    def load_waters_ms_document(self, path: str) -> DocumentStore:
         """Load Waters data and set in ORIGAMI document"""
         reader, data = self.load_waters_ms_data(path)
         document = ENV.get_new_document("waters_ms", path, data=data)
@@ -931,7 +929,7 @@ class LoadHandler:
 
     @staticmethod
     @check_os("win32")
-    def check_waters_im(path):
+    def check_waters_im(path: str):
         """Checks whether dataset has ion mobility"""
         try:
             _ = WatersIMReader(path, driftscope_path=CONFIG.APP_DRIFTSCOPE_PATH)
@@ -940,7 +938,7 @@ class LoadHandler:
             return False
 
     @check_os("win32")
-    def load_waters_im_data(self, path: str):
+    def load_waters_im_data(self, path: str) -> Tuple[WatersIMReader, Dict]:
         """Load Waters IM-MS data"""
         t_start = time.time()
         reader = WatersIMReader(path, temp_dir=CONFIG.APP_TEMP_DATA_PATH, driftscope_path=CONFIG.APP_DRIFTSCOPE_PATH)
@@ -974,7 +972,7 @@ class LoadHandler:
         return reader, data
 
     @check_os("win32")
-    def load_waters_im_document(self, path: str):
+    def load_waters_im_document(self, path: str) -> DocumentStore:
         """Load Waters data and set in ORIGAMI document"""
         reader, data = self.load_waters_im_data(path)
         document = ENV.get_new_document("origami", path, data=data)
@@ -986,7 +984,6 @@ class LoadHandler:
         self, path, filelist: List[FileItem], document: DocumentStore = None, **proc_kwargs
     ) -> DocumentStore:
         """Load Waters data and set in ORIGAMI document"""
-
         from origami.widgets.lesa.processing.normalization import ImagingNormalizationProcessor
 
         if document is None:

@@ -7,7 +7,6 @@ global-exclude *.py[co]
 # Top-level config
 include MANIFEST.in
 include setup.cfg
-include versioneer.py
 include _setup_utils.py
 
 # include driftscope/thermo/waters

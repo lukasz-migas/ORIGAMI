@@ -18,19 +18,27 @@ os.environ["ORIGAMI_PYTEST"] = "True"
 
 dw_config = Download()
 
-DATA_PATH = os.path.join(os.path.split(__file__)[0], "_data")
+DATA_PATH = os.path.join(os.path.split(__file__)[0], "../_data")
 if not os.path.exists(DATA_PATH):
     from origami.utils.path import make_directory
 
     make_directory(DATA_PATH)
 
 # data paths
+# raw
 DATA_WATERS_IM_SMALL = os.path.join(DATA_PATH, "WATERS_IM_SMALL.raw.zip")
-DATA_TEXT_MS = os.path.join(DATA_PATH, "TEXT_MS.zip")
-DATA_TEXT_HEATMAP = os.path.join(DATA_PATH, "TEXT_HEATMAP.zip")
 DATA_THERMO_MS_SMALL = os.path.join(DATA_PATH, "THERMO_MS_SMALL.zip")
+
+# text
+DATA_TEXT_ONE_MS = os.path.join(DATA_PATH, "TEXT_MS.zip")
+DATA_TEXT_MANY_MS = os.path.join(DATA_PATH, "TEXT_MS.zip")
+DATA_TEXT_HEATMAP = os.path.join(DATA_PATH, "TEXT_HEATMAP.zip")
+
+# open format
 DATA_MZML_MS_SMALL = os.path.join(DATA_PATH, "MZML_SMALL.zip")
 DATA_MGF_MS_SMALL = os.path.join(DATA_PATH, "MGF_SMALL.zip")
+
+# origami
 DATA_ORIGAMI_IM = os.path.join(DATA_PATH, "DOCUMENT.origami.zip")
 
 
@@ -83,13 +91,26 @@ def get_mzml_ms_small(tmpdir_factory):
 
 
 @pytest.fixture(scope="session", autouse=True)
+def get_text_ms_path(tmpdir_factory):
+    """Create folder with processed data for testing purposes"""
+    output_dir = str(tmpdir_factory.mktemp("data"))
+    if os.path.exists(DATA_TEXT_ONE_MS):
+        path = unzip_directory(DATA_TEXT_ONE_MS, output_dir, False)
+    else:
+        link = dw_config["text_one_ms"]
+        path = download_file(link, output_dir=output_dir, copy_to_dir=DATA_PATH)
+    paths = glob.glob(os.path.join(path, "*"))
+    return paths[0]
+
+
+@pytest.fixture(scope="session", autouse=True)
 def get_text_ms_paths(tmpdir_factory):
     """Create folder with processed data for testing purposes"""
     output_dir = str(tmpdir_factory.mktemp("data"))
-    if os.path.exists(DATA_TEXT_MS):
-        path = unzip_directory(DATA_TEXT_MS, output_dir, False)
+    if os.path.exists(DATA_TEXT_MANY_MS):
+        path = unzip_directory(DATA_TEXT_MANY_MS, output_dir, False)
     else:
-        link = dw_config["text_ms"]
+        link = dw_config["text_many_ms"]
         path = download_file(link, output_dir=output_dir, copy_to_dir=DATA_PATH)
     return glob.glob(os.path.join(path, "*"))
 
