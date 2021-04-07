@@ -54,7 +54,7 @@ from origami.ids import ID_ylabel_DTMS_ms_arrival
 from origami.icons.assets import Icons
 from origami.utils.secret import get_short_hash
 from origami.config.config import CONFIG
-from origami.utils.utilities import report_time, notify_warning
+from origami.utils.utilities import report_time, notify_warning, notify_error
 from origami.objects.document import DocumentStore
 from origami.utils.exceptions import MessageError
 from origami.config.environment import ENV
@@ -2335,7 +2335,9 @@ class DocumentTree(wx.TreeCtrl):
         count = sum([len(document_spectrum_dict[_title]) for _title in document_spectrum_dict])
 
         if count < 2:
-            LOGGER.error(f"There must be at least 2 items in the list co compare. Current count: {count}")
+            msg = f"There must be at least 2 items in the list co compare. Current count: {count}"
+            LOGGER.error(msg)
+            notify_error(msg)
             return
 
         try:

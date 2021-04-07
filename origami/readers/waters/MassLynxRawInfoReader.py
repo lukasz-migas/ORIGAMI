@@ -17,8 +17,6 @@ from ctypes import c_void_p
 from origami.readers.waters.MassLynxRawReader import MassLynxBaseType
 from origami.readers.waters.MassLynxRawReader import MassLynxRawReader
 
-# from enum import IntEnum
-
 
 class MassLynxRawInfoReader(MassLynxRawReader):
     def __init__(self, source):

@@ -1,3 +1,4 @@
+"""Application"""
 # Third-party imports
 import wx
 

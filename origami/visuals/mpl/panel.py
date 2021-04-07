@@ -11,7 +11,7 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 
 # Local imports
 from origami.config.config import CONFIG
-from origami.visuals.mpl.new_zoom import MPLInteraction
+from origami.visuals.mpl.interaction import MPLInteraction
 from origami.gui_elements.misc_dialogs import DialogBox
 
 matplotlib.use("WXAgg")
@@ -21,6 +21,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 class MPLPanel(wx.Panel):
+    """Matplotlib panel"""
+
     def __init__(self, *args, **kwargs):
         self.figsize = kwargs.pop("figsize", None)
         if self.figsize is None:
@@ -110,7 +112,7 @@ class MPLPanel(wx.Panel):
         self._METADATA = dict()
 
     def __repr__(self):
-        return f"Plot: {self.plotName} | Window name: {self.window_name} | Axes size: {self._axes}"
+        return f"Plot: {self.plot_name} | Window name: {self.window_name} | Axes size: {self._axes}"
 
     def setup_new_zoom(
         self,

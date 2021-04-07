@@ -429,14 +429,11 @@ class MainWindow(wx.Frame):
         )
         menu_file.Append(menu_file_load_origami)
 
-        # menu_file_load_pickle = make_menu_item(
-        #     parent=menu_file,
-        #     evt_id=ID_openDocument,
-        #     text="Open ORIGAMI Document file (.pickle) [LEGACY]",
-        #     bitmap=self.icons.iconsLib["open_project_16"],
-        # )
-        # menu_file_load_pickle.Enable(False)
-        # menu_file.Append(menu_file_load_pickle)
+        menu_file_create_new = make_menu_item(
+            parent=menu_file, text="Create blank ORIGAMI document", bitmap=self._icons.blank
+        )
+        menu_file.Append(menu_file_create_new)
+
         menu_file.AppendSeparator()
         menu_file_import_data = menu_file.Append(
             make_menu_item(parent=menu_file, text="Open any allowed file", bitmap=self._icons.wand)
@@ -861,6 +858,7 @@ class MainWindow(wx.Frame):
 
         # FILE MENU
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_origami_document, menu_file_load_origami)
+        self.Bind(wx.EVT_MENU, self.data_handling.on_create_blank_file, menu_file_create_new)
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_multiple_text_2d_fcn, menu_file_text_heatmap)
         self.Bind(wx.EVT_MENU, self.panelDocuments.documents.on_save_document, id=ID_saveDocument)
         self.Bind(wx.EVT_MENU, self.data_handling.on_open_multiple_text_ms_fcn, menu_file_text_ms)

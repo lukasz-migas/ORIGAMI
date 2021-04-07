@@ -1,5 +1,6 @@
 """Processing module that handles loading of data from various file formats"""
 # Standard library imports
+from __future__ import annotations
 import os
 import math
 import time
@@ -890,7 +891,7 @@ class LoadHandler:
 
     @staticmethod
     @check_os("win32")
-    def load_waters_ms_data(path: str) -> Tuple[WatersRawReader, Dict]:
+    def load_waters_ms_data(path: str) -> Tuple["WatersRawReader", Dict]:
         """Load Waters mass spectrometry and chromatographic data"""
         t_start = time.time()
         reader = WatersRawReader(path)
@@ -938,7 +939,7 @@ class LoadHandler:
             return False
 
     @check_os("win32")
-    def load_waters_im_data(self, path: str) -> Tuple[WatersIMReader, Dict]:
+    def load_waters_im_data(self, path: str) -> Tuple["WatersIMReader", Dict]:
         """Load Waters IM-MS data"""
         t_start = time.time()
         reader = WatersIMReader(path, temp_dir=CONFIG.APP_TEMP_DATA_PATH, driftscope_path=CONFIG.APP_DRIFTSCOPE_PATH)

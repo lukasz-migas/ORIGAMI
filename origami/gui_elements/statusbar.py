@@ -10,17 +10,28 @@ from pubsub import pub
 from origami.gui_elements.helpers import set_tooltip
 
 
+class StatusbarField:
+    def __init__(self, pos, size):
+        self.pos = pos
+        self.size = size
+
+
 class StatusbarFields:
     """Statusbar field positions"""
 
-    xy = 0
-    mz_range = 1
-    msms = 2
-    action = 3
-    status = 4
-    ram = 5
-    cpu = 6
-    queue = 7
+    xy = StatusbarField(0, 250)
+    mz_range = StatusbarField(1, 100)
+    msms = StatusbarField(2, 150)
+    action = StatusbarField(3, 150)
+    status = StatusbarField(4, -1)
+    queue = StatusbarField(5, 100)
+    ram = StatusbarField(6, 50)
+    cpu = StatusbarField(7, 50)
+
+    def get_widths(self):
+        return [
+            getattr(self, field).size for field in ["xy", "mz_range", "msms", "action", "status", "queue", "ram", "cpu"]
+        ]
 
 
 class StatusbarTimerWidget(wx.Panel):
@@ -160,7 +171,7 @@ class Statusbar(wx.StatusBar):
 
         # set field count
         self.SetFieldsCount(8)
-        self.SetStatusWidths([250, 100, 100, 80, -1, 50, 50, 55])
+        self.SetStatusWidths(self.STATUSBAR_FIELDS.get_widths())
 
         # setup font
         self.SetFont(wx.Font(8, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL))
@@ -225,9 +236,9 @@ class Statusbar(wx.StatusBar):
             rect.y += 1
             widget.SetRect(rect)
 
-        _fix_widget(self.mem_widget, self.STATUSBAR_FIELDS.ram)
-        _fix_widget(self.cpu_widget, self.STATUSBAR_FIELDS.cpu)
-        _fix_widget(self.queue_widget, self.STATUSBAR_FIELDS.queue)
+        _fix_widget(self.mem_widget, self.STATUSBAR_FIELDS.ram.pos)
+        _fix_widget(self.cpu_widget, self.STATUSBAR_FIELDS.cpu.pos)
+        _fix_widget(self.queue_widget, self.STATUSBAR_FIELDS.queue.pos)
         self._size_changed = False
 
     def update_interval(self, interval: int):
@@ -281,7 +292,7 @@ class Statusbar(wx.StatusBar):
         self.parent.SetCursor(cursor)
         self.SetStatusText(mode, self.STATUSBAR_FIELDS.action)
 
-    def on_motion(self, x_pos, y_pos, plot_name, plot_id):
+    def on_motion(self, x_pos: float, y_pos: float, plot_name: str, plot_id: str):
         """Updates the x/y values shown in the window based on where in the plot area the mouse is found
 
         Parameters
@@ -291,7 +302,7 @@ class Statusbar(wx.StatusBar):
         y_pos : float
             y-axis position of the mouse in the plot area
         plot_name : str
-            name of the plot from where the action is taking place
+            plot name
         plot_id : str
             unique id for particular plotting window
         """

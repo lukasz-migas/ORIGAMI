@@ -12,6 +12,9 @@ from ctypes import c_char_p
 from ctypes import c_void_p
 
 MODULE_PATH = os.path.dirname(__file__)
+if hasattr(os, "add_dll_directory"):
+    os.add_dll_directory(MODULE_PATH)
+
 sys.path.append(MODULE_PATH)
 sys.path.append(os.path.join(MODULE_PATH, r"MassLynxRaw.dll"))
 sys.path.append(os.path.join(MODULE_PATH, r"MassLynxRaw.lib"))

@@ -270,6 +270,11 @@ class DataHandling(LoadHandler, ExportHandler, ProcessHandler):
         self.on_setup_basic_document(ENV.load(path))
         pub.sendMessage("file.recent.add", action="origami.document", path=path)
 
+    def on_create_blank_file(self, _evt):
+        """Create a blank file"""
+        print("CREATE BLANK FILE")
+        raise NotImplementedError("Must implement method")
+
     def on_show_tandem_scan(self, scan_data):
         """Displays scan data in the viewer"""
         if scan_data is None:
