@@ -9,7 +9,7 @@ import sys
 import argparse
 
 # Local imports
-from origami.utils.version import __version__
+from origami import __version__
 
 __author__ = "Lukasz G. Migas (l.g.migas@tudelft.nl)"
 

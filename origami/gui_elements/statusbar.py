@@ -11,6 +11,8 @@ from origami.gui_elements.helpers import set_tooltip
 
 
 class StatusbarField:
+    """Status bar field"""
+
     def __init__(self, pos, size):
         self.pos = pos
         self.size = size
@@ -290,7 +292,7 @@ class Statusbar(wx.StatusBar):
 
         self.parent.mode = mode
         self.parent.SetCursor(cursor)
-        self.SetStatusText(mode, self.STATUSBAR_FIELDS.action)
+        self.SetStatusText(mode, self.STATUSBAR_FIELDS.action.pos)
 
     def on_motion(self, x_pos: float, y_pos: float, plot_name: str, plot_id: str):
         """Updates the x/y values shown in the window based on where in the plot area the mouse is found
@@ -314,14 +316,14 @@ class Statusbar(wx.StatusBar):
             msg = ""
         else:
             msg = "x={:.4f} y={:.4f}".format(x_pos, y_pos)
-        self.SetStatusText(msg, self.STATUSBAR_FIELDS.xy)
+        self.SetStatusText(msg, self.STATUSBAR_FIELDS.xy.pos)
 
     def motion_range(self, xmin, xmax, ymin, ymax):
         """Change motion information"""
         msg = ""
         if self.parent.mode == "Add data":
             msg = f"X={xmin:.3f}:{xmax:.3f} | Y={ymin:.3f}:{ymax:.3f}"
-        self.SetStatusText(msg, self.STATUSBAR_FIELDS.status)
+        self.SetStatusText(msg, self.STATUSBAR_FIELDS.status.pos)
 
 
 class TestCustomStatusBar(wx.Frame):

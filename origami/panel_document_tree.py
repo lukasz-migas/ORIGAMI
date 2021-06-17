@@ -12,7 +12,16 @@ import wx
 from pubsub import pub
 
 # Local imports
-from origami.ids import ID_saveData_csv
+from origami.ids import (
+    ID_saveData_csv,
+    ID_xlabel_DTMS_actVolt,
+    ID_xlabel_DTMS_colVolt,
+    ID_xlabel_DTMS_custom,
+    ID_xlabel_DTMS_restore,
+    ID_xlabel_DTMS_retTime_min,
+    ID_xlabel_DTMS_scans,
+    ID_xlabel_DTMS_time_min,
+)
 from origami.ids import ID_saveData_hdf
 from origami.ids import ID_xlabel_1D_ms
 from origami.ids import ID_ylabel_2D_ms
@@ -545,6 +554,9 @@ class DocumentTree(wx.TreeCtrl):
         # DT/MS
         for yID in [ID_ylabel_DTMS_bins, ID_ylabel_DTMS_ms, ID_ylabel_DTMS_ms_arrival, ID_ylabel_DTMS_restore]:
             self.Bind(wx.EVT_MENU, self.on_change_y_values_and_labels, id=yID)
+
+        # for yID in [ID_ylabel_DTMS_bins, ID_ylabel_DTMS_ms, ID_ylabel_DTMS_ms_arrival, ID_ylabel_DTMS_restore]:
+        #     self.Bind(wx.EVT_MENU, self.on_change_y_values_and_labels, id=yID)
 
     def _get_item_info(self):
         """Retrieve information about object"""
@@ -1106,14 +1118,21 @@ class DocumentTree(wx.TreeCtrl):
 
     def on_check_xlabels_dtms(self):
         """Check labels of the DT/MS dataset"""
-        _, ylabel = self._get_item_label(y=True)
+        xlabel_evt_dict = {
+            "Scans": ID_xlabel_DTMS_scans,
+            "Time (mins)": ID_xlabel_DTMS_time_min,
+            "Retention time (mins)": ID_xlabel_DTMS_retTime_min,
+            "Collision Voltage (V)": ID_xlabel_DTMS_colVolt,
+            "Activation Voltage (V)": ID_xlabel_DTMS_actVolt,
+        }
         ylabel_evt_dict = {
             "Drift time (bins)": ID_ylabel_DTMS_bins,
             "Drift time (ms)": ID_ylabel_DTMS_ms,
             "Arrival time (ms)": ID_ylabel_DTMS_ms_arrival,
         }
+        xlabel, ylabel = self._get_item_label(x=True, y=True)
 
-        return ylabel_evt_dict.get(ylabel, ID_ylabel_DTMS_bins)
+        return xlabel_evt_dict.get(xlabel, ID_xlabel_DTMS_custom), ylabel_evt_dict.get(ylabel, ID_ylabel_DTMS_bins)
 
     def on_change_charge_state(self, evt):
         """Change charge state for item in the document tree
@@ -1559,6 +1578,17 @@ class DocumentTree(wx.TreeCtrl):
         return menu_xlabel, menu_ylabel
 
     def _get_menu_msdt_label(self):
+        # Change x-axis label (2D)
+        menu_xlabel = wx.Menu()
+        menu_xlabel.Append(ID_xlabel_DTMS_scans, "Scans", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_DTMS_time_min, "Time (mins)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_DTMS_retTime_min, "Retention time (mins)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_DTMS_colVolt, "Collision Voltage (V)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_DTMS_actVolt, "Activation Energy (V)", "", wx.ITEM_RADIO)
+        menu_xlabel.Append(ID_xlabel_DTMS_custom, "Custom label...", "", wx.ITEM_RADIO)
+        menu_xlabel.AppendSeparator()
+        menu_xlabel.Append(ID_xlabel_DTMS_restore, "Restore default", "")
+
         # change y-axis label (DT/MS)
         menu_ylabel = wx.Menu()
         menu_ylabel.Append(ID_ylabel_DTMS_bins, "Drift time (bins)", "", wx.ITEM_RADIO)
@@ -1570,10 +1600,11 @@ class DocumentTree(wx.TreeCtrl):
         # bind events
         if self._item.is_match("msdt"):
             try:
-                item_id = self.on_check_xlabels_dtms()
-                menu_ylabel.FindItemById(item_id).Check(True)
+                item_id_x, item_id_y = self.on_check_xlabels_dtms()
+                menu_xlabel.FindItemById(item_id_x).Check(True)
+                menu_ylabel.FindItemById(item_id_y).Check(True)
             except (UnboundLocalError, TypeError, KeyError):
-                LOGGER.warning(f"Failed to setup labels for `{self._item.current}` item`")
+                LOGGER.warning(f"Failed to setup x/y labels for `{self._item.current}` item`")
 
         return menu_ylabel
 
@@ -2018,8 +2049,8 @@ class DocumentTree(wx.TreeCtrl):
             menu.Append(menu_action_assign_charge)
             menu.Append(menu_action_assign_mz)
             menu.Append(menu_action_process_as_origami)
-            menu.Append(menu_action_process_ccs)
             menu.Append(wx.ID_ANY, "Set X-axis label as...", menu_xlabel)
+            menu.Append(menu_action_process_ccs)
             menu.Append(wx.ID_ANY, "Set Y-axis label as...", menu_ylabel)
             menu.AppendSeparator()
             menu.Append(menu_action_save_heatmap_image_as)
@@ -2052,6 +2083,10 @@ class DocumentTree(wx.TreeCtrl):
 
         menu_action_delete_item = make_menu_item(parent=menu, text="Delete item\tDelete", bitmap=self._icons.delete)
         self.Bind(wx.EVT_MENU, self.on_delete_item, menu_action_delete_item)
+        menu_action_process_as_origami = make_menu_item(
+            parent=menu, text="Apply ORIGAMI-MS parameters", bitmap=self._icons.sum
+        )
+        self.Bind(wx.EVT_MENU, self.on_apply_origami_ms, menu_action_process_as_origami)
 
         # export actions
         menu_action_save_image_as = make_menu_item(parent=menu, text="Save image as...", bitmap=self._icons.png)
@@ -2090,6 +2125,7 @@ class DocumentTree(wx.TreeCtrl):
             menu.AppendSeparator()
             self._set_menu_annotations(menu)
             menu.AppendSeparator()
+            menu.Append(menu_action_process_as_origami)
             menu.Append(wx.ID_ANY, "Set Y-axis label as...", menu_ylabel)
             menu.AppendSeparator()
             menu.Append(menu_action_save_image_as)

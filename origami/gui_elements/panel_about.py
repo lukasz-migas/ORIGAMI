@@ -54,7 +54,6 @@ class PanelAbout(wx.MiniFrame):
         panel = wx.Panel(self, wx.ID_ANY)
 
         image = wx.StaticBitmap(panel, wx.ID_ANY, self.images.logo)
-        print(dir(image))
 
         version_label = "Version %s" % CONFIG.version
         version = wx.StaticText(panel, wx.ID_ANY, version_label, style=wx.ALIGN_CENTRE)
