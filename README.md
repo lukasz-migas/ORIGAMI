@@ -1,4 +1,5 @@
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/5e34fc0f45a54ffda436626cb187b5cd)](https://app.codacy.com/app/lukasz-migas/ORIGAMI?utm_source=github.com&utm_medium=referral&utm_content=lukasz-migas/ORIGAMI&utm_campaign=Badge_Grade_Dashboard)
 [![Netlify Status](https://api.netlify.com/api/v1/badges/00205444-c38d-4974-92a5-e4c543507157/deploy-status)](https://app.netlify.com/sites/origami/deploys)
 
 <p align="center">
