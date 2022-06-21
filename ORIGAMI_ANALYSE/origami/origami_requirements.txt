@@ -25,7 +25,7 @@ matplotlib==2.2.4
 multiplierz==2.0.14
 natsort==6.0.0
 nbformat==4.4.0
-numpy==1.16.2+mkl
+numpy==1.22.0rc1
 openpyxl==2.6.1
 packaging==19.0
 pandas==0.24.1
